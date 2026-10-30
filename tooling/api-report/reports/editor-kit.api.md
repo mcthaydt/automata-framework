@@ -2506,6 +2506,8 @@ interface ChangeSet {
         readonly pr?: string | undefined;
         readonly compareUrl: string;
     }>;
+    spend(tokens: number): Promise<void>;
+    raiseCap(cap: number): Promise<void>;
     close(): Promise<void>;
     list(): Promise<readonly ChangeSetSummary[]>;
 }
@@ -2614,6 +2616,12 @@ type ContributionPoint = 'tuner.source' | 'audio.panel';
 function defineSuiteEditor<S>(editor: SuiteEditor<S>): SuiteEditor<S>;
 ```
 
+### `EditMode` (type)
+
+```ts
+type EditMode = 'edit' | 'ask';
+```
+
 ### `Gates` (interface)
 
 ```ts
@@ -2700,6 +2708,17 @@ interface SuiteWorkspace {
 }
 ```
 
+### `UnlistedFile` (interface)
+
+```ts
+interface UnlistedFile {
+    readonly path: string;
+    readonly editor?: undefined;
+    readonly writable: false;
+    readonly why: string;
+}
+```
+
 ### `WorkspaceFile` (interface)
 
 ```ts
@@ -2709,7 +2728,7 @@ interface WorkspaceFile {
     readonly scene?: string | undefined;
     readonly gates: readonly string[];
     readonly checks: readonly string[];
-    readonly modes: readonly ('edit' | 'ask')[];
+    readonly modes: readonly EditMode[];
     readonly writable: boolean;
     readonly why?: string | undefined;
 }
@@ -2720,7 +2739,9 @@ interface WorkspaceFile {
 ### `AskScript` (type)
 
 ```ts
-type AskScript = (request: AskRequest) => Proposal | Error;
+type AskScript = (request: AskRequest, client: {
+    readonly maxOutputTokens: number;
+}) => Proposal | Error;
 ```
 
 ### `CHECK_FINDING` (const)
@@ -2786,8 +2807,8 @@ function createMemoryWorkspace(options: MemoryWorkspaceOptions): Promise<SuiteWo
 ### `createScriptedAsk` (function)
 
 ```ts
-function createScriptedAsk(respond: (request: AskRequest) => Promise<Proposal> | Proposal, options?: {
-    readonly onTokens?: ((tokens: number) => void) | undefined;
+function createScriptedAsk(respond: (request: AskRequest, limits: AskClientLimits) => Promise<Proposal> | Proposal, options?: {
+    readonly changeSet?: Pick<ChangeSet, 'current' | 'spend'> | undefined;
 }): ScriptedAsk;
 ```
 
@@ -2800,7 +2821,7 @@ function describeAskProvider(name: string, make: (script: AskScript) => Promise<
 ### `describeChangeSet` (function)
 
 ```ts
-function describeChangeSet(name: string, make: () => Promise<ChangeSet> | ChangeSet): void;
+function describeChangeSet(name: string, make: () => Promise<ChangeSetProject> | ChangeSetProject): void;
 ```
 
 ### `describeChecksRunner` (function)
@@ -2849,7 +2870,6 @@ interface MemoryChangeSet extends ChangeSet {
     noteCreated(path: string): void;
     noteRemoved(path: string): void;
     created(path: string): boolean;
-    noteTokens(tokens: number): void;
 }
 ```
 
@@ -2893,12 +2913,12 @@ interface MemoryPorts {
 ```ts
 interface MemoryPortsOptions {
     readonly files?: Readonly<Record<string, string>> | undefined;
-    readonly rows: readonly WorkspaceFile[];
-    readonly generated?: readonly string[] | undefined;
+    readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
+    readonly generated?: ((path: string) => boolean) | undefined;
     readonly store?: ProjectStore | undefined;
     readonly checks?: readonly MemoryCheck[] | undefined;
     readonly gates?: GateRecords | 'unreadable' | undefined;
-    readonly ask?: ((request: AskRequest) => Promise<Proposal> | Proposal) | undefined;
+    readonly ask?: ((request: AskRequest, limits: AskClientLimits) => Promise<Proposal> | Proposal) | undefined;
     readonly changeSet?: MemoryChangeSetOptions | false | undefined;
 }
 ```
@@ -2908,8 +2928,8 @@ interface MemoryPortsOptions {
 ```ts
 interface MemoryWorkspaceOptions {
     readonly files?: Readonly<Record<string, string>> | undefined;
-    readonly rows: readonly WorkspaceFile[];
-    readonly generated?: readonly string[] | undefined;
+    readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
+    readonly generated?: ((path: string) => boolean) | undefined;
     readonly changeSet?: Pick<MemoryChangeSet, 'noteCreated' | 'noteRemoved' | 'created'> | undefined;
     readonly store?: ProjectStore | undefined;
 }
@@ -2943,8 +2963,6 @@ const WORKSPACE_SCENARIO: WorkspaceScenario;
 ```ts
 interface WorkspaceScenario {
     readonly files: Readonly<Record<string, string>>;
-    readonly rows: readonly WorkspaceFile[];
-    readonly generated: readonly string[];
 }
 ```
 

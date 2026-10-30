@@ -8,7 +8,8 @@ export function createMemoryGates(records: GateRecords | 'unreadable'): Gates {
     async states(ids): Promise<GateState[]> {
       if (records === 'unreadable') throw new Error('the gate records cannot be read')
       return ids.map((id) => {
-        const record = records[id]
+        // Own keys only: an id such as `constructor` or `toString` is a gate with no record, not a prototype member.
+        const record = Object.hasOwn(records, id) ? records[id] : undefined
         return record === undefined ? { id, name: id, decision: 'unknown' } : { id, ...record }
       })
     },

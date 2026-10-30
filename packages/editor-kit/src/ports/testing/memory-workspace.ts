@@ -1,19 +1,21 @@
-// The in-memory suite workspace (editor suite spec §4.3): a kit memory store behind resolved editor-list rows. It takes
-// the rows already resolved per path (`WorkspaceFile`), so the list's globs, `never` and `generated` stay the
-// policy's (EDS.1c) and are never copied here: a path with no row is refused, a read-only row is refused with its
-// reason, and `remove` takes only a file the open change set created.
+// The in-memory suite workspace (editor suite spec §4.3): a kit memory store behind the editor list's policy. The
+// policy comes in as functions (editor-suite's `workspaceFile` bound to a loaded list, in the suite and in the
+// contract run), so the list's globs, `never` and `generated` have one owner (EDS.1c) and are never copied here: a
+// path no row matches is refused, a read-only file is refused with its reason, a path outside the root reads as
+// nothing, and `remove` takes only a file the open change set created.
 import { createMemoryStore } from '../../storage/memory-store'
 import { type ProjectStore, statPath, type WriteResult } from '../../storage/project-store'
-import type { SuiteWorkspace, WorkspaceFile } from '../suite-ports'
+import { assertStorePath } from '../../storage/store-path'
+import type { SuiteWorkspace, UnlistedFile, WorkspaceFile } from '../suite-ports'
 import type { MemoryChangeSet } from './memory-change-set'
 
 export interface MemoryWorkspaceOptions {
   /** The files present at the start, by path. */
   readonly files?: Readonly<Record<string, string>> | undefined
-  /** The editor list's rows, one per path. */
-  readonly rows: readonly WorkspaceFile[]
-  /** The compiler outputs `generated` reads (they are files in the store too). */
-  readonly generated?: readonly string[] | undefined
+  /** How the editor list classes a path: a row's file (writable or read only), or no row with the reason. */
+  readonly classify: (path: string) => WorkspaceFile | UnlistedFile
+  /** Whether a path is a compiler output, which `generated` reads (it is a file in the store too). */
+  readonly generated?: ((path: string) => boolean) | undefined
   /** The change set whose journal records what this workspace creates; without one, nothing can be removed. */
   readonly changeSet?: Pick<MemoryChangeSet, 'noteCreated' | 'noteRemoved' | 'created'> | undefined
   /** The store underneath (default: a fresh memory store). */
@@ -26,38 +28,47 @@ const refused = (message: string): WriteResult => ({ ok: false, reason: 'policy'
 
 export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Promise<SuiteWorkspace> {
   const store = options.store ?? createMemoryStore()
-  const rows = new Map(options.rows.map((row) => [row.path, row]))
-  const generated = new Set(options.generated ?? [])
-  const { changeSet } = options
+  const { classify, changeSet } = options
+  const isGenerated = options.generated ?? (() => false)
   for (const [path, text] of Object.entries(options.files ?? {})) await store.write(path, text)
 
+  /** Inside the root: relative, `/`-separated, no empty, `.` or `..` segment, no backslash (the store's own rule). */
+  const insideRoot = (path: string): boolean => {
+    try {
+      assertStorePath(path)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   const readText = async (path: string): Promise<string | undefined> => {
+    if (!insideRoot(path)) return undefined
     const bytes = await store.read(path)
     return bytes === undefined ? undefined : decoder.decode(bytes)
   }
 
   /** Why the rules refuse a write to `path`, or `undefined` when they allow it. */
   const writeRefusal = (path: string): string | undefined => {
-    const row = rows.get(path)
-    if (row === undefined)
-      return `${path}: no row of the editor list matches it, so the suite does not write it`
-    if (!row.writable) return `${path} is read only: ${row.why ?? 'its row does not allow writes'}`
-    return undefined
+    if (!insideRoot(path)) return `${path} is not a path inside the game root`
+    const file = classify(path)
+    return file.writable ? undefined : `${path} is read only: ${file.why ?? 'its row does not allow writes'}`
   }
 
   return {
     async files(editor, scene) {
       const entries = await store.list()
       return entries.flatMap(({ path }) => {
-        const row = rows.get(path)
-        if (row === undefined) return []
-        if (editor !== undefined && row.editor !== editor) return []
-        if (scene !== undefined && row.scene !== scene) return []
-        return [row]
+        const file = classify(path)
+        if (file.editor === undefined) return []
+        if (editor !== undefined && file.editor !== editor) return []
+        if (scene !== undefined && file.scene !== scene) return []
+        return [file]
       })
     },
 
     async read(path) {
+      if (!insideRoot(path)) return undefined
       const entry = await statPath(store, path)
       const text = await readText(path)
       return entry === undefined || text === undefined ? undefined : { text, mtime: entry.mtime }
@@ -72,6 +83,7 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
     },
 
     async remove(path, expected) {
+      if (!insideRoot(path)) return refused(`${path} is not a path inside the game root`)
       if (changeSet?.created(path) !== true)
         return refused(`${path} was not created by this change set, so the suite does not remove it`)
       const entry = await statPath(store, path)
@@ -86,7 +98,7 @@ export async function createMemoryWorkspace(options: MemoryWorkspaceOptions): Pr
     },
 
     async generated(path) {
-      return generated.has(path) ? readText(path) : undefined
+      return insideRoot(path) && isGenerated(path) ? readText(path) : undefined
     },
   }
 }

@@ -15,6 +15,9 @@ export interface SuitePorts {
   readonly ask?: AskProvider | undefined
 }
 
+/** `edit`: direct value and structure edits; `ask`: the assistant may propose a diff (an editor-list row's `modes`). */
+export type EditMode = 'edit' | 'ask'
+
 /** One file of the game as the editor list sees it: which editor edits it, under which rules. */
 export interface WorkspaceFile {
   /** Relative to the game's root, `/`-separated. */
@@ -28,11 +31,19 @@ export interface WorkspaceFile {
   /** The check ids the row names, `content` included when it is listed. */
   readonly checks: readonly string[]
   /** `edit`: direct edits; `ask`: the assistant may propose a diff. */
-  readonly modes: readonly ('edit' | 'ask')[]
+  readonly modes: readonly EditMode[]
   /** False for a file the editor may show but never write (a generated or `never` path). */
   readonly writable: boolean
   /** Why the file is not writable, for the person. */
   readonly why?: string | undefined
+}
+
+/** A path no row of the editor list matches (or one outside the game root): no editor, read only, with the reason. */
+export interface UnlistedFile {
+  readonly path: string
+  readonly editor?: undefined
+  readonly writable: false
+  readonly why: string
 }
 
 /**
@@ -40,9 +51,15 @@ export interface WorkspaceFile {
  * A write the rules refuse is `{ ok: false, reason: 'policy' }`, with the rule in the message.
  */
 export interface SuiteWorkspace {
-  /** The files rows of the editor list match, sorted by path; only `editor`'s, or only `scene`'s, when given. */
+  /**
+   * The files rows of the editor list match, sorted by path; only `editor`'s, or only `scene`'s, when given. A generated
+   * or `never` file a row also matches is listed under that row's editor, read only with the reason.
+   */
   files(editor?: string, scene?: string): Promise<WorkspaceFile[]>
-  /** Any file's text and mtime, or `undefined` when there is none. Reading is never refused by the rules. */
+  /**
+   * The text and mtime of any file inside the game root, listed or not (the rules refuse writes, not reads); `undefined`
+   * when there is no such file, or the path is outside the root (absolute, `..`, a backslash).
+   */
   read(path: string): Promise<{ readonly text: string; readonly mtime: number } | undefined>
   /**
    * Writes a file a writable row matches. `{ mtime }`: the file must still read so (a `conflict` otherwise);
@@ -72,7 +89,18 @@ export interface ChangeSet {
     readonly pr?: string | undefined
     readonly compareUrl: string
   }>
-  /** Closes it and goes back to the base. */
+  /**
+   * Records `tokens` the assistant used against the open change set; rejects when none is open, or for a count that is
+   * not a whole number of zero or more. The suite records each proposal's use, rejected or accepted (§4.3).
+   */
+  spend(tokens: number): Promise<void>
+  /** Raises the open change set's token cap; only the person does this. Rejects a cap that is not above the current. */
+  raiseCap(cap: number): Promise<void>
+  /**
+   * Closes it and goes back to the base; it then leaves `list()`. Rejects, closing nothing, while a recorded file has
+   * changes no checkpoint holds ("checkpoint them first"), so a close never carries edits to the base or drops them.
+   * With nothing open it does nothing.
+   */
   close(): Promise<void>
   /** The open change sets, from the adapter's journal (§4.5): the Review desk. */
   list(): Promise<readonly ChangeSetSummary[]>
@@ -126,6 +154,10 @@ export interface CheckRun {
 
 export interface CheckFinding {
   readonly path?: string | undefined
+  /**
+   * Where in the file, as the check printed it (`MAX_MOVE_SPEED`, `file.0.gates`): a game's check is an outside command,
+   * so this is its own text; the suite's Locate turns it into a documents `KeyPath` when it can.
+   */
   readonly keyPath?: string | undefined
   readonly line?: number | undefined
   readonly column?: number | undefined

@@ -2,20 +2,50 @@ import { describe, expect, test } from 'vitest'
 import type { ChangeSet } from '../suite-ports'
 
 /**
- * What every `ChangeSet` promises (editor suite spec §4.3, §4.5; The Last Light's `ChangeSets` at `92e6704`), run
- * against the in-memory fake and, in EDS.1d, the git adapter. `make` gives a fresh project with nothing open, whose
- * Ship can push (a local bare remote for the git adapter).
+ * A fresh project with nothing open, and a way to change one of its files as the workspace would (the git adapter
+ * writes the file in the checkout; the memory fake has no files and does nothing). The git adapter's project is a
+ * clean checkout on a base branch, with a remote Ship can push to (a local bare one).
  */
-export function describeChangeSet(name: string, make: () => Promise<ChangeSet> | ChangeSet): void {
+export interface ChangeSetProject {
+  readonly changeSet: ChangeSet
+  edit(path: string, text: string): Promise<void>
+}
+
+/**
+ * What every `ChangeSet` promises (editor suite spec §4.3, §4.5; The Last Light's `ChangeSets` at `92e6704`), run
+ * against the in-memory fake and, in EDS.1d, the git adapter. The cases only change files through `edit` and then
+ * `record` them, as the suite does, so they hold for an adapter that reads the checkout. What EDS.1d must do:
+ *
+ * - `close()` with a recorded file that has changes no checkpoint holds rejects and keeps the branch (The Last Light
+ *   refuses to close over uncommitted changes); after a checkpoint it goes back to the base and the change set leaves
+ *   `list()` (its journal under `.git/automata-editor/` is removed or marked closed). With nothing open it does nothing.
+ * - `checkpoint` commits only the recorded files; one with nothing new returns the last commit (HEAD).
+ * - `spend` and `raiseCap` write the journal, so `list()` shows them on every device of that checkout.
+ */
+export function describeChangeSet(
+  name: string,
+  make: () => Promise<ChangeSetProject> | ChangeSetProject,
+): void {
   describe(`ChangeSet contract: ${name}`, () => {
+    const TUNING = 'content/tuning.toml'
+
+    /** Opens a change set with one recorded edit of the tuning file. */
+    async function withEdit(title = 'Faster'): Promise<ChangeSetProject> {
+      const project = await make()
+      await project.changeSet.begin(title)
+      await project.edit(TUNING, 'MAX_MOVE_SPEED = 7.5\n')
+      await project.changeSet.record([TUNING])
+      return project
+    }
+
     test('nothing is open at first, and the Review desk lists nothing', async () => {
-      const changeSet = await make()
+      const { changeSet } = await make()
       expect(await changeSet.current()).toBeUndefined()
       expect(await changeSet.list()).toEqual([])
     })
 
     test('begin opens one: its title, a branch named from it, and the base it started from', async () => {
-      const changeSet = await make()
+      const { changeSet } = await make()
       await changeSet.begin('Bay: arrival timing')
       const current = await changeSet.current()
       expect(current?.title).toBe('Bay: arrival timing')
@@ -25,35 +55,36 @@ export function describeChangeSet(name: string, make: () => Promise<ChangeSet> |
     })
 
     test('begin while one is open rejects, and the open one stays', async () => {
-      const changeSet = await make()
+      const { changeSet } = await make()
       await changeSet.begin('First')
       await expect(changeSet.begin('Second')).rejects.toThrow(/open/)
       expect((await changeSet.current())?.title).toBe('First')
     })
 
     test('a title that gives no branch name rejects, and nothing opens', async () => {
-      const changeSet = await make()
+      const { changeSet } = await make()
       await expect(changeSet.begin('!!!')).rejects.toThrow()
       expect(await changeSet.current()).toBeUndefined()
     })
 
-    test('record, checkpoint and ship reject with nothing open', async () => {
-      const changeSet = await make()
-      await expect(changeSet.record(['content/tuning.toml'])).rejects.toThrow()
+    test('record, checkpoint, ship, spend and raiseCap reject with nothing open', async () => {
+      const { changeSet } = await make()
+      await expect(changeSet.record([TUNING])).rejects.toThrow()
       await expect(changeSet.checkpoint('nothing')).rejects.toThrow()
       await expect(changeSet.ship({ title: 'x', body: '' })).rejects.toThrow()
+      await expect(changeSet.spend(10)).rejects.toThrow()
+      await expect(changeSet.raiseCap(1_000_000)).rejects.toThrow()
     })
 
     test('recorded files are listed once each, sorted, with the tokens it has used and its cap', async () => {
-      const changeSet = await make()
-      await changeSet.begin('Faster')
-      await changeSet.record(['content/tuning.toml', 'content/feel/juice.toml'])
-      await changeSet.record(['content/tuning.toml'])
+      const { changeSet, edit } = await withEdit()
+      await edit('content/feel/juice.toml', 'shake = 0.2\n')
+      await changeSet.record(['content/feel/juice.toml', TUNING])
       const [summary, ...rest] = await changeSet.list()
       expect(rest).toEqual([])
       expect(summary).toMatchObject({
         title: 'Faster',
-        files: ['content/feel/juice.toml', 'content/tuning.toml'],
+        files: ['content/feel/juice.toml', TUNING],
         created: [],
         tokens: { used: 0 },
       })
@@ -61,20 +92,36 @@ export function describeChangeSet(name: string, make: () => Promise<ChangeSet> |
       expect(summary?.tokens.cap).toBeGreaterThan(0)
     })
 
+    test('spend adds what a proposal used, kept or not; a count that is not a whole number of zero or more rejects', async () => {
+      const { changeSet } = await withEdit()
+      await changeSet.spend(312)
+      await changeSet.spend(0)
+      await changeSet.spend(88)
+      await expect(changeSet.spend(-1)).rejects.toThrow()
+      await expect(changeSet.spend(1.5)).rejects.toThrow()
+      expect((await changeSet.list())[0]?.tokens.used).toBe(400)
+    })
+
+    test('raiseCap only raises the cap; a cap not above the current one rejects and changes nothing', async () => {
+      const { changeSet } = await withEdit()
+      const cap = (await changeSet.list())[0]?.tokens.cap ?? 0
+      await expect(changeSet.raiseCap(cap)).rejects.toThrow()
+      await expect(changeSet.raiseCap(cap - 1)).rejects.toThrow()
+      expect((await changeSet.list())[0]?.tokens.cap).toBe(cap)
+      await changeSet.raiseCap(cap + 50_000)
+      expect((await changeSet.list())[0]?.tokens.cap).toBe(cap + 50_000)
+    })
+
     test('a checkpoint gives a commit; one with nothing recorded since gives the same commit again', async () => {
-      const changeSet = await make()
-      await changeSet.begin('Faster')
-      await changeSet.record(['content/tuning.toml'])
+      const { changeSet } = await withEdit()
       const { commit } = await changeSet.checkpoint('MAX_MOVE_SPEED 6 to 7.5')
       expect(commit.length).toBeGreaterThan(0)
       expect((await changeSet.checkpoint('nothing new')).commit).toBe(commit)
     })
 
     test('ship pushes the branch, gives a compare link, and leaves the change set open', async () => {
-      const changeSet = await make()
-      await changeSet.begin('Faster')
-      await changeSet.record(['content/tuning.toml'])
-      const branch = (await changeSet.current())?.branch
+      const { changeSet } = await withEdit()
+      const branch = (await changeSet.current())?.branch ?? ''
       const shipped = await changeSet.ship({ title: 'Tuning: faster', body: 'MAX_MOVE_SPEED 6 to 7.5.' })
       expect(shipped.branch).toBe(branch)
       expect(shipped.pushed).toBe(true)
@@ -82,15 +129,26 @@ export function describeChangeSet(name: string, make: () => Promise<ChangeSet> |
       expect((await changeSet.current())?.branch).toBe(branch)
     })
 
-    test('close ends it: nothing is open or listed, and a new one can begin', async () => {
-      const changeSet = await make()
-      await changeSet.begin('Faster')
-      await changeSet.record(['content/tuning.toml'])
+    test('close refuses while a recorded edit has no checkpoint, and the change set stays open', async () => {
+      const { changeSet } = await withEdit()
+      await expect(changeSet.close()).rejects.toThrow(/checkpoint/)
+      expect((await changeSet.current())?.title).toBe('Faster')
+    })
+
+    test('close after a checkpoint ends it: nothing is open or listed, and a new one can begin', async () => {
+      const { changeSet } = await withEdit()
+      await changeSet.checkpoint('MAX_MOVE_SPEED 6 to 7.5')
       await changeSet.close()
       expect(await changeSet.current()).toBeUndefined()
       expect(await changeSet.list()).toEqual([])
       await changeSet.begin('Slower')
-      expect((await changeSet.list())[0]).toMatchObject({ title: 'Slower', files: [] })
+      expect((await changeSet.list())[0]).toMatchObject({ title: 'Slower', files: [], tokens: { used: 0 } })
+    })
+
+    test('close with nothing open does nothing', async () => {
+      const { changeSet } = await make()
+      await expect(changeSet.close()).resolves.toBeUndefined()
+      expect(await changeSet.current()).toBeUndefined()
     })
   })
 }

@@ -45,6 +45,14 @@ export function describeGates(
       expect(await gates.states([])).toEqual([])
     })
 
+    test('an id that names an object member (constructor, toString) is a gate with no record', async () => {
+      const gates = await make(GATES_SCENARIO)
+      expect(await gates.states(['constructor', 'toString'])).toEqual([
+        { id: 'constructor', name: 'constructor', decision: 'unknown' },
+        { id: 'toString', name: 'toString', decision: 'unknown' },
+      ])
+    })
+
     test('records that cannot be read reject, so the pill can say "Gates not readable"', async () => {
       const gates = await make('unreadable')
       await expect(gates.states(['P-G1'])).rejects.toThrow()

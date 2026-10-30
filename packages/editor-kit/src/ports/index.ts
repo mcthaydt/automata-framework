@@ -18,10 +18,12 @@ export type {
   CheckResult,
   CheckRun,
   ChecksRunner,
+  EditMode,
   GateState,
   Gates,
   Proposal,
   SuitePorts,
   SuiteWorkspace,
+  UnlistedFile,
   WorkspaceFile,
 } from './suite-ports'

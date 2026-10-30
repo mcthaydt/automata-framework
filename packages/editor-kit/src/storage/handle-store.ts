@@ -165,11 +165,9 @@ export function createHandleStore(root: DirectoryLike, options: HandleStoreOptio
           // A write that expects an mtime needs the file, so it never makes the folders; the others may create them.
           const dir = await directory(segments, expected === undefined || expected === 'absent')
           const existing = dir === undefined ? undefined : await existingFile(dir, name)
-          const current =
-            existing === undefined || expected === undefined
-              ? undefined
-              : (await existing.getFile()).lastModified
-          const problem = expectationProblem(expected, current)
+          // What the file is now, for every write (EDK.6a's version tracker observes here too), then the guard.
+          const before = existing === undefined ? undefined : (await existing.getFile()).lastModified
+          const problem = expectationProblem(expected, before)
           if (problem !== undefined)
             return { ok: false, reason: 'conflict', message: problem } satisfies WriteResult
           const target = dir ?? root

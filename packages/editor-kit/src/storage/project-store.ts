@@ -76,6 +76,9 @@ export interface ProjectStore {
    * Replaces the file. With `expected`, the write happens only if the file still has that `mtime` (a missing file
    * never does), otherwise it is a `conflict` and nothing changes, so a hand edit is never overwritten silently.
    * With `'absent'` it happens only if there is no such file yet (a new file never replaces one); otherwise `conflict`.
+   * Either check and the write are two steps in the browser stores, so another tab could slip between them (two tabs
+   * creating one new file, both seeing it absent, the second replacing the first); one editor tab per project is the
+   * supported setup, as for the mtime guard.
    */
   write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>
   /** Deletes the file; a file that is not there is not an error. */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from './editor-list'
 import type { EditorList } from './editors.schema'
-import { fileAccess } from './workspace-policy'
+import { fileAccess, workspaceFile } from './workspace-policy'
 
 function list(toml: string): EditorList {
   const load = loadEditorList(`format = "af-editors/1"\n${toml}`)
@@ -154,5 +154,60 @@ checks = []
     ]) {
       expect(reasonOf(path), path).toBe('outside')
     }
+  })
+
+  it('names the row a generated or never path also matches, so the editor lists it read only', () => {
+    const generated = fileAccess(GAME, 'content/generated/content.json')
+    expect(generated).toMatchObject({ writable: false, reason: 'generated' })
+    expect(!generated.writable && generated.row?.editor).toBe('tuner')
+    const never = fileAccess(GAME, 'content/editors.toml')
+    expect(!never.writable && never.row?.editor).toBe('tuner')
+    const scened = fileAccess(
+      list(
+        'generated = ["content/scenes/*/puzzle.toml"]\n[[file]]\nglob = "content/scenes/{scene}/puzzle.toml"\neditor = "schematic"\nmodes = ["edit"]\ngates = []\nchecks = []\n',
+      ),
+      'content/scenes/bay/puzzle.toml',
+    )
+    expect(!scened.writable && scened.scene).toBe('bay')
+    const unlisted = fileAccess(GAME, 'package.json')
+    expect(!unlisted.writable && unlisted.row).toBeUndefined()
+  })
+})
+
+describe('workspaceFile', () => {
+  it("is the workspace port's file: the row, its scene and whether the suite may write it", () => {
+    expect(workspaceFile(GAME, 'content/scenes/bay/puzzle.toml')).toEqual({
+      path: 'content/scenes/bay/puzzle.toml',
+      editor: 'schematic',
+      scene: 'bay',
+      gates: ['P-G1'],
+      checks: ['content'],
+      modes: ['edit', 'ask'],
+      writable: true,
+    })
+  })
+
+  it('keeps the row of a generated or never path, read only with the reason', () => {
+    expect(workspaceFile(GAME, 'content/generated/content.json')).toEqual({
+      path: 'content/generated/content.json',
+      editor: 'tuner',
+      gates: [],
+      checks: ['content'],
+      modes: ['edit'],
+      writable: false,
+      why: expect.stringContaining('generated'),
+    })
+  })
+
+  it('gives a path no row matches, or one outside the root, with no editor and the reason', () => {
+    expect(workspaceFile(GAME, 'src/main.ts')).toEqual({
+      path: 'src/main.ts',
+      writable: false,
+      why: expect.stringContaining('content/editors.toml'),
+    })
+    expect(workspaceFile(GAME, '../x')).toMatchObject({
+      writable: false,
+      why: expect.stringContaining('root'),
+    })
   })
 })

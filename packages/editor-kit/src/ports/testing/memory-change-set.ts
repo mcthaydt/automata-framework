@@ -1,6 +1,6 @@
 // The in-memory change set (editor suite spec §4.3, §4.5). It owns its journal, as every `ChangeSet` adapter does: the
-// files recorded and created and the tokens used, so the workspace and the Ask of the same suite write to it and
-// `list()` reads it. Branch names, the refusals and Ship follow The Last Light's `ChangeSets` (`92e6704`,
+// files recorded and created and the tokens spent. The workspace notes what it creates here; tokens come only through
+// `spend`, and the cap moves only through `raiseCap`; `list()` reads it all. Branch names, the refusals and Ship follow The Last Light's `ChangeSets` (`92e6704`,
 // `editor/src/server/changeset.ts`): `edit/<slug>`, one open at a time, Ship checkpoints and keeps it open.
 import type { ChangeSet, ChangeSetSummary } from '../suite-ports'
 
@@ -15,7 +15,7 @@ export interface MemoryChangeSetOptions {
   readonly gh?: boolean | undefined
 }
 
-/** The change set and the journal's other writers: the workspace's created files and the Ask's tokens. */
+/** The change set and the journal's other writer: the workspace, which notes the files it creates. */
 export interface MemoryChangeSet extends ChangeSet {
   /** The workspace created `path` (a write expecting `'absent'`); kept only while a change set is open. */
   noteCreated(path: string): void
@@ -23,8 +23,6 @@ export interface MemoryChangeSet extends ChangeSet {
   noteRemoved(path: string): void
   /** Whether the open change set created `path`. */
   created(path: string): boolean
-  /** An Ask used `tokens`; counted only while a change set is open. */
-  noteTokens(tokens: number): void
 }
 
 interface Open {
@@ -33,6 +31,7 @@ interface Open {
   readonly files: Set<string>
   readonly created: Set<string>
   tokens: number
+  cap: number
   /** Files recorded since the last checkpoint. */
   pending: boolean
   commit: string
@@ -87,6 +86,7 @@ export function createMemoryChangeSet(options: MemoryChangeSetOptions = {}): Mem
         files: new Set(),
         created: new Set(),
         tokens: 0,
+        cap,
         pending: false,
         commit: base,
       }
@@ -108,8 +108,23 @@ export function createMemoryChangeSet(options: MemoryChangeSetOptions = {}): Mem
         compareUrl: `${remote}/compare/${base}...${branch}?${query}`,
       }
     },
+    async spend(tokens) {
+      const current = required('spend tokens in')
+      if (!Number.isInteger(tokens) || tokens < 0)
+        throw new RangeError(`tokens must be a whole number of zero or more, got ${tokens}`)
+      current.tokens += tokens
+    },
+    async raiseCap(next) {
+      const current = required('raise the cap of')
+      if (!Number.isInteger(next) || next <= current.cap)
+        throw new RangeError(`the cap only goes up: ${next} is not above ${current.cap}`)
+      current.cap = next
+    },
     async close() {
-      required('close')
+      if (open === undefined) return
+      // As The Last Light's close refuses uncommitted changes: a recorded file no checkpoint holds would be lost.
+      if (open.pending)
+        throw new Error('recorded files have changes no checkpoint holds; checkpoint them first')
       open = undefined
     },
     async list(): Promise<ChangeSetSummary[]> {
@@ -121,7 +136,7 @@ export function createMemoryChangeSet(options: MemoryChangeSetOptions = {}): Mem
           base,
           files: sorted(open.files),
           created: sorted(open.created),
-          tokens: { used: open.tokens, cap },
+          tokens: { used: open.tokens, cap: open.cap },
         },
       ]
     },
@@ -133,9 +148,6 @@ export function createMemoryChangeSet(options: MemoryChangeSetOptions = {}): Mem
     },
     created(path) {
       return open?.created.has(path) ?? false
-    },
-    noteTokens(tokens) {
-      if (open !== undefined) open.tokens += tokens
     },
   }
 }

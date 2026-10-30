@@ -188,7 +188,9 @@ interface ChangeSet {                                     // supersedes editor-3
   record(files: readonly string[]): Promise<void>
   checkpoint(message: string): Promise<{ commit: string }>
   ship(draft: { title: string; body: string }): Promise<{ branch: string; pushed: boolean; pr?: string; compareUrl: string }>
-  close(): Promise<void>
+  spend(tokens: number): Promise<void>                  // EDS.1b: the suite records each proposal's tokens in the journal
+  raiseCap(cap: number): Promise<void>                  // EDS.1b: only the person raises the cap; never lowers it
+  close(): Promise<void>                                // refuses while a recorded file has changes no checkpoint holds
   list(): Promise<readonly ChangeSetSummary[]>           // the Review desk: open change sets with files, checks, gates, tokens, from the journal (§4.5)
 }
 interface ChecksRunner {                                  // supersedes editor-3d ports.ts Generator (a check with `joins`)
@@ -214,6 +216,12 @@ interface Preview { show(target: { kind: string; id: string; t?: number }): Prom
 - **Created files.** A new figure, pose or clip, "Start a list" and an import that adds a file write with `expected: 'absent'`; undoing that step removes the file through `SuiteWorkspace.remove` only if it still reads what the step wrote, and is refused with the path otherwise (EDS-aa). A file the change set did not create is never removed.
 - **A missing optional port is the feature off**, never an error (ED3D §4.4): no `changeSet` → edits save to the workspace and Ship is hidden; no `gates` → the gate pill shows "Gates not readable"; no `ask` → no Ask button.
 - **Merge with `packages/editor-3d/src/ports/ports.ts`** (EDS.1b): `ChangeSet` keeps its three methods with the same meaning; `Generator { command, run }` becomes a declared check with `joins` (ED3D.10b's "run by the game" rows read `CheckDef.run` for the command and call `run`); `AskProvider.propose(prompt, scope, budget, document)` becomes the request object with `path` added; `Proposal` is unchanged. ED3D's `ask-controller.ts` and `testing/fake-ask.ts` re-point to the kit, keep their tests, and `ports.ts` is deleted, so there is one owner.
+- **Notes, 2026-10-30 (EDS.1b, code in `editor-kit/ports`):**
+  - The token budget moves through the port: `ChangeSet.spend(tokens)` records what a proposal used (kept or rejected) and `ChangeSet.raiseCap(cap)` is the person's raise; the journal is the adapter's, so no other port writes it.
+  - `SuiteWorkspace.files` lists a generated or `never` file a row also matches under that row's editor, read only with the reason (`editor-suite/core`'s `fileAccess` names the row; `workspaceFile` maps it onto `WorkspaceFile`); a path no row matches is not listed. `read` reads any file inside the game root and gives nothing for a path outside it.
+  - `CheckFinding.keyPath` is a string, not §4.4's `KeyPath`: a game check is an outside command and prints its own path text; the suite's Locate turns it into a `KeyPath` when it can, so the port does not ask every command to emit the documents' shape.
+  - Checking a proposal before it is written (the `before` checks, the diff, Accept) is the suite's, in EDS.2b on ED3D.10a's controller; the `AskProvider` only proposes, with the budget as its client's output limit. 02's EDS.1b row ("a diff checked before it is written") reads as the port's job; it is EDS.2b's.
+  - `SuitePorts.preview`, the contribution shapes and `createSuite` land with their first consumers (EDS.8, EDS.4a and EDS.5a, EDS.2a).
 - **Reopened gates** are computed by the suite, not a port: a gate is reopened when the change set touches a file whose row lists it. The pill shows each with its recorded decision; nothing records one.
 - **The token budget** is the change set's: the suite keeps `{ used, cap }` in the change-set journal, passes the remainder as `budget`, refuses a request whose estimate passes it (The Last Light: characters / 3.5 plus the output cap) and records what each used.
 

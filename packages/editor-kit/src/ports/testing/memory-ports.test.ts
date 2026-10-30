@@ -1,5 +1,8 @@
 // The in-memory fakes of the suite ports, each run through its port's contract, and the wiring of `createMemoryPorts`.
+// The workspace contract runs where the editor list's policy lives (editor-suite's core, `memory-workspace.test.ts`
+// there), so here the workspace gets a small hand-written policy for its fake-only cases.
 import { describe, expect, test } from 'vitest'
+import type { UnlistedFile, WorkspaceFile } from '../suite-ports'
 import { describeAskProvider } from './ask-contract'
 import { describeChangeSet } from './change-set-contract'
 import { CHECK_FINDING, CHECK_MEASURE, describeChecksRunner, type ScenarioCheck } from './checks-contract'
@@ -13,15 +16,19 @@ import {
   createScriptedAsk,
   type MemoryCheck,
 } from './index'
-import { describeSuiteWorkspace, WORKSPACE_SCENARIO } from './workspace-contract'
 
-describeSuiteWorkspace('memory', async (scenario) => {
-  const changeSet = createMemoryChangeSet()
-  const workspace = await createMemoryWorkspace({ ...scenario, changeSet })
-  return { workspace, changeSet }
-})
+describeChangeSet('memory', () => ({ changeSet: createMemoryChangeSet(), edit: async () => undefined }))
 
-describeChangeSet('memory', () => createMemoryChangeSet())
+const POSE = 'content/figures/poses/wave.toml'
+
+/** A hand policy: poses are the Studio's, `content/locked.toml` is read only, anything else has no row. */
+function classify(path: string): WorkspaceFile | UnlistedFile {
+  const row = { path, gates: [], checks: ['content'], modes: ['edit'] } as const
+  if (path.startsWith('content/figures/poses/')) return { ...row, editor: 'studio', writable: true }
+  if (path === 'content/locked.toml')
+    return { ...row, editor: 'tuner', writable: false, why: 'locked for the test' }
+  return { path, writable: false, why: 'no row' }
+}
 
 /** The scenario's behaviours as fake checks. */
 function memoryCheck({ behaviour, ...def }: ScenarioCheck): MemoryCheck {
@@ -70,8 +77,8 @@ describeGates('memory', (records) => createMemoryGates(records))
 describeAskProvider(
   'scripted',
   (script) =>
-    createScriptedAsk((request) => {
-      const answer = script(request)
+    createScriptedAsk((request, limits) => {
+      const answer = script(request, limits)
       if (answer instanceof Error) throw answer
       return answer
     }).provider,
@@ -138,10 +145,37 @@ describe('memory checks', () => {
   })
 })
 
+describe('memory workspace', () => {
+  test('lists only files a row names, refuses read-only and unlisted writes with the reason', async () => {
+    const workspace = await createMemoryWorkspace({
+      files: { 'content/locked.toml': 'a = 1\n', 'README.md': '#\n' },
+      classify,
+    })
+    expect((await workspace.files()).map((file) => file.path)).toEqual(['content/locked.toml'])
+    const locked = await workspace.write('content/locked.toml', 'a = 2\n', 'absent')
+    expect(locked).toMatchObject({
+      ok: false,
+      reason: 'policy',
+      message: expect.stringContaining('locked for the test'),
+    })
+    expect(await workspace.write('README.md', 'x\n', 'absent')).toMatchObject({ ok: false, reason: 'policy' })
+  })
+
+  test('without a change set nothing it created can be removed', async () => {
+    const workspace = await createMemoryWorkspace({ classify })
+    const created = await workspace.write(POSE, 'name = "wave"\n', 'absent')
+    if (!created.ok) throw new Error('the create should go through')
+    expect(await workspace.remove(POSE, { mtime: created.mtime })).toMatchObject({
+      ok: false,
+      reason: 'policy',
+    })
+  })
+})
+
 describe('createMemoryPorts', () => {
   test('wires the workspace, the change set, checks, gates and Ask over one journal', async () => {
     const memory = await createMemoryPorts({
-      ...WORKSPACE_SCENARIO,
+      classify,
       gates: { 'S-G1': { name: 'Scene blockout', decision: 'open' } },
       ask: () => ({ summary: 'Faster', text: 'MAX_MOVE_SPEED = 7.5\n', tokens: 300 }),
     })
@@ -152,34 +186,36 @@ describe('createMemoryPorts', () => {
     expect(await gates.states(['S-G1'])).toMatchObject([{ decision: 'open' }])
 
     await changeSet.begin('A wave pose')
-    await workspace.write('content/figures/poses/wave.toml', 'name = "wave"\n', 'absent')
+    await workspace.write(POSE, 'name = "wave"\n', 'absent')
     const request = { prompt: 'p', path: 'content/tuning.toml', scope: [], document: '', budget: 1000 }
     await ask.propose(request)
     await ask.propose(request)
     expect(await changeSet.list()).toEqual([
-      expect.objectContaining({
-        created: ['content/figures/poses/wave.toml'],
-        tokens: { used: 600, cap: 200_000 },
-      }),
+      expect.objectContaining({ created: [POSE], tokens: { used: 600, cap: 200_000 } }),
     ])
     expect(memory.ask?.calls).toEqual([request, request])
   })
 
+  test('the Ask spends through ChangeSet.spend, so the cap the person raised stays put', async () => {
+    const memory = await createMemoryPorts({ classify, ask: () => ({ summary: 's', text: '', tokens: 40 }) })
+    const { changeSet, ask } = memory.ports
+    await changeSet?.begin('A')
+    await changeSet?.raiseCap(250_000)
+    await ask?.propose({ prompt: 'p', path: 'a', scope: [], document: '', budget: 100 })
+    expect((await changeSet?.list())?.[0]?.tokens).toEqual({ used: 40, cap: 250_000 })
+  })
+
   test('without a change set or an assistant, those ports are absent: the features are off', async () => {
-    const { ports } = await createMemoryPorts({ ...WORKSPACE_SCENARIO, changeSet: false })
+    const { ports } = await createMemoryPorts({ classify, changeSet: false })
     expect(ports.changeSet).toBeUndefined()
     expect(ports.ask).toBeUndefined()
     expect(ports.gates).toBeUndefined()
-    expect(await ports.workspace.write('content/figures/poses/wave.toml', 'x = 1\n', 'absent')).toMatchObject(
-      {
-        ok: true,
-      },
-    )
+    expect(await ports.workspace.write(POSE, 'x = 1\n', 'absent')).toMatchObject({ ok: true })
   })
 
   test('tokens an Ask uses with no change set open are not counted against a later one', async () => {
     const { ports } = await createMemoryPorts({
-      ...WORKSPACE_SCENARIO,
+      classify,
       ask: () => ({ summary: 's', text: '', tokens: 50 }),
     })
     await ports.ask?.propose({ prompt: 'p', path: 'a', scope: [], document: '', budget: 100 })

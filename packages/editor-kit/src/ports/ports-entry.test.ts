@@ -18,7 +18,23 @@ function reachable(entry: string, seen = new Set<string>()): Set<string> {
   return seen
 }
 
+/** One import statement, however many lines it spans, with its module specifier. */
+const IMPORT_STATEMENT = /^import\s[^']*?from\s+'([^']*)'/gm
+
 describe('editor-kit ports entry', () => {
+  test('the import matcher sees a statement the formatter spread over several lines', () => {
+    const source = "import {\n  mount,\n  type Snippet,\n} from 'svelte'\nimport type { A } from './a'\n"
+    expect(
+      [...source.matchAll(IMPORT_STATEMENT)].map(([statement, specifier]) => [
+        statement.startsWith('import type'),
+        specifier,
+      ]),
+    ).toEqual([
+      [false, 'svelte'],
+      [true, './a'],
+    ])
+  })
+
   test('has one value at run time, defineSuiteEditor; everything else is a type', () => {
     expect(Object.keys(ports).sort()).toEqual(['defineSuiteEditor'])
   })
@@ -29,11 +45,13 @@ describe('editor-kit ports entry', () => {
     for (const file of files) {
       const source = readFileSync(file, 'utf8')
       expect(file.endsWith('.svelte'), file).toBe(false)
-      for (const [statement] of source.matchAll(/^import[^\n]*from\s+'svelte(\/[^']*)?'/gm))
-        expect(statement, file).toMatch(/^import type /)
-      // Nothing but types and relative modules: a port shape never pulls a library in at run time.
-      for (const [, specifier] of source.matchAll(/^import (?!type )[^\n]*from\s+'([^']*)'/gm))
-        expect(specifier, file).toMatch(/^\./)
+      // Whole statements, over as many lines as the formatter gives them: `import {\n  a,\n} from '...'`.
+      const statements = [...source.matchAll(IMPORT_STATEMENT)]
+      for (const [statement, specifier = ''] of statements) {
+        if (/^svelte(\/|$)/.test(specifier)) expect(statement, file).toMatch(/^import type\s/)
+        // Nothing but types and relative modules: a port shape never pulls a library in at run time.
+        if (!/^import type\s/.test(statement)) expect(specifier, file).toMatch(/^\./)
+      }
     }
   })
 
