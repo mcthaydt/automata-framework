@@ -4,7 +4,7 @@
 // states a heading as a compass bearing (0 looks north, a quarter turn east; camera-3d.ts), which is a half turn minus the
 // heading. The conversions are whole-unit arithmetic first and one multiplication last, so every unit round-trips exactly.
 import type { Size } from '@mcthaydt/automata-editor-kit/core'
-import { roundJsonNumber } from '../../codec/print'
+import { roundJsonNumber } from '@mcthaydt/automata-editor-kit/documents'
 import { type Camera3D, fitOrbit, type Orbit, orbitCamera } from './camera-3d'
 import { surfaceVisibility } from './mesh-pick'
 import type { SectorMesh, Vec3 } from './sector-mesh'

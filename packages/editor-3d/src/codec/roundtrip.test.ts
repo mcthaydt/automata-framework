@@ -1,13 +1,14 @@
 // A seeded run over the shipped files: random edits of the four kinds the editor makes, each patched through the
 // codec, each checked for reading back as the edited model and for touching only what it edited, then reverted.
 // The generator is a fixed linear congruential sequence, so a failure replays.
+
+import { type JsonPath, scan } from '@mcthaydt/automata-editor-kit/documents'
 import { describe, expect, it } from 'vitest'
 import { afSectorCodec } from '../profile/af-sector/af-codec'
 import type { FileCodec } from '../profile/file-codec'
 import { blockoutCodec, facilityCodec } from '../profile/last-light-codecs'
 import { FIXTURE_NAMES, loadAuthored, loadFixture } from '../testing/fixtures'
 import { changedRegion, literalEdits } from '../testing/text-diff'
-import { type JsonPath, scan } from './locate'
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
 
