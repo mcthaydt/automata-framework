@@ -372,11 +372,16 @@
 - `BootDefect` (class): An unexpected defect during boot.
 - `BootError` (type): Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4).
 - `browserHaptics(target)`: The browser's haptics: its pads, its `vibrate`, and whether its pointer is a finger.
+- `CAMERA_SETTINGS_DEFAULT` (const): The camera choices a new player starts with: the default turn speed, not inverted.
+- `CAMERA_TURN_SPEED` (const): The range of "Camera turn speed" in degrees per dragged pixel (M4 spec §16.3.6, M3 spec §4.2): 0.25° by default, so a 1,440 px sweep is one full turn.
+- `CameraDragTracker` (class): Turns pointer samples into camera drags for one `DragSink`: one pointer at a time, its horizontal CSS px per move, from a touch or pen's primary contact or the mouse's secondary button.
+- `CameraSettings` (interface): The player's camera choices, `camera` in the core settings: how far a dragged pixel turns the camera, and whether the turn is inverted.
+- `cameraSettingsSchema` (const): A missing, malformed or out-of-range field reads as its default, keeping the other; a record that is not an object reads as the defaults, as every settings field falls back.
 - `Capture` (type): The input a capture caught: a key by its `KeyboardEvent.code`, or a standard-mapping pad button.
 - `CompiledContentData` (interface): The compiled JSON content read by the runtime (spec §3.3).
 - `ContentHashMismatch` (class): Content hash does not match expected hash.
 - `contentHashOf(data)`: The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
-- `CORE_SETTINGS` (const): The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`) and vibration (`haptics`).
+- `CORE_SETTINGS` (const): The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`), vibration (`haptics`) and camera turn (`camera`).
 - `CoreSettings` (interface): The settings every game carries: input bindings, display, audio and vibration.
 - `createHaptics(options)`: The haptics service over these sources; it starts enabled.
 - `createT(messages)`: `t` over a messages module (`import * as m from './paraglide/messages.js'`).
@@ -386,6 +391,9 @@
 - `DisplayCopy` (interface): The words of the display policy: the landscape gate, the rotate hint for each orientation and the rotate toast.
 - `DisplaySettings` (interface): The core display settings a game's settings carry as `display`: `{ display: displaySettingsSchema }`.
 - `displaySettingsSchema` (const): The schema of `DisplaySettings`: an unknown or missing quality reads as `DEFAULT_QUALITY`.
+- `DragPointer` (type): What drove a drag: a finger or pen (`touch`), or the mouse.
+- `DragSink` (interface): Where drags go (`Input.drag`): CSS px moved to the right since the previous move, negative to the left.
+- `DragStart` (interface): The parts of a `pointerdown` that decide whether it may drag.
 - `EventScores` (type): A sim event's type (its `defineEvent` id) → the board it scores on and the score its payload gives.
 - `EventSounds` (type): A sim event's type (its `defineEvent` id) → the asset path it plays, or the path with its bus and gain.
 - `Flow` (interface): The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu` for the current screen's menu, and `settled` once no transition is pending.
@@ -399,7 +407,7 @@
 - `GameOrientation` (type): The orientation a game plays in; the ship config writes the same value as `runtime.orientation`.
 - `GameRenderer` (interface): What the runtime asks of a renderer: apply each step's result, draw each frame, and reset for a new sim.
 - `GESTURE_TUNING` (const): FloorFifty's gesture tuning, the defaults.
-- `GestureName` (type): A touch gesture (M4.3 recognises them).
+- `GestureName` (type): A touch gesture (M4.3 recognises the swipes, flick and tap; M4.12 the camera drag).
 - `GestureSink` (interface): Where gestures go: held while a finger steers, pulsed for a flick or a tap.
 - `GestureTuning` (interface): Content tuning, in CSS px and ms; FloorFifty's values are the defaults.
 - `GlyphFamily` (type): Which labels a pad's buttons carry, read from its id.
@@ -435,6 +443,7 @@
 - `makeSaves(def, options)`: Opens the game's save for boot, with its triggers and its exit flush, for as long as the scope is open.
 - `matchLocale(requested, locales)`: The game's locale for a requested tag: the same tag (ignoring case), else the first locale with the same primary language subtag.
 - `MAX_FRAME_MS` (const): The Last Light clock.ts 0.1 s clamp: at most 6 steps at 60 Hz, the rest is dropped
+- `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `MenuAction` (type): A fixed menu action: it drives menus and the pause screen, never the sim.
 - `MessageFunction` (type): One compiled message: Paraglide passes its inputs as one object.
 - `MusicOptions` (interface): Options for `Audio.music`: where to begin and which region loops.
@@ -502,8 +511,11 @@
 - `textDirection(locale)`: Text direction from the locale's script: the explicit script subtag, else the likely one CLDR adds (`ar` → `Arab`).
 - `Time` (interface): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
 - `TouchMode` (type): How touch drives play: the on-screen buttons, or swipes and flicks over the whole screen (M4 spec §4.4).
-- `touchModesFor(profile)`: The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a gesture.
+- `touchModesFor(profile)`: The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a swipe, flick or tap.
+- `TouchStickSink` (interface): Where the overlay's move stick goes: a vector clamped to length 1, y positive down, as a pad's axes.
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
+- `TURN_UNITS_PER_TURN` (const): Turn units in a full turn: the heading wraps here.
+- `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
 
 ### `import { … } from '@mcthaydt/automata-runtime/extension'`

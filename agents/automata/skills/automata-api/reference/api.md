@@ -221,7 +221,8 @@ The title, play, paused and settings screens (DX spec §7, M4.4) over the defaul
 (`title → play ⇄ paused → title`, `paused ⇄ settings`).
 
 The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
-paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. Returning
+paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. A runtime that shuts
+down with the sim alive drops it too, whichever screen is current (DX.2c). Returning
 from paused re-sends the whole state to the renderer (G-5): `AppLoop.run` resets the renderer, so
 play restores the sim's own snapshot, which makes the next step a resync.
 
@@ -239,6 +240,20 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
     sim?.dispose()
     sim = undefined
   }
+
+  /** The run whose shutdown drops the sim: each run of the runtime (a retried boot, a second `runGame`) has its own. */
+  let droppedWith: Scope.Scope | undefined
+  /**
+   * Drops the sim when the run's `runtime` scope closes (DX.2c), which is after the current screen and the save's last
+   * flush have read it. Once per run: `dropSim` forgets the sim it disposes, so one the title dropped is not disposed
+   * again, and a shutdown on the title disposes nothing.
+   */
+  const dropSimOnShutdown = (runtime: Scope.Scope): Effect.Effect<void> =>
+    Effect.suspend(() => {
+      if (droppedWith === runtime) return Effect.void
+      droppedWith = runtime
+      return Scope.addFinalizer(runtime, Effect.sync(dropSim))
+    })
 
   /** A sim set up from the game's seed, plugins, content and `setup`, at tick 0. */
   const freshSim = async (): Promise<Sim> => {
@@ -314,8 +329,16 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
 
         let current = sim
         if (current === undefined) {
-          current = yield* Effect.promise(freshSim)
-          sim = current
+          // Kept the moment it is made. A runtime that shuts down while it is being made interrupts this enter, which
+          // aborts the signal: the run no longer holds a sim to drop, so the late one is disposed here (DX.2c).
+          // Waiting for it instead would hold shutdown on a plugin's engine setup.
+          current = yield* Effect.promise((signal) =>
+            freshSim().then((made) => {
+              if (signal.aborted) made.dispose()
+              else sim = made
+              return made
+            }),
+          )
         } else {
           current.restore(current.snapshot())
         }
@@ -465,7 +488,13 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
       }),
   }
 
-  return [title, play, paused, settingsScreen(game, toldPads)]
+  // Every screen ties the sim to the run before its own enter, so a flow that starts anywhere still drops it.
+  return [title, play, paused, settingsScreen(game, toldPads)].map(
+    (screen): ScreenDef => ({
+      ...screen,
+      enter: (context) => Effect.zipRight(dropSimOnShutdown(context.runtime), screen.enter(context)),
+    }),
+  )
 }
 ```
 
@@ -1060,7 +1089,7 @@ function keys<Z extends z.ZodType>(
   const modes = touchModesFor(profile)
   if (options.touchMode !== undefined && !modes.includes(options.touchMode))
     throw new Error(
-      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a gesture' : 'a touch button'}`,
+      `keys(): touchMode "${options.touchMode}" needs ${options.touchMode === 'swipe' ? 'a swipe, flick or tap' : 'a touch button'}`,
     )
   const touchMode: TouchMode =
     options.touchMode ?? (modes.includes('buttons') || !modes.includes('swipe') ? 'buttons' : 'swipe')
@@ -2579,7 +2608,8 @@ The title, play, paused and settings screens (DX spec §7, M4.4) over the defaul
 (`title → play ⇄ paused → title`, `paused ⇄ settings`).
 
 The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
-paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. Returning
+paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. A runtime that shuts
+down with the sim alive drops it too, whichever screen is current (DX.2c). Returning
 from paused re-sends the whole state to the renderer (G-5): `AppLoop.run` resets the renderer, so
 play restores the sim's own snapshot, which makes the next step a resync.
 
@@ -5162,6 +5192,78 @@ The browser's haptics: its pads, its `vibrate`, and whether its pointer is a fin
 function browserHaptics(target: Window): Haptics;
 ```
 
+#### `CAMERA_SETTINGS_DEFAULT` (const)
+
+The camera choices a new player starts with: the default turn speed, not inverted.
+
+```ts
+const CAMERA_SETTINGS_DEFAULT: CameraSettings;
+```
+
+#### `CAMERA_TURN_SPEED` (const)
+
+The range of "Camera turn speed" in degrees per dragged pixel (M4 spec §16.3.6, M3 spec §4.2): 0.25° by default,
+so a 1,440 px sweep is one full turn. A Settings slider steps through it.
+
+```ts
+const CAMERA_TURN_SPEED: {
+  readonly min: 0.05;
+  readonly max: 1;
+  readonly step: 0.05;
+  readonly default: 0.25;
+};
+```
+
+#### `CameraDragTracker` (class)
+
+Turns pointer samples into camera drags for one `DragSink`: one pointer at a time, its horizontal CSS px per move,
+from a touch or pen's primary contact or the mouse's secondary button.
+
+```ts
+class CameraDragTracker {
+  private readonly sink;
+  private pointerId;
+  private lastX;
+  private pointer;
+  constructor(sink: DragSink);
+  /** A pointer drives the drag now. */
+  get dragging(): boolean;
+  /**
+   * A pointer went down. It starts a drag only when none is in progress (or it is the dragging pointer again) and it
+   * is a finger or pen on its primary contact or a mouse on its secondary button. True when it now drives the drag.
+   */
+  down(id: number, x: number, start: DragStart): boolean;
+  /** A pointer moved: the dragging one sends how far it went to the right. Others are ignored. */
+  move(id: number, x: number): void;
+  /** A pointer lifted: the drag ends if it was the dragging one. A finger still down never takes over. */
+  up(id: number): void;
+  /** The browser took the pointers (pointercancel, lost capture): the drag ends; what it sent stands. */
+  cancel(): void;
+}
+```
+
+#### `CameraSettings` (interface)
+
+The player's camera choices, `camera` in the core settings: how far a dragged pixel turns the camera, and whether
+the turn is inverted. The one owner of their shape: the game's Settings rows (GAME-3D) and its command mapping
+(`turnUnitsFromPixels`) read them from here.
+
+```ts
+interface CameraSettings {
+  readonly degPerPixel: number;
+  readonly invert: boolean;
+}
+```
+
+#### `cameraSettingsSchema` (const)
+
+A missing, malformed or out-of-range field reads as its default, keeping the other; a record that is not an
+object reads as the defaults, as every settings field falls back.
+
+```ts
+const cameraSettingsSchema: z.ZodType<CameraSettings, unknown>;
+```
+
 #### `Capture` (type)
 
 The input a capture caught: a key by its `KeyboardEvent.code`, or a standard-mapping pad button.
@@ -5207,7 +5309,8 @@ function contentHashOf(data: unknown): string;
 
 #### `CORE_SETTINGS` (const)
 
-The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`) and vibration (`haptics`).
+The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`),
+vibration (`haptics`) and camera turn (`camera`).
 
 ```ts
 const CORE_SETTINGS: SettingsDef<CoreSettings>;
@@ -5225,6 +5328,8 @@ interface CoreSettings {
   readonly audio: AudioSettings;
   /** The Vibration group's toggle (Owner, 2026-10-18); a record saved before it reads it as on. */
   readonly haptics: HapticsSettings;
+  /** "Camera turn speed" and "Invert camera" (M4.12); a record saved before them reads them as the defaults. */
+  readonly camera: CameraSettings;
 }
 ```
 
@@ -5306,6 +5411,37 @@ The schema of `DisplaySettings`: an unknown or missing quality reads as `DEFAULT
 const displaySettingsSchema: z.ZodType<DisplaySettings, {
   quality?: unknown;
 }>;
+```
+
+#### `DragPointer` (type)
+
+What drove a drag: a finger or pen (`touch`), or the mouse.
+
+```ts
+type DragPointer = "touch" | "mouse";
+```
+
+#### `DragSink` (interface)
+
+Where drags go (`Input.drag`): CSS px moved to the right since the previous move, negative to the left.
+
+```ts
+interface DragSink {
+  drag(dxPx: number, pointer: DragPointer): void;
+}
+```
+
+#### `DragStart` (interface)
+
+The parts of a `pointerdown` that decide whether it may drag.
+
+```ts
+interface DragStart {
+  /** `PointerEvent.pointerType`: `touch`, `pen` or `mouse`. */
+  readonly pointerType: string;
+  /** `PointerEvent.button`: 0 primary, 2 secondary. */
+  readonly button: number;
+}
 ```
 
 #### `EventScores` (type)
@@ -5482,7 +5618,7 @@ const GESTURE_TUNING: GestureTuning;
 
 #### `GestureName` (type)
 
-A touch gesture (M4.3 recognises them).
+A touch gesture (M4.3 recognises the swipes, flick and tap; M4.12 the camera drag).
 
 ```ts
 type GestureName = (typeof GESTURE_NAMES)[number];
@@ -5490,13 +5626,14 @@ type GestureName = (typeof GESTURE_NAMES)[number];
 
 #### `GestureSink` (interface)
 
-Where gestures go: held while a finger steers, pulsed for a flick or a tap.
+Where gestures go: held while a finger steers, pulsed for a flick or a tap. The camera drag is analog (M4.12) and
+goes to `Input.drag` instead, so it is not one of these.
 
 ```ts
 interface GestureSink {
-  hold(gesture: GestureName): void;
-  release(gesture: GestureName): void;
-  pulse(gesture: GestureName): void;
+  hold(gesture: Exclude<GestureName, "camera-drag">): void;
+  release(gesture: Exclude<GestureName, "camera-drag">): void;
+  pulse(gesture: Exclude<GestureName, "camera-drag">): void;
 }
 ```
 
@@ -5618,6 +5755,12 @@ interface Input {
    * (a flick or a tap) holds them for exactly one sample.
    */
   readonly gesture: GestureSink;
+  /** The overlay's move stick (M4.12): while held it is `stick('left')` and drives the `left-*` directions. */
+  readonly touchStick: TouchStickSink;
+  /** Where a `CameraDragTracker` sends its pixels (M4.12). */
+  readonly drag: DragSink;
+  /** CSS px dragged to the right between the previous two `poll()`s; 0 unless a live action binds `camera-drag`. */
+  cameraDrag(): number;
   /** `play` during gameplay, `menu` while a screen pauses the sim or a modal is open. Releases what is held. */
   setContext(context: InputContextNow): void;
   readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
@@ -5960,6 +6103,14 @@ The Last Light clock.ts 0.1 s clamp: at most 6 steps at 60 Hz, the rest is dropp
 
 ```ts
 const MAX_FRAME_MS = 100;
+```
+
+#### `MAX_TURN_UNITS_PER_STEP` (const)
+
+The most one step's `camera-turn` may carry either way: 45°.
+
+```ts
+const MAX_TURN_UNITS_PER_STEP = 8192;
 ```
 
 #### `MenuAction` (type)
@@ -6619,6 +6770,14 @@ What a screen's `enter` is given: the layer to mount into, and the screen it cam
 interface ScreenContext {
   readonly layer: HTMLElement;
   readonly from: string | undefined;
+  /**
+   * The scope of what a game keeps across screens, such as the sim the default screens share (DX.2c). Every screen
+   * of a run gets the same one. It is a child of the runtime scope, not the runtime scope itself. It stays open
+   * through every transition and closes once, when the runtime shuts down or a failed boot is tried again: after the
+   * current screen's scope and the save's last flush, which may still read what it holds, and before the renderer is
+   * destroyed and Hosting closes.
+   */
+  readonly runtime: Scope.Scope;
 }
 ```
 
@@ -6879,10 +7038,22 @@ type TouchMode = "buttons" | "swipe";
 
 #### `touchModesFor` (function)
 
-The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a gesture.
+The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a swipe, flick or
+tap. The camera drag works beside the buttons, so it offers no mode of its own.
 
 ```ts
 function touchModesFor(profile: InputProfile): TouchMode[];
+```
+
+#### `TouchStickSink` (interface)
+
+Where the overlay's move stick goes: a vector clamped to length 1, y positive down, as a pad's axes.
+
+```ts
+interface TouchStickSink {
+  set(x: number, y: number): void;
+  release(): void;
+}
 ```
 
 #### `Translate` (type)
@@ -6891,6 +7062,25 @@ The typed `t` verb: `t('hello', { name })`, checked against the game's compiled 
 
 ```ts
 type Translate<Messages> = <K extends keyof Messages & string>(key: K, ...inputs: InputsOf<Messages[K]>) => string;
+```
+
+#### `TURN_UNITS_PER_TURN` (const)
+
+Turn units in a full turn: the heading wraps here.
+
+```ts
+const TURN_UNITS_PER_TURN = 65536;
+```
+
+#### `turnUnitsFromPixels` (function)
+
+`dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the
+heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`. Halves round away
+from zero, so a drag left and the same drag right are the same size. A non-finite input or a `degPerPixel` that is
+not positive gives 0, and the result is never −0.
+
+```ts
+function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean): number;
 ```
 
 #### `typedBus` (function)

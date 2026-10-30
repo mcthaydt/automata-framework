@@ -25,6 +25,10 @@ export interface DragStart {
 const PRIMARY_BUTTON = 0
 const SECONDARY_BUTTON = 2
 
+/**
+ * Turns pointer samples into camera drags for one `DragSink`: one pointer at a time, its horizontal CSS px per move,
+ * from a touch or pen's primary contact or the mouse's secondary button.
+ */
 export class CameraDragTracker {
   private pointerId: number | undefined
   private lastX = 0

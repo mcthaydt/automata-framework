@@ -2,7 +2,7 @@ import type { ErrorCode } from '@mcthaydt/automata-host'
 import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
 import type { GlyphFamily } from '../input/gamepad/glyph-family.js'
-import type { InputDevice, PadInfo } from '../input/input.manager.js'
+import type { InputDevice, PadInfo } from '../input/input-device.js'
 import type { BoardState } from '../leaderboards/board-state.js'
 
 /** Every fact the runtime publishes on the presentation bus, by name. */

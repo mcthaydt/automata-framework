@@ -23,6 +23,7 @@ import { NavRepeat } from './gamepad/nav-repeat.js'
 import { type PadDirection, type PadLike, readPad } from './gamepad/read-pad.js'
 import type { DragSink } from './gestures/camera-drag-tracker.js'
 import type { GestureSink } from './gestures/swipe-tracker.js'
+import type { ActiveDevice, InputContextNow, InputDevice, PadInfo } from './input-device.js'
 import {
   actionsForGesture,
   actionsForKey,
@@ -32,22 +33,6 @@ import {
   type StickDirection,
 } from './input-profile.schema.js'
 import { isMenuActionLive, MENU_BINDINGS, type MenuAction } from './menu-actions.js'
-
-/** A kind of input device. */
-export type InputDevice = 'keyboard' | 'gamepad' | 'touch'
-/** The device of the last real input, and the button labels of the active pad (`generic` before any pad). */
-export interface ActiveDevice {
-  readonly device: InputDevice
-  readonly glyphs: GlyphFamily
-}
-/** A connected pad. Only `standard` pads drive bindings (DX spec §3.3). */
-export interface PadInfo {
-  readonly index: number
-  readonly id: string
-  readonly standard: boolean
-}
-/** What input drives now: `play` (the game's bindings) or `menu` (the menu actions). */
-export type InputContextNow = 'play' | 'menu'
 
 /**
  * The input service (M4 spec §4.2): held actions from keys, pads, touch buttons and gestures under the game's
