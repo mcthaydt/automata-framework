@@ -10,7 +10,7 @@
   `apps/client/src/managers/network/{colyseus-network,network}.ts`, `apps/client/src/ui/store/room-store.svelte.ts`,
   `tests/client/managers/network/{colyseus-network,reconnect}.test.ts`, `tests/client/ui/room-store.test.ts`,
   `tests/client/support/fakes/server.ts` (`fakeColyseusClient`).
-- **Status:** in progress.
+- **Status:** implemented and checked locally; Plus CI pending; not reviewed.
 
 ## Scope
 
@@ -146,12 +146,12 @@ the grace is for.
 - [x] 12. Probing: a probe a second while connected; none after leaving; the round trip is the median of the last 7.
 - [x] 13. Room store: mirrors info and connection; starts from what the room already holds; keeps the last info while
   reconnecting; has no verbs (FloorFifty's load-bearing case).
-- [ ] 14. Integration against a real room (`packages/server`): create and join seat two clients and both see the
+- [x] 14. Integration against a real room (`packages/server`): create and join seat two clients and both see the
   room's info and their own seats; a full room and an unknown code are `ROOM_FULL` and `ROOM_NOT_FOUND`; another
   content hash is `VERSION_MISMATCH`; `setReady` answered; a dropped socket reconnects into its seat; **N-c:** a new
   `NetRoom` on the same storage resumes into the seat, and once the grace has passed resume reports `expired` and
   forgets the token.
-- [ ] 15. Exports, `pnpm format`, `pnpm check`; the execution log below.
+- [x] 15. Exports, `pnpm format`, `pnpm check`; the execution log below.
 
 ## Ported tests (FloorFifty count → this row's)
 
@@ -174,7 +174,27 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
 
 ## Decisions for the Owner's veto
 
-(Filled in as built.)
+- **`NetworkPort` is matched, not imported.** Core's `@mcthaydt/automata-runtime` is private and has no pack, so the
+  F1 boundary refuses it. `ClientNetworkPort` has core's four members with core's signatures (plus `ping`, `onPong`,
+  `roundTripMs`, `bytesIn`, `onReplay`), and its snapshots are `AuthoritativeSnapshot` plus `acks`. **Request to
+  core:** publish runtime (DX.2a) or a types-only entry with `NetworkPort`, so `net` types the port against it.
+- **`create` takes no `private` option yet.** Spec §4.2 sketches `create({ name, private? })`, but `JoinOptions` is
+  strict and has no such field, and M7.3b's room offers every lobby to Quick match. A private room needs an additive
+  `private?: boolean` in `JoinOptions` and the room's listing to honour it; left for a later row rather than sent as a
+  field the server refuses.
+- **`NetRoom.ended`** is added beside `info` and `connection` (additive to §4.2): `seat-lost` (the grace passed),
+  `closed` (4000, 1000), `server-updating` (4001: a drain or a shutdown), `failed` (4002). The reconnect overlay's
+  "disconnected too long" and the kit's copy read it; spec §4.2 has no other way for a room ending to reach a screen.
+- **Quick match retries once on `ROOM_FULL`, `ROOM_NOT_FOUND` and `REFUSED`.** FloorFifty retried on full and closed;
+  Plus's room refuses a seat in a started game with `REFUSED` (net has no `ROOM_CLOSED`), so `REFUSED` is retried too.
+  A second refusal is final.
+- **`resume`** runs one attempt per `NetRoom`; a later call is `none`. `OFFLINE` and `RATE_LIMITED` fail with
+  `NetError` and keep the token (the seat may still be held; the next load tries again); every other refusal is
+  `expired`, and the token is forgotten.
+- **Names are checked before the network.** Join options that fail the wire's own schema fail `REFUSED` without a
+  request and without leaving the current room.
+- **The token key is `automata-net.seat`**, holding `{ code, token }` read through a strict schema.
+- **The browser `offline` event** (FloorFifty closes the socket on it) moves to M7.5c with the diagnostics.
 
 ## Execution log
 
@@ -183,3 +203,5 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
 | 2026-10-30 | 1 to 5 | Each module red (module missing), then green: net-error 15, reconnect-delay 2, seat-token 9, request-ids 4, room-info 9. `NetError`'s base is typed first for `isolatedDeclarations` (as `server`'s errors are) |
 | 2026-10-30 | 6 | `fakeColyseus` (net `./testing`), the transport and the client port: transport 16 and port 8 red (module missing), then green. `@colyseus/sdk` 0.18.5 is a dependency of net |
 | 2026-10-30 | 7 to 13 | `net-room.ts` was drafted before its tests, then moved out of the tree: the join suite ran red (module missing) without it, and the reconnect, intent and store suites were written against it and ran red where the harness or the test was wrong first (TestClock reached only through a `ManagedRuntime` of `TestContext`; a test room code `OLD234` that the seat schema rightly refused, since `O` is not in the code alphabet). Room store red (module missing), then green. join 25, reconnect 18, intents 14, store 6; the net suite three runs in a row, 215 each |
+| 2026-10-30 | 14 | `packages/server/src/room/net-client.test.ts`: six cases against a real room over real sockets (create and join, the three refusals, ready answered, a dropped socket reconnected, quick match and a drain read as `server-updating`, and N-c). Green on their first run, three runs in a row; they hold the unit-tested client to the real server's refusals and close codes rather than drive new code |
+| 2026-10-30 | 15 | Exports from `net` and `net/testing`; `pnpm format`, `pnpm check`: root 163, net 215, pipelines 82, dev-tools 62, physics 71, server 421 |
