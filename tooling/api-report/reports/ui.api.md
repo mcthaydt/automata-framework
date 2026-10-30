@@ -155,6 +155,10 @@ type BootFailure = {
     readonly tried: readonly ('webgl2' | 'webgpu')[];
 } | {
     readonly _tag: 'BootDefect';
+} | {
+    readonly _tag: 'ModelInvalid';
+    readonly file: string;
+    readonly reason: string;
 };
 ```
 
@@ -179,7 +183,7 @@ component from './status/BootFailurePanel.svelte'
 ### `BootFailureState` (type)
 
 ```ts
-type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported';
+type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported' | 'model-invalid';
 ```
 
 ### `bootFailureView` (function)

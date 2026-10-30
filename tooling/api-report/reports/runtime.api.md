@@ -303,7 +303,7 @@ class BootDefect extends BootDefectBase {
 ### `BootError` (type)
 
 ```ts
-type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;
+type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | ModelInvalid | BootDefect;
 ```
 
 ### `browserHaptics` (function)
@@ -888,6 +888,13 @@ type MenuAction = 'nav-up' | 'nav-down' | 'nav-left' | 'nav-right' | 'confirm' |
 type MessageFunction = (inputs?: any) => string;
 ```
 
+### `ModelInvalid` (class)
+
+```ts
+class ModelInvalid extends ModelInvalidBase {
+}
+```
+
 ### `MusicOptions` (interface)
 
 ```ts
@@ -1041,7 +1048,7 @@ const Renderer: Context.Tag<GameRenderer, GameRenderer>;
 ### `RendererFactory` (type)
 
 ```ts
-type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable, Scope.Scope>;
+type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
 ```
 
 ### `RendererUnavailable` (class)
@@ -1126,6 +1133,8 @@ interface RuntimeFacts {
         readonly id: string;
         readonly reason: string;
     };
+    readonly 'render.context.lost': Readonly<Record<never, never>>;
+    readonly 'render.context.restored': Readonly<Record<never, never>>;
     readonly 'save.written': {
         readonly key: string;
         readonly slot: number;

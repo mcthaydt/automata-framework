@@ -110,7 +110,7 @@ function createCamera2d(stage: Container, options: Camera2dOptions, seed?: numbe
 ### `defaultContent` (function)
 
 ```ts
-function defaultContent(): GameContent;
+function defaultContent(preload?: readonly string[]): GameContent;
 ```
 
 ### `defaultScreens` (function)
@@ -315,6 +315,8 @@ interface GameSpec<S = never, D = unknown> {
     readonly extensions?: readonly ExtensionDef[];
     readonly draw?: (ctx: DrawContext) => void;
     readonly renderer?: PixiRendererOptions;
+    readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
+    readonly preload?: readonly string[];
     readonly copy?: GameDefinition['copy'];
     readonly locale?: GameDefinition['locale'];
     readonly seams?: RuntimeSeams;

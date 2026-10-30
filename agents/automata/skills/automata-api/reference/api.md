@@ -1871,6 +1871,18 @@ Every `defineGame` in a game's sources that plays in an orientation other than `
 function findOrientationMismatches(gameDir: string, declared: string): OrientationMismatchFound[];
 ```
 
+#### `findPixi3d` (function)
+
+Every script in the build that carries
+@pixi /3d (`core`) or its `./extras` (`extras`), the first marker each.
+
+```ts
+function findPixi3d(distDir: string): {
+  core: Pixi3dFound[];
+  extras: Pixi3dFound[];
+};
+```
+
 #### `findRootAbsoluteReferences` (function)
 
 Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
@@ -2090,6 +2102,56 @@ The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `
 function parseEnvFile(file: string, text: string): EnvValue[];
 ```
 
+#### `PIXI3D_EXTRAS_MARKERS` (const)
+
+Strings only
+@pixi /3d's `./extras` carries (its particle spawn code generator).
+
+```ts
+const PIXI3D_EXTRAS_MARKERS: readonly string[];
+```
+
+#### `PIXI3D_MARKERS` (const)
+
+Strings only
+@pixi /3d's main entry carries.
+
+```ts
+const PIXI3D_MARKERS: readonly string[];
+```
+
+#### `Pixi3dExtrasInBuild` (class)
+
+A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load (M3 spec S7-g).
+
+```ts
+class Pixi3dExtrasInBuild extends Pixi3dExtrasInBuildBase {
+  override get message(): string;
+}
+```
+
+#### `Pixi3dFound` (interface)
+
+One script that carries a marker.
+
+```ts
+interface Pixi3dFound {
+  /** Relative to the build, with forward slashes. */
+  readonly file: string;
+  readonly marker: string;
+}
+```
+
+#### `Pixi3dInPublicBuild` (class)
+
+A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta (M3 spec §4.8, X-b).
+
+```ts
+class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
+  override get message(): string;
+}
+```
+
 #### `PlayedOrientation` (interface)
 
 An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
@@ -2121,7 +2183,7 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 #### `prepareBuild` (function)
 
 Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+entry page, root-absolute paths, secrets (QB-b), `@pixi/3d` (X-b, S7-g), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 
@@ -2154,13 +2216,19 @@ interface PrepareInput {
    * is checked.
    */
   readonly inputBindings?: ShipInputBindings | undefined;
+  /**
+   * Who the build is for. `public` (the default: Ruken's store, through `publish`) refuses a build that contains
+   * `@pixi/3d`, a closed beta (X-b); `private` (the dev host behind its access control, `deploy-dev`, and Ruken's
+   * local stack, `prepare --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
+   */
+  readonly audience?: "public" | "private" | undefined;
 }
 ```
 
 #### `prepareItch` (function)
 
 Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on
-itch.io is public, so the build is scanned as Ruken's is), `index.html`, itch.io's
+itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d` (X-b, S7-g), `index.html`, itch.io's
 limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops
 prepare before anything is written. Then `<id>-<version>-itch.zip` is written beside the build folder (not in
 it, so `butler push <dist>` never uploads it), for a manual upload; butler pushes the folder itself.
@@ -4734,6 +4802,12 @@ type BootFailure = {
     readonly tried: readonly ('webgl2' | 'webgpu')[];
 } | {
     readonly _tag: 'BootDefect';
+}
+/** A 3D model file that could not be read (M3 spec §6): `file` is its url, `reason` why. */
+ | {
+    readonly _tag: 'ModelInvalid';
+    readonly file: string;
+    readonly reason: string;
 };
 ```
 
@@ -4767,11 +4841,11 @@ type BootFailurePanel = ReturnType<typeof BootFailurePanel>;
 
 #### `BootFailureState` (type)
 
-What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or
-`unsupported`.
+What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled`,
+`unsupported` or `model-invalid`.
 
 ```ts
-type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported';
+type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported' | 'model-invalid';
 ```
 
 #### `bootFailureView` (function)
@@ -4787,6 +4861,7 @@ without it "Back to …" is never offered (PUB spec §3.1).
   playing on without the player's saves would silently fork their progress.
 - Renderer: nothing on this device can fix it. Inside Ruken the player goes back; a standalone
   page has nowhere to go, so its panel is final.
+- Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot.
 - Everything else: Try again, which re-runs the boot program in a fresh scope (never a page reload
   inside a Ruken frame).
 
