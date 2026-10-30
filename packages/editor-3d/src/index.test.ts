@@ -228,6 +228,15 @@ describe('public entry', () => {
     expect(effects).toHaveLength(2)
   })
 
+  it('exports the Things tool, the thing pick and the name of a sub-layer', () => {
+    for (const name of ['createThingsTool', 'pickThing', 'isThingLayerOff', 'thingLayer'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The views are types, so this is checked by the compiler: the entry names them.
+    const place: editor3d.ThingPlace = { x: 1, z: 2, id: 'crate2', action: 'none', reason: 'no' }
+    const entry: editor3d.PaletteEntry['layer'] = editor3d.thingLayer('crate')
+    expect([place.id, entry]).toEqual(['crate2', 'things:crate'])
+  })
+
   it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {
     for (const name of ['splitSector', 'mergeSectors']) expect(editor3d, name).toHaveProperty(name)
     for (const name of ['retargetPortals', 'redirectPortals', 'cornerInserted', 'reversedLoop'])
