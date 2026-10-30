@@ -81,21 +81,25 @@ function sourceFiles(dir: string): string[] {
   return files
 }
 
+/** Each folder directly under `dir` that has its own package.json: a workspace package. */
+function workspacePackagesIn(dir: string): string[] {
+  if (!existsSync(dir)) return []
+  return readdirSync(dir, { withFileTypes: true })
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .filter((item) => item.isDirectory() && existsSync(join(dir, item.name, 'package.json')))
+    .map((item) => join(dir, item.name))
+}
+
 /**
  * Where Plus packages live: everything under `packages/`, and each workspace package under `tooling/` (a folder with
- * its own package.json, such as the pipelines platform). Loose tooling scripts are not packages and are not scanned.
+ * its own package.json, such as the pipelines platform) and `starters/` (a starter game, such as the Party Racer).
+ * Loose tooling scripts are not packages and are not scanned.
  */
 function scannedRoots(root: string): string[] {
   const roots: string[] = []
   const packagesDir = join(root, 'packages')
   if (existsSync(packagesDir)) roots.push(packagesDir)
-  const toolingDir = join(root, 'tooling')
-  if (existsSync(toolingDir))
-    for (const item of readdirSync(toolingDir, { withFileTypes: true }).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    ))
-      if (item.isDirectory() && existsSync(join(toolingDir, item.name, 'package.json')))
-        roots.push(join(toolingDir, item.name))
+  roots.push(...workspacePackagesIn(join(root, 'tooling')), ...workspacePackagesIn(join(root, 'starters')))
   return roots
 }
 
@@ -103,7 +107,7 @@ function scannedRoots(root: string): string[] {
 const isIn = (specifier: string, name: string): boolean =>
   specifier === name || specifier.startsWith(`${name}/`)
 
-/** One message per core import outside the public entries, in every Plus package (packages/ and tooling/ workspace packages): `file:line: …`. */
+/** One message per core import outside the public entries, in every Plus package (packages/, and tooling/ and starters/ workspace packages): `file:line: …`. */
 export function coreImportFindings(root: string): string[] {
   const entries = coreEntries(root)
   const plusNames = [...plusPackageNames(root)]

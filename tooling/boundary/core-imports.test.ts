@@ -179,6 +179,15 @@ describe('coreImportFindings', () => {
     ])
   })
 
+  // PRODUCT.8b: a starter (a game under starters/, such as the Party Racer) is held to the same rule as a package.
+  it('checks workspace packages under starters/', () => {
+    write('starters/racer/package.json', JSON.stringify({ name: 'racer' }))
+    write('starters/racer/src/a.ts', "import '@mcthaydt/automata-sim/deep'\n")
+    expect(coreImportFindings(root)).toEqual([
+      'starters/racer/src/a.ts:1: "@mcthaydt/automata-sim/deep" is not a public exports entry of a core package',
+    ])
+  })
+
   it('says to run the sync when there are no packs', () => {
     rmSync(join(root, '.core'), { recursive: true })
     expect(() => coreImportFindings(root)).toThrow('run pnpm core:sync')
