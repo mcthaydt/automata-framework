@@ -69,4 +69,4 @@ const second = await fall()
 if (!/^[0-9a-f]{16}$/.test(first) || first !== second)
   throw new Error(`sim hashes differ: ${first} ${second}`)
 // The .replay round trip (packReplay/unpackReplay) joins this step when M2.3 publishes `./replay`.
-console.log(`node: ${Object.keys(entries).length + 2} entries imported; fall plugin, 60 ticks, hash ${first}`)
+console.log(`node: ${Object.keys(entries).length + 1} entries imported; fall plugin, 60 ticks, hash ${first}`)

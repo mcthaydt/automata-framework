@@ -246,6 +246,11 @@ export function collectStackFacts(root: string, cards: readonly StackCard[]): Ma
         )
       }
     }
+    if (card.elsewhere !== undefined && card.packages.length > 0) {
+      throw new Error(
+        `${card.library}: a card held in ${card.elsewhere.repository} lists no packages of its own; move ${card.packages.join(', ')} to elsewhere or drop elsewhere`,
+      )
+    }
     for (const name of card.elsewhere?.packages ?? []) {
       const user = entries.find((entry) => mentions(entry.manifest, name))
       if (user !== undefined) {

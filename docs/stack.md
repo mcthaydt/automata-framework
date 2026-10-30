@@ -130,7 +130,7 @@ Installed in mcthaydt/automata-plus, not in this repository; its versions are pi
 
 - **Tier:** Plus
 - **What it does in AF:** 2D and 3D physics inside the sim (M2.1).
-- **Why it was chosen:** The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox, and `-compat` inlines the wasm, so there is no loader to set up (versions.md). The Last Light already uses Rapier 0.21.
+- **Why it was chosen:** The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox, and `-compat` inlines the wasm, so there is no loader to set up. Automata Plus pins it at 0.21.0, the release The Last Light uses.
 - **What AF adds on top:** `@mcthaydt/automata-physics`: a sim plugin that syncs bodies in, steps and syncs out each tick, adds its own snapshot section and raises collision events, with four-engine parity tests. It lives in `automata-plus` (PRODUCT.5f) and left this repository in PRODUCT.5g.
 
 ## Colyseus

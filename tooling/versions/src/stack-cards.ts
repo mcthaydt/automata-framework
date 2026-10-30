@@ -92,7 +92,7 @@ export const STACK: StackSource = {
         repository: 'mcthaydt/automata-plus',
       },
       does: '2D and 3D physics inside the sim (M2.1).',
-      why: 'The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox, and `-compat` inlines the wasm, so there is no loader to set up (versions.md). The Last Light already uses Rapier 0.21.',
+      why: 'The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox, and `-compat` inlines the wasm, so there is no loader to set up. Automata Plus pins it at 0.21.0, the release The Last Light uses.',
       adds: '`@mcthaydt/automata-physics`: a sim plugin that syncs bodies in, steps and syncs out each tick, adds its own snapshot section and raises collision events, with four-engine parity tests. It lives in `automata-plus` (PRODUCT.5f) and left this repository in PRODUCT.5g.',
     },
     {

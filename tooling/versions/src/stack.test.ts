@@ -232,6 +232,16 @@ describe('collectStackFacts', () => {
     )
   })
 
+  it('fails when a card says it is held elsewhere and also lists packages installed here', () => {
+    const both: StackCard = {
+      ...card(['zod']),
+      elsewhere: { packages: ['rapier2d'], repository: 'mcthaydt/automata-plus' },
+    }
+    expect(() => collectStackFacts(root, [both])).toThrow(
+      'X: a card held in mcthaydt/automata-plus lists no packages of its own; move zod to elsewhere or drop elsewhere',
+    )
+  })
+
   it('fails when a planned package is now in a package.json', () => {
     expect(() => collectStackFacts(root, [card([], { packages: ['zod'], task: 'PRODUCT.L' })])).toThrow(
       "zod: planned for PRODUCT.L but packages/a depends on it now; move it to the card's packages",
