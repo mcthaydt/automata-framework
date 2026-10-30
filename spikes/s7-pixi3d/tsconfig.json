@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "isolatedDeclarations": false,
+    "declaration": false,
+    "allowImportingTsExtensions": true,
+    "noUncheckedIndexedAccess": false,
+    "types": ["node", "vite/client"],
+    "paths": {
+      "pixi.js": ["./node_modules/pixi.js"],
+      "#pixi-unsafe-eval/uniforms": [
+        "./node_modules/pixi.js/lib/unsafe-eval/uniforms/uniformSyncFunctions.d.ts"
+      ],
+      "#pixi-unsafe-eval/ubo": ["./node_modules/pixi.js/lib/unsafe-eval/ubo/uboSyncFunctions.d.ts"],
+      "@mcthaydt/automata-render-pixi/no-eval": ["../../packages/render-pixi/src/no-eval.ts"],
+      "@mcthaydt/automata-render-pixi/renderer": ["../../packages/render-pixi/src/renderer.ts"],
+      "@mcthaydt/automata-render-pixi/delta": [
+        "../../packages/render-pixi/src/delta/render-delta-consumer.ts"
+      ],
+      "@mcthaydt/automata-runtime": ["../../packages/runtime/src/index.ts"],
+      "@mcthaydt/automata-sim": ["../../packages/sim/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "bench/**/*.ts", "*.ts"]
+}

@@ -8,7 +8,7 @@ import type { Point } from '../../format/sector.schema'
 import { afSectorProfile } from '../../profile/af-sector-profile'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import { selectionOf } from '../selection-of'
-import { type SnapOptions, snapPlan } from './plan-snap'
+import { gridRounded, type SnapOptions, snapPlan } from './plan-snap'
 import { PLAN_LIMITS, toScreen } from './plan-viewport'
 
 const viewport = (zoom = 32) =>
@@ -209,5 +209,20 @@ describe('snapPlan grid and data step', () => {
     expect(Object.is(zero.z, 0)).toBe(true)
     const grid = snap(px({ x: -0.1, z: -0.1 }), { hidden: ['walls'] })
     expect(Object.is(grid.x, 0) && Object.is(grid.z, 0)).toBe(true)
+  })
+})
+
+describe('gridRounded', () => {
+  const grid = { step: 0.5, snap: true }
+
+  it('rounds a length to the grid, to the centimetre with Shift and not at all with Alt', () => {
+    expect(gridRounded(1.3, { grid })).toBe(1.5)
+    expect(gridRounded(-0.7, { grid })).toBe(-0.5)
+    expect(gridRounded(1.237, { grid, shiftKey: true })).toBe(1.24)
+    expect(gridRounded(1.237, { grid, altKey: true })).toBe(1.237)
+  })
+
+  it('rounds to the data step when the grid does not snap', () => {
+    expect(gridRounded(1.237, { grid: { step: 0.5, snap: false } })).toBe(1.25)
   })
 })

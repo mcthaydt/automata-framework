@@ -4,6 +4,18 @@
 
 ## `.`
 
+### `addLevel` (function)
+
+```ts
+function addLevel(project: Project, input: NewLevel): Project;
+```
+
+### `AnchorSide` (type)
+
+```ts
+type AnchorSide = 'start' | 'centre' | 'end';
+```
+
 ### `applyOverrides` (function)
 
 ```ts
@@ -238,10 +250,28 @@ interface Diagnostic {
 }
 ```
 
+### `DroppedCells` (interface)
+
+```ts
+interface DroppedCells {
+    readonly layer: string;
+    readonly count: number;
+}
+```
+
 ### `duplicateEntity` (function)
 
 ```ts
 function duplicateEntity(project: Project, target: LayerTarget, id: string, copyId: string, offset: Point): Project;
+```
+
+### `duplicateLevel` (function)
+
+```ts
+function duplicateLevel(project: Project, id: string, copy: {
+    readonly id: string;
+    readonly name: string;
+}, ids: IdSource): Project;
 ```
 
 ### `EditHistory` (interface)
@@ -629,6 +659,18 @@ interface LevelEditorView {
 }
 ```
 
+### `LevelNeighbours` (interface)
+
+```ts
+interface LevelNeighbours {
+    readonly level: string;
+    readonly north: readonly string[];
+    readonly east: readonly string[];
+    readonly south: readonly string[];
+    readonly west: readonly string[];
+}
+```
+
 ### `LevelTool` (type)
 
 ```ts
@@ -663,10 +705,30 @@ interface Migration {
 function moveEntity(project: Project, target: LayerTarget, id: string, x: number, y: number): Project;
 ```
 
+### `moveLevelInWorld` (function)
+
+```ts
+function moveLevelInWorld(project: Project, level: string, x: number, y: number): Project;
+```
+
 ### `moveObject` (function)
 
 ```ts
 function moveObject(project: Project, target: LayerTarget, id: string, x: number, y: number): Project;
+```
+
+### `NewLevel` (interface)
+
+```ts
+interface NewLevel {
+    readonly id: string;
+    readonly name: string;
+    readonly world: string;
+    readonly x: number;
+    readonly y: number;
+    readonly size: Size;
+    readonly background?: Background | undefined;
+}
 ```
 
 ### `ObjectInstance` (interface)
@@ -852,6 +914,12 @@ function placeEntity(project: Project, target: LayerTarget, input: {
 }): Project;
 ```
 
+### `placeLevel` (function)
+
+```ts
+function placeLevel(project: Project, level: string, worldId: string, at: Point): Project;
+```
+
 ### `Placement` (interface)
 
 ```ts
@@ -970,10 +1038,37 @@ function randomIds(fill: (bytes: Uint8Array<ArrayBuffer>) => void): IdSource;
 type RawFile = Readonly<Record<string, unknown>>;
 ```
 
+### `removeLevel` (function)
+
+```ts
+function removeLevel(project: Project, id: string): Project;
+```
+
+### `ResizeAnchor` (interface)
+
+```ts
+interface ResizeAnchor {
+    readonly x: AnchorSide;
+    readonly y: AnchorSide;
+}
+```
+
 ### `resizeEntity` (function)
 
 ```ts
 function resizeEntity(project: Project, target: LayerTarget, id: string, w: number, h: number): Project;
+```
+
+### `resizeLevel` (function)
+
+```ts
+function resizeLevel(project: Project, id: string, size: Size, anchor: ResizeAnchor): Project;
+```
+
+### `resizeLevelLoss` (function)
+
+```ts
+function resizeLevelLoss(project: Project, id: string, size: Size, anchor: ResizeAnchor): DroppedCells[];
 ```
 
 ### `Result` (type)
@@ -1065,6 +1160,24 @@ const ruleSchema: z.ZodType<Rule>;
 
 ```ts
 function setEntityField(project: Project, target: LayerTarget, id: string, field: string, value: FieldValue): Project;
+```
+
+### `setLevelDepth` (function)
+
+```ts
+function setLevelDepth(project: Project, level: string, depth: number): Project;
+```
+
+### `setLevelField` (function)
+
+```ts
+function setLevelField(project: Project, id: string, field: string, value: FieldValue): Project;
+```
+
+### `setWorldLayout` (function)
+
+```ts
+function setWorldLayout(project: Project, worldId: string, layout: WorldLayout, grid?: Size): Project;
 ```
 
 ### `Severity` (type)
@@ -1207,4 +1320,10 @@ interface World {
 
 ```ts
 type WorldLayout = 'free' | 'grid' | 'horizontal' | 'vertical';
+```
+
+### `worldNeighbours` (function)
+
+```ts
+function worldNeighbours(project: Project, world: World): LevelNeighbours[];
 ```

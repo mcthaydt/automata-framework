@@ -114,5 +114,25 @@ describe('createGame', () => {
       const indexHtml = readFileSync(join(testDir, 'index.html'), 'utf8')
       expect(indexHtml).toContain('<title>Stellar Odyssey</title>')
     })
+
+    // A new game installs the versions AF is tested on, so every exact pin the scaffold writes must be a row of
+    // docs/versions.md; a bump that moves the doc and the workspace but not the scaffold fails here.
+    it('pins every exact dependency at a version recorded in docs/versions.md', async () => {
+      await Effect.runPromise(createGame({ targetDir: testDir, id: 'pinned-game', title: 'Pinned Game' }))
+
+      const versionsDoc = readFileSync(new URL('../../../docs/versions.md', import.meta.url), 'utf8')
+      const recorded = new Set(
+        [...versionsDoc.matchAll(/^\|\s*`([^`]+)`\s*\|\s*([^|\s]+)\s*\|/gm)].map(
+          (row) => `${row[1]}@${row[2]}`,
+        ),
+      )
+      const pkgJson = JSON.parse(readFileSync(join(testDir, 'package.json'), 'utf8'))
+      const exactPins = Object.entries<string>({ ...pkgJson.dependencies, ...pkgJson.devDependencies })
+        .filter(([, version]) => /^\d+\.\d+\.\d+$/.test(version))
+        .map(([name, version]) => `${name}@${version}`)
+
+      expect(exactPins).toContain(`pixi.js@${pkgJson.dependencies['pixi.js']}`)
+      expect(exactPins.filter((pin) => !recorded.has(pin))).toEqual([])
+    })
   })
 })
