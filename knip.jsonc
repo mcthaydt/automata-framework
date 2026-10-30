@@ -50,6 +50,8 @@
     "packages/content": { "ignoreDependencies": ["@inlang/paraglide-js", "@inlang/plugin-message-format"] },
     // The locale test fixture resolves the inlang plugin by name (createRequire().resolve) for its settings file.
     "packages/runtime": { "ignoreDependencies": ["@inlang/plugin-message-format"] },
+    // M3.4a: pixi3d-bundle.test.ts builds these fixture page scripts with Vite by path; nothing imports them.
+    "packages/render-pixi3d": { "entry": ["src/bundle/testing/*-entry.ts"] },
     // automata check (DX.6) bundles @ruken/manifest, which imports smol-toml at runtime.
     "packages/cli": { "ignoreDependencies": ["smol-toml"] }
   }

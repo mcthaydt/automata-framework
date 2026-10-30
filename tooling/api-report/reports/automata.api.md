@@ -315,6 +315,8 @@ interface GameSpec<S = never, D = unknown> {
     readonly extensions?: readonly ExtensionDef[];
     readonly draw?: (ctx: DrawContext) => void;
     readonly renderer?: PixiRendererOptions;
+    readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
+    readonly preload?: readonly string[];
     readonly copy?: GameDefinition['copy'];
     readonly locale?: GameDefinition['locale'];
     readonly seams?: RuntimeSeams;

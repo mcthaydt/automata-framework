@@ -23,6 +23,7 @@ import {
   BootDefect,
   ContentHashMismatch,
   LoadStalled,
+  ModelInvalid,
   RendererUnavailable,
 } from './boot-error.js'
 import { contentHashOf } from './boot-program.js'
@@ -108,6 +109,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     const stallErr = new LoadStalled({ url: '/bar.bin', bytesSoFar: 10, stalledMs: 30000 })
     const rendErr = new RendererUnavailable({ tried: ['webgl2', 'webgpu'] })
     const defectErr = new BootDefect({ cause: new Error('boom') })
+    const modelErr = new ModelInvalid({ file: 'models/crate.glb', reason: 'skinned' })
 
     expect(describeBootError(hostErr)).toContain('init')
     expect(describeBootError(hashErr)).toContain('expected aaa')
@@ -115,6 +117,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     expect(describeBootError(stallErr)).toContain('30000')
     expect(describeBootError(rendErr)).toContain('webgl2, webgpu')
     expect(describeBootError(defectErr)).toContain('boom')
+    expect(describeBootError(modelErr)).toBe('Model invalid: models/crate.glb (skinned)')
 
     // Type test: extra tag is not assignable to BootError
     // @ts-expect-error extra tag is rejected by exhaustive BootError union
@@ -378,6 +381,34 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       expect(alert).not.toBeNull()
       expect(alert?.getAttribute('data-code')).toBe('unsupported')
       expect(document.documentElement.getAttribute('data-state')).toBe('failed')
+
+      await handle.shutdown()
+    })
+
+    it('ModelInvalid -> data-code="model-invalid", naming the file, with Try again (M3 spec §6, D3-f)', async () => {
+      const frames = manualFrames()
+      const mockFetch = fakeFetch({
+        '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] },
+      })
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [{ id: 'title', enter: () => Effect.void }],
+        renderer: () => Effect.fail(new ModelInvalid({ file: 'models/crate.glb', reason: 'skinned' })),
+        seams: { frames, fetch: mockFetch.fetch },
+      }
+
+      const handle = runGame(game)
+      await driveFirstFrame(frames)
+      await waitForState('failed')
+
+      const alert = root.querySelector('[role="alert"]')
+      expect(alert?.getAttribute('data-code')).toBe('model-invalid')
+      expect(alert?.textContent).toContain('damaged: crate.glb.')
+      expect(Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim())).toContain(
+        'Try again',
+      )
 
       await handle.shutdown()
     })

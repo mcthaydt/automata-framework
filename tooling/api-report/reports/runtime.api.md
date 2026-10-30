@@ -303,7 +303,7 @@ class BootDefect extends BootDefectBase {
 ### `BootError` (type)
 
 ```ts
-type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;
+type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | ModelInvalid | BootDefect;
 ```
 
 ### `browserHaptics` (function)
@@ -582,6 +582,7 @@ interface GameDefinition<S = never> {
         readonly hash: string;
     };
     readonly screens: readonly ScreenDef[];
+    readonly preload?: readonly string[] | undefined;
     readonly renderer: RendererFactory;
     readonly settings?: SettingsDef<S> | undefined;
     readonly saves?: SaveDef<unknown> | undefined;
@@ -594,6 +595,7 @@ interface GameDefinition<S = never> {
     readonly copy?: Partial<BootFailureCopy> & {
         readonly loading?: string;
         readonly slow?: string;
+        readonly contextLost?: string;
     };
     readonly seams?: RuntimeSeams;
 }
@@ -970,6 +972,13 @@ type MenuAction = 'nav-up' | 'nav-down' | 'nav-left' | 'nav-right' | 'confirm' |
 type MessageFunction = (inputs?: any) => string;
 ```
 
+### `ModelInvalid` (class)
+
+```ts
+class ModelInvalid extends ModelInvalidBase {
+}
+```
+
 ### `MusicOptions` (interface)
 
 ```ts
@@ -1123,7 +1132,7 @@ const Renderer: Context.Tag<GameRenderer, GameRenderer>;
 ### `RendererFactory` (type)
 
 ```ts
-type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable, Scope.Scope>;
+type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
 ```
 
 ### `RendererUnavailable` (class)
@@ -1141,6 +1150,7 @@ interface RenderTarget {
     readonly geometry: GeometryOwner;
     readonly assets: Pick<Assets, 'get'>;
     readonly bus?: PresentationBus | undefined;
+    readonly reportLost?: ((retry: () => void) => () => void) | undefined;
 }
 ```
 
@@ -1208,6 +1218,8 @@ interface RuntimeFacts {
         readonly id: string;
         readonly reason: string;
     };
+    readonly 'render.context.lost': Readonly<Record<never, never>>;
+    readonly 'render.context.restored': Readonly<Record<never, never>>;
     readonly 'save.written': {
         readonly key: string;
         readonly slot: number;

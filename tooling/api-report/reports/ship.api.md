@@ -169,6 +169,15 @@ function findInputsProblems(gameDir: string, inputs: readonly string[]): string[
 function findOrientationMismatches(gameDir: string, declared: string): OrientationMismatchFound[];
 ```
 
+### `findPixi3d` (function)
+
+```ts
+function findPixi3d(distDir: string): {
+    core: Pixi3dFound[];
+    extras: Pixi3dFound[];
+};
+```
+
 ### `findRootAbsoluteReferences` (function)
 
 ```ts
@@ -209,6 +218,12 @@ const isBoardSource: (file: string) => boolean;
 
 ```ts
 const isInputsSource: (file: string) => boolean;
+```
+
+### `isLocalStack` (function)
+
+```ts
+function isLocalStack(api: string): boolean;
 ```
 
 ### `isOrientationSource` (const)
@@ -333,6 +348,43 @@ interface OrientationMismatchFound extends PlayedOrientation {
 function parseEnvFile(file: string, text: string): EnvValue[];
 ```
 
+### `PIXI3D_EXTRAS_MARKERS` (const)
+
+```ts
+const PIXI3D_EXTRAS_MARKERS: readonly string[];
+```
+
+### `PIXI3D_MARKERS` (const)
+
+```ts
+const PIXI3D_MARKERS: readonly string[];
+```
+
+### `Pixi3dExtrasInBuild` (class)
+
+```ts
+class Pixi3dExtrasInBuild extends Pixi3dExtrasInBuildBase {
+    get message(): string;
+}
+```
+
+### `Pixi3dFound` (interface)
+
+```ts
+interface Pixi3dFound {
+    readonly file: string;
+    readonly marker: string;
+}
+```
+
+### `Pixi3dInPublicBuild` (class)
+
+```ts
+class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
+    get message(): string;
+}
+```
+
 ### `PlayedOrientation` (interface)
 
 ```ts
@@ -369,6 +421,7 @@ interface PrepareInput {
     readonly tag?: string | undefined;
     readonly gameDir?: string | undefined;
     readonly inputBindings?: ShipInputBindings | undefined;
+    readonly audience?: 'public' | 'private' | undefined;
 }
 ```
 
@@ -391,6 +444,14 @@ interface PrepareItchInput {
 }
 ```
 
+### `PrivatePublishNotLocal` (class)
+
+```ts
+class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
+    get message(): string;
+}
+```
+
 ### `ProcessError` (class)
 
 ```ts
@@ -404,6 +465,24 @@ class ProcessError extends ProcessErrorBase {
 ```ts
 class PublishAuth extends PublishAuthBase {
     get message(): string;
+}
+```
+
+### `publishBuild` (function)
+
+```ts
+function publishBuild(input: PublishBuildInput): Effect.Effect<{
+    url: string | undefined;
+}, PrepareError | PublishError | PrivatePublishNotLocal, Files | ProcessRunner>;
+```
+
+### `PublishBuildInput` (interface)
+
+```ts
+interface PublishBuildInput extends PublishInput {
+    readonly config: ShipConfig;
+    readonly tag?: string | undefined;
+    readonly private?: boolean | undefined;
 }
 ```
 

@@ -12,6 +12,7 @@ import {
   type BootFailureCopy,
   bootFailureView,
   type HostKind,
+  withFileName,
   withHostName,
 } from './boot-failure'
 import ErrorPanel from './ErrorPanel.svelte'
@@ -36,6 +37,10 @@ const { failure, hostKind, hostName, canExit, copy = {}, onRetry, onContinue, on
 
 const words = $derived({ ...BOOT_FAILURE_COPY_EN, ...copy })
 const view = $derived(bootFailureView(failure, hostKind, canExit))
+// A failure that names a file (a damaged 3D model) fills the copy's `{file}` slot.
+const message = $derived(
+  failure._tag === 'ModelInvalid' ? withFileName(words[view.state], failure.file) : words[view.state],
+)
 
 const handlerFor = (action: BootFailureAction): (() => void) =>
   action === 'retry' ? onRetry : action === 'exit' ? onExit : (onContinue ?? onExit)
@@ -50,4 +55,4 @@ const actions = $derived<ErrorAction[]>(
 )
 </script>
 
-<ErrorPanel code={view.state} message={words[view.state]} {actions} final={view.actions.length === 0} testId="boot-failure" />
+<ErrorPanel code={view.state} message={message} {actions} final={view.actions.length === 0} testId="boot-failure" />
