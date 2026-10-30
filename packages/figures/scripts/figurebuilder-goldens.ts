@@ -12,6 +12,11 @@
 // script copies its src/ (and the three AF testing files it needs) to a temp folder, adds `.ts` to relative
 // imports and an import attribute to JSON ones, and loads them from there. Geometry never reads a colour, so the
 // swatches are a proxy that answers any id; AF's kebab-case ids are turned back into FigureBuilder's camelCase.
+//
+// One change is made to FigureBuilder's code first (M3.5b decision 16): its sweep's tip closes exactly, as AF's
+// does (src/hair/sweep.ts). The source's tip left a ring about 1e-10 m wide whenever a ratio rounded to just
+// under 1, its normals' side then a coin toss on that offset, and which way it rounded differed between
+// platforms; so the goldens taken without the change held one platform's toss.
 
 import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -41,12 +46,31 @@ const loadable = (path: string) =>
       .replace(/(from '\.{1,2}\/[^']+\.json')/g, "$1 with { type: 'json' }"),
   )
 
+/** The source's tip, `q` from the tip's start, and AF's, `rem` tip lengths from the end (decision 16). */
+const TIP_EDITS: readonly (readonly [string, string])[] = [
+  [', q = (t - (1 - tipLen)) / tipLen;', ', rem = (1 - t) / tipLen;'],
+  [
+    "const end = q <= 0 ? 1 : tip === 'point' ? (1 - q) ** 1.3 : Math.sqrt(Math.max(0, 1 - q * q));",
+    "const end = rem >= 1 ? 1 : tip === 'point' ? rem ** 1.3 : Math.sqrt(rem * (2 - rem));",
+  ],
+]
+/** Applies TIP_EDITS to FigureBuilder's hair.ts, each exactly once (a different checkout fails loudly). */
+function closeTips(path: string): void {
+  let text = readFileSync(path, 'utf8')
+  for (const [from, to] of TIP_EDITS) {
+    if (text.split(from).length !== 2) throw new Error(`hair.ts: expected one \`${from}\``)
+    text = text.replace(from, to)
+  }
+  writeFileSync(path, text)
+}
+
 const temp = mkdtempSync(join(tmpdir(), 'figurebuilder-goldens-'))
 try {
   cpSync(join(source, 'src'), join(temp, 'fb'), { recursive: true })
   for (const file of ['golden-outfits.ts', 'fixture-sliders.ts', 'fingerprint.ts'])
     cpSync(join(here, '../src/testing', file), join(temp, 'af', file))
   for (const file of [...tsFiles(join(temp, 'fb')), ...tsFiles(join(temp, 'af'))]) loadable(file)
+  closeTips(join(temp, 'fb/render/figure/hair.ts'))
   const load = (path: string) => import(pathToFileURL(join(temp, path)).href)
   const { dress, GROUP, SWATCHES } = await load('fb/render/figure/garments.ts')
   const { measure } = await load('fb/render/figure/genes.ts')

@@ -5,7 +5,8 @@
 // tone up.
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/hair.ts at a1f7246 (`grid`,
-// `spline`, `spindle`, `sweep`), with AF's strict types; the formulas and their order are the source's.
+// `spline`, `spindle`, `sweep`), with AF's strict types; the formulas and their order are the source's, except
+// the tip's profile, which closes exactly (M3.5b decision 16).
 
 import type { Rope } from '../library/hair.schema'
 import { add, clamp, cross, dot, hash, lerp, normalize, scale, sub, type V3 } from '../math/math'
@@ -144,8 +145,13 @@ export function sweep(
         : Math.min(0.5, (a0 * 0.15) / (total || 1))
   const profile = (t: number) => {
     const r = t < root ? Math.sqrt(1 - (1 - t / root) ** 2) : 1
-    const q = (t - (1 - tipLen)) / tipLen
-    const end = q <= 0 ? 1 : tip === 'point' ? (1 - q) ** 1.3 : Math.sqrt(Math.max(0, 1 - q * q))
+    // The tip, from `rem`, how many tip lengths from the end (the source's 1 - q): the same curve, but it
+    // reaches exactly 0 at t = 1, so the last ring closes on one point as the root's does. The source's
+    // `q = (t - (1 - tipLen)) / tipLen` could round to just under 1 there, leaving a ring about 1e-10 m wide
+    // whose normals took their side from the sign of a dot product with that offset; which way it rounded
+    // turned on the last bit of the path's length, and so on the platform (M3.5b decision 16).
+    const rem = (1 - t) / tipLen
+    const end = rem >= 1 ? 1 : tip === 'point' ? rem ** 1.3 : Math.sqrt(rem * (2 - rem))
     return r * end * lerp(1, taper, t)
   }
   const frame = (i: number) => {

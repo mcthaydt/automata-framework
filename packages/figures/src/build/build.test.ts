@@ -162,6 +162,40 @@ describe('build() matches FigureBuilder dress() part for part (goldens, a1f7246)
   })
 })
 
+/** The next double above `x`: a difference in the last bit, as between two platforms' `Math` functions. */
+function nextUp(x: number): number {
+  const bits = new BigInt64Array(new Float64Array([x]).buffer)
+  bits[0] = (bits[0] ?? 0n) + (x >= 0 ? 1n : -1n)
+  return new Float64Array(bits.buffer)[0] ?? Number.NaN
+}
+
+describe('build() is platform-stable: a last-bit change moves no part past the goldens’ tolerance', () => {
+  // CI's macOS arm64 runner differs from Linux x64 in the last bit of some `Math` functions, and the source's
+  // sweep let that bit decide a rope tip's ring and its normals' side (decision 16). A height one bit higher
+  // stands in for that difference on every golden outfit.
+  for (const outfit of GOLDEN_OUTFITS) {
+    it(outfit.name, () => {
+      const height = outfit.sliders.height ?? 170
+      const def = figureOf(outfit.sliders, outfit.skin, outfit.garments)
+      const nudged = figureOf({ ...outfit.sliders, height: nextUp(height) }, outfit.skin, outfit.garments)
+      const parts = build(def, skeleton(def), 'golden', null, library).parts
+      const moved = build(nudged, skeleton(nudged), 'golden', null, library).parts
+      expect(moved).toHaveLength(parts.length)
+      for (const [n, part] of parts.entries()) {
+        const a = fingerprint(part)
+        const b = fingerprint(moved[n] ?? part)
+        const what = `${outfit.name} part ${n} (${part.material})`
+        expect(b.v, what).toBe(a.v)
+        for (const key of ['positions', 'normals'] as const)
+          for (const moment of ['sum', 'second', 'ordered'] as const)
+            for (const [c, value] of a[key][moment].entries())
+              close(b[key][moment][c] ?? Number.NaN, value, `${what} ${key} ${moment} ${c}`)
+      }
+      // Two builds of a streetwear outfit take a few seconds while the whole repository's checks share the CPU.
+    }, 90_000)
+  }
+})
+
 describe('the fixture figures build', () => {
   it('every outfit of Wick and the keeper, sound and on palette colours', () => {
     for (const [id, def] of Object.entries(fixture.figures)) {
