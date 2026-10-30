@@ -852,6 +852,55 @@ describe('bootProgram', () => {
       yield* Scope.close(scope, Exit.void)
     }).pipe(Effect.runPromise))
 
+  // M3.4a, review of #241: a renderer whose graphics context will not come back asks for the panel through its
+  // target; Try again closes the panel and hands back to the renderer, which rebuilds itself.
+  it('shows the context-lost panel a renderer asks for, and Try again hands back to it', () =>
+    Effect.gen(function* () {
+      const scope = yield* Scope.make()
+      const root = document.createElement('div')
+      document.body.appendChild(root)
+      const frames = manualFrames()
+      const { screens } = makeTestScreens()
+      let reportLost: RenderTarget['reportLost']
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens,
+        renderer: (target) =>
+          Effect.sync(() => {
+            reportLost = target.reportLost
+            return { apply: () => {}, draw: () => {}, reset: () => {} }
+          }),
+        seams: {
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          frames,
+          fonts: { load: () => Promise.resolve([]) },
+          sdkEnv: () =>
+            createFakeHost({ gameOrigin: TEST_GAME_ORIGIN, gameId: 'test-game', clock: realClock }).gameEnv!,
+        },
+      }
+
+      const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
+      yield* advanceFirstFrame(frames)
+      yield* Fiber.join(fiber)
+
+      const retried: string[] = []
+      reportLost?.(() => void retried.push('retry'))
+      const alert = root.querySelector('[role="alert"]')
+      expect(alert?.getAttribute('data-code')).toBe('context-lost')
+      expect(alert?.textContent).toContain('The picture stopped.')
+      const button = Array.from(root.querySelectorAll('button')).find((b) =>
+        b.textContent?.includes('Try again'),
+      )
+      button?.click()
+      expect(retried).toEqual(['retry'])
+      expect(root.querySelector('[role="alert"]')).toBeNull()
+
+      yield* Scope.close(scope, Exit.void)
+      root.remove()
+    }).pipe(Effect.runPromise))
+
   it('menu handler: after ready, host.bridge.openGameMenu() reaches current screen openMenu', () =>
     Effect.gen(function* () {
       const scope = yield* Scope.make()

@@ -3,10 +3,11 @@
 import '../no-eval.js'
 import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
 import { DirectionalLight } from '@pixi/3d'
-import { Effect, Exit, Scope } from 'effect'
+import { Effect, Exit, ManagedRuntime, Scope, TestClock, TestContext } from 'effect'
 import { RenderTexture } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { encodeGlb, fixtureBox, fixtureQuad } from '../model/testing/model-fixtures.js'
+import { CONTEXT_RESTORE_MS } from '../renderer/context-loss.js'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'
 import { testTarget } from '../testing/test-target.js'
 import { box } from '../views/box-view.js'
@@ -35,6 +36,7 @@ const makeViews = () => ({
 
 async function start(
   views: ReturnType<typeof makeViews> = makeViews(),
+  run: <A, E>(effect: Effect.Effect<A, E>) => Promise<A> = Effect.runPromise,
 ): Promise<{ renderer: Pixi3dRenderer; target: ReturnType<typeof testTarget> }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
@@ -54,7 +56,7 @@ async function start(
     },
   })
   scope = Effect.runSync(Scope.make())
-  const renderer = await Effect.runPromise(Scope.extend(factory(target), scope))
+  const renderer = await run(Scope.extend(factory(target), scope))
   return { renderer, target }
 }
 
@@ -169,6 +171,38 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
     const back = snapshot(renderer)
     expect(differing(empty, back)).toBeGreaterThan(200)
     expect(differing(scene, back)).toBe(0)
+  })
+})
+
+// M3 spec §5, review of #241: a context the browser never gives back asks for the panel after the wait (on a test
+// clock), and Try again builds a new app on a new context and draws the same scene from the sim's rows.
+describe.runIf(hasWebGL2)('a context that does not come back', () => {
+  it('asks for the panel after the wait, and Try again draws the scene on a new context', async () => {
+    const clock = ManagedRuntime.make(TestContext.TestContext)
+    const { renderer, target } = await start(makeViews(), (effect) => clock.runPromise(effect))
+    renderer.draw(frame)
+    const empty = snapshot(renderer)
+    renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
+    renderer.draw(frame)
+    const oldCanvas = renderer.stage.app.canvas
+    const gl = (renderer.stage.app.renderer as unknown as { gl: WebGL2RenderingContext }).gl
+    const lost = nextEvent(oldCanvas, 'webglcontextlost')
+    gl.getExtension('WEBGL_lose_context')?.loseContext()
+    await lost
+
+    await clock.runPromise(TestClock.adjust(CONTEXT_RESTORE_MS - 1))
+    expect(target.lostPanels).toHaveLength(0)
+    await clock.runPromise(TestClock.adjust(1))
+    await expect.poll(() => target.lostPanels.length).toBe(1)
+
+    target.lostPanels[0]?.()
+    await expect
+      .poll(() => renderer.stage.app.canvas !== oldCanvas && oldCanvas.isConnected === false)
+      .toBe(true)
+    renderer.draw(frame)
+    expect(differing(empty, snapshot(renderer))).toBeGreaterThan(200)
+    expect(renderer.view.root.children.length).toBeGreaterThanOrEqual(2)
+    await clock.dispose()
   })
 })
 

@@ -63,6 +63,9 @@ function withPreload(
   return { ...assets, screens: { ...screens, [screen]: { files } } }
 }
 
+/** The context-lost panel's English default (M3 spec §5, §7), in Ruken's quiet tone. */
+const CONTEXT_LOST_COPY_EN = 'The picture stopped. Try again to bring it back.'
+
 /**
  * Ruken's save key pattern (/^[A-Za-z0-9._:-]{1,128}$/, sdk/src/save-map.ts).
  * Refused keys fail with HostError{code: 'INVALID_PAYLOAD', operation: 'saves.get'} (spec §4 step 3).
@@ -246,6 +249,24 @@ export function bootProgram<S>(
       geometry,
       assets,
       bus,
+      reportLost: (retry) => {
+        const dismiss = layers.showError({
+          code: 'context-lost',
+          message: game.copy?.contextLost ?? CONTEXT_LOST_COPY_EN,
+          actions: [
+            {
+              id: 'retry',
+              label: game.copy?.retry ?? 'Try again',
+              kind: 'primary',
+              onSelect: () => {
+                dismiss()
+                retry()
+              },
+            },
+          ],
+        })
+        return dismiss
+      },
     }
     const renderer = yield* game.renderer(renderTarget)
 

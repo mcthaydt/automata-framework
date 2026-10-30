@@ -92,6 +92,8 @@ export interface GameDefinition<S = never> {
   readonly copy?: Partial<BootFailureCopy> & {
     readonly loading?: string
     readonly slow?: string
+    /** The panel when the renderer's graphics context is lost for good (M3 spec §5). */
+    readonly contextLost?: string
   }
   readonly seams?: RuntimeSeams
 }
