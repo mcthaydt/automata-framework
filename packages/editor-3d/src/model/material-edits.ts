@@ -157,6 +157,12 @@ function matchingWalls(
   return changes
 }
 
+/** The target in a sentence: `wall 2 of hall`, `the floor of hall`, `the walls of hall`. */
+const describe = (target: MaterialTarget): string =>
+  'wall' in target
+    ? `wall ${target.wall.corner} of ${target.wall.sector}`
+    : `the ${target.surface} of ${target.sector}`
+
 function labelOf(args: ApplyMaterialArgs): string {
   const { target, scope, material } = args
   const what = `Apply ${material.id} to`
@@ -196,6 +202,9 @@ export function applyMaterial<D>(args: ApplyMaterialArgs): Edit<D> {
       const changes = new Map<string, EditSector>()
       if (scope === 'matching') {
         const made = materialOf(profile, level, target)
+        // Nothing to match: every surface that says nothing would match, which is never what was meant.
+        if (made === undefined)
+          return refuse(`${describe(target)} is made of no material, so nothing matches it`)
         const sectors = profile.sectors.list(level)
         if (!('wall' in target) && target.surface !== 'walls') {
           const member = MEMBER[target.surface]

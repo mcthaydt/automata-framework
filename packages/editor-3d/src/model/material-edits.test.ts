@@ -143,6 +143,19 @@ describe('applyMaterial: matching', () => {
   })
 })
 
+describe('applyMaterial: matching a target made of nothing', () => {
+  it('refuses, rather than match every surface that says nothing', () => {
+    expect(reasonOf(apply({ sector: 'hall', surface: 'ceiling' }, 'matching', plank))).toBe(
+      'the ceiling of hall is made of no material, so nothing matches it',
+    )
+    const bare = toyAfSector({ materials: { stone: { category: 'walls' } } })
+    expect(reasonOf(apply(wallOf('hall', 2), 'matching', stone, bare))).toBe(
+      'wall 2 of hall is made of no material, so nothing matches it',
+    )
+    expect(levelOf(apply(wallOf('hall', 2), 'room', stone, bare))).not.toBe(bare)
+  })
+})
+
 describe('applyMaterial: refusals and the history', () => {
   it('refuses a material for walls only on a floor or a ceiling, and a sector or a wall that is not there', () => {
     expect(reasonOf(apply({ sector: 'hall', surface: 'floor' }, 'wall', glass))).toBe(
