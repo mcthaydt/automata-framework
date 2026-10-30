@@ -141,6 +141,20 @@ describe('buildFonts', () => {
     expect([...'Français'].every(latin)).toBe(true)
   })
 
+  // The gate holds the names to the same rule as the messages (M5.5F): a language's subsets together must hold the
+  // name of every language a font serves, or the picker draws one in a face the game did not choose.
+  it('refuses a language whose subsets lack another served language’s name, at its place in fonts.toml', async () => {
+    expect((await refused(japaneseProject('["ja"]'))).map(formatDiagnostic)).toEqual([
+      'content/fonts.toml:5:1  font.pixel.locales.0  missingGlyph: U+65E5 "日", U+672C "本", U+8A9E "語" are not in the en subset of pixel (the language picker names ja 日本語)',
+      'content/fonts.toml:5:1  font.pixel.locales.1  missingGlyph: U+65E5 "日", U+672C "本", U+8A9E "語" are not in the fr subset of pixel (the language picker names ja 日本語)',
+    ])
+  })
+
+  it('does not check the name of a language no font serves, which draws in the game’s own CSS face', async () => {
+    const root = withFont(withJapanese(project(ONE_FONT)))
+    expect([...(await built(root)).keys()].filter((name) => name.endsWith('.woff2'))).toHaveLength(2)
+  })
+
   it('does not check a control character such as a newline', async () => {
     const root = withFont(project(ONE_FONT))
     edit(root, 'content/messages/fr.json', (text) => text.replace('"Aube"', '"Au\\nbe"'))

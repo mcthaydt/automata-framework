@@ -3,7 +3,7 @@
 - **Task:** M5.5F in [02](../../02-master-delivery-plan.md) (lane content, size S). M5 spec [§4.7 Fonts](../specs/2026-10-16-m5-saves-audio-design.md): "each locale's subset is cut … to that locale's characters … plus FloorFifty's `ALWAYS` set … and the endonym text for the language picker". The follow-up recorded by the [M5.5 plan](2026-10-18-m5-5-fonts.md) (its "Out" table).
 - **Lane:** content. **Depends on:** M5.5 (merged), the language picker (#91: `LanguageSection` and `endonymOf` in ui).
 - **Status:** Drafted 2026-10-30.
-- **Progress:** 3 of 5 steps.
+- **Progress:** 4 of 5 steps.
 
 ## Sources, read at these commits
 
@@ -53,11 +53,12 @@ Each step starts with its test, run red, with the failure reason recorded.
   - *Red:* a game with `en`, `fr` and a `ja` translation, the pixel face serving all three and the `noto-sans-jp-endonym` fixture serving all three: the build passes and the JP face's `en` and `fr` subsets hold 日, 本 and 語.
   - *Expected failure:* the JP face's `en` subset is cut to the English text only, so `fontCoverage(...)('日')` is false.
   - *Done: red `en: expected [ false, false, false ] to deeply equal [ true, true, true ]` (the JP face's `en` subset held no glyph), then green with the names added to each subset's characters: 12 of 12 in `build-fonts.test.ts`, 74 of 74 in `src/assets` and `src/cli`.*
-- [ ] **4. The gate covers the names** (`build-fonts.test.ts`; `build-fonts.ts`).
+- [x] **4. The gate covers the names** (`build-fonts.test.ts`; `build-fonts.ts`).
   - *Red, by case:*
     - the same game with the JP fixture serving `ja` only: the build fails with one `missingGlyph` each for `en` and `fr`, at `font.pixel.locales.0` and `.1`, naming U+65E5, U+672C and U+8A9E, 日本語 and `ja`;
     - with no font serving `ja`, the build passes: an unserved language's name is not checked (green before and after; it guards the rule).
   - *Expected failure:* the first case builds (`expected the build to fail`).
+  - *Done: red `expected the build to fail`, then green: 14 of 14 in `build-fonts.test.ts`, 292 of 292 in content's node project, `tsc` clean. The message check and the name check share `missingCharacters` and `notInSubset`; `LocaleCoverage` gains `at`, the locale's entry in its first font's `locales`. `DiagnosticCode`'s `missingGlyph` doc names the picker's names too. Hand mutations: dropping the served-language filter fails the unserved case; dropping the names from the cut fails 9 of 14 (the Latin subsets then lack the ç of Français).*
 - [ ] **5. Reports, changeset, gates.**
   - *Regenerate:* `pnpm build`, `pnpm api-report --update`, `pnpm api-index` (`pnpm cheatsheet` if stale), `pnpm agent-skills --write`.
   - *Changeset:* a patch for `@mcthaydt/automata-content` and `@mcthaydt/automata-ui`.
