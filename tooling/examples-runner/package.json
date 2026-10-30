@@ -24,13 +24,16 @@
     "e2e:playground": "node playground/feasibility-server.ts"
   },
   "dependencies": {
+    "@mcthaydt/automata": "workspace:*",
     "@mcthaydt/automata-render-pixi": "workspace:*",
+    "@mcthaydt/automata-runtime": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "effect": "3.22.2",
-    "oxc-parser": "0.152.0"
+    "oxc-parser": "0.152.0",
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
@@ -41,7 +44,6 @@
     "koota": "0.6.6",
     "svelte": "5.57.1",
     "vite": "8.3.3",
-    "vitest": "5.0.3",
-    "zod": "4.6.6"
+    "vitest": "5.0.3"
   }
 }
