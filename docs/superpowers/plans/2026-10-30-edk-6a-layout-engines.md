@@ -3,7 +3,7 @@
 - **Task:** EDK.6a in [02](../../02-master-delivery-plan.md). [Editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.7 (storage: "a file's `mtime` grows with every write"), §7 (sizes), §8 (layout contract in a real browser); acceptance EK-e, EK-f, EK-g.
 - **Lane:** editor-kit. **Depends on:** EDK.4 (#139, the widget layout contract) and EDK.5 (the real-OPFS storage contract), both merged. **Unblocks:** EDK.6b (the WebKit iPad journey harness), and the "WebKit and Firefox layout" parts of ED2D.8 and ED3D.11.
 - **Status:** drafted 2026-10-30 on `claude/editors-edk-6a-edk-6a-layout-engines`.
-- **Progress:** 0 of 5 steps.
+- **Progress:** 2 of 5 steps.
 
 ## Scope
 
@@ -56,8 +56,8 @@ The comparison reads the bytes of a recorded file only (the documents this tab o
 
 ## Steps
 
-- [ ] **1. Plan** (this file, commit 1).
-- [ ] **2. Engines in the config.** WebKit and Firefox instances in both `layout` projects, `test:parity` scripts. Fails: editor-kit WebKit, 18 storage cases with `UnknownError` (above). The persistent WebKit profile makes OPFS reachable; then exactly one WebKit case still fails, the conflict in "a document session saves, keeps a journal, takes a conflict and recovers on real files" (cause 2).
+- [x] **1. Plan** (this file, commit 1).
+- [x] **2. Engines in the config.** WebKit and Firefox instances in both `layout` projects, `test:parity` scripts. Fails: editor-kit WebKit, 18 storage cases with `UnknownError` (above). The persistent WebKit profile makes OPFS reachable; then exactly one WebKit case still fails, the conflict in "a document session saves, keeps a journal, takes a conflict and recovers on real files" (cause 2).
 - [ ] **3. Same-tick writes, failing first.** `store-contract.ts` gains the same-tick case and `handle-store.test.ts` runs the contract over `createFakeOpfs({ now: () => 1_700_000_000_000 })`, plus the two-tab case (two `createHandleStore` on one fake root, frozen clock, `one` then `two`, then a write expecting the first store's `mtime`). Fails: the same `mtime` comes back and the write goes through. `file-versions.test.ts` fails: module missing.
 - [ ] **4. `file-versions.ts` and the handle store.** Minimal code for step 3; the memory store already passes the new contract case. The whole kit unit project passes.
 - [ ] **5. Real browsers and gates.** The layout two-tab case on real OPFS; kit layout in Chromium, WebKit and Firefox, one engine at a time; editor-2d layout in the three; merge `origin/main` again and rerun what landed; the gates below.
@@ -69,3 +69,4 @@ Focused: `pnpm --filter @mcthaydt/automata-editor-kit exec vitest run --project 
 ## Execution record
 
 - 2026-10-30: plan drafted (commit 1), with the evidence table above.
+- Step 2: with the instances added, kit WebKit failed 18 storage cases with `UnknownError` (log kept); editor-2d passed 41 in each engine; kit Firefox passed 112. With the persistent WebKit profile and `fileParallelism: false`, kit WebKit ran 111 of 112, the one failure being the session conflict (`expected { status: 'saved', … } to deeply equal { status: 'conflict' }`), cause 2.
