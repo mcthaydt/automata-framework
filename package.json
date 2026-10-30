@@ -19,6 +19,8 @@
     "sync:evidence": "node --import tsx scripts/sync-evidence.ts"
   },
   "dependencies": {
+    "@babel/parser": "8.0.10",
+    "sucrase": "3.35.1",
     "zod": "4.6.5"
   },
   "devDependencies": {
