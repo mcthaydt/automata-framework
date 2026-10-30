@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { figuresExtension } from './figures.extension'
 
 describe('figuresExtension', () => {
-  it('registers the figure kinds and the seven libraries and the poses, none of them for the sim', () => {
+  it('registers the figure kinds and the seven libraries, the poses and the clips, none of them for the sim', () => {
     expect(figuresExtension.name).toBe('figures')
     const content = figuresExtension.content ?? []
     expect(content.map((kind) => kind.kind).sort()).toEqual([
       'figure',
+      'figure-clip',
       'figure-gait',
       'figure-hair',
       'figure-headwear',
