@@ -2,7 +2,13 @@
 // beta's terms allow no public deployment, so `ship prepare` refuses a public build that contains it (X-b).
 // Import `@mcthaydt/automata-render-pixi3d/no-eval` first, before anything else.
 
-export { type DecodeTexture, type LoadedModel, loadModels, type ModelLibrary } from './model/load-models.js'
+export {
+  type DecodeTexture,
+  type LoadedModel,
+  loadModels,
+  type ModelLibrary,
+  type ModelStore,
+} from './model/load-models.js'
 export { modelGeometry } from './model/model-geometry.js'
 export { type ModelMesh, parseGlb, parsePack } from './model/parse-glb.js'
 export { render3dExtension } from './render3d.extension.js'

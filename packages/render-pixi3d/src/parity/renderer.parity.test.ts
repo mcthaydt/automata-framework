@@ -28,7 +28,14 @@ afterEach(async () => {
   document.body.replaceChildren()
 })
 
-async function start(): Promise<{ renderer: Pixi3dRenderer; target: ReturnType<typeof testTarget> }> {
+const makeViews = () => ({
+  crate: box({ width: 1, height: 1, depth: 1 }, { color: 0xf9c22b }),
+  prop: mesh('models/box.glb', { height: 1 }),
+})
+
+async function start(
+  views: ReturnType<typeof makeViews> = makeViews(),
+): Promise<{ renderer: Pixi3dRenderer; target: ReturnType<typeof testTarget> }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
   const target = testTarget(host, { 'models/box.glb': encodeGlb(fixtureBox()) })
@@ -36,10 +43,7 @@ async function start(): Promise<{ renderer: Pixi3dRenderer; target: ReturnType<t
     logicalWidth: 160,
     logicalHeight: 90,
     backgroundColor: BACKGROUND,
-    views: {
-      crate: box({ width: 1, height: 1, depth: 1 }, { color: 0xf9c22b }),
-      prop: mesh('models/box.glb', { height: 1 }),
-    },
+    views,
     scene: (view) => {
       view.camera.position.set(0, 2.5, 5)
       view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
@@ -93,6 +97,23 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
     renderer.draw(frame)
     // The box and the mesh cover a few hundred of the 160 × 90 field's pixels.
     expect(differing(empty, snapshot(renderer))).toBeGreaterThan(200)
+  })
+
+  // Review of #241: a renderer's scope frees its models, and the same views (a box() factory's shared geometry and
+  // material) draw again in the next renderer, as after Try again or a restart.
+  it('draws the same views again in a second renderer after the first one closed', async () => {
+    const views = makeViews()
+    for (let lifetime = 0; lifetime < 2; lifetime++) {
+      const { renderer } = await start(views)
+      renderer.draw(frame)
+      const empty = snapshot(renderer)
+      renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
+      renderer.draw(frame)
+      expect(differing(empty, snapshot(renderer)), `lifetime ${lifetime}`).toBeGreaterThan(200)
+      if (scope) await Effect.runPromise(Scope.close(scope, Exit.void))
+      scope = undefined
+      document.body.replaceChildren()
+    }
   })
 
   it('adds, moves (interpolated) and removes views over the Container3D root', async () => {

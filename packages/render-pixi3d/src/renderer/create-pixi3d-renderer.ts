@@ -99,6 +99,8 @@ export function createPixi3dRenderer(
     Effect.gen(function* () {
       const files = Object.values(options.views).flatMap((factory) => factory.models ?? [])
       const models = yield* loadModels(files, target.assets)
+      // Freed when the scope closes, after the app and the views that draw them (finalizers run last-added first).
+      yield* Effect.addFinalizer(() => Effect.sync(() => models.dispose()))
 
       let mounted: Mounted | undefined
       const base = yield* createPixiRenderer({

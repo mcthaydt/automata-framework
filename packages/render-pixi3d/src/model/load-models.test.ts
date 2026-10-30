@@ -1,5 +1,5 @@
 import { Effect, Exit } from 'effect'
-import { Texture } from 'pixi.js'
+import { Texture, TextureSource } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { type DecodeTexture, loadModels } from './load-models.js'
 import { encodeGlb, encodePack, fixtureBox } from './testing/model-fixtures.js'
@@ -21,6 +21,24 @@ describe('loadModels', () => {
     expect(models.get('m/a.glb')?.geometry.vertexCount).toBe(24)
     expect(models.get('m/b.bin')?.mesh.indices.length).toBe(36)
     expect(models.get('m/c.glb')).toBeUndefined()
+  })
+
+  it('disposes what it loaded: geometry, material, texture and the decoded bitmap (review of #241)', async () => {
+    const closed: string[] = []
+    const bitmapDecode: DecodeTexture = async () => {
+      const bitmap = { width: 1, height: 1, close: () => void closed.push('bitmap') }
+      return new Texture({ source: new TextureSource({ resource: bitmap, width: 1, height: 1 }) })
+    }
+    const models = await Effect.runPromise(
+      loadModels(['m/a.glb'], assetsOf({ 'm/a.glb': encodeGlb(fixtureBox()) }), bitmapDecode),
+    )
+    const model = models.get('m/a.glb')
+    if (model === undefined) throw new Error('not loaded')
+    models.dispose()
+    expect(model.material.destroyed).toBe(true)
+    expect(model.texture.destroyed).toBe(true)
+    expect(closed).toEqual(['bitmap'])
+    expect(models.get('m/a.glb')).toBeUndefined()
   })
 
   it.each([

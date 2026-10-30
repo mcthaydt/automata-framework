@@ -1,5 +1,6 @@
 import type { RenderRow } from '@mcthaydt/automata-sim'
 import { Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Texture } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import type { LoadedModel, ModelLibrary } from '../model/load-models.js'
 import { modelGeometry } from '../model/model-geometry.js'
@@ -12,7 +13,12 @@ const row: RenderRow = { sid: 3, components: { prop: { x: 1, y: 0, z: 1 } } }
 /** A library holding one fixture model, 0.5 m to 2.5 m tall, without a texture (Node has no image decoder). */
 function libraryWith(file: string): ModelLibrary {
   const parsed = parseGlb(encodeGlb(fixtureBox([-1, 0.5, -1], [1, 2.5, 1])), file)
-  const model: LoadedModel = { mesh: parsed, geometry: modelGeometry(parsed), material: new PhongMaterial() }
+  const model: LoadedModel = {
+    mesh: parsed,
+    geometry: modelGeometry(parsed),
+    material: new PhongMaterial(),
+    texture: Texture.WHITE,
+  }
   return { get: (name) => (name === file ? model : undefined) }
 }
 
