@@ -164,4 +164,10 @@ describe('DocumentFrame', () => {
     await setup({ width: 390, height: 844 })
     expect(within(screen.getByTestId('document-bar')).queryByText('af-sector')).toBeNull()
   })
+
+  it('puts the checks words in the status line on a phone, where the bar has no room for the pill (ED3D.5d)', async () => {
+    await setup({ width: 390, height: 844 })
+    expect(screen.queryByTestId('checks-pill')).toBeNull()
+    expect(screen.getByText(/(No problems|warning|problem).* · Nothing selected/)).toBeInTheDocument()
+  })
 })

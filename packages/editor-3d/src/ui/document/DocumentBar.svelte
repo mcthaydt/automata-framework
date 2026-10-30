@@ -4,7 +4,7 @@
   disabled while a save or a dialog's choice runs. On a narrow screen the title and the path truncate and the buttons
   keep their size; on a phone the profile is left out. The heading takes the focus when the bar appears: the page
   changed. ED3D.5d adds the views (Plan, and the ones still coming, each saying why it cannot be chosen yet) and the
-  checks pill; on a phone the views are left out and the pill stays.
+  checks pill. The views show at `wide` only; on a phone the pill is left to the status line, so the title keeps its room.
 -->
 <script lang="ts">
 import { Button, Pill, Segmented } from '@mcthaydt/automata-editor-kit'
@@ -25,8 +25,13 @@ interface Props {
   /** The shell is `compact` (a phone): the profile is left out so the title keeps its room. */
   compact: boolean
   mode: ViewMode
+  /** Whether the views are offered: at `wide` only, where the bar has the room (below it the 3D modes replace Plan). */
+  views: boolean
   /** The checks pill's words and tone (`checksWords`). */
   checks: { readonly text: string; readonly tone: PillTone }
+  /** Whether the layers drawer is open, below `wide`; `undefined` where the panel is always in view (no button). */
+  layersOpen?: boolean | undefined
+  onlayers?: (() => void) | undefined
   onback: () => void
   onundo: () => void
   onredo: () => void
@@ -44,7 +49,10 @@ const {
   busy,
   compact,
   mode,
+  views: showViews,
   checks,
+  layersOpen,
+  onlayers,
   onback,
   onundo,
   onredo,
@@ -70,10 +78,15 @@ onMount(() => title?.focus())
   </div>
   {#if !compact}<span class="kind"><Pill>{profile}</Pill></span>{/if}
   <span class="spacer"></span>
-  {#if !compact}
+  {#if layersOpen !== undefined}
+    <Button aria-expanded={layersOpen} data-testid="toggle-layers" onclick={() => onlayers?.()}>Layers</Button>
+  {/if}
+  {#if showViews}
     <Segmented label="View" options={views} value={mode} onedit={(event) => chosen(event.value)} />
   {/if}
-  <span class="checks" data-testid="checks-pill"><Pill tone={checks.tone}>{checks.text}</Pill></span>
+  {#if !compact}
+    <span class="checks" data-testid="checks-pill"><Pill tone={checks.tone}>{checks.text}</Pill></span>
+  {/if}
   <Button
     disabled={!canUndo}
     aria-label={undoLabel === undefined ? 'Undo' : `Undo ${undoLabel}`}

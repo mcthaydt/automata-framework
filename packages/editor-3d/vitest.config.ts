@@ -39,6 +39,8 @@ export default defineConfig({
         plugins: [svelte(), svelteTesting()],
         // Svelte's client build: the fixtures mount through the testing package.
         resolve: { conditions: ['browser'] },
+        // The frame loads Pixi once a level opens; bundled up front, so a cold cache does not reload the page mid-run.
+        optimizeDeps: { include: ['pixi.js'] },
         test: {
           name: 'layout',
           include: ['src/**/*.layout.test.ts'],

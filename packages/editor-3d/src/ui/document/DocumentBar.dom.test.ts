@@ -17,6 +17,7 @@ function mount(props: Record<string, unknown> = {}) {
     busy: false,
     compact: false,
     mode: 'plan',
+    views: true,
     checks: { text: '2 warnings', tone: 'warn' },
     ...handlers,
     ...props,
@@ -69,9 +70,28 @@ describe('DocumentBar', () => {
     expect(split).toHaveAccessibleDescription(/^Not ready yet: /)
   })
 
-  it('shows how the checks stand, and keeps the pill on a phone where the views are left out (ED3D.5d)', () => {
-    mount({ compact: true, checks: { text: '1 problem', tone: 'bad' } })
+  it('shows how the checks stand; below wide the views are left out, and on a phone the pill too (ED3D.5d)', () => {
+    mount({ views: false, checks: { text: '1 problem', tone: 'bad' } })
     expect(screen.getByText('1 problem')).toBeInTheDocument()
     expect(screen.queryByRole('radiogroup', { name: 'View' })).toBeNull()
+  })
+
+  it('leaves the pill to the status line on a phone (ED3D.5d)', () => {
+    mount({ compact: true, views: false })
+    expect(screen.queryByTestId('checks-pill')).toBeNull()
+  })
+
+  it('opens the layers drawer from a Layers button below wide, and has none at wide (ED3D.5d)', async () => {
+    const onlayers = vi.fn()
+    mount({ layersOpen: false, onlayers })
+    const layers = screen.getByRole('button', { name: 'Layers' })
+    expect(layers).toHaveAttribute('aria-expanded', 'false')
+    await userEvent.click(layers)
+    expect(onlayers).toHaveBeenCalledOnce()
+  })
+
+  it('has no Layers button when the panel is always in view (ED3D.5d)', () => {
+    mount()
+    expect(screen.queryByRole('button', { name: 'Layers' })).toBeNull()
   })
 })

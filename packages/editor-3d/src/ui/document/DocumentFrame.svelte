@@ -55,7 +55,10 @@ function snapshot(source: DocumentController): DocumentState {
   return current
 }
 
-const compact = $derived(shellModeOf(geometry.current.formFactor) === 'compact')
+const shellMode = $derived(shellModeOf(geometry.current.formFactor))
+const compact = $derived(shellMode === 'compact')
+/** The layers drawer (or sheet on a phone), below `wide`; at `wide` the panel is always in view. */
+let panelOpen = $state(false)
 
 // svelte-ignore state_referenced_locally
 let view = $state.raw<DocumentState>(snapshot(controller))
@@ -92,10 +95,12 @@ $effect(() => {
 })
 
 const pill = $derived(checksWords(counts))
-const statusWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection }))
+const planWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection }))
+// On a phone the bar has no room for the checks pill, so its words lead the status line.
+const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWords)
 </script>
 
-<EditorShell {geometry} testId="document-frame">
+<EditorShell {geometry} bind:panelOpen testId="document-frame">
   {#snippet topbar()}
     <DocumentBar
       heading={view.heading}
@@ -107,7 +112,10 @@ const statusWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection }
       busy={view.busy !== undefined}
       {compact}
       {mode}
+      views={shellMode === 'wide'}
       checks={pill}
+      layersOpen={shellMode === 'wide' ? undefined : panelOpen}
+      onlayers={() => (panelOpen = !panelOpen)}
       {onback}
       onundo={() => controller.undo()}
       onredo={() => controller.redo()}
