@@ -28,11 +28,14 @@ and every catalog example runs in it with no policy violation in Chromium, WebKi
 
 - Create, each with a Node test: `src/playground/playground-manifest.ts`, `playground-catalog.ts`, `runtime-size.ts`.
 - Create `playground/build-playground.ts`, `playground/runtime/no-eval.ts`, `playground/e2e/examples.e2e.ts`,
-  `playground/e2e/compile-for-test.ts` (the test-only compile the frame cases already use, shared).
+  `playground/e2e/frame-driver.ts` (the test-only compile and test parent the frame cases already used, shared).
 - Modify `playground/vite.config.ts` (the no-eval entry; Zod and Pixi in chunks of their own), `frame-page.ts` and
-  its test, `vite-runtime.ts` and its test, `playground/frame-server.ts` (serves `dist-playground` as built),
-  `package.json` (`build:playground`; `e2e:playground-frame` builds then serves), the root `playwright.config.ts`
-  (`playground-examples-{chromium,webkit,firefox}`).
+  its test, `vite-runtime.ts` and its test, `package.json` (`build:playground`), `.gitignore` (`dist-playground/`),
+  the root `playwright.config.ts` (the `playground-frame-*` projects run `examples.e2e.ts` too), and
+  `packages/render-pixi/src/no-eval.ts` and its test (A-17's finding).
+- **Deviation:** `frame-server.ts` keeps serving the runtime build with frame pages it writes for its own origin
+  rather than `dist-playground`, because the full build stops at the licence gate until the repack; it switches when
+  the manifest check (step 3) can run.
 
 ## Steps (TDD)
 
