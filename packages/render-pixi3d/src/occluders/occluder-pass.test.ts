@@ -79,6 +79,19 @@ describe('walls', () => {
     expect(shown?.occluded).toBe(true)
   })
 
+  it('starts where it ends: the first step with the eye outside a wall has it gone, not fading (review of #249, 3)', () => {
+    const pass = occluderPass({ walls: [{ span: SOUTH, occlude: 'cut' }], props: [] })
+    expect(pass.step(frame(0, 1 / 60)).walls[0]).toEqual({ occluded: true, opacity: 0, trim: true })
+  })
+
+  it('snaps again on the step after reset (a resync, a rebuild, a camera cut)', () => {
+    const pass = occluderPass({ walls: [{ span: SOUTH, occlude: 'cut' }], props: [] })
+    pass.step(frame(90, 1 / 60))
+    pass.reset()
+    expect(pass.step(frame(0, 1 / 60)).walls[0]?.opacity).toBe(0)
+    expect(pass.step(frame(90, 1 / 60)).walls[0]?.opacity).toBeLessThan(1)
+  })
+
   it('jumps both ways under reduced motion', () => {
     const pass = occluderPass({ walls: [{ span: SOUTH, occlude: 'cut' }], props: [] })
     expect(pass.step(frame(0, 0, true)).walls[0]?.opacity).toBe(0)
@@ -91,6 +104,7 @@ describe('props', () => {
 
   it('fades a tall prop on the line to the head or the feet to 25% over 150 ms, and back when clear', () => {
     const pass = occluderPass({ walls: [], props: [{ bounds: PILLAR, occlude: 'fade' }] })
+    expect(pass.step(frame(90, 1 / 60)).props[0]).toBe(1)
     expect(pass.step(frame(0, 0.075)).props[0]).toBeCloseTo(0.625, 9)
     expect(pass.step(frame(0, 0.075)).props[0]).toBe(0.25)
     // Turned a quarter, the pillar is beside the line.

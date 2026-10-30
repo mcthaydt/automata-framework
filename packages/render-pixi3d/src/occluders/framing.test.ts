@@ -29,6 +29,20 @@ describe('framingMisses (D3-g)', () => {
     expect(misses.every((m) => m.point !== 'focus')).toBe(true)
   })
 
+  it('reports the player’s focus when the view’s bounds hold the camera away from it (review of #249, 1)', () => {
+    // The bounds pin the focus at the origin; the player stands 5 m off, and behind the eye when it looks −z.
+    const pinned = cameraView('pinned', { bounds: { min: [0, 1, 0], max: [0, 1, 0] } })
+    const misses = framingMisses({
+      view: pinned,
+      outline: [{ x: 0, z: 0 }],
+      at: { x: 5, y: 0, z: 5 },
+      aspects: [4 / 3],
+    })
+    expect(misses).toContainEqual({ headingDeg: 180, aspect: 4 / 3, point: 'focus' })
+    // Looking toward it the player is in frame: the check is not simply always failing.
+    expect(misses).not.toContainEqual({ headingDeg: 45, aspect: 4 / 3, point: 'focus' })
+  })
+
   it('counts a point behind the eye as outside, whatever its projected x and y', () => {
     const misses = framingMisses({
       view: cameraView('close'),

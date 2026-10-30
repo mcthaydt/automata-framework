@@ -33,16 +33,15 @@ const playerShare = (frame: Frame): Promise<number> =>
       }),
   )
 
-test('shows the walking player through the cut-away walls, under the CSP, with no errors', async ({
-  page,
-}) => {
+test('shows the walking player in its room, under the CSP, with no errors', async ({ page }) => {
   const errors = await collectErrors(page)
   const frame = await openHosted(page, gameUrl, ID)
   await expect(frame.locator('canvas.af-stage')).toHaveAttribute('data-renderer', 'webgl')
   await frame.getByTestId('play').click()
   await expect(frame.getByTestId('play-screen')).toBeVisible()
-  // The player stands inside the room, behind where the near wall was: with the wall drawn it would not show at all.
-  // On a phone the figure is small (about 0.2% of the canvas); hidden, it would be none.
+  // The player stands inside the room and shows on the canvas. This proves the example draws it through the scenery,
+  // not which walls the rule cut: the unit sweeps and `occluders.parity.test.ts` prove that.
+  // On a phone the figure is small (about 0.2% of the canvas).
   await expect.poll(() => playerShare(frame)).toBeGreaterThan(0.0005)
   expect(errors).toEqual([])
 })

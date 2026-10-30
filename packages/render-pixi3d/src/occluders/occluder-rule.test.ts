@@ -63,6 +63,32 @@ describe('lineCrossesWall', () => {
   })
 })
 
+describe('the doorway guard through a thick wall (review of #249, 4)', () => {
+  // 0.2 m walls either side of a doorway: a player anywhere across the doorway's depth is in it, not behind a piece.
+  const left: WallSpan = { a: { x: -4, z: 0 }, b: { x: -0.5, z: 0 }, height: 2.5, thickness: 0.2 }
+  const right: WallSpan = { a: { x: 0.5, z: 0 }, b: { x: 4, z: 0 }, height: 2.5, thickness: 0.2 }
+  const eye = at(0, 3.1, 4.5)
+
+  it('cuts neither piece while the player stands anywhere in the doorway, from the inside face to the outside one', () => {
+    for (const z of [0.05, -0.05, -0.1, -0.15, -0.2, -0.25, -0.3])
+      for (const y of [0, 1.62]) {
+        expect(lineCrossesWall(left, eye, at(0, y, z))).toBe(false)
+        expect(lineCrossesWall(right, eye, at(0, y, z))).toBe(false)
+      }
+  })
+
+  it('still cuts a piece the player stands behind, past the solid', () => {
+    expect(lineCrossesWall(right, eye, at(1.2, 0, -0.5))).toBe(true)
+  })
+})
+
+describe('wall spans', () => {
+  it('refuses a wall whose ends are the same point (review of #249, 13)', () => {
+    const point: WallSpan = { a: { x: 1, z: 1 }, b: { x: 1, z: 1 }, height: 2 }
+    expect(() => wallSide(point, at(0, 0, 0))).toThrow(/a and b are the same point/)
+  })
+})
+
 describe('segmentHitsBox', () => {
   const pillar = { min: [1, 0, 1], max: [1.5, 2.4, 1.5] } as const
   it('is true through the box, false beside it, short of it or past it', () => {

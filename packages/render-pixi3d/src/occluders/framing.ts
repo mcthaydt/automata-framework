@@ -2,7 +2,8 @@
 // frame at the narrowest and widest screens the runtime letterboxes to, 4:3 and 21:9, whichever way the player turns
 // the camera. The vertical field is fixed (24 mm, 53.13°), so a wider screen only shows more to the sides. The player
 // stands at `at` (the outline's centre by default) and the camera is placed as the rig places it, by M3.4b's
-// `framedFocus` and `eyeOf`. A point at or behind the eye is outside whatever its projected x and y say.
+// `framedFocus` and `eyeOf`. The focus checked is the player's own (`focusHeight` above `at`), not the camera's look
+// point, which the view's bounds may hold elsewhere. A point at or behind the eye is outside whatever its projected x and y say.
 import { eyeOf, framedFocus, projectToNdc, type Vec3 } from '../camera/camera-pose.js'
 import { fovOf, LENS_MM } from '../camera/fov.js'
 import type { CameraView } from '../sim/camera-view.schema.js'
@@ -48,7 +49,9 @@ export function framingMisses(input: FramingInput): FramingMiss[] {
     for (const aspect of aspects) {
       const look = framedFocus({ player: at, lock: undefined, view, headingDeg, aspect })
       const eye = eyeOf(look, headingDeg, view.tiltDeg, view.distance)
-      if (!inFrame(projectToNdc(look, eye, look, fov, aspect)))
+      // The player's own focus, unclamped: the view's bounds may hold the camera's look point away from it.
+      const focus = { x: at.x, y: at.y + view.focusHeight, z: at.z }
+      if (!inFrame(projectToNdc(focus, eye, look, fov, aspect)))
         misses.push({ headingDeg, aspect, point: 'focus' })
       outline.forEach((corner, point) => {
         const ndc = projectToNdc({ x: corner.x, y: 0, z: corner.z }, eye, look, fov, aspect)

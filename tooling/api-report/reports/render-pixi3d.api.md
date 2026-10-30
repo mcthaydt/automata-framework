@@ -69,6 +69,7 @@ interface CameraPose {
     readonly eye: Vec3;
     readonly look: Vec3;
     readonly player: Vec3;
+    readonly cut: boolean;
 }
 ```
 
@@ -280,6 +281,7 @@ interface OccluderFrame {
 ```ts
 interface OccluderPass {
     step(frame: OccluderFrame): OccluderShown;
+    reset(): void;
 }
 ```
 
@@ -421,10 +423,10 @@ interface RendererKind {
 }
 ```
 
-### `segmentHitsBox` (function)
+### `segmentHitsBox` (const)
 
 ```ts
-function segmentHitsBox(from: Vec3, to: Vec3, box: Box3): boolean;
+const segmentHitsBox: (from: Vec3, to: Vec3, box: Box3) => boolean;
 ```
 
 ### `TALL_PROP_METRES` (const)
@@ -503,9 +505,9 @@ interface WallOptions {
 
 ```ts
 interface WallShown {
-    readonly occluded: boolean;
-    readonly opacity: number;
-    readonly trim: boolean;
+    occluded: boolean;
+    opacity: number;
+    trim: boolean;
 }
 ```
 

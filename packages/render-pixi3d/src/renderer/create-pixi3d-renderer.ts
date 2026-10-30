@@ -14,7 +14,7 @@ import { angledCamera, type CameraRig } from '../camera/angled-camera.js'
 import { cameraDriver, type Pixi3dCameraOptions, PLAYER_HEIGHT } from '../camera/camera-driver.js'
 import { loadModels, type ModelLibrary } from '../model/load-models.js'
 import { pixi3dUniformSyncInstalled } from '../no-eval/pixi3d-uniform-sync.js'
-import { createOccluders, type Occluders, occluderHooks } from '../occluders/occluders.js'
+import { createOccluders, type OccluderStage, type Occluders, occluderHooks } from '../occluders/occluders.js'
 import type { EntityView3d, EntityViewResolver3d } from '../views/view-3d.js'
 import { type ContextWatch, watchContextLoss } from './context-loss.js'
 
@@ -74,7 +74,7 @@ function mergeHooks(...all: readonly (PixiStageHooks | undefined)[]): PixiStageH
 
 interface Mounted {
   readonly view: View3D
-  readonly occluders: Occluders
+  readonly occluders: OccluderStage
   readonly consumer: RenderDeltaConsumer<Container3D>
   readonly hooks: PixiStageHooks
   readonly camera: CameraRig | undefined
@@ -170,7 +170,7 @@ function buildInstance(
           options.preference === 'webgpu' ? ['webgpu', 'webgl2'] : ['webgl2']
         return yield* new RendererUnavailable({ tried })
       }
-      const { view, consumer, camera } = mounted
+      const { view, consumer, camera, occluders } = mounted
       const device = (base.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
       const context = watchContextLoss({
         canvas: base.stage.app.canvas,
@@ -184,6 +184,7 @@ function buildInstance(
         Effect.sync(() => {
           context.stop()
           consumer.destroy()
+          occluders.dispose()
         }),
       )
       return { base, view, context, camera }

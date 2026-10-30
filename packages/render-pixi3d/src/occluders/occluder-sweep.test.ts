@@ -3,6 +3,12 @@
 // a ray from the eye to the player's head and to its feet hits no wall, trim or prop drawn opaque after the occluder
 // rule; in one room the cut walls are exactly those whose inside face points away from the eye; a `fade` prop on the
 // line is at 25%. The floor is `never` and a ray to the feet ends on it, so it is not tested.
+//
+// Two sweeps. The settled sweep takes a fresh pass at each pose with reduced motion, so the rule's answer at that pose
+// is read with no history: in one room the cut walls are then exactly those facing away. The continuous sweep (review
+// of #249, 5) keeps one pass and turns the camera a degree a frame at 60 fps, all the way round and back, with real
+// fades and hysteresis: a wall the hysteresis keeps cut, or the crossing test cuts, is more than D3-h's "exactly", and
+// what it must prove is that no frame has a ray blocked by a mesh drawn at full opacity.
 import { describe, expect, it } from 'vitest'
 import { eyeOf, framedFocus, type Vec3 } from '../camera/camera-pose.js'
 import { type CameraView, cameraView } from '../sim/camera-view.schema.js'
@@ -74,6 +80,56 @@ function sweep(
       for (const room of rooms)
         for (const feet of standingPoints(room)) check(settle(walls, props, view, heading, feet))
 }
+
+/** One pass, the player at `feet`, the camera turned 1° a frame at 60 fps from 0° to 360° and back. */
+function turnAround(
+  walls: readonly WallSpan[],
+  props: boolean,
+  view: CameraView,
+  feet: Vec3,
+  check: (pose: Pose) => void,
+) {
+  const pass = occluderPass({
+    walls: walls.map((span) => ({ span, occlude: 'cut' as const })),
+    props: props ? [{ bounds: PILLAR, occlude: 'fade' }] : [],
+  })
+  const head = { ...feet, y: feet.y + HEIGHT }
+  const headings = [
+    ...Array.from({ length: 361 }, (_, i) => i),
+    ...Array.from({ length: 361 }, (_, i) => 360 - i),
+  ]
+  for (const heading of headings) {
+    const look = framedFocus({ player: feet, lock: undefined, view, headingDeg: heading, aspect: 16 / 9 })
+    const eye = eyeOf(look, heading, view.tiltDeg, view.distance)
+    const shown = pass.step({ eye, look, feet, head, seconds: 1 / 60, reduced: false })
+    check({ eye, feet, head, shown })
+  }
+}
+
+describe('D3-h, turning continuously with fades and hysteresis', () => {
+  for (const [name, rooms, walls, props] of [
+    ['one room', [ONE_ROOM], ONE_ROOM.walls, true],
+    ['two rooms', [TWO_ROOMS.a, TWO_ROOMS.b], TWO_ROOMS.walls, false],
+  ] as const)
+    it(`${name}: no frame has a ray to the head or the feet blocked by a mesh at full opacity`, () => {
+      const failures: string[] = []
+      let fading = 0
+      for (const view of VIEWS)
+        for (const room of rooms)
+          for (const feet of standingPoints(room))
+            turnAround(walls, props, view, feet, (pose) => {
+              if (pose.shown.walls.some((w) => w.opacity > 0 && w.opacity < 1)) fading += 1
+              for (const target of [pose.head, pose.feet]) {
+                const hits = blockers(walls, pose, target)
+                if (hits.length > 0)
+                  failures.push(`${view.id} ${JSON.stringify(pose.feet)} → ${hits.join(', ')}`)
+              }
+            })
+      expect(failures).toEqual([])
+      // The fades ran: frames were drawn with walls part way.
+      expect(fading).toBeGreaterThan(0)
+    })
+})
 
 describe('D3-h', () => {
   it('one room: no ray to the head or the feet is blocked, and the cut walls are exactly those facing away', () => {

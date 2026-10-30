@@ -34,18 +34,34 @@ export interface Box3 {
 /** Metres past a wall's end within which it still hides a figure behind it (The Last Light: half a sprite and some). */
 export const FIGURE_REACH = 0.6
 /**
- * A line ending this close to a wall's line ends in the wall's doorway, not behind it (The Last Light's 0.12 m): the
- * player walking through a corridor mouth does not cut the wall either side of it.
+ * A line ending this close to a wall's inside face, or within the wall's thickness and this far past its outside
+ * face, ends in the wall's doorway, not behind it (The Last Light's 0.12 m, measured there on walls with no depth):
+ * the player walking through a corridor mouth does not cut the wall either side of it.
  */
 export const ON_THE_LINE = 0.12
 /** Props taller than this fade by default; shorter ones never go (§4.2). */
 export const TALL_PROP_METRES = 1.5
 
-const spanOf = (wall: WallSpan) => {
-  const dx = wall.b.x - wall.a.x
-  const dz = wall.b.z - wall.a.z
-  const length = Math.hypot(dx, dz)
-  return { length, dir: { x: dx / length, z: dz / length } }
+interface Span {
+  readonly length: number
+  readonly dir: PlanPoint
+}
+
+// A wall's length and direction, worked out once per wall: the rule asks for them several times a frame.
+const spans = new WeakMap<WallSpan, Span>()
+
+function spanOf(wall: WallSpan): Span {
+  let span = spans.get(wall)
+  if (span === undefined) {
+    const dx = wall.b.x - wall.a.x
+    const dz = wall.b.z - wall.a.z
+    const length = Math.hypot(dx, dz)
+    if (!(length > 0))
+      throw new Error(`occluders: a wall's a and b are the same point (${wall.a.x}, ${wall.a.z})`)
+    span = { length, dir: { x: dx / length, z: dz / length } }
+    spans.set(wall, span)
+  }
+  return span
 }
 
 /** Metres from the wall's inside face to `point`, positive on the room's side. */
@@ -67,39 +83,83 @@ export function wallLocal(wall: WallSpan, point: Vec3): Vec3 {
 /**
  * Whether the segment `from → to` runs from one side of the wall's inside face to the other through the wall's solid,
  * lengthened by `FIGURE_REACH` at each end. Through the solid, not only the face: a line can pass over the face's top
- * edge and come down through the wall's thickness. A line ending within `ON_THE_LINE` of the face ends in a doorway.
+ * edge and come down through the wall's thickness. A line ending within `ON_THE_LINE` of the inside face, or in the
+ * wall's depth up to `ON_THE_LINE` past its outside face, ends in a doorway.
  */
 export function lineCrossesWall(wall: WallSpan, from: Vec3, to: Vec3): boolean {
   const start = wallSide(wall, from)
   const end = wallSide(wall, to)
-  if (start * end >= 0 || Math.abs(end) < ON_THE_LINE) return false
-  const { length } = spanOf(wall)
-  return segmentHitsBox(wallLocal(wall, from), wallLocal(wall, to), {
-    min: [-FIGURE_REACH, 0, 0],
-    max: [length + FIGURE_REACH, wall.height, wall.thickness ?? 0],
-  })
+  const thickness = wall.thickness ?? 0
+  if (start * end >= 0 || (end < ON_THE_LINE && end > -thickness - ON_THE_LINE)) return false
+  const { length, dir } = spanOf(wall)
+  // Both ends in the wall's own frame (as `wallLocal`, without allocating: this runs for every wall every frame).
+  const [fx, fz] = [from.x - wall.a.x, from.z - wall.a.z]
+  const [tx, tz] = [to.x - wall.a.x, to.z - wall.a.z]
+  return slabsHit(
+    fx * dir.x + fz * dir.z,
+    from.y,
+    -start,
+    tx * dir.x + tz * dir.z,
+    to.y,
+    -end,
+    -FIGURE_REACH,
+    0,
+    0,
+    length + FIGURE_REACH,
+    wall.height,
+    thickness,
+  )
 }
 
 /** Whether the segment `from → to` passes through `box` (slabs; touching a face counts). */
-export function segmentHitsBox(from: Vec3, to: Vec3, box: Box3): boolean {
-  const start = [from.x, from.y, from.z]
-  const delta = [to.x - from.x, to.y - from.y, to.z - from.z]
-  let enter = 0
-  let leave = 1
-  for (let axis = 0; axis < 3; axis++) {
-    const origin = start[axis] as number
-    const step = delta[axis] as number
-    const [low, high] = [box.min[axis] as number, box.max[axis] as number]
-    if (step === 0) {
-      if (origin < low || origin > high) return false
-      continue
-    }
-    const [t0, t1] = [(low - origin) / step, (high - origin) / step]
-    enter = Math.max(enter, Math.min(t0, t1))
-    leave = Math.min(leave, Math.max(t0, t1))
-    if (enter > leave) return false
-  }
-  return true
+export const segmentHitsBox = (from: Vec3, to: Vec3, box: Box3): boolean =>
+  slabsHit(
+    from.x,
+    from.y,
+    from.z,
+    to.x,
+    to.y,
+    to.z,
+    box.min[0],
+    box.min[1],
+    box.min[2],
+    box.max[0],
+    box.max[1],
+    box.max[2],
+  )
+
+/** The slab test on plain numbers: the segment (x0, y0, z0) → (x1, y1, z1) against the box (lx, ly, lz)–(hx, hy, hz). */
+function slabsHit(
+  x0: number,
+  y0: number,
+  z0: number,
+  x1: number,
+  y1: number,
+  z1: number,
+  lx: number,
+  ly: number,
+  lz: number,
+  hx: number,
+  hy: number,
+  hz: number,
+): boolean {
+  enter = 0
+  leave = 1
+  return clip(x0, x1 - x0, lx, hx) && clip(y0, y1 - y0, ly, hy) && clip(z0, z1 - z0, lz, hz)
+}
+
+// The segment's parameter range inside the slabs so far; module state so the test allocates nothing.
+let enter = 0
+let leave = 1
+
+/** Narrows `enter..leave` to one axis's slab; false once the range is empty. */
+function clip(origin: number, step: number, low: number, high: number): boolean {
+  if (step === 0) return origin >= low && origin <= high
+  const t0 = (low - origin) / step
+  const t1 = (high - origin) / step
+  enter = Math.max(enter, Math.min(t0, t1))
+  leave = Math.min(leave, Math.max(t0, t1))
+  return enter <= leave
 }
 
 /** What a prop does on the line: what it says, else `fade` when taller than 1.5 m and `never` when not (§4.2). */

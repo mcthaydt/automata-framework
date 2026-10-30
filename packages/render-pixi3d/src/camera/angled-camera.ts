@@ -43,8 +43,9 @@ export interface CameraRig {
   /** Advances one display frame and writes the camera. */
   update(frameSeconds: number): void
   /**
-   * What the last `update` wrote: the eye, the point it looked at and the followed position (the player's feet), for
-   * the occluder rule. None before the first `follow`.
+   * What the last `update` wrote: the eye, the point it looked at, the followed position (the player's feet) and
+   * whether it was a cut, for the occluder rule. None before the first `follow`. The record is the rig's own and is
+   * rewritten by the next `update` (no allocation per frame).
    */
   pose(): CameraPose | undefined
 }
@@ -53,6 +54,8 @@ export interface CameraPose {
   readonly eye: Vec3
   readonly look: Vec3
   readonly player: Vec3
+  /** Whether this frame snapped rather than moved on from the last: the first follow, or the first after a cut. */
+  readonly cut: boolean
 }
 
 export interface AngledCameraOptions {
@@ -103,7 +106,7 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
   let targetHeading = 0
   let headingEase: HeadingEase | undefined
   let blend: Blend | undefined
-  let last: CameraPose | undefined
+  let last: { eye: Vec3; look: Vec3; player: Vec3; cut: boolean } | undefined
 
   const stepHeading = (seconds: number, reduced: boolean): void => {
     if (headingEase === undefined) return
@@ -178,6 +181,8 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
       const reduced = isReduced()
       stepHeading(frameSeconds, reduced)
       const player = followed ?? { x: 0, y: 0, z: 0 }
+      // No focus kept (the first follow, or a cut cleared it): this frame snaps.
+      const cut = focus === undefined
       const shown = stepFocus(view, player, frameSeconds, reduced)
       if (followed !== undefined) focus = shown
       let eye = eyeOf(shown, shownHeading, view.tiltDeg, view.distance)
@@ -192,7 +197,15 @@ export function angledCamera(options: AngledCameraOptions): CameraRig {
         }
       }
       // A blend starts only from a pose that framed the player, never from the frames before the first follow.
-      if (followed !== undefined) last = { eye, look, player: followed }
+      if (followed !== undefined) {
+        if (last === undefined) last = { eye, look, player: followed, cut }
+        else {
+          last.eye = eye
+          last.look = look
+          last.player = followed
+          last.cut = cut
+        }
+      }
       camera.fov = fov
       camera.position.set(eye.x, eye.y, eye.z)
       camera.lookAt(look)

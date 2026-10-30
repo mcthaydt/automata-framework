@@ -5,8 +5,9 @@
 // alpha, so its mesh must own its material. Presentation only: the sim never reads any of it.
 import type { PixiStageHooks } from '@mcthaydt/automata-render-pixi'
 import { reducedMotion as prefersReducedMotion } from '@mcthaydt/automata-ui'
-import { Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
+import { type BaseMaterial3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
 import type { CameraRig } from '../camera/angled-camera.js'
+import { ownCopyOf } from '../views/shared-material.js'
 import type { Occlude } from './occlude.js'
 import {
   type OccluderFrame,
@@ -14,6 +15,7 @@ import {
   occluderPass,
   type PropEntry,
   type WallEntry,
+  type WallShown,
 } from './occluder-pass.js'
 import { type Box3, type PlanPoint, propOcclude } from './occluder-rule.js'
 
@@ -58,29 +60,39 @@ export interface Occluders {
 export interface OccluderStage extends Occluders {
   /** Applies one frame of the rule. */
   update(frame: OccluderFrame): void
+  /** The next frame jumps to where the rule says, with no fade (a resync, a rebuilt renderer, a camera cut). */
+  reset(): void
+  /** Frees the unit cube the walls and boxes share and the materials made for faded props. */
+  dispose(): void
 }
 
 export const WALL_THICKNESS = 0.2
 export const TRIM_HEIGHT = 0.12
 
-/** Shows `mesh` at `opacity`: hidden at 0, blended below 1, opaque (writing depth) at 1. */
+/**
+ * Shows `mesh` at `opacity`: hidden at 0, blended below 1, opaque (writing depth) at 1. A mesh destroyed since it was
+ * registered (its material gone) is skipped. A change of alpha mode asks the mesh to recheck its shadow, which
+ * `@pixi/3d` does not do on its own (a blended mesh casts none).
+ */
 function showAt(mesh: Mesh3D, opacity: number): void {
+  if (mesh.destroyed) return
   mesh.visible = opacity > 0
   const mode = opacity < 1 ? 'blend' : 'opaque'
-  if (mesh.material.alphaMode !== mode) mesh.material.alphaMode = mode
+  if (mesh.material.alphaMode !== mode) {
+    mesh.material.alphaMode = mode
+    mesh.updateShadow()
+  }
   mesh.material.alpha = opacity
 }
 
-/** A box `height` tall standing on the floor under `a → b`, its +z face on that line and its depth outward. */
-function slab(options: WallOptions, height: number, thickness: number): Mesh3D {
+/** The unit cube scaled to a box `height` tall standing on the floor under `a → b`, its +z face on that line. */
+function slab(cube: CubeGeometry, options: WallOptions, height: number, thickness: number): Mesh3D {
   const { a, b } = options
   const length = Math.hypot(b.x - a.x, b.z - a.z)
   const dir = { x: (b.x - a.x) / length, z: (b.z - a.z) / length }
   const inward = { x: -dir.z, z: dir.x }
-  const mesh = new Mesh3D({
-    geometry: new CubeGeometry({ width: length, height, depth: thickness }),
-    material: new PhongMaterial({ baseColor: options.color }),
-  })
+  const mesh = new Mesh3D({ geometry: cube, material: new PhongMaterial({ baseColor: options.color }) })
+  mesh.scale.set(length, height, thickness)
   // Turning by θ about +y takes local +x to (cos θ, −sin θ) and local +z to (sin θ, cos θ) on the plan: the wall's
   // direction and its inward normal.
   mesh.rotation.set(0, Math.atan2(-dir.z, dir.x), 0)
@@ -96,19 +108,27 @@ export function createOccluders(parent: Container3D): OccluderStage {
   const walls: { entry: WallEntry; wall: Mesh3D; trim: Mesh3D }[] = []
   const props: { entry: PropEntry; mesh: Mesh3D }[] = []
   const ceilings: Container3D[] = []
+  // Every wall, trim and box is this cube, scaled: one geometry for the whole room.
+  const cube = new CubeGeometry({ width: 1, height: 1, depth: 1 })
+  // The materials props fade through, so two props never fade one material; and the copies made for them.
+  const fading = new WeakSet<BaseMaterial3D>()
+  const copies: BaseMaterial3D[] = []
   // Registration happens in the `scene` hook, before the first frame; a later one starts the rule afresh.
   let pass: OccluderPass | undefined
 
   return {
     wall(options) {
+      const { a, b } = options
+      if (!(Math.hypot(b.x - a.x, b.z - a.z) > 0))
+        throw new Error(`occluders.wall: a and b are the same point (${a.x}, ${a.z})`)
       const thickness = options.thickness ?? WALL_THICKNESS
       const node = new Container3D()
-      const wall = slab(options, options.height, thickness)
-      const trim = slab(options, options.trim ?? TRIM_HEIGHT, thickness)
+      const wall = slab(cube, options, options.height, thickness)
+      const trim = slab(cube, options, options.trim ?? TRIM_HEIGHT, thickness)
       trim.visible = false
       node.addChild(wall, trim)
       parent.addChild(node)
-      const span = { a: options.a, b: options.b, height: options.height, thickness }
+      const span = { a, b, height: options.height, thickness }
       walls.push({ entry: { span, occlude: options.occlude ?? 'cut' }, wall, trim })
       pass = undefined
       return node
@@ -117,6 +137,15 @@ export function createOccluders(parent: Container3D): OccluderStage {
       ceilings.push(node)
     },
     prop(mesh, options) {
+      // A shared material (a box view's, a loaded model's) is swapped for a copy of its own; one another prop already
+      // fades cannot be told apart from this one's, so it is refused.
+      const copy = ownCopyOf(mesh.material)
+      if (copy !== undefined) {
+        copies.push(copy)
+        mesh.material = copy
+      } else if (fading.has(mesh.material))
+        throw new Error('occluders.prop: this mesh shares its material with another prop; give it its own')
+      fading.add(mesh.material)
       props.push({
         entry: { bounds: options.bounds, occlude: propOcclude(options.bounds, options.occlude) },
         mesh,
@@ -124,10 +153,7 @@ export function createOccluders(parent: Container3D): OccluderStage {
       pass = undefined
     },
     box(bounds, color) {
-      const mesh = new Mesh3D({
-        geometry: new CubeGeometry({ width: 1, height: 1, depth: 1 }),
-        material: new PhongMaterial({ baseColor: color }),
-      })
+      const mesh = new Mesh3D({ geometry: cube, material: new PhongMaterial({ baseColor: color }) })
       const [min, max] = [bounds.min, bounds.max]
       mesh.scale.set(max[0] - min[0], max[1] - min[1], max[2] - min[2])
       mesh.position.set((min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2)
@@ -137,47 +163,70 @@ export function createOccluders(parent: Container3D): OccluderStage {
     update(frame) {
       pass ??= occluderPass({ walls: walls.map((w) => w.entry), props: props.map((p) => p.entry) })
       const shown = pass.step(frame)
-      walls.forEach(({ wall, trim }, i) => {
-        const state = shown.walls[i]
-        if (state === undefined) return
+      for (let i = 0; i < walls.length; i++) {
+        const { wall, trim } = walls[i] as (typeof walls)[number]
+        const state = shown.walls[i] as WallShown
         showAt(wall, state.opacity)
-        trim.visible = state.trim
-      })
-      props.forEach(({ mesh }, i) => {
-        showAt(mesh, shown.props[i] ?? 1)
-      })
-      for (const ceiling of ceilings) ceiling.visible = false
+        if (!trim.destroyed) trim.visible = state.trim
+      }
+      for (let i = 0; i < props.length; i++)
+        showAt((props[i] as (typeof props)[number]).mesh, shown.props[i] ?? 1)
+      for (const ceiling of ceilings) if (!ceiling.destroyed) ceiling.visible = false
+    },
+    reset() {
+      pass?.reset()
+    },
+    dispose() {
+      cube.destroy(true)
+      for (const copy of copies) copy.destroy()
+      copies.length = 0
     },
   }
 }
 
 export interface OccluderHookOptions {
-  /** Metres from the player's feet to its head. */
+  /** Metres from the player's feet to its head: a positive, finite number. */
   readonly height: number
   /** Default: the player's `prefers-reduced-motion`, read every frame. */
   readonly reducedMotion?: (() => boolean) | undefined
 }
 
-/** Stage hooks that run the rule each frame from what `rig` last wrote; nothing before its first `follow`. */
+/**
+ * Stage hooks that run the rule each frame from what `rig` last wrote; nothing before its first `follow`. A resync, a
+ * reset and a camera cut make the next frame jump instead of fading. The frame it hands the rule is rewritten each
+ * frame (no allocation per frame).
+ */
 export function occluderHooks(
   rig: CameraRig,
   occluders: OccluderStage,
   options: OccluderHookOptions,
 ): PixiStageHooks {
+  const { height } = options
+  if (!(Number.isFinite(height) && height > 0))
+    throw new Error(`occluders: the player's height must be a positive number of metres, not ${height}`)
   const isReduced = options.reducedMotion ?? (() => prefersReducedMotion())
+  const head = { x: 0, y: 0, z: 0 }
+  const frame = { eye: head, look: head, feet: head, head, seconds: 0, reduced: false }
   return {
-    draw(frame) {
+    apply(result) {
+      if (result.render.resync) occluders.reset()
+    },
+    draw(drawn) {
       const pose = rig.pose()
       if (pose === undefined) return
-      const { eye, look, player } = pose
-      occluders.update({
-        eye,
-        look,
-        feet: player,
-        head: { x: player.x, y: player.y + options.height, z: player.z },
-        seconds: frame.frameMs / 1000,
-        reduced: isReduced(),
-      })
+      if (pose.cut) occluders.reset()
+      head.x = pose.player.x
+      head.y = pose.player.y + height
+      head.z = pose.player.z
+      frame.eye = pose.eye
+      frame.look = pose.look
+      frame.feet = pose.player
+      frame.seconds = drawn.frameMs / 1000
+      frame.reduced = isReduced()
+      occluders.update(frame)
+    },
+    reset() {
+      occluders.reset()
     },
   }
 }
