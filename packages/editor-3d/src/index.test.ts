@@ -100,6 +100,22 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the definition edits, the af-sector materials-table edits and the new-level template', () => {
+    for (const name of [
+      'addDefinition',
+      'renameDefinition',
+      'setDefinitionField',
+      'removeDefinition',
+      'addMaterial',
+      'setMaterial',
+      'renameMaterial',
+      'removeMaterial',
+      'newAfSectorLevel',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it("exports the entity model: the definition, the reader and both formats' kits", () => {
     for (const name of [
       'thingDefSchema',

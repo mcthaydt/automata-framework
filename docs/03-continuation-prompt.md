@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-30. Source HEAD verified before this update: `89ff04d` on `main` (PR #192 merged: the release jobs run on the Owner's Mac; before it, `b7ef19d`, PR #188: `@pixi/3d` 0.1.0-beta.2 vendored). This file was rewritten on `claude/af-finish-docs-0` (PR #187, draft, docs only). Its earlier text, up to `main` `106b42a`, is kept verbatim in [history/2026-10-24-continuation.md](history/2026-10-24-continuation.md).
+> Updated 2026-10-30 12:20Z by the coordinator (session_01QYLU1hpTCZksfExT9ByvkW). Source HEAD verified before this update: `b8df412` on `main` (PR #228 merged; before it today: #213 NODE.1, #194 DX.5a, #235 DX.6c, #203 CI.N2, #252 CI.API1, #240, #212, #229, #207, #248, #243). The coordinator session rotates every two hours (Owner, 2026-10-30: "let's make new replacement sessions every 2hrs").
 
 ## Prompt for the next agent
 
@@ -34,6 +34,22 @@ Given in this session's chat on 2026-10-30. The Owner's own words are quoted whe
 
 Later the same day, recorded in PR #192's merge (`89ff04d`): **"Publish from my Mac"**. The plan, version and publish jobs of `release-packages.yml` now run on the Mac runner label (`AF_RELEASE_RUNNER`, default `af-mac`) with no hosted fallback (CI.BILL in 02 is ticked).
 
+Later the same day, in the session's chat:
+
+- **"Did I mention I want the code editor thing that pixi has for the website? That click a button to see changes crap is useless"**: the live playground, WEB.PLAY.0 to .11 in 02 (website PR #14, the spec, approved with PLAY-D1 changed: examples run when the page opens and update live on every edit).
+- **"Yes, MIT it"**: MIT for Ruken's `sdk`, `sdk-host`, `manifest` and `cli`, with the agent allowed to make the RukenApp change: RukenApp PR #396, waiting on the Owner's merge (PRODUCT.4r).
+- **"Yes, fan out"**: one cloud session per lane (editors, 3D, Plus, website), with this session as the coordinator (lane map below).
+- **"Yes, affected-only on PRs"**: a pull request's parity job runs only the suites `turbo --affected` selects (CI.PAR, PR #219); `main` and the nightly run every suite.
+- **"That's too much effort, just use the Mac"** (on a second runner on a Windows PC under WSL): everything stays on the Mac. There is no `af-pc`, and `AF_LINUX_RUNNER` stays unset.
+- **S7-Q1, answered in the session's question card:** "AF-owned shim". `@pixi/3d` 0.1.0-beta.2 throws on its first draw under `render-pixi/no-eval`, so render-pixi3d ships its own `no-eval` entry with the spike's shim, a test pins pixi's parser count and order, the bug goes to the Pixi 3D beta, and the shim leaves when a fixed release lands (M9.10). M3.4 onward is unblocked.
+- **RukenApp #396, the same card:** "You merge it": a one-off merge with Ruken checks red that the licence change does not touch. Merged as RukenApp `e376a2d`; PRODUCT.4r's repack follows.
+- **"Auto accept all spec and plans"**: a spec or plan is accepted once its review is done, and its veto-defaults stand (GL-D1 to D10, EDS.0's, #12's 15, #237's Decision 3, #238's exact round-trip, #242's OPFS versions). Recorded on GL.0 (#243), EDS.0 (#196) and GAME-3D.0 (#229) in 02.
+- **"Auto approve all visual acceptance too"**: the agent records visual acceptance once a reviewer has opened the actual expected/actual/diff images and the PR explains every change. Unexplained golden or screenshot changes still block (never rebaseline to hide them), sim hash mismatches are still investigated, and real-device testing stays the Owner's. First use: #210's xx-long captures. The 3D lane asked the Owner to confirm this ruling to it directly and holds its visual ticks until then.
+- **"You can do all 3 as well"**: (a) three lanes until the Mac's CI queue drains, so Plus and the website pause; (b) `consumer-smoke.yml` and `release-packages.yml` install Chromium (CI.CHR, #248, merged); (c) push access to RukenApp.
+- **"let's make new replacement sessions every 2hrs"**: the coordinator hands off to a fresh session every two hours, with the handoff prompt, the PR subscriptions and the lane map.
+- **EsperRedux layout, "make the restructure when it makes sense to"**: the GL spec (#243, merged) and GL.0 to GL.7 in 02.
+- Still the Owner's: other workflow changes (each needs the Owner's words quoted in the PR), hosting, DNS and deploy credentials, licence, pricing and terms text, money, and real-device tests.
+
 ### Agent defaults, open to the Owner's veto
 
 Taken under the Owner's "keep doing what you're doing"; these are the agent's, not the Owner's words.
@@ -57,6 +73,7 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 ## Facts found on 2026-10-30
 
+- **The moving-base api-report bug** (CI.API1): `pnpm api-report` compared the checkout with `origin/main`'s tip, while CI checks out the merge commit built when the run was queued, hours earlier on the Mac; exports `main` gained meanwhile read as "removed". Fixed by #252 (`24591dd`, merge base). A PR whose branch predates #252 needs `main` merged once more; after that, later moves of `main` no longer break it.
 - **Nothing has ever been published.** Every GitHub-hosted job since 2026-10-24, including `release-packages.yml` (pinned to `ubuntu-latest` because its jobs hold write tokens), is refused before it starts with "recent account payments have failed or your spending limit needs to be increased" (run 40212186695 at `6422142`; run 40977777388 at `106b42a`). #31 versioned 9 packages to 0.0.3, and none was published. Owner action: fix the billing, or approve a dedicated self-hosted publish runner (CI.BILL in 02). Answered the same day: "Publish from my Mac" (#192). The first release run started on the Mac (run 40987523255 at `89ff04d`: the plan job passed, the version job was running, publish skipped), so nothing is published yet; hosted billing is still unfixed, which leaves npm provenance unavailable (DX.11a).
 - **The nightly's only red is the frame budget**, from the shared Mac's load: the same commit, `6422142`, passed on 2026-10-26 and 2026-10-28 and failed on 2026-10-27 and 2026-10-29 (desktop work p95 25.70 ms against 12.63 ms on 10-29, while work p50 stayed at 9.5 to 10.9 ms). CI.N1a fixes the probe; CI.N2 is the other recent nightly red (Emberwick's compact touch journey on 10-27 and 10-28).
 - **The PRODUCT.5e local bundle is lost** (`cc77cc6`). automata-plus `main` holds only its initial commit `3000c20`, and 5e is being redone (automata-plus PR #1, draft).
@@ -69,13 +86,16 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 ## Open PRs and lanes in flight
 
-| PR or lane | Task | State on 2026-10-30 |
+Each lane is a cloud session that works only in its own worktrees and PRs, never edits 02, 03, 00, 01 or `AGENTS.md`, and states its rows in each PR body ("Rows: <id> done | partial"); the coordinator ticks 02 from those lines. A lane merges its own PR once every check, parity included, is green on the head. Message a lane with the `send_message` tool of the claude-code-remote MCP server; read its transcript with `list_events`.
+
+| Lane | Session | State on 2026-10-30 05:40Z |
 |---|---|---|
-| automata-framework #187 | Docs: the Owner's 2026-10-30 direction, 02 reconciled with `main`, this file | Draft, docs only; merge when its checks job is green |
-| automata-framework #189 | QB.1f: repack the vendored Ruken tarballs from `d0fa2fe`, drop the zod override | Draft (`claude/qb-1f-repack-ruken`) |
-| automata-plus #1 | PRODUCT.5e: the Plus workspace skeleton, `core.ref` sync and CI | Draft (`claude/plus-5e-workspace`) |
-| automata-website #13 | WEB.D1: the Ritmo site-gaps note | Draft, docs only |
-| Lanes without a PR yet | PRODUCT.5d (`claude/product-5d-automata-add`), DX.5a (`claude/dx-5a-small-assets-csp`), DX.6b (`claude/dx-6b-koota-soa-guard`), PRODUCT.1b3 (`claude/product-1b3-one-extractor`), CI.N2, DX.7a, DX.2c, PRODUCT.L3a | Building |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL) | `session_01QYLU1hpTCZksfExT9ByvkW` (rotates every 2 h) | Waiting on the Mac's CI, each with `main` merged after CI.API1 or a green checks job: #251 RT.EXT1, #234 QB.2c, #227 DX.2a, #219 CI.PAR, #191 PRODUCT.5d, #201 DX.7a, #210 PRODUCT.L3a (visual acceptance recorded), #237 M5.5F, #239 M5.6F.2, #253 GL.1, #254 GL.1b, and this docs PR. Merged since: #256 ASSET.0 (`6a084c0`). |
+| 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1fQHbJifZ4wuJ5qV6q` | Active. #241 M3.4a, #215, #224 merge on green; drafts #245, #247, #249; #250 M3.7a (base-3d sim) adds a base-3d game-ci job, held for the Owner's OK. Drops its `sim.plugins` workaround when #251 lands. |
+| Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1i625Fbg9c9tDyjhSW` | Active. Merged today: #196, #198, #231, #230, #207, #212, #240. Ready on the Mac: #206, #214, #225, #233, #244; fixing #242 (kit teardown ENOTEMPTY); #238 EDS.1a; draft #246 EDS.1b; building ED2D.4c3b, ED3D.5c. |
+| Plus (automata-plus) | `session_01QYLU1iZb1dcqnVEMZvtxng` | Paused (Owner, 2026-10-30) except AF #197 PRODUCT.5g, `main` merged again at `43a679d`, which it merges on green. On resume: the locks.test fix, M7.5b push, M7.5c, M3.8c, M7.6, the NetworkPort import once #227 lands. |
+| Website (WEB.PLAY, WEB.S1, DX.9w/10/11w/12, QB.4, M10) | `session_01QYLU1i5PsRuCfTDK2DHVXP` | Paused (Owner, 2026-10-30). Website #17 (DX.12 deploy dry run) held for the Owner's `deploy.yml` OK; #18 (QB.4a) stacked on it. On resume: WEB.PLAY.4 part B, then the sync-stack refresh for /inside. |
+| RukenApp | (coordinator) | #396 merged (`e376a2d`, MIT); the repack merged as AF #236. Push access re-approved 2026-10-30. |
 
 ## Critical paths
 
@@ -85,18 +105,24 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 ## Exact next action
 
-1. Merge PR #187 once its checks job is green. Then drive the PRs in flight to green and merge them: #189 (QB.1f), automata-plus #1 (PRODUCT.5e), automata-website #13 (WEB.D1), and the lanes' PRs as they open. The release run 40987523255 opens or updates the Version packages PR: leave that one unmerged until PRODUCT.5g lands, or physics would be published from AF (M2.4p); its publish also waits for the Owner's approval in the release environment.
-2. Start, in parallel, the next unblocked rows on the critical paths, none of which needs the Owner: PRODUCT.5f once automata-plus #1 merges; M3.0A (docs) and M3.1a (spike S7 part 1 on the vendored beta); ED2D.4c2b, ED3D.5b and EDK.6a; EDS.0 on the editor specs' defaults.
-3. Ask the Owner, in the session, for each item below when it becomes the next step's blocker, CI.BILL first.
+1. Merge each coordinator PR in the lane table as its checks go green on the head, parity included. A PR red only in api-report with "removed" exports that `main` added needs `main` merged once (CI.API1).
+2. When #251 (RT.EXT1) merges, tell the 3D lane to drop its `sim.plugins` workaround.
+3. When #227 (DX.2a) merges: change `AGENTS.md`'s "a private one (render-pixi, game, the umbrella, cli)" to the packages still private (cli and the editors), and tell the Plus lane that M5.8, M6.1/6.2, M3.3, PRODUCT.6 and M7.5a's NetworkPort import are unblocked.
+4. When #253 (GL.1) and #254 (GL.1b) merge: add the GL spec §5.5 text to `AGENTS.md`'s `pnpm style` and `pnpm boundaries` bullets; tell the 3D lane GL.7 can start; then GL.3 (the placeholder's `src/main.ts`), failing test first.
+5. Never merge the "Version packages" PR (#226) before #197 (PRODUCT.5g) lands, or physics would publish from AF.
+6. Resume the Plus and website lanes with one message each when the Mac's queue is ≲10 runs.
+7. Next coordinator rows with no prerequisite: PRODUCT.1b2, DX.6a, DX.6c1, DX.7b/c, CI.API1a, CI.N1a, CI.N3, RT.BOOT1, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu.
 
 ## Blocked on the Owner
 
+- **Workflow changes asked on 2026-10-30:** (1) may website #17 add `deploy.yml` (a dry run, no secrets, read-only, after ci on `main`) plus one `ci.yml` comment line, or split its scripts from the workflow? (2) may 3D #250 add a `base-3d` job to `ci.yml`, and is there a standing OK for any game's game-ci job? (3) confirm the visual-acceptance ruling to the 3D session directly.
+- **ritmo-tools (ASSET.0, #256, merged):** the veto of ASSET-D1 to D4 (the build lints but never runs the fixer; 0.19.1 pinned though under 14 days old; Endesga 64 from a committed `.hex`; no MIDI shipped).
 - **Hosted Actions billing** is answered by publishing from the Mac ("Publish from my Mac", #192, CI.BILL). Still open: whether to fix hosted billing for npm provenance (DX.11a), the Owner's approval of each publish in the release environment (M2.4p, QB.1b), and whether the merge authority covers other changes to `.github/workflows` (Plus CI, PRODUCT.L4's GPU lane, the itch path); earlier such changes, #192's included, carried the Owner's own words.
 - **`NPM_TOKEN`** for `@mcthaydt` on npmjs.org (DX.11a, M8.9), and the release-environment approval of each publish.
 - **Site hosting and DNS** for `automata.ruken.com` with a deploy credential (DX.12, QB.4a to QB.4c), and function hosting for the store webhook (QB.5a).
 - **Discord:** the server and the plugin's bot with admin rights, and a working plugin connection (DX.13, DX.10d).
 - **itch.io:** the account and the `BUTLER_API_KEY` secret (PUB.5; M8.5b's smoke).
-- **The Ruken licence for the bundled code** (PRODUCT.4r, R-16): choose the licence for `@ruken/sdk`, `sdk-host`, `manifest` and `cli` and add it in RukenApp, or allow an agent to. AF 1.0's public packages bundle this code.
+- **The Ruken licence for the bundled code** (PRODUCT.4r, R-16): resolved. MIT, merged in RukenApp `e376a2d`; the repack follows.
 - **D-7 pricing and model, and the merchant of record** (QB-D2: Lemon Squeezy or Paddle) for M10.0, QB.5a and M10.7. Until then they are placeholders and money stays mocked.
 - **A GitHub organization for Plus buyers** (QB-D4): collaborators on a personal account get write access. Needed before PRODUCT.5h and QB.5a.
 - **The frame-budget probe's exclusivity** (CI.N1a): may the probe pause the sibling runners on the Mac for about two minutes, or should it run on a dedicated machine? And free disk space on the Mac runner if a cleanup step is not enough (CI.N1).

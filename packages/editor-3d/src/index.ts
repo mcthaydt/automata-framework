@@ -104,6 +104,13 @@ export * from './geometry/nav'
 export * from './geometry/sectors'
 export { type Triangle, type Triangulation, triangulate } from './geometry/triangulate'
 export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edits'
+export {
+  addDefinition,
+  removeDefinition,
+  renameDefinition,
+  type SetDefinitionFieldArgs,
+  setDefinitionField,
+} from './model/definition-edits'
 export { type Edit, type EditResult, ok, refuse } from './model/edit'
 export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
 export {
@@ -189,8 +196,17 @@ export type { AskProvider, ChangeSet, Generator, Proposal } from './ports/ports'
 export * from './profile/af-sector/af-checks'
 export * from './profile/af-sector/af-codec'
 export * from './profile/af-sector/af-entities'
+export {
+  addMaterial,
+  type MaterialArgs,
+  removeMaterial,
+  renameMaterial,
+  setMaterial,
+} from './profile/af-sector/af-material-edits'
+export { type NewLevelResult, newAfSectorLevel } from './profile/af-sector/af-template'
 export * from './profile/af-sector/build'
 export * from './profile/af-sector-profile'
+export type { DefinitionAccess, InstanceRename } from './profile/definition-access'
 export * from './profile/file-codec'
 export * from './profile/last-light-codecs'
 export * from './profile/last-light-entities'

@@ -35,7 +35,7 @@
     "typecheck": "tsc -p .",
     "build": "tsdown",
     "test:slow": "vitest run --config vitest.slow.config.ts",
-    "check:example": "node src/bin.ts check ../../examples/base-2d --csp"
+    "check:example": "node src/bin.ts check ../../games/emberwick --csp"
   },
   "dependencies": {
     "@mcthaydt/automata-node": "workspace:*",
@@ -48,6 +48,7 @@
   "devDependencies": {
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
+    "vite": "8.3.3",
     "vitest": "5.0.3"
   }
 }

@@ -99,17 +99,23 @@ export function findUnreachable(elements: readonly Element[]): string[] {
 const PRIMARY = '[data-kind="primary"]'
 
 /**
+ * What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a
+ * press anywhere on it toggles the input), else the control itself.
+ */
+export function pressedPart(control: HTMLElement): HTMLElement {
+  const choice =
+    control instanceof HTMLInputElement && (control.type === 'checkbox' || control.type === 'radio')
+  return (choice ? control.labels?.[0] : undefined) ?? control
+}
+
+/**
  * Every visible control is at least `min` square, and a primary (`data-kind="primary"`) at least
  * `minPrimary` tall. A checkbox or radio is pressed through its label too, so the label is its target.
  */
 export function findSmallTargets(root: ParentNode, min: number, minPrimary: number): string[] {
   const problems: string[] = []
   for (const node of visibleControls(root)) {
-    const input =
-      node instanceof HTMLInputElement && (node.type === 'checkbox' || node.type === 'radio')
-        ? node
-        : undefined
-    const target = input?.labels?.[0]?.getBoundingClientRect() ?? node.getBoundingClientRect()
+    const target = pressedPart(node).getBoundingClientRect()
     const primary = node.matches(PRIMARY)
     const tall = primary ? minPrimary : min
     if (target.width < min - SLACK || target.height < tall - SLACK) {
@@ -137,6 +143,32 @@ export function findOffscreenControls(root: ParentNode): string[] {
       rect.right > view.width + SLACK ||
       rect.bottom > view.height + SLACK
     if (off) problems.push(`${nameOf(node)} is off screen`)
+  }
+  return problems
+}
+
+/**
+ * No control is cut at a side of a declared scroll region that clips it (see `clippedBy`). A region scrolls up and
+ * down, so a control past its side is cut where a player would not think to scroll, as a long language's options
+ * were in a Settings list; `findOffscreenControls` passes whatever a region clips, so this is what catches a control
+ * cut across. A region that scrolls sideways on purpose (an editor's strip of scenes) declares
+ * `data-scroll-region="both"`: a control past its side is reached by scrolling it, and the walk out through the
+ * regions around it stops there. A checkbox or radio is judged by its label (`pressedPart`).
+ */
+export function findCutAtSide(root: ParentNode): string[] {
+  const problems: string[] = []
+  for (const node of visibleControls(root)) {
+    const target = pressedPart(node)
+    const box = target.getBoundingClientRect()
+    for (const region of scrollRegionsAround(target)) {
+      if (!clippedBy(target, region)) continue
+      if (region.getAttribute('data-scroll-region') === 'both') break
+      const left = region.getBoundingClientRect().left + region.clientLeft
+      if (box.left < left - SLACK || box.right > left + region.clientWidth + SLACK) {
+        problems.push(`${nameOf(target)} is cut at the side of its scroll region`)
+        break
+      }
+    }
   }
   return problems
 }

@@ -10,6 +10,7 @@ import type { SectorDef } from '../format/expand'
 import type { MassDef } from '../format/sector.schema'
 import type { NavWorld } from '../geometry/nav'
 import { type ResolvedMap, resolveMap } from '../geometry/sectors'
+import type { DefinitionAccess } from './definition-access'
 import type { FileCodec } from './file-codec'
 import type { LevelHints } from './level-hints'
 import type { MaterialList } from './materials'
@@ -69,6 +70,11 @@ export interface LevelProfile<D> extends FileCodec<D> {
    * cannot be read is a problem in the kit.
    */
   entities(doc: D): EntityKit
+  /**
+   * How the definition edits write the level's entity definitions (ED3D.13a). Absent for a format whose definitions are
+   * fixed (Last Light): its definitions are read-only.
+   */
+  readonly definitions?: DefinitionAccess<D> | undefined
   /** How the editor's edits read and write the level's sectors (ED3D.3). */
   readonly sectors: SectorAccess<D>
   /** How the editor's edits write the level's things (ED3D.7a); reading them is `entities`. */

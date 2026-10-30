@@ -5,6 +5,7 @@ import {
   boardsStep,
   boundariesStep,
   cspStep,
+  dataUrlsStep,
   inputsStep,
   noEvalStep,
   orientationStep,
@@ -33,7 +34,8 @@ function stepsFor(options: RunCheckOptions): readonly Step[] {
     ['typecheck', typecheckStep],
     ['test', testStep],
   ]
-  // --sim-only checks a sim edit: it skips the board, orientation and inputs scans, the build, and the secrets and csp steps that read it.
+  // --sim-only checks a sim edit: it skips the board, orientation and inputs scans, the build, and the secrets,
+  // data-urls and csp steps that read it.
   if (!options.simOnly)
     steps.push(
       ['boards', boardsStep],
@@ -41,15 +43,27 @@ function stepsFor(options: RunCheckOptions): readonly Step[] {
       ['inputs', inputsStep],
       ['no-eval', noEvalStep],
       ['secrets', secretsStep],
+      ['data-urls', dataUrlsStep],
     )
   if (!options.simOnly && options.csp) steps.push(['csp', cspStep])
   return steps
 }
 
-const buildFailed = (results: readonly StepResult[]): boolean =>
-  results.some(
-    (result) => result.name === 'no-eval' && result.findings.some((finding) => finding.rule === 'build'),
-  )
+/** The steps that scan the `dist/` the `no-eval` step builds. */
+const READS_THE_BUILD: ReadonlySet<StepName> = new Set(['secrets', 'data-urls'])
+
+/**
+ * Why the steps that read dist/ must not scan it, or undefined when no-eval built it and read it. A failed build
+ * and a no-eval that could not run (no vite, an unreadable dist/) both leave whatever an earlier build wrote.
+ */
+function distNotScanned(results: readonly StepResult[]): string | undefined {
+  const noEval = results.find((result) => result.name === 'no-eval')
+  if (noEval === undefined) return undefined
+  if (noEval.toolError) return 'not scanned: no-eval could not build or read dist/ (see no-eval)'
+  if (noEval.findings.some((finding) => finding.rule === 'build'))
+    return 'not scanned: the build failed (see no-eval)'
+  return undefined
+}
 
 export function runCheck(
   options: RunCheckOptions,
@@ -58,21 +72,14 @@ export function runCheck(
     const results: StepResult[] = []
     for (const [name, step] of stepsFor(options)) {
       // A dist/ left over from an earlier build is not this game's bundle: say it was not scanned, never pass it.
-      if (name === 'secrets' && buildFailed(results)) {
+      const notScanned = READS_THE_BUILD.has(name) ? distNotScanned(results) : undefined
+      if (notScanned !== undefined) {
         results.push({
           name,
           ok: false,
           ms: 0,
           toolError: false,
-          findings: [
-            {
-              file: '',
-              line: 0,
-              col: 0,
-              rule: 'build',
-              message: 'not scanned: the build failed (see no-eval)',
-            },
-          ],
+          findings: [{ file: '', line: 0, col: 0, rule: 'build', message: notScanned }],
         })
         if (options.failFast) break
         continue

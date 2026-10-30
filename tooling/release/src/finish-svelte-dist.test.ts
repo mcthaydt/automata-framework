@@ -14,7 +14,7 @@ function distWith(files: Record<string, string>): string {
 }
 
 describe('finishSvelteDist', () => {
-  it('removes tests, test setup and test fixtures, keeping the package files', () => {
+  it('removes tests, test setup and test fixtures (components and modules), keeping the package files', () => {
     const dist = distWith({
       'index.js': '',
       'index.d.ts': '',
@@ -28,6 +28,8 @@ describe('finishSvelteDist', () => {
       'testing/index.js': '',
       'testing/StatusFixture.svelte': '',
       'testing/StatusFixture.svelte.d.ts': '',
+      'testing/locale-fixture.js': '',
+      'testing/locale-fixture.d.ts': '',
       'theme.css': '',
     })
     finishSvelteDist(dist, { vendoredTypes: {} })
@@ -42,6 +44,8 @@ describe('finishSvelteDist', () => {
       'dialog/dialog.layout.test.js',
       'testing/StatusFixture.svelte',
       'testing/StatusFixture.svelte.d.ts',
+      'testing/locale-fixture.js',
+      'testing/locale-fixture.d.ts',
     ]) {
       expect(existsSync(join(dist, gone)), gone).toBe(false)
     }
