@@ -40,8 +40,8 @@ export interface SuiteAskTarget {
   readonly path: string
   /** The document's text now. */
   text(): string
-  /** The scope chip: what the editor has in view ("tuning", "level 1-2"). */
-  scope(): string
+  /** The ids of the selection the prompt is about (the scope chip; `AskRequest.scope`). */
+  scope(): readonly string[]
   /** The key paths the person locked in this session (EDS-D18); a proposal changing one is refused with the key. */
   locked(): readonly string[]
   /** Applies an accepted proposal as one undo step labelled by `summary`. */

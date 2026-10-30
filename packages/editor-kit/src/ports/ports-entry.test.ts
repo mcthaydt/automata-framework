@@ -84,7 +84,7 @@ describe('editor-kit ports entry', () => {
     const ask = (session: Session): SuiteAskTarget => ({
       path: 'content/tuning.toml',
       text: () => session.text,
-      scope: () => 'tuning',
+      scope: () => ['MAX_MOVE_SPEED'],
       locked: () => ['MAX_MOVE_SPEED'],
       accept: (text) => {
         session.text = text
