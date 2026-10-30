@@ -15,18 +15,35 @@ export {
   type Scheduler,
 } from './app/checks-panel-controller'
 export {
+  createEditorApp,
+  type EditorApp,
+  type EditorAppOptions,
+  type OpenOutcome,
+} from './app/editor-app'
+export type { ImportOutcome, PickedFile, Skipped, SkipReason } from './app/import-files'
+export {
   createMergeTool,
   type MergeEffect,
   type MergeTarget,
   type MergeTool,
   type MergeToolView,
 } from './app/merge-tool-controller'
+export type { FacilityOutcome, OpenFacility, OpenLevel } from './app/open-level'
+export type {
+  DocumentSaveOutcome,
+  ExportOutcome,
+  PatchedDocument,
+  PatchRefused,
+  RestoreOutcome,
+} from './app/patched-document'
 export {
   createPlanController,
   type PlanController,
   type PlanPointer,
   type PlanView,
 } from './app/plan-controller'
+export type { ProjectEntry } from './app/project-list'
+export { MAX_FILE_BYTES } from './app/read-level'
 export {
   createSectorTool,
   type DrawEdge,

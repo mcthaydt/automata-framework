@@ -244,6 +244,21 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the app core: the editor app and the size limit, and keeps the storage steps inside', () => {
+    for (const name of ['createEditorApp', 'MAX_FILE_BYTES']) expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['createPatchedDocument', 'readLevel', 'listProjects', 'importZip', 'readStored'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    // The outcomes are types, so this is checked by the compiler: the entry names them.
+    const refused: editor3d.PatchRefused = {
+      status: 'refused',
+      path: [],
+      reason: 'verify-failed',
+      detail: 'no',
+    }
+    const skipped: editor3d.Skipped = { path: 'a', reason: 'system' }
+    expect([refused.status, skipped.reason]).toEqual(['refused', 'system'])
+  })
+
   it('exports the Split and Merge tools, and keeps what the tools share inside', () => {
     for (const name of ['createSplitTool', 'createMergeTool']) expect(editor3d, name).toHaveProperty(name)
     for (const name of ['cutProblem', 'lowestFreeId', 'outlinePlaceAt', 'wallPlaceOf'])
