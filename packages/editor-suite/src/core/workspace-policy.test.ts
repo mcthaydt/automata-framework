@@ -82,6 +82,41 @@ checks = []
     expect(reasonOf('content/tuning.toml', bare)).toBe('writable')
   })
 
+  it('refuses the always-never paths in any letter case, as a case-insensitive disk would read them', () => {
+    for (const path of [
+      'Content/Editors.toml',
+      'CONTENT/EDITORS.TOML',
+      '.GIT/config',
+      '.Git/HEAD',
+      'docs/Gates.json',
+      'docs/art/bay/GATES.JSON',
+    ]) {
+      expect(reasonOf(path), path).toBe('never')
+    }
+  })
+
+  it('refuses `.git` itself, not only what is inside it', () => {
+    expect(reasonOf('.git')).toBe('never')
+    expect(reasonOf('.GIT')).toBe('never')
+  })
+
+  it("refuses a declared gate's records in any letter case", () => {
+    expect(reasonOf('Docs/Art/bay/Puzzle/review.json')).toBe('never')
+  })
+
+  it("refuses The Last Light's always-refused paths: agent and CI config, and env files", () => {
+    for (const path of [
+      '.claude/settings.json',
+      '.github/workflows/ci.yml',
+      '.GitHub/CODEOWNERS',
+      '.env',
+      'docker/.env.local',
+      'content/.ENV',
+    ]) {
+      expect(reasonOf(path), path).toBe('never')
+    }
+  })
+
   it("never writes a declared gate's records", () => {
     expect(reasonOf('content/generated/x.json')).toBe('generated')
     expect(reasonOf('docs/art/bay/puzzle/review.json')).toBe('never')

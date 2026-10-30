@@ -138,7 +138,9 @@ interface GateRow {
 ### `globMatch` (function)
 
 ```ts
-function globMatch(glob: string, path: string): {
+function globMatch(glob: string, path: string, options?: {
+    readonly ignoreCase?: boolean;
+}): {
     readonly scene?: string;
 } | undefined;
 ```

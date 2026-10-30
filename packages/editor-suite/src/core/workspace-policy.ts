@@ -8,10 +8,24 @@ import { globMatch } from './glob'
 
 /**
  * Never written, whatever the list says: the list itself (the suite cannot widen its own allowlist, and an Ask diff
- * cannot add a command to a check's `run`), git's internals and gate records (an editor never records a gate). Each
- * declared gate's `records` glob joins these.
+ * cannot add a command to a check's `run`), git's internals and gate records (an editor never records a gate), and
+ * what The Last Light's policy (editor/src/server/policy.ts `ALWAYS_NEVER`, 92e6704) always refused besides: agent and
+ * CI configuration and env files. Each declared gate's `records` glob joins these. They match in any letter case, as a
+ * case-insensitive disk (macOS, Windows) would open `Content/Editors.toml` as the list.
+ *
+ * This is a check of the path as written. The disk adapter (EDS.1d) must resolve the real path of the target first
+ * (symlinks, and Windows' trailing dots and spaces, which name the same file) and check that, inside the game root.
  */
-export const ALWAYS_NEVER: readonly string[] = [EDITOR_LIST_PATH, '.git/**', '**/gates.json']
+export const ALWAYS_NEVER: readonly string[] = [
+  EDITOR_LIST_PATH,
+  '.git',
+  '.git/**',
+  '**/gates.json',
+  '.claude/**',
+  '.github/**',
+  '**/.env',
+  '**/.env.*',
+]
 
 export type FileAccess =
   | { readonly writable: true; readonly path: string; readonly row: FileRow; readonly scene?: string }
@@ -44,9 +58,10 @@ const readOnly = (
 /** Whether the suite may write `path` (root-relative), and through which row; read only with the reason otherwise. */
 export function fileAccess(list: EditorList, path: string): FileAccess {
   if (!insideRoot(path)) return readOnly(path, 'outside', `${path} is not a path inside the game root`)
-  const never = [...ALWAYS_NEVER, ...list.gate.map((gate) => gate.records), ...list.never].find(
-    (glob) => globMatch(glob, path) !== undefined,
-  )
+  const never =
+    [...ALWAYS_NEVER, ...list.gate.map((gate) => gate.records)].find(
+      (glob) => globMatch(glob, path, { ignoreCase: true }) !== undefined,
+    ) ?? list.never.find((glob) => globMatch(glob, path) !== undefined)
   if (never !== undefined) return readOnly(path, 'never', `never written by an editor (${never})`)
   const generated = list.generated.find((glob) => globMatch(glob, path) !== undefined)
   if (generated !== undefined) {

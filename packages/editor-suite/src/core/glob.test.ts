@@ -17,6 +17,7 @@ describe('globMatch', () => {
     expect(matches('**/gates.json', 'docs/art/bay/puzzle/gates.json')).toBe(true)
     expect(matches('docs/**/gates.json', 'docs/gates.json')).toBe(true)
     expect(matches('.git/**', '.git/config')).toBe(true)
+    expect(matches('a/**', 'a')).toBe(false)
   })
 
   it('matches `?` as one character of a segment', () => {
@@ -29,6 +30,11 @@ describe('globMatch', () => {
     expect(matches('content/tuning.toml', 'content/tuningxtoml')).toBe(false)
     expect(matches('content/(a)+.toml', 'content/(a)+.toml')).toBe(true)
     expect(matches('content/a$.toml', 'content/a$.toml')).toBe(true)
+  })
+
+  it('matches case-sensitively unless asked not to', () => {
+    expect(matches('content/editors.toml', 'Content/Editors.toml')).toBe(false)
+    expect(globMatch('content/editors.toml', 'Content/Editors.toml', { ignoreCase: true })).toEqual({})
   })
 
   it('anchors both ends', () => {

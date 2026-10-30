@@ -112,11 +112,25 @@ describe('editorListSchema (af-editors/1)', () => {
   })
 
   it('keeps every glob inside the game root', () => {
-    for (const glob of ['/etc/passwd', '../other/file.toml', 'content/../package.json', '']) {
+    for (const glob of [
+      '/etc/passwd',
+      '../other/file.toml',
+      'content/../package.json',
+      '',
+      'content//tuning.toml',
+      'content/./tuning.toml',
+      './content/tuning.toml',
+      'content/',
+      // TOML reads `\\` as one backslash.
+      'content\\\\tuning.toml',
+    ]) {
       expect(issuePaths(ROW.replace('content/tuning.toml', glob)), glob).toEqual([['file', 0, 'glob']])
     }
     expect(issuePaths(ROW, 'never = ["../x"]')).toEqual([['never', 0]])
     expect(issuePaths(ROW, 'generated = ["/x"]')).toEqual([['generated', 0]])
+    expect(issuePaths(ROW, 'never = ["a//b"]')).toEqual([['never', 0]])
+    expect(issuePaths(ROW, 'scenes = "content/scenes/{scene}/"')).toEqual([])
+    expect(issuePaths(ROW, 'scenes = "content//{scene}/"')).toEqual([['scenes']])
   })
 
   it('allows `{scene}` once in a glob, and no other placeholder', () => {

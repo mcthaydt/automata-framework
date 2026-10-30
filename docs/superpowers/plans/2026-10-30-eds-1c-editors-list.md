@@ -17,6 +17,7 @@
 | `WorkspaceFile`, `CheckDef` and the other port shapes | EDS.1b in `editor-kit/ports` (one owner); EDS.1d maps this task's rows onto them |
 | Home's list-error, "Start a list" template and editor-not-installed states | EDS.2a |
 | Reopened gates, gate records | EDS.2b and EDS.1d |
+| Creating the list ("Start a list", spec §11) | EDS.1d and EDS.2a: it writes `content/editors.toml`, which `fileAccess` always refuses, so it needs its own creation path (a write with `expected: 'absent'` of the template only, after the person's tap), not the policy's allowlist |
 | The content compiler skipping `editors.toml` | Nothing to build: `packages/content/src/compile/read-sources.ts` reads only registered document names, and `editors` is not within two edits of any, so it is already skipped without a warning |
 
 ## Decisions made here (defaults, listed for the Owner's veto)
@@ -27,7 +28,7 @@
 4. **Defaults:** `check.when` is `after`, `joins` is `[]`, `measure` is `false` (EDS-D8: a game command defaults to `after`); `file`, `check`, `gate`, `generated`, `never` default to empty. `gates` and `checks` on a file row are required (an empty list is written out); `modes` is required and not empty.
 5. **Format:** `af-editors/1` loads; `af-editors/<n>` with `n > 1` is a `newer-format` problem naming the format found; anything else is invalid at `format`.
 6. **Placeholders:** globs may hold `{scene}` (one path segment, captured as the file's scene); `run` may hold only `{scene}` and `{path}`; any other `{…}` is a schema error.
-7. **Always never:** `content/editors.toml`, `.git/**`, `**/gates.json` and every declared gate's `records` glob, whatever the list's `never` says. Paths outside the game root (absolute, `..`) are refused as `outside`.
+7. **Always never:** `content/editors.toml`, `.git` and `.git/**`, `**/gates.json`, The Last Light's always-refused `.claude/**`, `.github/**`, `**/.env`, `**/.env.*`, and every declared gate's `records` glob, whatever the list's `never` says, matched in any letter case (recorded in spec §4.2, 2026-10-30). Paths outside the game root (absolute, `..`, empty or `.` segments, backslashes) are refused as `outside`, and globs with those are schema errors. The disk adapter (EDS.1d) resolves real paths first.
 
 ## Contract (produced, `@mcthaydt/automata-editor-suite/core`)
 
@@ -74,3 +75,4 @@ Consumed: `zod` 4.6.6, `smol-toml` 1.9.0. No Svelte, DOM, Node or clock in `src/
 - Step 5: `workspace-policy.test.ts` failed on the missing module; 8 pass.
 - Step 6: the fixtures were written with their test, so `fixtures.test.ts` passed at once; a hand mutation (dropping one FloorFifty row's `gates = []`) failed it at load with `['file', 0, 'gates']`. The purity test failed on a hand-added `node:fs` import and `Date.now()`. Q-FEEL and Q-AUD have no gate record at `92e6704`; the fixture says so in its header.
 - Step 7: 56 package tests; typecheck, lint, knip and style clean; the API report written.
+- Review fixes (2026-10-30, after the coordinator's review of #244), each test-first: the always-never list and gate records match in any letter case, and `.git` itself is refused (4 new policy cases failed with `unlisted`, then pass); The Last Light's `.claude/**`, `.github/**`, `**/.env`, `**/.env.*` restored to the always-never list and recorded in spec §4.2; globs with empty or `.` segments or a backslash are schema errors (the glob case failed, then passes; `scenes` keeps its trailing `/`); `a/**` is pinned not to match `a`; `globMatch` takes `ignoreCase`; `docs/versions.md`'s smol-toml row names editor-suite. "Start a list" needs its own creation path (Out table). 61 package tests.

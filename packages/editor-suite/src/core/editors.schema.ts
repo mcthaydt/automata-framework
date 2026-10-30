@@ -65,20 +65,34 @@ export const CONTENT_CHECK = 'content'
 
 const placeholders = (text: string): string[] => text.match(/\{[^}]*\}/g) ?? []
 
-/** A root-relative glob: not absolute, no `..` segment, at most one `{scene}` and no other placeholder. */
+/** Root-relative POSIX segments: no backslash, and no empty (an empty glob, a leading, doubled or trailing /), `.` or `..` segment. */
+const insideRoot = (glob: string): boolean =>
+  !glob.includes('\\') &&
+  glob.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..')
+
+const PLACEHOLDERS = { message: 'a glob may name {scene} once, and no other placeholder' }
+
+const onePlaceholder = (glob: string): boolean => {
+  const found = placeholders(glob)
+  return found.every((name) => name === '{scene}') && found.length <= 1
+}
+
+/** A root-relative glob: no leading /, no empty, `.` or `..` segment, no backslash, at most one `{scene}`. */
 const globSchema = z
   .string()
-  .min(1)
-  .refine((glob) => !glob.startsWith('/') && !glob.split('/').includes('..'), {
-    message: 'a glob stays inside the game root (no leading / and no .. segment)',
+  .refine(insideRoot, {
+    message: 'a glob stays inside the game root (no leading or doubled /, no . or .. segment, no backslash)',
   })
-  .refine(
-    (glob) => {
-      const found = placeholders(glob)
-      return found.every((name) => name === '{scene}') && found.length <= 1
-    },
-    { message: 'a glob may name {scene} once, and no other placeholder' },
-  )
+  .refine(onePlaceholder, PLACEHOLDERS)
+
+/** The scenes folder: a glob that may end with `/`, as `content/scenes/{scene}/` does. */
+const folderSchema = z
+  .string()
+  .refine((folder) => insideRoot(folder.endsWith('/') ? folder.slice(0, -1) : folder), {
+    message:
+      'the scenes folder stays inside the game root (no leading or doubled /, no . or .. segment, no backslash)',
+  })
+  .refine(onePlaceholder, PLACEHOLDERS)
 
 const idSchema = z.string().min(1)
 
@@ -119,7 +133,7 @@ const gateRowSchema: z.ZodType<GateRow> = z.strictObject({
 /** The shape of `af-editors/1`, one table at a time (cross-row rules are the loader's). */
 export const editorListSchema: z.ZodType<EditorList> = z.strictObject({
   format: z.literal(EDITOR_LIST_FORMAT),
-  scenes: globSchema.optional(),
+  scenes: folderSchema.optional(),
   file: z.array(fileRowSchema).default([]),
   check: z.array(checkRowSchema).default([]),
   gate: z.array(gateRowSchema).default([]),

@@ -6,7 +6,7 @@
 const SCENE = '{scene}'
 
 /** A glob as an anchored regular expression; `{scene}` is the named group `scene`. */
-function globToRegExp(glob: string): RegExp {
+function globToRegExp(glob: string, ignoreCase: boolean): RegExp {
   let source = ''
   let index = 0
   while (index < glob.length) {
@@ -27,12 +27,19 @@ function globToRegExp(glob: string): RegExp {
       index += 1
     }
   }
-  return new RegExp(`^${source}$`)
+  return new RegExp(`^${source}$`, ignoreCase ? 'i' : '')
 }
 
-/** Whether `path` matches `glob`, and with which scene when the glob names `{scene}`; undefined when it does not. */
-export function globMatch(glob: string, path: string): { readonly scene?: string } | undefined {
-  const match = globToRegExp(glob).exec(path)
+/**
+ * Whether `path` matches `glob`, and with which scene when the glob names `{scene}`; undefined when it does not.
+ * `ignoreCase` is for refusals: on a case-insensitive disk `Content/Editors.toml` is the same file.
+ */
+export function globMatch(
+  glob: string,
+  path: string,
+  options: { readonly ignoreCase?: boolean } = {},
+): { readonly scene?: string } | undefined {
+  const match = globToRegExp(glob, options.ignoreCase === true).exec(path)
   if (match === null) return undefined
   const scene = match.groups?.scene
   return scene === undefined ? {} : { scene }
