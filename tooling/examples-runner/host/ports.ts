@@ -55,3 +55,6 @@ export const runnerFixturesPort: number = demoPort(7)
 /** The playground feasibility server (website playground spec, WEB.PLAY.1), in the slot after the fixtures. */
 export const playgroundPort: number = demoPort(8)
 export const playgroundOrigin = `http://127.0.0.1:${playgroundPort}`
+/** The playground frame's test server (WEB.PLAY.2): the runtime build, the frame pages and the examples' files. */
+export const playgroundFramePort: number = demoPort(9)
+export const playgroundFrameOrigin = `http://127.0.0.1:${playgroundFramePort}`

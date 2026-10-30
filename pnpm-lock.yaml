@@ -1120,15 +1120,27 @@ importers:
 
   tooling/examples-runner:
     dependencies:
+      '@mcthaydt/automata':
+        specifier: workspace:*
+        version: link:../../packages/automata
+      '@mcthaydt/automata-game':
+        specifier: workspace:*
+        version: link:../../packages/game
       '@mcthaydt/automata-render-pixi':
         specifier: workspace:*
         version: link:../../packages/render-pixi
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -1141,10 +1153,10 @@ importers:
       oxc-parser:
         specifier: 0.152.0
         version: 0.152.0
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-testing':
-        specifier: workspace:*
-        version: link:../../packages/testing
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -1169,9 +1181,6 @@ importers:
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
 
   tooling/frame-budget:
     dependencies:
