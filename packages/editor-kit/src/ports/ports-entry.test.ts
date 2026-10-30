@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { describe, expect, test } from 'vitest'
-import type { SuiteEditor } from './index'
+import type { SuiteAskTarget, SuiteEditor, SuiteUndo } from './index'
 import * as ports from './index'
 
 /** The source files `entry` reaches through relative imports, `entry` included. */
@@ -66,5 +66,43 @@ describe('editor-kit ports entry', () => {
       contributions: ['tuner.source'],
     }
     expect(ports.defineSuiteEditor(editor)).toBe(editor)
+  })
+
+  test('an editor may offer Undo and Ask hooks over its session; without them the top bar has neither', () => {
+    interface Session {
+      text: string
+    }
+    const undo = (_session: Session): SuiteUndo => ({
+      canUndo: () => false,
+      canRedo: () => false,
+      undoLabel: () => undefined,
+      redoLabel: () => undefined,
+      undo: () => undefined,
+      redo: () => undefined,
+      subscribe: () => () => undefined,
+    })
+    const ask = (session: Session): SuiteAskTarget => ({
+      path: 'content/tuning.toml',
+      text: () => session.text,
+      scope: () => ['MAX_MOVE_SPEED'],
+      locked: () => ['MAX_MOVE_SPEED'],
+      accept: (text) => {
+        session.text = text
+      },
+    })
+    const editor: SuiteEditor<Session> = {
+      id: 'tuner',
+      label: 'Tuner',
+      icon: 'sliders',
+      hue: 'color/ed/tuner',
+      open: async () => ({ text: '' }),
+      regions: {} as SuiteEditor<Session>['regions'],
+      undo,
+      ask,
+    }
+    const session = { text: 'a = 1\n' }
+    editor.ask?.(session).accept('a = 2\n', 'Raise a')
+    expect(session.text).toBe('a = 2\n')
+    expect(editor.undo?.(session).canUndo()).toBe(false)
   })
 })

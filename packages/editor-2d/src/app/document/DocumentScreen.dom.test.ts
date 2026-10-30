@@ -4,7 +4,7 @@ import {
   type LifecycleWindow,
 } from '@mcthaydt/automata-editor-kit/core'
 import { stubGeometry } from '@mcthaydt/automata-editor-kit/testing'
-import { render, screen } from '@testing-library/svelte'
+import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { flushSync } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
@@ -195,12 +195,17 @@ async function mountLevel(size: [number, number] = [1194, 834]) {
   return { opened }
 }
 
+/** The rail's tabs; the Level view's inspector has tabs of its own (one is also "Level"). */
+const rail = (): HTMLElement => screen.getByRole('tablist', { name: 'Views' })
+
 describe('DocumentScreen: the rail', () => {
   it('lists the profile’s views and opens on the first, the Level view', async () => {
     await mountLevel()
-    const tabs = screen.getAllByRole('tab').map((tab) => tab.textContent)
+    const tabs = within(rail())
+      .getAllByRole('tab')
+      .map((tab) => tab.textContent)
     expect(tabs).toEqual(['Level', 'World', 'Tilesets', 'Entities', 'Checks', 'Export'])
-    expect(screen.getByRole('tab', { name: 'Level' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(rail()).getByRole('tab', { name: 'Level' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByTestId('level-view')).toBeInTheDocument()
   })
 
@@ -208,22 +213,22 @@ describe('DocumentScreen: the rail', () => {
     const { opened } = await mountLevel()
     opened.document.history.apply('Rename', (project) => ({ ...(project as object), name: 'Moss' }))
     flushSync()
-    await userEvent.click(screen.getByRole('tab', { name: 'World' }))
+    await userEvent.click(within(rail()).getByRole('tab', { name: 'World' }))
     expect(screen.getByRole('heading', { name: 'World is coming in a later update' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Undo Rename' })).toBeEnabled()
-    await userEvent.click(screen.getByRole('tab', { name: 'Level' }))
+    await userEvent.click(within(rail()).getByRole('tab', { name: 'Level' }))
     expect(screen.getByTestId('level-view')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Undo Rename' })).toBeEnabled()
   })
 
   it('moves between views with the arrow keys and keeps focus on the rail', async () => {
     await mountLevel()
-    screen.getByRole('tab', { name: 'Level' }).focus()
+    within(rail()).getByRole('tab', { name: 'Level' }).focus()
     await userEvent.keyboard('{ArrowDown}')
-    expect(screen.getByRole('tab', { name: 'World' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('tab', { name: 'World' })).toHaveFocus()
+    expect(within(rail()).getByRole('tab', { name: 'World' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(rail()).getByRole('tab', { name: 'World' })).toHaveFocus()
     await userEvent.keyboard('{End}')
-    expect(screen.getByRole('tab', { name: 'Export' })).toHaveFocus()
+    expect(within(rail()).getByRole('tab', { name: 'Export' })).toHaveFocus()
   })
 
   it('is a tab bar along the foot below wide', async () => {

@@ -6,16 +6,28 @@
   rotation; only what is inside its regions changes.
 -->
 <script lang="ts">
-import { Button, EditorShell, shellModeOf } from '@mcthaydt/automata-editor-kit'
-import type { SuiteEditor, SuitePorts, WorkspaceFile } from '@mcthaydt/automata-editor-kit/ports'
+import { Button, createToasts, EditorShell, shellModeOf, ToastRegion } from '@mcthaydt/automata-editor-kit'
+import type {
+  CheckFinding,
+  SuiteEditor,
+  SuitePorts,
+  WorkspaceFile,
+} from '@mcthaydt/automata-editor-kit/ports'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import { SvelteMap } from 'svelte/reactivity'
+import { type AskState, createAskSession } from '../core/ask-session'
+import type { Pill } from '../core/pills-model'
+import type { WriteOutcome } from '../core/write-path'
+import AskDialog from './AskDialog.svelte'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
+import SuitePills from './SuitePills.svelte'
 import SuiteRail from './SuiteRail.svelte'
 import { SUITE_ENTRIES } from './suite-entries'
+import { createSuiteSession } from './suite-session'
+import TitlePrompt from './TitlePrompt.svelte'
 
 interface Props {
   geometry: GeometryState
@@ -56,11 +68,139 @@ $effect(() => {
   const { editor, card } = target
   if (sessions.has(editor.id) || opening.has(editor.id)) return
   opening.add(editor.id)
-  void editor.open(card.files, ports).then(
+  void editor.open(card.files, editing.ports).then(
     (session) => sessions.set(editor.id, session),
     () => opening.delete(editor.id),
   )
 })
+
+// Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills,
+// Undo and Ask follow it. The session lives as long as the suite; a reload reads the pills back from the journal.
+const editing = $derived(createSuiteSession(ports))
+const toasts = createToasts()
+let pills = $state<readonly Pill[]>([])
+let titleOpen = $state(false)
+let history = $state({ canUndo: false, canRedo: false, undoLabel: '', redoLabel: '' })
+let tokens = $state<{ readonly used: number; readonly cap: number }>()
+// Icons with counts in the `short` tier (spec §10) and on a phone, where full labels leave no room; never hidden.
+const compact = $derived(geometry.current.heightTier === 'short' || mode === 'compact')
+
+$effect(() => {
+  const session = editing
+  const read = () => {
+    pills = session.pills()
+    titleOpen = session.asking()
+    tokens = session.tokens()
+    const path = session.writePath
+    history = {
+      canUndo: path.canUndo(),
+      canRedo: path.canRedo(),
+      undoLabel: path.undoLabel() ?? '',
+      redoLabel: path.redoLabel() ?? '',
+    }
+  }
+  const stop = session.subscribe(read)
+  read()
+  void session.refresh()
+  // Locks live only in the page (EDS-D18), so a change set still open from before the reload has lost them.
+  void ports.changeSet?.current().then((open) => {
+    if (open !== undefined)
+      toasts.push({ kind: 'info', message: 'Locked values were cleared when the page reloaded.' })
+  })
+  return stop
+})
+
+const undoHook = $derived(mounted?.editor.undo?.(mounted.session))
+const askTarget = $derived(mounted?.editor.ask?.(mounted.session))
+const ask = $derived(
+  askTarget === undefined
+    ? undefined
+    : createAskSession({ target: askTarget, ports, writePath: editing.writePath }),
+)
+let askOpen = $state(false)
+let askView = $state<AskState>({ kind: 'idle' })
+
+// A routed write records the editor's own label for the step it just applied.
+$effect(() => {
+  const hook = undoHook
+  editing.label = () => hook?.undoLabel() ?? 'Edit'
+})
+
+// The Ask session's state, and its rule: an edit, undo or redo in the document drops a proposal in flight or on show.
+$effect(() => {
+  const session = ask
+  if (session === undefined) return
+  askView = session.state()
+  // A reply has spent tokens through the change set, so the meter reads the journal again.
+  const stopState = session.subscribe(() => {
+    askView = session.state()
+    if (askView.kind === 'shown' || askView.kind === 'over-budget') void editing.refresh()
+  })
+  const stopHistory = undoHook?.subscribe(() => session.drop())
+  return () => {
+    stopState()
+    stopHistory?.()
+  }
+})
+
+function refused(outcome: WriteOutcome | undefined): void {
+  if (outcome === undefined || 'written' in outcome || 'cancelled' in outcome) return
+  const message =
+    outcome.refused === 'moved'
+      ? `${outcome.path} changed since this step was written, so it was not undone.`
+      : outcome.refused === 'checks'
+        ? outcome.findings.map((finding) => finding.message).join('; ')
+        : outcome.refused === 'policy'
+          ? outcome.why
+          : outcome.message
+  toasts.push({ kind: 'error', message })
+}
+
+async function undo(): Promise<void> {
+  if (undoHook === undefined || !history.canUndo) return
+  const outcome = await editing.undo()
+  if (outcome !== undefined && 'written' in outcome) undoHook.undo()
+  else refused(outcome)
+}
+
+async function redo(): Promise<void> {
+  if (undoHook === undefined || !history.canRedo) return
+  const outcome = await editing.redo()
+  if (outcome !== undefined && 'written' in outcome) undoHook.redo()
+  else refused(outcome)
+}
+
+async function accept(): Promise<void> {
+  const outcome = await ask?.accept()
+  if (outcome === undefined) return
+  if ('written' in outcome) {
+    askOpen = false
+    void editing.follow(outcome)
+  } else refused(outcome)
+}
+
+function locate(finding: CheckFinding): void {
+  const where = [
+    finding.path,
+    finding.keyPath ?? (finding.line === undefined ? undefined : `line ${finding.line}`),
+  ]
+  toasts.push({ kind: 'info', message: `${where.filter(Boolean).join(', ')}: ${finding.message}` })
+}
+
+/** Mod+Z, Mod+Shift+Z and Mod+K, except in a text field, which keeps its own undo. */
+function shortcuts(event: KeyboardEvent): void {
+  if (!(event.metaKey || event.ctrlKey) || event.altKey) return
+  const field =
+    event.target instanceof HTMLElement && event.target.closest('input, textarea, [contenteditable]')
+  const key = event.key.toLowerCase()
+  if (key === 'z' && field === null) {
+    event.preventDefault()
+    void (event.shiftKey ? redo() : undo())
+  } else if (key === 'k' && ask !== undefined && !event.shiftKey) {
+    event.preventDefault()
+    askOpen = true
+  }
+}
 
 function choose(id: string | undefined): void {
   current = id
@@ -88,14 +228,27 @@ function openCard(card: EditorCard): void {
     <Button aria-current={current === undefined && reading === undefined ? 'page' : undefined} onclick={() => choose(undefined)}
       >Home</Button
     >
-    <span class="brand">Editors</span>
+    {#if mode !== 'compact'}<span class="brand">Editors</span>{/if}
     {#if sample}<span class="sample">Sample game</span>{/if}
+    <!-- The pills and the editing tools scroll sideways when the bar is short of room; Home, Panel and Details stay. -->
+    <div class="tools" data-scroll-region="both">
+    <SuitePills {pills} {compact} onlocate={locate} />
     <span class="spacer"></span>
+    {#if undoHook !== undefined}
+      <Button disabled={!history.canUndo} aria-label={history.canUndo ? `Undo ${history.undoLabel}` : 'Undo'} onclick={undo}
+        >↶</Button
+      >
+      <Button disabled={!history.canRedo} aria-label={history.canRedo ? `Redo ${history.redoLabel}` : 'Redo'} onclick={redo}
+        >↷</Button
+      >
+    {/if}
+    {#if ask !== undefined}<Button onclick={() => (askOpen = true)}>Ask</Button>{/if}
+    {#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}
+    </div>
     {#if mounted && mode !== 'wide'}
       <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Panel</Button>
       <Button aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}>Details</Button>
     {/if}
-    {#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}
   {/snippet}
 
   {#snippet rail({ orientation }: { orientation: 'vertical' | 'horizontal' })}
@@ -128,6 +281,24 @@ function openCard(card: EditorCard): void {
   {/snippet}
 </EditorShell>
 
+<svelte:window onkeydown={shortcuts} />
+
+<TitlePrompt open={titleOpen} onsubmit={(title) => editing.answerTitle(title)} oncancel={() => editing.answerTitle(undefined)} />
+{#if ask !== undefined && askTarget !== undefined}
+  <AskDialog
+    open={askOpen}
+    view={askView}
+    scope={askTarget.scope()}
+    {tokens}
+    onask={(prompt) => void ask?.ask(prompt)}
+    onaccept={() => void accept()}
+    onreject={() => ask?.reject()}
+    onrewrite={() => void ask?.rewrite()}
+    onclose={() => (askOpen = false)}
+  />
+{/if}
+<ToastRegion {toasts} />
+
 {#snippet panel()}{#if mounted}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
 {#snippet inspector()}{#if mounted}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}
 {#snippet dock()}{#if mounted?.editor.regions.dock}{@render mounted.editor.regions.dock(mounted.session)}{/if}{/snippet}
@@ -146,6 +317,18 @@ function openCard(card: EditorCard): void {
   }
   .spacer {
     flex: 1;
+  }
+  .tools {
+    display: flex;
+    flex: 1 1 auto;
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tools > :global(*) {
+    flex-shrink: 0;
   }
   .page {
     box-sizing: border-box;

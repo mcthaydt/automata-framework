@@ -6,8 +6,9 @@ import { describe, expect, it } from 'vitest'
 const ALLOWED_IMPORTS = new Set(['zod', 'smol-toml'])
 /** The kit's port shapes, as types only: they are erased, so they bring no code (and no Svelte) to run. */
 const TYPE_ONLY_IMPORTS = new Set(['@mcthaydt/automata-editor-kit/ports'])
+// `document` is the DOM global, not an object key: `AskRequest.document` is a port field the Ask session fills in.
 const FORBIDDEN =
-  /\b(?:Date|setTimeout|setInterval|performance|Math\.random|document|window|process|globalThis)\b/
+  /\b(?:Date|setTimeout|setInterval|performance|Math\.random|document(?!\s*:)|window|process|globalThis)\b/
 
 const sources = readdirSync(new URL('.', import.meta.url)).filter(
   (name) => name.endsWith('.ts') && !name.endsWith('.test.ts'),
