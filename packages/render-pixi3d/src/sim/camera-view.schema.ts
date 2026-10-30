@@ -31,7 +31,7 @@ const box3Schema = z
 
 const { tiltDeg, distance } = CAMERA_RANGES
 
-type Point = [number, number, number]
+type Point = readonly [number, number, number]
 
 /** A `camera-view` file's fields once compiled: the defaults filled in. */
 export interface CameraViewFields {
