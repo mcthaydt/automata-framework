@@ -217,12 +217,13 @@ export class RoomEngine {
     this.clients.set(session, client)
     this.drops.delete(seat)
     this.returned.add(seat)
-    this.meter.fill(seat)
+    // The bucket keeps what was left: a fill here would hand a client a fresh burst for every drop and return.
     setConnected(this.lobby, seat, true, this.rules)
     evaluateReadiness(this.lobby, this.rules)
     if (this.lobby.phase === 'ended' && this.packedReplay !== undefined) {
-      const bytes = this.packedReplay
-      void bytes.then((replay) => this.sendReplay(client, replay))
+      this.packedReplay
+        .then((replay) => this.sendReplay(client, replay))
+        .catch(() => this.log({ event: 'replay.failed' }))
     }
   }
 
@@ -338,7 +339,12 @@ export class RoomEngine {
     const command = this.def.clientCommand(input.type)
     if (command === undefined) return 'type'
     if (!command.schema.safeParse(input.payload).success) return 'payload'
-    if (this.returned.delete(seat) && input.seq === 0) this.queue.forget(seat)
+    if (this.returned.delete(seat) && input.seq === 0) {
+      // The old numbering is gone, its acks with it: a snapshot acking the old high seq would make the client drop
+      // its new commands up to that number.
+      this.queue.forget(seat)
+      this.acks.delete(seat)
+    }
     if (metered && !this.meter.spend(seat)) return 'rate'
     const result = this.queue.submit(seat, input, this.sim.tick)
     if (!result.ok) return result.reason
@@ -374,9 +380,27 @@ export class RoomEngine {
 
   // ── The tick ──
 
-  /** One tick of room time. The scheduler calls it; a test drives it by hand. */
+  /**
+   * One tick of room time. The scheduler calls it; a test drives it by hand.
+   *
+   * The tick runs the game's own code (its systems, `seat`, `ended`, the bot policy) and the recorder, any of which
+   * can throw. A throw here would escape a timer callback and end every room in the process, so it halts this room
+   * instead (FloorFifty's invariant halt): the error is logged by its class, never its text, no replay is kept, the
+   * room steps no further and asks to close.
+   */
   step(): void {
     if (this.closed) return
+    try {
+      this.stepOnce()
+    } catch (error) {
+      this.log({ event: 'room.error', code: error instanceof Error ? error.name : typeof error })
+      this.recorder = undefined
+      this.packedReplay = undefined
+      this.close('failed')
+    }
+  }
+
+  private stepOnce(): void {
     const tick = this.sim.tick
     // A hold is for a room someone is looking at; once every person has dropped, nobody is.
     if (this.held.size > 0 && this.abandonedByPeople()) this.held = new Set()
@@ -440,12 +464,11 @@ export class RoomEngine {
     if (replay === undefined) return
     const packed = packReplay(replay, this.options.compression ?? nodeReplayCompression)
     this.packedReplay = packed
-    void packed.then(
-      (bytes) => {
+    packed
+      .then((bytes) => {
         for (const client of this.clients.values()) this.sendReplay(client, bytes)
-      },
-      () => this.log({ event: 'replay.failed' }),
-    )
+      })
+      .catch(() => this.log({ event: 'replay.failed' }))
   }
 
   private sendReplay(client: RoomClient, bytes: Uint8Array): void {

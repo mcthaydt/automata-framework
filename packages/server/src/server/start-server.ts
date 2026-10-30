@@ -121,6 +121,7 @@ export function createServerRuntime(
         roomSeed: () => config.seed ?? randomInt(2 ** 32),
         env: config.env ?? process.env,
         log,
+        manualClock: config.manualClock === true,
       }),
     )
 

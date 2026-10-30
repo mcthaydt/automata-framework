@@ -45,6 +45,8 @@ export interface RoomContext {
   readonly roomSeed: () => number
   readonly env: Readonly<Record<string, string | undefined>>
   readonly log: (event: RoomLogEvent) => void
+  /** A test switch: rooms start with no clock, and only the test steps them (`ServerConfig.manualClock`). */
+  readonly manualClock: boolean
 }
 
 /** A refusal Colyseus hands back to the matchmaking request: the net error code first, so a client can read it. */
@@ -118,6 +120,9 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
       log: (event) => ctx.log({ ...event, room: this.serial }),
       onClose: (reason) => this.close(reason),
     })
+    // A drain that began while this room was being built found no engine to tell. A room cannot close inside
+    // `onCreate`, so it is refused instead: it never opens, and the drain is not left waiting on it.
+    if (ctx.isDraining()) throw refusal(new RoomCommandError('SERVER_UPDATING', 'the server is updating'))
     this.maxClients = ctx.def.seats.max
     this.setState(createRoomInfoState(this.roomId))
     // No patch timer: the info state goes out from the tick, with the snapshots.
@@ -126,6 +131,7 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
     this.onMessage(NET_CHANNEL, (client, raw: unknown) => this.receive(client, raw))
     ctx.log({ event: 'room.created', room: this.serial })
 
+    if (ctx.manualClock) return
     const tickHz = sim.tickHz
     this.scheduler = startTickScheduler({
       tickMs: 1000 / tickHz,
@@ -133,6 +139,8 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
       // Half a second at most: time a room drops rather than replays moves its timeline against every client's.
       maxCatchUp: Math.ceil(tickHz / 2),
       onTick: () => this.tick(),
+      // `tick` keeps its own errors; this is the scheduler's promise that nothing escapes its timer.
+      onError: (error) => this.fail(error),
       onCallback: (_ticks, droppedMs) => {
         if (droppedMs > 0) ctx.log({ event: 'tick.slow', room: this.serial, ms: droppedMs })
       },
@@ -213,10 +221,28 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
 
   /** One tick: the engine's, then the info state; a patch goes with each snapshot. */
   tick(): void {
-    const engine = this.engine
-    engine.step()
-    this.project()
-    if (engine.tick % this.ctx.net.snapshotEvery === 0) this.broadcastPatch()
+    if (this.closing) return
+    try {
+      const engine = this.engine
+      engine.step()
+      this.project()
+      if (engine.tick % this.ctx.net.snapshotEvery === 0) this.broadcastPatch()
+    } catch (error) {
+      this.fail(error)
+    }
+  }
+
+  /**
+   * Something on the tick threw outside the engine's own boundary (which halts the room for the game's code). The
+   * room halts the same way: logged by the error's class, closed with an error, and the process carries on.
+   */
+  private fail(error: unknown): void {
+    this.ctx.log({
+      event: 'room.error',
+      room: this.serial,
+      code: error instanceof Error ? error.name : typeof error,
+    })
+    this.close('failed')
   }
 
   /** Stops the room's own clock for good: a test that steps the room by hand calls this first. */
@@ -272,7 +298,13 @@ export class AutomataRoom extends Room<{ state: RoomInfoState }> {
     this.closing = true
     this.stopClock()
     if (reason === 'drained') this.ctx.log({ event: 'drain.room', room: this.serial })
-    void this.disconnect(reason === 'drained' ? CloseCode.SERVER_SHUTDOWN : CloseCode.CONSENTED)
+    const code =
+      reason === 'drained'
+        ? CloseCode.SERVER_SHUTDOWN
+        : reason === 'failed'
+          ? CloseCode.WITH_ERROR
+          : CloseCode.CONSENTED
+    void this.disconnect(code)
   }
 }
 

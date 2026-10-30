@@ -18,8 +18,11 @@ export interface RoomClient extends SeatClient {
   close(): void
 }
 
-/** `drained`: a draining room has nothing left to finish. `abandoned`: nobody is left who could come back. */
-export type CloseReason = 'drained' | 'abandoned'
+/**
+ * `drained`: a draining room has nothing left to finish. `abandoned`: nobody is left who could come back. `failed`:
+ * the game's code threw on the tick and the room halted.
+ */
+export type CloseReason = 'drained' | 'abandoned' | 'failed'
 
 export interface RoomEngineOptions {
   readonly def: ServerDef

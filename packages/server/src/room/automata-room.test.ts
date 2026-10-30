@@ -155,8 +155,9 @@ describe('draining', () => {
     expect(await drained).toBe('empty')
   })
 
-  it('lets a game play on while draining, until the cap shuts the server', async () => {
-    server = await startTestServer({ config: { drainCapMs: 1_000 } })
+  it('lets a game play on while draining, and the drain ends when its players leave', async () => {
+    // A cap no test reaches: the drain ends because the room does, never because a timer raced the assertions.
+    server = await startTestServer({ config: { drainCapMs: 600_000 } })
     const host = await server.create('Ada')
     const guest = await server.joinById(host.code, 'Bea')
     await startPlay(server, host, guest)
@@ -167,8 +168,11 @@ describe('draining', () => {
     expect(guest.of('snap').at(-1)?.acks).toEqual({ 1: 0 })
     expect(room.engine.lobby.phase).toBe('playing')
     expect(host.closedWith).toBeUndefined()
-    expect(await drained).toBe('cap')
-    await waitFor(() => host.closedWith !== undefined, 'the cap never closed the room')
+    await host.leave(true)
+    await guest.leave(true)
+    await waitFor(() => room.engine.info().seats.length === 0, 'the seats were never freed')
+    await server.step(host.code, 1)
+    expect(await drained).toBe('empty')
   })
 })
 

@@ -10,6 +10,7 @@ import {
   type ServerMessage,
 } from '@mcthaydt/automata-net'
 import type { Sim } from '@mcthaydt/automata-sim'
+import type { ReplayCompression } from '@mcthaydt/automata-sim/replay'
 import type { Bucket, RoomLogEvent } from '../game/server-config'
 import type { ServerDef } from '../game/server-game'
 import { type RoomClient, RoomEngine } from '../room/room-engine'
@@ -88,6 +89,7 @@ export async function engineHarness(
     env?: Record<string, string | undefined>
     net?: Partial<NetConfig>
     commandsPerSeat?: Bucket
+    compression?: ReplayCompression
   } = {},
 ): Promise<EngineHarness> {
   const sim = await fixtureSim(options.seed ?? 7)
@@ -109,6 +111,7 @@ export async function engineHarness(
       env: options.env ?? { NODE_ENV: 'test' },
       log: (event) => logs.push(event),
       onClose: (reason) => closes.push(reason),
+      compression: options.compression,
     }),
     join(name) {
       const client = fakeClient()

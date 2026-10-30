@@ -58,6 +58,11 @@ export interface ServerConfig {
   /** A test switch: every room's seed. Unset, each room draws a fresh one. M7.4b refuses it in production. */
   readonly seed?: number | undefined
   readonly log?: ((event: RoomLogEvent) => void) | undefined
+  /**
+   * A test switch: rooms start with no clock of their own, and only a test steps them, so no tick runs that the
+   * test did not ask for. M7.4b refuses it in production with the other test switches.
+   */
+  readonly manualClock?: boolean | undefined
   /** SIGTERM's source [`process`]. */
   readonly signals?: SignalSource | undefined
   /** Ends the process after a drain [`process.exit`]. */

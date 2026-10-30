@@ -159,6 +159,7 @@ export async function startTestServer(
       net: TEST_NET,
       seed: 11,
       env: { NODE_ENV: 'test' },
+      manualClock: true,
       log: (event) => logs.push(event),
       ...options.config,
     }).pipe(Scope.extend(scope)),
