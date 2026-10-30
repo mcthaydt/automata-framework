@@ -19,6 +19,12 @@ interface AttachOptions extends GestureOptions {
 }
 ```
 
+### `autosaveProblem` (function)
+
+```ts
+function autosaveProblem(problem: Problem): string;
+```
+
 ### `BlockedProps` (interface)
 
 ```ts
@@ -27,6 +33,32 @@ interface BlockedProps {
     readonly reason?: string | undefined;
     readonly onblocked?: ((reason: string | undefined) => void) | undefined;
 }
+```
+
+### `BrowserState` (interface)
+
+```ts
+interface BrowserState<E, B extends string = string> {
+    readonly phase: 'loading' | 'ready' | 'unavailable';
+    readonly entries: readonly E[];
+    readonly visible: readonly E[];
+    readonly query: string;
+    readonly selected: string | undefined;
+    readonly busy: B | undefined;
+    readonly message: string | undefined;
+}
+```
+
+### `Button` (svelte)
+
+```ts
+component from './widgets/Button.svelte'
+```
+
+### `cardWords` (const)
+
+```ts
+const cardWords: (card: HomeCard) => readonly string[];
 ```
 
 ### `checkEntityDef` (function)
@@ -104,6 +136,12 @@ interface CommandRegistry {
 }
 ```
 
+### `ConflictDialog` (svelte)
+
+```ts
+component from './dialogs/ConflictDialog.svelte'
+```
+
 ### `createCommandRegistry` (function)
 
 ```ts
@@ -155,6 +193,14 @@ function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
 function createMemoryStore(options?: {
     now?: () => number;
 }): ProjectStore;
+```
+
+### `createProjectBrowser` (function)
+
+```ts
+function createProjectBrowser<E extends {
+    readonly path: string;
+}, B extends string = string>(options: ProjectBrowserOptions<E>): ProjectBrowser<E, B>;
 ```
 
 ### `createRecognizer` (function)
@@ -551,6 +597,18 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 const fieldValuesSchema: z.ZodType<FieldValues>;
 ```
 
+### `FilePick` (svelte)
+
+```ts
+component from './home/FilePick.svelte'
+```
+
+### `filterEntries` (function)
+
+```ts
+function filterEntries<E>(entries: readonly E[], query: string, words: (entry: E) => readonly string[]): readonly E[];
+```
+
 ### `findRecovery` (function)
 
 ```ts
@@ -706,6 +764,29 @@ interface HistoryOptions {
 }
 ```
 
+### `HomeCard` (interface)
+
+```ts
+interface HomeCard {
+    readonly path: string;
+    readonly title: string;
+    readonly badge: {
+        readonly tone: Tone;
+        readonly text: string;
+    };
+    readonly kind: string;
+    readonly accent: string | undefined;
+    readonly size: number;
+    readonly mtime: number;
+}
+```
+
+### `HomeScreen` (svelte)
+
+```ts
+component from './home/HomeScreen.svelte'
+```
+
 ### `HoverGesture` (interface)
 
 ```ts
@@ -794,6 +875,12 @@ interface LongPressGesture {
 component from './widgets/Menu.svelte'
 ```
 
+### `modifiedLabel` (function)
+
+```ts
+function modifiedLabel(mtime: number, now: number, timeZone?: string): string;
+```
+
 ### `Modifiers` (interface)
 
 ```ts
@@ -874,6 +961,16 @@ interface PanGesture {
 function parseShortcut(text: string): Shortcut;
 ```
 
+### `PickedFile` (interface)
+
+```ts
+interface PickedFile {
+    readonly name: string;
+    readonly path: string;
+    readonly bytes: Uint8Array;
+}
+```
+
 ### `Picker` (svelte)
 
 ```ts
@@ -897,6 +994,12 @@ interface PickerOption {
 
 ```ts
 function pickFolder(vault: HandleVault, env?: FolderEnv): Promise<FolderStore | undefined>;
+```
+
+### `Pill` (svelte)
+
+```ts
+component from './widgets/Pill.svelte'
 ```
 
 ### `PinchGesture` (interface)
@@ -962,6 +1065,48 @@ interface Problem {
 }
 ```
 
+### `ProjectBrowser` (interface)
+
+```ts
+interface ProjectBrowser<E, B extends string = string> extends ProjectListSource<E, B> {
+    readonly current: BrowserState<E, B>;
+    load(prefer?: (visible: readonly E[]) => string | undefined): Promise<void>;
+    run(kind: B, work: () => Promise<void>): Promise<void>;
+}
+```
+
+### `ProjectBrowserOptions` (interface)
+
+```ts
+interface ProjectBrowserOptions<E extends {
+    readonly path: string;
+}> {
+    list(): Promise<readonly E[]>;
+    words(entry: E): readonly string[];
+    onError(message: string): void;
+}
+```
+
+### `projectCount` (function)
+
+```ts
+function projectCount(total: number, shown: number, query: string): string;
+```
+
+### `ProjectListSource` (interface)
+
+```ts
+interface ProjectListSource<E, B extends string = string> {
+    readonly state: {
+        subscribe(run: (state: BrowserState<E, B>) => void): () => void;
+    };
+    refresh(): Promise<void>;
+    search(query: string): void;
+    select(path: string): void;
+    step(key: StepKey): void;
+}
+```
+
 ### `ProjectStore` (interface)
 
 ```ts
@@ -987,6 +1132,12 @@ interface RampEntry {
     readonly line: number;
     readonly tracking: number;
 }
+```
+
+### `readStored` (function)
+
+```ts
+function readStored(store: ProjectStore, path: string): Promise<Stored>;
 ```
 
 ### `realClock` (const)
@@ -1015,6 +1166,12 @@ interface Recognizer {
 function reconcileOpen(mode: ShellMode, previous: OpenState, next: OpenState): OpenState;
 ```
 
+### `reconcileSelection` (function)
+
+```ts
+function reconcileSelection(visible: readonly Pathed[], selected: string | undefined): string | undefined;
+```
+
 ### `Recovery` (interface)
 
 ```ts
@@ -1023,6 +1180,27 @@ interface Recovery {
     readonly savedAt: number;
     readonly baseChanged: boolean;
 }
+```
+
+### `RecoveryDialog` (svelte)
+
+```ts
+component from './dialogs/RecoveryDialog.svelte'
+```
+
+### `recoveryFacts` (function)
+
+```ts
+function recoveryFacts(path: string, recovery: Recovery, now: number, timeZone?: string): readonly {
+    readonly label: string;
+    readonly value: string;
+}[];
+```
+
+### `recoveryUnreadable` (function)
+
+```ts
+function recoveryUnreadable(message: string): string;
 ```
 
 ### `Rect` (interface)
@@ -1043,6 +1221,12 @@ interface RefValue {
     readonly target: string;
     readonly container?: string | undefined;
 }
+```
+
+### `reloadedMessage` (function)
+
+```ts
+function reloadedMessage(path: string): string;
 ```
 
 ### `renameField` (function)
@@ -1081,6 +1265,17 @@ component from './widgets/ReorderList.svelte'
 function restoreFolder(vault: HandleVault, name: string): Promise<FolderStore | undefined>;
 ```
 
+### `retryAction` (function)
+
+```ts
+function retryAction(options: {
+    readonly store: ProjectStore;
+    readonly reason: StorageFailure;
+    readonly toasts: ToastStore;
+    readonly retry: () => Promise<void>;
+}): ToastAction;
+```
+
 ### `RetypeBreakage` (interface)
 
 ```ts
@@ -1088,6 +1283,20 @@ interface RetypeBreakage {
     readonly instanceId: string;
     readonly problem: InstanceProblem;
 }
+```
+
+### `savedCopyMessage` (function)
+
+```ts
+function savedCopyMessage(copy: string): string;
+```
+
+### `saveFailure` (function)
+
+```ts
+function saveFailure(path: string, outcome: Extract<SaveOutcome, {
+    readonly status: 'failed';
+}>): string;
 ```
 
 ### `SaveOutcome` (type)
@@ -1180,10 +1389,25 @@ interface Size {
 }
 ```
 
+### `sizeLabel` (function)
+
+```ts
+function sizeLabel(bytes: number): string;
+```
+
 ### `Slider` (svelte)
 
 ```ts
 component from './widgets/Slider.svelte'
+```
+
+### `splitPath` (function)
+
+```ts
+function splitPath(path: string): {
+    readonly dir: string;
+    readonly name: string;
+};
 ```
 
 ### `statPath` (function)
@@ -1198,10 +1422,22 @@ function statPath(store: ProjectStore, path: string): Promise<StoredEntry | unde
 component from './widgets/StatusLine.svelte'
 ```
 
+### `StepKey` (type)
+
+```ts
+type StepKey = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown' | 'Home' | 'End';
+```
+
 ### `Stepper` (svelte)
 
 ```ts
 component from './widgets/Stepper.svelte'
+```
+
+### `stepSelection` (function)
+
+```ts
+function stepSelection(visible: readonly Pathed[], selected: string | undefined, key: StepKey): string | undefined;
 ```
 
 ### `StorageClock` (interface)
@@ -1227,6 +1463,37 @@ class StorageError extends Error {
 
 ```ts
 type StorageFailure = 'denied' | 'quota' | 'io';
+```
+
+### `StorageNote` (interface)
+
+```ts
+interface StorageNote {
+    readonly tone: 'ok' | 'warn' | 'info';
+    readonly text: string;
+}
+```
+
+### `storageNotes` (function)
+
+```ts
+function storageNotes(workspace: Workspace): readonly StorageNote[];
+```
+
+### `Stored` (type)
+
+```ts
+type Stored = {
+    readonly status: 'read';
+    readonly mtime: number;
+    readonly bytes: Uint8Array;
+} | {
+    readonly status: 'missing';
+} | {
+    readonly status: 'storageFailed';
+    readonly reason: StorageFailure;
+    readonly message: string;
+};
 ```
 
 ### `StoredEntry` (interface)
@@ -1331,6 +1598,12 @@ interface ToastStore {
 
 ```ts
 function tokensToCss(tokens: EditorTokens): string;
+```
+
+### `Tone` (type)
+
+```ts
+type Tone = 'ok' | 'warn' | 'bad' | 'neutral';
 ```
 
 ### `Transaction` (interface)
@@ -1445,6 +1718,12 @@ interface WorkspaceEnv {
 }
 ```
 
+### `workspaceSubtitle` (function)
+
+```ts
+function workspaceSubtitle(workspace: Workspace, count: number): string;
+```
+
 ### `WriteFailure` (type)
 
 ```ts
@@ -1465,6 +1744,32 @@ type WriteResult = {
 ```
 
 ## `./core`
+
+### `autosaveProblem` (function)
+
+```ts
+function autosaveProblem(problem: Problem): string;
+```
+
+### `BrowserState` (interface)
+
+```ts
+interface BrowserState<E, B extends string = string> {
+    readonly phase: 'loading' | 'ready' | 'unavailable';
+    readonly entries: readonly E[];
+    readonly visible: readonly E[];
+    readonly query: string;
+    readonly selected: string | undefined;
+    readonly busy: B | undefined;
+    readonly message: string | undefined;
+}
+```
+
+### `cardWords` (const)
+
+```ts
+const cardWords: (card: HomeCard) => readonly string[];
+```
 
 ### `classifyStorageError` (function)
 
@@ -1550,6 +1855,14 @@ function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
 function createMemoryStore(options?: {
     now?: () => number;
 }): ProjectStore;
+```
+
+### `createProjectBrowser` (function)
+
+```ts
+function createProjectBrowser<E extends {
+    readonly path: string;
+}, B extends string = string>(options: ProjectBrowserOptions<E>): ProjectBrowser<E, B>;
 ```
 
 ### `createSelection` (function)
@@ -1646,6 +1959,12 @@ interface DownloadStore extends ProjectStore {
     share(path: string, data: Uint8Array | string): Promise<WriteResult>;
     copyText(text: string): Promise<WriteResult>;
 }
+```
+
+### `filterEntries` (function)
+
+```ts
+function filterEntries<E>(entries: readonly E[], query: string, words: (entry: E) => readonly string[]): readonly E[];
 ```
 
 ### `findRecovery` (function)
@@ -1756,6 +2075,23 @@ interface HistoryOptions {
 }
 ```
 
+### `HomeCard` (interface)
+
+```ts
+interface HomeCard {
+    readonly path: string;
+    readonly title: string;
+    readonly badge: {
+        readonly tone: Tone;
+        readonly text: string;
+    };
+    readonly kind: string;
+    readonly accent: string | undefined;
+    readonly size: number;
+    readonly mtime: number;
+}
+```
+
 ### `KeyInput` (interface)
 
 ```ts
@@ -1795,6 +2131,12 @@ interface LifecycleWindow {
     addEventListener(type: 'pagehide', run: () => void): void;
     removeEventListener(type: 'pagehide', run: () => void): void;
 }
+```
+
+### `modifiedLabel` (function)
+
+```ts
+function modifiedLabel(mtime: number, now: number, timeZone?: string): string;
 ```
 
 ### `normalizeShortcut` (function)
@@ -1853,6 +2195,48 @@ interface Problem {
 }
 ```
 
+### `ProjectBrowser` (interface)
+
+```ts
+interface ProjectBrowser<E, B extends string = string> extends ProjectListSource<E, B> {
+    readonly current: BrowserState<E, B>;
+    load(prefer?: (visible: readonly E[]) => string | undefined): Promise<void>;
+    run(kind: B, work: () => Promise<void>): Promise<void>;
+}
+```
+
+### `ProjectBrowserOptions` (interface)
+
+```ts
+interface ProjectBrowserOptions<E extends {
+    readonly path: string;
+}> {
+    list(): Promise<readonly E[]>;
+    words(entry: E): readonly string[];
+    onError(message: string): void;
+}
+```
+
+### `projectCount` (function)
+
+```ts
+function projectCount(total: number, shown: number, query: string): string;
+```
+
+### `ProjectListSource` (interface)
+
+```ts
+interface ProjectListSource<E, B extends string = string> {
+    readonly state: {
+        subscribe(run: (state: BrowserState<E, B>) => void): () => void;
+    };
+    refresh(): Promise<void>;
+    search(query: string): void;
+    select(path: string): void;
+    step(key: StepKey): void;
+}
+```
+
 ### `ProjectStore` (interface)
 
 ```ts
@@ -1868,6 +2252,18 @@ interface ProjectStore {
 }
 ```
 
+### `readStored` (function)
+
+```ts
+function readStored(store: ProjectStore, path: string): Promise<Stored>;
+```
+
+### `reconcileSelection` (function)
+
+```ts
+function reconcileSelection(visible: readonly Pathed[], selected: string | undefined): string | undefined;
+```
+
 ### `Recovery` (interface)
 
 ```ts
@@ -1876,6 +2272,21 @@ interface Recovery {
     readonly savedAt: number;
     readonly baseChanged: boolean;
 }
+```
+
+### `recoveryFacts` (function)
+
+```ts
+function recoveryFacts(path: string, recovery: Recovery, now: number, timeZone?: string): readonly {
+    readonly label: string;
+    readonly value: string;
+}[];
+```
+
+### `recoveryUnreadable` (function)
+
+```ts
+function recoveryUnreadable(message: string): string;
 ```
 
 ### `Rect` (interface)
@@ -1889,10 +2300,41 @@ interface Rect {
 }
 ```
 
+### `reloadedMessage` (function)
+
+```ts
+function reloadedMessage(path: string): string;
+```
+
 ### `restoreFolder` (function)
 
 ```ts
 function restoreFolder(vault: HandleVault, name: string): Promise<FolderStore | undefined>;
+```
+
+### `retryAction` (function)
+
+```ts
+function retryAction(options: {
+    readonly store: ProjectStore;
+    readonly reason: StorageFailure;
+    readonly toasts: ToastStore;
+    readonly retry: () => Promise<void>;
+}): ToastAction;
+```
+
+### `savedCopyMessage` (function)
+
+```ts
+function savedCopyMessage(copy: string): string;
+```
+
+### `saveFailure` (function)
+
+```ts
+function saveFailure(path: string, outcome: Extract<SaveOutcome, {
+    readonly status: 'failed';
+}>): string;
 ```
 
 ### `SaveOutcome` (type)
@@ -1961,10 +2403,37 @@ interface Size {
 }
 ```
 
+### `sizeLabel` (function)
+
+```ts
+function sizeLabel(bytes: number): string;
+```
+
+### `splitPath` (function)
+
+```ts
+function splitPath(path: string): {
+    readonly dir: string;
+    readonly name: string;
+};
+```
+
 ### `statPath` (function)
 
 ```ts
 function statPath(store: ProjectStore, path: string): Promise<StoredEntry | undefined>;
+```
+
+### `StepKey` (type)
+
+```ts
+type StepKey = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown' | 'Home' | 'End';
+```
+
+### `stepSelection` (function)
+
+```ts
+function stepSelection(visible: readonly Pathed[], selected: string | undefined, key: StepKey): string | undefined;
 ```
 
 ### `StorageClock` (interface)
@@ -1990,6 +2459,37 @@ class StorageError extends Error {
 
 ```ts
 type StorageFailure = 'denied' | 'quota' | 'io';
+```
+
+### `StorageNote` (interface)
+
+```ts
+interface StorageNote {
+    readonly tone: 'ok' | 'warn' | 'info';
+    readonly text: string;
+}
+```
+
+### `storageNotes` (function)
+
+```ts
+function storageNotes(workspace: Workspace): readonly StorageNote[];
+```
+
+### `Stored` (type)
+
+```ts
+type Stored = {
+    readonly status: 'read';
+    readonly mtime: number;
+    readonly bytes: Uint8Array;
+} | {
+    readonly status: 'missing';
+} | {
+    readonly status: 'storageFailed';
+    readonly reason: StorageFailure;
+    readonly message: string;
+};
 ```
 
 ### `StoredEntry` (interface)
@@ -2066,6 +2566,12 @@ interface ToastStore {
 }
 ```
 
+### `Tone` (type)
+
+```ts
+type Tone = 'ok' | 'warn' | 'bad' | 'neutral';
+```
+
 ### `Transaction` (interface)
 
 ```ts
@@ -2138,6 +2644,12 @@ interface WorkspaceEnv {
     };
     readonly download?: DownloadEnv;
 }
+```
+
+### `workspaceSubtitle` (function)
+
+```ts
+function workspaceSubtitle(workspace: Workspace, count: number): string;
 ```
 
 ### `WriteFailure` (type)
@@ -2824,12 +3336,44 @@ function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): F
 
 ## `./testing`
 
+### `arrived` (function)
+
+```ts
+function arrived(): Promise<void>;
+```
+
+### `EditorSize` (interface)
+
+```ts
+interface EditorSize extends ReferenceSize {
+    readonly mode: Mode;
+}
+```
+
+### `Mode` (type)
+
+```ts
+type Mode = 'wide' | 'medium' | 'compact';
+```
+
 ### `ResizableGeometry` (interface)
 
 ```ts
 interface ResizableGeometry extends GeometryState {
     resize(width: number, height: number): void;
 }
+```
+
+### `REST` (const)
+
+```ts
+const REST: (typeof VARIANTS)[number];
+```
+
+### `SIZES` (const)
+
+```ts
+const SIZES: readonly EditorSize[];
 ```
 
 ### `stubGeometry` (function)

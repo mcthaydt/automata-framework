@@ -4,8 +4,7 @@
   Escape open nothing. The candidates come from the registry, so nothing here names a profile.
 -->
 <script lang="ts">
-import { Dialog } from '@mcthaydt/automata-editor-kit'
-import Button from '../controls/Button.svelte'
+import { Button, Dialog } from '@mcthaydt/automata-editor-kit'
 import type { ChoiceOutcome } from './open-flow-model'
 
 interface Props {

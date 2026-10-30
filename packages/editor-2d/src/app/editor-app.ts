@@ -6,11 +6,11 @@ import {
   findRecovery,
   type History,
   type Recovery,
+  readStored,
   discardRecovery as removeJournal,
   type SaveOutcome,
   type StorageClock,
   type StorageFailure,
-  statPath,
   type Workspace,
   type WriteFailure,
 } from '@mcthaydt/automata-editor-kit/core'
@@ -156,21 +156,11 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
   const { workspace, registry, ids } = options
   const clock = options.clock ?? systemClock
 
-  /** Opens a stored file. `statPath` goes first, so a file that changes after it can only make the next save a conflict, never overwrite silently. */
+  /** Opens a stored file. `readStored` stats first, so a file that changes after it can only make the next save a conflict, never overwrite silently. */
   async function open(path: string, as?: string): Promise<OpenOutcome> {
-    let mtime: number
-    let bytes: Uint8Array
-    try {
-      const entry = await statPath(workspace.store, path)
-      if (entry === undefined) return { status: 'missing', path }
-      mtime = entry.mtime
-      // Removed between the listing and the read: the same as never there.
-      const stored = await workspace.store.read(path)
-      if (stored === undefined) return { status: 'missing', path }
-      bytes = stored
-    } catch (error) {
-      return { status: 'storageFailed', path, ...classifyStorageError(error) }
-    }
+    const stored = await readStored(workspace.store, path)
+    if (stored.status !== 'read') return { ...stored, path }
+    const { mtime, bytes } = stored
     const read = readDocument(registry, baseName(path), bytes, as)
     if (read.status !== 'parsed') return { ...read, path }
     let recovery: Recovery | undefined

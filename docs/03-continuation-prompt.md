@@ -92,7 +92,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 
 | Lane | Session | State on 2026-10-30 15:20Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | rotates every 2 h (15:20Z: `session_01QYLU1ihyHbDnh6KiB6mAsf`) | Watching #259 (ui: a scrolling control's words; fixes `main`'s red editor-2d `open-flows.layout` test, from PRODUCT.L3a's `checkLayout` rule), then one parity re-run each on #227 DX.2a, #253 GL.1, #191 PRODUCT.5d, #237 M5.5F, #258 ED3D.5c and #225 ED3D.8a, which failed only there. Also drives the editors' #258 and #225 while that lane is paused, and the 3D lane's #221 and #241. |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | rotates every 2 h (15:30Z: `session_01QYLU1eQtX9j6EyGmz86pYP`) | Merged #260, #191 PRODUCT.5d, #227 DX.2a, #237 M5.5F, #225 ED3D.8a and #253 GL.1 and #258 ED3D.5c; watching the 3D lane's #221 and #241. |
 | 3D (M3, GAME-3D, M9 free parts, M4.12), the one build lane | `session_01QYLU1gVeKcraUX7HF49N8q` (fresh at 15:20Z) | #241 M3.4a (red only in Mac Firefox: render-to-texture reads back black; fixing the snapshot helper), #221 M3.6c ready; drafts #224, #245, #247, #249, #250; branch `claude/3d-m4-12b-stick-compact` waits for the PR cap. The Owner confirmed the visual-acceptance ruling to the lane ("Approve all"). |
 | Editors (ED2D, EDFF, ED3D, EDK, EDS) | paused 14:06Z; archived | Handoff kept by the coordinator. Drafts #246 EDS.1b (on #244, merged) and #255 ED2D.4c3b (on #206, merged) wait for the lane's resume. |
 | Plus (automata-plus) | paused 14:07Z; archived | plus #16 M7.5b's review fixes are on `backup/m7-5b-9a43885` (not pushed to #16, which would queue Plus CI); plus #14 (two CI failures on Plus `main`). |
@@ -106,9 +106,9 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 
 ## Exact next action
 
-1. Merge #259 when green; then re-run parity once on #227, #253, #191, #237, #258 and #225 and merge each on green. Merge the 3D lane's PRs as it reports them ready (#221 now).
-2. When #227 (DX.2a) merges: change `AGENTS.md`'s "a private one (render-pixi, game, the umbrella, cli)" to the packages still private (cli and the editors); the Plus lane's M5.8, M6.1/6.2, M3.3, PRODUCT.6 and NetworkPort import unblock (Plus is paused).
-3. When #253 (GL.1) merges: add the GL spec §5.5 text to `AGENTS.md`'s `pnpm style` and `pnpm boundaries` bullets; tell the 3D lane GL.7 can start; then GL.3 (the placeholder's `src/main.ts`), failing test first.
+1. Merge the 3D lane's PRs as it reports them ready (#221 now).
+2. Done 2026-10-30: #227 (DX.2a) merged (`b9244c9`); `AGENTS.md` now lists cli, figures and the editors as the private packages. The Plus lane's M5.8, M6.1/6.2, M3.3, PRODUCT.6 and NetworkPort import are unblocked (Plus is paused until the Owner resumes it).
+3. Done 2026-10-30: #253 (GL.1) merged (`11a4e4e`); the GL spec §5.5 text is in `AGENTS.md`'s `pnpm style` and `pnpm boundaries` bullets and the 3D lane was told GL.7 can start. Next: GL.3 (the placeholder's `src/main.ts`), failing test first.
 4. The "Version packages" PR (#226) is no longer blocked by PRODUCT.5g (#197 merged); before merging it, check its version bumps and that no physics package publishes from AF, and its publish waits for the Owner's approval in the release environment.
 5. Keep at most about six AF PRs in flight. Resume a paused lane only with the Owner's word, as a fresh session started from its handoff.
 6. Next coordinator rows with no prerequisite: PRODUCT.1b2, DX.6a, DX.6c1, DX.7b/c, CI.API1a, CI.N1a, CI.N3, RT.BOOT1, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu. Also from the 3D handoff: Ruken's "Try again" never works inside a frame (the SDK host answers one hello per frame load), a core fix.

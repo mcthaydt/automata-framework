@@ -156,7 +156,10 @@ function onClick(event: MouseEvent): void {
     min-width: var(--size-hit);
     min-height: var(--size-hit);
   }
-  .actions :global([data-primary]) {
+  /* The kit's Button marks its primary kind with `data-kind`. Both selectors weigh as much as the rule above and come
+     after it, so a primary action keeps its 48 px wherever its own stylesheet lands in the page. */
+  .actions :global([data-primary]),
+  .actions :global([data-kind='primary']) {
     min-height: var(--size-primary);
   }
   .actions :global(button:focus-visible) {

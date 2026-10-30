@@ -1,26 +1,23 @@
 import {
+  autosaveProblem,
   classifyStorageError,
   flushOnHide,
   type LifecycleDocument,
   type LifecycleWindow,
   type Problem,
   type Recovery,
+  recoveryUnreadable,
+  reloadedMessage,
+  retryAction,
   type SaveOutcome,
   type SaveState,
+  savedCopyMessage,
+  saveFailure,
   type ToastStore,
 } from '@mcthaydt/automata-editor-kit/core'
 import type { EditorApp, OpenDocument, OpenOutcome } from '../editor-app'
-import { retryAction } from '../folder-access'
 import { openProblem } from '../home/home-model'
-import {
-  autosaveProblem,
-  documentHeading,
-  recoveryUnreadable,
-  reloadedMessage,
-  restoreRefused,
-  savedCopyMessage,
-  saveFailure,
-} from './open-flow-model'
+import { documentHeading, restoreRefused } from './open-flow-model'
 
 // One open document's flows (plan ED2D.4c2b, decisions 5 to 9; kit spec §5 flows 3 and 4, §6), in plain TypeScript so
 // Node tests drive them: the top bar's undo, redo and Save, what each save outcome does (a conflict opens the Keep mine
