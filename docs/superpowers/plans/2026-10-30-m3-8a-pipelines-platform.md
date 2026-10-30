@@ -239,3 +239,4 @@ tests through `pnpm -r`). No browser project: nothing here renders. Pending: the
 | 2026-10-30 | Bin (test 7) | 3 red against an empty `cli.ts`, then green; Node runs `src/cli.ts` with no warning on stderr |
 | 2026-10-30 | PL-a, PL-b (test 8) | written after the runner, so their failure was shown by mutation: with the budget refusal disabled both PL-a cases fail (requests reach the fake server); with the cache disabled PL-b fails; restored, 3 of 3 |
 | 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint (81 files), typecheck (root, physics, pipelines), boundaries 19 files 0 findings, root 157 tests (F1 included), pipelines 74, physics 71 |
+| 2026-10-30 | Integration | The F1 boundary test now scans each `tooling/*` workspace package (a folder with its own package.json) as well as `packages/`, test-first (the new case was red); `tooling/pipelines` passes it. The manifest rules still read `packages/*` only (follow-up) |

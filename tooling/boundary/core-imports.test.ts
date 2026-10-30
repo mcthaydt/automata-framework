@@ -168,6 +168,17 @@ describe('coreImportFindings', () => {
     ])
   })
 
+  // M3.8a: a workspace package under tooling/ (the pipelines platform) is a Plus package too; plain tooling scripts
+  // with no package.json of their own (this test's fixtures among them) are not scanned.
+  it('checks workspace packages under tooling/, and not loose tooling scripts', () => {
+    write('tooling/pipes/package.json', JSON.stringify({ name: '@mcthaydt/automata-pipes' }))
+    write('tooling/pipes/src/a.ts', "import '@mcthaydt/automata-sim/deep'\n")
+    write('tooling/loose/check.ts', "import '@mcthaydt/automata-sim/deep'\n")
+    expect(coreImportFindings(root)).toEqual([
+      'tooling/pipes/src/a.ts:1: "@mcthaydt/automata-sim/deep" is not a public exports entry of a core package',
+    ])
+  })
+
   it('says to run the sync when there are no packs', () => {
     rmSync(join(root, '.core'), { recursive: true })
     expect(() => coreImportFindings(root)).toThrow('run pnpm core:sync')
