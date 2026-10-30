@@ -117,6 +117,7 @@ Tests use the depot (`af-sector/1`: the hall from (0, 0) to (8, 6), the dock fro
   - *Expected failure:* `remove` and `setField` do nothing.
   - *Done 2026-10-30:* red (`remove` and `setField` not functions, 12 failing), then green (53 tests; `tsc` clean). One thing is removed in a session labelled with the edit's own label, more in one labelled `Remove N things`; a second session open makes `remove` answer the history's sentence. Hand mutation over both steps and step 1 (13 mutants: the unhide of `things`, the commit rule, the refusal of a drag run, a point over a box, the later of a tie, the cancel of a refused removal, the additive clear, the undo during a drag, the layer sentence of the preview, dropping a lost definition, the one-thing rule, the layer rule of a field, the selection at a drag's start): all killed after one test was added (a box before a point in the level's order).
 - [ ] **5. Entry, gates and records.**
+  - *Done 2026-10-30:* the entry exports `createThingsTool`, `PaletteEntry`, `ThingPlace`, `ThingsTool`, `ThingsToolOptions`, `ThingsToolView`, `pickThing`, `isThingLayerOff`, `ThingHit` and `thingLayer` (asserted in `index.test.ts`); `purity.test.ts` covers `src/things`. Gates on the head merged with `origin/main` (`30e9606`): `pnpm format`, then lint, typecheck (36 of 36), boundaries, style, knip and unit tests (34 of 34; `editor-3d` 2446 tests) with `TURBO_FORCE=true`, `TURBO_CONCURRENCY=2`, `VITEST_MAX_WORKERS=2`, all exit 0; `changeset status` and `check-changesets` clean; no changeset (private package). First attempts under shared-machine load failed only in untouched packages, kept as evidence: `automata-game` `default-screens.test.ts` hook timeout and `editor-kit` vitest workers that did not start (each passed alone), then `automata-runtime` typecheck killed (exit 137, memory). Selected: unit, typecheck, lint, boundaries, style, knip; omitted: browser, layout and GPU suites (no DOM or painting); pending: hosted CI.
   - *Run in order:* `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm api-report` (no change: `editor-3d` is private), `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`; the entry exports the new names (asserted in `index.test.ts`) and `purity.test.ts` covers `src/things`.
 
 ## Verification
@@ -133,4 +134,4 @@ Local, Node 24: the package's focused tests while iterating, then `pnpm check`. 
 
 ## Execution log
 
-(Filled in as steps pass.)
+- 2026-10-30, `023caea` to the head: the plan; steps 1 and 2 (`9bbcebf`); steps 3 to 5 (`5ab45d6`); a merge of `origin/main`. Deviations: `ThingPickOptions` was dropped for the plan pick's own `PickOptions`; `pick` takes the starting values (decision 4).
