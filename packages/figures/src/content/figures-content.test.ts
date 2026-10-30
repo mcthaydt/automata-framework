@@ -279,6 +279,59 @@ describe('gait overrides and hair pieces', () => {
   })
 })
 
+describe("a garment's default swatches are checked at compile (M3.5b review)", () => {
+  // A garment that names no sole, no lids or no mouth wears the library's; a library without it is refused at
+  // the garment that would wear it, not left to throw in build().
+  const cases: { swatch: string; file: string; garment: string; keyPath: string }[] = [
+    {
+      swatch: 'mouth',
+      file: 'content/figures/wick.toml',
+      garment: 'eyes = "wick-eye"',
+      keyPath: 'outfits.wanderer.5.mouth',
+    },
+    {
+      swatch: 'lid',
+      file: 'content/figures/wick.toml',
+      garment: 'eyes = "wick-eye"',
+      keyPath: 'outfits.wanderer.5.lids',
+    },
+    {
+      swatch: 'sole',
+      file: 'content/figures/keeper.toml',
+      garment: 'shoes = "boot-brown"\nboots = true\n\n[[outfits.shirtsleeves]]\nhair',
+      keyPath: 'outfits.shirtsleeves.3.sole',
+    },
+  ]
+  for (const c of cases)
+    it(`reports a missing default ${c.swatch} at the garment`, async () => {
+      const result = await compileFixture({ [`content/figure-swatches/${c.swatch}.toml`]: null })
+      expect(result.ok).toBe(false)
+      const diagnostics = result.ok ? [] : result.diagnostics
+      const text = fixtureText(c.file)
+      expect(diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'unknownReference',
+          file: c.file,
+          // The garment's own place: its `[[outfits.…]]` header, the line above its first key.
+          line: where(text, c.garment).line - 1,
+          keyPath: c.keyPath,
+          message: `no figure-swatch has the id ${c.swatch}`,
+        }),
+      )
+    })
+  it('writes the defaults into the compiled garment', async () => {
+    const result = await compileFixture()
+    if (!result.ok) throw new Error(result.message)
+    const figures = result.content.data.figure as Record<string, { outfits: Record<string, unknown[]> }>
+    expect(figures.wick?.outfits.wanderer?.[5]).toEqual({
+      eyes: 'wick-eye',
+      lids: 'lid',
+      brows: 'brow',
+      mouth: 'mouth',
+    })
+  })
+})
+
 describe("a garment's numbers and lists are bounded (M3.5b review)", () => {
   const file = 'content/figures/keeper.toml'
   const top = 'top = "starch"\nsleeves = "short"'

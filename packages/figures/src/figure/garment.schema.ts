@@ -13,6 +13,7 @@ import { type Headwear, headwearSchema, type Lock, lockSchema } from '../library
 import { keyedUnion } from '../library/keyed-union'
 import { refOrInline } from '../library/ref-or-inline'
 import { side } from '../library/shapes.schema'
+import { GARMENT_DEFAULTS } from './garment-defaults'
 
 // ─── garments.ts ───
 /** A shirt or a dress's body: it repaints the torso and as much of the arms as its sleeves cover. */
@@ -102,6 +103,8 @@ export interface Eyes {
   readonly stubble?: string | undefined
   readonly lids?: string | undefined
   readonly brows?: string | undefined
+  /** The mouth's mark; the library's `mouth` when left out. */
+  readonly mouth?: string | undefined
 }
 /** A watch or a badge on the chest, on one side. */
 export interface Mark {
@@ -135,6 +138,8 @@ export interface Puffer {
   readonly puffer: string
   readonly trim?: string | undefined
   readonly zip?: string | undefined
+  /** The zip's pull at the chin. */
+  readonly pull?: string | undefined
   readonly length?: number | undefined
   readonly baffles?: number | undefined
 }
@@ -307,6 +312,7 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
     stubble: optionalSwatch,
     lids: optionalSwatch,
     brows: optionalSwatch,
+    mouth: optionalSwatch,
   }),
   mark: z.strictObject({ mark: z.enum(['watch', 'badge']), colour: swatch, side }),
   // streetwear.ts
@@ -314,6 +320,7 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
     puffer: swatch,
     trim: optionalSwatch,
     zip: optionalSwatch,
+    pull: optionalSwatch,
     length: length.optional(),
     baffles: z.number().int().min(1).max(12).optional(),
   }),
@@ -364,4 +371,24 @@ const GARMENTS: Readonly<Record<string, z.ZodType<Garment>>> = {
   shades: z.strictObject({ shades: swatch, frame: optionalSwatch, up: flag }),
 }
 
-export const garmentSchema: z.ZodType<Garment> = keyedUnion<Garment>('garment', GARMENTS)
+/**
+ * Each garment with its default swatches written in where its file names none (garment-defaults.ts), as
+ * references: the compiler checks them like any other, and reports one the library lacks at the garment.
+ */
+const withDefaults = (key: string, schema: z.ZodType<Garment>): z.ZodType<Garment> => {
+  const defaults: Readonly<Record<string, string | readonly string[]>> | undefined =
+    GARMENT_DEFAULTS[key as keyof typeof GARMENT_DEFAULTS]
+  if (defaults === undefined) return schema
+  const ref = (id: string): string => swatch.parse(id)
+  return schema.transform((garment): Garment => {
+    const filled: Record<string, unknown> = { ...garment }
+    for (const [field, id] of Object.entries(defaults))
+      if (filled[field] === undefined) filled[field] = typeof id === 'string' ? ref(id) : id.map(ref)
+    return filled as unknown as Garment
+  }) as unknown as z.ZodType<Garment>
+}
+
+export const garmentSchema: z.ZodType<Garment> = keyedUnion<Garment>(
+  'garment',
+  Object.fromEntries(Object.entries(GARMENTS).map(([key, schema]) => [key, withDefaults(key, schema)])),
+)

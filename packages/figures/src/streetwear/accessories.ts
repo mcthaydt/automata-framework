@@ -12,6 +12,7 @@
 
 import { variant } from '../build/materials'
 import type { Chain, Hoops, Shades, Sneakers } from '../figure/garment.schema'
+import { GARMENT_DEFAULTS } from '../figure/garment-defaults'
 import { ear, headForm, SIDES } from '../garments/head'
 import type { Measure } from '../genes/genes'
 import { CROWN, onSkull, skull, toHead } from '../hair/skull'
@@ -33,8 +34,8 @@ export function sneakers(w: Wearing, item: Sneakers): Fit {
   const { g, k } = b
   const fw = m.foot
   const upper = item.sneakers
-  const sole = item.sole ?? 'midsole'
-  const outsole = item.outsole ?? 'outsole'
+  const sole = item.sole ?? GARMENT_DEFAULTS.sneakers.sole
+  const outsole = item.outsole ?? GARMENT_DEFAULTS.sneakers.outsole
   const guard = item.mudguard ?? upper
   const floor = -g.ankle
   const heel = -0.32 * g.foot
@@ -203,7 +204,7 @@ export function chain(w: Wearing, item: Chain): Fit {
   }
   const glint = variant(made, item.chain, 'glint', { flat: true, shade: 1 })
   const light = variant(made, item.chain, 'light', { flat: true })
-  const mid = variant(made, item.links ?? 'chrome-dark', 'link', { flat: true })
+  const mid = variant(made, item.links ?? GARMENT_DEFAULTS.chain.links, 'link', { flat: true })
   // The rope at the fixed ppm: 0.025 m wide at 1.62 m, in whole texels.
   const texel = 1 / FIGURE_PPM
   const rows = Math.max(1, Math.round((0.025 * k) / texel))
@@ -326,7 +327,7 @@ export function shades(w: Wearing, item: Shades): Fit {
   const g = s.genes
   const k = m.k
   const h = g.head
-  const frame = item.frame ?? 'black'
+  const frame = item.frame ?? GARMENT_DEFAULTS.shades.frame
   if (item.up)
     return shadesUp(
       w,
@@ -388,7 +389,7 @@ function shadesUp(w: Wearing, item: Shades, headParts: readonly Part[]): Fit {
   const k = m.k
   const sk = skull(s)
   const form = headForm(m, s)
-  const frame = item.frame ?? 'black'
+  const frame = item.frame ?? GARMENT_DEFAULTS.shades.frame
   const base = at(s.rest, J.head)
   const origin = add(base, sk.c)
   const tint = variant(made, item.shades, 'up', { matte: true, shade: -1 })

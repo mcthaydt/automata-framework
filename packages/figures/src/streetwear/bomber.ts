@@ -9,6 +9,7 @@
 
 import type { Anchor } from '../build/anchors'
 import type { Bomber, Garment } from '../figure/garment.schema'
+import { GARMENT_DEFAULTS } from '../figure/garment-defaults'
 import { SIDES } from '../garments/head'
 import type { Measure } from '../genes/genes'
 import { clamp, lerp, normalize, smooth, type V3 } from '../math/math'
@@ -98,8 +99,8 @@ export function bomber(w: Wearing, item: Bomber): Fit {
   const b = under(m, s)
   const { k } = b
   const cloth = item.bomber
-  const hardware = item.hardware ?? 'chrome-dark'
-  const zip = item.zip ?? ['holo-cyan']
+  const hardware = item.hardware ?? GARMENT_DEFAULTS.bomber.hardware
+  const zip = item.zip ?? GARMENT_DEFAULTS.bomber.zip
   const {
     shell: sh,
     hem,
