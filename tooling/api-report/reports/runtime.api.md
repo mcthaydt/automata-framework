@@ -1331,6 +1331,7 @@ interface SaveWriteOptions {
 interface ScreenContext {
     readonly layer: HTMLElement;
     readonly from: string | undefined;
+    readonly runtime: Scope.Scope;
 }
 ```
 

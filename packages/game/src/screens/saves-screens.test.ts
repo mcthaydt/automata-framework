@@ -18,7 +18,7 @@ import {
 import { createFakeHost, type FakeHostOptions, settle } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { flushSync } from 'svelte'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { type DefinedGame, defineGame, type GameSaves, type GameSpec } from '../define-game.ts'
 import { keys } from '../input/keys.ts'
@@ -215,6 +215,26 @@ describe('default screens with a save (M5.2)', () => {
     await until(() => screen('paused') !== null, 'the paused screen')
     await close()
     expect(stored(host!.fakes.server, 0)?.data.x).toBe(14)
+  })
+
+  it('a shutdown during play with no host exit first still writes where the game got to, and only then disposes the sim (DX.2c)', async () => {
+    await boot()
+    button('save-slots-new')?.click()
+    await until(() => screen('play') !== null, 'the play screen')
+    press('ArrowRight')
+    step(4)
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'ArrowRight' }))
+    expect(sims).toHaveLength(1)
+    const dispose = vi.spyOn(sims[0] as Sim, 'dispose')
+    await handle?.shutdown()
+    handle = undefined
+    await settle(4)
+    expect(dispose).toHaveBeenCalledTimes(1)
+    // The save's last flush read the live sim: a sim disposed before it would have left only New game's x = 10.
+    const written = host!.messages
+      .filter((entry) => entry.dir === 'in' && entry.msg.type === 'saves.set')
+      .map((entry) => JSON.parse((entry.msg.payload as { value: string }).value) as { data: { x: number } })
+    expect(written.map((envelope) => envelope.data.x)).toEqual([10, 14])
   })
 
   it('a second session on the same server lists the slot with its label, and Continue plays equal data (S-c)', async () => {
