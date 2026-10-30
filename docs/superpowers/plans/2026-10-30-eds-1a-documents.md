@@ -2,7 +2,7 @@
 
 - **Task:** EDS.1a in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §4.4 (the shape and rules), EDS-D2 (the documents live in `editor-kit` as `./documents`, owned by that spec), §12 (unit layer and fixtures), §11 (the `verify-failed` row).
 - **Lane:** editor-suite. **Depends on:** EDS.0, EDK.2, EDFF.1 (all merged). **Unblocks:** EDS.2b, EDS.4a, EDS.3, EDS.5 to EDS.7, EDS.9a (every suite editor writes through these documents).
-- **Status:** Drafted 2026-10-30.
+- **Status:** Implemented and locally checked 2026-10-30 (draft PR from `claude/editors-eds-1a-eds-1a-documents`). Not CI verified; not reviewed.
 - **Progress:** 7 of 7 steps.
 
 ## Scope
@@ -80,7 +80,7 @@ function patchToml(text: string, before: unknown, after: unknown): PatchResult  
 
 ## Gates
 
-`pnpm --filter @mcthaydt/automata-editor-kit exec vitest run --project unit`, `pnpm --filter @mcthaydt/automata-editor-2d test:unit`, `pnpm --filter @mcthaydt/automata-editor-3d test` (each with `VITEST_MAX_WORKERS=2`), `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`. The kit and both editors are private: no changeset, no API report. No layout or browser test is touched (the module is headless).
+`pnpm --filter @mcthaydt/automata-editor-kit exec vitest run --project unit`, `pnpm --filter @mcthaydt/automata-editor-2d test:unit`, `pnpm --filter @mcthaydt/automata-editor-3d test` (each with `VITEST_MAX_WORKERS=2`), `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`. The kit and both editors are private: no changeset; the kit keeps a committed API report (`pnpm api-report --update`). No layout or browser test is touched (the module is headless).
 
 ## Execution record
 
@@ -94,3 +94,4 @@ function patchToml(text: string, before: unknown, after: unknown): PatchResult  
 - Step 7: `documents-entry.test.ts` passed on its first run, because step 1 added the `./documents` export and step 6 its names (a deviation from the plan's order: the export was needed earlier). Its failures were proved by hand instead: with the export removed from `package.json` the file fails to load; with a `node:fs` import added to `values.ts` the purity case fails. Both restored; 2 pass.
 - Review fix (own diff, test first): `literals()` and `comments()` of a TOML text that does not parse threw toml-patch's own error, not `DocumentSyntaxError` (the old test caught any error with a line). The test now asserts the class for `value()`, `literals()` and `comments()`; it failed on `literals()`, then the TOML reads convert the parser's error (an internal `TomlPositionError` is rethrown as it is, never dressed as a syntax error). 204 pass.
 - Gates, first run of `TURBO_FORCE=true pnpm check` (with `VITEST_MAX_WORKERS=2`): failed only on `tooling/api-report`'s seams test, `editor-kit.api.md` out of date (the private kit has a committed API report, which the plan's Gates line wrongly said it had not); `pnpm api-report --update` wrote the `./documents` section, committed. The editor-2d, ui and physics unit tasks in that run were stopped by turbo when api-report failed, not failed themselves.
+- Gates, second run: `TURBO_FORCE=true pnpm check` passed (lint, typecheck, boundaries, style, knip, unit: 36 and 34 tasks). In it: editor-kit 73 files, 1070 tests; editor-2d 102 files, 2043 tests; editor-3d 94 files, 2262 tests (2263 before, less the `src/codec` purity case). No package timed out under load. `pnpm changeset status --since=origin/main`: nothing to bump; `node tooling/release/src/check-changesets.ts`: 3 changesets, 0 problems (none added: every package touched is private). Omitted: `pnpm api-index` and `pnpm agent-skills` (they read built `dist` of published packages, none of which changed; `api-index` stops on the missing build). No layout or browser test covers the headless module.
