@@ -16,7 +16,9 @@
     "test:e2e": "playwright test",
     "lighthouse": "lhci autorun --config=lighthouserc.json",
     "sync:stack": "node --import tsx scripts/sync-stack.ts",
-    "sync:evidence": "node --import tsx scripts/sync-evidence.ts"
+    "sync:evidence": "node --import tsx scripts/sync-evidence.ts",
+    "release": "node --import tsx scripts/release.ts",
+    "check:deployed": "node --import tsx scripts/check-deployed.ts"
   },
   "dependencies": {
     "@babel/parser": "8.0.10",

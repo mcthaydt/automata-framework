@@ -14,7 +14,7 @@ name: ci
 # pnpm its own folder. Every job runs a pull request only when its head is in this repository (a fork's code must never
 # reach the Owner's machine); pushes to main and manual runs have no pull request and still run. No job holds a write,
 # publish or deploy token: `checks` reads the private framework with a read-only deploy key and nothing else. A job
-# that needs such a token (the deploy of QB.4/DX.12) is a separate decision, not a job to add here.
+# that needs such a token (the deploy of QB.4/DX.12) is a separate decision, not a job to add here: it is deploy.yml.
 #
 # The framework: several tests, and the workshop the build verifies, read the framework's sources from a sibling
 # checkout (`../automata-framework`). The framework repository is private, so the checkout needs the repository
