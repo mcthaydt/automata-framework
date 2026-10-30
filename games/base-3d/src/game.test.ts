@@ -5,8 +5,11 @@ import { describe, expect, it } from 'vitest'
 import { Hero, HeroAction, Target } from './components.ts'
 import { ACTION_CLIP, ACTION_TICKS, HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
-import { BASE3D_SIM, base3dPlugin, spawnArea } from './state.ts'
+import { base3dPlugin, base3dSim, spawnArea } from './state.ts'
 import { type Area, type AreaSource, areaOf, compileArea } from './systems.ts'
+
+/** The game's own sim spec, on the first slice, as `main.ts` makes it. */
+const BASE3D_SIM = base3dSim(compileArea(FIRST_SLICE))
 
 // base-3d's sim, commands in, step, state out (DESIGN.md §3.1). The browsers project runs this whole file in
 // Chromium, WebKit and Firefox, so every case here, the golden replay included, holds in four engines (B-a).
