@@ -163,7 +163,7 @@ describe('saves (shared contracts §1.5; FloorFifty hosting and settings-hosted)
   })
 
   it("without the saves grant, relays the SDK's behaviour: writes stay in memory, nothing is sent, flush is UNSUPPORTED", async () => {
-    // Ruken's SDK at b30d31b keeps an ungranted write in its cache for the visit
+    // Ruken's SDK at d0fa2fe (as at b30d31b) keeps an ungranted write in its cache for the visit
     // (sdk/src/saves-storage.ts, `enabled`), unlike Ruken's S6 answer 3 (throw DENIED).
     // AF adds no gate of its own (shared contracts §1.3); this pins the SDK's behaviour
     // so a re-vendor that changes it shows up here. Raised with Ruken through the integration owner.
