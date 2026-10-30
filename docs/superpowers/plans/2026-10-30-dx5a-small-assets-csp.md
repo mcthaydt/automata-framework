@@ -2,8 +2,8 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.5 (`create-game`) and §3.6 (`automata check`); [M1 content spec](../specs/2026-10-11-m1-content-design.md) §3.9 (the Vite plugin); AGENTS.md "Honor host authority" (Ruken's CSP). The examples' half of the same bug is the [examples plan](2026-10-23-examples-assets-under-csp.md) (#142).
 - **Task:** `Follow-up (found 2026-10-23) — A game's small assets hit the same CSP refusal` (02, before DX.5). Lanes content and ship. Branch `claude/dx-5a-small-assets-csp`, based on `main` (`b7ef19d9`).
-- **Status:** drafted 2026-10-30.
-- **Progress:** 0 of 6 steps.
+- **Status:** drafted 2026-10-30; in progress.
+- **Progress:** 2 of 6 steps.
 
 ## What is wrong
 
@@ -42,8 +42,8 @@ So the brief's premise ("the content plugin sets it, so Emberwick, the placehold
 
 ## Steps
 
-- [ ] **1. Red, the content plugin.** In `automata-content.test.ts` ("vite build"): the fixture gains `tiny.png` (a few hundred bytes, under 4 kB) loaded through `new URL('./tiny.png', import.meta.url).href`; building through `automataContent()` must emit `tiny.png` as an asset file and write no `data:image/png` into the code; and a build whose config sets `build.assetsInlineLimit` keeps that value. Run `pnpm --filter @mcthaydt/automata-content exec vitest run --project node src/vite/automata-content.test.ts`: the first case fails on the inlined `data:` URL (no asset file); the second passes already.
-- [ ] **2. Green, the content plugin.** The `config` hook. Step 1's file passes; the package's unit tests pass.
+- [x] **1. Red, the content plugin.** In `automata-content.test.ts` ("vite build"): the fixture gains `tiny.png` (a few hundred bytes, under 4 kB) loaded through `new URL('./tiny.png', import.meta.url).href`; building through `automataContent()` must emit `tiny.png` as an asset file and write no `data:image/png` into the code; and a build whose config sets `build.assetsInlineLimit` keeps that value. Run `pnpm --filter @mcthaydt/automata-content exec vitest run --project node src/vite/automata-content.test.ts`: the first case fails on the inlined `data:` URL (no asset file); the second passes already.
+- [x] **2. Green, the content plugin.** The `config` hook. Step 1's file passes; the package's unit tests pass.
 - [ ] **3. Red, the scan.** `data-url-scan.test.ts`: a real Vite build of a fixture with a 278-byte PNG and a short JSON under the default limit gives one `data-url` finding per `new URL` (rule, `dist/…` file, line and column, the MIME type and the fix in the message); the same build with `assetsInlineLimit: 0` gives none; `new URL(e, import.meta.url)` with a variable, Pixi's `t.src = \`data:video/webm;base64,…\``, a bare `data:` constant and a `new URL('data:…')` with no `import.meta.url` give none; and Ruken's compiled CSP has no `data:` in `connect-src` or `media-src`. Run `pnpm --filter @mcthaydt/automata-cli exec vitest run src/check/data-url-scan.test.ts`: it fails on the missing module.
 - [ ] **4. Green, the scan and the step.** Move the shared helpers to `bundle-ast.ts` (no-eval's tests unchanged and passing), write `scanForDataUrls`, then add the step: `run-check.test.ts` first (the step order lists gain `data-urls`, a planted inlined asset is a `data-urls` finding, and a failed build is "not scanned"), red on the missing step, then `check-steps.ts`, `check-report.ts`, `run-check.ts`. The cli's unit tests pass.
 - [ ] **5. Red then green, the games and the template.** `games/emberwick/src/vite-config.test.ts` and `games/placeholder/src/vite-config.test.ts` resolve the game's own `vite.config.ts` for `build` and expect `build.assetsInlineLimit` to be `0`; `create-game.test.ts` expects the generated `vite.config.ts` to set `assetsInlineLimit: 0`. Each fails first (`4096`/`undefined`, and the missing text), then passes with the one-line settings. Emberwick's and the placeholder's real builds then pass the new step (the step run directly on their `dist/`): no `data-url` finding, so Pixi's own `data:` probes are not reported.
@@ -60,3 +60,5 @@ So the brief's premise ("the content plugin sets it, so Emberwick, the placehold
 | Date | Step | Commits | Notes |
 |---|---|---|---|
 | 2026-10-30 | Plan | | |
+| 2026-10-30 | 1 | (with 2) | Red, first attempt, `pnpm exec vitest run --project node src/vite/automata-content.test.ts -t "a small asset"` in `packages/content`: 1 failed, 1 passed. The 278-byte `tiny.png` came out as `new URL("data:image/png;base64,…", "" + import.meta.url)` in the bundle and no `.png` file was emitted; the case that sets `assetsInlineLimit: 4096` itself passed (it inlines either way). |
+| 2026-10-30 | 2 | (this commit) | The `config` hook (`assetsInlineLimit: 0` unless the game's config sets it) and a sentence in `automataContent`'s doc comment. The focused file 10 of 10; the package's unit tests 39 files, 288 of 288; `tsc -p .` clean. |
