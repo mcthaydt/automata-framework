@@ -17,6 +17,8 @@
     "./core": "./src/core/index.ts",
     "./documents": "./src/documents/index.ts",
     "./fields": "./src/fields/index.ts",
+    "./ports": "./src/ports/index.ts",
+    "./ports/testing": "./src/ports/testing/index.ts",
     "./testing": "./src/testing/index.ts",
     "./tokens.css": "./src/tokens.css",
     "./fonts.css": "./src/fonts.css"
