@@ -13,6 +13,7 @@ import { EditorShell, StatusLine, shellModeOf, ToastRegion } from '@mcthaydt/aut
 import type { ToastStore, Workspace } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onMount, tick } from 'svelte'
+import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import type { ProfileRegistry } from '../../profiles/profile'
 import Button from '../controls/Button.svelte'
 import DeleteDialog from './DeleteDialog.svelte'
@@ -32,9 +33,11 @@ interface Props {
   toasts: ToastStore
   /** The time the ages on the cards are told against. */
   clock: { now(): number }
+  /** Draws the cards' preview levels (ED2D.4c3b); absent, every card shows its initial. */
+  thumbnails?: LevelThumbnails | undefined
 }
 
-const { geometry, controller, workspace, registry, toasts, clock }: Props = $props()
+const { geometry, controller, workspace, registry, toasts, clock, thumbnails }: Props = $props()
 
 /** The controller's state right now (its store answers at once). */
 function snapshot(source: HomeController): HomeState {
@@ -154,6 +157,7 @@ function onWindowKeydown(event: KeyboardEvent): void {
           query={view.query}
           {registry}
           {now}
+          {thumbnails}
           onselect={select}
           onstep={(key) => controller.step(key)}
           onopen={(path) => controller.open(path)}

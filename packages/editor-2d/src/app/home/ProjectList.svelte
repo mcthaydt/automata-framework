@@ -8,6 +8,7 @@
   instead of the listbox. The list stays out of scrolling: the screen around it owns the scroll region.
 -->
 <script lang="ts">
+import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import type { ProfileRegistry } from '../../profiles/profile'
 import Button from '../controls/Button.svelte'
 import type { ProjectEntry } from '../project-list'
@@ -26,6 +27,8 @@ interface Props {
   registry: ProfileRegistry
   /** The time the ages on the cards are told against. */
   now: number
+  /** Draws the cards' preview levels (ED2D.4c3b); absent, every card shows its initial. */
+  thumbnails?: LevelThumbnails | undefined
   onselect: (path: string) => void
   onstep: (key: StepKey) => void
   onopen: (path: string) => void
@@ -41,6 +44,7 @@ const {
   query,
   registry,
   now,
+  thumbnails,
   onselect,
   onstep,
   onopen,
@@ -138,6 +142,7 @@ $effect(() => {
         selected={entry.path === selected}
         accent={entry.status === 'ambiguous' ? '--color-text-dim' : kindTone(registry, entry.profile.id)}
         {now}
+        {thumbnails}
         onpointerdown={(event) => pressed(event, entry.path)}
         onclick={() => clicked(entry.path)}
         ondblclick={() => onopen(entry.path)}

@@ -1,5 +1,5 @@
 import { classifyStorageError, type Workspace } from '@mcthaydt/automata-editor-kit/core'
-import type { ProfileRegistry, ProfileSummary } from '../profiles/profile'
+import type { LevelPreview, ProfileRegistry, ProfileSummary } from '../profiles/profile'
 import { readDocument } from './read-document'
 
 // The projects Home shows (2D editor spec §8): one entry for each file in the workspace that a profile claims, and
@@ -26,6 +26,8 @@ export type ProjectEntry =
       readonly warnings: number
       /** The profile's words for what the project holds; `undefined` when the profile gives none. */
       readonly summary: ProfileSummary | undefined
+      /** The level the card draws as a thumbnail; `undefined` when the profile has none to show. */
+      readonly preview: LevelPreview | undefined
     })
   /** A profile claims the file and it does not open: Home shows the reason and offers the text view. */
   | (Listed & { readonly status: 'broken'; readonly profile: ProfileRef; readonly message: string })
@@ -70,6 +72,7 @@ export async function listProjects(
           errors: findings.filter((finding) => finding.severity === 'error').length,
           warnings: findings.filter((finding) => finding.severity === 'warning').length,
           summary: read.profile.summary?.(read.value),
+          preview: read.profile.preview?.(read.value),
         })
         break
       }

@@ -57,6 +57,7 @@ interface BootOptions {
   storage?: EditorEnv['storage']
   size?: [number, number]
   fillRandom?: EditorEnv['fillRandom']
+  thumbnails?: EditorEnv['thumbnails']
 }
 
 async function boot(options: BootOptions = {}) {
@@ -81,6 +82,7 @@ async function boot(options: BootOptions = {}) {
         crypto.getRandomValues(bytes)
       }),
     ...(own ? { storage: options.storage ?? {} } : { workspace }),
+    ...(options.thumbnails === undefined ? {} : { thumbnails: options.thumbnails }),
   }
   started = await startEditor(target, env)
   return { target, win, workspace, handle: started, clock }
@@ -212,5 +214,19 @@ describe('startEditor', () => {
     await handle.dispose()
     expect(target.childElementCount).toBe(0)
     expect(win.count()).toBe(0)
+  })
+
+  it('makes the thumbnails over its workspace, hands them to Home’s cards, and disposes them with the editor', async () => {
+    const thumbnail = vi.fn(async () => 'data:image/png;base64,AAAA')
+    const dispose = vi.fn()
+    const make = vi.fn(() => ({ thumbnail, dispose }))
+    const { workspace, handle } = await boot({ thumbnails: make })
+    expect(make).toHaveBeenCalledWith(workspace)
+    const card = await screen.findByRole('option', { name: /Mossgate/ })
+    await waitFor(() =>
+      expect(card.querySelector('img')?.getAttribute('src')).toBe('data:image/png;base64,AAAA'),
+    )
+    await handle.dispose()
+    expect(dispose).toHaveBeenCalledOnce()
   })
 })

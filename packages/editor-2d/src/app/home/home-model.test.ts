@@ -35,7 +35,17 @@ const note = { id: 'planted', label: 'Planted note' }
 const listed = { size: 100, mtime: 0 }
 
 function ok(path: string, over: Partial<Extract<ProjectEntry, { status: 'ok' }>> = {}): ProjectEntry {
-  return { ...listed, path, status: 'ok', profile: ref, errors: 0, warnings: 0, summary: undefined, ...over }
+  return {
+    ...listed,
+    path,
+    status: 'ok',
+    profile: ref,
+    errors: 0,
+    warnings: 0,
+    summary: undefined,
+    preview: undefined,
+    ...over,
+  }
 }
 
 describe('filterProjects', () => {
@@ -429,6 +439,7 @@ describe('cardTitle', () => {
       errors: 0,
       warnings: 0,
       summary: { title: 'Mossgate', facts: [] },
+      preview: undefined,
     }
     expect(cardTitle(titled)).toBe('Mossgate')
     expect(cardTitle({ ...titled, summary: undefined })).toBe('harbour.note')

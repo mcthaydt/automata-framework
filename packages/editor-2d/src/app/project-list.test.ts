@@ -68,6 +68,18 @@ describe('listProjects', () => {
     expect(note).toMatchObject({ status: 'ok', summary: undefined })
   })
 
+  it('carries the level the profile shows on a card, and none for a profile without previews', async () => {
+    const { workspace, registry, write } = setup()
+    await write('mossgate.af2d.json', printProject(mossgate()))
+    await write('empty.note', noteText(''))
+    const entries = await listProjects(workspace, registry)
+    const moss = entries.find((entry) => entry.path === 'mossgate.af2d.json')
+    const note = entries.find((entry) => entry.path === 'empty.note')
+    expect(moss?.status === 'ok' ? moss.preview?.level : undefined).toBe(mossgate().levels[0]?.id)
+    expect(moss?.status === 'ok' ? moss.preview?.project.name : undefined).toBe('Mossgate')
+    expect(note).toMatchObject({ status: 'ok', preview: undefined })
+  })
+
   it('carries the store’s size and modification time', async () => {
     const { workspace, registry, write } = setup()
     const text = noteText('x')

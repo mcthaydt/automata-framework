@@ -7,6 +7,7 @@
 import type { ToastStore, Workspace } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onDestroy } from 'svelte'
+import type { LevelThumbnails } from '../canvas/level-thumbnails'
 import type { ProfileRegistry } from '../profiles/profile'
 import DocumentFrame from './DocumentFrame.svelte'
 import type { EditorApp, OpenOutcome } from './editor-app'
@@ -20,9 +21,10 @@ interface Props {
   registry: ProfileRegistry
   toasts: ToastStore
   clock: { now(): number }
+  thumbnails?: LevelThumbnails | undefined
 }
 
-const { geometry, app, workspace, registry, toasts, clock }: Props = $props()
+const { geometry, app, workspace, registry, toasts, clock, thumbnails }: Props = $props()
 
 type Opened = Extract<OpenOutcome, { status: 'opened' }>
 let open = $state.raw<Opened | undefined>(undefined)
@@ -47,5 +49,5 @@ onDestroy(() => open?.document.dispose())
 {#if open}
   <DocumentFrame {geometry} opened={open} {toasts} onback={back} />
 {:else}
-  <Home {geometry} {controller} {workspace} {registry} {toasts} {clock} />
+  <Home {geometry} {controller} {workspace} {registry} {toasts} {clock} {thumbnails} />
 {/if}

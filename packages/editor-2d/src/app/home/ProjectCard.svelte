@@ -2,9 +2,11 @@
   One project in the list (plan ED2D.4c2a): a tile with the project's initial in its kind's accent, the title with its
   badge, the kind and the file's size and age, and the path with the folder shortened before the file name. It is an
   option of the list's listbox, not a focusable control: the list owns the keys and the focus (`aria-activedescendant`).
-  Thumbnails of the level arrive with the Pixi canvas (ED2D.4c3).
+  When the profile names a level to preview and the thumbnails service draws it (ED2D.4c3b), the tile shows that level
+  instead of the initial; the image is decorative, since the title names the project.
 -->
 <script lang="ts">
+import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import Pill from '../controls/Pill.svelte'
 import type { ProjectEntry } from '../project-list'
 import { cardTitle, entryBadge, modifiedLabel, sizeLabel, splitPath } from './home-model'
@@ -17,12 +19,14 @@ interface Props {
   accent: string
   /** The time the age is told against. */
   now: number
+  /** Draws the entry's preview level; absent where there is no WebGL renderer (the jsdom tests). */
+  thumbnails?: LevelThumbnails | undefined
   onpointerdown: (event: PointerEvent) => void
   onclick: () => void
   ondblclick: () => void
 }
 
-const { id, entry, selected, accent, now, onpointerdown, onclick, ondblclick }: Props = $props()
+const { id, entry, selected, accent, now, thumbnails, onpointerdown, onclick, ondblclick }: Props = $props()
 
 const title = $derived(cardTitle(entry))
 const badge = $derived(entryBadge(entry))
@@ -33,6 +37,21 @@ const kind = $derived(
     ? entry.candidates.map((candidate) => candidate.label).join(' or ')
     : entry.profile.label,
 )
+
+let thumbnail = $state<string | undefined>(undefined)
+// A changed file (path, size or time) is a new key, so the card redraws after the project is saved.
+$effect(() => {
+  const preview = entry.status === 'ok' ? entry.preview : undefined
+  thumbnail = undefined
+  if (thumbnails === undefined || preview === undefined) return
+  let current = true
+  void thumbnails.thumbnail(`${entry.path}|${entry.size}|${entry.mtime}`, preview).then((url) => {
+    if (current) thumbnail = url
+  })
+  return () => {
+    current = false
+  }
+})
 </script>
 
 <!-- The option takes pointer input only: the listbox owns focus and handles the same actions from the keyboard. -->
@@ -47,7 +66,9 @@ const kind = $derived(
   {onclick}
   {ondblclick}
 >
-  <span class="tile" aria-hidden="true">{[...title][0]?.toUpperCase() ?? ''}</span>
+  <span class="tile" aria-hidden="true">
+    {#if thumbnail}<img src={thumbnail} alt="" />{:else}{[...title][0]?.toUpperCase() ?? ''}{/if}
+  </span>
   <span class="text">
     <span class="head">
       <span class="title">{title}</span>
@@ -98,6 +119,14 @@ const kind = $derived(
     background: color-mix(in srgb, var(--kind) 16%, var(--color-bg-canvas));
     color: var(--kind);
     font: var(--text-display-20);
+    overflow: hidden;
+  }
+  .tile img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
   }
   .text {
     display: flex;

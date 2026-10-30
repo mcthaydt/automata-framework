@@ -1,7 +1,9 @@
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { LevelThumbnails } from '../../canvas/level-thumbnails'
 import { plantedProfile } from '../../testing/planted-profile'
+import { mossgate as mossgateProject } from '../../testing/samples'
 import { createAppProfiles } from '../profiles'
 import type { ProjectEntry } from '../project-list'
 import ProjectList from './ProjectList.svelte'
@@ -24,6 +26,7 @@ const ok = (path: string, over: Partial<Extract<ProjectEntry, { status: 'ok' }>>
   errors: 0,
   warnings: 0,
   summary: undefined,
+  preview: undefined,
   ...over,
 })
 const mossgate = ok('mossgate.af2d.json', { summary: { title: 'Mossgate', facts: [] } })
@@ -358,6 +361,45 @@ describe('ProjectList', () => {
       expect(screen.getByText('Nothing matches “zzz”.')).toBeInTheDocument()
       await userEvent.click(screen.getByRole('button', { name: 'Clear search' }))
       expect(onclear).toHaveBeenCalledOnce()
+    })
+  })
+
+  describe('thumbnails (ED2D.4c3b)', () => {
+    const preview = { project: mossgateProject(), level: 'moss-steps' }
+    const withPreview = ok('mossgate.af2d.json', { summary: { title: 'Mossgate', facts: [] }, preview })
+
+    function fakeThumbnails(answer: string | undefined) {
+      const thumbnail = vi.fn(async () => answer)
+      const thumbnails: LevelThumbnails = { thumbnail, dispose: vi.fn() }
+      return { thumbnails, thumbnail }
+    }
+
+    it('draws a card’s level in its tile once the thumbnail is ready, keyed by path, size and time', async () => {
+      const { thumbnails, thumbnail } = fakeThumbnails('data:image/png;base64,AAAA')
+      mount({ visible: [withPreview, notes], total: 2, thumbnails })
+      const card = option(/Mossgate/)
+      await vi.waitFor(() => expect(card.querySelector('img')).not.toBeNull())
+      const image = card.querySelector('img')
+      expect(image?.getAttribute('src')).toBe('data:image/png;base64,AAAA')
+      // Decorative: the card's title already names the project.
+      expect(image?.getAttribute('alt')).toBe('')
+      expect(within(card).queryByText('M')).toBeNull()
+      expect(thumbnail).toHaveBeenCalledOnce()
+      expect(thumbnail).toHaveBeenCalledWith(`mossgate.af2d.json|4300|${NOW - 5 * 60_000}`, preview)
+    })
+
+    it('keeps the initial for a card with no preview, with no thumbnails, or when none could be drawn', async () => {
+      const { thumbnails, thumbnail } = fakeThumbnails(undefined)
+      mount({ visible: [withPreview, notes], total: 2, thumbnails })
+      await vi.waitFor(() => expect(thumbnail).toHaveBeenCalledOnce())
+      expect(option(/Mossgate/).querySelector('img')).toBeNull()
+      expect(within(option(/Mossgate/)).getByText('M')).toBeInTheDocument()
+      expect(within(option(/draft\.note/)).getByText('D')).toBeInTheDocument()
+    })
+
+    it('draws no thumbnail without the service', () => {
+      mount({ visible: [withPreview], total: 1 })
+      expect(option(/Mossgate/).querySelector('img')).toBeNull()
     })
   })
 })
