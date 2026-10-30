@@ -1,5 +1,6 @@
-import { createHash } from 'node:crypto'
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { execFileSync, spawn } from 'node:child_process'
+import { createHash, randomBytes } from 'node:crypto'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -7,6 +8,7 @@ import {
   ensureGitleaks,
   ensureRepoGitleaks,
   GITLEAKS_VERSION,
+  type GitleaksAsset,
   gitleaksAsset,
   verifiedDownload,
 } from './gitleaks.ts'
@@ -57,7 +59,109 @@ describe('verifiedDownload', () => {
   })
 })
 
+const scratches: string[] = []
+afterEach(() => {
+  for (const dir of scratches.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
+
+function scratch(prefix: string): string {
+  const dir = mkdtempSync(join(tmpdir(), prefix))
+  scratches.push(dir)
+  return dir
+}
+
+/**
+ * A stand-in release: a tarball whose `gitleaks` is a shell script that prints `gitleaks-ok` on its LAST line,
+ * after `padding` random bytes of comment, so only a whole binary prints it and extracting one takes a while.
+ */
+function fakeRelease(padding: number): { asset: GitleaksAsset; bytes: Uint8Array; path: string } {
+  const dir = scratch('gitleaks-release-')
+  const script = `#!/bin/sh\n# ${randomBytes(padding).toString('base64')}\necho gitleaks-ok\n`
+  writeFileSync(join(dir, 'gitleaks'), script, { mode: 0o755 })
+  const path = join(dir, 'release.tar.gz')
+  execFileSync('tar', ['-czf', path, '-C', dir, 'gitleaks'])
+  const bytes = new Uint8Array(readFileSync(path))
+  return { asset: { url: 'https://example.test/gitleaks.tar.gz', sha256: sha256(bytes) }, bytes, path }
+}
+
+const runs = (binary: string): string => execFileSync(binary, { encoding: 'utf8' })
+
+// A child that loads the module, waits for the shared start time, installs into a cold cache with a fetch that
+// serves the stand-in release, then runs the binary it got back.
+const INSTALL_AND_RUN = `
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
+const [moduleUrl, cacheDir, tarballPath, sha256, startAt] = process.argv.slice(1)
+const { ensureGitleaks } = await import(moduleUrl)
+const bytes = readFileSync(tarballPath)
+await new Promise((resolve) => setTimeout(resolve, Number(startAt) - Date.now()))
+const asset = { url: 'https://example.test/gitleaks.tar.gz', sha256 }
+const binary = await ensureGitleaks({ cacheDir, asset, fetch: async () => new Response(bytes) })
+process.stdout.write(execFileSync(binary, { encoding: 'utf8' }))
+`
+
+function installAndRun(args: string[]): Promise<{ code: number | null; output: string }> {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, ['--input-type=module', '-e', INSTALL_AND_RUN, ...args])
+    let output = ''
+    child.stdout.on('data', (chunk: Buffer) => (output += chunk.toString()))
+    child.stderr.on('data', (chunk: Buffer) => (output += chunk.toString()))
+    child.on('close', (code) => resolve({ code, output }))
+  })
+}
+
 describe('ensureGitleaks', () => {
+  it('installs a cold cache from the verified download', async () => {
+    const release = fakeRelease(1000)
+    const cacheDir = scratch('gitleaks-cache-')
+    const binary = await ensureGitleaks({
+      cacheDir,
+      asset: release.asset,
+      fetch: bytesResponse(release.bytes),
+    })
+    expect(binary).toBe(join(cacheDir, GITLEAKS_VERSION, 'gitleaks'))
+    expect(runs(binary)).toBe('gitleaks-ok\n')
+  })
+
+  it('leaves no binary behind when an install fails partway, so the next call installs again', async () => {
+    const release = fakeRelease(2_000_000)
+    const cacheDir = scratch('gitleaks-cache-')
+    // tar stops at the cut with an error, after writing part of `gitleaks`. Its "gzip: stdin: unexpected end of
+    // file" in the test log is this case, on purpose.
+    const cut = release.bytes.slice(0, release.bytes.length / 2)
+    const cutAsset = { url: release.asset.url, sha256: sha256(cut) }
+    await expect(ensureGitleaks({ cacheDir, asset: cutAsset, fetch: bytesResponse(cut) })).rejects.toThrow()
+    const binary = await ensureGitleaks({
+      cacheDir,
+      asset: release.asset,
+      fetch: bytesResponse(release.bytes),
+    })
+    expect(runs(binary)).toBe('gitleaks-ok\n')
+  })
+
+  // A cold cache is installed by every process that finds it empty: vitest runs gitleaks-rules.test.ts and
+  // secret-scan.test.ts in separate workers, and both call ensureRepoGitleaks in their beforeAll. Within one process
+  // the synchronous write, extract and chmod never interleave, so this case races separate processes, the later
+  // ones starting while the first is extracting.
+  it('gives each of several installs at once, in separate processes, a whole binary that runs', async () => {
+    const release = fakeRelease(8_000_000)
+    const cacheDir = scratch('gitleaks-cache-')
+    const moduleUrl = new URL('./gitleaks.ts', import.meta.url).href
+    const startAt = Date.now() + 1000
+    const results = await Promise.all(
+      [0, 1, 2, 3].map((index) =>
+        installAndRun([
+          moduleUrl,
+          cacheDir,
+          release.path,
+          release.asset.sha256,
+          String(startAt + index * 20),
+        ]),
+      ),
+    )
+    for (const result of results) expect(result).toEqual({ code: 0, output: 'gitleaks-ok\n' })
+  }, 90_000)
+
   it('uses the cached binary without downloading', async () => {
     const cacheDir = mkdtempSync(join(tmpdir(), 'gitleaks-cache-'))
     const binary = join(cacheDir, GITLEAKS_VERSION, 'gitleaks')
@@ -67,7 +171,7 @@ describe('ensureGitleaks', () => {
       throw new Error('downloaded')
     }
     await expect(
-      ensureGitleaks({ cacheDir, platform: 'linux', arch: 'x64', fetch: noNetwork }),
+      ensureGitleaks({ cacheDir, asset: gitleaksAsset('linux', 'x64'), fetch: noNetwork }),
     ).resolves.toBe(binary)
   })
 })

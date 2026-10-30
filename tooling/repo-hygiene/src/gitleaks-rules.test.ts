@@ -15,10 +15,11 @@ import { ensureRepoGitleaks, GITLEAKS_VERSION } from './gitleaks.ts'
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const config = join(root, '.gitleaks.toml')
 
+// On a cold cache the first run downloads the release, which can outlast vitest's 10 s hook timeout.
 let binary = ''
 beforeAll(async () => {
   binary = await ensureRepoGitleaks(root)
-})
+}, 90_000)
 
 /** Runs only `rule` over empty input: exit 0 ("no leaks found") when the rule exists. */
 function enableOnly(rule: string): { status: number; output: string } {
@@ -27,6 +28,9 @@ function enableOnly(rule: string): { status: number; output: string } {
     ['stdin', '--no-banner', '--no-color', '--config', config, '--enable-rule', rule],
     { input: '', encoding: 'utf8' },
   )
+  // A binary that could not start (ETXTBSY, EACCES, ENOENT) has no exit status: fail on that error, so it is not
+  // mistaken for gitleaks answering that a rule is missing.
+  if (result.error !== undefined) throw result.error
   return { status: result.status ?? 1, output: `${result.stdout ?? ''}${result.stderr ?? ''}` }
 }
 

@@ -13,10 +13,11 @@ const root = fileURLToPath(new URL('../../..', import.meta.url))
 const config = join(root, '.gitleaks.toml')
 const plantedKey = fileURLToPath(new URL('../fixtures/secrets/planted.env', import.meta.url))
 
+// On a cold cache the first run downloads the release, which can outlast vitest's 10 s hook timeout.
 let binary = ''
 beforeAll(async () => {
   binary = await ensureRepoGitleaks(root)
-})
+}, 90_000)
 
 const scratches: string[] = []
 afterEach(() => {
