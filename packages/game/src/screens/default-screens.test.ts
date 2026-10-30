@@ -22,6 +22,7 @@ import {
   definePlugin,
   defineSystem,
   type Sim,
+  SimDisposedError,
   type StepResult,
 } from '@mcthaydt/automata-sim'
 import { fakeGamepads } from '@mcthaydt/automata-testing/input'
@@ -77,8 +78,8 @@ describe('default screens', () => {
   let resets: { count: number }
   let handle: RuntimeHandle | undefined
   let game: DefinedGame
-  // The default screens keep the sim until the title drops it, and a shutdown on play or paused does not: dispose
-  // each test's sims here, or the file runs past Koota's 16 live worlds.
+  // The default screens keep the sim until the title drops it or the runtime shuts down (DX.2c). Every sim a test
+  // made must be disposed once its shutdown is over, which also keeps the file under Koota's 16 live worlds.
   const sims: Sim[] = []
 
   const screen = (id: string) => root.querySelector(`[data-testid="${id}-screen"]`)
@@ -132,7 +133,7 @@ describe('default screens', () => {
   afterEach(async () => {
     await handle?.shutdown()
     handle = undefined
-    for (const sim of sims.splice(0)) sim.dispose()
+    for (const sim of sims.splice(0)) expect(() => sim.query(Body)).toThrow(SimDisposedError)
     root.remove()
     document.documentElement.removeAttribute('data-state')
   })
@@ -984,6 +985,95 @@ describe('default screens', () => {
     step(2)
     expect(results.flatMap((result) => result.rejected)).toEqual([])
     expect(lastX()).toBe(10)
+  })
+
+  describe('the sim is disposed once (DX.2c)', () => {
+    /** The one sim the test made, with its `dispose` counted from here on. */
+    const watchDispose = () => {
+      expect(sims).toHaveLength(1)
+      return vi.spyOn(sims[0] as Sim, 'dispose')
+    }
+    const shutdown = async () => {
+      await handle?.shutdown()
+      handle = undefined
+    }
+    const toPaused = async () => {
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+    }
+
+    it('when the runtime shuts down during play', async () => {
+      await boot()
+      await toPlay()
+      step(2)
+      const dispose = watchDispose()
+      await shutdown()
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('when the runtime shuts down during paused', async () => {
+      await boot()
+      await toPlay()
+      await toPaused()
+      const dispose = watchDispose()
+      await shutdown()
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('when the runtime shuts down on Settings, opened from paused', async () => {
+      await boot()
+      await toPlay()
+      await toPaused()
+      button('settings')?.click()
+      await until(() => screen('settings') !== null, 'the settings screen')
+      const dispose = watchDispose()
+      await shutdown()
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('when Quit to title drops it, and not again when the runtime then shuts down on the title', async () => {
+      await boot()
+      await toPlay()
+      const dispose = watchDispose()
+      await toPaused()
+      button('quit')?.click()
+      await until(() => button('quit-confirm') !== null, 'the confirm')
+      button('quit-confirm')?.click()
+      await until(() => screen('title') !== null, 'the title screen')
+      expect(dispose).toHaveBeenCalledTimes(1)
+      await shutdown()
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('per run: the same game run again after a shutdown during play starts a new sim at tick 0, and disposes it', async () => {
+      await boot()
+      await toPlay()
+      step(3)
+      const first = watchDispose()
+      await shutdown()
+      expect(first).toHaveBeenCalledTimes(1)
+
+      // The same defined game, so the same default screens, booted again on the same root.
+      frames = manualFrames()
+      results = []
+      handle = runGame({
+        ...game,
+        root,
+        seams: { ...game.seams, frames },
+        renderer: recordingRenderer(results, resets),
+      })
+      await until(() => frames.pending, 'the first frame again')
+      step()
+      await until(() => screen('title') !== null, 'the title screen again')
+      await toPlay()
+      step()
+      expect(results.at(-1)?.tick).toBe(1)
+      expect(sims).toHaveLength(2)
+      const second = vi.spyOn(sims[1] as Sim, 'dispose')
+      await shutdown()
+      expect(second).toHaveBeenCalledTimes(1)
+      expect(first).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('hands the play screen’s sim to watchSim, and undefined when the title drops it (the draw layer)', async () => {
