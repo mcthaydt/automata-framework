@@ -102,4 +102,63 @@ describe('texture manager', () => {
     expect(texture?.destroyed).toBe(true)
     expect(placeholder.destroyed).toBe(true)
   })
+
+  it('numbers each load of an image: a path loaded again after forget has a new generation', async () => {
+    const store = storeOf({ 'assets/a.png': await cellsPng(1, 1, 4, ['#ff0000']) })
+    manager = createTextureManager(store)
+    expect(manager.generations.get('assets/a.png')).toBeUndefined()
+    await manager.load(['assets/a.png'])
+    const first = manager.generations.get('assets/a.png')
+    expect(first).toBeGreaterThan(0)
+    manager.forget('assets/a.png')
+    expect(manager.generations.get('assets/a.png')).toBeUndefined()
+    await manager.load(['assets/a.png'])
+    expect(manager.generations.get('assets/a.png')).toBeGreaterThan(first as number)
+  })
+
+  describe('a load still reading when the image is forgotten or the manager destroyed', () => {
+    async function pending() {
+      const png = await cellsPng(1, 1, 4, ['#ff0000'])
+      let release: () => void = () => undefined
+      const gate = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      const reads: string[] = []
+      const store = {
+        async read(path: string) {
+          reads.push(path)
+          await gate
+          return png
+        },
+      }
+      return { store, reads, release: () => release() }
+    }
+
+    it('is dropped after forget, and the next load reads again', async () => {
+      const { store, reads, release } = await pending()
+      manager = createTextureManager(store)
+      const loading = manager.load(['assets/a.png'])
+      manager.forget('assets/a.png')
+      release()
+      await loading
+      expect(manager.loaded.has('assets/a.png')).toBe(false)
+      expect(manager.texture('assets/a.png')).toBeUndefined()
+      await manager.load(['assets/a.png'])
+      expect(manager.loaded.has('assets/a.png')).toBe(true)
+      expect(reads).toEqual(['assets/a.png', 'assets/a.png'])
+    })
+
+    it('is dropped after destroy, and nothing is kept', async () => {
+      const { store, release } = await pending()
+      const destroyed = createTextureManager(store)
+      const loading = destroyed.load(['assets/a.png'])
+      destroyed.destroy()
+      release()
+      await loading
+      expect(destroyed.loaded.size).toBe(0)
+      expect(destroyed.texture('assets/a.png')).toBeUndefined()
+      await destroyed.load(['assets/a.png'])
+      expect(destroyed.loaded.size).toBe(0)
+    })
+  })
 })

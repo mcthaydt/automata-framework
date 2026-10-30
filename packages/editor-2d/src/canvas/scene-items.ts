@@ -58,8 +58,13 @@ export function intChunkView(chunk: IntChunk, context: ItemContext): Container {
 }
 
 /** Everything that decides how an entity looks, so an unchanged one keeps its view (`level-scene.ts`). */
-export function entityKey(entity: EntityDraw, px: number): string {
-  return JSON.stringify([entity, px])
+/** The generation of the image a tile is cut from (0 for a placeholder), so a reloaded image rebuilds its views. */
+function generationOf(tile: TileDraw | undefined, context: ItemContext): number {
+  return tile?.kind === 'image' ? (context.textures.generations.get(tile.image) ?? 0) : 0
+}
+
+export function entityKey(entity: EntityDraw, px: number, context: ItemContext): string {
+  return JSON.stringify([entity, px, generationOf(entity.tile, context)])
 }
 
 export function entityView(entity: EntityDraw, context: ItemContext, px: number): Container {
@@ -89,7 +94,13 @@ export function entityView(entity: EntityDraw, context: ItemContext, px: number)
   view.addChild(shape)
   const label = new Text({
     text: entity.label,
-    style: { fontFamily: 'sans-serif', fontSize: 11, fill: color },
+    // A dark halo keeps the name legible over tiles of any colour.
+    style: {
+      fontFamily: 'sans-serif',
+      fontSize: 11,
+      fill: color,
+      stroke: { color: 0x0a0b0d, width: 3, join: 'round' },
+    },
     resolution: 2,
   })
   label.scale.set(px)
@@ -98,7 +109,8 @@ export function entityView(entity: EntityDraw, context: ItemContext, px: number)
   return view
 }
 
-export const objectKey = (object: ObjectDraw): string => JSON.stringify(object)
+export const objectKey = (object: ObjectDraw, context: ItemContext): string =>
+  JSON.stringify([object, generationOf(object, context)])
 
 export const objectView = (object: ObjectDraw, context: ItemContext): Container => tileSprite(object, context)
 

@@ -243,4 +243,36 @@ describe('level scene: rebuilding only what changed (ED2D-D4)', () => {
     expect(view?.destroyed).toBe(true)
     expect(s.root.destroyed).toBe(true)
   })
+
+  it('draws an image again once it was forgotten and loaded again, never the destroyed texture', async () => {
+    let color = '#ff0000'
+    const reloading = createTextureManager({
+      read: async (path) => (path === 'assets/bg.png' ? cellsPng(1, 1, 8, [color]) : undefined),
+    })
+    const s = createLevelScene({ textures: reloading, colors })
+    scene = s
+    await reloading.load(['assets/bg.png'])
+    const object = {
+      ...imageTile(0, 0, 0),
+      id: 'o',
+      image: 'assets/bg.png',
+      frame: { x: 0, y: 0, w: 8, h: 8 },
+    }
+    const drawn = () =>
+      list([{ kind: 'objects', def: 'o', opacity: 1, locked: false, objects: [object] }], {
+        background: { color: '#000000', image: 'assets/bg.png', mode: 'repeat' },
+      })
+    s.update(drawn())
+    expect(colorAt(s.root, 4, 4)).toBe('#ff0000')
+    expect(colorAt(s.root, 30, 20)).toBe('#ff0000')
+    reloading.forget('assets/bg.png')
+    color = '#00ff00'
+    await reloading.load(['assets/bg.png'])
+    s.update(drawn())
+    expect(colorAt(s.root, 4, 4)).toBe('#00ff00')
+    expect(colorAt(s.root, 30, 20)).toBe('#00ff00')
+    s.destroy()
+    scene = undefined
+    reloading.destroy()
+  })
 })

@@ -714,6 +714,7 @@ interface LevelDrawInput {
     readonly project: Project;
     readonly view: DrawView;
     readonly images: ReadonlySet<string>;
+    readonly generations?: ReadonlyMap<string, number> | undefined;
 }
 ```
 

@@ -33,7 +33,11 @@ let levelView = $state.raw<LevelView | undefined>(undefined)
 let unavailable = $state(false)
 let paused = $state(false)
 let drawn = $state(false)
-let size = $state.raw<Size>({ w: 1, h: 1 })
+/** The box in CSS pixels and the device pixels per CSS pixel. */
+type Box = Size & { readonly resolution: number }
+let size = $state.raw<Box>({ w: 1, h: 1, resolution: 1 })
+/** The size the renderer was made or last resized at. */
+let drawnAt: Box = { w: 1, h: 1, resolution: 1 }
 /** The image list whose load has finished: the draw waits for the level's own. */
 let readyImages = $state<string | undefined>(undefined)
 
@@ -48,8 +52,13 @@ onMount(() => {
   const target = canvas
   const page = element?.ownerDocument.defaultView
   if (element === undefined || target === undefined || page === null || page === undefined) return
-  const measure = (): Size => ({ w: Math.max(1, element.clientWidth), h: Math.max(1, element.clientHeight) })
+  const measure = (): Box => ({
+    w: Math.max(1, element.clientWidth),
+    h: Math.max(1, element.clientHeight),
+    resolution: page.devicePixelRatio,
+  })
   size = measure()
+  drawnAt = size
   let disposed = false
   let stopPaused: (() => void) | undefined
   const colors = createColorResolver((name) => page.getComputedStyle(element).getPropertyValue(name))
@@ -59,7 +68,7 @@ onMount(() => {
     colors,
     width: size.w,
     height: size.h,
-    resolution: page.devicePixelRatio,
+    resolution: size.resolution,
   }).then((created) => {
     if (disposed) return created?.destroy()
     if (created === undefined) unavailable = true
@@ -70,9 +79,9 @@ onMount(() => {
       levelView = created
     }
   })
+  // Only the box is measured here; the draw below resizes the renderer and draws once at the new size.
   const observer = new page.ResizeObserver(() => {
     size = measure()
-    levelView?.resize(size.w, size.h, page.devicePixelRatio)
   })
   observer.observe(element)
   return () => {
@@ -97,12 +106,18 @@ $effect(() => {
   }
 })
 
-// Drawing is synchronous once the images are in: every change of the project, the view, the camera or the box.
+// Drawing is synchronous once the images are in: every change of the project, the view, the camera or the box, once
+// each. A new box resizes the renderer first (which draws nothing), so a resize is one draw at the new size.
 $effect(() => {
   const current = levelView
+  const box = size
   if (current === undefined || readyImages !== images) return
-  const list = drawList({ project, view, images: textures.loaded })
-  current.render(list, camera ?? fitCamera(list.size, size))
+  if (box !== drawnAt) {
+    current.resize(box.w, box.h, box.resolution)
+    drawnAt = box
+  }
+  const list = drawList({ project, view, images: textures.loaded, generations: textures.generations })
+  current.render(list, camera ?? fitCamera(list.size, box))
   drawn = true
 })
 </script>

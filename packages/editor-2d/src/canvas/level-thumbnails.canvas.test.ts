@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { richProject } from '../testing/draw-fixtures'
+import { cellsPng } from '../testing/png'
 import { withDefs } from '../testing/project-edit'
 import { createColorResolver } from './colors'
 import { createLevelThumbnails, type LevelThumbnails } from './level-thumbnails'
@@ -75,5 +76,31 @@ describe('level thumbnails', () => {
     const { thumbnails } = setup()
     expect(await thumbnails.thumbnail('gone', { project, level: 'nowhere' })).toBeUndefined()
     expect(await thumbnails.thumbnail('a', { project, level: 'start' })).toMatch(/^data:image\/png/)
+  })
+
+  it('reads its images afresh for each thumbnail: nothing is kept between cards', async () => {
+    const png = await cellsPng(1, 1, 16, ['#ff0000'])
+    const reads: string[] = []
+    const fresh = createLevelThumbnails({
+      read: async (path) => {
+        reads.push(path)
+        return png
+      },
+      colors,
+      makeCanvas: () => document.createElement('canvas'),
+    })
+    thumbnails = fresh
+    await fresh.thumbnail('a', { project, level: 'start' })
+    await fresh.thumbnail('b', { project, level: 'start' })
+    expect(reads).toEqual(['assets/terrain.png', 'assets/terrain.png'])
+  })
+
+  it('answers undefined for a canvas that can only give WebGL 1', async () => {
+    const { thumbnails: webgl1 } = setup(() => {
+      const canvas = document.createElement('canvas')
+      canvas.getContext('webgl')
+      return canvas
+    })
+    expect(await webgl1.thumbnail('a', { project, level: 'start' })).toBeUndefined()
   })
 })

@@ -39,15 +39,17 @@ const kind = $derived(
 )
 
 let thumbnail = $state<string | undefined>(undefined)
-// A changed file (path, size or time) is a new key, so the card redraws after the project is saved.
+// A changed file (path, size or time) or a replaced image is a new key, so the card redraws after either changes.
 $effect(() => {
   const preview = entry.status === 'ok' ? entry.preview : undefined
   thumbnail = undefined
   if (thumbnails === undefined || preview === undefined) return
   let current = true
-  void thumbnails.thumbnail(`${entry.path}|${entry.size}|${entry.mtime}`, preview).then((url) => {
-    if (current) thumbnail = url
-  })
+  void thumbnails
+    .thumbnail(`${entry.path}|${entry.size}|${entry.mtime}|${preview.images}`, preview)
+    .then((url) => {
+      if (current) thumbnail = url
+    })
   return () => {
     current = false
   }

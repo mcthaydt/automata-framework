@@ -82,6 +82,16 @@ describe('LevelCanvas', () => {
     expect(getComputedStyle(canvas as HTMLCanvasElement).visibility).toBe('visible')
   })
 
+  it('follows its box: a new size resizes the drawing buffer', async () => {
+    const { host } = mountCanvas([])
+    await drawn(host)
+    const canvas = host.querySelector('canvas')
+    const box = host.parentElement as HTMLElement
+    box.style.width = '400px'
+    await expect.poll(() => canvas?.width).toBe(400 * devicePixelRatio)
+    expect(host.dataset['state']).toBe('drawn')
+  })
+
   it('lets go of the renderer when it leaves the page', async () => {
     const { host, unmount } = mountCanvas([])
     await drawn(host)

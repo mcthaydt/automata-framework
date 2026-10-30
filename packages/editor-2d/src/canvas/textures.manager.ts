@@ -14,16 +14,24 @@ export interface TextureStore {
 }
 
 export interface TextureManager {
-  /** Loads each path not loaded yet; resolves when all have been tried. */
+  /** Loads each path not loaded yet; resolves when all have been tried. After `destroy`, loads nothing. */
   load(paths: readonly string[]): Promise<void>
   /** The paths that have a texture: what the draw list takes as `images`. */
   readonly loaded: ReadonlySet<string>
+  /**
+   * Each loaded image's generation, which the draw list takes as `generations`: a path loaded again after `forget` has
+   * a higher one, so nothing keeps drawing the texture that was destroyed.
+   */
+  readonly generations: ReadonlyMap<string, number>
   texture(path: string): Texture | undefined
   /** The part of a loaded image at `frame`, kept per rectangle; `undefined` when the image is not loaded. */
   frame(path: string, frame: Bounds): Texture | undefined
   /** A flat tile of `color` with `label` centred, for a tile of `size`; kept per label, colour and size. */
   placeholder(label: string, color: string, size: Size): Texture
-  /** Drops an image and its frames, so the next `load` reads it again (an image replaced in the workspace). */
+  /**
+   * Drops an image and its frames, so the next `load` reads it again (an image replaced in the workspace). A load of
+   * the path still reading is dropped when it finishes.
+   */
   forget(path: string): void
   destroy(): void
 }
@@ -77,8 +85,22 @@ export function createTextureManager(store: TextureStore): TextureManager {
   const images = new Map<string, Image>()
   const loaded = new Set<string>()
   const placeholders = new Map<string, Texture>()
+  const generations = new Map<string, number>()
+  /**
+   * Bumped by `forget` and by every image stored, per path: a load that finds it changed when its bytes arrive was
+   * overtaken (forgotten, or loaded by another call meanwhile) and lets its bitmap go instead of storing stale bytes.
+   */
+  const epochs = new Map<string, number>()
+  let destroyed = false
+  const epochOf = (path: string): number => epochs.get(path) ?? 0
+  const bump = (path: string): number => {
+    const next = epochOf(path) + 1
+    epochs.set(path, next)
+    return next
+  }
 
   async function loadOne(path: string): Promise<void> {
+    const started = epochOf(path)
     let bytes: Uint8Array | undefined
     try {
       bytes = await store.read(path)
@@ -87,17 +109,19 @@ export function createTextureManager(store: TextureStore): TextureManager {
     }
     if (bytes === undefined) return
     const bitmap = await decode(bytes)
-    // Loaded twice at once (two loads racing): the first to finish wins, the other bitmap is let go.
-    if (bitmap === undefined || images.has(path)) {
-      bitmap?.close()
+    if (bitmap === undefined) return
+    if (destroyed || epochOf(path) !== started || images.has(path)) {
+      bitmap.close()
       return
     }
     const source = new ImageSource({ resource: bitmap, scaleMode: 'nearest' })
     images.set(path, { texture: new Texture({ source }), bitmap, frames: new Map() })
     loaded.add(path)
+    generations.set(path, bump(path))
   }
 
   function forget(path: string): void {
+    bump(path)
     const image = images.get(path)
     if (image === undefined) return
     for (const frame of image.frames.values()) frame.destroy(false)
@@ -105,13 +129,16 @@ export function createTextureManager(store: TextureStore): TextureManager {
     image.bitmap.close()
     images.delete(path)
     loaded.delete(path)
+    generations.delete(path)
   }
 
   return {
     async load(paths) {
+      if (destroyed) return
       await Promise.all(paths.filter((path) => !images.has(path)).map(loadOne))
     },
     loaded,
+    generations,
     texture: (path) => images.get(path)?.texture,
     frame(path, frame) {
       const image = images.get(path)
@@ -138,6 +165,7 @@ export function createTextureManager(store: TextureStore): TextureManager {
     },
     forget,
     destroy() {
+      destroyed = true
       for (const path of [...images.keys()]) forget(path)
       for (const texture of placeholders.values()) texture.destroy(true)
       placeholders.clear()

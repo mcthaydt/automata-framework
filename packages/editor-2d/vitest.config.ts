@@ -57,8 +57,12 @@ export default defineConfig({
       {
         plugins: [svelte(), svelteTesting()],
         resolve: { conditions: ['browser'] },
-        // Pixi is bundled before the first test: found mid-run, Vite reloads the page and the run fails.
-        optimizeDeps: { include: ['pixi.js'] },
+        // Every dependency the canvas tests load is bundled before the first test: one found mid-run makes Vite reload
+        // the page, and the run fails. Listing the test files as entries lets Vite find them all up front.
+        optimizeDeps: {
+          entries: ['src/**/*.canvas.test.ts'],
+          include: ['pixi.js', 'svelte/store', '@testing-library/svelte'],
+        },
         test: {
           name: 'canvas',
           include: ['src/**/*.canvas.test.ts'],

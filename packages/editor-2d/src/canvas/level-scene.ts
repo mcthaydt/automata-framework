@@ -70,7 +70,8 @@ export function createLevelScene(options: LevelSceneOptions): LevelScene {
     const key = JSON.stringify([
       list.background,
       list.size,
-      image !== undefined && context.textures.texture(image) !== undefined,
+      // The image's generation: a background image loaded again is a new texture, the old one destroyed.
+      image === undefined ? 0 : (context.textures.generations.get(image) ?? 0),
     ])
     if (background?.key === key) return
     background?.view.destroy({ children: true })
@@ -99,10 +100,14 @@ export function createLevelScene(options: LevelSceneOptions): LevelScene {
       layer.kind === 'entities'
         ? layer.entities.map((entity) => [
             entity.id,
-            entityKey(entity, px),
+            entityKey(entity, px, context),
             () => entityView(entity, context, px),
           ])
-        : layer.objects.map((object) => [object.id, objectKey(object), () => objectView(object, context)])
+        : layer.objects.map((object) => [
+            object.id,
+            objectKey(object, context),
+            () => objectView(object, context),
+          ])
     const next = new Map<string, Kept>()
     for (const [id, key, build] of built) {
       const kept = view.items.get(id)

@@ -1,16 +1,19 @@
-import { autoDetectRenderer, Container, Rectangle, type Renderer } from 'pixi.js'
+import { Container, Rectangle, type Renderer } from 'pixi.js'
 import type { LevelPreview } from '../profiles/profile'
 import type { ColorResolver } from './colors'
 import type { DrawView } from './draw/draw-list-types'
 import { createLevelDrawList } from './draw/level-draw-list'
 import { levelImages } from './draw/level-images'
 import { createLevelScene } from './level-scene'
+import { createWebGL2Renderer } from './level-view'
 import { createTextureManager } from './textures.manager'
 
 // Home's card thumbnails (ED2D.4c3b, plan decision 9): a project's preview level drawn by the same scene builder as
 // the canvas, with no overlays, fitted into 96 × 96 px and handed back as a PNG data URL. One offscreen WebGL renderer,
 // made on the first request, draws one thumbnail at a time; each key (the card's file path, size and modification
-// time) is drawn once. Without WebGL every answer is `undefined` and the card keeps its initial.
+// time, and its images' modification times) is drawn once. Each draw reads its images into textures of its own and
+// destroys them after, so nothing is held between cards. Without WebGL2 every answer is `undefined` and the card keeps
+// its initial.
 
 /** The largest side of a thumbnail in px: twice the card's 48 px tile, for a sharp image on a 2× screen. */
 const THUMBNAIL_SIDE = 96
@@ -44,21 +47,19 @@ const plainView = (level: string): DrawView => ({
 
 export function createLevelThumbnails(options: LevelThumbnailsOptions): LevelThumbnails {
   const { colors } = options
-  const textures = createTextureManager({ read: (path) => options.read(path) })
   const drawn = new Map<string, Promise<string | undefined>>()
   let renderer: Promise<Renderer | undefined> | undefined
   let queue: Promise<unknown> = Promise.resolve()
   let disposed = false
 
   function rendererOnce(): Promise<Renderer | undefined> {
-    renderer ??= autoDetectRenderer({
-      preference: ['webgl'],
+    renderer ??= createWebGL2Renderer({
       canvas: options.makeCanvas(),
       width: THUMBNAIL_SIDE,
       height: THUMBNAIL_SIDE,
       backgroundAlpha: 0,
       antialias: false,
-    }).catch(() => undefined)
+    })
     return renderer
   }
 
@@ -66,13 +67,19 @@ export function createLevelThumbnails(options: LevelThumbnailsOptions): LevelThu
     const current = await rendererOnce()
     if (current === undefined || disposed) return undefined
     const { project, level } = preview
+    const textures = createTextureManager({ read: (path) => options.read(path) })
     const scene = createLevelScene({ textures, colors })
     const stage = new Container()
     stage.addChild(scene.root)
     try {
       await textures.load(levelImages(project, level))
       if (disposed) return undefined
-      const list = createLevelDrawList()({ project, view: plainView(level), images: textures.loaded })
+      const list = createLevelDrawList()({
+        project,
+        view: plainView(level),
+        images: textures.loaded,
+        generations: textures.generations,
+      })
       const scale = Math.min(THUMBNAIL_SIDE / list.size.w, THUMBNAIL_SIDE / list.size.h)
       scene.update(list, scale)
       scene.root.scale.set(scale)
@@ -84,6 +91,7 @@ export function createLevelThumbnails(options: LevelThumbnailsOptions): LevelThu
       return undefined
     } finally {
       stage.destroy({ children: true })
+      textures.destroy()
     }
   }
 
@@ -104,7 +112,6 @@ export function createLevelThumbnails(options: LevelThumbnailsOptions): LevelThu
       drawn.clear()
       void queue.then(async () => {
         ;(await renderer)?.destroy()
-        textures.destroy()
       })
     },
   }

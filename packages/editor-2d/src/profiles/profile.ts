@@ -76,7 +76,11 @@ export interface ProfileSummary {
   readonly facts: readonly { readonly label: string; readonly value: string }[]
 }
 
-/** The level a Home card draws as the document's thumbnail (ED2D.4c3b): a level of a level project. */
+/**
+ * The level a Home card draws as the document's thumbnail (ED2D.4c3b): a level of a level project. It names the
+ * level-project `Project` type because the card is drawn by the level canvas, which draws nothing else; a profile whose
+ * documents are not level projects (the FloorFifty stage) leaves `preview` out until it has a picture of its own.
+ */
 export interface LevelPreview {
   readonly project: Project
   /** A level id of `project`. */

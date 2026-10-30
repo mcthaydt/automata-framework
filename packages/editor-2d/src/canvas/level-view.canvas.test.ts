@@ -1,14 +1,48 @@
 import { get } from 'svelte/store'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { cellsPng } from '../testing/png'
 import { createColorResolver } from './colors'
-import type { LevelDrawList } from './draw/draw-list-types'
+import type { LayerDraw, LevelDrawList } from './draw/draw-list-types'
 import { createLevelView, fitCamera, type LevelView } from './level-view'
 import { createTextureManager } from './textures.manager'
 
 // The editable canvas (ED2D.4c3b, plan decisions 2, 7 and 8; spec §13) in Chromium with WebGL2.
 
 const colors = createColorResolver((name) => (name === '--color-bg-canvas' ? '#0a0b0d' : ''))
-const textures = createTextureManager({ read: async () => undefined })
+const textures = createTextureManager({
+  read: async (path) => (path === 'assets/blue.png' ? cellsPng(1, 1, 8, ['#0000ff']) : undefined),
+})
+beforeAll(() => textures.load(['assets/blue.png']))
+afterAll(() => textures.destroy())
+
+/** A tiles layer with one 10 px tile cut from the loaded blue image, at the level's top-left. */
+const blueTile: LayerDraw = {
+  kind: 'tiles',
+  def: 't',
+  opacity: 1,
+  locked: false,
+  chunks: [
+    {
+      cx: 0,
+      cy: 0,
+      bounds: { x: 0, y: 0, w: 160, h: 160 },
+      tiles: [
+        {
+          x: 0,
+          y: 0,
+          w: 10,
+          h: 10,
+          tile: 0,
+          flipX: false,
+          flipY: false,
+          kind: 'image',
+          image: 'assets/blue.png',
+          frame: { x: 0, y: 0, w: 8, h: 8 },
+        },
+      ],
+    },
+  ],
+}
 let view: LevelView | undefined
 let canvas: HTMLCanvasElement
 
@@ -88,21 +122,26 @@ describe('level view', () => {
     lose.loseContext()
     await paused
     // Drawing while paused does nothing on the GPU and does not throw; the list is kept.
-    expect(() => level.render(solid('#993366'), camera)).not.toThrow()
+    expect(() => level.render({ ...solid('#993366'), layers: [blueTile] }, camera)).not.toThrow()
     const resumed = pausedBecomes(level, false)
     // A restore asked for while the loss event is still being delivered never arrives in Chromium; ask in a later task.
     await new Promise((resolve) => setTimeout(resolve, 0))
     lose.restoreContext()
     await resumed
-    expect(colorAt(20, 10)).toBe('#993366')
+    // The background, and the tile sprite whose texture Pixi uploads again to the new context.
+    expect(colorAt(30, 10)).toBe('#993366')
+    expect(colorAt(5, 5)).toBe('#0000ff')
   })
 
-  it('resizes the canvas and draws the latest list again', async () => {
+  it('resizes the canvas without drawing, so the caller draws once at the new size', async () => {
     const level = await viewOf()
     level.render(solid('#336699'), { x: 0, y: 0, scale: 1 })
     level.resize(80, 30, 1)
     expect(canvas.width).toBe(80)
     expect(canvas.height).toBe(30)
+    // A resized drawing buffer is cleared, and nothing was drawn into it yet.
+    expect(colorAt(5, 5)).toBe('#000000')
+    level.render(solid('#336699'), { x: 0, y: 0, scale: 1 })
     expect(colorAt(5, 5)).toBe('#336699')
   })
 
@@ -113,6 +152,14 @@ describe('level view', () => {
     view = undefined
     expect(() => level.render(solid('#993366'), { x: 0, y: 0, scale: 1 })).not.toThrow()
     expect(get(level.paused)).toBe(false)
+  })
+
+  it('refuses a canvas that can only give WebGL 1 (WebGL2 is the floor)', async () => {
+    canvas = document.createElement('canvas')
+    // A canvas that already has a WebGL 1 context cannot give a WebGL2 one.
+    canvas.getContext('webgl')
+    const created = await createLevelView({ canvas, textures, colors, width: 10, height: 10, resolution: 1 })
+    expect(created).toBeUndefined()
   })
 
   it('answers undefined when the page has no WebGL', async () => {

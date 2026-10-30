@@ -365,7 +365,7 @@ describe('ProjectList', () => {
   })
 
   describe('thumbnails (ED2D.4c3b)', () => {
-    const preview = { project: mossgateProject(), level: 'moss-steps' }
+    const preview = { project: mossgateProject(), level: 'moss-steps', images: 'assets/terrain.png@1700' }
     const withPreview = ok('mossgate.af2d.json', { summary: { title: 'Mossgate', facts: [] }, preview })
 
     function fakeThumbnails(answer: string | undefined) {
@@ -374,7 +374,7 @@ describe('ProjectList', () => {
       return { thumbnails, thumbnail }
     }
 
-    it('draws a card’s level in its tile once the thumbnail is ready, keyed by path, size and time', async () => {
+    it('draws a card’s level in its tile once the thumbnail is ready, keyed by path, size, time and images', async () => {
       const { thumbnails, thumbnail } = fakeThumbnails('data:image/png;base64,AAAA')
       mount({ visible: [withPreview, notes], total: 2, thumbnails })
       const card = option(/Mossgate/)
@@ -385,7 +385,10 @@ describe('ProjectList', () => {
       expect(image?.getAttribute('alt')).toBe('')
       expect(within(card).queryByText('M')).toBeNull()
       expect(thumbnail).toHaveBeenCalledOnce()
-      expect(thumbnail).toHaveBeenCalledWith(`mossgate.af2d.json|4300|${NOW - 5 * 60_000}`, preview)
+      expect(thumbnail).toHaveBeenCalledWith(
+        `mossgate.af2d.json|4300|${NOW - 5 * 60_000}|assets/terrain.png@1700`,
+        preview,
+      )
     })
 
     it('keeps the initial for a card with no preview, with no thumbnails, or when none could be drawn', async () => {

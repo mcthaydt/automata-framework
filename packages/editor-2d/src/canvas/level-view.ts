@@ -1,4 +1,10 @@
-import { autoDetectRenderer, Container, type Renderer } from 'pixi.js'
+import {
+  type AutoDetectOptions,
+  autoDetectRenderer,
+  Container,
+  type Renderer,
+  type WebGLRenderer,
+} from 'pixi.js'
 import { type Readable, writable } from 'svelte/store'
 import type { Size } from '../model/project-types'
 import type { ColorResolver } from './colors'
@@ -40,28 +46,44 @@ export interface LevelView {
   readonly paused: Readable<boolean>
   /** Draws `list` at `camera` now, or keeps it for when the context is back. */
   render(list: LevelDrawList, camera: Camera): void
+  /** Resizes the drawing buffer, which clears it; it draws nothing, so the caller renders once at the new size. */
   resize(width: number, height: number, resolution: number): void
   /** Releases the renderer and the scene; later calls do nothing. Leaves the canvas element and the textures alone. */
   destroy(): void
 }
 
-/** `undefined` when the page cannot give this canvas a WebGL context (plan decision 2: no other renderer). */
-export async function createLevelView(options: LevelViewOptions): Promise<LevelView | undefined> {
-  const { canvas, textures, colors } = options
+/**
+ * A Pixi renderer on WebGL2, or `undefined` (plan decision 2; AGENTS.md: WebGL2 is the default). Pixi is asked for
+ * WebGL only, preferring version 2, and a renderer that came up on WebGL 1 anyway (a canvas that already holds a WebGL 1
+ * context) is refused: the editor promises WebGL2's behaviour, not a fallback.
+ */
+export async function createWebGL2Renderer(
+  options: Partial<AutoDetectOptions>,
+): Promise<Renderer | undefined> {
   let renderer: Renderer
   try {
-    renderer = await autoDetectRenderer({
-      preference: ['webgl'],
-      canvas,
-      width: options.width,
-      height: options.height,
-      resolution: options.resolution,
-      background: colors('bg/canvas'),
-      antialias: false,
-    })
+    renderer = await autoDetectRenderer({ ...options, preference: ['webgl'], preferWebGLVersion: 2 })
   } catch {
     return undefined
   }
+  if (renderer.name === 'webgl' && (renderer as WebGLRenderer).context.webGLVersion === 2) return renderer
+  renderer.destroy({ removeView: false })
+  return undefined
+}
+
+/** `undefined` when the page cannot give this canvas a WebGL2 context (plan decision 2: no other renderer). */
+export async function createLevelView(options: LevelViewOptions): Promise<LevelView | undefined> {
+  const { canvas, textures, colors } = options
+  const created = await createWebGL2Renderer({
+    canvas,
+    width: options.width,
+    height: options.height,
+    resolution: options.resolution,
+    background: colors('bg/canvas'),
+    antialias: false,
+  })
+  if (created === undefined) return undefined
+  const renderer: Renderer = created
   const stage = new Container()
   const scene = createLevelScene({ textures, colors })
   stage.addChild(scene.root)
@@ -101,7 +123,6 @@ export async function createLevelView(options: LevelViewOptions): Promise<LevelV
     resize(width, height, resolution) {
       if (destroyed) return
       renderer.resize(width, height, resolution)
-      draw()
     },
     destroy() {
       if (destroyed) return
