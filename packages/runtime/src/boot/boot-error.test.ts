@@ -7,6 +7,7 @@ import {
   type BootError,
   ContentHashMismatch,
   LoadStalled,
+  ModelInvalid,
   RendererUnavailable,
 } from './boot-error.js'
 
@@ -22,6 +23,7 @@ describe('BootError', () => {
     [new LoadStalled({ url: '/asset.png', bytesSoFar: 100, stalledMs: 30000 }), 'download-stalled'],
     [new RendererUnavailable({ tried: ['webgl2'] }), 'unsupported'],
     [new BootDefect({ cause: new Error('boom') }), 'start'],
+    [new ModelInvalid({ file: 'models/crate.glb', reason: 'skinned' }), 'model-invalid'],
   ])('maps %j to expected UI state %s', (instance, expectedState) => {
     expect(bootFailureView(instance, 'ruken', true).state).toBe(expectedState)
   })

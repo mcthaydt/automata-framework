@@ -32,6 +32,8 @@ export type BootFailure =
     }
   | { readonly _tag: 'RendererUnavailable'; readonly tried: readonly ('webgl2' | 'webgpu')[] }
   | { readonly _tag: 'BootDefect' }
+  /** A 3D model file that could not be read (M3 spec §6): `file` is its url, `reason` why. */
+  | { readonly _tag: 'ModelInvalid'; readonly file: string; readonly reason: string }
 
 /**
  * `Hosting['kind']` (shared contracts §1.1), written out because ui never imports host. A `web` session (PUB
@@ -40,8 +42,8 @@ export type BootFailure =
 export type HostKind = 'ruken' | 'standalone'
 
 /**
- * What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or
- * `unsupported`.
+ * What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled`,
+ * `unsupported` or `model-invalid`.
  */
 export type BootFailureState =
   | 'start'
@@ -51,6 +53,7 @@ export type BootFailureState =
   | 'download'
   | 'download-stalled'
   | 'unsupported'
+  | 'model-invalid'
 
 /** Try again, Continue without loading, Back to {host}. */
 export type BootFailureAction = 'retry' | 'continue' | 'exit'
@@ -82,9 +85,15 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
   download: "Couldn't download the game.",
   'download-stalled': 'Still waiting for the game to download.',
   unsupported: "This device can't run the game.",
+  'model-invalid': 'A 3D model in this copy of the game is damaged: {file}.',
   retry: 'Try again',
   continue: 'Continue without loading',
   exit: 'Back to {host}',
+}
+
+/** Fills the `{file}` slot of a copy string with the file a failure names. Copy without the slot is returned as is. */
+export function withFileName(text: string, file: string): string {
+  return text.replaceAll('{file}', file)
 }
 
 /** Fills the `{host}` slot of a copy string with the host's name. Copy without the slot is returned as is. */
@@ -104,6 +113,7 @@ export function withHostName(text: string, hostName: string): string {
  *   playing on without the player's saves would silently fork their progress.
  * - Renderer: nothing on this device can fix it. Inside Ruken the player goes back; a standalone
  *   page has nowhere to go, so its panel is final.
+ * - Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot.
  * - Everything else: Try again, which re-runs the boot program in a fresh scope (never a page reload
  *   inside a Ruken frame).
  */
@@ -133,6 +143,8 @@ function viewFor(failure: BootFailure, hostKind: HostKind): BootFailureViewModel
       return { state: 'download-stalled', actions: ['retry'] }
     case 'RendererUnavailable':
       return { state: 'unsupported', actions: hostKind === 'ruken' ? ['exit'] : [] }
+    case 'ModelInvalid':
+      return { state: 'model-invalid', actions: ['retry'] }
     case 'BootDefect':
       // A bug, not a typed failure; Try again re-runs boot.
       return { state: 'start', actions: ['retry'] }

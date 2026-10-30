@@ -14,6 +14,7 @@ const FIXTURES: readonly BootFailure[] = [
   { _tag: 'LoadStalled', url: '/a.png', bytesSoFar: 10, stalledMs: 30_000 },
   { _tag: 'RendererUnavailable', tried: ['webgl2'] },
   { _tag: 'BootDefect' },
+  { _tag: 'ModelInvalid', file: 'models/crate.glb', reason: 'skinned' },
 ]
 
 interface Host {
@@ -35,7 +36,7 @@ describe('BootFailurePanel', () => {
     open(failure)
     const alert = screen.getByRole('alert')
     expect(alert.dataset.code).toMatch(
-      /^(start|connect|progress|damaged|download|download-stalled|unsupported)$/,
+      /^(start|connect|progress|damaged|download|download-stalled|unsupported|model-invalid)$/,
     )
     expect(alert.textContent?.trim().length).toBeGreaterThan(0)
   })
@@ -43,6 +44,15 @@ describe('BootFailurePanel', () => {
   it('Try again calls onRetry', async () => {
     const { onRetry } = open({ _tag: 'AssetLoadFailed', url: '/a.png', status: 500 })
     expect(screen.getByRole('alert')).toHaveTextContent("Couldn't download the game.")
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(onRetry).toHaveBeenCalledOnce()
+  })
+
+  it('names the damaged model and offers Try again (M3 spec §6, D3-f)', async () => {
+    const { onRetry } = open({ _tag: 'ModelInvalid', file: 'models/crate.glb', reason: 'skinned' })
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'A 3D model in this copy of the game is damaged: models/crate.glb.',
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(onRetry).toHaveBeenCalledOnce()
   })

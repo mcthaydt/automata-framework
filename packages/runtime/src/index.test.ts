@@ -26,6 +26,7 @@ const ROOT_EXPORTS: string[] = [
   'LoadStalled',
   'Locale',
   'MAX_FRAME_MS',
+  'ModelInvalid',
   'NetworkPort',
   'PresentationBus',
   'QUALITY_TIERS',

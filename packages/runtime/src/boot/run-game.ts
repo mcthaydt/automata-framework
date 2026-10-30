@@ -24,6 +24,8 @@ export function describeBootError(error: BootError): string {
       return `Load stalled: ${error.url} after ${error.stalledMs} ms (${error.bytesSoFar} bytes)`
     case 'RendererUnavailable':
       return `Renderer unavailable: tried ${error.tried.join(', ')}`
+    case 'ModelInvalid':
+      return `Model invalid: ${error.file} (${error.reason})`
     case 'BootDefect':
       return `Boot defect: ${String(error.cause)}`
     default: {

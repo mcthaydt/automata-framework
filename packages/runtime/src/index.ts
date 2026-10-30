@@ -24,6 +24,7 @@ export {
   type BootError,
   ContentHashMismatch,
   LoadStalled,
+  ModelInvalid,
   RendererUnavailable,
 } from './boot/boot-error.js'
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
