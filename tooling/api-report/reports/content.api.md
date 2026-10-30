@@ -10,6 +10,8 @@
 interface AssetsSource {
     readonly screens: Readonly<Record<string, {
         readonly files: readonly string[];
+        readonly atlases?: readonly string[] | undefined;
+        readonly fonts?: readonly string[] | undefined;
     }>>;
 }
 ```
@@ -551,10 +553,10 @@ interface ContentTextOptions {
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
-### `endonymOf` (function)
+### `hasRawText` (function)
 
 ```ts
-function endonymOf(tag: string): string;
+function hasRawText(text: string): boolean;
 ```
 
 ### `localeCharacters` (function)
@@ -573,6 +575,34 @@ type MessageCatalog = Readonly<Record<string, string>>;
 
 ```ts
 function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+### `MessageValue` (type)
+
+```ts
+type MessageValue = string | readonly MessageValue[] | {
+    readonly [key: string]: MessageValue;
+};
+```
+
+### `PSEUDO_LOCALE` (const)
+
+```ts
+const PSEUDO_LOCALE = "xx-long";
+```
+
+### `pseudoLocalize` (function)
+
+```ts
+function pseudoLocalize(message: string): string;
+```
+
+### `pseudoMessages` (function)
+
+```ts
+function pseudoMessages(file: {
+    readonly [key: string]: MessageValue;
+}): Record<string, MessageValue>;
 ```
 
 ### `snakeKey` (function)

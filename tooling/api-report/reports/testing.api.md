@@ -71,6 +71,12 @@ interface FakeVisualViewport {
 function findClipped(root: ParentNode, selector: string): string[];
 ```
 
+### `findCutAtSide` (function)
+
+```ts
+function findCutAtSide(root: ParentNode): string[];
+```
+
 ### `findIntrusions` (function)
 
 ```ts
@@ -142,6 +148,12 @@ interface MountedFixture {
 
 ```ts
 function mountFixture<Props extends Record<string, unknown>>(component: Component<Props>, props: Props, target?: HTMLElement): MountedFixture;
+```
+
+### `pressedPart` (function)
+
+```ts
+function pressedPart(control: HTMLElement): HTMLElement;
 ```
 
 ### `REFERENCE_SIZES` (const)

@@ -6,6 +6,7 @@ import {
   type ScreenDef,
   type SettingsDef,
 } from '@mcthaydt/automata-runtime'
+import { defineExtension } from '@mcthaydt/automata-runtime/extension'
 import { defineComponent, defineEvent, definePlugin } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { Container } from 'pixi.js'
@@ -213,6 +214,33 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
     const problems = problemsOf({ ...spec, id: '', size: { width: -1, height: 180 } })
     expect(problems).toContain('id:')
     expect(problems).toContain('size.width:')
+  })
+})
+
+describe('defineGame with extensions (RT.EXT1, M1 runtime spec §3.2)', () => {
+  const Glow = defineComponent('glow', { n: 'i32' })
+  const Ping = defineEvent('ping', z.object({}))
+  const glow = definePlugin({ name: 'glow', defs: [Glow, Ping] })
+  const echo = definePlugin({ name: 'echo', defs: [] })
+  // `b-lights` requires `a-sound`, so extension order is a-sound then b-lights whatever the array order.
+  const lights = defineExtension({ name: 'b-lights', requires: ['a-sound'], sim: [glow] })
+  const sound = defineExtension({ name: 'a-sound', sim: [echo] })
+
+  it('runs the game’s plugins, then each extension’s sim plugins in extension order', () => {
+    const game = defineGame({ ...spec, extensions: [lights, sound] })
+    expect(game.sim.plugins).toEqual([square, echo, glow])
+  })
+
+  it('keeps the game’s plugins alone when no extension brings any', () => {
+    expect(defineGame({ ...spec, extensions: [defineExtension({ name: 'ui-only' })] }).sim.plugins).toEqual([
+      square,
+    ])
+  })
+
+  it('accepts a view for an extension’s drawn component and a sound for its event', () => {
+    const views = { [Glow.id]: rect({ w: 1, h: 1, color: 0 }) }
+    const sounds = { [Ping.id]: 'ping.wav' }
+    expect(() => defineGame({ ...spec, extensions: [lights, sound], views, sounds })).not.toThrow()
   })
 })
 

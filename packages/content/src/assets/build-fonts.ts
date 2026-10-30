@@ -31,6 +31,7 @@ import { canonicalFile } from '../hash/canonical-file'
 import { endonymOf } from '../locale/endonyms'
 import { localeCharacters } from '../locale/glyphs'
 import { diagnosticAt, type ParsedToml, parseDocument } from '../parse/parse-document'
+import { FONT_FILES } from './asset-outputs'
 import { fontCoverage, subsetWoff2 } from './font-subset'
 import { type FontSource, fontsSchema } from './fonts.schema'
 
@@ -143,7 +144,7 @@ export const buildFonts = (
     }
 
     if (diagnostics.length > 0) return yield* fail()
-    files.set('fonts.json', new TextEncoder().encode(canonicalFile(manifest)))
+    files.set(FONT_FILES, new TextEncoder().encode(canonicalFile(manifest)))
     return { files: new Map([...files].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) }
   })
 

@@ -2,7 +2,7 @@
 // `dist/`, tests included, and leaves `import type … from '@ruken/sdk'` in the declarations, which would not
 // resolve in a game (Ruken is not published; D-8). So this:
 //
-// 1. removes test files, the test setup and the test-only fixture components from `dist/`;
+// 1. removes test files, the test setup and the test-only fixture components and modules from `dist/`;
 // 2. rewrites each vendored specifier in a `.d.ts` to a relative path to the declarations tsdown inlined for it
 //    (`tsdown.dts.config.ts` writes `dist/vendor/ruken-sdk.d.ts`);
 // 3. gives every relative import in `.js` and `.d.ts` a file extension. `src/` imports without one (`'./layout'`)
@@ -15,8 +15,11 @@ export interface FinishSvelteDistOptions {
   readonly vendoredTypes: Readonly<Record<string, string>>
 }
 
-/** `x.test.ts` output, `.test.svelte` harnesses, `vitest-setup`, and `*Fixture.svelte` test components. */
-const TEST_ONLY = /(?:\.test\.|^vitest-setup\.|Fixture\.svelte)/
+/**
+ * `x.test.ts` output, `.test.svelte` harnesses, `vitest-setup`, `*Fixture.svelte` test components and the
+ * `*-fixture.ts` modules they share (which may import a dev dependency, such as ui's `locale-fixture.ts`).
+ */
+const TEST_ONLY = /(?:\.test\.|^vitest-setup\.|Fixture\.svelte|-fixture\.)/
 
 function filesBelow(dir: string): string[] {
   return readdirSync(dir, { recursive: true, withFileTypes: true })

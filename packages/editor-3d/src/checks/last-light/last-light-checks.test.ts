@@ -77,7 +77,7 @@ describe('lastLightChecks: what runs', () => {
 
   it('counts the things and the definitions of a blockout that passes `entities`', () => {
     const entities = lastLightChecks(toyBlockout()).find((result) => result.id === 'entities')
-    expect(entities?.detail).toBe('3 things of 6 definitions')
+    expect(entities?.detail).toBe('4 things of 7 definitions')
   })
 
   it('fails entities for a box that stands outside every room, located at the box', () => {

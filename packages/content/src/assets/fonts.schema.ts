@@ -33,3 +33,11 @@ export const fontsSchema: z.ZodType<FontsFile> = z.strictObject({
     }),
   ),
 })
+
+/**
+ * `fonts.json`, which `buildFonts` writes beside the subsets: for each font, its subset file for each language
+ * (`{ "pixel": { "en": "pixel-en-0123abcd.woff2" } }`). The preload list reads it back (M5.6F.2).
+ */
+export type FontFiles = Readonly<Record<string, Readonly<Record<string, string>>>>
+
+export const fontFilesSchema: z.ZodType<FontFiles> = z.record(z.string(), z.record(z.string(), z.string()))

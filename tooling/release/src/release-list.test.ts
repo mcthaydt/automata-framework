@@ -6,6 +6,7 @@ import { publishablePackages, type WorkspacePackage, workspacePackages } from '.
 
 // What AF publishes to GitHub Packages, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
 // act: an example, `render-pixi3d` (D-1) or a tool marked publishable fails here before anything is released.
+// Physics is an Automata Plus extension and publishes from automata-plus (PRODUCT.5g).
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const published = publishablePackages(root)
 
@@ -14,7 +15,6 @@ const EXPECTED: readonly string[] = [
   '@mcthaydt/automata-content',
   '@mcthaydt/automata-host',
   '@mcthaydt/automata-node',
-  '@mcthaydt/automata-physics',
   '@mcthaydt/automata-ship',
   '@mcthaydt/automata-sim',
   '@mcthaydt/automata-testing',

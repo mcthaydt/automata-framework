@@ -29,8 +29,8 @@ export interface AutosaveOptions<S> {
 
 export interface Autosave {
   readonly state: AutosaveState
-  /** The `mtime` the next journal entry says it was made on (after a save, the new one). */
-  setBase(mtime: number | undefined): void
+  /** The `mtime` (and, after a save, the content hash) the next journal entry says it was made on. */
+  setBase(mtime: number | undefined, hash?: string): void
   /** Writes the journal now if the document has changed since it was last written; settles when that is done. */
   flush(): Promise<void>
   /** Cancels a waiting write, lets one in flight finish, then removes the journal. */
@@ -52,6 +52,7 @@ export function createAutosave<S>(options: AutosaveOptions<S>): Autosave {
   assertStorePath(target)
 
   let base = options.baseMtime ?? null
+  let baseHash: string | undefined
   let state: AutosaveState = 'idle'
   let timer: unknown
   let waiting = false
@@ -101,6 +102,7 @@ export function createAutosave<S>(options: AutosaveOptions<S>): Autosave {
         path: options.path,
         savedAt: clock.now(),
         baseMtime: base,
+        ...(baseHash === undefined ? {} : { baseHash }),
         payload: options.snapshot(history.state),
       })
     } catch (error) {
@@ -141,8 +143,9 @@ export function createAutosave<S>(options: AutosaveOptions<S>): Autosave {
     get state() {
       return state
     },
-    setBase(mtime) {
+    setBase(mtime, hash) {
       base = mtime ?? null
+      baseHash = hash
     },
     flush() {
       cancelWait()

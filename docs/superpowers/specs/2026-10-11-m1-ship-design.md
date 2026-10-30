@@ -129,6 +129,7 @@ Runs Ruken's own CLI, vendored as `vendor/ruken/ruken-cli-0.0.0.tgz` (built at R
 ```ts
 class Files extends Context.Tag('Files')<Files, {
   readText(path: string): Effect<string, FileError>
+  readBytes(path: string): Effect<Uint8Array, FileError>           // exact bytes, an array of their own (NODE.1)
   writeText(path: string, text: string): Effect<void, FileError>   // creates parent folders
   exists(path: string): Effect<boolean>
   listFiles(dir: string): Effect<readonly string[], FileError>     // every file below dir, '/'-separated, sorted
@@ -142,6 +143,8 @@ class ProcessRunner extends Context.Tag('ProcessRunner')<ProcessRunner, {
 }>() {}
 const ProcessRunnerLive: Layer<ProcessRunner>
 ```
+
+**Amended 2026-10-30 (NODE.1, [plan](../plans/2026-10-30-node-1-files-read-bytes.md)):** `readBytes` returns a file's bytes exactly, for binary inputs (the Plus pipelines' stage cache hashes image inputs from M3.9 on; reading them as text would replace every byte that is not valid UTF-8). It fails with the same `FileError` as `readText`, and returns a plain `Uint8Array` copied out of Node's `Buffer`, which for a small file is a view into a shared pool. There is no `writeBytes`: no consumer writes binary through `Files` (the image stages are Python, M3-D7).
 
 A non-zero exit is a result, not an error, so callers map Ruken's exit codes themselves; `ProcessError` means the program could not be started. `echo` copies output to the parent's stdout/stderr as it arrives (long Ruken waits stay visible). Tests use real temp folders for `Files` and a recorded fake `ProcessRunner`.
 
