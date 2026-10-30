@@ -2,8 +2,8 @@
 
 - **Task:** EDS.1d in [02](../../02-master-delivery-plan.md), first half. [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §4.3 (ports), §4.5 (journal), §7 (checks and gates), §11 (failures), EDS-D1 (`./node` entry), EDS-D10 (Ship), acceptance EDS-j.
 - **Lane:** editors. **Depends on:** EDS.1b (the ports and their contract suites in `editor-kit/ports/testing`), EDS.1c (`editor-suite/core`). **Unblocks:** EDS.1d-b, EDS.2c (Ship dialog, Review desk), COLLAB.1.
-- **Status:** Drafted 2026-10-30. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) once reviewed.
-- **Progress:** 6 of 7 steps.
+- **Status:** Implemented and locally checked 2026-10-30 (draft PR from `claude/editors-eds-1d-a-node-adapters`). Not CI verified. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) once reviewed.
+- **Progress:** 7 of 7 steps.
 
 ## The split, and why
 
@@ -51,10 +51,15 @@ Each step: write the test, run `pnpm --filter @mcthaydt/automata-editor-suite ex
 - [x] **4. Git change set** — `src/node/git-change-set.ts`, `git-change-set.test.ts`: `describeChangeSet('git', …)` on a temporary clone of a local bare remote; plus EDS-j (a fake `gh` script gives a draft PR URL; without `gh` the compare link; the pushed branch holds only the recorded files), a push to a missing remote rejects and keeps the commit, `noteCreated` lists the file in `created`, and the journal is outside the work tree (`git status` stays clean of it).
 - [x] **5. Argv checks** — `src/node/argv-checks.ts`, `argv-checks.test.ts`: `describeChecksRunner('argv', …)` with one small Node script per behaviour; plus `automata check --json`'s shape mapped, `{scene}` substitution from a candidate, a check needing `{path}` with no candidate is `error`, and the candidates folder is gone afterwards.
 - [x] **6. Gates reader** — `src/node/gates-reader.ts`, `gates-reader.test.ts`: `describeGates('records', …)` writing `GATES_SCENARIO` as records files; plus `{scene}` records globs and the latest decision winning.
-- [ ] **7. Ask** — `src/node/claude-ask.ts`, `claude-ask.test.ts`: `describeAskProvider('messages api', …)` over a stubbed `fetch` that reads the request back from the body; plus the headers (key, version), a non-2xx response rejects with the API's message, and a reply without the tool call rejects.
+- [x] **7. Ask** — `src/node/claude-ask.ts`, `claude-ask.test.ts`: `describeAskProvider('messages api', …)` over a stubbed `fetch` that reads the request back from the body; plus the headers (key, version), a non-2xx response rejects with the API's message, and a reply without the tool call rejects.
 
 ## Gates
 
 `pnpm format`; `TURBO_FORCE=true pnpm check`; the suite's `test:unit`. No published package changes (the suite is private: no changeset, no API report). No UI, so no parity or layout runs.
 
 ## Execution log
+
+- **2026-10-30, steps 1 to 7.** Each test failed first on its missing module, then passed: `run-argv` 7, the journal schema 6 (with the core entry's export test), the git change set 20 (`describeChangeSet('git')` on a temporary clone of a local bare remote, EDS-j with a stand-in `gh` and without one), the argv checks 15 (`describeChecksRunner('argv')` with a stand-in `automata` on PATH), the gates reader 8 (`describeGates('records')`), Ask 8 (`describeAskProvider('messages api')` over a stubbed `fetch`), the `./node` entry 1. The suite: 147 tests.
+- **Deviation:** the git adapter's `noteCreated` is async (it writes the journal), where the memory fake's is sync; the disk workspace (EDS.1d-b) awaits it.
+- **Deviation:** `tooling/api-report/reports/editor-suite.api.md` tracks the private suite too, so the `./node` entry needed `pnpm api-report --update` (the api-report seams test failed first, then passed). No api-index or agent-skills entry covers the suite; no changeset (private).
+- **Gates:** `pnpm format`; `TURBO_FORCE=true pnpm check` passed (36 and 34 tasks); `pnpm changeset status --since=origin/main` and `check-changesets` (0 problems). No UI changed: no layout or parity runs.
