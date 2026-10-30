@@ -1,6 +1,23 @@
-// `@mcthaydt/automata-net`: the wire (one owner; `server` imports it) and the `net.toml` schema (M7 spec §4.2).
-// The Colyseus transport, NetRoom and prediction arrive with M7.5; the sim side is `./sim`, the link harness
-// `./testing`.
+// `@mcthaydt/automata-net`: the wire (one owner; `server` imports it), the `net.toml` schema, and the client (M7 spec
+// §4.2): the Colyseus transport, `NetRoom`, reconnection and the room store (M7.5a). Prediction and interpolation
+// arrive with M7.5b and M7.5c; the sim side is `./sim`, the link harness and the fake SDK `./testing`.
+export type { NetSnapshot, Pong } from './client/colyseus-transport'
+export { NetError, refusalCode } from './client/net-error'
+export type { ClientNetworkPort } from './client/net-port'
+export {
+  type ConnectionState,
+  makeNetRoom,
+  NetRoom,
+  type NetRoomOptions,
+  netRoomLayer,
+  type ResumeOutcome,
+  type RoomEnd,
+} from './client/net-room'
+export { RECONNECT_BASE_MS, RECONNECT_CEILING_MS, reconnectDelay } from './client/reconnect-delay'
+export type { RoomInfo, SeatInfo } from './client/room-info'
+export { makeRoomStore, type RoomStore } from './client/room-store'
+export { colyseusClient, type NetSdkClient, type NetSdkRoom } from './client/sdk'
+export { SEAT_TOKEN_KEY, type SeatStorage, seatTokenKey } from './client/seat-token'
 export { type NetConfig, type NetConfigInput, netConfigSchema } from './config/net.schema'
 export { type ClientMessage, clientMessageSchema } from './wire/client-message.schema'
 export { type JoinOptions, joinOptionsSchema } from './wire/join-options.schema'
