@@ -765,9 +765,19 @@ A lookup over the messages module Paraglide compiles into `paraglide.outdir` (it
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
+#### `endonymOf` (function)
+
+A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`. An engine without
+it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
+
+```ts
+function endonymOf(tag: string): string;
+```
+
 #### `localeCharacters` (function)
 
-What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
+A locale's own characters for its subset font: `ALWAYS_CHARACTERS` and the catalog's characters. The font build
+also adds every content language's name for the language picker (`endonymOf`, M5.5F).
 
 ```ts
 function localeCharacters(catalog: MessageCatalog): Set<string>;
@@ -5150,7 +5160,16 @@ A language's name in its own language ("日本語" for `ja`), from the browser's
 it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
 
 ```ts
-function endonymOf(tag: string): string;
+function endonymOf(tag: string): string {
+  try {
+    const name = new Intl.DisplayNames([tag], { type: 'language' }).of(tag)
+    if (name === undefined || name === tag) return tag
+    // Some engines start a name in lower case ("español"); a picker shows it as a name.
+    return name.charAt(0).toLocaleUpperCase(tag) + name.slice(1)
+  } catch {
+    return tag
+  }
+}
 ```
 
 #### `enterFullscreen` (function)
