@@ -46,10 +46,13 @@ function flip(event: Event & { currentTarget: HTMLInputElement }): void {
   }
 
   /* The name takes what the track and the state word leave; a word too long for that room (a long language at TV
-     scale) breaks inside it, rather than pushing the state word past the toggle's edge. */
+     scale) breaks inside it, rather than pushing the state word past the toggle's edge. `min-width: 0` and
+     `break-word` (not `anywhere`) break a word only where the toggle is given less room than it: the toggle's least
+     width stays its longest word, so a track sized by what it holds never breaks an English word. */
   .af-toggle__label {
     flex: 1;
-    overflow-wrap: anywhere;
+    min-width: 0;
+    overflow-wrap: break-word;
     text-align: start;
   }
 
