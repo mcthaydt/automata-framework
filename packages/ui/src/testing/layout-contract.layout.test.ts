@@ -65,6 +65,56 @@ describe('checkLayout', () => {
     expect(await check(frame() + overlay)).toEqual([])
   })
 
+  // PRODUCT.L3a: in a long language a Settings group was wider than the dialog's list, which scrolls up and down; the
+  // options past its side were cut, where a player would not think to scroll. A scroll region may clip a control
+  // (`findOffscreenControls` passes it), but only across its scrolling direction, never at a side.
+  const region = (inner: string): string =>
+    `<div data-scroll-region style="width:200px;height:100px;overflow-y:auto">${inner}</div>`
+
+  test('fails a control cut at the side of the scroll region it scrolls in', async () => {
+    const wide =
+      '<div style="width:300px"><button data-testid="far" style="margin-left:180px;width:60px;height:48px">Far</button></div>'
+    expect(await check(region(wide))).toEqual(['far is cut at the side of its scroll region'])
+  })
+
+  test('judges a radio by its label, which is what a player presses', async () => {
+    const option =
+      '<div style="width:300px"><label data-testid="option" style="display:inline-block;margin-left:180px;width:60px;height:48px">' +
+      '<input type="radio" name="o" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Far</label></div>'
+    expect(await check(region(option))).toEqual(['option is cut at the side of its scroll region'])
+  })
+
+  test('passes a region that only scrolls down, and what overflows it that is not a control', async () => {
+    const tall = '<button data-testid="low" style="margin-top:200px;width:60px;height:48px">Low</button>'
+    const margin =
+      '<div style="position:relative"><div style="position:absolute;left:-24px;right:-24px;height:20px"></div></div>'
+    expect(await check(region(tall + margin))).toEqual([])
+  })
+
+  // PRODUCT.L3a: in a long language a Toggle's state word was squeezed to three characters and ran past the toggle,
+  // over the list's side. A control's words stay inside it, wherever it sits.
+  test('fails a control whose words run past its edge', async () => {
+    const squeezed =
+      '<button data-testid="squeezed" style="width:60px;height:48px;white-space:nowrap;justify-content:start">A long label</button>'
+    expect(await check(squeezed)).toEqual(["squeezed's words run past its edge"])
+  })
+
+  test('passes words a control hides from sight on purpose: a visually hidden name', async () => {
+    const icon =
+      '<button data-testid="icon" style="position:relative;width:48px;height:48px">' +
+      '<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap">' +
+      'A long name read aloud, never drawn</span>X</button>'
+    expect(await check(icon)).toEqual([])
+  })
+
+  test('passes words a box inside the control clamps on purpose: a two-line clamp', async () => {
+    const slot =
+      '<button data-testid="slot" style="display:block;width:160px;height:48px;padding:4px">' +
+      '<span style="display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font:16px/20px sans-serif">' +
+      'A long name a player typed, which runs on for many more lines than two</span></button>'
+    expect(await check(slot)).toEqual([])
+  })
+
   test('fails a row that clips what it holds', async () => {
     const row =
       '<div data-row data-testid="row-Forest" style="height:20px;overflow:hidden"><div style="height:44px"></div></div>'
@@ -131,7 +181,7 @@ describe('checkLayout', () => {
 
   test("checks a screen's own way out (data-way-out) where it has no corner row", async () => {
     const back =
-      '<button data-way-out data-testid="leave" style="position:fixed;left:200px;top:200px;width:48px;height:48px">Leave</button>'
+      '<button data-way-out data-testid="leave" style="position:fixed;left:200px;top:200px;width:72px;height:48px">Leave</button>'
     const cover =
       '<div style="position:fixed;left:190px;top:190px;width:100px;height:100px;background:red"></div>'
     expect(await check(back + cover)).toEqual(['leave is covered or clipped at its centre'])
