@@ -1,5 +1,6 @@
 import { CameraHeading, cameraHeadingPlugin, cameraView } from '@mcthaydt/automata-render-pixi3d/sim'
 import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
+import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
 import { Hero, Target } from './components.ts'
 import { HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
@@ -330,4 +331,84 @@ describe('lock (the first slice’s minimal lock-on, M3 spec §4.7)', () => {
       sim.dispose()
     },
   )
+})
+
+// The golden replay (B-a): a scripted route through the first slice as commands, from the game's own sim spec. It
+// pins the sim: Node records the hash, and Chromium, WebKit and Firefox must end on the same one bit for bit. A
+// change to movement, the area or the plugin changes it on purpose: investigate it, never rebaseline it per engine.
+type RouteSegment = readonly [input: TickInput, ticks: number]
+
+const LEFT = { x: -127, y: 0 }
+const GOLDEN_ROUTE: readonly RouteSegment[] = [
+  [{ stick: UP }, 30], // north across the hall
+  [{ stick: UP, turn: 10_000 }, 1], // a turn past the clamp: 45°
+  [{ stick: UP }, 20], // north-east on the turned heading
+  [{ turn: -10_000 }, 1], // and back
+  [{ stick: RIGHT }, 20], // back under the doorway
+  [{ stick: UP }, 75], // through it into the kiln: the view cuts, the stick latches
+  [{}, 1], // released: the latch lets go
+  [{ stick: UP }, 70], // on the kiln's heading, east into the wall
+  [{ stick: RIGHT, lock: true }, 40], // lock onto the target and strafe along the wall
+  [{ stick: LEFT, lock: true }, 10], // and back
+  [{}, 10], // released
+]
+
+/** The tick the golden route enters the kiln's view on. */
+const GOLDEN_KILN_TICK = 118
+/** The sim's state hash after the whole golden route, with seed 1 (recorded in Node). */
+const GOLDEN_HASH = 'd6ca2f2bc83ed284'
+
+async function runGolden() {
+  const sim = await createSim(BASE3D_SIM)
+  BASE3D_SIM.setup(sim)
+  const startTick = sim.tick
+  let kilnTick: number | undefined
+  let rejected = 0
+  let lockedTicks = 0
+  for (const [input, ticks] of GOLDEN_ROUTE)
+    for (let i = 0; i < ticks; i++) {
+      const result = sim.step(commandsFor(sim, input))
+      rejected += result.rejected.length
+      if (kilnTick === undefined && hero(sim).view === 'kiln') kilnTick = result.tick
+      if (hero(sim).lockTarget !== 0) lockedTicks += 1
+    }
+  const result = {
+    hash: sim.hash(),
+    kilnTick,
+    rejected,
+    lockedTicks,
+    hero: hero(sim),
+    ticks: sim.tick - startTick,
+  }
+  sim.dispose()
+  return { ...result, seed: BASE3D_SIM.seed }
+}
+
+describe('the golden replay (B-a)', () => {
+  it('walks the route into the kiln, locks on, and ends on the recorded hash in this engine', async ({
+    task,
+  }) => {
+    const result = await runGolden()
+    expect(result.rejected).toBe(0)
+    expect(result.lockedTicks).toBe(50)
+    expect(result.kilnTick).toBe(GOLDEN_KILN_TICK)
+    // Against the kiln's east wall, on the kiln's heading, unlocked and unlatched.
+    expect(result.hero).toMatchObject({
+      view: 'kiln',
+      heading: 16_384,
+      x: metres(4) - HERO_HALF,
+      lockTarget: 0,
+      latched: false,
+    })
+    expect(result.hash).toBe(GOLDEN_HASH)
+    // The hash this engine computed, for the evidence file (DX.9).
+    const { seed, ticks, hash } = result
+    recordGoldenEvidence(task, { scenario: 'base-3d/golden-route', seed, ticks, hash })
+  })
+
+  it('replays to the same hash twice in one engine', async () => {
+    const first = await runGolden()
+    const second = await runGolden()
+    expect(second.hash).toBe(first.hash)
+  })
 })

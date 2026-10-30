@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config'
 // Node runs every test; the browsers project runs the same game.test.ts in Chromium, WebKit and Firefox, so the
 // whole sim (the golden replay included, B-a) is held to the cross-engine rule (AGENTS.md, determinism).
 export default defineConfig({
-  optimizeDeps: { include: ['koota', 'zod'] },
+  optimizeDeps: { include: ['zod'] },
   test: {
     projects: [
       { test: { name: 'node', environment: 'node', include: ['src/**/*.test.ts'] } },
