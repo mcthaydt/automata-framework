@@ -5,6 +5,8 @@
 // Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
 // Part 6 (M3.6b): poses (`figure-pose` content), their canonical spelling, mirror, blend and checks.
 // Part 7 (M3.6c): clips (`figure-clip` content), eases, sampling, loop and stepped time, retime and markers.
+// Part 8 (M3.6d): `evaluate()`, the layers in order (locomotion, stances, the action and its transition, aim, the
+// solve, holds by mask, the hems), and FigureBuilder's reach, look and flinch as fixture clips.
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
 
 export { type Anchor, type AnchorKind, clearance } from './build/anchors'
@@ -36,6 +38,16 @@ export {
   figureStandContent,
   figureSwatchContent,
 } from './content/figures.content'
+export { evaluate, type FigureEvaluated } from './evaluate/evaluate'
+export type {
+  ActionState,
+  ClipStart,
+  EvaluateOptions,
+  FigureState,
+  MotionLibrary,
+  StanceState,
+} from './evaluate/figure-state'
+export { maskPose } from './evaluate/masks'
 export { type FigureDef, figureSchema, type HairDynamics } from './figure/figure.schema'
 export {
   type FigureBody,

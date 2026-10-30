@@ -1,0 +1,39 @@
+# A fixture clip (M3 spec §4.4.4, I-k), for tests and examples; no game's. An action: the right hand winds up high
+# and to the right, cuts down and across to the left at `contact`, and comes back to guard; the chest turns with it.
+
+length = 0.5
+loop = "once"
+mask = [ "armR", "torso" ]
+
+[markers]
+windup = 0.12
+contact = 0.28
+
+[[keys]]
+t = 0
+pose = "guard-high"
+
+[[keys]]
+t = 0.12
+ease = "out"
+
+[keys.pose.effectors.handR]
+pos = [ -0.3, 1.5, 0.05 ]
+
+[keys.pose.effectors.chest]
+rot = [ 0, -20, 0 ]
+
+[[keys]]
+t = 0.28
+ease = "in"
+
+[keys.pose.effectors.handR]
+pos = [ 0.15, 0.95, 0.45 ]
+
+[keys.pose.effectors.chest]
+rot = [ 5, 25, 0 ]
+
+[[keys]]
+t = 0.5
+pose = "guard-high"
+ease = "inOut"

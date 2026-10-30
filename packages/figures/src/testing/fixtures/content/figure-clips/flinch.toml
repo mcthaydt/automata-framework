@@ -1,0 +1,15 @@
+# A fixture clip (M3 spec §4.4.4, F-g), for tests and examples; no game's. FigureBuilder's flinch as data: into it
+# over 0.18 s and held until the sim stops it (motion.ts `smooth(t / 0.18)`).
+
+length = 0.18
+loop = "hold"
+mask = [ "pelvis", "torso", "head", "armL", "armR", "legR" ]
+
+[[keys]]
+t = 0
+pose = "free"
+
+[[keys]]
+t = 0.18
+pose = "flinch"
+ease = "inOut"
