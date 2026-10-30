@@ -10,6 +10,10 @@ import { type ModelInvalid, RendererUnavailable, type RenderTarget } from '@mcth
 import type { RenderRow } from '@mcthaydt/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Effect, type Scope } from 'effect'
+import { lampSwitches } from '../light/lamp-switches.js'
+import { createSceneLight, type SceneLight } from '../light/scene-light.js'
+import type { SceneFog, SceneLighting } from '../light/scene-lighting.schema.js'
+import { viewFog } from '../light/view-fog.js'
 import { loadModels, type ModelLibrary } from '../model/load-models.js'
 import type { EntityView3d, EntityViewResolver3d } from '../views/view-3d.js'
 import { watchContextLoss } from './context-loss.js'
@@ -18,10 +22,24 @@ export interface Pixi3dOptions extends PixiRendererOptions {
   /** Component id → its 3D view (`mesh`, `box`). `entityViews` stays the 2D layer's, drawn over the 3D view. */
   readonly views: EntityViewResolver3d
   /**
-   * After the `View3D` is mounted, before the first frame: the camera, the lights and the static scenery. It may
-   * return hooks, which run after the views each step and frame. (M3.4b gives the camera its rig.)
+   * After the `View3D` is mounted, before the first frame: the camera, the lights and the static scenery. With
+   * `lighting`, `light` is the room's light: bake each static mesh with `light.bake(mesh)`. It may return hooks,
+   * which run after the views each step and frame. (M3.4b gives the camera its rig.)
    */
-  readonly scene?: ((view: View3D, stage: PixiStage) => PixiStageHooks | undefined) | undefined
+  readonly scene?:
+    | ((view: View3D, stage: PixiStage, light: SceneLight | undefined) => PixiStageHooks | undefined)
+    | undefined
+  /** The view's linear fog (M3 spec §4.1). Without it, the lighting content's `fog`; without both, none. */
+  readonly fog?: SceneFog | undefined
+  /**
+   * The room's light from content (M3 spec §4.3): static meshes baked in `scene`, `lit` views tinted each frame.
+   */
+  readonly lighting?: SceneLighting | undefined
+  /**
+   * The component whose entities switch lamps, with fields `lamp` (a lamp id) and `level` (0 off, 1 full): a change
+   * rebakes the meshes that lamp reaches and relights the characters in its range. Needs `lighting`.
+   */
+  readonly lamps?: string | undefined
 }
 
 export interface Pixi3dRenderer extends PixiRenderer {
@@ -61,6 +79,7 @@ interface Mounted {
   readonly view: View3D
   readonly consumer: RenderDeltaConsumer<Container3D>
   readonly hooks: PixiStageHooks
+  readonly light: SceneLight | undefined
 }
 
 function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): Mounted {
@@ -70,16 +89,24 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     ? new View3D({ width: options.logicalWidth, height: options.logicalHeight, toneMapping: 'none' })
     : new View3D({ autoResize: true, toneMapping: 'none' })
   stage.world.addChild(view)
+  view.fog = viewFog(options.fog, options.lighting?.fog)
+  const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
+  const switches =
+    light === undefined || options.lamps === undefined ? undefined : lampSwitches(options.lamps)
   const resolver: Record<string, (row: RenderRow, componentId?: string) => EntityView3d | undefined> = {}
   for (const [id, factory] of Object.entries(options.views))
-    resolver[id] = (row, componentId) => factory(row, componentId, models)
+    resolver[id] = (row, componentId) => factory(row, componentId, models, light)
   const consumer = new RenderDeltaConsumer<Container3D>(view.root, resolver)
   const hooks: PixiStageHooks = {
-    apply: (result) => consumer.apply(result.render),
+    apply: (result) => {
+      const levels = switches?.apply(result.render)
+      if (levels !== undefined) light?.setLevels(levels)
+      consumer.apply(result.render)
+    },
     draw: (frame) => consumer.interpolate(frame.alpha),
     reset: () => consumer.reset(),
   }
-  return { view, consumer, hooks }
+  return { view, consumer, hooks, light }
 }
 
 /**
@@ -108,7 +135,7 @@ export function createPixi3dRenderer(
           const made = mount(stage, options, models)
           mounted = made
           const own = options.setup?.(stage) ?? undefined
-          return mergeHooks(made.hooks, own, options.scene?.(made.view, stage))
+          return mergeHooks(made.hooks, own, options.scene?.(made.view, stage, made.light))
         },
       })(target)
       if (mounted === undefined) {

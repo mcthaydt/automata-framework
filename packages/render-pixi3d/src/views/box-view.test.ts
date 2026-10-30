@@ -1,6 +1,8 @@
 import type { RenderRow } from '@mcthaydt/automata-sim'
-import { Container3D, Mesh3D } from '@pixi/3d'
+import { Container3D, FlatMaterial, Mesh3D } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
+import { createSceneLight } from '../light/scene-light.js'
+import { sceneLightingSchema } from '../light/scene-lighting.schema.js'
 import { emptyModels } from '../model/load-models.js'
 import { box } from './box-view.js'
 
@@ -40,5 +42,37 @@ describe('box', () => {
     expect(view?.container.destroyed).toBe(true)
     const next = make(row, 'crate', emptyModels)?.container.children[0] as Mesh3D | undefined
     expect(next?.geometry).toBe(geometry)
+  })
+
+  it('lit: takes the scene light’s tint at its pose each frame, on its own flat material (M3R-D4)', () => {
+    const light = createSceneLight(
+      sceneLightingSchema.parse({
+        ambient: 0.25,
+        lamps: [{ id: 'lamp', x: 0, y: 2, z: 0, color: 0xffffff, strength: 2, range: 4 }],
+      }),
+    )
+    const make = box({ width: 1, height: 1, depth: 1 }, { color: 0x808080, lit: true })
+    const view = make(row, 'crate', emptyModels, light)
+    const other = make(row, 'crate', emptyModels, light)
+    if (view === undefined || other === undefined) throw new Error('no view')
+    const material = (view.container.children[0] as Mesh3D).material
+    expect(material).toBeInstanceOf(FlatMaterial)
+    expect((other.container.children[0] as Mesh3D).material).not.toBe(material)
+
+    view.update?.({ crate: { x: 10, y: 0, z: 0 } }, undefined, 1)
+    // Out of the lamp's range: the ambient quarter of 0x80 on each channel.
+    expect(material.baseColor).toBe(0x202020)
+    view.update?.({ crate: { x: 0, y: 0, z: 0 } }, undefined, 1)
+    expect(material.baseColor).toBeGreaterThan(0x202020)
+    light.setLevels({ lamp: 0 })
+    view.update?.({ crate: { x: 0, y: 0, z: 0 } }, undefined, 1)
+    expect(material.baseColor).toBe(0x202020)
+  })
+
+  it('lit without a scene light is the plain shared box', () => {
+    const make = box({ width: 1, height: 1, depth: 1 }, { color: 0x808080, lit: true })
+    const a = make(row, 'crate', emptyModels)?.container.children[0] as Mesh3D
+    const b = make(row, 'crate', emptyModels)?.container.children[0] as Mesh3D
+    expect(a.material).toBe(b.material)
   })
 })
