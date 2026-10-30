@@ -3,7 +3,7 @@
 - **Task:** ED3D.8a, the first part of ED3D.8. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.1 (`materials` and `hints` on `LevelProfile`), D8 (Walk: virtual sticks first, eye 1.6 m, fov 69°; Fly and Orbit are modes of the same camera), D10 (the material set comes from the profile), §5.3 flows 4 (Walk) and 5 (Retexture: the material sheet applies to this wall, the room, or matching walls, in one transaction), §9 (Walk: Walk, Fly, Orbit; wall picked or not; no spawn. Material picker: searching, empty search, selected, apply scope), §10 (WASD and Q E in Walk) and ED3-n (a level with no spawn: the camera starts at the first sector's centre with a warning). The logic only, as plain TypeScript: no Svelte, DOM, Pixi or clock.
 - **Lane:** editor-3d. **Depends on:** ED3D.4 (merged: `walkStart`, `walkCamera`, `rayThrough`, `orbitCamera`, `orbitBy`, `buildSectorMesh`, `pickMesh`, `selectionOf`) and ED3D.3 (merged: `LevelEditor`, `setWallMaterial`, `setMaterials`, `withWall`). Branch `claude/editors-ed3d-8a-ed3d-8a-materials-walk` from `main`.
 - **Status:** Drafted 2026-10-30. Not reviewed; the spec review (ED3D.0) is still open. Steps are ticked only when their checks pass.
-- **Progress:** 0 of 5 steps.
+- **Progress:** 1 of 5 steps.
 
 ## Sources, read at these commits
 
@@ -64,8 +64,8 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
 ## Steps
 
 ### Step 1: materials and hints on both profiles
-- [ ] Failing tests `src/profile/materials.test.ts`: the depot's table in file order with category, label and wallOnly; a level with no table refuses; Last Light with the golden's list (`game-facts.golden.json` `options.materials`) gives every id, `unlit` for `glass` and `moonGlass` when the context says so and `lit` otherwise; absent and `null` refuse with Last Light's sentence; both profiles' hints are 1.6 m, 69° and 0.05 m.
-- [ ] Minimal code; `pnpm --filter @mcthaydt/automata-editor-3d exec vitest run src/profile` passes.
+- [x] Failing tests `src/profile/materials.test.ts`: the depot's table in file order with category, label and wallOnly; a level with no table refuses; Last Light with the golden's list (`game-facts.golden.json` `options.materials`) gives every id, `unlit` for `glass` and `moonGlass` when the context says so and `lit` otherwise; absent and `null` refuse with Last Light's sentence; both profiles' hints are 1.6 m, 69° and 0.05 m.
+- [x] Minimal code; `pnpm --filter @mcthaydt/automata-editor-3d exec vitest run src/profile` passes.
 
 ### Step 2: `applyMaterial`
 - [ ] Failing tests `src/model/material-edits.test.ts` over the toy level and the depot: This wall sets one wall; Room sets `wallTexture` and takes the walls' own textures off (holes too); Matching changes every wall and sector made of the target's material and nothing else (a wall that says something else keeps it; a sector that inherits from a style gets its own member); floor and ceiling in each scope; `wallOnly` on a floor refused; no sector, no wall refused; the same material again is the level itself; through `LevelEditor.run` it is one undo step.
@@ -85,4 +85,4 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
 
 ## Execution log
 
-(filled as steps pass)
+- Step 1 (2026-10-30): `materials.test.ts` failed first on the missing module; with `profile/materials.ts` and the two members on each profile, 7 tests pass and `tsc -p .` is clean.

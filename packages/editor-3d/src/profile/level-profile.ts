@@ -1,7 +1,7 @@
 // The shape every level format fits (ED3D spec §4.1): what the editor core imports, so that it never names a Last Light
 // concept. A profile is a file codec (read a file, write a model change back into its text) plus the two things the
 // editor asks of a level: the geometry its views draw, the checks its problems list shows, and the things that stand in
-// it. ED3D.2b adds the checks that need the entities, ED3D.8 the materials.
+// it. ED3D.2b adds the checks that need the entities, ED3D.8a the materials and the hints.
 import type { CheckResult } from '../checks/check'
 import type { LampKind } from '../checks/last-light/lamps'
 import type { RoomPolicy } from '../checks/last-light/room-policy'
@@ -11,6 +11,7 @@ import type { MassDef } from '../format/sector.schema'
 import type { NavWorld } from '../geometry/nav'
 import { type ResolvedMap, resolveMap } from '../geometry/sectors'
 import type { FileCodec } from './file-codec'
+import type { LevelHints, MaterialList } from './materials'
 import type { SectorAccess } from './sector-access'
 import type { ThingAccess } from './thing-access'
 
@@ -43,6 +44,8 @@ export interface ProfileContext {
   readonly puzzleHotspots?: readonly string[] | null | undefined
   /** Last Light: the material ids the game's renderer has, for the `materials` check; `null`, or absent, is no list. */
   readonly materials?: readonly string[] | null | undefined
+  /** Last Light: which of `materials` the renderer draws unlit (`unlitMats`), for the picker's categories; absent is none. */
+  readonly unlitMaterials?: readonly string[] | null | undefined
   /** Last Light: the lamp archetypes the game allows, by kind, for the `lamps` check; `null`, or absent, is no list. */
   readonly lampKinds?: Readonly<Record<string, LampKind>> | null | undefined
   /** Last Light: how far in OKLab a lamp's colour may be from its archetype's; `null`, or absent, is the game's own 0.06. */
@@ -68,6 +71,10 @@ export interface LevelProfile<D> extends FileCodec<D> {
   readonly sectors: SectorAccess<D>
   /** How the editor's edits write the level's things (ED3D.7a); reading them is `entities`. */
   readonly things: ThingAccess<D>
+  /** What the material picker offers (ED3D.8a): the file's table, or the game's list through the context. */
+  materials(doc: D, context?: ProfileContext): MaterialList
+  /** The unit, Walk's eye and lens, and the snap (ED3D.8a). */
+  readonly hints: LevelHints
 }
 
 /** The resolved sectors, or the engine's sentence as a `GeometryError`. */

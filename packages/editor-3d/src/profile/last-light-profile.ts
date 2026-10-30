@@ -9,6 +9,7 @@ import { lastLightEntityKit } from './last-light-entities'
 import { lastLightSectorAccess } from './last-light-sectors'
 import { lastLightThingAccess } from './last-light-things'
 import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
+import { lastLightMaterials, SECTOR_HINTS } from './materials'
 
 export const lastLightProfile: LevelProfile<Blockout> = {
   ...blockoutCodec,
@@ -27,4 +28,6 @@ export const lastLightProfile: LevelProfile<Blockout> = {
   entities: lastLightEntityKit,
   sectors: lastLightSectorAccess,
   things: lastLightThingAccess,
+  materials: (_blockout, context) => lastLightMaterials(context),
+  hints: SECTOR_HINTS,
 }

@@ -8,6 +8,7 @@ import { afSectorAccess } from './af-sector/af-sectors'
 import { afThingAccess } from './af-sector/af-things'
 import { AfBuildError, buildSectors } from './af-sector/build'
 import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
+import { afMaterials, SECTOR_HINTS } from './materials'
 
 export const afSectorProfile: LevelProfile<AfSector> = {
   ...afSectorCodec,
@@ -25,4 +26,6 @@ export const afSectorProfile: LevelProfile<AfSector> = {
   entities: afEntityKit,
   sectors: afSectorAccess,
   things: afThingAccess,
+  materials: (level) => afMaterials(level),
+  hints: SECTOR_HINTS,
 }
