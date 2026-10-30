@@ -1,9 +1,10 @@
-// Usage: node tooling/check-style/src/cli.ts <src-dir> [<src-dir>...]
+// Usage: node tooling/check-style/src/cli.ts <package-src>... [--game <game-src>...]
 // Checks every production .ts and .svelte file (not *.test.ts, *.test.svelte, *.d.ts, or anything under a testing/
-// folder). Svelte files get the QB.2 rules (no {@html}, no platform chrome); .ts files the naming rules.
+// folder). Svelte files get the QB.2 rules (no {@html}, no platform chrome); .ts files the naming rules. Roots after
+// --game are a game's src/, where the sim may be grouped by role (GL spec §5.1).
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { checkFile, type StyleFinding } from './style.ts'
+import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'
 import { checkSvelte } from './svelte.ts'
 
 function collect(dir: string, out: string[]): void {
@@ -16,16 +17,34 @@ function collect(dir: string, out: string[]): void {
   }
 }
 
-const dirs = process.argv.slice(2)
-if (dirs.length === 0) {
-  console.error('usage: check-style <src-dir> [<src-dir>...]')
+const args = process.argv.slice(2)
+const gameFlag = args.indexOf('--game')
+const packageRoots = gameFlag === -1 ? args : args.slice(0, gameFlag)
+const gameRoots = gameFlag === -1 ? [] : args.slice(gameFlag + 1)
+if (packageRoots.length + gameRoots.length === 0) {
+  console.error('usage: check-style <package-src>... [--game <game-src>...]')
   process.exit(2)
 }
-const files: string[] = []
-for (const d of dirs) collect(d, files)
-const findings: StyleFinding[] = files.flatMap((f) =>
-  f.endsWith('.svelte') ? checkSvelte(f, readFileSync(f, 'utf8')) : checkFile(f, readFileSync(f, 'utf8')),
-)
+
+const files: { path: string; gameRoot?: string }[] = []
+for (const root of packageRoots) {
+  const paths: string[] = []
+  collect(root, paths)
+  files.push(...paths.map((path) => ({ path })))
+}
+for (const gameRoot of gameRoots) {
+  const paths: string[] = []
+  collect(gameRoot, paths)
+  files.push(...paths.map((path) => ({ path, gameRoot })))
+}
+const findings: StyleFinding[] = [
+  ...gameRoots.flatMap((root) => checkGameRoot(root)),
+  ...files.flatMap(({ path, gameRoot }) =>
+    path.endsWith('.svelte')
+      ? checkSvelte(path, readFileSync(path, 'utf8'))
+      : checkFile(path, readFileSync(path, 'utf8'), gameRoot === undefined ? {} : { gameRoot }),
+  ),
+]
 for (const f of findings) {
   const where = f.line ? `${relative(process.cwd(), f.file)}:${f.line}` : relative(process.cwd(), f.file)
   console.log(`${where}  ${f.rule}  ${f.message}`)
