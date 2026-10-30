@@ -293,9 +293,11 @@
 - `rebuildOnQuality(settings, read, build, onBuilt?)`: Keeps something built for the player's quality tier (M4 spec §4.11), rebuilding it when the tier changes.
 - `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
 - `RectViewOptions` (interface): A `rect` view's size, colour and anchor.
-- `RenderDeltaConsumer` (class): Keeps one entity view per sim entity in the world container from each step's render delta, and interpolates them between ticks.
+- `RenderDeltaConsumer` (class): Keeps one entity view per sim entity in the world from each step's render delta, and interpolates them between ticks.
 - `RendererPreference` (type): The renderer backend: `webgl` (WebGL2, the default) or `webgpu` (opt-in).
 - `RESOLUTION_CAPS` (const): The canvas resolution each quality tier allows at most (M4 spec §4.11).
+- `SceneNode` (interface): What the consumer needs of a scene node: Pixi's `Container`, or another scene graph's node with the same meaning (`@pixi/3d`'s `Container3D`, which is not a Pixi `Container`; M3 spec S7-Q5).
+- `SceneParent` (interface): A scene node that holds other nodes: the world the consumer mounts views into.
 - `SHAKE_DECAY` (const): Trauma lost per second: a full shake (1) is gone in 2/3 s.
 - `SHAKE_MAX_OFFSET` (const): The largest shake offset per axis, in logical px, at trauma 1.
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
@@ -418,6 +420,7 @@
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `MenuAction` (type): A fixed menu action: it drives menus and the pause screen, never the sim.
 - `MessageFunction` (type): One compiled message: Paraglide passes its inputs as one object.
+- `ModelInvalid` (class): A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet (M3R-D1).
 - `MusicOptions` (interface): Options for `Audio.music`: where to begin and which region loops.
 - `negotiateLocale(candidates)`: The order is the player's saved choice, Ruken's session locale, the browser's languages, the default (PRODUCT spec §4 item 2, as decided 2026-10-16: a choice made in the game's own picker outranks the platform's, as in FloorFifty, where detection runs only "when the player has not chosen one").
 - `NetworkPort` (interface): The networking seam (PRODUCT spec §2 F1): remote commands in, authoritative snapshots out.
@@ -438,7 +441,7 @@
 - `RebindTimedOut` (class): Nothing was pressed for `REBIND_TIMEOUT_MS`: nothing changes.
 - `RebindUnknown` (class): Refused: the profile has no such action.
 - `Renderer` (const): The game's renderer as a runtime service.
-- `RendererFactory` (type): Builds the game's renderer on a render target in a scope, failing `RendererUnavailable` when it cannot start.
+- `RendererFactory` (type): Builds the game's renderer for a target.
 - `RendererUnavailable` (class): Neither WebGL2 nor WebGPU could be initialized.
 - `RenderTarget` (interface): Where a renderer draws: the host element, the layout geometry, the loaded assets and the presentation bus.
 - `RESERVED_KEYS` (const): Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
