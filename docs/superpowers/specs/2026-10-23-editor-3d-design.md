@@ -132,6 +132,8 @@ interface AskProvider { propose(prompt: string, scope: Selection, budget: number
 
 AF ships none of the three. The Last Light server implements them for its own repo. The editor treats a missing port as "feature off" and never as an error.
 
+**Note, 2026-10-30 (EDS.1b):** these ports moved to `@mcthaydt/automata-editor-kit/ports`, whose shapes the [editor suite spec](./2026-10-30-editor-suite-design.md) §4.3 owns: `ChangeSet` gains `checkpoint`, `ship`, `close` and `list` (and `current()` its `base`), `Generator` became a declared check with `joins` (`CheckDef`), and `AskProvider.propose` takes one request object with the level's `path` added; `Proposal` is unchanged. `packages/editor-3d/src/ports/ports.ts` is deleted.
+
 ### 4.5 Codec
 
 The codec turns *old text + new model* into *new text* and changes nothing it was not asked to. It has four parts, each a pure function with no DOM, clock or `typescript` import.

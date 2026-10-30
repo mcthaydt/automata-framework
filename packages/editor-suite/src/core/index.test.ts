@@ -19,6 +19,7 @@ describe('the entry', () => {
       'fileAccess',
       'globMatch',
       'loadEditorList',
+      'workspaceFile',
     ])
   })
 })

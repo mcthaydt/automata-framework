@@ -41,9 +41,11 @@ function either<V>(a: V | undefined, b: V | undefined, by: (a: V, b: V) => V): V
   return by(a, b)
 }
 
+/** A weight stays in 0..1, even where an overshooting ease takes t past the ends (`blendAt`). */
+const weightOf = (w: number): number => plain(Math.min(1, Math.max(0, w)))
 const fade = (target: EffectorTarget, share: number): EffectorTarget => ({
   ...target,
-  weight: plain((target.weight ?? 1) * share),
+  weight: weightOf((target.weight ?? 1) * share),
 })
 
 function blendTarget(
@@ -59,7 +61,7 @@ function blendTarget(
   const weight =
     a.weight === undefined && b.weight === undefined
       ? undefined
-      : plain(lerp(a.weight ?? 1, b.weight ?? 1, t))
+      : weightOf(lerp(a.weight ?? 1, b.weight ?? 1, t))
   return {
     ...(pos ? { pos } : {}),
     ...(rot ? { rot } : {}),
@@ -92,10 +94,22 @@ export function blend(a: PoseDef, b: PoseDef, t: number, context: SpaceContext =
   if (Number.isNaN(t)) throw new RangeError('blend: t is not a number')
   if (t <= 0) return a
   if (t >= 1) return b
+  return blendAt(a, b, t, context)
+}
+
+/**
+ * `blend` without the clamp: `t` outside 0..1 extrapolates positions, turns and pole directions along the same
+ * lines (an ease that overshoots its key and settles back, §4.4.4's Bézier eases); weights stay in 0..1. At
+ * exactly 0 and 1 the poses come back as written. The clip sampler uses it.
+ */
+export function blendAt(a: PoseDef, b: PoseDef, t: number, context: SpaceContext = {}): PoseDef {
+  if (!Number.isFinite(t)) throw new RangeError(`blendAt: t ${t} is not a finite number`)
+  if (t === 0) return a
+  if (t === 1) return b
   return blendInOneSpace(...inOneSpace(a, b, context, 'in the two poses'), t)
 }
 
-/** `a` and `b`, whose shared channels agree on their space, blended at 0 < t < 1. */
+/** `a` and `b`, whose shared channels agree on their space, blended at `t`. */
 function blendInOneSpace(a: PoseDef, b: PoseDef, t: number): PoseDef {
   const effectors: Partial<Record<EffectorId, EffectorTarget>> = {}
   for (const id of EFFECTOR_IDS) {

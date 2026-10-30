@@ -108,6 +108,12 @@ interface Belt {
 function blend(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseDef;
 ```
 
+### `blendAt` (function)
+
+```ts
+function blendAt(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseDef;
+```
+
 ### `Bomber` (interface)
 
 ```ts
@@ -223,6 +229,12 @@ interface Chain {
 }
 ```
 
+### `chestFrame` (function)
+
+```ts
+function chestFrame(skeleton: Skeleton, world: readonly M[]): M;
+```
+
 ### `clamp` (const)
 
 ```ts
@@ -239,6 +251,43 @@ type Classic = Top | Waistcoat | Trousers | LegWear | Shoes | Skirt | Apron | Co
 
 ```ts
 function clearance(s: Skeleton, parts: readonly Part[], arms: Readonly<Record<Side, number>>, skip?: readonly number[]): [number, number];
+```
+
+### `ClipKey` (interface)
+
+```ts
+interface ClipKey {
+    readonly t: number;
+    readonly pose: string | PoseDef;
+    readonly ease?: Ease | undefined;
+}
+```
+
+### `clipSchema` (const)
+
+```ts
+const clipSchema: z.ZodType<FigureClipDef>;
+```
+
+### `clipTime` (function)
+
+```ts
+function clipTime(clip: FigureClipDef, elapsed: number): number;
+```
+
+### `ClipWarning` (interface)
+
+```ts
+interface ClipWarning {
+    readonly path: readonly (string | number)[];
+    readonly message: string;
+}
+```
+
+### `clipWarnings` (function)
+
+```ts
+function clipWarnings(clip: FigureClipDef, poses: PoseLibrary): ClipWarning[];
 ```
 
 ### `clonePose` (function)
@@ -309,6 +358,18 @@ const DEFAULT_SLIDERS: Readonly<Sliders>;
 const dot: (a: V3, b: V3) => number;
 ```
 
+### `Ease` (type)
+
+```ts
+type Ease = 'step' | 'linear' | 'in' | 'out' | 'inOut' | readonly [number, number, number, number];
+```
+
+### `easeAt` (function)
+
+```ts
+function easeAt(ease: Ease | undefined, u: number): number;
+```
+
 ### `EffectorId` (type)
 
 ```ts
@@ -368,6 +429,34 @@ const FIGURE_PPM = 73.8;
 interface FigureBody {
     readonly sliders: Partial<Sliders>;
     readonly genes?: Partial<Genes> | undefined;
+}
+```
+
+### `figureClipContent` (const)
+
+```ts
+const figureClipContent: ContentSchemaDef<'figure-clip'>;
+```
+
+### `FigureClipDef` (interface)
+
+```ts
+interface FigureClipDef {
+    readonly length: number;
+    readonly loop: 'once' | 'loop' | 'pingpong' | 'hold';
+    readonly mask: readonly MaskGroup[];
+    readonly mode?: 'override' | 'additive' | undefined;
+    readonly rate?: number | undefined;
+    readonly blend?: {
+        readonly inMs: number;
+        readonly outMs: number;
+    } | undefined;
+    readonly keys: readonly ClipKey[];
+    readonly markers?: Readonly<Record<string, number>> | undefined;
+    readonly cues?: readonly {
+        readonly t: number;
+        readonly id: string;
+    }[] | undefined;
 }
 ```
 
@@ -942,6 +1031,24 @@ interface Mark {
 }
 ```
 
+### `markerTime` (function)
+
+```ts
+function markerTime(clip: FigureClipDef, name: string): number;
+```
+
+### `MASK_GROUPS` (const)
+
+```ts
+const MASK_GROUPS: readonly ["root", "pelvis", "torso", "head", "armL", "armR", "legL", "legR"];
+```
+
+### `MaskGroup` (type)
+
+```ts
+type MaskGroup = (typeof MASK_GROUPS)[number];
+```
+
 ### `matq` (function)
 
 ```ts
@@ -1090,6 +1197,12 @@ interface PoseDef {
 }
 ```
 
+### `PoseLibrary` (type)
+
+```ts
+type PoseLibrary = Readonly<Record<string, PoseDef>>;
+```
+
 ### `PoseProblem` (interface)
 
 ```ts
@@ -1196,6 +1309,12 @@ const REFERENCE_SKELETON: Skeleton;
 function restPose(): Pose;
 ```
 
+### `retime` (function)
+
+```ts
+function retime(clip: FigureClipDef, length: number): FigureClipDef;
+```
+
 ### `RigLimits` (interface)
 
 ```ts
@@ -1264,6 +1383,12 @@ const rotationOf: (m: M) => R3;
 
 ```ts
 function roundPoseNumber(value: number): number;
+```
+
+### `sample` (function)
+
+```ts
+function sample(clip: FigureClipDef, t: number, poses: PoseLibrary, context?: SpaceContext): PoseDef;
 ```
 
 ### `scale` (const)
@@ -1388,6 +1513,12 @@ interface Sliders {
 const smooth: (k: number) => number;
 ```
 
+### `smoothTime` (function)
+
+```ts
+function smoothTime(clip: FigureClipDef, elapsed: number, previous: number | undefined): number;
+```
+
 ### `Sneakers` (interface)
 
 ```ts
@@ -1467,6 +1598,12 @@ interface Stand {
 
 ```ts
 const standSchema: z.ZodType<Stand>;
+```
+
+### `stepTime` (function)
+
+```ts
+function stepTime(clip: FigureClipDef, elapsed: number, rate: number, previous?: number): number;
 ```
 
 ### `Streetwear` (type)

@@ -5,6 +5,7 @@
 //
 // Tables are strict: an unknown key is an error, so a misspelt `gate = [...]` cannot drop a row's gates. Cross-row
 // rules (a row's check or gate is declared, ids are unique) are the loader's (editor-list.ts).
+import type { CheckDef, EditMode } from '@mcthaydt/automata-editor-kit/ports'
 import { z } from 'zod'
 
 /** Where a game keeps its editor list, relative to the game root. */
@@ -13,8 +14,8 @@ export const EDITOR_LIST_PATH = 'content/editors.toml'
 /** The one format this suite reads (spec §4.2). */
 export const EDITOR_LIST_FORMAT = 'af-editors/1'
 
-/** `edit`: direct value and structure edits; `ask`: Claude may propose a diff. */
-export type EditMode = 'edit' | 'ask'
+/** A row's modes and a `[[check]]` are the ports' own shapes (editor-kit `./ports`, one owner): the list maps onto them. */
+export type { EditMode }
 
 /** One `[[file]]` row: the files its glob matches open in `editor`. The first matching row wins. */
 export interface FileRow {
@@ -28,18 +29,8 @@ export interface FileRow {
   readonly checks: readonly string[]
 }
 
-/** One `[[check]]`: a game command, run as argv in the game checkout with no shell. */
-export interface CheckRow {
-  readonly id: string
-  /** argv; `{scene}` and `{path}` are the only substitutions. */
-  readonly run: readonly string[]
-  /** `before`: runs on the candidate text and a failure refuses the write; `after`: runs on the written change set. */
-  readonly when: 'before' | 'after'
-  /** Generated files a passing run adds to the change set. */
-  readonly joins: readonly string[]
-  /** Whether its `--json` rows are a before-and-after measure (the Tuner's fairness). */
-  readonly measure: boolean
-}
+/** One `[[check]]`: a game command, run as argv in the game checkout with no shell (the ports' `CheckDef`). */
+export type CheckRow = CheckDef
 
 /** One `[[gate]]`: shown, never recorded by an editor. */
 export interface GateRow {

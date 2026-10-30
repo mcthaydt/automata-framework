@@ -104,6 +104,12 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 - **3D:** M3.1 → M3.2 → M3.4 → M3.5 → M3.6 → M3.7 → M3.10 → GAME-3D.0 → GAME-3D.1 → M9.0 → the launch (M8.9, after Pixi 3D is public: M9.10 and M8.9a). In rows: M3.1a → M3.2 and M3.1b → M3.4a to M3.4d; M3.0A → M3.5a to M3.5d → M3.6a to M3.6d; M4.12; then M3.7a, M3.7b, M3.7c → M3.10 → GAME-3D.0 → GAME-3D.1a to 1l → M9.0 to M9.10 → M8.9.
 - **Editors:** ED2D.4c2b → 4c3a, 4c3b → 4c4a, 4c4b → ED2D.5 to ED2D.10, and ED3D.5b to ED3D.12 → EDS.1, EDS.2 and EDS.9 → GAME-3D.1 (GAME-3D.1i needs ED3D.12; 1j needs EDS.9c).
 
+## Paid model changed (Owner, 2026-10-30)
+
+"I kinda want to change our plans for paid - we'll make the editor suite paid for iOS and Android instead as apps; priced like nomad sculp". The Owner then chose: Plus becomes free; the editors stay free on the web and desktop and are paid as iOS and Android apps; a one-time purchase. Draft spec: [APP](superpowers/specs/2026-10-30-paid-editor-apps-design.md); rows APP.0 to APP.5 and PLUS.FREE in 02. Plus stays paused as a lane; its code is now free work, not paid work.
+
+Later: "We need to be able to push to git; our biggest priorities for the editors are tablet ready, cloud collaboration, and designed for non-game devs to be able to work with it (a student filmmaker can hop in and make cutscenes even though they're no developer)". Chosen: git-backed async collaboration first (GitHub as the cloud), and GitHub sign-in. Every editor row is now held to tablet-ready, git-backed collaboration and plain words for people who aren't developers (APP spec §5b); rows COLLAB.1, COLLAB.2, NDX.1 and NDX.2. The cutscene journey needs `cutscenes` (M6.9) and its prerequisites, which stay in Plus (APP-D9, Owner, 2026-10-30: "Cutscenes should be in plus"). The Plus lane starts when the website lane is wrapped up (Owner, 2026-10-30: "You can start plus when website is wrapped up"); its queue then puts the cutscene path first (M6.4a, M6.5, M6.8a, M6.8c, M6.9a, M6.9b), after plus #16 (M7.5b, fixes on `backup/m7-5b-9a43885`) and PLUS.FREE.
+
 ## Exact next action
 
 1. Merge the 3D lane's PRs as it reports them ready (#221 now).
