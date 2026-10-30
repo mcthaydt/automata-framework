@@ -216,7 +216,9 @@ function sheetStyle(name: ShellRegion): string | undefined {
       style={sheetStyle('dock')}
     >
       {#if presentation.dock === 'sheet'}{@render handle('dock')}{/if}
-      <div class="body" data-scroll-region>{@render dock()}</div>
+      <!-- The dock holds a strip wider than itself (scenes, frames), scrolled sideways: it says so, so the layout
+           contract passes what lies past its side. The panel and inspector scroll up and down only. -->
+      <div class="body" data-scroll-region="both">{@render dock()}</div>
     </section>
   {/if}
 
