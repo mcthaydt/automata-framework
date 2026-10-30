@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-30 13:45Z by the coordinator (session_01QYLU1ihyHbDnh6KiB6mAsf). Source HEAD verified before this update: `1fbc5da` on `main` (#201 DX.7a, #251 RT.EXT1, #197 PRODUCT.5g, #257, #210 PRODUCT.L3a, #239 M5.6F.2, #256 ASSET.0 and #228 merged since 12:20Z; before them today: #213 NODE.1, #194 DX.5a, #235 DX.6c, #203 CI.N2, #252 CI.API1, #240, #212, #229, #207, #248, #243). The coordinator session rotates every two hours (Owner, 2026-10-30: "let's make new replacement sessions every 2hrs").
+> Updated 2026-10-30 20:05Z by the coordinator (session_01QYLU1fz84XybvBdt3Lf9JY). Source HEAD verified before this update: `c8d81a6` on `main`. Merged since 17:35Z: #263 APP.0, #246 EDS.1b, #241 M3.4a, #255 ED2D.4c3b, #245 M3.4b, #249 M3.4c, #264 CI.TO1, #267 ED2D.4c4a, #266 M4.12b, #262 (legacy sources and klipp), #224 M3.5c; website#18 QB.4a and website#20 WEB.PLAY.4b. The earlier history of this line is in git.
 
 ## Prompt for the next agent
 
@@ -90,13 +90,13 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 Each lane is a cloud session that works only in its own worktrees and PRs, never edits 02, 03, 00, 01 or `AGENTS.md`, and states its rows in each PR body ("Rows: <id> done | partial"); the coordinator ticks 02 from those lines. A lane merges its own PR once every check, parity included, is green on the head. Message a lane with the `send_message` tool of the claude-code-remote MCP server; read its transcript with `list_events`.
 
-| Lane | Session | State on 2026-10-30 15:20Z |
+| Lane | Session | State on 2026-10-30 20:05Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | rotates every 2 h (15:30Z: `session_01QYLU1eQtX9j6EyGmz86pYP`) | Merged #260, #191 PRODUCT.5d, #227 DX.2a, #237 M5.5F, #225 ED3D.8a and #253 GL.1 and #258 ED3D.5c; watching the 3D lane's #221 and #241. |
-| 3D (M3, GAME-3D, M9 free parts, M4.12), the one build lane | `session_01QYLU1gVeKcraUX7HF49N8q` (fresh at 15:20Z) | #241 M3.4a (red only in Mac Firefox: render-to-texture reads back black; fixing the snapshot helper), #221 M3.6c ready; drafts #224, #245, #247, #249, #250; branch `claude/3d-m4-12b-stick-compact` waits for the PR cap. The Owner confirmed the visual-acceptance ruling to the lane ("Approve all"). |
-| Editors (ED2D, EDFF, ED3D, EDK, EDS) | paused 14:06Z; archived | Handoff kept by the coordinator. Drafts #246 EDS.1b (on #244, merged) and #255 ED2D.4c3b (on #206, merged) wait for the lane's resume. |
-| Plus (automata-plus) | paused 14:07Z; archived | plus #16 M7.5b's review fixes are on `backup/m7-5b-9a43885` (not pushed to #16, which would queue Plus CI); plus #14 (two CI failures on Plus `main`). |
-| Website | paused 14:06Z; archived | website #18 QB.4a (green, stacked on merged #17): retarget to `main`, merge; then WEB.PLAY.4 part B. |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | rotates every 2 h (19:40Z: `session_01QYLU1fz84XybvBdt3Lf9JY`) | Watching #247 M3.4d, #250 M3.7a, #265 ED3D.5d, #268 EDS.2a, #269 EDS.1d-a, #270 M3.5d (stacked on #247), #271 (this 02/03 update), #273 M3.1b, website#21 WEB.PLAY.5. Visual acceptance recorded on #268 and #273. |
+| 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1h7GD44P1qFdXJbhZd` (fresh at 19:21Z) | #273 M3.1b ready (S7 part 2: Q2 WebGL2 against WebGPU measured FAIL, 61.8% of pixels; the spike removed). Next: M3.5d part 2 (the figures-walk and figures-outfits-items examples), M3.6d, M3.7b, M3.10, GAME-3D.1a to 1l, M9. |
+| Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1hU1NvfXZc8ChZBAWM` (fresh at 19:55Z) | #272 ED2D.4c4b draft (plan, step 1 of 9); EDS.2b waits on #268; EDS.1d-b waits on ED2D.9. |
+| Website (`mcthaydt/automata-website`) | `session_01QYLU1hE7DAF6hEy3zKsyRe` (fresh at 19:43Z) | website#21 WEB.PLAY.5 retargeted to `main`; next WEB.PLAY.6 to .11, DX.9w, DX.10a, DX.11w, QB.4b/c, QB.5b, M10 (store links only). Deploys stay dry runs. |
+| Plus (automata-plus) | paused; starts when the website lane wraps up (Owner: "You can start plus when website is wrapped up") | plus #16 M7.5b's review fixes are on `backup/m7-5b-9a43885`; plus #14 (two Plus `main` CI failures). Then PLUS.FREE and the cutscene path (M6.4a, M6.5, M6.8a, M6.8c, M6.9a, M6.9b). |
 
 ## Critical paths
 
@@ -116,7 +116,7 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 
 ## Exact next action
 
-1. Merge the 3D lane's PRs as it reports them ready (#221 now).
+1. Merge each watched PR on green, parity included (#270 after #247). Tick 02 as they merge.
 2. Done 2026-10-30: #227 (DX.2a) merged (`b9244c9`); `AGENTS.md` now lists cli, figures and the editors as the private packages. The Plus lane's M5.8, M6.1/6.2, M3.3, PRODUCT.6 and NetworkPort import are unblocked (Plus is paused until the Owner resumes it).
 3. Done 2026-10-30: #253 (GL.1) merged (`11a4e4e`); the GL spec §5.5 text is in `AGENTS.md`'s `pnpm style` and `pnpm boundaries` bullets and the 3D lane was told GL.7 can start. Next: GL.3 (the placeholder's `src/main.ts`), failing test first.
 4. The "Version packages" PR (#226) is no longer blocked by PRODUCT.5g (#197 merged); before merging it, check its version bumps and that no physics package publishes from AF, and its publish waits for the Owner's approval in the release environment.
@@ -138,6 +138,8 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 - **Core/Stable labels** (DX §2.3, DX.10e): the compatibility policy, if they should return at 1.0; without one they stay cut.
 - **The veto of the editor specs' defaults** (EDK.0, ED2D.0, ED3D.0), and whether the 2026-10-23 20:55 "Mock-up approved" covered the Figma `Kit` page (ED.0).
 - **Reviews:** the new public API (EX.4f `postFilter`, EX.4h the `DrawContext` visible band, PRODUCT.2v1 to 2v3, PRODUCT.2s), the EDS.0, M9.0 and M10.0 specs, the GAME-3D.0 design doc and the M8.7 API freeze.
+- **WebGPU for 3D** (raised 19:21Z): the M3.1b GPU run measured WebGL2 against WebGPU at 61.8% of pixels different (max 87; the right wall missing and darker lighting under WebGPU, identical in Chromium and WebKit), an `@pixi/3d` beta divergence (#273). Default meanwhile: 3D is WebGL2-only, WebGPU is not offered for 3D, and a bug goes to the Pixi 3D beta.
+- **M4.12b on a phone** at compact landscape (#266, merged): the real-device check.
 - **Device and visual acceptances**, never ticked by an agent: M4M5.OG (M4.10 on a real phone and two controllers; the M4.7 covers; M5.2 S-c on two devices; M5.7's panel and a real submit); EDK.1 (the built shell), EDK.3 (EK-b on the iPad with the Pencil), EDK.4 (the widgets), EDK.5 (EK-d and EK-f in iPad Safari, EK-e with the Mac's folder picker); the iPad passes of ED2D.10, EDFF.5, ED3D.12 and EDS.11; the baselines of PRODUCT.L3a to L3c, M3.3b and PRODUCT.6; M3.1b's S7-Q10 captures; M3.10 (base-3d on an Android phone and an iPhone, the 24 mm look, the poses and clips, G5 and G6, one paid props run on the Owner's keys); GAME-3D.1l; M6.13; M7.10 (two phones against staging, or the local-VM evidence); M5.8c (a real iPad audio unlock); PRODUCT.8e; PUB.5's real itch.io push; DX.9w's `/proof`; the restored website copy (DX.10a, DX.10b); M10.7 (real money and the site's look).
 - **Optional:** access to `pixijs-userland/pixi-3d-beta` (M3.1a); fine-grained read tokens for FloorFifty and The Last Light as AF secrets (M8.10); a deploy key for the skills mirror (DX.11c); Meshy and OpenAI keys for one paid props run (M3.9b); `RUKEN_TOKEN` for a real publish smoke (M8.5b).
 
