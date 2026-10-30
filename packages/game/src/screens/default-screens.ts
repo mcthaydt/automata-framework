@@ -21,7 +21,7 @@ import {
 import { type ExtensionDef, resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { CursorRunner, InputMethodTracker, type LeaderboardCopy, sendBack } from '@mcthaydt/automata-ui'
-import { Effect, SubscriptionRef } from 'effect'
+import { Effect, Scope, SubscriptionRef } from 'effect'
 import type { GameSaves } from '../define-game.ts'
 import type { InputMap } from '../input/keys.ts'
 import { applyAudio, changeAudio, savedAudio } from './audio-settings.ts'
@@ -88,7 +88,8 @@ const asRecord = (value: unknown): Record<string, unknown> =>
  * (`title → play ⇄ paused → title`, `paused ⇄ settings`).
  *
  * The screens share one sim: play creates it on first entry (seed, plugins, content, then `setup`),
- * paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. Returning
+ * paused keeps it, and the title drops it, so Quit to title and Play start again at tick 0. A runtime that shuts
+ * down with the sim alive drops it too, whichever screen is current (DX.2c). Returning
  * from paused re-sends the whole state to the renderer (G-5): `AppLoop.run` resets the renderer, so
  * play restores the sim's own snapshot, which makes the next step a resync.
  */
@@ -105,6 +106,20 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
     sim?.dispose()
     sim = undefined
   }
+
+  /** The run whose shutdown drops the sim: each run of the runtime (a retried boot, a second `runGame`) has its own. */
+  let droppedWith: Scope.Scope | undefined
+  /**
+   * Drops the sim when the run's `runtime` scope closes (DX.2c), which is after the current screen and the save's last
+   * flush have read it. Once per run: `dropSim` forgets the sim it disposes, so one the title dropped is not disposed
+   * again, and a shutdown on the title disposes nothing.
+   */
+  const dropSimOnShutdown = (runtime: Scope.Scope): Effect.Effect<void> =>
+    Effect.suspend(() => {
+      if (droppedWith === runtime) return Effect.void
+      droppedWith = runtime
+      return Scope.addFinalizer(runtime, Effect.sync(dropSim))
+    })
 
   /** A sim set up from the game's seed, plugins, content and `setup`, at tick 0. */
   const freshSim = async (): Promise<Sim> => {
@@ -180,8 +195,16 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
 
         let current = sim
         if (current === undefined) {
-          current = yield* Effect.promise(freshSim)
-          sim = current
+          // Kept the moment it is made. A runtime that shuts down while it is being made interrupts this enter, which
+          // aborts the signal: the run no longer holds a sim to drop, so the late one is disposed here (DX.2c).
+          // Waiting for it instead would hold shutdown on a plugin's engine setup.
+          current = yield* Effect.promise((signal) =>
+            freshSim().then((made) => {
+              if (signal.aborted) made.dispose()
+              else sim = made
+              return made
+            }),
+          )
         } else {
           current.restore(current.snapshot())
         }
@@ -331,5 +354,11 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
       }),
   }
 
-  return [title, play, paused, settingsScreen(game, toldPads)]
+  // Every screen ties the sim to the run before its own enter, so a flow that starts anywhere still drops it.
+  return [title, play, paused, settingsScreen(game, toldPads)].map(
+    (screen): ScreenDef => ({
+      ...screen,
+      enter: (context) => Effect.zipRight(dropSimOnShutdown(context.runtime), screen.enter(context)),
+    }),
+  )
 }
