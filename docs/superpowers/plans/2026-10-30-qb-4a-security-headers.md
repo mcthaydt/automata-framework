@@ -46,8 +46,10 @@ final HTML: every inline `<script>` is hashed. A build has 29 such scripts, one 
 ## Not in this task
 
 The live origin and its TLS certificate (Owner, DX.12); the host's own header configuration, written when the host is
-known, from `securityHeaders()`; the demo bundles' own policies (the AF builds each carry Ruken's); uptime and spend
-alerts (QB.4b); the rollback (QB.4c).
+known from `securityHeaders()` **and** the playground's `playgroundHeaders()` (§11.3: CORS, CORP and cache under
+`/playground/`; the playground spec's R-7 asks the deploy check to request a runtime file with `Origin: null`, which
+lands with WEB.PLAY.4 part B); raising HSTS from one day to a year once the live origin has passed `check:deployed` for
+a week; uptime and spend alerts (QB.4b); the rollback (QB.4c).
 
 ## Execution log
 
@@ -64,3 +66,20 @@ alerts (QB.4b); the rollback (QB.4c).
   browser suite under the policy and the header set (Chromium 153 headless shell and WebKit 26.6, two workers): 458
   passed, 2 skipped, 12.1 min. Its console-error gate would have failed on any CSP violation, and "hydration requests
   its modules only after the first contentful paint" passing in both engines shows the hashed start script ran.
+- **Independent review (a separate agent: the focused tests, `check-site`, and Playwright in Chromium, WebKit and
+  Firefox on 13 pages and the five demos, with Play, a scroll and a client-side navigation: no
+  `securitypolicyviolation`), addressed test-first:**
+  1. The demos had no script policy at all (they are copied in as built, so the page hook never sees them; the plan's
+     "the AF builds each carry Ruken's" was wrong). `/demos/` now gets a whole policy in its header (`DEMO_POLICY`:
+     scripts and workers from the site, `wasm-unsafe-eval` for Rapier, no inline script, no eval), the site's own
+     choice for its origin, not a copy of Ruken's. All five demos reached ready under it in Chromium, WebKit and
+     Firefox with no violation.
+  2. `check-deployed` did not check the page policy on the live origin; `checkServedPolicies` runs the `check:site` rule
+     on the HTML that `/` and `/docs` serve, so a host that rewrites the start script fails it. The header check also
+     reads `/demos/` and a missing page now.
+  3. The hook's regex could misread a script (CRLF, upper case, `</script >`): it now reads them as the parser does,
+     and `check:site` hashes the parsed DOM (JSDOM) instead of reusing the hook's reading, so the two are independent.
+  4. HSTS starts at one day (`max-age=86400`): a certificate problem on a new host then costs a day, not a year.
+  5. Recorded above: the host configuration needs the playground's headers too.
+  Not changed: `404.html` stays outside `builtPages` (it carries its policy); a streamed page would need the hook to
+  honour `done`, as the hydration rewrite already assumes; `.mjs` is not in serve-static's types (none are built).

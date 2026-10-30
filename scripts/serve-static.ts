@@ -60,7 +60,7 @@ createServer((request, response) => {
   const notFound = join(root, '404.html')
   const [status, path] = file ? [200, file] : isFile(notFound) ? [404, notFound] : [404, undefined]
   // Every response carries the site's header set (QB.4a), as the production host must.
-  const security = Object.fromEntries(Object.entries(securityHeaders()).map(([name, value]) => [name.toLowerCase(), value]))
+  const security = Object.fromEntries(Object.entries(securityHeaders(url.pathname)).map(([name, value]) => [name.toLowerCase(), value]))
   if (!path) { response.writeHead(404, { ...security, 'content-type': 'text/plain' }).end('Not found'); return }
   // Under /playground/ the frame's own rule (spec §11.3, the framework's playground-headers.ts) replaces no-store, for
   // files that exist: a 404 for a hashed runtime name must not be cached for good.

@@ -258,6 +258,15 @@ describe('checkSite', () => {
     expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: an inline script is not allowed by the page’s Content-Security-Policy (its sha256 is not in script-src), so the browser will refuse to run it'])
   })
 
+  it('hashes the scripts as the browser parses them, apart from the hook: a CRLF the hook read raw is caught', () => {
+    const site = goodSite()
+    const html = unprotectedPage('/', { body: '<p><a href="/docs">Docs</a></p><script>a()\nb()</script>' })
+    site.write('index.html', withContentSecurityPolicy(html).replace('a()\nb()', 'a()\r\nb()'))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+    site.write('index.html', withContentSecurityPolicy(html).replace('a()\nb()', 'a()\n b()'))
+    expect(checkSite(site.root, { now: NOW })).toHaveLength(1)
+  })
+
   it('fails when script-src allows unsafe-inline or unsafe-eval', () => {
     const site = goodSite()
     site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>' }).replace("script-src 'self'", "script-src 'self' 'unsafe-inline'"))

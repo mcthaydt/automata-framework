@@ -27,6 +27,11 @@ describe('withContentSecurityPolicy', () => {
     expect(script).not.toMatch(/unsafe/)
   })
 
+  it('hashes what the browser runs: CRLF read as LF, any letter case, a space before the closing >', () => {
+    const script = directive(policyOf(withContentSecurityPolicy(page('', '<SCRIPT>a()\r\nb()</script >'))), 'script-src')
+    expect(script).toBe(`script-src 'self' ${hash('a()\nb()')}`)
+  })
+
   it('does not hash a script loaded from a file', () => {
     const script = directive(policyOf(withContentSecurityPolicy(page('<script type="module" src="/a.js"></script>', ''))), 'script-src')
     expect(script).toBe("script-src 'self'")

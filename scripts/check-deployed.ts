@@ -12,11 +12,18 @@ import { createServer } from 'node:net'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
+import { JSDOM } from 'jsdom'
 import { securityHeaders } from '../src/lib/security-headers'
+import { checkContentSecurityPolicy } from './site-checks'
 
 const SERVED_FILES = ['/llms.txt', '/llms-full.txt'] as const
-/** Where the header set is read back (QB.4a): a page and a text file, since a host can configure the two apart. */
-const HEADER_PATHS = ['/', '/llms.txt'] as const
+/**
+ * Where the header set is read back (QB.4a): a page, a text file, the demos (their own policy) and a missing page, since
+ * a host can configure each apart.
+ */
+const HEADER_PATHS = ['/', '/llms.txt', '/demos/', '/no-such-page'] as const
+/** Pages whose served HTML must carry a policy that allows its own inline scripts (QB-d). */
+const POLICY_PAGES = ['/', '/docs'] as const
 
 type Fetch = (url: string) => Promise<Response>
 
@@ -55,11 +62,30 @@ export async function checkHeaders(origin: string, paths: readonly string[], fet
       problems.push(`${path}: ${(error as Error).message}`)
       continue
     }
-    for (const [name, expected] of Object.entries(securityHeaders())) {
+    for (const [name, expected] of Object.entries(securityHeaders(path))) {
       const actual = response.headers.get(name)
       if (actual === null) problems.push(`${path}: ${name} is missing, expected "${expected}"`)
       else if (actual !== expected) problems.push(`${path}: ${name} is "${actual}", expected "${expected}"`)
     }
+  }
+  return problems
+}
+
+/**
+ * The page policy on the HTML the origin serves (QB-d), by the same rule as `pnpm check:site`: a host or CDN that
+ * rewrites a page's inline script breaks its hash, and the browser would refuse to hydrate the page.
+ */
+export async function checkServedPolicies(origin: string, paths: readonly string[], fetchFile: Fetch = fetch): Promise<string[]> {
+  const problems: string[] = []
+  for (const path of paths) {
+    let html: string
+    try {
+      html = await (await fetchFile(new URL(path, origin).href)).text()
+    } catch (error) {
+      problems.push(`${path}: ${(error as Error).message}`)
+      continue
+    }
+    problems.push(...checkContentSecurityPolicy(path, html, new JSDOM(html).window.document))
   }
   return problems
 }
@@ -109,7 +135,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const origin = local?.origin ?? positionals[0]!
   let problems: string[]
   try {
-    problems = [...(await checkServedFiles(origin, buildDir)), ...(await checkHeaders(origin, HEADER_PATHS))]
+    problems = [
+      ...(await checkServedFiles(origin, buildDir)),
+      ...(await checkHeaders(origin, HEADER_PATHS)),
+      ...(await checkServedPolicies(origin, POLICY_PAGES)),
+    ]
   } finally {
     local?.stop()
   }
@@ -117,5 +147,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error(problems.join('\n'))
     process.exit(1)
   }
-  console.log(`${SERVED_FILES.join(' and ')} are served from ${origin} as built, with the security headers on ${HEADER_PATHS.join(' and ')}.`)
+  console.log(`${SERVED_FILES.join(' and ')} are served from ${origin} as built, with the security headers on ${HEADER_PATHS.slice(0, -1).join(', ')} and ${HEADER_PATHS.at(-1)} and the page policy on ${POLICY_PAGES.join(' and ')}.`)
 }

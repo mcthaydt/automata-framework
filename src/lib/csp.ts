@@ -9,8 +9,11 @@ import { createHash } from 'node:crypto'
  */
 export const CSP_META_PREFIX = '<meta http-equiv="Content-Security-Policy" content="'
 
-const INLINE_SCRIPT = /<script(\s[^>]*)?>([\s\S]*?)<\/script>/g
-const HEAD = /<head(\s[^>]*)?>/
+// The HTML parser reads a script's text up to the first `</script`, in any letter case, and turns CR LF and lone CR
+// into LF before the browser hashes it. scripts/site-checks.ts hashes the parsed DOM instead, so the two disagree only
+// if this reading is wrong.
+const INLINE_SCRIPT = /<script(\s[^>]*)?>([\s\S]*?)<\/script\s*>/gi
+const HEAD = /<head(\s[^>]*)?>/i
 
 const OTHER_DIRECTIVES = [
   "style-src 'self' 'unsafe-inline'",
@@ -27,10 +30,10 @@ const OTHER_DIRECTIVES = [
 export const scriptHash = (text: string) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`
 
 /** The hash of every inline script in the page, in document order; a script with a `src` runs from a file and has none. */
-export function inlineScriptHashes(html: string): string[] {
+function inlineScriptHashes(html: string): string[] {
   return Array.from(html.matchAll(INLINE_SCRIPT))
     .filter(([, attributes]) => !/\ssrc\s*=/.test(attributes ?? ''))
-    .map(([, , text]) => scriptHash(text!))
+    .map(([, , text]) => scriptHash(text!.replace(/\r\n?/g, '\n')))
 }
 
 /** The page with its policy as the first element of `<head>`, before anything the browser could run or fetch. */
