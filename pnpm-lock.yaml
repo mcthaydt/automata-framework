@@ -476,6 +476,9 @@ importers:
       fflate:
         specifier: 0.8.3
         version: 0.8.3
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
       svelte:
         specifier: 5.57.1
         version: 5.57.1

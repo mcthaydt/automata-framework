@@ -431,7 +431,9 @@ function sheetStyle(name: ShellRegion): string | undefined {
     min-height: 0;
     overflow: auto;
     overscroll-behavior: contain;
-    padding: var(--space-2);
+    /* The end edge keeps 16 px: macOS lays its overlay scroll bar (about 15 px, hit-tested in Safari) over that edge
+       once the body scrolls, and a control under it would lose its taps there. */
+    padding: var(--space-2) var(--space-4) var(--space-2) var(--space-2);
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
