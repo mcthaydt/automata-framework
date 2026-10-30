@@ -122,6 +122,8 @@ export function tail(b: HairBuild, o: Tail): void {
         swingOf,
         b.nextSeam(),
       )
+      // Tagged: the source has no cuffs at its ppm (decision 4), so the goldens leave them out by this tag.
+      parts[parts.length - 1] = { ...at(parts, parts.length - 1), tag: 'cuff' }
     }
   }
   // The tie: a band round the gathered ropes where they rise from the crown, whole texels tall, the pony's
