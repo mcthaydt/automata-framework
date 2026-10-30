@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { formatDiagnostic } from '../diagnostics/diagnostic'
 import { parseDocument } from '../parse/parse-document'
-import { fontsSchema } from './fonts.schema'
+import { fontFilesSchema, fontsSchema } from './fonts.schema'
 
 // `content/fonts.toml` (M5 spec §4.7 Fonts, M5-D7): each committed source font, its recorded hash and licence, and
 // the content languages it serves.
@@ -41,5 +41,19 @@ describe('fontsSchema', () => {
 
   it('refuses an unknown key', () => {
     expect(refusals(font(`${valid}\nweight = 400`)).join('\n')).toContain('weight')
+  })
+})
+
+// `fonts.json`, which the font build writes beside the subsets: each font's subset file for each language. The
+// preload list reads it back (M5.6F.2); `preload-list.test.ts` reads a real build's file with this schema.
+describe('fontFilesSchema', () => {
+  it("reads each font's subset file by language", () => {
+    const files = { pixel: { en: 'pixel-en-0123abcd.woff2', fr: 'pixel-fr-4567cdef.woff2' } }
+    expect(fontFilesSchema.parse(files)).toEqual(files)
+  })
+
+  it('refuses a subset that is not a file name', () => {
+    expect(fontFilesSchema.safeParse({ pixel: { en: 1 } }).success).toBe(false)
+    expect(fontFilesSchema.safeParse({ pixel: 'pixel-en-0123abcd.woff2' }).success).toBe(false)
   })
 })
