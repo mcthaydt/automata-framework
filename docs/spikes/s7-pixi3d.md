@@ -1,7 +1,7 @@
-# S7: `@pixi/3d` 0.1.0-beta.2 under AF's rules (part 1)
+# S7: `@pixi/3d` 0.1.0-beta.2 under AF's rules
 
 - **Question:** does the `@pixi/3d` beta fit AF: Ruken's CSP after `render-pixi/no-eval`, AF's renderer seams, the angled 24 mm camera, its bytes and CPU costs, and its terms? ([M3 spec, revised](../superpowers/specs/2026-10-18-m3-3d-characters-design.md) §3; [2026-10-16 spec](../superpowers/specs/2026-10-16-m3-25d-pipelines-design.md) §3 for S7-Q6, S7-Q7 and the `extras` rule.)
-- **Part 1 (M3.1a)** answers what runs without a GPU: S7-Q1, Q5, Q7, Q11, S7-g and the first Node numbers for Q8 and Q9. **Part 2 (M3.1b, GPU runner)** answers S7-Q2, Q3, Q4, Q10 and the phone numbers, adds the verdict row to `README.md` and removes the spike folder. No verdict is written here.
+- **Part 1 (M3.1a)** answers what runs without a GPU: S7-Q1, Q5, Q7, Q11, S7-g and the first Node numbers for Q8 and Q9. **Part 2 (M3.1b, GPU runner)** answers S7-Q2, Q3, Q4, Q10 and the phone numbers, adds the verdict row to `README.md` and removes the spike folder. The verdict is at the end of part 2.
 - **Method:** `spikes/s7-pixi3d` (a standalone package outside the workspace, `pnpm install --ignore-workspace`): `pixi.js` 8.22.0, `@pixi/3d` from `vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz` (`file:`), `effect` 3.22.2, `zod` 4.6.6, Vite 8.3.3, Playwright 1.63.0. The page mounts through render-pixi's real `createPixiRenderer` `setup(stage)` and places the figures with render-pixi's real `RenderDeltaConsumer` over the `View3D`'s root (imported from `packages/render-pixi/src` by Vite aliases, with `resolve.dedupe` so there is one `pixi.js`, 8.22.0). `render-pixi/no-eval` is that package's own file, imported first, not a replica. `node measure.ts` builds the pages and serves them with `compileHeaders` from the vendored `@ruken/manifest` on the spike's `ruken.toml`; `node bench/rig-bench.ts` times the rig; `node --test src/bundle/extras-guard.test.ts` runs the bundle guard; `tsc -p .` checks the seam types.
 - **The scene:** a 12 × 10 × 3 m box room (floor, far and side walls; the near wall and ceiling cut, as §4.2's occluder rule would), the angled camera (24 mm, 25° down, 5 m back, focus 1.0 m above the followed figure), six procedural figures on FigureBuilder's skeleton (27 joints, 17 box/capsule meshes each; two play keyed clips, one walking a circle; one turns its head and reaches its right arm at the followed figure with `twoBoneIK`), one static GLB prop, a directional light, a hemisphere environment and linear fog (9 to 22 m).
 - **Sources:** FigureBuilder `a1f7246` (`src/render/figure/{math,rig,genes}.ts`, copied, formatting only); The Last Light `92e6704` (`src/render/glb.ts` `parseGlb`, copied, formatting only; `src/render/models/desk.glb`, 201,368 bytes, SHA-256 `7468a3b5…0c4dbe`, made by GPT prop sheet → Meshy image-to-3D per its `docs/art/props-3d/README.md`; static, no skin).
@@ -76,11 +76,84 @@ Desktop-class numbers sit 10 to 20 times under the targets (≤ 0.1 ms a solve, 
 - **A page importing `@pixi/3d/extras`** (`extras.html`: no-eval first, then `ParticleSystem3D`) records **one `securitypolicyviolation`** (`script-src`, blocked `eval`) in Chromium, WebKit and Firefox; Firefox also logs it as a console error. The scene's pages record none. So the §3.2 rule stands: `render-pixi3d` never imports `./extras`.
 - **The guard** (`src/bundle/extras-guard.ts`, `assertNoExtras(dir)`, written to move into `packages/render-pixi3d` in M3.4a): its test passes the scene's build and fails the extras page's build. **A finding:** the name `generateSpawnBurst` is **not** in the minified production bundle although the extras code is, because the minifier renames it; a check on that name alone would pass a bundle that violates the CSP. The guard also matches string literals the spawn code generator emits (`ctx.packedFrames`, which the minified extras chunk holds), and the name for unminified builds.
 
-## Pending M3.1b (GPU runner)
+## Part 2 (M3.1b): the GPU runner
 
-S7-Q1 in Firefox (and again in Chromium and WebKit on a real GPU), S7-Q2 (WebGL2 and WebGPU parity, including the UBO half of the remedy), S7-Q3 (p95 on both phone profiles), S7-Q4 (non-black capture), S7-Q10 (legibility at 844×390 and 780×270, the horizon, depth precision, the 21:9 stretch), the phone numbers for S7-Q8 and S7-Q9; the verdict row and the spike folder's removal.
+- **Run:** GitHub Actions run 41114454352 (`e2e.yml`, `--project=s7`), 2026-10-30 19:36 UTC, branch `claude/3d-m3-1b-s7-gpu` at `5bf53a87`; runner `af-mac` (macOS, Darwin 27.0.0, Apple M1, 8 cores, real GPU in every engine); Node 24.21.0; Chromium 153.0.8010.12 (full Chromium, new headless; ANGLE Metal), WebKit 26.6 (Apple GPU), Firefox 155.0 (WebGL on the M1). Every capture says `software: false`. The page is `index-shim.html` (no-eval first, then the four-function shim the Owner chose for S7-Q1) under Ruken's CSP, served by `serve.ts`. Results: [`s7-results.json`](../evidence/owner-visual/2026-10-30-s7-q10/s7-results.json); captures: [`docs/evidence/owner-visual/2026-10-30-s7-q10/`](../evidence/owner-visual/2026-10-30-s7-q10/README.md).
+- **The first run** (41111249198, `af-mac-2`, `b11cec86`) measured the same numbers except that full Chromium logged a `/favicon.ico` 404 as a console error, which the spec counts against S7-Q1 and the S7-Q3 verdicts. The spike pages now declare an empty icon (`5bf53a87`); nothing else changed between the runs.
+
+### S7-Q1 on a real GPU — **pass** (with the shim)
+
+| Engine | Renderer | GPU | CSP events | Console errors | Page errors |
+|---|---|---|---|---|---|
+| Chromium | WebGL2 | ANGLE Metal, Apple M1 | 0 | 0 | 0 |
+| WebKit | WebGL2 | Apple GPU | 0 | 0 | 0 |
+| Firefox | WebGL2 | Apple M1 | 0 | 0 | 0 |
+
+### S7-Q2: WebGL2 and WebGPU parity — **fails**
+
+One held frame (`still=2`) per backend, compared per pixel with the tolerance from the spec (a channel differs by more than 2 on at most 0.5% of pixels, no channel by more than 16).
+
+| Engine | WebGPU ran as asked | Pixels over 2 | Share | Max channel diff |
+|---|---|---|---|---|
+| Chromium | yes (`apple \| metal-3`) | 569,286 of 921,600 | 61.8% | 87 |
+| WebKit | yes (Apple) | 569,286 of 921,600 | 61.8% | 87 |
+| Firefox | no: WebGPU is not offered, the page fell back to WebGL2 | not compared | | |
+
+The two engines that ran WebGPU give identical numbers, so the difference is `@pixi/3d`'s, not a browser's. Under WebGPU the right-hand side wall is not drawn and the floor and walls are darker (mean luma 103.5 against 119.9 under WebGL2): the Phong lighting differs. The WebGPU path is the shim's `uboParserFunctions` half; it raised no CSP event or error, so the gap is in drawing, not in the shim. Captures: `q2-*-webgl.png`, `q2-*-webgpu.png`, `q2-*-diff.png`.
+
+Per the spec only S7-Q1 and S7-Q3 stop M3.4, so this does not. **Default until the Owner decides:** 3D stays WebGL2-only (WebGPU stays opt-in for 2D and is not offered for 3D), and the bug goes to the Pixi 3D beta with these captures.
+
+### S7-Q3: p95 frame time on the phone profiles — **pass**
+
+PRODUCT.7's probe; 3 s warm-up, then 20 s; six figures walking, two playing clips; the limit is a p95 frame interval of 33.3 ms.
+
+| Profile | CPU throttle | Interval p50 / p95 / p99 / max (ms) | Work p95 / max (ms) | Verdict |
+|---|---|---|---|---|
+| Galaxy S20, Chromium (800×360 @3) | 4× | 16.7 / 16.7 / 16.8 / 16.8 | 4.0 / 8.0 | pass |
+| iPhone 13, Chromium (844×390 @3) | 4× | 16.7 / 16.7 / 16.8 / 16.8 | 4.0 / 9.2 | pass |
+| iPhone 13, WebKit (844×390 @3) | none (WebKit has no throttle) | 17 / 19 / 22 / 34 | 2 / 4 | pass |
+
+Every profile holds the display's 60 Hz; the frame's work stays under a quarter of the 33.3 ms limit. A Mac's GPU is not a phone's: real-device timing stays the Owner's (M3.10).
+
+### S7-Q4: non-black capture — **pass**
+
+`renderer.extract` of the held frame: mean luma 119.9 under WebGL2 in all three engines and 103.5 under WebGPU in Chromium and WebKit (the limit is 16); 95.2% of pixels opaque. Firefox's WebGPU row ran WebGL2 (not offered), so it is not a WebGPU result.
+
+### S7-Q8 and S7-Q9 on the phone profiles — **pass**
+
+27 joints and 17 meshes per figure; p95 in ms.
+
+| Profile | One solve | Pose step | Figure per frame | Joints and meshes | Build |
+|---|---|---|---|---|---|
+| Galaxy S20, Chromium 4× | 0.032 | 0.098 | 0.115 | 0.098 | 4.06 |
+| iPhone 13, Chromium 4× | 0.033 | 0.080 | 0.064 | 0.090 | 2.58 |
+| iPhone 13, WebKit | 0.010 | 0.020 | 0.020 | 0.020 | 0.6 |
+
+Targets (solve < 0.1 ms, figure frame < 0.3 ms, build < 20 ms) are met on every profile.
+
+### S7-Q10: the angled view on phones — **pass, with two notes for the Owner's look**
+
+| View | Figure height (px) | Share of frame height | ≥ 25% | Void share | Void in top tenth |
+|---|---|---|---|---|---|
+| 16:9, 1280×720 | 217 | 30.1% | yes | 4.8% | 47.8% |
+| 4:3, 1024×768 | 231 | 30.1% | yes | 4.8% | 48.1% |
+| 21:9, 1680×720 | 217 | 30.1% | yes | 4.9% | 49.5% |
+| Phone, 844×390 | 118 (limit 97) | 30.3% | yes | 5.0% | 49.8% |
+| Compact, 780×270 | 81 (limit 67) | 30.0% | yes | 5.2% | 52.0% |
+
+- **Figure height** matches §4.2's expected 29% within a point at every aspect ratio.
+- **The void:** a dark band about 5% of the frame shows across the top in every view, above the far wall. The spike's room walls are 3 m, which the 25° view sees over; §4.2's rule (fog or a wall closes every view's far side) is the authored room's job, so M3.4's room and fog must close it. Recorded, not hidden: the spike room does not meet that rule.
+- **Depth precision:** the shipped planes (near 0.3, far 120) against a tight pair (near 1, far 30): 2 pixels of 921,600 differ by more than 2 (max 53), both on the seam where the far and right walls meet (1129,52 and 1083,226), where one wall's colour replaces the other's. The comparison's strict pass flag is false on those two pixels; there is no z-fighting band on the floor or a wall, which is what the question asks. Captures: `q10-depth-*.png`.
+- **The 21:9 edge stretch:** the lone figure moved to about 80% of the half-width (4.67 m sideways) is 151 px wide against 62 px at the middle (2.44×), the same 217 px tall, and leans outward. That is the 24 mm lens at 98.8° horizontal; the focus keeps the player near the middle (§4.2), so other figures near the edge will look like this. Captures: `q10-stretch-*.png`.
+- **The Owner's look** decides whether the compact 780×270 view is legible enough (`q10-compact-780x270-scene.png`, `-scene-dpr3.png`).
+
+### Verdict
+
+**PASS with conditions**, recorded in the [verdict table](./README.md): S7-Q1 and S7-Q3, the two that could stop M3.4, pass on a real GPU (S7-Q1 with the Owner's AF-owned shim). S7-Q2 fails: 3D is WebGL2-only until a beta fixes the WebGPU path. S7-Q10's void must be closed by the authored room and fog in M3.4. The spike folder and the temporary `s7` Playwright project are removed; both are recoverable from git history (`5bf53a87`).
 
 ## For the Owner
 
 - **S7-Q1 fails as asked**: `@pixi/3d` 0.1.0-beta.2 does not draw under `pixi.js/unsafe-eval`, which Ruken's CSP requires. The spec says a failed S7-Q1 stops M3.4 onward and goes to you with the evidence (above). A measured workaround exists (the four-function shim); the decision is whether M3.4 may carry it in an AF-owned `render-pixi3d/no-eval` entry while the bug goes to the Pixi 3D beta.
 - **Owner's decision on S7-Q1 (2026-10-30, about 05:45 UTC, in the chat, relayed by the coordinator): "AF-owned shim".** `render-pixi3d` ships an AF-owned `render-pixi3d/no-eval` entry carrying the four-function shim; a test pins pixi's uniform-parser count and order so a pixi or beta update that moves them fails loudly; the bug is reported to the Pixi 3D beta and the shim is removed when a fixed release lands (re-checked at M9.10); `allow_eval` is never used. M3.4 onward is unblocked.
+- **S7-Q2 fails (M3.1b):** under WebGPU `@pixi/3d` drops the right-hand wall and darkens the lighting, identically in Chromium and WebKit. Default meanwhile: 3D is WebGL2-only and the bug goes to the Pixi 3D beta. Your call: keep that default, or hold something on it.
+- **S7-Q10 (M3.1b):** look at the compact 780×270 capture and the 21:9 edge stretch; the void band is the spike room's, and M3.4's authored room and fog must close it.
