@@ -15,6 +15,7 @@ import type { LevelHints } from './level-hints'
 import type { MaterialList } from './materials'
 import type { SectorAccess } from './sector-access'
 import type { ThingAccess } from './thing-access'
+import type { ThingLinks } from './thing-links'
 
 /**
  * One layer of what a level draws. Sectors are the only kind there is; terrain and open worlds are post-launch
@@ -76,6 +77,8 @@ export interface LevelProfile<D> extends FileCodec<D> {
   materials(doc: D, context?: ProfileContext): MaterialList
   /** The unit, Walk's eye and lens, and the snap (ED3D.8a). */
   readonly hints: LevelHints
+  /** The things the level joins in pairs (ED3D.7c: Last Light's nav edges); a format with none leaves it out. */
+  readonly links?: ThingLinks<D> | undefined
 }
 
 /** The resolved sectors, or the engine's sentence as a `GeometryError`. */

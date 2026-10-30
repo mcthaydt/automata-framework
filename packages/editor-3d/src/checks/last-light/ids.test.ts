@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import type { Blockout } from '../../format/blockout.schema'
 import { expand } from '../../format/expand'
 import { toyBlockout, toyDoor, toyOpening, toyRoom } from '../../testing/toy-blockout'
-import { idProblems } from './ids'
+import { edgeDoorProblem, idProblems, zoneFaults } from './ids'
 
 const problems = (blockout: Blockout) => idProblems(blockout, expand(blockout))
 const messages = (blockout: Blockout) => problems(blockout).map((problem) => problem.message)
@@ -236,5 +236,35 @@ describe('idProblems: places that cannot be named', () => {
     const [problem] = problems(toyBlockout({ boxes: [...toy.boxes, box('a/b', { role: 'prop' })] }))
     expect(problem?.message).toBe('box a/b: role prop is not collider, seat or door')
     expect(problem?.locator).toBeUndefined()
+  })
+})
+
+describe('the zone and edge sentences the edits share (ED3D.7c)', () => {
+  const zone = (id: string, more: object = {}) => ({ id, look: [0, 0, 0] as const, distance: 1, ...more })
+  it('zoneFaults says what idProblems says of the zones, located on each zone, with the rule each breaks', () => {
+    const found = zoneFaults([
+      zone('a', { area: { x: [0, 1] } }),
+      zone('b'),
+      zone('c', { follow: 2, area: { z: [0, null] } }),
+    ])
+    expect(
+      found.map(({ rule, zone, problem }) => [rule, zone, problem.message, problem.locator?.selection]),
+    ).toEqual([
+      ['first', 'a', 'the first zone has no area: it is the rest of the map', 'entity:zone/a'],
+      ['area', 'b', 'zone b needs an area (only the first zone covers the rest)', 'entity:zone/b'],
+      ['follow', 'c', 'zone c: follow 2 is outside 0 (fixed) to 1 (the follow camera)', 'entity:zone/c'],
+    ])
+    expect(zoneFaults([]).map(({ rule, zone, problem }) => [rule, zone, problem.message])).toEqual([
+      ['first', undefined, 'the first zone has no area: it is the rest of the map'],
+    ])
+    expect(zoneFaults(toyBlockout().zones)).toEqual([])
+  })
+
+  it('edgeDoorProblem names an edge through something that is not a door box', () => {
+    const boxes = [toyDoor, { ...toyDoor, id: 'desk', kind: 'desk' as const, role: 'collider' as const }]
+    expect(edgeDoorProblem(['p', 'q', 'desk'], boxes)).toBe('nav edge p–q: desk is not a door box')
+    expect(edgeDoorProblem(['p', 'q', 'nothing'], boxes)).toBe('nav edge p–q: nothing is not a door box')
+    expect(edgeDoorProblem(['p', 'q', 'abDoor'], boxes)).toBeUndefined()
+    expect(edgeDoorProblem(['p', 'q'], boxes)).toBeUndefined()
   })
 })

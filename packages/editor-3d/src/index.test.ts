@@ -249,6 +249,17 @@ describe('public entry', () => {
     expect([place.id, entry]).toEqual(['crate2', 'things:crate'])
   })
 
+  it('exports the link edits, the Last Light links, and the rectangle and link of the Things tool', () => {
+    for (const name of ['addLink', 'removeLink', 'lastLightNavLinks'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The shapes are types, so this is checked by the compiler: the entry names them.
+    const link: editor3d.ThingLink = { a: 'p', b: 'q', via: 'door' }
+    const area: editor3d.Rectangle = { x0: 0, z0: 0, x1: 1, z1: 1 }
+    const place: editor3d.LinkPlace = { ...link, action: 'add' }
+    const links: editor3d.ThingLinks<editor3d.Blockout> | undefined = editor3d.lastLightProfile.links
+    expect([place.a, area.x1, links?.def]).toEqual(['p', 1, 'node'])
+  })
+
   it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {
     for (const name of ['splitSector', 'mergeSectors']) expect(editor3d, name).toHaveProperty(name)
     for (const name of ['retargetPortals', 'redirectPortals', 'cornerInserted', 'reversedLoop'])

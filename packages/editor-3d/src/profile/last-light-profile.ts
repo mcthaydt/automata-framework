@@ -1,11 +1,12 @@
 // The Last Light blockout as a level profile: the codec, the geometry of the sectors its expansion gives (with the nav
-// world its clearance queries read), Last Light's own checks, and the fixed things its arrays hold.
+// world its clearance queries read), Last Light's own checks, the fixed things its arrays hold, and its nav edges as links.
 import { lastLightChecks } from '../checks/last-light/last-light-checks'
 import type { Blockout } from '../format/blockout.schema'
 import { BlockoutError, type Expanded, expand } from '../format/expand'
 import { navWorld } from '../geometry/nav'
 import { blockoutCodec } from './last-light-codecs'
 import { lastLightEntityKit } from './last-light-entities'
+import { lastLightNavLinks } from './last-light-nav-links'
 import { lastLightSectorAccess } from './last-light-sectors'
 import { lastLightThingAccess } from './last-light-things'
 import { SECTOR_HINTS } from './level-hints'
@@ -31,4 +32,5 @@ export const lastLightProfile: LevelProfile<Blockout> = {
   things: lastLightThingAccess,
   materials: (_blockout, context) => lastLightMaterials(context),
   hints: SECTOR_HINTS,
+  links: lastLightNavLinks,
 }
