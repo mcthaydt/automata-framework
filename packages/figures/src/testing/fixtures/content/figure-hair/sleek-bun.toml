@@ -1,0 +1,13 @@
+# `sleekBun` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/hair.json at a1f7246; swatch names in kebab-case.
+
+about = "Slicked back into a high sleek bun: a tight shell hugging the round skull from a high, clean hairline, lifted over the ears so they and the jaw's corner show, smooth from its lit side to its shadow with one unbroken sheen band combed back along the top from the hairline toward the bun; the bun a coil high on the crown that breaks the silhouette from every side, a solid band round its foot; and the edges laid at the temples, a texel's curl each in front of the ear."
+finish = "sleek"
+
+[[pieces]]
+scalp = { from = [[0, 0.6], [0.45, 0.58], [0.85, 0.44], [1.15, 0.28], [1.35, 0.22], [1.6, 0.24], [1.9, 0.2], [2.3, -0.3], [3.1416, -0.55]], lift = 0.035, edge = 0.4, crown = 0.02, comb = [0, 0.9, -0.4], sheen = { count = 1, at = -1.5708, from = 0.45, to = 0.99, width = 0.07, ragged = 0 } }
+
+[[pieces]]
+bun = { at = [0, 1.15, -0.2], r = 0.5, turns = 2.3, rope = { r = 0.16, flat = 0.85 }, tie = true }
+
+[[pieces]]
+edges = { line = [[0, 0.6], [0.45, 0.58], [0.85, 0.44], [1.15, 0.28], [1.35, 0.22], [1.6, 0.24], [1.9, 0.2], [2.3, -0.3], [3.1416, -0.55]], at = [[1.08, 0.04, 1, 1], [1.17, 0.12, 1, 1]] }
