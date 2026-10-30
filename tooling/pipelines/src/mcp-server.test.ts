@@ -258,4 +258,62 @@ describe('the pipelines MCP server', () => {
     const status = await call('pipeline_status', { pipeline: 'toy', target: '..toy' })
     expect([status.error, status.data.exit]).toEqual([false, 0])
   })
+
+  it('takes an estimate token once', async () => {
+    const { call, personApproves } = await mcpProject(temps)
+    await call('pipeline_run', TOY)
+    await personApproves('T1')
+    await call('pipeline_run', { ...TOY, to: 'three' })
+    const token = (await call('pipeline_estimate', TOY)).data.token as string
+    expect((await call('pipeline_run', { ...TOY, token })).data.exit).toBe(0)
+    const again = await call('pipeline_run', { ...TOY, token, only: ['paid'], force: true })
+    expect([again.data.exit, again.data.error]).toEqual([
+      4,
+      'refused: the estimate token is not one this server issued; call pipeline_estimate',
+    ])
+  })
+
+  it('refuses a target that a symbolic link takes outside the project', async () => {
+    const { call, root } = await mcpProject(temps)
+    const { cpSync, mkdtempSync, symlinkSync } = await import('node:fs')
+    const { tmpdir } = await import('node:os')
+    const outside = mkdtempSync(join(tmpdir(), 'pipe-outside-'))
+    temps.push(outside)
+    cpSync(join(root, 'toy'), join(outside, 'toy'), { recursive: true })
+    symlinkSync(join(outside, 'toy'), join(root, 'link'))
+    const linked = await call('pipeline_status', { pipeline: 'toy', target: 'link' })
+    expect([linked.error, linked.data.exit, linked.data.error]).toEqual([
+      true,
+      4,
+      'refused: target link is outside the project',
+    ])
+  })
+
+  it('logs a malformed call (arguments not an object, a name not a string) and answers it as invalid', async () => {
+    const { client, auditLines } = await mcpProject(temps)
+    const { CallToolResultSchema } = await import('@modelcontextprotocol/sdk/types.js')
+    const send = (params: Record<string, unknown>) =>
+      client.request({ method: 'tools/call', params } as never, CallToolResultSchema)
+    const notObject = await send({ name: 'pipeline_status', arguments: 'toy' })
+    expect(notObject.isError).toBe(true)
+    expect(JSON.parse((notObject.content[0] as { text: string }).text)).toMatchObject({ exit: 1 })
+    const notString = await send({ name: 42, arguments: {} })
+    expect(notString.isError).toBe(true)
+    expect(auditLines().map((line) => [line.tool, line.ok, line.args])).toEqual([
+      ['pipeline_status', false, 'toy'],
+      ['42', false, {}],
+    ])
+  })
+
+  it('answers with the result beside the error when the audit line cannot be written', async () => {
+    const { client, root } = await mcpProject(temps)
+    writeFileSync(join(root, 'docs'), 'a file where the log folder should be\n')
+    const result = (await client.callTool({ name: 'pipeline_list', arguments: {} })) as {
+      isError?: boolean
+      content: { text: string }[]
+    }
+    expect(result.isError).toBe(true)
+    expect(result.content[0]?.text).toMatch(/^audit log: /)
+    expect(JSON.parse(result.content[1]?.text ?? '')).toMatchObject({ planned: ['character', 'props'] })
+  })
 })

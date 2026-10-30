@@ -90,6 +90,39 @@ export const holdLedger = (project: Project): Effect.Effect<void, string, Scope.
   )
 }
 
+/** The lock one command that changes a target holds on it, in the target folder beside `.stage.json`. */
+export const TARGET_LOCK = '.pipeline.lock'
+
+/**
+ * Holds a target for one command that changes it (run, approve, reject, request, adopt, restore), from before its
+ * state is read until after it is written, so no command saves over another's (M3.8b review: a long run's save would
+ * otherwise overwrite a decision made while it ran). Created exclusively, removed when the scope closes; a command
+ * that finds it held fails at once with exit 4, never waits. Like the ledger's, a lock left by a killed process stays
+ * until a person deletes it. A folder that does not exist is not locked: reading it fails on its own.
+ */
+export const holdTarget = (dir: string): Effect.Effect<void, string, Scope.Scope> => {
+  const lock = join(dir, TARGET_LOCK)
+  return Effect.acquireRelease(
+    Effect.try({
+      try: () => writeFileSync(lock, `${process.pid}\n`, { flag: 'wx' }),
+      catch: (cause) => {
+        const code = (cause as { code?: unknown }).code
+        if (code === 'EEXIST')
+          return `the target is busy with another command: ${lock} (delete it if no command is going)`
+        return code === 'ENOENT' ? '' : `${lock}: ${cause instanceof Error ? cause.message : String(cause)}`
+      },
+    }).pipe(
+      Effect.map(() => true),
+      // No folder: nothing to lock (and nothing to release).
+      Effect.catchIf(
+        (error) => error === '',
+        () => Effect.succeed(false),
+      ),
+    ),
+    (held) => (held ? Effect.sync(() => rmSync(lock, { force: true })) : Effect.void),
+  ).pipe(Effect.asVoid)
+}
+
 /**
  * Adds `units` of `key` to the ledger, written to a temporary file and renamed into place so a reader never sees half
  * a ledger. Call it only while holding the ledger. The runner charges a paid stage before it runs, so a call the

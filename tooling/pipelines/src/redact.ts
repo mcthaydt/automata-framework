@@ -8,8 +8,11 @@ export type Env = Readonly<Record<string, string | undefined>>
 /** The variables that hold the providers' keys; their values are replaced wherever they appear. */
 const KEY_VARIABLES = ['OPENAI_API_KEY', 'MESHY_API_KEY'] as const
 
-/** Strings shaped like the providers' keys (OpenAI `sk-…`, Meshy `msy_…`), replaced even when no variable holds them. */
-const KEY_SHAPES = [/sk-[A-Za-z0-9_-]{10,}/g, /msy_[A-Za-z0-9]{10,}/g]
+/**
+ * Strings shaped like the providers' keys (OpenAI `sk-…`, Meshy `msy_…`), replaced even when no variable holds them.
+ * A shape starts only where a word does (no letter or digit before it), so `desk-lamp-brass` keeps its `sk-`.
+ */
+const KEY_SHAPES = [/(?<![A-Za-z0-9])sk-[A-Za-z0-9_-]{10,}/g, /(?<![A-Za-z0-9])msy_[A-Za-z0-9]{10,}/g]
 
 /**
  * Replaces each key variable's value, and any key-shaped string, with `[redacted]`. A value shorter than four

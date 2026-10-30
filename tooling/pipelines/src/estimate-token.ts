@@ -27,7 +27,7 @@ const samePlan = (a: EstimatedPlan, b: EstimatedPlan): boolean =>
   JSON.stringify(a.stages) === JSON.stringify(b.stages) &&
   JSON.stringify(a.inputHashes) === JSON.stringify(b.inputHashes)
 
-/** The tokens one server process has issued. */
+/** The tokens one server process has issued and not yet taken. */
 export class EstimateTokens {
   readonly #issued = new Map<string, Issued>()
 
@@ -56,6 +56,8 @@ export class EstimateTokens {
         return 'refused: the estimate token is older than 30 minutes; estimate again'
       if (!samePlan(issued, plan))
         return 'refused: the estimate token does not match these stages or their inputs any more; estimate again'
+      // Single use: taken in the same synchronous step as the check, so two calls cannot both spend one estimate.
+      this.#issued.delete(token)
       return undefined
     })
   }

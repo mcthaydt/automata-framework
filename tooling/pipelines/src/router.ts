@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
 import { Clock, Effect } from 'effect'
-import { AUDIT_LOG, appendAudit, gitHead, projectRootOf } from './audit.ts'
+import { AUDIT_LOG, appendAudit, auditRootOf, gitHead } from './audit.ts'
 import { parseBudgetOption } from './budget.ts'
 import { EXIT, type PipelineExit } from './exit.ts'
 import type { PipelineDef, StageServices } from './pipeline.ts'
@@ -165,7 +165,8 @@ const refuseAgent = (
     }
     const [target, gate] = parsed?.positional ?? rest
     const note = parsed?.options.note
-    const root = yield* projectRootOf(target ?? '.', parsed?.options.config)
+    // Where the log is never depends on what the agent passes: --config is ignored here (audit.ts auditRootOf).
+    const root = yield* auditRootOf(target ?? '.')
     const args = {
       pipeline: name,
       ...(target === undefined ? {} : { target }),

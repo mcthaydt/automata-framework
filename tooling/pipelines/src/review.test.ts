@@ -113,4 +113,36 @@ describe('pipeline_request_review', () => {
     ])
     expect((await call('pipeline_review_status', { ...TOY, gate: 'G9' })).error).toBe(true)
   })
+
+  it('does not approve outputs the stage made again while the form was open', async () => {
+    let rerun: () => Promise<unknown> = async () => undefined
+    const project = await mcpProject(temps, {
+      answer: async () => {
+        await rerun()
+        return { action: 'accept', content: { decision: 'approve' } }
+      },
+    })
+    rerun = () => project.call('pipeline_run', { ...TOY, only: ['two'], force: true })
+    await project.call('pipeline_run', TOY)
+    const review = await project.call('pipeline_request_review', { ...TOY, gate: 'T1' })
+    expect([review.error, review.data.exit, review.data.error]).toEqual([
+      true,
+      4,
+      'gate T1 changed while it was asked; ask again',
+    ])
+    expect(project.gates().T1).toMatchObject({ decision: 'pending' })
+    expect(project.gates().T1?.requestedAt).toBeUndefined()
+  })
+
+  it("quotes the person's command for the shell", async () => {
+    const { call, root } = await mcpProject(temps)
+    const { cpSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    cpSync(join(root, 'toy'), join(root, "wren's toy"), { recursive: true })
+    await call('pipeline_run', { pipeline: 'toy', target: "wren's toy" })
+    const asked = await call('pipeline_request_review', { pipeline: 'toy', target: "wren's toy", gate: 'T1' })
+    expect(asked.data.ownerCommand).toBe(
+      `automata-pipe toy approve 'wren'\\''s toy' T1 --note "…"   (or reject)`,
+    )
+  })
 })

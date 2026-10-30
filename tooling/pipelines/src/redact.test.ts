@@ -17,4 +17,12 @@ describe('redact', () => {
     expect(redact('abc sk-short plain', { OPENAI_API_KEY: 'abc' })).toBe('abc sk-short plain')
     expect(redact('nothing secret here', {})).toBe('nothing secret here')
   })
+
+  it('does not cut a key shape out of the middle of a word', () => {
+    expect(redact('desk-lamp-brass and a pagesk-0123456789ab', {})).toBe(
+      'desk-lamp-brass and a pagesk-0123456789ab',
+    )
+    expect(redact('xmsy_abcdefghij12', {})).toBe('xmsy_abcdefghij12')
+    expect(redact(`(${OPENAI_SHAPED}) "${MESHY_SHAPED}"`, {})).toBe('([redacted]) "[redacted]"')
+  })
 })

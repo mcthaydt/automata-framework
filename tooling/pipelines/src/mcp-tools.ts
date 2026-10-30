@@ -1,3 +1,4 @@
+import { realpathSync } from 'node:fs'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { Files } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
@@ -39,6 +40,8 @@ export const TOOL_NAMES: readonly ToolName[] = [
 export interface ToolContext {
   /** The project root: every target stays inside it. */
   readonly root: string
+  /** The root with its symbolic links resolved. */
+  readonly realRoot: string
   readonly pipelines: readonly PipelineDef[]
   readonly planned: readonly string[]
   readonly tokens: EstimateTokens
@@ -77,20 +80,27 @@ interface Located {
   readonly rel: string
 }
 
+/** Whether `path` is `root` or below it. `..` or `../…` leaves the root; a name like `..toy` does not. */
+const within = (root: string, path: string): boolean => {
+  const rel = relative(root, path)
+  return rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel)
+}
+
 /** The registered pipeline and the target inside the root, or the refusal. */
 const locate = (ctx: ToolContext, pipeline: string, target: string): Effect.Effect<Located, Answer, Files> =>
   Effect.gen(function* () {
     const def = ctx.pipelines.find((candidate) => candidate.name === pipeline)
     if (def === undefined)
       return yield* Effect.fail(refusal(EXIT.notImplemented, `${pipeline}: not implemented`))
+    const outside = refusal(EXIT.refused, `refused: target ${target} is outside the project`)
     const abs = resolve(ctx.root, target)
-    const rel = relative(ctx.root, abs)
-    // `..` or `../…` leaves the root; a name that merely starts with two dots (`..toy`) does not.
-    if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel))
-      return yield* Effect.fail(refusal(EXIT.refused, `refused: target ${target} is outside the project`))
+    if (!within(ctx.root, abs)) return yield* Effect.fail(outside)
     if (!(yield* (yield* Files).exists(abs)))
       return yield* Effect.fail(refusal(EXIT.failed, `target ${target} does not exist`))
-    return { def, abs, rel: rel.split('\\').join('/') }
+    // The lexical check above is not enough: a symbolic link inside the root can point outside it. Core's `Files` has
+    // no realpath, so `node:fs` resolves both (the root's once, when the server starts).
+    if (!within(ctx.realRoot, realpathSync(abs))) return yield* Effect.fail(outside)
+    return { def, abs, rel: relative(ctx.root, abs).split(sep).join('/') }
   })
 
 /** Runs a tool body that needs a located target; a refusal from `locate` is the answer. */
@@ -247,11 +257,13 @@ export function toolsFor(names: readonly string[]): readonly Tool[] {
               if (why !== undefined) return refusal(EXIT.refused, why)
             }
             const before = yield* ledger(located.abs)
+            // The runner plans again; given the checked plan, it refuses a run whose stages or paid inputs differ.
             const result = yield* runPipeline(located.def, {
               command: 'run',
               target: located.abs,
               ...selected,
               paid: paid.length > 0,
+              ...(paid.length > 0 ? { plan: rows.map(({ id, inputHash }) => ({ id, inputHash })) } : {}),
             })
             const cost = grown(before, yield* ledger(located.abs))
             return { ...answerOf(result, located.rel), ...(Object.keys(cost).length > 0 ? { cost } : {}) }

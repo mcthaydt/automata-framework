@@ -36,6 +36,10 @@ export interface Answer {
 /** The review's outcome, the spec's §7 states. */
 export type ReviewOutcome = 'asked' | 'approved' | 'rejected' | 'already decided' | string
 
+/** A word for a POSIX shell: as it is when it is plain, else in single quotes (a `'` inside becomes `'\''`). */
+export const shellQuote = (word: string): string =>
+  /^[A-Za-z0-9_./:=@%+-]+$/.test(word) ? word : `'${word.split("'").join("'\\''")}'`
+
 const formMessage = (summary: string, gate: string): string =>
   `${summary}\n\nApprove or reject gate ${gate}? Your answer is recorded as the owner's decision.`
 
@@ -68,7 +72,9 @@ export const requestReview = (
     const requested = yield* runPipeline(def, { command: 'request', target: target.abs, gate, note: summary })
     if (requested.exit !== EXIT.done) return failed(requested.error, requested.exit)
     const asked = requested.gates[0] as GateRecord
-    const ownerCommand = `automata-pipe ${def.name} approve ${target.rel} ${gate} --note "…"   (or reject)`
+    const stage = (requested.data as { stage?: { inputHash: string; at: string } } | undefined)?.stage
+    const words = [def.name, 'approve', target.rel, gate].map(shellQuote).join(' ')
+    const ownerCommand = `automata-pipe ${words} --note "…"   (or reject)`
     const pending = (outcome: ReviewOutcome, line: string, extra: Record<string, unknown> = {}): Answer => ({
       exit: EXIT.done,
       data: { gate: asked, decision: 'pending', outcome, ownerCommand, ...extra },
@@ -86,12 +92,20 @@ export const requestReview = (
     if (answer.kind === 'undecided')
       return pending(answer.why, `${gate}: the owner did not decide (${answer.why})`)
 
-    // The same code path as the person's own command: the runner records it, with `by: 'owner'`.
+    // The same code path as the person's own command: the runner records it, with `by: 'owner'`. `expect` makes it
+    // land only on what the person was shown: a stage run again while the form was open reopens the gate, and the
+    // runner then refuses the decision (exit 4, "ask again").
     const decided = yield* runPipeline(def, {
       command: answer.decision,
       target: target.abs,
       gate,
       note: answer.note,
+      // Always compared: a request without a stage record or a time (which the runner never writes) matches nothing.
+      expect: {
+        requestedAt: asked.requestedAt ?? '',
+        inputHash: stage?.inputHash ?? '',
+        at: stage?.at ?? '',
+      },
     })
     if (decided.exit !== EXIT.done) return failed(decided.error, decided.exit)
     const decidedGate = decided.gates[0] as GateRecord

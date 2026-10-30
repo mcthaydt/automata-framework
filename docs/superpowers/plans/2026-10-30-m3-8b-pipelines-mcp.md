@@ -42,7 +42,7 @@ registering the server in a game's `.mcp.json` (DX.7's plugin, M3-D12); the game
   `automata-pipe-mcp: ./src/mcp-cli.ts`.
 - `src/redact.ts`: `redact(text, env)`.
 - `src/audit.ts`: `AUDIT_LOG`, `AuditEntry`, `auditEntrySchema`, `gitHead(root)`, `appendAudit(path, entry, env)`,
-  `projectRootOf(target, config)`.
+  `projectRootOf(target, config)` (review round 2: `auditRootOf(from)`).
 - `src/agent.ts`: `isAgent(env)`, `AGENT_VARIABLES`.
 - `src/router.ts` (modify): `route(argv, pipelines, planned, caller)`; an agent's `approve`/`reject` is exit 4 and one
   audit line.
@@ -68,7 +68,7 @@ export interface AuditEntry {                                 // The Last Light'
 }
 export const gitHead: (root: string) => Effect.Effect<string, never, ProcessRunner>
 export const appendAudit: (path: string, entry: AuditEntry, env: Env) => Effect.Effect<void, string>
-export const projectRootOf: (target: string, config?: string) => Effect.Effect<string, never, Files>
+export const auditRootOf: (from: string) => Effect.Effect<string, never, Files> // review round 2; was projectRootOf
 export function redact(text: string, env: Env): string        // key values and key-shaped strings → [redacted]
 export function isAgent(env: Env): boolean                    // CLAUDECODE=1 or AUTOMATA_AGENT=1
 export interface Caller { readonly agent: boolean; readonly env?: Env }
@@ -78,7 +78,6 @@ export interface ServerOptions {
   readonly pipelines: readonly PipelineDef[]
   readonly planned?: readonly string[]
   readonly runtime: ManagedRuntime.ManagedRuntime<StageServices, never>
-  readonly auditPath?: string                                 // default <root>/docs/pipeline-audit.jsonl
   readonly reviewTimeoutMs?: number                           // default 15 minutes
   readonly env?: Env                                          // for redaction; default process.env
 }
@@ -231,6 +230,52 @@ Noted, not changed: `pipeline_run` estimates, checks the token, then runs; the r
 in that window can change the plan. The budgets and the ledger lock still bound any spend (M3.8a), and the window is
 one call's length.
 
+## Review round 2 (the coordinator's independent review of `d9fc61c`)
+
+Nine findings, each fixed test-first (the failing test first, its failure seen, then the change):
+
+1. **A decision could land on outputs the person never saw** (high). While the form was open, a second
+   `pipeline_run` could run the gated stage again; `openGate` replaced the record and the approval landed on the new
+   outputs. And a long run saved all of `gates.json` from memory, so it could overwrite a decision made while it ran.
+   Fixed: `request` returns the gated stage's `inputHash` and finish time; the review passes them and the gate's
+   `requestedAt` back as `RunOptions.expect`, and `approve`/`reject` refuse a gate that no longer matches (exit 4,
+   "gate T1 changed while it was asked; ask again"). Every command that writes a target (`run`, `approve`, `reject`,
+   `request`, `adopt`, `restore`) holds `.pipeline.lock` in the target folder from before its state is read until after
+   it is written (`holdTarget`); a second one finds it held and exits 4 without waiting (`concurrency.test.ts`;
+   `review.test.ts` reruns the stage from inside the person's form, and T1 stays pending).
+2. **`pipeline_run` checked the token, then the runner planned again.** The checked plan now goes into the run
+   (`RunOptions.plan`): under the ledger lock the stages must be the estimated ones, and before each charge a paid
+   stage's input hash must be the estimate's (exit 4 otherwise). An estimate row whose inputs were still to be made
+   (`missing`) is not compared: they are made earlier in the same, already checked, plan.
+3. **The estimate token is single use**: taken in the same synchronous step as its check.
+4. **A symbolic link escaped the root.** The root (once) and the target are resolved with `realpathSync` and compared
+   again after the lexical check.
+5. **Redaction had no left boundary** (`desk-lamp-brass` became `de[redacted]`): both shapes now start a word.
+6. **A malformed `tools/call`** (arguments not an object, a name not a string) was rejected by the SDK before the
+   handler ran, so it left no line. The handler is installed with `Protocol.prototype.setRequestHandler` and a
+   permissive params schema (`Server.setRequestHandler` re-validates `tools/call` with the SDK's strict schema), and
+   checks the name and arguments itself.
+7. **The log could be moved or split.** One rule for both bins (`auditRootOf`): the folder of the nearest
+   `pipeline.toml` at or above the router's target or the server's root, else the working folder. The router's
+   refusal ignores `--config`; the server's `auditPath` option is gone.
+8. **The person's command is shell-quoted** (`shellQuote`: plain words as they are, anything else in single quotes).
+9. **An audit write that fails** still answers with the redacted result as a second content part, beside the error.
+
+Decisions this adds for the Owner's veto:
+
+- **D10, one command at a time writes a target.** A person's decision made while a run holds the target is refused
+  (exit 4, "busy"); they decide again once it ends. A lock left by a killed process stays until a person deletes it,
+  as the ledger's does.
+- **D11, a review's decision is compared with what was asked** (`requestedAt`, the stage's input hash and finish time).
+  A person's own `approve` at their terminal is not compared: they decide on what is there.
+- **D12, the token is single use and binds the run to its plan**, as in finding 2.
+- **D13, the log's place is fixed by `pipeline.toml`**, as in finding 7 (replaces D9's "the project's log" wording; D9
+  otherwise stands).
+
+Deviation for the Owner: the acceptance tests PL-c and PL-d (`acceptance-mcp.test.ts`) were written after the code
+they check, not before it. Their failure was shown by mutation instead (with `gitHead` always `unknown` both fail;
+with the router's agent rule disabled PL-d fails), as recorded in the log below.
+
 ## Execution log
 
 | Date | Step | Evidence |
@@ -241,6 +286,7 @@ one call's length.
 | 2026-10-30 | Bin (test 5) | 1 red (`expected 2 to be 4`), then 4 of 4; `registry.ts` now holds the bins' shared (empty) registry |
 | 2026-10-30 | Server and review (tests 6, 7) | both files red (`Cannot find module '../mcp-server.ts'`); then 1 failure: the SDK checks an elicitation reply against the form's schema, so an accepted form without a decision arrives as an `InvalidParams` error, now mapped to "no decision"; 19 of 19 (TestClock drives the 30-minute token through the server's `ManagedRuntime`) |
 | 2026-10-30 | Stdio bin (test 8) | red (`Connection closed`: no `mcp-cli.ts`), then green |
-| 2026-10-30 | PL-c, PL-d (test 9) | written after the server, so their failure was shown by mutation: with `gitHead` always `unknown` both fail; with the router's agent rule disabled PL-d fails; restored, 2 of 2 |
+| 2026-10-30 | PL-c, PL-d (test 9) | **deviation:** written after the server (not test-first), so their failure was shown by mutation: with `gitHead` always `unknown` both fail; with the router's agent rule disabled PL-d fails; restored, 2 of 2 |
 | 2026-10-30 | Review round 1 | 2 findings, each red first (see above); `pnpm check` green: lint 224 files, root 163, pipelines 117 (16 files), net 89, dev-tools 62, physics 71, server 269 |
 | 2026-10-30 | Gates (before the PR) | `pnpm format`; `pnpm check`: lint 224 files, typecheck, boundaries, root 163 (F1 over `tooling/*` included), pipelines 115 (16 files), net 89, dev-tools 62, physics 71, server 269 |
+| 2026-10-30 | Review round 2 (gates: `pnpm format`; `pnpm check` green: lint 226 files, root 163, pipelines 130, net 89, dev-tools 62, physics 71, server 269) | 9 findings, each red first: `concurrency.test.ts` 4 red (no `stage` in the request's data; the reject went through during the run; the changed plan and the changed paid inputs both ran), `review.test.ts` 2 red (the rerun-while-asked approval landed; the command was unquoted), `mcp-server.test.ts` 4 red (the reused token passed the old check with another message; the symlink was taken; the malformed call was an SDK error; the failed audit had one part), `redact.test.ts` 1 red (`de[redacted]`), `audit-location.test.ts` 2 red (the log followed `--config`; the server logged under its own root); then 130 of 130 in pipelines |

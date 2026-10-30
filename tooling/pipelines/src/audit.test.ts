@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
-import { AUDIT_LOG, type AuditEntry, appendAudit, auditEntrySchema, gitHead, projectRootOf } from './audit.ts'
+import { AUDIT_LOG, type AuditEntry, appendAudit, auditEntrySchema, auditRootOf, gitHead } from './audit.ts'
 
 // The audit log (The Last Light's docs/pipeline-audit.jsonl and AuditEntry at 92e6704): one JSON line per call.
 
@@ -67,17 +67,15 @@ describe('gitHead', () => {
   })
 })
 
-describe('projectRootOf', () => {
-  it('is the folder of the nearest pipeline.toml, the folder of --config, or the working folder', async () => {
+describe('auditRootOf', () => {
+  it('is the folder of the nearest pipeline.toml, or the working folder', async () => {
     const root = temp()
     writeFileSync(join(root, 'pipeline.toml'), '')
     mkdirSync(join(root, 'art/wren'), { recursive: true })
     writeFileSync(join(root, 'art/wren/character.toml'), '')
-    const of = (target: string, config?: string) => run(Effect.provide(projectRootOf(target, config), live))
+    const of = (from: string) => run(Effect.provide(auditRootOf(from), live))
     expect(await of(join(root, 'art/wren'))).toBe(root)
     expect(await of(join(root, 'art/wren/character.toml'))).toBe(root)
-    const other = temp()
-    expect(await of(join(root, 'art/wren'), join(other, 'pipeline.toml'))).toBe(other)
     const bare = temp()
     expect(await of(join(bare, 'x'))).toBe(process.cwd())
   })

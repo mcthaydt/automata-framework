@@ -68,10 +68,10 @@ export const appendAudit = (path: string, entry: AuditEntry, env: Env): Effect.E
     catch: (cause) => `${path}: ${cause instanceof Error ? cause.message : String(cause)}`,
   })
 
-/** The project a target belongs to: the folder of `--config`, else of the nearest `pipeline.toml`, else the cwd. */
-export const projectRootOf = (target: string, config?: string): Effect.Effect<string, never, Files> =>
-  Effect.gen(function* () {
-    if (config !== undefined) return dirname(resolve(config))
-    const toml = yield* findPipelineToml(resolve(target))
-    return toml === undefined ? process.cwd() : dirname(toml)
-  })
+/**
+ * The folder the audit log lives under, the one rule both bins use (M3.8b review): the folder of the nearest
+ * `pipeline.toml` at or above `from` (the router's target, the server's root), else the working folder. Nothing a
+ * caller passes moves it: the router's `--config` is not consulted, and the server has no option for it.
+ */
+export const auditRootOf = (from: string): Effect.Effect<string, never, Files> =>
+  Effect.map(findPipelineToml(resolve(from)), (toml) => (toml === undefined ? process.cwd() : dirname(toml)))

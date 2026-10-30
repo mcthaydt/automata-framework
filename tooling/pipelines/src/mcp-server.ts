@@ -1,7 +1,8 @@
+import { realpathSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
+import { Protocol } from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {
-  CallToolRequestSchema,
   type CallToolResult,
   ErrorCode,
   ListToolsRequestSchema,
@@ -9,7 +10,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import { Clock, Effect, type ManagedRuntime } from 'effect'
 import { z } from 'zod'
-import { AUDIT_LOG, appendAudit, gitHead } from './audit.ts'
+import { AUDIT_LOG, appendAudit, auditRootOf, gitHead } from './audit.ts'
 import { EstimateTokens } from './estimate-token.ts'
 import { EXIT } from './exit.ts'
 import { refusal, type Tool, type ToolContext, toolsFor } from './mcp-tools.ts'
@@ -30,15 +31,13 @@ export { TOOL_NAMES } from './mcp-tools.ts'
 export const REVIEW_TIMEOUT_MS: number = 15 * 60 * 1000
 
 export interface ServerOptions {
-  /** The project root: targets stay inside it, `git rev-parse HEAD` runs in it, and the audit log is under it. */
+  /** Targets stay inside it. The audit log is beside the nearest `pipeline.toml` at or above it (audit.ts). */
   readonly root: string
   readonly pipelines: readonly PipelineDef[]
   /** Pipelines with a row but no code yet: they answer exit 2. */
   readonly planned?: readonly string[] | undefined
   /** Runs every tool's effect: core's live `Files` and `ProcessRunner` in the bin, test layers in tests. */
   readonly runtime: ManagedRuntime.ManagedRuntime<StageServices, never>
-  /** Default `<root>/docs/pipeline-audit.jsonl`. */
-  readonly auditPath?: string | undefined
   readonly reviewTimeoutMs?: number | undefined
   /** For redaction; default `process.env`. */
   readonly env?: Env | undefined
@@ -57,13 +56,24 @@ const invalid = (error: z.ZodError): string =>
     .map((issue) => `${issue.path.length === 0 ? '(input)' : issue.path.join('.')}: ${issue.message}`)
     .join('; ')}`
 
-/** Runs one call: the tool, or the refusal for an unknown or deciding name, or for invalid input. */
+/**
+ * tools/call with any params. The SDK's own schema would reject a call whose name is not a string or whose arguments
+ * are not an object before any handler ran, leaving no audit line; this one lets every call through to be logged and
+ * answered as invalid here (M3.8b review).
+ */
+const AnyToolCall = z.object({ method: z.literal('tools/call'), params: z.unknown() })
+
+/** Runs one call: the tool, or the refusal for a malformed call, an unknown or deciding name, or invalid input. */
 const answer = (
   tools: readonly Tool[],
   ctx: ToolContext,
-  name: string,
-  args: Record<string, unknown>,
+  name: unknown,
+  args: unknown,
 ): Effect.Effect<Answer, never, StageServices> => {
+  if (typeof name !== 'string')
+    return Effect.succeed(refusal(EXIT.failed, 'invalid call: the tool name must be a string'))
+  if (typeof args !== 'object' || args === null || Array.isArray(args))
+    return Effect.succeed(refusal(EXIT.failed, 'invalid input: the arguments must be an object'))
   const tool = tools.find((candidate) => candidate.name === name)
   if (tool === undefined)
     return Effect.succeed(
@@ -141,7 +151,6 @@ export function createPipelinesServer(options: ServerOptions): Server {
   const root = resolve(options.root)
   const planned = options.planned ?? PLANNED
   const env = options.env ?? process.env
-  const auditPath = options.auditPath ?? resolve(root, AUDIT_LOG)
   const names = [...new Set([...options.pipelines.map((def) => def.name), ...planned])]
   const tools = toolsFor(names)
   const server = new Server(
@@ -150,6 +159,7 @@ export function createPipelinesServer(options: ServerOptions): Server {
   )
   const ctx: ToolContext = {
     root,
+    realRoot: realpathSync(root),
     pipelines: options.pipelines,
     planned,
     tokens: new EstimateTokens(),
@@ -163,41 +173,46 @@ export function createPipelinesServer(options: ServerOptions): Server {
     }),
   }))
 
-  server.setRequestHandler(CallToolRequestSchema, (request): Promise<CallToolResult> => {
-    const name = request.params.name
-    const args = request.params.arguments ?? {}
+  // `Server.setRequestHandler` re-validates tools/call with the SDK's strict schema, so the handler is installed with
+  // the base class's method, which parses only with the schema given (AnyToolCall).
+  Protocol.prototype.setRequestHandler.call(server, AnyToolCall, (request): Promise<CallToolResult> => {
+    const params = (typeof request.params === 'object' && request.params !== null ? request.params : {}) as {
+      readonly name?: unknown
+      readonly arguments?: unknown
+    }
+    const name = params.name
+    const args = params.arguments ?? {}
     const call = Effect.gen(function* () {
       const started = yield* Clock.currentTimeMillis
       const result = yield* answer(tools, ctx, name, args)
       const ms = (yield* Clock.currentTimeMillis) - started
       const ok = result.exit === EXIT.done || result.exit === EXIT.atGate
+      const auditRoot = yield* auditRootOf(root)
       const logged = yield* Effect.either(
         appendAudit(
-          auditPath,
+          resolve(auditRoot, AUDIT_LOG),
           {
             at: new Date(started).toISOString(),
-            tool: name,
+            tool: String(name),
             args,
             ok,
             // Redacted before the cut: a cut inside a key would leave a prefix the redaction no longer matches.
             summary: redact(result.summary, env).slice(0, 500),
             ...(result.cost === undefined ? {} : { cost: result.cost }),
             ms,
-            head: yield* gitHead(root),
+            head: yield* gitHead(auditRoot),
           },
           env,
         ),
       )
-      // A call whose line cannot be written is not answered as if it were logged: the agent sees the failure.
-      if (logged._tag === 'Left')
-        return {
-          isError: true,
-          content: [{ type: 'text' as const, text: redact(`audit log: ${logged.left}`, env) }],
-        }
-      return {
-        ...(ok ? {} : { isError: true }),
-        content: [{ type: 'text' as const, text: JSON.stringify(redactValue(result.data, env), null, 2) }],
+      const data = { type: 'text' as const, text: JSON.stringify(redactValue(result.data, env), null, 2) }
+      // A call whose line cannot be written is not answered as if it were logged: the agent sees the failure, and
+      // still sees what the call did (a run may have spent), as the second part.
+      if (logged._tag === 'Left') {
+        const failure = { type: 'text' as const, text: redact(`audit log: ${logged.left}`, env) }
+        return { isError: true, content: [failure, data] }
       }
+      return { ...(ok ? {} : { isError: true }), content: [data] }
     })
     return options.runtime.runPromise(call)
   })
