@@ -2,8 +2,8 @@
 
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6 (`automata check`); the [DX.6 plan](2026-10-16-automata-check.md) ("Example path in one place: the integration run is the cli's `check:example` script"); EX-D1 in the [EX spec](../specs/2026-10-16-examples-one-file-design.md) (Emberwick moves to `games/emberwick`, package name `@af-examples/base-2d` kept). No spec change.
 - **Task:** 02 row DX.6c, lane ship, size S (the "EX.2 path" DX.6 follow-up).
-- **Status:** drafted 2026-10-30, based on `main` (`855a0ee`).
-- **Progress:** 1 of 5 steps.
+- **Status:** drafted 2026-10-30, based on `main` (`855a0ee`); implemented 2026-10-30.
+- **Progress:** 3 of 5 steps.
 
 ## What is wrong
 
@@ -44,8 +44,8 @@ None produced. Consumed: `workspacePackages(root)` and `WorkspacePackage` from `
 ## Steps
 
 - [x] **1. Plan.** This file.
-- [ ] **2. Red.** `script-paths.test.ts`: (a) on planted packages, a missing `../` path is named with what it resolves to, one outside the repository is named as such, an existing path (also after `--flag=`) and a glob are not; (b) the workspace has no such path. `pnpm --filter @mcthaydt/repo-hygiene exec vitest run src/script-paths.test.ts`: (a) passes, (b) fails naming `packages/cli check:example: ../../examples/base-2d (examples/base-2d) does not exist`.
-- [ ] **3. Green.** `check:example` runs `check ../../games/emberwick --csp`; turbo inputs. The same command passes.
+- [x] **2. Red.** `script-paths.test.ts`: (a) on planted packages, a missing `../` path is named with what it resolves to, one outside the repository is named as such, an existing path (also after `--flag=`) and a glob are not; (b) the workspace has no such path. `pnpm --filter @mcthaydt/repo-hygiene exec vitest run src/script-paths.test.ts`: (a) passes, (b) fails naming `packages/cli check:example: ../../examples/base-2d (examples/base-2d) does not exist`.
+- [x] **3. Green.** `check:example` runs `check ../../games/emberwick --csp`; turbo inputs. The same command passes.
 - [ ] **4. Prove it runs.** `pnpm build`, then `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-local pnpm --filter @mcthaydt/automata-cli check:example`: exit 0, every step passes (record each step's time). Fix the two README paths.
 - [ ] **5. Gates and hand-off.** `pnpm format`, `TURBO_FORCE=true pnpm check`; draft PR.
 
@@ -60,3 +60,5 @@ None produced. Consumed: `workspacePackages(root)` and `WorkspacePackage` from `
 | Date | Step | Commits | Notes |
 |---|---|---|---|
 | 2026-10-30 | 1 | | Plan. `pnpm --filter @mcthaydt/automata-cli check:example` on `main` (`855a0ee`): exit 2, "0 findings, 7 steps could not run" (boundaries: `no src/sim folder in …/examples/base-2d`; typecheck, test, boards, no-eval, secrets and csp could not find the folder or its tools). `orientation` and `inputs` report pass on the missing folder (they read only files that exist; follow-up). |
+| 2026-10-30 | 2 | | `vitest run src/script-paths.test.ts`: 1 failed, 1 passed. The planted case passes; the workspace case fails with exactly one finding, `packages/cli check:example: ../../examples/base-2d (examples/base-2d) does not exist`, so the cli's script is the only `../` path in any workspace package's scripts. Committed with step 3: the pre-commit hook runs the affected unit tests, so a red commit is refused. |
+| 2026-10-30 | 3 | | `check:example` now runs `node src/bin.ts check ../../games/emberwick --csp`; `tooling/repo-hygiene/turbo.json` lists every workspace `package.json` glob and `tooling/release/src/publishable-packages.ts` for `test` and `test:unit`. The same command: 2 of 2 pass. `turbo run test:unit --filter=@mcthaydt/repo-hygiene --dry=json` hashes `packages/cli/package.json`, `games/emberwick/package.json`, `examples/package.json` and `publishable-packages.ts` among its 66 inputs. |
