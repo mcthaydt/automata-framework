@@ -38,7 +38,12 @@ async function setup(options: Options = {}) {
   const app = wrap(createEditorApp({ workspace, registry, ids: counterIds(), clock }))
   const toasts = createToasts({ clock })
   const opened: Opened[] = []
-  const controller = createHomeController({ app, toasts, onOpened: (outcome) => opened.push(outcome) })
+  const controller = createHomeController({
+    app,
+    toasts,
+    onOpened: (outcome) => opened.push(outcome),
+    onProblem: () => {},
+  })
   const write = async (path: string, data: string): Promise<void> => {
     clock.advance(1000)
     await workspace.store.write(path, data)

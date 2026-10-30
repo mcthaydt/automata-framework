@@ -151,4 +151,29 @@ describe('thingDefSchema', () => {
     }
     expect(refusals(bad).map((issue) => issue.path)).toEqual(['', 'size', 'fields/0/id', 'fields/0/type'])
   })
+
+  it('accepts an area that names four different float fields, the sides of a rectangle (ED3D.7c)', () => {
+    const sides = ['x0', 'z0', 'x1', 'z1'].map((id) => ({ id, type: 'float' }))
+    const region = { id: 'region', shape: 'point', area: ['x0', 'z0', 'x1', 'z1'], fields: sides }
+    expect(refusals(region)).toEqual([])
+    expect(thingDefSchema.parse(region).area).toEqual(['x0', 'z0', 'x1', 'z1'])
+  })
+
+  it('refuses an area whose names are not four different float fields of the definition, at the area', () => {
+    const wrong =
+      'area names four different float fields of the definition: the x0, z0, x1 and z1 of a rectangle'
+    const sides = ['x0', 'z0', 'x1', 'z1'].map((id) => ({ id, type: 'float' }))
+    const region = { id: 'region', shape: 'point', fields: sides }
+    expect(refusals({ ...region, area: ['x0', 'z0', 'x1', 'gone'] })).toEqual([
+      { path: 'area', message: wrong },
+    ])
+    expect(refusals({ ...region, area: ['x0', 'z0', 'x1', 'x1'] })).toEqual([
+      { path: 'area', message: wrong },
+    ])
+    const integer = { ...region, fields: [...sides.slice(0, 3), { id: 'z1', type: 'int' }] }
+    expect(refusals({ ...integer, area: ['x0', 'z0', 'x1', 'z1'] })).toEqual([
+      { path: 'area', message: wrong },
+    ])
+    expect(refusals({ ...region, area: ['x0', 'z0', 'x1'] }).map((issue) => issue.path)).toEqual(['area'])
+  })
 })
