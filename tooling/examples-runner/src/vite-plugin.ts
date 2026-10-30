@@ -4,19 +4,12 @@
 import { readFileSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { join } from 'node:path'
-import { defineShipConfig } from '@mcthaydt/automata-ship'
 import type { Plugin } from 'vite'
 import { demoHostOrigin } from '../host/ports.ts'
 import { previewHeaders } from '../host/preview-headers.ts'
 import { type CatalogEntry, type CatalogOptions, readCatalog } from './catalog.ts'
-import {
-  EXAMPLES_GAME_ID,
-  examplePage,
-  indexPage,
-  type PageModules,
-  pendingPage,
-  sourcePage,
-} from './page-template.ts'
+import { EXAMPLES_SHIP_CONFIG } from './examples-ship-config.ts'
+import { examplePage, indexPage, type PageModules, pendingPage, sourcePage } from './page-template.ts'
 
 export interface ExamplesRunnerOptions {
   /** The examples folder. */
@@ -27,17 +20,6 @@ export interface ExamplesRunnerOptions {
   readonly noEval?: string
   readonly catalog?: CatalogOptions
 }
-
-/**
- * The manifest every example is served under: examples have no `ruken.toml` of their own (EX spec §5), so they all
- * share Ruken's headers for one 2D game, framable by the fake host.
- */
-const EXAMPLES_SHIP_CONFIG = defineShipConfig({
-  game: { id: EXAMPLES_GAME_ID, title: 'AF examples', version: '0.0.0', entry: 'index.html', sdk: '^0.0.0' },
-  runtime: { renderer: 'webgl2', orientation: 'any', inputs: ['touch', 'keyboard'], pause_behavior: 'pause' },
-  network: { connect: [] },
-  content: { languages: ['en'], rating: 'everyone', descriptors: [] },
-})
 
 const isPending = (entry: CatalogEntry): boolean => entry.header?.pending !== undefined
 

@@ -1,0 +1,5 @@
+# Wick's cloak trim, from Emberwick's sprite colours (games/emberwick/src/art/sprites.ts WICK_COLORS): the trim, #edab50, index 24.
+# Not from FigureBuilder: a fixture swatch for the fixture figure.
+
+colour = 24
+gloss = 0.9

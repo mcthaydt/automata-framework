@@ -1,0 +1,4 @@
+# Wick's cloak in shade, from Emberwick's sprite colours (games/emberwick/src/art/sprites.ts WICK_COLORS): the cloak's shade, #00396d, index 40.
+# Not from FigureBuilder: a fixture swatch for the fixture figure.
+
+colour = 40
