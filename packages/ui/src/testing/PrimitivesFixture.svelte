@@ -10,6 +10,7 @@ export const PRIMITIVE_SHOWS = [
   'option-group',
   'pager-dots',
   'paged-grid',
+  'paged-grid-worded',
   'controls',
   'slider',
   'chip',
@@ -22,6 +23,11 @@ export const PRIMITIVE_SHOWS = [
   'save-status-long',
 ] as const
 export type PrimitiveShow = (typeof PRIMITIVE_SHOWS)[number]
+/**
+ * The least size of `paged-grid-worded`'s tiles (`minTile`): a long language breaks "Level 12" over three lines, which
+ * a 44 px tile (`paged-grid`, PagedGrid's default) with the keyboard up could not hold.
+ */
+export const WORDED_TILE = 64
 </script>
 
 <script lang="ts">
@@ -53,8 +59,8 @@ const OPTIONS = ['low', 'medium', 'high'].map((value) => ({
   label: t(value[0]?.toUpperCase() + value.slice(1)),
   testId: `option-${value}`,
 }))
-const tiles = (from: number, count: number) =>
-  Array.from({ length: count }, (_, i) => ({ id: String(from + i), name: t(`Level ${from + i + 1}`) }))
+const tiles = (from: number, count: number, name: (level: number) => string) =>
+  Array.from({ length: count }, (_, i) => ({ id: String(from + i), name: name(from + i + 1) }))
 const BOARD_COPY: LeaderboardCopy = {
   title: t('Best runs'),
   loading: t('Loading scores…'),
@@ -81,14 +87,32 @@ const BOARD = Array.from({ length: 12 }, (_, i) => ({
   score: 1000 - i * 37,
   isMe: i === 4,
 }))
-const GROUPS = [
-  { id: 'forest', title: t('Forest'), items: tiles(0, 18) },
-  { id: 'caves', title: t('Caves'), items: tiles(18, 12) },
+const groups = (name: (level: number) => string) => [
+  { id: 'forest', title: t('Forest'), items: tiles(0, 18, name) },
+  { id: 'caves', title: t('Caves'), items: tiles(18, 12, name) },
 ]
+/** Tiles that show their number, the same in every language. */
+const NUMBERED = groups(String)
+const WORDED = groups((level) => t(`Level ${level}`))
 </script>
 
 {#snippet gear()}
   <svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="currentColor" /></svg>
+{/snippet}
+
+{#snippet levelTile(tile: { id: string; name: string })}
+  <button type="button" class="af-control" style="width: 100%; height: 100%" data-testid={`tile-${tile.id}`}
+    >{tile.name}</button
+  >
+{/snippet}
+
+{#snippet wordedTile(tile: { id: string; name: string })}
+  <button
+    type="button"
+    class="af-control"
+    style="width: 100%; height: 100%; overflow-wrap: anywhere"
+    data-testid={`tile-${tile.id}`}>{tile.name}</button
+  >
 {/snippet}
 
 <ScreenFrame arrangement="stack" back={none} backLabel={t('Back')}>
@@ -103,21 +127,23 @@ const GROUPS = [
     {:else if show === 'pager-dots'}
       <PagerDots label={t('Pages')} count={5} index={1} onselect={none} />
     {:else if show === 'paged-grid'}
-      <!-- A level tile holds its name, so the game lets a word too long for the tile break inside it, and asks for
-           tiles that hold three lines (`minTile`): a long language breaks "Level 12" over three, which a 44 px tile
-           with the keyboard up could not hold. -->
+      <!-- PagedGrid as it comes: 44 px tiles (`minTile`'s default), each showing its number. -->
       <div style="height: 100%; min-height: 0; display: grid">
-        <PagedGrid label={t('Levels')} groups={GROUPS} most={{ columns: 4, rows: 3 }} minTile={64} page={0} onpage={none}>
-          {#snippet item(tile)}
-            <button
-              type="button"
-              class="af-control"
-              style="width: 100%; height: 100%; overflow-wrap: anywhere"
-              data-testid={`tile-${tile.id}`}
-              >{tile.name}</button
-            >
-          {/snippet}
-        </PagedGrid>
+        <PagedGrid label={t('Levels')} groups={NUMBERED} most={{ columns: 4, rows: 3 }} page={0} onpage={none} item={levelTile} />
+      </div>
+    {:else if show === 'paged-grid-worded'}
+      <!-- A level tile holds its name, so the game lets a word too long for the tile break inside it, and asks for
+           tiles that hold three lines (`minTile`). -->
+      <div style="height: 100%; min-height: 0; display: grid">
+        <PagedGrid
+          label={t('Levels')}
+          groups={WORDED}
+          most={{ columns: 4, rows: 3 }}
+          minTile={WORDED_TILE}
+          page={0}
+          onpage={none}
+          item={wordedTile}
+        />
       </div>
     {:else if show === 'controls'}
       <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">

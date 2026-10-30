@@ -4,7 +4,11 @@ import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { byTestId, type Conditions, checkLayout, publishConditions } from './testing/layout-contract'
 import { FIXTURE_LOCALES, findUntranslated } from './testing/locale-fixture'
-import PrimitivesFixture, { PRIMITIVE_SHOWS, type PrimitiveShow } from './testing/PrimitivesFixture.svelte'
+import PrimitivesFixture, {
+  PRIMITIVE_SHOWS,
+  type PrimitiveShow,
+  WORDED_TILE,
+} from './testing/PrimitivesFixture.svelte'
 import { settleLayout } from './testing/settle'
 
 // U-a (M4 spec §4.12): each M4.6 primitive at every reference size and variant, keyboard, Ruken's strip and TV
@@ -35,6 +39,7 @@ function essentials(show: PrimitiveShow, keyboard: boolean): HTMLElement[] {
     case 'pager-dots':
       return pager()
     case 'paged-grid':
+    case 'paged-grid-worded':
       return [byTestId('tile-0'), ...pager()]
     case 'controls':
       return [
@@ -80,17 +85,23 @@ function sliderProblems(show: PrimitiveShow, conditions: Conditions): string[] {
 }
 
 /**
- * The grid's page area is never shorter than one row of whole targets, however little room it is given: a shorter
- * one clips its tiles under the pager, where scrolling the frame cannot reach them.
+ * The grid's page area is never shorter than one row of the tiles the grid was asked for (`minTile`, at the scale),
+ * however little room it is given: a shorter one clips its tiles under the pager, where scrolling the frame cannot
+ * reach them. And a tile is never smaller than that, across or down.
  */
 function gridProblems(show: PrimitiveShow, conditions: Conditions): string[] {
-  if (show !== 'paged-grid') return []
-  const area = byTestId('tile-0').closest<HTMLElement>('.af-paged__area')
-  const target = 44 * conditions.geometry.scale
+  if (show !== 'paged-grid' && show !== 'paged-grid-worded') return []
+  const first = byTestId('tile-0')
+  const area = first.closest<HTMLElement>('.af-paged__area')
+  const tile = (show === 'paged-grid' ? 44 : WORDED_TILE) * conditions.geometry.scale
   const height = area?.clientHeight ?? 0
-  return height + 0.5 < target
-    ? [`the grid's page area is ${Math.round(height)}px, under one ${Math.round(target)}px row`]
-    : []
+  const problems: string[] = []
+  if (height + 0.5 < tile)
+    problems.push(`the grid's page area is ${Math.round(height)}px, under one ${Math.round(tile)}px row`)
+  const box = first.getBoundingClientRect()
+  if (box.width + 0.5 < tile || box.height + 0.5 < tile)
+    problems.push(`a tile is ${Math.round(box.width)}x${Math.round(box.height)}, under ${Math.round(tile)}px`)
+  return problems
 }
 
 /**
