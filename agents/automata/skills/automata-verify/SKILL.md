@@ -41,7 +41,7 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 
 ## Rules and fixes
 
-### `boundaries` (the sim's determinism rules)
+### `boundaries` (the sim's determinism rules, and koota's CSP rule)
 
 | Rule | Means | Fix |
 |---|---|---|
@@ -52,6 +52,7 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 | `pow-operator` | `**`, which is not bit-exact across engines | Multiply, or use the sim math module |
 | `key-enumeration` | `Object.keys`/`values`/`entries`, `for…in`, or a computed member on them, whose order can differ | `sortedKeys` / `sortedEntries` from `@mcthaydt/automata-sim` |
 | `locale` | `localeCompare`, `toLocaleString` and similar, which depend on the engine's locale data | Compare and format explicitly |
+| `koota-soa` | koota's `trait` or a `relation` store given an object schema (or one the checker cannot see), which koota compiles with `new Function`; Ruken's CSP refuses it | Use `defineComponent` from `@mcthaydt/automata-sim`, or pass koota a factory: `trait(() => ({ x: 0 }))`, `relation({ store: () => ({ amount: 0 }) })` |
 | `parse-error` | The file could not be parsed | Fix the syntax error at the location |
 
 ### `typecheck`
