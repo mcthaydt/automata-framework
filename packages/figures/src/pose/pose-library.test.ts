@@ -4,7 +4,7 @@ import type { Diagnostic } from '@mcthaydt/automata-content'
 import { beforeAll, describe, expect, it } from 'vitest'
 import type { RigLimits } from '../library/rig-limits.schema'
 import { apply, scale } from '../math/math'
-import { J, restPose, type Skeleton } from '../rig/rig'
+import { J, JOINTS, restPose, type Skeleton } from '../rig/rig'
 import { solve } from '../solve/solve'
 import type { EffectorId, Vec3 } from '../solve/targets'
 import { compileFixture, FIXTURE_ROOT } from '../testing/compile-fixture'
@@ -169,5 +169,37 @@ describe('I-j: a bad pose fails content compile at its location', () => {
         message: 'effectors.handR.rot.0 must be a finite number, received nan',
       }),
     ])
+  })
+})
+
+describe('a mirrored pose solves to the mirrored figure', () => {
+  /** The joint on the other side (`hand.L` ↔ `hand.R`, `hemL` ↔ `hemR`), or itself. */
+  const otherJoint = (name: string): string => {
+    const last = name.at(-1)
+    const swapped = `${name.slice(0, -1)}${last === 'L' ? 'R' : 'L'}`
+    return (last === 'L' || last === 'R') && (JOINTS as readonly string[]).includes(swapped) ? swapped : name
+  }
+  /** S·W·S with S = diag(−1, 1, 1): a rigid frame seen in the mirror (rotation S·R·S, translation S·t). */
+  const reflected = (m: readonly number[]): number[] =>
+    m.map((v, i) => (i < 9 ? v * (i % 3 === 0 ? -1 : 1) * (i < 3 ? -1 : 1) : i === 9 ? -v : v))
+  it('for every library pose on Wick and the keeper, within 1e-9', () => {
+    for (const id of FIXTURE_POSE_IDS)
+      for (const [name, skeleton] of FIGURES) {
+        const solved = (p: PoseDef) => {
+          const input = applyPose(skeleton, restPose(), p)
+          return solve(skeleton, input.base, input.targets, limits).world
+        }
+        const world = solved(pose(id))
+        const mirrored = solved(mirror(pose(id)))
+        JOINTS.forEach((joint, j) => {
+          const want = reflected(world[j] ?? [])
+          const got = mirrored[JOINTS.indexOf(otherJoint(joint) as (typeof JOINTS)[number])] ?? []
+          for (let i = 0; i < 12; i++)
+            expect(
+              Math.abs((got[i] ?? Number.NaN) - (want[i] ?? Number.NaN)),
+              `${id} ${name} ${joint}`,
+            ).toBeLessThan(1e-9)
+        })
+      }
   })
 })
