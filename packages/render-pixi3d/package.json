@@ -1,0 +1,44 @@
+{
+  "name": "@mcthaydt/automata-render-pixi3d",
+  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "private": true,
+  "description": "AF's 3D renderer on @pixi/3d (a closed beta): private while D-1 stands, never published.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/render-pixi3d"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./src/no-eval.ts"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./no-eval": "./src/no-eval.ts"
+  },
+  "scripts": {
+    "test": "vitest run --project node",
+    "test:unit": "vitest run --project node",
+    "test:parity": "vitest run --project browsers",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@mcthaydt/automata-render-pixi": "workspace:*",
+    "@mcthaydt/automata-runtime": "workspace:*",
+    "@mcthaydt/automata-sim": "workspace:*",
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "effect": "3.22.2"
+  },
+  "peerDependencies": {
+    "pixi.js": "8.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "pixi.js": "8.22.0",
+    "playwright": "1.63.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  }
+}
