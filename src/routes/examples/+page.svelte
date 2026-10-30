@@ -1,26 +1,34 @@
 <script lang="ts">
-  import DemoRunner from '$lib/components/DemoRunner.svelte'
-  import SourceExplorer from '$lib/components/SourceExplorer.svelte'
-  import type { ProjectSource } from '../../data/projects'
   import PageMeta from '$lib/components/PageMeta.svelte'
-  import { demoPoster } from '$lib/previews'
-  import { DEMO_CATEGORIES, getDemosCatalog } from '../../data/demos'
-  let { data = {} }: { data?: { demo?: string; file?: string; project?: ProjectSource } } = $props()
-  const demos = getDemosCatalog()
-  let category = $state('All Examples')
-  let filtered = $derived(category === 'All Examples' ? demos : demos.filter(d => d.category === category))
-  let current = $derived(demos.find(d => d.slug === data.demo) ?? demos[0])
+  import InlineText from '$lib/components/InlineText.svelte'
+  import { difficultyStars, type ExampleGroup } from '../../data/examples'
+  let { data }: { data: { index: ExampleGroup[] } } = $props()
 </script>
-<PageMeta title="Examples gallery" description="Run Automata examples and read the source beside rendering, UI, runtime and content demos." />
-<div class="page-shell">
-  <h1>Examples gallery</h1><p class="lead">Working parts. Runnable code.</p>
-  <div class="filters" role="group" aria-label="Example categories">{#each DEMO_CATEGORIES as item}<button type="button" aria-pressed={category === item} onclick={() => category = item}>{item}</button>{/each}</div>
-  <div class="examples-layout">
-    <aside aria-label="Select a demo"><nav class="demo-list">{#each filtered as demo}<a href={'/examples?demo=' + demo.slug} aria-current={current?.slug === demo.slug ? 'page' : undefined}>{demo.title}</a>{/each}</nav>{#if !filtered.length}<p>No examples in this category.</p>{/if}</aside>
-    {#if current}<article>
-      <h2>{current.title}</h2><DemoRunner src={current.bundleUrl} title={current.title} autoStart={false} poster={demoPoster(current.slug)} posterAlt={current.title + ' running in Automata'} />
-      <dl class="spec-list"><div><dt>Shows</dt><dd>{current.shows}</dd></div><div><dt>Controls</dt><dd>{current.controls}</dd></div><div><dt>Base</dt><dd>{current.base}</dd></div><div><dt>Packages</dt><dd>{current.packages.join(', ')}</dd></div></dl>
-      {#if data.project}{#key current.slug + (data.file ?? '')}<SourceExplorer project={data.project} initialFile={data.file} />{/key}{/if}
-    </article>{/if}
-  </div>
+<PageMeta title="Examples" description="Small Automata examples, one file each. Open one and it runs beside its code." />
+<div class="page-shell examples-index">
+  <h1>Examples</h1><p class="lead">One file each. Open an example and it runs beside its code.</p>
+  {#each data.index as group}
+    <section>
+      <h2>{group.module}</h2>
+      <ul>
+        {#each group.examples as example}
+          <li>
+            <a href={'/examples/' + example.id}><strong>{example.id}</strong><span>{example.title}</span></a>
+            <p><InlineText text={example.shows} /></p>
+            <p class="difficulty" aria-label={'Difficulty ' + example.difficulty + ' of 4'}>{difficultyStars(example.difficulty)}</p>
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {/each}
 </div>
+<style>
+  .examples-index h2 { text-transform: capitalize; }
+  ul { display: grid; gap: 1rem; margin: 1.5rem 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); }
+  li { padding: 1.25rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); }
+  li a { display: flex; flex-direction: column; gap: .2rem; min-height: 44px; text-decoration: none; }
+  li a strong { font-family: var(--font-mono); font-size: var(--step-small); font-weight: 500; color: var(--muted); }
+  li a span { font-weight: 600; }
+  li p { margin: .6rem 0 0; font-size: var(--step-small); color: var(--muted); overflow-wrap: anywhere; }
+  .difficulty { letter-spacing: .1em; }
+</style>

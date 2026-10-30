@@ -1,16 +1,10 @@
 import { fireEvent, render } from '@testing-library/svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import DemoRunner from '../src/lib/components/DemoRunner.svelte'
-import ExamplesPage from '../src/routes/examples/+page.svelte'
-import { examplesData } from './helpers/page-data'
 
-describe('Examples Gallery', () => {
-  it('renders category filter and active demo code', () => {
-    const { getByText, getAllByText } = render(ExamplesPage, { props: { data: examplesData('hot-reload') } })
-    expect(getByText(/All Examples/i)).toBeTruthy()
-    expect(getAllByText(/Content: hot reload/i).length).toBeGreaterThan(0)
-  })
-
+// The gallery that used DemoRunner on /examples is gone (WEB.PLAY.5; tests/examples-pages.test.ts covers the new
+// pages). DemoRunner still runs Emberwick on / and the first change on /start (PLAY-D10).
+describe('DemoRunner', () => {
   it('DemoRunner renders container with controls and iframe element', () => {
     const { getByTestId, getByLabelText } = render(DemoRunner, {
       props: {

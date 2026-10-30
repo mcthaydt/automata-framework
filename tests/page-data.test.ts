@@ -2,10 +2,9 @@ import { render } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
 vi.mock('$app/environment', () => ({ browser: true }))
 import { load as loadHome } from '../src/routes/+page'
-import { load as loadExamples } from '../src/routes/examples/+page'
-import { getExampleProject, type ProjectSource } from '../src/data/projects'
+import { load as loadExample } from '../src/routes/examples/[id]/+page'
+import { type ProjectSource } from '../src/data/projects'
 import Home from '../src/routes/+page.svelte'
-import ExamplesPage from '../src/routes/examples/+page.svelte'
 
 // QB.3h. The example sources are 372 KB (every example project, shared files once) and the home page and the gallery
 // showed one project each, yet both imported the whole module, so the browser modulepreloaded a 380 KB chunk in the first
@@ -18,16 +17,12 @@ describe('the project a page shows comes from its load function', () => {
     expect(data.starterProject.files.map(file => file.path)).toContain('games/emberwick/src/content/room.ts')
   })
 
-  it('gives the gallery the project of the demo it selects', async () => {
-    const data = await loadExamples({ url: new URL('https://example.test/examples?demo=hot-reload') } as any)
-    expect(data.demo).toBe('hot-reload')
-    expect(data.project).toBe(getExampleProject('hot-reload'))
-  })
-
-  it('gives the gallery the project of the fallback demo when the slug is unknown', async () => {
-    const data = await loadExamples({ url: new URL('https://example.test/examples?demo=missing') } as any)
-    expect(data.demo).toBe('ui-primitives')
-    expect(data.project).toBe(getExampleProject('ui-primitives'))
+  // WEB.PLAY.5: the catalog's sources (examples.json) follow the same rule. An example page's data carries its own
+  // example and the source-free index, never the other sources.
+  it('gives an example page its own example and no other source', async () => {
+    const data = (await loadExample({ params: { id: 'shapes-rects' } } as any)) as { example: { id: string; source: string }; index: unknown }
+    expect(data.example.id).toBe('shapes-rects')
+    expect(JSON.stringify(data.index)).not.toContain("from '@mcthaydt/automata'")
   })
 })
 
@@ -42,11 +37,6 @@ describe('the pages show the project in their data', () => {
 
   it('on the home page', () => {
     const view = render(Home, { props: { data: { starterProject: project } } })
-    expect(view.getByRole('button', { name: 'Open games/sample/main.ts' })).toBeTruthy()
-  })
-
-  it('in the gallery', () => {
-    const view = render(ExamplesPage, { props: { data: { demo: 'base-2d', project } } })
     expect(view.getByRole('button', { name: 'Open games/sample/main.ts' })).toBeTruthy()
   })
 })

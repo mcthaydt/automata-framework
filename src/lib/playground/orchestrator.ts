@@ -1,0 +1,173 @@
+import { frameMessage, PROTOCOL_VERSION, type FrameMessage, type RunMessage } from './protocol'
+
+// The preview's frames (spec §6 F4, F10, F11; §7.1, §7.2). Each run gets a candidate frame under the current one; the
+// candidate is revealed only when it reports `running`, so a run that fails or never starts leaves the last good
+// preview where it was. The clock and the frame factory are injected, so all of it runs in a unit test.
+
+/** The first frame of a page visit downloads the runtime (DemoRunner waits as long). */
+export const FIRST_BOOT_TIMEOUT_MS = 20_000
+/** Later frames, from creation to `running`. */
+export const BOOT_TIMEOUT_MS = 10_000
+
+export const STATUS = {
+  starting: 'Starting the preview…',
+  running: 'Running. Edit the code and the preview updates as you type.',
+  updated: 'Preview updated.',
+  bootTimeout: 'The preview did not start within 10 seconds.',
+  firstBootTimeout: 'The preview couldn’t load. Check the connection and press Play to try again.',
+  kept: 'The preview is still running your last working version.',
+} as const
+
+/** One preview frame, as the page made it. `window` is its `contentWindow`, the only source its messages may have. */
+export interface PreviewFrame {
+  readonly window: unknown
+  post(message: RunMessage): void
+  /** Puts the frame on top, interactive and named. */
+  reveal(): void
+  remove(): void
+}
+
+export interface Clock {
+  setTimeout(fn: () => void, ms: number): unknown
+  clearTimeout(handle: unknown): void
+}
+
+export type PreviewState = 'poster' | 'starting' | 'running' | 'failed'
+
+export interface OrchestratorView {
+  readonly preview: PreviewState
+  /** The run id of the frame on show; 0 before the first run reaches `running`. */
+  readonly runId: number
+  readonly status: string
+  /** Shown over a preview whose run threw or hung after it started. */
+  readonly stopped: string | null
+  readonly frames: number
+}
+
+export interface OrchestratorOptions {
+  createFrame(): PreviewFrame
+  clock: Clock
+  title: string
+  onChange(view: OrchestratorView): void
+}
+
+interface Held {
+  readonly frame: PreviewFrame
+  readonly runId: number
+  readonly code: string
+  sent: boolean
+  timer: unknown
+}
+
+/** A failure's text, with its line when the frame found one in the reader's source. */
+function failureText(message: string, line: number | undefined): string {
+  const text = /[.!?]$/.test(message) ? message : message + '.'
+  return line === undefined ? text : `Line ${line}: ${text}`
+}
+
+export function createOrchestrator(options: OrchestratorOptions) {
+  const { clock, onChange } = options
+  let current: Held | undefined
+  let candidate: Held | undefined
+  let nextRunId = 1
+  let everRan = false
+  let disposed = false
+  let lastCode: string | undefined
+  let view: OrchestratorView = { preview: 'poster', runId: 0, status: '', stopped: null, frames: 0 }
+
+  const update = (change: Partial<OrchestratorView>) => {
+    view = { ...view, ...change, frames: (current ? 1 : 0) + (candidate ? 1 : 0) }
+    onChange(view)
+  }
+
+  const drop = (held: Held | undefined) => {
+    if (!held) return
+    clock.clearTimeout(held.timer)
+    held.frame.remove()
+  }
+
+  const dropCandidate = () => {
+    drop(candidate)
+    candidate = undefined
+  }
+
+  /** The candidate failed or never started: the running preview, if any, stays. */
+  const candidateFailed = (status: string) => {
+    dropCandidate()
+    if (current) update({ status: `${status} ${STATUS.kept}` })
+    else update({ preview: 'failed', status })
+  }
+
+  const run = (code: string) => {
+    if (disposed) return
+    dropCandidate()
+    lastCode = code
+    const first = !everRan
+    const held: Held = { frame: options.createFrame(), runId: nextRunId++, code, sent: false, timer: undefined }
+    held.timer = clock.setTimeout(() => {
+      if (candidate !== held) return
+      if (current) {
+        dropCandidate()
+        update({ status: STATUS.bootTimeout })
+      } else candidateFailed(first ? STATUS.firstBootTimeout : STATUS.bootTimeout)
+    }, first ? FIRST_BOOT_TIMEOUT_MS : BOOT_TIMEOUT_MS)
+    candidate = held
+    if (current) update({})
+    else update({ preview: 'starting', status: STATUS.starting })
+  }
+
+  const handle = (held: Held, message: FrameMessage) => {
+    if (message.type === 'booted') {
+      if (held !== candidate || held.sent) return
+      held.sent = true
+      held.frame.post({ v: PROTOCOL_VERSION, type: 'run', runId: held.runId, code: held.code })
+      return
+    }
+    if (message.runId !== held.runId) return
+    if (message.type === 'running') {
+      if (held !== candidate) return
+      clock.clearTimeout(held.timer)
+      const replaced = current !== undefined
+      held.frame.reveal()
+      drop(current)
+      current = held
+      candidate = undefined
+      everRan = true
+      update({ preview: 'running', runId: held.runId, stopped: null, status: replaced ? STATUS.updated : STATUS.running })
+      return
+    }
+    if (message.type === 'failed') {
+      const text = failureText(message.message, message.line)
+      if (held === candidate) {
+        candidateFailed(text)
+        return
+      }
+      const stopped = `Stopped: ${text.replace(/^Line/, 'line')}`
+      update({ preview: 'failed', stopped, status: stopped })
+    }
+    // `determinism` and `determinism-unavailable` are for the determinism row (WEB.PLAY.10).
+  }
+
+  return {
+    run,
+    restart() {
+      if (lastCode !== undefined) run(lastCode)
+    },
+    receive(event: { source: unknown; origin: string; data: unknown }) {
+      if (disposed || event.origin !== 'null' || event.source === null) return
+      const held = [current, candidate].find(each => each !== undefined && each.frame.window === event.source)
+      if (!held) return
+      const parsed = frameMessage.safeParse(event.data)
+      if (parsed.success) handle(held, parsed.data)
+    },
+    dispose() {
+      disposed = true
+      dropCandidate()
+      drop(current)
+      current = undefined
+      update({})
+    },
+  }
+}
+
+export type Orchestrator = ReturnType<typeof createOrchestrator>

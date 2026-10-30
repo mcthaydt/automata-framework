@@ -67,7 +67,7 @@ export function atOrigin(code: string, from: string, to: string): string
 
 ## Steps (each test is written and seen to fail before the code)
 
-1. [ ] **Orchestrator.** `tests/playground/orchestrator.test.ts`, failing because the module does not exist:
+1. [x] **Orchestrator.** `tests/playground/orchestrator.test.ts`, failing because the module does not exist:
    "drops a message whose origin is not `null`" (the §17 named test), and: a wrong source, an unparsable shape, a
    stale run id are dropped; `booted` posts `run` once with the next run id; the candidate is revealed only on
    `running` and the old frame removed then; never more than two frames; a second `run` while a candidate boots removes
@@ -76,9 +76,9 @@ export function atOrigin(code: string, from: string, to: string): string
    20,000 ms and later ones at 10,000 ms, each removing only the candidate; `restart` runs the last code again;
    `dispose` removes both frames and clears the timers.
    Run: `pnpm vitest run tests/playground/orchestrator.test.ts`, expect red then green.
-2. [ ] **Origin.** `tests/playground/origin.test.ts`: `atOrigin` swaps the quoted `"<from>/playground/` literal and
+2. [x] **Origin.** `tests/playground/origin.test.ts`: `atOrigin` swaps the quoted `"<from>/playground/` literal and
    nothing else (not a comment, not another origin), is the identity when `from === to`, refuses a non-origin.
-3. [ ] **Example data and pages.** `tests/examples-pages.test.ts` (jsdom), failing because the routes do not exist:
+3. [x] **Example data and pages.** `tests/examples-pages.test.ts` (jsdom), failing because the routes do not exist:
    the index lists all 17 examples grouped by module with links to `/examples/<id>`; `entries()` gives every id;
    the page's static code equals the synced source byte for byte; the header fields show; "an example page starts the
    original after `load` with no input" (a stubbed `IntersectionObserver` and `fetch`: after `load` and an
@@ -86,11 +86,11 @@ export function atOrigin(code: string, from: string, to: string): string
    `/playground/compiled/<id>.js`; nothing before `load`); "with reduced motion an example page requests nothing under
    `/playground/` before Play" (`matchMedia` stub; Play then starts it); the frame is titled "Preview: <title>" once
    revealed.
-4. [ ] **Old gallery tests.** Rewrite `examples.test.ts`, `examples-gallery.test.ts`, `demo-navigation.test.ts` and
+4. [x] **Old gallery tests.** Rewrite `examples.test.ts`, `examples-gallery.test.ts`, `demo-navigation.test.ts` and
    `source-explorer.test.ts`: the gallery cases move to the new pages (index, `?demo=` landing on the index), the
    component cases render `DemoRunner` and `SourceExplorer` directly. `tests/page-data.test.ts` and
    `tests/helpers/page-data.ts` follow.
-5. [ ] **CommandMenu and Lighthouse.** Example entries open `/examples/<id>`; `lighthouserc.json` gains the two
+5. [x] **CommandMenu and Lighthouse.** Example entries open `/examples/<id>`; `lighthouserc.json` gains the two
    example URLs with the `/examples` assertions (and `tests/lighthouse-budget.test.ts` if it pins the list).
 6. [ ] **Real browser.** `tests/e2e/playground.e2e.ts`: `shapes-rects` reaches `data-preview="running"` with no input
    and the frame draws; no request under `/playground/` before `load`; reduced motion requests nothing under
