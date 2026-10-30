@@ -1,7 +1,18 @@
 // @mcthaydt/automata-render-pixi3d: AF's 3D renderer on @pixi/3d (M3 spec §4.1). Private while D-1 stands: the
 // beta's terms allow no public deployment, so `ship prepare` refuses a public build that contains it (X-b).
-// Import `@mcthaydt/automata-render-pixi3d/no-eval` first, before anything else.
+// Import `@mcthaydt/automata-render-pixi3d/no-eval` first, before anything else. The view's schema, the lens and the
+// heading maths are the pure `./camera-view` entry; the heading's sim plugin is the `./sim` entry.
 
+export {
+  type AngledCameraOptions,
+  angledCamera,
+  type CameraRig,
+  HEADING_EASE_SECONDS,
+  VIEW_EASE_SECONDS,
+} from './camera/angled-camera.js'
+export type { Pixi3dCameraOptions } from './camera/camera-driver.js'
+export { LOCK_SHARE, type Vec3 } from './camera/camera-pose.js'
+export { cameraViewContent } from './camera/camera-view.content.js'
 export {
   type DecodeTexture,
   type LoadedModel,

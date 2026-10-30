@@ -15,7 +15,14 @@
   ],
   "exports": {
     ".": "./src/index.ts",
-    "./no-eval": "./src/no-eval.ts"
+    "./camera-view": "./src/camera-view.ts",
+    "./no-eval": "./src/no-eval.ts",
+    "./sim": "./src/sim/index.ts"
+  },
+  "automata": {
+    "simEntries": [
+      "./sim"
+    ]
   },
   "scripts": {
     "test": "vitest run --project node",
@@ -24,11 +31,15 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-render-pixi": "workspace:*",
     "@mcthaydt/automata-runtime": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
+    "@mcthaydt/automata-ui": "workspace:*",
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
-    "effect": "3.22.2"
+    "@pmndrs/klipp": "0.16.0",
+    "effect": "3.22.2",
+    "zod": "4.6.6"
   },
   "peerDependencies": {
     "pixi.js": "8.22.0"

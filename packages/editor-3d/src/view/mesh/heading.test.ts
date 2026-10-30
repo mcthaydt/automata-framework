@@ -2,22 +2,20 @@
 // camera freely, per pixel, and keeps the heading as an integer in turn units (65,536 to a turn, 0 looking toward +z and
 // growing toward +x). The editor states a heading the way the game does, turns it by a drag, and looks at the dollhouse from
 // any heading and from every 15 degrees of one, with what each cuts away or fades. Rooms are 8 m by 6 m and 4 m high.
+
+import { degToHeading, TURN_UNITS, wrapHeading } from '@mcthaydt/automata-render-pixi3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { entry, meshOf, room } from '../../testing/room-mesh'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import { fitOrbit, orbitCamera } from './camera-3d'
 import {
   DEGREES_PER_PIXEL,
-  degToHeading,
   dragTurn,
   headingSweep,
   headingToDeg,
   headingToYaw,
   headingView,
-  TURN_UNITS,
-  turnHeading,
   wallsSeenFrom,
-  wrapHeading,
   yawToHeading,
 } from './heading'
 import { EMPTY_BOUNDS, type SectorMesh } from './sector-mesh'
@@ -34,30 +32,10 @@ const countsAt = (mesh: SectorMesh, heading: number, options = {}) => {
 }
 
 describe('the turn', () => {
-  it('is 65,536 units, and a pixel of drag is a quarter of a degree', () => {
+  it('is the owner’s 65,536 units, and a pixel of drag is a quarter of a degree', () => {
+    // Wrapping, turning and reading a yawDeg are render-pixi3d's `camera-view`, tested there (M3.4b moved them).
     expect(TURN_UNITS).toBe(65_536)
     expect(DEGREES_PER_PIXEL).toBe(0.25)
-  })
-
-  it('wraps a heading into one turn, from either side, and rounds a fraction to a whole unit', () => {
-    expect(wrapHeading(0)).toBe(0)
-    expect(wrapHeading(TURN_UNITS)).toBe(0)
-    expect(wrapHeading(TURN_UNITS - 1)).toBe(TURN_UNITS - 1)
-    expect(wrapHeading(-1)).toBe(TURN_UNITS - 1)
-    expect(wrapHeading(70_000)).toBe(4_464)
-    expect(wrapHeading(-3 * TURN_UNITS - 5)).toBe(TURN_UNITS - 5)
-    expect(wrapHeading(1.4)).toBe(1)
-    expect(wrapHeading(1.5)).toBe(2)
-    // A fraction that rounds up to a whole turn is the start of the next, and a small negative one is zero, not minus zero.
-    expect(wrapHeading(TURN_UNITS - 0.4)).toBe(0)
-    expect(wrapHeading(-0.4)).toBe(0)
-  })
-
-  it('turns a heading by some units and wraps it', () => {
-    expect(turnHeading(100, 50)).toBe(150)
-    expect(turnHeading(65_000, 1_000)).toBe(464)
-    expect(turnHeading(100, -200)).toBe(TURN_UNITS - 100)
-    expect(turnHeading(5, 3 * TURN_UNITS)).toBe(5)
   })
 
   it('turns by a drag: 1,440 pixels are a full turn, each pixel is a quarter degree, and the direction is the sign', () => {
@@ -115,16 +93,6 @@ describe('a heading and the editor camera', () => {
     // A heading outside one turn is the one it wraps to.
     expect(headingToDeg(TURN_UNITS + QUARTER)).toBe(90)
     expect(headingToDeg(-QUARTER)).toBe(270)
-  })
-
-  it('reads a yawDeg as the nearest unit of a turn, in any turn', () => {
-    expect(degToHeading(0)).toBe(0)
-    expect(degToHeading(90)).toBe(QUARTER)
-    expect(degToHeading(360)).toBe(0)
-    expect(degToHeading(-90)).toBe(3 * QUARTER)
-    expect(degToHeading(450)).toBe(QUARTER)
-    expect(degToHeading(0.0055)).toBe(1)
-    expect(degToHeading(359.9945)).toBe(TURN_UNITS - 1)
   })
 
   it('round-trips every unit through the four decimals of a yawDeg', () => {

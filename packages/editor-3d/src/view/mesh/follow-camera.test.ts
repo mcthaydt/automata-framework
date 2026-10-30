@@ -1,12 +1,15 @@
 // The follow camera of a room (ED3D.4c, the 3D direction spec §4.2, M3R-D9 and D11): 24 mm, 25 degrees down and 5 m back from
 // a focus a metre above the followed position, along a heading the player turns freely. The editor draws a room as the player
 // sees it: the eye the game would put there, and the walls that eye cuts away. `bounds`, `lag` easing and lock-on framing
-// are the game renderer's; the editor carries `lag` as data only.
+// are the game renderer's; the editor carries `lag` as data only. The view itself (its fields, defaults and ranges) is
+// render-pixi3d's `camera-view`, whose own tests cover it.
+
+import { cameraView, TURN_UNITS } from '@mcthaydt/automata-render-pixi3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import { room } from '../../testing/room-mesh'
 import { forward, ORBIT_FOV, orbitCamera, projectPoint } from './camera-3d'
-import { CAMERA_DEFAULTS, CAMERA_RANGES, cameraViewSpec, followCamera, roomView } from './follow-camera'
-import { headingToYaw, TURN_UNITS } from './heading'
+import { followCamera, roomView } from './follow-camera'
+import { headingToYaw } from './heading'
 import type { Vec3 } from './sector-mesh'
 
 const DEGREES = Math.PI / 180
@@ -15,35 +18,9 @@ const [QUARTER, HALF] = [TURN_UNITS / 4, TURN_UNITS / 2]
 /** The player in the middle of the 8 m by 6 m room, on the floor. */
 const MIDDLE: Vec3 = [4, 0, 3]
 
-describe('cameraViewSpec', () => {
-  it('is the default view when nothing is given: 25 degrees down, 5 m back, a focus 1 m up, 0.18 s of lag, free rotation', () => {
-    expect(cameraViewSpec()).toEqual({ tiltDeg: 25, distance: 5, focusHeight: 1, lag: 0.18, rotate: true })
-    expect(CAMERA_DEFAULTS).toEqual({ tiltDeg: 25, distance: 5, focusHeight: 1, lag: 0.18, rotate: true })
-  })
-
-  it('keeps a field that is given, a zero lag and a locked rotation included, and fills the rest', () => {
-    expect(
-      cameraViewSpec({
-        id: 'cellar',
-        yawDeg: 90,
-        tiltDeg: 40,
-        distance: 8,
-        focusHeight: 1.5,
-        lag: 0,
-        rotate: false,
-      }),
-    ).toEqual({ id: 'cellar', yawDeg: 90, tiltDeg: 40, distance: 8, focusHeight: 1.5, lag: 0, rotate: false })
-    expect(cameraViewSpec({ distance: 7 })).toEqual({ ...CAMERA_DEFAULTS, distance: 7 })
-  })
-
-  it('states the ranges a view is authored in: tilt 15 to 60 degrees, distance 3 to 12 m', () => {
-    expect(CAMERA_RANGES).toEqual({ tiltDeg: { min: 15, max: 60 }, distance: { min: 3, max: 12 } })
-  })
-})
-
 describe('followCamera', () => {
   it('stands 2.11 m above the focus and 4.53 m behind it at the defaults, 3.1 m above the floor, and looks 25 degrees down', () => {
-    const camera = followCamera(cameraViewSpec(), [0, 0, 0], 0)
+    const camera = followCamera(cameraView('view'), [0, 0, 0], 0)
     // Heading 0 looks toward +z, so the eye is behind the player at -z.
     expect(camera.eye[0]).toBeCloseTo(0, 9)
     expect(camera.eye[1] - 1).toBeCloseTo(2.113, 3)
@@ -53,13 +30,13 @@ describe('followCamera', () => {
   })
 
   it('looks through the 24 mm lens: 53.13 degrees', () => {
-    const camera = followCamera(cameraViewSpec(), MIDDLE, 0)
+    const camera = followCamera(cameraView('view'), MIDDLE, 0)
     expect(camera.fov).toBe(ORBIT_FOV)
     expect(camera.fov / DEGREES).toBeCloseTo(53.13, 2)
   })
 
   it('looks at the focus, which is the followed position raised by the focus height, from the distance', () => {
-    const spec = cameraViewSpec({ distance: 8, focusHeight: 1.5, tiltDeg: 40 })
+    const spec = cameraView('view', { distance: 8, focusHeight: 1.5, tiltDeg: 40 })
     const followed: Vec3 = [10, 2, -3]
     const camera = followCamera(spec, followed, 12_345)
     const hit = projectPoint(camera, SIZE, [10, 3.5, -3])
@@ -71,7 +48,7 @@ describe('followCamera', () => {
   })
 
   it('stands behind the player at every quarter heading: the eye is on the side the heading looks away from', () => {
-    const behind = (heading: number): Vec3 => followCamera(cameraViewSpec(), [0, 0, 0], heading).eye
+    const behind = (heading: number): Vec3 => followCamera(cameraView('view'), [0, 0, 0], heading).eye
     const [south, east, north, west] = [0, QUARTER, HALF, 3 * QUARTER].map(behind) as [Vec3, Vec3, Vec3, Vec3]
     expect(south[2]).toBeLessThan(-4)
     expect(east[0]).toBeLessThan(-4)
@@ -84,7 +61,7 @@ describe('followCamera', () => {
   it('looks along the heading’s direction (sin h, cos h) in (x, z), at any heading', () => {
     for (const heading of [0, 1, 4_096, QUARTER, 30_000, HALF, 50_000, 3 * QUARTER, TURN_UNITS - 1]) {
       const turns = (heading / TURN_UNITS) * 2 * Math.PI
-      const [x, , z] = forward(followCamera(cameraViewSpec(), MIDDLE, heading))
+      const [x, , z] = forward(followCamera(cameraView('view'), MIDDLE, heading))
       const level = Math.cos(25 * DEGREES)
       expect(x).toBeCloseTo(Math.sin(turns) * level, 9)
       expect(z).toBeCloseTo(Math.cos(turns) * level, 9)
@@ -92,7 +69,7 @@ describe('followCamera', () => {
   })
 
   it('is the dollhouse’s orbit camera with the view’s numbers', () => {
-    const spec = cameraViewSpec({ tiltDeg: 33, distance: 6, focusHeight: 0.5 })
+    const spec = cameraView('view', { tiltDeg: 33, distance: 6, focusHeight: 0.5 })
     expect(followCamera(spec, [1, 2, 3], 7_777)).toEqual(
       orbitCamera({ target: [1, 2.5, 3], distance: 6, yaw: headingToYaw(7_777), pitch: 33 * DEGREES }),
     )
@@ -101,7 +78,7 @@ describe('followCamera', () => {
 
 describe('roomView', () => {
   const view = (heading?: number, given = {}, followed: Vec3 = MIDDLE) =>
-    roomView(room(), cameraViewSpec(given), followed, heading)
+    roomView(room(), cameraView('view', given), followed, heading)
   const door = { door: { at: 4, width: 1, height: 2 } }
 
   it('cuts the near wall by the real eye: the wall between the camera and the player, at each quarter heading', () => {
@@ -120,26 +97,26 @@ describe('roomView', () => {
   it('names a wall once when a door makes it several surfaces', () => {
     const mesh = room({ 0: door })
     expect(mesh.surfaces.filter((surface) => surface.selection === 'wall:room/0').length).toBeGreaterThan(1)
-    expect(roomView(mesh, cameraViewSpec(), MIDDLE, 0).walls).toEqual({ cut: ['wall:room/0'], faded: [] })
+    expect(roomView(mesh, cameraView('view'), MIDDLE, 0).walls).toEqual({ cut: ['wall:room/0'], faded: [] })
   })
 
   it('fades a wall that says fade where it would cut it, and shows one that says never', () => {
-    expect(roomView(room({ 0: { occlude: 'fade' } }), cameraViewSpec(), MIDDLE, 0).walls).toEqual({
+    expect(roomView(room({ 0: { occlude: 'fade' } }), cameraView('view'), MIDDLE, 0).walls).toEqual({
       cut: [],
       faded: ['wall:room/0'],
     })
-    expect(roomView(room({ 0: { occlude: 'never' } }), cameraViewSpec(), MIDDLE, 0).walls).toEqual({
+    expect(roomView(room({ 0: { occlude: 'never' } }), cameraView('view'), MIDDLE, 0).walls).toEqual({
       cut: [],
       faded: [],
     })
   })
 
   it('looks through the camera followCamera makes, and says whether the player may turn it', () => {
-    const spec = cameraViewSpec({ tiltDeg: 30, distance: 4 })
+    const spec = cameraView('view', { tiltDeg: 30, distance: 4 })
     const seen = roomView(room(), spec, MIDDLE, 9_000)
     expect(seen.camera).toEqual(followCamera(spec, MIDDLE, 9_000))
     expect(seen.rotate).toBe(true)
-    expect(roomView(room(), cameraViewSpec({ rotate: false }), MIDDLE, 9_000).rotate).toBe(false)
+    expect(roomView(room(), cameraView('view', { rotate: false }), MIDDLE, 9_000).rotate).toBe(false)
   })
 
   it('looks along the heading it is given, wrapped into one turn', () => {
@@ -152,7 +129,7 @@ describe('roomView', () => {
     expect(view(undefined).heading).toBe(0)
     expect(view(undefined, { yawDeg: 90 }).heading).toBe(QUARTER)
     expect(view(undefined, { yawDeg: -90 }).heading).toBe(3 * QUARTER)
-    expect(view(undefined, { yawDeg: 90 }).camera).toEqual(followCamera(cameraViewSpec(), MIDDLE, QUARTER))
+    expect(view(undefined, { yawDeg: 90 }).camera).toEqual(followCamera(cameraView('view'), MIDDLE, QUARTER))
   })
 
   it('lets the player turn away from the yawDeg when the view allows it, and holds a locked view at it', () => {
