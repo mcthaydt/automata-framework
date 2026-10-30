@@ -15,16 +15,11 @@
  * the room's final hash.
  */
 
-import type { NetConfig, ServerMessage } from '@mcthaydt/automata-net'
+import type { ServerMessage } from '@mcthaydt/automata-net'
 import { SeatJoin, SeatLeave } from '@mcthaydt/automata-net/sim'
 import { type Command, createRng, type Rng, type Sim } from '@mcthaydt/automata-sim'
-import {
-  createRecorder,
-  packReplay,
-  type Recorder,
-  type ReplayCompression,
-} from '@mcthaydt/automata-sim/replay'
-import type { Bucket, RoomLogEvent } from '../game/server-config'
+import { createRecorder, packReplay, type Recorder } from '@mcthaydt/automata-sim/replay'
+import type { RoomLogEvent } from '../game/server-config'
 import { type CommandIntent, ROOM_SOURCE, type ServerDef } from '../game/server-game'
 import { type SimView, simViewOf } from '../game/sim-view'
 import { addBot, botSeed, removeBot } from '../rooms/bot-seats'
@@ -50,66 +45,20 @@ import {
   startOver,
 } from '../rooms/lobby-rules'
 import { RoomCommandError } from '../rooms/room-errors'
-import { type SeatClient, SeatRegistry } from '../rooms/seat-registry'
+import { SeatRegistry } from '../rooms/seat-registry'
 import { nodeReplayCompression } from './replay-compression'
+import type { CloseReason, RoomClient, RoomEngineOptions, RoomInfoView, SubmitOutcome } from './room-types'
+
+export type {
+  CloseReason,
+  RoomClient,
+  RoomEngineOptions,
+  RoomInfoView,
+  SeatInfoView,
+  SubmitOutcome,
+} from './room-types'
+
 import { receiveMessage } from './room-messages'
-
-/** A connected client as the room speaks to it: wire messages, binary and closing. */
-export interface RoomClient extends SeatClient {
-  send(message: ServerMessage): void
-  sendBytes(bytes: Uint8Array): void
-  /** Ends this client's connection (a `leave` request). */
-  close(): void
-}
-
-/** `drained`: a draining room has nothing left to finish. `abandoned`: nobody is left who could come back. */
-export type CloseReason = 'drained' | 'abandoned'
-
-export interface RoomEngineOptions {
-  readonly def: ServerDef
-  /** The room's sim, created from the game's plugins, content and the room seed. The engine disposes it. */
-  readonly sim: Sim
-  /** The room seed: the sim's, and the root of each bot's stream. */
-  readonly seed: number
-  readonly net: NetConfig
-  readonly commandsPerSeat: Bucket
-  /** The room clock, in milliseconds: the tick scheduler's. Pings are measured on it. */
-  readonly now: () => number
-  /** Read for `NODE_ENV`: a clock hold is refused in production. */
-  readonly env: Readonly<Record<string, string | undefined>>
-  readonly log?: ((event: RoomLogEvent) => void) | undefined
-  readonly compression?: ReplayCompression | undefined
-  /** The room has nothing left to do and should close. Called once. */
-  readonly onClose: (reason: CloseReason) => void
-}
-
-/** What became of one command a seat submitted. */
-export type SubmitOutcome =
-  | 'accepted'
-  | 'late'
-  | 'phase'
-  | 'type'
-  | 'payload'
-  | 'rate'
-  | 'sequence'
-  | 'lead'
-  | 'full'
-
-/** A seat as the room tells clients about it (net's `SeatInfo`). */
-export interface SeatInfoView {
-  readonly seat: number
-  readonly name: string
-  readonly ready: boolean
-  readonly connected: boolean
-  readonly bot: boolean
-}
-
-/** The room as clients see it (net's `RoomInfo`, without the code and `you`, which the adapter and `seated` give). */
-export interface RoomInfoView {
-  readonly phase: LobbyState['phase']
-  readonly hostSeat: number | undefined
-  readonly seats: readonly SeatInfoView[]
-}
 
 interface BotSeat {
   readonly rng: Rng
