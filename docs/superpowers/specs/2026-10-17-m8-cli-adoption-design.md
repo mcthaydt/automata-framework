@@ -146,7 +146,7 @@ Commands are thin. Each calls one Effect program from `cli`, `ship`, `content` o
 | Command | Does | Program | Task |
 |---|---|---|---|
 | `automata create-game <dir> [--id] [--title]` (and `npm create @mcthaydt/automata <dir>`) | Scaffolds a game | `createGame` (exists; DX.5 completes it) | — |
-| `automata add <kit>` | Copies a Plus kit or starter | PRODUCT.5 | — |
+| `automata add <kit> [--dir <game>] [--repo <url>] [--force]` | Copies a Plus kit or starter at the installed core version (the newest `core-v<version>` tag at or below it, P5-D6), refusing collisions unless `--force`, then runs `automata check`; exit 0 added and checked, 1 added and the check found problems, 2 either not added (no access, unknown kit, core version, collision, or a failed copy, which is undone), with the game folder unchanged, or added and a check step could not run, in which case the kit's files stay | `runAdd` (`packages/cli/src/add/`, built in PRODUCT.5d) | — |
 | `automata check [--json] [--sim-only] [--csp] [--fail-fast]` | The rules | `runCheck` (exists) | — |
 | `automata dev [--port] [--host-origin]` | Vite dev server plus the fake Ruken host harness: one page, the game in a frame, `compileHeaders`' CSP on the game | new, over `@ruken/sdk-host` (as `tooling/examples-runner` does) | M8.4 |
 | `automata build [--target ruken\|itch\|web]` | `vite build` with the target's host adapter selected at build time (PUB §2) | the game's `vite build` with `AF_TARGET` | M8.5 |

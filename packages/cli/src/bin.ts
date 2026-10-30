@@ -1,6 +1,9 @@
 import { basename, resolve } from 'node:path'
 import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
+import { parseAddArgs } from './add/add-args.ts'
+import { KitSourceLive } from './add/kit-source.ts'
+import { type AddError, type AddResult, addExitCode, type RunAddOptions, runAdd } from './add/run-add.ts'
 import { parseCheckArgs } from './check/check-args.ts'
 import { type CheckReport, exitCodeFor, formatText, toJson } from './check/check-report.ts'
 import { CspProbeLive } from './check/csp-probe-live.ts'
@@ -55,9 +58,14 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
 }
 
 const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <title>]
+       automata add <kit> [--dir <game>] [--repo <url>] [--force]
        automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]
 
 create-game scaffolds a new Automata Framework game project.
+add copies an Automata Plus kit into a game at its installed core version, then runs check
+(exit 0 added and checked, 1 added and check found problems, 2 either not added (no access, unknown kit,
+core version, collision, or a failed copy, which is undone) or added and a check step could not run,
+in which case the kit stays in place).
 check runs, in a game folder: boundaries, typecheck, tests, the boards, orientation and inputs scans of the
 sources, no-eval (vite build, then a scan of the bundle), the secrets and data-urls scans of that build, and
 with --csp the browser CSP check; --sim-only runs only the first three
@@ -66,6 +74,9 @@ with --csp the browser CSP check; --sim-only runs only the first three
 Options:
   --id <id>        Unique game identifier (lowercase alphanumeric with hyphens)
   --title <title>  Display title of the game
+  --dir <game>     add: the game folder (default: the working folder)
+  --repo <url>     add: the kit repository (default: the Automata Plus repository)
+  --force          add: replace files the game already has
   -h, --help       Show this help message
 `
 
@@ -74,6 +85,54 @@ export const runCheckLive = (options: RunCheckOptions): Promise<CheckReport> =>
   Effect.runPromise(
     Effect.provide(runCheck(options), Layer.mergeAll(FilesLive, ProcessRunnerLive, CspProbeLive)),
   )
+
+/** Runs `automata add` with real git, files and processes; the check after it is `automata check` with no flags. */
+export const runAddLive = (options: RunAddOptions): Promise<AddResult | AddError> =>
+  Effect.runPromise(
+    Effect.provide(
+      Effect.merge(
+        runAdd(options, (gameDir) => runCheck({ gameDir, simOnly: false, csp: false, failFast: false })),
+      ),
+      Layer.mergeAll(
+        FilesLive,
+        ProcessRunnerLive,
+        CspProbeLive,
+        Layer.provide(KitSourceLive, ProcessRunnerLive),
+      ),
+    ),
+  )
+
+async function addCommand(
+  args: readonly string[],
+  io: CliIo,
+  add: (options: RunAddOptions) => Promise<AddResult | AddError>,
+): Promise<number> {
+  const parsed = parseAddArgs(args)
+  if (!parsed.ok) {
+    io.stderr(`Error: ${parsed.problem}\n\n${USAGE}`)
+    return 2
+  }
+  const { kit, dir, repo, force } = parsed.options
+  let outcome: AddResult | AddError
+  try {
+    outcome = await add({ kit, gameDir: resolve(process.cwd(), dir), repo, force })
+  } catch (error) {
+    // A crash (a file the CLI may not read, say) could not run the add: exit 2, never 1, which means the check failed.
+    io.stderr(`Error: ${error instanceof Error ? error.message : String(error)}\n`)
+    return 2
+  }
+  if ('reason' in outcome) {
+    io.stderr(`Error: ${outcome.message}\n`)
+    return addExitCode(outcome)
+  }
+  const files = outcome.files.map((file) => `  ${file}\n`).join('')
+  io.stdout(`Added ${outcome.kit} from ${outcome.tag}:\n${files}${formatText(outcome.report)}`)
+  if (!outcome.report.ok)
+    io.stdout(
+      'The kit is in place and automata check did not pass: fix what it reports, or remove the files listed above.\n',
+    )
+  return addExitCode(outcome)
+}
 
 async function checkCommand(
   args: readonly string[],
@@ -95,8 +154,10 @@ export async function runCli(
   args: readonly string[],
   io: CliIo = DEFAULT_IO,
   check: (options: RunCheckOptions) => Promise<CheckReport> = runCheckLive,
+  add: (options: RunAddOptions) => Promise<AddResult | AddError> = runAddLive,
 ): Promise<number> {
   if (args[0] === 'check') return checkCommand(args.slice(1), io, check)
+  if (args[0] === 'add') return addCommand(args.slice(1), io, add)
   const parsed = parseArgs(args)
 
   if (parsed.help) {
