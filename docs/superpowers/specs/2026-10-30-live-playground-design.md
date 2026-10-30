@@ -414,12 +414,12 @@ A separate preview origin (a subdomain or another host) would add process isolat
 Written by the framework into each frame page's `<meta http-equiv="Content-Security-Policy">` (a meta policy cannot carry `frame-ancestors`). It is Ruken's policy with two additions to `script-src` (`blob:` and the import map's hash) and without `manifest-src` and `frame-ancestors`:
 
 ```
-default-src 'none'; script-src 'self' blob: 'wasm-unsafe-eval' 'sha256-<import map>'; style-src 'self' 'unsafe-inline';
-img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self';
+default-src 'none'; script-src 'self' 'wasm-unsafe-eval' blob: 'sha256-<import map>'; style-src 'self' 'unsafe-inline';
+img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; worker-src 'self' blob:; connect-src 'self' <site origin>;
 frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'
 ```
 
-`'self'` must mean the site's origin inside an opaque-origin document; CSP3's policy self-origin says so, and WEB.PLAY.1 proves it in Chromium and WebKit before anything depends on it (R-2). The import map's hash is computed by the build from the exact text it writes.
+`'self'` must mean the site's origin inside an opaque-origin document; CSP3's policy self-origin says so. WEB.PLAY.1 (framework PR #199) measured it in Chromium 153, WebKit 26.6 and Firefox 155: module scripts and images match `'self'` in all three, but WebKit does not match it for a `fetch` (R-2). So `connect-src` names the site's origin beside `'self'`, and a frame page is written for the one origin that serves it: `framePolicy(importMapText, siteOrigin)` in the framework takes it, and the site's build passes its own origin (production, the local preview server and the test servers each get theirs). The import map's hash is computed from the exact text the page carries. WebKit also refuses `eval` without firing a `securitypolicyviolation` event, so A-17's check reads the error as well as the event.
 
 ### 11.3 Headers for `/playground/`
 
@@ -584,9 +584,9 @@ WEB.PLAY.8, .9 and .10 can run in parallel after WEB.PLAY.7. WEB.PLAY.6's editor
 
 | ID | Risk | Check | If it bites |
 | --- | --- | --- | --- |
-| R-1 | A browser does not reuse its HTTP cache for an opaque-origin frame, so every fresh frame downloads and compiles the runtime again. | WEB.PLAY.1 measures a second frame's requests and time in Chromium and WebKit with the §11.3 cache headers. | PLAY-D5's fallback: one frame per visit with in-frame restarts, plus a fresh frame on Reset, on switching examples and after a failure. |
-| R-2 | `'self'` in a meta policy does not match the site inside an opaque-origin document in one engine. | WEB.PLAY.1, first test. | The frame page's policy names the origin explicitly: written by the framework build from the site's origin, with the test server's origin in a test-only build. |
-| R-3 | WebKit refuses `import()` of a Blob URL created in an opaque origin. | WEB.PLAY.1. | A `data:` module URL (`script-src data:` in the frame policy only), with the same `import.meta.url` rewrite. |
+| R-1 | A browser does not reuse its HTTP cache for an opaque-origin frame, so every fresh frame downloads and compiles the runtime again. | WEB.PLAY.1 measured it: a second fresh frame in the same page made 0 requests for an immutable module in Chromium, WebKit and Firefox (the first made 1). The full runtime's warm-frame time is measured in WEB.PLAY.3 and .11. | PLAY-D5's fallback: one frame per visit with in-frame restarts, plus a fresh frame on Reset, on switching examples and after a failure. |
+| R-2 | `'self'` in a meta policy does not match the site inside an opaque-origin document in one engine. | WEB.PLAY.1: it bites in WebKit for `connect-src` only; the fallback below is applied (§11.2). | The frame page's policy names the origin explicitly: written by the framework build from the site's origin, with the test server's origin in a test-only build. |
+| R-3 | WebKit refuses `import()` of a Blob URL created in an opaque origin. | WEB.PLAY.1: it does not; a Blob module imports `zod` through the import map in all three engines. | A `data:` module URL (`script-src data:` in the frame policy only), with the same `import.meta.url` rewrite. |
 | R-4 | The frame shares the page's main thread, so a hang the guard cannot see (no loop) freezes the editor too. | WEB.PLAY.8 records which engines run the frame in its own process. | Accepted for v1; the boot timeout and the guard cover the common cases. |
 | R-5 | A new WebGL context per run on a phone; Safari limits live contexts. | The A-16 soak in WebKit. | At most two contexts live by design; the R-1 fallback reuses one. |
 | R-6 | A `new Function` path in the full `zod` facade that nobody has traced yet surfaces under the no-eval policy. | A-17 in all three engines. | A framework fix (as no-eval did for Pixi and Zod's JIT); never `'unsafe-eval'` in the frame. |
