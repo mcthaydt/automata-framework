@@ -12,6 +12,12 @@ export interface TouchButtonSpec {
   readonly required?: boolean | undefined
 }
 
+/** The overlay's move stick (M4.12). */
+export interface TouchStickSpec {
+  /** Its name for assistive technology ("Move"). */
+  readonly label: string
+}
+
 /** TouchControls' props. */
 export interface TouchControlsProps {
   buttons: readonly TouchButtonSpec[]
@@ -21,5 +27,14 @@ export interface TouchControlsProps {
   onrelease: (action: string) => void
   /** False hides the controls without remounting them (the player put touch down). Default true. */
   shown?: boolean | undefined
+  /**
+   * A floating move stick at the overlay's start (M4.12): its accessible name. None draws no stick, as in 2D. The
+   * stick is always shown: the reduced set never drops it.
+   */
+  stick?: TouchStickSpec | undefined
+  /** The stick's vector as the thumb moves, clamped to length 1, `y` positive down (runtime's `Input.touchStick.set`). */
+  onstick?: ((x: number, y: number) => void) | undefined
+  /** The stick let go: a lift, a cancel, the controls hiding or coming down (`Input.touchStick.release`). */
+  onstickend?: (() => void) | undefined
   testId?: string | undefined
 }

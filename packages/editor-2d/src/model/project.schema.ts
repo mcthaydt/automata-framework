@@ -19,8 +19,8 @@ import type { EntityDef2D, LayerDef, ProjectFile, TilesetDef } from './project-t
 // Guard rails (ED2D-D13) are bounds here. The fifth, the 1024-cell limit of a layer, needs the level and the layer's
 // grid together, so `decodeProject` checks it before it allocates a grid.
 
-const MAX_LEVEL_SIDE = 16384
-const MAX_LEVELS = 256
+export const MAX_LEVEL_SIDE = 16384
+export const MAX_LEVELS = 256
 export const MAX_LAYER_DEFS = 64
 
 const defId = z.string().regex(DEF_ID)
