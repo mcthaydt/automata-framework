@@ -1,0 +1,87 @@
+# EDS.1a Shared content documents (span-preserving TOML and JSON edits): TDD plan
+
+- **Task:** EDS.1a in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §4.4 (the shape and rules), EDS-D2 (the documents live in `editor-kit` as `./documents`, owned by that spec), §12 (unit layer and fixtures), §11 (the `verify-failed` row).
+- **Lane:** editor-suite. **Depends on:** EDS.0, EDK.2, EDFF.1 (all merged). **Unblocks:** EDS.2b, EDS.4a, EDS.3, EDS.5 to EDS.7, EDS.9a (every suite editor writes through these documents).
+- **Status:** Drafted 2026-10-30.
+- **Progress:** 0 of 7 steps.
+
+## Scope
+
+**In:**
+
+- A headless entry `@mcthaydt/automata-editor-kit/documents` (no Svelte, no DOM; loads on Node and in a worker) with `openDocument(path, text)` and the `ContentDocument` of spec §4.4: `value()`, `literals()`, `comments(keyPath)`, `edit(edits)` (all or nothing; value, insert and remove edits).
+- **JSON:** ED3D.1's engine (`locate.ts`, `structure.ts`, `layout.ts`, `print.ts`, `patch.ts`, the Last Light scanner and layout) moved with `git mv` from `packages/editor-3d/src/codec/` to `packages/editor-kit/src/documents/json/`, with its unit tests and the fixtures they read. `editor-3d` imports it from the kit; its public entry re-exports the same names so its entry test and consumers stay as they are. `editor-3d/src/codec/` keeps only what is editor-3d's own (`roundtrip.test.ts`, which tests editor-3d's file codecs).
+- **TOML:** a kit `patchToml(text, before, after)` that generalises the FloorFifty stage codec's value step: every scalar whose literal is in the text is written into that literal's span alone (the kit's number rule, a float stays a float); what is left (a key or array item added or removed, a kind change) goes to `@decimalturn/toml-patch` as before; the result is re-parsed and compared with `after` (`verify-failed` otherwise). `literals()` and `comments()` come from `toml-patch`'s CST positions. The stage codec (`printStage`) keeps its block engine for whole tables and calls `patchToml` for the rest.
+- Fixtures, each with its source and commit: FloorFifty `content/tuning.toml` and `content/juice.toml` (`677d456`); the four Last Light blockouts and `facility.json` (`92e6704`, the same bytes and sha256 as editor-3d's copies); AF content TOML (`packages/content` fixtures `tuning.toml`, `game.toml`, `characters/cyan.toml`) and the locale file `messages/fr.json`.
+
+**Out, with owner:**
+
+| What | Where |
+|---|---|
+| Ports (workspace, change set, checks, gates, Ask, interchange) | EDS.1b (`editor-kit/ports`) |
+| ED3D's own file codecs (`createFileCodec`, `last-light-codecs`, `af-codec`) moving onto `ContentDocument` | They already call the moved `patchJson`; switching them to `openDocument` is EDS.1b's ED3D port move or later, not needed for one owner of the engine |
+| The stage codec's table reconciliation (`toml-blocks`, `toml-edit`, `stage-structure`) | Stays in editor-2d (spec §4.4: "the stage codec keeps its stage-structure reconciliation") |
+| Tuner locks, units and notes UI | EDS.4a (consumes `comments()`) |
+| "Save reformatted" after `verify-failed` | The shell, EDS.2b |
+
+## Decisions made here (defaults, listed for the Owner's veto)
+
+1. **`insert` addresses** (spec §4.4 leaves it open): for a table, `keyPath` names the new key (its parent must be a table that lacks it); for an array, `keyPath` names the array and `at` the index (default: the end). `remove` names the key or the element.
+2. **Several edits in one call apply in order**, each against the document as the previous ones left it; one refusal returns that edit's key path and nothing else is changed. `changed` lists, in the final text, the span of each edited literal (a value edit) or the region an insert or remove rewrote, merged where they touch.
+3. **`openDocument` never throws for a text that does not parse** (so an editor can still show it read only); `value()`, `literals()` and `comments()` throw `DocumentSyntaxError` (with a 1-based line and column when the parser gives one) and `edit` returns `invalid-text`. An extension other than `.toml` or `.json` throws.
+4. **A TOML string literal keeps its quoting** when it can (a literal string `'…'` stays one if the new text has no `'`, control character or line break); otherwise it is written as a basic string with TOML escapes. A multi-line string that is edited becomes a one-line basic string.
+5. **A TOML float literal stays a float:** a new whole number is written `357.0` where the old literal was a float (`356.0`), so the type a schema reads does not flip; an integer literal given a fraction is written as a float.
+6. **Comments for the Tuner** (EDS-D18): `before` is the run of whole-line comments directly above the key (no blank line between), each line without its `#` and one following space, joined with `\n`; `trailing` is the comment after the value on its line. JSON has none (`{}`).
+7. **The four Last Light blockouts and `facility.json` are copied into the kit's fixtures** (the bytes and sha256 editor-3d records, checked by a test) rather than shared across packages: the kit cannot import an editor, and editor-3d keeps its own copies for its geometry and check goldens. The `literals` golden (only the scanner's test reads it) moves with that test.
+
+## Contract (produced, `packages/editor-kit/src/documents/index.ts`)
+
+```ts
+type KeyPath = readonly (string | number)[]
+interface DocumentLiteral { keyPath: KeyPath; span: readonly [number, number]; text: string }
+interface ContentDocument {
+  readonly path: string; readonly format: 'toml' | 'json'; readonly text: string
+  value(): unknown
+  literals(): readonly DocumentLiteral[]
+  comments(keyPath: KeyPath): { before?: string; trailing?: string }
+  edit(edits: readonly ContentEdit[]): EditResult
+}
+type ContentEdit =
+  | { keyPath: KeyPath; expected: unknown; set: unknown }
+  | { keyPath: KeyPath; insert: unknown; at?: number }
+  | { keyPath: KeyPath; remove: true }
+type EditRefusalReason = 'expected-mismatch' | 'unwritable-value' | 'invalid-text' | 'verify-failed'
+type EditResult = { ok: true; document: ContentDocument; changed: readonly (readonly [number, number])[] }
+                | { ok: false; keyPath: KeyPath; reason: EditRefusalReason; message: string }
+function openDocument(path: string, text: string): ContentDocument
+class DocumentSyntaxError extends Error { line?: number; column?: number }
+function patchToml(text: string, before: unknown, after: unknown): PatchResult   // the stage codec's value step
+// and the moved JSON engine, unchanged: patchJson, verifyPatched, PatchRules, PatchResult, PatchRefusalReason,
+// scan, JsonScanError, JsonPath, …, formatJsonNumber, roundJsonNumber, …, insertElement, replaceValue, …, readLayout, …
+```
+
+**Consumed:** `@decimalturn/toml-patch` 3.3.1 (`parse`, `patch`, `parseDocument(...).cst`; the version editor-2d already pins), Zod is not needed (schema validation is the editor's).
+
+## Files
+
+- Create `packages/editor-kit/src/documents/`: `index.ts`, `content-document.ts`, `content-document.test.ts`, `key-path.ts`, `key-path.test.ts`, `values.ts`, `toml/toml-literals.ts`, `toml/toml-literals.test.ts`, `toml/toml-scalar.ts`, `toml/toml-scalar.test.ts`, `toml/patch-toml.ts`, `toml/patch-toml.test.ts`, `testing/fixtures.ts`, `testing/fixtures.test.ts`, `testing/text-diff.ts`, `testing/fixtures/*` (with `SOURCE.json`), `documents-entry.test.ts`.
+- Move (`git mv`) `packages/editor-3d/src/codec/{locate,structure,layout,print,patch}.ts` and their tests (`locate`, `structure`, `layout`, `print`, `patch`, `patch.refusal`, `patch.codec-bug`) to `packages/editor-kit/src/documents/json/`; the `literals` golden and `record-literals.mjs` to the kit's fixtures.
+- Modify: `packages/editor-kit/package.json` (`./documents` export, `@decimalturn/toml-patch` dependency); editor-3d imports (`index.ts`, `profile/*`, `model/sector-edit-support.ts`, `view/mesh/heading.ts`, `view/plan/plan-viewport.ts`, `testing/text-diff.ts`, `testing/fixtures.ts`, `testing/fixtures.test.ts`, `testing/fixtures/SOURCE.json`, `codec/roundtrip.test.ts`); `packages/editor-2d/src/profiles/floorfifty-stage/stage-codec.ts` (`printStage` calls `patchToml`).
+
+## Steps (each: failing test first, confirm the reason, minimal change, verify)
+
+1. [ ] **Move the JSON engine.** `git mv` the five modules and seven tests; add the kit's fixtures loader and copies (sha256 test). The moved tests pass unchanged in the kit except for their import of the fixtures; editor-3d's imports point at `@mcthaydt/automata-editor-kit/documents`; every editor-3d test passes. (A move, not new behaviour: the tests are the source tests, run before and after.)
+2. [ ] **TOML scalars** (`toml-scalar.test.ts`): numbers by the kit rule (no exponent, at most four decimals), a float literal stays a float (`356.0` → `357.0`), strings keep literal quoting when they can and escape what TOML requires (`"`, `\`, control characters, U+007F), booleans. Fails: module missing.
+3. [ ] **TOML literals and comments** (`toml-literals.test.ts`): every literal's key path, span and text on root keys, dotted keys, `[table]`, `[[array]]` (with `[a.b]` under the last element), inline tables and arrays, multi-line strings, CRLF and non-BMP text (the span slices to the literal's raw text); `comments()` gives the run above and the trailing one. On `tuning.toml` and `juice.toml` every value's literal is found. Fails: module missing.
+4. [ ] **`patchToml`** (`patch-toml.test.ts`): unchanged → byte for byte; one changed number → only that literal's span (on `tuning.toml`'s `MAX_MOVE_SPEED`, `juice.toml`'s `springs.squash.zeta`); a value within 0.00005 of what the file says is not rewritten (`128.57142857142856` stays); an added key and a removed key go through `toml-patch` with comments kept; `before-mismatch`, `invalid-text`, `unwritable-value` (NaN, Infinity, 1e21) and `verify-failed` (a stubbed `toml-patch` that drops a key) refusals. Fails: module missing.
+5. [ ] **`ContentDocument`** (`content-document.test.ts`, `key-path.test.ts`): on every fixture, unchanged prints byte for byte and `literals()` slices to each literal's text; a value edit changes one span (the diff of old and new text lies inside the reported `changed` span); `expected-mismatch`; insert a key, an array item at `at`, and remove each, laid out like their siblings (a TOML key on its own line in its table, a JSON member and element as the file writes them); several edits all or nothing; `invalid-text` and `DocumentSyntaxError` on a broken text; JSON `comments()` is `{}`. Fails: module missing.
+6. [ ] **The stage codec on the kit.** A new `stage-codec.test.ts` case fails first: a stage's float (`theme.layers[0].depth = 0.5`) set to `1` prints `1.0`, not `1` (today `toml-patch` writes `1`); then `printStage` calls `patchToml` and every editor-2d test passes.
+7. [ ] **The entry** (`documents-entry.test.ts`): `./documents` exports `openDocument`, `patchToml`, `patchJson` and the JSON engine; it imports no `.svelte` file and nothing from the kit's Svelte modules. Fails: entry missing from `package.json`.
+
+## Gates
+
+`pnpm --filter @mcthaydt/automata-editor-kit exec vitest run --project unit`, `pnpm --filter @mcthaydt/automata-editor-2d test:unit`, `pnpm --filter @mcthaydt/automata-editor-3d test` (each with `VITEST_MAX_WORKERS=2`), `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`. The kit and both editors are private: no changeset, no API report. No layout or browser test is touched (the module is headless).
+
+## Execution record
+
+- 2026-10-30: plan drafted (commit 1).
