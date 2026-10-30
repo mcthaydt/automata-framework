@@ -7,8 +7,10 @@ import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 export const TICK_HZ = 60
 /** Metres to Q16.16, rounded to the nearest unit: content is authored in metres. */
 export const metres = (value: number): number => Math.round(value * Q16)
-/** Wick's walk at a full push, 4 m/s, in Q16.16 metres a tick: round(4 × 65,536 / 60) = 4,369. */
-export const WALK_PER_TICK = Math.round((4 * Q16) / TICK_HZ)
+/** Wick's walk at a full push, in metres a second. */
+export const WALK_SPEED = 4
+/** The walk in Q16.16 metres a tick: round(4 × 65,536 / 60) = 4,369. */
+export const WALK_PER_TICK = Math.round((WALK_SPEED * Q16) / TICK_HZ)
 /** Half the side of the square Wick collides as, 0.3 m (his hurt radius, DESIGN.md §7.3). */
 export const HERO_HALF = metres(0.3)
 /** How far the lock reaches in plan, 12 m (DESIGN.md §11.1). */

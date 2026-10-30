@@ -1,0 +1,7 @@
+# Copied into base-3d from figures' test fixtures (packages/figures/src/testing/fixtures/content at 077484c7).
+# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. It sets nothing, so a clip that starts or
+# ends on it starts or ends wherever the layers below have the figure.
+
+about = "Sets no handle: every channel is left to the layers below."
+
+[effectors]

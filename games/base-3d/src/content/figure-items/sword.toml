@@ -1,0 +1,37 @@
+# Wick's sword (M3 spec §4.7). New for base-3d: FigureBuilder's items library (a1f7246) has no sword. Held as the
+# library's torch is (forward and low at the side, the tip along the item's +z), so the slash carries it.
+
+about = "A short arming sword: a steel blade, a brass cross-guard and pommel, a leather grip."
+tip = [0, 0, 0.74]
+hold = { hand = [{ k = 0.15 }, { k = -0.34 }, { k = 0.25 }], turn = [-1.5707963267948966, 0, 0], pole = [0.7, -0.4, -0.6] }
+
+[[parts]]
+material = "steel-grey"
+at = [0, 0, 0.44]
+r = [0.026, 0.3, 0.007]
+pitch = 1.5707963267948966
+seg = 4
+rings = 2
+
+[[parts]]
+material = "brass"
+at = [0, 0, 0.13]
+r = [0.08, 0.013, 0.016]
+pitch = 1.5707963267948966
+seg = 6
+rings = 2
+
+[[parts]]
+material = "boot-brown"
+at = [0, 0, 0.05]
+r = [0.016, 0.07, 0.016]
+pitch = 1.5707963267948966
+seg = 6
+rings = 2
+
+[[parts]]
+material = "brass"
+at = [0, 0, -0.03]
+r = [0.022, 0.022, 0.022]
+seg = 6
+rings = 3

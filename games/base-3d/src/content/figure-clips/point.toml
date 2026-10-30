@@ -1,0 +1,27 @@
+# Wick's point (M3 spec §4.7): the right hand comes up to point ahead, holds, and falls back, 0.8 s
+# (`ACTION_TICKS.point`, 48 ticks). It owns the right arm and the head, so he can point while he walks.
+
+length = 0.8
+loop = "once"
+mask = [ "armR", "head" ]
+
+[markers]
+pointing = 0.2
+
+[[keys]]
+t = 0
+pose = "free"
+
+[[keys]]
+t = 0.2
+pose = "point"
+ease = "out"
+
+[[keys]]
+t = 0.6
+pose = "point"
+
+[[keys]]
+t = 0.8
+pose = "free"
+ease = "inOut"

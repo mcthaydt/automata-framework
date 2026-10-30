@@ -1,0 +1,66 @@
+# Wick, base-3d's hero (M3 spec §4.7) and Emberwick's (games/emberwick/src/art/sprites.ts), as figure data: a small
+# hooded wanderer in a blue cloak with gold trim, dark boots and glowing eyes in the dark under the hood. In the first
+# slice he carries the sword and shield (figure-items/), which the page hands him. Copied from figures' fixture Wick
+# (packages/figures/src/testing/fixtures/content/figures/wick.toml at 077484c7); its sliders are that fixture's.
+
+skin = "wick-shadow"
+gait = "bounce"
+hand = "R"
+default = "wanderer"
+rig = "default"
+
+[sliders]
+height = 120
+head = 1
+chunk = 1
+frame = 0.4
+legs = 0.2
+arms = 0.3
+shoulders = 0.4
+hips = 0.45
+muscle = 0.4
+fat = 0.3
+neckLength = 0.1
+posture = 0.6
+age = 0.1
+faceForward = 0.5
+hands = 0.6
+feet = 0.6
+
+# Each outfit is a list of garments, one table each, so a diagnostic points at the garment's own line.
+[[outfits.wanderer]]
+top = "wick-cloak"
+sleeves = "long"
+cuffs = "wick-trim"
+
+[[outfits.wanderer]]
+trousers = "wick-cloak-shade"
+
+[[outfits.wanderer]]
+shoes = "wick-boot"
+boots = true
+
+[[outfits.wanderer]]
+cape = "wick-cloak"
+length = 0.9
+trim = "wick-trim"
+
+[[outfits.wanderer]]
+cap = "wick-cloak"
+
+# The hood, written inline: two locks in head units, the hood's crown over the head and its tip at the back.
+[[outfits.wanderer.style.locks]]
+on = "head"
+at = [0, 0.62, -0.08]
+r = [1.3, 0.62, 1.2]
+e = [0.6, 0.7]
+
+[[outfits.wanderer.style.locks]]
+on = "back"
+at = [0, 0.95, -0.9]
+r = [0.3, 0.42, 0.3]
+taper = [1, 0.4]
+pitch = -0.6
+
+[[outfits.wanderer]]
+eyes = "wick-eye"

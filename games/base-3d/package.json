@@ -15,6 +15,7 @@
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json"
   },
   "dependencies": {
+    "@mcthaydt/automata-figures": "workspace:*",
     "@mcthaydt/automata-game": "workspace:*",
     "@mcthaydt/automata-render-pixi3d": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-check-boundaries": "workspace:*",
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
