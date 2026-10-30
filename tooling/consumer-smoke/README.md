@@ -2,7 +2,7 @@
 
 Installs AF's published packages into a project outside the workspace and uses them as a game would (M2.4
 spec §3.6): every entry imports in Node (ui's root, which exports Svelte components, through Vite instead) and a
-physics sim runs, `automata-content` compiles a small content folder, `automata-ship` and
+sim plugin runs, `automata-content` compiles a small content folder, `automata-ship` and
 `automata-check-boundaries` run, TypeScript 7.0.2 and 6.0.3 read every declaration (7.0.2 also under nodenext
 resolution), no published file uses `eval`, and a Vite bundle of the sim, the host and a ui component holds one
 copy of Ruken's SDK. Its first step checks that every command in the root `README.md` still names a root

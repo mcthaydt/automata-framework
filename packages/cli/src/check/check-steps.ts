@@ -89,17 +89,29 @@ const findingsOrToolError = (tool: Tool, result: RunResult, findings: readonly C
         }),
       )
 
+// A game's sim is `src/sim/` or, laid out by role, these files in `src/` (GL spec §4.5). A copy of
+// check-boundaries' GAME_SIM_ROLES: that package is a bin with no library entry; run-check.test.ts pins the names.
+const GAME_SIM_ROLES = ['constants', 'components', 'commands', 'events', 'resources', 'systems', 'state']
+
 export const boundariesStep = (gameDir: string): StepEffect =>
   Effect.gen(function* () {
     const files = yield* Files
-    if (!(yield* files.exists(join(gameDir, 'src', 'sim')))) {
+    const src = join(gameDir, 'src')
+    const hasSimFolder = yield* files.exists(join(src, 'sim'))
+    let hasRoleLayout = yield* files.exists(join(src, 'sim.ts'))
+    for (const role of GAME_SIM_ROLES) {
+      if (hasRoleLayout) break
+      hasRoleLayout = (yield* files.exists(join(src, `${role}.ts`))) || (yield* files.exists(join(src, role)))
+    }
+    if (!hasSimFolder && !hasRoleLayout) {
       return yield* new CheckToolError({
         kind: 'failed',
         tool: TOOLS.boundaries.bin,
-        detail: `no src/sim folder in ${gameDir}; automata check runs in a game folder`,
+        detail: `no sim in ${gameDir}: expected a src/sim folder or sim files laid out by role (src/systems.ts, src/state.ts, …); automata check runs in a game folder`,
       })
     }
-    const result = yield* runTool(gameDir, TOOLS.boundaries, ['src/sim'])
+    const roots = [...(hasSimFolder ? ['src/sim'] : []), ...(hasRoleLayout ? ['--game', 'src'] : [])]
+    const result = yield* runTool(gameDir, TOOLS.boundaries, roots)
     return yield* findingsOrToolError(TOOLS.boundaries, result, parseBoundaries(result.stdout))
   })
 

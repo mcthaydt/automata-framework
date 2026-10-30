@@ -1,7 +1,14 @@
 import type { History } from '../history/history'
 import { type AutosaveProblem, createAutosave } from './autosave'
 import { type StorageClock, systemClock } from './clock'
-import { classifyStorageError, type ProjectStore, type StorageFailure, statPath } from './project-store'
+import { contentHash } from './content-hash'
+import {
+  classifyStorageError,
+  type ProjectStore,
+  type StorageFailure,
+  statPath,
+  toBytes,
+} from './project-store'
 import type { SaveState } from './save-state'
 
 /** Something that went wrong with keeping the document: a failed save, or an autosave that stopped. */
@@ -142,7 +149,7 @@ export function createDocumentSession<S>(options: DocumentSessionOptions<S>): Do
   async function writeDocument(
     target: string,
     guard: { mtime: number } | 'new' | undefined,
-  ): Promise<{ outcome: SaveOutcome; mtime?: number }> {
+  ): Promise<{ outcome: SaveOutcome; mtime?: number; hash?: string }> {
     let data: Uint8Array | string
     try {
       data = options.serializeFile(history.state)
@@ -153,7 +160,10 @@ export function createDocumentSession<S>(options: DocumentSessionOptions<S>): Do
       if (guard === 'new' && (await statPath(store, target)) !== undefined)
         return { outcome: { status: 'conflict' } }
       const result = await store.write(target, data, guard === 'new' ? undefined : guard)
-      if (result.ok) return { outcome: { status: 'saved', path: target }, mtime: result.mtime }
+      if (result.ok) {
+        const hash = await contentHash(toBytes(data))
+        return { outcome: { status: 'saved', path: target }, mtime: result.mtime, hash }
+      }
       if (result.reason === 'conflict') return { outcome: { status: 'conflict' } }
       return { outcome: failed(result.reason, result.message) }
     } catch (error) {
@@ -180,10 +190,10 @@ export function createDocumentSession<S>(options: DocumentSessionOptions<S>): Do
     tracked(async () => {
       const revision = history.revision
       const guard = !guarded ? undefined : knownMtime === undefined ? 'new' : { mtime: knownMtime }
-      const { outcome, mtime } = await writeDocument(path, guard)
+      const { outcome, mtime, hash } = await writeDocument(path, guard)
       if (outcome.status === 'saved' && mtime !== undefined) {
         knownMtime = mtime
-        autosave.setBase(mtime)
+        autosave.setBase(mtime, hash)
         saveProblem = undefined
         autosaveProblem = undefined
         autosave.resume()

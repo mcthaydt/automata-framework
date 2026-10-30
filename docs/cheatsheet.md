@@ -80,9 +80,14 @@
 - `ContentText` (type): `text(kind, id, path, authored, inputs?)`: the text in the active locale, or the authored text.
 - `ContentTextOptions` (interface): Options for `createContentText`.
 - `createContentText(messages, options?)`: A lookup over the messages module Paraglide compiles into `paraglide.outdir` (its `messages.js`, imported whole).
+- `hasRawText(text)`: True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII letter outside a ⟦ ⟧ span.
 - `localeCharacters(catalog)`: What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.
+- `MessageValue` (type): A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
+- `PSEUDO_LOCALE` (const): The pseudo-locale's tag.
+- `pseudoLocalize(message)`: The xx-long form of one message string.
+- `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
 - `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
 
 ### `import { … } from '@mcthaydt/automata-content/vite'`
@@ -138,40 +143,6 @@
 - `RunOptions` (interface): How a program is started: its working folder, extra environment, stdin, and whether its output is also echoed.
 - `RunResult` (interface): What a finished program left: its exit code (128 when a signal killed it) and everything it wrote to stdout and stderr, decoded as UTF-8.
 - `TaggedErrorClass` (type): The class `Data.TaggedError(tag)` returns, written out. isolatedDeclarations cannot infer the type of a call in an `extends` clause, so each error extends a constant annotated with this type instead (the pattern of `content`'s compile errors and `host`'s errors).
-
-## `@mcthaydt/automata-physics`
-
-### `import { … } from '@mcthaydt/automata-physics/2d'`
-
-- `body2d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
-- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
-- `Collider2D` (const): One collider.
-- `collider2d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and `capsule(halfHeight, radius)`.
-- `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded2D` (const): Two colliders stopped touching, or one was removed.
-- `CollisionStarted2D` (const): Two colliders began touching (or, with a sensor, overlapping).
-- `physics2d(options?)`: The 2D physics plugin (M2.1 spec §3.5).
-- `Physics2DOptions` (interface): The options of `physics2d`.
-- `RigidBody2D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
-- `transform2d(at?)`: The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
-- `Transform2D` (const): Position in metres and rotation in radians.
-
-### `import { … } from '@mcthaydt/automata-physics/3d'`
-
-- `body3d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
-- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
-- `Collider3D` (const): One collider.
-- `collider3d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and `capsule(halfHeight, radius)`.
-- `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded3D` (const): Two colliders stopped touching, or one was removed.
-- `CollisionStarted3D` (const): Two colliders began touching (or, with a sensor, overlapping).
-- `physics3d(options?)`: The 3D physics plugin (M2.1 spec §3.5).
-- `Physics3DOptions` (interface): The options of `physics3d`.
-- `RigidBody3D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
-- `transform3d(at?)`: The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`, `qz`, `qw`).
-- `Transform3D` (const): Position in metres and rotation as a unit quaternion.
 
 ## `@mcthaydt/automata-ship`
 
@@ -369,6 +340,7 @@
 - `FakeViewportWindow` (interface): A stand-in for the browser window the geometry owner reads: its size, `screen`, `navigator`, visual viewport and `resize` listeners, with methods to rotate, open the keyboard and count live listeners.
 - `FakeVisualViewport` (interface): The visual viewport of `FakeViewportWindow`: its height (less the keyboard, if open), an offset, and listeners for `resize`.
 - `findClipped(root, selector)`: Each element `selector` names is tall enough for what it holds (a crushed row clips its content).
+- `findCutAtSide(root)`: No control is cut at a side of a declared scroll region that clips it (see `clippedBy`).
 - `findIntrusions(root, rects)`: No visible control intersects a reserved area (Ruken's strip, a keyboard), in viewport px, by its whole box.
 - `findOffscreenControls(root)`: Every visible control is on screen, unless a declared scroll region (`[data-scroll-region]`) clips it (see `clippedBy`): a fixed control, or one positioned outside the region, is judged where it is drawn, since scrolling the region would never bring it into view.
 - `findOverlaps(a, b)`: Two elements' boxes do not overlap.
@@ -379,6 +351,7 @@
 - `LayoutRect` (interface): Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
 - `mountFixture(component, props, target?)`: Mounts a Svelte component with the given props and no renderer or host, and flushes effects so the first render is finished.
+- `pressedPart(control)`: What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a press anywhere on it toggles the input), else the control itself.
 - `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.
 - `ReferenceFormFactor` (type): `@mcthaydt/automata-ui`'s `FormFactor`.
 - `ReferenceHeightTier` (type): `@mcthaydt/automata-ui`'s `HeightTier`.
@@ -652,7 +625,7 @@
 ### `import { … } from '@mcthaydt/automata-ui/testing'`
 
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
-- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials` is reachable without scrolling.
+- `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 - `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7).
 - `publishConditions(root, size, variant)`: Measures and publishes the geometry for `size` under `variant`, as the owner would.

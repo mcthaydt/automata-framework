@@ -180,13 +180,36 @@ describe('runCheck', () => {
     expect(code).toBe(2)
   })
 
-  it('a game without src/sim is a tool error, not a pass', async () => {
+  it('a game with neither src/sim nor sim role files is a tool error naming both layouts (GL spec B6)', async () => {
     const game = fakeGame()
     game.files.delete(`${GAME}/src/sim/game.plugin.ts`)
+    game.files.set(`${GAME}/src/views.ts`, '')
     const { report, code } = await check(game)
     expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: false, toolError: true })
     expect(report.steps[0]?.findings[0]?.message).toContain('src/sim')
+    expect(report.steps[0]?.findings[0]?.message).toContain('src/systems.ts')
     expect(code).toBe(2)
+  })
+
+  // The seven sim roles of the GL spec §4.5, as check-boundaries' GAME_SIM_ROLES lists them.
+  it.each(['constants', 'components', 'commands', 'events', 'resources', 'systems', 'state'])(
+    'a game laid out by role (src/%s) runs boundaries with --game src (GL spec B6)',
+    async (role) => {
+      for (const path of [`${role}.ts`, `${role}/a.ts`]) {
+        const game = fakeGame()
+        game.files.delete(`${GAME}/src/sim/game.plugin.ts`)
+        game.files.set(`${GAME}/src/${path}`, '')
+        const { report } = await check(game, { simOnly: true })
+        expect(report.steps[0]).toMatchObject({ name: 'boundaries', ok: true })
+        expect(game.ran[0]).toBe('automata-check-boundaries --game src')
+      }
+    },
+  )
+
+  it('a game with both layouts checks both in one run (GL spec B6)', async () => {
+    const game = fakeGame({ files: new Map([[`${GAME}/src/sim.ts`, '']]) })
+    await check(game, { simOnly: true })
+    expect(game.ran[0]).toBe('automata-check-boundaries src/sim --game src')
   })
 
   it('reports type errors and failed tests as findings', async () => {
