@@ -1,7 +1,8 @@
 // WEB.PLAY.5 in a real browser (playground spec §6 F1, §7.4, A-2, A-11, A-12, A-13): an example page runs its original
 // on arrival with no input, requests nothing under /playground/ before `load`, and under reduced motion requests
 // nothing there before Play; /examples runs nothing. Run `pnpm build` first.
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
 import { watchPage } from './gates'
@@ -106,6 +107,10 @@ async function tapLine(page: Page, line: number) {
   await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
 }
 
+function expectSameBox(actual: { x: number; y: number; width: number; height: number }, expected: typeof actual) {
+  for (const key of ['x', 'y', 'width', 'height'] as const) expect(Math.abs(actual[key] - expected[key]), key).toBeLessThan(1)
+}
+
 test('the code box keeps its size when the editor replaces the static code', async ({ page }) => {
   await page.goto('/examples/shapes-rects')
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
@@ -114,8 +119,10 @@ test('the code box keeps its size when the editor replaces the static code', asy
   const codeBefore = await box(page, '[data-testid="static-code"]')
   await tapLine(page, 10)
   await expect(staticCode(page)).toBeHidden()
-  expect(await box(page, '.code-panel')).toEqual(panelBefore)
-  expect(await box(page, '.code-panel .cm-editor')).toEqual(codeBefore)
+  // Equal to the pixel, and the page has not scrolled (the boxes are in viewport coordinates). Safari on macOS lays the
+  // static text out at fractional heights that the editor rounds, so a difference under a pixel is not a shift.
+  expectSameBox(await box(page, '.code-panel'), panelBefore)
+  expectSameBox(await box(page, '.code-panel .cm-editor'), codeBefore)
 })
 
 test('a tap starts editing with the caret at the tap', async ({ page }) => {
@@ -168,13 +175,13 @@ test('the editor is named and described, has 16 px text, wraps, shows the focus 
   await expect(content).toBeFocused()
 })
 
-/** The editor chunk and the chunks it imports, from the build's Vite manifest. */
+/**
+ * The built chunks that hold CodeMirror: the editor chunk, and any chunk Vite splits from it. Found by content,
+ * because CI's browser job gets the static build without SvelteKit's Vite manifest (check:site reads that instead).
+ */
 function editorFiles(): string[] {
-  const manifest = JSON.parse(readFileSync('.svelte-kit/output/client/.vite/manifest.json', 'utf8')) as Record<string, { file: string; imports?: string[] }>
-  const files = new Set<string>()
-  const visit = (key: string) => { const chunk = manifest[key]; if (chunk && !files.has(chunk.file)) { files.add(chunk.file); chunk.imports?.forEach(visit) } }
-  visit('src/lib/playground/editor.ts')
-  return [...files]
+  const folder = 'build/_app/immutable/chunks'
+  return readdirSync(folder).filter(file => file.endsWith('.js') && readFileSync(join(folder, file), 'utf8').includes('cm-gutterElement')).map(file => folder.slice('build/'.length) + '/' + file)
 }
 
 test('the editor chunk loads on the first focus on the code, not before', async ({ page }) => {

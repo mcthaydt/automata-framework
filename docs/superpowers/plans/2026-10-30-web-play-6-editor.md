@@ -150,3 +150,12 @@ because nothing loads before a tap).
   passed. Lighthouse (container, Playwright's Chromium 1243): core-basic-window 0.99 (LCP 1.38 s, TBT 125 ms, CLS 0);
   shapes-rects three runs 0.98/0.99/0.99 (TBT 121–162 ms, CLS 0). The highlight data adds 26.7 kB raw, 1.5 kB gzip to
   shapes-rects' HTML.
+- CI on `25e5b85` (the Mac, run 41126957693): (1) the two e2e tests that read the Vite manifest failed with ENOENT,
+  because the browser job downloads only `build/`; they now find CodeMirror's chunks in the build by content
+  (`check:site` still reads the manifest, in the job that builds). (2) WebKit on macOS: the box's height differed by
+  0.42 px (fractional text heights rounded by the editor) and the page scrolled from 527 to 2095 during the swap (the
+  trace's scrollTop); Linux WebKit does neither. The swap now restores the page's scroll after the editor takes focus,
+  and the panel has `overflow-anchor: none`; the box test allows under a pixel and still checks position. (3)
+  `/cheatsheet` "every visible button does something" timed out at 5 min on Chromium; untouched by this PR, it passes
+  locally in 1.3 min on both browsers, and main's CI at `1906f3e` was green. Re-run here: the playground spec, both
+  browsers, with the manifest moved away, 24 passed.

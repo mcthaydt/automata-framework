@@ -3,7 +3,7 @@
   export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
 </script>
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onMount, tick } from 'svelte'
   import CopyButton from '$lib/components/CopyButton.svelte'
   import { offsetAtPoint } from './caret'
   import type { HighlightedLine } from './highlight'
@@ -34,10 +34,15 @@
     try {
       const { mountEditor } = await import('./editor')
       if (destroyed) return
+      // The swap keeps the page where the reader left it: for a moment both the static code and the editor are in the
+      // layout, and Safari on macOS scrolled the page by more than a screen (CI, WebKit) as the static code went.
+      const { scrollX, scrollY } = window
       editor = mountEditor({ parent: host!, doc: source, label: 'Code for ' + title + '. Changes update the preview.', describedBy, anchor })
       setState('ready')
+      await tick()
       // The static code had focus (a tap or Tab put it there); it moves to the editor, which now holds the same text.
       editor.focus()
+      if (window.scrollX !== scrollX || window.scrollY !== scrollY) window.scrollTo(scrollX, scrollY)
     } catch {
       if (!destroyed) setState('failed')
     }
@@ -64,7 +69,8 @@
   <div class="editor-host" bind:this={host}></div>
 </section>
 <style>
-  .code-panel { min-width: 0; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); overflow: hidden; }
+  /* No scroll anchoring inside: the static code an anchor would follow goes away in the swap. */
+  .code-panel { min-width: 0; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); overflow: hidden; overflow-anchor: none; }
   .code-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 .5rem 0 1rem; border-bottom: 1px solid var(--line); font-size: var(--step-small); color: var(--muted); }
   .code-header :global(button) { min-height: 44px; min-width: 44px; }
   .static-code { margin: 0; padding: 1rem 1rem 1rem calc(3ch + 2rem); font-size: 1rem; line-height: 1.5; white-space: break-spaces; overflow-wrap: anywhere; word-break: break-word; overflow: visible; counter-reset: line; }
