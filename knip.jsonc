@@ -20,6 +20,8 @@
       "entry": ["agents/automata/scripts/check.mjs"],
       "ignore": ["agents/automata/skills/*/example/**", "docs/design/**"]
     },
+    // WEB.PLAY.1: the playground feasibility server serves these browser scripts as files; nothing imports them.
+    "tooling/examples-runner": { "ignore": ["playground/static/**"] },
     // DX.7: the example imports @mcthaydt/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
     "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).

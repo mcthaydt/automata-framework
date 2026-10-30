@@ -19,6 +19,13 @@ it('only build depends on ^build', () => {
 
 // Every package's build runs code from tooling/release (tsdown-shared, finish-svelte-dist, write-vendored), which
 // is outside the package, so turbo would replay a stale dist after that code changes unless it is an input.
-it("build's cache key covers the shared build code in tooling/release", () => {
-  expect(turbo.tasks.build?.inputs).toEqual(['$TURBO_DEFAULT$', '$TURBO_ROOT$/tooling/release/src/**'])
+// The same holds for vendor/ruken: a build bundles the Ruken tarballs and write-vendored copies the commit and
+// hashes from vendor/ruken/README.md, yet the lockfile key of a `file:` tarball (`@ruken/sdk@file:…`) stays the
+// same when the tarball is repacked, so without this input a repack replays the previous Ruken's dist (QB.1f).
+it("build's cache key covers the shared build code in tooling/release and the vendored Ruken tarballs", () => {
+  expect(turbo.tasks.build?.inputs).toEqual([
+    '$TURBO_DEFAULT$',
+    '$TURBO_ROOT$/tooling/release/src/**',
+    '$TURBO_ROOT$/vendor/ruken/**',
+  ])
 })

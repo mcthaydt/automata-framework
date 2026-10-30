@@ -75,7 +75,7 @@ export function buildTarget(): WebTarget {
  */
 export const WEB_STORAGE_PROBE_KEY = 'automata:storage-probe'
 
-/** The same as the SDK's standalone session (`standalone.ts` at b30d31b): nothing reserved, scale 1. */
+/** The same as the SDK's standalone session (`standalone.ts` at d0fa2fe): nothing reserved, scale 1. */
 const NOTHING_RESERVED: Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'scale'> = {
   safeArea: { top: 0, right: 0, bottom: 0, left: 0 },
   hostReserved: { edge: 'right', rect: { x: 0, y: 0, w: 0, h: 0 } },

@@ -54,3 +54,21 @@ describe('a welcome from a test host (testHostOrigins, test builds only)', () =>
     expect(hosting.kind).toBe('standalone')
   })
 })
+
+// AF trusts the hosts the SDK trusts and keeps no list of its own. Ruken's SDK at d0fa2fe also trusts its private
+// beta's two netlify.app sites (`BETA_HOST_ORIGINS` in sdk/src/allowlist.ts), as exact strings: netlify.app is
+// anyone's. This pins that, so a re-vendor that changes which hosts the SDK trusts shows up here.
+describe("a welcome from Ruken's private beta sites (the SDK's allowlist)", () => {
+  it.each(['https://ruken-beta.netlify.app', 'https://ruken-beta-admin.netlify.app'])(
+    'is accepted from %s with no test origins listed',
+    async (origin) => {
+      const hosting = await hostingFrom(origin, undefined)
+      expect(hosting.kind).toBe('ruken')
+    },
+  )
+
+  it('is dropped from any other netlify.app site', async () => {
+    const hosting = await hostingFrom('https://ruken-beta-copy.netlify.app', undefined)
+    expect(hosting.kind).toBe('standalone')
+  })
+})

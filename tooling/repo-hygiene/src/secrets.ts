@@ -3,14 +3,15 @@
 // The secret scan over the full Git history (QB spec §4.1, QB.1), with the pinned gitleaks release binary.
 // 1. Self-test: commit fixtures/secrets/ into a scratch repository and require gitleaks to report the planted
 //    key. A scanner that misses it cannot vouch for anything below.
-// 2. Scan every commit of this repository with .gitleaks.toml (which allowlists only that fixture folder) and
-//    require no finding. A shallow clone fails: its history is incomplete (CI checks out with fetch-depth 0).
+// 2. Scan every commit HEAD reaches with .gitleaks.toml (which allowlists that fixture folder and one known false
+//    positive) and require no finding. Other refs are not scanned: see historyScanArgs. A shallow clone fails: its
+//    history is incomplete (CI checks out with fetch-depth 0).
 import { execFileSync, spawnSync } from 'node:child_process'
 import { cpSync, mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { ensureGitleaks } from './gitleaks.ts'
+import { ensureGitleaks, historyScanArgs } from './gitleaks.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const fixture = fileURLToPath(new URL('../fixtures/secrets', import.meta.url))
@@ -62,7 +63,7 @@ const shallow = execFileSync('git', ['rev-parse', '--is-shallow-repository'], { 
 if (shallow.trim() === 'true')
   fail('this clone is shallow; the scan needs the full history (fetch-depth: 0)', '')
 
-const history = gitleaks(binary, ['--config', join(root, '.gitleaks.toml'), root])
+const history = gitleaks(binary, historyScanArgs(root, join(root, '.gitleaks.toml')))
 if (history.status !== 0)
   fail('gitleaks found secrets in the history (values redacted above)', history.output)
 console.log(history.output.trim())
