@@ -1,3 +1,4 @@
+// @vitest-environment node
 // The diff of spec §4.5, on the four shipped blockouts and small hand-formatted texts: the edits it makes are the
 // edits the change needs and nothing else. Refusals are step 9 (patch.refusal.test.ts).
 import { describe, expect, it } from 'vitest'

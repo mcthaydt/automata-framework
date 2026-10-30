@@ -3,7 +3,7 @@
 - **Task:** EDS.1a in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §4.4 (the shape and rules), EDS-D2 (the documents live in `editor-kit` as `./documents`, owned by that spec), §12 (unit layer and fixtures), §11 (the `verify-failed` row).
 - **Lane:** editor-suite. **Depends on:** EDS.0, EDK.2, EDFF.1 (all merged). **Unblocks:** EDS.2b, EDS.4a, EDS.3, EDS.5 to EDS.7, EDS.9a (every suite editor writes through these documents).
 - **Status:** Drafted 2026-10-30.
-- **Progress:** 0 of 7 steps.
+- **Progress:** 1 of 7 steps.
 
 ## Scope
 
@@ -70,7 +70,7 @@ function patchToml(text: string, before: unknown, after: unknown): PatchResult  
 
 ## Steps (each: failing test first, confirm the reason, minimal change, verify)
 
-1. [ ] **Move the JSON engine.** `git mv` the five modules and seven tests; add the kit's fixtures loader and copies (sha256 test). The moved tests pass unchanged in the kit except for their import of the fixtures; editor-3d's imports point at `@mcthaydt/automata-editor-kit/documents`; every editor-3d test passes. (A move, not new behaviour: the tests are the source tests, run before and after.)
+1. [x] **Move the JSON engine.** `git mv` the five modules and seven tests; add the kit's fixtures loader and copies (sha256 test). The moved tests pass unchanged in the kit except for their import of the fixtures; editor-3d's imports point at `@mcthaydt/automata-editor-kit/documents`; every editor-3d test passes. (A move, not new behaviour: the tests are the source tests, run before and after.)
 2. [ ] **TOML scalars** (`toml-scalar.test.ts`): numbers by the kit rule (no exponent, at most four decimals), a float literal stays a float (`356.0` → `357.0`), strings keep literal quoting when they can and escape what TOML requires (`"`, `\`, control characters, U+007F), booleans. Fails: module missing.
 3. [ ] **TOML literals and comments** (`toml-literals.test.ts`): every literal's key path, span and text on root keys, dotted keys, `[table]`, `[[array]]` (with `[a.b]` under the last element), inline tables and arrays, multi-line strings, CRLF and non-BMP text (the span slices to the literal's raw text); `comments()` gives the run above and the trailing one. On `tuning.toml` and `juice.toml` every value's literal is found. Fails: module missing.
 4. [ ] **`patchToml`** (`patch-toml.test.ts`): unchanged → byte for byte; one changed number → only that literal's span (on `tuning.toml`'s `MAX_MOVE_SPEED`, `juice.toml`'s `springs.squash.zeta`); a value within 0.00005 of what the file says is not rewritten (`128.57142857142856` stays); an added key and a removed key go through `toml-patch` with comments kept; `before-mismatch`, `invalid-text`, `unwritable-value` (NaN, Infinity, 1e21) and `verify-failed` (a stubbed `toml-patch` that drops a key) refusals. Fails: module missing.
@@ -85,3 +85,4 @@ function patchToml(text: string, before: unknown, after: unknown): PatchResult  
 ## Execution record
 
 - 2026-10-30: plan drafted (commit 1).
+- Step 1: before the move, `editor-3d` `src/codec` ran 8 files, 121 tests, all passing. After `git mv`, the kit's `src/documents` runs the 7 moved files plus `testing/fixtures.test.ts` (130 tests, all passing); the moved tests changed only by a `// @vitest-environment node` first line (the kit's unit project is jsdom, where `import.meta.url` is not a file URL; the kit's `fields/index.test.ts` does the same). editor-3d: 94 files, 2263 tests; the one failure was its purity test listing `src/codec`, which now has tests only, so `codec` left that list (the kit's entry test holds the rule, step 7). The first format run rewrote the copied fixtures (biome formats JSON): they were copied again from their sources and the kit's `biome.json` ignores `src/documents/testing/fixtures` (the root config ignores editor-3d's the same way; the kit's nested config needs its own entry); the sha256 test caught it. editor-3d keeps its own `testing/text-diff.ts` (now importing `scan` from the kit): the kit's `./testing` entry needs the Svelte compiler, which editor-3d's test config does not load.

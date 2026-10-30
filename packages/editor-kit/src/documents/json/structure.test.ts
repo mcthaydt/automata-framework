@@ -1,3 +1,4 @@
+// @vitest-environment node
 // The span-preserving insert and remove cases of The Last Light editor/tests/level-edits.test.ts (92e6704), run on the
 // ported structure edits and the new scanner.
 import { describe, expect, it } from 'vitest'

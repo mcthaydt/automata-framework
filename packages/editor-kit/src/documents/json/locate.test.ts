@@ -1,3 +1,4 @@
+// @vitest-environment node
 // The `listJsonLiterals` case of The Last Light editor/tests/json-edit.test.ts (92e6704), run on the scanner that
 // replaces TypeScript's JSON parser, and four independent checks that the scanner reads spans the way it should.
 import { describe, expect, it } from 'vitest'

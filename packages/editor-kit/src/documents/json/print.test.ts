@@ -1,3 +1,4 @@
+// @vitest-environment node
 // The `formatJsonNumber` case of The Last Light editor/tests/json-edit.test.ts (92e6704), and the scalar printing
 // the model diff uses for a value it has to write.
 import { describe, expect, it } from 'vitest'
