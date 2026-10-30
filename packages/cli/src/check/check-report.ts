@@ -10,6 +10,7 @@ export type StepName =
   | 'inputs'
   | 'no-eval'
   | 'secrets'
+  | 'data-urls'
   | 'csp'
 
 export interface CheckFinding {

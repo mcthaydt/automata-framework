@@ -17,7 +17,13 @@ export function eulerDegrees(rot: readonly [number, number, number]): Q {
  */
 export function eulerOf(q: Q): [number, number, number] {
   const m = qmat(q)
-  const pitch = Math.asin(Math.max(-1, Math.min(1, -m[5])))
+  // cos(pitch) is hypot(m02, m22); atan2 keeps pitch exact near ±90°, where asin(−m12) loses half its digits.
+  const cos = Math.hypot(m[2], m[8])
+  const pitch = Math.atan2(-m[5], cos)
+  // At pitch ±90° (gimbal lock) cos(pitch) is 0, so m02, m22, m10 and m11 are rounding noise and atan2 of them
+  // is arbitrary. Yaw and roll then turn about one axis and only yaw ∓ roll is defined: read it as yaw with roll
+  // 0, from m00 = cos(yaw ∓ roll) and m20 = −sin(yaw ∓ roll).
+  if (cos < 1e-9) return [pitch, Math.atan2(-m[6], m[0]), 0]
   return [pitch, Math.atan2(m[2], m[8]), Math.atan2(m[3], m[4])]
 }
 

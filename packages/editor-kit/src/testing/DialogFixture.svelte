@@ -6,10 +6,11 @@ interface Props {
   dismissible?: boolean
   autofocus?: boolean
   startOpen?: boolean
+  width?: 'normal' | 'wide'
   onclose?: ((why: 'escape' | 'scrim' | 'action') => void) | undefined
 }
 
-const { dismissible = true, autofocus = false, startOpen = false, onclose }: Props = $props()
+const { dismissible = true, autofocus = false, startOpen = false, width, onclose }: Props = $props()
 
 // svelte-ignore state_referenced_locally
 let open = $state(startOpen)
@@ -18,7 +19,7 @@ let open = $state(startOpen)
 <button type="button" onclick={() => (open = true)}>Open</button>
 <button type="button" onclick={() => (open = false)}>Close from outside</button>
 
-<Dialog bind:open title="Delete layer" {dismissible} {onclose}>
+<Dialog bind:open title="Delete layer" {dismissible} {width} {onclose}>
   <p>Its 14 tiles go with it.</p>
   <input aria-label="Reason" />
   {#snippet actions({ close })}

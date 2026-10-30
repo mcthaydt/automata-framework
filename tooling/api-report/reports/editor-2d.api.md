@@ -4,10 +4,49 @@
 
 ## `.`
 
+### `addEntityDef` (function)
+
+```ts
+function addEntityDef(project: Project, def: EntityDef2D): Project;
+```
+
+### `addField` (function)
+
+```ts
+function addField(project: Project, owner: FieldOwner, def: FieldDef): Project;
+```
+
+### `addLayerDef` (function)
+
+```ts
+function addLayerDef(project: Project, def: LayerDef, at?: number): Project;
+```
+
 ### `addLevel` (function)
 
 ```ts
 function addLevel(project: Project, input: NewLevel): Project;
+```
+
+### `addRule` (function)
+
+```ts
+function addRule(project: Project, layer: string, group: string, rule: Rule, at?: number): Project;
+```
+
+### `addRuleGroup` (function)
+
+```ts
+function addRuleGroup(project: Project, layer: string, group: {
+    readonly id: string;
+    readonly label: string;
+}): Project;
+```
+
+### `addTileset` (function)
+
+```ts
+function addTileset(project: Project, def: TilesetDef): Project;
 ```
 
 ### `AnchorSide` (type)
@@ -221,6 +260,22 @@ function decodeRows(rows: readonly string[], kind: CellKind, cols: number, rowCo
 const DEF_ID: RegExp;
 ```
 
+### `DefinitionRef` (type)
+
+```ts
+type DefinitionRef = {
+    readonly kind: 'layer';
+    readonly id: string;
+} | {
+    readonly kind: 'entity';
+    readonly id: string;
+} | {
+    readonly kind: 'field';
+    readonly owner: FieldOwner;
+    readonly id: string;
+};
+```
+
 ### `Definitions` (interface)
 
 ```ts
@@ -230,6 +285,29 @@ interface Definitions {
     readonly entities: readonly EntityDef2D[];
     readonly levelFields: readonly FieldDef[];
 }
+```
+
+### `DefinitionUse` (interface)
+
+```ts
+interface DefinitionUse {
+    readonly path: string;
+    readonly message: string;
+}
+```
+
+### `definitionUses` (function)
+
+```ts
+function definitionUses(project: Project, ref: DefinitionRef): readonly DefinitionUse[];
+```
+
+### `deleteDefinition` (function)
+
+```ts
+function deleteDefinition(project: Project, ref: DefinitionRef, options?: {
+    readonly anyway?: boolean;
+}): GuardedEdit;
 ```
 
 ### `deleteEntity` (function)
@@ -242,6 +320,18 @@ function deleteEntity(project: Project, target: LayerTarget, id: string): Projec
 
 ```ts
 function deleteObject(project: Project, target: LayerTarget, id: string): Project;
+```
+
+### `deleteRule` (function)
+
+```ts
+function deleteRule(project: Project, layer: string, rule: string): Project;
+```
+
+### `deleteRuleGroup` (function)
+
+```ts
+function deleteRuleGroup(project: Project, layer: string, group: string): Project;
 ```
 
 ### `Diagnostic` (interface)
@@ -286,6 +376,12 @@ function duplicateLevel(project: Project, id: string, copy: {
 }, ids: IdSource): Project;
 ```
 
+### `editEntityDef` (function)
+
+```ts
+function editEntityDef(project: Project, id: string, patch: EntityDefPatch): Project;
+```
+
 ### `EditHistory` (interface)
 
 ```ts
@@ -298,6 +394,30 @@ interface EditHistory {
         cancel(): void;
     };
 }
+```
+
+### `editLayerDef` (function)
+
+```ts
+function editLayerDef(project: Project, id: string, patch: {
+    readonly label?: string;
+    readonly opacity?: number;
+}): Project;
+```
+
+### `editRule` (function)
+
+```ts
+function editRule(project: Project, layer: string, rule: string, patch: RulePatch): Project;
+```
+
+### `editRuleGroup` (function)
+
+```ts
+function editRuleGroup(project: Project, layer: string, group: string, patch: {
+    readonly label?: string;
+    readonly active?: boolean;
+}): Project;
 ```
 
 ### `emptyLayers` (function)
@@ -381,6 +501,12 @@ type EntityDef2D = EntityDef & {
 function entityDefOf(project: Project, id: string | undefined): EntityDef2D | undefined;
 ```
 
+### `EntityDefPatch` (type)
+
+```ts
+type EntityDefPatch = Partial<Pick<EntityDef2D, 'label' | 'color' | 'single' | 'shape' | 'size' | 'pivot' | 'tile' | 'tags' | 'min'>>;
+```
+
 ### `EntityDraw` (interface)
 
 ```ts
@@ -444,6 +570,14 @@ interface ExportTarget<V> {
         readonly contents: string;
     }[];
 }
+```
+
+### `FieldOwner` (type)
+
+```ts
+type FieldOwner = 'level' | {
+    readonly entity: string;
+};
 ```
 
 ### `FILE_VERSION` (const)
@@ -562,12 +696,33 @@ interface GridLines {
 }
 ```
 
+### `GuardedEdit` (type)
+
+```ts
+type GuardedEdit = {
+    readonly ok: true;
+    readonly project: Project;
+} | {
+    readonly ok: false;
+    readonly uses: readonly DefinitionUse[];
+};
+```
+
 ### `IdSource` (interface)
 
 ```ts
 interface IdSource {
     next(): string;
 }
+```
+
+### `importTileset` (function)
+
+```ts
+function importTileset(project: Project, id: string, image: {
+    readonly path: string;
+    readonly size: Size;
+}): Project;
 ```
 
 ### `IntCellDraw` (interface)
@@ -859,6 +1014,18 @@ interface NewLevel {
     readonly size: Size;
     readonly background?: Background | undefined;
 }
+```
+
+### `newRule` (function)
+
+```ts
+function newRule(id: string): Rule;
+```
+
+### `nextPatternCell` (function)
+
+```ts
+function nextPatternCell(cell: PatternCell, value: number): PatternCell;
 ```
 
 ### `ObjectDraw` (type)
@@ -1188,6 +1355,36 @@ type RawFile = Readonly<Record<string, unknown>>;
 function removeLevel(project: Project, id: string): Project;
 ```
 
+### `renameEntityDef` (function)
+
+```ts
+function renameEntityDef(project: Project, from: string, to: string): Project;
+```
+
+### `renameField` (function)
+
+```ts
+function renameField(project: Project, owner: FieldOwner, from: string, to: string): Project;
+```
+
+### `reorderLayerDefs` (function)
+
+```ts
+function reorderLayerDefs(project: Project, from: number, to: number): Project;
+```
+
+### `reorderRuleGroups` (function)
+
+```ts
+function reorderRuleGroups(project: Project, layer: string, from: number, to: number): Project;
+```
+
+### `reorderRules` (function)
+
+```ts
+function reorderRules(project: Project, layer: string, group: string, from: number, to: number): Project;
+```
+
 ### `ResizeAnchor` (interface)
 
 ```ts
@@ -1215,6 +1412,12 @@ function resizeLevel(project: Project, id: string, size: Size, anchor: ResizeAnc
 function resizeLevelLoss(project: Project, id: string, size: Size, anchor: ResizeAnchor): DroppedCells[];
 ```
 
+### `resizeRule` (function)
+
+```ts
+function resizeRule(project: Project, layer: string, rule: string, size: 1 | 3 | 5): Project;
+```
+
 ### `Result` (type)
 
 ```ts
@@ -1225,6 +1428,14 @@ type Result<T, E> = {
     readonly ok: false;
     readonly error: E;
 };
+```
+
+### `retypeField` (function)
+
+```ts
+function retypeField(project: Project, owner: FieldOwner, id: string, next: FieldDef, options?: {
+    readonly anyway?: boolean;
+}): GuardedEdit;
 ```
 
 ### `RowStrings` (type)
@@ -1294,6 +1505,12 @@ interface RuleIssue {
 function ruleIssues(groups: readonly RuleGroup[], context: RuleContext): RuleIssue[];
 ```
 
+### `RulePatch` (type)
+
+```ts
+type RulePatch = Partial<Pick<Rule, 'active' | 'tiles' | 'chance' | 'flipX' | 'flipY' | 'breakOnMatch' | 'outside'>>;
+```
+
 ### `ruleSchema` (const)
 
 ```ts
@@ -1306,6 +1523,12 @@ const ruleSchema: z.ZodType<Rule>;
 function setEntityField(project: Project, target: LayerTarget, id: string, field: string, value: FieldValue): Project;
 ```
 
+### `setIntValue` (function)
+
+```ts
+function setIntValue(project: Project, layer: string, value: IntValueDef): Project;
+```
+
 ### `setLevelDepth` (function)
 
 ```ts
@@ -1316,6 +1539,12 @@ function setLevelDepth(project: Project, level: string, depth: number): Project;
 
 ```ts
 function setLevelField(project: Project, id: string, field: string, value: FieldValue): Project;
+```
+
+### `setPatternCell` (function)
+
+```ts
+function setPatternCell(project: Project, layer: string, rule: string, index: number, cell: PatternCell): Project;
 ```
 
 ### `setWorldLayout` (function)
@@ -1347,6 +1576,12 @@ interface Stamp {
     readonly h: number;
     readonly cells: Uint32Array;
 }
+```
+
+### `tagTiles` (function)
+
+```ts
+function tagTiles(project: Project, tileset: string, tag: string, tiles: readonly number[]): Project;
 ```
 
 ### `TemplateDef` (interface)
@@ -1451,6 +1686,12 @@ interface TilesLayerInstance {
 
 ```ts
 function unpackTile(cell: number): UnpackedTile | undefined;
+```
+
+### `untagTiles` (function)
+
+```ts
+function untagTiles(project: Project, tileset: string, tag: string, tiles: readonly number[]): Project;
 ```
 
 ### `updateLayer` (function)
