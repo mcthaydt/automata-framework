@@ -33,7 +33,11 @@ export const DOCUMENT_FIXTURES = [
   'af-stage-dawn.toml',
   'af-character-cyan.toml',
   'af-messages-fr.json',
-  ...FIXTURE_NAMES.map((name) => `${name}.json` as const),
+  'blockout-clinic.json',
+  'blockout-clinic-dawn.json',
+  'blockout-bay.json',
+  'blockout-prologue.json',
+  'facility.json',
 ] as const
 
 export type DocumentFixture = (typeof DOCUMENT_FIXTURES)[number]
