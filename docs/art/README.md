@@ -13,7 +13,7 @@ The design reference for 2D, 2.5D and 3D is **Bubble Bobble mixed with Celeste**
 - From **Bubble Bobble**: a readable single-screen arcade layout, chunky friendly characters with bold outlines, bright saturated colors on dark backgrounds, and clear "this is a thing you can touch" shapes.
 - From **Celeste**: crisp pixel art at a low internal resolution, expressive movement and squash-and-stretch, small particles and screen feel (dust, dash trails, a little shake), and atmospheric layered backgrounds.
 
-Owner (2026-10-11, on the first `base-2d`): use these as influences, not motifs to copy, and aim for the look of a current itch.io hit. The first pass (a bubble-blowing blob with a red scarf, pink bricks, a bubble to reach) read as a clone. Keep the single-screen readability and the movement feel; bring original characters and settings, and a modern treatment: colored outlines and rim light, pixel lighting (stepped, dithered lights over a darker scene), parallax, a vignette, and juice. `examples/base-2d` (Emberwick) is the reference.
+Owner (2026-10-11, on the first `base-2d`): use these as influences, not motifs to copy, and aim for the look of a current itch.io hit. The first pass (a bubble-blowing blob with a red scarf, pink bricks, a bubble to reach) read as a clone. Keep the single-screen readability and the movement feel; bring original characters and settings, and a modern treatment: colored outlines and rim light, pixel lighting (stepped, dithered lights over a darker scene), parallax, a vignette, and juice. Emberwick (`games/emberwick`) is the reference.
 
 In 2.5D and 3D the same rules carry over through `post-retro`: a low internal resolution, palette-quantized output and sprite-like silhouettes rather than realistic shading.
 
