@@ -91,9 +91,18 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
   exit: 'Back to {host}',
 }
 
-/** Fills the `{file}` slot of a copy string with the file a failure names. Copy without the slot is returned as is. */
+/**
+ * Fills the `{file}` slot of a copy string with the base name of the file a failure names (`nightstand.glb`, not
+ * the url it was fetched from). Copy without the slot is returned as is.
+ */
 export function withFileName(text: string, file: string): string {
-  return text.replaceAll('{file}', file)
+  const path = file.split(/[?#]/)[0] ?? file
+  const name =
+    path
+      .split('/')
+      .filter((part) => part !== '')
+      .pop() ?? path
+  return text.replaceAll('{file}', name)
 }
 
 /** Fills the `{host}` slot of a copy string with the host's name. Copy without the slot is returned as is. */
@@ -113,7 +122,8 @@ export function withHostName(text: string, hostName: string): string {
  *   playing on without the player's saves would silently fork their progress.
  * - Renderer: nothing on this device can fix it. Inside Ruken the player goes back; a standalone
  *   page has nowhere to go, so its panel is final.
- * - Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot.
+ * - Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot; when the file
+ *   stays damaged, the host's way out is offered beside it.
  * - Everything else: Try again, which re-runs the boot program in a fresh scope (never a page reload
  *   inside a Ruken frame).
  */
@@ -144,7 +154,7 @@ function viewFor(failure: BootFailure, hostKind: HostKind): BootFailureViewModel
     case 'RendererUnavailable':
       return { state: 'unsupported', actions: hostKind === 'ruken' ? ['exit'] : [] }
     case 'ModelInvalid':
-      return { state: 'model-invalid', actions: ['retry'] }
+      return { state: 'model-invalid', actions: ['retry', 'exit'] }
     case 'BootDefect':
       // A bug, not a typed failure; Try again re-runs boot.
       return { state: 'start', actions: ['retry'] }
