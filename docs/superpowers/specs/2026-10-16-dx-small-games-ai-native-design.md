@@ -201,7 +201,7 @@ Commands: `automata create-game <dir> [--id <id>] [--title <title>]` from `@mcth
 
 | Step | What it runs | Fails when |
 |---|---|---|
-| `boundaries` | `@mcthaydt/automata-check-boundaries` on `src/sim/` (the same checker as `pnpm boundaries`) | Sim code imports DOM, Effect, timers, `Math.random`, etc. |
+| `boundaries` | `@mcthaydt/automata-check-boundaries` on `src/sim/` (the same checker as `pnpm boundaries`) | Sim code imports DOM, Effect, timers, `Math.random`, etc., or gives koota's `trait` or a `relation` store an object schema, which koota compiles with `new Function` under Ruken's CSP (`koota-soa`, DX.6b) |
 | `typecheck` | `tsc -p . --noEmit` | Type errors |
 | `test` | `vitest run` | A test or golden fails |
 | `no-eval` (skipped with `--sim-only`) | Builds, then scans `dist/**/*.js` for `eval(`, `new Function(`, `Function(` string-call forms and `setTimeout`/`setInterval` with a string argument | Any match outside an allowlisted, documented vendor location |
