@@ -90,6 +90,8 @@ export function newAfSectorLevel(name: string):
    *Done.* `af-material-edits.test.ts` 12 tests; a rename keeps the key in its place and the codec patches only the key and the names (the depot's `tile` to `slate` is exactly two spans). Hand mutations of the hole, trim-piece, style and identity paths and the category rule each fail a test.
 4. **[ ] Template, entry, gates.** Failing test first (`profile/af-sector/af-template.test.ts`): the text is the expected hand-formatted file, parses, checks report no error, an empty name is refused, a name with a quote is escaped; adding a material, a sector, then a spawn instance, patched from the template text, gives text that re-parses to the model; `index.test.ts`: the new edits and the template are exported. Then gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`. *Files:* create the template and its test; modify `index.ts`, `index.test.ts`.
 
+   *Done.* `af-template.test.ts` 4 tests: the codec inserts into the template's empty `{}` and `[]` packed on one line each, as the layout reader does for an empty container, and the result re-parses to the model. `index.test.ts` names the nine new values. Gates: see the progress record.
+
 ## Progress record
 
 - 2026-10-30: plan drafted from `origin/main` `cc5185f`.

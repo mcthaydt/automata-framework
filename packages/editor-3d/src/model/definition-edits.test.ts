@@ -357,6 +357,9 @@ describe('setDefinitionField (def.setField)', () => {
     expect(refused(setDefinitionField({ def: 'crate', field: 'colour', value: null }))).toBe(
       'crate has no field colour',
     )
+    expect(refused(setDefinitionField({ def: 'crate', value: null }))).toBe(
+      'a field to remove is named by its id',
+    )
     expect(refused(setDefinitionField({ def: 'ghost', value: { id: 'a', type: 'int' } }))).toBe(
       'no entity definition ghost',
     )
