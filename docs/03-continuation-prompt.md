@@ -94,9 +94,9 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 | Lane | Session | State on 2026-10-30 22:30Z |
 |---|---|---|
 | Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | `session_01QYLU1fyLRfi9sXSeoySzoN` (since 23:37Z, depth 1 under the launcher) | Watching #283 M3.7b part 2b. Next: GL.3, then the coordinator rows in "Exact next action". |
-| 3D (M3, GAME-3D, M9 free parts, M4.12) | relaunched 23:45Z through the launcher (old: `session_01QYLU1fsuzzCNWoc84uTypf`) | M3.7b part 3 (the scene), then part 4, M3.6d part 2, GAME-3D.1a to 1l, M3.10, M9. |
-| Editors (ED2D, EDFF, ED3D, EDK, EDS) | relaunched 23:45Z through the launcher (old: `session_01QYLU1gUDkJKWKgwehpcLRG`) | EDS.2c (builds on #275: `suite-session.ts`, `write-path.ts`, `ask-session.ts`), then ED2D.5b/5c/7a. EDS.1d-b waits on ED2D.9. |
-| Website (`mcthaydt/automata-website`) | relaunched 23:45Z through the launcher (old: `session_01QYLU1hE7DAF6hEy3zKsyRe`) | WEB.PLAY.7 (the compile worker and live updates; `@codemirror/lint` 6.9.7 is a new dependency), then .8 to .11, DX.9w, DX.10a, DX.11w, QB.4b/c, QB.5b, M10 (store links only). Deploys stay dry runs. |
+| 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1hJWsuzQPvjbezw4wi` (since 23:43Z, through the launcher; old: `session_01QYLU1fsuzzCNWoc84uTypf`) | M3.7b part 3 (the scene), then part 4, M3.6d part 2, GAME-3D.1a to 1l, M3.10, M9. |
+| Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1gGeUSWTgwK4XoZvPo` (since 23:43Z, through the launcher; old: `session_01QYLU1gUDkJKWKgwehpcLRG`) | EDS.2c (builds on #275: `suite-session.ts`, `write-path.ts`, `ask-session.ts`), then ED2D.5b/5c/7a. EDS.1d-b waits on ED2D.9. |
+| Website (`mcthaydt/automata-website`) | `session_01QYLU1iBXhs9QdohCWXcLfV` (since 23:43Z, through the launcher; old: `session_01QYLU1hE7DAF6hEy3zKsyRe`) | WEB.PLAY.7 (the compile worker and live updates; `@codemirror/lint` 6.9.7 is a new dependency), then .8 to .11, DX.9w, DX.10a, DX.11w, QB.4b/c, QB.5b, M10 (store links only). Deploys stay dry runs. |
 | Plus (automata-plus) | paused; starts when the website lane wraps up (Owner: "You can start plus when website is wrapped up") | plus #16 M7.5b's review fixes are on `backup/m7-5b-9a43885`; plus #14 (two Plus `main` CI failures). Then PLUS.FREE and the cutscene path (M6.4a, M6.5, M6.8a, M6.8c, M6.9a, M6.9b). |
 
 ## Critical paths
@@ -125,6 +125,7 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 
 ## Blocked on the Owner
 
+- **Archiving the four pre-launcher sessions** (the old coordinator `session_01QYLU1gDS1J6YZCB1sspwoV` and the old lanes `session_01QYLU1fsuzzCNWoc84uTypf`, `session_01QYLU1gUDkJKWKgwehpcLRG`, `session_01QYLU1hE7DAF6hEy3zKsyRe`): the launcher archives only sessions it created, so these are the Owner's, from the UI. All four are idle with nothing subscribed or scheduled.
 - **The `ci.yml` base-3d edit:** whether to approve correcting the stale `sim-roots: src` comment after #279 (a workflow change).
 - **The PC runner** (`owner-pc-wsl-af`): a Linux-only `.path` (Windows PATH entries leaked in) and `playwright install-deps` with a quoted PATH.
 - **Filing the Pixi 3D beta bug report** from `docs/spikes/s7-q2-pixi3d-webgpu-report.md` (#277).
