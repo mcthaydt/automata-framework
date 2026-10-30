@@ -52,6 +52,12 @@ describe('the root scripts', () => {
         ).toBe(true)
   })
 
+  // PRODUCT.8b: a starter's sim exports no entry, but it is a sim all the same, so its folder is checked too.
+  it('runs the boundaries checker over every starter sim folder', () => {
+    const roots = (scripts.boundaries ?? '').split(/\s+/).slice(1)
+    expect(roots).toContain('starters/party-racer/src/sim')
+  })
+
   it('makes check run lint, typecheck, boundaries and the tests', () => {
     expect(scripts.check?.split(' && ')).toEqual([
       'pnpm lint',

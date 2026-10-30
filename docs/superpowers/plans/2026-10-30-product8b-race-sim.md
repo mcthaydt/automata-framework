@@ -79,13 +79,13 @@ export const Race: ResourceDef
 
 ## Steps
 
-- [ ] 1. This plan (first commit).
-- [ ] 2. Workspace: red F1 test for a `starters/` package, then scan it; red workspace-scripts test for the starter's
+- [x] 1. This plan (first commit).
+- [x] 2. Workspace: red F1 test for a `starters/` package, then scan it; red workspace-scripts test for the starter's
   sim folder, then add it to `boundaries`; `starters/*` in the workspace; the starter's manifest and configs.
-- [ ] 3. Tuning schema and placeholder content: red on a bad tuning, then the schema.
-- [ ] 4. Course generator: red tests (start floor fixed, gap, bounds, moving share, prefix stability, pinned output
+- [x] 3. Tuning schema and placeholder content: red on a bad tuning, then the schema.
+- [x] 4. Course generator: red tests (start floor fixed, gap, bounds, moving share, prefix stability, pinned output
   for the placeholder seed), then the generator.
-- [ ] 5. Contacts: red tests (top, side, underside, the approach test, the foot band, tolerance, sort order), then
+- [x] 5. Contacts: red tests (top, side, underside, the approach test, the foot band, tolerance, sort order), then
   `contacts.ts`.
 - [ ] 6. Race start: red test (`race.start` spawns the floors and four racers at the spawn, racing phase, awaiting
   input), then the start system and plugin.
