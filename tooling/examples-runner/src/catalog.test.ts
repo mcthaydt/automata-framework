@@ -35,6 +35,7 @@ describe('readCatalog', () => {
       'core/misplaced.ts',
       'physics/physics-bodies.ts',
       'physics/physics-deep.ts',
+      'render3d/render3d-boxes.ts',
       'widgets/widgets-spin.ts',
     ])
   })
@@ -73,6 +74,14 @@ describe('readCatalog', () => {
     expect(entry('physics/physics-bodies.ts')).toMatchObject({
       problems: [],
       imports: ['@mcthaydt/automata-physics/2d'],
+    })
+  })
+
+  // D-1: render-pixi3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
+  it("accepts an unpublished extension's entries in the render3d module", () => {
+    expect(entry('render3d/render3d-boxes.ts')).toMatchObject({
+      problems: [],
+      imports: ['@mcthaydt/automata-render-pixi3d/no-eval', '@mcthaydt/automata-render-pixi3d'],
     })
   })
 

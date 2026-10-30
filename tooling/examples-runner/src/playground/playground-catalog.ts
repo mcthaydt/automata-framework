@@ -1,4 +1,4 @@
-import type { CatalogEntry } from '../catalog.ts'
+import { type CatalogEntry, isUnpublishedExtension } from '../catalog.ts'
 import type { HostSettings } from '../header.ts'
 import { exampleModulePath } from './playground-protocol.ts'
 
@@ -30,13 +30,17 @@ export interface PlaygroundExample {
   readonly moduleUrl: string
 }
 
-/** The site's example data from the runner's catalog: valid examples only, sorted by id. */
+/**
+ * The site's example data from the runner's catalog: valid examples only, sorted by id. An example of an
+ * unpublished extension is left out: the site is public, and that extension is not (D-1).
+ */
 export function playgroundCatalog(
   entries: readonly CatalogEntry[],
   readSource: (entry: CatalogEntry) => string,
 ): PlaygroundExample[] {
   return entries
     .filter((entry) => entry.header !== undefined && entry.problems.length === 0)
+    .filter((entry) => !entry.imports.some(isUnpublishedExtension))
     .map((entry) => {
       const header = entry.header as NonNullable<CatalogEntry['header']>
       return {
