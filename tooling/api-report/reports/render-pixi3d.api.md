@@ -146,10 +146,47 @@ type EntityViewResolver3d = Readonly<Record<string, View3dFactory>>;
 const FADED_OPACITY = 0.25;
 ```
 
+### `figure` (function)
+
+```ts
+function figure(def: FigureDef, options: FigureViewOptions): View3dFactory;
+```
+
+### `FIGURE_BUILD_BUDGET_MS` (const)
+
+```ts
+const FIGURE_BUILD_BUDGET_MS = 5;
+```
+
 ### `FIGURE_REACH` (const)
 
 ```ts
 const FIGURE_REACH = 0.6;
+```
+
+### `FigureViewOptions` (interface)
+
+```ts
+interface FigureViewOptions {
+    readonly library: FigureLibrary;
+    readonly gaits: Readonly<Record<string, Gait>>;
+    readonly state?: ((components: Components) => FigureViewState) | undefined;
+    readonly palette?: readonly string[] | undefined;
+    readonly now?: (() => number) | undefined;
+    readonly measure?: (() => number) | undefined;
+    readonly warn?: ((message: string) => void) | undefined;
+}
+```
+
+### `FigureViewState` (interface)
+
+```ts
+interface FigureViewState {
+    readonly moving: boolean;
+    readonly moveDir?: number | undefined;
+    readonly outfit?: string | undefined;
+    readonly item?: string | null | undefined;
+}
 ```
 
 ### `FramingInput` (interface)

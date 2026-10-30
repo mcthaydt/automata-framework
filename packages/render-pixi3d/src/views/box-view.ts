@@ -32,7 +32,10 @@ export interface BoxMaterial {
  * A base colour (in linear light) lit by the tint: each channel multiplied by the tint's, as the baked vertex
  * colours multiply a static mesh, then back to sRGB as 0xRRGGBB, capped at white.
  */
-function tinted(linear: readonly [number, number, number], tint: readonly [number, number, number]): number {
+export function tinted(
+  linear: readonly [number, number, number],
+  tint: readonly [number, number, number],
+): number {
   const channel = (c: 0 | 1 | 2) => Math.round(255 * Math.min(1, toSrgb(linear[c] * tint[c])))
   return (channel(0) << 16) | (channel(1) << 8) | channel(2)
 }

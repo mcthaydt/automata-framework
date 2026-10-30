@@ -14,6 +14,12 @@ export {
 export { type Pixi3dCameraOptions, PLAYER_HEIGHT } from './camera/camera-driver.js'
 export { LOCK_SHARE, type Vec3 } from './camera/camera-pose.js'
 export { cameraViewContent } from './camera/camera-view.content.js'
+export {
+  FIGURE_BUILD_BUDGET_MS,
+  type FigureViewOptions,
+  type FigureViewState,
+  figure,
+} from './figure/figure-view.js'
 export { type BakeOptions, createSceneLight, type SceneLight } from './light/scene-light.js'
 export { sceneLightingContent } from './light/scene-lighting.content.js'
 export {
