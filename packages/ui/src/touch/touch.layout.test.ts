@@ -219,3 +219,73 @@ function hitProblems(show: 'default' | 'with-bar'): string[] {
   }
   return problems
 }
+
+// M4.12b (follow-up to #204): at a compact height the zone is one primary target tall while the ring stays
+// `2 * TOUCH_STICK_RADIUS_PX` across, so the ring must be kept on screen. Its whole box lies inside the region the
+// geometry owner leaves visible (the viewport less the safe area, Ruken's strip and what covers the page's foot), at
+// rest and held with the thumb landing at each of the zone's corners. The keyboard variant is left out: with it up
+// the frame scrolls and a game hides its touch controls (M4 spec §8).
+const RING_SIZES = REFERENCE_SIZES.filter(
+  (size) => size.heightTier === 'compact' || size.name === 'iphone-14-landscape',
+)
+const RING_VARIANTS = VARIANTS.filter((variant) => variant.keyboard === undefined)
+
+const touchPointer = (type: string, x: number, y: number) =>
+  new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    pointerType: 'touch',
+    pointerId: 11,
+    clientX: x,
+    clientY: y,
+  })
+
+/** Where the ring's box runs past `area`, by how many px on each side it does; empty when it is inside. */
+function ringOutside(area: { x: number; y: number; width: number; height: number }): string[] {
+  const ring = document.querySelector('.af-touch__stick-ring')?.getBoundingClientRect()
+  if (ring === undefined) return ['no ring']
+  const past = {
+    left: area.x - ring.left,
+    top: area.y - ring.top,
+    right: ring.right - (area.x + area.width),
+    bottom: ring.bottom - (area.y + area.height),
+  }
+  return Object.entries(past)
+    .filter(([, by]) => by > 0.5)
+    .map(([side, by]) => `the ring runs ${Math.round(by)} px past the ${side}`)
+}
+
+describe('the touch stick’s ring stays inside the visible area (M4.12b)', () => {
+  test.each(RING_SIZES)('$name ($width x $height)', async (size) => {
+    await page.viewport(size.width, size.height)
+    const problems: string[] = []
+    for (const show of ['default', 'with-bar'] as const) {
+      for (const variant of RING_VARIANTS) {
+        const conditions = publishConditions(document.documentElement, size, variant)
+        const fixture = mountFixture(CameraDragFixture, { show })
+        await settleLayout()
+        const label = `${show} ${variant.name}`
+        const area = conditions.geometry.visible
+        for (const problem of ringOutside(area)) problems.push(`${label} at rest: ${problem}`)
+        const zone = byTestId('touch-stick')
+        const box = zone.getBoundingClientRect()
+        const corners = {
+          'top-left': [box.left + 1, box.top + 1],
+          'top-right': [box.right - 1, box.top + 1],
+          'bottom-left': [box.left + 1, box.bottom - 1],
+          'bottom-right': [box.right - 1, box.bottom - 1],
+        } as const
+        for (const [corner, [x, y]] of Object.entries(corners)) {
+          zone.dispatchEvent(touchPointer('pointerdown', x, y))
+          await settleLayout()
+          if (zone.dataset.stickState !== 'held') problems.push(`${label} ${corner}: the stick is not held`)
+          for (const problem of ringOutside(area)) problems.push(`${label} held at ${corner}: ${problem}`)
+          zone.dispatchEvent(touchPointer('pointerup', x, y))
+          await settleLayout()
+        }
+        await fixture.unmount()
+      }
+    }
+    expect(problems).toEqual([])
+  })
+})

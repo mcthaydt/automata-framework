@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'vitest'
-import { applyGeometry, type GeometryInput, type HostDisplay, measureGeometry } from './geometry'
+import {
+  applyGeometry,
+  type GeometryInput,
+  type HostDisplay,
+  measureGeometry,
+  publishedVisibleRect,
+} from './geometry'
 
 const NO_INSETS = { top: 0, right: 0, bottom: 0, left: 0 }
 
@@ -171,5 +177,30 @@ describe('applyGeometry (M1.6 spec §3.2)', () => {
     )
     expect(root.hasAttribute('data-visual-inset')).toBe(true)
     expect(prop('--af-visual-inset-bottom')).toBe('0px')
+  })
+})
+
+describe('publishedVisibleRect (M4.12b)', () => {
+  test('reads back the visible region applyGeometry published', () => {
+    const root = document.createElement('div')
+    const geometry = measureGeometry(
+      input({
+        layout: { width: 780, height: 270 },
+        envSafeArea: { top: 4, right: 0, bottom: 10, left: 0 },
+        host: host({ hostReserved: { edge: 'left', rect: { x: 0, y: 0, w: 48, h: 270 } } }),
+        visual: { height: 240, offsetTop: 0 },
+      }),
+    )
+    applyGeometry(root, geometry)
+    expect(publishedVisibleRect(root, geometry.layout)).toEqual(geometry.visible)
+  })
+
+  test('is the whole layout where nothing was published', () => {
+    expect(publishedVisibleRect(document.createElement('div'), { width: 780, height: 270 })).toEqual({
+      x: 0,
+      y: 0,
+      width: 780,
+      height: 270,
+    })
   })
 })
