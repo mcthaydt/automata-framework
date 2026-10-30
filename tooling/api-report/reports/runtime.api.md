@@ -312,6 +312,55 @@ type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled
 function browserHaptics(target: Window): Haptics;
 ```
 
+### `CAMERA_SETTINGS_DEFAULT` (const)
+
+```ts
+const CAMERA_SETTINGS_DEFAULT: CameraSettings;
+```
+
+### `CAMERA_TURN_SPEED` (const)
+
+```ts
+const CAMERA_TURN_SPEED: {
+    readonly min: 0.05;
+    readonly max: 1;
+    readonly step: 0.05;
+    readonly default: 0.25;
+};
+```
+
+### `CameraDragTracker` (class)
+
+```ts
+class CameraDragTracker {
+    private readonly sink;
+    private pointerId;
+    private lastX;
+    private pointer;
+    constructor(sink: DragSink);
+    get dragging(): boolean;
+    down(id: number, x: number, start: DragStart): boolean;
+    move(id: number, x: number): void;
+    up(id: number): void;
+    cancel(): void;
+}
+```
+
+### `CameraSettings` (interface)
+
+```ts
+interface CameraSettings {
+    readonly degPerPixel: number;
+    readonly invert: boolean;
+}
+```
+
+### `cameraSettingsSchema` (const)
+
+```ts
+const cameraSettingsSchema: z.ZodType<CameraSettings, unknown>;
+```
+
 ### `Capture` (type)
 
 ```ts
@@ -360,6 +409,7 @@ interface CoreSettings {
     readonly display: DisplaySettings;
     readonly audio: AudioSettings;
     readonly haptics: HapticsSettings;
+    readonly camera: CameraSettings;
 }
 ```
 
@@ -421,6 +471,29 @@ interface DisplaySettings {
 const displaySettingsSchema: z.ZodType<DisplaySettings, {
     quality?: unknown;
 }>;
+```
+
+### `DragPointer` (type)
+
+```ts
+type DragPointer = 'touch' | 'mouse';
+```
+
+### `DragSink` (interface)
+
+```ts
+interface DragSink {
+    drag(dxPx: number, pointer: DragPointer): void;
+}
+```
+
+### `DragStart` (interface)
+
+```ts
+interface DragStart {
+    readonly pointerType: string;
+    readonly button: number;
+}
 ```
 
 ### `EventScores` (type)
@@ -558,9 +631,9 @@ type GestureName = (typeof GESTURE_NAMES)[number];
 
 ```ts
 interface GestureSink {
-    hold(gesture: GestureName): void;
-    release(gesture: GestureName): void;
-    pulse(gesture: GestureName): void;
+    hold(gesture: Exclude<GestureName, 'camera-drag'>): void;
+    release(gesture: Exclude<GestureName, 'camera-drag'>): void;
+    pulse(gesture: Exclude<GestureName, 'camera-drag'>): void;
 }
 ```
 
@@ -641,6 +714,9 @@ interface Input {
     hold(action: string): void;
     release(action: string): void;
     readonly gesture: GestureSink;
+    readonly touchStick: TouchStickSink;
+    readonly drag: DragSink;
+    cameraDrag(): number;
     setContext(context: InputContextNow): void;
     readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
     readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
@@ -874,6 +950,12 @@ function matchLocale(requested: string, locales: readonly string[]): string | un
 
 ```ts
 const MAX_FRAME_MS = 100;
+```
+
+### `MAX_TURN_UNITS_PER_STEP` (const)
+
+```ts
+const MAX_TURN_UNITS_PER_STEP = 8192;
 ```
 
 ### `MenuAction` (type)
@@ -1331,6 +1413,7 @@ interface SaveWriteOptions {
 interface ScreenContext {
     readonly layer: HTMLElement;
     readonly from: string | undefined;
+    readonly runtime: Scope.Scope;
 }
 ```
 
@@ -1536,10 +1619,31 @@ type TouchMode = 'buttons' | 'swipe';
 function touchModesFor(profile: InputProfile): TouchMode[];
 ```
 
+### `TouchStickSink` (interface)
+
+```ts
+interface TouchStickSink {
+    set(x: number, y: number): void;
+    release(): void;
+}
+```
+
 ### `Translate` (type)
 
 ```ts
 type Translate<Messages> = <K extends keyof Messages & string>(key: K, ...inputs: InputsOf<Messages[K]>) => string;
+```
+
+### `TURN_UNITS_PER_TURN` (const)
+
+```ts
+const TURN_UNITS_PER_TURN = 65536;
+```
+
+### `turnUnitsFromPixels` (function)
+
+```ts
+function turnUnitsFromPixels(dxPx: number, degPerPixel: number, invert: boolean): number;
 ```
 
 ### `typedBus` (function)

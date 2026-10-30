@@ -103,6 +103,23 @@ export type {
 } from './model/project-types'
 export { tilesetTiles } from './model/tileset-grid'
 export {
+  addLevel,
+  duplicateLevel,
+  type NewLevel,
+  removeLevel,
+  setLevelField,
+} from './model/world/level-edits'
+export { moveLevelInWorld, placeLevel, setLevelDepth } from './model/world/level-placement'
+export {
+  type AnchorSide,
+  type DroppedCells,
+  type ResizeAnchor,
+  resizeLevel,
+  resizeLevelLoss,
+} from './model/world/level-resize'
+export { setWorldLayout } from './model/world/world-layout'
+export { type LevelNeighbours, worldNeighbours } from './model/world/world-neighbours'
+export {
   createProfileRegistry,
   type Diagnostic,
   type ExportTarget,
