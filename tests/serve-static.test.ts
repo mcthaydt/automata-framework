@@ -100,6 +100,19 @@ describe('serve-static', () => {
     expect(page.headers.get('cache-control')).toBe('no-cache')
   })
 
+  // QB.4a: the browser suite and Lighthouse run against the header set the production host must send.
+  it('sends the security header set on pages, under /playground/ and on a 404', async () => {
+    const origin = await serve()
+    for (const path of ['/page', '/playground/runtime/automata-1a2b.js', '/gone']) {
+      const response = await fetch(origin + path)
+      expect(response.headers.get('strict-transport-security'), path).toBe('max-age=86400; includeSubDomains')
+      expect(response.headers.get('x-content-type-options'), path).toBe('nosniff')
+      expect(response.headers.get('referrer-policy'), path).toBe('strict-origin-when-cross-origin')
+      expect(response.headers.get('permissions-policy'), path).toContain('camera=()')
+      expect(response.headers.get('content-security-policy'), path).toBe("frame-ancestors 'self'")
+    }
+  })
+
   it('never caches a missing runtime file for good', async () => {
     const origin = await serve()
     const missing = await fetch(`${origin}/playground/runtime/automata-0000.js`)

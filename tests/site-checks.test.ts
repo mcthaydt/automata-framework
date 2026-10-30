@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { withContentSecurityPolicy } from '../src/lib/csp'
 import { BANNED_PHRASES, MAX_PRELOADED_SCRIPT_BYTES, checkSite } from '../scripts/site-checks'
 import { writeSeoFiles } from '../scripts/write-seo-files'
 
@@ -13,7 +14,12 @@ const FOOTER = '<footer><a href="/privacy">Privacy</a><a href="/terms">Terms</a>
 const SECURITY_TXT = `Contact: mailto:security@example.com\nExpires: 2027-10-01T00:00:00.000Z\nPreferred-Languages: en\nCanonical: ${ORIGIN}/.well-known/security.txt\n`
 const NOW = new Date('2026-10-16T00:00:00Z')
 
+/** A built page as finishPage leaves it: with its Content-Security-Policy, hashed from the page as written here. */
 function page(path: string, { body = '<p>Real content.</p>', head = ICON_LINKS, footer = FOOTER } = {}): string {
+  return withContentSecurityPolicy(unprotectedPage(path, { body, head, footer }))
+}
+
+function unprotectedPage(path: string, { body = '<p>Real content.</p>', head = ICON_LINKS, footer = FOOTER } = {}): string {
   return `<!doctype html><html lang="en"><head>
 <title>Page</title><meta name="description" content="A page." /><meta property="og:title" content="Page" />
 <link rel="canonical" href="${ORIGIN}${path}" /><meta property="og:image" content="${ORIGIN}/social.png" />${head}
@@ -235,6 +241,36 @@ describe('checkSite', () => {
     site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p>${START_SCRIPT(IMPORTS)}` }))
     site.write('docs.html', page('/docs', { body: `<p>Docs</p>${START_SCRIPT(IMPORTS)}` }))
     expect(checkSite(site.root, { now: NOW }).map(failure => failure.split(':')[0])).toEqual(['docs.html', 'index.html'])
+  })
+
+  // QB.4a. Every page carries its Content-Security-Policy first in <head>, allowing each of its inline scripts by hash
+  // and never unsafe-inline or unsafe-eval for scripts (src/lib/csp.ts, added last by finishPage).
+  it('fails when a page has no Content-Security-Policy', () => {
+    const site = goodSite()
+    site.write('index.html', unprotectedPage('/', { body: '<p><a href="/docs">Docs</a></p>' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: has no Content-Security-Policy first in <head> (withContentSecurityPolicy, applied last in src/lib/finish-page.ts)'])
+  })
+
+  it('fails when an inline script changed after the policy was written', () => {
+    const site = goodSite()
+    const html = page('/', { body: '<p><a href="/docs">Docs</a></p><script>start()</script>' })
+    site.write('index.html', html.replace('start()', 'start(1)'))
+    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: an inline script is not allowed by the page’s Content-Security-Policy (its sha256 is not in script-src), so the browser will refuse to run it'])
+  })
+
+  it('hashes the scripts as the browser parses them, apart from the hook: a CRLF the hook read raw is caught', () => {
+    const site = goodSite()
+    const html = unprotectedPage('/', { body: '<p><a href="/docs">Docs</a></p><script>a()\nb()</script>' })
+    site.write('index.html', withContentSecurityPolicy(html).replace('a()\nb()', 'a()\r\nb()'))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+    site.write('index.html', withContentSecurityPolicy(html).replace('a()\nb()', 'a()\n b()'))
+    expect(checkSite(site.root, { now: NOW })).toHaveLength(1)
+  })
+
+  it('fails when script-src allows unsafe-inline or unsafe-eval', () => {
+    const site = goodSite()
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>' }).replace("script-src 'self'", "script-src 'self' 'unsafe-inline'"))
+    expect(checkSite(site.root, { now: NOW })).toEqual(['index.html: script-src allows unsafe-inline or unsafe-eval; the quality bar (QB.4) forbids both for scripts'])
   })
 
   it('fails when a page footer lacks privacy, terms or a contact email', () => {
