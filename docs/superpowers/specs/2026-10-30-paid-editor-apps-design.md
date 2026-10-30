@@ -104,7 +104,7 @@ These three apply to every editor row from now on (ED, EDFF and EDS), on the web
    - The editors use plain words: Ship, Get latest, Undo, Preview. Never branch, commit, merge or a file path, unless the user opens the details.
    - A first run guides a new user through making something small.
    - Errors say what to do next.
-   - Cutscenes are the reference journey: a student filmmaker makes one with no code (APP-f). This puts the Sequence editor (EDS.8) and the `cutscenes` extension (M6.9a and M6.9b) on the priority path. Their Plus prerequisites (M6.4a, M6.5, M6.8a and M6.8c) are paused with the Plus lane. Moving them up needs the Plus lane resumed, or the rows moved into AF now that Plus is free (APP-D9, the Owner's call).
+   - Cutscenes are the reference journey: a student filmmaker makes one with no code (APP-f). This puts the Sequence editor (EDS.8) and the `cutscenes` extension (M6.9a and M6.9b) on the priority path. Their Plus prerequisites (M6.4a, M6.5, M6.8a and M6.8c) are paused with the Plus lane. **APP-D9, decided by the Owner (2026-10-30): "Cutscenes should be in plus".** `cutscenes` and its prerequisites stay in automata-plus, so the filmmaker journey moves up when the Plus lane runs.
 
 ## 6. Store and release
 
