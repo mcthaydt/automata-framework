@@ -22,7 +22,8 @@ function selectedOf(project: Project, level: string, ids: readonly string[]): re
   const found: Selected[] = []
   for (const layer of findLevel(project, level).layers) {
     if (layer.kind !== 'entities') continue
-    const grid = project.defs.layers.find((def) => def.id === layer.def)?.grid ?? 1
+    const def = project.defs.layers.find((candidate) => candidate.id === layer.def)
+    const grid = def !== undefined && 'grid' in def ? def.grid : 1
     for (const item of layer.items)
       if (wanted.has(item.id)) found.push({ target: { level, layer: layer.def }, item, grid })
   }
