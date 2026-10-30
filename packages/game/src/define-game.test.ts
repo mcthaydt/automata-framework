@@ -100,6 +100,26 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     expect(typeof defineGame(spec).renderer).toBe('function')
   })
 
+  it('makes the renderer with createRenderer when given one, from the Pixi options it built (M3.4a)', () => {
+    const factory = () => Effect.die('unused')
+    const createRenderer = vi.fn(() => factory)
+    const game = defineGame({ ...spec, renderer: { backgroundColor: 7 }, createRenderer })
+    expect(game.renderer).toBe(factory)
+    expect(createRenderer).toHaveBeenCalledOnce()
+    expect(createRenderer.mock.calls[0]).toEqual([
+      expect.objectContaining({ logicalWidth: 320, logicalHeight: 180, pixelArt: true, backgroundColor: 7 }),
+    ])
+  })
+
+  it('hands preload to the runtime outside the content, so content.hash stays the same (M3.4a, review of #241)', () => {
+    const files = ['http://localhost:5173/assets/crate-1a2b.glb', 'models/desk.bin']
+    const game = defineGame({ ...spec, preload: files })
+    expect(game.preload).toEqual(files)
+    expect(game.content).toEqual(defaultContent())
+    const own = { data: defaultContent().data, hash: defaultContent().hash }
+    expect(defineGame({ ...spec, content: own, preload: files }).content).toEqual(own)
+  })
+
   it('finds its root in #game, unless given one', () => {
     const main = document.body.appendChild(document.createElement('main'))
     main.id = 'game'
@@ -207,6 +227,12 @@ describe('defineGame validation (DX spec §5 step 1, §6)', () => {
   it('needs a 16-hex-digit content hash', () => {
     expect(problemsOf({ ...spec, content: { data: defaultContent().data, hash: 'nope' } })).toContain(
       'content.hash:',
+    )
+  })
+
+  it('needs createRenderer to be a function', () => {
+    expect(problemsOf({ ...spec, createRenderer: 'pixi3d' as never })).toContain(
+      'createRenderer: is not a function',
     )
   })
 

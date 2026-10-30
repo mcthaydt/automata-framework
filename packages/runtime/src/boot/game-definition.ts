@@ -58,6 +58,12 @@ export interface GameDefinition<S = never> {
   readonly hosting: Omit<HostingOptions, 'disclosedEvents'>
   readonly content: { readonly data: CompiledContentData; readonly hash: string }
   readonly screens: readonly ScreenDef[]
+  /**
+   * Files fetched with the preload screens' own (byte progress, the 30 s stall rule) before the renderer starts,
+   * outside the content: a game without `content/` lists its 3D models here (M3.4a). They are not part of
+   * `content.hash`, so a new origin or a rebuilt file never changes the hash saves are stamped with.
+   */
+  readonly preload?: readonly string[] | undefined
   readonly renderer: RendererFactory
   readonly settings?: SettingsDef<S> | undefined
   /**
@@ -86,6 +92,8 @@ export interface GameDefinition<S = never> {
   readonly copy?: Partial<BootFailureCopy> & {
     readonly loading?: string
     readonly slow?: string
+    /** The panel when the renderer's graphics context is lost for good (M3 spec §5). */
+    readonly contextLost?: string
   }
   readonly seams?: RuntimeSeams
 }

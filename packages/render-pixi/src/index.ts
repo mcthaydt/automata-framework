@@ -13,6 +13,8 @@ export {
   type EntityViewFactory,
   type EntityViewResolver,
   RenderDeltaConsumer,
+  type SceneNode,
+  type SceneParent,
 } from './delta/render-delta-consumer.js'
 export {
   FILTER_VERTEX,

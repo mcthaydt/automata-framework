@@ -272,3 +272,40 @@ describe('RenderDeltaConsumer', () => {
     expect(world.children.length).toBe(0)
   })
 })
+
+// M3.4a (S7-Q5): @pixi/3d's Container3D is not a pixi Container, so the consumer takes its scene's node type. This
+// node has only what the consumer uses: `addChild`, `parent` and `removeFromParent`.
+class SceneNode {
+  parent: SceneNode | null = null
+  readonly children: SceneNode[] = []
+  addChild(child: SceneNode): SceneNode {
+    child.parent = this
+    this.children.push(child)
+    return child
+  }
+  removeFromParent(): void {
+    const siblings = this.parent?.children
+    siblings?.splice(siblings.indexOf(this), 1)
+    this.parent = null
+  }
+}
+
+describe('RenderDeltaConsumer over another scene graph', () => {
+  it('adds, updates and removes views whose container is not a pixi Container', () => {
+    const root = new SceneNode()
+    const node = new SceneNode()
+    const update = vi.fn()
+    const view: EntityView<SceneNode> = { container: node, update }
+    const consumer = new RenderDeltaConsumer<SceneNode>(root, { body: () => view })
+    const row = (x: number): RenderRow => ({ sid: 7, components: { body: { x } } })
+
+    consumer.apply({ resync: false, added: [row(1)], changed: [], removed: [] })
+    expect(node.parent).toBe(root)
+    consumer.apply({ resync: false, added: [], changed: [row(3)], removed: [] })
+    consumer.interpolate(0.5)
+    expect(update).toHaveBeenLastCalledWith({ body: { x: 3 } }, { body: { x: 1 } }, 0.5)
+    consumer.apply({ resync: false, added: [], changed: [], removed: [7] })
+    expect(node.parent).toBeNull()
+    expect(root.children).toEqual([])
+  })
+})
