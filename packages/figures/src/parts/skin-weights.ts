@@ -18,7 +18,9 @@ export function weights(mesh: Mesh, f: SkinOf): Weight[][] {
   return out
 }
 
-/** Skin weights for a hem: the top ring rides `top`; lower down, each vertex follows the thigh on its side. */
+/**
+ * Skin weights for a hem: the top ring rides `top`; lower down, each vertex follows the thigh on its side.
+ */
 export function hemWeights(
   mesh: Mesh,
   top: number,
@@ -41,11 +43,12 @@ export function hemWeights(
 }
 
 /**
- * Skin weights for a trouser leg's hem (wide-legs, cargos): `leg` the leg's own skin (pelvis, thigh, shin); from `from`
- * (a height on the shin, the knee's or under it) down to `hemY` a share of it, rising smoothly to `share` at the hem,
- * goes to the leg's hem joint `hem` (J.hemL / J.hemR). The motion (M3.5c) places that joint each frame between the
- * ankle and the plumb under the hip, upright: on the floor while the foot is planted, so the hem hangs and pools
- * rather than swinging rigid with the shin; with the foot as it lifts, so it rides up over a trailing shoe.
+ * Skin weights for a trouser leg's hem (wide-legs, cargos): `leg` the leg's own skin (pelvis, thigh, shin);
+ * from `from` (a height on the shin, the knee's or under it) down to `hemY` a share of it, rising smoothly to
+ * `share` at the hem, goes to the leg's hem joint `hem` (J.hemL / J.hemR). The motion (M3.5c) places that
+ * joint each frame between the ankle and the plumb under the hip, upright: on the floor while the foot is
+ * planted, so the hem hangs and pools rather than swinging rigid with the shin; with the foot as it lifts, so
+ * it rides up over a trailing shoe.
  */
 export function hemSkin(
   leg: (x: number, y: number, z?: number) => Weight[],

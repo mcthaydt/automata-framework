@@ -2,8 +2,8 @@
 // buttons) and an open tube (skirts, coat tails, capes), each with smooth normals from the surface's own
 // derivatives, so tapers and rounded boxes shade as one form.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246 (`superquadric`,
-// `tube`), with AF's strict types; the formulas and their order are the source's.
+// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246
+// (`superquadric`, `tube`), with AF's strict types; the formulas and their order are the source's.
 
 import {
   apply,
@@ -22,13 +22,19 @@ import { at } from '../rig/rig'
 import { type Mesh, sgnPow } from './mesh'
 
 export interface Superquadric {
-  /** Centre and radii in the part's space (before `turn`), roundness (1 a sphere, ~0.3 a rounded box) along latitude and longitude. */
+  /**
+   * Centre and radii in the part's space (before `turn`), roundness (1 a sphere, ~0.3 a rounded box) along
+   * latitude and longitude.
+   */
   at: V3
   r: V3
   e?: [number, number]
   /** Scales x and z from the bottom (−y) to the top (+y), for limbs that narrow. */
   taper?: [number, number]
-  /** Shift x and z by this much per unit of height (from −1 at the bottom to +1 at the top), for a slanted shape. */
+  /**
+   * Shift x and z by this much per unit of height (from −1 at the bottom to +1 at the top), for a slanted
+   * shape.
+   */
   shear?: [number, number]
   turn?: Q
   seg?: number
@@ -37,7 +43,10 @@ export interface Superquadric {
   keep?: (x: number, y: number, z: number) => boolean
 }
 
-/** A tapered superquadric with normals from the surface's own derivatives, so tapers and rounded boxes shade smoothly. */
+/**
+ * A tapered superquadric with normals from the surface's own derivatives, so tapers and rounded boxes shade
+ * smoothly.
+ */
 export function superquadric(o: Superquadric): Mesh {
   const [rx, ry, rz] = o.r
   const [e1, e2] = o.e ?? [1, 1]
@@ -67,7 +76,8 @@ export function superquadric(o: Superquadric): Mesh {
     for (let j = 0; j < seg; j++) {
       const v = -Math.PI + (2 * Math.PI * j) / seg
       const p = local(u, v)
-      // Normals: the cross product of the surface's tangents, taken just inside the poles so it never degenerates.
+      // Normals: the cross product of the surface's tangents, taken just inside the poles so it never
+      // degenerates.
       const uu = Math.max(-Math.PI / 2 + 0.02, Math.min(Math.PI / 2 - 0.02, u))
       const eps = 1e-3
       const du = sub(local(uu + eps, v), local(uu - eps, v))
@@ -115,9 +125,9 @@ export interface TubeOptions {
 }
 
 /**
- * An open tube from `top` to `bottom` (each [y, radius x, radius z, centre z]), bulging by `belly` at its middle: a
- * skirt. `arc` keeps only the angles between its two ends (rad; π/2 is the front), for an apron's front or a cape open
- * at the front.
+ * An open tube from `top` to `bottom` (each [y, radius x, radius z, centre z]), bulging by `belly` at its
+ * middle: a skirt. `arc` keeps only the angles between its two ends (rad; π/2 is the front), for an apron's
+ * front or a cape open at the front.
  */
 export function tube(
   top: [number, number, number, number],

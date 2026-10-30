@@ -1,5 +1,5 @@
-// How far out a dressed figure's surface lies along a ray: where a hand rests on the cloth, how far a hair tail
-// falls clear of the back, how far an arm hangs out to clear the body.
+// How far out a dressed figure's surface lies along a ray: where a hand rests on the cloth, how far a hair
+// tail falls clear of the back, how far an arm hangs out to clear the body.
 //
 // Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246 (`reach`), with
 // AF's strict types; the formula and its order are the source's.
@@ -9,9 +9,9 @@ import { at } from '../rig/rig'
 import { type Part, vertexAt } from './mesh'
 
 /**
- * How far out from `origin` along the unit `dir` the outermost surface of `parts` lies at rest (rest figure space), or 0.
- * Skinned parts are authored in rest figure space, rigid ones in their bone's (rest rotations are the identity, so at
- * `rest[bone]`).
+ * How far out from `origin` along the unit `dir` the outermost surface of `parts` lies at rest (rest figure
+ * space), or 0. Skinned parts are authored in rest figure space, rigid ones in their bone's (rest rotations
+ * are the identity, so at `rest[bone]`).
  */
 export function reach(parts: readonly Part[], rest: readonly V3[], origin: V3, dir: V3): number {
   let far = 0

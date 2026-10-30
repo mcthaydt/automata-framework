@@ -1,9 +1,10 @@
 // The outfits the geometry goldens (figurebuilder-goldens.json) were taken on: between them every classic and
 // streetwear garment, both kinds of headwear and every kind of hair piece, on four bodies. FigureBuilder
 // (mcthaydt/FigureBuilder) at a1f7246 dressed each one on Node 24 with `dress(measure, skeleton, skin,
-// garments, swatches, PPM)` (the throwaway script is in the M3.5b plan); build.test.ts dresses them here and
+// garments, swatches, PPM)` (a throwaway script, M3.5b plan step 2); build.test.ts dresses them here and
 // compares part by part. Ids are AF's kebab-case; the script turned them back into FigureBuilder's names.
 
+import type { Garment } from '../figure/garment.schema'
 import type { Sliders } from '../genes/genes'
 import { KEEPER_SLIDERS, WICK_SLIDERS } from './fixture-sliders'
 
@@ -11,7 +12,7 @@ export interface GoldenOutfit {
   readonly name: string
   readonly sliders: Partial<Sliders>
   readonly skin: string
-  readonly garments: readonly Readonly<Record<string, unknown>>[]
+  readonly garments: readonly Garment[]
 }
 
 const KEEPER: Partial<Sliders> = {

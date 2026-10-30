@@ -1,16 +1,16 @@
-// A limb: a tube swept down its axis whose cross-section follows a profile, with rounded ends. One profile from
-// the shoulder to the wrist (or the hip to the ankle) makes a deltoid, a biceps, an elbow, a forearm and a wrist
-// as one form, never stacked boxes; skinned across its joints it bends without a bulge.
+// A limb: a tube swept down its axis whose cross-section follows a profile, with rounded ends. One profile
+// from the shoulder to the wrist (or the hip to the ankle) makes a deltoid, a biceps, an elbow, a forearm and
+// a wrist as one form, never stacked boxes; skinned across its joints it bends without a bulge.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246 (`Ring`, `Limb`,
-// `curve`, `limb`), with AF's strict types; the formulas and their order are the source's.
+// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246 (`Ring`,
+// `Limb`, `curve`, `limb`), with AF's strict types; the formulas and their order are the source's.
 
 import { cross, dot, lerp, normalize, sub, type V3 } from '../math/math'
 import { at } from '../rig/rig'
 import { type Mesh, sgnPow } from './mesh'
 
-/** A key of a limb's profile: at height `y` on its axis, its half-widths across (x) and front to back (z), and how far
- * its centre sits off the axis (`dx`, `dz`): a deltoid out, a biceps forward, a calf back. */
+/** A key of a limb's profile: at height `y` on its axis, its half-widths across (x) and front to back (z),
+ * and how far its centre sits off the axis (`dx`, `dz`): a deltoid out, a biceps forward, a calf back. */
 export interface Ring {
   y: number
   rx: number
@@ -25,10 +25,13 @@ export interface Limb {
   e?: number
   /** How far the top and bottom round out past their end keys (m); 0 leaves that end open. */
   caps?: [number, number]
-  /** How round each cap is: 1 a dome (default), 0 a cone (the trapezius's slope from the neck to the shoulder). */
+  /**
+   * How round each cap is: 1 a dome (default), 0 a cone (the trapezius's slope from the neck to the
+   * shoulder).
+   */
   round?: [number, number]
-  /** Keep only the stretch between these heights (high, low): one material's share of a limb, open where it is cut, so
-   * the stretches of one limb meet ring to ring. */
+  /** Keep only the stretch between these heights (high, low): one material's share of a limb, open where it
+   * is cut, so the stretches of one limb meet ring to ring. */
   span?: [number, number]
   /** Around the axis, and the spacing of rings along it (m). */
   seg?: number

@@ -185,6 +185,13 @@ describe('impossible skeletons fail content compile, naming the slider', () => {
       }),
     )
   })
+  it("the drawn face's colours are not garment fields (M3.5b decision 7)", async () => {
+    const file = 'content/figures/keeper.toml'
+    const diagnostics = await diagnosticsAfter(file, 'lids = "pale-lid"', 'lids = "pale-lid"\nlips = "mouth"')
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({ code: 'unknownField', file, keyPath: 'outfits.lamplighter.7.lips' }),
+    )
+  })
   it("FigureBuilder's painter fields are not swatch fields", async () => {
     const file = 'content/figure-swatches/fair.toml'
     const diagnostics = await diagnosticsAfter(file, 'colour = 22', 'colour = 22\nramp = 27')
@@ -267,6 +274,29 @@ describe('gait overrides and hair pieces', () => {
         code: 'unknownReference',
         keyPath: 'hairPieces.1',
         message: 'no figure-hair has the id afro',
+      }),
+    )
+  })
+})
+
+describe('a hair garment with no style wears hairPieces (M3.5b decision 6)', () => {
+  const file = 'content/figures/keeper.toml'
+  it("compiles when the figure has hair pieces, and keeps the garment's colour", async () => {
+    const text = fixtureText(file)
+      .replace('style = "cropped"\n', '')
+      .replace('stand = "hand-in-jacket-pocket"', 'stand = "hand-in-jacket-pocket"\nhairPieces = ["cropped"]')
+    const result = await compileFixture({ [file]: text })
+    if (!result.ok) throw new Error(result.message)
+  })
+  it('is refused at the garment when the figure has none', async () => {
+    const diagnostics = await diagnosticsAfter(file, 'style = "cropped"\n', '')
+    const text = fixtureText(file).replace('style = "cropped"\n', '')
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({
+        file,
+        line: where(text, 'hair = "steel-grey"').line,
+        keyPath: 'outfits.lamplighter.5.hair',
+        message: expect.stringContaining('hairPieces'),
       }),
     )
   })

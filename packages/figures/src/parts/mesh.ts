@@ -2,8 +2,8 @@
 // and the point marks laid on them. Every part names its material, a swatch id or a variant of one
 // (build/materials.ts), which the view draws in a palette colour.
 //
-// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246: `Mesh`, `Part`,
-// `Decal`, `GROUP`, `placed`. Cut: the painter's `Material` (DUEL ramps and tones; AF's materials are
+// Extracted from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/parts.ts at a1f7246: `Mesh`,
+// `Part`, `Decal`, `GROUP`, `placed`. Cut: the painter's `Material` (DUEL ramps and tones; AF's materials are
 // palette colours) and the decal's `density` and `print` (sprite densities and prints). `vertexAt` and
 // `sgnPow` are small helpers the source wrote inline.
 
@@ -15,7 +15,10 @@ export interface Mesh {
   indices: number[]
 }
 
-/** The figure's part groups: what moves and outlines as one (the trunk, the head and hair, each limb, a held item). */
+/**
+ * The figure's part groups: what moves and outlines as one (the trunk, the head and hair, each limb, a held
+ * item).
+ */
 export const GROUP: {
   readonly torso: 0
   readonly head: 1
