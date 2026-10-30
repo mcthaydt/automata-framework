@@ -142,7 +142,7 @@ Each step starts with its failing test, run alone, with the failure reason recor
 
 ## Rework on klipp (Owner, 2026-10-30: "keep in mind for the camera we're using klipp")
 
-The coordinator relayed the Owner's words: the camera work in M3.4b stays on `@pmndrs/klipp`; no camera of our own; a gap becomes a thin layer over klipp or a request to klipp (docs PR #262, M9.1). `angledCamera` above is a rig of our own (its own blends, lag and heading ease), so it is rebuilt on klipp before this PR leaves draft. Not started; the steps below are open.
+The coordinator relayed the Owner's words: the camera work in M3.4b stays on `@pmndrs/klipp`; no camera of our own; a gap becomes a thin layer over klipp or a request to klipp (docs PR #262, M9.1). `angledCamera` above is a rig of our own (its own blends, lag and heading ease), so it is rebuilt on klipp before this PR leaves draft. R1 to R4 done 2026-10-30; R5 below.
 
 **Design (agent defaults, for the Owner's veto).** `CameraRig`'s interface stays, so the renderer, the driver and the sim side do not change.
 
@@ -155,4 +155,11 @@ The coordinator relayed the Owner's words: the camera work in M3.4b stays on `@p
 
 **Probe (2026-10-30, Node 24, klipp 0.16.0, not committed):** the core runs headless in Node. Sphere orbit, radius 5, vertical 25, target at y 1 gives eye `(0, 3.113, 4.532)`, look `(0, 1, 0)`; `horizontal.setValue(90)` gives eye `(−4.532, 3.113, 0)`. Assigning `horizontal.value` directly does nothing. Damping 0.18 after 11 frames at 60 Hz (0.183 s) covers 60% of a 2 m step (ours: 63%). The shot's default `fov` is 50.
 
-**Steps (open):** R1 failing rig tests on klipp's shot; R2 add the dependency (`docs/stack.md`, `tooling/versions` pins, licence), the rig on klipp; R3 renderer copies the shot; R4 the bundle and CSP checks (no `eval` in klipp's core); R5 gates and parity; R6 editor-3d unchanged (it consumes only the pure entry).
+**Steps:**
+
+- [x] R1 failing rig tests on klipp's shot: `keeps the player's focus dead centre while the eye trails (klipp's HardLookAtAim)` red on the old rig (its look point lagged with the eye); the heading ease and the follow's lag restated as klipp's damping (part way at 50 ms, a half turn within 0.5° at 250 ms; the lag 50–70% of a step in 0.183 s, monotonic, never past the player); a turn during an ease compared with a twin rig that does not turn (within 0.1 m), since klipp's damping moves fastest at the start and the old 2 m-per-frame bound was smoothstep's.
+- [x] R2 `@pmndrs/klipp` 0.16.0 exact in `render-pixi3d`, a `docs/versions.md` row (it brings pmndrs `math`, MIT, at a canary as its own exact dependency); the rig on klipp: one `Klipp`, a `VirtualCamera` per view (priority 1 for the active one), `OrbitFollowBody` on a sphere, `HardLookAtAim`, `initialState.fov = fovOf(24)`. Heading eases move the `horizontal` axis's target with `inputAxis.applyDelta` by the shorter arc (`easeAxisTo` is not exported from the package root); a cut restarts the camera (`active` off and on), which klipp snaps onto its target. `smoothstep` had no caller left and went with its test. `docs/stack.md` has no row for `@pixi/3d` either, so klipp gets none there.
+- [x] R3 the camera write: the rig copies `klipp.shot` (`position`, `lookAtTarget`, `fov`) onto the `Camera3D` it was given, as The Last Light's `stage.ts` does; the renderer is unchanged because the rig is already its one camera writer (deviation from "the renderer copies the shot": same effect, no interface change).
+- [x] R4 no `eval` or `new Function` in klipp's core or `math` (grep of both packages' files).
+- [ ] R5 gates and parity.
+- [x] R6 editor-3d unchanged: it consumes only the pure entry.
