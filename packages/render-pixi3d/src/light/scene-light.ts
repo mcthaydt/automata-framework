@@ -2,7 +2,7 @@
 // that reaches them changes; characters tinted per frame from the same lamps (M3R-D4). Extracted in part from The
 // Last Light (`mcthaydt/PixiJS3D_Experiment_001`) at 92e6704 `src/render/indirect-light.ts` (`bakeGeometry`: the
 // dynamic copy with vertex colours; the material's `vertexColors`); the light itself is `vertex-bake.ts`.
-import { Geometry3D, type Mesh3D } from '@pixi/3d'
+import { type Container3D, Geometry3D, type Mesh3D } from '@pixi/3d'
 import type { SceneLighting } from './scene-lighting.schema.js'
 import { bakeVertices, type VertexBake } from './vertex-bake.js'
 import { characterTint, type LampLevels, levelOf, type Vec3 } from './vertex-light.js'
@@ -16,12 +16,14 @@ export interface BakeOptions {
 export interface SceneLight {
   readonly lighting: SceneLighting
   /**
-   * Bakes vertex light into a static mesh. Its own position, rotation and scale are its place in the world (it sits on
-   * the view's root, and does not move). Its geometry is replaced by a dynamic copy with a colour per vertex (the
+   * Bakes vertex light into a static mesh, at its place now: its own position, rotation and scale and its parents'
+   * (up to the view's root, which does not move). It must not move afterwards. Its geometry is replaced by a dynamic copy with a colour per vertex (the
    * original is left alone: it may be shared) and its material's `vertexColors` is turned on. Use a `FlatMaterial`,
    * so that only this light reaches it.
    */
   bake(mesh: Mesh3D, options?: BakeOptions): void
+  /** Stops rebaking a baked mesh and destroys its baked geometry: call it when the mesh goes away. */
+  release(mesh: Mesh3D): void
   /**
    * The levels the sim sets, by lamp id; a lamp left out goes back to its content `level`. Rebakes only the meshes a
    * changed lamp reaches, and uploads a mesh's colours only when one changed.
@@ -36,6 +38,7 @@ export interface SceneLight {
 }
 
 interface Baked {
+  readonly mesh: Mesh3D
   readonly bake: VertexBake
   readonly geometry: Geometry3D
 }
@@ -56,9 +59,32 @@ function threeFloats(attribute: Attribute | undefined, what: string): Float32Arr
   throw new Error(`bake: ${what} stored as ${attribute.format} cannot be read`)
 }
 
+/** `a × b` for column-major 4 × 4 matrices. */
+function multiply(a: ArrayLike<number>, b: ArrayLike<number>): Float64Array {
+  const out = new Float64Array(16)
+  for (let column = 0; column < 4; column++)
+    for (let row = 0; row < 4; row++) {
+      let sum = 0
+      for (let k = 0; k < 4; k++) sum += (a[k * 4 + row] ?? 0) * (b[column * 4 + k] ?? 0)
+      out[column * 4 + row] = sum
+    }
+  return out
+}
+
+/** The node's placement in its scene: its local transform composed with every ancestor's. */
+function placement(node: Container3D): Float64Array {
+  node.updateLocalTransform()
+  let matrix: Float64Array = Float64Array.from(node.localTransform.elements)
+  for (let parent = node.parent; parent !== null; parent = parent.parent) {
+    parent.updateLocalTransform()
+    matrix = multiply(parent.localTransform.elements, matrix)
+  }
+  return matrix
+}
+
 /** Creates a room's light from its content. */
 export function createSceneLight(lighting: SceneLighting): SceneLight {
-  const baked: Baked[] = []
+  let baked: Baked[] = []
   let levels: LampLevels = {}
   let rebakes = 0
   const lamps = new Map(lighting.lamps.map((lamp) => [lamp.id, lamp]))
@@ -74,8 +100,7 @@ export function createSceneLight(lighting: SceneLighting): SceneLight {
       const attributes = source.attributes as Record<string, Attribute | undefined>
       const positions = threeFloats(attributes.aPosition, 'positions')
       const normals = threeFloats(attributes.aNormal, 'normals')
-      mesh.updateLocalTransform()
-      const bake = bakeVertices(positions, normals, mesh.localTransform.elements, lighting, options.ignore)
+      const bake = bakeVertices(positions, normals, placement(mesh), lighting, options.ignore)
       const colors = new Float32Array(bake.vertexCount * 4)
       bake.write(levels, colors)
       const uvs = attributes.aUV?.buffer.data
@@ -91,7 +116,11 @@ export function createSceneLight(lighting: SceneLighting): SceneLight {
       })
       mesh.geometry = geometry
       mesh.material.vertexColors = true
-      baked.push({ bake, geometry })
+      baked.push({ mesh, bake, geometry })
+    },
+    release(mesh) {
+      for (const entry of baked) if (entry.mesh === mesh) entry.geometry.destroy()
+      baked = baked.filter((entry) => entry.mesh !== mesh)
     },
     setLevels(next) {
       const changed = lighting.lamps

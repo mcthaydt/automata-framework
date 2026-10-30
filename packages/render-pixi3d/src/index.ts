@@ -2,6 +2,21 @@
 // beta's terms allow no public deployment, so `ship prepare` refuses a public build that contains it (X-b).
 // Import `@mcthaydt/automata-render-pixi3d/no-eval` first, before anything else.
 
+export { type BakeOptions, createSceneLight, type SceneLight } from './light/scene-light.js'
+export { sceneLightingContent } from './light/scene-lighting.content.js'
+export {
+  type Lamp,
+  lampSchema,
+  type OccluderBox,
+  type OccluderPlane,
+  occluderBoxSchema,
+  occluderPlaneSchema,
+  type SceneFog,
+  type SceneLighting,
+  sceneFogSchema,
+  sceneLightingSchema,
+} from './light/scene-lighting.schema.js'
+export { characterTint, type LampLevels } from './light/vertex-light.js'
 export { type DecodeTexture, type LoadedModel, loadModels, type ModelLibrary } from './model/load-models.js'
 export { modelGeometry } from './model/model-geometry.js'
 export { type ModelMesh, parseGlb, parsePack } from './model/parse-glb.js'

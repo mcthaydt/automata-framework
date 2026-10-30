@@ -43,7 +43,7 @@ async function start(fog?: { near: number; far: number; color: number }): Promis
     logicalWidth: WIDTH,
     logicalHeight: 90,
     backgroundColor: 0x000000,
-    views: { walker: box({ width: 0.6, height: 1, depth: 0.6 }, { color: 0xffffff, lit: true }) },
+    views: { walker: box({ width: 0.6, height: 1, depth: 0.6 }, { color: 0xffffff, lit: 'moving' }) },
     lighting,
     lamps: 'lamp',
     fog,

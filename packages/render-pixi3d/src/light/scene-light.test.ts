@@ -1,4 +1,4 @@
-import { CubeGeometry, FlatMaterial, Mesh3D, PlaneGeometry } from '@pixi/3d'
+import { Container3D, CubeGeometry, FlatMaterial, Mesh3D, PlaneGeometry } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { createSceneLight } from './scene-light.js'
 import { sceneLightingSchema } from './scene-lighting.schema.js'
@@ -18,6 +18,8 @@ function colourBuffer(mesh: Mesh3D) {
   return attribute.buffer
 }
 const colours = (mesh: Mesh3D): Float32Array => (colourBuffer(mesh).data as Float32Array).slice()
+/** The brightest colour channel of any vertex (alpha left out). */
+const brightest = (mesh: Mesh3D): number => Math.max(...colours(mesh).filter((_, i) => i % 4 !== 3))
 const updates = (mesh: Mesh3D): number => (colourBuffer(mesh) as unknown as { _updateID: number })._updateID
 
 /** A floor tile at (x, 0, z): a plane laid flat, as a static scenery mesh. */
@@ -54,7 +56,7 @@ describe('createSceneLight', () => {
     const dark = floorAt(0, 0)
     light.bake(lit)
     light.bake(dark)
-    expect(Math.max(...colours(lit))).toBeGreaterThan(0.5)
+    expect(brightest(lit)).toBeGreaterThan(0.5)
     expect(
       colours(dark)
         .filter((_, i) => i % 4 !== 3)
@@ -124,5 +126,17 @@ describe('createSceneLight', () => {
     const a = colours(floatNormals)
     const b = colours(quantised)
     expect(a.every((v, i) => Math.abs(v - (b[i] ?? 0)) < 1e-3)).toBe(true)
+  })
+})
+
+describe('createSceneLight placement', () => {
+  it('places a mesh by its parents’ transforms too: a tile inside a container moved under the lamp is lit', () => {
+    const light = createSceneLight(lighting)
+    const node = new Container3D()
+    node.position.set(-10, 0, 0)
+    const tile = floorAt(0, 0)
+    node.addChild(tile)
+    light.bake(tile)
+    expect(brightest(tile)).toBeGreaterThan(0.5)
   })
 })
