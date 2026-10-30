@@ -128,23 +128,23 @@ the grace is for.
   delivered as one snapshot with acks, bytes copied; a header with no bytes, or bytes with no header, delivers
   nothing; pongs measured, a stray or repeated pong ignored; bytes counted off the socket; a retired room's queued
   callbacks ignored.
-- [ ] 7. `NetRoom` joining (the ported colyseus-network cases): create, join, quick match with the join options;
+- [x] 7. `NetRoom` joining (the ported colyseus-network cases): create, join, quick match with the join options;
   the SDK's own reconnect loop off; quick match tries once more on `ROOM_FULL`, `ROOM_NOT_FOUND` or `REFUSED`, no
   third time, and never for another code; every refusal read as its `NetError` and `connection` back to offline;
   the session token in the join options when the host has one.
-- [ ] 8. `NetRoom` requests: `setReady`, `addBot`, `removeBot` as correlated requests; `OFFLINE` with no room.
-- [ ] 9. `NetRoom` reconnection on `TestClock`: the token in `sessionStorage`, never the URL; a drop is
+- [x] 8. `NetRoom` requests: `setReady`, `addBot`, `removeBot` as correlated requests; `OFFLINE` with no room.
+- [x] 9. `NetRoom` reconnection on `TestClock`: the token in `sessionStorage`, never the URL; a drop is
   `reconnecting`, retried with the backoff, and back to `connected`; still trying seconds in; past the grace the seat
   is lost (`ended: seat-lost`, offline, token forgotten); a rotated token persisted before it is announced; 4000 and
   1000 are `closed`, 4001 `server-updating`, 4002 `failed`, none retried; `leave` never reconnects; a later intent
   cancels a backoff.
-- [ ] 10. `NetRoom` resume (N-c): resumes a stored seat once; `none` with nothing stored; `expired` forgets the token
+- [x] 10. `NetRoom` resume (N-c): resumes a stored seat once; `none` with nothing stored; `expired` forgets the token
   and is not retried; a second `resume` is `none`; `OFFLINE` fails and keeps the token.
-- [ ] 11. Intent ownership: an old create, join, quick match or resume that settles after a later intent is left (its
+- [x] 11. Intent ownership: an old create, join, quick match or resume that settles after a later intent is left (its
   room left consented) and changes nothing; leave detaches synchronously; closing the scope closes the socket
   without giving up the seat (the reload keeps its token).
-- [ ] 12. Probing: a probe a second while connected; none after leaving; the round trip is the median of the last 7.
-- [ ] 13. Room store: mirrors info and connection; starts from what the room already holds; keeps the last info while
+- [x] 12. Probing: a probe a second while connected; none after leaving; the round trip is the median of the last 7.
+- [x] 13. Room store: mirrors info and connection; starts from what the room already holds; keeps the last info while
   reconnecting; has no verbs (FloorFifty's load-bearing case).
 - [ ] 14. Integration against a real room (`packages/server`): create and join seat two clients and both see the
   room's info and their own seats; a full room and an unknown code are `ROOM_FULL` and `ROOM_NOT_FOUND`; another
@@ -182,3 +182,4 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
 |---|---|---|
 | 2026-10-30 | 1 to 5 | Each module red (module missing), then green: net-error 15, reconnect-delay 2, seat-token 9, request-ids 4, room-info 9. `NetError`'s base is typed first for `isolatedDeclarations` (as `server`'s errors are) |
 | 2026-10-30 | 6 | `fakeColyseus` (net `./testing`), the transport and the client port: transport 16 and port 8 red (module missing), then green. `@colyseus/sdk` 0.18.5 is a dependency of net |
+| 2026-10-30 | 7 to 13 | `net-room.ts` was drafted before its tests, then moved out of the tree: the join suite ran red (module missing) without it, and the reconnect, intent and store suites were written against it and ran red where the harness or the test was wrong first (TestClock reached only through a `ManagedRuntime` of `TestContext`; a test room code `OLD234` that the seat schema rightly refused, since `O` is not in the code alphabet). Room store red (module missing), then green. join 25, reconnect 18, intents 14, store 6; the net suite three runs in a row, 215 each |
