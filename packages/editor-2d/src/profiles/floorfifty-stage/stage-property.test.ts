@@ -40,7 +40,10 @@ interface Dice {
   below(n: number): number
   pick<T>(items: readonly T[]): T
   chance(p: number): boolean
-  /** A number with at most three decimals in `[low, high]`. */
+  /**
+   * A number in `[low, high]`: mostly with at most three decimals, and one in four at full double precision, so the
+   * property also proves that a number with more than four decimals reads back exactly (EDFF spec §10.3 rule 4).
+   */
   number(low: number, high: number): number
 }
 
@@ -52,7 +55,10 @@ function dice(seed: number): Dice {
     below,
     pick: (items) => items[below(items.length)] as never,
     chance: (p) => next() < p,
-    number: (low, high) => Math.round((low + next() * (high - low)) * 1000) / 1000,
+    number: (low, high) => {
+      const value = low + next() * (high - low)
+      return next() < 0.25 ? value : Math.round(value * 1000) / 1000
+    },
   }
 }
 

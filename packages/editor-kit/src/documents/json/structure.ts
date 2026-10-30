@@ -6,7 +6,7 @@
 // the edited path must read the intended value.
 import { indentAt, type Layout, lineStart, PACK_WIDTH, readLayout, sameLine } from './layout'
 import { type JsonNode, type JsonPath, JsonScanError, type Scan, scan } from './locate'
-import { formatJsonScalar, roundJsonNumber } from './print'
+import { BLOCKOUT_NUMBERS, formatJsonScalar, type NumberStyle } from './print'
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
 
@@ -33,11 +33,12 @@ interface Source {
   readonly text: string
   readonly scanned: Scan
   readonly layout: Layout
+  readonly numbers: NumberStyle
 }
 
-function read(text: string): Source {
+function read(text: string, numbers: NumberStyle): Source {
   try {
-    return { text, scanned: scan(text), layout: readLayout(text) }
+    return { text, scanned: scan(text), layout: readLayout(text), numbers }
   } catch (error) {
     if (error instanceof JsonScanError) throw new JsonShapeError(`not valid JSON: ${error.message}`)
     throw error
@@ -75,12 +76,12 @@ const valueAt = (model: unknown, path: JsonPath): unknown =>
   )
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 
-/** A value as the file will read it back: every number rounded the way `print.ts` writes it. */
-function asWritten(value: unknown): unknown {
-  if (typeof value === 'number') return Number.isFinite(value) ? roundJsonNumber(value) : value
-  if (Array.isArray(value)) return value.map(asWritten)
+/** A value as the file will read it back: every number as the number style writes it. */
+function asWritten(value: unknown, numbers: NumberStyle): unknown {
+  if (typeof value === 'number') return Number.isFinite(value) ? numbers.round(value) : value
+  if (Array.isArray(value)) return value.map((item) => asWritten(item, numbers))
   if (value !== null && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, asWritten(item)]))
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, asWritten(item, numbers)]))
   }
   return value
 }
@@ -103,33 +104,33 @@ const splice = (text: string, start: number, end: number, insert: string) =>
 
 // ── Writing a value like its neighbours ──
 
-function inline(value: JsonValue, bracesSpaced: boolean): string {
-  if (Array.isArray(value)) return `[${value.map((item) => inline(item, bracesSpaced)).join(', ')}]`
+function inline(value: JsonValue, bracesSpaced: boolean, numbers: NumberStyle): string {
+  if (Array.isArray(value)) return `[${value.map((item) => inline(item, bracesSpaced, numbers)).join(', ')}]`
   if (value !== null && typeof value === 'object') {
     const body = Object.entries(value)
-      .map(([key, item]) => `${JSON.stringify(key)}: ${inline(item, bracesSpaced)}`)
+      .map(([key, item]) => `${JSON.stringify(key)}: ${inline(item, bracesSpaced, numbers)}`)
       .join(', ')
     if (!body) return '{}'
     return bracesSpaced ? `{ ${body} }` : `{${body}}`
   }
-  return formatJsonScalar(value)
+  return formatJsonScalar(value, numbers)
 }
 
-function expanded(value: JsonValue, indent: string, unit: string): string {
+function expanded(value: JsonValue, indent: string, unit: string, numbers: NumberStyle): string {
   const inner = indent + unit
   if (Array.isArray(value)) {
     if (!value.length) return '[]'
-    return `[\n${value.map((item) => inner + expanded(item, inner, unit)).join(',\n')}\n${indent}]`
+    return `[\n${value.map((item) => inner + expanded(item, inner, unit, numbers)).join(',\n')}\n${indent}]`
   }
   if (value !== null && typeof value === 'object') {
     const entries = Object.entries(value)
     if (!entries.length) return '{}'
     const lines = entries.map(
-      ([key, item]) => `${inner}${JSON.stringify(key)}: ${expanded(item, inner, unit)}`,
+      ([key, item]) => `${inner}${JSON.stringify(key)}: ${expanded(item, inner, unit, numbers)}`,
     )
     return `{\n${lines.join(',\n')}\n${indent}}`
   }
-  return formatJsonScalar(value)
+  return formatJsonScalar(value, numbers)
 }
 
 /** Lines of items: each multi-line item alone; single-line ones packed up to PACK_WIDTH when `packed`, else one per line. */
@@ -159,19 +160,19 @@ function lines(items: string[], indent: string, packed: boolean): string {
  * element like the template's element at that index, or its last). With no template, the file's default.
  */
 function render(source: Source, value: JsonValue, template: JsonNode | undefined, indent: string): string {
-  const { text, layout } = source
+  const { text, layout, numbers } = source
   const isObject = value !== null && typeof value === 'object' && !Array.isArray(value)
   const isArray = Array.isArray(value)
-  if (!isObject && !isArray) return formatJsonScalar(value)
+  if (!isObject && !isArray) return formatJsonScalar(value, numbers)
   if (!template || template.kind !== (isObject ? 'object' : 'array')) {
     return layout.expandsEverything
-      ? expanded(value, indent, layout.unit)
-      : inline(value, layout.bracesSpaced)
+      ? expanded(value, indent, layout.unit, numbers)
+      : inline(value, layout.bracesSpaced, numbers)
   }
   if (!isMultiline(source, template)) {
     const written = text.slice(template.span.start, template.span.end)
     const spaced = /\{ "/.test(written) ? true : /\{"/.test(written) ? false : layout.bracesSpaced
-    return inline(value, spaced)
+    return inline(value, spaced, numbers)
   }
   const closeIndent = indentAt(text, template.span.end - 1)
   const members = template.children
@@ -254,8 +255,14 @@ function intoEmpty(source: Source, container: JsonNode, item: string, close: ']'
 // ── The operations ──
 
 /** Insert `value` into the array at `path`, at `index` (default: the end). */
-export function insertElement(text: string, path: JsonPath, value: JsonValue, index?: number): string {
-  const source = read(text)
+export function insertElement(
+  text: string,
+  path: JsonPath,
+  value: JsonValue,
+  index?: number,
+  numbers: NumberStyle = BLOCKOUT_NUMBERS,
+): string {
+  const source = read(text, numbers)
   const container = nodeAt(source, path)
   if (container.kind !== 'array') throw new JsonShapeError(`${JSON.stringify(path)} is not an array`, path)
   const count = container.children.length
@@ -272,12 +279,12 @@ export function insertElement(text: string, path: JsonPath, value: JsonValue, in
     const indent = indentAt(text, itemStart(template))
     out = place(source, container, at, render(source, value, template, indent))
   }
-  return check(out, [...path, at], asWritten(value), 'the insert')
+  return check(out, [...path, at], asWritten(value, numbers), 'the insert')
 }
 
 /** Remove the element at `index` of the array at `path`, with its separator. */
 export function removeElement(text: string, path: JsonPath, index: number): string {
-  const source = read(text)
+  const source = read(text, BLOCKOUT_NUMBERS)
   const container = nodeAt(source, path)
   if (container.kind !== 'array') throw new JsonShapeError(`${JSON.stringify(path)} is not an array`, path)
   const items = container.children
@@ -301,8 +308,9 @@ export function insertMember(
   key: string,
   value: JsonValue,
   placement: MemberPlacement = {},
+  numbers: NumberStyle = BLOCKOUT_NUMBERS,
 ): string {
-  const source = read(text)
+  const source = read(text, numbers)
   const container = nodeAt(source, path)
   if (container.kind !== 'object') throw new JsonShapeError(`${JSON.stringify(path)} is not an object`, path)
   const members = container.children
@@ -320,7 +328,12 @@ export function insertMember(
   if (!members.length) {
     const indent = indentAt(text, container.span.start) + source.layout.unit
     const item = `${JSON.stringify(key)}: ${render(source, value, template, indent)}`
-    return check(intoEmpty(source, container, item, '}'), [...path, key], asWritten(value), 'the insert')
+    return check(
+      intoEmpty(source, container, item, '}'),
+      [...path, key],
+      asWritten(value, numbers),
+      'the insert',
+    )
   }
   const names = members.map(memberName)
   let at = members.length
@@ -336,12 +349,12 @@ export function insertMember(
     at,
     `${JSON.stringify(key)}: ${render(source, value, template, indent)}`,
   )
-  return check(out, [...path, key], asWritten(value), 'the insert')
+  return check(out, [...path, key], asWritten(value, numbers), 'the insert')
 }
 
 /** Remove the member `key` of the object at `path`, with its separator. */
 export function removeMember(text: string, path: JsonPath, key: string): string {
-  const source = read(text)
+  const source = read(text, BLOCKOUT_NUMBERS)
   const container = nodeAt(source, path)
   if (container.kind !== 'object') throw new JsonShapeError(`${JSON.stringify(path)} is not an object`, path)
   const members = container.children
@@ -357,12 +370,17 @@ export function removeMember(text: string, path: JsonPath, key: string): string 
 }
 
 /** Replace the value at `path`, written like the value it replaces. */
-export function replaceValue(text: string, path: JsonPath, value: JsonValue): string {
-  const source = read(text)
+export function replaceValue(
+  text: string,
+  path: JsonPath,
+  value: JsonValue,
+  numbers: NumberStyle = BLOCKOUT_NUMBERS,
+): string {
+  const source = read(text, numbers)
   const node = nodeAt(source, path)
   const indent = indentAt(text, node.span.start)
   const out = splice(text, node.span.start, node.span.end, render(source, value, node, indent))
-  return check(out, path, asWritten(value), 'the replacement')
+  return check(out, path, asWritten(value, numbers), 'the replacement')
 }
 
 /** Set a member: replace it if it exists, else insert it (see insertMember). */

@@ -1,3 +1,4 @@
+// @vitest-environment node
 // A structure edit that fails its own re-parse check means the codec has a bug, not that the user asked for
 // something wrong; the patch holds the save (verify-failed) instead of throwing into the editor.
 import { describe, expect, it, vi } from 'vitest'

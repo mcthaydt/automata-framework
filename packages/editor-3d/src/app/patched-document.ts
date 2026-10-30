@@ -21,8 +21,7 @@ import {
   type StorageFailure,
   type Workspace,
 } from '@mcthaydt/automata-editor-kit/core'
-import type { JsonPath } from '../codec/locate'
-import type { PatchRefusalReason, PatchResult } from '../codec/patch'
+import type { JsonPath, PatchRefusalReason, PatchResult } from '@mcthaydt/automata-editor-kit/documents'
 import type { FileCodec, ParseIssue } from '../profile/file-codec'
 
 export interface PatchRefused {

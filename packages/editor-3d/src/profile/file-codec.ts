@@ -1,9 +1,16 @@
 // The part of a level profile ED3D.1 delivers (spec §4.1): read a file into a schema-checked model, and write a model
 // change back into the file's text byte for byte. A profile extends this with geometry, entities, checks and
 // materials as their tasks land.
+
+import {
+  type JsonPath,
+  JsonScanError,
+  type PatchResult,
+  type PatchRules,
+  patchJson,
+  scan,
+} from '@mcthaydt/automata-editor-kit/documents'
 import type { z } from 'zod'
-import { type JsonPath, JsonScanError, scan } from '../codec/locate'
-import { type PatchResult, type PatchRules, patchJson } from '../codec/patch'
 
 export interface ParseIssue {
   readonly path: JsonPath

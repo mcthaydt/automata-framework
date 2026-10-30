@@ -4,7 +4,7 @@
 // because the kit's History keeps snapshots (ED3D-D4). The layout rules for what an insert looks like are Last
 // Light's (structure.ts).
 import { type JsonPath, JsonScanError, scan } from './locate'
-import { formatJsonNumber, JsonWriteError, roundJsonNumber } from './print'
+import { BLOCKOUT_NUMBERS, JsonWriteError, type NumberStyle } from './print'
 import {
   insertElement,
   insertMember,
@@ -20,6 +20,8 @@ export interface PatchRules {
   readonly idArrays: readonly string[]
   /** The order a schema gives the members of the object at a path, so a new member lands where it belongs. */
   readonly memberOrder: (path: JsonPath) => readonly string[] | undefined
+  /** How numbers are written and read back; the blockout style (four decimals, no exponent) when left out. */
+  readonly numbers?: NumberStyle
 }
 
 export type PatchRefusalReason = 'unwritable-value' | 'invalid-text' | 'before-mismatch' | 'verify-failed'
@@ -63,9 +65,9 @@ function equal(a: Json, b: Json): boolean {
  * Where the new value writes differently from the old text: a number whose rounded print equals what the file already
  * has is not an edit, so a file keeps `4.90` when the model says `4.9000000001`.
  */
-function sameOnDisk(old: Json, next: Json): boolean {
+function sameOnDisk(old: Json, next: Json, numbers: NumberStyle): boolean {
   return (
-    equal(old, next) || (typeof old === 'number' && typeof next === 'number' && roundJsonNumber(next) === old)
+    equal(old, next) || (typeof old === 'number' && typeof next === 'number' && numbers.round(next) === old)
   )
 }
 
@@ -191,7 +193,7 @@ function diffObject(
 
 /** The steps that turn `old` into `next` at `path`: nothing when they are the same, a replacement when a scalar or a kind changes. */
 function diff(path: JsonPath, old: Json, next: Json, steps: Step[], rules: PatchRules): void {
-  if (sameOnDisk(old, next)) return
+  if (sameOnDisk(old, next, rules.numbers ?? BLOCKOUT_NUMBERS)) return
   if (Array.isArray(old) && Array.isArray(next)) {
     const key = path[path.length - 1]
     const pairs = typeof key === 'string' && rules.idArrays.includes(key) ? alignById(old, next) : undefined
@@ -201,19 +203,19 @@ function diff(path: JsonPath, old: Json, next: Json, steps: Step[], rules: Patch
   else steps.push({ kind: 'replace', path, value: next as JsonValue })
 }
 
-function apply(text: string, step: Step): string {
+function apply(text: string, step: Step, numbers: NumberStyle): string {
   switch (step.kind) {
     case 'replace':
-      return replaceValue(text, step.path, step.value)
+      return replaceValue(text, step.path, step.value, numbers)
     case 'insert-element':
-      return insertElement(text, step.path, step.value, step.index)
+      return insertElement(text, step.path, step.value, step.index, numbers)
     case 'remove-element':
       return removeElement(text, step.path, step.index)
     case 'insert-member': {
       const at = step.order?.indexOf(step.key) ?? -1
       const placement =
         step.order && at >= 0 ? { before: step.order.slice(at + 1), after: step.order.slice(0, at) } : {}
-      return insertMember(text, step.path, step.key, step.value, placement)
+      return insertMember(text, step.path, step.key, step.value, placement, numbers)
     }
     case 'remove-member':
       return removeMember(text, step.path, step.key)
@@ -229,17 +231,19 @@ const refuse = (path: JsonPath, reason: PatchRefusalReason, detail: string): Pat
 
 /**
  * The first path, in document order, where `actual` and `expected` differ, or undefined when they are the same value
- * (key order aside). With `rounded`, a number matches when it is the expected one or the expected one as the file
+ * (key order aside). With `rounded` (a number style), a number matches when it is the expected one or the expected one as the file
  * writes it.
  */
 function firstDifference(
   actual: Json,
   expected: Json,
-  rounded: boolean,
+  rounded: NumberStyle | undefined,
   path: JsonPath = [],
 ): JsonPath | undefined {
   if (typeof actual === 'number' && typeof expected === 'number') {
-    return actual === expected || (rounded && actual === roundJsonNumber(expected)) ? undefined : path
+    return actual === expected || (rounded !== undefined && actual === rounded.round(expected))
+      ? undefined
+      : path
   }
   if (Array.isArray(actual) && Array.isArray(expected)) {
     if (actual.length !== expected.length) return path
@@ -265,10 +269,14 @@ function firstDifference(
 }
 
 /** The first value in `after` that cannot be written as JSON the way these files write it, with why. */
-function firstUnwritable(value: Json, path: JsonPath = []): { path: JsonPath; detail: string } | undefined {
+function firstUnwritable(
+  value: Json,
+  numbers: NumberStyle,
+  path: JsonPath = [],
+): { path: JsonPath; detail: string } | undefined {
   if (typeof value === 'number') {
     try {
-      formatJsonNumber(value)
+      numbers.format(value)
     } catch (error) {
       if (error instanceof JsonWriteError) return { path, detail: error.message }
       throw error
@@ -278,14 +286,14 @@ function firstUnwritable(value: Json, path: JsonPath = []): { path: JsonPath; de
   if (value === null || typeof value === 'string' || typeof value === 'boolean') return undefined
   if (Array.isArray(value)) {
     for (const [i, item] of value.entries()) {
-      const found = firstUnwritable(item, [...path, i])
+      const found = firstUnwritable(item, numbers, [...path, i])
       if (found) return found
     }
     return undefined
   }
   if (isObject(value)) {
     for (const key of keysOf(value)) {
-      const found = firstUnwritable(value[key], [...path, key])
+      const found = firstUnwritable(value[key], numbers, [...path, key])
       if (found) return found
     }
     return undefined
@@ -297,14 +305,18 @@ function firstUnwritable(value: Json, path: JsonPath = []): { path: JsonPath; de
  * Checks that `text` reads as `after` (numbers as the file writes them). This is the guard against a bug in the diff:
  * `patchJson` runs it on every result, and a result that fails it is never returned.
  */
-export function verifyPatched(text: string, after: unknown): PatchResult {
+export function verifyPatched(
+  text: string,
+  after: unknown,
+  numbers: NumberStyle = BLOCKOUT_NUMBERS,
+): PatchResult {
   let parsed: Json
   try {
     parsed = JSON.parse(text) as Json
   } catch (error) {
     return refuse([], 'verify-failed', `the patched text is not JSON: ${(error as Error).message}`)
   }
-  const path = firstDifference(parsed, after as Json, true)
+  const path = firstDifference(parsed, after as Json, numbers)
   return path
     ? refuse(
         path,
@@ -316,8 +328,9 @@ export function verifyPatched(text: string, after: unknown): PatchResult {
 
 /**
  * Turns `text` into the text of `after`, given `before`, the model `text` parses to. Only what differs between the two
- * models is written; every other byte of the file stays. Numbers print with at most 4 decimals (`print.ts`), so the
- * saved file can differ from `after` by less than 0.00005. A refusal carries a path and a reason and no text; what
+ * models is written; every other byte of the file stays. Numbers are written in `rules.numbers`' style: by default with
+ * at most 4 decimals (`print.ts`), so the saved file can differ from `after` by less than 0.00005; with
+ * `EXACT_NUMBERS`, exactly. A refusal carries a path and a reason and no text; what
  * each reason means is in spec §4.5.
  */
 export function patchJson(text: string, before: unknown, after: unknown, rules: PatchRules): PatchResult {
@@ -327,7 +340,8 @@ export function patchJson(text: string, before: unknown, after: unknown, rules: 
     if (error instanceof JsonScanError) return refuse([], 'invalid-text', error.message)
     throw error
   }
-  const mismatch = firstDifference(JSON.parse(text) as Json, before as Json, false)
+  const numbers = rules.numbers ?? BLOCKOUT_NUMBERS
+  const mismatch = firstDifference(JSON.parse(text) as Json, before as Json, undefined)
   if (mismatch) {
     return refuse(
       mismatch,
@@ -335,18 +349,18 @@ export function patchJson(text: string, before: unknown, after: unknown, rules: 
       `the model the patch starts from differs from the text at ${JSON.stringify(mismatch)}`,
     )
   }
-  const unwritable = firstUnwritable(after as Json)
+  const unwritable = firstUnwritable(after as Json, numbers)
   if (unwritable) return refuse(unwritable.path, 'unwritable-value', unwritable.detail)
 
   const steps: Step[] = []
   diff([], before as Json, after as Json, steps, rules)
   let out = text
   try {
-    for (const step of steps) out = apply(out, step)
+    for (const step of steps) out = apply(out, step, numbers)
   } catch (error) {
     // A structure edit checks its own result, so reaching here means the diff asked for something it cannot do.
     if (error instanceof JsonShapeError) return refuse(error.path, 'verify-failed', error.message)
     throw error
   }
-  return verifyPatched(out, after)
+  return verifyPatched(out, after, numbers)
 }

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { FIXTURE_NAMES, type FixtureName, loadFixture } from '../testing/fixtures'
 import { indentAt, readLayout } from './layout'
