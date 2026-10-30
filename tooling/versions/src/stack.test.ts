@@ -30,6 +30,15 @@ const source: StackSource = {
       why: "FloorFifty's setup.",
       adds: 'Negotiation from the session locale.',
     },
+    {
+      library: 'Rapier',
+      tier: 'Plus',
+      packages: [],
+      elsewhere: { packages: ['rapier2d'], repository: 'mcthaydt/automata-plus' },
+      does: 'Physics.',
+      why: 'Deterministic.',
+      adds: 'A sim plugin.',
+    },
   ],
   notes: [{ title: 'Why Rapier and not Planck', body: 'One engine, one parity suite.' }],
 }
@@ -54,6 +63,9 @@ describe('renderStackPage', () => {
     expect(page).toContain(
       '| [Paraglide](#paraglide) | Core | not yet installed; planned for PRODUCT.L | none yet |',
     )
+    expect(page).toContain(
+      '| [Rapier](#rapier) | Plus | installed in mcthaydt/automata-plus, not in this repository | see there |',
+    )
   })
 
   it('renders an installed card with its package table and the four lines', () => {
@@ -76,6 +88,15 @@ describe('renderStackPage', () => {
   it('says a planned library is not yet installed and invents no version or license', () => {
     const card = page.slice(page.indexOf('## Paraglide'), page.indexOf('## Why Rapier'))
     expect(card).toContain('Not yet installed; planned for PRODUCT.L. Package: `@inlang/paraglide-js`.')
+    expect(card).not.toContain('| Package |')
+  })
+
+  // PRODUCT.5g: physics moved to automata-plus; its pins live there, so the page names the repository instead.
+  it('says a library held in another repository is installed there and invents no version or license', () => {
+    const card = page.slice(page.indexOf('## Rapier\n'), page.indexOf('## Why Rapier'))
+    expect(card).toContain(
+      'Installed in mcthaydt/automata-plus, not in this repository; its versions are pinned there. Package: `rapier2d`.',
+    )
     expect(card).not.toContain('| Package |')
   })
 
@@ -198,6 +219,16 @@ describe('collectStackFacts', () => {
   it('fails when the installed version is not the pin', () => {
     expect(() => collectStackFacts(root, [card(['drifted'])])).toThrow(
       'drifted: packages/a has 2.0.1 installed but pins 2.0.0; run pnpm install',
+    )
+  })
+
+  it('fails when a package held in another repository is in a package.json here', () => {
+    const elsewhere: StackCard = {
+      ...card([]),
+      elsewhere: { packages: ['zod'], repository: 'mcthaydt/automata-plus' },
+    }
+    expect(() => collectStackFacts(root, [elsewhere])).toThrow(
+      "zod: held in mcthaydt/automata-plus but packages/a depends on it now; move it to the card's packages",
     )
   })
 

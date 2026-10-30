@@ -494,13 +494,33 @@ describe('ci.yml evidence file (DX spec §3.10)', () => {
   const ci = workflow('ci.yml')
   const steps = ci.jobs.parity?.steps ?? []
   const scripts = packageJson('.').scripts as Record<string, string>
-  const GOLDEN_PACKAGES = [
-    'packages/sim',
-    'packages/testing',
-    'packages/physics',
-    'games/emberwick',
-    'examples/physics/bodies-2d',
-  ]
+  const GOLDEN_PACKAGES = ['packages/sim', 'packages/testing', 'games/emberwick']
+
+  // Every workspace package with a test:evidence script, so the list cannot keep a package that left (PRODUCT.5g:
+  // physics and its demo moved to automata-plus) or miss one that arrived.
+  const evidencePackages = (): string[] =>
+    ['packages', 'games', 'examples', ...readdirSync(join(root, 'examples')).map((dir) => `examples/${dir}`)]
+      .flatMap((dir) => {
+        try {
+          return readdirSync(join(root, dir), { withFileTypes: true })
+            .filter((item) => item.isDirectory())
+            .map((item) => `${dir}/${item.name}`)
+        } catch {
+          return []
+        }
+      })
+      .filter((path) => {
+        try {
+          return packageJson(path).scripts?.['test:evidence'] !== undefined
+        } catch {
+          return false
+        }
+      })
+      .sort()
+
+  it('lists exactly the workspace packages that have a test:evidence script', () => {
+    expect(evidencePackages()).toEqual([...GOLDEN_PACKAGES].sort())
+  })
 
   it('runs every golden package’s test:evidence, then writes evidence.json from their reports', () => {
     expect(scripts.evidence).toBe(
