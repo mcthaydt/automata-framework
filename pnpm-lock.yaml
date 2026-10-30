@@ -815,6 +815,9 @@ importers:
       effect:
         specifier: 3.22.2
         version: 3.22.2
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
     devDependencies:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
