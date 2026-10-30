@@ -3,7 +3,7 @@
 - **Task:** ED2D.4c4b in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §8 (the Level row: inspector tabs Entity / Level / Checks, the dock of level cards; flow 3), §8.4 (what 4c4a left), §12 (sizes, shortcuts, short height), §15 G-e.
 - **Lane:** editor-2d (editors lane). **Depends on:** ED2D.4c4a (#267, merged). **Unblocks:** ED2D.5b, ED2D.5c, ED2D.7a.
 - **Status:** Drafted 2026-10-30. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) once reviewed. Not implemented.
-- **Progress:** 3 of 9 steps.
+- **Progress:** 4 of 9 steps.
 
 ## Scope
 
@@ -54,7 +54,7 @@ Each step: the test first, run `pnpm --filter @mcthaydt/automata-editor-2d exec 
 - [x] 1. **Plan** (this file).
 - [x] 2. **Inspector model.** Fails: no module. Every field type of the `platformer` template's definitions maps to its widget with bounds and options; none, one and several selected.
 - [x] 3. **Field commit.** Fails: no module. G-e in Node: int past its max, a bad enum, a bad colour, a point list with a non-integer and a missing ref are refused with the message and the project is unchanged; a valid edit is one undo step that undoes.
-- [ ] 4. **Dock model and shortcuts.** Fails: no modules. Cards in world order with the current level; every §12 shortcut maps; text-field focus blocks all but undo and redo; shift-arrow nudges 8.
+- [x] 4. **Dock model and shortcuts.** Fails: no modules. Cards in world order with the current level; every §12 shortcut maps; text-field focus blocks all but undo and redo; shift-arrow nudges 8.
 - [ ] 5. **FieldEditor.** jsdom: each widget kind renders at 44 px targets; typing a refused value shows the message and restores the stored value.
 - [ ] 6. **Inspector and tabs.** jsdom: the default tab follows the selection; Checks lists this level's diagnostics and tapping one selects its object; the multi-selection actions.
 - [ ] 7. **Dock.** jsdom: the cards; a tap switches the level and the canvas refits; the short-height toolbar button opens it.
@@ -69,3 +69,4 @@ Each step: the test first, run `pnpm --filter @mcthaydt/automata-editor-2d exec 
 
 - 2026-10-30, step 2: `inspector-model.test.ts` failed on the missing module, then 7 passed. The platformer template has no `bool`, `enum` or `angle` field, so those rows use hand-made definitions. Deviations: a row shows the kit's stand-in (`valuesWithDefaults`) when the holder stores no value (the template's level stores no `music`); `angle` is a stepper without bounds; a multi-line `text` is a `multiline` widget; a list of anything but points is a `list` row, shown and not yet edited (no template has one).
 - 2026-10-30, step 3: `field-commit.test.ts` failed on the missing module, then 7 passed. Deviation: the kit accepts any finite point, so the point-list refusal is a non-number (`NaN`) rather than a non-integer; the commit label is "Set <field label>".
+- 2026-10-30, step 4: `dock-model.test.ts` and `level-shortcuts.test.ts` failed on the missing modules, then 6 passed. `levelCards` takes the open level as a third argument (to mark it). `shortcutFor` returns `{ action, … }` rather than a bare name, since a nudge and a brush step carry an amount; nudges are in cells. Deviation: `Backspace` deletes as `Delete` does (a Mac keyboard's delete key sends it).
