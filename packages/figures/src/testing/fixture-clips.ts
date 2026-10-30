@@ -5,7 +5,7 @@ import type { PoseDef } from '../pose/pose.schema'
 import { compileFixture } from './compile-fixture'
 import { posesOf } from './fixture-poses'
 
-export const FIXTURE_CLIP_IDS = ['jab', 'raise-guard'] as const
+export const FIXTURE_CLIP_IDS = ['flinch', 'jab', 'look', 'raise-guard', 'reach', 'roll', 'slash'] as const
 
 /** The clips `data` holds (a compiled content's data). */
 export const clipsOf = (data: unknown): Record<string, FigureClipDef> =>

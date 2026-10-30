@@ -3,9 +3,9 @@
 // Sim code: `pnpm boundaries` checks it.
 import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { Lock, Move } from './commands.ts'
-import { Hero, HeroControl, Target } from './components.ts'
-import { type Area, heroInput, heroMove, heroView, lockSelect, viewAt } from './systems.ts'
+import { Act, Lock, Move } from './commands.ts'
+import { Hero, HeroAction, HeroControl, Target } from './components.ts'
+import { type Area, heroAct, heroInput, heroMove, heroView, lockSelect, viewAt } from './systems.ts'
 
 /**
  * Spawns Wick at the area's spawn, already in its room's view (the first view never latches) and facing away from
@@ -17,6 +17,7 @@ export function spawnArea(sim: Sim, area: Area): void {
   sim.spawn([
     [Hero, { x: area.spawn.x, z: area.spawn.z, facing: heading.heading }],
     HeroControl,
+    HeroAction,
     [CameraHeading, heading],
   ])
   for (const { x, z } of area.targets) sim.spawn([[Target, { x, z }]])
@@ -26,7 +27,20 @@ export function spawnArea(sim: Sim, area: Area): void {
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
-  defs: [Hero, HeroControl, Target, Move, Lock, heroInput, lockSelect, heroMove, heroView],
+  defs: [
+    Hero,
+    HeroControl,
+    HeroAction,
+    Target,
+    Move,
+    Lock,
+    Act,
+    heroInput,
+    lockSelect,
+    heroAct,
+    heroMove,
+    heroView,
+  ],
 })
 
 /** The sim spec `defineGame` takes: what `base3dSim` returns. */

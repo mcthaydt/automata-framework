@@ -38,7 +38,7 @@ const pose = (id: string): PoseDef => {
 }
 
 describe('the fixture pose library', () => {
-  it('has the seven poses of the spec, each written canonically', () => {
+  it('has the fixture poses (the seven of the spec, and those of M3.6d for F-g and I-k), each written canonically', () => {
     expect(Object.keys(poses).sort()).toEqual([...FIXTURE_POSE_IDS])
     for (const id of FIXTURE_POSE_IDS) expect(canonicalPose(pose(id))).toEqual(pose(id))
   })

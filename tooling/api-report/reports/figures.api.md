@@ -4,6 +4,14 @@
 
 ## `.`
 
+### `ActionState` (interface)
+
+```ts
+interface ActionState extends ClipStart {
+    readonly replaced?: ClipStart | undefined;
+}
+```
+
 ### `add` (const)
 
 ```ts
@@ -301,6 +309,16 @@ interface ClipKey {
 const clipSchema: z.ZodType<FigureClipDef>;
 ```
 
+### `ClipStart` (interface)
+
+```ts
+interface ClipStart {
+    readonly id: string;
+    readonly startedAt: number;
+    readonly length?: number | undefined;
+}
+```
+
 ### `clipTime` (function)
 
 ```ts
@@ -437,6 +455,12 @@ function euler(pitch: number, yaw: number, roll: number): Q;
 function eulerOf(q: Q): [number, number, number];
 ```
 
+### `evaluate` (function)
+
+```ts
+function evaluate(skeleton: Skeleton, def: FigureDef, state: FigureState, time: number, library: MotionLibrary, options?: EvaluateOptions): FigureEvaluated;
+```
+
 ### `Evaluated` (interface)
 
 ```ts
@@ -450,6 +474,17 @@ interface Evaluated {
 
 ```ts
 function evaluateMotion(s: Skeleton, gait: Gait, st: MotionState): Evaluated;
+```
+
+### `EvaluateOptions` (interface)
+
+```ts
+interface EvaluateOptions {
+    readonly previous?: number | undefined;
+    readonly smooth?: boolean | undefined;
+    readonly warn?: ((message: string) => void) | undefined;
+    readonly warned?: Set<string> | undefined;
+}
 ```
 
 ### `Eyes` (interface)
@@ -538,6 +573,14 @@ interface FigureDef {
 }
 ```
 
+### `FigureEvaluated` (interface)
+
+```ts
+interface FigureEvaluated extends Evaluated {
+    readonly report: SolveReport;
+}
+```
+
 ### `figureGaitContent` (const)
 
 ```ts
@@ -607,6 +650,24 @@ const figuresExtension: ExtensionDef<'figures'>;
 
 ```ts
 const figureStandContent: ContentSchemaDef<'figure-stand'>;
+```
+
+### `FigureState` (interface)
+
+```ts
+interface FigureState {
+    readonly moving: boolean;
+    readonly speed: number;
+    readonly facing: number;
+    readonly moveDir?: number | undefined;
+    readonly action?: ActionState | undefined;
+    readonly stances?: readonly StanceState[] | undefined;
+    readonly aim?: readonly AimTarget[] | undefined;
+    readonly pins?: Readonly<Partial<Record<LimbId, Vec3>>> | undefined;
+    readonly outfit?: string | undefined;
+    readonly item?: string | undefined;
+    readonly hair?: HairSwing | undefined;
+}
 ```
 
 ### `figureSwatchContent` (const)
@@ -1195,6 +1256,12 @@ const MASK_GROUPS: readonly ["root", "pelvis", "torso", "head", "armL", "armR", 
 type MaskGroup = (typeof MASK_GROUPS)[number];
 ```
 
+### `maskPose` (function)
+
+```ts
+function maskPose(pose: PoseDef, mask: readonly MaskGroup[]): PoseDef;
+```
+
 ### `matq` (function)
 
 ```ts
@@ -1246,6 +1313,19 @@ function mirror(pose: PoseDef): PoseDef;
 
 ```ts
 function mmul(a: M, b: M): M;
+```
+
+### `MotionLibrary` (interface)
+
+```ts
+interface MotionLibrary {
+    readonly gaits: Readonly<Record<string, Gait>>;
+    readonly poses: PoseLibrary;
+    readonly clips: Readonly<Record<string, FigureClipDef>>;
+    readonly items: Readonly<Record<string, ItemDef>>;
+    readonly stands: Readonly<Record<string, Stand>>;
+    readonly rigs: Readonly<Record<string, RigLimits>>;
+}
 ```
 
 ### `MotionState` (interface)
@@ -1782,6 +1862,16 @@ type Space = 'root' | 'chest';
 ```ts
 interface SpaceContext {
     readonly chest?: M | undefined;
+}
+```
+
+### `StanceState` (interface)
+
+```ts
+interface StanceState {
+    readonly id: string;
+    readonly startedAt: number;
+    readonly endedAt?: number | undefined;
 }
 ```
 

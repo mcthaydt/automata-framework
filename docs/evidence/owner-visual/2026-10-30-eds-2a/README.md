@@ -9,7 +9,7 @@ truthfully says "Not in this build".
 
 | Image | Size | What to look at | What changed |
 |---|---|---|---|
-| `suite-home-ipad-pro-11-landscape.png` | 1194×834, `wide` | The rail of nine (Tuner to Review) as a 56 px column with every label whole; Home and "Sample game" in the top bar; one card per editor the list names with its file, the "Not in this build" badge and the plain-words note naming the package. The empty columns either side of the cards are the shell's panel and inspector regions, which Home does not fill: they collapse once #267's shell change lands (see the PR) | New |
+| `suite-home-ipad-pro-11-landscape.png` | 1194×834, `wide` | The rail of nine (Tuner to Review) as a 56 px column with every label whole; Home and "Sample game" in the top bar; one card per editor the list names with its file, the "Not in this build" badge and the plain-words note naming the package. Home has no panel or inspector, so the cards run from the rail to the right edge (the image was regenerated after review; see the note below). "Schematic" fills the 56 px rail's width: check it again once the real editor labels land | New |
 | `suite-home-ipad-mini-landscape.png` | 1133×744, `wide`, short | The same at the short height tier: the rail's nine still fit | New |
 | `suite-home-ipad-pro-11-portrait.png` | 834×1194, `medium` | The rail becomes the 64 px tab bar along the foot with all nine; the cards in two columns | New |
 | `suite-home-phone-portrait.png` | 390×844, `compact` | The tab bar keeps 44 px tabs with their words and scrolls sideways to Levels and Review (a declared scroll region) rather than shrinking them; the cards in one column | New |

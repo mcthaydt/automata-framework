@@ -908,6 +908,7 @@ interface LevelEditor {
     pointerUp(): void;
     cancel(): void;
     pointerLeave(): void;
+    select(ids: readonly string[]): void;
     refresh(): void;
 }
 ```

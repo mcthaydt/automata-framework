@@ -17,3 +17,16 @@ const lockSchema = z.object({ down: z.boolean() })
 
 /** Whether the lock button is held: a press locks onto the nearest target, a release lets go (M3 spec §4.7). */
 export const Lock: CommandDef<typeof lockSchema> = defineCommand('lock', lockSchema)
+
+const actSchema = z.object({
+  slash: z.boolean(),
+  guard: z.boolean(),
+  point: z.boolean(),
+  pickup: z.boolean(),
+})
+
+/**
+ * Which action buttons are held, sent every tick in play as `lock` is: a press of slash, point or pickup starts
+ * that action, and guard is held as a stance (M3 spec §4.7). No command is every button up.
+ */
+export const Act: CommandDef<typeof actSchema> = defineCommand('act', actSchema)

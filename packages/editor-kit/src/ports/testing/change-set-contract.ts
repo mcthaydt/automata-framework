@@ -145,6 +145,51 @@ export function describeChangeSet(
       expect((await changeSet.list())[0]).toMatchObject({ title: 'Slower', files: [], tokens: { used: 0 } })
     })
 
+    test('writes recorded with their text are listed in order, each with its before and after text', async () => {
+      const { changeSet, edit } = await withEdit()
+      await edit(TUNING, 'MAX_MOVE_SPEED = 8\n')
+      await changeSet.record(
+        [TUNING],
+        [{ path: TUNING, before: 'MAX_MOVE_SPEED = 7.5\n', after: 'MAX_MOVE_SPEED = 8\n' }],
+      )
+      await edit('content/feel/juice.toml', 'shake = 0.2\n')
+      await changeSet.record(
+        ['content/feel/juice.toml'],
+        [{ path: 'content/feel/juice.toml', before: undefined, after: 'shake = 0.2\n' }],
+      )
+      const [summary] = await changeSet.list()
+      expect(summary?.writes).toEqual([
+        { path: TUNING, before: 'MAX_MOVE_SPEED = 7.5\n', after: 'MAX_MOVE_SPEED = 8\n' },
+        { path: 'content/feel/juice.toml', before: undefined, after: 'shake = 0.2\n' },
+      ])
+      expect(summary?.files).toEqual(['content/feel/juice.toml', TUNING])
+    })
+
+    test('note keeps the latest run per check id, sorted by id, with its measures before and after', async () => {
+      const { changeSet } = await withEdit()
+      expect((await changeSet.list())[0]?.checks).toEqual([])
+      const fair = { id: 'gap', label: 'Widest gap', value: 3, ok: true }
+      await changeSet.note([
+        { check: 'fairness', status: 'pass', findings: [], before: [fair], after: [{ ...fair, value: 4 }] },
+        { check: 'content', status: 'fail', findings: [{ severity: 'error', message: 'bad' }] },
+      ])
+      await changeSet.note([{ check: 'content', status: 'pass', findings: [] }])
+      expect((await changeSet.list())[0]?.checks).toEqual([
+        { check: 'content', status: 'pass', findings: [] },
+        { check: 'fairness', status: 'pass', findings: [], before: [fair], after: [{ ...fair, value: 4 }] },
+      ])
+    })
+
+    test('note rejects with nothing open; a new change set starts with no writes or checks', async () => {
+      const { changeSet } = await withEdit()
+      await changeSet.note([{ check: 'content', status: 'pass', findings: [] }])
+      await changeSet.checkpoint('Faster')
+      await changeSet.close()
+      await expect(changeSet.note([{ check: 'content', status: 'pass', findings: [] }])).rejects.toThrow()
+      await changeSet.begin('Slower')
+      expect((await changeSet.list())[0]).toMatchObject({ writes: [], checks: [] })
+    })
+
     test('close with nothing open does nothing', async () => {
       const { changeSet } = await make()
       await expect(changeSet.close()).resolves.toBeUndefined()

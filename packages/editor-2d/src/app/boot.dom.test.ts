@@ -136,7 +136,9 @@ describe('startEditor', () => {
     const platformer = within(templates).getByRole('button', { name: /Platformer/ })
     await userEvent.click(platformer)
     expect(await screen.findByTestId('level-view')).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Level' })).toHaveAttribute('aria-selected', 'true')
+    expect(
+      within(screen.getByRole('tablist', { name: 'Views' })).getByRole('tab', { name: 'Level' }),
+    ).toHaveAttribute('aria-selected', 'true')
 
     await userEvent.click(within(screen.getByRole('listbox', { name: 'Layers' })).getByText('Collision'))
     const surface = screen.getByTestId('level-surface')

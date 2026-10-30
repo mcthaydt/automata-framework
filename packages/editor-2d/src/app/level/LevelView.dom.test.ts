@@ -179,3 +179,108 @@ describe('Level view: toolbar and canvas', () => {
     expect(screen.queryByRole('button', { name: 'Layers' })).toBeNull()
   })
 })
+
+/** A mouse press or release as the browser sends it; jsdom has no `PointerEvent` constructor. */
+function press(target: HTMLElement, type: 'pointerdown' | 'pointerup', x: number, y: number): void {
+  const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y, button: 0 })
+  Object.assign(event, { pointerId: 1, pointerType: 'mouse', pressure: type === 'pointerdown' ? 0.5 : 0 })
+  target.dispatchEvent(event)
+}
+
+/** Places a Slime with the brush; jsdom lays nothing out, so a canvas point is a level pixel. */
+async function placeSlime(x = 40, y = 40): Promise<HTMLElement> {
+  await userEvent.click(screen.getByRole('radio', { name: 'Slime' }))
+  const surface = screen.getByTestId('level-surface')
+  press(surface, 'pointerdown', x, y)
+  press(surface, 'pointerup', x, y)
+  return surface
+}
+
+const inspectorTab = (name: string): HTMLElement =>
+  within(screen.getByRole('tablist', { name: 'Inspector' })).getByRole('tab', { name })
+
+const stepper = (name: string): string | null =>
+  screen.getByRole('spinbutton', { name }).getAttribute('aria-valuenow')
+
+describe('Level view: inspector journey (flow 3, G-e)', () => {
+  it('places a thing, edits its fields, refuses a bad value and undoes', async () => {
+    await mount()
+    await placeSlime()
+    expect(inspectorTab('Entity')).toHaveAttribute('aria-selected', 'true')
+    expect(stepper('Hit points')).toBe('3')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Increase Hit points' }))
+    expect(stepper('Hit points')).toBe('4')
+    expect(screen.getByRole('button', { name: 'Undo Set Hit points' })).toBeEnabled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tint: #7c3aed' }))
+    const swatches = within(screen.getByRole('listbox', { name: 'Tint palette' })).getAllByRole('option')
+    const other = swatches.find((swatch) => swatch.getAttribute('aria-label') !== '#7c3aed')
+    if (other === undefined) throw new Error('no other colour on offer')
+    const picked = other.getAttribute('aria-label')
+    await userEvent.click(other)
+    expect(screen.getByRole('button', { name: `Tint: ${picked}` })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Undo Set Tint' })).toBeEnabled()
+
+    await userEvent.click(screen.getByRole('spinbutton', { name: 'Hit points' }))
+    await userEvent.keyboard('{Control>}a{/Control}12{Enter}')
+    expect(screen.getByRole('alert')).toHaveTextContent(/9/)
+    expect(screen.getByRole('button', { name: 'Undo Set Tint' })).toBeEnabled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Undo Set Tint' }))
+    expect(screen.getByRole('button', { name: 'Tint: #7c3aed' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Undo Set Hit points' }))
+    expect(stepper('Hit points')).toBe('3')
+  })
+})
+
+describe('Level view: shortcuts (§12)', () => {
+  it('B, R, G, E and I choose the tools; [ and ] change the brush size', async () => {
+    await mount()
+    for (const [key, tool] of [
+      ['r', 'rectangle'],
+      ['g', 'fill'],
+      ['e', 'eraser'],
+      ['i', 'picker'],
+      ['b', 'brush'],
+    ] as const) {
+      await userEvent.keyboard(key)
+      expect(canvas()).toHaveAttribute('data-tool', tool)
+    }
+    const size = (): number => Number(stepper('Brush size'))
+    const before = size()
+    await userEvent.keyboard(']')
+    expect(size()).toBe(before + 1)
+    await userEvent.keyboard('[[')
+    expect(size()).toBe(before)
+  })
+
+  it('arrows nudge from the canvas, Mod+D duplicates and Delete deletes, each one undo step', async () => {
+    await mount()
+    const surface = await placeSlime()
+    const x = Number(stepper('X'))
+    surface.focus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(Number(stepper('X'))).toBe(x + 16)
+    await userEvent.keyboard('{Shift>}{ArrowLeft}{/Shift}')
+    expect(Number(stepper('X'))).toBe(x + 16 - 8 * 16)
+    expect(screen.getByRole('button', { name: 'Undo Move entity' })).toBeEnabled()
+
+    await userEvent.keyboard('{Control>}d{/Control}')
+    expect(screen.getByRole('button', { name: 'Undo Duplicate' })).toBeEnabled()
+    await userEvent.keyboard('{Delete}')
+    expect(screen.getByRole('button', { name: 'Undo Delete' })).toBeEnabled()
+    // Nothing is selected any more, so the inspector falls back to the Level tab.
+    expect(inspectorTab('Level')).toHaveAttribute('aria-selected', 'true')
+    await userEvent.keyboard('{Control>}z{/Control}')
+    expect(screen.getByRole('button', { name: 'Undo Duplicate' })).toBeEnabled()
+  })
+
+  it('ignores tool letters while typing in a text field', async () => {
+    await mount()
+    expect(inspectorTab('Level')).toHaveAttribute('aria-selected', 'true')
+    await userEvent.click(screen.getByRole('textbox', { name: 'Music' }))
+    await userEvent.keyboard('r')
+    expect(canvas()).toHaveAttribute('data-tool', 'brush')
+  })
+})

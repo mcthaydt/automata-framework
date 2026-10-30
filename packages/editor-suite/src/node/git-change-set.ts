@@ -3,9 +3,9 @@
 // time, a checkpoint commits only the recorded files, and Ship checkpoints, pushes and opens a draft PR with the
 // person's own `gh`, or gives the compare link without it. The change set stays open after Ship.
 //
-// The journal (files recorded and created, tokens used and the cap) is JSON in the checkout's git directory,
-// `<git dir>/automata-editor/<branch>.json`: outside the work tree, never committed, and shared by every device that
-// edits through this checkout. The open change set is the journal of the branch that is checked out.
+// The journal (files recorded and created, each write's text, the latest run per check, tokens used and the cap) is
+// JSON in the checkout's git directory, `<git dir>/automata-editor/<branch>.json`: outside the work tree, never
+// committed, and shared by every device that edits through this checkout. The open change set is the journal of the branch that is checked out.
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import type { ChangeSet, ChangeSetSummary } from '@mcthaydt/automata-editor-kit/ports'
@@ -74,6 +74,8 @@ const summaryOf = (journal: ChangeSetJournal): ChangeSetSummary => ({
   files: journal.files,
   created: journal.created,
   tokens: journal.tokens,
+  writes: journal.writes,
+  checks: journal.checks,
 })
 
 export function createGitChangeSet(options: GitChangeSetOptions): GitChangeSet {
@@ -196,11 +198,27 @@ export function createGitChangeSet(options: GitChangeSetOptions): GitChangeSet {
         files: [],
         created: [],
         tokens: { used: 0, cap },
+        writes: [],
+        checks: [],
       })
     },
-    async record(files) {
+    async record(files, writes = []) {
       const journal = await required('record files in')
-      await writeJournal({ ...journal, files: [...new Set([...journal.files, ...files])].sort() })
+      const paths = [...journal.files, ...files, ...writes.map((write) => write.path)]
+      await writeJournal({
+        ...journal,
+        files: [...new Set(paths)].sort(),
+        writes: [...journal.writes, ...writes],
+      })
+    },
+    async note(checks) {
+      const journal = await required('note checks in')
+      const latest = new Map(journal.checks.map((check) => [check.check, check]))
+      for (const check of checks) latest.set(check.check, check)
+      await writeJournal({
+        ...journal,
+        checks: [...latest.values()].sort((a, b) => (a.check < b.check ? -1 : 1)),
+      })
     },
     async noteCreated(path) {
       const journal = await required('note a created file in')
