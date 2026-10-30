@@ -625,9 +625,9 @@ type GestureName = (typeof GESTURE_NAMES)[number];
 
 ```ts
 interface GestureSink {
-    hold(gesture: GestureName): void;
-    release(gesture: GestureName): void;
-    pulse(gesture: GestureName): void;
+    hold(gesture: Exclude<GestureName, 'camera-drag'>): void;
+    release(gesture: Exclude<GestureName, 'camera-drag'>): void;
+    pulse(gesture: Exclude<GestureName, 'camera-drag'>): void;
 }
 ```
 
