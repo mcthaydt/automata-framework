@@ -1,9 +1,9 @@
 <!--
-  Shown in place of the project list when the workspace cannot be listed (plan ED2D.4c2a, failure table). The sources
-  panel and the templates beside it stay usable; Retry reads the workspace again.
+  Shown in place of the project list when the workspace cannot be listed (plan ED2D.4c2a, failure table; moved into the kit in ED3D.5c). The sources
+  panel and whatever the editor shows beside it stay usable; Retry reads the workspace again.
 -->
 <script lang="ts">
-import { Button } from '@mcthaydt/automata-editor-kit'
+import Button from '../widgets/Button.svelte'
 
 interface Props {
   /** The storage layer's own words for what went wrong. */

@@ -1,48 +1,45 @@
 import { fireEvent, render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { plantedProfile } from '../../testing/planted-profile'
-import { createAppProfiles } from '../profiles'
-import type { ProjectEntry } from '../project-list'
 import ProjectList from './ProjectList.svelte'
+import type { HomeCard } from './project-browse'
 
-// The listbox of projects (plan ED2D.4c2a, decision 3). The entries are written by hand so each state is exact; the
-// registry is real, because a card takes its accent from the profile's place in it.
+// The listbox of projects (plan ED2D.4c2a, decision 3; moved from editor-2d in ED3D.5c). The cards are written by hand,
+// as an editor would make them from its entries, so each state is exact.
 
 const NOW = 1_700_000_000_000
-const registry = createAppProfiles()
-registry.register(plantedProfile())
-const [first, second] = registry.list().map((profile) => ({ id: profile.id, label: profile.label }))
-if (first === undefined || second === undefined) throw new Error('the registry holds two profiles')
+const KIND = 'Level project'
+const OTHER = 'Planted note'
 
-const ok = (path: string, over: Partial<Extract<ProjectEntry, { status: 'ok' }>> = {}): ProjectEntry => ({
-  status: 'ok',
+const card = (path: string, over: Partial<HomeCard> = {}): HomeCard => ({
   path,
+  title: path.slice(path.lastIndexOf('/') + 1),
+  badge: { tone: 'ok', text: 'Valid' },
+  kind: KIND,
+  accent: '--color-layer-tiles',
   size: 4300,
   mtime: NOW - 5 * 60_000,
-  profile: first,
-  errors: 0,
-  warnings: 0,
-  summary: undefined,
   ...over,
 })
-const mossgate = ok('mossgate.af2d.json', { summary: { title: 'Mossgate', facts: [] } })
-const notes = ok('notes/draft.note', { profile: second, warnings: 1, size: 812 })
-const broken: ProjectEntry = {
-  status: 'broken',
-  path: 'torn.af2d.json',
+const mossgate = card('mossgate.af2d.json', { title: 'Mossgate' })
+const notes = card('notes/draft.note', {
+  kind: OTHER,
+  accent: '--color-layer-sky',
+  badge: { tone: 'warn', text: '1 warning' },
+  size: 812,
+})
+const broken = card('torn.af2d.json', {
+  badge: { tone: 'bad', text: 'Can’t open' },
   size: 90,
   mtime: NOW - 3 * 3_600_000,
-  profile: first,
-  message: 'Not JSON',
-}
-const either: ProjectEntry = {
-  status: 'ambiguous',
-  path: 'stage.toml',
+})
+const either = card('stage.toml', {
+  kind: `${KIND} or ${OTHER}`,
+  accent: undefined,
+  badge: { tone: 'neutral', text: 'Choose a profile' },
   size: 2048,
   mtime: NOW - 86_400_000 * 1.5,
-  candidates: [first, second],
-}
+})
 
 function mount(props: Partial<Parameters<typeof render<typeof ProjectList>>[1]> = {}) {
   const handlers = {
@@ -59,7 +56,7 @@ function mount(props: Partial<Parameters<typeof render<typeof ProjectList>>[1]> 
     visible,
     selected: undefined,
     query: '',
-    registry,
+    emptyHint: 'Pick a template below to start one.',
     now: NOW,
     ...handlers,
     ...props,
@@ -97,18 +94,18 @@ describe('ProjectList', () => {
   })
 
   describe('a card', () => {
-    it('shows the profile’s title for the project, its kind, badge, file, size and age', () => {
+    it('shows the title, its kind, badge, file, size and age', () => {
       mount()
       const card = option(/Mossgate/)
       expect(card).toHaveTextContent('Mossgate')
-      expect(card).toHaveTextContent(first.label)
+      expect(card).toHaveTextContent(KIND)
       expect(card).toHaveTextContent('Valid')
       expect(card).toHaveTextContent('mossgate.af2d.json')
       expect(card).toHaveTextContent('4.2 KB')
       expect(card).toHaveTextContent('5 min ago')
     })
 
-    it('falls back to the file name for a project whose profile gives no title, and keeps the folder apart', () => {
+    it('keeps the folder apart from the file name', () => {
       mount()
       const card = option(/draft\.note/)
       expect(within(card).getByText('draft.note', { selector: '.file' })).toBeInTheDocument()
@@ -117,13 +114,13 @@ describe('ProjectList', () => {
       expect(card).toHaveTextContent('812 B')
     })
 
-    it('says a broken file cannot be opened plainly, and an undecided one needs a profile', () => {
+    it('shows the badge and the kind it is given', () => {
       mount()
       expect(option(/torn\.af2d\.json/)).toHaveTextContent('Can’t open')
       expect(option(/torn\.af2d\.json/)).toHaveTextContent('3 h ago')
       const undecided = option(/stage\.toml/)
       expect(undecided).toHaveTextContent('Choose a profile')
-      expect(undecided).toHaveTextContent(`${first.label} or ${second.label}`)
+      expect(undecided).toHaveTextContent(`${KIND} or ${OTHER}`)
       expect(undecided).toHaveTextContent('yesterday')
     })
 
@@ -148,10 +145,8 @@ describe('ProjectList', () => {
       mount()
       const kindPill = (card: HTMLElement, text: string): Element | null =>
         within(card).getByText(text).closest('[data-pill]')
-      expect(kindPill(option(/Mossgate/), first.label)?.getAttribute('style')).toContain(
-        '--pill-color: var(--kind)',
-      )
-      const undecided = kindPill(option(/stage\.toml/), `${first.label} or ${second.label}`)
+      expect(kindPill(option(/Mossgate/), KIND)?.getAttribute('style')).toContain('--pill-color: var(--kind)')
+      const undecided = kindPill(option(/stage\.toml/), `${KIND} or ${OTHER}`)
       expect(undecided).toHaveAttribute('data-tone', 'neutral')
       expect(undecided?.getAttribute('style') ?? '').not.toContain('--pill-color')
     })
@@ -163,7 +158,7 @@ describe('ProjectList', () => {
       expect(option(/Mossgate/).querySelector('.file')).toHaveTextContent('mossgate.af2d.json')
     })
 
-    it('takes its accent from the place of its profile in the registry', () => {
+    it('takes its accent from the card, and the neutral one for a card without', () => {
       mount()
       expect(option(/Mossgate/).style.getPropertyValue('--kind')).toBe('var(--color-layer-tiles)')
       expect(option(/draft\.note/).style.getPropertyValue('--kind')).toBe('var(--color-layer-sky)')
@@ -306,6 +301,12 @@ describe('ProjectList', () => {
       expect(ondelete).toHaveBeenCalledOnce()
     })
 
+    it('Delete is left alone when the editor offers no deleting', async () => {
+      mount({ selected: 'notes/draft.note', ondelete: undefined })
+      list().focus()
+      expect(await fireEvent.keyDown(list(), { key: 'Delete' })).toBe(true)
+    })
+
     it('Delete with nothing selected asks nothing', async () => {
       const { ondelete } = mount()
       list().focus()
@@ -346,10 +347,10 @@ describe('ProjectList', () => {
       expect(screen.queryByRole('listbox')).toBeNull()
     })
 
-    it('says so when the workspace holds no project, and points at the templates', () => {
+    it('says so when the workspace holds no project, with the editor’s hint on how to start one', () => {
       mount({ total: 0, visible: [] })
       expect(screen.getByText('No projects yet')).toBeInTheDocument()
-      expect(screen.getByText(/template/i)).toBeInTheDocument()
+      expect(screen.getByText('Pick a template below to start one.')).toBeInTheDocument()
       expect(screen.queryByRole('listbox')).toBeNull()
     })
 

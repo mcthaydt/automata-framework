@@ -41,6 +41,9 @@ export {
   type HistoryOptions,
   type Transaction,
 } from './history/history'
+export { default as FilePick } from './home/FilePick.svelte'
+export { default as HomeScreen } from './home/HomeScreen.svelte'
+export type { PickedFile } from './home/picked-file'
 export {
   cardWords,
   filterEntries,

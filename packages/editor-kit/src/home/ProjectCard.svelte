@@ -1,21 +1,17 @@
 <!--
-  One project in the list (plan ED2D.4c2a): a tile with the project's initial in its kind's accent, the title with its
-  badge, the kind and the file's size and age, and the path with the folder shortened before the file name. It is an
-  option of the list's listbox, not a focusable control: the list owns the keys and the focus (`aria-activedescendant`).
-  Thumbnails of the level arrive with the Pixi canvas (ED2D.4c3).
+  One project in the list (plan ED2D.4c2a; moved into the kit in ED3D.5c): a tile with the project's initial in its
+  kind's accent, the title with its badge, the kind and the file's size and age, and the path with the folder shortened
+  before the file name. It draws a `HomeCard`, which each editor makes from its own list item. It is an option of the
+  list's listbox, not a focusable control: the list owns the keys and the focus (`aria-activedescendant`).
 -->
 <script lang="ts">
-import { Pill } from '@mcthaydt/automata-editor-kit'
-import { modifiedLabel, sizeLabel, splitPath } from '@mcthaydt/automata-editor-kit/core'
-import type { ProjectEntry } from '../project-list'
-import { cardTitle, entryBadge } from './home-model'
+import Pill from '../widgets/Pill.svelte'
+import { type HomeCard, modifiedLabel, sizeLabel, splitPath } from './project-browse'
 
 interface Props {
   id: string
-  entry: ProjectEntry
+  card: HomeCard
   selected: boolean
-  /** The accent's CSS variable name, from the profile's place in the registry. */
-  accent: string
   /** The time the age is told against. */
   now: number
   onpointerdown: (event: PointerEvent) => void
@@ -23,17 +19,9 @@ interface Props {
   ondblclick: () => void
 }
 
-const { id, entry, selected, accent, now, onpointerdown, onclick, ondblclick }: Props = $props()
+const { id, card, selected, now, onpointerdown, onclick, ondblclick }: Props = $props()
 
-const title = $derived(cardTitle(entry))
-const badge = $derived(entryBadge(entry))
-const path = $derived(splitPath(entry.path))
-// An undecided file has no kind yet: it lists the profiles that claim it.
-const kind = $derived(
-  entry.status === 'ambiguous'
-    ? entry.candidates.map((candidate) => candidate.label).join(' or ')
-    : entry.profile.label,
-)
+const path = $derived(splitPath(card.path))
 </script>
 
 <!-- The option takes pointer input only: the listbox owns focus and handles the same actions from the keyboard. -->
@@ -43,22 +31,22 @@ const kind = $derived(
   class="card"
   role="option"
   aria-selected={selected}
-  style:--kind={`var(${accent})`}
+  style:--kind={`var(${card.accent ?? '--color-text-dim'})`}
   {onpointerdown}
   {onclick}
   {ondblclick}
 >
-  <span class="tile" aria-hidden="true">{[...title][0]?.toUpperCase() ?? ''}</span>
+  <span class="tile" aria-hidden="true">{[...card.title][0]?.toUpperCase() ?? ''}</span>
   <span class="text">
     <span class="head">
-      <span class="title">{title}</span>
-      <Pill tone={badge.tone}>{badge.text}</Pill>
+      <span class="title">{card.title}</span>
+      <Pill tone={card.badge.tone}>{card.badge.text}</Pill>
     </span>
     <span class="meta">
-      <Pill accent={entry.status === 'ambiguous' ? undefined : '--kind'}>{kind}</Pill>
-      <span class="stats">{sizeLabel(entry.size)} · {modifiedLabel(entry.mtime, now)}</span>
+      <Pill accent={card.accent === undefined ? undefined : '--kind'}>{card.kind}</Pill>
+      <span class="stats">{sizeLabel(card.size)} · {modifiedLabel(card.mtime, now)}</span>
     </span>
-    <span class="path" title={entry.path}>
+    <span class="path" title={card.path}>
       {#if path.dir}<span class="dir">{path.dir}</span>{/if}<span class="file">{path.name}</span>
     </span>
   </span>

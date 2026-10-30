@@ -1,5 +1,5 @@
 <!--
-  The projects of the workspace (plan ED2D.4c2a, decision 3): one listbox with one tab stop, so a tablet with a
+  The projects of the workspace (plan ED2D.4c2a, decision 3; moved into the kit in ED3D.5c): one listbox with one tab stop, so a tablet with a
   keyboard reaches everything below it with a single Tab. The listbox keeps focus and points at the selected card
   (`aria-activedescendant`); arrows (left and right, up and down alike), Home and End step through the list in order
   whatever the number of columns, Enter opens, Delete asks to delete. A click or a tap selects; a double click opens,
@@ -8,29 +8,28 @@
   instead of the listbox. The list stays out of scrolling: the screen around it owns the scroll region.
 -->
 <script lang="ts">
-import { Button } from '@mcthaydt/automata-editor-kit'
-import type { StepKey } from '@mcthaydt/automata-editor-kit/core'
-import type { ProfileRegistry } from '../../profiles/profile'
-import type { ProjectEntry } from '../project-list'
-import { kindTone } from './home-model'
+import Button from '../widgets/Button.svelte'
 import ProjectCard from './ProjectCard.svelte'
+import type { HomeCard, StepKey } from './project-browse'
 
 interface Props {
   /** The first listing has not come back yet. */
   loading: boolean
   /** How many projects the workspace holds, before the search. */
   total: number
-  /** The projects the search leaves, in list order. */
-  visible: readonly ProjectEntry[]
+  /** The cards of the projects the search leaves, in list order. */
+  visible: readonly HomeCard[]
   selected: string | undefined
   query: string
-  registry: ProfileRegistry
+  /** How to start a project, under "No projects yet". */
+  emptyHint: string
   /** The time the ages on the cards are told against. */
   now: number
   onselect: (path: string) => void
   onstep: (key: StepKey) => void
   onopen: (path: string) => void
-  ondelete: () => void
+  /** Delete was pressed on the selected project; without it the key does nothing. */
+  ondelete?: (() => void) | undefined
   onclear: () => void
 }
 
@@ -40,7 +39,7 @@ const {
   visible,
   selected,
   query,
-  registry,
+  emptyHint,
   now,
   onselect,
   onstep,
@@ -75,7 +74,7 @@ function onkeydown(event: KeyboardEvent): void {
   } else if (event.key === 'Enter' && selected !== undefined) {
     event.preventDefault()
     onopen(selected)
-  } else if (event.key === 'Delete' && selected !== undefined) {
+  } else if (event.key === 'Delete' && selected !== undefined && ondelete !== undefined) {
     event.preventDefault()
     ondelete()
   }
@@ -114,7 +113,7 @@ $effect(() => {
 {:else if total === 0}
   <div class="empty">
     <p class="headline">No projects yet</p>
-    <p>Pick a template below to start one.</p>
+    <p>{emptyHint}</p>
   </div>
 {:else if visible.length === 0}
   <div class="empty">
@@ -132,16 +131,15 @@ $effect(() => {
     bind:this={listbox}
     {onkeydown}
   >
-    {#each visible as entry, index (entry.path)}
+    {#each visible as card, index (card.path)}
       <ProjectCard
         id={cardId(index)}
-        {entry}
-        selected={entry.path === selected}
-        accent={entry.status === 'ambiguous' ? '--color-text-dim' : kindTone(registry, entry.profile.id)}
+        {card}
+        selected={card.path === selected}
         {now}
-        onpointerdown={(event) => pressed(event, entry.path)}
-        onclick={() => clicked(entry.path)}
-        ondblclick={() => onopen(entry.path)}
+        onpointerdown={(event) => pressed(event, card.path)}
+        onclick={() => clicked(card.path)}
+        ondblclick={() => onopen(card.path)}
       />
     {/each}
   </div>

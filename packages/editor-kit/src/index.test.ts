@@ -66,6 +66,8 @@ describe('editor-kit entry', () => {
   })
 
   test('exports the project list a Home is built on', () => {
+    expect(kit.HomeScreen).toBeTypeOf('function')
+    expect(kit.FilePick).toBeTypeOf('function')
     expect(kit.createProjectBrowser).toBeTypeOf('function')
     expect(kit.filterEntries).toBeTypeOf('function')
     expect(kit.modifiedLabel).toBeTypeOf('function')
