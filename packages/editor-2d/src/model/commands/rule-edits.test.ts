@@ -171,6 +171,12 @@ describe('editRule', () => {
     expect(ruleOf(next, 'spike')?.pattern).toEqual([{ is: 3 }])
   })
 
+  it('changes a rule whose one flip alone differs', () => {
+    const project = platformer()
+    expect(ruleOf(editRule(project, 'ground', 'spike', { flipY: true }), 'spike')?.flipY).toBe(true)
+    expect(ruleOf(editRule(project, 'ground', 'spike', { flipX: true }), 'spike')?.flipX).toBe(true)
+  })
+
   it('returns the same project for the values the rule has', () => {
     const project = platformer()
     expect(editRule(project, 'ground', 'spike', { tiles: [47], chance: 1, outside: 0 })).toBe(project)

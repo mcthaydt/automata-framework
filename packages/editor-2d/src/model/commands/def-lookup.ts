@@ -5,6 +5,18 @@ import type { AutoLayerDef, Definitions, LayerDef, Project, TilesetDef } from '.
 // that changes nothing gives back the same project, checking a shape with the file schema's own rules, and moving one
 // item of a list. A missing id is a programmer error and throws `RangeError`, as in the level edits.
 
+/** Something a delete or a retype would remove or break, for the refusal dialog to list and link. */
+export interface DefinitionUse {
+  /** Where it is, spelled as the Checks spell a path (`levels[level-1].layers[entities].items[slime-1]`). */
+  readonly path: string
+  readonly message: string
+}
+
+/** A change that refuses with its uses unless it is told to go ahead anyway ("Delete anyway"). */
+export type GuardedEdit =
+  | { readonly ok: true; readonly project: Project }
+  | { readonly ok: false; readonly uses: readonly DefinitionUse[] }
+
 export function layerDefOf(project: Project, id: string): LayerDef {
   const found = project.defs.layers.find((candidate) => candidate.id === id)
   if (found === undefined) throw new RangeError(`no layer definition "${id}"`)

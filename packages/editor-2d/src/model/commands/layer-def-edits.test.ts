@@ -247,6 +247,14 @@ describe('setIntValue', () => {
     })
   })
 
+  it('changes a value whose label alone differs', () => {
+    const project = platformer()
+    const next = setIntValue(project, 'collision', { value: 1, id: 'solid', label: 'Rock', color: '#64748b' })
+    expect(next).not.toBe(project)
+    const collision = next.defs.layers[3]
+    expect(collision?.kind === 'intgrid' && collision.values[0]?.label).toBe('Rock')
+  })
+
   it('returns the same project when the value is unchanged', () => {
     const project = platformer()
     expect(
