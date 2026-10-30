@@ -34,7 +34,7 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `koota` | 0.6.6 | 2026-10-01 | ECS inside the sim (ADR 0001) |
 | `lefthook` | 2.1.16 | 2026-10-01 | Pre-commit hooks |
 | `oxc-parser` | 0.152.0 | 2026-10-01 | AST for `check-boundaries`, `check-style` and `ship`'s root-absolute check |
-| `pixi.js` | 8.21.0 | 2026-10-11 | 2D renderer (ADR 0002). FloorFifty's version (`45482fb`, `pnpm-lock.yaml`); used by Emberwick (`games/emberwick`) until `render-pixi` (M1.7) owns it |
+| `pixi.js` | 8.22.0 | 2026-10-30 | 2D renderer (ADR 0002). M3.2 (runtime lane): moved from FloorFifty's 8.21.0 (`45482fb`, `pnpm-lock.yaml`) to 8.22.0, the peer floor of the vendored `@pixi/3d` 0.1.0-beta.2 (`^8.22.0`) and npm latest; S7-Q6 found no change AF depends on (M3.2 plan) |
 | `@fontsource/pixelify-sans` | 5.3.0 | 2026-10-11 | Pixel font for Emberwick's screens (`games/emberwick`) (OFL-1.1), bundled so it loads under Ruken's `font-src 'self' data:` |
 | `@fontsource/ibm-plex-mono` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's monospace face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
 | `@fontsource/ibm-plex-sans` | 5.3.0 | 2026-10-23 | editor lane (EDK.1): the editor kit's interface face (`packages/editor-kit`) (OFL-1.1), bundled so the editors load offline |
