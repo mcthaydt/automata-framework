@@ -7,6 +7,7 @@ import { memoryWorkspace } from '../../testing/memory-workspace'
 import { noteText, plantedProfile } from '../../testing/planted-profile'
 import { hollowmere, mossgate } from '../../testing/samples'
 import { createTestClock } from '../../testing/test-clock'
+import type { ChoiceOutcome, PanelOutcome } from '../document/open-flow-model'
 import { createEditorApp, type EditorApp, type OpenOutcome } from '../editor-app'
 import { createAppProfiles } from '../profiles'
 import type { ProjectEntry } from '../project-list'
@@ -26,7 +27,13 @@ function setup(wrap: (app: EditorApp) => EditorApp = (app) => app) {
   const app = wrap(real)
   const toasts: ToastStore = createToasts({ clock })
   const opened: Opened[] = []
-  const controller = createHomeController({ app, toasts, onOpened: (outcome) => opened.push(outcome) })
+  const problems: (PanelOutcome | ChoiceOutcome)[] = []
+  const controller = createHomeController({
+    app,
+    toasts,
+    onOpened: (outcome) => opened.push(outcome),
+    onProblem: (outcome) => problems.push(outcome),
+  })
   const write = async (path: string, data: string | Uint8Array): Promise<void> => {
     clock.advance(1000)
     await workspace.store.write(path, data)
@@ -40,7 +47,7 @@ function setup(wrap: (app: EditorApp) => EditorApp = (app) => app) {
     return current
   }
   const messages = (): string[] => toasts.items.map((toast) => `${toast.kind}: ${toast.message}`)
-  return { clock, workspace, registry, app, controller, toasts, opened, write, state, messages }
+  return { clock, workspace, registry, app, controller, toasts, opened, problems, write, state, messages }
 }
 
 async function seeded() {
@@ -275,13 +282,28 @@ describe('open', () => {
     expect(empty.messages()).toEqual([])
   })
 
-  it('says why a file did not open, in a toast, and does not call its owner', async () => {
-    const { controller, opened, write, messages } = await seeded()
+  it('hands a file no profile claims to its owner for the error panel, with no toast, and reads the list again', async () => {
+    const { controller, opened, problems, write, messages, app } = await seeded()
     await write('readme.txt', 'hello')
     await controller.refresh()
+    const list = vi.spyOn(app, 'list')
     await controller.open('readme.txt')
     expect(opened).toEqual([])
-    expect(messages()).toEqual(['error: readme.txt is not a project this editor opens.'])
+    expect(problems).toEqual([{ status: 'unrecognised', path: 'readme.txt', text: 'hello' }])
+    expect(messages()).toEqual([])
+    expect(list).toHaveBeenCalledOnce()
+  })
+
+  it('hands a file two profiles claim to its owner for the choice, and opens it with the one chosen', async () => {
+    const { controller, opened, problems, write, registry } = await seeded()
+    registry.register(plantedProfile({ id: 'rival', label: 'Rival note' }))
+    await write('both.note', noteText('both'))
+    await controller.refresh()
+    await controller.open('both.note')
+    expect(problems).toEqual([expect.objectContaining({ status: 'choose', path: 'both.note' })])
+    await controller.open('both.note', 'rival')
+    expect(opened).toHaveLength(1)
+    expect(opened[0]?.document.profile.id).toBe('rival')
   })
 
   it('refreshes the list when the file was already gone', async () => {
@@ -292,12 +314,13 @@ describe('open', () => {
     expect(paths(state())).toEqual(['notes/harbour.note', 'hollowmere.af2d.json'])
   })
 
-  it('opens a project that does not open as the reason it gives', async () => {
-    const { controller, write, messages } = await seeded()
+  it('hands a project that does not open to its owner with the profile’s errors', async () => {
+    const { controller, write, problems, messages } = await seeded()
     await write('broken.af2d.json', '{ nope')
     await controller.refresh()
     await controller.open('broken.af2d.json')
-    expect(messages()[0]).toMatch(/^error: broken\.af2d\.json does not open: /)
+    expect(problems).toEqual([expect.objectContaining({ status: 'invalid', path: 'broken.af2d.json' })])
+    expect(messages()).toEqual([])
   })
 })
 
