@@ -13,7 +13,7 @@
 - **Source:** FloorFifty at `677d4568b7b2265fda4246d711065b8f417cac26` (the 8a baseline's commit), read-only:
   `packages/shared/src/simulation/{simulation,step,players,platforms,collision,input}.ts`,
   `simulation/planck/{world,facts,consequences,planck-simulation,config,units}.ts`, `level/course.ts`, `level/rng.ts`.
-- **Status:** in progress.
+- **Status:** implemented and checked locally, the three-browser parity included; Plus CI and review pending.
 
 ## Scope
 
@@ -87,13 +87,13 @@ export const Race: ResourceDef
   for the placeholder seed), then the generator.
 - [x] 5. Contacts: red tests (top, side, underside, the approach test, the foot band, tolerance, sort order), then
   `contacts.ts`.
-- [ ] 6. Race start: red test (`race.start` spawns the floors and four racers at the spawn, racing phase, awaiting
+- [x] 6. Race start: red test (`race.start` spawns the floors and four racers at the spawn, racing phase, awaiting
   input), then the start system and plugin.
-- [ ] 7. The step: red tests one at a time (awaiting input stands still; the first input bounces; held steer moves
+- [x] 7. The step: red tests one at a time (awaiting input stands still; the first input bounces; held steer moves
   and a release stops; a racer credits a floor on landing; a side contact lifts; a moving floor carries; fast fall
   overrides; wrap; death line respawns; reset is an edge; a lap respawns and holds; the race finishes with standings
   and a winner, and a finished race ignores input), then the rules and the step system.
-- [ ] 8. Golden: the scripted four-player race finishes with a winner; straight and restored mid-way agree; hash and
+- [x] 8. Golden: the scripted four-player race finishes with a winner; straight and restored mid-way agree; hash and
   event hash recorded from Node, then confirmed in Chromium, WebKit and Firefox (`test:parity`).
 - [ ] 9. `SOURCE.md`, the execution log; PR (draft).
 - [ ] 10. Self-review of the pushed diff; findings fixed test-first.
@@ -117,3 +117,7 @@ export const Race: ResourceDef
 
 | Date | Step | Evidence |
 |---|---|---|
+| 2026-10-30 | 2 | Red: the F1 test for a `starters/` package found nothing (`expected [] to deeply equal [ Array(1) ]`); the workspace-scripts test did not find `starters/party-racer/src/sim` among the boundaries roots. Green after the scan and the root. |
+| 2026-10-30 | 3–5 | Red on the missing modules, then green. One test fixed, not the code: `courseBounds` is `9.6 - 2.4 = 7.199999999999999` in IEEE doubles, so the test computes it the same way; the tolerance edge case moved inside the tolerance for the same reason. Course golden `b92243c1c7556cad` recorded from Node. |
+| 2026-10-30 | 6–7 | 16 plugin tests red on the missing module, then 14 green, 2 red. Both were the tests' assumptions, checked by tracing the trajectory: near floor 1 Rapier's position correction still moves a racer whose `vx` is 0, so "stops dead" runs in open air; a landing sinks up to one tick's fall before the bounce leaves, so "never below" allows `bounceVelocity / 60`. `SPAWN_Y` is compared as an f32. |
+| 2026-10-30 | 8 | Golden red on `pending`, then recorded from Node: 530 ticks, hash `9c5d87536ffe7a28`, events `0d03c77b48a5bb6a` (187), seat 0 wins. Straight and restored at tick 260 equal. `pnpm test:parity` in `starters/party-racer`: Chromium, WebKit and Firefox (Playwright 1.63.0, this container) all match, the course hash too (6 of 6). |
