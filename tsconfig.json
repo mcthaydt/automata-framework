@@ -1,5 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": { "types": ["node"], "allowImportingTsExtensions": true },
-  "include": ["tooling/**/*.ts"]
+  "include": ["tooling/**/*.ts"],
+  // A workspace package under tooling/ typechecks itself through `pnpm -r typecheck`.
+  "exclude": ["tooling/pipelines"]
 }

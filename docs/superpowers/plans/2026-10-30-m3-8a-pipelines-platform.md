@@ -14,7 +14,8 @@
   `pipeline.config.json` (budgets, generated, locked), `tests/pipeline-runner.test.ts` (248) and
   `tests/pipeline.test.ts` (185). The generic behaviour is ported as behaviour specs; nothing is copied unchanged
   (the source is synchronous `node:fs` with sha256, this is Effect on `Files` with XXH64).
-- **Status:** planned.
+- **Status:** implemented and checked locally (`pnpm check` green); Plus CI on the Mac pending; Owner review of D1 to D7
+  pending.
 
 ## Scope
 
@@ -40,14 +41,15 @@ this repository: the framework CLI delegates to this bin later (its own row), so
 - `src/exit.ts`: `PipelineExit`, `EXIT`.
 - `src/pipeline.ts`: `PipelineDef`, `StageDef`, `StageContext`, `StageResult`, `StageFailed`, `StageError`,
   `definePipeline` (refuses duplicate stage ids, duplicate gates and a cost that is not a positive integer).
-- `src/state.schema.ts`: `.stage.json` and `gates.json` records (Zod, strict), `PipelineResult` (the `--json` object).
+- `src/state.schema.ts`: `.stage.json`, `gates.json` and `pipeline-spend.json` (Zod, strict), `PipelineResult` (the
+  `--json` object).
 - `src/pipeline-toml.schema.ts`: `pipelineTomlSchema` (`[budget.<key>] project, run`; `generated`; `[locked]`).
 - `src/stage-cache.ts`: `inputHash`, `outputsMissing`.
 - `src/budget.ts`: `budgetRefusal(need, caps, spent)`, `parseBudgetOption`.
 - `src/project.ts`: finds `pipeline.toml` (walking up from the target, or `--config`), loads it, reads and charges
   the spend ledger.
-- `src/runner.ts`: `runPipeline(def, options)`; `src/runner-plan.ts` (selection, plan, blocking gate) if the runner
-  passes 600 lines.
+- `src/run-state.ts`: one command's view of a target (spec, `.stage.json`, `gates.json`), the cache checks, the result.
+- `src/runner.ts`: `runPipeline(def, options)`, the commands, `COMMANDS`.
 - `src/router.ts`: `parseArgs`, `route(argv, registry)`; `src/cli.ts` (the bin); `src/index.ts`.
 - `src/testing/fake-api.ts`: the fake paid API (a `node:http` server on port 0, counting requests), `src/testing/toy.ts`
   (the toy pipeline, the source's `_toy.ts` made generic).
@@ -207,8 +209,33 @@ pipelines, toy `_name` pipelines, Python routing (`lang: 'py'`; M3.9 runs Python
 `pnpm format`, `pnpm check` (lint, typecheck, boundaries, the root tooling tests with F1, and every package's unit
 tests through `pnpm -r`). No browser project: nothing here renders. Pending: the Plus CI run on the Mac.
 
+## As built (deviations)
+
+- `pnpm-workspace.yaml` lists `tooling/*`; `tooling/boundary`, `ci` and `core` have no `package.json`, so the
+  workspace gains only `tooling/pipelines`. The root `tsconfig.json` excludes `tooling/pipelines` and the root
+  `vitest.config.ts` excludes `tooling/pipelines/**` (root tests stay 157, the package's 74 run once through `pnpm -r`).
+- The F1 test and the manifest rules scan `packages/` only. The package follows both by hand (core under
+  `peerDependencies` and `devDependencies`; imports `@mcthaydt/automata-node` and `@mcthaydt/automata-sim/hash`, both
+  public entries; `manifestProblems` returns nothing for its manifest). Extending both scans to `tooling/*` packages
+  is a follow-up for review, not done here.
+- Zod runs an object refinement even when a field already failed, so the "run above project" rule only compares two
+  valid caps (one issue per mistake).
+- A spec file ending `.json` is parsed as JSON, anything else as TOML.
+- `check` reads the outputs a stage recorded, minus the ones the stage now declares restorable.
+- A stage with nothing declared to produce is never adopted (the source adopted a stage with no outputs).
+- The bin registers no pipeline yet: `character` and `props` are `PLANNED` (exit 2) until M3.9 registers them.
+
 ## Execution log
 
 | Date | Step | Evidence |
 |---|---|---|
-| 2026-10-30 | Plan | this file |
+| 2026-10-30 | Plan | this file, committed alone |
+| 2026-10-30 | Definition (test 1) | 8 cases red (`definePipeline is not a function`), then green |
+| 2026-10-30 | `pipeline.toml` (test 2) | 6 red against an empty module; then 1 failure: a negative project cap also tripped the run-above-project refinement (two issues); the refinement now compares valid caps only and the test asserts each message; 6 of 6 |
+| 2026-10-30 | Cache (test 3) | 6 red (`inputHash is not a function`), then green |
+| 2026-10-30 | Budgets (test 4) | 13 red, then green |
+| 2026-10-30 | Runner (test 5) | 21 red (`runPipeline is not a function`); then 1 failure in the test itself (`fail` is not a hashed param, so the ledger case forces the stage); 21 of 21 |
+| 2026-10-30 | Router (test 6) | 14 red (`route is not a function`), then green |
+| 2026-10-30 | Bin (test 7) | 3 red against an empty `cli.ts`, then green; Node runs `src/cli.ts` with no warning on stderr |
+| 2026-10-30 | PL-a, PL-b (test 8) | written after the runner, so their failure was shown by mutation: with the budget refusal disabled both PL-a cases fail (requests reach the fake server); with the cache disabled PL-b fails; restored, 3 of 3 |
+| 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint (81 files), typecheck (root, physics, pipelines), boundaries 19 files 0 findings, root 157 tests (F1 included), pipelines 74, physics 71 |

@@ -1,0 +1,38 @@
+{
+  "name": "@mcthaydt/automata-pipelines",
+  "version": "0.0.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-plus.git",
+    "directory": "tooling/pipelines"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "bin": {
+    "automata-pipe": "./src/cli.ts"
+  },
+  "scripts": {
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "effect": "3.22.2",
+    "smol-toml": "1.9.0",
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@mcthaydt/automata-node": "0.0.3",
+    "@mcthaydt/automata-sim": "0.0.3"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-node": "0.0.3",
+    "@mcthaydt/automata-sim": "0.0.3",
+    "@types/node": "24.19.1",
+    "vitest": "5.0.3"
+  }
+}
