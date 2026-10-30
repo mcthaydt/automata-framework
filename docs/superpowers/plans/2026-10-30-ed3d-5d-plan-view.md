@@ -4,7 +4,7 @@
 - **Lane:** editor-3d. **Depends on:** ED3D.5c (#258, the scaffold and `DocumentFrame`), ED3D.5a (#150, `plan-controller`), EDK.3 (gestures), all merged. **Unblocks:** ED3D.5e (Dollhouse and Split), ED3D.5f (inspector cards), ED3D.6g (sector tools in Plan), ED3D.9c, ED3D.10b.
 - **Owner priorities (2026-10-30, through the coordinator, APP spec §5b in PR #263):** "tablet ready, cloud collaboration, and designed for non-game devs". For this slice: WebKit iPad layout checks and a touch and Pencil journey from this first PR, 44 px targets, and plain words in every label and message (a disabled control says why, an error says what to do next).
 - **Status:** Drafted 2026-10-30. Owner, 2026-10-30: "Auto accept all spec and plans": accepted once its review is done.
-- **Progress:** 0 of 9 steps.
+- **Progress:** 2 of 9 steps.
 
 ## Why
 
@@ -52,8 +52,8 @@ No contract of another package changes. No public API (the package is private an
 
 ## Steps (each: failing test first, its reason confirmed, then the minimal code)
 
-1. [ ] **Toolchain.** `pixi.js` 8.22.0, the `canvas` project with `optimizeDeps` as in editor-2d, `layout` in three browsers, the scripts. Test: a `plan-renderer.canvas.test.ts` placeholder that imports `pixi.js` fails before the dependency. Run: `pnpm --filter @mcthaydt/automata-editor-3d test:canvas`.
-2. [ ] **Colours and paint list.** `plan-colors.ts`, `plan-paint.ts`. Unit tests with fixed numbers: a fill per sector with its group colour, a stable colour for the same group across calls and levels; walls by kind with their stroke and width; door and window spans as pieces; the selected sector's outline; a point thing, a box thing and an area thing in their definition's colour; a thing whose sub-layer is hidden is absent, a locked one present; grid lines only inside the view (0.25 m at or above 40 px/m, 0.5 m below, majors on whole metres); ruler ticks and labels. Run: `vitest run --project unit src/view/plan/plan-paint.test.ts`.
+1. [x] **Toolchain.** `pixi.js` 8.22.0, the `canvas` project with `optimizeDeps` as in editor-2d, `layout` in three browsers, the scripts. Test: a `plan-renderer.canvas.test.ts` placeholder that imports `pixi.js` fails before the dependency. Run: `pnpm --filter @mcthaydt/automata-editor-3d test:canvas`.
+2. [x] **Colours and paint list.** `plan-colors.ts`, `plan-paint.ts`. Unit tests with fixed numbers: a fill per sector with its group colour, a stable colour for the same group across calls and levels; walls by kind with their stroke and width; door and window spans as pieces; the selected sector's outline; a point thing, a box thing and an area thing in their definition's colour; a thing whose sub-layer is hidden is absent, a locked one present; grid lines only inside the view (0.25 m at or above 40 px/m, 0.5 m below, majors on whole metres); ruler ticks and labels. Run: `vitest run --project unit src/view/plan/plan-paint.test.ts`.
 3. [ ] **Renderer.** `plan-renderer.ts`, Chromium canvas tests reading pixels: a fill's colour at its centre, a wall's colour on its line, the background colour outside, a resize that changes the drawing buffer, a WebGL 1 context refused, context loss reported and a restore redrawn.
 4. [ ] **Layers model and panel.** `layers-model.ts` (unit: rows for Sectors, Walls, Things and one per definition in the kit's order, each with its label, colour and state), `LayersPanel.svelte` (DOM: Show/Hide and Lock toggle the view store; `aria-pressed`; the buttons' names say what they do, "Hide Walls", "Lock Lamps").
 5. [ ] **Plan canvas.** `PlanCanvas.svelte` with a fake renderer (DOM): the first draw after the measure; a tap through `attachGestures` with the kit's `fake-pointer` selects a sector (the editor's selection changes and a redraw follows); a two-finger pan moves the camera; a wheel zooms; a Pencil drag on empty plan does not pan; a cancelled drag leaves the level as it was; the notice for unavailable and lost WebGL, with Try again.
@@ -68,4 +68,5 @@ No contract of another package changes. No public API (the package is private an
 
 ## Execution record
 
-(Filled in as each step's check passes.)
+- **Step 1** (2026-10-30): `pixi.js` 8.22.0 and the `canvas` project; the placeholder canvas test failed in Node (no `document`) before the project existed, then passed in Chromium. The `layout` project now runs Chromium, WebKit and Firefox: the existing 192 layout cases passed in all three at the first run.
+- **Step 2** (2026-10-30): `plan-colors.ts` and `plan-paint.ts` (11 tests), failing first on the missing modules. Deviations from the plan text: the grid reuses ED3D.4's `gridLines` (the step doubles until lines are 16 px apart, majors every fourth line) rather than a new 40 px/m rule; a group's fill comes from a hash of its name into eight muted fills, not a floor-height tint, so a zone keeps its colour across levels; nav edges are drawn after all, as `links`, because `LevelProfile.links` already lists them (ED3D.7c). One test of mine was wrong (it linked a lamp to a crate; a link joins two things of one definition) and was corrected. `halfFootprint` is now exported from `thing-pick.ts`, so the paint and the pick share a box's footprint.
