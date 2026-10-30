@@ -3,7 +3,6 @@
 // navigates and draws nothing: an opened level goes to its owner, a file to look at goes to the owner's error panel,
 // and everything else a person should hear about is a toast.
 import {
-  type BrowserState,
   createProjectBrowser,
   type ProjectListSource,
   type ToastStore,
@@ -15,8 +14,6 @@ import type { ProjectEntry } from '../project-list'
 import { importNotice, openProblem, searchWords } from './home-model'
 
 export type Busy = 'open' | 'import'
-
-export type HomeState = BrowserState<ProjectEntry, Busy>
 
 export interface HomeController extends ProjectListSource<ProjectEntry, Busy> {
   /** Opens `path`, or the selected entry. */
