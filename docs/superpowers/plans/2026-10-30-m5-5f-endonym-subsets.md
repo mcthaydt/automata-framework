@@ -2,8 +2,8 @@
 
 - **Task:** M5.5F in [02](../../02-master-delivery-plan.md) (lane content, size S). M5 spec [§4.7 Fonts](../specs/2026-10-16-m5-saves-audio-design.md): "each locale's subset is cut … to that locale's characters … plus FloorFifty's `ALWAYS` set … and the endonym text for the language picker". The follow-up recorded by the [M5.5 plan](2026-10-18-m5-5-fonts.md) (its "Out" table).
 - **Lane:** content. **Depends on:** M5.5 (merged), the language picker (#91: `LanguageSection` and `endonymOf` in ui).
-- **Status:** Drafted 2026-10-30.
-- **Progress:** 4 of 5 steps.
+- **Status:** Implemented and locally checked 2026-10-30 (draft PR from `claude/m5-5f-endonym-subsets`). Not CI verified (the Mac's CI pending); no Owner gate of its own.
+- **Progress:** 5 of 5 steps.
 
 ## Sources, read at these commits
 
@@ -59,10 +59,14 @@ Each step starts with its test, run red, with the failure reason recorded.
     - with no font serving `ja`, the build passes: an unserved language's name is not checked (green before and after; it guards the rule).
   - *Expected failure:* the first case builds (`expected the build to fail`).
   - *Done: red `expected the build to fail`, then green: 14 of 14 in `build-fonts.test.ts`, 292 of 292 in content's node project, `tsc` clean. The message check and the name check share `missingCharacters` and `notInSubset`; `LocaleCoverage` gains `at`, the locale's entry in its first font's `locales`. `DiagnosticCode`'s `missingGlyph` doc names the picker's names too. Hand mutations: dropping the served-language filter fails the unserved case; dropping the names from the cut fails 9 of 14 (the Latin subsets then lack the ç of Français).*
-- [ ] **5. Reports, changeset, gates.**
+- [x] **5. Reports, changeset, gates.**
   - *Regenerate:* `pnpm build`, `pnpm api-report --update`, `pnpm api-index` (`pnpm cheatsheet` if stale), `pnpm agent-skills --write`.
   - *Changeset:* a patch for `@mcthaydt/automata-content` and `@mcthaydt/automata-ui`.
   - *Gates:* `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm changeset status --since=origin/main`, `node tooling/release/src/check-changesets.ts`, `pnpm --filter @mcthaydt/automata-content test:parity`, `pnpm --filter @mcthaydt/automata-ui test:parity`, and (ui's dependencies change) `pnpm build && node tooling/consumer-smoke/src/run.ts --from packs`.
+  - *Done, 2026-10-30, first attempts on `7f2c27c5` (main at `30e9606c`, unmoved at push time):*
+    - *Regenerate:* `pnpm api-report` failed first (`content.api.md` gains `endonymOf` in `./locale`), then `--update`; `pnpm api-index` said the cheatsheet was stale, `pnpm cheatsheet`, then 571 exports, 0 undocumented; `pnpm agent-skills` differed, `--write`, then current. ui's report is unchanged. The `localeCharacters` doc now says the build adds the names, so it was regenerated once more.
+    - *Known quirk (not new):* the API index prints ui's re-exported `endonymOf` with its source body, as it already does for ship's re-exported `FileError`: the extractor resolves a workspace package through its development `exports` (`src`), not its published `.d.ts`. Left as a follow-up.
+    - *Gates:* `pnpm format` clean; `TURBO_FORCE=true pnpm check` exit 0 (lint, typecheck 36 of 36, boundaries 0 findings, style 654 files 0 findings, knip clean apart from the existing `zod` hint in ship, test:unit 34 of 34); `pnpm changeset status --since=origin/main` passes; `check-changesets` 4 changesets, 0 problems; content parity 6 of 6 and ui layout parity 2412 of 2412 (Chromium, WebKit, Firefox); `pnpm build` then `consumer-smoke --from packs` passed (install, node entries, content bin, types with TypeScript 7, 7 nodenext and 6, no eval, both bundles).
 
 ## Out
 
@@ -75,4 +79,9 @@ Each step starts with its test, run red, with the failure reason recorded.
 
 ## Execution log
 
-- 2026-10-30: plan drafted (step 1).
+- 2026-10-30: plan drafted (step 1), `b92905dd`.
+- Step 2, `812967ad`: `endonymOf` moved to content's `./locale` with its test; ui re-exports it and depends on content.
+- Step 3, `93bbe80d`: every subset is cut with every content language's name.
+- Step 4, `de40e742`: the gate checks the served languages' names in each language's subsets.
+- Step 5, `7f2c27c5`: changeset (content, ui patch), API report, index, cheatsheet and agent skills; gates above.
+- **Deviation:** none from this plan. From the brief's two options, every subset carries the names (the spec's wording) rather than FloorFifty's separate endonym file; the reasons are under Design.
