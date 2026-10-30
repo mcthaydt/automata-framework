@@ -69,6 +69,19 @@ describe('patchToml', () => {
     expect(out).toBe(`${JUICE.slice(0, start)}0.5${JUICE.slice(start + '0.35'.length)}`)
   })
 
+  it('a float literal given a whole number stays a float, and no number is written with an exponent', () => {
+    // toml-patch alone writes `threshold = 1` (an integer) and keeps an exponent's style (`1e3` set to 2000 is `2e3`).
+    const out = patched(JUICE, (value) => {
+      value.slam.threshold = 1
+    })
+    expect(out).toBe(JUICE.replace('threshold = 0.6 ', 'threshold = 1.0 '))
+    expect(
+      patched('a = 1e3\n', (value) => {
+        value.a = 2000
+      }),
+    ).toBe('a = 2000.0\n')
+  })
+
   it('several scalars change in one patch, each in its own span', () => {
     const out = patched(JUICE, (value) => {
       value.limits.particles = 200
