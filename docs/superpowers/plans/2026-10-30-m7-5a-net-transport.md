@@ -10,7 +10,7 @@
   `apps/client/src/managers/network/{colyseus-network,network}.ts`, `apps/client/src/ui/store/room-store.svelte.ts`,
   `tests/client/managers/network/{colyseus-network,reconnect}.test.ts`, `tests/client/ui/room-store.test.ts`,
   `tests/client/support/fakes/server.ts` (`fakeColyseusClient`).
-- **Status:** planned.
+- **Status:** in progress.
 
 ## Scope
 
@@ -114,14 +114,14 @@ the grace is for.
 
 ## Steps
 
-- [ ] 1. `NetError` and `refusalCode`: red (module missing), green. Cases: every net code read from `CODE: words`;
+- [x] 1. `NetError` and `refusalCode`: red (module missing), green. Cases: every net code read from `CODE: words`;
   `not found` → `ROOM_NOT_FOUND`; `is locked` → `ROOM_FULL`; a fetch failure → `OFFLINE`; anything else `REFUSED`; the
   server's words never become the code.
-- [ ] 2. `reconnectDelay`: FloorFifty's two cases (doubling to the ceiling; the ±25% spread).
-- [ ] 3. Seat token store: write and read back; never `localStorage`; a corrupt or foreign value read as nothing and
+- [x] 2. `reconnectDelay`: FloorFifty's two cases (doubling to the ceiling; the ±25% spread).
+- [x] 3. Seat token store: write and read back; never `localStorage`; a corrupt or foreign value read as nothing and
   removed; a throwing storage costs nothing.
-- [ ] 4. Request ids: unique across two loads; at most 64 characters; printable (net's `reqIdSchema`).
-- [ ] 5. Room info: projects the state; `hostSeat` −1 is undefined; `you` only from `seated`; a plain frozen object
+- [x] 4. Request ids: unique across two loads; at most 64 characters; printable (net's `reqIdSchema`).
+- [x] 5. Room info: projects the state; `hostSeat` −1 is undefined; `you` only from `seated`; a plain frozen object
   holding no schema reference; a state that does not parse is refused; `sameRoomInfo`.
 - [ ] 6. `fakeColyseus` in `net/testing` and the transport: correlated requests (resolve on their own answer only,
   reject with the room's code, rejected when the room is replaced or left); `cmd` fire and forget; `snap` + bytes
@@ -180,3 +180,4 @@ continue ends with a reason (`ended`). The indicator, overlay and copy cases (8)
 
 | Date | Step | Evidence |
 |---|---|---|
+| 2026-10-30 | 1 to 5 | Each module red (module missing), then green: net-error 15, reconnect-delay 2, seat-token 9, request-ids 4, room-info 9. `NetError`'s base is typed first for `isolatedDeclarations` (as `server`'s errors are) |
