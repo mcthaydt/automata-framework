@@ -26,6 +26,19 @@ export interface WorktreeGcOptions {
 
 /** Test output a run regenerates, often a gigabyte: removed from an unlocked, idle worktree. */
 const SCRATCH = ['playwright-report', 'test-results'] as const
+/**
+ * Ignored folders a worktree may lose without losing work, because a command regenerates them (plan DT-D7):
+ * installs, build output, core's packs and test output. Matched as a whole path segment anywhere
+ * (`packages/x/node_modules/`). Any other ignored path (captured `evidence/`, a `.env`) exists only in that
+ * worktree, and `git worktree remove` deletes ignored files even without `--force`, so it keeps the worktree.
+ */
+const REGENERATED = new Set(['node_modules', '.turbo', 'dist', '.core', '.evidence', ...SCRATCH])
+const isRegenerated = (path: string): boolean =>
+  path
+    .replace(/\/$/, '')
+    .split('/')
+    .some((segment) => REGENERATED.has(segment))
+
 /** Where agents' worktrees live, for the orphan report. */
 const WORKTREES_DIR = '.claude/worktrees'
 
@@ -133,10 +146,17 @@ function keepReason(
     if (context.pids !== null && context.pids.length > 0)
       return `running process: pid ${context.pids.join(', ')}`
 
-    const status = yield* git(record.path, ['status', '--porcelain'])
+    // --ignored adds `!! <path>` lines (a wholly ignored folder as one `dir/` line); plain status hides them.
+    const status = yield* git(record.path, ['status', '--porcelain', '--ignored'])
     if (!status.ok) return `git status failed: ${status.message}`
-    const uncommitted = status.stdout.split('\n').filter((line) => line.trim() !== '').length
+    const entries = status.stdout.split('\n').filter((line) => line.trim() !== '')
+    const uncommitted = entries.filter((line) => !line.startsWith('!! ')).length
     if (uncommitted > 0) return `${uncommitted} uncommitted`
+    const precious = entries
+      .filter((line) => line.startsWith('!! '))
+      .map((line) => line.slice(3))
+      .filter((path) => !isRegenerated(path))
+    if (precious.length > 0) return `ignored files git would delete: ${precious.join(', ')}`
 
     const notInBase = yield* count(record.path, ['rev-list', '--count', `${context.base}..HEAD`])
     if (typeof notInBase === 'string') return notInBase

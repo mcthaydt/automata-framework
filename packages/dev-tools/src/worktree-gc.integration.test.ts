@@ -33,11 +33,14 @@ beforeAll(() => {
   main = join(root, 'main')
   run(root, 'init', '-q', '--bare', '-b', 'main', 'remote.git')
   run(root, 'clone', '-q', 'remote.git', 'main')
-  writeFileSync(join(main, '.gitignore'), 'test-results/\nplaywright-report/\n.claude/\n')
+  writeFileSync(
+    join(main, '.gitignore'),
+    'test-results/\nplaywright-report/\n.claude/\nnode_modules/\nevidence/\n',
+  )
   run(main, 'add', '.gitignore')
   run(main, 'commit', '-q', '-m', 'first')
   run(main, 'push', '-q', 'origin', 'HEAD:main')
-  for (const name of ['merged', 'dirty', 'ahead', 'locked', 'busy'])
+  for (const name of ['merged', 'dirty', 'ahead', 'locked', 'busy', 'keepsake'])
     run(main, 'worktree', 'add', '-q', '-b', name, tree(name), 'main')
   mkdirSync(join(tree('merged'), 'test-results'))
   writeFileSync(join(tree('merged'), 'test-results', 'trace.zip'), 'x')
@@ -45,6 +48,12 @@ beforeAll(() => {
   writeFileSync(join(tree('ahead'), 'a.txt'), 'a')
   run(tree('ahead'), 'add', 'a.txt')
   run(tree('ahead'), 'commit', '-q', '-m', 'ahead')
+  // Ignored, so `git status --porcelain` hides it, and `git worktree remove` would delete it: evidence that exists
+  // nowhere else. node_modules beside it is regenerated and does not hold the worktree.
+  mkdirSync(join(tree('keepsake'), 'evidence'))
+  writeFileSync(join(tree('keepsake'), 'evidence', 'a.png'), 'png')
+  mkdirSync(join(tree('merged'), 'node_modules'))
+  writeFileSync(join(tree('merged'), 'node_modules', 'x.js'), 'x')
   run(main, 'worktree', 'lock', tree('locked'))
   sleeper = spawn('sleep', ['120'], { cwd: tree('busy'), stdio: 'ignore' })
 })
@@ -71,12 +80,13 @@ describe('DT-h: worktree-gc on a real repository', () => {
       'keep     .claude/worktrees/ahead (1 commit not in origin/main)',
       `keep     .claude/worktrees/busy (running process: pid ${sleeper?.pid})`,
       'keep     .claude/worktrees/dirty (1 uncommitted)',
+      'keep     .claude/worktrees/keepsake (ignored files git would delete: evidence/)',
       'keep     .claude/worktrees/locked (locked)',
       'scratch  .claude/worktrees/merged/test-results',
       'remove   .claude/worktrees/merged (merged, pushed, clean; branch merged)',
     ])
     expect(out.stdout.trimEnd().split('\n').at(-1)).toBe('(report only: --apply to act)')
-    for (const name of ['merged', 'dirty', 'ahead', 'locked', 'busy'])
+    for (const name of ['merged', 'dirty', 'ahead', 'locked', 'busy', 'keepsake'])
       expect(existsSync(tree(name)), name).toBe(true)
     expect(existsSync(join(tree('merged'), 'test-results'))).toBe(true)
   })
@@ -85,8 +95,10 @@ describe('DT-h: worktree-gc on a real repository', () => {
     const out = await gc(true)
     expect([out.exit, out.stderr]).toEqual([0, ''])
     expect(existsSync(tree('merged'))).toBe(false)
-    for (const name of ['dirty', 'ahead', 'locked', 'busy']) expect(existsSync(tree(name)), name).toBe(true)
+    for (const name of ['dirty', 'ahead', 'locked', 'busy', 'keepsake'])
+      expect(existsSync(tree(name)), name).toBe(true)
+    expect(existsSync(join(tree('keepsake'), 'evidence', 'a.png'))).toBe(true)
     expect(existsSync(join(tree('dirty'), 'notes.txt'))).toBe(true)
-    expect(branches()).toEqual(['ahead', 'busy', 'dirty', 'locked', 'main'])
+    expect(branches()).toEqual(['ahead', 'busy', 'dirty', 'keepsake', 'locked', 'main'])
   })
 })

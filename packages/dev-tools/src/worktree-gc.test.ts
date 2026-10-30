@@ -19,6 +19,8 @@ interface Tree {
   readonly notInBase?: number
   readonly onNoRemote?: number
   readonly statusFails?: boolean
+  /** `git status --porcelain --ignored` lines for ignored paths, without the `!! ` prefix. */
+  readonly ignored?: readonly string[]
 }
 
 interface Repo {
@@ -29,6 +31,8 @@ interface Repo {
   readonly processes?: ReadonlyArray<{ pid: number; at: string }> | 'not-found'
   readonly orphans?: readonly string[]
   readonly removeFails?: string
+  /** The --base option (default main). */
+  readonly base?: string
 }
 
 let main = ''
@@ -68,12 +72,18 @@ function answer(repo: Repo, call: RunCall): FakeAnswer {
         )
         .join('\n'),
     }
-  if (command === 'fetch -q origin main') return repo.fetchFails ? { exitCode: 128, stderr: 'no origin' } : {}
+  const base = repo.base ?? 'main'
+  if (command === `fetch -q origin ${base}`)
+    return repo.fetchFails ? { exitCode: 128, stderr: 'no origin' } : {}
   if (command === 'worktree prune --dry-run -v')
     return { stdout: 'Removing worktrees/gone: gitdir file points to non-existent location\n' }
-  if (command === 'status --porcelain')
-    return tree?.statusFails ? { exitCode: 128, stderr: 'fatal: broken' } : { stdout: tree?.dirty ?? '' }
-  if (/^rev-list --count \S+\.\.HEAD$/.test(command)) return { stdout: `${tree?.notInBase ?? 0}\n` }
+  if (command === 'status --porcelain --ignored')
+    return tree?.statusFails
+      ? { exitCode: 128, stderr: 'fatal: broken' }
+      : { stdout: `${tree?.dirty ?? ''}${(tree?.ignored ?? []).map((path) => `!! ${path}\n`).join('')}` }
+  // Exactly the base the command must compare with: origin/<base> after a fetch, else the local <base>.
+  if (command === `rev-list --count ${repo.fetchFails ? base : `origin/${base}`}..HEAD`)
+    return { stdout: `${tree?.notInBase ?? 0}\n` }
   if (command === 'rev-list --count HEAD --not --remotes') return { stdout: `${tree?.onNoRemote ?? 0}\n` }
   if (command.startsWith('worktree remove ') && repo.removeFails)
     return { exitCode: 128, stderr: `${repo.removeFails}\n` }
@@ -90,7 +100,9 @@ function gc(repo: Repo, apply = false) {
   for (const tree of repo.trees) if (!tree.prunable) mkdirSync(at(tree.name), { recursive: true })
   const fake = fakeProcessRunner((call) => answer(repo, call))
   const output = Effect.runSync(
-    worktreeGc({ apply, base: 'main', cwd: main }).pipe(Effect.provide(Layer.merge(FilesLive, fake.layer))),
+    worktreeGc({ apply, base: repo.base ?? 'main', cwd: main }).pipe(
+      Effect.provide(Layer.merge(FilesLive, fake.layer)),
+    ),
   )
   const mutations = fake
     .lines()
@@ -158,6 +170,44 @@ describe('DT-f: never removes', () => {
     expect(keepLine({ name: 'a', onNoRemote: 1 })).toEqual([
       'keep     .claude/worktrees/a (1 commit on no remote)',
     ])
+  })
+
+  it('a worktree with ignored files outside the regenerated folders, naming them', () => {
+    expect(
+      keepLine({
+        name: 'a',
+        ignored: [
+          '.env',
+          'evidence/',
+          'node_modules/',
+          'packages/x/node_modules/',
+          'packages/x/dist/',
+          '.turbo/',
+        ],
+      }),
+    ).toEqual(['keep     .claude/worktrees/a (ignored files git would delete: .env, evidence/)'])
+  })
+
+  it('removes a worktree whose only ignored files are regenerated ones', () => {
+    const out = gc(
+      {
+        trees: [
+          {
+            name: 'a',
+            ignored: [
+              'node_modules/',
+              '.core/',
+              'dist/',
+              'packages/x/.turbo/',
+              'test-results/',
+              '.evidence/',
+            ],
+          },
+        ],
+      },
+      true,
+    )
+    expect(out.mutations).toContain(`worktree remove <main>/.claude/worktrees/a`)
   })
 
   it('a worktree whose git check fails', () => {
@@ -241,6 +291,14 @@ describe('DT-g: --apply', () => {
   it('skips a prunable record (its folder is gone)', () => {
     const out = gc({ trees: [{ name: 'gone', prunable: true }] }, true)
     expect(out.mutations).toEqual(['worktree prune'])
+  })
+
+  it('compares with origin/<base> for a configured --base', () => {
+    const out = gc({ trees: [{ name: 'a', notInBase: 1 }], base: 'develop' })
+    expect(out.lines[0]).toBe('base: origin/develop')
+    expect(linesFor(out.lines, 'keep')).toEqual([
+      'keep     .claude/worktrees/a (1 commit not in origin/develop)',
+    ])
   })
 
   it('uses the local base when the fetch fails', () => {
