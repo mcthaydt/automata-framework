@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { ensureGitleaks, historyScanArgs } from './gitleaks.ts'
+import { ensureRepoGitleaks, historyScanArgs } from './gitleaks.ts'
 
 // The history scan reads what the checkout's HEAD reaches, never every ref (2026-10-30): CI's full-history
 // checkout also fetches every branch on origin, so one lane's unmerged branch with a finding (a false positive in
@@ -18,12 +18,7 @@ let binary = ''
 // longer than vitest's 10 s hook default on a busy runner (#206's checks job, 2026-10-30): the hook gets its own limit.
 const DOWNLOAD_MS = 120_000
 beforeAll(async () => {
-  binary = await ensureGitleaks({
-    cacheDir: join(root, 'node_modules/.cache/gitleaks'),
-    platform: process.platform,
-    arch: process.arch,
-    fetch: (url) => fetch(url),
-  })
+  binary = await ensureRepoGitleaks(root)
 }, DOWNLOAD_MS)
 
 const scratches: string[] = []

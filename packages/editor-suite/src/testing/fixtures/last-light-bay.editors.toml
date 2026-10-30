@@ -1,0 +1,204 @@
+# The Last Light's editor list for its Bay scene, converted AF-side (editor suite spec §8, decision 8: the game is
+# never edited). Source: mcthaydt/PixiJS3D_Experiment_001 editor.manifest.json at 92e6704, its gate records
+# (docs/**/gates.json, each gate's `stage`) and editor/src/server/checks.ts `checksFor` (the free pipe command each
+# manifest check maps to). Converted: TypeScript scene files become the AF content files of spec §2's table (as the
+# M6 converters write them), `literal`/`claude` modes become `edit`/`ask`, and each check becomes a declared argv.
+# The blockout stays The Last Light's own format, which the 3D level editor edits (ED3D §4.5). Q-FEEL and Q-AUD are
+# named by the manifest but have no record at 92e6704, so their `records` are where the pipelines would write them
+# and the gate pill reads their state as unknown.
+format = "af-editors/1"
+scenes = "content/scenes/{scene}/"
+generated = [
+  "content/generated/**",
+  "tests/generated/**",
+  "docs/design/*-puzzle.md",
+  "docs/design/*-audit.md",
+  "docs/design/*-audit.json",
+  "docs/narrative/*-script.md",
+  "src/scenes/*/map.ts",
+  "src/scenes/*/level.ts",
+]
+never = ["package.json", "pipeline.config.json", "src/game/contracts/**", "scripts/**/contracts.*", ".github/**", ".claude/**", "**/.stage.json"]
+
+[[file]]
+glob = "content/scenes/{scene}/story.toml"
+editor = "writer"
+modes = ["edit", "ask"]
+gates = ["N-G1"]
+checks = ["content", "narrative-check"]
+
+[[file]]
+glob = "content/scenes/{scene}/dialogues.toml"
+editor = "writer"
+modes = ["edit", "ask"]
+gates = ["N-G1"]
+checks = ["content", "narrative-check"]
+
+[[file]]
+glob = "content/scenes/{scene}/puzzle.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = ["P-G1"]
+checks = ["content", "puzzle-check"]
+
+[[file]]
+glob = "content/scenes/{scene}/agents.toml"
+editor = "schematic"
+modes = ["edit", "ask"]
+gates = ["S-G2"]
+checks = ["content", "systems-check", "fairness"]
+
+[[file]]
+glob = "content/cutscenes/*.toml"
+editor = "sequence"
+modes = ["edit", "ask"]
+gates = ["C-G1"]
+checks = ["content", "cutscene-lint", "cutscene-audit"]
+
+[[file]]
+glob = "content/feel.toml"
+editor = "feel"
+modes = ["edit"]
+gates = ["Q-FEEL"]
+checks = ["content", "feel-check"]
+
+[[file]]
+glob = "content/audio/cues.toml"
+editor = "audio"
+modes = ["edit"]
+gates = ["Q-AUD"]
+checks = ["content", "audio-check"]
+
+[[file]]
+glob = "content/figures/*.toml"
+editor = "studio"
+modes = ["edit", "ask"]
+gates = ["G1", "G6"]
+checks = ["content"]
+
+[[file]]
+glob = "content/figure-library/*.toml"
+editor = "studio"
+modes = ["edit", "ask"]
+gates = ["G1", "G6"]
+checks = ["content"]
+
+[[file]]
+glob = "docs/art/blockout-{scene}/blockout.json"
+editor = "levels-3d"
+modes = ["edit", "ask"]
+gates = ["E1", "E2", "E3", "E4", "LOOK-G1", "baseline"]
+checks = ["content", "blockout-generate", "scene-check", "puzzle-check"]
+
+[[check]]
+id = "narrative-check"
+run = ["automata", "pipe", "narrative", "check", "docs/narrative/{scene}", "--json"]
+
+[[check]]
+id = "puzzle-check"
+run = ["automata", "pipe", "puzzle", "check", "docs/art/{scene}/puzzle", "--json"]
+
+[[check]]
+id = "systems-check"
+run = ["automata", "pipe", "systems", "check", "docs/art/{scene}/systems", "--json"]
+
+[[check]]
+id = "fairness"
+run = ["automata", "pipe", "systems", "fairness", "{scene}", "--json"]
+measure = true
+
+[[check]]
+id = "cutscene-lint"
+run = ["automata", "pipe", "narrative", "cutscene", "lint", "docs/narrative/{scene}", "--json"]
+
+[[check]]
+id = "cutscene-audit"
+run = ["automata", "pipe", "narrative", "cutscene", "audit", "docs/narrative/{scene}", "--json"]
+
+[[check]]
+id = "feel-check"
+run = ["automata", "pipe", "feel", "check", "docs/feel", "--json"]
+
+[[check]]
+id = "audio-check"
+run = ["automata", "pipe", "audio", "check", "docs/art/audio", "--json"]
+
+[[check]]
+id = "blockout-generate"
+run = ["automata", "pipe", "blockout", "generate", "{scene}"]
+when = "before"
+joins = ["src/scenes/{scene}/map.ts", "src/scenes/{scene}/level.ts"]
+
+[[check]]
+id = "scene-check"
+run = ["automata", "pipe", "scene", "check", "src/scenes/{scene}", "--json"]
+
+[[gate]]
+id = "N-G1"
+name = "Screenplay"
+records = "docs/narrative/{scene}/gates.json"
+
+[[gate]]
+id = "C-G1"
+name = "Cutscene review"
+records = "docs/narrative/{scene}/gates.json"
+
+[[gate]]
+id = "P-G1"
+name = "Puzzle doc"
+records = "docs/art/{scene}/puzzle/gates.json"
+
+[[gate]]
+id = "S-G2"
+name = "Systems tunables"
+records = "docs/art/{scene}/systems/gates.json"
+
+[[gate]]
+id = "Q-FEEL"
+name = "Feel"
+records = "docs/feel/gates.json"
+
+[[gate]]
+id = "Q-AUD"
+name = "Audio"
+records = "docs/audio/gates.json"
+
+[[gate]]
+id = "G1"
+name = "Character sheet"
+records = "docs/art/*-figure/gates.json"
+
+[[gate]]
+id = "G6"
+name = "Character install"
+records = "docs/art/*-3d/gates.json"
+
+[[gate]]
+id = "E1"
+name = "Reference readback"
+records = "docs/art/reference-{scene}/gates.json"
+
+[[gate]]
+id = "E2"
+name = "Prop list"
+records = "docs/art/props-{scene}/gates.json"
+
+[[gate]]
+id = "E3"
+name = "Prop sheet"
+records = "docs/art/props-{scene}/gates.json"
+
+[[gate]]
+id = "E4"
+name = "Prop model"
+records = "docs/art/props-{scene}/gates.json"
+
+[[gate]]
+id = "LOOK-G1"
+name = "Look board"
+records = "docs/style/look/gates.json"
+
+[[gate]]
+id = "baseline"
+name = "Baseline shoot"
+records = "docs/verification/baselines/**/gates.json"
