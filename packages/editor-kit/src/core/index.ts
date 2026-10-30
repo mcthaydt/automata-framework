@@ -3,6 +3,15 @@
 // without the Svelte compiler; the root entry adds the shell and the widgets on top of the same modules.
 export { type Command, type CommandRegistry, createCommandRegistry, defineCommand } from '../commands/command'
 export { normalizeShortcut, parseShortcut, type Shortcut } from '../commands/shortcut'
+export {
+  autosaveProblem,
+  recoveryUnreadable,
+  reloadedMessage,
+  savedCopyMessage,
+  saveFailure,
+} from '../dialogs/document-messages'
+export { recoveryFacts } from '../dialogs/recovery-facts'
+export { retryAction } from '../dialogs/retry-action'
 export type { Point } from '../fields/field-types'
 export type { PointerKind } from '../gestures/pointer-sample'
 export {
@@ -21,6 +30,29 @@ export {
   type HistoryOptions,
   type Transaction,
 } from '../history/history'
+export {
+  cardWords,
+  filterEntries,
+  type HomeCard,
+  modifiedLabel,
+  projectCount,
+  reconcileSelection,
+  type StepKey,
+  type StorageNote,
+  sizeLabel,
+  splitPath,
+  stepSelection,
+  storageNotes,
+  type Tone,
+  workspaceSubtitle,
+} from '../home/project-browse'
+export {
+  type BrowserState,
+  createProjectBrowser,
+  type ProjectBrowser,
+  type ProjectBrowserOptions,
+  type ProjectListSource,
+} from '../home/project-browser'
 export { createKeymap, type KeyInput, type Keymap, type Platform } from '../keymap/keymap'
 export { createSelection, type Selection, type SelectionId } from '../selection/selection'
 export type { StorageClock } from '../storage/clock'
@@ -59,6 +91,7 @@ export {
   type WriteFailure,
   type WriteResult,
 } from '../storage/project-store'
+export { readStored, type Stored } from '../storage/read-stored'
 export { discardRecovery, findRecovery, type Recovery } from '../storage/recovery'
 export type { SaveState } from '../storage/save-state'
 export { storePathProblem } from '../storage/store-path'

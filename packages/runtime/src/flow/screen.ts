@@ -15,6 +15,7 @@ import type { Settings } from '../settings/settings.manager.js'
 import type { Time } from '../time/time.manager.js'
 import type { Flow } from './flow.manager.js'
 
+/** What a screen's `enter` is given: the layer to mount into, and the screen it came from. */
 export interface ScreenContext {
   readonly layer: HTMLElement
   readonly from: string | undefined
@@ -28,6 +29,7 @@ export interface ScreenContext {
   readonly runtime: Scope.Scope
 }
 
+/** The runtime services a screen's `enter` may use. */
 export type RuntimeServices =
   | Hosting
   | PresentationBus
@@ -44,6 +46,10 @@ export type RuntimeServices =
   | Leaderboards
   | Haptics
 
+/**
+ * One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it
+ * in its scope (closing the scope leaves the screen).
+ */
 export interface ScreenDef<R = never> {
   readonly id: string
   readonly pausesSim?: boolean
@@ -54,6 +60,7 @@ export interface ScreenDef<R = never> {
   openMenu?(): boolean
 }
 
+/** Why entering a screen failed: an asset load, a stalled download, or the screen's own failure. */
 export type FlowFailure =
   | AssetLoadFailed
   | LoadStalled

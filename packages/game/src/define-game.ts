@@ -48,6 +48,11 @@ export interface GameSaves<D> {
   label?(slot: number): string
 }
 
+/**
+ * A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds,
+ * scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
+ * `defineGame` fills in every default.
+ */
 export interface GameSpec<S = never, D = unknown> {
   /** Ruken's game id (`[game].id`), checked with Ruken's own rule; it is `hosting.gameId`. */
   readonly id: string
@@ -236,6 +241,11 @@ export function pixiOptions<S>(
   }
 }
 
+/**
+ * Checks a spec and fills in every default over the runtime, the Pixi renderer, Ruken hosting and the default
+ * screens; `startGame` boots the result. Pure: it reads no document, so a game module also loads in Node.
+ * Throws `BootDefect` (its cause a `GameSpecError`) for an invalid spec.
+ */
 export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S> {
   const plugins = simPluginsOf(spec)
   const problems = problemsOf(spec, plugins)

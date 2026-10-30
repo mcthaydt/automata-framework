@@ -1,5 +1,8 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { checkFile, MAX_SOURCE_LINES } from './style'
+import { checkFile, checkGameRoot, MAX_SOURCE_LINES } from './style'
 
 const sys =
   "import { defineSystem } from 'x'\nexport const moveSystem = defineSystem({ name: 'move', phase: 'gameplay', run() {} })\n"
@@ -112,5 +115,107 @@ describe('the 600-line ceiling on non-test source (QB spec §4.1)', () => {
 
   test('applies to index.ts too, which skips the naming rules', () => {
     expect(checkFile('/p/src/index.ts', lines(601)).map((f) => f.rule)).toEqual(['file-length'])
+  })
+})
+
+describe('a game root groups its sim by role (GL spec §5.1, acceptance A1–A11)', () => {
+  const game = '/g/src'
+  const inGame = (path: string, code: string) => checkFile(`${game}/${path}`, code, { gameRoot: game })
+  const rules = (path: string, code: string) => inGame(path, code).map((f) => f.rule)
+  const cmd = "import { defineCommand } from 'x'\nexport const Jump = defineCommand('jump', {})\n"
+  const evt = "import { defineEvent } from 'x'\nexport const Landed = defineEvent('landed', {})\n"
+  const res = "import { defineResource } from 'x'\nexport const Score = defineResource('score', 0)\n"
+  const plugin =
+    "import { definePlugin } from 'x'\nexport const gamePlugin = definePlugin({ name: 'game' })\n"
+  const gameDef = "import { defineGame } from 'x'\nexport const game = defineGame({})\n"
+
+  test.each([
+    ['components.ts', comp],
+    ['commands.ts', cmd],
+    ['events.ts', evt],
+    ['resources.ts', res],
+    ['systems.ts', `${sys}export function clampSpeed(x: number): number {\n  return x\n}\n`],
+    ['state.ts', plugin],
+    ['constants.ts', 'export const SPEED = 3 // px per tick\n'],
+    ['views.ts', plain],
+    ['main.ts', gameDef], // A7
+    ['systems/player-move.ts', sys], // A4
+    ['systems/tiles.ts', plain], // A4: helpers only
+    ['systems/jump.system.ts', sys], // a matching suffix is redundant but allowed
+    ['state/setup.ts', plugin],
+    ['views/hud.ts', plain],
+    ['player.component.ts', comp], // A8: today's form still passes
+    ['content/rooms.content.ts', schema],
+  ])('%s passes', (path, code) => {
+    expect(inGame(path, code)).toEqual([])
+  })
+
+  test('A1: components.ts exporting a defineSystem result fails role-mismatch', () => {
+    const findings = inGame('components.ts', sys)
+    expect(findings.map((f) => f.rule)).toEqual(['role-mismatch'])
+    expect(findings[0]?.message).toBe('components.ts may only export defineComponent results')
+  })
+
+  test('A2: systems.ts exporting no defineSystem result fails role-missing', () => {
+    const findings = inGame('systems.ts', plain)
+    expect(findings.map((f) => f.rule)).toEqual(['role-missing'])
+    expect(findings[0]?.message).toBe('systems.ts must export at least one defineSystem result')
+  })
+
+  test('A3: state.ts holds only the plugin; a system or a resource there fails role-mismatch', () => {
+    expect(rules('state.ts', `${plugin}${sys.split('\n')[1]}\n`)).toEqual(['role-mismatch'])
+    const findings = inGame('state.ts', `${plugin}${res.split('\n')[1]}\n`)
+    expect(findings.map((f) => f.rule)).toEqual(['role-mismatch'])
+    expect(findings[0]?.message).toBe('state.ts may only export definePlugin results')
+  })
+
+  test('A4: a file in a role folder keeps the folder role', () => {
+    const findings = inGame('systems/player.ts', comp)
+    expect(findings.map((f) => f.rule)).toEqual(['role-mismatch'])
+    expect(findings[0]?.message).toBe('a file in systems/ may only export defineSystem results')
+    const named = inGame('systems/jump.component.ts', comp)
+    expect(named.map((f) => f.rule)).toEqual(['file-name'])
+    expect(named[0]?.message).toBe('a *.component.ts file does not belong in systems/')
+  })
+
+  test('A6: constants.ts exporting a defineComponent result fails role-suffix, naming components.ts', () => {
+    const findings = inGame('constants.ts', comp)
+    expect(findings.map((f) => f.rule)).toEqual(['role-suffix'])
+    expect(findings[0]?.message).toBe(
+      'exports a defineComponent result, so it belongs in components.ts (or components/), or a file named *.component.ts',
+    )
+  })
+
+  test('a game file with no role path and no suffix names both forms', () => {
+    expect(inGame('movement.ts', sys)[0]?.message).toBe(
+      'exports a defineSystem result, so it belongs in systems.ts (or systems/), or a file named *.system.ts',
+    )
+    expect(inGame('views/hud.ts', comp).map((f) => f.rule)).toEqual(['role-suffix'])
+  })
+
+  test('A9: in a package root the role names are ordinary files', () => {
+    expect(checkFile('/p/src/components.ts', comp).map((f) => f.rule)).toEqual(['role-suffix'])
+    expect(checkFile('/p/src/commands/undo.ts', plain)).toEqual([])
+    expect(checkFile('/p/src/views/rect.ts', plain)).toEqual([])
+    // a file outside the game root keeps today's rules even when a game root is passed
+    expect(checkFile('/p/src/components.ts', comp, { gameRoot: game }).map((f) => f.rule)).toEqual([
+      'role-suffix',
+    ])
+  })
+
+  test('A11: a 601-line role file fails file-length', () => {
+    const long = `${comp}${Array.from({ length: 599 }, (_, index) => `export const v${index} = ${index}`).join('\n')}\n`
+    expect(rules('components.ts', long)).toEqual(['file-length'])
+  })
+
+  test('A5: a role as both a file and a folder fails role-split', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'game-root-'))
+    writeFileSync(join(dir, 'systems.ts'), sys)
+    mkdirSync(join(dir, 'systems'))
+    writeFileSync(join(dir, 'systems', 'goal.ts'), sys)
+    writeFileSync(join(dir, 'views.ts'), plain)
+    const findings = checkGameRoot(dir)
+    expect(findings.map((f) => [f.file, f.rule])).toEqual([[join(dir, 'systems.ts'), 'role-split']])
+    expect(findings[0]?.message).toBe('systems.ts and systems/ both exist; move systems.ts into systems/')
   })
 })

@@ -1,4 +1,5 @@
-import { parse, patch } from '@decimalturn/toml-patch'
+import { parse } from '@decimalturn/toml-patch'
+import { patchToml } from '@mcthaydt/automata-editor-kit/documents'
 import type { z } from 'zod'
 import type { ParseError, Result } from '../profile'
 import { type StageValue, stageSchema } from './stage.schema'
@@ -112,9 +113,11 @@ function tomlData(value: StageValue, text: string): Data {
 
 /**
  * The text of a document: `base` (the text it was read from) with exactly the changes the document has. The block
- * engine adds, removes and moves whole tables with their comments, then `toml-patch` carries every change inside a
- * table, and keeps its comments, blank lines and line endings. Throws when `base` is not a stage, which a document read
- * from it cannot be.
+ * engine adds, removes and moves whole tables with their comments, then the kit's `patchToml` (editor suite spec §4.4,
+ * EDS.1a) carries every change inside a table: a changed value in its literal's span alone, by the kit's number rule,
+ * and keys added or removed through `toml-patch`, keeping comments, blank lines and line endings. Throws when `base` is
+ * not a stage, which a document read from it cannot be, and when the kit refuses the patch (its result would not read
+ * as the document), so a wrong text is never returned.
  */
 export function printStage(base: string, document: StageDocument): string {
   const loaded = parseStage(base)
@@ -122,5 +125,10 @@ export function printStage(base: string, document: StageDocument): string {
     throw new Error(`printStage needs the text the document was read from: ${loaded.error[0]?.message}`)
   const text = splitLines(base)
   const structured = joinLines({ ...text, lines: reconcileTables(text.lines, loaded.value, document) })
-  return patch(structured, tomlData(document.value, structured))
+  const patched = patchToml(structured, parse(structured), tomlData(document.value, structured))
+  if (!patched.ok)
+    throw new Error(
+      `printStage could not write ${JSON.stringify(patched.path)}: ${patched.reason}, ${patched.detail}`,
+    )
+  return patched.text
 }

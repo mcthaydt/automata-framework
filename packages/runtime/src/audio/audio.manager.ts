@@ -15,6 +15,7 @@ import { type AudioContextLike, AudioGraph } from './audio-graph.js'
 import { type MusicOptions, MusicSlot } from './audio-music.js'
 import { Voices } from './audio-voices.js'
 
+/** Options for `Audio.sound`: the bus (default `sfx`), a gain and a playback rate. */
 export interface SoundOptions {
   /** `sfx` by default. */
   readonly bus?: AudioBusName
@@ -22,6 +23,10 @@ export interface SoundOptions {
   readonly rate?: number
 }
 
+/**
+ * The audio service (M5 spec §4.6): one-shot sounds and looping music on the audio buses, unlocked by the
+ * first gesture after `session.ready`; the game runs silent when no audio context can be built.
+ */
 export interface Audio {
   /** False until the first gesture after `session.ready` builds and resumes the graph. */
   readonly unlocked: Subscribable.Subscribable<boolean>
@@ -48,6 +53,7 @@ export interface Audio {
 
 export const Audio: Context.Tag<Audio, Audio> = Context.GenericTag<Audio>('@mcthaydt/automata-runtime/Audio')
 
+/** Options for the audio service; each has a browser default, replaced in tests. */
 export interface AudioOptions {
   /** Builds the context on the unlock. Defaults to `new AudioContext()`. */
   readonly createContext?: () => AudioContextLike

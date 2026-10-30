@@ -12,7 +12,8 @@ import { appendTable, insertAfter, insertBefore, removeTable, tableLines } from 
 
 // The block engine's part of printing a stage (EDFF.1a decisions 2, 8 and 9). `reconcileTables` turns the lines of the
 // text a document was read from into lines that have the document's tables: it adds, removes and moves whole tables
-// with their comments, and leaves every value inside a table to `toml-patch`.
+// with their comments, and leaves every value inside a table to the kit's `patchToml` (EDS.1a), which writes a changed
+// value in its literal's span and the rest through `toml-patch`.
 
 type Lines = readonly string[]
 

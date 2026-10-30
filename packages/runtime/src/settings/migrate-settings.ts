@@ -1,5 +1,9 @@
 import type { z } from 'zod'
 
+/**
+ * A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which
+ * fields stay on one device.
+ */
 export interface SettingsDef<S> {
   readonly key: string
   readonly version: number

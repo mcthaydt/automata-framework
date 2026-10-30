@@ -1,6 +1,10 @@
 import type { FieldRecord, RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
 import type { Container } from 'pixi.js'
 
+/**
+ * What an entity view factory returns: the container drawn for one entity, updated with its current and
+ * previous component values and the interpolation alpha, and destroyed when the entity goes.
+ */
 export interface EntityView {
   readonly container: Container
   update?(
@@ -18,6 +22,10 @@ export interface EntityView {
  */
 export type EntityViewFactory = (row: RenderRow, componentId?: string) => EntityView | undefined
 
+/**
+ * Which view an entity gets: one factory for every entity, or factories by component id (the first id, in the
+ * record's own key order, whose component the entity has wins).
+ */
 export type EntityViewResolver = EntityViewFactory | Readonly<Record<string, EntityViewFactory>>
 
 interface CachedEntity {
@@ -25,6 +33,10 @@ interface CachedEntity {
   prev: Readonly<Record<string, Readonly<FieldRecord>>> | undefined
 }
 
+/**
+ * Keeps one entity view per sim entity in the world container from each step's render delta, and interpolates
+ * them between ticks.
+ */
 export class RenderDeltaConsumer {
   private readonly world: Container
   private readonly resolver?: EntityViewResolver | undefined
