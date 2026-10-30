@@ -21,19 +21,19 @@ spec's measurements used.
 
 ### Steps (TDD)
 
-1. [ ] `tests/playground/compile.test.ts`, failing first (module missing): types stripped with every line kept
+1. [x] `tests/playground/compile.test.ts`, failing first (module missing): types stripped with every line kept
    (`shapes-rects.ts` from the framework at `framework.ref`); a syntax error inside a system reported at its own line
    (the spec's measured case: line 21, column 18); the import rule (a `lodash` import is a diagnostic at its line, a
    type-only import of another module also); the guard in `for`, `for…of`, `for…in`, `while`, `do…while` and a
    non-block body, with line numbers unchanged; `import.meta.url` rewritten and nothing else (`import.meta.env` kept);
    the `sourceURL` line. Then the module.
-2. [ ] `tests/serve-static.test.ts` gains: `/playground/runtime/x.js` carries the three headers, `/playground/x/`
+2. [x] `tests/serve-static.test.ts` gains: `/playground/runtime/x.js` carries the three headers, `/playground/x/`
    `no-cache`, `/examples` none of them (fails first). Then `serve-static.ts`; then the dev-server plugin with a unit
    test on the middleware.
-3. [ ] `pnpm sync` to framework `main` `d804033` (it has the protocol), `scripts/sync-playground.ts` copying the
+3. [x] `pnpm sync` to framework `main` (`30e9606`, after #216 and #223; it has the protocol), `scripts/sync-playground.ts` copying the
    protocol, and `tests/playground-protocol.test.ts`: the copy equals the framework file at `framework.ref` (fails
    first: no copy).
-4. [ ] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`.
+4. [x] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`.
 
 ## Part B (after the repack): the runtime itself
 
@@ -45,4 +45,14 @@ serve frame pages built for their own origin (R-2).
 
 ## Execution log
 
-(filled in as steps pass)
+- **Step 1.** `tests/playground/compile.test.ts` failed first ("Cannot find module …/compile"), then 6 passed: lines
+  kept on `shapes-rects.ts`, the syntax error inserted at line 21 reported at line 21 and the `;`'s column, the import
+  rule, the guard in five loop forms with no line added, `import.meta.url` rewritten and `import.meta.env` kept.
+- **Step 2.** The two `serve-static` cases: the `/playground/` one failed first (no CORS header), then passed; the
+  dev-server plugin's test failed first (module missing), then passed. The header rule is the framework's
+  `playground-headers.ts`, copied (step 3), not a second copy written here.
+- **Step 3.** The four demo bundles rebuilt at framework `30e9606`; `pnpm sync` (demos, docs, then the new
+  `sync-playground.ts`) and `pnpm sync:stack`; `framework.ref` is `30e9606`. `tests/playground-sync.test.ts` failed
+  first (ENOENT on the copies), then passed for both copies.
+- **Step 4.** `pnpm check` 0 errors; `pnpm test` 49 files, 302 passed, 1 expected fail; `pnpm build`;
+  `pnpm check:site` 28 pages.

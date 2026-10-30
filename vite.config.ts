@@ -1,9 +1,10 @@
 import { sveltekit } from '@sveltejs/kit/vite'
 import { svelteTesting } from '@testing-library/svelte/vite'
 import { defineConfig } from 'vitest/config'
+import { playgroundDevHeaders } from './scripts/playground-dev-headers'
 
 export default defineConfig({
-  plugins: [sveltekit(), svelteTesting()],
+  plugins: [sveltekit(), svelteTesting(), playgroundDevHeaders()],
   resolve: {
     conditions: ['browser'],
   },
