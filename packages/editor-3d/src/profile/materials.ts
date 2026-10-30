@@ -1,10 +1,9 @@
-// What a level's material picker may offer, and the hints its views take (ED3D spec §4.1, D8 and D10). The set comes
+// What a level's material picker may offer (ED3D spec §4.1 and D10). The set comes
 // from the profile: an `af-sector/1` file carries its own `materials` table; a Last Light level's game holds its list in
 // its renderer (`sectorMats` and `unlitMats` in `src/render/stage.ts`), which the host reads and hands over through the
 // `ProfileContext`, as The Last Light's own `readLevelOptions` does (editor/src/server/level-options.ts, 92e6704). A list
 // nobody could read is not guessed: the answer is a refusal, and the edits that need a list refuse with it.
 import type { AfSector } from '../format/af-sector.schema'
-import { WALK_EYE_HEIGHT, WALK_FOV } from '../view/mesh/camera-3d'
 import type { ProfileContext } from './level-profile'
 
 /** One entry of the picker: the id a level writes, the category the sheet files it under, and what it may cover. */
@@ -19,20 +18,6 @@ export interface Material {
 export type MaterialList =
   | { readonly ok: true; readonly materials: readonly Material[] }
   | { readonly ok: false; readonly reason: string }
-
-/** What the views of a level take from its profile: the unit, Walk's eye height and field of view, and the data step. */
-export interface LevelHints {
-  readonly unit: 'm'
-  /** Metres above the floor. */
-  readonly eyeHeight: number
-  /** Walk's vertical field of view, in radians, as `Camera3D.fov` is. */
-  readonly fov: number
-  /** The step a free point is rounded to, in metres. */
-  readonly snap: number
-}
-
-/** Both profiles' hints: ED3D-D8's eye and lens, and the 5 cm snap of the Last Light editor's plan. */
-export const SECTOR_HINTS: LevelHints = { unit: 'm', eyeHeight: WALK_EYE_HEIGHT, fov: WALK_FOV, snap: 0.05 }
 
 /** Last Light's own sentence for a list its reader could not read (editor/src/server/level-edits.ts, 92e6704). */
 export const LAST_LIGHT_NO_LIST =

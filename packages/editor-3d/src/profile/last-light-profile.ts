@@ -8,8 +8,9 @@ import { blockoutCodec } from './last-light-codecs'
 import { lastLightEntityKit } from './last-light-entities'
 import { lastLightSectorAccess } from './last-light-sectors'
 import { lastLightThingAccess } from './last-light-things'
+import { SECTOR_HINTS } from './level-hints'
 import { GeometryError, type LevelProfile, resolveOrThrow } from './level-profile'
-import { lastLightMaterials, SECTOR_HINTS } from './materials'
+import { lastLightMaterials } from './materials'
 
 export const lastLightProfile: LevelProfile<Blockout> = {
   ...blockoutCodec,

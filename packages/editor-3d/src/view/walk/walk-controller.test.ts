@@ -7,8 +7,9 @@ import { moveSector } from '../../model/corner-edits'
 import { createLevelEditor } from '../../model/level-editor'
 import { setHeights } from '../../model/sector-edits'
 import { afSectorProfile } from '../../profile/af-sector-profile'
+import { WALK_FOV } from '../../profile/level-hints'
 import { toyAfSector } from '../../testing/toy-af-sector'
-import { ORBIT_FOV, WALK_FOV } from '../mesh/camera-3d'
+import { ORBIT_FOV } from '../mesh/camera-3d'
 import { createWalkController } from './walk-controller'
 
 const CANVAS = { w: 800, h: 600 }

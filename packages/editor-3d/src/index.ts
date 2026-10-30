@@ -176,6 +176,7 @@ export * from './profile/file-codec'
 export * from './profile/last-light-codecs'
 export * from './profile/last-light-entities'
 export * from './profile/last-light-profile'
+export { type LevelHints, WALK_EYE_HEIGHT, WALK_FOV } from './profile/level-hints'
 export {
   type Geometry,
   GeometryError,
@@ -183,12 +184,7 @@ export {
   type LevelProfile,
   type ProfileContext,
 } from './profile/level-profile'
-export {
-  LAST_LIGHT_NO_LIST,
-  type LevelHints,
-  type Material,
-  type MaterialList,
-} from './profile/materials'
+export { LAST_LIGHT_NO_LIST, type Material, type MaterialList } from './profile/materials'
 export * from './profile/registry'
 export {
   type EditCorner,
@@ -222,8 +218,6 @@ export {
   type Ray,
   rayThrough,
   type SpawnPoint,
-  WALK_EYE_HEIGHT,
-  WALK_FOV,
   type WalkOptions,
   type WalkStart,
   walkCamera,
