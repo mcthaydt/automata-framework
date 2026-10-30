@@ -1,9 +1,11 @@
 import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from '@mcthaydt/automata-ship'
+import { createSim } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { base3d, input } from '../game.ts'
 import packageJson from '../package.json' with { type: 'json' }
 import config from '../ship.config.ts'
+import { TICK_HZ } from './constants.ts'
 
 describe('base-3d ship.config.ts', () => {
   it("is a manifest Ruken's parser accepts, rendered with WebGL2, landscape (M3 spec §4.7)", () => {
@@ -17,6 +19,13 @@ describe('base-3d ship.config.ts', () => {
     expect(config.game.id).toBe(base3d.id)
     expect(config.game.version).toBe(packageJson.version)
     expect(base3d.orientation).toBe('landscape')
+  })
+
+  // `defineGame`'s sim spec has no `tickHz`, so the page's sim runs at the sim's default; WALK_PER_TICK assumes it.
+  it('steps the page’s sim at TICK_HZ, the rate the walk speed is derived for', async () => {
+    const sim = await createSim(base3d.sim)
+    expect(sim.tickHz).toBe(TICK_HZ)
+    sim.dispose()
   })
 
   it('asks for no network and no eval', () => {

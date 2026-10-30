@@ -4,8 +4,8 @@ import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
 import { Hero, Target } from './components.ts'
 import { HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
-import { FIRST_SLICE } from './content/first-slice.content.ts'
-import { type Area, type AreaSource, compileArea, spawnArea } from './state.ts'
+import { FIRST_SLICE } from './content/first-slice.ts'
+import { type Area, type AreaSource, areaOf, compileArea, spawnArea } from './state.ts'
 import { BASE3D_SIM, base3dPlugin } from './systems.ts'
 
 // base-3d's sim, commands in, step, state out (DESIGN.md §3.1). The browsers project runs this whole file in
@@ -54,6 +54,21 @@ describe('the area', () => {
     expect(() => compileArea({ ...tiny, views: [{ id: 'hall' }, { id: 'hall' }] })).toThrow(/hall/)
     expect(() => compileArea({ ...tiny, views: [{ id: 'hall', tiltDeg: 80 }] })).toThrow()
     expect(() => compileArea({ ...tiny, extra: 1 } as AreaSource)).toThrow()
+  })
+
+  it('refuses a spawn whose square overlaps a wall, or that lies outside every room', () => {
+    // The wall's south face is at z = 2 and Wick is 0.3 m to a side: 1.75 overlaps it, 1.7 only touches it.
+    expect(() => compileArea({ ...tiny, spawn: { x: 0, z: 1.75 } })).toThrow(/spawn/)
+    expect(compileArea({ ...tiny, spawn: { x: 0, z: 1.7 } }).spawn.z).toBe(metres(1.7))
+    expect(() => compileArea({ ...tiny, spawn: { x: 3, z: 0 } })).toThrow(/spawn/)
+  })
+
+  it('reads only an area as the sim’s content', () => {
+    const area = compileArea(tiny)
+    expect(areaOf(area)).toBe(area)
+    expect(() => areaOf({ ...area, views: undefined })).toThrow(/not an area/)
+    expect(() => areaOf({ ...area, targets: 'none' })).toThrow(/not an area/)
+    expect(() => areaOf(null)).toThrow(/not an area/)
   })
 
   it('compiles the first slice: two rooms, two views, a doorway', () => {
@@ -294,6 +309,27 @@ describe('lock (the first slice’s minimal lock-on, M3 spec §4.7)', () => {
     sim.dispose()
   })
 
+  it('locks only on the press: holding lock while walking into range stays unlocked until the next press', async () => {
+    const sim = await startSim(openArea(0, true, [{ x: 0, z: 14 }]))
+    run(sim, { lock: true }) // pressed with nothing within 12 m
+    expect(hero(sim).lockTarget).toBe(0)
+    run(sim, { lock: true, stick: UP }, 60) // still held, now 2.0 m nearer: within range
+    expect(hero(sim).z).toBeGreaterThan(metres(2.1))
+    expect(hero(sim).lockTarget).toBe(0)
+    run(sim, {})
+    run(sim, { lock: true }) // a new press finds it
+    expect(hero(sim).lockTarget).toBe(targetIds(sim)[0])
+    sim.dispose()
+  })
+
+  it('keeps his facing when the target stands exactly where he does', async () => {
+    const sim = await startSim(openArea(90, true, [{ x: 0, z: 0 }]))
+    expect(hero(sim).facing).toBe(16_384)
+    run(sim, { lock: true })
+    expect(hero(sim)).toMatchObject({ lockTarget: targetIds(sim)[0], facing: 16_384 })
+    sim.dispose()
+  })
+
   it('breaks a tie by the lower entity id, and finds nothing past 12 m', async () => {
     const tie = await startSim(
       openArea(0, true, [
@@ -355,8 +391,12 @@ const GOLDEN_ROUTE: readonly RouteSegment[] = [
 
 /** The tick the golden route enters the kiln's view on. */
 const GOLDEN_KILN_TICK = 118
-/** The sim's state hash after the whole golden route, with seed 1 (recorded in Node). */
-const GOLDEN_HASH = 'd6ca2f2bc83ed284'
+/**
+ * The sim's state hash after the whole golden route, with seed 1 (recorded in Node). Re-recorded when the lock
+ * became edge-triggered (review of #250): `hero-control` gained `lockPressed`, which the hash covers (was
+ * `d6ca2f2bc83ed284`; same route, same kiln tick, same 50 locked ticks, same end state).
+ */
+const GOLDEN_HASH = 'aa170b86451f0838'
 
 async function runGolden() {
   const sim = await createSim(BASE3D_SIM)

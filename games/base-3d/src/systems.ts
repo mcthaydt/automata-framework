@@ -15,8 +15,8 @@ import { definePlugin, defineSystem, type PluginDef, type Sim, type SystemDef } 
 import { atan2 } from '@mcthaydt/automata-sim/math'
 import { Lock, Move } from './commands.ts'
 import { Hero, HeroControl, Target } from './components.ts'
-import { HERO_HALF, LOCK_RANGE, TICK_HZ, WALK_PER_TICK } from './constants.ts'
-import { FIRST_SLICE } from './content/first-slice.content.ts'
+import { HERO_HALF, LOCK_RANGE, WALK_PER_TICK } from './constants.ts'
+import { FIRST_SLICE } from './content/first-slice.ts'
 import { type Area, areaOf, compileArea, slide, spawnArea, viewAt } from './state.ts'
 
 // 2π spelled out: `Math.PI` is not sim-safe.
@@ -29,7 +29,10 @@ const angleOf = (x: number, z: number): number => wrapHeading((atan2(x, z) * TUR
 /** `units` as the nearest signed angle, −32,768..32,767. */
 const signedTurn = (units: number): number => wrapHeading(units + HALF_TURN) - HALF_TURN
 
-/** Copies this tick's stick and lock onto Wick. No command is a centred stick and lock up. */
+/**
+ * Copies this tick's stick and lock onto Wick, and marks the tick lock went down. No command is a centred stick
+ * and lock up.
+ */
 const heroInput: SystemDef = defineSystem({
   name: 'hero.input',
   phase: 'input',
@@ -38,15 +41,18 @@ const heroInput: SystemDef = defineSystem({
     const locks = ctx.commands.of(Lock)
     const stick = moves[moves.length - 1]?.payload ?? { x: 0, y: 0 }
     const lockHeld = locks[locks.length - 1]?.payload.down ?? false
-    for (const entity of ctx.query(HeroControl))
-      entity.set(HeroControl, { stickX: stick.x, stickY: stick.y, lockHeld })
+    for (const entity of ctx.query(HeroControl)) {
+      const lockPressed = lockHeld && !entity.get(HeroControl).lockHeld
+      entity.set(HeroControl, { stickX: stick.x, stickY: stick.y, lockHeld, lockPressed })
+    }
   },
 })
 
 /**
- * Holds Wick's lock: while lock is held and he has no target, the nearest target within `LOCK_RANGE` in plan
- * (squared distances in Q16.16, exact below 2^53; a tie goes to the lower entity id); a release clears it. The
- * selection cone, cycling and the heading assist are GAME-3D.1b's (DESIGN.md §11).
+ * Holds Wick's lock: on the press (DESIGN.md §11.1), the nearest target within `LOCK_RANGE` in plan (squared
+ * distances in Q16.16, exact below 2^53; a tie goes to the lower entity id), or none. Holding keeps that result,
+ * so walking into range while held does not lock; a release clears it. The selection cone, cycling and the heading
+ * assist are GAME-3D.1b's (DESIGN.md §11).
  */
 const lockSelect: SystemDef = defineSystem({
   name: 'lock.select',
@@ -54,11 +60,17 @@ const lockSelect: SystemDef = defineSystem({
   run(ctx) {
     for (const entity of ctx.query(Hero, HeroControl)) {
       const hero = entity.get(Hero)
-      if (!entity.get(HeroControl).lockHeld) {
+      const control = entity.get(HeroControl)
+      if (!control.lockHeld) {
         if (hero.lockTarget !== 0) entity.set(Hero, { lockTarget: 0 })
         continue
       }
-      if (hero.lockTarget !== 0 && ctx.entity(hero.lockTarget)?.has(Target) === true) continue
+      if (!control.lockPressed) {
+        // A target that is gone lets go of the lock, as a release does.
+        if (hero.lockTarget !== 0 && ctx.entity(hero.lockTarget)?.has(Target) !== true)
+          entity.set(Hero, { lockTarget: 0 })
+        continue
+      }
       let best = 0
       let bestDistance = LOCK_RANGE * LOCK_RANGE
       // Ascending entity ids, and only a strictly nearer target replaces the best: a tie keeps the lower id.
@@ -98,8 +110,12 @@ const heroMove: SystemDef = defineSystem({
       const { x, z } = slide(walls, HERO_HALF, hero, dx, dz)
       const target = hero.lockTarget === 0 ? undefined : ctx.entity(hero.lockTarget)?.get(Target)
       const travel = angleOf(direction.x, direction.z)
-      const facing =
-        target !== undefined ? angleOf(target.x - hero.x, target.z - hero.z) : moving ? travel : hero.facing
+      // A target exactly where he stands has no direction (atan2(0, 0)): he keeps his facing.
+      const toTarget =
+        target === undefined || (target.x === hero.x && target.z === hero.z)
+          ? undefined
+          : angleOf(target.x - hero.x, target.z - hero.z)
+      const facing = target !== undefined ? (toTarget ?? hero.facing) : moving ? travel : hero.facing
       const moveDir = moving ? signedTurn(travel - facing) : 0
       entity.set(Hero, { x, z, facing, moving, moveDir })
     }
@@ -135,11 +151,14 @@ export const base3dPlugin: PluginDef = definePlugin({
 
 const firstSlice = compileArea(FIRST_SLICE)
 
-/** How the game makes its sim: `main.ts` and the golden replay both start from here. */
+/**
+ * How the game makes its sim: `game.ts` and the golden replay both start from here. It names no `tickHz`, because
+ * `defineGame`'s sim spec has none: the page's sim runs at the sim's default, 60 Hz, which is `TICK_HZ` (the page's
+ * test checks it), so the replay steps at the rate the game plays at.
+ */
 export const BASE3D_SIM: {
   readonly plugins: readonly PluginDef[]
   readonly seed: number
-  readonly tickHz: number
   readonly content: Area
   readonly setup: (sim: Sim) => void
 } = {
@@ -148,7 +167,6 @@ export const BASE3D_SIM: {
   // reach the sim and boot would fail with `unknown component "camera-heading"`. Routed to the runtime's owner.
   plugins: [cameraHeadingPlugin, base3dPlugin],
   seed: 1,
-  tickHz: TICK_HZ,
   content: firstSlice,
   setup: (sim) => spawnArea(sim, firstSlice),
 }

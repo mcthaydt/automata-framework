@@ -10,13 +10,20 @@ import {
 import type { Sim } from '@mcthaydt/automata-sim'
 import { z } from 'zod'
 import { Hero, HeroControl, Target } from './components.ts'
-import { metres } from './constants.ts'
+import { HERO_HALF, metres } from './constants.ts'
 
 const plan = z.tuple([z.number(), z.number()])
-const boxFields = { min: plan, max: plan }
 const minNotPastMax = (box: { min: [number, number]; max: [number, number] }): boolean =>
   box.min[0] <= box.max[0] && box.min[1] <= box.max[1]
-const planBox = z.strictObject(boxFields).refine(minNotPastMax, { message: 'min must not pass max' })
+/** A box in plan, `min` and `max` as `[x, z]` metres, with `extra` fields beside them: walls and rooms share it. */
+const planBoxWith = <Extra extends z.ZodRawShape>(extra: Extra) =>
+  z
+    .strictObject({ min: plan, max: plan, ...extra })
+    // The generic shape hides `min` and `max` from the callback's type; they are always there.
+    .refine((box) => minNotPastMax(box as unknown as Parameters<typeof minNotPastMax>[0]), {
+      message: 'min must not pass max',
+    })
+const planBox = planBoxWith({})
 const point = z.strictObject({ x: z.number(), z: z.number() })
 // A view's id is written beside its `camera-view` fields; `cameraViewSchema` (render-pixi3d, the one owner) checks
 // the rest.
@@ -28,11 +35,7 @@ const areaSchema = z.strictObject({
   /** The area's camera views. */
   views: z.array(viewSource),
   /** Plan boxes, each naming the view the camera takes while Wick is inside. The first that holds him wins. */
-  rooms: z.array(
-    z
-      .strictObject({ view: z.string(), ...boxFields })
-      .refine(minNotPastMax, { message: 'min must not pass max' }),
-  ),
+  rooms: z.array(planBoxWith({ view: z.string() })),
   /** Plan boxes Wick cannot enter. */
   walls: z.array(planBox),
   /** Where the lock targets stand. */
@@ -72,7 +75,11 @@ const toBox = (b: { min: readonly number[]; max: readonly number[] }): PlanBox =
   maxZ: metres(b.max[1] as number),
 })
 
-/** Checks `source` and converts it to fixed point; throws on a bad field, a repeated view or an unknown view. */
+/**
+ * Checks `source` and converts it to fixed point. Throws on a bad field, a repeated view, a room naming an unknown
+ * view, and a spawn outside every room or whose square (`HERO_HALF` a side) overlaps a wall: Wick would start
+ * with no view, or inside a wall that `slide` never pushes him out of.
+ */
 export function compileArea(source: AreaSource): Area {
   const parsed = areaSchema.parse(source)
   const views = parsed.views.map(({ id, ...fields }) => ({ id, ...cameraViewSchema.parse(fields) }))
@@ -83,19 +90,40 @@ export function compileArea(source: AreaSource): Area {
   for (const room of parsed.rooms)
     if (!ids.includes(room.view))
       throw new Error(`base-3d area: a room names the unknown view "${room.view}"`)
-  return {
+  const area: Area = {
     spawn: toPoint(parsed.spawn),
     views,
     rooms: parsed.rooms.map((room) => ({ view: room.view, ...toBox(room) })),
     walls: parsed.walls.map(toBox),
     targets: parsed.targets.map(toPoint),
   }
+  const { x, z } = area.spawn
+  if (viewAt(area, x, z) === undefined) throw new Error('base-3d area: the spawn is outside every room')
+  // Touching a wall's face is allowed; overlapping it is not (the same strict test `slide` uses).
+  const blocked = area.walls.some(
+    (w) =>
+      x + HERO_HALF > w.minX && x - HERO_HALF < w.maxX && z + HERO_HALF > w.minZ && z - HERO_HALF < w.maxZ,
+  )
+  if (blocked) throw new Error('base-3d area: the spawn overlaps a wall')
+  return area
 }
 
-/** The sim's content as an area; `compileArea` checked it before the sim was made. */
+/**
+ * The sim's content as an area. `compileArea` checked its fields before the sim was made; this only checks the
+ * shape, every tick, so content that is not an area fails at once instead of deep inside a system.
+ */
 export function areaOf(content: unknown): Area {
   const area = content as Partial<Area> | null
-  if (area === null || area.spawn === undefined || !Array.isArray(area.rooms) || !Array.isArray(area.walls))
+  if (
+    area === null ||
+    typeof area !== 'object' ||
+    typeof area.spawn?.x !== 'number' ||
+    typeof area.spawn.z !== 'number' ||
+    !Array.isArray(area.views) ||
+    !Array.isArray(area.rooms) ||
+    !Array.isArray(area.walls) ||
+    !Array.isArray(area.targets)
+  )
     throw new Error('base-3d: the sim content is not an area')
   return area as Area
 }
@@ -123,8 +151,9 @@ export function spawnArea(sim: Sim, area: Area): void {
 
 /**
  * Wick, a square of half-size `half` at `x`, `z`, moved by `dx` then `dz` against the area's walls, one axis at a
- * time. A move that would overlap a wall stops flush against its face; a wall he already overlaps does not push
- * him. A tick moves at most 0.07 m and every wall is thicker, so nothing passes through.
+ * time. A move that would cross a wall's face stops flush against it; a wall he already overlaps does not push
+ * him. The test is on crossing the face from outside, not on landing inside, so a move of any length stops at the
+ * first face it meets and never passes through a wall, however thin.
  */
 export function slide(
   walls: readonly PlanBox[],
