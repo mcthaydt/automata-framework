@@ -4,7 +4,7 @@
 import type { WorkspaceFile } from '@mcthaydt/automata-editor-kit/ports'
 import type { EditorListLoad, EditorListProblem } from '../core'
 import type { Suite } from './create-suite'
-import { entryOf } from './suite-entries'
+import { entryOf, PROVIDERS } from './suite-entries'
 
 export interface EditorCard {
   /** The id the list names. */
@@ -39,7 +39,7 @@ export function homeOf(
       label: LABELS[editor] ?? entry?.label ?? editor,
       entry: entry?.id,
       installed: suite.editor(editor) !== undefined,
-      provider: entry?.provider,
+      provider: PROVIDERS[editor],
       files: files.get(editor) ?? [],
     }
   })

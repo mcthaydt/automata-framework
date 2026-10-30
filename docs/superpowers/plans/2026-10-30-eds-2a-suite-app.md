@@ -2,8 +2,8 @@
 
 - **Task:** EDS.2a in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §2 (the nine rail entries), §4.1 (`SuiteEditor`, `createSuite`), §5 flows 1 and 2, §9 (`suite-home`), §10 (sizes and input), §11 (the list and not-installed rows), §12 (DOM and layout layers), §13 cases EDS-l and EDS-m.
 - **Lane:** editors. **Depends on:** EDS.1b (ports, merged), EDS.1c (the list, merged), EDK.1 to EDK.5 (shell, merged). Takes the rail pattern of ED2D.4c4a (#267) and, once #267 merges, its `EditorShell` change that drops an absent inspector's column. **Unblocks:** EDS.2b (pills, Undo, Ask), EDS.2d (the level editors mounted), EDS.P.
-- **Status:** drafted 2026-10-30. Accepted under the Owner's standing rule (2026-10-30): "Auto accept all spec and plans".
-- **Progress:** 6 of 8 steps.
+- **Status:** drafted 2026-10-30; implemented and locally checked 2026-10-30 (draft PR from `claude/editors-eds-2a-suite-app`); not reviewed, not CI verified. Accepted under the Owner's standing rule (2026-10-30): "Auto accept all spec and plans".
+- **Progress:** 8 of 8 steps.
 - **Branch:** `claude/editors-eds-2a-suite-app`.
 
 ## Scope
@@ -27,8 +27,9 @@ Out (owner): the scene picker, the change-set, checks and gate pills, Undo and A
 interface Suite { readonly editors: readonly SuiteEditor<unknown>[]; editor(id: string): SuiteEditor<unknown> | undefined }
 function createSuite(options: { readonly editors: readonly SuiteEditor<unknown>[] }): Suite   // throws on a repeated id
 // src/shell/suite-entries.ts
-interface SuiteEntry { readonly id: string; readonly label: string; readonly editors: readonly string[]; readonly provider: string }
+interface SuiteEntry { readonly id: string; readonly label: string; readonly editors: readonly string[] }
 const SUITE_ENTRIES: readonly SuiteEntry[]   // nine, rail order
+const PROVIDERS: Readonly<Record<string, string>>   // editor id → the package that brings it
 // src/shell/home-model.ts
 type HomeState =
   | { readonly kind: 'problems'; readonly problems: readonly EditorListProblem[] }
@@ -56,8 +57,8 @@ Modify: `packages/editor-suite/package.json` (scripts, Svelte and test dependenc
 - [x] 4. `home-model.test.ts`: FloorFifty's and The Last Light's lists give one card per editor in list order with their files; a list naming `feel` with no Feel editor gives a not-installed card with `editor-plus` (EDS-l); an unknown id is not installed with no provider; a row without `gates` gives the problems state with `file[0].gates` (EDS-m); missing and newer-format lists are problems. Fails: no module.
 - [x] 5. App scaffolding: `vitest.config.ts` projects, Svelte dependencies, `svelte-check` typecheck; `SuiteRail.dom.test.ts`: nine tabs, arrow keys and Home and End move, Cmd or Ctrl 1 to 9 choose, the chosen tab is `aria-selected`, focus returns after a remount. Fails: no component.
 - [x] 6. `Suite.dom.test.ts` (mounted through `startSuite` over memory ports): Home shows the cards; a not-installed card says so with its package and opening its file shows the text read only (EDS-l); the invalid list shows the problem with its key path and no cards (EDS-m); choosing an entry with an installed fake editor opens it once and fills the canvas from its regions, and coming back to it does not open it again; Review says it comes later. Fails: no component.
-- [ ] 7. `suite.layout.test.ts` at every `SIZES` entry in Chromium, WebKit and Firefox: the shell's mode; nine tabs, each at least 44 px and inside the window; the tab bar 64 px tall below `wide`; Home's essentials pass `checkLayout`; no page scroll; 1194 × 834 to 834 × 1194 keeps Home's element (no remount). Review images to `docs/evidence/owner-visual/2026-10-30-eds-2a/`.
-- [ ] 8. `main.ts`, `index.html`, `vite build`; gates.
+- [x] 7. `suite.layout.test.ts` at every `SIZES` entry in Chromium, WebKit and Firefox: the shell's mode; nine tabs, each at least 44 px and inside the window; the tab bar 64 px tall below `wide`; Home's essentials pass `checkLayout`; no page scroll; 1194 × 834 to 834 × 1194 keeps Home's element (no remount). Review images to `docs/evidence/owner-visual/2026-10-30-eds-2a/`.
+- [x] 8. `main.ts`, `index.html`, `vite build`; gates.
 
 ## Gates
 
@@ -65,4 +66,20 @@ Modify: `packages/editor-suite/package.json` (scripts, Svelte and test dependenc
 
 ## Execution record
 
-(filled as steps pass)
+- Steps 1 to 6 passed as written (unit and dom: 107 tests in `pnpm --filter @mcthaydt/automata-editor-suite test:unit`).
+- **Deviation (decision 1):** the provider is per editor id (`PROVIDERS`), not per entry: Levels is two editors from two
+  packages, and Home said "the editor-2d and editor-3d package" for Levels 2D. Found on the first review image.
+- **Deviation (an entry's page):** no `EntryPage.svelte`; an entry's page is `Home.svelte` given the entry's editors.
+- **Deviation (the rail on a phone):** nine 44 px tabs with their words need more than 390 px, so the tab bar below
+  `wide` is a declared sideways scroll region (`data-scroll-region="both"`) and the chosen tab scrolls into view; the
+  layout test checks that the last tab is reached by scrolling and is whole. In the 56 px column the labels are the
+  eyebrow size at weight 500 with the rail's full width, so "Schematic" (54 px) fits whole: measured in Chromium at
+  58 px with the old padding.
+- **Added (plain words):** the loader's message for a key a row lacks reads "gates is missing" instead of Zod's
+  "Invalid input: expected array, received undefined" (`core/editor-list.ts`, test in `editor-list.test.ts`).
+- **Pending on #267:** in `wide`, Home has no panel or inspector, and today's `EditorShell` keeps both columns empty.
+  #267 collapses an absent inspector; once it merges, the same change for an absent panel (kit, with its layout test)
+  lands here.
+- Step 7: `test:layout` 75 of 75 in Chromium, WebKit and Firefox (8 sizes × 3 tests + rotation). Half a pixel of
+  tolerance on edge comparisons for WebKit's and Firefox's sub-pixel boxes (they measured 390.07 and 834.02).
+- Step 8: `vite build` writes `dist/` (176 kB JS); `svelte-check` 0 errors, 0 warnings.

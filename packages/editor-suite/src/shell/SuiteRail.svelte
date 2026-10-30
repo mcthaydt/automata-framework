@@ -73,6 +73,7 @@ function shortcut(event: KeyboardEvent): void {
   aria-label="Editors"
   aria-orientation={orientation}
   data-orientation={orientation}
+  data-scroll-region={orientation === 'horizontal' ? 'both' : ''}
   tabindex="-1"
   bind:this={list}
   onkeydown={step}
@@ -97,13 +98,15 @@ function shortcut(event: KeyboardEvent): void {
     min-width: 0;
     min-height: 0;
     gap: var(--space-1);
-    padding: var(--space-1);
+    /* The column's full width goes to the tabs: "Schematic" needs about 54 px of the 56 px rail. */
+    padding: var(--space-1) 0;
     overflow-y: auto;
   }
   /* Nine 44 px tabs need 396 px: on a phone the bar is a declared sideways scroll region rather than smaller targets. */
   .rail[data-orientation='horizontal'] {
     flex-direction: row;
     gap: 0;
+    padding: 0;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
@@ -112,21 +115,23 @@ function shortcut(event: KeyboardEvent): void {
     flex: 0 0 auto;
     min-width: 44px;
     min-height: 44px;
-    padding: 0 2px;
+    padding: 0;
     border: 0;
     border-radius: var(--radius-md);
     background: transparent;
     color: var(--color-text-dim);
-    /* The eyebrow size fits "Schematic" and "Sequence" whole in the 56 px rail. */
+    /* The eyebrow size, a step lighter and a hair tighter, fits "Schematic" whole in the 56 px rail. */
     font: var(--text-eyebrow-11);
-    letter-spacing: 0;
+    font-weight: 500;
+    letter-spacing: -0.01em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     cursor: pointer;
   }
   .rail[data-orientation='horizontal'] button {
-    flex: 1 0 44px;
+    flex: 1 0 auto;
+    padding: 0 var(--space-2);
   }
   button[aria-selected='true'] {
     background: var(--color-bg-raised);
