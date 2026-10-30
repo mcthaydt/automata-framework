@@ -85,11 +85,12 @@ const journeys = defineConfig({
       testIgnore: MATRIX_SPEC,
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
     },
-    // The 3D examples in WebKit too (M3.4a): the other projects are Chromium, and headless Firefox here has no WebGL.
+    // The 3D examples (render3d, and figures since M3.5d) in WebKit too (M3.4a): the other projects are Chromium,
+    // and headless Firefox here has no WebGL.
     {
       name: 'examples-webkit',
       testDir: '.',
-      testMatch: 'examples/e2e/render3d-*.e2e.ts',
+      testMatch: ['examples/e2e/render3d-*.e2e.ts', 'examples/e2e/figures-*.e2e.ts'],
       use: { ...devices['iPhone 14 landscape'] },
     },
     // The feature demos on base-2d, each under the shared fake host (tooling/examples-runner/host).

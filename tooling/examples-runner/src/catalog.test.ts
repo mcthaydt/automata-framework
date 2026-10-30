@@ -36,6 +36,7 @@ describe('readCatalog', () => {
       'core/core-shot.ts',
       'core/core-waiting.ts',
       'core/misplaced.ts',
+      'figures/figures-stand.ts',
       'physics/physics-bodies.ts',
       'physics/physics-deep.ts',
       'render3d/render3d-boxes.ts',
@@ -85,6 +86,19 @@ describe('readCatalog', () => {
     expect(entry('render3d/render3d-boxes.ts')).toMatchObject({
       problems: [],
       imports: ['@mcthaydt/automata-render-pixi3d/no-eval', '@mcthaydt/automata-render-pixi3d'],
+    })
+  })
+
+  // M3R-D7: `figures` is private while its only renderer is; its examples are free core examples too (M3 spec §5).
+  it('accepts the figures module and its private package beside the 3D renderer', () => {
+    expect(entry('figures/figures-stand.ts')).toMatchObject({
+      problems: [],
+      module: 'figures',
+      imports: [
+        '@mcthaydt/automata-render-pixi3d/no-eval',
+        '@mcthaydt/automata-figures',
+        '@mcthaydt/automata-render-pixi3d',
+      ],
     })
   })
 

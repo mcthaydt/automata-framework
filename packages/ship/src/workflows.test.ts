@@ -270,6 +270,7 @@ describe('parity across packages', () => {
     })
     expect(withBrowsers).toContain('packages/sim')
     expect(withBrowsers).toContain('games/emberwick')
+    expect(withBrowsers).toContain('games/base-3d')
     // A package may add more browser projects to the same run (base-2d adds its Chromium renderer tests).
     for (const path of withBrowsers) {
       expect(packageJson(path).scripts['test:parity']).toMatch(
@@ -376,6 +377,16 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toContain('pnpm --filter @af-examples/base-2d prepare-ruken')
     // `pnpm check` already runs base-2d's check (typecheck + test:unit + boundaries).
     expect(localSteps).not.toContain('pnpm --filter @af-examples/base-2d check')
+  })
+
+  it('builds and prepares base-3d (M3.7a), without repeating its check inside AF', () => {
+    expect(localSteps).toContain('pnpm --filter @af-games/base-3d build')
+    expect(localSteps).toContain('pnpm --filter @af-games/base-3d prepare-ruken')
+    expect(localSteps).not.toContain('pnpm --filter @af-games/base-3d check')
+  })
+
+  it('checks base-3d’s sim folder in the root boundaries script', () => {
+    expect(scripts.boundaries).toMatch(/ games\/base-3d\/src( |$)/)
   })
 })
 
@@ -496,6 +507,14 @@ describe('ci.yml (AF)', () => {
     expect(ci.jobs['base-2d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
   })
 
+  // M3.7a: base-3d's sim is flat in src/ (DESIGN.md §3.1), so the whole folder is its sim root.
+  it('builds base-3d through the reusable game workflow, with the determinism check on its sim', () => {
+    expect(ci.jobs['base-3d']?.uses).toBe('./.github/workflows/game-ci.yml')
+    expect(ci.jobs['base-3d']?.with?.['working-directory']).toBe('games/base-3d')
+    expect(ci.jobs['base-3d']?.with?.['sim-roots']).toBe('src')
+    expect(ci.jobs['base-3d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+  })
+
   it('gives each game-ci caller its own artifact name, since one run cannot upload two artifacts of the same name', () => {
     const names = Object.values(ci.jobs)
       .filter((job) => job.uses === './.github/workflows/game-ci.yml')
@@ -509,7 +528,7 @@ describe('ci.yml evidence file (DX spec §3.10)', () => {
   const ci = workflow('ci.yml')
   const steps = ci.jobs.parity?.steps ?? []
   const scripts = packageJson('.').scripts as Record<string, string>
-  const GOLDEN_PACKAGES = ['packages/sim', 'packages/testing', 'games/emberwick']
+  const GOLDEN_PACKAGES = ['packages/sim', 'packages/testing', 'games/emberwick', 'games/base-3d']
 
   // Every workspace package with a test:evidence script, found through pnpm-workspace.yaml's own globs (what
   // `pnpm evidence` runs), so the list cannot keep a package that left (PRODUCT.5g: physics and its demo moved
@@ -1060,7 +1079,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
     )
   })
 
-  it.each(['placeholder', 'base-2d', 'parity'])(
+  it.each(['placeholder', 'base-2d', 'base-3d', 'parity'])(
     '%s waits for the checks and, on a pull request, runs only a ready one that changes more than documentation',
     (name) => {
       const job = ci.jobs[name]

@@ -41,6 +41,9 @@ importers:
       '@mcthaydt/automata':
         specifier: workspace:*
         version: link:../packages/automata
+      '@mcthaydt/automata-figures':
+        specifier: workspace:*
+        version: link:../packages/figures
       '@mcthaydt/automata-render-pixi3d':
         specifier: workspace:*
         version: link:../packages/render-pixi3d
@@ -146,6 +149,64 @@ importers:
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))
+
+  games/base-3d:
+    dependencies:
+      '@mcthaydt/automata-game':
+        specifier: workspace:*
+        version: link:../../packages/game
+      '@mcthaydt/automata-render-pixi3d':
+        specifier: workspace:*
+        version: link:../../packages/render-pixi3d
+      '@mcthaydt/automata-sim':
+        specifier: workspace:*
+        version: link:../../packages/sim
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@mcthaydt/automata-check-boundaries':
+        specifier: workspace:*
+        version: link:../../tooling/check-boundaries
+      '@mcthaydt/automata-ship':
+        specifier: workspace:*
+        version: link:../../packages/ship
+      '@mcthaydt/evidence':
+        specifier: workspace:*
+        version: link:../../tooling/evidence
+      '@ruken/manifest':
+        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
+        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
 
   games/emberwick:
     dependencies:
@@ -850,6 +911,9 @@ importers:
       '@mcthaydt/automata-content':
         specifier: workspace:*
         version: link:../content
+      '@mcthaydt/automata-figures':
+        specifier: workspace:*
+        version: link:../figures
       '@mcthaydt/automata-render-pixi':
         specifier: workspace:*
         version: link:../render-pixi
