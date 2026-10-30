@@ -2,8 +2,8 @@ import { CameraHeading, cameraHeadingPlugin, cameraView } from '@mcthaydt/automa
 import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
-import { Hero, Target } from './components.ts'
-import { HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
+import { Hero, HeroAction, Target } from './components.ts'
+import { ACTION_CLIP, ACTION_TICKS, HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { BASE3D_SIM, base3dPlugin, spawnArea } from './state.ts'
 import { type Area, type AreaSource, areaOf, compileArea } from './systems.ts'
@@ -122,17 +122,23 @@ interface TickInput {
   readonly stick?: { readonly x: number; readonly y: number }
   readonly turn?: number
   readonly lock?: boolean
+  readonly act?: Partial<Record<'slash' | 'guard' | 'point' | 'pickup', boolean>>
 }
 
-/** One tick's commands from player slot 0: the stick every tick (as the input layer sends it), a turn, lock. */
+/**
+ * One tick's commands from player slot 0: the stick every tick (as the input layer sends it), a turn, lock, and
+ * the action buttons held.
+ */
 function commandsFor(sim: Sim, input: TickInput): Command[] {
   const at = { tick: sim.tick, source: 0 }
   const commands: Command[] = [
-    { ...at, seq: sim.tick * 3, type: 'move', payload: input.stick ?? { x: 0, y: 0 } },
+    { ...at, seq: sim.tick * 4, type: 'move', payload: input.stick ?? { x: 0, y: 0 } },
   ]
   if (input.turn !== undefined)
-    commands.push({ ...at, seq: sim.tick * 3 + 1, type: 'camera-turn', payload: { units: input.turn } })
-  commands.push({ ...at, seq: sim.tick * 3 + 2, type: 'lock', payload: { down: input.lock ?? false } })
+    commands.push({ ...at, seq: sim.tick * 4 + 1, type: 'camera-turn', payload: { units: input.turn } })
+  commands.push({ ...at, seq: sim.tick * 4 + 2, type: 'lock', payload: { down: input.lock ?? false } })
+  const act = { slash: false, guard: false, point: false, pickup: false, ...input.act }
+  commands.push({ ...at, seq: sim.tick * 4 + 3, type: 'act', payload: act })
   return commands
 }
 
@@ -377,6 +383,73 @@ describe('lock (the first slice’s minimal lock-on, M3 spec §4.7)', () => {
   )
 })
 
+function heroAction(sim: Sim) {
+  const [entity] = sim.query(HeroAction)
+  if (entity === undefined) throw new Error('no hero action')
+  return entity.get(HeroAction)
+}
+
+describe('actions (the four clips’ sim side, M3 spec §4.4.5 and §4.7)', () => {
+  const action = heroAction
+
+  it('starts with no action and no guard', async () => {
+    const sim = await startSim()
+    expect(action(sim)).toEqual({ clip: 0, startedAt: 0, guard: false, guardSince: 0 })
+    sim.dispose()
+  })
+
+  it('starts a slash on the press, at that tick, and ends it after its length', async () => {
+    const sim = await startSim()
+    run(sim, {}, 5)
+    const pressed = sim.tick
+    run(sim, { act: { slash: true } })
+    expect(action(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: pressed })
+    run(sim, { act: { slash: true } }, ACTION_TICKS.slash - 1) // held: no second slash
+    expect(action(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: pressed })
+    run(sim, {})
+    expect(action(sim).clip).toBe(0)
+    sim.dispose()
+  })
+
+  it('lets a second slash replace one mid-swing, and ignores point and pickup while one runs', async () => {
+    const sim = await startSim()
+    run(sim, { act: { slash: true } })
+    run(sim, {}, 3)
+    run(sim, { act: { point: true } })
+    run(sim, { act: { pickup: true } })
+    expect(action(sim).clip).toBe(ACTION_CLIP.slash)
+    const second = sim.tick
+    run(sim, { act: { slash: true } })
+    expect(action(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: second })
+    sim.dispose()
+  })
+
+  it.each(['point', 'pickup'] as const)('plays %s when nothing runs, for its length', async (move) => {
+    const sim = await startSim()
+    const pressed = sim.tick
+    run(sim, { act: { [move]: true } })
+    expect(action(sim)).toMatchObject({ clip: ACTION_CLIP[move], startedAt: pressed })
+    run(sim, {}, ACTION_TICKS[move] - 1)
+    expect(action(sim).clip).toBe(ACTION_CLIP[move])
+    run(sim, {})
+    expect(action(sim).clip).toBe(0)
+    sim.dispose()
+  })
+
+  it('holds the guard stance while guard is held, from the press, beside a slash and a lock', async () => {
+    const sim = await startSim(openArea(0, true, [{ x: 0, z: 3 }]))
+    run(sim, {}, 2)
+    const raised = sim.tick
+    run(sim, { act: { guard: true }, lock: true })
+    run(sim, { act: { guard: true, slash: true }, lock: true, stick: RIGHT }, 4)
+    expect(action(sim)).toMatchObject({ guard: true, guardSince: raised, clip: ACTION_CLIP.slash })
+    expect(hero(sim)).toMatchObject({ moving: true, lockTarget: sim.query(Target)[0]?.sid })
+    run(sim, {})
+    expect(action(sim)).toMatchObject({ guard: false })
+    sim.dispose()
+  })
+})
+
 // The golden replay (B-a): a scripted route through the first slice as commands, from the game's own sim spec. It
 // pins the sim: Node records the hash, and Chromium, WebKit and Firefox must end on the same one bit for bit. A
 // change to movement, the area or the plugin changes it on purpose: investigate it, never rebaseline it per engine.
@@ -395,6 +468,15 @@ const GOLDEN_ROUTE: readonly RouteSegment[] = [
   [{ stick: RIGHT, lock: true }, 40], // lock onto the target and strafe along the wall
   [{ stick: LEFT, lock: true }, 10], // and back
   [{}, 10], // released
+  [{ act: { slash: true } }, 1], // a slash
+  [{}, 8], // mid-swing
+  [{ act: { slash: true } }, 1], // a second slash replaces it
+  [{ act: { guard: true } }, 30], // guard raised and held while the slash ends
+  [{}, 30], // lowered
+  [{ act: { pickup: true } }, 1], // a pickup
+  [{}, 60], // plays out
+  [{ act: { point: true } }, 1], // a point
+  [{}, 10], // still pointing at the end
 ]
 
 /** The tick the golden route enters the kiln's view on. */
@@ -402,9 +484,12 @@ const GOLDEN_KILN_TICK = 118
 /**
  * The sim's state hash after the whole golden route, with seed 1 (recorded in Node). Re-recorded when the lock
  * became edge-triggered (review of #250): `hero-control` gained `lockPressed`, which the hash covers (was
- * `d6ca2f2bc83ed284`; same route, same kiln tick, same 50 locked ticks, same end state).
+ * `d6ca2f2bc83ed284`; same route, same kiln tick, same 50 locked ticks, same end state). Re-recorded for M3.7b's
+ * actions (was `aa170b86451f0838`): Wick gained `hero-action`, `hero-control` gained `actHeld` and `actPressed`, and
+ * the route gained the slash, mid-swing slash, guard, pickup and point segments after the walk, whose kiln tick,
+ * locked ticks and end position are unchanged.
  */
-const GOLDEN_HASH = 'aa170b86451f0838'
+const GOLDEN_HASH = 'ce0f0628722db568'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)
@@ -413,18 +498,25 @@ async function runGolden() {
   let kilnTick: number | undefined
   let rejected = 0
   let lockedTicks = 0
+  // Every action start on the route, as `clip@startedAt`.
+  const starts: string[] = []
   for (const [input, ticks] of GOLDEN_ROUTE)
     for (let i = 0; i < ticks; i++) {
       const result = sim.step(commandsFor(sim, input))
       rejected += result.rejected.length
       if (kilnTick === undefined && hero(sim).view === 'kiln') kilnTick = result.tick
       if (hero(sim).lockTarget !== 0) lockedTicks += 1
+      const { clip, startedAt } = heroAction(sim)
+      if (clip !== 0 && starts[starts.length - 1] !== `${clip}@${startedAt}`)
+        starts.push(`${clip}@${startedAt}`)
     }
   const result = {
     hash: sim.hash(),
     kilnTick,
     rejected,
     lockedTicks,
+    starts,
+    action: heroAction(sim),
     hero: hero(sim),
     ticks: sim.tick - startTick,
   }
@@ -448,6 +540,9 @@ describe('the golden replay (B-a)', () => {
       lockTarget: 0,
       latched: false,
     })
+    // Two slashes 9 ticks apart, the pickup after them, then the point, still running, with the guard lowered.
+    expect(result.starts).toEqual(['1@278', '1@287', '3@348', '2@409'])
+    expect(result.action).toEqual({ clip: 2, startedAt: 409, guard: false, guardSince: 288 })
     expect(result.hash).toBe(GOLDEN_HASH)
     // The hash this engine computed, for the evidence file (DX.9).
     const { seed, ticks, hash } = result
