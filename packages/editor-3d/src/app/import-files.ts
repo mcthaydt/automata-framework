@@ -7,6 +7,7 @@ import {
   type ProjectStore,
   type StorageFailure,
   statPath,
+  storePathProblem,
 } from '@mcthaydt/automata-editor-kit/core'
 import { type UnzipFileInfo, unzipSync } from 'fflate'
 import { MAX_FILE_BYTES } from './read-level'
@@ -33,7 +34,8 @@ export type ImportOutcome =
       readonly files: readonly string[]
       readonly skipped: readonly Skipped[]
     }
-  | { readonly status: 'refused'; readonly reason: 'empty' | 'notZip'; readonly message: string }
+  /** `tooLarge`: a zip of more than `MAX_ZIP_ENTRIES` entries, or whose entries declare more than `MAX_ZIP_BYTES` in all. */
+  | { readonly status: 'refused'; readonly reason: 'empty' | 'notZip' | 'tooLarge'; readonly message: string }
   /** The store refused part way: `written` is what is already in the workspace. */
   | {
       readonly status: 'failed'
@@ -43,11 +45,19 @@ export type ImportOutcome =
       readonly message: string
     }
 
+/** The most entries a zip may have, folders included: a bigger one is refused before anything is inflated. */
+export const MAX_ZIP_ENTRIES = 10_000
+/** The most a zip's entries may declare in all (256 MB): a bigger one is refused before anything is inflated. */
+export const MAX_ZIP_BYTES: number = 256 * 1024 * 1024
+
+/** Thrown from the unzip filter to stop before any entry is inflated. */
+class ZipTooLarge extends Error {}
+
 /** Where loose files go: picked files with no folder of their own. */
 const LOOSE_ROOT = 'Imported'
 const SYSTEM_NAMES = new Set(['.DS_Store', 'Thumbs.db', 'desktop.ini'])
 
-/** Why `path` is not imported, if it is not; the store's own path rules, without throwing. */
+/** Why `path` is not imported, if it is not: a file the OS adds, or a path the kit's store rules refuse. */
 function skipReason(path: string): SkipReason | undefined {
   const segments = path.split('/')
   if (
@@ -55,9 +65,7 @@ function skipReason(path: string): SkipReason | undefined {
     SYSTEM_NAMES.has(segments[segments.length - 1] ?? '')
   )
     return 'system'
-  if (path.includes('\\') || path.includes('\0')) return 'unsafePath'
-  if (segments.some((segment) => segment === '' || segment === '.' || segment === '..')) return 'unsafePath'
-  return undefined
+  return storePathProblem(path) === undefined ? undefined : 'unsafePath'
 }
 
 /** The root and each file's path under it: a shared first folder is kept, anything else goes under `fallback`. */
@@ -136,10 +144,18 @@ export function importFolder(store: ProjectStore, files: readonly PickedFile[]):
  */
 export function importZip(store: ProjectStore, name: string, bytes: Uint8Array): Promise<ImportOutcome> {
   const tooLarge: Skipped[] = []
+  let count = 0
+  let declared = 0
   let unzipped: Record<string, Uint8Array>
   try {
     unzipped = unzipSync(bytes, {
+      // fflate reads every entry's header and asks this filter before it inflates any of them.
       filter(file: UnzipFileInfo) {
+        count += 1
+        declared += file.originalSize
+        if (count > MAX_ZIP_ENTRIES)
+          throw new ZipTooLarge(`The zip has more than ${MAX_ZIP_ENTRIES} entries.`)
+        if (declared > MAX_ZIP_BYTES) throw new ZipTooLarge('The zip holds more than 256 MB.')
         if (file.name.endsWith('/')) return false
         if (file.originalSize > MAX_FILE_BYTES) {
           tooLarge.push({ path: file.name, reason: 'tooLarge' })
@@ -149,6 +165,8 @@ export function importZip(store: ProjectStore, name: string, bytes: Uint8Array):
       },
     })
   } catch (error) {
+    if (error instanceof ZipTooLarge)
+      return Promise.resolve({ status: 'refused', reason: 'tooLarge', message: error.message })
     const message = error instanceof Error ? error.message : String(error)
     return Promise.resolve({ status: 'refused', reason: 'notZip', message: `Not a zip file: ${message}` })
   }

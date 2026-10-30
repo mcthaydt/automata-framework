@@ -100,6 +100,15 @@ Each starts with the failing test and its reason, then the minimal change.
 - Hand mutation (13 mutants over the held flag, the base update, the facility search, Restore's label, the free root, the zip size filter, the `.json` filter, the size limit and `deviceOnly`): three survived the first pass (the zip size filter, because the size check after inflating gave the same outcome; the `.json` filter; `deviceOnly`) and were closed with tests (a zip whose oversized entry has corrupt data, a level saved as `.txt`, the device-only workspace). All killed.
 - Gates: see the PR body (`pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm api-report`, changeset status, `check-changesets`). Not run: browsers and parity (nothing here renders or touches the sim).
 
+**2026-10-30, review fixes** (each test written first and seen failing for the reason named):
+
+- The facility search skips the sibling folders when the level's folder is at the top of the workspace (an import root), so a level never takes another import's `facility.json` (test: two import roots).
+- `importZip` refuses a zip of more than 10,000 entries or 256 MB declared in all (`tooLarge`), thrown from the unzip filter before anything is inflated (tests: 10,001 empty entries; 20 entries whose central directory declares 15 MB each).
+- Every write, the patched ones included, runs through the document's queue and patches inside its turn (test: Save reformatted then Save back to back each write their own text, and the next save patches what is on disk; it failed before, the plain save writing the reformatted text and keeping the wrong base).
+- `restore` reads the payload with `codec.parse`, as open does, and returns `baseChanged` (test: a file edited outside after the editor opened it: Restore says so, and Save keeps the file's layout with the autosave's values).
+- `skipReason` uses the kit's new `storePathProblem` (`editor-kit/core`; `assertStorePath` is built on it; kit tests in `store-path.test.ts` and the core entry list; `editor-kit.api.md` updated).
+- Left for ED3D.5c: one shared `readStored` (stat then read) for both editors.
+
 ### Deviations
 
 - `PatchedDocument` is shared by the level and the facility (one save flow, two histories) rather than a level-only document.

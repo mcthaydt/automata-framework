@@ -171,18 +171,16 @@ export function createPatchedDocument<S, M>(options: PatchedDocumentOptions<S, M
     return outcome
   }
 
-  /** Patches the model now; a refusal holds Save and writes nothing. */
-  const patchedSave = (
-    run: () => Promise<SaveOutcome>,
-    becomesBase: boolean,
-  ): Promise<DocumentSaveOutcome> => {
-    const result = patched(modelOf(history.state))
-    if (!result.ok) {
-      held = refused(result)
-      return Promise.resolve(held)
-    }
-    return write(result.text, run, becomesBase)
-  }
+  /** Patches the model as it is when the write's turn comes; a refusal holds Save and writes nothing. */
+  const patchedSave = (run: () => Promise<SaveOutcome>, becomesBase: boolean): Promise<DocumentSaveOutcome> =>
+    queued(async () => {
+      const result = patched(modelOf(history.state))
+      if (!result.ok) {
+        held = refused(result)
+        return held
+      }
+      return write(result.text, run, becomesBase)
+    })
 
   return {
     path,
@@ -219,24 +217,12 @@ export function createPatchedDocument<S, M>(options: PatchedDocumentOptions<S, M
       }
     },
     restore(recovery) {
-      let payload: unknown
-      try {
-        payload = JSON.parse(recovery.payload)
-      } catch {
-        return { ok: false, issues: [{ path: [], message: 'the autosave is not JSON' }] }
-      }
-      const result = codec.schema.safeParse(payload)
-      if (!result.success)
-        return {
-          ok: false,
-          issues: result.error.issues.map((issue) => ({
-            path: issue.path.map((key) => (typeof key === 'number' ? key : String(key))),
-            message: issue.message,
-          })),
-        }
-      const model = result.data
+      // Read the way a file is read, so a payload opens exactly when the same text would open as the file.
+      const read = codec.parse(recovery.payload)
+      if (!read.ok) return { ok: false, issues: read.issues }
+      const model = read.value
       history.apply('Restore autosave', () => options.withModel(model))
-      return { ok: true }
+      return { ok: true, baseChanged: recovery.baseChanged }
     },
     discardRecovery: () => discardRecovery(workspace.journal, path),
     dispose: () => session.dispose(),

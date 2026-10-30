@@ -96,7 +96,7 @@ describe('open', () => {
     first.level.document.dispose()
     const again = opened(await app.open('depot.af-sector.json'))
     expect(again.recovery?.payload).toBe(JSON.stringify(first.level.editor.level))
-    expect(again.level.document.restore(again.recovery ?? never())).toEqual({ ok: true })
+    expect(again.level.document.restore(again.recovery ?? never())).toEqual({ ok: true, baseChanged: false })
 
     const journal: ProjectStore = {
       ...workspace.journal,
@@ -142,6 +142,14 @@ describe('the facility beside a Last Light level', () => {
     })
     const facility = opened(await app.open('clinic.json')).facility
     expect(facility?.status === 'opened' && facility.facility.path).toBe('facility.json')
+  })
+
+  it('does not take the facility of another import root for a level one folder deep', async () => {
+    const { app } = await appWith({
+      'packA/blockout.json': loadFixture('blockout-clinic'),
+      'packB/facility.json': loadFixture('facility'),
+    })
+    expect(opened(await app.open('packA/blockout.json')).facility).toEqual({ status: 'missing' })
   })
 
   it('is missing when there is none, and the level opens', async () => {

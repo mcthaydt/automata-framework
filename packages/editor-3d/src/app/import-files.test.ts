@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { loadFixture } from '../testing/fixtures'
 import { createTestClock, memoryWorkspace, textOf } from '../testing/memory-workspace'
 import { createEditorApp } from './editor-app'
-import { importFolder, importZip } from './import-files'
+import { importFolder, importZip, MAX_ZIP_BYTES, MAX_ZIP_ENTRIES } from './import-files'
 import { MAX_FILE_BYTES } from './read-level'
 
 const bytes = (text: string): Uint8Array => new TextEncoder().encode(text)
@@ -159,6 +159,29 @@ describe('importZip', () => {
       status: 'imported',
       skipped: [{ path: 'p/big.bin', reason: 'tooLarge' }],
     })
+  })
+
+  it('refuses a zip of more than 10,000 entries', async () => {
+    const files: Record<string, Uint8Array> = {}
+    for (let n = 0; n <= MAX_ZIP_ENTRIES; n += 1) files[`p/${n}.txt`] = new Uint8Array()
+    const outcome = await importZip(storeOf(), 'p.zip', zipSync(files, { level: 0 }))
+    expect(outcome.status === 'refused' && outcome.reason).toBe('tooLarge')
+    expect(MAX_ZIP_ENTRIES).toBe(10_000)
+  })
+
+  it('refuses a zip whose entries declare more than 256 MB in all, and writes nothing', async () => {
+    const files: Record<string, Uint8Array> = {}
+    for (let n = 0; n < 20; n += 1) files[`p/${n}.bin`] = strToU8('x')
+    const zip = zipSync(files, { level: 0 })
+    // Each central directory entry (signature 50 4b 01 02) says its file is 15 MB: 300 MB in all.
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength)
+    for (let at = 0; at + 46 <= zip.byteLength; at += 1)
+      if (view.getUint32(at, true) === 0x02014b50) view.setUint32(at + 24, 15 * 1024 * 1024, true)
+    const store = storeOf()
+    const outcome = await importZip(store, 'p.zip', zip)
+    expect(outcome.status === 'refused' && outcome.reason).toBe('tooLarge')
+    expect(MAX_ZIP_BYTES).toBe(256 * 1024 * 1024)
+    expect(await paths(store)).toEqual([])
   })
 
   it('skips an entry whose declared size is over 16 MB without inflating it', async () => {

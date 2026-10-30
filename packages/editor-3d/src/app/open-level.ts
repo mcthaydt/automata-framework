@@ -123,7 +123,8 @@ const inFolder = (folder: string, name: string): string => (folder === '' ? name
 
 /**
  * The facility file of a level at `levelPath`: `facility.json` in the level's folder, else in a folder beside it (the
- * Last Light layout: `docs/art/blockout-facility/` beside `docs/art/blockout-clinic/`), the first by path.
+ * Last Light layout: `docs/art/blockout-facility/` beside `docs/art/blockout-clinic/`), the first by path. Folders at the
+ * top of the workspace are import roots, so they are never searched as siblings.
  */
 export async function findFacilityBeside(
   store: ProjectStore,
@@ -132,9 +133,10 @@ export async function findFacilityBeside(
   const folder = folderOf(levelPath)
   const own = inFolder(folder, FACILITY_FILE)
   if ((await statPath(store, own)) !== undefined) return own
-  if (folder === '') return undefined
   const parent = folderOf(folder)
-  const prefix = parent === '' ? '' : `${parent}/`
+  // A level one folder deep sits at the top of an import root: the folders beside it are other imports, not its game.
+  if (parent === '') return undefined
+  const prefix = `${parent}/`
   const sibling = (await store.list(prefix)).find((entry) => {
     const rest = entry.path.slice(prefix.length).split('/')
     return rest.length === 2 && rest[1] === FACILITY_FILE

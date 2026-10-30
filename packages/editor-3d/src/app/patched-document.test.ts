@@ -85,6 +85,10 @@ function setHall(editor: LevelEditor<AfSector>, member: 'light' | 'floor', value
   })
 }
 
+function never(): never {
+  throw new Error('no recovery')
+}
+
 describe('saving through the patch', () => {
   it('writes the patched text: one number changes and every other byte stays', async () => {
     const { editor, document, file } = await setup(afSectorProfile, DEPOT)
@@ -124,6 +128,27 @@ describe('saving through the patch', () => {
       DEPOT.replace('"light": 1,', '"light": 0.5,').replace('"floor": 0,', '"floor": 0.25,'),
     )
     expect(document.session.status).toBe('saved')
+  })
+
+  it('writes each queued save’s own text and leaves the base equal to what is on disk', async () => {
+    const { editor, document, file, workspace, clock } = await setup(afSectorProfile, DEPOT)
+    const written: string[] = []
+    const write = workspace.store.write.bind(workspace.store)
+    workspace.store.write = (at, data, expected) => {
+      written.push(typeof data === 'string' ? data : (textOf(data) ?? ''))
+      return write(at, data, expected)
+    }
+    const reformattedDepot = `${JSON.stringify(editor.level, null, 2)}\n`
+    const first = document.saveReformatted()
+    const second = document.save()
+    expect((await Promise.all([first, second])).map((outcome) => outcome.status)).toEqual(['saved', 'saved'])
+    // The plain save patches what the reformatted save wrote: nothing changed, so it writes that text again.
+    expect(written).toEqual([reformattedDepot, reformattedDepot])
+    expect(await file()).toBe(reformattedDepot)
+    clock.advance(10)
+    setHall(editor, 'light', 0.5)
+    expect((await document.save()).status).toBe('saved')
+    expect(await file()).toBe(reformattedDepot.replace('"light": 1,', '"light": 0.5,'))
   })
 
   it('patches a Last Light blockout byte for byte', async () => {
@@ -268,12 +293,38 @@ describe('the autosave and Restore', () => {
 
     const again = await open(afSectorProfile, PATH, first.clock, first.workspace)
     if (recovery === undefined) throw new Error('no recovery')
-    expect(again.document.restore(recovery)).toEqual({ ok: true })
+    expect(again.document.restore(recovery)).toEqual({ ok: true, baseChanged: false })
     expect(again.editor.history.undoLabel).toBe('Restore autosave')
     expect(again.editor.level).toEqual(first.editor.level)
     expect(again.document.session.status).toBe('dirty')
     expect((await again.document.save()).status).toBe('saved')
     expect(await again.file()).toBe(DEPOT.replace('"light": 1,', '"light": 0.5,'))
+  })
+
+  it('restores over a file edited on disk after the editor opened it: says so, and Save keeps the file’s layout', async () => {
+    const first = await setup(afSectorProfile, DEPOT)
+    first.clock.advance(10)
+    // Someone edits the file outside: a different layout and a different name.
+    const theirs = DEPOT.replace('"ceiling": 4,', '"ceiling":   4,').replace(
+      '"name": "depot"',
+      '"name": "theirs"',
+    )
+    await first.workspace.store.write(PATH, theirs)
+    first.clock.advance(10)
+    setHall(first.editor, 'light', 0.5)
+    first.clock.advance(1000)
+    await settle()
+    first.document.dispose()
+
+    const again = await open(afSectorProfile, PATH, first.clock, first.workspace)
+    const recovery = await findRecovery(first.workspace.store, first.workspace.journal, PATH)
+    expect(recovery?.baseChanged).toBe(true)
+    expect(again.document.restore(recovery ?? never())).toEqual({ ok: true, baseChanged: true })
+    expect((await again.document.save()).status).toBe('saved')
+    // The restored model wins (the name goes back), and every byte it did not change is the file's as it is now.
+    expect(await again.file()).toBe(
+      theirs.replace('"name": "theirs"', '"name": "depot"').replace('"light": 1,', '"light": 0.5,'),
+    )
   })
 
   it('undo after Restore brings the file’s level back', async () => {
@@ -292,10 +343,8 @@ describe('the autosave and Restore', () => {
     expect(result.ok).toBe(false)
     if (result.ok) return
     expect(result.issues.length).toBeGreaterThan(0)
-    expect(document.restore({ payload: 'not json', savedAt: 0, baseChanged: false })).toEqual({
-      ok: false,
-      issues: [{ path: [], message: 'the autosave is not JSON' }],
-    })
+    const notJson = document.restore({ payload: 'not json', savedAt: 0, baseChanged: false })
+    expect(notJson.ok === false && notJson.issues.map((issue) => issue.path)).toEqual([[]])
     expect(editor.history.canUndo).toBe(false)
   })
 
