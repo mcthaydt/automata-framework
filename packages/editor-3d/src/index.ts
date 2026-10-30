@@ -1,3 +1,39 @@
+// The JSON engine lives in the kit's content documents (EDS.1a); this entry still offers it to its consumers.
+export {
+  formatJsonNumber,
+  formatJsonScalar,
+  indentAt,
+  insertElement,
+  insertMember,
+  type JsonKind,
+  type JsonLiteral,
+  type JsonNode,
+  type JsonPath,
+  type JsonScalar,
+  JsonScanError,
+  JsonShapeError,
+  type JsonValue,
+  JsonWriteError,
+  type Layout,
+  lineStart,
+  type MemberPlacement,
+  PACK_WIDTH,
+  type PatchRefusalReason,
+  type PatchResult,
+  type PatchRules,
+  patchJson,
+  pathKey,
+  readLayout,
+  removeElement,
+  removeMember,
+  replaceValue,
+  roundJsonNumber,
+  type Scan,
+  type Span,
+  sameLine,
+  scan,
+  setMember,
+} from '@mcthaydt/automata-editor-kit/documents'
 export {
   type AcceptResult,
   type Ask,
@@ -15,18 +51,35 @@ export {
   type Scheduler,
 } from './app/checks-panel-controller'
 export {
+  createEditorApp,
+  type EditorApp,
+  type EditorAppOptions,
+  type OpenOutcome,
+} from './app/editor-app'
+export type { ImportOutcome, PickedFile, Skipped, SkipReason } from './app/import-files'
+export {
   createMergeTool,
   type MergeEffect,
   type MergeTarget,
   type MergeTool,
   type MergeToolView,
 } from './app/merge-tool-controller'
+export type { FacilityOutcome, OpenFacility, OpenLevel } from './app/open-level'
+export type {
+  DocumentSaveOutcome,
+  ExportOutcome,
+  PatchedDocument,
+  PatchRefused,
+  RestoreOutcome,
+} from './app/patched-document'
 export {
   createPlanController,
   type PlanController,
   type PlanPointer,
   type PlanView,
 } from './app/plan-controller'
+export type { ProjectEntry } from './app/project-list'
+export { MAX_FILE_BYTES } from './app/read-level'
 export {
   createSectorTool,
   type DrawEdge,
@@ -70,11 +123,6 @@ export * from './checks/last-light/last-light-checks'
 export { type RoomOwners, type RoomPolicy, roomPolicyProblems } from './checks/last-light/room-policy'
 export { materialProblems } from './checks/materials'
 export * from './checks/wall-locator'
-export * from './codec/layout'
-export * from './codec/locate'
-export { type PatchRefusalReason, type PatchResult, type PatchRules, patchJson } from './codec/patch'
-export * from './codec/print'
-export * from './codec/structure'
 export * from './entities/thing-def.schema'
 export * from './entities/things'
 export * from './format/af-sector.schema'
@@ -87,6 +135,13 @@ export * from './geometry/nav'
 export * from './geometry/sectors'
 export { type Triangle, type Triangulation, triangulate } from './geometry/triangulate'
 export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edits'
+export {
+  addDefinition,
+  removeDefinition,
+  renameDefinition,
+  type SetDefinitionFieldArgs,
+  setDefinitionField,
+} from './model/definition-edits'
 export { type Edit, type EditResult, ok, refuse } from './model/edit'
 export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
 export {
@@ -106,6 +161,7 @@ export {
   type LevelEditorOptions,
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
+export { addLink, removeLink } from './model/link-edits'
 export { type MergeSectorsArgs, mergeSectors } from './model/merge-edits'
 export { type PortalOffer, portalOffers, type WallPortal, wallPortal } from './model/portal-offers'
 export {
@@ -164,11 +220,21 @@ export type { AskProvider, ChangeSet, Generator, Proposal } from './ports/ports'
 export * from './profile/af-sector/af-checks'
 export * from './profile/af-sector/af-codec'
 export * from './profile/af-sector/af-entities'
+export {
+  addMaterial,
+  type MaterialArgs,
+  removeMaterial,
+  renameMaterial,
+  setMaterial,
+} from './profile/af-sector/af-material-edits'
+export { type NewLevelResult, newAfSectorLevel } from './profile/af-sector/af-template'
 export * from './profile/af-sector/build'
 export * from './profile/af-sector-profile'
+export type { DefinitionAccess, InstanceRename } from './profile/definition-access'
 export * from './profile/file-codec'
 export * from './profile/last-light-codecs'
 export * from './profile/last-light-entities'
+export { lastLightNavLinks } from './profile/last-light-nav-links'
 export * from './profile/last-light-profile'
 export {
   type Geometry,
@@ -189,9 +255,12 @@ export {
   type SectorDraft,
 } from './profile/sector-access'
 export { type ThingAccess, ThingAccessError } from './profile/thing-access'
+export type { ThingLink, ThingLinks } from './profile/thing-links'
+export type { LinkPlace } from './things/link-mode'
 export {
   createThingsTool,
   type PaletteEntry,
+  type Rectangle,
   type ThingPlace,
   type ThingsTool,
   type ThingsToolOptions,

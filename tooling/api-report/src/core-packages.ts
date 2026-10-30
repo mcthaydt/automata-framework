@@ -6,7 +6,6 @@ import { join } from 'node:path'
 
 /** Folders under `packages/` that are not core, with the reason. */
 export const NOT_CORE: Readonly<Record<string, string>> = {
-  physics: 'an extension; moves to automata-plus with PRODUCT.5 (PD-1)',
   'editor-3d':
     'an editor application, private, imported by no game; its public entry is not a framework seam',
 }

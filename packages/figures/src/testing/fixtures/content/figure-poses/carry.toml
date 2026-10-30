@@ -1,0 +1,14 @@
+# A fixture pose (M3 spec §4.4.3), for tests and examples; no game's. Figure units, root space unless a handle says.
+
+about = "Carrying something before the belly in both hands, held in the chest's frame so it rides with the chest, which leans back against the load."
+
+[effectors.handL]
+pos = [ 0.15, -0.23, 0.3 ]
+space = "chest"
+
+[effectors.handR]
+pos = [ -0.15, -0.23, 0.3 ]
+space = "chest"
+
+[effectors.chest]
+rot = [ -5, 0, 0 ]

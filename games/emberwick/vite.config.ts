@@ -21,6 +21,8 @@ export default defineConfig({
   // Relative URLs: inside Ruken the game is served from /b/<buildId>/ and on the dev host from
   // /builds/<buildId>/, never from the origin's root (ship prepare refuses root-absolute paths).
   base: './',
-  build: { outDir: 'dist', emptyOutDir: true },
+  // `assetsInlineLimit: 0`: Vite would inline an asset under 4 kB as a `data:` URL, which Pixi's loader fetches and
+  // Ruken's CSP (`connect-src 'self'`) refuses; a same-origin file is what the CSP allows.
+  build: { outDir: 'dist', emptyOutDir: true, assetsInlineLimit: 0 },
   preview: { headers: previewHeaders() },
 })

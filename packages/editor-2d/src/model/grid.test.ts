@@ -152,6 +152,41 @@ describe('Grid', () => {
     ])
   })
 
+  test('chunks lists the stored chunks row-major, each with its position and its cells in grid coordinates', () => {
+    expect(Grid.empty(40, 40).chunks()).toEqual([])
+    const grid = Grid.empty(40, 40).set(33, 2, 7).set(20, 1, 3).set(1, 17, 2).set(2, 1, 1).set(3, 1, 4)
+    const chunks = grid.chunks()
+    expect(chunks.map((chunk) => [chunk.cx, chunk.cy])).toEqual([
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [0, 1],
+    ])
+    expect(chunks[0]?.cells()).toEqual([
+      { x: 2, y: 1, value: 1 },
+      { x: 3, y: 1, value: 4 },
+    ])
+    expect(chunks[2]?.cells()).toEqual([{ x: 33, y: 2, value: 7 }])
+    expect(chunks[3]?.cells()).toEqual([{ x: 1, y: 17, value: 2 }])
+  })
+
+  test('a chunk keeps its token while it is unchanged, and an edit gives only the touched chunk a new one', () => {
+    const grid = Grid.empty(40, 40).set(1, 1, 1).set(20, 1, 2)
+    const edited = grid.set(21, 2, 3)
+    const [before0, before1] = grid.chunks()
+    const [after0, after1] = edited.chunks()
+    expect(after0?.token).toBe(before0?.token)
+    expect(after1?.token).not.toBe(before1?.token)
+    expect(grid.chunks()[0]?.token).toBe(before0?.token)
+    expect(
+      edited
+        .set(20, 1, 0)
+        .set(21, 2, 0)
+        .chunks()
+        .map((chunk) => chunk.cx),
+    ).toEqual([0])
+  })
+
   test('refuses a size that is negative or not whole', () => {
     expect(() => Grid.empty(-1, 4)).toThrow(RangeError)
     expect(() => Grid.empty(4, 1.5)).toThrow(RangeError)

@@ -84,7 +84,9 @@ const moduleCode = (content: CompiledContent): string => {
  * The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
  * starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
  * content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
- * Vite's logger and the `automata:content-error` event (`automata:content` after a good save).
+ * Vite's logger and the `automata:content-error` event (`automata:content` after a good save). It also sets
+ * `build.assetsInlineLimit: 0` when the game's config leaves it unset, so no asset becomes a `data:` URL that Ruken's
+ * CSP refuses to fetch.
  */
 export function automataContent(pluginOptions: AutomataContentOptions = { schemas: [] }): Plugin {
   let options: ContentOptions | undefined
@@ -155,6 +157,14 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
 
   return {
     name: 'automata-content',
+
+    // Every asset ships as a file. Vite would inline one under 4 kB as a `data:` URL, which Pixi's loader fetches
+    // and Ruken's CSP refuses (`connect-src` has no `data:`), so the asset would never load (DX.5a). A value the
+    // game sets is kept: this hook's result is merged over the game's own config.
+    config(userConfig) {
+      if (userConfig.build?.assetsInlineLimit !== undefined) return undefined
+      return { build: { assetsInlineLimit: 0 } }
+    },
 
     configResolved(config) {
       options = { ...pluginOptions, root: pluginOptions.root ?? config.root }

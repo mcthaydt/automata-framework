@@ -1,21 +1,21 @@
 // Usage: pnpm api-report [--update] [--since <ref>]
 // Checks every core package's committed API report against source, and fails on an API break against the
-// reports at <ref> (default origin/main) that no changeset declares (PRODUCT spec §2 F6). --update rewrites
+// reports at <ref> (default: where HEAD left origin/main, base-ref.ts) that no changeset declares (PRODUCT spec §2 F6). --update rewrites
 // the reports. Exit 0 clean, 1 findings, 2 tool error (the base ref is missing: fetch it).
 import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { baseRefFor } from './base-ref.ts'
 import { REPORTS_DIR, runApiReport } from './run.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const args = process.argv.slice(2)
 const update = args.includes('--update')
 const sinceIndex = args.indexOf('--since')
-const since = sinceIndex >= 0 ? (args[sinceIndex + 1] ?? '') : 'origin/main'
-
 const git = (...gitArgs: string[]) =>
   execFileSync('git', gitArgs, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+const since = baseRefFor(git, sinceIndex >= 0 ? (args[sinceIndex + 1] ?? '') : undefined)
 
 function main(): number {
   let baseReport: ((file: string) => string | undefined) | undefined

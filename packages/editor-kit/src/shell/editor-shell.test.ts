@@ -94,6 +94,16 @@ describe('EditorShell structure', () => {
     expect(region('canvas').querySelector('[data-scroll-region]')).toBeNull()
   })
 
+  // The dock holds a strip wider than itself (scenes, frames), which a player scrolls sideways; the panel and the
+  // inspector scroll up and down, so a control cut at their side fails the layout contract (ui's `checkLayout`).
+  it('declares that the dock body scrolls both ways, and the panel and inspector bodies only up and down', () => {
+    mount(1194, 834)
+    const body = (name: string) => region(name).querySelector('[data-scroll-region]')
+    expect(body('dock')).toHaveAttribute('data-scroll-region', 'both')
+    expect(body('panel')).toHaveAttribute('data-scroll-region', '')
+    expect(body('inspector')).toHaveAttribute('data-scroll-region', '')
+  })
+
   it('tells the rail which way to draw: vertical in wide, horizontal below it', async () => {
     const geometry = mount(1194, 834)
     expect(screen.getByTestId('rail')).toHaveAttribute('data-orientation', 'vertical')

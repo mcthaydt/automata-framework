@@ -1,9 +1,11 @@
 // Where the things of a Last Light blockout live (ED3D spec §4.7): the `spawn` object, the `boxes`, `hotspots` and
 // `lamps` lists (an element carries its `id`, and no `def`), and the `anchors` and `nav.nodes` records (named by their
-// key, which is their id). A thing keeps its members in the order its file has them, so a moved box patches `x` and `z`.
-// Zones and nav edges are not things yet (ED3D.7c); an edge is only something that can still name a node or a door.
+// key, which is their id), and the `zones` list (`last-light-zones.ts`, ED3D.7c). A thing keeps its members in the
+// order its file has them, so a moved box patches `x` and `z`. A nav edge is no thing: it is the profile's link, and
+// here only something that can still name a node or a door.
 import type { Thing } from '../entities/things'
 import type { Blockout } from '../format/blockout.schema'
+import { zoneAccess } from './last-light-zones'
 import { mergeMembers, newMembers, noThing, type ThingAccess, ThingAccessError } from './thing-access'
 
 const LIST_KEY = { box: 'boxes', hotspot: 'hotspots', lamp: 'lamps' } as const
@@ -76,6 +78,7 @@ function nodeReferences(blockout: Blockout, id: string): string[] {
 export const lastLightThingAccess: ThingAccess<Blockout> = {
   takenIds(blockout, def) {
     if (def === 'spawn') return ['spawn']
+    if (def === 'zone') return zoneAccess.takenIds(blockout)
     if (isListDef(def)) return listOf(blockout, def).map((each) => each.id)
     return isRecordDef(def) ? Object.keys(recordOf(blockout, def)) : []
   },
@@ -83,6 +86,7 @@ export const lastLightThingAccess: ThingAccess<Blockout> = {
   add(blockout, thing: Thing) {
     const { def, id } = thing
     if (def === 'spawn') throw new ThingAccessError('the level has a spawn already, and only one')
+    if (def === 'zone') return zoneAccess.add(blockout, thing)
     if (isListDef(def)) return withList(blockout, def, [...listOf(blockout, def), newMembers(thing, { id })])
     if (isRecordDef(def))
       return withRecord(blockout, def, { ...recordOf(blockout, def), [id]: newMembers(thing, {}) })
@@ -94,6 +98,7 @@ export const lastLightThingAccess: ThingAccess<Blockout> = {
       const next = mergeMembers(blockout.spawn, thing, {})
       return next === blockout.spawn ? blockout : { ...blockout, spawn: next }
     }
+    if (def === 'zone') return zoneAccess.replace(blockout, id, thing)
     if (isListDef(def)) {
       const list = listOf(blockout, def)
       const at = list.findIndex((each) => each.id === id)
@@ -117,6 +122,7 @@ export const lastLightThingAccess: ThingAccess<Blockout> = {
 
   remove(blockout, def, id) {
     if (def === 'spawn') throw new ThingAccessError('a level cannot do without its spawn')
+    if (def === 'zone') return zoneAccess.remove(blockout, id)
     if (isListDef(def)) {
       const list = listOf(blockout, def)
       if (!list.some((each) => each.id === id)) throw noThing(def, id)
@@ -139,6 +145,7 @@ export const lastLightThingAccess: ThingAccess<Blockout> = {
   references(blockout, def, id) {
     if (def === 'box') return boxReferences(blockout, id)
     if (def === 'node') return nodeReferences(blockout, id)
+    if (def === 'zone') return zoneAccess.references(blockout, id)
     return []
   },
 }
