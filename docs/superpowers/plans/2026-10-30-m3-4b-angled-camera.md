@@ -142,7 +142,7 @@ Each step starts with its failing test, run alone, with the failure reason recor
 
 ## Rework on klipp (Owner, 2026-10-30: "keep in mind for the camera we're using klipp")
 
-The coordinator relayed the Owner's words: the camera work in M3.4b stays on `@pmndrs/klipp`; no camera of our own; a gap becomes a thin layer over klipp or a request to klipp (docs PR #262, M9.1). `angledCamera` above is a rig of our own (its own blends, lag and heading ease), so it is rebuilt on klipp before this PR leaves draft. R1 to R4 done 2026-10-30; R5 below.
+The coordinator relayed the Owner's words: the camera work in M3.4b stays on `@pmndrs/klipp`; no camera of our own; a gap becomes a thin layer over klipp or a request to klipp (docs PR #262, M9.1). `angledCamera` above is a rig of our own (its own blends, lag and heading ease), so it is rebuilt on klipp before this PR leaves draft. R1 to R6 done 2026-10-30.
 
 **Design (agent defaults, for the Owner's veto).** `CameraRig`'s interface stays, so the renderer, the driver and the sim side do not change.
 
@@ -161,5 +161,5 @@ The coordinator relayed the Owner's words: the camera work in M3.4b stays on `@p
 - [x] R2 `@pmndrs/klipp` 0.16.0 exact in `render-pixi3d`, a `docs/versions.md` row (it brings pmndrs `math`, MIT, at a canary as its own exact dependency); the rig on klipp: one `Klipp`, a `VirtualCamera` per view (priority 1 for the active one), `OrbitFollowBody` on a sphere, `HardLookAtAim`, `initialState.fov = fovOf(24)`. Heading eases move the `horizontal` axis's target with `inputAxis.applyDelta` by the shorter arc (`easeAxisTo` is not exported from the package root); a cut restarts the camera (`active` off and on), which klipp snaps onto its target. `smoothstep` had no caller left and went with its test. `docs/stack.md` has no row for `@pixi/3d` either, so klipp gets none there.
 - [x] R3 the camera write: the rig copies `klipp.shot` (`position`, `lookAtTarget`, `fov`) onto the `Camera3D` it was given, as The Last Light's `stage.ts` does; the renderer is unchanged because the rig is already its one camera writer (deviation from "the renderer copies the shot": same effect, no interface change).
 - [x] R4 no `eval` or `new Function` in klipp's core or `math` (grep of both packages' files).
-- [ ] R5 gates and parity.
+- [x] R5 gates and parity, after merging `origin/claude/3d-m3-4a-render3d` at `07aebd9` (conflicts: the renderer's imports joined; the root `boundaries` script takes main's form plus `packages/render-pixi3d/src/sim`; editor-3d keeps both dependency sets and imports `roundJsonNumber` from `editor-kit/documents`) and `origin/main` (already contained): `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0 (36 of 36); `pnpm build`, `api-report` (no change: `CameraRig` is the same), `api-index`, `agent-skills` current; `check-changesets` 0 problems (render-pixi3d is private); render-pixi3d parity 22 passed, 14 skipped (Firefox WebGL in this container, and the no-WebGL2 and WebGPU cases), the camera parity green in Chromium and WebKit on klipp.
 - [x] R6 editor-3d unchanged: it consumes only the pure entry.
