@@ -765,6 +765,15 @@ A lookup over the messages module Paraglide compiles into `paraglide.outdir` (it
 function createContentText(messages: Readonly<Record<string, unknown>>, options?: ContentTextOptions): ContentText;
 ```
 
+#### `hasRawText` (function)
+
+True when a piece of visible text has English in it that did not come from the xx-long catalog: any ASCII
+letter outside a ⟦ ⟧ span. Data a player typed (a name) is also "raw", so a check lists the data it expects.
+
+```ts
+function hasRawText(text: string): boolean;
+```
+
 #### `localeCharacters` (function)
 
 What a locale's subset font is cut to: `ALWAYS_CHARACTERS` and the catalog's characters.
@@ -787,6 +796,46 @@ The message key of one text. `id` is absent for a single-document kind.
 
 ```ts
 function messageKey(kind: string, id: string | undefined, path: DataPath): string;
+```
+
+#### `MessageValue` (type)
+
+A value in an inlang message file: a message, a list of variants, or a namespace or variant object.
+
+```ts
+type MessageValue = string | readonly MessageValue[] | {
+  readonly [key: string]: MessageValue;
+};
+```
+
+#### `PSEUDO_LOCALE` (const)
+
+The pseudo-locale's tag. `Intl` reads it as the unknown language `xx`, so formatting falls back, never throws.
+
+```ts
+const PSEUDO_LOCALE = "xx-long";
+```
+
+#### `pseudoLocalize` (function)
+
+The xx-long form of one message string. Placeholders and escaped braces stay as written. The extra length is
+spread over the words in proportion to their length, each word's share right after it, so a long message keeps
+the places a line can break, as a longer language's would; a message with no words has it at the end.
+
+```ts
+function pseudoLocalize(message: string): string;
+```
+
+#### `pseudoMessages` (function)
+
+The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural
+variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts
+change. `$schema` is copied as is.
+
+```ts
+function pseudoMessages(file: {
+  readonly [key: string]: MessageValue;
+}): Record<string, MessageValue>;
 ```
 
 #### `snakeKey` (function)
@@ -7079,8 +7128,9 @@ The checks every screen shares: the document never scrolls; every control is at 
 (primaries the primary target) at this scale, on screen unless in a declared scroll region,
 never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
 `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
-ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; and each of `essentials`
-is reachable without scrolling.
+ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
+region it scrolls in, and no control's words run past its edge; and each of `essentials` is reachable without
+scrolling.
 
 ```ts
 function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[];
