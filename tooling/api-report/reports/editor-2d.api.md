@@ -212,6 +212,12 @@ function copyStamp(grid: Grid, x: number, y: number, w: number, h: number): Stam
 function counterIds(start?: number): IdSource;
 ```
 
+### `createLevelDrawList` (function)
+
+```ts
+function createLevelDrawList(): (input: LevelDrawInput) => LevelDrawList;
+```
+
 ### `createLevelEditor` (function)
 
 ```ts
@@ -338,6 +344,12 @@ interface Diagnostic {
     readonly message: string;
     readonly fix?: string | undefined;
 }
+```
+
+### `DrawView` (type)
+
+```ts
+type DrawView = Pick<LevelEditorView, 'level' | 'layer' | 'tool' | 'brushSize' | 'hover' | 'rectangle' | 'selected' | 'hidden' | 'locked'>;
 ```
 
 ### `DroppedCells` (interface)
@@ -483,10 +495,30 @@ type EntityDef2D = EntityDef & {
 };
 ```
 
+### `entityDefOf` (function)
+
+```ts
+function entityDefOf(project: Project, id: string | undefined): EntityDef2D | undefined;
+```
+
 ### `EntityDefPatch` (type)
 
 ```ts
 type EntityDefPatch = Partial<Pick<EntityDef2D, 'label' | 'color' | 'single' | 'shape' | 'size' | 'pivot' | 'tile' | 'tags' | 'min'>>;
+```
+
+### `EntityDraw` (interface)
+
+```ts
+interface EntityDraw extends Bounds {
+    readonly id: string;
+    readonly def: string;
+    readonly shape: EntityShape;
+    readonly pivot: Point;
+    readonly color: string | undefined;
+    readonly label: string;
+    readonly tile: TileDraw | undefined;
+}
 ```
 
 ### `EntityInstance` (interface)
@@ -595,6 +627,14 @@ function flipStamp(stamp: Stamp, axis: 'x' | 'y', kind: CellKind): Stamp;
 function floodFill(grid: Grid, at: Point, word: number): Grid;
 ```
 
+### `Footprint` (interface)
+
+```ts
+interface Footprint extends Bounds {
+    readonly erase: boolean;
+}
+```
+
 ### `Grid` (class)
 
 ```ts
@@ -611,12 +651,28 @@ class Grid {
     edit(fn: (cells: GridEditor) => void): Grid;
     resize(cols: number, rows: number): Grid;
     equals(other: Grid): boolean;
+    chunks(): readonly GridChunk[];
     nonEmpty(): readonly {
         readonly x: number;
         readonly y: number;
         readonly value: number;
     }[];
     sharesChunk(other: Grid, x: number, y: number): boolean;
+}
+```
+
+### `GridChunk` (interface)
+
+```ts
+interface GridChunk {
+    readonly cx: number;
+    readonly cy: number;
+    readonly token: object;
+    cells(): readonly {
+        readonly x: number;
+        readonly y: number;
+        readonly value: number;
+    }[];
 }
 ```
 
@@ -627,6 +683,16 @@ interface GridEditor {
     get(x: number, y: number): number;
     set(x: number, y: number, value: number): void;
     fillRect(x: number, y: number, w: number, h: number, value: number): void;
+}
+```
+
+### `GridLines` (interface)
+
+```ts
+interface GridLines {
+    readonly step: number;
+    readonly xs: readonly number[];
+    readonly ys: readonly number[];
 }
 ```
 
@@ -657,6 +723,26 @@ function importTileset(project: Project, id: string, image: {
     readonly path: string;
     readonly size: Size;
 }): Project;
+```
+
+### `IntCellDraw` (interface)
+
+```ts
+interface IntCellDraw extends Bounds {
+    readonly value: number;
+    readonly color: string | undefined;
+}
+```
+
+### `IntChunk` (interface)
+
+```ts
+interface IntChunk {
+    readonly cx: number;
+    readonly cy: number;
+    readonly bounds: Bounds;
+    readonly cells: readonly IntCellDraw[];
+}
 ```
 
 ### `IntGridLayerDef` (interface)
@@ -724,6 +810,24 @@ function layerCells(size: Size, grid: number): {
 type LayerDef = TilesLayerDef | IntGridLayerDef | AutoLayerDef | EntitiesLayerDef | ObjectsLayerDef;
 ```
 
+### `LayerDraw` (type)
+
+```ts
+type LayerDraw = (LayerCommon & {
+    readonly kind: 'tiles' | 'auto';
+    readonly chunks: readonly TileChunk[];
+}) | (LayerCommon & {
+    readonly kind: 'intgrid';
+    readonly chunks: readonly IntChunk[];
+}) | (LayerCommon & {
+    readonly kind: 'entities';
+    readonly entities: readonly EntityDraw[];
+}) | (LayerCommon & {
+    readonly kind: 'objects';
+    readonly objects: readonly ObjectDraw[];
+});
+```
+
 ### `LayerInstance` (type)
 
 ```ts
@@ -755,6 +859,32 @@ interface Level<Layer = LayerInstance> {
     readonly background: Background;
     readonly fields: FieldValues;
     readonly layers: readonly Layer[];
+}
+```
+
+### `LevelDrawInput` (interface)
+
+```ts
+interface LevelDrawInput {
+    readonly project: Project;
+    readonly view: DrawView;
+    readonly images: ReadonlySet<string>;
+}
+```
+
+### `LevelDrawList` (interface)
+
+```ts
+interface LevelDrawList {
+    readonly level: string;
+    readonly size: Size;
+    readonly background: Background;
+    readonly layers: readonly LayerDraw[];
+    readonly grid: GridLines | undefined;
+    readonly footprint: Footprint | undefined;
+    readonly selection: readonly (Bounds & {
+        readonly id: string;
+    })[];
 }
 ```
 
@@ -896,6 +1026,14 @@ function newRule(id: string): Rule;
 
 ```ts
 function nextPatternCell(cell: PatternCell, value: number): PatternCell;
+```
+
+### `ObjectDraw` (type)
+
+```ts
+type ObjectDraw = TileDraw & {
+    readonly id: string;
+};
 ```
 
 ### `ObjectInstance` (interface)
@@ -1079,6 +1217,12 @@ function placeEntity(project: Project, target: LayerTarget, input: {
     readonly x: number;
     readonly y: number;
 }): Project;
+```
+
+### `PlaceholderReason` (type)
+
+```ts
+type PlaceholderReason = 'placeholder' | 'missing' | 'outOfRange' | 'noTileset';
 ```
 
 ### `placeLevel` (function)
@@ -1449,6 +1593,32 @@ interface TemplateDef<V> {
     readonly hint?: string | undefined;
     create(ids: IdSource): V;
 }
+```
+
+### `TileChunk` (interface)
+
+```ts
+interface TileChunk {
+    readonly cx: number;
+    readonly cy: number;
+    readonly bounds: Bounds;
+    readonly tiles: readonly TileDraw[];
+}
+```
+
+### `TileDraw` (type)
+
+```ts
+type TileDraw = TilePlacement & ({
+    readonly kind: 'image';
+    readonly image: string;
+    readonly frame: Bounds;
+} | {
+    readonly kind: 'placeholder';
+    readonly reason: PlaceholderReason;
+    readonly color: string;
+    readonly label: string;
+});
 ```
 
 ### `TilesetDef` (interface)

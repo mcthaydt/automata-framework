@@ -72,6 +72,48 @@ describe('checkArchitecture: the pure core (model and tiles)', () => {
     expect(checkArchitecture(files)).toEqual([])
   })
 
+  it('holds the draw list in canvas/draw to the same rules, and lets the rest of canvas import Pixi', () => {
+    for (const code of [
+      "import { Sprite } from 'pixi.js'\nexport const s = Sprite",
+      'export const t = () => Date.now()',
+    ]) {
+      const files = tree({ 'canvas/draw/level-draw-list.ts': code })
+      expect(rules(checkArchitecture(files)), code).toEqual([
+        code.includes('pixi') ? 'pure-imports' : 'pure-globals',
+      ])
+    }
+    const pure = tree({
+      'canvas/draw/a.ts': "import { b } from '../../model/b'\nexport const a = b",
+      'model/b.ts': 'export const b = 1',
+    })
+    expect(checkArchitecture(pure)).toEqual([])
+    const renderer = tree({
+      'canvas/level-view.ts':
+        "import { Sprite } from 'pixi.js'\nimport { a } from './draw/a'\nexport const v = () => [Sprite, a, document.body]",
+      'canvas/draw/a.ts': 'export const a = 1',
+    })
+    expect(checkArchitecture(renderer)).toEqual([])
+  })
+
+  it('refuses a core file that imports code from outside the core, but lets it import types from there', () => {
+    const renderer = { 'canvas/level-view.ts': 'export const view = 1\nexport type View = number' }
+    const value = tree({
+      ...renderer,
+      'canvas/draw/a.ts': "import { view } from '../level-view'\nexport const a = view",
+    })
+    expect(rules(checkArchitecture(value))).toEqual(['pure-imports'])
+    const fromApp = tree({
+      'app/level-editor.ts': 'export const make = () => 1',
+      'model/a.ts': "import { make } from '../app/level-editor'\nexport const a = make",
+    })
+    expect(rules(checkArchitecture(fromApp))).toEqual(['pure-imports'])
+    const typeOnly = tree({
+      ...renderer,
+      'canvas/draw/a.ts': "import type { View } from '../level-view'\nexport const a: View = 1",
+    })
+    expect(checkArchitecture(typeOnly)).toEqual([])
+  })
+
   it('is not applied outside model and tiles', () => {
     const files = tree({
       'app/a.ts': "import x from 'svelte'\nexport const t = Date.now()\nexport default x",
@@ -250,6 +292,13 @@ describe('the real tree', () => {
   it('obeys every rule', () => {
     const files = new Map(sources(new URL('.', import.meta.url).pathname))
     expect(files.size).toBeGreaterThan(10)
+    // G-s scans app, tiles and canvas: each has to be in the scan for the scan to mean anything.
+    for (const area of ['app/', 'tiles/', 'canvas/']) {
+      expect(
+        [...files.keys()].some((path) => path.startsWith(area)),
+        area,
+      ).toBe(true)
+    }
     expect(checkArchitecture(files)).toEqual([])
   })
 })
