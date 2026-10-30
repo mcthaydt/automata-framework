@@ -1,8 +1,8 @@
 import { type ReferenceSize, VARIANTS } from '@mcthaydt/automata-testing'
 import { settleLayout } from '@mcthaydt/automata-ui/testing'
 
-// The window sizes the 2D editor's layout tests run at (2D editor spec §12; plan ED2D.4c2a step 7), shared by every
-// `*.layout.test.ts` of the app so they measure the same screens.
+// The window sizes the editors' layout tests run at (2D editor spec §12, 3D editor spec §10; plan ED2D.4c2a step 7;
+// moved into the kit in ED3D.5c), shared by every `*.layout.test.ts` of both editors so they measure the same screens.
 
 export type Mode = 'wide' | 'medium' | 'compact'
 export interface EditorSize extends ReferenceSize {

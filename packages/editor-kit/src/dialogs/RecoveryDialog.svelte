@@ -1,13 +1,15 @@
 <!--
-  Restore or Discard (plan ED2D.4c2b, decision 5; mockup `recover`; kit spec §5 flow 4). Asked when a document opens
+  Restore or Discard (plan ED2D.4c2b, decision 5; moved into the kit in ED3D.5c; mockup `recover`; kit spec §5
+  flow 4). Asked when a document opens
   with an autosave newer than its file, before it is worked on. It is not dismissible: Escape and the scrim do nothing,
   since both answers change what is open. Restore edits, which has focus, applies the autosave as one undoable step;
   Discard throws it away. When the file also changed since the autosave began, it says that restoring replaces that.
 -->
 <script lang="ts">
-import { Button, Dialog } from '@mcthaydt/automata-editor-kit'
-import type { Recovery } from '@mcthaydt/automata-editor-kit/core'
-import { recoveryFacts } from './open-flow-model'
+import type { Recovery } from '../storage/recovery'
+import Button from '../widgets/Button.svelte'
+import Dialog from '../widgets/Dialog.svelte'
+import { recoveryFacts } from './recovery-facts'
 
 interface Props {
   path: string

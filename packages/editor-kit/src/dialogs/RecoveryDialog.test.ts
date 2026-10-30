@@ -1,10 +1,10 @@
-import type { Recovery } from '@mcthaydt/automata-editor-kit/core'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import type { Recovery } from '../storage/recovery'
 import RecoveryDialog from './RecoveryDialog.svelte'
 
-// Restore or Discard (plan ED2D.4c2b, decision 5; mockup `recover`; kit spec §5 flow 4): asked before the document
+// Restore or Discard (plan ED2D.4c2b, decision 5; moved from editor-2d in ED3D.5c; mockup `recover`; kit spec §5 flow 4): asked before the document
 // is worked on, and not dismissible, because either answer changes what is open.
 
 const now = 1_700_000_000_000

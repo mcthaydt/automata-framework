@@ -1,5 +1,4 @@
-import type { Problem, Recovery, SaveOutcome } from '@mcthaydt/automata-editor-kit/core'
-import { modifiedLabel } from '@mcthaydt/automata-editor-kit/core'
+import type { Problem, SaveOutcome } from '@mcthaydt/automata-editor-kit/core'
 import type { ParseError, Profile } from '../../profiles/profile'
 import type { OpenOutcome } from '../editor-app'
 
@@ -116,23 +115,6 @@ export function textWindow(text: string, focus?: number, size: number = WINDOW_L
   if (focus !== undefined && focus > size)
     first = Math.max(1, Math.min(focus - Math.floor(size / 2), total - size + 1))
   return { first, lines: all.slice(first - 1, first - 1 + size), total }
-}
-
-/** What the Restore dialog tells about an autosave (mockup `recover`). */
-export function recoveryFacts(
-  path: string,
-  recovery: Recovery,
-  now: number,
-  timeZone?: string,
-): readonly { readonly label: string; readonly value: string }[] {
-  return [
-    { label: 'File', value: baseName(path) },
-    { label: 'Last autosave', value: modifiedLabel(recovery.savedAt, now, timeZone) },
-    {
-      label: 'File on disk',
-      value: recovery.baseChanged ? 'Changed since the autosave began' : 'Unchanged since the autosave began',
-    },
-  ]
 }
 
 /** The top bar's heading: the profile's own title for the document, else its file name, over its path. */

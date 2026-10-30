@@ -1,5 +1,7 @@
 export { type Command, type CommandRegistry, createCommandRegistry, defineCommand } from './commands/command'
 export { normalizeShortcut, parseShortcut, type Shortcut } from './commands/shortcut'
+export { default as ConflictDialog } from './dialogs/ConflictDialog.svelte'
+export { default as RecoveryDialog } from './dialogs/RecoveryDialog.svelte'
 export * from './fields/index'
 export { type AttachOptions, attachGestures } from './gestures/attach-gestures'
 export { type GestureClock, realClock } from './gestures/gesture-clock'
