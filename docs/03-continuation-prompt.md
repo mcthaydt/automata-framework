@@ -92,7 +92,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 
 | Lane | Session | State on 2026-10-30 15:20Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | rotates every 2 h (15:30Z: `session_01QYLU1eQtX9j6EyGmz86pYP`) | Merged #260, #191 PRODUCT.5d, #227 DX.2a, #237 M5.5F, #225 ED3D.8a and #253 GL.1; watching #258 ED3D.5c and the 3D lane's #221 and #241. |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | rotates every 2 h (15:30Z: `session_01QYLU1eQtX9j6EyGmz86pYP`) | Merged #260, #191 PRODUCT.5d, #227 DX.2a, #237 M5.5F, #225 ED3D.8a and #253 GL.1 and #258 ED3D.5c; watching the 3D lane's #221 and #241. |
 | 3D (M3, GAME-3D, M9 free parts, M4.12), the one build lane | `session_01QYLU1gVeKcraUX7HF49N8q` (fresh at 15:20Z) | #241 M3.4a (red only in Mac Firefox: render-to-texture reads back black; fixing the snapshot helper), #221 M3.6c ready; drafts #224, #245, #247, #249, #250; branch `claude/3d-m4-12b-stick-compact` waits for the PR cap. The Owner confirmed the visual-acceptance ruling to the lane ("Approve all"). |
 | Editors (ED2D, EDFF, ED3D, EDK, EDS) | paused 14:06Z; archived | Handoff kept by the coordinator. Drafts #246 EDS.1b (on #244, merged) and #255 ED2D.4c3b (on #206, merged) wait for the lane's resume. |
 | Plus (automata-plus) | paused 14:07Z; archived | plus #16 M7.5b's review fixes are on `backup/m7-5b-9a43885` (not pushed to #16, which would queue Plus CI); plus #14 (two CI failures on Plus `main`). |
@@ -106,7 +106,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 
 ## Exact next action
 
-1. Merge #258 as it goes green, parity included. Merge the 3D lane's PRs as it reports them ready (#221 now).
+1. Merge the 3D lane's PRs as it reports them ready (#221 now).
 2. Done 2026-10-30: #227 (DX.2a) merged (`b9244c9`); `AGENTS.md` now lists cli, figures and the editors as the private packages. The Plus lane's M5.8, M6.1/6.2, M3.3, PRODUCT.6 and NetworkPort import are unblocked (Plus is paused until the Owner resumes it).
 3. Done 2026-10-30: #253 (GL.1) merged (`11a4e4e`); the GL spec §5.5 text is in `AGENTS.md`'s `pnpm style` and `pnpm boundaries` bullets and the 3D lane was told GL.7 can start. Next: GL.3 (the placeholder's `src/main.ts`), failing test first.
 4. The "Version packages" PR (#226) is no longer blocked by PRODUCT.5g (#197 merged); before merging it, check its version bumps and that no physics package publishes from AF, and its publish waits for the Owner's approval in the release environment.
