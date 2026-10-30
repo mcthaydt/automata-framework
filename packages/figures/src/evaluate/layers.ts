@@ -53,6 +53,14 @@ export interface ClipLayerOptions {
   readonly context?: SpaceContext | undefined
 }
 
+/** The clip's masked pose after `elapsed` seconds of play, at its pose step or (smooth) at the frame's time. */
+export function clipPose(clip: FigureClipDef, elapsed: number, options: ClipLayerOptions): PoseDef {
+  const t = options.smooth
+    ? smoothTime(clip, elapsed, options.previous)
+    : stepTime(clip, elapsed, options.rate, options.previous)
+  return maskPose(sample(clip, t, options.poses, options.context), clip.mask)
+}
+
 /** The clip's layer after `elapsed` seconds of play, or undefined while its weight is 0. */
 export function clipLayer(
   clip: FigureClipDef,
@@ -61,11 +69,8 @@ export function clipLayer(
 ): Layer | undefined {
   const weight = rampWeight(clip, elapsed, options.end)
   if (weight <= 0) return undefined
-  const t = options.smooth
-    ? smoothTime(clip, elapsed, options.previous)
-    : stepTime(clip, elapsed, options.rate, options.previous)
   return {
-    pose: maskPose(sample(clip, t, options.poses, options.context), clip.mask),
+    pose: clipPose(clip, elapsed, options),
     weight,
     mask: clip.mask,
     additive: clip.mode === 'additive',
