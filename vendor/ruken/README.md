@@ -14,8 +14,9 @@ FloorFifty's `vendor/ruken/` pattern (decision D-6, master spec §12).
 
 **Source:** RukenApp `main` at `d0fa2fe` (`d0fa2fe766d532a293c3723d5ba3102d1e602d63`, 2026-10-28), packed
 2026-10-30 (QB.1f). Each package was built with its own `pnpm run build` (Ruken's `turbo run build` stops on
-`@ruken/db#db:generate` without a database, and these packages do not need it). Every one of them declares
-`zod` 4.6.6, so AF needs no override. The previous tarballs were packed from `b30d31b` on 2026-10-11; what
+`@ruken/db#db:generate` without a database, and these packages do not need it). `@ruken/sdk-host` and
+`@ruken/cli` declare `zod` 4.6.6 (the SDK only as a dev dependency; `@ruken/manifest` does not use zod), so AF
+needs no override. The previous tarballs were packed from `b30d31b` on 2026-10-11; what
 changed between the two for AF is listed in `docs/superpowers/plans/2026-10-30-qb1f-repack-ruken.md`.
 
 `pnpm pack` writes the `@ruken/*` dev dependencies of a packed `package.json` in no fixed order, so packing
