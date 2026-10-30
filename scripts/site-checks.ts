@@ -1,6 +1,7 @@
 /// <reference path="./jsdom.d.ts" />
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
+import { gzipSync } from 'node:zlib'
 import { JSDOM } from 'jsdom'
 import { SITE_ORIGIN } from '../src/lib/site.js'
 import { CSP_META_PREFIX, scriptHash } from '../src/lib/csp'
@@ -321,4 +322,36 @@ function checkSecurityTxt(root: string, now: Date): string[] {
   const canonical = `${SITE_ORIGIN}/${file}`
   if (!fields.get('canonical')?.includes(canonical)) failures.push(`${file}: no Canonical: ${canonical}`)
   return failures
+}
+
+/** The editor's source, as the build's Vite manifest keys it. */
+export const EDITOR_SOURCE = 'src/lib/playground/editor.ts'
+/** The editor chunk and the chunks it imports, gzipped (playground spec §10.1). */
+export const MAX_EDITOR_CHUNK_GZIP_BYTES = 175_000
+
+interface ManifestChunk { readonly file: string; readonly imports?: readonly string[] }
+
+/**
+ * The editor loads on the first tap or focus on an example's code (spec F2), so no page may name its chunk or the
+ * chunks it imports, and together they stay within MAX_EDITOR_CHUNK_GZIP_BYTES. `manifest` is the build's
+ * `.vite/manifest.json`, which maps the editor's source to its file.
+ */
+export function checkEditorChunk(root: string, manifest: Record<string, ManifestChunk>): { failures: string[]; gzipBytes: number } {
+  if (!manifest[EDITOR_SOURCE]) return { failures: [`the build's manifest has no ${EDITOR_SOURCE}`], gzipBytes: 0 }
+  const files = new Set<string>()
+  const visit = (key: string) => {
+    const chunk = manifest[key]
+    if (!chunk || files.has(chunk.file)) return
+    files.add(chunk.file)
+    for (const imported of chunk.imports ?? []) visit(imported)
+  }
+  visit(EDITOR_SOURCE)
+  const failures: string[] = []
+  const gzipBytes = [...files].reduce((sum, file) => sum + gzipSync(readFileSync(join(root, file)), { level: 9 }).length, 0)
+  if (gzipBytes > MAX_EDITOR_CHUNK_GZIP_BYTES) failures.push(`the editor chunk and its imports are ${gzipBytes} bytes gzip, over the ${MAX_EDITOR_CHUNK_GZIP_BYTES} byte budget`)
+  for (const page of builtPages(root)) {
+    const html = readFileSync(join(root, page), 'utf8')
+    for (const file of files) if (html.includes(file)) failures.push(`${page}: names ${file}, part of the editor, which loads only on a tap or focus on the code`)
+  }
+  return { failures, gzipBytes }
 }

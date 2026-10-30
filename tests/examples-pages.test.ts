@@ -4,6 +4,7 @@ import { render, fireEvent, waitFor } from '@testing-library/svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import examplesJson from '../src/data/examples.json'
 import { exampleIndex, getExample, getExamples } from '../src/data/examples'
+import type { HighlightedLine } from '../src/lib/playground/highlight'
 import CommandMenu from '../src/lib/components/CommandMenu.svelte'
 import IndexPage from '../src/routes/examples/+page.svelte'
 import { load as indexLoad } from '../src/routes/examples/+page.server'
@@ -15,7 +16,7 @@ import { entries, load as exampleLoad } from '../src/routes/examples/[id]/+page.
 // the screen. With reduced motion, nothing under /playground/ is requested before Play.
 
 const root = resolve(import.meta.dirname, '..')
-const pageData = async (id: string) => (await exampleLoad({ params: { id } } as never)) as { example: ReturnType<typeof getExample> & object; index: ReturnType<typeof exampleIndex> }
+const pageData = async (id: string) => (await exampleLoad({ params: { id } } as never)) as { example: ReturnType<typeof getExample> & object; highlighted: HighlightedLine[]; index: ReturnType<typeof exampleIndex> }
 
 class FakeObserver {
   static instances: FakeObserver[] = []
@@ -97,6 +98,15 @@ describe('/examples/<id>', () => {
     expect(view.getByText(data.example.shows)).toBeTruthy()
     expect(view.getByRole('link', { name: data.example.title, current: 'page' })).toBeTruthy()
     expect(view.container.querySelectorAll('nav[aria-label="Examples"] a')).toHaveLength(17)
+  })
+
+  it('highlights the static code with the editor’s tok- classes and keeps it the source byte for byte', async () => {
+    const data = await pageData('shapes-rects')
+    const view = render(ExamplePage, { props: { data } })
+    const code = view.container.querySelector('[data-testid="static-code"] code')!
+    expect(code.textContent).toBe(data.example.source)
+    expect(code.querySelector('.line .tok-keyword')?.textContent).toBe('import')
+    expect(code.querySelectorAll('.line')).toHaveLength(data.example.source.split('\n').length)
   })
 
   it('an example page starts the original after load with no input', async () => {

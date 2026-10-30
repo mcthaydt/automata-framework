@@ -94,10 +94,14 @@ export async function keyboardProblems(page: Page): Promise<string[]> {
   for (let presses = 0; presses < candidates.length * 2 + 10 && reached.size < candidates.length; presses++) {
     await page.keyboard.press(isWebKit ? 'Alt+Tab' : 'Tab')
     const focused: { index: number; ring: boolean } | null = await page.evaluate(() => {
-      const element = document.activeElement
+      // Focus on an example's static code swaps in the editor (WEB.PLAY.6): its content stands for the static code,
+      // and its focus ring is on the editor's box (playground spec §9.2).
+      const focused = document.activeElement
+      const editor = focused?.matches('.cm-content') ? focused.closest('.cm-editor') : null
+      const element = editor ? focused!.closest('.code-panel')?.querySelector('.static-code') : focused
       const index = element?.getAttribute('data-qb-focus')
       if (!element || index === null || index === undefined) return null
-      const style = getComputedStyle(element)
+      const style = getComputedStyle(editor ?? element)
       return { index: Number(index), ring: style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0 }
     })
     if (!focused) continue

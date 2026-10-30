@@ -12,8 +12,10 @@
   import type { Orchestrator, OrchestratorView, PreviewFrame } from './orchestrator'
   import { STATUS } from './status'
   import { atOrigin } from './origin'
+  import type { HighlightedLine } from './highlight'
+  import type { CodeState } from './CodePanel.svelte'
 
-  let { example }: { example: Example } = $props()
+  let { example, highlighted }: { example: Example; highlighted: HighlightedLine[] } = $props()
   const REDUCED = 'Press Play to start the example. Once it runs, edits update it live.'
   const uid = $props.id()
   const statusId = 'playground-status-' + uid
@@ -21,13 +23,15 @@
   let view = $state<OrchestratorView>({ preview: 'poster', runId: 0, status: '', stopped: null, frames: 0 })
   let waitingForPlay = $state(false)
   let fetchFailed = $state(false)
+  let code = $state<CodeState>('static')
   let stage: HTMLElement | undefined = $state()
   let box: HTMLElement | undefined = $state()
   let orchestrator: Orchestrator | undefined
   let started = false
   let disposed = false
 
-  let status = $derived(fetchFailed ? STATUS.firstBootTimeout : waitingForPlay && view.preview === 'poster' ? REDUCED : view.status)
+  let previewStatus = $derived(fetchFailed ? STATUS.firstBootTimeout : waitingForPlay && view.preview === 'poster' ? REDUCED : view.status)
+  let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : previewStatus)
   let showPlay = $derived(waitingForPlay && view.preview === 'poster' || (view.preview === 'failed' && view.frames === 0) || fetchFailed)
 
   /** A sandboxed frame on the example's frame page, under the one on show until it reports `running` (spec F4). */
@@ -97,6 +101,18 @@
   onMount(() => {
     const onMessage = (event: MessageEvent) => orchestrator?.receive({ source: event.source, origin: event.origin, data: event.data })
     window.addEventListener('message', onMessage)
+    // Chromium lets a frame's own script take focus while the frame is still `inert`, so the arrival run took the
+    // caret from a reader already in the code. Only the page's `blur` shows it: focus goes back where it was (§9.2).
+    let lastFocus: Element | null = null
+    const onFocusIn = (event: FocusEvent) => { lastFocus = event.target as Element }
+    const onBlur = () => {
+      const active = document.activeElement
+      if (!(active instanceof HTMLIFrameElement && active.hasAttribute('inert') && stage?.contains(active))) return
+      if (lastFocus instanceof HTMLElement && lastFocus.isConnected) lastFocus.focus({ preventScroll: true })
+      else active.blur()
+    }
+    window.addEventListener('focusin', onFocusIn)
+    window.addEventListener('blur', onBlur)
     let observer: IntersectionObserver | undefined
     const onLoad = () => {
       // The frame starts once the page's own downloads are done and the preview is within a screen of view (R-9).
@@ -111,6 +127,8 @@
     else window.addEventListener('load', onLoad, { once: true })
     return () => {
       window.removeEventListener('message', onMessage)
+      window.removeEventListener('focusin', onFocusIn)
+      window.removeEventListener('blur', onBlur)
       window.removeEventListener('load', onLoad)
       observer?.disconnect()
       disposed = true
@@ -118,9 +136,9 @@
     }
   })
 </script>
-<div class="playground" data-code="static" data-preview={view.preview} data-run-id={view.runId}>
+<div class="playground" data-code={code} data-preview={view.preview} data-run-id={view.runId}>
   <div class="playground-grid">
-  <div class="playground-code"><CodePanel source={example.source} title={example.title} describedBy={statusId} /></div>
+  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} oncodestate={next => { code = next }} /></div>
   <div class="playground-preview" bind:this={box}>
     <PreviewPanel title={example.title} {view} {showPlay} onplay={play} onrestart={() => orchestrator?.restart()} bind:stage />
     <p class="playground-status" id={statusId}>{status}</p>

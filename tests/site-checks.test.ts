@@ -1,10 +1,11 @@
 // @vitest-environment node
 import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
+import { randomBytes } from 'node:crypto'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { withContentSecurityPolicy } from '../src/lib/csp'
-import { BANNED_PHRASES, MAX_PRELOADED_SCRIPT_BYTES, checkSite } from '../scripts/site-checks'
+import { BANNED_PHRASES, EDITOR_SOURCE, MAX_EDITOR_CHUNK_GZIP_BYTES, MAX_PRELOADED_SCRIPT_BYTES, checkEditorChunk, checkSite } from '../scripts/site-checks'
 import { writeSeoFiles } from '../scripts/write-seo-files'
 
 const ORIGIN = 'https://automata.ruken.com'
@@ -321,5 +322,48 @@ describe('checkSite', () => {
     const site = goodSite()
     site.write('docs.html', page('/docs', { body: '<p>Todos and seamlessness are fine; so is a todo list.</p>' }))
     expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+})
+
+// WEB.PLAY.6 (playground spec §10.1): the editor chunk loads on the first tap or focus on the code, never with a page,
+// and its closure stays within 175 kB gzip. The build's Vite manifest names its file and the chunks it imports.
+describe('checkEditorChunk', () => {
+  const manifest = (imports: string[] = []) => ({
+    [EDITOR_SOURCE]: { file: '_app/immutable/chunks/ed.js', imports: imports.length ? ['_lang.js'] : undefined, isDynamicEntry: true },
+    '_lang.js': { file: '_app/immutable/chunks/lang.js', imports: undefined },
+  })
+  // Random bytes do not compress: their base64 gzips to about three quarters of its length.
+  const noise = (bytes: number) => randomBytes(bytes).toString('base64')
+
+  it('holds the editor to 175 kB gzip', () => {
+    expect(MAX_EDITOR_CHUNK_GZIP_BYTES).toBe(175_000)
+  })
+
+  it('passes a small editor chunk that no page loads, and reports its gzip size', () => {
+    const site = goodSite()
+    site.write('_app/immutable/chunks/ed.js', 'export const editor = 1')
+    const result = checkEditorChunk(site.root, manifest())
+    expect(result.failures).toEqual([])
+    expect(result.gzipBytes).toBeGreaterThan(0)
+  })
+
+  it('counts the chunks the editor imports', () => {
+    const site = goodSite()
+    site.write('_app/immutable/chunks/ed.js', 'import "./lang.js"')
+    site.write('_app/immutable/chunks/lang.js', noise(MAX_EDITOR_CHUNK_GZIP_BYTES * 2))
+    expect(checkEditorChunk(site.root, manifest(['lang'])).failures).toEqual([expect.stringMatching(/^the editor chunk and its imports are \d+ bytes gzip, over the 175000 byte budget/)])
+  })
+
+  it('fails when a page preloads or loads the editor chunk or one it imports', () => {
+    const site = goodSite()
+    site.write('_app/immutable/chunks/ed.js', 'import "./lang.js"')
+    site.write('_app/immutable/chunks/lang.js', 'export {}')
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + '<link rel="modulepreload" href="./_app/immutable/chunks/lang.js" />' }))
+    expect(checkEditorChunk(site.root, manifest(['lang'])).failures).toEqual(['index.html: names _app/immutable/chunks/lang.js, part of the editor, which loads only on a tap or focus on the code'])
+  })
+
+  it('fails when the manifest has no editor, so the check cannot pass by finding nothing', () => {
+    const site = goodSite()
+    expect(checkEditorChunk(site.root, {}).failures).toEqual([`the build's manifest has no ${EDITOR_SOURCE}`])
   })
 })
