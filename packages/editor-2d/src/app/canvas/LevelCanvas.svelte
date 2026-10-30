@@ -108,13 +108,17 @@ $effect(() => {
 </script>
 
 <div class="level-canvas" data-level-canvas data-state={phase} bind:this={host}>
-  <canvas bind:this={canvas}></canvas>
+  <!-- Chromium paints a lost canvas white with a broken-image glyph, so it is hidden while there is no picture. -->
+  <canvas bind:this={canvas} class:hidden={paused || unavailable}></canvas>
   <p class="notice" role="status" hidden={message === ''}>{message}</p>
 </div>
 
 <style>
+  /* It fills the box its parent gives it (the Level view's canvas region). */
   .level-canvas {
     position: relative;
+    width: 100%;
+    height: 100%;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
@@ -124,6 +128,9 @@ $effect(() => {
     display: block;
     width: 100%;
     height: 100%;
+  }
+  canvas.hidden {
+    visibility: hidden;
   }
   .notice {
     position: absolute;

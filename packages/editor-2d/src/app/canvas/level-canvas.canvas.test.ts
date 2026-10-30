@@ -8,7 +8,10 @@ import LevelCanvas from './LevelCanvas.svelte'
 // The canvas component (ED2D.4c3b, plan decisions 5 and 8; spec §13) in Chromium: it loads the level's images from the
 // workspace, draws, and says "Preview paused" while the WebGL context is lost.
 
-afterEach(() => cleanup())
+afterEach(() => {
+  cleanup()
+  document.body.replaceChildren()
+})
 
 function project() {
   // The rich fixture's tileset, now with an image that the store does not have, and a level background that it has.
@@ -19,7 +22,11 @@ function project() {
 }
 
 function mountCanvas(reads: string[], level = 'start') {
+  const box = document.body.appendChild(document.createElement('div'))
+  box.style.width = '320px'
+  box.style.height = '200px'
   const result = render(LevelCanvas, {
+    target: box,
     props: {
       project: project(),
       view: drawView({ level }),
@@ -31,8 +38,6 @@ function mountCanvas(reads: string[], level = 'start') {
   })
   const host = result.container.querySelector<HTMLElement>('[data-level-canvas]')
   if (host === null) throw new Error('no canvas host')
-  host.style.width = '320px'
-  host.style.height = '200px'
   return { ...result, host }
 }
 
@@ -67,11 +72,14 @@ describe('LevelCanvas', () => {
     lose.loseContext()
     await expect.poll(() => queryByRole('status')?.textContent?.trim()).toBe('Preview paused')
     expect(host.dataset['state']).toBe('paused')
+    // Chromium paints a lost canvas white with a broken-image glyph; the canvas is hidden so only the notice shows.
+    expect(getComputedStyle(canvas as HTMLCanvasElement).visibility).toBe('hidden')
     // A restore asked for while the loss event is still being delivered never arrives in Chromium; ask in a later task.
     await new Promise((resolve) => setTimeout(resolve, 0))
     lose.restoreContext()
     await expect.poll(() => queryByRole('status')).toBeNull()
     await drawn(host)
+    expect(getComputedStyle(canvas as HTMLCanvasElement).visibility).toBe('visible')
   })
 
   it('lets go of the renderer when it leaves the page', async () => {
