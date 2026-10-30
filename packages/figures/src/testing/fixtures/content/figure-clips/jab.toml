@@ -1,0 +1,43 @@
+# A fixture clip (M3 spec §4.4.4), for tests and examples; no game's. An action: from guard, the right hand
+# draws back (a pose written inline), drives out to a point at `contact`, and returns to guard.
+
+length = 0.4
+loop = "once"
+mask = [ "armR", "torso" ]
+rate = 12
+
+[markers]
+windup = 0.15
+contact = 0.25
+
+[[cues]]
+t = 0.15
+id = "swing"
+
+[[cues]]
+t = 0.25
+id = "hit"
+
+[[keys]]
+t = 0
+pose = "guard-high"
+
+[[keys]]
+t = 0.15
+ease = "out"
+
+[keys.pose.effectors.handR]
+pos = [ -0.18, 1.25, 0.05 ]
+
+[keys.pose.effectors.chest]
+rot = [ 0, 15, 0 ]
+
+[[keys]]
+t = 0.25
+pose = "point"
+ease = "in"
+
+[[keys]]
+t = 0.4
+pose = "guard-high"
+ease = "inOut"

@@ -41,6 +41,20 @@ export function stepTime(clip: FigureClipDef, t: number, rate: number): number {
   return shown
 }
 
+/**
+ * The clip time a smoothly sampled frame shows at clip time `t`, the previous frame having been at `previous`:
+ * `t` itself, except that a frame which passes a marker (one in (previous, t]) shows the latest such marker's
+ * instant, so the marker's pose is on screen for one frame in smooth sampling too. The first frame (no
+ * `previous`) shows `t`.
+ */
+export function smoothTime(clip: FigureClipDef, t: number, previous: number | undefined): number {
+  if (previous === undefined) return t
+  let shown: number | undefined
+  for (const marker of Object.values(clip.markers ?? {}))
+    if (marker > previous && marker <= t && (shown === undefined || marker > shown)) shown = marker
+  return shown ?? t
+}
+
 /** The clip stretched evenly to `length` seconds: its keys, markers and cues with it. */
 export function retime(clip: FigureClipDef, length: number): FigureClipDef {
   if (!(length > 0) || !Number.isFinite(length))

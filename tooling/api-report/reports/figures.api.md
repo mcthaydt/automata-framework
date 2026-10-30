@@ -97,10 +97,53 @@ interface Cap {
 }
 ```
 
+### `chestFrame` (function)
+
+```ts
+function chestFrame(skeleton: Skeleton, world: readonly M[]): M;
+```
+
 ### `clamp` (const)
 
 ```ts
 const clamp: (v: number, lo: number, hi: number) => number;
+```
+
+### `ClipKey` (interface)
+
+```ts
+interface ClipKey {
+    readonly t: number;
+    readonly pose: string | PoseDef;
+    readonly ease?: Ease | undefined;
+}
+```
+
+### `clipSchema` (const)
+
+```ts
+const clipSchema: z.ZodType<FigureClipDef>;
+```
+
+### `clipTime` (function)
+
+```ts
+function clipTime(clip: FigureClipDef, elapsed: number): number;
+```
+
+### `ClipWarning` (interface)
+
+```ts
+interface ClipWarning {
+    readonly path: readonly (string | number)[];
+    readonly message: string;
+}
+```
+
+### `clipWarnings` (function)
+
+```ts
+function clipWarnings(clip: FigureClipDef, poses: PoseLibrary): ClipWarning[];
 ```
 
 ### `clonePose` (function)
@@ -145,6 +188,18 @@ const DEFAULT_SLIDERS: Readonly<Sliders>;
 const dot: (a: V3, b: V3) => number;
 ```
 
+### `Ease` (type)
+
+```ts
+type Ease = 'step' | 'linear' | 'in' | 'out' | 'inOut' | readonly [number, number, number, number];
+```
+
+### `easeAt` (function)
+
+```ts
+function easeAt(ease: Ease | undefined, u: number): number;
+```
+
 ### `EffectorId` (type)
 
 ```ts
@@ -186,6 +241,34 @@ const FIGURE_CONTENT: readonly ContentSchemaDef[];
 interface FigureBody {
     readonly sliders: Partial<Sliders>;
     readonly genes?: Partial<Genes> | undefined;
+}
+```
+
+### `figureClipContent` (const)
+
+```ts
+const figureClipContent: ContentSchemaDef<'figure-clip'>;
+```
+
+### `FigureClipDef` (interface)
+
+```ts
+interface FigureClipDef {
+    readonly length: number;
+    readonly loop: 'once' | 'loop' | 'pingpong' | 'hold';
+    readonly mask: readonly MaskGroup[];
+    readonly mode?: 'override' | 'additive' | undefined;
+    readonly rate?: number | undefined;
+    readonly blend?: {
+        readonly inMs: number;
+        readonly outMs: number;
+    } | undefined;
+    readonly keys: readonly ClipKey[];
+    readonly markers?: Readonly<Record<string, number>> | undefined;
+    readonly cues?: readonly {
+        readonly t: number;
+        readonly id: string;
+    }[] | undefined;
 }
 ```
 
@@ -665,6 +748,24 @@ type M = [
 ];
 ```
 
+### `markerTime` (function)
+
+```ts
+function markerTime(clip: FigureClipDef, name: string): number;
+```
+
+### `MASK_GROUPS` (const)
+
+```ts
+const MASK_GROUPS: readonly ["root", "pelvis", "torso", "head", "armL", "armR", "legL", "legR"];
+```
+
+### `MaskGroup` (type)
+
+```ts
+type MaskGroup = (typeof MASK_GROUPS)[number];
+```
+
 ### `matq` (function)
 
 ```ts
@@ -789,6 +890,12 @@ interface PoseDef {
 }
 ```
 
+### `PoseLibrary` (type)
+
+```ts
+type PoseLibrary = Readonly<Record<string, PoseDef>>;
+```
+
 ### `PoseProblem` (interface)
 
 ```ts
@@ -882,6 +989,12 @@ const REFERENCE_SKELETON: Skeleton;
 function restPose(): Pose;
 ```
 
+### `retime` (function)
+
+```ts
+function retime(clip: FigureClipDef, length: number): FigureClipDef;
+```
+
 ### `RigLimits` (interface)
 
 ```ts
@@ -950,6 +1063,20 @@ const rotationOf: (m: M) => R3;
 
 ```ts
 function roundPoseNumber(value: number): number;
+```
+
+### `sample` (function)
+
+```ts
+function sample(clip: FigureClipDef, t: number, poses: PoseLibrary, context?: SampleContext): PoseDef;
+```
+
+### `SampleContext` (interface)
+
+```ts
+interface SampleContext {
+    readonly chest?: M | undefined;
+}
 ```
 
 ### `scale` (const)
@@ -1042,6 +1169,12 @@ interface Sliders {
 const smooth: (k: number) => number;
 ```
 
+### `smoothTime` (function)
+
+```ts
+function smoothTime(clip: FigureClipDef, t: number, previous: number | undefined): number;
+```
+
 ### `solve` (function)
 
 ```ts
@@ -1099,6 +1232,12 @@ interface Stand {
 
 ```ts
 const standSchema: z.ZodType<Stand>;
+```
+
+### `stepTime` (function)
+
+```ts
+function stepTime(clip: FigureClipDef, t: number, rate: number): number;
 ```
 
 ### `sub` (const)
