@@ -7,12 +7,14 @@
   import CopyButton from '$lib/components/CopyButton.svelte'
   import { offsetAtPoint } from './caret'
   import type { HighlightedLine } from './highlight'
-  let { source, highlighted, title, describedBy, oncodestate }: {
+  let { source, highlighted, title, describedBy, oncodestate, onedit }: {
     source: string
     highlighted: HighlightedLine[]
     title: string
     describedBy: string
     oncodestate?: (state: CodeState) => void
+    /** The editor's whole text after each change (spec F3). */
+    onedit?: (source: string) => void
   } = $props()
   // One span per line, each carrying its newline, so the code's text is the source byte for byte; the line numbers are
   // CSS counters and never part of it. The editor takes this box's size and font (spec §9.3), and the pieces carry the
@@ -37,7 +39,7 @@
       // The swap keeps the page where the reader left it: for a moment both the static code and the editor are in the
       // layout, and Safari on macOS scrolled the page by more than a screen (CI, WebKit) as the static code went.
       const { scrollX, scrollY } = window
-      editor = mountEditor({ parent: host!, doc: source, label: 'Code for ' + title + '. Changes update the preview.', describedBy, anchor })
+      editor = mountEditor({ parent: host!, doc: source, label: 'Code for ' + title + '. Changes update the preview.', describedBy, anchor, onchange: text => onedit?.(text) })
       setState('ready')
       await tick()
       // The static code had focus (a tap or Tab put it there); it moves to the editor, which now holds the same text.

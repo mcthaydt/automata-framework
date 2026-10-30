@@ -60,17 +60,17 @@ and the share link (.9); the determinism row (.10); the layout pass and the late
 
 ## Steps (each test fails first, for the reason given)
 
-- [ ] 1. **First failing test** (e2e, Chromium): A-1's journey, "an edit updates the preview with no button". Open
+- [x] 1. **First failing test** (e2e, Chromium): A-1's journey, "an edit updates the preview with no button". Open
   `/examples/shapes-rects`, wait for `running`, put the caret in `0x00cdf9` on the `Block` view's line, replace it with
   `0xff0000`; the root reaches `data-run-id="2"` with one frame, the status line says "Preview updated.", and a
   screenshot of the frame has more than 100 red pixels (decoded in the page's own canvas, so no image dependency).
   Fails: `data-run-id` stays `1` (an edit changes nothing).
-- [ ] 2. Unit `live.test.ts`: an edit posts nothing before 300 ms and posts once at 300 ms; a second edit at 200 ms
+- [x] 2. Unit `live.test.ts`: an edit posts nothing before 300 ms and posts once at 300 ms; a second edit at 200 ms
   restarts the timer and only the latest source is posted; `now()` posts at once and cancels the timer; an answer whose
   `seq` is not the latest is dropped; `dispose()` cancels the timer and terminates the worker, and later answers are
   dropped; `diagnosticText` gives "Line 21: Unexpected token. The preview is still running your last working
   version." (and without the second sentence when nothing runs). Fails: no module. Then `live.ts`.
-- [ ] 3. `compile.worker.ts`, `editor.ts`'s `onchange`, `CodePanel`'s `onedit`, and `Playground`: the worker starts
+- [x] 3. `compile.worker.ts`, `editor.ts`'s `onchange`, `CodePanel`'s `onedit`, and `Playground`: the worker starts
   when the editor starts loading; a result runs through `orchestrator.run`. Step 1 passes in Chromium and WebKit.
 - [ ] 4. e2e A-3: inserting `const broken = 1 +;` inside the `move` system marks that line (`.cm-lint-marker-error`
   in its gutter row, `.cm-lintRange-error` in the line), the status line names "Line N: Unexpected token" within the
@@ -113,3 +113,8 @@ once.
 - 2026-10-30: plan written by the website lane (session_01QYLU1iBXhs9QdohCWXcLfV), replacing the old lane. Worktree
   `/home/user/wt/web-play-7`, branch `claude/website-WEB.PLAY.7-live-updates` from `575b34e`. AF reference worktree
   `/home/user/wt/automata-framework` at `f8023a9`.
+- Steps 1–3: A-1's journey failed first with `data-run-id` staying `1`. The red-pixel count decodes the frame's
+  screenshot in a blank page of the same context, because the site's CSP refuses a `data:` fetch. `diagnosticText`
+  lives in `status.ts`, not `live.ts`: the status line is in the page's entry, and `live.ts` brings Zod, which loads
+  only with the editor. The worker's jobs carry the example (`{ seq, source, example }`), since Vite's
+  `new Worker(new URL(...))` pattern takes no query. Chromium and WebKit pass.

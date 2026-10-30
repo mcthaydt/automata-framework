@@ -18,6 +18,8 @@ export interface EditorOptions {
   readonly describedBy: string
   /** Where the caret starts: the source offset the reader tapped. */
   readonly anchor: number
+  /** Called with the whole text after each change, but not during IME composition: once it ends (spec F3). */
+  readonly onchange: (doc: string) => void
 }
 
 const theme = EditorView.theme({
@@ -29,7 +31,7 @@ const theme = EditorView.theme({
   '.cm-lineNumbers .cm-gutterElement': { boxSizing: 'content-box', minWidth: '3ch', padding: '0 1rem 0 0', textAlign: 'right' },
 })
 
-export function mountEditor({ parent, doc, label, describedBy, anchor }: EditorOptions): EditorView {
+export function mountEditor({ parent, doc, label, describedBy, anchor, onchange }: EditorOptions): EditorView {
   const state = EditorState.create({
     doc,
     selection: EditorSelection.cursor(Math.min(Math.max(anchor, 0), doc.length)),
@@ -47,6 +49,11 @@ export function mountEditor({ parent, doc, label, describedBy, anchor }: EditorO
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
       EditorView.contentAttributes.of({ 'aria-label': label, 'aria-describedby': describedBy, autocorrect: 'off', autocapitalize: 'off', spellcheck: 'false' }),
       theme,
+      EditorView.updateListener.of(update => {
+        if (update.docChanged && !update.view.composing) onchange(update.state.doc.toString())
+      }),
+      // A change made while composing waits for the composition to end; `compositionend` comes after its last change.
+      EditorView.domEventHandlers({ compositionend: (_event, view) => { onchange(view.state.doc.toString()) } }),
     ],
   })
   const view = new EditorView({ state, parent })

@@ -221,3 +221,68 @@ test('a preview that starts while the reader is in the code leaves focus in the 
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
   await expect(page.locator('.cm-content')).toBeFocused()
 })
+
+// WEB.PLAY.7 (spec F3–F5, §7.4, A-1, A-3, A-4, A-13): edits compile in a worker after a quiet period and replace the
+// preview through a candidate frame, with no button; a broken edit marks its line and keeps the last good preview.
+
+/** The editor's line `line` (1-based). */
+const editorLine = (page: Page, line: number) => page.locator('.cm-line').nth(line - 1)
+
+/** The 1-based line of the shapes-rects source that holds `text`. */
+async function lineOf(page: Page, text: string): Promise<number> {
+  const lines = await staticCode(page).locator('.line').allTextContents()
+  const index = lines.findIndex(line => line.includes(text))
+  if (index < 0) throw new Error(`no line holds ${text}`)
+  return index + 1
+}
+
+/** Selects the word `word` in the editor by double-clicking it, then types `replacement` over it. */
+async function replaceWord(page: Page, word: string, replacement: string) {
+  const range = await page.locator('.cm-content').evaluate((content, wanted) => {
+    const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const index = node.textContent!.indexOf(wanted)
+      if (index < 0) continue
+      const range = document.createRange()
+      range.setStart(node, index)
+      range.setEnd(node, index + wanted.length)
+      const rect = range.getBoundingClientRect()
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+    }
+    throw new Error('no such word')
+  }, word)
+  await page.mouse.dblclick(range.x, range.y)
+  await page.keyboard.type(replacement)
+}
+
+/** How many pixels of the preview frame's screenshot are close to pure red. */
+async function redPixels(page: Page): Promise<number> {
+  const png = (await page.locator('.playground iframe.shown').screenshot()).toString('base64')
+  // Decoded in a blank page of the same context: the site's CSP rightly refuses a `data:` fetch.
+  const blank = await page.context().newPage()
+  const red = await blank.evaluate(async data => {
+    const bitmap = await createImageBitmap(await (await fetch('data:image/png;base64,' + data)).blob())
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+    const context = canvas.getContext('2d')!
+    context.drawImage(bitmap, 0, 0)
+    const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data
+    let red = 0
+    for (let i = 0; i < pixels.length; i += 4) if (pixels[i]! > 200 && pixels[i + 1]! < 60 && pixels[i + 2]! < 60) red++
+    return red
+  }, png)
+  await blank.close()
+  return red
+}
+
+test('an edit updates the preview with no button', async ({ page }) => {
+  const watch = watchPage(page, ORIGIN)
+  await page.goto('/examples/shapes-rects')
+  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  expect(await redPixels(page)).toBeLessThan(100)
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+  await expect(page.locator('.playground-status')).toHaveText('Preview updated.')
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeGreaterThan(100)
+  expect(watch.problems).toEqual([])
+})
