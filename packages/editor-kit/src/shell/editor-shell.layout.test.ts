@@ -160,6 +160,14 @@ describe('wide: rail, panel, canvas, inspector, dock beneath, status at the foot
   })
 })
 
+describe('a screen with no panel gives its column to the canvas', () => {
+  test('wide: the canvas starts where the rail ends', async () => {
+    await open(size('window-900x600'), { panel: false })
+    near(rect('canvas').left, rect('rail').right)
+    expect(document.querySelector('[data-region="panel"]')).toBeNull()
+  })
+})
+
 describe('a screen with no rail gives its column and its tab bar to the canvas', () => {
   test('wide: the panel starts at the edge and the regions still tile the window', async () => {
     await open(size('ipad-pro-11-landscape'), { rail: false })

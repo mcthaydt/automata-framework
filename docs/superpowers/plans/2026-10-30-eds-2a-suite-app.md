@@ -83,3 +83,7 @@ Modify: `packages/editor-suite/package.json` (scripts, Svelte and test dependenc
 - Step 7: `test:layout` 75 of 75 in Chromium, WebKit and Firefox (8 sizes × 3 tests + rotation). Half a pixel of
   tolerance on edge comparisons for WebKit's and Firefox's sub-pixel boxes (they measured 390.07 and 834.02).
 - Step 8: `vite build` writes `dist/` (176 kB JS); `svelte-check` 0 errors, 0 warnings.
+- Follow-up after review (2026-10-30): the kit's `EditorShell` gives an absent panel's column to the canvas
+  (`data-panel="none"`, `--shell-panel: 0px`), mirroring #267's `data-inspector`; `ShellFixture` takes `panel: false`.
+  The new kit layout test failed first (canvas at 320 px, not the rail's 56 px edge), then passed: kit `test:layout`
+  207 of 207 in Chromium, WebKit and Firefox; kit unit 1332 of 1332.
