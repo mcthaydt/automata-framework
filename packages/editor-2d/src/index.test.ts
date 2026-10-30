@@ -48,6 +48,23 @@ describe('editor-2d entry', () => {
     for (const member of functions) expect(member).toBeTypeOf('function')
   })
 
+  it('exports the world and level commands', () => {
+    const functions = [
+      editor2d.addLevel,
+      editor2d.removeLevel,
+      editor2d.duplicateLevel,
+      editor2d.setLevelField,
+      editor2d.setLevelDepth,
+      editor2d.moveLevelInWorld,
+      editor2d.placeLevel,
+      editor2d.resizeLevel,
+      editor2d.resizeLevelLoss,
+      editor2d.setWorldLayout,
+      editor2d.worldNeighbours,
+    ]
+    for (const member of functions) expect(member).toBeTypeOf('function')
+  })
+
   it('paints and auto-tiles through nothing but the entry', () => {
     const ground = editor2d.paintRect(editor2d.Grid.empty(5, 3), { x: 0, y: 1 }, { x: 4, y: 2 }, 1)
     const rules = editor2d.compileRules([
@@ -113,6 +130,40 @@ describe('editor-2d entry', () => {
       editor2d.flipObject,
       editor2d.deleteObject,
       editor2d.createLevelEditor,
+    ]
+    for (const member of functions) expect(member).toBeTypeOf('function')
+  })
+
+  it('exports the definition, tileset and rule commands', () => {
+    const functions = [
+      editor2d.addLayerDef,
+      editor2d.reorderLayerDefs,
+      editor2d.editLayerDef,
+      editor2d.setIntValue,
+      editor2d.addTileset,
+      editor2d.importTileset,
+      editor2d.tagTiles,
+      editor2d.untagTiles,
+      editor2d.nextPatternCell,
+      editor2d.newRule,
+      editor2d.addRuleGroup,
+      editor2d.editRuleGroup,
+      editor2d.reorderRuleGroups,
+      editor2d.deleteRuleGroup,
+      editor2d.addRule,
+      editor2d.editRule,
+      editor2d.resizeRule,
+      editor2d.setPatternCell,
+      editor2d.reorderRules,
+      editor2d.deleteRule,
+      editor2d.addEntityDef,
+      editor2d.editEntityDef,
+      editor2d.renameEntityDef,
+      editor2d.addField,
+      editor2d.retypeField,
+      editor2d.renameField,
+      editor2d.definitionUses,
+      editor2d.deleteDefinition,
     ]
     for (const member of functions) expect(member).toBeTypeOf('function')
   })

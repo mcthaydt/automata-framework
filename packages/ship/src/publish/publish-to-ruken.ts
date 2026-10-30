@@ -6,9 +6,10 @@ import { Effect } from 'effect'
 import { PublishAuth, PublishFailed, PublishRejected, PublishTimeout, PublishUsage } from '../errors.ts'
 
 // `ship publish` hands the prepared build folder to Ruken's own `ruken publish` (vendor/ruken/ruken-cli, built
-// at RukenApp d0fa2fe). Ruken's CLI packs the folder deterministically, runs Ruken's build validation, uploads,
-// waits for Ruken's checks and prints where the build is served. AF does none of that itself, so whatever
-// Ruken accepts is what AF ships (ship spec §3.4). Exit codes are Ruken's (`tooling/ruken-cli/src/run.ts`).
+// at the RukenApp commit vendor/ruken/README.md names). Ruken's CLI packs the folder deterministically, runs
+// Ruken's build validation, uploads, waits for Ruken's checks and prints where the build is served. AF does
+// none of that itself, so whatever Ruken accepts is what AF ships (ship spec §3.4). Exit codes are Ruken's
+// (`tooling/ruken-cli/src/run.ts`).
 
 /**
  * What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and

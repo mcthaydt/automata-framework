@@ -804,7 +804,9 @@ function snakeKey(value: string): string;
 The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
 starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
 content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
-Vite's logger and the `automata:content-error` event (`automata:content` after a good save).
+Vite's logger and the `automata:content-error` event (`automata:content` after a good save). It also sets
+`build.assetsInlineLimit: 0` when the game's config leaves it unset, so no asset becomes a `data:` URL that Ruken's
+CSP refuses to fetch.
 
 ```ts
 function automataContent(pluginOptions?: AutomataContentOptions): Plugin;
@@ -1224,6 +1226,11 @@ the path, except `exists`, which cannot fail.
 ```ts
 interface FilesService {
   readText(path: string): Effect.Effect<string, FileError>;
+  /**
+   * The file's bytes exactly as they are on disk, for binary inputs such as images: reading them as text
+   * would replace every byte that is not valid UTF-8. The array owns its bytes (it is not a Node `Buffer`).
+   */
+  readBytes(path: string): Effect.Effect<Uint8Array, FileError>;
   /** Writes UTF-8 text, creating parent folders. */
   writeText(path: string, text: string): Effect.Effect<void, FileError>;
   exists(path: string): Effect.Effect<boolean>;
@@ -4817,6 +4824,33 @@ const Button: import("svelte").Component<Props, {}, "">;
 type Button = ReturnType<typeof Button>;
 ```
 
+#### `CameraDragSurface` (const)
+
+The camera drag surface (M4 spec §16.3.7, M3 spec §4.2 and §7): the player turns the camera by dragging the scene,
+a finger anywhere outside the controls or the mouse with its secondary button.
+
+All the rules of who drags are the tracker's (runtime `CameraDragTracker`); this forwards pointer events with their
+`clientX`. It is a fixed layer drawn under the play screen's controls, so a contact on a touch button, the stick,
+the corner controls or an ActionBar never reaches it, and its box stops short of the host's reserved strip and of
+what the browser lays over the page's foot, so a drag never starts inside `hostReserved`. Pointer only, never in
+the focus order.
+
+```ts
+const CameraDragSurface: import("svelte").Component<CameraDragSurfaceProps, {}, "">;
+type CameraDragSurface = ReturnType<typeof CameraDragSurface>;
+```
+
+#### `CameraDragSurfaceProps` (interface)
+
+CameraDragSurface's props.
+
+```ts
+interface CameraDragSurfaceProps {
+    tracker: DragTracker;
+    testId?: string | undefined;
+}
+```
+
 #### `Chip` (const)
 
 A short status label (M4 spec §4.12). Its tone is `data-tone` and an edge colour, and never only
@@ -5142,6 +5176,24 @@ shown and never changed here.
 ```ts
 const DisplaySection: import("svelte").Component<Props, {}, "">;
 type DisplaySection = ReturnType<typeof DisplaySection>;
+```
+
+#### `DragTracker` (interface)
+
+What a CameraDragSurface drives (M4 spec §16.3.7): runtime's `CameraDragTracker` satisfies it, so ui need not
+import runtime. `down` answers whether the pointer now drives the drag (a finger's primary contact, the mouse's
+secondary button, none already dragging).
+
+```ts
+interface DragTracker {
+    down(id: number, x: number, start: {
+        readonly pointerType: string;
+        readonly button: number;
+    }): boolean;
+    move(id: number, x: number): void;
+    up(id: number): void;
+    cancel(): void;
+}
 ```
 
 #### `endonymOf` (function)
@@ -6901,6 +6953,15 @@ interface TouchControlsProps {
     onrelease: (action: string) => void;
     /** False hides the controls without remounting them (the player put touch down). Default true. */
     shown?: boolean | undefined;
+    /**
+     * A floating move stick at the overlay's start (M4.12): its accessible name. None draws no stick, as in 2D. The
+     * stick is always shown: the reduced set never drops it.
+     */
+    stick?: TouchStickSpec | undefined;
+    /** The stick's vector as the thumb moves, clamped to length 1, `y` positive down (runtime's `Input.touchStick.set`). */
+    onstick?: ((x: number, y: number) => void) | undefined;
+    /** The stick let go: a lift, a cancel, the controls hiding or coming down (`Input.touchStick.release`). */
+    onstickend?: (() => void) | undefined;
     testId?: string | undefined;
 }
 ```
@@ -6926,6 +6987,17 @@ on-screen buttons or swipes, as an option group. The game shows it on a coarse p
 ```ts
 const TouchSection: import("svelte").Component<Props, {}, "">;
 type TouchSection = ReturnType<typeof TouchSection>;
+```
+
+#### `TouchStickSpec` (interface)
+
+The overlay's move stick (M4.12).
+
+```ts
+interface TouchStickSpec {
+    /** Its name for assistive technology ("Move"). */
+    readonly label: string;
+}
 ```
 
 #### `TouchTarget` (interface)

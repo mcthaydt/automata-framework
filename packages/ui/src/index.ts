@@ -183,10 +183,12 @@ export {
   type SaveStatusTone,
 } from './status/save-status'
 export { default as Toast } from './status/Toast.svelte'
+export { default as CameraDragSurface } from './touch/CameraDragSurface.svelte'
+export type { CameraDragSurfaceProps, DragTracker } from './touch/camera-drag-surface'
 export { default as SwipeSurface } from './touch/SwipeSurface.svelte'
 export type { PointerTracker, SwipeIndicatorView, SwipeSurfaceProps } from './touch/swipe-surface'
 export { default as TouchControls } from './touch/TouchControls.svelte'
-export type { TouchButtonSpec, TouchControlsProps } from './touch/touch-button'
+export type { TouchButtonSpec, TouchControlsProps, TouchStickSpec } from './touch/touch-button'
 export {
   nearestTarget,
   PointerLatch,
