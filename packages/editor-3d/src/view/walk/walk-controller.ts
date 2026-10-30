@@ -3,13 +3,16 @@
 // clock: the view forwards the sticks and keys, calls `tick` from its frame loop with the seconds since the last frame,
 // reads `view` and draws it. The selection a tap makes is the editor's, so Plan and 3D show the same one.
 //
-// Walk keeps the eye `eyeHeight` above the floor of the sector it is in and stops at the geometry's colliders (solid
-// walls, steps too tall to climb, blocking masks), so it crosses at a portal and not through a wall. Fly goes anywhere.
+// Walk keeps the eye `eyeHeight` above the floor of the sector it is in, never enters a sector too low to stand in, and
+// stops where the level says a walker stops: a level with a nav world (Last Light) asks the game's own clearance (walls,
+// shut doors, exits, furniture, raised solids); one without (af-sector) stops at the geometry's colliders (solid walls,
+// steps too tall to climb, blocking masks). Either way it crosses at a portal and slides along a wall. Fly goes anywhere.
 // Orbit looks at a point from 8 m off at the dollhouse's 30 degrees. All three are one camera (D8).
 import type { Point as ScreenPoint, Size } from '@mcthaydt/automata-editor-kit/core'
 import { createGeometryCache, type Geometry } from '../../app/geometry-cache'
 import type { Point } from '../../format/sector.schema'
-import { crossing, type Edge, sectorAt, segmentDistance } from '../../geometry/sectors'
+import { clear, type NavState, type NavWorld, nearAWall, segmentHitsBox } from '../../geometry/nav'
+import { crossing, type Edge, type ResolvedMap, sectorAt, segmentDistance } from '../../geometry/sectors'
 import type { LevelEditor } from '../../model/level-editor'
 import {
   type Camera3D,
@@ -118,6 +121,15 @@ const layerOf = (role: SurfaceRole): string => (role === 'floor' || role === 'ce
 const inward = (p: Point, edge: Edge): boolean =>
   (p.x - edge.a.x) * edge.normal.x + (p.z - edge.a.z) * edge.normal.z >= 0
 
+/** The step's part along a wall: the place it gets to sliding along the wall instead of into it. */
+function along(from: Point, step: Point, edge: Edge): Point {
+  const length = step.x * edge.dir.x + step.z * edge.dir.z
+  return { x: from.x + edge.dir.x * length, z: from.z + edge.dir.z * length }
+}
+
+/** Walk opens no door: a shut door stops it, as it stops the game's walkers (every box then stops a walk). */
+const SHUT: NavState = {}
+
 /** The level's spawn: the first thing of the definition `spawn`, facing its `facing` field (0 without one). */
 function spawnOf<D>(editor: LevelEditor<D>): SpawnPoint | undefined {
   const spawn = editor.profile.entities(editor.level).things.find((thing) => thing.def === 'spawn')
@@ -160,20 +172,56 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
     return undefined
   }
 
+  /** The collider a step runs into on its way out of a room, or comes nearer than `REACH` to (af-sector: no nav). */
+  const colliderHit = (map: ResolvedMap, from: Point, to: Point): Edge | undefined => {
+    let hit: { edge: Edge; distance: number } | undefined
+    for (const { edge } of map.colliders) {
+      if (!inward(from, edge)) continue
+      const near = segmentDistance(to, to, edge.a, edge.b)
+      const blocks =
+        crossing(from.x, from.z, to.x, to.z, edge.a, edge.b) >= 0 ||
+        (near < REACH && near < segmentDistance(from, from, edge.a, edge.b))
+      if (blocks && (hit === undefined || near < hit.distance)) hit = { edge, distance: near }
+    }
+    return hit?.edge
+  }
+
   /**
-   * A step Walk may take: one that ends in a sector, and crosses no collider on its way out of a room or comes nearer
-   * than `REACH` to one (a step that leaves a wall it already stands too near is allowed, so Walk cannot be stuck).
+   * What stops a step across a level with a nav world (Last Light): the game's own clearance, which also stops at shut
+   * doors, exits, furniture and raised solids, and a margin of `REACH` round them. The game's `clear` forgives an end
+   * inside an obstacle's margin, so the margin is asked of the end on its own: a step may not go into it, and one that
+   * starts in it may go anywhere that crosses nothing, so Walk is never stuck. The wall it hit, when a wall did; `true`
+   * for anything else.
    */
-  const canStep = (from: Point, to: Point): boolean => {
-    if ((to.x === from.x && to.z === from.z) || sectorUnder(to) === undefined) return false
-    return !geometry().layers.some((layer) =>
-      layer.map.colliders.some(({ edge }) => {
-        if (!inward(from, edge)) return false
-        if (crossing(from.x, from.z, to.x, to.z, edge.a, edge.b) >= 0) return true
-        const near = segmentDistance(to, to, edge.a, edge.b)
-        return near < REACH && near < segmentDistance(from, from, edge.a, edge.b)
-      }),
-    )
+  const navHit = (world: NavWorld, from: Point, to: Point): Edge | true | undefined => {
+    const enters = (near: (p: Point) => boolean): boolean => near(to) && !near(from)
+    const blocked =
+      !clear(world, from, to, SHUT, 0) ||
+      enters((p) => nearAWall(world, p, REACH)) ||
+      world.boxes.some((box) => enters((p) => segmentHitsBox(p, p, box, REACH)))
+    if (!blocked) return undefined
+    let hit: { edge: Edge; distance: number } | undefined
+    for (const edge of world.walkEdges) {
+      if (segmentDistance(from, to, edge.a, edge.b) >= REACH) continue
+      const near = segmentDistance(to, to, edge.a, edge.b)
+      if (hit === undefined || near < hit.distance) hit = { edge, distance: near }
+    }
+    return hit?.edge ?? true
+  }
+
+  /**
+   * Why Walk may not take a step: the wall it runs into (which it can slide along), `true` for anything else (no sector
+   * there, a sector too low to stand in, a box), or nothing when it may.
+   */
+  const stepBlocker = (from: Point, to: Point): Edge | true | undefined => {
+    if (to.x === from.x && to.z === from.z) return true
+    const sector = sectorUnder(to)
+    if (sector === undefined || sector.ceiling - sector.floor < eyeHeight) return true
+    for (const layer of geometry().layers) {
+      const hit = layer.nav === undefined ? colliderHit(layer.map, from, to) : navHit(layer.nav, from, to)
+      if (hit !== undefined) return hit
+    }
+    return undefined
   }
 
   /** Walk's eye at a place: on the floor of the sector there, and remembered as where Walk last stood. */
@@ -273,9 +321,21 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
     const step = planStep(seconds, WALK_SPEED, yaw)
     const from = { x: eye[0], z: eye[2] }
     const to = { x: from.x + step.x, z: from.z + step.z }
-    // Into a wall, the step slides along it: across, then along.
-    const open = [to, { x: to.x, z: from.z }, { x: from.x, z: to.z }].find((p) => canStep(from, p))
-    standAt(open ?? from)
+    const blocker = stepBlocker(from, to)
+    if (blocker === undefined) {
+      standAt(to)
+      return
+    }
+    // Into a wall, the step keeps only its part along the wall; into anything else (a box's sides run along x and z),
+    // it tries across, then along.
+    const tries =
+      blocker === true
+        ? [
+            { x: to.x, z: from.z },
+            { x: from.x, z: to.z },
+          ]
+        : [along(from, step, blocker)]
+    standAt(tries.find((p) => stepBlocker(from, p) === undefined) ?? from)
   }
 
   const flyTick = (seconds: number): void => {
@@ -285,12 +345,12 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
     const right: Vec3 = [Math.cos(yaw), 0, Math.sin(yaw)]
     const [a, r] = [axis('forward', move.y), axis('right', move.x)]
     const up = clamp(lifting + axis('turn', 0), -1, 1)
+    // Forward, strafe and lift together are no faster than one of them at full tilt.
+    let velocity: Vec3 = [ahead[0] * a + right[0] * r, ahead[1] * a + up, ahead[2] * a + right[2] * r]
+    const speed = Math.hypot(...velocity)
+    if (speed > 1) velocity = [velocity[0] / speed, velocity[1] / speed, velocity[2] / speed]
     const distance = FLY_SPEED * seconds
-    eye = [
-      eye[0] + (ahead[0] * a + right[0] * r) * distance,
-      eye[1] + (ahead[1] * a + up) * distance,
-      eye[2] + (ahead[2] * a + right[2] * r) * distance,
-    ]
+    eye = [eye[0] + velocity[0] * distance, eye[1] + velocity[1] * distance, eye[2] + velocity[2] * distance]
   }
 
   const orbitTick = (seconds: number): void => {

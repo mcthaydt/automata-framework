@@ -3,12 +3,16 @@
 // test gives: nothing here reads a clock.
 import { describe, expect, it } from 'vitest'
 import type { AfSector } from '../../format/af-sector.schema'
+import type { Blockout } from '../../format/blockout.schema'
 import { moveSector } from '../../model/corner-edits'
 import { createLevelEditor } from '../../model/level-editor'
 import { setHeights } from '../../model/sector-edits'
 import { afSectorProfile } from '../../profile/af-sector-profile'
+import { lastLightProfile } from '../../profile/last-light-profile'
 import { WALK_FOV } from '../../profile/level-hints'
+import { loadFixture } from '../../testing/fixtures'
 import { toyAfSector } from '../../testing/toy-af-sector'
+import { toyBlockout } from '../../testing/toy-blockout'
 import { ORBIT_FOV } from '../mesh/camera-3d'
 import { createWalkController } from './walk-controller'
 
@@ -179,6 +183,8 @@ describe('createWalkController: Fly and Orbit', () => {
     const { walk } = walkOn(withSpawn(EAST))
     walk.setMode('fly')
     walk.key('KeyE', true)
+    walk.tick(0.1)
+    walk.key('KeyE', false)
     walk.key('KeyW', true)
     ticks(walk, 11)
     walk.setMode('walk')
@@ -271,4 +277,124 @@ describe('createWalkController: the crosshair', () => {
     walk.tick(0.1)
     expect(told).toBe(0)
   })
+})
+
+describe('createWalkController: what stops Walk, per profile', () => {
+  it('af-sector: refuses a step into a sector too low to stand in', () => {
+    const level = withSpawn(EAST, 7.5)
+    const low: AfSector = {
+      ...level,
+      sectors: level.sectors.map((s) => (s.id === 'dock' ? { ...s, ceiling: 1 } : s)),
+    }
+    const { walk } = walkOn(low)
+    walk.key('KeyW', true)
+    ticks(walk, 5)
+    expect(eyeOf(walk)[0]).toBeLessThan(8)
+    expect(walk.view.sector).toBe('hall')
+  })
+
+  it('af-sector: slides along a diagonal wall it is pushed into', () => {
+    // A room with its north-east corner cut off by a wall from (8, 4) to (4, 8).
+    const level = withSpawn(EAST, 5, 5)
+    const cut: AfSector = {
+      ...level,
+      sectors: [
+        {
+          id: 'hall',
+          floor: 0,
+          ceiling: 4,
+          light: 1,
+          corners: [
+            [0, 0],
+            [8, 0],
+            [8, 4],
+            [4, 8],
+            [0, 8],
+          ],
+        },
+      ],
+    } as AfSector
+    // Facing east at z = 5, the wall x + z = 12 is ahead at x = 7.
+    const start = walkOn(cut).walk
+    start.key('KeyW', true)
+    ticks(start, 20)
+    const [x, , z] = eyeOf(start)
+    // Pushed east into the wall, the eye goes along it, east and north, and keeps its distance.
+    expect(z).toBeLessThan(4.5)
+    expect(x).toBeGreaterThan(7)
+    expect((12 - x - z) / Math.SQRT2).toBeGreaterThanOrEqual(0.25 - 1e-9)
+  })
+})
+
+describe('createWalkController: a Last Light level, with its nav', () => {
+  /** The toy's room a (0 to 4) and room b beyond a doorway at x = 4 with a shut door in it. */
+  const lastLightWalk = (more: Partial<Blockout> = {}) => {
+    const editor = createLevelEditor({
+      profile: lastLightProfile,
+      level: toyBlockout({ spawn: { x: 2, y: 0, z: 2, facing: Math.PI / 2 }, ...more }),
+    })
+    return createWalkController(editor, CANVAS)
+  }
+
+  it('stops at a shut door, which the colliders alone would not', () => {
+    const walk = lastLightWalk()
+    walk.key('KeyW', true)
+    ticks(walk, 20)
+    expect(eyeOf(walk)[0]).toBeLessThan(4 - 0.06 - 0.2)
+    expect(eyeOf(walk)[0]).toBeGreaterThan(3)
+  })
+
+  it('stops at furniture', () => {
+    const desk = {
+      id: 'desk',
+      role: 'collider',
+      kind: 'desk',
+      x: 3,
+      z: 2,
+      y: 0.4,
+      w: 0.6,
+      h: 0.8,
+      d: 0.6,
+    } as const
+    const walk = lastLightWalk({ boxes: [...toyBlockout().boxes, desk] })
+    walk.key('KeyW', true)
+    ticks(walk, 20)
+    expect(eyeOf(walk)[0]).toBeLessThan(3 - 0.3)
+  })
+})
+
+describe('createWalkController: Fly moves no faster on a diagonal', () => {
+  it('holds forward, strafe and lift together to full speed', () => {
+    const { walk } = walkOn(withSpawn(EAST))
+    walk.setMode('fly')
+    for (const code of ['KeyW', 'KeyD', 'KeyE']) walk.key(code, true)
+    walk.tick(0.1)
+    const [x, y, z] = eyeOf(walk)
+    expect(Math.hypot(x - 2, y - 1.6, z - 3)).toBeCloseTo(0.6, 12)
+  })
+})
+
+describe('createWalkController: the shipped Last Light levels', () => {
+  it.each(['blockout-clinic', 'blockout-bay', 'blockout-prologue'] as const)(
+    'walks from the spawn of %s, which is not stuck in the margin',
+    (name) => {
+      const parsed = lastLightProfile.parse(loadFixture(name))
+      if (!parsed.ok) throw new Error(`${name} does not parse`)
+      const walk = createWalkController(
+        createLevelEditor({ profile: lastLightProfile, level: parsed.value }),
+        CANVAS,
+      )
+      const [x0, , z0] = eyeOf(walk)
+      for (const code of ['KeyW', 'KeyS', 'KeyA', 'KeyD']) {
+        walk.key(code, true)
+        walk.tick(0.1)
+        walk.key(code, false)
+      }
+      walk.key('KeyW', true)
+      walk.key('KeyD', true)
+      ticks(walk, 3)
+      const [x, , z] = eyeOf(walk)
+      expect(Math.hypot(x - x0, z - z0)).toBeGreaterThan(0.1)
+    },
+  )
 })
