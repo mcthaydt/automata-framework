@@ -3,7 +3,7 @@
 - **Task:** M5.6F.2 in [02](../../02-master-delivery-plan.md) (lane content, size S), found in M5.6. M5 spec [§4.7](../specs/2026-10-16-m5-saves-audio-design.md): "Atlas and font outputs join the generated preload list when their screen is preloaded."
 - **Depends on:** M5.6 ([plan](2026-10-17-m5-6-atlases.md): `<atlas>-<page>.png` and `.json`, `content/atlases.toml`) and M5.5 ([plan](2026-10-18-m5-5-fonts.md): `<font>-<locale>-<hash8>.woff2`, `fonts.json`, `content/fonts.toml`), both merged. Not M5.6F.1 (the Vite build hook), which this task does not touch.
 - **Status:** drafted 2026-10-30 from `main` `30e9606c`.
-- **Progress:** 3 of 5 steps.
+- **Progress:** 4 of 5 steps.
 
 ## What exists
 
@@ -66,7 +66,7 @@ Each step starts with its test, run red, with the failure reason recorded. The p
   - *Expected failure:* `fontFilesSchema` is not exported.
   - *Then:* the CLI, `buildAtlases` and `buildFonts` take their names from `asset-outputs.ts`; their existing tests pass unchanged.
   - *Verify:* `pnpm --filter @mcthaydt/automata-content exec vitest run --project node src/assets src/cli`.
-- [ ] **4. The preload list adds a preloaded screen's atlas pages and font subsets** (`preload-list.test.ts`; `asset-build-files.ts`, `preload-list.ts`).
+- [x] **4. The preload list adds a preloaded screen's atlas pages and font subsets** (`preload-list.test.ts`; `asset-build-files.ts`, `preload-list.ts`).
   - *Red, by case:*
     - a preloaded screen naming a two-page atlas gets `atlases/wick-0.json`, `atlases/wick-0.png`, `atlases/wick-1.json`, `atlases/wick-1.png` after its files, and a second screen naming the same atlas adds nothing;
     - a preloaded screen naming a font gets `fonts/<file>` for each language `fonts.json` lists, in language order;
@@ -102,4 +102,5 @@ Each step starts with its test, run red, with the failure reason recorded. The p
 |---|---|---|---|
 | 2026-10-30 | 1 | `656ceeba` | Plan, from `main` `30e9606c`. |
 | 2026-10-30 | 2 | `3cbc6fed` | Red as expected: 1 of 12 in `game-facts.test.ts`, `unrecognized_keys` `atlases`, `fonts` at `screens.Splash` (the refusal case already passed, then for the unknown keys; it passes after the change for the list type). Green: `atlases` and `fonts` are `z.optional` lists, 17 of 17 in `src/game`; a screen without them parses with the single key `files`. `tsc -p .` clean. |
-| 2026-10-30 | 3 | this commit | Red as expected: both `fontFilesSchema` cases, `Cannot read properties of undefined (reading 'parse')`. Green: `fontFilesSchema` and `FontFiles` in `fonts.schema.ts`; `asset-outputs.ts` holds `ATLASES_FOLDER`, `FONTS_FOLDER`, `FONT_FILES` and `atlasPageFiles`, which `run-cli.ts`, `build-atlases.ts` and `build-fonts.ts` now use (one line each in the builders). `src/assets` and `src/cli` 75 of 75 with their existing tests unchanged, the committed example atlas among them; `tsc -p .` clean. |
+| 2026-10-30 | 3 | `e41b9a29` | Red as expected: both `fontFilesSchema` cases, `Cannot read properties of undefined (reading 'parse')`. Green: `fontFilesSchema` and `FontFiles` in `fonts.schema.ts`; `asset-outputs.ts` holds `ATLASES_FOLDER`, `FONTS_FOLDER`, `FONT_FILES` and `atlasPageFiles`, which `run-cli.ts`, `build-atlases.ts` and `build-fonts.ts` now use (one line each in the builders). `src/assets` and `src/cli` 75 of 75 with their existing tests unchanged, the committed example atlas among them; `tsc -p .` clean. |
+| 2026-10-30 | 4 | this commit | Red as expected: 7 of 8 new cases (the list held only the screens' `files`: three entries, and no failure where one was expected); the not-preloaded case passed already, as it should. Green: `preload/asset-build-files.ts` (`readAssetBuildFiles`: the names from `atlases.toml` and `fonts.toml` through their schemas, the pages listed below `<outDir>/atlases`, `fonts.json` through `fontFilesSchema`) and `preload-list.ts` (screens, then entries with their `assets.toml` keys, then the build check). One expectation of my own was too coarse: a broken `fonts.toml`'s unknown key is reported at `font.pixel.weight`, not `font.pixel`; the test now names the full key. `src/preload` 13 of 13 (5 existing unchanged, 8 new, the end-to-end case over the real `buildAtlases` and `buildFonts` outputs and Ruken's `parseManifest` among them); `tsc -p .` clean. |
