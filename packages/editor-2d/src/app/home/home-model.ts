@@ -234,7 +234,7 @@ export function openProblem(outcome: Exclude<OpenOutcome, { readonly status: 'op
     case 'choose': {
       // A choice is only ever offered between two or more profiles.
       const labels = outcome.candidates.map((candidate) => `a ${candidate.label}`)
-      return `${name} could be ${labels.slice(0, -1).join(', ')} or ${labels.at(-1)}. Choosing between them is not available yet.`
+      return `${name} could be ${labels.slice(0, -1).join(', ')} or ${labels.at(-1)}.`
     }
     case 'storageFailed':
       return `${name}: ${outcome.message}`
