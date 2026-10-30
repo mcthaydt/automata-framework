@@ -60,13 +60,36 @@ async function start(
   return { renderer, target }
 }
 
-/** The whole stage's pixels, rendered into a texture. */
+/**
+ * The canvas's pixels as the last `draw` left them, top row first. Call it in the same task as that `draw`: the
+ * canvas keeps no drawing buffer past the task (`preserveDrawingBuffer` is off). WebGL2 reads the default framebuffer
+ * with `gl.readPixels`, not a render into a `RenderTexture` and `extract`: under `@pixi/3d` 0.1.0-beta.2 in macOS
+ * Firefox that texture reads back all black while the canvas holds the scene (the #241 probe).
+ */
 function snapshot(renderer: Pixi3dRenderer): Uint8ClampedArray | Uint8Array {
   const { app } = renderer.stage
-  const texture = RenderTexture.create({ width: app.screen.width, height: app.screen.height, resolution: 1 })
-  app.renderer.render({ container: app.stage, target: texture, clear: true })
-  const { pixels } = app.renderer.extract.pixels(texture)
-  texture.destroy(true)
+  if (app.renderer.name !== 'webgl') {
+    // WebGPU has no readPixels; its canvas texture is read back through Pixi's extract (the GPU runner).
+    const texture = RenderTexture.create({
+      width: app.screen.width,
+      height: app.screen.height,
+      resolution: 1,
+    })
+    app.renderer.render({ container: app.stage, target: texture, clear: true })
+    const { pixels } = app.renderer.extract.pixels(texture)
+    texture.destroy(true)
+    return pixels
+  }
+  const gl = (app.renderer as unknown as { gl: WebGL2RenderingContext }).gl
+  const width = gl.drawingBufferWidth
+  const height = gl.drawingBufferHeight
+  const bottomUp = new Uint8Array(width * height * 4)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, bottomUp)
+  const row = width * 4
+  const pixels = new Uint8Array(bottomUp.length)
+  for (let y = 0; y < height; y++)
+    pixels.set(bottomUp.subarray((height - 1 - y) * row, (height - y) * row), y * row)
   return pixels
 }
 
@@ -326,6 +349,7 @@ const hasWebGpu =
 
 async function skyAndBar(
   preference: 'webgl' | 'webgpu',
+  sky = SKY,
 ): Promise<{ renderer: string; field: number[]; bar: number[] }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
@@ -333,7 +357,7 @@ async function skyAndBar(
     preference,
     logicalWidth: 160,
     logicalHeight: 90,
-    backgroundColor: SKY,
+    backgroundColor: sky,
     barColor: BARS,
     views: { crate: box({ width: 1, height: 1, depth: 1 }, { color: 0xf9c22b }) },
     scene: (view) => {
@@ -364,6 +388,12 @@ describe.runIf(hasWebGL2)('the sky behind the scene on WebGL2', () => {
     expect(near(field, rgb(SKY)), `field ${field}`).toBe(true)
     expect(near(bar, rgb(BARS)), `bar ${bar}`).toBe(true)
   })
+
+  // A dark sky draws as given too (a fog's far colour is often near black), not lifted by a colour-space round trip.
+  it('draws a dark backgroundColor as given', async () => {
+    const { field } = await skyAndBar('webgl', 0x020c0c)
+    expect(near(field, rgb(0x020c0c)), `field ${field}`).toBe(true)
+  })
 })
 
 describe.runIf(hasWebGpu)('the sky behind the scene on WebGPU', () => {
@@ -372,5 +402,7 @@ describe.runIf(hasWebGpu)('the sky behind the scene on WebGPU', () => {
     expect(renderer).toBe('webgpu')
     expect(near(field, rgb(SKY)), `field ${field}`).toBe(true)
     expect(near(bar, rgb(BARS)), `bar ${bar}`).toBe(true)
+    const dark = await skyAndBar('webgpu', 0x020c0c)
+    expect(near(dark.field, rgb(0x020c0c)), `field ${dark.field}`).toBe(true)
   })
 })
