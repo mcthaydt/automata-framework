@@ -110,64 +110,6 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
 
-  examples/physics/bodies-2d:
-    dependencies:
-      '@af-examples/base-2d':
-        specifier: workspace:*
-        version: link:../../../games/emberwick
-      '@fontsource/pixelify-sans':
-        specifier: 5.3.0
-        version: 5.3.0
-      '@mcthaydt/automata-host':
-        specifier: workspace:*
-        version: link:../../../packages/host
-      '@mcthaydt/automata-physics':
-        specifier: workspace:*
-        version: link:../../../packages/physics
-      '@mcthaydt/automata-sim':
-        specifier: workspace:*
-        version: link:../../../packages/sim
-      effect:
-        specifier: 3.22.2
-        version: 3.22.2
-      pixi.js:
-        specifier: 8.22.0
-        version: 8.22.0
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@mcthaydt/automata-ship':
-        specifier: workspace:*
-        version: link:../../../packages/ship
-      '@mcthaydt/automata-testing':
-        specifier: workspace:*
-        version: link:../../../packages/testing
-      '@mcthaydt/evidence':
-        specifier: workspace:*
-        version: link:../../../tooling/evidence
-      '@mcthaydt/examples-runner':
-        specifier: workspace:*
-        version: link:../../../tooling/examples-runner
-      '@playwright/test':
-        specifier: 1.63.0
-        version: 1.63.0
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
-      '@vitest/browser-playwright':
-        specifier: 5.0.3
-        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
-      playwright:
-        specifier: 1.63.0
-        version: 1.63.0
-      vite:
-        specifier: 8.3.3
-        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-
   examples/ui/primitives:
     dependencies:
       '@mcthaydt/automata-testing':
@@ -723,37 +665,6 @@ importers:
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-
-  packages/physics:
-    dependencies:
-      '@dimforge/rapier2d-deterministic-compat':
-        specifier: 0.21.0
-        version: 0.21.0
-      '@dimforge/rapier3d-deterministic-compat':
-        specifier: 0.21.0
-        version: 0.21.0
-      '@mcthaydt/automata-sim':
-        specifier: workspace:*
-        version: link:../sim
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@mcthaydt/automata-testing':
-        specifier: workspace:*
-        version: link:../testing
-      '@mcthaydt/evidence':
-        specifier: workspace:*
-        version: link:../../tooling/evidence
-      '@vitest/browser-playwright':
-        specifier: 5.0.3
-        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
-      playwright:
-        specifier: 1.63.0
-        version: 1.63.0
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))
 
   packages/render-pixi:
     dependencies:
@@ -1541,12 +1452,6 @@ packages:
   '@decimalturn/toml-patch@3.3.1':
     resolution: {integrity: sha512-bevRGAUJonKWPBEY0tmn6HxEsPS1hJquwoIRNg/WTJnN+/0J6nfomSkn4FBtGlw1dUEt8tkS97oR0wwy3bo2HQ==}
     engines: {node: '>=16'}
-
-  '@dimforge/rapier2d-deterministic-compat@0.21.0':
-    resolution: {integrity: sha512-qVwHqqpRX73ktQRqiAa/0JdBfWdzsGHg8r8d+snaZB0WRXaTs3m7GU6jN+Qf3gEjMEUqk3Rc9q87yGXHkktTbA==}
-
-  '@dimforge/rapier3d-deterministic-compat@0.21.0':
-    resolution: {integrity: sha512-n7JuU62Obljlgq+OeH2DHhTmRSjRzwuJPl54tS9pFIzVQyvXsO5CH+a5KkIRBtnFWDbg1Zicv9BulG0jfBAopA==}
 
   '@emnapi/core@1.11.1':
     resolution: {integrity: sha512-RSvbQmHzdKzNsLYa/wHrbc3KN4sYLKAdPZxqiM2HATqv/SBk2/ENSHpvXGaLOMcsAyz0poEGqkmmKYG3OWiJEQ==}
@@ -3940,10 +3845,6 @@ snapshots:
   '@csstools/css-tokenizer@4.0.2': {}
 
   '@decimalturn/toml-patch@3.3.1': {}
-
-  '@dimforge/rapier2d-deterministic-compat@0.21.0': {}
-
-  '@dimforge/rapier3d-deterministic-compat@0.21.0': {}
 
   '@emnapi/core@1.11.1':
     dependencies:

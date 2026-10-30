@@ -144,40 +144,6 @@
 - `RunResult` (interface): What a finished program left: its exit code (128 when a signal killed it) and everything it wrote to stdout and stderr, decoded as UTF-8.
 - `TaggedErrorClass` (type): The class `Data.TaggedError(tag)` returns, written out. isolatedDeclarations cannot infer the type of a call in an `extends` clause, so each error extends a constant annotated with this type instead (the pattern of `content`'s compile errors and `host`'s errors).
 
-## `@mcthaydt/automata-physics`
-
-### `import { … } from '@mcthaydt/automata-physics/2d'`
-
-- `body2d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
-- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
-- `Collider2D` (const): One collider.
-- `collider2d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy)` with half extents, and `capsule(halfHeight, radius)`.
-- `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded2D` (const): Two colliders stopped touching, or one was removed.
-- `CollisionStarted2D` (const): Two colliders began touching (or, with a sensor, overlapping).
-- `physics2d(options?)`: The 2D physics plugin (M2.1 spec §3.5).
-- `Physics2DOptions` (interface): The options of `physics2d`.
-- `RigidBody2D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
-- `transform2d(at?)`: The spawn part that places an entity: `x` and `y` in metres and `rotation` in radians, each 0 unless given.
-- `Transform2D` (const): Position in metres and rotation in radians.
-
-### `import { … } from '@mcthaydt/automata-physics/3d'`
-
-- `body3d(kind, opts?)`: The spawn part that gives an entity a rigid body of a `BodyKind`.
-- `BodyKind` (const): The codes a rigid body's `kind` field holds: `dynamic` (moved by gravity and contacts), `fixed` (never moves), `kinematicPosition` (moved by writing its transform) and `kinematicVelocity` (moved by its velocity).
-- `Collider3D` (const): One collider.
-- `collider3d` (const): The spawn parts that give an entity a collider: `ball(radius)`, `cuboid(hx, hy, hz)` with half extents, and `capsule(halfHeight, radius)`.
-- `ColliderOptions` (interface): Options every collider helper takes.
-- `CollisionEnded3D` (const): Two colliders stopped touching, or one was removed.
-- `CollisionStarted3D` (const): Two colliders began touching (or, with a sensor, overlapping).
-- `physics3d(options?)`: The 3D physics plugin (M2.1 spec §3.5).
-- `Physics3DOptions` (interface): The options of `physics3d`.
-- `RigidBody3D` (const): A Rapier rigid body: its kind (`BodyKind`), damping, and linear (m/s) and angular (rad/s) velocity.
-- `ShapeKind` (const): The codes a collider's `shape` field holds: `ball`, `cuboid` and `capsule`.
-- `transform3d(at?)`: The spawn part that places an entity: `x`, `y` and `z` in metres and a rotation quaternion (`qx`, `qy`, `qz`, `qw`).
-- `Transform3D` (const): Position in metres and rotation as a unit quaternion.
-
 ## `@mcthaydt/automata-ship`
 
 ### `import { … } from '@mcthaydt/automata-ship'`
