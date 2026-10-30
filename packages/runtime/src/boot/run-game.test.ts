@@ -5,11 +5,14 @@ import type { FlowGraph } from '@mcthaydt/automata-content'
 import { HostError, Hosting } from '@mcthaydt/automata-host'
 import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
-import { Cause, Effect, Exit, Option } from 'effect'
+import { Cause, Effect, Exit, Option, Scope } from 'effect'
 import { flushSync } from 'svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
+import { Flow } from '../flow/flow.manager.js'
 import { STALL_MS } from '../loading/load-meter.js'
+import { defineSave } from '../save/save.schema.js'
+import { saveOf } from '../save/saves.manager.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
 import { type ManualFrames, manualFrames } from '../testing/manual-frames.js'
 import { nullRenderer } from '../testing/null-renderer.js'
@@ -732,5 +735,93 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     // 5. second shutdown resolves and does nothing
     await handle.shutdown()
     expect(events).toEqual(['screen:exit', 'renderer:destroy'])
+  })
+
+  it('shutdown closes ScreenContext.runtime once: after the current screen and the save’s last flush, before the renderer is destroyed; a transition leaves it open (DX.2c)', async () => {
+    const frames = manualFrames()
+    const events: string[] = []
+    let flow: Flow | undefined
+    // No autosave trigger, so the only write that reads the progress is the save's own flush when its scope closes.
+    const run = defineSave<{ coins: number }>({
+      key: 'run',
+      version: 1,
+      schema: z.object({ coins: z.number() }),
+      empty: () => ({ coins: 0 }),
+      migrations: {},
+      autosave: { on: [] },
+    })
+    const data: CompiledContentData = {
+      ...fixtureContentData,
+      flow: {
+        entry: 'title',
+        screens: ['title', 'play'],
+        terminal: [],
+        transitions: [{ from: 'title', event: 'play', to: 'play', transition: 'cut' }],
+      },
+    }
+    const game: GameDefinition = {
+      root,
+      hosting: { gameId: 'test-game', wants: ['saves'], pauseBehavior: 'pause' },
+      content: { data, hash: contentHashOf(data) },
+      saves: run,
+      screens: [
+        {
+          id: 'title',
+          enter: ({ runtime }) =>
+            Effect.gen(function* () {
+              flow = yield* Flow
+              // Kept across screens: the title is long gone when the runtime releases it.
+              yield* Scope.addFinalizer(
+                runtime,
+                Effect.sync(() => events.push('runtime:closed')),
+              )
+              yield* Effect.addFinalizer(() => Effect.sync(() => events.push('title:exit')))
+            }),
+        },
+        {
+          id: 'play',
+          enter: () =>
+            Effect.gen(function* () {
+              const save = yield* saveOf(run)
+              yield* save.load(0)
+              save.touch(() => {
+                events.push('save:capture')
+                return { coins: 7 }
+              })
+              yield* Effect.addFinalizer(() => Effect.sync(() => events.push('play:exit')))
+            }),
+        },
+      ],
+      renderer: (target) =>
+        Effect.gen(function* () {
+          yield* Effect.addFinalizer(() => Effect.sync(() => events.push('renderer:destroy')))
+          return yield* nullRenderer()(target)
+        }),
+      seams: {
+        frames,
+        fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+        sdkEnv: () =>
+          createFakeHost({
+            gameOrigin: TEST_GAME_ORIGIN,
+            gameId: 'test-game',
+            clock: realClock,
+            autoReady: true,
+          }).gameEnv!,
+      },
+    }
+
+    const handle = runGame(game)
+    await driveFirstFrame(frames)
+    await waitForState('ready')
+    expect(flow?.dispatch('play')).toBe(true)
+    await Effect.runPromise(flow!.settled)
+    await settle(2)
+    expect(flow?.current).toBe('play')
+    expect(events).toEqual(['title:exit'])
+
+    await handle.shutdown()
+    expect(events).toEqual(['title:exit', 'play:exit', 'save:capture', 'runtime:closed', 'renderer:destroy'])
+    await handle.shutdown()
+    expect(events.filter((event) => event === 'runtime:closed')).toHaveLength(1)
   })
 })

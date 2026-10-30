@@ -2,8 +2,8 @@
 
 - **Spec:** [M1 runtime spec](../specs/2026-10-12-m1-runtime-design.md) §3.6 (`ScreenContext`, transition order) and §4 (Shutdown); [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.3 and §7 (the default screens share one sim); M5 spec §5 "Restart and dispose" (closing the runtime scope must not lose progress).
 - **Task:** `DX.2c — Follow-up (found in DX.2) — Dispose the default screens' sim on runtime shutdown` (02). Lanes runtime and game.
-- **Status:** drafted 2026-10-30.
-- **Progress:** 0 of 5 steps.
+- **Status:** drafted 2026-10-30; implementing.
+- **Progress:** 2 of 5 steps.
 
 ## What is wrong
 
@@ -31,8 +31,8 @@
 
 ## Steps
 
-- [ ] **1. Runtime red.** `flow.test.ts`: "every screen gets one `runtime` scope: it stays open across transitions and closes once, after the current screen, when the flow's scope closes". `run-game.test.ts`: "shutdown closes `ScreenContext.runtime` once, after the current screen's scope and the save's last flush, and before the renderer is destroyed; a transition does not close it". Run `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/flow/flow.test.ts src/boot/run-game.test.ts`; expect both new cases to fail because `context.runtime` is undefined (typecheck fails on the field too).
-- [ ] **2. Runtime green.** Add the field and the option; boot forks the scope before `makeSaves` and passes it. Same command: every case passes.
+- [x] **1. Runtime red.** `flow.test.ts`: "every screen gets one `runtime` scope: it stays open across transitions and closes once, after the current screen, when the flow's scope closes". `run-game.test.ts`: "shutdown closes `ScreenContext.runtime` once, after the current screen's scope and the save's last flush, and before the renderer is destroyed; a transition does not close it". Run `pnpm --filter @mcthaydt/automata-runtime exec vitest run --project unit src/flow/flow.test.ts src/boot/run-game.test.ts`; expect both new cases to fail because `context.runtime` is undefined (typecheck fails on the field too).
+- [x] **2. Runtime green.** Add the field and the option; boot forks the scope before `makeSaves` and passes it. Same command: every case passes.
 - [ ] **3. Game red.** `default-screens.test.ts`: shutdown during play disposes the sim once; shutdown during paused, and during settings opened from paused, disposes it once; Quit to title disposes it once and a shutdown on the title after does not dispose it again; the file no longer disposes its sims by hand. `saves-screens.test.ts`: a shutdown during play with no host exit before it still writes the live sim's progress, and disposes the sim only after. Run `pnpm --filter @mcthaydt/automata-game exec vitest run --project unit src/screens/default-screens.test.ts src/screens/saves-screens.test.ts`; expect the shutdown cases to fail with zero disposes (the Quit case passes already: it pins the existing behaviour).
 - [ ] **4. Game green.** The default screens tie `dropSim` to `context.runtime` once per run. Same command: every case passes.
 - [ ] **5. Gates.** `pnpm format`; `TURBO_FORCE=true pnpm check`; `pnpm build`; `pnpm api-report --update` then `pnpm api-report`; `pnpm api-index`; `pnpm agent-skills`; `pnpm changeset status --since=origin/main` and `node tooling/release/src/check-changesets.ts` (no changeset: runtime and game are private); `pnpm --filter @mcthaydt/automata-runtime test:parity` and `pnpm --filter @mcthaydt/automata-game test:parity` (the runtime's and the default screens' browser suites).
@@ -46,4 +46,6 @@
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-30 | Plan | | |
+| 2026-10-30 | Plan | `0adea864` | |
+| 2026-10-30 | 1 | | Red, both new cases, for the expected reason: `context.runtime` is undefined. In `flow.test.ts` the first enter dies adding a finalizer to it, so only one enter is recorded (`expected [ undefined ] to have a length of 3 but got 1`). In `run-game.test.ts` the title's enter dies the same way, the flow is left with no current screen, and `dispatch('play')` is `false` (`expected false to be true`). The other 32 cases passed. |
+| 2026-10-30 | 2 | | `ScreenContext.runtime` added; `makeFlow` takes `runtime` or forks one before its own finalizer; boot forks it just before `makeSaves` and passes it. The same command: 2 files, 34 of 34 passed. `svelte-check` on the runtime package: 0 errors, 0 warnings. |
