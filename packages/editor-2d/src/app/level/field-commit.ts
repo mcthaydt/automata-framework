@@ -25,16 +25,15 @@ function fieldDefOf(project: Project, target: FieldTarget, field: string): Field
   return def?.fields.find((candidate) => candidate.id === field)
 }
 
-export function commitField(
+/**
+ * Runs `edit` once on the current state: a `RangeError` (a value or target the model refuses) is returned as its
+ * message with nothing applied, the same project back adds no step, and anything else is applied as one `label` step.
+ */
+export function commitEdit(
   history: EditHistory,
-  target: FieldTarget,
-  field: string,
-  value: FieldValue,
+  label: string,
+  edit: (project: Project) => Project,
 ): FieldCommit {
-  const edit = (project: Project): Project =>
-    target.kind === 'level'
-      ? setLevelField(project, target.level, field, value)
-      : setEntityField(project, target, target.id, field, value)
   const before = history.state
   let after: Project
   try {
@@ -43,8 +42,20 @@ export function commitField(
     if (error instanceof RangeError) return { ok: false, message: error.message }
     throw error
   }
-  if (after === before) return { ok: true }
-  const def = fieldDefOf(before, target, field)
-  history.apply(`Set ${def?.label ?? field}`, edit)
+  if (after !== before) history.apply(label, edit)
   return { ok: true }
+}
+
+export function commitField(
+  history: EditHistory,
+  target: FieldTarget,
+  field: string,
+  value: FieldValue,
+): FieldCommit {
+  const def = fieldDefOf(history.state, target, field)
+  return commitEdit(history, `Set ${def?.label ?? field}`, (project) =>
+    target.kind === 'level'
+      ? setLevelField(project, target.level, field, value)
+      : setEntityField(project, target, target.id, field, value),
+  )
 }

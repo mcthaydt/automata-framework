@@ -7,6 +7,7 @@ import {
 } from '@mcthaydt/automata-editor-kit/fields'
 import type { EntityDef2D, EntityInstance, Project, Size } from '../../model/project-types'
 import { findLevel } from '../../model/world/level-edits'
+import type { Diagnostic, Severity } from '../../profiles/profile'
 
 // What the Level view's inspector shows (2D editor spec §8, the Level row; plan ED2D.4c4b step 2): one row per typed
 // field, naming the kit control that edits it, for the selected instance (Entity tab) and the level (Level tab). The
@@ -153,4 +154,27 @@ export function levelInspector(project: Project, level: string): LevelInspector 
     size: found.size,
     fields: rowsOf(project.defs.levelFields, found.fields),
   }
+}
+
+export interface CheckRow {
+  readonly severity: Severity
+  readonly message: string
+  readonly path: string
+  /** The instance the finding is about, which tapping the row selects. */
+  readonly item: string | undefined
+}
+
+const ITEM = /\.items\[([^\]]+)\]/
+
+/** The profile's findings about `level` (its path is `levels[<id>]` or under it), in the profile's order. */
+export function levelChecks(found: readonly Diagnostic[], level: string): readonly CheckRow[] {
+  const prefix = `levels[${level}]`
+  return found
+    .filter((each) => each.path === prefix || each.path.startsWith(`${prefix}.`))
+    .map((each) => ({
+      severity: each.severity,
+      message: each.message,
+      path: each.path,
+      item: ITEM.exec(each.path)?.[1],
+    }))
 }

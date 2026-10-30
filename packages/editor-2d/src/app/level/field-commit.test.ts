@@ -6,7 +6,7 @@ import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
 import { projectHistory } from './edit-history'
-import { commitField, type FieldTarget } from './field-commit'
+import { commitEdit, commitField, type FieldTarget } from './field-commit'
 
 const slime: FieldTarget = { kind: 'entity', level: 'level-1', layer: 'entities', id: 'slime-a' }
 const door: FieldTarget = { kind: 'entity', level: 'level-1', layer: 'entities', id: 'door-a' }
@@ -73,5 +73,20 @@ describe('commitField (G-e)', () => {
     history.undo()
     expect(commitField(edits, slime, 'hp', 3)).toEqual({ ok: true })
     expect(history.undoLabel).toBeUndefined()
+  })
+})
+
+describe('commitEdit', () => {
+  it('applies a change as one labelled step, refuses a RangeError and adds nothing for no change', () => {
+    const { history, edits } = setup()
+    expect(commitEdit(edits, 'Rename', (project) => ({ ...project, name: 'two' }))).toEqual({ ok: true })
+    expect(history.undoLabel).toBe('Rename')
+    expect(
+      commitEdit(edits, 'Break', () => {
+        throw new RangeError('no level "x"')
+      }),
+    ).toEqual({ ok: false, message: 'no level "x"' })
+    expect(commitEdit(edits, 'Nothing', (project) => project)).toEqual({ ok: true })
+    expect(history.undoLabel).toBe('Rename')
   })
 })

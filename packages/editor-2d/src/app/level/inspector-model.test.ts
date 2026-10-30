@@ -4,7 +4,7 @@ import { placeEntity } from '../../model/commands/entity-edits'
 import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
-import { entityInspector, fieldRow, levelInspector } from './inspector-model'
+import { entityInspector, fieldRow, levelChecks, levelInspector } from './inspector-model'
 
 const platformer = (): Project => platformerTemplate.create(counterIds())
 const target = { level: 'level-1', layer: 'entities' }
@@ -107,5 +107,25 @@ describe('levelInspector', () => {
       size: { w: expect.any(Number), h: expect.any(Number) },
       fields: [{ id: 'music', widget: 'text', value: '' }],
     })
+  })
+})
+
+describe('levelChecks', () => {
+  it("keeps this level's findings and names the instance a finding is about", () => {
+    const found = [
+      {
+        severity: 'error',
+        code: 'a',
+        path: 'levels[level-1].layers[entities].items[slime-a].fields.hp',
+        message: 'hp',
+      },
+      { severity: 'warning', code: 'b', path: 'levels[level-10]', message: 'other level' },
+      { severity: 'info', code: 'c', path: 'levels[level-1]', message: 'the level' },
+      { severity: 'error', code: 'd', path: 'defs.tilesets[terrain]', message: 'definitions' },
+    ] as const
+    expect(levelChecks(found, 'level-1')).toEqual([
+      { severity: 'error', message: 'hp', path: found[0].path, item: 'slime-a' },
+      { severity: 'info', message: 'the level', path: 'levels[level-1]', item: undefined },
+    ])
   })
 })
