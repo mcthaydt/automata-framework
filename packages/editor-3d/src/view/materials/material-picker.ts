@@ -171,9 +171,19 @@ export function createMaterialPicker<D>(
     return facts
   }
 
+  /**
+   * Holds the selection and the open category to what the list offers now: an edit of the table, or an undo past the
+   * one that added a material, can take either away. The selection is the list's own entry, so a changed `wallOnly` shows.
+   */
+  const revalidate = (materials: readonly Material[]): void => {
+    selected = selected === undefined ? undefined : materials.find((material) => material.id === selected?.id)
+    if (!materials.some((material) => material.category === category)) category = materials[0]?.category
+  }
+
   const compute = (): MaterialPickerView => {
     const list = listOf()
     const materials = offered()
+    revalidate(materials)
     const needle = search.trim().toLowerCase()
     const tiles =
       needle === ''
@@ -259,6 +269,7 @@ export function createMaterialPicker<D>(
     },
     apply() {
       const list = listOf()
+      revalidate(offered())
       const result: EditResult<D> = !list.ok
         ? { ok: false, reason: list.reason }
         : selected === undefined

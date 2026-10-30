@@ -169,6 +169,23 @@ describe('createMaterialPicker: apply', () => {
   })
 })
 
+describe('createMaterialPicker: a list that changes under it', () => {
+  it('drops a selection and a category the list no longer has, and Apply refuses until one is picked', () => {
+    const { editor, picker } = open()
+    picker.openCategory('windows')
+    picker.select('glass')
+    const { glass: _glass, ...rest } = level.materials ?? {}
+    // An edit of the table (ED3D.13a) or an undo past the one that added a material takes it away.
+    editor.history.apply('Take glass off the table', () => ({ level: { ...level, materials: rest } }))
+    expect(picker.view.selected).toBeUndefined()
+    expect(picker.view.category).toBe('walls')
+    expect(picker.apply()).toEqual({ ok: false, reason: 'pick a material' })
+    expect(editor.history.undoLabel).toBe('Take glass off the table')
+    editor.history.undo()
+    expect(picker.view.categories.map((category) => category.id)).toContain('windows')
+  })
+})
+
 describe('createMaterialPicker: a profile with no list', () => {
   const parsed = lastLightProfile.parse(loadFixture('blockout-clinic'))
   if (!parsed.ok) throw new Error('the clinic does not parse')
