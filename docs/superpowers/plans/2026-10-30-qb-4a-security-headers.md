@@ -83,3 +83,5 @@ a week; uptime and spend alerts (QB.4b); the rollback (QB.4c).
   5. Recorded above: the host configuration needs the playground's headers too.
   Not changed: `404.html` stays outside `builtPages` (it carries its policy); a streamed page would need the hook to
   honour `done`, as the hydration rewrite already assumes; `.mjs` is not in serve-static's types (none are built).
+  After: `pnpm check` 0 errors; `pnpm test` 53 files, 345 passed, 1 expected fail; `pnpm build`; `pnpm check:site`;
+  `pnpm check:deployed --local`; the full browser suite (Chromium and WebKit, two workers) 458 passed, 2 skipped, 12.1 min.
