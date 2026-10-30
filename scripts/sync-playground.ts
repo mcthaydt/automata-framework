@@ -33,6 +33,11 @@ export function syncPlaygroundCopies(commit: string): void {
   }
 }
 
+/** What `import.meta.url` becomes in an example (spec §5.2): its module path under the site's origin. */
+export function moduleUrlFor(example: { moduleUrl: string }): string {
+  return new URL(example.moduleUrl, SITE_ORIGIN).href
+}
+
 // The files the site writes into the tree itself, which the framework's manifest does not list.
 const SITE_WRITTEN = ['manifest.json', 'compiled/']
 
@@ -78,7 +83,7 @@ export function syncPlaygroundTree(commit: string): number {
     const catalog = JSON.parse(readFileSync(join(built, 'catalog.json'), 'utf8')) as { id: string; source: string; moduleUrl: string }[]
     mkdirSync(join(built, 'compiled'))
     for (const example of catalog) {
-      const result = compileExample(example.source, { id: example.id, moduleUrl: example.moduleUrl })
+      const result = compileExample(example.source, { id: example.id, moduleUrl: moduleUrlFor(example) })
       if (!result.ok) throw new Error(`${example.id} does not compile: ${result.diagnostics.map(d => `${d.line}:${d.column} ${d.message}`).join('; ')}`)
       writeFileSync(join(built, 'compiled', `${example.id}.js`), result.code)
     }

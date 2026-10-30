@@ -6,7 +6,7 @@ import { join, relative, resolve, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { compileExample } from '../src/lib/playground/compile'
 import { SITE_ORIGIN } from '../src/lib/site.js'
-import { verifyPlaygroundTree } from '../scripts/sync-playground'
+import { moduleUrlFor, verifyPlaygroundTree } from '../scripts/sync-playground'
 
 // The published playground (spec §5.5): the framework's build:playground tree at framework.ref, copied verbatim, plus
 // the originals precompiled by the site's own compileExample.
@@ -35,12 +35,16 @@ describe('the published playground tree', () => {
     expect(JSON.parse(readFileSync(resolve('src/data/examples.json'), 'utf8'))).toEqual(catalog)
   })
 
+  it('compiles each example with its module path under the site origin as import.meta.url', () => {
+    expect(moduleUrlFor({ moduleUrl: '/playground/examples/audio/audio-sound.ts' })).toBe(`${SITE_ORIGIN}/playground/examples/audio/audio-sound.ts`)
+  })
+
   it('has one precompiled original per example, each a fresh compileExample of its source', () => {
     const catalog = JSON.parse(readFileSync(join(tree, 'catalog.json'), 'utf8')) as Example[]
     expect(catalog.length).toBeGreaterThan(0)
     expect(filesUnder(join(tree, 'compiled'))).toEqual(catalog.map(example => `${example.id}.js`).sort())
     for (const example of catalog) {
-      const result = compileExample(example.source, { id: example.id, moduleUrl: example.moduleUrl })
+      const result = compileExample(example.source, { id: example.id, moduleUrl: moduleUrlFor(example) })
       expect(result, example.id).toMatchObject({ ok: true })
       if (result.ok) expect(readFileSync(join(tree, 'compiled', `${example.id}.js`), 'utf8'), example.id).toBe(result.code)
     }

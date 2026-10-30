@@ -30,7 +30,6 @@
 - [Snapshots and replays](/cheatsheet#replays): Record accepted commands with checkpoints, encode a run, and verify it against matching plugins and content. Import replays through this simulation subpath.
 - [Runtime](/cheatsheet#runtime): Effect-scoped boot, screens, loading, settings, and shutdown. Runtime service tags are available inside runtime-provided contexts.
 - [PixiJS presentation](/cheatsheet#presentation): Draw render deltas without changing gameplay state. WebGL2 is the default; WebGPU is opt-in. Import no-eval before initializing PixiJS.
-- [Physics](/cheatsheet#physics): Deterministic 2D physics inside the simulation. Use the /2d entry and spawn helpers rather than importing Rapier or relying on zero-valued collider defaults.
 - [Responsive UI](/cheatsheet#ui): One geometry owner coordinates usable space, safe areas, browser bars, keyboard occlusion, and host display metrics. Svelte primitives consume that geometry.
 - [Hosting](/cheatsheet#hosting): Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions. The Ruken SDK owns the host protocol.
 - [Content](/cheatsheet#content): Register Zod schemas for authored TOML, compile content, and pass the appropriate partition to the runtime or simulation.

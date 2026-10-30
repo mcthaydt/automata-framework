@@ -44,7 +44,6 @@ Explore the 2D starter and focused examples before adding your own systems. The 
 | @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |
 | @mcthaydt/automata-runtime | Boot, flow and scoped runtime |
 | @mcthaydt/automata-render-pixi | PixiJS presentation |
-| @mcthaydt/automata-physics/2d | Deterministic 2D physics |
 | @mcthaydt/automata-ui | Responsive geometry and UI |
 | @mcthaydt/automata-host | Hosting sessions |
 | @mcthaydt/automata-content | Content validation and compilation |
@@ -1236,73 +1235,6 @@ Returns: RenderDeltaConsumer
 - world (Container): Parent for generated view containers.
 - resolver (EntityViewResolver): Optional factory or component-ID map selecting entity views.
 - The framework renderer already owns a consumer. Create one only for a custom presentation integration.
-
----
-
-## Physics
-Import: @mcthaydt/automata-physics/2d
-URL: /cheatsheet#physics
-Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/physics/src/2d.ts
-
-Deterministic 2D physics inside the simulation. Use the /2d entry and spawn helpers rather than importing Rapier or relying on zero-valued collider defaults.
-
-```ts
-import { createSim } from '@mcthaydt/automata-sim'
-import { physics2d, BodyKind, body2d, collider2d, transform2d } from '@mcthaydt/automata-physics/2d'
-
-const sim = await createSim({ seed: 1, plugins: [physics2d()] })
-try {
-  sim.spawn([transform2d({ x: 0, y: 3 }), body2d(BodyKind.dynamic), collider2d.ball(0.5)])
-  sim.spawn([transform2d({ x: 0, y: -1 }), body2d(BodyKind.fixed), collider2d.cuboid(10, 0.5)])
-  for (let tick = 0; tick < 60; tick++) sim.step([])
-} finally {
-  sim.dispose()
-}
-```
-
-### physics2d
-
-Creates the deterministic plugin. WebAssembly initializes during createSim and is released by sim.dispose().
-
-```ts
-physics2d(options?: Physics2DOptions): PluginDef
-```
-Returns: PluginDef
-- options.gravity ({ x: number; y: number }): Optional acceleration in metres per second squared. Defaults to { x: 0, y: -9.81 }.
-- Gravity is included in the schema hash. Snapshots from a different gravity configuration are incompatible.
-
-### RigidBody2D
-
-Body kind, velocity, and damping fields. Prefer body2d(BodyKind.dynamic) or body2d(BodyKind.fixed) during spawning.
-
-```ts
-RigidBody2D: ComponentDef
-```
-Returns: Component definition
-
-- Systems own body changes; presentation reads the resulting transform.
-
-### Collider2D
-
-Shape and collision settings. Use collider2d.ball, cuboid, or capsule to supply collision defaults.
-
-```ts
-Collider2D: ComponentDef
-```
-Returns: Component definition
-
-- cuboid takes half extents. Raw zero-valued fields are not equivalent to the spawn helpers.
-
-### transform2d
-
-Builds a starting Transform2D part; missing values default to zero.
-
-```ts
-transform2d(at?: { x?: number; y?: number; rotation?: number }): SpawnPart
-```
-Returns: SpawnPart
-- at ({ x?: number; y?: number; rotation?: number }): Optional initial transform, passed as a part to sim.spawn or ctx.spawn.
-
 
 ---
 

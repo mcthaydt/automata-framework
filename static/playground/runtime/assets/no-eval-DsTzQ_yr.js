@@ -1,0 +1,1 @@
+import{a as e}from"./pixi-DmTo-_a6.js";import{zi as t}from"./zod-8f7ofGrt.js";t({jitless:!0});var n=e.config;if(n===void 0)throw Error(`pixi.js loadTextures has no config, so no-eval cannot turn off its worker probe`);n.preferWorkers=!1;

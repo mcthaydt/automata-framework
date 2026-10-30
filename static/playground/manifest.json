@@ -1,0 +1,323 @@
+{
+  "framework": "f8023a907725cccd84277372c0d4f1b73d2da90c",
+  "siteOrigin": "https://automata.ruken.com",
+  "files": [
+    {
+      "path": "catalog.json",
+      "bytes": 51367,
+      "sha256": "22a904f4be69e98e4298f37716c6f93b12026a001e9daa9793a40a59deb21ef2"
+    },
+    {
+      "path": "examples/audio/sound/index.html",
+      "bytes": 1418,
+      "sha256": "1874165c136651fe5b8ef3bfe1f0e5a6517a1d1d8eda80d4781efc233c8ab1f9"
+    },
+    {
+      "path": "examples/core/basic-window/index.html",
+      "bytes": 1425,
+      "sha256": "48ffd3c06da79ece47ba934eadd8379564adcb47b6ac57db19d3e44a9096fd19"
+    },
+    {
+      "path": "examples/core/camera-2d/index.html",
+      "bytes": 1469,
+      "sha256": "f63b6cb503345ff566fe598038e63684c40958ecfd40d4547c06a7e496d5ccea"
+    },
+    {
+      "path": "examples/core/host-lifecycle/index.html",
+      "bytes": 1477,
+      "sha256": "be61a0ce257e9501dca9d953b57667a22dc597d76e83c1f6ba0f799a43ee5feb"
+    },
+    {
+      "path": "examples/core/input-gamepad/index.html",
+      "bytes": 1440,
+      "sha256": "e2ddf85ae75595eeb4ee20c83af6b71dec79530cbea0f60ccb9d6c087e45067e"
+    },
+    {
+      "path": "examples/core/input-keys/index.html",
+      "bytes": 1450,
+      "sha256": "ce3d0313ea530eadc71147a4a1cec19552ac12b41e61edf760065e26b9d63c4e"
+    },
+    {
+      "path": "examples/core/input-rebind/index.html",
+      "bytes": 1458,
+      "sha256": "791870a0cdaae80e77bfe697176e7d850ec67bbd07ce5feb49ac0642fc75ea34"
+    },
+    {
+      "path": "examples/core/input-touch/index.html",
+      "bytes": 1457,
+      "sha256": "6d9b60e049ad68f8d30e5f7dd2f8255feab349c5809c65d165e7d82b683c384e"
+    },
+    {
+      "path": "examples/core/leaderboard/index.html",
+      "bytes": 1477,
+      "sha256": "57858f4e1cc9037453e4ad23f5911a6e28dc146c05e0806350a51eabc16e7766"
+    },
+    {
+      "path": "examples/core/saves/index.html",
+      "bytes": 1456,
+      "sha256": "6dcbff1ab41df76ddd1f8803ac47b75a5c94da75513d825a5ca174b797da846c"
+    },
+    {
+      "path": "examples/render/filter/index.html",
+      "bytes": 1487,
+      "sha256": "14d459d3c61276461ced39ceeed20c14493ab5726f4edca440054437a60979c7"
+    },
+    {
+      "path": "examples/render/interpolation/index.html",
+      "bytes": 1487,
+      "sha256": "a2ac84ae4c266ec8e36949d57fcfcd40c58868be261e0018a44817597678aa7e"
+    },
+    {
+      "path": "examples/render/quality/index.html",
+      "bytes": 1472,
+      "sha256": "be15fe2e3342b509f7904e1f243da4e90d9974ff7a48af311176635b0044bc18"
+    },
+    {
+      "path": "examples/resources/atlas-frames/PROVENANCE.md",
+      "bytes": 1127,
+      "sha256": "0db705a22b3e92beada2715a9cfdb2638b006c74cd95f04af999dac07d2dd062"
+    },
+    {
+      "path": "examples/resources/atlas-frames/wick/run-a.png",
+      "bytes": 432,
+      "sha256": "6322643791c21ccc6405885285d3c49c49e4635104fdd804cdf835f1ad32e6df"
+    },
+    {
+      "path": "examples/resources/atlas-frames/wick/run-b.png",
+      "bytes": 420,
+      "sha256": "12b8b65873564ed375cb626ca020381ba520ecb4c5ca77f0649786e695938369"
+    },
+    {
+      "path": "examples/resources/sounds/PROVENANCE.md",
+      "bytes": 607,
+      "sha256": "21b420578f82588be15c44a9b83a9f96b54bc068adc5186ca8d94f35c5aa6af8"
+    },
+    {
+      "path": "examples/resources/sounds/chime.wav",
+      "bytes": 26504,
+      "sha256": "355ccd5e6b1b8c7e1d6c8925b03575e59cfd7e006233ff84e84f7597e6cd650b"
+    },
+    {
+      "path": "examples/resources/sprites/PROVENANCE.md",
+      "bytes": 862,
+      "sha256": "c713cd625d802ebae668f60523926a103cb7eee5ed3779b914b5c429a13899a2"
+    },
+    {
+      "path": "examples/resources/sprites/wick-run.png",
+      "bytes": 278,
+      "sha256": "9b80043fae6495012d352e906159fc8b65d18aba2ee2b45abc9f5008034e2fa0"
+    },
+    {
+      "path": "examples/shapes/draw-hud/index.html",
+      "bytes": 1464,
+      "sha256": "e69ebaf0abdec9e7c4afd0f6abe5bf01df9bd0094ea88e8df42e648bbf851818"
+    },
+    {
+      "path": "examples/shapes/rects/index.html",
+      "bytes": 1435,
+      "sha256": "063d87ec6f913f31089f737e73a5574a12bb2f94ae46c1c55efe5c9761d5e213"
+    },
+    {
+      "path": "examples/textures/atlas/index.html",
+      "bytes": 1438,
+      "sha256": "c7d3ca4a27f0fc15b795b4bc719bf665d1c5118780b7d1619a3497f02bf9bafd"
+    },
+    {
+      "path": "examples/textures/atlas/wick-0.json",
+      "bytes": 840,
+      "sha256": "98a249bdd58fbcd307552f78d1920ccadca4f12ccc95dc7f31a87ffb76049501"
+    },
+    {
+      "path": "examples/textures/atlas/wick-0.png",
+      "bytes": 781,
+      "sha256": "8aecf80a08ab68aa6395f330500478ef5a2f22c2ffe2ac5a03b18151f32150b7"
+    },
+    {
+      "path": "examples/textures/sprite/index.html",
+      "bytes": 1445,
+      "sha256": "ff9d05468969d5cf9e874bef2e54c376d7706b7bdca67c739e67ef732669549e"
+    },
+    {
+      "path": "goldens/audio-sound.replay",
+      "bytes": 3110,
+      "sha256": "ed4f6603d6f624ea7f5faaa173d781eec1c9091e56f91bf46216ac70ec178825"
+    },
+    {
+      "path": "goldens/core-input-gamepad.replay",
+      "bytes": 1787,
+      "sha256": "4ce5114c20879c414a2d7ac055d37e19730c2addd8e96eeeafeb46c611dd6088"
+    },
+    {
+      "path": "goldens/core-input-keys.replay",
+      "bytes": 1787,
+      "sha256": "4ce5114c20879c414a2d7ac055d37e19730c2addd8e96eeeafeb46c611dd6088"
+    },
+    {
+      "path": "goldens/core-input-rebind.replay",
+      "bytes": 1792,
+      "sha256": "3b91b67cc913f92d968543791c025837fedcfe5ee893881971eb3d900676daf4"
+    },
+    {
+      "path": "goldens/core-leaderboard.replay",
+      "bytes": 3856,
+      "sha256": "335feb82193ad4ad7b358155d39fda325ab9e6ba0f4772578daa217eda502de2"
+    },
+    {
+      "path": "goldens/core-saves.replay",
+      "bytes": 1790,
+      "sha256": "235c515c9be1171588d73df3ac8cb92c828191042acb5e2ab33b05deb5e1859b"
+    },
+    {
+      "path": "goldens/shapes-draw-hud.replay",
+      "bytes": 3638,
+      "sha256": "5bb657540dd22b4da97afd2a2cf64b4ef7dd43fcdb120f26bf3196fd7da92150"
+    },
+    {
+      "path": "goldens/shapes-rects.replay",
+      "bytes": 3818,
+      "sha256": "e993daf92d51e57f09577df45e3c0f31807a5a27a18aaf76249a6a477d916585"
+    },
+    {
+      "path": "goldens/textures-atlas.replay",
+      "bytes": 2503,
+      "sha256": "3b8fd527283dd5bb0810c20d7664cb83616bf1fb662ad974c327a2af4cb132de"
+    },
+    {
+      "path": "goldens/textures-sprite.replay",
+      "bytes": 2170,
+      "sha256": "87e7eddb8a6786a477a5f5d9d4678533d6e98edce82a9ec2144e38b4bf4721a2"
+    },
+    {
+      "path": "runtime/assets/automata-DVWj_bgk.js",
+      "bytes": 6728,
+      "sha256": "46b92bf7adaa842794138579e1283df07292ebe744eee99cea996b5899363e52"
+    },
+    {
+      "path": "runtime/assets/define-game--XkMqPu3.css",
+      "bytes": 29606,
+      "sha256": "f3e82c784b278a049093ce4248b5012f94c99dd6a2b4c1033d18185688bcbe5f"
+    },
+    {
+      "path": "runtime/assets/define-game-CtE2fkyW.js",
+      "bytes": 482608,
+      "sha256": "ce1ecb6fb5a38c214184895176b2c65070c813cb94717ec399bf0fb2c7f7c894"
+    },
+    {
+      "path": "runtime/assets/frame-6UN4NgNz.js",
+      "bytes": 51621,
+      "sha256": "7b29c2d4175401031ac734202fc341b9f370bf440c17d56fc9b2a440da7f7b60"
+    },
+    {
+      "path": "runtime/assets/no-eval-BOOiEfhX.js",
+      "bytes": 30,
+      "sha256": "f7272c83c7a3e0e5b6b67eaeecc986093a030447cdf1a712a7169cd8762a9346"
+    },
+    {
+      "path": "runtime/assets/no-eval-DsTzQ_yr.js",
+      "bytes": 237,
+      "sha256": "10db4ddca4fb63d14cc2f6e3b2b651c4abc355f09a55b3551d741f24fb8658b7"
+    },
+    {
+      "path": "runtime/assets/pixi-DmTo-_a6.js",
+      "bytes": 597613,
+      "sha256": "8fd6a6d2c82a2b6b7b0e46cc5de80c2dc4f59b51a6c74596d077c708033ff01e"
+    },
+    {
+      "path": "runtime/assets/rolldown-runtime-hePW80VL.js",
+      "bytes": 716,
+      "sha256": "580ad8c58061a4dde99bde0a56905e382f0568516ee2f5b84dbfb52085709021"
+    },
+    {
+      "path": "runtime/assets/zod-8f7ofGrt.js",
+      "bytes": 384104,
+      "sha256": "4779e5208fdea76c878b32f4069db6a03c873053ed2dda17ef87b71cefebf610"
+    },
+    {
+      "path": "runtime/assets/zod-F_SPHNLV.js",
+      "bytes": 6157,
+      "sha256": "c59f7296bce9dbc262148a2e6250fb3760ef62beda30896a680ce614a9256bdf"
+    }
+  ],
+  "packages": [
+    {
+      "name": "@pixi/colord",
+      "version": "2.9.6",
+      "licence": "MIT"
+    },
+    {
+      "name": "@ruken/manifest",
+      "version": "0.0.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "@ruken/sdk",
+      "version": "0.0.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "@ruken/sdk-host",
+      "version": "0.0.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "clsx",
+      "version": "2.1.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "earcut",
+      "version": "3.2.4",
+      "licence": "ISC"
+    },
+    {
+      "name": "effect",
+      "version": "3.22.2",
+      "licence": "MIT"
+    },
+    {
+      "name": "eventemitter3",
+      "version": "5.0.4",
+      "licence": "MIT"
+    },
+    {
+      "name": "ismobilejs",
+      "version": "1.1.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "koota",
+      "version": "0.6.6",
+      "licence": "ISC"
+    },
+    {
+      "name": "parse-svg-path",
+      "version": "0.2.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "pixi.js",
+      "version": "8.22.0",
+      "licence": "MIT"
+    },
+    {
+      "name": "smol-toml",
+      "version": "1.9.0",
+      "licence": "BSD-3-Clause"
+    },
+    {
+      "name": "svelte",
+      "version": "5.57.1",
+      "licence": "MIT"
+    },
+    {
+      "name": "tiny-lru",
+      "version": "11.4.7",
+      "licence": "BSD-3-Clause"
+    },
+    {
+      "name": "zod",
+      "version": "4.6.6",
+      "licence": "MIT"
+    }
+  ]
+}
