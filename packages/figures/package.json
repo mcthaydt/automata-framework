@@ -1,0 +1,31 @@
+{
+  "name": "@mcthaydt/automata-figures",
+  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "packages/figures"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run --project unit",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@mcthaydt/automata-content": "workspace:*",
+    "@mcthaydt/automata-runtime": "workspace:*",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "effect": "3.22.2",
+    "vitest": "5.0.3"
+  }
+}

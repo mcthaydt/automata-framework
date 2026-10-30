@@ -1,0 +1,28 @@
+# `handLamp` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/items.json at a1f7246; materials are swatch ids in kebab-case.
+
+about = "A hand lamp hung from the hand at the side, the arm nearly straight: the lamp moves with the hand, never with the walk."
+tip = [0, -0.09, 0]
+hold = { hand = [{ shoulders = 1, k = 0.05 }, { arms = -0.93 }, { k = 0.14 }], turn = [-0.15, 0, 0], pole = [0.3, 0, -1] }
+
+[[parts]]
+material = "brass"
+at = [0, -0.02, 0]
+r = [0.032, 0.014, 0.032]
+seg = 8
+rings = 3
+
+[[parts]]
+material = "glass"
+at = [0, -0.09, 0]
+r = [0.045, 0.064, 0.045]
+e = [0.7, 0.9]
+seg = 10
+rings = 5
+
+[[parts]]
+material = "brass"
+at = [0, -0.165, 0]
+r = [0.054, 0.022, 0.054]
+e = [0.45, 0.8]
+seg = 10
+rings = 3

@@ -3,12 +3,14 @@
   toggles the three openable regions, a rail of five destinations, a scrolling panel, an inspector of
   fields, a dock of scene buttons and a canvas with a text field. Used by the unit tests (behavior) and
   by the layout tests (production CSS in a real browser). It shows `orientation` and the open flags so
-  a test can read what the shell told it.
+  a test can read what the shell told it. `broken` puts a widget with a bug in one region (kit spec §6).
 -->
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import EditorShell from '../shell/EditorShell.svelte'
+import type { SnippetRegion } from '../shell/region-error'
 import StatusLine from '../widgets/StatusLine.svelte'
+import BrokenWidget from './BrokenWidget.svelte'
 import '../tokens.css'
 
 interface Props {
@@ -22,6 +24,9 @@ interface Props {
   dock?: boolean
   /** Fills the status region with the kit's `StatusLine`, as a real screen does, instead of a plain readout. */
   statusLine?: boolean
+  /** The region whose content throws, and whether it throws at once or after its button is clicked. */
+  broken?: SnippetRegion | undefined
+  breaks?: 'mount' | 'click'
 }
 
 const {
@@ -29,6 +34,8 @@ const {
   rail: withRail = true,
   dock: withDock = true,
   statusLine = false,
+  broken,
+  breaks = 'mount',
   panelOpen: panelStart = false,
   inspectorOpen: inspectorStart = false,
   dockOpen: dockStart,
@@ -73,7 +80,12 @@ const fields = ['depth', 'sink', 'haze', 'seed', 'phrase', 'extension', 'set pie
 const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6']
 </script>
 
+{#snippet bug(region: SnippetRegion)}
+  {#if broken === region}<BrokenWidget {breaks} />{/if}
+{/snippet}
+
 {#snippet railBody({ orientation }: { orientation: 'vertical' | 'horizontal' })}
+  {@render bug('rail')}
   <div class="rail" data-testid="rail" data-orientation={orientation}>
     {#each destinations as destination (destination)}
       <button type="button" data-testid={`rail-${destination}`}>{destination}</button>
@@ -82,6 +94,7 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
 {/snippet}
 
 {#snippet dockBody()}
+  {@render bug('dock')}
   <div class="scenes">
     {#each scenes as scene (scene)}
       <button type="button" data-testid={`scene-${scene}`}>{scene}</button>
@@ -99,12 +112,14 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
   testId="shell"
 >
   {#snippet topbar()}
+    {@render bug('topbar')}
     <button type="button" data-testid="toggle-panel" onclick={() => (panelOpen = !panelOpen)}>Layers</button>
     <button type="button" data-testid="toggle-inspector" onclick={() => (inspectorOpen = !inspectorOpen)}>Fields</button>
     <button type="button" data-testid="toggle-dock" onclick={() => (dockOpen = !(dockOpen ?? false))}>Climb</button>
     <strong class="title">Rooftops</strong>
   {/snippet}
   {#snippet panel()}
+    {@render bug('panel')}
     <input data-testid="panel-field" aria-label="Find a layer" />
     <ul class="list">
       {#each layers as layer (layer)}
@@ -113,16 +128,19 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
     </ul>
   {/snippet}
   {#snippet inspector()}
+    {@render bug('inspector')}
     {#each fields as field (field)}
       <label class="field">{field}<input data-testid={`field-${field}`} /></label>
     {/each}
   {/snippet}
   {#snippet canvas()}
+    {@render bug('canvas')}
     <div class="stage" data-testid="stage">
       <input data-testid="canvas-field" aria-label="Stage name" />
     </div>
   {/snippet}
   {#snippet status()}
+    {@render bug('status')}
     {#if statusLine}
       <StatusLine save="saved" message="Ready" />
     {:else}

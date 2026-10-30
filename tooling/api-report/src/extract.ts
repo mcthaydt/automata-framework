@@ -1,9 +1,16 @@
-// Reads each core entry point's exports from source (PRODUCT spec §2 F6). AF builds with
-// `isolatedDeclarations`, so TypeScript 6's `transpileDeclaration` turns every source file into its
-// declarations alone; the checker then resolves each export's aliases across files and packages, as DX.4's
-// API index does over the built `.d.ts`. No `pnpm build` is needed, and private packages are covered.
-// Files outside the core packages' `src` (effect, zod, pixi.js) load as empty modules: only declaration text
-// is read, never types, so nothing external is needed and a run takes seconds.
+// The one export extractor (PRODUCT.1b3), shared by `pnpm api-report` (PRODUCT spec §2 F6) and
+// `pnpm api-index` (DX spec §3.8). Two inputs, one reader:
+// - `sourceExports` reads each core entry point from source. AF builds with `isolatedDeclarations`, so
+//   TypeScript 6's `transpileDeclaration` turns every source file into its declarations alone. Files outside
+//   the core packages' `src` (effect, zod, pixi.js) load as empty modules: only declaration text is read,
+//   never types, so nothing external is needed, no `pnpm build` either, private packages are covered, and a
+//   run takes seconds.
+// - `declarationExports` reads the emitted `.d.ts` as written. rolldown-plugin-dts splits declarations into
+//   chunks and renames them (`export { n as ColliderOptions }`), so nothing is matched by text.
+// Either way the checker resolves each export's aliases across files and packages, and `readExports`
+// describes what they name: its kind, its declaration text under the exported name, its doc comment. Each
+// tool keeps its own row shape and order (`extractApi` below; tooling/api-index/src/rows.ts). TypeScript 7
+// has no stable JS API yet, so this is TypeScript 6.
 import { readFileSync } from 'node:fs'
 import { join, sep } from 'node:path'
 import ts from 'typescript'
@@ -40,6 +47,19 @@ export interface PackageApi {
   readonly version: string
   readonly entries: readonly ApiEntry[]
 }
+
+/** One export of one entry module, as the one extractor reads it. */
+export interface ExtractedExport {
+  readonly name: string
+  readonly kind: ApiKind
+  /** The declaration(s) without `export`/`declare`, named as exported; overloads and merged ones in order. */
+  readonly declaration: string
+  /** The doc comment (each declaration's, joined) and its `@tags`, one per line; empty when there is none. */
+  readonly doc: string
+}
+
+/** The exports of one entry file in the order the checker lists them; undefined when it is not a module. */
+export type ExportsOf = (file: string) => readonly ExtractedExport[] | undefined
 
 /** Case-insensitive, then by code unit: the same order on every machine, whatever its locale. */
 export function byName(a: string, b: string): number {
@@ -90,26 +110,49 @@ function reexportSource(alias: ts.Symbol): string | undefined {
   return undefined
 }
 
-function describeExport(exported: ts.Symbol, checker: ts.TypeChecker): ApiExport {
+function docOf(symbol: ts.Symbol, checker: ts.TypeChecker): string {
+  const text = ts.displayPartsToString(symbol.getDocumentationComment(checker)).trim()
+  const tags = symbol.getJsDocTags(checker).map((tag) => {
+    const tagText = ts.displayPartsToString(tag.text).trim()
+    return tagText === '' ? `@${tag.name}` : `@${tag.name} ${tagText}`
+  })
+  return [text, ...tags].filter((line) => line !== '').join('\n')
+}
+
+function describeExport(exported: ts.Symbol, checker: ts.TypeChecker): ExtractedExport {
   const symbol = exported.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported
   const declarations = symbol.declarations ?? []
   const [first] = declarations
   if (first === undefined) {
+    // The alias resolves to nothing: a module the program cannot read (a `.svelte` file has no declarations
+    // here), so the export is named by the module it comes from.
     const source = reexportSource(exported)
     if (source?.endsWith('.svelte')) {
-      return { name: exported.name, kind: 'svelte', declaration: `component from '${source}'` }
+      return { name: exported.name, kind: 'svelte', declaration: `component from '${source}'`, doc: '' }
     }
-    return { name: exported.name, kind: 'unresolved', declaration: `from '${source ?? '?'}'` }
+    return { name: exported.name, kind: 'unresolved', declaration: `from '${source ?? '?'}'`, doc: '' }
   }
   return {
     name: exported.name,
     kind: kindOf(first),
     declaration: declarations.map((declaration) => declarationText(declaration, exported.name)).join('\n'),
+    doc: docOf(symbol, checker),
   }
 }
 
-/** The API of every package, entry points in `exports` order, exports sorted by `byName`. */
-export function extractApi(packages: readonly CorePackage[]): PackageApi[] {
+/** The one reader: every export of each entry file of `program`. */
+function readExports(program: ts.Program): ExportsOf {
+  const checker = program.getTypeChecker()
+  return (file) => {
+    const source = program.getSourceFile(file)
+    const moduleSymbol = source === undefined ? undefined : checker.getSymbolAtLocation(source)
+    if (moduleSymbol === undefined) return undefined
+    return checker.getExportsOfModule(moduleSymbol).map((exported) => describeExport(exported, checker))
+  }
+}
+
+/** Each core entry point's exports, read from source (no build). Comments are not emitted: `doc` is empty. */
+export function sourceExports(packages: readonly CorePackage[]): ExportsOf {
   const sourceDirs = packages.map((pkg) => join(pkg.dir, 'src') + sep)
   const isCoreSource = (file: string) =>
     !file.endsWith('.d.ts') && /\.[cm]?ts$/.test(file) && sourceDirs.some((dir) => file.startsWith(dir))
@@ -142,22 +185,37 @@ export function extractApi(packages: readonly CorePackage[]): PackageApi[] {
   }
 
   const files = packages.flatMap((pkg) => pkg.entries.map((entry) => entry.file))
-  const program = ts.createProgram(files, options, host)
-  const checker = program.getTypeChecker()
+  return readExports(ts.createProgram(files, options, host))
+}
 
+/** Each emitted `.d.ts` entry file's exports, read as written, with doc comments. */
+export function declarationExports(files: readonly string[]): ExportsOf {
+  const program = ts.createProgram(files, {
+    // Only declarations, aliases and doc comments are read, never types, so the default lib and @types are
+    // not loaded (loading them made each run several seconds slower). Diagnostics are not read.
+    noLib: true,
+    types: [],
+    noEmit: true,
+    skipLibCheck: true,
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+  })
+  return readExports(program)
+}
+
+/** The API of every package, entry points in `exports` order, exports sorted by `byName`. */
+export function extractApi(packages: readonly CorePackage[]): PackageApi[] {
+  const exportsOf = sourceExports(packages)
   return packages.map((pkg) => ({
     package: pkg.name,
     version: pkg.version,
-    entries: pkg.entries.map((entry) => {
-      const source = program.getSourceFile(entry.file)
-      const moduleSymbol = source === undefined ? undefined : checker.getSymbolAtLocation(source)
-      const exported = moduleSymbol === undefined ? [] : checker.getExportsOfModule(moduleSymbol)
-      return {
-        entryPoint: entry.entryPoint,
-        exports: exported
-          .map((symbol) => describeExport(symbol, checker))
-          .sort((a, b) => byName(a.name, b.name)),
-      }
-    }),
+    entries: pkg.entries.map((entry) => ({
+      entryPoint: entry.entryPoint,
+      // An entry that is not a module (no import or export) has no exports. The report has no doc comments.
+      exports: (exportsOf(entry.file) ?? [])
+        .map(({ name, kind, declaration }) => ({ name, kind, declaration }))
+        .sort((a, b) => byName(a.name, b.name)),
+    })),
   }))
 }

@@ -58,6 +58,7 @@ const ROOT_EXPORTS: string[] = [
   'audioLayer',
   'audioSettingsSchema',
   'browserHaptics',
+  'contentHashOf',
   'createHaptics',
   'createT',
   'defineSave',

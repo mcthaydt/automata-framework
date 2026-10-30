@@ -4,12 +4,12 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { CORPUS, CorpusFileMissingError } from './corpus.ts'
 import { entryPoints } from './entry-points.ts'
-import { extractExports } from './extract.ts'
 import { apiJson, apiReference, llmsFullText } from './render.ts'
+import { indexRows } from './rows.ts'
 
 const repo = fileURLToPath(new URL('../fixtures/repo', import.meta.url))
 const afRoot = fileURLToPath(new URL('../../..', import.meta.url))
-const exports = extractExports(entryPoints(repo))
+const exports = indexRows(entryPoints(repo))
 
 describe('api.json', () => {
   it('carries the version and every field of every export', () => {
