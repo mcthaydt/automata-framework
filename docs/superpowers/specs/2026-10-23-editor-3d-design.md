@@ -264,6 +264,7 @@ The rules the Last Light pipeline also runs (`zone-cameras`, `scene`) stay there
 - Autosave journal, conflict dialog (Keep mine, Take theirs, Save as copy) and quota handling are the kit's. The autosave holds the model, not text, so a Restore re-patches against the file as it is now.
 - A file the codec cannot patch byte-exactly is saved only after the editor shows the path it cannot preserve and the choice Save reformatted or Export a copy.
 - Closing or hiding the page flushes the journal (kit `visibilitychange` and `pagehide` rule).
+- *As built (ED3D.5b, [plan](../plans/2026-10-30-ed3d-5b-app-core.md)):* an import lands under one root folder (the picked folder's name, a zip's single top folder, or the zip's name), a taken root becomes `name 2`, and OS files, unsafe paths and entries over 16 MB are skipped with the reason; zips are read with `fflate`. Save reformatted writes `JSON.stringify(model, null, 2)` and a newline, guarded by the file's mtime; Export a copy downloads the patched text, or the reformatted one when the patch refuses. The facility beside a Last Light level is `facility.json` in its folder, else in a sibling folder.
 
 ## 9. UI inventory
 
