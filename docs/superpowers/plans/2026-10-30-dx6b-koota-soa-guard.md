@@ -3,7 +3,7 @@
 - **Spec:** [DX spec](../specs/2026-10-16-dx-small-games-ai-native-design.md) §3.6 (`automata check`: the `boundaries` and `no-eval` steps); the A0+A1 spec §3.3 (the checker works on the AST). Source of the task: the DX.6 follow-up "koota SoA code generation" (02, found 2026-10-16), and `packages/cli/src/check/no-eval-allowlist.ts`, which says a direct `trait({ ... })` call is caught only by the opt-in `--csp` step.
 - **Task:** `DX.6b — Guard against koota struct-of-arrays code generation in sim code`. Lane DX.
 - **Status:** drafted 2026-10-30, based on `main` (`b7ef19d9`).
-- **Progress:** 0 of 5 steps.
+- **Progress:** 4 of 5 steps (step 5's draft PR pending). Implemented and locally checked; CI, review and Owner acceptance pending.
 
 ## What is wrong
 
@@ -22,7 +22,7 @@ koota 0.6.6's `trait(schema)` picks a storage layout from its argument (`dist/ch
 
 ## Files
 
-- **Create:** `tooling/check-boundaries/fixtures/koota-object-schema.ts`, `koota-aliased.ts`, `koota-namespace.ts`, `koota-schema-variable.ts`, `koota-relation-store.ts`, `koota-factory.ts` (clean), `koota-unrelated.ts` (clean), `fixtures/inline/koota-file-level.ts`; `.changeset/dx6b-koota-soa-guard.md`.
+- **Create:** `tooling/check-boundaries/src/koota-soa.ts` (the rule), `tooling/check-boundaries/src/ast.ts` (the AST node type, `isNode` and `staticMemberName`, moved out of `check.ts` so both files share them); `tooling/check-boundaries/fixtures/koota-object-schema.ts`, `koota-aliased.ts`, `koota-namespace.ts`, `koota-schema-variable.ts`, `koota-relation-store.ts`, `koota-factory.ts` (clean), `koota-unrelated.ts` (clean), `fixtures/inline/koota-file-level.ts`; `.changeset/dx6b-koota-soa-guard.md`.
 - **Modify:** `tooling/check-boundaries/src/check.ts`, `tooling/check-boundaries/src/check.test.ts`; `agents/automata/skills/automata-verify/SKILL.md`; `docs/superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md` (§3.6 row); `packages/cli/src/check/no-eval-allowlist.ts` (comment only); this plan.
 
 ## Interfaces
@@ -32,10 +32,10 @@ koota 0.6.6's `trait(schema)` picks a storage layout from its argument (`dist/ch
 
 ## Steps
 
-- [ ] **1. Red: fixtures and tests first.** Add the fixtures and, in `check.test.ts`: each failing fixture reports exactly one `koota-soa` finding at the schema argument (`[rule, line, col]`), the message names the fix, the two clean fixtures report nothing, and inline mode reports the file-level `trait({ ... })` and nothing else in that file. Run `pnpm --filter @mcthaydt/automata-check-boundaries test -- src/check.test.ts`: the new failing-fixture cases fail with `[]` instead of the finding (no rule yet); the clean ones pass.
-- [ ] **2. Green.** Collect the `koota` bindings from the module's imports, check `trait` and `relation` calls in `visit` and, in inline mode, in the file-level walk. The focused file passes; the existing 40-odd cases still pass.
-- [ ] **3. Every root.** `pnpm boundaries` with the rule: every root the script names, 0 findings expected. A planted `trait({ x: 0 })` in a copy of a game sim (scratch folder, never committed) fails `automata-check-boundaries` with exit 1 and the `koota-soa` line; the same through `automata check --sim-only --json` shows the finding in the `boundaries` step.
-- [ ] **4. Docs and changeset.** The `automata-verify` row (its `documents rule koota-soa` case is red until the row lands), the DX spec §3.6 row, the allowlist comment, the changeset.
+- [x] **1. Red: fixtures and tests first.** Add the fixtures and, in `check.test.ts`: each failing fixture reports exactly one `koota-soa` finding at the schema argument (`[rule, line, col]`), the message names the fix, the two clean fixtures report nothing, and inline mode reports the file-level `trait({ ... })` and nothing else in that file. Run `pnpm --filter @mcthaydt/automata-check-boundaries test -- src/check.test.ts`: the new failing-fixture cases fail with `[]` instead of the finding (no rule yet); the clean ones pass.
+- [x] **2. Green.** Collect the `koota` bindings from the module's imports, check `trait` and `relation` calls in `visit` and, in inline mode, in the file-level walk. The focused file passes; the existing 40-odd cases still pass.
+- [x] **3. Every root.** `pnpm boundaries` with the rule: every root the script names, 0 findings expected. A planted `trait({ x: 0 })` in a copy of a game sim (scratch folder, never committed) fails `automata-check-boundaries` with exit 1 and the `koota-soa` line; the same through `automata check --sim-only --json` shows the finding in the `boundaries` step.
+- [x] **4. Docs and changeset.** The `automata-verify` row (its `documents rule koota-soa` case is red until the row lands), the DX spec §3.6 row, the allowlist comment, the changeset.
 - [ ] **5. Gates and hand-off.** `pnpm format`; `TURBO_FORCE=true pnpm check`; `pnpm build`; `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills` (expected current: no `packages/*` export changes); `pnpm changeset status --since=origin/main` and `node tooling/release/src/check-changesets.ts`. Draft PR.
 
 ## Gates
@@ -47,4 +47,9 @@ koota 0.6.6's `trait(schema)` picks a storage layout from its argument (`dist/ch
 
 | Date | Step | Commits | Notes |
 |---|---|---|---|
-| 2026-10-30 | Plan | | |
+| 2026-10-30 | Plan | `fb9fac10` | |
+| 2026-10-30 | 1 | (with 2) | Red, first attempt, `pnpm exec vitest run src/check.test.ts` in `tooling/check-boundaries`: 13 failed, 41 passed. Every new failing-fixture and inline case got `[]` instead of the `koota-soa` finding, and "the finding names the fix" got `undefined`; the two clean fixtures passed. No rule existed, the expected reason. |
+| 2026-10-30 | 2 | (this commit) | The rule lives in `src/koota-soa.ts`; `check.ts` collects the `koota` bindings once per file and checks each `CallExpression` in `visit` and in the inline walk; the shared AST helpers moved to `src/ast.ts` unchanged. Focused file 54 of 54; the package 3 files, 70 of 70; `tsc -p .` clean; biome clean. The premise, checked on koota 0.6.6 itself (a one-off script in `packages/sim` with the `Function` constructor proxied to throw, as `no-eval.test.ts` does; not committed): `trait({ x: 0 })` and `relation({ store: { amount: 0 } })` throw `EvalError`; `trait(() => ({ x: 0 }))`, `trait()`, `trait({})`, `relation({ store: () => ({ amount: 0 }) })` and `relation({ exclusive: true })` do not. Exactly the forms the rule reports and passes. |
+| 2026-10-30 | 3 | | `pnpm boundaries` with the rule: three runs of 65, 2 and 52 files, 0 findings each (every root the script names: `packages/sim/src`, `packages/physics/src`, `games/emberwick/src/sim`, `tooling/frame-budget/stress/sim`, the `automata-feature` example sim, `examples/physics/bodies-2d/sim`, and `--inline examples`). No existing sim code trips it, so no CSP bug to fix: `packages/sim/src/define/definitions.ts` is the only `trait` caller and passes a factory. Planted, in a scratch folder: `trait({ x: 0, y: 0 })` beside a factory trait gives exit 1 and one line, `src/sim/position.component.ts:3:31  koota-soa  ...`, from both `src/cli.ts` and the built `dist/cli.js`. Planted in `games/emberwick/src/sim` (deleted after the run; `git status` clean): `node packages/cli/src/bin.ts check games/emberwick --sim-only --json --fail-fast` exit 1, the `boundaries` step failing with one finding, `src/sim/planted-soa.component.ts` 3:30 `koota-soa` (the `{` of `export const Planted = trait({ x: 0 })`), with the same message. |
+| 2026-10-30 | 4 | (this commit) | The `automata-verify` case "documents rule `koota-soa`" was red (1 failed, 32 passed) before its row; green after (33 of 33). The DX spec §3.6 `boundaries` row, the allowlist comment (comment only, `packages/cli` is private: no changeset) and a patch changeset for `@mcthaydt/automata-check-boundaries`. |
+| 2026-10-30 | 5 | | Node 24. `pnpm format`: no fixes. `TURBO_FORCE=true pnpm check` exit 0: lint; typecheck 35 of 35 tasks, none cached; boundaries 0 findings; style 628 files, 0 findings; knip clean; unit 33 of 33 tasks, none cached, 8,697 passed, 7 skipped, 0 failed (5 min 40 s). `pnpm build` 12 of 12, none cached. `pnpm api-report`: 14 core packages, 0 API breaks, 0 undeclared. `pnpm api-index`: 570 exports, 0 undocumented. `pnpm agent-skills`: `api.md` current, 4 skills, no layout problems. Nothing they wrote is tracked. `check-changesets`: 0 problems. |

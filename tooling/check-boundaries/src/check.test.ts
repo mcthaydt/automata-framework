@@ -125,6 +125,48 @@ test('a root may allow another checked sim folder’s entry point by its exact n
   expect(imports('@af-examples/base-2d', ['@af-examples/base-2d/sim'])).toEqual(['import'])
 })
 
+// DX.6b: koota compiles struct-of-arrays accessors with `new Function`, which Ruken's CSP (no 'unsafe-eval') refuses.
+describe('koota-soa: a koota trait or relation store must be a factory or a tag', () => {
+  test.each([
+    ['koota-object-schema.ts', 3, 31],
+    ['koota-aliased.ts', 3, 37], // `import { trait as defineTrait }`
+    ['koota-namespace.ts', 3, 35], // `koota.trait(...)`
+    ['koota-schema-variable.ts', 4, 31], // `trait(schema)`: the checker cannot see that it is not an object
+    ['koota-relation-store.ts', 3, 56], // `relation({ store: { ... } })` passes the store to `trait`
+  ] as const)('%s -> koota-soa at %i:%i', (file, line, col) => {
+    expect(fixture(file).map((f) => [f.rule, f.line, f.col])).toEqual([['koota-soa', line, col]])
+  })
+
+  test('the finding names the fix', () => {
+    const [onTrait] = fixture('koota-object-schema.ts')
+    expect(onTrait?.message).toContain('new Function')
+    expect(onTrait?.message).toContain('defineComponent')
+    expect(onTrait?.message).toContain('trait(() => ({ ... }))')
+    const [onRelation] = fixture('koota-relation-store.ts')
+    expect(onRelation?.message).toContain('relation({ store: () => ({ ... }) })')
+  })
+
+  test('factories, tags, relations without a store and a type-only import pass', () => {
+    expect(fixture('koota-factory.ts')).toEqual([])
+  })
+
+  test('a function of the game’s own called `trait` is not koota’s', () => {
+    expect(fixture('koota-unrelated.ts')).toEqual([])
+  })
+
+  const kootaRules = (src: string) => checkSource('/x/sim/a.ts', src).map((f) => [f.rule, f.line, f.col])
+  test.each([
+    ['a spread schema', "import { trait } from 'koota'\ntrait({ ...base })\n", 2, 7],
+    ['a computed namespace member', "import * as k from 'koota'\nk['trait']({ x: 0 })\n", 2, 12],
+    ['a call result', "import { trait } from 'koota'\ntrait(make())\n", 2, 7],
+    ['a relation definition in a variable', "import { relation } from 'koota'\nrelation(options)\n", 2, 10],
+    ['a spread relation definition', "import { relation } from 'koota'\nrelation({ ...options })\n", 2, 10],
+    ['a relation store in a variable', "import { relation } from 'koota'\nrelation({ store: s })\n", 2, 19],
+  ] as const)('%s is reported', (_, src, line, col) => {
+    expect(kootaRules(src)).toEqual([['koota-soa', line, col]])
+  })
+})
+
 describe('inline mode (EX spec §4): only the sim inside a browser file is checked', () => {
   const inline = (name: string) => {
     const path = join(import.meta.dirname, '../fixtures/inline', name)
@@ -145,6 +187,10 @@ describe('inline mode (EX spec §4): only the sim inside a browser file is check
 
   test('a clean system and plugin pass', () => {
     expect(inline('clean-system.ts')).toEqual([])
+  })
+
+  test('koota-soa covers the whole file: the CSP covers the whole page, and components are defined at file level', () => {
+    expect(inline('koota-file-level.ts')).toEqual([['koota-soa', 5, 31]])
   })
 })
 
