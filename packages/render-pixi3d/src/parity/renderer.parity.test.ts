@@ -4,11 +4,11 @@ import '../no-eval.js'
 import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
 import { DirectionalLight } from '@pixi/3d'
 import { Effect, Exit, ManagedRuntime, Scope, TestClock, TestContext } from 'effect'
-import { RenderTexture } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { encodeGlb, fixtureBox, fixtureQuad } from '../model/testing/model-fixtures.js'
 import { CONTEXT_RESTORE_MS } from '../renderer/context-loss.js'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'
+import { snapshot } from '../testing/snapshot.js'
 import { testTarget } from '../testing/test-target.js'
 import { box } from '../views/box-view.js'
 import { mesh } from '../views/mesh-view.js'
@@ -58,39 +58,6 @@ async function start(
   scope = Effect.runSync(Scope.make())
   const renderer = await run(Scope.extend(factory(target), scope))
   return { renderer, target }
-}
-
-/**
- * The canvas's pixels as the last `draw` left them, top row first. Call it in the same task as that `draw`: the
- * canvas keeps no drawing buffer past the task (`preserveDrawingBuffer` is off). WebGL2 reads the default framebuffer
- * with `gl.readPixels`, not a render into a `RenderTexture` and `extract`: under `@pixi/3d` 0.1.0-beta.2 in macOS
- * Firefox that texture reads back all black while the canvas holds the scene (the #241 probe).
- */
-function snapshot(renderer: Pixi3dRenderer): Uint8ClampedArray | Uint8Array {
-  const { app } = renderer.stage
-  if (app.renderer.name !== 'webgl') {
-    // WebGPU has no readPixels; its canvas texture is read back through Pixi's extract (the GPU runner).
-    const texture = RenderTexture.create({
-      width: app.screen.width,
-      height: app.screen.height,
-      resolution: 1,
-    })
-    app.renderer.render({ container: app.stage, target: texture, clear: true })
-    const { pixels } = app.renderer.extract.pixels(texture)
-    texture.destroy(true)
-    return pixels
-  }
-  const gl = (app.renderer as unknown as { gl: WebGL2RenderingContext }).gl
-  const width = gl.drawingBufferWidth
-  const height = gl.drawingBufferHeight
-  const bottomUp = new Uint8Array(width * height * 4)
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, bottomUp)
-  const row = width * 4
-  const pixels = new Uint8Array(bottomUp.length)
-  for (let y = 0; y < height; y++)
-    pixels.set(bottomUp.subarray((height - 1 - y) * row, (height - y) * row), y * row)
-  return pixels
 }
 
 /** How many pixels differ between two snapshots by more than a rounding step. */
