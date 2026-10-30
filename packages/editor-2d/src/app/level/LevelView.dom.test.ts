@@ -243,7 +243,7 @@ describe('Level view: shortcuts (§12)', () => {
       ['e', 'eraser'],
       ['i', 'picker'],
       ['b', 'brush'],
-    ]) {
+    ] as const) {
       await userEvent.keyboard(key)
       expect(canvas()).toHaveAttribute('data-tool', tool)
     }
