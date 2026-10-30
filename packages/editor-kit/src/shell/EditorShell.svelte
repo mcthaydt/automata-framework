@@ -15,6 +15,7 @@
   browser bars are already out of their way; a closed one is `inert` and `visibility: hidden`, never
   `display: none`, which would throw its scroll position away.
 
+  `panel` is optional: without one, `wide` gives its column to the canvas (`data-panel="none"`).
   `inspector` is optional as well: without one, `wide` gives its column to the canvas (`data-inspector="none"`).
   `rail` is optional. A screen with no destinations (Home) leaves it out, and the canvas takes the rail's column in
   wide and the tab bar's row below it (`data-rail="none"`). `dock` is optional too: without one, a drawer in medium
@@ -171,6 +172,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   data-mode={mode}
   data-dock={dockPlacement}
   data-rail={rail ? 'present' : 'none'}
+  data-panel={panel ? 'present' : 'none'}
   data-inspector={inspector ? 'present' : 'none'}
   data-testid={testId}
   style:--dock-lift={dockLift}
@@ -320,6 +322,11 @@ function sheetStyle(name: ShellRegion): string | undefined {
       'canvas'
       'status'
       'rail';
+  }
+
+  /* A screen with nothing to list beside its canvas (the suite's Home) gives the panel's column to the canvas. */
+  .shell[data-panel='none'] {
+    --shell-panel: 0px;
   }
 
   /* A view whose inspector is not built yet gives its column to the canvas. */

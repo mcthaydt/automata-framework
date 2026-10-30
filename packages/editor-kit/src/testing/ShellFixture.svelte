@@ -20,6 +20,8 @@ interface Props {
   dockOpen?: boolean | undefined
   /** `false` leaves the rail out, as a screen with no destinations (Home) does. */
   rail?: boolean
+  /** `false` leaves the panel out, as a screen with nothing to list beside its canvas (the suite's Home) does. */
+  panel?: boolean
   /** `false` leaves the inspector out, as a view whose inspector is not built yet does. */
   inspector?: boolean
   /** `false` leaves the dock out, as a screen with nothing to put beneath its canvas (Home) does. */
@@ -34,6 +36,7 @@ interface Props {
 const {
   geometry,
   rail: withRail = true,
+  panel: withPanel = true,
   inspector: withInspector = true,
   dock: withDock = true,
   statusLine = false,
@@ -105,6 +108,16 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
   </div>
 {/snippet}
 
+{#snippet panelBody()}
+  {@render bug('panel')}
+  <input data-testid="panel-field" aria-label="Find a layer" />
+  <ul class="list">
+    {#each layers as layer (layer)}
+      <li><button type="button" data-testid={`layer-${layer}`}>{layer}</button></li>
+    {/each}
+  </ul>
+{/snippet}
+
 {#snippet inspectorBody()}
   {@render bug('inspector')}
   {#each fields as field (field)}
@@ -116,6 +129,7 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
   {geometry}
   rail={withRail ? railBody : undefined}
   dock={withDock ? dockBody : undefined}
+  panel={withPanel ? panelBody : undefined}
   inspector={withInspector ? inspectorBody : undefined}
   bind:panelOpen
   bind:inspectorOpen
@@ -128,15 +142,6 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
     <button type="button" data-testid="toggle-inspector" onclick={() => (inspectorOpen = !inspectorOpen)}>Fields</button>
     <button type="button" data-testid="toggle-dock" onclick={() => (dockOpen = !(dockOpen ?? false))}>Climb</button>
     <strong class="title">Rooftops</strong>
-  {/snippet}
-  {#snippet panel()}
-    {@render bug('panel')}
-    <input data-testid="panel-field" aria-label="Find a layer" />
-    <ul class="list">
-      {#each layers as layer (layer)}
-        <li><button type="button" data-testid={`layer-${layer}`}>{layer}</button></li>
-      {/each}
-    </ul>
   {/snippet}
   {#snippet canvas()}
     {@render bug('canvas')}

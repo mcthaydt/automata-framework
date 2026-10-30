@@ -108,7 +108,13 @@ export function loadEditorList(text: string | undefined): EditorListLoad {
   }
   const newer = newerFormat(raw)
   if (newer !== undefined) return failed(newer)
-  const result = editorListSchema.safeParse(raw)
+  // A key a row must have and does not is the commonest mistake; it reads "gates is missing", not Zod's type message.
+  const result = editorListSchema.safeParse(raw, {
+    error: (issue) =>
+      issue.code === 'invalid_type' && issue.input === undefined
+        ? `${String(issue.path?.at(-1) ?? 'a key')} is missing`
+        : undefined,
+  })
   if (!result.success) {
     return failed(
       ...result.error.issues.map((issue) =>
