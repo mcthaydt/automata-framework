@@ -11,7 +11,7 @@ import { Effect, type Scope } from 'effect'
  *
  * Before `session.ready` no handler is asked and the answer is false. Ruken's
  * answer 6 (docs/spikes/s6-ruken-stub.md) puts that check in the SDK, which
- * does not have it at b30d31b, so AF holds handlers back itself until
+ * does not have it at d0fa2fe (nor at b30d31b), so AF holds handlers back itself until
  * `markReady` (coordinator decision, 2026-10-11; raised with Ruken).
  */
 export interface MenuHandlers {
