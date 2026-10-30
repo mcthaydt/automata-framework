@@ -2,8 +2,8 @@
 
 - **Task:** EDS.1c in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) EDS-D1 (home), EDS-D6 (`af-editors/1`), EDS-D7 (gates always listed), EDS-D8 (check phases), §4.2 (the format), §11 (the list's failure rows) and §13 cases EDS-m and EDS-n (the policy half).
 - **Lane:** editor-suite. **Depends on:** EDS.0 (the spec). **Unblocks:** EDS.1d (the disk workspace's allowlist), EDS.2a (Home's list-error and editor-not-installed states).
-- **Status:** Drafted 2026-10-30. Not reviewed, not CI verified.
-- **Progress:** 0 of 7 steps.
+- **Status:** Implemented and locally checked 2026-10-30 (draft PR from `claude/editors-eds.1c-eds-1c-editors-list`). Not reviewed, not CI verified.
+- **Progress:** 7 of 7 steps.
 
 ## Scope
 
@@ -52,13 +52,13 @@ Consumed: `zod` 4.6.6, `smol-toml` 1.9.0. No Svelte, DOM, Node or clock in `src/
 
 ## Steps (each: failing test first, confirm the reason, minimal change, verify)
 
-1. [ ] Package skeleton: `packages/editor-suite/{package.json,tsconfig.json,vitest.config.ts,src/core/index.ts}` as editor-3d's headless setup (private, Node test environment); a first test `src/core/index.test.ts` that imports the entry. Fails: package missing.
-2. [ ] `src/core/glob.test.ts`: `*` within a segment, `**` across segments, `**/` at the start, `?`, `{scene}` captures one segment, regex characters are literal; The Last Light's policy cases (`92e6704` `editor/tests/policy.test.ts`) on the matcher. Fails: module missing. Then `glob.ts`.
-3. [ ] `src/core/editors.schema.test.ts`: the spec §4.2 example parses with its defaults; a file row without `gates` fails at `['file', 0, 'gates']` (EDS-m); unknown key; empty `modes`; a bad mode; an absolute or `..` glob; an unknown placeholder in a glob or in `run`; an empty `run`; a bad `when`. Fails: module missing. Then `editors.schema.ts`.
-4. [ ] `src/core/editor-list.test.ts`: `undefined` is `missing` at `content/editors.toml`; a TOML syntax error is `syntax` with line and column; `af-editors/2` is `newer-format` with the format; `format` missing or `json` is `invalid` at `['format']`; an undeclared check or gate, a duplicate id, a redeclared `content` each fail at their key path; a valid list loads. Fails: module missing. Then `editor-list.ts`.
-5. [ ] `src/core/workspace-policy.test.ts`: the first matching row wins and carries its scene; `never` refuses, including `content/editors.toml`, `.git/config` and a gate's records even when the list's `never` is empty (EDS-n, policy half); `generated` refuses; an unlisted file is read only with the reason; `..` and absolute paths are `outside`. Fails: module missing. Then `workspace-policy.ts`.
-6. [ ] Fixtures `src/testing/fixtures/{last-light-bay,floorfifty}.editors.toml` and `src/core/fixtures.test.ts`: both load; FloorFifty has no `[[gate]]` and every row's `gates = []`; the Bay's `content/scenes/bay/puzzle.toml` is the Schematic's with `P-G1` and scene `bay`; FloorFifty's `content/tuning.toml` is the Tuner's with no gates; `content/generated/content.json` is generated; each fixture's header names its source commit. Then the purity test (`src/core/purity.test.ts`: core imports only `zod`, `smol-toml` and relative files).
-7. [ ] Register the package: knip, the API report (or `NOT_CORE`, as editor-3d), `pnpm install`, full gates.
+1. [x] Package skeleton: `packages/editor-suite/{package.json,tsconfig.json,vitest.config.ts,src/core/index.ts}` as editor-3d's headless setup (private, Node test environment); a first test `src/core/index.test.ts` that imports the entry. Fails: package missing.
+2. [x] `src/core/glob.test.ts`: `*` within a segment, `**` across segments, `**/` at the start, `?`, `{scene}` captures one segment, regex characters are literal; The Last Light's policy cases (`92e6704` `editor/tests/policy.test.ts`) on the matcher. Fails: module missing. Then `glob.ts`.
+3. [x] `src/core/editors.schema.test.ts`: the spec §4.2 example parses with its defaults; a file row without `gates` fails at `['file', 0, 'gates']` (EDS-m); unknown key; empty `modes`; a bad mode; an absolute or `..` glob; an unknown placeholder in a glob or in `run`; an empty `run`; a bad `when`. Fails: module missing. Then `editors.schema.ts`.
+4. [x] `src/core/editor-list.test.ts`: `undefined` is `missing` at `content/editors.toml`; a TOML syntax error is `syntax` with line and column; `af-editors/2` is `newer-format` with the format; `format` missing or `json` is `invalid` at `['format']`; an undeclared check or gate, a duplicate id, a redeclared `content` each fail at their key path; a valid list loads. Fails: module missing. Then `editor-list.ts`.
+5. [x] `src/core/workspace-policy.test.ts`: the first matching row wins and carries its scene; `never` refuses, including `content/editors.toml`, `.git/config` and a gate's records even when the list's `never` is empty (EDS-n, policy half); `generated` refuses; an unlisted file is read only with the reason; `..` and absolute paths are `outside`. Fails: module missing. Then `workspace-policy.ts`.
+6. [x] Fixtures `src/testing/fixtures/{last-light-bay,floorfifty}.editors.toml` and `src/core/fixtures.test.ts`: both load; FloorFifty has no `[[gate]]` and every row's `gates = []`; the Bay's `content/scenes/bay/puzzle.toml` is the Schematic's with `P-G1` and scene `bay`; FloorFifty's `content/tuning.toml` is the Tuner's with no gates; `content/generated/content.json` is generated; each fixture's header names its source commit. Then the purity test (`src/core/purity.test.ts`: core imports only `zod`, `smol-toml` and relative files).
+7. [x] Register the package: knip, the API report (or `NOT_CORE`, as editor-3d), `pnpm install`, full gates. Done with an API report, as editor-kit and editor-2d have (`tooling/api-report/reports/editor-suite.api.md`); `packages/*` already covers the workspace, knip and `pnpm style`, so no config changed.
 
 ## Gates
 
@@ -67,3 +67,10 @@ Consumed: `zod` 4.6.6, `smol-toml` 1.9.0. No Svelte, DOM, Node or clock in `src/
 ## Execution record
 
 - 2026-10-30: plan drafted (commit 1).
+- Step 1: `index.test.ts` failed on the missing entry, then passed with the two constants.
+- Step 2: `glob.test.ts` failed on the missing module; 7 pass with `glob.ts` (The Last Light's `globToRegExp` plus `{scene}`).
+- Step 3: `editors.schema.test.ts` failed (12 of 12, `editorListSchema` undefined). With the schema, the spec §4.2 example failed: as printed, `generated` and `never` follow the last `[[gate]]`, so TOML puts them inside that gate, and the strict gate table refused them (`unrecognized_keys` at `['gate', 0]`). **Deviation:** the spec's example is corrected (top-level keys before the first table, with a comment saying why) and the test keeps a case for the late-key mistake. 13 pass.
+- Step 4: `editor-list.test.ts` failed on the missing module; 10 pass.
+- Step 5: `workspace-policy.test.ts` failed on the missing module; 8 pass.
+- Step 6: the fixtures were written with their test, so `fixtures.test.ts` passed at once; a hand mutation (dropping one FloorFifty row's `gates = []`) failed it at load with `['file', 0, 'gates']`. The purity test failed on a hand-added `node:fs` import and `Date.now()`. Q-FEEL and Q-AUD have no gate record at `92e6704`; the fixture says so in its header.
+- Step 7: 56 package tests; typecheck, lint, knip and style clean; the API report written.

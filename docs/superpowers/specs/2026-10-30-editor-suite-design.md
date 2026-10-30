@@ -133,6 +133,9 @@ An editor id the list names but no installed editor provides opens Home with tha
 ```toml
 format = "af-editors/1"
 scenes = "content/scenes/{scene}/"        # optional: the folder whose {scene} names the scene picker lists
+# Top-level keys come before the first table: TOML reads a key after `[[gate]]` as that gate's (EDS.1c).
+generated = ["content/generated/**", "tests/generated/**"]
+never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**/gates.json"]
 
 [[file]]
 glob = "content/tuning.toml"
@@ -159,9 +162,6 @@ measure = false                           # true: its --json rows are a before-a
 id = "P-G1"
 name = "Puzzle design"
 records = "docs/gates/**/gates.json"      # read only; the record shape is the pipelines platform's (M3.8)
-
-generated = ["content/generated/**", "tests/generated/**"]
-never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**/gates.json"]
 ```
 
 - The first `[[file]]` row whose glob matches a path wins (the mockups' `fileRow`); a file no row matches is read only, with the reason.
