@@ -1,0 +1,61 @@
+# GL.0: game layout by role (EsperRedux-style), spec (plan)
+
+> **Task:** GL.0, a spec amendment for the games, the `create-game` template and the one-file examples. The row is
+> not in [02 Master delivery plan](../../02-master-delivery-plan.md) yet; the integration owner adds GL.0 to GL.7 from
+> the spec's §14.
+> **Owner direction (2026-10-30, this session's chat):** "I wanted the projects structured like the esper redux
+> project", then, after the coordinator's recommendation, "make the restructure when it makes sense to". The Owner
+> approved the coordinator's take/leave split, which the spec encodes.
+> **Lane:** docs only (no code, so the TDD rule has nothing to test). The rows the spec defines belong to the game,
+> ship, examples, integration and figures/3D lanes (spec §3).
+> **Branch:** `claude/gl-0-game-layout-by-role-spec`, worktree `/home/user/wt/af-gl0-game-layout-spec`, from
+> `origin/main` `30e9606c`.
+> **Deliverable:** [`docs/superpowers/specs/2026-10-30-game-layout-by-role-design.md`](../specs/2026-10-30-game-layout-by-role-design.md),
+> reviewed by the Owner before GL.1.
+
+## What is written
+
+- The spec (new), at the 01 Decomposition §5 level: scope and ownership, the layout and its rules, a file-by-file
+  mapping for Emberwick (all 69 `.ts` files) and the placeholder, the checker contracts (`check-style` and
+  `check-boundaries` in a game root, `automata check`, the plugin hook, the examples catalog), why the move keeps the
+  golden hash (with a measured probe), migration order, failure and recovery, acceptance cases, task rows GL.1 to
+  GL.7 (plus GL.1b, found while writing), decisions for the Owner's veto, and follow-ups.
+- This plan.
+- Nothing else: 00 to 04 and `AGENTS.md` are the integration owner's. The spec proposes the `AGENTS.md` sentence and
+  lists the rows and pointers the integration owner adds.
+
+## Sources read (with the revision)
+
+| Source | Revision |
+|---|---|
+| EsperRedux: `README.md`, `constants.py`, `components.py`, `actions.py`, `state.py`, `redux_toolkit.py`, `processors.py`, `sync.py`, `main.py`, `tests.py` | `mcthaydt/PyrayExperiments_EsperRedux` `c2f4365` |
+| AF `games/emberwick` (every file), `games/placeholder` (every file), `examples/*/*.ts` (17 examples), `tooling/check-style/src/{style,cli,style.test}.ts`, `tooling/check-boundaries/src/{cli,check,files}.ts`, `tooling/examples-runner/src/{catalog,header}.ts` and `catalog.test.ts`, `packages/cli/src/create-game.ts`, `packages/cli/src/check/check-steps.ts`, `agents/automata/` (skills, `hooks/hooks.json`, `scripts/check.mjs`), `tooling/agent-skills/src/install.test.ts`, `packages/game/src/{define-game,start-game}.ts`, `packages/sim/src/world/{sim,snapshot,entity-store}.ts`, `packages/sim/src/schedule/schedule.ts`, `packages/sim/src/define/definitions.ts`, root `package.json` scripts, `.github/workflows/{ci,game-ci}.yml`, `packages/ship/src/workflows.test.ts`; docs 00 to 04, `AGENTS.md`, the DX spec §3.4 to §3.7, the EX spec §2 and §4 | `30e9606c` |
+| GAME-3D.0's design doc §3.1 (PR #229, open) | `claude/3d-game-3d-0-design` at `4734d6f9` |
+| Open PRs touching `games/`, `examples/`, `packages/cli/src/create-game.ts` or `ci.yml` (#194, #197, #203, #205, #219, #235), by their file lists | GitHub REST, 2026-10-30 |
+
+## Steps
+
+- [x] Worktree from `origin/main` (`30e9606c`); `pnpm install --frozen-lockfile`.
+- [x] Read the sources above.
+- [x] Probe what moves the golden hash (a scratch test in `games/emberwick/src`, deleted, never committed): the
+      plugin's arrays reversed keep `31f50888ccb4cf0a`; `Move`'s Zod keys swapped change the schema hash (spec §7).
+- [x] Probe `import.meta.env.MODE` under Vitest 5.0.3 (a scratch test, deleted): `'test'` in the node, jsdom and
+      browser projects, Chromium, WebKit and Firefox (spec §4.6).
+- [x] Write this plan.
+- [x] Write the spec.
+- [x] Gates: `pnpm format`, and every relative link in both files resolves.
+- [x] Commit, push, open the draft PR.
+
+## Gates
+
+| Gate | Selected | Result |
+|---|---|---|
+| `pnpm format` | yes | see the execution log |
+| Relative links in both files resolve (a script over every Markdown link that is not `http` or an anchor) | yes | see the execution log |
+| `TURBO_FORCE=true pnpm check`, build, api-report, agent-skills, changeset, parity | omitted: docs only, no package, test or config touched | — |
+| Owner review of the spec | pending (Owner gate, never ticked by an agent) | — |
+
+## Execution log
+
+- 2026-10-30: worktree created at `30e9606c`; install done; sources read. Probes run and deleted (`git status` clean
+  after each). Plan and spec written.
