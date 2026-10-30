@@ -10,6 +10,8 @@ import { type ModelInvalid, RendererUnavailable, type RenderTarget } from '@mcth
 import type { RenderRow } from '@mcthaydt/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Effect, type Scope } from 'effect'
+import { angledCamera, type CameraRig } from '../camera/angled-camera.js'
+import { cameraDriver, type Pixi3dCameraOptions } from '../camera/camera-driver.js'
 import { loadModels, type ModelLibrary } from '../model/load-models.js'
 import type { EntityView3d, EntityViewResolver3d } from '../views/view-3d.js'
 import { watchContextLoss } from './context-loss.js'
@@ -19,14 +21,22 @@ export interface Pixi3dOptions extends PixiRendererOptions {
   readonly views: EntityViewResolver3d
   /**
    * After the `View3D` is mounted, before the first frame: the camera, the lights and the static scenery. It may
-   * return hooks, which run after the views each step and frame. (M3.4b gives the camera its rig.)
+   * return hooks, which run after the views (and the camera) each step and frame.
    */
   readonly scene?: ((view: View3D, stage: PixiStage) => PixiStageHooks | undefined) | undefined
+  /**
+   * The angled camera on the player (M3 spec §4.2): the rig follows the entity with `camera-heading` (the `./sim`
+   * entry), reading its `view` and `heading` and the position in `follow`. Without it the `View3D`'s camera is the
+   * game's to place in `scene`.
+   */
+  readonly camera?: Pixi3dCameraOptions | undefined
 }
 
 export interface Pixi3dRenderer extends PixiRenderer {
   /** The `@pixi/3d` view the scene draws in, mounted in `stage.world`. */
   readonly view: View3D
+  /** The angled camera when `options.camera` was given: the game calls `frame(lock)` on it. */
+  readonly camera: CameraRig | undefined
 }
 
 /** What a renderer must be for a `View3D` to draw: WebGL2 or WebGPU (Pixi's Canvas fallback draws no 3D at all). */
@@ -61,6 +71,7 @@ interface Mounted {
   readonly view: View3D
   readonly consumer: RenderDeltaConsumer<Container3D>
   readonly hooks: PixiStageHooks
+  readonly camera: CameraRig | undefined
 }
 
 function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): Mounted {
@@ -74,12 +85,19 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   for (const [id, factory] of Object.entries(options.views))
     resolver[id] = (row, componentId) => factory(row, componentId, models)
   const consumer = new RenderDeltaConsumer<Container3D>(view.root, resolver)
-  const hooks: PixiStageHooks = {
+  const entities: PixiStageHooks = {
     apply: (result) => consumer.apply(result.render),
     draw: (frame) => consumer.interpolate(frame.alpha),
     reset: () => consumer.reset(),
   }
-  return { view, consumer, hooks }
+  if (options.camera === undefined) return { view, consumer, hooks: entities, camera: undefined }
+  const camera = angledCamera({
+    camera: view.camera,
+    views: options.camera.views,
+    initial: options.camera.initial,
+    aspect: () => view.width / view.height,
+  })
+  return { view, consumer, hooks: mergeHooks(entities, cameraDriver(camera, options.camera)), camera }
 }
 
 /**
@@ -117,7 +135,7 @@ export function createPixi3dRenderer(
         return yield* new RendererUnavailable({ tried })
       }
 
-      const { view, consumer } = mounted
+      const { view, consumer, camera } = mounted
       const context = watchContextLoss(base.stage.app.canvas, target.bus)
       yield* Effect.addFinalizer(() =>
         Effect.sync(() => {
@@ -129,6 +147,7 @@ export function createPixi3dRenderer(
       return {
         stage: base.stage,
         view,
+        camera,
         apply: (result) => base.apply(result),
         draw: (frame) => {
           if (!context.lost()) base.draw(frame)

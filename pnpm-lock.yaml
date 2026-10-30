@@ -800,6 +800,9 @@ importers:
 
   packages/render-pixi3d:
     dependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
       '@mcthaydt/automata-render-pixi':
         specifier: workspace:*
         version: link:../render-pixi

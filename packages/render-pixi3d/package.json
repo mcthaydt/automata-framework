@@ -31,6 +31,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-render-pixi": "workspace:*",
     "@mcthaydt/automata-runtime": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
