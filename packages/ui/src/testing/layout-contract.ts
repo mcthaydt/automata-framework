@@ -7,6 +7,7 @@
 import {
   documentScrolls,
   findClipped,
+  findCutAtSide,
   findIntrusions,
   findOffscreenControls,
   findOverlaps,
@@ -14,6 +15,7 @@ import {
   findUnreachable,
   hostDisplay,
   type LayoutRect,
+  pressedPart,
   type ReferenceSize,
   type Variant,
   visibleControls,
@@ -86,49 +88,8 @@ function findCornerOverlaps(root: ParentNode): string[] {
   return problems
 }
 
-/** What a player presses for a control: a radio's or checkbox's label, which the theme draws as the control. */
-function pressedPart(control: HTMLElement): HTMLElement {
-  const choice =
-    control instanceof HTMLInputElement && (control.type === 'checkbox' || control.type === 'radio')
-  return (choice ? control.labels?.[0] : undefined) ?? control
-}
-
 const nameOf = (element: Element): string =>
   element.getAttribute('data-testid') ?? element.tagName.toLowerCase()
-
-/**
- * A control cut at a side of the scroll region it scrolls in (PRODUCT spec §4 item 7: clipping fails). A region scrolls
- * up and down, so a control past its side is cut where a player would not think to scroll, as a long language's
- * options were in Settings; `findOffscreenControls` passes any control a scroll region clips, so this is what catches
- * one cut across. A control that is `position: fixed` on the way up escapes the region, and is judged where it is
- * drawn by the other checks.
- */
-function findCutAtSide(root: ParentNode): string[] {
-  const problems: string[] = []
-  for (const control of visibleControls(root)) {
-    const region = control.parentElement?.closest<HTMLElement>('[data-scroll-region]')
-    if (region === null || region === undefined || escapes(control, region)) continue
-    const target = pressedPart(control)
-    const box = target.getBoundingClientRect()
-    const left = region.getBoundingClientRect().left + region.clientLeft
-    if (box.left < left - 0.5 || box.right > left + region.clientWidth + 0.5) {
-      problems.push(`${nameOf(target)} is cut at the side of its scroll region`)
-    }
-  }
-  return problems
-}
-
-/** Whether `control` or anything between it and `region` is `position: fixed`, which takes it out of the region. */
-function escapes(control: Element, region: Element): boolean {
-  for (
-    let element: Element | null = control;
-    element !== null && element !== region;
-    element = element.parentElement
-  ) {
-    if (getComputedStyle(element).position === 'fixed') return true
-  }
-  return false
-}
 
 /**
  * A control whose words run past its edge (PRODUCT spec §4 item 7: clipping fails): a long language's word that does
@@ -314,8 +275,8 @@ function findTouchIntrusions(root: ParentNode): string[] {
  * never under a reserved area or a touch button and never over the corner row; the corner row's controls and any
  * `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no
  * ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll
- * region it scrolls in, and no control's words run past its edge; and each of `essentials` is reachable without
- * scrolling.
+ * region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no
+ * control's words run past its edge; and each of `essentials` is reachable without scrolling.
  */
 export function checkLayout(conditions: Conditions, essentials: readonly Element[]): string[] {
   const scale = conditions.geometry.scale

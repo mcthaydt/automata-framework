@@ -91,6 +91,25 @@ describe('checkLayout', () => {
     expect(await check(region(tall + margin))).toEqual([])
   })
 
+  // An editor's dock holds a strip of scenes wider than itself, which a player scrolls sideways (editor-kit's
+  // EditorShell): a region that scrolls both ways on purpose says so, and a control past its side is reached by
+  // scrolling it.
+  test('passes a control past the side of a region that scrolls sideways on purpose (data-scroll-region="both")', async () => {
+    const strip =
+      '<div style="display:flex;width:400px"><button data-testid="floor-6" style="margin-left:300px;width:60px;height:48px">Six</button></div>'
+    const both = `<div data-scroll-region="both" style="width:200px;height:100px;overflow:auto">${strip}</div>`
+    expect(await check(both)).toEqual([])
+  })
+
+  // An overflow box clips only what it contains: an absolute control whose positioned ancestor lies outside the
+  // region is drawn where it is, and scrolling the region would never move it (testing's containing-block rule).
+  test('judges an absolute control positioned outside the region where it is drawn, not at the region’s side', async () => {
+    const pinned =
+      '<button data-testid="pinned" style="position:absolute;left:150px;top:0;width:60px;height:48px">Pin</button>'
+    const outside = `<div style="position:relative;width:300px;height:120px">${region(pinned)}</div>`
+    expect(await check(outside)).toEqual([])
+  })
+
   // PRODUCT.L3a: in a long language a Toggle's state word was squeezed to three characters and ran past the toggle,
   // over the list's side. A control's words stay inside it, wherever it sits.
   test('fails a control whose words run past its edge', async () => {
