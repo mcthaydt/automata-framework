@@ -2,8 +2,8 @@
 
 - **Task:** ED2D.4c2b in [02](../../02-master-delivery-plan.md), the second half of the 4c2 split in [ED2D.4c2a](2026-10-23-ed2d-4c2a-home.md) ("Out, with owner": the error panel, text view, profile choice, recovery and conflict dialogs; undo, redo and Save in the top bar; the page-lifecycle flush). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §8 (flow 10, §8.1 and §8.2), §12, §13 (the first four rows, "Write conflict, quota, permission"), §14, §15 G-l, G-m, G-n, G-o, G-p; [kit spec](../specs/2026-10-23-editor-kit-design.md) §4.6 (`Dialog`, toasts), §4.7 (document session, folder, page lifecycle), §5 flows 3 and 4, §6. Mockups `open-failed` and `recover` in `docs/design/editor-2d/` (page `2D · States`), the top bar of `level-platformer`.
 - **Lane:** editor-2d. **Depends on:** ED2D.4c2a (merged, #165), ED2D.4c1 (merged, #162), EDK.4 (`Dialog`, toasts), EDK.5 (storage). **Unblocks:** ED2D.4c4a (the Level view mounts in the frame this slice gives a top bar), ED2D.7 (Export joins the same top bar and the error panel's raw-text export).
-- **Status:** Drafted 2026-10-30 on `claude/editors-ed2d-4c2b-ed2d-4c2b-open-flows`. The 2D spec is drafted, not reviewed.
-- **Progress:** 7 of 8 steps.
+- **Status:** Implemented and locally checked 2026-10-30 on `claude/editors-ed2d-4c2b-ed2d-4c2b-open-flows` (draft PR). Not CI verified; Chromium layout only (WebKit and Firefox pending EDK.6a); no iPad run; no Owner visual acceptance. The 2D spec is drafted, not reviewed.
+- **Progress:** 8 of 8 steps.
 
 ## Scope
 
@@ -145,7 +145,8 @@ Each step starts with the failing test and confirms why it fails; the box is tic
   - Done: 43 `dom` tests in six files; the red of each is its unresolved import (`TextView` was drafted before its test, moved aside to see the red, then restored). Changes found on the way: `DocumentBar` takes `compact` and leaves the profile's pill out on a phone (the layout screenshots showed it truncated to "Level pr"); the conflict dialog closes while a choice runs (a controller test, `resolve`, so a choice that conflicts again reopens it rather than staying hidden). Hand mutation checks: 17 mutants over the six components and `App.svelte`, all killed.
 - [x] **7. Root and frame.** `DocumentFrame`, `App`, `boot.ts` against `DocumentFrame.dom.test.ts`, `App.dom.test.ts`, `boot.dom.test.ts`; `document/open-flows.layout.test.ts` at eight sizes; `vite build`.
   - Done: `DocumentFrame` takes the document controller (12 tests: heading and focus, the compact bar, Back, undo and redo, Save, conflict and Keep mine, Take theirs, Restore and Discard, toasts, device-only); `App` routes panel and choice outcomes and closes the controller on Back and on destroy (6 tests, two new: G-n with the store unchanged, a choice that opens with the rival profile); `boot.ts` hands `document` and `window` in as the lifecycle (3 new tests: the `pagehide` listener while a document is open and gone after Back, G-o and G-p through the real profile, the newer file never rewritten). Test-first slip: `App.svelte` and `boot.ts` were rewritten before the lifecycle and G-o/G-p boot tests ran, so those three were checked by mutation instead. The heading is now the document's title, so four boot assertions name `Mossgate` and `Hollowmere` instead of the file. `src/testing/layout-sizes.ts` holds the eight sizes, `REST` and `arrived`, now shared by `home.layout.test.ts` and the new `document/open-flows.layout.test.ts` (24 tests in Chromium: the error panel inside the screen with Copy text and Open another reachable and sized, 600+ px wide where the screen allows, the text view scrolling both ways with the error line in view; the top bar's Back, Undo, Redo and Save; the Restore dialog, then the conflict dialog reached through Restore, a write behind the editor and Save). Its first run caught the text view scrolling past the error line (`offsetTop` counted from the dialog); measured against the view now. Screenshots (gitignored) inspected at every size. `vite build` passes.
-- [ ] **8. Gates and records.** `pnpm format`, `TURBO_FORCE=true pnpm check`, the layout project, `pnpm api-report` (the kit's report if `Dialog`'s props show), changeset status and `check-changesets` (both packages private: no changeset); spec §8.3 and §14 as built; the 4c2a plan's split table points here.
+- [x] **8. Gates and records.** `pnpm format`, `TURBO_FORCE=true pnpm check`, the layout project, `pnpm api-report` (the kit's report if `Dialog`'s props show), changeset status and `check-changesets` (both packages private: no changeset); spec §8.3 and §14 as built; the 4c2a plan's split table points here.
+  - Done 2026-10-30. `pnpm format`, then `TURBO_FORCE=true pnpm check`: lint, typecheck (svelte-check), boundaries, style and knip clean; the first run caught `Dialog`'s new `width` refusing an explicit `undefined` under `exactOptionalPropertyTypes` (the kit's fixture passes it through), fixed to `'normal' | 'wide' | undefined`. Unit stage: 30 of 33 tasks passed (editor-2d 2146, editor-kit 835); `automata-content`'s `render-types.test.ts` timed out at 90 s spawning `tsc` while four other agents shared the 4 CPUs (the package is untouched here), which cancelled `game` and `runtime`; the three re-run alone pass (286, 183, 519). Chromium `layout` project of editor-2d: 65 of 65 (Home 41, open flows 24); the kit's `widgets.layout.test.ts` (it measures `Dialog`): 24 of 24. `pnpm --filter @mcthaydt/automata-editor-2d build` passes. `pnpm api-report`: 0 breaks, 0 undeclared (the kit report lists `Dialog` as a component, so its props do not show). `pnpm changeset status --since=origin/main`: nothing to bump; `check-changesets`: 0 problems (both packages private, no changeset). Not run: WebKit and Firefox layout (the editor-2d `layout` project is Chromium only; EDK.6a adds the engines), iPad Safari, `pnpm api-index` and `pnpm agent-skills` (no published package changed). Records: spec §8.2 (choice, frame) and a new §8.3, §14 rows; the kit spec §4.6 `Dialog` width; the 4c2a plan's split table links here.
 
 ## Execution record
 
@@ -153,8 +154,13 @@ Each step starts with the failing test and confirms why it fails; the box is tic
 
 ### Deviations
 
-(none yet)
+- The contract's `regrantAction(...)` returning `undefined` became `retryAction(...)`, which always returns the toast's action (Retry, or Re-grant for a folder that denied).
+- `createDocumentController` takes no `clock`; the frame passes `clock.now()` to the Restore dialog for the autosave's age.
+- `DocumentBar` gained `compact` (the profile pill is left out on a phone), and the conflict dialog closes while a choice runs (`resolve`), both found by the layout screenshots and a controller test.
+- `src/testing/layout-sizes.ts` is new: the eight sizes, `REST` and `arrived`, shared with `home.layout.test.ts` instead of a second copy.
+- Re-grant is wired for a failed save only; a `denied` open from Home stays a toast (no folder is a source until ED2D.8).
 
 ### Not done
 
-(none yet)
+- WebKit and Firefox layout (EDK.6a), an iPad Safari pass and the Owner's visual acceptance of the panel, the dialogs and the top bar.
+- Keyboard shortcuts for Undo, Redo and Save (ED2D.4c4b), Export in the top bar (ED2D.7).

@@ -19,7 +19,7 @@ interface Props {
   title: string
   dismissible?: boolean
   /** `wide` (up to 40rem) makes room for a text view or a table; the default is a 26rem confirmation. */
-  width?: 'normal' | 'wide'
+  width?: 'normal' | 'wide' | undefined
   onclose?: ((why: CloseReason) => void) | undefined
   children: Snippet
   actions?: Snippet<[{ close: () => void }]> | undefined
