@@ -15,18 +15,35 @@ export {
   type Scheduler,
 } from './app/checks-panel-controller'
 export {
+  createEditorApp,
+  type EditorApp,
+  type EditorAppOptions,
+  type OpenOutcome,
+} from './app/editor-app'
+export type { ImportOutcome, PickedFile, Skipped, SkipReason } from './app/import-files'
+export {
   createMergeTool,
   type MergeEffect,
   type MergeTarget,
   type MergeTool,
   type MergeToolView,
 } from './app/merge-tool-controller'
+export type { FacilityOutcome, OpenFacility, OpenLevel } from './app/open-level'
+export type {
+  DocumentSaveOutcome,
+  ExportOutcome,
+  PatchedDocument,
+  PatchRefused,
+  RestoreOutcome,
+} from './app/patched-document'
 export {
   createPlanController,
   type PlanController,
   type PlanPointer,
   type PlanView,
 } from './app/plan-controller'
+export type { ProjectEntry } from './app/project-list'
+export { MAX_FILE_BYTES } from './app/read-level'
 export {
   createSectorTool,
   type DrawEdge,
@@ -149,6 +166,7 @@ export {
 export {
   createViewStore,
   initialView,
+  thingLayer,
   type ViewMode,
   type ViewState,
   type ViewStore,
@@ -204,6 +222,14 @@ export {
   type SectorDraft,
 } from './profile/sector-access'
 export { type ThingAccess, ThingAccessError } from './profile/thing-access'
+export {
+  createThingsTool,
+  type PaletteEntry,
+  type ThingPlace,
+  type ThingsTool,
+  type ThingsToolOptions,
+  type ThingsToolView,
+} from './things/things-tool-controller'
 export {
   type Camera3D,
   type FitOptions,
@@ -305,4 +331,5 @@ export {
   toScreen,
   toWorld,
 } from './view/plan/plan-viewport'
+export { isThingLayerOff, pickThing, type ThingHit } from './view/plan/thing-pick'
 export { type SelectionOf, selectionOf } from './view/selection-of'

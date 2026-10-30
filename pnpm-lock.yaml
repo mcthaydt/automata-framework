@@ -42,8 +42,8 @@ importers:
         specifier: workspace:*
         version: link:../packages/automata
       pixi.js:
-        specifier: 8.21.0
-        version: 8.21.0
+        specifier: 8.22.0
+        version: 8.22.0
       svelte:
         specifier: 5.57.1
         version: 5.57.1
@@ -131,8 +131,8 @@ importers:
         specifier: 3.22.2
         version: 3.22.2
       pixi.js:
-        specifier: 8.21.0
-        version: 8.21.0
+        specifier: 8.22.0
+        version: 8.22.0
       zod:
         specifier: 4.6.6
         version: 4.6.6
@@ -229,8 +229,8 @@ importers:
         specifier: 3.22.2
         version: 3.22.2
       pixi.js:
-        specifier: 8.21.0
-        version: 8.21.0
+        specifier: 8.22.0
+        version: 8.22.0
       svelte:
         specifier: 5.57.1
         version: 5.57.1
@@ -334,8 +334,8 @@ importers:
         specifier: 30.1.1
         version: 30.1.1
       pixi.js:
-        specifier: 8.21.0
-        version: 8.21.0
+        specifier: 8.22.0
+        version: 8.22.0
       svelte:
         specifier: 5.57.1
         version: 5.57.1
@@ -510,6 +510,9 @@ importers:
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       zod:
         specifier: 4.6.6
         version: 4.6.6
@@ -659,8 +662,8 @@ importers:
         specifier: 30.1.1
         version: 30.1.1
       pixi.js:
-        specifier: 8.21.0
-        version: 8.21.0
+        specifier: 8.22.0
+        version: 8.22.0
       playwright:
         specifier: 1.63.0
         version: 1.63.0
@@ -780,8 +783,8 @@ importers:
         specifier: 30.1.1
         version: 30.1.1
       pixi.js:
-        specifier: 8.21.0
-        version: 8.21.0
+        specifier: 8.22.0
+        version: 8.22.0
       playwright:
         specifier: 1.63.0
         version: 1.63.0
@@ -1200,8 +1203,8 @@ importers:
         specifier: 3.22.2
         version: 3.22.2
       pixi.js:
-        specifier: 8.21.0
-        version: 8.21.0
+        specifier: 8.22.0
+        version: 8.22.0
       svelte:
         specifier: 5.57.1
         version: 5.57.1
@@ -2227,20 +2230,20 @@ packages:
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
   '@ruken/cli@file:vendor/ruken/ruken-cli-0.0.0.tgz':
-    resolution: {integrity: sha512-9dhanFG6F+c0quH8QZVZdyRixA/UzfPZJr7d7qBUmwOnXTHc8RidXeiUDHotTbfa1S8R1/6YA53gO4I9vipH3Q==, tarball: file:vendor/ruken/ruken-cli-0.0.0.tgz}
+    resolution: {integrity: sha512-f6YcRwPdbysQYTSf79U2c6sgeYpyqHW1hURDPpuZcmuWc5BVEcfsvy7sA/Sac4CqoNUQyMKshQku6y7ajbA/0g==, tarball: file:vendor/ruken/ruken-cli-0.0.0.tgz}
     version: 0.0.0
     hasBin: true
 
   '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
-    resolution: {integrity: sha512-hdhpNvvfr2qXaV3CeMwunqrQm43/yCPSxdVnKzoilyB8B+VSwL7EpMuvzpMQhLcq21+Hdrb+QfazaaR+0Dwb0A==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
+    resolution: {integrity: sha512-FOC7JADrQq4Z3VQMhZzyFxnQchdgyTeTBabL8JT0NbX7u1LGjNVuzjBSxhGRyNqza0X+WIsjh+97qItpr+eRLQ==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
     version: 0.0.0
 
   '@ruken/sdk-host@file:vendor/ruken/ruken-sdk-host-0.0.0.tgz':
-    resolution: {integrity: sha512-txyMwREviATWGkmhRFlLUccPfS5ZRcPCgJf3OkEVNgm/zg83FqzMiYvhqTmgnnPM4Bf7PeBBNMzWypyW65uUog==, tarball: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz}
+    resolution: {integrity: sha512-6vVChqa1E8EH4iuCqdXdfoeacULnVOOtw+9XsaEQVx2qUqqPw1DKT95mUKgwh5QIO9DLL7gJOCjOp7Va/nHZvw==, tarball: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz}
     version: 0.0.0
 
   '@ruken/sdk@file:vendor/ruken/ruken-sdk-0.0.0.tgz':
-    resolution: {integrity: sha512-oB5IzdAQHZ7rm6PzSrKcQu1buRAn1Ta9x8MvhNNg3EGUKKZ9PvILBuUqcuOmYb7ClFf5Lx3KPwjuuTKqwBCCAQ==, tarball: file:vendor/ruken/ruken-sdk-0.0.0.tgz}
+    resolution: {integrity: sha512-OZobd4FPXC4ZXd+IeDOEkLgmhWbg6NyjJBvPBSc0C6ENMXBKxXEMJgyX+fTgtra2f+rH74VhhTpfu54SwW1klw==, tarball: file:vendor/ruken/ruken-sdk-0.0.0.tgz}
     version: 0.0.0
 
   '@sinclair/typebox@0.31.30':
@@ -3173,8 +3176,8 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
-  pixi.js@8.21.0:
-    resolution: {integrity: sha512-GJ/KqBtUuWDBPMQu2D0ZHsRCYOcWRjjKrpyC+3jPQI5JTqHMC5dH8l9sSyvoUT4qJidvRzs1fwFWRWceno2Ltw==}
+  pixi.js@8.22.0:
+    resolution: {integrity: sha512-QbTANHMZ751MIjLiLSUSM8a7LNMWwMIf0KbRCqlW+SPS9hNLfSVS+cl1O2SEp9g1K/wyLzj/OJHv+1TUfiPr/w==}
 
   playwright-core@1.63.0:
     resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
@@ -5260,7 +5263,7 @@ snapshots:
 
   picomatch@4.0.7: {}
 
-  pixi.js@8.21.0:
+  pixi.js@8.22.0:
     dependencies:
       '@pixi/colord': 2.9.6
       '@types/earcut': 3.2.4

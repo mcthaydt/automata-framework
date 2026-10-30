@@ -244,6 +244,15 @@ describe('public entry', () => {
     expect(effects).toHaveLength(2)
   })
 
+  it('exports the Things tool, the thing pick and the name of a sub-layer', () => {
+    for (const name of ['createThingsTool', 'pickThing', 'isThingLayerOff', 'thingLayer'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The views are types, so this is checked by the compiler: the entry names them.
+    const place: editor3d.ThingPlace = { x: 1, z: 2, id: 'crate2', action: 'none', reason: 'no' }
+    const entry: editor3d.PaletteEntry['layer'] = editor3d.thingLayer('crate')
+    expect([place.id, entry]).toEqual(['crate2', 'things:crate'])
+  })
+
   it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {
     for (const name of ['splitSector', 'mergeSectors']) expect(editor3d, name).toHaveProperty(name)
     for (const name of ['retargetPortals', 'redirectPortals', 'cornerInserted', 'reversedLoop'])
@@ -258,6 +267,21 @@ describe('public entry', () => {
     for (const name of ['createChecksPanel', 'createAsk']) {
       expect(editor3d, name).toHaveProperty(name)
     }
+  })
+
+  it('exports the app core: the editor app and the size limit, and keeps the storage steps inside', () => {
+    for (const name of ['createEditorApp', 'MAX_FILE_BYTES']) expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['createPatchedDocument', 'readLevel', 'listProjects', 'importZip', 'readStored'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    // The outcomes are types, so this is checked by the compiler: the entry names them.
+    const refused: editor3d.PatchRefused = {
+      status: 'refused',
+      path: [],
+      reason: 'verify-failed',
+      detail: 'no',
+    }
+    const skipped: editor3d.Skipped = { path: 'a', reason: 'system' }
+    expect([refused.status, skipped.reason]).toEqual(['refused', 'system'])
   })
 
   it('exports the Split and Merge tools, and keeps what the tools share inside', () => {

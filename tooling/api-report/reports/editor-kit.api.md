@@ -2002,6 +2002,12 @@ interface StoredEntry {
 }
 ```
 
+### `storePathProblem` (function)
+
+```ts
+function storePathProblem(path: string): string | undefined;
+```
+
 ### `Toast` (interface)
 
 ```ts
