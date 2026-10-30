@@ -11,6 +11,7 @@ import type { RenderRow } from '@mcthaydt/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Effect, type Scope } from 'effect'
 import { loadModels, type ModelLibrary } from '../model/load-models.js'
+import { pixi3dUniformSyncInstalled } from '../no-eval/pixi3d-uniform-sync.js'
 import type { EntityView3d, EntityViewResolver3d } from '../views/view-3d.js'
 import { watchContextLoss } from './context-loss.js'
 
@@ -97,6 +98,13 @@ export function createPixi3dRenderer(
 ): (target: RenderTarget) => Effect.Effect<Pixi3dRenderer, RendererUnavailable | ModelInvalid, Scope.Scope> {
   return (target) =>
     Effect.gen(function* () {
+      // Without the shim, pixi.js/unsafe-eval cannot upload @pixi/3d's uniforms and the first draw throws (S7-Q1).
+      if (!pixi3dUniformSyncInstalled())
+        return yield* Effect.die(
+          new Error(
+            "render-pixi3d: import '@mcthaydt/automata-render-pixi3d/no-eval' first, before anything else (in place of render-pixi/no-eval)",
+          ),
+        )
       const files = Object.values(options.views).flatMap((factory) => factory.models ?? [])
       const models = yield* loadModels(files, target.assets)
       // Freed when the scope closes, after the app and the views that draw them (finalizers run last-added first).

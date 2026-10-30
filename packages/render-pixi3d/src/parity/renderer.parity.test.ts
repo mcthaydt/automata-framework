@@ -5,8 +5,8 @@ import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
 import { DirectionalLight } from '@pixi/3d'
 import { Effect, Exit, Scope } from 'effect'
 import { RenderTexture } from 'pixi.js'
-import { afterEach, describe, expect, it } from 'vitest'
-import { encodeGlb, fixtureBox } from '../model/testing/model-fixtures.js'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { encodeGlb, fixtureBox, fixtureQuad } from '../model/testing/model-fixtures.js'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'
 import { testTarget } from '../testing/test-target.js'
 import { box } from '../views/box-view.js'
@@ -152,7 +152,9 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
     const lost = nextEvent(canvas, 'webglcontextlost')
     lose.loseContext()
     await lost
+    const render = vi.spyOn(renderer.stage.app, 'render')
     renderer.draw(frame)
+    expect(render).not.toHaveBeenCalled()
     expect(target.facts.map((f) => f.name)).toContain('render.context.lost')
 
     // The browser takes a restore only after the lost event's task has finished.
@@ -161,6 +163,8 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
     lose.restoreContext()
     await restored
     renderer.draw(frame)
+    expect(render).toHaveBeenCalledOnce()
+    render.mockRestore()
     expect(target.facts.map((f) => f.name)).toContain('render.context.restored')
     const back = snapshot(renderer)
     expect(differing(empty, back)).toBeGreaterThan(200)
@@ -179,5 +183,99 @@ describe.runIf(!hasWebGL2)('createPixi3dRenderer without WebGL2', () => {
     expect(Exit.isFailure(exit) && JSON.stringify(exit.cause.toJSON())).toContain(
       '"_tag":"RendererUnavailable"',
     )
+  })
+})
+
+/** A 2 × 2 PNG, top-left red, top-right green, bottom-left blue, bottom-right yellow. */
+async function quadrantsPng(): Promise<Uint8Array> {
+  const canvas = document.createElement('canvas')
+  canvas.width = 2
+  canvas.height = 2
+  const context = canvas.getContext('2d')
+  if (context === null) throw new Error('no 2D context')
+  for (const [x, y, colour] of [
+    [0, 0, '#ff0000'],
+    [1, 0, '#00ff00'],
+    [0, 1, '#0000ff'],
+    [1, 1, '#ffff00'],
+  ] as const) {
+    context.fillStyle = colour
+    context.fillRect(x, y, 1, 1)
+  }
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
+  if (blob === null) throw new Error('no PNG')
+  return new Uint8Array(await blob.arrayBuffer())
+}
+
+// Review of #241: a direct texture check. The image must land the right way up and round (glTF's UV origin is the
+// image's top-left), sampled nearest, as pixel art is, so each quadrant keeps its own colour.
+describe.runIf(hasWebGL2)("a mesh's texture", () => {
+  it('lands the right way up and round, sampled nearest', async () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    const glb = encodeGlb(fixtureQuad(), { image: await quadrantsPng() })
+    const factory = createPixi3dRenderer({
+      logicalWidth: 160,
+      logicalHeight: 90,
+      views: { prop: mesh('models/quad.glb') },
+      scene: (view) => {
+        view.camera.position.set(0, 1, 4)
+        view.camera.lookAt({ x: 0, y: 1, z: 0 })
+        view.environment = { skyColor: 0xffffff, groundColor: 0xffffff }
+        return undefined
+      },
+    })
+    scope = Effect.runSync(Scope.make())
+    const renderer = await Effect.runPromise(
+      Scope.extend(factory(testTarget(host, { 'models/quad.glb': glb })), scope),
+    )
+    renderer.apply(
+      step({
+        resync: true,
+        added: [{ sid: 1, components: { prop: { x: 0, y: 0, z: 0 } } }],
+        changed: [],
+        removed: [],
+      }),
+    )
+    renderer.draw(frame)
+    const pixels = snapshot(renderer)
+    const width = renderer.stage.app.screen.width
+    // Each quadrant's pixels by its dominant channels, then where its middle lies on screen.
+    const kinds = { red: [0, 0, 0], green: [0, 0, 0], blue: [0, 0, 0], yellow: [0, 0, 0] } as Record<
+      string,
+      number[]
+    >
+    const colours = new Set<number>()
+    for (let i = 0; i < pixels.length; i += 4) {
+      const [r, g, b] = [pixels[i] ?? 0, pixels[i + 1] ?? 0, pixels[i + 2] ?? 0]
+      const kind =
+        r > 2 * b && g > 2 * b && r > 60 && g > 60
+          ? 'yellow'
+          : r > 2 * g && r > 2 * b && r > 60
+            ? 'red'
+            : g > 2 * r && g > 2 * b && g > 60
+              ? 'green'
+              : b > 2 * r && b > 2 * g && b > 60
+                ? 'blue'
+                : undefined
+      if (kind === undefined) continue
+      colours.add((r << 16) | (g << 8) | b)
+      const sum = kinds[kind] as number[]
+      sum[0] = (sum[0] ?? 0) + ((i / 4) % width)
+      sum[1] = (sum[1] ?? 0) + Math.floor(i / 4 / width)
+      sum[2] = (sum[2] ?? 0) + 1
+    }
+    const at = (kind: string) => {
+      const [x = 0, y = 0, n = 0] = kinds[kind] as number[]
+      expect(n, kind).toBeGreaterThan(20)
+      return { x: x / n, y: y / n }
+    }
+    const [red, green, blue, yellow] = [at('red'), at('green'), at('blue'), at('yellow')]
+    expect(red.x).toBeLessThan(green.x)
+    expect(blue.x).toBeLessThan(yellow.x)
+    expect(red.y).toBeLessThan(blue.y)
+    expect(green.y).toBeLessThan(yellow.y)
+    // Nearest sampling: four flat colours, not a blend between them (lighting is even across the flat quad).
+    expect(colours.size).toBeLessThanOrEqual(8)
   })
 })

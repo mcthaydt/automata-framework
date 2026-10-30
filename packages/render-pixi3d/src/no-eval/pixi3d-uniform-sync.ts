@@ -202,6 +202,11 @@ function wrapUboSync(prototype: { _generateUboSync: GenerateUboSync }): void {
   }
 }
 
+/** Whether `installPixi3dUniformSync` has run in this page (`render-pixi3d/no-eval` was imported). */
+export function pixi3dUniformSyncInstalled(): boolean {
+  return (globalThis as { [INSTALLED]?: true })[INSTALLED] === true
+}
+
 /**
  * Lets pixi.js/unsafe-eval upload @pixi/3d's uniforms. Run once, after `pixi.js/unsafe-eval` and `@pixi/3d` are
  * imported and before the first draw (`render-pixi3d/no-eval` does). A second call does nothing.
