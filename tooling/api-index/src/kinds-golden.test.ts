@@ -6,14 +6,14 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { entryPoints } from './entry-points.ts'
-import { extractExports } from './extract.ts'
 import { apiJson } from './render.ts'
+import { indexRows } from './rows.ts'
 
 const KINDS_ROOT = fileURLToPath(new URL('../fixtures/kinds', import.meta.url))
 const PINNED = fileURLToPath(new URL('../fixtures/kinds/api.json', import.meta.url))
 
 describe('the API index over every declaration kind', () => {
   it('writes the pinned api.json, byte for byte', () => {
-    expect(apiJson(extractExports(entryPoints(KINDS_ROOT)))).toBe(readFileSync(PINNED, 'utf8'))
+    expect(apiJson(indexRows(entryPoints(KINDS_ROOT)))).toBe(readFileSync(PINNED, 'utf8'))
   })
 })
