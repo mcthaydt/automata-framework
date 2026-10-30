@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-30. Source HEAD verified before this update: `b7ef19d` on `main` (PR #188 merged: `@pixi/3d` 0.1.0-beta.2 vendored). This file was rewritten on `claude/af-finish-docs-0` (PR #187, draft, docs only). Its earlier text, up to `main` `106b42a`, is kept verbatim in [history/2026-10-24-continuation.md](history/2026-10-24-continuation.md).
+> Updated 2026-10-30. Source HEAD verified before this update: `89ff04d` on `main` (PR #192 merged: the release jobs run on the Owner's Mac; before it, `b7ef19d`, PR #188: `@pixi/3d` 0.1.0-beta.2 vendored). This file was rewritten on `claude/af-finish-docs-0` (PR #187, draft, docs only). Its earlier text, up to `main` `106b42a`, is kept verbatim in [history/2026-10-24-continuation.md](history/2026-10-24-continuation.md).
 
 ## Prompt for the next agent
 
@@ -32,6 +32,8 @@ Given in this session's chat on 2026-10-30. The Owner's own words are quoted whe
 10. **ritmo-tools.** `@typeonce/ritmo-tools` (MIT, 0.19.1): "throw this in where it fits". The agent's placement: the pixel fixer and pixel lint in the asset build (`automata-content assets`, M5.6) and an `automata check` step on the Endesga 64 palette; sound recipes rendered to WAV at build for core sound (M5.3), edited by the Audio editor (EDS.5), with `audio-synth` deciding whether to adopt the format; music songs rendered at build for core music and `audio-stream` (M5.8); the agent skills and the `create-game` template add it as a dev dependency. It runs as a separate CLI and is never imported, because its Effect 4.1 does not meet AF's Effect 3.22. Rows ASSET.0 to ASSET.4 in 02.
 11. **Owner-supplied inputs.** The Owner will supply `NPM_TOKEN`, site hosting and DNS, a Discord server and bot, and an itch.io account with `BUTLER_API_KEY`.
 
+Later the same day, recorded in PR #192's merge (`89ff04d`): **"Publish from my Mac"**. The plan, version and publish jobs of `release-packages.yml` now run on the Mac runner label (`AF_RELEASE_RUNNER`, default `af-mac`) with no hosted fallback (CI.BILL in 02 is ticked).
+
 ### Agent defaults, open to the Owner's veto
 
 Taken under the Owner's "keep doing what you're doing"; these are the agent's, not the Owner's words.
@@ -54,7 +56,7 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 ## Facts found on 2026-10-30
 
-- **Nothing has ever been published.** Every GitHub-hosted job since 2026-10-24, including `release-packages.yml` (pinned to `ubuntu-latest` because its jobs hold write tokens), is refused before it starts with "recent account payments have failed or your spending limit needs to be increased" (run 40212186695 at `6422142`; run 40977777388 at `106b42a`). #31 versioned 9 packages to 0.0.3, and none was published. Owner action: fix the billing, or approve a dedicated self-hosted publish runner (CI.BILL in 02).
+- **Nothing has ever been published.** Every GitHub-hosted job since 2026-10-24, including `release-packages.yml` (pinned to `ubuntu-latest` because its jobs hold write tokens), is refused before it starts with "recent account payments have failed or your spending limit needs to be increased" (run 40212186695 at `6422142`; run 40977777388 at `106b42a`). #31 versioned 9 packages to 0.0.3, and none was published. Owner action: fix the billing, or approve a dedicated self-hosted publish runner (CI.BILL in 02). Answered the same day: "Publish from my Mac" (#192). The first release run started on the Mac (run 40987523255 at `89ff04d`: the plan job passed, the version job was running, publish skipped), so nothing is published yet; hosted billing is still unfixed, which leaves npm provenance unavailable (DX.11a).
 - **The nightly's only red is the frame budget**, from the shared Mac's load: the same commit, `6422142`, passed on 2026-10-26 and 2026-10-28 and failed on 2026-10-27 and 2026-10-29 (desktop work p95 25.70 ms against 12.63 ms on 10-29, while work p50 stayed at 9.5 to 10.9 ms). CI.N1a fixes the probe; CI.N2 is the other recent nightly red (Emberwick's compact touch journey on 10-27 and 10-28).
 - **The PRODUCT.5e local bundle is lost** (`cc77cc6`). automata-plus `main` holds only its initial commit `3000c20`, and 5e is being redone (automata-plus PR #1, draft).
 - **Three-browser parity runs in this container** with `PLAYWRIGHT_BROWSERS_PATH=/opt/pw-local`.
@@ -76,19 +78,19 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 ## Critical paths
 
-- **Core publish:** PRODUCT.5e → 5f → 5g → DX.2a → DX.11a → DX.5 → DX.11d. CI.BILL and `NPM_TOKEN` gate DX.11a's publish; M2.4p, the first GitHub Packages publish, also follows 5g.
+- **Core publish:** PRODUCT.5e → 5f → 5g → DX.2a → DX.11a → DX.5 → DX.11d. `NPM_TOKEN` gates DX.11a's publish (the release jobs run on the Mac since #192); M2.4p, the first GitHub Packages publish, also follows 5g.
 - **3D:** M3.1 → M3.2 → M3.4 → M3.5 → M3.6 → M3.7 → M3.10 → GAME-3D.0 → GAME-3D.1 → M9.0 → the launch (M8.9, after Pixi 3D is public: M9.10 and M8.9a). In rows: M3.1a → M3.2 and M3.1b → M3.4a to M3.4d; M3.0A → M3.5a to M3.5d → M3.6a to M3.6d; M4.12; then M3.7a, M3.7b, M3.7c → M3.10 → GAME-3D.0 → GAME-3D.1a to 1l → M9.0 to M9.10 → M8.9.
 - **Editors:** ED2D.4c2b → 4c3a, 4c3b → 4c4a, 4c4b → ED2D.5 to ED2D.10, and ED3D.5b to ED3D.12 → EDS.1, EDS.2 and EDS.9 → GAME-3D.1 (GAME-3D.1i needs ED3D.12; 1j needs EDS.9c).
 
 ## Exact next action
 
-1. Merge PR #187 once its checks job is green. Then drive the PRs in flight to green and merge them: #189 (QB.1f), automata-plus #1 (PRODUCT.5e), automata-website #13 (WEB.D1), and the lanes' PRs as they open.
+1. Merge PR #187 once its checks job is green. Then drive the PRs in flight to green and merge them: #189 (QB.1f), automata-plus #1 (PRODUCT.5e), automata-website #13 (WEB.D1), and the lanes' PRs as they open. The release run 40987523255 opens or updates the Version packages PR: leave that one unmerged until PRODUCT.5g lands, or physics would be published from AF (M2.4p); its publish also waits for the Owner's approval in the release environment.
 2. Start, in parallel, the next unblocked rows on the critical paths, none of which needs the Owner: PRODUCT.5f once automata-plus #1 merges; M3.0A (docs) and M3.1a (spike S7 part 1 on the vendored beta); ED2D.4c2b, ED3D.5b and EDK.6a; EDS.0 on the editor specs' defaults.
 3. Ask the Owner, in the session, for each item below when it becomes the next step's blocker, CI.BILL first.
 
 ## Blocked on the Owner
 
-- **Hosted Actions billing**, or a dedicated self-hosted publish runner (CI.BILL): it blocks M2.4p, QB.1b, PRODUCT.5h, DX.11a and M8.9. Also: does the merge authority cover changes to `.github/workflows` (Plus CI, the release runner, PRODUCT.L4's GPU lane, the itch path)? Earlier such changes needed the Owner's own words.
+- **Hosted Actions billing** is answered by publishing from the Mac ("Publish from my Mac", #192, CI.BILL). Still open: whether to fix hosted billing for npm provenance (DX.11a), the Owner's approval of each publish in the release environment (M2.4p, QB.1b), and whether the merge authority covers other changes to `.github/workflows` (Plus CI, PRODUCT.L4's GPU lane, the itch path); earlier such changes, #192's included, carried the Owner's own words.
 - **`NPM_TOKEN`** for `@mcthaydt` on npmjs.org (DX.11a, M8.9), and the release-environment approval of each publish.
 - **Site hosting and DNS** for `automata.ruken.com` with a deploy credential (DX.12, QB.4a to QB.4c), and function hosting for the store webhook (QB.5a).
 - **Discord:** the server and the plugin's bot with admin rights, and a working plugin connection (DX.13, DX.10d).
