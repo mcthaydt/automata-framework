@@ -119,7 +119,7 @@ Tests, written first (the port is faked for the unit tests; the integration test
 
 Steps:
 
-- [ ] 1. Tests 1 and 2 red; args and schema.
+- [x] 1. Tests 1 and 2 red; args and schema.
 - [ ] 2. Tests 3 to 8 red against the fake port; `runAdd`.
 - [ ] 3. The live port (`git clone --depth 1 --branch <tag>`, `git ls-remote --tags` for the tag choice) and test 9.
 - [ ] 4. Wire `bin.ts`; usage text; M8 command table; `agent-skills` if it asks.

@@ -28,7 +28,8 @@ const CreateGameErrorBase: TaggedErrorClass<
 
 export class CreateGameError extends CreateGameErrorBase {}
 
-const ID_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/
+/** A game id, and a kit name for `automata add`: lowercase letters, digits and single hyphens, so never a path. */
+export const ID_REGEX: RegExp = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
 interface TemplateFile {
   readonly path: string
