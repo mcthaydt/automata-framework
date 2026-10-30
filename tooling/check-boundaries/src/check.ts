@@ -1,6 +1,7 @@
-import { dirname, relative, resolve } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import { parseSync } from 'oxc-parser'
 import { isNode, type AstNode as Node, staticMemberName } from './ast.ts'
+import { GAME_SIM_SET_NAMES } from './files.ts'
 import { kootaBindings, kootaSoaProblem } from './koota-soa.ts'
 import { simEntryVerdict } from './sim-entries.ts'
 
@@ -149,6 +150,11 @@ export interface CheckOptions {
    * and components are defined at file level.
    */
   readonly inline?: boolean
+  /**
+   * A game laid out by role (GL spec §4.5): the resolved paths of its sim files. A relative value import from a sim
+   * file must resolve to one of them; type-only imports stay free.
+   */
+  readonly simSet?: ReadonlySet<string>
 }
 
 /** The calls whose arguments are sim code in inline mode. */
@@ -158,6 +164,18 @@ export function checkSource(file: string, code: string, options: CheckOptions = 
   /** Whether `source` may be imported; `detail` explains a refusal the extension's own declaration caused. */
   const importVerdict = (source: string): { ok: boolean; detail?: string } => {
     if (source.startsWith('./') || source.startsWith('../')) {
+      if (options.simSet !== undefined) {
+        const target = resolve(dirname(file), source)
+        // TypeScript resolves `./x.ts`, `./x`, a NodeNext `./x.js` and a folder's `./x/index.ts` to the same file.
+        const candidates = [target, `${target}.ts`, target.replace(/\.js$/, '.ts'), join(target, 'index.ts')]
+        const inSim = candidates.some((path) => options.simSet?.has(path))
+        return inSim
+          ? { ok: true }
+          : {
+              ok: false,
+              detail: `the sim imports ${source}, which is outside the sim (${GAME_SIM_SET_NAMES})`,
+            }
+      }
       if (options.root === undefined) return { ok: true }
       const target = relative(resolve(options.root), resolve(dirname(file), source))
       return { ok: !target.startsWith('..') }

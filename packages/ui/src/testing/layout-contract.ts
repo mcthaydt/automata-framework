@@ -121,7 +121,8 @@ function findSpilledWords(root: ParentNode): string[] {
 }
 
 /**
- * The part of a text node that is drawn: its box, cut to every box between it and `control` that clips its overflow.
+ * The part of a text node that is drawn: its box, cut to every box between it and `control` that clips its overflow,
+ * and to `control` itself on each axis it scrolls.
  * Undefined when none of it is drawn: hidden from sight on purpose, or clipped away entirely.
  */
 function drawnWords(
@@ -138,7 +139,22 @@ function drawnWords(
   for (let element = node.parentElement; element !== null; element = element.parentElement) {
     const style = getComputedStyle(element)
     if (style.visibility === 'hidden' || style.clipPath !== 'none') return undefined
-    if (element === control) break
+    if (element === control) {
+      // A control that scrolls (a focusable scroll region's long lines) reaches its words by scrolling, so on an
+      // axis it scrolls only what it shows is drawn. One that cuts its words off without scrolling still fails.
+      const scrolls = (overflow: string): boolean => overflow === 'auto' || overflow === 'scroll'
+      if (scrolls(style.overflowX)) {
+        const clip = element.getBoundingClientRect()
+        left = Math.max(left, clip.left)
+        right = Math.min(right, clip.right)
+      }
+      if (scrolls(style.overflowY)) {
+        const clip = element.getBoundingClientRect()
+        top = Math.max(top, clip.top)
+        bottom = Math.min(bottom, clip.bottom)
+      }
+      break
+    }
     if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
       const clip = element.getBoundingClientRect()
       left = Math.max(left, clip.left)

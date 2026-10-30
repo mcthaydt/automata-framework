@@ -40,9 +40,9 @@ export interface FigureDef {
   readonly default: string
   readonly hair?: Partial<HairDynamics> | undefined
   /**
-   * Hair style ids from the hair library (the spec's `hairPieces`). The hair an outfit wears stays the
-   * outfit's `{ hair, style }` garment, as in FigureBuilder, because it carries the colour and changes with a
-   * cap; this list is checked here and M3.5b, which builds hair, settles how it combines with the garment.
+   * Hair style ids from the hair library (the spec's `hairPieces`): the figure's own hair, worn by every
+   * outfit whose `{ hair }` garment names no style, each piece in that garment's colour and under the
+   * outfit's cap (M3.5b decision 6). A hair garment with a style wears that style instead.
    */
   readonly hairPieces?: readonly string[] | undefined
   /** A stand id for idle; the relaxed idle if omitted. */
@@ -158,6 +158,17 @@ export const figureSchema: z.ZodType<FigureDef> = z
         message: `no outfit ${figure.default} (outfits: ${names})`,
       })
     }
+    // A hair garment with no style wears the figure's hairPieces (M3.5b decision 6), so it needs some.
+    if (!figure.hairPieces?.length)
+      for (const [name, garments] of Object.entries(figure.outfits))
+        garments.forEach((garment, index) => {
+          if ('hair' in garment && garment.style === undefined)
+            ctx.addIssue({
+              code: 'custom',
+              path: ['outfits', name, index, 'hair'],
+              message: "a hair garment with no style wears the figure's hairPieces, and this figure has none",
+            })
+        })
     // The generator never runs at boot on a skeleton it cannot build (§6): it is refused here, at the slider.
     for (const problem of skeletonProblems(figure)) {
       ctx.addIssue({ code: 'custom', path: [...problem.path], message: problem.message })

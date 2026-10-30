@@ -208,6 +208,10 @@ describe('parity across packages', () => {
       `${VITEST_CAP} turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
     expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
+    // The pull request variant runs the same suites, only those of the affected packages (turbo --affected).
+    expect(packageJson('.').scripts['test:parity:affected']).toBe(
+      `${VITEST_CAP} turbo run test:parity --affected --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
+    )
   })
 
   // af-linux is one PC shared with Ruken's GPU runs. Under that load, tests that build worlds or import whole
@@ -330,6 +334,8 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
       (ci.jobs[name]?.steps ?? [])
         // The Mac host's browser download is runner setup, not a check (a local run has its browsers).
         .filter((step) => step.if !== "runner.os == 'macOS'")
+        // A local run always runs every parity suite; the affected variant is a pull request's shortcut.
+        .filter((step) => step.run !== 'pnpm test:parity:affected')
         .map((step) => step.run ?? '')
         .filter((script) => script.startsWith('pnpm ')),
     )
@@ -1063,7 +1069,10 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
   describe('the scope step classifies the merge commit that GitHub checks out', () => {
     // Run the step's own script in a scratch repository shaped like a pull request checkout: HEAD is a merge
     // commit whose first parent is the base tip, so HEAD^1..HEAD is exactly the pull request's changes.
-    const classify = (changedFiles: readonly string[] | 'not-a-merge'): string => {
+    const classify = (
+      changedFiles: readonly string[] | 'not-a-merge',
+      key: 'docs_only' | 'parity_full' = 'docs_only',
+    ): string => {
       const dir = mkdtempSync(join(tmpdir(), 'af-scope-'))
       try {
         const git = (...args: string[]): string =>
@@ -1094,7 +1103,10 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
           cwd: dir,
           env: { ...process.env, GITHUB_OUTPUT: output },
         })
-        return readFileSync(output, 'utf8').trim()
+        const line = readFileSync(output, 'utf8')
+          .split('\n')
+          .find((each) => each.startsWith(`${key}=`))
+        return line ?? `${key} missing`
       } finally {
         rmSync(dir, { recursive: true, force: true })
       }
@@ -1122,5 +1134,55 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
     it('is not docs-only when the checkout is not a merge commit', () => {
       expect(classify('not-a-merge')).toBe('docs_only=false')
     })
+
+    // Owner, 2026-10-30 ("Yes, affected-only on PRs"): a pull request runs the parity suites of the packages it
+    // affects (turbo --affected, dependents included) unless it changes something outside the workspace packages,
+    // where turbo cannot see what it touches (root config, workflows, vendored tarballs): then every suite runs.
+    it('runs affected parity when every change is inside workspace packages or docs', () => {
+      expect(classify(['packages/a/src/index.ts'], 'parity_full')).toBe('parity_full=false')
+      expect(
+        classify(
+          [
+            'tooling/x/src/run.ts',
+            'examples/core/core-basic-window.ts',
+            'games/emberwick/src/game.ts',
+            'docs/a.md',
+          ],
+          'parity_full',
+        ),
+      ).toBe('parity_full=false')
+    })
+
+    it('runs full parity when a change is outside the workspace packages', () => {
+      for (const file of [
+        'package.json',
+        'pnpm-lock.yaml',
+        'pnpm-workspace.yaml',
+        'turbo.json',
+        'knip.jsonc',
+        'playwright.config.ts',
+        '.github/workflows/ci.yml',
+        'vendor/ruken/ruken-sdk-0.0.0.tgz',
+      ]) {
+        expect(classify(['packages/a/src/index.ts', file], 'parity_full'), file).toBe('parity_full=true')
+      }
+      expect(classify('not-a-merge', 'parity_full')).toBe('parity_full=true')
+    })
+  })
+
+  it('hands the parity scope to the parity job, which runs affected suites only on a pull request that allows it', () => {
+    expect(ci.jobs.checks?.outputs?.parity_full).toBe('${{ steps.scope.outputs.parity_full }}')
+    const steps = ci.jobs.parity?.steps ?? []
+    const full = steps.find((step) => step.run === 'pnpm test:parity')
+    const affected = steps.find((step) => step.run === 'pnpm test:parity:affected')
+    expect(full?.if).toBe("github.event_name != 'pull_request' || needs.checks.outputs.parity_full == 'true'")
+    expect(affected?.if).toBe(
+      "github.event_name == 'pull_request' && needs.checks.outputs.parity_full != 'true'",
+    )
+    // The checkout is GitHub's merge commit: its first parent is the base tip, so turbo compares HEAD^1..HEAD,
+    // which needs both commits in the clone.
+    expect(affected?.env?.TURBO_SCM_BASE).toBe('HEAD^1')
+    expect(affected?.env?.TURBO_SCM_HEAD).toBe('HEAD')
+    expect(steps.find((step) => step.uses?.startsWith('actions/checkout@'))?.with?.['fetch-depth']).toBe(2)
   })
 })
