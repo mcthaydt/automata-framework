@@ -98,8 +98,8 @@ describe('N-b: a dropped socket', () => {
     expectRoomHashes(room, player)
     expect(player.net.mismatches).toBe(0)
     // And it plays on: commands sampled after the return reached the room.
-    const ack = player.sent.filter((command) => command.tick > back + 30)
-    expect(ack.length).toBeGreaterThan(0)
+    const afterReturn = player.sent.filter((command) => command.tick > back + 30)
+    expect(afterReturn.length).toBeGreaterThan(0)
     expect(player.net.pendingCommands.every((command) => command.tick > room.engine.tick - 60)).toBe(true)
   })
 })

@@ -29,6 +29,7 @@ async function setup() {
   const authority = await counterSim()
   sims.push(client, authority)
   authority.step([spawn(0, 0)])
+  const start = authority.snapshot()
   const scope = await h.run(Scope.make())
   const handle: NetSessionHandle = await h.run(
     makeNetSession({ room: h.room, sim: client }).pipe(Scope.extend(scope)),
@@ -37,6 +38,10 @@ async function setup() {
   await h.settle()
   const room = () => h.fake.rooms.at(-1) as FakeRoom
   /** The authority's snapshot at `tick`, sent by the current room; `hash` replaces the true one. */
+  /** The room's sim starts over, as another room's does. */
+  const restart = () => {
+    authority.restore(start)
+  }
   const snapshot = (tick: number, hash?: string) => {
     while (authority.tick < tick) authority.step([])
     room().message({ t: 'snap', tick: authority.tick, hash: hash ?? authority.hash(), acks: {} })
@@ -53,7 +58,7 @@ async function setup() {
       .map((entry) => JSON.parse(String(entry.payload)))
       .filter((message) => message.t === 'cmd')
   const close = () => h.run(Scope.close(scope, Exit.void))
-  return { h, handle, room, snapshot, play, commands, close }
+  return { h, handle, room, snapshot, play, commands, close, restart }
 }
 
 describe('makeNetSession', () => {
@@ -102,6 +107,48 @@ describe('makeNetSession', () => {
     const second = room()
     expect(second).not.toBe(first)
     expect(commands(second)).toEqual(commands(first))
+  })
+
+  it('starts afresh in another room: its earlier ticks restore, and numbering starts over', async () => {
+    const { h, handle, room, snapshot, play, commands, restart } = await setup()
+    await play()
+    snapshot(300)
+    handle.session.frame(right, 1000 / 60)
+    expect(commands()).toHaveLength(1)
+
+    await h.run(h.room.leave)
+    h.fake.respond('create', h.fake.room('XYZ234'))
+    await h.run(h.room.create({ name: 'Ada' }))
+    await h.settle()
+    room().message({ t: 'seated', seat: 0 })
+    room().patch(h.fake.state('XYZ234', { phase: 'playing' }))
+    await h.settle()
+    // The new room's sim is at tick 30, far behind the old one's.
+    restart()
+    snapshot(30)
+    expect(handle.session.authoritative?.tick).toBe(30)
+    await h.advance(20)
+    handle.session.frame(right, 20)
+    expect(commands().map((command) => command.seq)).toEqual([0])
+  })
+
+  it('forgets the game when the player leaves, so joining the same room again starts afresh', async () => {
+    const { h, handle, snapshot, play } = await setup()
+    await play()
+    snapshot(300)
+    await h.run(h.room.leave)
+    await h.settle()
+    expect(handle.session.authoritative).toBeUndefined()
+  })
+
+  it('keeps its game across a reconnect', async () => {
+    const { h, handle, room, snapshot, play } = await setup()
+    await play()
+    snapshot(300)
+    room().close(1006)
+    await h.settle()
+    expect(h.connection()).toBe('connected')
+    expect(handle.session.authoritative?.tick).toBe(300)
   })
 
   it('reads a desync as the session ending', async () => {

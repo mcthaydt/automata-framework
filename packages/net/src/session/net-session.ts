@@ -203,8 +203,12 @@ export class NetSession {
     }
   }
 
-  /** Forgets the game, as leaving the screen does. The numbering goes on, as the room's does. */
+  /**
+   * Forgets the game, as leaving it does: its snapshots, commands and numbering. The next room numbers from 0, or
+   * from its own ack when this player is taking over a seat it kept counting for (`observe`).
+   */
   clear(): void {
+    this.nextSeq = 0
     this.prediction.clear()
     this.clock.clear()
     this.inputTick = undefined

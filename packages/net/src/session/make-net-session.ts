@@ -4,7 +4,7 @@
  * The room's port brings snapshots and pongs; the room's info says the seat (`you`, from the server's `seated` only)
  * and the phase; its connection says whether anything sent arrives. Input is taken while the room counts down or
  * plays and the connection is up; when a dropped connection comes back, the commands the room has not acked are sent
- * again. Time is Effect's `Clock`, read synchronously, so `TestClock` drives the session in tests.
+ * again; in another room, the session starts afresh. Time is Effect's `Clock`, read synchronously, so `TestClock` drives the session in tests.
  *
  * Effect is only here, at the edges: snapshots and pongs reach the session through the port's plain callbacks, and
  * the game calls `session.frame` from its loop (ADR 0003: no Effect per frame). Closing the scope releases every
@@ -58,6 +58,10 @@ export function makeNetSession(
 
     let info = yield* options.room.info.get
     let connection = yield* options.room.connection.get
+    // The room this session's game is in. Another room, or the same one joined again, is another sim timeline (its
+    // ticks may be far behind) and another numbering, so the session forgets the old game. A reconnect keeps the
+    // room's info, and so the game.
+    let code = info?.code
     const update = (): void =>
       session.setRoomState({ seat: info?.you, accepting: takesInput(info, connection) })
     update()
@@ -75,6 +79,16 @@ export function makeNetSession(
       Stream.runForEach(options.room.info.changes, (next) =>
         Effect.sync(() => {
           info = next
+          // Left (or the seat was lost): the game is over for this player, whichever room comes next.
+          if (next === undefined && code !== undefined) {
+            session.clear()
+            code = undefined
+          }
+          // A room replaced by another without passing through none.
+          if (next !== undefined && next.code !== code) {
+            if (code !== undefined) session.clear()
+            code = next.code
+          }
           update()
         }),
       ),

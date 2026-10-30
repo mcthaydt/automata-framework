@@ -265,15 +265,21 @@ describe('the session', () => {
     expect(sim.hash()).toBe(predicted)
   })
 
-  it('forgets everything when the game is left', async () => {
-    const { session, room } = await harness()
-    session.observe(room.at(30))
+  it('forgets everything when the game is left, its numbering included', async () => {
+    const { session, room, sent } = await harness()
+    session.observe(room.at(300))
     session.frame(right, TICK_MS)
     session.clear()
     expect(session.sampledTick).toBeUndefined()
     expect(session.pendingCommands).toEqual([])
     expect(session.authoritative).toBeUndefined()
     expect(session.frame(none, TICK_MS)).toBeUndefined()
+
+    // Another room: its earlier ticks restore, and it numbers from 0 (or from its own ack, as on a takeover).
+    session.observe(room.at(30))
+    expect(session.authoritative?.tick).toBe(30)
+    session.frame(right, TICK_MS)
+    expect(sent.at(-1)).toMatchObject({ seq: 0 })
   })
 })
 

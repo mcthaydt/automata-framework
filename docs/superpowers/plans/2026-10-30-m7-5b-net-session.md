@@ -225,6 +225,9 @@ racer and the moving floor (race rules); none has a generic counterpart.
   (`refused: sequence`) if it did. `resync` (the connection came back) resends every command not acked. Commands
   sampled while the connection is down are dropped, not queued: input is taken only while `connected` (or
   `degraded`).
+- **Another room is another game.** `makeNetSession` clears the session when the room info goes away (a leave, a
+  lost seat) or names another room: the snapshots, pending commands and numbering go, so a room whose sim is at an
+  earlier tick restores and a fresh seat numbers from 0. A reconnect keeps the room info, and so the game.
 - **Numbering goes on from the room's ack** when a session takes over a seat (FloorFifty's rule), rather than
   restarting at 0. The room accepts either after a return (M7.3b's `returned` rule); numbering on means no snapshot
   in flight with the old ack can make the client drop its new commands.
@@ -253,3 +256,4 @@ racer and the moving floor (race rules); none has a generic counterpart.
 | 2026-10-30 | 7 | `net-session-link.test.ts` against the session built in steps 1 to 5. First run: N-b red because the harness never handed what reached the room's end of a link to the engine (so no command reached the room; N-a passed vacuously on the client side). Fixed in the harness; N-a now also holds that the room's only refusals are resent seqs. A 20 s diagnostic run over the N-a link: 575 commands, 1 late, 38 `sequence` refusals (resends), the room's positions equal to both clients' predictions. Green (4) |
 | 2026-10-30 | 8 | `netcode-model.test.ts` red once for the test (its sample-count guard assumed one sampled tick per frame; frames on whole milliseconds sometimes reach two ticks, and the later is sampled), then green (6). Frames moved onto the room's instants: 5 s of play went from 5.1 s to 2.9 s of wall time |
 | 2026-10-30 | 9 | Exports from `net` (`NetSession`, `makeNetSession`, the input lead) and `net/testing` (`linkClient`, `linkRoomClient`); `pnpm format`, `pnpm check`: root 163, net 309, pipelines 138, dev-tools 62, physics 71, server 432 |
+| 2026-10-30 | Self-review | `makeNetSession` kept one game across rooms: after a leave and another room (its sim at an earlier tick), every snapshot read as stale and the game froze, and the numbering ran on past the new room's sequence gap. Three cases red (another room's earlier ticks restore and number from 0; `clear` restarts the numbering; a leave forgets the game, shown red with the new branch switched off), plus a reconnect keeping its game; now `clear` resets the numbering and the session clears when the room info goes or changes room. N-b's variable renamed. `pnpm check`: root 163, net 312, pipelines 138, dev-tools 62, physics 71, server 432 |
