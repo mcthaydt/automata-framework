@@ -45,6 +45,8 @@ describe('the authority clock', () => {
     subject.observe(630)
     subject.advance(TICK_MS)
     expect(subject.authorityTick()).toBeCloseTo(631, 9)
+    // Forward is not a restart.
+    expect(subject.takeRestart()).toBe(false)
   })
 
   it('does not move back for one snapshot far behind, but does after half a second of them', () => {
@@ -59,6 +61,9 @@ describe('the authority clock', () => {
       subject.advance(TICK_MS)
     }
     expect(subject.authorityTick()).toBeLessThan(100)
+    // Said once, so the prediction can follow the restart.
+    expect(subject.takeRestart()).toBe(true)
+    expect(subject.takeRestart()).toBe(false)
   })
 
   it('anchors a snapshot at the time it arrived, not the time it is read', () => {

@@ -222,8 +222,10 @@ racer and the moving floor (race rules); none has a generic counterpart.
   own: the kit shows the error and the player's Leave (`NetRoom.leave`), so the screen decides, as with `RoomEnd`.
 - **Unacked commands are bounded** (PR #16 review). A command still unacked `maxLeadTicks` past its tick (60, a
   second) is given up: the room refused it or never had it, and its one resend went long before. The prediction
-  stops replaying it. At most `MAX_PENDING_COMMANDS` (32, the room's `MAX_QUEUED_COMMANDS`) are held; a sample past
-  that is dropped, neither applied nor sent, as the room would refuse it `full`. Pending commands are kept when input
+  stops replaying it. That expiry is the bound; `MAX_PENDING_COMMANDS` (256) is only a backstop, past which a
+  sample is dropped, neither applied nor sent. It is not the room's 32 (`MAX_QUEUED_COMMANDS`), which counts commands
+  arrived and not yet due: unacked commands include those in flight both ways, so at a 30-tick lead and two a tick
+  there are about 80, all of which the room takes (re-review: a 32 cap dropped them). Pending commands are kept when input
   stops being accepted, because a drop needs them for `resync`.
 - **A cleared session is a new session**: `clear` also forgets a desync (`ended`, the mismatch window and count), and
   `makeNetSession` sets `ended` back to undefined when it clears, so a desync in one room does not end the next.
@@ -231,7 +233,9 @@ racer and the moving floor (race rules); none has a generic counterpart.
   millis, which can step back).
 - **Every snapshot that passes its hash steers the clock**, stale ones included (FloorFifty's order). One at or
   behind the newest changes nothing; one far behind, held for half a second, is a restarted timeline and moves the
-  clock back. The ported "clock lands far behind" case now drives that path.
+  clock back. The ported "clock lands far behind" case now drives that path, and when the clock adopts a restarted
+  timeline the prediction is cleared, so the next snapshot of it restores and commands are applied locally again, not
+  only sent (re-review).
 - **For M7.5c:** when `degraded` arrives, `makeNetSession` must also `resync` on `reconnecting` → `degraded` (today it
   does on `reconnecting` → `connected`), and input stays accepted while `degraded`.
 - **An overdue command is resent once.** On each good snapshot, a pending command whose tick is before the snapshot's
@@ -287,3 +291,5 @@ racer and the moving floor (race rules); none has a generic counterpart.
 | 2026-10-30 | Self-review | `makeNetSession` kept one game across rooms: after a leave and another room (its sim at an earlier tick), every snapshot read as stale and the game froze, and the numbering ran on past the new room's sequence gap. Three cases red (another room's earlier ticks restore and number from 0; `clear` restarts the numbering; a leave forgets the game, shown red with the new branch switched off), plus a reconnect keeping its game; now `clear` resets the numbering and the session clears when the room info goes or changes room. N-b's variable renamed. `pnpm check`: root 163, net 312, pipelines 138, dev-tools 62, physics 71, server 432 |
 | 2026-10-30 | PR #16 review fixes | (1) Numbering from 1: the link case "never applies a command twice when the drop came before its ack" red with numbering from 0 (room at 2 for one command), green from 1; unit cases changed to expect seq 1. (2) `clear` forgets a desync and `makeNetSession` resets `ended`: two cases red, then green. (3) Expiry past `maxLeadTicks` and the 32-command cap: two cases red, then green. (4) N-a timeout 240 s; profiled (above); N-a took about 40 s locally. (5) Monotonic session time: a case with a fake `Clock` whose wall time never moves red (authority stayed at 30), then green. (6) N-a, N-b and the drop case assert the room's side (above). (7) Stale snapshots steer the clock; the ported "far behind" case rewritten to drive the backward snap, red before. (8) The harness counts a restore by tick, so a stale or repeated frame is not counted. (9) The reload claim corrected (above). (10) `frame` reuses its answer, a tick with no local command steps with a shared empty list, and no probe or command goes out after the scope closes (a case red, then green) |
 | 2026-10-30 | Review fixes checked | `pnpm format`, `pnpm check`: root 163, net 318, pipelines 138, dev-tools 62, physics 71, server 433. The net suite three runs, 318 each; the two link files (`net-session-link`, `netcode-model`) three runs, 11 each, 62 to 64 s per run |
+| 2026-10-30 | PR #16 re-review fixes (at 4176232) | (1) The 32 cap dropped commands the room would take: "every command at a long lead, two a tick" red (32 of 80 sent), now a 256 backstop behind the expiry, its comment no longer equating it with the room's queue. (2) A restarted timeline left the prediction frozen: "predicts again on a restarted timeline" red (base stayed 300), now the clock reports a backward snap once (`takeRestart`) and the session clears the prediction. (3) The room's seq-0 branch is kept for a client that restarts at 0 (its tests unchanged); its comment says `NetSession` never sends 0. `pnpm check`: see the next row |
+| 2026-10-30 | Re-review fixes checked | `pnpm format`, `pnpm check`: root 163, net 320, pipelines 138, dev-tools 62, physics 71, server 433; the net suite once more (320) and the two link files once (11) |

@@ -33,10 +33,13 @@ export const PING_EVERY_MS = 250
 export const MAX_CATCH_UP_TICKS = 12
 
 /**
- * Unacked commands a session holds at most: the room's input queue holds 32 per seat (server `MAX_QUEUED_COMMANDS`)
- * and refuses the rest `full`, so a sample past this is dropped here too, neither applied nor sent.
+ * A backstop on unacked commands, past which a sample is dropped, neither applied nor sent. The real bound is the
+ * expiry (a command unacked `maxLeadTicks` past its tick is given up). This is not the room's queue bound: the room's
+ * 32 (server `MAX_QUEUED_COMMANDS`) counts commands that have arrived and are not yet due, while this counts every
+ * command not yet acked (in flight both ways, about the lead plus a snapshot interval of ticks). At the 30-tick lead
+ * cap that is a few dozen commands at one or two a tick; 256 leaves room for a busy game and still bounds a broken one.
  */
-export const MAX_PENDING_COMMANDS = 32
+export const MAX_PENDING_COMMANDS = 256
 
 /** Two hash mismatches this close together end the session (spec §6, N-d). */
 export const DESYNC_WINDOW_MS = 10_000
@@ -175,6 +178,12 @@ export class NetSession {
     if (this.end !== undefined) return undefined
     if (this.now === undefined) this.virtualTime += deltaMs
     this.clock.advance(deltaMs)
+    if (this.clock.takeRestart()) {
+      // The clock adopted a restarted timeline. The prediction stands on the old one, far ahead, and no snapshot of
+      // the new one is newer than its base: it starts again from the next snapshot instead of standing frozen.
+      this.prediction.clear()
+      this.inputTick = undefined
+    }
     this.lead.advance(deltaMs)
     const authority = this.clock.authorityTick()
     if (authority === undefined) return undefined

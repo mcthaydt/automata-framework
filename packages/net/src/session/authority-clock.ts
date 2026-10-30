@@ -62,6 +62,8 @@ export class AuthorityClock {
   private virtualTime = 0
   /** When the clock first ran too far ahead of its anchor, while it still is. */
   private aheadSince: number | undefined
+  /** The clock moved back to a restarted timeline since `takeRestart` last asked. */
+  private restarted = false
 
   constructor(options: AuthorityClockOptions) {
     this.tickMs = 1000 / options.tickHz
@@ -128,7 +130,9 @@ export class AuthorityClock {
       // Probably a late delivery: run on and wait for the next snapshot to say whether the clock really is ahead.
       this.authority = projected
     } else if (Math.abs(behind) > SNAP_TICKS) {
-      // Too far to ease: land exactly where the freshest anchor says authority is now.
+      // Too far to ease: land exactly where the freshest anchor says authority is now. Back (only after half a second
+      // of agreement) is a restarted timeline, which the prediction must follow.
+      if (behind < 0) this.restarted = true
       this.aheadSince = undefined
       this.authority = this.anchorAtTime(at)
     } else {
@@ -140,6 +144,13 @@ export class AuthorityClock {
     return this.authority
   }
 
+  /** Whether the clock moved back to a restarted timeline since the last call; true once per restart. */
+  takeRestart(): boolean {
+    const restarted = this.restarted
+    this.restarted = false
+    return restarted
+  }
+
   /** Forgets the room's timeline. */
   clear(): void {
     this.authority = undefined
@@ -149,5 +160,6 @@ export class AuthorityClock {
     this.newest = Number.NEGATIVE_INFINITY
     this.virtualTime = 0
     this.aheadSince = undefined
+    this.restarted = false
   }
 }

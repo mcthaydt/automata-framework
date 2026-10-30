@@ -1,7 +1,7 @@
 import type { Command, Sim } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { NetSnapshot } from '../client/colyseus-transport'
-import { counterSim, Move, spawn } from '../test-support/counter-game'
+import { counterSim, Move, moverX, spawn } from '../test-support/counter-game'
 import { INITIAL_LEAD_TICKS } from './input-lead'
 import {
   type LocalCommand,
@@ -174,6 +174,22 @@ describe('the session', () => {
     expect(sent.at(-1)).toMatchObject({ payload: { dx: 1 }, tick: session.sampledTick })
   })
 
+  it('predicts again on a restarted timeline once the clock adopts it, not only sends', async () => {
+    const { session, room, sim } = await harness()
+    session.observe(room.at(300))
+    session.frame(none, TICK_MS)
+    for (let frame = 0; frame < 40; frame += 1) {
+      session.observe(room.at(30 + frame))
+      session.frame(none, TICK_MS)
+    }
+    // The next snapshot of the restarted timeline restores, and a command is applied in the sim, not only sent.
+    session.observe(room.at(70))
+    expect(session.authoritative?.tick).toBe(70)
+    session.frame(right, TICK_MS)
+    expect(sim.tick).toBe((session.sampledTick as number) + 1)
+    expect(moverX(sim, 0)).toBe(1)
+  })
+
   it('sends the commands not yet acked again after the connection comes back', async () => {
     const { session, room, sent } = await harness()
     session.observe(room.at(30))
@@ -324,10 +340,23 @@ describe('commands the room never takes', () => {
     expect(sent).toHaveLength(2)
   })
 
-  it('holds at most as many unacked commands as the room queues, dropping the newest sample as the room would', async () => {
+  it('applies and sends every command at a long lead, two a tick', async () => {
+    // A 30-tick lead holds about 33 ticks of unacked commands: at two a tick, well past the room's 32 queued, all of
+    // which the room takes in time, since its queue holds only what has arrived and is not yet due.
+    const { session, room, sim, sent } = await harness({ roundTripMs: 1_000 })
+    expect(session.leadTicks).toBe(30)
+    session.observe(room.at(30))
+    for (let frame = 0; frame < 40; frame += 1) session.frame(() => [RIGHT, RIGHT], TICK_MS)
+    expect(sent).toHaveLength(80)
+    expect(session.pendingCommands).toHaveLength(80)
+    expect(moverX(sim, 0)).toBe(80)
+  })
+
+  it('holds a generous bound of unacked commands, dropping the newest sample past it', async () => {
     const { session, room, sent } = await harness()
     session.observe(room.at(30))
-    for (let frame = 0; frame < 50; frame += 1) session.frame(right, TICK_MS)
+    for (let frame = 0; frame < 30; frame += 1)
+      session.frame(() => Array.from({ length: 10 }, () => RIGHT), TICK_MS)
     expect(session.pendingCommands).toHaveLength(MAX_PENDING_COMMANDS)
     expect(sent).toHaveLength(MAX_PENDING_COMMANDS)
   })
