@@ -1,7 +1,7 @@
 # WEB.PLAY: a live playground on the examples pages (design spec)
 
 > **Date:** 2026-10-30
-> **Status:** Draft, for spec review. Nothing in §17 starts before the Owner reviews this spec and the decisions in §18.
+> **Status:** Approved by the Owner on 2026-10-30, who asked for it to be built. Two decisions changed in review: PLAY-D1 (an example runs as soon as its page opens) and PLAY-D16 (approved: Ruken's `sdk`, `sdk-host`, `manifest` and `cli` are MIT since RukenApp PR #396). The other decisions in §18 run on their recommended defaults.
 > **Why (Owner, 2026-10-30):** "Did I mention I want the code editor thing that pixi has for the website? That click a button to see changes crap is useless."
 > **Repos:** `mcthaydt/automata-website` (this spec, the page, the editor, the compile step) and `mcthaydt/automata-framework` (the playground runtime, frame pages and harness, owned by the integration lane under the [EX spec](https://github.com/mcthaydt/automata-framework/blob/main/docs/superpowers/specs/2026-10-16-examples-one-file-design.md) §8).
 > **Measured against:** website `main` at `5cd8fd4`; framework `origin/main` at `b7ef19d9` (built in a throwaway worktree, since removed); the site's `framework.ref` is still `5ad4a842`.
@@ -11,9 +11,9 @@
 
 ## 1. Goal
 
-A reader opens an example, changes its code in the page, and the running example updates on its own a moment after they stop typing. No Run button, no rebuild, no setup. If the change does not compile, the last working version keeps running and the error shows at its line. Reset puts the original back, and the page's URL carries the edit so it can be shared.
+A reader opens an example and it is already running. They change its code in the page, and the running example updates on its own a moment after they stop typing. No Run button, no rebuild, no setup. If the change does not compile, the last working version keeps running and the error shows at its line. Reset puts the original back, and the page's URL carries the edit so it can be shared.
 
-**Observable behaviour, in one journey.** On a phone, the reader opens `/examples/shapes-rects`, taps the line `color: 0x00cdf9`, changes it to `0xff0000`, and lifts their thumb. About a second later the preview shows red blocks. They type a stray `+` at the end of a line: the gutter marks that line, the status line says what is wrong, and the red blocks keep moving. They delete the `+` and the preview restarts with their code. They press Copy link and send it; the friend who opens it sees the same edited code running.
+**Observable behaviour, in one journey.** On a phone, the reader opens `/examples/shapes-rects` and sees the blocks moving. They tap the line `color: 0x00cdf9`, change it to `0xff0000`, and lift their thumb. About a second later the preview shows red blocks. They type a stray `+` at the end of a line: the gutter marks that line, the status line says what is wrong, and the red blocks keep moving. They delete the `+` and the preview restarts with their code. They press Copy link and send it; the friend who opens it sees the same edited code running.
 
 **Today** `/examples` shows seven prebuilt folder demos (`DemoRunner.svelte`: an iframe with Play, Restart and Fullscreen) beside read-only source (`SourceExplorer.svelte`). To see a change, a reader has to clone the framework, edit locally and rebuild.
 
@@ -188,6 +188,8 @@ static/playground/
   examples/<module>/<name>/         the frame page and that example's examples/public/<module>/<name>/ files
   examples/resources/               examples/resources/ (72 KB, including the 26.5 KB chime.wav)
   goldens/<id>.replay               examples/__goldens__/ (10 files, 1.8 to 3.9 kB each, 26 kB in all)
+  compiled/<id>.js                  written by the site's sync, not the framework: each original through compileExample (§5.2), so the
+                                    arrival run (F1) needs neither the editor nor the worker; a unit test checks each file equals a fresh compile
 ```
 
 The hashes stay in the `.replay` files and in `manifest.json` under `static/`; `tests/audit-regressions.test.ts` keeps any 16-hex-digit hash out of `src/`.
@@ -213,21 +215,21 @@ All timers take an injected clock in tests.
 
 ## 6. Ordered flows
 
-**F1. Open an example.** The prerendered page has the example list, the header fields (Shows, Controls, Difficulty, Packages), the code as plain highlighted text in a box the same size as the editor will be (§9.3), and the preview's resting state: the example's approved screenshot when the catalog has one, otherwise a panel with the title and "Edit the code or press Play". The page hydrates after the first paint (`hydrateAfterFirstPaint`). Nothing under `/playground/`, no editor and no compiler is requested.
+**F1. Open an example.** The prerendered page has the example list, the header fields (Shows, Controls, Difficulty, Packages), the code as plain highlighted text in a box the same size as the editor will be (§9.3), and the preview's poster: the example's approved screenshot when the catalog has one, otherwise a panel with the title. The page hydrates after the first paint (`hydrateAfterFirstPaint`). Then, unless reduced motion is set (§7.4), the original starts at once (PLAY-D1): once the page's `load` event has fired and the preview's box is within one viewport of the screen (an `IntersectionObserver`), the orchestrator runs F4 with the original's precompiled module (`/playground/compiled/<id>.js`, §5.5), so neither the editor nor the compile worker is needed for the first run. The status line says "Starting the preview…", then "Running. Edit the code and the preview updates as you type." Waiting for `load` keeps the frame's downloads behind the page's own (R-9). With reduced motion the poster stays, with Play, and the status line says "Press Play to start the example. Once it runs, edits update it live." Before the first run nothing under `/playground/`, no editor and no compiler is requested.
 
-**F2. Start editing.** The first `pointerdown` or `focusin` on the code box imports the editor chunk and starts the compile worker. The status line says "Loading the editor…". When the editor mounts, it holds the same text, in the same box, with the caret where the reader tapped (the tap's line and column are worked out from the static text's metrics before the swap). Focus stays in the code. The runtime is not loaded yet.
+**F2. Start editing.** The first `pointerdown` or `focusin` on the code box imports the editor chunk and starts the compile worker. The status line says "Loading the editor…". When the editor mounts, it holds the same text, in the same box, with the caret where the reader tapped (the tap's line and column are worked out from the static text's metrics before the swap). Focus stays in the code. The running preview is untouched.
 
 **F3. Edit, wait, compile.** Every change restarts the `EDIT_QUIET_MS` timer; changes during IME composition start it only when composition ends. When the timer fires, the parent sends the source to the worker with the next `seq`. Results with an older `seq` are dropped.
 
 **F4. Start or replace the preview.** On a successful compile:
 
 1. If a candidate frame is still booting, remove it.
-2. Create a candidate `<iframe sandbox="allow-scripts" allow="fullscreen; autoplay; gamepad" referrerpolicy="no-referrer">` on the example's frame page, under the current frame (or under the resting panel, for the first run), at the same size, `inert` and `aria-hidden="true"`.
+2. Create a candidate `<iframe sandbox="allow-scripts" allow="fullscreen; autoplay; gamepad" referrerpolicy="no-referrer">` on the example's frame page, under the current frame (or under the poster, for the first run), at the same size, `inert` and `aria-hidden="true"`.
 3. On `booted`, post `run` with the next `runId`, the compiled code and the determinism request.
 4. On `running`, swap: the candidate moves on top, loses `inert` and `aria-hidden`, gets the title "Preview: <title>"; the old frame is removed, which ends its document and its WebGL context. The status line says "Preview updated."
 5. Write the share fragment (F8).
 
-At most two frames exist at any moment. The first run of a page visit starts on the first successful compile after an edit, or on Play, whichever comes first (PLAY-D1).
+At most two frames exist at any moment. The first run of a page visit starts on arrival (F1), or on Play under reduced motion (PLAY-D1). An edit made before the first run has reached `running` replaces it as any later edit does.
 
 **F5. Syntax error.** The worker returns diagnostics. The editor marks the line (a gutter marker and an underline, through `@codemirror/lint`), the status line says "Line 21: Unexpected token. The preview is still running your last working version.", and nothing happens to the frames. If the error is still there after `ANNOUNCE_AFTER_MS`, the polite live region announces it once. The next successful compile clears it.
 
@@ -237,9 +239,9 @@ At most two frames exist at any moment. The first run of a page visit starts on 
 
 **F8. Share.** After each successful compile the fragment holds the current code. Copy link copies `location.href` and says "Link copied" (or "Copying is blocked by this browser" when the clipboard is denied, the existing `CopyButton` rule).
 
-**F9. Open a share link.** The page decodes the fragment after hydration. A good payload loads the editor at once with the shared code and, unless reduced motion is set, runs it (PLAY-D1). A bad or oversized payload leaves the original code and says "This link's code could not be read, so the original example is shown." The decoded text is only ever put in the editor and sent to the frame.
+**F9. Open a share link.** The page decodes the fragment after hydration. A good payload loads the editor at once with the shared code and, unless reduced motion is set, runs it in place of the original (PLAY-D1); the shared code goes through the worker, so the original's precompiled module is not used. A bad or oversized payload leaves the original code and says "This link's code could not be read, so the original example is shown." The decoded text is only ever put in the editor and sent to the frame.
 
-**F10. Switch example or leave.** Following a link to another example removes both frames, cancels the worker's pending job and the timers, and loads the new source; the editor stays mounted if it was. If the reader had started a preview on this visit (and, under reduced motion, pressed Play), the new example starts at once. Leaving the page removes the frames and terminates the worker.
+**F10. Switch example or leave.** Following a link to another example removes both frames, cancels the worker's pending job and the timers, and loads the new source; the editor stays mounted if it was. The new example starts at once, as on arrival; under reduced motion it starts at once only if the reader pressed Play on this visit. Leaving the page removes the frames and terminates the worker.
 
 **F11. Restart and Fullscreen.** Restart runs the current code again from tick 0 in a fresh frame (F4 without a compile). Fullscreen behaves as in `DemoRunner`: the parent puts the preview container in fullscreen and says so when the browser refuses or does not answer.
 
@@ -251,7 +253,7 @@ At most two frames exist at any moment. The first run of a page visit starts on 
 | --- | --- | --- |
 | Code | `static` → `loading` → `ready`, or `unavailable` | `CodePanel` |
 | Compile | `original`, `compiling`, `ok`, `syntax-error` | orchestrator |
-| Preview | `resting`, `starting`, `running`, `failed` | orchestrator |
+| Preview | `poster` (before the first run; under reduced motion, until Play), `starting`, `running`, `failed` | orchestrator |
 | Candidate | `none`, `booting(runId)` | orchestrator |
 | Determinism | `none`, `checking`, `pass`, `diverged(tick)`, `edited(hash)` | orchestrator |
 
@@ -284,7 +286,7 @@ The guard covers loops. A single long statement with no loop in it (a huge `Arra
 
 ### 7.4 Reduced motion
 
-With `prefers-reduced-motion: reduce`, nothing runs until the reader presses Play, including the first edit and a share link. Once they have pressed Play on this visit, edits update the preview live as for everyone else.
+With `prefers-reduced-motion: reduce`, the page shows the example's still poster and a Play control, and nothing runs until the reader presses Play, including on an edit and on a share link. Once they have pressed Play on this visit, edits update the preview live as for everyone else. The orchestrator reads the media query when it decides to start and listens for changes: turning reduced motion on while a preview runs does not stop it, but an example opened afterwards waits for Play.
 
 ## 8. UI inventory
 
@@ -296,7 +298,7 @@ With `prefers-reduced-motion: reduce`, nothing runs until the reader presses Pla
 | Example page | `src/routes/examples/[id]/+page.svelte`, `+page.ts` (prerendered with an `entries` list from `examples.json`) | The sidebar list (current example marked), the header fields, the `Playground`. |
 | `Playground` | `src/lib/playground/Playground.svelte` | Layout, toolbars, status line, and the orchestrator's state. |
 | `CodePanel` | `src/lib/playground/CodePanel.svelte` | The static code, the upgrade to the editor, diagnostics. |
-| `PreviewPanel` | `src/lib/playground/PreviewPanel.svelte` | The resting state, Play, the frames, the stopped overlay, Retry. |
+| `PreviewPanel` | `src/lib/playground/PreviewPanel.svelte` | The poster, Play, the frames, the stopped overlay, Retry. |
 | `DeterminismRow` | `src/lib/playground/DeterminismRow.svelte` | §13. |
 | Editor setup | `src/lib/playground/editor.ts` (dynamic import) | CodeMirror extensions, theme, keymaps, the accessible name. |
 | Orchestrator | `src/lib/playground/orchestrator.ts` | F3 to F11 with an injected clock and frame factory, so it is unit-testable. |
@@ -308,7 +310,7 @@ With `prefers-reduced-motion: reduce`, nothing runs until the reader presses Pla
 
 | Control | Where | Shown when | Does | Size |
 | --- | --- | --- | --- | --- |
-| Play | preview, resting | before the first run, and after a failure with no running preview | starts the original or current code | 48 px high (primary) |
+| Play | preview, on the poster | under reduced motion before the first run, and after a failure with no running preview | starts the original or current code | 48 px high (primary) |
 | Restart | preview toolbar | a run exists | F11 | 44 px |
 | Fullscreen | preview toolbar | always | F11 | 44 px |
 | Retry | preview, after a download failure | then | a fresh first frame | 44 px |
@@ -322,7 +324,7 @@ The existing `DemoRunner` toolbar buttons are 36 px and the copy buttons 32 px; 
 
 ### 8.3 Status line texts
 
-"Edit the code or press Play." · "Loading the editor…" · "Starting the preview…" · "Preview updated." · "Line N: <message>. The preview is still running your last working version." · "Stopped: line N: <message>." · "The preview did not start within 10 seconds." · "The preview couldn't load. Check the connection and press Retry." · "The editor couldn't load. The code is shown read-only, and Play still runs the original." · "This link's code could not be read, so the original example is shown."
+"Starting the preview…" · "Running. Edit the code and the preview updates as you type." · "Press Play to start the example. Once it runs, edits update it live." · "Loading the editor…" · "Preview updated." · "Line N: <message>. The preview is still running your last working version." · "Stopped: line N: <message>." · "The preview did not start within 10 seconds." · "The preview couldn't load. Check the connection and press Retry." · "The editor couldn't load. The code is shown read-only, and Play still runs the original." · "This link's code could not be read, so the original example is shown."
 
 The status line is visible text, not a tooltip, because touch has no hover. It is the editor's `aria-describedby`.
 
@@ -388,7 +390,7 @@ Where the numbers come from: the editor, runtime, CSS and resource figures were 
 | One compile of a 100-line example | 4× CPU, warm worker | ≤ 50 ms (Node on the measuring machine: Babel's parse and sucrase together 4.85 ms warm on the 102-line `core-camera-2d.ts`; cold, Babel 19.5 ms and sucrase 12 to 14 ms on `shapes-rects.ts`) |
 | Frames alive | 50 edits in a row | never more than 2; exactly 1 once settled |
 
-`tests/examples-gallery.test.ts`'s "does not start the demo until Play is pressed" exists because a demo that started on arrival cost `/examples` 8.8 s of TBT (QB.3h). Its replacement pins the stronger rule: an example page requests nothing under `/playground/`, no editor chunk and no worker until the reader taps or focuses the code, presses Play, or arrives with a share link.
+`tests/examples-gallery.test.ts`'s "does not start the demo until Play is pressed" exists because a demo that started on arrival cost `/examples` 8.8 s of TBT (QB.3h). The Owner's PLAY-D1 now starts the example on arrival, so the lesson is kept differently: the index page `/examples` runs nothing; an example page starts its frame only after `load` and only when the preview is near the screen, so the frame's work falls after the page's own; the editor chunk and the worker still wait for a tap or focus on the code or a share link; and Lighthouse runs on `/examples/core-basic-window` and on the heaviest example page, `/examples/shapes-rects`, with the budgets above (R-9). Its replacement test pins: no request under `/playground/` before `load`; none at all under reduced motion until Play; no editor chunk and no worker until a tap, focus or share link.
 
 ## 11. Security
 
@@ -455,7 +457,7 @@ Exact versions, pinned in the owning repo's `package.json` and lockfile. A newer
 | `zod` | 4.6.6 | MIT | framework, playground runtime | the examples' import and the runtime's schemas |
 | `effect` | 3.22.2 | MIT | framework, playground runtime | the runtime (ADR 0003) |
 | `koota` | 0.6.6 | ISC | framework, playground runtime | the sim's ECS (ADR 0001) |
-| `@ruken/sdk-host` | vendored `0.0.0` | none declared in its `package.json` (PLAY-D16) | framework, playground runtime | the in-memory fake host |
+| `@ruken/sdk-host` | vendored `0.0.0` | MIT since RukenApp PR #396 (2026-10-30), once `vendor/ruken` is repacked (PLAY-D16) | framework, playground runtime | the in-memory fake host |
 
 Versions and licences are as published on npm on 2026-10-30, and for the framework's packages as pinned in its `docs/versions.md`. The playground build's `manifest.json` lists every bundled package with the version and licence read from its installed `package.json`, so the site never types a licence by hand. The site's own `zod` (4.6.5, for its data schemas) is a separate copy in a separate document and never meets the runtime's.
 
@@ -518,7 +520,7 @@ Each case passes in Chromium and in WebKit unless it says otherwise.
 | ID | Success | Failure |
 | --- | --- | --- |
 | A-1 Live update | In `shapes-rects`, changing `0x00cdf9` to `0xff0000` puts red pixels (more than 100 within tolerance) into a screenshot of the preview within 1,000 ms of the last keystroke, median of 10, Chromium at 4× CPU; within 500 ms unthrottled. No button is pressed. | Any edit after the first run that needs a button to show; a slower median. |
-| A-2 First edit starts it | On a fresh page, the first edit starts the preview with that edit, within 4,000 ms on simulated slow 4G and 4× CPU. | The preview stays at rest after an edit (except under reduced motion). |
+| A-2 Runs on arrival | On a fresh page, with no input, the original reaches `running` and draws within 4,000 ms of navigation on simulated slow 4G and 4× CPU; the first edit then updates it live. | The preview stays on its poster without a press (except under reduced motion); a request under `/playground/` before `load`. |
 | A-3 Syntax error | Adding the line `const broken = 1 +;` inside a system marks that line and names it in the status line within 400 ms; `data-run-id` does not change and the frame is not replaced; fixing it runs the fix. | The preview blanks, restarts or freezes; the wrong line is marked. |
 | A-4 Import rule | `import _ from 'lodash'` marks that line with the import message; the preview keeps running. | A request for `lodash`; the preview changes. |
 | A-5 Runtime errors | `throw new Error('x')` in `setup` shows "Line N: x" and keeps the running preview. A throw on a later tick shows "Stopped: line N: x" over the stopped preview; the next good edit runs. | A blank preview; a lost error; no line when the stack has one. |
@@ -527,9 +529,9 @@ Each case passes in Chromium and in WebKit unless it says otherwise.
 | A-8 Reset | Reset makes the editor's text equal the synced framework file byte for byte, removes the fragment and runs the original; Mod-Z brings the edit back. | Any difference from the synced file; Reset shown with no edit. |
 | A-9 Share link | After an edit, opening `location.href` in a new browser context shows the edited code and runs it. A corrupted payload shows the original and the "could not be read" message; an oversized one is refused the same way. | A different text; an uncaught error; the decoded text treated as anything but text. |
 | A-10 Determinism | Unedited `shapes-rects` shows "replay … to the golden"; edited shows "Your edit: … in this browser"; `core-basic-window` shows no row. | A pass claimed for edited code; a hash in `src/`. |
-| A-11 Arrival | Loading an example page requests nothing under `/playground/`, no editor chunk and no worker until a tap, focus, Play or share link; Lighthouse and `check:site` pass on `/examples` and `/examples/core-basic-window`. | Any of those requests on arrival; a budget missed. |
+| A-11 Arrival | Loading `/examples` requests nothing under `/playground/`. An example page requests nothing under `/playground/` before `load`, and no editor chunk and no worker until a tap, focus or share link. Lighthouse and `check:site` pass on `/examples`, `/examples/core-basic-window` and `/examples/shapes-rects`. | Any of those requests early; a budget missed. |
 | A-12 Sandbox | Inside the frame: `fetch('https://example.com/')` is blocked; `eval('1')` throws; `localStorage` throws; `parent.document` throws; setting `top.location` is blocked. The parent drops a message with the wrong source, origin, shape or run id. No cookies or storage keys after a session. | Any of those succeeds. |
-| A-13 Reduced motion | With `reducedMotion: 'reduce'`, an edit does not start the preview; after Play, the next edit updates it live. | A run before Play. |
+| A-13 Reduced motion | With `reducedMotion: 'reduce'`, the poster and Play show, nothing under `/playground/` is requested, and an edit does not start the preview; after Play, the next edit updates it live. | A run or a `/playground/` request before Play. |
 | A-14 Layout | 375×667: one column with the Preview toggle; 768×1024 and 1280×800: side by side with the preview sticky; 780×270: side by side within the height. No horizontal overflow; every control at least 44 px and Play 48 px; the code box the same size before and after the editor arrives; at phone width, changing only the viewport height leaves the preview's box and `data-run-id` as they were. | Overflow; a smaller target; a shift; a reload or resize of the game. |
 | A-15 Keyboard and screen readers | Tab enters and leaves the editor with a visible ring and no trap; "/" types a slash in the editor; the editor and frame have their accessible names; axe has no violations at 375 and 1280. | A trap, a missing ring or name, an axe violation. |
 | A-16 Soak | Fifty edits in a row never leave more than two frames and settle at one; no console errors. | A third frame; a leaked frame; a console error. |
@@ -546,10 +548,10 @@ PR-sized, each test-first: the named failing test is written and seen to fail fo
 | WEB.PLAY.1 | framework, integration | Feasibility proof in a `playground` Playwright project (Chromium, WebKit, Firefox): a test frame page under the §11.2 policy in a `sandbox="allow-scripts"` frame loads site modules (`'self'` resolves to the site), the import map resolves bare imports inside a Blob module, `eval` and another-origin `fetch` are refused, the §11.3 headers are needed and sufficient, and whether a second fresh frame reuses the HTTP cache (the R-1 measurement, recorded with its numbers) | "a Blob module in an opaque-origin frame imports `zod` through the import map", failing because no frame page exists | WEB.PLAY.0 |
 | WEB.PLAY.2 | framework, integration (game lane reviews `runGame` use) | The protocol module, `frame.js`, the harness (`runExample`, `checkGolden`, `hashRun`, `isDefinedGame`), the loop guard, error capture with lines, `playgroundFramePage` | "`shapes-rects` posts `running` in its frame", then one test per message and per failure in §7.2 | WEB.PLAY.1, PLAY-D11 |
 | WEB.PLAY.3 | framework, integration | `build:playground`: one Vite build to `dist-playground/` (§5.5) with the catalog file, manifest (sha256, bytes, licences, commit), the import map and policy hash; a size test at 460 kB gzip; all 17 examples pass A-17 | "the manifest lists every file in `dist-playground` with its sha256", failing because the build does not exist | WEB.PLAY.2, PLAY-D16 |
-| WEB.PLAY.4 | site | `scripts/sync-playground.ts` and a sync that works against framework `main`: `RAW_DEMOS` cut to the bundles still used (`base-2d`, the workshop), `prepareDemoHosting`'s `boot-and-flow` copy removed, `framework.ref` moved to a commit with WEB.PLAY.3, the protocol copy and its identity test, the §11.3 headers in `serve-static.ts` and the Vite dev server; `builtPages`, `readFontFaces` and the sitemap leave `playground/` out, as they leave `demos/` out (frame pages are not site pages) | "`static/playground/manifest.json` names the commit in `framework.ref`", and "`serve-static` answers `/playground/runtime/x.js` with `access-control-allow-origin: *`" | WEB.PLAY.3 |
-| WEB.PLAY.5 | site | `/examples` index and the prerendered `/examples/<id>` pages from `examples.json`; static code (exact source); the preview with Play, the orchestrator's frame handling, timeouts and message checks; the old gallery tests (`examples.test.ts`, `examples-gallery.test.ts`, `source-explorer.test.ts`, `demo-navigation.test.ts`) rewritten for the new pages; old `?demo=` links land on the index; Lighthouse gains `/examples/core-basic-window` | "an example page requests nothing under `/playground/` before Play" and "the orchestrator drops a message whose origin is not `null`" | WEB.PLAY.4 |
+| WEB.PLAY.4 | site | `scripts/sync-playground.ts` and a sync that works against framework `main`: `RAW_DEMOS` cut to the bundles still used (`base-2d`, the workshop), `prepareDemoHosting`'s `boot-and-flow` copy removed, `framework.ref` moved to a commit with WEB.PLAY.3, the protocol copy and its identity test, `compileExample` (§5.2, the pure function; the worker comes in WEB.PLAY.7) and the precompiled originals in `static/playground/compiled/`, the §11.3 headers in `serve-static.ts` and the Vite dev server; `builtPages`, `readFontFaces` and the sitemap leave `playground/` out, as they leave `demos/` out (frame pages are not site pages) | "`static/playground/manifest.json` names the commit in `framework.ref`", and "`serve-static` answers `/playground/runtime/x.js` with `access-control-allow-origin: *`" | WEB.PLAY.3 |
+| WEB.PLAY.5 | site | `/examples` index and the prerendered `/examples/<id>` pages from `examples.json`; static code (exact source); the preview running the precompiled original on arrival (PLAY-D1), the reduced-motion poster with Play, the orchestrator's frame handling, timeouts and message checks; the old gallery tests (`examples.test.ts`, `examples-gallery.test.ts`, `source-explorer.test.ts`, `demo-navigation.test.ts`) rewritten for the new pages; old `?demo=` links land on the index; Lighthouse gains `/examples/core-basic-window` and `/examples/shapes-rects` | "an example page starts the original after `load` with no input", "with reduced motion an example page requests nothing under `/playground/` before Play" and "the orchestrator drops a message whose origin is not `null`" | WEB.PLAY.4 |
 | WEB.PLAY.6 | site | The editor: CodeMirror on first tap or focus, caret at the tap, the same box (§9.3), accessible name, focus ring, no Tab binding, 16 px text, line wrapping; the editor-load failure state; the bytes budget in `check:site` (editor chunk never preloaded, at most 175 kB gzip) | "the code box keeps its size when the editor replaces the static code" (real browser) | WEB.PLAY.5 |
-| WEB.PLAY.7 | site | Live updates: the compile worker (§5.2), the quiet period, latest-wins, the double-buffered swap, syntax and import diagnostics at their lines with the last good preview kept, first run on first edit (PLAY-D1), the reduced-motion rule | A-1's journey, failing because an edit changes nothing | WEB.PLAY.6 |
+| WEB.PLAY.7 | site | Live updates: the compile worker (§5.2) around WEB.PLAY.4's `compileExample`, the quiet period, latest-wins, the double-buffered swap, syntax and import diagnostics at their lines with the last good preview kept, an edit before the first run replacing it, the reduced-motion rule | A-1's journey, failing because an edit changes nothing | WEB.PLAY.6 |
 | WEB.PLAY.8 | site | Failure and recovery: runtime errors at boot and while running with their lines, the hang message, the boot timeouts, the worker-failure and offline states with Retry | one test per row of §7.2 not covered by WEB.PLAY.7, starting with A-6 | WEB.PLAY.7 |
 | WEB.PLAY.9 | site | Reset (undoable), the share link (§5.6) with Copy link, opening a link (F9), the privacy page sentence | A-9's round trip, failing because the URL carries nothing | WEB.PLAY.7 |
 | WEB.PLAY.10 | site | The determinism row (§13) | A-10, failing because no row exists | WEB.PLAY.7 |
@@ -561,7 +563,7 @@ WEB.PLAY.8, .9 and .10 can run in parallel after WEB.PLAY.7. WEB.PLAY.6's editor
 
 | ID | Question | Recommended default | Alternatives |
 | --- | --- | --- | --- |
-| PLAY-D1 | When does the first run start? | On the first edit or on Play, whichever comes first; a share link runs on arrival. Never on arrival otherwise, never on focus alone. After the first run every edit updates live. | Run on arrival (fails the QB.3h TBT lesson and the reduced-motion gate); run on first focus (spins up WebGL for a reader who only tabbed through). |
+| PLAY-D1 | When does the first run start? | **Owner, 2026-10-30:** an example runs as soon as its page opens and updates live on every edit (300 ms quiet period); with reduced motion a still poster shows and a Play control starts it. The frame starts after `load` and when the preview is near the screen (F1, R-9). | (The draft's default, superseded: on the first edit or on Play, never on arrival.) Run on first focus (spins up WebGL for a reader who only tabbed through). |
 | PLAY-D2 | Which editor, and how smart? | CodeMirror 6, self-hosted, syntax highlighting and diagnostics, no type checking or AF completions in v1. Completions from the framework's generated API index can be a follow-up. | Monaco with TypeScript as pixijs.com has (≈ 2.2 MB gzip with its worker, mobile unsupported). |
 | PLAY-D3 | How is code compiled? | In a worker: Babel's parser for errors and the checks, sucrase to strip the types; an import map to the framework's prebuilt bundles; no bundler. | Sandpack with its hosted bundler; esbuild-wasm; sucrase alone (72 kB gzip lighter, but it puts an error inside a system at the system's first line). |
 | PLAY-D4 | Where does the code run? | An opaque-origin sandbox (`allow-scripts` only) on the site's own origin, one generated frame page per example, the §11.2 policy, the §11.3 headers. | A same-origin frame (a shared link would run as the site); a separate preview origin (a third-party origin to the gates and the privacy page). |
@@ -576,7 +578,7 @@ WEB.PLAY.8, .9 and .10 can run in parallel after WEB.PLAY.7. WEB.PLAY.6's editor
 | PLAY-D13 | Order against M10.0? | Build it now, under this direction; the M10.0 website spec takes this spec as its examples section. | Wait for M10.0. |
 | PLAY-D14 | Phone portrait layout? | Preview above the code, a Preview toggle to hide and show it without resizing the game; side by side from 700 px. | Editor or preview, one at a time, as pixijs.com does. |
 | PLAY-D15 | When does the loop guard stop a loop? | When one stretch of synchronous work has been running loops for 1,000 ms without returning to the event loop. | 500 ms (stops slow but legitimate setup on a slow phone); none (an infinite loop freezes the tab). |
-| PLAY-D16 | May the public site serve Ruken's fake host? | Yes. The playground bundles `createFakeHost` from the vendored `@ruken/sdk-host` (39 kB built), which game developers already get for their tests; its `package.json` declares no licence, so the Owner confirms before WEB.PLAY.3 publishes it. | A small host written in the framework instead (it would redefine Ruken behaviour, against "Ruken first"); no host (`core-saves`, `core-leaderboard` and `core-host-lifecycle` lose their saves and scores in the playground). |
+| PLAY-D16 | May the public site serve Ruken's fake host? | **Approved (Owner, 2026-10-30).** The playground bundles `createFakeHost` from the vendored `@ruken/sdk-host` (39 kB built). The Owner made Ruken's `sdk`, `sdk-host`, `manifest` and `cli` MIT on 2026-10-30 (RukenApp PR #396), and the framework's coordinator repacks `vendor/ruken` from that release; WEB.PLAY.3's manifest reads the licence from the repacked `package.json`. | A small host written in the framework instead (it would redefine Ruken behaviour, against "Ruken first"); no host (`core-saves`, `core-leaderboard` and `core-host-lifecycle` lose their saves and scores in the playground). |
 
 ## 19. Risks
 
@@ -590,6 +592,7 @@ WEB.PLAY.8, .9 and .10 can run in parallel after WEB.PLAY.7. WEB.PLAY.6's editor
 | R-6 | A `new Function` path in the full `zod` facade that nobody has traced yet surfaces under the no-eval policy. | A-17 in all three engines. | A framework fix (as no-eval did for Pixi and Zod's JIT); never `'unsafe-eval'` in the frame. |
 | R-7 | The production host is undecided and may not send the §11.3 headers. | QB.4's header set lists them; DX.12's deploy check requests one `/playground/runtime/` file with `Origin: null`. | The playground cannot ship to production until it does. |
 | R-8 | The re-sync to framework `main` changes more of the site than the examples (docs, stack page, evidence, the Emberwick bundle). | WEB.PLAY.4 runs `pnpm sync` as a whole and reviews the diff. | Split a plain re-sync PR out of WEB.PLAY.4, as QB.3g did. |
+| R-9 | Running on arrival (PLAY-D1) adds the runtime's download and WebGL start to every example page, which can cost TBT and LCP on a mid phone, as the folder demos did (QB.3h, 8.8 s of TBT). The frame shares the page's process in some engines. | Lighthouse on `/examples/core-basic-window` and `/examples/shapes-rects` in WEB.PLAY.5, with the frame running. | Start the frame on the first idle callback after `load` as well, and keep the poster as the LCP element; if the budget still fails, the evidence goes to the Owner with the measured numbers before any budget changes. |
 
 ## 20. Sources
 
