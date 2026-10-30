@@ -91,3 +91,26 @@ test('following a link to another example replaces the preview with that example
   await expect(page.locator('.playground iframe')).toHaveCount(1)
   await expect(page.locator('.playground iframe')).toHaveAttribute('src', '/playground/examples/core/basic-window/')
 })
+
+// WEB.PLAY.6 (spec F2, §9.2, §9.3): the first tap or focus on the code swaps in the editor, in the same box.
+const staticCode = (page: Page) => page.getByTestId('static-code')
+const box = async (page: Page, selector: string) => (await page.locator(selector).boundingBox())!
+
+/** Taps the middle of line `line` (1-based) of the static code and waits for the editor. */
+async function tapLine(page: Page, line: number) {
+  const target = (await staticCode(page).locator('.line').nth(line - 1).boundingBox())!
+  await page.mouse.click(target.x + target.width / 2, target.y + target.height / 2)
+  await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
+}
+
+test('the code box keeps its size when the editor replaces the static code', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  await staticCode(page).locator('.line').nth(9).scrollIntoViewIfNeeded()
+  const panelBefore = await box(page, '.code-panel')
+  const codeBefore = await box(page, '[data-testid="static-code"]')
+  await tapLine(page, 10)
+  await expect(staticCode(page)).toBeHidden()
+  expect(await box(page, '.code-panel')).toEqual(panelBefore)
+  expect(await box(page, '.code-panel .cm-editor')).toEqual(codeBefore)
+})

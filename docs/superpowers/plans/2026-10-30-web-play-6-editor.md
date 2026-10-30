@@ -47,7 +47,7 @@ Out of this task: compiling edits and the live preview (.7, so an edit changes n
 
 | File | Create / modify | Responsibility |
 | --- | --- | --- |
-| `package.json`, `pnpm-lock.yaml` | modify | Exact pins: `codemirror` 6.0.2, `@codemirror/lang-javascript` 6.2.4, `@codemirror/state` 6.7.6, `@codemirror/view` 6.43.15 (§12), and the versions `codemirror` 6.0.2 resolves for the packages the editor imports directly: `@codemirror/language` 6.13.1, `@codemirror/commands` 6.11.1, `@codemirror/search` 6.7.2, `@lezer/highlight` 1.2.5 |
+| `package.json`, `pnpm-lock.yaml` | modify | Exact pins: `@codemirror/lang-javascript` 6.2.4, `@codemirror/state` 6.7.6, `@codemirror/view` 6.43.15 (§12), and the versions `codemirror` 6.0.2 resolves for the packages the editor imports directly: `@codemirror/language` 6.13.1, `@codemirror/commands` 6.11.1, `@codemirror/search` 6.7.2, `@lezer/highlight` 1.2.5 |
 | `src/lib/playground/highlight.ts` | create | `highlightLines` (server side, at prerender) |
 | `src/lib/playground/caret.ts` | create | the tap's source offset |
 | `src/lib/playground/editor.ts` | create | the CodeMirror extensions, theme, keymaps, content attributes |
@@ -63,16 +63,16 @@ Out of this task: compiling edits and the live preview (.7, so an edit changes n
 
 ## Steps (each test fails first, for the reason given)
 
-- [ ] 1. **First failing test** (e2e, Chromium and WebKit): "the code box keeps its size when the editor replaces the
+- [x] 1. **First failing test** (e2e, Chromium and WebKit): "the code box keeps its size when the editor replaces the
   static code". Open `/examples/shapes-rects`, measure the code box (`.code-panel`) and the code area, tap line 10,
   wait for `data-code="ready"`, measure again; equal to the pixel. Fails: `data-code` stays `static` (no editor).
-- [ ] 2. Unit `highlight.test.ts`: pieces join to the source; keywords and strings carry `tok-*` classes; a file
+- [x] 2. Unit `highlight.test.ts`: pieces join to the source; keywords and strings carry `tok-*` classes; a file
   ending in a newline gives an empty last line, as the static box shows. Fails: no module. Then `highlight.ts`.
-- [ ] 3. Unit `caret.test.ts` (jsdom): offsets across highlighted spans on several lines; a position outside the code
+- [x] 3. Unit `caret.test.ts` (jsdom): offsets across highlighted spans on several lines; a position outside the code
   gives `null`. Fails: no module. Then `caret.ts`.
-- [ ] 4. DOM `examples-pages.test.ts`: the static code's text is the source byte for byte with highlighting, and its
+- [x] 4. DOM `examples-pages.test.ts`: the static code's text is the source byte for byte with highlighting, and its
   tokens carry `tok-*` classes. Fails: no classes. Then the loader passes `highlighted`, `CodePanel` renders it.
-- [ ] 5. `editor.ts`, the upgrade in `CodePanel`, `data-code` in `Playground`, the shared theme; step 1 passes on both
+- [x] 5. `editor.ts`, the upgrade in `CodePanel`, `data-code` in `Playground`, the shared theme; step 1 passes on both
   browsers.
 - [ ] 6. e2e: "a tap starts editing with the caret at the tap": tap the middle of a known word on line 10; typing a
   character inserts it there (the editor's text equals the source with the character at that offset); focus is in
@@ -114,3 +114,12 @@ because nothing loads before a tap).
   already resolves; no new code reaches the chunk. It composes those pieces instead of `basicSetup`, because
   `basicSetup`'s fold gutter, autocompletion and bracket closing would widen the gutter (a layout shift) and add
   behaviour the spec does not ask for. `@codemirror/lint` joins with the diagnostics in WEB.PLAY.7.
+- Steps 1–5: the box test failed first with `data-code` staying `static`. Two causes of a shift, both fixed and
+  covered by it: the site's `* { box-sizing: border-box }` made the gutter's `min-width: 3ch` include its padding
+  (10 px narrow), and `pre code` reset `overflow-wrap`, so the static code wrapped differently from
+  `EditorView.lineWrapping` (now both `break-spaces`, `anywhere`, `break-word`). Then CodeMirror's height estimates for
+  the lines it had not drawn put shapes-rects' editor 144 px short; one measure in its print mode (which draws every
+  line) at mount fixes it. That reads `viewState.printing`, an internal of the pinned `@codemirror/view` 6.43.15
+  (dispatching `beforeprint` does nothing, because it listens to the `print` media query). Box test: Chromium and
+  WebKit pass.
+- `codemirror` (the meta package) is not a dependency after all: the editor uses none of its exports.

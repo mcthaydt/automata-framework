@@ -3,7 +3,8 @@
   import InlineText from '$lib/components/InlineText.svelte'
   import Playground from '$lib/playground/Playground.svelte'
   import { difficultyStars, type Example, type ExampleGroup } from '../../../data/examples'
-  let { data }: { data: { example: Example; index: ExampleGroup[] } } = $props()
+  import type { HighlightedLine } from '$lib/playground/highlight'
+  let { data }: { data: { example: Example; highlighted: HighlightedLine[]; index: ExampleGroup[] } } = $props()
   let example = $derived(data.example)
 </script>
 <PageMeta title={example.id + ': ' + example.title} description={example.shows.replaceAll('`', '')} />
@@ -20,7 +21,7 @@
         <div><dt>Difficulty</dt><dd aria-label={'Difficulty ' + example.difficulty + ' of 4'}>{difficultyStars(example.difficulty)}</dd></div>
         <div><dt>Packages</dt><dd>{example.packages.join(', ')}</dd></div>
       </dl>
-      {#key example.id}<Playground {example} />{/key}
+      {#key example.id}<Playground {example} highlighted={data.highlighted} />{/key}
     </article>
   </div>
 </div>
