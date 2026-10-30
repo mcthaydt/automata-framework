@@ -23,8 +23,8 @@ export interface EntityView {
 export type EntityViewFactory = (row: RenderRow, componentId?: string) => EntityView | undefined
 
 /**
- * Which view an entity gets: one factory for every entity, or factories by component id (the first component
- * the entity has wins).
+ * Which view an entity gets: one factory for every entity, or factories by component id (the first id, in the
+ * record's own key order, whose component the entity has wins).
  */
 export type EntityViewResolver = EntityViewFactory | Readonly<Record<string, EntityViewFactory>>
 

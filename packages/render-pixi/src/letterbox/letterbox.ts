@@ -2,7 +2,8 @@ import { classifyFormFactor } from '@mcthaydt/automata-ui'
 import { Container, Graphics } from 'pixi.js'
 
 /**
- * The playfield's top edge in a portrait view, in screen px: room above the field for the host's controls.
+ * The most room above the playfield in a portrait view, in screen px (the HUD's top margin, M1 render-pixi spec):
+ * the field sits this far down, or centred when centring leaves less room above it.
  */
 export const PORTRAIT_FIELD_TOP = 60
 /** How much of the playfield's height each letterbox bar crops in a landscape view, by default (5%). */

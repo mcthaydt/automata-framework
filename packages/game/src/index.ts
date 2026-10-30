@@ -14,8 +14,8 @@ export {
   type SpriteViewOptions,
   sprite,
 } from '@mcthaydt/automata-render-pixi'
-// A save is declared with the runtime's `defineSave` and handed to `defineGame({ saves })` (M5.2); the runtime is not a
-// package a game installs, so the declaration comes through here.
+// A save is declared with the runtime's `defineSave` and handed to `defineGame({ saves })` (M5.2); a game imports
+// only the umbrella (or this package), never the runtime, so the declaration comes through here.
 export {
   type AutosavePolicy,
   type AutosaveTrigger,

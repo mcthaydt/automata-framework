@@ -23,9 +23,17 @@ const CONTENT_TYPES: Readonly<Record<string, string>> = {
   '.wasm': 'application/wasm',
 }
 
-/** The file below `root` that `url` names (`/` is `index.html`), or undefined when it would leave `root`. */
-function fileFor(root: string, url: string): string | undefined {
-  const path = decodeURIComponent(new URL(url, 'http://local').pathname)
+/**
+ * The file below `root` that `url` names (`/` is `index.html`), undefined when it would leave `root`, or null when
+ * its path is not a valid percent-encoding (`decodeURIComponent` throws `URIError`, e.g. `/%E0%A4%A`).
+ */
+function fileFor(root: string, url: string): string | undefined | null {
+  let path: string
+  try {
+    path = decodeURIComponent(new URL(url, 'http://local').pathname)
+  } catch {
+    return null
+  }
   const relative = normalize(path.endsWith('/') ? `${path}index.html` : path).replace(/^[/\\]+/, '')
   if (relative.split(sep).includes('..')) return undefined
   return join(root, relative)
@@ -35,6 +43,11 @@ function fileFor(root: string, url: string): string | undefined {
 export function serveStatic(root: string, headers: Readonly<Record<string, string>>): Promise<StaticServer> {
   const server = createServer((request, response) => {
     const file = fileFor(root, request.url ?? '/')
+    if (file === null) {
+      response.writeHead(400, headers)
+      response.end()
+      return
+    }
     const answer = async (): Promise<void> => {
       if (file === undefined) throw new Error('outside the build')
       const body = await readFile(file)

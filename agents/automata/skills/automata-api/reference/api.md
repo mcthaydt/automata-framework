@@ -976,7 +976,8 @@ type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>
 
 An input map sending `command` once per tick with the payload of what is held: keys by
 `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the
-idle payload. Throws when a binding's payload fails the command's schema.
+idle payload. Throws when a binding's payload fails the command's schema, and when a key in `options.required` has
+no binding.
 
 ```ts
 function keys<Z extends z.ZodType>(
@@ -2857,7 +2858,8 @@ type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
 
 An input map sending `command` once per tick with the payload of what is held: keys by
 `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the
-idle payload. Throws when a binding's payload fails the command's schema.
+idle payload. Throws when a binding's payload fails the command's schema, and when a key in `options.required` has
+no binding.
 
 ```ts
 function keys<Z extends z.ZodType>(command: CommandDef<Z>, bindings: KeyBindings<Z>, options?: KeysOptions<Z>): InputMap;
@@ -4181,8 +4183,8 @@ type EntityViewFactory = (row: RenderRow, componentId?: string) => EntityView | 
 
 #### `EntityViewResolver` (type)
 
-Which view an entity gets: one factory for every entity, or factories by component id (the first component
-the entity has wins).
+Which view an entity gets: one factory for every entity, or factories by component id (the first id, in the
+record's own key order, whose component the entity has wins).
 
 ```ts
 type EntityViewResolver = EntityViewFactory | Readonly<Record<string, EntityViewFactory>>;
@@ -4441,7 +4443,8 @@ interface PixiStageHooks {
 
 #### `PORTRAIT_FIELD_TOP` (const)
 
-The playfield's top edge in a portrait view, in screen px: room above the field for the host's controls.
+The most room above the playfield in a portrait view, in screen px (the HUD's top margin, M1 render-pixi spec):
+the field sits this far down, or centred when centring leaves less room above it.
 
 ```ts
 const PORTRAIT_FIELD_TOP = 60;

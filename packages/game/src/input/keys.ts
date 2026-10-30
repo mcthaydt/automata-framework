@@ -112,7 +112,8 @@ const asRecord = (value: unknown): Record<string, unknown> =>
 /**
  * An input map sending `command` once per tick with the payload of what is held: keys by
  * `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the
- * idle payload. Throws when a binding's payload fails the command's schema.
+ * idle payload. Throws when a binding's payload fails the command's schema, and when a key in `options.required` has
+ * no binding.
  */
 export function keys<Z extends z.ZodType>(
   command: CommandDef<Z>,

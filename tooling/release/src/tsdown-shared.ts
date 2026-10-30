@@ -32,7 +32,11 @@ export interface PublishedBuildOptions {
   readonly copy?: UserConfig['copy']
   /** One output file per source module instead of one bundle per entry (see the header). */
   readonly unbundle?: boolean
-  /** Vendored Ruken packages imported for their types only, inlined by a later declarations pass (see the header). */
+  /**
+   * Vendored Ruken packages imported for their types only, inlined by a later declarations pass (see the header).
+   * The build allows them as imports, so a value import would build; `test:dist`'s D-8 check, not `pnpm check`,
+   * catches one.
+   */
   readonly rukenTypes?: readonly string[]
 }
 

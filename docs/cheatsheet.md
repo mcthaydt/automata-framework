@@ -291,7 +291,7 @@
 - `DEFAULT_FIELD_COLOR` (const): The default colour behind the playfield, under the world.
 - `EntityView` (interface): What an entity view factory returns: the container drawn for one entity, updated with its current and previous component values and the interpolation alpha, and destroyed when the entity goes.
 - `EntityViewFactory` (type): Builds the view for one entity, or `undefined` to draw nothing.
-- `EntityViewResolver` (type): Which view an entity gets: one factory for every entity, or factories by component id (the first component the entity has wins).
+- `EntityViewResolver` (type): Which view an entity gets: one factory for every entity, or factories by component id (the first id, in the record's own key order, whose component the entity has wins).
 - `FILTER_VERTEX` (const): The GLSL vertex stage every AF filter shares: it passes the texture coordinate and the pixel position (`vPixelCoord`) to the fragment stage.
 - `filterPrograms(name, fragmentGlsl, fragmentWgsl)`: Builds a filter's programs from its GLSL and WGSL fragment stages on the shared vertex stages, so WebGL2 stays at parity with WebGPU (AGENTS.md).
 - `FilterProgramsResult` (interface): A filter's WebGL2 and WebGPU programs, for a Pixi `Filter`'s `glProgram` and `gpuProgram`.
@@ -307,7 +307,7 @@
 - `PixiRendererOptions` (interface): Options for `createPixiRenderer`; every field has a default.
 - `PixiStage` (interface): The Pixi scene the renderer draws, as a game's `setup` sees it: the app, the letterbox's layers, the entity views, the post-filter slot and the quality tier.
 - `PixiStageHooks` (interface): What a `setup` may return to hear every step, frame and reset (DX spec §3.4, DX.3 decision E-1).
-- `PORTRAIT_FIELD_TOP` (const): The playfield's top edge in a portrait view, in screen px: room above the field for the host's controls.
+- `PORTRAIT_FIELD_TOP` (const): The most room above the playfield in a portrait view, in screen px (the HUD's top margin, M1 render-pixi spec): the field sits this far down, or centred when centring leaves less room above it.
 - `portraitFieldHeight(viewHeight, scale, band, baseHeight?)`: The playfield's logical height in a portrait view: what fits below `PORTRAIT_FIELD_TOP` and above the `band` of on-screen controls at `scale`, and never less than `baseHeight`.
 - `Pose` (interface): Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`).
 - `poseComponent(components, componentId?)`: The component a view reads its pose from: the one it was registered under, or (for a bare function resolver, which has no id) the first component in row order with numeric `x` and `y`.
