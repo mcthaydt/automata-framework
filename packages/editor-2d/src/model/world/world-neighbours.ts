@@ -1,9 +1,18 @@
-import type { Project, World } from '../../model/project-types'
-import type { ContentNeighbours } from './content.schema'
+import type { Project, World } from '../project-types'
 
 // Neighbours for room-scrolling games (2D editor spec §5.7 and §6.2): in a `grid` world, the levels whose edge touches
 // a level's edge. A touch needs a span of positive length, so two levels that meet only at a corner are not neighbours.
-// Depth is ignored: a world that stacks levels at different depths is not a room map.
+// Depth is ignored: a world that stacks levels at different depths is not a room map. The export writes these into
+// `world.toml` and the World view shows them, so both read this one rule.
+
+/** One level's neighbours, each side ordered by position and then id. */
+export interface LevelNeighbours {
+  readonly level: string
+  readonly north: readonly string[]
+  readonly east: readonly string[]
+  readonly south: readonly string[]
+  readonly west: readonly string[]
+}
 
 interface Box {
   readonly level: string
@@ -19,7 +28,8 @@ const overlap = (aStart: number, aEnd: number, bStart: number, bEnd: number): bo
 const byColumnThenRow = (a: Box, b: Box): number => a.x - b.x || a.y - b.y || (a.level < b.level ? -1 : 1)
 const byRowThenColumn = (a: Box, b: Box): number => a.y - b.y || a.x - b.x || (a.level < b.level ? -1 : 1)
 
-export function neighboursOf(project: Project, world: World): ContentNeighbours[] {
+/** For every placed level of `world`, the levels that touch it (a placement of a missing level is skipped). */
+export function worldNeighbours(project: Project, world: World): LevelNeighbours[] {
   const boxes: Box[] = world.placements.flatMap((placement) => {
     const level = project.levels.find((candidate) => candidate.id === placement.level)
     if (level === undefined) return []

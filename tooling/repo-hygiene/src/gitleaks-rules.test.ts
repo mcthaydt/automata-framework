@@ -15,11 +15,12 @@ import { ensureRepoGitleaks, GITLEAKS_VERSION } from './gitleaks.ts'
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const config = join(root, '.gitleaks.toml')
 
-// On a cold cache the first run downloads the release, which can outlast vitest's 10 s hook timeout.
 let binary = ''
+// On a cold cache (every CI checkout starts with none) this downloads the pinned gitleaks release, which can take
+// longer than vitest's 10 s hook default on a busy runner: the same 120 s as secret-scan.test.ts.
 beforeAll(async () => {
   binary = await ensureRepoGitleaks(root)
-}, 90_000)
+}, 120_000)
 
 /** Runs only `rule` over empty input: exit 0 ("no leaks found") when the rule exists. */
 function enableOnly(rule: string): { status: number; output: string } {

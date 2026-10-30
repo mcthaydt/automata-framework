@@ -13,7 +13,8 @@
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/turbo.json",
-        "$TURBO_ROOT$/.changeset/**"
+        "$TURBO_ROOT$/.changeset/**",
+        "$TURBO_ROOT$/vendor/ruken/**"
       ]
     },
     "test": {
@@ -27,7 +28,8 @@
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/*/package.json",
         "$TURBO_ROOT$/turbo.json",
-        "$TURBO_ROOT$/.changeset/**"
+        "$TURBO_ROOT$/.changeset/**",
+        "$TURBO_ROOT$/vendor/ruken/**"
       ]
     }
   }

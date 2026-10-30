@@ -13,11 +13,13 @@ const root = fileURLToPath(new URL('../../..', import.meta.url))
 const config = join(root, '.gitleaks.toml')
 const plantedKey = fileURLToPath(new URL('../fixtures/secrets/planted.env', import.meta.url))
 
-// On a cold cache the first run downloads the release, which can outlast vitest's 10 s hook timeout.
 let binary = ''
+// On a cold cache (every CI checkout starts with none) this downloads the pinned gitleaks release, which can take
+// longer than vitest's 10 s hook default on a busy runner (#206's checks job, 2026-10-30): the hook gets its own limit.
+const DOWNLOAD_MS = 120_000
 beforeAll(async () => {
   binary = await ensureRepoGitleaks(root)
-}, 90_000)
+}, DOWNLOAD_MS)
 
 const scratches: string[] = []
 afterEach(() => {
