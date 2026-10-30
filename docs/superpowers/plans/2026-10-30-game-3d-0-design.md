@@ -46,10 +46,13 @@
 | Relative links in both files resolve (a script over every Markdown link target that is not `http` or an anchor) | yes | 15 relative links, all resolve |
 | `TURBO_FORCE=true pnpm check` | omitted: docs only, no package, test or config touched | — |
 | Build, api-report, agent-skills, changeset, parity | omitted: nothing they read changed | — |
-| Owner review of the design doc | pending (Owner gate, never ticked by an agent) | — |
+| Review of the design doc | yes | accepted on review under the Owner's rule of 2026-10-30, "Auto accept all spec and plans"; its veto defaults stand |
 
 ## Execution log
 
 - 2026-10-30: worktree created at `30e9606c`; `pnpm install --frozen-lockfile`; sources read; plan and design doc
   written. `pnpm format`: no fixes. Link check: 15 relative links in the two files, none broken. Pushed to
   `claude/3d-game-3d-0-design`; no PR opened.
+- 2026-10-30: the Owner, 2026-10-30 (relayed by the coordinator): "Auto accept all spec and plans". A spec or plan is
+  accepted once its review is done, so this design doc is accepted on its independent review, and every decision's
+  recommended default stands for the Owner's veto. Visual and device acceptance stay the Owner's.
