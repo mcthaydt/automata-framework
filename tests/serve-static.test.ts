@@ -22,8 +22,13 @@ writeFileSync(join(dir, 'lonely', 'index.html'), html)
 writeFileSync(join(dir, '404.html'), '<title>gone</title>')
 mkdirSync(join(dir, 'playground', 'runtime'), { recursive: true })
 writeFileSync(join(dir, 'playground', 'runtime', 'automata-1a2b.js'), 'export {}')
+const framePage = `<!doctype html><meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self' https://automata.ruken.com; frame-src 'none'" /><title>frame</title>`
 mkdirSync(join(dir, 'playground', 'examples', 'shapes', 'rects'), { recursive: true })
-writeFileSync(join(dir, 'playground', 'examples', 'shapes', 'rects', 'index.html'), html)
+writeFileSync(join(dir, 'playground', 'examples', 'shapes', 'rects', 'index.html'), framePage)
+mkdirSync(join(dir, 'playground', 'examples', 'shapes', 'broken'), { recursive: true })
+writeFileSync(join(dir, 'playground', 'examples', 'shapes', 'broken', 'index.html'), html)
+mkdirSync(join(dir, 'playground', 'examples', 'core', 'basic-window'), { recursive: true })
+writeFileSync(join(dir, 'playground', 'examples', 'core', 'basic-window', 'index.html'), framePage)
 
 const servers: ChildProcess[] = []
 afterAll(() => {
@@ -98,6 +103,21 @@ describe('serve-static', () => {
     const page = await fetch(`${origin}/playground/examples/shapes/rects/`)
     expect(page.headers.get('access-control-allow-origin')).toBe('*')
     expect(page.headers.get('cache-control')).toBe('no-cache')
+  })
+
+  // R-2: the frame page's connect-src names the origin that serves it, so the browser suite's frames can fetch.
+  it('serves a playground frame page with its own origin in connect-src', async () => {
+    const origin = await serve()
+    const response = await fetch(`${origin}/playground/examples/core/basic-window/`)
+    expect(response.status).toBe(200)
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    expect(await response.text()).toBe(framePage.replace('https://automata.ruken.com', origin))
+  })
+
+  it('answers 500 for a frame page with no connect-src origin, and keeps serving', async () => {
+    const origin = await serve()
+    expect((await fetch(`${origin}/playground/examples/shapes/broken/`)).status).toBe(500)
+    expect((await fetch(`${origin}/page`)).status).toBe(200)
   })
 
   it('never caches a missing runtime file for good', async () => {

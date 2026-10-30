@@ -2,13 +2,15 @@
 // `/x/` → `x/index.html`, and anything else → `404.html` with status 404. The Playwright suite runs against it so the
 // browser checks see the prerendered build, not a dev server.
 //   node --import tsx scripts/serve-static.ts <directory> <port> [--compressed]
-// Responses under /playground/ carry the playground's CORS, CORP and cache headers (spec §11.3).
+// Responses under /playground/ carry the playground's CORS, CORP and cache headers (spec §11.3), and a frame page names
+// this server's origin in its connect-src (R-2).
 // `--compressed` is what the Lighthouse budget runs on: it answers with the `.br` or `.gz` sibling that adapter-static
 // wrote next to each file when the request accepts it, as the production host will, so transfer sizes are real.
-import { createReadStream, existsSync, statSync } from 'node:fs'
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { extname, join, resolve, sep } from 'node:path'
 import { playgroundHeaders } from '../src/lib/playground/headers'
+import { framePageForOrigin, isFramePage } from './playground-origin'
 
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
@@ -65,6 +67,18 @@ createServer((request, response) => {
   const sibling = compressed ? encodedSibling(path, request.headers['accept-encoding']) : undefined
   if (compressed) headers.vary = 'Accept-Encoding'
   if (sibling) headers['content-encoding'] = sibling.encoding
+  if (status === 200 && isFramePage(url.pathname)) {
+    let page: string
+    try {
+      page = framePageForOrigin(readFileSync(path, 'utf8'), `http://127.0.0.1:${port}`)
+    } catch (error) {
+      response.writeHead(500, { 'content-type': 'text/plain' }).end(String(error))
+      return
+    }
+    response.writeHead(status, headers)
+    response.end(request.method === 'HEAD' ? undefined : page)
+    return
+  }
   response.writeHead(status, headers)
   if (request.method === 'HEAD') { response.end(); return }
   createReadStream(sibling?.path ?? path).pipe(response)
