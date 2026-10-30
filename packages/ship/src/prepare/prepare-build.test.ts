@@ -154,6 +154,40 @@ describe('prepareBuild', () => {
     })
   })
 
+  // X-b and S7-g (M3 spec §4.8): the closed beta never reaches a public build, and its extras never reach any.
+  describe('@pixi/3d in the build', () => {
+    const with3d = () => {
+      const dir = dist()
+      writeFileSync(join(dir, 'assets/main.js'), 'throw Error("View3D.screenToRay:degenerate")')
+      return dir
+    }
+
+    it('stops a public build that contains @pixi/3d, with the D-1 reason, writing nothing', () => {
+      const dir = with3d()
+      const error = failure(prepare({ distDir: dir, config }))
+      expect(error._tag).toBe('Pixi3dInPublicBuild')
+      const message = (error as unknown as { message: string }).message
+      expect(message).toContain('assets/main.js')
+      expect(message).toContain('D-1')
+      expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+    })
+
+    it('prepares a private build (the dev host, Ruken’s local stack) that contains @pixi/3d', () => {
+      const dir = with3d()
+      expect(Effect.runSync(prepare({ distDir: dir, config, audience: 'private' })).manifestPath).toBe(
+        join(dir, 'ruken.toml'),
+      )
+    })
+
+    it('stops any build that contains @pixi/3d/extras, private too', () => {
+      const dir = dist()
+      writeFileSync(join(dir, 'assets/main.js'), 'const s = "ctx.packedFrames"')
+      const error = failure(prepare({ distDir: dir, config, audience: 'private' }))
+      expect(error._tag).toBe('Pixi3dExtrasInBuild')
+      expect((error as unknown as { message: string }).message).toContain('assets/main.js')
+    })
+  })
+
   it('stops on a manifest Ruken refuses, writing nothing', () => {
     const dir = dist()
     const bad = { ...config, content: { ...config.content, languages: ['fr'] } }

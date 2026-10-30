@@ -1,6 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
-import * as physicsDemo from './examples/physics/bodies-2d/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
 import * as base2d from './games/emberwick/e2e/origins.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './games/placeholder/e2e/origins.ts'
@@ -86,11 +85,18 @@ const journeys = defineConfig({
       testIgnore: MATRIX_SPEC,
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
     },
+    // The 3D examples in WebKit too (M3.4a): the other projects are Chromium, and headless Firefox here has no WebGL.
+    {
+      name: 'examples-webkit',
+      testDir: '.',
+      testMatch: 'examples/e2e/render3d-*.e2e.ts',
+      use: { ...devices['iPhone 14 landscape'] },
+    },
     // The feature demos on base-2d, each under the shared fake host (tooling/examples-runner/host).
     {
       name: 'demos',
       testDir: 'examples',
-      testMatch: ['content/*/e2e/*.e2e.ts', 'physics/*/e2e/*.e2e.ts'],
+      testMatch: ['content/*/e2e/*.e2e.ts'],
       use: { ...devices['Pixel 7'] },
     },
     ...matrixProjects,
@@ -166,12 +172,6 @@ const journeys = defineConfig({
       command: 'pnpm --filter @af-examples/content-hot-reload e2e:demo',
       url: contentDemo.url,
       env: { AF_E2E_DEMO_PORT: String(contentDemo.port) },
-      reuseExistingServer: process.env.CI === undefined,
-    },
-    {
-      command: 'pnpm --filter @af-examples/physics-bodies-2d e2e:demo',
-      url: physicsDemo.url,
-      env: { AF_E2E_DEMO_PORT: String(physicsDemo.port) },
       reuseExistingServer: process.env.CI === undefined,
     },
     {

@@ -1,4 +1,6 @@
 // The package's public entry: what a consumer can import, and what stays inside.
+
+import { cameraView } from '@mcthaydt/automata-render-pixi3d/camera-view'
 import { describe, expect, it } from 'vitest'
 import * as editor3d from './index'
 
@@ -88,6 +90,34 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the materials, the material picker and the Walk controller (ED3D.8a)', () => {
+    for (const name of [
+      'LAST_LIGHT_NO_LIST',
+      'applyMaterial',
+      'materialOf',
+      'createMaterialPicker',
+      'createWalkController',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
+  it('exports the definition edits, the af-sector materials-table edits and the new-level template', () => {
+    for (const name of [
+      'addDefinition',
+      'renameDefinition',
+      'setDefinitionField',
+      'removeDefinition',
+      'addMaterial',
+      'setMaterial',
+      'renameMaterial',
+      'removeMaterial',
+      'newAfSectorLevel',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it("exports the entity model: the definition, the reader and both formats' kits", () => {
     for (const name of [
       'thingDefSchema',
@@ -163,29 +193,34 @@ describe('public entry', () => {
 
   it('exports the free heading, in the game’s turn units, and not the eight-heading preview it replaces', () => {
     for (const name of [
-      'TURN_UNITS',
       'DEGREES_PER_PIXEL',
-      'wrapHeading',
-      'turnHeading',
       'dragTurn',
       'headingToYaw',
       'yawToHeading',
       'headingToDeg',
-      'degToHeading',
       'wallsSeenFrom',
       'headingView',
       'headingSweep',
     ])
       expect(editor3d, name).toHaveProperty(name)
     for (const name of ['HEADINGS', 'headingPreview']) expect(editor3d, name).not.toHaveProperty(name)
+    // The heading's own maths has one owner, render-pixi3d's `./camera-view` (M3 spec §4.2, amended 2026-10-30).
+    for (const name of ['TURN_UNITS', 'wrapHeading', 'turnHeading', 'degToHeading'])
+      expect(editor3d, name).not.toHaveProperty(name)
   })
 
-  it('exports the follow camera of a room: the view, its defaults and ranges, and the camera the game puts on a player', () => {
-    for (const name of ['CAMERA_DEFAULTS', 'CAMERA_RANGES', 'cameraViewSpec', 'followCamera', 'roomView'])
-      expect(editor3d, name).toHaveProperty(name)
-    // The shapes are types, so this is checked by the compiler: the entry names them.
-    const spec: editor3d.CameraViewSpec = editor3d.cameraViewSpec({ id: 'hall' })
-    const view: Pick<editor3d.RoomView, 'rotate'> = { rotate: spec.rotate }
+  it('exports the follow camera of a room and the camera the game puts on a player, on the owner’s camera-view', () => {
+    for (const name of ['followCamera', 'roomView']) expect(editor3d, name).toHaveProperty(name)
+    // `camera-view` has one owner, render-pixi3d's `./camera-view` (M3 spec §4.2, amended 2026-10-30): the editor
+    // keeps no copy of the view's shape, defaults or ranges.
+    for (const name of ['CAMERA_DEFAULTS', 'CAMERA_RANGES', 'cameraViewSpec'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    const room = editor3d.roomView(
+      { surfaces: [], bounds: editor3d.EMPTY_BOUNDS } as unknown as Parameters<typeof editor3d.roomView>[0],
+      cameraView('hall'),
+      [0, 0, 0],
+    )
+    const view: Pick<editor3d.RoomView, 'rotate'> = { rotate: room.rotate }
     expect(view.rotate).toBe(true)
   })
 
@@ -228,6 +263,26 @@ describe('public entry', () => {
     expect(effects).toHaveLength(2)
   })
 
+  it('exports the Things tool, the thing pick and the name of a sub-layer', () => {
+    for (const name of ['createThingsTool', 'pickThing', 'isThingLayerOff', 'thingLayer'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The views are types, so this is checked by the compiler: the entry names them.
+    const place: editor3d.ThingPlace = { x: 1, z: 2, id: 'crate2', action: 'none', reason: 'no' }
+    const entry: editor3d.PaletteEntry['layer'] = editor3d.thingLayer('crate')
+    expect([place.id, entry]).toEqual(['crate2', 'things:crate'])
+  })
+
+  it('exports the link edits, the Last Light links, and the rectangle and link of the Things tool', () => {
+    for (const name of ['addLink', 'removeLink', 'lastLightNavLinks'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The shapes are types, so this is checked by the compiler: the entry names them.
+    const link: editor3d.ThingLink = { a: 'p', b: 'q', via: 'door' }
+    const area: editor3d.Rectangle = { x0: 0, z0: 0, x1: 1, z1: 1 }
+    const place: editor3d.LinkPlace = { ...link, action: 'add' }
+    const links: editor3d.ThingLinks<editor3d.Blockout> | undefined = editor3d.lastLightProfile.links
+    expect([place.a, area.x1, links?.def]).toEqual(['p', 1, 'node'])
+  })
+
   it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {
     for (const name of ['splitSector', 'mergeSectors']) expect(editor3d, name).toHaveProperty(name)
     for (const name of ['retargetPortals', 'redirectPortals', 'cornerInserted', 'reversedLoop'])
@@ -242,6 +297,21 @@ describe('public entry', () => {
     for (const name of ['createChecksPanel', 'createAsk']) {
       expect(editor3d, name).toHaveProperty(name)
     }
+  })
+
+  it('exports the app core: the editor app and the size limit, and keeps the storage steps inside', () => {
+    for (const name of ['createEditorApp', 'MAX_FILE_BYTES']) expect(editor3d, name).toHaveProperty(name)
+    for (const name of ['createPatchedDocument', 'readLevel', 'listProjects', 'importZip', 'readStored'])
+      expect(editor3d, name).not.toHaveProperty(name)
+    // The outcomes are types, so this is checked by the compiler: the entry names them.
+    const refused: editor3d.PatchRefused = {
+      status: 'refused',
+      path: [],
+      reason: 'verify-failed',
+      detail: 'no',
+    }
+    const skipped: editor3d.Skipped = { path: 'a', reason: 'system' }
+    expect([refused.status, skipped.reason]).toEqual(['refused', 'system'])
   })
 
   it('exports the Split and Merge tools, and keeps what the tools share inside', () => {
@@ -315,6 +385,10 @@ describe('public entry', () => {
       'wallNear',
       'isLayerOff',
       'stepOf',
+      // Each profile's list and their shared hints are read through the profile.
+      'afMaterials',
+      'lastLightMaterials',
+      'SECTOR_HINTS',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }

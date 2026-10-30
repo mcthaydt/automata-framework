@@ -4,6 +4,7 @@ import { printProject } from '../model/project-codec'
 import { createProfileRegistry, type ProjectContext } from '../profiles/profile'
 import { memoryWorkspace, textOf } from '../testing/memory-workspace'
 import { noteText, plantedProfile } from '../testing/planted-profile'
+import { withDefs } from '../testing/project-edit'
 import { hollowmere, mossgate } from '../testing/samples'
 import { createTestClock } from '../testing/test-clock'
 import { createEditorApp } from './editor-app'
@@ -66,6 +67,39 @@ describe('listProjects', () => {
       'Tilesets',
     ])
     expect(note).toMatchObject({ status: 'ok', summary: undefined })
+  })
+
+  it('carries the level the profile shows on a card, and none for a profile without previews', async () => {
+    const { workspace, registry, write } = setup()
+    await write('mossgate.af2d.json', printProject(mossgate()))
+    await write('empty.note', noteText(''))
+    const entries = await listProjects(workspace, registry)
+    const moss = entries.find((entry) => entry.path === 'mossgate.af2d.json')
+    const note = entries.find((entry) => entry.path === 'empty.note')
+    expect(moss?.status === 'ok' ? moss.preview?.level : undefined).toBe(mossgate().levels[0]?.id)
+    expect(moss?.status === 'ok' ? moss.preview?.project.name : undefined).toBe('Mossgate')
+    expect(note).toMatchObject({ status: 'ok', preview: undefined })
+  })
+
+  it('stamps a preview with its images’ modification times, so a replaced image makes a new thumbnail', async () => {
+    const { workspace, registry, write, clock } = setup()
+    const withArt = withDefs(mossgate(), (defs) => ({
+      ...defs,
+      tilesets: defs.tilesets.map((set) => ({ ...set, image: 'assets/terrain.png' })),
+    }))
+    await write('mossgate.af2d.json', printProject(withArt))
+    const stampOf = async () => {
+      const entry = (await listProjects(workspace, registry)).find(
+        (item) => item.path === 'mossgate.af2d.json',
+      )
+      return entry?.status === 'ok' ? entry.preview?.images : undefined
+    }
+    expect(await stampOf()).toBe('assets/terrain.png@missing')
+    await write('assets/terrain.png', new Uint8Array([1]))
+    const first = await stampOf()
+    expect(first).toBe(`assets/terrain.png@${clock.now()}`)
+    await write('assets/terrain.png', new Uint8Array([2]))
+    expect(await stampOf()).not.toBe(first)
   })
 
   it('carries the store’s size and modification time', async () => {

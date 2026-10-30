@@ -9,6 +9,7 @@ export type PauseBehavior = HostingOptions['pauseBehavior']
  */
 export type PauseReason = 'lifecycle' | 'menu' | 'input' | 'display'
 
+/** The time service: whether the sim is paused, and why; each reason pauses until it is resumed. */
 export interface Time {
   readonly paused: boolean
   readonly reasons: ReadonlySet<PauseReason>

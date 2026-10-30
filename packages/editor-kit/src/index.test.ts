@@ -34,6 +34,10 @@ describe('editor-kit entry', () => {
       kit.Menu,
       kit.Picker,
       kit.ReorderList,
+      kit.Button,
+      kit.Pill,
+      kit.RecoveryDialog,
+      kit.ConflictDialog,
     ]) {
       expect(widget).toBeTypeOf('function')
     }
@@ -56,10 +60,19 @@ describe('editor-kit entry', () => {
       kit.flushOnHide,
       kit.classifyStorageError,
       kit.statPath,
+      kit.readStored,
       kit.StorageError,
     ]) {
       expect(fn).toBeTypeOf('function')
     }
+  })
+
+  test('exports the project list a Home is built on', () => {
+    expect(kit.HomeScreen).toBeTypeOf('function')
+    expect(kit.FilePick).toBeTypeOf('function')
+    expect(kit.createProjectBrowser).toBeTypeOf('function')
+    expect(kit.filterEntries).toBeTypeOf('function')
+    expect(kit.modifiedLabel).toBeTypeOf('function')
   })
 
   test('exports the typed field and entity definition rules and schemas', () => {

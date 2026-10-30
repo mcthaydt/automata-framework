@@ -257,7 +257,7 @@ describe('document session: saving', () => {
   })
 
   describe('failures', () => {
-    test.each(['quota', 'denied', 'io'] as const)(
+    test.each(['quota', 'denied', 'io', 'policy'] as const)(
       '%s is a failed save with that reason: status error, one problem reported, the document still dirty',
       async (reason) => {
         const { session, edit, control, problems, history } = await setup()

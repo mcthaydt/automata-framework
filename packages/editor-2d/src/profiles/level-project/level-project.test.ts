@@ -99,6 +99,17 @@ describe('the level-project profile', () => {
     expect(levelProject.check(project, {})).toEqual(checkProject(project, {}))
   })
 
+  describe('preview', () => {
+    it('shows the first level on Home’s card', () => {
+      const project = mossgate()
+      expect(levelProject.preview?.(project)).toEqual({ project, level: project.levels[0]?.id })
+    })
+
+    it('shows nothing for a project with no level', () => {
+      expect(levelProject.preview?.({ ...mossgate(), levels: [] })).toBeUndefined()
+    })
+  })
+
   describe('summary', () => {
     const summaryOf = (project: Project): ProfileSummary => {
       const summary = levelProject.summary?.(project)

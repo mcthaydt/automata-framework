@@ -133,6 +133,9 @@ An editor id the list names but no installed editor provides opens Home with tha
 ```toml
 format = "af-editors/1"
 scenes = "content/scenes/{scene}/"        # optional: the folder whose {scene} names the scene picker lists
+# Top-level keys come before the first table: TOML reads a key after `[[gate]]` as that gate's (EDS.1c).
+generated = ["content/generated/**", "tests/generated/**"]
+never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**/gates.json"]
 
 [[file]]
 glob = "content/tuning.toml"
@@ -159,13 +162,11 @@ measure = false                           # true: its --json rows are a before-a
 id = "P-G1"
 name = "Puzzle design"
 records = "docs/gates/**/gates.json"      # read only; the record shape is the pipelines platform's (M3.8)
-
-generated = ["content/generated/**", "tests/generated/**"]
-never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**/gates.json"]
 ```
 
 - The first `[[file]]` row whose glob matches a path wins (the mockups' `fileRow`); a file no row matches is read only, with the reason.
 - `never` always includes `content/editors.toml` itself, `.git/**` and the gate records, whatever the game writes: the suite cannot widen its own allowlist, and an Ask diff cannot add a command to `run` (§11).
+  - **2026-10-30 (EDS.1c, a default open to the Owner's veto):** the always-never list also keeps what The Last Light's policy always refused (`editor/src/server/policy.ts` at `92e6704`): `.claude/**`, `.github/**`, `**/.env` and `**/.env.*`, with `.git` itself. These globs and every gate's `records` match in any letter case, because a case-insensitive disk opens `Content/Editors.toml` as the list. The disk adapter (EDS.1d) resolves the target's real path (symlinks, and Windows' trailing dots and spaces) before it applies the policy.
 - `run` is argv. The Node adapter runs it in the game checkout with no shell, one job per check id, output capped at 200 KB (The Last Light's runner rules); `{scene}` and `{path}` are the only substitutions and are checked against the row's glob first.
 - FloorFifty's list has `gates = []` on every row and no `[[gate]]`; the gate pill reads "No gates".
 
@@ -187,7 +188,9 @@ interface ChangeSet {                                     // supersedes editor-3
   record(files: readonly string[]): Promise<void>
   checkpoint(message: string): Promise<{ commit: string }>
   ship(draft: { title: string; body: string }): Promise<{ branch: string; pushed: boolean; pr?: string; compareUrl: string }>
-  close(): Promise<void>
+  spend(tokens: number): Promise<void>                  // EDS.1b: the suite records each proposal's tokens in the journal
+  raiseCap(cap: number): Promise<void>                  // EDS.1b: only the person raises the cap; never lowers it
+  close(): Promise<void>                                // refuses while a recorded file has changes no checkpoint holds
   list(): Promise<readonly ChangeSetSummary[]>           // the Review desk: open change sets with files, checks, gates, tokens, from the journal (§4.5)
 }
 interface ChecksRunner {                                  // supersedes editor-3d ports.ts Generator (a check with `joins`)
@@ -213,6 +216,12 @@ interface Preview { show(target: { kind: string; id: string; t?: number }): Prom
 - **Created files.** A new figure, pose or clip, "Start a list" and an import that adds a file write with `expected: 'absent'`; undoing that step removes the file through `SuiteWorkspace.remove` only if it still reads what the step wrote, and is refused with the path otherwise (EDS-aa). A file the change set did not create is never removed.
 - **A missing optional port is the feature off**, never an error (ED3D §4.4): no `changeSet` → edits save to the workspace and Ship is hidden; no `gates` → the gate pill shows "Gates not readable"; no `ask` → no Ask button.
 - **Merge with `packages/editor-3d/src/ports/ports.ts`** (EDS.1b): `ChangeSet` keeps its three methods with the same meaning; `Generator { command, run }` becomes a declared check with `joins` (ED3D.10b's "run by the game" rows read `CheckDef.run` for the command and call `run`); `AskProvider.propose(prompt, scope, budget, document)` becomes the request object with `path` added; `Proposal` is unchanged. ED3D's `ask-controller.ts` and `testing/fake-ask.ts` re-point to the kit, keep their tests, and `ports.ts` is deleted, so there is one owner.
+- **Notes, 2026-10-30 (EDS.1b, code in `editor-kit/ports`):**
+  - The token budget moves through the port: `ChangeSet.spend(tokens)` records what a proposal used (kept or rejected) and `ChangeSet.raiseCap(cap)` is the person's raise; the journal is the adapter's, so no other port writes it.
+  - `SuiteWorkspace.files` lists a generated or `never` file a row also matches under that row's editor, read only with the reason (`editor-suite/core`'s `fileAccess` names the row; `workspaceFile` maps it onto `WorkspaceFile`); a path no row matches is not listed. `read` reads any file inside the game root and gives nothing for a path outside it.
+  - `CheckFinding.keyPath` is a string, not §4.4's `KeyPath`: a game check is an outside command and prints its own path text; the suite's Locate turns it into a `KeyPath` when it can, so the port does not ask every command to emit the documents' shape.
+  - Checking a proposal before it is written (the `before` checks, the diff, Accept) is the suite's, in EDS.2b on ED3D.10a's controller; the `AskProvider` only proposes, with the budget as its client's output limit. 02's EDS.1b row ("a diff checked before it is written") reads as the port's job; it is EDS.2b's.
+  - `SuitePorts.preview`, the contribution shapes and `createSuite` land with their first consumers (EDS.8, EDS.4a and EDS.5a, EDS.2a).
 - **Reopened gates** are computed by the suite, not a port: a gate is reopened when the change set touches a file whose row lists it. The pill shows each with its recorded decision; nothing records one.
 - **The token budget** is the change set's: the suite keeps `{ used, cap }` in the change-set journal, passes the remainder as `budget`, refuses a request whose estimate passes it (The Last Light: characters / 3.5 plus the output cap) and records what each used.
 
@@ -236,7 +245,7 @@ type EditResult = { ok: true; document: ContentDocument; changed: readonly (read
 function openDocument(path: string, text: string): ContentDocument   // format from the extension
 ```
 
-- **Rules:** an unchanged document prints byte for byte; a value edit changes only its literal's span; a number keeps its spelling when its value does not change and is printed with no exponent and at most four decimals otherwise (ED3D-b's rule); comments and blank lines survive; every edit is re-parsed and compared with the intended value before it is returned (`verify-failed` otherwise).
+- **Rules:** an unchanged document prints byte for byte; a value edit changes only its literal's span; a number keeps its spelling when its value does not change and is printed with no exponent and at most four decimals otherwise (ED3D-b's rule); comments and blank lines survive; every edit is re-parsed and compared with the intended value before it is returned (`verify-failed` otherwise). **Amended 2026-10-30 (EDS.1a review; a default for the Owner's veto):** numbers round-trip exactly. A changed number is written as the shortest text that reads back as exactly that number (JavaScript's own number to string; a TOML float stays a float, `5.0`), not with four decimals: FloorFifty's `tuning.toml` writes `FLOOR_GAP_MIN = 128.57142857142856` to the precision that round-trips, a value such as `0.00001` must not become `0.0`, and EDFF §10.3 rule 4 asks the stage codec for an exact re-parse. ED3D's level files keep the blockout style (four decimals, no exponent, ED3D-b) through the JSON engine's default number style; the documents pass the exact one.
 - **TOML** generalises the FloorFifty stage codec (`@decimalturn/toml-patch`, EDFF.1a): the stage codec keeps its stage-structure reconciliation and calls the kit for value edits. **JSON** is ED3D's `patchJson` with its scanner and layout, moved into the kit with its tests; `editor-3d/codec` re-exports or imports it.
 - Tested on FloorFifty's `tuning.toml` and `juice.toml`, the AF content fixtures, the four Last Light blockouts, and a locale `messages/*.json`.
 

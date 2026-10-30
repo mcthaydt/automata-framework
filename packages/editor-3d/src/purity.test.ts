@@ -1,5 +1,6 @@
 // ED3D-D1: `format`, `geometry`, `codec`, `entities`, `profile` and `model` import no Svelte, no DOM, no clock and no Node. The rule is
-// enforced here and not only written down, so a later change cannot quietly add one.
+// enforced here and not only written down, so a later change cannot quietly add one. The codec's sources moved to the kit's
+// content documents in EDS.1a (`editor-kit/src/documents`, whose entry test holds the same rule); `src/codec` keeps tests only.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -79,13 +80,12 @@ describe('the pure layers', () => {
     'format',
     'geometry',
     'checks',
-    'codec',
     'entities',
     'profile',
     'model',
     'view',
-    'ports',
     'app',
+    'things',
   ]) {
     it(`src/${layer} has no impure import or global`, () => {
       const root = new URL(`./${layer}`, import.meta.url).pathname

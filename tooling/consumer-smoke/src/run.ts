@@ -9,10 +9,12 @@ import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, wri
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { compileHeaders, parseManifest } from '@ruken/manifest'
 import { findRukenSdkMarkers } from '../../../packages/host/src/sdk-markers.ts'
 import { resolveSourceCommit } from '../../core-packs/src/args.ts'
 import { packWorkspace } from '../../core-packs/src/pack.ts'
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
+import { bootGame } from './boot-game.ts'
 import {
   type ConsumerPackage,
   consumerManifest,
@@ -21,6 +23,7 @@ import {
   type ToolVersions,
 } from './project.ts'
 import { readmeCommands, readWorkspace, unresolvedCommands } from './readme.ts'
+import { serveStatic } from './serve.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const fixtures = fileURLToPath(new URL('../fixtures/', import.meta.url))
@@ -78,6 +81,7 @@ function toolVersions(): ToolVersions {
     ),
     zod: pin(manifestOf('packages/sim').dependencies?.zod, 'zod'),
     typesNode: pin(manifestOf('packages/node').devDependencies?.['@types/node'], '@types/node'),
+    pixi: pin(manifestOf('packages/render-pixi').devDependencies?.['pixi.js'], 'pixi.js'),
   }
 }
 
@@ -136,13 +140,27 @@ function packAll(project: string): ConsumerPackage[] {
   return packs.map(({ name, file }) => ({ name, tarball: `packs/${file}` }))
 }
 
-type Step = readonly [name: string, run: () => string]
+type Step = readonly [name: string, run: () => string | Promise<string>]
 
 /** AF's own code must not need eval: Ruken's CSP has no 'unsafe-eval' (spec §3.6). */
 const EVAL = /\bnew Function\s*\(|(?<![.\w])eval\s*\(/
 
 /** A string only Ruken's SDK has; a bundle with two SDK copies has it twice. */
 const SDK_MARKER = '"ruken:__probe__"'
+
+/** Every `.js` file of a Vite build, joined. */
+const bundleCode = (dist: string): string =>
+  filesBelow(dist)
+    .filter((file) => file.endsWith('.js'))
+    .map((file) => readFileSync(file, 'utf8'))
+    .join('\n')
+
+/** The headers Ruken serves the game with in prod, from the game's own `ruken.toml` (Ruken's CSP has no eval). */
+function rukenHeaders(manifestFile: string): Record<string, string> {
+  const parsed = parseManifest(readFileSync(manifestFile, 'utf8'))
+  if (!parsed.ok) throw new Error(`ruken.toml: ${parsed.errors.map((error) => error.message).join('; ')}`)
+  return compileHeaders(parsed.manifest, 'prod')
+}
 
 function steps(project: string): Step[] {
   const bin = (name: string) => join(project, 'node_modules/.bin', name)
@@ -158,7 +176,7 @@ function steps(project: string): Step[] {
         return `${commands.length} commands resolve`
       },
     ],
-    ['node: import every entry, run a physics sim', () => sh(project, 'node', ['node-check.mjs']).trim()],
+    ['node: import every entry, run a sim', () => sh(project, 'node', ['node-check.mjs']).trim()],
     [
       'content: compile a three-file content folder with the automata-content bin',
       () => {
@@ -251,10 +269,38 @@ function steps(project: string): Step[] {
         return `${Math.round(code.length / 1024)} kB of JavaScript, no Ruken SDK`
       },
     ],
+    [
+      // DX.2a: runtime, render-pixi, game and the umbrella, installed from their packs, make one game whose
+      // Ruken build carries the SDK once (host's `.` and `./target` share it).
+      'game: vite build of a minimal @mcthaydt/automata game for Ruken, one Ruken SDK',
+      () => {
+        const game = join(project, 'game')
+        sh(game, bin('vite'), ['build', '--config', 'vite.ruken.config.ts', '--logLevel', 'warn'])
+        const code = bundleCode(join(game, 'dist-ruken'))
+        const copies = code.split(SDK_MARKER).length - 1
+        if (copies !== 1) throw new Error(`the game's bundle has ${copies} copies of Ruken's SDK (want 1)`)
+        return `${Math.round(code.length / 1024)} kB of JavaScript, 1 Ruken SDK`
+      },
+    ],
+    [
+      // DX.2a: the same game's web build boots in Chromium, under the headers Ruken would serve it with, to its
+      // title, and Play starts it.
+      "game: the web build boots in Chromium under Ruken's CSP and plays",
+      async () => {
+        const game = join(project, 'game')
+        sh(game, bin('vite'), ['build', '--config', 'vite.config.ts', '--logLevel', 'warn'])
+        const server = await serveStatic(join(game, 'dist'), rukenHeaders(join(game, 'ruken.toml')))
+        try {
+          return await bootGame(`${server.url}/`)
+        } finally {
+          await server.close()
+        }
+      },
+    ],
   ]
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2))
   const project = mkdtempSync(join(tmpdir(), 'af-consumer-smoke-'))
   console.log(
@@ -285,7 +331,7 @@ function main(): void {
     console.log('✓ install')
     for (const [name, run] of steps(project)) {
       try {
-        console.log(`✓ ${name}: ${run()}`)
+        console.log(`✓ ${name}: ${await run()}`)
       } catch (error) {
         failed += 1
         console.log(`✗ ${name}\n${error instanceof Error ? error.message : String(error)}`)
@@ -301,4 +347,4 @@ function main(): void {
   process.exitCode = failed === 0 ? 0 : 1
 }
 
-main()
+await main()

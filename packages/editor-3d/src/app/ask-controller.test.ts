@@ -1,18 +1,19 @@
 // The Ask controller (ED3D.10a steps 4 and 5, spec §5.3 flow 8 and ED3-j): a prompt goes to the provider with the
 // selection and a budget, the proposal is read into a copy of the level and shown as a ghost with its check results,
 // and Accept applies it as one step unless the copy has errors. The provider is a script the test settles itself.
+import type { Proposal } from '@mcthaydt/automata-editor-kit/ports'
+import { createScriptedAsk } from '@mcthaydt/automata-editor-kit/ports/testing'
 import { describe, expect, it, vi } from 'vitest'
 import type { CheckResult } from '../checks/check'
 import type { AfSector } from '../format/af-sector.schema'
 import type { Blockout } from '../format/blockout.schema'
 import { ok } from '../model/edit'
 import { createLevelEditor } from '../model/level-editor'
-import type { Proposal } from '../ports/ports'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { lastLightProfile } from '../profile/last-light-profile'
 import { GeometryError, type LevelProfile } from '../profile/level-profile'
 import type { EditSector } from '../profile/sector-access'
-import { deferred, fakeAskProvider } from '../testing/fake-ask'
+import { deferred } from '../testing/fake-ask'
 import { loadAuthored } from '../testing/fixtures'
 import { toyBlockout, toyRoom } from '../testing/toy-blockout'
 import { createAsk } from './ask-controller'
@@ -54,14 +55,15 @@ const proposalOf = (level: unknown, more: Partial<Proposal> = {}): Proposal => (
 
 const raised = proposalOf(withHall({ ceiling: 5 }))
 const BUDGET = 4000
+const PATH = 'content/levels/depot.af3d.json'
 
 function setup(
   answer: (call: { prompt: string }) => Promise<Proposal> | Proposal = () => raised,
   profile: LevelProfile<AfSector> = afSectorProfile,
 ) {
   const editor = createLevelEditor({ profile, level: depot })
-  const provider = fakeAskProvider(answer)
-  const ask = createAsk(editor, { provider: provider.provider, budget: BUDGET })
+  const provider = createScriptedAsk(answer)
+  const ask = createAsk(editor, { provider: provider.provider, budget: BUDGET, path: PATH })
   return { editor, provider, ask }
 }
 
@@ -76,7 +78,7 @@ const result = (id: string, severity: 'error' | 'warning', messages: string[]): 
 describe('without a provider', () => {
   it('is off: nothing is available, and asking does nothing', async () => {
     const editor = createLevelEditor({ profile: afSectorProfile, level: depot })
-    const ask = createAsk(editor, { budget: BUDGET })
+    const ask = createAsk(editor, { budget: BUDGET, path: PATH })
     const told = vi.fn()
     ask.subscribe(told)
     expect(ask.view).toEqual({
@@ -118,13 +120,14 @@ describe('asking', () => {
     expect(told).toHaveBeenCalledTimes(2)
   })
 
-  it('gives the provider the trimmed prompt, the selection as it was, the budget and the live level as JSON', async () => {
+  it("gives the provider the trimmed prompt, the level's path, the selection as it was, the budget and the live level as JSON", async () => {
     const { editor, provider, ask } = setup()
     editor.selection.set(['sector:hall', 'wall:hall/1'])
     await ask.ask('  Raise the hall ')
     expect(provider.calls).toEqual([
       {
         prompt: 'Raise the hall',
+        path: PATH,
         scope: ['sector:hall', 'wall:hall/1'],
         budget: BUDGET,
         document: JSON.stringify(depot, null, 2),
@@ -203,8 +206,9 @@ describe('asking', () => {
     const editor = createLevelEditor({ profile: { ...afSectorProfile, checks }, level: depot })
     const context = { puzzleHotspots: ['monitor'] }
     const ask = createAsk(editor, {
-      provider: fakeAskProvider(() => raised).provider,
+      provider: createScriptedAsk(() => raised).provider,
       budget: BUDGET,
+      path: PATH,
       context,
     })
     await ask.ask('Raise the hall')
@@ -313,8 +317,8 @@ describe('the Last Light profile', () => {
   it('reads a proposal with its own codec and checks it with its own checks', async () => {
     const level: Blockout = toyBlockout({ rooms: [{ ...toyRoom('a'), light: 0.5 }, toyRoom('b')] })
     const editor = createLevelEditor({ profile: lastLightProfile, level: toyBlockout() })
-    const provider = fakeAskProvider(() => proposalOf(level, { summary: 'Dim room a' }))
-    const ask = createAsk(editor, { provider: provider.provider, budget: BUDGET })
+    const provider = createScriptedAsk(() => proposalOf(level, { summary: 'Dim room a' }))
+    const ask = createAsk(editor, { provider: provider.provider, budget: BUDGET, path: PATH })
     await ask.ask('Dim room a')
     expect(ask.view.status).toBe('ghost')
     expect(ask.view.ghost).toMatchObject({

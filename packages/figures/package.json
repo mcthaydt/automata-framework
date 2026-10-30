@@ -14,18 +14,23 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "bench": "vitest run --project bench",
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
+    "test:parity": "vitest run --project browsers",
     "typecheck": "tsc -p ."
   },
   "dependencies": {
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-runtime": "workspace:*",
+    "smol-toml": "1.9.0",
     "zod": "4.6.6"
   },
   "devDependencies": {
     "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
     "effect": "3.22.2",
+    "playwright": "1.63.0",
     "vitest": "5.0.3"
   }
 }

@@ -2,9 +2,10 @@ import type { ErrorCode } from '@mcthaydt/automata-host'
 import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
 import type { GlyphFamily } from '../input/gamepad/glyph-family.js'
-import type { InputDevice, PadInfo } from '../input/input.manager.js'
+import type { InputDevice, PadInfo } from '../input/input-device.js'
 import type { BoardState } from '../leaderboards/board-state.js'
 
+/** Every fact the runtime publishes on the presentation bus, by name. */
 export interface RuntimeFacts {
   readonly 'sim.events': readonly SimEvent[]
   readonly 'screen.entered': {
@@ -34,6 +35,13 @@ export interface RuntimeFacts {
   readonly 'input.bindings.changed': { readonly action?: string }
   /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
   readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
+  /** The WebGL context was lost; the renderer draws nothing until it is restored (M3 spec §5). */
+  readonly 'render.context.lost': Readonly<Record<never, never>>
+  /**
+   * The WebGL context came back (M3 spec §5): Pixi re-uploads its GPU resources and the renderer draws again; the
+   * views and the sim are untouched.
+   */
+  readonly 'render.context.restored': Readonly<Record<never, never>>
   /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
   readonly 'save.written': { readonly key: string; readonly slot: number }
   /** The host refused a slot's write; the slot keeps its previous value (M5 spec §4.3, §6). */
@@ -49,6 +57,10 @@ export interface RuntimeFacts {
   readonly 'leaderboard.submitted': { readonly board: string; readonly state: BoardState }
 }
 
+/**
+ * The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear. Facts
+ * describe what happened; they never change gameplay state.
+ */
 export interface PresentationBus<Facts = RuntimeFacts> {
   publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void
   subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void

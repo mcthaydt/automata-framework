@@ -2,6 +2,7 @@
 // (trim, walls with windows and doors, masses) as Zod schemas. The types there are the contract; a schema is a
 // pure validator, so it adds no defaults and changes nothing, and an unknown member is kept (looseObject) so the
 // codec never deletes what a newer file carries.
+import type { Occlude } from '@mcthaydt/automata-render-pixi3d/camera-view'
 import { z } from 'zod'
 
 export interface Point {
@@ -88,10 +89,9 @@ export const TRIM_PIECES = ['skirting', 'wainscot', 'rail', 'capital'] as const
 /**
  * How the angled game camera treats a wall (ED3D.4b, the 3D direction spec §4.2): `cut` is cut away when the camera is on
  * its outer side, `fade` is drawn at a quarter of its opacity there, `never` always stays. Not in Last Light: an `af-sector/1`
- * member, so a Last Light file never holds one.
+ * member, so a Last Light file never holds one. The list is render-pixi3d's `camera-view` (its one owner, M3.4c).
  */
-export const OCCLUDES = ['cut', 'fade', 'never'] as const
-export type Occlude = (typeof OCCLUDES)[number]
+export { OCCLUDES, type Occlude } from '@mcthaydt/automata-render-pixi3d/camera-view'
 
 export interface WallDef {
   /** Portal: the sector on the other side. */

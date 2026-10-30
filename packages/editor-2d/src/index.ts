@@ -1,5 +1,5 @@
-// The headless core of the 2D level editor: the project model, its working file and the profile registry. No Svelte,
-// DOM or Pixi in here (`architecture.test.ts` keeps it so); the canvas and the app are separate folders.
+// The headless core of the 2D level editor: the project model, its working file, the profile registry, the Level view
+// controller and the canvas's draw list. No Svelte, DOM or Pixi in here (`architecture.test.ts` keeps the core so).
 export {
   createLevelEditor,
   type EditHistory,
@@ -8,6 +8,22 @@ export {
   type LevelEditorView,
   type LevelTool,
 } from './app/level-editor'
+export type {
+  DrawView,
+  EntityDraw,
+  Footprint,
+  GridLines,
+  IntCellDraw,
+  IntChunk,
+  LayerDraw,
+  LevelDrawInput,
+  LevelDrawList,
+  ObjectDraw,
+  PlaceholderReason,
+  TileChunk,
+  TileDraw,
+} from './canvas/draw/draw-list-types'
+export { createLevelDrawList } from './canvas/draw/level-draw-list'
 export {
   type CellKind,
   type CellProblem,
@@ -25,6 +41,14 @@ export {
   paintLayerRect,
   pasteLayerStamp,
 } from './model/commands/cell-edits'
+export type { DefinitionUse, GuardedEdit } from './model/commands/def-lookup'
+export { type DefinitionRef, definitionUses, deleteDefinition } from './model/commands/definition-uses'
+export {
+  addEntityDef,
+  type EntityDefPatch,
+  editEntityDef,
+  renameEntityDef,
+} from './model/commands/entity-def-edits'
 export {
   deleteEntity,
   duplicateEntity,
@@ -33,10 +57,34 @@ export {
   resizeEntity,
   setEntityField,
 } from './model/commands/entity-edits'
-export { type Bounds, entityAt, entityBounds } from './model/commands/entity-geometry'
+export { type Bounds, entityAt, entityBounds, entityDefOf } from './model/commands/entity-geometry'
+export { addField, renameField, retypeField } from './model/commands/field-edits'
+export type { FieldOwner } from './model/commands/field-owner'
+export {
+  addLayerDef,
+  editLayerDef,
+  reorderLayerDefs,
+  setIntValue,
+} from './model/commands/layer-def-edits'
 export { findLayer, type LayerTarget, updateLayer } from './model/commands/layer-target'
 export { deleteObject, flipObject, moveObject, placeObject } from './model/commands/object-edits'
-export { CHUNK, Grid, type GridEditor } from './model/grid'
+export {
+  addRule,
+  addRuleGroup,
+  deleteRule,
+  deleteRuleGroup,
+  editRule,
+  editRuleGroup,
+  newRule,
+  nextPatternCell,
+  type RulePatch,
+  reorderRuleGroups,
+  reorderRules,
+  resizeRule,
+  setPatternCell,
+} from './model/commands/rule-edits'
+export { addTileset, importTileset, tagTiles, untagTiles } from './model/commands/tileset-edits'
+export { CHUNK, Grid, type GridChunk, type GridEditor } from './model/grid'
 export { counterIds, DEF_ID, type IdSource, ITEM_ID, randomIds } from './model/ids'
 export { emptyLayers, layerCells } from './model/level-layers'
 export { FILE_VERSION, type Migration, type RawFile } from './model/migrations/migration'
@@ -86,6 +134,23 @@ export type {
   WorldLayout,
 } from './model/project-types'
 export { tilesetTiles } from './model/tileset-grid'
+export {
+  addLevel,
+  duplicateLevel,
+  type NewLevel,
+  removeLevel,
+  setLevelField,
+} from './model/world/level-edits'
+export { moveLevelInWorld, placeLevel, setLevelDepth } from './model/world/level-placement'
+export {
+  type AnchorSide,
+  type DroppedCells,
+  type ResizeAnchor,
+  resizeLevel,
+  resizeLevelLoss,
+} from './model/world/level-resize'
+export { setWorldLayout } from './model/world/world-layout'
+export { type LevelNeighbours, worldNeighbours } from './model/world/world-neighbours'
 export {
   createProfileRegistry,
   type Diagnostic,

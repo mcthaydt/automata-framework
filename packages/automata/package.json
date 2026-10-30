@@ -1,8 +1,7 @@
 {
   "name": "@mcthaydt/automata",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "license": "UNLICENSED",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcthaydt/automata-framework.git",
@@ -10,30 +9,48 @@
   },
   "type": "module",
   "sideEffects": [
-    "./src/no-eval.ts"
+    "./src/no-eval.ts",
+    "./dist/no-eval.js"
+  ],
+  "files": [
+    "dist"
   ],
   "exports": {
     ".": "./src/index.ts",
     "./no-eval": "./src/no-eval.ts"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./no-eval": {
+        "types": "./dist/no-eval.d.ts",
+        "import": "./dist/no-eval.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "build": "tsdown"
   },
   "dependencies": {
     "@mcthaydt/automata-game": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*"
   },
   "peerDependencies": {
-    "pixi.js": "8.21.0",
-    "svelte": "5.57.1"
+    "pixi.js": "^8.22.0",
+    "svelte": "^5.57.1"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "jsdom": "30.1.1",
-    "pixi.js": "8.21.0",
+    "pixi.js": "8.22.0",
     "svelte": "5.57.1",
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",

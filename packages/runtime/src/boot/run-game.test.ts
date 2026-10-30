@@ -6,12 +6,15 @@ import { HostError, Hosting } from '@mcthaydt/automata-host'
 import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import { createSim, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
-import { Cause, Effect, Exit, Option } from 'effect'
+import { Cause, Effect, Exit, Option, Scope } from 'effect'
 import { flushSync } from 'svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
+import { Flow } from '../flow/flow.manager.js'
 import { STALL_MS } from '../loading/load-meter.js'
 import { AppLoop } from '../loop/app-loop.manager.js'
+import { defineSave } from '../save/save.schema.js'
+import { saveOf } from '../save/saves.manager.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
 import { type ManualFrames, manualFrames } from '../testing/manual-frames.js'
 import { nullRenderer } from '../testing/null-renderer.js'
@@ -20,6 +23,7 @@ import {
   BootDefect,
   ContentHashMismatch,
   LoadStalled,
+  ModelInvalid,
   RendererUnavailable,
 } from './boot-error.js'
 import { contentHashOf } from './boot-program.js'
@@ -105,6 +109,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     const stallErr = new LoadStalled({ url: '/bar.bin', bytesSoFar: 10, stalledMs: 30000 })
     const rendErr = new RendererUnavailable({ tried: ['webgl2', 'webgpu'] })
     const defectErr = new BootDefect({ cause: new Error('boom') })
+    const modelErr = new ModelInvalid({ file: 'models/crate.glb', reason: 'skinned' })
 
     expect(describeBootError(hostErr)).toContain('init')
     expect(describeBootError(hashErr)).toContain('expected aaa')
@@ -112,6 +117,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     expect(describeBootError(stallErr)).toContain('30000')
     expect(describeBootError(rendErr)).toContain('webgl2, webgpu')
     expect(describeBootError(defectErr)).toContain('boom')
+    expect(describeBootError(modelErr)).toBe('Model invalid: models/crate.glb (skinned)')
 
     // Type test: extra tag is not assignable to BootError
     // @ts-expect-error extra tag is rejected by exhaustive BootError union
@@ -375,6 +381,34 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       expect(alert).not.toBeNull()
       expect(alert?.getAttribute('data-code')).toBe('unsupported')
       expect(document.documentElement.getAttribute('data-state')).toBe('failed')
+
+      await handle.shutdown()
+    })
+
+    it('ModelInvalid -> data-code="model-invalid", naming the file, with Try again (M3 spec §6, D3-f)', async () => {
+      const frames = manualFrames()
+      const mockFetch = fakeFetch({
+        '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] },
+      })
+      const game: GameDefinition = {
+        root,
+        hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+        content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+        screens: [{ id: 'title', enter: () => Effect.void }],
+        renderer: () => Effect.fail(new ModelInvalid({ file: 'models/crate.glb', reason: 'skinned' })),
+        seams: { frames, fetch: mockFetch.fetch },
+      }
+
+      const handle = runGame(game)
+      await driveFirstFrame(frames)
+      await waitForState('failed')
+
+      const alert = root.querySelector('[role="alert"]')
+      expect(alert?.getAttribute('data-code')).toBe('model-invalid')
+      expect(alert?.textContent).toContain('damaged: crate.glb.')
+      expect(Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim())).toContain(
+        'Try again',
+      )
 
       await handle.shutdown()
     })
@@ -734,6 +768,94 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     // 5. second shutdown resolves and does nothing
     await handle.shutdown()
     expect(events).toEqual(['screen:exit', 'renderer:destroy'])
+  })
+
+  it('shutdown closes ScreenContext.runtime once: after the current screen and the save’s last flush, before the renderer is destroyed; a transition leaves it open (DX.2c)', async () => {
+    const frames = manualFrames()
+    const events: string[] = []
+    let flow: Flow | undefined
+    // No autosave trigger, so the only write that reads the progress is the save's own flush when its scope closes.
+    const run = defineSave<{ coins: number }>({
+      key: 'run',
+      version: 1,
+      schema: z.object({ coins: z.number() }),
+      empty: () => ({ coins: 0 }),
+      migrations: {},
+      autosave: { on: [] },
+    })
+    const data: CompiledContentData = {
+      ...fixtureContentData,
+      flow: {
+        entry: 'title',
+        screens: ['title', 'play'],
+        terminal: [],
+        transitions: [{ from: 'title', event: 'play', to: 'play', transition: 'cut' }],
+      },
+    }
+    const game: GameDefinition = {
+      root,
+      hosting: { gameId: 'test-game', wants: ['saves'], pauseBehavior: 'pause' },
+      content: { data, hash: contentHashOf(data) },
+      saves: run,
+      screens: [
+        {
+          id: 'title',
+          enter: ({ runtime }) =>
+            Effect.gen(function* () {
+              flow = yield* Flow
+              // Kept across screens: the title is long gone when the runtime releases it.
+              yield* Scope.addFinalizer(
+                runtime,
+                Effect.sync(() => events.push('runtime:closed')),
+              )
+              yield* Effect.addFinalizer(() => Effect.sync(() => events.push('title:exit')))
+            }),
+        },
+        {
+          id: 'play',
+          enter: () =>
+            Effect.gen(function* () {
+              const save = yield* saveOf(run)
+              yield* save.load(0)
+              save.touch(() => {
+                events.push('save:capture')
+                return { coins: 7 }
+              })
+              yield* Effect.addFinalizer(() => Effect.sync(() => events.push('play:exit')))
+            }),
+        },
+      ],
+      renderer: (target) =>
+        Effect.gen(function* () {
+          yield* Effect.addFinalizer(() => Effect.sync(() => events.push('renderer:destroy')))
+          return yield* nullRenderer()(target)
+        }),
+      seams: {
+        frames,
+        fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+        sdkEnv: () =>
+          createFakeHost({
+            gameOrigin: TEST_GAME_ORIGIN,
+            gameId: 'test-game',
+            clock: realClock,
+            autoReady: true,
+          }).gameEnv!,
+      },
+    }
+
+    const handle = runGame(game)
+    await driveFirstFrame(frames)
+    await waitForState('ready')
+    expect(flow?.dispatch('play')).toBe(true)
+    await Effect.runPromise(flow!.settled)
+    await settle(2)
+    expect(flow?.current).toBe('play')
+    expect(events).toEqual(['title:exit'])
+
+    await handle.shutdown()
+    expect(events).toEqual(['title:exit', 'play:exit', 'save:capture', 'runtime:closed', 'renderer:destroy'])
+    await handle.shutdown()
+    expect(events.filter((event) => event === 'runtime:closed')).toHaveLength(1)
   })
 })
 

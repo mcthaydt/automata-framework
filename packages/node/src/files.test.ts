@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
@@ -53,6 +53,28 @@ describe('Files (node:fs)', () => {
   it('fails with FileError naming the path when a file cannot be read', () => {
     const path = join(temp(), 'missing.txt')
     const result = run(Effect.either(Effect.flatMap(Files, (files) => files.readText(path))))
+    if (Either.isRight(result)) throw new Error('expected a failure')
+    expect(result.left._tag).toBe('FileError')
+    expect(result.left.path).toBe(path)
+    expect(result.left.message).toContain(path)
+  })
+
+  it('reads a file’s bytes exactly, including bytes that are not UTF-8', () => {
+    // 0xff and 0xfe never occur in UTF-8, 0xc3 0x28 is a broken pair, 0x80 a lone continuation byte and
+    // 0xe2 0x82 a truncated sequence: decoding as text would turn each of those invalid sequences (ff, fe, the
+    // lone c3, 80, e2 82) into U+FFFD, while 00, 28, 41 and 0a decode as themselves.
+    const written = [0x00, 0xff, 0xfe, 0xc3, 0x28, 0x80, 0xe2, 0x82, 0x41, 0x0a]
+    const path = join(temp(), 'image.bin')
+    writeFileSync(path, new Uint8Array(written))
+    const bytes = run(Effect.flatMap(Files, (files) => files.readBytes(path)))
+    // A plain Uint8Array that owns its bytes, not a Buffer that may be a view into Node's shared pool.
+    expect(bytes).toStrictEqual(new Uint8Array(written))
+    expect(bytes.buffer.byteLength).toBe(written.length)
+  })
+
+  it('fails with FileError naming the path when a file’s bytes cannot be read', () => {
+    const path = join(temp(), 'missing.bin')
+    const result = run(Effect.either(Effect.flatMap(Files, (files) => files.readBytes(path))))
     if (Either.isRight(result)) throw new Error('expected a failure')
     expect(result.left._tag).toBe('FileError')
     expect(result.left.path).toBe(path)

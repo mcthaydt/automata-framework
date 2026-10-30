@@ -18,12 +18,22 @@ interface Props {
   open: boolean
   title: string
   dismissible?: boolean
+  /** `wide` (up to 40rem) makes room for a text view or a table; the default is a 26rem confirmation. */
+  width?: 'normal' | 'wide' | undefined
   onclose?: ((why: CloseReason) => void) | undefined
   children: Snippet
   actions?: Snippet<[{ close: () => void }]> | undefined
 }
 
-let { open = $bindable(), title, dismissible = true, onclose, children, actions }: Props = $props()
+let {
+  open = $bindable(),
+  title,
+  dismissible = true,
+  width = 'normal',
+  onclose,
+  children,
+  actions,
+}: Props = $props()
 
 const uid = $props.id()
 let dialog = $state<HTMLElement>()
@@ -82,6 +92,7 @@ function onClick(event: MouseEvent): void {
       aria-labelledby={`${uid}-title`}
       tabindex="-1"
       data-widget="dialog"
+      data-width={width}
       bind:this={dialog}
       use:modal
     >
@@ -120,6 +131,9 @@ function onClick(event: MouseEvent): void {
     color: var(--color-text-primary);
     outline: none;
   }
+  .dialog[data-width='wide'] {
+    width: min(40rem, 100%);
+  }
   .title {
     margin: 0;
     padding: var(--space-4) var(--space-4) var(--space-2);
@@ -142,7 +156,10 @@ function onClick(event: MouseEvent): void {
     min-width: var(--size-hit);
     min-height: var(--size-hit);
   }
-  .actions :global([data-primary]) {
+  /* The kit's Button marks its primary kind with `data-kind`. Both selectors weigh as much as the rule above and come
+     after it, so a primary action keeps its 48 px wherever its own stylesheet lands in the page. */
+  .actions :global([data-primary]),
+  .actions :global([data-kind='primary']) {
     min-height: var(--size-primary);
   }
   .actions :global(button:focus-visible) {

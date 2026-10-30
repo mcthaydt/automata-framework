@@ -41,6 +41,20 @@ const RendererUnavailableBase: TaggedErrorClass<'RendererUnavailable', RendererU
  */
 export class RendererUnavailable extends RendererUnavailableBase {}
 
+export interface ModelInvalidFields {
+  /** The model's url, as the game names it. */
+  readonly file: string
+  /** Why it was refused: `skinned`, `malformed: <what>`, `unsupported type` or `not loaded`. */
+  readonly reason: string
+}
+const ModelInvalidBase: TaggedErrorClass<'ModelInvalid', ModelInvalidFields> =
+  Data.TaggedError('ModelInvalid')
+/**
+ * A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin,
+ * which is not supported yet (M3R-D1). Boot shows the panel naming the file, with Try again.
+ */
+export class ModelInvalid extends ModelInvalidBase {}
+
 export interface ContentHashMismatchFields {
   readonly expected: string
   readonly actual: string
@@ -61,12 +75,14 @@ const BootDefectBase: TaggedErrorClass<'BootDefect', BootDefectFields> = Data.Ta
  */
 export class BootDefect extends BootDefectBase {}
 
+/** Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4). */
 export type BootError =
   | HostError
   | ContentHashMismatch
   | AssetLoadFailed
   | LoadStalled
   | RendererUnavailable
+  | ModelInvalid
   | BootDefect
 
 // Shared contracts §4: BootError must be structurally assignable to BootFailure.

@@ -19,6 +19,8 @@ export type CliCommand =
       readonly activate: boolean
       readonly game: string | undefined
       readonly target: ShipTarget | undefined
+      /** Upload to Ruken's local stack only, so the build may contain `@pixi/3d` (M3 spec §4.8). Ruken only. */
+      readonly private?: true
     }
   | {
       readonly command: 'deploy-dev'
@@ -30,7 +32,7 @@ export type CliCommand =
   | { readonly command: 'usage'; readonly problem: string }
 
 export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch]
-       automata-ship publish    [--dist <dir>] [--tag vX.Y.Z] [--activate] [--game <publicId>]
+       automata-ship publish    [--dist <dir>] [--tag vX.Y.Z] [--activate] [--game <publicId>] [--private]
        automata-ship publish    --target itch [--dist <dir>] [--tag vX.Y.Z]
        automata-ship deploy-dev [--dist <dir>] [--tag vX.Y.Z] [--activate]
        automata-ship test-remote [<playwright args> | --nightly]
@@ -38,6 +40,8 @@ export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y
 prepare      writes ruken.toml into the build (from ship.config.ts) and checks it with Ruken's parser
              --target itch: checks the build against itch.io's rules and writes <id>-<version>-itch.zip beside it
 publish      prepare, then ruken publish (packs, validates, uploads). Needs RUKEN_API and RUKEN_TOKEN.
+             --private: Ruken's local stack only (RUKEN_API on localhost); allows @pixi/3d, which a public
+             build refuses (D-1)
              --target itch: prepare --target itch, then butler push. Needs BUTLER_API_KEY, butler on PATH and
              itch.project in ship.config.ts.
 deploy-dev   prepare, then install the build on the dev host. Needs SHIP_DEV_TARGET and SHIP_DEV_URL;
@@ -66,12 +70,15 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
         ...targeted,
         activate: { type: 'boolean', default: false },
         game: { type: 'string' },
+        private: { type: 'boolean', default: false },
       } as const
       const { values } = parseArgs({ args: rest, options, strict: true })
       const target = shipTarget(values.target)
       if (target === 'itch' && (values.activate || values.game !== undefined)) {
         throw new Error('--activate and --game are for publishing to Ruken, not itch.io')
       }
+      if (target === 'itch' && values.private)
+        throw new Error('--private is for Ruken’s local stack; an itch.io page is public')
       return {
         command,
         dist: values.dist,
@@ -79,6 +86,7 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
         activate: values.activate,
         game: values.game,
         target,
+        ...(values.private ? { private: true as const } : {}),
       }
     }
     if (command === 'deploy-dev') {

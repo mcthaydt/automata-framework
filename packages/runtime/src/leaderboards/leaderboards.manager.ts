@@ -35,6 +35,10 @@ export const Leaderboards: Context.Tag<Leaderboards, Leaderboards> = Context.Gen
 
 const IDLE: BoardState = { state: 'idle' }
 
+/**
+ * Builds the leaderboards service over `Hosting`; each submit's state is published as
+ * `leaderboard.submitted`.
+ */
 export const makeLeaderboards: Effect.Effect<Leaderboards, never, Hosting | PresentationBus> = Effect.gen(
   function* () {
     const hosting = yield* Hosting

@@ -4,6 +4,7 @@
 // a missing id at its file, line and column (F-e).
 
 import { type ContentSchemaDef, defineContentSchema } from '@mcthaydt/automata-content'
+import { clipSchema } from '../clip/clip.schema'
 import { figureSchema } from '../figure/figure.schema'
 import { gaitSchema } from '../library/gait.schema'
 import { hairStyleSchema } from '../library/hair.schema'
@@ -12,6 +13,7 @@ import { itemSchema } from '../library/item.schema'
 import { rigLimitsSchema } from '../library/rig-limits.schema'
 import { standSchema } from '../library/stand.schema'
 import { swatchSchema } from '../library/swatch.schema'
+import { poseSchema } from '../pose/pose.schema'
 
 const presentation = { sim: false } as const
 
@@ -64,6 +66,20 @@ export const figureRigContent: ContentSchemaDef<'figure-rig'> = defineContentSch
   presentation,
 )
 
+export const figurePoseContent: ContentSchemaDef<'figure-pose'> = defineContentSchema(
+  'figure-pose',
+  poseSchema,
+  { folder: 'figure-poses' },
+  presentation,
+)
+
+export const figureClipContent: ContentSchemaDef<'figure-clip'> = defineContentSchema(
+  'figure-clip',
+  clipSchema,
+  { folder: 'figure-clips' },
+  presentation,
+)
+
 /** Every figures kind, for `figuresExtension` and for a game that registers them itself. */
 export const FIGURE_CONTENT: readonly ContentSchemaDef[] = [
   figureContent,
@@ -74,4 +90,6 @@ export const FIGURE_CONTENT: readonly ContentSchemaDef[] = [
   figureItemContent,
   figureStandContent,
   figureRigContent,
+  figurePoseContent,
+  figureClipContent,
 ]

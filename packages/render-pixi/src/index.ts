@@ -1,7 +1,5 @@
 // @mcthaydt/automata-render-pixi: core 2D renderer for AutomataFramework
 
-export const VERSION = '0.0.1'
-
 export {
   type Camera2d,
   type Camera2dOptions,
@@ -15,6 +13,8 @@ export {
   type EntityViewFactory,
   type EntityViewResolver,
   RenderDeltaConsumer,
+  type SceneNode,
+  type SceneParent,
 } from './delta/render-delta-consumer.js'
 export {
   FILTER_VERTEX,

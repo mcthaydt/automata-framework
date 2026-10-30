@@ -1,4 +1,9 @@
 import { describe, expect, test } from 'vitest'
+import { createHistory } from '../history/history'
+import { createFakeOpfs } from '../testing/fake-fs'
+import { createTestClock } from '../testing/test-clock'
+import { createDocumentSession } from './document-session'
+import { createHandleStore } from './handle-store'
 import { encodeJournalEntry, journalPath } from './journal-entry'
 import { createMemoryStore } from './memory-store'
 import { discardRecovery, findRecovery } from './recovery'
@@ -107,5 +112,58 @@ describe('discardRecovery', () => {
   test('is fine when there is none', async () => {
     const { journal } = await setup(1000)
     await expect(discardRecovery(journal, PATH)).resolves.toBeUndefined()
+  })
+})
+
+describe('findRecovery after a reload, on a clock that keeps whole seconds', () => {
+  // The session's mtime after a same-second save is the store's own token (file-versions.ts); a new tab's store
+  // knows only the file's lastModified. The journal's base must still match the file it was made on.
+  const frozen = () => 1_700_000_000_000
+
+  async function savedThenEdited() {
+    const root = createFakeOpfs({ now: frozen })
+    const journalRoot = createFakeOpfs({ now: frozen })
+    const store = createHandleStore(root, { kind: 'opfs' })
+    const journal = createHandleStore(journalRoot, { kind: 'opfs' })
+    const opened = await store.write(PATH, '{"n":0}')
+    if (!opened.ok) throw new Error('write should succeed')
+    const history = createHistory<{ n: number }>({ n: 0 })
+    const session = createDocumentSession({
+      store,
+      journal,
+      path: PATH,
+      history,
+      serializeFile: (state) => JSON.stringify(state),
+      snapshot: (state) => JSON.stringify(state),
+      mtime: opened.mtime,
+      clock: createTestClock(1_700_000_000_500),
+    })
+    history.apply('set 1', () => ({ n: 1 }))
+    expect(await session.save()).toEqual({ status: 'saved', path: PATH })
+    history.apply('set 2', () => ({ n: 2 }))
+    await session.flush()
+    session.dispose()
+    return { root, journalRoot }
+  }
+
+  test('the file the autosave was made on has not changed', async () => {
+    const { root, journalRoot } = await savedThenEdited()
+    const reloaded = await findRecovery(
+      createHandleStore(root, { kind: 'opfs' }),
+      createHandleStore(journalRoot, { kind: 'opfs' }),
+      PATH,
+    )
+    expect(reloaded).toMatchObject({ payload: '{"n":2}', baseChanged: false })
+  })
+
+  test('another tab changed the file after the save, in the same second: the base changed', async () => {
+    const { root, journalRoot } = await savedThenEdited()
+    await createHandleStore(root, { kind: 'opfs' }).write(PATH, '{"n":9}')
+    const reloaded = await findRecovery(
+      createHandleStore(root, { kind: 'opfs' }),
+      createHandleStore(journalRoot, { kind: 'opfs' }),
+      PATH,
+    )
+    expect(reloaded).toMatchObject({ payload: '{"n":2}', baseChanged: true })
   })
 })

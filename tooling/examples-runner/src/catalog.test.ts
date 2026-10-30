@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { type CatalogEntry, readCatalog } from './catalog.ts'
 
 const fixtures = fileURLToPath(new URL('./fixtures/catalog/', import.meta.url))
-const catalog = readCatalog(fixtures, { deliveryPlan: `${fixtures}delivery-plan.md` })
+// Stub manifests: the catalog's package rules do not depend on which packages the framework holds today (physics, the
+// one extension these fixtures name, is Automata Plus since PRODUCT.5g).
+const packagesDir = fileURLToPath(new URL('./fixtures/packages/', import.meta.url))
+const catalog = readCatalog(fixtures, { deliveryPlan: `${fixtures}delivery-plan.md`, packagesDir })
 const entry = (path: string): CatalogEntry => {
   const found = catalog.find((candidate) => candidate.path === path)
   if (found === undefined) throw new Error(`${path} is not in the catalog`)
@@ -35,6 +38,7 @@ describe('readCatalog', () => {
       'core/misplaced.ts',
       'physics/physics-bodies.ts',
       'physics/physics-deep.ts',
+      'render3d/render3d-boxes.ts',
       'widgets/widgets-spin.ts',
     ])
   })
@@ -73,6 +77,14 @@ describe('readCatalog', () => {
     expect(entry('physics/physics-bodies.ts')).toMatchObject({
       problems: [],
       imports: ['@mcthaydt/automata-physics/2d'],
+    })
+  })
+
+  // D-1: render-pixi3d stays private until Pixi 3D is public, yet its examples are free core examples (M3R-D20).
+  it("accepts an unpublished extension's entries in the render3d module", () => {
+    expect(entry('render3d/render3d-boxes.ts')).toMatchObject({
+      problems: [],
+      imports: ['@mcthaydt/automata-render-pixi3d/no-eval', '@mcthaydt/automata-render-pixi3d'],
     })
   })
 

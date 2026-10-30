@@ -5,7 +5,10 @@ export interface CheckOptions {
   readonly dir: string | undefined
   /** Print only the JSON report (the shape the agent hooks read). */
   readonly json: boolean
-  /** Boundaries, typecheck and tests only: no build, so no `no-eval` and no `csp`. */
+  /**
+   * Boundaries, typecheck and tests only: no source scans (`boards`, `orientation`, `inputs`) and no build, so none
+   * of the steps that read it (`no-eval`, `secrets`, `data-urls`, `csp`).
+   */
   readonly simOnly: boolean
   /** Also run the browser CSP smoke test. */
   readonly csp: boolean

@@ -2,11 +2,15 @@ import { cleanup, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { counterIds } from '../model/ids'
 import { printProject } from '../model/project-codec'
+import type { Project } from '../model/project-types'
 import { memoryWorkspace } from '../testing/memory-workspace'
 import { hollowmere, mossgate } from '../testing/samples'
 import { createTestClock } from '../testing/test-clock'
 import { type EditorEnv, type EditorHandle, startEditor } from './boot'
+import { createEditorApp } from './editor-app'
+import { createAppProfiles } from './profiles'
 
 // The editor's boot (plan ED2D.4c2a decision 9): a function of its environment, so a test hands it a window, a document, a
 // clock and a workspace and gets the real app. The journey: list, New, the document frame, Back.
@@ -57,6 +61,9 @@ interface BootOptions {
   storage?: EditorEnv['storage']
   size?: [number, number]
   fillRandom?: EditorEnv['fillRandom']
+  thumbnails?: EditorEnv['thumbnails']
+  /** More files in the workspace before the editor starts. */
+  files?: Readonly<Record<string, string>>
 }
 
 async function boot(options: BootOptions = {}) {
@@ -68,6 +75,7 @@ async function boot(options: BootOptions = {}) {
     clock.advance(1000)
     await workspace.store.write('hollowmere.af2d.json', printProject(hollowmere()))
   }
+  for (const [path, text] of Object.entries(options.files ?? {})) await workspace.store.write(path, text)
   const target = document.createElement('div')
   document.body.append(target)
   const win = fakeWindow(...size)
@@ -81,6 +89,7 @@ async function boot(options: BootOptions = {}) {
         crypto.getRandomValues(bytes)
       }),
     ...(own ? { storage: options.storage ?? {} } : { workspace }),
+    ...(options.thumbnails === undefined ? {} : { thumbnails: options.thumbnails }),
   }
   started = await startEditor(target, env)
   return { target, win, workspace, handle: started, clock }
@@ -100,9 +109,9 @@ describe('startEditor', () => {
     const templates = screen.getByRole('region', { name: 'Start a new project' })
     await userEvent.click(within(templates).getAllByRole('button')[0] as HTMLElement)
 
-    const heading = await screen.findByRole('heading', { level: 1 })
-    const path = heading.textContent ?? ''
-    expect(path).not.toBe('Projects')
+    const bar = await screen.findByTestId('document-bar')
+    const path = bar.querySelector('.file')?.textContent ?? ''
+    expect(path).toMatch(/\.af2d\.json$/)
     expect(await workspace.store.read(path)).toBeDefined()
     expect(screen.queryByRole('listbox')).toBeNull()
 
@@ -116,14 +125,14 @@ describe('startEditor', () => {
     const list = await screen.findByRole('listbox', { name: 'Projects' })
     list.focus()
     await userEvent.keyboard('{Enter}')
-    expect(await screen.findByRole('heading', { level: 1, name: 'hollowmere.af2d.json' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hollowmere' })).toBeInTheDocument()
   })
 
   it('Home keeps its search and its selection across a visit to a document', async () => {
     await boot()
     await userEvent.type(await screen.findByRole('searchbox', { name: 'Search projects' }), 'moss')
     await userEvent.dblClick(screen.getByRole('option', { name: /Mossgate/ }))
-    await screen.findByRole('heading', { level: 1, name: 'mossgate.af2d.json' })
+    await screen.findByRole('heading', { level: 1, name: 'Mossgate' })
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
     expect(await screen.findByRole('searchbox', { name: 'Search projects' })).toHaveValue('moss')
     expect(screen.getByRole('option', { name: /Mossgate/ })).toHaveAttribute('aria-selected', 'true')
@@ -205,6 +214,88 @@ describe('startEditor', () => {
     expect(target.childElementCount).toBe(0)
   })
 
+  it('listens for the page hiding while a document is open, and stops after Back', async () => {
+    const { win } = await boot()
+    await screen.findByRole('listbox', { name: 'Projects' })
+    const onHome = win.count()
+    await userEvent.dblClick(screen.getByRole('option', { name: /Mossgate/ }))
+    await screen.findByRole('heading', { level: 1, name: 'Mossgate' })
+    expect(win.count()).toBe(onHome + 1)
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+    await screen.findByRole('listbox', { name: 'Projects' })
+    expect(win.count()).toBe(onHome)
+  })
+
+  it('a project from a newer editor shows the profile’s message and is never rewritten (G-o)', async () => {
+    const text = `${JSON.stringify({ ...JSON.parse(printProject(mossgate())), version: 9 }, null, 2)}\n`
+    const { workspace } = await boot({ seed: false, files: { 'newer.af2d.json': text } })
+    await userEvent.dblClick(await screen.findByRole('option', { name: /newer\.af2d\.json/ }))
+    const panel = await screen.findByRole('dialog', { name: 'newer.af2d.json does not open' })
+    expect(panel).toHaveTextContent(/made by a newer editor/)
+    expect(within(panel).getByTestId('text-view')).toBeInTheDocument()
+    expect(new TextDecoder().decode(await workspace.store.read('newer.af2d.json'))).toBe(text)
+  })
+
+  it('a project with keys this editor does not know lists their paths (G-p)', async () => {
+    const text = JSON.stringify({ ...JSON.parse(printProject(mossgate())), extra: 1, more: 2 })
+    await boot({ seed: false, files: { 'keys.af2d.json': text } })
+    await userEvent.dblClick(await screen.findByRole('option', { name: /keys\.af2d\.json/ }))
+    const panel = await screen.findByRole('dialog', { name: 'keys.af2d.json does not open' })
+    const places = [...panel.querySelectorAll('.where')].map((where) => where.textContent)
+    expect(places).toEqual(['extra', 'more'])
+  })
+
+  it('dispose waits until an open document has written its journal', async () => {
+    const clock = createTestClock()
+    const workspace = memoryWorkspace(clock)
+    await workspace.store.write('mossgate.af2d.json', printProject(mossgate()))
+    clock.advance(1000)
+    // An autosave newer than the file, so Restore leaves an edit the journal has to keep.
+    const earlier = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
+    const first = await earlier.open('mossgate.af2d.json')
+    if (first.status !== 'opened') throw new Error(first.status)
+    first.document.history.apply('Rename', (value) => ({ ...(value as Project), name: 'Renamed' }))
+    clock.advance(1000)
+    await first.document.session.flush()
+    first.document.dispose()
+
+    let hold = false
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const write = workspace.journal.write.bind(workspace.journal)
+    const journal = {
+      ...workspace.journal,
+      write: async (...args: Parameters<typeof write>) => {
+        if (hold) await gate
+        return write(...args)
+      },
+    }
+    const target = document.body.appendChild(document.createElement('div'))
+    const handle = await startEditor(target, {
+      window: fakeWindow(1194, 834).view,
+      document,
+      clock,
+      fillRandom: (bytes) => {
+        crypto.getRandomValues(bytes)
+      },
+      workspace: { ...workspace, journal },
+    })
+    await userEvent.dblClick(await screen.findByRole('option', { name: /Renamed|Mossgate/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Restore edits' }))
+    hold = true
+    let done = false
+    const disposing = handle.dispose().then(() => {
+      done = true
+    })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(done).toBe(false)
+    release()
+    await disposing
+    expect(done).toBe(true)
+  })
+
   it('dispose takes the editor off the page and lets go of the window', async () => {
     const { target, win, handle } = await boot()
     await screen.findByRole('listbox', { name: 'Projects' })
@@ -212,5 +303,19 @@ describe('startEditor', () => {
     await handle.dispose()
     expect(target.childElementCount).toBe(0)
     expect(win.count()).toBe(0)
+  })
+
+  it('makes the thumbnails over its workspace, hands them to Home’s cards, and disposes them with the editor', async () => {
+    const thumbnail = vi.fn(async () => 'data:image/png;base64,AAAA')
+    const dispose = vi.fn()
+    const make = vi.fn(() => ({ thumbnail, dispose }))
+    const { workspace, handle } = await boot({ thumbnails: make })
+    expect(make).toHaveBeenCalledWith(workspace)
+    const card = await screen.findByRole('option', { name: /Mossgate/ })
+    await waitFor(() =>
+      expect(card.querySelector('img')?.getAttribute('src')).toBe('data:image/png;base64,AAAA'),
+    )
+    await handle.dispose()
+    expect(dispose).toHaveBeenCalledOnce()
   })
 })

@@ -18,6 +18,7 @@ import { readCatalog } from '../src/catalog.ts'
 import { playgroundFramePage } from '../src/playground/frame-page.ts'
 import { playgroundCatalog } from '../src/playground/playground-catalog.ts'
 import { playgroundManifest } from '../src/playground/playground-manifest.ts'
+import { publicResource } from '../src/playground/playground-resources.ts'
 import { checkRuntimeSize, RUNTIME_GZIP_BUDGET } from '../src/playground/runtime-size.ts'
 import { runtimeFromViteManifest } from '../src/playground/vite-runtime.ts'
 
@@ -82,7 +83,20 @@ for (const example of catalog) {
       join(building, 'goldens', `${example.id}.replay`),
     )
 }
-cpSync(join(examplesRoot, 'resources'), join(building, 'examples', 'resources'), { recursive: true })
+// The shared resources, less what only an unpublished extension's examples use (The Last Light's models, which
+// render-pixi3d draws): the site is public, and those stay private while D-1 stands (M3 spec §4.8).
+const resourcesRoot = join(examplesRoot, 'resources')
+const resourceFiles = readdirSync(resourcesRoot, { recursive: true, encoding: 'utf8' })
+  .filter((name) => statSync(join(resourcesRoot, name)).isFile())
+  .map((name) => name.split(sep).join('/'))
+const isPublicResource = publicResource(entries, (entry) => readFileSync(entry.file, 'utf8'), resourceFiles)
+cpSync(resourcesRoot, join(building, 'examples', 'resources'), {
+  recursive: true,
+  filter: (source) => {
+    const path = relative(resourcesRoot, source).split(sep).join('/')
+    return path === '' || isPublicResource(path)
+  },
+})
 writeFileSync(join(building, 'catalog.json'), `${JSON.stringify(catalog, null, 2)}\n`)
 
 // What the runtime bundles, from the modules Rolldown put in it: each package outside the workspace, with the

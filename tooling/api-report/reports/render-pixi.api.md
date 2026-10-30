@@ -114,8 +114,8 @@ const DEFAULT_FIELD_COLOR = 0;
 ### `EntityView` (interface)
 
 ```ts
-interface EntityView {
-    readonly container: Container;
+interface EntityView<C extends SceneNode = Container> {
+    readonly container: C;
     update?(curr: Readonly<Record<string, Readonly<FieldRecord>>>, prev?: Readonly<Record<string, Readonly<FieldRecord>>> | undefined, alpha?: number): void;
     destroy?(): void;
 }
@@ -124,13 +124,13 @@ interface EntityView {
 ### `EntityViewFactory` (type)
 
 ```ts
-type EntityViewFactory = (row: RenderRow, componentId?: string) => EntityView | undefined;
+type EntityViewFactory<C extends SceneNode = Container> = (row: RenderRow, componentId?: string) => EntityView<C> | undefined;
 ```
 
 ### `EntityViewResolver` (type)
 
 ```ts
-type EntityViewResolver = EntityViewFactory | Readonly<Record<string, EntityViewFactory>>;
+type EntityViewResolver<C extends SceneNode = Container> = EntityViewFactory<C> | Readonly<Record<string, EntityViewFactory<C>>>;
 ```
 
 ### `FILTER_VERTEX` (const)
@@ -426,12 +426,12 @@ interface RectViewOptions {
 ### `RenderDeltaConsumer` (class)
 
 ```ts
-class RenderDeltaConsumer {
+class RenderDeltaConsumer<C extends SceneNode = Container> {
     private readonly world;
     private readonly resolver?;
     private readonly views;
     private readonly cache;
-    constructor(world: Container, resolver?: EntityViewResolver);
+    constructor(world: SceneParent<C>, resolver?: EntityViewResolver<C>);
     private resolveView;
     apply(delta: RenderDelta): void;
     interpolate(alpha: number): void;
@@ -451,6 +451,23 @@ type RendererPreference = 'webgl' | 'webgpu';
 
 ```ts
 const RESOLUTION_CAPS: Readonly<Record<QualityTier, number>>;
+```
+
+### `SceneNode` (interface)
+
+```ts
+interface SceneNode {
+    readonly parent: unknown;
+    removeFromParent(): void;
+}
+```
+
+### `SceneParent` (interface)
+
+```ts
+interface SceneParent<C extends SceneNode> {
+    addChild(child: C): unknown;
+}
 ```
 
 ### `SHAKE_DECAY` (const)
@@ -489,12 +506,6 @@ interface SpriteViewOptions {
     readonly frames?: SpriteFrames | undefined;
     readonly frame?: string | undefined;
 }
-```
-
-### `VERSION` (const)
-
-```ts
-const VERSION = "0.0.1";
 ```
 
 ### `ViewAnchor` (type)

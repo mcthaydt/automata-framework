@@ -19,6 +19,12 @@ interface AttachOptions extends GestureOptions {
 }
 ```
 
+### `autosaveProblem` (function)
+
+```ts
+function autosaveProblem(problem: Problem): string;
+```
+
 ### `BlockedProps` (interface)
 
 ```ts
@@ -27,6 +33,32 @@ interface BlockedProps {
     readonly reason?: string | undefined;
     readonly onblocked?: ((reason: string | undefined) => void) | undefined;
 }
+```
+
+### `BrowserState` (interface)
+
+```ts
+interface BrowserState<E, B extends string = string> {
+    readonly phase: 'loading' | 'ready' | 'unavailable';
+    readonly entries: readonly E[];
+    readonly visible: readonly E[];
+    readonly query: string;
+    readonly selected: string | undefined;
+    readonly busy: B | undefined;
+    readonly message: string | undefined;
+}
+```
+
+### `Button` (svelte)
+
+```ts
+component from './widgets/Button.svelte'
+```
+
+### `cardWords` (const)
+
+```ts
+const cardWords: (card: HomeCard) => readonly string[];
 ```
 
 ### `checkEntityDef` (function)
@@ -104,6 +136,12 @@ interface CommandRegistry {
 }
 ```
 
+### `ConflictDialog` (svelte)
+
+```ts
+component from './dialogs/ConflictDialog.svelte'
+```
+
 ### `createCommandRegistry` (function)
 
 ```ts
@@ -155,6 +193,14 @@ function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
 function createMemoryStore(options?: {
     now?: () => number;
 }): ProjectStore;
+```
+
+### `createProjectBrowser` (function)
+
+```ts
+function createProjectBrowser<E extends {
+    readonly path: string;
+}, B extends string = string>(options: ProjectBrowserOptions<E>): ProjectBrowser<E, B>;
 ```
 
 ### `createRecognizer` (function)
@@ -551,6 +597,18 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 const fieldValuesSchema: z.ZodType<FieldValues>;
 ```
 
+### `FilePick` (svelte)
+
+```ts
+component from './home/FilePick.svelte'
+```
+
+### `filterEntries` (function)
+
+```ts
+function filterEntries<E>(entries: readonly E[], query: string, words: (entry: E) => readonly string[]): readonly E[];
+```
+
 ### `findRecovery` (function)
 
 ```ts
@@ -706,6 +764,30 @@ interface HistoryOptions {
 }
 ```
 
+### `HomeCard` (interface)
+
+```ts
+interface HomeCard {
+    readonly path: string;
+    readonly title: string;
+    readonly badge: {
+        readonly tone: Tone;
+        readonly text: string;
+    };
+    readonly kind: string;
+    readonly accent: string | undefined;
+    readonly size: number;
+    readonly mtime: number;
+    readonly preview?: TilePreview | undefined;
+}
+```
+
+### `HomeScreen` (svelte)
+
+```ts
+component from './home/HomeScreen.svelte'
+```
+
 ### `HoverGesture` (interface)
 
 ```ts
@@ -794,6 +876,12 @@ interface LongPressGesture {
 component from './widgets/Menu.svelte'
 ```
 
+### `modifiedLabel` (function)
+
+```ts
+function modifiedLabel(mtime: number, now: number, timeZone?: string): string;
+```
+
 ### `Modifiers` (interface)
 
 ```ts
@@ -874,6 +962,16 @@ interface PanGesture {
 function parseShortcut(text: string): Shortcut;
 ```
 
+### `PickedFile` (interface)
+
+```ts
+interface PickedFile {
+    readonly name: string;
+    readonly path: string;
+    readonly bytes: Uint8Array;
+}
+```
+
 ### `Picker` (svelte)
 
 ```ts
@@ -897,6 +995,12 @@ interface PickerOption {
 
 ```ts
 function pickFolder(vault: HandleVault, env?: FolderEnv): Promise<FolderStore | undefined>;
+```
+
+### `Pill` (svelte)
+
+```ts
+component from './widgets/Pill.svelte'
 ```
 
 ### `PinchGesture` (interface)
@@ -962,6 +1066,48 @@ interface Problem {
 }
 ```
 
+### `ProjectBrowser` (interface)
+
+```ts
+interface ProjectBrowser<E, B extends string = string> extends ProjectListSource<E, B> {
+    readonly current: BrowserState<E, B>;
+    load(prefer?: (visible: readonly E[]) => string | undefined): Promise<void>;
+    run(kind: B, work: () => Promise<void>): Promise<void>;
+}
+```
+
+### `ProjectBrowserOptions` (interface)
+
+```ts
+interface ProjectBrowserOptions<E extends {
+    readonly path: string;
+}> {
+    list(): Promise<readonly E[]>;
+    words(entry: E): readonly string[];
+    onError(message: string): void;
+}
+```
+
+### `projectCount` (function)
+
+```ts
+function projectCount(total: number, shown: number, query: string): string;
+```
+
+### `ProjectListSource` (interface)
+
+```ts
+interface ProjectListSource<E, B extends string = string> {
+    readonly state: {
+        subscribe(run: (state: BrowserState<E, B>) => void): () => void;
+    };
+    refresh(): Promise<void>;
+    search(query: string): void;
+    select(path: string): void;
+    step(key: StepKey): void;
+}
+```
+
 ### `ProjectStore` (interface)
 
 ```ts
@@ -969,9 +1115,7 @@ interface ProjectStore {
     readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
-    write(path: string, data: Uint8Array | string, expected?: {
-        readonly mtime: number;
-    }): Promise<WriteResult>;
+    write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
     remove(path: string): Promise<void>;
     watch?(path: string, listener: () => void): () => void;
 }
@@ -987,6 +1131,12 @@ interface RampEntry {
     readonly line: number;
     readonly tracking: number;
 }
+```
+
+### `readStored` (function)
+
+```ts
+function readStored(store: ProjectStore, path: string): Promise<Stored>;
 ```
 
 ### `realClock` (const)
@@ -1015,6 +1165,12 @@ interface Recognizer {
 function reconcileOpen(mode: ShellMode, previous: OpenState, next: OpenState): OpenState;
 ```
 
+### `reconcileSelection` (function)
+
+```ts
+function reconcileSelection(visible: readonly Pathed[], selected: string | undefined): string | undefined;
+```
+
 ### `Recovery` (interface)
 
 ```ts
@@ -1023,6 +1179,27 @@ interface Recovery {
     readonly savedAt: number;
     readonly baseChanged: boolean;
 }
+```
+
+### `RecoveryDialog` (svelte)
+
+```ts
+component from './dialogs/RecoveryDialog.svelte'
+```
+
+### `recoveryFacts` (function)
+
+```ts
+function recoveryFacts(path: string, recovery: Recovery, now: number, timeZone?: string): readonly {
+    readonly label: string;
+    readonly value: string;
+}[];
+```
+
+### `recoveryUnreadable` (function)
+
+```ts
+function recoveryUnreadable(message: string): string;
 ```
 
 ### `Rect` (interface)
@@ -1043,6 +1220,12 @@ interface RefValue {
     readonly target: string;
     readonly container?: string | undefined;
 }
+```
+
+### `reloadedMessage` (function)
+
+```ts
+function reloadedMessage(path: string): string;
 ```
 
 ### `renameField` (function)
@@ -1081,6 +1264,17 @@ component from './widgets/ReorderList.svelte'
 function restoreFolder(vault: HandleVault, name: string): Promise<FolderStore | undefined>;
 ```
 
+### `retryAction` (function)
+
+```ts
+function retryAction(options: {
+    readonly store: ProjectStore;
+    readonly reason: StorageFailure;
+    readonly toasts: ToastStore;
+    readonly retry: () => Promise<void>;
+}): ToastAction;
+```
+
 ### `RetypeBreakage` (interface)
 
 ```ts
@@ -1088,6 +1282,20 @@ interface RetypeBreakage {
     readonly instanceId: string;
     readonly problem: InstanceProblem;
 }
+```
+
+### `savedCopyMessage` (function)
+
+```ts
+function savedCopyMessage(copy: string): string;
+```
+
+### `saveFailure` (function)
+
+```ts
+function saveFailure(path: string, outcome: Extract<SaveOutcome, {
+    readonly status: 'failed';
+}>): string;
 ```
 
 ### `SaveOutcome` (type)
@@ -1180,10 +1388,25 @@ interface Size {
 }
 ```
 
+### `sizeLabel` (function)
+
+```ts
+function sizeLabel(bytes: number): string;
+```
+
 ### `Slider` (svelte)
 
 ```ts
 component from './widgets/Slider.svelte'
+```
+
+### `splitPath` (function)
+
+```ts
+function splitPath(path: string): {
+    readonly dir: string;
+    readonly name: string;
+};
 ```
 
 ### `statPath` (function)
@@ -1198,10 +1421,22 @@ function statPath(store: ProjectStore, path: string): Promise<StoredEntry | unde
 component from './widgets/StatusLine.svelte'
 ```
 
+### `StepKey` (type)
+
+```ts
+type StepKey = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown' | 'Home' | 'End';
+```
+
 ### `Stepper` (svelte)
 
 ```ts
 component from './widgets/Stepper.svelte'
+```
+
+### `stepSelection` (function)
+
+```ts
+function stepSelection(visible: readonly Pathed[], selected: string | undefined, key: StepKey): string | undefined;
 ```
 
 ### `StorageClock` (interface)
@@ -1226,7 +1461,38 @@ class StorageError extends Error {
 ### `StorageFailure` (type)
 
 ```ts
-type StorageFailure = 'denied' | 'quota' | 'io';
+type StorageFailure = 'denied' | 'quota' | 'io' | 'policy';
+```
+
+### `StorageNote` (interface)
+
+```ts
+interface StorageNote {
+    readonly tone: 'ok' | 'warn' | 'info';
+    readonly text: string;
+}
+```
+
+### `storageNotes` (function)
+
+```ts
+function storageNotes(workspace: Workspace): readonly StorageNote[];
+```
+
+### `Stored` (type)
+
+```ts
+type Stored = {
+    readonly status: 'read';
+    readonly mtime: number;
+    readonly bytes: Uint8Array;
+} | {
+    readonly status: 'missing';
+} | {
+    readonly status: 'storageFailed';
+    readonly reason: StorageFailure;
+    readonly message: string;
+};
 ```
 
 ### `StoredEntry` (interface)
@@ -1260,6 +1526,15 @@ interface TapGesture {
     readonly count: number;
     readonly pointerType: PointerKind;
     readonly modifiers: Modifiers;
+}
+```
+
+### `TilePreview` (interface)
+
+```ts
+interface TilePreview {
+    readonly key: string;
+    draw(): Promise<string | undefined>;
 }
 ```
 
@@ -1331,6 +1606,12 @@ interface ToastStore {
 
 ```ts
 function tokensToCss(tokens: EditorTokens): string;
+```
+
+### `Tone` (type)
+
+```ts
+type Tone = 'ok' | 'warn' | 'bad' | 'neutral';
 ```
 
 ### `Transaction` (interface)
@@ -1445,10 +1726,24 @@ interface WorkspaceEnv {
 }
 ```
 
+### `workspaceSubtitle` (function)
+
+```ts
+function workspaceSubtitle(workspace: Workspace, count: number): string;
+```
+
+### `WriteExpectation` (type)
+
+```ts
+type WriteExpectation = {
+    readonly mtime: number;
+} | 'absent';
+```
+
 ### `WriteFailure` (type)
 
 ```ts
-type WriteFailure = 'conflict' | 'denied' | 'quota' | 'io';
+type WriteFailure = 'conflict' | StorageFailure;
 ```
 
 ### `WriteResult` (type)
@@ -1465,6 +1760,32 @@ type WriteResult = {
 ```
 
 ## `./core`
+
+### `autosaveProblem` (function)
+
+```ts
+function autosaveProblem(problem: Problem): string;
+```
+
+### `BrowserState` (interface)
+
+```ts
+interface BrowserState<E, B extends string = string> {
+    readonly phase: 'loading' | 'ready' | 'unavailable';
+    readonly entries: readonly E[];
+    readonly visible: readonly E[];
+    readonly query: string;
+    readonly selected: string | undefined;
+    readonly busy: B | undefined;
+    readonly message: string | undefined;
+}
+```
+
+### `cardWords` (const)
+
+```ts
+const cardWords: (card: HomeCard) => readonly string[];
+```
 
 ### `classifyStorageError` (function)
 
@@ -1550,6 +1871,14 @@ function createKeymap(registry: CommandRegistry, platform: Platform): Keymap;
 function createMemoryStore(options?: {
     now?: () => number;
 }): ProjectStore;
+```
+
+### `createProjectBrowser` (function)
+
+```ts
+function createProjectBrowser<E extends {
+    readonly path: string;
+}, B extends string = string>(options: ProjectBrowserOptions<E>): ProjectBrowser<E, B>;
 ```
 
 ### `createSelection` (function)
@@ -1646,6 +1975,12 @@ interface DownloadStore extends ProjectStore {
     share(path: string, data: Uint8Array | string): Promise<WriteResult>;
     copyText(text: string): Promise<WriteResult>;
 }
+```
+
+### `filterEntries` (function)
+
+```ts
+function filterEntries<E>(entries: readonly E[], query: string, words: (entry: E) => readonly string[]): readonly E[];
 ```
 
 ### `findRecovery` (function)
@@ -1756,6 +2091,24 @@ interface HistoryOptions {
 }
 ```
 
+### `HomeCard` (interface)
+
+```ts
+interface HomeCard {
+    readonly path: string;
+    readonly title: string;
+    readonly badge: {
+        readonly tone: Tone;
+        readonly text: string;
+    };
+    readonly kind: string;
+    readonly accent: string | undefined;
+    readonly size: number;
+    readonly mtime: number;
+    readonly preview?: TilePreview | undefined;
+}
+```
+
 ### `KeyInput` (interface)
 
 ```ts
@@ -1795,6 +2148,12 @@ interface LifecycleWindow {
     addEventListener(type: 'pagehide', run: () => void): void;
     removeEventListener(type: 'pagehide', run: () => void): void;
 }
+```
+
+### `modifiedLabel` (function)
+
+```ts
+function modifiedLabel(mtime: number, now: number, timeZone?: string): string;
 ```
 
 ### `normalizeShortcut` (function)
@@ -1853,6 +2212,48 @@ interface Problem {
 }
 ```
 
+### `ProjectBrowser` (interface)
+
+```ts
+interface ProjectBrowser<E, B extends string = string> extends ProjectListSource<E, B> {
+    readonly current: BrowserState<E, B>;
+    load(prefer?: (visible: readonly E[]) => string | undefined): Promise<void>;
+    run(kind: B, work: () => Promise<void>): Promise<void>;
+}
+```
+
+### `ProjectBrowserOptions` (interface)
+
+```ts
+interface ProjectBrowserOptions<E extends {
+    readonly path: string;
+}> {
+    list(): Promise<readonly E[]>;
+    words(entry: E): readonly string[];
+    onError(message: string): void;
+}
+```
+
+### `projectCount` (function)
+
+```ts
+function projectCount(total: number, shown: number, query: string): string;
+```
+
+### `ProjectListSource` (interface)
+
+```ts
+interface ProjectListSource<E, B extends string = string> {
+    readonly state: {
+        subscribe(run: (state: BrowserState<E, B>) => void): () => void;
+    };
+    refresh(): Promise<void>;
+    search(query: string): void;
+    select(path: string): void;
+    step(key: StepKey): void;
+}
+```
+
 ### `ProjectStore` (interface)
 
 ```ts
@@ -1860,12 +2261,22 @@ interface ProjectStore {
     readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
-    write(path: string, data: Uint8Array | string, expected?: {
-        readonly mtime: number;
-    }): Promise<WriteResult>;
+    write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
     remove(path: string): Promise<void>;
     watch?(path: string, listener: () => void): () => void;
 }
+```
+
+### `readStored` (function)
+
+```ts
+function readStored(store: ProjectStore, path: string): Promise<Stored>;
+```
+
+### `reconcileSelection` (function)
+
+```ts
+function reconcileSelection(visible: readonly Pathed[], selected: string | undefined): string | undefined;
 ```
 
 ### `Recovery` (interface)
@@ -1876,6 +2287,21 @@ interface Recovery {
     readonly savedAt: number;
     readonly baseChanged: boolean;
 }
+```
+
+### `recoveryFacts` (function)
+
+```ts
+function recoveryFacts(path: string, recovery: Recovery, now: number, timeZone?: string): readonly {
+    readonly label: string;
+    readonly value: string;
+}[];
+```
+
+### `recoveryUnreadable` (function)
+
+```ts
+function recoveryUnreadable(message: string): string;
 ```
 
 ### `Rect` (interface)
@@ -1889,10 +2315,41 @@ interface Rect {
 }
 ```
 
+### `reloadedMessage` (function)
+
+```ts
+function reloadedMessage(path: string): string;
+```
+
 ### `restoreFolder` (function)
 
 ```ts
 function restoreFolder(vault: HandleVault, name: string): Promise<FolderStore | undefined>;
+```
+
+### `retryAction` (function)
+
+```ts
+function retryAction(options: {
+    readonly store: ProjectStore;
+    readonly reason: StorageFailure;
+    readonly toasts: ToastStore;
+    readonly retry: () => Promise<void>;
+}): ToastAction;
+```
+
+### `savedCopyMessage` (function)
+
+```ts
+function savedCopyMessage(copy: string): string;
+```
+
+### `saveFailure` (function)
+
+```ts
+function saveFailure(path: string, outcome: Extract<SaveOutcome, {
+    readonly status: 'failed';
+}>): string;
 ```
 
 ### `SaveOutcome` (type)
@@ -1961,10 +2418,37 @@ interface Size {
 }
 ```
 
+### `sizeLabel` (function)
+
+```ts
+function sizeLabel(bytes: number): string;
+```
+
+### `splitPath` (function)
+
+```ts
+function splitPath(path: string): {
+    readonly dir: string;
+    readonly name: string;
+};
+```
+
 ### `statPath` (function)
 
 ```ts
 function statPath(store: ProjectStore, path: string): Promise<StoredEntry | undefined>;
+```
+
+### `StepKey` (type)
+
+```ts
+type StepKey = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown' | 'Home' | 'End';
+```
+
+### `stepSelection` (function)
+
+```ts
+function stepSelection(visible: readonly Pathed[], selected: string | undefined, key: StepKey): string | undefined;
 ```
 
 ### `StorageClock` (interface)
@@ -1989,7 +2473,38 @@ class StorageError extends Error {
 ### `StorageFailure` (type)
 
 ```ts
-type StorageFailure = 'denied' | 'quota' | 'io';
+type StorageFailure = 'denied' | 'quota' | 'io' | 'policy';
+```
+
+### `StorageNote` (interface)
+
+```ts
+interface StorageNote {
+    readonly tone: 'ok' | 'warn' | 'info';
+    readonly text: string;
+}
+```
+
+### `storageNotes` (function)
+
+```ts
+function storageNotes(workspace: Workspace): readonly StorageNote[];
+```
+
+### `Stored` (type)
+
+```ts
+type Stored = {
+    readonly status: 'read';
+    readonly mtime: number;
+    readonly bytes: Uint8Array;
+} | {
+    readonly status: 'missing';
+} | {
+    readonly status: 'storageFailed';
+    readonly reason: StorageFailure;
+    readonly message: string;
+};
 ```
 
 ### `StoredEntry` (interface)
@@ -2000,6 +2515,12 @@ interface StoredEntry {
     readonly size: number;
     readonly mtime: number;
 }
+```
+
+### `storePathProblem` (function)
+
+```ts
+function storePathProblem(path: string): string | undefined;
 ```
 
 ### `Toast` (interface)
@@ -2058,6 +2579,12 @@ interface ToastStore {
     readonly items: readonly Toast[];
     subscribe(run: (items: readonly Toast[]) => void): () => void;
 }
+```
+
+### `Tone` (type)
+
+```ts
+type Tone = 'ok' | 'warn' | 'bad' | 'neutral';
 ```
 
 ### `Transaction` (interface)
@@ -2134,10 +2661,24 @@ interface WorkspaceEnv {
 }
 ```
 
+### `workspaceSubtitle` (function)
+
+```ts
+function workspaceSubtitle(workspace: Workspace, count: number): string;
+```
+
+### `WriteExpectation` (type)
+
+```ts
+type WriteExpectation = {
+    readonly mtime: number;
+} | 'absent';
+```
+
 ### `WriteFailure` (type)
 
 ```ts
-type WriteFailure = 'conflict' | 'denied' | 'quota' | 'io';
+type WriteFailure = 'conflict' | StorageFailure;
 ```
 
 ### `WriteResult` (type)
@@ -2151,6 +2692,380 @@ type WriteResult = {
     readonly reason: WriteFailure;
     readonly message: string;
 };
+```
+
+## `./documents`
+
+### `BLOCKOUT_NUMBERS` (const)
+
+```ts
+const BLOCKOUT_NUMBERS: NumberStyle;
+```
+
+### `ContentDocument` (interface)
+
+```ts
+interface ContentDocument {
+    readonly path: string;
+    readonly format: 'toml' | 'json';
+    readonly text: string;
+    value(): unknown;
+    literals(): readonly DocumentLiteral[];
+    comments(keyPath: KeyPath): DocumentComments;
+    edit(edits: readonly ContentEdit[]): EditResult;
+}
+```
+
+### `ContentEdit` (type)
+
+```ts
+type ContentEdit = {
+    readonly keyPath: KeyPath;
+    readonly expected: unknown;
+    readonly set: unknown;
+} | {
+    readonly keyPath: KeyPath;
+    readonly insert: unknown;
+    readonly at?: number;
+} | {
+    readonly keyPath: KeyPath;
+    readonly remove: true;
+};
+```
+
+### `DocumentComments` (interface)
+
+```ts
+interface DocumentComments {
+    readonly before?: string;
+    readonly trailing?: string;
+}
+```
+
+### `DocumentLiteral` (interface)
+
+```ts
+interface DocumentLiteral {
+    readonly keyPath: KeyPath;
+    readonly span: readonly [number, number];
+    readonly text: string;
+}
+```
+
+### `DocumentSyntaxError` (class)
+
+```ts
+class DocumentSyntaxError extends Error {
+    readonly line: number | undefined;
+    readonly column: number | undefined;
+    constructor(message: string, line?: number, column?: number);
+}
+```
+
+### `EditRefusalReason` (type)
+
+```ts
+type EditRefusalReason = 'expected-mismatch' | 'unwritable-value' | 'invalid-text' | 'verify-failed';
+```
+
+### `EditResult` (type)
+
+```ts
+type EditResult = {
+    readonly ok: true;
+    readonly document: ContentDocument;
+    readonly changed: readonly (readonly [number, number])[];
+} | {
+    readonly ok: false;
+    readonly keyPath: KeyPath;
+    readonly reason: EditRefusalReason;
+    readonly message: string;
+};
+```
+
+### `EXACT_NUMBERS` (const)
+
+```ts
+const EXACT_NUMBERS: NumberStyle;
+```
+
+### `formatExactNumber` (function)
+
+```ts
+function formatExactNumber(value: number): string;
+```
+
+### `formatJsonNumber` (function)
+
+```ts
+function formatJsonNumber(value: number): string;
+```
+
+### `formatJsonScalar` (function)
+
+```ts
+function formatJsonScalar(value: JsonScalar, numbers?: NumberStyle): string;
+```
+
+### `indentAt` (const)
+
+```ts
+const indentAt: (text: string, position: number) => string;
+```
+
+### `insertElement` (function)
+
+```ts
+function insertElement(text: string, path: JsonPath, value: JsonValue, index?: number, numbers?: NumberStyle): string;
+```
+
+### `insertMember` (function)
+
+```ts
+function insertMember(text: string, path: JsonPath, key: string, value: JsonValue, placement?: MemberPlacement, numbers?: NumberStyle): string;
+```
+
+### `JsonKind` (type)
+
+```ts
+type JsonKind = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
+```
+
+### `JsonLiteral` (interface)
+
+```ts
+interface JsonLiteral {
+    readonly path: JsonPath;
+    readonly kind: 'string' | 'number' | 'boolean' | 'null';
+    readonly span: Span;
+    readonly text: string;
+    readonly value: string | number | boolean | null;
+}
+```
+
+### `JsonNode` (interface)
+
+```ts
+interface JsonNode {
+    readonly path: JsonPath;
+    readonly kind: JsonKind;
+    readonly span: Span;
+    readonly keySpan: Span | undefined;
+    readonly children: readonly JsonNode[];
+}
+```
+
+### `JsonPath` (type)
+
+```ts
+type JsonPath = readonly (string | number)[];
+```
+
+### `JsonScalar` (type)
+
+```ts
+type JsonScalar = string | number | boolean | null;
+```
+
+### `JsonScanError` (class)
+
+```ts
+class JsonScanError extends Error {
+    readonly offset: number;
+    constructor(message: string, offset: number);
+}
+```
+
+### `JsonShapeError` (class)
+
+```ts
+class JsonShapeError extends Error {
+    readonly path: JsonPath;
+    constructor(message: string, path?: JsonPath);
+}
+```
+
+### `JsonValue` (type)
+
+```ts
+type JsonValue = string | number | boolean | null | JsonValue[] | {
+    [key: string]: JsonValue;
+};
+```
+
+### `JsonWriteError` (class)
+
+```ts
+class JsonWriteError extends Error {
+}
+```
+
+### `KeyPath` (type)
+
+```ts
+type KeyPath = readonly (string | number)[];
+```
+
+### `Layout` (interface)
+
+```ts
+interface Layout {
+    readonly unit: string;
+    readonly expandsEverything: boolean;
+    readonly bracesSpaced: boolean;
+}
+```
+
+### `lineStart` (const)
+
+```ts
+const lineStart: (text: string, position: number) => number;
+```
+
+### `MemberPlacement` (interface)
+
+```ts
+interface MemberPlacement {
+    readonly before?: readonly string[];
+    readonly after?: readonly string[];
+    readonly like?: JsonPath;
+}
+```
+
+### `NumberStyle` (interface)
+
+```ts
+interface NumberStyle {
+    readonly round: (value: number) => number;
+    readonly format: (value: number) => string;
+}
+```
+
+### `openDocument` (function)
+
+```ts
+function openDocument(path: string, text: string): ContentDocument;
+```
+
+### `PACK_WIDTH` (const)
+
+```ts
+const PACK_WIDTH = 120;
+```
+
+### `patchJson` (function)
+
+```ts
+function patchJson(text: string, before: unknown, after: unknown, rules: PatchRules): PatchResult;
+```
+
+### `PatchRefusalReason` (type)
+
+```ts
+type PatchRefusalReason = 'unwritable-value' | 'invalid-text' | 'before-mismatch' | 'verify-failed';
+```
+
+### `PatchResult` (type)
+
+```ts
+type PatchResult = {
+    readonly ok: true;
+    readonly text: string;
+} | {
+    readonly ok: false;
+    readonly path: JsonPath;
+    readonly reason: PatchRefusalReason;
+    readonly detail: string;
+};
+```
+
+### `PatchRules` (interface)
+
+```ts
+interface PatchRules {
+    readonly idArrays: readonly string[];
+    readonly memberOrder: (path: JsonPath) => readonly string[] | undefined;
+    readonly numbers?: NumberStyle;
+}
+```
+
+### `patchToml` (function)
+
+```ts
+function patchToml(text: string, before: unknown, after: unknown): PatchResult;
+```
+
+### `pathKey` (const)
+
+```ts
+const pathKey: (path: JsonPath) => string;
+```
+
+### `readLayout` (function)
+
+```ts
+function readLayout(text: string): Layout;
+```
+
+### `removeElement` (function)
+
+```ts
+function removeElement(text: string, path: JsonPath, index: number): string;
+```
+
+### `removeMember` (function)
+
+```ts
+function removeMember(text: string, path: JsonPath, key: string): string;
+```
+
+### `replaceValue` (function)
+
+```ts
+function replaceValue(text: string, path: JsonPath, value: JsonValue, numbers?: NumberStyle): string;
+```
+
+### `roundJsonNumber` (const)
+
+```ts
+const roundJsonNumber: (value: number) => number;
+```
+
+### `sameLine` (const)
+
+```ts
+const sameLine: (text: string, a: number, b: number) => boolean;
+```
+
+### `Scan` (interface)
+
+```ts
+interface Scan {
+    readonly root: JsonNode;
+    node(path: JsonPath): JsonNode | undefined;
+    readonly literals: readonly JsonLiteral[];
+}
+```
+
+### `scan` (function)
+
+```ts
+function scan(text: string): Scan;
+```
+
+### `setMember` (function)
+
+```ts
+function setMember(text: string, path: JsonPath, key: string, value: JsonValue, placement?: MemberPlacement): string;
+```
+
+### `Span` (interface)
+
+```ts
+interface Span {
+    readonly start: number;
+    readonly end: number;
+}
 ```
 
 ## `./fields`
@@ -2442,7 +3357,539 @@ interface RetypeBreakage {
 function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): FieldValues;
 ```
 
+## `./ports`
+
+### `AskContext` (type)
+
+```ts
+type AskContext = Readonly<Record<string, string | number | readonly string[]>>;
+```
+
+### `AskProvider` (interface)
+
+```ts
+interface AskProvider {
+    propose(request: AskRequest): Promise<Proposal>;
+}
+```
+
+### `AskRequest` (interface)
+
+```ts
+interface AskRequest {
+    readonly prompt: string;
+    readonly path: string;
+    readonly scope: readonly string[];
+    readonly document: string;
+    readonly budget: number;
+    readonly context?: AskContext | undefined;
+}
+```
+
+### `ChangeSet` (interface)
+
+```ts
+interface ChangeSet {
+    current(): Promise<{
+        readonly title: string;
+        readonly branch: string;
+        readonly base: string;
+    } | undefined>;
+    begin(title: string): Promise<void>;
+    record(files: readonly string[]): Promise<void>;
+    checkpoint(message: string): Promise<{
+        readonly commit: string;
+    }>;
+    ship(draft: {
+        readonly title: string;
+        readonly body: string;
+    }): Promise<{
+        readonly branch: string;
+        readonly pushed: boolean;
+        readonly pr?: string | undefined;
+        readonly compareUrl: string;
+    }>;
+    spend(tokens: number): Promise<void>;
+    raiseCap(cap: number): Promise<void>;
+    close(): Promise<void>;
+    list(): Promise<readonly ChangeSetSummary[]>;
+}
+```
+
+### `ChangeSetSummary` (interface)
+
+```ts
+interface ChangeSetSummary {
+    readonly title: string;
+    readonly branch: string;
+    readonly base: string;
+    readonly files: readonly string[];
+    readonly created: readonly string[];
+    readonly tokens: {
+        readonly used: number;
+        readonly cap: number;
+    };
+}
+```
+
+### `CheckDef` (interface)
+
+```ts
+interface CheckDef {
+    readonly id: string;
+    readonly when: 'before' | 'after';
+    readonly run: readonly string[];
+    readonly joins: readonly string[];
+    readonly measure: boolean;
+}
+```
+
+### `CheckFinding` (interface)
+
+```ts
+interface CheckFinding {
+    readonly path?: string | undefined;
+    readonly keyPath?: string | undefined;
+    readonly line?: number | undefined;
+    readonly column?: number | undefined;
+    readonly severity: 'error' | 'warning';
+    readonly message: string;
+}
+```
+
+### `CheckMeasure` (interface)
+
+```ts
+interface CheckMeasure {
+    readonly id: string;
+    readonly label: string;
+    readonly value: number;
+    readonly threshold?: number | undefined;
+    readonly ok: boolean;
+}
+```
+
+### `CheckResult` (interface)
+
+```ts
+interface CheckResult {
+    readonly check: string;
+    readonly status: 'pass' | 'warn' | 'fail' | 'error';
+    readonly findings: readonly CheckFinding[];
+    readonly measure?: readonly CheckMeasure[] | undefined;
+    readonly joined?: readonly string[] | undefined;
+    readonly output: string;
+}
+```
+
+### `CheckRun` (interface)
+
+```ts
+interface CheckRun {
+    readonly id: string;
+    result(): Promise<readonly CheckResult[]>;
+    cancel(): void;
+}
+```
+
+### `ChecksRunner` (interface)
+
+```ts
+interface ChecksRunner {
+    declared(): readonly CheckDef[];
+    run(request: {
+        readonly checks: readonly string[];
+        readonly candidates?: readonly {
+            readonly path: string;
+            readonly text: string;
+        }[] | undefined;
+    }): Promise<CheckRun>;
+}
+```
+
+### `ContributionPoint` (type)
+
+```ts
+type ContributionPoint = 'tuner.source' | 'audio.panel';
+```
+
+### `defineSuiteEditor` (function)
+
+```ts
+function defineSuiteEditor<S>(editor: SuiteEditor<S>): SuiteEditor<S>;
+```
+
+### `EditMode` (type)
+
+```ts
+type EditMode = 'edit' | 'ask';
+```
+
+### `Gates` (interface)
+
+```ts
+interface Gates {
+    states(ids: readonly string[]): Promise<readonly GateState[]>;
+}
+```
+
+### `GateState` (interface)
+
+```ts
+interface GateState {
+    readonly id: string;
+    readonly name: string;
+    readonly decision: 'approved' | 'rejected' | 'open' | 'unknown';
+    readonly decidedAt?: string | undefined;
+    readonly url?: string | undefined;
+}
+```
+
+### `Proposal` (interface)
+
+```ts
+interface Proposal {
+    readonly summary: string;
+    readonly text: string;
+    readonly tokens: number;
+}
+```
+
+### `SuiteEditor` (interface)
+
+```ts
+interface SuiteEditor<S> {
+    readonly id: string;
+    readonly label: string;
+    readonly icon: string;
+    readonly hue: string;
+    open(files: readonly WorkspaceFile[], ports: SuitePorts): Promise<S>;
+    readonly regions: SuiteRegions<S>;
+    readonly contributions?: readonly ContributionPoint[] | undefined;
+}
+```
+
+### `SuitePorts` (interface)
+
+```ts
+interface SuitePorts {
+    readonly workspace: SuiteWorkspace;
+    readonly changeSet?: ChangeSet | undefined;
+    readonly checks: ChecksRunner;
+    readonly gates?: Gates | undefined;
+    readonly ask?: AskProvider | undefined;
+}
+```
+
+### `SuiteRegions` (interface)
+
+```ts
+interface SuiteRegions<S> {
+    readonly panel: Snippet<[S]>;
+    readonly canvas: Snippet<[S]>;
+    readonly inspector: Snippet<[S]>;
+    readonly dock?: Snippet<[S]> | undefined;
+    readonly status?: Snippet<[S]> | undefined;
+    readonly tools?: Snippet<[S]> | undefined;
+}
+```
+
+### `SuiteWorkspace` (interface)
+
+```ts
+interface SuiteWorkspace {
+    files(editor?: string, scene?: string): Promise<WorkspaceFile[]>;
+    read(path: string): Promise<{
+        readonly text: string;
+        readonly mtime: number;
+    } | undefined>;
+    write(path: string, text: string, expected: WriteExpectation): Promise<WriteResult>;
+    remove(path: string, expected: {
+        readonly mtime: number;
+    }): Promise<WriteResult>;
+    generated(path: string): Promise<string | undefined>;
+}
+```
+
+### `UnlistedFile` (interface)
+
+```ts
+interface UnlistedFile {
+    readonly path: string;
+    readonly editor?: undefined;
+    readonly writable: false;
+    readonly why: string;
+}
+```
+
+### `WorkspaceFile` (interface)
+
+```ts
+interface WorkspaceFile {
+    readonly path: string;
+    readonly editor: string;
+    readonly scene?: string | undefined;
+    readonly gates: readonly string[];
+    readonly checks: readonly string[];
+    readonly modes: readonly EditMode[];
+    readonly writable: boolean;
+    readonly why?: string | undefined;
+}
+```
+
+## `./ports/testing`
+
+### `AskScript` (type)
+
+```ts
+type AskScript = (request: AskRequest, client: {
+    readonly maxOutputTokens: number;
+}) => Proposal | Error;
+```
+
+### `CHECK_FINDING` (const)
+
+```ts
+const CHECK_FINDING: CheckFinding;
+```
+
+### `CHECK_MEASURE` (const)
+
+```ts
+const CHECK_MEASURE: readonly CheckMeasure[];
+```
+
+### `CheckBehaviour` (type)
+
+```ts
+type CheckBehaviour = 'pass' | 'fail' | 'crash' | 'candidate' | 'measure' | 'join' | 'wait';
+```
+
+### `CheckOutcome` (type)
+
+```ts
+type CheckOutcome = Omit<CheckResult, 'check'>;
+```
+
+### `CHECKS_SCENARIO` (const)
+
+```ts
+const CHECKS_SCENARIO: readonly ScenarioCheck[];
+```
+
+### `createMemoryChangeSet` (function)
+
+```ts
+function createMemoryChangeSet(options?: MemoryChangeSetOptions): MemoryChangeSet;
+```
+
+### `createMemoryChecks` (function)
+
+```ts
+function createMemoryChecks(checks: readonly MemoryCheck[]): ChecksRunner;
+```
+
+### `createMemoryGates` (function)
+
+```ts
+function createMemoryGates(records: GateRecords | 'unreadable'): Gates;
+```
+
+### `createMemoryPorts` (function)
+
+```ts
+function createMemoryPorts(options: MemoryPortsOptions): Promise<MemoryPorts>;
+```
+
+### `createMemoryWorkspace` (function)
+
+```ts
+function createMemoryWorkspace(options: MemoryWorkspaceOptions): Promise<SuiteWorkspace>;
+```
+
+### `createScriptedAsk` (function)
+
+```ts
+function createScriptedAsk(respond: (request: AskRequest, limits: AskClientLimits) => Promise<Proposal> | Proposal, options?: {
+    readonly changeSet?: Pick<ChangeSet, 'current' | 'spend'> | undefined;
+}): ScriptedAsk;
+```
+
+### `describeAskProvider` (function)
+
+```ts
+function describeAskProvider(name: string, make: (script: AskScript) => Promise<AskProvider> | AskProvider): void;
+```
+
+### `describeChangeSet` (function)
+
+```ts
+function describeChangeSet(name: string, make: () => Promise<ChangeSetProject> | ChangeSetProject): void;
+```
+
+### `describeChecksRunner` (function)
+
+```ts
+function describeChecksRunner(name: string, make: (scenario: readonly ScenarioCheck[]) => Promise<ChecksRunner> | ChecksRunner): void;
+```
+
+### `describeGates` (function)
+
+```ts
+function describeGates(name: string, make: (records: GateRecords | 'unreadable') => Promise<Gates> | Gates): void;
+```
+
+### `describeSuiteWorkspace` (function)
+
+```ts
+function describeSuiteWorkspace(name: string, make: MakeWorkspace): void;
+```
+
+### `GateRecords` (type)
+
+```ts
+type GateRecords = Readonly<Record<string, Omit<GateState, 'id'>>>;
+```
+
+### `GATES_SCENARIO` (const)
+
+```ts
+const GATES_SCENARIO: GateRecords;
+```
+
+### `MakeWorkspace` (type)
+
+```ts
+type MakeWorkspace = (scenario: WorkspaceScenario) => Promise<{
+    readonly workspace: SuiteWorkspace;
+    readonly changeSet: ChangeSet;
+}>;
+```
+
+### `MemoryChangeSet` (interface)
+
+```ts
+interface MemoryChangeSet extends ChangeSet {
+    noteCreated(path: string): void;
+    noteRemoved(path: string): void;
+    created(path: string): boolean;
+}
+```
+
+### `MemoryChangeSetOptions` (interface)
+
+```ts
+interface MemoryChangeSetOptions {
+    readonly base?: string | undefined;
+    readonly tokenCap?: number | undefined;
+    readonly remote?: string | undefined;
+    readonly gh?: boolean | undefined;
+}
+```
+
+### `MemoryCheck` (interface)
+
+```ts
+interface MemoryCheck extends CheckDef {
+    respond(input: {
+        readonly candidates: readonly {
+            readonly path: string;
+            readonly text: string;
+        }[];
+        readonly signal: AbortSignal;
+    }): Promise<CheckOutcome> | CheckOutcome;
+}
+```
+
+### `MemoryPorts` (interface)
+
+```ts
+interface MemoryPorts {
+    readonly ports: SuitePorts;
+    readonly changeSet: MemoryChangeSet | undefined;
+    readonly ask: ScriptedAsk | undefined;
+}
+```
+
+### `MemoryPortsOptions` (interface)
+
+```ts
+interface MemoryPortsOptions {
+    readonly files?: Readonly<Record<string, string>> | undefined;
+    readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
+    readonly generated?: ((path: string) => boolean) | undefined;
+    readonly store?: ProjectStore | undefined;
+    readonly checks?: readonly MemoryCheck[] | undefined;
+    readonly gates?: GateRecords | 'unreadable' | undefined;
+    readonly ask?: ((request: AskRequest, limits: AskClientLimits) => Promise<Proposal> | Proposal) | undefined;
+    readonly changeSet?: MemoryChangeSetOptions | false | undefined;
+}
+```
+
+### `MemoryWorkspaceOptions` (interface)
+
+```ts
+interface MemoryWorkspaceOptions {
+    readonly files?: Readonly<Record<string, string>> | undefined;
+    readonly classify: (path: string) => WorkspaceFile | UnlistedFile;
+    readonly generated?: ((path: string) => boolean) | undefined;
+    readonly changeSet?: Pick<MemoryChangeSet, 'noteCreated' | 'noteRemoved' | 'created'> | undefined;
+    readonly store?: ProjectStore | undefined;
+}
+```
+
+### `ScenarioCheck` (interface)
+
+```ts
+interface ScenarioCheck extends CheckDef {
+    readonly behaviour: CheckBehaviour;
+}
+```
+
+### `ScriptedAsk` (interface)
+
+```ts
+interface ScriptedAsk {
+    readonly provider: AskProvider;
+    readonly calls: readonly AskRequest[];
+}
+```
+
+### `WORKSPACE_SCENARIO` (const)
+
+```ts
+const WORKSPACE_SCENARIO: WorkspaceScenario;
+```
+
+### `WorkspaceScenario` (interface)
+
+```ts
+interface WorkspaceScenario {
+    readonly files: Readonly<Record<string, string>>;
+}
+```
+
 ## `./testing`
+
+### `arrived` (function)
+
+```ts
+function arrived(): Promise<void>;
+```
+
+### `EditorSize` (interface)
+
+```ts
+interface EditorSize extends ReferenceSize {
+    readonly mode: Mode;
+}
+```
+
+### `Mode` (type)
+
+```ts
+type Mode = 'wide' | 'medium' | 'compact';
+```
 
 ### `ResizableGeometry` (interface)
 
@@ -2450,6 +3897,18 @@ function valuesWithDefaults(fields: readonly FieldDef[], values: FieldValues): F
 interface ResizableGeometry extends GeometryState {
     resize(width: number, height: number): void;
 }
+```
+
+### `REST` (const)
+
+```ts
+const REST: (typeof VARIANTS)[number];
+```
+
+### `SIZES` (const)
+
+```ts
+const SIZES: readonly EditorSize[];
 ```
 
 ### `stubGeometry` (function)

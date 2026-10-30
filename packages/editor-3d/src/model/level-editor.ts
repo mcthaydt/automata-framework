@@ -65,8 +65,8 @@ export function createLevelEditor<D>(options: LevelEditorOptions<D>): LevelEdito
 
   /**
    * Drops the sector, wall and thing ids the live level no longer has. A thing the reader could not read is still there
-   * (Locate may have selected it); a thing of a kind the level has no definition for (Last Light's zone) and an id of a
-   * kind it does not know are not its to judge.
+   * (Locate may have selected it); a thing of a kind the level has no definition for and an id of a kind it does not know
+   * are not its to judge.
    */
   const reconcile = (): void => {
     const level = history.state.level

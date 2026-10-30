@@ -40,6 +40,8 @@
     // EDFF.1c: make-goldens.mjs is run by hand with node (its header says how) to write the goldens the course and
     // composition ports are tested against.
     "packages/editor-2d": { "entry": ["src/profiles/floorfifty-stage/testing/make-goldens.mjs"] },
+    // M3.5b: the FigureBuilder goldens' generator is run by hand with node (its header says how).
+    "packages/figures": { "entry": ["scripts/figurebuilder-goldens.ts"] },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
     "packages/host": { "ignoreDependencies": ["zod"] },
@@ -48,6 +50,8 @@
     "packages/content": { "ignoreDependencies": ["@inlang/paraglide-js", "@inlang/plugin-message-format"] },
     // The locale test fixture resolves the inlang plugin by name (createRequire().resolve) for its settings file.
     "packages/runtime": { "ignoreDependencies": ["@inlang/plugin-message-format"] },
+    // M3.4a: pixi3d-bundle.test.ts builds these fixture page scripts with Vite by path; nothing imports them.
+    "packages/render-pixi3d": { "entry": ["src/bundle/testing/*-entry.ts"] },
     // automata check (DX.6) bundles @ruken/manifest, which imports smol-toml at runtime.
     "packages/cli": { "ignoreDependencies": ["smol-toml"] }
   }

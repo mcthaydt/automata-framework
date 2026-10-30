@@ -35,11 +35,12 @@ function open(choice: string | null = null, names?: Readonly<Record<string, stri
   return { section, onchange }
 }
 
-describe('endonymOf', () => {
-  it('names a language in its own language, falling back to its tag', () => {
-    expect(endonymOf('ja')).toBe('日本語')
-    expect(endonymOf('en')).toBe('English')
-    expect(endonymOf('zz-Unknown-x1')).toBe('zz-Unknown-x1')
+// `endonymOf` itself is content's, tested there (`packages/content/src/locale/endonyms.test.ts`, M5.5F); ui
+// re-exports it.
+describe('endonymOf from ui', () => {
+  it('is content’s function, re-exported', async () => {
+    const content = await import('@mcthaydt/automata-content/locale')
+    expect(endonymOf).toBe(content.endonymOf)
   })
 })
 
