@@ -23,27 +23,15 @@ export interface DemoItem {
   bundleUrl: string
 }
 
+// The folder demos that remain in the framework. EX.4 ported renderer-2d, boot-and-flow and lifecycle-and-saves to
+// one-file examples (examples/render, examples/core), which reach the site with the playground (WEB.PLAY).
 export const RAW_DEMOS = [
-  {
-    slug: 'renderer-2d',
-    title: 'Renderer: 2D PixiJS',
-    category: '2D Rendering',
-    path: 'examples/render-pixi/renderer-2d',
-    bundleUrl: '/demos/render-pixi/renderer-2d/index.html',
-  },
   {
     slug: 'bodies-2d',
     title: 'Physics: bodies 2D',
     category: 'Physics',
     path: 'examples/physics/bodies-2d',
     bundleUrl: '/demos/physics/bodies-2d/index.html',
-  },
-  {
-    slug: 'boot-and-flow',
-    title: 'Runtime: boot and flow',
-    category: 'Runtime & Host',
-    path: 'examples/runtime/boot-and-flow',
-    bundleUrl: '/demos/runtime/boot-and-flow/index.html',
   },
   {
     slug: 'ui-primitives',
@@ -58,13 +46,6 @@ export const RAW_DEMOS = [
     category: 'Content',
     path: 'examples/content/hot-reload',
     bundleUrl: '/demos/content/hot-reload/index.html',
-  },
-  {
-    slug: 'lifecycle-and-saves',
-    title: 'Host: lifecycle and saves',
-    category: 'Runtime & Host',
-    path: 'examples/host/lifecycle-and-saves',
-    bundleUrl: '/demos/host/lifecycle-and-saves/index.html',
   },
   {
     slug: 'base-2d',
@@ -199,15 +180,6 @@ export function prepareDemoHosting(staticRoot = join(websiteDir, 'static')) {
       const html = readFileSync(index, 'utf8')
       writeFileSync(index, relocateDemoAssets(html, demo.bundleUrl.replace('index.html', '')))
     }
-  }
-  // This older runtime bundle deliberately hashes its manifest with /assets/*.txt paths.
-  // Serve those two compatibility URLs as static files; rewriting its JS would invalidate that hash.
-  const assets = join(staticRoot, 'assets')
-  mkdirSync(assets, { recursive: true })
-  for (const name of ['title.txt', 'play.txt']) {
-    const source = join(staticRoot, 'demos/runtime/boot-and-flow/assets', name)
-    if (!existsSync(source)) throw new Error('Missing runtime demo asset: ' + name)
-    cpSync(source, join(assets, name))
   }
 }
 

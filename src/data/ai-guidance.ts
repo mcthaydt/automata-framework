@@ -5,7 +5,7 @@ export const AI_CONTEXT_FILES = [
   { path: 'package.json', purpose: 'Available scripts, tool versions, dependencies, and package exports. Read both the workspace and target package manifests.' },
   { path: 'games/emberwick/src/base-sim.ts', purpose: 'Simulation creation, room content, command envelopes, and starting entities.' },
   { path: 'games/emberwick/src/sim/', purpose: 'Working component, command, event, resource, system, and plugin definitions.' },
-  { path: 'The closest focused example', purpose: 'Use runtime/boot-and-flow, render-pixi/renderer-2d, host/lifecycle-and-saves, content/hot-reload, or ui/primitives for the integration being changed.' },
+  { path: 'The closest focused example', purpose: 'Use the one-file example for the integration being changed (examples/core, render, shapes, textures, audio), or content/hot-reload or ui/primitives.' },
   { path: 'The nearest tests and public types', purpose: 'Actual accepted inputs, failure behavior, cleanup requirements, and exported names. Prefer these over a guessed API.' },
 ]
 
@@ -100,7 +100,7 @@ an invalid save preserves the last good playable content. Report the checks.`,
     description: 'Persist progress through the host and explain failure states to the player.',
     apiHref: '/cheatsheet#Hosting', apiLabel: 'Hosting and saves',
     prompt: `Add a versioned progress save through the existing Hosting service.
-Read host/lifecycle-and-saves, the runtime settings or save boundary, and tests.
+Read examples/core/core-saves.ts, the runtime settings or save boundary, and tests.
 Reuse the live session, wait for readiness, and check the saves capability.
 Validate decoded payloads with Zod before applying any gameplay state.
 Test missing, valid, malformed, incompatible, denied, and failed save/load cases.

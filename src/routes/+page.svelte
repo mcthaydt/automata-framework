@@ -17,10 +17,8 @@
     { label: 'Boot', path: 'games/emberwick/src/boot.ts', description: 'Effect handles the Ruken handshake and readiness outside simulation code. The SDK also supports running this game standalone.' },
   ]
   const previews = [
-    { slug: 'renderer-2d', title: 'Rendering', description: 'PixiJS rendering with sub-tick interpolation and a screen-space shader.' },
     { slug: 'bodies-2d', title: 'Physics', description: 'Dynamic bodies, collisions and repeatable simulation inside Emberwick.' },
     { slug: 'hot-reload', title: 'Content', description: 'An authored room with content updates applied while the game runs.' },
-    { slug: 'lifecycle-and-saves', title: 'Hosting', description: 'Lifecycle state and save handling, with standalone and host-aware behavior.' },
   ]
 </script>
 <PageMeta title="Make a game. Make it yours." description="Make browser games with your coding agent. Play a starter, try a double jump, copy a tested task, and make the next change your own." />
