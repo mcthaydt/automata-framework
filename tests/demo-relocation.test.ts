@@ -7,7 +7,7 @@ describe('Nested demo hosting', () => {
     expect(relocateDemoAssets(input, '/demos/ui/primitives/')).toBe('<script src="/demos/ui/primitives/assets/main.js"></script><link href="/demos/ui/primitives/assets/main.css"><img src="https://example.com/assets/a.png">')
   })
   it('does not rewrite already namespaced asset URLs', () => {
-    const input = '<script src="/demos/runtime/boot-and-flow/assets/main.js"></script>'
-    expect(relocateDemoAssets(input, '/demos/runtime/boot-and-flow/')).toBe(input)
+    const input = '<script src="/demos/ui/primitives/assets/main.js"></script>'
+    expect(relocateDemoAssets(input, '/demos/ui/primitives/')).toBe(input)
   })
 })

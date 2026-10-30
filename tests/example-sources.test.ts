@@ -9,7 +9,7 @@ describe('Demo bundle folders', () => {
   it('follow the public bundle URL, so Emberwick stays at /demos/base-2d after moving to games/', () => {
     const folders = Object.fromEntries(RAW_DEMOS.map(demo => [demo.slug, demoBundleDirectory(demo)]))
     expect(folders['base-2d']).toBe('base-2d')
-    expect(folders['renderer-2d']).toBe('render-pixi/renderer-2d')
+    expect(folders['bodies-2d']).toBe('physics/bodies-2d')
     for (const demo of RAW_DEMOS) expect(demo.bundleUrl).toBe(`/demos/${demoBundleDirectory(demo)}/index.html`)
   })
 })

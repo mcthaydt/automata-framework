@@ -6,10 +6,10 @@ import { examplesData, homeData } from './helpers/page-data'
 
 describe('Project source explorers', () => {
   it('switches actual files and copies the selected content', async () => {
-    const view = render(Examples, { props: { data: examplesData('renderer-2d') } })
+    const view = render(Examples, { props: { data: examplesData('bodies-2d') } })
     expect(view.getByRole('navigation', { name: 'Project files' })).toBeTruthy()
-    await fireEvent.click(view.getByRole('button', { name: 'Open examples/render-pixi/renderer-2d/package.json' }))
-    const region = view.getByRole('region', { name: 'examples/render-pixi/renderer-2d/package.json' })
+    await fireEvent.click(view.getByRole('button', { name: 'Open examples/physics/bodies-2d/package.json' }))
+    const region = view.getByRole('region', { name: 'examples/physics/bodies-2d/package.json' })
     expect(region.textContent).toContain('"dev": "vite"')
     const copy = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: copy } })
@@ -17,7 +17,7 @@ describe('Project source explorers', () => {
     expect(copy.mock.calls[0][0]).toContain('"dev": "vite"')
     await view.rerender({ data: examplesData('ui-primitives') })
     expect(view.getByRole('region', { name: 'examples/ui/primitives/main.ts' })).toBeTruthy()
-    expect(view.queryByRole('button', { name: 'Open examples/render-pixi/renderer-2d/package.json' })).toBeNull()
+    expect(view.queryByRole('button', { name: 'Open examples/physics/bodies-2d/package.json' })).toBeNull()
   })
 
   it('supports the phone file picker and exposes shared starter files', async () => {
