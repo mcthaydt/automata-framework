@@ -17,6 +17,7 @@ import {
   type M,
   matq,
   mul3,
+  normalize,
   type Q,
   qmat,
   type R3,
@@ -27,7 +28,7 @@ import {
   type V3,
 } from '../math/math'
 import { at, clonePose, fk, J, JOINTS, type Pose, type Skeleton } from '../rig/rig'
-import { aimError, aimTorso, handAimError, handAimTarget } from './aim'
+import { aimError, aimTorso, blendDirection, handAimError, handAimTarget } from './aim'
 import { chainWorld } from './chain-world'
 import { defaultPole, LIMB_IDS, LIMBS, solveLimb } from './limbs'
 import { clampJoints, jointLimits } from './limits'
@@ -143,7 +144,12 @@ export function solve(skeleton: Skeleton, base: Pose, targets: Targets, limits: 
   const { pelvis, chest, head } = targets.effectors
   const pelvisTurn = pelvis ? placePelvis(skeleton, pose, pelvis, k) : new Map<number, Q>()
   const chestTurn = chest ? turnChest(pose, chest) : new Map<number, Q>()
-  const torsoAims = targets.aim.filter(isTorsoAim)
+  // Chest aims solve before head aims, whatever their order in `aim`: the head looks from where the chest
+  // turned (aims of one part keep their order).
+  const torsoAims = [
+    ...targets.aim.filter(isTorsoAim).filter((a) => a.part === 'chest'),
+    ...targets.aim.filter(isTorsoAim).filter((a) => a.part === 'head'),
+  ]
   // A head aim takes a look-at instead of the head's turn.
   const headTurn =
     head && !torsoAims.some((a) => a.part === 'head') ? turnHead(pose, head) : new Map<number, Q>()
@@ -151,19 +157,24 @@ export function solve(skeleton: Skeleton, base: Pose, targets: Targets, limits: 
   // The chest and head handles are judged here, by how far the limits kept them; an aim then turns on top.
   for (const [id, wanted] of [
     ['chest', chest ? chestTurn : undefined],
-    ['head', head ? headTurn : undefined],
+    // A head aim replaces the head handle, so an ignored handle is not judged.
+    ['head', head && !torsoAims.some((a) => a.part === 'head') ? headTurn : undefined],
   ] as const) {
     if (!wanted) continue
     const error = turnError(pose, wanted)
     reached[id] = { ok: error <= ROTATION_TOLERANCE, error }
   }
-  for (const aim of torsoAims) for (const joint of aimTorso(skeleton, pose, aim, table)) limited.add(joint)
+  const torsoAimed = torsoAims.map((aim) => {
+    const aimed = aimTorso(skeleton, pose, aim, table)
+    for (const joint of aimed.clamped) limited.add(joint)
+    return { aim, from: aimed.from }
+  })
   const torsoWorld = fk(skeleton, pose)
 
   // The limbs. No limb is another's ancestor (legs hang from the pelvis, arms from the clavicles), so every
   // limb solves from the one world the torso left, and the pose is walked once more at the end.
   const limbTargets = new Map<LimbId, V3>()
-  const handAims: { aim: AimTarget; root: number; end: number }[] = []
+  const handAims: { target: V3; root: number; end: number }[] = []
   for (const limb of LIMB_IDS) {
     const goal = limbGoal(skeleton, pose, limb, targets, torsoWorld, baseAt, pelvis !== undefined, k)
     const [root, middle, end] = LIMBS[limb].chain
@@ -176,7 +187,7 @@ export function solve(skeleton: Skeleton, base: Pose, targets: Targets, limits: 
       if (goal.aim) {
         // The hand carries on the forearm's line, so it points where the arm does.
         pose.rot[end] = slerp(at(pose.rot, end), IDENTITY_Q, goal.aim.weight ?? 1)
-        handAims.push({ aim: goal.aim, root, end })
+        handAims.push({ target: goal.target, root, end })
       } else limbTargets.set(limb, goal.target)
     } else if (goal.turn) {
       // A turn without a position: the end turns in place.
@@ -203,10 +214,17 @@ export function solve(skeleton: Skeleton, base: Pose, targets: Targets, limits: 
       : turnError(pose, pelvisTurn)
     reached.pelvis = { ok: error <= (pelvis.pos ? POSITION_TOLERANCE : ROTATION_TOLERANCE), error }
   }
-  if (torsoAims.length > 0 || handAims.length > 0) {
+  // A weighted aim is judged against its blended goal: a torso part against the direction that weight of the
+  // way from its forward axis before the aim to the point; a hand against its blended target.
+  if (torsoAimed.length > 0 || handAims.length > 0) {
     const errors = [
-      ...torsoAims.map((aim) => aimError(world, aim.part === 'head' ? J.head : J.chest, [...aim.at])),
-      ...handAims.map(({ aim, root, end }) => handAimError(world, root, end, [...aim.at])),
+      ...torsoAimed.map(({ aim, from }) => {
+        const part = aim.part === 'head' ? J.head : J.chest
+        const to = normalize(sub([...aim.at], apply(at(world, part), origin)))
+        const goal = add(apply(at(world, part), origin), blendDirection(from, to, aim.weight ?? 1))
+        return aimError(world, part, goal)
+      }),
+      ...handAims.map(({ target, root, end }) => handAimError(world, root, end, target)),
     ]
     const error = degrees(Math.max(...errors))
     reached.aim = { ok: error <= AIM_TOLERANCE, error }

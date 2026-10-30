@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { add, applyDir, dot, invertRigid, apply as move, normalize, scale, sub, type V3 } from '../math/math'
+import {
+  add,
+  applyDir,
+  cross,
+  dot,
+  invertRigid,
+  apply as move,
+  normalize,
+  scale,
+  sub,
+  type V3,
+} from '../math/math'
 import { at, fk, J, restPose } from '../rig/rig'
 import {
   at3,
@@ -142,6 +153,29 @@ describe('I-b: a pole turns the bend plane, not the end', () => {
       const [, , c] = LIMBS[limb].chain
       expect(distance(at3(before.world, c), at3(after.world, c))).toBeLessThan(1e-6)
     }
+  })
+  it('turns the bend plane 90° for a tilted limb and a pole not square to it', () => {
+    const k = unit(WICK)
+    const [a, , c] = LIMBS.handL.chain
+    const shoulder = scale(at(WICK.rest, a), 1 / k)
+    const pos: Vec3 = [shoulder[0] + 0.15, shoulder[1] - 0.2, shoulder[2] + 0.18]
+    const limbAxis = normalize(sub([...pos], shoulder))
+    const pole: V3 = normalize([0.6, -0.6, -0.5])
+    // The pole turned 90° about the limb's axis (Rodrigues at 90°: k × v + k (k · v)), still not square to it.
+    const turned = add(cross(limbAxis, pole), scale(limbAxis, dot(limbAxis, pole)))
+    const solveWith = (dir: Vec3): ReturnType<typeof solve> =>
+      solve(
+        WICK,
+        restPose(),
+        targets({ effectors: { handL: { pos } }, poles: { elbowL: { dir } } }),
+        OPEN_LIMITS,
+      )
+    const before = solveWith(pole),
+      after = solveWith(turned)
+    expect(Math.abs(dot(limbAxis, pole))).toBeGreaterThan(0.1)
+    const turn = Math.acos(dot(bendDirection(before.world, 'handL'), bendDirection(after.world, 'handL')))
+    expect(Math.abs(turn - Math.PI / 2)).toBeLessThan(1e-9)
+    expect(distance(at3(before.world, c), at3(after.world, c))).toBeLessThan(1e-6)
   })
   it("bends knees forward and elbows back by default (the source's poles), as positive flexion", () => {
     const k = unit(WICK)
