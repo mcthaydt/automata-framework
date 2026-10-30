@@ -9,12 +9,17 @@
 #### `AssetsSource` (interface)
 
 What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
-folder).
+folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and
+`fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list (M5.6F.2).
 
 ```ts
 interface AssetsSource {
   readonly screens: Readonly<Record<string, {
     readonly files: readonly string[];
+    /** Atlases named in `content/atlases.toml`: each page's Spritesheet JSON and image. */
+    readonly atlases?: readonly string[] | undefined;
+    /** Fonts named in `content/fonts.toml`: the subset of every language `fonts.json` lists. */
+    readonly fonts?: readonly string[] | undefined;
   }>>;
 }
 ```
@@ -445,8 +450,8 @@ interface ParaglideOptions {
 
 #### `PreloadInput` (interface)
 
-What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game
-folder.
+What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset
+build's outputs below `outDir`) and the built game folder.
 
 ```ts
 interface PreloadInput {
@@ -459,9 +464,12 @@ interface PreloadInput {
 #### `preloadList` (const)
 
 The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens`
-screen's files from `assets.toml` (the flow's entry when none is named), without repeats. Empty without a
-`game.toml`. Fails with `ContentCompileFailed` carrying a `missingAsset` diagnostic for every file the
-build lacks, all at once, or with `InvalidContentConfig`.
+screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and
+every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir`
+and the build serves in `atlases/` and `fonts/`; without repeats. Empty without a `game.toml`. Fails with
+`ContentCompileFailed` carrying a diagnostic for every file the build lacks (`missingAsset`), every atlas or
+font not declared (`unknownReference`) or not built (`missingAsset`), all at once, or with
+`InvalidContentConfig`.
 
 ```ts
 const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;

@@ -6,7 +6,7 @@
 
 ### `import { … } from '@mcthaydt/automata-content'`
 
-- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder).
+- `AssetsSource` (interface): What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and `fonts.toml`.
 - `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
 - `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
 - `compileContent` (const): Compiles `<root>/content` in memory.
@@ -42,8 +42,8 @@
 - `MessageLocation` (interface): A message's place in its file, 1-based.
 - `Palette` (interface): The game's palette: a name and its colors.
 - `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
-- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game folder.
-- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), without repeats.
+- `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset build's outputs below `outDir`) and the built game folder.
+- `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir` and the build serves in `atlases/` and `fonts/`; without repeats.
 - `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
 - `RukenFields` (type): The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
 - `SimPartition` (interface): The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash, which gates snapshots and replays.

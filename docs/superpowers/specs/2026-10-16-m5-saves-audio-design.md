@@ -216,6 +216,7 @@ Run by `automata-content assets` and by the content Vite plugin's build hook; ou
 - PNGs are read and written with `pngjs` (FloorFifty's dependency, ^7.0.0).
 - **Palette check:** when the game declares a palette (content `palette`), every opaque pixel must be a palette colour, from FloorFifty `validate-assets.ts`. A stray colour fails with the file, the pixel and the colour.
 - Atlas and font outputs join the generated preload list when their screen is preloaded.
+  - **How (M5.6F.2, 2026-10-30, open to the Owner's veto; [plan](../plans/2026-10-30-m5-6f2-preload-atlas-fonts.md)):** a screen names them in `assets.toml` beside its `files`, by their names in `atlases.toml` and `fonts.toml` (`atlases = ["wick"]`, `fonts = ["pixel"]`). Each atlas page's Spritesheet JSON and image, and the subset of every language `fonts.json` lists, join the list after the screen's files. Which files exist comes from the outputs `automata-content assets` wrote below `outDir`; the build serves them in the same folders, `atlases/` and `fonts/`. A name not declared is `unknownReference`, one not built or a file the build lacks is `missingAsset`, all reported at once at the screen's key.
 
 ### 4.8 Leaderboards (`packages/runtime/src/leaderboards/`, M5.7)
 
