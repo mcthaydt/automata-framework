@@ -83,6 +83,11 @@ export const levelProject: Profile<Project> = {
   print: (_base, project) => printProject(project),
   check: checkProject,
   summary: summarizeProject,
+  // The first level is the one a template starts on, so a new project's card shows what its Level view opens on.
+  preview: (project) => {
+    const [first] = project.levels
+    return first === undefined ? undefined : { project, level: first.id }
+  },
   templates: [platformerTemplate, topdownRpgTemplate, blankTemplate],
   views,
   exports,

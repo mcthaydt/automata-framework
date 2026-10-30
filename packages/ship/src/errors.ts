@@ -3,6 +3,7 @@ import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
 import type { UndeclaredBoardFound } from './prepare/board-names.ts'
 import type { OrientationMismatchFound } from './prepare/orientation.ts'
+import type { Pixi3dFound } from './prepare/pixi3d-markers.ts'
 import type { SecretFound } from './prepare/secret-scan.ts'
 
 export { FileError, ProcessError } from '@mcthaydt/automata-node'
@@ -66,6 +67,43 @@ export class SecretInBuild extends SecretInBuildBase {
       )
       .join('\n')
     return `the build holds what looks like a secret, and everything in a build is public. Remove it from the game's code (keep secrets on a server), then build again:\n${listed}`
+  }
+}
+
+const Pixi3dInPublicBuildBase: TaggedErrorClass<
+  'Pixi3dInPublicBuild',
+  {
+    readonly found: readonly Pixi3dFound[]
+  }
+> = Data.TaggedError('Pixi3dInPublicBuild')
+/** A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta (M3 spec §4.8, X-b). */
+export class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
+  override get message(): string {
+    const listed = this.found.map((found) => `${found.file}: "${found.marker}"`).join('\n')
+    return `the build contains @pixi/3d, a closed beta whose terms allow no public deployment (D-1: render-pixi3d stays private until Pixi 3D's public release). Deploy it only to the private dev host (deploy-dev) or Ruken's local stack (publish --private, with RUKEN_API on localhost):\n${listed}`
+  }
+}
+
+const PrivatePublishNotLocalBase: TaggedErrorClass<'PrivatePublishNotLocal', { readonly api: string }> =
+  Data.TaggedError('PrivatePublishNotLocal')
+/** `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local. */
+export class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
+  override get message(): string {
+    return `publish --private uploads only to Ruken's local stack (RUKEN_API on localhost, a .localhost name or a loopback address), not ${this.api}: a private build may contain @pixi/3d, a closed beta (D-1)`
+  }
+}
+
+const Pixi3dExtrasInBuildBase: TaggedErrorClass<
+  'Pixi3dExtrasInBuild',
+  {
+    readonly found: readonly Pixi3dFound[]
+  }
+> = Data.TaggedError('Pixi3dExtrasInBuild')
+/** A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load (M3 spec S7-g). */
+export class Pixi3dExtrasInBuild extends Pixi3dExtrasInBuildBase {
+  override get message(): string {
+    const listed = this.found.map((found) => `${found.file}: "${found.marker}"`).join('\n')
+    return `the build contains @pixi/3d/extras, whose particle code probes new Function when it loads, a CSP violation under Ruken. Import @pixi/3d's main entry only:\n${listed}`
   }
 }
 

@@ -5,12 +5,15 @@ import type { ShipConfig } from '../config/ship-config.ts'
 import {
   ItchBuildInvalid,
   type ItchCheck,
+  Pixi3dExtrasInBuild,
+  Pixi3dInPublicBuild,
   RootAbsoluteReference,
   SecretInBuild,
   VersionMismatch,
 } from '../errors.ts'
 import { buildFiles } from '../prepare/build-files.ts'
 import { checkVersion } from '../prepare/check-version.ts'
+import { findPixi3d } from '../prepare/pixi3d-markers.ts'
 import { findRootAbsoluteReferences } from '../prepare/root-absolute.ts'
 import { findSecretsInBuild, readEnvValues } from '../prepare/secret-scan.ts'
 import {
@@ -38,12 +41,14 @@ export type PrepareItchError =
   | VersionMismatch
   | RootAbsoluteReference
   | SecretInBuild
+  | Pixi3dInPublicBuild
+  | Pixi3dExtrasInBuild
   | ItchBuildInvalid
   | FileError
 
 /**
  * Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on
- * itch.io is public, so the build is scanned as Ruken's is), `index.html`, itch.io's
+ * itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d` (X-b, S7-g), `index.html`, itch.io's
  * limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops
  * prepare before anything is written. Then `<id>-<version>-itch.zip` is written beside the build folder (not in
  * it, so `butler push <dist>` never uploads it), for a manual upload; butler pushes the folder itself.
@@ -69,6 +74,11 @@ export function prepareItch(input: PrepareItchInput): Effect.Effect<{ zipPath: s
       findSecretsInBuild(distDir, gameDir === undefined ? [] : readEnvValues(gameDir)),
     )
     if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
+
+    // An itch.io page is public: the closed beta never goes there (X-b), nor its extras (S7-g).
+    const pixi3d = yield* attempt(() => findPixi3d(distDir))
+    if (pixi3d.extras.length > 0) return yield* new Pixi3dExtrasInBuild({ found: pixi3d.extras })
+    if (pixi3d.core.length > 0) return yield* new Pixi3dInPublicBuild({ found: pixi3d.core })
 
     const files = yield* attempt(() => buildFiles(distDir))
     const checks: readonly [ItchCheck, () => string[]][] = [

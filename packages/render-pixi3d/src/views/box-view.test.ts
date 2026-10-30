@@ -1,0 +1,44 @@
+import type { RenderRow } from '@mcthaydt/automata-sim'
+import { Container3D, Mesh3D } from '@pixi/3d'
+import { describe, expect, it } from 'vitest'
+import { emptyModels } from '../model/load-models.js'
+import { box } from './box-view.js'
+
+const row: RenderRow = { sid: 1, components: { crate: { x: 0, y: 0, z: 0 } } }
+
+describe('box', () => {
+  it('stands a box of the given size on its position, interpolated and turned by yaw', () => {
+    const view = box({ width: 1, height: 2, depth: 0.5 }, { color: 0xf9c22b })(row, 'crate', emptyModels)
+    if (view === undefined) throw new Error('no view')
+    expect(view.container).toBeInstanceOf(Container3D)
+    const mesh = view.container.children[0]
+    expect(mesh).toBeInstanceOf(Mesh3D)
+    // Its base sits on the entity's position: the cube is centred, so it is lifted by half its height.
+    expect(mesh?.position.y).toBe(1)
+
+    view.update?.({ crate: { x: 4, y: 0, z: 2, yaw: 1 } }, { crate: { x: 2, y: 0, z: 0, yaw: 0 } }, 0.5)
+    expect([view.container.position.x, view.container.position.y, view.container.position.z]).toEqual([
+      3, 0, 1,
+    ])
+    expect(view.container.rotation.y).toBeCloseTo(0.5)
+  })
+
+  it('shares one geometry and one material between the boxes of a factory', () => {
+    const make = box({ width: 1, height: 1, depth: 1 }, { color: 0x249fde })
+    const a = make(row, 'crate', emptyModels)?.container.children[0] as Mesh3D
+    const b = make(row, 'crate', emptyModels)?.container.children[0] as Mesh3D
+    expect(a.geometry).toBe(b.geometry)
+    expect(a.material).toBe(b.material)
+  })
+
+  it('destroys its nodes but keeps the shared geometry for the other boxes', () => {
+    const make = box({ width: 1, height: 1, depth: 1 }, { color: 0x249fde })
+    const view = make(row, 'crate', emptyModels)
+    const mesh = view?.container.children[0] as Mesh3D
+    const geometry = mesh.geometry
+    view?.destroy?.()
+    expect(view?.container.destroyed).toBe(true)
+    const next = make(row, 'crate', emptyModels)?.container.children[0] as Mesh3D | undefined
+    expect(next?.geometry).toBe(geometry)
+  })
+})

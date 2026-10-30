@@ -84,7 +84,6 @@ describe('the pure layers', () => {
     'profile',
     'model',
     'view',
-    'ports',
     'app',
     'things',
   ]) {

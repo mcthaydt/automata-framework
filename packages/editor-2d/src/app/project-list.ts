@@ -1,5 +1,6 @@
 import { classifyStorageError, type Workspace } from '@mcthaydt/automata-editor-kit/core'
-import type { ProfileRegistry, ProfileSummary } from '../profiles/profile'
+import { levelImages } from '../canvas/draw/level-images'
+import type { LevelPreview, ProfileRegistry, ProfileSummary } from '../profiles/profile'
 import { readDocument } from './read-document'
 
 // The projects Home shows (2D editor spec §8): one entry for each file in the workspace that a profile claims, and
@@ -10,6 +11,15 @@ interface Listed {
   readonly path: string
   readonly size: number
   readonly mtime: number
+}
+
+/** A card's preview level, stamped with what its thumbnail is drawn from besides the file itself. */
+export type CardPreview = LevelPreview & {
+  /**
+   * The level's image paths with their modification times (`assets/terrain.png@1700000000000`, or `@missing`), so a
+   * replaced or newly imported image gives the card a new thumbnail key.
+   */
+  readonly images: string
 }
 
 export interface ProfileRef {
@@ -26,6 +36,8 @@ export type ProjectEntry =
       readonly warnings: number
       /** The profile's words for what the project holds; `undefined` when the profile gives none. */
       readonly summary: ProfileSummary | undefined
+      /** The level the card draws as a thumbnail; `undefined` when the profile has none to show. */
+      readonly preview: CardPreview | undefined
     })
   /** A profile claims the file and it does not open: Home shows the reason and offers the text view. */
   | (Listed & { readonly status: 'broken'; readonly profile: ProfileRef; readonly message: string })
@@ -41,6 +53,16 @@ export async function listProjects(
 ): Promise<readonly ProjectEntry[]> {
   const files = await workspace.store.list()
   const assets = files.map((file) => file.path)
+  const modified = new Map(files.map((file) => [file.path, file.mtime]))
+  /** A preview naming a level its project lacks has nothing to draw, so it is dropped here. */
+  const stamped = (preview: LevelPreview | undefined): CardPreview | undefined => {
+    if (preview === undefined || !preview.project.levels.some((level) => level.id === preview.level))
+      return undefined
+    const images = levelImages(preview.project, preview.level)
+      .map((path) => `${path}@${modified.get(path) ?? 'missing'}`)
+      .join(' ')
+    return { ...preview, images }
+  }
   const entries: ProjectEntry[] = []
   for (const file of files) {
     const listed: Listed = { path: file.path, size: file.size, mtime: file.mtime }
@@ -70,6 +92,7 @@ export async function listProjects(
           errors: findings.filter((finding) => finding.severity === 'error').length,
           warnings: findings.filter((finding) => finding.severity === 'warning').length,
           summary: read.profile.summary?.(read.value),
+          preview: stamped(read.profile.preview?.(read.value)),
         })
         break
       }

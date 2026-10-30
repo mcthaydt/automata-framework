@@ -596,11 +596,10 @@ function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S
   const layer = spec.draw === undefined ? undefined : createDrawLayer(spec.draw, spec.size)
   // The stage, once the renderer has made it: the default screens give it the player's quality (M4.4).
   let stage: PixiStage | undefined
-  const renderer = createPixiRenderer(
-    pixiOptions(spec, layer, (made) => {
-      stage = made
-    }),
-  )
+  const options = pixiOptions(spec, layer, (made) => {
+    stage = made
+  })
+  const renderer = spec.createRenderer?.(options) ?? createPixiRenderer(options)
 
   const game: DefinedGame<S> = {
     id: spec.id,
@@ -632,6 +631,7 @@ function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S
     // They are not the game's `S`: only the default screens read them, through `Settings`.
     settings: spec.settings ?? (CORE_SETTINGS as unknown as SettingsDef<S>),
     ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+    ...(spec.preload === undefined ? {} : { preload: spec.preload }),
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),
@@ -929,6 +929,18 @@ interface GameSpec<S = never, D = unknown> {
   readonly draw?: (ctx: DrawContext) => void
   /** Merged over the defaults (`pixelArt`, the logical size and the views). */
   readonly renderer?: PixiRendererOptions
+  /**
+   * Makes the renderer from the Pixi options `defineGame` built (the size, pixel art, the views, `renderer` and
+   * the draw layer's and Settings' `setup`): an extension's renderer, such as render-pixi3d's
+   * `(options) => createPixi3dRenderer({ ...options, views })`. Default: core's `createPixiRenderer`.
+   */
+  readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory
+  /**
+   * Files the runtime fetches with the preload screens, with byte progress and the 30 s stall rule (M1.5), before
+   * the renderer starts: model files a 3D view draws, for example. They stay out of the content and its hash, so a
+   * new origin or a rebuilt file never changes the hash a save is stamped with.
+   */
+  readonly preload?: readonly string[]
   readonly copy?: GameDefinition['copy']
   /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
   readonly locale?: GameDefinition['locale']
@@ -2885,6 +2897,18 @@ interface GameSpec<S = never, D = unknown> {
     readonly draw?: (ctx: DrawContext) => void;
     /** Merged over the defaults (`pixelArt`, the logical size and the views). */
     readonly renderer?: PixiRendererOptions;
+    /**
+     * Makes the renderer from the Pixi options `defineGame` built (the size, pixel art, the views, `renderer` and
+     * the draw layer's and Settings' `setup`): an extension's renderer, such as render-pixi3d's
+     * `(options) => createPixi3dRenderer({ ...options, views })`. Default: core's `createPixiRenderer`.
+     */
+    readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
+    /**
+     * Files the runtime fetches with the preload screens, with byte progress and the 30 s stall rule (M1.5), before
+     * the renderer starts: model files a 3D view draws, for example. They stay out of the content and its hash, so a
+     * new origin or a rebuilt file never changes the hash a save is stamped with.
+     */
+    readonly preload?: readonly string[];
     readonly copy?: GameDefinition['copy'];
     /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
     readonly locale?: GameDefinition['locale'];
@@ -3950,8 +3974,8 @@ What an entity view factory returns: the container drawn for one entity, updated
 previous component values and the interpolation alpha, and destroyed when the entity goes.
 
 ```ts
-interface EntityView {
-  readonly container: Container;
+interface EntityView<C extends SceneNode = Container> {
+  readonly container: C;
   update?(curr: Readonly<Record<string, Readonly<FieldRecord>>>, prev?: Readonly<Record<string, Readonly<FieldRecord>>> | undefined, alpha?: number): void;
   destroy?(): void;
 }
@@ -3964,7 +3988,7 @@ the factory was registered under, so a view such as `rect()` knows which compone
 function resolver passes no id.
 
 ```ts
-type EntityViewFactory = (row: RenderRow, componentId?: string) => EntityView | undefined;
+type EntityViewFactory<C extends SceneNode = Container> = (row: RenderRow, componentId?: string) => EntityView<C> | undefined;
 ```
 
 #### `EntityViewResolver` (type)
@@ -3973,7 +3997,7 @@ Which view an entity gets: one factory for every entity, or factories by compone
 record's own key order, whose component the entity has wins).
 
 ```ts
-type EntityViewResolver = EntityViewFactory | Readonly<Record<string, EntityViewFactory>>;
+type EntityViewResolver<C extends SceneNode = Container> = EntityViewFactory<C> | Readonly<Record<string, EntityViewFactory<C>>>;
 ```
 
 #### `FILTER_VERTEX` (const)
@@ -4413,16 +4437,16 @@ interface RectViewOptions {
 
 #### `RenderDeltaConsumer` (class)
 
-Keeps one entity view per sim entity in the world container from each step's render delta, and interpolates
-them between ticks.
+Keeps one entity view per sim entity in the world from each step's render delta, and interpolates them between
+ticks. `C` is the scene's node type: Pixi's `Container` by default.
 
 ```ts
-class RenderDeltaConsumer {
+class RenderDeltaConsumer<C extends SceneNode = Container> {
   private readonly world;
   private readonly resolver?;
   private readonly views;
   private readonly cache;
-  constructor(world: Container, resolver?: EntityViewResolver);
+  constructor(world: SceneParent<C>, resolver?: EntityViewResolver<C>);
   private resolveView;
   apply(delta: RenderDelta): void;
   interpolate(alpha: number): void;
@@ -4446,6 +4470,28 @@ The canvas resolution each quality tier allows at most (M4 spec §4.11).
 
 ```ts
 const RESOLUTION_CAPS: Readonly<Record<QualityTier, number>>;
+```
+
+#### `SceneNode` (interface)
+
+What the consumer needs of a scene node: Pixi's `Container`, or another scene graph's node with the same meaning
+(`@pixi/3d`'s `Container3D`, which is not a Pixi `Container`; M3 spec S7-Q5).
+
+```ts
+interface SceneNode {
+  readonly parent: unknown;
+  removeFromParent(): void;
+}
+```
+
+#### `SceneParent` (interface)
+
+A scene node that holds other nodes: the world the consumer mounts views into.
+
+```ts
+interface SceneParent<C extends SceneNode> {
+  addChild(child: C): unknown;
+}
 ```
 
 #### `SHAKE_DECAY` (const)
@@ -4937,7 +4983,7 @@ class BootDefect extends BootDefectBase {}
 Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4).
 
 ```ts
-type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;
+type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | ModelInvalid | BootDefect;
 ```
 
 #### `browserHaptics` (function)
@@ -5311,6 +5357,12 @@ interface GameDefinition<S = never> {
     readonly hash: string;
   };
   readonly screens: readonly ScreenDef[];
+  /**
+   * Files fetched with the preload screens' own (byte progress, the 30 s stall rule) before the renderer starts,
+   * outside the content: a game without `content/` lists its 3D models here (M3.4a). They are not part of
+   * `content.hash`, so a new origin or a rebuilt file never changes the hash saves are stamped with.
+   */
+  readonly preload?: readonly string[] | undefined;
   readonly renderer: RendererFactory;
   readonly settings?: SettingsDef<S> | undefined;
   /**
@@ -5339,6 +5391,8 @@ interface GameDefinition<S = never> {
   readonly copy?: Partial<BootFailureCopy> & {
     readonly loading?: string;
     readonly slow?: string;
+    /** The panel when the renderer's graphics context is lost for good (M3 spec §5). */
+    readonly contextLost?: string;
   };
   readonly seams?: RuntimeSeams;
 }
@@ -5885,6 +5939,15 @@ One compiled message: Paraglide passes its inputs as one object.
 type MessageFunction = (inputs?: any) => string;
 ```
 
+#### `ModelInvalid` (class)
+
+A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin,
+which is not supported yet (M3R-D1). Boot shows the panel naming the file, with Try again.
+
+```ts
+class ModelInvalid extends ModelInvalidBase {}
+```
+
 #### `MusicOptions` (interface)
 
 Options for `Audio.music`: where to begin and which region loops.
@@ -6099,11 +6162,11 @@ const Renderer: Context.Tag<GameRenderer, GameRenderer>;
 
 #### `RendererFactory` (type)
 
-Builds the game's renderer on a render target in a scope, failing `RendererUnavailable` when it cannot
-start.
+Builds the game's renderer for a target. It fails with `RendererUnavailable` when no backend it accepts starts,
+and with `ModelInvalid` when a 3D renderer cannot read a model file it was given (M3 spec §6).
 
 ```ts
-type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable, Scope.Scope>;
+type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
 ```
 
 #### `RendererUnavailable` (class)
@@ -6126,6 +6189,12 @@ interface RenderTarget {
   readonly assets: Pick<Assets, "get">;
   /** The runtime's presentation bus, for render facts such as `render.filter.dropped`. Optional for tests and tools. */
   readonly bus?: PresentationBus | undefined;
+  /**
+   * Shows the "picture stopped" panel with Try again, for a renderer whose graphics context is lost and will not
+   * come back by itself (M3 spec §5): Try again closes the panel and calls `retry`, which rebuilds the renderer from
+   * the sim's current state. Returns a function that closes the panel. Optional for tests and tools.
+   */
+  readonly reportLost?: ((retry: () => void) => () => void) | undefined;
 }
 ```
 
@@ -6220,6 +6289,13 @@ interface RuntimeFacts {
     readonly id: string;
     readonly reason: string;
   };
+  /** The WebGL context was lost; the renderer draws nothing until it is restored (M3 spec §5). */
+  readonly "render.context.lost": Readonly<Record<never, never>>;
+  /**
+   * The WebGL context came back (M3 spec §5): Pixi re-uploads its GPU resources and the renderer draws again; the
+   * views and the sim are untouched.
+   */
+  readonly "render.context.restored": Readonly<Record<never, never>>;
   /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
   readonly "save.written": {
     readonly key: string;
@@ -7380,6 +7456,18 @@ Every `defineGame` in a game's sources that plays in an orientation other than `
 function findOrientationMismatches(gameDir: string, declared: string): OrientationMismatchFound[];
 ```
 
+#### `findPixi3d` (function)
+
+Every script in the build that carries
+@pixi /3d (`core`) or its `./extras` (`extras`), the first marker each.
+
+```ts
+function findPixi3d(distDir: string): {
+  core: Pixi3dFound[];
+  extras: Pixi3dFound[];
+};
+```
+
 #### `findRootAbsoluteReferences` (function)
 
 Every root-absolute reference to one of the build's own files in a built folder, walking it in name order.
@@ -7437,6 +7525,14 @@ Whether `file` is one of the game's sources the check reads: not a test, whose f
 
 ```ts
 const isInputsSource: (file: string) => boolean;
+```
+
+#### `isLocalStack` (function)
+
+Whether `api` is Ruken's local stack: `localhost`, a `.localhost` name, or a loopback address.
+
+```ts
+function isLocalStack(api: string): boolean;
 ```
 
 #### `isOrientationSource` (const)
@@ -7599,6 +7695,56 @@ The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `
 function parseEnvFile(file: string, text: string): EnvValue[];
 ```
 
+#### `PIXI3D_EXTRAS_MARKERS` (const)
+
+Strings only
+@pixi /3d's `./extras` carries (its particle spawn code generator).
+
+```ts
+const PIXI3D_EXTRAS_MARKERS: readonly string[];
+```
+
+#### `PIXI3D_MARKERS` (const)
+
+Strings only
+@pixi /3d's main entry carries.
+
+```ts
+const PIXI3D_MARKERS: readonly string[];
+```
+
+#### `Pixi3dExtrasInBuild` (class)
+
+A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load (M3 spec S7-g).
+
+```ts
+class Pixi3dExtrasInBuild extends Pixi3dExtrasInBuildBase {
+  override get message(): string;
+}
+```
+
+#### `Pixi3dFound` (interface)
+
+One script that carries a marker.
+
+```ts
+interface Pixi3dFound {
+  /** Relative to the build, with forward slashes. */
+  readonly file: string;
+  readonly marker: string;
+}
+```
+
+#### `Pixi3dInPublicBuild` (class)
+
+A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta (M3 spec §4.8, X-b).
+
+```ts
+class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
+  override get message(): string;
+}
+```
+
 #### `PlayedOrientation` (interface)
 
 An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
@@ -7630,7 +7776,7 @@ function portsFor(checkoutPath: string, env: Readonly<Record<string, string | un
 #### `prepareBuild` (function)
 
 Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
-entry page, root-absolute paths, secrets (QB-b), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+entry page, root-absolute paths, secrets (QB-b), `@pixi/3d` (X-b, S7-g), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
 runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
 (archive, size, file types) happen inside `ruken publish`, not here.
 
@@ -7663,13 +7809,19 @@ interface PrepareInput {
    * is checked.
    */
   readonly inputBindings?: ShipInputBindings | undefined;
+  /**
+   * Who the build is for. `public` (the default: Ruken's store, through `publish`) refuses a build that contains
+   * `@pixi/3d`, a closed beta (X-b); `private` (the dev host behind its access control, `deploy-dev`, and Ruken's
+   * local stack, `publish --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
+   */
+  readonly audience?: "public" | "private" | undefined;
 }
 ```
 
 #### `prepareItch` (function)
 
 Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on
-itch.io is public, so the build is scanned as Ruken's is), `index.html`, itch.io's
+itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d` (X-b, S7-g), `index.html`, itch.io's
 limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops
 prepare before anything is written. Then `<id>-<version>-itch.zip` is written beside the build folder (not in
 it, so `butler push <dist>` never uploads it), for a manual upload; butler pushes the folder itself.
@@ -7699,6 +7851,16 @@ interface PrepareItchInput {
 }
 ```
 
+#### `PrivatePublishNotLocal` (class)
+
+`publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
+
+```ts
+class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
+  override get message(): string;
+}
+```
+
 #### `ProcessError` (class)
 
 A program could not be started (not found, not executable). A non-zero exit is not this error.
@@ -7718,6 +7880,35 @@ Exit 3: the token was missing, wrong or lacks the rights.
 ```ts
 class PublishAuth extends PublishAuthBase {
   override get message(): string;
+}
+```
+
+#### `publishBuild` (function)
+
+`ship publish` for Ruken (ship spec §3.4): prepare the build, then hand it to Ruken's own CLI. A public publish
+(the default) refuses a build that contains `@pixi/3d` (X-b). A private one prepares with the closed beta allowed
+and uploads only to Ruken's local stack, checked before anything is prepared, so the beta never reaches a public
+Ruken through ship.
+
+```ts
+function publishBuild(input: PublishBuildInput): Effect.Effect<{
+  url: string | undefined;
+}, PrepareError | PublishError | PrivatePublishNotLocal, Files | ProcessRunner>;
+```
+
+#### `PublishBuildInput` (interface)
+
+What `publishBuild` needs: `publishToRuken`'s input, the game's ship config, the release tag and the audience.
+
+```ts
+interface PublishBuildInput extends PublishInput {
+  readonly config: ShipConfig;
+  readonly tag?: string | undefined;
+  /**
+   * A private upload, to Ruken's local stack only: the build may contain `@pixi/3d`, a closed beta (D-1, M3 spec
+   * §4.8). Refused unless `api` is a loopback or `.localhost` host.
+   */
+  readonly private?: boolean | undefined;
 }
 ```
 
@@ -10265,6 +10456,12 @@ type BootFailure = {
     readonly tried: readonly ('webgl2' | 'webgpu')[];
 } | {
     readonly _tag: 'BootDefect';
+}
+/** A 3D model file that could not be read (M3 spec §6): `file` is its url, `reason` why. */
+ | {
+    readonly _tag: 'ModelInvalid';
+    readonly file: string;
+    readonly reason: string;
 };
 ```
 
@@ -10298,11 +10495,11 @@ type BootFailurePanel = ReturnType<typeof BootFailurePanel>;
 
 #### `BootFailureState` (type)
 
-What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled` or
-`unsupported`.
+What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled`,
+`unsupported` or `model-invalid`.
 
 ```ts
-type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported';
+type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported' | 'model-invalid';
 ```
 
 #### `bootFailureView` (function)
@@ -10318,6 +10515,8 @@ without it "Back to …" is never offered (PUB spec §3.1).
   playing on without the player's saves would silently fork their progress.
 - Renderer: nothing on this device can fix it. Inside Ruken the player goes back; a standalone
   page has nowhere to go, so its panel is final.
+- Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot; when the file
+  stays damaged, the host's way out is offered beside it.
 - Everything else: Try again, which re-runs the boot program in a fresh scope (never a page reload
   inside a Ruken frame).
 

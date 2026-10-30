@@ -115,4 +115,9 @@ export interface LevelDrawInput {
   readonly view: DrawView
   /** The image paths the texture manager has loaded; a tileset whose image is not here draws placeholders. */
   readonly images: ReadonlySet<string>
+  /**
+   * Each loaded image's generation (the texture manager's `generations`): an image loaded again after it was forgotten
+   * has a new one, so the chunks drawn from the old texture are drawn again. Absent, every loaded image counts as one.
+   */
+  readonly generations?: ReadonlyMap<string, number> | undefined
 }

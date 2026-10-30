@@ -1,6 +1,7 @@
 <!--
   The status overlays for the layout contracts (M1.6 spec §7, plan Task 11): the loader while
-  assets arrive; the boot failure with the most words on its button (Continue without loading);
+  assets arrive; the boot failure with the most words on its button (Continue without loading); a
+  damaged model whose long file name has no break (M3.4a);
   an ErrorPanel with two ways forward, with a one-line message or a long one, and with three;
   and a final
   ErrorPanel (no way forward) with a long message. A failure is drawn over a screen with Back in
@@ -8,7 +9,14 @@
   said in the `locale` the contract runs in; the boot failure's copy is the English defaults said so.
 -->
 <script lang="ts" module>
-export type StatusShow = 'loader' | 'boot-failure' | 'error' | 'error-long' | 'error-three' | 'final-long'
+export type StatusShow =
+  | 'loader'
+  | 'boot-failure'
+  | 'model-invalid'
+  | 'error'
+  | 'error-long'
+  | 'error-three'
+  | 'final-long'
 </script>
 
 <script lang="ts">
@@ -48,6 +56,20 @@ const BOOT_COPY = Object.fromEntries(
       canExit={false}
       onRetry={none}
       onContinue={none}
+      onExit={none}
+    />
+  {:else if show === 'model-invalid'}
+    <!-- A damaged model whose hashed file name has no break opportunity (M3 spec §6, review of #241). -->
+    <BootFailurePanel
+      failure={{
+        _tag: 'ModelInvalid',
+        file: '/assets/nightstand-with-a-long-hashed-name-DkFIQVVxQWERTYUIOPASDFGHJKLZXCVBNM0123456789.glb',
+        reason: 'malformed: truncated',
+      }}
+      hostKind="ruken"
+      hostName="Ruken"
+      canExit
+      onRetry={none}
       onExit={none}
     />
   {:else if show === 'final-long'}

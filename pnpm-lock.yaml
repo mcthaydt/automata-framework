@@ -41,6 +41,9 @@ importers:
       '@mcthaydt/automata':
         specifier: workspace:*
         version: link:../packages/automata
+      '@mcthaydt/automata-render-pixi3d':
+        specifier: workspace:*
+        version: link:../packages/render-pixi3d
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
@@ -400,6 +403,9 @@ importers:
       '@mcthaydt/automata-ui':
         specifier: workspace:*
         version: link:../ui
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
@@ -461,6 +467,9 @@ importers:
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
+      '@mcthaydt/automata-render-pixi3d':
+        specifier: workspace:*
+        version: link:../render-pixi3d
       '@mcthaydt/automata-ui':
         specifier: workspace:*
         version: link:../ui
@@ -586,6 +595,9 @@ importers:
 
   packages/editor-suite:
     dependencies:
+      '@mcthaydt/automata-editor-kit':
+        specifier: workspace:*
+        version: link:../editor-kit
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0
@@ -790,6 +802,67 @@ importers:
       typescript:
         specifier: 6.0.3
         version: 6.0.3
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+
+  packages/render-pixi3d:
+    dependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
+      '@mcthaydt/automata-render-pixi':
+        specifier: workspace:*
+        version: link:../render-pixi
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@mcthaydt/automata-sim':
+        specifier: workspace:*
+        version: link:../sim
+      '@mcthaydt/automata-ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@pixi/3d':
+        specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
+        version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
+      '@pmndrs/klipp':
+        specifier: 0.16.0
+        version: 0.16.0
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@mcthaydt/automata-ship':
+        specifier: workspace:*
+        version: link:../ship
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      '@vitest/browser-playwright':
+        specifier: 5.0.3
+        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
@@ -2112,6 +2185,12 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@pixi/3d@file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz':
+    resolution: {integrity: sha512-H5IkESPC3BZsNnvpN8Y2sV4NA0I51RhD9Aq29K9tawk/6bAM0NtMKXFZ0X2akgWDdJ6XQg0dv05y0gZf7eoeoQ==, tarball: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz}
+    version: 0.1.0-beta.2
+    peerDependencies:
+      pixi.js: ^8.22.0
+
   '@pixi/colord@2.9.6':
     resolution: {integrity: sha512-nezytU2pw587fQstUu1AsJZDVEynjskwOL+kibwcdxsMBFqPsFFNA7xl0ii/gXuDi6M0xj3mfRJj8pBSc2jCfA==}
 
@@ -2119,6 +2198,23 @@ packages:
     resolution: {integrity: sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ==}
     engines: {node: '>=20'}
     hasBin: true
+
+  '@pmndrs/klipp@0.16.0':
+    resolution: {integrity: sha512-MGbDL4fu6E2wqel4m4oF3sJjNOqgRfxBWFFFanxK8MAuaFw06Ygvm1ESM3vU3qlP0uL9M0zZDa8nbHVf/CBMjA==}
+    peerDependencies:
+      '@react-three/fiber': ^9.7.0
+      camera-controls: ^3.1.2
+      react: '>=19.2.0'
+      three: '>=0.156.0'
+    peerDependenciesMeta:
+      '@react-three/fiber':
+        optional: true
+      camera-controls:
+        optional: true
+      react:
+        optional: true
+      three:
+        optional: true
 
   '@pnpm/deps.graph-sequencer@1100.0.1':
     resolution: {integrity: sha512-pOr5+q1fLYKwFN3LAJuGZEnfXDcQ73zqgDHMtGy+K+uIoUqyY+6MeDCWFwfu+4EFuq76I5EPFofoNAI+Bmmq4A==}
@@ -3104,8 +3200,14 @@ packages:
   magic-string@1.4.2:
     resolution: {integrity: sha512-vG+rjFRj1PqdIBozIxAGMjPlOhaVe+GXpbttY/iSK7rGcJRMlwNJO7dcUwmUqkymsFLJiNGI06t4D7Fr7yRC9g==}
 
+  math@0.0.0-canary-20261019-82387b5d:
+    resolution: {integrity: sha512-gz/nO+FIlOKxTm5Uo7ivMPoI1/xP3882uqTCaRq0aJGSQ0WVGIQ6unnNri9IdCwrhM1DRZdUU81wImt7NfyvHw==}
+
   mdn-data@2.27.1:
     resolution: {integrity: sha512-9Yubnt3e8A0OKwxYSXyhLymGW4sCufcLG6VdiDdUGVkPhpqLxlvP5vl1983gQjJl3tqbrM731mjaZaP68AgosQ==}
+
+  meshoptimizer@1.3.0:
+    resolution: {integrity: sha512-2oZqMAcEEiCtXWUjIGtZ71oPx1B0ZxYGTqIKsXB1wzWFhleNsCFxQuUJzgCV706bRcwPWtMGf1odmQvAcqKkIw==}
 
   min-indent@1.0.1:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
@@ -4312,11 +4414,20 @@ snapshots:
   '@oxc-resolver/binding-win32-x64-msvc@11.24.2':
     optional: true
 
+  '@pixi/3d@file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)':
+    dependencies:
+      meshoptimizer: 1.3.0
+      pixi.js: 8.22.0
+
   '@pixi/colord@2.9.6': {}
 
   '@playwright/test@1.63.0':
     dependencies:
       playwright: 1.63.0
+
+  '@pmndrs/klipp@0.16.0':
+    dependencies:
+      math: 0.0.0-canary-20261019-82387b5d
 
   '@pnpm/deps.graph-sequencer@1100.0.1': {}
 
@@ -5133,7 +5244,11 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
 
+  math@0.0.0-canary-20261019-82387b5d: {}
+
   mdn-data@2.27.1: {}
+
+  meshoptimizer@1.3.0: {}
 
   min-indent@1.0.1: {}
 

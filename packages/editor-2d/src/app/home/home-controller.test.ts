@@ -189,6 +189,7 @@ describe('refresh', () => {
         errors: 0,
         warnings: 0,
         summary: undefined,
+        preview: undefined,
       },
     ])
     await older

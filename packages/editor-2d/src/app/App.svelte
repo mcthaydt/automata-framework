@@ -14,6 +14,7 @@ import type {
 } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onDestroy } from 'svelte'
+import type { LevelThumbnails } from '../canvas/level-thumbnails'
 import type { ProfileRegistry } from '../profiles/profile'
 import DocumentFrame from './DocumentFrame.svelte'
 import { createDocumentController, type DocumentController } from './document/document-controller'
@@ -33,9 +34,11 @@ interface Props {
   clock: { now(): number }
   /** The page whose hiding writes an open document's journal. */
   lifecycle: { readonly document: LifecycleDocument; readonly window: LifecycleWindow }
+  /** Draws the Home cards' preview levels (ED2D.4c3b). */
+  thumbnails?: LevelThumbnails | undefined
 }
 
-const { geometry, app, workspace, registry, toasts, clock, lifecycle }: Props = $props()
+const { geometry, app, workspace, registry, toasts, clock, lifecycle, thumbnails }: Props = $props()
 
 let open = $state.raw<DocumentController | undefined>(undefined)
 let failure = $state.raw<PanelOutcome | undefined>(undefined)
@@ -98,7 +101,7 @@ onDestroy(() => {
 {#if open}
   <DocumentFrame {geometry} controller={open} {toasts} {clock} onback={back} />
 {:else}
-  <Home {geometry} {controller} {workspace} {registry} {toasts} {clock} />
+  <Home {geometry} {controller} {workspace} {registry} {toasts} {clock} {thumbnails} />
   <ErrorPanel
     outcome={failure}
     copyText={(text) => workspace.exports.copyText(text)}

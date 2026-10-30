@@ -68,6 +68,7 @@ export {
   splitPath,
   stepSelection,
   storageNotes,
+  type TilePreview,
   type Tone,
   workspaceSubtitle,
 } from './home/project-browse'
@@ -127,6 +128,7 @@ export {
   type StorageFailure,
   type StoredEntry,
   statPath,
+  type WriteExpectation,
   type WriteFailure,
   type WriteResult,
 } from './storage/project-store'
