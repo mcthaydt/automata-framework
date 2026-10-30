@@ -9,12 +9,17 @@
 #### `AssetsSource` (interface)
 
 What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
-folder).
+folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and
+`fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list (M5.6F.2).
 
 ```ts
 interface AssetsSource {
   readonly screens: Readonly<Record<string, {
     readonly files: readonly string[];
+    /** Atlases named in `content/atlases.toml`: each page's Spritesheet JSON and image. */
+    readonly atlases?: readonly string[] | undefined;
+    /** Fonts named in `content/fonts.toml`: the subset of every language `fonts.json` lists. */
+    readonly fonts?: readonly string[] | undefined;
   }>>;
 }
 ```
@@ -445,8 +450,8 @@ interface ParaglideOptions {
 
 #### `PreloadInput` (interface)
 
-What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`) and the built game
-folder.
+What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset
+build's outputs below `outDir`) and the built game folder.
 
 ```ts
 interface PreloadInput {
@@ -459,9 +464,12 @@ interface PreloadInput {
 #### `preloadList` (const)
 
 The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens`
-screen's files from `assets.toml` (the flow's entry when none is named), without repeats. Empty without a
-`game.toml`. Fails with `ContentCompileFailed` carrying a `missingAsset` diagnostic for every file the
-build lacks, all at once, or with `InvalidContentConfig`.
+screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and
+every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir`
+and the build serves in `atlases/` and `fonts/`; without repeats. Empty without a `game.toml`. Fails with
+`ContentCompileFailed` carrying a diagnostic for every file the build lacks (`missingAsset`), every atlas or
+font not declared (`unknownReference`) or not built (`missingAsset`), all at once, or with
+`InvalidContentConfig`.
 
 ```ts
 const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;
@@ -804,7 +812,9 @@ function snakeKey(value: string): string;
 The Vite plugin that compiles content and serves it as `virtual:automata/content`. It builds when Vite
 starts and on every save in dev, with the same build as `automata-content build`. A `vite build` with
 content errors fails; a dev server keeps serving the last good content and reports the diagnostics through
-Vite's logger and the `automata:content-error` event (`automata:content` after a good save).
+Vite's logger and the `automata:content-error` event (`automata:content` after a good save). It also sets
+`build.assetsInlineLimit: 0` when the game's config leaves it unset, so no asset becomes a `data:` URL that Ruken's
+CSP refuses to fetch.
 
 ```ts
 function automataContent(pluginOptions?: AutomataContentOptions): Plugin;
@@ -1224,6 +1234,11 @@ the path, except `exists`, which cannot fail.
 ```ts
 interface FilesService {
   readText(path: string): Effect.Effect<string, FileError>;
+  /**
+   * The file's bytes exactly as they are on disk, for binary inputs such as images: reading them as text
+   * would replace every byte that is not valid UTF-8. The array owns its bytes (it is not a Node `Buffer`).
+   */
+  readBytes(path: string): Effect.Effect<Uint8Array, FileError>;
   /** Writes UTF-8 text, creating parent folders. */
   writeText(path: string, text: string): Effect.Effect<void, FileError>;
   exists(path: string): Effect.Effect<boolean>;

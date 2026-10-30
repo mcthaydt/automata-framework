@@ -2,6 +2,9 @@
   "$schema": "https://turbo.build/schema.json",
   "extends": ["//"],
   "tasks": {
+    "typecheck": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tooling/release/src/publishable-packages.ts"]
+    },
     "test:unit": {
       "inputs": [
         "$TURBO_DEFAULT$",
@@ -11,7 +14,13 @@
         "$TURBO_ROOT$/docs/runbook.md",
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/knip.jsonc",
-        "$TURBO_ROOT$/lefthook.yml"
+        "$TURBO_ROOT$/lefthook.yml",
+        "$TURBO_ROOT$/packages/*/package.json",
+        "$TURBO_ROOT$/tooling/*/package.json",
+        "$TURBO_ROOT$/games/*/package.json",
+        "$TURBO_ROOT$/examples/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/package.json",
+        "$TURBO_ROOT$/tooling/release/src/publishable-packages.ts"
       ]
     },
     "test": {
@@ -23,7 +32,13 @@
         "$TURBO_ROOT$/docs/runbook.md",
         "$TURBO_ROOT$/package.json",
         "$TURBO_ROOT$/knip.jsonc",
-        "$TURBO_ROOT$/lefthook.yml"
+        "$TURBO_ROOT$/lefthook.yml",
+        "$TURBO_ROOT$/packages/*/package.json",
+        "$TURBO_ROOT$/tooling/*/package.json",
+        "$TURBO_ROOT$/games/*/package.json",
+        "$TURBO_ROOT$/examples/*/package.json",
+        "$TURBO_ROOT$/examples/*/*/package.json",
+        "$TURBO_ROOT$/tooling/release/src/publishable-packages.ts"
       ]
     }
   }

@@ -88,6 +88,22 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the definition edits, the af-sector materials-table edits and the new-level template', () => {
+    for (const name of [
+      'addDefinition',
+      'renameDefinition',
+      'setDefinitionField',
+      'removeDefinition',
+      'addMaterial',
+      'setMaterial',
+      'renameMaterial',
+      'removeMaterial',
+      'newAfSectorLevel',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it("exports the entity model: the definition, the reader and both formats' kits", () => {
     for (const name of [
       'thingDefSchema',
@@ -235,6 +251,17 @@ describe('public entry', () => {
     const place: editor3d.ThingPlace = { x: 1, z: 2, id: 'crate2', action: 'none', reason: 'no' }
     const entry: editor3d.PaletteEntry['layer'] = editor3d.thingLayer('crate')
     expect([place.id, entry]).toEqual(['crate2', 'things:crate'])
+  })
+
+  it('exports the link edits, the Last Light links, and the rectangle and link of the Things tool', () => {
+    for (const name of ['addLink', 'removeLink', 'lastLightNavLinks'])
+      expect(editor3d, name).toHaveProperty(name)
+    // The shapes are types, so this is checked by the compiler: the entry names them.
+    const link: editor3d.ThingLink = { a: 'p', b: 'q', via: 'door' }
+    const area: editor3d.Rectangle = { x0: 0, z0: 0, x1: 1, z1: 1 }
+    const place: editor3d.LinkPlace = { ...link, action: 'add' }
+    const links: editor3d.ThingLinks<editor3d.Blockout> | undefined = editor3d.lastLightProfile.links
+    expect([place.a, area.x1, links?.def]).toEqual(['p', 1, 'node'])
   })
 
   it('exports the Split and Merge edits, and keeps the helpers they share inside', () => {

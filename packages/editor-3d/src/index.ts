@@ -104,6 +104,13 @@ export * from './geometry/nav'
 export * from './geometry/sectors'
 export { type Triangle, type Triangulation, triangulate } from './geometry/triangulate'
 export { type MoveCornerArgs, moveCorner, moveSector } from './model/corner-edits'
+export {
+  addDefinition,
+  removeDefinition,
+  renameDefinition,
+  type SetDefinitionFieldArgs,
+  setDefinitionField,
+} from './model/definition-edits'
 export { type Edit, type EditResult, ok, refuse } from './model/edit'
 export { type EditCommandOptions, registerEditCommands } from './model/edit-commands'
 export {
@@ -123,6 +130,7 @@ export {
   type LevelEditorOptions,
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
+export { addLink, removeLink } from './model/link-edits'
 export { type MergeSectorsArgs, mergeSectors } from './model/merge-edits'
 export { type PortalOffer, portalOffers, type WallPortal, wallPortal } from './model/portal-offers'
 export {
@@ -181,11 +189,21 @@ export type { AskProvider, ChangeSet, Generator, Proposal } from './ports/ports'
 export * from './profile/af-sector/af-checks'
 export * from './profile/af-sector/af-codec'
 export * from './profile/af-sector/af-entities'
+export {
+  addMaterial,
+  type MaterialArgs,
+  removeMaterial,
+  renameMaterial,
+  setMaterial,
+} from './profile/af-sector/af-material-edits'
+export { type NewLevelResult, newAfSectorLevel } from './profile/af-sector/af-template'
 export * from './profile/af-sector/build'
 export * from './profile/af-sector-profile'
+export type { DefinitionAccess, InstanceRename } from './profile/definition-access'
 export * from './profile/file-codec'
 export * from './profile/last-light-codecs'
 export * from './profile/last-light-entities'
+export { lastLightNavLinks } from './profile/last-light-nav-links'
 export * from './profile/last-light-profile'
 export {
   type Geometry,
@@ -206,9 +224,12 @@ export {
   type SectorDraft,
 } from './profile/sector-access'
 export { type ThingAccess, ThingAccessError } from './profile/thing-access'
+export type { ThingLink, ThingLinks } from './profile/thing-links'
+export type { LinkPlace } from './things/link-mode'
 export {
   createThingsTool,
   type PaletteEntry,
+  type Rectangle,
   type ThingPlace,
   type ThingsTool,
   type ThingsToolOptions,

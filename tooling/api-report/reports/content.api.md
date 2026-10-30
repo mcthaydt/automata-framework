@@ -10,6 +10,8 @@
 interface AssetsSource {
     readonly screens: Readonly<Record<string, {
         readonly files: readonly string[];
+        readonly atlases?: readonly string[] | undefined;
+        readonly fonts?: readonly string[] | undefined;
     }>>;
 }
 ```
