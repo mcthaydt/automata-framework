@@ -61,7 +61,11 @@ export function searchWords(entry: ProjectEntry): readonly string[] {
  * `thumbnails` (ED2D.4c3b), an entry whose profile names a level to preview draws it in the tile; the key changes with
  * the file (path, size, time) and with its images, so the tile redraws after either changes.
  */
-export function homeCard(entry: ProjectEntry, registry: ProfileRegistry, thumbnails?: LevelThumbnails): HomeCard {
+export function homeCard(
+  entry: ProjectEntry,
+  registry: ProfileRegistry,
+  thumbnails?: LevelThumbnails,
+): HomeCard {
   const preview = entry.status === 'ok' ? entry.preview : undefined
   const key = `${entry.path}|${entry.size}|${entry.mtime}|${preview?.images}`
   return {

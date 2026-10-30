@@ -58,7 +58,6 @@ export type { PickedFile } from './home/picked-file'
 export {
   cardWords,
   filterEntries,
-  type TilePreview,
   type HomeCard,
   modifiedLabel,
   projectCount,
@@ -69,6 +68,7 @@ export {
   splitPath,
   stepSelection,
   storageNotes,
+  type TilePreview,
   type Tone,
   workspaceSubtitle,
 } from './home/project-browse'

@@ -399,8 +399,16 @@ describe('ProjectList', () => {
       await view.rerender({ visible: [same.card] })
       expect(same.draw).not.toHaveBeenCalled()
       const draw = vi.fn(async () => 'data:image/png;base64,CCCC')
-      await view.rerender({ visible: [card('mossgate.af2d.json', { title: 'Mossgate', preview: { key: `${KEY}+1`, draw } })] })
-      await vi.waitFor(() => expect(option(/Mossgate/).querySelector('img')?.getAttribute('src')).toBe('data:image/png;base64,CCCC'))
+      await view.rerender({
+        visible: [card('mossgate.af2d.json', { title: 'Mossgate', preview: { key: `${KEY}+1`, draw } })],
+      })
+      await vi.waitFor(() =>
+        expect(
+          option(/Mossgate/)
+            .querySelector('img')
+            ?.getAttribute('src'),
+        ).toBe('data:image/png;base64,CCCC'),
+      )
       expect(draw).toHaveBeenCalledOnce()
     })
   })

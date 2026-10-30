@@ -367,7 +367,9 @@ describe('homeCard', () => {
     it('has none without the thumbnails or without a level to preview', () => {
       const { thumbnails } = fake(undefined)
       expect(homeCard(withPreview, registry).preview).toBeUndefined()
-      expect(homeCard(ok('plain.af2d.json', { profile: project }), registry, thumbnails).preview).toBeUndefined()
+      expect(
+        homeCard(ok('plain.af2d.json', { profile: project }), registry, thumbnails).preview,
+      ).toBeUndefined()
     })
   })
 })
