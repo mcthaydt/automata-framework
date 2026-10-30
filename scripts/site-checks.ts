@@ -21,10 +21,14 @@ export const BANNED_PHRASES: { label: string; pattern: RegExp }[] = [
   { label: 'game-changer', pattern: /\bgame[- ]?changer(s)?\b/i },
 ]
 
-/** The prerendered pages of a build: every HTML file except the demo bundles and the 404 fallback. */
+/** Folders the site copies in from the framework as built: the demo bundles and the playground (frame pages, runtime). */
+const FRAMEWORK_TREES = ['demos/', 'playground/']
+const fromFramework = (path: string) => FRAMEWORK_TREES.some(tree => path.startsWith(tree))
+
+/** The prerendered pages of a build: every HTML file except the framework's trees and the 404 fallback. */
 export function builtPages(root: string): string[] {
   return readdirSync(root, { recursive: true }).map(String)
-    .filter(p => p.endsWith('.html') && !p.startsWith('demos/') && p !== '404.html')
+    .filter(p => p.endsWith('.html') && !fromFramework(p) && p !== '404.html')
     .sort()
 }
 
@@ -264,14 +268,14 @@ function checkPreloadedScripts(root: string, file: string, doc: Document): strin
 }
 
 /**
- * Reads the site's built stylesheets (not the demo bundles, which are framework examples with their own fonts):
+ * Reads the site's built stylesheets (not the demo bundles or the playground, which are framework builds with their own fonts):
  * every @font-face must use font-display: swap, and no stylesheet may load from another origin.
  * Returns the site paths of the woff2 files the font faces use, for the preload check.
  */
 function readFontFaces(root: string): { urls: Set<string>; failures: string[] } {
   const urls = new Set<string>()
   const failures: string[] = []
-  const stylesheets = readdirSync(root, { recursive: true }).map(String).filter(p => p.endsWith('.css') && !p.startsWith('demos/')).sort()
+  const stylesheets = readdirSync(root, { recursive: true }).map(String).filter(p => p.endsWith('.css') && !fromFramework(p)).sort()
   for (const file of stylesheets) {
     const css = readFileSync(join(root, file), 'utf8')
     for (const [, reference] of css.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)|@import\s+["']([^"']+)["']/g)) {

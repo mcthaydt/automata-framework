@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-30T05:23:53.119Z",
+  "checkedAt": "2026-10-30T17:08:41.048Z",
   "tests": [
     {
       "name": "keeps the original movement unchanged when no air jump is requested",

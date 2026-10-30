@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -73,6 +73,15 @@ afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: 
 describe('checkSite', () => {
   it('passes a correct build', () => {
     expect(checkSite(goodSite().root, { now: NOW })).toEqual([])
+  })
+
+  it('leaves the playground out: its frame pages are not site pages and its stylesheets are not site stylesheets', () => {
+    const site = goodSite()
+    site.write('playground/examples/core/basic-window/index.html', '<!doctype html><html><head><title>frame</title></head><body></body></html>')
+    site.write('playground/runtime/assets/define-game.css', '@font-face{font-family:X;src:url(./x.woff2)}')
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+    writeSeoFiles(site.root)
+    expect(readFileSync(join(site.root, 'sitemap.xml'), 'utf8')).not.toContain('/playground/')
   })
 
   it('still reports a missing link destination', () => {

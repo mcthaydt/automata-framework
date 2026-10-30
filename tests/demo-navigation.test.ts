@@ -12,7 +12,7 @@ describe('Demo URLs and readiness', () => {
     const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d') } as any)
     expect(selected).toEqual({ demo: 'base-2d', project: getExampleProject('base-2d') })
     const unknown = await load({ url: new URL('https://example.test/examples?demo=missing') } as any)
-    expect(unknown).toEqual({ demo: 'bodies-2d', project: getExampleProject('bodies-2d') })
+    expect(unknown).toEqual({ demo: 'ui-primitives', project: getExampleProject('ui-primitives') })
   })
   it('opens a requested published file and ignores paths outside the source inventory', async () => {
     const selected = await load({ url: new URL('https://example.test/examples?demo=base-2d&file=games/emberwick/src/content/room.test.ts') } as any)

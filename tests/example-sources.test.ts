@@ -9,7 +9,7 @@ describe('Demo bundle folders', () => {
   it('follow the public bundle URL, so Emberwick stays at /demos/base-2d after moving to games/', () => {
     const folders = Object.fromEntries(RAW_DEMOS.map(demo => [demo.slug, demoBundleDirectory(demo)]))
     expect(folders['base-2d']).toBe('base-2d')
-    expect(folders['bodies-2d']).toBe('physics/bodies-2d')
+    expect(folders['hot-reload']).toBe('content/hot-reload')
     for (const demo of RAW_DEMOS) expect(demo.bundleUrl).toBe(`/demos/${demoBundleDirectory(demo)}/index.html`)
   })
 })
@@ -44,10 +44,10 @@ describe('Example source inventory', () => {
   })
 
   it('keeps every example’s actual runtime sources and resolves shared example dependencies', () => {
-    const result = collectExampleSources(resolve('../automata-framework'), [{ slug: 'bodies-2d', path: 'examples/physics/bodies-2d' }, { slug: 'base-2d', path: 'games/emberwick' }])
-    const physics = result.projects[0]
-    expect(physics.files).toContain('games/emberwick/src/render/renderer.ts')
-    expect(physics.files).toContain('examples/physics/bodies-2d/sim/bodies.plugin.ts')
+    const result = collectExampleSources(resolve('../automata-framework'), [{ slug: 'hot-reload', path: 'examples/content/hot-reload' }, { slug: 'base-2d', path: 'games/emberwick' }])
+    const hotReload = result.projects[0]
+    expect(hotReload.files).toContain('games/emberwick/src/render/renderer.ts')
+    expect(hotReload.files).toContain('examples/content/hot-reload/room.schema.ts')
     expect(result.files.filter(f => f.path === 'games/emberwick/src/render/renderer.ts')).toHaveLength(1)
   })
 

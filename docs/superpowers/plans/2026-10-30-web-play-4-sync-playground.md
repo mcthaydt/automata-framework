@@ -43,6 +43,36 @@ precompiled originals (`static/playground/compiled/<id>.js`, each `compileExampl
 each equals a fresh compile); `builtPages`, `readFontFaces` and the sitemap leave `playground/` out. The local servers
 serve frame pages built for their own origin (R-2).
 
+### Part B steps (TDD)
+
+Branch `claude/website-WEB.PLAY.4b-runtime`, from `main` after #16. The framework repack is on framework `main` (#236,
+RukenApp `e376a2d`, MIT); `build:playground --site-origin https://automata.ruken.com` there wrote 17 examples, 47 files,
+runtime 442,148 B gzip of 460,000 (run 2026-10-30 in this container).
+
+| Interface | File | Notes |
+| --- | --- | --- |
+| `syncPlaygroundTree(frameworkDir, commit)` | `scripts/sync-playground.ts` | runs the framework's `build:playground --site-origin <SITE_ORIGIN>` into a scratch `dist-playground`, refuses a tree whose `manifest.json` does not list every file with its sha256 or names another commit, copies it to `static/playground/`, writes `static/playground/compiled/<id>.js` and `src/data/examples.json` |
+| `verifyPlaygroundTree(dir, commit)` | `scripts/sync-playground.ts` | the manifest check, shared by the sync and the test |
+| `framePageForOrigin(html, origin)` | `scripts/playground-origin.ts` | R-2 for the local servers: a frame page's `connect-src` names the origin serving it; `serve-static.ts` and the Vite plugin apply it to `/playground/examples/**/index.html` |
+| `builtPages`, `readFontFaces`, the sitemap | `scripts/site-checks.ts`, `scripts/write-seo-files.ts` | leave `playground/` out, as they leave `demos/` out |
+| `RAW_DEMOS` | `scripts/sync-demos.ts` | `bodies-2d` removed: framework `main` no longer has `examples/physics/bodies-2d`. `ui-primitives`, `hot-reload` and `base-2d` still build there and stay until WEB.PLAY.5 replaces the gallery |
+
+1. [x] `tests/playground-tree.test.ts`, failing first (no tree): `static/playground/manifest.json` names the commit in
+   `framework.ref` and its site origin is `SITE_ORIGIN`; every file under `static/playground/` (except `compiled/`) is
+   listed with its bytes and sha256, and the manifest lists nothing missing; `src/data/examples.json` is the tree's
+   `catalog.json`; each `compiled/<id>.js` equals a fresh `compileExample(source, { id, moduleUrl })`, and every
+   example has one. `verifyPlaygroundTree` gets a fixture test: a changed byte, an unlisted file and a missing file are
+   each refused.
+2. [x] `tests/site-checks.test.ts` gain: a page under
+   `playground/` is not a site page and its stylesheet is not a site stylesheet (fail first). Then the filters.
+3. [x] `tests/playground-origin.test.ts`: `framePageForOrigin` swaps the `connect-src` origin and nothing else, and refuses a page
+   without one; `tests/serve-static.test.ts` gains: a frame page is served with the server's own origin in `connect-src`
+   (fail first). Then `serve-static.ts` and the Vite plugin.
+4. [x] `RAW_DEMOS` without `bodies-2d` (the sync test fails first on the missing source), then `pnpm sync` and
+   `pnpm sync:stack` at framework `main`; `framework.ref` moves there.
+5. [x] Gates: `pnpm check`, `pnpm test`, `pnpm build`, `pnpm check:site`, and the browser specs that open `/demos/` and
+   the gallery (`tests/e2e/site.e2e.ts`).
+
 ## Execution log
 
 - **Step 1.** `tests/playground/compile.test.ts` failed first ("Cannot find module …/compile"), then 6 passed: lines
@@ -73,3 +103,26 @@ serve frame pages built for their own origin (R-2).
      Cache-Control there.
   6. Test gaps: labeled, `for await` and empty-bodied loops.
   After: `pnpm check` 0 errors; `pnpm test` 49 files, 308 passed, 1 expected fail; `pnpm build`; `pnpm check:site` 28 pages.
+
+### Part B
+
+- **Step 1.** `tests/playground-tree.test.ts` failed first (ENOENT on `static/playground/manifest.json`, and
+  `verifyPlaygroundTree` missing); the two fixture cases then passed. The first real sync stopped at
+  `compileExample`: the catalog's `moduleUrl` is a path, and spec §5.2 says `import.meta.url` becomes
+  `<site origin>/playground/examples/<module>/<module>-<name>.ts`, so `moduleUrlFor` joins it to `SITE_ORIGIN`
+  (its own case in the test).
+- **Step 2.** The `site-checks` case (a frame page and a playground stylesheet in a good build) failed first, then passed
+  with `builtPages` and `readFontFaces` leaving `playground/` out; the sitemap follows `builtPages`.
+- **Step 3.** `tests/playground-origin.test.ts` failed first (module missing); the `serve-static` and dev-plugin cases
+  failed first (the page came back with the site's origin; the dev request fell through). A frame page with no
+  `connect-src` origin made the static server throw and exit, so it answers 500 now (its own case).
+- **Step 4.** `pnpm sync` failed first on `examples/physics/bodies-2d/main.ts`: framework `233c9da` (PRODUCT.5g) made
+  AF core only and moved physics and its demo to Automata Plus. So beside `RAW_DEMOS`, the site stops offering
+  physics: the cheatsheet module, the docs' package row, the homepage card and preview, and the copy naming it.
+  `tests/core-only.test.ts` failed first on six of its eight paths, then passed. The gallery tests that used
+  `bodies-2d` now use `hot-reload` (which shares Emberwick's files, as `bodies-2d` did) or `ui-primitives` (now the
+  first demo, so the fallback). Then `pnpm sync` (17 examples) and `pnpm sync:stack` (`docs/stack.md` at `91e9fee`);
+  `framework.ref` is `f8023a9`.
+- **Step 5.** `pnpm check` 0 errors; `pnpm test` 54 files, 348 passed, 1 expected fail; `pnpm build`;
+  `pnpm check:site` 28 pages, and no `/playground/` URL in the sitemap; the full browser suite (Chromium headless shell,
+  WebKit, Firefox): 460 passed, 2 skipped (15.1 min).

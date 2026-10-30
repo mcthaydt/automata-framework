@@ -6,25 +6,25 @@ import { examplesData, homeData } from './helpers/page-data'
 
 describe('Project source explorers', () => {
   it('switches actual files and copies the selected content', async () => {
-    const view = render(Examples, { props: { data: examplesData('bodies-2d') } })
+    const view = render(Examples, { props: { data: examplesData('hot-reload') } })
     expect(view.getByRole('navigation', { name: 'Project files' })).toBeTruthy()
-    await fireEvent.click(view.getByRole('button', { name: 'Open examples/physics/bodies-2d/package.json' }))
-    const region = view.getByRole('region', { name: 'examples/physics/bodies-2d/package.json' })
-    expect(region.textContent).toContain('"dev": "vite"')
+    await fireEvent.click(view.getByRole('button', { name: 'Open examples/content/hot-reload/package.json' }))
+    const region = view.getByRole('region', { name: 'examples/content/hot-reload/package.json' })
+    expect(region.textContent).toContain('"dev": "vite')
     const copy = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: copy } })
     await fireEvent.click(view.getByRole('button', { name: 'Copy code' }))
-    expect(copy.mock.calls[0][0]).toContain('"dev": "vite"')
+    expect(copy.mock.calls[0][0]).toContain('"dev": "vite')
     await view.rerender({ data: examplesData('ui-primitives') })
     expect(view.getByRole('region', { name: 'examples/ui/primitives/main.ts' })).toBeTruthy()
-    expect(view.queryByRole('button', { name: 'Open examples/physics/bodies-2d/package.json' })).toBeNull()
+    expect(view.queryByRole('button', { name: 'Open examples/content/hot-reload/package.json' })).toBeNull()
   })
 
   it('supports the phone file picker and exposes shared starter files', async () => {
-    const view = render(Examples, { props: { data: examplesData('bodies-2d') } })
+    const view = render(Examples, { props: { data: examplesData('hot-reload') } })
     await fireEvent.change(view.getByLabelText('Choose a file'), { target: { value: 'games/emberwick/src/play-room.ts' } })
     expect(view.getByRole('region', { name: 'games/emberwick/src/play-room.ts' }).textContent).toContain('createPlay')
-    expect(view.getByText('pnpm --filter @af-examples/physics-bodies-2d dev')).toBeTruthy()
+    expect(view.getByText('pnpm --filter @af-examples/content-hot-reload dev')).toBeTruthy()
   })
 
   it('connects the homepage explanations to actual simulation, rendering and wiring files', async () => {

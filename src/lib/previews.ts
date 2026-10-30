@@ -3,7 +3,6 @@
  * so phones never download an image more than twice the size they draw it.
  */
 const FULL_WIDTH: Record<string, number> = {
-  'bodies-2d': 960,
   'double-jump': 1280, emberwick: 1280, 'hot-reload': 1280,
 }
 
@@ -17,7 +16,7 @@ export function previewSrcset(jpeg: string): string {
 
 /** The preview image each gallery demo has, by demo slug; `ui-primitives` has none yet. */
 const DEMO_PREVIEWS: Record<string, string> = {
-  'base-2d': 'emberwick', 'bodies-2d': 'bodies-2d', 'hot-reload': 'hot-reload',
+  'base-2d': 'emberwick', 'hot-reload': 'hot-reload',
 }
 
 /** The JPEG path of a demo's preview image (the poster shown before Play), or undefined when it has none. */

@@ -580,63 +580,6 @@ export const CHEATSHEET_MODULES: CheatsheetModule[] = [
     ]
   },
   {
-    "id": "physics",
-    "name": "@mcthaydt/automata-physics/2d",
-    "title": "Physics",
-    "sourcePath": "packages/physics/src/2d.ts",
-    "description": "Deterministic 2D physics inside the simulation. Use the /2d entry and spawn helpers rather than importing Rapier or relying on zero-valued collider defaults.",
-    "example": "import { createSim } from '@mcthaydt/automata-sim'\nimport { physics2d, BodyKind, body2d, collider2d, transform2d } from '@mcthaydt/automata-physics/2d'\n\nconst sim = await createSim({ seed: 1, plugins: [physics2d()] })\ntry {\n  sim.spawn([transform2d({ x: 0, y: 3 }), body2d(BodyKind.dynamic), collider2d.ball(0.5)])\n  sim.spawn([transform2d({ x: 0, y: -1 }), body2d(BodyKind.fixed), collider2d.cuboid(10, 0.5)])\n  for (let tick = 0; tick < 60; tick++) sim.step([])\n} finally {\n  sim.dispose()\n}",
-    "entries": [
-      {
-        "name": "physics2d",
-        "signature": "physics2d(options?: Physics2DOptions): PluginDef",
-        "description": "Creates the deterministic plugin. WebAssembly initializes during createSim and is released by sim.dispose().",
-        "returnType": "PluginDef",
-        "parameters": [
-          {
-            "name": "options.gravity",
-            "type": "{ x: number; y: number }",
-            "desc": "Optional acceleration in metres per second squared. Defaults to { x: 0, y: -9.81 }."
-          }
-        ],
-        "notes": [
-          "Gravity is included in the schema hash. Snapshots from a different gravity configuration are incompatible."
-        ]
-      },
-      {
-        "name": "RigidBody2D",
-        "signature": "RigidBody2D: ComponentDef",
-        "description": "Body kind, velocity, and damping fields. Prefer body2d(BodyKind.dynamic) or body2d(BodyKind.fixed) during spawning.",
-        "returnType": "Component definition",
-        "notes": [
-          "Systems own body changes; presentation reads the resulting transform."
-        ]
-      },
-      {
-        "name": "Collider2D",
-        "signature": "Collider2D: ComponentDef",
-        "description": "Shape and collision settings. Use collider2d.ball, cuboid, or capsule to supply collision defaults.",
-        "returnType": "Component definition",
-        "notes": [
-          "cuboid takes half extents. Raw zero-valued fields are not equivalent to the spawn helpers."
-        ]
-      },
-      {
-        "name": "transform2d",
-        "signature": "transform2d(at?: { x?: number; y?: number; rotation?: number }): SpawnPart",
-        "description": "Builds a starting Transform2D part; missing values default to zero.",
-        "returnType": "SpawnPart",
-        "parameters": [
-          {
-            "name": "at",
-            "type": "{ x?: number; y?: number; rotation?: number }",
-            "desc": "Optional initial transform, passed as a part to sim.spawn or ctx.spawn."
-          }
-        ]
-      }
-    ]
-  },
-  {
     "id": "ui",
     "name": "@mcthaydt/automata-ui",
     "title": "Responsive UI",
