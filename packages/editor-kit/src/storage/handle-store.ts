@@ -192,7 +192,10 @@ export function createHandleStore(root: DirectoryLike, options: HandleStoreOptio
             throw error
           }
           const { lastModified } = await handle.getFile()
-          return { ok: true, mtime: versions.wrote(path, lastModified, bytes, before) } satisfies WriteResult
+          return {
+            ok: true,
+            mtime: await versions.wrote(path, lastModified, bytes, before),
+          } satisfies WriteResult
         })
       } catch (error) {
         if (error instanceof StorageError) return { ok: false, reason: error.reason, message: error.message }

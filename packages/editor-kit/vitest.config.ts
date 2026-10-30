@@ -1,3 +1,4 @@
+import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
@@ -16,19 +17,27 @@ import { defineConfig } from 'vitest/config'
 //   (EK-f) and the real-OPFS contract never runs.
 // - Chromium 153 crashes (SIGTRAP) reading a directory handle back from IndexedDB, the folder vault's `load`.
 //   Chromium 141, on which EDK.5 landed, did not.
-// Vitest ignores a persistent context when files run in parallel, so these two run their files one at a time. Each
-// run gets new profiles (named after the process), so no run sees another's files or databases.
+// Vitest ignores a persistent context when files run in parallel, so these two run their files one at a time. The
+// profiles live in one new temporary directory per run, removed by `vitest.global-teardown.ts`, so no run sees
+// another's files or databases. WebKit also runs once in the ephemeral context, on the private-window test alone,
+// so EK-f's fallback is exercised in a real engine.
+const PRIVATE_WINDOW = 'src/storage/private-window.layout.test.ts'
+process.env.AF_EDITOR_KIT_PROFILES ??= mkdtempSync(join(tmpdir(), 'af-editor-kit-layout-'))
+const profiles = process.env.AF_EDITOR_KIT_PROFILES
+
 function persistentProfile(browser: 'chromium' | 'webkit') {
   return {
     browser,
-    provider: playwright({ persistentContext: join(tmpdir(), `af-editor-kit-${browser}-${process.pid}`) }),
+    provider: playwright({ persistentContext: join(profiles, browser) }),
     fileParallelism: false,
+    exclude: [PRIVATE_WINDOW],
   }
 }
 
 export default defineConfig({
   plugins: [svelte(), svelteTesting()],
   test: {
+    globalSetup: ['./vitest.global-teardown.ts'],
     projects: [
       {
         extends: true,
@@ -52,7 +61,12 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
-            instances: [persistentProfile('chromium'), persistentProfile('webkit'), { browser: 'firefox' }],
+            instances: [
+              persistentProfile('chromium'),
+              persistentProfile('webkit'),
+              { browser: 'firefox', exclude: [PRIVATE_WINDOW] },
+              { browser: 'webkit', name: 'layout (webkit, private window)', include: [PRIVATE_WINDOW] },
+            ],
           },
         },
       },
