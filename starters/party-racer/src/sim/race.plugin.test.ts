@@ -133,8 +133,10 @@ describe('the race step', () => {
 
   it('lifts a racer pressing into a floor side without crediting it', async () => {
     await startRace()
-    const f = floor(2).get(Transform2D)
-    if (floor(2).get(Floor).moving) floor(2).set(RigidBody2D, { vx: 0 })
+    // A still floor, so it is where it was read when the racer reaches it.
+    const still = sim.query(Floor).find((e) => !e.get(Floor).moving && e.get(Floor).index > 0)
+    if (!still) throw new Error('the placeholder course has a still floor above the start')
+    const f = still.get(Transform2D)
     const beside = f.x - (tuning.floorWidth + tuning.racerWidth) / 2 - 0.01
     place(0, { x: beside, y: f.y }, { vx: tuning.moveSpeed })
     const events = raceEvents(run(1, [input(0, { right: true })]))

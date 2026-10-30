@@ -20,7 +20,7 @@ const FAST_FALL_EVERY = 300
 const FAST_FALL_TICKS = 6
 const RESET = { seat: 3, tick: 500 }
 /** A race that has not finished by then is a failed script, not a golden. */
-export const MAX_TICKS = 12_000
+const MAX_TICKS = 12_000
 
 interface Held {
   left: boolean
@@ -125,17 +125,4 @@ export async function runScriptedRace(restoreAt?: number): Promise<RaceRun> {
   }
   sim.dispose()
   return run
-}
-
-/** The lines of the race's own events (not physics'), for a reader checking what the script did. */
-export async function scriptedRaceEvents(): Promise<string[]> {
-  const sim = await createRaceSim()
-  const lastHeld = new Map<number, Held>()
-  const seq = { next: 0 }
-  const lines: string[] = []
-  while (sim.resource(Race).phase !== 'finished' && sim.tick < MAX_TICKS)
-    for (const event of sim.step(commandsFor(sim, lastHeld, seq)).events)
-      if (event.type.startsWith('race.')) lines.push(`${sim.tick} ${canonicalJson(event)}`)
-  sim.dispose()
-  return lines
 }

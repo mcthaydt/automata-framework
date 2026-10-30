@@ -95,8 +95,8 @@ export const Race: ResourceDef
   and a winner, and a finished race ignores input), then the rules and the step system.
 - [x] 8. Golden: the scripted four-player race finishes with a winner; straight and restored mid-way agree; hash and
   event hash recorded from Node, then confirmed in Chromium, WebKit and Firefox (`test:parity`).
-- [ ] 9. `SOURCE.md`, the execution log; PR (draft).
-- [ ] 10. Self-review of the pushed diff; findings fixed test-first.
+- [x] 9. `SOURCE.md`, the execution log; PR (draft).
+- [x] 10. Self-review of the pushed diff; findings fixed test-first.
 
 ## Decisions for the Owner's veto
 
@@ -121,3 +121,5 @@ export const Race: ResourceDef
 | 2026-10-30 | 3–5 | Red on the missing modules, then green. One test fixed, not the code: `courseBounds` is `9.6 - 2.4 = 7.199999999999999` in IEEE doubles, so the test computes it the same way; the tolerance edge case moved inside the tolerance for the same reason. Course golden `b92243c1c7556cad` recorded from Node. |
 | 2026-10-30 | 6–7 | 16 plugin tests red on the missing module, then 14 green, 2 red. Both were the tests' assumptions, checked by tracing the trajectory: near floor 1 Rapier's position correction still moves a racer whose `vx` is 0, so "stops dead" runs in open air; a landing sinks up to one tick's fall before the bounce leaves, so "never below" allows `bounceVelocity / 60`. `SPAWN_Y` is compared as an f32. |
 | 2026-10-30 | 8 | Golden red on `pending`, then recorded from Node: 530 ticks, hash `9c5d87536ffe7a28`, events `0d03c77b48a5bb6a` (187), seat 0 wins. Straight and restored at tick 260 equal. `pnpm test:parity` in `starters/party-racer`: Chromium, WebKit and Firefox (Playwright 1.63.0, this container) all match, the course hash too (6 of 6). |
+| 2026-10-30 | 9 | Draft PR #15 at `6016d6a`. |
+| 2026-10-30 | 10 | Self-review: the side-contact test read floor 2's pose and then spent two ticks placing the racer, so a moving floor 2 could have left; it now picks a still floor (mutation check: with sides no longer lifting, it fails). The unused `scriptedRaceEvents` debug helper is gone. Golden unchanged in Node and the three browsers (6 of 6). |
