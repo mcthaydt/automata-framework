@@ -51,7 +51,7 @@ No public export changes: `api-report` should report no change.
    foot (it fits the zone's width, and the zone's foot is inside the frame's padding). The vector still runs from the
    landing point, so the existing behaviour tests (`touch-stick-view.svelte.test.ts`) stay as they are.
 4. [x] `pnpm --filter @mcthaydt/automata-ui test:parity` in all three browsers.
-5. [ ] Changeset (patch), then the gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm build`,
+5. [x] Changeset (patch), then the gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm build`,
    `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills`, `pnpm changeset status --since=origin/main`,
    `node tooling/release/src/check-changesets.ts`, gitleaks. No build config changes, so no consumer smoke.
 6. [x] Re-capture the two 780×270 images with the M4.12 capture method (`after-pr204-*.png`).
@@ -80,3 +80,9 @@ No public export changes: `api-report` should report no change.
   sees the ring shifted inward and the knob off its centre until it moves, and the vector still runs from where it
   landed (moving the origin too would read the shift as a push). Held at an edge the ring may touch the usable
   area's edge (no gutter); the knob at full push may still reach past it by up to half its width.
+- **Step 5.** Patch changeset `.changeset/m4-12b-stick-compact.md`. `pnpm format` clean; `TURBO_FORCE=true pnpm check`
+  passed (32 of 32 tasks, none cached); `pnpm build` passed; `pnpm api-report`: 0 API breaks, 0 undeclared (no
+  `BREAKING:` line); `pnpm api-index`: 555 exports, 0 undocumented; `pnpm agent-skills`: current; `pnpm changeset
+  status --since=origin/main` passed once the changeset was committed (it failed before the commit, as it reads
+  committed files); `check-changesets`: 12 changesets, 0 problems; gitleaks 8.30.1 over the branch's commits: no
+  leaks. No build config changed, so no consumer smoke.
