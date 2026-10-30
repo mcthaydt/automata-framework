@@ -133,6 +133,9 @@ An editor id the list names but no installed editor provides opens Home with tha
 ```toml
 format = "af-editors/1"
 scenes = "content/scenes/{scene}/"        # optional: the folder whose {scene} names the scene picker lists
+# Top-level keys come before the first table: TOML reads a key after `[[gate]]` as that gate's (EDS.1c).
+generated = ["content/generated/**", "tests/generated/**"]
+never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**/gates.json"]
 
 [[file]]
 glob = "content/tuning.toml"
@@ -159,13 +162,11 @@ measure = false                           # true: its --json rows are a before-a
 id = "P-G1"
 name = "Puzzle design"
 records = "docs/gates/**/gates.json"      # read only; the record shape is the pipelines platform's (M3.8)
-
-generated = ["content/generated/**", "tests/generated/**"]
-never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**/gates.json"]
 ```
 
 - The first `[[file]]` row whose glob matches a path wins (the mockups' `fileRow`); a file no row matches is read only, with the reason.
 - `never` always includes `content/editors.toml` itself, `.git/**` and the gate records, whatever the game writes: the suite cannot widen its own allowlist, and an Ask diff cannot add a command to `run` (§11).
+  - **2026-10-30 (EDS.1c, a default open to the Owner's veto):** the always-never list also keeps what The Last Light's policy always refused (`editor/src/server/policy.ts` at `92e6704`): `.claude/**`, `.github/**`, `**/.env` and `**/.env.*`, with `.git` itself. These globs and every gate's `records` match in any letter case, because a case-insensitive disk opens `Content/Editors.toml` as the list. The disk adapter (EDS.1d) resolves the target's real path (symlinks, and Windows' trailing dots and spaces) before it applies the policy.
 - `run` is argv. The Node adapter runs it in the game checkout with no shell, one job per check id, output capped at 200 KB (The Last Light's runner rules); `{scene}` and `{path}` are the only substitutions and are checked against the row's glob first.
 - FloorFifty's list has `gates = []` on every row and no `[[gate]]`; the gate pill reads "No gates".
 
