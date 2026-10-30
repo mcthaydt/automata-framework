@@ -208,7 +208,8 @@ describe('liveGit', () => {
       encoding: 'utf8',
     }).trim()
 
-  it('checks the commit out into a new folder, then again into the same folder', () => {
+  /** A repository on disk with two commits that each write a.txt: 'one', then 'two'. */
+  function twoCommits(): { readonly source: string; readonly first: string; readonly second: string } {
     const source = join(root, 'source')
     mkdirSync(source)
     git(source, 'init', '-q')
@@ -218,8 +219,11 @@ describe('liveGit', () => {
     const first = git(source, 'rev-parse', 'HEAD')
     writeFileSync(join(source, 'a.txt'), 'two')
     git(source, 'commit', '-q', '-am', 'two')
-    const second = git(source, 'rev-parse', 'HEAD')
+    return { source, first, second: git(source, 'rev-parse', 'HEAD') }
+  }
 
+  it('checks the commit out into a new folder, then again into the same folder', () => {
+    const { source, first, second } = twoCommits()
     const target = join(root, '.core', 'af')
     liveGit.checkout(target, source, first)
     expect(git(target, 'rev-parse', 'HEAD')).toBe(first)
@@ -227,6 +231,26 @@ describe('liveGit', () => {
     liveGit.checkout(target, source, second)
     expect(git(target, 'rev-parse', 'HEAD')).toBe(second)
     expect(readFileSync(join(target, 'a.txt'), 'utf8')).toBe('two')
+  })
+
+  // The framework's history is long and only the one commit is built.
+  it('fetches the one commit and none of its history', () => {
+    const { source, second } = twoCommits()
+    const target = join(root, '.core', 'af')
+    liveGit.checkout(target, source, second)
+    expect(git(target, 'rev-parse', '--is-shallow-repository')).toBe('true')
+    expect(git(target, 'rev-list', '--count', 'HEAD')).toBe('1')
+  })
+
+  // An earlier install or build can leave a tracked file of .core/af changed; the next core.ref still checks out.
+  it('checks the next commit out over a tracked file that changed in the folder', () => {
+    const { source, first, second } = twoCommits()
+    const target = join(root, '.core', 'af')
+    liveGit.checkout(target, source, second)
+    writeFileSync(join(target, 'a.txt'), 'changed by a build')
+    liveGit.checkout(target, source, first)
+    expect(git(target, 'rev-parse', 'HEAD')).toBe(first)
+    expect(readFileSync(join(target, 'a.txt'), 'utf8')).toBe('one')
   })
 
   it('fails on a commit the repository does not have', () => {
