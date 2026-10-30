@@ -88,6 +88,18 @@ describe('public entry', () => {
     }
   })
 
+  it('exports the materials, the material picker and the Walk controller (ED3D.8a)', () => {
+    for (const name of [
+      'LAST_LIGHT_NO_LIST',
+      'applyMaterial',
+      'materialOf',
+      'createMaterialPicker',
+      'createWalkController',
+    ]) {
+      expect(editor3d, name).toHaveProperty(name)
+    }
+  })
+
   it("exports the entity model: the definition, the reader and both formats' kits", () => {
     for (const name of [
       'thingDefSchema',
@@ -315,6 +327,10 @@ describe('public entry', () => {
       'wallNear',
       'isLayerOff',
       'stepOf',
+      // Each profile's list and their shared hints are read through the profile.
+      'afMaterials',
+      'lastLightMaterials',
+      'SECTOR_HINTS',
     ]) {
       expect(editor3d, name).not.toHaveProperty(name)
     }

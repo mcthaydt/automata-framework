@@ -106,6 +106,13 @@ export {
   type LevelEditorOptions,
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
+export {
+  type ApplyMaterialArgs,
+  applyMaterial,
+  type MaterialScope,
+  type MaterialTarget,
+  materialOf,
+} from './model/material-edits'
 export { type MergeSectorsArgs, mergeSectors } from './model/merge-edits'
 export { type PortalOffer, portalOffers, type WallPortal, wallPortal } from './model/portal-offers'
 export {
@@ -176,6 +183,12 @@ export {
   type LevelProfile,
   type ProfileContext,
 } from './profile/level-profile'
+export {
+  LAST_LIGHT_NO_LIST,
+  type LevelHints,
+  type Material,
+  type MaterialList,
+} from './profile/materials'
 export * from './profile/registry'
 export {
   type EditCorner,
@@ -188,6 +201,13 @@ export {
   type SectorDraft,
 } from './profile/sector-access'
 export { type ThingAccess, ThingAccessError } from './profile/thing-access'
+export {
+  createMaterialPicker,
+  type MaterialCategory,
+  type MaterialPicker,
+  type MaterialPickerOptions,
+  type MaterialPickerView,
+} from './view/materials/material-picker'
 export {
   type Camera3D,
   type FitOptions,
@@ -290,3 +310,11 @@ export {
   toWorld,
 } from './view/plan/plan-viewport'
 export { type SelectionOf, selectionOf } from './view/selection-of'
+export {
+  createWalkController,
+  type Stick,
+  type WalkAim,
+  type WalkController,
+  type WalkMode,
+  type WalkView,
+} from './view/walk/walk-controller'

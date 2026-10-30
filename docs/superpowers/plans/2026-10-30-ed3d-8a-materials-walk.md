@@ -80,7 +80,7 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
 - [x] Minimal code; the file's tests pass.
 
 ### Step 5: entry and gates
-- [ ] `index.ts` exports the new public names; `index.test.ts` lists them.
+- [x] `index.ts` exports the new public names; `index.test.ts` lists them.
 - [ ] `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0; `pnpm changeset status --since=origin/main`; `node tooling/release/src/check-changesets.ts` (the package is private: no changeset).
 
 ## Execution log
@@ -89,3 +89,4 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
 - Step 2 (2026-10-30): `material-edits.test.ts` written first (module missing); 14 tests pass on `material-edits.ts`. Two mutations (matching never rewriting a wall's own texture; Room never giving a preset wall its own member) each fail a test, so both branches are held. A first Room rule (clear every own texture, or keep one on a preset wall) missed a preset that names a material; Room now resolves the level again after clearing and gives such a wall its own member.
 - Step 3 (2026-10-30): `material-picker.test.ts` failed first on the missing module; 13 tests pass on `view/materials/material-picker.ts`. One expectation was wrong in the test (a search for `r` cannot match `plank` or `Oak planks`) and was corrected to a search for `a`. The level's facts (the target's material and the materials in use) are kept for each level and target, so scrubbing scale or brightness rebuilds no geometry.
 - Step 4 (2026-10-30): `walk-controller.test.ts` failed first on the missing module; on the first run of `view/walk/walk-controller.ts` 15 of 17 passed. The wall test failed for a real reason: reaching 0.25 m past the step along its own direction let a diagonal push come to 0.18 m of the wall, so the rule became a distance (a step may not come nearer than 0.25 m to a collider). The Fly landing test was fragile (ten ticks ended within 2e-15 of the portal line, on the hall side) and now flies eleven. 17 pass; dropping the inward-side test of a collider fails the portal test.
+- Step 5 (2026-10-30): the entry exports `applyMaterial`, `materialOf`, `createMaterialPicker`, `createWalkController`, `LAST_LIGHT_NO_LIST` and their types (18 entry tests pass). `TURBO_FORCE=true pnpm check`: lint, typecheck (35 packages), boundaries, style and knip passed; the unit stage was killed twice (exit 137, `Killed` in `@af-examples/base-2d`, a package this task does not touch) by memory pressure on the shared machine, first-attempt evidence kept. Changeset status: none needed (private package); `check-changesets`: 0 problems.
