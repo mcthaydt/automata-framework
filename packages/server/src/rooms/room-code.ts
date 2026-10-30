@@ -9,11 +9,8 @@
  * The random source is injected: the server passes a cryptographic one, tests a seeded one.
  */
 
-/** Characters a player can read off a screen and type without ambiguity: `I`, `O`, `0` and `1` are omitted. */
-export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-
-/** Six characters (spec §4.2). */
-export const ROOM_CODE_LENGTH = 6
+// The code's alphabet and length are net's (the client reads and types the code).
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from '@mcthaydt/automata-net'
 
 /** The shared set holding every live room code. */
 export const ROOM_CODE_CHANNEL = 'automata:rooms'

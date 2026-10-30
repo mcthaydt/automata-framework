@@ -190,3 +190,5 @@ Dropped FloorFifty cases are listed with reasons in the execution log.
 | 2026-10-30 | lobby-rules, bot-seats | 37 cases red (`createLobby is not a function`), then 37 of 37 |
 | 2026-10-30 | Counts | input-queue 15 (FloorFifty 11), tick-scheduler 3 (3), seat-registry 13 (13), command-ledger 14 (14), input-meter 6 (6), room-code 4 (4), room-errors 2 (0), live-rooms 2 (0), lobby-rules 26 (19 of 40 ported, 7 new), bot-seats 11 (9 of cpu-rules' 18 ported, 2 new): 96 |
 | 2026-10-30 | Gates | `pnpm format`; `pnpm check`: lint, typecheck, boundaries 26 files 0 findings, root 157 tests (F1 over `packages/server` included), net 86, physics 71, server 96 |
+
+| 2026-10-30 | Integration review | `LobbyPhase` (`LOBBY_PHASES`), `ROOM_CODE_LENGTH` and `ROOM_CODE_ALPHABET` moved into net (`net/src/wire/room.ts`, M7 spec §4.2 `RoomInfo` is net's), test-first (`room.test.ts` red: no module); server imports them. `pnpm check`: net 88, server 96, physics 71, root 157 |

@@ -13,11 +13,8 @@
  * the player sees.
  */
 
-import { MAX_SEATS } from '@mcthaydt/automata-net'
+import { type LobbyPhase, MAX_SEATS } from '@mcthaydt/automata-net'
 import { RoomCommandError } from './room-errors'
-
-/** Where the room is: the phases of net's `RoomInfo` (spec §4.2). */
-export type LobbyPhase = 'lobby' | 'countdown' | 'playing' | 'ended'
 
 /** One taken seat. A bot has no client: always connected and ready, never the host (`bot-seats.ts`). */
 export interface LobbySeat {

@@ -25,7 +25,6 @@ export {
   endGame,
   evaluateReadiness,
   isPreGame,
-  type LobbyPhase,
   type LobbyRules,
   type LobbySeat,
   type LobbyState,
@@ -44,9 +43,7 @@ export {
   claimRoomCode,
   generateRoomCode,
   type RandomInt,
-  ROOM_CODE_ALPHABET,
   ROOM_CODE_CHANNEL,
-  ROOM_CODE_LENGTH,
   type RoomCodeStore,
   releaseRoomCode,
 } from './rooms/room-code'

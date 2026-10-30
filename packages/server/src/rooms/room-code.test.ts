@@ -1,12 +1,11 @@
+import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from '@mcthaydt/automata-net'
 import { createRng } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
 import {
   CODE_ATTEMPTS,
   claimRoomCode,
   generateRoomCode,
-  ROOM_CODE_ALPHABET,
   ROOM_CODE_CHANNEL,
-  ROOM_CODE_LENGTH,
   type RoomCodeStore,
   releaseRoomCode,
 } from './room-code'
