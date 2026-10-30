@@ -45,6 +45,17 @@ describe('easeAt', () => {
     for (const u of SAMPLES)
       expect(easeAt([0.3, 1.6, 0.6, 1], u)).toBeCloseTo(reference(0.3, 1.6, 0.6, 1, u), 9)
   })
+  it('solves a curve whose x is flat in the middle as closely as doubles allow', () => {
+    // [1, 0, 0, 1] in u = s − 0.5 is exactly x = 0.5 + 4u³, y = 0.5 + 1.5u − 2u³. Near u = 0 rounding in x leaves
+    // s uncertain by about 5e-6, so y is good to about 1e-5; stopping the bisection on x's error (1e-12) instead
+    // left s about 6e-5 and y about 1e-4 off.
+    const exact = (x: number): number => {
+      const u = Math.cbrt((x - 0.5) / 4)
+      return 0.5 + 1.5 * u - 2 * u * u * u
+    }
+    for (const x of [0.5, 0.5 + 1e-9, 0.5 - 1e-7, 0.5 + 3e-6, 0.5001, 0.25, 0.9])
+      expect(Math.abs(easeAt([1, 0, 0, 1], x) - exact(x)), `x ${x}`).toBeLessThan(1e-5)
+  })
   it('clamps u to 0..1', () => {
     expect(easeAt('inOut', -0.5)).toBe(0)
     expect(easeAt('inOut', 1.5)).toBe(1)

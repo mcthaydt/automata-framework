@@ -27,15 +27,16 @@ function cubic([x1, y1, x2, y2]: Curve, x: number): number {
     if (Math.abs(d) < 1e-9) break
     s -= error / d
   }
-  // Newton stalled on a flat stretch, or left [0, 1]: bisect, which the rising x always allows.
+  // Newton stalled on a flat stretch, or left [0, 1]: bisect on s until the interval is 1e-12 wide (stopping on
+  // x's error instead would leave y far off where x is flat), which the rising x always allows.
   let lo = 0
   let hi = 1
-  s = x
-  for (let i = 0; i < 60 && Math.abs(bezier(x1, x2, s) - x) > 1e-12; i++) {
+  while (hi - lo > 1e-12) {
+    s = (lo + hi) / 2
     if (bezier(x1, x2, s) < x) lo = s
     else hi = s
-    s = (lo + hi) / 2
   }
+  s = (lo + hi) / 2
   return bezier(y1, y2, s)
 }
 

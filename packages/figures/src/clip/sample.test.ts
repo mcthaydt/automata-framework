@@ -52,6 +52,20 @@ describe('sample', () => {
     expect(sample(c, 0.6, POSES)).toEqual(up)
     expect(sample(c, 0.75, POSES)).toEqual(down)
   })
+  it('follows an ease that overshoots past the key and back (positions and turns extrapolate, weights stay 0..1)', () => {
+    const a: PoseDef = { effectors: { handR: { pos: [0, 1, 0], weight: 0.9 }, head: { rot: [0, 0, 0] } } }
+    const b: PoseDef = { effectors: { handR: { pos: [0, 1, 0.4] }, head: { rot: [0, 40, 0] } } }
+    const overshoot = clip([
+      { t: 0, pose: a },
+      { t: 1, pose: b, ease: [0.3, 1.6, 0.6, 1] },
+    ])
+    const u = easeAt([0.3, 1.6, 0.6, 1], 0.7)
+    expect(u).toBeGreaterThan(1)
+    const got = sample(overshoot, 0.7, {})
+    expect(got.effectors.handR?.pos?.[2]).toBeCloseTo(0.4 * u, 12)
+    expect(got.effectors.head?.rot?.[1]).toBeCloseTo(40 * u, 9)
+    expect(got.effectors.handR?.weight).toBe(1)
+  })
   it('clamps t to the clip', () => {
     expect(sample(c, -1, POSES)).toEqual(down)
     expect(sample(c, 3, POSES)).toEqual(up)

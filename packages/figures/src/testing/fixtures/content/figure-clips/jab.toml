@@ -1,5 +1,5 @@
 # A fixture clip (M3 spec §4.4.4), for tests and examples; no game's. An action: from guard, the right hand
-# draws back (a pose written inline), drives out to a point at `contact`, and returns to guard.
+# draws back and drives out to full reach at `contact` (both poses written inline), then returns to guard.
 
 length = 0.4
 loop = "once"
@@ -34,8 +34,13 @@ rot = [ 0, 15, 0 ]
 
 [[keys]]
 t = 0.25
-pose = "point"
 ease = "in"
+
+[keys.pose.effectors.handR]
+pos = [ -0.16, 1.3, 0.5 ]
+
+[keys.pose.effectors.chest]
+rot = [ 0, -10, 0 ]
 
 [[keys]]
 t = 0.4

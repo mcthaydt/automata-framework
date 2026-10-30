@@ -24,15 +24,33 @@ describe('clipWarnings', () => {
     expect(clipWarnings(c, poses)).toEqual([
       {
         path: ['keys', 1],
-        message: expect.stringMatching(/handL is in root space at key 0 and chest space at key 1/),
+        message: expect.stringMatching(/handL is in root space at key 0 and in chest space at key 1/),
       },
       {
         path: ['keys', 2],
-        message: expect.stringMatching(/elbowL is in root space at key 1 and chest space at key 2/),
+        message: expect.stringMatching(
+          /elbowL is left to its default \(root space\) at key 1 and in chest space at key 2/,
+        ),
       },
       {
         path: ['keys', 3],
-        message: expect.stringMatching(/elbowL is in chest space at key 2 and root space at key 3/),
+        message: expect.stringMatching(
+          /elbowL is in chest space at key 2 and left to its default \(root space\) at key 3/,
+        ),
+      },
+    ])
+  })
+  it('lists a handle both keys name with different fields, which pops when the segment ends', () => {
+    const c = clip([
+      { t: 0, pose: { effectors: { handR: { pos: [0, 1, 0.3], rot: [0, 10, 0] } } } },
+      { t: 1, pose: { effectors: { handR: { pos: [0, 1, 0.4] } } } },
+    ])
+    expect(clipWarnings(c, {})).toEqual([
+      {
+        path: ['keys', 1],
+        message: expect.stringMatching(
+          /handR sets pos and rot at key 0 but pos at key 1: rot is held, then drops/,
+        ),
       },
     ])
   })

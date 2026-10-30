@@ -16,7 +16,7 @@ export {
 export { clipTime, markerTime, retime, smoothTime, stepTime } from './clip/clip-time'
 export { type ClipWarning, clipWarnings } from './clip/clip-warnings'
 export { easeAt } from './clip/ease'
-export { chestFrame, type PoseLibrary, type SampleContext, sample } from './clip/sample'
+export { chestFrame, type PoseLibrary, sample } from './clip/sample'
 export {
   FIGURE_CONTENT,
   figureClipContent,
@@ -58,7 +58,7 @@ export { SWATCH_KINDS, SWATCH_ROLES, type Swatch, swatchSchema } from './library
 export { type SwatchColourProblem, swatchColourProblems } from './library/swatch-colours'
 export * from './math/math'
 export { applyPose } from './pose/apply-pose'
-export { blend } from './pose/blend'
+export { blend, blendAt } from './pose/blend'
 export { mirror } from './pose/mirror'
 export { type PoseDef, poseSchema } from './pose/pose.schema'
 export { figureReach, type PoseProblem, poseProblems, REFERENCE_SKELETON } from './pose/pose-checks'

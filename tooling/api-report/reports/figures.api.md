@@ -65,6 +65,12 @@ function basis(x: V3, y: V3, z: V3): R3;
 function blend(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseDef;
 ```
 
+### `blendAt` (function)
+
+```ts
+function blendAt(a: PoseDef, b: PoseDef, t: number, context?: SpaceContext): PoseDef;
+```
+
 ### `canonicalPose` (function)
 
 ```ts
@@ -1068,15 +1074,7 @@ function roundPoseNumber(value: number): number;
 ### `sample` (function)
 
 ```ts
-function sample(clip: FigureClipDef, t: number, poses: PoseLibrary, context?: SampleContext): PoseDef;
-```
-
-### `SampleContext` (interface)
-
-```ts
-interface SampleContext {
-    readonly chest?: M | undefined;
-}
+function sample(clip: FigureClipDef, t: number, poses: PoseLibrary, context?: SpaceContext): PoseDef;
 ```
 
 ### `scale` (const)
@@ -1172,7 +1170,7 @@ const smooth: (k: number) => number;
 ### `smoothTime` (function)
 
 ```ts
-function smoothTime(clip: FigureClipDef, t: number, previous: number | undefined): number;
+function smoothTime(clip: FigureClipDef, elapsed: number, previous: number | undefined): number;
 ```
 
 ### `solve` (function)
@@ -1245,7 +1243,7 @@ const standSchema: z.ZodType<Stand>;
 ### `stepTime` (function)
 
 ```ts
-function stepTime(clip: FigureClipDef, t: number, rate: number): number;
+function stepTime(clip: FigureClipDef, elapsed: number, rate: number, previous?: number): number;
 ```
 
 ### `sub` (const)

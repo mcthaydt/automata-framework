@@ -44,26 +44,34 @@ describe('I-i: retime, and the contact pose on the first frame at or after its m
       expect(cue.t).toBeCloseTo((jab.cues?.[i]?.t ?? Number.NaN) * k, 12)
     })
   })
-  for (const length of [0.3, 0.6]) {
-    it(`with action.length ${length} s, stepped and smooth`, () => {
+  it('with action lengths from 0.20 to 0.80 s and frames off the step grid, stepped and smooth', () => {
+    for (let n = 20; n <= 80; n++) {
+      const length = n / 100
       const played = retime(clip('jab'), length)
       const contact = markerTime(played, 'contact')
       const contactPose = sample(played, contact, poses)
       const rate = played.rate ?? 12
-      // Render frames at 60 a second from the action's start (startedAt = 0): the clip time is the time.
-      const frames = Array.from({ length: Math.ceil(length * 60) + 1 }, (_, f) => f / 60)
-      const first = frames.findIndex((t) => t >= contact)
-      for (const mode of ['stepped', 'smooth'] as const) {
-        const shown = frames.map((t, f) =>
-          mode === 'stepped' ? stepTime(played, t, rate) : smoothTime(played, t, frames[f - 1]),
-        )
-        expect(shown[first], mode).toBe(contact)
-        expect(sample(played, shown[first] ?? Number.NaN, poses), mode).toEqual(contactPose)
-        for (let f = 0; f < first; f++)
-          expect(shown[f] ?? Number.NaN, `${mode} frame ${f}`).toBeLessThan(contact)
+      // Render frames at 60 a second; the action starts `offset` after a frame (startedAt off the grid).
+      for (const offset of [0, 0.004, 0.0111, 0.0163]) {
+        const frames: number[] = []
+        for (let f = 1; f / 60 - offset <= length + 1 / 60; f++)
+          if (f / 60 >= offset) frames.push(f / 60 - offset)
+        const first = frames.findIndex((t) => t >= contact)
+        for (const mode of ['stepped', 'smooth'] as const) {
+          const shown = frames.map((t, f) =>
+            mode === 'stepped'
+              ? stepTime(played, t, rate, frames[f - 1])
+              : smoothTime(played, t, frames[f - 1]),
+          )
+          const label = `${mode}, length ${length}, offset ${offset}`
+          expect(shown[first], label).toBe(contact)
+          expect(sample(played, shown[first] ?? Number.NaN, poses), label).toEqual(contactPose)
+          for (let f = 0; f < first; f++)
+            expect(shown[f] ?? Number.NaN, `${label}, frame ${f}`).toBeLessThan(contact)
+        }
       }
-    })
-  }
+    }
+  })
 })
 
 describe('I-j: a bad clip fails content compile at its location', () => {
@@ -82,11 +90,11 @@ describe('I-j: a bad clip fails content compile at its location', () => {
     return { text: changed, diagnostics: result.ok ? [] : [...result.diagnostics] }
   }
   it('unsorted keys', async () => {
-    const { text, diagnostics } = await failing('jab', 't = 0.25\npose = "point"', 't = 0.1\npose = "point"')
+    const { text, diagnostics } = await failing('jab', 't = 0.25\nease = "in"', 't = 0.1\nease = "in"')
     expect(diagnostics).toContainEqual(
       expect.objectContaining({
         file: fileOf('jab'),
-        line: lineOf(text, 't = 0.1\npose'),
+        line: lineOf(text, 't = 0.1\nease'),
         keyPath: 'keys.2.t',
       }),
     )
