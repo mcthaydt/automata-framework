@@ -41,6 +41,29 @@ export {
   type HistoryOptions,
   type Transaction,
 } from './history/history'
+export {
+  cardWords,
+  filterEntries,
+  type HomeCard,
+  modifiedLabel,
+  projectCount,
+  reconcileSelection,
+  type StepKey,
+  type StorageNote,
+  sizeLabel,
+  splitPath,
+  stepSelection,
+  storageNotes,
+  type Tone,
+  workspaceSubtitle,
+} from './home/project-browse'
+export {
+  type BrowserState,
+  createProjectBrowser,
+  type ProjectBrowser,
+  type ProjectBrowserOptions,
+  type ProjectListSource,
+} from './home/project-browser'
 export { createKeymap, type KeyInput, type Keymap, type Platform } from './keymap/keymap'
 export { createSelection, type Selection, type SelectionId } from './selection/selection'
 export { default as EditorShell } from './shell/EditorShell.svelte'

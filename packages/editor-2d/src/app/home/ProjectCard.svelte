@@ -6,8 +6,9 @@
 -->
 <script lang="ts">
 import { Pill } from '@mcthaydt/automata-editor-kit'
+import { modifiedLabel, sizeLabel, splitPath } from '@mcthaydt/automata-editor-kit/core'
 import type { ProjectEntry } from '../project-list'
-import { cardTitle, entryBadge, modifiedLabel, sizeLabel, splitPath } from './home-model'
+import { cardTitle, entryBadge } from './home-model'
 
 interface Props {
   id: string

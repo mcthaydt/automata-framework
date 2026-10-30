@@ -65,6 +65,12 @@ describe('editor-kit entry', () => {
     }
   })
 
+  test('exports the project list a Home is built on', () => {
+    expect(kit.createProjectBrowser).toBeTypeOf('function')
+    expect(kit.filterEntries).toBeTypeOf('function')
+    expect(kit.modifiedLabel).toBeTypeOf('function')
+  })
+
   test('exports the typed field and entity definition rules and schemas', () => {
     const rules = [
       kit.checkFieldValue,

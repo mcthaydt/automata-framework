@@ -1,7 +1,7 @@
 import type { Problem, Recovery, SaveOutcome } from '@mcthaydt/automata-editor-kit/core'
+import { modifiedLabel } from '@mcthaydt/automata-editor-kit/core'
 import type { ParseError, Profile } from '../../profiles/profile'
 import type { OpenOutcome } from '../editor-app'
-import { modifiedLabel } from '../home/home-model'
 
 // What the open flows decide before anything is drawn (plan ED2D.4c2b, decisions 1 to 3, 5 and 6): which outcome of
 // opening a file gets the error panel, what the panel says and which lines of the file it shows, and the words of the

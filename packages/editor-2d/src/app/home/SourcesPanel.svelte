@@ -8,7 +8,7 @@
 -->
 <script lang="ts">
 import type { Workspace } from '@mcthaydt/automata-editor-kit/core'
-import { storageNotes, workspaceSubtitle } from './home-model'
+import { storageNotes, workspaceSubtitle } from '@mcthaydt/automata-editor-kit/core'
 
 interface Props {
   workspace: Workspace

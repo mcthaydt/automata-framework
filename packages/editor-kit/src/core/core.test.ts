@@ -19,10 +19,11 @@ function reachable(entry: string, seen = new Set<string>()): Set<string> {
 }
 
 describe('editor-kit core entry', () => {
-  test('exports history, selection, commands, the keymap, the viewport, storage and toasts, and no component', () => {
+  test('exports history, selection, commands, the keymap, the viewport, storage, the project list and toasts, and no component', () => {
     expect(Object.keys(core).sort()).toEqual([
       'HistoryError',
       'StorageError',
+      'cardWords',
       'classifyStorageError',
       'createCommandRegistry',
       'createDocumentSession',
@@ -32,21 +33,31 @@ describe('editor-kit core entry', () => {
       'createIndexedDbVault',
       'createKeymap',
       'createMemoryStore',
+      'createProjectBrowser',
       'createSelection',
       'createToasts',
       'createViewport',
       'defineCommand',
       'discardRecovery',
+      'filterEntries',
       'findRecovery',
       'flushOnHide',
+      'modifiedLabel',
       'normalizeShortcut',
       'openWorkspace',
       'parseShortcut',
       'pickFolder',
+      'projectCount',
       'readStored',
+      'reconcileSelection',
       'restoreFolder',
+      'sizeLabel',
+      'splitPath',
       'statPath',
+      'stepSelection',
+      'storageNotes',
       'storePathProblem',
+      'workspaceSubtitle',
     ])
   })
 

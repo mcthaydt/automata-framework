@@ -9,9 +9,10 @@
 -->
 <script lang="ts">
 import { Button } from '@mcthaydt/automata-editor-kit'
+import type { StepKey } from '@mcthaydt/automata-editor-kit/core'
 import type { ProfileRegistry } from '../../profiles/profile'
 import type { ProjectEntry } from '../project-list'
-import { kindTone, type StepKey } from './home-model'
+import { kindTone } from './home-model'
 import ProjectCard from './ProjectCard.svelte'
 
 interface Props {
