@@ -16,6 +16,7 @@
   "scripts": {
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
+    "test:parity": "vitest run --project browsers",
     "typecheck": "tsc -p ."
   },
   "dependencies": {
@@ -25,7 +26,9 @@
   },
   "devDependencies": {
     "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
     "effect": "3.22.2",
+    "playwright": "1.63.0",
     "vitest": "5.0.3"
   }
 }
