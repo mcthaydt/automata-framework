@@ -66,16 +66,41 @@ What this doc does with it:
   - M9.3 to M9.6 promote lock-on, combat, items and the dungeon pieces as **Plus** packages in automata-plus. A free game cannot import Plus, so **base-3d keeps its own lock-on, combat, items and dungeon code** (M9.9), and the Plus packages start as copies of it, with the same golden.
 - **One contract owner, then.** Until M9, base-3d's code is the owner of these contracts. After M9, the Plus packages own their published API and base-3d's copies are frozen game code. A later fix in one is ported to the other, and its golden test covers both (the M9 spec decides the porting rule; here it is flagged as a risk in §23).
 
+### 3.1 Code layout (GAME3D-D21; the Owner's direction, 2026-10-30)
+
+**The Owner's direction (2026-10-30, in the session chat, relayed by the coordinator):** AF games, the `create-game` template and the one-file examples take EsperRedux's layout (`mcthaydt/PyrayExperiments_EsperRedux`): one flat file per role. The layout spec (GL.0) is being drafted; until it lands, this section records the direction for base-3d, before any code exists.
+
+```text
+games/base-3d/src/
+  constants.ts     tuning constants the code reads (the tunables themselves are content/tuning.toml)
+  components.ts    Koota traits: hero, enemies, boss, projectiles, dungeon pieces
+  commands.ts      move, camera-turn, lock, lock-cycle, attack, shield, roll, item, interact, pause
+  systems.ts       the system order; each large system moves into systems/ (below)
+  systems/         lock-on.ts, combat.ts, hero.ts, enemies.ts, boss.ts, items.ts, dungeon.ts, camera.ts
+  events.ts        sim events: hit, hurt, parry, item.get, door.open, boss.defeated, hero.ko
+  state.ts         resources and setup: inventory, progress, area load; grows into state/ (save.ts and its fixtures)
+  views.ts         render rows to figures, meshes, reticles and the HUD feed
+  main.ts          defineGame: the plugin, content, screens, renderer and ship config
+  game.test.ts     commands in, step, assert state; plus the golden replay
+  screens/         splash, menu, hub HUD, pause, items, map, settings, end; flow.ts
+  content/         figures, poses, clips, camera views, levels (af-sector), messages, moves, tuning
+```
+
+- **One file per role, a folder when it grows.** A role file that grows large becomes a folder of the same name. base-3d will need `systems/` from GAME-3D.1b (lock-on, combat, enemies and the rest are each hundreds of lines), and `state/` for the save definition and its fixtures. `screens/` and `content/` are folders from the start.
+- **Left behind from EsperRedux:** no Redux store beside the sim, no globals, and no input read inside a system. Input becomes commands in `main.ts`'s input mapping, once per fixed step, and systems read only commands and the world.
+- **Naming until GL.1.** `pnpm style` still requires role suffixes (`*.system.ts`, `*.component.ts` and so on) for files that hold `define*` results, and accepts the plural role files only from GL.1. Until then, the files inside role folders keep the suffix names (`systems/lock-on.system.ts`), and the flat files are named to pass the current check. Every path in this doc uses the target layout; GAME-3D.1a applies whatever GL.1 has landed by then.
+- **The sim boundary.** `pnpm boundaries` scans base-3d's sim files: `constants.ts`, `components.ts`, `commands.ts`, `systems.ts` and `systems/`, `events.ts` and `state.ts`. `views.ts`, `main.ts` and `screens/` are outside the sim and may import runtime, ui and the renderers.
+
 ## 4. Ownership
 
 | State | Owner | Writers | Readers |
 |---|---|---|---|
-| Wick's position, facing, velocity, health, i-frames, combat state, move and frame | The sim (`src/sim/hero/`, `src/sim/combat/`) | Sim systems, from commands | Render rows; HUD through the presentation bus |
+| Wick's position, facing, velocity, health, i-frames, combat state, move and frame | The sim (`src/systems/hero.ts`, `src/systems/combat.ts`; components in `src/components.ts`) | Sim systems, from commands | Render rows; HUD through the presentation bus |
 | `view` id, `heading`, the stick latch | The sim (M3.7a's plugin, extended) | The room-entry system; the `camera-turn` and lock-assist systems | `render-pixi3d`'s `CameraRig` through render rows |
-| The lock target, the lock state, the candidate list | The sim (`src/sim/lock/`) | The lock system, from `lock` and `lock-cycle` | The rig (`frame(lock)`), the figure's `aim`, the reticle |
-| Enemies, the boss and their brains | The sim (`src/sim/enemies/`, `src/sim/boss/`) | Enemy systems; the seeded RNG for drops only | Render rows |
-| Projectiles (sling pellets), bombs, the hookchain | The sim (`src/sim/items/`) | Item systems | Render rows |
-| Doors, switches, blocks, chests, gates, pots, pickups | The sim (`src/sim/dungeon/`), placed from the area's `af-sector` entities at area load | Dungeon systems | Render rows; the map screen |
+| The lock target, the lock state, the candidate list | The sim (`src/systems/lock-on.ts`) | The lock system, from `lock` and `lock-cycle` | The rig (`frame(lock)`), the figure's `aim`, the reticle |
+| Enemies, the boss and their brains | The sim (`src/systems/enemies.ts`, `src/systems/boss.ts`) | Enemy systems; the seeded RNG for drops only | Render rows |
+| Projectiles (sling pellets), bombs, the hookchain | The sim (`src/systems/items.ts`) | Item systems | Render rows |
+| Doors, switches, blocks, chests, gates, pots, pickups | The sim (`src/systems/dungeon.ts`), placed from the area's `af-sector` entities at area load | Dungeon systems | Render rows; the map screen |
 | Inventory, keys, map, compass, flags, embers, heart pieces | Sim resources (`inventory`, `progress`) | Sim systems | Saves (read at a save point), HUD, the items and map screens |
 | The area's geometry (sectors, walls, portals, heights) | Content (`content/levels/*.af-sector.json`), compiled once at area load into wall segments and floor heights in fixed point | Authors, in ED3D | Sim collision and room lookup; `render-pixi3d` meshes; the map |
 | Camera views | Content (`camera-view`, `render-pixi3d`'s schema; one owner, M3 §4.2) | Authors | Sim (yaw, rotate) and rig |
@@ -84,7 +109,7 @@ What this doc does with it:
 | Tunables (speeds, ranges, hitstop lengths, shake amplitudes) | `content/tuning.toml` (core, with `tuning-meta.json`) | Authors, in the Tuner (EDS.4a) | The sim (gameplay values) and the renderer (feel values) |
 | Strings | Locale content (`content/messages/*.json`, PRODUCT.L) | Authors (by hand; an editor gap, §17) | Screens, dialogue, HUD |
 | Sounds | Core sound recipes (ASSET.0 format, rendered at build, ASSET.2) | Authors, in the Audio editor (EDS.5a) | `Audio.sound` through the game's cue map |
-| Which screen shows | `src/flow.ts`, a pure state machine | Screen handlers, sim events (`boss.defeated`, `hero.ko`), the host's lifecycle and menu | Screens |
+| Which screen shows | `src/screens/flow.ts`, a pure state machine | Screen handlers, sim events (`boss.defeated`, `hero.ko`), the host's lifecycle and menu | Screens |
 | Held input, drag, sticks | Runtime `Input` (M4, M4.12) | DOM and the pad | The game's command mapping, once per fixed step |
 | The save record | Runtime `Save` (M5) | The game, at save points | Continue |
 | Settings | Core settings record (`CORE_SETTINGS`, with `camera` from M4.12) plus a game section (lock mode) | Settings screen | The command mapping |
@@ -337,7 +362,7 @@ The map scales to the container. At compact height it scrolls inside a declared 
 
 ## 10. Dungeon pieces
 
-All are game code in `src/sim/dungeon/`. They are placed from `af-sector` **entity definitions** that the area files declare (ED3D §4.7). The fields are typed, so ED3D's inspector edits them.
+All are game code in `src/systems/dungeon.ts`. They are placed from `af-sector` **entity definitions** that the area files declare (ED3D §4.7). The fields are typed, so ED3D's inspector edits them.
 
 | Entity def | Shape | Fields | Rule |
 |---|---|---|---|
@@ -387,7 +412,7 @@ The lock target, the lock state and the heading are in the golden (B-a). Unit te
 ### 12.1 Saves (M5 `SaveDef`, one slot)
 
 ```ts
-// src/save/base-3d.save.ts (the design; GAME-3D.1a writes it test first)
+// src/state/save.ts (the design; GAME-3D.1a writes it test first)
 SaveDef<Base3dSave> = {
   key: 'base-3d',            // one Ruken key; no `slots` (one slot)
   version: 1,
@@ -411,7 +436,7 @@ interface Base3dSave {
 
 - **The resume point is the area's entrance** (GAME3D-D9): the hub's square, or D1's mouth in the kiln. Room-local state is not saved, so no half-pushed block is ever restored. Health is restored to full on Continue.
 - **Save points:** autosave on screen exit (pause, quit), on going to the background, and every 60 s. The game calls `touch()` when a persistent flag changes. An explicit `write` follows each key-item get, so a power loss right after the Hookchain does not lose it.
-- **Migration rule:** every change to the saved shape after the first deploy bumps `version` and adds `migrations[n]` (`n → n+1`), with a fixture of a real version-`n` record in `src/save/fixtures/v<n>.json` and a test that the fixture migrates and parses. GAME-3D.1a ships version 1 and a test-only version-2 fixture that proves the path (G3-s).
+- **Migration rule:** every change to the saved shape after the first deploy bumps `version` and adds `migrations[n]` (`n → n+1`), with a fixture of a real version-`n` record in `src/state/save-fixtures/v<n>.json` and a test that the fixture migrates and parses. GAME-3D.1a ships version 1 and a test-only version-2 fixture that proves the path (G3-s).
 - **Failure follows M5 §6:** an unreadable slot shows "Your save can't be read" with New game, which asks before it overwrites; a slot from a newer build is read-only, with Continue disabled and an explanation; a host that refuses saves shows "Progress won't be saved here" once and plays on, with **no device-storage fallback** (host authority).
 
 ### 12.2 Settings
@@ -671,7 +696,7 @@ None of these edits 00 to 04 or `AGENTS.md`; the integration owner applies the 0
 | **render3d** | Only if GAME3D-D3 is vetoed: a first-person aim view outside `CameraRig` (M3 §17 option A) | The ranged aim |
 | **integration (02)** | Place **GAME-3D.T** in M8 (GAME3D-D12): prerequisites GAME-3D.1l and M9.10 (the template installs the published `render-pixi3d` and `figures`) and DX.5; make it a prerequisite of **M8.6b** (its 3D guide uses the template), **M8.9** (the 1.0 release) and **M8.9s** (the skills mirror carries the 3D skill). Note the GAME3D-D13 check in GAME-3D.T's row | §18's DX row |
 | **integration (02)** | GAME-3D.1g's row: "stairs and slopes" becomes "stairs; slopes when `af-sector` has them" (gap 2) | ED3D §2.1 |
-| **integration (02, 03)** | Record GAME3D-D1 to D20 for the Owner's veto, and the doc's status | The review |
+| **integration (02, 03)** | Record GAME3D-D1 to D20 for the Owner's veto, and D21 (the Owner's layout direction), and the doc's status | The review |
 
 ### 21.1 GAME-3D.T among M8's tasks (GAME3D-D12)
 
@@ -704,6 +729,7 @@ None of these edits 00 to 04 or `AGENTS.md`; the integration owner applies the 0
 | GAME3D-D18 | Camera turn speed setting | **One slider scales drag, stick and keys together** (180°/s and 120°/s at the default 0.25°/px) | One setting is easier to explain; M4-D16 leaves the rates to the game |
 | GAME3D-D19 | Jumping | **No jump button**; marked ledge drops, stairs and the hookchain | Ocarina's model; one less touch button; no physics |
 | GAME3D-D20 | The boss as a figure | **The Warden is a 3.2 m procedural figure** with plate garments | It proves figures at scale; if the sliders cannot reach 3.2 m, the fallback is a 2.4 m figure on a stone plinth, recorded in GAME-3D.1j |
+| GAME3D-D21 | Code layout | **EsperRedux's flat layout, one file per role** (`constants`, `components`, `commands`, `systems`, `events`, `state`, `views`, `main`, `game.test`), with `systems/` and `state/` as folders when they grow and `screens/` and `content/` as folders (§3.1) | **The Owner's direction, 2026-10-30** (AF games, the template and the examples take this layout); GL.0 specifies it. Not a default for veto: recorded here so the code follows it from the first commit |
 
 ## 23. Risks
 
