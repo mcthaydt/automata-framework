@@ -36,7 +36,10 @@ export interface RuntimeFacts {
   readonly 'render.filter.dropped': { readonly id: string; readonly reason: string }
   /** The WebGL context was lost; the renderer draws nothing until it is restored (M3 spec §5). */
   readonly 'render.context.lost': Readonly<Record<never, never>>
-  /** The WebGL context came back; the renderer rebuilt its views from the sim's current rows (M3 spec §5). */
+  /**
+   * The WebGL context came back (M3 spec §5): Pixi re-uploads its GPU resources and the renderer draws again; the
+   * views and the sim are untouched.
+   */
   readonly 'render.context.restored': Readonly<Record<never, never>>
   /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
   readonly 'save.written': { readonly key: string; readonly slot: number }

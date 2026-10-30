@@ -49,7 +49,7 @@ export interface PrepareInput {
   /**
    * Who the build is for. `public` (the default: Ruken's store, through `publish`) refuses a build that contains
    * `@pixi/3d`, a closed beta (X-b); `private` (the dev host behind its access control, `deploy-dev`, and Ruken's
-   * local stack, `prepare --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
+   * local stack, `publish --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
    */
   readonly audience?: 'public' | 'private' | undefined
 }

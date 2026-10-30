@@ -13,7 +13,13 @@ export {
 export type { Pixi3dCameraOptions } from './camera/camera-driver.js'
 export { LOCK_SHARE, type Vec3 } from './camera/camera-pose.js'
 export { cameraViewContent } from './camera/camera-view.content.js'
-export { type DecodeTexture, type LoadedModel, loadModels, type ModelLibrary } from './model/load-models.js'
+export {
+  type DecodeTexture,
+  type LoadedModel,
+  loadModels,
+  type ModelLibrary,
+  type ModelStore,
+} from './model/load-models.js'
 export { modelGeometry } from './model/model-geometry.js'
 export { type ModelMesh, parseGlb, parsePack } from './model/parse-glb.js'
 export { render3dExtension } from './render3d.extension.js'

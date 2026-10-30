@@ -1,3 +1,4 @@
+import '../no-eval.js'
 import { Effect, Exit, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { encodeGlb, fixtureBox } from '../model/testing/model-fixtures.js'

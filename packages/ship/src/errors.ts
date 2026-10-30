@@ -80,7 +80,16 @@ const Pixi3dInPublicBuildBase: TaggedErrorClass<
 export class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
   override get message(): string {
     const listed = this.found.map((found) => `${found.file}: "${found.marker}"`).join('\n')
-    return `the build contains @pixi/3d, a closed beta whose terms allow no public deployment (D-1: render-pixi3d stays private until Pixi 3D's public release). Deploy it to the private dev host (deploy-dev) or Ruken's local stack (prepare --private) only:\n${listed}`
+    return `the build contains @pixi/3d, a closed beta whose terms allow no public deployment (D-1: render-pixi3d stays private until Pixi 3D's public release). Deploy it only to the private dev host (deploy-dev) or Ruken's local stack (publish --private, with RUKEN_API on localhost):\n${listed}`
+  }
+}
+
+const PrivatePublishNotLocalBase: TaggedErrorClass<'PrivatePublishNotLocal', { readonly api: string }> =
+  Data.TaggedError('PrivatePublishNotLocal')
+/** `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local. */
+export class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
+  override get message(): string {
+    return `publish --private uploads only to Ruken's local stack (RUKEN_API on localhost, a .localhost name or a loopback address), not ${this.api}: a private build may contain @pixi/3d, a closed beta (D-1)`
   }
 }
 

@@ -49,8 +49,8 @@ async function show(
   publishConditions(document.documentElement, size, variant)
   unmount = mountFixture(StatusFixture, { show: which }).unmount
   await settleLayout()
-  const boot = which === 'boot-failure'
-  const actions = byTestId(boot ? 'error-continue' : 'error-retry').parentElement
+  const boot = which === 'boot-failure' || which === 'model-invalid'
+  const actions = byTestId(which === 'boot-failure' ? 'error-continue' : 'error-retry').parentElement
   if (actions === null) throw new Error('no actions row')
   const message = byTestId(boot ? 'boot-failure-message' : 'error-panel-message')
   return { message: message.getBoundingClientRect(), actions: actions.getBoundingClientRect() }
@@ -130,4 +130,28 @@ describe('ErrorPanel one-row layout', () => {
       contentRight + 0.5,
     )
   })
+
+  // M3.4a (review of #241): a damaged model's panel names a hashed file with no break opportunity; at the compact
+  // sizes the name wraps inside the panel and Try again, Back to Ruken and the corner's Back stay reachable.
+  test.each([
+    [780, 270],
+    [844, 390],
+  ])(
+    'keeps a long model file name inside the panel at %ix%i, every action reachable',
+    async (width, height) => {
+      await show(custom(width, height), 'model-invalid')
+      const panel = byTestId('boot-failure')
+      const message = byTestId('boot-failure-message')
+      const style = getComputedStyle(panel)
+      const contentRight =
+        panel.getBoundingClientRect().right -
+        Number.parseFloat(style.paddingRight) -
+        Number.parseFloat(style.borderRightWidth)
+      expect(message.getBoundingClientRect().right).toBeLessThanOrEqual(contentRight + 0.5)
+      expect(message.scrollWidth).toBeLessThanOrEqual(message.clientWidth + 1)
+      expect(
+        findUnreachable([byTestId('corner-back'), byTestId('error-retry'), byTestId('error-exit')]),
+      ).toEqual([])
+    },
+  )
 })

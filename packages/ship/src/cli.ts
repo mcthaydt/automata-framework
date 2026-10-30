@@ -11,8 +11,8 @@ import type { ShipConfig } from './config/ship-config.ts'
 import { deployDev } from './deploy/deploy-dev.ts'
 import { prepareBuild } from './prepare/prepare-build.ts'
 import { findExecutable } from './publish/find-executable.ts'
+import { publishBuild } from './publish/publish-build.ts'
 import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from './publish/publish-to-itch.ts'
-import { publishToRuken } from './publish/publish-to-ruken.ts'
 import { testRemote } from './remote/test-remote.ts'
 import { prepareItch } from './targets/prepare-itch.ts'
 
@@ -92,12 +92,9 @@ async function program(
     )
   }
 
-  // The dev host sits behind its access control and `prepare --private` is for Ruken's local stack: both private,
-  // so they may carry @pixi/3d; `prepare` and `publish` are for the public store (M3 spec §4.8, X-b).
-  const audience =
-    command.command === 'deploy-dev' || (command.command === 'prepare' && command.private === true)
-      ? 'private'
-      : 'public'
+  // The dev host sits behind its access control, so deploy-dev may carry @pixi/3d; `prepare` is for the public
+  // store (M3 spec §4.8, X-b). `publish --private` checks for Ruken's local stack itself (publishBuild).
+  const audience = command.command === 'deploy-dev' ? 'private' : 'public'
   const prepare = prepareBuild({ distDir, gameDir: cwd, config, tag: command.tag, audience })
   if (command.command === 'prepare') {
     return Effect.provide(
@@ -108,9 +105,17 @@ async function program(
   if (command.command === 'publish') {
     const api = setting('RUKEN_API')
     const token = setting('RUKEN_TOKEN')
-    const publish = Effect.andThen(prepare, () =>
-      publishToRuken({ distDir, cwd, api, token, activate: command.activate, game: command.game }),
-    )
+    const publish = publishBuild({
+      distDir,
+      cwd,
+      config,
+      tag: command.tag,
+      api,
+      token,
+      activate: command.activate,
+      game: command.game,
+      private: command.private === true,
+    })
     return Effect.provide(
       Effect.map(publish, (result) => result.url ?? 'published'),
       layers,

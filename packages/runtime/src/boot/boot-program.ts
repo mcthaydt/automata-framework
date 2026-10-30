@@ -33,7 +33,7 @@ import { liveDeviceStorage } from '../settings/device-storage.js'
 import { makeSettings, Settings } from '../settings/settings.manager.js'
 import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
 import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
-import type { GameDefinition } from './game-definition.js'
+import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
 import { createPageLayers } from './page-layers.svelte.js'
@@ -45,6 +45,26 @@ import { createPageLayers } from './page-layers.svelte.js'
 export function contentHashOf(data: unknown): string {
   return hex64(xxhash64(utf8(canonicalJson(data))))
 }
+
+/**
+ * The content's assets with a game's own preload files added to the first preload screen's list (`GameDefinition
+ * .preload`), so they load with that screen and the renderer finds them in `Assets`. The content itself, and so its
+ * hash, is untouched.
+ */
+function withPreload(
+  assets: CompiledContentData['assets'],
+  screen: string | undefined,
+  preload: readonly string[] | undefined,
+): CompiledContentData['assets'] {
+  if (preload === undefined || preload.length === 0 || screen === undefined) return assets
+  const screens = assets?.screens ?? {}
+  const files = [...(screens[screen]?.files ?? [])]
+  for (const file of preload) if (!files.includes(file)) files.push(file)
+  return { ...assets, screens: { ...screens, [screen]: { files } } }
+}
+
+/** The context-lost panel's English default (M3 spec §5, §7), in Ruken's quiet tone. */
+const CONTEXT_LOST_COPY_EN = 'The picture stopped. Try again to bring it back.'
 
 /**
  * Ruken's save key pattern (/^[A-Za-z0-9._:-]{1,128}$/, sdk/src/save-map.ts).
@@ -204,19 +224,19 @@ export function bootProgram<S>(
     }
 
     const fontFaces = game.seams?.fonts ?? (typeof document !== 'undefined' ? document.fonts : undefined)
-    const assets = yield* makeAssets({
-      assets: game.content.data.assets,
-      fonts: screenFonts,
-      ...(game.seams?.fetch !== undefined ? { fetch: game.seams.fetch } : {}),
-      ...(fontFaces !== undefined ? { fontFaces } : {}),
-      meter,
-    })
-
     const preloadScreens =
       game.content.data.game?.preload_screens !== undefined &&
       game.content.data.game.preload_screens.length > 0
         ? game.content.data.game.preload_screens
         : [game.content.data.flow.entry]
+
+    const assets = yield* makeAssets({
+      assets: withPreload(game.content.data.assets, preloadScreens[0], game.preload),
+      fonts: screenFonts,
+      ...(game.seams?.fetch !== undefined ? { fetch: game.seams.fetch } : {}),
+      ...(fontFaces !== undefined ? { fontFaces } : {}),
+      meter,
+    })
 
     for (const screenId of preloadScreens) {
       yield* assets.load(screenId, (fraction) => loaderHandle.setProgress(fraction))
@@ -229,6 +249,24 @@ export function bootProgram<S>(
       geometry,
       assets,
       bus,
+      reportLost: (retry) => {
+        const dismiss = layers.showError({
+          code: 'context-lost',
+          message: game.copy?.contextLost ?? CONTEXT_LOST_COPY_EN,
+          actions: [
+            {
+              id: 'retry',
+              label: game.copy?.retry ?? 'Try again',
+              kind: 'primary',
+              onSelect: () => {
+                dismiss()
+                retry()
+              },
+            },
+          ],
+        })
+        return dismiss
+      },
     }
     const renderer = yield* game.renderer(renderTarget)
 

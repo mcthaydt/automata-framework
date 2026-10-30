@@ -53,6 +53,7 @@ export {
   scanTextForSecrets,
 } from './prepare/secret-scan.ts'
 export { findExecutable } from './publish/find-executable.ts'
+export { isLocalStack, type PublishBuildInput, publishBuild } from './publish/publish-build.ts'
 export {
   ITCH_FIRST_PUSH_CHECKLIST,
   type PublishItchInput,

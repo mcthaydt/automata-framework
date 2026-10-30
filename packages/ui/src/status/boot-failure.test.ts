@@ -46,7 +46,7 @@ describe('bootFailureView', () => {
     [{ _tag: 'RendererUnavailable', tried: ['webgl2', 'webgpu'] }, 'standalone', 'unsupported', []],
     [{ _tag: 'BootDefect' }, 'ruken', 'start', ['retry']],
     [{ _tag: 'BootDefect' }, 'standalone', 'start', ['retry']],
-    [{ _tag: 'ModelInvalid', file: 'm.glb', reason: 'skinned' }, 'ruken', 'model-invalid', ['retry']],
+    [{ _tag: 'ModelInvalid', file: 'm.glb', reason: 'skinned' }, 'ruken', 'model-invalid', ['retry', 'exit']],
     [{ _tag: 'ModelInvalid', file: 'm.glb', reason: 'malformed' }, 'standalone', 'model-invalid', ['retry']],
   ] as const)('%j under %s is %s with %j', (failure, host, state, actions) => {
     // Ruken always grants `exit` (sdk-host ALWAYS_GRANTED); the SDK's standalone session grants nothing.

@@ -12,6 +12,12 @@ export interface RenderTarget {
   readonly assets: Pick<Assets, 'get'>
   /** The runtime's presentation bus, for render facts such as `render.filter.dropped`. Optional for tests and tools. */
   readonly bus?: PresentationBus | undefined
+  /**
+   * Shows the "picture stopped" panel with Try again, for a renderer whose graphics context is lost and will not
+   * come back by itself (M3 spec §5): Try again closes the panel and calls `retry`, which rebuilds the renderer from
+   * the sim's current state. Returns a function that closes the panel. Optional for tests and tools.
+   */
+  readonly reportLost?: ((retry: () => void) => () => void) | undefined
 }
 
 export interface GameRenderer {

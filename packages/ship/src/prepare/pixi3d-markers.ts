@@ -31,7 +31,8 @@ export interface Pixi3dFound {
   readonly marker: string
 }
 
-const SCRIPT = /\.(?:js|mjs|cjs)$/i
+// Scripts, and pages, which may carry an inline module script.
+const SCRIPT = /\.(?:js|mjs|cjs|html?)$/i
 
 /** Every script in the build that carries @pixi/3d (`core`) or its `./extras` (`extras`), the first marker each. */
 export function findPixi3d(distDir: string): { core: Pixi3dFound[]; extras: Pixi3dFound[] } {
