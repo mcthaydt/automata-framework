@@ -4,6 +4,7 @@ import { render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { counterIds } from '../model/ids'
+import FakeLevelCanvas from '../testing/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '../testing/memory-workspace'
 import { noteText, plantedProfile } from '../testing/planted-profile'
 import { createTestClock } from '../testing/test-clock'
@@ -62,6 +63,8 @@ async function mount(
     toasts: createToasts({ clock }),
     clock,
     lifecycle: quietPage(),
+    ids: counterIds(100),
+    canvas: FakeLevelCanvas,
   })
   return { ...view, disposed, workspace, opens, releaseFlush }
 }

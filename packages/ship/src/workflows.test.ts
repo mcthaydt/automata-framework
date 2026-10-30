@@ -285,6 +285,15 @@ describe('parity across packages', () => {
 // with vitest's `cores - 1` workers each (more than 70 threads on 8 cores), and nine parity browsers each opening
 // `cores - 1` pages. Vitest reads VITEST_MAX_WORKERS for every project, browser and layout projects included, so
 // the root scripts that CI calls set it; turbo's strict environment would drop it, so turbo.json passes it on.
+// Owner, 2026-10-30: "You can raise the cap and CI". Four sessions now share the self-hosted runners, so a busy
+// runner pushed the checks job past its old 10-minute limit with every test passing (#241, run 41092962721).
+describe('job time limits under a shared runner', () => {
+  const ci = workflow('ci.yml')
+  it.each(['checks', 'parity'])('ci.yml %s may run for 20 minutes', (name) => {
+    expect(ci.jobs[name]?.['timeout-minutes']).toBe(20)
+  })
+})
+
 describe('the load one CI job puts on the shared Mac', () => {
   const scripts = packageJson('.').scripts as Record<string, string>
   const turbo = JSON.parse(readFileSync(join(root, 'turbo.json'), 'utf8')) as {

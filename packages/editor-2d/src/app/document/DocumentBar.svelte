@@ -19,6 +19,10 @@ interface Props {
   busy: boolean
   /** The shell is in `compact` mode (a phone): the profile's pill is left out so the title keeps its room. */
   compact: boolean
+  /** Focus the heading when the bar appears (the document opened); a bar remounted by a view change leaves focus alone. */
+  autofocus?: boolean
+  /** Told once the heading has taken focus. */
+  onfocused?: (() => void) | undefined
   onback: () => void
   onundo: () => void
   onredo: () => void
@@ -34,6 +38,8 @@ const {
   redoLabel,
   busy,
   compact,
+  autofocus = true,
+  onfocused,
   onback,
   onundo,
   onredo,
@@ -41,7 +47,11 @@ const {
 }: Props = $props()
 
 let title = $state<HTMLElement>()
-onMount(() => title?.focus())
+onMount(() => {
+  if (!autofocus) return
+  title?.focus()
+  onfocused?.()
+})
 </script>
 
 <div class="bar" data-testid="document-bar">
