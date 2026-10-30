@@ -2155,6 +2155,12 @@ type WriteResult = {
 
 ## `./documents`
 
+### `BLOCKOUT_NUMBERS` (const)
+
+```ts
+const BLOCKOUT_NUMBERS: NumberStyle;
+```
+
 ### `ContentDocument` (interface)
 
 ```ts
@@ -2236,6 +2242,18 @@ type EditResult = {
 };
 ```
 
+### `EXACT_NUMBERS` (const)
+
+```ts
+const EXACT_NUMBERS: NumberStyle;
+```
+
+### `formatExactNumber` (function)
+
+```ts
+function formatExactNumber(value: number): string;
+```
+
 ### `formatJsonNumber` (function)
 
 ```ts
@@ -2245,7 +2263,7 @@ function formatJsonNumber(value: number): string;
 ### `formatJsonScalar` (function)
 
 ```ts
-function formatJsonScalar(value: JsonScalar): string;
+function formatJsonScalar(value: JsonScalar, numbers?: NumberStyle): string;
 ```
 
 ### `indentAt` (const)
@@ -2257,13 +2275,13 @@ const indentAt: (text: string, position: number) => string;
 ### `insertElement` (function)
 
 ```ts
-function insertElement(text: string, path: JsonPath, value: JsonValue, index?: number): string;
+function insertElement(text: string, path: JsonPath, value: JsonValue, index?: number, numbers?: NumberStyle): string;
 ```
 
 ### `insertMember` (function)
 
 ```ts
-function insertMember(text: string, path: JsonPath, key: string, value: JsonValue, placement?: MemberPlacement): string;
+function insertMember(text: string, path: JsonPath, key: string, value: JsonValue, placement?: MemberPlacement, numbers?: NumberStyle): string;
 ```
 
 ### `JsonKind` (type)
@@ -2373,6 +2391,15 @@ interface MemberPlacement {
 }
 ```
 
+### `NumberStyle` (interface)
+
+```ts
+interface NumberStyle {
+    readonly round: (value: number) => number;
+    readonly format: (value: number) => string;
+}
+```
+
 ### `openDocument` (function)
 
 ```ts
@@ -2417,6 +2444,7 @@ type PatchResult = {
 interface PatchRules {
     readonly idArrays: readonly string[];
     readonly memberOrder: (path: JsonPath) => readonly string[] | undefined;
+    readonly numbers?: NumberStyle;
 }
 ```
 
@@ -2453,7 +2481,7 @@ function removeMember(text: string, path: JsonPath, key: string): string;
 ### `replaceValue` (function)
 
 ```ts
-function replaceValue(text: string, path: JsonPath, value: JsonValue): string;
+function replaceValue(text: string, path: JsonPath, value: JsonValue, numbers?: NumberStyle): string;
 ```
 
 ### `roundJsonNumber` (const)
