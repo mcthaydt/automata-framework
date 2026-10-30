@@ -9,14 +9,22 @@ export interface StoredEntry {
   readonly mtime: number
 }
 
-export type WriteFailure = 'conflict' | 'denied' | 'quota' | 'io'
+/** What a guarded write expects to find: the file at the `mtime` it was read with, or no file at all. */
+export type WriteExpectation = { readonly mtime: number } | 'absent'
+
+export type WriteFailure = 'conflict' | StorageFailure
 
 export type WriteResult =
   | { readonly ok: true; readonly mtime: number }
   | { readonly ok: false; readonly reason: WriteFailure; readonly message: string }
 
-/** Why a read, a listing or a removal failed. A write reports the same reasons (and `conflict`) in its result. */
-export type StorageFailure = 'denied' | 'quota' | 'io'
+/**
+ * Why a read, a listing or a removal failed. A write reports the same reasons (and `conflict`) in its result.
+ * `policy` is a store that keeps rules of its own (the editor suite's workspace: a path outside its editor list, a
+ * read-only or generated file, a removal of a file the change set did not create); asking again will not help.
+ * None of the kit's own adapters gives it.
+ */
+export type StorageFailure = 'denied' | 'quota' | 'io' | 'policy'
 
 /** `list`, `read` and `remove` reject with this; a missing file is `undefined` or a no-op, never an error. */
 export class StorageError extends Error {
@@ -67,12 +75,25 @@ export interface ProjectStore {
   /**
    * Replaces the file. With `expected`, the write happens only if the file still has that `mtime` (a missing file
    * never does), otherwise it is a `conflict` and nothing changes, so a hand edit is never overwritten silently.
+   * With `'absent'` it happens only if there is no such file yet (a new file never replaces one); otherwise `conflict`.
    */
-  write(path: string, data: Uint8Array | string, expected?: { readonly mtime: number }): Promise<WriteResult>
+  write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>
   /** Deletes the file; a file that is not there is not an error. */
   remove(path: string): Promise<void>
   /** Optional. No adapter implements it yet: the browsers have no change feed for OPFS or a picked folder. */
   watch?(path: string, listener: () => void): () => void
+}
+
+/** Why a guarded write cannot go ahead, or `undefined` when it can: `current` is the file's mtime, if it exists. */
+export function expectationProblem(
+  expected: WriteExpectation | undefined,
+  current: number | undefined,
+): string | undefined {
+  if (expected === undefined) return undefined
+  if (expected === 'absent')
+    return current === undefined ? undefined : 'A file with that name already exists.'
+  if (current === expected.mtime) return undefined
+  return current === undefined ? 'The file no longer exists.' : 'The file changed since it was opened.'
 }
 
 /** The entry for exactly `path`, or `undefined`. `list(path)` alone would also return `path.bak`. */

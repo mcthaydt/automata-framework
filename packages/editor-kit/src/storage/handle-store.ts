@@ -1,5 +1,6 @@
 import {
   classifyStorageError,
+  expectationProblem,
   type ProjectStore,
   StorageError,
   type StoredEntry,
@@ -161,18 +162,16 @@ export function createHandleStore(root: DirectoryLike, options: HandleStoreOptio
       try {
         return await run(async () => {
           const { segments, name } = split(path)
-          const dir = await directory(segments, expected === undefined)
+          // A write that expects an mtime needs the file, so it never makes the folders; the others may create them.
+          const dir = await directory(segments, expected === undefined || expected === 'absent')
           const existing = dir === undefined ? undefined : await existingFile(dir, name)
-          if (expected !== undefined) {
-            const current = existing === undefined ? undefined : (await existing.getFile()).lastModified
-            if (current !== expected.mtime) {
-              const message =
-                existing === undefined
-                  ? 'The file no longer exists.'
-                  : 'The file changed since it was opened.'
-              return { ok: false, reason: 'conflict', message } satisfies WriteResult
-            }
-          }
+          const current =
+            existing === undefined || expected === undefined
+              ? undefined
+              : (await existing.getFile()).lastModified
+          const problem = expectationProblem(expected, current)
+          if (problem !== undefined)
+            return { ok: false, reason: 'conflict', message: problem } satisfies WriteResult
           const target = dir ?? root
           const handle = existing ?? (await target.getFileHandle(name, { create: true }))
           const writable = await handle.createWritable()

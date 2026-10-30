@@ -159,7 +159,6 @@ export {
   type WallRef,
   type WindowArgs,
 } from './model/wall-edits'
-export type { AskProvider, ChangeSet, Generator, Proposal } from './ports/ports'
 export * from './profile/af-sector/af-checks'
 export * from './profile/af-sector/af-codec'
 export * from './profile/af-sector/af-entities'

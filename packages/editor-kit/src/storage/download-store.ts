@@ -68,6 +68,7 @@ export function createDownloadStore(env: DownloadEnv = browserDownloadEnv()): Do
       assertStorePath(path)
     },
 
+    // Nothing is kept, so every file is absent and has no mtime: an `expected` guard has nothing to compare with.
     async write(path, data) {
       const file = fileFor(path, data)
       try {
