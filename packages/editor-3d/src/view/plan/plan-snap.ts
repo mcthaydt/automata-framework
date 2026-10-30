@@ -59,6 +59,17 @@ export function stepOf(options: Pick<SnapOptions, 'grid' | 'shiftKey' | 'altKey'
   return onGrid ? { step: options.grid.step, kind: 'grid' } : { step: snapStep(options), kind: 'data' }
 }
 
+/**
+ * A length in metres (an offset of a drag, a place) rounded to the grid: the fine data step with Shift, not at all with
+ * Alt. Unlike a snap, nothing of the level is looked at.
+ */
+export function gridRounded(
+  value: number,
+  options: Pick<SnapOptions, 'grid' | 'shiftKey' | 'altKey'>,
+): number {
+  return snapValue(value, options.altKey === true ? 0 : stepOf(options).step)
+}
+
 export function snapPlan(
   layers: readonly GeometryLayer[],
   select: SelectionOf,

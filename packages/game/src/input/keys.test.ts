@@ -323,7 +323,9 @@ describe('keys() gestures (M4.3)', () => {
   })
 
   it('refuses a touch mode the map cannot offer', () => {
-    expect(() => keys(Move, { Space: { jump: true } }, { touchMode: 'swipe' })).toThrow(/swipe/)
+    expect(() => keys(Move, { Space: { jump: true } }, { touchMode: 'swipe' })).toThrow(
+      /needs a swipe, flick or tap/,
+    )
   })
 
   it('sends a flick in exactly one tick’s command, and a held swipe until it is released', () => {

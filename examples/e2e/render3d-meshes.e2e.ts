@@ -31,6 +31,33 @@ const canvasColours = (frame: Frame): Promise<number> =>
       }),
   )
 
+/** The share of the canvas's pixels within 2 of the sky colour (0xc7dcd0, the example's `backgroundColor`). */
+const skyShare = (frame: Frame): Promise<number> =>
+  frame.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        requestAnimationFrame(() => {
+          const canvas = document.querySelector<HTMLCanvasElement>('canvas.af-stage')
+          if (canvas === null) return resolve(0)
+          const copy = document.createElement('canvas')
+          copy.width = canvas.width
+          copy.height = canvas.height
+          const context = copy.getContext('2d')
+          context?.drawImage(canvas, 0, 0)
+          const data = context?.getImageData(0, 0, copy.width, copy.height).data ?? new Uint8ClampedArray()
+          let sky = 0
+          for (let i = 0; i < data.length; i += 4)
+            if (
+              Math.abs((data[i] ?? 0) - 0xc7) <= 2 &&
+              Math.abs((data[i + 1] ?? 0) - 0xdc) <= 2 &&
+              Math.abs((data[i + 2] ?? 0) - 0xd0) <= 2
+            )
+              sky++
+          resolve(sky / Math.max(1, data.length / 4))
+        })
+      }),
+  )
+
 async function play(frame: Frame): Promise<void> {
   await frame.getByTestId('play').click()
   await expect(frame.getByTestId('play-screen')).toBeVisible()
@@ -43,6 +70,9 @@ test('draws the boxes and both model files under the CSP, with no errors', async
   await play(frame)
   // Lit, textured meshes shade into many colours; a blank or single-colour field would be a handful.
   await expect.poll(() => canvasColours(frame)).toBeGreaterThan(40)
+  // The sky fills the field behind the meshes (it was the letterbox's black field before 2026-10-30); in portrait the
+  // field is a band of the screen, so the share is lower there (0.24 on a Pixel 7, 0.30+ in landscape).
+  await expect.poll(() => skyShare(frame)).toBeGreaterThan(0.15)
   expect(errors).toEqual([])
 })
 
