@@ -5,6 +5,7 @@ import {
   boardsStep,
   boundariesStep,
   cspStep,
+  dataUrlsStep,
   inputsStep,
   noEvalStep,
   orientationStep,
@@ -33,7 +34,8 @@ function stepsFor(options: RunCheckOptions): readonly Step[] {
     ['typecheck', typecheckStep],
     ['test', testStep],
   ]
-  // --sim-only checks a sim edit: it skips the board, orientation and inputs scans, the build, and the secrets and csp steps that read it.
+  // --sim-only checks a sim edit: it skips the board, orientation and inputs scans, the build, and the secrets,
+  // data-urls and csp steps that read it.
   if (!options.simOnly)
     steps.push(
       ['boards', boardsStep],
@@ -41,10 +43,14 @@ function stepsFor(options: RunCheckOptions): readonly Step[] {
       ['inputs', inputsStep],
       ['no-eval', noEvalStep],
       ['secrets', secretsStep],
+      ['data-urls', dataUrlsStep],
     )
   if (!options.simOnly && options.csp) steps.push(['csp', cspStep])
   return steps
 }
+
+/** The steps that scan the `dist/` the `no-eval` step builds. */
+const READS_THE_BUILD: ReadonlySet<StepName> = new Set(['secrets', 'data-urls'])
 
 const buildFailed = (results: readonly StepResult[]): boolean =>
   results.some(
@@ -58,7 +64,7 @@ export function runCheck(
     const results: StepResult[] = []
     for (const [name, step] of stepsFor(options)) {
       // A dist/ left over from an earlier build is not this game's bundle: say it was not scanned, never pass it.
-      if (name === 'secrets' && buildFailed(results)) {
+      if (READS_THE_BUILD.has(name) && buildFailed(results)) {
         results.push({
           name,
           ok: false,

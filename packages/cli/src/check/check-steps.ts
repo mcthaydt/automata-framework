@@ -18,6 +18,7 @@ import {
 import { Effect } from 'effect'
 import type { CheckFinding } from './check-report.ts'
 import { CheckToolError, CspProbe } from './csp-probe.ts'
+import { scanForDataUrls } from './data-url-scan.ts'
 import { scanForEval } from './no-eval-scan.ts'
 import { parseBoundaries, parseTsc, parseVitestJson } from './tool-output.ts'
 
@@ -158,6 +159,26 @@ export const noEvalStep = (gameDir: string): StepEffect =>
         (error) => new CheckToolError({ kind: 'failed', tool: 'no-eval', detail: error.message }),
       )
       findings.push(...scanForEval(`dist/${path}`, code))
+    }
+    return findings
+  })
+
+/**
+ * DX.5a: the assets Vite inlined as `data:` URLs (data-url-scan.ts), in the JavaScript of the `dist/` the no-eval
+ * step just built. Ruken's CSP refuses to fetch them, so each one is an asset the game never loads.
+ */
+export const dataUrlsStep = (gameDir: string): StepEffect =>
+  Effect.gen(function* () {
+    const files = yield* Files
+    const distDir = join(gameDir, 'dist')
+    const toolError = (detail: string) => new CheckToolError({ kind: 'failed', tool: 'data-urls', detail })
+    const listed = yield* Effect.mapError(files.listFiles(distDir), (error) => toolError(error.message))
+    const findings: CheckFinding[] = []
+    for (const path of listed.filter((name) => name.endsWith('.js'))) {
+      const code = yield* Effect.mapError(files.readText(join(distDir, path)), (error) =>
+        toolError(error.message),
+      )
+      findings.push(...scanForDataUrls(`dist/${path}`, code))
     }
     return findings
   })
