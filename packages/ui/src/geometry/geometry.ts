@@ -157,3 +157,25 @@ export function applyGeometry(root: HTMLElement, geometry: Geometry): void {
   px('--af-hidden-bar-bottom', geometry.hiddenBarBottom)
   root.style.setProperty('--af-scale', String(geometry.scale))
 }
+
+/**
+ * Reads back the visible region `applyGeometry` published on `root`, for a component that must keep something it
+ * draws inside it (the touch stick's floating ring, M4.12b). The same region as `Geometry.visible`: the layout less
+ * the insets, and above whatever covers the page's foot. Where nothing was published, the whole layout.
+ */
+export function publishedVisibleRect(
+  root: HTMLElement,
+  layout: { readonly width: number; readonly height: number },
+): Rect {
+  const read = (name: string): number => Number.parseFloat(root.style.getPropertyValue(name)) || 0
+  const top = read('--af-inset-top')
+  const left = read('--af-inset-left')
+  // The visual inset is measured from the layout's foot, so it already holds the bottom safe area.
+  const bottom = Math.max(read('--af-inset-bottom'), read('--af-visual-inset-bottom'))
+  return {
+    x: left,
+    y: top,
+    width: Math.max(0, layout.width - left - read('--af-inset-right')),
+    height: Math.max(0, layout.height - top - bottom),
+  }
+}
