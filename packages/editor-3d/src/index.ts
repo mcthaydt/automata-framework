@@ -210,17 +210,12 @@ export {
   walkStart,
 } from './view/mesh/camera-3d'
 export {
-  CAMERA_DEFAULTS,
-  CAMERA_RANGES,
-  type CameraViewSpec,
-  cameraViewSpec,
   followCamera,
   type RoomView,
   roomView,
 } from './view/mesh/follow-camera'
 export {
   DEGREES_PER_PIXEL,
-  degToHeading,
   dragTurn,
   type HeadingOptions,
   type HeadingView,
@@ -229,11 +224,8 @@ export {
   headingToYaw,
   headingView,
   type SweepOptions,
-  TURN_UNITS,
-  turnHeading,
   type WallsSeen,
   wallsSeenFrom,
-  wrapHeading,
   yawToHeading,
 } from './view/mesh/heading'
 export {

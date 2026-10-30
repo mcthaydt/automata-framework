@@ -3,27 +3,21 @@
 // the plan) and a heading grows toward +x (east), the direction being `(sin h, cos h)` in `(x, z)`. The editor's own camera
 // states a heading as a compass bearing (0 looks north, a quarter turn east; camera-3d.ts), which is a half turn minus the
 // heading. The conversions are whole-unit arithmetic first and one multiplication last, so every unit round-trips exactly.
+// The turn itself (`TURN_UNITS`, `wrapHeading`, `turnHeading`, `degToHeading`) is render-pixi3d's `camera-view`, its one
+// owner (M3 spec §4.2, amended 2026-10-30); what stays here is the editor camera's compass and its own drag.
 import type { Size } from '@mcthaydt/automata-editor-kit/core'
+import { TURN_UNITS, wrapHeading } from '@mcthaydt/automata-render-pixi3d/camera-view'
 import { roundJsonNumber } from '../../codec/print'
 import { type Camera3D, fitOrbit, type Orbit, orbitCamera } from './camera-3d'
 import { surfaceVisibility } from './mesh-pick'
 import type { SectorMesh, Vec3 } from './sector-mesh'
 
-/** Heading units to a turn: the sim's own number. */
-export const TURN_UNITS = 65_536
 const HALF_TURN = TURN_UNITS / 2
 const RADIANS_PER_UNIT = (2 * Math.PI) / TURN_UNITS
 const DEGREES_PER_UNIT = 360 / TURN_UNITS
 
 /** The game's default turn speed: 1,440 pixels of drag are a full turn. */
 export const DEGREES_PER_PIXEL = 0.25
-
-/** A heading in whole units inside one turn; a fraction is rounded to the nearest unit. */
-export function wrapHeading(units: number): number {
-  return ((Math.round(units) % TURN_UNITS) + TURN_UNITS) % TURN_UNITS
-}
-
-export const turnHeading = (units: number, by: number): number => wrapHeading(units + by)
 
 /** What a drag of `pixels` turns the camera by, in whole units: the sign is the direction, and a drag may be more than a turn. */
 export const dragTurn = (pixels: number, degPerPixel: number = DEGREES_PER_PIXEL): number =>
@@ -38,9 +32,6 @@ export const yawToHeading = (yaw: number): number =>
 
 /** A heading as the `yawDeg` a room carries: the same turn in degrees, to the four decimals a file holds. */
 export const headingToDeg = (units: number): number => roundJsonNumber(wrapHeading(units) * DEGREES_PER_UNIT)
-
-/** The nearest heading to a `yawDeg`, in any turn. */
-export const degToHeading = (deg: number): number => wrapHeading(deg / DEGREES_PER_UNIT)
 
 export interface WallsSeen {
   /** The walls the eye is behind, which the game takes away. */

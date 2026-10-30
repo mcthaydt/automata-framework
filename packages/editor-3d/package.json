@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@mcthaydt/automata-editor-kit": "workspace:*",
+    "@mcthaydt/automata-render-pixi3d": "workspace:*",
     "zod": "4.6.6"
   },
   "devDependencies": {
