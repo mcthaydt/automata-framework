@@ -103,4 +103,81 @@ describe('finishSvelteDist', () => {
     expect(dts).toContain("from './browser/device-class.js'")
     expect(dts).toContain("from './types.js'")
   })
+
+  // DX.2a: svelte-package keeps a `.ts` specifier in declarations (game imports `./define-game.ts`, with
+  // rewriteRelativeImportExtensions rewriting only the JavaScript), which no consumer can resolve.
+  it('turns a relative .ts specifier in a declaration into the .js file it was emitted as', () => {
+    const dist = distWith({
+      'index.d.ts': "export { defineGame } from './define-game.ts';\nexport type { X } from './types.ts';\n",
+      'screens/PausedScreen.svelte.d.ts': "import type { PausedSaves } from './saves-paused.ts';\n",
+      'define-game.js': '',
+      'define-game.d.ts': '',
+      'types.d.ts': '',
+      'screens/saves-paused.js': '',
+      'screens/saves-paused.d.ts': '',
+    })
+    finishSvelteDist(dist, { vendoredTypes: {} })
+    const dts = readFileSync(join(dist, 'index.d.ts'), 'utf8')
+    expect(dts).toContain("from './define-game.js'")
+    expect(dts).toContain("from './types.js'")
+    expect(readFileSync(join(dist, 'screens/PausedScreen.svelte.d.ts'), 'utf8')).toContain(
+      "from './saves-paused.js'",
+    )
+  })
+
+  // DX.2a: game imports the value `SLUG_RE` from `@ruken/manifest`, so its JavaScript names the vendored package
+  // too; tsdown bundles it into `dist/vendor/ruken-manifest.js` (D-8).
+  it('points JavaScript and declarations at vendored code bundled into dist', () => {
+    const dist = distWith({
+      'define-game.js': "import { SLUG_RE } from '@ruken/manifest';\n",
+      'screens/kit.d.ts': 'import type { Manifest } from "@ruken/manifest";\n',
+      'other.js': "import { x } from '@ruken/manifest-extra';\n",
+      'vendor/ruken-manifest.js': '',
+      'vendor/ruken-manifest.d.ts': '',
+    })
+    finishSvelteDist(dist, {
+      vendoredTypes: {},
+      vendoredCode: { '@ruken/manifest': 'vendor/ruken-manifest.js' },
+    })
+    expect(readFileSync(join(dist, 'define-game.js'), 'utf8')).toContain("from './vendor/ruken-manifest.js'")
+    expect(readFileSync(join(dist, 'screens/kit.d.ts'), 'utf8')).toContain(
+      'from "../vendor/ruken-manifest.js"',
+    )
+    expect(readFileSync(join(dist, 'other.js'), 'utf8')).toContain("from '@ruken/manifest-extra'")
+  })
+
+  // DX.2a: a package's test helpers outside a `.test.` file (game's `input/testing/`) are not part of it.
+  it('removes the test-only folders a package names', () => {
+    const dist = distWith({
+      'index.js': '',
+      'input/keys.js': '',
+      'input/testing/device-run.js': '',
+      'input/testing/device-run.d.ts': '',
+    })
+    finishSvelteDist(dist, { vendoredTypes: {}, testOnly: ['input/testing'] })
+    expect(existsSync(join(dist, 'input/keys.js'))).toBe(true)
+    expect(existsSync(join(dist, 'input/testing'))).toBe(false)
+  })
+
+  // DX.2a: svelte-package keeps game's `import './screens.css'` in its declarations, and TypeScript 6 and 7
+  // (noUncheckedSideEffectImports) fail a game's typecheck on a stylesheet they cannot resolve as a module.
+  it('drops stylesheet imports from declarations, keeping them in the JavaScript', () => {
+    const dist = distWith({
+      'screens/default-screens.d.ts': [
+        "import '@mcthaydt/automata-ui/theme.css';",
+        'import "./screens.css";',
+        "import { type ScreenDef } from '@mcthaydt/automata-runtime';",
+        'export declare const x: ScreenDef;',
+      ].join('\n'),
+      'screens/default-screens.js': "import '@mcthaydt/automata-ui/theme.css';\nimport './screens.css';\n",
+      'screens/screens.css': '',
+    })
+    finishSvelteDist(dist, { vendoredTypes: {} })
+    const dts = readFileSync(join(dist, 'screens/default-screens.d.ts'), 'utf8')
+    expect(dts).not.toContain('.css')
+    expect(dts).toContain("import { type ScreenDef } from '@mcthaydt/automata-runtime';")
+    expect(readFileSync(join(dist, 'screens/default-screens.js'), 'utf8')).toBe(
+      "import '@mcthaydt/automata-ui/theme.css';\nimport './screens.css';\n",
+    )
+  })
 })

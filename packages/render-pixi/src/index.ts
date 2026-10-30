@@ -1,7 +1,5 @@
 // @mcthaydt/automata-render-pixi: core 2D renderer for AutomataFramework
 
-export const VERSION = '0.0.1'
-
 export {
   type Camera2d,
   type Camera2dOptions,

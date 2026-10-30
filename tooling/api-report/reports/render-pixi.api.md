@@ -508,12 +508,6 @@ interface SpriteViewOptions {
 }
 ```
 
-### `VERSION` (const)
-
-```ts
-const VERSION = "0.0.1";
-```
-
 ### `ViewAnchor` (type)
 
 ```ts

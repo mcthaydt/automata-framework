@@ -162,6 +162,13 @@ export {
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
 export { addLink, removeLink } from './model/link-edits'
+export {
+  type ApplyMaterialArgs,
+  applyMaterial,
+  type MaterialScope,
+  type MaterialTarget,
+  materialOf,
+} from './model/material-edits'
 export { type MergeSectorsArgs, mergeSectors } from './model/merge-edits'
 export { type PortalOffer, portalOffers, type WallPortal, wallPortal } from './model/portal-offers'
 export {
@@ -236,6 +243,7 @@ export * from './profile/last-light-codecs'
 export * from './profile/last-light-entities'
 export { lastLightNavLinks } from './profile/last-light-nav-links'
 export * from './profile/last-light-profile'
+export { type LevelHints, WALK_EYE_HEIGHT, WALK_FOV } from './profile/level-hints'
 export {
   type Geometry,
   GeometryError,
@@ -243,6 +251,7 @@ export {
   type LevelProfile,
   type ProfileContext,
 } from './profile/level-profile'
+export { LAST_LIGHT_NO_LIST, type Material, type MaterialList } from './profile/materials'
 export * from './profile/registry'
 export {
   type EditCorner,
@@ -267,6 +276,13 @@ export {
   type ThingsToolView,
 } from './things/things-tool-controller'
 export {
+  createMaterialPicker,
+  type MaterialCategory,
+  type MaterialPicker,
+  type MaterialPickerOptions,
+  type MaterialPickerView,
+} from './view/materials/material-picker'
+export {
   type Camera3D,
   type FitOptions,
   fitOrbit,
@@ -280,8 +296,6 @@ export {
   type Ray,
   rayThrough,
   type SpawnPoint,
-  WALK_EYE_HEIGHT,
-  WALK_FOV,
   type WalkOptions,
   type WalkStart,
   walkCamera,
@@ -369,3 +383,11 @@ export {
 } from './view/plan/plan-viewport'
 export { isThingLayerOff, pickThing, type ThingHit } from './view/plan/thing-pick'
 export { type SelectionOf, selectionOf } from './view/selection-of'
+export {
+  createWalkController,
+  type Stick,
+  type WalkAim,
+  type WalkController,
+  type WalkMode,
+  type WalkView,
+} from './view/walk/walk-controller'
