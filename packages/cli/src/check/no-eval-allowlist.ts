@@ -13,7 +13,8 @@
 //   which this scan cannot tell apart; the `csp` step fails it at runtime.
 //
 // Measured on the `examples/base-2d` production build at 71c3410: pixi.js 8.21.0, zod 4.6.5, koota 0.6.6; zod's probe
-// matches unchanged in 4.6.6 (`automata check games/emberwick --csp` passes on it). A new entry needs the package,
+// matches unchanged in 4.6.6 (`automata check games/emberwick --csp` passes on it). The five pixi.js files are byte
+// for byte the same in 8.22.0 and the same check passes on it (M3.2). A new entry needs the package,
 // version, source location and why the call never runs under Ruken's CSP.
 
 export interface AllowedEvalCall {
@@ -36,7 +37,7 @@ export const ALLOWED_EVAL_CALLS: readonly AllowedEvalCall[] = [
     params: ['param1', 'param2', 'param3'],
     body: 'return param1[param2] === param3;',
     insideTry: true,
-    vendor: 'pixi.js 8.21.0 lib/utils/browser/unsafeEvalSupported.mjs',
+    vendor: 'pixi.js 8.22.0 lib/utils/browser/unsafeEvalSupported.mjs',
     reason: 'probe; returns false under the CSP',
   },
   {
@@ -52,7 +53,7 @@ export const ALLOWED_EVAL_CALLS: readonly AllowedEvalCall[] = [
     params: ['uv', 'data', 'dataInt32', 'offset'],
     body: DYNAMIC,
     insideTry: false,
-    vendor: 'pixi.js 8.21.0 lib/rendering/renderers/shared/shader/utils/compileBufferSync.mjs',
+    vendor: 'pixi.js 8.22.0 lib/rendering/renderers/shared/shader/utils/compileBufferSync.mjs',
     reason: 'replaced by pixi.js/unsafe-eval',
   },
   {
@@ -60,7 +61,7 @@ export const ALLOWED_EVAL_CALLS: readonly AllowedEvalCall[] = [
     params: ['r', 's', 'sD'],
     body: DYNAMIC,
     insideTry: false,
-    vendor: 'pixi.js 8.21.0 lib/rendering/renderers/gl/shader/GenerateShaderSyncCode.mjs',
+    vendor: 'pixi.js 8.22.0 lib/rendering/renderers/gl/shader/GenerateShaderSyncCode.mjs',
     reason: 'replaced by pixi.js/unsafe-eval',
   },
   {
@@ -68,7 +69,7 @@ export const ALLOWED_EVAL_CALLS: readonly AllowedEvalCall[] = [
     params: ['ud', 'uv', 'renderer', 'syncData'],
     body: DYNAMIC,
     insideTry: false,
-    vendor: 'pixi.js 8.21.0 lib/rendering/renderers/gl/shader/utils/generateUniformsSync.mjs',
+    vendor: 'pixi.js 8.22.0 lib/rendering/renderers/gl/shader/utils/generateUniformsSync.mjs',
     reason: 'replaced by pixi.js/unsafe-eval',
   },
   {
@@ -76,7 +77,7 @@ export const ALLOWED_EVAL_CALLS: readonly AllowedEvalCall[] = [
     params: ['ps', 'f32v', 'u32v'],
     body: DYNAMIC,
     insideTry: false,
-    vendor: 'pixi.js 8.21.0 lib/scene/particle-container/shared/utils/generateParticleUpdateFunction.mjs',
+    vendor: 'pixi.js 8.22.0 lib/scene/particle-container/shared/utils/generateParticleUpdateFunction.mjs',
     reason: 'replaced by pixi.js/unsafe-eval',
   },
   {
