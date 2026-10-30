@@ -136,3 +136,21 @@ describe('touch modes (M4 spec §4.4)', () => {
     ])
   })
 })
+
+// The camera drag (M4 spec §16.3.1, A-k): a gesture entry as data, analog, so it never makes a profile a swipe one.
+describe('the camera-drag gesture (M4.12)', () => {
+  it('binds like any gesture', () => {
+    const profile = inputProfileSchema.parse({
+      id: 'third-person',
+      bindings: { 'camera-turn': { gesture: ['camera-drag'] } },
+    })
+    expect(actionsForGesture(profile, 'camera-drag')).toEqual(['camera-turn'])
+  })
+
+  it('offers no swipe mode: the drag sits beside the touch buttons', () => {
+    const drag = { 'camera-turn': { gesture: ['camera-drag'] } }
+    const parse = (bindings: object) => inputProfileSchema.parse({ id: 'drag', bindings })
+    expect(touchModesFor(parse({ ...drag, jump: { touch: true } }))).toEqual(['buttons'])
+    expect(touchModesFor(parse(drag))).toEqual([])
+  })
+})

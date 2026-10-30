@@ -313,3 +313,64 @@ describe.runIf(hasWebGL2)("a mesh's texture", () => {
     expect(colours.size).toBeLessThanOrEqual(8)
   })
 })
+
+// The sky behind the scene (Owner, 2026-10-30): `backgroundColor` is drawn by the 3D view itself, behind its meshes,
+// where it used to be the letterbox's black field. The bars keep their own colour. WebGPU runs where the browser
+// has an adapter (the GPU runner); `@pixi/3d`'s one BackgroundPass draws it on both backends.
+const SKY = 0xc7dcd0
+const BARS = 0x00ff00
+const hasWebGpu =
+  typeof navigator !== 'undefined' && 'gpu' in navigator
+    ? (await (navigator as Navigator & { gpu: GPU }).gpu.requestAdapter().catch(() => null)) !== null
+    : false
+
+async function skyAndBar(
+  preference: 'webgl' | 'webgpu',
+): Promise<{ renderer: string; field: number[]; bar: number[] }> {
+  const host = document.createElement('div')
+  document.body.appendChild(host)
+  const factory = createPixi3dRenderer({
+    preference,
+    logicalWidth: 160,
+    logicalHeight: 90,
+    backgroundColor: SKY,
+    barColor: BARS,
+    views: { crate: box({ width: 1, height: 1, depth: 1 }, { color: 0xf9c22b }) },
+    scene: (view) => {
+      view.camera.position.set(0, 2.5, 5)
+      view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
+      return undefined
+    },
+  })
+  scope = Effect.runSync(Scope.make())
+  const renderer = await Effect.runPromise(Scope.extend(factory(testTarget(host)), scope))
+  renderer.apply(step({ resync: true, added: [rows[0] as RenderRow], changed: [], removed: [] }))
+  renderer.draw(frame)
+  const pixels = snapshot(renderer)
+  const width = renderer.stage.app.screen.width
+  const at = (x: number, y: number) => Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 3))
+  // (4, 45): the field's left edge, away from the box in the middle. (80, 1): inside the top bar.
+  return { renderer: renderer.stage.app.renderer.name, field: at(4, 45), bar: at(80, 1) }
+}
+
+const rgb = (colour: number) => [(colour >> 16) & 0xff, (colour >> 8) & 0xff, colour & 0xff]
+const near = (actual: number[], expected: number[]) =>
+  actual.every((c, i) => Math.abs(c - (expected[i] ?? 0)) <= 2)
+
+describe.runIf(hasWebGL2)('the sky behind the scene on WebGL2', () => {
+  it('draws backgroundColor where no mesh covers the field, and leaves the bars their colour', async () => {
+    const { renderer, field, bar } = await skyAndBar('webgl')
+    expect(renderer).toBe('webgl')
+    expect(near(field, rgb(SKY)), `field ${field}`).toBe(true)
+    expect(near(bar, rgb(BARS)), `bar ${bar}`).toBe(true)
+  })
+})
+
+describe.runIf(hasWebGpu)('the sky behind the scene on WebGPU', () => {
+  it('draws the same sky as WebGL2', async () => {
+    const { renderer, field, bar } = await skyAndBar('webgpu')
+    expect(renderer).toBe('webgpu')
+    expect(near(field, rgb(SKY)), `field ${field}`).toBe(true)
+    expect(near(bar, rgb(BARS)), `bar ${bar}`).toBe(true)
+  })
+})

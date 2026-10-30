@@ -97,6 +97,8 @@ test.each([
   'StickyPointers',
   'nearestTarget',
   'STICKY_MARGIN_PX',
+  // analog touch input for 3D (M4.12)
+  'CameraDragSurface',
 ] as const)('exports %s', (name) => {
   expect(ui).toHaveProperty(name)
   expect((ui as Record<string, unknown>)[name]).toBeDefined()
