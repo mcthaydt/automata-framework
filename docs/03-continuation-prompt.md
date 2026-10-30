@@ -104,6 +104,10 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 - **3D:** M3.1 → M3.2 → M3.4 → M3.5 → M3.6 → M3.7 → M3.10 → GAME-3D.0 → GAME-3D.1 → M9.0 → the launch (M8.9, after Pixi 3D is public: M9.10 and M8.9a). In rows: M3.1a → M3.2 and M3.1b → M3.4a to M3.4d; M3.0A → M3.5a to M3.5d → M3.6a to M3.6d; M4.12; then M3.7a, M3.7b, M3.7c → M3.10 → GAME-3D.0 → GAME-3D.1a to 1l → M9.0 to M9.10 → M8.9.
 - **Editors:** ED2D.4c2b → 4c3a, 4c3b → 4c4a, 4c4b → ED2D.5 to ED2D.10, and ED3D.5b to ED3D.12 → EDS.1, EDS.2 and EDS.9 → GAME-3D.1 (GAME-3D.1i needs ED3D.12; 1j needs EDS.9c).
 
+## Legacy framework sources (Owner, 2026-10-30)
+
+The Owner's words: "Take a look at these repos, this is my magnum opus of frameworks, so let's see what we should steal", then "Steal everything you need to, but keep in mind for the camera we're using klipp". Read at: `mcthaydt/AutomataEngine-LegacyV2-` `18525fc` (TypeScript and three.js; the 2D-sprite, 3D-world Western ARPG), `mcthaydt/AutomataEngineV1` `45a9a03` (archived), `mcthaydt/automata-template` `6e08688` (Godot 4.7; reference only) and `mcthaydt/717BevyGameFramework` `4347d6c` (nothing taken). Each piece is recorded on the row that uses it (M3.3a, M3.4b, M3.8b, M6.7a, M6.8a, M9.1, GAME-3D.1c, DX.5) plus a new row, CI.BND2. TypeScript sim and tooling code is extracted with its tests and source commit; three.js and GDScript code is a reference and is rewritten. The sprite-in-3D parts (sprite baking, billboard shadows, facing counts) stay out: 2.5D was dropped on 2026-10-18 and characters are procedural. klipp is the camera (M9.1).
+
 ## Exact next action
 
 1. Merge the 3D lane's PRs as it reports them ready (#221 now).
