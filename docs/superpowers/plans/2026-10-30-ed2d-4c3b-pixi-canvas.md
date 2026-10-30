@@ -3,7 +3,7 @@
 - **Task:** ED2D.4c3b in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §4 (`canvas/`: `level-view.ts`, `textures.manager.ts`), §5.3 (chunks shared between snapshots, ED2D-D4), §8 (the Level view canvas; Home), §11 (tileset images are workspace inputs under `assets/`; a missing image degrades to placeholders, never the document), §13 (a missing or corrupt image draws numbered placeholders; a lost WebGL context shows "Preview paused" and restores on `webglcontextrestored`, the document and history unaffected), §14 (Visual: Owner acceptance, never auto-promoted), ED2D-D11.
 - **Lane:** editor-2d. **Depends on:** ED2D.4c3a (the headless draw list, #206). **Unblocks:** ED2D.4c4a (the Level view mounts this canvas), ED2D.6b (World view), EDFF.2b (stage canvas).
 - **Status:** Planned 2026-10-30 on `claude/editors-ed2d-4c3b-pixi-canvas`, stacked on #206.
-- **Progress:** 7 of 8 steps (2026-10-30).
+- **Progress:** 8 of 8 steps (2026-10-30). Locally checked; not CI verified; visual acceptance pending review of the images; device checks with the Owner.
 
 ## Why this task exists
 
@@ -104,7 +104,7 @@ Each step starts with a failing test and its reason. After each: `typecheck` and
 - [x] **5. View and context loss (Chromium).** Fails: no module. `createLevelView` renders a list at a camera (`fitCamera` centres and fits); `WEBGL_lose_context.loseContext()` makes `paused` true and a render then draws nothing; `restoreContext()` makes it false and the last list is drawn again (pixels back); `destroy` releases the renderer.
 - [x] **6. `LevelCanvas.svelte` (Chromium).** Fails: no component. Mounted with a project and a view, it loads the level's images from the workspace and draws; a lost context shows "Preview paused" as a status and a restore hides it; unmounting destroys the view.
 - [x] **7. Thumbnails on Home.** Fails: no `preview`, no thumbnails. Unit: `level-project`'s `preview` is its first level (none for no level); an `ok` entry carries it. Chromium: `createLevelThumbnails` answers a PNG data URL, the same key once (one render), a failing renderer `undefined`. DOM: a card with a thumbnail shows it as an image with no alternative text in its tile (the title says the name), a card without keeps its initial. Boot passes the factory to Home; `main.ts` passes the Pixi one.
-- [ ] **8. Images, docs and gates.** `ED2D_VISUALS=1` writes the review images; spec §4 as built; `pnpm format`, `TURBO_FORCE=true pnpm check`, the `canvas` and `layout` projects, changeset status.
+- [x] **8. Images, docs and gates.** `ED2D_VISUALS=1` writes the review images; spec §4 as built; `pnpm format`, `TURBO_FORCE=true pnpm check`, the `canvas` and `layout` projects, changeset status.
 
 ## Gates
 
@@ -122,3 +122,5 @@ The package's `typecheck`, `test:unit`, `test:canvas` (Chromium) and `test:layou
 - **Merge of `origin/main`** (2026-10-30, at `0a4bfe86`): ED2D.4c2b's open flows touched `App.svelte`, `boot.ts` and `boot.dom.test.ts`; the conflicts were the props lists, resolved by keeping both (`lifecycle` and `thumbnails`). The merge commit's hook ran editor-kit (878), editor-3d (2519) and editor-2d (2288) unit tests green.
 - **Review fix** (2026-10-30), test-first: a preview naming a level that is not there rejected its thumbnail and, through the shared queue, every later one; the draw now answers `undefined` for any failure and the queue goes on (a fourth thumbnails test).
 - **API report** (2026-10-30): the first full `pnpm check` failed only `api-report`'s seam test, because `Profile.preview` is new in `editor-2d.api.md`; `pnpm api-report --update` wrote that one line.
+- **Step 8** (2026-10-30): `level-visuals.canvas.test.ts` wrote seven images and a README to `docs/evidence/owner-visual/2026-10-30-ed2d-4c3b/`; I opened each. The first pass found two faults, each fixed: the canvas had been sized after it mounted, so a screenshot caught its first draw at the wrong size (the tests now size the box first, and the host fills its parent); and Chromium paints a lost canvas white with a broken-image glyph, so "Preview paused" sat on white (the canvas is now hidden while paused or unavailable, test-first in `level-canvas.canvas.test.ts`). Spec §4 has an "As built (ED2D.4c3b)" paragraph.
+- **Gates** (2026-10-30, after the merge and the review fix): `TURBO_FORCE=true pnpm check` passed (36 of 36 and 34 of 34 tasks); `pnpm test:canvas` 31 passed and 6 skipped (the review images, without `ED2D_VISUALS=1`); `pnpm test:layout` 65 passed (Home at eight sizes, Chromium); `pnpm changeset status --since=origin/main` lists nothing to bump and `check-changesets` reports 0 problems (the package is private). Not run: WebKit and Firefox canvas runs, the GPU runner, CI.
