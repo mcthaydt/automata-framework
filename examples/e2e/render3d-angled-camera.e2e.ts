@@ -33,6 +33,33 @@ const playerShare = (frame: Frame): Promise<number> =>
       }),
   )
 
+/** The share of the canvas's pixels within 2 of the sky colour (0xc7dcd0, the example's `backgroundColor`). */
+const skyShare = (frame: Frame): Promise<number> =>
+  frame.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        requestAnimationFrame(() => {
+          const canvas = document.querySelector<HTMLCanvasElement>('canvas.af-stage')
+          if (canvas === null) return resolve(0)
+          const copy = document.createElement('canvas')
+          copy.width = canvas.width
+          copy.height = canvas.height
+          const context = copy.getContext('2d')
+          context?.drawImage(canvas, 0, 0)
+          const data = context?.getImageData(0, 0, copy.width, copy.height).data ?? new Uint8ClampedArray()
+          let sky = 0
+          for (let i = 0; i < data.length; i += 4)
+            if (
+              Math.abs((data[i] ?? 0) - 0xc7) <= 2 &&
+              Math.abs((data[i + 1] ?? 0) - 0xdc) <= 2 &&
+              Math.abs((data[i + 2] ?? 0) - 0xd0) <= 2
+            )
+              sky++
+          resolve(sky / Math.max(1, data.length / 4))
+        })
+      }),
+  )
+
 test('shows the walking player in its room, under the CSP, with no errors', async ({ page }) => {
   const errors = await collectErrors(page)
   const frame = await openHosted(page, gameUrl, ID)
@@ -43,5 +70,7 @@ test('shows the walking player in its room, under the CSP, with no errors', asyn
   // not which walls the rule cut: the unit sweeps and `occluders.parity.test.ts` prove that.
   // On a phone the figure is small (about 0.2% of the canvas).
   await expect.poll(() => playerShare(frame)).toBeGreaterThan(0.0005)
+  // The sky fills the field around the room (it was the letterbox's black field before 2026-10-30).
+  await expect.poll(() => skyShare(frame)).toBeGreaterThan(0.15)
   expect(errors).toEqual([])
 })

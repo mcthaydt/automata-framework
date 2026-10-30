@@ -71,6 +71,7 @@ export default defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
+      backgroundColor: 0xc7dcd0, // the sky around the room: the light's sky colour
       views: { [Body.id]: box({ width: 0.5, height: 1.62, depth: 0.3 }, { color: 0xf9c22b }) },
       camera: { views: [ROOM], initial: ROOM.id, follow: Body.id },
       // The room is static scenery, registered with the occluder rule: walls, the ceiling and a tall prop.
