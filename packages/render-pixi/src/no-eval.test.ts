@@ -1,3 +1,4 @@
+import { loadTextures } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
 import { config, z } from 'zod'
 
@@ -25,5 +26,12 @@ describe('render-pixi/no-eval', () => {
     } finally {
       globalThis.Function = realFunction
     }
+  })
+
+  // Pixi checks ImageBitmap support in a Blob worker that fetches a data: URL; Ruken's connect-src refuses it, and
+  // WebKit and Firefox report the violation (website playground A-17). Textures load on the main thread instead.
+  it('loads textures without the worker probe', async () => {
+    await import('./no-eval.js')
+    expect(loadTextures.config?.preferWorkers).toBe(false)
   })
 })
