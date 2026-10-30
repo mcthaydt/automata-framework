@@ -58,11 +58,13 @@ function layers(game: FakeGame) {
       }),
   })
   const below = (dir: string) => [...game.files.keys()].filter((path) => path.startsWith(`${dir}/`))
+  const readText = (path: string) =>
+    game.files.has(path)
+      ? Effect.succeed(game.files.get(path) as string)
+      : Effect.fail(new FileError({ path, cause: 'missing' }))
   const files = Layer.succeed(Files, {
-    readText: (path) =>
-      game.files.has(path)
-        ? Effect.succeed(game.files.get(path) as string)
-        : Effect.fail(new FileError({ path, cause: 'missing' })),
+    readText,
+    readBytes: (path) => Effect.map(readText(path), (text) => new TextEncoder().encode(text)),
     writeText: (path, text) => Effect.sync(() => void game.files.set(path, text)),
     exists: (path) =>
       Effect.succeed(

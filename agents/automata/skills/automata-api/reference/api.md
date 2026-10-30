@@ -1224,6 +1224,11 @@ the path, except `exists`, which cannot fail.
 ```ts
 interface FilesService {
   readText(path: string): Effect.Effect<string, FileError>;
+  /**
+   * The file's bytes exactly as they are on disk, for binary inputs such as images: reading them as text
+   * would replace every byte that is not valid UTF-8. The array owns its bytes (it is not a Node `Buffer`).
+   */
+  readBytes(path: string): Effect.Effect<Uint8Array, FileError>;
   /** Writes UTF-8 text, creating parent folders. */
   writeText(path: string, text: string): Effect.Effect<void, FileError>;
   exists(path: string): Effect.Effect<boolean>;
