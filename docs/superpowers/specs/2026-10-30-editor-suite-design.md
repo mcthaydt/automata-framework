@@ -28,9 +28,9 @@
 
 ## 2. Scope
 
-In: one suite app that mounts nine editors on one shell, the ports they share, the game's editor list, and the free and Plus homes of each editor.
+In: one suite app that mounts nine editors and the Review desk on one shell, the ports they share, the game's editor list, and the free and Plus homes of each editor.
 
-**The nine editors** are the seven beside the level editors and the two level editors. The rail has nine entries, as the mockups draw it: the seven, one **Levels** entry that opens the 2D or the 3D level editor by the file's profile, and **Review**, which edits nothing.
+**The nine editors** are the seven beside the level editors and the two level editors (Levels 2D and Levels 3D). The **Review desk** is not an editor: it edits nothing and shows change sets. The rail has nine *entries*, as the mockups draw it: the seven editors, one **Levels** entry that opens the 2D or the 3D level editor by the file's profile, and **Review**. "Nine editors" in this spec always means the editors; "nine entries" means the rail.
 
 | Editor | Edits (contract owner of the content) | Default glob in `content/editors.toml` | Tier and home | Rows |
 |---|---|---|---|---|
@@ -55,7 +55,7 @@ Out: running the game inside the editor, except the Sequence preview through an 
 | ID | Decision | Default and why |
 |---|---|---|
 | EDS-D1 | **Home: a new private package, `packages/editor-suite`** (Svelte 5, like the kit and both level editors) | The shell, the switcher, Home, the dialogs, Review, interchange, the free editors (Tuner, Studio, Audio) and the level-editor mounts. A headless `./core` entry (editor list, workspace policy, change-set journal, interchange; no Svelte, DOM or clock) and a `./node` entry (the Node adapters, EDS.1d) for `automata editor`. Private like the kit (EDK-D1): it is served as a built app, never imported by a game. |
-| EDS-D2 | **The shared ports and content documents live in `editor-kit`** (headless entries `./ports` and `./documents`); **this spec owns their shapes**; ED3D's `ports.ts` moves onto them in EDS.1b and is deleted | The kit is the only package below `editor-2d`, `editor-3d` and the suite (EDK §3: editors never import each other). In the suite they would make a ring (the suite mounts the 3D editor, the 3D editor needs the ports). One contract owner: this spec; the kit spec gets a dated note naming it. |
+| EDS-D2 | **The shared ports and content documents live in `editor-kit`** (headless entries `./ports` and `./documents`); **this spec owns their shapes**; ED3D's `ports.ts` moves onto them in EDS.1b and is deleted | The kit is the only package below `editor-2d`, `editor-3d` and the suite. In the suite they would make a ring (the suite mounts the 3D editor, the 3D editor needs the ports). One contract owner: this spec. **Kit amendment (2026-10-30, EDK §3):** the suite (`editor-suite`, and `editor-plus` in automata-plus) is a *host*, not an editor: a host may import editors and the kit; no editor imports a host, and editors still never import each other. The kit spec carries a dated note saying so and naming this spec as the owner of `./ports` and `./documents`. |
 | EDS-D3 | **A Plus-only editor lives in automata-plus, in one package, `packages/editor-plus`,** as suite editors registered with `defineSuiteEditor` against the free suite's ports and contribution points. Its build composes the free suite and the Plus editors into one static app (`createSuite({ editors })`), published to the Plus registry as built files; `automata editor` serves that build instead of the free one when the game depends on it | Plus gets the free suite as source through `tooling/core-packs --extra` (editor-kit, editor-2d, editor-3d, editor-suite are private and pack their source), so a buyer never installs a private AF package. One package keeps Svelte out of the extension packages (they stay renderer-free and import no editor); each Plus editor imports its content schema from its extension's package, so the schema has one owner. **Rejected:** a runtime plugin ABI loading Plus modules into a prebuilt free suite (needs a shared Svelte runtime and a published suite API; no consumer before 1.0), and an `./editor` entry inside each extension package (Svelte in seven packages, seven builds). The free suite never imports Plus. |
 | EDS-D4 | **Tiers:** free suite = shell, Review, interchange, Tuner on core tunables, Studio, Audio on core recipes, the two level editors; Plus = Feel, Writer, Schematic, Sequence, the Tuner's `systems` source, the Audio editor's `audio-synth` panels | Decision 7: Plus content gets Plus editors; core content gets free ones. `figures` is free (M3R-D20) and ASSET.2's recipes are core, so base-3d is authored in the suite for its tuning, sounds, figures, poses, clips and levels (GAME-3D.1k reads this row; its feel, dialogue and cutscenes stay game code). |
 | EDS-D5 | **Two contribution points, no more:** `tuner.source` (a source of bounded tunables and an optional measure) and `audio.panel` (a tab in the Audio editor) | Each has a consumer (the `systems` tunables and fairness, EDS.4b; the `audio-synth` cue map and mix, EDS.5b). A third point is added with its first consumer, not before. |
@@ -85,6 +85,8 @@ editor-plus (automata-plus) ─► editor-suite ─► editor-2d, editor-3d ─�
                     └─► the Plus extensions' schemas (feel, narrative, puzzle, systems, cutscenes, audio-synth)
 editor-suite ─► figures, render-pixi3d (Studio), content (tuning-meta, compile of one file)
 ```
+
+The suite is private development tooling, not core: no game bundle and no published package imports it, so its use of the `render-pixi3d` extension does not break "core never imports an extension" (AGENTS.md). Like the kit and the level editors, it is served as a built app.
 
 `editor-kit` never imports an editor; the level editors never import the suite; the suite never imports `editor-plus` or a Plus package.
 
@@ -118,8 +120,11 @@ interface SuiteEditor<S> {
   readonly contributions?: readonly ContributionPoint[]   // the points this editor offers (§4.6)
 }
 function defineSuiteEditor<S>(editor: SuiteEditor<S>): SuiteEditor<S>
+// in editor-suite (the host), not the kit:
 function createSuite(options: { editors: readonly SuiteEditor<unknown>[]; contributions?: readonly Contribution[] }): Suite
 ```
+
+`SuiteEditor`, `defineSuiteEditor`, the port shapes and the contribution shapes live in `editor-kit/ports`; `createSuite` lives in `editor-suite` and has only that owner. `./ports` imports nothing from Svelte at run time: it uses Svelte's `Snippet` type only (in `SuiteRegions` and `AudioPanel`), as a type import, so headless tests of the ports load no Svelte.
 
 An editor id the list names but no installed editor provides opens Home with that row marked "editor not installed" and the package that provides it (§11). Two editors with one id fail `createSuite` at build time.
 
@@ -167,12 +172,13 @@ never = ["content/editors.toml", "package.json", ".github/**", ".claude/**", "**
 ### 4.3 Ports (`editor-kit/ports`, EDS.1b)
 
 ```ts
-interface SuitePorts { workspace: Workspace; changeSet?: ChangeSet; checks: ChecksRunner; gates?: Gates; ask?: AskProvider; preview?: Preview }
+interface SuitePorts { workspace: SuiteWorkspace; changeSet?: ChangeSet; checks: ChecksRunner; gates?: Gates; ask?: AskProvider; preview?: Preview }
 
-interface Workspace {                                     // a kit ProjectStore behind the editor list's policy
+interface SuiteWorkspace {                                // a kit ProjectStore behind the editor list's policy (not the kit's storage `Workspace`)
   files(editor?: string, scene?: string): Promise<WorkspaceFile[]>      // { path, editor, scene?, gates, checks, modes, writable, why? }
   read(path: string): Promise<{ text: string; mtime: number } | undefined>
   write(path: string, text: string, expected: { mtime: number } | 'absent'): Promise<WriteResult>  // kit WriteResult, plus reason 'policy'
+  remove(path: string, expected: { mtime: number }): Promise<WriteResult>   // only a file this change set created; reason 'policy' otherwise
   generated(path: string): Promise<string | undefined>   // a compiler output, read only: tuning-meta.json
 }
 interface ChangeSet {                                     // supersedes editor-3d ports.ts ChangeSet (current, begin, record kept)
@@ -182,7 +188,7 @@ interface ChangeSet {                                     // supersedes editor-3
   checkpoint(message: string): Promise<{ commit: string }>
   ship(draft: { title: string; body: string }): Promise<{ branch: string; pushed: boolean; pr?: string; compareUrl: string }>
   close(): Promise<void>
-  list(): Promise<readonly ChangeSetSummary[]>           // the Review desk: open change sets with files, checks, gates, tokens
+  list(): Promise<readonly ChangeSetSummary[]>           // the Review desk: open change sets with files, checks, gates, tokens, from the journal (§4.5)
 }
 interface ChecksRunner {                                  // supersedes editor-3d ports.ts Generator (a check with `joins`)
   declared(): readonly CheckDef[]
@@ -203,6 +209,8 @@ interface AskProvider {                                   // supersedes editor-3
 interface Preview { show(target: { kind: string; id: string; t?: number }): Promise<PreviewFrame | 'not-connected'> }   // optional (EDS-D14)
 ```
 
+- **Kit change requests (EDS.1b).** `SuiteWorkspace` is built on the kit's `ProjectStore`, which today lacks two things it needs: `write` with `expected: 'absent'` (refuse when the file exists; the kit's session already has "must not exist" for a new file, but the store does not), and a `'policy'` reason in `WriteResult`'s failure (`conflict`, `denied`, `quota`, `io` today). Both are additive changes to EDK §4.7, made in EDS.1b with the kit's contract tests. `remove` uses the store's existing `remove`, guarded by the mtime and by the journal's record that this change set created the file.
+- **Created files.** A new figure, pose or clip, "Start a list" and an import that adds a file write with `expected: 'absent'`; undoing that step removes the file through `SuiteWorkspace.remove` only if it still reads what the step wrote, and is refused with the path otherwise (EDS-aa). A file the change set did not create is never removed.
 - **A missing optional port is the feature off**, never an error (ED3D §4.4): no `changeSet` → edits save to the workspace and Ship is hidden; no `gates` → the gate pill shows "Gates not readable"; no `ask` → no Ask button.
 - **Merge with `packages/editor-3d/src/ports/ports.ts`** (EDS.1b): `ChangeSet` keeps its three methods with the same meaning; `Generator { command, run }` becomes a declared check with `joins` (ED3D.10b's "run by the game" rows read `CheckDef.run` for the command and call `run`); `AskProvider.propose(prompt, scope, budget, document)` becomes the request object with `path` added; `Proposal` is unchanged. ED3D's `ask-controller.ts` and `testing/fake-ask.ts` re-point to the kit, keep their tests, and `ports.ts` is deleted, so there is one owner.
 - **Reopened gates** are computed by the suite, not a port: a gate is reopened when the change set touches a file whose row lists it. The pill shows each with its recorded decision; nothing records one.
@@ -234,13 +242,13 @@ function openDocument(path: string, text: string): ContentDocument   // format f
 
 ### 4.5 Change-set journal (`editor-suite/core`)
 
-Holds, for the open change set: the files written, each write's before and after text (for the Review desk's diff and for an import's all-or-none undo), the token use, the latest check run per check id with before-and-after measures, and the session's locks. It is kept beside the kit's autosave journal in OPFS (`<branch>.journal`), so a reload restores the pills, the measures and the import undo step; it is never written to the checkout or committed.
+Holds, for each change set: the files written and created, each write's before and after text (for the Review desk's diff and for an import's all-or-none undo), the token use, the latest check run per check id with before-and-after measures. **Its owner is the `ChangeSet` port's adapter**, so `ChangeSet.list()` can return files, checks, gates and tokens for every device that edits through the same server: the Node adapter (EDS.1d) keeps it in the checkout's git directory (`.git/automata-editor/<branch>.json`), outside the work tree and never committed; the in-memory fake keeps it in memory. The token cap is therefore per change set on that checkout, not per device. Without a `ChangeSet` port (an iPad on OPFS alone) there is no change set, no Ask (which needs the Node adapter's credentials) and no journal; edits still save and the kit's autosave covers recovery. The suite holds the journal's shape (`editor-suite/core`, schema-validated on read); locks stay in the browser session and are not in it (EDS-D18).
 
 ### 4.6 Contribution points (EDS-D5)
 
 ```ts
 // tuner.source: offered by the free Tuner
-interface TunableSource { id: string; files(ws: Workspace, scene?: string): Promise<TunableFile[]>; measure?: string }  // `measure`: a check id with measure = true
+interface TunableSource { id: string; files(ws: SuiteWorkspace, scene?: string): Promise<TunableFile[]>; measure?: string }  // `measure`: a check id with measure = true
 interface TunableFile { path: string; groups: readonly { label: string; tunables: readonly Tunable[] }[] }
 interface Tunable { name: string; keyPath: KeyPath; value: number | boolean | string; min?: number; max?: number; step?: number; unit?: string; note?: string; editable: boolean; why?: string }
 // audio.panel: offered by the free Audio editor
@@ -264,14 +272,14 @@ interface InterchangeDocument {
 }
 ```
 
-Export writes the open scene's listed files (or the whole game without scenes) from the change set as they are, TOML or JSON, deterministically (sorted keys, no clock unless `--stamp`). Import parses, validates the version and each section with the editors' schemas, and builds a **plan**: each value change with its diff, the gate it reopens, the checks it runs and what is refused and why (a path not in the list, a `never` path, a locked value, a schema error). Apply is enabled only on a clean plan, writes each file through `Workspace.write` with its expected mtime, and is one change-set undo step (EDS-D19). Export then import unchanged is an empty plan (EDS-p).
+Export writes the open scene's listed files (or the whole game without scenes) from the change set as they are, TOML or JSON, deterministically (sorted keys, no clock unless `--stamp`). Import parses, validates the version and each section with the editors' schemas, and builds a **plan**: each value change with its diff, the gate it reopens, the checks it runs and what is refused and why (a path not in the list, a `never` path, a locked value, a schema error). Apply is enabled only on a clean plan, writes each file through `SuiteWorkspace.write` with its expected mtime, and is one change-set undo step (EDS-D19). Export then import unchanged is an empty plan (EDS-p).
 
 ## 5. Ordered flows
 
 1. **Open.** `automata editor` (ED2D.9, EDS.1d) serves the suite against a checkout; on the iPad without a server, the suite opens an OPFS workspace imported from a folder or zip (kit §4.7). The suite loads `content/editors.toml`; a missing or invalid list opens Home with the error and a "Start a list" template (§11).
 2. **Home.** Lists the editors the list names for the open scene, what each edits, the change set and the gates it reopens. Tapping one opens it with its files.
 3. **Change set.** The first edit with no change set asks for a title (`ChangeSet.begin`); without the port, edits save to the workspace directly.
-4. **Edit.** A direct edit is a `ContentEdit` on the document; the editor's schema validates the new value; the `before` checks run on the candidate text; on pass the document is written (`Workspace.write`, mtime guarded), recorded in the change set, and the `after` checks start. On a `before` failure nothing is written and the field shows the finding (EDS-g).
+4. **Edit.** A direct edit is a `ContentEdit` on the document; the editor's schema validates the new value; the `before` checks run on the candidate text; on pass the document is written (`SuiteWorkspace.write`, mtime guarded), recorded in the change set, and the `after` checks start. On a `before` failure nothing is written and the field shows the finding (EDS-g).
 5. **Ask.** A request about the selection: the provider gets the document as the person sees it, the scope and the remaining budget; the proposal's text becomes a candidate; the suite diffs it, runs the `before` checks and shows the Ask diff dialog. Accept is enabled only when the checks pass and the diff touches no locked value; Accept writes it as one undo step; Reject drops it. An edit, undo or redo while a proposal is in flight or on show drops it (ED3D.10a's rule).
 6. **Checks.** The pill shows running, pass, warn or fail with the failing check one tap away; a `measure` check keeps its last result before the change set's first write as **before** and its latest as **after** (the Tuner's fairness).
 7. **Gates.** The pill lists each reopened gate with its recorded decision and its link; never a button that records.
@@ -286,7 +294,7 @@ Each editor: what it edits, its direct edits, what goes to Ask, its checks, its 
 
 ### 6.1 Tuner (free; EDS.4a, EDS.4b)
 
-- **Edits:** `content/tuning.toml` values; the `[tuning]` tables of tuning layers (FloorFifty's modes). Bounds: inline `{ value, min, max, step }` or, for a code-owned game, `tuning-meta.json` (the compiler's output, through `Workspace.generated`); a tunable without bounds is a number box with no slider.
+- **Edits:** `content/tuning.toml` values; the `[tuning]` tables of tuning layers (FloorFifty's modes). Bounds: inline `{ value, min, max, step }` or, for a code-owned game, `tuning-meta.json` (the compiler's output, through `SuiteWorkspace.generated`); a tunable without bounds is a number box with no slider.
 - **Direct:** drag a slider or type in the box, held to the tunable's bounds; a value outside is refused before the write (the content check); booleans are toggles; strings are text fields. Lock and unlock (EDS-D18).
 - **Ask:** a key that is not a literal value (a table, an array) and "make the Nurse a little less punishing" requests.
 - **Plus source (EDS.4b):** `systems` tunables per scene grouped as the content groups them, and the `fairness` check as the measure: rows with value, threshold, change and direction, before and after. With no measure declared the Fairness tab is absent.
@@ -365,8 +373,8 @@ As their specs; the suite adds only the mount (§4.7), the shared pills and Ship
 |---|---|---|
 | Tuner (core) | FloorFifty `content/tuning.toml` (code-owned bounds, no gates) | base-3d `content/tuning.toml` (authored bounds) |
 | Tuner (`systems`) | The Last Light Bay's `systems.ts` tunables, converted by M6.7a's one-off converter | base-adventure (M6.12) |
-| Studio | base-3d (Wick and the townsfolk, GAME-3D.1j) | The Last Light's cast (Ada, the Nurse, the Porter from `src/render/figure/characters/*.json` at `92e6704`, converted), starting from FigureBuilder's crew where the cast lacks a part |
-| Audio (recipes) | base-3d | Emberwick (`games/emberwick`) |
+| Studio | The Last Light's cast (Ada, the Nurse, the Porter from `src/render/figure/characters/*.json` at `92e6704`, converted as a fixture) and the starter figures | base-3d (Wick and the townsfolk), in EDS.11 once GAME-3D.1j has authored them; FigureBuilder's crew where the cast lacks a part. EDS.9a to EDS.9c never wait on GAME-3D.1j |
+| Audio (recipes) | base-3d | Emberwick (`games/emberwick`), which has no `content/` folder today: this case depends on ASSET.2 adding sound recipes to Emberwick (or its template); until then EDS.5a's second game is ASSET.2's own recipe fixture |
 | Audio (`audio-synth`) | The Bay's cues, converted by M6.10a | base-adventure |
 | Feel | The Bay's `feel/effects.ts`, converted by M6.1 | FloorFifty's values as M6.1c's `feel` preset (a `feel.toml`; FloorFifty's own `juice.toml` is not an event-by-channel table and FloorFifty is not edited, decision 8; it stays a document test fixture, §4.4) |
 | Writer, Schematic, Sequence | The Bay, converted by M6.6a, M6.7a, M6.8a and M6.9a | base-adventure |
@@ -386,7 +394,7 @@ Each row is a mockup frame (ED.0b, signed off); states are what the DOM tests an
 | `states-code-checks` | Source tab (read only, changed line marked), failing checks in the pill and the dock, running checks | Running, failing, passing |
 | `states-offline` | Preview "not connected", Ask refusal, Ask at the cap, empty editor with template and Ask offers | as listed |
 | `tuner-sliders`, `tuner-fairness`, `ff-tuner`, `tuner-portrait` | Groups rail, slider rows (value, bounds, unit, note, lock), inspector, Fairness dock | §6.1 |
-| `studio-look`, `studio-pose`, `studio-ik`, `studio-animate`, `studio-pipeline`, `studio-first-run`, `studio-portrait` | Stage with picking, part fields, outfit and pose chips, handles, timeline, pipeline drawer | §6.2, plus the four FigureBuilder groups (screens to the Owner in EDS.9a) |
+| `studio-look`, `studio-pose`, `studio-ik`, `studio-animate`, `studio-pipeline`, `studio-first-run`, `studio-portrait` | Stage with picking, part fields, outfit and pose chips, handles, timeline, pipeline drawer | §6.2, plus the four FigureBuilder groups (screens to the Owner in EDS.9a). `studio-turnaround`, `studio-outfits` and `studio-poses` are the approved-at-`74c1f2c` screens the redesign replaced (`changes.mjs`: by `studio-look`, `studio-pipeline` and `studio-pose`); they are not built, and their content (eight-view turn, outfits, pose list) lives in the screens that replaced them |
 | `audio-cues`, `audio-portrait` | Recipe list, voice lanes, audition, mix and budget strip; Plus tabs Cues, Events, Mix | §6.3 |
 | `feel-matrix`, `feel-portrait` | Event by channel table, cell fields, reduced previews strip | §6.4 |
 | `writer-lines`, `writer-dialogue`, `writer-portrait` | Lines, graph, beats, hints; inspector; lint list | §6.5 |
@@ -399,7 +407,7 @@ The shell modes and sizes are the kit's (EDK §4.2, §7); the level editors keep
 
 | Context | Size | Suite behaviour |
 |---|---|---|
-| iPad 11″ landscape | 1194×834 | `wide`: top bar 52, rail 56 with nine entries, panel 264, canvas, inspector 320, dock |
+| iPad 11″ landscape | 1194×834 | `wide`: top bar 52, rail 56 with nine entries (seven editors, Levels, Review), panel 264, canvas, inspector 320, dock |
 | iPad 11″ portrait | 834×1194 | `medium`: compact top bar, 64 px tab bar with the same nine, panel and inspector as drawers, dock as a sheet |
 | iPad mini landscape | 1133×744 | `wide`, `short` tier: dock summoned; pills collapse to icons with counts, never hidden |
 | iPad 13″, desktop | 1366×1024, 1440×900 and up | `wide`, hover states, full keyboard |
@@ -427,11 +435,12 @@ Input: touch drags sliders, handles and keys, two-finger pan and pinch on the st
 | Write conflict, quota, permission | Kit §6 (Keep mine, Take theirs, Save as copy; quota pauses autosave) |
 | A document the codec cannot patch byte-exactly | `verify-failed`: not written; the path and reason are shown; Save reformatted (one confirmed step) or Export a copy |
 | Ship push fails, `gh` missing or not logged in | Push failure: the reason, the commits stay local; `gh` unavailable: the compare link (EDS-D10) |
+| An imported section whose editor is not installed (a Plus section in the free build) | The plan lists the section as refused, "editor not installed", with the package; the rest of the plan can still apply |
 | An import plan's file moved on before Apply | Apply refused for the plan; "Plan again" |
 | Undo of a step whose file moved on | Refused with the path; the history keeps the step |
 | 3D context lost (Studio, 3D level editor) | Fields keep working; the stage shows the recover action; no edit lost |
 | Preview not connected or the bridge drops mid-scrub | The diagram stays; the frame says "not connected"; nothing else changes |
-| Reload mid change set | The journal restores the pills, measures, locks and the import undo step; the kit's Restore or Discard for unsaved documents |
+| Reload mid change set | The adapter's journal restores the pills, measures and the import undo step (locks are session-only and are cleared, with a toast); the kit's Restore or Discard for unsaved documents |
 
 ## 12. Testing
 
@@ -466,10 +475,11 @@ Fixtures: FloorFifty's `tuning.toml`, `juice.toml` and a generated `tuning-meta.
 | EDS-l | The free build opens a list that names `feel` | Home marks Feel "not installed" with the Plus package; its file opens read only |
 | EDS-m (fail) | `content/editors.toml` has a row without `gates` | The list fails to load with that row's key path; every editor is read only |
 | EDS-n (fail) | An Ask diff targets `content/editors.toml` | Refused (a `never` path); nothing written |
-| EDS-o | Export the Bay as TOML, edit one caption time in the export, import | A plan with that one change, its gate and its checks; Apply writes it as one undo step |
+| EDS-o | Export FloorFifty's game (no scenes) as TOML, change `MAX_MOVE_SPEED` in the export, import | A plan with that one change, "No gates" and its checks; Apply writes it as one undo step |
 | EDS-p | Export a scene, import it unchanged | An empty plan; Apply disabled |
-| EDS-q | Studio: drag Wick's right hand past its reach | The handle turns amber with the shortfall; the clamped joints are listed; saving the pose writes the dragged target as authored |
-| EDS-r | Studio: set the face's `jaw` slider and pick a stand the outfit does not suit | `jaw` is one value edit in the figure file; the stand is disabled with the reason and its fallback |
+| EDS-p2 (fail) | In the free build, import a document with a `sequence` section | That section is refused as "editor not installed"; nothing of it is written |
+| EDS-q | Studio: on the Ada fixture (The Last Light's cast, converted), drag her right hand past its reach | The handle turns amber with the shortfall; the clamped joints are listed; saving the pose writes the dragged target as authored |
+| EDS-r | Studio: on a starter figure, set the face's `jaw` slider and pick a stand the outfit does not suit | `jaw` is one value edit in the figure file; the stand is disabled with the reason and its fallback |
 | EDS-s | Studio Animate: add a key at the playhead, set its ease, add a `contact` marker, scrub | The clip file gains the key, ease and marker; scrub matches `sample` at the playhead within 1e-6 |
 | EDS-t | Feel: set a shake past `[limits]` | Refused before the write; the reduced-motion preview drops the shake |
 | EDS-u | Writer: reword a line | Only the source locale file's string span changes; other languages show stale; the narrative lint runs after |
@@ -477,7 +487,8 @@ Fixtures: FloorFifty's `tuning.toml`, `juice.toml` and a generated `tuning-meta.
 | EDS-w | Sequence: drag a shot's start, preview not connected | One time literal changes; the diagram follows; the frame says "not connected" |
 | EDS-x | Rotate the iPad mid-drag in the Tuner and mid-key in Studio Animate | No remount; the drag's transaction and the playhead survive |
 | EDS-y | The second-game rule | The architecture test passes; each editor's journey passes on both games of §8 |
-| EDS-z | Reload with an open change set and a measure | The pills, the before and after measures, the locks and the import undo step come back |
+| EDS-z | Reload with an open change set and a measure | The pills, the before and after measures and the import undo step come back from the adapter's journal; locks are cleared with a toast |
+| EDS-aa | Create a pose in Studio, then Undo; then create one, edit the file outside the suite, and Undo | The first Undo removes the new file; the second is refused with the path, and the file stays |
 
 Owner visual acceptance (the built suite and the FigureBuilder groups) and the Owner's iPad pass are recorded by the Owner, never ticked by an agent.
 
@@ -493,12 +504,12 @@ Order and dependencies refine the [master plan](../../02-master-delivery-plan.md
 | EDS.1c | `af-editors/1` schema and loader in `editor-suite/core` (new package skeleton); the policy; both games' lists as fixtures | EDS.0 | EDS-m, EDS-n (policy) |
 | EDS.1d | Node adapters in `editor-suite/node` behind `automata editor`: disk workspace on ED2D.9's server store, git change set, Ship with `gh` or the compare link, argv checks, gates reader, Ask with the developer's own credentials | EDS.1b, EDS.1c, ED2D.9 | EDS-j |
 | EDS.2a | Suite app: switcher (rail of nine, 64 px tab bar), Home, editor-not-installed and list-error states, layout at every §10 size | EDS.1b, EDS.1c, EDK.1 to EDK.5 | EDS-l, EDS-m |
-| EDS.2b | Pills, Undo (EDS-D19), the Ask diff dialog on ED3D.10a's controller, the change-set journal | EDS.2a | EDS-d to EDS-i, EDS-z |
-| EDS.2c | Ship, the Review desk, Export and Import (§4.8) | EDS.2b, EDS.1d | EDS-j, EDS-o, EDS-p |
+| EDS.2b | Pills, Undo (EDS-D19), the Ask diff dialog on ED3D.10a's controller, the change-set journal | EDS.2a, EDS.1a | EDS-d to EDS-i, EDS-z |
+| EDS.2c | Ship, the Review desk, Export and Import (§4.8) | EDS.2b, EDS.1a, EDS.1d | EDS-j, EDS-o, EDS-p, EDS-p2, EDS-aa |
 | EDS.2d | `./suite` entries in editor-2d and editor-3d; both mounted; the switch-and-return journey | EDS.2a, ED2D.4c4b, ED3D.5f | EDS-k |
 | **EDS.P** (proposed) | `automata-plus/packages/editor-plus`: the composed build from core packs (`--extra` the four editor packages), its registry publish, `automata editor` choosing it; one placeholder Plus editor proving the path | EDS.2a, PRODUCT.5e | EDS-l (inverse: installed) |
 | EDS.4a | Tuner on core tunables | EDS.2b, EDS.1a | EDS-a to EDS-d |
-| EDS.9a | Studio Look with the FigureBuilder groups; screenshots to the Owner | EDS.2b, M3.5d | EDS-r |
+| EDS.9a | Studio Look with the FigureBuilder groups; screenshots to the Owner | EDS.2b, EDS.1a, M3.5d | EDS-r |
 | EDS.9b | Studio pose by hand | EDS.9a, M3.6b | EDS-q |
 | EDS.9c | Studio Animate | EDS.9b, M3.6d | EDS-s |
 | EDS.9d | Studio pipeline gate bar | EDS.9a, M3.9a (fixture records before it) | EDS-i |
@@ -512,7 +523,7 @@ Order and dependencies refine the [master plan](../../02-master-delivery-plan.md
 | EDS.10 | Pencil and touch polish, phone layouts, an axe pass and focus order, journeys for every editor in the WebKit iPad profiles | EDS.3, EDS.4b, EDS.5a, EDS.5b, EDS.6, EDS.7, EDS.8, EDS.9c, EDS.9d, EDK.6b | EDS-x, EDS-y |
 | EDS.11 | Acceptance on two games per editor (§8); then the Owner's iPad pass | EDS.10 | all |
 
-Critical path for the base 3D game: EDS.1a to EDS.1c → EDS.2a → EDS.2b → EDS.4a and EDS.9a to EDS.9c (GAME-3D.1j needs EDS.9c; GAME-3D.1k needs EDS.4a and EDS.5a). The Plus editors follow M6 in automata-plus and are not on the launch's critical path. Each row gets a TDD plan before code; the first commit of each PR is that plan.
+Critical path for the base 3D game: EDS.1a to EDS.1c → EDS.2a → EDS.2b → EDS.4a and EDS.9a to EDS.9c (GAME-3D.1j needs EDS.9c; GAME-3D.1k needs EDS.4a, and, as a **proposed row change** to 02's GAME-3D.1k (which lists EDS.4a and EDS.0), EDS.5a for its sounds and EDS.9c for its figures). The Plus editors follow M6 in automata-plus and are not on the launch's critical path. Each row gets a TDD plan before code; the first commit of each PR is that plan.
 
 ## 15. Open questions (the Owner, in the session)
 
