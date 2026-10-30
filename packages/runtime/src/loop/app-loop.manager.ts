@@ -6,6 +6,10 @@ import type { Time } from '../time/time.manager.js'
 import { createFrameLoop, stepOnce } from './frame-loop.js'
 import type { FrameSource } from './frames.js'
 
+/**
+ * The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each
+ * tick, and the renderer draws every frame. No step runs while `Time` is paused; a throw from a step stops it.
+ */
 export interface AppLoop {
   run(options: { sim: Sim; commands: (tick: number) => readonly Command[] }): void
   stop(): void

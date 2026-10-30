@@ -8,11 +8,16 @@
 import { canonicalJson } from '@mcthaydt/automata-sim/hash'
 import type { z } from 'zod'
 
+/** One migration step of a save: version `n` data in, version `n + 1` data out (`SaveDef.migrations`). */
 export type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>
 
 /** What can make the loaded slot write itself (M5 spec §4.4). */
 export type AutosaveTrigger = 'screen-exit' | 'round-end' | 'background' | 'interval'
 
+/**
+ * When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval`
+ * timer.
+ */
 export interface AutosavePolicy {
   readonly on: readonly AutosaveTrigger[]
   /** Seconds between timer writes, default 60. Read only when `interval` is in `on`. */

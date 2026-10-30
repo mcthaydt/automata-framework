@@ -23,6 +23,7 @@ export interface GestureTuning {
   readonly flickMs: number
 }
 
+/** FloorFifty's gesture tuning, the defaults. */
 export const GESTURE_TUNING: GestureTuning = { deadZonePx: 12, saturationPx: 48, flickPx: 40, flickMs: 180 }
 
 /**
@@ -35,6 +36,7 @@ export interface GestureSink {
   pulse(gesture: Exclude<GestureName, 'camera-drag'>): void
 }
 
+/** What a swipe indicator draws: the anchor, the thumb, and whether the thumb is steering. */
 export interface SwipeIndicator {
   readonly anchor: { readonly x: number; readonly y: number }
   readonly thumb: { readonly x: number; readonly y: number }
@@ -57,6 +59,10 @@ const STEER = {
   y: { [-1]: 'swipe-up', 1: 'swipe-down' },
 } as const satisfies Record<'x' | 'y', Record<-1 | 1, GestureName>>
 
+/**
+ * Turns pointer samples into held swipes, flicks and taps for a `GestureSink` (M4 spec §4.4); it reads no
+ * clock and touches no DOM.
+ */
 export class SwipeTracker {
   readonly tuning: GestureTuning
   private readonly fingers = new Map<number, Finger>()

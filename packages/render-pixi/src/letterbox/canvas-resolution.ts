@@ -1,6 +1,9 @@
 import type { QualityTier } from '@mcthaydt/automata-runtime'
 import type { FormFactor } from '@mcthaydt/automata-ui'
 
+/**
+ * The highest canvas resolution (device pixels per CSS pixel) the renderer uses, at the `high` quality tier.
+ */
 export const MAX_RESOLUTION = 2
 
 /** The canvas resolution each quality tier allows at most (M4 spec §4.11). */

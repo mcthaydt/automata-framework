@@ -23,6 +23,7 @@ import { NavRepeat } from './gamepad/nav-repeat.js'
 import { type PadDirection, type PadLike, readPad } from './gamepad/read-pad.js'
 import type { DragSink } from './gestures/camera-drag-tracker.js'
 import type { GestureSink } from './gestures/swipe-tracker.js'
+import type { ActiveDevice, InputContextNow, InputDevice, PadInfo } from './input-device.js'
 import {
   actionsForGesture,
   actionsForKey,
@@ -33,20 +34,10 @@ import {
 } from './input-profile.schema.js'
 import { isMenuActionLive, MENU_BINDINGS, type MenuAction } from './menu-actions.js'
 
-export type InputDevice = 'keyboard' | 'gamepad' | 'touch'
-/** The device of the last real input, and the button labels of the active pad (`generic` before any pad). */
-export interface ActiveDevice {
-  readonly device: InputDevice
-  readonly glyphs: GlyphFamily
-}
-/** A connected pad. Only `standard` pads drive bindings (DX spec §3.3). */
-export interface PadInfo {
-  readonly index: number
-  readonly id: string
-  readonly standard: boolean
-}
-export type InputContextNow = 'play' | 'menu'
-
+/**
+ * The input service (M4 spec §4.2): held actions from keys, pads, touch buttons and gestures under the game's
+ * profile and the player's overrides, menu edges, the active device and pads, and rebinding.
+ */
 export interface Input {
   /** The actions held now, the union over devices, in first-press order. Read once per fixed step; never copied. */
   held(): ReadonlySet<string>
@@ -101,6 +92,10 @@ const CANCEL_BUTTON = 1
 
 export const Input: Context.Tag<Input, Input> = Context.GenericTag<Input>('@mcthaydt/automata-runtime/Input')
 
+/**
+ * What the input service listens to: the window, the game's profile, the bus, and optionally the settings and
+ * the host's input mode.
+ */
 export interface InputOptions {
   readonly target: Window
   /** The game's bindings, before the player's overrides. */

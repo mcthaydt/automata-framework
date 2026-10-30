@@ -4,16 +4,19 @@ import { RendererUnavailable } from '../boot/boot-error.js'
 import type { FrameInfo } from '../loop/frames.js'
 import type { GameRenderer, RendererFactory, RenderTarget } from '../render/renderer.js'
 
+/** One call `nullRenderer` recorded. */
 export type NullRendererEntry =
   | { readonly type: 'apply'; readonly tick: number }
   | { readonly type: 'draw'; readonly alpha: number }
   | { readonly type: 'reset' }
   | { readonly type: 'destroy' }
 
+/** Options for `nullRenderer`: `fail` makes it fail `RendererUnavailable`. */
 export interface NullRendererOptions {
   readonly fail?: boolean
 }
 
+/** A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU. */
 export function nullRenderer(
   log: NullRendererEntry[] = [],
   options: NullRendererOptions = {},

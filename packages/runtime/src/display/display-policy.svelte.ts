@@ -34,6 +34,10 @@ import type { Time } from '../time/time.manager.js'
 /** The orientation a game plays in; the ship config writes the same value as `runtime.orientation`. */
 export type GameOrientation = 'portrait' | 'landscape' | 'any'
 
+/**
+ * The words of the display policy: the landscape gate, the rotate hint for each orientation and the rotate
+ * toast.
+ */
 export interface DisplayCopy {
   readonly gate: LandscapeGateCopy
   readonly rotate: Readonly<Record<'portrait' | 'landscape', RotateHintCopy>>
