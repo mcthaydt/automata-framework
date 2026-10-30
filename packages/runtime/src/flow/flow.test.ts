@@ -223,6 +223,49 @@ describe('Flow and screens (spec §3.6)', () => {
       expect(bFrom).toBe('screen-a')
     }).pipe(Effect.scoped, Effect.runPromise))
 
+  it('ScreenContext.runtime is one scope for every screen: open across transitions, closed once after the current screen when the flow closes (DX.2c)', () =>
+    Effect.gen(function* () {
+      const log: string[] = []
+      const seen: Scope.Scope[] = []
+      const screen = (id: string): ScreenDef => ({
+        id,
+        enter: (ctx) =>
+          Effect.gen(function* () {
+            seen.push(ctx.runtime)
+            // What the screens keep across transitions is released once, by the first screen that holds it.
+            if (seen.length === 1)
+              yield* Scope.addFinalizer(
+                ctx.runtime,
+                Effect.sync(() => log.push('runtime:closed')),
+              )
+            yield* Effect.addFinalizer(() => Effect.sync(() => log.push(`exit:${id}`)))
+          }),
+      })
+
+      const flowScope = yield* Scope.make()
+      const harness = yield* setupHarness({
+        screens: [screen('screen-a'), screen('screen-b')],
+        entry: 'screen-a',
+        transitions: [
+          { from: 'screen-a', event: 'next', to: 'screen-b', transition: 'cut' },
+          { from: 'screen-b', event: 'back', to: 'screen-a', transition: 'cut' },
+        ],
+      }).pipe(Scope.extend(flowScope))
+
+      yield* harness.start()
+      harness.flow.dispatch('next')
+      yield* harness.flow.settled
+      harness.flow.dispatch('back')
+      yield* harness.flow.settled
+
+      expect(seen).toHaveLength(3)
+      expect(new Set(seen).size).toBe(1)
+      expect(log).toEqual(['exit:screen-a', 'exit:screen-b'])
+
+      yield* Scope.close(flowScope, Exit.void)
+      expect(log).toEqual(['exit:screen-a', 'exit:screen-b', 'exit:screen-a', 'runtime:closed'])
+    }).pipe(Effect.runPromise))
+
   it('a failed enter closes its scope, removes section element, shows ErrorPanel start copy, and Try again succeeds', () =>
     Effect.gen(function* () {
       let attempts = 0

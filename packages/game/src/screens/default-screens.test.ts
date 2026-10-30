@@ -22,6 +22,7 @@ import {
   definePlugin,
   defineSystem,
   type Sim,
+  SimDisposedError,
   type StepResult,
 } from '@mcthaydt/automata-sim'
 import { fakeGamepads } from '@mcthaydt/automata-testing/input'
@@ -58,6 +59,17 @@ async function until(check: () => boolean, what: string): Promise<void> {
   throw new Error(`timed out waiting for ${what}`)
 }
 
+/** Whether `sim` was disposed: a disposed sim refuses every read. */
+function isDisposed(sim: Sim): boolean {
+  try {
+    sim.query(Body)
+    return false
+  } catch (error) {
+    if (error instanceof SimDisposedError) return true
+    throw error
+  }
+}
+
 /** A renderer that keeps every step result it is given. */
 function recordingRenderer(results: StepResult[], resets: { count: number }): RendererFactory {
   const renderer: GameRenderer = {
@@ -77,8 +89,8 @@ describe('default screens', () => {
   let resets: { count: number }
   let handle: RuntimeHandle | undefined
   let game: DefinedGame
-  // The default screens keep the sim until the title drops it, and a shutdown on play or paused does not: dispose
-  // each test's sims here, or the file runs past Koota's 16 live worlds.
+  // The default screens keep the sim until the title drops it or the runtime shuts down (DX.2c). Every sim a test
+  // made must be disposed once its shutdown is over, which also keeps the file under Koota's 16 live worlds.
   const sims: Sim[] = []
 
   const screen = (id: string) => root.querySelector(`[data-testid="${id}-screen"]`)
@@ -132,9 +144,13 @@ describe('default screens', () => {
   afterEach(async () => {
     await handle?.shutdown()
     handle = undefined
-    for (const sim of sims.splice(0)) sim.dispose()
+    // A sim left alive is disposed here before the test fails, so one leak fails only the test that leaked it and the
+    // tests after it still have Koota's worlds.
+    const alive = sims.splice(0).filter((sim) => !isDisposed(sim))
+    for (const sim of alive) sim.dispose()
     root.remove()
     document.documentElement.removeAttribute('data-state')
+    expect(alive, 'sims the shutdown left alive').toHaveLength(0)
   })
 
   it('title shows the game’s title and a primary Play that has focus', async () => {
@@ -984,6 +1000,161 @@ describe('default screens', () => {
     step(2)
     expect(results.flatMap((result) => result.rejected)).toEqual([])
     expect(lastX()).toBe(10)
+  })
+
+  describe('the sim is disposed once (DX.2c)', () => {
+    /** The one sim the test made, with its `dispose` counted from here on. */
+    const watchDispose = () => {
+      expect(sims).toHaveLength(1)
+      return vi.spyOn(sims[0] as Sim, 'dispose')
+    }
+    const shutdown = async () => {
+      await handle?.shutdown()
+      handle = undefined
+    }
+    const toPaused = async () => {
+      press('Escape')
+      await until(() => screen('paused') !== null, 'the paused screen')
+    }
+
+    it('when the runtime shuts down during play', async () => {
+      await boot()
+      await toPlay()
+      step(2)
+      const dispose = watchDispose()
+      await shutdown()
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('when the runtime shuts down during paused', async () => {
+      await boot()
+      await toPlay()
+      await toPaused()
+      const dispose = watchDispose()
+      await shutdown()
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('when the runtime shuts down on Settings, opened from paused', async () => {
+      await boot()
+      await toPlay()
+      await toPaused()
+      button('settings')?.click()
+      await until(() => screen('settings') !== null, 'the settings screen')
+      const dispose = watchDispose()
+      await shutdown()
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('when Quit to title drops it, and not again when the runtime then shuts down on the title', async () => {
+      await boot()
+      await toPlay()
+      const dispose = watchDispose()
+      await toPaused()
+      button('quit')?.click()
+      await until(() => button('quit-confirm') !== null, 'the confirm')
+      button('quit-confirm')?.click()
+      await until(() => screen('title') !== null, 'the title screen')
+      expect(dispose).toHaveBeenCalledTimes(1)
+      await shutdown()
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
+
+    it('per run: the same game run again after a shutdown during play starts a new sim at tick 0, and disposes it', async () => {
+      await boot()
+      await toPlay()
+      step(3)
+      const first = watchDispose()
+      await shutdown()
+      expect(first).toHaveBeenCalledTimes(1)
+
+      // The same defined game, so the same default screens, booted again on the same root.
+      frames = manualFrames()
+      results = []
+      handle = runGame({
+        ...game,
+        root,
+        seams: { ...game.seams, frames },
+        renderer: recordingRenderer(results, resets),
+      })
+      await until(() => frames.pending, 'the first frame again')
+      step()
+      await until(() => screen('title') !== null, 'the title screen again')
+      await toPlay()
+      step()
+      expect(results.at(-1)?.tick).toBe(1)
+      expect(sims).toHaveLength(2)
+      const second = vi.spyOn(sims[1] as Sim, 'dispose')
+      await shutdown()
+      expect(second).toHaveBeenCalledTimes(1)
+      expect(first).toHaveBeenCalledTimes(1)
+    })
+
+    it('when the runtime shuts down while play is still making it: disposed once it is made', async () => {
+      // A plugin whose engine is made only when the test says, so play's first entry is still awaiting the sim.
+      let makeEngine = (): void => {}
+      const engineMade = new Promise<void>((resolve) => {
+        makeEngine = resolve
+      })
+      const slowEngine = definePlugin({
+        name: 'slow-engine',
+        state: async () => {
+          await engineMade
+          return {
+            snapshot: () => new Uint8Array(),
+            prepareRestore: () => ({ commit: () => {}, discard: () => {} }),
+            dispose: () => {},
+          }
+        },
+      })
+      await boot({
+        sim: {
+          plugins: [square, slowEngine],
+          seed: 3,
+          setup: (sim) => {
+            sims.push(sim)
+            sim.spawn([[Body, { x: 10 }]])
+          },
+        },
+      })
+      button('play')?.click()
+      // Play's section is up and its enter is awaiting the sim: nothing has been made yet.
+      await until(() => root.querySelector('[data-screen="play"]') !== null, 'play entering')
+      expect(screen('play')).toBeNull()
+      expect(sims).toHaveLength(0)
+
+      await shutdown()
+      makeEngine()
+      await until(() => sims.length === 1, 'the sim play was making')
+      expect(isDisposed(sims[0] as Sim)).toBe(true)
+    })
+
+    it('once per run: play ⇄ paused again and again, then a shutdown drops the sim once', async () => {
+      const watched: (Sim | undefined)[] = []
+      const sim = {
+        plugins: [square],
+        seed: 3,
+        setup: (live: Sim) => {
+          sims.push(live)
+          live.spawn([[Body, { x: 10 }]])
+        },
+      }
+      await boot({
+        screens: defaultScreens({ title: 'Square', sim, watchSim: (live) => watched.push(live) }),
+      })
+      await toPlay()
+      for (let round = 0; round < 3; round++) {
+        await toPaused()
+        button('resume')?.click()
+        await until(() => screen('play') !== null, 'the play screen again')
+      }
+      const dispose = watchDispose()
+      watched.length = 0
+      await shutdown()
+      // Eight screen entries in this run, one finalizer: a finalizer per entry would tell the draw layer eight times.
+      expect(watched).toEqual([undefined])
+      expect(dispose).toHaveBeenCalledTimes(1)
+    })
   })
 
   it('hands the play screen’s sim to watchSim, and undefined when the title drops it (the draw layer)', async () => {
