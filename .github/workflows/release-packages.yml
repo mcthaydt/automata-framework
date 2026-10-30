@@ -10,9 +10,14 @@ name: release packages
 # the pull request. `publish` runs when it does not, and it alone waits for the Owner's approval in the `release`
 # environment (QB.1), so a push that only versions never waits.
 #
-# Runner: ubuntu-latest, never af-linux. A job that holds a write token stays off the shared self-hosted
-# runners (AF's rule for game-release.yml, and Ruken's for its publish workflows). While hosted runners get no
-# minutes on this account the job waits or fails without publishing; nothing is half-written.
+# Runner: the Owner's Mac (Owner, 2026-10-30: "Publish from my Mac"); vars.AF_RELEASE_RUNNER moves it. Hosted jobs
+# are refused on this account (a billing block since 2026-10-24: "recent account payments have failed or your
+# spending limit needs to be increased"), and no hosted label is a fallback: with no Mac online the jobs wait in
+# the queue. The Mac's runners share one home folder with other repositories' jobs, so every write token stays in
+# the job's temp folder, which the runner empties at the start and end of each job: checkout keeps no token in
+# .git/config, setup-node writes its .npmrc under $RUNNER_TEMP, and the changesets steps run with HOME in
+# $RUNNER_TEMP because changesets/action writes an .npmrc into $HOME. Publishing still waits for the Owner's
+# approval in the release environment (the publish job, below).
 #
 # Token: the workflow's own GITHUB_TOKEN with packages: write publishes packages linked to this repository
 # (each package.json's `repository`). Games install with AF_READ_TOKEN, a classic personal access token with
@@ -33,7 +38,7 @@ concurrency:
 jobs:
   plan:
     name: changesets pending?
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
     timeout-minutes: 20
     permissions:
       contents: read
@@ -57,7 +62,7 @@ jobs:
     name: version packages PR
     needs: plan
     if: needs.plan.outputs.pending == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
     timeout-minutes: 20
     # Opens or updates the Version packages pull request and cannot publish: no `publish-script`, no packages
     # permission, no release environment.
@@ -85,6 +90,8 @@ jobs:
       # style, unit tests).
       - name: Check the commit being versioned
         run: pnpm check
+      # The changesets step's HOME (header): it must exist before changesets/action writes into it.
+      - run: mkdir -p "$RUNNER_TEMP/release-home"
       - name: Version packages PR
         id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
@@ -97,12 +104,14 @@ jobs:
           pr-title: Version packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # changesets/action writes an .npmrc into $HOME; keep it out of the shared runner home (header).
+          HOME: ${{ runner.temp }}/release-home
 
   publish:
     name: publish
     needs: plan
     if: needs.plan.outputs.pending == 'false'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
     timeout-minutes: 20
     # QB.1: the job waits for the Owner's approval in the `release` environment (Settings -> Environments,
     # required reviewer: the Owner, deployments from main only) before it can publish anything. Only this job
@@ -132,6 +141,8 @@ jobs:
       # Nothing else checks the commit before it is published; `pnpm release` then builds before it publishes.
       - name: Check the commit being released
         run: pnpm check
+      # The changesets step's HOME (header): it must exist before changesets/action writes into it.
+      - run: mkdir -p "$RUNNER_TEMP/release-home"
       - name: Publish
         id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
@@ -140,6 +151,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # changesets/action writes an .npmrc into $HOME; keep it out of the shared runner home (header).
+          HOME: ${{ runner.temp }}/release-home
       # Everything below runs only after a publish. changesets/action reports what it published (`published-packages`); every package
       # shares one version (the fixed group), so released-version.ts prints it or fails if they disagree.
       - name: Released version

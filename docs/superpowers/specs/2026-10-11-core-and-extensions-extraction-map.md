@@ -2,6 +2,7 @@
 
 - **Date:** 2026-10-11
 - **Status:** Draft for Owner review, companion to the [Ruken-first master spec](./2026-10-11-automata-framework-ruken-first-design.md).
+  > **Amendment, 2026-10-30 (the Owner, in the session's chat):** `mcthaydt/FigureBuilder` at `a1f7246` (2026-10-28) is a source: the Owner's enhanced procedural character builder, from which M3.5, M3.6's reference clips and the Studio (EDS.9) extract; The Last Light keeps the rig, hold and library tests and every render, camera, light and fog source. Extractions record each source repository's commit, and the source repositories are not edited: leaks are fixed during the rewrite in AF or Plus.
 - **Purpose:** for every AF package, the source files it starts from, what to improve while extracting, and what stays in the source game. This is an inventory, not a plan: each milestone spec selects its rows and its TDD plans name exact files and tests.
 
 **Source commits surveyed** (extraction copies from a recorded commit and re-surveys before each milestone):
