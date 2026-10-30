@@ -2,8 +2,8 @@
 
 - **Task:** M5.5F in [02](../../02-master-delivery-plan.md) (lane content, size S). M5 spec [§4.7 Fonts](../specs/2026-10-16-m5-saves-audio-design.md): "each locale's subset is cut … to that locale's characters … plus FloorFifty's `ALWAYS` set … and the endonym text for the language picker". The follow-up recorded by the [M5.5 plan](2026-10-18-m5-5-fonts.md) (its "Out" table).
 - **Lane:** content. **Depends on:** M5.5 (merged), the language picker (#91: `LanguageSection` and `endonymOf` in ui).
-- **Status:** Implemented and locally checked 2026-10-30 (draft PR from `claude/m5-5f-endonym-subsets`). Not CI verified (the Mac's CI pending); no Owner gate of its own.
-- **Progress:** 5 of 5 steps.
+- **Status:** Implemented and locally checked 2026-10-30 (PR #237 from `claude/m5-5f-endonym-subsets`); the review's optional findings handled in step 6. Not CI verified (the Mac's CI pending); no Owner gate of its own.
+- **Progress:** 6 of 6 steps.
 
 ## Sources, read at these commits
 
@@ -36,7 +36,7 @@ Exported from `@mcthaydt/automata-content/locale`. `packages/ui/src/settings/lan
 ### `buildFonts` (`packages/content/src/assets/build-fonts.ts`, modify; no signature change)
 
 1. Each subset is cut to `localeCharacters(catalog)` plus the characters of `endonymOf(language)` for every language in `content.languages`.
-2. After the message check, for each locale with subsets (and no broken font), for each language some font serves (in `content.languages` order), the name's characters that none of the locale's subsets hold are reported once, as `missingGlyph` at `font.<first font>.locales.<i>`: `U+65E5 "日", U+672C "本", U+8A9E "語" are not in the en subset of pixel: 日本語 names ja in the language picker`.
+2. After the message check, for each locale with subsets (and no broken font), for each language some font serves (in `content.languages` order), the name's characters that none of the locale's subsets hold are reported once, as `missingGlyph` at `font.<first font>.locales.<i>`: `U+65E5 "日", U+672C "本", U+8A9E "語" are not in the en subset of pixel (the language picker names ja 日本語)`.
 3. Control characters are skipped as before (a name has none).
 
 ## Steps
@@ -68,13 +68,21 @@ Each step starts with its test, run red, with the failure reason recorded.
     - *Known quirk (not new):* the API index prints ui's re-exported `endonymOf` with its source body, as it already does for ship's re-exported `FileError`: the extractor resolves a workspace package through its development `exports` (`src`), not its published `.d.ts`. Left as a follow-up.
     - *Gates:* `pnpm format` clean; `TURBO_FORCE=true pnpm check` exit 0 (lint, typecheck 36 of 36, boundaries 0 findings, style 654 files 0 findings, knip clean apart from the existing `zod` hint in ship, test:unit 34 of 34); `pnpm changeset status --since=origin/main` passes; `check-changesets` 4 changesets, 0 problems; content parity 6 of 6 and ui layout parity 2412 of 2412 (Chromium, WebKit, Firefox); `pnpm build` then `consumer-smoke --from packs` passed (install, node entries, content bin, types with TypeScript 7, 7 nodenext and 6, no eval, both bundles).
 
+- [x] **6. Review follow-ups** (the independent review of PR #237: no blocking finding, seven optional ones).
+  - `packages/content/src/locale/endonyms.parity.test.ts` (create): `endonymOf` gives the same names for `en`, `es`, `fr`, `ja`, `ko`, `pt-BR` and `zh-Hans` in Node, Chromium, WebKit and Firefox, pinned as Node 24.21 gives them. It runs in content's `node` and `browsers` projects.
+  - `build-fonts.test.ts`: an unserved language's name is still cut into every subset (`ja` with no font; the 日本語 face serving `en` and `fr` holds 日本語 in both).
+  - `glyphs.ts`: the header says `localeCharacters` is the locale's own characters and the font build adds the names.
+  - This plan: the contract's example message now matches the code (see the log's deviation).
+  - *Done:* both tests are characterisation tests of behaviour steps 2 to 4 built, so they passed on first run; each was then shown to bite. With the cut limited to the served languages' names (a temporary edit, reverted), the new `build-fonts` case failed `en: expected [ false, false, false ] to deeply equal [ true, true, true ]` and the other 14 passed. With `yue: '粵語'` (Node's name) added to the pinned list (reverted), Chromium failed with `"yue": "Cantonese"` while WebKit and Firefox passed. Then `build-fonts.test.ts` 15 of 15, `src/locale` endonym tests 4 of 4 in Node; content parity 9 of 9 (3 files × 3 browsers).
+  - *Measured for the PR's Decision 1,* with AF's `subsetWoff2` on FloorFifty's variable (`wght` 100–900) Noto Sans JP, KR and SC subsets at `677d456` (`apps/client/public/fonts/`), cut to `localeCharacters` of an English catalog plus the six planned names: 74 728, 71 568 and 70 508 bytes (395, 393 and 394 glyphs); `ALWAYS_CHARACTERS` alone is 69 368, 71 228 and 69 432 bytes. FloorFifty's endonym files are 1 552, 1 548 and 1 992 bytes.
+
 ## Out
 
 | What | Where |
 |---|---|
 | A separate endonym file per face (FloorFifty's design) | Not taken: see Design. |
 | A game's own `names` for `LanguageSection` | `game`'s `SettingsView` passes none today. When a game can pass its own names, the font build has to read them from the same place (a follow-up, not speculative scope here). |
-| The browser's `Intl.DisplayNames` naming a language differently from Node's | The build uses Node 24's ICU; a browser with older or newer CLDR data may spell a name differently (casing, a region in brackets). A character it adds that no subset holds falls back to the next face in the stack. Recorded as a follow-up. |
+| The browser's `Intl.DisplayNames` naming a language differently from Node's, beyond the planned languages | The build uses Node 24's ICU. Step 6 pins the planned languages' names in every engine; a game language outside that list is not checked, and Chromium already names `yue` "Cantonese" where Node gives 粵語. A character a browser adds that no subset holds falls back to the next face in the stack. Recorded as a follow-up (a static name table read by both, as FloorFifty has, would close it). |
 | A game's UI catalogs in the gate, fonts in the Vite build hook and the preload list | Unchanged; already tracked by the M5.5 and M5.6 follow-up rows. |
 
 ## Execution log
@@ -84,4 +92,5 @@ Each step starts with its test, run red, with the failure reason recorded.
 - Step 3, `93bbe80d`: every subset is cut with every content language's name.
 - Step 4, `de40e742`: the gate checks the served languages' names in each language's subsets.
 - Step 5, `7f2c27c5`: changeset (content, ui patch), API report, index, cheatsheet and agent skills; gates above.
-- **Deviation:** none from this plan. From the brief's two options, every subset carries the names (the spec's wording) rather than FloorFifty's separate endonym file; the reasons are under Design.
+- Step 6: the review follow-ups above (`endonyms.parity.test.ts`, the unserved-name cut case, the `glyphs.ts` header, this plan's contract text).
+- **Deviation:** the diagnostic's wording. The contract's example said `…of pixel: 日本語 names ja in the language picker`; the code and its test (step 4) say `…of pixel (the language picker names ja 日本語)`, which keeps the message check's sentence unchanged and puts the name after it. The contract now shows the code's wording. Otherwise none from this plan. From the brief's two options, every subset carries the names (the spec's wording) rather than FloorFifty's separate endonym file; the reasons are under Design.

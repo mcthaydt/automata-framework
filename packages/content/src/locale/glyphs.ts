@@ -1,9 +1,10 @@
 // The characters each locale's text can contain (PRODUCT spec §4 item 6). Extracted from FloorFifty
 // tools/i18n/characters.ts and the `visibleTexts` half of tools/i18n/catalogue.ts (ac72660).
 //
-// `catalogCharacters` is what a coverage check holds a subset font to; `localeCharacters` is what the
-// font-subsetting asset build (M5) cuts a subset to, with every language's name for the picker (M5.5F): the
-// catalog plus the ranges a typed name or a later string most likely needs. Some of those code points are unassigned, so a subset holds only the ones its font has.
+// `catalogCharacters` is what a coverage check holds a subset font to; `localeCharacters` is a locale's own
+// characters for the font-subsetting asset build (M5): the catalog plus the ranges a typed name or a later string
+// most likely needs. The font build adds every content language's name (M5.5F). Some of those code points are
+// unassigned, so a subset holds only the ones its font has.
 //
 // Changed from FloorFifty: it reads a catalog value, not a file; content catalogs are plain text
 // (`checkTranslation` refuses anything else), so every character of every message counts.

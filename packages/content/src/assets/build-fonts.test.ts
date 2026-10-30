@@ -155,6 +155,17 @@ describe('buildFonts', () => {
     expect([...(await built(root)).keys()].filter((name) => name.endsWith('.woff2'))).toHaveLength(2)
   })
 
+  // The cut takes every content language's name, served or not (the plan's contract, item 1): `ja` here has no
+  // font, yet the 日本語 face serving `en` and `fr` still holds its name.
+  it('still cuts the name of a language no font serves into every subset', async () => {
+    const fonts = `${ONE_FONT}${fontEntry('cjk', '["en", "fr"]', CJK_HASH, 'fonts/cjk.woff2')}`
+    const files = await built(withFont(withFont(withJapanese(project(fonts))), 'fonts/cjk.woff2', CJK))
+    for (const locale of ['en', 'fr']) {
+      const covers = fontCoverage(fileOf(files, `cjk-${locale}-`))
+      expect([...'日本語'].map(covers), locale).toEqual([true, true, true])
+    }
+  })
+
   it('does not check a control character such as a newline', async () => {
     const root = withFont(project(ONE_FONT))
     edit(root, 'content/messages/fr.json', (text) => text.replace('"Aube"', '"Au\\nbe"'))
