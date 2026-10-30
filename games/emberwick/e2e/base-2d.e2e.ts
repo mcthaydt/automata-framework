@@ -60,7 +60,8 @@ async function openMenu(page: Page) {
  * (measured for CI.N2, docs/superpowers/plans/2026-10-30-ci-n2-touch-journey-ready.md). The loop asks for the next
  * frame as soon as one is drawn, so every Playwright call in the room waits two or three frames for the page (a
  * bounding box about eight; 16 s under that load), and Playwright's 5 s for an assertion is less than two loaded
- * frames. This is ten of the slowest frames measured.
+ * frames. This is ten of the slowest frames measured. It caps any single step in the room; a journey's own test
+ * timeout is the limit that binds the journey as a whole.
  */
 const ROOM_STEP_MS = 40_000
 
@@ -218,7 +219,8 @@ test('playing the golden route with the keyboard reaches the ember and the end s
 
 test('the touch buttons move the character', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'touch buttons show on coarse pointers')
-  // The whole journey took up to 48 s under the reproduced load (CI.N2), past the default 30 s: 2.5 times that.
+  // The whole journey took up to 48 s with the page's CPU throttled 5x and 59 s at 10x (CI.N2), past the default
+  // 30 s. This timeout, about twice the slowest pass, binds the journey; ROOM_STEP_MS only caps each of its steps.
   test.setTimeout(120_000)
   const errors = await collectErrors(page)
   await openMenu(page)
