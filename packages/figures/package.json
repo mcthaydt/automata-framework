@@ -14,6 +14,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "bench": "vitest run --project bench",
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
     "typecheck": "tsc -p ."
