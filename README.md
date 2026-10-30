@@ -43,3 +43,4 @@ repository and manual runs: `pnpm core:sync`, `pnpm install --frozen-lockfile`, 
 
 - [PRODUCT.5e, the workspace skeleton](docs/product5e-workspace.md)
 - [PRODUCT.5f, physics arrives](docs/product5f-physics.md)
+- [PRODUCT.1b1, the F1 boundary test](docs/product1b1-f1-boundary.md)
