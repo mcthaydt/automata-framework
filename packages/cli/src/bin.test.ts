@@ -1,6 +1,8 @@
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { PLUS_REPOSITORY } from './add/add-args.ts'
+import { AddError, type AddResult, type RunAddOptions } from './add/run-add.ts'
 import { parseArgs, runCli } from './bin.ts'
 import type { CheckReport } from './check/check-report.ts'
 import type { RunCheckOptions } from './check/run-check.ts'
@@ -157,6 +159,106 @@ describe('bin cli', () => {
       const { code, stderr, calls } = await runCheckCli(['check', '--bogus'])
       expect(code).toBe(2)
       expect(stderr).toContain('unknown option --bogus')
+      expect(calls).toEqual([])
+    })
+  })
+
+  describe('add', () => {
+    const added = (report: CheckReport): AddResult => ({
+      kit: 'results-screen',
+      tag: 'core-v0.0.2',
+      files: ['src/ui/results.screen.ts', 'content/ui/results.toml'],
+      report,
+    })
+    const passing: CheckReport = {
+      ok: true,
+      steps: [{ name: 'boundaries', ok: true, ms: 2, findings: [], toolError: false }],
+    }
+
+    async function runAddCli(args: string[], outcome: AddResult | AddError) {
+      let stdout = ''
+      let stderr = ''
+      const calls: RunAddOptions[] = []
+      const code = await runCli(
+        args,
+        {
+          stdout: (msg) => {
+            stdout += msg
+          },
+          stderr: (msg) => {
+            stderr += msg
+          },
+        },
+        async () => {
+          throw new Error('automata add runs its own check')
+        },
+        async (options) => {
+          calls.push(options)
+          return outcome
+        },
+      )
+      return { code, stdout, stderr, calls }
+    }
+
+    it('adds the kit to the game folder, lists the files and prints the check that followed', async () => {
+      const { code, stdout, stderr, calls } = await runAddCli(
+        ['add', 'results-screen', '--dir', 'games/x', '--force'],
+        added(passing),
+      )
+      expect(calls).toEqual([
+        {
+          kit: 'results-screen',
+          gameDir: join(process.cwd(), 'games/x'),
+          repo: PLUS_REPOSITORY,
+          force: true,
+        },
+      ])
+      expect(stdout).toBe(
+        'Added results-screen from core-v0.0.2:\n  src/ui/results.screen.ts\n  content/ui/results.toml\n' +
+          'pass  boundaries (2 ms)\nautomata check: 0 findings\n',
+      )
+      expect(stderr).toBe('')
+      expect(code).toBe(0)
+    })
+
+    it('is exit 1 when the added kit fails automata check, and says the files stay', async () => {
+      const failing: CheckReport = {
+        ok: false,
+        steps: [
+          {
+            name: 'typecheck',
+            ok: false,
+            ms: 2,
+            toolError: false,
+            findings: [{ file: 'src/ui/results.screen.ts', line: 1, col: 1, rule: 'TS2322', message: 'bad' }],
+          },
+        ],
+      }
+      const { code, stdout, calls } = await runAddCli(['add', 'results-screen'], added(failing))
+      expect(calls[0]).toMatchObject({ gameDir: process.cwd(), repo: PLUS_REPOSITORY, force: false })
+      expect(stdout).toContain('FAIL  typecheck (2 ms)')
+      expect(stdout).toContain(
+        'The kit is in place and automata check did not pass: fix what it reports, or remove the files listed above.',
+      )
+      expect(code).toBe(1)
+    })
+
+    it('a failure is exit 2 with its message', async () => {
+      const error = new AddError({ reason: 'no-access', message: 'cannot read the repository' })
+      const { code, stdout, stderr } = await runAddCli(
+        ['add', 'lobby', '--repo', 'file:///tmp/plus.git'],
+        error,
+      )
+      expect(stderr).toBe('Error: cannot read the repository\n')
+      expect(stdout).toBe('')
+      expect(code).toBe(2)
+    })
+
+    it('a usage error is exit 2, shows the usage and adds nothing', async () => {
+      const { code, stderr, calls } = await runAddCli(['add'], added(passing))
+      expect(code).toBe(2)
+      expect(stderr).toContain('Error: a kit name is required')
+      expect(stderr).toContain('automata add <kit> [--dir <game>] [--repo <url>] [--force]')
       expect(calls).toEqual([])
     })
   })

@@ -347,6 +347,15 @@ describe('runAdd', () => {
     expect(existsSync(join(game, 'src/ui/results.screen.ts'))).toBe(true)
   })
 
+  it('a repository without core-v tags has no kits for any core', async () => {
+    const run = await add(fakeRepository({ tags: { main: RESULTS_KIT, 'v1.0.0': RESULTS_KIT } }))
+    expect(errorOf(run)).toMatchObject({
+      reason: 'no-tag',
+      message: 'there are no kits for core 0.0.2: the repository has no core-v<version> tags',
+    })
+    expect(run.code).toBe(2)
+  })
+
   it('clones the newest core tag at or below the installed core, and removes its clone', async () => {
     const repository = fakeRepository({
       tags: { 'core-v0.0.1': {}, 'core-v0.0.2': RESULTS_KIT, 'core-v0.0.3': {}, 'core-v0.0.10': {} },

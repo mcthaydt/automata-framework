@@ -108,9 +108,11 @@ function coreTagFor(tags: readonly string[], installed: string): Effect.Effect<s
     .sort(compare)
   const chosen = maxSatisfying(versions, `<=${installed}`, { includePrerelease: true })
   if (chosen !== null) return Effect.succeed(`${TAG_PREFIX}${chosen}`)
-  const named =
-    versions.length === 0 ? 'none' : versions.map((version) => `${TAG_PREFIX}${version}`).join(', ')
-  return fail('no-tag', `there are no kits for core ${installed}: the repository's core tags are ${named}`)
+  const tagged = versions.map((version) => `${TAG_PREFIX}${version}`).join(', ')
+  return fail(
+    'no-tag',
+    `there are no kits for core ${installed}: ${versions.length === 0 ? 'the repository has no core-v<version> tags' : `the repository's core tags are ${tagged}`}`,
+  )
 }
 
 /** Every folder of the clone with a `kit.json`, sorted: what an unknown kit name is told. */

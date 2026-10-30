@@ -122,7 +122,7 @@ Steps:
 - [x] 1. Tests 1 and 2 red; args and schema.
 - [x] 2. Tests 3 to 8 red against the fake port; `runAdd`.
 - [x] 3. The live port (`git clone --depth 1 --branch <tag>`, `git ls-remote --tags` for the tag choice) and test 9.
-- [ ] 4. Wire `bin.ts`; usage text; M8 command table; `agent-skills` if it asks.
+- [x] 4. Wire `bin.ts`; usage text; M8 command table; `agent-skills` if it asks.
 
 Gates: cli unit tests, `pnpm check`. Omitted here: a run against the real Plus repository (no kit exists until PRODUCT.6; the fixture kit is the proof).
 
