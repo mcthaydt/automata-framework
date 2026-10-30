@@ -1,7 +1,7 @@
 # M5: Saves and audio (milestone spec)
 
 - **Status:** Owner-approved 2026-10-16, every open decision on its recommended default. Task **M5.0** in [02 Master delivery plan](../../02-master-delivery-plan.md). Nothing here is implemented before that review (01 Decomposition §5, [04 How we build](../../04-how-we-build.md)). Review freezes the contracts in §4; after that they change only additively or through a written change request. Open decisions M5-D1 to M5-D10 (§15) run on their recommended defaults until the Owner changes them.
-  > **Amendment, 2026-10-30 (the Owner, in the session's chat: "throw this in where it fits"; the placement is the agent's, open to veto):** `@typeonce/ritmo-tools` (MIT, 0.19.1) joins §4.7's asset build as a separate CLI that is never imported (its Effect 4.1 does not meet AF's Effect 3.22): the pixel fixer and pixel lint in `automata-content assets` (M5.6) and an `automata check` step on the Endesga 64 palette; sound recipes rendered to WAV at build for core sound (M5.3), edited by the Audio editor (EDS.5), with `audio-synth` deciding whether to adopt the format; music songs rendered at build for core music and `audio-stream` (M5.8). 02 rows ASSET.0 (the full §4.7 amendment) to ASSET.4.
+  > **Amendment, 2026-10-30 (the Owner, in the session's chat: "throw this in where it fits"; the placement is the agent's, open to veto):** `@typeonce/ritmo-tools` (MIT, 0.19.1) joins §4.7's asset build as a separate CLI that is never imported (its Effect 4.1 does not meet AF's Effect 3.22): the pixel fixer and pixel lint in `automata-content assets` (M5.6) and an `automata check` step on the Endesga 64 palette; sound recipes rendered to WAV at build for core sound (M5.3), edited by the Audio editor (EDS.5), with `audio-synth` deciding whether to adopt the format; music songs rendered at build for core music and `audio-stream` (M5.8). 02 rows ASSET.0 (the full §4.7 amendment) to ASSET.4. ASSET.0 done 2026-10-30: §4.7a holds the full placement and acceptance cases ASSET-a to ASSET-h.
 - **Owner direction (2026-10-16):** "Draft M4.0 and M5.0, core parts first." Per the [PRODUCT spec](./2026-10-16-product-core-and-plus-design.md) PD-3, the free core comes first (saves and migrations, core audio, the asset build, the leaderboard call) and the Plus extension (`audio-stream`) after it. Localization left M5 for PRODUCT.L (PD-4); M5 builds the font-subsetting half of PRODUCT.L's glyph-coverage case L-e.
 - **Depends on:** M2 (merged: snapshots, content hash, replay codec) and M4, whose spec is drafted at [`2026-10-16-m4-input-display-design.md`](./2026-10-16-m4-input-display-design.md) on branch `claude/clever-pasteur-ujmu6e-m4spec` and is **pending Owner review**. M5 uses M4's Slider, Toggle, Toast and core Settings screen (M4 §4.8) and M4's layout matrix. If M4's review changes those, this spec follows.
 
@@ -216,6 +216,89 @@ Run by `automata-content assets` and by the content Vite plugin's build hook; ou
 - PNGs are read and written with `pngjs` (FloorFifty's dependency, ^7.0.0).
 - **Palette check:** when the game declares a palette (content `palette`), every opaque pixel must be a palette colour, from FloorFifty `validate-assets.ts`. A stray colour fails with the file, the pixel and the colour.
 - Atlas and font outputs join the generated preload list when their screen is preloaded.
+
+### 4.7a ritmo-tools in the asset build (ASSET.0, 2026-10-30)
+
+Placement of `@typeonce/ritmo-tools` (Owner, 2026-10-30: "throw this in where it fits"; accepted under "Auto accept
+all spec and plans"; the placement is the agent's, open to veto). Read from the published 0.19.1 tarball (its
+`README.md`, `package.json` and `LICENSE`, 2026-10-30).
+
+**The package.** `@typeonce/ritmo-tools` 0.19.1, MIT, one bin `ritmo-tools` (`dist/cli.js`), Node `>=20`, depending
+on `effect` 4.1.0, `@effect/platform-node` 4.1.0, `pngjs` 7.0.0 and `jpeg-js` 0.4.4. Three command groups: `pixel`,
+`sound`, `music`. Every command prints a JSON report on stdout and exits 0 (clean), 2 (usage error, missing file,
+broken source), 3 (fixable: rules broken) or, for `pixel` only, 4 (needs a person: the grid is unsure).
+
+**The separate-CLI rule.** AF runs `ritmo-tools` as a child process and reads its JSON; no AF package imports it,
+and no AF type mirrors its internals beyond the fields of the JSON report a step reads. Its Effect 4.1 does not meet
+AF's Effect 3.22 (ADR 0003), and a second Effect major in one process graph would duplicate the runtime. It is a
+`devDependency` of the package that spawns it (`@mcthaydt/automata-content` for the asset build, the game for its
+own scripts), pinned exactly; `docs/versions.md` gets its npm-table row and `docs/stack.md` its card in the PR that
+first installs it (ASSET.1), because `tooling/versions` fails on a row no manifest uses. Never in a game bundle.
+
+**Version.** 0.19.1, as the Owner named it. It was published on 2026-10-29 and the package's first release was
+2026-10-28, so no version meets AF's usual "older than 14 days" rule (versions.md); ASSET.1 pins 0.19.1 and records
+that exception in its row (veto ASSET-D2 below).
+
+**Pixel (ASSET.1).**
+- `automata-content assets` runs `ritmo-tools pixel lint <png>` on every atlas input frame (§4.7 Atlases) before it
+  packs, with the game's `pixel.config.json` (`--config`). A report with exit 3 fails the build with the file and
+  the report's findings; exit 2 is a tool error naming the file; exit 4 cannot come from `lint` (it reads pixels as
+  they are) and is treated as a tool error.
+- The fixer is not run by the build. `ritmo-tools pixel fix` and `sheet` rewrite art, which a build must never do
+  (outputs are generated, inputs are authored); a person or an agent runs them, and the agent skills describe that
+  (ASSET.4).
+- **Palette.** The game's palette is a committed `.hex` file next to `pixel.config.json`, which names it
+  (`"palette": "endesga-64.hex"`). ritmo-tools 0.19.1 has no Endesga 64 preset (its presets include Endesga 32,
+  AAP-64 and PICO-8), so the file is the source; a game may name a preset instead. When the content `palette` (§4.7
+  Palette check) and the `.hex` both exist, they must hold the same colours, and the build fails naming the first
+  colour that differs, so the palette has one source of truth per game.
+- **`automata check` `pixels` step.** Runs `ritmo-tools pixel lint` over the same inputs with `--json` findings
+  (`file`, `rule`, `message`), so an agent sees art problems without a full build. The step is skipped, not
+  failed, when the game has no `pixel.config.json`.
+
+**Sound (ASSET.2).**
+- A game's sound effects are a bank, `content/sounds/<name>.sounds.json` (ritmo-tools' format:
+  `{"version": 1, "master": …, "sounds": {…}}`). `automata-content assets` runs `ritmo-tools sound check <bank>`
+  (exit 3 fails the build with the bank and each sound's findings) and `ritmo-tools sound render <bank> -o <out>`,
+  writing one WAV per sound with a content-hashed name into the generated assets; core `sound` (§4.6) plays them
+  by name.
+- The review files (`*.sounds.review.json`) are authoring state, never read by the build.
+- The Audio editor (EDS.5) edits banks; `audio-synth` (M6.10a, Plus) decides in its own spec whether it adopts the
+  recipe format.
+
+**Music (ASSET.3).**
+- A song is `content/music/<name>.song.json`. The build runs `ritmo-tools music check <song>` (exit 3 fails it) and
+  `ritmo-tools music render <song> -o <out>.wav`, writing a stereo WAV per song (the MIDI file it also writes is
+  not shipped). Core `music` (§4.6) and the Plus `audio-stream` (§4.9, M5.8a) play the rendered file.
+- `listen` and `review` are authoring commands (a hum, a local page); the build never runs them.
+
+**Determinism.** Two runs over the same inputs must give byte-identical outputs, as for fonts and atlases (§4.7). If
+a ritmo-tools render is not byte-stable (`sound vary` takes a `--seed`, but `render` documents none), ASSET.2 and
+ASSET.3 record the evidence and hash the WAV's samples instead of its bytes, and say so in their plans.
+
+**Acceptance cases.**
+- ASSET-a (ASSET.1). A planted off-palette pixel in an atlas frame fails `automata-content assets` with the file and
+  ritmo-tools' finding; the same frame on the palette passes and the atlas is byte-identical to the build without
+  the lint.
+- ASSET-b (ASSET.1). `automata check --json` reports the planted pixel under a `pixels` step; a game with no
+  `pixel.config.json` skips the step.
+- ASSET-c (ASSET.1). A content `palette` and an `endesga-64.hex` that differ by one colour fail the build naming it.
+- ASSET-d (ASSET.2). A bank with a clipping sound fails the build (exit 3) naming the sound; a clean bank renders one
+  WAV per sound, and core `sound` plays one by name in a runtime test with a fake audio context.
+- ASSET-e (ASSET.3). A silent song fails the build; a clean song renders a WAV that core `music` loads.
+- ASSET-f (ASSET.2, ASSET.3). Two builds over the same banks and songs give identical outputs (bytes, or samples per
+  the determinism rule).
+- ASSET-g (every row). No AF source file imports `@typeonce/ritmo-tools` (a repo-hygiene check), and its `effect`
+  4.x is absent from every published package's dependency graph.
+- ASSET-h (ASSET.4). `create-game` output has `@typeonce/ritmo-tools` as an exact-pinned dev dependency with
+  `pixel:lint`, `sounds` and `music` scripts; the agent skills name the commands and when the build runs them;
+  `tooling/agent-skills` checks stay green.
+
+**Decisions for the Owner's veto.**
+- ASSET-D1: the build lints art but never runs the fixer (a build does not rewrite authored inputs).
+- ASSET-D2: pin 0.19.1 although it is under 14 days old, because the Owner named it and no older release exists.
+- ASSET-D3: Endesga 64 comes from a committed `.hex` file, as ritmo-tools has no preset for it.
+- ASSET-D4: the MIDI ritmo-tools writes beside each song is not shipped.
 
 ### 4.8 Leaderboards (`packages/runtime/src/leaderboards/`, M5.7)
 
