@@ -8,17 +8,21 @@ import { render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { flushSync } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
-import { counterIds } from '../model/ids'
-import { createProfileRegistry } from '../profiles/profile'
-import { memoryWorkspace, textOf } from '../testing/memory-workspace'
-import { noteText, plantedProfile } from '../testing/planted-profile'
-import { createTestClock } from '../testing/test-clock'
-import DocumentFrame from './DocumentFrame.svelte'
-import { createDocumentController } from './document/document-controller'
-import { createEditorApp } from './editor-app'
+import { counterIds } from '../../model/ids'
+import { createProfileRegistry } from '../../profiles/profile'
+import FakeLevelCanvas from '../../testing/FakeLevelCanvas.svelte'
+import { memoryWorkspace, textOf } from '../../testing/memory-workspace'
+import { noteText, plantedProfile } from '../../testing/planted-profile'
+import { createTestClock } from '../../testing/test-clock'
+import { createEditorApp } from '../editor-app'
+import { createAppProfiles } from '../profiles'
+import DocumentScreen from './DocumentScreen.svelte'
+import { createDocumentController } from './document-controller'
 
-// Where an opened document goes until the Level view fills its canvas (plans ED2D.4c2a decision 10, ED2D.4c2b decisions
-// 5 to 8): the top bar with Back, Undo, Redo and Save, the save state, the Restore and conflict dialogs and the toasts.
+// An open document (plan ED2D.4c4a decision 1; the cases of the frame it replaced, plans ED2D.4c2a decision 10 and
+// ED2D.4c2b decisions 5 to 8): the top bar with Back, Undo, Redo and Save, the save state, the Restore and conflict
+// dialogs and the toasts, around the view the rail chose. The planted note lists one view that is not built; the level
+// project lists six, of which Level is.
 
 const quietPage = (): { document: LifecycleDocument; window: LifecycleWindow } => ({
   document: { visibilityState: 'visible', addEventListener: () => {}, removeEventListener: () => {} },
@@ -46,11 +50,14 @@ async function mount(options: { persistent?: boolean; autosave?: boolean; size?:
   const toasts = createToasts({ clock })
   const controller = createDocumentController({ app, opened, toasts, lifecycle: quietPage() })
   const onback = vi.fn()
-  render(DocumentFrame, {
+  render(DocumentScreen, {
     geometry: stubGeometry(...(options.size ?? [1194, 834])),
     controller,
     toasts,
     clock,
+    read: (path: string) => workspace.store.read(path),
+    ids: counterIds(100),
+    canvas: FakeLevelCanvas,
     onback,
   })
   return { opened, controller, toasts, workspace, onback }
@@ -58,7 +65,7 @@ async function mount(options: { persistent?: boolean; autosave?: boolean; size?:
 
 const status = (): HTMLElement => document.querySelector('[data-widget="status-line"]') as HTMLElement
 
-describe('DocumentFrame', () => {
+describe('DocumentScreen', () => {
   it('heads the page with the document, which takes focus, and its profile', async () => {
     await mount()
     expect(screen.getByRole('heading', { level: 1, name: 'a.note' })).toHaveFocus()
@@ -71,9 +78,11 @@ describe('DocumentFrame', () => {
     expect(screen.queryByText('Planted note')).toBeNull()
   })
 
-  it('says the editing views are not here yet', async () => {
+  it('shows a view that is not built yet in plain words, saying the project is safe', async () => {
     await mount()
-    expect(screen.getByText(/arrive with ED2D\.4c4/)).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Note' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('heading', { name: 'Note is coming in a later update' })).toBeInTheDocument()
+    expect(screen.getByText(/Your project is safe/)).toBeInTheDocument()
   })
 
   it('Back reports to its owner', async () => {
@@ -162,5 +171,63 @@ describe('DocumentFrame', () => {
   it('says so when this device keeps nothing', async () => {
     await mount({ persistent: false })
     expect(status()).toHaveTextContent('Not saved on this device')
+  })
+})
+
+async function mountLevel(size: [number, number] = [1194, 834]) {
+  const clock = createTestClock()
+  const workspace = memoryWorkspace(clock)
+  const app = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
+  const opened = await app.create('level-project', 'platformer')
+  if (opened.status !== 'opened') throw new Error(opened.status)
+  const toasts = createToasts({ clock })
+  const controller = createDocumentController({ app, opened, toasts, lifecycle: quietPage() })
+  render(DocumentScreen, {
+    geometry: stubGeometry(...size),
+    controller,
+    toasts,
+    clock,
+    read: (path: string) => workspace.store.read(path),
+    ids: counterIds(100),
+    canvas: FakeLevelCanvas,
+    onback: () => {},
+  })
+  return { opened }
+}
+
+describe('DocumentScreen: the rail', () => {
+  it('lists the profile’s views and opens on the first, the Level view', async () => {
+    await mountLevel()
+    const tabs = screen.getAllByRole('tab').map((tab) => tab.textContent)
+    expect(tabs).toEqual(['Level', 'World', 'Tilesets', 'Entities', 'Checks', 'Export'])
+    expect(screen.getByRole('tab', { name: 'Level' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByTestId('level-view')).toBeInTheDocument()
+  })
+
+  it('shows the chosen view and keeps the document and its history across views', async () => {
+    const { opened } = await mountLevel()
+    opened.document.history.apply('Rename', (project) => ({ ...(project as object), name: 'Moss' }))
+    flushSync()
+    await userEvent.click(screen.getByRole('tab', { name: 'World' }))
+    expect(screen.getByRole('heading', { name: 'World is coming in a later update' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Undo Rename' })).toBeEnabled()
+    await userEvent.click(screen.getByRole('tab', { name: 'Level' }))
+    expect(screen.getByTestId('level-view')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Undo Rename' })).toBeEnabled()
+  })
+
+  it('moves between views with the arrow keys and keeps focus on the rail', async () => {
+    await mountLevel()
+    screen.getByRole('tab', { name: 'Level' }).focus()
+    await userEvent.keyboard('{ArrowDown}')
+    expect(screen.getByRole('tab', { name: 'World' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'World' })).toHaveFocus()
+    await userEvent.keyboard('{End}')
+    expect(screen.getByRole('tab', { name: 'Export' })).toHaveFocus()
+  })
+
+  it('is a tab bar along the foot below wide', async () => {
+    await mountLevel([834, 1194])
+    expect(screen.getByRole('tablist', { name: 'Views' })).toHaveAttribute('aria-orientation', 'horizontal')
   })
 })

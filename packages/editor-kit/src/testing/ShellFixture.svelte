@@ -20,6 +20,8 @@ interface Props {
   dockOpen?: boolean | undefined
   /** `false` leaves the rail out, as a screen with no destinations (Home) does. */
   rail?: boolean
+  /** `false` leaves the inspector out, as a view whose inspector is not built yet does. */
+  inspector?: boolean
   /** `false` leaves the dock out, as a screen with nothing to put beneath its canvas (Home) does. */
   dock?: boolean
   /** Fills the status region with the kit's `StatusLine`, as a real screen does, instead of a plain readout. */
@@ -32,6 +34,7 @@ interface Props {
 const {
   geometry,
   rail: withRail = true,
+  inspector: withInspector = true,
   dock: withDock = true,
   statusLine = false,
   broken,
@@ -102,10 +105,18 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
   </div>
 {/snippet}
 
+{#snippet inspectorBody()}
+  {@render bug('inspector')}
+  {#each fields as field (field)}
+    <label class="field">{field}<input data-testid={`field-${field}`} /></label>
+  {/each}
+{/snippet}
+
 <EditorShell
   {geometry}
   rail={withRail ? railBody : undefined}
   dock={withDock ? dockBody : undefined}
+  inspector={withInspector ? inspectorBody : undefined}
   bind:panelOpen
   bind:inspectorOpen
   bind:dockOpen
@@ -126,12 +137,6 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
         <li><button type="button" data-testid={`layer-${layer}`}>{layer}</button></li>
       {/each}
     </ul>
-  {/snippet}
-  {#snippet inspector()}
-    {@render bug('inspector')}
-    {#each fields as field (field)}
-      <label class="field">{field}<input data-testid={`field-${field}`} /></label>
-    {/each}
   {/snippet}
   {#snippet canvas()}
     {@render bug('canvas')}

@@ -23,6 +23,10 @@ startEditor(target, {
     crypto.getRandomValues(bytes)
   },
   storage: navigator.storage,
+  objectUrls: {
+    create: (bytes) => URL.createObjectURL(new Blob([bytes as Uint8Array<ArrayBuffer>])),
+    revoke: (url) => URL.revokeObjectURL(url),
+  },
   // Pixi is fetched with the first card that has a level to show, not with the editor (a chunk of its own).
   thumbnails: (workspace) =>
     lazyThumbnails(async () => {
