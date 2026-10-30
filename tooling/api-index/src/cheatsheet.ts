@@ -2,7 +2,7 @@
 // index's rows. It holds no list of its own: every name, kind, call form and summary comes from `ApiExport`, so
 // the page cannot drift from the published `.d.ts` (one contract owner). The full signatures stay in `api.md`.
 import ts from 'typescript'
-import type { ApiExport } from './extract.ts'
+import type { ApiExport } from './rows.ts'
 
 function specifier(row: ApiExport): string {
   return row.entryPoint === '.' ? row.package : `${row.package}${row.entryPoint.slice(1)}`

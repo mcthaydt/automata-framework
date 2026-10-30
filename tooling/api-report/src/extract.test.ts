@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterAll, describe, expect, it } from 'vitest'
 import { corePackages } from './core-packages.ts'
-import { extractApi } from './extract.ts'
+import { declarationExports, extractApi, sourceExports } from './extract.ts'
 import { FIXTURE_EXCLUDED, FIXTURE_ROOT } from './fixture.ts'
 
 describe('corePackages', () => {
@@ -57,5 +60,74 @@ describe('extractApi (declarations from source, no build)', () => {
       kind: 'svelte',
       declaration: "component from './widget.svelte'",
     })
+  })
+})
+
+describe('sourceExports (the one extractor, from source)', () => {
+  const packages = corePackages(FIXTURE_ROOT, FIXTURE_EXCLUDED)
+  const exportsOf = sourceExports(packages)
+
+  it('reads an entry module in the order the checker lists its exports, with no doc comments', () => {
+    const root = exportsOf(join(FIXTURE_ROOT, 'packages/alpha/src/index.ts')) ?? []
+    // The source has `/** Adds two numbers. */`, but its declarations are emitted without comments.
+    expect(root.find((exported) => exported.name === 'add')).toEqual({
+      name: 'add',
+      kind: 'function',
+      declaration: 'function add(a: number, b: number): number;',
+      doc: '',
+    })
+    expect(root.map((exported) => exported.doc)).toEqual(root.map(() => ''))
+  })
+})
+
+describe('declarationExports (the one extractor, from emitted .d.ts)', () => {
+  // An entry point and the chunk it re-exports from, shaped the way rolldown-plugin-dts writes them.
+  const dir = mkdtempSync(join(tmpdir(), 'api-extract-'))
+  afterAll(() => rmSync(dir, { recursive: true, force: true }))
+  const file = (name: string, text: string) => {
+    writeFileSync(join(dir, name), text)
+    return join(dir, name)
+  }
+  file(
+    'chunk-a1.d.ts',
+    "/** A shape kind. */\ntype ShapeKind$1 = 'box' | 'ball';\nexport { ShapeKind$1 as t };\n",
+  )
+  const entry = file(
+    'index.d.ts',
+    [
+      "import { t as ShapeKind } from './chunk-a1.js';",
+      '/**',
+      ' * Adds two numbers.',
+      ' * @returns the sum',
+      ' */',
+      'export declare function add(a: number, b: number): number;',
+      "export { default as Widget } from './widget.svelte';",
+      'export { ShapeKind };',
+      '',
+    ].join('\n'),
+  )
+  const script = file('script.d.ts', 'declare const notExported: number;\n')
+  const exportsOf = declarationExports([entry, script])
+
+  it('reads each export with its doc comment and tags, and an alias renamed in a chunk by its exported name', () => {
+    expect(exportsOf(entry)).toEqual([
+      {
+        name: 'add',
+        kind: 'function',
+        declaration: 'function add(a: number, b: number): number;',
+        doc: 'Adds two numbers.\n@returns the sum',
+      },
+      { name: 'Widget', kind: 'svelte', declaration: "component from './widget.svelte'", doc: '' },
+      {
+        name: 'ShapeKind',
+        kind: 'type',
+        declaration: "type ShapeKind = 'box' | 'ball';",
+        doc: 'A shape kind.',
+      },
+    ])
+  })
+
+  it('gives undefined for a file that is not a module', () => {
+    expect(exportsOf(script)).toBeUndefined()
   })
 })
