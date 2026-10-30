@@ -1,6 +1,6 @@
 ---
 name: automata-verify
-description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, orientation, inputs, no-eval, CSP). Use when automata check or the Automata hook reports findings.
+description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, orientation, inputs, no-eval, data URLs, CSP). Use when automata check or the Automata hook reports findings.
 ---
 
 # Running and reading `automata check`
@@ -17,6 +17,7 @@ folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp]
 | `orientation` | the `orientation` each `defineGame` plays in, against `ship.config.ts`'s `runtime.orientation` | `--sim-only` |
 | `inputs` | the devices the sources' `keys()` calls bind, against `ship.config.ts`'s `runtime.inputs` | `--sim-only` |
 | `no-eval` | `vite build`, then a scan of `dist/**/*.js` | `--sim-only` |
+| `data-urls` | a scan of the `dist/**/*.js` that `no-eval` built for assets Vite inlined as `data:` URLs | `--sim-only` |
 | `csp` | serves `dist/` with Ruken's Content-Security-Policy and loads it in Chromium until the game is ready | unless `--csp` |
 
 Every step runs even after one fails, so one run shows everything; `--fail-fast` stops at the first failing step.
@@ -93,6 +94,13 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 | `string-timer` | `setTimeout`/`setInterval` given a string | Pass a function |
 | `build` | `vite build` failed, so nothing could be scanned | Fix the build error in the message |
 | `parse-error` | A built file could not be scanned | Report it; the build produced something the scanner can't read |
+
+### `data-urls` (assets ship as files)
+
+| Rule | Means | Fix |
+|---|---|---|
+| `data-url` | Vite inlined an asset under `build.assetsInlineLimit` (4 kB by default) as a `data:` URL for a `new URL('./file', import.meta.url)`. Ruken's CSP has no `data:` in `connect-src` or `media-src`, so the loader's fetch is refused and the asset never loads | Set `build.assetsInlineLimit: 0` in `vite.config.ts` (the content Vite plugin and `create-game` set it), so the asset ships as a file from the game's own origin |
+| `build` | `vite build` failed, so nothing was scanned | Fix the build error `no-eval` reports |
 
 ### `csp` (with `--csp`)
 
