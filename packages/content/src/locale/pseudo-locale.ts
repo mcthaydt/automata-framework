@@ -8,7 +8,9 @@
 //    screen is a string that skipped the catalog (`hasRawText`).
 //
 // Extracted from Ruken packages/localization/src/pseudo.ts (d0fa2fe), Ruken's own `en-XA` pseudo-locale.
-// Changed from Ruken: the tag is `xx-long` and the text 40% longer (35% there), as the PRODUCT spec sets them.
+// Changed from Ruken: the tag is `xx-long` and the text 40% longer (35% there), as the PRODUCT spec sets them; and the
+// extra length is spread over the words rather than put in one run at the end, where a long message ended in a
+// word no language has (a 1,000-character message in a 400-character one).
 
 /** The pseudo-locale's tag. `Intl` reads it as the unknown language `xx`, so formatting falls back, never throws. */
 export const PSEUDO_LOCALE = 'xx-long'
@@ -35,15 +37,32 @@ function accent(text: string): string {
   )
 }
 
-/** The xx-long form of one message string. Placeholders and escaped braces stay as written. */
+/**
+ * The xx-long form of one message string. Placeholders and escaped braces stay as written. The extra length is
+ * spread over the words in proportion to their length, each word's share right after it, so a long message keeps
+ * the places a line can break, as a longer language's would; a message with no words has it at the end.
+ */
 export function pseudoLocalize(message: string): string {
   if (message === '') return ''
-  const accented = message
-    .split(NOT_WORDS)
-    .map((part, index) => (index % 2 === 1 ? part : accent(part))) // odd parts are the NOT_WORDS matches
-    .join('')
-  const padding = FILLER.repeat(Math.ceil(message.length * EXTRA_LENGTH))
-  return `${OPEN}${accented}${padding}${CLOSE}`
+  const parts = message.split(NOT_WORDS) // odd parts are the NOT_WORDS matches
+  const extra = Math.ceil(message.length * EXTRA_LENGTH)
+  const letters = parts.reduce(
+    (sum, part, index) => (index % 2 === 1 ? sum : sum + part.replace(/\s/g, '').length),
+    0,
+  )
+  if (letters === 0) return `${OPEN}${message}${FILLER.repeat(extra)}${CLOSE}`
+  // Each word takes the filler due by the end of it, rounded up, so the shares add up to exactly `extra`.
+  let seen = 0
+  let given = 0
+  const lengthen = (word: string): string => {
+    seen += word.length
+    const due = Math.ceil((extra * seen) / letters)
+    const share = due - given
+    given = due
+    return `${accent(word)}${FILLER.repeat(share)}`
+  }
+  const body = parts.map((part, index) => (index % 2 === 1 ? part : part.replace(/\S+/g, lengthen))).join('')
+  return `${OPEN}${body}${CLOSE}`
 }
 
 /** A value in an inlang message file: a message, a list of variants, or a namespace or variant object. */

@@ -17,6 +17,21 @@ describe('pseudoLocalize', () => {
     expect(body.length).toBeGreaterThanOrEqual(Math.ceil(original.length * 1.4))
   })
 
+  // Changed from Ruken, which puts all the extra length in one run at the end: a 1,000-character message then ended
+  // in a 400-character word no language has, and ui's ErrorPanel scrolled it 1,482 px sideways (PRODUCT.L3a's first run).
+  it('spreads the extra length over the words, so a long message keeps its places to break', () => {
+    const original = 'Your progress in this slot will be gone for good. '.repeat(20).trim()
+    const body = pseudoLocalize(original).slice(1, -1)
+    const longest = (text: string): number => Math.max(...text.split(' ').map((word) => word.length))
+    expect(body.split(' ')).toHaveLength(original.split(' ').length)
+    expect(longest(body)).toBeLessThanOrEqual(Math.ceil(longest(original) * 1.4) + 1)
+    expect(body.length).toBeGreaterThanOrEqual(Math.ceil(original.length * 1.4))
+  })
+
+  it('gives a message with no words its extra length at the end', () => {
+    expect(pseudoLocalize('{count}')).toBe('⟦{count}···⟧')
+  })
+
   it('keeps {placeholders} exactly as written', () => {
     const out = pseudoLocalize('Hello {name}, you have {count} games')
     expect(out).toContain('{name}')
