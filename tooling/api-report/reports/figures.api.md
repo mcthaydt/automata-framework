@@ -2120,3 +2120,19 @@ interface FixtureFigures {
 ```ts
 function fixtureFigures(): Promise<FixtureFigures>;
 ```
+
+### `FixtureMotion` (interface)
+
+```ts
+interface FixtureMotion {
+    readonly library: MotionLibrary;
+    readonly wick: FigureDef;
+    readonly body: Skeleton;
+}
+```
+
+### `fixtureMotion` (function)
+
+```ts
+function fixtureMotion(): Promise<FixtureMotion>;
+```
