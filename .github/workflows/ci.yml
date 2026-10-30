@@ -6,8 +6,9 @@ name: ci
 #
 # What a pull request runs (CI backlog, 2026-10-23): one runner serves every pull request, so the checks job
 # always runs and decides whether the pull request is documentation only (`scope`). Parity and the games' CI
-# (placeholder, base-2d) run for a pull request only when it is ready for review and changes more than docs/ and
-# Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are unchanged.
+# (placeholder, base-2d, base-3d) run for a pull request only when it is ready for review and changes more than
+# docs/ and Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are
+# unchanged.
 #
 # Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
 # about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
@@ -335,4 +336,21 @@ jobs:
       working-directory: games/emberwick
       sim-roots: src/sim
       artifact-name: base-2d-dist
+      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+
+  # M3.7a: base-3d's sim is flat in src/ (games/base-3d/DESIGN.md §3.1), so the whole folder is its sim root.
+  base-3d:
+    name: base-3d through game-ci
+    needs: checks
+    if: >-
+      !cancelled() &&
+      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
+      (github.event_name != 'pull_request' ||
+      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
+      needs.checks.outputs.docs_only != 'true'))
+    uses: ./.github/workflows/game-ci.yml
+    with:
+      working-directory: games/base-3d
+      sim-roots: src
+      artifact-name: base-3d-dist
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
