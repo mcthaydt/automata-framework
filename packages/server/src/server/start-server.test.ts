@@ -75,9 +75,9 @@ describe('the server runtime', () => {
   it('stops answering once its scope closes', async () => {
     server = await startTestServer()
     const base = `http://127.0.0.1:${server.runtime.port}`
-    expect((await fetch(`${base}/matchmake/create/${ROOM_NAME}`, { method: 'POST' })).status).toBeLessThan(
-      500,
-    )
+    // Valid join options: matchmaking refuses a request without them before it opens a room (M7.4b's session check).
+    const answer = await server.matchmake('create', server.joinOptions('Ada'))
+    expect(answer.status).toBeLessThan(500)
     await server.close()
     server = undefined
     await expect(fetch(`${base}/`)).rejects.toThrow()

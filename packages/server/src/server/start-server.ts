@@ -10,9 +10,14 @@
  * plain code, driven by a tick clock that reads Effect's `Clock`.
  *
  * The gates in front of Colyseus (M7.4a: origins, the size cap, per-IP buckets, sockets and the version gate) wrap
- * this listener's `request` and `upgrade` handlers (`installGates`). Seams for a later row: logs, `/health`,
- * `/ready` and process safety are M7.4b's (`config.log` receives the events now; `runtime.origins` is the CORS a
- * route answers with).
+ * this listener's `request` and `upgrade` handlers (`installGates`).
+ *
+ * Operations (M7.4b): the runtime refuses a test switch in production (`process-safety.ts`), gives Colyseus a logger
+ * that writes no text, puts `/health`, `/ready` and security.txt in front of Colyseus's router (`probes.ts`), and is
+ * ready only once the game's content has loaded: it listens first, so `/health` answers while it loads, and beside
+ * the listener reads the game's version from one throwaway sim (`gameVersionOf`), then logs `server.started`. Until
+ * then matchmaking is refused `SERVER_UPDATING`, since no join can be checked against a version not yet read. Each
+ * room verifies a joining player's session with `config.verifier` (anonymous until R-13).
  */
 
 import { randomInt } from 'node:crypto'
@@ -32,7 +37,11 @@ import { createUpgradeGate } from '../gate/upgrade-gate'
 import { type AutomataRoom, roomClassFor } from '../room/automata-room'
 import { LiveRooms } from '../rooms/live-rooms'
 import type { TickClock } from '../rooms/tick-scheduler'
+import { anonymousVerifier, type SessionVerifier } from '../session/session-verifier'
 import { DRAIN_MAX_MS, type DrainResult, drainOnSigterm, drainRooms } from './drain'
+import { colyseusLogger } from './log-writer'
+import { installProbes, type Readiness } from './probes'
+import { testSwitchesSet } from './process-safety'
 
 type TaggedErrorClass<Tag extends string, Fields> = new (
   fields: Fields,
@@ -52,10 +61,12 @@ export interface ServerRuntime {
   readonly gameServer: Server
   readonly rooms: LiveRooms<AutomataRoom>
   readonly draining: boolean
+  /** What `/ready` reports: `ready` once the content has loaded, `full` at the room cap, `draining` after SIGTERM. */
+  readonly readiness: Readiness
   /** The origin list every route answers with (M7.4b's `/health` reads it for its CORS). */
   readonly origins: OriginPolicy
-  /** The protocol and hashes a client must match to join (spec §4.2 join check). */
-  readonly version: GameVersion
+  /** The protocol and hashes a client must match to join (spec §4.2 join check); undefined until read. */
+  readonly version: GameVersion | undefined
   /** The open sockets the gates count, per address and in all. */
   readonly sockets: Pick<SocketGate, 'open' | 'addresses'>
   /**
@@ -119,6 +130,21 @@ function configProblem(config: ServerConfig): string | undefined {
   return undefined
 }
 
+/**
+ * Whether a session token verifies, on the server's clock. A verifier that fails in any other way than refusing the
+ * token refuses it too: a join is never seated because verification broke.
+ */
+function sessionCheck(verifier: SessionVerifier, clock: Clock.Clock): (token: string) => Promise<boolean> {
+  return (token) =>
+    Effect.runPromise(
+      verifier.verify(token).pipe(
+        Effect.withClock(clock),
+        Effect.as(true),
+        Effect.catchAllCause(() => Effect.succeed(false)),
+      ),
+    )
+}
+
 const close = (http: HttpServer): Promise<void> =>
   new Promise((resolve) => {
     http.closeAllConnections()
@@ -132,16 +158,21 @@ export function createServerRuntime(
   return Effect.gen(function* () {
     const problem = configProblem(config)
     if (problem !== undefined) return yield* new ServerStartError({ reason: problem })
+    const env = config.env ?? process.env
+    // The process's own environment is read too: a config's `env` can say `test` on a production box.
+    const switches = testSwitchesSet(config, env, process.env)
+    if (switches.length > 0)
+      return yield* new ServerStartError({
+        reason: `refusing to start in production with ${switches.join(', ')} set`,
+      })
 
     const clock = yield* Effect.clock
     const rooms = new LiveRooms<AutomataRoom>()
     const log = config.log ?? (() => undefined)
     let draining = false
+    // Read beside the listener (below): until then the server is `starting` and refuses matchmaking.
+    let version: GameVersion | undefined
     const origins = originPolicy(config.limits.allowedOrigins)
-    const version = yield* Effect.tryPromise({
-      try: () => gameVersionOf(def),
-      catch: (cause) => new ServerStartError({ reason: 'the game could not build its sim', cause }),
-    })
 
     const http = createServer()
     const gameServer = new Server({
@@ -154,6 +185,7 @@ export function createServerRuntime(
       // exists to let finish. `startServer` owns the signal.
       gracefullyShutdown: false,
       greet: false,
+      logger: colyseusLogger(log),
     })
     gameServer.define(
       ROOM_NAME,
@@ -163,15 +195,16 @@ export function createServerRuntime(
         maxRooms: config.limits.maxRooms,
         commandsPerSeat: config.limits.commandsPerSeat,
         maxMessageBytes: config.limits.maxMessageBytes,
-        version,
+        version: () => version,
         rooms,
         clock: tickClockFrom(clock),
         isDraining: () => draining,
         randomInt: (max) => randomInt(max),
         roomSeed: () => config.seed ?? randomInt(2 ** 32),
-        env: config.env ?? process.env,
+        env,
         log,
         manualClock: config.manualClock === true,
+        verifySession: sessionCheck(config.verifier ?? anonymousVerifier, clock),
       }),
     )
 
@@ -203,7 +236,7 @@ export function createServerRuntime(
         isDraining: () => draining,
         perIp: config.limits.perIp,
         maxBodyBytes: config.limits.maxMessageBytes,
-        version,
+        version: () => version,
         now: () => clock.unsafeCurrentTimeMillis(),
         onRefused: refused,
       }),
@@ -216,6 +249,30 @@ export function createServerRuntime(
     yield* Effect.addFinalizer(() => Effect.sync(removeGates))
     // Colyseus keeps the port it was asked for; a client built from it (the SDK, @colyseus/testing) needs the real one.
     ;(gameServer as unknown as { port: number }).port = port
+    // Ready means a new room would open: content loaded, not draining, and under the room cap (spec §4.5).
+    const readiness = (): Readiness => {
+      if (draining) return 'draining'
+      if (version === undefined) return 'starting'
+      return rooms.size >= config.limits.maxRooms ? 'full' : 'ready'
+    }
+    installProbes(http, { readiness, securityTxt: config.securityTxt })
+
+    // The game's version (its schema and content hashes) is read from one throwaway sim of it, which is also the proof
+    // that its content loads. The read runs beside the server rather than ahead of it: `/health` answers meanwhile,
+    // matchmaking is refused `SERVER_UPDATING`, and a plugin whose engine takes its time holds up readiness, not the
+    // process. Content that cannot build a sim leaves the server alive and never ready, which a deploy reads as a
+    // build that must not go live; the line names the cause by kind only.
+    yield* Effect.forkScoped(
+      Effect.tryPromise(() => gameVersionOf(def)).pipe(
+        Effect.match({
+          onFailure: () => log({ event: 'start.refused', code: 'content' }),
+          onSuccess: (read) => {
+            version = read
+            log({ event: 'server.started' })
+          },
+        }),
+      ),
+    )
 
     const drain = yield* Effect.cached(
       Effect.gen(function* () {
@@ -243,8 +300,13 @@ export function createServerRuntime(
       get draining() {
         return draining
       },
+      get readiness() {
+        return readiness()
+      },
       origins,
-      version,
+      get version() {
+        return version
+      },
       sockets,
       drain,
     }

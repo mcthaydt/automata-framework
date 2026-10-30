@@ -60,6 +60,9 @@ describe('what the server logs about refusals', () => {
     const staying = { beginDrain: () => undefined } as unknown as AutomataRoom
     server.runtime.rooms.register(staying)
     const drained = Effect.runPromise(server.runtime.drain)
+    // runPromise hands the drain to Effect's scheduler rather than running it inline, so wait for it to begin.
+    const test = server
+    await waitFor(() => test.runtime.draining, 'the drain never began')
     await server.matchmake('create', server.joinOptions('Ada'))
     expect(refusals(server)).toContain('draining')
     server.runtime.rooms.forget(staying)

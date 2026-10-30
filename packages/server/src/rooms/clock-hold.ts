@@ -30,7 +30,8 @@ export const HELD_GRACE_SECONDS: number = 10 * 60
 
 /** Whether a hold may be taken in this environment: never in production. */
 export function holdAllowed(env: Readonly<Record<string, string | undefined>>): boolean {
-  return env.NODE_ENV !== 'production'
+  // Read as process safety reads it (`isProduction`): trimmed and in any case.
+  return env.NODE_ENV?.trim().toLowerCase() !== 'production'
 }
 
 /** The wall seconds Colyseus keeps a seat that has just dropped. */
