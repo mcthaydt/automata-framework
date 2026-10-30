@@ -42,14 +42,19 @@ function lookUp<D>(
   return { problem: unreadable?.message ?? `no ${def} ${id}` }
 }
 
-/** The floor under a place, or the sentence for why there is none: outside every sector (a hole is outside), or no level. */
+/**
+ * The floor under a place, or the sentence for why there is none: outside every sector (a hole is outside), or no level.
+ * A thing that bounds an area (Last Light's camera zone) may stand outside every sector, as the `entities` check allows:
+ * it has no floor there.
+ */
 function standing<D>(
   profile: LevelProfile<D>,
   level: D,
+  definition: ThingDef,
   id: string,
   x: number,
   z: number,
-): { readonly floor: number } | { readonly problem: string } {
+): { readonly floor: number | undefined } | { readonly problem: string } {
   try {
     for (const layer of profile.geometry(level).layers) {
       const sector = layer.kind === 'sectors' ? sectorAt(layer.map, { x, z }) : undefined
@@ -59,7 +64,9 @@ function standing<D>(
     if (error instanceof GeometryError) return { problem: error.message }
     throw error
   }
-  return { problem: `entity ${id} is outside every sector` }
+  return definition.area === undefined
+    ? { problem: `entity ${id} is outside every sector` }
+    : { floor: undefined }
 }
 
 /** What is wrong with the numbers of a place, in the order a person reads them. */
@@ -145,9 +152,9 @@ export function addThing<D>(args: AddThingArgs): Edit<D> {
       const problem = placeProblem(args.x, args.z, args.y) ?? floorProblem(definition, args.y)
       if (problem !== undefined) return refuse(problem)
       const [x, z] = [round4(args.x), round4(args.z)]
-      const under = standing(profile, level, id, x, z)
+      const under = standing(profile, level, definition, id, x, z)
       if ('problem' in under) return refuse(under.problem)
-      const y = definition.sit === 'free' ? round4(args.y ?? under.floor) : undefined
+      const y = definition.sit === 'free' ? round4(args.y ?? under.floor ?? 0) : undefined
       const values = startingValues(definition.fields, args.values ?? {})
       const misfits = checkValues(definition.fields, values)
       if (misfits.length > 0)
@@ -186,7 +193,7 @@ export function moveThing<D>(args: MoveThingArgs): Edit<D> {
       const problem = placeProblem(args.x, args.z, args.y) ?? floorProblem(definition, args.y)
       if (problem !== undefined) return refuse(problem, at)
       const [x, z] = [round4(args.x), round4(args.z)]
-      const under = standing(profile, level, id, x, z)
+      const under = standing(profile, level, definition, id, x, z)
       if ('problem' in under) return refuse(under.problem, at)
       const y = args.y === undefined ? thing.y : round4(args.y)
       const moved: Thing = { def, id, x, z, ...(y === undefined ? {} : { y }), values: thing.values }

@@ -123,6 +123,7 @@ export {
   type LevelEditorOptions,
 } from './model/level-editor'
 export type { LevelState } from './model/level-state'
+export { addLink, removeLink } from './model/link-edits'
 export { type MergeSectorsArgs, mergeSectors } from './model/merge-edits'
 export { type PortalOffer, portalOffers, type WallPortal, wallPortal } from './model/portal-offers'
 export {
@@ -186,6 +187,7 @@ export * from './profile/af-sector-profile'
 export * from './profile/file-codec'
 export * from './profile/last-light-codecs'
 export * from './profile/last-light-entities'
+export { lastLightNavLinks } from './profile/last-light-nav-links'
 export * from './profile/last-light-profile'
 export {
   type Geometry,
@@ -206,9 +208,12 @@ export {
   type SectorDraft,
 } from './profile/sector-access'
 export { type ThingAccess, ThingAccessError } from './profile/thing-access'
+export type { ThingLink, ThingLinks } from './profile/thing-links'
+export type { LinkPlace } from './things/link-mode'
 export {
   createThingsTool,
   type PaletteEntry,
+  type Rectangle,
   type ThingPlace,
   type ThingsTool,
   type ThingsToolOptions,
