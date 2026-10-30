@@ -93,7 +93,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 
 | Lane | Session | State on 2026-10-30 22:30Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | `session_01QYLU1fyLRfi9sXSeoySzoN` (since 23:37Z, depth 1 under the launcher) | Watching #283 M3.7b part 2b. Next: GL.3, then the coordinator rows in "Exact next action". |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | `session_01QYLU1fyLRfi9sXSeoySzoN` (since 23:37Z, depth 1 under the launcher) | Watching #284 (docs). Next: GL.3, then the coordinator rows in "Exact next action". |
 | 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1hJWsuzQPvjbezw4wi` (since 23:43Z, through the launcher; old: `session_01QYLU1fsuzzCNWoc84uTypf`) | M3.7b part 3 (the scene), then part 4, M3.6d part 2, GAME-3D.1a to 1l, M3.10, M9. |
 | Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1gGeUSWTgwK4XoZvPo` (since 23:43Z, through the launcher; old: `session_01QYLU1gUDkJKWKgwehpcLRG`) | EDS.2c (builds on #275: `suite-session.ts`, `write-path.ts`, `ask-session.ts`), then ED2D.5b/5c/7a. EDS.1d-b waits on ED2D.9. |
 | Website (`mcthaydt/automata-website`) | `session_01QYLU1iBXhs9QdohCWXcLfV` (since 23:43Z, through the launcher; old: `session_01QYLU1hE7DAF6hEy3zKsyRe`) | WEB.PLAY.7 (the compile worker and live updates; `@codemirror/lint` 6.9.7 is a new dependency), then .8 to .11, DX.9w, DX.10a, DX.11w, QB.4b/c, QB.5b, M10 (store links only). Deploys stay dry runs. |
@@ -117,7 +117,7 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 
 ## Exact next action
 
-1. Merge #283 (M3.7b part 2b) on green. `ci.yml`'s base-3d `sim-roots: src` line and its "flat in src/" comment are stale since #279; that is a workflow change, so it waits for the Owner's word.
+1. #283 (M3.7b part 2b) merged as `fa2159a`. `ci.yml`'s base-3d `sim-roots: src` line and its "flat in src/" comment are stale since #279; that is a workflow change, so it waits for the Owner's word.
 2. The runtime focus follow-up from the website lane (`packages/runtime/src/flow/flow.manager.ts`, the auto-focus on entry) is **not** a plain `!document.hasFocus()` skip: that breaks M4 spec §4.7 under a host, where the game focusing its first control is what gives its frame the keyboard (`examples/e2e/default-screens.e2e.ts` asserts Play focused under the fake host; two game unit tests failed too). It needs a narrow opt-out for an inert preview frame, written into the M4 spec first. The website hands focus back meanwhile.
 3. The "Version packages" PR (#226): before merging it, check its version bumps and that no physics package publishes from AF; its publish waits for the Owner's approval in the release environment.
 4. Keep at most about ten AF PRs in flight (Owner, 2026-10-30: "You can raise the cap and CI"). The checks and parity jobs may run 20 minutes.
