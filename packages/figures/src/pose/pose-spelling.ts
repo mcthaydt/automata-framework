@@ -28,17 +28,19 @@ export function roundPoseNumber(value: number): number {
 
 const round3 = (v: Vec3): Vec3 => [roundPoseNumber(v[0]), roundPoseNumber(v[1]), roundPoseNumber(v[2])]
 
-/** The effector ids and the pole ids in the rig's order (solve/targets.ts). */
-export const EFFECTOR_IDS: readonly EffectorId[] = [
-  'footL',
-  'footR',
-  'handL',
-  'handR',
-  'pelvis',
-  'chest',
-  'head',
-]
-export const POLE_IDS: readonly PoleId[] = ['kneeL', 'kneeR', 'elbowL', 'elbowR']
+// The effector and pole ids in the rig's order (solve/targets.ts); `satisfies` keeps each list complete.
+const EFFECTOR_ORDER = {
+  footL: 0,
+  footR: 1,
+  handL: 2,
+  handR: 3,
+  pelvis: 4,
+  chest: 5,
+  head: 6,
+} satisfies Record<EffectorId, number>
+const POLE_ORDER = { kneeL: 0, kneeR: 1, elbowL: 2, elbowR: 3 } satisfies Record<PoleId, number>
+export const EFFECTOR_IDS: readonly EffectorId[] = Object.keys(EFFECTOR_ORDER) as EffectorId[]
+export const POLE_IDS: readonly PoleId[] = Object.keys(POLE_ORDER) as PoleId[]
 
 function canonicalTarget(target: EffectorTarget): EffectorTarget | undefined {
   const weight = target.weight === undefined ? 1 : roundPoseNumber(target.weight)

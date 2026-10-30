@@ -2,6 +2,7 @@
 // the shared rig and its two-bone IK, the gene sliders, the figure and library content kinds, and the
 // extension that registers them. Extracted from FigureBuilder (mcthaydt/FigureBuilder) at a1f7246.
 // Part 5 (M3.6a): `solve()`, the rig's handles (effectors, poles, aim, pins) and its joint limits.
+// Part 6 (M3.6b): poses (`figure-pose` content), their canonical spelling, mirror, blend and checks.
 
 export {
   FIGURE_CONTENT,
@@ -10,6 +11,7 @@ export {
   figureHairContent,
   figureHeadwearContent,
   figureItemContent,
+  figurePoseContent,
   figureRigContent,
   figureStandContent,
   figureSwatchContent,
@@ -41,6 +43,12 @@ export { type HandPlace, type Hang, type Stand, standSchema } from './library/st
 export { SWATCH_KINDS, SWATCH_ROLES, type Swatch, swatchSchema } from './library/swatch.schema'
 export { type SwatchColourProblem, swatchColourProblems } from './library/swatch-colours'
 export * from './math/math'
+export { applyPose } from './pose/apply-pose'
+export { blend } from './pose/blend'
+export { mirror } from './pose/mirror'
+export { type PoseDef, poseSchema } from './pose/pose.schema'
+export { figureReach, type PoseProblem, poseProblems, REFERENCE_SKELETON } from './pose/pose-checks'
+export { canonicalPose, printPose, roundPoseNumber } from './pose/pose-spelling'
 export {
   armChain,
   clonePose,
