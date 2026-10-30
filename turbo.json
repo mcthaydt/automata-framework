@@ -7,7 +7,7 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "VENDORED.md"],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tooling/release/src/**"]
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/tooling/release/src/**", "$TURBO_ROOT$/vendor/ruken/**"]
     },
     "typecheck": {},
     "test": {},

@@ -50,6 +50,8 @@ export interface MakeFlowOptions<R = never> {
    * last flush; absent, the flow forks one before its own finalizer, so it closes after the current screen.
    */
   readonly runtime?: Scope.Scope
+  /** Hears why a screen could not load or enter, after the error panel is up (`RuntimeSeams.onFailure`). */
+  readonly onFailure?: (cause: unknown) => void
 }
 
 export interface FlowHandle {
@@ -173,6 +175,7 @@ export function makeFlow<R = never>(
               ],
             })
             queue.length = 0
+            options.onFailure?.(Option.isSome(errorOpt) ? errorOpt.value : Cause.squash(loadResult.cause))
             return
           }
         }
@@ -271,6 +274,7 @@ export function makeFlow<R = never>(
               },
             ],
           })
+          options.onFailure?.(Cause.squash(enterResult.cause))
           return
         }
 

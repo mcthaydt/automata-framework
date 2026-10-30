@@ -34,6 +34,7 @@ import { makeSettings, Settings } from '../settings/settings.manager.js'
 import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
 import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
 import type { GameDefinition } from './game-definition.js'
+import { notifyFailure } from './notify-failure.js'
 import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
 import { createPageLayers } from './page-layers.svelte.js'
 
@@ -314,6 +315,7 @@ export function bootProgram<S>(
       ...(game.copy !== undefined ? { copy: game.copy } : {}),
       services: () => runtimeContext,
       runtime: keptAcrossScreens,
+      onFailure: (cause) => notifyFailure(game.seams, cause),
       ...(import.meta.env?.DEV
         ? {
             logUnmatched: (screen: string, event: string) =>
@@ -337,12 +339,14 @@ export function bootProgram<S>(
       renderer,
       time,
       bus,
-      onFault: (cause) =>
+      onFault: (cause) => {
         flowHandle.reportFailure({
           _tag: 'ScreenFailed',
           screen: flowHandle.flow.current ?? '',
           cause,
-        }),
+        })
+        notifyFailure(game.seams, cause)
+      },
     })
 
     runtimeContext = buildRuntimeServices({

@@ -1,0 +1,13 @@
+# `lighter` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/items.json at a1f7246; materials are swatch ids in kebab-case.
+
+about = "A brass lighter, held up before the chest and a little to its side, the elbow bent close in, shielding the flame; high enough that under the 30° tilt it still shows at the chest, not the waist."
+tip = [0, 0, 0.08]
+hold = { hand = [{ k = 0.1 }, { k = 0.08 }, { k = 0.18 }], turn = [-1.5707963267948966, 0, 0], pole = [0.7, -0.7, -0.3] }
+
+[[parts]]
+material = "brass"
+at = [0, 0, 0.027]
+r = [0.02, 0.014, 0.032]
+e = [0.3, 0.3]
+seg = 8
+rings = 4

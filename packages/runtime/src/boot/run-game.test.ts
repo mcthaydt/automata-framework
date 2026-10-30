@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import type { FlowGraph } from '@mcthaydt/automata-content'
 import { HostError, Hosting } from '@mcthaydt/automata-host'
 import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
+import { createSim, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
 import { Cause, Effect, Exit, Option, Scope } from 'effect'
 import { flushSync } from 'svelte'
@@ -11,6 +12,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { Flow } from '../flow/flow.manager.js'
 import { STALL_MS } from '../loading/load-meter.js'
+import { AppLoop } from '../loop/app-loop.manager.js'
 import { defineSave } from '../save/save.schema.js'
 import { saveOf } from '../save/saves.manager.js'
 import { fakeFetch } from '../testing/fake-fetch.js'
@@ -823,5 +825,157 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     expect(events).toEqual(['title:exit', 'play:exit', 'save:capture', 'runtime:closed', 'renderer:destroy'])
     await handle.shutdown()
     expect(events.filter((event) => event === 'runtime:closed')).toHaveLength(1)
+  })
+})
+
+// The playground (website playground spec §7.2) reports where the reader's code failed, so it needs the cause the
+// runtime shows only as a panel: seams.onFailure hears it, after the runtime has handled the failure as usual.
+describe('seams.onFailure', () => {
+  let root: HTMLElement
+
+  beforeEach(() => {
+    document.documentElement.removeAttribute('data-state')
+    root = document.createElement('div')
+    document.body.appendChild(root)
+    return () => {
+      root.remove()
+      document.documentElement.removeAttribute('data-state')
+    }
+  })
+
+  const baseGame = (overrides: Partial<GameDefinition>): GameDefinition => ({
+    root,
+    hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+    content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+    screens: [{ id: 'title', enter: () => Effect.void }],
+    renderer: nullRenderer(),
+    ...overrides,
+  })
+
+  it('hears a boot failure, with the error the renderer threw inside its BootDefect', async () => {
+    const frames = manualFrames()
+    const failures: unknown[] = []
+    const thrown = new Error('Unexpected defect in renderer')
+    const handle = runGame(
+      baseGame({
+        renderer: () =>
+          Effect.sync(() => {
+            throw thrown
+          }),
+        seams: {
+          frames,
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          onFailure: (cause) => failures.push(cause),
+        },
+      }),
+    )
+    await driveFirstFrame(frames)
+    await waitForState('failed')
+    expect(failures).toHaveLength(1)
+    expect(failures[0]).toBeInstanceOf(BootDefect)
+    expect((failures[0] as BootDefect).cause).toBe(thrown)
+    expect(root.querySelector('[role="alert"]')).not.toBeNull()
+    await handle.shutdown()
+  })
+
+  it("hears a running sim's fault, once, with what the system threw", async () => {
+    const frames = manualFrames()
+    const failures: unknown[] = []
+    const thrown = new Error('system failed on tick 3')
+    const faulty = definePlugin({
+      name: 'faulty',
+      systems: [
+        defineSystem({
+          name: 'faulty-system',
+          phase: 'gameplay',
+          run(ctx) {
+            if (ctx.tick === 3) throw thrown
+          },
+        }),
+      ],
+    })
+    const sim = await createSim({ seed: 1, plugins: [faulty] })
+    const handle = runGame(
+      baseGame({
+        screens: [
+          {
+            id: 'title',
+            enter: () =>
+              Effect.gen(function* () {
+                const loop = yield* AppLoop
+                loop.run({ sim, commands: () => [] })
+              }),
+          },
+        ],
+        seams: {
+          frames,
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          onFailure: (cause) => failures.push(cause),
+        },
+      }),
+    )
+    await driveFirstFrame(frames)
+    await waitForState('ready')
+    for (let frame = 0; frame < 20 && failures.length === 0; frame += 1) {
+      frames.advance(50)
+      await settle(2)
+    }
+    expect(failures).toHaveLength(1)
+    const reported = failures[0] as Error & { cause?: unknown }
+    expect(reported === thrown || reported.cause === thrown).toBe(true)
+    await handle.shutdown()
+  })
+
+  it('hears a screen that fails to enter, with what its enter threw', async () => {
+    const frames = manualFrames()
+    const failures: unknown[] = []
+    const thrown = new Error('enter broke')
+    const handle = runGame(
+      baseGame({
+        screens: [
+          {
+            id: 'title',
+            enter: () =>
+              Effect.sync(() => {
+                throw thrown
+              }),
+          },
+        ],
+        seams: {
+          frames,
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          onFailure: (cause) => failures.push(cause),
+        },
+      }),
+    )
+    await driveFirstFrame(frames)
+    for (let tries = 0; tries < 50 && failures.length === 0; tries += 1) await settle(2)
+    expect(failures).toHaveLength(1)
+    const reported = failures[0] as Error & { cause?: unknown }
+    expect(reported === thrown || reported.cause === thrown).toBe(true)
+    await handle.shutdown()
+  })
+
+  it('still shows the failure when the seam itself throws', async () => {
+    const frames = manualFrames()
+    const handle = runGame(
+      baseGame({
+        renderer: () =>
+          Effect.sync(() => {
+            throw new Error('Unexpected defect in renderer')
+          }),
+        seams: {
+          frames,
+          fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+          onFailure: () => {
+            throw new Error('the listener broke')
+          },
+        },
+      }),
+    )
+    await driveFirstFrame(frames)
+    await waitForState('failed')
+    expect(root.querySelector('[role="alert"]')).not.toBeNull()
+    await handle.shutdown()
   })
 })

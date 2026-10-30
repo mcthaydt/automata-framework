@@ -1,0 +1,18 @@
+# `nurse` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/headwear.json at a1f7246.
+
+about = "A nurse's cap: a stiff band across the crown, its face to the front. Its mark (the cross) sits on the cap's top, facing up and forward, which under the 30° tilt is the cap as the camera sees it."
+
+[[locks]]
+on = "head"
+at = [0, 1.02, 0.2]
+r = [1.2, 0, 0.62]
+rk = [0, 0.075, 0]
+e = [0.3, 0.4]
+taper = [1, 0.88]
+pitch = 0.3
+
+[mark]
+at = [0, 1.02, 0.5]
+atk = [0, 0.055, 0]
+normal = [0, 0.9, 0.45]
+sizes = [[1, 3], [3, 1]]
