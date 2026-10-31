@@ -5,29 +5,30 @@
   Choices are 44 px buttons in a scroll region.
 -->
 <script lang="ts">
-import { Button, Dialog } from '@mcthaydt/automata-editor-kit'
-import type { RefValue } from '@mcthaydt/automata-editor-kit/fields'
-import type { RefTargetLevel } from '../../model/refs/ref-links'
+import Button from '../widgets/Button.svelte'
+import Dialog from '../widgets/Dialog.svelte'
+import type { RefTargetGroup } from './field-row'
+import type { RefValue } from './field-types'
 
 interface Props {
   open: boolean
   /** The field's label, as the title names it. */
   name: string
-  targets: readonly RefTargetLevel[]
+  targets: readonly RefTargetGroup[]
   onchoose: (value: RefValue) => void
 }
 
 let { open = $bindable(), name, targets, onchoose }: Props = $props()
 
 let chosen = $state<string | undefined>()
-const level = $derived(targets.find((each) => each.level === chosen))
+const level = $derived(targets.find((each) => each.id === chosen))
 
 // Every opening starts at the levels.
 $effect(() => {
   if (open) chosen = undefined
 })
 
-const count = (each: RefTargetLevel): string =>
+const count = (each: RefTargetGroup): string =>
   each.choices.length === 1 ? '1 target' : `${each.choices.length} targets`
 </script>
 
@@ -36,9 +37,9 @@ const count = (each: RefTargetLevel): string =>
     <p class="empty">Nothing in the project can be its target.</p>
   {:else if level === undefined}
     <ul class="choices" data-scroll-region aria-label="Levels">
-      {#each targets as each (each.level)}
+      {#each targets as each (each.id)}
         <li>
-          <button type="button" class="choice" onclick={() => (chosen = each.level)}>
+          <button type="button" class="choice" onclick={() => (chosen = each.id)}>
             <span>{each.name}</span>
             <span class="count">{count(each)}</span>
           </button>

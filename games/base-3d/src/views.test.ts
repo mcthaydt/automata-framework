@@ -10,6 +10,7 @@ import {
   placed,
   recentred,
   sceneOf,
+  staticPieces,
 } from './views/index.ts'
 
 // The render rows as the figure view reads them (M3 spec §4.4.5): turn units to radians, ticks to seconds at
@@ -159,5 +160,22 @@ describe('recentred (DESIGN.md §11.2: a lock press with no target eases the hea
     expect(recentred(at(16_384, 16_384, 7), at(15_838, 16_384, 7))).toBe(false)
     expect(recentred(at(16_384, 16_384), at(15_838, 16_384, 7))).toBe(false)
     expect(recentred(at(16_384, 16_384), undefined)).toBe(false)
+  })
+})
+
+describe('staticPieces (GAME-3D.1i)', () => {
+  it('boxes the hook posts on the floor and the sling targets at their height, and nothing else', () => {
+    const boxes = staticPieces({
+      ...FIRST_SLICE,
+      entities: [
+        { def: 'hook-post', id: 'post', x: 2, z: 3 },
+        { def: 'sling-target', id: 'eye', x: 0, z: 1, height: 2.6, targets: [] },
+        { def: 'chest', id: 'c', x: 5, z: 5, contents: 'map' },
+      ],
+    })
+    expect(boxes).toHaveLength(2)
+    expect(boxes[0]?.box.min[1]).toBe(0)
+    expect(boxes[1]?.box.min[1]).toBeCloseTo(2.4)
+    expect(boxes[1]?.box.max[1]).toBeCloseTo(2.8)
   })
 })

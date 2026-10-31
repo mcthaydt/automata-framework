@@ -3,6 +3,7 @@ import '@mcthaydt/automata-editor-kit/fonts.css'
 import './main.css'
 import { startEditor } from './app/boot'
 import { lazyThumbnails } from './app/home/lazy-thumbnails'
+import { storedLastOpened } from './app/home/stored-last-opened'
 import { createColorResolver } from './canvas/colors'
 
 // The only file that reaches for the page's globals (plan ED2D.4c2a, decision 9); everything else gets them through
@@ -23,6 +24,7 @@ startEditor(target, {
     crypto.getRandomValues(bytes)
   },
   storage: navigator.storage,
+  lastOpened: storedLastOpened(() => localStorage),
   objectUrls: {
     create: (bytes) => URL.createObjectURL(new Blob([bytes as Uint8Array<ArrayBuffer>])),
     revoke: (url) => URL.revokeObjectURL(url),

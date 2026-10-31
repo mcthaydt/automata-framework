@@ -287,6 +287,53 @@ export function buildScene(view: View3D, occluders: Occluders, models: ModelLibr
   }
 }
 
+/** A hook post's side and height, and a sling target's side (metres): placeholders until the art (GAME-3D.1j). */
+const POST = { half: 0.15, height: 1.4 }
+const TARGET_HALF = 0.2
+
+/** The pieces that never move or change, as boxes: the hook posts, and the sling targets at their height. */
+export function staticPieces(area: AreaSource): { readonly box: Box3; readonly colour: number }[] {
+  return (area.entities ?? []).flatMap((entity) => {
+    if (entity.def === 'hook-post')
+      return [
+        {
+          colour: 0xfeae34,
+          box: {
+            min: [entity.x - POST.half, 0, entity.z - POST.half] as const,
+            max: [entity.x + POST.half, POST.height, entity.z + POST.half] as const,
+          },
+        },
+      ]
+    if (entity.def === 'sling-target') {
+      const height = Number(entity.height)
+      return [
+        {
+          colour: 0x2ce8f5,
+          box: {
+            min: [entity.x - TARGET_HALF, height - TARGET_HALF, entity.z - TARGET_HALF] as const,
+            max: [entity.x + TARGET_HALF, height + TARGET_HALF, entity.z + TARGET_HALF] as const,
+          },
+        },
+      ]
+    }
+    return []
+  })
+}
+
+/**
+ * Builds a further area into the same scene (the Cold Kiln stands apart from the first slice, so one scene holds
+ * both): its walls, floors and ceilings, the hearth's ember, and the posts and targets. Its doors, chests, blocks,
+ * plates and pots are row views (views/doors.ts, views/pieces.ts).
+ */
+export function buildArea(occluders: Occluders, area: AreaSource): void {
+  const scene = sceneOf(area)
+  for (const floor of scene.floors) occluders.box(floor, COLOURS.floor)
+  for (const wall of scene.walls) occluders.wall({ ...wall, color: COLOURS.wall })
+  for (const ceiling of scene.ceilings) occluders.ceiling(occluders.box(ceiling, COLOURS.ceiling))
+  occluders.box(scene.ember, COLOURS.ember)
+  for (const piece of staticPieces(area)) occluders.box(piece.box, piece.colour)
+}
+
 type Kind<T> = Readonly<Record<string, T>>
 
 /** The figures extension's kinds as compiled content holds them. */

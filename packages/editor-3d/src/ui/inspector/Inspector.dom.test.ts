@@ -41,6 +41,26 @@ const doorWall: InspectorCard = {
   preset: undefined,
 }
 
+const crate: InspectorCard = {
+  kind: 'thing',
+  selected: 1,
+  definition: 'crate',
+  id: 'crate1',
+  x: 11,
+  z: 2,
+  y: undefined,
+  fields: [
+    {
+      id: 'contents',
+      label: 'contents',
+      type: 'enum',
+      value: 'tools',
+      widget: 'segmented',
+      options: ['supplies', 'tools', 'empty'],
+    },
+  ],
+}
+
 function mount(card: InspectorCard, answer: string | undefined = undefined) {
   const onchange = vi.fn(() => answer)
   render(Inspector, { card, onchange })
@@ -85,7 +105,7 @@ describe('Inspector', () => {
   })
 
   it('shows a thing’s definition and place', () => {
-    mount({ kind: 'thing', selected: 1, definition: 'crate', id: 'crate1', x: 11, z: 2, y: undefined })
+    mount(crate)
     expect(screen.getByRole('heading', { name: 'crate1' })).toBeInTheDocument()
     expect(screen.getByText('crate · x 11.00 · z 2.00')).toBeInTheDocument()
   })
@@ -96,19 +116,27 @@ describe('Inspector', () => {
   })
 
   it('deletes a thing from its card (ED3D.7d)', async () => {
-    const onchange = mount({
-      kind: 'thing',
-      selected: 1,
-      definition: 'crate',
-      id: 'crate1',
-      x: 11,
-      z: 2,
-      y: undefined,
-    })
+    const onchange = mount(crate)
     await userEvent.click(screen.getByRole('button', { name: 'Delete crate1' }))
     expect(onchange).toHaveBeenCalledWith(
       { kind: 'thing', definition: 'crate', id: 'crate1', remove: true },
       'set',
     )
+  })
+
+  it('edits a thing’s field: a press sets it as one change (ED3D.7d-b)', async () => {
+    const onchange = mount(crate)
+    expect(screen.getByRole('radio', { name: 'tools' })).toHaveAttribute('aria-checked', 'true')
+    await userEvent.click(screen.getByRole('radio', { name: 'empty' }))
+    expect(onchange).toHaveBeenCalledWith(
+      { kind: 'thing', definition: 'crate', id: 'crate1', field: 'contents', value: 'empty' },
+      'set',
+    )
+  })
+
+  it('shows the model’s sentence under a field it refuses (ED3D.7d-b)', async () => {
+    mount(crate, 'entity crate1: contents is not one of supplies, tools, empty')
+    await userEvent.click(screen.getByRole('radio', { name: 'empty' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('contents is not one of')
   })
 })

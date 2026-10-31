@@ -6,10 +6,10 @@
 // The cycle inputs are the camera's: the sim ignores `camera-turn` while locked (`rotate` is off) and `lock-cycle`
 // while not, so a Q press sends both and nothing here needs to know whether Wick is locked. `lock-cycle` is one
 // tick's event, not a held state, so this finds a cycle key's first tick itself: the input layer's one edge.
-import type { InputMap } from '@mcthaydt/automata-game'
-import { makeInput, type PresentationBus } from '@mcthaydt/automata-runtime'
+import type { AnalogReading, InputMap } from '@mcthaydt/automata-game'
+import { STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
+import { CAMERA_SETTINGS_DEFAULT, makeInput, type PresentationBus } from '@mcthaydt/automata-runtime'
 import type { Command } from '@mcthaydt/automata-sim'
-import type { DragTracker } from '@mcthaydt/automata-ui'
 import { Effect, Exit, Scope } from 'effect'
 import { Equip, Lock, LockCycle } from '../commands.ts'
 import type { ItemName } from './hud.ts'
@@ -54,8 +54,21 @@ export function lockInput(map: InputMap, cycleKeys: Readonly<Record<string, Cycl
   let queued: CycleDir | 0 = 0
   let queuedItem: ItemName | undefined
 
-  const toCommand = (held: Iterable<string>, tick: number): readonly Command[] => {
+  const queue = {
+    cycle: (dir: CycleDir): void => {
+      queued = dir
+    },
+  }
+  const cycleOnDragPx = cycleOnDrag(queue)
+  const cycleOnRightStick = cycleOnFlick(queue)
+
+  const toCommand = (held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[] => {
     const actions = [...held]
+    // A drag and a right-stick flick are queued cycles, taken below like a queued `cycle(dir)`.
+    if (reading !== undefined) {
+      cycleOnDragPx(reading.cameraDrag())
+      cycleOnRightStick(reading.stick('right').x / STICK_MAX)
+    }
     let keyDir: CycleDir | 0 = 0
     for (const action of actions) keyDir = cycleActions.get(action) ?? keyDir
     const pressed = keyDir !== 0 && keyDir !== lastKeyDir ? keyDir : 0
@@ -63,7 +76,7 @@ export function lockInput(map: InputMap, cycleKeys: Readonly<Record<string, Cycl
     const dir = pressed !== 0 ? pressed : queued
     queued = 0
 
-    const inner = map.toCommand(actions, tick)
+    const inner = map.toCommand(actions, tick, reading)
     const commands: Command[] = inner.map((command, index) => ({
       ...command,
       seq: tick * 6 + index,
@@ -95,7 +108,11 @@ export function lockInput(map: InputMap, cycleKeys: Readonly<Record<string, Cycl
       return {
         commands(tick) {
           input.poll()
-          return toCommand(input.held(), tick)
+          return toCommand(input.held(), tick, {
+            stick: (side) => input.stick(side),
+            cameraDrag: () => input.cameraDrag(),
+            camera: CAMERA_SETTINGS_DEFAULT,
+          })
         },
         hold: (buttonId) => input.hold(buttonId),
         release: (buttonId) => input.release(buttonId),
@@ -107,34 +124,33 @@ export function lockInput(map: InputMap, cycleKeys: Readonly<Record<string, Cycl
   return result
 }
 
+/** Ticks without a drag after which the next one is a new drag (100 ms at 60 Hz). */
+export const DRAG_REST_TICKS = 6
+
 /**
- * The camera drag's tracker, cycling once per drag when it has moved `CYCLE_DRAG_PX` from where it went down (right
- * is 1, as E is). Every sample still reaches `tracker`, which turns the camera; locked, the sim ignores the turn.
+ * The camera drag's pixels each tick (`AnalogReading.cameraDrag`): one cycle once a drag has summed `CYCLE_DRAG_PX`
+ * from where it began (right is 1, as E is), and not again until the drag has rested `DRAG_REST_TICKS`. Every pixel
+ * still turns the camera; locked, the sim ignores the turn.
  */
-export function cycleOnDrag(tracker: DragTracker, input: Pick<LockInput, 'cycle'>): DragTracker {
-  let dragging: { id: number; fromX: number; cycled: boolean } | undefined
-  return {
-    down(id, x, start) {
-      const drives = tracker.down(id, x, start)
-      if (drives) dragging = { id, fromX: x, cycled: false }
-      return drives
-    },
-    move(id, x) {
-      tracker.move(id, x)
-      if (dragging === undefined || dragging.id !== id || dragging.cycled) return
-      const dx = x - dragging.fromX
-      if (Math.abs(dx) < CYCLE_DRAG_PX) return
-      dragging.cycled = true
-      input.cycle(dx > 0 ? 1 : -1)
-    },
-    up(id) {
-      tracker.up(id)
-      if (dragging?.id === id) dragging = undefined
-    },
-    cancel() {
-      tracker.cancel()
-      dragging = undefined
-    },
+export function cycleOnDrag(input: Pick<LockInput, 'cycle'>): (px: number) => void {
+  let sum = 0
+  let rested = 0
+  let cycled = false
+  return (px) => {
+    if (px === 0) {
+      rested++
+      if (rested >= DRAG_REST_TICKS) {
+        sum = 0
+        cycled = false
+      }
+      return
+    }
+    rested = 0
+    if (cycled) return
+    sum += px
+    if (Math.abs(sum) < CYCLE_DRAG_PX) return
+    cycled = true
+    input.cycle(sum > 0 ? 1 : -1)
   }
 }
 

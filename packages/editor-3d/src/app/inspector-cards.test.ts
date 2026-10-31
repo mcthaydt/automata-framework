@@ -70,6 +70,24 @@ describe('inspectorOf', () => {
       x: 11,
       z: 2,
       y: undefined,
+      fields: [
+        {
+          id: 'contents',
+          label: 'contents',
+          type: 'enum',
+          value: 'tools',
+          widget: 'segmented',
+          options: ['supplies', 'tools', 'empty'],
+        },
+      ],
+    })
+  })
+
+  it('fills a field the thing does not have with the definition’s default, and shows it', () => {
+    const spawn = inspectorOf(editorWith('entity:spawn/spawn'))
+    expect(spawn).toMatchObject({
+      kind: 'thing',
+      fields: [{ id: 'facing', widget: 'stepper', value: 0 }],
     })
   })
 

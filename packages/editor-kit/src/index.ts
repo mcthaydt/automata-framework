@@ -11,6 +11,7 @@ export {
 export { default as RecoveryDialog } from './dialogs/RecoveryDialog.svelte'
 export { recoveryFacts } from './dialogs/recovery-facts'
 export { retryAction } from './dialogs/retry-action'
+export { default as FieldEditor } from './fields/FieldEditor.svelte'
 export * from './fields/index'
 export { type AttachOptions, attachGestures } from './gestures/attach-gestures'
 export { type GestureClock, realClock } from './gestures/gesture-clock'

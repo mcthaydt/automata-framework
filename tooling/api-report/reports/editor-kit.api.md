@@ -503,6 +503,17 @@ const FIELD_ID: RegExp;
 const FIELD_TYPES: readonly FieldType[];
 ```
 
+### `FieldCommit` (type)
+
+```ts
+type FieldCommit = {
+    readonly ok: true;
+} | {
+    readonly ok: false;
+    readonly message: string;
+};
+```
+
 ### `FieldDef` (interface)
 
 ```ts
@@ -534,6 +545,12 @@ type FieldDefCode = 'badId' | 'badBounds' | 'badStep' | 'noOptions' | 'duplicate
 const fieldDefSchema: z.ZodType<FieldDef>;
 ```
 
+### `FieldEditor` (svelte)
+
+```ts
+component from './fields/FieldEditor.svelte'
+```
+
 ### `FieldInstance` (interface)
 
 ```ts
@@ -550,6 +567,34 @@ interface FieldProblem<Code extends string = string> {
     readonly code: Code;
     readonly message: string;
 }
+```
+
+### `FieldRow` (interface)
+
+```ts
+interface FieldRow {
+    readonly id: string;
+    readonly label: string;
+    readonly type: FieldType;
+    readonly value: FieldValue | undefined;
+    readonly widget: FieldWidget;
+    readonly bounds?: {
+        readonly min?: number;
+        readonly max?: number;
+        readonly step: number;
+    };
+    readonly options?: readonly string[];
+    readonly ref?: {
+        readonly name: string | undefined;
+        readonly targets: readonly RefTargetGroup[];
+    };
+}
+```
+
+### `fieldRow` (function)
+
+```ts
+function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow;
 ```
 
 ### `FieldType` (type)
@@ -595,6 +640,12 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 
 ```ts
 const fieldValuesSchema: z.ZodType<FieldValues>;
+```
+
+### `FieldWidget` (type)
+
+```ts
+type FieldWidget = 'stepper' | 'toggle' | 'segmented' | 'picker' | 'color' | 'text' | 'multiline' | 'point' | 'points' | 'ref' | 'list';
 ```
 
 ### `FilePick` (svelte)
@@ -1210,6 +1261,25 @@ interface Rect {
     readonly y: number;
     readonly w: number;
     readonly h: number;
+}
+```
+
+### `RefChoice` (interface)
+
+```ts
+interface RefChoice {
+    readonly label: string;
+    readonly value: RefValue;
+}
+```
+
+### `RefTargetGroup` (interface)
+
+```ts
+interface RefTargetGroup {
+    readonly id: string;
+    readonly name: string;
+    readonly choices: readonly RefChoice[];
 }
 ```
 
@@ -3184,6 +3254,17 @@ const FIELD_ID: RegExp;
 const FIELD_TYPES: readonly FieldType[];
 ```
 
+### `FieldCommit` (type)
+
+```ts
+type FieldCommit = {
+    readonly ok: true;
+} | {
+    readonly ok: false;
+    readonly message: string;
+};
+```
+
 ### `FieldDef` (interface)
 
 ```ts
@@ -3233,6 +3314,34 @@ interface FieldProblem<Code extends string = string> {
 }
 ```
 
+### `FieldRow` (interface)
+
+```ts
+interface FieldRow {
+    readonly id: string;
+    readonly label: string;
+    readonly type: FieldType;
+    readonly value: FieldValue | undefined;
+    readonly widget: FieldWidget;
+    readonly bounds?: {
+        readonly min?: number;
+        readonly max?: number;
+        readonly step: number;
+    };
+    readonly options?: readonly string[];
+    readonly ref?: {
+        readonly name: string | undefined;
+        readonly targets: readonly RefTargetGroup[];
+    };
+}
+```
+
+### `fieldRow` (function)
+
+```ts
+function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow;
+```
+
 ### `FieldType` (type)
 
 ```ts
@@ -3278,6 +3387,12 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 const fieldValuesSchema: z.ZodType<FieldValues>;
 ```
 
+### `FieldWidget` (type)
+
+```ts
+type FieldWidget = 'stepper' | 'toggle' | 'segmented' | 'picker' | 'color' | 'text' | 'multiline' | 'point' | 'points' | 'ref' | 'list';
+```
+
 ### `HEX_COLOR` (const)
 
 ```ts
@@ -3306,6 +3421,25 @@ interface InstanceProblem extends FieldProblem<InstanceCode> {
 interface Point {
     readonly x: number;
     readonly y: number;
+}
+```
+
+### `RefChoice` (interface)
+
+```ts
+interface RefChoice {
+    readonly label: string;
+    readonly value: RefValue;
+}
+```
+
+### `RefTargetGroup` (interface)
+
+```ts
+interface RefTargetGroup {
+    readonly id: string;
+    readonly name: string;
+    readonly choices: readonly RefChoice[];
 }
 ```
 

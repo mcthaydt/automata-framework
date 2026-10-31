@@ -62,14 +62,14 @@ describe('refTargets (the picker: levels first, then what the field allows)', ()
     const project = linkedMaps()
     expect(refTargets(project, defOf(project, 'door'), 'door-out')).toEqual([
       {
-        level: 'map-1',
+        id: 'map-1',
         name: 'Village',
         choices: [
           { label: 'Player start at 160, 120', value: { target: expect.any(String), container: 'map-1' } },
         ],
       },
       {
-        level: 'inn',
+        id: 'inn',
         name: 'Inn',
         choices: [{ label: 'Door at 32, 200', value: { target: 'door-in', container: 'inn' } }],
       },
@@ -81,12 +81,12 @@ describe('refTargets (the picker: levels first, then what the field allows)', ()
     const exits: FieldDef = { id: 'exit', type: 'ref', to: ['$level', 'chest'] }
     expect(refTargets(project, exits, undefined)).toEqual([
       {
-        level: 'map-1',
+        id: 'map-1',
         name: 'Village',
         choices: [{ label: 'The level itself', value: { target: 'map-1' } }],
       },
       {
-        level: 'inn',
+        id: 'inn',
         name: 'Inn',
         choices: [
           { label: 'The level itself', value: { target: 'inn' } },
@@ -95,7 +95,7 @@ describe('refTargets (the picker: levels first, then what the field allows)', ()
       },
     ])
     const chestsOnly: FieldDef = { id: 'loot', type: 'ref', to: ['chest'] }
-    expect(refTargets(project, chestsOnly, undefined).map((each) => each.level)).toEqual(['inn'])
+    expect(refTargets(project, chestsOnly, undefined).map((each) => each.id)).toEqual(['inn'])
   })
 })
 

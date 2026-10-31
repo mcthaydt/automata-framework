@@ -45,8 +45,8 @@ export interface SettingsScreenCopy {
 /** Every word the default title, play, paused and settings screens show (DX spec §7, M4 spec §4.8, M5 spec §4.8). */
 export interface ScreensCopy {
   readonly title: { readonly play: string }
-  /** The play screen's corner button, read by assistive technology. */
-  readonly play: { readonly pause: string }
+  /** The play screen's corner button and the touch stick, read by assistive technology. */
+  readonly play: { readonly pause: string; readonly move: string }
   readonly paused: {
     readonly title: string
     readonly resume: string
@@ -113,7 +113,7 @@ export const BOARD_COPY: LeaderboardCopy = {
 /** The default screens' English words. */
 export const DEFAULT_SCREENS_COPY: ScreensCopy = {
   title: { play: 'Play' },
-  play: { pause: 'Pause' },
+  play: { pause: 'Pause', move: 'Move' },
   paused: {
     title: 'Paused',
     resume: 'Resume',

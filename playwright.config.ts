@@ -36,6 +36,17 @@ const base2dPorts = {
   AF_E2E_GAME_PATH: base2d.gameBuildPath,
 }
 
+// The one-file examples' journeys emulate the phone's CSS size at a device-pixel ratio of 1 (CI.E2E2). Headless
+// Chromium composites in software, so every frame of a rendering example blocks the page's main thread on a
+// ReadPixels of the whole canvas, and each action waits about one frame. At the Pixel 7's 2.625 the canvas is 728×1678
+// and a frame costs ~200 ms; at 1 it is 412×948, about a third of the pixels. Measured with 2 workers on 4 CPUs:
+// display-policy D-b went from 30.9 s (past its 30 s budget) to 8.8 s, core-saves' conflict journey from 35.3 s to
+// 13.8 s (docs/superpowers/plans/2026-10-31-ci-hardening.md). The journeys check DOM state, not pixel density; the
+// renderer's own resolution rules keep their unit and parity tests, and the games' journeys keep the phone's ratio.
+// ANGLE's SwiftShader backend (--use-angle=swiftshader) also removes the readback, but the 3D examples stop drawing
+// under it and a reload waits seconds on the old WebGL context's teardown, so it is not used.
+const EXAMPLES_PIXEL_RATIO = { deviceScaleFactor: 1 }
+
 const EXAMPLES_SMOKE = ['examples/e2e/*.e2e.ts', 'tooling/examples-runner/e2e/*.e2e.ts']
 const MATRIX_SPEC = 'examples/e2e/input-matrix.e2e.ts'
 
@@ -83,14 +94,18 @@ const journeys = defineConfig({
       testDir: '.',
       testMatch: EXAMPLES_SMOKE,
       testIgnore: MATRIX_SPEC,
-      use: { ...devices['Pixel 7'] },
+      use: { ...devices['Pixel 7'], ...EXAMPLES_PIXEL_RATIO },
     },
     {
       name: 'examples-compact',
       testDir: '.',
       testMatch: EXAMPLES_SMOKE,
       testIgnore: MATRIX_SPEC,
-      use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
+      use: {
+        ...devices['Pixel 7 landscape'],
+        viewport: { width: 780, height: 270 },
+        ...EXAMPLES_PIXEL_RATIO,
+      },
     },
     // The 3D examples (render3d, and figures since M3.5d) in WebKit too (M3.4a): the other projects are Chromium,
     // and headless Firefox here has no WebGL.

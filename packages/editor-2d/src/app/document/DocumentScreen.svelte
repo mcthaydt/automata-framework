@@ -68,6 +68,19 @@ function snapshot(source: DocumentController): DocumentState {
   return current
 }
 
+/** What the last Undo or Redo did, for a screen reader (ED2D.8): the buttons, the keys and the two-finger tap all land here. */
+let heard = $state({ text: '', count: 0 })
+function undo(): void {
+  const label = shown.undoLabel
+  controller.undo()
+  if (label !== undefined) heard = { text: `Undid ${label}`, count: heard.count + 1 }
+}
+function redo(): void {
+  const label = shown.redoLabel
+  controller.redo()
+  if (label !== undefined) heard = { text: `Redid ${label}`, count: heard.count + 1 }
+}
+
 const compact = $derived(shellModeOf(geometry.current.formFactor) === 'compact')
 
 // svelte-ignore state_referenced_locally
@@ -92,8 +105,8 @@ const services = $derived<ViewServices>({
   objectUrls,
   canvas,
   worldCanvas,
-  onundo: () => controller.undo(),
-  onredo: () => controller.redo(),
+  onundo: undo,
+  onredo: redo,
   locate: (path) => {
     focus = path
     chosen = views[0]?.id
@@ -116,8 +129,8 @@ const services = $derived<ViewServices>({
     autofocus={!arrived}
     onfocused={() => (arrived = true)}
     {onback}
-    onundo={() => controller.undo()}
-    onredo={() => controller.redo()}
+    onundo={undo}
+    onredo={redo}
     onsave={() => controller.save()}
   />
 {/snippet}
@@ -159,6 +172,9 @@ const services = $derived<ViewServices>({
     oncancel={() => controller.dismissConflict()}
   />
   <ToastRegion {toasts} />
+  {#key heard.count}
+    <p class="heard" aria-live="polite" data-testid="history-announcement">{heard.text}</p>
+  {/key}
 {/snippet}
 
 {#key shown.document}
@@ -173,3 +189,15 @@ const services = $derived<ViewServices>({
     />
   {/key}
 {/key}
+
+<style>
+  .heard {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

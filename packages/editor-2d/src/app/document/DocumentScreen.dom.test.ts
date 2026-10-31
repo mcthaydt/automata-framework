@@ -104,6 +104,19 @@ describe('DocumentScreen', () => {
     expect(opened.document.history.state).toEqual({ text: 'x' })
   })
 
+  it('announces an undo and a redo in a polite live region, by the step they act on (ED2D.8)', async () => {
+    const { opened } = await mount()
+    opened.document.history.apply('Type', () => ({ text: 'x' }))
+    flushSync()
+    const heard = (): string => screen.getByTestId('history-announcement').textContent ?? ''
+    expect(screen.getByTestId('history-announcement')).toHaveAttribute('aria-live', 'polite')
+    expect(heard()).toBe('')
+    await userEvent.click(screen.getByRole('button', { name: 'Undo Type' }))
+    expect(heard()).toBe('Undid Type')
+    await userEvent.click(screen.getByRole('button', { name: 'Redo Type' }))
+    expect(heard()).toBe('Redid Type')
+  })
+
   it('Save writes the file', async () => {
     const { opened, workspace } = await mount()
     opened.document.history.apply('Type', () => ({ text: 'saved' }))

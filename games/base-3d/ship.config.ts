@@ -17,7 +17,7 @@ export default defineShipConfig({
     renderer: 'webgl2',
     // M3 spec §4.7: landscape only; portrait shows M4's rotate hint.
     orientation: 'landscape',
-    inputs: ['keyboard'],
+    inputs: ['touch', 'keyboard', 'gamepad'],
     pause_behavior: 'pause',
   },
   network: { connect: [] },

@@ -5,10 +5,9 @@
 -->
 <script lang="ts">
 import type { EditEvent } from '@mcthaydt/automata-editor-kit'
-import { Button, Stepper } from '@mcthaydt/automata-editor-kit'
+import { Button, FieldEditor, Stepper } from '@mcthaydt/automata-editor-kit'
 import { moveEntity, resizeEntity } from '../../model/commands/entity-edits'
 import type { EditHistory } from '../level-editor'
-import FieldEditor from './FieldEditor.svelte'
 import { commitEdit, commitField } from './field-commit'
 import type { EntityInspector } from './inspector-model'
 
