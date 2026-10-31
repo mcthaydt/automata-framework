@@ -9,7 +9,7 @@ import EditorLayers from '../plan/EditorLayers.svelte'
 import PlanCanvas from '../plan/PlanCanvas.svelte'
 import Levels3dInspector from './Levels3dInspector.svelte'
 import Levels3dStatus from './Levels3dStatus.svelte'
-import type { Levels3dSuiteSession } from './levels-3d.suite'
+import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
 import { pointerOf } from './pointer.svelte'
 
 // The top bar owns Undo and Redo, so the plan's two- and three-finger taps leave them to it.

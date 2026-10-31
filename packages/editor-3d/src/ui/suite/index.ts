@@ -4,7 +4,11 @@ export type { Levels3dOptions, Levels3dSession, Levels3dState } from '../../app/
 import type { PlanRendererFactory } from '../plan/plan-renderer'
 
 export { lazyPlanRenderer } from '../plan/lazy-renderer'
-export { createLevels3d, type Levels3dSuiteOptions, type Levels3dSuiteSession } from './levels-3d.suite'
+export {
+  createLevels3d,
+  type Levels3dSuiteOptions,
+  type Levels3dSuiteSession,
+} from './levels-3d-suite-editor'
 export type { PlanRendererFactory }
 
 /** The Plan view's Pixi renderer for a page, loaded on first use (what the standalone app's `main.ts` passes). */

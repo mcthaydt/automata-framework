@@ -2,5 +2,5 @@
 
 export type { LevelCanvasProps } from '../app/views/view-props'
 export { randomIds } from '../model/ids'
-export { createLevels2d } from './levels-2d.suite'
 export type { Levels2dOptions, Levels2dSession, Levels2dState } from './levels-2d-session'
+export { createLevels2d } from './levels-2d-suite-editor'

@@ -1,5 +1,5 @@
 import type { Point } from '../../format/sector.schema'
-import type { Levels3dSuiteSession } from './levels-3d.suite'
+import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
 
 // Where the pointer is on the plan, for the status line (plan EDS.2d): the canvas and the status are two regions of the
 // suite's shell, so the place they share is kept beside the session, as Svelte state, and goes with it.

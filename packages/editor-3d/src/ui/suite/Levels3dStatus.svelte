@@ -2,7 +2,7 @@
 <script lang="ts">
 import { planZoom } from '../../app/plan-picture'
 import { planStatus } from '../../app/plan-status'
-import type { Levels3dSuiteSession } from './levels-3d.suite'
+import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
 import { pointerOf } from './pointer.svelte'
 
 const { session }: { session: Levels3dSuiteSession } = $props()
