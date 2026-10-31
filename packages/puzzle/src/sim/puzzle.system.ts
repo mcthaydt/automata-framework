@@ -60,6 +60,13 @@ export interface PuzzleOptions {
    */
   readonly dialogue?: (ctx: SimContext, id: string) => void
   /**
+   * Where a `{ cutscene }` effect starts its cutscene, on the verb's step and after the action's line (the `cutscenes`
+   * extension's `start`, as `dialogue`). `puzzle.cutscene` is emitted either way.
+   */
+  readonly cutscene?: (ctx: SimContext, id: string) => void
+  /** While this holds (a cutscene is playing), verbs are ignored (the `cutscenes` extension's `locked`, M6.9a). */
+  readonly locked?: (ctx: SimContext) => boolean
+  /**
    * Told of every verb once it has run, taken or not (the `narrative` extension's inspect storylets, NR-D3): the
    * action taken or null, whether a line was said, and whether the action turned away to a cutscene, dialogue, keypad
    * or exit.
@@ -158,7 +165,11 @@ function applyEffect(
     const noise = { at: { x: where.x, z: where.z }, loudness: e.noise.loudness, kind: e.noise.kind }
     ctx.emit(PuzzleNoise, noise)
     options.noise?.(ctx, noise)
-  } else if ('cutscene' in e) at.later(() => ctx.emit(PuzzleCutscene, { id: e.cutscene }))
+  } else if ('cutscene' in e)
+    at.later(() => {
+      ctx.emit(PuzzleCutscene, { id: e.cutscene })
+      options.cutscene?.(ctx, e.cutscene)
+    })
   else if ('checkpoint' in e) at.later(() => ctx.emit(PuzzleCheckpoint, {}))
   else if ('keypad' in e) ctx.emit(PuzzleKeypad, {})
   else if ('exit' in e) at.later(() => ctx.emit(PuzzleExit, { to: e.exit.to, cutscene: e.exit.cutscene }))
@@ -177,5 +188,6 @@ function applyEffect(
 export const puzzleVerbSystem = (options: PuzzleOptions): SystemDef =>
   defineSystem('puzzle.verbs', 'gameplay', (ctx) => {
     const { def } = ctx.resource(PuzzleSceneResource)
-    for (const { payload } of ctx.commands.of(VerbCommand)) if (def) runVerb(ctx, def, payload, options)
+    for (const { payload } of ctx.commands.of(VerbCommand))
+      if (def && options.locked?.(ctx) !== true) runVerb(ctx, def, payload, options)
   })

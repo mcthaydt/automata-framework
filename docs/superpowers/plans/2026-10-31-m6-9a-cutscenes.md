@@ -58,7 +58,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 3. The sim plugin: start, ticks, skip, end, missing anchor, `locked`; CS-a, CS-b, CS-c. Fails: no plugin.
    - [x] 3
 4. `locked` in puzzle, narrative and nav; puzzle's `cutscene` hook. Fails: input still applies.
-   - [ ] 4
+   - [x] 4
 5. The lint. Fails: no module.
    - [ ] 5
 6. The converter and the four scenes' scripts. Fails: no fixtures.

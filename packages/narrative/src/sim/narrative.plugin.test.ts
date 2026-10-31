@@ -33,6 +33,17 @@ async function talk(): Promise<Sim> {
 /** Steps `n` times with no orders, gathering what was heard. */
 const wait = (s: Sim, n: number): unknown[] => Array.from({ length: n }, () => heard(step(s))).flat()
 
+describe('the `locked` option', () => {
+  it('ignores conversation commands while it holds, and takes them once it does not (a cutscene is playing)', async () => {
+    let locked = true
+    sim = (await createTalkGame(TALK_PUZZLE, TALK_SCENE, { locked: () => locked })).sim
+    step(sim, load())
+    expect(heard(step(sim, start('meet')))).toEqual([])
+    locked = false
+    expect(heard(step(sim, start('meet')))).toEqual([['narrative.line', { graph: 'meet', id: 'toy.hello' }]])
+  })
+})
+
 describe('conversations', () => {
   it('starts, advances and chooses through commands, with every event’s payload', async () => {
     const s = await talk()

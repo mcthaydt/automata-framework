@@ -122,6 +122,30 @@ describe('the puzzle plugin', () => {
     expect(order).toEqual([[tick, 'call']])
   })
 
+  it('starts a `{ cutscene }` effect’s cutscene through the `cutscene` option, after the action’s line', async () => {
+    const def: PuzzleDef = {
+      ...TOY,
+      hotspots: { ...TOY.hotspots, phone: { x: 0, z: 0 } },
+      actions: [...TOY.actions, { id: 'phone', at: 'phone', then: [{ cutscene: 'ring' }], say: 'pickUp' }],
+    }
+    const order: unknown[] = []
+    sim = await createToy({ cutscene: (ctx, id) => order.push([ctx.tick, id]) }, { toy: def })
+    const tick = sim.tick
+    expect(said(verb(sim, { at: 'phone' }))).toEqual([
+      ['puzzle.said', { action: 'phone', at: 'phone', line: 'pickUp', gained: [] }],
+      ['puzzle.cutscene', { id: 'ring' }],
+    ])
+    expect(order).toEqual([[tick, 'ring']])
+  })
+
+  it('ignores verbs while the `locked` option holds, and takes them again once it does not (a cutscene is playing)', async () => {
+    let locked = true
+    sim = await createToy({ locked: () => locked })
+    expect(said(verb(sim, { at: 'drawer' }))).toEqual([])
+    locked = false
+    expect(said(verb(sim, { at: 'drawer' })).length).toBeGreaterThan(0)
+  })
+
   it('tells the `verb` option which verb it took, what it said and whether it turned away', async () => {
     const def: PuzzleDef = {
       ...TOY,

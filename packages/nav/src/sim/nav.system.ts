@@ -15,6 +15,8 @@ import { type Blocked, clear, route, WALK_MARGIN } from './route'
 export interface NavOptions {
   /** The game's movement query (walls, steps and its own obstacles); by default sectors' walls and nav's doors. */
   readonly blocked?: (ctx: SimContext, doors: Readonly<Record<string, boolean>>) => Blocked
+  /** While this holds (a cutscene is playing), new `walk-to` commands are ignored; walks under way go on (the `cutscenes` extension's `locked`, M6.9a). */
+  readonly locked?: (ctx: SimContext) => boolean
 }
 
 type Routes = Record<string, NavRoute>
@@ -55,7 +57,7 @@ export const navWalkSystem = (options: NavOptions): SystemDef =>
     const blocked = options.blocked?.(ctx, doors.open) ?? blockedBy(resolvedMap(ctx), doors.open)
     const routes = ctx.resource(NavRoutes)
     // A walk-to names an entity that nav moves; any other is ignored.
-    for (const { payload } of ctx.commands.of(WalkTo)) {
+    for (const { payload } of options.locked?.(ctx) === true ? [] : ctx.commands.of(WalkTo)) {
       const walker = ctx.entity(payload.entity)
       if (walker === undefined || !walker.has(NavAgent) || !walker.has(InSector)) continue
       const { x, z } = walker.get(InSector)

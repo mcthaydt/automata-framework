@@ -15,7 +15,7 @@ import {
 } from '@mcthaydt/automata-sim'
 import { parse } from 'smol-toml'
 import { z } from 'zod'
-import { createNarrative, type NarrativeScene } from '../sim/index'
+import { createNarrative, type NarrativeOptions, type NarrativeScene } from '../sim/index'
 
 const point = z.strictObject({ x: z.number(), z: z.number() })
 const Load = defineCommand('talk.load', z.strictObject({}))
@@ -39,8 +39,12 @@ export interface TalkGame {
   readonly player: number
 }
 
-export async function createTalkGame(puzzle: PuzzleDef, scene: NarrativeScene): Promise<TalkGame> {
-  const narrative = createNarrative()
+export async function createTalkGame(
+  puzzle: PuzzleDef,
+  scene: NarrativeScene,
+  options: NarrativeOptions = {},
+): Promise<TalkGame> {
+  const narrative = createNarrative(options)
   const game = definePlugin({
     name: 'talk',
     dependsOn: ['sectors', 'puzzle', 'narrative'],
