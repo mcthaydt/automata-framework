@@ -13,8 +13,9 @@ export {
   installDebug,
   type NetDiagnosticsPort,
   type SimProbe,
+  type SummaryPort,
 } from './host'
 export { createOverlay, type Overlay, type OverlayOptions, type OverlayState } from './overlay'
-export { type DebugPanelDef, debugPanels } from './panels'
+export { type DebugPanelDef, debugPanels, summaryPanel } from './panels'
 export { shippedPanels } from './shipped-panels'
 export { type SummaryRow, summaryRows } from './summary-rows'
