@@ -111,3 +111,10 @@ configs gain a condition). Parity: not affected (no sim, renderer, ui or golden 
   in the Ruken bundles and none in the web bundle). `build:examples` and `build:demos` pass. E2E (Chromium): placeholder
   and base-2d 12/12; demos, examples and playground-frame-chromium 84 passed, 1 skipped (the runner's pending
   `core-later` fixture, skipped by design). Parity omitted: no sim, renderer, ui or golden changed.
+- CI on `cfb2cf0b` failed `pnpm api-report`: 8 API breaks of `host` against `main`, undeclared. The local gate had run
+  only `api-report --update`, which rewrites the reports and does not check declarations; the plain `pnpm api-report`
+  does. Fixed: the changeset's breaking note is a `BREAKING:` line naming each break and its replacement; `main`
+  merged in; `pnpm api-report`: 8 breaks, 0 undeclared. After the merge, `games/base-3d`'s new screens test (from
+  `main`) boots over Ruken's fake host, so its dom project gets the `automata-ruken` condition as Emberwick's did
+  (3 failures before, 71 tests passing after). `pnpm check` gates re-run: lint, typecheck (37), boundaries, style,
+  knip and `test:unit` (35/35) pass; `check-changesets` 0 problems.

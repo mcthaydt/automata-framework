@@ -15,6 +15,8 @@ export const WALK_PER_TICK = Math.round((WALK_SPEED * Q16) / TICK_HZ)
 export const HERO_HALF = metres(0.3)
 /** How far the lock reaches in plan, 12 m (DESIGN.md §11.1). */
 export const LOCK_RANGE = metres(12)
+/** How near the ember a pickup must start to take it, 1 m each way in plan (a square, so no square root). */
+export const EMBER_REACH = metres(1)
 /** Each action's code in `HeroAction.clip` (0 is none); the figure plays the clip of the same name (M3 spec §4.7). */
 export const ACTION_CLIP = { slash: 1, point: 2, pickup: 3 } as const
 /** Each action's length in ticks at 60 Hz: its clip's `length` (0.4 s, 0.8 s, 0.9 s), which the content test checks. */

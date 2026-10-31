@@ -35,7 +35,6 @@ const PURE_PACKAGES: ReadonlySet<string> = new Set(['zod', '@mcthaydt/automata-e
 const GENERIC_AREAS: ReadonlySet<string> = new Set(['app', 'tiles', 'canvas'])
 const PROFILE_AND_TEMPLATE_IDS: ReadonlySet<string> = new Set([
   'level-project',
-  'floorfifty-stage',
   'platformer',
   'topdown-rpg',
   'blank',

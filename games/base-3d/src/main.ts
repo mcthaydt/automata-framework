@@ -4,7 +4,8 @@
 // Shows (M3.7b part 3): the first slice in 3D. Wick (figure content: the pose library, four clips and a sword)
 // walks the hall and the kiln under the angled camera, which cuts between the rooms' views at the doorway, turns
 // freely, cuts the walls away and fades the pillar; three static props from The Last Light and fog. Shift locks
-// onto the second figure: Wick strafes and aims at it, and the camera frames them both.
+// onto the second figure: Wick strafes and aims at it, and the camera frames them both. (Part 4) The flow: a splash,
+// the menu, the room, paused and Settings, and the end screen when Wick picks up the ember in the kiln.
 // Controls: WASD or the arrows to move, Q and E to turn the camera, Shift held to lock, J slash, K held to guard,
 // L point, F pick up, Escape to pause. On touch, the same as buttons (the analog stick and the camera drag wait on
 // the play screen, GAME-3D.1h).
@@ -13,13 +14,16 @@
 import '@mcthaydt/automata-render-pixi3d/no-eval'
 import { content } from 'virtual:automata/content'
 import type { FigureDef } from '@mcthaydt/automata-figures'
-import { defaultContent, defineGame, inputs, keys, startGame } from '@mcthaydt/automata-game'
+import { defineGame, inputs, keys, startGame } from '@mcthaydt/automata-game'
 import { createPixi3dRenderer, figure, render3dExtension } from '@mcthaydt/automata-render-pixi3d'
 import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
+import type { QualityTier } from '@mcthaydt/automata-runtime'
 import { Act, Lock, Move } from './commands.ts'
 import { Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
+import { BASE3D_FLOW } from './screens/flow.ts'
+import { base3dScreens } from './screens/screens.ts'
 import { base3dSim } from './state.ts'
 import { compileArea } from './systems.ts'
 import {
@@ -96,20 +100,37 @@ const now = (): number => simTick / TICK_HZ
 /** The targets' rows by sid, for the hero's aim at the one he locks. */
 const targets = new Map<number, { readonly x: number; readonly z: number }>()
 
+const TITLE = 'The Cold Kiln'
+/** The camera's heading plugin and its `camera-view` content kind. */
+const EXTENSIONS = [render3dExtension]
+/** The stage, once the renderer has made it: the screens give it the player's graphics quality (M4.4). */
+let stage: { setQuality(tier: QualityTier): void } | undefined
+
 export const base3d = defineGame({
   id: 'base-3d',
-  title: 'The Cold Kiln',
+  title: TITLE,
   size: { width: 844, height: 390 },
   orientation: 'landscape',
   sim: BASE3D_SIM,
-  // The camera's heading plugin and its `camera-view` content kind.
-  extensions: [render3dExtension],
+  extensions: EXTENSIONS,
   input,
-  content: { ...defaultContent(), sim: BASE3D_SIM.content },
+  content: { ...BASE3D_FLOW, sim: BASE3D_SIM.content },
+  // Splash, menu, room, paused, Settings and end (screens/screens.ts) over the flow in screens/flow.ts.
+  screens: base3dScreens({
+    title: TITLE,
+    sim: BASE3D_SIM,
+    input,
+    extensions: EXTENSIONS,
+    setQuality: (tier) => stage?.setQuality(tier),
+  }),
   preload: PROPS.map((prop) => prop.file),
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
+      setup: (made) => {
+        stage = made
+        return options.setup?.(made)
+      },
       fog: FOG,
       models: PROPS.map((prop) => prop.file),
       views: {

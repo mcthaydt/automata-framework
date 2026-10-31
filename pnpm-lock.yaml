@@ -158,12 +158,21 @@ importers:
       '@mcthaydt/automata-game':
         specifier: workspace:*
         version: link:../../packages/game
+      '@mcthaydt/automata-host':
+        specifier: workspace:*
+        version: link:../../packages/host
       '@mcthaydt/automata-render-pixi3d':
         specifier: workspace:*
         version: link:../../packages/render-pixi3d
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@mcthaydt/automata-ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@pixi/3d':
         specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
         version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
@@ -189,9 +198,15 @@ importers:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -204,6 +219,9 @@ importers:
       '@vitest/browser-playwright':
         specifier: 5.0.3
         version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
+      jsdom:
+        specifier: 30.1.1
+        version: 30.1.1
       playwright:
         specifier: 1.63.0
         version: 1.63.0
@@ -467,9 +485,6 @@ importers:
 
   packages/editor-2d:
     dependencies:
-      '@decimalturn/toml-patch':
-        specifier: 3.3.1
-        version: 3.3.1
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
