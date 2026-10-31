@@ -12,7 +12,8 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./measure": "./src/measure/index.ts"
+    "./measure": "./src/measure/index.ts",
+    "./render": "./src/render/index.ts"
   },
   "scripts": {
     "test": "vitest run",
