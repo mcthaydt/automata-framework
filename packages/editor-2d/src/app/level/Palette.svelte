@@ -4,6 +4,7 @@
   entity definitions as rows with their colour and name. One choice at a time (`radiogroup`), held by the controller.
 -->
 <script lang="ts">
+import { spriteStyle } from '../tile-sprite'
 import { isChosen, type PaletteItem } from './palette-model'
 
 interface Props {
@@ -21,17 +22,6 @@ const { layer, items, word, entityDef, imageUrl, onchoose }: Props = $props()
 
 const CELL = 44
 const tiles = $derived(items.length > 0 && items.every((item) => item.kind === 'tile'))
-
-function sprite(item: Extract<PaletteItem, { kind: 'tile' }>): string {
-  const url = item.image === undefined ? undefined : imageUrl(item.image.path)
-  if (item.image === undefined || url === undefined) return `background-color: ${item.color}`
-  const scale = CELL / Math.max(item.image.frame.w, item.image.frame.h)
-  return [
-    `background-image: url("${url}")`,
-    `background-size: ${item.image.size.w * scale}px ${item.image.size.h * scale}px`,
-    `background-position: ${-item.image.frame.x * scale}px ${-item.image.frame.y * scale}px`,
-  ].join('; ')
-}
 
 const keyOf = (item: PaletteItem): string =>
   item.kind === 'entity' ? `entity-${item.def}` : `word-${item.word}`
@@ -54,7 +44,7 @@ const keyOf = (item: PaletteItem): string =>
             aria-checked={chosen}
             aria-label={item.label}
             data-choice={keyOf(item)}
-            style={sprite(item)}
+            style={spriteStyle(item, item.image === undefined ? undefined : imageUrl(item.image.path), CELL)}
             onclick={() => onchoose(item)}>{drawn ? '' : item.tile}</button
           >
         {:else}

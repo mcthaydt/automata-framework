@@ -1,6 +1,7 @@
 # ADR 0004: Ruken first
 
 - Status: Accepted by Owner direction (2026-10-11); written-spec review pending
+- Superseded in part by [ADR 0006](0006-distribution-targets.md) (2026-10-31): Ruken is one of four peer targets and AF owns the host contract.
 - Date: 2026-10-11
 - Refined by: [ADR 0005](0005-publish-targets.md) (proposed 2026-10-16): Ruken is the reference host, and itch.io is a supported publish target
 - Refines: law 7 and §7 of the [2026-10-01 master spec](../superpowers/specs/2026-10-01-automata-framework-overview-design.md); the S6 verdict

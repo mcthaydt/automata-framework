@@ -387,6 +387,8 @@ The Studio's own screens, input (tablet-first: drag a handle with a finger, pinc
 
 Unchanged from 2026-10-16 §4.7: `render-pixi3d`, `figures` (because its only renderer is private) and `base-3d` are `private: true`; the tarball is vendored only in private repositories; `ship prepare` refuses a public target whose bundle contains `@pixi/3d` (M3R-D7 says when `figures` could be published).
 
+**Amended 2026-10-31 (CI.P3D1):** a game declares itself private with `audience: 'private'` in its ship config (`base-3d` does, until Pixi 3D's public release). `automata-ship prepare` then runs every check as a private build, Ruken's parser included, and writes no `ruken.toml`, so CI's game-ci job can check the game while a raw `ruken publish` of the folder has no manifest to upload (the review of #241 refused a private `prepare` that writes one). `deploy-dev` and `publish --private` stay the only ways a build carrying `@pixi/3d` ships; `publish` without `--private` and the itch.io target still refuse it. At the AF 1.0 launch the core markers' check goes and `base-3d` drops the field.
+
 ## 5. Data and lifecycle flows
 
 **Boot:** as 2026-10-16 §5, with figures, poses, clips, camera views, lamps, props and the post chain arriving as compiled content; the renderer builds `View3D`, bakes static vertex light, then builds each figure's parts.

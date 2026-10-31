@@ -15,11 +15,12 @@ interface ScriptsManifest {
 }
 
 /**
- * The `../` paths in a script, each at the start of a word or after `=` (`--config=../x`). A glob names a
- * pattern, not a path that must exist, so one is left out.
+ * The `../` paths in a script, each at the start of a word, after `=` (`--config=../x`), after `(` (`$(../x)`)
+ * or in a comma-joined list (`--files=../a,../b`). A glob names a pattern, not a path that must exist, so one is
+ * left out.
  */
 function relativePaths(script: string): string[] {
-  const paths = script.match(/(?<=^|[\s='"])(?:\.\.\/)+[^\s'"`;&|)]*/g) ?? []
+  const paths = script.match(/(?<=^|[\s='"(,])(?:\.\.\/)+[^\s'"`;&|(),]*/g) ?? []
   return paths.filter((path) => !/[*?[{]/.test(path))
 }
 
@@ -48,6 +49,7 @@ function missingScriptPaths(
 
 describe('package scripts that name a folder outside their package', () => {
   it('names a path that resolves to nothing or leaves the repository, and passes paths that exist and globs', () => {
+    // `sub` and `roots` (DX.6c1): a path after `(` and each path in a comma-joined list are paths too.
     const planted: WorkspacePackage = {
       dir: 'packages/a',
       manifest: {
@@ -59,6 +61,8 @@ describe('package scripts that name a folder outside their package', () => {
           'build:all': 'tsc -p ../../examples/*/tsconfig.json',
           up: "node '../../../elsewhere.js'",
           local: 'node src/bin.ts',
+          sub: 'echo $(../../games/gone-sub/version.sh)',
+          roots: 'tsc --files=../../games/real/vite.config.ts,../../games/gone-joined',
         },
       } as WorkspacePackage['manifest'],
     }
@@ -67,6 +71,8 @@ describe('package scripts that name a folder outside their package', () => {
     expect(missingScriptPaths([planted], exists)).toEqual([
       'packages/a check:example: ../../examples/gone (examples/gone) does not exist',
       'packages/a up: ../../../elsewhere.js is outside the repository',
+      'packages/a sub: ../../games/gone-sub/version.sh (games/gone-sub/version.sh) does not exist',
+      'packages/a roots: ../../games/gone-joined (games/gone-joined) does not exist',
     ])
   })
 

@@ -10,6 +10,8 @@ import type { GeometryState } from '@mcthaydt/automata-ui'
 import EditorShell from '../shell/EditorShell.svelte'
 import type { SnippetRegion } from '../shell/region-error'
 import StatusLine from '../widgets/StatusLine.svelte'
+import ToastRegion from '../widgets/ToastRegion.svelte'
+import { createToasts } from '../widgets/toasts'
 import BrokenWidget from './BrokenWidget.svelte'
 import '../tokens.css'
 
@@ -31,6 +33,8 @@ interface Props {
   /** The region whose content throws, and whether it throws at once or after its button is clicked. */
   broken?: SnippetRegion | undefined
   breaks?: 'mount' | 'click'
+  /** A toast to show through the shell's `sheets`, as a real screen shows its toasts. */
+  toast?: string | undefined
 }
 
 const {
@@ -42,6 +46,7 @@ const {
   statusLine = false,
   broken,
   breaks = 'mount',
+  toast,
   panelOpen: panelStart = false,
   inspectorOpen: inspectorStart = false,
   dockOpen: dockStart,
@@ -54,6 +59,11 @@ let panelOpen = $state(panelStart)
 let inspectorOpen = $state(inspectorStart)
 // svelte-ignore state_referenced_locally
 let dockOpen = $state<boolean | undefined>(dockStart)
+
+// A toast that stays until dismissed, so a layout test can measure it.
+const toasts = createToasts()
+// svelte-ignore state_referenced_locally
+if (toast !== undefined) toasts.push({ kind: 'info', message: toast, duration: 0 })
 
 const destinations = ['Stage', 'Path', 'Parts', 'Checks', 'Export']
 const layers = [
@@ -156,6 +166,9 @@ const scenes = ['floor 1', 'floor 2', 'floor 3', 'floor 4', 'floor 5', 'floor 6'
     {:else}
       <span data-testid="open-state">panel:{panelOpen} inspector:{inspectorOpen} dock:{String(dockOpen)}</span>
     {/if}
+  {/snippet}
+  {#snippet sheets()}
+    {#if toast !== undefined}<ToastRegion {toasts} />{/if}
   {/snippet}
 </EditorShell>
 

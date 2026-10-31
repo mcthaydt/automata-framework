@@ -27,6 +27,7 @@ import Inspector from './Inspector.svelte'
 import LayersPanel from './LayersPanel.svelte'
 import LevelDock from './LevelDock.svelte'
 import LevelToolbar from './LevelToolbar.svelte'
+import { levelFocus } from './level-focus'
 import { levelGestures } from './level-gestures'
 import { createLevelSession } from './level-session'
 import { type LevelShortcut, shortcutFor } from './level-shortcuts'
@@ -36,11 +37,17 @@ import { deleteSelected, duplicateSelected, nudgeSelected } from './selection-ed
 
 type CanvasComponent = Component<LevelCanvasProps>
 
-const { geometry, document: opened, frame, services }: ViewProps = $props()
+const { geometry, document: opened, frame, services, focus }: ViewProps = $props()
 
 // The view is made for one document: the screen remounts it when the document is replaced (Take theirs).
 // svelte-ignore state_referenced_locally
-const session = createLevelSession({ history: opened.history, ids: services.ids })
+const located = projectHistory(opened.history)
+// svelte-ignore state_referenced_locally
+const session = createLevelSession({
+  history: opened.history,
+  ids: services.ids,
+  focus: focus === undefined || located === undefined ? undefined : levelFocus(located.state, focus),
+})
 // svelte-ignore state_referenced_locally
 const Canvas: CanvasComponent = services.canvas ?? LevelCanvas
 // svelte-ignore state_referenced_locally

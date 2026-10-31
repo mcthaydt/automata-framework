@@ -6301,7 +6301,9 @@ Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
 Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
 the attempt scope open so Back to {host} can access its Hosting service. Try again
 and Continue without loading close the failed attempt scope and re-run bootProgram
-in a fresh Scope on the same root without reloading the page.
+in a fresh Scope on the same root without reloading the page. Inside a Ruken session,
+Try again reloads the game's frame instead: `@ruken/sdk-host` answers one hello per
+frame load, so a second session in this load would never be welcomed (RT.BOOT1).
 
 RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIFO order.
 
@@ -6435,6 +6437,11 @@ interface RuntimeSeams {
    * playground spec §7.2).
    */
   readonly onFailure?: (cause: unknown) => void;
+  /**
+   * Reloads the game's frame: what Try again does after a boot failure inside a Ruken session, where the host answers
+   * one hello per frame load (M1 runtime spec §4, RT.BOOT1). Defaults to reloading the document's location.
+   */
+  readonly reload?: () => void;
 }
 ```
 
@@ -8197,6 +8204,12 @@ interface ShipConfig {
    * `ruken.toml`, and a Ruken build ignores it.
    */
   readonly itch?: ItchConfig | undefined;
+  /**
+   * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
+   * public release: `automata-ship prepare` then checks the build as private and writes no `ruken.toml`, and only
+   * `deploy-dev` and `publish --private` ship it (M3 spec §4.8). Not a Ruken field. Left out, a game is `public`.
+   */
+  readonly audience?: "public" | "private" | undefined;
 }
 ```
 

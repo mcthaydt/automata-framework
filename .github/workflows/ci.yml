@@ -41,9 +41,13 @@ on:
 permissions:
   contents: read
 
+# A pull request's new push cancels its older run. A push to main never cancels the run in progress: with merges
+# landing minutes apart, every main run was cancelled before parity finished, so main had no complete run to take
+# evidence from (website DX.9w syncs the `evidence` artifact from a successful main run). GitHub keeps at most one
+# pending run per group, so main's queue stays one deep: the run in progress finishes and the latest push runs next.
 concurrency:
   group: ci-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   checks:
@@ -338,7 +342,9 @@ jobs:
       artifact-name: base-2d-dist
       runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
 
-  # M3.7a: base-3d's sim is flat in src/ (games/base-3d/DESIGN.md §3.1), so the whole folder is its sim root.
+  # base-3d's sim is its role files in src/ since #279 (the GL spec), which `pnpm boundaries --game` checks in the
+  # checks job; game-ci skips its own sim-roots check inside this repository, so `src` here only matters to a copy
+  # of this job outside it.
   base-3d:
     name: base-3d through game-ci
     needs: checks
