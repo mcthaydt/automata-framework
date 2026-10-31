@@ -130,6 +130,8 @@ const tell = (layer: HTMLElement, text: string, testId: string): Effect.Effect<v
 export function noticeUnsupportedPads(
   layer: HTMLElement,
   told: Set<string>,
+  /** The words, read when a pad is told: the screens' copy in the player's language (DX.2d). */
+  text: () => string = () => PAD_UNSUPPORTED,
 ): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
   return Effect.gen(function* () {
     const bus = yield* PresentationBus
@@ -142,7 +144,7 @@ export function noticeUnsupportedPads(
           if (pad.standard || told.has(key)) return
           told.add(key)
           // In the screen's scope: leaving the screen takes the toast away with it.
-          Runtime.runFork(runtime)(Effect.forkIn(tell(layer, PAD_UNSUPPORTED, 'pad-unsupported'), scope))
+          Runtime.runFork(runtime)(Effect.forkIn(tell(layer, text(), 'pad-unsupported'), scope))
         }),
       ),
       (stop) => Effect.sync(stop),

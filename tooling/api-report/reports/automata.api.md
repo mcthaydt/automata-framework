@@ -66,6 +66,17 @@ interface CameraRect {
 }
 ```
 
+### `ChangedElsewhereCopy` (interface)
+
+```ts
+interface ChangedElsewhereCopy {
+    readonly message: string;
+    readonly loadNewer: string;
+    readonly keepPlaying: string;
+    readonly failed: string;
+}
+```
+
 ### `Command` (interface)
 
 ```ts
@@ -270,6 +281,14 @@ interface EventDef<Z extends z.ZodType = z.ZodType> {
 }
 ```
 
+### `GameCopy` (type)
+
+```ts
+type GameCopy = NonNullable<GameDefinition['copy']> & {
+    readonly screens?: ScreensCopyInput | undefined;
+};
+```
+
 ### `GameSaves` (interface)
 
 ```ts
@@ -317,7 +336,7 @@ interface GameSpec<S = never, D = unknown> {
     readonly renderer?: PixiRendererOptions;
     readonly createRenderer?: (options: PixiRendererOptions) => RendererFactory;
     readonly preload?: readonly string[];
-    readonly copy?: GameDefinition['copy'];
+    readonly copy?: GameCopy;
     readonly locale?: GameDefinition['locale'];
     readonly seams?: RuntimeSeams;
 }
@@ -482,6 +501,64 @@ interface SaveDef<S> {
 }
 ```
 
+### `ScreensCopy` (interface)
+
+```ts
+interface ScreensCopy {
+    readonly title: {
+        readonly play: string;
+    };
+    readonly play: {
+        readonly pause: string;
+    };
+    readonly paused: {
+        readonly title: string;
+        readonly resume: string;
+        readonly back: string;
+        readonly mute: string;
+        readonly unmute: string;
+        readonly settings: string;
+        readonly quit: string;
+        readonly quitPrompt: string;
+        readonly quitConfirm: string;
+        readonly cancel: string;
+        readonly reconnect: string;
+    };
+    readonly settings: {
+        readonly screen: SettingsScreenCopy;
+        readonly prompts: PromptCopy;
+        readonly controls: ControlsCopy;
+        readonly language: LanguageCopy;
+        readonly vibration: VibrationCopy;
+        readonly audio: AudioCopy;
+        readonly touch: TouchCopy;
+        readonly display: DisplayCopy;
+    };
+    readonly saves: {
+        readonly slots: SaveSlotsCopy;
+        readonly status: SaveStatusCopy;
+        readonly changedElsewhere: ChangedElsewhereCopy;
+        readonly changedElsewhereToast: string;
+    };
+    readonly board: LeaderboardCopy;
+    readonly padUnsupported: string;
+}
+```
+
+### `ScreensCopyInput` (type)
+
+```ts
+type ScreensCopyInput = ScreensCopyOverrides | ((locale: string) => ScreensCopyOverrides);
+```
+
+### `ScreensCopyOverrides` (type)
+
+```ts
+type ScreensCopyOverrides<T = ScreensCopy> = {
+    readonly [K in keyof T]?: T[K] extends Leaf ? T[K] : ScreensCopyOverrides<T[K]>;
+};
+```
+
 ### `ScreensGame` (interface)
 
 ```ts
@@ -499,6 +576,20 @@ interface ScreensGame {
     readonly setQuality?: ((tier: QualityTier) => void) | undefined;
     readonly saves?: GameSaves<unknown> | undefined;
     readonly extensions?: readonly ExtensionDef[] | undefined;
+    readonly copy?: ScreensCopyInput | undefined;
+}
+```
+
+### `SettingsScreenCopy` (interface)
+
+```ts
+interface SettingsScreenCopy {
+    readonly title: string;
+    readonly back: string;
+    readonly tabs: string;
+    readonly settingsTab: string;
+    readonly controlsTab: string;
+    readonly more: (count: number) => string;
 }
 ```
 

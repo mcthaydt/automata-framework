@@ -6,7 +6,15 @@
   rotation; only what is inside its regions changes.
 -->
 <script lang="ts">
-import { Button, createToasts, EditorShell, shellModeOf, ToastRegion } from '@mcthaydt/automata-editor-kit'
+import {
+  Button,
+  createToasts,
+  defaultDockOpen,
+  dockPlacementOf,
+  EditorShell,
+  shellModeOf,
+  ToastRegion,
+} from '@mcthaydt/automata-editor-kit'
 import type {
   CheckFinding,
   SuiteEditor,
@@ -47,10 +55,15 @@ let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
+/** `undefined` follows the shell's default for the size. */
+let dockOpen = $state<boolean | undefined>()
 const sessions = new SvelteMap<string, unknown>()
 const opening = new Set<string>()
 
 const mode = $derived(shellModeOf(geometry.current.formFactor))
+// Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
+const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
+const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
 const entry = $derived(SUITE_ENTRIES.find((candidate) => candidate.id === current))
 
 // The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
@@ -72,7 +85,7 @@ $effect(() => {
   const { editor, card } = target
   if (sessions.has(editor.id) || opening.has(editor.id)) return
   opening.add(editor.id)
-  void editor.open(card.files, editing.ports).then(
+  void editor.open(card.files, editing.portsFor(editor.id)).then(
     (session) => sessions.set(editor.id, session),
     () => opening.delete(editor.id),
   )
@@ -100,13 +113,6 @@ $effect(() => {
     pills = session.pills()
     titleOpen = session.asking()
     tokens = session.tokens()
-    const path = session.writePath
-    history = {
-      canUndo: path.canUndo(),
-      canRedo: path.canRedo(),
-      undoLabel: path.undoLabel() ?? '',
-      redoLabel: path.redoLabel() ?? '',
-    }
   }
   const stop = session.subscribe(read)
   read()
@@ -119,12 +125,29 @@ $effect(() => {
   return stop
 })
 
+// The top bar's Undo acts on the open editor's own history, or the suite's (an import) with none open (EDS-D19).
+const owner = $derived(mounted?.editor.id ?? '')
+$effect(() => {
+  const path = editing.writePath
+  const of = owner
+  const read = () => {
+    history = {
+      canUndo: path.canUndo(of),
+      canRedo: path.canRedo(of),
+      undoLabel: path.undoLabel(of) ?? '',
+      redoLabel: path.redoLabel(of) ?? '',
+    }
+  }
+  read()
+  return path.subscribe(read)
+})
+
 const undoHook = $derived(mounted?.editor.undo?.(mounted.session))
 const askTarget = $derived(mounted?.editor.ask?.(mounted.session))
 const ask = $derived(
   askTarget === undefined
     ? undefined
-    : createAskSession({ target: askTarget, ports, writePath: editing.writePath }),
+    : createAskSession({ target: askTarget, ports, writePath: editing.writePath, owner }),
 )
 let askOpen = $state(false)
 let askView = $state<AskState>({ kind: 'idle' })
@@ -168,14 +191,14 @@ function refused(outcome: WriteOutcome | undefined): void {
 // With no editor open, Undo and Redo step the suite's own history (an import, EDS-D19).
 async function undo(): Promise<void> {
   if (!history.canUndo) return
-  const outcome = await editing.undo()
+  const outcome = await editing.undo(owner)
   if (outcome !== undefined && 'written' in outcome) undoHook?.undo()
   else refused(outcome)
 }
 
 async function redo(): Promise<void> {
   if (!history.canRedo) return
-  const outcome = await editing.redo()
+  const outcome = await editing.redo(owner)
   if (outcome !== undefined && 'written' in outcome) undoHook?.redo()
   else refused(outcome)
 }
@@ -237,6 +260,7 @@ function choose(id: string | undefined): void {
   reading = undefined
   panelOpen = false
   inspectorOpen = false
+  dockOpen = undefined
 }
 
 function openCard(card: EditorCard): void {
@@ -248,6 +272,7 @@ function openCard(card: EditorCard): void {
   {geometry}
   bind:panelOpen
   bind:inspectorOpen
+  bind:dockOpen
   panel={mounted ? panel : undefined}
   inspector={mounted ? inspector : undefined}
   dock={mounted?.editor.regions.dock ? dock : undefined}
@@ -280,6 +305,9 @@ function openCard(card: EditorCard): void {
     {#if mounted && mode !== 'wide'}
       <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Panel</Button>
       <Button aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}>Details</Button>
+    {/if}
+    {#if mounted?.editor.regions.dock && dockIsSheet}
+      <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>
     {/if}
   {/snippet}
 

@@ -10,15 +10,10 @@
   outside the body that scrolls, so a short screen scrolls the words and never the buttons.
 -->
 <script lang="ts">
-import {
-  type LeaderboardCopy,
-  LeaderboardPanel,
-  type LeaderboardView,
-  Modal,
-  SaveStatus,
-} from '@mcthaydt/automata-ui'
+import { LeaderboardPanel, type LeaderboardView, Modal, SaveStatus } from '@mcthaydt/automata-ui'
 import { tick } from 'svelte'
 import type { PausedSaves } from './saves-paused.ts'
+import type { LiveScreensCopy } from './screens-copy.svelte.ts'
 
 interface Props {
   onResume: () => void
@@ -29,15 +24,28 @@ interface Props {
   muted: boolean
   /** Mute was pressed: the new state, applied and saved by the caller. */
   onMute: (muted: boolean) => void
-  /** Why play paused, when it was not the player: "Reconnect your controller" (M4-D9). */
-  message?: string | undefined
+  /** Play paused because the controller in use was unplugged (M4-D9): says to reconnect it. */
+  reconnect?: boolean | undefined
   /** The game's scored board (M5.7): read from the host when paused opens. */
-  board?: { copy: LeaderboardCopy; load: () => Promise<LeaderboardView> } | undefined
+  board?: { load: () => Promise<LeaderboardView> } | undefined
   /** The game's save (M5.2): the host's word on the progress, and the choice once another device changed it. */
   saves?: PausedSaves | undefined
+  /** The screens' words in the player's language (DX.2d). */
+  copy: LiveScreensCopy
 }
 
-const { onResume, onQuit, onSettings, muted: mutedAtOpen, onMute, message, board, saves }: Props = $props()
+const {
+  onResume,
+  onQuit,
+  onSettings,
+  muted: mutedAtOpen,
+  onMute,
+  reconnect = false,
+  board,
+  saves,
+  copy,
+}: Props = $props()
+const words = $derived(copy.current.paused)
 
 // The button's own state from here on; the caller applies and saves each change.
 // svelte-ignore state_referenced_locally
@@ -101,10 +109,10 @@ $effect(() => {
         data-kind="primary"
         data-testid="load-newer"
         data-initial-focus
-        onclick={saves.onLoadNewer}>{saves.choiceCopy.loadNewer}</button
+        onclick={saves.onLoadNewer}>{copy.current.saves.changedElsewhere.loadNewer}</button
       >
       <button type="button" class="af-control" data-testid="keep-playing" onclick={saves.onKeepPlaying}
-        >{saves.choiceCopy.keepPlaying}</button
+        >{copy.current.saves.changedElsewhere.keepPlaying}</button
       >
     </div>
   {/if}
@@ -112,15 +120,15 @@ $effect(() => {
 
 <div bind:this={root} class="af-game-menu" data-game-screen="paused">
   <Modal
-    title="Paused"
-    closeLabel={view === 'menu' ? 'Resume' : 'Back'}
+    title={words.title}
+    closeLabel={view === 'menu' ? words.resume : words.back}
     onclose={back}
     testId="paused-screen"
     actions={view === 'elsewhere' ? choice : undefined}
   >
     <div class="af-pause">
-      {#if message !== undefined}
-        <p class="af-pause__message" role="status">{message}</p>
+      {#if reconnect}
+        <p class="af-pause__message" role="status">{words.reconnect}</p>
       {/if}
       {#if view === 'menu'}
         <div class="af-pause__menu" data-pause-menu>
@@ -130,43 +138,43 @@ $effect(() => {
             data-kind="primary"
             data-testid="resume"
             data-initial-focus
-            onclick={onResume}>Resume</button
+            onclick={onResume}>{words.resume}</button
           >
           <button type="button" class="af-control" data-testid="pause-mute" aria-pressed={muted} onclick={toggleMute}
-            >{muted ? 'Unmute' : 'Mute'}</button
+            >{muted ? words.unmute : words.mute}</button
           >
-          <button type="button" class="af-control" data-testid="settings" onclick={onSettings}>Settings</button>
+          <button type="button" class="af-control" data-testid="settings" onclick={onSettings}>{words.settings}</button>
           <button type="button" class="af-control" data-testid="quit" onclick={() => void show('confirm', 'quit-confirm')}
-            >Quit to title</button
+            >{words.quit}</button
           >
         </div>
         <!-- Under the menu, so on a screen too short for both the actions stay on screen and the lines scroll. -->
         {#if saves !== undefined}
           {#if saves.view.loadFailed}
-            <p class="af-pause__message" role="alert" data-load-failed>{saves.choiceCopy.failed}</p>
+            <p class="af-pause__message" role="alert" data-load-failed>{copy.current.saves.changedElsewhere.failed}</p>
           {/if}
-          <SaveStatus status={saves.view.status} copy={saves.statusCopy} />
+          <SaveStatus status={saves.view.status} copy={copy.current.saves.status} />
         {/if}
         {#if board !== undefined}
-          <LeaderboardPanel view={scores} copy={board.copy} />
+          <LeaderboardPanel view={scores} copy={copy.current.board} />
         {/if}
       {:else if view === 'elsewhere' && saves !== undefined}
-        <p class="af-pause__message">{saves.choiceCopy.message}</p>
+        <p class="af-pause__message">{copy.current.saves.changedElsewhere.message}</p>
         {#if saves.view.loadFailed}
-          <p class="af-pause__message" role="alert" data-load-failed>{saves.choiceCopy.failed}</p>
+          <p class="af-pause__message" role="alert" data-load-failed>{copy.current.saves.changedElsewhere.failed}</p>
         {/if}
       {:else}
-        <p class="af-pause__message">Quit to title? This run is lost.</p>
+        <p class="af-pause__message">{words.quitPrompt}</p>
         <div class="af-pause__menu">
           <button
             type="button"
             class="af-control af-control--primary"
             data-kind="primary"
             data-testid="quit-confirm"
-            onclick={onQuit}>Quit to title</button
+            onclick={onQuit}>{words.quitConfirm}</button
           >
           <button type="button" class="af-control" data-testid="quit-cancel" onclick={() => void show('menu', 'quit')}
-            >Cancel</button
+            >{words.cancel}</button
           >
         </div>
       {/if}
