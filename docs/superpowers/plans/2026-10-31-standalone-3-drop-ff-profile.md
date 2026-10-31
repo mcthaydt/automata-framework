@@ -31,8 +31,9 @@ proves the generic areas still name no profile.
   `packages/editor-2d/src/testing/architecture.ts`: the registry and boundary tests use a neutral second profile id
   (`stage-profile`) where they used the removed one; the architecture's list of profile ids drops it.
 - `packages/editor-2d/src/testing/planted-profile.ts`: the comment names the removed profile's text patching; reword.
-- `packages/editor-2d/package.json`, `pnpm-lock.yaml`, `docs/versions.md`: `@decimalturn/toml-patch` was used only by
-  the profile's codec; remove the dependency and its versions row.
+- `packages/editor-2d/package.json`, `pnpm-lock.yaml`, `docs/versions.md`: `@decimalturn/toml-patch` was used in
+  editor-2d only by the profile's codec; remove it from editor-2d. The kit still uses it, so its versions row stays,
+  reworded to the kit's use.
 - `knip.jsonc`: drop the profile's `make-goldens.mjs` entry.
 - `packages/editor-suite/src/testing/sample-ports.ts`, `packages/editor-suite/src/shell/suite-session.test.ts` and the
   list fixture's header comment: the suite's sample drops its stage file (the 2D editor no longer opens that format).
@@ -44,14 +45,14 @@ proves the generic areas still name no profile.
 ## Steps
 
 - [x] 1. Survey and plan (this file).
-- [ ] 2. Delete the profile folder; drop the Checks view stage case. `pnpm --filter @mcthaydt/automata-editor-2d
+- [x] 2. Delete the profile folder; drop the Checks view stage case. `pnpm --filter @mcthaydt/automata-editor-2d
   typecheck` passes (nothing else imports it).
-- [ ] 3. Neutral ids and comments in the registry, architecture and planted-profile files. `pnpm --filter
+- [x] 3. Neutral ids and comments in the registry, architecture and planted-profile files. `pnpm --filter
   @mcthaydt/automata-editor-2d exec vitest run --project unit --project dom` passes.
-- [ ] 4. Remove `@decimalturn/toml-patch` (package.json, lockfile, versions row) and the knip entry. `pnpm knip` and
-  `node tooling/versions/...` (the versions check `pnpm check` runs) pass.
-- [ ] 5. Suite sample drops the stage file. `pnpm --filter @mcthaydt/automata-editor-suite test:unit` passes.
-- [ ] 6. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`; parity for editor-2d and editor-suite (`test:parity`,
+- [x] 4. Remove `@decimalturn/toml-patch` from editor-2d (package.json, lockfile; the versions row is reworded) and
+  the knip entry. `pnpm knip` passes.
+- [x] 5. Suite sample drops the stage file. `pnpm --filter @mcthaydt/automata-editor-suite test:unit` passes.
+- [x] 6. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`; parity for editor-2d and editor-suite (`test:parity`,
   three browsers) since their tests changed; `grep -rni` for the profile's name in `packages/editor-2d` and the suite's
   sample returns nothing.
 
@@ -66,3 +67,11 @@ proves the generic areas still name no profile.
 ## Execution log
 
 - 2026-10-31: plan written at `753ba9ac`.
+- 2026-10-31, deviation: the plan said to drop the `@decimalturn/toml-patch` versions row, but `packages/editor-kit`
+  (`documents/toml/patch-toml.ts`) also depends on it (lockfile importers `packages/editor-2d` and `packages/editor-kit`).
+  Only editor-2d's dependency is removed; the row now describes the kit's use.
+- 2026-10-31: steps 2 to 5. editor-2d `typecheck` 0 errors (1617 files); editor-2d unit+dom 113 files, 1458 tests pass;
+  `pnpm knip` clean; editor-suite unit+dom 36 files, 304 tests pass.
+- 2026-10-31, step 6: `pnpm format` clean; `TURBO_FORCE=true pnpm check` exit 0 (35/35 tasks, 0 cached);
+  editor-2d `test:parity` 21 files, 582 tests pass; editor-suite `test:parity` 9 files, 219 tests pass. A grep for the
+  profile's name in `packages/editor-2d` finds nothing.
