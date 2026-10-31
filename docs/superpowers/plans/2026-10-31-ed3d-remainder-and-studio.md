@@ -4,7 +4,7 @@
 - **Specs:** [ED3D](../specs/2026-10-23-editor-3d-design.md) §5.3 flows 4, 5, 9, §6 (Walk), §9 to §13 (ED3-a to ED3-s, minus the cut ED3-i and ED3-j); [editor suite](../specs/2026-10-30-editor-suite-design.md) §4.1 (`SuiteEditor`), §6.2 (Studio), EDS-D13, EDS-D16, EDS-q, EDS-r, EDS-s, EDS-x, EDS-aa; [kit](../specs/2026-10-23-editor-kit-design.md) §4.5, §4.8, §8.
 - **Lane:** editors. **Depends on:** #350 and #353 (the thing card's field form, merged or in review; this branch starts from `origin/main` and merges #353 when it lands), `view/walk/walk-controller.ts` and `view/materials/material-picker.ts` (ED3D.8a, headless, merged), the `figures` package (`solve`, `evaluate`, `sample`, `poseSchema`, `figureSchema`, clips), `render-pixi3d`'s `figure` view (M3.5d), EDS.1a to EDS.2d (merged).
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reported to the coordinator. Steps are ticked only when their checks pass.
-- **Progress:** 0 of 32 steps.
+- **Progress:** part E done (Studio, below); A, B, C, D, F and G follow. Order (coordinator, 2026-10-31): E first, then A, B, C, D, F, G; the branch is pushed after each part; one draft PR when all are done.
 
 ## Files by part
 
@@ -65,4 +65,17 @@ Per part: focused tests first; at the end `pnpm exec biome check --write <change
 4. **Overlap with ED2D.8:** `origin/main` already carries ED2D.8a and ED2D.8b (World camera and pictures), and #353 carries the ED2D.8 polish, a11y and iPad journeys. The second PR reconciles the ED2D.8 row.
 5. **Size:** about 120 new files; checkpoints are the part commits, each pushed.
 
+## Steps (ticked when their checks pass)
+
+### E. Studio
+- [x] E1. `studio-content.ts`: the figure content read through the figures schemas, problems listed, references checked (red first: module missing).
+- [x] E2. `studio-session.ts`: one history over every file's text, span-preserving edits written through the workspace port, Undo and Redo write back, create and its undo (EDS-aa).
+- [x] E3. `studio-edits.ts`: typed edits for sliders (face table), figure fields, handles, clip keys, length, loop, mode, mask, markers and cues.
+- [x] E4. Stage: `stage-camera.ts` (pure orbit, projection, picking ray) and `stage-renderer.ts` (the game's `figure` view on a `View3D`, WebGL2, context loss), canvas tests in Chromium and WebKit.
+- [x] E5. `studio-view.ts` (mode, selection, playhead, what the stage draws, handle positions and reach) and `studio-controller.ts` (every action as one step, refusal in words).
+- [x] E6. Components: panel, Look, Pose, Animate fields, stage with handles, timeline dock, regions and `createStudio`, registered in the suite page; DOM tests.
+- [x] E7. Layout in the shell at eight sizes in three browsers (96 of 96), WebKit iPad journeys EDS-q, EDS-r, EDS-s, EDS-x, EDS-aa (5 of 5), review images.
+- [ ] A. ED3D.8b Walk and the material sheet. [ ] B. ED3D.13b. [ ] C. ED3D.11. [ ] D. ED3D.12. [ ] F. ED3D.14. [ ] G. gates and the PR.
+
 ## Execution log
+- 2026-10-31, E (Studio): everything above is in `packages/editor-suite/src/editors/studio/`. Decisions and findings: (1) the figures package's entry reaches the content compiler's Node built-ins through `@mcthaydt/automata-content`'s entry, which Vite's dev server and Vitest's browser mode cannot load (a build tree-shakes them): the suite's Vite configs alias the bare entry to `src/shims/content-browser.ts`, which re-exports the package's own schema and palette files. The proper fix is a browser-safe entry in the content package (a request, not done here). (2) The kit's `ContentDocument.edit` throws from `toml-patch` when an array of tables is inserted at a new root key after `[[keys]]` tables (found with `cues`); the Studio inserts an empty array and then the item, and `session.edit` turns any throw into a refusal. (3) A stage built on `View3D` needs an ambient environment, or the figure draws black; the stage sets the sky and ground colours the figure examples use. (4) The stage renderer must not be rebuilt on a size notification (the renderer's creation reads only "has a usable size"): rebuilding it on every ResizeObserver tick hung WebKit. (5) A handle's pointer listeners are native, because Svelte delegates `pointerdown` to the root and the stage's gestures need the press stopped below it. (6) EDS-D16's stand fit check (a stand the outfit does not suit, disabled with a reason) is not built: it needs M3.6b's fit check on stands; the stand picker lists the game's stands. EDS.9d (the pipeline gate bar) stays unbuilt (M3.9a is cut). (7) The suite's top-bar Undo label reads "Undo Edit" for every editor (the write path's), not the Studio's step name; the Studio's own labels are in its history.

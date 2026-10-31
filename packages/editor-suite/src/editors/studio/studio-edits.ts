@@ -5,7 +5,6 @@ import type {
   FigureClipDef,
   FigureDef,
   MaskGroup,
-  PoleId,
   PoseDef,
   Vec3,
 } from '@mcthaydt/automata-figures'
@@ -82,15 +81,6 @@ export function removeHandle(pose: PoseDef, handle: EffectorId): TypedEdit {
   return pose.effectors[handle] === undefined
     ? edits()
     : edits({ keyPath: ['effectors', handle], remove: true })
-}
-
-/** A pole's direction (an elbow or a knee), adding the pole when the pose has none. */
-export function poleEdit(pose: PoseDef, pole: PoleId, dir: Vec3): TypedEdit {
-  const old = pose.poles?.[pole]?.dir
-  if (pose.poles === undefined) return edits({ keyPath: ['poles'], insert: { [pole]: { dir: [...dir] } } })
-  return old === undefined
-    ? edits({ keyPath: ['poles', pole], insert: { dir: [...dir] } })
-    : edits({ keyPath: ['poles', pole, 'dir'], expected: old, set: [...dir] })
 }
 
 // --- clips -----------------------------------------------------------------------------------------------------
