@@ -35,3 +35,108 @@ export const ACTION_TICKS = { slash: 24, point: 48, pickup: 54 } as const
 export const ACTION_BITS = { slash: 1, guard: 2, point: 4, pickup: 8 } as const
 /** The area change's fade out, 300 ms (DESIGN.md §13): the sim swaps the area this many ticks after the exit. */
 export const AREA_FADE_TICKS = 18
+
+/** Wick's health at the start, in half-hearts: 4 hearts (DESIGN.md §7.8). */
+export const HERO_HEALTH = 8
+/** Wick's hurt cylinder's height, 1.6 m; its radius is `HERO_HALF` (DESIGN.md §7.3). */
+export const HERO_HEIGHT = metres(1.6)
+/** A training dummy (the area's targets, until GAME-3D.1d's enemies): 3 hearts, 0.4 m across, 1.8 m tall. */
+export const DUMMY = { health: 6, radius: metres(0.4), height: metres(1.8) } as const
+/** Where a dummy faces, a half turn: back toward the doorway, as the view drew it before it had a facing. */
+export const DUMMY_FACING = 32_768
+
+/** A fighter's state (DESIGN.md §7.1, The Last Light's `State` minus `air`), as `Fighter.state` holds it. */
+export const CombatState = {
+  idle: 0,
+  act: 1,
+  stun: 2,
+  blockstun: 3,
+  stagger: 4,
+  down: 5,
+  defeated: 6,
+} as const
+
+/** What a move's active frames reach: a band along the facing and a height band, in Q16.16 metres (§7.3). */
+export interface MoveHit {
+  readonly near: number
+  readonly far: number
+  readonly bottom: number
+  readonly top: number
+  /** Damage in half-hearts. */
+  readonly dmg: number
+  /** Hitstop ticks (§7.5). */
+  readonly stop: number
+  /** The defender's stun in ticks. */
+  readonly stun: number
+  /** Knockback in Q16.16 metres a second, along the attacker's facing, for the stun's ticks. */
+  readonly kb: number
+  /** 1 to 3: the shake's size (part 3), and a knockdown at 3 (part 2). */
+  readonly power: number
+  /** Under the shield: a `low` hit is never blocked, nor is an unblockable one (§7.4). */
+  readonly low?: boolean
+  readonly unblockable?: boolean
+}
+
+/**
+ * One move's frame data (DESIGN.md §7.1, The Last Light's `src/fight/moves.ts` `Move` at `92e6704`): frames count
+ * from 1 on the tick the move starts, as the source's do. `window` is when the next press starts `next` (§7.2).
+ */
+export interface MoveDef {
+  readonly id: string
+  readonly total: number
+  readonly active: readonly [number, number]
+  readonly window?: readonly [number, number]
+  readonly next?: string
+  readonly hit?: MoveHit
+}
+
+/** A slash's reach: 0.2 m to 1.4 m ahead, from the knee to above the shoulder. Not in §7.2's table; a starting value. */
+const SLASH_REACH = { near: metres(0.2), far: metres(1.4), bottom: metres(0.6), top: metres(1.5) }
+
+/**
+ * Wick's sword (DESIGN.md §7.2's starting frame data). They become `content/moves` and tuning.toml rows with 1j and
+ * 1k (§17); constants until then, as the other numbers here are. Spin, roll and the hops are GAME-3D.1c part 2.
+ */
+export const HERO_MOVES: readonly MoveDef[] = [
+  {
+    id: 'slash-1',
+    total: 22,
+    active: [6, 9],
+    window: [10, 18],
+    next: 'slash-2',
+    hit: { ...SLASH_REACH, dmg: 1, stop: 4, stun: 18, kb: metres(1.5), power: 1 },
+  },
+  {
+    id: 'slash-2',
+    total: 24,
+    active: [7, 10],
+    window: [11, 19],
+    next: 'thrust',
+    hit: { ...SLASH_REACH, dmg: 1, stop: 5, stun: 20, kb: metres(1.5), power: 1 },
+  },
+  {
+    id: 'thrust',
+    total: 34,
+    active: [10, 14],
+    hit: { ...SLASH_REACH, far: metres(1.8), dmg: 2, stop: 8, stun: 30, kb: metres(4), power: 3 },
+  },
+]
+
+/** A press from this frame of a slash to the end of its window queues the next (§7.2, buffering). */
+export const BUFFER_FROM = 4
+/** The shield's arc: 120°, so ±10,923 turn units around the facing (§7.4). */
+export const GUARD_HALF_ARC = 10_923
+/** A hit on the guard's frames 1 to 8 is parried (§7.4). */
+export const PARRY_FRAMES = 8
+/** A parried attacker staggers this many ticks, under this much hitstop (§7.4, the source's numbers). */
+export const PARRY_STAGGER = 28
+export const PARRY_FREEZE = 14
+/** A block: blockstun, the push in Q16.16 metres a second, the attacker's hitstop (§7.4). */
+export const BLOCK_STUN = 12
+export const BLOCK_PUSH = metres(2.4)
+export const BLOCK_FREEZE = 4
+/** Wick hurt: stunned 18 ticks, then not hit again for 60 from the hit (§7.2 `hurt`). */
+export const HURT_STUN = 18
+export const HURT_IFRAMES = 60
+/** At 0 health Wick is down this long before the game over (§7.2 `knockdown`, §7.8). */
+export const KNOCKDOWN_TICKS = 40

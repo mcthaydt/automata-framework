@@ -27,3 +27,13 @@ export const Location = defineResource(
   }),
   () => ({ area: 0, next: -1, swapAt: 0, entryX: 0, entryZ: 0 }),
 )
+
+/**
+ * Hitstop (DESIGN.md §7.5, GAME3D-D6): the ticks still frozen, and whether this tick is one. While `active`, every
+ * system but the input copy and `combat.freeze` stands still.
+ */
+export const Freeze = defineResource(
+  'freeze',
+  z.object({ ticks: z.number().int().nonnegative(), active: z.boolean() }),
+  () => ({ ticks: 0, active: false }),
+)

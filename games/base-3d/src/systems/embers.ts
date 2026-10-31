@@ -5,6 +5,7 @@ import { ACTION_CLIP, EMBER_REACH } from '../constants.ts'
 import { EmberTaken } from '../events.ts'
 import { Location, Progress } from '../resources.ts'
 import { areaIn } from './area.ts'
+import { frozen } from './combat.ts'
 
 /**
  * Takes the ember: on the tick a pickup starts (`heroAct` stamps `startedAt` with it), within `EMBER_REACH` of the
@@ -15,6 +16,7 @@ export const emberTake: SystemDef = defineSystem({
   phase: 'prePhysics',
   after: ['hero.act'],
   run(ctx) {
+    if (frozen(ctx)) return
     const { ember } = areaIn(ctx.content, ctx.resource(Location))
     for (const entity of ctx.query(Hero, HeroAction)) {
       const { clip, startedAt } = entity.get(HeroAction)

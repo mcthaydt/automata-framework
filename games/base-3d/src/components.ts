@@ -51,7 +51,12 @@ export const HeroControl: ComponentDef<typeof controlFields> = defineComponent(
   },
 )
 
-const targetFields = { x: 'i32', z: 'i32' } as const
+const targetFields = {
+  x: 'i32',
+  z: 'i32',
+  /** Where it faces, in turn units as Wick's facing: its reach points this way when it attacks. */
+  facing: 'u32',
+} as const
 
 /** Something Wick can lock onto, standing at `x`, `z`. */
 export const Target: ComponentDef<typeof targetFields> = defineComponent('target', targetFields)
@@ -68,3 +73,39 @@ const actionFields = {
 
 /** Wick's action and stance, as the figure reads them (`FigureState.action` and `stances`, M3 spec §4.4.5). */
 export const HeroAction: ComponentDef<typeof actionFields> = defineComponent('hero-action', actionFields)
+
+const fighterFields = {
+  /** 0 Wick's side, 1 the foes': a hit lands only on the other side. */
+  side: 'u32',
+  /** Health in half-hearts. */
+  health: 'i32',
+  /** `CombatState`. */
+  state: 'u32',
+  /** The move running, as its index in the world's moves + 1 (0 none), its frame (from 1) and its start tick. */
+  move: 'u32',
+  moveTick: 'u32',
+  moveStart: 'u32',
+  /** Ticks left of `stun`, `blockstun`, `stagger` or `down`. */
+  stun: 'u32',
+  /** Ticks left in which no hit lands. */
+  iframes: 'u32',
+  /** The move a press queued (index + 1, 0 none), and a press kept through hitstop for the first live tick. */
+  queued: 'u32',
+  latched: 'bool',
+  /** The last move that hit this fighter: its attacker and start tick, so a move lands once (§7.3 `hitDone`). */
+  hitBy: 'entity',
+  hitStamp: 'u32',
+  /** A push a tick (knockback or a block), Q16.16 metres, for `pushTicks` more ticks. */
+  pushX: 'i32',
+  pushZ: 'i32',
+  pushTicks: 'u32',
+  /** The hurt cylinder (§7.3), Q16.16 metres. */
+  radius: 'i32',
+  height: 'i32',
+} as const
+
+/**
+ * Anything that fights (DESIGN.md §7): Wick and the training dummies, and GAME-3D.1d's enemies. Its place and
+ * facing are its `hero` or `target` row's.
+ */
+export const Fighter: ComponentDef<typeof fighterFields> = defineComponent('fighter', fighterFields)

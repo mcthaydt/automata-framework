@@ -100,11 +100,11 @@ Produced (base-3d only; no package API changes):
 
 Unit tests: `cd games/base-3d && pnpm vitest run --configLoader runner --project node <file>`.
 
-- [ ] 1.1 Failing tests, `src/systems/combat-geometry.test.ts` (new): `facingVector` at the four quarters; `reachHits`
+- [x] 1.1 Failing tests, `src/systems/combat-geometry.test.ts` (new): `facingVector` at the four quarters; `reachHits`
   (straight ahead inside the band, past `far`, short of `near`, beside the segment within and outside the radius,
   behind); `inArc` (±60° in, 61° out, exactly behind out).
-- [ ] 1.2 `src/systems/combat-geometry.ts`; 1.1 passes.
-- [ ] 1.3 Failing sim tests, `src/game.test.ts` `describe('combat (GAME-3D.1c, DESIGN.md §7)')`: each slash's hit
+- [x] 1.2 `src/systems/combat-geometry.ts`; 1.1 passes.
+- [x] 1.3 Failing sim tests, `src/game.test.ts` `describe('combat (GAME-3D.1c, DESIGN.md §7)')`: each slash's hit
   window opens on its table tick and closes after its last (G3-d, sim half); a buffered press from tick 4 starts
   `slash-2` at the window's first tick, three presses end in `thrust` and a fourth is dropped; the dummy loses the
   move's damage once per move; two attackers hitting one defender on one tick both land, in id order (G3-k); a
@@ -114,12 +114,12 @@ Unit tests: `cd games/base-3d && pnpm vitest run --configLoader runner --project
   it starts the next slash on the first live tick in its window (G3-j); Wick hit loses health, is stunned 18 and
   cannot be hit again for 60; at 0 he goes down for 40 ticks and `hero.defeated` fires once. Run: they fail on the
   missing components and systems (record the reason).
-- [ ] 1.4 Components, resource, events, `HERO_MOVES`, `World.moves`, `combat.ts`, the `hero.act` and `hero.move`
+- [x] 1.4 Components, resource, events, `HERO_MOVES`, `World.moves`, `combat.ts`, the `hero.act` and `hero.move`
   changes; 1.3 passes, the old cases still pass or are changed on purpose with a comment.
-- [ ] 1.5 Golden: the route's slash presses now run the chain and reach the dummy; re-record with the change
+- [x] 1.5 Golden: the route's slash presses now run the chain and reach the dummy; re-record with the change
   explained, and keep asserting what did not change (0 rejected, the kiln tick, the lock segment's ticks, the action
   starts that still hold).
-- [ ] 1.6 Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm --filter @af-games/base-3d test:parity`,
+- [x] 1.6 Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm --filter @af-games/base-3d test:parity`,
   `pnpm build:demos`, base-3d e2e (`--project=base-3d`).
 
 ## Steps (part 2) and (part 3)
@@ -135,3 +135,33 @@ Pending: the Mac's CI.
 ## Execution log
 
 - 2026-10-31: plan written from DESIGN §7, §7.8, §19, §20 and the parent branch at `6a2b9789`.
+- 1.1: `combat-geometry.test.ts` (6 cases) failed with `Cannot find module './combat-geometry.ts'` (expected).
+- 1.2: `combat-geometry.ts`; 6/6.
+- 1.3: 14 combat cases in `game.test.ts`; the run failed at import with `HERO_MOVES is not iterable` (the moves did
+  not exist: the expected reason).
+- 1.4: implemented. Test corrections while making them pass (test bugs, not product changes): `startMove` set a
+  negative `moveStart` (now the tick; it is only a stamp); `run` labels events with the tick after the step, so the
+  parry and defeat expectations read `sim.tick` after the hitting step; the block case waits the attacker's 4 ticks
+  of hitstop before its 12 of blockstun; the dummy-defeat ally stood 0.5 m aside, outside a 0.4 m dummy's reach,
+  and moved to 0.3 m. Old cases changed on purpose (each with a comment): the setup's target has `facing` (a half
+  turn, as the view drew it); a slash ends after slash-1's 22 frames, not the clip's 24 ticks; a second press
+  mid-swing queues slash-2 for the window instead of replacing the slash at once.
+- 1.4, interpretations (veto items in the PR): the slash reach (0.2 to 1.4 m, the thrust to 1.8 m, 0.6 to 1.5 m
+  high) is not in §7.2's table, so these are starting values; the moves are constants in constants.ts until 1j/1k
+  make them content (§7.1 names `src/content/moves.content.ts`); Wick's i-frames run 60 ticks from the hit (covering
+  the stun); a block pushes him along the attacker's facing; a lock press that comes during hitstop is not latched
+  (only the slash is, as §7.5 names the input buffer for attacks); `camera-turn` still turns the heading on a
+  frozen tick (rule 9). The G3-j case covers Wick's move, his walk, a dummy's stun, the action clock and the buffer;
+  the area swap's clock moves on through the freeze in code (`Location.swapAt`) but has no case of its own here,
+  because a swap during hitstop needs an exit beside a fight (1i's areas).
+- 1.4, also: two unused imports in hero.ts that biome warned about before this change (`EMBER_REACH`,
+  `LOCK_RANGE`) are gone.
+- 1.5: the golden's state did not move, so the plan's expectation (the route's slashes reaching the dummy) was
+  wrong: the route slashes in the kiln, out of the dummy's reach (0 events), and its second press lands on
+  slash-1's frame 10, the window's first frame, which starts slash-2 at once on tick 287, as the old replace rule
+  did. The hash moved only with the schema: `9fd1aebdb8f26a81` → `c1998c3d0764df24` (Node). Unchanged and still
+  asserted: 0 rejected, 0 events, kiln tick 118, 62 locked ticks, the action starts `1@278, 1@287, 3@348, 2@409`, the
+  end action and the end pose. A route segment that fights belongs with 1d's enemies (G3-b's "two fights").
+- 1.6: `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0; `pnpm --filter @af-games/base-3d test:parity` 246/246
+  (game.test.ts's 78 cases and the 4 layout cases in Chromium, WebKit and Firefox; the golden `c1998c3d0764df24` in
+  all three); `pnpm build:demos` exit 0; base-3d e2e (`--project=base-3d`) 7/7.

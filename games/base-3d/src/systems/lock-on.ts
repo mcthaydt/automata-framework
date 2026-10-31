@@ -5,6 +5,7 @@ import { Hero, HeroControl, Target } from '../components.ts'
 import { LOCK_ASSIST_LIMIT, LOCK_ASSIST_PER_TICK, LOCK_BREAK, LOCK_HIDDEN_TICKS } from '../constants.ts'
 import { Location } from '../resources.ts'
 import { type Area, areaIn } from './area.ts'
+import { frozen } from './combat.ts'
 import {
   angleOf,
   cycleLock,
@@ -30,6 +31,7 @@ export const lockSelect: SystemDef = defineSystem({
   name: 'lock.select',
   phase: 'prePhysics',
   run(ctx) {
+    if (frozen(ctx)) return
     const area = areaIn(ctx.content, ctx.resource(Location))
     const targets: LockPoint[] = ctx
       .query(Target)
@@ -82,6 +84,7 @@ export const lockAssist: SystemDef = defineSystem({
   name: 'lock.assist',
   phase: 'prePhysics',
   run(ctx) {
+    if (frozen(ctx)) return
     const area = areaIn(ctx.content, ctx.resource(Location))
     for (const entity of ctx.query(Hero, CameraHeading)) {
       const hero = entity.get(Hero)

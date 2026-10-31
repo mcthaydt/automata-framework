@@ -1,7 +1,7 @@
 // The area: the level content compiled to fixed point, and the geometry the systems read.
 import { type CameraView, cameraViewSchema } from '@mcthaydt/automata-render-pixi3d/sim'
 import { z } from 'zod'
-import { HERO_HALF, metres } from '../constants.ts'
+import { HERO_HALF, HERO_MOVES, type MoveDef, metres } from '../constants.ts'
 
 const plan = z.tuple([z.number(), z.number()])
 const minNotPastMax = (box: { min: [number, number]; max: [number, number] }): boolean =>
@@ -76,6 +76,8 @@ export interface Area {
 /** The sim's content: every area, the first being where a new game starts. */
 export interface World {
   readonly areas: readonly Area[]
+  /** Every move a fighter can make (DESIGN.md §7.2): Wick's, and GAME-3D.1d's enemies'. */
+  readonly moves: readonly MoveDef[]
 }
 
 const toPoint = (p: { x: number; z: number }): PlanPoint => ({ x: metres(p.x), z: metres(p.z) })
@@ -128,7 +130,7 @@ export function compileArea(source: AreaSource): Area {
  * Compiles each area (`compileArea`) into the world, the first being where a new game starts. Throws on an empty
  * list, a repeated id, and an exit naming an unknown area or arriving outside its rooms.
  */
-export function compileWorld(sources: readonly AreaSource[]): World {
+export function compileWorld(sources: readonly AreaSource[], moves: readonly MoveDef[] = HERO_MOVES): World {
   const areas = sources.map(compileArea)
   if (areas.length === 0) throw new Error('base-3d world: there are no areas')
   areas.forEach((area, index) => {
@@ -145,13 +147,25 @@ export function compileWorld(sources: readonly AreaSource[]): World {
           `base-3d world: an exit of "${area.id}" has its entry outside every room of "${to.id}"`,
         )
     }
-  return { areas }
+  moves.forEach((move, index) => {
+    if (moves.findIndex((other) => other.id === move.id) !== index)
+      throw new Error(`base-3d world: the move "${move.id}" is defined twice`)
+    if (move.next !== undefined && !moves.some((other) => other.id === move.next))
+      throw new Error(`base-3d world: the move "${move.id}" chains into the unknown move "${move.next}"`)
+  })
+  return { areas, moves }
 }
 
 /** The sim's content as a world of areas, each checked as `areaOf` does. */
 export function worldOf(content: unknown): World {
   const world = content as Partial<World> | null
-  if (world === null || typeof world !== 'object' || !Array.isArray(world.areas) || world.areas.length === 0)
+  if (
+    world === null ||
+    typeof world !== 'object' ||
+    !Array.isArray(world.areas) ||
+    world.areas.length === 0 ||
+    !Array.isArray(world.moves)
+  )
     throw new Error('base-3d: the sim content is not a world')
   for (const area of world.areas) areaOf(area)
   return world as World

@@ -4,12 +4,17 @@
 import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Lock, LockCycle, Move } from '../commands.ts'
-import { Hero, HeroAction, HeroControl, Target } from '../components.ts'
-import { AreaEntered, AreaExit, EmberTaken, HeroDefeated } from '../events.ts'
-import { Location, Progress } from '../resources.ts'
+import { Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { DUMMY, DUMMY_FACING, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants.ts'
+import { AreaEntered, AreaExit, EmberTaken, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
+import { Freeze, Location, Progress } from '../resources.ts'
 import {
   type Area,
   areaExit,
+  combatFreeze,
+  combatHits,
+  combatMoves,
+  combatStatus,
   emberTake,
   heroAct,
   heroInput,
@@ -23,7 +28,7 @@ import {
 
 /**
  * Spawns Wick at the area's spawn, already in its room's view (the first view never latches) and facing away from
- * the camera, and a target at each of the area's target points.
+ * the camera, with his 4 hearts, and a training dummy at each of the area's target points (DESIGN.md §7).
  */
 export function spawnArea(sim: Sim, area: Area): void {
   const view = viewAt(area, area.spawn.x, area.spawn.z)
@@ -33,36 +38,48 @@ export function spawnArea(sim: Sim, area: Area): void {
     HeroControl,
     HeroAction,
     [CameraHeading, heading],
+    [Fighter, { side: 0, health: HERO_HEALTH, radius: HERO_HALF, height: HERO_HEIGHT }],
   ])
-  for (const { x, z } of area.targets) sim.spawn([[Target, { x, z }]])
+  for (const { x, z } of area.targets)
+    sim.spawn([
+      [Target, { x, z, facing: DUMMY_FACING }],
+      [Fighter, { side: 1, ...DUMMY }],
+    ])
 }
 
 /** The first slice's sim (M3 spec §4.7). It depends on render-pixi3d's `camera-heading` plugin for the heading. */
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
-  resources: [Progress, Location],
+  resources: [Progress, Location, Freeze],
   defs: [
     Hero,
     HeroControl,
     HeroAction,
     Target,
+    Fighter,
     Move,
     Lock,
     LockCycle,
     Act,
     EmberTaken,
     HeroDefeated,
+    HitLanded,
+    FoeDefeated,
     AreaExit,
     AreaEntered,
     heroInput,
+    combatFreeze,
     lockSelect,
     lockAssist,
     heroAct,
+    combatStatus,
+    combatMoves,
     emberTake,
     heroMove,
     areaExit,
     heroView,
+    combatHits,
   ],
 })
 

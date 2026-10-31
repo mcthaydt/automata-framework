@@ -11,8 +11,8 @@ const area = z.object({ area: z.int().nonnegative() })
 export const EmberTaken: EventDef<typeof at> = defineEvent('ember.taken', at)
 
 /**
- * Wick is down: the play screen ends the round as failed and shows the game over (DESIGN.md §7.8). Health is
- * GAME-3D.1c's, which raises it at 0 hearts after `knockdown`; until then nothing in the sim does.
+ * Wick is down: the play screen ends the round as failed and shows the game over (DESIGN.md §7.8). `combat.status`
+ * raises it once, when his `knockdown` at 0 health ends.
  */
 export const HeroDefeated: EventDef<typeof none> = defineEvent('hero.defeated', none)
 
@@ -21,3 +21,20 @@ export const AreaExit: EventDef<typeof area> = defineEvent('area.exit', area)
 
 /** The sim swapped to `area` and placed Wick at the entry: presentation fades back in. */
 export const AreaEntered: EventDef<typeof area> = defineEvent('area.entered', area)
+
+const hit = z.object({
+  attacker: z.int().nonnegative(),
+  target: z.int().nonnegative(),
+  kind: z.enum(['hit', 'block', 'parry']),
+  power: z.int().nonnegative(),
+  x: z.int(),
+  z: z.int(),
+})
+
+/** A hit landed, was blocked or was parried, at the defender's place: the sparks and the shake (GAME-3D.1c part 3). */
+export const HitLanded: EventDef<typeof hit> = defineEvent('hit.landed', hit)
+
+const foe = z.object({ target: z.int().nonnegative() })
+
+/** A foe's health reached 0; it is despawned at the end of the tick. */
+export const FoeDefeated: EventDef<typeof foe> = defineEvent('foe.defeated', foe)

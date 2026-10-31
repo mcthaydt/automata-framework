@@ -2,10 +2,20 @@ import { CameraHeading, cameraHeadingPlugin, cameraView } from '@mcthaydt/automa
 import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
-import { Hero, HeroAction, Target } from './components.ts'
-import { ACTION_CLIP, ACTION_TICKS, AREA_FADE_TICKS, HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
+import { Fighter, Hero, HeroAction, Target } from './components.ts'
+import {
+  ACTION_CLIP,
+  ACTION_TICKS,
+  AREA_FADE_TICKS,
+  CombatState,
+  HERO_HALF,
+  HERO_MOVES,
+  type MoveDef,
+  metres,
+  WALK_PER_TICK,
+} from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
-import { Location, Progress } from './resources.ts'
+import { Freeze, Location, Progress } from './resources.ts'
 import { base3dSaves } from './screens/saves.ts'
 import { base3dPlugin, base3dSim, spawnArea } from './state/index.ts'
 import { newGame } from './state/save.ts'
@@ -105,8 +115,8 @@ const GAME_SIM = { ...BASE3D_SIM, plugins: GAME_PLUGINS }
 const FIRST_AREA = BASE3D_SIM.content.areas[0] as Area
 
 /** A sim made the way the game makes it (`GAME_SIM`), on the first slice or a test area. */
-async function startSim(area: Area = FIRST_AREA): Promise<Sim> {
-  const sim = await createSim({ ...GAME_SIM, content: { areas: [area] } })
+async function startSim(area: Area = FIRST_AREA, moves: readonly MoveDef[] = HERO_MOVES): Promise<Sim> {
+  const sim = await createSim({ ...GAME_SIM, content: { areas: [area], moves } })
   if (area === FIRST_AREA) BASE3D_SIM.setup(sim)
   else spawnArea(sim, area)
   return sim
@@ -130,7 +140,10 @@ describe('setup', () => {
       latched: false,
     })
     expect(hero(sim)).toMatchObject({ facing: 0, moving: false, moveDir: 0, lockTarget: 0 })
-    expect(sim.query(Target).map((target) => target.get(Target))).toEqual([{ x: metres(2), z: metres(9) }])
+    // GAME-3D.1c: the target is a training dummy now, facing back toward the doorway (a half turn).
+    expect(sim.query(Target).map((target) => target.get(Target))).toEqual([
+      { x: metres(2), z: metres(9), facing: 32_768 },
+    ])
     sim.dispose()
   })
 })
@@ -632,28 +645,37 @@ describe('actions (the four clips’ sim side, M3 spec §4.4.5 and §4.7)', () =
     sim.dispose()
   })
 
+  // GAME-3D.1c: the slash is `slash-1`, a move of 22 frames (DESIGN.md §7.2), no longer the clip's 24 ticks.
+  const SLASH_1 = HERO_MOVES[0]?.total ?? 0
+
   it('starts a slash on the press, at that tick, and ends it after its length', async () => {
     const sim = await startSim()
     run(sim, {}, 5)
     const pressed = sim.tick
     run(sim, { act: { slash: true } })
     expect(action(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: pressed })
-    run(sim, { act: { slash: true } }, ACTION_TICKS.slash - 1) // held: no second slash
+    run(sim, { act: { slash: true } }, SLASH_1 - 1) // held: no second slash
     expect(action(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: pressed })
     run(sim, {})
     expect(action(sim).clip).toBe(0)
     sim.dispose()
   })
 
-  it('lets a second slash replace one mid-swing, and ignores point and pickup while one runs', async () => {
+  // GAME-3D.1c changed this on purpose: a second press mid-swing no longer replaces the slash at once; it queues
+  // slash-2, which starts at slash-1's window (DESIGN.md §7.2 buffering; the combat cases cover the chain).
+  it('queues a second slash pressed mid-swing for the window, and ignores point and pickup while one runs', async () => {
     const sim = await startSim()
+    const first = sim.tick
     run(sim, { act: { slash: true } })
     run(sim, {}, 3)
     run(sim, { act: { point: true } })
     run(sim, { act: { pickup: true } })
-    expect(action(sim).clip).toBe(ACTION_CLIP.slash)
+    expect(action(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: first })
+    run(sim, { act: { slash: true } }) // frame 7: queued
+    expect(action(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: first })
+    run(sim, {}, 2) // frames 8 and 9
     const second = sim.tick
-    run(sim, { act: { slash: true } })
+    run(sim, {})
     expect(action(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: second })
     sim.dispose()
   })
@@ -809,6 +831,257 @@ describe('the area exit (DESIGN.md §13, area change)', () => {
   })
 })
 
+describe('combat (GAME-3D.1c, DESIGN.md §7)', () => {
+  // Two test moves for an attacker the test starts by hand (enemies are GAME-3D.1d): a jab and a low sweep, both
+  // reaching 1.5 m ahead at waist height, active on frames 5 and 6.
+  const jabHit = {
+    near: 0,
+    far: metres(1.5),
+    bottom: metres(0.5),
+    top: metres(1.5),
+    dmg: 2,
+    stop: 3,
+    stun: 10,
+  }
+  const jab = { ...jabHit, kb: metres(1), power: 1 }
+  const JAB: MoveDef = { id: 'test-jab', total: 20, active: [5, 6], hit: jab }
+  const SWEEP: MoveDef = { ...JAB, id: 'test-sweep', hit: { ...jab, low: true } }
+  const MOVES = [...HERO_MOVES, JAB, SWEEP]
+  const moveIndex = (id: string) => MOVES.findIndex((move) => move.id === id) + 1
+  const HALF_TURN = 32_768
+
+  const wickSid = (sim: Sim) => sim.query(Hero)[0]?.sid as number
+  const fighter = (sim: Sim, sid: number) => sim.entity(sid)?.get(Fighter)
+  const moveOf = (sim: Sim, sid: number) => MOVES[(fighter(sim, sid)?.move ?? 0) - 1]?.id
+  /** A training dummy (the area's target) `z` metres ahead of Wick, who stands at the origin facing +z. */
+  const withDummy = async (z = 1) => {
+    const sim = await startSim(openArea(0, true, [{ x: 0, z }]), MOVES)
+    return { sim, dummy: sim.query(Target)[0]?.sid as number }
+  }
+  /** An attacker of side `side` at `x`, `z` facing `facing`, its move started by `start`. */
+  const spawnFighter = (sim: Sim, side: number, z: number, facing: number, x = 0) =>
+    sim.spawn([
+      [Target, { x: metres(x), z: metres(z), facing }],
+      [Fighter, { side, health: 6, radius: metres(0.4), height: metres(1.8) }],
+    ])
+  /** Starts `move` on `sid` so that the next step plays its frame `frame`. */
+  const startMove = (sim: Sim, sid: number, move: string, frame = 1) =>
+    sim.entity(sid)?.set(Fighter, {
+      move: moveIndex(move),
+      moveTick: frame - 1,
+      moveStart: sim.tick,
+      state: CombatState.act,
+    })
+  const slash = (sim: Sim) => run(sim, { act: { slash: true } })
+
+  it('gives Wick 4 hearts and each dummy 3, both idle', async () => {
+    const { sim, dummy } = await withDummy()
+    expect(fighter(sim, wickSid(sim))).toMatchObject({ health: 8, state: CombatState.idle, side: 0 })
+    expect(fighter(sim, dummy)).toMatchObject({ health: 6, state: CombatState.idle, side: 1 })
+    sim.dispose()
+  })
+
+  it.each(['slash-1', 'slash-2', 'thrust'])(
+    'opens %s’s hit window on its first active frame, and not after its last (G3-d)',
+    async (id) => {
+      const move = HERO_MOVES.find((candidate) => candidate.id === id) as MoveDef
+      const opens = await withDummy()
+      startMove(opens.sim, wickSid(opens.sim), id)
+      run(opens.sim, {}, move.active[0] - 1)
+      expect(fighter(opens.sim, opens.dummy)?.health).toBe(6)
+      run(opens.sim, {})
+      expect(fighter(opens.sim, opens.dummy)?.health).toBe(6 - (move.hit?.dmg ?? 0))
+      opens.sim.dispose()
+
+      const closed = await withDummy()
+      startMove(closed.sim, wickSid(closed.sim), id, move.active[1] + 1)
+      run(closed.sim, {}, move.total - move.active[1])
+      expect(fighter(closed.sim, closed.dummy)?.health).toBe(6)
+      closed.sim.dispose()
+    },
+  )
+
+  it('lands a move on a dummy once, however many active frames reach it', async () => {
+    const { sim, dummy } = await withDummy()
+    const events = run(sim, { act: { slash: true } })
+    events.push(...run(sim, {}, 40))
+    expect(fighter(sim, dummy)?.health).toBe(5)
+    expect(events.filter((event) => event.startsWith('hit.landed'))).toHaveLength(1)
+    sim.dispose()
+  })
+
+  it('chains: a press from frame 4 queues slash-2 at the window’s first frame, one inside the window starts the thrust at once, and the thrust ends the chain', async () => {
+    const sim = await startSim(openArea(), MOVES)
+    const wick = wickSid(sim)
+    slash(sim) // frame 1
+    run(sim, {}, 2) // frames 2, 3
+    slash(sim) // frame 4: queued
+    run(sim, {}, 5) // frames 5 to 9
+    expect(fighter(sim, wick)).toMatchObject({ moveTick: 9 })
+    expect(moveOf(sim, wick)).toBe('slash-1')
+    run(sim, {}) // slash-1's frame 10: slash-2 starts instead
+    expect(moveOf(sim, wick)).toBe('slash-2')
+    expect(fighter(sim, wick)?.moveTick).toBe(1)
+    run(sim, {}, 11) // frames 2 to 12, inside slash-2's window (11 to 19)
+    const pressed = sim.tick
+    slash(sim)
+    expect(moveOf(sim, wick)).toBe('thrust')
+    expect(heroAction(sim)).toMatchObject({ clip: ACTION_CLIP.slash, startedAt: pressed })
+    run(sim, {})
+    slash(sim) // the thrust has no next: dropped
+    run(sim, {}, 31)
+    expect(moveOf(sim, wick)).toBe('thrust')
+    run(sim, {})
+    expect(moveOf(sim, wick)).toBeUndefined()
+    expect(fighter(sim, wick)?.state).toBe(CombatState.idle)
+    expect(heroAction(sim).clip).toBe(0)
+    sim.dispose()
+  })
+
+  it('drops a press before frame 4, so a lone slash ends after its 22 frames', async () => {
+    const sim = await startSim(openArea(), MOVES)
+    const wick = wickSid(sim)
+    slash(sim)
+    run(sim, {})
+    slash(sim) // frame 3
+    run(sim, {}, 19)
+    expect(moveOf(sim, wick)).toBe('slash-1')
+    run(sim, {})
+    expect(moveOf(sim, wick)).toBeUndefined()
+    sim.dispose()
+  })
+
+  it('resolves two hits on one tick both, attackers in id order: Wick and a foe trade (G3-k)', async () => {
+    const sim = await startSim(openArea(), MOVES)
+    const wick = wickSid(sim)
+    const foe = spawnFighter(sim, 1, 1, HALF_TURN)
+    startMove(sim, wick, 'slash-1', 6)
+    startMove(sim, foe, 'test-jab', 5)
+    const result = sim.step(commandsFor(sim, {}))
+    expect(fighter(sim, wick)?.health).toBe(6)
+    expect(fighter(sim, foe)?.health).toBe(5)
+    const hits = result.events.filter((event) => event.type === 'hit.landed')
+    expect(hits.map((event) => (event.payload as { attacker: number }).attacker)).toEqual([wick, foe])
+    sim.dispose()
+  })
+
+  it('defeats a dummy once when two hits reach it on one tick (G3-F8)', async () => {
+    const { sim, dummy } = await withDummy()
+    sim.entity(dummy)?.set(Fighter, { health: 1 })
+    const ally = spawnFighter(sim, 0, 0, 0, 0.5)
+    startMove(sim, wickSid(sim), 'slash-1', 6)
+    startMove(sim, ally, 'slash-1', 6)
+    const events = run(sim, {})
+    expect(events.filter((event) => event.startsWith('foe.defeated'))).toHaveLength(1)
+    expect(events.filter((event) => event.startsWith('hit.landed'))).toHaveLength(1)
+    expect(sim.entity(dummy)).toBeUndefined()
+    sim.dispose()
+  })
+
+  describe('the shield (G3-i)', () => {
+    /** A foe 1 m ahead, facing Wick, and the guard raised and held `held` ticks before its jab lands. */
+    async function guarded(held: number, move = 'test-jab') {
+      const sim = await startSim(openArea(), MOVES)
+      const foe = spawnFighter(sim, 1, 1, HALF_TURN)
+      run(sim, { act: { guard: true } }, held)
+      startMove(sim, foe, move, 5)
+      const events = run(sim, { act: { guard: true } })
+      return { sim, foe, wick: wickSid(sim), events }
+    }
+
+    it('parries a hit on frames 1 to 8 of the guard: the attacker staggers 28 ticks, 14 of hitstop, no damage', async () => {
+      for (const held of [0, 7]) {
+        const { sim, foe, wick, events } = await guarded(held)
+        expect(fighter(sim, wick)?.health).toBe(8)
+        expect(fighter(sim, foe)).toMatchObject({ state: CombatState.stagger, stun: 28, move: 0 })
+        expect(sim.resource(Freeze).ticks).toBe(14)
+        expect(events).toContain(`hit.landed@${sim.tick}`)
+        sim.dispose()
+      }
+    })
+
+    it('blocks one on frame 9: blockstun 12, pushed back, no damage', async () => {
+      const { sim, wick } = await guarded(8)
+      expect(fighter(sim, wick)).toMatchObject({ health: 8, state: CombatState.blockstun, stun: 12 })
+      // The attacker's 4 ticks of hitstop hold the blockstun, then its 12 live ticks.
+      run(sim, { act: { guard: true } }, 4 + 12)
+      expect(hero(sim).z).toBeLessThan(0)
+      expect(fighter(sim, wick)?.state).toBe(CombatState.idle)
+      sim.dispose()
+    })
+
+    it('never blocks a low hit, nor one from behind', async () => {
+      const low = await guarded(8, 'test-sweep')
+      expect(fighter(low.sim, low.wick)).toMatchObject({ health: 6, state: CombatState.stun })
+      low.sim.dispose()
+
+      const sim = await startSim(openArea(), MOVES)
+      const behind = spawnFighter(sim, 1, -1, 0)
+      run(sim, { act: { guard: true } }, 3)
+      startMove(sim, behind, 'test-jab', 5)
+      run(sim, { act: { guard: true } })
+      expect(fighter(sim, wickSid(sim))?.health).toBe(6)
+      sim.dispose()
+    })
+  })
+
+  it('freezes everything but the freeze counter and the input during hitstop, and a press in it starts the next slash on the first live tick in its window (G3-j)', async () => {
+    const { sim, dummy } = await withDummy()
+    const wick = wickSid(sim)
+    slash(sim)
+    run(sim, {}, 5) // frame 6 lands: slash-1's 4 ticks of hitstop
+    expect(sim.resource(Freeze).ticks).toBe(4)
+    const at = {
+      wick: { ...hero(sim) },
+      startedAt: heroAction(sim).startedAt,
+      stun: fighter(sim, dummy)?.stun,
+    }
+    slash(sim) // pressed in the freeze, at frame 6: queued for slash-1's window
+    run(sim, { stick: UP }, 3)
+    expect(sim.resource(Freeze).ticks).toBe(0)
+    expect(fighter(sim, wick)?.moveTick).toBe(6)
+    expect(hero(sim)).toMatchObject({ x: at.wick.x, z: at.wick.z })
+    expect(fighter(sim, dummy)?.stun).toBe(at.stun)
+    expect(heroAction(sim).startedAt).toBe(at.startedAt + 4)
+    run(sim, {}, 3) // live: frames 7 to 9
+    expect(moveOf(sim, wick)).toBe('slash-1')
+    run(sim, {})
+    expect(moveOf(sim, wick)).toBe('slash-2')
+    sim.dispose()
+  })
+
+  it('hurts Wick: damage, 18 ticks of stun, then no second hit inside 60 ticks', async () => {
+    const sim = await startSim(openArea(), MOVES)
+    const wick = wickSid(sim)
+    const foe = spawnFighter(sim, 1, 1, HALF_TURN)
+    startMove(sim, foe, 'test-jab', 5)
+    run(sim, {})
+    expect(fighter(sim, wick)).toMatchObject({ health: 6, state: CombatState.stun, stun: 18, iframes: 60 })
+    run(sim, {}, 30)
+    startMove(sim, foe, 'test-jab', 5)
+    run(sim, {})
+    expect(fighter(sim, wick)?.health).toBe(6)
+    sim.dispose()
+  })
+
+  it('at 0 hearts knocks Wick down for 40 ticks, then raises hero.defeated once', async () => {
+    const sim = await startSim(openArea(), MOVES)
+    const wick = wickSid(sim)
+    sim.entity(wick)?.set(Fighter, { health: 2 })
+    const foe = spawnFighter(sim, 1, 1, HALF_TURN)
+    startMove(sim, foe, 'test-jab', 5)
+    run(sim, {})
+    const landed = sim.tick
+    expect(fighter(sim, wick)).toMatchObject({ health: 0, state: CombatState.down, stun: 40 })
+    // The jab's 3 ticks of hitstop hold the count, then 40 live ticks (events are labelled as `run` labels them).
+    const events = run(sim, {}, 60)
+    expect(events.filter((event) => event.startsWith('hero.defeated'))).toEqual([
+      `hero.defeated@${landed + 3 + 40}`,
+    ])
+    sim.dispose()
+  })
+})
+
 // The golden replay (B-a): a scripted route through the first slice as commands, from the game's own sim spec. It
 // pins the sim: Node records the hash, and Chromium, WebKit and Firefox must end on the same one bit for bit. A
 // change to movement, the area or the plugin changes it on purpose: investigate it, never rebaseline it per engine.
@@ -829,7 +1102,7 @@ const GOLDEN_ROUTE: readonly RouteSegment[] = [
   [{}, 10], // released
   [{ act: { slash: true } }, 1], // a slash
   [{}, 8], // mid-swing
-  [{ act: { slash: true } }, 1], // a second slash replaces it
+  [{ act: { slash: true } }, 1], // a second slash: on slash-1's frame 10, its window's first, so slash-2 starts at once
   [{ act: { guard: true } }, 30], // guard raised and held while the slash ends
   [{}, 30], // lowered
   [{ act: { pickup: true } }, 1], // a pickup
@@ -869,9 +1142,15 @@ const GOLDEN_KILN_TICK = 118
  * one), its strafe maps through the line to the target and the assist turns the heading from 16,384 toward it, so
  * the end position, facing and heading moved; and the route gained a toggle press, a cycle and a toggle release
  * after the point. Its rejected commands (0), events (0), kiln tick (118), the held segment's 50 locked ticks (now
- * 62 with the toggle's 12) and the action starts are unchanged, and still asserted below.
+ * 62 with the toggle's 12) and the action starts are unchanged, and still asserted below. Re-recorded for GAME-3D.1c
+ * part 1's combat (was `9fd1aebdb8f26a81`): the schema hash covers the `fighter` component (on Wick and the dummy),
+ * `target`'s new `facing`, the `freeze` resource, the `hit.landed` and `foe.defeated` events and the four `combat.*`
+ * systems, whose rows and RNG states the snapshot carries. The route's state did not move: its slashes are out of
+ * the dummy's reach (0 events), the second press lands on slash-1's frame 10, the window's first frame, so it starts
+ * slash-2 at once on the same tick 287 the old replace rule did, and the rejected commands, kiln tick, locked
+ * ticks, action starts, end action and end position are unchanged, and still asserted below.
  */
-const GOLDEN_HASH = '9fd1aebdb8f26a81'
+const GOLDEN_HASH = 'c1998c3d0764df24'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

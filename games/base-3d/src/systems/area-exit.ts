@@ -5,6 +5,7 @@ import { AREA_FADE_TICKS } from '../constants.ts'
 import { AreaEntered, AreaExit } from '../events.ts'
 import { Location } from '../resources.ts'
 import { worldOf } from './area.ts'
+import { frozen } from './combat.ts'
 
 /**
  * Wick's centre inside one of his area's exits starts a change: `area.exit` names the area it leads to, and
@@ -17,6 +18,7 @@ export const areaExit: SystemDef = defineSystem({
   phase: 'postPhysics',
   before: ['hero.view'],
   run(ctx) {
+    if (frozen(ctx)) return
     const { areas } = worldOf(ctx.content)
     const place = ctx.resource(Location)
     for (const entity of ctx.query(Hero)) {
