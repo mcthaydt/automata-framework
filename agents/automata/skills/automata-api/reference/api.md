@@ -989,6 +989,66 @@ interface InputMap {
 }
 ```
 
+#### `inputs` (function)
+
+One input map from `maps`, each sending its own command every tick in map order. The commands share source 0, so
+each gets its own `seq`: `tick × maps.length + index` (a u32, which at 60 Hz lasts 2³²/60/86,400/n ≈ 828/n days of
+play). `command` is the first map's. Throws on no maps, on two maps for one command and on a key or pad button
+two maps bind.
+
+```ts
+function inputs(...maps: readonly InputMap[]): InputMap {
+  const first = maps[0]
+  if (first === undefined) throw new Error('inputs(): needs at least one map')
+  const ids = maps.map((map) => map.command.id)
+  for (const [index, id] of ids.entries())
+    if (ids.indexOf(id) !== index) throw new Error(`inputs(): the command "${id}" is mapped twice`)
+  checkShared(maps)
+
+  const profile: InputProfile = inputProfileSchema.parse({
+    id: ids.join('+'),
+    bindings: Object.assign({}, ...maps.map((map) => map.profile.bindings)),
+  })
+  const modes = touchModesFor(profile)
+  const touchMode: TouchMode = maps.every((map) => map.touchMode === 'swipe') ? 'swipe' : 'buttons'
+  if (!modes.includes(touchMode)) throw new Error(`inputs(): touchMode "${touchMode}" has nothing to touch`)
+
+  const toCommand = (held: Iterable<string>, tick: number): readonly Command[] => {
+    const actions = [...held]
+    const commands: Command[] = []
+    for (const [index, map] of maps.entries())
+      for (const command of map.toCommand(actions, tick))
+        commands.push({ ...command, seq: tick * maps.length + index })
+    return commands
+  }
+
+  return {
+    command: first.command,
+    touch: maps.some((map) => map.touch),
+    touchButtons: maps.flatMap((map) => (map.touch ? map.touchButtons : [])),
+    touchMode,
+    profile,
+    labels: Object.assign({}, ...maps.map((map) => map.labels)),
+    toCommand,
+    attach(target) {
+      // One Input over the merged bindings, in a scope of its own that `dispose` closes, as `keys()` attaches.
+      const scope = Effect.runSync(Scope.make())
+      const input = Effect.runSync(makeInput({ target, profile, bus: SILENT_BUS }).pipe(Scope.extend(scope)))
+      return {
+        commands(tick) {
+          input.poll()
+          return toCommand(input.held(), tick)
+        },
+        hold: (buttonId) => input.hold(buttonId),
+        release: (buttonId) => input.release(buttonId),
+        gesture: input.gesture,
+        dispose: () => Effect.runSync(Scope.close(scope, Exit.void)),
+      }
+    },
+  }
+}
+```
+
 #### `InputSource` (interface)
 
 The input map attached to a window for one play session.
@@ -2951,6 +3011,17 @@ interface InputMap {
     toCommand(held: Iterable<string>, tick: number): readonly Command[];
     attach(target: Window): InputSource;
 }
+```
+
+#### `inputs` (function)
+
+One input map from `maps`, each sending its own command every tick in map order. The commands share source 0, so
+each gets its own `seq`: `tick × maps.length + index` (a u32, which at 60 Hz lasts 2³²/60/86,400/n ≈ 828/n days of
+play). `command` is the first map's. Throws on no maps, on two maps for one command and on a key or pad button
+two maps bind.
+
+```ts
+function inputs(...maps: readonly InputMap[]): InputMap;
 ```
 
 #### `InputSource` (interface)

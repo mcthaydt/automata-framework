@@ -142,6 +142,73 @@ describe('cameraDriver', () => {
   })
 })
 
+describe('cameraDriver with position and lock readers (M3.7b part 3a)', () => {
+  // A game whose sim keeps Q16.16 metres: the hero row holds them, the target row is another entity.
+  const Q16 = 65_536
+  const hero = (x: number, lockTarget: number): RenderRow => ({
+    sid: 7,
+    components: { 'camera-heading': { view: 'hall', heading: 0 }, hero: { x: x * Q16, z: 0, lockTarget } },
+  })
+  const target = (sid: number, x: number): RenderRow => ({
+    sid,
+    components: { target: { x: x * Q16, z: 0 } },
+  })
+
+  function readers() {
+    const { rig, calls } = fakeRig()
+    const framed: unknown[] = []
+    rig.frame = (lock) => {
+      framed.push(lock)
+    }
+    const hooks = cameraDriver(rig, {
+      views: VIEWS,
+      initial: 'hall',
+      follow: 'hero',
+      position: (c) => ({ x: Number(c.hero?.x) / Q16, y: 0, z: Number(c.hero?.z) / Q16 }),
+      lock: (c, rowOf) => {
+        const sid = Number(c.hero?.lockTarget ?? 0)
+        const row = sid === 0 ? undefined : rowOf(sid)?.target
+        return row === undefined ? undefined : { x: Number(row.x) / Q16, y: 1.2, z: Number(row.z) / Q16 }
+      },
+    })
+    const draw = (alpha: number) => {
+      calls.length = 0
+      framed.length = 0
+      hooks.draw?.(frame(alpha))
+      return { calls: [...calls], framed: [...framed] }
+    }
+    return { hooks, draw }
+  }
+
+  it('follows the position the reader gives, interpolated between ticks', () => {
+    const { hooks, draw } = readers()
+    hooks.apply?.(delta({ added: [hero(2, 0)] }))
+    expect(draw(1).calls).toContain('follow 2 0 0')
+    hooks.apply?.(delta({ changed: [hero(4, 0)] }))
+    expect(draw(0.5).calls).toContain('follow 3 0 0')
+  })
+
+  it('frames the lock target found by sid among every row, and clears it when the lock or the target goes', () => {
+    const { hooks, draw } = readers()
+    hooks.apply?.(delta({ added: [hero(0, 9), target(9, 3)] }))
+    expect(draw(1).framed).toEqual([{ x: 3, y: 1.2, z: 0 }])
+    hooks.apply?.(delta({ changed: [target(9, 5)] }))
+    expect(draw(1).framed).toEqual([{ x: 5, y: 1.2, z: 0 }])
+    hooks.apply?.(delta({ removed: [9] }))
+    expect(draw(1).framed).toEqual([undefined])
+    hooks.apply?.(delta({ added: [target(9, 3)], changed: [hero(0, 0)] }))
+    expect(draw(1).framed).toEqual([undefined])
+  })
+
+  it('frames nothing before the player has a row, and forgets the rows on a resync', () => {
+    const { hooks, draw } = readers()
+    hooks.apply?.(delta({ added: [target(9, 3)] }))
+    expect(draw(1).framed).toEqual([])
+    hooks.apply?.(delta({ resync: true, added: [hero(0, 9)] }))
+    expect(draw(1).framed).toEqual([undefined])
+  })
+})
+
 describe('cameraDriver with the real rig (review #245, 1)', () => {
   it('frames the player where the first row puts them, however many frames came before, and again after a reset', () => {
     const camera = new Camera3D()

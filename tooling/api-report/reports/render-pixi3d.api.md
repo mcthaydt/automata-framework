@@ -456,6 +456,8 @@ interface Pixi3dCameraOptions {
     readonly initial: string;
     readonly follow: string;
     readonly height?: number | undefined;
+    readonly position?: ((components: Components) => Vec3 | undefined) | undefined;
+    readonly lock?: ((components: Components, rowOf: (sid: number) => Components | undefined) => Vec3 | undefined) | undefined;
 }
 ```
 
@@ -464,7 +466,8 @@ interface Pixi3dCameraOptions {
 ```ts
 interface Pixi3dOptions extends PixiRendererOptions {
     readonly views: EntityViewResolver3d;
-    readonly scene?: ((view: View3D, stage: PixiStage, occluders: Occluders, light: SceneLight | undefined) => PixiStageHooks | undefined) | undefined;
+    readonly scene?: ((view: View3D, stage: PixiStage, occluders: Occluders, light: SceneLight | undefined, models: ModelLibrary) => PixiStageHooks | undefined) | undefined;
+    readonly models?: readonly string[] | undefined;
     readonly fog?: SceneFog | undefined;
     readonly lighting?: SceneLighting | undefined;
     readonly lamps?: string | undefined;
