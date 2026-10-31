@@ -16,6 +16,9 @@ export const CHEST_CONTENTS = [
   'heart-piece',
 ] as const
 
+/** The drop tables a pot rolls (§10): `pot` is the enemies' table (§8.1 rule 6). */
+export const DROP_TABLES = ['pot'] as const
+
 const base = {
   def: z.string(),
   id: z.string().min(1),
@@ -57,7 +60,11 @@ export const ENTITY_DEFS = {
     /** The entity whose being on (or open) shows the chest; shown from the start without one. */
     hidden: ref.optional(),
   }),
-  pot: z.strictObject({ ...base, ...box, /** The drop table it rolls when broken. */ drop: ref }),
+  pot: z.strictObject({
+    ...base,
+    ...box,
+    /** The drop table it rolls when broken. */ drop: z.enum(DROP_TABLES),
+  }),
   cracked: z.strictObject({ ...base, ...box }),
   'hook-post': z.strictObject({ ...base }),
   'sling-target': z.strictObject({ ...base, height: z.number().min(0.5).max(3), targets: refs }),

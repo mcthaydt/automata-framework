@@ -259,3 +259,52 @@ const blockFields = {
 
 /** A pushable block (DESIGN.md §10, GAME-3D.1f part 3): a 1 m cube, a wall to everything but a push. */
 export const Block: ComponentDef<typeof blockFields> = defineComponent('block', blockFields)
+
+const chestFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+  /** Shown: no `hidden` ref, or the entity it names is on or open. A shown chest is a wall; a hidden one is nothing. */
+  shown: 'bool',
+  open: 'bool',
+  /** Its box in plan, Q16.16 metres. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/** A chest (DESIGN.md §10, GAME-3D.1f part 4): opened with a press, it gives its contents once and is saved. */
+export const Chest: ComponentDef<typeof chestFields> = defineComponent('chest', chestFields)
+
+const breakableFields = {
+  /** Its entity in the area's `entities`, as its index + 1: a `pot` or a `cracked` wall. */
+  piece: 'u32',
+  /** Its box in plan, Q16.16 metres: a wall while it stands. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/**
+ * A pot or a cracked wall (DESIGN.md §10, GAME-3D.1f part 4): a wall with a hurt cylinder (a `target` row and a
+ * `fighter` on the foes' side, never a lock or aim candidate). A pot breaks on any hit, a cracked wall on a blast.
+ */
+export const Breakable: ComponentDef<typeof breakableFields> = defineComponent('breakable', breakableFields)
+
+const gateFields = {
+  /** Its entity in the area's `entities`, as its index + 1: a `one-way` gate or a `ledge-drop`. */
+  piece: 'u32',
+  /** Open to Wick from its passing side, or while he is in it; closed, it is a wall. */
+  open: 'bool',
+  /** Wick stood in it last tick (a ledge drop is announced as he leaves it below). */
+  crossing: 'bool',
+  /** Its box in plan, Q16.16 metres. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/** A one-way gate or a ledge drop (DESIGN.md §10, GAME-3D.1f part 4): passable one way only. */
+export const Gate: ComponentDef<typeof gateFields> = defineComponent('gate', gateFields)

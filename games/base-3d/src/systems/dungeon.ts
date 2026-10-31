@@ -8,7 +8,6 @@ import {
   BLOCK_CELL,
   BLOCK_CONTACT,
   BLOCK_PUSH_TICKS,
-  DOOR_REACH,
   HERO_HALF,
   SLING_TARGET,
 } from '../constants/index.ts'
@@ -16,12 +15,15 @@ import { BlockMoved, DoorOpened, SwitchChanged } from '../events.ts'
 import { Dungeon, Freeze, Location } from '../resources.ts'
 import { type Area, type AreaEntity, areaIn, type PlanBox } from './area.ts'
 import { facingVector } from './combat-geometry.ts'
+import { addFlag, boxOf, flagOf, heroBox, inReach, inside, overlaps } from './dungeon-common.ts'
+import { pieceParts, resetPots } from './dungeon-pieces.ts'
 import { blockBox, wallsOf } from './walls.ts'
 
 /**
  * The pieces an area starts with: each `sling-target` as a lockable target whose hurt cylinder is centred on its
  * height (§9.2's aim rises to a candidate's middle), on the foes' side so a pellet lands on it; and each `door`,
- * closed until `dungeon.doors` finds it saved open. `spawnFoes` adds them to what an area spawns.
+ * closed until `dungeon.doors` finds it saved open; and part 4's (`pieceParts`). `spawnFoes` adds them to what an area
+ * spawns.
  */
 export function spawnPieces(area: Area): SpawnPart[][] {
   return area.entities.flatMap((entity, index): SpawnPart[][] => {
@@ -41,49 +43,8 @@ export function spawnPieces(area: Area): SpawnPart[][] {
       return [
         [[Block, { piece: index + 1, x: entity.x, z: entity.z, homeX: entity.x, homeZ: entity.z, push: 0 }]],
       ]
-    return []
+    return pieceParts(entity, index)
   })
-}
-
-/** A box entity's plan box, from its centre and size (Q16.16 metres). */
-function boxOf(entity: AreaEntity): { minX: number; minZ: number; maxX: number; maxZ: number } {
-  const halfW = Math.trunc((entity.width as number) / 2)
-  const halfD = Math.trunc((entity.depth as number) / 2)
-  return { minX: entity.x - halfW, minZ: entity.z - halfD, maxX: entity.x + halfW, maxZ: entity.z + halfD }
-}
-
-/** A piece's saved id: `<area>/<entity id>`. */
-const flagOf = (area: Area, entity: AreaEntity): string => `${area.id}/${entity.id}`
-
-/** Adds `flag` to the sorted `flags`, once. */
-function addFlag(flags: string[], flag: string): void {
-  if (flags.includes(flag)) return
-  flags.push(flag)
-  flags.sort()
-}
-
-/** Whether `point` lies in `box` (edges included). */
-const inside = (box: PlanBox, x: number, z: number): boolean =>
-  x >= box.minX && x <= box.maxX && z >= box.minZ && z <= box.maxZ
-/** Whether two boxes overlap (touching faces do not). */
-const overlaps = (a: PlanBox, b: PlanBox): boolean =>
-  a.minX < b.maxX && b.minX < a.maxX && a.minZ < b.maxZ && b.minZ < a.maxZ
-/** Wick's square at his place. */
-const heroBox = (x: number, z: number): PlanBox => ({
-  minX: x - HERO_HALF,
-  minZ: z - HERO_HALF,
-  maxX: x + HERO_HALF,
-  maxZ: z + HERO_HALF,
-})
-
-/** Whether Wick's square, grown by `DOOR_REACH`, touches `box`. */
-const inReach = (
-  box: { minX: number; minZ: number; maxX: number; maxZ: number },
-  x: number,
-  z: number,
-): boolean => {
-  const grow = HERO_HALF + DOOR_REACH
-  return x + grow >= box.minX && x - grow <= box.maxX && z + grow >= box.minZ && z - grow <= box.maxZ
 }
 
 /** Whether any living foe stands in a room that holds the door's centre (a `clear` door's rule). */
@@ -312,7 +273,7 @@ export const dungeonVisit: SystemDef = defineSystem({
   },
 })
 
-/** What resets as Wick comes into `room` (§10): its blocks and its switches that do not latch. */
+/** What resets as Wick comes into `room` (§10): its blocks, its switches that do not latch, and its pots. */
 function resetRoom(ctx: SimContext, area: Area, room: PlanBox): void {
   const switches = ctx.query(Switch)
   const latchedPlates = switches
@@ -333,4 +294,5 @@ function resetRoom(ctx: SimContext, area: Area, room: PlanBox): void {
     const def = area.entities[box.piece - 1]
     if (def?.latch !== true && inside(room, def?.x ?? 0, def?.z ?? 0)) setSwitch(ctx, area, entity, false)
   }
+  resetPots(ctx, area, room)
 }

@@ -99,7 +99,7 @@
       has none); the HUD's keys and the map's visits from the sim (DOM).
 - [x] Part 3: switch cases (plate by block, plate by Wick when latching, eye by pellet, lever by Action); block
       cases (a push, each blocked push, never over Wick, G3-F6); the resets on room entry.
-- [ ] Part 4: chest cases (each contents kind; hidden until its ref; a fourth heart piece raises the hearts); pot,
+- [x] Part 4: chest cases (each contents kind; hidden until its ref; a fourth heart piece raises the hearts); pot,
       cracked, one-way and ledge-drop cases; npc and shop answer Action.
 - [ ] Part 5: G3-p's content check (a failing area per rule); G3-q's solver over the Kiln as it stands (the first
       slice plus the test areas until 1i authors D1–D7; re-run when 1i lands); G3-r's render test and images; the
@@ -221,3 +221,45 @@ is a link for the editor and the door marker (G3-r), not a rule: doors name thei
 **Goldens (part 3).** `base-3d/golden-route` `a1c35d544c35e923` → `520ebd09e49bf0da`; `base-3d/golden-fights`
 `309c87cc6b57a8d2` → `979e36f60d306703`; `base-3d/golden-boss` `7c36c7e4cc306eea` → `9c78334797c5e035` (defeat on
 tick 458, health 8, unchanged). Schema only; every other assertion is unchanged.
+
+**Part 4 (2026-10-31, branch `claude/3d-game-3d-1f`, local; session_01QYLU1gPdfpqyJgh9oNhJpE).**
+
+- Red first: dungeon-pieces.test.ts's 16 cases (no `Chest`, `Breakable` or `Gate`) and entities.test.ts's unknown drop
+  table case (`entities[0].drop`). One expectation of mine was wrong, not the rule: Wick walks 4 m/s, so the hidden
+  chest's case walks him 50 ticks, not 40, to stand where the chest would be.
+- Produced: `chest`, `breakable` (a pot or a cracked wall) and `gate` (a one-way gate or a ledge drop) components,
+  spawned with the area's pieces (`pieceParts`, systems/dungeon-pieces.ts) and despawned on an area swap; events
+  `chest.opened { piece, contents }`, `piece.broke`, `ledge.dropped`, `npc.talk`, `shop.open`; `Dungeon.heartPieces`
+  (applied from and captured to the save's `hearts.pieces`); `DROP_TABLES` (`pot`, §8.1 rule 6's table) for a pot's
+  `drop`. `dungeon.pieces` (prePhysics, after the doors): a cracked wall the save broke goes; a chest shows once it has
+  no `hidden` ref or its ref holds (a switch on, a door open, or its flag saved), opens from the save, or opens with a
+  pick-up press beside it, giving its contents once (a key, the boss key, the map, the compass, `embers:N`, an item
+  with a full bag, a heart piece: every fourth raises `Progress.maxHealth` by 2 and fills Wick to it) and saving its
+  flag; an npc or a shop within reach of the press answers with its event. `dungeon.gates` (prePhysics): a one-way
+  gate is open while Wick stands in its `from` room, a ledge drop while he stands anywhere but its `to` room, either
+  while he is in it; leaving a ledge drop into `to` emits `ledge.dropped`. combat's rule: a hit on a breakable lands
+  (sparks) and harms nothing; a pot breaks on any hit and rolls the drop table at its place, a cracked wall only on a
+  bomb's blast, saved. `wallsOf` adds shown chests, standing breakables and closed gates; the lock and the sling's aim
+  never take a breakable. On room entry, broken pots stand again (`resetPots`), except one that would stand on Wick.
+  The shared plan helpers moved from dungeon.ts to systems/dungeon-common.ts (unchanged).
+- The Ember Bombs chest: a chest `hidden` behind the Captain's arena `clear` door shows when the door opens (a case
+  pins it); 1i places it in D4.
+
+**Defaults (part 4, for the Owner's veto):** a chest is a wall once shown, and stays shown once revealed for the rest
+of the area visit (an unopened one revealed by a non-latching switch hides again after a reload until its switch is
+on); an item chest gives the item with a full bag (30 pellets, 10 bombs) and puts it on the Item button only when
+nothing is there; the fourth heart piece fills Wick's health to the new maximum; the `pot` drop table is the enemies'
+(§8.1 rule 6) with its ammo row; a pot or a cracked wall is a wall with a hurt cylinder (radius half its box's longer
+side; 0.8 m tall, a cracked wall 3 m), never a lock or aim candidate, and a sword on a cracked wall sparks; a ledge drop
+is a one-way passage into its `to` room (sector heights are 1g's; the landing is presentation's, from
+`ledge.dropped`); the npc and shop are not walls and not lock candidates yet (§11.1 names NPCs to talk to: with 1k's
+lines); the item-get freeze (§13's 90-tick cutscene) is 1k's with the pose and banner.
+
+**Goldens (part 4).** `base-3d/golden-route` `520ebd09e49bf0da` → `7f9dd7df51a5c134`; `base-3d/golden-fights`
+`979e36f60d306703` → `ba6fe5d1044ff0c8`; `base-3d/golden-boss` `9c78334797c5e035` → `7400e13e71871368` (defeat on
+tick 458, health 8, unchanged). Schema only: the content hash is still `d894381c47fd70d8` (measured); every other
+assertion is unchanged.
+
+**Gates (part 4).** `pnpm exec automata-check-boundaries --game src`: 28 files, 0 findings. `TURBO_FORCE=true pnpm
+check`: 35/35. base-3d `test:unit`: 337 passed. base-3d `test:parity` (Chromium, WebKit, Firefox): 30 files, 585
+tests passed, the three goldens equal in every engine.

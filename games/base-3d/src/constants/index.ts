@@ -53,6 +53,13 @@ export const DOOR_REACH = metres(0.6)
 export const BLOCK_CELL = metres(1)
 /** How long Wick pushes before a block moves a cell (§10), in ticks. */
 export const BLOCK_PUSH_TICKS = 30
+/**
+ * A pot's or a cracked wall's hurt cylinder (DESIGN.md §10), standing from the floor this tall; its radius is half its
+ * box's longer side. One hit of the right kind breaks it, so its health only has to be above 0.
+ */
+export const BREAKABLE = { health: 1, potHeight: metres(0.8), crackedHeight: metres(3) } as const
+/** Every fourth heart piece is a heart (DESIGN.md §10, §12.1). */
+export const HEART_PIECES_PER_HEART = 4
 /** How near Wick's face must be to a block's to push it, Q16.16 metres: a tick's walk and a little. */
 export const BLOCK_CONTACT = metres(0.1)
 /** Where a dummy faces, a half turn: back toward the doorway, as the view drew it before it had a facing. */

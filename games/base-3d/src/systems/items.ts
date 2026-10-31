@@ -4,7 +4,7 @@
 import { CameraHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Equip } from '../commands.ts'
-import { Bomb, Chain, Enemy, Fighter, Hero, HeroControl, Pellet, Target } from '../components.ts'
+import { Bomb, Breakable, Chain, Enemy, Fighter, Hero, HeroControl, Pellet, Target } from '../components.ts'
 import { enemyOf } from '../constants/enemies.ts'
 import { ACTION_BITS, CombatState } from '../constants/index.ts'
 import { BOMBS, CHEST_HEIGHT, HOOKCHAIN, ItemCode, SLING } from '../constants/items.ts'
@@ -80,9 +80,13 @@ export const itemUse: SystemDef = defineSystem({
     const locked = hero.lockTarget === 0 ? undefined : ctx.entity(hero.lockTarget)?.get(Target)
     const stick = { x: control.stickX, y: control.stickY }
     const aim = aimDirection(hero, locked, stick, wick.get(CameraHeading).heading)
+    // Every shootable thing is a declared target (§9.2): a pot or a cracked wall is not one.
     const foes = ctx
       .query(Fighter, Target)
-      .filter((entity) => entity.get(Fighter).side === 1 && entity.get(Fighter).health > 0)
+      .filter(
+        (entity) =>
+          entity.get(Fighter).side === 1 && entity.get(Fighter).health > 0 && !entity.has(Breakable),
+      )
       .map((entity) => ({ id: entity.sid, ...entity.get(Target), ...entity.get(Fighter) }))
     // The hookchain's targets are the hook posts too (§9.2), ahead of any foe at the same distance.
     const { posts } = areaIn(ctx.content, ctx.resource(Location))

@@ -1,7 +1,7 @@
 // The lock (DESIGN.md §11): the target picked, cycled, held or let go, and the heading assist while locked.
 import { CameraHeading, wrapHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
-import { Hero, HeroControl, Target } from '../components.ts'
+import { Breakable, Hero, HeroControl, Target } from '../components.ts'
 import { LOCK_ASSIST_LIMIT, LOCK_ASSIST_PER_TICK, LOCK_BREAK, LOCK_HIDDEN_TICKS } from '../constants/index.ts'
 import { Location } from '../resources.ts'
 import { type Area, areaIn } from './area.ts'
@@ -35,8 +35,10 @@ export const lockSelect: SystemDef = defineSystem({
     if (frozen(ctx)) return
     const area = areaIn(ctx.content, ctx.resource(Location))
     const walls = wallsOf(ctx)
+    // A pot or a cracked wall stands in the way but is never a lock target (DESIGN.md §11.1's candidates).
     const targets: LockPoint[] = ctx
       .query(Target)
+      .filter((entity) => !entity.has(Breakable))
       .map((entity) => ({ id: entity.sid, ...entity.get(Target) }))
     for (const entity of ctx.query(Hero, HeroControl, CameraHeading)) {
       const hero = entity.get(Hero)

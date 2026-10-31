@@ -90,3 +90,20 @@ const moved = z.object({ piece: z.int().positive(), x: z.int(), z: z.int() })
 
 /** A block was pushed a cell to its new centre (DESIGN.md §10). */
 export const BlockMoved: EventDef<typeof moved> = defineEvent('block.moved', moved)
+
+const opened = z.object({ piece: z.int().positive(), contents: z.string() })
+
+/** A chest opened (DESIGN.md §10), by its entity's index + 1, with what it held: 1k's item-get pose and banner. */
+export const ChestOpened: EventDef<typeof opened> = defineEvent('chest.opened', opened)
+
+/** A pot broke or a cracked wall went (DESIGN.md §10), by its entity's index + 1. */
+export const PieceBroke: EventDef<typeof piece> = defineEvent('piece.broke', piece)
+
+/** Wick dropped over a ledge into the room below (DESIGN.md §10): presentation's landing. */
+export const LedgeDropped: EventDef<typeof piece> = defineEvent('ledge.dropped', piece)
+
+/** Wick spoke to an npc (DESIGN.md §10): its lines are the hub's and 1k's. */
+export const NpcTalk: EventDef<typeof piece> = defineEvent('npc.talk', piece)
+
+/** Wick opened a shop (DESIGN.md §10): its stock is the hub's. */
+export const ShopOpen: EventDef<typeof piece> = defineEvent('shop.open', piece)

@@ -6,6 +6,7 @@
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
 import {
   Bomb,
+  Breakable,
   Drop,
   Enemy,
   Fighter,
@@ -52,6 +53,7 @@ import { Freeze, Inventory, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
 import { coneHits, facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
 import { slingTargetHit } from './dungeon.ts'
+import { breakableHit } from './dungeon-pieces.ts'
 import { angleOf, lineOfSight } from './lock-target.ts'
 import { wallsOf } from './walls.ts'
 
@@ -342,6 +344,13 @@ export const combatHits: SystemDef = defineSystem({
           ctx.emit(SlingTargetHit, { piece })
           slingTargetHit(ctx, piece)
         }
+        continue
+      }
+      // A pot breaks on any hit, a cracked wall on a blast (DESIGN.md §10); neither is harmed otherwise.
+      if (defender.has(Breakable)) {
+        defender.set(Fighter, stamp)
+        landed('hit')
+        breakableHit(ctx, defender.sid, defender.get(Breakable).piece, at, def.id === 'bomb-blast')
         continue
       }
 

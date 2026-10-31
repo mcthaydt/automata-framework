@@ -78,6 +78,8 @@ describe('area entities (GAME-3D.1f part 1, G3-F2)', () => {
     expect(loadError([{ def: 'chest', id: 'c', x: 0, z: 0, contents: 'embers:0' }])?.path).toBe(
       'entities[0].contents',
     )
+    // A pot rolls a drop table the game has (part 4: the one table, §8.1 rule 6's, is `pot`).
+    expect(loadError([{ def: 'pot', id: 'p', x: 0, z: 0, drop: 'gold' }])?.path).toBe('entities[0].drop')
     expect(loadError([{ def: 'sling-target', id: 't', x: 0, z: 0, height: 4 }])?.path).toBe(
       'entities[0].height',
     )
