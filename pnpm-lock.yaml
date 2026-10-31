@@ -662,6 +662,9 @@ importers:
 
   packages/editor-suite:
     dependencies:
+      '@mcthaydt/automata-editor-2d':
+        specifier: workspace:*
+        version: link:../editor-2d
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit

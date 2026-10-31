@@ -1,8 +1,10 @@
 import { createHistory, type History } from '@mcthaydt/automata-editor-kit/core'
 import type { SuitePorts, SuiteUndo, WorkspaceFile } from '@mcthaydt/automata-editor-kit/ports'
+import type { Component } from 'svelte'
 import { createLevelSession, type LevelSession } from '../app/level/level-session'
 import { createAppProfiles } from '../app/profiles'
 import { readDocument } from '../app/read-document'
+import type { LevelCanvasProps } from '../app/views/view-props'
 import type { IdSource } from '../model/ids'
 import type { ParseError, Profile } from '../profiles/profile'
 
@@ -15,6 +17,13 @@ import type { ParseError, Profile } from '../profiles/profile'
 export interface Levels2dOptions {
   /** Where the ids of placed instances come from. */
   readonly ids: IdSource
+  /**
+   * Reads a workspace file's bytes for the canvas and the palette (tileset images). The suite's workspace reads text
+   * only, so the default reads nothing and the tiles show numbered until a host passes a byte reader.
+   */
+  readonly read?: ((path: string) => Promise<Uint8Array | undefined>) | undefined
+  /** The level canvas; the Pixi `LevelCanvas` when absent (jsdom tests pass a stand-in). */
+  readonly canvas?: Component<LevelCanvasProps> | undefined
 }
 
 export type Levels2dState =
@@ -28,6 +37,7 @@ export type Levels2dState =
 
 export interface Levels2dSession {
   readonly path: string
+  readonly options: Levels2dOptions
   /** The other files of the row group, which this session does not open (one file per open, plan decision 2). */
   readonly others: readonly string[]
   readonly state: Levels2dState
@@ -47,6 +57,7 @@ function chosen(files: readonly WorkspaceFile[]): string {
 }
 
 function failed(
+  options: Levels2dOptions,
   path: string,
   others: readonly string[],
   message: string,
@@ -54,6 +65,7 @@ function failed(
 ) {
   const session: Levels2dSession = {
     path,
+    options,
     others,
     state: { kind: 'error', message, errors },
     refusal: undefined,
@@ -72,18 +84,19 @@ export async function openLevels2d(
   const others = files.map((file) => file.path).filter((each) => each !== path)
   const read = path === '' ? undefined : await ports.workspace.read(path).catch(() => undefined)
   if (read === undefined)
-    return failed(path, others, `${path || 'This row'} can’t be opened: there is no such file.`)
+    return failed(options, path, others, `${path || 'This row'} can’t be opened: there is no such file.`)
   const name = path.split('/').pop() ?? path
   const outcome = readDocument(createAppProfiles(), name, encoder.encode(read.text))
   if (outcome.status !== 'parsed') {
     const errors = outcome.status === 'invalid' ? outcome.errors : []
-    return failed(path, others, `${name} can’t be opened as a level project.`, errors)
+    return failed(options, path, others, `${name} can’t be opened as a level project.`, errors)
   }
 
   const { profile } = outcome
   const history = createHistory<unknown>(outcome.value)
   const level = createLevelSession({ history, ids: options.ids })
-  if (level === undefined) return failed(path, others, `${name} can’t be opened: it has no level to draw.`)
+  if (level === undefined)
+    return failed(options, path, others, `${name} can’t be opened: it has no level to draw.`)
 
   const base = read.text
   let mtime = read.mtime
@@ -91,6 +104,7 @@ export async function openLevels2d(
   let queue: Promise<void> = Promise.resolve()
   const session = {
     path,
+    options,
     others,
     state: { kind: 'open', profile, history, level } as const,
     refusal: undefined as string | undefined,

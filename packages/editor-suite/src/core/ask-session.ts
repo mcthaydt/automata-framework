@@ -44,6 +44,8 @@ export interface AskSessionOptions {
   readonly target: SuiteAskTarget
   readonly ports: SuitePorts
   readonly writePath: WritePath
+  /** The history on the write path an accepted proposal joins: the open editor's id (EDS-D19). */
+  readonly owner?: string | undefined
   /** The budget with no change set open (default 200 000, The Last Light's cap). */
   readonly cap?: number | undefined
 }
@@ -96,7 +98,7 @@ function changedLock(
 }
 
 export function createAskSession(options: AskSessionOptions): AskSession | undefined {
-  const { target, ports, writePath } = options
+  const { target, ports, writePath, owner } = options
   if (ports.ask === undefined) return undefined
   const provider = ports.ask
   let state: AskState = { kind: 'idle' }
@@ -194,7 +196,7 @@ export function createAskSession(options: AskSessionOptions): AskSession | undef
     async accept() {
       if (state.kind !== 'shown' || state.refusal !== undefined) return undefined
       const { proposal } = state
-      const outcome = await writePath.write(target.path, proposal.text, proposal.summary)
+      const outcome = await writePath.write(target.path, proposal.text, proposal.summary, owner)
       if ('written' in outcome) {
         target.accept(proposal.text, proposal.summary)
         dropAll()

@@ -72,7 +72,7 @@ $effect(() => {
   const { editor, card } = target
   if (sessions.has(editor.id) || opening.has(editor.id)) return
   opening.add(editor.id)
-  void editor.open(card.files, editing.ports).then(
+  void editor.open(card.files, editing.portsFor(editor.id)).then(
     (session) => sessions.set(editor.id, session),
     () => opening.delete(editor.id),
   )
@@ -100,13 +100,6 @@ $effect(() => {
     pills = session.pills()
     titleOpen = session.asking()
     tokens = session.tokens()
-    const path = session.writePath
-    history = {
-      canUndo: path.canUndo(),
-      canRedo: path.canRedo(),
-      undoLabel: path.undoLabel() ?? '',
-      redoLabel: path.redoLabel() ?? '',
-    }
   }
   const stop = session.subscribe(read)
   read()
@@ -119,12 +112,29 @@ $effect(() => {
   return stop
 })
 
+// The top bar's Undo acts on the open editor's own history, or the suite's (an import) with none open (EDS-D19).
+const owner = $derived(mounted?.editor.id ?? '')
+$effect(() => {
+  const path = editing.writePath
+  const of = owner
+  const read = () => {
+    history = {
+      canUndo: path.canUndo(of),
+      canRedo: path.canRedo(of),
+      undoLabel: path.undoLabel(of) ?? '',
+      redoLabel: path.redoLabel(of) ?? '',
+    }
+  }
+  read()
+  return path.subscribe(read)
+})
+
 const undoHook = $derived(mounted?.editor.undo?.(mounted.session))
 const askTarget = $derived(mounted?.editor.ask?.(mounted.session))
 const ask = $derived(
   askTarget === undefined
     ? undefined
-    : createAskSession({ target: askTarget, ports, writePath: editing.writePath }),
+    : createAskSession({ target: askTarget, ports, writePath: editing.writePath, owner }),
 )
 let askOpen = $state(false)
 let askView = $state<AskState>({ kind: 'idle' })
@@ -168,14 +178,14 @@ function refused(outcome: WriteOutcome | undefined): void {
 // With no editor open, Undo and Redo step the suite's own history (an import, EDS-D19).
 async function undo(): Promise<void> {
   if (!history.canUndo) return
-  const outcome = await editing.undo()
+  const outcome = await editing.undo(owner)
   if (outcome !== undefined && 'written' in outcome) undoHook?.undo()
   else refused(outcome)
 }
 
 async function redo(): Promise<void> {
   if (!history.canRedo) return
-  const outcome = await editing.redo()
+  const outcome = await editing.redo(owner)
   if (outcome !== undefined && 'written' in outcome) undoHook?.redo()
   else refused(outcome)
 }
