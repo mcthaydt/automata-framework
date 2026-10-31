@@ -62,3 +62,20 @@ describe('a run', () => {
     expect(Object.keys(run.modes).sort()).toContain('patrol')
   })
 })
+
+describe('the cause of the first threat', () => {
+  it('records who, in what mode, how far from the player, and the bot’s last verb', async () => {
+    const scene = wardScene()
+    const bot = createBot('scripted', { player: scene.player, seed: 1, plan: stepsFor(scene, ['desk.key']) })
+    const run = await play(scene, {
+      bot,
+      seed: 1,
+      limit: 2,
+      setup: { place: { player: { x: 0, z: -2.4 }, watchman: { x: 0.3, z: -4 } } },
+    })
+    expect(run.firstThreat).not.toBeNull()
+    expect(run.cause).toMatchObject({ agent: 'watchman', mode: 'hunt', lastVerb: null, sinceVerb: null })
+    expect(run.cause?.distance).toBeGreaterThan(0)
+    expect(run.cause?.distance).toBeLessThan(4.5)
+  })
+})

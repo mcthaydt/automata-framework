@@ -13,7 +13,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./sim": "./src/sim/index.ts",
-    "./solver": "./src/solver/index.ts"
+    "./solver": "./src/solver/index.ts",
+    "./testing/toy-scene.pipe": "./src/testing/toy-scene.pipe.ts",
+    "./testing/softlock-scene.pipe": "./src/testing/softlock-scene.pipe.ts"
   },
   "automata": {
     "simEntries": [

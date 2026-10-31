@@ -15,6 +15,20 @@ export interface Appearance {
   readonly mode: string
   readonly gap: number
 }
+/** The moment a run first had a threat: who, in what mode, where, and what the player had just asked for. */
+export interface ThreatCause {
+  readonly agent: string
+  readonly mode: string
+  readonly moving: boolean
+  /** Metres from the agent to the player, and from where it is heading to the player. */
+  readonly distance: number
+  readonly goalToPlayer: number | null
+  /** The agent's own fields beyond the interpreter's (a scene's hooks keep them). */
+  readonly state: Readonly<Record<string, string | number | boolean | null>>
+  /** The verb the bot gave last and how many seconds before. */
+  readonly lastVerb: string | null
+  readonly sinceVerb: number | null
+}
 export interface RunResult {
   readonly outcome: 'win' | 'lose' | 'timeout' | 'condition'
   readonly time: number
@@ -36,6 +50,8 @@ export interface RunResult {
   readonly ambushCatches: readonly number[]
   /** Per hide, seconds an agent stayed a threat after the player hid. */
   readonly hides: readonly number[]
+  /** What was going on at the first threat (the audit's evidence). */
+  readonly cause?: ThreatCause | null | undefined
   /** The scene's safe window: when it last opened before the win, and when the win came. */
   readonly window?: { readonly opened: number; readonly won: number } | null | undefined
 }

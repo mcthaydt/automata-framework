@@ -11,7 +11,8 @@
   (235, the command line), the clinic's `src/scenes/clinic/puzzle-model.ts` (68), and the tests
   `tests/puzzle-solver.test.ts` (8), `puzzle-pipeline.test.ts` (7), `puzzle-audit.test.ts` (7) and
   `clinic-puzzle.test.ts` (3). Provenance goes in the framework's `docs/provenance/sources.md` only.
-- **Status:** plan drafted.
+- **Status:** code written on `claude/plus-M6.6b-puzzle-solver` (stacked on M6.7b, plus#25); steps 1 to 5 done, step 6
+  pending.
 
 ## Scope
 
@@ -98,26 +99,26 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
    keys to one lock and that neither alone is necessary; a lethal rule hinted after its risk; walking time at 3 m/s
    added to the action seconds; the item × hotspot matrix. Plus: the solver picks the action the interpreter picks
    (the first in content order) for the same state and verb. Fails: no `createSolver`.
-   - [ ] 1
+   - [x] 1
 2. The clinic (P-c, the source's three clinic cases on the converted clinic and the ported model): solvable with
    every key to the code and the water; no softlocks, and every lethal rule hinted before its risk; within the design
    budget. Fails: no clinic model.
-   - [ ] 2
+   - [x] 2
 3. `validate` (the source's two cases and `clinic-puzzle.test.ts`'s three, on the converted scenes): a sound puzzle
    passes; duplicate ids, missing lines, unknown hotspots, items and facts and hidden actions are each found; the
    clinic's ids are unique, its lines and hotspots exist, and its goal, systemics and lethal entries name real
    actions. Fails: no `validate`.
-   - [ ] 3
+   - [x] 3
 4. `analyse`, the lock graph and the doc (the source's two cases): the lock graph from the routes; the same doc every
    time, stamped with its sources' hashes, with every section. Fails: no `renderDoc`.
-   - [ ] 4
+   - [x] 4
 5. The pipeline and the audit: `puzzle.pipe.toml` parses; `run` writes the report, the doc and the audit, and a second
    run is cached; `check` passes the clinic; a puzzle with a softlock fails `check` naming the locking route (P-d); a
    doc edited by hand fails `check` as stale. The audit: the source's generic cases (the earliest first threat on each
    route; fairness misses, early threats, routes a bot never wins and where the deaths are; dead actions, softlocks
    and failing scenarios listed first; a scene with no systems has only puzzle findings; a stamped report with every
    section). Fails: no pipeline.
-   - [ ] 5
+   - [x] 5
 6. Gates, provenance rows in the framework (with M6.7b's held row), ready line.
    - [ ] 6
 
@@ -156,3 +157,30 @@ guidance evidence" (the source's generated-file and objective tooling, which AF 
 
 - 2026-10-31: plan written from the M6 spec, plus#22 (puzzle as built), plus#25 (M6.7b) and the adventure source at
   `92e6704`.
+- 2026-10-31, code:
+  - Red first for every step: the solver (`./index` missing), the clinic (`../testing/clinic-model` missing),
+    `validate` and the doc (`validate is not a function`, `analyse is not a function`), the audit
+    (`./puzzle-audit.ts` missing), the threat cause (`run.cause` undefined), the pipeline (`./puzzle.pipeline.ts`
+    missing).
+  - Source tests: `puzzle-solver.test.ts` 8 of 8 (the toy five and the clinic three, on the converted clinic and the
+    ported model); `puzzle-pipeline.test.ts`'s validate two and doc two; `clinic-puzzle.test.ts` three;
+    `puzzle-audit.test.ts` five of seven. Not ported, as planned: the `npcPolicy` and route-test cases (M6.6c), the
+    audit's "another shape" and objective-guidance cases, `puzzle-help` and `puzzle-mcp`.
+  - Gates: Plus `pnpm check` exit 0 (boundaries 97 files, 0 findings; puzzle 37, systems 60, pipelines 153 unit tests);
+    `test:parity` puzzle 3 (golden `cd73a8d0b545c212` unchanged) and systems 3 (golden `9970d47dc313d17c` unchanged).
+  - Deviations (for veto with PZ-D1 to PZ-D6):
+    - **Stacked on M6.7b** (plus#25's branch merged in): the audit plays the systems playtest with M6.7b's bots.
+    - The clinic's ported model lives in `clinic-solver.test.ts`, with the clinic's data checks, not in
+      `src/testing/`: the model carries one game's fields (`basinFull`), and the game-leak rule (M6.3) exempts only
+      test files. The rule stays as it is.
+    - `puzzle.pipe.toml` lists the puzzle's `sources`: the stage cache needs its inputs before the scene module loads,
+      and the pipeline hashes them itself (XXH64) for the doc's stamp. `check` re-renders the doc and compares it, so
+      a stale doc and a hand-edited one both fail.
+    - M6.7b's runs gain an optional `cause` (who was the first threat, in what mode, how far, the bot's last verb),
+      the audit's first-threat evidence; `ThreatCause` lives in the bots and the audit imports it.
+    - The audit leaves out the source's objective guidance, emergent search and recorded gate decisions (AF has none
+      of them yet).
+    - The clinic budget test measures straight lines between hotspots; a game's adapter walks over nav.
+    - The cached whole-graph walk is ported (the source's speed-up); the clinic's three solver tests take about 40 s.
+    - "`check` passes the clinic" is shown by the clinic solver tests and `validate` on the converted clinic; a clinic
+      scene folder through the pipeline would run the clinic's whole search four times per test.
