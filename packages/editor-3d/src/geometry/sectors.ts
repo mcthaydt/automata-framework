@@ -5,15 +5,18 @@
 //
 // Pure functions over data. The arithmetic is Last Light's expression for expression, so floats are bit-equal (the
 // golden proves it); what changes is the types, and that the game's module state (`useMap`) is a value the caller holds.
-import type { Corner, SectorDef } from '../format/expand'
-import type { MassDef, PartialTrim, Point, Trim, WallDef } from '../format/sector.schema'
-
-/** Masonry thickness behind a wall's face when the wall does not say. */
-export const WALL_THICK = 0.125
-/** A floor step a person can walk up. Anything taller is a wall. */
-export const STEP = 0.25
-/** What a sector's trim is, laid under whatever the sector and then its walls set. */
-export const DEFAULT_TRIM: Trim = { skirting: 0.14, wainscot: 1.14, rail: 0.08, cap: true }
+import {
+  type Corner,
+  DEFAULT_TRIM,
+  type MassDef,
+  type PartialTrim,
+  type Point,
+  type SectorDef,
+  STEP,
+  type Trim,
+  WALL_THICK,
+  type WallDef,
+} from '../format/sector.schema'
 
 /** One wall of a sector, with its place in the loop and the numbers every query needs. */
 export interface Edge {

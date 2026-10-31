@@ -18,27 +18,7 @@ import type {
   WallRef,
   ZoneSpec,
 } from './blockout.schema'
-import type { MassDef, PartialTrim, Point, WallDef } from './sector.schema'
-
-/** A corner starts the wall that runs from it to the next corner. */
-export type Corner = [x: number, z: number, wall?: WallDef]
-
-/** A sector as the engine takes it: one floor and ceiling, a loop of corners and optional holes. */
-export interface SectorDef {
-  id: string
-  zone: string
-  floor: number
-  ceiling: number
-  /** Shade, Build-style: 1 is normal, lower is darker. */
-  light: number
-  open?: boolean | undefined
-  floorTexture?: string | undefined
-  ceilingTexture?: string | undefined
-  wallTexture?: string | undefined
-  trim?: PartialTrim | undefined
-  corners: Corner[]
-  holes?: Corner[][]
-}
+import type { Corner, MassDef, Point, SectorDef, WallDef } from './sector.schema'
 
 export type Box = Omit<BlockoutBox, 'role'>
 export type Hotspot = Omit<BlockoutHotspot, 'on'>

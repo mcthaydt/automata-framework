@@ -27,6 +27,7 @@
   "dependencies": {
     "@mcthaydt/automata-editor-kit": "workspace:*",
     "@mcthaydt/automata-render-pixi3d": "workspace:*",
+    "@mcthaydt/automata-sector-format": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
     "fflate": "0.8.3",
     "pixi.js": "8.22.0",

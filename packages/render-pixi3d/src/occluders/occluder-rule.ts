@@ -6,8 +6,9 @@
 // from The Last Light's 2.5D cut-away (`src/game/cutaway.ts` `wallHidden` at 92e6704): the camera's line to the
 // player crosses the wall's face within its span, a figure's reach past either end, and below its top. The second
 // matters across a doorway, where the eye stands in the next room and that room's copy of the partition faces it.
+
+import type { Occlude } from '@mcthaydt/automata-sector-format'
 import type { Vec3 } from '../camera/camera-pose.js'
-import type { Occlude } from './occlude.js'
 
 export interface PlanPoint {
   readonly x: number
