@@ -91,7 +91,7 @@
 
 ## Steps (per part: red first, then the code, then the gates)
 
-- [ ] Part 1: tests for each def's schema (a good entity of each def loads; an unknown def, `lock`, `kind` or
+- [x] Part 1: tests for each def's schema (a good entity of each def loads; an unknown def, `lock`, `kind` or
       `contents`, and a dangling ref fail with the area and JSON path, G3-F2); `hook-post` entities pull as
       `posts` did (items.test.ts's chain cases move onto them); a `sling-target` is picked and hit.
 - [ ] Part 2: door cases (each lock kind closed and open; a key spent once; the boss key; `clear` and the captain's
@@ -123,4 +123,28 @@
 
 ## Execution log
 
-(Empty until part 1 starts.)
+**Part 1 (2026-10-31, branch `claude/3d-game-3d-1f`, local until #340 and #342 merge; the coordinator, 2026-10-31:
+"start 1f part 1 on the 1e stack (from f1a7573e), local commits only, TDD, and don't push until #340 and #342 have
+merged").**
+
+- Red first: systems/entities.test.ts's 7 cases (no `entities`, no `AreaLoadError`); dungeon.test.ts's 3 cases (no
+  `SlingTarget`). items.test.ts's chain cases moved onto `hook-post` entities and still pass unchanged.
+- Produced: `constants/entities.ts` (`ENTITY_DEFS`, one strict Zod schema per §10 definition new in 1f, and
+  `CHEST_CONTENTS`); `AreaSource.entities`, `Area.entities` (lengths in Q16.16) and `AreaLoadError` (`area`, `path`)
+  in systems/area.ts; `Area.posts` from the `hook-post` entities; the `sling-target` component and
+  `sling-target.hit` event; `spawnPieces` (systems/dungeon.ts), spawned with the foes on area start and swap; a
+  combat rule: a sling target takes any hit without harm (a `hit.landed` for the sparks) and reports a pellet's.
+- The sling target needs nothing new in the aim: as a living `target` and `fighter` on the foes' side it is already
+  one of `pickTarget`'s candidates and lockable (§10), and a pellet flies at its middle, its height.
+- G3-F2's "file" is the area's id until GAME-3D.1i loads af-sector files (the error carries both once a file does).
+
+**Defaults (part 1, for the Owner's veto):** a box entity's size is `width` and `depth` in metres centred on `x`,
+`z`, 1 m when not given (af-sector/1 holds a point and loose fields; ED3D's typed model may name them differently,
+which is then a rename here); the area's spawn, foes, pits and exits stay their own lists until 1i; a block's home is
+where it is placed (§10's `home` field is its `x` and `z`); a sling target's hurt cylinder is 0.3 m round and 0.5 m
+tall around its height; a sword or a blast on it lands (sparks) but reports nothing.
+
+**Goldens (part 1).** `base-3d/golden-route` `94925b319d992b19` → `ceedc79c82950861`; `base-3d/golden-fights`
+`59b84ddde6bfeb94` → `7dd808482d9dd9bc`; `base-3d/golden-boss` `de0bb982dcf6aa53` → `61691d237e2d2427` (defeat on
+tick 458, health 8, unchanged). Schema (`sling-target`, `sling-target.hit`) and content (`entities` for `posts`; the
+first slice has none); every other assertion is unchanged.

@@ -72,3 +72,8 @@ export const BossPhase: EventDef<typeof phase> = defineEvent('boss.phase', phase
 
 /** The Warden is beaten (DESIGN.md §8.4): the hearth shot, then the end screen (GAME-3D.1d part 4). */
 export const BossDefeated: EventDef<typeof foe> = defineEvent('boss.defeated', foe)
+
+const piece = z.object({ piece: z.int().positive() })
+
+/** A pellet hit a sling target (DESIGN.md §10), by its entity's index + 1: part 3's eye switches answer it. */
+export const SlingTargetHit: EventDef<typeof piece> = defineEvent('sling-target.hit', piece)

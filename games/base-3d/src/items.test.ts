@@ -244,9 +244,12 @@ describe('the drop table’s ammo row (DESIGN.md §8.1 rule 6)', () => {
 })
 
 describe('the Hookchain (DESIGN.md §9.1)', () => {
-  /** Wick at the origin facing +z, with hook `posts`, `foesIn` and `walls`, the hookchain owned and equipped. */
+  /**
+   * Wick at the origin facing +z, with hook `posts` (`hook-post` entities, GAME-3D.1f), `foesIn` and `walls`, the
+   * hookchain owned and equipped.
+   */
   async function hookArea(
-    posts: AreaSource['posts'],
+    posts: readonly { readonly x: number; readonly z: number }[],
     foesIn: AreaSource['foes'] = [],
     walls: AreaSource['walls'] = [],
   ) {
@@ -260,7 +263,7 @@ describe('the Hookchain (DESIGN.md §9.1)', () => {
         targets: [],
         ember: { x: 29, z: 29 },
         foes: foesIn,
-        posts,
+        entities: posts.map((post, index) => ({ def: 'hook-post', id: `post-${index}`, ...post })),
       }),
     )
     Object.assign(sim.resource(Inventory), { hookchain: true, equipped: ItemCode.hookchain })

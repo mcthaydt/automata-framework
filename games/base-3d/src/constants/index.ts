@@ -42,6 +42,11 @@ export const HERO_HEALTH = 8
 export const HERO_HEIGHT = metres(1.6)
 /** A training dummy (the area's targets, until GAME-3D.1d's enemies): 3 hearts, 0.4 m across, 1.8 m tall. */
 export const DUMMY = { health: 6, radius: metres(0.4), height: metres(1.8) } as const
+/**
+ * A sling target's hurt cylinder (DESIGN.md §10): a lantern-sized 0.3 m round and 0.5 m tall, centred on its height;
+ * its health never changes (nothing harms it), so it only has to be above 0.
+ */
+export const SLING_TARGET = { health: 1, radius: metres(0.3), height: metres(0.5) } as const
 /** Where a dummy faces, a half turn: back toward the doorway, as the view drew it before it had a facing. */
 export const DUMMY_FACING = 32_768
 

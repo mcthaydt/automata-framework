@@ -14,6 +14,7 @@ import {
   HeroAction,
   HeroControl,
   Pellet,
+  SlingTarget,
   Target,
 } from '../components.ts'
 import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants/index.ts'
@@ -31,6 +32,7 @@ import {
   HeroDefeated,
   HitLanded,
   ShotFired,
+  SlingTargetHit,
 } from '../events.ts'
 import { Freeze, Inventory, Location, Progress } from '../resources.ts'
 import {
@@ -115,6 +117,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     Pellet,
     Bomb,
     Chain,
+    SlingTarget,
     Move,
     Lock,
     LockCycle,
@@ -131,6 +134,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     ShotFired,
     BombBlast,
     ChainHooked,
+    SlingTargetHit,
     AreaExit,
     AreaEntered,
     heroInput,

@@ -1251,9 +1251,9 @@ const GOLDEN_KILN_TICK = 118
  * (was `9fad84dd7ebb29d1`): the schema gained the `bomb` component, the `bomb.blast` event and the `bomb.fuse` system, and the content the bomb's blast move and `wickDmg`; the route owns no bombs, so the same assertions hold unchanged. Re-recorded for part 3's
  * hookchain (was `a82292370d4f0a0c`): the schema gained the `chain` component, the `chain.hooked` event, `shot.fired`'s `hookchain` and the `chain.fly` system, and each area's content its `posts`; the route owns no hookchain, so the same assertions hold. Re-recorded for
  * part 4 (was `ead70ed6a0084968`): the schema gained `progress.maxHealth`, the `equip` command and the `item.equip` system (the resource row carries 8, Wick's 4 hearts, as before); the same
- * assertions hold unchanged.
+ * assertions hold unchanged. Re-recorded for GAME-3D.1f part 1 (was `94925b319d992b19`): the schema gained the `sling-target` component and the `sling-target.hit` event, and each area's content its `entities` in place of `posts` (the first slice has none); every other assertion is unchanged.
  */
-const GOLDEN_HASH = '94925b319d992b19'
+const GOLDEN_HASH = 'ceedc79c82950861'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

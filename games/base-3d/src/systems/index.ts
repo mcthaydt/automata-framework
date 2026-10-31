@@ -6,6 +6,7 @@
 // the room's view entered (postPhysics), and the tick's hits gathered and landed (gameplay).
 export {
   type Area,
+  AreaLoadError,
   type AreaSource,
   areaOf,
   compileArea,

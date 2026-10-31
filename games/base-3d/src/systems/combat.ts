@@ -4,7 +4,18 @@
 // a block costing blockstun and a push, hitstop as one freeze counter. Rewritten on integers for the sim; the source
 // is not edited. Sim code: `pnpm boundaries` checks it.
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
-import { Bomb, Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Pellet, Target } from '../components.ts'
+import {
+  Bomb,
+  Drop,
+  Enemy,
+  Fighter,
+  Hero,
+  HeroAction,
+  HeroControl,
+  Pellet,
+  SlingTarget,
+  Target,
+} from '../components.ts'
 import { dropOf, enemyOf } from '../constants/enemies.ts'
 import {
   ACTION_BITS,
@@ -29,7 +40,14 @@ import {
   SPIN_CHARGE,
   TICK_HZ,
 } from '../constants/index.ts'
-import { BossDefeated, CaptainDefeated, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
+import {
+  BossDefeated,
+  CaptainDefeated,
+  FoeDefeated,
+  HeroDefeated,
+  HitLanded,
+  SlingTargetHit,
+} from '../events.ts'
 import { Freeze, Inventory, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
 import { coneHits, facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
@@ -312,6 +330,14 @@ export const combatHits: SystemDef = defineSystem({
       const forward = facingVector(from.facing)
       const landed = (kind: 'hit' | 'block' | 'parry') =>
         ctx.emit(HitLanded, { attacker: attacker.sid, target: defender.sid, kind, power: hit.power, ...at })
+
+      // A sling target (DESIGN.md §10) takes a pellet and reports it, and nothing harms it.
+      if (defender.has(SlingTarget)) {
+        defender.set(Fighter, stamp)
+        landed('hit')
+        if (attacker.has(Pellet)) ctx.emit(SlingTargetHit, { piece: defender.get(SlingTarget).piece })
+        continue
+      }
 
       const action = defender.has(HeroAction) ? defender.get(HeroAction) : undefined
       const facesIt = inArc(at.facing, angleOf(from.x - at.x, from.z - at.z), GUARD_HALF_ARC)

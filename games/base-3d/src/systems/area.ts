@@ -2,6 +2,7 @@
 import { type CameraView, cameraViewSchema } from '@mcthaydt/automata-render-pixi3d/sim'
 import { z } from 'zod'
 import { ENEMIES, ENEMY_MOVES } from '../constants/enemies.ts'
+import { ENTITY_DEFS, type EntityDefName, type EntitySource } from '../constants/entities.ts'
 import { HERO_HALF, HERO_MOVES, type MoveDef, metres } from '../constants/index.ts'
 import { ITEM_MOVES } from '../constants/items.ts'
 
@@ -42,8 +43,13 @@ const areaSchema = z.strictObject({
   /** Plan boxes Wick falls into when his feet cross into one (DESIGN.md §7.8). */
   pits: z.array(planBox).default([]),
   /** The enemies standing in the area (DESIGN.md §8.2): a type by id, where, and a facing in degrees (0 toward +z). */
-  /** The hook posts the Hookchain catches (DESIGN.md §9.1), in metres; GAME-3D.1f makes them entities. */
-  posts: z.array(point).default([]),
+  /**
+   * The dungeon pieces (DESIGN.md §10), in af-sector/1's entity shape: each is checked against its definition's
+   * schema (constants/entities.ts) by `compileArea`, which names the JSON path of anything wrong (G3-F2).
+   */
+  entities: z
+    .array(z.looseObject({ def: z.string(), id: z.string(), x: z.number(), z: z.number() }))
+    .default([]),
   /** Where an angry Captain's calls come out (DESIGN.md §8.3), in metres. */
   vents: z.array(point).default([]),
   foes: z
@@ -52,7 +58,34 @@ const areaSchema = z.strictObject({
 })
 
 /** An area as authored: metres, views by id. */
-export type AreaSource = z.input<typeof areaSchema>
+export type AreaSource = Omit<z.input<typeof areaSchema>, 'entities'> & {
+  readonly entities?: readonly EntitySource[] | undefined
+}
+
+/**
+ * An area that cannot be loaded: the area's id, the JSON path of the field at fault (`entities[3].lock`) and why,
+ * as ED3D's locator finds them (G3-F2).
+ */
+export class AreaLoadError extends Error {
+  readonly area: string
+  readonly path: string
+  constructor(area: string, path: string, reason: string) {
+    super(`base-3d area "${area}": ${path}: ${reason}`)
+    this.name = 'AreaLoadError'
+    this.area = area
+    this.path = path
+  }
+}
+
+/**
+ * A dungeon piece as the sim reads it: its definition, its id, its place and every field of its definition, with
+ * lengths (`x`, `z`, `width`, `depth`, `height`) in Q16.16 metres.
+ */
+export interface AreaEntity extends PlanPoint {
+  readonly def: EntityDefName
+  readonly id: string
+  readonly [field: string]: unknown
+}
 
 /** A box in plan, Q16.16 metres. */
 export interface PlanBox {
@@ -92,7 +125,9 @@ export interface Area {
   readonly pits: readonly PlanBox[]
   readonly foes: readonly AreaFoe[]
   readonly vents: readonly PlanPoint[]
+  /** The hook posts: the `hook-post` entities' places. */
   readonly posts: readonly PlanPoint[]
+  readonly entities: readonly AreaEntity[]
 }
 
 /** The sim's content: every area, the first being where a new game starts. */
@@ -125,6 +160,7 @@ export function compileArea(source: AreaSource): Area {
   for (const room of parsed.rooms)
     if (!ids.includes(room.view))
       throw new Error(`base-3d area: a room names the unknown view "${room.view}"`)
+  const entities = compileEntities(parsed.id, source.entities ?? [], parsed.rooms)
   const area: Area = {
     id: parsed.id,
     spawn: toPoint(parsed.spawn),
@@ -136,7 +172,8 @@ export function compileArea(source: AreaSource): Area {
     exits: parsed.exits.map((exit) => ({ ...toBox(exit), to: exit.to, entry: toPoint(exit.entry) })),
     pits: parsed.pits.map(toBox),
     vents: parsed.vents.map(toPoint),
-    posts: parsed.posts.map(toPoint),
+    posts: entities.filter((entity) => entity.def === 'hook-post').map(({ x, z }) => ({ x, z })),
+    entities,
     foes: parsed.foes.map((foe) => {
       const kind = ENEMIES.findIndex((type) => type.id === foe.kind) + 1
       if (kind === 0) throw new Error(`base-3d area: a foe names the unknown enemy "${foe.kind}"`)
@@ -155,6 +192,93 @@ export function compileArea(source: AreaSource): Area {
   )
   if (blocked) throw new Error('base-3d area: the spawn overlaps a wall')
   return area
+}
+
+/** The fields of each definition that name another entity (a list or one id), and those that name a room. */
+const ENTITY_REFS: Readonly<Partial<Record<EntityDefName, readonly string[]>>> = {
+  door: ['switch'],
+  switch: ['targets'],
+  chest: ['hidden'],
+  'sling-target': ['targets'],
+  entry: ['portal'],
+}
+const ROOM_REFS: Readonly<Partial<Record<EntityDefName, readonly string[]>>> = {
+  'one-way': ['from'],
+  'ledge-drop': ['to'],
+}
+/** The lengths a definition's fields hold, in metres, which compile into Q16.16 metres. */
+const LENGTHS = ['x', 'z', 'y', 'width', 'depth', 'height'] as const
+
+/** JSON-path text for Zod's issue path under `entities[index]`. */
+const pathOf = (index: number, path: readonly PropertyKey[]): string =>
+  path.reduce<string>(
+    (text, key) => (typeof key === 'number' ? `${text}[${key}]` : `${text}.${String(key)}`),
+    `entities[${index}]`,
+  )
+
+/**
+ * Checks every entity against its definition, its id against the others, and every reference against the entities
+ * and rooms there are, then compiles the lengths into fixed point. Throws `AreaLoadError` at the first fault.
+ */
+function compileEntities(
+  area: string,
+  sources: readonly EntitySource[],
+  rooms: readonly { readonly view: string }[],
+): AreaEntity[] {
+  const parsed = sources.map((source, index) => {
+    if (!Object.hasOwn(ENTITY_DEFS, source.def))
+      throw new AreaLoadError(area, `entities[${index}].def`, `there is no definition "${source.def}"`)
+    const def = source.def as EntityDefName
+    const result = ENTITY_DEFS[def].safeParse(source)
+    if (!result.success) {
+      const [issue] = result.error.issues
+      throw new AreaLoadError(area, pathOf(index, issue?.path ?? []), issue?.message ?? 'invalid')
+    }
+    return { ...(result.data as Record<string, unknown>), def } as Record<string, unknown> & {
+      def: EntityDefName
+      id: string
+    }
+  })
+  const ids = new Map<string, string>()
+  parsed.forEach((entity, index) => {
+    if (ids.has(entity.id))
+      throw new AreaLoadError(area, `entities[${index}].id`, `the id "${entity.id}" is used twice`)
+    ids.set(entity.id, entity.def)
+  })
+  const views = new Set(rooms.map((room) => room.view))
+  parsed.forEach((entity, index) => {
+    for (const field of ENTITY_REFS[entity.def] ?? []) {
+      const value = entity[field]
+      const named = value === undefined ? [] : Array.isArray(value) ? (value as string[]) : [value as string]
+      named.forEach((id, at) => {
+        const path = Array.isArray(value)
+          ? `entities[${index}].${field}[${at}]`
+          : `entities[${index}].${field}`
+        if (!ids.has(id)) throw new AreaLoadError(area, path, `no entity has the id "${id}"`)
+      })
+    }
+    // A switch door names a switch, and must name one.
+    if (entity.def === 'door' && entity.lock === 'switch') {
+      const named = entity.switch as string | undefined
+      if (named === undefined)
+        throw new AreaLoadError(area, `entities[${index}].switch`, 'a switch door names its switch')
+      if (ids.get(named) !== 'switch')
+        throw new AreaLoadError(area, `entities[${index}].switch`, `"${named}" is not a switch`)
+    }
+    for (const field of ROOM_REFS[entity.def] ?? [])
+      if (!views.has(entity[field] as string))
+        throw new AreaLoadError(
+          area,
+          `entities[${index}].${field}`,
+          `no room has the view "${entity[field]}"`,
+        )
+  })
+  return parsed.map((entity) => {
+    const compiled: Record<string, unknown> = { ...entity }
+    for (const field of LENGTHS)
+      if (typeof entity[field] === 'number') compiled[field] = metres(entity[field] as number)
+    return compiled as unknown as AreaEntity
+  })
 }
 
 /**

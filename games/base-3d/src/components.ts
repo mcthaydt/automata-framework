@@ -201,3 +201,17 @@ const chainFields = {
 
 /** The Hookchain thrown (DESIGN.md §9.1): flying out, or hooked on a post and pulling Wick to it. One at a time. */
 export const Chain: ComponentDef<typeof chainFields> = defineComponent('chain', chainFields)
+
+const slingTargetFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+} as const
+
+/**
+ * A sling target (DESIGN.md §10): a lantern, a bell or an eye at a height the area gives it, lockable (a `target` row
+ * and a `fighter` on the foes' side), which a pellet hits and nothing harms (GAME-3D.1f part 1).
+ */
+export const SlingTarget: ComponentDef<typeof slingTargetFields> = defineComponent(
+  'sling-target',
+  slingTargetFields,
+)
