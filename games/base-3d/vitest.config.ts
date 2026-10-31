@@ -23,7 +23,8 @@ export default defineConfig({
       // The screens on the real runtime, in jsdom (Svelte's client build, so the ui panels mount).
       {
         extends: true,
-        resolve: { conditions: ['browser'] },
+        // Boot runs over Ruken's fake host, so `@mcthaydt/automata-host/target` must be the Ruken adapter (DIST spec §5.3).
+        resolve: { conditions: ['automata-ruken', 'browser'] },
         test: { name: 'dom', environment: 'jsdom', include: ['src/**/*.dom.test.ts'] },
       },
       {
