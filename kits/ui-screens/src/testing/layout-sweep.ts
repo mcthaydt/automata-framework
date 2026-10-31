@@ -14,8 +14,8 @@ import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthayd
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 
-export const LOCALES = ['en', PSEUDO_LOCALE] as const
-export type Locale = (typeof LOCALES)[number]
+export type Locale = 'en' | typeof PSEUDO_LOCALE
+export const LOCALES: readonly Locale[] = ['en', PSEUDO_LOCALE]
 
 /** A word the game or the host supplies (a title, a player's name), as it reads in `locale`. */
 export const say = (locale: Locale, text: string): string =>
