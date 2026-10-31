@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ACTION_CLIP, metres, WALK_SPEED } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
-import { HERO_ITEM, heroFigureState, lockPoint, PILLAR, PROPS, placed, sceneOf } from './views.ts'
+import { HERO_ITEM, heroFigureState, lockPoint, PILLAR, PROPS, placed, recentred, sceneOf } from './views.ts'
 
 // The render rows as the figure view reads them (M3 spec §4.4.5): turn units to radians, ticks to seconds at
 // 60 Hz, the action code to its clip id, the guard to a stance, the lock to aim points.
@@ -110,5 +110,24 @@ describe('sceneOf the first slice', () => {
     // The golden's walk runs up x = 0 to the doorway: nothing stands on it (props have no collider yet).
     for (const box of [PILLAR]) expect(box.min[0] > 0.5 || box.max[0] < -0.5).toBe(true)
     for (const prop of PROPS) expect(Math.abs(prop.x)).toBeGreaterThan(1)
+  })
+})
+
+describe('recentred (DESIGN.md §11.2: a lock press with no target eases the heading to the facing)', () => {
+  const at = (heading: number, facing: number, lockTarget = 0) => ({
+    'camera-heading': { view: 'hall', heading },
+    hero: { ...hero, facing, lockTarget },
+  })
+
+  it('is the heading jumping to Wick’s facing with no lock before or after', () => {
+    expect(recentred(at(16_384, 16_384), at(0, 16_384))).toBe(true)
+  })
+
+  it('is not a turn, a heading already there, a lock’s assist or its release, or the first row', () => {
+    expect(recentred(at(364, 16_384), at(0, 16_384))).toBe(false)
+    expect(recentred(at(16_384, 16_384), at(16_384, 16_384))).toBe(false)
+    expect(recentred(at(16_384, 16_384, 7), at(15_838, 16_384, 7))).toBe(false)
+    expect(recentred(at(16_384, 16_384), at(15_838, 16_384, 7))).toBe(false)
+    expect(recentred(at(16_384, 16_384), undefined)).toBe(false)
   })
 })

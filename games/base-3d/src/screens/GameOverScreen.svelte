@@ -3,7 +3,8 @@
   focused on entry) plays on from the area entrance, and Quit goes to the menu.
 -->
 <script lang="ts">
-import { ActionBar, ScreenFrame } from '@mcthaydt/automata-ui'
+import { ScreenFrame } from '@mcthaydt/automata-ui'
+import CentredActions from './CentredActions.svelte'
 
 interface Props {
   onContinue: () => void
@@ -20,7 +21,7 @@ const { onContinue, onQuit }: Props = $props()
 {/snippet}
 
 {#snippet actions()}
-  <ActionBar
+  <CentredActions
     actions={[
       { id: 'continue', label: 'Continue', kind: 'primary', onSelect: onContinue },
       { id: 'quit', label: 'Quit', kind: 'secondary', onSelect: onQuit },

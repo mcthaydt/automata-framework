@@ -39,8 +39,8 @@ describe('the key map (M3.7b part 3)', () => {
     expect(held()).toEqual({
       move: { x: 0, y: 0 },
       'camera-turn': { units: 0 },
-      // Hold until part 2 of GAME-3D.1b sends the player's saved Lock mode.
-      lock: { down: false, mode: 'hold' },
+      // The player's saved Lock mode, Toggle until play reads the settings (screens/lock-input.ts).
+      lock: { down: false, mode: 'toggle' },
       act: { slash: false, guard: false, point: false, pickup: false },
     })
   })
@@ -50,7 +50,16 @@ describe('the key map (M3.7b part 3)', () => {
     expect(held('ArrowDown')).toMatchObject({ move: { x: 0, y: 127 } })
     expect(held('KeyQ')).toMatchObject({ 'camera-turn': { units: -364 } })
     expect(held('KeyE')).toMatchObject({ 'camera-turn': { units: 364 } })
-    expect(held('ShiftRight')).toMatchObject({ lock: { down: true, mode: 'hold' } })
+    expect(held('ShiftRight')).toMatchObject({ lock: { down: true, mode: 'toggle' } })
+  })
+
+  it('sends the saved Lock mode, and a lock-cycle on Q’s and E’s first tick (GAME-3D.1b part 2)', () => {
+    input.mode = 'hold'
+    expect(held('ShiftLeft')).toMatchObject({ lock: { down: true, mode: 'hold' } })
+    input.mode = 'toggle'
+    expect(held('KeyQ')).toMatchObject({ 'lock-cycle': { dir: -1 }, 'camera-turn': { units: -364 } })
+    expect(held('KeyQ')['lock-cycle']).toBeUndefined()
+    expect(held('KeyE')).toMatchObject({ 'lock-cycle': { dir: 1 } })
   })
 
   it('maps J, K, L and F to slash, guard, point and pick up', () => {

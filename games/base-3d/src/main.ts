@@ -6,9 +6,9 @@
 // freely, cuts the walls away and fades the pillar; three static props from The Last Light and fog. Shift locks
 // onto the second figure: Wick strafes and aims at it, and the camera frames them both. (Part 4) The flow: a splash,
 // the menu, the room, paused and Settings, and the end screen when Wick picks up the ember in the kiln.
-// Controls: WASD or the arrows to move, Q and E to turn the camera, Shift held to lock, J slash, K held to guard,
-// L point, F pick up, Escape to pause. On touch, the same as buttons (the analog stick and the camera drag wait on
-// the play screen, GAME-3D.1h).
+// Controls: WASD or the arrows to move, Q and E to turn the camera (or cycle the lock), Shift to lock, J slash, K
+// held to guard, L point, F pick up, Escape to pause. On touch, the same as buttons (the analog stick and the camera
+// drag wait on the play screen, GAME-3D.1h).
 // Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, @mcthaydt/automata-figures,
 // @mcthaydt/automata-render-pixi3d; @mcthaydt/automata-content (its Vite plugin) and @mcthaydt/automata-ship.
 import '@mcthaydt/automata-render-pixi3d/no-eval'
@@ -23,6 +23,7 @@ import { Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
+import { lockInput } from './screens/lock-input.ts'
 import { lockModeExtension } from './screens/lock-mode.extension.ts'
 import { base3dSaves } from './screens/saves.ts'
 import { base3dScreens } from './screens/screens.ts'
@@ -38,6 +39,7 @@ import {
   lockPoint,
   PROPS,
   placed,
+  recentred,
 } from './views.ts'
 
 // Compiling the areas is boot's content cost (DESIGN.md §13 boot step 3): measured, so G3-u's journey holds it to a
@@ -56,44 +58,48 @@ const idleAct = { slash: false, guard: false, point: false, pickup: false }
 
 /**
  * WASD and the arrows push the stick to its edge (`move` is the stick, M4-D2), as the left stick's directions do;
- * Q and E turn the camera; Shift held locks; J, K, L and F are the action buttons. Each is its own command, sent
- * every tick (the sim finds the presses).
+ * Q and E turn the camera, or cycle the lock while locked; Shift locks in the player's Lock mode; J, K, L and F are
+ * the action buttons. Each is its own command, sent every tick (the sim finds the presses); `lockInput` adds the
+ * saved Lock mode and `lock-cycle` (screens/lock-input.ts).
  */
-export const input = inputs(
-  keys(
-    Move,
-    {
-      KeyW: { y: -STICK_MAX },
-      ArrowUp: { y: -STICK_MAX },
-      KeyS: { y: STICK_MAX },
-      ArrowDown: { y: STICK_MAX },
-      KeyA: { x: -STICK_MAX },
-      ArrowLeft: { x: -STICK_MAX },
-      KeyD: { x: STICK_MAX },
-      ArrowRight: { x: STICK_MAX },
-    },
-    {
-      idle: { x: 0, y: 0 },
-      stick: {
-        'left-up': { y: -STICK_MAX },
-        'left-down': { y: STICK_MAX },
-        'left-left': { x: -STICK_MAX },
-        'left-right': { x: STICK_MAX },
+export const input = lockInput(
+  inputs(
+    keys(
+      Move,
+      {
+        KeyW: { y: -STICK_MAX },
+        ArrowUp: { y: -STICK_MAX },
+        KeyS: { y: STICK_MAX },
+        ArrowDown: { y: STICK_MAX },
+        KeyA: { x: -STICK_MAX },
+        ArrowLeft: { x: -STICK_MAX },
+        KeyD: { x: STICK_MAX },
+        ArrowRight: { x: STICK_MAX },
       },
-    },
+      {
+        idle: { x: 0, y: 0 },
+        stick: {
+          'left-up': { y: -STICK_MAX },
+          'left-down': { y: STICK_MAX },
+          'left-left': { x: -STICK_MAX },
+          'left-right': { x: STICK_MAX },
+        },
+      },
+    ),
+    keys(CameraTurn, { KeyQ: { units: -KEY_TURN }, KeyE: { units: KEY_TURN } }, { idle: { units: 0 } }),
+    keys(
+      Lock,
+      // `lockInput` replaces the mode with the player's saved one (DESIGN.md §12.2).
+      { ShiftLeft: { down: true, mode: 'toggle' }, ShiftRight: { down: true, mode: 'toggle' } },
+      { idle: { down: false, mode: 'toggle' }, labels: { ShiftLeft: 'Lock' } },
+    ),
+    keys(
+      Act,
+      { KeyJ: { slash: true }, KeyK: { guard: true }, KeyL: { point: true }, KeyF: { pickup: true } },
+      { idle: idleAct, labels: { KeyJ: 'Slash', KeyK: 'Guard', KeyL: 'Point', KeyF: 'Pick up' } },
+    ),
   ),
-  keys(CameraTurn, { KeyQ: { units: -KEY_TURN }, KeyE: { units: KEY_TURN } }, { idle: { units: 0 } }),
-  keys(
-    Lock,
-    // Hold mode for now: GAME-3D.1b part 2 sends the player's saved Lock mode (DESIGN.md §12.2).
-    { ShiftLeft: { down: true, mode: 'hold' }, ShiftRight: { down: true, mode: 'hold' } },
-    { idle: { down: false, mode: 'hold' }, labels: { ShiftLeft: 'Lock' } },
-  ),
-  keys(
-    Act,
-    { KeyJ: { slash: true }, KeyK: { guard: true }, KeyL: { point: true }, KeyF: { pickup: true } },
-    { idle: idleAct, labels: { KeyJ: 'Slash', KeyK: 'Guard', KeyL: 'Point', KeyF: 'Pick up' } },
-  ),
+  { KeyQ: -1, KeyE: 1 },
 )
 
 // The figure content (src/content/figure*), compiled by the content plugin with the figures extension's kinds.
@@ -165,6 +171,7 @@ export const base3d = defineGame({
         follow: Hero.id,
         position: (c) => placed(c.hero),
         lock: lockPoint,
+        easeHeading: recentred,
       },
       scene: (view, _stage, occluders, _light, models) => {
         buildScene(view, occluders, models, FIRST_SLICE)

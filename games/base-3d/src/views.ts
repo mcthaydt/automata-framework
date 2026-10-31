@@ -14,7 +14,7 @@ import type {
   Vec3,
   View3dFactory,
 } from '@mcthaydt/automata-render-pixi3d'
-import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
+import { CameraHeading, Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { FieldRecord } from '@mcthaydt/automata-sim'
 import { Mesh3D, type View3D } from '@pixi/3d'
 import { ACTION_CLIP, TICK_HZ, WALK_SPEED } from './constants.ts'
@@ -114,6 +114,22 @@ export function lockPoint(
   const target = sid === 0 ? undefined : rowOf(sid)?.target
   if (target === undefined) return undefined
   return { x: Number(target.x) / Q16, y: AIM_HEIGHTS.chest, z: Number(target.z) / Q16 }
+}
+
+/**
+ * Whether this tick's heading is a recentre (DESIGN.md §11.2): it jumped to Wick's facing with no lock before or
+ * after, which only a lock press with no target does in one tick, so the camera eases it over 250 ms. A turn that
+ * happens to land on the facing eases too, which shows as nothing more than a smoother turn.
+ */
+export function recentred(curr: Components, prev: Components | undefined): boolean {
+  const heading = curr[CameraHeading.id]?.heading
+  const before = prev?.[CameraHeading.id]?.heading
+  if (before === undefined || heading === before) return false
+  return (
+    heading === curr.hero?.facing &&
+    Number(curr.hero?.lockTarget ?? 0) === 0 &&
+    Number(prev?.hero?.lockTarget ?? 0) === 0
+  )
 }
 
 /** Metres from the floor to the ceiling: above the views' 2 m bounds, so the camera never meets it. */

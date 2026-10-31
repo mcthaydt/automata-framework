@@ -18,8 +18,9 @@ import { AreaEntered, AreaExit, EmberTaken, HeroDefeated } from '../events.ts'
 import { areaFade } from './area-fade.ts'
 import EndScreen from './EndScreen.svelte'
 import GameOverScreen from './GameOverScreen.svelte'
+import type { LockInput } from './lock-input.ts'
 import SplashScreen from './SplashScreen.svelte'
-import { settingsInPlay } from './settings.ts'
+import { lockModeOf, settingsInPlay } from './settings.ts'
 
 /** How long the splash shows before moving on by itself. */
 export const SPLASH_MS = 1500
@@ -58,8 +59,11 @@ const byId = (screens: readonly ScreenDef[], id: string): ScreenDef => {
   return screen
 }
 
-/** The seven screens BASE3D_FLOW names, over the default screens for `game`. */
-export function base3dScreens(game: ScreensGame): ScreenDef[] {
+/**
+ * The seven screens BASE3D_FLOW names, over the default screens for `game`. Play gives `game.input` the player's
+ * saved Lock mode on entry, and Settings on its way out (lock-input.ts).
+ */
+export function base3dScreens(game: ScreensGame & { readonly input: LockInput }): ScreenDef[] {
   // The sim play runs, told by the default screens (`watchSim`): the end screen's time is its tick.
   let running: Sim | undefined
   // The running sim as it stood at the area entrance, which the game over's Continue restores: taken when play gets
@@ -118,6 +122,7 @@ export function base3dScreens(game: ScreensGame): ScreenDef[] {
         const hosting = yield* Hosting
         const bus = yield* PresentationBus
         if (context.from === 'title' || context.from === 'game-over') yield* hosting.round.start
+        game.input.mode = lockModeOf((yield* Settings).store?.get())
         const fade = yield* areaFade(context.layer)
         yield* Effect.acquireRelease(
           Effect.sync(() =>
@@ -169,6 +174,7 @@ export function base3dScreens(game: ScreensGame): ScreenDef[] {
           () =>
             Effect.sync(() => {
               settingsInPlay.store = undefined
+              game.input.mode = lockModeOf(store?.get())
             }),
         )
         yield* defaultSettings.enter(context)

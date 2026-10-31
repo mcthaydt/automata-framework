@@ -98,12 +98,40 @@ Every unit test runs with `cd games/base-3d && pnpm vitest run --configLoader ru
 
 ## Steps (part 2)
 
-- [ ] 2.1 Failing DOM/unit tests: the `lock` command carries the saved Lock mode; Q/E send `lock-cycle` while locked
-  and `camera-turn` otherwise; a 40 px drag while locked cycles once per drag.
-- [ ] 2.2 Implementation in `main.ts`/`screens/` and the touch layer; 2.1 passes.
-- [ ] 2.3 The view's 250 ms recentre ease; GameOverScreen (and EndScreen if it shares it) action row centred, with
-  a real-browser geometry check.
-- [ ] 2.4 Review images under `docs/evidence/owner-visual/2026-10-31-game-3d-1b/` with a README; gates as 1.6 plus
+Branch `claude/3d-game-3d-1b-2` (worktree `/home/user/wt/game-3d-1b2`), stacked on `claude/3d-game-3d-1b`; draft PR
+base `claude/3d-game-3d-1b`.
+
+Interfaces (part 2; base-3d only, plus one optional render-pixi3d camera option; render-pixi3d is private):
+
+| Name | File | Shape |
+|---|---|---|
+| `lockInput(map, cycleKeys)` (new) | screens/lock-input.ts | wraps the game's `InputMap`: every `lock` carries `mode`, a press of a cycle key (Q −1, E 1) sends one `lock-cycle` on its first tick, `seq` is `tick × 5 + n` with `lock-cycle` the fifth |
+| `LockInput.mode`, `.cycle(dir)` | screens/lock-input.ts | the saved Lock mode (set when play enters and when Settings closes); a cycle queued for the next tick |
+| `cycleOnDrag(tracker, input)` (new) | screens/lock-input.ts | a ui `DragTracker` that forwards to `tracker` and queues one cycle per drag once it has moved 40 px |
+| `cycleOnFlick(input)` (new) | screens/lock-input.ts | `(x) => void` for the right stick's x: one cycle past ±0.7, re-armed back inside 0.7 |
+| `Pixi3dCameraOptions.easeHeading` (new, optional) | render-pixi3d camera/camera-driver.ts | `(curr, prev) => boolean`: this tick's heading change eases (`rig.heading(yaw, 'ease')`, 250 ms) instead of tracking |
+| `recentred(curr, prev)` (new) | views.ts | true when the heading changed to Wick's facing with no lock before or after: a lock press with no target |
+
+Interpretation: the sim already ignores `camera-turn` while locked (`rotate` is false) and `lock-cycle` while not,
+so the input layer sends both for a Q/E press and needs no view state; a `lock-cycle` in an unlocked replay is a
+no-op. `lock-cycle` is one tick's event, so the wrapper finds the key's first tick itself (the one edge in the input
+layer; the held keys alone still decide every other command). The drag and the flick are written and tested here,
+but base-3d has no camera drag surface or right-stick read until GAME-3D.1h (main.ts's header); 1h mounts
+`cycleOnDrag` around its `CameraDragTracker` and feeds `cycleOnFlick` from its stick read.
+
+- [x] 2.1 Failing tests. `screens/lock-input.test.ts` (node, new): the `lock` command carries `mode` (toggle and
+  hold); Q's first tick sends `lock-cycle {dir: -1}` and the camera turn, its held ticks only the turn, a new press
+  cycles again; E is dir 1; seq is `tick × 5 + n`; a queued `cycle` goes out on the next tick once; a drag cycles
+  once past 40 px (either way, sign by direction) and again only after a new drag; a flick past 0.7 cycles once
+  until the stick comes back inside. `game-spec.test.ts`: the page's input sends the saved mode (default toggle)
+  and the cycle. `screens.dom.test.ts`: play takes the saved Lock mode on entry and after Settings changes it.
+  `camera-driver.test.ts`: `easeHeading` true eases, false or absent tracks. `views.test.ts`: `recentred`.
+- [x] 2.2 Implementation (lock-input.ts, main.ts, screens.ts, camera-driver.ts, views.ts); 2.1 passes.
+- [x] 2.3 GameOverScreen and EndScreen: the action row centred under `ScreenFrame arrangement="stack"`, with a
+  real-browser geometry check (left and right margins equal within 1 px at 844 × 390 and 390 × 844, the row at most
+  26rem wide): `screens/screens.layout.test.ts` in a new `layout` vitest project (Chromium, WebKit, Firefox), which
+  `test:parity` now runs beside `browsers`.
+- [x] 2.4 Review images under `docs/evidence/owner-visual/2026-10-31-game-3d-1b/` with a README; gates as 1.6 plus
   the focused base-3d e2e specs.
 
 ## Gates
@@ -136,3 +164,29 @@ Pending: the Mac's CI.
   because the held strafe now orbits the target and the assist turned the heading from 16,384 toward it.
 - 1.6: `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0; `pnpm --filter base-3d test:parity` 189/189 (game.test.ts's
   63 cases in Chromium, WebKit and Firefox, the golden `9fd1aebdb8f26a81` included); `pnpm build:demos` exit 0.
+- Part 2 (2026-10-31, branch `claude/3d-game-3d-1b-2`): 2.1 `lock-input.test.ts` (8 cases) failed with no tests
+  collected, `./lock-input.ts` missing (the expected reason); `game-spec.test.ts`'s 3 key-map cases failed on the
+  lock's `mode: 'hold'` and the missing `lock-cycle`; `screens.dom.test.ts`'s Hold case failed with the lock kept
+  after Shift's release (2 ≠ 0: the mode never reached the command), while Toggle passed (already the default);
+  `camera-driver.test.ts`'s `easeHeading` case failed on `heading 90 track`. `views.test.ts`'s `recentred` cases
+  were written before `recentred` but not run red on their own (the import would have failed); recorded, not hidden.
+- 2.2: `lock-input.ts`, `main.ts` (`lockInput(inputs(...), { KeyQ: -1, KeyE: 1 })`), `screens.ts` (mode on play's
+  entry and Settings' exit), `camera-driver.ts` (`easeHeading`, asked once a tick), `views.ts` (`recentred`). base-3d
+  `test:unit` 140/140, typecheck clean; render-pixi3d `vitest run` 309 passed, 2 skipped.
+- 2.2, interpretations: E is dir 1 and Q −1 (the previous lane's handoff); a drag or flick to the right is 1, as E.
+  The drag and flick helpers are tested here and connected by GAME-3D.1h, which brings the camera drag surface and
+  the right-stick read (base-3d has neither yet). `recentred` also eases a turn that happens to land exactly on the
+  facing, which only smooths that one turn.
+- 2.3: diagnosed in a production build: the row's boxes were symmetric (12 px each side at 844 × 390); the
+  asymmetry was Continue's focus ring overhanging the full-width row's left gutter. `CentredActions.svelte` centres the
+  row at `min(100%, 26rem)`. The layout test failed first in all three engines at 844 × 390 (812 > 416) and passed
+  at 390 × 844; after the change 12/12.
+- 2.4: review images and README in `docs/evidence/owner-visual/2026-10-31-game-3d-1b/` (a throwaway `screens.ts`
+  patch reached the two screens; reverted, not committed).
+- Part 2 gates: `pnpm format`; `TURBO_FORCE=true pnpm check` first failed on api-report's committed reports
+  (`render-pixi3d.api.md`: the new `easeHeading` option), so `pnpm api-report --update` (one line added); then
+  `pnpm build`, `pnpm api-index` (cheatsheet not stale), `pnpm agent-skills` (nothing to write), api-report's tests
+  75/75, `pnpm --filter base-3d test:parity` 201/201 (game.test.ts's 63 cases and the 4 layout cases, each in
+  Chromium, WebKit and Firefox; golden `9fd1aebdb8f26a81` unchanged), render-pixi3d `test:parity` exit 0,
+  `pnpm build:demos` exit 0, the re-run `TURBO_FORCE=true pnpm check` exit 0, and the base-3d e2e specs
+  (`playwright test --project=base-3d`) 7/7. No changeset: render-pixi3d and base-3d are private.

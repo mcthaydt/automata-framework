@@ -466,6 +466,51 @@ describe("base-3d's flow", () => {
       expect(lockMode('hold')?.checked).toBe(false)
     })
 
+    /** Wick's lock target from the last render row that carried him; 0 when none. */
+    const locked = () => {
+      const rows = results.flatMap((result) => [...result.render.added, ...result.render.changed])
+      return Number(
+        rows.findLast((row) => row.components.hero !== undefined)?.components.hero?.lockTarget ?? 0,
+      )
+    }
+    /** Shift pressed for a tick and let go, then a few ticks more. */
+    const tapLock = () => {
+      key('keydown', 'ShiftLeft')
+      step(2)
+      key('keyup', 'ShiftLeft')
+      step(3)
+    }
+    /** Walks Wick a few metres up the hall, toward the target in the kiln. */
+    async function walkIn(): Promise<void> {
+      const fromZ = wick()?.z ?? spawnZOf()
+      await hold('KeyW', () => (wick()?.z ?? fromZ) >= fromZ + metres(4))
+    }
+
+    it('play locks in Toggle by default: the lock stays after Shift is let go, and the next press lets go', async () => {
+      await toRoom()
+      await walkIn()
+      tapLock()
+      expect(locked()).not.toBe(0)
+      tapLock()
+      expect(locked()).toBe(0)
+    })
+
+    it('play takes Hold from Settings: the lock lets go with Shift', async () => {
+      await toSettings()
+      lockMode('hold')?.click()
+      button('Back')?.click()
+      await until(() => screen() === 'paused', 'paused')
+      button('Resume')?.click()
+      await until(() => screen() === 'play', 'the room')
+      await walkIn()
+      key('keydown', 'ShiftLeft')
+      step(3)
+      expect(locked()).not.toBe(0)
+      key('keyup', 'ShiftLeft')
+      step(3)
+      expect(locked()).toBe(0)
+    })
+
     it("keeps Hold in the game's settings record on the player's account", async () => {
       await toSettings()
       lockMode('hold')?.click()
