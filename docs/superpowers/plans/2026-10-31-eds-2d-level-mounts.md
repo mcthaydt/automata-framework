@@ -1,0 +1,71 @@
+# EDS.2d Mount the 2D and 3D level editors in the suite shell: TDD plan
+
+- **Task:** EDS.2d in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §4.1 (`SuiteEditor`), §4.7 (how the level editors mount), EDS-D12 (the suite owns the one `EditorShell`; sessions outlive their views), §10 (sizes and input), §12 (layout contract, tablet journeys), §13 EDS-k (switch and return keeps selection and undo).
+- **Lane:** editor-suite. **Depends on:** EDS.2a (suite app, merged), ED2D.4c4b (Level view with inspector and dock, merged), ED3D.5f (merged). **Unblocks:** EDS.1d-b's `automata editor --editor levels-2d|levels-3d`, EDS.4a's switch journeys.
+- **Status:** drafted 2026-10-31 on `claude/eds-2d-level-mounts` from `origin/main` a48b2c78. Owner, 2026-10-30: "Auto accept all spec and plans"; this plan is accepted once its review is done.
+- **Progress:** 0 of 8 steps.
+
+## Scope
+
+**In:**
+
+- **`editor-2d/suite`** (new `./suite` export, `src/suite/levels-2d.suite.ts` + `src/suite/Levels2dRegions.svelte`): a `SuiteEditor<Levels2dSession>` with id `levels-2d`. `open(files, ports)` reads the first `*.af2d.json` (or FloorFifty stage) through `ports.workspace`, parses it with the profile the registry sniffs (`createAppProfiles`), and makes a session that holds the kit `History`, the `LevelSession` (`createLevelSession`, which already owns the editor's level, layer, tool and selection, and the camera) and the read-only view state. A bad file is a state (`{ kind: 'error', errors }`), never a rejection. `regions` draw from the session: panel (Layers + Palette), canvas (the Level canvas), inspector, dock and status. `undo(session)` adapts the kit `History` to `SuiteUndo`. Writes go through `ports.workspace.write` with the mtime the file was read at (the suite's write path).
+- **Session out of the component:** `LevelView.svelte` today calls `createLevelSession` in its script, so the session dies with the component. Split it: a `LevelRegions` set of snippets/components that take a `LevelSession` as a prop, used by both `LevelView` (which still makes its own session, standalone app unchanged) and the suite regions (which take the session from `open`). No behaviour change in the standalone app; its DOM and layout tests stay green untouched.
+- **`editor-3d/suite`** (new `./suite` export, `src/suite/levels-3d.suite.ts` + regions): a `SuiteEditor<Levels3dSession>` with id `levels-3d`, built on `open-level.ts` (`OpenLevel`: the `LevelEditor`, its patched document and the facility beside it) and the same controllers `DocumentFrame.svelte` uses; panel, canvas (the plan canvas with an injected renderer factory, as its DOM tests do), status. Checks and Ask read the suite's `ports.checks` and `ports.ask` (§4.7); `ask(session)` returns a `SuiteAskTarget` over the patched document. `DocumentFrame` keeps working for the standalone app.
+- **Suite wiring:** `editor-suite/src/main.ts` registers both (`createSuite({ editors: [levels2d, levels3d] })`), `package.json` gains `@mcthaydt/automata-editor-2d` and `-3d` as workspace dependencies (a host may import editors, EDS-D2 kit amendment). The Levels entry already lists `levels-2d` and `levels-3d` (`suite-entries.ts`).
+- **The switch-and-return journey (EDS-k):** select an instance in Levels 2D (and a sector in Levels 3D), switch to another entry, edit there, switch back: the selection is still there and Undo undoes the level editor's own last step.
+
+**Out, with owner:**
+
+| What                                                                                                                              | Where                                                          |
+| --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `automata editor --editor levels-2d` serving it                                                                                   | EDS.1d-b                                                       |
+| The 2D editor's Export inside the suite (keeps its own targets, §4.7)                                                             | ED2D.7b                                                        |
+| WebKit iPad tablet journeys                                                                                                       | EDK.6b / ED2D.8                                                |
+| EDS.2c follow-ups recorded on #290 (file chooser and gate links under 44 px, phone gate-link spacing, toast over the bottom rail) | a separate EDS.2c-c fix PR (coordinator's call), not this task |
+
+## Decisions (listed in the PR for the Owner's veto)
+
+1. **Sessions own state, components only draw** (EDS-D12): the 2D `LevelSession` and the 3D `OpenLevel` move out of the view components into what `open` returns; the standalone views create the same session themselves.
+2. **One file per open** for both editors: the editor-list row group's first matching file; the other files of the group are listed in the status line (a picker inside the suite waits for a later task).
+3. **`./suite` entries are new exports** on private packages; nothing published changes, so no changeset.
+4. **The 3D canvas in the suite takes the renderer factory from the suite's boot** (the real Pixi 3D renderer in the app, a stand-in in jsdom), the same seam `DocumentFrame` has.
+
+## Contract
+
+```ts
+// editor-2d/src/suite/index.ts (package export "./suite")
+export const levels2d: SuiteEditor<Levels2dSession>;
+export interface Levels2dSession {
+  readonly path: string;
+  readonly state:
+    | { kind: "open"; history: History<unknown>; level: LevelSession }
+    | { kind: "error"; errors: readonly ParseError[] };
+}
+// editor-3d/src/suite/index.ts (package export "./suite")
+export const levels3d: SuiteEditor<Levels3dSession>;
+```
+
+## Files
+
+- **Create:** `editor-2d/src/suite/{index.ts, levels-2d.suite.ts, levels-2d.suite.test.ts, Levels2dRegions.svelte, levels-2d.suite.dom.test.ts}`, `editor-2d/src/app/level/LevelRegions.svelte` (or panel/canvas/inspector components split out of `LevelView.svelte`), `editor-3d/src/suite/{index.ts, levels-3d.suite.ts, levels-3d.suite.test.ts, Levels3dRegions.svelte, levels-3d.suite.dom.test.ts}`, `editor-suite/src/shell/Suite.levels.dom.test.ts`, `editor-suite/src/shell/suite-levels.layout.test.ts`.
+- **Modify:** `editor-2d/package.json` and `editor-3d/package.json` (`./suite` export), `editor-2d/src/app/level/LevelView.svelte` (uses the split regions), `editor-3d/src/ui/document/DocumentFrame.svelte` (same), `editor-suite/package.json` (deps), `editor-suite/src/main.ts`, `editor-suite/src/testing/fixture-editor.ts` comment ("no shipped editor has a suite session yet"), knip config if it flags the new entries, `tooling/api-report` only if the entries are reported (private packages: check).
+
+## Steps
+
+1. [ ] **2D session.** `levels-2d.suite.test.ts` (Node): `open` over a memory workspace reads the platformer project into an `open` session whose `level.editor.view.level` is `level-1`; a broken file gives `{ kind: 'error' }` and does not reject; `undo(session)` reports `canUndo` false, then true with "Undo Paint" after a stroke through `level.editor`, and `undo()` takes it back; a step writes through `ports.workspace.write` (the fake records it).
+2. [ ] **2D regions split.** Move the Level view's panel, canvas, inspector and dock into components that take a `LevelSession`; `LevelView` composes them. Every existing `app/level/*.dom.test.ts` and `level-view.layout.test.ts` stays green unchanged (the evidence the split changed nothing).
+3. [ ] **2D in the suite.** `levels-2d.suite.dom.test.ts`: mounted in `Suite` with the fixture editor beside it, Levels shows the layer list and the stand-in canvas inside the suite's single shell (one top bar); selecting an instance, switching to Tuner and back keeps it selected (EDS-k, 2D half).
+4. [ ] **3D session.** `levels-3d.suite.test.ts`: `open` over a sector fixture gives a session over `OpenLevel`; a bad file is a state; `undo` and `ask` adapt the level editor's history and patched document (accept applies one step).
+5. [ ] **3D regions.** Split `DocumentFrame`'s panel, canvas and status into session-taking components; its DOM tests stay green unchanged.
+6. [ ] **3D in the suite + EDS-k.** `Suite.levels.dom.test.ts`: select a sector in Levels 3D, switch to the fixture Tuner, Raise speed, switch back: the sector is still selected and the top bar's Undo undoes the level's last step, not the Tuner's.
+7. [ ] **Layout.** `suite-levels.layout.test.ts` in Chromium, WebKit and Firefox at the §10 sizes: both editors' regions inside the suite shell, one top bar, no page scroll, 44 px targets, no remount on rotation (the session object identity and selection survive a viewport change).
+8. [ ] **Wire and evidence.** `main.ts` registers both; `pnpm --filter @mcthaydt/automata-editor-suite build`; review images in `docs/evidence/owner-visual/2026-10-31-eds-2d-level-mounts/` with a README.
+
+## Gates
+
+`pnpm format`; `TURBO_FORCE=true pnpm check`; `pnpm --filter @mcthaydt/automata-editor-2d test:parity`, `pnpm --filter @mcthaydt/automata-editor-3d test:parity`, `pnpm --filter @mcthaydt/automata-editor-suite test:parity`; builds of the three packages; `pnpm api-report` (update if it reports the new entries). No changeset (all three are private).
+
+## Execution log
+
+- 2026-10-31: plan drafted from the suite spec §4.1, §4.7, EDS-D12, EDS-k, 02's row, `editor-kit/src/ports/suite-editor.ts`, `editor-suite/src/shell/{Suite.svelte, suite-entries.ts}` (sessions kept in a `SvelteMap` per editor id for the app's life; the Levels entry already names `levels-2d` and `levels-3d`), `editor-suite/src/testing/fixture-editor.ts` (the shape a session-backed editor takes), `editor-2d/src/app/level/{LevelView.svelte, level-session.ts}` (the session is made inside the component today) and `editor-3d/src/{app/open-level.ts, ui/document/DocumentFrame.svelte}`.
