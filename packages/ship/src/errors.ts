@@ -7,6 +7,7 @@ import type { SecretFound } from './prepare/secret-scan.ts'
 
 export { FileError, ProcessError } from '@mcthaydt/automata-node'
 export { ManifestInvalid } from './targets/ruken/errors-ruken.ts'
+export { TauriBuildFailed, TauriBuildInvalid, TauriToolchainMissing } from './targets/tauri/errors-tauri.ts'
 
 // Every way a ship step can fail, as tagged errors (ADR 0003). The CLI prints `message`, one line per problem.
 // Each extends a constant typed with `TaggedErrorClass` so the package builds with isolatedDeclarations.

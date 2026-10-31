@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util'
 // The `automata-ship` command line, parsed into one value per command so cli.ts can switch on it.
 
 /** Where a build goes (PUB spec §3). Undefined means Ruken, the default, so existing scripts do not change. */
-export type ShipTarget = 'ruken' | 'itch'
+export type ShipTarget = 'ruken' | 'itch' | 'tauri'
 
 export type CliCommand =
   | {
@@ -31,7 +31,7 @@ export type CliCommand =
   | { readonly command: 'test-remote'; readonly args: readonly string[] }
   | { readonly command: 'usage'; readonly problem: string }
 
-export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch]
+export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch|tauri]
        automata-ship publish    [--dist <dir>] [--tag vX.Y.Z] [--activate] [--game <publicId>] [--private]
        automata-ship publish    --target itch [--dist <dir>] [--tag vX.Y.Z]
        automata-ship deploy-dev [--dist <dir>] [--tag vX.Y.Z] [--activate]
@@ -39,6 +39,8 @@ export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y
 
 prepare      writes ruken.toml into the build (from ship.config.ts) and checks it with Ruken's parser
              --target itch: checks the build against itch.io's rules and writes <id>-<version>-itch.zip beside it
+             --target tauri: checks the build, writes the Tauri project to .automata/tauri/, runs tauri build for
+             this OS and copies the bundles to dist-tauri/. Needs cargo, @tauri-apps/cli and tauri in ship.config.ts
 publish      prepare, then ruken publish (packs, validates, uploads). Needs RUKEN_API and RUKEN_TOKEN.
              --private: Ruken's local stack only (RUKEN_API on localhost); allows @pixi/3d, which a public
              build refuses (D-1)
@@ -52,8 +54,8 @@ const common = { dist: { type: 'string', default: 'dist' }, tag: { type: 'string
 const targeted = { ...common, target: { type: 'string' } } as const
 
 function shipTarget(value: string | undefined): ShipTarget | undefined {
-  if (value === undefined || value === 'ruken' || value === 'itch') return value
-  throw new Error(`unknown target: ${value} (ruken or itch)`)
+  if (value === undefined || value === 'ruken' || value === 'itch' || value === 'tauri') return value
+  throw new Error(`unknown target: ${value} (ruken, itch or tauri)`)
 }
 
 export function parseCliArgs(argv: readonly string[]): CliCommand {
@@ -74,6 +76,9 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
       } as const
       const { values } = parseArgs({ args: rest, options, strict: true })
       const target = shipTarget(values.target)
+      if (target === 'tauri') {
+        throw new Error('publish has no tauri target: prepare --target tauri builds the desktop bundles')
+      }
       if (target === 'itch' && (values.activate || values.game !== undefined)) {
         throw new Error('--activate and --game are for publishing to Ruken, not itch.io')
       }

@@ -5,6 +5,7 @@ export const SHIP_PACKAGE = '@mcthaydt/automata-ship'
 
 export { type ItchConfig, type ItchSettings, itchConfigSchema } from './config/itch-config.schema.ts'
 export { defineShipConfig, type ShipConfig } from './config/ship-config.ts'
+export { type TauriConfig, tauriConfigSchema } from './config/tauri-config.schema.ts'
 export { BUILD_ID_PATTERN, buildIdFor } from './deploy/build-id.ts'
 export * from './errors.ts'
 export { portsFor } from './ports/ports-for.ts'
@@ -64,3 +65,9 @@ export { type DeployDevInput, deployDev } from './targets/ruken/deploy-dev.ts'
 export { type PublishInput, publishToRuken, rukenCliPath } from './targets/ruken/publish-to-ruken.ts'
 export { type RukenHeaderTarget, rukenHeaders } from './targets/ruken/ruken-headers.ts'
 export { rukenToml } from './targets/ruken/ruken-toml.ts'
+export {
+  type PrepareTauriError,
+  type PrepareTauriInput,
+  prepareTauri,
+  TAURI_CLI,
+} from './targets/tauri/prepare-tauri.ts'

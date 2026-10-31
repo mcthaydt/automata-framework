@@ -8636,6 +8636,47 @@ interface PrepareItchInput {
 }
 ```
 
+#### `prepareTauri` (function)
+
+Builds the desktop bundles for this OS (DIST spec §6.2). In order, and stopping at the first that fails: the
+release tag; the `tauri` section, a semver version, the `index.html` entry and a CSP without eval; the public-build
+scans (secrets, `@pixi/3d`); the toolchain (`cargo`, WebKitGTK on Linux, the `tauri` CLI). Only then is the
+project written to `<game>/.automata/tauri/` (its `target/` cache is kept between builds), `tauri build` run
+there with its output shown, and each bundle copied to `<game>/dist-tauri/<id>-<version>-<os>-<kind><ext>`.
+
+```ts
+function prepareTauri(input: PrepareTauriInput): Effect.Effect<{
+  bundles: string[];
+}, PrepareTauriError, ProcessRunner>;
+```
+
+#### `PrepareTauriError` (type)
+
+Every way `prepareTauri` can fail, each before or instead of writing bundles.
+
+```ts
+type PrepareTauriError = VersionMismatch | TauriBuildInvalid | SecretInBuild | Pixi3dInPublicBuild | Pixi3dExtrasInBuild | TauriToolchainMissing | TauriBuildFailed | FileError$1 | ProcessError$1;
+```
+
+#### `PrepareTauriInput` (interface)
+
+What `prepareTauri` builds: the web build, the game's folder, its config, and the release tag.
+
+```ts
+interface PrepareTauriInput {
+  /** The web build (`vite build --mode tauri`). It is checked and loaded as it is; nothing is written into it. */
+  readonly distDir: string;
+  /** The game's folder: the project goes to `.automata/tauri/`, the bundles to `dist-tauri/` beside the build. */
+  readonly gameDir: string;
+  readonly config: ShipConfig;
+  readonly tag?: string | undefined;
+  /** The OS to build for, which must be the one this runs on (Tauri does not cross-build). Default: this one. */
+  readonly platform?: NodeJS.Platform | undefined;
+  /** Where to look for `tauri` when the game has none installed. Default: `PATH`. */
+  readonly pathEnv?: string | undefined;
+}
+```
+
 #### `PrivatePublishNotLocal` (class)
 
 `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
@@ -8923,6 +8964,11 @@ interface ShipConfig extends GameConfig {
    */
   readonly itch?: ItchConfig | undefined;
   /**
+   * The desktop build's settings (`automata-ship prepare --target tauri`, DIST spec §6.3). Not a Ruken field: it is
+   * never written to `ruken.toml`.
+   */
+  readonly tauri?: TauriConfig | undefined;
+  /**
    * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
    * public release: `automata-ship prepare` then checks the build as private and writes no `ruken.toml`, and only
    * `deploy-dev` and `publish --private` ship it (M3 spec §4.8). Not a Ruken field. Left out, a game is `public`.
@@ -8945,6 +8991,68 @@ interface ShipInputBindings {
     readonly gesture?: readonly string[] | undefined;
   };
 }
+```
+
+#### `TAURI_CLI` (const)
+
+The `@tauri-apps/cli` a desktop game installs as a dev dependency, named when it is missing: released 2026-10-14,
+at least 14 days before it was chosen (2.12.4 was not), and the release the adapter's `@tauri-apps/api` pairs with.
+
+```ts
+const TAURI_CLI = "@tauri-apps/cli@2.12.3";
+```
+
+#### `TauriBuildFailed` (class)
+
+`tauri build` exited with an error; its output was shown as it ran.
+
+```ts
+class TauriBuildFailed extends TauriBuildFailedBase {
+  override get message(): string;
+}
+```
+
+#### `TauriBuildInvalid` (class)
+
+The config or the web build is not ready for a desktop build; each problem says what to change.
+
+```ts
+class TauriBuildInvalid extends TauriBuildInvalidBase {
+  override get message(): string;
+}
+```
+
+#### `TauriConfig` (interface)
+
+What a game writes in `ship.config.ts` to build for the desktop.
+
+```ts
+interface TauriConfig {
+  /**
+   * The app's reverse-DNS identifier, unique to the game (`dev.mcthaydt.emberwick`): letters, digits and hyphens in
+   * two or more dot-separated parts, the first starting with a letter, and not ending in `.app`
+   * (https://v2.tauri.app/reference/config/#identifier).
+   */
+  readonly identifier: string;
+  /** A square PNG of at least 512 px for the app's icon, relative to the game's folder. Left out, ship draws one. */
+  readonly icon?: string | undefined;
+}
+```
+
+#### `tauriConfigSchema` (const)
+
+Checks a game's `tauri` section.
+
+```ts
+const tauriConfigSchema: z.ZodType<TauriConfig>;
+```
+
+#### `TauriToolchainMissing` (class)
+
+A tool the desktop build needs is not installed; found before anything is written.
+
+```ts
+class TauriToolchainMissing extends TauriToolchainMissingBase {}
 ```
 
 #### `testRemote` (function)

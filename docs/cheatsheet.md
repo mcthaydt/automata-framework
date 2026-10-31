@@ -657,6 +657,9 @@
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
 - `prepareItch(input)`: Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d` (X-b, S7-g), `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.
 - `PrepareItchInput` (interface): What `prepareItch` checks and zips: the built folder, the ship config and the release tag.
+- `prepareTauri(input)`: Builds the desktop bundles for this OS (DIST spec §6.2).
+- `PrepareTauriError` (type): Every way `prepareTauri` can fail, each before or instead of writing bundles.
+- `PrepareTauriInput` (interface): What `prepareTauri` builds: the web build, the game's folder, its config, and the release tag.
 - `PrivatePublishNotLocal` (class): `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
@@ -682,6 +685,12 @@
 - `SHIP_PACKAGE` (const): The name this package is published under.
 - `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s `GameConfig`, DIST spec §4.4) and each target's own section.
 - `ShipInputBindings` (interface): What ship reads of a game's input profile. ship is published and the profile's owner (`runtime`) is private, so this is the read-only subset ship consumes, not a copy of the contract: a profile's `bindings` is assignable to it.
+- `TAURI_CLI` (const): The `@tauri-apps/cli` a desktop game installs as a dev dependency, named when it is missing: released 2026-10-14, at least 14 days before it was chosen (2.12.4 was not), and the release the adapter's `@tauri-apps/api` pairs with.
+- `TauriBuildFailed` (class): `tauri build` exited with an error; its output was shown as it ran.
+- `TauriBuildInvalid` (class): The config or the web build is not ready for a desktop build; each problem says what to change.
+- `TauriConfig` (interface): What a game writes in `ship.config.ts` to build for the desktop.
+- `tauriConfigSchema` (const): Checks a game's `tauri` section.
+- `TauriToolchainMissing` (class): A tool the desktop build needs is not installed; found before anything is written.
 - `testRemote(input)`: Pushes the current branch, dispatches CI for it, waits and returns the run's URL and one `<result>\t<job>` line per job when it is green.
 - `TestRemoteFailed` (class): `test-remote` stopped without a green run; `reason` says why and `message` says what to do.
 - `TestRemoteInput` (interface): What `testRemote` runs and how long it waits.

@@ -1,5 +1,6 @@
 import type { GameConfig } from '@mcthaydt/automata-content/game-config'
 import type { ItchConfig } from './itch-config.schema.ts'
+import type { TauriConfig } from './tauri-config.schema.ts'
 
 /**
  * What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s
@@ -13,6 +14,11 @@ export interface ShipConfig extends GameConfig {
    * `ruken.toml`, and a Ruken build ignores it.
    */
   readonly itch?: ItchConfig | undefined
+  /**
+   * The desktop build's settings (`automata-ship prepare --target tauri`, DIST spec §6.3). Not a Ruken field: it is
+   * never written to `ruken.toml`.
+   */
+  readonly tauri?: TauriConfig | undefined
   /**
    * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
    * public release: `automata-ship prepare` then checks the build as private and writes no `ruken.toml`, and only

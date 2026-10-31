@@ -444,6 +444,33 @@ interface PrepareItchInput {
 }
 ```
 
+### `prepareTauri` (function)
+
+```ts
+function prepareTauri(input: PrepareTauriInput): Effect.Effect<{
+    bundles: string[];
+}, PrepareTauriError, ProcessRunner>;
+```
+
+### `PrepareTauriError` (type)
+
+```ts
+type PrepareTauriError = VersionMismatch | TauriBuildInvalid | SecretInBuild | Pixi3dInPublicBuild | Pixi3dExtrasInBuild | TauriToolchainMissing | TauriBuildFailed | FileError | ProcessError;
+```
+
+### `PrepareTauriInput` (interface)
+
+```ts
+interface PrepareTauriInput {
+    readonly distDir: string;
+    readonly gameDir: string;
+    readonly config: ShipConfig;
+    readonly tag?: string | undefined;
+    readonly platform?: NodeJS.Platform | undefined;
+    readonly pathEnv?: string | undefined;
+}
+```
+
 ### `PrivatePublishNotLocal` (class)
 
 ```ts
@@ -637,6 +664,7 @@ const SHIP_PACKAGE = "@mcthaydt/automata-ship";
 ```ts
 interface ShipConfig extends GameConfig {
     readonly itch?: ItchConfig | undefined;
+    readonly tauri?: TauriConfig | undefined;
     readonly audience?: 'public' | 'private' | undefined;
 }
 ```
@@ -650,6 +678,50 @@ interface ShipInputBindings {
         readonly touch?: boolean | undefined;
         readonly gesture?: readonly string[] | undefined;
     };
+}
+```
+
+### `TAURI_CLI` (const)
+
+```ts
+const TAURI_CLI = "@tauri-apps/cli@2.12.3";
+```
+
+### `TauriBuildFailed` (class)
+
+```ts
+class TauriBuildFailed extends TauriBuildFailedBase {
+    get message(): string;
+}
+```
+
+### `TauriBuildInvalid` (class)
+
+```ts
+class TauriBuildInvalid extends TauriBuildInvalidBase {
+    get message(): string;
+}
+```
+
+### `TauriConfig` (interface)
+
+```ts
+interface TauriConfig {
+    readonly identifier: string;
+    readonly icon?: string | undefined;
+}
+```
+
+### `tauriConfigSchema` (const)
+
+```ts
+const tauriConfigSchema: z.ZodType<TauriConfig>;
+```
+
+### `TauriToolchainMissing` (class)
+
+```ts
+class TauriToolchainMissing extends TauriToolchainMissingBase {
 }
 ```
 

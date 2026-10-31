@@ -16,6 +16,7 @@ import { testRemote } from './remote/test-remote.ts'
 import { prepareItch } from './targets/itch/prepare-itch.ts'
 import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from './targets/itch/publish-to-itch.ts'
 import { deployDev } from './targets/ruken/deploy-dev.ts'
+import { prepareTauri } from './targets/tauri/prepare-tauri.ts'
 
 const cwd = process.cwd()
 
@@ -68,6 +69,16 @@ async function program(
 
   const config = await loadConfig()
   const distDir = resolve(cwd, command.dist)
+
+  // The desktop (DIST spec §6.2): ship checks the given build and runs tauri build for this OS.
+  if (command.command === 'prepare' && command.target === 'tauri') {
+    return Effect.provide(
+      Effect.map(prepareTauri({ distDir, gameDir: cwd, config, tag: command.tag }), (result) =>
+        result.bundles.map((bundle) => `wrote ${bundle}`).join('\n'),
+      ),
+      layers,
+    )
+  }
 
   // itch.io (PUB spec §4): ship checks and zips the given build, and butler pushes it. Ruken is untouched.
   if (command.command !== 'deploy-dev' && command.target === 'itch') {
