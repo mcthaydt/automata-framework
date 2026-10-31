@@ -33,6 +33,7 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | Repository | `SNEKPRTY/FloorFifty` (private) |
 | Recorded commit | `ac72660`, read 2026-10-16 |
 | Taken (M6.1, into `mcthaydt/automata-plus` `feel`) | `apps/client/src/systems/gameplay/juice/` (`hit-stop`, `second-order`, `squash`, `lean`, `dust-pool`, `word-pool`, `word-text`, `room-beats`, `feel-director`'s routing), `systems/haptics.ts`, `content/juice.toml`'s shape, and their tests (M6 spec §4.1). `trauma.ts` informs core's `camera2d.shake` (M4) and is not extracted twice |
+| Ported, M6.1a (automata-plus#31) | `feel`: `second-order.ts`, `squash.ts`, `lean.ts`, `hit-stop.ts` and `room-beats.ts` rewritten generic over a view key and a sim event, and `trauma.ts`'s budget (a small one of `feel`'s own for the frame's offset), read at `677d4568b7b2265fda4246d711065b8f417cac26` (the recorded `ac72660` is not fetchable from a shallow checkout); their `second-order`, `squash`, `lean`, `beats` (hit-stop and room-beats) and `trauma` cases ported. The adventure source's `src/feel/runtime.ts` and `effects.ts` (the frame model, limits, hashed noise and reduce flags) at `92e6704` shaped `createFeel` and the `feel` schema. Not ported (M6.1b, M6.1c): `dust-pool`, `word-pool`, `word-text`, `haptics`, `coverage`. The arcade source has no licence file |
 | Licence | Not checked in this record (no checkout here on 2026-10-31); the Owner's direction (2026-10-11) covers its use. M6.1's plan records it from the checkout it extracts from |
 
 ### Design input (not code)
