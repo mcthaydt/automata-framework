@@ -56,6 +56,26 @@ const accountSlot = async (page: Page): Promise<Envelope | undefined> => {
 }
 const SYNC_WAIT = { timeout: 10_000 }
 
+/** The sim tick the page last drew (main.ts sets it on the root element each step). */
+const pageTick = async (frame: Frame) => Number((await frame.locator('html').getAttribute('data-tick')) ?? -1)
+/** Waits `count` animation frames in `frame`: long enough for a running loop to step. */
+const frames = (frame: Frame, count: number) =>
+  frame.evaluate(
+    (n) =>
+      new Promise<void>((resolve) => {
+        const next = (left: number) => (left === 0 ? resolve() : requestAnimationFrame(() => next(left - 1)))
+        next(n)
+      }),
+    count,
+  )
+
+/**
+ * The boot budget for compiling the areas (G3-u, DESIGN.md §13 boot step 3), in milliseconds: the first run measured
+ * it (the plan's log records the number), and later runs must stay under it. Held loose for the software-drawn,
+ * shared-CPU browsers the journeys run in.
+ */
+const AREAS_COMPILE_BUDGET_MS = 20
+
 test('boots standalone under Ruken’s headers: the splash, then the menu with New game focused', async ({
   page,
 }) => {
@@ -95,6 +115,46 @@ test('opens no screen while the host has not said ready', async ({ page }) => {
   await expect(frame.getByTestId('loader-overlay')).toBeVisible()
   expect(await frame.locator('html').getAttribute('data-state')).toBe('loading')
   await expect(frame.locator('[data-layer="screens"] [data-screen]')).toHaveCount(0)
+  expect(errors).toEqual([])
+})
+
+// G3-u's cost: compiling the areas at boot is measured (main.ts's `base-3d:compile-areas`) and held under the budget.
+test('compiles the areas at boot within the budget, with no console error or CSP violation (G3-u)', async ({
+  page,
+}) => {
+  const errors = await collectErrors(page)
+  const frame = await openHosted(page, gameUrl, GAME_ID)
+  await expect(screen(frame, 'title')).toBeAttached()
+  const measured = await frame.evaluate(() =>
+    performance.getEntriesByName('base-3d:compile-areas').map((entry) => entry.duration),
+  )
+  expect(measured).toHaveLength(1)
+  console.log(`base-3d: compiling the areas took ${measured[0]?.toFixed(2)} ms`)
+  expect(measured[0]).toBeLessThan(AREAS_COMPILE_BUDGET_MS)
+  expect(errors).toEqual([])
+})
+
+// G3-x: in portrait the rotate cover shows and the sim does not step; turned back, play goes on from the same tick
+// with the focus where it was.
+test('in portrait, covers play with the rotate hint and holds the sim; turned back, it resumes (G3-x)', async ({
+  page,
+}) => {
+  const errors = await collectErrors(page)
+  const frame = await openHosted(page, gameUrl, GAME_ID)
+  await toPlay(frame, 'save-slots-new')
+  await expect.poll(() => pageTick(frame), { timeout: PLAY_STEP_MS }).toBeGreaterThan(0)
+  const focused = () => frame.evaluate(() => document.activeElement?.outerHTML.slice(0, 120) ?? '')
+  const focusBefore = await focused()
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect(frame.getByTestId('rotate-hint')).toBeVisible({ timeout: PLAY_STEP_MS })
+  const held = await pageTick(frame)
+  await frames(frame, 30)
+  expect(await pageTick(frame)).toBe(held)
+  await page.setViewportSize({ width: 844, height: 390 })
+  await expect(frame.getByTestId('rotate-hint')).toHaveCount(0, { timeout: PLAY_STEP_MS })
+  await expect(screen(frame, 'play')).toBeAttached()
+  await expect.poll(() => pageTick(frame), { timeout: PLAY_STEP_MS }).toBeGreaterThan(held)
+  expect(await focused()).toBe(focusBefore)
   expect(errors).toEqual([])
 })
 

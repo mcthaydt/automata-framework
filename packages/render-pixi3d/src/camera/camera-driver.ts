@@ -1,8 +1,9 @@
 // The renderer's side of the heading (M3 spec §4.2, §5 "View change" and "Camera turn"). The sim owns the player's
 // view id and heading (`camera-heading`, a render component); each frame this reads them from the rows and drives the
 // rig: the first view is a cut, a later view change an ease, and a view that sets `yawDeg` eases the heading to it
-// (the sim set it the same tick). Every other frame tracks the latest tick's heading exactly, not interpolated:
-// §4.2 says nothing eases between the finger and the camera, and a turn is at most a tick old. Positions are
+// (the sim set it the same tick), as does a change the game's `easeHeading` names (a recentre). Every other frame
+// tracks the latest tick's heading exactly, not interpolated: §4.2 says nothing eases between the finger and the
+// camera, and a turn is at most a tick old. Positions are
 // interpolated as every view's are. A row whose view is still '' (the component's start) has no view yet. A game
 // whose sim keeps fixed-point positions reads metres with `position`, and frames a lock-on target with `lock`: the
 // driver then keeps every row's components by sid, so `lock` can find the target's.
@@ -39,6 +40,12 @@ export interface Pixi3dCameraOptions {
   readonly lock?:
     | ((components: Components, rowOf: (sid: number) => Components | undefined) => Vec3 | undefined)
     | undefined
+  /**
+   * Whether this tick's heading change eases (`rig.heading(yaw, 'ease')`, about 250 ms) rather than tracking, from
+   * the followed entity's components this tick and the last: a game's recentre, which jumps the heading in one tick.
+   * Read on the first frame of each tick. Default: every change tracks.
+   */
+  readonly easeHeading?: ((curr: Components, prev: Components | undefined) => boolean) | undefined
 }
 
 /** The spec's figure (§4.2, D3-j): the occluder rule keeps the line to a head this high clear by default. */
@@ -65,6 +72,8 @@ const fieldsOf = (components: Components | undefined): { view: string; heading: 
 export function cameraDriver(rig: CameraRig, options: Pixi3dCameraOptions): PixiStageHooks {
   let tracked: Tracked | undefined
   let shownView: string | undefined
+  // The tick's components the last `easeHeading` was asked about, so it is asked once a tick.
+  let askedFor: Components | undefined
   // Every row's components by sid, kept only when `lock` needs them.
   const rows = new Map<number, Components>()
   const rowOf = (sid: number): Components | undefined => rows.get(sid)
@@ -126,7 +135,11 @@ export function cameraDriver(rig: CameraRig, options: Pixi3dCameraOptions): Pixi
           const easeTo = shownView !== undefined && rig.viewOf(curr.view)?.yawDeg !== undefined
           shownView = curr.view
           rig.heading(headingDegrees(curr.heading), easeTo ? 'ease' : 'track')
-        } else rig.heading(headingDegrees(curr.heading))
+        } else {
+          const ease = tracked.curr !== askedFor && options.easeHeading?.(tracked.curr, tracked.prev) === true
+          rig.heading(headingDegrees(curr.heading), ease ? 'ease' : 'track')
+        }
+        askedFor = tracked.curr
         const at = followed(tracked.curr, tracked.prev, frame.alpha)
         if (at !== undefined) rig.follow(at.x, at.y, at.z)
         if (options.lock !== undefined) rig.frame(options.lock(tracked.curr, rowOf))

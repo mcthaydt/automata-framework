@@ -7,6 +7,7 @@ import type { AreaSource } from '../systems/index.ts'
 const WALL = 0.2
 
 export const FIRST_SLICE: AreaSource = {
+  id: 'first-slice',
   spawn: { x: 0, z: -2 },
   views: [
     { id: 'hall', yawDeg: 0, bounds: { min: [-4, 0, -4], max: [4, 2, 4] } },

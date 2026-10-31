@@ -1,0 +1,44 @@
+# Wick's thrust, the chain's finisher (DESIGN.md §7.2 `thrust`, GAME-3D.1c part 3): the sword drawn back, then driven
+# straight ahead, 34 frames, `contact` on frame 10 (tick 9: 0.15 s). It blends in over 50 ms (§7.7). A placeholder
+# until GAME-3D.1j.
+
+length = 0.5667
+loop = "once"
+mask = [ "armR", "torso" ]
+
+[blend]
+inMs = 50
+outMs = 80
+
+[markers]
+windup = 0.08
+contact = 0.15
+
+[[keys]]
+t = 0
+pose = "guard-high"
+
+[[keys]]
+t = 0.08
+ease = "out"
+
+[keys.pose.effectors.handR]
+pos = [ -0.1, 1.2, -0.2 ]
+
+[keys.pose.effectors.chest]
+rot = [ 0, -15, 0 ]
+
+[[keys]]
+t = 0.15
+ease = "in"
+
+[keys.pose.effectors.handR]
+pos = [ 0, 1.25, 0.65 ]
+
+[keys.pose.effectors.chest]
+rot = [ 10, 5, 0 ]
+
+[[keys]]
+t = 0.5667
+pose = "guard-high"
+ease = "inOut"

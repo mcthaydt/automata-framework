@@ -1,0 +1,39 @@
+# Wick's spin attack (DESIGN.md §7.2 `spin`, GAME-3D.1c part 3): wound to the left, then swept round at arm's length,
+# 36 frames, `contact` on frame 8 (tick 7: 7 / 60 s). A placeholder until GAME-3D.1j.
+
+length = 0.6
+loop = "once"
+mask = [ "armR", "torso", "pelvis" ]
+
+[markers]
+windup = 0.06
+contact = 0.1167
+
+[[keys]]
+t = 0
+pose = "guard-high"
+
+[[keys]]
+t = 0.06
+ease = "out"
+
+[keys.pose.effectors.handR]
+pos = [ 0.3, 1.1, -0.2 ]
+
+[keys.pose.effectors.chest]
+rot = [ 0, 40, 0 ]
+
+[[keys]]
+t = 0.1167
+ease = "in"
+
+[keys.pose.effectors.handR]
+pos = [ -0.6, 1.1, 0.2 ]
+
+[keys.pose.effectors.chest]
+rot = [ 0, -45, 0 ]
+
+[[keys]]
+t = 0.6
+pose = "guard-high"
+ease = "inOut"

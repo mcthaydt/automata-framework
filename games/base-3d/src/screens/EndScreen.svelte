@@ -4,7 +4,8 @@
   starts a fresh one (screens.ts).
 -->
 <script lang="ts">
-import { ActionBar, ScreenFrame } from '@mcthaydt/automata-ui'
+import { ScreenFrame } from '@mcthaydt/automata-ui'
+import CentredActions from './CentredActions.svelte'
 
 interface Props {
   time: string
@@ -22,7 +23,7 @@ const { time, onMenu }: Props = $props()
 {/snippet}
 
 {#snippet actions()}
-  <ActionBar actions={[{ id: 'menu', label: 'Menu', kind: 'primary', onSelect: onMenu }]} />
+  <CentredActions actions={[{ id: 'menu', label: 'Menu', kind: 'primary', onSelect: onMenu }]} />
 {/snippet}
 
 <div class="af-game-menu af-game-menu--scrim" data-game-screen="end">
