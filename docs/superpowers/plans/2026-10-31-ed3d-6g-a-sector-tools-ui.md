@@ -2,8 +2,8 @@
 
 - **Task:** ED3D.6g in [02](../../02-master-delivery-plan.md), first part. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flow 2 (draw a sector: corners, lengths, Close, refusals, the portal offer), §9 (the `Draw a sector` frame: sector toolbar, length labels, shared-wall hint, Undo point, Close sector), §10 (keys V S X P D N; Pencil draws and never pans), §13 (ED3-c, ED3-d, ED3-m). Mockup `Draw sector · landscape` (`docs/design/editor-3d/screens.mjs`, `draw`).
 - **Lane:** editors. **Depends on:** ED3D.5d (#265, the Plan view in the shell), the headless tools ED3D.6a to 6f (`app/{sector,wall,vertex,split,merge}-tool-controller.ts`), EDK.2 (command registry and keymap), EDK.3 (gestures). All merged.
-- **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 8 of 9 steps.
+- **Status:** Implemented and locally checked 2026-10-31; not CI verified; no real iPad run. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
+- **Progress:** 9 of 9 steps.
 
 ## Why
 
@@ -48,7 +48,7 @@ The six sector tools exist as controllers with tests, but nothing on screen choo
 - [x] 6. `ToolRail` and `SectorOptions` (DOM, red first): the rail's buttons are 44 px, pressed for the active tool; the toolbar's Polygon/Rectangle/Split/Merge choose; Undo point and Close sector show once there is a corner, and Close stays pressable with two so the tool refuses it in its own sentence (ED3-m); the offers list Accept, Decline and Accept all.
 - [x] 7. `PlanCanvas` and `DocumentFrame` (DOM with the fake renderer): taps with Sector chosen add a sector through the editor; the labels follow the drawing; keys choose tools; a refusal shows its sentence; ED3-m in the DOM (two corners and Close: refused, "needs three corners", nothing added).
 - [x] 8. Layout (three browsers): the rail and toolbar at `wide`, `medium` and `compact` with 44 px targets, nothing overlapping the status line; review images beside the mockup's `Draw sector · landscape` frame in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-a/` with a README of differences.
-- [ ] 9. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity` (three browsers). No published package, so no changeset.
+- [x] 9. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity` (three browsers). No published package, so no changeset.
 
 ## Execution log
 - 2026-10-31, step 2: `plan-tools.test.ts` red first (module missing), then 10 of 10. One test fix on the way: the drag test recomputed its end pixel after the camera moved, which panned twice; it now fixes the pixels before the drag, as a finger's are.
@@ -59,3 +59,4 @@ The six sector tools exist as controllers with tests, but nothing on screen choo
 - 2026-10-31, step 7: four new `PlanCanvas` DOM tests red (no tools prop), then green; three new `DocumentFrame` tests red (no rail), then green. Two fixes on the way: a press on the options reached the canvas's gesture listeners as a plan tap (Svelte delegates `onpointerdown` to the root, too late to stop it), so the options' wrapper stops pointer events with native listeners (`{@attach}`); and the canvas now follows the tools from mount, not from its first measure, so a page that cannot draw still shows the tool's options. `planGestures` takes the tools (`PlanGestureTarget`): pointer to the active tool, pan and zoom to Select. editor-3d DOM and unit tests under `src/ui` and `src/app/plan-tools*`: 87 of 87; `svelte-check`: 0 errors, 0 warnings.
 - 2026-10-31: the architecture test refused `ui/plan/PlanCanvas.svelte` importing `view/plan/plan-viewport` (ui reaches the editor through app); `app/tool-paint.ts` now has `toolOverlay(state, camera, size, fills)` for the canvas (with a test).
 - 2026-10-31, step 8: `sector-tools.layout.test.ts` red in Chromium at first for two real reasons: the rail's text labels were clipped in the kit's 56 px rail (now the 2D view rail's 11 px eyebrow type, which fits "Window"), and the test drew in a left margin the fitted level fills (it now draws in the band the fit leaves above the level). A phone first showed a whole tab bar for one Select button; decision 4 now leaves the rail out on a phone. Then `sector-tools.layout.test.ts` and `plan-view.layout.test.ts` in Chromium, WebKit and Firefox: 90 passed, 6 skipped (the phone journeys); the whole editor-3d layout project before the phone change: 282 passed, 6 skipped. Review images (`ED3D_VISUALS=1`, Chromium) beside the rendered `Draw a sector` mockup in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-a/` with a README of every difference.
+- 2026-10-31, step 9: biome and `pnpm format` clean; `TURBO_FORCE=true pnpm check` passed (exit 0: lint, typecheck, boundaries, style, knip, unit). No changeset (editor-3d is private).
