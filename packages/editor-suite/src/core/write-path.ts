@@ -5,8 +5,11 @@
 // both texts; then the `after` checks, whose results the journal keeps (`ChangeSet.note`) with each measure check's
 // value before the change set's first write and after its latest.
 //
+// `writeAll` is the same path over several files as one step (an import): every policy, expected mtime and `before`
+// check is settled before anything is written, and a write failing part-way puts back the ones already written.
+//
 // Undo and redo are steps of whole-file text. Each is written back through the same path, so it is checked and
-// journalled like an edit; a step whose file no longer reads what this path wrote is refused with the path and kept
+// journalled like an edit; a step any of whose files no longer reads what this path wrote is refused with that path and kept
 // (§11). Beginning a change set, and `clear()` (closing one), empty the history. Plain TypeScript: no DOM, no clock.
 import type {
   ChangeSetCheck,
@@ -16,6 +19,7 @@ import type {
   CheckRun,
   SuitePorts,
   SuiteWorkspace,
+  WorkspaceFile,
 } from '@mcthaydt/automata-editor-kit/ports'
 
 type WriteFailure = Extract<Awaited<ReturnType<SuiteWorkspace['write']>>, { ok: false }>['reason']
@@ -38,8 +42,18 @@ export interface WritePathOptions {
   readonly title: () => Promise<string | undefined>
 }
 
+/** One file of a `writeAll`: its new text and, when the caller read it earlier (an import plan), what it expected. */
+export interface FileWrite {
+  readonly path: string
+  readonly text: string
+  /** The file must still have this mtime, or not exist; refused as moved otherwise. */
+  readonly expected?: { readonly mtime: number } | 'absent' | undefined
+}
+
 export interface WritePath {
   write(path: string, text: string, label: string): Promise<WriteOutcome>
+  /** Several files as one undo step: every file is written, or none is (an import, EDS-D19). */
+  writeAll(files: readonly FileWrite[], label: string): Promise<WriteOutcome>
   /** `undefined` with nothing to undo. */
   undo(): Promise<WriteOutcome | undefined>
   redo(): Promise<WriteOutcome | undefined>
@@ -54,12 +68,26 @@ export interface WritePath {
   subscribe(listener: () => void): () => void
 }
 
-interface Step {
+interface StepFile {
   readonly path: string
-  readonly label: string
   readonly before: string | undefined
   readonly after: string
 }
+
+interface Step {
+  readonly label: string
+  readonly files: readonly StepFile[]
+}
+
+/** A file checked and ready to write: what it reads now and the check ids its row names. */
+interface Prepared {
+  readonly path: string
+  readonly text: string
+  readonly current: { readonly text: string; readonly mtime: number } | undefined
+  readonly checks: readonly string[]
+}
+
+const unique = (ids: readonly string[]): string[] => [...new Set(ids)]
 
 export function createWritePath({ ports, title }: WritePathOptions): WritePath {
   const { workspace, changeSet, checks } = ports
@@ -110,40 +138,98 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     }))
   }
 
-  async function apply(path: string, text: string): Promise<WriteOutcome> {
+  /** The policy and mtime of one file, before anything is written. */
+  async function prepare(
+    file: FileWrite,
+    listed: readonly WorkspaceFile[],
+  ): Promise<Prepared | WriteOutcome> {
+    const { path, text, expected } = file
     // A file not there yet is not listed: the workspace's own policy decides its write, and it names no checks.
-    const file = (await workspace.files()).find((listed) => listed.path === path)
-    if (file !== undefined && !file.writable) return { refused: 'policy', why: file.why ?? 'read only' }
-    if (file === undefined && (await workspace.read(path)) !== undefined)
+    const row = listed.find((entry) => entry.path === path)
+    if (row !== undefined && !row.writable) return { refused: 'policy', why: row.why ?? 'read only' }
+    const current = await workspace.read(path)
+    if (row === undefined && current !== undefined)
       return { refused: 'policy', why: 'no row of the editor list names it' }
-    const checkIds = file?.checks ?? []
+    const known = wrote.get(path)
+    if (known !== undefined && current?.mtime !== known) return { refused: 'moved', path }
+    if (
+      expected === 'absent'
+        ? current !== undefined
+        : expected !== undefined && current?.mtime !== expected.mtime
+    )
+      return { refused: 'moved', path }
+    return { path, text, current, checks: row?.checks ?? [] }
+  }
+
+  /** The `before` checks on the candidates; files naming the same checks share one run. */
+  async function runBefore(prepared: readonly Prepared[]): Promise<CheckResult[]> {
+    const groups = new Map<string, { ids: string[]; files: Prepared[] }>()
+    for (const file of prepared) {
+      const ids = declaredFor(file.checks, 'before').map((check) => check.id)
+      if (ids.length === 0) continue
+      const key = ids.join('\n')
+      const group = groups.get(key) ?? { ids, files: [] }
+      group.files.push(file)
+      groups.set(key, group)
+    }
+    const results: CheckResult[] = []
+    for (const { ids, files } of groups.values()) {
+      const candidates = files.map(({ path, text }) => ({ path, text }))
+      results.push(...(await (await checks.run({ checks: ids, candidates })).result()))
+    }
+    return results
+  }
+
+  /** Puts back what a part-way `applyAll` wrote, newest first. */
+  async function rollBack(written: readonly { file: Prepared; mtime: number }[]): Promise<void> {
+    for (const { file, mtime } of [...written].reverse()) {
+      const result =
+        file.current === undefined
+          ? await workspace.remove(file.path, { mtime })
+          : await workspace.write(file.path, file.current.text, { mtime })
+      if (result.ok && file.current !== undefined) wrote.set(file.path, result.mtime)
+      else wrote.delete(file.path)
+    }
+  }
+
+  async function applyAll(files: readonly FileWrite[]): Promise<WriteOutcome> {
+    const listed = await workspace.files()
+    const prepared: Prepared[] = []
+    for (const file of files) {
+      const outcome = await prepare(file, listed)
+      if (!('path' in outcome && 'checks' in outcome)) return outcome
+      prepared.push(outcome)
+    }
+    const checkIds = unique(prepared.flatMap((file) => file.checks))
     if (!(await ensureChangeSet(checkIds))) return { cancelled: true }
 
-    const before = declaredFor(checkIds, 'before')
-    const beforeResults =
-      before.length === 0
-        ? []
-        : await (await checks.run({ checks: before.map((c) => c.id), candidates: [{ path, text }] })).result()
+    const beforeResults = await runBefore(prepared)
     const failed = beforeResults.filter((result) => result.status === 'fail')
     if (failed.length > 0)
       return { refused: 'checks', findings: failed.flatMap((r) => r.findings), results: beforeResults }
 
-    const current = await workspace.read(path)
-    const known = wrote.get(path)
-    if (known !== undefined && current?.mtime !== known) return { refused: 'moved', path }
-    const result = await workspace.write(
-      path,
-      text,
-      current === undefined ? 'absent' : { mtime: current.mtime },
-    )
-    if (!result.ok)
-      return result.reason === 'policy'
-        ? { refused: 'policy', why: result.message }
-        : { refused: 'storage', reason: result.reason, message: result.message }
-    wrote.set(path, result.mtime)
+    const written: { file: Prepared; mtime: number }[] = []
+    for (const file of prepared) {
+      const result = await workspace.write(
+        file.path,
+        file.text,
+        file.current === undefined ? 'absent' : { mtime: file.current.mtime },
+      )
+      if (!result.ok) {
+        await rollBack(written)
+        return result.reason === 'policy'
+          ? { refused: 'policy', why: result.message }
+          : { refused: 'storage', reason: result.reason, message: result.message }
+      }
+      wrote.set(file.path, result.mtime)
+      written.push({ file, mtime: result.mtime })
+    }
 
     if (changeSet !== undefined) {
-      await changeSet.record([path], [{ path, before: current?.text, after: text }])
+      await changeSet.record(
+        prepared.map((file) => file.path),
+        prepared.map((file) => ({ path: file.path, before: file.current?.text, after: file.text })),
+      )
       if (beforeResults.length > 0) await changeSet.note(journal(beforeResults))
     }
     const after = declaredFor(checkIds, 'after')
@@ -154,35 +240,56 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     return { written: true, after: run }
   }
 
-  /** Writes a step's side back, refusing when the file no longer reads what this path wrote. */
-  async function replay(step: Step, from: string | undefined, to: string | undefined): Promise<WriteOutcome> {
-    const current = await workspace.read(step.path)
-    if (current?.text !== from || current?.mtime !== wrote.get(step.path))
-      return { refused: 'moved', path: step.path }
-    if (to !== undefined) return apply(step.path, to)
-    if (current === undefined) return { written: true }
-    const removed = await workspace.remove(step.path, { mtime: current.mtime })
-    if (!removed.ok) return { refused: 'storage', reason: removed.reason, message: removed.message }
-    wrote.delete(step.path)
-    return { written: true }
+  /**
+   * Writes one side of a step back: every file must still read what this path wrote, or nothing is written and the
+   * first that moved on is named. A file whose side is `undefined` (it did not exist) is removed after the writes.
+   */
+  async function replay(step: Step, side: 'before' | 'after'): Promise<WriteOutcome> {
+    const from = side === 'before' ? 'after' : 'before'
+    const reads = []
+    for (const file of step.files) {
+      const current = await workspace.read(file.path)
+      if (current?.text !== file[from] || current?.mtime !== wrote.get(file.path))
+        return { refused: 'moved', path: file.path }
+      reads.push({ file, current })
+    }
+    const writes = step.files.flatMap((file) => {
+      const text = file[side]
+      return text === undefined ? [] : [{ path: file.path, text }]
+    })
+    const outcome = writes.length === 0 ? ({ written: true } as const) : await applyAll(writes)
+    if (!('written' in outcome)) return outcome
+    for (const { file, current } of reads) {
+      if (file[side] !== undefined || current === undefined) continue
+      const removed = await workspace.remove(file.path, { mtime: current.mtime })
+      if (!removed.ok) return { refused: 'storage', reason: removed.reason, message: removed.message }
+      wrote.delete(file.path)
+    }
+    return outcome
+  }
+
+  async function writeAll(files: readonly FileWrite[], label: string): Promise<WriteOutcome> {
+    const befores = await Promise.all(files.map(async (file) => (await workspace.read(file.path))?.text))
+    const outcome = await applyAll(files)
+    if ('written' in outcome) {
+      steps.length = done
+      steps.push({
+        label,
+        files: files.map((file, index) => ({ path: file.path, before: befores[index], after: file.text })),
+      })
+      done = steps.length
+      changed()
+    }
+    return outcome
   }
 
   return {
-    async write(path, text, label) {
-      const before = (await workspace.read(path))?.text
-      const outcome = await apply(path, text)
-      if ('written' in outcome) {
-        steps.length = done
-        steps.push({ path, label, before, after: text })
-        done = steps.length
-        changed()
-      }
-      return outcome
-    },
+    write: (path, text, label) => writeAll([{ path, text }], label),
+    writeAll,
     async undo() {
       const step = steps[done - 1]
       if (step === undefined) return undefined
-      const outcome = await replay(step, step.after, step.before)
+      const outcome = await replay(step, 'before')
       if ('written' in outcome) {
         done--
         changed()
@@ -192,7 +299,7 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     async redo() {
       const step = steps[done]
       if (step === undefined) return undefined
-      const outcome = await replay(step, step.before, step.after)
+      const outcome = await replay(step, 'after')
       if ('written' in outcome) {
         done++
         changed()

@@ -82,14 +82,14 @@ describe('Suite Home', () => {
 })
 
 describe('Suite entries', () => {
-  it("an entry's page lists its cards; Review says it comes later; Home brings the cards back", async () => {
+  it("an entry's page lists its cards; Review opens the desk; Home brings the cards back", async () => {
     await start(FLOORFIFTY_SAMPLE)
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
     expect(screen.getByRole('tab', { name: 'Levels' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'Tuner' })).toBeNull()
     await userEvent.click(screen.getByRole('tab', { name: 'Review' }))
-    expect(screen.getByText(/comes in a later update/)).toBeInTheDocument()
+    expect(await screen.findByTestId('review-desk')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Home' }))
     expect(screen.getByRole('region', { name: 'Tuner' })).toBeInTheDocument()
   })
