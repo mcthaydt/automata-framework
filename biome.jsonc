@@ -13,9 +13,9 @@
   "linter": { "enabled": true, "rules": { "preset": "recommended" } },
   "overrides": [
     {
-      // M6.6a: an action's effects are its `then` member, the puzzle contract's own name (M6 spec §4.5 keeps the
-      // contract's shape), so a def is an object with a `then` key. No puzzle object is ever awaited.
-      "includes": ["packages/puzzle/**"],
+      // M6.6a, M6.7a: an action's or a rule's effects are its `then` member, the contract's own name (M6 spec §4.5 and
+      // §4.6 keep the contracts' shape), so a def is an object with a `then` key. No such object is ever awaited.
+      "includes": ["packages/puzzle/**", "packages/systems/**"],
       "linter": { "rules": { "suspicious": { "noThenProperty": "off" } } }
     }
   ]

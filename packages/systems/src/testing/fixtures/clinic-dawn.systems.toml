@@ -1,0 +1,2922 @@
+# The adventure source's clinic-dawn systems (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/systems/scripts/convert-adventure-systems.ts. Do not edit.
+scene = "clinic-dawn"
+
+[[objects]]
+id = "light"
+name = "Light"
+signal = "Ada's warm pool; the Nurse's sprite flickers at its edge"
+
+[[objects]]
+id = "dawn"
+name = "Dawn"
+signal = "Grey light coming up in a room, the night lamps fading under it"
+
+[[objects]]
+id = "sound"
+name = "Sound"
+signal = "Expanding ring on the floor; her steps ring the nearest wall"
+
+[[objects]]
+id = "nurse"
+name = "The Nurse"
+signal = "Tall silhouette; a shriek when the dawn reaches her"
+
+[[objects]]
+id = "crew"
+name = "The crew"
+signal = "A peaked cap and a trolley at the end of the lane; wheels ticking on the ground, a handset"
+
+[[objects]]
+id = "director"
+name = "Tension"
+signal = "The sub-bass dread layer swells and falls with it; in relief she sits with Bed 04"
+
+[[matrix]]
+row = "light"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "dawn"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "nurse"
+verb = "Repel"
+rule = "R1"
+
+[[matrix]]
+row = "dawn"
+col = "light"
+verb = "Outshine"
+presentation = "the night lamps fade as each room's dawn comes up (dress.ts)"
+
+[[matrix]]
+row = "dawn"
+col = "dawn"
+verb = "Spread"
+rule = "dawn"
+
+[[matrix]]
+row = "dawn"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "dawn"
+col = "nurse"
+verb = "Stun / keep out"
+rule = "dawnStun"
+
+[[matrix]]
+row = "sound"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "dawn"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "nurse"
+verb = "Attract"
+rule = "R2"
+
+[[matrix]]
+row = "nurse"
+col = "light"
+verb = "Snuffs small flames"
+cut = "not built: light stays Ada's answer to her"
+
+[[matrix]]
+row = "nurse"
+col = "dawn"
+verb = "Holds it back"
+cut = "not built: the morning comes whatever she does"
+
+[[matrix]]
+row = "nurse"
+col = "sound"
+verb = "Steps through walls"
+rule = "steps"
+presentation = "her footfalls and a ring on the nearest wall"
+
+[[matrix]]
+row = "nurse"
+col = "nurse"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "tool:lighter"
+verb = "Flick it on to push her back, but the fuel drops while it burns"
+rule = "R15"
+
+[[matrix]]
+row = "dawn"
+col = "tool:lighter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:lighter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "nurse"
+col = "tool:lighter"
+verb = "Hold the flame and walk past her"
+rule = "R1"
+
+[[matrix]]
+row = "light"
+col = "tool:mop"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "dawn"
+col = "tool:mop"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:mop"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "nurse"
+col = "tool:mop"
+verb = "No combat"
+cut = "the mop reaches the key, nothing else"
+
+[[matrix]]
+row = "light"
+col = "impact:lack"
+verb = "Darkness is her territory"
+presentation = "the dark shrinks room by room"
+
+[[matrix]]
+row = "light"
+col = "impact:tooMany"
+verb = "Nothing to fear"
+presentation = "reception is lit last, at 06:02"
+
+[[matrix]]
+row = "light"
+col = "impact:fantasy"
+verb = "I carried one small flame through the dark"
+presentation = "the lighter"
+
+[[matrix]]
+row = "dawn"
+col = "impact:lack"
+verb = "The night never ends"
+presentation = "the dawn always comes"
+
+[[matrix]]
+row = "dawn"
+col = "impact:tooMany"
+verb = "Waiting wins"
+presentation = "the register is the last room it reaches"
+
+[[matrix]]
+row = "dawn"
+col = "impact:fantasy"
+verb = "I chose when to move"
+presentation = "the schedule"
+
+[[matrix]]
+row = "sound"
+col = "impact:lack"
+verb = "She is a puzzle box"
+presentation = "her steps through the walls say where she is"
+
+[[matrix]]
+row = "sound"
+col = "impact:tooMany"
+verb = "She is always on top of you"
+presentation = "Ada's footsteps carry only 1.8 m"
+
+[[matrix]]
+row = "sound"
+col = "impact:fantasy"
+verb = "I heard her coming and was not there"
+presentation = "steps through walls"
+
+[[matrix]]
+row = "nurse"
+col = "impact:lack"
+verb = "No dread"
+presentation = "she is awake from the start"
+
+[[matrix]]
+row = "nurse"
+col = "impact:tooMany"
+verb = "Unfair"
+presentation = "one Nurse, slower than Ada, and the dawn takes her ground"
+
+[[matrix]]
+row = "nurse"
+col = "impact:fantasy"
+verb = "I outlasted the night"
+presentation = "the dawn"
+
+[[matrix]]
+row = "combat"
+col = "impact:lack"
+verb = "Combat"
+cut = "avoidance only"
+
+[[matrix]]
+row = "combat"
+col = "impact:tooMany"
+verb = "Turns puzzles into ammo maths"
+cut = "no combat"
+
+[[matrix]]
+row = "combat"
+col = "impact:fantasy"
+verb = "–"
+cut = "cut with combat"
+
+[[matrix]]
+row = "light"
+col = "crew"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "dawn"
+col = "crew"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "crew"
+verb = "Attracts"
+rule = "crewSenses"
+
+[[matrix]]
+row = "nurse"
+col = "crew"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "dawn"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "sound"
+verb = "Wheels tick on the ground"
+rule = "crewSteps"
+presentation = "the trolley's wheels and a handset, heard through walls"
+
+[[matrix]]
+row = "crew"
+col = "nurse"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "crew"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "crew"
+verb = "Betrays Ada (a lit flame within 6 m is noticed), and does not repel it"
+rule = "crewSenses"
+
+[[matrix]]
+row = "crew"
+col = "tool:lighter"
+verb = "A flame held up on the street is noticed; held up as it touches Ada it stands off"
+rule = "crewTouch"
+
+[[matrix]]
+row = "crew"
+col = "tool:mop"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "impact:lack"
+verb = "The street is a dull walk"
+presentation = "its wheels are heard from 9 m"
+
+[[matrix]]
+row = "crew"
+col = "impact:tooMany"
+verb = "Unfair"
+presentation = "one attendant, slower than Ada; the lane's crates hide her; the exit is safe"
+
+[[matrix]]
+row = "crew"
+col = "impact:fantasy"
+verb = "I heard them coming and got in at the door"
+presentation = "the wheels"
+
+[[matrix]]
+row = "crew"
+col = "director"
+verb = "Raises tension as it closes on Ada"
+presentation = "the director's threat input counts the crew on its ground"
+
+[[matrix]]
+row = "director"
+col = "crew"
+verb = "Relief: it breaks off and holds where it stands"
+presentation = "the crew holds, still, until the relief ends"
+
+[[matrix]]
+row = "nurse"
+col = "director"
+verb = "Raises tension as she closes on Ada"
+rule = "director"
+
+[[matrix]]
+row = "light"
+col = "director"
+verb = "Walking lit lowers tension"
+rule = "director"
+
+[[matrix]]
+row = "director"
+col = "nurse"
+verb = "Peak: turns her round towards Ada; relief: sends her to sit with Bed 04"
+rule = "director"
+presentation = "she sits at the bedside, still"
+
+[[matrix]]
+row = "director"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "dawn"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "director"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "tool:lighter"
+verb = "Low fuel raises tension, and the flame says it is getting small"
+rule = "director"
+
+[[matrix]]
+row = "director"
+col = "impact:lack"
+verb = "The same pressure until morning"
+presentation = "tension builds, peaks and vents"
+
+[[matrix]]
+row = "director"
+col = "impact:tooMany"
+verb = "She is always near"
+presentation = "the relief: she sits with Bed 04 for up to 20 s"
+
+[[matrix]]
+row = "director"
+col = "impact:fantasy"
+verb = "She left me alone just when I could not take any more"
+presentation = "the vigil"
+
+[tunables.torch]
+value = 40
+min = 10
+max = 120
+unit = "s"
+note = "a rag torch burns this long without fuel (src/game/tools.ts TORCH)"
+
+[tunables.lighterRadius]
+value = 2.2
+min = 1
+max = 4
+unit = "m"
+note = "R1: the lighter's gameplay light"
+
+[tunables.torchRadius]
+value = 3
+min = 1
+max = 5
+unit = "m"
+note = "R1: the torch's gameplay light"
+
+[tunables.patrolSpeed]
+value = 1.15
+min = 0.5
+max = 2
+unit = "m/s"
+note = "the Nurse on patrol (Ada walks 3 m/s)"
+
+[tunables.investigateSpeed]
+value = 1.8
+min = 0.5
+max = 3
+unit = "m/s"
+note = "the Nurse going to a noise"
+
+[tunables.huntSpeed]
+value = 2.2
+min = 1
+max = 3
+unit = "m/s"
+note = "R3: the Nurse chasing Ada"
+
+[tunables.fleeSpeed]
+value = 2.8
+min = 1
+max = 4
+unit = "m/s"
+note = "R1: the Nurse fleeing light"
+
+[tunables.sight]
+value = 4.5
+min = 2
+max = 8
+unit = "m"
+note = "R3: how far she sees Ada in the dark, past walls only"
+
+[tunables.catch]
+value = 0.62
+min = 0.3
+max = 1
+unit = "m"
+note = "how close she must come to catch Ada"
+
+[tunables.replan]
+value = 0.25
+min = 0.05
+max = 1
+unit = "s"
+note = "R3: she re-routes to where she saw Ada this often"
+
+[tunables.huntGiveUp]
+value = 1.5
+min = 0.5
+max = 5
+unit = "s"
+note = "R3: at the end of her path, out of sight this long, she investigates"
+
+[tunables.investigateGiveUp]
+value = 2.5
+min = 0.5
+max = 8
+unit = "s"
+note = "R2: at the noise this long, she goes back to her patrol"
+
+[tunables.fleeRest]
+value = 1
+min = 0.2
+max = 5
+unit = "s"
+note = "R1: out of the light this long, she patrols again"
+
+[tunables.edgeGiveUp]
+value = 4
+min = 1
+max = 10
+unit = "s"
+note = "R1: waiting at a light's edge this long, she gives up and patrols"
+
+[tunables.patrolDwell]
+value = 0.8
+min = 0
+max = 5
+unit = "s"
+note = "she pauses this long at each patrol stop"
+
+[tunables.stepEvery]
+value = 0.45
+min = 0.2
+max = 1
+unit = "s"
+note = "Ada's footsteps while she walks"
+
+[tunables.stepLoudness]
+value = 1.8
+min = 0
+max = 5
+unit = "m"
+note = "how far Ada's footsteps carry"
+
+[tunables.dawnEvery]
+value = 60
+min = 30
+max = 90
+unit = "s"
+note = "the dawn reaches the next room in DAWN's order this often"
+
+[tunables.dawnRamp]
+value = 8
+min = 2
+max = 20
+unit = "s"
+note = "a room's dawn comes up over this long; it is gameplay light from half way"
+
+[tunables.dawnStun]
+value = 4
+min = 2
+max = 8
+unit = "s"
+note = "caught in the dawn as it comes up, she is stunned this long, then keeps out of it"
+
+[tunables.stepsEvery]
+value = 0.6
+min = 0.3
+max = 1.2
+unit = "s"
+note = "her footfalls while she walks"
+
+[tunables.stepsLoudness]
+value = 9
+min = 5
+max = 12
+unit = "m"
+note = "how far her footfalls carry (directional sound and a wall ring; nothing hears them)"
+
+[tunables.followDelay]
+value = 2
+min = 1.5
+max = 2.5
+unit = "s"
+note = "door-follow: out of sight, she comes through the door Ada took this long after her"
+
+[tunables.followClear]
+value = 1.5
+min = 1.5
+max = 3
+unit = "m"
+note = "door-follow: she never comes through a door this close to Ada (she waits)"
+
+[tunables.seenHide]
+value = 4
+min = 2
+max = 6
+unit = "m"
+note = "hiding: she sees Ada go in from this close, in sight past the walls, and pulls her out"
+
+[tunables.ambushSting]
+value = 0.6
+min = 0.3
+max = 1.5
+unit = "s"
+note = "an ambush's sting plays this long before she appears"
+
+[tunables.ambushGrace]
+value = 2
+min = 2
+max = 4
+unit = "s"
+note = "after an ambush she stands this long before she hunts"
+
+[tunables.calm]
+value = 20
+min = 10
+max = 30
+unit = "s"
+note = "after Ada comes back in, the Nurse neither hunts on sight nor ambushes for this long (she starts at the far end of the ward)"
+
+[tunables.directorFrom]
+value = 20
+min = 0
+max = 60
+unit = "s"
+note = "the pacing director: nothing before this long into the scene (the first threat stays as recorded)"
+
+[tunables.threatReach]
+value = 5
+min = 2
+max = 10
+unit = "m"
+note = "the director: a pursuer who can catch Ada raises T from this close"
+
+[tunables.riseThreat]
+value = 0.25
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T rises this fast with the pursuer on top of Ada (less with distance, none at threatReach)"
+
+[tunables.riseDark]
+value = 0.01
+min = 0
+max = 0.1
+unit = "/s"
+note = "the director: T rises this fast while Ada stands in the dark"
+
+[tunables.riseLowFuel]
+value = 0.02
+min = 0
+max = 0.2
+unit = "/s"
+note = "the director: T rises this fast while the lighter's fuel is under lowFuel"
+
+[tunables.riseCrossing]
+value = 0.1
+min = 0
+max = 0.5
+unit = ""
+note = "the director: T steps up this much as Ada crosses into another zone while the pursuer hunts or searches"
+
+[tunables.fallSafe]
+value = 0.1
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T falls this fast in the safe room (reception, where the register is)"
+
+[tunables.fallHidden]
+value = 0.05
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T falls this fast while Ada hides"
+
+[tunables.fallLit]
+value = 0.02
+min = 0
+max = 0.5
+unit = "/s"
+note = "the director: T falls this fast while Ada walks with a flame lit"
+
+[tunables.fallRelief]
+value = 0.08
+min = 0
+max = 0.5
+unit = "/s"
+note = "the director: T falls this fast in relief"
+
+[tunables.peakAt]
+value = 0.6
+min = 0.3
+max = 0.95
+unit = ""
+note = "the director: T at or over this, held peakHold s, is the peak"
+
+[tunables.peakHold]
+value = 3
+min = 0
+max = 10
+unit = "s"
+note = "the director: how long T must hold at peakAt for the peak"
+
+[tunables.ventAt]
+value = 0.85
+min = 0.4
+max = 1
+unit = ""
+note = "the director: in the peak, T at or over this, held ventHold s, vents into relief"
+
+[tunables.ventHold]
+value = 3
+min = 0
+max = 10
+unit = "s"
+note = "the director: how long T must hold at ventAt for the relief"
+
+[tunables.reliefFor]
+value = 20
+min = 5
+max = 60
+unit = "s"
+note = "the director: the relief lasts at most this long"
+
+[tunables.calmAt]
+value = 0.2
+min = 0
+max = 0.5
+unit = ""
+note = "the director: T under this ends a peak or a relief (back to build)"
+
+[tunables.lowFuel]
+value = 15
+min = 5
+max = 30
+unit = "s"
+note = "scarcity: under this much fuel the flame is low (system:fuel.low, once per crossing; T rises)"
+
+[tunables.grappleCost]
+value = 20
+min = 5
+max = 50
+unit = "s"
+note = "the grapple: reached with the lighter and this much fuel, Ada holds the flame up instead of being caught; it costs this much fuel (or all there is) and snuffs the flame"
+
+[tunables.grappleWindow]
+value = 3
+min = 1
+max = 8
+unit = "s"
+note = "the grapple: for this long after it, a touch is no catch, so Ada can get away"
+
+[tunables.grappleCooldown]
+value = 60
+min = 20
+max = 180
+unit = "s"
+note = "the grapple: at most one this often; inside it, a catch is a catch"
+
+[tunables.crewPatrolSpeed]
+value = 1.1
+min = 0.5
+max = 2
+unit = "m/s"
+note = "the crew on patrol (Ada walks 3 m/s)"
+
+[tunables.crewInvestigateSpeed]
+value = 1.5
+min = 0.5
+max = 2.5
+unit = "m/s"
+note = "the crew going to a noise or a flame"
+
+[tunables.crewHuntSpeed]
+value = 1.9
+min = 1
+max = 2.8
+unit = "m/s"
+note = "the crew chasing Ada: always slower than she is"
+
+[tunables.crewHearing]
+value = 4
+min = 1
+max = 8
+unit = "m"
+note = "the furthest it hears a noise (Ada's footfalls carry only their own 1.8 m)"
+
+[tunables.crewSight]
+value = 5
+min = 2
+max = 8
+unit = "m"
+note = "how far it sees Ada, past furniture but not walls"
+
+[tunables.crewCatch]
+value = 0.62
+min = 0.3
+max = 1
+unit = "m"
+note = "how close it must come to catch Ada"
+
+[tunables.crewReplan]
+value = 0.25
+min = 0.05
+max = 1
+unit = "s"
+note = "it re-routes to where it saw Ada this often"
+
+[tunables.crewHuntGiveUp]
+value = 6
+min = 2
+max = 8
+unit = "s"
+note = "at the end of its path, out of sight this long, it investigates (it persists: longer than the Nurse)"
+
+[tunables.crewInvestigateGiveUp]
+value = 2.5
+min = 0.5
+max = 8
+unit = "s"
+note = "at the noise this long, it goes back to its patrol"
+
+[tunables.crewHoldWait]
+value = 8
+min = 2
+max = 20
+unit = "s"
+note = "standing at a threshold this long, it patrols again"
+
+[tunables.crewBlockWait]
+value = 0.5
+min = 0.1
+max = 3
+unit = "s"
+note = "a step it may not take (a room it never enters) this long, and it holds where it stands"
+
+[tunables.crewKeepOut]
+value = 1.5
+min = 1.5
+max = 3
+unit = "m"
+note = "with Ada out of its ground, behind a door or a wall, it never comes closer than this"
+
+[tunables.crewFlameSight]
+value = 6
+min = 2
+max = 10
+unit = "m"
+note = "a lit lighter or torch within this is noticed: it goes to look"
+
+[tunables.crewCalm]
+value = 8
+min = 0.5
+max = 20
+unit = "s"
+note = "after Ada's first step onto the walk the crew neither hunts on sight, notices a flame, nor ambushes for this long"
+
+[tunables.crewSeenHide]
+value = 4
+min = 2
+max = 6
+unit = "m"
+note = "hiding: it sees Ada go in from this close, in sight, and pulls her out"
+
+[tunables.crewFollowDelay]
+value = 2
+min = 1.5
+max = 2.5
+unit = "s"
+note = "door-follow: out of sight, it comes through the door Ada took this long after her"
+
+[tunables.crewFollowClear]
+value = 1.5
+min = 1.5
+max = 3
+unit = "m"
+note = "door-follow: it never comes through a door this close to Ada (it waits)"
+
+[tunables.crewAmbushSting]
+value = 0.6
+min = 0.3
+max = 1.5
+unit = "s"
+note = "its ambush's sting plays this long before it appears"
+
+[tunables.crewAmbushGrace]
+value = 2
+min = 2
+max = 4
+unit = "s"
+note = "after its ambush it stands this long before it hunts"
+
+[tunables.crewPatrolDwell]
+value = 1.5
+min = 0
+max = 5
+unit = "s"
+note = "it pauses this long at each patrol stop"
+
+[tunables.crewStepsEvery]
+value = 0.7
+min = 0.3
+max = 1.2
+unit = "s"
+note = "its trolley's wheels tick this often while it walks"
+
+[tunables.crewStepsLoudness]
+value = 9
+min = 5
+max = 12
+unit = "m"
+note = "how far its wheels carry (directional sound and a wall ring; nothing hears them)"
+
+[tunables.boltHold]
+value = 5
+min = 3
+max = 30
+unit = "s"
+note = "the bolt: once the Nurse has waited at the bolted supply room door this long in all, coming back to it if she gives up, the bolt slides back by itself and the door eases open"
+
+[tunables.boltReach]
+value = 1.6
+min = 0.8
+max = 3
+unit = "m"
+note = "the bolt: the Nurse waits at it from this close to the door"
+
+[[rules]]
+id = "crewGround"
+text = "The crew's ground: only the street, its landing and steps, the yard and the exit way, never a room of the clinic: a step off it is refused and it holds where it stands (its `refuses`, src/game/crew.ts)."
+when = []
+then = []
+
+[[rules]]
+id = "crewSenses"
+text = "The crew sense: it hears a noise within 4 m, sees Ada past furniture (not walls) within 5 m after the first 8 s of the walk, and notices a lit lighter or torch within 6 m (its transitions). Light does not repel it."
+when = []
+then = []
+
+[[rules]]
+id = "crewTouch"
+text = "Touch: within 0.62 m of Ada, on its ground, it catches her; a lifted flame stands it off (the grapple). Nothing harms it. Once she is in at the exit it holds outside, never nearer than 1.5 m (its transitions, src/game/grapple.ts)."
+when = []
+then = []
+
+[[rules]]
+id = "crewSteps"
+text = "The crew's wheels: while it walks, they tick on the ground every 0.7 s and carry 9 m (directional sound and a wall ring; nothing hears them)."
+every = 0.7
+
+[[rules.when]]
+fact = "crewWalking"
+is = true
+
+[[rules.then]]
+[rules.then.noise]
+at = "crew"
+loudness = 9
+kind = "footfall"
+
+[[rules]]
+id = "crewAmbush"
+text = "Once, after the first 8 s, with Ada past the steps (or crossing the yard) and the crew away, it appears at streetBack (the sting 0.6 s before, then a 2 s grace)."
+
+[[rules.when]]
+[rules.when.not]
+fact = "crewCalming"
+is = true
+
+[[rules.when]]
+fact = "crewCued"
+is = true
+
+[[rules.when]]
+fact = "crewAway"
+is = true
+
+[[rules.when]]
+[rules.when.not]
+fact = "pursuit.ambushes.crewStreet"
+is = true
+
+[[rules.then]]
+[rules.then.ambush]
+id = "crewStreet"
+agent = "crew"
+mode = "ambush"
+at = "streetBack"
+sting = 0.6
+grace = 2
+then = "hunt"
+
+[[rules.then]]
+call = "crewSay"
+
+[[rules]]
+id = "crewOmens"
+text = "Omens, once each: Ada hears its wheels from 9 m (her line), then sees its cap from 5 m in the open (her line, the second warning before the catch)."
+
+[[rules.when]]
+fact = "crewWalking"
+is = true
+
+[[rules.then]]
+call = "crewOmen"
+
+[[rules]]
+id = "R1"
+text = "Light repels: the Nurse flees any light that reaches her (Ada's flame, or a dawn she was not caught in) to the darkest reachable node, and will not step into one (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R2"
+text = "Sound attracts: a noise draws her to it, unless she is fleeing, stunned or hunting (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R3"
+text = "Sight hunts: in the dark, after the first 20 s, she sees Ada within 4.5 m past the walls, and chases her at 2.2 m/s (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "grapple"
+text = "The grapple: about to be caught with the lighter carried and 20 s of fuel in it, Ada holds the flame up and the Nurse steps back out of it; it costs 20 s of fuel (or all there is), snuffs the flame and vents the tension; for 3 s a touch is no catch; once a minute (her transitions, src/game/grapple.ts)."
+when = []
+then = []
+
+[[rules]]
+id = "dawnStun"
+text = "The dawn hurts: caught in a room's dawn as it comes up, she shrieks and is stunned for 4 s, then keeps out of it (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R15"
+text = "Light costs fuel: the lit lighter burns its fuel; the torch burns down without fuel."
+
+[[rules.when]]
+[rules.when.not]
+fact = "light"
+is = "off"
+
+[[rules.then]]
+call = "burnLight"
+
+[[rules]]
+id = "dawn"
+text = "Dawn spreads: every 60 s the dawn comes up in the next room of DAWN's order (the ward, the corridor, the supply room, the hall, reception last), over 8 s; a room it has reached is safe."
+when = []
+
+[[rules.then]]
+call = "dawn"
+
+[[rules]]
+id = "footsteps"
+text = "Ada's footsteps make a small noise every 0.45 s while she walks."
+when = []
+
+[[rules.then]]
+call = "footsteps"
+
+[[rules]]
+id = "steps"
+text = "Steps through walls: while she walks, her footfalls carry 9 m every 0.6 s (directional sound and a wall ring; nothing hears them)."
+every = 0.6
+
+[[rules.when]]
+fact = "nurseWalking"
+is = true
+
+[[rules.then]]
+[rules.then.noise]
+at = "nurse"
+loudness = 9
+kind = "footfall"
+
+[[rules]]
+id = "curtainAmbush"
+text = "Once, after the first 20 s, with Ada in the ward before its dawn and the Nurse patrolling out of sight: she is behind the ward curtain, in the alcove (the sting 0.6 s before, then a 2 s grace)."
+
+[[rules.when]]
+[rules.when.not]
+fact = "calm"
+is = true
+
+[[rules.when]]
+fact = "adaInWard"
+is = true
+
+[[rules.when]]
+fact = "nurseAway"
+is = true
+
+[[rules.when]]
+fact = "wardDark"
+is = true
+
+[[rules.when]]
+[rules.when.not]
+fact = "pursuit.ambushes.curtain"
+is = true
+
+[[rules.then]]
+[rules.then.ambush]
+id = "curtain"
+agent = "nurse"
+mode = "ambush"
+at = "alcove"
+sting = 0.6
+grace = 2
+then = "hunt"
+
+[[rules]]
+id = "receptionAmbush"
+text = "Once, after the first 20 s, with the reception door open before reception's dawn, with the Nurse patrolling out of sight: she is inside, behind the counter (the sting 0.6 s before, then a 2 s grace)."
+
+[[rules.when]]
+[rules.when.not]
+fact = "calm"
+is = true
+
+[[rules.when]]
+fact = "receptionOpen"
+is = true
+
+[[rules.when]]
+fact = "nurseAway"
+is = true
+
+[[rules.when]]
+fact = "receptionDark"
+is = true
+
+[[rules.when]]
+[rules.when.not]
+fact = "pursuit.ambushes.reception"
+is = true
+
+[[rules.then]]
+[rules.then.ambush]
+id = "reception"
+agent = "nurse"
+mode = "ambush"
+at = "recepIn"
+sting = 0.6
+grace = 2
+then = "hunt"
+
+[[rules]]
+id = "barricade"
+text = "The bolt: drawn across the supply room door from inside, it shuts the door for everyone. The Nurse waits at it from 1.6 m, and comes back to it on her round if she gives up; after 5 s of waiting in all the bolt slides back by itself and the door eases open, without a sound (src/game/barricade.ts)."
+when = []
+
+[[rules.then]]
+call = "barricade"
+
+[[rules]]
+id = "director"
+text = "The pacing director: from 20 s after Ada comes back in, tension rises with the Nurse within 5 m of Ada, in the dark, on low fuel and at a crossing while she hunts, and falls in reception, hidden or walking lit. Held at 0.6 for 3 s it peaks (her round turns towards Ada); held at 0.85 for 3 s in the peak it vents into relief (she sits with Bed 04) for up to 20 s. Under 15 s of fuel, the flame is low (system:fuel.low)."
+when = []
+
+[[rules.then]]
+call = "director"
+
+[[agents]]
+id = "nurse"
+modes = [ "patrol", "investigate", "hunt", "flee", "stunned", "follow", "ambush", "vigil" ]
+initial = "patrol"
+hooks = [ "stunTick", "chase", "replan", "fleeGoal", "stop", "directorPeak", "grapple" ]
+
+[agents.speed]
+patrol = 1.15
+investigate = 1.8
+hunt = 2.2
+flee = 2.8
+stunned = 0
+follow = 2.2
+ambush = 0
+vigil = 1.15
+
+[[agents.senses]]
+[agents.senses.light]
+[[agents.senses]]
+[agents.senses.sound]
+[[agents.senses]]
+[agents.senses.sight]
+range = 4.5
+wallsOnly = true
+
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.62
+
+[[agents.transitions]]
+from = "stunned"
+to = "stunned"
+when = []
+priority = 100
+
+[[agents.transitions.do]]
+call = "stunTick"
+
+[[agents.transitions]]
+from = "stunned"
+to = "flee"
+priority = 99
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+timer = 0
+
+[[agents.transitions.do]]
+flee = "light"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "*"
+to = "stunned"
+priority = 90
+
+[[agents.transitions.when]]
+fact = "self.inDawn"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "flee"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 4
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+[agents.transitions.do.noise]
+at = "self"
+loudness = 0
+kind = "shriek"
+
+[[agents.transitions]]
+from = "*"
+to = "hunt"
+priority = 85
+
+[[agents.transitions.when]]
+[agents.transitions.when.sawHide]
+radius = 4
+los = true
+
+[[agents.transitions.do]]
+set = "pursuit.hidden"
+to = ""
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "*"
+to = "flee"
+priority = 80
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "flee"
+
+[[agents.transitions.when]]
+inLight = true
+
+[[agents.transitions.do]]
+flee = "light"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "patrol"
+to = "vigil"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+goTo = "bedside"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "vigil"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+goTo = "bedside"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "vigil"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+goTo = "bedside"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "follow"
+to = "vigil"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+goTo = "bedside"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "vigil"
+to = "patrol"
+priority = 76
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "patrol"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "calm"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "calm"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 69
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "follow"
+priority = 75
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 74
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions]]
+from = "follow"
+to = "hunt"
+priority = 73
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+when = []
+priority = 60
+
+[[agents.transitions.do]]
+call = "replan"
+
+[[agents.transitions]]
+from = "patrol"
+to = "flee"
+priority = 55
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+flee = "player"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "investigate"
+to = "flee"
+priority = 55
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+flee = "player"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "hunt"
+to = "flee"
+priority = 55
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+flee = "player"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "follow"
+to = "flee"
+priority = 55
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+flee = "player"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "patrol"
+to = "patrol"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "nurse"
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "nurse"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "nurse"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "nurse"
+
+[[agents.transitions]]
+from = "*"
+to = "patrol"
+priority = 40
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 4
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "investigate"
+priority = 30
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.when]]
+timer = 1.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "patrol"
+priority = 29
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+timer = 2.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "flee"
+to = "patrol"
+priority = 28
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+inLight = true
+
+[[agents.transitions.when]]
+timer = 1
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "flee"
+to = "flee"
+priority = 27
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+inLight = true
+
+[[agents.transitions.do]]
+call = "fleeGoal"
+
+[[agents.transitions]]
+from = "patrol"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.routine]]
+node = "recepN"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "hallN"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "ward"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "bedside"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "ward"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "hallS"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "recepSW"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "recep"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "recepN"
+dwell = 0.8
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents]]
+id = "crew"
+modes = [ "patrol", "investigate", "hunt", "follow", "hold", "ambush" ]
+initial = "patrol"
+hooks = [ "crewClock", "crewChase", "crewReplan", "crewStop", "crewFlame", "crewSay", "grapple" ]
+
+[agents.speed]
+patrol = 1.1
+investigate = 1.5
+hunt = 1.9
+follow = 1.9
+hold = 0
+ambush = 0
+
+[[agents.senses]]
+[agents.senses.sound]
+reach = 4
+
+[[agents.senses]]
+[agents.senses.sight]
+range = 5
+wallsOnly = true
+
+[[agents.senses]]
+[agents.senses.warmth.sources]
+lighter = 6
+torch = 6
+
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.62
+
+[[agents.transitions]]
+from = "hold"
+to = "hold"
+when = []
+priority = 100
+
+[[agents.transitions.do]]
+call = "crewClock"
+
+[[agents.transitions]]
+from = "hold"
+to = "patrol"
+priority = 99
+
+[[agents.transitions.when]]
+timer = 8
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hold"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grappleCrew"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hold"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grappleCrew"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hold"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grappleCrew"
+
+[[agents.transitions]]
+from = "follow"
+to = "hold"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grappleCrew"
+
+[[agents.transitions]]
+from = "patrol"
+to = "patrol"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "crew"
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "crew"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "crew"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "crew"
+
+[[agents.transitions]]
+from = "*"
+to = "hunt"
+priority = 85
+
+[[agents.transitions.when]]
+[agents.transitions.when.sawHide]
+radius = 4
+los = true
+
+[[agents.transitions.do]]
+set = "pursuit.hidden"
+to = ""
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hold"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "hold"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "hold"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "follow"
+to = "hold"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "follow"
+priority = 75
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 74
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions]]
+from = "follow"
+to = "hunt"
+priority = 73
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "crewCalming"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "crewCalming"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hold"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "crewCalming"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 69
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions]]
+from = "patrol"
+to = "investigate"
+priority = 65
+
+[[agents.transitions.when]]
+warmthWithin = 6
+
+[[agents.transitions.when]]
+fact = "crewSeesFlame"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "crewCalming"
+is = true
+
+[[agents.transitions.do]]
+call = "crewFlame"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+when = []
+priority = 60
+
+[[agents.transitions.do]]
+call = "crewReplan"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hold"
+priority = 45
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 0.5
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hold"
+priority = 45
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 0.5
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hold"
+priority = 45
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 0.5
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "follow"
+to = "hold"
+priority = 45
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 0.5
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hunt"
+to = "investigate"
+priority = 30
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.when]]
+timer = 6
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "patrol"
+priority = 29
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+timer = 2.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "patrol"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.routine]]
+node = "streetCorner2"
+dwell = 1.5
+
+[[agents.routine]]
+node = "streetMid"
+dwell = 1.5
+
+[[agents.routine]]
+node = "streetGateIn"
+dwell = 1.5
+
+[[agents.routine]]
+node = "yardGate"
+dwell = 1.5
+
+[[agents.routine]]
+node = "exitHold"
+dwell = 1.5
+
+[[agents.routine]]
+node = "yardGate"
+dwell = 1.5
+
+[[agents.routine]]
+node = "streetGateIn"
+dwell = 1.5
+
+[[agents.routine]]
+node = "streetMid"
+dwell = 1.5
+
+[[scenarios]]
+id = "dawnStunsWard"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup.place.player]
+x = 0
+z = -6.1
+
+[scenarios.setup.place.nurse]
+x = -2.9
+z = 2.45
+
+[scenarios.setup.facts]
+dawnTime = 58
+"nurse.patrol" = 0
+
+[scenarios.expect]
+within = 8
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "stunned"
+agent = "nurse"
+
+[[scenarios]]
+id = "dawnSafeWard"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup.place.player]
+x = -2.9
+z = 2.45
+
+[scenarios.setup.place.nurse]
+x = 0
+z = 4.8
+
+[scenarios.setup.facts]
+dawnTime = 75
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+[scenarios.expect.condition.not]
+touching = true
+
+[[scenarios]]
+id = "followThroughDoor"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "bucket.mop" ]
+
+[scenarios.setup.place.player]
+x = 0
+z = 0.3
+
+[scenarios.setup.place.nurse]
+x = -2.75
+z = 5.65
+
+[scenarios.setup.facts]
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 8
+probability = 1
+
+[[scenarios.expect.condition]]
+fact = "self.zone"
+is = "corridor"
+
+[[scenarios]]
+id = "curtainAmbush"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup.place.player]
+x = -2.9
+z = 2.45
+
+[scenarios.setup.place.nurse]
+x = 3
+z = -5.7
+
+[scenarios.setup.facts]
+dawnTime = 20
+
+[scenarios.expect]
+within = 4
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "hunt"
+agent = "nurse"
+
+[[scenarios]]
+id = "vigilInRelief"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup.place.player]
+x = 0
+z = -6.1
+
+[scenarios.setup.place.nurse]
+x = 0
+z = 0.3
+
+[scenarios.setup.facts]
+"nurse.mode" = "patrol"
+"director.state" = "relief"
+"director.t" = 0.9
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "vigil"
+agent = "nurse"
+
+[[scenarios.expect.condition]]
+at = "bedside"
+
+[[scenarios]]
+id = "boltSlidesBack"
+claims = "nurseBarred"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup]
+actions = [ "closetDoor.bolt" ]
+
+[scenarios.setup.place.player]
+x = 3
+z = -4
+
+[scenarios.setup.place.nurse]
+x = 0.3
+z = -4
+
+[scenarios.setup.facts]
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 14
+probability = 1
+
+[[scenarios.expect.condition]]
+fact = "boltOpened"
+is = 1
+
+[[scenarios]]
+id = "hideUnseen"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "hide:locker" ]
+
+[scenarios.setup.place.player]
+x = 3.6
+z = -5
+
+[scenarios.setup.place.nurse]
+x = 0
+z = -6.1
+
+[scenarios.setup.facts]
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "patrol"
+agent = "nurse"
+
+[[scenarios.expect.condition]]
+fact = "pursuit.hidden"
+is = "locker"
+
+[[scenarios]]
+id = "streetAmbush"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup.place.player]
+x = 10.875
+z = -17
+
+[scenarios.setup.facts]
+arrived = false
+
+[scenarios.expect]
+within = 16
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "hunt"
+agent = "crew"
+
+[[scenarios]]
+id = "streetHide"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "hide:laneCrates" ]
+
+[scenarios.setup.place.player]
+x = 5
+z = -18.4
+
+[scenarios.setup.place.crew]
+x = 10.875
+z = -14
+
+[scenarios.setup.facts]
+arrived = false
+"crew.mode" = "hunt"
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "patrol"
+agent = "crew"
+
+[[scenarios.expect.condition]]
+fact = "pursuit.hidden"
+is = "laneCrates"
+
+[[scenarios]]
+id = "streetFlame"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+items = [ "lighter" ]
+
+[scenarios.setup.place.player]
+x = 4
+z = -18.4
+
+[scenarios.setup.place.crew]
+x = 9.2
+z = -18.4
+
+[scenarios.setup.facts]
+arrived = false
+light = "lighter"
+crewTime = 9
+"crew.mode" = "patrol"
+"pursuit.ambushes.crewStreet" = true
+
+[scenarios.expect]
+within = 6
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "investigate"
+agent = "crew"
+
+[[scenarios]]
+id = "exitHold"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup.place.player]
+x = 0
+z = -4
+
+[scenarios.setup.facts]
+arrived = true
+"crew.mode" = "hold"
+"crew.x" = 0
+"crew.z" = -8.5
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "patrol"
+agent = "crew"
+
+[[scenarios.expect.condition]]
+[scenarios.expect.condition.not]
+touching = true
+
+[fairness]
+cautiousWin = 0.9
+firstThreatAfter = 20
+telegraph = 1.5
+maxDeathsPerRun = 1
+safeWindowMargin = 1.3
+ambushGrace = 2
+followClear = 1.5
+hideRelease = 12

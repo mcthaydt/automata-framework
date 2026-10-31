@@ -47,16 +47,25 @@ function segmentHitsBox(a: Point, b: Point, box: Box, margin: number): boolean {
 const inside = (p: Point, box: Box, margin: number): boolean =>
   Math.abs(p.x - box.x) <= box.w / 2 + margin && Math.abs(p.z - box.z) <= box.d / 2 + margin
 
-/** The clinic's walls (sectors) and boxes: an exit always blocks, a door while it is shut, furniture always. */
-export function clinicBlocked(map: ResolvedMap, doors: Readonly<Record<string, boolean>>): Blocked {
+/**
+ * The clinic's walls (sectors) and boxes: an exit always blocks, a door while it is shut, furniture always. For sight
+ * (`furniture: false`) furniture does not block, as the source's `wallsOnly` line of sight.
+ */
+export function clinicBlocked(
+  map: ResolvedMap,
+  doors: Readonly<Record<string, boolean>>,
+  { furniture = true }: { readonly furniture?: boolean } = {},
+): Blocked {
   const walls = blockedBy(map, doors)
+  const blocks = (box: Box): boolean =>
+    box.kind === 'exit' || (box.kind === 'door' ? doors[box.id] !== true : furniture)
   return {
     open: walls.open,
     segment: (a, b, margin) =>
       walls.segment(a, b, margin) ||
       boxes.some(
         (box) =>
-          (box.kind !== 'door' || doors[box.id] !== true) &&
+          blocks(box) &&
           !(inside(a, box, margin) || inside(b, box, margin)) &&
           segmentHitsBox(a, b, box, margin),
       ),

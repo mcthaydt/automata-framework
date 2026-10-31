@@ -1,0 +1,2254 @@
+# The adventure source's clinic systems (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/systems/scripts/convert-adventure-systems.ts. Do not edit.
+scene = "clinic"
+
+[[objects]]
+id = "light"
+name = "Light"
+signal = "Warm vertex-lit pool on the floor; the Nurse's sprite flickers at its edge"
+
+[[objects]]
+id = "water"
+name = "Water"
+signal = "Dark reflective decal; drip sound; ripples"
+
+[[objects]]
+id = "electricity"
+name = "Electricity"
+signal = "Sparks, humming, blue-white flashes, lamps"
+
+[[objects]]
+id = "fire"
+name = "Fire"
+signal = "Animated flame sprites, orange light, smoke"
+
+[[objects]]
+id = "sound"
+name = "Sound"
+signal = "Expanding ring on the floor, on-screen caption"
+
+[[objects]]
+id = "nurse"
+name = "The Nurse"
+signal = "Tall silhouette, wet footprints"
+
+[[objects]]
+id = "director"
+name = "Tension"
+signal = "The sub-bass dread layer swells and falls with it; in relief she sits with Bed 04"
+
+[[matrix]]
+row = "light"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "water"
+verb = "Reveal"
+presentation = "puddles glint under a lamp (dress.ts reflections)"
+
+[[matrix]]
+row = "light"
+col = "electricity"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "nurse"
+verb = "Repel"
+rule = "R1"
+
+[[matrix]]
+row = "water"
+col = "light"
+verb = "Reflect"
+presentation = "lamp sheens on puddles"
+
+[[matrix]]
+row = "water"
+col = "water"
+verb = "Pool / spread"
+presentation = "the leak's puddle and poured puddles (R12)"
+
+[[matrix]]
+row = "water"
+col = "electricity"
+verb = "Conduct"
+rule = "R4"
+
+[[matrix]]
+row = "water"
+col = "fire"
+verb = "Extinguish"
+rule = "R10"
+
+[[matrix]]
+row = "water"
+col = "sound"
+verb = "Drip"
+presentation = "the leak's drip (dress.ts leakDrip)"
+
+[[matrix]]
+row = "water"
+col = "nurse"
+verb = "Leave footprints"
+rule = "wetFeet"
+presentation = "wet prints behind her (dress.ts)"
+
+[[matrix]]
+row = "electricity"
+col = "light"
+verb = "Power"
+rule = "R14"
+
+[[matrix]]
+row = "electricity"
+col = "water"
+verb = "Electrify"
+rule = "R4"
+
+[[matrix]]
+row = "electricity"
+col = "electricity"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "electricity"
+col = "fire"
+verb = "Spark"
+rule = "sparks"
+presentation = "sparks at the fuse box"
+
+[[matrix]]
+row = "electricity"
+col = "sound"
+verb = "Alarm / bang"
+rule = "monitorAlarm"
+presentation = "the monitor alarm, and the breaker's bang (R4)"
+
+[[matrix]]
+row = "electricity"
+col = "nurse"
+verb = "Stun"
+rule = "R5"
+
+[[matrix]]
+row = "fire"
+col = "light"
+verb = "Emit"
+rule = "R7"
+
+[[matrix]]
+row = "fire"
+col = "water"
+verb = "Steam"
+cut = "not built: a presentation idea from the design table, with no rule"
+
+[[matrix]]
+row = "fire"
+col = "electricity"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "fire"
+col = "fire"
+verb = "Spread"
+rule = "R8"
+
+[[matrix]]
+row = "fire"
+col = "sound"
+verb = "Crackle → fire alarm"
+rule = "R9"
+presentation = "the crackle cue while fire burns"
+
+[[matrix]]
+row = "fire"
+col = "nurse"
+verb = "Repel"
+rule = "R1"
+
+[[matrix]]
+row = "sound"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "electricity"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "nurse"
+verb = "Attract"
+rule = "R2"
+
+[[matrix]]
+row = "nurse"
+col = "light"
+verb = "Snuffs small flames"
+cut = "not built: she never puts a light out (light must stay Ada's answer to her)"
+
+[[matrix]]
+row = "nurse"
+col = "water"
+verb = "Tracks wet prints"
+rule = "wetFeet"
+
+[[matrix]]
+row = "nurse"
+col = "electricity"
+verb = "Stunned by"
+rule = "R5"
+
+[[matrix]]
+row = "nurse"
+col = "fire"
+verb = "Flees"
+rule = "R1"
+
+[[matrix]]
+row = "nurse"
+col = "sound"
+verb = "Hunts"
+rule = "R2"
+
+[[matrix]]
+row = "nurse"
+col = "nurse"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "tool:lighter"
+verb = "Flick it on to push the Nurse back, but the fuel drops while it burns"
+rule = "R15"
+
+[[matrix]]
+row = "light"
+col = "tool:basin"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "tool:scalpel"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "tool:bottle"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "tool:lighter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "tool:basin"
+verb = "Fill it at the sink or the leak; pour a puddle anywhere"
+presentation = "the verbs sink.fill, puddle.use, floor.basin"
+
+[[matrix]]
+row = "water"
+col = "tool:scalpel"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "tool:bottle"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "electricity"
+col = "tool:lighter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "electricity"
+col = "tool:basin"
+verb = "Pour water near the fuse box, then throw the breaker: a trap"
+rule = "R4"
+
+[[matrix]]
+row = "electricity"
+col = "tool:scalpel"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "electricity"
+col = "tool:bottle"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "fire"
+col = "tool:lighter"
+verb = "Ignite a curtain: a big light that lasts, that can spread and set off the alarm"
+rule = "R8"
+
+[[matrix]]
+row = "fire"
+col = "tool:basin"
+verb = "Douse a fire before the alarm brings her"
+rule = "R10"
+
+[[matrix]]
+row = "fire"
+col = "tool:scalpel"
+verb = "Cut the curtain into cloth; with the lighter, a torch that burns no fuel"
+rule = "R11"
+
+[[matrix]]
+row = "fire"
+col = "tool:bottle"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:lighter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:basin"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:scalpel"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:bottle"
+verb = "Throw it to lure her away from a door"
+rule = "R2"
+
+[[matrix]]
+row = "nurse"
+col = "tool:lighter"
+verb = "Hold the flame and walk past her"
+rule = "R1"
+
+[[matrix]]
+row = "nurse"
+col = "tool:basin"
+verb = "Flood her route, then electrify it to stun her"
+rule = "R5"
+
+[[matrix]]
+row = "nurse"
+col = "tool:scalpel"
+verb = "No combat"
+cut = "the scalpel is a tool, not a weapon"
+
+[[matrix]]
+row = "nurse"
+col = "tool:bottle"
+verb = "Lure her into the water, or into a lit room she will flee"
+rule = "R2"
+
+[[matrix]]
+row = "light"
+col = "impact:lack"
+verb = "Darkness is her territory"
+presentation = "corridor crossings become chases"
+
+[[matrix]]
+row = "light"
+col = "impact:tooMany"
+verb = "Nothing to fear"
+presentation = "light is scarce: fuel runs out, curtains burn out (R15, R8)"
+
+[[matrix]]
+row = "light"
+col = "impact:fantasy"
+verb = "I carried one small flame through the dark"
+presentation = "the lighter"
+
+[[matrix]]
+row = "water"
+col = "impact:lack"
+verb = "No way to stop a fire; no trap for her"
+presentation = "the leak is always there"
+
+[[matrix]]
+row = "water"
+col = "impact:tooMany"
+verb = "The fuse box shorts and the exit never powers"
+presentation = "drain it (valve) or mop it (cloth): R12, R13"
+
+[[matrix]]
+row = "water"
+col = "impact:fantasy"
+verb = "I turned her own corridor against her"
+presentation = "the stun trap"
+
+[[matrix]]
+row = "electricity"
+col = "impact:lack"
+verb = "The exit lock is dead"
+presentation = "the end goal"
+
+[[matrix]]
+row = "electricity"
+col = "impact:tooMany"
+verb = "Every puddle becomes lethal, Ada included"
+presentation = "R6"
+
+[[matrix]]
+row = "electricity"
+col = "impact:fantasy"
+verb = "I brought the building back to life and it chose me"
+presentation = "the power cutscene"
+
+[[matrix]]
+row = "fire"
+col = "impact:lack"
+verb = "Hidden clues stay hidden"
+presentation = "the scratched code behind the curtain (R11)"
+
+[[matrix]]
+row = "fire"
+col = "impact:tooMany"
+verb = "The alarm rings and she comes running"
+presentation = "R9"
+
+[[matrix]]
+row = "fire"
+col = "impact:fantasy"
+verb = "I burned the ward to buy a minute"
+presentation = "the curtains"
+
+[[matrix]]
+row = "sound"
+col = "impact:lack"
+verb = "She patrols predictably; nothing to manipulate"
+presentation = "her patrol"
+
+[[matrix]]
+row = "sound"
+col = "impact:tooMany"
+verb = "She is always on top of you"
+presentation = "footsteps carry only 1.8 m"
+
+[[matrix]]
+row = "sound"
+col = "impact:fantasy"
+verb = "I made her go where I wanted"
+presentation = "the bottle, the monitor alarm"
+
+[[matrix]]
+row = "nurse"
+col = "impact:lack"
+verb = "No dread; a puzzle box"
+presentation = "she wakes at the first sighting"
+
+[[matrix]]
+row = "nurse"
+col = "impact:tooMany"
+verb = "Unfair"
+presentation = "exactly one Nurse, slower than Ada"
+
+[[matrix]]
+row = "nurse"
+col = "impact:fantasy"
+verb = "I never fought her and she never caught me"
+presentation = "avoidance only"
+
+[[matrix]]
+row = "smell"
+col = "impact:lack"
+verb = "Smell / temperature"
+cut = "not legible from a 2.5D camera"
+
+[[matrix]]
+row = "smell"
+col = "impact:tooMany"
+verb = "–"
+cut = "cut with the system"
+
+[[matrix]]
+row = "smell"
+col = "impact:fantasy"
+verb = "–"
+cut = "cut with the system"
+
+[[matrix]]
+row = "combat"
+col = "impact:lack"
+verb = "Combat"
+cut = "avoidance only, as in the clinic's premise"
+
+[[matrix]]
+row = "combat"
+col = "impact:tooMany"
+verb = "Turns puzzles into ammo maths"
+cut = "no combat, so no ammunition"
+
+[[matrix]]
+row = "combat"
+col = "impact:fantasy"
+verb = "–"
+cut = "cut with combat"
+
+[[matrix]]
+row = "nurse"
+col = "director"
+verb = "Raises tension as she closes on Ada"
+rule = "director"
+
+[[matrix]]
+row = "light"
+col = "director"
+verb = "Walking lit lowers tension"
+rule = "director"
+
+[[matrix]]
+row = "director"
+col = "nurse"
+verb = "Peak: turns her round towards Ada; relief: sends her to sit with Bed 04"
+rule = "director"
+presentation = "she sits at the bedside, still"
+
+[[matrix]]
+row = "director"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "electricity"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "director"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "tool:lighter"
+verb = "Low fuel raises tension, and the flame says it is getting small"
+rule = "director"
+
+[[matrix]]
+row = "director"
+col = "impact:lack"
+verb = "The same pressure all night"
+presentation = "tension builds, peaks and vents"
+
+[[matrix]]
+row = "director"
+col = "impact:tooMany"
+verb = "She is always near"
+presentation = "the relief: she sits with Bed 04 for up to 20 s"
+
+[[matrix]]
+row = "director"
+col = "impact:fantasy"
+verb = "She left me alone just when I could not take any more"
+presentation = "the vigil"
+
+[tunables.fuel]
+value = 50
+min = 20
+max = 120
+unit = "s"
+note = "R15: lighter fuel at the start (src/game/tools.ts FUEL)"
+
+[tunables.torch]
+value = 40
+min = 10
+max = 120
+unit = "s"
+note = "R15: a rag torch burns this long without fuel (src/game/tools.ts TORCH)"
+
+[tunables.lighterRadius]
+value = 2.2
+min = 1
+max = 4
+unit = "m"
+note = "R1: the lighter's gameplay light"
+
+[tunables.torchRadius]
+value = 3
+min = 1
+max = 5
+unit = "m"
+note = "R1: the torch's gameplay light"
+
+[tunables.patrolSpeed]
+value = 1.05
+min = 0.5
+max = 2
+unit = "m/s"
+note = "the Nurse on patrol (Ada walks 3 m/s)"
+
+[tunables.investigateSpeed]
+value = 1.75
+min = 0.5
+max = 3
+unit = "m/s"
+note = "the Nurse going to a noise"
+
+[tunables.huntSpeed]
+value = 2.2
+min = 1
+max = 3
+unit = "m/s"
+note = "R3: the Nurse chasing Ada"
+
+[tunables.fleeSpeed]
+value = 2.8
+min = 1
+max = 4
+unit = "m/s"
+note = "R1: the Nurse fleeing light"
+
+[tunables.sight]
+value = 4.5
+min = 2
+max = 8
+unit = "m"
+note = "R3: how far she sees Ada in the dark, past walls only"
+
+[tunables.catch]
+value = 0.62
+min = 0.3
+max = 1
+unit = "m"
+note = "how close she must come to catch Ada"
+
+[tunables.replan]
+value = 0.25
+min = 0.05
+max = 1
+unit = "s"
+note = "R3: she re-routes to where she saw Ada this often"
+
+[tunables.huntGiveUp]
+value = 1.5
+min = 0.5
+max = 5
+unit = "s"
+note = "R3: at the end of her path, out of sight this long, she investigates"
+
+[tunables.investigateGiveUp]
+value = 2.5
+min = 0.5
+max = 8
+unit = "s"
+note = "R2: at the noise this long, she goes back to her patrol"
+
+[tunables.fleeRest]
+value = 1
+min = 0.2
+max = 5
+unit = "s"
+note = "R1: out of the light this long, she patrols again"
+
+[tunables.edgeGiveUp]
+value = 4
+min = 1
+max = 10
+unit = "s"
+note = "R1: waiting at a light's edge this long, she gives up and patrols"
+
+[tunables.patrolDwell]
+value = 0.6
+min = 0
+max = 5
+unit = "s"
+note = "she pauses this long at each patrol stop"
+
+[tunables.stun]
+value = 8
+min = 2
+max = 20
+unit = "s"
+note = "R5: stunned by a live puddle"
+
+[tunables.fireSpread]
+value = 4
+min = 1
+max = 10
+unit = "s"
+note = "R8: a burning curtain lights the next one after this long"
+
+[tunables.fireAlarmAfter]
+value = 9
+min = 3
+max = 20
+unit = "s"
+note = "R9: a fire burning longer than this sets off the alarm"
+
+[tunables.fireAlarmEvery]
+value = 3
+min = 1
+max = 6
+unit = "s"
+note = "R9: the alarm sounds this often"
+
+[tunables.fireAlarmLoudness]
+value = 13
+min = 5
+max = 20
+unit = "m"
+note = "R9: how far the fire alarm carries"
+
+[tunables.burn]
+value = 24
+min = 8
+max = 60
+unit = "s"
+note = "R7: a curtain burns this long, then is ash"
+
+[tunables.monitorBeepEvery]
+value = 1.5
+min = 0.5
+max = 3
+unit = "s"
+note = "the monitor alarm beeps this often"
+
+[tunables.monitorLoudness]
+value = 10
+min = 4
+max = 16
+unit = "m"
+note = "how far the monitor alarm carries"
+
+[tunables.leakDrain]
+value = 0.12
+min = 0.02
+max = 0.5
+unit = "m/s"
+note = "R12: the puddle shrinks this fast once the valve is shut"
+
+[tunables.leakRefill]
+value = 0.04
+min = 0.01
+max = 0.2
+unit = "m/s"
+note = "R12: a mopped or scooped puddle grows back this fast while the valve is open"
+
+[tunables.liveWater]
+value = 6
+min = 2
+max = 12
+unit = "s"
+note = "R4: a short makes the touching puddles live this long"
+
+[tunables.spark]
+value = 1.2
+min = 0.2
+max = 3
+unit = "s"
+note = "R4: the sparks at the fuse box after a short"
+
+[tunables.bangLoudness]
+value = 14
+min = 6
+max = 20
+unit = "m"
+note = "R4: how far the breaker's bang carries"
+
+[tunables.wetFeet]
+value = 6
+min = 1
+max = 12
+unit = "s"
+note = "she leaves wet prints this long after standing in water"
+
+[tunables.stepEvery]
+value = 0.45
+min = 0.2
+max = 1
+unit = "s"
+note = "Ada's footsteps while she walks"
+
+[tunables.stepLoudness]
+value = 1.8
+min = 0
+max = 5
+unit = "m"
+note = "how far Ada's footsteps carry"
+
+[tunables.sightingLine]
+value = -1.35
+min = -3
+max = 0
+unit = "m (z)"
+note = "walking north past this line, Ada first sees her: she wakes"
+
+[tunables.followDelay]
+value = 2
+min = 1.5
+max = 2.5
+unit = "s"
+note = "door-follow: out of sight, she comes through the door Ada took this long after her"
+
+[tunables.followClear]
+value = 1.5
+min = 1.5
+max = 3
+unit = "m"
+note = "door-follow: she never comes through a door this close to Ada (she waits)"
+
+[tunables.seenHide]
+value = 4
+min = 2
+max = 6
+unit = "m"
+note = "hiding: she sees Ada go in from this close, in sight past the walls, and pulls her out"
+
+[tunables.ambushSting]
+value = 0.6
+min = 0.3
+max = 1.5
+unit = "s"
+note = "the ambush's sting plays this long before she appears"
+
+[tunables.ambushGrace]
+value = 2
+min = 2
+max = 4
+unit = "s"
+note = "after the ambush she stands in the doorway this long before she hunts"
+
+[tunables.directorFrom]
+value = 20
+min = 0
+max = 60
+unit = "s"
+note = "the pacing director: nothing before this long into the scene (the first threat stays as recorded)"
+
+[tunables.threatReach]
+value = 5
+min = 2
+max = 10
+unit = "m"
+note = "the director: a pursuer who can catch Ada raises T from this close"
+
+[tunables.riseThreat]
+value = 0.25
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T rises this fast with the pursuer on top of Ada (less with distance, none at threatReach)"
+
+[tunables.riseDark]
+value = 0.01
+min = 0
+max = 0.1
+unit = "/s"
+note = "the director: T rises this fast while Ada stands in the dark"
+
+[tunables.riseLowFuel]
+value = 0.02
+min = 0
+max = 0.2
+unit = "/s"
+note = "the director: T rises this fast while the lighter's fuel is under lowFuel"
+
+[tunables.riseCrossing]
+value = 0.1
+min = 0
+max = 0.5
+unit = ""
+note = "the director: T steps up this much as Ada crosses into another zone while the pursuer hunts or searches"
+
+[tunables.fallSafe]
+value = 0.1
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T falls this fast in the safe room (reception, where the register is)"
+
+[tunables.fallHidden]
+value = 0.05
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T falls this fast while Ada hides"
+
+[tunables.fallLit]
+value = 0.02
+min = 0
+max = 0.5
+unit = "/s"
+note = "the director: T falls this fast while Ada walks with a flame lit"
+
+[tunables.fallRelief]
+value = 0.08
+min = 0
+max = 0.5
+unit = "/s"
+note = "the director: T falls this fast in relief"
+
+[tunables.peakAt]
+value = 0.6
+min = 0.3
+max = 0.95
+unit = ""
+note = "the director: T at or over this, held peakHold s, is the peak"
+
+[tunables.peakHold]
+value = 3
+min = 0
+max = 10
+unit = "s"
+note = "the director: how long T must hold at peakAt for the peak"
+
+[tunables.ventAt]
+value = 0.85
+min = 0.4
+max = 1
+unit = ""
+note = "the director: in the peak, T at or over this, held ventHold s, vents into relief"
+
+[tunables.ventHold]
+value = 3
+min = 0
+max = 10
+unit = "s"
+note = "the director: how long T must hold at ventAt for the relief"
+
+[tunables.reliefFor]
+value = 20
+min = 5
+max = 60
+unit = "s"
+note = "the director: the relief lasts at most this long"
+
+[tunables.calmAt]
+value = 0.2
+min = 0
+max = 0.5
+unit = ""
+note = "the director: T under this ends a peak or a relief (back to build)"
+
+[tunables.lowFuel]
+value = 15
+min = 5
+max = 30
+unit = "s"
+note = "scarcity: under this much fuel the flame is low (system:fuel.low, once per crossing; T rises)"
+
+[tunables.grappleCost]
+value = 20
+min = 5
+max = 50
+unit = "s"
+note = "the grapple: reached with the lighter and this much fuel, Ada holds the flame up instead of being caught; it costs this much fuel (or all there is) and snuffs the flame"
+
+[tunables.grappleWindow]
+value = 3
+min = 1
+max = 8
+unit = "s"
+note = "the grapple: for this long after it, a touch is no catch, so Ada can get away"
+
+[tunables.grappleCooldown]
+value = 60
+min = 20
+max = 180
+unit = "s"
+note = "the grapple: at most one this often; inside it, a catch is a catch"
+
+[tunables.boltHold]
+value = 5
+min = 3
+max = 30
+unit = "s"
+note = "the bolt: once the Nurse has waited at the bolted supply room door this long in all, coming back to it if she gives up, the bolt slides back by itself and the door eases open"
+
+[tunables.boltReach]
+value = 1.6
+min = 0.8
+max = 3
+unit = "m"
+note = "the bolt: the Nurse waits at it from this close to the door"
+
+[[rules]]
+id = "R1"
+text = "Light repels: the Nurse flees any light that reaches her to the darkest reachable node, and will not step into one (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R2"
+text = "Sound attracts: a noise draws her to it if she is within its loudness, unless she is fleeing, stunned, hunting or asleep (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R3"
+text = "Sight hunts: in the dark she sees Ada within 4.5 m past the walls, and chases her at 2.2 m/s (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R4"
+text = "Water conducts: throwing the breaker while a puddle touches the fuse box bangs, makes the touching puddles live for 6 s, and trips (the verbs fuseBox.seat and fuseBox.retry)."
+when = []
+then = []
+
+[[rules]]
+id = "R5"
+text = "Electricity stuns: the Nurse in a live puddle is stunned for 8 s (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R7"
+text = "Fire emits light: a burning curtain is a light of radius 3.2 m (the scene's lights)."
+when = []
+then = []
+
+[[rules]]
+id = "R10"
+text = "Water extinguishes: a full basin poured on a burning curtain puts it out (the verbs curtainWest.douse and curtainEast.douse)."
+when = []
+then = []
+
+[[rules]]
+id = "R11"
+text = "Fire reveals: a curtain burnt away or cut down uncovers the scratched code (the scratches hotspot)."
+when = []
+then = []
+
+[[rules]]
+id = "R13"
+text = "Cloth mops: the cloth used on a puddle takes it away (the verb puddle.use); the leak brings it back while the valve is open."
+when = []
+then = []
+
+[[rules]]
+id = "grapple"
+text = "The grapple: about to be caught with the lighter carried and 20 s of fuel in it, Ada holds the flame up and the Nurse steps back out of it; it costs 20 s of fuel (or all there is), snuffs the flame and vents the tension; for 3 s a touch is no catch; once a minute (her transitions, src/game/grapple.ts)."
+when = []
+then = []
+
+[[rules]]
+id = "R14"
+text = "Power lights: the fuse seated with a dry fuse box powers the lamps and the exit, and puts the Nurse to sleep (the verbs fuseBox.seat and fuseBox.retry)."
+when = []
+then = []
+
+[[rules]]
+id = "R15"
+text = "Light costs fuel: the lit lighter burns its fuel; the torch burns down without fuel."
+
+[[rules.when]]
+[rules.when.not]
+fact = "light"
+is = "off"
+
+[[rules.then]]
+call = "burnLight"
+
+[[rules]]
+id = "R8"
+text = "Fire spreads: a curtain burning longer than 4 s lights the other; after 24 s it is ash."
+when = []
+
+[[rules.then]]
+call = "fire"
+
+[[rules]]
+id = "R9"
+text = "Fire alarm: a fire burning longer than 9 s sounds the alarm at the ward every 3 s until it is out."
+when = []
+
+[[rules.then]]
+call = "fireAlarm"
+
+[[rules]]
+id = "monitorAlarm"
+text = "The bedside monitor's alarm beeps every 1.5 s while it runs."
+when = []
+
+[[rules.then]]
+call = "monitorBeep"
+
+[[rules]]
+id = "R12"
+text = "Valve drains: with the valve shut the leak's puddle shrinks away; while it is open a mopped or scooped puddle grows back. Live water dies down."
+when = []
+
+[[rules.then]]
+call = "leak"
+
+[[rules]]
+id = "sparks"
+text = "The sparks at the fuse box after a short die down."
+when = []
+
+[[rules.then]]
+call = "sparks"
+
+[[rules]]
+id = "R6"
+text = "Electricity kills: Ada in a live puddle is caught."
+
+[[rules.when]]
+fact = "adaInLiveWater"
+is = true
+
+[[rules.then]]
+[rules.then.emit]
+caught = "shock"
+
+[[rules]]
+id = "footsteps"
+text = "Ada's footsteps make a small noise every 0.45 s while she walks."
+when = []
+
+[[rules.then]]
+call = "footsteps"
+
+[[rules]]
+id = "sighting"
+text = "The first time Ada walks into the corridor she sees the Nurse, who wakes."
+
+[[rules.when]]
+fact = "sighted"
+is = false
+
+[[rules.when]]
+fact = "adaPastSightingLine"
+is = true
+
+[[rules.then]]
+set = "sighted"
+to = true
+
+[[rules.then]]
+call = "wake"
+
+[[rules.then]]
+[rules.then.emit]
+cutscene = "sighting"
+
+[[rules]]
+id = "corridorAmbush"
+text = "Once, after a first fuse attempt that shorts: with Ada in the north corridor and the Nurse patrolling out of sight, she is in the emergency exit's doorway (the sting 0.6 s before, then a 2 s grace)."
+
+[[rules.when]]
+fact = "fuseSeated"
+is = true
+
+[[rules.when]]
+fact = "power"
+is = false
+
+[[rules.when]]
+fact = "adaInCorridor"
+is = true
+
+[[rules.when]]
+fact = "nurseAway"
+is = true
+
+[[rules.when]]
+[rules.when.not]
+fact = "pursuit.ambushes.corridor"
+is = true
+
+[[rules.then]]
+[rules.then.ambush]
+id = "corridor"
+agent = "nurse"
+mode = "ambush"
+at = "end"
+sting = 0.6
+grace = 2
+then = "hunt"
+
+[[rules]]
+id = "wetFeet"
+text = "Water leaves the Nurse's prints: she is wet for 6 s after standing in a puddle."
+
+[[rules.when]]
+[rules.when.not]
+mode = "dormant"
+agent = "nurse"
+
+[[rules.then]]
+call = "wetFeet"
+
+[[rules]]
+id = "barricade"
+text = "The bolt: drawn across the open supply room door from inside, it shuts the door for everyone. The Nurse waits at it from 1.6 m, and comes back to it on her round if she gives up; after 5 s of waiting in all the bolt slides back by itself and the door eases open, without a sound (src/game/barricade.ts)."
+when = []
+
+[[rules.then]]
+call = "barricade"
+
+[[rules]]
+id = "director"
+text = "The pacing director: from 20 s into the scene, tension rises with the Nurse within 5 m of Ada, in the dark, on low fuel and at a crossing while she hunts, and falls in reception, hidden or walking lit. Held at 0.6 for 3 s it peaks (her round turns towards Ada); held at 0.85 for 3 s in the peak it vents into relief (she sits with Bed 04) for up to 20 s. Under 15 s of fuel, the flame is low (system:fuel.low)."
+when = []
+
+[[rules.then]]
+call = "director"
+
+[[agents]]
+id = "nurse"
+modes = [ "dormant", "patrol", "investigate", "hunt", "flee", "stunned", "follow", "ambush", "vigil" ]
+initial = "dormant"
+hooks = [ "stunTick", "chase", "replan", "fleeGoal", "stop", "directorPeak", "grapple" ]
+
+[agents.speed]
+dormant = 0
+patrol = 1.05
+investigate = 1.75
+hunt = 2.2
+flee = 2.8
+stunned = 0
+follow = 2.2
+ambush = 0
+vigil = 1.05
+
+[[agents.senses]]
+[agents.senses.light]
+[[agents.senses]]
+[agents.senses.sound]
+[[agents.senses]]
+[agents.senses.sight]
+range = 4.5
+wallsOnly = true
+
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.62
+
+[[agents.transitions]]
+from = "stunned"
+to = "stunned"
+when = []
+priority = 100
+
+[[agents.transitions.do]]
+call = "stunTick"
+
+[[agents.transitions]]
+from = "stunned"
+to = "patrol"
+priority = 99
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+timer = 0
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions]]
+from = "*"
+to = "stunned"
+priority = 90
+
+[[agents.transitions.when]]
+fact = "self.inLiveWater"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 8
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+[agents.transitions.do.noise]
+at = "self"
+loudness = 0
+kind = "shriek"
+
+[[agents.transitions]]
+from = "*"
+to = "hunt"
+priority = 85
+
+[[agents.transitions.when]]
+[agents.transitions.when.sawHide]
+radius = 4
+los = true
+
+[[agents.transitions.do]]
+set = "pursuit.hidden"
+to = ""
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "*"
+to = "flee"
+priority = 80
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "flee"
+
+[[agents.transitions.when]]
+inLight = true
+
+[[agents.transitions.do]]
+flee = "light"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "patrol"
+to = "vigil"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+goTo = "bedside"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "vigil"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+goTo = "bedside"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "vigil"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+goTo = "bedside"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "follow"
+to = "vigil"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+goTo = "bedside"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "vigil"
+to = "patrol"
+priority = 76
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "patrol"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 69
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "follow"
+priority = 75
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 74
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions]]
+from = "follow"
+to = "hunt"
+priority = 73
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+when = []
+priority = 60
+
+[[agents.transitions.do]]
+call = "replan"
+
+[[agents.transitions]]
+from = "patrol"
+to = "flee"
+priority = 55
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+flee = "player"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "investigate"
+to = "flee"
+priority = 55
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+flee = "player"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "hunt"
+to = "flee"
+priority = 55
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+flee = "player"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "follow"
+to = "flee"
+priority = 55
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+flee = "player"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "patrol"
+to = "patrol"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "nurse"
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "nurse"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "nurse"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "nurse"
+
+[[agents.transitions]]
+from = "*"
+to = "patrol"
+priority = 40
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 4
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "investigate"
+priority = 30
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.when]]
+timer = 1.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "patrol"
+priority = 29
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+timer = 2.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "flee"
+to = "patrol"
+priority = 28
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+inLight = true
+
+[[agents.transitions.when]]
+timer = 1
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "flee"
+to = "flee"
+priority = 27
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+inLight = true
+
+[[agents.transitions.do]]
+call = "fleeGoal"
+
+[[agents.transitions]]
+from = "patrol"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.routine]]
+node = "end"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "cmid"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "mouth"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "hallN"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "ward"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "hallN"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "mouth"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "cmid"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "closet"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "closetN"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "closet"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "cmid"
+dwell = 0.6
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[scenarios]]
+id = "bottleLure"
+claims = "nurseLured"
+policy = "scripted"
+seeds = 20
+
+[scenarios.setup]
+items = [ "bottle" ]
+actions = [ "floor.bottle@cmid" ]
+
+[scenarios.setup.place.player]
+x = 1.75
+z = 1.45
+
+[scenarios.setup.place.nurse]
+x = 0
+z = -6.1
+
+[scenarios.setup.facts]
+sighted = true
+
+[scenarios.expect]
+within = 8
+probability = 0.95
+
+[[scenarios.expect.condition]]
+at = "cmid"
+
+[[scenarios]]
+id = "stunInPuddle"
+claims = "nurseStunned"
+policy = "scripted"
+seeds = 10
+
+[scenarios.setup]
+items = [ "fuse" ]
+actions = [ "fuseBox.seat" ]
+
+[scenarios.setup.place.player]
+x = -0.2
+z = -4.1
+
+[scenarios.setup.place.nurse]
+x = -1.05
+z = -4.1
+
+[scenarios.setup.facts]
+sighted = true
+
+[scenarios.expect]
+within = 2
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "stunned"
+agent = "nurse"
+
+[[scenarios]]
+id = "repelledByLighter"
+claims = "nurseRepelled"
+policy = "scripted"
+seeds = 10
+
+[scenarios.setup]
+items = [ "lighter" ]
+
+[scenarios.setup.place.player]
+x = 0
+z = -1.9
+
+[scenarios.setup.place.nurse]
+x = 0
+z = -3.5
+
+[scenarios.setup.facts]
+sighted = true
+light = "lighter"
+
+[scenarios.expect]
+within = 1
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "flee"
+agent = "nurse"
+
+[[scenarios]]
+id = "followThroughDoor"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "fuseBox.look" ]
+
+[scenarios.setup.place.player]
+x = 0
+z = 0.3
+
+[scenarios.setup.place.nurse]
+x = -2.75
+z = 5.65
+
+[scenarios.setup.facts]
+sighted = true
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 6
+probability = 1
+
+[[scenarios.expect.condition]]
+fact = "self.zone"
+is = "corridor"
+
+[[scenarios]]
+id = "corridorAmbush"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup.place.player]
+x = 0
+z = -3
+
+[scenarios.setup.place.nurse]
+x = -2.75
+z = 5.65
+
+[scenarios.setup.facts]
+sighted = true
+fuseSeated = true
+
+[scenarios.expect]
+within = 4
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "hunt"
+agent = "nurse"
+
+[[scenarios.expect.condition]]
+at = "end"
+
+[[scenarios]]
+id = "hideUnseen"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "hide:locker" ]
+
+[scenarios.setup.place.player]
+x = 3.6
+z = -5
+
+[scenarios.setup.place.nurse]
+x = 0
+z = -6.1
+
+[scenarios.setup.facts]
+sighted = true
+closetOpen = true
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "patrol"
+agent = "nurse"
+
+[[scenarios.expect.condition]]
+fact = "pursuit.hidden"
+is = "locker"
+
+[[scenarios]]
+id = "hideSeen"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "hide:locker" ]
+
+[scenarios.setup.place.player]
+x = 3.6
+z = -5
+
+[scenarios.setup.place.nurse]
+x = 0.3
+z = -4
+
+[scenarios.setup.facts]
+sighted = true
+closetOpen = true
+
+[scenarios.expect]
+within = 8
+probability = 1
+
+[[scenarios.expect.condition]]
+touching = true
+
+[[scenarios]]
+id = "hideAndLeave"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup]
+actions = [ "hide:screen", "hide:screen", "monitor.read" ]
+
+[scenarios.setup.place.player]
+x = -2.6
+z = -1.5
+
+[scenarios.setup.facts]
+sighted = true
+
+[scenarios.expect]
+within = 10
+probability = 1
+
+[[scenarios.expect.condition]]
+fact = "pursuit.hidden"
+is = ""
+
+[[scenarios.expect.condition]]
+fact = "monitorSeen"
+is = true
+
+[[scenarios]]
+id = "vigilInRelief"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup.place.player]
+x = 0
+z = -6.1
+
+[scenarios.setup.place.nurse]
+x = 0
+z = 0.3
+
+[scenarios.setup.facts]
+sighted = true
+"nurse.mode" = "patrol"
+"director.state" = "relief"
+"director.t" = 0.9
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "vigil"
+agent = "nurse"
+
+[[scenarios.expect.condition]]
+at = "bedside"
+
+[[scenarios]]
+id = "boltSlidesBack"
+claims = "nurseBarred"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup]
+actions = [ "closetDoor.bolt" ]
+
+[scenarios.setup.place.player]
+x = 3
+z = -4
+
+[scenarios.setup.place.nurse]
+x = 0.3
+z = -4
+
+[scenarios.setup.facts]
+sighted = true
+closetOpen = true
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 14
+probability = 1
+
+[[scenarios.expect.condition]]
+fact = "boltOpened"
+is = 1
+
+[[scenarios]]
+id = "fireRevealsCode"
+policy = "scripted"
+seeds = 2
+
+[scenarios.setup]
+items = [ "lighter" ]
+actions = [ "curtainWest.light" ]
+
+[scenarios.expect]
+within = 35
+probability = 1
+
+[[scenarios.expect.condition]]
+fact = "curtains.curtainWest"
+is = "ash"
+
+[fairness]
+cautiousWin = 0.9
+firstThreatAfter = 20
+telegraph = 1.5
+maxDeathsPerRun = 1
+safeWindowMargin = 1.3
+ambushGrace = 2
+followClear = 1.5
+hideRelease = 12

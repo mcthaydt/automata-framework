@@ -1,0 +1,3480 @@
+# The adventure source's bay systems (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/systems/scripts/convert-adventure-systems.ts. Do not edit.
+scene = "bay"
+
+[[objects]]
+id = "warmth"
+name = "Warmth"
+signal = "Heat shimmer and a warm pool on the floor; he turns his face to it"
+
+[[objects]]
+id = "sound"
+name = "Sound"
+signal = "Expanding ring on the floor, on-screen caption"
+
+[[objects]]
+id = "fire"
+name = "Fire"
+signal = "Flame sprites in the drum, a blue ring on the burner, orange light"
+
+[[objects]]
+id = "water"
+name = "Water"
+signal = "Steam and a hiss when the drum is doused"
+
+[[objects]]
+id = "light"
+name = "Light"
+signal = "Vertex-lit pools; it does nothing to him"
+
+[[objects]]
+id = "porter"
+name = "The Porter"
+signal = "Stooped figure in a flat cap, muttering; clickable from a distance"
+
+[[objects]]
+id = "crew"
+name = "The crew"
+signal = "A peaked cap and a trolley in the yard; wheels ticking on the ground, a handset"
+
+[[objects]]
+id = "director"
+name = "Tension"
+signal = "The sub-bass dread layer swells and falls with it"
+
+[[matrix]]
+row = "warmth"
+col = "warmth"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "warmth"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "warmth"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "warmth"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "warmth"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "warmth"
+col = "porter"
+verb = "Draws"
+rule = "P1"
+
+[[matrix]]
+row = "sound"
+col = "warmth"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "porter"
+verb = "Attracts"
+rule = "P3"
+
+[[matrix]]
+row = "fire"
+col = "warmth"
+verb = "Gives off"
+rule = "drumBurn"
+presentation = "heat shimmer over the drum"
+
+[[matrix]]
+row = "fire"
+col = "sound"
+verb = "Crackles"
+presentation = "the crackle cue while the drum burns"
+
+[[matrix]]
+row = "fire"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "fire"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "fire"
+col = "light"
+verb = "Emits"
+presentation = "the drum and burner lamps (drumFire, burner)"
+
+[[matrix]]
+row = "fire"
+col = "porter"
+verb = "Lures"
+rule = "P1"
+
+[[matrix]]
+row = "water"
+col = "warmth"
+verb = "Ends"
+rule = "drumBurn"
+presentation = "the basin douses the drum (drum.douse)"
+
+[[matrix]]
+row = "water"
+col = "sound"
+verb = "Hisses"
+presentation = "the douse"
+
+[[matrix]]
+row = "water"
+col = "fire"
+verb = "Extinguishes"
+rule = "drumBurn"
+presentation = "the verb drum.douse"
+
+[[matrix]]
+row = "water"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "porter"
+verb = "Wet prints"
+cut = "not built: he does not cross water in the Bay"
+
+[[matrix]]
+row = "light"
+col = "warmth"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "water"
+verb = "Reveals"
+presentation = "the sink and the wet floor glint"
+
+[[matrix]]
+row = "light"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "porter"
+verb = "Repels"
+cut = "he is blind: light does nothing to him (the clinic's rule, inverted)"
+
+[[matrix]]
+row = "porter"
+col = "warmth"
+verb = "Warms his hands at"
+rule = "P1"
+
+[[matrix]]
+row = "porter"
+col = "sound"
+verb = "Ignores while warm"
+rule = "P2"
+
+[[matrix]]
+row = "porter"
+col = "fire"
+verb = "Sits by"
+rule = "P1"
+
+[[matrix]]
+row = "porter"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "porter"
+col = "light"
+verb = "Puts out"
+cut = "not built: he never snuffs a flame; warmth must stay Ada's lure"
+
+[[matrix]]
+row = "porter"
+col = "porter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "warmth"
+col = "tool:lighter"
+verb = "Hold up the flame where he should go, then snuff it"
+rule = "P10"
+
+[[matrix]]
+row = "warmth"
+col = "tool:matches"
+verb = "Three strikes to light the drum or the burner"
+rule = "P1"
+
+[[matrix]]
+row = "warmth"
+col = "tool:basin"
+verb = "Douse the drum to end the lure on purpose"
+rule = "drumBurn"
+
+[[matrix]]
+row = "warmth"
+col = "tool:bottle"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "warmth"
+col = "tool:scalpel"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:lighter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:matches"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:basin"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "tool:bottle"
+verb = "Throw it to send him into the mortuary, keys in his pocket"
+rule = "P3"
+
+[[matrix]]
+row = "sound"
+col = "tool:scalpel"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "fire"
+col = "tool:lighter"
+verb = "Light the drum or the burner"
+rule = "P1"
+
+[[matrix]]
+row = "fire"
+col = "tool:matches"
+verb = "Light the drum or the burner without the lighter"
+rule = "P1"
+
+[[matrix]]
+row = "fire"
+col = "tool:basin"
+verb = "Put the drum out"
+rule = "drumBurn"
+
+[[matrix]]
+row = "fire"
+col = "tool:bottle"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "fire"
+col = "tool:scalpel"
+verb = "Cut the shroud for cloth; with the lighter, a torch (8 m lure)"
+rule = "P1"
+
+[[matrix]]
+row = "water"
+col = "tool:lighter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "tool:matches"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "tool:basin"
+verb = "Fill it at the mortuary sink"
+presentation = "the verb mortuarySink.fill"
+
+[[matrix]]
+row = "water"
+col = "tool:bottle"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "tool:scalpel"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "porter"
+col = "tool:lighter"
+verb = "A flame in her hand brings him to her"
+rule = "P1"
+
+[[matrix]]
+row = "porter"
+col = "tool:matches"
+verb = "Light his drum while he sits: he leaves the keys"
+rule = "P7"
+
+[[matrix]]
+row = "porter"
+col = "tool:basin"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "porter"
+col = "tool:bottle"
+verb = "Lure him into the cold room, then latch the door"
+rule = "P9"
+
+[[matrix]]
+row = "porter"
+col = "tool:scalpel"
+verb = "No combat"
+cut = "the scalpel is a tool, not a weapon"
+
+[[matrix]]
+row = "warmth"
+col = "impact:lack"
+verb = "He walks his round and keeps his keys"
+presentation = "the padlock stays shut"
+
+[[matrix]]
+row = "warmth"
+col = "impact:tooMany"
+verb = "He is always coming to the flame in her hand"
+presentation = "the lighter reaches 6 m only; fuel runs out"
+
+[[matrix]]
+row = "warmth"
+col = "impact:fantasy"
+verb = "I gave a cold man a fire and took his keys"
+presentation = "the drum"
+
+[[matrix]]
+row = "sound"
+col = "impact:lack"
+verb = "Nothing to send him away with"
+presentation = "the bottle"
+
+[[matrix]]
+row = "sound"
+col = "impact:tooMany"
+verb = "The shutter brings him running"
+presentation = "three cranks, each a 10 m noise"
+
+[[matrix]]
+row = "sound"
+col = "impact:fantasy"
+verb = "I cranked the shutter while he sat by the fire"
+presentation = "P2"
+
+[[matrix]]
+row = "fire"
+col = "impact:lack"
+verb = "No lure, no keys"
+presentation = "three flames and three fuels: matches, lighter, torch; spirit, petrol, fluid"
+
+[[matrix]]
+row = "fire"
+col = "impact:tooMany"
+verb = "He never leaves the fire"
+presentation = "the drum burns 45 s on a fill"
+
+[[matrix]]
+row = "fire"
+col = "impact:fantasy"
+verb = "I lit the dark and the dark came to warm itself"
+presentation = "the drum"
+
+[[matrix]]
+row = "water"
+col = "impact:lack"
+verb = "A lure that will not end"
+presentation = "the basin, the mortuary sink"
+
+[[matrix]]
+row = "water"
+col = "impact:tooMany"
+verb = "–"
+presentation = "one sink"
+
+[[matrix]]
+row = "water"
+col = "impact:fantasy"
+verb = "I ended it when I chose"
+presentation = "the douse"
+
+[[matrix]]
+row = "light"
+col = "impact:lack"
+verb = "Darkness hides nothing from a blind man"
+presentation = "he goes by sound and warmth"
+
+[[matrix]]
+row = "light"
+col = "impact:tooMany"
+verb = "Every flame calls him"
+presentation = "P1"
+
+[[matrix]]
+row = "light"
+col = "impact:fantasy"
+verb = "The flame that saved me now hunts me"
+presentation = "the inversion of the clinic"
+
+[[matrix]]
+row = "porter"
+col = "impact:lack"
+verb = "No dread; a padlock puzzle"
+presentation = "his round passes the shutter"
+
+[[matrix]]
+row = "porter"
+col = "impact:tooMany"
+verb = "Unfair"
+presentation = "one Porter, slower than Ada, and blind"
+
+[[matrix]]
+row = "porter"
+col = "impact:fantasy"
+verb = "I never fought him; I let him get warm"
+presentation = "avoidance only"
+
+[[matrix]]
+row = "combat"
+col = "impact:lack"
+verb = "Combat"
+cut = "avoidance only, as in the clinic"
+
+[[matrix]]
+row = "combat"
+col = "impact:tooMany"
+verb = "–"
+cut = "cut with combat"
+
+[[matrix]]
+row = "combat"
+col = "impact:fantasy"
+verb = "–"
+cut = "cut with combat"
+
+[[matrix]]
+row = "warmth"
+col = "crew"
+verb = "Betrays Ada (a lit flame within 6 m is noticed)"
+rule = "crewSenses"
+
+[[matrix]]
+row = "sound"
+col = "crew"
+verb = "Attracts"
+rule = "crewSenses"
+
+[[matrix]]
+row = "fire"
+col = "crew"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "water"
+col = "crew"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "crew"
+verb = "Repels"
+cut = "it is not repelled: light does nothing to it (the Nurse's rule, not his or theirs)"
+
+[[matrix]]
+row = "porter"
+col = "crew"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "warmth"
+verb = "Goes to look at a lit flame"
+rule = "crewSenses"
+
+[[matrix]]
+row = "crew"
+col = "sound"
+verb = "Wheels tick on the ground"
+rule = "crewSteps"
+presentation = "the trolley's wheels and a handset, heard through walls"
+
+[[matrix]]
+row = "crew"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "light"
+verb = "Puts out"
+cut = "not built: it never snuffs a flame"
+
+[[matrix]]
+row = "crew"
+col = "porter"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "crew"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "tool:lighter"
+verb = "A flame held up on the yard is noticed; held up as it touches Ada it stands off"
+rule = "crewTouch"
+
+[[matrix]]
+row = "crew"
+col = "tool:bottle"
+verb = "Throw it to draw the crew to look"
+rule = "crewSenses"
+
+[[matrix]]
+row = "crew"
+col = "tool:matches"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "tool:basin"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "tool:scalpel"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "crew"
+col = "impact:lack"
+verb = "The yard is a dull walk"
+presentation = "its wheels are heard from 9 m"
+
+[[matrix]]
+row = "crew"
+col = "impact:tooMany"
+verb = "Unfair"
+presentation = "one attendant, slower than Ada; the yard's crates hide her"
+
+[[matrix]]
+row = "crew"
+col = "impact:fantasy"
+verb = "I heard them coming and got to the door"
+presentation = "the wheels"
+
+[[matrix]]
+row = "crew"
+col = "director"
+verb = "Raises tension as it closes on Ada"
+presentation = "the director's threat input counts the crew on the yard"
+
+[[matrix]]
+row = "director"
+col = "crew"
+verb = "Relief: it breaks off and holds where it stands"
+presentation = "the crew holds, still, until the relief ends"
+
+[[matrix]]
+row = "porter"
+col = "director"
+verb = "Raises tension as he closes on Ada"
+rule = "director"
+
+[[matrix]]
+row = "director"
+col = "porter"
+verb = "Peak: his round turns to the stop nearest Ada"
+rule = "director"
+
+[[matrix]]
+row = "director"
+col = "warmth"
+verb = "Lights or puts out a fire"
+cut = "the director never touches the world, only his round"
+
+[[matrix]]
+row = "director"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "fire"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "water"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "director"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "director"
+col = "tool:lighter"
+verb = "Low fuel raises tension, and the flame says it is getting small"
+rule = "director"
+
+[[matrix]]
+row = "director"
+col = "impact:lack"
+verb = "His round never changes"
+presentation = "tension builds, peaks and vents"
+
+[[matrix]]
+row = "director"
+col = "impact:tooMany"
+verb = "He always comes my way"
+presentation = "only in the peak, and only along his round"
+
+[[matrix]]
+row = "director"
+col = "impact:fantasy"
+verb = "He seemed to know where I was"
+presentation = "the reorder"
+
+[tunables.lighterReach]
+value = 6
+min = 2
+max = 12
+unit = "m"
+note = "P1: a lit lighter draws him from this far (along open ways, not through walls)"
+
+[tunables.torchReach]
+value = 8
+min = 2
+max = 14
+unit = "m"
+note = "P1: a lit rag torch draws him from this far"
+
+[tunables.drumReach]
+value = 12
+min = 4
+max = 16
+unit = "m"
+note = "P1: the burning oil drum draws him from this far"
+
+[tunables.burnerReach]
+value = 12
+min = 4
+max = 16
+unit = "m"
+note = "P1: the lit gas burner draws him from this far"
+
+[tunables.routineSpeed]
+value = 1
+min = 0.5
+max = 2
+unit = "m/s"
+note = "P6: his round (Ada walks 3 m/s)"
+
+[tunables.drawnSpeed]
+value = 1.5
+min = 0.5
+max = 2.5
+unit = "m/s"
+note = "P1: going to a warmth"
+
+[tunables.investigateSpeed]
+value = 1.6
+min = 0.5
+max = 2.5
+unit = "m/s"
+note = "P3: going to a noise"
+
+[tunables.searchSpeed]
+value = 1.3
+min = 0.5
+max = 2.5
+unit = "m/s"
+note = "P8: his round once his keys are gone"
+
+[tunables.touch]
+value = 0.65
+min = 0.3
+max = 1
+unit = "m"
+note = "P5: how close he must come to catch Ada"
+
+[tunables.searchHearing]
+value = 1.5
+min = 1
+max = 3
+unit = "×"
+note = "P8: once his keys are gone he hears noises this much further than their loudness"
+
+[tunables.investigateDwell]
+value = 3
+min = 0.5
+max = 8
+unit = "s"
+note = "P3: at a noise he searches this long, then goes back to his round"
+
+[tunables.emberWarm]
+value = 4
+min = 0
+max = 10
+unit = "s"
+note = "P10: where a flame went out he warms this long, then resumes his round"
+
+[tunables.warmSpot]
+value = 1.4
+min = 0.5
+max = 3
+unit = "m"
+note = "P1: within this of a warmth he is warming at it"
+
+[tunables.retarget]
+value = 0.25
+min = 0.05
+max = 1
+unit = "s"
+note = "P1: drawn, he re-routes to a moving warmth (Ada's flame) this often"
+
+[tunables.stir]
+value = 2.5
+min = 0
+max = 6
+unit = "s"
+note = "P12: feeling a warmth he sniffs and turns this long before he goes to it"
+
+[tunables.signIn]
+value = 17
+min = 0
+max = 30
+unit = "s"
+note = "P11: as Ada arrives he signs her into the ledger this long at his first sitting; warmth goes unfelt while his hands are busy"
+
+[tunables.deskDwell]
+value = 9
+min = 2
+max = 20
+unit = "s"
+note = "P6: he sits at his desk this long"
+
+[tunables.drumDwell]
+value = 1
+min = 0
+max = 6
+unit = "s"
+note = "P6: he pauses at the oil drum"
+
+[tunables.drawersDwell]
+value = 4
+min = 0
+max = 10
+unit = "s"
+note = "P6: he checks the mortuary drawers this long"
+
+[tunables.shutterDwell]
+value = 2
+min = 0
+max = 6
+unit = "s"
+note = "P6: he rattles the shutter's chain"
+
+[tunables.searchDwell]
+value = 1
+min = 0
+max = 5
+unit = "s"
+note = "P8: searching, he pauses this long at each stop"
+
+[tunables.drumBurn]
+value = 45
+min = 15
+max = 90
+unit = "s"
+note = "the drum burns this long on one fill"
+
+[tunables.bangEvery]
+value = 1
+min = 0.3
+max = 3
+unit = "s"
+note = "P9: latched in, he bangs on the door twice, this far apart"
+
+[tunables.bangLoudness]
+value = 8
+min = 2
+max = 14
+unit = "m"
+note = "P9: how far his banging carries"
+
+[tunables.stepEvery]
+value = 0.45
+min = 0.2
+max = 1
+unit = "s"
+note = "Ada's footsteps while she walks"
+
+[tunables.stepLoudness]
+value = 1.8
+min = 0
+max = 5
+unit = "m"
+note = "P4: how far Ada's footsteps carry; standing still she makes none"
+
+[tunables.heardHide]
+value = 2.5
+min = 1
+max = 4
+unit = "m"
+note = "P13: he hears Ada climb into a hiding place from this close (blind: no line of sight), and pulls her out"
+
+[tunables.directorFrom]
+value = 20
+min = 0
+max = 60
+unit = "s"
+note = "the pacing director: nothing before this long into the scene (the first threat stays as recorded)"
+
+[tunables.threatReach]
+value = 5
+min = 2
+max = 10
+unit = "m"
+note = "the director: a pursuer who can catch Ada raises T from this close"
+
+[tunables.riseThreat]
+value = 0.25
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T rises this fast with the pursuer on top of Ada (less with distance, none at threatReach)"
+
+[tunables.riseDark]
+value = 0.01
+min = 0
+max = 0.1
+unit = "/s"
+note = "the director: T rises this fast while Ada stands in the dark"
+
+[tunables.riseLowFuel]
+value = 0.02
+min = 0
+max = 0.2
+unit = "/s"
+note = "the director: T rises this fast while the lighter's fuel is under lowFuel"
+
+[tunables.riseCrossing]
+value = 0.1
+min = 0
+max = 0.5
+unit = ""
+note = "the director: T steps up this much as Ada crosses into another zone while the pursuer hunts or searches"
+
+[tunables.fallSafe]
+value = 0.1
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T falls this fast in the safe room (the office, where the ledger is)"
+
+[tunables.fallHidden]
+value = 0.05
+min = 0
+max = 1
+unit = "/s"
+note = "the director: T falls this fast while Ada hides"
+
+[tunables.fallLit]
+value = 0.02
+min = 0
+max = 0.5
+unit = "/s"
+note = "the director: T falls this fast while Ada walks with a flame lit"
+
+[tunables.fallRelief]
+value = 0.08
+min = 0
+max = 0.5
+unit = "/s"
+note = "the director: T falls this fast in relief"
+
+[tunables.peakAt]
+value = 0.6
+min = 0.3
+max = 0.95
+unit = ""
+note = "the director: T at or over this, held peakHold s, is the peak"
+
+[tunables.peakHold]
+value = 3
+min = 0
+max = 10
+unit = "s"
+note = "the director: how long T must hold at peakAt for the peak"
+
+[tunables.ventAt]
+value = 0.85
+min = 0.4
+max = 1
+unit = ""
+note = "the director: in the peak, T at or over this, held ventHold s, vents into relief"
+
+[tunables.ventHold]
+value = 3
+min = 0
+max = 10
+unit = "s"
+note = "the director: how long T must hold at ventAt for the relief"
+
+[tunables.reliefFor]
+value = 20
+min = 5
+max = 60
+unit = "s"
+note = "the director: the relief lasts at most this long"
+
+[tunables.calmAt]
+value = 0.2
+min = 0
+max = 0.5
+unit = ""
+note = "the director: T under this ends a peak or a relief (back to build)"
+
+[tunables.lowFuel]
+value = 15
+min = 5
+max = 30
+unit = "s"
+note = "scarcity: under this much fuel the flame is low (system:fuel.low, once per crossing; T rises)"
+
+[tunables.grappleCost]
+value = 20
+min = 5
+max = 50
+unit = "s"
+note = "the grapple: reached with the lighter and this much fuel, Ada gives him the flame instead of being caught; it costs this much fuel (or all there is) and snuffs the flame"
+
+[tunables.grappleWindow]
+value = 3
+min = 1
+max = 8
+unit = "s"
+note = "the grapple: for this long after it he warms where she stood, and a touch is no catch, so Ada can get away"
+
+[tunables.grappleCooldown]
+value = 60
+min = 20
+max = 180
+unit = "s"
+note = "the grapple: at most one this often; inside it, a catch is a catch"
+
+[tunables.peekNoise]
+value = 4
+min = 0
+max = 10
+unit = "m"
+note = "peeking: easing the mortuary door ajar to look through is a small bang he can hear from this far (he cannot see a peek)"
+
+[tunables.reorderClear]
+value = 1.5
+min = 1.5
+max = 3
+unit = "m"
+note = "the director's peak never turns his round to a stop this close to Ada"
+
+[tunables.crewPatrolSpeed]
+value = 1.1
+min = 0.5
+max = 2
+unit = "m/s"
+note = "the crew on patrol (Ada walks 3 m/s)"
+
+[tunables.crewInvestigateSpeed]
+value = 1.5
+min = 0.5
+max = 2.5
+unit = "m/s"
+note = "the crew going to a noise or a flame"
+
+[tunables.crewHuntSpeed]
+value = 1.9
+min = 1
+max = 2.8
+unit = "m/s"
+note = "the crew chasing Ada: always slower than she is"
+
+[tunables.crewHearing]
+value = 4
+min = 1
+max = 8
+unit = "m"
+note = "the furthest it hears a noise (Ada's footfalls carry only their own 1.8 m)"
+
+[tunables.crewSight]
+value = 5
+min = 2
+max = 8
+unit = "m"
+note = "how far it sees Ada, past furniture but not walls"
+
+[tunables.crewCatch]
+value = 0.62
+min = 0.3
+max = 1
+unit = "m"
+note = "how close it must come to catch Ada"
+
+[tunables.crewReplan]
+value = 0.25
+min = 0.05
+max = 1
+unit = "s"
+note = "it re-routes to where it saw Ada this often"
+
+[tunables.crewHuntGiveUp]
+value = 6
+min = 2
+max = 8
+unit = "s"
+note = "at the end of its path, out of sight this long, it investigates (it persists: longer than the Nurse)"
+
+[tunables.crewInvestigateGiveUp]
+value = 2.5
+min = 0.5
+max = 8
+unit = "s"
+note = "at the noise this long, it goes back to its patrol"
+
+[tunables.crewHoldWait]
+value = 8
+min = 2
+max = 20
+unit = "s"
+note = "standing at a threshold this long, it patrols again"
+
+[tunables.crewBlockWait]
+value = 0.5
+min = 0.1
+max = 3
+unit = "s"
+note = "a step it may not take (a room it never enters) this long, and it holds where it stands"
+
+[tunables.crewKeepOut]
+value = 1.5
+min = 1.5
+max = 3
+unit = "m"
+note = "with Ada out of its ground, behind a door or a wall, it never comes closer than this"
+
+[tunables.crewFlameSight]
+value = 6
+min = 2
+max = 10
+unit = "m"
+note = "a lit lighter or torch within this is noticed: it goes to look"
+
+[tunables.crewSeenHide]
+value = 4
+min = 2
+max = 6
+unit = "m"
+note = "hiding: it sees Ada go in from this close, in sight, and pulls her out"
+
+[tunables.crewFollowDelay]
+value = 2
+min = 1.5
+max = 2.5
+unit = "s"
+note = "door-follow: out of sight, it comes through the door Ada took this long after her"
+
+[tunables.crewFollowClear]
+value = 1.5
+min = 1.5
+max = 3
+unit = "m"
+note = "door-follow: it never comes through a door this close to Ada (it waits)"
+
+[tunables.crewAmbushSting]
+value = 0.6
+min = 0.3
+max = 1.5
+unit = "s"
+note = "its ambush's sting plays this long before it appears"
+
+[tunables.crewAmbushGrace]
+value = 2
+min = 2
+max = 4
+unit = "s"
+note = "after its ambush it stands this long before it hunts"
+
+[tunables.crewPatrolDwell]
+value = 1.5
+min = 0
+max = 5
+unit = "s"
+note = "it pauses this long at each patrol stop"
+
+[tunables.crewStepsEvery]
+value = 0.7
+min = 0.3
+max = 1.2
+unit = "s"
+note = "its trolley's wheels tick this often while it walks"
+
+[tunables.crewStepsLoudness]
+value = 9
+min = 5
+max = 12
+unit = "m"
+note = "how far its wheels carry (directional sound and a wall ring; nothing hears them)"
+
+[tunables.crewCalm]
+value = 1.5
+min = 0.5
+max = 20
+unit = "s"
+note = "after Ada's first step onto the yard the crew neither hunts on sight, notices a flame, nor ambushes for this long (the yard is crossed in about 2 s)"
+
+[[rules]]
+id = "P1"
+text = "Warmth draws: any flame within its reach along open ways (lighter 6 m, torch 8 m, drum or burner 12 m) brings him at 1.5 m/s, and he warms his hands there while it burns; Ada's own flame brings him to Ada (his transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "P2"
+text = "Warmth beats sound: stirring, drawn or warming, he ignores noise (his transitions hear only in routine, signing, investigate and searching)."
+when = []
+then = []
+
+[[rules]]
+id = "P3"
+text = "Sound attracts: a noise within its loudness brings him at 1.6 m/s to search for 3 s (his transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "P4"
+text = "Blind: he has no sight. Standing still, or more than 1.8 m away, Ada is not there for him (no sight sense; the footsteps rule)."
+when = []
+then = []
+
+[[rules]]
+id = "P5"
+text = "Touch: within 0.65 m of Ada he catches her (his transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "grapple"
+text = "The grapple: about to be caught with the lighter carried and 20 s of fuel in it, Ada gives him the flame; he cups his hands round it and warms where she stood, and lets her go. It costs 20 s of fuel (or all there is), snuffs the flame and vents the tension; for 3 s a touch is no catch, and he warms at least that long; once a minute. Nothing harms him (his transitions, src/game/grapple.ts)."
+when = []
+then = []
+
+[[rules]]
+id = "P6"
+text = "Routine: desk (9 s, keys on the hook), oil drum, mortuary drawers (4 s), shutter, desk (his routine)."
+when = []
+then = []
+
+[[rules]]
+id = "P7"
+text = "Keys: warmth makes him hurry and leave the keys on the hook; sound or his round, and he takes them with him (the hooks seekWarmth and takeKeys)."
+when = []
+then = []
+
+[[rules]]
+id = "P8"
+text = "Missing keys: sitting down to an empty hook he searches: noise heard 1.5× further, his round at 1.3 m/s (his transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "P9"
+text = "Latched in: latched in the mortuary, he bangs on the door twice, then is quiet, out of play; his keys come under the door (the verb mortuaryDoor.latch)."
+when = []
+then = []
+
+[[rules]]
+id = "P11"
+text = "Signing in: at his first sitting he signs Ada into the ledger, 17 s; his hands busy, he does not feel warmth, and a flame lit meanwhile draws him as he puts the pen down; a noise makes him look up (his transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "P12"
+text = "Slow to stir: feeling a warmth, he sniffs, turns and says so, standing still 2.5 s, then goes to it; with it gone by then, he goes back to his round (his transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "P13"
+text = "Hiding: in the ambulance cab or drawer 4 Ada is out of his reach; on his feet within 2.5 m as she climbs in, he hears it, pulls her out and reaches for her (his transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "P10"
+text = "Flames end: snuffed while he is drawn to it, he goes to where it last burned, warms 4 s, then resumes his round (his transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "L1"
+text = "Light costs fuel: the lit lighter burns its fuel; the torch burns down without fuel."
+
+[[rules.when]]
+[rules.when.not]
+fact = "light"
+is = "off"
+
+[[rules.then]]
+call = "burnLight"
+
+[[rules]]
+id = "drumBurn"
+text = "The oil drum burns 45 s on one fill, then goes out."
+
+[[rules.when]]
+fact = "drum"
+is = "burning"
+
+[[rules.then]]
+call = "drumBurn"
+
+[[rules]]
+id = "burner"
+text = "The gas burner burns until its tap is closed (the verbs burner.light and burner.off)."
+when = []
+then = []
+
+[[rules]]
+id = "footsteps"
+text = "Ada's footsteps make a 1.8 m noise every 0.45 s while she walks (P4)."
+when = []
+
+[[rules.then]]
+call = "footsteps"
+
+[[rules]]
+id = "crewGround"
+text = "The crew's ground: only the yard (and the west doorway while Ada crosses), never the Bay's dock, office or mortuary, nor any puzzle room: a step off the yard is refused and it holds where it stands (its `refuses`, src/game/crew.ts)."
+when = []
+then = []
+
+[[rules]]
+id = "crewSenses"
+text = "The crew sense: it hears a noise within 4 m, sees Ada past furniture (not walls) within 5 m after the first 1.5 s of the walk, and notices a lit lighter or torch within 6 m (its transitions). Light does not repel it."
+when = []
+then = []
+
+[[rules]]
+id = "crewTouch"
+text = "Touch: within 0.62 m of Ada, on the yard, it catches her; a lifted flame stands it off (the grapple). Nothing harms it. Behind the door it holds outside, never nearer than 1.5 m (its transitions, src/game/grapple.ts)."
+when = []
+then = []
+
+[[rules]]
+id = "crewSteps"
+text = "The crew's wheels: while it walks, they tick on the ground every 0.7 s and carry 9 m (directional sound and a wall ring; nothing hears them)."
+every = 0.7
+
+[[rules.when]]
+fact = "crewWalking"
+is = true
+
+[[rules.then]]
+[rules.then.noise]
+at = "crew"
+loudness = 9
+kind = "footfall"
+
+[[rules]]
+id = "crewAmbush"
+text = "Once, after the first 1.5 s, with Ada past the steps (or crossing the yard) and the crew away, it appears at yardGate (the sting 0.6 s before, then a 2 s grace)."
+
+[[rules.when]]
+[rules.when.not]
+fact = "crewCalming"
+is = true
+
+[[rules.when]]
+fact = "crewCued"
+is = true
+
+[[rules.when]]
+fact = "crewAway"
+is = true
+
+[[rules.when]]
+[rules.when.not]
+fact = "pursuit.ambushes.crewYard"
+is = true
+
+[[rules.then]]
+[rules.then.ambush]
+id = "crewYard"
+agent = "crew"
+mode = "ambush"
+at = "yardGate"
+sting = 0.6
+grace = 2
+then = "hunt"
+
+[[rules.then]]
+call = "crewSay"
+
+[[rules]]
+id = "crewOmens"
+text = "Omens, once each: Ada hears its wheels from 9 m (her line), then sees its cap from 5 m in the open (her line, the second warning before the catch)."
+
+[[rules.when]]
+fact = "crewWalking"
+is = true
+
+[[rules.then]]
+call = "crewOmen"
+
+[[rules]]
+id = "director"
+text = "The pacing director: from 20 s into the act, tension rises with the Porter within 5 m of Ada, in the dark, on low fuel and at a crossing while he searches, and falls in the office, hidden or walking lit. Held at 0.6 for 3 s it peaks: leaving each stop, his round turns to the stop nearest Ada (P6, reordered; nothing else). Held at 0.85 for 3 s it vents into relief for up to 20 s. Under 15 s of fuel, the flame is low (system:fuel.low)."
+when = []
+
+[[rules.then]]
+call = "director"
+
+[[agents]]
+id = "porter"
+modes = [ "routine", "signing", "stirring", "drawn", "warming", "investigate", "searching", "latched" ]
+initial = "routine"
+hooks = [ "bangs", "warmTick", "clock", "seekWarmth", "followWarmth", "nextStop", "takeKeys", "goToHeard", "stop", "directorPeak", "grapple" ]
+
+[agents.speed]
+routine = 1
+signing = 0
+stirring = 0
+drawn = 1.5
+warming = 0
+investigate = 1.6
+searching = 1.3
+latched = 0
+
+[[agents.senses]]
+[agents.senses.warmth.sources]
+lighter = 6
+torch = 8
+drum = 12
+burner = 12
+
+[[agents.senses]]
+[agents.senses.sound]
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.65
+
+[[agents.transitions]]
+from = "latched"
+to = "latched"
+when = []
+priority = 100
+
+[[agents.transitions.do]]
+call = "bangs"
+
+[[agents.transitions]]
+from = "routine"
+to = "investigate"
+priority = 85
+
+[[agents.transitions.when]]
+[agents.transitions.when.sawHide]
+radius = 2.5
+
+[[agents.transitions.do]]
+set = "pursuit.hidden"
+to = ""
+
+[[agents.transitions.do]]
+call = "takeKeys"
+
+[[agents.transitions.do]]
+goTo = "player"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 85
+
+[[agents.transitions.when]]
+[agents.transitions.when.sawHide]
+radius = 2.5
+
+[[agents.transitions.do]]
+set = "pursuit.hidden"
+to = ""
+
+[[agents.transitions.do]]
+call = "takeKeys"
+
+[[agents.transitions.do]]
+goTo = "player"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "searching"
+to = "investigate"
+priority = 85
+
+[[agents.transitions.when]]
+[agents.transitions.when.sawHide]
+radius = 2.5
+
+[[agents.transitions.do]]
+set = "pursuit.hidden"
+to = ""
+
+[[agents.transitions.do]]
+call = "takeKeys"
+
+[[agents.transitions.do]]
+goTo = "player"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "routine"
+to = "warming"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "signing"
+to = "warming"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "stirring"
+to = "warming"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "drawn"
+to = "warming"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "warming"
+to = "warming"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "investigate"
+to = "warming"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "searching"
+to = "warming"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grapple"
+
+[[agents.transitions]]
+from = "routine"
+to = "routine"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "porter"
+
+[[agents.transitions]]
+from = "signing"
+to = "signing"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "porter"
+
+[[agents.transitions]]
+from = "stirring"
+to = "stirring"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "porter"
+
+[[agents.transitions]]
+from = "drawn"
+to = "drawn"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "porter"
+
+[[agents.transitions]]
+from = "warming"
+to = "warming"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "porter"
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "porter"
+
+[[agents.transitions]]
+from = "searching"
+to = "searching"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "porter"
+
+[[agents.transitions]]
+from = "warming"
+to = "warming"
+when = []
+priority = 80
+
+[[agents.transitions.do]]
+call = "warmTick"
+
+[[agents.transitions]]
+from = "warming"
+to = "searching"
+priority = 79
+
+[[agents.transitions.when]]
+fact = "self.cold"
+is = true
+
+[[agents.transitions.when]]
+timer = 4
+
+[[agents.transitions.when]]
+fact = "self.missed"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "nextStop"
+
+[[agents.transitions]]
+from = "warming"
+to = "routine"
+priority = 78
+
+[[agents.transitions.when]]
+fact = "self.cold"
+is = true
+
+[[agents.transitions.when]]
+timer = 4
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions]]
+from = "signing"
+to = "signing"
+when = []
+priority = 81
+
+[[agents.transitions.do]]
+call = "clock"
+
+[[agents.transitions]]
+from = "signing"
+to = "routine"
+priority = 77
+
+[[agents.transitions.when]]
+timer = 17
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "signedIn"
+to = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+line = "There. You’re in the book. Now, where was I? Where was I."
+
+[[agents.transitions]]
+from = "stirring"
+to = "stirring"
+when = []
+priority = 81
+
+[[agents.transitions.do]]
+call = "clock"
+
+[[agents.transitions]]
+from = "stirring"
+to = "drawn"
+priority = 76
+
+[[agents.transitions.when]]
+timer = 2.5
+
+[[agents.transitions.when]]
+warmthWithin = 16
+
+[[agents.transitions.when]]
+fact = "self.feelsWarmth"
+is = true
+
+[[agents.transitions.do]]
+call = "seekWarmth"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "stirring"
+to = "searching"
+priority = 75
+
+[[agents.transitions.when]]
+timer = 2.5
+
+[[agents.transitions.when]]
+fact = "self.missed"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "nextStop"
+
+[[agents.transitions]]
+from = "stirring"
+to = "routine"
+priority = 74
+
+[[agents.transitions.when]]
+timer = 2.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions]]
+from = "routine"
+to = "stirring"
+priority = 70
+
+[[agents.transitions.when]]
+warmthWithin = 16
+
+[[agents.transitions.when]]
+fact = "self.feelsWarmth"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+line = "Is someone warm in here?"
+
+[[agents.transitions]]
+from = "investigate"
+to = "stirring"
+priority = 70
+
+[[agents.transitions.when]]
+warmthWithin = 16
+
+[[agents.transitions.when]]
+fact = "self.feelsWarmth"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+line = "Is someone warm in here?"
+
+[[agents.transitions]]
+from = "searching"
+to = "stirring"
+priority = 70
+
+[[agents.transitions.when]]
+warmthWithin = 16
+
+[[agents.transitions.when]]
+fact = "self.feelsWarmth"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+line = "Is someone warm in here?"
+
+[[agents.transitions]]
+from = "drawn"
+to = "drawn"
+when = []
+priority = 60
+
+[[agents.transitions.do]]
+call = "followWarmth"
+
+[[agents.transitions]]
+from = "routine"
+to = "searching"
+priority = 50
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+at = "desk"
+
+[[agents.transitions.when]]
+fact = "self.keysGone"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+line = "My keys… Who’s had my keys?"
+
+[[agents.transitions.do]]
+set = "self.missed"
+to = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "routine"
+to = "routine"
+priority = 49
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+at = "desk"
+
+[[agents.transitions.when]]
+fact = "keysAt"
+is = "porter"
+
+[[agents.transitions.do]]
+set = "keysAt"
+to = "hook"
+
+[[agents.transitions]]
+from = "routine"
+to = "signing"
+priority = 48
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+at = "desk"
+
+[[agents.transitions.when]]
+fact = "keysAt"
+is = "hook"
+
+[[agents.transitions.when]]
+fact = "signedIn"
+is = false
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+line = "Another for the book. Voss, A. Staff nurse. Let me get you down, love."
+
+[[agents.transitions]]
+from = "drawn"
+to = "warming"
+priority = 40
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "searching"
+priority = 31
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+timer = 3
+
+[[agents.transitions.when]]
+fact = "self.missed"
+is = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "nextStop"
+
+[[agents.transitions]]
+from = "investigate"
+to = "routine"
+priority = 30
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+timer = 3
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions]]
+from = "searching"
+to = "searching"
+priority = 29
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+timer = 1
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "nextStop"
+
+[[agents.transitions]]
+from = "routine"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+call = "takeKeys"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+call = "takeKeys"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "signing"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+set = "signedIn"
+to = true
+
+[[agents.transitions.do]]
+call = "takeKeys"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "searching"
+to = "investigate"
+priority = 19
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+heard = "*"
+reach = 0
+
+[[agents.transitions.when]]
+fact = "self.hearsFar"
+is = true
+
+[[agents.transitions.do]]
+call = "goToHeard"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.routine]]
+node = "desk"
+dwell = 9
+
+[[agents.routine.do]]
+call = "takeKeys"
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "drum"
+dwell = 1
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "drawers"
+dwell = 4
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents.routine]]
+node = "shutter"
+dwell = 2
+
+[[agents.routine.do]]
+call = "directorPeak"
+
+[[agents]]
+id = "crew"
+modes = [ "patrol", "investigate", "hunt", "follow", "hold", "ambush" ]
+initial = "patrol"
+hooks = [ "crewClock", "crewChase", "crewReplan", "crewStop", "crewFlame", "crewSay", "grapple" ]
+
+[agents.speed]
+patrol = 1.1
+investigate = 1.5
+hunt = 1.9
+follow = 1.9
+hold = 0
+ambush = 0
+
+[[agents.senses]]
+[agents.senses.sound]
+reach = 4
+
+[[agents.senses]]
+[agents.senses.sight]
+range = 5
+wallsOnly = true
+
+[[agents.senses]]
+[agents.senses.warmth.sources]
+lighter = 6
+torch = 6
+
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.62
+
+[[agents.transitions]]
+from = "hold"
+to = "hold"
+when = []
+priority = 100
+
+[[agents.transitions.do]]
+call = "crewClock"
+
+[[agents.transitions]]
+from = "hold"
+to = "patrol"
+priority = 99
+
+[[agents.transitions.when]]
+timer = 8
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hold"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grappleCrew"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hold"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grappleCrew"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hold"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grappleCrew"
+
+[[agents.transitions]]
+from = "follow"
+to = "hold"
+priority = 95
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+fact = "grappleReady"
+is = true
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "grapple"
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+cutscene = "grappleCrew"
+
+[[agents.transitions]]
+from = "patrol"
+to = "patrol"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "crew"
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "crew"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "crew"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 90
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "grappleHeld"
+is = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "crew"
+
+[[agents.transitions]]
+from = "*"
+to = "hunt"
+priority = 85
+
+[[agents.transitions.when]]
+[agents.transitions.when.sawHide]
+radius = 4
+los = true
+
+[[agents.transitions.do]]
+set = "pursuit.hidden"
+to = ""
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hold"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "hold"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "hold"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "follow"
+to = "hold"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "follow"
+priority = 75
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 74
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions]]
+from = "follow"
+to = "hunt"
+priority = 73
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "crewCalming"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "crewCalming"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hold"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.when]]
+fact = "adaInGround"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "crewCalming"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "director.state"
+is = "relief"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 69
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+call = "crewChase"
+
+[[agents.transitions]]
+from = "patrol"
+to = "investigate"
+priority = 65
+
+[[agents.transitions.when]]
+warmthWithin = 6
+
+[[agents.transitions.when]]
+fact = "crewSeesFlame"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+fact = "crewCalming"
+is = true
+
+[[agents.transitions.do]]
+call = "crewFlame"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+when = []
+priority = 60
+
+[[agents.transitions.do]]
+call = "crewReplan"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hold"
+priority = 45
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 0.5
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hold"
+priority = 45
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 0.5
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hold"
+priority = 45
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 0.5
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "follow"
+to = "hold"
+priority = 45
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 0.5
+
+[[agents.transitions.do]]
+call = "crewStop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "hunt"
+to = "investigate"
+priority = 30
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.when]]
+timer = 6
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "patrol"
+priority = 29
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+timer = 2.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "patrol"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+call = "crewSay"
+
+[[agents.routine]]
+node = "yardGate"
+dwell = 1.5
+
+[[agents.routine]]
+node = "yardMid"
+dwell = 1.5
+
+[[agents.routine]]
+node = "yardDoor"
+dwell = 1.5
+
+[[agents.routine]]
+node = "yardMid"
+dwell = 1.5
+
+[[scenarios]]
+id = "drumLure"
+claims = "porterAtDrum"
+policy = "scripted"
+seeds = 20
+
+[scenarios.setup]
+items = [ "lighter" ]
+actions = [ "drum.light" ]
+
+[scenarios.setup.place.player]
+x = -0.6
+z = -0.9
+
+[scenarios.setup.place.porter]
+x = 4.15
+z = -3.75
+
+[scenarios.setup.facts]
+keysAt = "hook"
+drumFuel = 1
+
+[scenarios.expect]
+within = 10
+probability = 0.95
+
+[[scenarios.expect.condition]]
+mode = "warming"
+
+[[scenarios.expect.condition]]
+fact = "keysAt"
+is = "hook"
+
+[[scenarios.expect.condition]]
+at = "drum"
+
+[[scenarios]]
+id = "burnerLure"
+claims = "porterAtBurner"
+policy = "scripted"
+seeds = 20
+
+[scenarios.setup]
+items = [ "lighter" ]
+actions = [ "burner.light" ]
+
+[scenarios.setup.place.player]
+x = -4.4
+z = -5.9
+
+[scenarios.setup.place.porter]
+x = 4.15
+z = -3.75
+
+[scenarios.setup.facts]
+keysAt = "hook"
+
+[scenarios.expect]
+within = 14
+probability = 0.95
+
+[[scenarios.expect.condition]]
+mode = "warming"
+
+[[scenarios.expect.condition]]
+fact = "keysAt"
+is = "hook"
+
+[[scenarios.expect.condition]]
+fact = "porterInside"
+is = true
+
+[[scenarios]]
+id = "flashLure"
+claims = "porterAtFlame"
+policy = "scripted"
+seeds = 20
+
+[scenarios.setup]
+items = [ "lighter" ]
+actions = [ "floor.lighter" ]
+
+[scenarios.setup.place.player]
+x = 0.9
+z = -2.6
+
+[scenarios.setup.place.porter]
+x = 4.15
+z = -3.75
+
+[scenarios.setup.facts]
+keysAt = "hook"
+
+[scenarios.expect]
+within = 4
+probability = 0.95
+
+[[scenarios.expect.condition]]
+mode = "drawn"
+
+[[scenarios.expect.condition]]
+fact = "keysAt"
+is = "hook"
+
+[[scenarios.expect.condition]]
+[scenarios.expect.condition.not]
+at = "desk"
+
+[[scenarios]]
+id = "bottleIntoMortuary"
+claims = "porterInvestigating"
+policy = "scripted"
+seeds = 20
+
+[scenarios.setup]
+items = [ "bottle" ]
+actions = [ "floor.bottle@drawers" ]
+
+[scenarios.setup.place.player]
+x = -3.6
+z = -1.4
+
+[scenarios.setup.place.porter]
+x = 0.5
+z = -5.2
+
+[scenarios.expect]
+within = 10
+probability = 0.95
+
+[[scenarios.expect.condition]]
+mode = "investigate"
+
+[[scenarios.expect.condition]]
+fact = "porterInside"
+is = true
+
+[[scenarios]]
+id = "latchHimIn"
+claims = "porterLatched"
+policy = "scripted"
+seeds = 10
+
+[scenarios.setup]
+actions = [ "mortuaryDoor.latch" ]
+
+[scenarios.setup.place.player]
+x = -1.8
+z = -4
+
+[scenarios.setup.place.porter]
+x = -2.2
+z = -9.3
+
+[scenarios.setup.facts]
+keysAt = "porter"
+
+[scenarios.expect]
+within = 3
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "latched"
+
+[[scenarios.expect.condition]]
+fact = "porterOut"
+is = true
+
+[[scenarios.expect.condition]]
+fact = "keysAt"
+is = "door"
+
+[[scenarios]]
+id = "warmthBeatsSound"
+policy = "scripted"
+seeds = 10
+
+[scenarios.setup]
+actions = [ "shutter.crank1", "shutter.crank2" ]
+
+[scenarios.setup.place.player]
+x = 1
+z = -4.5
+
+[scenarios.setup.place.porter]
+x = -0.4
+z = -2.7
+
+[scenarios.setup.facts]
+drum = "burning"
+drumTime = 45
+padlock = false
+
+[scenarios.expect]
+within = 15
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "warming"
+
+[[scenarios.expect.condition]]
+fact = "shutter"
+is = 2
+
+[[scenarios]]
+id = "hideUnheard"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "hide:cab" ]
+
+[scenarios.setup.place.player]
+x = 2.3
+z = 4.1
+
+[scenarios.setup.place.porter]
+x = 4.15
+z = -3.75
+
+[scenarios.setup.facts]
+keysAt = "porter"
+signedIn = true
+"porter.mode" = "investigate"
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "routine"
+agent = "porter"
+
+[[scenarios.expect.condition]]
+fact = "pursuit.hidden"
+is = "cab"
+
+[[scenarios]]
+id = "hideHeard"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "hide:cab" ]
+
+[scenarios.setup.place.player]
+x = 2.3
+z = 4.1
+
+[scenarios.setup.place.porter]
+x = 2
+z = 2.6
+
+[scenarios.setup.facts]
+signedIn = true
+
+[scenarios.expect]
+within = 8
+probability = 1
+
+[[scenarios.expect.condition]]
+touching = true
+
+[[scenarios]]
+id = "peakReorder"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup.place.player]
+x = -4.4
+z = -5.9
+
+[scenarios.setup.place.porter]
+x = 4.15
+z = -3.75
+
+[scenarios.setup.facts]
+keysAt = "hook"
+signedIn = true
+"director.state" = "peak"
+"director.t" = 0.7
+
+[scenarios.expect]
+within = 30
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "routine"
+agent = "porter"
+
+[[scenarios.expect.condition]]
+at = "drawers"
+
+[[scenarios]]
+id = "hideAndLeave"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup]
+actions = [ "hide:cab", "hide:cab", "ambulance.search" ]
+
+[scenarios.setup.place.player]
+x = 2.3
+z = 4.1
+
+[scenarios.setup.place.porter]
+x = 4.15
+z = -3.75
+
+[scenarios.setup.facts]
+signedIn = true
+
+[scenarios.expect]
+within = 10
+probability = 1
+
+[[scenarios.expect.condition]]
+fact = "pursuit.hidden"
+is = ""
+
+[[scenarios.expect.condition]]
+fact = "ambulance"
+is = 1
+
+[[scenarios]]
+id = "yardAmbush"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup.place.player]
+x = -9.875
+z = -1.4
+
+[scenarios.setup.facts]
+arrived = false
+
+[scenarios.expect]
+within = 10
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "hunt"
+agent = "crew"
+
+[[scenarios]]
+id = "yardHide"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "hide:yardCrates" ]
+
+[scenarios.setup.place.player]
+x = -5.875
+z = -2.2
+
+[scenarios.setup.place.crew]
+x = -11.3
+z = -1
+
+[scenarios.setup.facts]
+arrived = false
+"crew.mode" = "hunt"
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "patrol"
+agent = "crew"
+
+[[scenarios.expect.condition]]
+fact = "pursuit.hidden"
+is = "yardCrates"
+
+[[scenarios]]
+id = "yardHold"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup.place.player]
+x = -4.3
+z = -1.9
+
+[scenarios.setup.facts]
+arrived = true
+"crew.mode" = "hold"
+"crew.x" = -6.675
+"crew.z" = -1.9
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "patrol"
+agent = "crew"
+
+[[scenarios.expect.condition]]
+[scenarios.expect.condition.not]
+touching = true
+
+[fairness]
+cautiousWin = 0.9
+firstThreatAfter = 20
+telegraph = 1.5
+maxDeathsPerRun = 1
+safeWindowMargin = 1.3
+ambushGrace = 2
+followClear = 1.5
+hideRelease = 12

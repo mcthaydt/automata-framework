@@ -12,7 +12,8 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./sim": "./src/sim/index.ts"
+    "./sim": "./src/sim/index.ts",
+    "./testing/clinic": "./src/testing/clinic.ts"
   },
   "automata": {
     "simEntries": [
