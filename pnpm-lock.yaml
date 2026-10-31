@@ -397,6 +397,9 @@ importers:
       '@mcthaydt/automata-node':
         specifier: file:../../.core/packs/automata-node
         version: file:.core/packs/automata-node
+      '@mcthaydt/automata-puzzle':
+        specifier: workspace:*
+        version: link:../../packages/puzzle
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
