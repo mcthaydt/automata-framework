@@ -25,13 +25,18 @@ Mirror of `games/emberwick` (flow, saves, settings, HUD) with these 3D parts:
 
 - **Flow:** splash → menu (New, Continue, Settings) → play → pause (Resume, Settings, Quit to title) → end screen (goal reached). Same screens, same words in the game's language, same Ruken/itch/web/tauri targets through `Hosting` (ADR 0006).
 - **Saves:** one slot through `Hosting`; progress (embers collected, goal reached) with a migration from version 1; a denied or missing hosted capability never falls back to device storage.
-- **Area:** one small room or yard authored as one `af-sector/1` file in ED3D, with camera-view ids and occlude walls where the room needs them.
-- **Hero:** Wick as a procedural figure with the IK rig, idle and walk clips; third-person controller (camera-relative movement, linear ramp, M3R-D15 latch, heading in the sim); the angled 24 mm free-turn camera (25° down, 5 m back), on klipp where M9.1 pins it.
-- **Pickups and goal:** embers (collectable, counted in the HUD); no health. A goal object ends the run, as Emberwick's goal does.
-- **HUD and controls:** embers count, pause button, move stick plus camera drag on touch, keys and gamepad; 44 px touch targets; the landscape rotate gate as the 2D game decides for phones.
-- **Content in the editors:** the room in ED3D, Wick in the Studio, text through core localization, tuning through the Tuner, sounds in the suite where EDS.0 gives a format.
+- **The verb: dodge.** Emberwick has one verb beyond walking, the jump, which carries the hero across gaps. The 3D equivalent is the **dodge roll** (already built in `systems/hero.ts` from #342): a lunge that carries Wick across a slag channel or pit that walking cannot cross. No enemies, so no i-frames in play; the roll is a movement verb. Distance, speed and timing are tuning, authored in the Tuner.
+- **Area:** one room authored as one `af-sector/1` file in ED3D (ledges, one or two channels or pits the roll crosses, the camera-view ids and occlude walls the room needs). Falling into a channel or pit puts Wick back on the last safe spot with no loss (the fall-and-recover code from #342 stays).
+- **Hero:** Wick as a procedural figure with the IK rig and idle, walk and roll clips (authored in the Studio); the third-person controller (camera-relative movement, linear ramp, M3R-D15 latch, heading in the sim); the angled 24 mm free-turn camera (25 degrees down, 5 m back), on klipp where M9.1 pins it.
+- **Pickups and goal:** embers (some on the roll-reachable side), counted in the HUD; the goal ember is last and ends the run, as Emberwick's goal does. No health.
+- **HUD and controls:** ember count and pause button; touch: stick, camera drag and one roll button; keys and gamepad; 44 px touch targets; the landscape rotate gate as the 2D game decides for phones.
+- **Authored in the editors:** the room in ED3D, Wick and his clips in the Studio, strings through core localization, tuning (roll included) through the Tuner, sounds in the suite where EDS.0 gives a format. An edit an editor cannot make is made by hand and logged as an editor gap for its lane.
 
 Out of the free game: lock-on, combat, hurt and fall, health and hearts, enemies, the boss, weapons, shield, sling, bombs, hookchain, keys, doors, switches, blocks, chests as puzzle pieces, the map and inventory screens, ground-contact IK on stairs (GAME-3D.1g stays cut), cutscenes beyond the intro line.
+
+## 2b. Emberwick built off the 2D editors (both reference games come from the suites)
+
+Emberwick's room is a hard-coded tile string (`games/emberwick/src/content/room.ts`, a stand-in "until the content compiler lands"). New row **GAME-2D.ED**: author the room (tiles, start, goal ember) in the 2D editor as a `.af2d.json` project exported through the ED2D.3 content export, and its tuning through the Tuner; the game reads the exported content; the golden (`31f50888ccb4cf0a`) is unchanged because the room is the same room; editor gaps are logged. Prerequisites ED2D.3 (merged) and the content compiler path M1.3.
 
 ## 3. Interfaces and ownership
 
@@ -48,6 +53,8 @@ Out of the free game: lock-on, combat, hurt and fall, health and hearts, enemies
 ## 5. Acceptance cases
 
 - **F3-a:** the journeys at the phone sizes cover splash → menu → play → collect every ember → goal → end, and pause/settings/quit.
+- **F3-g:** the roll crosses the channel and walking does not (sim case); the golden route includes one roll across a gap and one fall-and-recover.
+- **F3-h:** the room, Wick and the tuning load from editor-authored files (`af-sector`, figure, tuning), with no hand-written room data in `src/`.
 - **F3-b:** a golden replay (new route golden) is identical in Node, Chromium, WebKit and Firefox.
 - **F3-c:** `pnpm boundaries --game base-3d` is clean and the game imports only free packages.
 - **F3-d:** a save written by the free game round-trips through `Hosting`; a denied capability shows the hosted failure, with no device fallback (adapter tests).
@@ -64,9 +71,10 @@ Out of the free game: lock-on, combat, hurt and fall, health and hearts, enemies
 | 1f dungeon pieces | Seed only; moves to Plus (M9.6); no further AF work |
 | 1g ground-contact IK | Stays cut (M9.7 keeps the free `figures` probe only if the controller needs it; otherwise cut) |
 | 1h, 1i | Finish with #354 as the seed |
-| 1j figures | Wick only (the other characters belong to Plus content) |
+| 1j figures | Wick only, with idle, walk and roll clips (the other characters belong to Plus content) |
 | 1k text, tuning, audio, feel | The free game's strings, tuning and sounds; no feel or cutscene work in AF |
 | **1m (new)** | Strip the adventure from `games/base-3d` to the free game (§2); new route golden; Plus copy green first |
+| **GAME-2D.ED (new)** | Emberwick authored in the 2D editors (§2b); golden unchanged |
 | 1l gates, deploy, acceptance | Over the free game (F3-a to F3-e) |
 | M9.2 | Third-person controller and camera, free: unchanged |
 | M9.3 to M9.6 | Plus; unchanged, now fed by the seed copy |
