@@ -59,7 +59,7 @@ Out: store (M7.7+), `createHeadlessClient`/`twoClientReplay` (M7.6), game-specif
 Each step: write the test, see it fail for the stated reason, write the minimum, see it pass.
 
 1. `RenderClock`: the delay and the drawn moment (ported tests). Fails: no module.
-   - [ ] 1
+   - [x] 1
 2. `SnapshotBuffer<T>` and `blendFields` (ported tests). Fails: no module.
    - [ ] 2
 3. `NetDiagnostics` and the thresholds (ported tests). Fails: no module.
