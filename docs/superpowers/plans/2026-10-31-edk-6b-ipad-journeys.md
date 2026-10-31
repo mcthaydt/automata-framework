@@ -55,7 +55,7 @@ note on the harness).
   undo restores it).
 - [x] 5. EK-b (Pencil down, then a palm: the palm is ignored, the stroke unaffected) and EK-i (teardown mid-gesture:
   capture released, nothing fires after).
-- [ ] 6. EK-c (rotate mid-drag of a slider: the drag ends cancelled, the value unchanged, no remount, the panel's scroll
+- [x] 6. EK-c (rotate mid-drag of a slider: the drag ends cancelled, the value unchanged, no remount, the panel's scroll
   kept) and EK-g at all four profiles (the layout contract; every action reachable).
 - [ ] 7. editor-2d gets the project and script; the kit spec's as-built note; gates: `pnpm format`,
   `TURBO_FORCE=true pnpm check`, the kit's `test:layout` and `test:journeys`, editor-2d `test:parity`.
@@ -83,3 +83,10 @@ note on the harness).
   first runs passed; each reads an outcome only the dispatched events can produce (a changed value, a pen-only log).
   Limit: a synthetic pointer cannot be captured in WebKit (`setPointerCapture` throws `NotFoundError`, which the kit
   swallows), so EK-i's "capture released" is trivially true here and stays the device pass's to prove.
+- 2026-10-31, step 6: EK-c (the drag first moves the value, then the window turns and the touch is cancelled, as
+  iPadOS does: the value is back at 50 with no undo step, `data-mount` unchanged, the panel's scroll the same) and
+  EK-g (the shell fixture's layout contract with the top bar and rail reachable) at the four profiles. EK-c failed
+  twice on the fixture, not the kit: its gap was `120vh`, so turning the window resized the content and the browser
+  clamped the scroll (978 to 726 px); with a fixed 1600 px gap the slider sat near the end, and the taller portrait
+  panel clamped it again (1325 to 1145 px); with the same gap below the slider it passes. `test:journeys`: 4 files,
+  18 tests.

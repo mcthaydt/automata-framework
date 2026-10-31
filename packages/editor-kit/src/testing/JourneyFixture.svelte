@@ -1,8 +1,8 @@
 <!--
   The page the kit's iPad journeys drive (plan EDK.6b decision 4; kit spec §9): a stepper and, below a tall gap in the
-  same scroll region, a slider, both editing a kit `History` the journey holds; and a surface that reports every
-  gesture the kit's recogniser makes of what lands on it. `data-mount` changes only when the fixture mounts again, so a
-  journey can tell a remount from a re-render.
+  same scroll region, a slider with as much room below it, both editing a kit `History` the journey holds; and a
+  surface that reports every gesture the kit's recogniser makes of what lands on it. `data-mount` changes only when the
+  fixture mounts again, so a journey can tell a remount from a re-render.
 -->
 <script module lang="ts">
 let mounts = 0
@@ -71,6 +71,7 @@ $effect(() => {
     <Stepper label="Hit points" value={shown.hp} min={0} max={99} pixelsPerStep={8} onedit={edit('hp')} />
     <div class="gap"></div>
     <Slider label="Volume" value={shown.volume} min={0} max={100} onedit={edit('volume')} />
+    <div class="gap"></div>
   </div>
   <div class="surface" data-testid="surface" bind:this={surface}></div>
 </div>
@@ -85,8 +86,9 @@ $effect(() => {
     overflow-y: auto;
     padding: 16px;
   }
+  /* A fixed height, so turning the iPad changes the panel, not its content (EK-c reads the scroll back). */
   .gap {
-    height: 120vh;
+    height: 1600px;
   }
   .surface {
     background: #222;
