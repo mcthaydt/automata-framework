@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*-itch.zip
+.automata/
+dist-tauri/
