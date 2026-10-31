@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 // The bin as a person or an agent starts it: Node runs src/cli.ts from source, with stdin closed, so a prompt would
@@ -71,5 +72,57 @@ describe('the automata-pipe bin', () => {
     } finally {
       rmSync(cwd, { recursive: true, force: true })
     }
+  })
+})
+
+// SB-D6: the bin loads an extension's TypeScript sources, and a game's scene module, when a stage runs; their
+// extensionless imports resolve through the bin's hook (ts-resolve.ts).
+describe('the bin runs an extension’s pipeline from source', () => {
+  const resolve = createRequire(import.meta.url).resolve
+  /** A scene folder whose `scene.ts` re-exports `name` from `module`, with the pipeline's spec. */
+  const folder = (module: string, name: string, files: Readonly<Record<string, string>>) => {
+    const dir = mkdtempSync(join(tmpdir(), 'pipe-bin-'))
+    writeFileSync(join(dir, 'pipeline.toml'), '[budget]\n')
+    writeFileSync(
+      join(dir, 'scene.ts'),
+      `export { ${name} } from ${JSON.stringify(pathToFileURL(module).href)}\n`,
+    )
+    for (const [file, text] of Object.entries(files)) writeFileSync(join(dir, file), text)
+    return dir
+  }
+  const runs = (dir: string, pipeline: string) => {
+    try {
+      const out = pipe(pipeline, 'run', dir, '--json')
+      const json = JSON.parse(out.stdout) as { ok: boolean; error?: string; stages: { state: string }[] }
+      return { status: out.status, ok: json.ok, error: json.error, states: json.stages.map((s) => s.state) }
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  }
+
+  it('systems run', () => {
+    const dir = folder(resolve('@mcthaydt/automata-systems/testing/ward-scene.pipe'), 'scene', {
+      'systems.pipe.toml': 'scene = "./scene.ts"\nseeds = 1\npolicies = ["scripted"]\n',
+    })
+    expect(runs(dir, 'systems')).toEqual({
+      status: 0,
+      ok: true,
+      error: undefined,
+      states: ['done', 'done', 'done'],
+    })
+  })
+
+  it('puzzle run', () => {
+    const dir = folder(resolve('@mcthaydt/automata-puzzle/testing/toy-scene.pipe'), 'puzzle', {
+      'toy.puzzle.toml': '# the toy puzzle\n',
+      'puzzle.pipe.toml': 'scene = "./scene.ts"\nsources = ["toy.puzzle.toml"]\n',
+    })
+    const run = runs(dir, 'puzzle')
+    expect({ ...run, states: [...new Set(run.states)] }).toEqual({
+      status: 0,
+      ok: true,
+      error: undefined,
+      states: ['done'],
+    })
   })
 })

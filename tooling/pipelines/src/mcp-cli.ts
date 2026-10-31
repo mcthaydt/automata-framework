@@ -5,6 +5,10 @@ import { Layer, ManagedRuntime } from 'effect'
 import { SIGNAL_CODES } from './main.ts'
 import { createPipelinesServer, interruptCalls } from './mcp-server.ts'
 import { REGISTERED } from './registry.ts'
+import { registerTsResolve } from './ts-resolve.ts'
+
+// Before any stage loads an extension or a scene module (SB-D6).
+registerTsResolve()
 
 // The `automata-pipe-mcp` bin: the pipelines MCP server over stdio, started by the agent's client in the project root
 // (it bounds the targets). stdout is the protocol; the one log line goes to stderr. A client registers it as
