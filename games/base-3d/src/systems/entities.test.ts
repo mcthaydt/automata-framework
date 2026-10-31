@@ -118,6 +118,25 @@ describe('area entities (GAME-3D.1f part 1, G3-F2)', () => {
     ).toBe('entities[1].id')
   })
 
+  it('builds the same posts the old `posts` list did: the same places in the same order, other pieces between', () => {
+    // The list part 3 of 1e read (`posts: [{ x, z }, …]`) and the same points as hook-post entities.
+    const points = [
+      { x: 1, z: 9 },
+      { x: -3, z: 2.5 },
+      { x: 0, z: 11 },
+    ]
+    const asList = points.map((p) => ({ x: metres(p.x), z: metres(p.z) }))
+    const area = compileArea(
+      withEntities([
+        { def: 'hook-post', id: 'a', ...points[0] } as never,
+        { def: 'pot', id: 'pot', x: 3, z: -3, drop: 'pot' },
+        { def: 'hook-post', id: 'b', ...points[1] } as never,
+        { def: 'hook-post', id: 'c', ...points[2] } as never,
+      ]),
+    )
+    expect(area.posts).toEqual(asList)
+  })
+
   it('makes the hook posts from hook-post entities', () => {
     const area = compileArea(withEntities([{ def: 'hook-post', id: 'p', x: 1, z: 9 }]))
     expect(area.posts).toEqual([{ x: metres(1), z: metres(9) }])
