@@ -1,3 +1,4 @@
+import type { Workspace } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import type { Component, Snippet } from 'svelte'
 import type { DrawView } from '../../canvas/draw/draw-list-types'
@@ -42,6 +43,8 @@ export interface ViewServices {
    * Absent where nothing can be located.
    */
   readonly locate?: ((path: string) => void) | undefined
+  /** Where the Export view writes: the document's store (a folder store takes Write to folder) and the downloads. */
+  readonly workspace?: Pick<Workspace, 'store' | 'exports' | 'persistent'> | undefined
 }
 
 /** What the Level view hands its canvas (`LevelCanvas.svelte`'s props). */
