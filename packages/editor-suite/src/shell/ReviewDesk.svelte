@@ -66,9 +66,9 @@ const count = (value: number): string => value.toLocaleString('en-US')
       {#if review.gates.reopened.length === 0}
         <p class="note">No gates.</p>
       {:else}
-        <ul>
+        <ul class="gates">
           {#each review.gates.reopened as gate (gate.id)}
-            <li>
+            <li data-gate={gate.id}>
               <span>{gate.decision === 'unknown' ? `${gate.name}: state unknown` : gate.decision === 'open' ? `${gate.name}: open, no decision yet` : `${gate.name}: ${gate.decision} before this change; reopened`}</span>
               {#if gate.url !== undefined}<a href={gate.url} target="_blank" rel="noreferrer">{`${gate.name} record`}</a>{/if}
             </li>
@@ -126,11 +126,36 @@ const count = (value: number): string => value.toLocaleString('en-US')
   [data-status='error'] > span {
     color: var(--color-state-bad);
   }
+  /* A gate is one row, its state then its record link, that wraps as a unit with one gap to the next. */
+  .gates {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-left: 0;
+    list-style: none;
+  }
+  .gates li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    align-items: center;
+  }
+  /* Sized like the kit's plain button: a 44 px target, not a line of text. */
   a {
     display: inline-flex;
     align-items: center;
-    min-height: 44px;
-    margin-left: var(--space-2);
+    box-sizing: border-box;
+    min-width: var(--size-hit);
+    min-height: var(--size-hit);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
     color: var(--color-accent-default);
+    font: var(--text-body-13-medium);
+    text-decoration: none;
+  }
+  a:focus-visible {
+    outline: 2px solid var(--color-accent-default);
+    outline-offset: 2px;
   }
 </style>

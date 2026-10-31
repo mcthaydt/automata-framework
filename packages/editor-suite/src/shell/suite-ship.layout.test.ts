@@ -162,6 +162,18 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
       .querySelector<HTMLElement>('[data-testid="review-desk"] pre')
       ?.getBoundingClientRect()
     expect(diff?.right).toBeLessThanOrEqual((desk?.right ?? 0) + 0.5)
+    const rows = [...document.querySelectorAll<HTMLElement>('[data-testid="review-desk"] [data-gate]')]
+    expect(rows.map((row) => row.dataset.gate)).toEqual(['g-feel', 'g-speed'])
+    for (const row of rows) {
+      const link = row.querySelector('a')?.getBoundingClientRect()
+      expect(link?.height, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(44)
+      expect(link?.width, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(44)
+    }
+    // One gap between gate rows, however each row wraps.
+    const [feel, speed] = rows.map((row) => row.getBoundingClientRect())
+    const gap = (speed?.top ?? 0) - (feel?.bottom ?? 0)
+    expect(gap).toBeGreaterThanOrEqual(4)
+    expect(gap).toBeLessThanOrEqual(12.5)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/review-desk-${size.name}.png` })
   })
@@ -181,6 +193,9 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
     await expect.poll(() => dialog.querySelector('[data-kind="added"]')).not.toBeNull()
     await settleLayout()
     reachable('Apply', dialog, size)
+    const chooser = button('Choose a file', dialog).getBoundingClientRect()
+    expect(chooser.height).toBeGreaterThanOrEqual(44)
+    expect(chooser.width).toBeGreaterThanOrEqual(44)
     expect(button('Apply', dialog)).not.toHaveProperty('disabled', true)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/interchange-${size.name}.png` })
