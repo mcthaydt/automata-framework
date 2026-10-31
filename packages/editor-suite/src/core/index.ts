@@ -18,4 +18,20 @@ export {
   type GateRow,
 } from './editors.schema'
 export { globMatch } from './glob'
+export {
+  applyImport,
+  type ExportFile,
+  exportInterchange,
+  type ImportPlan,
+  INTERCHANGE_FORMAT,
+  INTERCHANGE_VERSION,
+  type InterchangeDocument,
+  interchangeSchema,
+  type PlanImportOptions,
+  type PlannedChange,
+  type PlanRefusal,
+  planImport,
+} from './interchange'
+export { type ReviewChangeSet, type ReviewFile, type ReviewGates, reviewModel } from './review-model'
+export { draftShip } from './ship-draft'
 export { ALWAYS_NEVER, type FileAccess, fileAccess, workspaceFile } from './workspace-policy'

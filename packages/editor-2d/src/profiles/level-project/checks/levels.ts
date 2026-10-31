@@ -3,7 +3,7 @@ import type { Grid } from '../../../model/grid'
 import type { LayerDef, LayerInstance, Level, Project, World } from '../../../model/project-types'
 import { tilesetTiles } from '../../../model/tileset-grid'
 import type { Diagnostic } from '../../profile'
-import { diagnostic, itemPath, layerPath, levelPath, plural } from './diagnostics'
+import { agree, diagnostic, itemPath, layerPath, levelPath, plural } from './diagnostics'
 
 // Checks of the levels and the worlds that place them (2D editor spec §9, "Levels" and "Editor-only"). Everything here
 // concerns what is in a level; what its entities' fields say is `entities.ts`, and what they point at is `links.ts`.
@@ -32,7 +32,7 @@ function tileCellsBeyond(grid: Grid, count: number, path: string, tilesetId: str
       'error',
       'tileOutOfRange',
       path,
-      `${plural(bad.length, 'cell')} use tiles beyond the ${count} tiles of tileset "${tilesetId}" (${firstAt(bad)}).`,
+      `${plural(bad.length, 'cell')} ${agree(bad.length, 'uses', 'use')} tiles beyond the ${count} tiles of tileset "${tilesetId}" (${firstAt(bad)}).`,
       'remove',
     ),
   ]
@@ -62,7 +62,7 @@ function layerChecks(project: Project, level: Level, def: LayerDef, layer: Layer
           'error',
           'cellValueUnknown',
           path,
-          `${plural(bad.length, 'cell')} hold a value the layer does not define (${values.join(', ')}; ${firstAt(bad)}).`,
+          `${plural(bad.length, 'cell')} ${agree(bad.length, 'holds', 'hold')} a value the layer does not define (${values.join(', ')}; ${firstAt(bad)}).`,
           'remove',
         ),
       ]
@@ -78,7 +78,7 @@ function layerChecks(project: Project, level: Level, def: LayerDef, layer: Layer
               'error',
               'tileOutOfRange',
               path,
-              `${plural(beyond.length, 'object')} use tiles beyond the ${count} tiles of tileset "${def.tileset}".`,
+              `${plural(beyond.length, 'object')} ${agree(beyond.length, 'uses', 'use')} tiles beyond the ${count} tiles of tileset "${def.tileset}".`,
               'remove',
             ),
           )
@@ -97,6 +97,7 @@ function layerChecks(project: Project, level: Level, def: LayerDef, layer: Layer
               'unknownEntityDef',
               itemPath(level.id, def.id, item.id),
               `There is no entity definition "${item.def}".`,
+              'delete',
             ),
           )
         }

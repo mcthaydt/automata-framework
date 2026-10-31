@@ -161,6 +161,7 @@ export {
   type ProjectContext,
   type Result,
   type Severity,
+  type TargetChoice,
   type TemplateDef,
   type ViewDef,
 } from './profiles/profile'

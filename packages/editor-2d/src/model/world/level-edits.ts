@@ -209,3 +209,12 @@ export function setLevelField(project: Project, id: string, field: string, value
   if (JSON.stringify(level.fields[field]) === JSON.stringify(value)) return project
   return replaceLevel(project, level, { ...level, fields: { ...level.fields, [field]: value } })
 }
+
+/** Gives a level a new name, trimmed; a level needs one, so an empty name is refused. */
+export function renameLevel(project: Project, id: string, name: string): Project {
+  const level = findLevel(project, id)
+  const trimmed = name.trim()
+  if (trimmed === '') throw new RangeError('A level needs a name.')
+  if (trimmed === level.name) return project
+  return replaceLevel(project, level, { ...level, name: trimmed })
+}

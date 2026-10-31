@@ -41,7 +41,9 @@ export function describeBootError(error: BootError): string {
  * Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
  * the attempt scope open so Back to {host} can access its Hosting service. Try again
  * and Continue without loading close the failed attempt scope and re-run bootProgram
- * in a fresh Scope on the same root without reloading the page.
+ * in a fresh Scope on the same root without reloading the page. Inside a Ruken session,
+ * Try again reloads the game's frame instead: `@ruken/sdk-host` answers one hello per
+ * frame load, so a second session in this load would never be welcomed (RT.BOOT1).
  *
  * RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIFO order.
  */
@@ -118,6 +120,11 @@ export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
           ...failureHost(hostingRef.current),
           copy: game.copy,
           onRetry: () => {
+            if (hostingRef.current?.kind === 'ruken') {
+              const reload = game.seams?.reload ?? (() => doc.defaultView?.location.reload())
+              reload()
+              return
+            }
             closeFailure()
             unmountFailure = null
             void Effect.runPromise(

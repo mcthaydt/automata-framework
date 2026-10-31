@@ -1,5 +1,12 @@
 # @mcthaydt/automata-check-boundaries
 
+## 0.0.4
+
+### Patch Changes
+
+- 3d8877f: A new rule, `koota-soa`, fails a sim that gives koota's `trait` an object schema, or a `relation` an object `store`: koota compiles struct-of-arrays accessors for those with `new Function`, which Ruken's CSP (no `'unsafe-eval'`) refuses. A factory (`trait(() => ({ x: 0 }))`), a tag (`trait()`, `trait({})`) and a relation with no store or a factory store pass; so does `defineComponent`, which makes factories. A schema the checker cannot see (a variable, a call, a spread) is reported too, with the same fix. In `--inline` mode the rule checks every call in the file, not only the sim's arguments.
+- c2d1c34: `--game <src>` checks a game laid out by role (GL spec §4.5): only its sim set (`constants`, `components`, `commands`, `events`, `resources`, `systems`, `state`, each as a file or a folder, plus `sim.ts`) follows the sim rules, a value import from a sim file must stay inside the set, and a game root with no sim files exits 2.
+
 ## 0.0.3
 
 ### Patch Changes

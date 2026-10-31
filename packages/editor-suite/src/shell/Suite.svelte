@@ -6,7 +6,15 @@
   rotation; only what is inside its regions changes.
 -->
 <script lang="ts">
-import { Button, createToasts, EditorShell, shellModeOf, ToastRegion } from '@mcthaydt/automata-editor-kit'
+import {
+  Button,
+  createToasts,
+  defaultDockOpen,
+  dockPlacementOf,
+  EditorShell,
+  shellModeOf,
+  ToastRegion,
+} from '@mcthaydt/automata-editor-kit'
 import type {
   CheckFinding,
   SuiteEditor,
@@ -17,15 +25,19 @@ import type { GeometryState } from '@mcthaydt/automata-ui'
 import { SvelteMap } from 'svelte/reactivity'
 import { type AskState, createAskSession } from '../core/ask-session'
 import type { Pill } from '../core/pills-model'
+import type { ReviewChangeSet } from '../core/review-model'
 import type { WriteOutcome } from '../core/write-path'
 import AskDialog from './AskDialog.svelte'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
+import InterchangeDialog from './InterchangeDialog.svelte'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
+import ReviewDesk from './ReviewDesk.svelte'
+import ShipDialog from './ShipDialog.svelte'
 import SuitePills from './SuitePills.svelte'
 import SuiteRail from './SuiteRail.svelte'
-import { SUITE_ENTRIES } from './suite-entries'
+import { PROVIDERS, SUITE_ENTRIES } from './suite-entries'
 import { createSuiteSession } from './suite-session'
 import TitlePrompt from './TitlePrompt.svelte'
 
@@ -43,10 +55,15 @@ let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
+/** `undefined` follows the shell's default for the size. */
+let dockOpen = $state<boolean | undefined>()
 const sessions = new SvelteMap<string, unknown>()
 const opening = new Set<string>()
 
 const mode = $derived(shellModeOf(geometry.current.formFactor))
+// Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
+const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
+const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
 const entry = $derived(SUITE_ENTRIES.find((candidate) => candidate.id === current))
 
 // The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
@@ -68,7 +85,7 @@ $effect(() => {
   const { editor, card } = target
   if (sessions.has(editor.id) || opening.has(editor.id)) return
   opening.add(editor.id)
-  void editor.open(card.files, editing.ports).then(
+  void editor.open(card.files, editing.portsFor(editor.id)).then(
     (session) => sessions.set(editor.id, session),
     () => opening.delete(editor.id),
   )
@@ -76,7 +93,12 @@ $effect(() => {
 
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills,
 // Undo and Ask follow it. The session lives as long as the suite; a reload reads the pills back from the journal.
-const editing = $derived(createSuiteSession(ports))
+const editing = $derived(
+  createSuiteSession(ports, {
+    installed: suite.editors.map((editor) => editor.id),
+    provider: (id) => PROVIDERS[id],
+  }),
+)
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
@@ -91,13 +113,6 @@ $effect(() => {
     pills = session.pills()
     titleOpen = session.asking()
     tokens = session.tokens()
-    const path = session.writePath
-    history = {
-      canUndo: path.canUndo(),
-      canRedo: path.canRedo(),
-      undoLabel: path.undoLabel() ?? '',
-      redoLabel: path.redoLabel() ?? '',
-    }
   }
   const stop = session.subscribe(read)
   read()
@@ -110,12 +125,29 @@ $effect(() => {
   return stop
 })
 
+// The top bar's Undo acts on the open editor's own history, or the suite's (an import) with none open (EDS-D19).
+const owner = $derived(mounted?.editor.id ?? '')
+$effect(() => {
+  const path = editing.writePath
+  const of = owner
+  const read = () => {
+    history = {
+      canUndo: path.canUndo(of),
+      canRedo: path.canRedo(of),
+      undoLabel: path.undoLabel(of) ?? '',
+      redoLabel: path.redoLabel(of) ?? '',
+    }
+  }
+  read()
+  return path.subscribe(read)
+})
+
 const undoHook = $derived(mounted?.editor.undo?.(mounted.session))
 const askTarget = $derived(mounted?.editor.ask?.(mounted.session))
 const ask = $derived(
   askTarget === undefined
     ? undefined
-    : createAskSession({ target: askTarget, ports, writePath: editing.writePath }),
+    : createAskSession({ target: askTarget, ports, writePath: editing.writePath, owner }),
 )
 let askOpen = $state(false)
 let askView = $state<AskState>({ kind: 'idle' })
@@ -156,19 +188,40 @@ function refused(outcome: WriteOutcome | undefined): void {
   toasts.push({ kind: 'error', message })
 }
 
+// With no editor open, Undo and Redo step the suite's own history (an import, EDS-D19).
 async function undo(): Promise<void> {
-  if (undoHook === undefined || !history.canUndo) return
-  const outcome = await editing.undo()
-  if (outcome !== undefined && 'written' in outcome) undoHook.undo()
+  if (!history.canUndo) return
+  const outcome = await editing.undo(owner)
+  if (outcome !== undefined && 'written' in outcome) undoHook?.undo()
   else refused(outcome)
 }
 
 async function redo(): Promise<void> {
-  if (undoHook === undefined || !history.canRedo) return
-  const outcome = await editing.redo()
-  if (outcome !== undefined && 'written' in outcome) undoHook.redo()
+  if (!history.canRedo) return
+  const outcome = await editing.redo(owner)
+  if (outcome !== undefined && 'written' in outcome) undoHook?.redo()
   else refused(outcome)
 }
+
+// Ship (flow 9), the Review desk (flow 10) and Export and Import (flow 11).
+let shipOpen = $state(false)
+let shipReview = $state<ReviewChangeSet>()
+let shipDraft = $state<{ readonly title: string; readonly body: string }>()
+let reviews = $state<readonly ReviewChangeSet[]>()
+let interchange = $state<'export' | 'import'>()
+
+async function openShip(): Promise<void> {
+  const [open] = await editing.review()
+  shipReview = open
+  shipDraft = await editing.draft()
+  shipOpen = true
+}
+
+$effect(() => {
+  if (entry?.id !== 'review') return
+  reviews = undefined
+  void editing.review().then((read) => (reviews = read))
+})
 
 async function accept(): Promise<void> {
   const outcome = await ask?.accept()
@@ -207,6 +260,7 @@ function choose(id: string | undefined): void {
   reading = undefined
   panelOpen = false
   inspectorOpen = false
+  dockOpen = undefined
 }
 
 function openCard(card: EditorCard): void {
@@ -218,12 +272,14 @@ function openCard(card: EditorCard): void {
   {geometry}
   bind:panelOpen
   bind:inspectorOpen
+  bind:dockOpen
   panel={mounted ? panel : undefined}
   inspector={mounted ? inspector : undefined}
   dock={mounted?.editor.regions.dock ? dock : undefined}
   status={mounted?.editor.regions.status ? status : undefined}
   testId="suite-shell"
 >
+  {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
   {#snippet topbar()}
     <Button aria-current={current === undefined && reading === undefined ? 'page' : undefined} onclick={() => choose(undefined)}
       >Home</Button
@@ -234,7 +290,7 @@ function openCard(card: EditorCard): void {
     <div class="tools" data-scroll-region="both">
     <SuitePills {pills} {compact} onlocate={locate} />
     <span class="spacer"></span>
-    {#if undoHook !== undefined}
+    {#if undoHook !== undefined || history.canUndo || history.canRedo}
       <Button disabled={!history.canUndo} aria-label={history.canUndo ? `Undo ${history.undoLabel}` : 'Undo'} onclick={undo}
         >↶</Button
       >
@@ -243,11 +299,15 @@ function openCard(card: EditorCard): void {
       >
     {/if}
     {#if ask !== undefined}<Button onclick={() => (askOpen = true)}>Ask</Button>{/if}
+    {#if editing.canShip()}<Button variant="primary" onclick={() => void openShip()}>Ship</Button>{/if}
     {#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}
     </div>
     {#if mounted && mode !== 'wide'}
       <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Panel</Button>
       <Button aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}>Details</Button>
+    {/if}
+    {#if mounted?.editor.regions.dock && dockIsSheet}
+      <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>
     {/if}
   {/snippet}
 
@@ -263,11 +323,15 @@ function openCard(card: EditorCard): void {
     {:else if mounted}
       {@render mounted.editor.regions.canvas(mounted.session)}
     {:else if entry === undefined}
-      <Home title="This game's editors" {home} empty="The editor list names no files." onopen={openCard} onread={(file) => (reading = file)} />
+      <div class="home">
+        <div class="share">
+          <Button onclick={() => (interchange = 'export')}>Export</Button>
+          <Button onclick={() => (interchange = 'import')}>Import</Button>
+        </div>
+        <Home title="This game's editors" {home} empty="The editor list names no files." onopen={openCard} onread={(file) => (reading = file)} />
+      </div>
     {:else if entry.id === 'review'}
-      <Home title="Review" {home} empty="" onopen={openCard} onread={(file) => (reading = file)}>
-        <p class="note">The Review desk comes in a later update. Your files are safe.</p>
-      </Home>
+      <ReviewDesk {reviews} />
     {:else}
       <Home
         title={entry.label}
@@ -297,7 +361,23 @@ function openCard(card: EditorCard): void {
     onclose={() => (askOpen = false)}
   />
 {/if}
-<ToastRegion {toasts} />
+<ShipDialog
+  open={shipOpen}
+  review={shipReview}
+  draft={shipDraft}
+  onship={(draft) => editing.ship(draft)}
+  onclose={() => (shipOpen = false)}
+/>
+{#if interchange !== undefined}
+  <InterchangeDialog
+    open
+    mode={interchange}
+    onexport={(format) => editing.exportGame(format)}
+    onplan={(text) => editing.planImport(text, (path) => (askTarget?.path === path ? askTarget.locked() : []))}
+    onapply={(plan) => editing.applyImport(plan)}
+    onclose={() => (interchange = undefined)}
+  />
+{/if}
 
 {#snippet panel()}{#if mounted}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
 {#snippet inspector()}{#if mounted}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}
@@ -336,8 +416,16 @@ function openCard(card: EditorCard): void {
     padding: var(--space-5);
     background: var(--color-bg-app);
   }
-  .note {
-    margin: 0;
-    color: var(--color-text-dim);
+  .home {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+  }
+  .share {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-end;
+    padding: var(--space-3) var(--space-5) 0;
+    background: var(--color-bg-app);
   }
 </style>

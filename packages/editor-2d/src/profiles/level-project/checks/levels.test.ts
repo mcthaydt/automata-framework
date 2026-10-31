@@ -30,9 +30,20 @@ describe('level checks', () => {
           severity: 'error',
           code: 'tileOutOfRange',
           path: 'levels[level-1].layers[decor]',
-          message: expect.stringMatching(/2 cells.*64 tiles.*4, 7/),
+          message: expect.stringMatching(/2 cells use tiles.*64 tiles.*4, 7/),
           fix: 'remove',
         },
+      ])
+    })
+
+    it('agrees the verb with one cell', () => {
+      const project = withLayer(platformer(), 'level-1', 'decor', (layer) =>
+        layer.kind === 'tiles'
+          ? { ...layer, cells: layer.cells.set(4, 7, packTile(99, false, false)) }
+          : layer,
+      )
+      expect(only(project, 'tileOutOfRange').map((d) => d.message)).toEqual([
+        expect.stringMatching(/^1 cell uses tiles beyond/),
       ])
     })
 
@@ -62,7 +73,13 @@ describe('level checks', () => {
           : layer,
       )
       const found = only(project, 'tileOutOfRange')
-      expect(found).toEqual([expect.objectContaining({ path: 'levels[map-1].layers[props]', fix: 'remove' })])
+      expect(found).toEqual([
+        expect.objectContaining({
+          path: 'levels[map-1].layers[props]',
+          message: expect.stringMatching(/^1 object uses tiles beyond/),
+          fix: 'remove',
+        }),
+      ])
     })
   })
 
@@ -76,7 +93,7 @@ describe('level checks', () => {
           severity: 'error',
           code: 'cellValueUnknown',
           path: 'levels[level-1].layers[collision]',
-          message: expect.stringMatching(/1 cell.*9/),
+          message: expect.stringMatching(/^1 cell holds a value.*9/),
           fix: 'remove',
         },
       ])

@@ -5,6 +5,7 @@ import type { Camera } from '../../canvas/level-view'
 import type { IdSource } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import type { OpenDocument } from '../editor-app'
+import type { WorldRect } from '../world/world-model'
 
 // What every rail destination is given (plan ED2D.4c4a decision 1). The document screen draws the parts every view
 // shares (the top bar, the rail, the status line, the dialogs and toasts) as snippets, and the view places them in its
@@ -37,6 +38,19 @@ export interface ViewServices {
    * tests pass a plain stand-in, as editor-3d's plan canvas takes a renderer factory.
    */
   readonly canvas?: Component<LevelCanvasProps> | undefined
+  /**
+   * Opens the profile's first view on what a finding's path names (the Checks view's Locate, plan ED2D.7a decision 4).
+   * Absent where nothing can be located.
+   */
+  readonly locate?: ((path: string) => void) | undefined
+  /** The world map; the Pixi `WorldCanvas` when absent. jsdom has no WebGL, so the DOM tests pass a stand-in. */
+  readonly worldCanvas?: Component<WorldCanvasProps> | undefined
+}
+
+/** What the World view hands its map (`WorldCanvas.svelte`'s props). */
+export interface WorldCanvasProps {
+  readonly rects: readonly WorldRect[]
+  readonly camera: Camera
 }
 
 /** What the Level view hands its canvas (`LevelCanvas.svelte`'s props). */
@@ -54,4 +68,6 @@ export interface ViewProps {
   readonly label: string
   readonly frame: ViewFrame
   readonly services: ViewServices
+  /** A finding's path the view opens on (Locate); a view that cannot show it ignores it. */
+  readonly focus?: string | undefined
 }

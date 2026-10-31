@@ -153,13 +153,13 @@ describe('checkArchitecture: profiles', () => {
   it('never lets one profile import another', () => {
     const files = tree({
       'profiles/level-project/index.ts': 'export const a = 1',
-      'profiles/floorfifty-stage/index.ts': "import { a } from '../level-project'\nexport const b = a",
+      'profiles/stage-profile/index.ts': "import { a } from '../level-project'\nexport const b = a",
     })
     expect(rules(checkArchitecture(files))).toEqual(['profile-isolation'])
   })
 
   it('keeps template and profile ids out of app, tiles and canvas (G-s)', () => {
-    for (const id of ['level-project', 'floorfifty-stage', 'platformer', 'topdown-rpg', 'blank']) {
+    for (const id of ['level-project', 'platformer', 'topdown-rpg', 'blank']) {
       for (const area of ['app', 'tiles', 'canvas']) {
         const files = tree({ [`${area}/a.ts`]: `export const which = '${id}'` })
         expect(rules(checkArchitecture(files)), `${area} ${id}`).toEqual(['no-profile-ids'])
@@ -232,7 +232,7 @@ describe('checkArchitecture: Svelte components', () => {
     expect(rules(checkArchitecture(inAttribute))).toEqual(['no-profile-ids'])
     const inText = tree({ 'app/D.svelte': '<span>level-project</span>' })
     expect(rules(checkArchitecture(inText))).toEqual(['no-profile-ids'])
-    const inExpression = tree({ 'app/C.svelte': "<p>{'floorfifty-stage'}</p>" })
+    const inExpression = tree({ 'app/C.svelte': "<p>{'topdown-rpg'}</p>" })
     expect(rules(checkArchitecture(inExpression))).toEqual(['no-profile-ids'])
   })
 

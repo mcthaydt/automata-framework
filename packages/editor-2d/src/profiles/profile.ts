@@ -1,9 +1,10 @@
+import type { RefValue } from '@mcthaydt/automata-editor-kit/fields'
 import type { IdSource } from '../model/ids'
 import type { Project } from '../model/project-types'
 
 // What a document type plugs into the editor (2D editor spec §7). The editor lists the documents of every registered
 // profile on Home, opens one with the profile that `sniff`s it (and asks when two do), shows the profile's views on the
-// rail and runs its checks. `level-project` is built in (ED2D.3); `floorfifty-stage` is an extension (EDFF.1).
+// rail and runs its checks. `level-project` is built in (ED2D.3); a game can register more.
 //
 // The members that take a value are declared as methods, which TypeScript checks bivariantly, so a `Profile<Stage>` is
 // a `Profile<unknown>` and registers without a cast. The registry never calls them: the app pairs a profile's own
@@ -32,6 +33,12 @@ export interface Diagnostic {
   readonly message: string
   /** The name of a one-step repair the profile offers for this finding (`remove`, `move-inside`). */
   readonly fix?: string | undefined
+}
+
+/** One target a broken reference may be pointed at, as the Checks view lists it. */
+export interface TargetChoice {
+  readonly label: string
+  readonly value: RefValue
 }
 
 /** What a profile's checks may know beyond the document. */
@@ -79,7 +86,7 @@ export interface ProfileSummary {
 /**
  * The level a Home card draws as the document's thumbnail (ED2D.4c3b): a level of a level project. It names the
  * level-project `Project` type because the card is drawn by the level canvas, which draws nothing else; a profile whose
- * documents are not level projects (the FloorFifty stage) leaves `preview` out until it has a picture of its own.
+ * documents are not level projects leaves `preview` out until it has a picture of its own.
  */
 export interface LevelPreview {
   readonly project: Project
@@ -88,7 +95,7 @@ export interface LevelPreview {
 }
 
 export interface Profile<V> {
-  /** `level-project`, `floorfifty-stage`. */
+  /** `level-project`. */
   readonly id: string
   readonly label: string
   /** Can this profile open the file? */
@@ -103,6 +110,10 @@ export interface Profile<V> {
    * the value it came from; absent when the profile offers no repair.
    */
   fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V
+  /** The targets a `choose-target` finding may point at, which `fix` cannot take (plan ED2D.7a decision 3). */
+  choices?(value: V, diagnostic: Diagnostic): readonly TargetChoice[]
+  /** Points the finding's reference at `choice` and returns the next value. */
+  choose?(value: V, diagnostic: Diagnostic, choice: TargetChoice): V
   /** Optional: a profile without it lists on Home by file name, with its check counts. */
   summary?(value: V): ProfileSummary
   /** Optional: the level Home's card draws; a profile without it, or a document with no level, keeps the initial. */

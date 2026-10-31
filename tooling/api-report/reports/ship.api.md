@@ -632,6 +632,7 @@ interface ShipConfig {
     readonly loading?: NonNullable<Manifest['loading']>;
     readonly leaderboards?: Manifest['leaderboards'];
     readonly itch?: ItchConfig | undefined;
+    readonly audience?: 'public' | 'private' | undefined;
 }
 ```
 
