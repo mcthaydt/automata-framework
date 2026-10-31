@@ -1,0 +1,66 @@
+// The clinic fixture for nav's tests, in Node and the browsers (`?raw`, no `node:fs`): sectors' converted clinic map,
+// the clinic's nav graph, and its boxes behind a game-side `Blocked` like the source's (boxes are the game's, not nav's).
+
+import { type Point, type ResolvedMap, resolveMap, type SectorMap } from '@mcthaydt/automata-sectors/sim'
+import clinicMapToml from '@mcthaydt/automata-sectors/testing/fixtures/clinic.sector-map.toml?raw'
+import { parse } from 'smol-toml'
+import { blockedBy } from '../sim/blocked'
+import type { NavGraph } from '../sim/nav-graph.schema'
+import type { Blocked } from '../sim/route'
+import boxesToml from './fixtures/clinic.boxes.toml?raw'
+import graphToml from './fixtures/clinic.nav-graph.toml?raw'
+
+export const clinicMap = (): SectorMap => parse(clinicMapToml) as unknown as SectorMap
+export const clinicGraph = (): NavGraph => parse(graphToml) as unknown as NavGraph
+
+interface Box {
+  readonly id: string
+  readonly x: number
+  readonly z: number
+  readonly w: number
+  readonly d: number
+  readonly kind: string
+}
+const boxes = (parse(boxesToml) as unknown as { boxes: Box[] }).boxes
+
+/** Liang–Barsky clip of segment a→b against a box footprint grown by `margin` (the source's `segmentHitsBox`). */
+function segmentHitsBox(a: Point, b: Point, box: Box, margin: number): boolean {
+  let near = 0
+  let far = 1
+  const axes = [
+    [a.x, b.x - a.x, box.x, box.w / 2 + margin],
+    [a.z, b.z - a.z, box.z, box.d / 2 + margin],
+  ] as const
+  for (const [start, delta, center, half] of axes) {
+    if (Math.abs(delta) < 1e-9) {
+      if (start < center - half || start > center + half) return false
+      continue
+    }
+    const t1 = (center - half - start) / delta
+    const t2 = (center + half - start) / delta
+    near = Math.max(near, Math.min(t1, t2))
+    far = Math.min(far, Math.max(t1, t2))
+    if (near > far) return false
+  }
+  return true
+}
+const inside = (p: Point, box: Box, margin: number): boolean =>
+  Math.abs(p.x - box.x) <= box.w / 2 + margin && Math.abs(p.z - box.z) <= box.d / 2 + margin
+
+/** The clinic's walls (sectors) and boxes: an exit always blocks, a door while it is shut, furniture always. */
+export function clinicBlocked(map: ResolvedMap, doors: Readonly<Record<string, boolean>>): Blocked {
+  const walls = blockedBy(map, doors)
+  return {
+    open: walls.open,
+    segment: (a, b, margin) =>
+      walls.segment(a, b, margin) ||
+      boxes.some(
+        (box) =>
+          (box.kind !== 'door' || doors[box.id] !== true) &&
+          !(inside(a, box, margin) || inside(b, box, margin)) &&
+          segmentHitsBox(a, b, box, margin),
+      ),
+  }
+}
+
+export const resolvedClinic = (): ResolvedMap => resolveMap(clinicMap())

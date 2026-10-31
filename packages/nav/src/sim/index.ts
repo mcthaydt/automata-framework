@@ -1,0 +1,11 @@
+// @mcthaydt/automata-nav/sim: routes over a scene's graph and click-to-walk (M6 spec §4.4), a sim entry.
+export { blockedBy } from './blocked'
+export { loadNavGraph } from './load-nav-graph'
+export { NavDoor, type NavDoorPayload, WalkTo, type WalkToPayload } from './nav.command'
+export { NavAgent } from './nav.component'
+export { NavArrived, type NavArrivedPayload, NavUnreachable, type NavUnreachablePayload } from './nav.event'
+export { createNavPlugin, navPlugin } from './nav.plugin'
+export { type NavDoorState, NavDoors, NavGraphResource, type NavRoute, NavRoutes } from './nav.resource'
+export type { NavOptions } from './nav.system'
+export { type NavGraph, navGraphSchema } from './nav-graph.schema'
+export { type Blocked, clear, nearestNode, route, WALK_MARGIN } from './route'

@@ -1,0 +1,169 @@
+# The adventure source's clinic boxes (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/nav/scripts/convert-adventure-nav.ts. Do not edit.
+[[boxes]]
+id = "closetDoor"
+x = 1.6
+z = -4
+w = 0.12
+d = 1
+kind = "door"
+
+[[boxes]]
+id = "desk"
+x = 3.575
+z = 0.45
+w = 2.05
+d = 0.7
+kind = "desk"
+
+[[boxes]]
+id = "desk-wing"
+x = 2.95
+z = 2.1
+w = 0.8
+d = 2.6
+kind = "desk"
+
+[[boxes]]
+id = "bench"
+x = -2.85
+z = 3.35
+w = 1.9
+d = 0.6
+kind = "bench"
+
+[[boxes]]
+id = "bed"
+x = -4.1
+z = 0.4
+w = 1.4
+d = 2.1
+kind = "bed"
+
+[[boxes]]
+id = "monitor-cart"
+x = -2.4
+z = -3.35
+w = 0.6
+d = 0.5
+kind = "furniture"
+
+[[boxes]]
+id = "nightstand"
+x = -3.12
+z = -0.3
+w = 0.5
+d = 0.6
+kind = "furniture"
+
+[[boxes]]
+id = "sink"
+x = -4.97
+z = 3
+w = 0.5
+d = 0.7
+kind = "furniture"
+
+[[boxes]]
+id = "trolley"
+x = 2.3
+z = 2.4
+w = 0.5
+d = 0.75
+kind = "furniture"
+
+[[boxes]]
+id = "filing"
+x = -4.03
+z = -3.475
+w = 1.15
+d = 0.65
+kind = "furniture"
+
+[[boxes]]
+id = "drawers"
+x = 2.4
+z = -0.62
+w = 0.75
+d = 0.45
+kind = "furniture"
+
+[[boxes]]
+id = "bin"
+x = 4.55
+z = 2.95
+w = 0.34
+d = 0.34
+kind = "furniture"
+
+[[boxes]]
+id = "bucket"
+x = 1.1
+z = -5.3
+w = 0.4
+d = 0.4
+kind = "furniture"
+
+[[boxes]]
+id = "wheelchair"
+x = -4.2
+z = 1.9
+w = 1
+d = 0.7
+kind = "furniture"
+
+[[boxes]]
+id = "fallen-chair"
+x = -1.2
+z = 0.35
+w = 0.7
+d = 0.5
+kind = "furniture"
+
+[[boxes]]
+id = "shelf"
+x = 4.25
+z = -4.5
+w = 0.45
+d = 1.6
+kind = "furniture"
+
+[[boxes]]
+id = "shelf-north"
+x = 3.94
+z = -6.175
+w = 1.07
+d = 0.4
+kind = "furniture"
+
+[[boxes]]
+id = "shelf-west"
+x = 1.925
+z = -5.525
+w = 0.4
+d = 1.55
+kind = "furniture"
+
+[[boxes]]
+id = "gurney"
+x = -1.1
+z = -5.75
+w = 0.65
+d = 1.8
+kind = "furniture"
+
+[[boxes]]
+id = "water-cooler"
+x = 4.62
+z = 4.4
+w = 0.4
+d = 0.4
+kind = "furniture"
+
+[[boxes]]
+id = "exit"
+x = 0
+z = -6.75
+w = 1.5
+d = 0.15
+kind = "exit"
