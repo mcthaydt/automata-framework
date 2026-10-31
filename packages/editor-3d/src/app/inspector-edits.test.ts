@@ -91,3 +91,21 @@ describe('inspector edits', () => {
     expect(editor.level).toEqual(depot)
   })
 })
+
+describe('a thing’s field (ED3D.7d-b)', () => {
+  const crate = { kind: 'thing', definition: 'crate', id: 'crate1', field: 'contents' } as const
+
+  it('sets the field as one undo step', () => {
+    const { editor, edits, card } = setup('entity:crate/crate1')
+    expect(edits.change({ ...crate, value: 'empty' }, 'set')).toBeUndefined()
+    expect(card()).toMatchObject({ fields: [{ id: 'contents', value: 'empty' }] })
+    editor.history.undo()
+    expect(card()).toMatchObject({ fields: [{ id: 'contents', value: 'tools' }] })
+  })
+
+  it('answers the model’s sentence for a value the field rejects, and changes nothing', () => {
+    const { edits, card } = setup('entity:crate/crate1')
+    expect(edits.change({ ...crate, value: 'gold' }, 'set')).toMatch(/crate1/)
+    expect(card()).toMatchObject({ fields: [{ id: 'contents', value: 'tools' }] })
+  })
+})

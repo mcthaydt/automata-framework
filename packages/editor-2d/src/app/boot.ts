@@ -13,6 +13,7 @@ import type { LevelThumbnails } from '../canvas/level-thumbnails'
 import { randomIds } from '../model/ids'
 import App from './App.svelte'
 import { createEditorApp } from './editor-app'
+import type { LastOpened } from './home/home-controller'
 import { createAppProfiles } from './profiles'
 import type { LevelCanvasProps, ObjectUrls } from './views/view-props'
 
@@ -41,6 +42,8 @@ export interface EditorEnv {
   readonly thumbnails?: (workspace: Workspace) => LevelThumbnails
   /** Object URLs for the palette's tile pictures (`URL.createObjectURL`); `main.ts` passes the browser's. */
   readonly objectUrls?: ObjectUrls
+  /** Where the project opened last is kept (`main.ts` passes the browser's storage); absent, Home selects the newest. */
+  readonly lastOpened?: LastOpened
   /** The level canvas in place of the Pixi one: the jsdom tests pass a stand-in, since jsdom has no WebGL. */
   readonly canvas?: Component<LevelCanvasProps>
 }
@@ -79,6 +82,7 @@ export async function startEditor(target: HTMLElement, env: EditorEnv): Promise<
       ids,
       objectUrls: env.objectUrls,
       canvas: env.canvas,
+      lastOpened: env.lastOpened,
     },
   })
   return {

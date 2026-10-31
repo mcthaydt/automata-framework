@@ -284,3 +284,42 @@ describe('Level view: shortcuts (§12)', () => {
     expect(canvas()).toHaveAttribute('data-tool', 'brush')
   })
 })
+
+// The accessibility pass (ED2D.8; 2D editor spec §12: nothing is hover-only, every control is reachable and named).
+describe('Level view: accessibility', () => {
+  const NAMED =
+    'button, [role="radio"], [role="tab"], [role="option"], [role="slider"], input, select, textarea'
+
+  it('names every control, the canvas included', async () => {
+    await mount()
+    const unnamed = [...document.querySelectorAll<HTMLElement>(NAMED)]
+      .filter((control) => !control.hidden && control.closest('[aria-hidden="true"]') === null)
+      .filter((control) => {
+        const labelled =
+          control.getAttribute('aria-label') ??
+          control.getAttribute('aria-labelledby') ??
+          (control as HTMLInputElement).labels?.[0]?.textContent ??
+          control.textContent
+        return (labelled ?? '').trim() === ''
+      })
+      .map((control) => control.outerHTML.slice(0, 80))
+    expect(unnamed).toEqual([])
+    expect(screen.getByTestId('level-surface')).toHaveAccessibleName('Level canvas')
+  })
+
+  it('reaches the bar, the rail, the canvas and the inspector in that order with the keyboard', async () => {
+    await mount()
+    const regions = [
+      screen.getByTestId('document-bar'),
+      document.querySelector<HTMLElement>('[role="tablist"][aria-label="Views"]') as HTMLElement,
+      canvas(),
+      inspectorTab('Entity').closest('[role="tablist"]') as HTMLElement,
+    ]
+    for (const [before, after] of regions.slice(1).map((region, at) => [regions[at], region] as const))
+      expect(
+        (before as HTMLElement).compareDocumentPosition(after as HTMLElement) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+        `${(after as HTMLElement).getAttribute('aria-label') ?? (after as HTMLElement).dataset.testid} follows`,
+      ).toBeTruthy()
+  })
+})
