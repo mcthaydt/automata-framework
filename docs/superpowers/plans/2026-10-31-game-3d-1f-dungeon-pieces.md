@@ -1,0 +1,126 @@
+# GAME-3D.1f: the dungeon pieces (plan, draft)
+
+> **Task:** GAME-3D.1f in [02 Master delivery plan](../../02-master-delivery-plan.md): "Keys and doors, switches,
+> pushable blocks, one-way gates and the boss door, as game code (decision 7: not on M6's `puzzle` or `sectors`)".
+> Lane sim, integration; after GAME-3D.1a. Size L.
+> **Design:** [`games/base-3d/DESIGN.md`](../../../games/base-3d/DESIGN.md) §10 (every entity def, its fields and
+> rule; what persists and what resets), §6.5 (the Cold Kiln's rooms and the order a player meets them), §7.8
+> (falls), §9 (the items the pieces answer to), §12.1 (the save), §20 row 1f; acceptance cases G3-p, G3-q, G3-r,
+> G3-F2, G3-F6.
+> **Carried here:** from 1e, `sling-target` entities join `pickTarget`, `hook-post` entities replace
+> `AreaSource.posts`, doors open on `captain.defeated`, the Ember Bombs chest, heart pieces raising `hearts.max`, the
+> map's visits recorded in the sim and its chests, boss mark and door kinds; from 1d, the captain's arena doors.
+> **Lane:** 3D. **Branches:** `claude/3d-game-3d-1f` (part 1) to `-1f-5`, stacked on the 1e stack (#342) or on
+> `main` once it has landed. One push per part.
+> **Status:** draft, written ahead of its parents (the coordinator, 2026-10-31: "draft the GAME-3D.1f plan if the
+> spec allows"); its interfaces are checked again against `main` before part 1's code. **Spec and plan
+> acceptance:** the Owner, 2026-10-30: "Auto accept all spec and plans"; 2026-10-31: "everything is auto approved
+> and accepted, do not wait on me to do any approvals".
+
+## What already exists (verified on the 1e stack, not rebuilt)
+
+- Areas are `AreaSource` objects compiled by `compileArea` (systems/area.ts): rooms (plan boxes named by camera
+  view), walls, targets, the ember, exits, pits, foes, vents and `posts` (the hookchain's stand-in list, 1e part 3).
+- The af-sector/1 level format (packages/editor-3d/src/profile/af-sector): `entities: { def, id, x, z, ...fields
+  }[]`, ids unique across a file; ED3D authors them (§4.7). GAME-3D.1i authors the Kiln in ED3D; until then the
+  areas are hand-written `AreaSource`s.
+- Sim: `Fighter`, `Enemy` (brains, tokens, drops), the items (`Inventory`, pellets, bombs as fighters, the chain),
+  `Progress`, `Location` (area changes, the fall's return point), `combat.hits` (a bomb's blast, a pellet's hit).
+- Save (state/save.ts): `flags: string[]`, `kiln { smallKeys, bossKey, map, compass, visited, bossDefeated }`,
+  `hearts { max, pieces }`; base3dSaves keeps what the sim does not hold, per sim (1e part 5b).
+- The HUD (5a), the Items screen (5b) and the map (5c) read keys, the map, the compass and visits from the save.
+
+## Scope, in five parts (one PR each, stacked)
+
+1. **Entities and loading (G3-F2).** `AreaSource.entities` in af-sector/1's shape (`{ def, id, x, z, ...fields }`),
+   one Zod schema per def of §10's table (`constants/entities.ts`), refs checked (a door's `switch`, a switch's
+   `targets`, an `entry`'s `portal`, a `one-way`'s `from`, a chest's `hidden`), and a load error naming the area and
+   the JSON path (`entities[3].lock`) for an unknown def, an unknown `lock`/`kind`/`contents` or a dangling ref.
+   Compiled into fixed point like the rest of the area. `hook-post` entities replace `posts` (the chain's rule
+   unchanged); `sling-target` entities (height 0.5–3 m) join `pickTarget`'s candidates and take a pellet's hit.
+2. **Doors and keys.** A `Dungeon` resource (the sorted ids of opened doors, opened chests, broken `cracked`,
+   latched switches, visited rooms; small keys and the boss key, the map and the compass), applied from and captured
+   to the save (`flags` and `kiln`). `door` entities block their box while closed (walls for `slide` and
+   `lineOfSight`): `small-key` opens with Action when a key is held (the key is spent, the door saved), `boss-key`
+   likewise with the boss key, `clear` when the room's enemies are gone (and on `captain.defeated` for the arena),
+   `switch` while its switch is on. Rooms visited are recorded as Wick enters them (the map reads the sim, not only
+   the save). The HUD's small keys (5a's follow-up) and the Items screen's kiln row read `Dungeon`.
+3. **Switches and blocks (G3-F6).** `switch` kinds `plate` (on while a block or, when `latch`, Wick stands on it),
+   `eye` (a pellet's hit), `lever` (Action); latching ones save. `block` entities pushed one 1 m cell per Push held
+   30 ticks along the axis Wick faces most, never into a wall, a block, a closed door or a pit, never overlapping
+   Wick; they reset to `home` on room entry unless their plate latched. What resets on room entry (§10): blocks,
+   non-latching switches, pots, enemies but bosses (GAME3D-D17) and projectiles.
+4. **Chests, pots, cracked, one-way, ledge-drop, npc, shop.** A chest opens with Action (the item-get pose and
+   banner are 1k's presentation; the sim emits `chest.opened { id, contents }`), gives its contents (an item, a
+   small key, the boss key, the map, the compass, a heart piece, embers) and saves; `hidden` chests appear when
+   their ref holds. Heart pieces: every fourth raises `Progress.maxHealth` by 2 and `hearts.max` by 1. Pots break on
+   a hit or a blast and roll the drop table; `cracked` goes for good on a blast; `one-way` passes from `from` only;
+   `ledge-drop` drops one way to its sector; `npc` and `shop` are placed and answer Action with an event (their
+   lines and stock are 1k's and the hub's).
+5. **Checks and markers (G3-p, G3-q, G3-r).** The content check over every area (sling-target heights, hook posts
+   reachable from a floor within 8 m in plan, every lock naming an existing key, switch or clear rule); a solver
+   test over the compiled areas walking §6.5's order with the items held at each point (no small-key door can spend
+   a key needed to reach another key); and each door kind's marker (keyhole, boss plate, bars, switch link) in a
+   render test of the four kinds, with review images. The map draws doors' lock kinds, and with the compass the
+   chests and the boss room's mark (5c's follow-ups).
+
+## Interfaces (to confirm against `main` before part 1)
+
+- Produced, sim (each a component, resource, command or event in its role file): `DungeonPiece` (an entity's def,
+  its area-local id and its state), `Door`, `Switch`, `Block`, `Chest`, `Dungeon` (resource), `push` (Act's held
+  bit, until 1h splits `act`), events `door.opened`, `chest.opened`, `switch.changed`, `block.moved`, `piece.broke`.
+- Produced, content: `AreaSource.entities`, `constants/entities.ts` (the defs and their Zod schemas), and the
+  content check (`checkArea`) the build and G3-p run.
+- Consumed: `compileArea`, `slide`, `lineOfSight`, `pickTarget`, `combat.hits`' pellet and blast hits, the enemies'
+  room membership, `Location`, the save's `flags` and `kiln`, `base3dSaves`.
+- No framework change: decision 7 keeps the pieces in game code. A field af-sector/1 cannot hold is an ED3D request,
+  not a copy of its codec.
+
+## Rules (each a case first)
+
+1. A closed door is a wall to Wick, foes, pellets, the chain and line of sight; an open one is nothing.
+2. A small key is spent only by opening a small-key door; a door already open never spends one; keys count per
+   dungeon (§6.5).
+3. A latching switch stays on and saves; a non-latching one resets on room entry.
+4. A block moves one cell after Push held 30 ticks, along Wick's dominant facing axis; blocked moves leave it in
+   place (G3-F6); it never overlaps Wick.
+5. Every persisted piece is restored from the save before tick 0 and captured back; a fresh sim captures none.
+6. Determinism: every new system is in the sim's fixed order, uses no RNG but the drop table's, and the goldens
+   re-record once per part with the change explained (the route's hash moves only where the first slice gains
+   entities).
+
+## Steps (per part: red first, then the code, then the gates)
+
+- [ ] Part 1: tests for each def's schema (a good entity of each def loads; an unknown def, `lock`, `kind` or
+      `contents`, and a dangling ref fail with the area and JSON path, G3-F2); `hook-post` entities pull as
+      `posts` did (items.test.ts's chain cases move onto them); a `sling-target` is picked and hit.
+- [ ] Part 2: door cases (each lock kind closed and open; a key spent once; the boss key; `clear` and the captain's
+      arena; `switch` doors follow their switch); save cases (opened doors, keys and visits round-trip; a fresh sim
+      has none); the HUD's keys and the map's visits from the sim (DOM).
+- [ ] Part 3: switch cases (plate by block, plate by Wick when latching, eye by pellet, lever by Action); block
+      cases (a push, each blocked push, never over Wick, G3-F6); the resets on room entry.
+- [ ] Part 4: chest cases (each contents kind; hidden until its ref; a fourth heart piece raises the hearts); pot,
+      cracked, one-way and ledge-drop cases; npc and shop answer Action.
+- [ ] Part 5: G3-p's content check (a failing area per rule); G3-q's solver over the Kiln as it stands (the first
+      slice plus the test areas until 1i authors D1–D7; re-run when 1i lands); G3-r's render test and images; the
+      map's door kinds and compass marks (DOM and layout).
+
+## Failure and recovery
+
+- A bad area fails the load with its file and JSON path (G3-F2), at build and at boot, never at play.
+- A save naming a piece the area no longer has keeps the flag (unknown flags are kept, §12.1) and changes nothing.
+- A block pushed where it cannot go stays; a door that cannot open says why through its marker, never silently.
+
+## Defaults (for the Owner's veto)
+
+1. Until 1i, the Kiln's pieces are written into `AreaSource.entities` by hand in af-sector/1's shape, so 1i's files
+   replace them without a format change.
+2. Push is Act's held `pickup` bit in the sim until 1h splits `act` (§14.1 names no separate `push` command).
+3. Persisted ids are `<area>/<entity id>` strings in the save's `flags`; the sim holds them as sorted area-local
+   indexes.
+4. The item-get pose and banner, npc lines and shop stock are presentation and content for 1k and the hub; the sim
+   emits the events now.
+
+## Execution log
+
+(Empty until part 1 starts.)
