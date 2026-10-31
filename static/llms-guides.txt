@@ -361,7 +361,7 @@ Do not use eval or new Function in game code. Ruken does not permit unsafe-eval.
 
 ## Policy scope
 
-Avoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy.
+Avoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy: a Ruken game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).
 
 ## Trust boundaries
 
@@ -441,6 +441,51 @@ The framework code uses the MIT license. You may use it in commercial games and 
 ## Assets and extensions
 
 The framework license does not replace third-party dependency licenses or asset-specific terms. Example art has provenance files in its project; fonts have their own licenses. Any extension sold under separate terms must state those terms explicitly.
+
+
+---
+
+## Document: Boot errors (Core)
+URL: /docs/boot-errors
+Description: The typed failures boot reports, generated from the framework API index.
+
+# Boot errors
+
+Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4).
+
+```ts
+type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;
+```
+
+These are the failures boot reports as typed values. A defect in game code after boot is not one of them, and this list is not a claim that every failure is caught. [Read the source](https://github.com/mcthaydt/automata-framework/blob/f8023a907725cccd84277372c0d4f1b73d2da90c/packages/runtime/src/boot/boot-error.ts) at the framework commit this site was built from.
+
+## The failures
+
+### HostError
+
+From `@mcthaydt/automata-host`. Any failure after the handshake. A request that fails never falls back to another path.
+
+### ContentHashMismatch
+
+From `@mcthaydt/automata-runtime`. Content hash does not match expected hash.
+
+### AssetLoadFailed
+
+From `@mcthaydt/automata-runtime`. An asset download failed with a non-OK HTTP status or network error (status 0).
+
+### LoadStalled
+
+From `@mcthaydt/automata-runtime`. A resource download had no progress reported for STALL_MS (30 s).
+Triggers the "Taking a while" screen with a Try again button.
+
+### RendererUnavailable
+
+From `@mcthaydt/automata-runtime`. Neither WebGL2 nor WebGPU could be initialized.
+In Ruken this presents the "unsupported" screen with an exit button.
+
+### BootDefect
+
+From `@mcthaydt/automata-runtime`. An unexpected defect during boot.
 
 
 ---

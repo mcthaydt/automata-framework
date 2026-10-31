@@ -305,7 +305,7 @@
     "title": "Zero-Eval CSP & Ruken Security",
     "category": "Core",
     "description": "Avoiding dynamic evaluation under the host policy.",
-    "content": "# Zero-Eval CSP & Ruken Security\n\n## Dynamic evaluation\n\nDo not use eval or new Function in game code. Ruken does not permit unsafe-eval. Import the renderer's no-eval entry before initializing PixiJS.\n\n## Policy scope\n\nAvoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy.\n\n## Trust boundaries\n\nKeep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake.",
+    "content": "# Zero-Eval CSP & Ruken Security\n\n## Dynamic evaluation\n\nDo not use eval or new Function in game code. Ruken does not permit unsafe-eval. Import the renderer's no-eval entry before initializing PixiJS.\n\n## Policy scope\n\nAvoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy: a Ruken game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).\n\n## Trust boundaries\n\nKeep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake.",
     "toc": [
       {
         "id": "dynamic-evaluation",
@@ -406,6 +406,51 @@
         "id": "assets-and-extensions",
         "text": "Assets and extensions",
         "level": 2
+      }
+    ]
+  },
+  {
+    "id": "boot-errors",
+    "slug": "boot-errors",
+    "title": "Boot errors",
+    "category": "Core",
+    "description": "The typed failures boot reports, generated from the framework API index.",
+    "content": "# Boot errors\n\nEvery way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4).\n\n```ts\ntype BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | BootDefect;\n```\n\nThese are the failures boot reports as typed values. A defect in game code after boot is not one of them, and this list is not a claim that every failure is caught. [Read the source](https://github.com/mcthaydt/automata-framework/blob/f8023a907725cccd84277372c0d4f1b73d2da90c/packages/runtime/src/boot/boot-error.ts) at the framework commit this site was built from.\n\n## The failures\n\n### HostError\n\nFrom `@mcthaydt/automata-host`. Any failure after the handshake. A request that fails never falls back to another path.\n\n### ContentHashMismatch\n\nFrom `@mcthaydt/automata-runtime`. Content hash does not match expected hash.\n\n### AssetLoadFailed\n\nFrom `@mcthaydt/automata-runtime`. An asset download failed with a non-OK HTTP status or network error (status 0).\n\n### LoadStalled\n\nFrom `@mcthaydt/automata-runtime`. A resource download had no progress reported for STALL_MS (30 s).\nTriggers the \"Taking a while\" screen with a Try again button.\n\n### RendererUnavailable\n\nFrom `@mcthaydt/automata-runtime`. Neither WebGL2 nor WebGPU could be initialized.\nIn Ruken this presents the \"unsupported\" screen with an exit button.\n\n### BootDefect\n\nFrom `@mcthaydt/automata-runtime`. An unexpected defect during boot.\n",
+    "toc": [
+      {
+        "id": "the-failures",
+        "text": "The failures",
+        "level": 2
+      },
+      {
+        "id": "hosterror",
+        "text": "HostError",
+        "level": 3
+      },
+      {
+        "id": "contenthashmismatch",
+        "text": "ContentHashMismatch",
+        "level": 3
+      },
+      {
+        "id": "assetloadfailed",
+        "text": "AssetLoadFailed",
+        "level": 3
+      },
+      {
+        "id": "loadstalled",
+        "text": "LoadStalled",
+        "level": 3
+      },
+      {
+        "id": "rendererunavailable",
+        "text": "RendererUnavailable",
+        "level": 3
+      },
+      {
+        "id": "bootdefect",
+        "text": "BootDefect",
+        "level": 3
       }
     ]
   },

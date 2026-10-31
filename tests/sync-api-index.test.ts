@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { installApiIndex } from '../scripts/sync-api-index'
+import { bootErrors, installApiIndex } from '../scripts/sync-api-index'
 
 const COMMIT = 'a'.repeat(40)
 const dirs: string[] = []
@@ -15,13 +15,22 @@ const temp = (): string => {
 }
 afterEach(() => { while (dirs.length) rmSync(dirs.pop()!, { recursive: true, force: true }) })
 
+const row = (pkg: string, name: string, kind: string, signature: string, doc: string) => ({ package: pkg, entryPoint: '.', name, kind, signature, doc, version: '0.0.3' })
+const BOOT_ROWS = [
+  row('@mcthaydt/automata-runtime', 'BootError', 'type', 'type BootError = HostError | LoadStalled | BootDefect;', 'Every way boot can fail.'),
+  row('@mcthaydt/automata', 'LoadStalled', 'class', 'class LoadStalled extends LoadStalledBase {}', 'Re-exported by the umbrella.'),
+  row('@mcthaydt/automata-runtime', 'LoadStalled', 'class', 'class LoadStalled extends LoadStalledBase {}', 'A download made no progress.'),
+  row('@mcthaydt/automata-host', 'HostError', 'class', 'class HostError extends HostErrorBase {}', 'Any failure after the handshake.'),
+  row('@mcthaydt/automata-runtime', 'BootDefect', 'class', 'class BootDefect extends BootDefectBase {}', 'An unexpected defect during boot.'),
+]
+
 const sha256 = (text: string): string => createHash('sha256').update(text).digest('hex')
 
 /** A folder shaped like the framework's `tooling/api-index/dist`. */
 function dist(leaveOut?: string): string {
   const dir = temp()
   const files: Record<string, string> = {
-    'api.json': `${JSON.stringify({ version: '0.0.3', exports: [{ name: 'createSim', version: '0.0.3' }, { name: 'runGame', version: '0.0.3' }] }, null, 2)}\n`,
+    'api.json': `${JSON.stringify({ version: '0.0.3', exports: [{ name: 'createSim', version: '0.0.3' }, { name: 'runGame', version: '0.0.3' }, ...BOOT_ROWS] }, null, 2)}\n`,
     'llms-api.txt': '# API reference\n\n## createSim\n',
     'llms-full.txt': '# Automata Framework 0.0.3: full documentation\n\n---\n\n# API reference\n\n## createSim\n',
   }
@@ -48,7 +57,7 @@ describe('installApiIndex', () => {
     expect(JSON.parse(readFileSync(join(to, 'src/data/api-index.json'), 'utf8'))).toEqual({
       commit: COMMIT,
       version: '0.0.3',
-      exports: 2,
+      exports: 2 + BOOT_ROWS.length,
       files: {
         'llms-full.txt': sha256(readFileSync(join(from, 'llms-full.txt'), 'utf8')),
         'llms-api.txt': sha256(readFileSync(join(from, 'llms-api.txt'), 'utf8')),
@@ -75,5 +84,32 @@ describe('installApiIndex', () => {
     const to = website()
     expect(() => installApiIndex(from, to, COMMIT, COMMIT)).toThrow(/API reference/)
     expect(existsSync(join(to, 'static/llms-full.txt'))).toBe(false)
+  })
+})
+
+describe('bootErrors', () => {
+  it('lists the BootError union’s members in its order, each with the doc comment of its own package', () => {
+    expect(bootErrors({ exports: BOOT_ROWS })).toEqual({
+      signature: 'type BootError = HostError | LoadStalled | BootDefect;',
+      doc: 'Every way boot can fail.',
+      members: [
+        { name: 'HostError', package: '@mcthaydt/automata-host', doc: 'Any failure after the handshake.' },
+        { name: 'LoadStalled', package: '@mcthaydt/automata-runtime', doc: 'A download made no progress.' },
+        { name: 'BootDefect', package: '@mcthaydt/automata-runtime', doc: 'An unexpected defect during boot.' },
+      ],
+    })
+  })
+
+  it('refuses an index without BootError, or with a member it does not document', () => {
+    expect(() => bootErrors({ exports: BOOT_ROWS.filter(r => r.name !== 'BootError') })).toThrow(/BootError/)
+    expect(() => bootErrors({ exports: BOOT_ROWS.filter(r => r.name !== 'HostError') })).toThrow(/HostError/)
+  })
+
+  it('is written beside the published files, with the commit', () => {
+    const to = website()
+    installApiIndex(dist(), to, COMMIT, COMMIT)
+    const written = JSON.parse(readFileSync(join(to, 'src/data/boot-errors.json'), 'utf8'))
+    expect(written.commit).toBe(COMMIT)
+    expect(written.members.map((m: { name: string }) => m.name)).toEqual(['HostError', 'LoadStalled', 'BootDefect'])
   })
 })

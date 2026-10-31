@@ -17,6 +17,7 @@
 - [Mobile UI Primitives](/docs/mobile-ui): Geometry, controls and accessible layout.
 - [AI Coding Agent Rules](/docs/ai-rules): Project context for agents, followed by verification.
 - [Capabilities and licensing](/docs/capabilities): What you can use today, what is planned, and how the license applies.
+- [Boot errors](/docs/boot-errors): The typed failures boot reports, generated from the framework API index.
 - [Install agent skills](/docs/agent-setup): Install Superpowers and the official PixiJS collection, then verify the agent can load them.
 - [Who Automata is for](/docs/audience): Choose Automata based on your workflow and current requirements.
 - [FAQ](/docs/faq): Answers about agents, content, licensing, platforms, migration and community games.

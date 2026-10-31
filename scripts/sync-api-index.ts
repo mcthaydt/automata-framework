@@ -8,7 +8,7 @@ import { frameworkCommit } from './framework-source'
 // The framework's API index (`pnpm api-index`, tooling/api-index) generates llms-full.txt from a defined corpus plus
 // the complete API reference, and llms-api.txt from the package declarations (DX spec §2.3). The site publishes both
 // byte for byte at framework.ref and records their commit, version and digests in src/data/api-index.json, which
-// tests/api-index-published.test.ts holds the published files to. Run it after sync-demos has written framework.ref;
+// tests/api-index-published.test.ts holds the published files to, and writes the boot errors to src/data/boot-errors.json. Run it after sync-demos has written framework.ref;
 // the framework checkout needs `pnpm build` first, since the index reads the built declarations.
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -22,6 +22,36 @@ export interface ApiIndexSource {
   version: string
   exports: number
   files: Record<(typeof PUBLISHED)[number], string>
+}
+
+interface IndexRow { package: string; name: string; signature: string; doc: string }
+
+export interface BootErrors {
+  signature: string
+  doc: string
+  members: { name: string; package: string; doc: string }[]
+}
+
+const UMBRELLA = '@mcthaydt/automata'
+
+/**
+ * The runtime's `BootError` union and each member with its doc comment, in the union's order (DX.10a: the typed boot
+ * errors are documented from the index, not retyped). A member is read from the package that defines it, not the
+ * umbrella's re-export: the runtime's own row first, else any other package's. A member without a documented row is
+ * an error, so the docs can never list fewer failures than the type.
+ */
+export function bootErrors(index: { exports: unknown[] }): BootErrors {
+  const rows = index.exports as IndexRow[]
+  const union = rows.find(row => row.name === 'BootError' && row.package === '@mcthaydt/automata-runtime')
+  if (!union) throw new Error('the API index has no BootError type in @mcthaydt/automata-runtime')
+  const names = union.signature.replace(/^type BootError\s*=\s*/, '').replace(/;\s*$/, '').split('|').map(name => name.trim())
+  const members = names.map(name => {
+    const candidates = rows.filter(row => row.name === name && row.package !== UMBRELLA && row.doc)
+    const own = candidates.find(row => row.package === union.package) ?? candidates[0]
+    if (!own) throw new Error(`BootError member ${name} has no documented row in the API index`)
+    return { name, package: own.package, doc: own.doc }
+  })
+  return { signature: union.signature, doc: union.doc, members }
 }
 
 const sha256 = (text: string): string => createHash('sha256').update(text).digest('hex')
@@ -41,7 +71,9 @@ export function installApiIndex(distDir: string, website: string, commit: string
   const index = JSON.parse(read('api.json')) as { version: string; exports: unknown[] }
   const text = { 'llms-full.txt': read('llms-full.txt'), 'llms-api.txt': read('llms-api.txt') }
   if (!text['llms-full.txt'].endsWith(text['llms-api.txt'])) throw new Error('llms-full.txt does not end with the API reference in llms-api.txt; regenerate both in one api-index run')
+  const boot = bootErrors(index)
   for (const name of PUBLISHED) writeFileSync(join(website, 'static', name), text[name])
+  writeFileSync(join(website, 'src/data/boot-errors.json'), `${JSON.stringify({ commit, ...boot }, null, 2)}\n`)
   const source: ApiIndexSource = {
     commit,
     version: index.version,

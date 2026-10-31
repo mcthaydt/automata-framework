@@ -7,6 +7,7 @@ import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
 import Cheatsheet from '../src/routes/cheatsheet/+page.svelte'
 import docs from '../src/data/docs.json'
 import apiIndex from '../src/data/api-index.json'
+import bootErrors from '../src/data/boot-errors.json'
 import Home from '../src/routes/+page.svelte'
 import Ai from '../src/routes/ai/+page.svelte'
 import { homeData } from './helpers/page-data'
@@ -91,6 +92,18 @@ describe('Restored claims (DX.10a)', () => {
     expect(csp.textContent).toContain('The framework CLI’s CSP probe loads the built game in Chromium under those headers, for Ruken’s local origins, and reports every violation the policy fires.')
     expect(view.getByRole('link', { name: 'the CSP probe’s source' }).getAttribute('href')).toBe(`https://github.com/mcthaydt/automata-framework/blob/${apiIndex.commit}/packages/cli/src/check/csp-probe-live.ts`)
     expect(csp.textContent).not.toMatch(/guarantee|100%|fully compliant|eliminate/i)
+    const securityDoc = docs.find(entry => entry.slug === 'security-csp')!.content
+    expect(securityDoc).toContain("a Ruken game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).")
+  })
+
+  it('documents the typed boot errors from the API index, and says what they do not cover', () => {
+    const doc = docs.find(entry => entry.slug === 'boot-errors')!
+    expect(bootErrors.commit).toBe(apiIndex.commit)
+    expect(doc.content).toContain(bootErrors.signature)
+    for (const member of bootErrors.members) expect(doc.content).toContain(`### ${member.name}\n\nFrom \`${member.package}\`. ${member.doc}`)
+    expect(doc.content).toContain('These are the failures boot reports as typed values. A defect in game code after boot is not one of them, and this list is not a claim that every failure is caught.')
+    expect(doc.content).toContain(`https://github.com/mcthaydt/automata-framework/blob/${bootErrors.commit}/packages/runtime/src/boot/boot-error.ts`)
+    expect(doc.content).not.toMatch(/zero untrapped|all failures are typed|every failure is (typed|handled)/i)
   })
 
   it('labels the generated API reference as complete for the packages it was generated from, and links it', () => {
