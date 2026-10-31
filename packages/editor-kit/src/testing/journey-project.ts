@@ -4,10 +4,18 @@
 // `@vitest/browser-playwright`, so this module never loads the provider itself and stays importable anywhere.
 
 /** Safari on an iPad running iPadOS 18, as the user agent the journeys' pages see. */
-export const IPAD_USER_AGENT =
+export const IPAD_USER_AGENT: string =
   'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
 
-const contextOptions = {
+/** The Playwright browser context the journeys run in. */
+export interface JourneyContextOptions {
+  readonly hasTouch: boolean
+  readonly deviceScaleFactor: number
+  readonly userAgent: string
+  readonly viewport: { readonly width: number; readonly height: number }
+}
+
+const contextOptions: JourneyContextOptions = {
   hasTouch: true,
   deviceScaleFactor: 2,
   userAgent: IPAD_USER_AGENT,
@@ -15,19 +23,34 @@ const contextOptions = {
 }
 
 /** `playwright` from `@vitest/browser-playwright`, or a stand-in in a test. */
-export type ProviderFactory<P> = (options: { readonly contextOptions: typeof contextOptions }) => P
+export type ProviderFactory<P> = (options: { readonly contextOptions: JourneyContextOptions }) => P
 
 export interface JourneyProjectOptions {
   /** The journey files; `src/**\/*.journey.test.ts` by default. */
   readonly include?: readonly string[]
 }
 
-export function journeyProject<P>(provider: ProviderFactory<P>, options: JourneyProjectOptions = {}) {
+/** A Vitest project config (what `projects` takes). */
+export interface JourneyProject<P> {
+  readonly extends: true
+  readonly resolve: { conditions: string[] }
+  /** What the iPad context is, for the tests of this config. */
+  readonly contextOptions: JourneyContextOptions
+  readonly test: {
+    name: 'journeys'
+    include: string[]
+    browser: { enabled: true; headless: true; provider: P; instances: { browser: 'webkit' }[] }
+  }
+}
+
+export function journeyProject<P>(
+  provider: ProviderFactory<P>,
+  options: JourneyProjectOptions = {},
+): JourneyProject<P> {
   return {
-    extends: true as const,
+    extends: true,
     // Svelte's client build, as the layout projects use.
     resolve: { conditions: ['browser'] },
-    /** What the iPad context is, for the tests of this config. */
     contextOptions,
     test: {
       name: 'journeys',
@@ -36,7 +59,7 @@ export function journeyProject<P>(provider: ProviderFactory<P>, options: Journey
         enabled: true,
         headless: true,
         provider: provider({ contextOptions }),
-        instances: [{ browser: 'webkit' as const }],
+        instances: [{ browser: 'webkit' }],
       },
     },
   }
