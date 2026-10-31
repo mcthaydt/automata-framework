@@ -115,6 +115,23 @@ describe('workspaceManifestProblems', () => {
     expect(workspaceManifestProblems(temp)).toEqual([])
   })
 
+  // PRODUCT.6: a kit (kits/*) is copied into a game, so its manifest is held to the same rules.
+  it('checks every kit and names the file of each problem', () => {
+    mkdirSync(join(temp, 'kits', 'screens'), { recursive: true })
+    writeFileSync(
+      join(temp, 'kits', 'screens', 'package.json'),
+      JSON.stringify(
+        manifest({
+          name: '@mcthaydt/automata-kit-screens',
+          dependencies: { '@mcthaydt/automata-ui': '0.0.4' },
+        }),
+      ),
+    )
+    expect(workspaceManifestProblems(temp)).toEqual([
+      'kits/screens/package.json: @mcthaydt/automata-ui is core; list it under peerDependencies (and devDependencies for tests), not dependencies',
+    ])
+  })
+
   it('treats a sibling Plus package as Plus, not core', () => {
     write('physics', manifest({ name: '@mcthaydt/automata-physics' }))
     write('net', manifest({ dependencies: { '@mcthaydt/automata-physics': '0.1.0' } }))

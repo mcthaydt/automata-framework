@@ -7,18 +7,23 @@ export interface PlusManifest {
   readonly manifest: Record<string, unknown>
 }
 
-/** Every `packages/*\/package.json` in the Plus workspace, in folder order. */
+/** Every `packages/*\/package.json` and `kits/*\/package.json` in the Plus workspace: packages first, each in folder order. */
 export function plusManifests(root: string): PlusManifest[] {
-  const packages = join(root, 'packages')
-  if (!existsSync(packages)) return []
-  return readdirSync(packages, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && existsSync(join(packages, entry.name, 'package.json')))
-    .map((entry) => entry.name)
-    .sort()
-    .map((folder) => {
-      const path = `packages/${folder}/package.json`
-      return { path, manifest: JSON.parse(readFileSync(join(root, path), 'utf8')) as Record<string, unknown> }
-    })
+  return ['packages', 'kits'].flatMap((group) => {
+    const dir = join(root, group)
+    if (!existsSync(dir)) return []
+    return readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && existsSync(join(dir, entry.name, 'package.json')))
+      .map((entry) => entry.name)
+      .sort()
+      .map((folder) => {
+        const path = `${group}/${folder}/package.json`
+        return {
+          path,
+          manifest: JSON.parse(readFileSync(join(root, path), 'utf8')) as Record<string, unknown>,
+        }
+      })
+  })
 }
 
 /** The names of the packages Plus has itself: core never overrides them (the framework packs physics until 5g). */
@@ -69,7 +74,7 @@ export function manifestProblems(
   return problems
 }
 
-/** The problems of every manifest under packages/. */
+/** The problems of every manifest under packages/ and kits/. */
 export function workspaceManifestProblems(root: string): string[] {
   const manifests = plusManifests(root)
   const names = plusPackageNames(root)
