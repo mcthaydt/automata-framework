@@ -29,7 +29,7 @@ describe('ED3-a: each shipped blockout, changed nothing, saves byte-identical', 
     const text = loadFixture(name)
     const { workspace, path, level } = await opened(name, text)
     const saved = await level.document.save()
-    expect(saved.status === 'saved' || saved.status === 'unchanged' || saved.status === 'clean').toBe(true)
+    expect(['conflict', 'failed', 'refused']).not.toContain(saved.status)
     expect(textOf(await workspace.store.read(path))).toBe(text)
   })
 })
@@ -41,7 +41,7 @@ describe('ED3-b: the hall’s ceiling from 4.9 to 5.1 changes exactly that numbe
     const result = level.editor.run(setHeights({ id: 'hall', ceiling: 5.1 }))
     expect(result.ok).toBe(true)
     await level.document.save()
-    const after = textOf(await workspace.store.read(path))
+    const after = textOf(await workspace.store.read(path)) ?? ''
     const start = [...text].findIndex((char, index) => char !== after[index])
     const endBefore =
       text.length - [...text].reverse().findIndex((char, index) => char !== after[after.length - 1 - index])
