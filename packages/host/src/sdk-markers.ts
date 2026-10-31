@@ -12,3 +12,16 @@ export const RUKEN_SDK_MARKERS: readonly string[] = ['ruken:__probe__', 'needs t
 export function findRukenSdkMarkers(code: string): string[] {
   return RUKEN_SDK_MARKERS.filter((marker) => code.includes(marker))
 }
+
+/**
+ * String literals only Tauri's IPC code contains, which survive minification: the global the webview injects
+ * (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`). A `tauri` build holds
+ * both; a `web`, `itch` or `ruken` build holds neither (DIST spec §5.3). Re-check them after a Tauri upgrade:
+ * `target.build.test.ts` fails if a `tauri` build stops containing them.
+ */
+export const TAURI_MARKERS: readonly string[] = ['__TAURI_INTERNALS__', 'plugin:process|exit']
+
+/** The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code. */
+export function findTauriMarkers(code: string): string[] {
+  return TAURI_MARKERS.filter((marker) => code.includes(marker))
+}

@@ -19,6 +19,21 @@ export {
   sortDiagnostics,
 } from './diagnostics/diagnostic'
 export type { FlowCapabilities, FlowGraph, FlowTransition } from './flow/check-flow'
+export {
+  GAME_ID_PATTERN,
+  type GameConfig,
+  gameConfigSchema,
+  INPUTS,
+  type Input,
+  LEADERBOARD_ORDERS,
+  type LeaderboardConfig,
+  ORIENTATIONS,
+  type Orientation,
+  RATINGS,
+  type Rating,
+  RENDERERS,
+  type Renderer,
+} from './game/game-config.schema'
 export type { AssetsSource, GameSource, RukenFields } from './game/game-facts'
 export {
   type ContentData,

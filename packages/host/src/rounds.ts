@@ -1,4 +1,4 @@
-import type { RoundOutcome } from '@ruken/sdk'
+import type { RoundOutcome } from './contract/round.schema'
 
 export interface RoundReporter {
   start(): void

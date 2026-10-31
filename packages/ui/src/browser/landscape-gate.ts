@@ -13,10 +13,10 @@
  * desktop window shares that form factor and has no bar to hide.
  */
 
-import type { FullscreenRes } from '@ruken/sdk'
+import type { FullscreenRes } from '@mcthaydt/automata-host'
 import type { FormFactor } from '../geometry/form-factor'
 
-/** Ruken's answer to whether this browser can go fullscreen, and how. */
+/** The host's answer to whether this browser can go fullscreen, and how. */
 export type FullscreenSupport = FullscreenRes['support']
 
 /** Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen. */

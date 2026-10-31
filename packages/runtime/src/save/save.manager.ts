@@ -110,6 +110,13 @@ const toBase64 = (bytes: Uint8Array): string => {
 
 const fromBase64 = (text: string): Uint8Array => Uint8Array.from(atob(text), (char) => char.charCodeAt(0))
 
+/**
+ * Whether the host keeps saves this session: when it grants `saves`, or when Ruken fell back to standalone, whose
+ * SDK keeps them on the device without a grant (shared contracts §1.2), as the paused screen reads it.
+ */
+export const savesKept = (hosting: Hosting): boolean =>
+  hosting.kind === 'standalone' || hosting.granted.has('saves')
+
 /** Opens a game's save slots: reads the slot list from the host, then loads, writes and removes slots. */
 export function saveService<S>(
   def: SaveDef<S>,
@@ -130,7 +137,12 @@ export function saveService<S>(
       const read = raw === null ? undefined : readSave(def, raw)
       lastKnown[slot] = read?.ok === true ? identityOf(read.envelope) : undefined
     }
-    for (const key of yield* hosting.saves.keys) {
+    // A target that does not grant saves (a web page with storage blocked) is asked for nothing: every slot lists and
+    // loads empty and a write sends nothing. Each call would fail DENIED and stop a game that can run, which says on
+    // its paused screen that progress won't be kept (DIST spec §8 flow 5). Never the device's storage instead.
+    const granted = savesKept(hosting)
+    const listed = granted ? yield* hosting.saves.keys : []
+    for (const key of listed) {
       const slot = slotOf(def, key)
       if (slot === undefined) continue
       const raw = yield* hosting.saves.get(key)
@@ -185,7 +197,7 @@ export function saveService<S>(
       Effect.gen(function* () {
         yield* checked(slot)
         // Read the host's value, not the one seen at boot: another device may have written since.
-        const raw = yield* hosting.saves.get(slotKey(def, slot))
+        const raw = granted ? yield* hosting.saves.get(slotKey(def, slot)) : null
         const state = slotState(def, slot, raw, contentHash)
         if (raw === null) {
           yield* setState(slot, state)
@@ -236,6 +248,7 @@ export function saveService<S>(
         }
         const identity = identityOf(envelope)
         if (identity === lastKnown[slot]) return
+        if (!granted) return
 
         const raw = encodeEnvelope(envelope)
         yield* hosting.saves

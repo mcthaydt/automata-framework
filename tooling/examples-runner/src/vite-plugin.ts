@@ -62,7 +62,8 @@ export function examplesRunner(options: ExamplesRunnerOptions): Plugin {
         root: options.root,
         base: './',
         appType: 'mpa',
-        resolve: { conditions: ['browser'] },
+        // The examples run in the fake Ruken host's frame: the Ruken adapter (DIST spec §5.3), then Svelte's client build.
+        resolve: { conditions: ['automata-ruken', 'browser'] },
         // `assetsInlineLimit: 0`: Vite would inline an asset under 4 kB as a `data:` URL, which Pixi's loader fetches
         // and Ruken's CSP (`connect-src 'self'`) refuses; a same-origin file is what the CSP allows.
         build: { outDir: 'dist', emptyOutDir: true, assetsInlineLimit: 0, rollupOptions: { input } },

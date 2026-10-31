@@ -4,7 +4,6 @@ import '@mcthaydt/automata/no-eval'
 import type { DefinedGame } from '@mcthaydt/automata'
 import { isDefinedGame } from '@mcthaydt/automata-game/tooling'
 import type { HostSettings } from '../header.ts'
-import { checkGolden, exampleSim, hashRun, runExample } from './harness.ts'
 import { createLoopGuard, LoopGuardError } from './loop-guard.ts'
 import {
   type FrameMessage,
@@ -16,6 +15,7 @@ import {
   RUNNING_FRAME_WAIT_MS,
   type RunMessage,
 } from './playground-protocol.ts'
+import { checkGolden, exampleSim, hashRun, runExample } from './ruken/harness.ts'
 import { createRunGate } from './run-gate.ts'
 import { exampleLocation } from './stack-location.ts'
 

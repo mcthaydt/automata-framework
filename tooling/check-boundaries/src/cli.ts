@@ -7,10 +7,36 @@
 // only the arguments of their `defineSystem` and `definePlugin` calls are checked.
 // Roots after `--game` are a game's src/ laid out by role (GL spec §4.5): only its sim set is checked, and a value
 // import from a sim file must stay inside that set. A game root with no sim files exits 2.
+// `--platform-imports <root>...` runs only the platform check (DIST spec §5.1): every source under each root, tests
+// included, imports a target's platform packages (`@ruken/*`, `@tauri-apps/*`) only under that target's folder.
 import { readFileSync, statSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import { checkSource, type Finding } from './check.ts'
 import { collectGameSimSet, collectSources, GAME_SIM_ROLES } from './files.ts'
+import { collectPlatformSources, platformImportFindings } from './platform-imports.ts'
+
+/** Prints the findings and the count, then exits 1 when there are any. */
+function finish(files: readonly string[], findings: readonly Finding[]): never {
+  for (const f of findings)
+    console.log(`${relative(process.cwd(), f.file)}:${f.line}:${f.col}  ${f.rule}  ${f.message}`)
+  console.log(`check-boundaries: ${files.length} files, ${findings.length} findings`)
+  process.exit(findings.length > 0 ? 1 : 0)
+}
+
+if (process.argv[2] === '--platform-imports') {
+  const roots = process.argv.slice(3)
+  if (roots.length === 0) {
+    console.error('usage: check-boundaries --platform-imports <root>...')
+    process.exit(2)
+  }
+  const files = roots.flatMap((root) =>
+    statSync(root).isDirectory() ? collectPlatformSources(root) : [root],
+  )
+  finish(
+    files,
+    files.flatMap((file) => platformImportFindings(file, readFileSync(file, 'utf8'))),
+  )
+}
 
 const dirs: string[] = []
 const gameRoots: string[] = []
@@ -60,7 +86,4 @@ for (const root of gameRoots) {
     findings.push(...checkSource(file, readFileSync(file, 'utf8'), { root, allowImports, simSet }))
   }
 }
-for (const f of findings)
-  console.log(`${relative(process.cwd(), f.file)}:${f.line}:${f.col}  ${f.rule}  ${f.message}`)
-console.log(`check-boundaries: ${files.length} files, ${findings.length} findings`)
-process.exit(findings.length > 0 ? 1 : 0)
+finish(files, findings)

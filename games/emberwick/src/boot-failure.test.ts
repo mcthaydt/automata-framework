@@ -1,6 +1,5 @@
 import { Cause, Effect, Exit, FiberId } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { BaseBootFailed } from './boot.ts'
 import {
   bootFailureMessage,
   CONNECT_FAILED,
@@ -8,6 +7,7 @@ import {
   RendererFailed,
   SimFailed,
 } from './boot-failure.ts'
+import { BaseBootFailed } from './ruken/boot.ts'
 
 // The page's error screen picks its message from how startGame failed. Run through Effect.runPromiseExit, as
 // main.ts does: Effect.runPromise would hand back a FiberFailure wrapper with no `_tag` of its own.

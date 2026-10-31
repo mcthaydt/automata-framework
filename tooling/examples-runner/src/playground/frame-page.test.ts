@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { playgroundFramePage } from './frame-page.ts'
-import { framePolicy } from './frame-policy.ts'
+import { framePolicy } from './ruken/frame-policy.ts'
 
 const RUNTIME = {
   automata: '/playground/runtime/automata-LRkvFZ12.js',

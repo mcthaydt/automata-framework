@@ -1,6 +1,6 @@
 import type { HostSettings } from '../header.ts'
 import { escapeHtml, PAGE_STYLE, pendingPage } from '../page-template.ts'
-import { framePolicy } from './frame-policy.ts'
+import { framePolicy } from './ruken/frame-policy.ts'
 
 /** The site paths of one playground runtime build (website playground spec §5.5). */
 export interface PlaygroundRuntime {

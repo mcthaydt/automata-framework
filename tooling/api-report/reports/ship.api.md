@@ -278,6 +278,11 @@ type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' |
 interface ItchConfig {
     readonly project: string;
     readonly channel?: string | undefined;
+    readonly downloads?: {
+        readonly linux?: string | undefined;
+        readonly mac?: string | undefined;
+        readonly windows?: string | undefined;
+    } | undefined;
 }
 ```
 
@@ -285,6 +290,13 @@ interface ItchConfig {
 
 ```ts
 const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig>;
+```
+
+### `ItchDownloadsMissing` (class)
+
+```ts
+class ItchDownloadsMissing extends ItchDownloadsMissingBase {
+}
 ```
 
 ### `ItchSettingMissing` (class)
@@ -300,6 +312,11 @@ class ItchSettingMissing extends ItchSettingMissingBase {
 interface ItchSettings {
     readonly project: string;
     readonly channel: string;
+    readonly downloads: {
+        readonly linux: string;
+        readonly mac: string;
+        readonly windows: string;
+    };
 }
 ```
 
@@ -444,6 +461,33 @@ interface PrepareItchInput {
 }
 ```
 
+### `prepareTauri` (function)
+
+```ts
+function prepareTauri(input: PrepareTauriInput): Effect.Effect<{
+    bundles: string[];
+}, PrepareTauriError, ProcessRunner>;
+```
+
+### `PrepareTauriError` (type)
+
+```ts
+type PrepareTauriError = VersionMismatch | TauriBuildInvalid | SecretInBuild | Pixi3dInPublicBuild | Pixi3dExtrasInBuild | TauriToolchainMissing | TauriBuildFailed | FileError | ProcessError;
+```
+
+### `PrepareTauriInput` (interface)
+
+```ts
+interface PrepareTauriInput {
+    readonly distDir: string;
+    readonly gameDir: string;
+    readonly config: ShipConfig;
+    readonly tag?: string | undefined;
+    readonly platform?: NodeJS.Platform | undefined;
+    readonly pathEnv?: string | undefined;
+}
+```
+
 ### `PrivatePublishNotLocal` (class)
 
 ```ts
@@ -484,6 +528,31 @@ interface PublishBuildInput extends PublishInput {
     readonly tag?: string | undefined;
     readonly private?: boolean | undefined;
 }
+```
+
+### `PublishDownloadsError` (type)
+
+```ts
+type PublishDownloadsError = ItchSettingMissing | ItchDownloadsMissing | ButlerFailed | FileError | ProcessError;
+```
+
+### `PublishDownloadsInput` (interface)
+
+```ts
+interface PublishDownloadsInput {
+    readonly gameDir: string;
+    readonly config: ShipConfig;
+    readonly apiKey: string | undefined;
+    readonly butlerPath: string | undefined;
+}
+```
+
+### `publishDownloadsToItch` (function)
+
+```ts
+function publishDownloadsToItch(input: PublishDownloadsInput): Effect.Effect<{
+    pushed: string[];
+}, PublishDownloadsError, ProcessRunner>;
 ```
 
 ### `PublishFailed` (class)
@@ -581,6 +650,18 @@ class RootAbsoluteReference extends RootAbsoluteReferenceBase {
 function rukenCliPath(moduleUrl?: string, exists?: (path: string) => boolean): string;
 ```
 
+### `rukenHeaders` (function)
+
+```ts
+function rukenHeaders(config: ShipConfig, target: RukenHeaderTarget): Effect.Effect<Record<string, string>, ManifestInvalid>;
+```
+
+### `RukenHeaderTarget` (type)
+
+```ts
+type RukenHeaderTarget = Parameters<typeof compileHeaders>[1];
+```
+
 ### `rukenToml` (function)
 
 ```ts
@@ -623,15 +704,9 @@ const SHIP_PACKAGE = "@mcthaydt/automata-ship";
 ### `ShipConfig` (interface)
 
 ```ts
-interface ShipConfig {
-    readonly game: Manifest['game'];
-    readonly runtime: Omit<Manifest['runtime'], 'allow_eval'>;
-    readonly network: Manifest['network'];
-    readonly content: Manifest['content'];
-    readonly analytics?: Manifest['analytics'];
-    readonly loading?: NonNullable<Manifest['loading']>;
-    readonly leaderboards?: Manifest['leaderboards'];
+interface ShipConfig extends GameConfig {
     readonly itch?: ItchConfig | undefined;
+    readonly tauri?: TauriConfig | undefined;
     readonly audience?: 'public' | 'private' | undefined;
 }
 ```
@@ -645,6 +720,50 @@ interface ShipInputBindings {
         readonly touch?: boolean | undefined;
         readonly gesture?: readonly string[] | undefined;
     };
+}
+```
+
+### `TAURI_CLI` (const)
+
+```ts
+const TAURI_CLI = "@tauri-apps/cli@2.12.3";
+```
+
+### `TauriBuildFailed` (class)
+
+```ts
+class TauriBuildFailed extends TauriBuildFailedBase {
+    get message(): string;
+}
+```
+
+### `TauriBuildInvalid` (class)
+
+```ts
+class TauriBuildInvalid extends TauriBuildInvalidBase {
+    get message(): string;
+}
+```
+
+### `TauriConfig` (interface)
+
+```ts
+interface TauriConfig {
+    readonly identifier: string;
+    readonly icon?: string | undefined;
+}
+```
+
+### `tauriConfigSchema` (const)
+
+```ts
+const tauriConfigSchema: z.ZodType<TauriConfig>;
+```
+
+### `TauriToolchainMissing` (class)
+
+```ts
+class TauriToolchainMissing extends TauriToolchainMissingBase {
 }
 ```
 

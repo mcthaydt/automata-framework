@@ -17,7 +17,7 @@ import '@af-examples/base-2d/style.css'
 import './content-panel.css'
 import { content, contentHash } from 'virtual:automata/content'
 import { type PlayRoom, playRoom } from '@af-examples/base-2d/play'
-import { makeHosting } from '@mcthaydt/automata-host'
+import { makeHosting } from '@mcthaydt/automata-host/target'
 import { Effect } from 'effect'
 
 /** Must equal `[game] id` in ship.config.ts; the host checks it. */

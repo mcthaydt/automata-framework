@@ -6,7 +6,7 @@
  * depend on ui. The host display is Ruken's own `DisplayMetricsPayload` from the vendored SDK.
  */
 
-import type { DisplayMetricsPayload } from '@ruken/sdk'
+import type { DisplayMetricsPayload } from '@mcthaydt/automata-host'
 
 type Listener = () => void
 

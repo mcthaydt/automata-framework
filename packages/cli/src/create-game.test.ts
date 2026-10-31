@@ -1,8 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { tauriConfigSchema } from '@mcthaydt/automata-ship'
 import { Effect, Exit } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CreateGameError, createGame } from './create-game.ts'
+import type { DistTarget } from './create-game-targets.ts'
 
 describe('createGame', () => {
   const testDir = join(process.cwd(), 'scratch-test-game')
@@ -137,6 +139,97 @@ describe('createGame', () => {
 
       expect(exactPins).toContain(`pixi.js@${pkgJson.dependencies['pixi.js']}`)
       expect(exactPins.filter((pin) => !recorded.has(pin))).toEqual([])
+    })
+  })
+  // The targets (DIST spec §5.3, DIST-D9): a script, config section, dependency and ignore line per target chosen.
+  describe('targets', () => {
+    const generate = async (targets?: readonly DistTarget[]) => {
+      await Effect.runPromise(
+        createGame({
+          targetDir: testDir,
+          id: 'peer-game',
+          title: 'Peer Game',
+          ...(targets ? { targets } : {}),
+        }),
+      )
+      const read = (file: string) => readFileSync(join(testDir, file), 'utf8')
+      const pkg = JSON.parse(read('package.json')) as {
+        scripts: Record<string, string>
+        dependencies: Record<string, string>
+        devDependencies: Record<string, string>
+      }
+      return { read, pkg }
+    }
+
+    it('writes all four by default: a Vite build per target, ship for the three that package, no plain build', async () => {
+      const { pkg } = await generate()
+      expect(pkg.scripts).toMatchObject({
+        'build:web': 'vite build --mode web',
+        'build:itch': 'vite build --mode itch',
+        'build:ruken': 'vite build --mode ruken',
+        'build:tauri': 'vite build --mode tauri',
+        'prepare:itch': 'automata-ship prepare --target itch',
+        'prepare:ruken': 'automata-ship prepare --target ruken',
+        'prepare:tauri': 'automata-ship prepare --target tauri',
+      })
+      expect(pkg.scripts.build).toBeUndefined()
+      expect(pkg.scripts['prepare-ruken']).toBeUndefined()
+      expect(pkg.dependencies['@mcthaydt/automata-host']).toBe('workspace:*')
+      expect(pkg.dependencies).toMatchObject({
+        '@tauri-apps/api': '2.12.4',
+        '@tauri-apps/plugin-store': '2.5.0',
+        '@tauri-apps/plugin-process': '2.4.0',
+      })
+      expect(pkg.devDependencies['@tauri-apps/cli']).toBe('2.12.3')
+    })
+
+    it('writes only what the web target needs for --targets web', async () => {
+      const { pkg, read } = await generate(['web'])
+      expect(Object.keys(pkg.scripts).filter((name) => /^(build|prepare)/.test(name))).toEqual(['build:web'])
+      expect(Object.keys(pkg.dependencies).filter((name) => /tauri|ruken/.test(name))).toEqual([])
+      expect(pkg.devDependencies['@tauri-apps/cli']).toBeUndefined()
+      const shipConfig = read('ship.config.ts')
+      expect(shipConfig).not.toContain('tauri:')
+      expect(shipConfig).not.toContain('itch:')
+      expect(shipConfig).not.toContain('sdk:')
+      expect(read('.gitignore').split('\n')).toEqual(['node_modules/', 'dist/', ''])
+    })
+
+    it('gives the desktop target an identifier ship accepts, and ignores its generated project and bundles', async () => {
+      const { read } = await generate(['tauri'])
+      const identifier = /identifier: '([^']+)'/.exec(read('ship.config.ts'))?.[1]
+      expect(identifier).toBe('dev.example.peer-game')
+      expect(tauriConfigSchema.safeParse({ identifier }).success).toBe(true)
+      expect(read('.gitignore')).toContain('.automata/\ndist-tauri/\n')
+    })
+
+    it('gives itch.io a placeholder project and ignores its zip, and Ruken its SDK range', async () => {
+      const { read, pkg } = await generate(['itch', 'ruken'])
+      const shipConfig = read('ship.config.ts')
+      expect(shipConfig).toContain("itch: { project: 'your-itch-user/peer-game', channel: 'html5' }")
+      expect(shipConfig).toContain("sdk: '^0.0.0'")
+      expect(pkg.dependencies['@ruken/sdk']).toBe('^0.0.0')
+      expect(read('.gitignore')).toContain('*-itch.zip\n')
+    })
+
+    it("picks each build's host adapter from its mode, the web adapter otherwise, and boots through it", async () => {
+      const { read } = await generate(['itch', 'tauri'])
+      const viteConfig = read('vite.config.ts')
+      expect(viteConfig).toContain("web: 'automata-web'")
+      expect(viteConfig).toContain("itch: 'automata-web'")
+      expect(viteConfig).toContain("tauri: 'automata-tauri'")
+      expect(viteConfig).not.toContain('automata-ruken')
+      expect(viteConfig).toContain("ADAPTER_CONDITIONS[mode] ?? 'automata-web'")
+      expect(viteConfig).toContain('...defaultClientConditions')
+      expect(read('src/boot.ts')).toContain("from '@mcthaydt/automata-host/target'")
+    })
+
+    it("lists the chosen targets' commands in the README", async () => {
+      const { read } = await generate(['web', 'tauri'])
+      const readme = read('README.md')
+      expect(readme).toContain('pnpm build:web')
+      expect(readme).toContain('pnpm build:tauri && pnpm prepare:tauri')
+      expect(readme).not.toContain('build:ruken')
     })
   })
 })

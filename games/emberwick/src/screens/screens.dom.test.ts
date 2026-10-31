@@ -7,14 +7,14 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { createFakeHost, type FakeHost } from '@ruken/sdk-host/testing'
+import { type FakeHostControl, fakeHosting } from '@mcthaydt/automata-testing/host'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { emberwick } from '../game.ts'
 import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '../golden.ts'
 
-// Emberwick's five screens on the real runtime (DX.3 step 5) in jsdom: the in-memory fake Ruken host, manual
-// frames, and a renderer that keeps each step (Pixi needs WebGL, which jsdom lacks).
+// Emberwick's five screens on the real runtime (DX.3 step 5) in jsdom: AF's fake host (DIST spec §7), manual frames,
+// and a renderer that keeps each step (Pixi needs WebGL, which jsdom lacks).
 
 const STEP_MS = 1000 / 60
 
@@ -22,7 +22,7 @@ describe("Emberwick's screens", () => {
   let root: HTMLElement
   let frames: ManualFrames
   let results: StepResult[]
-  let host: FakeHost
+  let host: { readonly control: FakeHostControl; make: ReturnType<typeof fakeHosting>['make'] }
   let handle: RuntimeHandle | undefined
 
   const screen = () => root.dataset.screen
@@ -35,10 +35,15 @@ describe("Emberwick's screens", () => {
   const step = (count = 1) => {
     for (let index = 0; index < count; index++) frames.advance(STEP_MS)
   }
+  /** The rounds the host received, as `{ kind, outcome? }`. */
   const rounds = () =>
-    host.messages
-      .filter((entry) => entry.dir === 'in' && entry.msg.type === 'telemetry.round')
-      .map((entry) => entry.msg.payload)
+    host.control.rounds.map((round) =>
+      'start' in round
+        ? { kind: 'start' }
+        : round.end === undefined
+          ? { kind: 'end' }
+          : { kind: 'end', outcome: round.end },
+    )
   const playerX = () => {
     const rows = results.flatMap((result) => [...result.render.added, ...result.render.changed])
     return (rows.findLast((row) => row.components.player !== undefined)?.components.player as { x: number })
@@ -62,7 +67,7 @@ describe("Emberwick's screens", () => {
       ...game,
       root,
       renderer: recording,
-      seams: { frames, fetch: fakeFetch({}).fetch, sdkEnv: () => host.gameEnv as never },
+      seams: { frames, fetch: fakeFetch({}).fetch, hosting: host.make },
     })
     await until(() => frames.pending, 'the first frame')
     step()
@@ -82,20 +87,11 @@ describe("Emberwick's screens", () => {
     root.id = 'game'
     frames = manualFrames()
     results = []
-    host = createFakeHost({
-      gameOrigin: window.location.origin,
-      gameId: emberwick.id,
-      clock: {
-        epochMs: () => Date.now(),
-        setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),
-        clearTimeout: (timer: unknown) => clearTimeout(timer as number),
-      },
-    })
+    host = fakeHosting()
   })
   afterEach(async () => {
     await handle?.shutdown()
     handle = undefined
-    host.dispose()
     root.remove()
     document.documentElement.removeAttribute('data-state')
   })

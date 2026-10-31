@@ -10,16 +10,137 @@
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
+### `AudioChange` (interface)
+
+```ts
+interface AudioChange {
+    focus: {
+        state: 'full' | 'ducked' | 'muted';
+        reason: 'ad' | 'hidden' | 'host-overlay' | 'system';
+    };
+    master: {
+        volume: number;
+        muted: boolean;
+    };
+    gain: number;
+}
+```
+
+### `AudioChangeSchema` (const)
+
+```ts
+const AudioChangeSchema: z.ZodType<AudioChange>;
+```
+
+### `CAPABILITIES` (const)
+
+```ts
+const CAPABILITIES: readonly ["lifecycle", "input", "display", "audio", "exit", "menu", "saves", "leaderboards", "entitlements", "store", "ads", "telemetry", "analytics.custom", "links"];
+```
+
+### `Capability` (type)
+
+```ts
+type Capability = (typeof CAPABILITIES)[number];
+```
+
+### `CapabilitySchema` (const)
+
+```ts
+const CapabilitySchema: z.ZodType<Capability>;
+```
+
+### `DisplayMetricsPayload` (interface)
+
+```ts
+interface DisplayMetricsPayload {
+    safeArea: {
+        top: number;
+        right: number;
+        bottom: number;
+        left: number;
+    };
+    hostReserved: {
+        edge: 'right' | 'left';
+        rect: {
+            x: number;
+            y: number;
+            w: number;
+            h: number;
+        };
+    };
+    orientation: 'portrait' | 'landscape';
+    fullscreen: boolean;
+    scale: 1 | 1.333;
+}
+```
+
+### `DisplayMetricsPayloadSchema` (const)
+
+```ts
+const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
+```
+
+### `EntitlementsPayload` (interface)
+
+```ts
+interface EntitlementsPayload {
+    ads: boolean;
+    items: string[];
+    subscriptions: SubscriptionEntitlement[];
+    devBuild: boolean;
+}
+```
+
+### `EntitlementsPayloadSchema` (const)
+
+```ts
+const EntitlementsPayloadSchema: z.ZodType<EntitlementsPayload>;
+```
+
+### `ERROR_CODES` (const)
+
+```ts
+const ERROR_CODES: readonly ["UNSUPPORTED", "NOT_READY", "TIMEOUT", "RATE_LIMITED", "QUOTA_EXCEEDED", "INVALID_PAYLOAD", "DENIED", "OFFLINE", "CANCELLED", "INTERNAL"];
+```
+
 ### `ErrorCode` (type)
 
 ```ts
-type ErrorCode = RukenError['code'];
+type ErrorCode = (typeof ERROR_CODES)[number];
+```
+
+### `ErrorCodeSchema` (const)
+
+```ts
+const ErrorCodeSchema: z.ZodType<ErrorCode>;
 ```
 
 ### `findRukenSdkMarkers` (function)
 
 ```ts
 function findRukenSdkMarkers(code: string): string[];
+```
+
+### `findTauriMarkers` (function)
+
+```ts
+function findTauriMarkers(code: string): string[];
+```
+
+### `FullscreenRes` (interface)
+
+```ts
+interface FullscreenRes {
+    fullscreen: boolean;
+    support: 'element' | 'ios-home-screen' | 'none';
+}
+```
+
+### `FullscreenResSchema` (const)
+
+```ts
+const FullscreenResSchema: z.ZodType<FullscreenRes>;
 ```
 
 ### `HOST_EXIT_CAP` (const)
@@ -46,7 +167,7 @@ class HostHandshakeFailed extends HostHandshakeFailedBase {
 
 ```ts
 interface Hosting {
-    readonly kind: 'ruken' | 'standalone' | 'web';
+    readonly kind: 'ruken' | 'standalone' | 'web' | 'tauri';
     readonly hostName: string;
     readonly handshake: {
         readonly fellBack: Option.Option<HostHandshakeFailed>;
@@ -84,15 +205,9 @@ const Hosting: Context.Tag<Hosting, Hosting>;
 
 ```ts
 interface HostingLeaderboards {
-    submit(board: string, score: number, meta?: Parameters<LeaderboardsApi['submit']>[2]): Effect.Effect<LeaderboardSubmitRes, HostError>;
-    get(board: string, query?: Parameters<LeaderboardsApi['get']>[1]): Effect.Effect<LeaderboardGetRes, HostError>;
+    submit(board: string, score: number, meta?: LeaderboardSubmitMeta): Effect.Effect<LeaderboardSubmitRes, HostError>;
+    get(board: string, query?: LeaderboardQuery): Effect.Effect<LeaderboardGetRes, HostError>;
 }
-```
-
-### `HostingLive` (function)
-
-```ts
-function HostingLive(options: HostingOptions, seams?: HostingSeams): Layer.Layer<Hosting, HostError>;
 ```
 
 ### `HostingOptions` (interface)
@@ -128,10 +243,141 @@ interface HostingSeams {
 }
 ```
 
-### `makeHosting` (function)
+### `InputMode` (type)
 
 ```ts
-function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>;
+type InputMode = 'touch' | 'keyboard-mouse' | 'gamepad';
+```
+
+### `InputModePayload` (interface)
+
+```ts
+interface InputModePayload {
+    mode: InputMode;
+    gamepad?: {
+        layout: 'xbox' | 'other';
+        connected: boolean;
+    } | undefined;
+}
+```
+
+### `InputModePayloadSchema` (const)
+
+```ts
+const InputModePayloadSchema: z.ZodType<InputModePayload>;
+```
+
+### `LeaderboardEntry` (interface)
+
+```ts
+interface LeaderboardEntry {
+    rank: number;
+    displayName: string;
+    score: number;
+    isMe: boolean;
+}
+```
+
+### `LeaderboardGetRes` (interface)
+
+```ts
+interface LeaderboardGetRes {
+    entries: LeaderboardEntry[];
+}
+```
+
+### `LeaderboardGetResSchema` (const)
+
+```ts
+const LeaderboardGetResSchema: z.ZodType<LeaderboardGetRes>;
+```
+
+### `LeaderboardQuery` (interface)
+
+```ts
+interface LeaderboardQuery {
+    scope?: 'top' | 'around-me';
+    limit?: number;
+}
+```
+
+### `LeaderboardQuerySchema` (const)
+
+```ts
+const LeaderboardQuerySchema: z.ZodType<LeaderboardQuery>;
+```
+
+### `LeaderboardSubmitMeta` (type)
+
+```ts
+type LeaderboardSubmitMeta = Record<string, string | number>;
+```
+
+### `LeaderboardSubmitMetaSchema` (const)
+
+```ts
+const LeaderboardSubmitMetaSchema: z.ZodType<LeaderboardSubmitMeta>;
+```
+
+### `LeaderboardSubmitRes` (interface)
+
+```ts
+interface LeaderboardSubmitRes {
+    accepted: boolean;
+    personalBest: number;
+    rank?: number | undefined;
+}
+```
+
+### `LeaderboardSubmitResSchema` (const)
+
+```ts
+const LeaderboardSubmitResSchema: z.ZodType<LeaderboardSubmitRes>;
+```
+
+### `LifecyclePayload` (interface)
+
+```ts
+interface LifecyclePayload {
+    state: 'active' | 'background';
+    reasons: LifecycleReason[];
+}
+```
+
+### `LifecyclePayloadSchema` (const)
+
+```ts
+const LifecyclePayloadSchema: z.ZodType<LifecyclePayload>;
+```
+
+### `LifecycleReason` (type)
+
+```ts
+type LifecycleReason = 'hidden' | 'blurred' | 'host-overlay' | 'ad' | 'offline-grace';
+```
+
+### `PauseBehavior` (type)
+
+```ts
+type PauseBehavior = 'pause' | 'continue';
+```
+
+### `PauseBehaviorSchema` (const)
+
+```ts
+const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+### `RoundOutcome` (type)
+
+```ts
+type RoundOutcome = 'complete' | 'fail' | 'quit';
+```
+
+### `RoundOutcomeSchema` (const)
+
+```ts
+const RoundOutcomeSchema: z.ZodType<RoundOutcome>;
 ```
 
 ### `RUKEN_SDK_MARKERS` (const)
@@ -140,10 +386,64 @@ function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effe
 const RUKEN_SDK_MARKERS: readonly string[];
 ```
 
-### `toHostError` (function)
+### `SavesChangedPayload` (interface)
 
 ```ts
-function toHostError(operation: string, cause: unknown): HostError;
+interface SavesChangedPayload {
+    key: string;
+    value: string | null;
+    revision: number;
+}
+```
+
+### `SavesChangedPayloadSchema` (const)
+
+```ts
+const SavesChangedPayloadSchema: z.ZodType<SavesChangedPayload>;
+```
+
+### `SavesFlushRes` (interface)
+
+```ts
+interface SavesFlushRes {
+    persisted: 'host-outbox' | 'server' | 'device';
+}
+```
+
+### `SavesFlushResSchema` (const)
+
+```ts
+const SavesFlushResSchema: z.ZodType<SavesFlushRes>;
+```
+
+### `SavesStatus` (type)
+
+```ts
+type SavesStatus = 'checking' | 'syncing' | 'saved' | 'offline-queued' | 'retry' | 'conflict' | 'recovered';
+```
+
+### `SavesStatusSchema` (const)
+
+```ts
+const SavesStatusSchema: z.ZodType<SavesStatus>;
+```
+
+### `SubscriptionEntitlement` (interface)
+
+```ts
+interface SubscriptionEntitlement {
+    sku: string;
+    plan: 'monthly' | 'season';
+    active: boolean;
+    seasonId?: string | undefined;
+    endsAt?: string | undefined;
+}
+```
+
+### `TAURI_MARKERS` (const)
+
+```ts
+const TAURI_MARKERS: readonly string[];
 ```
 
 ## `./target`
@@ -151,13 +451,33 @@ function toHostError(operation: string, cause: unknown): HostError;
 ### `HostingLive` (function)
 
 ```ts
-function HostingLive(options: HostingOptions, seams?: HostingSeams): Layer.Layer<Hosting, HostError>;
+function HostingLive(options: HostingOptions, seams?: unknown): Layer.Layer<Hosting, HostError>;
 ```
 
 ### `makeHosting` (function)
 
 ```ts
-function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>;
+function makeHosting(options: HostingOptions, _seams?: unknown): Effect.Effect<Hosting, HostError, Scope.Scope>;
+```
+
+## `./contract-suite`
+
+### `describeHostingContract` (function)
+
+```ts
+function describeHostingContract(name: string, layer: HostingLayer, settled: Settle): void;
+```
+
+### `HostingLayer` (type)
+
+```ts
+type HostingLayer = () => Layer.Layer<Hosting, HostError>;
+```
+
+### `Settle` (type)
+
+```ts
+type Settle = Effect.Effect<void>;
 ```
 
 ## `./testing`
