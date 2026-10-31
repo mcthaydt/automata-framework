@@ -120,6 +120,17 @@ describe('defineGame defaults (DX spec §3.1)', () => {
     expect(defineGame({ ...spec, content: own, preload: files }).content).toEqual(own)
   })
 
+  // DX.2d: `copy.screens` is the default screens' (default-screens.test.ts shows them using it); the runtime gets
+  // only its own keys, so its copy type stays the runtime's.
+  it('hands the runtime its own copy and keeps copy.screens for the default screens', () => {
+    const screens = { title: { play: 'Jouer' } }
+    expect(defineGame({ ...spec, copy: { loading: 'Chargement…', screens } }).copy).toEqual({
+      loading: 'Chargement…',
+    })
+    expect(defineGame({ ...spec, copy: { screens } }).copy).toEqual({})
+    expect(defineGame(spec).copy).toBeUndefined()
+  })
+
   it('finds its root in #game, unless given one', () => {
     const main = document.body.appendChild(document.createElement('main'))
     main.id = 'game'

@@ -26,6 +26,7 @@ export { defaultContent } from './default-content.ts'
 export {
   type DefinedGame,
   defineGame,
+  type GameCopy,
   type GameSaves,
   type GameSpec,
   GameSpecError,
@@ -42,4 +43,12 @@ export {
   type TouchButton,
 } from './input/keys.ts'
 export { defaultScreens, type ScreensGame } from './screens/default-screens.ts'
+export type { ChangedElsewhereCopy } from './screens/saves-copy.ts'
+// The default screens' words (DX.2d): a game passes its own in `copy.screens`, over the English defaults.
+export type {
+  ScreensCopy,
+  ScreensCopyInput,
+  ScreensCopyOverrides,
+  SettingsScreenCopy,
+} from './screens/screens-copy.ts'
 export { startGame } from './start-game.ts'
