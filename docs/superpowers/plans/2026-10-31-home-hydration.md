@@ -47,3 +47,12 @@ explorer fetches the project's prerendered `/sources/<slug>.json` once, the firs
   - Performance score 1 both.
 - What still blocks after FCP: Svelte's hydration of the whole page (the runtime chunk, about 110 ms simulated, at
   about 2.7 s) and an unattributed task at about 1.66 s. Neither depends on the example sources.
+- Gates before merging main: `pnpm check` 0/0; `pnpm test` 440 passed and 1 expected fail; `pnpm build`;
+  `pnpm check:site` 45 pages; `site.e2e.ts` chromium 337 passed (2 skipped) and webkit 335 passed; `playground.e2e.ts`
+  69 passed (2 skipped).
+- `pnpm lighthouse`: every collected run is within budget. On `/`, TBT was 90, 46 and 55 ms (median 55). The run was
+  stopped by the job's time limit on `/examples/shapes-rects` after one run (TBT 61 ms), before `lhci assert`, so
+  the per-URL medians were read from the saved reports.
+- Merged `main` `c27b8f9` (website#28). Its `+page.server.ts` (`enginesAgree`) and this one became a single server load,
+  and `page-data.test.ts` checks `enginesAgree` against the evidence. After the merge: `pnpm check` 0/0;
+  `pnpm test` 459 passed and 1 expected fail; `pnpm build`; `pnpm check:site` 46 pages.
