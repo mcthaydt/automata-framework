@@ -99,6 +99,20 @@ describe('parseCliArgs', () => {
 
   // DIST spec §6.2: the desktop target builds bundles with `prepare`; it has no publish of its own (5c pushes them to
   // itch.io).
+  // DIST spec §6.4: the desktop bundles are pushed to itch.io's Downloadable channels.
+  it('reads --from tauri on publish --target itch, and refuses it anywhere else', () => {
+    expect(parseCliArgs(['publish', '--target', 'itch', '--from', 'tauri'])).toMatchObject({
+      command: 'publish',
+      target: 'itch',
+      from: 'tauri',
+    })
+    expect(parseCliArgs(['publish', '--from', 'tauri'])).toEqual({
+      command: 'usage',
+      problem: '--from tauri pushes desktop bundles to itch.io: use it with --target itch',
+    })
+    expect(parseCliArgs(['publish', '--target', 'itch', '--from', 'web']).command).toBe('usage')
+  })
+
   it('reads --target tauri on prepare, and refuses it on publish', () => {
     expect(parseCliArgs(['prepare', '--target', 'tauri'])).toStrictEqual({
       command: 'prepare',

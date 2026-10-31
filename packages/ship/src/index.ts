@@ -55,6 +55,11 @@ export { type TestRemoteInput, testRemote } from './remote/test-remote.ts'
 export { ITCH_LIMITS, ITCH_LIMITS_SOURCE } from './targets/itch/itch-limits.ts'
 export { type PrepareItchInput, prepareItch } from './targets/itch/prepare-itch.ts'
 export {
+  type PublishDownloadsError,
+  type PublishDownloadsInput,
+  publishDownloadsToItch,
+} from './targets/itch/publish-downloads-to-itch.ts'
+export {
   ITCH_FIRST_PUSH_CHECKLIST,
   type PublishItchInput,
   publishToItch,

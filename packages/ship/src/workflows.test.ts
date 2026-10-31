@@ -149,7 +149,19 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
     (name) => {
       const reusable = workflow(name)
       expect(Object.keys(reusable.on.workflow_call?.inputs ?? {})).toContain('runner')
-      for (const job of Object.values(reusable.jobs)) expect(job['runs-on']).toBe('${{ inputs.runner }}')
+      // Every job runs on a runner the caller passes: `runner`, or for the desktop bundles (one per OS, DIST.5c) a
+      // runner from `desktop-runners` or `desktop-macos-runner`.
+      for (const job of Object.values(reusable.jobs)) {
+        expect([
+          '${{ inputs.runner }}',
+          '${{ matrix.runner }}',
+          '${{ inputs.desktop-macos-runner }}',
+        ]).toContain(job['runs-on'])
+      }
+      for (const [id, job] of Object.entries(reusable.jobs).filter(
+        ([, job]) => job['runs-on'] === '${{ matrix.runner }}',
+      ))
+        expect(JSON.stringify(job), id).toContain('fromJSON(inputs.desktop-runners)')
     },
   )
 
@@ -1213,5 +1225,60 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
     expect(affected?.env?.TURBO_SCM_BASE).toBe('HEAD^1')
     expect(affected?.env?.TURBO_SCM_HEAD).toBe('HEAD')
     expect(steps.find((step) => step.uses?.startsWith('actions/checkout@'))?.with?.['fetch-depth']).toBe(2)
+  })
+})
+
+// DIST spec §6.4 (DIST.5c): a game's desktop bundles, built on the Owner's Linux and Mac runners. There is no Windows
+// runner (coordinator, 2026-10-31), so the Windows bundle stays an Owner gate.
+describe('game-release.yml: desktop bundles', () => {
+  const release = workflow('game-release.yml')
+  const call = release.on.workflow_call as {
+    inputs: Record<string, { default?: unknown }>
+    secrets: Record<string, unknown>
+  }
+  const scripts = (job: Job | undefined) => (job?.steps ?? []).map((step) => step.run ?? '').join('\n')
+
+  it('is opt-in, with the build command and the runners as inputs, Linux and the Mac by default', () => {
+    expect(call.inputs.desktop?.default).toBe(false)
+    expect(call.inputs['desktop-build-command']?.default).toBe('pnpm build:tauri')
+    expect(call.inputs['desktop-runners']?.default).toBe('["af-linux", "af-mac"]')
+    expect(call.inputs['desktop-signing']?.default).toBe(false)
+  })
+
+  it('builds unsigned bundles on each runner, never for a pull request, and keeps them as an artifact', () => {
+    const job = release.jobs.desktop
+    expect(job?.if).toContain('inputs.desktop')
+    expect(job?.if).toContain("github.event_name != 'pull_request'")
+    expect(job?.['runs-on']).toBe('${{ matrix.runner }}')
+    expect(scripts(job)).toContain('automata-ship prepare --target tauri --tag "$TAG"')
+    const upload = job?.steps?.find((step) => step.uses?.startsWith('actions/upload-artifact@'))
+    expect(upload?.with?.path).toContain('dist-tauri/')
+    expect(upload?.with?.name).toContain('unsigned')
+  })
+
+  it('pushes the bundles to itch.io only when the caller asked for itch.io too', () => {
+    const push = release.jobs.desktop?.steps?.find((step) => step.run?.includes('--from tauri'))
+    expect(push?.if).toBe('inputs.itch')
+    expect(push?.env?.BUTLER_API_KEY).toBe('${{ secrets.BUTLER_API_KEY }}')
+  })
+
+  it('signs and notarizes the macOS bundle only in the release environment, failing by name on a missing secret', () => {
+    const job = release.jobs['desktop-macos-signed']
+    expect(job?.if).toContain('inputs.desktop-signing')
+    expect(job?.environment).toBe('release')
+    expect(job?.['runs-on']).toBe('${{ inputs.desktop-macos-runner }}')
+    expect(call.inputs['desktop-macos-runner']?.default).toBe('af-mac')
+    const guard = scripts(job)
+    for (const secret of [
+      'APPLE_CERTIFICATE',
+      'APPLE_CERTIFICATE_PASSWORD',
+      'APPLE_SIGNING_IDENTITY',
+      'APPLE_ID',
+      'APPLE_PASSWORD',
+      'APPLE_TEAM_ID',
+    ]) {
+      expect(call.secrets[secret]).toBeDefined()
+      expect(guard).toContain(secret)
+    }
   })
 })

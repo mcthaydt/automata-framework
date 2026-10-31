@@ -271,6 +271,11 @@ const ItchSettingMissingBase: TaggedErrorClass<
 /** `publish --target itch` lacks the config section, the key or butler; found before anything runs. */
 export class ItchSettingMissing extends ItchSettingMissingBase {}
 
+const ItchDownloadsMissingBase: TaggedErrorClass<'ItchDownloadsMissing', { readonly message: string }> =
+  Data.TaggedError('ItchDownloadsMissing')
+/** `publish --target itch --from tauri` found no desktop bundle of this version; found before any push. */
+export class ItchDownloadsMissing extends ItchDownloadsMissingBase {}
+
 const ButlerFailedBase: TaggedErrorClass<'ButlerFailed', { readonly exitCode: number }> =
   Data.TaggedError('ButlerFailed')
 /** butler exited non-zero. Its output was already shown as it ran; the CLI exits with butler's own code. */

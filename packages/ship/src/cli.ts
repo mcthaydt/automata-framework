@@ -14,6 +14,7 @@ import { findExecutable } from './publish/find-executable.ts'
 import { publishBuild } from './publish/publish-build.ts'
 import { testRemote } from './remote/test-remote.ts'
 import { prepareItch } from './targets/itch/prepare-itch.ts'
+import { publishDownloadsToItch } from './targets/itch/publish-downloads-to-itch.ts'
 import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from './targets/itch/publish-to-itch.ts'
 import { deployDev } from './targets/ruken/deploy-dev.ts'
 import { prepareTauri } from './targets/tauri/prepare-tauri.ts'
@@ -86,6 +87,18 @@ async function program(
       return Effect.map(
         prepareItch({ distDir, gameDir: cwd, config, tag: command.tag }),
         (result) => `wrote ${result.zipPath}`,
+      )
+    }
+    if (command.from === 'tauri') {
+      const downloads = publishDownloadsToItch({
+        gameDir: cwd,
+        config,
+        apiKey: process.env.BUTLER_API_KEY,
+        butlerPath: findExecutable('butler'),
+      })
+      return Effect.provide(
+        Effect.map(downloads, (result) => `pushed to itch.io: ${result.pushed.join(', ')}`),
+        layers,
       )
     }
     const publish = publishToItch({

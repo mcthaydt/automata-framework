@@ -278,6 +278,11 @@ type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' |
 interface ItchConfig {
     readonly project: string;
     readonly channel?: string | undefined;
+    readonly downloads?: {
+        readonly linux?: string | undefined;
+        readonly mac?: string | undefined;
+        readonly windows?: string | undefined;
+    } | undefined;
 }
 ```
 
@@ -285,6 +290,13 @@ interface ItchConfig {
 
 ```ts
 const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig>;
+```
+
+### `ItchDownloadsMissing` (class)
+
+```ts
+class ItchDownloadsMissing extends ItchDownloadsMissingBase {
+}
 ```
 
 ### `ItchSettingMissing` (class)
@@ -300,6 +312,11 @@ class ItchSettingMissing extends ItchSettingMissingBase {
 interface ItchSettings {
     readonly project: string;
     readonly channel: string;
+    readonly downloads: {
+        readonly linux: string;
+        readonly mac: string;
+        readonly windows: string;
+    };
 }
 ```
 
@@ -511,6 +528,31 @@ interface PublishBuildInput extends PublishInput {
     readonly tag?: string | undefined;
     readonly private?: boolean | undefined;
 }
+```
+
+### `PublishDownloadsError` (type)
+
+```ts
+type PublishDownloadsError = ItchSettingMissing | ItchDownloadsMissing | ButlerFailed | FileError | ProcessError;
+```
+
+### `PublishDownloadsInput` (interface)
+
+```ts
+interface PublishDownloadsInput {
+    readonly gameDir: string;
+    readonly config: ShipConfig;
+    readonly apiKey: string | undefined;
+    readonly butlerPath: string | undefined;
+}
+```
+
+### `publishDownloadsToItch` (function)
+
+```ts
+function publishDownloadsToItch(input: PublishDownloadsInput): Effect.Effect<{
+    pushed: string[];
+}, PublishDownloadsError, ProcessRunner>;
 ```
 
 ### `PublishFailed` (class)

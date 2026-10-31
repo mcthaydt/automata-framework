@@ -638,6 +638,7 @@
 - `ItchCheck` (type): The `prepare --target itch` check that failed, in the order they run (PUB spec §4).
 - `ItchConfig` (interface): What a game writes in `ship.config.ts`.
 - `itchConfigSchema` (const): Checks a game's `itch` section: `project` is `user/game` in lower case, and `channel` defaults to `html5`.
+- `ItchDownloadsMissing` (class): `publish --target itch --from tauri` found no desktop bundle of this version; found before any push.
 - `ItchSettingMissing` (class): `publish --target itch` lacks the config section, the key or butler; found before anything runs.
 - `ItchSettings` (interface): The checked settings, with the channel filled in.
 - `keysBindingsIn(file, code)`: What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and `gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could name a device that is not there).
@@ -665,6 +666,9 @@
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
 - `publishBuild(input)`: `ship publish` for Ruken (ship spec §3.4): prepare the build, then hand it to Ruken's own CLI.
 - `PublishBuildInput` (interface): What `publishBuild` needs: `publishToRuken`'s input, the game's ship config, the release tag and the audience.
+- `PublishDownloadsError` (type): Every way `publishDownloadsToItch` can fail, each stopping the pushes.
+- `PublishDownloadsInput` (interface): What `publishDownloadsToItch` needs: the game's folder, its config, the key and where butler is.
+- `publishDownloadsToItch(input)`: Pushes this version's bundles from `dist-tauri/`, one per OS, each to its channel (`itch.downloads`, default `linux`, `mac`, `windows`), and answers the channels pushed.
 - `PublishFailed` (class): Any other exit code.
 - `PublishInput` (interface): What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and whether to activate the build.
 - `PublishItchInput` (interface): What `publishToItch` needs: the built folder, the ship config, the tag, the key and where butler is.

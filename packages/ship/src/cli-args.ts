@@ -21,6 +21,8 @@ export type CliCommand =
       readonly target: ShipTarget | undefined
       /** Upload to Ruken's local stack only, so the build may contain `@pixi/3d` (M3 spec §4.8). Ruken only. */
       readonly private?: true
+      /** Push the desktop bundles in `dist-tauri/` to itch.io's Downloadable channels (DIST spec §6.4). itch only. */
+      readonly from?: 'tauri'
     }
   | {
       readonly command: 'deploy-dev'
@@ -33,7 +35,7 @@ export type CliCommand =
 
 export const USAGE = `Usage: automata-ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch|tauri]
        automata-ship publish    [--dist <dir>] [--tag vX.Y.Z] [--activate] [--game <publicId>] [--private]
-       automata-ship publish    --target itch [--dist <dir>] [--tag vX.Y.Z]
+       automata-ship publish    --target itch [--from tauri] [--dist <dir>] [--tag vX.Y.Z]
        automata-ship deploy-dev [--dist <dir>] [--tag vX.Y.Z] [--activate]
        automata-ship test-remote [<playwright args> | --nightly]
 
@@ -46,6 +48,8 @@ publish      prepare, then ruken publish (packs, validates, uploads). Needs RUKE
              build refuses (D-1)
              --target itch: prepare --target itch, then butler push. Needs BUTLER_API_KEY, butler on PATH and
              itch.project in ship.config.ts.
+             --target itch --from tauri: push the desktop bundles in dist-tauri/ (prepare --target tauri) to
+             itch.io's Downloadable channels, one per OS (itch.downloads; default linux, mac, windows).
 deploy-dev   prepare, then install the build on the dev host. Needs SHIP_DEV_TARGET and SHIP_DEV_URL;
              SHIP_DEV_SSH_KEY_FILE and SHIP_DEV_KNOWN_HOSTS_FILE pick the key and known hosts.
 test-remote  push this branch and run CI for it remotely, waiting for the result`
@@ -73,9 +77,15 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
         activate: { type: 'boolean', default: false },
         game: { type: 'string' },
         private: { type: 'boolean', default: false },
+        from: { type: 'string' },
       } as const
       const { values } = parseArgs({ args: rest, options, strict: true })
       const target = shipTarget(values.target)
+      if (values.from !== undefined && values.from !== 'tauri')
+        throw new Error(`unknown --from: ${values.from} (tauri)`)
+      if (values.from === 'tauri' && target !== 'itch') {
+        throw new Error('--from tauri pushes desktop bundles to itch.io: use it with --target itch')
+      }
       if (target === 'tauri') {
         throw new Error('publish has no tauri target: prepare --target tauri builds the desktop bundles')
       }
@@ -92,6 +102,7 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
         game: values.game,
         target,
         ...(values.private ? { private: true as const } : {}),
+        ...(values.from === 'tauri' ? { from: 'tauri' as const } : {}),
       }
     }
     if (command === 'deploy-dev') {

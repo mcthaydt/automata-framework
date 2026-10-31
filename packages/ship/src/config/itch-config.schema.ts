@@ -9,12 +9,24 @@ export interface ItchConfig {
   readonly project: string
   /** The butler channel. Defaults to `html5`. */
   readonly channel?: string | undefined
+  /**
+   * The butler channel of each desktop bundle (`publish --target itch --from tauri`, DIST spec §6.4). Each defaults to
+   * its OS's name: `linux`, `mac`, `windows`.
+   */
+  readonly downloads?:
+    | {
+        readonly linux?: string | undefined
+        readonly mac?: string | undefined
+        readonly windows?: string | undefined
+      }
+    | undefined
 }
 
 /** The checked settings, with the channel filled in. */
 export interface ItchSettings {
   readonly project: string
   readonly channel: string
+  readonly downloads: { readonly linux: string; readonly mac: string; readonly windows: string }
 }
 
 const SLUG = /^[a-z0-9][a-z0-9._-]*$/
@@ -28,4 +40,11 @@ export const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig> = z.object({
       'must be the lower-case itch.io project, user/game',
     ),
   channel: z.string().regex(SLUG, 'must be a lower-case channel name such as html5').default('html5'),
+  downloads: z
+    .object({
+      linux: z.string().regex(SLUG, 'must be a lower-case channel name such as linux').default('linux'),
+      mac: z.string().regex(SLUG, 'must be a lower-case channel name such as mac').default('mac'),
+      windows: z.string().regex(SLUG, 'must be a lower-case channel name such as windows').default('windows'),
+    })
+    .default({ linux: 'linux', mac: 'mac', windows: 'windows' }),
 })

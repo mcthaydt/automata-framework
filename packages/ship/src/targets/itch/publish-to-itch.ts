@@ -1,6 +1,6 @@
 import { type ProcessError, ProcessRunner } from '@mcthaydt/automata-node'
 import { Effect } from 'effect'
-import { itchConfigSchema } from '../../config/itch-config.schema.ts'
+import { type ItchSettings, itchConfigSchema } from '../../config/itch-config.schema.ts'
 import type { ShipConfig } from '../../config/ship-config.ts'
 import { ButlerFailed, ItchSettingMissing } from '../../errors.ts'
 import { type PrepareItchError, prepareItch } from './prepare-itch.ts'
@@ -62,6 +62,42 @@ export function publishToItch(
 ): Effect.Effect<{ firstPush: boolean }, PublishItchError, ProcessRunner> {
   return Effect.gen(function* () {
     // Everything that can be missing is found before prepare writes a zip or any process starts.
+    const { settings, butlerPath, apiKey } = yield* itchPushSettings(input)
+
+    yield* prepareItch({
+      distDir: input.distDir,
+      config: input.config,
+      tag: input.tag,
+      gameDir: input.gameDir,
+    })
+
+    const { project, channel } = settings
+    const runner = yield* ProcessRunner
+    const result = yield* runner.run(
+      butlerPath,
+      [
+        'push',
+        input.distDir,
+        `${project}:${channel}`,
+        '--userversion',
+        input.config.game.version,
+        '--if-changed',
+      ],
+      { env: { BUTLER_API_KEY: apiKey }, echo: true },
+    )
+    if (result.exitCode !== 0) return yield* new ButlerFailed({ exitCode: result.exitCode })
+    return { firstPush: FIRST_PUSH.test(result.stdout) || FIRST_PUSH.test(result.stderr) }
+  })
+}
+
+/**
+ * The checked `itch` section, butler and the key, or the first that is missing: what every butler push needs, found
+ * before anything is written or started.
+ */
+export function itchPushSettings(
+  input: Pick<PublishItchInput, 'config' | 'apiKey' | 'butlerPath'>,
+): Effect.Effect<{ settings: ItchSettings; butlerPath: string; apiKey: string }, ItchSettingMissing> {
+  return Effect.gen(function* () {
     if (input.config.itch === undefined) {
       return yield* new ItchSettingMissing({ setting: 'itch', message: NO_ITCH_SECTION })
     }
@@ -80,28 +116,6 @@ export function publishToItch(
       return yield* new ItchSettingMissing({ setting: 'butler', message: NO_BUTLER })
     }
 
-    yield* prepareItch({
-      distDir: input.distDir,
-      config: input.config,
-      tag: input.tag,
-      gameDir: input.gameDir,
-    })
-
-    const { project, channel } = parsed.data
-    const runner = yield* ProcessRunner
-    const result = yield* runner.run(
-      input.butlerPath,
-      [
-        'push',
-        input.distDir,
-        `${project}:${channel}`,
-        '--userversion',
-        input.config.game.version,
-        '--if-changed',
-      ],
-      { env: { BUTLER_API_KEY: input.apiKey }, echo: true },
-    )
-    if (result.exitCode !== 0) return yield* new ButlerFailed({ exitCode: result.exitCode })
-    return { firstPush: FIRST_PUSH.test(result.stdout) || FIRST_PUSH.test(result.stderr) }
+    return { settings: parsed.data, butlerPath: input.butlerPath, apiKey: input.apiKey }
   })
 }

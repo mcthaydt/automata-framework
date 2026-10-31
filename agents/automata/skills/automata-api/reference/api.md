@@ -8389,6 +8389,15 @@ interface ItchConfig {
   readonly project: string;
   /** The butler channel. Defaults to `html5`. */
   readonly channel?: string | undefined;
+  /**
+   * The butler channel of each desktop bundle (`publish --target itch --from tauri`, DIST spec §6.4). Each defaults to
+   * its OS's name: `linux`, `mac`, `windows`.
+   */
+  readonly downloads?: {
+    readonly linux?: string | undefined;
+    readonly mac?: string | undefined;
+    readonly windows?: string | undefined;
+  } | undefined;
 }
 ```
 
@@ -8398,6 +8407,14 @@ Checks a game's `itch` section: `project` is `user/game` in lower case, and `cha
 
 ```ts
 const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig>;
+```
+
+#### `ItchDownloadsMissing` (class)
+
+`publish --target itch --from tauri` found no desktop bundle of this version; found before any push.
+
+```ts
+class ItchDownloadsMissing extends ItchDownloadsMissingBase {}
 ```
 
 #### `ItchSettingMissing` (class)
@@ -8416,6 +8433,11 @@ The checked settings, with the channel filled in.
 interface ItchSettings {
   readonly project: string;
   readonly channel: string;
+  readonly downloads: {
+    readonly linux: string;
+    readonly mac: string;
+    readonly windows: string;
+  };
 }
 ```
 
@@ -8736,6 +8758,40 @@ interface PublishBuildInput extends PublishInput {
    */
   readonly private?: boolean | undefined;
 }
+```
+
+#### `PublishDownloadsError` (type)
+
+Every way `publishDownloadsToItch` can fail, each stopping the pushes.
+
+```ts
+type PublishDownloadsError = ItchSettingMissing | ItchDownloadsMissing | ButlerFailed | FileError$1 | ProcessError$1;
+```
+
+#### `PublishDownloadsInput` (interface)
+
+What `publishDownloadsToItch` needs: the game's folder, its config, the key and where butler is.
+
+```ts
+interface PublishDownloadsInput {
+  readonly gameDir: string;
+  readonly config: ShipConfig;
+  /** `BUTLER_API_KEY`. Passed in butler's environment, never on its command line. */
+  readonly apiKey: string | undefined;
+  readonly butlerPath: string | undefined;
+}
+```
+
+#### `publishDownloadsToItch` (function)
+
+Pushes this version's bundles from `dist-tauri/`, one per OS, each to its channel (`itch.downloads`, default
+`linux`, `mac`, `windows`), and answers the channels pushed. The section, the key, butler and at least one bundle
+are checked before anything is staged or started; a butler failure stops the pushes after it.
+
+```ts
+function publishDownloadsToItch(input: PublishDownloadsInput): Effect.Effect<{
+  pushed: string[];
+}, PublishDownloadsError, ProcessRunner>;
 ```
 
 #### `PublishFailed` (class)
