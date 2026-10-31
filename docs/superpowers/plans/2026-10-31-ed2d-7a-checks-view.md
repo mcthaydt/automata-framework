@@ -3,7 +3,7 @@
 - **Task:** ED2D.7a in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §7 (`Profile.fix`), §8 (the Checks row), §9 (codes and the fixes they name), §12 (44 px targets), §15 G-g; mockup `checks` in `docs/design/editor-2d/`.
 - **Lane:** editor-2d. **Depends on:** ED2D.4c4b (the inspector's Checks tab, merged). **Unblocks:** ED2D.7b (export is blocked while errors stand, and the Checks view is where they are fixed).
 - **Status:** drafted 2026-10-31 on `claude/ed2d-7a-checks-view` from `origin/main` 6f1318b5. Owner, 2026-10-30: "Auto accept all spec and plans"; this plan is accepted once its review is done.
-- **Progress:** 5 of 7 steps.
+- **Progress:** 7 of 7 steps.
 
 ## Scope
 
@@ -74,8 +74,8 @@ export function levelFocus(
 3. [x] **Checks model.** `checkGroups`, `fixLabel` (`Remove 3 stray tiles` from the message count, `Move inside`, `Delete anyway`, `Choose target`), `objectLabel`.
 4. [x] **Focus.** `levelFocus` for an item, a layer, a level and a definition path (undefined); the Level session starts on it (level, layer, selected instance).
 5. [x] **View.** `ChecksView.dom.test.ts` mounted as the app mounts it: a seeded stray tile and an out-of-bounds slime show under Errors and Warnings with counts; "Remove 1 stray tile" and "Move inside" each make one undo step and the rows go; Locate opens the Level view with the slime selected; "Choose target" on a broken door lists targets and the pick is one step; the FloorFifty profile's Checks view lists its findings and its fixes work. `views.ts` maps `ChecksView`.
-6. [ ] **Layout.** `checks-view.layout.test.ts` in Chromium, WebKit and Firefox at the eight sizes: no page scroll, rows and buttons at least 44 px, the list scrolls in its region.
-7. [ ] **Review images** in `docs/evidence/owner-visual/2026-10-31-ed2d-7a-checks/` with a README.
+6. [x] **Layout.** `checks-view.layout.test.ts` in Chromium, WebKit and Firefox at the eight sizes: no page scroll, rows and buttons at least 44 px, the list scrolls in its region.
+7. [x] **Review images** in `docs/evidence/owner-visual/2026-10-31-ed2d-7a-checks/` with a README.
 
 ## Gates
 
@@ -89,3 +89,5 @@ export function levelFocus(
 - 2026-10-31: step 3. `checks-model.test.ts` (5) failed first on the missing module; `checkGroups`, `fixLabel` (the count comes from the message's leading `N cells`/`N objects`; an unknown fix name reads as its words, so FloorFifty's `reorder-layers` is "Reorder layers") and `objectLabel` written; 5 pass.
 - 2026-10-31: step 4. `level-focus.test.ts` (3) failed on the missing module and the session case failed on the first layer being chosen; `levelFocus` and `LevelSessionOptions.focus` (its level wins, then `setLayer` and `select`) written; 13 pass. `ViewServices.locate` and `ViewProps.focus` are optional; `DocumentScreen` sets the focus and the first view, the rail clears it.
 - 2026-10-31: step 5. Deviation (decision 3, evidence: `architecture.test.ts` G-s keeps the app from importing a profile, only `app/profiles.ts` may): the view cannot call `refChoices`/`chooseTarget` directly, so `Profile` gains two optional members, `choices(value, diagnostic)` and `choose(value, diagnostic, choice)` with `TargetChoice { label, value: RefValue }` (which replaces the plan's `RefChoice`); `level-project` sets both. `commitEdit` became generic over the state so FloorFifty's fixes go through it too (the plan's "call history.apply directly"). `CheckRow.svelte` stayed inside `ChecksView.svelte` (one small list item). `ChecksView.dom.test.ts` (6: groups and counts, the stray tile and the slime one step each and back on undo, choose target one step, Locate selects the slime in the Level view, "No problems", FloorFifty's "Reorder layers" one step) failed on the missing rail tab name and rows, then passes; FloorFifty registers in the test as an installing game would (the app registers only `level-project`). Package unit+dom 2424 of 2424; svelte-check clean.
+- 2026-10-31: step 6. `checks-view.layout.test.ts` (16 in Chromium: at the eight sizes the rail and every row button pass `checkLayout`, are at least 44 px, the page does not scroll; the target dialog's choices and Cancel pass `checkLayout`). It passed on its first run: the view's CSS was written in step 5, so this step adds evidence, not behaviour. WebKit and Firefox run in the parity gate.
+- 2026-10-31: step 7. Six images in `docs/evidence/owner-visual/2026-10-31-ed2d-7a-checks/` with a README; inspected (wide, 900 × 600, phone portrait and landscape, the target dialog). Merged `origin/main` a48b2c78 cleanly.
