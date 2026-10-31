@@ -38,8 +38,8 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
 ## Steps
 
 - [x] 1. Plan (this file).
-- [ ] 2. `world-camera`: fit on first measure, resize keeps the centre, pan, zoom about a point, fit again (unit).
-- [ ] 3. `world-gestures`: tap selects or clears, drag on a level moves it as one step, drag on space pans, pinch and
+- [x] 2. `world-camera`: fit on first measure, resize keeps the centre, pan, zoom about a point, fit again (unit).
+- [x] 3. `world-gestures`: tap selects or clears, drag on a level moves it as one step, drag on space pans, pinch and
   wheel zoom, middle button pans, finger after pen navigates only, two- and three-finger taps (unit, with a fake target).
 - [ ] 4. The view attaches them; Fit; the existing World view DOM cases still pass (selection, drag, reorder, G-h).
 - [ ] 5. Duplicate and Remove (model helpers in unit tests; DOM: duplicate selected and one undo step; remove asks with
@@ -51,3 +51,6 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
 ## Execution log
 
 - 2026-10-31: plan written on `claude/ed2d-6c-links` at `1e2634be`.
+- 2026-10-31, steps 2 and 3: `world-camera.test.ts` and `world-gestures.test.ts` failed on the missing modules, then
+  pass (4 and 5 tests). The camera imports `createViewport` from the kit's `core` entry: the root entry also exports
+  Svelte components, which the `unit` project cannot load.
