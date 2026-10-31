@@ -3,9 +3,10 @@
 // Sim code: `pnpm boundaries` checks it.
 import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { Act, Lock, Move } from './commands.ts'
-import { Hero, HeroAction, HeroControl, Target } from './components.ts'
-import { EmberTaken } from './events.ts'
+import { Act, Lock, Move } from '../commands.ts'
+import { Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { EmberTaken } from '../events.ts'
+import { Progress } from '../resources.ts'
 import {
   type Area,
   emberTake,
@@ -15,7 +16,7 @@ import {
   heroView,
   lockSelect,
   viewAt,
-} from './systems.ts'
+} from '../systems/index.ts'
 
 /**
  * Spawns Wick at the area's spawn, already in its room's view (the first view never latches) and facing away from
@@ -37,6 +38,7 @@ export function spawnArea(sim: Sim, area: Area): void {
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
+  resources: [Progress],
   defs: [
     Hero,
     HeroControl,

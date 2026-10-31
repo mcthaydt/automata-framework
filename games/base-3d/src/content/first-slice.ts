@@ -2,7 +2,7 @@
 // each with its own camera view. Hand-written until the rooms are authored in the 3D level editor (GAME-3D.1i).
 // 0 looks toward +z; the kiln's view turns the camera to +x, so walking north through the doorway with the stick
 // held tests the latch (M3R-D15).
-import type { AreaSource } from '../systems.ts'
+import type { AreaSource } from '../systems/index.ts'
 
 const WALL = 0.2
 
