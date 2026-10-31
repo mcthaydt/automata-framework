@@ -58,7 +58,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 2. `render`: cue, bed, mix, duck on a fake offline context (node), seeded. Fails: no module.
    - [x] 2
 3. The browser runner: renders a cue in real Chromium and the samples match the fake-context expectations (length, non-silence, same twice). Fails: no module.
-   - [ ] 3
+   - [x] 3
 4. The `audio` pipeline and its checks, with the fixture (AS-a). Fails: no pipeline.
    - [ ] 4
 5. The board panel (after #33 merges): buttons per cue and bed, event list, plays through the mixer. Fails: no component.

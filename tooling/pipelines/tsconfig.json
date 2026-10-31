@@ -3,7 +3,7 @@
   // Node runs the bin straight from source (type stripping), so imports keep their .ts suffix and the syntax stays
   // erasable, as in the root tooling that Node also runs (tooling/core/cli.ts).
   "compilerOptions": {
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM"],
     "types": ["node"],
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true
