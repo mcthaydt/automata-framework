@@ -50,17 +50,17 @@ export interface GameSaves<D> {
   label?(slot: number): string
 }
 
-/**
- * A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds,
- * scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
- * `defineGame` fills in every default.
- */
 /** A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d). */
 export type GameCopy = NonNullable<GameDefinition['copy']> & {
   /** The default screens' words, over their English defaults: a part of `ScreensCopy`, or a function of the locale. */
   readonly screens?: ScreensCopyInput | undefined
 }
 
+/**
+ * A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds,
+ * scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
+ * `defineGame` fills in every default.
+ */
 export interface GameSpec<S = never, D = unknown> {
   /** Ruken's game id (`[game].id`), checked with Ruken's own rule; it is `hosting.gameId`. */
   readonly id: string
