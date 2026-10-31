@@ -10,6 +10,7 @@ import PlanCanvas from '../plan/PlanCanvas.svelte'
 import Levels3dInspector from './Levels3dInspector.svelte'
 import Levels3dStatus from './Levels3dStatus.svelte'
 import type { Levels3dSuiteSession } from './levels-3d-suite-editor'
+import { planToolsOf } from './plan-tools-of'
 import { pointerOf } from './pointer.svelte'
 
 // The top bar owns Undo and Redo, so the plan's two- and three-finger taps leave them to it.
@@ -28,6 +29,7 @@ export { canvas, inspector, panel, status }
   {#if session.level.state.kind === 'open'}
     <PlanCanvas
       editor={session.level.state.editor}
+      tools={planToolsOf(session.level.state.editor)}
       renderer={session.renderer}
       onundo={leave}
       onredo={leave}

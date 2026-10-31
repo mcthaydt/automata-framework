@@ -2,7 +2,8 @@
   An opened level (plan ED3D.5c, decisions 6 to 8; the Plan view since ED3D.5d). The top bar has Back, the level's
   file, the views, the checks pill, Undo, Redo and Save; the canvas is the Plan view; the panel is the layers list (a
   drawer below `wide`, the kit's); the status line says where the pointer is, the zoom, what is selected and how the
-  level stands on saving. An autosave on offer is asked about first; a save that found the file changed opens the kit's
+  level stands on saving. The tool rail chooses the Plan view's tool (ED3D.6g-a), and V S X P D N, Enter, Backspace and
+  Escape run the tools' commands through the kit's keymap, except while a text field has focus. An autosave on offer is asked about first; a save that found the file changed opens the kit's
   conflict dialog, and one the patch refused opens the held Save. Edits go through the document controller and the
   level editor, so this file only draws and forwards.
 -->
@@ -15,17 +16,20 @@ import {
   shellModeOf,
   ToastRegion,
 } from '@mcthaydt/automata-editor-kit'
-import type { ToastStore } from '@mcthaydt/automata-editor-kit/core'
+import { createCommandRegistry, createKeymap, type ToastStore } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onDestroy } from 'svelte'
 import { createChecksPanel, type Scheduler } from '../../app/checks-panel-controller'
 import type { DocumentController, DocumentState } from '../../app/document/document-controller'
 import { planZoom } from '../../app/plan-picture'
 import { checksWords, planStatus } from '../../app/plan-status'
+import { planToolCommands } from '../../app/plan-tool-commands'
+import { createPlanTools, type PlanToolId } from '../../app/plan-tools'
 import type { Point } from '../../format/sector.schema'
 import EditorLayers from '../plan/EditorLayers.svelte'
 import PlanCanvas from '../plan/PlanCanvas.svelte'
 import type { PlanRendererFactory } from '../plan/plan-renderer'
+import ToolRail from '../plan/ToolRail.svelte'
 import DocumentBar from './DocumentBar.svelte'
 import HeldSaveDialog from './HeldSaveDialog.svelte'
 
@@ -68,7 +72,41 @@ $effect(() => controller.state.subscribe((next) => (view = next)))
 const editor = view.level.editor
 // svelte-ignore state_referenced_locally
 const checks = createChecksPanel(editor, { schedule })
-onDestroy(() => checks.dispose())
+// The canvas sizes the tools once it measures itself.
+// svelte-ignore state_referenced_locally
+const tools = createPlanTools(editor, { w: 1, h: 1 })
+const commands = createCommandRegistry()
+for (const command of planToolCommands(tools)) commands.register(command)
+const keymap = createKeymap(
+  commands,
+  /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '') ? 'apple' : 'other',
+)
+let activeTool = $state<PlanToolId>(tools.state.tool)
+const stopTools = tools.subscribe(() => (activeTool = tools.state.tool))
+onDestroy(() => {
+  checks.dispose()
+  stopTools()
+  tools.dispose()
+})
+
+/** Whether a key press is typing: focus in a field, a text area, a list or editable text. */
+function inText(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)
+}
+
+function onkeydown(event: KeyboardEvent): void {
+  if (event.defaultPrevented) return
+  const handled = keymap.handle({
+    key: event.key,
+    metaKey: event.metaKey,
+    ctrlKey: event.ctrlKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey,
+    inText: inText(event.target),
+  })
+  if (handled) event.preventDefault()
+}
 
 let mode = $state(editor.view.state.mode)
 let selection = $state.raw<readonly string[]>(editor.selection.ids)
@@ -96,7 +134,15 @@ const planWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection, br
 const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWords)
 </script>
 
-<EditorShell {geometry} bind:panelOpen testId="document-frame">
+<svelte:window {onkeydown} />
+
+{#snippet toolRail({ orientation }: { orientation: 'vertical' | 'horizontal' })}
+  <ToolRail active={activeTool} {orientation} onchoose={(tool) => tools.choose(tool)} />
+{/snippet}
+
+<!-- A phone has no tool rail: the plan there is view and select only (ED3D spec §10), and the plan keeps the height. -->
+<EditorShell {geometry} bind:panelOpen rail={compact ? undefined : toolRail} testId="document-frame">
+
   {#snippet topbar()}
     <DocumentBar
       heading={view.heading}
@@ -127,6 +173,8 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
   {#snippet canvas()}
     <PlanCanvas
       {editor}
+      {tools}
+      pointList={shellMode === 'wide'}
       {renderer}
       onundo={() => controller.undo()}
       onredo={() => controller.redo()}
