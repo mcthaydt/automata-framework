@@ -32,6 +32,12 @@
   let stage: HTMLElement | undefined = $state()
   let codePanel: ReturnType<typeof CodePanel> | undefined = $state()
   let box: HTMLElement | undefined = $state()
+  let playground: HTMLElement | undefined = $state()
+  /** The Preview toggle's state (§9.1): it hides the preview only while the playground is one column. */
+  let previewShown = $state(true)
+  /** One column: the playground is narrower than 700 px. */
+  let narrow = $state(false)
+  const previewHidden = $derived(narrow && !previewShown)
   let orchestrator: Orchestrator | undefined
   let orchestratorLoad: Promise<Orchestrator> | undefined
   /** §7.1's Compile state. */
@@ -297,6 +303,9 @@
     }
     window.addEventListener('focusin', onFocusIn)
     window.addEventListener('blur', onBlur)
+    // The toggle hides the preview only in one column: widened, the preview shows and takes input again.
+    const resize = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(([entry]) => { narrow = entry!.contentRect.width < 700 })
+    resize?.observe(playground!)
     let observer: IntersectionObserver | undefined
     const onLoad = () => {
       // The frame starts once the page's own downloads are done and the preview is within a screen of view (R-9).
@@ -315,16 +324,17 @@
       window.removeEventListener('blur', onBlur)
       window.removeEventListener('load', onLoad)
       observer?.disconnect()
+      resize?.disconnect()
       disposed = true
       orchestrator?.dispose()
       live?.dispose()
     }
   })
 </script>
-<div class="playground" data-code={code} data-compile={compile} data-preview={view.preview} data-run-id={view.runId}>
+<div class="playground" bind:this={playground} data-code={code} data-compile={compile} data-preview={view.preview} data-run-id={view.runId}>
   <div class="playground-grid">
-  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} {oncodestate} onedit={text => onedit(text)} diagnostics={marked} {link} {edited} onreset={reset} bind:this={codePanel} /></div>
-  <div class="playground-preview" bind:this={box}>
+  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} {oncodestate} onedit={text => onedit(text)} diagnostics={marked} {link} {edited} onreset={reset} {previewShown} ontogglepreview={() => { previewShown = !previewShown }} bind:this={codePanel} /></div>
+  <div class="playground-preview" data-shown={!previewHidden} inert={previewHidden} bind:this={box}>
     <PreviewPanel title={example.title} {view} {showPlay} onplay={play} {showRetry} onretry={retry} onrestart={() => orchestrator?.restart()} bind:stage />
     <p class="playground-status" id={statusId}>{#if diagnosticStatus && status === diagnosticStatus}<button type="button" class="diagnostic" onclick={() => codePanel?.focusAt(diagnostics[0]!.line, diagnostics[0]!.column)}>{status}</button>{:else}{status}{/if}</p>
     {#if view.determinism}<DeterminismRow view={view.determinism} exampleId={example.id} />{/if}
@@ -337,6 +347,8 @@
   .playground-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
   .playground-code { min-width: 0; }
   .playground-preview { order: -1; min-width: 0; }
+  /* Hidden, the wrapper clips to nothing while the frame keeps its own box, so the game is neither resized nor reloaded. */
+  .playground-preview[data-shown='false'] { height: 0; overflow: clip; }
   .playground-status { margin: .75rem 0 0; min-height: 1.5em; font-size: var(--step-small); color: var(--muted); overflow-wrap: anywhere; }
   /* The diagnostic reads as the status line it is, and is a 44 px target that takes the reader to the line (§8.2). */
   .diagnostic { display: block; width: 100%; min-height: 44px; padding: .5rem 0; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
