@@ -93,7 +93,7 @@ and the share link (.9); the determinism row (.10); the layout pass and the late
   region once.
 - [x] 10. Unit `site-checks.test.ts`: a worker over 125,000 B gzip fails; a page naming the worker file fails; a
   build without the worker fails. Fails: no `checkCompileWorker`. Then the check, wired into `check-site.ts`.
-- [ ] 11. Gates.
+- [x] 11. Gates.
 
 ## Commands and expected results
 
@@ -135,3 +135,15 @@ once.
   `_app/immutable/workers/` because Vite leaves workers out of the manifest. `check:site`: the compile worker is
   123,049 B gzip (budget 125,000; the spec measured 119,666 B with esbuild's minifier), and the editor chunk
   151,301 B (141.8 kB before `@codemirror/lint`; budget 175,000).
+- Review fix: `compositionend` reported a change even for a composition that changed nothing, which would recompile
+  and restart the preview. The editor now reports on `compositionend` only when the document changed while
+  composing; a change CodeMirror applies after the event reaches the update listener, since `composing` is false then.
+  New Chromium test (CDP `Input.imeSetComposition`, then `Input.insertText`): nothing compiles during the
+  composition, and it compiles once when it ends.
+  The new test passed before the fix as well: CDP cannot drive a composition that changes nothing, so the fix rests
+  on review.
+- Step 11, gates: `pnpm check` 0 errors; `pnpm test` 62 files, 415 passed, 1 expected fail; `pnpm build`;
+  `pnpm check:site` 0 failures (editor chunk 151,318 B, compile worker 123,049 B gzip); full e2e 738 passed,
+  2 skipped (19.0 min, before the composition fix); then the playground spec after it, Chromium 21 passed and
+  1 skipped (the IME test is Chromium-only, so it shows as skipped elsewhere), WebKit 20 passed; Lighthouse
+  (`lighthouserc.json`, 6 URLs × 3 runs) every assertion passes.

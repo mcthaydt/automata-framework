@@ -36,6 +36,7 @@ const theme = EditorView.theme({
 })
 
 export function mountEditor({ parent, doc, label, describedBy, anchor, onchange }: EditorOptions): EditorView {
+  let changedWhileComposing = false
   const state = EditorState.create({
     doc,
     selection: EditorSelection.cursor(Math.min(Math.max(anchor, 0), doc.length)),
@@ -56,10 +57,18 @@ export function mountEditor({ parent, doc, label, describedBy, anchor, onchange 
       EditorView.contentAttributes.of({ 'aria-label': label, 'aria-describedby': describedBy, autocorrect: 'off', autocapitalize: 'off', spellcheck: 'false' }),
       theme,
       EditorView.updateListener.of(update => {
-        if (update.docChanged && !update.view.composing) onchange(update.state.doc.toString())
+        if (!update.docChanged) return
+        if (update.view.composing) changedWhileComposing = true
+        else onchange(update.state.doc.toString())
       }),
-      // A change made while composing waits for the composition to end; `compositionend` comes after its last change.
-      EditorView.domEventHandlers({ compositionend: (_event, view) => { onchange(view.state.doc.toString()) } }),
+      // Changes made while composing are reported when it ends. A change CodeMirror applies after `compositionend`
+      // reaches the listener above, since `composing` is false by then; a composition that changed nothing reports none.
+      EditorView.domEventHandlers({
+        compositionend: (_event, view) => {
+          if (changedWhileComposing) onchange(view.state.doc.toString())
+          changedWhileComposing = false
+        },
+      }),
     ],
   })
   const view = new EditorView({ state, parent })
