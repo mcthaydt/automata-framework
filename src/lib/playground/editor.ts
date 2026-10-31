@@ -107,3 +107,8 @@ export function moveCaret(view: EditorView, line: number, column: number) {
   view.dispatch({ selection: EditorSelection.cursor(offsetOf(view, line, column)), scrollIntoView: true })
   view.focus()
 }
+
+/** Replaces the whole text in one undoable transaction (Reset, spec F7: Mod-Z brings the edit back). */
+export function replaceAll(view: EditorView, text: string) {
+  view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text }, selection: EditorSelection.cursor(0) })
+}

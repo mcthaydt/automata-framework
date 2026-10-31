@@ -49,21 +49,21 @@
 
 ## Steps (each test fails first, for the reason given)
 
-- [ ] 1. **First failing test** (e2e, Chromium): A-9's round trip. After an edit to `0xff0000` compiles, open
+- [x] 1. **First failing test** (e2e, Chromium): A-9's round trip. After an edit to `0xff0000` compiles, open
   `location.href` in a new browser context: the editor holds the edited code and the preview runs red. Fails: the URL
   carries nothing.
-- [ ] 2. Unit `share.test.ts`: round trip (ASCII and non-ASCII), the `1.` format, a corrupted payload, a payload that
+- [x] 2. Unit `share.test.ts`: round trip (ASCII and non-ASCII), the `1.` format, a corrupted payload, a payload that
   decompresses past 65,536 bytes, a fragment over 32,768 characters, an unknown format. Fails: no module. Then
   `share.ts`.
-- [ ] 3. `Playground` writes the fragment after each successful compile, and on mount decodes one: the shared code
+- [x] 3. `Playground` writes the fragment after each successful compile, and on mount decodes one: the shared code
   goes into the editor (`CodePanel.open`) and through the worker; the original is not fetched. Step 1 passes.
-- [ ] 4. e2e A-9's failures: a corrupted payload and an oversized one show the original and the could-not-be-read
+- [x] 4. e2e A-9's failures: a corrupted payload and an oversized one show the original and the could-not-be-read
   text, with no uncaught error. Fails until `Playground` handles `ShareError`.
-- [ ] 5. e2e A-8: Reset is absent before an edit, shown after one; pressing it makes the editor's text equal the synced
+- [x] 5. e2e A-8: Reset is absent before an edit, shown after one; pressing it makes the editor's text equal the synced
   source, removes the fragment and runs the original's code; Mod-Z brings the edit back. Fails: no Reset.
-- [ ] 6. e2e: Copy link (44 px) copies `location.href` with the fragment and says "Link copied"; Copy code copies the
+- [x] 6. e2e: Copy link (44 px) copies `location.href` with the fragment and says "Link copied"; Copy code copies the
   edited text. Fails: no Copy link.
-- [ ] 7. The privacy sentence (the site e2e's privacy checks and banned-phrase check still pass).
+- [x] 7. The privacy sentence (the site e2e's privacy checks and banned-phrase check still pass).
 - [ ] 8. Gates.
 
 ## Commands and expected results
@@ -81,3 +81,19 @@ the full e2e once.
 
 - 2026-10-31: plan written by the website lane (session_01QYLU1fqsxhm5BbLGxLS22c). Worktree `/home/user/wt/play9`,
   branch `claude/website-WEB.PLAY.9-share` from WEB.PLAY.8's head `ff5893a`.
+- Step 1 failed first: the hash was `""` after the edit compiled. Step 2: `share.test.ts` failed first (no module);
+  7/7 after `share.ts`. Step 3: the round trip passes.
+- Deviation, steps 4–6: steps 3–6 were written in one pass, so A-9's failure cases, Reset and Copy link passed when
+  their tests were first run. They don't count as having failed first. Each was checked against what it asserts:
+  - Reset: the editor's text equals `examples.json`'s source byte for byte, the URL loses its fragment, run 3 starts
+    and isn't red, and Mod-Z brings `0xff0000` back.
+  - Copy link: the clipboard holds `page.url()`, and Copy code holds the editor's text.
+- Found in review: a share link whose code can't compile (the worker fails) would leave nothing running and no Play.
+  The worker's `error` now lets the original start in its place, through the usual start path (R-9). It has its own
+  e2e test.
+- Found while writing that test: one version reloaded the page after an earlier visit. The reloaded page lacked focus,
+  and the frame's game stayed in `data-state="loading"` (`document.hasFocus()` false) until the 20 s timeout. The frame
+  is the framework's, and this predates this task. Reported as a follow-up: an example opened in a background tab may
+  hit it.
+- Gates: `pnpm check` 0 errors, `pnpm test` 425 passed, `pnpm build`, `pnpm check:site` (editor 151,346 B, worker
+  123,049 B), playground spec Chromium 34/34, WebKit 32 passed, 2 skipped (IME, clipboard).

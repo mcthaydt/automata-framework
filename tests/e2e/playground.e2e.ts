@@ -560,3 +560,97 @@ test('offline, the first frame times out and Retry starts a fresh one', async ({
   await expect(page.locator('.playground iframe')).toHaveCount(1)
   await expect(retry).toHaveCount(0)
 })
+
+// WEB.PLAY.9 (spec §5.6, F7–F9, A-8, A-9): Reset, the share link, and opening one.
+
+test('a share link opens the edited code in a new context and runs it', async ({ page, browser }) => {
+  await page.goto('/examples/shapes-rects')
+  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect.poll(() => new URL(page.url()).hash).toMatch(/^#code=1\.[\w-]+$/)
+  const context = await browser.newContext()
+  const friend = await context.newPage()
+  const watch = watchPage(friend, ORIGIN)
+  await friend.goto(page.url())
+  await expect(root(friend)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
+  await expect(friend.locator('.cm-content')).toContainText('0xff0000')
+  await expect(friend.locator('.cm-content')).not.toContainText('0x00cdf9')
+  await expect(root(friend)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  await expect.poll(() => redPixels(friend), { timeout: 5_000 }).toBeGreaterThan(100)
+  expect(watch.problems).toEqual([])
+  await context.close()
+})
+
+for (const [name, fragment] of [
+  ['corrupted', async () => 'code=1.not*base64'],
+  ['oversized', async () => {
+    const stream = new Blob([new Uint8Array(65_537).fill(0x61)]).stream().pipeThrough(new CompressionStream('deflate-raw'))
+    return 'code=1.' + Buffer.from(await new Response(stream).arrayBuffer()).toString('base64url')
+  }],
+] as const) {
+  test(`a ${name} share link shows the original and says it could not be read`, async ({ page }) => {
+    const watch = watchPage(page, ORIGIN)
+    await page.goto('/examples/shapes-rects#' + await fragment())
+    await expect(page.locator('.playground-status')).toHaveText('This link’s code could not be read, so the original example is shown.', { timeout: 10_000 })
+    await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+    await expect(root(page)).toHaveAttribute('data-compile', 'original')
+    await expect(staticCode(page)).toContainText('0x00cdf9')
+    expect(watch.problems).toEqual([])
+  })
+}
+
+/** The synced framework file the page shows (src/data/examples.json). */
+function syncedSource(id: string): string {
+  const data = JSON.parse(readFileSync('src/data/examples.json', 'utf8'))
+  return (data.examples ?? data).find((example: { id: string }) => example.id === id).source
+}
+
+/** The editor's whole text, line by line (the example is short enough for every line to be drawn). */
+const editorText = (page: Page) => page.locator('.cm-line').evaluateAll(lines => lines.map(line => line.textContent).join('\n'))
+
+test('Reset puts the original back byte for byte, removes the fragment and runs it, and Mod-Z brings the edit back', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  const reset = page.getByRole('button', { name: 'Reset' })
+  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  await expect(reset).toHaveCount(0)
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect.poll(() => new URL(page.url()).hash).toMatch(/^#code=1\./)
+  const box = (await reset.boundingBox())!
+  expect(box.height).toBeGreaterThanOrEqual(44)
+  await reset.click()
+  await expect(reset).toHaveCount(0)
+  expect(await editorText(page)).toBe(syncedSource('shapes-rects'))
+  await expect(root(page)).toHaveAttribute('data-run-id', '3', { timeout: 10_000 })
+  await expect.poll(() => page.url()).toBe(`${ORIGIN}/examples/shapes-rects`)
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeLessThan(100)
+  await page.locator('.cm-content').focus()
+  await page.keyboard.press('ControlOrMeta+z')
+  await expect(page.locator('.cm-content')).toContainText('0xff0000')
+  await expect(reset).toHaveCount(1)
+})
+
+test('Copy link copies the address with the edit, and Copy code the edited text', async ({ page, context, browserName }) => {
+  test.skip(browserName !== 'chromium', 'reading the clipboard back needs Chromium’s clipboard-read permission')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ORIGIN })
+  await page.goto('/examples/shapes-rects')
+  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect.poll(() => new URL(page.url()).hash).toMatch(/^#code=1\./)
+  const copyLink = page.getByRole('button', { name: 'Copy link' })
+  expect((await copyLink.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+  await copyLink.click()
+  await expect(page.locator('.code-panel [role="status"]').first()).toHaveText('Link copied')
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(page.url())
+  await page.getByRole('button', { name: 'Copy code' }).click()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await editorText(page))
+})
+
+test('a share link with no compile worker runs the original', async ({ page }) => {
+  await page.route(/\/workers\/compile\.worker-[^/]+\.js$/, route => route.fulfill({ status: 500, body: '' }))
+  const stream = new Blob([new TextEncoder().encode('export default 1\n')]).stream().pipeThrough(new CompressionStream('deflate-raw'))
+  await page.goto('/examples/shapes-rects#code=1.' + Buffer.from(await new Response(stream).arrayBuffer()).toString('base64url'))
+  await expect(page.locator('.playground-status')).toHaveText('Live updates are unavailable in this browser. Play still runs the original.', { timeout: 10_000 })
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+})
