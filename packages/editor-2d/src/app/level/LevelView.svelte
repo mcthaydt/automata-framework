@@ -19,13 +19,21 @@ import LevelDock from './LevelDock.svelte'
 import LevelInspector from './LevelInspector.svelte'
 import LevelPanel from './LevelPanel.svelte'
 import LevelStage from './LevelStage.svelte'
+import { projectHistory } from './edit-history'
+import { levelFocus } from './level-focus'
 import { createLevelSession } from './level-session'
 
-const { geometry, document: opened, frame, services }: ViewProps = $props()
+const { geometry, document: opened, frame, services, focus }: ViewProps = $props()
 
 // The view is made for one document: the screen remounts it when the document is replaced (Take theirs).
 // svelte-ignore state_referenced_locally
-const session = createLevelSession({ history: opened.history, ids: services.ids })
+const located = projectHistory(opened.history)
+// svelte-ignore state_referenced_locally
+const session = createLevelSession({
+  history: opened.history,
+  ids: services.ids,
+  focus: focus === undefined || located === undefined ? undefined : levelFocus(located.state, focus),
+})
 // svelte-ignore state_referenced_locally
 const history = opened.history
 

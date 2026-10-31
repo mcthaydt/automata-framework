@@ -1,5 +1,6 @@
 import { createHistory } from '@mcthaydt/automata-editor-kit/core'
 import { describe, expect, it, vi } from 'vitest'
+import { placeEntity } from '../../model/commands/entity-edits'
 import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
@@ -94,5 +95,22 @@ describe('level session', () => {
     expect(createLevelSession({ history: createHistory<unknown>({}), ids: counterIds() })).toBeUndefined()
     const empty = { ...platformerTemplate.create(counterIds()), levels: [] } satisfies Project
     expect(createLevelSession({ history: createHistory<unknown>(empty), ids: counterIds() })).toBeUndefined()
+  })
+})
+
+describe('level session focus', () => {
+  it('starts on the focused level and layer with the instance selected', () => {
+    const project = placeEntity(
+      platformerTemplate.create(counterIds()),
+      { level: 'level-1', layer: 'entities' },
+      { id: 'slime-a', def: 'slime', x: 32, y: 48 },
+    )
+    const history = createHistory<unknown>(project)
+    const session = createLevelSession({
+      history,
+      ids: counterIds(100),
+      focus: { level: 'level-1', layer: 'entities', item: 'slime-a' },
+    })
+    expect(session?.editor.view).toMatchObject({ level: 'level-1', layer: 'entities', selected: ['slime-a'] })
   })
 })

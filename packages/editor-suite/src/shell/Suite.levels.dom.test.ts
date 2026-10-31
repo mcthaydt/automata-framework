@@ -151,7 +151,11 @@ const FILES_3D = {
 }
 
 describe('Levels 3D in the suite', () => {
-  let resize: ((w: number, h: number) => void) | undefined
+  // Every observer in the page (the shell measures its foot too) hears the size, as a real one would.
+  const observed: ((w: number, h: number) => void)[] = []
+  const resize = (w: number, h: number): void => {
+    for (const run of observed) run(w, h)
+  }
   const draws: { fills: { sector: string; points: number[]; selected?: boolean }[] }[] = []
   const renderer: PlanRendererFactory = async () => ({
     paused: {
@@ -167,17 +171,19 @@ describe('Levels 3D in the suite', () => {
 
   beforeEach(() => {
     draws.length = 0
+    observed.length = 0
     // jsdom has no ResizeObserver: this one reports the size the test gives.
     vi.stubGlobal(
       'ResizeObserver',
       class {
         constructor(private readonly run: ResizeObserverCallback) {}
         observe(): void {
-          resize = (w, h) =>
+          observed.push((w, h) =>
             this.run(
               [{ contentRect: { width: w, height: h } } as ResizeObserverEntry],
               this as unknown as ResizeObserver,
-            )
+            ),
+          )
         }
         disconnect(): void {}
       },
@@ -209,9 +215,11 @@ describe('Levels 3D in the suite', () => {
   }
 
   async function selectHall(): Promise<void> {
-    await waitFor(() => expect(resize).toBeDefined())
-    resize?.(640, 480)
-    await waitFor(() => expect(draws.length).toBeGreaterThan(0))
+    // The plan's observer may start after the shell's, so the size is reported until the plan has drawn.
+    await waitFor(() => {
+      resize(640, 480)
+      expect(draws.length).toBeGreaterThan(0)
+    })
     const hall = draws.at(-1)?.fills.find((fill) => fill.sector === 'hall')
     const [x0 = 0, y0 = 0, x1 = 0, , , y2 = 0] = hall?.points ?? []
     // jsdom puts every element at (0, 0), so client and element coordinates agree.

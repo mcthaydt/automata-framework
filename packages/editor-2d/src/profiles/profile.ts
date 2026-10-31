@@ -1,3 +1,4 @@
+import type { RefValue } from '@mcthaydt/automata-editor-kit/fields'
 import type { IdSource } from '../model/ids'
 import type { Project } from '../model/project-types'
 
@@ -32,6 +33,12 @@ export interface Diagnostic {
   readonly message: string
   /** The name of a one-step repair the profile offers for this finding (`remove`, `move-inside`). */
   readonly fix?: string | undefined
+}
+
+/** One target a broken reference may be pointed at, as the Checks view lists it. */
+export interface TargetChoice {
+  readonly label: string
+  readonly value: RefValue
 }
 
 /** What a profile's checks may know beyond the document. */
@@ -103,6 +110,10 @@ export interface Profile<V> {
    * the value it came from; absent when the profile offers no repair.
    */
   fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V
+  /** The targets a `choose-target` finding may point at, which `fix` cannot take (plan ED2D.7a decision 3). */
+  choices?(value: V, diagnostic: Diagnostic): readonly TargetChoice[]
+  /** Points the finding's reference at `choice` and returns the next value. */
+  choose?(value: V, diagnostic: Diagnostic, choice: TargetChoice): V
   /** Optional: a profile without it lists on Home by file name, with its check counts. */
   summary?(value: V): ProfileSummary
   /** Optional: the level Home's card draws; a profile without it, or a document with no level, keeps the initial. */

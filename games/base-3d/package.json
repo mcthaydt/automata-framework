@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --configLoader runner",
+    "build": "vite build --configLoader runner",
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src",
     "prepare-ruken": "automata-ship prepare",
-    "test": "vitest run",
-    "test:unit": "vitest run --project node",
-    "test:parity": "vitest run --project browsers",
-    "test:evidence": "vitest run --project node --project browsers src/game.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "test": "vitest run --configLoader runner",
+    "test:unit": "vitest run --configLoader runner --project node",
+    "test:parity": "vitest run --configLoader runner --project browsers",
+    "test:evidence": "vitest run --configLoader runner --project node --project browsers src/game.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "@mcthaydt/automata-game": "workspace:*",
     "@mcthaydt/automata-render-pixi3d": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
     "effect": "3.22.2",
     "pixi.js": "8.22.0",
     "svelte": "5.57.1",

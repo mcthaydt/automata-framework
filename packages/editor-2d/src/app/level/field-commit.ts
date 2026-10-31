@@ -29,13 +29,13 @@ function fieldDefOf(project: Project, target: FieldTarget, field: string): Field
  * Runs `edit` once on the current state: a `RangeError` (a value or target the model refuses) is returned as its
  * message with nothing applied, the same project back adds no step, and anything else is applied as one `label` step.
  */
-export function commitEdit(
-  history: EditHistory,
+export function commitEdit<S = Project>(
+  history: { readonly state: S; apply(label: string, update: (state: S) => S): void },
   label: string,
-  edit: (project: Project) => Project,
+  edit: (state: S) => S,
 ): FieldCommit {
   const before = history.state
-  let after: Project
+  let after: S
   try {
     after = edit(before)
   } catch (error) {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ACTION_CLIP, metres, WALK_SPEED } from './constants.ts'
-import { HERO_ITEM, heroFigureState } from './views.ts'
+import { FIRST_SLICE } from './content/first-slice.ts'
+import { HERO_ITEM, heroFigureState, lockPoint, PILLAR, PROPS, placed, sceneOf } from './views.ts'
 
 // The render rows as the figure view reads them (M3 spec §4.4.5): turn units to radians, ticks to seconds at
 // 60 Hz, the action code to its clip id, the guard to a stance, the lock to aim points.
@@ -44,5 +45,63 @@ describe('heroFigureState', () => {
     ])
     // No lock, no aim, even with a target given.
     expect(heroFigureState({ hero, 'hero-action': idle }, target).aim).toBeUndefined()
+  })
+})
+
+describe('placed', () => {
+  it('turns a Q16.16 row into metres on the floor, facing in radians', () => {
+    const pose = placed({ x: metres(2), z: metres(-1), facing: 16_384 })
+    expect(pose).toMatchObject({ x: 2, y: 0, z: -1 })
+    expect(pose.yaw).toBeCloseTo(Math.PI / 2, 12)
+    // A row with no facing (a target) faces the way it is given.
+    expect(placed({ x: 0, z: 0 }, 1).yaw).toBe(1)
+  })
+})
+
+describe('lockPoint', () => {
+  const rows: Record<number, Record<string, Record<string, number>>> = {
+    7: { target: { x: metres(2), z: metres(9) } },
+  }
+  const rowOf = (sid: number) => rows[sid]
+
+  it('frames the locked target’s chest, in metres', () => {
+    expect(lockPoint({ hero: { ...hero, lockTarget: 7 } }, rowOf)).toEqual({ x: 2, y: 1.2, z: 9 })
+  })
+
+  it('frames nothing with no lock, or a lock on an entity with no row', () => {
+    expect(lockPoint({ hero }, rowOf)).toBeUndefined()
+    expect(lockPoint({ hero: { ...hero, lockTarget: 8 } }, rowOf)).toBeUndefined()
+  })
+})
+
+describe('sceneOf the first slice', () => {
+  const scene = sceneOf(FIRST_SLICE)
+
+  it('draws one wall per area wall, its inside face toward a room and its thickness outward', () => {
+    expect(scene.walls).toHaveLength(FIRST_SLICE.walls.length)
+    // The hall's south wall faces north into the hall (the room on the left of a → b).
+    expect(scene.walls[0]).toMatchObject({ a: { x: -4.2, z: -4 }, b: { x: 4.2, z: -4 }, thickness: 0.2 })
+    // The west wall faces east.
+    expect(scene.walls[1]).toMatchObject({ a: { x: -4, z: 12.2 }, b: { x: -4, z: -4.2 } })
+    // The dividing wall west of the doorway faces the hall, south.
+    expect(scene.walls[4]).toMatchObject({ a: { x: -1, z: 3.9 }, b: { x: -4, z: 3.9 }, thickness: 0.2 })
+    for (const wall of scene.walls) expect(wall.height).toBeGreaterThan(2)
+  })
+
+  it('lays a floor and a ceiling over each room', () => {
+    expect(scene.floors).toEqual([
+      { min: [-4, -0.1, -4], max: [4, 0, 4] },
+      { min: [-4, -0.1, 4], max: [4, 0, 12] },
+    ])
+    expect(scene.ceilings).toHaveLength(2)
+    for (const ceiling of scene.ceilings) expect(ceiling.min[1]).toBe(scene.walls[0]?.height)
+  })
+
+  it('stands a pillar tall enough to fade, and the three props, inside the rooms and clear of the route', () => {
+    expect(PILLAR.max[1] - PILLAR.min[1]).toBeGreaterThan(1.5)
+    expect(PROPS).toHaveLength(3)
+    // The golden's walk runs up x = 0 to the doorway: nothing stands on it (props have no collider yet).
+    for (const box of [PILLAR]) expect(box.min[0] > 0.5 || box.max[0] < -0.5).toBe(true)
+    for (const prop of PROPS) expect(Math.abs(prop.x)).toBeGreaterThan(1)
   })
 })
