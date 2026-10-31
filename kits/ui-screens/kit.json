@@ -5,6 +5,18 @@
   },
   "files": [
     {
+      "from": "src/screens/TitleScreen.svelte",
+      "to": "src/screens/TitleScreen.svelte"
+    },
+    {
+      "from": "src/screens/PauseScreen.svelte",
+      "to": "src/screens/PauseScreen.svelte"
+    },
+    {
+      "from": "src/screens/SettingsScreen.svelte",
+      "to": "src/screens/SettingsScreen.svelte"
+    },
+    {
       "from": "src/screens/ResultsScreen.svelte",
       "to": "src/screens/ResultsScreen.svelte"
     },
