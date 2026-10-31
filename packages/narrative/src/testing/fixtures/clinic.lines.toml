@@ -1,0 +1,908 @@
+# The adventure source's clinic line records (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[lines]]
+id = "clinic.bedFirst"
+kind = "examine"
+speaker = "ada"
+text = "clinic.bedFirst"
+facts = [ "wakesInBed" ]
+beat = "clinic.wake"
+motifs = [ "four", "tags", "warmth" ]
+
+[[lines]]
+id = "clinic.bed"
+kind = "examine"
+speaker = "ada"
+text = "clinic.bed"
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic.monitorFirst"
+kind = "examine"
+speaker = "ada"
+text = "clinic.monitorFirst"
+facts = [ "monitorName" ]
+beat = "clinic.wake"
+motifs = [ "four", "clocks" ]
+
+[[lines]]
+id = "clinic.monitorAlarm"
+kind = "examine"
+speaker = "ada"
+text = "clinic.monitorAlarm"
+
+[[lines]]
+id = "clinic.monitorBusy"
+kind = "examine"
+speaker = "ada"
+text = "clinic.monitorBusy"
+
+[[lines]]
+id = "clinic.curtain"
+kind = "examine"
+speaker = "ada"
+text = "clinic.curtain"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic.curtainBurning"
+kind = "examine"
+speaker = "ada"
+text = "clinic.curtainBurning"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "clinic.curtainGone"
+kind = "examine"
+speaker = "ada"
+text = "clinic.curtainGone"
+
+[[lines]]
+id = "clinic.curtainCut"
+kind = "examine"
+speaker = "ada"
+text = "clinic.curtainCut"
+
+[[lines]]
+id = "clinic.curtainLit"
+kind = "examine"
+speaker = "ada"
+text = "clinic.curtainLit"
+motifs = [ "pools", "warmth" ]
+
+[[lines]]
+id = "clinic.scratches"
+kind = "note"
+text = "clinic.scratches"
+facts = [ "code" ]
+beat = "clinic.code"
+motifs = [ "four", "handwriting" ]
+
+[[lines]]
+id = "clinic.record"
+kind = "note"
+text = "clinic.record"
+facts = [ "recordNoName", "lightsOn" ]
+beat = "clinic.record"
+motifs = [ "four", "pools" ]
+
+[[lines]]
+id = "clinic.register"
+kind = "note"
+text = "clinic.register"
+facts = [ "registerSigned" ]
+beat = "clinic.register"
+motifs = [ "handwriting", "line" ]
+
+[[lines]]
+id = "clinic.noticeboard"
+kind = "note"
+text = "clinic.noticeboard"
+facts = [ "nurseHatesLight" ]
+beat = "clinic.note"
+hints = [ "nurseCatch" ]
+motifs = [ "pools" ]
+
+[[lines]]
+id = "clinic.clock"
+kind = "examine"
+speaker = "ada"
+text = "clinic.clock"
+facts = [ "clockStopped" ]
+beat = "clinic.wake"
+motifs = [ "clocks", "four" ]
+
+[[lines]]
+id = "clinic.cabinetOpen"
+kind = "examine"
+speaker = "ada"
+text = "clinic.cabinetOpen"
+
+[[lines]]
+id = "clinic.nightstandBasin"
+kind = "examine"
+speaker = "ada"
+text = "clinic.nightstandBasin"
+
+[[lines]]
+id = "clinic.nightstandBottle"
+kind = "examine"
+speaker = "ada"
+text = "clinic.nightstandBottle"
+
+[[lines]]
+id = "clinic.nightstandEmpty"
+kind = "examine"
+speaker = "ada"
+text = "clinic.nightstandEmpty"
+
+[[lines]]
+id = "clinic.trolleyBottle"
+kind = "examine"
+speaker = "ada"
+text = "clinic.trolleyBottle"
+
+[[lines]]
+id = "clinic.trolleyEmpty"
+kind = "examine"
+speaker = "ada"
+text = "clinic.trolleyEmpty"
+
+[[lines]]
+id = "clinic.sinkFill"
+kind = "examine"
+speaker = "ada"
+text = "clinic.sinkFill"
+
+[[lines]]
+id = "clinic.sink"
+kind = "examine"
+speaker = "ada"
+text = "clinic.sink"
+
+[[lines]]
+id = "clinic.sinkFull"
+kind = "examine"
+speaker = "ada"
+text = "clinic.sinkFull"
+
+[[lines]]
+id = "clinic.doorLocked"
+kind = "examine"
+speaker = "ada"
+text = "clinic.doorLocked"
+
+[[lines]]
+id = "clinic.doorOpened"
+kind = "examine"
+speaker = "ada"
+text = "clinic.doorOpened"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic.doorOpen"
+kind = "examine"
+speaker = "ada"
+text = "clinic.doorOpen"
+
+[[lines]]
+id = "clinic.shelfFuse"
+kind = "examine"
+speaker = "ada"
+text = "clinic.shelfFuse"
+beat = "clinic.fuse"
+
+[[lines]]
+id = "clinic.shelfEmpty"
+kind = "examine"
+speaker = "ada"
+text = "clinic.shelfEmpty"
+
+[[lines]]
+id = "clinic.valveShut"
+kind = "examine"
+speaker = "ada"
+text = "clinic.valveShut"
+
+[[lines]]
+id = "clinic.valveDone"
+kind = "examine"
+speaker = "ada"
+text = "clinic.valveDone"
+
+[[lines]]
+id = "clinic.fuseEmpty"
+kind = "examine"
+speaker = "ada"
+text = "clinic.fuseEmpty"
+hints = [ "liveWater" ]
+
+[[lines]]
+id = "clinic.fuseDry"
+kind = "examine"
+speaker = "ada"
+text = "clinic.fuseDry"
+
+[[lines]]
+id = "clinic.fuseShort"
+kind = "examine"
+speaker = "ada"
+text = "clinic.fuseShort"
+
+[[lines]]
+id = "clinic.fusePower"
+kind = "examine"
+speaker = "ada"
+text = "clinic.fusePower"
+
+[[lines]]
+id = "clinic.fuseOn"
+kind = "examine"
+speaker = "ada"
+text = "clinic.fuseOn"
+
+[[lines]]
+id = "clinic.puddle"
+kind = "examine"
+speaker = "ada"
+text = "clinic.puddle"
+hints = [ "liveWater" ]
+
+[[lines]]
+id = "clinic.puddleMopped"
+kind = "examine"
+speaker = "ada"
+text = "clinic.puddleMopped"
+
+[[lines]]
+id = "clinic.puddleFill"
+kind = "examine"
+speaker = "ada"
+text = "clinic.puddleFill"
+
+[[lines]]
+id = "clinic.pour"
+kind = "examine"
+speaker = "ada"
+text = "clinic.pour"
+
+[[lines]]
+id = "clinic.scrawl"
+kind = "examine"
+speaker = "ada"
+text = "clinic.scrawl"
+facts = [ "neverNightShift" ]
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.exitLocked"
+kind = "examine"
+speaker = "ada"
+text = "clinic.exitLocked"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic.douse"
+kind = "examine"
+speaker = "ada"
+text = "clinic.douse"
+
+[[lines]]
+id = "clinic.noEffect"
+kind = "examine"
+speaker = "ada"
+text = "clinic.noEffect"
+
+[[lines]]
+id = "clinic.lighterEmpty"
+kind = "examine"
+speaker = "ada"
+text = "clinic.lighterEmpty"
+
+[[lines]]
+id = "clinic.torchOut"
+kind = "examine"
+speaker = "ada"
+text = "clinic.torchOut"
+
+[[lines]]
+id = "clinic.combineTorch"
+kind = "examine"
+speaker = "ada"
+text = "clinic.combineTorch"
+
+[[lines]]
+id = "clinic.combineFluid"
+kind = "examine"
+speaker = "ada"
+text = "clinic.combineFluid"
+
+[[lines]]
+id = "clinic.throw"
+kind = "examine"
+speaker = "ada"
+text = "clinic.throw"
+
+[[lines]]
+id = "clinic.keypadWrong"
+kind = "examine"
+speaker = "ada"
+text = "clinic.keypadWrong"
+
+[[lines]]
+id = "clinic.keypadRight"
+kind = "examine"
+speaker = "ada"
+text = "clinic.keypadRight"
+
+[[lines]]
+id = "clinic.item.lighter.name"
+kind = "item"
+text = "clinic.item.lighter.name"
+
+[[lines]]
+id = "clinic.item.lighter"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.lighter"
+motifs = [ "warmth", "pools" ]
+
+[[lines]]
+id = "clinic.item.basin.name"
+kind = "item"
+text = "clinic.item.basin.name"
+
+[[lines]]
+id = "clinic.item.basin"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.basin"
+
+[[lines]]
+id = "clinic.item.scalpel.name"
+kind = "item"
+text = "clinic.item.scalpel.name"
+
+[[lines]]
+id = "clinic.item.scalpel"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.scalpel"
+
+[[lines]]
+id = "clinic.item.cloth.name"
+kind = "item"
+text = "clinic.item.cloth.name"
+
+[[lines]]
+id = "clinic.item.cloth"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.cloth"
+
+[[lines]]
+id = "clinic.item.torch.name"
+kind = "item"
+text = "clinic.item.torch.name"
+
+[[lines]]
+id = "clinic.item.torch"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.torch"
+motifs = [ "warmth", "pools" ]
+
+[[lines]]
+id = "clinic.item.bottle.name"
+kind = "item"
+text = "clinic.item.bottle.name"
+
+[[lines]]
+id = "clinic.item.bottle"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.bottle"
+
+[[lines]]
+id = "clinic.item.brassKey.name"
+kind = "item"
+text = "clinic.item.brassKey.name"
+
+[[lines]]
+id = "clinic.item.brassKey"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.brassKey"
+facts = [ "brassKeyTag" ]
+motifs = [ "tags", "warmth" ]
+
+[[lines]]
+id = "clinic.item.fuse.name"
+kind = "item"
+text = "clinic.item.fuse.name"
+
+[[lines]]
+id = "clinic.item.fuse"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.fuse"
+facts = [ "fuseLabel" ]
+beat = "clinic.fuse"
+motifs = [ "handwriting", "thresholds" ]
+
+[[lines]]
+id = "clinic.item.fluid.name"
+kind = "item"
+text = "clinic.item.fluid.name"
+
+[[lines]]
+id = "clinic.item.fluid"
+kind = "item"
+speaker = "ada"
+text = "clinic.item.fluid"
+
+[[lines]]
+id = "clinic.caught.nurse.title"
+kind = "caught"
+text = "clinic.caught.nurse.title"
+
+[[lines]]
+id = "clinic.caught.nurse"
+kind = "caught"
+text = "clinic.caught.nurse"
+
+[[lines]]
+id = "clinic.caught.shock.title"
+kind = "caught"
+text = "clinic.caught.shock.title"
+
+[[lines]]
+id = "clinic.caught.shock"
+kind = "caught"
+text = "clinic.caught.shock"
+
+[[lines]]
+id = "clinic.registerAsk"
+kind = "note"
+text = "clinic.registerAsk"
+
+[[lines]]
+id = "clinic.registerSign"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.registerSign"
+
+[[lines]]
+id = "clinic.registerLeave"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.registerLeave"
+
+[[lines]]
+id = "clinic.registerSigned"
+kind = "file"
+text = "clinic.registerSigned"
+facts = [ "registerSigned" ]
+motifs = [ "handwriting", "line" ]
+
+[[lines]]
+id = "clinic.st.sys.fuel.low"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.sys.fuel.low"
+hints = [ "nurseCatch" ]
+motifs = [ "warmth", "pools" ]
+
+[[lines]]
+id = "clinic.st.sys.grapple.nurse"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.sys.grapple.nurse"
+hints = [ "nurseCatch" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "clinic.st.sys.barricade.set"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.sys.barricade.set"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic.st.sys.barricade.open"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.sys.barricade.open"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic.st.sys.decoy.wheelchair"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.sys.decoy.wheelchair"
+motifs = [ "faces" ]
+
+[[lines]]
+id = "clinic.st.p1.sheets"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.p1.sheets"
+facts = [ "wakesInBed" ]
+motifs = [ "warmth", "four" ]
+
+[[lines]]
+id = "clinic.st.p1.desk.1"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.p1.desk.1"
+facts = [ "registerSigned" ]
+motifs = [ "handwriting", "pools" ]
+
+[[lines]]
+id = "clinic.st.p1.desk.2"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.p1.desk.2"
+facts = [ "noRelief" ]
+motifs = [ "line" ]
+
+[[lines]]
+id = "clinic.st.p1.desk.3"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.p1.desk.3"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.st.p1.scrawl"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.p1.scrawl"
+facts = [ "neverNightShift", "registerSigned" ]
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.st.p1.threshold"
+kind = "examine"
+speaker = "ada"
+text = "clinic.st.p1.threshold"
+facts = [ "fuseLabel" ]
+motifs = [ "thresholds", "handwriting" ]
+
+[[lines]]
+id = "clinic.register.code"
+kind = "note"
+text = "clinic.register.code"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.register.brassKey"
+kind = "note"
+text = "clinic.register.brassKey"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.register.needsFuse"
+kind = "note"
+text = "clinic.register.needsFuse"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.register.dryFirst"
+kind = "note"
+text = "clinic.register.dryFirst"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.register.exitPower"
+kind = "note"
+text = "clinic.register.exitPower"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.inspectLighter"
+kind = "examine"
+speaker = "ada"
+text = "clinic.inspectLighter"
+facts = [ "lighterLamb" ]
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.inspectBrassKey"
+kind = "examine"
+speaker = "ada"
+text = "clinic.inspectBrassKey"
+facts = [ "brassKeyTag" ]
+motifs = [ "tags", "four" ]
+
+[[lines]]
+id = "clinic.inspectFuse"
+kind = "examine"
+speaker = "ada"
+text = "clinic.inspectFuse"
+facts = [ "fuseLabel" ]
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "clinic.wheelchair"
+kind = "examine"
+speaker = "ada"
+text = "clinic.wheelchair"
+motifs = [ "faces" ]
+
+[[lines]]
+id = "clinic.boltDrawn"
+kind = "examine"
+speaker = "ada"
+text = "clinic.boltDrawn"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic.openingAsk"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingAsk"
+beat = "clinic.opening"
+motifs = [ "clocks", "four" ]
+
+[[lines]]
+id = "clinic.openingDuty"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingDuty"
+
+[[lines]]
+id = "clinic.openingUnsure"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingUnsure"
+
+[[lines]]
+id = "clinic.openingAsleep"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingAsleep"
+
+[[lines]]
+id = "clinic.openingDutyReact"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingDutyReact"
+motifs = [ "four" ]
+
+[[lines]]
+id = "clinic.openingDutyInner"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingDutyInner"
+motifs = [ "clocks" ]
+
+[[lines]]
+id = "clinic.openingUnsureReact"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingUnsureReact"
+
+[[lines]]
+id = "clinic.openingUnsureInner"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingUnsureInner"
+
+[[lines]]
+id = "clinic.openingAsleepReact"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingAsleepReact"
+
+[[lines]]
+id = "clinic.openingAsleepInner"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.openingAsleepInner"
+
+[[lines]]
+id = "clinic.nurse.power"
+kind = "dialogue"
+speaker = "nurse"
+text = "clinic.nurse.power"
+beat = "clinic.power"
+motifs = [ "pools" ]
+
+[[lines]]
+id = "clinic.powerBack"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.powerBack"
+
+[[lines]]
+id = "clinic.powerSilent"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.powerSilent"
+
+[[lines]]
+id = "clinic.powerElse"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.powerElse"
+
+[[lines]]
+id = "clinic.powerBackInner"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.powerBackInner"
+
+[[lines]]
+id = "clinic.powerSilentInner"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.powerSilentInner"
+
+[[lines]]
+id = "clinic.powerElseInner"
+kind = "dialogue"
+speaker = "ada"
+text = "clinic.powerElseInner"
+
+[[lines]]
+id = "clinic.registerFirstNight"
+kind = "file"
+text = "clinic.registerFirstNight"
+facts = [ "firstNight" ]
+motifs = [ "handwriting", "line" ]
+
+[[lines]]
+id = "clinic.registerNights"
+kind = "file"
+text = "clinic.registerNights"
+facts = [ "nightsAlone", "noRelief" ]
+motifs = [ "handwriting", "line" ]
+
+[[lines]]
+id = "clinic.registerLastDate"
+kind = "file"
+text = "clinic.registerLastDate"
+facts = [ "lastDate", "lightsOn", "noRelief" ]
+motifs = [ "four", "line" ]
+
+[[lines]]
+id = "clinic.cutscene.opening.1"
+kind = "caption"
+text = "clinic.cutscene.opening.1"
+beat = "clinic.wake"
+motifs = [ "clocks", "four" ]
+
+[[lines]]
+id = "clinic.cutscene.grapple.1"
+kind = "caption"
+speaker = "ada"
+text = "clinic.cutscene.grapple.1"
+hints = [ "nurseCatch" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "clinic.cutscene.opening.2"
+kind = "caption"
+speaker = "ada"
+text = "clinic.cutscene.opening.2"
+beat = "clinic.wake"
+motifs = [ "tags" ]
+
+[[lines]]
+id = "clinic.cutscene.opening.3"
+kind = "caption"
+speaker = "ada"
+text = "clinic.cutscene.opening.3"
+
+[[lines]]
+id = "clinic.cutscene.opening.4"
+kind = "caption"
+speaker = "ada"
+text = "clinic.cutscene.opening.4"
+
+[[lines]]
+id = "clinic.cutscene.opening.5"
+kind = "caption"
+text = "clinic.cutscene.opening.5"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic.cutscene.sighting.1"
+kind = "caption"
+speaker = "ada"
+text = "clinic.cutscene.sighting.1"
+motifs = [ "faces" ]
+
+[[lines]]
+id = "clinic.cutscene.keypad.1"
+kind = "caption"
+text = "clinic.cutscene.keypad.1"
+
+[[lines]]
+id = "clinic.cutscene.power.1"
+kind = "caption"
+speaker = "ada"
+text = "clinic.cutscene.power.1"
+motifs = [ "pools" ]
+
+[[lines]]
+id = "clinic.cutscene.exit.1"
+kind = "caption"
+speaker = "ada"
+text = "clinic.cutscene.exit.1"
+beat = "clinic.exit"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "clinic.objective.leave"
+kind = "objective"
+text = "clinic.objective.leave"
+
+[[lines]]
+id = "clinic.objective.tripped"
+kind = "objective"
+text = "clinic.objective.tripped"
+
+[[lines]]
+id = "clinic.objective.power"
+kind = "objective"
+text = "clinic.objective.power"
+
+[[lines]]
+id = "clinic.objective.valve"
+kind = "objective"
+text = "clinic.objective.valve"
+
+[[lines]]
+id = "clinic.objective.search"
+kind = "objective"
+text = "clinic.objective.search"
+
+[[lines]]
+id = "clinic.objective.door"
+kind = "objective"
+text = "clinic.objective.door"
+
+[[lines]]
+id = "clinic.objective.avoid"
+kind = "objective"
+text = "clinic.objective.avoid"
+
+[[lines]]
+id = "clinic.objective.start"
+kind = "objective"
+text = "clinic.objective.start"
+
+[[lines]]
+id = "clinic.monitor.label"
+kind = "note"
+text = "clinic.monitor.label"
+
+[[lines]]
+id = "clinic.monitor.patient"
+kind = "note"
+text = "clinic.monitor.patient"
+facts = [ "monitorName" ]
+motifs = [ "four", "tags" ]
+
+[[lines]]
+id = "clinic.monitor.idle"
+kind = "note"
+text = "clinic.monitor.idle"
+
+[[lines]]
+id = "clinic.monitor.alarm"
+kind = "note"
+text = "clinic.monitor.alarm"
+
+[[lines]]
+id = "clinic.monitor.online"
+kind = "note"
+text = "clinic.monitor.online"
+
+[[lines]]
+id = "clinic.monitor.noPulse"
+kind = "note"
+text = "clinic.monitor.noPulse"
+motifs = [ "line" ]

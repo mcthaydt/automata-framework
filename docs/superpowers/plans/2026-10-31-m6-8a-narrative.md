@@ -12,7 +12,7 @@
   (133), the scenes' `dialogues.ts`, `story.ts` and `storylets.ts`, and the tests `tests/dialogue.test.ts` (its runtime
   and in-game cases), `storylets.test.ts` (19) and `clinic-dialogues.test.ts` (2). Provenance goes in the framework's
   `docs/provenance/sources.md` only.
-- **Status:** plan drafted.
+- **Status:** implemented and locally checked (steps 1 to 8); the framework's provenance row is a follow-up AF docs PR.
 
 ## Scope
 
@@ -66,7 +66,7 @@ export interface Storylet { id: string; trigger: string; phase?: string; when?: 
 export function createNarrative(options?: NarrativeOptions): { plugin: PluginDef; startDialogue(ctx, id): void; heardVerb(ctx, verb, action): void; fireSystem(ctx, event): void; load(ctx, scene): void }
 // commands: narrative.start { graph }, narrative.advance, narrative.choose { index }
 // resources: narrative.scene (the loaded canon bounds, graphs, deck), narrative.dialogue, narrative.storylets, narrative.env (the player's entity)
-// events: narrative.line { id }, narrative.choices { lines }, narrative.ended { graph }, narrative.storylet { id, line }
+// events: narrative.line { graph, id }, narrative.choices { graph, choices: { index, line }[] }, narrative.ended { graph }, narrative.storylet { id, line }
 export const narrativeExtension(options?): …   // `.` entry, with the four content kinds
 ```
 
@@ -81,32 +81,32 @@ Modify: `packages/puzzle` (the `dialogue` and `verb` options, tests first), the 
 Each step: write the test, see it fail for the stated reason, write the minimum, see it pass.
 
 1. Skeleton and extension test; `pnpm boundaries` covers `packages/narrative/src/sim`. Fails: no module.
-   - [ ] 1
+   - [x] 1
 2. Converter run: the four scenes' lines (text to locale keys), graphs and decks; the commit it read goes in the log.
-   - [ ] 2
+   - [x] 2
 3. Schemas: the converted content parses; a dialogue choice to an unknown node, a line record with no kind, a storylet
    with an unknown trigger and a canon with min above max each fail at their path. Fails: no schemas.
-   - [ ] 3
+   - [x] 3
 4. The dialogue runtime (the source's four cases, pure): each line on an advance, the choices with the last line, never
    moving on its own; reading stance, dialogue facts, puzzle facts and items; NR-a, stance clamped to the canon's bounds
    with earlier facts kept; a choice whose target is gated shut is hidden. Fails: no runtime.
-   - [ ] 4
+   - [x] 4
 5. Storylets (the source's salience, once and max, inspect, enter, dwell, system and state cases, re-pointed): the most
    conditions win, then priority, then deck order; a once storylet plays once and a max one that many times, each play
    the next line; an inspect plays after the action's line, at once when the action says nothing, not on a use with an
    item, and a new action drops what is queued; enter fires once per entry; dwell counts standing still and moving
    resets it; `fireSystem`; an empty deck leaves the state as it was. Fails: no storylets.
-   - [ ] 5
+   - [x] 5
 6. Plugin and puzzle hooks: puzzle's `dialogue` and `verb` options (tests first, puzzle's golden unchanged); a `{
    dialogue }` effect starts the graph on the verb's step; `start`, `advance` and `choose` through commands, with every
    event's payload; the source's "the simulation applies and records a choice, and a replay repeats it" as a restore
    mid-conversation giving the same events and hash. Fails: no plugin.
-   - [ ] 6
+   - [x] 6
 7. Golden: a scripted conversation and storylets on the clinic's converted content for 600 steps, restored at 300;
    recorded in Node, confirmed in Chromium, WebKit and Firefox.
-   - [ ] 7
+   - [x] 7
 8. Gates, provenance row, ready line.
-   - [ ] 8
+   - [x] 8
 
 Source tests not ported: `dialogue.test.ts`'s lint, endings, motifs and screenplay cases (M6.8b) and its session-phase
 case (the source game's session); `storylets.test.ts`'s deck checks and screenplay appendix (M6.8b), the `radio` case
@@ -137,7 +137,42 @@ game's Files UI).
 - The bin's TypeScript resolve hook (M6.7b's SB-D6).
 - M6.8b (lints, coverage, screenplay, help, audit) and M6.8c (the panel, delivery, portraits).
 
+## As built
+
+- `narrative.line` and `narrative.choices` carry the graph, and the choices carry the index `narrative.choose` takes
+  (the plan had `{ id }` and `{ lines }`): a presentation that hears a line can tell which conversation said it, and
+  a choice hidden by its gate leaves a gap in the indices.
+- Puzzle's `verb` hook reports `{ at, held, action, said, away }` (`VerbReport`), once a verb has run, taken or not;
+  `away` is a cutscene, dialogue, keypad or exit effect, as the source's `interact` watched.
+- `createNarrative` returns `env` too (the `narrative.env` resource, where the game names the player). `narrative.env`
+  keeps the player's plan position from the last step: moving is that position changing (the source read
+  `player.moving` from its input), so dwell needs nothing from the game.
+- The storylets read `read.<hotspot>` as "an action at this hotspot has been taken" (puzzle's `seen`), and
+  `played.<id>`; the source's dotted world paths, `hidden` and `room` are the game's, through `NarrativeOptions.facts`.
+- The sim reads the player's sector as of the last step's membership (sectors' membership runs in `cleanup`).
+- A scene load clears the conversation and the deck's plays, and keeps stance (clamped to the new bounds) and the
+  dialogue's facts.
+- An unknown graph named by `narrative.start` or a `{ dialogue }` effect does nothing in the sim: M6.8b's lints refuse
+  it in content.
+- `biome.jsonc`'s `noThenProperty` override adds `packages/narrative` (the test puzzles' actions have `then`).
+
 ## Execution log
 
 - 2026-10-31: plan written from the M6 spec at framework main, plus main (`aff68d6`: puzzle, sectors, systems) and the
   adventure source at `92e6704`.
+- 2026-10-31, step 1: the skeleton; the extension test failed on the missing `narrativeExtension`. `pnpm boundaries`
+  covers `packages/narrative/src/sim` (110 files, 0 findings; it caught an `Object.keys` in the dialogue schema, now
+  `sortedKeys`).
+- Step 2: the converter read the adventure source at `92e67047a33161c5cfb1c5f9d8b981e91e1c55b9`: prologue 74 lines, 0
+  graphs, 3 storylets; clinic 142, 3, 9; clinic-dawn 123, 2, 13; bay 191, 4, 4 (1 radio storylet left out).
+- Steps 3 and 4: `schema.test.ts` (5) and `dialogue.test.ts` (4, NR-a included) failed on the missing modules, then
+  passed.
+- Step 5: `storylets.test.ts` (11) failed on the missing exports, then passed.
+- Step 6: puzzle's two new tests failed (`expected [] to deeply equal …`), then passed; puzzle's golden unchanged
+  (`cd73a8d0b545c212`, parity 3/3 browsers). `narrative.plugin.test.ts` (7) failed on `createNarrative` missing, then
+  passed (the toy puzzle needed a goal: an empty goal holds at once).
+- Step 7: the golden, recorded in Node 24: hash `f07b6a56c0f4182b`, events `50cfecbe4dd669d4`, 94 events, 9 storylets,
+  straight equal to restored at 300; `test:parity` 3/3 (Chromium, WebKit, Firefox).
+- Step 8: `pnpm format`; `pnpm check` exit 0 (lint, typecheck, boundaries 0 findings, root 172 tests, every package's
+  unit tests: narrative 29, puzzle 23, systems 59, nav 20, sectors 34, pipelines 144 and the rest green); parity for
+  narrative and puzzle 3/3 each. No changeset (private).

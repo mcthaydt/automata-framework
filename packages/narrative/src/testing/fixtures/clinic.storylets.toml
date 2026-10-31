@@ -1,0 +1,86 @@
+# The adventure source's clinic storylet deck (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[storylets]]
+id = "st.p1.sheets"
+trigger = "enter:ward"
+phase = "P1"
+lines = [ "clinic.st.p1.sheets" ]
+once = true
+
+[[storylets.when]]
+fact = "power"
+is = true
+
+[[storylets]]
+id = "st.p1.desk"
+trigger = "dwell:Reception:8"
+phase = "P1"
+lines = [ "clinic.st.p1.desk.1", "clinic.st.p1.desk.2", "clinic.st.p1.desk.3" ]
+max = 3
+
+[[storylets.when]]
+fact = "power"
+is = true
+
+[[storylets.when]]
+fact = "director.state"
+is = "relief"
+
+[[storylets]]
+id = "st.p1.scrawl"
+trigger = "inspect:scrawl"
+phase = "P1"
+lines = [ "clinic.st.p1.scrawl" ]
+once = true
+
+[[storylets.when]]
+fact = "read.register"
+is = true
+
+[[storylets]]
+id = "st.p1.threshold"
+trigger = "enter:corridor"
+phase = "P1"
+lines = [ "clinic.st.p1.threshold" ]
+once = true
+
+[[storylets.when]]
+fact = "power"
+is = true
+
+[[storylets.when]]
+fact = "leaving"
+is = false
+
+[[storylets]]
+id = "st.sys.fuel.low"
+trigger = "system:fuel.low"
+phase = "P1"
+lines = [ "clinic.st.sys.fuel.low" ]
+hints = [ "nurseCatch" ]
+
+[[storylets]]
+id = "st.sys.grapple.nurse"
+trigger = "system:grapple.nurse"
+phase = "P1"
+lines = [ "clinic.st.sys.grapple.nurse" ]
+hints = [ "nurseCatch" ]
+
+[[storylets]]
+id = "st.sys.barricade.set"
+trigger = "system:barricade.set"
+phase = "P1"
+lines = [ "clinic.st.sys.barricade.set" ]
+
+[[storylets]]
+id = "st.sys.barricade.open"
+trigger = "system:barricade.open"
+phase = "P1"
+lines = [ "clinic.st.sys.barricade.open" ]
+
+[[storylets]]
+id = "st.sys.decoy.wheelchair"
+trigger = "inspect:wheelchair"
+phase = "P1"
+lines = [ "clinic.st.sys.decoy.wheelchair" ]
+once = true

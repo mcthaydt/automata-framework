@@ -1,0 +1,137 @@
+# The adventure source's clinic-dawn dialogue graphs (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[graphs]]
+id = "clinic-dawn.first"
+speaker = "ada"
+start = "vigil"
+
+[graphs.nodes.vigil]
+say = [ "clinic-dawn.first.vigil" ]
+next = "between"
+
+[[graphs.nodes.vigil.when]]
+fact = "stance"
+atMost = -2
+
+[graphs.nodes.between]
+say = [ "clinic-dawn.first.between" ]
+next = "release"
+
+[[graphs.nodes.between.when]]
+fact = "stance"
+atLeast = -1
+
+[[graphs.nodes.between.when]]
+fact = "stance"
+atMost = 1
+
+[graphs.nodes.release]
+say = [ "clinic-dawn.first.release" ]
+next = "end"
+
+[[graphs.nodes.release.when]]
+fact = "stance"
+atLeast = 2
+
+[graphs.nodes.end]
+say = []
+
+[[graphs]]
+id = "clinic-dawn.register"
+speaker = "register"
+start = "page"
+
+[graphs.nodes.page]
+say = [ "clinic-dawn.registerPage" ]
+next = "nurse"
+
+[graphs.nodes.nurse]
+say = [ "clinic-dawn.nurse.last" ]
+next = "choose"
+
+[graphs.nodes.choose]
+say = [ "clinic-dawn.registerAsk" ]
+
+[[graphs.nodes.choose.choices]]
+line = "clinic-dawn.registerVigil"
+next = "vigil"
+
+[graphs.nodes.choose.choices.set]
+ending = "vigil"
+
+[[graphs.nodes.choose.choices]]
+line = "clinic-dawn.registerRelease"
+next = "release"
+
+[graphs.nodes.choose.choices.set]
+ending = "release"
+
+[[graphs.nodes.choose.choices]]
+line = "clinic-dawn.registerHandover"
+next = "handover"
+
+[graphs.nodes.choose.choices.set]
+ending = "handover"
+
+[graphs.nodes.vigil]
+say = [ "clinic-dawn.registerVigilSign" ]
+next = "end"
+
+[graphs.nodes.release]
+say = [ "clinic-dawn.registerReleaseBlank" ]
+next = "end"
+
+[graphs.nodes.handover]
+say = [ "clinic-dawn.registerHandoverWrite", "clinic-dawn.registerHandoverCall" ]
+next = "duty"
+
+[[graphs.nodes.handover.when]]
+fact = "stance"
+atLeast = -3
+
+[[graphs.nodes.handover.when]]
+fact = "stance"
+atMost = 3
+
+[[graphs.nodes.handover.when]]
+fact = "lightsOn"
+is = true
+
+[graphs.nodes.duty]
+say = [ "clinic-dawn.registerAccountDuty" ]
+next = "unsure"
+
+[[graphs.nodes.duty.when]]
+fact = "opening"
+is = "duty"
+
+[graphs.nodes.unsure]
+say = [ "clinic-dawn.registerAccountUnsure" ]
+next = "asleep"
+
+[[graphs.nodes.unsure.when]]
+fact = "opening"
+is = "unsure"
+
+[graphs.nodes.asleep]
+say = [ "clinic-dawn.registerAccountAsleep" ]
+next = "tell"
+
+[[graphs.nodes.asleep.when]]
+fact = "opening"
+is = "asleep"
+
+[graphs.nodes.tell]
+say = [ "clinic-dawn.registerTell" ]
+next = "close"
+
+[[graphs.nodes.tell.when]]
+fact = "riverAnswer"
+is = "tell"
+
+[graphs.nodes.close]
+say = [ "clinic-dawn.registerHandoverClose" ]
+next = "end"
+
+[graphs.nodes.end]
+say = []

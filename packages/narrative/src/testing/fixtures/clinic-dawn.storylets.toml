@@ -1,0 +1,134 @@
+# The adventure source's clinic-dawn storylet deck (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[storylets]]
+id = "st.p3.room.ward.vigil"
+trigger = "enter:ward"
+phase = "P3"
+lines = [ "clinic-dawn.st.p3.room.ward.vigil" ]
+once = true
+
+[[storylets.when]]
+fact = "dawn.ward"
+atLeast = 0.5
+
+[[storylets.when]]
+fact = "stance"
+atMost = -2
+
+[[storylets]]
+id = "st.p3.room.ward.between"
+trigger = "enter:ward"
+phase = "P3"
+lines = [ "clinic-dawn.st.p3.room.ward.between" ]
+once = true
+
+[[storylets.when]]
+fact = "dawn.ward"
+atLeast = 0.5
+
+[[storylets.when]]
+fact = "stance"
+atLeast = -1
+
+[[storylets.when]]
+fact = "stance"
+atMost = 1
+
+[[storylets]]
+id = "st.p3.room.ward.release"
+trigger = "enter:ward"
+phase = "P3"
+lines = [ "clinic-dawn.st.p3.room.ward.release" ]
+once = true
+
+[[storylets.when]]
+fact = "dawn.ward"
+atLeast = 0.5
+
+[[storylets.when]]
+fact = "stance"
+atLeast = 2
+
+[[storylets]]
+id = "st.p3.room.corridor"
+trigger = "enter:North corridor"
+phase = "P3"
+lines = [ "clinic-dawn.st.p3.room.corridor" ]
+once = true
+
+[[storylets.when]]
+fact = "dawn.corridor"
+atLeast = 0.5
+
+[[storylets]]
+id = "st.p3.room.closet"
+trigger = "enter:Supply room"
+phase = "P3"
+lines = [ "clinic-dawn.st.p3.room.closet" ]
+once = true
+
+[[storylets.when]]
+fact = "dawn.closet"
+atLeast = 0.5
+
+[[storylets]]
+id = "st.p3.room.reception"
+trigger = "enter:Reception"
+phase = "P3"
+lines = [ "clinic-dawn.st.p3.room.reception" ]
+once = true
+
+[[storylets.when]]
+fact = "dawn.reception"
+atLeast = 0.5
+
+[[storylets]]
+id = "st.p3.watch"
+trigger = "dwell:Reception:8"
+phase = "P3"
+lines = [ "clinic-dawn.st.p3.watch" ]
+once = true
+
+[[storylets.when]]
+fact = "firstLine"
+is = true
+
+[[storylets]]
+id = "st.sys.fuel.low"
+trigger = "system:fuel.low"
+phase = "P3"
+lines = [ "clinic-dawn.st.sys.fuel.low" ]
+hints = [ "nurseCatch" ]
+
+[[storylets]]
+id = "st.sys.grapple.nurse"
+trigger = "system:grapple.nurse"
+phase = "P3"
+lines = [ "clinic-dawn.st.sys.grapple.nurse" ]
+hints = [ "nurseCatch" ]
+
+[[storylets]]
+id = "st.sys.barricade.set"
+trigger = "system:barricade.set"
+phase = "P3"
+lines = [ "clinic-dawn.st.sys.barricade.set" ]
+
+[[storylets]]
+id = "st.sys.barricade.open"
+trigger = "system:barricade.open"
+phase = "P3"
+lines = [ "clinic-dawn.st.sys.barricade.open" ]
+
+[[storylets]]
+id = "st.sys.decoy.wheelchair"
+trigger = "inspect:wheelchair"
+phase = "P3"
+lines = [ "clinic-dawn.st.sys.decoy.wheelchair" ]
+once = true
+
+[[storylets]]
+id = "st.sys.decoy.coat"
+trigger = "inspect:ivStand"
+phase = "P3"
+lines = [ "clinic-dawn.st.sys.decoy.coat" ]
+once = true
