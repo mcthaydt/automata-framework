@@ -67,7 +67,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 4. Session wiring: `remote`, `renderTick`, diagnostics feed, `markDegraded`; `net.toml` thresholds. Fails: a frame carries no remote view.
    - [x] 4
 5. Copy catalog, badge and reconnect overlay (DOM behaviour). Fails: no components.
-   - [ ] 5
+   - [x] 5
 6. Layout tests at the reference sizes and `xx-long` in Chromium, WebKit and Firefox. Fails: no layout test.
    - [ ] 6
 7. Debug panel; gates, provenance row, ready line.
