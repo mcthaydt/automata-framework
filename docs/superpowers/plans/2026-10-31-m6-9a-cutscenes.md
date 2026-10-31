@@ -60,7 +60,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 4. `locked` in puzzle, narrative and nav; puzzle's `cutscene` hook. Fails: input still applies.
    - [x] 4
 5. The lint. Fails: no module.
-   - [ ] 5
+   - [x] 5
 6. The converter and the four scenes' scripts. Fails: no fixtures.
    - [ ] 6
 7. The golden in four engines.
