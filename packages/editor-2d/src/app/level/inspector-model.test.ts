@@ -1,6 +1,6 @@
 import type { FieldDef } from '@mcthaydt/automata-editor-kit/fields'
 import { describe, expect, it } from 'vitest'
-import { placeEntity } from '../../model/commands/entity-edits'
+import { placeEntity, setEntityField } from '../../model/commands/entity-edits'
 import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
@@ -96,6 +96,48 @@ describe('entityInspector', () => {
 
   it('treats an id the level no longer has as nothing selected', () => {
     expect(entityInspector(withSlime(), 'level-1', ['gone'])).toMatchObject({ kind: 'none' })
+  })
+})
+
+describe('a ref row (plan ED2D.6c step 4)', () => {
+  function withDoor(targetValue?: { target: string; container?: string }): Project {
+    const placed = placeEntity(platformer(), target, { id: 'door-a', def: 'door', x: 64, y: 64 })
+    return targetValue === undefined
+      ? placed
+      : setEntityField(placed, target, 'door-a', 'target', targetValue)
+  }
+  const refRow = (project: Project) => {
+    const inspector = entityInspector(project, 'level-1', ['door-a'])
+    if (inspector.kind !== 'one') throw new Error('expected one')
+    const row = inspector.fields.find((each) => each.id === 'target')
+    if (row === undefined) throw new Error('no target row')
+    return row
+  }
+
+  it('lists what the picker offers, never the instance itself', () => {
+    const row = refRow(withDoor())
+    expect(row.ref?.name).toBeUndefined()
+    expect(row.ref?.targets).toEqual([
+      {
+        level: 'level-1',
+        name: 'Level 1',
+        choices: [
+          { label: 'Player start at 48, 256', value: { target: expect.any(String), container: 'level-1' } },
+        ],
+      },
+    ])
+  })
+
+  it('names a target it resolves, and none for a broken one', () => {
+    const start = platformer().levels[0]?.layers.find((layer) => layer.kind === 'entities')
+    const id = start?.kind === 'entities' ? start.items[0]?.id : undefined
+    if (id === undefined) throw new Error('no player start')
+    expect(refRow(withDoor({ target: id, container: 'level-1' })).ref?.name).toBe('Level 1 · Player start')
+    expect(refRow(withDoor({ target: 'gone' })).ref?.name).toBeUndefined()
+  })
+
+  it('is left out where no project is known (a definition default)', () => {
+    expect(fieldRow({ id: 'target', type: 'ref' }, undefined).ref).toBeUndefined()
   })
 })
 

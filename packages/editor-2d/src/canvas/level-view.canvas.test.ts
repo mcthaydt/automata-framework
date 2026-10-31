@@ -69,6 +69,7 @@ const solid = (color: string): LevelDrawList => ({
   grid: undefined,
   footprint: undefined,
   selection: [],
+  links: [],
 })
 
 /** The canvas's colour at a pixel, read in the same task as the render (the drawing buffer is not preserved). */

@@ -253,6 +253,20 @@ describe('save', () => {
     expect(savedCount(textOf(await workspace.store.read('a.note')) ?? '')).toBe(2)
   })
 
+  it('hands Export the text it was loaded as, then the text of each save, but not of a copy (base)', async () => {
+    const { app, workspace } = setup(true)
+    await workspace.store.write('a.note', noteText('hello', 4))
+    const document = await opened(app.open('a.note'))
+    expect(document.base()).toBe(noteText('hello', 4))
+    document.history.apply('Edit', () => ({ text: 'one' }))
+    expect(document.base()).toBe(noteText('hello', 4))
+    await document.save()
+    expect(document.base()).toBe(textOf(await workspace.store.read('a.note')))
+    document.history.apply('Edit', () => ({ text: 'two' }))
+    await document.saveCopy()
+    expect(document.base()).toBe(textOf(await workspace.store.read('a.note')))
+  })
+
   it('saves a copy beside the file and leaves the document on its own path', async () => {
     const { app, workspace } = setup(true)
     await workspace.store.write('a.note', noteText('hello'))

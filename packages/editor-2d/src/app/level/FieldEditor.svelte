@@ -3,7 +3,8 @@
   type maps to (`inspector-model.ts`). A stepper, toggle, segmented control or picker commits on change; text commits
   on blur or Enter, and Escape puts it back. `oncommit` is `commitField` bound to the field: when it refuses, the
   message shows under the field and the control is rebuilt from the stored value (`revision`), so what the field shows
-  is always what the project holds. A `ref` shows its target; picking one on the canvas is ED2D.6c.
+  is always what the project holds. A `ref` shows its target's name and, where the row knows the project, picks a new
+  one in `RefPicker` (ED2D.6c).
 -->
 <script lang="ts">
 import type { EditEvent } from '@mcthaydt/automata-editor-kit'
@@ -11,6 +12,7 @@ import { Button, ColorField, Picker, Segmented, Stepper } from '@mcthaydt/automa
 import type { FieldValue, Point, RefValue } from '@mcthaydt/automata-editor-kit/fields'
 import type { FieldCommit } from './field-commit'
 import type { FieldRow } from './inspector-model'
+import RefPicker from './RefPicker.svelte'
 
 interface Props {
   row: FieldRow
@@ -23,7 +25,7 @@ const { row, palette, oncommit }: Props = $props()
 
 const uid = $props.id()
 let message = $state<string | undefined>()
-let notice = $state<string | undefined>()
+let picking = $state(false)
 /** Bumped on a refusal so the control remounts on the stored value. */
 let revision = $state(0)
 
@@ -168,10 +170,14 @@ function onTextBlur(event: FocusEvent): void {
     {:else if row.widget === 'ref'}
       <span class="label">{row.label}</span>
       <div class="pair">
-        <span class="value">{ref === undefined ? 'Not set' : ref.target}</span>
-        <Button onclick={() => (notice = 'Choosing a target on the canvas is coming soon.')}>Choose target</Button>
+        <span class="value">{ref === undefined ? 'Not set' : (row.ref?.name ?? `${ref.target} (missing)`)}</span>
+        {#if row.ref !== undefined}
+          <Button onclick={() => (picking = true)}>Choose target</Button>
+        {/if}
       </div>
-      {#if notice}<p class="notice" role="status">{notice}</p>{/if}
+      {#if row.ref !== undefined}
+        <RefPicker bind:open={picking} name={row.label} targets={row.ref.targets} onchoose={commit} />
+      {/if}
     {:else}
       <span class="label">{row.label}</span>
       <span class="value">{Array.isArray(row.value) ? `${row.value.length} items` : ''}</span>
@@ -213,15 +219,9 @@ function onTextBlur(event: FocusEvent): void {
     color: var(--color-text-primary);
     font: var(--text-body-13);
   }
-  .notice,
   .message {
     margin: 0;
-    font: var(--text-body-13);
-  }
-  .notice {
-    color: var(--color-text-dim);
-  }
-  .message {
     color: var(--color-state-bad);
+    font: var(--text-body-13);
   }
 </style>

@@ -2,8 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
-import { withNewLevel } from '../../testing/project-edit'
-import { dragPosition, fitWorld, levelAt, toWorld, worldRects } from './world-model'
+import { linkedMaps } from '../../testing/linked-maps'
+import { entity, withEntities, withNewLevel } from '../../testing/project-edit'
+import {
+  copyLevelInput,
+  dragPosition,
+  fitWorld,
+  levelAt,
+  linksInto,
+  newLevelInput,
+  toWorld,
+  uncoveredArea,
+  worldRects,
+} from './world-model'
 
 const project = (): Project => {
   const base = platformerTemplate.create(counterIds())
@@ -72,5 +83,61 @@ describe('toWorld and dragPosition', () => {
     const camera = { x: 20, y: 10, scale: 0.5 }
     expect(toWorld(camera, { x: 70, y: 60 })).toEqual({ x: 100, y: 100 })
     expect(dragPosition({ x: 600, y: 0 }, { x: 25, y: -12.6 }, camera.scale)).toEqual({ x: 650, y: -25 })
+  })
+})
+
+describe('newLevelInput (Add level, plan ED2D.6c decision 6)', () => {
+  it('names the next free level, the size of the first, right of the rightmost with a gap, at the top', () => {
+    const base = platformerTemplate.create(counterIds())
+    const size = base.levels[0]?.size ?? { w: 0, h: 0 }
+    expect(newLevelInput(base, 'main')).toEqual({
+      id: 'level-2',
+      name: 'Level 2',
+      world: 'main',
+      x: size.w + 32,
+      y: 0,
+      size,
+    })
+    // level-2 and level-3 are taken: the next is level-4, right of level-2 (at 600) and its width.
+    expect(newLevelInput(project(), 'main')).toMatchObject({
+      id: 'level-4',
+      name: 'Level 4',
+      x: 600 + size.w + 32,
+    })
+  })
+})
+
+describe('copyLevelInput and linksInto (Duplicate and Remove, plan ED2D.8a decision 3)', () => {
+  it('names a copy "<name> copy" with the first free "<id>-copy" id', () => {
+    const p = project()
+    expect(copyLevelInput(p, 'level-2')).toEqual({ id: 'level-2-copy', name: 'level-2 copy' })
+    const copied = withNewLevel(p, 'level-2-copy', { x: 0, y: 900 })
+    expect(copyLevelInput(copied, 'level-2')).toEqual({ id: 'level-2-copy-2', name: 'level-2 copy' })
+  })
+
+  it('counts the links from other levels that lead into a level', () => {
+    const p = linkedMaps()
+    expect(linksInto(p, 'inn')).toBe(1)
+    const withWarp = withEntities(p, 'inn', [
+      entity('warp-1', 'warp', 10, 10, { target: { target: 'door-in', container: 'inn' } }),
+    ])
+    expect(linksInto(withWarp, 'inn')).toBe(1)
+    expect(linksInto(p, 'map-1')).toBe(1)
+  })
+})
+
+describe('uncoveredArea (plan ED2D.8b decision 2)', () => {
+  const map = { x: 0, y: 100, w: 800, h: 1000 }
+  it('is the whole map when nothing covers it', () => {
+    expect(uncoveredArea(map, [])).toEqual({ x: 0, y: 0, w: 800, h: 1000 })
+  })
+  it('leaves out a drawer from the left or the right, and a sheet from the bottom, in map coordinates', () => {
+    expect(uncoveredArea(map, [{ x: 0, y: 50, w: 300, h: 1100 }])).toEqual({ x: 300, y: 0, w: 500, h: 1000 })
+    expect(uncoveredArea(map, [{ x: 500, y: 50, w: 400, h: 1100 }])).toEqual({ x: 0, y: 0, w: 500, h: 1000 })
+    expect(uncoveredArea(map, [{ x: 0, y: 700, w: 800, h: 500 }])).toEqual({ x: 0, y: 0, w: 800, h: 600 })
+  })
+  it('ignores a cover that misses the map, and never goes below nothing', () => {
+    expect(uncoveredArea(map, [{ x: 900, y: 0, w: 100, h: 100 }])).toEqual({ x: 0, y: 0, w: 800, h: 1000 })
+    expect(uncoveredArea(map, [{ x: -10, y: 0, w: 900, h: 2000 }]).w).toBe(0)
   })
 })

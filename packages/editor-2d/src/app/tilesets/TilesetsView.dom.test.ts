@@ -104,14 +104,24 @@ describe('Tilesets view: the panel', () => {
 describe('Tilesets view: the sheet', () => {
   it('shows every tile, toggles the selection and makes a tag of it', async () => {
     const { opened } = await mount()
-    const tiles = within(screen.getByRole('group', { name: 'Tiles' })).getAllByRole('button')
+    // Queries stay inside the sheet's groups: a page-wide query by role and name works out the name of every button on
+    // the screen, about 0.8 s each in jsdom, which pushed this test past its time under load. The tiles carry their
+    // name as `aria-label`, so they are found by label inside the group, and checked to be buttons.
+    const sheet = within(screen.getByRole('group', { name: 'Tiles' }))
+    const tiles = sheet.getAllByRole('button')
     expect(tiles.length).toBeGreaterThan(0)
-    await userEvent.click(screen.getByRole('button', { name: 'Tile 3' }))
-    expect(screen.getByRole('button', { name: 'Tile 3' })).toHaveAttribute('aria-pressed', 'true')
+    const tile = (name: string): HTMLElement => {
+      const found = sheet.getByLabelText(name)
+      expect(tiles).toContain(found)
+      return found
+    }
+    await userEvent.click(tile('Tile 3'))
+    expect(tile('Tile 3')).toHaveAttribute('aria-pressed', 'true')
     await userEvent.type(screen.getByLabelText('New tag'), 'lava')
     await userEvent.click(screen.getByRole('button', { name: 'Add tag' }))
-    expect(screen.getByRole('button', { name: 'lava · 1' })).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('button', { name: 'Tile 3, tagged lava' })).toBeInTheDocument()
+    const tags = within(screen.getByRole('group', { name: 'Tags' }))
+    expect(tags.getByRole('button', { name: 'lava · 1' })).toHaveAttribute('aria-pressed', 'true')
+    expect(tile('Tile 3, tagged lava')).toBeInTheDocument()
     expect((opened.document.history.state as Project).defs.tilesets[0]?.tags).toContainEqual({
       tag: 'lava',
       tiles: [3],

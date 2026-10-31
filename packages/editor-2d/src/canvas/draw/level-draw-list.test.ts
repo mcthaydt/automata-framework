@@ -4,7 +4,8 @@ import { counterIds } from '../../model/ids'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
 import { topdownRpgTemplate } from '../../profiles/level-project/templates/topdown-rpg'
 import { drawView, richProject } from '../../testing/draw-fixtures'
-import { paintLayer, withDefs } from '../../testing/project-edit'
+import { linkedMaps } from '../../testing/linked-maps'
+import { entity, paintLayer, withDefs, withEntities } from '../../testing/project-edit'
 import type { LayerDraw } from './draw-list-types'
 import { createLevelDrawList } from './level-draw-list'
 
@@ -295,5 +296,56 @@ describe('level draw list: the templates', () => {
     const ground = layerOf(list.layers, 'ground')
     const tiles = ground.kind === 'auto' ? ground.chunks.flatMap((chunk) => chunk.tiles) : []
     expect(new Set(tiles.map((tile) => tile.y))).toEqual(new Set([256, 272]))
+  })
+})
+
+describe('level draw list: links (plan ED2D.6c decision 4)', () => {
+  const view = (patch: Partial<Parameters<typeof drawView>[0]> = {}) =>
+    drawView({ level: 'map-1', layer: 'entities', ...patch })
+
+  it('names each resolved link of the level at its source, in the source definition’s colour', () => {
+    const project = linkedMaps()
+    const list = createLevelDrawList()({ project, view: view(), images: noImages })
+    const door = project.defs.entities.find((def) => def.id === 'door')
+    expect(list.links).toEqual([
+      {
+        id: 'door-out',
+        field: 'target',
+        from: { x: 96, y: 64 },
+        label: 'Inn · Door',
+        color: door?.color,
+        selected: false,
+        to: undefined,
+      },
+    ])
+  })
+
+  it('marks a selected source, and draws a line to a target in the same level', () => {
+    const inside = withEntities(linkedMaps(), 'map-1', [
+      entity('warp-1', 'warp', 200, 100, { target: { target: 'door-out', container: 'map-1' } }),
+    ])
+    const list = createLevelDrawList()({
+      project: inside,
+      view: view({ selected: ['warp-1'] }),
+      images: noImages,
+    })
+    expect(list.links.find((link) => link.id === 'warp-1')).toMatchObject({
+      label: 'Village · Door',
+      selected: true,
+      to: { x: 96, y: 64 },
+    })
+  })
+
+  it('draws nothing for a broken link or one on a hidden layer', () => {
+    const broken = withEntities(linkedMaps(), 'map-1', [
+      entity('door-2', 'door', 10, 10, { target: { target: 'gone' } }),
+    ])
+    const draw = createLevelDrawList()
+    expect(draw({ project: broken, view: view(), images: noImages }).links.map((link) => link.id)).toEqual([
+      'door-out',
+    ])
+    expect(
+      draw({ project: broken, view: view({ hidden: new Set(['entities']) }), images: noImages }).links,
+    ).toEqual([])
   })
 })
