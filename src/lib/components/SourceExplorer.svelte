@@ -60,7 +60,8 @@
   <div class="source-mobile-picker"><label>Choose a file<select value={selected?.path} onchange={event => select(event.currentTarget.value)}>{#each project.files as file}<option value={file.path}>{file.path.startsWith(project.root + '/') ? file.path.slice(project.root.length + 1) : file.path}</option>{/each}</select></label></div>
   <div class="source-workspace">
     <nav class="source-tree" aria-label="Project files">{@render branches(tree)}</nav>
-    <div class="source-viewer">
+    <!-- The framework's files as they are (data-framework-copy: site-checks leaves their words to the framework). -->
+    <div class="source-viewer" data-framework-copy>
       {#if selected}
         {#key selected.path}
           {#if selected.content !== undefined}<CodeBlock code={selected.content} lang={selected.language} filename={selected.path} />

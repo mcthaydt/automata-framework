@@ -1,6 +1,6 @@
 # Automata Framework
 
-> Automata is a deterministic 2D game framework built for modern web browsers and the Ruken gaming platform.
+> Automata is a deterministic 2D game framework for the web. A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned.
 
 ## Documentation
 - [Overview & Vision](/docs/overview): AI-assisted game development with code and content you can own.
@@ -13,7 +13,7 @@
 - [ECS Simulation & Determinism](/docs/sim-ecs): Components, systems, async creation and synchronous stepping.
 - [PixiJS 2D Presentation](/docs/render-pixi): Renderer setup, render deltas and interpolation.
 - [Effect Runtime & Concurrency](/docs/effect-runtime): Loading, errors and resource lifetimes outside the sim.
-- [Zero-Eval CSP & Ruken Security](/docs/security-csp): Avoiding dynamic evaluation under the host policy.
+- [Zero-Eval CSP & Host Security](/docs/security-csp): Avoiding dynamic evaluation under the host policy.
 - [Mobile UI Primitives](/docs/mobile-ui): Geometry, controls and accessible layout.
 - [AI Coding Agent Rules](/docs/ai-rules): Project context for agents, followed by verification.
 - [Capabilities and licensing](/docs/capabilities): What you can use today, what is planned, and how the license applies.
@@ -34,6 +34,6 @@
 - [Runtime](/cheatsheet#runtime): Effect-scoped boot, screens, loading, settings, and shutdown. Runtime service tags are available inside runtime-provided contexts.
 - [PixiJS presentation](/cheatsheet#presentation): Draw render deltas without changing gameplay state. WebGL2 is the default; WebGPU is opt-in. Import no-eval before initializing PixiJS.
 - [Responsive UI](/cheatsheet#ui): One geometry owner coordinates usable space, safe areas, browser bars, keyboard occlusion, and host display metrics. Svelte primitives consume that geometry.
-- [Hosting](/cheatsheet#hosting): Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions. The Ruken SDK owns the host protocol.
+- [Hosting](/cheatsheet#hosting): Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions: one interface, whatever the game's target.
 - [Content](/cheatsheet#content): Register Zod schemas for authored TOML, compile content, and pass the appropriate partition to the runtime or simulation.
 - [Shipping](/cheatsheet#shipping): Configure identity and prepare a built folder. Preparation checks the local artifact; publishing needs a destination and credentials.

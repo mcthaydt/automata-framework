@@ -102,8 +102,8 @@
   <div class="code-header"><span>TypeScript</span><div class="code-actions">{#if edited}<button type="button" class="reset" onclick={onreset}>Reset</button>{/if}<CopyButton text={link} label="Copy link" caption="Copy link" copied="Link copied" blocked="Copying is blocked by this browser" /><CopyButton text={current} /></div></div>
   <!-- Keyboard focus lets readers scroll the code with the arrow keys, and starts the editor. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-  <pre class="static-code" data-testid="static-code" tabindex="0" aria-describedby={describedBy} hidden={codeState === 'ready'} {onpointerdown} {onfocusin} bind:this={pre}><code>{#each highlighted as line}<span class="line">{#each line as piece}{#if piece.className}<span class={piece.className}>{piece.text}</span>{:else}{piece.text}{/if}{/each}</span>{/each}</code></pre>
-  <div class="editor-host" bind:this={host}></div>
+  <pre class="static-code" data-framework-copy data-testid="static-code" tabindex="0" aria-describedby={describedBy} hidden={codeState === 'ready'} {onpointerdown} {onfocusin} bind:this={pre}><code>{#each highlighted as line}<span class="line">{#each line as piece}{#if piece.className}<span class={piece.className}>{piece.text}</span>{:else}{piece.text}{/if}{/each}</span>{/each}</code></pre>
+  <div class="editor-host" data-framework-copy bind:this={host}></div>
 </section>
 <style>
   /* No scroll anchoring inside: the static code an anchor would follow goes away in the swap. */

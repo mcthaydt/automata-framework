@@ -30,7 +30,8 @@
 {/snippet}
 
 <PageMeta title={title} description="The libraries Automata is built on, what each one does here, and its exact version and license, from the framework's own generated page." />
-<div class="page-shell inside-page">
+<!-- The framework's own words, laid out unchanged: site-checks leaves them to the framework (data-framework-copy). -->
+<div class="page-shell inside-page" data-framework-copy>
   <h1>{title}</h1>
   <section class="inside-intro" aria-label="Overview">{@render blocks(intro, 'Libraries, tiers, versions and licenses')}</section>
   {#each sections as section (section.id)}

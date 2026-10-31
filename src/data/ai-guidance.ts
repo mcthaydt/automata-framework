@@ -14,7 +14,7 @@ export const AI_RULES = [
   { title: 'Keep ticks repeatable', detail: 'No I/O, wall clocks, Math.random, DOM, or Effect in simulation systems. Use ctx.rng, deterministic math, stable traversal, and the same code, content, seed, and command stream when comparing runs.' },
   { title: 'Effect owns work outside the sim', detail: 'Use Effect for loading, hosting, saves, timers, and resource lifetimes. Keep simulation steps synchronous and close scopes, simulations, subscriptions, and render resources with their owner.' },
   { title: 'Use the renderer boundary', detail: 'Import the renderer no-eval entry before initializing PixiJS. Draw from render deltas, interpolate previous and current values, and handle a full resync after restore. Test the actual host content security policy.' },
-  { title: 'Honor host capabilities', detail: 'Use Hosting and the Ruken SDK. Wait for readiness, check granted capabilities, validate saved data, and report save failures. A denied hosted capability must not silently fall back to device storage.' },
+  { title: 'Honor host capabilities', detail: 'Use Hosting, whatever the target. Wait for readiness, check granted capabilities, validate saved data, and report save failures. A denied hosted capability must not silently fall back to device storage.' },
   { title: 'Keep shared contracts canonical', detail: 'Extend the component, schema, service, or package that owns a behavior. Keep content, snapshot, replay, and host contracts in their existing owners. Check the exact package entry point before using an export.' },
 ]
 
@@ -116,8 +116,9 @@ Run relevant tests and report which hosted or standalone paths were verified.`,
     prompt: `Prepare the current game for release using its existing scripts and ship.config.ts.
 Read package.json, the ship configuration, and the nearest release checks.
 Verify that package version, game ID, runtime capabilities, and asset paths agree.
-Run the relevant tests, type checks, build, and prepare-ruken script.
-Inspect the prepared artifact and generated ruken.toml. Test the built game
+Run the relevant tests, type checks and build, then the prepare step for the game's
+target: automata-ship prepare for Ruken (inspect the generated ruken.toml), with
+--target itch for itch.io; a web build is the dist folder. Test the built game
 under its intended base path and content security policy where available.
 Check asset provenance and required notices. Keep credentials outside the bundle.
 Report artifact location, commands and results, and remaining browser/device/host
@@ -138,4 +139,5 @@ export const AI_REVIEW_CHECKS = [
 export const AI_VERIFY_COMMANDS = `# From the framework workspace root, for the Emberwick starter:
 pnpm --filter @af-examples/base-2d check
 pnpm --filter @af-examples/base-2d build
-pnpm --filter @af-examples/base-2d prepare-ruken`
+# Then the prepare step for the target: automata-ship prepare (Ruken), with --target itch (itch.io);
+# a web build is the dist folder as it is.`

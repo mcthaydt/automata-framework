@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { withContentSecurityPolicy } from '../src/lib/csp'
-import { BANNED_PHRASES, EDITOR_SOURCE, MAX_COMPILE_WORKER_GZIP_BYTES, MAX_EDITOR_CHUNK_GZIP_BYTES, MAX_PRELOADED_SCRIPT_BYTES, checkCompileWorker, checkEditorChunk, checkSite } from '../scripts/site-checks'
+import { BANNED_PHRASES, EDITOR_SOURCE, FRAMING_PHRASES, STANDALONE_NAMES, TARGETS_SENTENCE_PAGES, checkTargets, MAX_COMPILE_WORKER_GZIP_BYTES, MAX_EDITOR_CHUNK_GZIP_BYTES, MAX_PRELOADED_SCRIPT_BYTES, checkCompileWorker, checkEditorChunk, checkSite } from '../scripts/site-checks'
 import { writeSeoFiles } from '../scripts/write-seo-files'
 
 const ORIGIN = 'https://automata.ruken.com'
@@ -14,6 +14,8 @@ const roots: string[] = []
 const FOOTER = '<footer><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:hello@example.com">hello@example.com</a></footer>'
 const SECURITY_TXT = `Contact: mailto:security@example.com\nExpires: 2027-10-01T00:00:00.000Z\nPreferred-Languages: en\nCanonical: ${ORIGIN}/.well-known/security.txt\n`
 const NOW = new Date('2026-10-16T00:00:00Z')
+/** The four distribution targets as the site names them (ADR 0006): STANDALONE.1's check wants all four where it looks. */
+const TARGETS = 'Build for the web, itch.io or Ruken; a desktop build (Tauri) is planned.'
 
 /** A built page as finishPage leaves it: with its Content-Security-Policy, hashed from the page as written here. */
 function page(path: string, { body = '<p>Real content.</p>', head = ICON_LINKS, footer = FOOTER } = {}): string {
@@ -321,6 +323,59 @@ describe('checkSite', () => {
   it('does not flag words that merely contain a banned phrase', () => {
     const site = goodSite()
     site.write('docs.html', page('/docs', { body: '<p>Todos and seamlessness are fine; so is a todo list.</p>' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+})
+
+// STANDALONE.1 (Owner, 2026-10-31: "automata framework is standalone"; ADR 0006, the four targets are peers): the site
+// names no reference project, casts no target as the framework's own host, and names all four targets where it says
+// where a game goes. Text the site copies verbatim from the framework is the framework's to change (STANDALONE.2).
+describe('checkSite: standalone and target-neutral', () => {
+  it.each(['FloorFifty', 'Floor Fifty', 'The Last Light', 'Last Light', 'PixiJS3D_Experiment_001'])('fails on the name %s in a page', name => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { body: `<p>Built after ${name}.</p>` }))
+    expect(STANDALONE_NAMES.some(entry => entry.pattern.test(name))).toBe(true)
+    expect(checkSite(site.root, { now: NOW }).some(problem => problem.startsWith('docs.html: names a reference project'))).toBe(true)
+  })
+
+  it.each([
+    'Automata is a framework for modern web browsers and Ruken, the reference gaming host.',
+    'Built for web browsers and the Ruken gaming platform.',
+    'Ruken first: its contracts win.',
+    'The Ruken SDK owns the host protocol.',
+  ])('fails on Ruken-only framing: %s', sentence => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { body: `<p>${sentence}</p>` }))
+    expect(FRAMING_PHRASES.length).toBeGreaterThan(0)
+    expect(checkSite(site.root, { now: NOW }).some(problem => problem.startsWith('docs.html: casts one target as the host'))).toBe(true)
+  })
+
+  it('passes Ruken named as one target, and a Ruken-only fact scoped to it', () => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { body: '<p>Publish to itch.io or Ruken. On Ruken, a game’s headers come from compileHeaders.</p>' }))
+    expect(checkSite(site.root, { now: NOW })).toEqual([])
+  })
+
+  it('checks the published plain-text files too', () => {
+    const site = goodSite()
+    site.write('llms.txt', `# Automata\n\n${TARGETS}\nExtracted from FloorFifty.\n`)
+    expect(checkSite(site.root, { now: NOW })).toContain('llms.txt: names a reference project ("FloorFifty")')
+  })
+
+  it('wants the four targets where the site says where a game goes', () => {
+    expect(TARGETS_SENTENCE_PAGES).toEqual(['index.html', 'docs/capabilities.html', 'llms.txt'])
+    const site = goodSite()
+    site.write('index.html', page('/', { body: `<p><a href="/docs">Docs</a></p><p>${TARGETS}</p>` }))
+    site.write('docs/capabilities.html', page('/docs/capabilities', { body: `<p>${TARGETS}</p>` }))
+    site.write('llms.txt', `# Automata\n\n${TARGETS}\n`)
+    expect(checkTargets(site.root)).toEqual([])
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p><p>Build for the web or Ruken.</p>' }))
+    expect(checkTargets(site.root)).toEqual(['index.html: does not name every distribution target (missing itch.io, desktop (Tauri))'])
+  })
+
+  it('leaves text copied verbatim from the framework to the framework', () => {
+    const site = goodSite()
+    site.write('docs.html', page('/docs', { body: '<article data-framework-copy><p>Both reference games render with Pixi 8: FloorFifty in 2D.</p></article>' }))
     expect(checkSite(site.root, { now: NOW })).toEqual([])
   })
 })
