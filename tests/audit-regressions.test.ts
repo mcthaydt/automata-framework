@@ -106,6 +106,16 @@ describe('Restored claims (DX.10a)', () => {
     expect(doc.content).not.toMatch(/zero untrapped|all failures are typed|every failure is (typed|handled)/i)
   })
 
+  it('states the 780×270 input journeys the framework runs, and keeps them apart from real-device acceptance', () => {
+    const doc = docs.find(entry => entry.slug === 'mobile-ui')!.content
+    expect(doc).toContain('## Tested input journeys')
+    expect(doc).toContain('At 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake Ruken host.')
+    expect(doc).toContain('Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size.')
+    expect(doc).toContain('These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open.')
+    expect(doc).toContain(`https://github.com/mcthaydt/automata-framework/blob/${apiIndex.commit}/packages/testing/src/e2e/input-matrix.ts`)
+    expect(doc).not.toMatch(/verified at 780|full parity|input parity/i)
+  })
+
   it('labels the generated API reference as complete for the packages it was generated from, and links it', () => {
     const view = render(Cheatsheet)
     expect(view.getByRole('link', { name: 'Complete generated reference (plain text)' }).getAttribute('href')).toBe('/llms-api.txt')

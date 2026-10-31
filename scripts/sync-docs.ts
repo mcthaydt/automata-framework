@@ -9,7 +9,7 @@ import { AI_CONTEXT_FILES, AI_PROJECT_PROMPT, AI_RULES, AI_TASKS, AI_REVIEW_CHEC
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const websiteDir = resolve(__dirname, '..')
-const apiIndex = JSON.parse(readFileSync(join(websiteDir, 'src/data/api-index.json'), 'utf8')) as { version: string }
+const apiIndex = JSON.parse(readFileSync(join(websiteDir, 'src/data/api-index.json'), 'utf8')) as { commit: string; version: string }
 // The runtime's BootError union and its members, as the framework's API index documents them (scripts/sync-api-index.ts).
 const bootErrors = JSON.parse(readFileSync(join(websiteDir, 'src/data/boot-errors.json'), 'utf8')) as { commit: string; signature: string; doc: string; members: { name: string; package: string; doc: string }[] }
 
@@ -104,7 +104,7 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "Mobile UI Primitives",
     "category": "Core",
     "description": "Geometry, controls and accessible layout.",
-    "content": "# Mobile UI Primitives\n\n## Geometry\n\ncreateGeometryOwner tracks the space available to game UI, including host geometry and viewport changes. Use its state instead of independent measurements in every component.\n\n## Layout and controls\n\nScreenFrame, ActionBar, CornerControls and Dialog provide building blocks. Check their current Props definitions rather than guessing component inputs.\n\n## Device checks\n\nVerify touch targets, focus order, orientation changes, safe areas and keyboard occlusion on supported devices. A responsive layout test does not establish GPU performance or real-device acceptance."
+    "content": "# Mobile UI Primitives\n\n## Geometry\n\ncreateGeometryOwner tracks the space available to game UI, including host geometry and viewport changes. Use its state instead of independent measurements in every component.\n\n## Layout and controls\n\nScreenFrame, ActionBar, CornerControls and Dialog provide building blocks. Check their current Props definitions rather than guessing component inputs.\n\n## Device checks\n\nVerify touch targets, focus order, orientation changes, safe areas and keyboard occlusion on supported devices. A responsive layout test does not establish GPU performance or real-device acceptance.\n\n## Tested input journeys\n\nAt 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake Ruken host. Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size. These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open. [Read the matrix](https://github.com/mcthaydt/automata-framework/blob/" + apiIndex.commit + "/packages/testing/src/e2e/input-matrix.ts) at the framework commit this site was built from.\n"
   },
   {
     "id": "ai-rules",
