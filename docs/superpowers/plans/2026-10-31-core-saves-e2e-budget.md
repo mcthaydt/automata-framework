@@ -1,7 +1,8 @@
 # core-saves e2e budget: where the time goes
 
 > Follow-up row from the DIST lane (core-saves "another device changes the slot" ran 31.6 s against its 30 s budget
-> under 2 workers, 19.9 s alone). Test/tooling only. Status: **diagnosed, fix pending a decision** (see Options).
+> under 2 workers, 19.9 s alone). Test/tooling only. Status: **option 2 implemented** (coordinator, 2026-10-31: "Decision: option 2. Raise the conflict journey's
+> budget to 45 s"); option 1 is the follow-up row CI.E2E2.
 
 ## Measurements (cloud container, 4 CPUs, headless Chromium shell, `main` 547ce175)
 
@@ -37,7 +38,7 @@ CommandBufferHelper::Finish` for 1.73 s of 2 s, while the GPU process runs Swift
   5 s expect. With the readback gone, SwiftShader no longer waits for the page and keeps the 4 CPUs busy rendering,
   which starves the other worker's reload. Not acceptable as is; reverted.
 
-## Options (decision pending)
+## Options
 
 1. The flag, plus a boot-sized wait after the reload in S-c (the same wait `openHosted` gives the first boot). This
    fixes the cause of the input stall but covers the reload stall with a longer wait.
@@ -46,6 +47,24 @@ CommandBufferHelper::Finish` for 1.73 s of 2 s, while the GPU process runs Swift
 3. Render the examples' canvas at device-pixel ratio 1 under test (a quality setting the runner passes). That cuts
    the readback about 3×, but it needs a product-facing option for test behavior.
 
+## Decision and change
+
+- Option 2: `examples/e2e/core-saves.e2e.ts` conflict journey calls `test.setTimeout(45_000)`, with the measured cause
+  beside it. No other budget and no runner flag changed. 45 s is 1.5× the worst measured 2-worker run (29.1 s).
+- Option 1 goes to the tooling row CI.E2E2, measured across the whole examples suite. Its starting point is the
+  experiment above: the flag cut the conflict journey from 19.7 s to 8.3 s alone and to 9.1 s / 9.6 s with 2 workers,
+  but S-c then failed 3/3 with 2 workers, with the reload's `domInteractive` at 5.3–7.4 s.
+
 ## Execution log
 
 - 2026-10-31: measured and traced as above; the flag experiment was reverted; nothing changed in the product.
+- 2026-10-31: option 2 applied. Gates in the Verification section.
+
+## Verification
+
+- Selected: `pnpm exec playwright test examples/e2e/core-saves.e2e.ts --project=examples --project=examples-compact
+--workers=2`: 6 passed. `pnpm format`; `TURBO_FORCE=true pnpm check`: 35/35 tasks green.
+- Omitted: `pnpm build`, api-report, api-index, agent-skills, changesets (no package source, exports or doc comments
+  changed); parity (no sim, renderer, ui or golden touched); the whole e2e suite (focused spec only, per the lane
+  rules).
+- Pending: the `af-linux` nightly e2e run.
