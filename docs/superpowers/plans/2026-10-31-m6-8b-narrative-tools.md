@@ -61,9 +61,9 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 1. `beats` and `help` content kinds; the converter adds the four scenes' beats and help. Fails: no schemas.
    - [x] 1
 2. `lintNarrative` (the source's lint cases, re-pointed at locale text). Fails: no module.
-   - [ ] 2
+   - [x] 2
 3. `lintDialogues` with NR-c (a dead end fails), and `lintDeck`. Fails: no module.
-   - [ ] 3
+   - [x] 3
 4. `lintHelp`, `currentHint`. Fails: no module.
    - [ ] 4
 5. Traces from solver routes; `beatCoverage`, `hintCheck`. Fails: no module.
