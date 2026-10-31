@@ -1,4 +1,5 @@
 import type { Component } from 'svelte'
+import ChecksView from '../checks/ChecksView.svelte'
 import EntitiesView from '../entities/EntitiesView.svelte'
 import LevelView from '../level/LevelView.svelte'
 import TilesetsView from '../tilesets/TilesetsView.svelte'
@@ -10,6 +11,7 @@ import type { ViewProps } from './view-props'
 // has no view yet gets the pending one, so a profile can list a destination before it is built.
 
 const built: Readonly<Record<string, Component<ViewProps>>> = {
+  ChecksView,
   EntitiesView,
   LevelView,
   TilesetsView,
