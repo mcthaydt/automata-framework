@@ -10,7 +10,7 @@
   `evaluate`), `cutscene-builder.ts` (243), `cutscene-lint.ts` (191), the four scenes' `cutscenes.ts` (28 scripts) and
   `tests/cutscenes.test.ts`, `cutscene-builder.test.ts`, `cutscene-camera-acting.test.ts`, `cutscene-lint.test.ts`,
   `cutscene-pose.test.ts`. Provenance goes in the framework's `docs/provenance/sources.md` only.
-- **Status:** plan drafted.
+- **Status:** plan drafted; steps 1-7 built and locally checked (2026-10-31); step 8 (gates, provenance row, ready line) below. CI verified, deployed and Owner accepted: not yet.
 
 ## Scope
 
@@ -45,7 +45,10 @@ back-to-camera lint rules read the source's renderer (NR-D9, CS-D3).
   event carries the missing anchor for the game to log.
 - **CS-D3:** lint rules that need the source's renderer (ceiling, cut-away walls, sprite scale, back to camera, solid boxes) are not ported; they
   return with the renderer in M6.9b.
-- **CS-D4:** the converted scripts have absolute positions (the source's scripts are functions of a context); anchors are for new scripts.
+- **CS-D4:** the converted scripts have absolute positions (the source's scripts are functions of a context); anchors are for new scripts. The source's
+  one-off marks `powerAt`, `exitOpenAt` and `flatline` are `states` rows (`power`, `exitOpen`, `flatline`), and its `player` and `nurse` keys are actor
+  rows with those `who`. One script, `bay/arrival`, has two nurse keys 0.06 s out of time order; the converter puts them in order (the schema requires it).
+- **CS-D5:** starting a cutscene while one plays replaces it (the old one ends skipped), so a late story cutscene is never dropped.
 
 ## Steps
 
@@ -62,11 +65,11 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 5. The lint. Fails: no module.
    - [x] 5
 6. The converter and the four scenes' scripts. Fails: no fixtures.
-   - [ ] 6
+   - [x] 6
 7. The golden in four engines.
-   - [ ] 7
+   - [x] 7
 8. Gates, provenance row, ready line.
-   - [ ] 8
+   - [x] 8 (provenance row: the AF docs PR, number in the ready line)
 
 ## Gates
 
@@ -81,3 +84,15 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 ## Execution log
 
 - 2026-10-31: plan written from the M6 spec, Plus main `1cd8c1e` and the adventure source at `92e6704`.
+- 2026-10-31 (build): steps 1-7 built in order, each test seen failing first except two slips noted here: the `locked` option on narrative and
+  nav was written in the same edit as its test (the test asserts the ignored command, so it does fail without the option). Plus `pnpm check`
+  and the parity runs are under Gates in the PR. Evidence: cutscenes 9 test files / 56 tests; puzzle, nav and narrative `test:parity` pass with
+  their goldens unchanged (the options change no schema); the cutscenes golden `9347cb3f5d5d978e` (events `1393abf2f96abd27`, 22 events, 11 cutscenes
+  started and ended, 14 of 120 inputs taken) is the same in Node, Chromium, WebKit and Firefox, straight and restored at step 300.
+  Deviations, with the reason:
+  - **The clinic lints to two findings** (`keypad` camera within 0.2 m of a wall, `opening` camera outside the map): the source allows both because its
+    renderer cuts the walls away for the shot (CS-D3). The test pins exactly those two. The other three scenes have no map here to lint against.
+  - `narrative` gained a `./testing/fixtures/*` export, `puzzle` two test exports earlier; the cutscene tests read the scenes' locale text.
+  - The scene builder (a shot vocabulary that writes scripts, M6-D6) is not ported: the four scenes' scripts are data, and the builder's frame solvers
+    read the source's renderer; it goes with the preview in M6.9b.
+  - A script's `lintAllow.context` is not read: the lint has one context.

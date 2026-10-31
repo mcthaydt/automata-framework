@@ -58,6 +58,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/automata-narrative':
+        specifier: workspace:*
+        version: link:../narrative
       '@mcthaydt/automata-nav':
         specifier: workspace:*
         version: link:../nav

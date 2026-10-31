@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-content": "0.0.3",
+    "@mcthaydt/automata-narrative": "workspace:*",
     "@mcthaydt/automata-nav": "workspace:*",
     "@mcthaydt/automata-puzzle": "workspace:*",
     "@mcthaydt/automata-runtime": "0.0.3",
