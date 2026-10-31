@@ -1,0 +1,15 @@
+# `handOnHip` from FigureBuilder (mcthaydt/FigureBuilder) src/render/figure/library/poses.json at a1f7246 (the stands); fallbacks in kebab-case.
+
+about = "The hip out over the weight leg and the near hand on it, the elbow out and back so the arm reads as a V off the waist; the other arm loose; the chin up."
+weight = "R"
+shift = 0.05
+roll = 0.09
+under = 0.4
+free = [0.11, 0.035, 0.42, 0.2]
+chest = [0.07, -0.12, -0.04]
+head = [-0.22, -0.06, -0.14]
+fallback = ["hip-and-pocket"]
+
+[hands]
+R = { at = "hip", elbow = 0.8, nudge = [0.01, -0.02, -0.12] }
+L = { out = 0.14, bend = 0.32, swing = 0.04 }

@@ -1,0 +1,40 @@
+# Wick's slash (M3 spec §4.7): an action that plays over the walk, owning only the right arm and the torso. The
+# right hand winds up high and to the right, cuts down and across to the left at `contact`, and comes back to guard.
+# Figures' fixture slash (at 077484c7) retimed from 0.5 s to the sim's 0.4 s (`ACTION_TICKS.slash`, 24 ticks).
+
+length = 0.4
+loop = "once"
+mask = [ "armR", "torso" ]
+
+[markers]
+windup = 0.096
+contact = 0.224
+
+[[keys]]
+t = 0
+pose = "guard-high"
+
+[[keys]]
+t = 0.096
+ease = "out"
+
+[keys.pose.effectors.handR]
+pos = [ -0.3, 1.5, 0.05 ]
+
+[keys.pose.effectors.chest]
+rot = [ 0, -20, 0 ]
+
+[[keys]]
+t = 0.224
+ease = "in"
+
+[keys.pose.effectors.handR]
+pos = [ 0.15, 0.95, 0.45 ]
+
+[keys.pose.effectors.chest]
+rot = [ 5, 25, 0 ]
+
+[[keys]]
+t = 0.4
+pose = "guard-high"
+ease = "inOut"
