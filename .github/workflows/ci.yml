@@ -324,7 +324,7 @@ jobs:
     with:
       working-directory: games/placeholder
       sim-roots: ""
-      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
 
   base-2d:
     name: base-2d through game-ci
@@ -340,7 +340,7 @@ jobs:
       working-directory: games/emberwick
       sim-roots: src/sim
       artifact-name: base-2d-dist
-      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
 
   # base-3d's sim is its role files in src/ since #279 (the GL spec), which `pnpm boundaries --game` checks in the
   # checks job; game-ci skips its own sim-roots check inside this repository, so `src` here only matters to a copy
@@ -359,4 +359,4 @@ jobs:
       working-directory: games/base-3d
       sim-roots: src
       artifact-name: base-3d-dist
-      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
