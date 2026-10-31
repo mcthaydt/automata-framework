@@ -59,7 +59,7 @@ Out:
 Each step: write the test, see it fail for the stated reason, write the minimum, see it pass.
 
 1. `beats` and `help` content kinds; the converter adds the four scenes' beats and help. Fails: no schemas.
-   - [ ] 1
+   - [x] 1
 2. `lintNarrative` (the source's lint cases, re-pointed at locale text). Fails: no module.
    - [ ] 2
 3. `lintDialogues` with NR-c (a dead end fails), and `lintDeck`. Fails: no module.

@@ -1,0 +1,194 @@
+# The adventure source's clinic puzzle help (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[hints]]
+id = "cabinet"
+puzzle = "Open the key cabinet behind reception with its four-digit code."
+
+[[hints.done]]
+fact = "cabinetOpen"
+is = true
+
+[[hints.levels]]
+line = "clinic.clock"
+at = "clock"
+
+[[hints.levels]]
+line = "clinic.record"
+at = "record"
+
+[[hints.levels]]
+line = "clinic.scratches"
+at = "scratches"
+
+[[hints]]
+id = "supplyDoor"
+puzzle = "Open the supply room with the brass key."
+
+[[hints.done]]
+fact = "closetOpen"
+is = true
+
+[[hints.levels]]
+line = "clinic.keypadRight"
+at = "cabinet"
+
+[[hints.levels]]
+line = "clinic.item.brassKey"
+at = "item:brassKey"
+
+[[hints.levels]]
+line = "clinic.doorLocked"
+at = "closetDoor"
+
+[[hints]]
+id = "fuse"
+puzzle = "Find the spare fuse in the supply room."
+
+[[hints.done]]
+fact = "shelfTaken"
+is = true
+
+[[hints.levels]]
+line = "clinic.cutscene.opening.5"
+at = "cutscene:opening"
+
+[[hints.levels]]
+line = "clinic.exitLocked"
+at = "exit"
+
+[[hints.levels]]
+line = "clinic.fuseDry"
+at = "fuseBox"
+
+[[hints]]
+id = "power"
+puzzle = "Dry the floor under the fuse box, then seat the fuse to restore emergency power."
+
+[[hints.done]]
+fact = "power"
+is = true
+
+[[hints.levels]]
+line = "clinic.puddle"
+at = "puddle"
+
+[[hints.levels]]
+line = "clinic.fuseEmpty"
+at = "fuseBox"
+
+[[hints.levels]]
+line = "clinic.item.cloth"
+at = "item:cloth"
+
+[[hints]]
+id = "exit"
+puzzle = "Leave through the north exit."
+
+[[hints.levels]]
+line = "clinic.fusePower"
+at = "fuseBox"
+
+[[hints.levels]]
+line = "clinic.cutscene.power.1"
+at = "cutscene:power"
+
+[[hints.levels]]
+line = "clinic.cutscene.opening.5"
+at = "cutscene:opening"
+
+[[deductions]]
+id = "code"
+learn = "The key cabinet's code is 0417, the minute everything stopped."
+for = [ "cabinet" ]
+
+[[deductions.clues]]
+line = "clinic.cutscene.opening.1"
+at = "cutscene:opening"
+
+[[deductions.clues]]
+line = "clinic.clock"
+at = "clock"
+
+[[deductions.clues]]
+line = "clinic.monitorFirst"
+at = "monitor"
+
+[[deductions.clues]]
+line = "clinic.record"
+at = "record"
+
+[[deductions.clues]]
+line = "clinic.scratches"
+at = "scratches"
+
+[[deductions]]
+id = "brassKey"
+learn = "The brass key opens the supply room in the north corridor."
+for = [ "supplyDoor" ]
+
+[[deductions.clues]]
+line = "clinic.keypadRight"
+at = "cabinet"
+
+[[deductions.clues]]
+line = "clinic.item.brassKey"
+at = "item:brassKey"
+
+[[deductions.clues]]
+line = "clinic.doorLocked"
+at = "closetDoor"
+
+[[deductions.clues]]
+line = "clinic.inspectBrassKey"
+at = "item:brassKey"
+
+[[deductions]]
+id = "needsFuse"
+learn = "The exit's lock needs emergency power, and the fuse box is missing its fuse."
+for = [ "fuse", "power" ]
+
+[[deductions.clues]]
+line = "clinic.cutscene.opening.5"
+at = "cutscene:opening"
+
+[[deductions.clues]]
+line = "clinic.exitLocked"
+at = "exit"
+
+[[deductions.clues]]
+line = "clinic.fuseDry"
+at = "fuseBox"
+
+[[deductions]]
+id = "dryFirst"
+learn = "The water under the fuse box has to go before the breaker is thrown."
+for = [ "power" ]
+
+[[deductions.clues]]
+line = "clinic.puddle"
+at = "puddle"
+
+[[deductions.clues]]
+line = "clinic.fuseEmpty"
+at = "fuseBox"
+
+[[deductions.clues]]
+line = "clinic.item.cloth"
+at = "item:cloth"
+
+[[deductions]]
+id = "exitPower"
+learn = "With the power back, the north exit's electric lock opens."
+for = [ "exit" ]
+
+[[deductions.clues]]
+line = "clinic.cutscene.power.1"
+at = "cutscene:power"
+
+[[deductions.clues]]
+line = "clinic.fusePower"
+at = "fuseBox"
+
+[[deductions.clues]]
+line = "clinic.exitLocked"
+at = "exit"

@@ -1,0 +1,172 @@
+# The adventure source's bay puzzle help (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[hints]]
+id = "warmth"
+puzzle = "Draw the Porter off his chair with warmth (the burner, the fuelled drum, a flame), or latch him in the mortuary."
+
+[[hints.done]]
+[[hints.done.any]]
+fact = "drum"
+is = "burning"
+
+[[hints.done.any]]
+fact = "burner"
+is = true
+
+[[hints.done.any]]
+[hints.done.any.not]
+fact = "keysAt"
+is = "porter"
+
+[[hints.done.any]]
+fact = "porterOut"
+is = true
+
+[[hints.levels]]
+line = "bay.porter.routine.1"
+at = "bark:porter"
+
+[[hints.levels]]
+line = "bay.cutscene.arrival.3"
+at = "cutscene:arrival"
+
+[[hints.levels]]
+line = "bay.mortuarySign"
+at = "mortuarySign"
+
+[[hints]]
+id = "keys"
+puzzle = "Take his keys: from the hook while he warms, or from under the mortuary door."
+
+[[hints.done]]
+[[hints.done.any]]
+fact = "keysAt"
+is = "ada"
+
+[[hints.done.any]]
+fact = "keysAt"
+is = "padlock"
+
+[[hints.levels]]
+line = "bay.porter.routine.3"
+at = "bark:porter"
+
+[[hints.levels]]
+line = "bay.officeNotice"
+at = "officeNotice"
+
+[[hints.levels]]
+line = "bay.keyHook"
+at = "keyHook"
+
+[[hints]]
+id = "padlock"
+puzzle = "Open the shutter's padlock with his keys."
+
+[[hints.done]]
+fact = "padlock"
+is = false
+
+[[hints.levels]]
+line = "bay.item.keys"
+at = "item:keys"
+
+[[hints.levels]]
+line = "bay.porter.routine.5"
+at = "bark:porter"
+
+[[hints.levels]]
+line = "bay.shutterLocked"
+at = "shutter"
+
+[[hints]]
+id = "shutter"
+puzzle = "Crank the shutter open while he is warming or latched in."
+
+[[hints.levels]]
+line = "bay.porter.warming.2"
+at = "bark:porter"
+
+[[hints.levels]]
+line = "bay.drumBurning"
+at = "drum"
+
+[[hints.levels]]
+line = "bay.mortuaryDoor"
+at = "mortuaryDoor"
+
+[[deductions]]
+id = "warmthDrawsHim"
+learn = "Warmth draws the Porter away from his desk."
+for = [ "warmth" ]
+
+[[deductions.clues]]
+line = "bay.cutscene.arrival.3"
+at = "cutscene:arrival"
+
+[[deductions.clues]]
+line = "bay.mortuarySign"
+at = "mortuarySign"
+
+[[deductions.clues]]
+line = "bay.porter.routine.1"
+at = "bark:porter"
+
+[[deductions.clues]]
+line = "bay.drumLit"
+at = "drum"
+
+[[deductions]]
+id = "keysOnHook"
+learn = "Called away from his desk, he leaves his keys on the hook."
+for = [ "keys" ]
+
+[[deductions.clues]]
+line = "bay.officeNotice"
+at = "officeNotice"
+
+[[deductions.clues]]
+line = "bay.porter.routine.3"
+at = "bark:porter"
+
+[[deductions.clues]]
+line = "bay.keyHook"
+at = "keyHook"
+
+[[deductions]]
+id = "keysFitPadlock"
+learn = "One of the Porter's keys opens the padlock on the shutter."
+for = [ "padlock" ]
+
+[[deductions.clues]]
+line = "bay.shutterLocked"
+at = "shutter"
+
+[[deductions.clues]]
+line = "bay.porter.routine.5"
+at = "bark:porter"
+
+[[deductions.clues]]
+line = "bay.item.keys"
+at = "item:keys"
+
+[[deductions]]
+id = "crankSafely"
+learn = "Cranking is loud: do it while he warms himself, when he ignores noise, or once he is latched in."
+for = [ "shutter" ]
+
+[[deductions.clues]]
+line = "bay.porter.warming.2"
+at = "bark:porter"
+
+[[deductions.clues]]
+line = "bay.crank1"
+at = "shutter"
+
+[[deductions.clues]]
+line = "bay.mortuaryDoor"
+at = "mortuaryDoor"
+
+[[deductions.clues]]
+line = "bay.drumBurning"
+at = "drum"

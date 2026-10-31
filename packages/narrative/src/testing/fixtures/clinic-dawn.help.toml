@@ -1,0 +1,138 @@
+# The adventure source's clinic-dawn puzzle help (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[hints]]
+id = "receptionKey"
+puzzle = "Get the reception key: off the patient record on the trolley, or off its hook behind the counter with the mop."
+
+[[hints.done]]
+[[hints.done.any]]
+fact = "trolley"
+is = 1
+
+[[hints.done.any]]
+fact = "keyHook"
+is = false
+
+[[hints.done.any]]
+fact = "receptionOpen"
+is = true
+
+[[hints.levels]]
+line = "clinic-dawn.cabinet"
+at = "cabinet"
+
+[[hints.levels]]
+line = "clinic-dawn.counter"
+at = "counter"
+
+[[hints.levels]]
+line = "clinic-dawn.bucket"
+at = "bucket"
+
+[[hints]]
+id = "receptionDoor"
+puzzle = "Unlock the reception door with its key."
+
+[[hints.done]]
+fact = "receptionOpen"
+is = true
+
+[[hints.levels]]
+line = "clinic-dawn.receptionLocked"
+at = "receptionDoor"
+
+[[hints.levels]]
+line = "clinic-dawn.item.receptionKey"
+at = "item:receptionKey"
+
+[[hints.levels]]
+line = "clinic-dawn.trolleyKey"
+at = "trolley"
+
+[[hints]]
+id = "register"
+puzzle = "Write the last line in the night register at reception."
+
+[[hints.levels]]
+line = "clinic-dawn.cutscene.arrival.3"
+at = "cutscene:arrival"
+
+[[hints.levels]]
+line = "clinic-dawn.exitBack"
+at = "exit"
+
+[[hints.levels]]
+line = "clinic-dawn.receptionOpened"
+at = "receptionDoor"
+
+[[deductions]]
+id = "keyWhere"
+learn = "The reception key is clipped to the patient record on the trolley, or hangs on its hook behind the counter."
+for = [ "receptionKey" ]
+
+[[deductions.clues]]
+line = "clinic-dawn.cabinet"
+at = "cabinet"
+
+[[deductions.clues]]
+line = "clinic-dawn.bed"
+at = "bed"
+
+[[deductions.clues]]
+line = "clinic-dawn.counter"
+at = "counter"
+
+[[deductions.clues]]
+line = "clinic-dawn.receptionLocked"
+at = "receptionDoor"
+
+[[deductions]]
+id = "mopReach"
+learn = "The mop's long handle reaches the key over the counter."
+for = [ "receptionKey" ]
+
+[[deductions.clues]]
+line = "clinic-dawn.counter"
+at = "counter"
+
+[[deductions.clues]]
+line = "clinic-dawn.bucket"
+at = "bucket"
+
+[[deductions.clues]]
+line = "clinic-dawn.item.mop"
+at = "item:mop"
+
+[[deductions]]
+id = "keyFits"
+learn = "The tagged key opens the reception door."
+for = [ "receptionDoor" ]
+
+[[deductions.clues]]
+line = "clinic-dawn.receptionLocked"
+at = "receptionDoor"
+
+[[deductions.clues]]
+line = "clinic-dawn.item.receptionKey"
+at = "item:receptionKey"
+
+[[deductions.clues]]
+line = "clinic-dawn.trolleyKey"
+at = "trolley"
+
+[[deductions]]
+id = "registerWaits"
+learn = "The night register is open at reception, waiting for the last line."
+for = [ "register" ]
+
+[[deductions.clues]]
+line = "clinic-dawn.cutscene.arrival.3"
+at = "cutscene:arrival"
+
+[[deductions.clues]]
+line = "clinic-dawn.exitBack"
+at = "exit"
+
+[[deductions.clues]]
+line = "clinic-dawn.receptionOpened"
+at = "receptionDoor"

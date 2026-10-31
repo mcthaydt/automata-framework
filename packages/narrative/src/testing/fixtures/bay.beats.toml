@@ -1,0 +1,84 @@
+# The adventure source's bay story beats (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[beats]]
+id = "bay.arrival"
+required = true
+learn = "The exit was not the way out. The bay is colder than the night, and someone works here."
+deliveredBy = [ "bay.cutscene.arrival.1" ]
+
+[[beats]]
+id = "bay.runSheet"
+required = true
+learn = "CALL 04:09, ST. AGNES WARD. PT: VOSS, A. (STAFF NURSE), FOUND AT BED 04, DOA 04:17."
+deliveredBy = [ "bay.runSheet", "bay.cutscene.arrival.2" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.ledger"
+required = true
+learn = "Every night: 04:17 RECEIVED VOSS, A., FROM BED 04, DRAWER 4. RELEASE AT FIRST LIGHT. The RELEASED column is always empty."
+deliveredBy = [ "bay.ledger", "bay.porter.signing.1", "bay.cutscene.dawn.2" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.warmth"
+required = true
+learn = "He is always cold, and any flame draws him to it."
+deliveredBy = [ "bay.cutscene.arrival.3", "bay.porter.routine.1", "bay.porter.stirring.1", "bay.porter.drawn.1", "bay.porter.drawn.2" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.notice"
+required = false
+learn = "The Porter hangs his keys on the hook while he signs in. He goes by touch."
+deliveredBy = [ "bay.officeNotice" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.sign"
+required = false
+learn = "If the burner is left on, he sits by it all night."
+deliveredBy = [ "bay.mortuarySign" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.drawer4"
+required = false
+learn = "Drawer 4 is empty. Its toe tag reads A. VOSS."
+deliveredBy = [ "bay.drawer4" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.radio"
+required = false
+learn = "Outside, the night goes on: seventeen minutes past four, and first light at 06:02."
+deliveredBy = [ "bay.radio.time", "bay.radio.weather" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.porterMeet"
+required = true
+learn = "He cannot see her. He asks whether she is staff, or for him."
+deliveredBy = [ "bay.porter.c1.ask" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.porterLedger"
+required = false
+learn = "He reads her entry by touch: every night he writes her in, and every morning the column is empty."
+deliveredBy = [ "bay.porter.c2.read" ]
+after = [ "bay.arrival" ]
+
+[[beats]]
+id = "bay.porterRiver"
+required = true
+learn = "Everything goes out at first light, and he calls that a kindness. Will she sit, or go out with the light?"
+deliveredBy = [ "bay.porter.c3.ask" ]
+after = [ "bay.warmth" ]
+
+[[beats]]
+id = "bay.dawn"
+required = true
+learn = "The shutter rises on grey. It is not light yet, and he does not write RELEASED."
+deliveredBy = [ "bay.cutscene.dawn.1" ]
+after = [ "bay.arrival" ]

@@ -1,0 +1,14 @@
+# The adventure source's prologue story beats (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[beats]]
+id = "prologue.handover"
+required = true
+learn = "Ada's first night at St. Agnes. The day shift has gone home and left her a note."
+deliveredBy = [ "prologue.cutscene.opening.2", "prologue.handover" ]
+
+[[beats]]
+id = "prologue.quiet"
+required = true
+learn = "All quiet. Ada makes up Bed 04 and sits down to wait for morning."
+deliveredBy = [ "prologue.bedMade", "prologue.cutscene.rest.1" ]
+after = [ "prologue.handover" ]

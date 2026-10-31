@@ -57,8 +57,15 @@ for (const scene of ['prologue', 'clinic', 'clinic-dawn', 'bay']) {
     ((await load(`src/scenes/${scene}/storylets.ts`)).STORYLETS as { trigger: string }[] | undefined) ?? []
   const kept = deck.filter((s) => s.trigger !== 'radio')
   out(`${scene}.storylets.toml`, `${scene} storylet deck`, { storylets: kept })
+  const beats = ((await load(`src/scenes/${scene}/beats.ts`)).BEATS as unknown[] | undefined) ?? []
+  out(`${scene}.beats.toml`, `${scene} story beats`, { beats })
+  const help = ((await load(`src/scenes/${scene}/help.ts`)).HELP as Record<string, unknown> | undefined) ?? {
+    hints: [],
+    deductions: [],
+  }
+  out(`${scene}.help.toml`, `${scene} puzzle help`, help)
   console.log(
-    `${scene}: ${records.length} lines, ${dialogues.length} graphs, ${kept.length} storylets (${deck.length - kept.length} radio left out)`,
+    `${scene}: ${records.length} lines, ${dialogues.length} graphs, ${kept.length} storylets (${deck.length - kept.length} radio left out), ${beats.length} beats, ${(help.hints as unknown[]).length} hint ladders`,
   )
 }
 const canon = (await load('src/narrative/canon.ts')).CANON as Record<string, unknown>

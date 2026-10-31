@@ -1,0 +1,63 @@
+# The adventure source's clinic story beats (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[beats]]
+id = "clinic.wake"
+required = true
+learn = "Ada wakes in Bed 04. The monitor reads her name; the clock stopped at 04:17."
+deliveredBy = [ "clinic.cutscene.opening.1", "clinic.cutscene.opening.2", "clinic.bedFirst", "clinic.monitorFirst", "clinic.clock" ]
+
+[[beats]]
+id = "clinic.register"
+required = false
+learn = "Every night shift since 1987 is signed A. Voss, in her own handwriting."
+deliveredBy = [ "clinic.register" ]
+after = [ "clinic.wake" ]
+
+[[beats]]
+id = "clinic.record"
+required = false
+learn = "Admission 04:17. No name. No pulse. The patient asked for the lights on."
+deliveredBy = [ "clinic.record" ]
+after = [ "clinic.wake" ]
+
+[[beats]]
+id = "clinic.note"
+required = false
+learn = "The Night Nurse does not like the light. No noise near the corridor."
+deliveredBy = [ "clinic.noticeboard" ]
+after = [ "clinic.wake" ]
+
+[[beats]]
+id = "clinic.code"
+required = false
+learn = "0417, scratched behind the curtain. She keeps the keys behind the desk."
+deliveredBy = [ "clinic.scratches" ]
+after = [ "clinic.wake" ]
+
+[[beats]]
+id = "clinic.fuse"
+required = true
+learn = "A spare fuse, labelled in her handwriting: for when I finally leave."
+deliveredBy = [ "clinic.shelfFuse", "clinic.item.fuse" ]
+after = [ "clinic.wake" ]
+
+[[beats]]
+id = "clinic.opening"
+required = true
+learn = "At 04:17, where was Ada? Asleep, working, or she does not remember which."
+deliveredBy = [ "clinic.openingAsk" ]
+after = [ "clinic.wake" ]
+
+[[beats]]
+id = "clinic.power"
+required = true
+learn = "The lights come back, and the Nurse asks who will sit up with her if Ada goes."
+deliveredBy = [ "clinic.nurse.power" ]
+after = [ "clinic.fuse" ]
+
+[[beats]]
+id = "clinic.exit"
+required = true
+learn = "Ada steps out into the cold, and does not look back."
+deliveredBy = [ "clinic.cutscene.exit.1" ]
+after = [ "clinic.fuse" ]
