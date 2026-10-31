@@ -1,5 +1,5 @@
-// The words of the default screens' save UI (M5 spec §7). English, like the other default screens' words (02 follow-up
-// "default screens in the game's language"); a game that wants its own languages passes custom screens.
+// The default screens' save UI in English (M5 spec §7): the `saves` part of `DEFAULT_SCREENS_COPY` (screens-copy.ts),
+// which a game overrides in its own language with `copy.screens` (DX.2d).
 import type { SaveSlotsCopy, SaveStatusCopy } from '@mcthaydt/automata-ui'
 
 /** The slot list. Slots are numbered from 0 inside the runtime and from 1 for the player. */

@@ -158,12 +158,21 @@ importers:
       '@mcthaydt/automata-game':
         specifier: workspace:*
         version: link:../../packages/game
+      '@mcthaydt/automata-host':
+        specifier: workspace:*
+        version: link:../../packages/host
       '@mcthaydt/automata-render-pixi3d':
         specifier: workspace:*
         version: link:../../packages/render-pixi3d
+      '@mcthaydt/automata-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@mcthaydt/automata-ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@pixi/3d':
         specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
         version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
@@ -192,9 +201,15 @@ importers:
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
+      '@ruken/sdk-host':
+        specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
+        version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
@@ -204,6 +219,9 @@ importers:
       '@vitest/browser-playwright':
         specifier: 5.0.3
         version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
+      jsdom:
+        specifier: 30.1.1
+        version: 30.1.1
       playwright:
         specifier: 1.63.0
         version: 1.63.0
@@ -464,9 +482,6 @@ importers:
 
   packages/editor-2d:
     dependencies:
-      '@decimalturn/toml-patch':
-        specifier: 3.3.1
-        version: 3.3.1
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
@@ -665,6 +680,12 @@ importers:
 
   packages/editor-suite:
     dependencies:
+      '@mcthaydt/automata-editor-2d':
+        specifier: workspace:*
+        version: link:../editor-2d
+      '@mcthaydt/automata-editor-3d':
+        specifier: workspace:*
+        version: link:../editor-3d
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
@@ -776,6 +797,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
@@ -4915,7 +4939,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      vitest: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))
 
   '@vitest/utils@5.0.3':
     dependencies:

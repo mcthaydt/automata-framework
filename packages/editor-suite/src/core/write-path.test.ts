@@ -332,3 +332,26 @@ describe('writeAll: one step over several files (an import, EDS-D19)', () => {
     expect(await read(ports, CREATED)).toBe('pose = 3\n')
   })
 })
+
+describe('one history per editor (EDS-D19, EDS-k)', () => {
+  test('undoes and redoes the named editor’s own last step, leaving another editor’s alone', async () => {
+    const { path, ports } = await setup()
+    await path.write(MODE, 'MAX_MOVE_SPEED = 4\n', 'Paint', 'levels-2d')
+    await path.write(TUNING, 'MAX_MOVE_SPEED = 8\n', 'Raise speed', 'tuner')
+    expect(path.undoLabel('levels-2d')).toBe('Paint')
+    expect(path.undoLabel('tuner')).toBe('Raise speed')
+    expect(path.canUndo()).toBe(false)
+
+    expect(await path.undo('levels-2d')).toEqual(expect.objectContaining({ written: true }))
+    expect((await ports.workspace.read(MODE))?.text).toBe('MAX_MOVE_SPEED = 3\n')
+    expect(await text(ports)).toBe('MAX_MOVE_SPEED = 8\n')
+    expect(path.canUndo('levels-2d')).toBe(false)
+    expect(path.redoLabel('levels-2d')).toBe('Paint')
+    expect(path.canUndo('tuner')).toBe(true)
+
+    await path.redo('levels-2d')
+    expect((await ports.workspace.read(MODE))?.text).toBe('MAX_MOVE_SPEED = 4\n')
+    path.clear()
+    expect(path.canUndo('levels-2d') || path.canUndo('tuner')).toBe(false)
+  })
+})

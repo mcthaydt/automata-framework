@@ -65,6 +65,7 @@
     "svelte": "^5.57.1"
   },
   "devDependencies": {
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-testing": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",

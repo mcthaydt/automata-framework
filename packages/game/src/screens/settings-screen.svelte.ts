@@ -47,6 +47,7 @@ import {
   show,
   windowOf,
 } from './screen-kit.ts'
+import { screensCopy } from './screens-copy.svelte.ts'
 import type { SettingsViewState } from './settings-view.ts'
 
 const asRecord = (value: unknown): Record<string, unknown> =>
@@ -81,6 +82,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         const buses = yield* AudioBuses
         const hosting = yield* Hosting
         const locale = yield* Locale
+        const copy = yield* screensCopy(game.copy, locale)
         const haptics = yield* Haptics
         const runtime = yield* Effect.runtime<never>()
         const target = windowOf(layer)
@@ -219,6 +221,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
 
         const back = (): void => void flow.dispatch('back')
         yield* show(SettingsView, layer, {
+          copy,
           view,
           tracker,
           extensions: resolveExtensions(game.extensions ?? []).slots('settings.sections'),
@@ -258,7 +261,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         // Input takes Escape first and stops it.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target, input)
-        yield* noticeUnsupportedPads(layer, toldPads)
+        yield* noticeUnsupportedPads(layer, toldPads, () => copy.current.padUnsupported)
       }),
   }
 }

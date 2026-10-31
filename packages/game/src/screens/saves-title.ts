@@ -2,11 +2,8 @@
 // shows it, and the three things a player does with a slot. A slot is taken before play starts, so a load or write
 // the host refuses leaves the player on the title with the row marked, not in a game that cannot be kept.
 import { formatDateTime, Locale, type Save, type Saves, saveOf } from '@mcthaydt/automata-runtime'
-import type { Sim } from '@mcthaydt/automata-sim'
-import type { SaveSlotsCopy } from '@mcthaydt/automata-ui'
 import { Effect, Runtime, type Scope, Stream } from 'effect'
 import type { GameSaves } from '../define-game.ts'
-import { SAVE_SLOTS_COPY } from './saves-copy.ts'
 import { orDispose, type SavesStart } from './saves-start.ts'
 import { createSlotsModel, type SlotsModel } from './saves-view.svelte.ts'
 
@@ -14,7 +11,6 @@ import { createSlotsModel, type SlotsModel } from './saves-view.svelte.ts'
 export interface TitleSaves {
   /** The slot list and the writes in flight; the screen changes it in place. */
   readonly model: SlotsModel
-  readonly copy: SaveSlotsCopy
   /** How a save's time reads, in the player's locale. */
   readonly formatTime: (savedAt: number) => string
   readonly onLoad: (slot: number) => void
@@ -55,7 +51,6 @@ export function titleSaves(
 
     return {
       model,
-      copy: SAVE_SLOTS_COPY,
       formatTime: (savedAt) => formatDateTime(locale.current, savedAt),
       onLoad: (slot) =>
         attempt(slot, async () => {

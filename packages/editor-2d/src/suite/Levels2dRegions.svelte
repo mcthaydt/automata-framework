@@ -1,0 +1,81 @@
+<!--
+  The Levels 2D regions in the editor suite's shell (plan EDS.2d; editor suite spec §4.1, §4.7, EDS-D12): the Level
+  view's panel, canvas, inspector and dock, each drawn from the session the suite keeps, so a switch and return finds
+  the level, layer, tool, selection and camera as they were. The suite owns the top bar (Undo and Redo among it) and the
+  Panel and Details toggles, so the stage leaves those to it.
+-->
+<script module lang="ts">
+import LevelCards from '../app/level/LevelCards.svelte'
+import LevelInspector from '../app/level/LevelInspector.svelte'
+import LevelPanel from '../app/level/LevelPanel.svelte'
+import LevelStage from '../app/level/LevelStage.svelte'
+import type { Project } from '../model/project-types'
+import Levels2dStatus from './Levels2dStatus.svelte'
+import type { Levels2dSession } from './levels-2d-session'
+
+const nothing = (): Promise<undefined> => Promise.resolve(undefined)
+
+export { canvas, dock, inspector, panel, status }
+</script>
+
+{#snippet panel(session: Levels2dSession)}
+  {#if session.state.kind === 'open'}
+    <LevelPanel session={session.state.level} history={session.state.history} read={session.options.read ?? nothing} />
+  {/if}
+{/snippet}
+
+{#snippet canvas(session: Levels2dSession)}
+  {#if session.state.kind === 'open'}
+    <LevelStage
+      session={session.state.level}
+      history={session.state.history}
+      read={session.options.read ?? nothing}
+      ids={session.options.ids}
+      canvas={session.options.canvas}
+    />
+  {:else}
+    <div class="refused" role="status" data-testid="levels-2d-refused">
+      <h2>{session.state.message}</h2>
+      {#each session.state.errors as error, index (index)}<p>{error.message}</p>{/each}
+      <p>Your file is unchanged.</p>
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet inspector(session: Levels2dSession)}
+  {#if session.state.kind === 'open'}
+    {@const { profile } = session.state}
+    <LevelInspector
+      session={session.state.level}
+      history={session.state.history}
+      ids={session.options.ids}
+      check={(project: Project) => profile.check(project, {})}
+    />
+  {/if}
+{/snippet}
+
+{#snippet dock(session: Levels2dSession)}
+  {#if session.state.kind === 'open'}
+    <LevelCards session={session.state.level} history={session.state.history} />
+  {/if}
+{/snippet}
+
+{#snippet status(session: Levels2dSession)}
+  <Levels2dStatus {session} />
+{/snippet}
+
+<style>
+  .refused {
+    padding: var(--space-5);
+    color: var(--color-text-dim);
+    font: var(--text-body-13);
+  }
+  .refused h2 {
+    margin: 0 0 var(--space-2);
+    color: var(--color-text-primary);
+    font: var(--text-title-15);
+  }
+  .refused p {
+    margin: 0;
+  }
+</style>

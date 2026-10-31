@@ -11,6 +11,7 @@
 - `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
 - `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
 - `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
+- `ChangedElsewhereCopy` (interface): The words of the choice paused offers once another device has changed the slot being played (M5-D6).
 - `Command` (interface): Input to the sim (spec §4.4 rule 4).
 - `CommandDef` (interface): A command the sim accepts as input: an id and the Zod schema its payload must match.
 - `ComponentDef` (interface): A component: a stable id and a flat record of typed fields.
@@ -32,6 +33,7 @@
 - `DrawTextOptions` (interface): Options for `DrawContext.text`: colour and font size.
 - `EntityRef` (interface): A live entity, addressed by its StableId.
 - `EventDef` (interface): An event a system emits: an id and the Zod schema its payload must match.
+- `GameCopy` (type): A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d).
 - `GameSaves` (interface): What a game saves, and how the default screens read it from the sim and put it back (M5.2).
 - `GameSpec` (interface): A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds, scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
 - `GameSpecError` (class): Every invalid field of a spec, by path: `size.width: …`.
@@ -49,7 +51,11 @@
 - `RectViewOptions` (interface): A `rect` view's size, colour and anchor.
 - `ResourceDef` (interface): A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting value.
 - `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
+- `ScreensCopy` (interface): Every word the default title, play, paused and settings screens show (DX spec §7, M4 spec §4.8, M5 spec §4.8).
+- `ScreensCopyInput` (type): A game's words for the default screens: a part of the record, or a function of the player's locale returning one.
+- `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
+- `SettingsScreenCopy` (interface): The Settings screen's own words: its title, Back, the tabs and the overflow count.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
 - `SimContext` (interface): What a system's `run` receives each tick (spec §4.1).
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
@@ -164,6 +170,7 @@
 - `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
 - `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
 - `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
+- `ChangedElsewhereCopy` (interface): The words of the choice paused offers once another device has changed the slot being played (M5-D6).
 - `createCamera2d(stage, options, seed?)`: A camera writing `stage`'s transform (usually `PixiStage.world`).
 - `defaultContent()`: The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash.
 - `defaultScreens(game)`: The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow (`title → play ⇄ paused → title`, `paused ⇄ settings`).
@@ -174,6 +181,7 @@
 - `DrawEntity` (interface): One entity, read-only: its components' values are frozen copies.
 - `DrawSim` (interface): The sim at this frame, read-only.
 - `DrawTextOptions` (interface): Options for `DrawContext.text`: colour and font size.
+- `GameCopy` (type): A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d).
 - `GameSaves` (interface): What a game saves, and how the default screens read it from the sim and put it back (M5.2).
 - `GameSpec` (interface): A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds, scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
 - `GameSpecError` (class): Every invalid field of a spec, by path: `size.width: …`.
@@ -189,7 +197,11 @@
 - `rect(options)`: A filled rectangle that follows its component's `x`, `y` and `angle`, interpolated between ticks: `entityViews: { [Body.id]: rect({ w: 8, h: 8, color: 0xf9c22b }) }`.
 - `RectViewOptions` (interface): A `rect` view's size, colour and anchor.
 - `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
+- `ScreensCopy` (interface): Every word the default title, play, paused and settings screens show (DX spec §7, M4 spec §4.8, M5 spec §4.8).
+- `ScreensCopyInput` (type): A game's words for the default screens: a part of the record, or a function of the player's locale returning one.
+- `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
+- `SettingsScreenCopy` (interface): The Settings screen's own words: its title, Back, the tabs and the overflow count.
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
 - `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
 - `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.

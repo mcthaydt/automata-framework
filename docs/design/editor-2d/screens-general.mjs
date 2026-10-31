@@ -1569,7 +1569,7 @@ screens.push({
   name: 'Home · projects · iPad landscape',
   w: 1194,
   h: 834,
-  note: 'Where a session starts: sources on the left, every project in the workspace (a platformer, an RPG, a blank sketch and a FloorFifty stage, each opened by its own profile), templates for a new project, and the selected project on the right.',
+  note: 'Where a session starts: sources on the left, every project in the workspace (a platformer, an RPG and a blank sketch, each opened by its profile), templates for a new project, and the selected project on the right.',
   build: (S, P) => {
     const {
       F,
@@ -1586,7 +1586,6 @@ screens.push({
       pill,
       btn,
       kv,
-      sceneCard,
       inputBox,
       callout,
       dot,
@@ -1610,7 +1609,6 @@ screens.push({
           { name: 'Hollowmere thumbnail', w, h, clip: true, fill: 'bg/canvas' },
           V(rpgArt(), { name: 'art', x: 0, y: -(h * 0.35) * (w / 552) * 1.7, w, h: (w * 528) / 552 }),
         )
-      if (id === 'rooftops') return sceneCard(w, h, { vy: 260, name: 'Rooftops thumbnail' })
       return F(
         { name: 'Tile sketch thumbnail', w, h, clip: true, fill: '#1b2230' },
         F({ x: 24, y: h - 40, w: w - 48, h: 16, fill: '#5a4636' }),
@@ -1622,7 +1620,6 @@ screens.push({
       Platformer: '#5fbf7a',
       'Top-down RPG': '#e0a54a',
       Blank: '#8e8c85',
-      'FloorFifty stage': '#4a9ae0',
     }
     const SEL = 0
     const card = (pr, i) => {
@@ -1717,9 +1714,9 @@ screens.push({
       R({ w: 'fill', h: 48, pad: [0, 16] }, eyebrow('Open from')),
       C(
         { w: 'fill', pad: [0, 8], gap: 2 },
-        src('box', 'This workspace', '4 projects · browser storage', true),
+        src('box', 'This workspace', '3 projects · browser storage', true),
         src('folder', 'mossgate/', 'Folder · read and write', false),
-        src('file', 'Files…', 'Pick .af2d.json or stage .toml', false),
+        src('file', 'Files…', 'Pick a .af2d.json file', false),
       ),
       spacer(),
       C(
@@ -1744,7 +1741,7 @@ screens.push({
       782,
       { fill: 'bg/app' },
       T('Projects', { x: 24, y: 24, style: 'Display/20' }),
-      T('4 in this workspace', { x: 120, y: 29, style: 'Body/13', color: 'text/dim' }),
+      T('3 in this workspace', { x: 120, y: 29, style: 'Body/13', color: 'text/dim' }),
       R(
         { x: 366, y: 16, w: 220, h: 44 },
         inputBox('Search projects', { icon: 'search', dim: true, w: 'fill' }),
@@ -1754,9 +1751,8 @@ screens.push({
       tmpl('layers', 'Platformer', 'side view', 0),
       tmpl('world', 'Top-down RPG', 'maps · NPCs', 1),
       tmpl('file', 'Blank', 'own layers', 2),
-      tmpl('cloud', 'FloorFifty stage', 'stage TOML', 3, 'profile'),
       T(
-        'Templates are starting definitions: a profile you add (a game’s stage format) appears here beside them.',
+        'Templates are starting definitions: a profile you add (a game’s own document kind) appears here beside them.',
         { x: 24, y: 736, w: 560, style: 'Label/12', color: 'text/dim', lh: 17 },
       ),
     )
@@ -2082,7 +2078,7 @@ screens.push({
   name: 'Checks · Hollowmere · a broken link · iPad landscape',
   w: 1194,
   h: 834,
-  note: 'Checks after the Inn’s entrance was deleted: diagnostics by severity, each tied to an object. The selected one is a door whose target no longer exists; the canvas shows it in place and the inspector offers the fix. The same panel lists the FloorFifty profile’s diagnostics for a stage.',
+  note: 'Checks after the Inn’s entrance was deleted: diagnostics by severity, each tied to an object. The selected one is a door whose target no longer exists; the canvas shows it in place and the inspector offers the fix.',
   build: (S, P) => {
     const {
       F,
