@@ -1,6 +1,7 @@
 import { createSim, defineComponent, definePlugin, type Sim } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
 import { NetOwner, netPlugin, SeatJoin, SeatLeave } from './index'
+import { MAX_SEATS } from './seat.schema'
 
 // netPlugin (M7 spec §4.2, §4.4): the seat entity and the seat commands, as ordinary sim definitions. The room
 // sends seat.join and seat.leave; a game tags its own entities with net-owner to tie them to a seat.
@@ -134,5 +135,15 @@ describe('netPlugin', () => {
       return hash
     }
     expect(await run()).toBe(await run())
+  })
+})
+
+// PRODUCT.8b: the room's own command source lives on the sim side, so a game's sim can tell the room's commands from
+// a seat's without importing the server (which a sim may not). The server uses this same constant.
+describe('ROOM_SOURCE', () => {
+  it('is 255, above every seat', async () => {
+    const { ROOM_SOURCE } = await import('./index')
+    expect(ROOM_SOURCE).toBe(255)
+    expect(ROOM_SOURCE).toBeGreaterThanOrEqual(MAX_SEATS)
   })
 })

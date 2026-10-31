@@ -7,7 +7,7 @@
  */
 
 import { MAX_SEATS } from '@mcthaydt/automata-net'
-import { netPlugin, SeatJoin, SeatLeave } from '@mcthaydt/automata-net/sim'
+import { netPlugin, ROOM_SOURCE, SeatJoin, SeatLeave } from '@mcthaydt/automata-net/sim'
 import type { CommandDef, PluginDef, Rng, SimEvent } from '@mcthaydt/automata-sim'
 import type { SimView } from './sim-view'
 
@@ -59,9 +59,10 @@ export interface ServerDef {
 
 /**
  * The sim `source` of the room's own commands (seat.join, seat.leave and the game's spawn commands): the highest
- * source the sim accepts, never a seat (seats are 0 to MAX_SEATS - 1).
+ * source the sim accepts, never a seat (seats are 0 to MAX_SEATS - 1). Owned by net's sim side, so a game's sim reads
+ * the same constant; re-exported here for the server's callers.
  */
-export const ROOM_SOURCE = 255
+export { ROOM_SOURCE }
 
 const DEFAULT_LOBBY = { countdownSeconds: 3, startWhen: 'all-ready' } as const
 
