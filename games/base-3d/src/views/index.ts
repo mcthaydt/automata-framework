@@ -14,11 +14,11 @@ import type {
   Vec3,
   View3dFactory,
 } from '@mcthaydt/automata-render-pixi3d'
-import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
+import { CameraHeading, Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { FieldRecord } from '@mcthaydt/automata-sim'
 import { Mesh3D, type View3D } from '@pixi/3d'
-import { ACTION_CLIP, TICK_HZ, WALK_SPEED } from './constants.ts'
-import type { AreaSource } from './systems/index.ts'
+import { ACTION_CLIP, type MoveDef, TICK_HZ, WALK_SPEED } from '../constants/index.ts'
+import type { AreaSource } from '../systems/index.ts'
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>
 
@@ -38,25 +38,43 @@ const CLIP_IDS: Readonly<Record<number, string>> = {
 }
 
 /**
- * Wick's figure state from his `hero` and `hero-action` rows. `target` is the locked target's `target` row (its
- * plan position in Q16.16 metres), which the page looks up by `hero.lockTarget`; the head and chest aim at it while
- * he is locked.
+ * The clip an action plays: a move's own (from `fighter.move` among `moves`), retimed to its `total` (DESIGN.md §7.2,
+ * GAME-3D.1c part 3), when the action is a sword move or a dodge; otherwise the action code's clip at its own length.
+ */
+function actionClip(
+  components: Components,
+  code: number,
+  moves: readonly MoveDef[],
+): { readonly id: string; readonly length?: number } | undefined {
+  if (code === ACTION_CLIP.slash || code === ACTION_CLIP.move) {
+    const move = moves[Number(components.fighter?.move ?? 0) - 1]
+    if (move !== undefined) return { id: move.clip ?? move.id, length: move.total / TICK_HZ }
+  }
+  const id = CLIP_IDS[code]
+  return id === undefined ? undefined : { id }
+}
+
+/**
+ * Wick's figure state from his `hero`, `hero-action` and `fighter` rows. `target` is the locked target's `target`
+ * row (its plan position in Q16.16 metres), which the page looks up by `hero.lockTarget`; the head and chest aim at
+ * it while he is locked. `moves` is the world's move table, which names each move's clip.
  */
 export function heroFigureState(
   components: Components,
   target?: { readonly x: number; readonly z: number },
+  moves: readonly MoveDef[] = [],
 ): FigureViewState {
   const hero = components.hero ?? {}
   const act = components['hero-action'] ?? {}
   const moving = hero.moving === true
-  const clip = CLIP_IDS[Number(act.clip ?? 0)]
+  const clip = actionClip(components, Number(act.clip ?? 0), moves)
   const locked = Number(hero.lockTarget ?? 0) !== 0 && target !== undefined
   return {
     moving,
     speed: moving ? WALK_SPEED : 0,
     moveDir: radians(Number(hero.moveDir ?? 0)),
     item: HERO_ITEM,
-    ...(clip !== undefined && { action: { id: clip, startedAt: seconds(Number(act.startedAt)) } }),
+    ...(clip !== undefined && { action: { ...clip, startedAt: seconds(Number(act.startedAt)) } }),
     ...(act.guard === true && { stances: [{ id: 'guard', startedAt: seconds(Number(act.guardSince)) }] }),
     ...(locked && {
       aim: (['head', 'chest'] as const).map((part) => ({
@@ -114,6 +132,22 @@ export function lockPoint(
   const target = sid === 0 ? undefined : rowOf(sid)?.target
   if (target === undefined) return undefined
   return { x: Number(target.x) / Q16, y: AIM_HEIGHTS.chest, z: Number(target.z) / Q16 }
+}
+
+/**
+ * Whether this tick's heading is a recentre (DESIGN.md §11.2): it jumped to Wick's facing with no lock before or
+ * after, which only a lock press with no target does in one tick, so the camera eases it over 250 ms. A turn that
+ * happens to land on the facing eases too, which shows as nothing more than a smoother turn.
+ */
+export function recentred(curr: Components, prev: Components | undefined): boolean {
+  const heading = curr[CameraHeading.id]?.heading
+  const before = prev?.[CameraHeading.id]?.heading
+  if (before === undefined || heading === before) return false
+  return (
+    heading === curr.hero?.facing &&
+    Number(curr.hero?.lockTarget ?? 0) === 0 &&
+    Number(prev?.hero?.lockTarget ?? 0) === 0
+  )
 }
 
 /** Metres from the floor to the ceiling: above the views' 2 m bounds, so the camera never meets it. */

@@ -33,9 +33,9 @@ export const base3dSaveSchema = z.looseObject({
 
 export type Base3dSave = z.infer<typeof base3dSaveSchema>
 
-/** A new game: three hearts, nothing found, in the hub. */
+/** A new game: four hearts (DESIGN.md §7.8), nothing found, in the hub. */
 export const newGame = (): Base3dSave => ({
-  hearts: { max: 3, pieces: [] },
+  hearts: { max: 4, pieces: [] },
   embers: 0,
   items: { sling: false, bombs: false, hookchain: false },
   ammo: { pellets: 0, bombs: 0 },

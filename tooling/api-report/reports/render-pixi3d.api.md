@@ -458,6 +458,7 @@ interface Pixi3dCameraOptions {
     readonly height?: number | undefined;
     readonly position?: ((components: Components) => Vec3 | undefined) | undefined;
     readonly lock?: ((components: Components, rowOf: (sid: number) => Components | undefined) => Vec3 | undefined) | undefined;
+    readonly easeHeading?: ((curr: Components, prev: Components | undefined) => boolean) | undefined;
 }
 ```
 
