@@ -1,12 +1,13 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
+import { contentPlugin } from './vite.config.ts'
 
 // Node runs every test; the browsers project runs the same game.test.ts in Chromium, WebKit and Firefox, so the
 // whole sim (the golden replay included, B-a) is held to the cross-engine rule (AGENTS.md, determinism). Svelte
 // compiles the ui panels the game package imports (ship-config.test.ts reads the game's input map).
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [svelte(), contentPlugin()],
   optimizeDeps: { include: ['zod'] },
   test: {
     projects: [
