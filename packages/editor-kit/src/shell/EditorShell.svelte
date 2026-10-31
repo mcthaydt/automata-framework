@@ -148,7 +148,8 @@ let railHeight = $state(0)
 let statusHeight = $state(0)
 $effect(() => {
   if (typeof ResizeObserver === 'undefined') return
-  const measured = [railElement, statusElement].filter((element) => element !== undefined)
+  // A region taken away while shown leaves its binding null, not undefined: measure only elements that are there.
+  const measured = [railElement, statusElement].filter((element) => element instanceof Element)
   const observer = new ResizeObserver(() => {
     railHeight = railElement?.offsetHeight ?? 0
     statusHeight = statusElement?.offsetHeight ?? 0

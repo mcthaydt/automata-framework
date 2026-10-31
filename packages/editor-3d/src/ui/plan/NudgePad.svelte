@@ -1,17 +1,17 @@
 <!--
   The nudge pad (ED3D.6g-b; ED3D spec §5.3 flow 2, §9 the `Draw a sector` frame): while a sector is drawn with touch or
   a Pencil, four 44 px arrows move the last corner one grid step on the plan (up is north, towards smaller z) and the
-  48 px middle closes the sector. The canvas places it clear of the contact point and the edge (`nudgePlace`).
+  48 px middle closes the sector. It sits in the bottom corner `nudgePlace` chose, clear of the contact point, and above
+  whatever covers the plan's foot (`--plan-foot`: the portrait tool strip and sheet).
 -->
 <script lang="ts">
 interface Props {
-  x: number
-  y: number
+  side: 'left' | 'right'
   onnudge: (dx: number, dz: number) => void
   onclose: () => void
 }
 
-const { x, y, onnudge, onclose }: Props = $props()
+const { side, onnudge, onclose }: Props = $props()
 
 const ARROWS = [
   { name: 'Nudge up', glyph: '↑', dx: 0, dz: -1, area: 'up' },
@@ -21,7 +21,7 @@ const ARROWS = [
 ] as const
 </script>
 
-<div class="pad" role="group" aria-label="Nudge the last corner" style:left={`${x}px`} style:top={`${y}px`}>
+<div class="pad" role="group" aria-label="Nudge the last corner" data-side={side}>
   {#each ARROWS as arrow (arrow.area)}
     <button
       type="button"
@@ -41,6 +41,7 @@ const ARROWS = [
 <style>
   .pad {
     position: absolute;
+    bottom: calc(12px + var(--plan-foot, 0px));
     z-index: 1;
     display: grid;
     grid-template-areas:
@@ -67,6 +68,12 @@ const ARROWS = [
     border-radius: 50%;
     cursor: pointer;
     font: 500 18px / 1 var(--font-sans, sans-serif);
+  }
+  .pad[data-side='right'] {
+    right: 12px;
+  }
+  .pad[data-side='left'] {
+    left: 12px;
   }
   .arrow {
     width: 44px;

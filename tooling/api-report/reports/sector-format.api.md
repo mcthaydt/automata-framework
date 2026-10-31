@@ -380,3 +380,5 @@ interface WindowDef {
 ```ts
 const windowSchema: z.ZodType<WindowDef>;
 ```
+
+## `./blockout`

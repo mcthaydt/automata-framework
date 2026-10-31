@@ -1,10 +1,11 @@
 import type { FieldDef } from '@mcthaydt/automata-editor-kit/fields'
+import { fieldRow } from '@mcthaydt/automata-editor-kit/fields'
 import { describe, expect, it } from 'vitest'
 import { placeEntity, setEntityField } from '../../model/commands/entity-edits'
 import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
-import { entityInspector, fieldRow, levelChecks, levelInspector } from './inspector-model'
+import { entityInspector, levelChecks, levelInspector } from './inspector-model'
 
 const platformer = (): Project => platformerTemplate.create(counterIds())
 const target = { level: 'level-1', layer: 'entities' }
@@ -119,7 +120,7 @@ describe('a ref row (plan ED2D.6c step 4)', () => {
     expect(row.ref?.name).toBeUndefined()
     expect(row.ref?.targets).toEqual([
       {
-        level: 'level-1',
+        id: 'level-1',
         name: 'Level 1',
         choices: [
           { label: 'Player start at 48, 256', value: { target: expect.any(String), container: 'level-1' } },

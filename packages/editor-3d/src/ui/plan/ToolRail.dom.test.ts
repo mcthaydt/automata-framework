@@ -16,6 +16,7 @@ describe('ToolRail', () => {
       ['Portal', 'P'],
       ['Door', 'D'],
       ['Window', 'N'],
+      ['Things', 'T'],
     ] as const)
       expect(screen.getByRole('button', { name })).toHaveAttribute('aria-keyshortcuts', key)
     expect(screen.getByRole('button', { name: 'Sector' })).toHaveAttribute('aria-pressed', 'true')

@@ -21,11 +21,18 @@ import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onDestroy } from 'svelte'
 import { createChecksPanel, type Scheduler } from '../../app/checks-panel-controller'
 import type { DocumentController, DocumentState } from '../../app/document/document-controller'
+import { inspectorOf, thingRowsOf, wallRowsOf } from '../../app/inspector-cards'
+import { createInspectorEdits } from '../../app/inspector-edits'
 import { planZoom } from '../../app/plan-picture'
 import { checksWords, planStatus } from '../../app/plan-status'
 import { planToolCommands } from '../../app/plan-tool-commands'
 import { createPlanTools, type PlanToolId } from '../../app/plan-tools'
 import type { Point } from '../../format/sector.schema'
+import DollhouseCanvas from '../dollhouse/DollhouseCanvas.svelte'
+import type { DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'
+import { lazyDollhouseRenderer } from '../dollhouse/lazy-dollhouse-renderer'
+import Inspector from '../inspector/Inspector.svelte'
+import PortraitSheet from '../inspector/PortraitSheet.svelte'
 import EditorLayers from '../plan/EditorLayers.svelte'
 import PlanCanvas from '../plan/PlanCanvas.svelte'
 import type { PlanRendererFactory } from '../plan/plan-renderer'
@@ -41,12 +48,23 @@ interface Props {
   clock: { now(): number }
   /** Makes the Plan view's renderer (a dynamic import of Pixi in the page; a fake in the tests). */
   renderer: PlanRendererFactory
+  /** Makes the 3D view's renderer; Pixi loaded on first use when not given (the tests pass a fake). */
+  dollhouse?: DollhouseRendererFactory | undefined
   /** Runs the checks after the editing pauses. */
   schedule: Scheduler
   onback: () => void
 }
 
-const { geometry, controller, toasts, clock, renderer, schedule, onback }: Props = $props()
+const {
+  geometry,
+  controller,
+  toasts,
+  clock,
+  renderer,
+  dollhouse = lazyDollhouseRenderer(),
+  schedule,
+  onback,
+}: Props = $props()
 
 /** The controller's state right now (its store answers at once). */
 function snapshot(source: DocumentController): DocumentState {
@@ -59,6 +77,13 @@ function snapshot(source: DocumentController): DocumentState {
 }
 
 const shellMode = $derived(shellModeOf(geometry.current.formFactor))
+/**
+ * The inspector column at wide needs room beside the rail, the layers and the plan: on a window narrower than this the
+ * plan would be left a few hundred pixels for its toolbar, lens, pad and actions, so the column is left out and the
+ * status line names what is selected (iPad mini landscape, 1133 px, keeps it; plan decision 4).
+ */
+const INSPECTOR_MIN_WIDTH = 1100
+const inspectorShown = $derived(shellMode === 'wide' && geometry.current.layout.width >= INSPECTOR_MIN_WIDTH)
 const compact = $derived(shellMode === 'compact')
 /** The layers drawer (or sheet on a phone), below `wide`; at `wide` the panel is always in view. */
 let panelOpen = $state(false)
@@ -76,7 +101,7 @@ const checks = createChecksPanel(editor, { schedule })
 // svelte-ignore state_referenced_locally
 const tools = createPlanTools(editor, { w: 1, h: 1 })
 const commands = createCommandRegistry()
-for (const command of planToolCommands(tools)) commands.register(command)
+for (const command of planToolCommands(tools, () => editor.selection.ids)) commands.register(command)
 const keymap = createKeymap(
   commands,
   /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '') ? 'apple' : 'other',
@@ -108,7 +133,26 @@ function onkeydown(event: KeyboardEvent): void {
   if (handled) event.preventDefault()
 }
 
+// The inspector's card for what is selected (ED3D.5f), read again after each change of the level or the selection.
+// svelte-ignore state_referenced_locally
+const inspectorEdits = createInspectorEdits(editor)
+// svelte-ignore state_referenced_locally
+let card = $state.raw(inspectorOf(editor))
+
+/** The portrait sheet's tab, kept here so a rotation through wide comes back to it. */
+let sheetTab = $state('sector')
 let mode = $state(editor.view.state.mode)
+// The sheet's lists follow the selection and the level, which `selection` and `card` are read again for.
+const wallRows = $derived.by(() => {
+  void selection
+  void card
+  return wallRowsOf(editor)
+})
+const thingRows = $derived.by(() => {
+  void selection
+  void card
+  return thingRowsOf(editor)
+})
 let selection = $state.raw<readonly string[]>(editor.selection.ids)
 let zoom = $state(planZoom(editor.view.state.camera))
 let counts = $state.raw(checks.view)
@@ -120,7 +164,11 @@ $effect(() => {
       mode = state.mode
       zoom = planZoom(state.camera)
     }),
-    editor.selection.subscribe((next) => (selection = next.ids)),
+    editor.selection.subscribe((next) => {
+      selection = next.ids
+      card = inspectorOf(editor)
+    }),
+    editor.history.subscribe(() => (card = inspectorOf(editor))),
     checks.subscribe(() => (counts = checks.view)),
   ]
   return () => {
@@ -139,10 +187,48 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
 {#snippet toolRail({ orientation }: { orientation: 'vertical' | 'horizontal' })}
   <ToolRail active={activeTool} {orientation} onchoose={(tool) => tools.choose(tool)} />
 {/snippet}
+{#snippet plan()}
+  <PlanCanvas
+    {editor}
+    {tools}
+    pointList={shellMode === 'wide'}
+    {renderer}
+    onundo={() => controller.undo()}
+    onredo={() => controller.redo()}
+    onpointer={(at) => (pointer = at)}
+  />
+{/snippet}
+
 
 <!-- A phone has no tool rail: the plan there is view and select only (ED3D spec §10), and the plan keeps the height. -->
-<EditorShell {geometry} bind:panelOpen rail={compact ? undefined : toolRail} testId="document-frame">
+{#snippet portrait()}
+  <PortraitSheet
+    bind:tab={sheetTab}
+    {card}
+    walls={wallRows}
+    things={thingRows}
+    checks={pill.text}
+    onchange={(change, phase) => inspectorEdits.change(change, phase)}
+    onselect={(id) => editor.selection.set([id])}
+  />
+{/snippet}
 
+{#snippet inspector()}
+  <Inspector {card} onchange={(change, phase) => inspectorEdits.change(change, phase)} />
+{/snippet}
+
+<!--
+  At wide: the rail, the inspector column. Below it (ED3D.5f, the Portrait frame): the tools float over the plan's foot and
+  the inspector is the bottom sheet with its tabs; a phone has neither (view and select only, spec §10).
+-->
+<EditorShell
+  {geometry}
+  bind:panelOpen
+  rail={shellMode === 'wide' ? toolRail : undefined}
+  inspector={inspectorShown ? inspector : undefined}
+  dock={shellMode === 'medium' ? portrait : undefined}
+  testId="document-frame"
+>
   {#snippet topbar()}
     <DocumentBar
       heading={view.heading}
@@ -154,7 +240,8 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
       busy={view.busy !== undefined}
       {compact}
       {mode}
-      views={shellMode === 'wide'}
+      views={!compact}
+      narrow={shellMode !== 'wide'}
       checks={pill}
       layersOpen={shellMode === 'wide' ? undefined : panelOpen}
       onlayers={() => (panelOpen = !panelOpen)}
@@ -171,15 +258,24 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
   {/snippet}
 
   {#snippet canvas()}
-    <PlanCanvas
-      {editor}
-      {tools}
-      pointList={shellMode === 'wide'}
-      {renderer}
-      onundo={() => controller.undo()}
-      onredo={() => controller.redo()}
-      onpointer={(at) => (pointer = at)}
-    />
+    <div class="stage" class:strip={shellMode === 'medium'}>
+    <!-- Split puts the plan and the 3D view side by side at wide; below it the 3D modes replace the plan (spec §10). -->
+    {#if mode === 'split' && shellMode === 'wide'}
+      <div class="split">
+        {@render plan()}
+        <DollhouseCanvas {editor} renderer={dollhouse} onundo={() => controller.undo()} onredo={() => controller.redo()} />
+      </div>
+    {:else if mode === 'split' || mode === 'dollhouse'}
+      <DollhouseCanvas {editor} renderer={dollhouse} onundo={() => controller.undo()} onredo={() => controller.redo()} />
+    {:else}
+      {@render plan()}
+    {/if}
+    {#if shellMode === 'medium'}
+      <div class="tool-strip" data-testid="tool-strip">
+        <ToolRail active={activeTool} orientation="horizontal" onchoose={(tool) => tools.choose(tool)} />
+      </div>
+    {/if}
+    </div>
   {/snippet}
 
   {#snippet status()}
@@ -216,3 +312,44 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
     <ToastRegion {toasts} />
   {/snippet}
 </EditorShell>
+
+<style>
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+  /* The plan's own controls at its foot (the draw actions, the portal offers) stand above the strip. */
+  /* Above the strip, which stands above the bottom sheet's height (the shell's --dock-lift; a sheet dragged to half or
+     full covers the plan on purpose). */
+  .stage.strip {
+    --plan-foot: calc(var(--dock-lift, 0px) + 64px);
+  }
+  /* In the strip each tool is as wide as its name (the rail's tab-bar sizing would squeeze "Window"). */
+  .tool-strip :global(.rail[data-orientation='horizontal'] button) {
+    flex: 0 0 auto;
+    padding: 0 var(--space-2);
+  }
+  .tool-strip {
+    position: absolute;
+    z-index: 2;
+    bottom: calc(var(--space-3) + var(--dock-lift, 0px));
+    left: 50%;
+    max-width: calc(100% - 2 * var(--space-3));
+    transform: translateX(-50%);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-surface);
+  }
+  /* Split at wide: the plan and the 3D view in two equal columns with a hairline between (the mockup's divider). */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    background: var(--color-border-default);
+  }
+</style>

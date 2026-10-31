@@ -10,7 +10,7 @@ describe('NudgePad', () => {
   it('nudges the last corner one step each way and closes from the middle', async () => {
     const onnudge = vi.fn()
     const onclose = vi.fn()
-    render(NudgePad, { x: 10, y: 20, onnudge, onclose })
+    render(NudgePad, { side: 'right', onnudge, onclose })
     for (const name of ['Nudge up', 'Nudge right', 'Nudge down', 'Nudge left'])
       await userEvent.click(screen.getByRole('button', { name }))
     await userEvent.click(screen.getByRole('button', { name: 'Close' }))
@@ -23,10 +23,8 @@ describe('NudgePad', () => {
     expect(onclose).toHaveBeenCalledOnce()
   })
 
-  it('sits where it is placed', () => {
-    render(NudgePad, { x: 10, y: 20, onnudge: vi.fn(), onclose: vi.fn() })
-    const pad = screen.getByRole('group', { name: 'Nudge the last corner' })
-    expect(pad.style.left).toBe('10px')
-    expect(pad.style.top).toBe('20px')
+  it('sits in the corner it is given', () => {
+    render(NudgePad, { side: 'left', onnudge: vi.fn(), onclose: vi.fn() })
+    expect(screen.getByRole('group', { name: 'Nudge the last corner' })).toHaveAttribute('data-side', 'left')
   })
 })

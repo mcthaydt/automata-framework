@@ -6,6 +6,7 @@
 // shapes, so changing the shape mid-outline is refused in the tool's own sentence.
 import type { PointerKind, Size } from '@mcthaydt/automata-editor-kit/core'
 import type { LevelEditor } from '../model/level-editor'
+import { createThingsTool, type ThingsTool, type ThingsToolView } from '../things/things-tool-controller'
 import { createMergeTool, type MergeTool, type MergeToolView } from './merge-tool-controller'
 import { createPlanController, type PlanController, type PlanPointer, type PlanView } from './plan-controller'
 import { createSectorTool, type SectorTool, type SectorToolView } from './sector-tool-controller'
@@ -23,6 +24,7 @@ export type PlanToolId =
   | 'portal'
   | 'door'
   | 'window'
+  | 'things'
 
 /** The active tool and what it shows. */
 export type PlanToolState =
@@ -32,6 +34,7 @@ export type PlanToolState =
   | { readonly tool: 'merge'; readonly view: MergeToolView }
   | { readonly tool: 'vertex'; readonly view: VertexToolView }
   | { readonly tool: WallToolKind; readonly view: WallToolView }
+  | { readonly tool: 'things'; readonly view: ThingsToolView }
 
 export interface PlanTools {
   readonly state: PlanToolState
@@ -41,13 +44,15 @@ export interface PlanTools {
   readonly pointerKind: PointerKind | undefined
   /** The Sector tool while Polygon or Rectangle is chosen. */
   readonly sector: SectorTool | undefined
+  /** The Things tool while it is chosen (ED3D.7d). */
+  readonly things: ThingsTool | undefined
   /** Calls `run` after the tool or its view changes. Returns the unsubscribe. */
   subscribe(run: () => void): () => void
   choose(tool: PlanToolId): void
   hover(at: PlanPointer): void
   leave(): void
   tap(at: PlanPointer): void
-  /** Select drags corners and sectors; the other tools pan with a touch or mouse drag, and a Pencil drag does nothing. */
+  /** Select drags corners and sectors, Things drags things; the others pan with a touch or mouse drag, and a Pencil drag does nothing. */
   dragStart(press: PlanPointer, at: PlanPointer): void
   drag(at: PlanPointer): void
   dragEnd(at: PlanPointer, cancelled: boolean): void
@@ -61,6 +66,7 @@ type Made =
   | { readonly tool: 'merge'; readonly controller: MergeTool }
   | { readonly tool: 'vertex'; readonly controller: VertexTool }
   | { readonly tool: WallToolKind; readonly controller: WallTool }
+  | { readonly tool: 'things'; readonly controller: ThingsTool }
 
 const isWall = (tool: PlanToolId): tool is WallToolKind =>
   tool === 'portal' || tool === 'door' || tool === 'window'
@@ -87,6 +93,7 @@ export function createPlanTools<D>(editor: LevelEditor<D>, canvas: Size): PlanTo
     if (tool === 'merge') return { tool, controller: createMergeTool(editor, size) }
     if (tool === 'vertex') return { tool, controller: createVertexTool(editor, size) }
     if (isWall(tool)) return { tool, controller: createWallTool(editor, size, { kind: tool }) }
+    if (tool === 'things') return { tool, controller: createThingsTool(editor, size) }
     throw new Error(`no plan tool ${String(tool)}`)
   }
 
@@ -108,6 +115,9 @@ export function createPlanTools<D>(editor: LevelEditor<D>, canvas: Size): PlanTo
       return { tool: made.tool, view: made.controller.view } as PlanToolState
     },
     select,
+    get things() {
+      return made?.tool === 'things' ? made.controller : undefined
+    },
     get sector() {
       return made?.tool === 'polygon' || made?.tool === 'rectangle' ? made.controller : undefined
     },
@@ -143,17 +153,21 @@ export function createPlanTools<D>(editor: LevelEditor<D>, canvas: Size): PlanTo
     },
     dragStart(press, at) {
       if (made === undefined) return select.dragStart(press, at)
+      // The Things tool drags things (and draws areas) itself; the others pan.
+      if (made.tool === 'things') return made.controller.dragStart(press, at)
       panFrom = press.kind === 'pen' ? undefined : press
       this.drag(at)
     },
     drag(at) {
       if (made === undefined) return select.drag(at)
+      if (made.tool === 'things') return made.controller.drag(at)
       if (panFrom === undefined) return
       select.panBy(at.x - panFrom.x, at.y - panFrom.y)
       panFrom = at
     },
     dragEnd(at, cancelled) {
       if (made === undefined) return select.dragEnd(at, cancelled)
+      if (made.tool === 'things') return made.controller.dragEnd(at, cancelled)
       if (!cancelled) this.drag(at)
       panFrom = undefined
     },

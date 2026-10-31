@@ -1,12 +1,13 @@
 import {
   type FieldDef,
-  type FieldType,
+  type FieldRow,
   type FieldValue,
   type FieldValues,
+  fieldRow,
   valuesWithDefaults,
 } from '@mcthaydt/automata-editor-kit/fields'
 import type { EntityDef2D, EntityInstance, Project, Size } from '../../model/project-types'
-import { type RefTargetLevel, refName, refTargets } from '../../model/refs/ref-links'
+import { refName, refTargets } from '../../model/refs/ref-links'
 import { isRefValue } from '../../model/refs/ref-resolve'
 import { findLevel } from '../../model/world/level-edits'
 import type { Diagnostic, Severity } from '../../profiles/profile'
@@ -14,84 +15,6 @@ import type { Diagnostic, Severity } from '../../profiles/profile'
 // What the Level view's inspector shows (2D editor spec §8, the Level row; plan ED2D.4c4b step 2): one row per typed
 // field, naming the kit control that edits it, for the selected instance (Entity tab) and the level (Level tab). The
 // model holds no Svelte, so the field-to-widget map and the none/one/many rule are tested in Node.
-
-/** The kit control a field is edited with. `list` is a list of anything but points: shown, edited in a later task. */
-export type FieldWidget =
-  | 'stepper'
-  | 'toggle'
-  | 'segmented'
-  | 'picker'
-  | 'color'
-  | 'text'
-  | 'multiline'
-  | 'point'
-  | 'points'
-  | 'ref'
-  | 'list'
-
-export interface FieldRow {
-  readonly id: string
-  readonly label: string
-  readonly type: FieldType
-  /** The stored value; `undefined` when the instance has none (a required field not yet set). */
-  readonly value: FieldValue | undefined
-  readonly widget: FieldWidget
-  /** `stepper` only. */
-  readonly bounds?: { readonly min?: number; readonly max?: number; readonly step: number }
-  /** `segmented` and `picker` only. */
-  readonly options?: readonly string[]
-  /**
-   * `ref` only, and only where the project is known (plan ED2D.6c step 4): the target's name (`undefined` when not set
-   * or broken) and what the picker offers.
-   */
-  readonly ref?: { readonly name: string | undefined; readonly targets: readonly RefTargetLevel[] }
-}
-
-/** Past this many options an enum is a picker, so a segmented control never wraps at phone width. */
-const SEGMENTED_LIMIT = 5
-
-function widgetOf(def: FieldDef): FieldWidget {
-  if (def.list === true) return def.type === 'point' ? 'points' : 'list'
-  switch (def.type) {
-    case 'int':
-    case 'float':
-    case 'angle':
-      return 'stepper'
-    case 'bool':
-      return 'toggle'
-    case 'enum':
-      return (def.options?.length ?? 0) > SEGMENTED_LIMIT ? 'picker' : 'segmented'
-    case 'color':
-      return 'color'
-    case 'text':
-      return def.multiline === true ? 'multiline' : 'text'
-    case 'point':
-      return 'point'
-    case 'ref':
-      return 'ref'
-  }
-}
-
-function boundsOf(def: FieldDef): NonNullable<FieldRow['bounds']> {
-  return {
-    ...(def.min === undefined ? {} : { min: def.min }),
-    ...(def.max === undefined ? {} : { max: def.max }),
-    step: def.step ?? 1,
-  }
-}
-
-export function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow {
-  const widget = widgetOf(def)
-  return {
-    id: def.id,
-    label: def.label ?? def.id,
-    type: def.type,
-    value,
-    widget,
-    ...(widget === 'stepper' ? { bounds: boundsOf(def) } : {}),
-    ...(widget === 'segmented' || widget === 'picker' ? { options: def.options ?? [] } : {}),
-  }
-}
 
 /** The project's side of a `ref` row: what the value is called and what it may point at instead. */
 function withRef(row: FieldRow, def: FieldDef, project: Project, holder: string | undefined): FieldRow {
