@@ -2,8 +2,8 @@
 
 - **Task:** ED3D.5f in [02](../../02-master-delivery-plan.md), the second part of milestone "ED3D.5e–7d". [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flow 3 (inspector steppers; a drag is one transaction), §5.4 (`sector.setHeights`, `setLight`, `setMaterials`, `wall.setKind`, `setDoor`, `setWindow`, `setMaterial`, `setFlags`), §9 (the Split frame's sector card; the Portrait frame: compact top bar, floating tool strip, bottom sheet with Sector, Walls, Things and Checks tabs; rotation keeps the selection and the open draft), §10. Mockups `Split · landscape` (sector card), `Portrait`.
 - **Lane:** editors. **Depends on:** ED3D.5e (this branch), ED3D.6g (#341: the tool rail and tools, merged into this branch before step 5), the model edits (ED3D.3, 6b, 8a), the kit's widgets (EDK.4).
-- **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 7 of 9 steps.
+- **Status:** Implemented and locally checked 2026-10-31; not CI verified; no real iPad run. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
+- **Progress:** 9 of 9 steps.
 
 ## Scope
 
@@ -32,8 +32,8 @@
 - [x] 5. Merge `origin/main` (with #341, ED3D.6g) and wire the inspector into `DocumentFrame` at `wide` (DOM): selecting the hall shows its card; changing its floor is one undo step on Undo's label.
 - [x] 6. `ToolStrip` and `PortraitSheet` (DOM): below `wide` the strip shows the tools, Fit, Layers and Plan/3D; the sheet's tabs show the card, the walls of the selected sector, the things, and the checks' counts; choosing a tab keeps the selection.
 - [x] 7. Rotation (DOM and layout): `wide` → `medium` and back keeps the selection, the open sheet tab and an open drawing.
-- [ ] 8. Layout (three browsers) at every size: the cards' controls on screen at full size, scrolled to in the inspector or the sheet; the strip clear of the status line and the sheet's peek; review images beside the `Split` sector card and `Portrait` mockups in `docs/evidence/owner-visual/2026-10-31-ed3d-5f/`.
-- [ ] 9. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity`. No changeset (private package).
+- [x] 8. Layout (three browsers) at every size: the cards' controls on screen at full size, scrolled to in the inspector or the sheet; the strip clear of the status line and the sheet's peek; review images beside the `Split` sector card and `Portrait` mockups in `docs/evidence/owner-visual/2026-10-31-ed3d-5f/`.
+- [x] 9. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity`. No changeset (private package).
 
 ## Execution log
 - 2026-10-31, step 2: `inspector-cards.test.ts` red (module missing), then 6 of 6.
@@ -48,3 +48,5 @@
   - In the short peek sheet the flex column shrank the tab row under the panel (a stepper's label was on top of the tabs): the tab row keeps its height and stays in view as the sheet scrolls.
   - With the inspector column at `wide`, a 900 px window left the plan 260 px and iPad mini landscape put the pad over Close sector: decision 4.
   - Then `inspector.layout.test.ts`, `draw-journeys`, `sector-tools`, `split-view`, `plan-view` and the document layouts in Chromium, WebKit and Firefox: 279 passed and 6 skipped (phone journeys) with the 900 px inspector case failing as expected before its test was updated to assert the new behaviour; then that file 18 of 18.
+- 2026-10-31, step 8 (cont.): walls are counted from 1 in the card and the Walls tab, as the status line counts them (the model's undo labels still count from 0: a follow-up); the cards put one stepper to a row (two side by side wrapped their buttons in the 320 px column). Review images and README in `docs/evidence/owner-visual/2026-10-31-ed3d-5f/`.
+- 2026-10-31, step 9: `TURBO_FORCE=true pnpm check` exit 0. editor-3d `test:parity` first run: 378 passed, 6 skipped, but exit 1 on 12 unhandled errors in `plan-view.layout.test.ts`'s rotation journey: the kit's `EditorShell` handed `ResizeObserver.observe` a null binding once the rail was taken away while shown (the 3D editor now has no rail below `wide`). A kit fix, red first: `editor-kit/src/shell/editor-shell-measure.test.ts` (a strict observer stub, the rail removed) failed with the browser's TypeError, then passed with the shell measuring only elements that are there; kit unit 80 of 80, kit shell layout (Chromium) 79 of 79. editor-kit is private, so no changeset. Then editor-3d `test:parity`: 378 passed, 6 skipped, exit 0, no unhandled errors.
