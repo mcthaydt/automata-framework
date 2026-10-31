@@ -8,7 +8,7 @@
 - **Source (read-only):** the adventure source at `92e6704`: `scripts/pipeline/blockout.ts` (stages, `import`), `blockout-lib.ts` (`validate`,
   `generate`, `freshness`, `importScene`) and `tests/blockout.test.ts` (14 tests). The format (`blockout-format.ts`) is already in core
   (M6-D18). Provenance goes in the framework's `docs/provenance/sources.md` only.
-- **Status:** plan drafted. Nothing built yet.
+- **Status:** plan drafted; steps 0-6 built and locally checked (2026-10-31). CI verified, deployed and Owner accepted: not yet. `core.ref` is at the M6-D18 branch commit until #363 merges (then bump it to main).
 
 ## Scope
 
@@ -47,6 +47,10 @@ guard itself (M3.8c).
 - **BP-D3:** `import` reads the content files a game has, not its code, so it works for any game; zones, anchors and openings are not
   recoverable from them and are listed as to do.
 
+- **BP-D4:** `import` is not a router command: the platform's command list is fixed (`run`, `check`, ...) and has no one-off commands, and widening it
+  is the pipelines lane's call (M3.8c touches the same files). It is its own bin, `automata-blockout-import <folder> [--force]`, that reads the
+  folder's `blockout.pipe.toml` (so it needs no extra arguments) and writes the spec it names. Default: a follow-up may move it into the router.
+
 ## Interfaces
 
 - Produces: `blockoutPipeline`, `blockoutPipeSpec` (registered in `registry.ts`); `blockout.checks.ts` (`validateBlockout`), `blockout.generate.ts`
@@ -69,10 +73,24 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 4. `shots`: the runner contract, standing points, PNG legibility, `shots.json`. Fails: no stage.
    - [x] 4
 5. `import`. Fails: no command.
-   - [ ] 5
+   - [x] 5
 6. Gates, provenance row, ready line.
-   - [ ] 6
+   - [x] 6
 
 ## Gates
 
 - `pnpm format`, Plus `pnpm check`; the fixture spec's generated files load through the `sector-map` and `nav-graph` kinds. No golden (no sim). No changeset (private).
+
+## Execution log
+
+- `core.ref` is `aaaf8a54` (automata-framework#363's head) so the work could build against M6-D18 before it merges; the sync was run from the local
+  branch checkout. After #363 merges, bump `core.ref` to the merge commit and run `pnpm core:sync` (the packs' content is the same).
+- The pipeline's modules load their heavy imports when a stage runs, not at import: the bin registers its TypeScript resolver only after the
+  registry is loaded (SB-D6), as `narrative` and `audio` do. A bin run on the toy blockout (run, check, import) is how that was proved.
+- `validate` found nothing to port from the editor's `checks/`: they carry editor locators, so the pipeline has its own plain findings (BP-D1).
+- `shots` has a real command under test (a Node script that reads the zones on stdin and writes PNGs), a PNG decoder written for it
+  (`png.ts`, tested through every scanline filter) and the legibility judge. The leveller the source ran in Python is not ported (BP-D2); the
+  bounds are spec fields.
+- Not done: the `generated` guard (M3.8c) beyond the globs in `pipeline.toml` and `check`'s hand-edit finding; `import` as a router command (BP-D4);
+  the source's puzzle-hotspot binding, lamp checks and `facility` command (game-specific).
+- Gates: tooling/pipelines tests (all), tsc, biome, Plus `pnpm check`. No golden, no changeset (private).

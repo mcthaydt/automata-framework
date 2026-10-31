@@ -15,7 +15,8 @@
   },
   "bin": {
     "automata-pipe": "./src/cli.ts",
-    "automata-pipe-mcp": "./src/mcp-cli.ts"
+    "automata-pipe-mcp": "./src/mcp-cli.ts",
+    "automata-blockout-import": "./src/blockout.import-cli.ts"
   },
   "scripts": {
     "test:unit": "vitest run",
