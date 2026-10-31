@@ -21,6 +21,10 @@ export interface FeelBoardPort {
   entries(): readonly string[]
   fire(on: string): void
 }
+/** The net diagnostics: a summary object (`NetDiagnostics.summary()`), read as rows. */
+export interface NetDiagnosticsPort {
+  summary(): unknown
+}
 export interface DebugHost {
   readonly panels: readonly DebugPanelDef[]
   readonly bus?: BusPort | undefined
@@ -28,6 +32,7 @@ export interface DebugHost {
   readonly facts?: readonly string[] | undefined
   readonly sim?: SimProbe | undefined
   readonly feel?: FeelBoardPort | undefined
+  readonly net?: NetDiagnosticsPort | undefined
   /** Flow's existing pause, for the overlay's "Pause sim" toggle. */
   readonly setPaused?: ((paused: boolean) => void) | undefined
   /** The game's test driver (DBG-D3): named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */

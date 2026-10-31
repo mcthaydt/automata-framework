@@ -7,7 +7,7 @@
 - **Source (read-only):** the arcade source's `systems/netcode/{snapshot-buffer,render-clock,net-diagnostics}.ts` and their tests
   (9, 26 and 11). The authority half of `render-clock.ts` is already `session/authority-clock.ts` (M7.5b, 7 tests); this row adds the
   interpolation delay and the drawn moment. Provenance goes in the framework's `docs/provenance/sources.md` only.
-- **Status:** plan drafted. Nothing built yet.
+- **Status:** plan drafted; steps 1-7 built and locally checked (2026-10-31). CI verified, deployed and Owner accepted: not yet.
 
 ## Scope
 
@@ -71,9 +71,35 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 6. Layout tests at the reference sizes and `xx-long` in Chromium, WebKit and Firefox. Fails: no layout test.
    - [x] 6
 7. Debug panel; gates, provenance row, ready line.
-   - [ ] 7
+   - [x] 7
 
 ## Gates
 
 - `pnpm format`, Plus `pnpm check`; `pnpm --filter @mcthaydt/automata-net test:parity` for the sim entry if touched (it is not: the sim
   side does not change) and the layout project in three engines. No golden moves. No changeset (private).
+
+## Execution log
+
+- `RenderClock` wraps the M7.5b `AuthorityClock`; the clock gained `timeNow`, `authorityAt`, `snaps` and an exported `SNAP_TICKS` so the
+  delay estimator sees arrivals against the clock's own estimate, as the arcade source's did. The delay is capped at a quarter second.
+- `SnapshotBuffer` is generic; `blendViews` is the common blend (numeric fields lerp, others from the older snapshot, named fields
+  from the newer, a per-field `jump` threshold for a wrap). The arcade source's wrap rule is the `jump` option, not game code in `net`.
+- `Prediction` gained an `onRestored` hook so the view is read from the restored authoritative state before the prediction steps on.
+  `NetSession<T>` takes `remote`, `snapshotTicks`, `interpolationTicks` and `diagnostics`; without `remote` a frame is as in M7.5b.
+- `NetDiagnostics` drops the arcade source's race-specific parts (sprite pull, respawn adoption, `?netstats`). The session feeds it
+  snapshots, round trips (timed from the probe it sent), the buffer's reach, the clock and resent commands; "corrections" are reported
+  by the game through `correction(...)`, which the session does not call (it has no error to measure).
+- `NetRoom.markDegraded` shows `degraded` while the connection is up. Three places that tested `=== 'connected'` now include
+  `degraded` (requests, the probe, the resend after a reconnect); a test pins the resend.
+- `net.toml` gained `degradedRoundTripMs` and `degradedGapMs` (NT-D3).
+- UI: the copy catalog (`net-copy.ts`), `createNetStatus` (pure), `watchStatus`, `NetBadge`, `ReconnectOverlay`, `NetHud` (both, for the one
+  `hud.overlay` slot) and `installNetUi`. The overlay is a banner that scrolls as a declared region where the room is too short.
+- Layout contract: the reference sizes and variants, English and xx-long, with production CSS. The tight sizes core's primitives also
+  run (down to 520 x 180 with the keyboard up) are not run: a visible area of about 100 px cannot hold a 48 px Leave beside Back
+  without covering it. Run here in Chromium only; WebKit and Firefox are not installed in this container, so they run on the CI
+  Mac. The layout run fails (50 of 50) when Leave's height is cut, so it bites.
+- The package's `test:unit` runs the `node` and `ui` projects; `test:parity` runs the `layout` project in three engines.
+- Debug: `NetPanel` and `DebugHost.net` (a `summary()` port, listed as rows by `summaryRows`).
+- Not done: the net `ExtensionDef` that fills `hud.overlay` (no `netExtension` exists yet; `NetHud` is its component), locale files
+  beyond English, `bytes` wiring from the transport to the diagnostics.
+- Gates: package tests, svelte-check, biome, Plus `pnpm check`; layout in Chromium. No golden moves (the sim side is unchanged). No changeset (private).
