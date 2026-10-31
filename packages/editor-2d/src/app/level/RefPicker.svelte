@@ -1,0 +1,118 @@
+<!--
+  The reference picker (plan ED2D.6c decision 2; 2D editor spec §8 flow 4): first the levels that hold something the
+  field may point at, each with its count, then that level's choices (the level itself first when it may be one). Back
+  returns to the levels; picking closes the dialog and hands the value back, which the field commits as one step.
+  Choices are 44 px buttons in a scroll region.
+-->
+<script lang="ts">
+import { Button, Dialog } from '@mcthaydt/automata-editor-kit'
+import type { RefValue } from '@mcthaydt/automata-editor-kit/fields'
+import type { RefTargetLevel } from '../../model/refs/ref-links'
+
+interface Props {
+  open: boolean
+  /** The field's label, as the title names it. */
+  name: string
+  targets: readonly RefTargetLevel[]
+  onchoose: (value: RefValue) => void
+}
+
+let { open = $bindable(), name, targets, onchoose }: Props = $props()
+
+let chosen = $state<string | undefined>()
+const level = $derived(targets.find((each) => each.level === chosen))
+
+// Every opening starts at the levels.
+$effect(() => {
+  if (open) chosen = undefined
+})
+
+const count = (each: RefTargetLevel): string =>
+  each.choices.length === 1 ? '1 target' : `${each.choices.length} targets`
+</script>
+
+<Dialog bind:open title={`Choose a target for ${name}`}>
+  {#if targets.length === 0}
+    <p class="empty">Nothing in the project can be its target.</p>
+  {:else if level === undefined}
+    <ul class="choices" data-scroll-region aria-label="Levels">
+      {#each targets as each (each.level)}
+        <li>
+          <button type="button" class="choice" onclick={() => (chosen = each.level)}>
+            <span>{each.name}</span>
+            <span class="count">{count(each)}</span>
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {:else}
+    <div class="head">
+      <Button onclick={() => (chosen = undefined)}>Back</Button>
+      <h3>{level.name}</h3>
+    </div>
+    <ul class="choices" data-scroll-region aria-label={`Targets in ${level.name}`}>
+      {#each level.choices as choice (choice.label)}
+        <li>
+          <button
+            type="button"
+            class="choice"
+            onclick={() => {
+              open = false
+              onchoose(choice.value)
+            }}>{choice.label}</button
+          >
+        </li>
+      {/each}
+    </ul>
+  {/if}
+  {#snippet actions({ close })}
+    <Button data-autofocus onclick={close}>Cancel</Button>
+  {/snippet}
+</Dialog>
+
+<style>
+  .empty {
+    margin: 0;
+    color: var(--color-text-dim);
+    font: var(--text-body-13);
+  }
+  .head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+  h3 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font: var(--text-title-15);
+  }
+  .choices {
+    display: grid;
+    gap: var(--space-1);
+    max-height: 50vh;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+  }
+  .choice {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-raised);
+    color: var(--color-text-primary);
+    font: var(--text-body-13);
+    text-align: start;
+    cursor: pointer;
+  }
+  .count {
+    color: var(--color-text-dim);
+  }
+</style>

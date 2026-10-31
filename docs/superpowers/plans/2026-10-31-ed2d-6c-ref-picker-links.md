@@ -72,7 +72,7 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
   on the missing module; move the rule; `links.ts` consumes it; its existing tests stay green unchanged.
 - [x] 3. `ref-links`: `projectLinks` (instance and level holders, lists, broken skipped), `refTargets` (levels first,
   level itself when allowed, holder excluded, empty levels left out), `refName`.
-- [ ] 4. Inspector row and `RefPicker`: model test for the row; DOM tests: choose a level then an entity commits one
+- [x] 4. Inspector row and `RefPicker`: model test for the row; DOM tests: choose a level then an entity commits one
   step; Back; the level itself; nothing to pick says so; 44 px choices.
 - [ ] 5. Level canvas: draw-list tests for `links` (label, colour, selected, same-level line, broken gives none);
   scene draws them (canvas test, chromium image).
@@ -97,3 +97,6 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
 - 2026-10-31, steps 2 and 3: `model/refs/ref-resolve.test.ts` and `ref-links.test.ts` failed on the missing modules,
   then pass (11 tests); `profiles/level-project` and `model/refs` unit tests: 14 files, 152 tests pass with
   `links.ts` reading `resolveRef` and its own tests unchanged.
+- 2026-10-31, step 4: the row and picker tests failed (no `ref` on the row; no picker: the old "coming soon" case is
+  replaced), then pass; editor-2d typecheck 0 errors; unit+dom 155 files, 2547 tests pass. The FieldDefEditor's
+  default row has no project, so a ref default shows its value without a picker (the third FieldEditor case).
