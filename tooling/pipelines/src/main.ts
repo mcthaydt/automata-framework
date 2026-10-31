@@ -11,14 +11,20 @@ export const SIGNAL_CODES: { readonly SIGINT: 130; readonly SIGTERM: 143 } = { S
 
 /** Runs `program`, hands its value to `done`, and turns SIGINT and SIGTERM into an interruption. A defect exits 1. */
 export function runMain<A>(program: Effect.Effect<A>, done: (value: A) => void): void {
-  const fiber = Effect.runFork(program)
+  // The handlers go in before the fork (issue #14): runFork runs the fiber synchronously up to its first async
+  // boundary, so a program's first effects (taking a lock, say) run inside it, and a signal sent once they are
+  // visible must already meet a listener. A signal is dispatched from the event loop, so `fiber` is set by then.
+  let fiber: Fiber.RuntimeFiber<A> | undefined
   const handlers = Object.entries(SIGNAL_CODES).map(([signal, code]) => {
     const handler = () => {
-      void Effect.runPromise(Fiber.interrupt(fiber)).then(() => process.exit(code))
+      void (fiber ? Effect.runPromise(Fiber.interrupt(fiber)) : Promise.resolve()).then(() =>
+        process.exit(code),
+      )
     }
     process.once(signal, handler)
     return [signal, handler] as const
   })
+  fiber = Effect.runFork(program)
   fiber.addObserver((exit) => {
     for (const [signal, handler] of handlers) process.off(signal, handler)
     if (Exit.isSuccess(exit)) done(exit.value)
