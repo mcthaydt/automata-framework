@@ -3,7 +3,7 @@
 - **Task:** ED2D.5c in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §5.5 (entity definitions), §5.8 (the 5a commands, as built), §8 (the Entities row, flow 5), §12 (inputs, 44 px targets), §13, §15 G-f; mockup `entities` in `docs/design/editor-2d/screens-general.mjs`.
 - **Lane:** editor-2d. **Depends on:** ED2D.5a (the commands, merged) and ED2D.4c4b (the inspector and its `FieldEditor`, merged); built on ED2D.5b's branch (#293) for `tile-sprite.ts` and the `views.ts` registration until #293 merges. **Unblocks:** ED2D.8 (journeys, the retype refusal journey).
 - **Status:** drafted 2026-10-31 on `claude/ed2d-5c-entities-view`. Owner, 2026-10-30: "Auto accept all spec and plans"; this plan is accepted once its review is done.
-- **Progress:** 5 of 7 steps.
+- **Progress:** 7 of 7 steps.
 
 ## Scope
 
@@ -84,8 +84,8 @@ export function createEntitiesSession(options: {
 3. [x] **Session, definitions.** `entities-session.test.ts`: add (one step, selected), rename (instances follow), label, colour, shape, size, pivot, single, tile, duplicate; a refused value (size 0, an id in use) returns its message and adds no step; delete unused is one step without asking; delete in use returns the uses and adds no step, then `anyway` is one step that removes the instances; undo restores them and the selection falls back.
 4. [x] **Session, fields.** For an entity definition and for `level`: add, rename (values move), label, required, list, default, bounds, options, type; a change that breaks values returns the uses (G-f), and `anyway` is one step; delete field in use refuses, then `anyway` is one step.
 5. [x] **Views.** `EntitiesView.dom.test.ts` mounted as the app mounts it (switching the rail to Entities): the panel lists definitions and level fields; the header and preview show the selected definition; editing width updates the preview; adding a field and choosing `int` shows min, max and step; a refused default shows its message; deleting a definition in use opens the dialog listing the instances, Cancel keeps it, "Delete anyway" removes it as one undo step; changing a used field's type does the same with "Change anyway". `views.ts` registers the view. `svelte-check` clean.
-6. [ ] **Layout.** `entities-view.layout.test.ts` in Chromium, WebKit and Firefox at the kit's eight sizes (`SIZES`): no page scroll, every control at least 44 px, the panel and the field list scroll inside their regions, the inspector's footer and the dialog's actions stay reachable.
-7. [ ] **Review images** under `docs/evidence/owner-visual/2026-10-31-ed2d-5c-entities/` with a README saying what each shows and what to check.
+6. [x] **Layout.** `entities-view.layout.test.ts` in Chromium, WebKit and Firefox at the kit's eight sizes (`SIZES`): no page scroll, every control at least 44 px, the panel and the field list scroll inside their regions, the inspector's footer and the dialog's actions stay reachable.
+7. [x] **Review images** under `docs/evidence/owner-visual/2026-10-31-ed2d-5c-entities/` with a README saying what each shows and what to check.
 
 ## Gates
 
@@ -97,3 +97,13 @@ export function createEntitiesSession(options: {
 - 2026-10-31: steps 1 and 2. `entities-model.test.ts` (16) failed first on the missing module, then passes. A use's path from the 5a commands ends in `.fields.<id>` for a field's value, so `useLabel` reads that form too (a case added, failing first).
 - 2026-10-31: steps 3 and 4. `entities-session.test.ts` (15) failed first on the missing module; with the session written, 5 failed on the tests' own assumptions, each checked against the model: the coin is already an ellipse (the case sets `point`), the kit's field ids allow no hyphen (new fields are `field_<id>`), a refusal's paths end in `.fields.<id>`, a field's use is only a value someone chose (the fixture tints one slime by hand, so deleting `tint` lists that one), and adding a field notifies twice (history, then selection; the case asserts at least once and nothing after `stop`). Then 31 of 31 pass across both files.
 - 2026-10-31: step 5. `EntitiesView.dom.test.ts` (8) failed first on the missing view (`entities-view` not found), and `views.dom.test.ts` on the unmapped `EntitiesView`. Components as built: `EntitiesView`, `EntitiesPanel`, `DefinitionPreview`, `EntityInspector` (the Definition tab and the field list; the plan's `DefinitionForm` and `FieldsTab` are this one file), `FieldDefEditor` and `RefusalDialog`. Three failures were the tests' own: the kit `Stepper` is a spinbutton until tapped, then a text box of the same name (the helper taps first); an opened document keeps definitions sorted by id, so the first is `checkpoint` and the cases choose `player-start` by name. One was the view's: the preview measured its width with `bind:clientWidth`, which needs a `ResizeObserver` (the shell's error boundary showed "The canvas stopped working" in jsdom); the room now comes from the shell mode (`wide` 420 × 300, otherwise 240 × 240), so a mode's scale is the same on every device. Then 8 of 8 and the views' 4 pass; `svelte-check --fail-on-warnings` is clean after two type fixes (a `RefValue` is `target`; the selection's optional fields take `undefined`).
+- 2026-10-31: step 6. `entities-view.layout.test.ts` (4 cases × 8 sizes × 3 browsers) passed 96 of 96 on its first run, so it proves the layout holds rather than driving a change. The screenshots found two faults it does not: the width and height steppers sat in a two-column grid that wrapped each stepper's label and buttons onto two lines in the 320 px inspector, and the width label touched the pivot dot. The steppers now take a row each (as the field editor's Min, Max and Step do) and the label sits 12 px below the box; then 96 of 96 and the DOM suite's 8 still pass, `svelte-check` clean.
+- 2026-10-31: step 7. Chromium-only rerun (`--project 'layout (chromium)'`, 32 of 32) for the review images; 12 images and a README in `docs/evidence/owner-visual/2026-10-31-ed2d-5c-entities/`.
+
+## Follow-ups
+
+- Linking a refusal's use to its instance (open the level, select it): ED2D.8.
+- Entity tags, `min` limits and `resizable` are kept by the model but not in the form (the mockup leaves them out).
+- Min and Max show 0 when a number field has no bound; clearing a bound needs a "none" control.
+- Reordering fields and definitions has no 5a command.
+- An opened document lists definitions sorted by id (the saved file's order), so a new definition appears in id order, not at the end.

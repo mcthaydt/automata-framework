@@ -108,7 +108,6 @@ function tileChoice(current: EntityDef2D, id: string): void {
               value={def.shape}
               onedit={(event) => committed(event) && edit({ shape: event.value as EntityDef2D['shape'] })}
             />
-            <div class="pair">
               <Stepper
                 label="Width"
                 value={def.size.w}
@@ -123,8 +122,6 @@ function tileChoice(current: EntityDef2D, id: string): void {
                 integer
                 onedit={(event) => committed(event) && edit({ size: { ...def.size, h: event.value } })}
               />
-            </div>
-            <div class="pair">
               <Stepper
                 label="Pivot x"
                 value={def.pivot.x}
@@ -141,7 +138,6 @@ function tileChoice(current: EntityDef2D, id: string): void {
                 step={0.5}
                 onedit={(event) => committed(event) && edit({ pivot: { ...def.pivot, y: event.value } })}
               />
-            </div>
             <button
               type="button"
               class="toggle"
@@ -246,11 +242,6 @@ function tileChoice(current: EntityDef2D, id: string): void {
     margin: 0;
     color: var(--color-text-dim);
     font: var(--text-label-12);
-  }
-  .pair {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
-    gap: var(--space-2);
   }
   .text {
     display: grid;

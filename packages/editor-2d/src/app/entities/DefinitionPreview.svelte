@@ -133,7 +133,7 @@ const sprite = $derived.by(() => {
     white-space: nowrap;
   }
   .side.w {
-    top: calc(100% + 6px);
+    top: calc(100% + 12px);
     left: 50%;
     transform: translateX(-50%);
   }

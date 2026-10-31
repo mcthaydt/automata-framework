@@ -115,7 +115,7 @@ const toggleTarget = (target: string): readonly string[] => {
     {/if}
   </div>
   {#if numeric}
-    <div class="pair">
+    <div class="stack">
       <Stepper label="Min" value={field.min ?? 0} onedit={(event) => committed(event) && change({ ...field, min: event.value })} />
       <Stepper label="Max" value={field.max ?? 0} onedit={(event) => committed(event) && change({ ...field, max: event.value })} />
       <Stepper
@@ -234,9 +234,8 @@ const toggleTarget = (target: string): readonly string[] => {
     outline: 2px solid var(--color-accent-default);
     outline-offset: 2px;
   }
-  .pair {
+  .stack {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
     gap: var(--space-2);
   }
   .footer {
