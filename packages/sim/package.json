@@ -1,7 +1,7 @@
 {
   "name": "@mcthaydt/automata-sim",
   "version": "0.0.4",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcthaydt/automata-framework.git",

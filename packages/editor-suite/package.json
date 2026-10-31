@@ -1,7 +1,7 @@
 {
   "name": "@mcthaydt/automata-editor-suite",
   "version": "0.0.0",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "repository": {
     "type": "git",
