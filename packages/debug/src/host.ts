@@ -1,0 +1,48 @@
+// The handles debug panels read (DBG-D1): core gives slot components no services context, so the game hands `installDebug` what
+// it wants shown and the overlay passes it down through Svelte context. Every handle is optional; a panel whose handle is missing
+// says so instead of throwing. Nothing here writes the sim: the only game-changing handles are Flow's pause and the feel board.
+import type { DebugPanelDef } from './panels'
+
+/** The presentation bus, as far as the debug panels need it. */
+export interface BusPort {
+  subscribe(name: string, listener: (fact: unknown) => void): () => void
+}
+/** What the sim panel shows, read each time the panel refreshes. */
+export interface SimProbe {
+  tick(): number
+  entities(): number
+  /** The last state hash, as a string. */
+  hash(): string
+  /** Milliseconds the last step took. */
+  stepMs(): number
+}
+/** The feel board: every event the content reacts to, and a way to fire one. */
+export interface FeelBoardPort {
+  entries(): readonly string[]
+  fire(on: string): void
+}
+export interface DebugHost {
+  readonly panels: readonly DebugPanelDef[]
+  readonly bus?: BusPort | undefined
+  /** The facts to record for the bus panel; the runtime's by default. */
+  readonly facts?: readonly string[] | undefined
+  readonly sim?: SimProbe | undefined
+  readonly feel?: FeelBoardPort | undefined
+  /** Flow's existing pause, for the overlay's "Pause sim" toggle. */
+  readonly setPaused?: ((paused: boolean) => void) | undefined
+}
+
+let current: DebugHost | undefined
+
+/** Makes `host` the one the overlay shows. Returns a dispose that removes it (if it is still the current one). */
+export function installDebug(host: DebugHost): () => void {
+  current = host
+  return () => {
+    if (current === host) current = undefined
+  }
+}
+/** The installed host, if any. */
+export const currentHost = (): DebugHost | undefined => current
+
+/** The Svelte context key panels use to get the host from the overlay. */
+export const HOST_CONTEXT: unique symbol = Symbol('automata-debug-host')
