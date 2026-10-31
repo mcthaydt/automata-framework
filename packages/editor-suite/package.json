@@ -20,6 +20,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --project unit --project dom",
     "test:layout": "vitest run --project layout",
+    "test:canvas": "vitest run --project canvas",
     "test:parity": "vitest run --project layout",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
@@ -30,6 +31,8 @@
     "@mcthaydt/automata-figures": "workspace:*",
     "@mcthaydt/automata-render-pixi3d": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
+    "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
+    "pixi.js": "8.22.0",
     "smol-toml": "1.9.0",
     "svelte": "5.57.1",
     "zod": "4.6.6"
