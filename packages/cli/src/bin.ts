@@ -9,11 +9,14 @@ import { type CheckReport, exitCodeFor, formatText, toJson } from './check/check
 import { CspProbeLive } from './check/ruken/csp-probe-live.ts'
 import { type RunCheckOptions, runCheck } from './check/run-check.ts'
 import { createGame } from './create-game.ts'
+import { parseTargets } from './create-game-targets.ts'
 
 export interface ParsedArgs {
   readonly targetDir?: string | undefined
   readonly id?: string | undefined
   readonly title?: string | undefined
+  /** `--targets web,itch,…` as given; `create-game` checks it (DIST spec §5.3). */
+  readonly targets?: string | undefined
   readonly help: boolean
 }
 
@@ -31,6 +34,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
   let targetDir: string | undefined
   let id: string | undefined
   let title: string | undefined
+  let targets: string | undefined
   let help = false
 
   const tokens = [...args]
@@ -49,15 +53,17 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
       id = tokens[++i]
     } else if (token === '--title' && i + 1 < tokens.length) {
       title = tokens[++i]
+    } else if (token === '--targets' && i + 1 < tokens.length) {
+      targets = tokens[++i]
     } else if (!token.startsWith('-') && targetDir === undefined) {
       targetDir = token
     }
   }
 
-  return { targetDir, id, title, help }
+  return { targetDir, id, title, targets, help }
 }
 
-const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <title>]
+const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <title>] [--targets <list>]
        automata add <kit> [--dir <game>] [--repo <url>] [--force]
        automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]
 
@@ -74,6 +80,7 @@ with --csp the browser CSP check; --sim-only runs only the first three
 Options:
   --id <id>        Unique game identifier (lowercase alphanumeric with hyphens)
   --title <title>  Display title of the game
+  --targets <list> create-game: the targets to build for, comma-separated (default: web,itch,ruken,tauri)
   --dir <game>     add: the game folder (default: the working folder)
   --repo <url>     add: the kit repository (default: the Automata Plus repository)
   --force          add: replace files the game already has
@@ -170,6 +177,12 @@ export async function runCli(
     return 1
   }
 
+  const targets = parseTargets(parsed.targets)
+  if (!targets.ok) {
+    io.stderr(`Error: ${targets.message}\n`)
+    return 1
+  }
+
   const resolvedTarget = resolve(process.cwd(), parsed.targetDir)
   const id = parsed.id ?? basename(resolvedTarget).toLowerCase()
   const title =
@@ -183,6 +196,7 @@ export async function runCli(
     targetDir: resolvedTarget,
     id,
     title,
+    targets: targets.targets,
   })
 
   const exit = await Effect.runPromise(Effect.exit(program))

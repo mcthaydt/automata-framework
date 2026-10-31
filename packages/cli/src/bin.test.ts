@@ -1,4 +1,4 @@
-import { existsSync, rmSync } from 'node:fs'
+import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { PLUS_REPOSITORY } from './add/add-args.ts'
@@ -87,6 +87,37 @@ describe('bin cli', () => {
 
       expect(code).toBe(1)
       expect(stderr).toContain('Invalid game id')
+    })
+
+    it('builds only for the targets --targets names', async () => {
+      const code = await runCli([testDir, '--id', 'web-game', '--targets', 'web,itch'], {
+        stdout: () => {},
+        stderr: () => {},
+      })
+      expect(code).toBe(0)
+      const scripts = Object.keys(JSON.parse(readFileSync(join(testDir, 'package.json'), 'utf8')).scripts)
+      expect(scripts.filter((name) => name.startsWith('build:'))).toEqual(['build:web', 'build:itch'])
+    })
+
+    it('refuses an unknown target with exit code 1, naming it and the four allowed, and writes nothing', async () => {
+      let stderr = ''
+      const code = await runCli([testDir, '--targets', 'steam'], {
+        stdout: () => {},
+        stderr: (msg) => {
+          stderr += msg
+        },
+      })
+      expect(code).toBe(1)
+      expect(stderr).toContain('unknown target "steam"')
+      expect(stderr).toContain('web, itch, ruken, tauri')
+      expect(existsSync(testDir)).toBe(false)
+    })
+
+    it('documents --targets and its default in the usage', async () => {
+      let stdout = ''
+      await runCli(['--help'], { stdout: (msg) => (stdout += msg), stderr: () => {} })
+      expect(stdout).toContain('--targets <list>')
+      expect(stdout).toContain('default: web,itch,ruken,tauri')
     })
   })
 

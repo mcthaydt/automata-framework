@@ -5,7 +5,7 @@
 > §12 DIST-D9, acceptance DIST-h. Lane: ship (template, docs). Website copy is the website lane's (other repo).
 > Strict TDD in `packages/cli`.
 
-**Status: drafted; code next.** The Owner folded the DIST stack into one milestone PR (2026-10-31: "PRs should be
+**Status: implemented and locally checked; CI pending on #336.** The Owner folded the DIST stack into one milestone PR (2026-10-31: "PRs should be
 milestone level"; "Yes, consolidate now"), so DIST.6 lands on `claude/dist-5a-tauri-adapter` (#336) on top of DIST.2
 to DIST.5c, which carry everything this plan consumes. Every "verify on the merged stack" item below is read there, and
 a difference is logged under Deviations.
@@ -72,27 +72,27 @@ A generated `README.md` lists the chosen targets' commands and links the guides.
 
 ## Steps (strict TDD; tick each when its check passes, in the same commit)
 
-1. [ ] Re-read the merged host `target` entry, `ShipConfig`'s `tauri`/`itch`/`game.sdk`, ship's `USAGE` and
+1. [x] Re-read the merged host `target` entry, `ShipConfig`'s `tauri`/`itch`/`game.sdk`, ship's `USAGE` and
        `docs/versions.md` rows for the Tauri packages; log any difference from Interfaces.
-2. [ ] `create-game-targets.test.ts`: `parseTargets('web,tauri')` → `['web','tauri']`; empty, unknown (`steam`) and
+2. [x] `create-game-targets.test.ts`: `parseTargets('web,tauri')` → `['web','tauri']`; empty, unknown (`steam`) and
        repeated fail `invalid-targets` naming the value and the four allowed. Red (no module), then green.
-3. [ ] `create-game.test.ts`: with no `targets`, `package.json` has `build:web|itch|ruken|tauri` and
+3. [x] `create-game.test.ts`: with no `targets`, `package.json` has `build:web|itch|ruken|tauri` and
        `prepare:itch|ruken|tauri`, no `build`, no `prepare-ruken`; the Tauri deps and dev dep at their pins;
        `@mcthaydt/automata-host` present. Red, then green.
-4. [ ] Same file: `targets: ['web']` writes only `build:web`, no Tauri or Ruken deps, no `tauri`/`itch` config
+4. [x] Same file: `targets: ['web']` writes only `build:web`, no Tauri or Ruken deps, no `tauri`/`itch` config
        sections, `.gitignore` without `.automata/`. `targets: ['tauri']` adds `.automata/` and `dist-tauri/` and
        `tauri.identifier` passing ship's reverse-DNS check (call the check, not a copy of its regex). Red, then green.
-5. [ ] Same file: the generated `vite.config.ts` maps each chosen target's mode to its condition and falls back to
+5. [x] Same file: the generated `vite.config.ts` maps each chosen target's mode to its condition and falls back to
        `automata-web`; `src/boot.ts` imports `@mcthaydt/automata-host/target`. Red, then green.
-6. [ ] `bin.ts` test: `--targets web,itch` reaches `createGame`; a bad list prints the `invalid-targets` message and
+6. [x] `bin.ts` test: `--targets web,itch` reaches `createGame`; a bad list prints the `invalid-targets` message and
        exits 1; `USAGE` documents the flag and the default. Red, then green.
-7. [ ] `create-game.integration.test.ts` (DIST-h): generate with all four, run each `build:<target>` (Vite with the
+7. [x] `create-game.integration.test.ts` (DIST-h): generate with all four, run each `build:<target>` (Vite with the
        workspace packages), assert each bundle holds only its adapter with the existing marker checks
        (`RUKEN_SDK_MARKERS` and DIST.5a's `TAURI_MARKERS`), then `prepare --target ruken` and `--target itch` succeed.
        `prepare --target tauri` runs only where cargo and WebKitGTK exist (the DIST.5b proof environment), else the test
        asserts the named missing-toolchain failure. Red, then green.
-8. [ ] Guides, and the generated `README.md` (a template test asserts it names each chosen target's commands).
-9. [ ] Gates: `pnpm exec biome check --write`, `pnpm format`, `TURBO_FORCE=true pnpm check`; `pnpm build` and
+8. [x] Guides, and the generated `README.md` (a template test asserts it names each chosen target's commands).
+9. [x] Gates: `pnpm exec biome check --write`, `pnpm format`, `TURBO_FORCE=true pnpm check`; `pnpm build` and
        `node tooling/consumer-smoke/src/run.ts --from packs` (the template's generated game is what the smoke builds);
        `pnpm api-index`/`agent-skills` only if they report the cli (private, so expected unchanged); no changeset
        (`cli` is private), `node tooling/release/src/check-changesets.ts` clean. Parity omitted: no sim, renderer, ui or
@@ -109,6 +109,31 @@ A generated `README.md` lists the chosen targets' commands and links the guides.
 
 ## Execution log
 
+- 2026-10-31, DIST.6 code on `claude/dist-5a-tauri-adapter` after `a57fc9a2`:
+  - Step 1: the merged stack matches Interfaces. `./target`'s `web` entry exports `makeHosting` and `HostingLive`;
+    `game.sdk` is optional in `GameConfigSchema`, so the template writes it only for ruken; ship exports
+    `tauriConfigSchema` (identifier regex `^[A-Za-z][A-Za-z0-9-]*(\.[A-Za-z0-9-]+)+$`) and `itchConfigSchema`.
+  - Steps 2–6 and 8: each red first for the expected reason (missing module; no target scripts, sections, ignore
+    lines, conditions, README; no `--targets` flag), then green. `packages/cli`: 17 files, 144 tests; `tsc` clean.
+  - Step 7 proof by hand: `automata create-game` with the default targets, then `vite build --mode <t>` per target,
+    then `findRukenSdkMarkers` and `findTauriMarkers` on each bundle. Results:
+    - web: 272 kB, no markers.
+    - itch: 272 kB, no markers.
+    - ruken: 296 kB, Ruken markers only (`ruken:__probe__`, "needs the Ruken host").
+    - tauri: 288 kB, Tauri markers only (`__TAURI_INTERNALS__`, `plugin:process|exit`).
+
+    Then, from the game folder, `automata-ship prepare --target itch` wrote `dist-proof-0.1.0-itch.zip`, and
+    `--target ruken` wrote `dist/ruken.toml`.
+
+  - Step 9 gates:
+    - `TURBO_FORCE=true pnpm check`: 36/36.
+    - `pnpm build`.
+    - `pnpm api-report --update` changed only `cli.api.md` (`CreateGameOptions.targets`; private, so no changeset).
+      Plain `pnpm api-report`: 0 undeclared.
+    - `api-index` and `agent-skills`: current.
+    - `check-changesets`: 8 changesets, 0 problems.
+    - Omitted: parity (no sim, renderer, ui or golden touched) and the consumer smoke (no build config changed).
+
 - 2026-10-31: plan drafted from `main` at `547ce175` and the DIST stack tip `claude/dist-5c-desktop-release`
   `c88a91a4`. Held until DIST.5b merges (see Status).
 - 2026-10-31: the stack was consolidated into #336; this plan rides its first push, and the code follows in the
@@ -116,4 +141,15 @@ A generated `README.md` lists the chosen targets' commands and links the guides.
 
 ## Deviations
 
-None yet.
+1. **The template's packages are pinned in `create-game-targets.ts`, and `docs/versions.md` gains `@tauri-apps/cli`
+   2.12.3.** No workspace package installs the Tauri CLI (ship does not carry it, DIST.5b), so the versions test's
+   "no row for a version nothing uses" refused the row. `tooling/versions` now also counts the exact pins create-game
+   writes as used (`pinsFromScaffoldSource`, red then green in `pins.test.ts`), the reverse of create-game's own test
+   that holds each scaffold pin to a row.
+2. **Step 7 is split.** A Vite build of a generated game needs its dependencies installed, which a unit test inside
+   `packages/cli` cannot do without a workspace install. The integration test generates the four targets and runs
+   `prepareItch` and `prepareBuild` (Ruken) on the build as written. The real per-target builds were proven once by
+   hand (execution log): the generated game in a scratch folder in the worktree, its dependencies linked from the
+   workspace, removed afterwards.
+3. `prepare --target tauri` was not re-run for the generated game: it is a full `tauri build`, which DIST.5b proved on
+   Linux with the same generated project code (its log has the bundle sizes and SHA-256).
