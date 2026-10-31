@@ -678,7 +678,7 @@ export const CHEATSHEET_MODULES: CheatsheetModule[] = [
     "name": "@mcthaydt/automata-host",
     "title": "Hosting",
     "sourcePath": "packages/host/src/index.ts",
-    "description": "Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions. The Ruken SDK owns the host protocol.",
+    "description": "Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions: one interface, whatever the game's target.",
     "example": "import { makeHosting } from '@mcthaydt/automata-host'\nimport { Effect } from 'effect'\n\nexport const saveProgress = Effect.scoped(Effect.gen(function* () {\n  const hosting = yield* makeHosting({\n    gameId: 'my-game', wants: ['saves'], pauseBehavior: 'pause',\n  })\n  yield* hosting.ready\n  if (!hosting.granted.has('saves')) {\n    return yield* Effect.fail(new Error('Saves unavailable in this session'))\n  }\n  yield* hosting.saves.set('progress-v1', JSON.stringify({ version: 1, room: 'room-1' }))\n  return yield* hosting.saves.flush\n}))\n// Run at the application boundary; handle the returned status or error.\n// In a runtime screen, reuse yield* Hosting instead of creating a session.",
     "entries": [
       {
@@ -690,7 +690,7 @@ export const CHEATSHEET_MODULES: CheatsheetModule[] = [
           {
             "name": "options.gameId",
             "type": "string",
-            "desc": "Must match ship.config.ts and ruken.toml."
+            "desc": "Must match ship.config.ts (and ruken.toml on the Ruken target)."
           },
           {
             "name": "options.wants",
@@ -837,7 +837,7 @@ export const CHEATSHEET_MODULES: CheatsheetModule[] = [
       {
         "name": "defineShipConfig",
         "signature": "defineShipConfig(config: ShipConfig): ShipConfig",
-        "description": "Provides type checking and editor completion for ship.config.ts using Ruken manifest fields.",
+        "description": "Provides type checking and editor completion for ship.config.ts. Its fields follow Ruken's manifest, which the Ruken target writes as ruken.toml.",
         "returnType": "ShipConfig",
         "parameters": [
           {
@@ -857,8 +857,8 @@ export const CHEATSHEET_MODULES: CheatsheetModule[] = [
           }
         ],
         "notes": [
-          "For the starter, run pnpm --filter @af-examples/base-2d build, then prepare-ruken. Preparation does not upload or activate a game.",
-          "automata-ship publish uses RUKEN_API and RUKEN_TOKEN and delegates validation and upload to Ruken. Supply credentials in the environment, never browser code."
+          "For the starter, run pnpm --filter @af-examples/base-2d build, then the prepare step for its target (prepare-ruken for Ruken). Preparation does not upload or activate a game.",
+          "automata-ship publish uses RUKEN_API and RUKEN_TOKEN for Ruken, or, with --target itch, BUTLER_API_KEY and butler for itch.io. Supply credentials in the environment, never browser code."
         ]
       }
     ]

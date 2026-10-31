@@ -22,6 +22,75 @@ export const BANNED_PHRASES: { label: string; pattern: RegExp }[] = [
   { label: 'game-changer', pattern: /\bgame[- ]?changer(s)?\b/i },
 ]
 
+/**
+ * STANDALONE.1 (Owner, 2026-10-31: "automata framework is standalone"): the reference projects the framework was
+ * extracted from are not named on the site. Their record is the framework's private provenance file (STANDALONE.2).
+ */
+export const STANDALONE_NAMES: { label: string; pattern: RegExp }[] = [
+  { label: 'FloorFifty', pattern: /\bfloor\s?fifty\b/i },
+  { label: 'The Last Light', pattern: /\blast\s+light\b/i },
+  { label: 'PixiJS3D_Experiment_001', pattern: /\bpixijs3d[_-]experiment/i },
+]
+
+/**
+ * Wording that casts one distribution target as the framework's own host (ADR 0006: web, itch.io, Ruken and desktop
+ * are peers). Ruken named as one target, or a Ruken-only fact scoped to it ("On Ruken, …"), is not framing.
+ */
+export const FRAMING_PHRASES: { label: string; pattern: RegExp }[] = [
+  { label: 'the reference host', pattern: /\breference\s+(gaming\s+)?host\b/i },
+  { label: 'web browsers and Ruken', pattern: /\bweb\s+browsers\s+and\s+(the\s+)?Ruken\b/i },
+  { label: 'the Ruken platform', pattern: /\bthe\s+Ruken\s+(gaming\s+)?platform\b/i },
+  { label: 'Ruken first', pattern: /\bRuken[\s-]first\b/i },
+  { label: 'the Ruken SDK owns', pattern: /\bthe\s+Ruken\s+SDK\s+owns\b/i },
+]
+
+/** Where the site says where a game goes: each names all four targets (ADR 0006). */
+export const TARGETS_SENTENCE_PAGES = ['index.html', 'docs/capabilities.html', 'llms.txt']
+const TARGETS: { label: string; pattern: RegExp }[] = [
+  { label: 'the web', pattern: /\bweb\b/i },
+  { label: 'itch.io', pattern: /\bitch\.io\b/i },
+  { label: 'Ruken', pattern: /\bRuken\b/ },
+  { label: 'desktop (Tauri)', pattern: /\bTauri\b/ },
+]
+
+/** The plain-text files the site publishes. The framework's two (its API index) are copies it owns (DX.10a). */
+const SITE_TEXT_FILES = ['llms.txt', 'llms-guides.txt']
+
+/** A page's words, leaving out text the site shows verbatim from the framework (`data-framework-copy`). */
+function ownText(doc: Document): string {
+  const parts = [doc.title, doc.querySelector('meta[name="description"]')?.getAttribute('content') ?? '']
+  const walker = doc.createTreeWalker(doc.body, 4 /* NodeFilter.SHOW_TEXT */)
+  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+    if (!node.parentElement?.closest('[data-framework-copy]')) parts.push(node.textContent ?? '')
+  }
+  return parts.join('\n')
+}
+
+/** STANDALONE.1: no reference project's name and no target cast as the host. */
+export function checkStandalone(file: string, text: string): string[] {
+  const failures: string[] = []
+  for (const name of STANDALONE_NAMES) if (name.pattern.test(text)) failures.push(`${file}: names a reference project ("${name.label}")`)
+  for (const phrase of FRAMING_PHRASES) if (phrase.pattern.test(text)) failures.push(`${file}: casts one target as the host ("${phrase.label}")`)
+  return failures
+}
+
+/** STANDALONE.1: where the site says where a game goes, it names all four targets (ADR 0006). */
+export function checkTargets(root: string): string[] {
+  const failures: string[] = []
+  for (const file of TARGETS_SENTENCE_PAGES) {
+    const path = join(root, file)
+    if (!existsSync(path)) {
+      failures.push(`${file}: missing, so it cannot name the distribution targets`)
+      continue
+    }
+    const raw = readFileSync(path, 'utf8')
+    const text = file.endsWith('.html') ? ownText(new JSDOM(raw).window.document) : raw
+    const missing = TARGETS.filter(target => !target.pattern.test(text)).map(target => target.label)
+    if (missing.length > 0) failures.push(`${file}: does not name every distribution target (missing ${missing.join(', ')})`)
+  }
+  return failures
+}
+
 /** Folders the site copies in from the framework as built: the demo bundles and the playground (frame pages, runtime). */
 const FRAMEWORK_TREES = ['demos/', 'playground/']
 const fromFramework = (path: string) => FRAMEWORK_TREES.some(tree => path.startsWith(tree))
@@ -55,6 +124,10 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     pageIds.set(file, ids)
     return ids
   }
+  for (const file of SITE_TEXT_FILES) {
+    const path = join(root, file)
+    if (existsSync(path)) failures.push(...checkStandalone(file, readFileSync(path, 'utf8')))
+  }
   for (const file of pages) {
     const html = readFileSync(join(root, file), 'utf8')
     const window = new JSDOM(html).window
@@ -65,6 +138,7 @@ export function checkSite(root: string, { now = new Date() }: { now?: Date } = {
     }
     const text = [doc.title, doc.querySelector('meta[name="description"]')?.getAttribute('content') ?? '', doc.body.textContent ?? ''].join('\n')
     for (const banned of BANNED_PHRASES) if (banned.pattern.test(text)) failures.push(`${file}: banned phrase "${banned.label}"`)
+    failures.push(...checkStandalone(file, ownText(doc)))
     failures.push(...checkIconLinks(file, doc), ...checkPageResources(file, doc, fonts.urls), ...checkPreloadedScripts(root, file, doc), ...checkHydrationStart(file, html), ...checkContentSecurityPolicy(file, html, doc), ...checkFooter(file, doc))
     for (const image of doc.querySelectorAll('img')) {
       // Decorative images say so with alt=""; a missing attribute is always a defect.

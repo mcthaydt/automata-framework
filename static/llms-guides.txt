@@ -1,6 +1,6 @@
 # Automata Framework — Site Guides for Coding Agents
 
-> Automata is a deterministic 2D game framework for the modern web and Ruken platform.
+> Automata is a deterministic 2D game framework for the web. A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned.
 > Strict Core Laws: Koota ECS determinism, Effect outside sim, Zero Eval CSP, PixiJS 2D sub-tick alpha interpolation.
 
 ---
@@ -20,7 +20,7 @@ Description: AI-assisted game development with code and content you can own.
 
 # Overview & Vision
 
-Automata is a TypeScript game framework for modern web browsers and Ruken, the reference gaming host.
+Automata is a TypeScript game framework for the web. A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned.
 
 Automata is designed for developers using coding agents: agents write code and tests; people direct the game and author its content. Start with a working example, make a bounded change, and review the result.
 
@@ -35,7 +35,7 @@ Only simulation systems change gameplay state during a run. Input sends commands
 
 ## Current starting point
 
-Explore the 2D starter and focused examples before adding your own systems. The Last Light and FloorFifty are reference projects that informed the architecture.
+Explore the 2D starter and focused examples before adding your own systems.
 
 ## Packages
 
@@ -349,19 +349,19 @@ Boot failures are typed. Inspect the runtime example for its loading, retry and 
 
 ---
 
-## Document: Zero-Eval CSP & Ruken Security (Core)
+## Document: Zero-Eval CSP & Host Security (Core)
 URL: /docs/security-csp
 Description: Avoiding dynamic evaluation under the host policy.
 
-# Zero-Eval CSP & Ruken Security
+# Zero-Eval CSP & Host Security
 
 ## Dynamic evaluation
 
-Do not use eval or new Function in game code. Ruken does not permit unsafe-eval. Import the renderer's no-eval entry before initializing PixiJS.
+Do not use eval or new Function in game code. Every web build follows the no-eval rule, whatever its target. Import the renderer's no-eval entry before initializing PixiJS.
 
 ## Policy scope
 
-Avoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy: a Ruken game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).
+Avoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under the headers its target serves. On Ruken, a game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).
 
 ## Trust boundaries
 
@@ -389,7 +389,7 @@ Verify touch targets, focus order, orientation changes, safe areas and keyboard 
 
 ## Tested input journeys
 
-At 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake Ruken host. Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size. These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open. [Read the matrix](https://github.com/mcthaydt/automata-framework/blob/f8023a907725cccd84277372c0d4f1b73d2da90c/packages/testing/src/e2e/input-matrix.ts) at the framework commit this site was built from.
+At 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake host. Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size. These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open. [Read the matrix](https://github.com/mcthaydt/automata-framework/blob/f8023a907725cccd84277372c0d4f1b73d2da90c/packages/testing/src/e2e/input-matrix.ts) at the framework commit this site was built from.
 
 
 ---
@@ -434,6 +434,10 @@ Description: What you can use today, what is planned, and how the license applie
 - Phone-first interface primitives, keyboard and touch input examples.
 - Simulation systems, seeded randomness, snapshots and replays.
 - Explicit source files and tests that people and coding agents can inspect and change.
+
+## Where a game goes
+
+A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned. A game chooses its target when it is built.
 
 ## Planned
 
@@ -633,9 +637,9 @@ There is no automatic Unity, Godot, Unreal or GameMaker project converter. The m
 
 Explicit state ownership, separate systems and packages, and repeatable tests help keep changes bounded as the project grows. They do not promise a particular player count or performance level; measure your own game.
 
-## What is Ruken?
+## Where can a game be published?
 
-Ruken is the reference gaming host integrated by the framework. The starter can also run standalone in a browser; see hosting guidance when adding platform services.
+A game builds for any static web host, for itch.io or for Ruken (automata-ship publishes to the last two), and a desktop build (Tauri) for Windows, macOS and Linux is planned. The starter also runs standalone in a browser; see hosting guidance when adding platform services.
 
 ## How do I get my game into the showcase?
 
@@ -675,7 +679,7 @@ Import the renderer no-eval entry before initializing PixiJS. Draw from render d
 
 ### Honor host capabilities
 
-Use Hosting and the Ruken SDK. Wait for readiness, check granted capabilities, validate saved data, and report save failures. A denied hosted capability must not silently fall back to device storage.
+Use Hosting, whatever the target. Wait for readiness, check granted capabilities, validate saved data, and report save failures. A denied hosted capability must not silently fall back to device storage.
 
 ### Keep shared contracts canonical
 
@@ -804,8 +808,9 @@ API: /cheatsheet#defineShipConfig
 Prepare the current game for release using its existing scripts and ship.config.ts.
 Read package.json, the ship configuration, and the nearest release checks.
 Verify that package version, game ID, runtime capabilities, and asset paths agree.
-Run the relevant tests, type checks, build, and prepare-ruken script.
-Inspect the prepared artifact and generated ruken.toml. Test the built game
+Run the relevant tests, type checks and build, then the prepare step for the game's
+target: automata-ship prepare for Ruken (inspect the generated ruken.toml), with
+--target itch for itch.io; a web build is the dist folder. Test the built game
 under its intended base path and content security policy where available.
 Check asset provenance and required notices. Keep credentials outside the bundle.
 Report artifact location, commands and results, and remaining browser/device/host
@@ -825,7 +830,8 @@ a local prepare is not a completed deployment.
 # From the framework workspace root, for the Emberwick starter:
 pnpm --filter @af-examples/base-2d check
 pnpm --filter @af-examples/base-2d build
-pnpm --filter @af-examples/base-2d prepare-ruken
+# Then the prepare step for the target: automata-ship prepare (Ruken), with --target itch (itch.io);
+# a web build is the dist folder as it is.
 ```
 
 ---
@@ -1353,7 +1359,7 @@ Import: @mcthaydt/automata-host
 URL: /cheatsheet#hosting
 Source: https://github.com/mcthaydt/automata-framework/blob/main/packages/host/src/index.ts
 
-Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions. The Ruken SDK owns the host protocol.
+Use Hosting for readiness, capabilities, saves, lifecycle, and platform actions: one interface, whatever the game's target.
 
 ```ts
 import { makeHosting } from '@mcthaydt/automata-host'
@@ -1382,7 +1388,7 @@ Creates a scoped session. Wait for hosting.ready before presenting gameplay.
 makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>
 ```
 Returns: Effect.Effect<Hosting, HostError, Scope.Scope>
-- options.gameId (string): Must match ship.config.ts and ruken.toml.
+- options.gameId (string): Must match ship.config.ts (and ruken.toml on the Ruken target).
 - options.wants (readonly Capability[]): Requested capabilities. Check hosting.granted before offering dependent features.
 - options.pauseBehavior ('pause' | 'continue'): Lifetime pause policy matching the manifest.
 - seams (HostingSeams): Optional injected SDK environment for testing.
@@ -1498,7 +1504,7 @@ export default defineShipConfig({
 
 ### defineShipConfig
 
-Provides type checking and editor completion for ship.config.ts using Ruken manifest fields.
+Provides type checking and editor completion for ship.config.ts. Its fields follow Ruken's manifest, which the Ruken target writes as ruken.toml.
 
 ```ts
 defineShipConfig(config: ShipConfig): ShipConfig
@@ -1507,5 +1513,5 @@ Returns: ShipConfig
 - config.game (Manifest['game']): Game ID, title, version, entry, and SDK range. Match the hosting game ID.
 - config.runtime (Omit<Manifest['runtime'], 'allow_eval'>): Renderer, orientation, inputs, and pause policy. Ship sets allow_eval to false.
 - config.network / content (ShipConfig): Declared connections, languages, rating, and descriptors.
-- For the starter, run pnpm --filter @af-examples/base-2d build, then prepare-ruken. Preparation does not upload or activate a game.
-- automata-ship publish uses RUKEN_API and RUKEN_TOKEN and delegates validation and upload to Ruken. Supply credentials in the environment, never browser code.
+- For the starter, run pnpm --filter @af-examples/base-2d build, then the prepare step for its target (prepare-ruken for Ruken). Preparation does not upload or activate a game.
+- automata-ship publish uses RUKEN_API and RUKEN_TOKEN for Ruken, or, with --target itch, BUTLER_API_KEY and butler for itch.io. Supply credentials in the environment, never browser code.

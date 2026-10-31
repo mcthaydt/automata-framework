@@ -89,12 +89,12 @@ describe('Restored claims (DX.10a)', () => {
     const view = render(Ai)
     const csp = view.getByRole('region', { name: 'The content security policy' })
     expect(csp.textContent).toContain('Instructions give an agent context; they do not enforce anything.')
-    expect(csp.textContent).toContain('A Ruken game’s headers, its content security policy among them, come from compileHeaders in @ruken/manifest, which derives them from the game’s manifest.')
+    expect(csp.textContent).toContain('Each target serves a game with its own headers. On Ruken, a game’s headers, its content security policy among them, come from compileHeaders in @ruken/manifest, which derives them from the game’s manifest.')
     expect(csp.textContent).toContain('The framework CLI’s CSP probe loads the built game in Chromium under those headers, for Ruken’s local origins, and reports every violation the policy fires.')
     expect(view.getByRole('link', { name: 'the CSP probe’s source' }).getAttribute('href')).toBe(`https://github.com/mcthaydt/automata-framework/blob/${apiIndex.commit}/packages/cli/src/check/csp-probe-live.ts`)
     expect(csp.textContent).not.toMatch(/guarantee|100%|fully compliant|eliminate/i)
     const securityDoc = docs.find(entry => entry.slug === 'security-csp')!.content
-    expect(securityDoc).toContain("a Ruken game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).")
+    expect(securityDoc).toContain("Test the built game under the headers its target serves. On Ruken, a game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).")
   })
 
   it('documents the typed boot errors from the API index, and says what they do not cover', () => {
@@ -110,7 +110,7 @@ describe('Restored claims (DX.10a)', () => {
   it('states the 780×270 input journeys the framework runs, and keeps them apart from real-device acceptance', () => {
     const doc = docs.find(entry => entry.slug === 'mobile-ui')!.content
     expect(doc).toContain('## Tested input journeys')
-    expect(doc).toContain('At 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake Ruken host.')
+    expect(doc).toContain('At 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake host.')
     expect(doc).toContain('Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size.')
     expect(doc).toContain('These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open.')
     expect(doc).toContain(`https://github.com/mcthaydt/automata-framework/blob/${apiIndex.commit}/packages/testing/src/e2e/input-matrix.ts`)
