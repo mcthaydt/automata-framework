@@ -17,3 +17,8 @@ installs. `TAURI_MARKERS` and `findTauriMarkers` check that only a `tauri` build
 
 `ui`'s boot failure knows the `tauri` host kind. Its exit action reads "Quit" (the new `quit` copy key), and a saves
 failure that will not clear offers "Continue without loading". The runtime passes `tauri` through to it.
+
+BREAKING: `ui`'s `HostKind` adds `'tauri'`, so an exhaustive `switch` over it must add a case. `BootFailureCopy` adds
+the `quit` key, so a complete copy object must give it. `bootFailureView` now offers "Continue without loading" for a
+non-retryable saves failure on every host but Ruken, and the exit action for an unsupported device wherever exit can be
+granted (Ruken and the desktop).

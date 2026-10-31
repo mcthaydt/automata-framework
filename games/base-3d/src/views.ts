@@ -134,6 +134,8 @@ export interface Scene {
   readonly walls: readonly SceneWall[]
   readonly floors: readonly Box3[]
   readonly ceilings: readonly Box3[]
+  /** The ember Wick picks up to end the run, a block on the floor. */
+  readonly ember: Box3
 }
 
 /** A static prop from The Last Light (public/models/PROVENANCE.md), standing at `x`, `z` facing `yaw`. */
@@ -184,9 +186,13 @@ function wallOf(box: Rect, rooms: readonly Rect[]): SceneWall {
     : face({ x: x1, z: z1 }, { x: x1, z: z0 })
 }
 
-/** The area's walls, and a floor and a ceiling over each room. */
+/** Half the side of the ember's block, in metres. */
+const EMBER_HALF = 0.15
+
+/** The area's walls, a floor and a ceiling over each room, and the ember. */
 export function sceneOf(area: AreaSource): Scene {
   const rooms = area.rooms
+  const { x, z } = area.ember
   return {
     walls: area.walls.map((wall) => wallOf(wall, rooms)),
     floors: rooms.map((room) => ({
@@ -197,6 +203,10 @@ export function sceneOf(area: AreaSource): Scene {
       min: [room.min[0], WALL_HEIGHT, room.min[1]],
       max: [room.max[0], WALL_HEIGHT + 0.1, room.max[1]],
     })),
+    ember: {
+      min: [x - EMBER_HALF, 0, z - EMBER_HALF],
+      max: [x + EMBER_HALF, 2 * EMBER_HALF, z + EMBER_HALF],
+    },
   }
 }
 
@@ -208,11 +218,17 @@ export function sceneOf(area: AreaSource): Scene {
 export const FOG: SceneFog = { near: 5, far: 14, color: 0x2e222f }
 
 // The first slice's colours (Endesga 64) until the rooms are authored levels (GAME-3D.1i).
-const COLOURS = { wall: 0x5a6988, floor: 0x3e3546, ceiling: 0x262b44, pillar: 0x8b9bb4 } as const
+const COLOURS = {
+  wall: 0x5a6988,
+  floor: 0x3e3546,
+  ceiling: 0x262b44,
+  pillar: 0x8b9bb4,
+  ember: 0xfb6b1d,
+} as const
 
 /**
  * Builds the area under the view's root (the renderer's `scene` hook): the walls cut away by the occluder rule, the
- * floors, the ceilings the angled view never draws, the pillar as a fading prop and the three props, each scaled to
+ * floors, the ceilings the angled view never draws, the pillar as a fading prop, the ember and the three props, each scaled to
  * its height and standing on the floor. The props are shorter than 1.5 m, so they never fade and share their
  * model's material.
  */
@@ -223,6 +239,7 @@ export function buildScene(view: View3D, occluders: Occluders, models: ModelLibr
   for (const wall of scene.walls) occluders.wall({ ...wall, color: COLOURS.wall })
   for (const ceiling of scene.ceilings) occluders.ceiling(occluders.box(ceiling, COLOURS.ceiling))
   occluders.prop(occluders.box(PILLAR, COLOURS.pillar), { bounds: PILLAR })
+  occluders.box(scene.ember, COLOURS.ember)
   for (const prop of PROPS) {
     const model = models.get(prop.file)
     if (model === undefined) throw new Error(`base-3d: the prop "${prop.file}" was not loaded`)

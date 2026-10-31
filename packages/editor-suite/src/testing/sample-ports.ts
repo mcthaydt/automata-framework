@@ -18,9 +18,8 @@ export async function samplePorts(files: Readonly<Record<string, string>>): Prom
   return ports
 }
 
-/** FloorFifty's list (677d456) with a tuning file and a stage, for the sample app and the tests. */
+/** FloorFifty's list (677d456) with a tuning file, for the sample app and the tests. */
 export const FLOORFIFTY_SAMPLE: Readonly<Record<string, string>> = {
   [EDITOR_LIST_PATH]: floorfiftyList,
   'content/tuning.toml': '[player]\nspeed = 6.5 # m/s\n',
-  'content/stages/floor-01.toml': 'id = "floor-01"\n',
 }

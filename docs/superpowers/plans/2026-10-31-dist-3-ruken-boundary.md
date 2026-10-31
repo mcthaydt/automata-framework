@@ -153,3 +153,13 @@ for Ruken builds needs the target passed to the content compiler; proposed as a 
   the remote write and Load newer had succeeded through the moved host; first-attempt trace kept in the session
   scratchpad. Re-run alone: 3/3 passed, that test in 19.9 s. Not this change's: the run was two workers on four
   CPUs, and the test sits near its budget; noted for the integration owner rather than changed here.
+- DIST.3a, after review: merged #323 (with #321's declared breaks and `main`). No package imports `@ruken/*` outside a
+  `ruken/` folder after the merge. The changeset declares 3a's own breaks with a `BREAKING:` line (`ShipConfig`,
+  `defineExtension`'s `GameConfig`, `ui`'s `ErrorCode`, the vendored declarations gone); the plain `pnpm api-report`:
+  13 breaks, 0 undeclared. `pnpm check` passes; `api-index`, `agent-skills`, `check-changesets` clean.
+- DIST.3b, after review: merged #326 (with #323, #321 and `main`). Conflicts: `games/base-3d/vite.config.ts` (`main`'s
+  e2e host origin, now through `rukenHeaders`), `games/base-3d/package.json` (`main`'s `@playwright/test` kept,
+  `@ruken/manifest` dropped), this plan, and the lockfile (regenerated). The rule over the four trees: 2,496 files, 0
+  findings. `pnpm check` passes; `pnpm build`; `pnpm api-report` 13 breaks, 0 undeclared; `api-index`,
+  `agent-skills`, `check-changesets` clean; `base-3d`'s new E2E project 3/3 (standalone under Ruken's headers, in the
+  fake host on another origin, no screen before ready).
