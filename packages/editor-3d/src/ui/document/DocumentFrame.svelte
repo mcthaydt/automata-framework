@@ -21,6 +21,8 @@ import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onDestroy } from 'svelte'
 import { createChecksPanel, type Scheduler } from '../../app/checks-panel-controller'
 import type { DocumentController, DocumentState } from '../../app/document/document-controller'
+import { inspectorOf } from '../../app/inspector-cards'
+import { createInspectorEdits } from '../../app/inspector-edits'
 import { planZoom } from '../../app/plan-picture'
 import { checksWords, planStatus } from '../../app/plan-status'
 import { planToolCommands } from '../../app/plan-tool-commands'
@@ -29,6 +31,7 @@ import type { Point } from '../../format/sector.schema'
 import DollhouseCanvas from '../dollhouse/DollhouseCanvas.svelte'
 import type { DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'
 import { lazyDollhouseRenderer } from '../dollhouse/lazy-dollhouse-renderer'
+import Inspector from '../inspector/Inspector.svelte'
 import EditorLayers from '../plan/EditorLayers.svelte'
 import PlanCanvas from '../plan/PlanCanvas.svelte'
 import type { PlanRendererFactory } from '../plan/plan-renderer'
@@ -122,6 +125,12 @@ function onkeydown(event: KeyboardEvent): void {
   if (handled) event.preventDefault()
 }
 
+// The inspector's card for what is selected (ED3D.5f), read again after each change of the level or the selection.
+// svelte-ignore state_referenced_locally
+const inspectorEdits = createInspectorEdits(editor)
+// svelte-ignore state_referenced_locally
+let card = $state.raw(inspectorOf(editor))
+
 let mode = $state(editor.view.state.mode)
 let selection = $state.raw<readonly string[]>(editor.selection.ids)
 let zoom = $state(planZoom(editor.view.state.camera))
@@ -134,7 +143,11 @@ $effect(() => {
       mode = state.mode
       zoom = planZoom(state.camera)
     }),
-    editor.selection.subscribe((next) => (selection = next.ids)),
+    editor.selection.subscribe((next) => {
+      selection = next.ids
+      card = inspectorOf(editor)
+    }),
+    editor.history.subscribe(() => (card = inspectorOf(editor))),
     checks.subscribe(() => (counts = checks.view)),
   ]
   return () => {
@@ -167,7 +180,18 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
 
 
 <!-- A phone has no tool rail: the plan there is view and select only (ED3D spec §10), and the plan keeps the height. -->
-<EditorShell {geometry} bind:panelOpen rail={compact ? undefined : toolRail} testId="document-frame">
+{#snippet inspector()}
+  <Inspector {card} onchange={(change, phase) => inspectorEdits.change(change, phase)} />
+{/snippet}
+
+<!-- The inspector is a column at wide; below it, the portrait sheet (ED3D.5f step 6). -->
+<EditorShell
+  {geometry}
+  bind:panelOpen
+  rail={compact ? undefined : toolRail}
+  inspector={shellMode === 'wide' ? inspector : undefined}
+  testId="document-frame"
+>
   {#snippet topbar()}
     <DocumentBar
       heading={view.heading}

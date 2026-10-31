@@ -1,6 +1,6 @@
 import { createToasts } from '@mcthaydt/automata-editor-kit/core'
 import { stubGeometry } from '@mcthaydt/automata-editor-kit/testing'
-import { render, screen, waitFor, within } from '@testing-library/svelte'
+import { act, render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { createDocumentController, type DocumentController } from '../../app/document/document-controller'
@@ -146,6 +146,15 @@ describe('DocumentFrame', () => {
   it('has no tool rail on a phone (ED3D spec §10: compact is view and select), so the plan keeps the height', async () => {
     await setup({ width: 390, height: 844 })
     expect(screen.queryByRole('toolbar', { name: 'Tools' })).toBeNull()
+  })
+
+  it('shows the selected room’s card in the inspector at wide, and a floor change is one undo step (ED3D.5f)', async () => {
+    const { controller } = await setup()
+    expect(screen.getByText('Tap a room, a wall or a thing to see it here.')).toBeInTheDocument()
+    await act(() => levelOf(controller).editor.selection.set(['sector:hall']))
+    expect(screen.getByRole('heading', { name: 'hall' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Increase Floor' }))
+    expect(screen.getByTestId('undo')).toHaveAccessibleName('Undo Set the heights of hall')
   })
 
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {
