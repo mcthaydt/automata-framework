@@ -28,6 +28,15 @@ export {
 } from './session/input-lead'
 export { type MakeNetSessionOptions, makeNetSession, type NetSessionHandle } from './session/make-net-session'
 export {
+  DEFAULT_DEGRADED,
+  type DegradedThresholds,
+  Distribution,
+  type DistributionSummary,
+  NetDiagnostics,
+  type NetDiagnosticsOptions,
+  type NetSummary,
+} from './session/net-diagnostics'
+export {
   DESYNC_WINDOW_MS,
   type LocalCommand,
   MAX_CATCH_UP_TICKS,

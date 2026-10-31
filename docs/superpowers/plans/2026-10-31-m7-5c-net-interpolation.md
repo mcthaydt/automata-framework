@@ -63,7 +63,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 2. `SnapshotBuffer<T>` and `blendFields` (ported tests). Fails: no module.
    - [x] 2
 3. `NetDiagnostics` and the thresholds (ported tests). Fails: no module.
-   - [ ] 3
+   - [x] 3
 4. Session wiring: `remote`, `renderTick`, diagnostics feed, `markDegraded`; `net.toml` thresholds. Fails: a frame carries no remote view.
    - [ ] 4
 5. Copy catalog, badge and reconnect overlay (DOM behaviour). Fails: no components.
