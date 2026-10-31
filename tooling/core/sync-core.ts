@@ -13,8 +13,11 @@ import { blockLines, type CorePacks, parsePacks, writeOverrides } from './overri
 
 /** Where the framework comes from unless `--repository` says otherwise. */
 export const AF_REPOSITORY = 'https://github.com/mcthaydt/automata-framework.git'
-/** A private framework tool that Plus needs packed as well as the published packages (core-packs `--extra`). */
-const EXTRAS = ['@mcthaydt/evidence']
+/**
+ * Private framework packages that Plus needs packed as well as the published ones (core-packs `--extra`): the sector
+ * format, which the private `sectors` ships against (M6-D17), and the evidence tool, for tests.
+ */
+const EXTRAS = ['@mcthaydt/automata-sector-format', '@mcthaydt/evidence']
 
 export interface Git {
   /** Makes `dir` a checkout of `commit` from `repository`, creating it the first time. */
