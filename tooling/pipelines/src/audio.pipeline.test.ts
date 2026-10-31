@@ -1,10 +1,11 @@
 // The `audio` pipeline (M6 spec §4.10, M6.10b, AS-a) through the platform's router on a temporary folder holding the example: `run`
 // renders every cue, bed and mix offline in Chromium and measures them; `check` passes the example (true peak, clicks, ducking,
 // panning, coverage) and fails a cue that is too hot, an event nothing answers and a render that is stale.
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { encodeWav, integratedLoudness, truePeak } from '@mcthaydt/automata-audio-synth/measure'
 import { FilesLive, ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -127,5 +128,96 @@ describe('the audio pipeline', () => {
     const { json } = await pipe('audio', 'check', dir)
     expect(check(json, 'render')?.ok).toBe(false)
     expect(check(json, 'render')?.detail).toMatch(/stale|changed|run/)
+  })
+})
+
+// M6.10b remainder (AU-D6, amended): recorded music is the game's, but its loudness is checked against the same measure as the cues.
+// `check` needs no render for it, so these tests do not start a browser.
+describe('the music loudness check', () => {
+  const RATE = 48000
+  /** Two seconds of a stereo sine at `amplitude`, as WAV bytes. */
+  const tone = (amplitude: number): Uint8Array => {
+    const plane = Float32Array.from(
+      { length: RATE * 2 },
+      (_, i) => amplitude * Math.sin((2 * Math.PI * 440 * i) / RATE),
+    )
+    return encodeWav([plane, plane], RATE)
+  }
+  const lufsOf = (amplitude: number): number => {
+    const plane = Float32Array.from(
+      { length: RATE * 2 },
+      (_, i) => amplitude * Math.sin((2 * Math.PI * 440 * i) / RATE),
+    )
+    return integratedLoudness([plane, plane], RATE) as number
+  }
+  const peakOf = (amplitude: number): number => {
+    const plane = Float32Array.from(
+      { length: RATE },
+      (_, i) => amplitude * Math.sin((2 * Math.PI * 440 * i) / RATE),
+    )
+    return truePeak([plane, plane])
+  }
+  const withMusic = (files: Record<string, Uint8Array | string>, music: string): string => {
+    const dir = folder(undefined, `${SPEC}\n${music}`)
+    for (const [name, bytes] of Object.entries(files)) {
+      mkdirSync(dirname(join(dir, 'music', name)), { recursive: true })
+      writeFileSync(join(dir, 'music', name), bytes)
+    }
+    return dir
+  }
+  const music = (lufs: number, extra = ''): string =>
+    `[music]\ndir = "music"\nlufs = ${lufs}\ntolerance_lu = 2\n${extra}`
+
+  it('parses a music table and refuses an unknown key', () => {
+    const ok = audioPipeSpec.safeParse({
+      content: 'a.toml',
+      music: { dir: 'music', lufs: -16, tolerance_lu: 2 },
+    })
+    expect(ok.success).toBe(true)
+    const bad = audioPipeSpec.safeParse({
+      content: 'a.toml',
+      music: { dir: 'music', lufs: -16, tolerance_lu: 2, loud: 1 },
+    })
+    expect(bad.success).toBe(false)
+  })
+
+  it('passes music within the target', async () => {
+    const dir = withMusic({ 'town.wav': tone(0.2) }, music(Math.round(lufsOf(0.2))))
+    const { json } = await pipe('audio', 'check', dir)
+    expect(check(json, 'music-loudness')).toMatchObject({ ok: true })
+    expect(check(json, 'music-loudness')?.detail).toContain('music/town.wav')
+  })
+
+  it('fails music that is too loud, naming the file and by how much', async () => {
+    const dir = withMusic({ 'town.wav': tone(0.2), 'battle.wav': tone(0.8) }, music(Math.round(lufsOf(0.2))))
+    const { exit, json } = await pipe('audio', 'check', dir)
+    expect(exit).not.toBe(0)
+    const row = check(json, 'music-loudness')
+    expect(row?.ok).toBe(false)
+    expect(row?.detail).toContain('music/battle.wav')
+    expect(row?.detail).not.toContain('music/town.wav')
+  })
+
+  it('fails music over the true-peak ceiling', async () => {
+    const dir = withMusic({ 'hot.wav': tone(1) }, music(Math.round(lufsOf(1)), 'true_peak_dbtp = -3\n'))
+    const { json } = await pipe('audio', 'check', dir)
+    expect(peakOf(1)).toBeGreaterThan(-3)
+    expect(check(json, 'music-loudness')?.ok).toBe(false)
+    expect(check(json, 'music-loudness')?.detail).toContain('dBTP')
+  })
+
+  it('fails a file it cannot measure instead of skipping it', async () => {
+    const dir = withMusic({ 'town.wav': tone(0.2), 'theme.ogg': 'OggS' }, music(Math.round(lufsOf(0.2))))
+    const row = check((await pipe('audio', 'check', dir)).json, 'music-loudness')
+    expect(row?.ok).toBe(false)
+    expect(row?.detail).toContain('music/theme.ogg')
+    expect(row?.detail).toMatch(/cannot be measured/)
+  })
+
+  it('fails when the folder has no music, and adds no row without a music table', async () => {
+    const empty = withMusic({}, music(-16))
+    expect(check((await pipe('audio', 'check', empty)).json, 'music-loudness')?.ok).toBe(false)
+    const none = folder()
+    expect(check((await pipe('audio', 'check', none)).json, 'music-loudness')).toBeUndefined()
   })
 })

@@ -73,7 +73,7 @@ it, a core change that drops a seam's entry would pass here until a Plus package
 - [x] 2. Part 1: failing `seams.test.ts`, then `seams.ts`; `tooling/boundary` green.
 - [x] 3. Part 2a: failing summary-panel and summary-function tests, then `summaryPanel`, `SummaryPanel.svelte`, the two summaries.
 - [x] 4. Part 2b: failing browser layout test, then any CSS fix.
-- [ ] 5. Part 3: failing music-loudness tests, then the spec field and check row.
+- [x] 5. Part 3: failing music-loudness tests, then the spec field and check row.
 - [ ] 6. Gates: `pnpm exec biome check --write`, `pnpm format`, `pnpm check`, and the browser projects named below.
 
 ## Gates
@@ -84,4 +84,12 @@ Pending: Plus CI on the head.
 
 ## Execution log
 
-(empty)
+- Part 1: `tooling/boundary/seams.test.ts` failed first (no `seams.ts`); the real workspace has no finding at `core.ref` f1b38528.
+- Part 2a: tests failed first (missing `summaryPanel`, `PANEL_CONTEXT`, the two summary functions). `PanelFrame.svelte` gives each
+  panel its id through context; the `untrack` is deliberate (the overlay keys the frame by panel).
+- Part 2b: the layout test passed on the existing CSS at 360x640 and 640x360. A mutation (button `min-height` 30 px, body
+  `overflow: visible`) failed 4 of 6, then the CSS was restored, so the test can fail. Svelte needs `resolve.conditions: ['browser']`
+  in the `browsers` project or `mount` resolves the server build. The tab bar wraps (it does not scroll), so the plan's "tab bar
+  scrolls" became "every control on screen".
+- Part 3: six tests failed first (the strict spec refused `music`). Sine-wave WAVs are written by the tests; no binary is committed.
+  Legacy parity and the space probe stay open: the adventure source is not on this machine.
