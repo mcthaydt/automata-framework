@@ -123,6 +123,24 @@ describe('packWorkspace', () => {
     ).not.toThrow()
   })
 
+  // FR.1: an extra that publishes built exports (the sector format) is packed with `dist`, so the build must have run first.
+  it('needs dist for an extra that publishes built exports', () => {
+    const root = workspace()
+    write(root, 'packages/built-extra', {
+      name: '@mcthaydt/a-built-extra',
+      version: '0.0.0',
+      private: true,
+      publishConfig: { exports: { '.': './dist/index.js' } },
+    })
+    const run = () =>
+      packWorkspace(
+        options(root, join(temp('af-core-packs-out-'), 'p'), { extras: ['@mcthaydt/a-built-extra'] }),
+      )
+    expect(run).toThrow('packages/built-extra/dist is missing: run pnpm build first')
+    mkdirSync(join(root, 'packages/built-extra/dist'))
+    expect(run).not.toThrow()
+  })
+
   it('fails on an extra that is not in the workspace, naming it', () => {
     const root = workspace()
     expect(() =>
