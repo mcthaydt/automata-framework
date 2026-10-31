@@ -126,7 +126,7 @@ const count = (value: number): string => value.toLocaleString('en-US')
   [data-status='error'] > span {
     color: var(--color-state-bad);
   }
-  /* A gate is one row, its state then its record link, that wraps as a unit with one gap to the next. */
+  /* A gate is one row: its state wraps in the first column, its record link keeps the second; one gap between rows. */
   .gates {
     display: flex;
     flex-direction: column;
@@ -135,9 +135,9 @@ const count = (value: number): string => value.toLocaleString('en-US')
     list-style: none;
   }
   .gates li {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1) var(--space-3);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
     align-items: center;
   }
   /* Sized like the kit's plain button: a 44 px target, not a line of text. */

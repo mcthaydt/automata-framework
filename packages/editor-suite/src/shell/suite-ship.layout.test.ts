@@ -184,7 +184,16 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
       expect(link?.height, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(44)
       expect(link?.width, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(44)
     }
-    // One gap between gate rows, however each row wraps.
+    // Each record link sits at the row's right edge, beside its state however that wraps, with one gap between rows.
+    const rights = rows.map((row) => row.querySelector('a')?.getBoundingClientRect().right)
+    expect(rights[0]).toBeCloseTo(rights[1] ?? 0, 0)
+    for (const row of rows) {
+      const state = row.querySelector('span')?.getBoundingClientRect()
+      const link = row.querySelector('a')?.getBoundingClientRect()
+      expect(link?.left, `${row.dataset.gate} link beside its state`).toBeGreaterThanOrEqual(
+        (state?.right ?? 0) - 0.5,
+      )
+    }
     const [feel, speed] = rows.map((row) => row.getBoundingClientRect())
     const gap = (speed?.top ?? 0) - (feel?.bottom ?? 0)
     expect(gap).toBeGreaterThanOrEqual(4)
