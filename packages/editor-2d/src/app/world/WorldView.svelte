@@ -58,6 +58,12 @@ const rects = $derived(
 )
 const fitted = $derived(fitWorld(rects, box, MARGIN))
 const camera = $derived(held ?? fitted)
+/** Where the levels' top and bottom edges fall on the map, in CSS pixels: the layout checks read it to see them centred. */
+const levelsBox = $derived(
+  rects.length === 0
+    ? undefined
+    : `${camera.y + Math.min(...rects.map((rect) => rect.y)) * camera.scale},${camera.y + Math.max(...rects.map((rect) => rect.y + rect.h)) * camera.scale}`,
+)
 const levels = $derived(
   project === undefined || world === undefined
     ? []
@@ -178,6 +184,7 @@ function layout(next: string): void {
         role="application"
         aria-label="World map"
         data-testid="world-map"
+        data-levels-box={levelsBox}
         bind:this={map}
         onpointerdown={down}
         onpointermove={(event) => drag?.move(pointOf(event))}
@@ -232,9 +239,10 @@ function layout(next: string): void {
     border-color: var(--color-accent-default);
   }
   /* Below wide the drawer buttons sit over the map; the map takes the rest of the canvas. */
+  /* A column, so the map takes all the height the drawer buttons leave, with or without them (wide has none). */
   .stage {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     height: 100%;
   }
   .drawers {
@@ -253,6 +261,7 @@ function layout(next: string): void {
     font: var(--text-body-13-medium);
   }
   .map {
+    flex: 1 1 0;
     min-height: 0;
     touch-action: none;
   }

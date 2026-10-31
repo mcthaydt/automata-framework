@@ -126,9 +126,16 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     const drawers =
       size.mode === 'wide' ? [] : ['Levels', 'Inspector'].map((name) => buttonNamed(view(), name))
     expect(checkLayout(conditions, [...tabs, ...drawers])).toEqual([])
-    const map = byTestId('world-map').getBoundingClientRect()
+    // The map fills the canvas below any drawer buttons, and the levels sit in the middle of it: the camera is fitted
+    // to the box the map really has (review of #310: in wide the map took only its content's height).
+    const mapElement = byTestId('world-map')
+    const map = mapElement.getBoundingClientRect()
+    const canvasRegion = region('canvas').getBoundingClientRect()
     expect(map.width).toBeGreaterThan(100)
-    expect(map.height).toBeGreaterThan(80)
+    expect(map.bottom).toBeGreaterThanOrEqual(canvasRegion.bottom - 1)
+    const [top, bottom] = (mapElement.dataset.levelsBox ?? '').split(',').map(Number)
+    expect(top).toBeGreaterThan(0)
+    expect(Math.abs((top ?? 0) - (map.height - (bottom ?? 0)))).toBeLessThanOrEqual(1.5)
 
     await openDrawer(size, 'Levels', 'panel')
     const panel = region('panel')
@@ -143,6 +150,9 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     await closeDrawer(size, 'Levels', 'panel')
 
     await openDrawer(size, 'Inspector', 'inspector')
+    // The inspector opens at its top (Name first); the checks below scroll it to reach each control.
+    const inspectorScroll = region('inspector').querySelector<HTMLElement>('[data-scroll-region]')
+    expect(inspectorScroll?.scrollTop ?? 0).toBe(0)
     const inspector = byTestId('world-inspector')
     const name = inspector.querySelector<HTMLElement>('input[type="text"]')
     if (name === null) throw new Error('no name field')
@@ -153,6 +163,9 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
       await expectTarget(radio, size)
     await expectTarget(buttonNamed(inspector, 'Resize'), size)
     noPageScroll()
+    // The image shows the inspector as it opens, at its top, not where the checks above left it.
+    inspectorScroll?.scrollTo(0, 0)
+    await settleLayout()
     await page.screenshot({ path: `.vitest/shots/world-view-${size.name}.png` })
   })
 })
