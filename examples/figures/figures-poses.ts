@@ -1,9 +1,8 @@
 // figures-poses: Wick taking each pose of a small library in turn, a clip blending him into it
 //
 // Shows: poses as data (hand and foot targets, elbow poles and extra joint turns, written as compiled); the sim says
-//   which pose and since which tick, and the view plays a hold clip that blends the figure into it over 0.4 s, the
-//   action transition carrying the last pose into the next; the view's clock is the sim's tick, so a clip starts
-//   where the sim started it.
+//   which pose and since which tick, and the view plays a hold clip that blends the figure from the last pose into
+//   it over 0.4 s and holds it; the view's clock is the sim's tick, so a clip starts where the sim started it.
 // Controls: none
 // Packages: @mcthaydt/automata, @mcthaydt/automata-figures, @mcthaydt/automata-render-pixi3d
 // Difficulty: ★★★☆
@@ -47,17 +46,15 @@ const wick: FigureDef = {
   sliders: { height: 120, head: 1, chunk: 1, frame: 0.4, legs: 0.2, posture: 0.6, hands: 0.6, feet: 0.6 },
   outfits: { wanderer: [top, { trousers: 'wick-cloak-shade' }, boots, cape, features] },
 }
+
 // Poses from the figures package's test content (src/testing/fixtures/content/figure-poses/*.toml), cut to their
-// main handles: positions in metres in the figure's space (+z forward, +x his left), turns in degrees. `free` sets
-// nothing.
-// metres in the figure's space (+z forward, +x his left), turns in degrees. `free` sets nothing.
+// main handles: positions in metres in the figure's space (+z forward, +x his left), turns in degrees.
 const hands = (l: Vec3, r: Vec3) => ({ handL: { pos: l }, handR: { pos: r } })
 const flatFoot = { footL: { pos: [0.1, 0.08, 0.3], rot: [0, 0, 0] } } as const
 const toesDown = { footR: { pos: [-0.1, 0.12, -0.35], rot: [40, 0, 0] } } as const
 const elbowsOut = { elbowL: { dir: [0.6, -1, 0] }, elbowR: { dir: [-0.6, -1, 0] } } as const
 const pointing = { handR: { pos: [-0.16, 1.3, 0.52], rot: [-90, 0, 0] }, head: { rot: [0, -10, 0] } } as const
 const poses: PoseLibrary = {
-  free: { effectors: {} },
   stand: { effectors: { ...hands([0.2, 0.78, 0.05], [-0.2, 0.78, 0.05]), chest: { rot: [2, 0, 0] } } },
   kneel: { effectors: { ...flatFoot, ...toesDown, pelvis: { pos: [0, 0.5, -0.05] } } },
   'guard-high': { effectors: { ...hands([0.1, 1.3, 0.22], [-0.1, 1.35, 0.25]) }, poles: elbowsOut },
@@ -66,11 +63,12 @@ const poses: PoseLibrary = {
 }
 const SHOWN = ['stand', 'kneel', 'guard-high', 'point', 'reach-out'] as const
 
-// One clip a pose: from what the layers below give (`free`) into the pose over 0.4 s, held there, the whole body.
-const into = (pose: string) => [{ t: 0, pose: 'free' }, { t: 0.4, pose, ease: 'inOut' } as const]
+// One clip a pose: from the pose before it in SHOWN into it over 0.4 s, then held there, the whole body.
+const into = (from: string, pose: string) => [{ t: 0, pose: from }, { t: 0.4, pose, ease: 'inOut' } as const]
 const hold = { length: 0.4, loop: 'hold', mask: MASK_GROUPS } as const
+const before = (i: number) => SHOWN[(i + SHOWN.length - 1) % SHOWN.length] ?? 'stand'
 const clips: Record<string, FigureClipDef> = Object.fromEntries(
-  SHOWN.map((id) => [id, { ...hold, keys: into(id) }]),
+  SHOWN.map((id, i) => [id, { ...hold, keys: into(before(i), id) }]),
 )
 const motion = { gaits: { bounce }, poses, clips, items: {}, stands: {}, rigs: {} }
 
@@ -106,10 +104,10 @@ export default defineGame({
       views: {
         [Model.id]: figure(wick, { library, motion, now: () => seconds, state: (c) => posed(c[Model.id]) }),
       },
-      // A fixed camera 3 m in front, looking at the chest; each step moves the view's clock to the sim's.
+      // A fixed camera 2 m in front, looking at the hips; each step moves the view's clock to the sim's.
       scene: (view, _stage, occluders) => {
-        view.camera.position.set(0, 1.4, 3)
-        view.camera.lookAt({ x: 0, y: 0.8, z: 0 })
+        view.camera.position.set(0, 1.1, 2)
+        view.camera.lookAt({ x: 0, y: 0.6, z: 0 })
         view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
         occluders.box({ min: [-3, -0.1, -3], max: [3, 0, 3] }, 0x8b9bb4)
         return {
