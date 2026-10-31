@@ -5,7 +5,10 @@ import { describe, expect, it } from 'vitest'
 import { Hero, HeroAction, Target } from './components.ts'
 import { ACTION_CLIP, ACTION_TICKS, HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
+import { Progress } from './resources.ts'
+import { base3dSaves } from './screens/saves.ts'
 import { base3dPlugin, base3dSim, spawnArea } from './state/index.ts'
+import { newGame } from './state/save.ts'
 import { type Area, type AreaSource, areaOf, compileArea, viewAt } from './systems/index.ts'
 
 /** The game's own sim spec, on the first slice, as `main.ts` makes it. */
@@ -471,6 +474,41 @@ describe('actions (the four clips’ sim side, M3 spec §4.4.5 and §4.7)', () =
   })
 })
 
+describe('the save, captured and applied outside the sim (DESIGN.md §12.1)', () => {
+  it('counts a taken ember in the progress, and captures it with the play time', async () => {
+    const sim = await startSim(openArea(0, true, [], { x: 0, z: 0.5 }))
+    expect(sim.resource(Progress)).toEqual({ embers: 0 })
+    run(sim, {}, 3)
+    run(sim, { act: { pickup: true } })
+    expect(sim.resource(Progress)).toEqual({ embers: 1 })
+    const saves = base3dSaves()
+    expect(saves.capture(sim)).toEqual({ ...newGame(), embers: 1, playTicks: sim.tick })
+    sim.dispose()
+  })
+
+  it('Continue starts a fresh sim at the area entrance with the ember kept and the play time running on', async () => {
+    const played = await startSim()
+    run(played, { stick: RIGHT }, 40)
+    expect(hero(played).x).not.toBe(BASE3D_SIM.content.spawn.x)
+    const saved = { ...base3dSaves().capture(played), embers: 1, flags: ['kept'], lantern: 'lit' }
+    const saves = base3dSaves()
+    const resumed = await startSim()
+    saves.apply(resumed, saved)
+    expect(resumed.resource(Progress)).toEqual({ embers: 1 })
+    const { spawn } = BASE3D_SIM.content
+    expect(hero(resumed)).toMatchObject({ x: spawn.x, z: spawn.z })
+    // Fields the sim does not hold (and ones a later build added) are kept from the applied slot.
+    run(resumed, {}, 10)
+    expect(saves.capture(resumed)).toEqual({ ...saved, playTicks: saved.playTicks + resumed.tick })
+    // The same slot applied again gives the same sim.
+    const again = await startSim()
+    base3dSaves().apply(again, saved)
+    run(again, {}, 10)
+    expect(again.hash()).toBe(resumed.hash())
+    for (const sim of [played, resumed, again]) sim.dispose()
+  })
+})
+
 describe('taking the ember', () => {
   it('emits ember.taken on the tick a pickup starts within a metre of it, at the ember', async () => {
     const sim = await startSim(openArea(0, true, [], { x: 0.9, z: -0.9 }))
@@ -547,9 +585,12 @@ const GOLDEN_KILN_TICK = 118
  * locked ticks and end position are unchanged. Re-recorded for M3.7b part 4 (was `ce0f0628722db568`): the snapshot
  * the hash is taken over carries the content hash (the area gained `ember`), the schema hash (the `ember.taken`
  * event) and each system's RNG state (the `ember.take` system), so the hash moved while the route's state did not:
- * the same kiln tick, locked ticks, action starts and end position, and no event on the route.
+ * the same kiln tick, locked ticks, action starts and end position, and no event on the route. Re-recorded for
+ * GAME-3D.1a's save (was `0401873e6b063c1a`): the sim gained the `progress` resource (`embers: 0`, which
+ * `ember.take` counts into), which the snapshot's schema hash and resource rows cover; the route takes no ember, so
+ * its rejected commands, events, kiln tick, locked ticks, action starts and end position are unchanged.
  */
-const GOLDEN_HASH = '0401873e6b063c1a'
+const GOLDEN_HASH = '1e1cf37b5fbe5d75'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

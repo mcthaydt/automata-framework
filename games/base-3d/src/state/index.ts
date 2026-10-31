@@ -6,6 +6,7 @@ import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Lock, Move } from '../commands.ts'
 import { Hero, HeroAction, HeroControl, Target } from '../components.ts'
 import { EmberTaken } from '../events.ts'
+import { Progress } from '../resources.ts'
 import {
   type Area,
   emberTake,
@@ -37,6 +38,7 @@ export function spawnArea(sim: Sim, area: Area): void {
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
+  resources: [Progress],
   defs: [
     Hero,
     HeroControl,
