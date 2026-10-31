@@ -28,7 +28,7 @@ interface FoundImport {
   readonly line: number
 }
 
-function findImports(source: string): FoundImport[] {
+export function findImports(source: string): FoundImport[] {
   return [...source.matchAll(IMPORT)].map((match) => {
     const specifier = match[1] as string
     const at = (match.index ?? 0) + match[0].lastIndexOf(specifier)
@@ -70,7 +70,7 @@ function coreEntries(root: string): CoreEntries {
   return entries
 }
 
-function sourceFiles(dir: string): string[] {
+export function sourceFiles(dir: string): string[] {
   const files: string[] = []
   for (const item of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const path = join(dir, item.name)
