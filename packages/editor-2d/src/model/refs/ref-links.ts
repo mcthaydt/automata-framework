@@ -1,4 +1,11 @@
-import type { FieldDef, FieldValue, FieldValues, RefValue } from '@mcthaydt/automata-editor-kit/fields'
+import type {
+  FieldDef,
+  FieldValue,
+  FieldValues,
+  RefChoice,
+  RefTargetGroup,
+  RefValue,
+} from '@mcthaydt/automata-editor-kit/fields'
 import type { Project } from '../project-types'
 import { isRefValue, type RefIndex, refIndex, resolveRef } from './ref-resolve'
 
@@ -75,18 +82,6 @@ export function projectLinks(project: Project): readonly ProjectLink[] {
   return found
 }
 
-export interface RefChoice {
-  readonly label: string
-  readonly value: RefValue
-}
-
-/** A level in the picker with what in it the field may point at. */
-export interface RefTargetLevel {
-  readonly level: string
-  readonly name: string
-  readonly choices: readonly RefChoice[]
-}
-
 const defLabel = (project: Project, id: string): string =>
   project.defs.entities.find((def) => def.id === id)?.label ?? id
 
@@ -99,10 +94,10 @@ export function refTargets(
   project: Project,
   field: FieldDef,
   holder: string | undefined,
-): readonly RefTargetLevel[] {
+): readonly RefTargetGroup[] {
   const allowed = field.to ?? []
   const any = allowed.length === 0
-  const found: RefTargetLevel[] = []
+  const found: RefTargetGroup[] = []
   for (const level of project.levels) {
     const choices: RefChoice[] = []
     if (any || allowed.includes(LEVEL))
@@ -116,7 +111,7 @@ export function refTargets(
             value: { target: item.id, container: level.id },
           })
     }
-    if (choices.length > 0) found.push({ level: level.id, name: level.name, choices })
+    if (choices.length > 0) found.push({ id: level.id, name: level.name, choices })
   }
   return found
 }

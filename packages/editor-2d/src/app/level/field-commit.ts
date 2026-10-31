@@ -15,7 +15,10 @@ export type FieldTarget =
   | { readonly kind: 'entity'; readonly level: string; readonly layer: string; readonly id: string }
   | { readonly kind: 'level'; readonly level: string }
 
-export type FieldCommit = { readonly ok: true } | { readonly ok: false; readonly message: string }
+// The kit owns the result type the field form takes (plan "field form and journeys" A2).
+import type { FieldCommit } from '@mcthaydt/automata-editor-kit/fields'
+
+export type { FieldCommit }
 
 function fieldDefOf(project: Project, target: FieldTarget, field: string): FieldDef | undefined {
   if (target.kind === 'level') return project.defs.levelFields.find((candidate) => candidate.id === field)

@@ -7,18 +7,17 @@
 -->
 <script lang="ts">
 import type { EditEvent } from '@mcthaydt/automata-editor-kit'
-import { Button, Stepper } from '@mcthaydt/automata-editor-kit'
+import { Button, FieldEditor, Stepper } from '@mcthaydt/automata-editor-kit'
 import {
   defaultFieldValue,
   FIELD_TYPES,
   type FieldDef,
   type FieldType,
   type FieldValue,
+  fieldRow,
 } from '@mcthaydt/automata-editor-kit/fields'
 import type { Project } from '../../model/project-types'
-import FieldEditor from '../level/FieldEditor.svelte'
 import type { FieldCommit } from '../level/field-commit'
-import { fieldRow } from '../level/inspector-model'
 import type { EntitiesSession, GuardedCommit } from './entities-session'
 
 interface Props {
