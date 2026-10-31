@@ -3,6 +3,7 @@ import { compileContent, formatDiagnostic } from '@mcthaydt/automata-content'
 import { type FigureClipDef, figuresExtension } from '@mcthaydt/automata-figures'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { ENEMY_MOVES } from './constants/enemies.ts'
 import { ACTION_TICKS, HERO_MOVES, TICK_HZ } from './constants/index.ts'
 import { moveClipProblems } from './views/move-clips.ts'
 
@@ -27,9 +28,16 @@ async function compileFigures() {
 }
 
 describe('figure content', () => {
-  it('compiles Wick, the target and their libraries', async () => {
+  it('compiles Wick, the target, the enemies’ placeholders and their libraries', async () => {
     const data = await compileFigures()
-    expect(Object.keys(data.figure ?? {}).sort()).toEqual(['target', 'wick'])
+    expect(Object.keys(data.figure ?? {}).sort()).toEqual([
+      'ash-captain',
+      'ash-knight',
+      'sootling',
+      'target',
+      'warden',
+      'wick',
+    ])
     expect(Object.keys(data['figure-item'] ?? {}).sort()).toEqual(expect.arrayContaining(['shield', 'sword']))
   })
 
@@ -60,5 +68,27 @@ describe('the moves’ clips (GAME-3D.1c part 3, G3-d)', () => {
   it('shows contact on every sword move’s first active frame, within a tick (G3-d)', async () => {
     const clips = (await compileFigures())['figure-clip'] as Readonly<Record<string, FigureClipDef>>
     expect(moveClipProblems(HERO_MOVES, clips)).toEqual([])
+  })
+})
+
+describe('the enemies’ clips (GAME-3D.1d part 4, G3-d, G3-F7)', () => {
+  // The Wisp is a mesh, not a figure (GAME3D-D10): its dive names no clip.
+  const drawn = ENEMY_MOVES.filter((move) => move.clip !== undefined)
+
+  it('gives every figure-drawn enemy move its own clip, played once, as long as the move', async () => {
+    const clips = (await compileFigures())['figure-clip'] as Readonly<Record<string, FigureClipDef>>
+    expect(drawn.map((move) => move.id)).toEqual(
+      ENEMY_MOVES.filter((move) => move.id !== 'wisp-dive').map((move) => move.id),
+    )
+    for (const move of drawn) {
+      const clip = clips[move.clip as string]
+      expect(clip?.loop, move.id).toBe('once')
+      expect(Math.round((clip?.length ?? 0) * TICK_HZ), move.id).toBe(move.total)
+    }
+  })
+
+  it('shows contact on every enemy move’s first active frame, within a tick, and names no missing clip', async () => {
+    const clips = (await compileFigures())['figure-clip'] as Readonly<Record<string, FigureClipDef>>
+    expect(moveClipProblems(drawn, clips)).toEqual([])
   })
 })

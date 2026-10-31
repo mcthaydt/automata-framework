@@ -36,8 +36,11 @@ export const HitLanded: EventDef<typeof hit> = defineEvent('hit.landed', hit)
 
 const foe = z.object({ target: z.int().nonnegative() })
 
-/** A foe's health reached 0; it is despawned at the end of the tick. */
-export const FoeDefeated: EventDef<typeof foe> = defineEvent('foe.defeated', foe)
+const fallen = z.object({ target: z.int().nonnegative(), x: z.int(), z: z.int() })
+
+/** A foe's health reached 0, where it stood (Q16.16 metres): it is despawned at the end of the tick, and bursts into
+ * ash (presentation, DESIGN.md §8.1 rule 6). */
+export const FoeDefeated: EventDef<typeof fallen> = defineEvent('foe.defeated', fallen)
 
 const drop = z.object({ kind: z.int().positive(), amount: z.int().positive(), x: z.int(), z: z.int() })
 

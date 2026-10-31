@@ -1,5 +1,301 @@
 {
   "figure": {
+    "ash-captain": {
+      "default": "lamplighter",
+      "gait": "bounce",
+      "hair": {
+        "stiff": 70,
+        "trail": 0.15
+      },
+      "hand": "L",
+      "outfits": {
+        "lamplighter": [
+          {
+            "collar": "starch-shade",
+            "sleeves": "long",
+            "top": "starch"
+          },
+          {
+            "waistcoat": "tweed"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "boot-sole"
+          },
+          {
+            "buttons": "brass",
+            "coat": "wick-trim",
+            "length": 0.8
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "cap": "tweed",
+            "style": "flat"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "pale-lid",
+            "mouth": "mouth"
+          }
+        ],
+        "shirtsleeves": [
+          {
+            "sleeves": "short",
+            "top": "starch"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "belt": "boot-brown",
+            "buckle": "brass"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "sole"
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "lid",
+            "mouth": "mouth"
+          }
+        ]
+      },
+      "skin": "pale",
+      "sliders": {
+        "age": 0.45,
+        "arms": 0.85,
+        "chunk": 0.9,
+        "face": {
+          "bridge": 0.8,
+          "browWeight": 0.8,
+          "chin": 0.65,
+          "hood": 0.6,
+          "jaw": 0.7
+        },
+        "fat": 0.2,
+        "frame": 0.2,
+        "head": 0.4,
+        "height": 210,
+        "hunch": 0.1,
+        "legs": 0.75,
+        "muscle": 0.9,
+        "neckLength": 0.6,
+        "posture": 0.2,
+        "shoulders": 0.6
+      },
+      "stand": "hand-in-jacket-pocket"
+    },
+    "ash-knight": {
+      "default": "lamplighter",
+      "gait": "bounce",
+      "hair": {
+        "stiff": 70,
+        "trail": 0.15
+      },
+      "hand": "L",
+      "outfits": {
+        "lamplighter": [
+          {
+            "collar": "starch-shade",
+            "sleeves": "long",
+            "top": "starch"
+          },
+          {
+            "waistcoat": "tweed"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "boot-sole"
+          },
+          {
+            "buttons": "brass",
+            "coat": "steel-grey",
+            "length": 0.8
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "cap": "tweed",
+            "style": "flat"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "pale-lid",
+            "mouth": "mouth"
+          }
+        ],
+        "shirtsleeves": [
+          {
+            "sleeves": "short",
+            "top": "starch"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "belt": "boot-brown",
+            "buckle": "brass"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "sole"
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "lid",
+            "mouth": "mouth"
+          }
+        ]
+      },
+      "skin": "pale",
+      "sliders": {
+        "age": 0.4,
+        "arms": 0.85,
+        "chunk": 0.8,
+        "face": {
+          "bridge": 0.8,
+          "browWeight": 0.8,
+          "chin": 0.65,
+          "hood": 0.6,
+          "jaw": 0.7
+        },
+        "fat": 0.2,
+        "frame": 0.2,
+        "head": 0.4,
+        "height": 180,
+        "hunch": 0.1,
+        "legs": 0.75,
+        "muscle": 0.8,
+        "neckLength": 0.6,
+        "posture": 0.2,
+        "shoulders": 0.6
+      },
+      "stand": "hand-in-jacket-pocket"
+    },
+    "sootling": {
+      "default": "lamplighter",
+      "gait": "bounce",
+      "hair": {
+        "stiff": 70,
+        "trail": 0.15
+      },
+      "hand": "L",
+      "outfits": {
+        "lamplighter": [
+          {
+            "collar": "starch-shade",
+            "sleeves": "long",
+            "top": "starch"
+          },
+          {
+            "waistcoat": "tweed"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "boot-sole"
+          },
+          {
+            "buttons": "brass",
+            "coat": "charcoal",
+            "length": 0.8
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "pale-lid",
+            "mouth": "mouth"
+          }
+        ],
+        "shirtsleeves": [
+          {
+            "sleeves": "short",
+            "top": "starch"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "belt": "boot-brown",
+            "buckle": "brass"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "sole"
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "lid",
+            "mouth": "mouth"
+          }
+        ]
+      },
+      "skin": "pale",
+      "sliders": {
+        "age": 0.1,
+        "arms": 0.85,
+        "chunk": 0.2,
+        "face": {
+          "bridge": 0.8,
+          "browWeight": 0.8,
+          "chin": 0.65,
+          "hood": 0.6,
+          "jaw": 0.7
+        },
+        "fat": 0.2,
+        "frame": 0.2,
+        "head": 0.4,
+        "height": 120,
+        "hunch": 0.8,
+        "legs": 0.75,
+        "muscle": 0.2,
+        "neckLength": 0.6,
+        "posture": 0.2,
+        "shoulders": 0.6
+      },
+      "stand": "hand-in-jacket-pocket"
+    },
     "target": {
       "default": "lamplighter",
       "gait": "elderly",
@@ -94,6 +390,106 @@
         "hunch": 0.4,
         "legs": 0.75,
         "muscle": 0.3,
+        "neckLength": 0.6,
+        "posture": 0.2,
+        "shoulders": 0.6
+      },
+      "stand": "hand-in-jacket-pocket"
+    },
+    "warden": {
+      "default": "lamplighter",
+      "gait": "elderly",
+      "hair": {
+        "stiff": 70,
+        "trail": 0.15
+      },
+      "hand": "L",
+      "outfits": {
+        "lamplighter": [
+          {
+            "collar": "starch-shade",
+            "sleeves": "long",
+            "top": "starch"
+          },
+          {
+            "waistcoat": "tweed"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "boot-sole"
+          },
+          {
+            "buttons": "brass",
+            "coat": "charcoal",
+            "length": 0.8
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "cap": "tweed",
+            "style": "flat"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "pale-lid",
+            "mouth": "mouth"
+          }
+        ],
+        "shirtsleeves": [
+          {
+            "sleeves": "short",
+            "top": "starch"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "belt": "boot-brown",
+            "buckle": "brass"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "sole"
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "lid",
+            "mouth": "mouth"
+          }
+        ]
+      },
+      "skin": "pale",
+      "sliders": {
+        "age": 0.6,
+        "arms": 0.85,
+        "chunk": 1,
+        "face": {
+          "bridge": 0.8,
+          "browWeight": 0.8,
+          "chin": 0.65,
+          "hood": 0.6,
+          "jaw": 0.7
+        },
+        "fat": 0.2,
+        "frame": 0.2,
+        "head": 0.4,
+        "height": 240,
+        "hunch": 0.3,
+        "legs": 0.75,
+        "muscle": 1,
         "neckLength": 0.6,
         "posture": 0.2,
         "shoulders": 0.6
@@ -197,6 +593,140 @@
     }
   },
   "figure-clip": {
+    "captain-chop-1": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.3
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.5
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 0.8333
+        }
+      ],
+      "length": 0.8333,
+      "loop": "once",
+      "markers": {
+        "contact": 0.5,
+        "windup": 0.3
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    },
+    "captain-chop-2": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.2
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.3333
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 0.7333
+        }
+      ],
+      "length": 0.7333,
+      "loop": "once",
+      "markers": {
+        "contact": 0.3333,
+        "windup": 0.2
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    },
     "guard": {
       "blend": {
         "inMs": 120,
@@ -279,6 +809,140 @@
         "torso",
         "head",
         "armR"
+      ]
+    },
+    "knight-bash": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.24
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.4
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 0.75
+        }
+      ],
+      "length": 0.75,
+      "loop": "once",
+      "markers": {
+        "contact": 0.4,
+        "windup": 0.24
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    },
+    "knight-chop": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.3
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.5
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 0.9333
+        }
+      ],
+      "length": 0.9333,
+      "loop": "once",
+      "markers": {
+        "contact": 0.5,
+        "windup": 0.3
+      },
+      "mask": [
+        "armR",
+        "torso"
       ]
     },
     "pickup": {
@@ -580,6 +1244,73 @@
         "torso"
       ]
     },
+    "sootling-lunge": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.3
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.5
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 0.8333
+        }
+      ],
+      "length": 0.8333,
+      "loop": "once",
+      "markers": {
+        "contact": 0.5,
+        "windup": 0.3
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    },
     "spin": {
       "keys": [
         {
@@ -713,6 +1444,274 @@
       "markers": {
         "contact": 0.15,
         "windup": 0.08
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    },
+    "warden-breath": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.48
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.8
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 1.5
+        }
+      ],
+      "length": 1.5,
+      "loop": "once",
+      "markers": {
+        "contact": 0.8,
+        "windup": 0.48
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    },
+    "warden-charge": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.4
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.6667
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 1.5
+        }
+      ],
+      "length": 1.5,
+      "loop": "once",
+      "markers": {
+        "contact": 0.6667,
+        "windup": 0.4
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    },
+    "warden-slam": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.4
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.6667
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 1.1667
+        }
+      ],
+      "length": 1.1667,
+      "loop": "once",
+      "markers": {
+        "contact": 0.6667,
+        "windup": 0.4
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    },
+    "warden-swipe": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  -10,
+                  -15,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.1,
+                  1.6,
+                  -0.25
+                ]
+              }
+            }
+          },
+          "t": 0.36
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  15,
+                  5,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0,
+                  1,
+                  0.6
+                ]
+              }
+            }
+          },
+          "t": 0.6
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 1
+        }
+      ],
+      "length": 1,
+      "loop": "once",
+      "markers": {
+        "contact": 0.6,
+        "windup": 0.36
       },
       "mask": [
         "armR",

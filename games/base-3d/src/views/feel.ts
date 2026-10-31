@@ -8,12 +8,13 @@ import type { FrameInfo } from '@mcthaydt/automata-runtime'
 import type { StepResult } from '@mcthaydt/automata-sim'
 import { CubeGeometry, FlatMaterial, Mesh3D, type View3D } from '@pixi/3d'
 import type { Container } from 'pixi.js'
-import { HitLanded } from '../events.ts'
+import { FoeDefeated, HitLanded } from '../events.ts'
 
 /** A hit as presentation keeps it: its power and kind, where it landed (metres), and when (presentation ms). */
 export interface FeltHit {
   readonly power: number
-  readonly kind: 'hit' | 'block' | 'parry'
+  /** A hit's kind, or `ash`: a beaten foe's burst (power 0, so no shake). */
+  readonly kind: 'hit' | 'block' | 'parry' | 'ash'
   readonly at: { readonly x: number; readonly z: number }
   readonly startMs: number
 }
@@ -27,8 +28,11 @@ const SPARK_MS = 150
 const SPARK_MS_REDUCED = 75
 /** How far the sparks fly out by the end, in metres. */
 const SPARK_SPREAD = 0.3
-/** The sparks' colours by kind: ember orange for a hit, ash grey for a block, flame yellow for a parry. */
-export const SPARK_COLOURS = { hit: 0xff9a3c, block: 0xc8c4be, parry: 0xffe066 } as const
+/**
+ * The sparks' colours by kind: ember orange for a hit, ash grey for a block, flame yellow for a parry, and dark ash
+ * for a beaten foe's burst (DESIGN.md §8.1 rule 6).
+ */
+export const SPARK_COLOURS = { hit: 0xff9a3c, block: 0xc8c4be, parry: 0xffe066, ash: 0x5a5353 } as const
 /** Where the sparks fly from: chest height, metres above the floor. */
 const SPARK_HEIGHT = 1.1
 
@@ -69,6 +73,24 @@ export function sparkFrame(
   const t = (nowMs - hit.startMs) / life
   if (t < 0 || t >= 1) return undefined
   return { spread: SPARK_SPREAD * t, alpha: 1 - t, colour: SPARK_COLOURS[hit.kind] }
+}
+
+/**
+ * What a step's events feel like, at `nowMs`: each `hit.landed` as its sparks and shake, and each `foe.defeated` as a
+ * burst of ash where the foe fell, with no shake.
+ */
+export function feltEvents(result: StepResult, nowMs: number): FeltHit[] {
+  const felt: FeltHit[] = []
+  for (const event of result.events) {
+    if (event.type === HitLanded.id) {
+      const hit = event.payload as { power: number; kind: FeltHit['kind']; x: number; z: number }
+      felt.push({ power: hit.power, kind: hit.kind, at: { x: hit.x / Q16, z: hit.z / Q16 }, startMs: nowMs })
+    } else if (event.type === FoeDefeated.id) {
+      const fallen = event.payload as { x: number; z: number }
+      felt.push({ power: 0, kind: 'ash', at: { x: fallen.x / Q16, z: fallen.z / Q16 }, startMs: nowMs })
+    }
+  }
+  return felt
 }
 
 /** Each burst's sparks fly out along these four diagonals in plan, and a little up. */
@@ -114,16 +136,7 @@ export function feelHooks(
 
   return {
     apply(result: StepResult) {
-      for (const event of result.events) {
-        if (event.type !== HitLanded.id) continue
-        const hit = event.payload as { power: number; kind: FeltHit['kind']; x: number; z: number }
-        hits.push({
-          power: hit.power,
-          kind: hit.kind,
-          at: { x: hit.x / Q16, z: hit.z / Q16 },
-          startMs: nowMs,
-        })
-      }
+      hits.push(...feltEvents(result, nowMs))
       if (hits.length > MAX_BURSTS) hits = hits.slice(-MAX_BURSTS)
     },
     draw(frame: FrameInfo) {

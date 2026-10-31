@@ -31,6 +31,7 @@ import { base3dScreens } from './screens/screens.ts'
 import { base3dSettings } from './screens/settings.ts'
 import { base3dSim } from './state/index.ts'
 import { compileWorld } from './systems/index.ts'
+import { ENEMY_FIGURES, enemyFigureState, enemyView } from './views/enemies.ts'
 import { feelHooks } from './views/feel.ts'
 import {
   buildScene,
@@ -173,8 +174,26 @@ export const base3d = defineGame({
             state: (c) => heroFigureState(c, targets.get(Number(c.hero?.lockTarget ?? 0)), WORLD.moves),
           }),
         ),
-        // The target faces back down the kiln toward the doorway (−z).
-        [Target.id]: inMetres(figure(figures.target as FigureDef, { library, motion, now }), Math.PI),
+        // Every `target` row: a training dummy as the target figure (facing back down the kiln toward the doorway,
+        // −z), and an enemy as its kind's placeholder figure or the Wisp's mask (GAME-3D.1d part 4).
+        [Target.id]: enemyView({
+          dummy: inMetres(figure(figures.target as FigureDef, { library, motion, now }), Math.PI),
+          figures: Object.fromEntries(
+            Object.values(ENEMY_FIGURES).map(({ figure: id }) => [
+              id,
+              inMetres(
+                figure(figures[id] as FigureDef, {
+                  library,
+                  motion,
+                  now,
+                  state: (c) => enemyFigureState(c, WORLD.moves),
+                }),
+              ),
+            ]),
+          ),
+          moves: WORLD.moves,
+          now: () => now() * 1000,
+        }),
       },
       camera: {
         views: AREA.views,

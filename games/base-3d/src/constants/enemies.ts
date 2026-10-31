@@ -54,6 +54,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
   {
     // The Sootling crouches with its eyes lit for 30 ticks, then bites a metre forward.
     id: 'sootling-lunge',
+    clip: 'sootling-lunge',
     total: 50,
     active: [31, 33],
     lunge: metres(1),
@@ -72,6 +73,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
   {
     // The Ash Knight raises its sword high for 30 ticks and chops.
     id: 'knight-chop',
+    clip: 'knight-chop',
     total: 56,
     active: [31, 34],
     hit: {
@@ -90,6 +92,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
     // It scrapes its shield for 24 ticks and bashes: no damage, but Wick is pushed 3 m back (10 m/s over his 18
     // ticks of hurt).
     id: 'knight-bash',
+    clip: 'knight-bash',
     total: 45,
     active: [25, 27],
     hit: { near: 0, far: metres(1.5), ...FLOOR_UP, dmg: 0, stop: 3, stun: 18, kb: metres(10), power: 1 },
@@ -98,6 +101,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
     // The Captain's combo (§8.3): a chop with a 30-tick windup, then at once a second with its own 20 (the combo's
     // tell is the first: a follow-up is exempt from §8.1 rule 1's 24 ticks).
     id: 'captain-chop-1',
+    clip: 'captain-chop-1',
     total: 50,
     active: [31, 34],
     next: 'captain-chop-2',
@@ -115,6 +119,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
   },
   {
     id: 'captain-chop-2',
+    clip: 'captain-chop-2',
     total: 44,
     active: [21, 24],
     hit: {
@@ -133,6 +138,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
     // The Warden's hammer slam (§8.4): 40 ticks raised, then a shockwave ring 2.5 m round it. A parry on its contact
     // kneels it 90 ticks with its grate open.
     id: 'warden-slam',
+    clip: 'warden-slam',
     total: 70,
     active: [41, 46],
     parried: 90,
@@ -152,6 +158,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
   {
     // The grate swipe: 36 ticks, blockable; a parry opens nothing.
     id: 'warden-swipe',
+    clip: 'warden-swipe',
     total: 60,
     active: [37, 44],
     parried: 0,
@@ -171,6 +178,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
     // Phase 2's ember breath: 48 ticks of inhale, its mouth open to a pellet (120 ticks of stagger), then a cone 70°
     // wide and 5 m long that no shield stops and a pillar does.
     id: 'warden-breath',
+    clip: 'warden-breath',
     total: 90,
     active: [49, 70],
     opening: { from: 1, to: 48, stagger: 120 },
@@ -190,6 +198,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
   {
     // The charge: 40 ticks, then 8 m in a straight line across the arena; a bomb in its path downs it 90 ticks.
     id: 'warden-charge',
+    clip: 'warden-charge',
     total: 90,
     active: [41, 70],
     lunge: metres(8),

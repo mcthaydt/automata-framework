@@ -1243,9 +1243,11 @@ const GOLDEN_KILN_TICK = 118
  * GAME-3D.1d part 3's Warden (was `4d222d95aa66c94b`): the move table gained the Warden's four moves (with `cone`,
  * `parried`, `opening` and `downed`) and the schema `enemy.phase` and the `boss.phase` and `boss.defeated` events.
  * The first slice has no foe: its rejected commands, events, kiln tick, locked ticks, action starts, end action and
- * end position are unchanged, and still asserted below.
+ * end position are unchanged, and still asserted below. Re-recorded for GAME-3D.1d part 4 (was `6cfedf97464a98e2`):
+ * the enemy moves name their clips (`clip`, in the content the hash covers) and `foe.defeated` gained the place the foe
+ * fell (`x`, `z`, in the schema). Nothing on the route changed: the same assertions hold unchanged.
  */
-const GOLDEN_HASH = '6cfedf97464a98e2'
+const GOLDEN_HASH = '1cc2582080223c43'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

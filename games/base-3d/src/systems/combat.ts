@@ -357,7 +357,7 @@ export const combatHits: SystemDef = defineSystem({
       landed('hit')
       if (health === 0 && !isHero) {
         defender.set(Fighter, { ...stamp, ...cancel, health, state: CombatState.defeated })
-        ctx.emit(FoeDefeated, { target: defender.sid })
+        ctx.emit(FoeDefeated, { target: defender.sid, x: at.x, z: at.z })
         ctx.despawn(defender.sid)
         // A beaten enemy may leave something where it fell: one roll on the seeded table (DESIGN.md §8.1 rule 6).
         if (kind?.rank === 'captain') ctx.emit(CaptainDefeated, { target: defender.sid })

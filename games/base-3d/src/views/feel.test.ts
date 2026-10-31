@@ -1,6 +1,8 @@
 // Shake and sparks (DESIGN.md §7.6): presentation from `hit.landed`, never read by the sim.
+import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
+import type { StepResult } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import { type FeltHit, SHAKE_MS, SPARK_COLOURS, shakeOffset, sparkFrame } from './feel.ts'
+import { type FeltHit, feltEvents, SHAKE_MS, SPARK_COLOURS, shakeOffset, sparkFrame } from './feel.ts'
 
 const hit = (power: number, startMs = 0, kind: FeltHit['kind'] = 'hit'): FeltHit => ({
   power,
@@ -39,5 +41,28 @@ describe('sparkFrame', () => {
   it('is shortened to 75 ms under reduced motion', () => {
     expect(sparkFrame(hit(1), 74, true)).toBeDefined()
     expect(sparkFrame(hit(1), 75, true)).toBeUndefined()
+  })
+})
+
+describe('feltEvents (GAME-3D.1d part 4: the ash burst)', () => {
+  const step = (events: { type: string; payload: unknown }[]) => ({ events }) as unknown as StepResult
+  it('feels a hit as its sparks and shake, and a beaten foe as a burst of ash with no shake, where it fell', () => {
+    const felt = feltEvents(
+      step([
+        {
+          type: 'hit.landed',
+          payload: { attacker: 1, target: 2, kind: 'parry', power: 2, x: Q16, z: 2 * Q16 },
+        },
+        { type: 'foe.defeated', payload: { target: 2, x: 3 * Q16, z: -Q16 } },
+        { type: 'drop.taken', payload: { kind: 1, amount: 1, x: 0, z: 0 } },
+      ]),
+      40,
+    )
+    expect(felt).toEqual([
+      { power: 2, kind: 'parry', at: { x: 1, z: 2 }, startMs: 40 },
+      { power: 0, kind: 'ash', at: { x: 3, z: -1 }, startMs: 40 },
+    ])
+    expect(shakeOffset([felt[1] as FeltHit], 40, false)).toEqual({ x: 0, y: 0 })
+    expect(sparkFrame(felt[1] as FeltHit, 40, false)?.colour).toBe(SPARK_COLOURS.ash)
   })
 })

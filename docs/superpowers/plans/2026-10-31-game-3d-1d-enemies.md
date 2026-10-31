@@ -171,6 +171,28 @@ the browsers project runs; the foe helpers moved to `src/testing/foes.ts`.
       `boss.defeated` tick and hash, pinned and run in the three browsers (`base-3d/golden-boss`).
 - [x] 7. Goldens re-recorded with the explanation; gates as part 1's.
 
+## Part 4: the look (interfaces and steps)
+
+Produced (base-3d only): placeholder figures `sootling`, `ash-knight`, `ash-captain`, `warden`
+(content/figures/) and one clip per figure-drawn enemy move (content/figure-clips/), each move naming its clip;
+`views/enemies.ts` (`enemyFigureState`, `windupGlow`, `DANGER`, `ENEMY_FIGURES`, `enemyView`); `feltEvents` and
+the `ash` spark kind (views/feel.ts); `foe.defeated` gains `x`, `z`.
+
+- [x] 1. Content: the enemy figures compile beside Wick and the target; every figure-drawn enemy move has its own
+      clip, once, as long as the move, with `contact` on its first active frame (G3-d) and no missing clip (G3-F7's
+      content half), content.test.ts.
+- [x] 2. `enemyFigureState`: walking while it closes in or circles; the running move's clip from its start, retimed;
+      a missing clip named as it is beside the walk (G3-F7's runtime half is the figure view's warn-once, owned and
+      tested by render-pixi3d, figure-view.test.ts).
+- [x] 3. `windupGlow`: orange and steady through a blockable windup, white-yellow and pulsing (40% to full) through
+      an unblockable one, none at the first active frame or for Wick's moves (§8.5).
+- [x] 4. The ash burst: `feltEvents` turns `foe.defeated` into dark ash sparks with no shake (failed first: no
+      `feltEvents`).
+- [x] 5. The page draws every `target` row through `enemyView`: the dummy as before, each kind as its figure scaled
+      to its height, the Wisp as a mask raised by its `lift`, and the glow at the eyes. Review images in
+      docs/evidence/owner-visual/2026-10-31-game-3d-1d/.
+- [x] 6. Goldens re-recorded with the explanation; gates as part 1's, plus the page build.
+
 ## Execution log
 
 **Part 1 (2026-10-31, branch `claude/3d-game-3d-1d`).**
@@ -259,3 +281,23 @@ asserted). `base-3d/golden-fights` (new): `e230d634075f5dde`, 763 ticks, recorde
 **Goldens (part 3).** `base-3d/golden-route` `4d222d95aa66c94b` → `6cfedf97464a98e2`; `base-3d/golden-fights`
 `a41116f82fa68a84` → `276ca92fcddd55ea` (content and schema only; every other assertion unchanged).
 `base-3d/golden-boss` (new, G3-c): defeat on tick 458, `6001e1c06a58eabe`.
+
+**Part 4 (2026-10-31, branch `claude/3d-game-3d-1d-4`).**
+
+- The content (figures, clips) was written before content.test.ts's new cases, so those passed on their first run;
+  `enemyFigureState` and `windupGlow` failed first on the missing module, and `feltEvents` on the missing export.
+- The first capture showed no Wisp: `enemyView` handed its box view the raw Q16.16 row, placing it 65,536 times too
+  far. It is now wrapped in `inMetres` as the figures are; the second capture shows it. There is no unit test for
+  this wiring (it needs a Pixi 3D stage); the review image is its evidence.
+- Moved out of 1d (defaults for the Owner's veto): the boss bar and the lock reticle's pulse on a token holder go
+  with §9.5's HUD (GAME-3D.1e: there is no HUD or reticle yet); the entry shot and the hearth shot go with the boss
+  room (GAME-3D.1i) and the shots of 1k (gap 7), since there is no room for them to frame yet.
+- Placeholders (1j replaces them): each figure is the target figure with its sliders and coat changed; the
+  Sootling is the 120 cm figure scaled to 0.9 m and the Warden the 240 cm figure scaled to 3.2 m (GAME3D-D20); the
+  Wisp is an orange box; each clip is one generated shape (the arm back through the windup, forward at contact).
+- The figure samples an enemy's clip from the move's start tick, which hitstop does not shift for enemies (it does
+  for Wick's `hero-action`), so an enemy's clip can run up to the hitstop's ticks ahead. It is presentation only;
+  1j's authored clips can revisit it.
+- Goldens: `base-3d/golden-route` `6cfedf97464a98e2` → `1cc2582080223c43`; `base-3d/golden-fights`
+  `276ca92fcddd55ea` → `72f569192c8c293d`; `base-3d/golden-boss` `6001e1c06a58eabe` → `b36cb175b4bade73`. The
+  moves' `clip` names (content) and `foe.defeated`'s `x`, `z` (schema); every other assertion unchanged.

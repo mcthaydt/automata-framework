@@ -263,9 +263,13 @@ async function replayBossFight(log: readonly Command[][]) {
   return { defeatedAt, hash }
 }
 
-/** The boss fight's defeat tick and final hash, with seed 1 (recorded in Node); every engine must end on both. */
+/**
+ * The boss fight's defeat tick and final hash, with seed 1 (recorded in Node); every engine must end on both.
+ * Re-recorded for part 4 (was `6001e1c06a58eabe`): the moves' `clip` names in the content and `foe.defeated`'s `x`
+ * and `z` in the schema; the same events and defeat tick, still asserted below.
+ */
 const BOSS_DEFEATED_AT = 458
-const BOSS_HASH = '6001e1c06a58eabe'
+const BOSS_HASH = 'b36cb175b4bade73'
 
 describe('the boss fight’s recorded log (G3-c)', () => {
   it('beats the Warden through a parried slam’s kneel and phase 2, and its log replays to the same defeat tick and hash', async ({
