@@ -48,7 +48,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 3. Mixer: bus routing, spatial pan and distance, ducking. Fails: no module.
    - [x] 3
 4. Driver: events at the drawn tick, patterns, silent entries, beds, `coverage`. Fails: no module.
-   - [ ] 4
+   - [x] 4
 5. Music: slots, `resolveSlot`, rules, the director. Fails: no module.
    - [ ] 5
 6. The extension; gates, provenance row, ready line.

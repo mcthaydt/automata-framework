@@ -21,3 +21,25 @@ export {
   WAVES,
   type Wave,
 } from './audio.schema'
+export {
+  type AudioSynth,
+  type AudioSynthOptions,
+  type Coverage,
+  coverage,
+  createAudioSynth,
+  rowFor,
+} from './audio-synth'
+export {
+  createMixer,
+  DISTANCE,
+  dbToGain,
+  type Listener,
+  type Mixer,
+  type MixerOptions,
+  type MixerPort,
+  PAN_WIDTH,
+  type PlayOptions,
+  type Spatial,
+  spatial,
+} from './mixer'
+export { cueLength, noiseBuffer, playCue, playVoice, startBed } from './synth'

@@ -2,6 +2,7 @@
 // switchable by the player. Presentation only.
 
 export { type Beat, Beats, type BeatsOptions } from './dynamics/beats'
+export { hash } from './dynamics/noise'
 export {
   createFeel,
   DEFAULT_SETTINGS,
