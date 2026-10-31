@@ -24,6 +24,7 @@ import { Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
+import { hudExtension } from './screens/hud.extension.ts'
 import { lockInput } from './screens/lock-input.ts'
 import { lockModeExtension } from './screens/lock-mode.extension.ts'
 import { base3dSaves } from './screens/saves.ts'
@@ -134,10 +135,15 @@ let simTick = 0
 const now = (): number => simTick / TICK_HZ
 /** The targets' rows by sid, for the hero's aim at the one he locks. */
 const targets = new Map<number, { readonly x: number; readonly z: number }>()
+/** The sid of the target Wick locks (0 for none), from his row, for the lock reticle (views/enemies.ts). */
+let lockedSid = 0
 
 const TITLE = 'The Cold Kiln'
-/** The camera's heading plugin and its `camera-view` content kind, and the Lock mode section in Settings. */
-const EXTENSIONS = [render3dExtension, lockModeExtension]
+/**
+ * The camera's heading plugin and its `camera-view` content kind, the Lock mode section in Settings, and the HUD on
+ * play.
+ */
+const EXTENSIONS = [render3dExtension, lockModeExtension, hudExtension]
 /** The stage, once the renderer has made it: the screens give it the player's graphics quality (M4.4). */
 let stage: { setQuality(tier: QualityTier): void } | undefined
 /** The one slot (state/save.ts): the menu lists it, and play keeps the loaded one saved. One instance for both. */
@@ -201,6 +207,7 @@ export const base3d = defineGame({
           ),
           moves: WORLD.moves,
           now: () => now() * 1000,
+          locked: () => lockedSid,
         }),
       },
       camera: {
@@ -228,6 +235,8 @@ export const base3d = defineGame({
             for (const row of [...result.render.added, ...result.render.changed]) {
               const target = row.components[Target.id]
               if (target !== undefined) targets.set(row.sid, { x: Number(target.x), z: Number(target.z) })
+              const hero = row.components[Hero.id]
+              if (hero !== undefined) lockedSid = Number(hero.lockTarget ?? 0)
             }
           },
         }

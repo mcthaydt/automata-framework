@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BrainState, ENEMIES, ENEMY_MOVES } from '../constants/enemies.ts'
 import { HERO_MOVES, TICK_HZ } from '../constants/index.ts'
-import { DANGER, ENEMY_FIGURES, enemyFigureState, windupGlow } from './enemies.ts'
+import { DANGER, ENEMY_FIGURES, enemyFigureState, reticleOf, windupGlow } from './enemies.ts'
 
 const MOVES = [...HERO_MOVES, ...ENEMY_MOVES]
 const index = (id: string) => MOVES.findIndex((move) => move.id === id) + 1
@@ -75,5 +75,24 @@ describe('ENEMY_FIGURES', () => {
       'ash-captain': { figure: 'ash-captain', scale: 1 },
       warden: { figure: 'warden', scale: 3.2 / 2.4 },
     })
+  })
+})
+
+describe('reticleOf (§8.1 rule 4, GAME-3D.1e part 5a)', () => {
+  const sootling = (token: boolean) => ({ enemy: { kind: kind('sootling'), token } })
+
+  it('shows over the locked enemy only', () => {
+    expect(reticleOf(7, sootling(false), 0, 0)).toBeUndefined()
+    expect(reticleOf(7, sootling(false), 8, 0)).toBeUndefined()
+    expect(reticleOf(7, { target: {} }, 7, 0)).toBeUndefined()
+    expect(reticleOf(7, sootling(false), 7, 0)).toEqual({ scale: 1 })
+  })
+
+  it('holds steady without a token and pulses while its target holds one', () => {
+    expect(reticleOf(7, sootling(false), 7, 200)).toEqual({ scale: 1 })
+    expect(reticleOf(7, sootling(true), 7, 0)).toEqual({ scale: 1 })
+    expect(reticleOf(7, sootling(true), 7, 200)).toEqual({ scale: 1.25 })
+    expect(reticleOf(7, sootling(true), 7, 100)?.scale).toBeCloseTo(1.125)
+    expect(reticleOf(7, sootling(true), 7, 400)).toEqual({ scale: 1 })
   })
 })

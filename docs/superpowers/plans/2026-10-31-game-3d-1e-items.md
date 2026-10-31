@@ -155,7 +155,71 @@ Produced: `Progress.maxHealth` (half-hearts; resources.ts); `newGame` with 4 hea
       the draw.
 - [x] 3. Goldens re-recorded with the explanation; gates as part 1's.
 
-Part 5 (the Items screen, the HUD and the map) gets its interfaces and steps here before its code.
+## Part 5: the HUD, the Items screen and the map (interfaces, rules, steps)
+
+Split in three pushes, stacked (branches `claude/3d-game-3d-1e-5`, `-1e-5b`, `-1e-5c`; worktree
+`/home/user/wt/game-3d-1e-5`): **5a** the HUD and the lock reticle, **5b** the Items screen and the 1/2/3 keys,
+**5c** the Map screen. Presentation and screens only: no sim schema change, so the goldens stay as part 4 left them
+(any change is a fault). Pause → Items and pause → Map still wait on GAME.PAUSE1.
+
+### 5a: the HUD (§9.5) and the lock reticle (§8.1 rule 4)
+
+Consumed: `Progress`, `Inventory` (resources.ts), `Hero`, `Fighter`, `Enemy` (components.ts), `ENEMIES`/`enemyOf`
+(constants/enemies.ts), `ItemCode` (constants/items.ts); the play screen's `hud.overlay` slot
+(`@mcthaydt/automata-game`, mounted with no props inside the visible region); ui's `InputMethodTracker`.
+
+Produced:
+- `screens/hud.ts`: `hudOf(sim): HudState` (`health`, `maxHealth`, `embers`, `equipped` `{ item, ammo? }` or none,
+  `boss` `{ name, health, max }` or none), `heartsOf(health, max)` (one `'full' | 'half' | 'empty'` a heart), and
+  `hudInPlay` (`{ sim }`, the running sim, set by the screens' `watchSim` as `settingsInPlay` holds the store).
+- `screens/Hud.svelte`: reads `hudOf(hudInPlay.sim)` every animation frame while mounted; hearts (top inline-start),
+  embers under them, the boss bar (top centre), the equipped item chip (bottom inline-end, not in touch mode: the
+  Item touch button's face is 1h's). `pointer-events: none` throughout (the HUD is never a control, M4.12).
+- `screens/hud.extension.ts`: `hudExtension` (`hud.overlay`), added to main.ts's `EXTENSIONS`.
+- `views/enemies.ts`: `reticleOf(sid, components, lockedSid, ms)` (`undefined`, or `{ scale }`), drawn as a flat
+  ring round the locked enemy's feet (deviation, see the log); `EnemyViewOptions.locked()` gives the hero's `lockTarget` sid (main.ts reads it from
+  the hero row it already draws).
+
+Rules:
+1. Hearts: `maxHealth / 2` hearts (a half-heart rounds up); health 7 of 10 is 3 full, 1 half, 1 empty.
+2. A drop in health flashes the hearts for 400 ms (presentation time; reduced motion keeps the flash, no shake).
+3. Embers show always; small keys wait on 1f's kiln keys (no sim state holds them yet).
+4. The equipped item: its name and, for the sling and bombs, the ammo (`Inventory.pellets`, `bombAmmo`); none
+   equipped hides the chip.
+5. The boss bar shows while a living Warden exists: its English name (the game has no message catalogue yet; the
+   names sit in one map for the locale work), its health of `ENEMIES`' 24, as a `meter` with an accessible label.
+6. The reticle shows over the enemy whose sid is the hero's `lockTarget`; while that enemy's `token` is set it pulses
+   (scale 1 to 1.25, 400 ms), else it holds at 1. A dummy or no lock: no reticle.
+
+- [x] 1. Tests (node, hud.test.ts): `heartsOf` half steps; `hudOf` on a started sim (4 hearts, 0 embers, nothing
+      equipped, no boss), after the save's sling and 12 pellets (`{ item: 'sling', ammo: 12 }`), and with a Warden
+      in a fight yard (`{ name: 'The Ashen Warden', health: 24, max: 24 }`).
+- [x] 2. Tests (node, views/enemies.test.ts): `reticleOf` none unlocked, steady without a token, pulsing with one.
+- [x] 3. DOM tests (screens.dom.test.ts, "the HUD"): the HUD on play shows the hearts, embers and the chip, flashes on a hurt,
+      shows the boss bar with a Warden, and is not on paused.
+- [x] 4. Layout tests (hud.layout.test.ts, 844×390 and 780×270, three engines): the hearts stay inside the visible
+      region, nothing overlaps the corner Pause, the boss bar clears the hearts, and in touch mode the touch row is
+      left to its buttons (the chip is not drawn there).
+- [x] 5. Review images (docs/evidence/owner-visual/2026-10-31-game-3d-1e-5/): play with the HUD, with the boss bar,
+      with the reticle; goldens unchanged; gates as part 1's.
+
+### 5b: the Items screen (§9.3) and the 1/2/3 keys (§14.2)
+
+Produced: `screens/ItemsScreen.svelte` and an `items` screen in BASE3D_FLOW (`play --items--> items --back--> play`,
+pausing the sim); a HUD chip "Items" and the I key open it; the grid of five slots (Sword, Shield, Sling with ammo,
+Bombs with count, Hookchain; unowned slots outlined), the heart pieces as quarters, embers; selecting an owned
+item sends `equip`; arrow keys and the D-pad move focus in the grid; Back and Escape return. The 1/2/3 keys send
+`equip` through a sender of their own in main.ts (`keys()` sends an idle payload every tick, and `equip` has none).
+Steps: DOM tests (open by I and the chip, equip, focus as a grid, Back), layout tests (844×390, 780×270: a declared
+scroll region, 44 px slots, the 48 px Back), review images.
+
+### 5c: the Map screen (§9.4)
+
+Produced: `screens/map.ts` (`mapOf(area, sim)`: each room's sectors as plan polygons from the compiled area, visited
+rooms, Wick's place and facing, the camera's heading) and `screens/MapScreen.svelte` (an SVG plan scaled to the
+container inside a declared scroll region at compact height, a fixed 44 px Close), opened by M and a corner Map
+button. Steps: node tests of `mapOf`, DOM tests (open by M and the button, Close, focus), layout tests (844×390,
+780×270), review images.
 
 ## Execution log
 
@@ -241,3 +305,29 @@ new game's value (no build has deployed a save yet); `equip` runs on frozen tick
 **Goldens (part 4).** `base-3d/golden-route` `ead70ed6a0084968` → `94925b319d992b19`; `base-3d/golden-fights`
 `b7d6c15114c2ba92` → `59b84ddde6bfeb94`; `base-3d/golden-boss` `c9d3f93da355ae54` → `de0bb982dcf6aa53`. Schema only
 (`progress.maxHealth`, `equip`, `item.equip`); every other assertion unchanged.
+
+**Part 5a (2026-10-31, branch `claude/3d-game-3d-1e-5`).**
+
+- Red first: hud.test.ts on the missing module, `reticleOf`'s cases on the missing export, and the three HUD DOM
+  cases ("timed out waiting for the HUD") with `hudExtension` left out of `EXTENSIONS`.
+- `heartsOf` first clamped health to the rounded-up hearts (an odd maximum of 7 showed 4 full hearts); it clamps to
+  the maximum now, as its case says.
+- The layout case at 780 × 270 caught the boss bar (46% wide) over a full row of 10 hearts; it is now as wide as
+  leaves a row of hearts and a gap clear on both sides, at most 22rem.
+- The review captures caught three faults, fixed: the native `<meter>` drew a thin green line (now a styled bar,
+  `role="meter"`); the figure branch still passed the old reticle argument after a formatter rewrap (NaN placement,
+  no ring; typecheck would have said so, and now passes); `@pixi/3d`'s torus is built flat, so the quarter turn
+  stood the ring up.
+- Deviation: the reticle is a flat ring round the target's feet, not over its head: over a 3.2 m Warden's head it
+  left the top of the view under the 25° camera. Its colour is cyan, apart from both danger colours.
+- The HUD reads the running sim each animation frame (`hudInPlay.sim`, set in the screens' `watchSim`, as
+  `settingsInPlay` holds the settings store): the `hud.overlay` slot mounts its component with no props.
+
+**Defaults (part 5a, for the Owner's veto):** the reticle on the floor round the feet, cyan; the item chip only off
+touch (the touch Item button's face is 1h's); the boss bar while any living Warden exists (1i's boss room will be the
+only place one lives); the boss's name in English from one map until a message catalogue exists; the hearts flash
+white-yellow for 400 ms on any loss of health; the HUD sits under the frame's corner row (the slot is the frame's
+body).
+
+**Goldens (part 5a).** Unchanged: route `94925b319d992b19`, fights `59b84ddde6bfeb94`, boss `de0bb982dcf6aa53`
+(no sim change).

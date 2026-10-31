@@ -12,14 +12,18 @@ import { definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import { createFakeHost, type FakeHost, type FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Hero } from '../components.ts'
+import { Enemy, Fighter, Hero } from '../components.ts'
+import { ENEMIES } from '../constants/enemies.ts'
 import { AREA_FADE_TICKS, metres } from '../constants/index.ts'
+import { ItemCode } from '../constants/items.ts'
 import { FIRST_SLICE } from '../content/first-slice.ts'
 import { HeroDefeated } from '../events.ts'
 import { base3d, input } from '../main.ts'
+import { Inventory } from '../resources.ts'
 import { base3dSim } from '../state/index.ts'
 import { newGame } from '../state/save.ts'
 import { compileWorld } from '../systems/index.ts'
+import { hudInPlay } from './hud.ts'
 import { base3dSaves } from './saves.ts'
 import { base3dScreens, SPLASH_MS } from './screens.ts'
 import type { Base3dSettings } from './settings.ts'
@@ -562,6 +566,65 @@ describe("base-3d's flow", () => {
       step(AREA_FADE_TICKS)
       await until(() => fade()?.dataset.state === 'in', 'the fade back in')
       expect(wick()?.z).toBeGreaterThanOrEqual(metres(8))
+    })
+  })
+  describe('the HUD (DESIGN.md §9.5, GAME-3D.1e part 5a)', () => {
+    const hud = () => root.querySelector<HTMLElement>('[data-testid="hud"]')
+    const hearts = () =>
+      [...root.querySelectorAll<SVGElement>('[data-testid="hud-hearts"] svg')].map(
+        (heart) => heart.dataset.fill,
+      )
+    const running = () => {
+      if (hudInPlay.sim === undefined) throw new Error('no running sim')
+      return hudInPlay.sim
+    }
+    /** The HUD reads the sim on the next animation frame. */
+    const nextFrame = () => new Promise((resolve) => window.requestAnimationFrame(resolve))
+
+    it('shows Wick’s 4 hearts and the embers on play, inside the frame, and is gone on paused', async () => {
+      await toRoom()
+      await until(() => hud() !== null, 'the HUD')
+      expect(root.querySelector('[data-testid="play-screen"]')?.contains(hud())).toBe(true)
+      expect(hearts()).toEqual(['full', 'full', 'full', 'full'])
+      expect(root.querySelector('[data-testid="hud-hearts"]')?.getAttribute('aria-label')).toBe(
+        'Hearts 4 of 4',
+      )
+      expect(root.querySelector('[data-testid="hud-embers"]')?.textContent?.trim()).toBe('0')
+      expect(root.querySelector('[data-testid="hud-item"]')).toBeNull()
+      expect(root.querySelector('[data-testid="hud-boss"]')).toBeNull()
+      key('keydown', 'Escape')
+      await until(() => screen() === 'paused', 'paused')
+      expect(hud()).toBeNull()
+    })
+
+    it('loses half-hearts as Wick is hurt, flashing the hearts', async () => {
+      await toRoom()
+      await until(() => hud() !== null, 'the HUD')
+      const [wick] = running().query(Hero, Fighter)
+      wick?.set(Fighter, { health: 5 })
+      await until(() => hearts().join() === 'full,full,half,empty', 'the hearts after the hurt')
+      expect(root.querySelector('.b3-hud__hearts--flash')).not.toBeNull()
+      await new Promise((resolve) => setTimeout(resolve, 450))
+      await nextFrame()
+      expect(root.querySelector('.b3-hud__hearts--flash')).toBeNull()
+    })
+
+    it('shows the equipped item and its ammo, and the boss bar while a Warden lives', async () => {
+      await toRoom()
+      await until(() => hud() !== null, 'the HUD')
+      Object.assign(running().resource(Inventory), { sling: true, equipped: ItemCode.sling, pellets: 12 })
+      const warden = ENEMIES.findIndex((type) => type.id === 'warden') + 1
+      running().spawn([
+        [Enemy, { kind: warden }],
+        [Fighter, { health: 17 }],
+      ])
+      await until(() => root.querySelector('[data-testid="hud-boss"]') !== null, 'the boss bar')
+      expect(root.querySelector('[data-testid="hud-item"]')?.textContent).toContain('Spark Sling')
+      expect(root.querySelector('[data-testid="hud-item"]')?.textContent).toContain('× 12')
+      const bar = root.querySelector<HTMLElement>('[data-testid="hud-boss"] [role="meter"]')
+      expect(root.querySelector('[data-testid="hud-boss"]')?.textContent).toContain('The Ashen Warden')
+      expect([bar?.getAttribute('aria-valuenow'), bar?.getAttribute('aria-valuemax')]).toEqual(['17', '24'])
+      expect(bar?.getAttribute('aria-label')).toBe('The Ashen Warden health')
     })
   })
 })

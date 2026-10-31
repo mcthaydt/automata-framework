@@ -4,7 +4,7 @@
 import { box, type FigureViewState, type View3dFactory } from '@mcthaydt/automata-render-pixi3d'
 import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { FieldRecord } from '@mcthaydt/automata-sim'
-import { CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
+import { type Container3D, CubeGeometry, FlatMaterial, Mesh3D, TorusGeometry } from '@pixi/3d'
 import { BrainState, ENEMY_MOVES, enemyOf } from '../constants/enemies.ts'
 import { type MoveDef, TICK_HZ } from '../constants/index.ts'
 import { inMetres } from './index.ts'
@@ -72,6 +72,27 @@ export function windupGlow(
   return { colour: DANGER.unblockable, strength: 0.4 + 0.6 * Math.abs(1 - 2 * phase) }
 }
 
+/** The lock reticle's pulse while its target holds a token (§8.1 rule 4): once every this many ms, up to `RETICLE_GROW`. */
+const RETICLE_PULSE_MS = 400
+const RETICLE_GROW = 0.25
+
+/**
+ * The lock reticle over the enemy `sid` (§8.1 rule 4): shown while it is the hero's lock target (`lockedSid`, 0 for
+ * none), and pulsing while it holds an attack token, so the player sees which locked foe may attack next. A training
+ * dummy (no `enemy` row) has none.
+ */
+export function reticleOf(
+  sid: number,
+  components: Components,
+  lockedSid: number,
+  ms: number,
+): { readonly scale: number } | undefined {
+  if (lockedSid === 0 || sid !== lockedSid || components.enemy === undefined) return undefined
+  if (components.enemy.token !== true) return { scale: 1 }
+  const phase = (ms % RETICLE_PULSE_MS) / RETICLE_PULSE_MS
+  return { scale: 1 + RETICLE_GROW * (1 - Math.abs(1 - 2 * phase)) }
+}
+
 /** `colour` (0xRRGGBB) with each channel scaled by `strength` (0 to 1). */
 const dimmed = (colour: number, strength: number): number =>
   [16, 8, 0].reduce((sum, shift) => sum + (Math.round(((colour >> shift) & 0xff) * strength) << shift), 0)
@@ -84,6 +105,41 @@ export interface EnemyViewOptions {
   readonly moves: readonly MoveDef[]
   /** Presentation time in ms, for the pulse. */
   readonly now: () => number
+  /** The sid of the hero's lock target (0 for none), for the reticle. */
+  readonly locked: () => number
+}
+
+/** The reticle's colour: the palette's cyan, apart from both colours of danger (§8.5), so a lock never reads as a windup. */
+const RETICLE_COLOUR = 0x2ce8f5
+
+/** The reticle torus's radius, in metres, before it is sized to its enemy. */
+const RETICLE_RADIUS = 0.35
+/** How far the ring lies outside the enemy's hurt cylinder, in metres. */
+const RETICLE_MARGIN = 0.15
+
+/**
+ * Adds the lock reticle (`reticleOf`) to an enemy's `container`: a flat ring round its feet (`floor`, in the
+ * container's own units), a little wider than its hurt cylinder (`radius`, metres) whatever the container's `scale`,
+ * so it stays in view under the 25° camera for a 3.2 m Warden as for a Sootling. Returns the update that shows, hides
+ * and pulses it.
+ */
+function addReticle(
+  container: Container3D,
+  geometry: TorusGeometry,
+  place: { readonly floor: number; readonly radius: number; readonly scale: number },
+  sid: number,
+  options: EnemyViewOptions,
+): (curr: Components) => void {
+  const ring = new Mesh3D({ geometry, material: new FlatMaterial({ baseColor: RETICLE_COLOUR }) })
+  ring.position.set(0, place.floor + 0.03 / place.scale, 0)
+  ring.visible = false
+  container.addChild(ring)
+  const size = (place.radius + RETICLE_MARGIN) / RETICLE_RADIUS / place.scale
+  return (curr) => {
+    const shown = reticleOf(sid, curr, options.locked(), options.now())
+    ring.visible = shown !== undefined
+    if (shown !== undefined) ring.scale.set(size * shown.scale, size * shown.scale, size * shown.scale)
+  }
 }
 
 /** The Wisp's ember mask until 1j authors its mesh: a small lit box, carried at its hover height. */
@@ -95,17 +151,32 @@ const wispMask = inMetres(box({ width: 0.45, height: 0.5, depth: 0.2 }, { color:
  */
 export function enemyView(options: EnemyViewOptions): View3dFactory {
   const glowGeometry = new CubeGeometry({ width: 0.12, height: 0.06, depth: 0.06 })
+  const reticleGeometry = new TorusGeometry({
+    radius: RETICLE_RADIUS,
+    tube: 0.03,
+    radialSegments: 6,
+    tubularSegments: 24,
+  })
   return (row, componentId, models, light) => {
     const type = enemyOf(Number(row.components.enemy?.kind ?? 0))
     if (type === undefined) return options.dummy(row, componentId, models, light)
     if (type.id === 'wisp') {
       const view = wispMask(row, componentId, models, light)
       if (view === undefined) return undefined
+      // Round the mask, at its hover height: the floor under a Wisp is no help in telling which one is locked.
+      const reticle = addReticle(
+        view.container,
+        reticleGeometry,
+        { floor: 0, radius: type.radius / Q16, scale: 1 },
+        row.sid,
+        options,
+      )
       return {
         ...view,
         update(curr, prev, alpha) {
           view.update?.(curr, prev, alpha)
           view.container.position.y = Number(curr.fighter?.lift ?? 0) / Q16
+          reticle(curr)
         },
       }
     }
@@ -122,6 +193,13 @@ export function enemyView(options: EnemyViewOptions): View3dFactory {
     glow.position.set(0, (type.height / Q16 / drawn.scale) * 0.93, 0.12)
     glow.visible = false
     view.container.addChild(glow)
+    const reticle = addReticle(
+      view.container,
+      reticleGeometry,
+      { floor: 0, radius: type.radius / Q16, scale: drawn.scale },
+      row.sid,
+      options,
+    )
     return {
       container: view.container,
       update(curr, prev, alpha) {
@@ -129,6 +207,7 @@ export function enemyView(options: EnemyViewOptions): View3dFactory {
         const lit = windupGlow(curr, options.moves, options.now())
         glow.visible = lit !== undefined
         if (lit !== undefined) (glow.material as FlatMaterial).baseColor = dimmed(lit.colour, lit.strength)
+        reticle(curr)
       },
       destroy: () => view.destroy?.(),
     }

@@ -19,6 +19,7 @@ import { continueWith3Hearts } from '../state/index.ts'
 import { areaFade } from './area-fade.ts'
 import EndScreen from './EndScreen.svelte'
 import GameOverScreen from './GameOverScreen.svelte'
+import { hudInPlay } from './hud.ts'
 import type { LockInput } from './lock-input.ts'
 import SplashScreen from './SplashScreen.svelte'
 import { lockModeOf, settingsInPlay } from './settings.ts'
@@ -82,6 +83,7 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
     watchSim: (sim) => {
       if (sim !== running) entrance = sim?.snapshot()
       running = sim
+      hudInPlay.sim = sim
       game.watchSim?.(sim)
     },
   })
