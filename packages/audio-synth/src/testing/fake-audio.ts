@@ -17,6 +17,7 @@ export interface FakeNode {
   readonly connections: FakeNode[]
   readonly calls: string[]
   props: Record<string, unknown>
+  context?: unknown
   connect(to: FakeNode): FakeNode
 }
 export interface FakeContext {
@@ -62,6 +63,8 @@ const PARAMS: Record<string, string[]> = {
 /** A context whose `create*` methods give recording nodes. */
 export function fakeContext(sampleRate = 8000): FakeContext & Record<string, unknown> {
   const nodes: FakeNode[] = []
+  // eslint-disable-next-line prefer-const
+  let ctx!: Record<string, unknown> & FakeContext
   const make = (kind: string): FakeNode => {
     const calls: string[] = []
     const node: FakeNode = {
@@ -80,10 +83,11 @@ export function fakeContext(sampleRate = 8000): FakeContext & Record<string, unk
       start: (t?: number) => calls.push(`start ${round(t ?? 0)}`),
       stop: (t?: number) => calls.push(`stop ${round(t ?? 0)}`),
     })
+    node.context = ctx
     nodes.push(node)
     return node
   }
-  const ctx = {
+  ctx = {
     nodes,
     currentTime: 0,
     sampleRate,
