@@ -22,11 +22,14 @@ UI text, so there is nothing else to change for ADR 0006 here.
 ## Steps
 
 - [x] 1. Plan (this file).
-- [ ] 2. The label case in `level-project.test.ts` and the DOM test's names fail on the old labels; change the labels;
+- [x] 2. The label case in `level-project.test.ts` and the DOM test's names fail on the old labels; change the labels;
   editor-2d unit+dom pass.
-- [ ] 3. Mockup words; `node docs/design/editor-2d/build.mjs list` still lists the export screen.
+- [x] 3. Mockup words; `node docs/design/editor-2d/build.mjs list` still lists the export screen.
 - [ ] 4. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, editor-2d `test:parity`.
 
 ## Execution log
 
 - 2026-10-31: plan written on `claude/ed2d-7b-export` at `a92db28d`.
+- 2026-10-31, steps 2 and 3: the label case and the two Export view cases failed on the old labels (3 failed), then
+  pass; editor-2d unit+dom 154 files, 2529 tests. The mockup's export screen is now "Export · project file and game
+  files" and its second target "Game files"; `build.mjs list` lists it.

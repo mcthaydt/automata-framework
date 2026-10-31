@@ -103,8 +103,8 @@ const stray = (project: Project): Project =>
 describe('Export view', () => {
   it('lists both targets checked, every file with its size, and the total', async () => {
     const { path } = await mount()
-    expect(target(/Working file/)).toBeChecked()
-    expect(target(/AF content/)).toBeChecked()
+    expect(target(/Project file/)).toBeChecked()
+    expect(target(/Game files/)).toBeChecked()
     expect(files()).toEqual(expect.arrayContaining([path, 'project.toml', 'world.toml']))
     expect(files().some((file) => /^levels\/.+\.toml$/.test(file))).toBe(true)
     expect(screen.getByText(/^\d+ files · \d+(\.\d)? KB$/)).toBeInTheDocument()
@@ -123,9 +123,9 @@ describe('Export view', () => {
     expect(await screen.findByText(`Downloaded ${count} files.`)).toBeInTheDocument()
   })
 
-  it('shares or copies the one file left when AF content is unchecked', async () => {
+  it('shares or copies the one file left when Game files is unchecked', async () => {
     const { shared, copied, path } = await mount()
-    await userEvent.click(target(/AF content/))
+    await userEvent.click(target(/Game files/))
     expect(files()).toEqual([path])
     await userEvent.click(button('Copy'))
     expect(copied).toEqual([expect.stringContaining('"format": "af2d"')])
