@@ -17,15 +17,19 @@ import type { GeometryState } from '@mcthaydt/automata-ui'
 import { SvelteMap } from 'svelte/reactivity'
 import { type AskState, createAskSession } from '../core/ask-session'
 import type { Pill } from '../core/pills-model'
+import type { ReviewChangeSet } from '../core/review-model'
 import type { WriteOutcome } from '../core/write-path'
 import AskDialog from './AskDialog.svelte'
 import type { Suite } from './create-suite'
 import Home from './Home.svelte'
 import type { EditorCard, HomeState } from './home-model'
+import InterchangeDialog from './InterchangeDialog.svelte'
 import ReadOnlyFile from './ReadOnlyFile.svelte'
+import ReviewDesk from './ReviewDesk.svelte'
+import ShipDialog from './ShipDialog.svelte'
 import SuitePills from './SuitePills.svelte'
 import SuiteRail from './SuiteRail.svelte'
-import { SUITE_ENTRIES } from './suite-entries'
+import { PROVIDERS, SUITE_ENTRIES } from './suite-entries'
 import { createSuiteSession } from './suite-session'
 import TitlePrompt from './TitlePrompt.svelte'
 
@@ -76,7 +80,12 @@ $effect(() => {
 
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills,
 // Undo and Ask follow it. The session lives as long as the suite; a reload reads the pills back from the journal.
-const editing = $derived(createSuiteSession(ports))
+const editing = $derived(
+  createSuiteSession(ports, {
+    installed: suite.editors.map((editor) => editor.id),
+    provider: (id) => PROVIDERS[id],
+  }),
+)
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
@@ -156,19 +165,40 @@ function refused(outcome: WriteOutcome | undefined): void {
   toasts.push({ kind: 'error', message })
 }
 
+// With no editor open, Undo and Redo step the suite's own history (an import, EDS-D19).
 async function undo(): Promise<void> {
-  if (undoHook === undefined || !history.canUndo) return
+  if (!history.canUndo) return
   const outcome = await editing.undo()
-  if (outcome !== undefined && 'written' in outcome) undoHook.undo()
+  if (outcome !== undefined && 'written' in outcome) undoHook?.undo()
   else refused(outcome)
 }
 
 async function redo(): Promise<void> {
-  if (undoHook === undefined || !history.canRedo) return
+  if (!history.canRedo) return
   const outcome = await editing.redo()
-  if (outcome !== undefined && 'written' in outcome) undoHook.redo()
+  if (outcome !== undefined && 'written' in outcome) undoHook?.redo()
   else refused(outcome)
 }
+
+// Ship (flow 9), the Review desk (flow 10) and Export and Import (flow 11).
+let shipOpen = $state(false)
+let shipReview = $state<ReviewChangeSet>()
+let shipDraft = $state<{ readonly title: string; readonly body: string }>()
+let reviews = $state<readonly ReviewChangeSet[]>()
+let interchange = $state<'export' | 'import'>()
+
+async function openShip(): Promise<void> {
+  const [open] = await editing.review()
+  shipReview = open
+  shipDraft = await editing.draft()
+  shipOpen = true
+}
+
+$effect(() => {
+  if (entry?.id !== 'review') return
+  reviews = undefined
+  void editing.review().then((read) => (reviews = read))
+})
 
 async function accept(): Promise<void> {
   const outcome = await ask?.accept()
@@ -234,7 +264,7 @@ function openCard(card: EditorCard): void {
     <div class="tools" data-scroll-region="both">
     <SuitePills {pills} {compact} onlocate={locate} />
     <span class="spacer"></span>
-    {#if undoHook !== undefined}
+    {#if undoHook !== undefined || history.canUndo || history.canRedo}
       <Button disabled={!history.canUndo} aria-label={history.canUndo ? `Undo ${history.undoLabel}` : 'Undo'} onclick={undo}
         >↶</Button
       >
@@ -243,6 +273,7 @@ function openCard(card: EditorCard): void {
       >
     {/if}
     {#if ask !== undefined}<Button onclick={() => (askOpen = true)}>Ask</Button>{/if}
+    {#if editing.canShip()}<Button variant="primary" onclick={() => void openShip()}>Ship</Button>{/if}
     {#if mounted?.editor.regions.tools}{@render mounted.editor.regions.tools(mounted.session)}{/if}
     </div>
     {#if mounted && mode !== 'wide'}
@@ -263,11 +294,15 @@ function openCard(card: EditorCard): void {
     {:else if mounted}
       {@render mounted.editor.regions.canvas(mounted.session)}
     {:else if entry === undefined}
-      <Home title="This game's editors" {home} empty="The editor list names no files." onopen={openCard} onread={(file) => (reading = file)} />
+      <div class="home">
+        <div class="share">
+          <Button onclick={() => (interchange = 'export')}>Export</Button>
+          <Button onclick={() => (interchange = 'import')}>Import</Button>
+        </div>
+        <Home title="This game's editors" {home} empty="The editor list names no files." onopen={openCard} onread={(file) => (reading = file)} />
+      </div>
     {:else if entry.id === 'review'}
-      <Home title="Review" {home} empty="" onopen={openCard} onread={(file) => (reading = file)}>
-        <p class="note">The Review desk comes in a later update. Your files are safe.</p>
-      </Home>
+      <ReviewDesk {reviews} />
     {:else}
       <Home
         title={entry.label}
@@ -295,6 +330,23 @@ function openCard(card: EditorCard): void {
     onreject={() => ask?.reject()}
     onrewrite={() => void ask?.rewrite()}
     onclose={() => (askOpen = false)}
+  />
+{/if}
+<ShipDialog
+  open={shipOpen}
+  review={shipReview}
+  draft={shipDraft}
+  onship={(draft) => editing.ship(draft)}
+  onclose={() => (shipOpen = false)}
+/>
+{#if interchange !== undefined}
+  <InterchangeDialog
+    open
+    mode={interchange}
+    onexport={(format) => editing.exportGame(format)}
+    onplan={(text) => editing.planImport(text, (path) => (askTarget?.path === path ? askTarget.locked() : []))}
+    onapply={(plan) => editing.applyImport(plan)}
+    onclose={() => (interchange = undefined)}
   />
 {/if}
 <ToastRegion {toasts} />
@@ -336,8 +388,16 @@ function openCard(card: EditorCard): void {
     padding: var(--space-5);
     background: var(--color-bg-app);
   }
-  .note {
-    margin: 0;
-    color: var(--color-text-dim);
+  .home {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+  }
+  .share {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-end;
+    padding: var(--space-3) var(--space-5) 0;
+    background: var(--color-bg-app);
   }
 </style>

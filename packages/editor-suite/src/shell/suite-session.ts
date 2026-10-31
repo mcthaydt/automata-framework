@@ -2,10 +2,25 @@
 // write path, the ports an editor is opened with (the same ports, except that `workspace.write` takes the write path,
 // so every editor's edit is checked, written once and journalled), the three pills, and the title prompt the first
 // write waits on. The pills are read back from the change set's journal, so a reload shows what it held (EDS-z).
-import type { ChangeSetCheck, GateState, SuitePorts } from '@mcthaydt/automata-editor-kit/ports'
+import type { ChangeSet, ChangeSetCheck, GateState, SuitePorts } from '@mcthaydt/automata-editor-kit/ports'
+import { loadEditorList } from '../core/editor-list'
+import { EDITOR_LIST_PATH } from '../core/editors.schema'
+import { applyImport, exportInterchange, type ImportPlan, planImport } from '../core/interchange'
 import { changeSetPill, checksPill, gatesPill, type Pill } from '../core/pills-model'
 import { changedPaths, reopenedGates } from '../core/reopened-gates'
+import { type ReviewChangeSet, reviewModel } from '../core/review-model'
+import { draftShip } from '../core/ship-draft'
 import { createWritePath, type WriteOutcome, type WritePath } from '../core/write-path'
+
+/** What Ship gives back: the port's result, or the reason it failed (the commits stay local, §11). */
+export type ShipOutcome = Awaited<ReturnType<ChangeSet['ship']>> | { readonly error: string }
+
+export interface SuiteSessionOptions {
+  /** The editor ids this build has: an import's section for any other is refused as not installed. */
+  readonly installed?: readonly string[] | undefined
+  /** The package that brings an editor id. */
+  readonly provider?: ((editor: string) => string | undefined) | undefined
+}
 
 export interface SuiteSession {
   /** The ports editors are opened with. */
@@ -25,6 +40,18 @@ export interface SuiteSession {
   redo(): Promise<WriteOutcome | undefined>
   /** Reads the journal and the gate records again. */
   refresh(): Promise<void>
+  /** True when there is a change set port, so Ship is shown. */
+  canShip(): boolean
+  /** The open change sets as the Review desk shows them. */
+  review(): Promise<readonly ReviewChangeSet[]>
+  /** The Ship description drafted from the open change set, or `undefined` with none open. */
+  draft(): Promise<{ readonly title: string; readonly body: string } | undefined>
+  ship(draft: { readonly title: string; readonly body: string }): Promise<ShipOutcome>
+  /** The interchange document of the listed files (of one scene, or the whole game). */
+  exportGame(format: 'toml' | 'json', scene?: string): Promise<string>
+  planImport(text: string, locked?: (path: string) => readonly string[]): Promise<ImportPlan>
+  /** Applies a plan as one undo step, its `after` checks followed on the pills. */
+  applyImport(plan: ImportPlan): Promise<WriteOutcome | { readonly refused: 'plan' }>
   /** The label the next routed write records (the editor's own undo label when it has one). */
   label: () => string
   subscribe(listener: () => void): () => void
@@ -50,7 +77,7 @@ function resultOf(outcome: WriteOutcome, mtime: number | undefined) {
   return { ok: false as const, reason: outcome.reason, message: outcome.message }
 }
 
-export function createSuiteSession(raw: SuitePorts): SuiteSession {
+export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions = {}): SuiteSession {
   const listeners = new Set<() => void>()
   const changed = () => {
     for (const listener of listeners) listener()
@@ -103,6 +130,22 @@ export function createSuiteSession(raw: SuitePorts): SuiteSession {
     await refresh()
   }
 
+  async function review(): Promise<readonly ReviewChangeSet[]> {
+    if (raw.changeSet === undefined) return []
+    const summaries = await raw.changeSet.list()
+    const files = await raw.workspace.files()
+    return Promise.all(
+      summaries.map(async (summary) => {
+        const ids = reopenedGates(files, changedPaths(summary.writes))
+        const states =
+          raw.gates === undefined
+            ? undefined
+            : await raw.gates.states(ids).catch((error: unknown) => ({ error: messageOf(error) }))
+        return reviewModel(summary, files, states)
+      }),
+    )
+  }
+
   const session: SuiteSession = {
     ports: {
       ...raw,
@@ -139,6 +182,48 @@ export function createSuiteSession(raw: SuitePorts): SuiteSession {
       return outcome
     },
     refresh,
+    canShip: () => raw.changeSet !== undefined,
+    review,
+    async draft() {
+      const [open] = await review()
+      return open === undefined ? undefined : draftShip(open)
+    },
+    async ship(draft) {
+      if (raw.changeSet === undefined) return { error: 'There is no change set to ship.' }
+      try {
+        return await raw.changeSet.ship(draft)
+      } catch (error) {
+        return { error: messageOf(error) }
+      } finally {
+        await refresh()
+      }
+    },
+    async exportGame(format, scene) {
+      const listed = await raw.workspace.files(undefined, scene)
+      const files = []
+      for (const file of listed) {
+        const read = await raw.workspace.read(file.path)
+        if (read !== undefined) files.push({ path: file.path, editor: file.editor, text: read.text })
+      }
+      return exportInterchange(files, scene === undefined ? { format } : { format, scene })
+    },
+    async planImport(text, locked = () => []) {
+      const load = loadEditorList((await raw.workspace.read(EDITOR_LIST_PATH))?.text)
+      if (!load.ok) return { error: `${EDITOR_LIST_PATH} has a problem, so nothing can be imported.` }
+      return planImport(text, {
+        list: load.list,
+        read: (path) => raw.workspace.read(path),
+        installed: options.installed ?? [],
+        provider: options.provider,
+        locked,
+      })
+    },
+    async applyImport(plan) {
+      const outcome = await applyImport(plan, writePath)
+      await refresh()
+      if ('written' in outcome) void follow(outcome)
+      return outcome
+    },
     label: () => 'Edit',
     subscribe(listener) {
       listeners.add(listener)
