@@ -54,7 +54,7 @@ the editor panels (EDS.5b).
 Each step: write the test, see it fail for the stated reason, write the minimum, see it pass.
 
 1. `measure`: WAV round trip, loudness, true peak, clicks, decay. Fails: no module.
-   - [ ] 1
+   - [x] 1
 2. `render`: cue, bed, mix, duck on a fake offline context (node), seeded. Fails: no module.
    - [ ] 2
 3. The browser runner: renders a cue in real Chromium and the samples match the fake-context expectations (length, non-silence, same twice). Fails: no module.
