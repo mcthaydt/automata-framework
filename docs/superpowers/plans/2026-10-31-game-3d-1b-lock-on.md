@@ -35,9 +35,9 @@ Produced (base-3d only; no package API changes):
 | `Lock` (changed) | commands.ts | `{ down: boolean, mode: 'toggle' \| 'hold' }`: the player's Lock mode reaches the sim as command data, never as a settings read |
 | `LockCycle` (new) | commands.ts | `lock-cycle { dir: 1 \| -1 }`: 1 the next target clockwise seen from above, −1 anticlockwise |
 | `Hero.lockHidden` (new) | components.ts | `u32`: consecutive ticks the locked target has been out of line of sight |
-| `HeroControl.lockMode`, `cycle` (new) | components.ts | `bool` hold flag; `i32` this tick's cycle (0 none) |
-| `LOCK_FALLBACK`, `LOCK_BREAK`, `LOCK_HIDDEN_TICKS`, `LOCK_CONE_COS2`, `LOCK_ASSIST_LIMIT`, `LOCK_ASSIST_PER_TICK` | constants.ts | 6 m, 15 m, 60, cos²60° as 1/4, 8,192 (45°), 546 |
-| `lockCandidates`, `selectLock`, `cycleLock`, `lineOfSight` | systems/lock-target.ts (new, pure) | the selection math, testable without a sim |
+| `HeroControl.lockHold`, `lockCycle` (new) | components.ts | `bool` hold flag (kept when no command comes); `i32` this tick's cycle (0 none) |
+| `LOCK_FALLBACK`, `LOCK_BREAK`, `LOCK_HIDDEN_TICKS`, `LOCK_ASSIST_LIMIT`, `LOCK_ASSIST_PER_TICK` | constants.ts | 6 m, 15 m, 60, 8,192 (45°), 546 (the cone's cos² 60° = 1/4 is written in `selectLock`) |
+| `lockCandidates`, `selectLock`, `cycleLock`, `lineOfSight`, `angleOf`, `signedTurn` | systems/lock-target.ts (new, pure) | the selection math, testable without a sim; `angleOf`/`signedTurn` moved here from hero.ts (one copy) |
 | `lockAssist` (new system) | systems/lock-on.ts | `lock.assist`, prePhysics after `lock.select` |
 
 ## Rules as implemented (DESIGN §11, with the interpretations recorded)
@@ -48,7 +48,7 @@ Produced (base-3d only; no package API changes):
 2. **Cone and score:** the camera's forward is `mapStick({0, -127}, heading)`. A candidate is inside the ±60° cone
    when `dot > 0` and `4·dot² ≥ |d|²·|f|²`, on plan offsets truncated to 1/16 m (Q4) so every product stays exact.
    Angle rank compares `dot²·|d_b|²` against `dot_b²·|d|²` (larger cosine first), distance rank compares squared
-   Q16 distances; ranks are dense (equal values share a rank). The smallest `angleRank × 4 + distanceRank` wins; a
+   Q16 distances; a rank counts the candidates strictly better (equal values share a rank). The smallest `angleRank × 4 + distanceRank` wins; a
    tie goes to the lower entity id.
 3. **Fallback:** an empty cone takes the nearest candidate within 6 m in any direction (tie: lower id).
 4. **Recentre:** no candidate at all sets the heading to Wick's facing, only in a view with `rotate`; the view eases
@@ -56,7 +56,10 @@ Produced (base-3d only; no package API changes):
 5. **Lock mode:** toggle: a press locks (or recentres), the next press releases, the button's release does nothing.
    Hold: a press locks, the release lets go (today's rule).
 6. **While locked:** the stick maps through the Wick-to-target yaw (the lock axis) instead of the heading, so "stick
-   right" circles the target clockwise and `moveDir` is −16,384 within a unit at every heading (G3-f). With the
+   right" circles the target and `moveDir` is −16,384 within a unit at every heading (G3-f). *Geometry:* facing in
+   and stepping to his right carries him round the target in increasing turn units, which in this frame (turning to
+   his right is decreasing units, components.ts) is anticlockwise seen from above; G3-f's "clockwise" cannot hold
+   for a right strafe, so the test asserts the real direction and the wording is a veto item. With the
    assist holding the heading within 45° of that axis, "stick up" stays within 45° of away from the camera (D3-i's
    property). *Interpretation:* §11.2 says "through the heading"; mapping through the heading cannot give ±π/2 at
    every heading as G3-f requires, so the lock axis is used. Recorded in the PR as a veto item.
@@ -76,18 +79,18 @@ Produced (base-3d only; no package API changes):
 
 Every unit test runs with `cd games/base-3d && pnpm vitest run --configLoader runner --project node <file>`.
 
-- [ ] 1.1 Failing tests, `src/systems/lock-target.test.ts` (new): `lineOfSight` (clear, through a wall box, grazing
+- [x] 1.1 Failing tests, `src/systems/lock-target.test.ts` (new): `lineOfSight` (clear, through a wall box, grazing
   a corner), `selectLock` cone/rank/score/tie-by-id/fallback/none (G3-e), `cycleLock` order and wrap with one and
   three candidates, both directions (G3-h). Expected failure: the module does not exist.
-- [ ] 1.2 Minimal `src/systems/lock-target.ts`; 1.1 passes.
-- [ ] 1.3 Failing sim tests in `src/game.test.ts` (`describe('lock-on (DESIGN §11)')`): toggle vs hold; recentre with
+- [x] 1.2 Minimal `src/systems/lock-target.ts`; 1.1 passes.
+- [x] 1.3 Failing sim tests in `src/game.test.ts` (`describe('lock-on (DESIGN §11)')`): toggle vs hold; recentre with
   no candidate (rotating and fixed view); camera turns ignored while locked and allowed after; G3-f at 8 headings;
   G3-g assist rate ≤ 546, stop at 45°, `latched` untouched, a view change while locked latches; break on 15 m, on 60
   hidden ticks (59 holds), on a gone target. Expected failure: `mode` is not in the `lock` schema, `lock-cycle` is
   not registered.
-- [ ] 1.4 Commands, components, constants, `lock.select` rewrite, `lock.assist`, `hero.move` lock-axis mapping,
+- [x] 1.4 Commands, components, constants, `lock.select` rewrite, `lock.assist`, `hero.move` lock-axis mapping,
   plugin registration, `main.ts` sends `mode: 'hold'` for now (part 2 reads the setting); 1.3 passes.
-- [ ] 1.5 Golden (G3-b part): the route keeps its held lock in `hold` mode (old behaviour still asserted:
+- [x] 1.5 Golden (G3-b part): the route keeps its held lock in `hold` mode (old behaviour still asserted:
   kiln tick, 50 locked ticks, action starts, end position) and gains a toggle press, a `lock-cycle` and a toggle
   release. Re-record the hash in Node with the reason; then parity in Chromium, WebKit and Firefox must match.
 - [ ] 1.6 Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm --filter base-3d test:parity` (three
@@ -112,3 +115,22 @@ Pending: the Mac's CI.
 ## Execution log
 
 - 2026-10-31: plan written from DESIGN §11/§19/§20 and the parent branch at `02a69fcb`.
+- 1.1: `lock-target.test.ts` written (16 cases); run failed with no tests collected because `./lock-target.ts` did not
+  exist (the expected reason).
+- 1.2: `lock-target.ts`; 16/16 pass.
+- 1.3: 15 new sim cases in `game.test.ts` (`lock-on (GAME-3D.1b, DESIGN.md §11)`); the helper now sends `mode`
+  (default hold, the old tests' meaning) and `lock-cycle`. Before 1.4, 33 cases failed on rejected commands (`mode`
+  not in the `lock` schema, `lock-cycle` unregistered), the expected reason.
+- 1.3, old cases changed on purpose (each with a comment in the test): the two-target lock now picks the target in
+  the cone (it used to pick the nearer one 90° off); the tie case moved inside the cone (±30°); "faces the target"
+  now walks at it on stick up (moveDir 0, was −16,384), because locked the stick maps through the lock axis.
+- 1.4: implemented. Test corrections while making them pass (test bugs, not product changes): the 15 m case read
+  the distance after the tick's move (the lock reads where the last tick left him); the D3-i case's target was
+  close enough to walk past. G3-f's direction is the geometry note in rule 6.
+- 1.4: `area.exit` clears `lockTarget` and `lockHidden` at the swap (rule 10). `main.ts` sends `mode: 'hold'`
+  (Shift held, as before); `game-spec.test.ts` asserts it (failed first: the page module did not typecheck/load
+  with the old payload).
+- 1.5: golden re-recorded `d78ee833353d562f` → `9fd1aebdb8f26a81` (Node). Unchanged and still asserted: 0
+  rejected, 0 events, kiln tick 118, the held segment's 50 locked ticks (62 with the toggle's 12), the action starts
+  `1@278, 1@287, 3@348, 2@409` and the running point. Changed: the end pose (x 116,656, z 361,623, heading 6,556),
+  because the held strafe now orbits the target and the assist turned the heading from 16,384 toward it.

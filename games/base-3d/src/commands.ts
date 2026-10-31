@@ -13,10 +13,19 @@ const moveSchema = z.object({ x: axis, y: axis })
  */
 export const Move: CommandDef<typeof moveSchema> = defineCommand('move', moveSchema)
 
-const lockSchema = z.object({ down: z.boolean() })
+const lockSchema = z.object({ down: z.boolean(), mode: z.enum(['toggle', 'hold']) })
 
-/** Whether the lock button is held: a press locks onto the nearest target, a release lets go (M3 spec §4.7). */
+/**
+ * Whether the lock button is held, and the player's Lock mode (DESIGN.md §11.1, §12.2), which reaches the sim as
+ * command data, never as a settings read. A press locks onto a target (or recentres the camera with none); in
+ * toggle mode the next press lets go, in hold mode the release does.
+ */
 export const Lock: CommandDef<typeof lockSchema> = defineCommand('lock', lockSchema)
+
+const lockCycleSchema = z.object({ dir: z.union([z.literal(1), z.literal(-1)]) })
+
+/** While locked, move the lock to the next target around Wick: 1 clockwise seen from above, −1 anticlockwise. */
+export const LockCycle: CommandDef<typeof lockCycleSchema> = defineCommand('lock-cycle', lockCycleSchema)
 
 const actSchema = z.object({
   slash: z.boolean(),

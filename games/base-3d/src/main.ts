@@ -85,8 +85,9 @@ export const input = inputs(
   keys(CameraTurn, { KeyQ: { units: -KEY_TURN }, KeyE: { units: KEY_TURN } }, { idle: { units: 0 } }),
   keys(
     Lock,
-    { ShiftLeft: { down: true }, ShiftRight: { down: true } },
-    { idle: { down: false }, labels: { ShiftLeft: 'Lock' } },
+    // Hold mode for now: GAME-3D.1b part 2 sends the player's saved Lock mode (DESIGN.md §12.2).
+    { ShiftLeft: { down: true, mode: 'hold' }, ShiftRight: { down: true, mode: 'hold' } },
+    { idle: { down: false, mode: 'hold' }, labels: { ShiftLeft: 'Lock' } },
   ),
   keys(
     Act,

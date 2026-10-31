@@ -10,6 +10,7 @@ import { base3dSaves } from './screens/saves.ts'
 import { base3dPlugin, base3dSim, spawnArea } from './state/index.ts'
 import { newGame } from './state/save.ts'
 import { type Area, type AreaSource, areaOf, compileArea, compileWorld, viewAt } from './systems/index.ts'
+import { angleOf, signedTurn } from './systems/lock-target.ts'
 
 /** The game's own sim spec, on the first slice, as `main.ts` makes it. */
 const BASE3D_SIM = base3dSim(compileWorld([FIRST_SLICE]))
@@ -138,6 +139,10 @@ interface TickInput {
   readonly stick?: { readonly x: number; readonly y: number }
   readonly turn?: number
   readonly lock?: boolean
+  /** The player's Lock mode, sent on every `lock` command; the tests default to hold (a held button is a lock). */
+  readonly mode?: 'toggle' | 'hold'
+  /** A `lock-cycle` this tick: 1 clockwise, −1 anticlockwise. */
+  readonly cycle?: 1 | -1
   readonly act?: Partial<Record<'slash' | 'guard' | 'point' | 'pickup', boolean>>
 }
 
@@ -148,13 +153,16 @@ interface TickInput {
 function commandsFor(sim: Sim, input: TickInput): Command[] {
   const at = { tick: sim.tick, source: 0 }
   const commands: Command[] = [
-    { ...at, seq: sim.tick * 4, type: 'move', payload: input.stick ?? { x: 0, y: 0 } },
+    { ...at, seq: sim.tick * 5, type: 'move', payload: input.stick ?? { x: 0, y: 0 } },
   ]
   if (input.turn !== undefined)
-    commands.push({ ...at, seq: sim.tick * 4 + 1, type: 'camera-turn', payload: { units: input.turn } })
-  commands.push({ ...at, seq: sim.tick * 4 + 2, type: 'lock', payload: { down: input.lock ?? false } })
+    commands.push({ ...at, seq: sim.tick * 5 + 1, type: 'camera-turn', payload: { units: input.turn } })
+  const lock = { down: input.lock ?? false, mode: input.mode ?? 'hold' }
+  commands.push({ ...at, seq: sim.tick * 5 + 2, type: 'lock', payload: lock })
   const act = { slash: false, guard: false, point: false, pickup: false, ...input.act }
-  commands.push({ ...at, seq: sim.tick * 4 + 3, type: 'act', payload: act })
+  commands.push({ ...at, seq: sim.tick * 5 + 3, type: 'act', payload: act })
+  if (input.cycle !== undefined)
+    commands.push({ ...at, seq: sim.tick * 5 + 4, type: 'lock-cycle', payload: { dir: input.cycle } })
   return commands
 }
 
@@ -335,18 +343,20 @@ describe('camera-turn (render-pixi3d’s command, on Wick’s heading)', () => {
 describe('lock (the first slice’s minimal lock-on, M3 spec §4.7)', () => {
   const targetIds = (sim: Sim): number[] => sim.query(Target).map((target) => target.sid)
 
-  it('locks onto the nearest target within 12 m while held, and lets go on release', async () => {
+  it('locks onto a target within 12 m while held, and lets go on release', async () => {
+    // GAME-3D.1b: the press picks inside the camera's cone (DESIGN.md §11.1), so the farther target ahead wins over
+    // the nearer one 90° off (before 1b the nearer won); holding still keeps it.
     const sim = await startSim(
       openArea(0, true, [
         { x: 0, z: 5 },
         { x: 3, z: 0 },
       ]),
     )
-    const [, near] = targetIds(sim)
+    const [ahead] = targetIds(sim)
     run(sim, { lock: true })
-    expect(hero(sim).lockTarget).toBe(near)
-    run(sim, { lock: true, stick: UP }, 10) // held: the lock stays though the other target is now nearer
-    expect(hero(sim).lockTarget).toBe(near)
+    expect(hero(sim).lockTarget).toBe(ahead)
+    run(sim, { lock: true, stick: RIGHT }, 10) // held: the lock stays while he strafes
+    expect(hero(sim).lockTarget).toBe(ahead)
     run(sim, {})
     expect(hero(sim).lockTarget).toBe(0)
     sim.dispose()
@@ -374,10 +384,11 @@ describe('lock (the first slice’s minimal lock-on, M3 spec §4.7)', () => {
   })
 
   it('breaks a tie by the lower entity id, and finds nothing past 12 m', async () => {
+    // GAME-3D.1b: the tie is inside the cone, both 4 m away and 30° either side of the heading.
     const tie = await startSim(
       openArea(0, true, [
-        { x: 4, z: 0 },
-        { x: 0, z: 4 },
+        { x: 2, z: 3.4641 },
+        { x: -2, z: 3.4641 },
       ]),
     )
     run(tie, { lock: true })
@@ -393,8 +404,9 @@ describe('lock (the first slice’s minimal lock-on, M3 spec §4.7)', () => {
     const sim = await startSim(openArea(0, true, [{ x: 3, z: 0 }]))
     run(sim, { lock: true })
     expect(hero(sim)).toMatchObject({ facing: 16_384, moving: false, moveDir: 0 })
+    // GAME-3D.1b: locked, the stick maps through the line to the target, so stick up walks at it (DESIGN.md §11.2).
     run(sim, { lock: true, stick: UP })
-    expect(hero(sim)).toMatchObject({ facing: 16_384, moving: true, moveDir: -16_384 })
+    expect(hero(sim)).toMatchObject({ facing: 16_384, moving: true, moveDir: 0 })
     sim.dispose()
   })
 
@@ -410,6 +422,199 @@ describe('lock (the first slice’s minimal lock-on, M3 spec §4.7)', () => {
       sim.dispose()
     },
   )
+})
+
+describe('lock-on (GAME-3D.1b, DESIGN.md §11)', () => {
+  const targetIds = (sim: Sim): number[] => sim.query(Target).map((target) => target.sid)
+  const DOWN = { x: 0, y: 127 }
+  const toggle = { lock: true, mode: 'toggle' } as const
+  const released = { mode: 'toggle' } as const
+  /** Where the target with `sid` stands, Q16.16. */
+  const placeOf = (sim: Sim, sid: number) => {
+    const target = sim.query(Target).find((entity) => entity.sid === sid)
+    if (target === undefined) throw new Error('no target')
+    return target.get(Target)
+  }
+  /** The signed turn from Wick's heading to the line from him to `sid`. */
+  const offHeading = (sim: Sim, sid: number): number => {
+    const { x, z, heading } = hero(sim)
+    const target = placeOf(sim, sid)
+    return signedTurn(angleOf(target.x - x, target.z - z) - heading)
+  }
+
+  it('toggles: a press locks, the release keeps it, the next press lets go', async () => {
+    const sim = await startSim(openArea(0, true, [{ x: 0, z: 5 }]))
+    const [target] = targetIds(sim)
+    run(sim, toggle)
+    expect(hero(sim).lockTarget).toBe(target)
+    run(sim, released, 30)
+    expect(hero(sim).lockTarget).toBe(target)
+    run(sim, toggle)
+    expect(hero(sim).lockTarget).toBe(0)
+    run(sim, released)
+    run(sim, toggle)
+    expect(hero(sim).lockTarget).toBe(target)
+    sim.dispose()
+  })
+
+  it('recentres the heading on his facing when nothing is in reach, only in a view that turns', async () => {
+    const sim = await startSim(openArea(0, true, [{ x: 30, z: 0 }]))
+    run(sim, { stick: RIGHT }) // he turns to face his right: −x, 49,152
+    run(sim, {})
+    expect(hero(sim)).toMatchObject({ facing: 49_152, heading: 0 })
+    run(sim, toggle)
+    expect(hero(sim)).toMatchObject({ lockTarget: 0, heading: 49_152, latched: false })
+    sim.dispose()
+    const fixed = await startSim(openArea(0, false))
+    run(fixed, { stick: RIGHT })
+    run(fixed, toggle)
+    expect(hero(fixed)).toMatchObject({ lockTarget: 0, heading: 0 })
+    fixed.dispose()
+  })
+
+  it('ignores the player’s camera turns while locked, and takes them again once released', async () => {
+    const sim = await startSim(openArea(0, true, [{ x: 0, z: 5 }]))
+    run(sim, toggle)
+    run(sim, { ...released, turn: 2_000 })
+    expect(hero(sim)).toMatchObject({ heading: 0, rotate: false })
+    run(sim, toggle)
+    expect(hero(sim)).toMatchObject({ lockTarget: 0, rotate: true })
+    run(sim, { ...released, turn: 2_000 })
+    expect(hero(sim).heading).toBe(2_000)
+    sim.dispose()
+  })
+
+  it.each([0, 45, 90, 135, 180, 225, 270, 315])(
+    'G3-f: stick right circles the target to his right, moveDir −16,384 within a unit, at a heading of %i°',
+    async (yaw) => {
+      // The target 30° to the left of the heading, inside the cone and inside the assist's 45°.
+      const radians = ((yaw + 30) * Math.PI) / 180
+      const sim = await startSim(
+        openArea(yaw, true, [{ x: 6 * Math.sin(radians), z: 6 * Math.cos(radians) }]),
+      )
+      const [target] = targetIds(sim)
+      run(sim, toggle)
+      expect(hero(sim).lockTarget).toBe(target)
+      const around = () => {
+        const { x, z } = hero(sim)
+        const place = placeOf(sim, target ?? 0)
+        return angleOf(x - place.x, z - place.z)
+      }
+      for (let i = 0; i < 30; i++) {
+        const before = around()
+        run(sim, { ...released, stick: RIGHT })
+        expect(Math.abs(hero(sim).moveDir + 16_384)).toBeLessThanOrEqual(1)
+        // Facing in and stepping to his right carries him round the target in increasing turn units: anticlockwise
+        // in this frame, where turning to his right is decreasing units (G3-f's "clockwise" is the PR's veto item).
+        expect(signedTurn(around() - before)).toBeGreaterThan(0)
+      }
+      sim.dispose()
+    },
+  )
+
+  it('keeps stick up within 45° of away from the camera under the assist (D3-i)', async () => {
+    // 68° off the heading and 5.4 m away: the 6 m fallback takes it, and the assist brings the heading to 45°.
+    const sim = await startSim(openArea(0, true, [{ x: 5, z: 2 }]))
+    run(sim, toggle)
+    expect(hero(sim).lockTarget).toBe(targetIds(sim)[0])
+    for (let i = 0; i < 30; i++) run(sim, { ...released, stick: UP })
+    expect(Math.abs(offHeading(sim, targetIds(sim)[0] ?? 0))).toBeLessThanOrEqual(8_192)
+    sim.dispose()
+  })
+
+  it('G3-g: the assist turns the heading at most 546 units a tick, toward the target, and stops at 45°', async () => {
+    // 90° to his right of the heading and 3 m away: the empty cone's 6 m fallback takes it.
+    const sim = await startSim(openArea(0, true, [{ x: -3, z: 0 }]))
+    const [target] = targetIds(sim)
+    run(sim, toggle)
+    expect(hero(sim).lockTarget).toBe(target)
+    let turns = 0
+    for (let i = 0; i < 40; i++) {
+      const before = hero(sim).heading
+      run(sim, released)
+      const turned = signedTurn(hero(sim).heading - before)
+      expect(Math.abs(turned)).toBeLessThanOrEqual(546)
+      expect(turned).toBeLessThanOrEqual(0) // toward −x: decreasing turn units
+      if (turned !== 0) turns += 1
+      expect(hero(sim).latched).toBe(false)
+    }
+    // From 90° to 45° is 8,192 units: 15 ticks at 546 and the last 2 units.
+    expect(turns).toBe(16)
+    expect(offHeading(sim, target ?? 0)).toBe(-8_192)
+    sim.dispose()
+  })
+
+  it('G3-g: a view change while locked latches the stick as any view change does (M3R-D15)', async () => {
+    const sim = await startSim()
+    const [target] = targetIds(sim)
+    while (hero(sim).z < metres(4)) {
+      run(sim, { stick: UP, mode: 'toggle', lock: hero(sim).lockTarget === 0 && hero(sim).z > metres(3) })
+    }
+    expect(hero(sim)).toMatchObject({ view: 'kiln', lockTarget: target, latched: true })
+    sim.dispose()
+  })
+
+  it('cycles among the candidates in lock-cycle’s direction, and only while locked', async () => {
+    const sim = await startSim(
+      openArea(0, true, [
+        { x: 0, z: 5 },
+        { x: 4, z: 0 },
+        { x: -4, z: 0 },
+      ]),
+    )
+    const [ahead, left, right] = targetIds(sim)
+    run(sim, { ...released, cycle: 1 })
+    expect(hero(sim).lockTarget).toBe(0)
+    run(sim, toggle)
+    expect(hero(sim).lockTarget).toBe(ahead)
+    run(sim, { ...released, cycle: 1 })
+    expect(hero(sim).lockTarget).toBe(right)
+    run(sim, { ...released, cycle: -1 })
+    run(sim, { ...released, cycle: -1 })
+    expect(hero(sim).lockTarget).toBe(left)
+    sim.dispose()
+  })
+
+  it('lets go of a target past 15 m', async () => {
+    const sim = await startSim(openArea(0, true, [{ x: 0, z: 10 }]))
+    const [target] = targetIds(sim)
+    run(sim, toggle)
+    // The lock reads where the last tick left him: held while that was within 15 m, let go once it was past.
+    let distance = metres(10)
+    for (;;) {
+      const seen = distance
+      run(sim, { ...released, stick: DOWN }) // locked, stick down backs away from the target
+      distance = metres(10) - hero(sim).z
+      if (hero(sim).lockTarget !== target) {
+        expect(seen).toBeGreaterThan(metres(15))
+        break
+      }
+      expect(seen).toBeLessThanOrEqual(metres(15))
+    }
+    sim.dispose()
+  })
+
+  it('lets go of a target out of sight for 60 ticks running, and holds it through 59', async () => {
+    const area = compileArea({
+      id: 'wall',
+      spawn: { x: 0, z: 0 },
+      views: [{ id: 'open', yawDeg: 0, rotate: true }],
+      rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
+      walls: [{ min: [-3, 2], max: [-0.5, 3] }],
+      targets: [{ x: 0, z: 6 }],
+      ember: { x: 40, z: 40 },
+    })
+    const sim = await startSim(area)
+    const [target] = targetIds(sim)
+    run(sim, toggle)
+    while (hero(sim).lockHidden === 0) run(sim, { ...released, stick: RIGHT }) // round behind the wall
+    expect(hero(sim).lockTarget).toBe(target)
+    run(sim, released, 58)
+    expect(hero(sim)).toMatchObject({ lockTarget: target, lockHidden: 59 })
+    run(sim, released)
+    expect(hero(sim)).toMatchObject({ lockTarget: 0, lockHidden: 0 })
+    sim.dispose()
+  })
 })
 
 function heroAction(sim: Sim) {
@@ -630,7 +835,13 @@ const GOLDEN_ROUTE: readonly RouteSegment[] = [
   [{ act: { pickup: true } }, 1], // a pickup
   [{}, 60], // plays out
   [{ act: { point: true } }, 1], // a point
-  [{}, 10], // still pointing at the end
+  [{}, 10], // still pointing
+  // GAME-3D.1b: Lock mode toggle, while the point plays out (its 48 ticks outlast these 14).
+  [{ lock: true, mode: 'toggle' }, 1], // a press locks
+  [{ mode: 'toggle', cycle: 1 }, 1], // released, still locked; a cycle with one candidate keeps it
+  [{ mode: 'toggle' }, 10], // locked, facing the target, already within the assist's 45°
+  [{ lock: true, mode: 'toggle' }, 1], // the next press lets go
+  [{ mode: 'toggle' }, 1], // released: still pointing at the end
 ]
 
 /** The tick the golden route enters the kiln's view on. */
@@ -652,9 +863,15 @@ const GOLDEN_KILN_TICK = 118
  * `exits`), the schema hash covers the `hero.defeated`, `area.exit` and `area.entered` events and the `location`
  * resource, whose row the snapshot carries, and the `area.exit` system adds its RNG state. The first slice has no
  * exit, so the route's rejected commands, events, kiln tick, locked ticks, action starts and end position are
- * unchanged, and still asserted below.
+ * unchanged, and still asserted below. Re-recorded for GAME-3D.1b's lock-on (was `d78ee833353d562f`): `hero` gained
+ * `lockHidden`, `hero-control` gained `lockHold` and `lockCycle`, the sim gained the `lock-cycle` command and the
+ * `lock.assist` system; the held lock's press now picks inside the camera's cone (the same target: the slice has
+ * one), its strafe maps through the line to the target and the assist turns the heading from 16,384 toward it, so
+ * the end position, facing and heading moved; and the route gained a toggle press, a cycle and a toggle release
+ * after the point. Its rejected commands (0), events (0), kiln tick (118), the held segment's 50 locked ticks (now
+ * 62 with the toggle's 12) and the action starts are unchanged, and still asserted below.
  */
-const GOLDEN_HASH = 'd78ee833353d562f'
+const GOLDEN_HASH = '9fd1aebdb8f26a81'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)
@@ -700,15 +917,20 @@ describe('the golden replay (B-a)', () => {
     expect(result.rejected).toBe(0)
     // The route's pickup is against the kiln's east wall, out of the ember's reach: the run never ends.
     expect(result.events).toBe(0)
-    expect(result.lockedTicks).toBe(50)
+    // The held segment's 50 ticks and the toggle's 12 (its press tick to the tick before the next press).
+    expect(result.lockedTicks).toBe(62)
     expect(result.kilnTick).toBe(GOLDEN_KILN_TICK)
-    // Against the kiln's east wall, on the kiln's heading, unlocked and unlatched.
+    // In the kiln, where the locked strafe round the target left him (it no longer runs along the east wall), on the
+    // heading the assist turned toward the target, unlocked, unlatched and free to turn the camera again.
     expect(result.hero).toMatchObject({
       view: 'kiln',
-      heading: 16_384,
-      x: metres(4) - HERO_HALF,
+      heading: 6_556,
+      x: 116_656,
+      z: 361_623,
       lockTarget: 0,
+      lockHidden: 0,
       latched: false,
+      rotate: true,
     })
     // Two slashes 9 ticks apart, the pickup after them, then the point, still running, with the guard lowered.
     expect(result.starts).toEqual(['1@278', '1@287', '3@348', '2@409'])

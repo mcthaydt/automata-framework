@@ -22,7 +22,8 @@ export const areaExit: SystemDef = defineSystem({
     for (const entity of ctx.query(Hero)) {
       if (place.next >= 0) {
         if (ctx.tick < place.swapAt) continue
-        entity.set(Hero, { x: place.entryX, z: place.entryZ })
+        // An area change lets go of the lock (DESIGN.md §11.2).
+        entity.set(Hero, { x: place.entryX, z: place.entryZ, lockTarget: 0, lockHidden: 0 })
         place.area = place.next
         place.next = -1
         ctx.emit(AreaEntered, { area: place.area })

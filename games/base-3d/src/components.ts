@@ -17,6 +17,8 @@ const heroFields = {
   moveDir: 'i32',
   /** The entity he is locked onto; 0 when none. */
   lockTarget: 'entity',
+  /** The ticks running the locked target has been out of his line of sight; at 60 the lock lets go. */
+  lockHidden: 'u32',
 } as const
 
 /** Wick, the player, as the renderer reads him (the figure's `FigureState`, M3 spec §4.4.5). */
@@ -27,6 +29,10 @@ const controlFields = {
   stickY: 'i32',
   lockHeld: 'bool',
   lockPressed: 'bool',
+  /** Whether the player's Lock mode is hold (the release lets go) rather than toggle (the next press does). */
+  lockHold: 'bool',
+  /** This tick's `lock-cycle`: 1 clockwise, −1 anticlockwise, 0 none. */
+  lockCycle: 'i32',
   /** The action buttons held this tick and pressed this tick, as `ACTION_BITS` (slash 1, guard 2, point 4, pickup 8). */
   actHeld: 'u32',
   actPressed: 'u32',

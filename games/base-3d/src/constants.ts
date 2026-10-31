@@ -15,6 +15,16 @@ export const WALK_PER_TICK = Math.round((WALK_SPEED * Q16) / TICK_HZ)
 export const HERO_HALF = metres(0.3)
 /** How far the lock reaches in plan, 12 m (DESIGN.md §11.1). */
 export const LOCK_RANGE = metres(12)
+/** With nothing in the lock's cone, the nearest target this near in any direction, 6 m (DESIGN.md §11.1). */
+export const LOCK_FALLBACK = metres(6)
+/** A lock lets go of a target farther than 15 m (DESIGN.md §11.2). */
+export const LOCK_BREAK = metres(15)
+/** A lock lets go of a target out of sight this many ticks running, 1 s (DESIGN.md §11.2). */
+export const LOCK_HIDDEN_TICKS = 60
+/** The assist leaves the heading alone while the target is within 45° of it: 8,192 turn units (GAME3D-D5). */
+export const LOCK_ASSIST_LIMIT = 8_192
+/** The assist's turn a tick: 180° a second at 60 Hz, round(32,768 / 60) = 546 turn units (GAME3D-D5). */
+export const LOCK_ASSIST_PER_TICK = 546
 /** How near the ember a pickup must start to take it, 1 m each way in plan (a square, so no square root). */
 export const EMBER_REACH = metres(1)
 /** Each action's code in `HeroAction.clip` (0 is none); the figure plays the clip of the same name (M3 spec §4.7). */

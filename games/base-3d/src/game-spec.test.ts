@@ -39,7 +39,8 @@ describe('the key map (M3.7b part 3)', () => {
     expect(held()).toEqual({
       move: { x: 0, y: 0 },
       'camera-turn': { units: 0 },
-      lock: { down: false },
+      // Hold until part 2 of GAME-3D.1b sends the player's saved Lock mode.
+      lock: { down: false, mode: 'hold' },
       act: { slash: false, guard: false, point: false, pickup: false },
     })
   })
@@ -49,7 +50,7 @@ describe('the key map (M3.7b part 3)', () => {
     expect(held('ArrowDown')).toMatchObject({ move: { x: 0, y: 127 } })
     expect(held('KeyQ')).toMatchObject({ 'camera-turn': { units: -364 } })
     expect(held('KeyE')).toMatchObject({ 'camera-turn': { units: 364 } })
-    expect(held('ShiftRight')).toMatchObject({ lock: { down: true } })
+    expect(held('ShiftRight')).toMatchObject({ lock: { down: true, mode: 'hold' } })
   })
 
   it('maps J, K, L and F to slash, guard, point and pick up', () => {

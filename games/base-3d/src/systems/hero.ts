@@ -1,16 +1,8 @@
 // Wick's systems: the stick, lock and buttons copied onto him, his move through the heading, the room's view entered
 // and his actions.
-import {
-  CameraHeading,
-  enterView,
-  moveDirection,
-  Q16,
-  TURN_UNITS,
-  wrapHeading,
-} from '@mcthaydt/automata-render-pixi3d/sim'
+import { CameraHeading, enterView, mapStick, moveDirection, Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
-import { atan2 } from '@mcthaydt/automata-sim/math'
-import { Act, Lock, Move } from '../commands.ts'
+import { Act, Lock, LockCycle, Move } from '../commands.ts'
 import { Hero, HeroAction, HeroControl, Target } from '../components.ts'
 import {
   ACTION_BITS,
@@ -23,16 +15,7 @@ import {
 } from '../constants.ts'
 import { Location } from '../resources.ts'
 import { areaIn, slide, viewAt } from './area.ts'
-
-// 2π spelled out: `Math.PI` is not sim-safe.
-const TAU = 6.283185307179586
-const HALF_TURN = TURN_UNITS / 2
-
-/** The turn-unit angle of the plan direction `x`, `z` (0 toward +z, growing toward +x), rounded to a unit. */
-const angleOf = (x: number, z: number): number => wrapHeading((atan2(x, z) * TURN_UNITS) / TAU)
-
-/** `units` as the nearest signed angle, −32,768..32,767. */
-const signedTurn = (units: number): number => wrapHeading(units + HALF_TURN) - HALF_TURN
+import { angleOf, signedTurn } from './lock-target.ts'
 
 /**
  * Copies this tick's stick, lock and action buttons onto Wick, and marks the tick each went down. No command is a
@@ -45,7 +28,9 @@ export const heroInput: SystemDef = defineSystem({
     const moves = ctx.commands.of(Move)
     const locks = ctx.commands.of(Lock)
     const stick = moves[moves.length - 1]?.payload ?? { x: 0, y: 0 }
-    const lockHeld = locks[locks.length - 1]?.payload.down ?? false
+    const lock = locks[locks.length - 1]?.payload
+    const lockHeld = lock?.down ?? false
+    const lockCycle = ctx.commands.of(LockCycle)[0]?.payload.dir ?? 0
     const acts = ctx.commands.of(Act)
     const act = acts[acts.length - 1]?.payload
     let actHeld = 0
@@ -62,6 +47,9 @@ export const heroInput: SystemDef = defineSystem({
         stickY: stick.y,
         lockHeld,
         lockPressed,
+        // No command keeps the mode the player last sent.
+        lockHold: lock === undefined ? before.lockHold : lock.mode === 'hold',
+        lockCycle,
         actHeld,
         actPressed,
       })
@@ -82,21 +70,23 @@ export const heroMove: SystemDef = defineSystem({
     for (const entity of ctx.query(Hero, HeroControl, CameraHeading)) {
       const control = entity.get(HeroControl)
       const hero = entity.get(Hero)
-      const mapped = moveDirection(entity.get(CameraHeading), { x: control.stickX, y: control.stickY })
+      const stick = { x: control.stickX, y: control.stickY }
+      const mapped = moveDirection(entity.get(CameraHeading), stick)
       entity.set(CameraHeading, mapped.state)
-      const { direction } = mapped
-      const moving = direction.x !== 0 || direction.z !== 0
-      // Exact: both factors are integers under 2^17, so the product is exact and the division by 2^16 too.
-      const dx = Math.trunc((direction.x * WALK_PER_TICK) / Q16)
-      const dz = Math.trunc((direction.z * WALK_PER_TICK) / Q16)
-      const { x, z } = slide(walls, HERO_HALF, hero, dx, dz)
       const target = hero.lockTarget === 0 ? undefined : ctx.entity(hero.lockTarget)?.get(Target)
-      const travel = angleOf(direction.x, direction.z)
       // A target exactly where he stands has no direction (atan2(0, 0)): he keeps his facing.
       const toTarget =
         target === undefined || (target.x === hero.x && target.z === hero.z)
           ? undefined
           : angleOf(target.x - hero.x, target.z - hero.z)
+      // Locked, the stick maps through the line to the target, so sideways circles it (G3-f, DESIGN.md §11.2).
+      const direction = toTarget === undefined ? mapped.direction : mapStick(stick, toTarget)
+      const moving = direction.x !== 0 || direction.z !== 0
+      // Exact: both factors are integers under 2^17, so the product is exact and the division by 2^16 too.
+      const dx = Math.trunc((direction.x * WALK_PER_TICK) / Q16)
+      const dz = Math.trunc((direction.z * WALK_PER_TICK) / Q16)
+      const { x, z } = slide(walls, HERO_HALF, hero, dx, dz)
+      const travel = angleOf(direction.x, direction.z)
       const facing = target !== undefined ? (toTarget ?? hero.facing) : moving ? travel : hero.facing
       const moveDir = moving ? signedTurn(travel - facing) : 0
       entity.set(Hero, { x, z, facing, moving, moveDir })
