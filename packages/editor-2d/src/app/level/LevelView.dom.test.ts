@@ -298,7 +298,7 @@ describe('Level view: accessibility', () => {
         const labelled =
           control.getAttribute('aria-label') ??
           control.getAttribute('aria-labelledby') ??
-          control.labels?.[0]?.textContent ??
+          (control as HTMLInputElement).labels?.[0]?.textContent ??
           control.textContent
         return (labelled ?? '').trim() === ''
       })

@@ -116,8 +116,14 @@ export async function openJourneyEditor(
  * The surface-relative point at the centre of a cell of the current level, from where the session fits it: centred,
  * with 24 px of padding (`level-session`). Valid until the camera moves, so a journey takes its points first.
  */
-export function cellAt(editor: JourneyEditor, cx: number, cy: number, level = 0): { x: number; y: number } {
-  const size = editor.project().levels[level]?.size
+export function cellAt(
+  editor: JourneyEditor,
+  cx: number,
+  cy: number,
+  level: number | string = 0,
+): { x: number; y: number } {
+  const levels = editor.project().levels
+  const size = (typeof level === 'number' ? levels[level] : levels.find((each) => each.id === level))?.size
   if (size === undefined) throw new Error('no such level')
   const surface = editor.surface().getBoundingClientRect()
   const scale = Math.min((surface.width - 48) / size.w, (surface.height - 48) / size.h)
@@ -125,4 +131,42 @@ export function cellAt(editor: JourneyEditor, cx: number, cy: number, level = 0)
     x: (surface.width - size.w * scale) / 2 + (cx * 16 + 8) * scale,
     y: (surface.height - size.h * scale) / 2 + (cy * 16 + 8) * scale,
   }
+}
+
+/** The control with `role` whose label or text starts with `name`. */
+export function named(role: string, name: string): HTMLElement {
+  const found = [...document.querySelectorAll<HTMLElement>(`[role="${role}"]`)].find((each) =>
+    (each.getAttribute('aria-label') ?? each.textContent ?? '').trim().startsWith(name),
+  )
+  if (found === undefined) throw new Error(`no ${role} named ${name}`)
+  return found
+}
+
+/** Presses a control by its role and name, then waits for the layout to settle. */
+export async function press(role: string, name: string): Promise<void> {
+  named(role, name).click()
+  await arrived()
+}
+
+/** A button of the document by its words. */
+export async function pressButton(words: string): Promise<void> {
+  const found = [...document.querySelectorAll<HTMLElement>('button')].find(
+    (button) => button.textContent?.trim() === words || button.getAttribute('aria-label') === words,
+  )
+  if (found === undefined) throw new Error(`no button ${words}`)
+  found.click()
+  await arrived()
+}
+
+/** Chooses a layer in the panel, opening the Layers drawer first below wide. */
+export async function chooseLayer(name: string): Promise<void> {
+  const rows = (): HTMLElement[] => [
+    ...document.querySelectorAll<HTMLElement>('[role="listbox"][aria-label="Layers"] [role="option"]'),
+  ]
+  const visible = (): boolean => rows().some((row) => row.getBoundingClientRect().width > 0)
+  if (!visible()) await pressButton('Layers')
+  const row = rows().find((option) => option.querySelector('.label')?.textContent === name)
+  if (row === undefined) throw new Error(`no layer ${name}`)
+  row.querySelector<HTMLElement>('button')?.click()
+  await arrived()
 }

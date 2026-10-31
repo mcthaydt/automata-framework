@@ -4,7 +4,14 @@ import '../main.css'
 import { arrived, createPointers, IPAD_PROFILES } from '@mcthaydt/automata-editor-kit/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { cellAt, type JourneyEditor, openJourneyEditor } from '../testing/journey-editor'
+import {
+  cellAt,
+  chooseLayer,
+  type JourneyEditor,
+  openJourneyEditor,
+  press,
+  pressButton,
+} from '../testing/journey-editor'
 
 // ED2D.8 journey 1 (2D editor spec §14, §15 G-j): a platformer level on an iPad, end to end with real pointer events:
 // the Pencil's hover shows the brush footprint, a Pencil stroke paints as one undo step, a two-finger tap undoes it,
@@ -16,34 +23,6 @@ afterEach(async () => {
   await editor?.close()
   editor = undefined
 })
-
-const named = (role: string, name: string): HTMLElement => {
-  const found = [...document.querySelectorAll<HTMLElement>(`[role="${role}"]`)].find((each) =>
-    (each.getAttribute('aria-label') ?? each.textContent ?? '').trim().startsWith(name),
-  )
-  if (found === undefined) throw new Error(`no ${role} named ${name}`)
-  return found
-}
-
-async function press(role: string, name: string): Promise<void> {
-  named(role, name).click()
-  await arrived()
-}
-
-/** Opens the layers drawer below wide, where the panel is one. */
-async function chooseLayer(name: string): Promise<void> {
-  const toolbar = document.querySelector<HTMLElement>('[data-testid="level-toolbar"]')
-  const layers = [...(toolbar?.querySelectorAll<HTMLElement>('button') ?? [])].find(
-    (button) => button.textContent?.trim() === 'Layers',
-  )
-  layers?.click()
-  await arrived()
-  const row = [
-    ...document.querySelectorAll<HTMLElement>('[role="listbox"][aria-label="Layers"] [role="option"]'),
-  ].find((option) => option.querySelector('.label')?.textContent === name)
-  row?.querySelector<HTMLElement>('button')?.click()
-  await arrived()
-}
 
 const shot = async (element: HTMLElement): Promise<string> =>
   page.screenshot({ element, base64: true, save: false }) as unknown as string
@@ -63,7 +42,8 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       await arrived()
       await shot(open.surface())
       const bare = await shot(open.surface())
-      for (const cell of [row[0], row[1]] as const) {
+      for (const cell of row.slice(0, 2)) {
+        if (cell === undefined) continue
         await pointers.pencilHover([cell])
         await arrived()
       }
@@ -100,10 +80,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
 
       // Export downloads the files.
       await press('tab', 'Export')
-      ;[...document.querySelectorAll<HTMLElement>('button')]
-        .find((b) => b.textContent?.trim() === 'Download')
-        ?.click()
-      await arrived()
+      await pressButton('Download')
       await expect
         .poll(() => open.downloads.map((file) => file.name))
         .toContain('untitled-platformer.af2d.json')
