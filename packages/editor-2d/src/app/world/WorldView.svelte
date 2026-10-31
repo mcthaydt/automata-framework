@@ -34,7 +34,7 @@ const LAYOUTS: readonly { id: WorldLayout; label: string }[] = [
 // svelte-ignore state_referenced_locally
 const history = projectHistory(opened.history)
 // svelte-ignore state_referenced_locally
-const Map = services.worldCanvas ?? WorldCanvas
+const MapCanvas = services.worldCanvas ?? WorldCanvas
 
 // svelte-ignore state_referenced_locally
 let project = $state.raw<Project | undefined>(history?.state)
@@ -184,7 +184,7 @@ function layout(next: string): void {
         onpointerup={up}
         onpointercancel={cancel}
       >
-        <Map {rects} {camera} />
+        <MapCanvas {rects} {camera} />
       </div>
       </div>
     {/if}
