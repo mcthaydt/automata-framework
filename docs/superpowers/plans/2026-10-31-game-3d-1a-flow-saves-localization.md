@@ -1,0 +1,54 @@
+# GAME-3D.1a: base-3d flow, saves and localization (TDD plan)
+
+- **Task:** "GAME-3D.1a — base-3d flow, saves and localization" in `docs/02-master-delivery-plan.md` (size L; prerequisites GAME-3D.0, M3.7b, PRODUCT.L), with the rest of "GL.7 — base-3d starts in the role layout".
+- **Spec:** `games/base-3d/DESIGN.md` §3.1 (code layout), §12 (saves, settings, localization), §13 (flows), §20 row 1a; acceptance cases §19 G3-s, G3-t, G3-u, G3-x, G3-F3, G3-F4. GL spec §6.4 (base-3d) and §4.3 (a role is a file or a folder, never both). M5 spec §4.2 and §6 (saves); PRODUCT.L spec cases L-a to L-e.
+- **Lane:** 3D (`session_01QYLU1i7StfVkFMEukSn2Wd`). Branch `claude/3d-game-3d-1a` from `claude/3d-m3-7b-flow` `e447d73e` (PR #294, stacked on #292 and #289: GAME-3D.1a needs M3.7b's flow and scene). Worktree `/home/user/wt/game-3d-1a`. Each part below is its own PR; part 1 is retargeted to `main` once #294 merges.
+- **Tier:** core (base-3d is free, M3R-D20). base-3d is private: no changeset.
+
+## Facts read at `e447d73e`
+
+- `games/base-3d/src/systems.ts` is 384 lines: helpers, then `heroInput`, `lockSelect`, `heroMove`, `heroView`, `heroAct`, `emberTake`. GL's 300-line rule makes it `systems/` now (the GL spec §6.4 said "from GAME-3D.1b"; the file passed 300 in M3.7b, so the split moves here). `views.ts` is exactly 300 lines and stays a file until it passes 300.
+- `state.ts` (80 lines) holds `spawnArea`, `base3dPlugin` and `base3dSim`; DESIGN §3.1 grows it into `state/` with `save.ts` and its fixtures.
+- `screens/flow.ts` writes the flow as compiled content (`splash → title → play ⇄ paused ⇄ settings`, `play → end` on the ember); `screens/screens.ts` (140 lines) supplies custom screens, so (`define-game.ts` `saves` doc) the screens open the save themselves.
+- Runtime has `SaveDef<S>` with `migrations`, `autosave` and `SlotState` (`packages/runtime/src/save/save.schema.ts`), the `Saves` service and `GameSaves<D>` on `defineGame`; `examples/core/core-saves.ts` is the reference consumer. Runtime has the Paraglide locale (`packages/runtime/src/locale/`: `negotiate-locale.ts`, `document-locale.ts`, `paraglide.ts`); content compiles messages and the `xx-long` pseudo-locale (`packages/content/src/locale/`). Neither base game uses `saves` or `locale` yet: base-3d is the first game consumer, so gaps found go to the runtime and ui lanes as requests, not local copies (one contract owner).
+- PRODUCT.L3 (language picker), L3b (logical CSS, RTL) and L3c are open. 1a uses what has merged; the Language row appears in Settings when L3 lands and is not built here.
+
+## Parts and steps (strict TDD: each test is run and seen failing for the stated reason before the code)
+
+### Part 1: the role layout and the save (G3-s, G3-F3, G3-F4)
+
+- [ ] 1.1 `systems.ts` → `systems/`: `systems/hero.ts` (`heroInput`, `heroMove`, `heroView`, `heroAct` and their helpers), `systems/lock-on.ts` (`lockSelect`), `systems/embers.ts` (`emberTake`), `systems/index.ts` re-exporting them in the current order. A pure move: `game.test.ts`, `views.test.ts` and the golden hash are unchanged and pass before and after (`pnpm --filter base-3d test`); `pnpm boundaries --game games/base-3d` and `pnpm style` pass with the folder (GL.1/GL.1b accept a role folder; if either rejects it, stop and report to the coordinator rather than renaming around it). File names follow whatever GL.1 has landed (suffix names `*.system.ts` if the plural role folders still require them).
+- [ ] 1.2 Failing test `src/state/save.test.ts`: `base3dSave` (a `SaveDef<Base3dSave>`, DESIGN §12.1 shape, `key: 'base-3d'`, `version: 1`, one slot) parses `newGame()`, rejects a malformed record, keeps unknown fields (passthrough), and `src/state/save-fixtures/v1.json` parses. Then `src/state/save.ts` (`base3dSaveSchema` in `src/state/save.schema.ts` if `pnpm style` wants the suffix for a Zod schema).
+- [ ] 1.3 Failing migration test: a test-only `version: 2` def (a field added) migrates `save-fixtures/v1.json` through `migrations[1]` and parses (G3-s's migration half). The shipped def stays at version 1.
+- [ ] 1.4 `state.ts` → `state/`: `state/index.ts` (today's `spawnArea`, `base3dPlugin`, `base3dSim`), `state/save.ts`, `state/save-fixtures/`. The sim stays free of the save: capture and restore (`GameSaves<D>`'s capture/put-back) live outside the sim boundary (in `main.ts` or `screens/`), reading the sim's resources. Failing test in `game.test.ts`: capture after taking the ember, restore into a fresh sim, same hash at the area entrance (Continue resumes at the entrance, DESIGN §12.1, GAME3D-D9).
+- [ ] 1.5 Failing DOM tests in `screens/screens.dom.test.ts` against the fake host: Continue shown only when the slot is ready; New game asks first when a save exists; a newer-build slot disables Continue with the explanation and no autosave writes (G3-F3); an unreadable slot is never overwritten without confirmation (G3-F3); a host that refuses saves shows "Progress won't be saved here" once, and `localStorage`/`indexedDB` see no writes (G3-F4). Then wire `saves` in `main.ts` and the screens.
+- [ ] 1.6 e2e `games/base-3d/e2e/base-3d.e2e.ts`: a save round-trip under the fake host (play, take the ember, quit, Continue resumes with the ember kept) (G3-s). Gates (below); PR; "ready".
+
+### Part 2: localization (G3-t)
+
+- [ ] 2.1 Failing test: every string the screens render comes from `t()`: a test that walks `screens/` render output under a stub message table where each value is its key, and fails on any text node that is not a key (G3-t's first half). Then `content/messages/en.json` (DESIGN §12.3: authored by hand, editor gap 5) compiled by the content compiler, and the screens' strings moved to keys.
+- [ ] 2.2 `locale` on `defineGame` (source `en`, plus `xx-long` in tests); `<html lang dir>` from runtime. Failing then passing: `checkLayout` under `xx-long` at 844×390 and 780×270 for splash, menu, pause, settings and end, with no clipped primary action (G3-t's second half; browser layout checks, `examples`-style projects for base-3d).
+- [ ] 2.3 Number formatting through `Intl` (play time on the end screen). Gates; PR; "ready".
+
+### Part 3: the flow (G3-u, G3-x)
+
+- [ ] 3.1 Flow content: add `game-over` (DESIGN §7.8: Continue at the area entrance, or Menu) and the settings row "Lock mode" (Toggle/Hold, default Toggle, the game's own settings record) to `screens/flow.ts`; failing flow tests first in `screens/screens.dom.test.ts`. Area change (hub ⇄ kiln with the 300 ms fade) needs the hub and kiln areas (GAME-3D.1i): 1a builds the sim hook (`area-exit` swaps the area and places Wick at the entry, tested in `game.test.ts` with two first-slice areas) and the fade in presentation; the real areas arrive with 1i.
+- [ ] 3.2 G3-u: e2e under the fake host: nothing renders before ready, zero console errors and CSP violations; the boot's content load and compile time is measured and recorded in this plan's log as the budget the next runs hold.
+- [ ] 3.3 G3-x: e2e at portrait: the rotate cover shows and the sim tick does not advance; rotating back resumes with the same tick hash and focus. Gates; PR; "ready".
+
+## Interfaces
+
+- **Consumed:** `SaveDef`, `GameSaves`, `Saves`, `SlotState` (runtime save); `LocaleDef`, Paraglide `t()`, `negotiateLocale`, `textDirection` (runtime locale); the content compiler's messages and `xx-long` (content locale); ui's `checkLayout`; `defineGame` (`saves`, `locale`, `screens`).
+- **Produced (game-private):** `base3dSave` (`SaveDef<Base3dSave>`), `newGame()`, `Base3dSave`; `systems/index.ts`; `state/index.ts`. No package API changes are planned; any needed change (for example a capture hook the runtime lacks) is a request to the owning lane, recorded here.
+
+## Gates (each part)
+
+`pnpm format`; `TURBO_FORCE=true pnpm check`; `pnpm boundaries` and `pnpm style` (inside check); `pnpm --filter base-3d test`; the golden replay in Node and `pnpm --filter base-3d test:parity` in Chromium, WebKit and Firefox when the sim changes (part 1's split must keep the hash; part 3's area hook may add to the golden: explain any re-record); `pnpm build:demos`; base-3d's focused e2e (`pnpm exec playwright test games/base-3d/e2e/<spec> --project=<base-3d projects>`); `pnpm changeset status --since=origin/main` and `check-changesets` (no changeset). Omitted unless a package changes: `pnpm build`, api-report, api-index, agent-skills.
+
+## Owner gates
+
+Visual acceptance of changed screens (review images, recorded by the coordinator). Real-device testing stays the Owner's (GAME-3D.1l).
+
+## Execution log
+
+- 2026-10-31: plan written from `claude/3d-m3-7b-flow` `e447d73e` (main `133591b8` + #289, #292, #294).
