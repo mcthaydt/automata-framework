@@ -3,7 +3,7 @@
 - **Task:** ED3D.5e in [02](../../02-master-delivery-plan.md), the first part of milestone "ED3D.5e–7d" (with ED3D.5f and ED3D.7d; one branch, one PR when the milestone is done). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §3 (ED3D-D6: an editor-private flat-shaded PixiJS v8 renderer of `buildSectorMesh`, not `@pixi/3d`), §6 (Dollhouse: sectors extruded with the near walls cut away; select and highlight; orbit, pitch 30° default; Split: Plan and Dollhouse side by side with one selection), §9 (the Split frame), §10 (wide: Split by default ... medium: the 3D modes replace Plan; touch: twist rotates the dollhouse), §11 / ED3-p (with WebGL unavailable or lost, Plan keeps working and the viewport offers a recover action). Mockup `Split · landscape`.
 - **Lane:** editors. **Depends on:** ED3D.5d (the Plan view in the shell), ED3D.4 (`buildSectorMesh`, `pickMesh`, `fitOrbit`, `orbitBy`, `projectPoint`, `rayThrough`, `surfaceVisibility`). All merged.
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 6 of 8 steps.
+- **Progress:** 7 of 8 steps.
 
 ## Scope
 
@@ -31,7 +31,7 @@
 - [x] 4. Renderer (Chromium canvas test, red first): a paint list's polygon colour at its middle; a later polygon drawn over an earlier one; pause and redraw on context loss and restore.
 - [x] 5. `DollhouseCanvas` (DOM with a fake renderer): makes the renderer at its measured size and draws the framed level; a tap selects; the "can't draw" notice and Try again; the plan's selection outline follows.
 - [x] 6. `DocumentFrame` and `modeOptions` (DOM): Split and 3D enabled at `wide`; Split shows both canvases, 3D the dollhouse alone; below `wide` Split shows the dollhouse alone. (One selection: the dollhouse selects through the editor's selection, which the plan draws; covered by the controller and canvas tests.)
-- [ ] 7. Layout (three browsers): Split at the `wide` sizes: both viewports side by side filling the canvas region, the bar's views on screen at full size; 3D fills the region. Review images (Chromium, WebGL2) beside the `Split · landscape` mockup in `docs/evidence/owner-visual/2026-10-31-ed3d-5e/`.
+- [x] 7. Layout (three browsers): Split at the `wide` sizes: both viewports side by side filling the canvas region, the bar's views on screen at full size; 3D fills the region. Review images (Chromium, WebGL2) beside the `Split · landscape` mockup in `docs/evidence/owner-visual/2026-10-31-ed3d-5e/`.
 - [ ] 8. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity`. No changeset (private package).
 
 ## Execution log
@@ -41,3 +41,4 @@
 - 2026-10-31, step 5: `DollhouseCanvas.dom.test.ts` red (component missing), then 4 of 4. `dollhouse-gestures.ts` (drag orbits, pinch zooms and twists, wheel zooms or orbits, tap selects, two and three fingers undo and redo): its test was written first in the same edit and not run red first; 4 of 4.
 - 2026-10-31, step 6: two `DocumentFrame` tests red (no Split, no 3D view), then 12 of 12. The `modeOptions` test was first broken by a stray brace in my edit, so it did not run; fixed, then confirmed red against the old `plan-status.ts` (swapped in from `git show`) and green against the new, 6 of 6. The frame takes an optional `dollhouse` renderer factory, a lazy import of the dollhouse renderer by default (`lazy-dollhouse-renderer.ts`), so boot, App and main are unchanged. editor-3d `test:unit` all green; `svelte-check` 0 errors.
 - 2026-10-31, step 6 (cont.): `DocumentBar.dom.test.ts` from ED3D.5d expected Split disabled; it now expects Split and 3D enabled and Walk disabled with its reason (10 of 10). Not a weakened test: the same assertions on Walk, and new ones on Split and 3D.
+- 2026-10-31, step 7: `split-view.layout.test.ts` in Chromium, WebKit and Firefox at the four `wide` sizes: 24 of 24 (Firefox draws no 3D here, so its tap selects through the controller with the notice up). The first review images showed every triangle of a selected surface outlined (diagonals) and unselected walls blending; the paint list now carries each triangle's share of its surface's outline (`edges`, red first: 6 of 6 after), drawn with the triangle in the accent when selected and a dark hairline otherwise. Images and README in `docs/evidence/owner-visual/2026-10-31-ed3d-5e/`.

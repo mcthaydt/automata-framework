@@ -4,8 +4,8 @@ import type { DollhousePaint } from '../../app/dollhouse-paint'
 import { createWebGL2Renderer, type RendererSize } from '../plan/plan-renderer'
 
 // The Dollhouse view's renderer (ED3D.5e, ED3D-D6: editor-private, flat-shaded, not `@pixi/3d`): a WebGL2 Pixi renderer
-// that fills a `DollhousePaint`'s triangles in order (the list is already far to near) in one `Graphics`, a selected one
-// tinted and outlined in the accent. Losing the context pauses it and keeps the newest list, as the plan's does (ED3D
+// that fills a `DollhousePaint`'s triangles in order (the list is already far to near) in one `Graphics`, each with its
+// surface's outline edges, a selected one tinted and outlined in the accent. Losing the context pauses it and keeps the newest list, as the plan's does (ED3D
 // spec §11, ED3-p: Plan keeps working; the viewport offers Try again).
 
 export interface DollhouseRenderer {
@@ -22,16 +22,25 @@ export type DollhouseRendererFactory = (
 
 /** How much of the accent a selected surface takes on. */
 const SELECTED_TINT = 0.35
+/** How strongly an unselected surface's outline shows: enough to tell two walls apart. */
+const EDGE_ALPHA = 0.6
 
 function paintInto(graphics: Graphics, paint: DollhousePaint): void {
   graphics.clear()
   for (const polygon of paint.polygons) {
     graphics.poly([...polygon.points]).fill({ color: polygon.color, alpha: polygon.alpha })
-    if (!polygon.selected) continue
-    graphics
-      .poly([...polygon.points])
-      .fill({ color: paint.accent, alpha: SELECTED_TINT * polygon.alpha })
-      .stroke({ color: paint.accent, width: 2, alignment: 0.5, join: 'round' })
+    if (polygon.selected)
+      graphics.poly([...polygon.points]).fill({ color: paint.accent, alpha: SELECTED_TINT * polygon.alpha })
+    if (polygon.edges.length === 0) continue
+    for (let i = 0; i + 3 < polygon.edges.length; i += 4)
+      graphics
+        .moveTo(polygon.edges[i] as number, polygon.edges[i + 1] as number)
+        .lineTo(polygon.edges[i + 2] as number, polygon.edges[i + 3] as number)
+    graphics.stroke(
+      polygon.selected
+        ? { color: paint.accent, width: 2, cap: 'round' }
+        : { color: paint.background, width: 1, alpha: EDGE_ALPHA * polygon.alpha, cap: 'round' },
+    )
   }
 }
 

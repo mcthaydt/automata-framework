@@ -38,6 +38,7 @@ function colorAt(x: number, y: number): string {
 
 const triangle = (points: number[], color: number, selected = false) => ({
   points,
+  edges: [points[0] ?? 0, points[1] ?? 0, points[2] ?? 0, points[3] ?? 0],
   color,
   alpha: 1,
   role: 'wall' as const,

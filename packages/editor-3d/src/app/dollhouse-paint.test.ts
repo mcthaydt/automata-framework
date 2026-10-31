@@ -91,4 +91,10 @@ describe('dollhousePaint', () => {
     const paint = dollhousePaint(meshOf(flat('floor', 0)), close, SIZE, new Set())
     for (const polygon of paint.polygons) expect(polygon.points.every(Number.isFinite)).toBe(true)
   })
+
+  it('carries each surface’s outline with its triangles, not the diagonal between them', () => {
+    const paint = dollhousePaint(meshOf(wall(0, 1)), ORBIT, SIZE, new Set())
+    // A quad of two triangles: four outline edges between them (four numbers each), and no diagonal.
+    expect(paint.polygons.map((polygon) => polygon.edges.length)).toEqual([8, 8])
+  })
 })

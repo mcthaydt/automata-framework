@@ -12,6 +12,11 @@ import { PLAN_COLORS } from '../view/plan/plan-colors'
 export interface DollhousePolygon {
   /** `x, y` in canvas pixels for each corner. */
   readonly points: readonly number[]
+  /**
+   * The edges of the surface's outline this triangle owns, `x1, y1, x2, y2` each in canvas pixels: drawn with the triangle
+   * so a nearer surface covers them, and never the diagonal between two triangles of one surface.
+   */
+  readonly edges: readonly number[]
   readonly color: number
   readonly alpha: number
   readonly role: SurfaceRole
@@ -47,6 +52,23 @@ function lit(color: number, light: number): number {
   return (channel(16) << 16) | (channel(8) << 8) | channel(0)
 }
 
+/** The edges of a surface's triangles that only one triangle has: its outline. Keyed by the two indices, low first. */
+function outlineEdges(indices: readonly number[]): ReadonlySet<string> {
+  const count = new Map<string, number>()
+  for (let i = 0; i + 2 < indices.length; i += 3)
+    for (const [a, b] of [
+      [indices[i], indices[i + 1]],
+      [indices[i + 1], indices[i + 2]],
+      [indices[i + 2], indices[i]],
+    ] as const) {
+      const key = edgeKey(a ?? 0, b ?? 0)
+      count.set(key, (count.get(key) ?? 0) + 1)
+    }
+  return new Set([...count].filter(([, times]) => times === 1).map(([key]) => key))
+}
+
+const edgeKey = (a: number, b: number): string => (a < b ? `${a}-${b}` : `${b}-${a}`)
+
 const isSelected = (surface: Surface, selected: ReadonlySet<string>): boolean =>
   (surface.selection !== undefined && selected.has(surface.selection)) ||
   selected.has(`sector:${surface.sector}`)
@@ -62,6 +84,7 @@ export function dollhousePaint(
   for (const surface of mesh.surfaces) {
     const visibility = surfaceVisibility(surface, camera.eye)
     if (visibility === 'cut') continue
+    const outline = outlineEdges(surface.indices)
     const corner = (index: number) => {
       const at = index * 3
       return projectPoint(camera, size, [
@@ -71,13 +94,23 @@ export function dollhousePaint(
       ])
     }
     for (let i = 0; i + 2 < surface.indices.length; i += 3) {
-      const triangle = [surface.indices[i], surface.indices[i + 1], surface.indices[i + 2]].map((index) =>
-        corner(index ?? 0),
-      )
+      const indices = [surface.indices[i] ?? 0, surface.indices[i + 1] ?? 0, surface.indices[i + 2] ?? 0]
+      const triangle = indices.map(corner)
       if (triangle.some((point) => point === undefined)) continue
       const points = triangle as { x: number; y: number; depth: number }[]
+      const edges: number[] = []
+      for (const [from, to] of [
+        [0, 1],
+        [1, 2],
+        [2, 0],
+      ] as const) {
+        if (!outline.has(edgeKey(indices[from] as number, indices[to] as number))) continue
+        const [a, b] = [points[from], points[to]] as [{ x: number; y: number }, { x: number; y: number }]
+        edges.push(a.x, a.y, b.x, b.y)
+      }
       polygons.push({
         points: points.flatMap((point) => [point.x, point.y]),
+        edges,
         color: lit(ROLE_COLORS[surface.role], surface.shade),
         alpha: visibility === 'faded' ? FADED : 1,
         role: surface.role,
