@@ -433,6 +433,11 @@ describe("base-3d's flow", () => {
       await until(() => screen() === 'play', 'the room')
       step()
       expect(wick()).toMatchObject({ x: metres(FIRST_SLICE.spawn.x), z: spawnZ })
+      // With 3 hearts (DESIGN.md §7.8), whatever the entrance held.
+      const rows = results.flatMap((result) => [...result.render.added, ...result.render.changed])
+      expect(rows.findLast((row) => row.components.hero !== undefined)?.components.fighter).toMatchObject({
+        health: 6,
+      })
       expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'fail' }, { kind: 'start' }])
     })
 

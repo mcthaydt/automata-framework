@@ -32,10 +32,13 @@ const actSchema = z.object({
   guard: z.boolean(),
   point: z.boolean(),
   pickup: z.boolean(),
+  /** The Action button (DESIGN.md §14.1 `action`): a roll, or a hop while locked. */
+  action: z.boolean(),
 })
 
 /**
  * Which action buttons are held, sent every tick in play as `lock` is: a press of slash, point or pickup starts
- * that action, and guard is held as a stance (M3 spec §4.7). No command is every button up.
+ * that action, guard is held as a stance (M3 spec §4.7), and Action rolls or hops (DESIGN.md §7.2). No command is
+ * every button up. GAME-3D.1h splits it into §14.1's `attack`, `shield` and `action`.
  */
 export const Act: CommandDef<typeof actSchema> = defineCommand('act', actSchema)

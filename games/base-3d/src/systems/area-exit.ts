@@ -26,6 +26,10 @@ export const areaExit: SystemDef = defineSystem({
         if (ctx.tick < place.swapAt) continue
         // An area change lets go of the lock (DESIGN.md §11.2).
         entity.set(Hero, { x: place.entryX, z: place.entryZ, lockTarget: 0, lockHidden: 0 })
+        // A fall in the new area's first room returns him to where he arrived (DESIGN.md §7.8).
+        place.returnX = place.entryX
+        place.returnZ = place.entryZ
+        place.returnFacing = entity.get(Hero).facing
         place.area = place.next
         place.next = -1
         ctx.emit(AreaEntered, { area: place.area })

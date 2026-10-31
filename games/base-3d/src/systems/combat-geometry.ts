@@ -50,6 +50,14 @@ export function reachHits(
   return off * off + beside * beside <= r * r
 }
 
+/** Whether a ring of `far` round `from` meets a cylinder of `radius` at `at`, in plan (an `around` hit, a spin). */
+export function ringHits(from: PlanPoint, far: number, at: PlanPoint, radius: number): boolean {
+  const dx = toQ4(at.x - from.x)
+  const dz = toQ4(at.z - from.z)
+  const reach = toQ4(far) + toQ4(radius)
+  return dx * dx + dz * dz <= reach * reach
+}
+
 /** Whether `bearing` lies within `half` turn units either side of `facing` (both in turn units). */
 export function inArc(facing: number, bearing: number, half: number): boolean {
   return Math.abs(signedTurn(bearing - facing)) <= half

@@ -41,7 +41,7 @@ describe('the key map (M3.7b part 3)', () => {
       'camera-turn': { units: 0 },
       // The player's saved Lock mode, Toggle until play reads the settings (screens/lock-input.ts).
       lock: { down: false, mode: 'toggle' },
-      act: { slash: false, guard: false, point: false, pickup: false },
+      act: { slash: false, guard: false, point: false, pickup: false, action: false },
     })
   })
 
@@ -63,7 +63,27 @@ describe('the key map (M3.7b part 3)', () => {
   })
 
   it('maps J, K, L and F to slash, guard, point and pick up', () => {
-    expect(held('KeyJ', 'KeyK').act).toEqual({ slash: true, guard: true, point: false, pickup: false })
-    expect(held('KeyL', 'KeyF').act).toEqual({ slash: false, guard: false, point: true, pickup: true })
+    expect(held('KeyJ', 'KeyK').act).toEqual({
+      slash: true,
+      guard: true,
+      point: false,
+      pickup: false,
+      action: false,
+    })
+    expect(held('KeyL', 'KeyF').act).toEqual({
+      slash: false,
+      guard: false,
+      point: true,
+      pickup: true,
+      action: false,
+    })
+    // Space is Action (DESIGN.md §14.2): the roll and the hops (GAME-3D.1c part 2).
+    expect(held('Space').act).toEqual({
+      slash: false,
+      guard: false,
+      point: false,
+      pickup: false,
+      action: true,
+    })
   })
 })

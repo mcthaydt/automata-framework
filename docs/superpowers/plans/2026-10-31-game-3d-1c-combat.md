@@ -122,9 +122,55 @@ Unit tests: `cd games/base-3d && pnpm vitest run --configLoader runner --project
 - [x] 1.6 Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm --filter @af-games/base-3d test:parity`,
   `pnpm build:demos`, base-3d e2e (`--project=base-3d`).
 
-## Steps (part 2) and (part 3)
+## Part 2: moving out of the way
 
-Written in detail at the start of each part, from part 1's code, in this file.
+Branch `claude/3d-game-3d-1c-2` (worktree `/home/user/wt/game-3d-1c2`), stacked on `claude/3d-game-3d-1c` (#309);
+draft PR base `claude/3d-game-3d-1c`.
+
+Interfaces (base-3d only):
+
+| Name | File | Shape |
+|---|---|---|
+| `act.action` (new field), `ACTION_BITS.action` 16 | commands.ts, constants.ts | the Action button (§14.1 `action`; Space on the keyboard, main.ts). 1h remaps every button; until then `act` carries it |
+| `MoveDef.travel`, `invuln`, `height`, `hit.around` | constants.ts | a move that carries the fighter `travel` Q16 metres over its `total` frames; frames `invuln` hit nothing; `height` replaces the hurt height while it runs; an `around` hit is a ring of `far` metres |
+| `spin`, `roll`, `hop-side`, `hop-back` | constants.ts `HERO_MOVES` | §7.2's rows |
+| `Fighter.charge` | components.ts | ticks the attack button has been held |
+| `CombatState.rise` 7, `fall` 8 | constants.ts | §7.2 `rise`, `fall` |
+| `AreaSource.pits`, `Area.pits` | systems/area.ts | plan boxes Wick falls into (DESIGN §6.5 D6); default none |
+| `Location.returnX`, `returnZ`, `returnFacing` | resources.ts | the room's last entry point: where he crossed into the room he is in, facing his way in (set by `hero.view` on a room change, at the spawn and at an area entry) |
+| `continueWith3Hearts(sim)` | state/index.ts | the game over's Continue: after the entrance snapshot is restored, Wick has 3 hearts (§7.8) |
+
+Rules (part 2):
+
+1. **Spin:** holding Attack counts `charge`; releasing it with `charge ≥ 40` starts `spin` (cancelling a slash),
+   whose `around` hit reaches every foe within 1.6 m (plus the defender's radius), dmg 2, stop 6, stun 24, kb 3.0.
+2. **Roll:** an Action press while the stick moves him and no lock holds, idle or in a slash, starts `roll` toward
+   his travel: 3.2 m over 24 frames, frames 2–12 hit nothing, his hurt height 0.9 m. He faces the roll.
+3. **Hops:** an Action press while locked with the stick to the side (|x| > |y|) or back (y > 0, |y| ≥ |x|)
+   starts `hop-side` or `hop-back` along the stick through the lock axis: 2.0 m over 20 frames, frames 2–10 hit
+   nothing, facing kept on the target. Forward or a centred stick does nothing yet (Action's other uses are 1f's).
+4. **Knockdown and rise:** a non-lethal power-3 hit (the thrust; 1d's bombs) puts the defender `down` 40 ticks, then
+   `rise` 14; nothing lands while down or rising. Lethal stays part 1's rule.
+5. **Fall:** Wick's feet (his position) inside a pit: state `fall` for 60 ticks, one half-heart lost (at 0, part 1's
+   knockdown and defeat instead), then placed at `Location.return*` with 60 i-frames, idle.
+6. **Continue:** `continueWith3Hearts` sets Wick's `fighter` to 6 half-hearts, idle, no move; screens.ts calls it
+   after restoring the entrance snapshot. It runs outside a step, as the save's `apply` does (DESIGN §12.1).
+
+- [x] 2.1 Failing tests (`game.test.ts` `describe('combat, part 2')`): a held Attack released at 39 ticks starts no
+  spin and at 40 starts one that hits foes on both sides once; a roll moves 3.2 m in 24 frames toward the stick, a
+  hit on frame 2 to 12 misses and on frame 13 lands; a locked side hop moves 2 m round the target keeping the facing,
+  a back hop away, a forward press nothing; the thrust knocks a dummy down 40 then rise 14 with no hit landing; a pit
+  costs a half-heart, holds 60 ticks, returns Wick to the room's entry point facing in with 60 i-frames; a fall at
+  half a heart knocks him down and defeats him. `screens.dom.test.ts`: Continue after a defeat gives 3 hearts.
+  `game-spec.test.ts` and `lock-input.test.ts`: `act` idle carries `action: false`; Space presses Action.
+- [x] 2.2 Implementation; 2.1 passes, every part 1 case still passes.
+- [x] 2.3 Golden: re-record only if the schema or the route's state moves, with the change explained and the old
+  values still asserted.
+- [x] 2.4 Gates as 1.6.
+
+## Part 3
+
+Written in detail at the start of part 3, in this file.
 
 ## Gates
 
@@ -165,3 +211,28 @@ Pending: the Mac's CI.
 - 1.6: `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0; `pnpm --filter @af-games/base-3d test:parity` 246/246
   (game.test.ts's 78 cases and the 4 layout cases in Chromium, WebKit and Firefox; the golden `c1998c3d0764df24` in
   all three); `pnpm build:demos` exit 0; base-3d e2e (`--project=base-3d`) 7/7.
+- Part 2 (branch `claude/3d-game-3d-1c-2`): 2.1 the 6 sim cases (spin, roll, hops, knockdown and rise, the pit
+  fall and return, a fall at half a heart) and the two key-map cases failed for the expected reasons (no spin or roll
+  move, `toMatch` on no hop, the dummy stunned rather than down, the `pits` field unknown, `act` without `action`).
+  The DOM Continue case was written before `continueWith3Hearts` but first run after it; run again with the call
+  removed it failed on `health: 8` (the entrance's 4 hearts), so it does test the change; the call is back.
+- 2.2: implemented: `act.action` and Space (main.ts), `HERO_MOVES` gains `spin`, `roll`, `hop-side`, `hop-back`;
+  `fighter.charge`; `combat.moves` starts the spin on a release at 40 held ticks and keeps the slash clip to sword
+  moves; `combat.hits` reaches a ring for `around` hits, skips a running move's `invuln` frames and down, rising or
+  falling fighters, uses a move's `height`, and knocks down on a power-3 hit; `combat.status` turns a knockdown with
+  health into `rise` 14 and ends a fall at the return point with 60 i-frames; `hero.move` starts and carries rolls and
+  hops and drops Wick into pits; `hero.view` and `area.exit` record the return point, `spawnArea` sets the spawn's;
+  `continueWith3Hearts` after the Continue's restore. All 147 node cases and 20 DOM cases pass on the first run after
+  the change, part 1's included.
+- 2.2, interpretations (veto items): a roll or hop cancels a sword move (a slash or the spin), as §7.2 lets it start
+  "while moving"; Action locked with the stick forward or centred does nothing yet; a roll faces its way, a hop keeps
+  the facing on the target; the return point is where he crossed into the room (or the spawn, or an area's entry),
+  facing as he crossed; the fall hits nothing while it runs; a knocked-down dummy is pushed for the hit's stun ticks.
+  Found while writing this: `state/save.ts`'s `newGame` gives `hearts.max` 3 while §7.8 starts Wick at 4; the sim's
+  health does not read the save yet, so it is left for the save's owner (a follow-up, not changed here).
+- 2.3: golden `c1998c3d0764df24` → `ddddbb42a540c167` (Node), schema and content only: the new moves and `pits`
+  (content hash), `act.action`, `fighter.charge` and the return point (schema and rows). The route's state did not
+  move; rejected, events, kiln tick, locked ticks, action starts, end action and end pose are still asserted.
+- 2.4: `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0; base-3d `test:parity` 264/264 (84 game cases and 4
+  layout cases in Chromium, WebKit and Firefox; the golden `ddddbb42a540c167` in all three); `pnpm build:demos` exit
+  0; base-3d e2e 7/7.

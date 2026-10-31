@@ -156,7 +156,7 @@ interface TickInput {
   readonly mode?: 'toggle' | 'hold'
   /** A `lock-cycle` this tick: 1 clockwise, −1 anticlockwise. */
   readonly cycle?: 1 | -1
-  readonly act?: Partial<Record<'slash' | 'guard' | 'point' | 'pickup', boolean>>
+  readonly act?: Partial<Record<'slash' | 'guard' | 'point' | 'pickup' | 'action', boolean>>
 }
 
 /**
@@ -172,7 +172,7 @@ function commandsFor(sim: Sim, input: TickInput): Command[] {
     commands.push({ ...at, seq: sim.tick * 5 + 1, type: 'camera-turn', payload: { units: input.turn } })
   const lock = { down: input.lock ?? false, mode: input.mode ?? 'hold' }
   commands.push({ ...at, seq: sim.tick * 5 + 2, type: 'lock', payload: lock })
-  const act = { slash: false, guard: false, point: false, pickup: false, ...input.act }
+  const act = { slash: false, guard: false, point: false, pickup: false, action: false, ...input.act }
   commands.push({ ...at, seq: sim.tick * 5 + 3, type: 'act', payload: act })
   if (input.cycle !== undefined)
     commands.push({ ...at, seq: sim.tick * 5 + 4, type: 'lock-cycle', payload: { dir: input.cycle } })
@@ -1080,6 +1080,143 @@ describe('combat (GAME-3D.1c, DESIGN.md §7)', () => {
     ])
     sim.dispose()
   })
+
+  describe('part 2: moving out of the way', () => {
+    const DOWN = { x: 0, y: 127 }
+    const near = (value: number, expected: number) => expect(Math.abs(value - expected)).toBeLessThan(64)
+
+    it('starts a spin on releasing Attack held 40 ticks, not 39, which hits foes on both sides once', async () => {
+      const short = await startSim(openArea(), MOVES)
+      run(short, { act: { slash: true } }, 39)
+      run(short, {})
+      expect(moveOf(short, wickSid(short))).not.toBe('spin')
+      short.dispose()
+
+      const sim = await startSim(openArea(), MOVES)
+      run(sim, { act: { slash: true } }, 40)
+      const front = spawnFighter(sim, 1, 1, HALF_TURN)
+      const back = spawnFighter(sim, 1, -1, 0)
+      run(sim, {})
+      expect(moveOf(sim, wickSid(sim))).toBe('spin')
+      const events = run(sim, {}, 60)
+      expect(fighter(sim, front)?.health).toBe(4)
+      expect(fighter(sim, back)?.health).toBe(4)
+      expect(events.filter((event) => event.startsWith('hit.landed'))).toHaveLength(2)
+      sim.dispose()
+    })
+
+    it('rolls 3.2 m in 24 frames toward the stick, and nothing lands on frames 2 to 12', async () => {
+      const sim = await startSim(openArea(), MOVES)
+      const wick = wickSid(sim)
+      run(sim, { stick: UP, act: { action: true } })
+      expect(moveOf(sim, wick)).toBe('roll')
+      run(sim, {}, 23)
+      near(hero(sim).z, metres(3.2))
+      expect(hero(sim)).toMatchObject({ x: 0, facing: 0 })
+      run(sim, {})
+      expect(moveOf(sim, wick)).toBeUndefined()
+
+      // A jab whose reach covers the roll's path from frame 12 on: frame 12 is safe, frame 13 is not.
+      const hurt = await startSim(openArea(), MOVES)
+      const foe = spawnFighter(hurt, 1, 3, HALF_TURN)
+      run(hurt, { stick: UP, act: { action: true } })
+      run(hurt, {}, 10) // frames 2 to 11
+      startMove(hurt, foe, 'test-jab', 5)
+      run(hurt, {}) // roll frame 12, jab frame 5
+      expect(fighter(hurt, wickSid(hurt))?.health).toBe(8)
+      run(hurt, {}) // roll frame 13, jab frame 6
+      expect(fighter(hurt, wickSid(hurt))?.health).toBe(6)
+      sim.dispose()
+      hurt.dispose()
+    })
+
+    it('hops 2 m to the side or back while locked, facing the target; forward does nothing', async () => {
+      for (const [stick, dx, dz] of [
+        [RIGHT, -2, 0],
+        [DOWN, 0, -2],
+      ] as const) {
+        const { sim } = await withDummy(3)
+        run(sim, { lock: true })
+        run(sim, { lock: true, stick, act: { action: true } })
+        expect(moveOf(sim, wickSid(sim))).toMatch(/^hop-/)
+        run(sim, { lock: true }, 19)
+        near(hero(sim).x, metres(dx))
+        near(hero(sim).z, metres(dz))
+        // Locked, he faces the target from where each tick found him: one more tick reads the hop's end.
+        const { x, z } = hero(sim)
+        run(sim, { lock: true })
+        expect(hero(sim).facing).toBe(angleOf(-x, metres(3) - z))
+        sim.dispose()
+      }
+      const { sim } = await withDummy(3)
+      run(sim, { lock: true })
+      run(sim, { lock: true, stick: UP, act: { action: true } })
+      expect(moveOf(sim, wickSid(sim))).toBeUndefined()
+      sim.dispose()
+    })
+
+    it('knocks a dummy down 40 ticks and up 14 on a power-3 hit, and nothing lands meanwhile', async () => {
+      const { sim, dummy } = await withDummy()
+      startMove(sim, wickSid(sim), 'thrust', 10)
+      run(sim, {})
+      expect(fighter(sim, dummy)).toMatchObject({ health: 4, state: CombatState.down, stun: 40 })
+      run(sim, {}, 8) // the thrust's hitstop
+      startMove(sim, wickSid(sim), 'slash-1', 6)
+      run(sim, {})
+      expect(fighter(sim, dummy)?.health).toBe(4)
+      run(sim, {}, 39)
+      expect(fighter(sim, dummy)).toMatchObject({ state: CombatState.rise, stun: 14 })
+      run(sim, {}, 14)
+      expect(fighter(sim, dummy)?.state).toBe(CombatState.idle)
+      sim.dispose()
+    })
+
+    /** Two rooms split at z = 0, Wick spawning in the south one, a pit across the north one at 3 m to 5 m. */
+    const pitArea = () =>
+      compileArea({
+        id: 'pit',
+        spawn: { x: 0, z: -2 },
+        views: [
+          { id: 'south', yawDeg: 0, rotate: true },
+          { id: 'north', yawDeg: 0, rotate: true },
+        ],
+        rooms: [
+          { view: 'south', min: [-10, -10], max: [10, 0] },
+          { view: 'north', min: [-10, 0], max: [10, 10] },
+        ],
+        walls: [],
+        targets: [],
+        ember: { x: 9, z: 9 },
+        pits: [{ min: [-10, 3], max: [10, 5] }],
+      })
+
+    it('drops Wick into a pit: half a heart, 60 ticks, then back at the room’s entry facing in, with 60 i-frames', async () => {
+      const sim = await startSim(pitArea(), MOVES)
+      const wick = wickSid(sim)
+      let entry: { x: number; z: number } | undefined
+      for (let ticks = 0; ticks < 200 && fighter(sim, wick)?.state !== CombatState.fall; ticks++) {
+        run(sim, { stick: UP })
+        if (entry === undefined && hero(sim).view === 'north') entry = { x: hero(sim).x, z: hero(sim).z }
+      }
+      expect(fighter(sim, wick)).toMatchObject({ health: 7, state: CombatState.fall, stun: 60 })
+      run(sim, { stick: UP }, 59)
+      expect(fighter(sim, wick)?.state).toBe(CombatState.fall)
+      run(sim, {})
+      expect(fighter(sim, wick)).toMatchObject({ state: CombatState.idle, iframes: 60 })
+      expect(hero(sim)).toMatchObject({ ...entry, facing: 0 })
+      sim.dispose()
+    })
+
+    it('a fall at half a heart knocks Wick down and defeats him', async () => {
+      const sim = await startSim(pitArea(), MOVES)
+      sim.entity(wickSid(sim))?.set(Fighter, { health: 1 })
+      const events: string[] = []
+      for (let ticks = 0; ticks < 200; ticks++) events.push(...run(sim, { stick: UP }))
+      expect(fighter(sim, wickSid(sim))).toMatchObject({ health: 0, state: CombatState.defeated })
+      expect(events.filter((event) => event.startsWith('hero.defeated'))).toHaveLength(1)
+      sim.dispose()
+    })
+  })
 })
 
 // The golden replay (B-a): a scripted route through the first slice as commands, from the game's own sim spec. It
@@ -1148,9 +1285,14 @@ const GOLDEN_KILN_TICK = 118
  * systems, whose rows and RNG states the snapshot carries. The route's state did not move: its slashes are out of
  * the dummy's reach (0 events), the second press lands on slash-1's frame 10, the window's first frame, so it starts
  * slash-2 at once on the same tick 287 the old replace rule did, and the rejected commands, kiln tick, locked
- * ticks, action starts, end action and end position are unchanged, and still asserted below.
+ * ticks, action starts, end action and end position are unchanged, and still asserted below. Re-recorded for GAME-3D.1c part 2 (was
+ * `c1998c3d0764df24`): the content gained the spin, roll and hop moves and each area's `pits` (none in the first
+ * slice), the schema hash covers `act.action`, `fighter.charge` and the `location` resource's return point, which the
+ * snapshot's rows carry (the spawn's). The route presses no Action and holds no Attack past a tick, so its state did
+ * not move: the rejected commands, events, kiln tick, locked ticks, action starts, end action and end position are
+ * unchanged, and still asserted below.
  */
-const GOLDEN_HASH = 'c1998c3d0764df24'
+const GOLDEN_HASH = 'ddddbb42a540c167'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

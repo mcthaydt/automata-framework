@@ -15,6 +15,7 @@ import { Effect, type Scope } from 'effect'
 import { flushSync, mount, unmount } from 'svelte'
 import { TICK_HZ } from '../constants.ts'
 import { AreaEntered, AreaExit, EmberTaken, HeroDefeated } from '../events.ts'
+import { continueWith3Hearts } from '../state/index.ts'
 import { areaFade } from './area-fade.ts'
 import EndScreen from './EndScreen.svelte'
 import GameOverScreen from './GameOverScreen.svelte'
@@ -188,7 +189,10 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
         const flow = yield* Flow
         yield* show(GameOverScreen, layer, {
           onContinue: () => {
-            if (running !== undefined && entrance !== undefined) running.restore(entrance)
+            if (running !== undefined && entrance !== undefined) {
+              running.restore(entrance)
+              continueWith3Hearts(running)
+            }
             flow.dispatch('continue')
           },
           onQuit: () => void flow.dispatch('quit'),

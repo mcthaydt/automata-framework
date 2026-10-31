@@ -7,8 +7,8 @@
 // onto the second figure: Wick strafes and aims at it, and the camera frames them both. (Part 4) The flow: a splash,
 // the menu, the room, paused and Settings, and the end screen when Wick picks up the ember in the kiln.
 // Controls: WASD or the arrows to move, Q and E to turn the camera (or cycle the lock), Shift to lock, J slash, K
-// held to guard, L point, F pick up, Escape to pause. On touch, the same as buttons (the analog stick and the camera
-// drag wait on the play screen, GAME-3D.1h).
+// held to guard, L point, F pick up, Space to roll (or hop while locked), Escape to pause. On touch, the same as
+// buttons (the analog stick and the camera drag wait on the play screen, GAME-3D.1h).
 // Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, @mcthaydt/automata-figures,
 // @mcthaydt/automata-render-pixi3d; @mcthaydt/automata-content (its Vite plugin) and @mcthaydt/automata-ship.
 import '@mcthaydt/automata-render-pixi3d/no-eval'
@@ -54,7 +54,7 @@ const BASE3D_SIM = base3dSim(WORLD)
 /** The keyboard's camera turn, 120° a second (M4-D16): 65,536 × 120 / 360 / 60 ≈ 364 turn units a tick. */
 const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
 
-const idleAct = { slash: false, guard: false, point: false, pickup: false }
+const idleAct = { slash: false, guard: false, point: false, pickup: false, action: false }
 
 /**
  * WASD and the arrows push the stick to its edge (`move` is the stick, M4-D2), as the left stick's directions do;
@@ -95,8 +95,17 @@ export const input = lockInput(
     ),
     keys(
       Act,
-      { KeyJ: { slash: true }, KeyK: { guard: true }, KeyL: { point: true }, KeyF: { pickup: true } },
-      { idle: idleAct, labels: { KeyJ: 'Slash', KeyK: 'Guard', KeyL: 'Point', KeyF: 'Pick up' } },
+      {
+        KeyJ: { slash: true },
+        KeyK: { guard: true },
+        KeyL: { point: true },
+        KeyF: { pickup: true },
+        Space: { action: true },
+      },
+      {
+        idle: idleAct,
+        labels: { KeyJ: 'Slash', KeyK: 'Guard', KeyL: 'Point', KeyF: 'Pick up', Space: 'Action' },
+      },
     ),
   ),
   { KeyQ: -1, KeyE: 1 },

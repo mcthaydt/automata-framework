@@ -1,13 +1,25 @@
 // Wick's systems: the stick, lock and buttons copied onto him, his move through the heading, the room's view entered
 // and his actions.
 import { CameraHeading, enterView, mapStick, moveDirection, Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
-import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
+import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
 import { Act, Lock, LockCycle, Move } from '../commands.ts'
 import { Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
-import { ACTION_BITS, ACTION_CLIP, ACTION_TICKS, HERO_HALF, WALK_PER_TICK } from '../constants.ts'
+import {
+  ACTION_BITS,
+  ACTION_CLIP,
+  ACTION_TICKS,
+  CombatState,
+  FALL_COST,
+  FALL_TICKS,
+  HERO_HALF,
+  KNOCKDOWN_TICKS,
+  type MoveDef,
+  WALK_PER_TICK,
+} from '../constants.ts'
 import { Location } from '../resources.ts'
-import { areaIn, slide, viewAt } from './area.ts'
+import { areaIn, slide, viewAt, worldOf } from './area.ts'
 import { frozen, isHeld } from './combat.ts'
+import { facingVector } from './combat-geometry.ts'
 import { angleOf, signedTurn } from './lock-target.ts'
 
 /**
@@ -31,6 +43,7 @@ export const heroInput: SystemDef = defineSystem({
     if (act?.guard === true) actHeld |= ACTION_BITS.guard
     if (act?.point === true) actHeld |= ACTION_BITS.point
     if (act?.pickup === true) actHeld |= ACTION_BITS.pickup
+    if (act?.action === true) actHeld |= ACTION_BITS.action
     for (const entity of ctx.query(HeroControl)) {
       const before = entity.get(HeroControl)
       const lockPressed = lockHeld && !before.lockHeld
@@ -61,6 +74,7 @@ export const heroMove: SystemDef = defineSystem({
   run(ctx) {
     if (frozen(ctx)) return
     const { walls } = areaIn(ctx.content, ctx.resource(Location))
+    const { moves } = worldOf(ctx.content)
     for (const entity of ctx.query(Hero, HeroControl, CameraHeading)) {
       const control = entity.get(HeroControl)
       const hero = entity.get(Hero)
@@ -88,17 +102,105 @@ export const heroMove: SystemDef = defineSystem({
       // Locked, the stick maps through the line to the target, so sideways circles it (G3-f, DESIGN.md §11.2).
       const direction = toTarget === undefined ? mapped.direction : mapStick(stick, toTarget)
       const moving = direction.x !== 0 || direction.z !== 0
+      const travel = angleOf(direction.x, direction.z)
+
+      // An Action press starts a roll, or a hop while locked (DESIGN.md §7.2); a roll or hop under way carries him.
+      const pressed = (control.actPressed & ACTION_BITS.action) !== 0
+      let carry = fighter === undefined ? undefined : carried(moves, fighter)
+      if (fighter !== undefined && carry === undefined && pressed && canDodge(moves, fighter)) {
+        const dodge = dodgeOf(stick, toTarget !== undefined, moving)
+        const index = moves.findIndex((move) => move.id === dodge) + 1
+        const def = moves[index - 1]
+        if (def?.travel !== undefined) {
+          const unit = facingVector(travel)
+          const push = {
+            pushX: Math.trunc((unit.x * def.travel) / 4096 / def.total),
+            pushZ: Math.trunc((unit.z * def.travel) / 4096 / def.total),
+          }
+          const started = { move: index, moveTick: 1, moveStart: ctx.tick, state: CombatState.act, queued: 0 }
+          entity.set(Fighter, { ...started, ...push, pushTicks: def.total })
+          if (entity.has(HeroAction) && entity.get(HeroAction).clip === ACTION_CLIP.slash)
+            entity.set(HeroAction, { clip: 0 })
+          carry = { ...push, pushTicks: def.total }
+        }
+      }
+      if (carry !== undefined) {
+        const { x, z } = slide(walls, HERO_HALF, hero, carry.pushX, carry.pushZ)
+        const way = angleOf(carry.pushX, carry.pushZ)
+        const facing = toTarget ?? way
+        entity.set(Hero, { x, z, facing, moving: true, moveDir: signedTurn(way - facing) })
+        entity.set(Fighter, { pushTicks: carry.pushTicks - 1 })
+        fallIntoPit(ctx, entity, x, z)
+        continue
+      }
+
       // Exact: both factors are integers under 2^17, so the product is exact and the division by 2^16 too.
       const dx = Math.trunc((direction.x * walk) / Q16)
       const dz = Math.trunc((direction.z * walk) / Q16)
       const { x, z } = slide(walls, HERO_HALF, hero, dx, dz)
-      const travel = angleOf(direction.x, direction.z)
       const facing = target !== undefined ? (toTarget ?? hero.facing) : moving ? travel : hero.facing
       const moveDir = moving ? signedTurn(travel - facing) : 0
       entity.set(Hero, { x, z, facing, moving, moveDir })
+      fallIntoPit(ctx, entity, x, z)
     }
   },
 })
+
+/** The push of a roll or hop under way, if one is: a running move with `travel` and ticks of it left. */
+function carried(
+  moves: readonly MoveDef[],
+  fighter: {
+    readonly move: number
+    readonly pushX: number
+    readonly pushZ: number
+    readonly pushTicks: number
+  },
+): { pushX: number; pushZ: number; pushTicks: number } | undefined {
+  const running = fighter.move === 0 ? undefined : moves[fighter.move - 1]
+  return running?.travel !== undefined && fighter.pushTicks > 0 ? fighter : undefined
+}
+
+/** Whether Action may start a dodge now: idle, or cancelling a sword move (§7.2). */
+function canDodge(
+  moves: readonly MoveDef[],
+  fighter: { readonly state: number; readonly move: number },
+): boolean {
+  if (fighter.state === CombatState.idle) return true
+  return fighter.state === CombatState.act && moves[fighter.move - 1]?.hit !== undefined
+}
+
+/**
+ * The dodge an Action press makes: unlocked, a roll if the stick moves him; locked, `hop-side` with the stick more
+ * to a side than up or down, `hop-back` with it pulled back; nothing for forward or a centred stick (§7.2).
+ */
+function dodgeOf(
+  stick: { readonly x: number; readonly y: number },
+  locked: boolean,
+  moving: boolean,
+): string {
+  if (!locked) return moving ? 'roll' : ''
+  if (Math.abs(stick.x) > Math.abs(stick.y)) return 'hop-side'
+  if (stick.y > 0 && stick.y >= Math.abs(stick.x)) return 'hop-back'
+  return ''
+}
+
+/**
+ * Wick's feet over a pit start a fall (§7.8): a half-heart, then `fall` for 60 ticks (`combat.status` returns him),
+ * or, with no health left, the knockdown that ends in the game over.
+ */
+function fallIntoPit(ctx: SimContext, entity: EntityRef, x: number, z: number): void {
+  if (!entity.has(Fighter)) return
+  const { pits } = areaIn(ctx.content, ctx.resource(Location))
+  if (!pits.some((pit) => x >= pit.minX && x < pit.maxX && z >= pit.minZ && z < pit.maxZ)) return
+  const health = Math.max(0, entity.get(Fighter).health - FALL_COST)
+  const stopped = { move: 0, moveTick: 0, queued: 0, pushTicks: 0 }
+  entity.set(
+    Fighter,
+    health === 0
+      ? { ...stopped, health, state: CombatState.down, stun: KNOCKDOWN_TICKS }
+      : { ...stopped, health, state: CombatState.fall, stun: FALL_TICKS },
+  )
+}
 
 /**
  * Puts Wick's camera in the view of the room he stands in. Entering another view takes its heading at once and,
@@ -117,6 +219,11 @@ export const heroView: SystemDef = defineSystem({
       if (view === undefined || view.id === heading.view) continue
       const control = entity.get(HeroControl)
       entity.set(CameraHeading, enterView(heading, view, { x: control.stickX, y: control.stickY }))
+      // Where he crossed into the room, facing his way in: a fall returns him here (DESIGN.md §7.8).
+      const place = ctx.resource(Location)
+      place.returnX = x
+      place.returnZ = z
+      place.returnFacing = entity.get(Hero).facing
     }
   },
 })

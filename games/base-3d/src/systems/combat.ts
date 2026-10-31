@@ -13,21 +13,25 @@ import {
   BLOCK_STUN,
   BUFFER_FROM,
   CombatState,
+  FALL_IFRAMES,
   GUARD_HALF_ARC,
   HERO_MOVES,
   HURT_IFRAMES,
   HURT_STUN,
+  KNOCKDOWN_POWER,
   KNOCKDOWN_TICKS,
   type MoveDef,
   PARRY_FRAMES,
   PARRY_FREEZE,
   PARRY_STAGGER,
+  RISE_TICKS,
+  SPIN_CHARGE,
   TICK_HZ,
 } from '../constants.ts'
 import { FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
 import { Freeze, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
-import { facingVector, inArc, type Q12Direction, reachHits } from './combat-geometry.ts'
+import { facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
 import { angleOf } from './lock-target.ts'
 
 /** Whether this tick is a hitstop tick: every system but the input copy and `combat.freeze` skips it. */
@@ -39,6 +43,15 @@ const HELD_STATES: readonly number[] = [
   CombatState.blockstun,
   CombatState.stagger,
   CombatState.down,
+  CombatState.defeated,
+  CombatState.rise,
+  CombatState.fall,
+]
+/** The states in which no hit lands: down and getting up (§7.2), falling, and out of the fight. */
+const UNTOUCHABLE: readonly number[] = [
+  CombatState.down,
+  CombatState.rise,
+  CombatState.fall,
   CombatState.defeated,
 ]
 export const isHeld = (state: number): boolean => HELD_STATES.includes(state)
@@ -102,13 +115,23 @@ export const combatStatus: SystemDef = defineSystem({
     for (const entity of ctx.query(Fighter)) {
       const fighter = entity.get(Fighter)
       const next: Partial<{ iframes: number; stun: number; state: number; pushTicks: number }> = {}
+      // Ticks the attack button has been held running are counted in `combat.moves`.
       if (fighter.iframes > 0) next.iframes = fighter.iframes - 1
       if (isHeld(fighter.state) && fighter.state !== CombatState.defeated && fighter.stun > 0) {
         next.stun = fighter.stun - 1
         if (next.stun === 0) {
-          const defeated = fighter.state === CombatState.down && fighter.health <= 0
-          next.state = defeated ? CombatState.defeated : CombatState.idle
+          const down = fighter.state === CombatState.down
+          const defeated = down && fighter.health <= 0
+          // A knockdown with health left gets up (`rise`) before it is idle again (§7.2).
+          next.state = defeated ? CombatState.defeated : down ? CombatState.rise : CombatState.idle
+          if (down && !defeated) next.stun = RISE_TICKS
           if (defeated) ctx.emit(HeroDefeated, {})
+          // The end of a fall puts Wick back where he came into the room, facing in, with i-frames (§7.8).
+          if (fighter.state === CombatState.fall && entity.has(Hero)) {
+            const place = ctx.resource(Location)
+            entity.set(Hero, { x: place.returnX, z: place.returnZ, facing: place.returnFacing })
+            next.iframes = FALL_IFRAMES
+          }
         }
       }
       if (fighter.pushTicks > 0 && entity.has(Target)) {
@@ -137,13 +160,30 @@ export const combatMoves: SystemDef = defineSystem({
     if (frozen(ctx)) return
     const moves = movesOf(ctx)
     const first = moves.findIndex((move) => move.id === HERO_MOVES[0]?.id) + 1
+    const spin = moves.findIndex((move) => move.id === 'spin') + 1
     for (const entity of ctx.query(Fighter)) {
       const fighter = entity.get(Fighter)
       const control = entity.has(HeroControl) ? entity.get(HeroControl) : undefined
       const pressed =
         fighter.latched || (control !== undefined && (control.actPressed & ACTION_BITS.slash) !== 0)
+      // Attack held counts a charge; let go at `SPIN_CHARGE` or more, it spins, idle or out of a sword move (§7.2).
+      const held = control !== undefined && (control.actHeld & ACTION_BITS.slash) !== 0
+      const charge = held ? fighter.charge + 1 : 0
+      const swinging = fighter.state === CombatState.act && moves[fighter.move - 1]?.hit !== undefined
+      const spins =
+        control !== undefined &&
+        !held &&
+        fighter.charge >= SPIN_CHARGE &&
+        spin !== 0 &&
+        (fighter.state === CombatState.idle || swinging)
       let { move, moveTick, moveStart, queued, state } = fighter
-      if (move !== 0) {
+      if (spins) {
+        move = spin
+        moveTick = 1
+        moveStart = ctx.tick
+        queued = 0
+        state = CombatState.act
+      } else if (move !== 0) {
         moveTick += 1
         const def = moves[move - 1]
         const nextIndex = def?.next === undefined ? 0 : moves.findIndex((other) => other.id === def.next) + 1
@@ -167,13 +207,15 @@ export const combatMoves: SystemDef = defineSystem({
         moveStart = ctx.tick
         state = CombatState.act
       }
-      entity.set(Fighter, { move, moveTick, moveStart, queued, state, latched: false })
+      entity.set(Fighter, { move, moveTick, moveStart, queued, state, latched: false, charge })
       if (entity.has(HeroAction)) {
-        // The slash clip plays from each move's start, and stops with the move (ended, or cut short by a hit).
+        // The slash clip plays from each sword move's start, and stops with it (ended, cut short by a hit, or turned
+        // into a roll). A roll or hop has no clip until GAME-3D.1c part 3.
         const action = entity.get(HeroAction)
-        if (move !== 0 && (moveStart !== fighter.moveStart || fighter.move === 0))
+        const sword = move !== 0 && moves[move - 1]?.hit !== undefined
+        if (sword && (moveStart !== fighter.moveStart || fighter.move === 0))
           entity.set(HeroAction, { clip: ACTION_CLIP.slash, startedAt: moveStart })
-        else if (move === 0 && action.clip === ACTION_CLIP.slash) entity.set(HeroAction, { clip: 0 })
+        else if (!sword && action.clip === ACTION_CLIP.slash) entity.set(HeroAction, { clip: 0 })
       }
     }
   },
@@ -201,10 +243,20 @@ function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
     for (const defender of fighters) {
       const target = defender.get(Fighter)
       if (target.side === fighter.side || target.health <= 0 || target.iframes > 0) continue
+      if (UNTOUCHABLE.includes(target.state)) continue
       if (target.hitBy === attacker.sid && target.hitStamp === fighter.moveStart) continue
+      // A roll's or hop's invulnerable frames, and its lower hurt cylinder (§7.2, §7.3).
+      const running = target.move === 0 ? undefined : moves[target.move - 1]
+      const invuln = running?.invuln
+      if (invuln !== undefined && target.moveTick >= invuln[0] && target.moveTick <= invuln[1]) continue
       const at = placeOf(defender)
-      if (at === undefined || hit.bottom > target.height || hit.top < 0) continue
-      if (reachHits(from, forward, hit, at, target.radius)) contacts.push({ attacker, defender, def })
+      const height = running?.height ?? target.height
+      if (at === undefined || hit.bottom > height || hit.top < 0) continue
+      const reaches =
+        hit.around === true
+          ? ringHits(from, hit.far, at, target.radius)
+          : reachHits(from, forward, hit, at, target.radius)
+      if (reaches) contacts.push({ attacker, defender, def })
     }
   }
   return contacts
@@ -279,13 +331,15 @@ export const combatHits: SystemDef = defineSystem({
         defender.set(Fighter, { ...stamp, ...cancel, health, state: CombatState.down, stun: KNOCKDOWN_TICKS })
         continue
       }
+      // A power-3 hit knocks the defender down, then it rises (§7.2); any other hit stuns.
+      const knocked = hit.power >= KNOCKDOWN_POWER
       const stun = isHero ? HURT_STUN : hit.stun
       defender.set(Fighter, {
         ...stamp,
         ...cancel,
         health,
-        state: CombatState.stun,
-        stun,
+        state: knocked ? CombatState.down : CombatState.stun,
+        stun: knocked ? KNOCKDOWN_TICKS : stun,
         ...pushOf(forward, hit.kb),
         pushTicks: stun,
         ...(isHero && { iframes: HURT_IFRAMES }),

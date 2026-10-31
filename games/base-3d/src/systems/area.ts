@@ -37,6 +37,8 @@ const areaSchema = z.strictObject({
   ember: point,
   /** Plan boxes that lead to the area `to`, where Wick arrives at `entry` (metres). */
   exits: z.array(planBoxWith({ to: z.string().min(1), entry: point })).default([]),
+  /** Plan boxes Wick falls into when his feet cross into one (DESIGN.md §7.8). */
+  pits: z.array(planBox).default([]),
 })
 
 /** An area as authored: metres, views by id. */
@@ -71,6 +73,7 @@ export interface Area {
   readonly targets: readonly PlanPoint[]
   readonly ember: PlanPoint
   readonly exits: readonly AreaExitBox[]
+  readonly pits: readonly PlanBox[]
 }
 
 /** The sim's content: every area, the first being where a new game starts. */
@@ -112,6 +115,7 @@ export function compileArea(source: AreaSource): Area {
     targets: parsed.targets.map(toPoint),
     ember: toPoint(parsed.ember),
     exits: parsed.exits.map((exit) => ({ ...toBox(exit), to: exit.to, entry: toPoint(exit.entry) })),
+    pits: parsed.pits.map(toBox),
   }
   const { x, z } = area.spawn
   if (viewAt(area, x, z) === undefined) throw new Error('base-3d area: the spawn is outside every room')
@@ -195,7 +199,8 @@ export function areaOf(content: unknown): Area {
     !Array.isArray(area.targets) ||
     typeof area.ember?.x !== 'number' ||
     typeof area.ember.z !== 'number' ||
-    !Array.isArray(area.exits)
+    !Array.isArray(area.exits) ||
+    !Array.isArray(area.pits)
   )
     throw new Error('base-3d: the sim content is not an area')
   return area as Area

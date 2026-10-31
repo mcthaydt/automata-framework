@@ -5,7 +5,15 @@ import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Lock, LockCycle, Move } from '../commands.ts'
 import { Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
-import { DUMMY, DUMMY_FACING, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants.ts'
+import {
+  CONTINUE_HEALTH,
+  CombatState,
+  DUMMY,
+  DUMMY_FACING,
+  HERO_HALF,
+  HERO_HEALTH,
+  HERO_HEIGHT,
+} from '../constants.ts'
 import { AreaEntered, AreaExit, EmberTaken, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
 import { Freeze, Location, Progress } from '../resources.ts'
 import {
@@ -40,11 +48,34 @@ export function spawnArea(sim: Sim, area: Area): void {
     [CameraHeading, heading],
     [Fighter, { side: 0, health: HERO_HEALTH, radius: HERO_HALF, height: HERO_HEIGHT }],
   ])
+  // A fall before he crosses into another room returns him to the spawn, facing as he starts (DESIGN.md §7.8).
+  const place = sim.resource(Location)
+  place.returnX = area.spawn.x
+  place.returnZ = area.spawn.z
+  place.returnFacing = heading.heading
   for (const { x, z } of area.targets)
     sim.spawn([
       [Target, { x, z, facing: DUMMY_FACING }],
       [Fighter, { side: 1, ...DUMMY }],
     ])
+}
+
+/**
+ * The game over's Continue (DESIGN.md §7.8): after the screens restore the area entrance's snapshot, Wick goes on
+ * with 3 hearts, standing, whatever the entrance held. Outside a step, as the save's `apply` is (§12.1).
+ */
+export function continueWith3Hearts(sim: Sim): void {
+  for (const { sid } of sim.query(Hero, Fighter))
+    sim.entity(sid)?.set(Fighter, {
+      health: CONTINUE_HEALTH,
+      state: CombatState.idle,
+      stun: 0,
+      move: 0,
+      moveTick: 0,
+      queued: 0,
+      pushTicks: 0,
+      charge: 0,
+    })
 }
 
 /** The first slice's sim (M3 spec §4.7). It depends on render-pixi3d's `camera-heading` plugin for the heading. */

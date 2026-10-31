@@ -24,8 +24,12 @@ export const Location = defineResource(
     swapAt: z.number().int().nonnegative(),
     entryX: z.number().int(),
     entryZ: z.number().int(),
+    /** The room's last entry point, where a fall returns Wick (§7.8): where he crossed into it, facing his way in. */
+    returnX: z.number().int(),
+    returnZ: z.number().int(),
+    returnFacing: z.number().int().nonnegative(),
   }),
-  () => ({ area: 0, next: -1, swapAt: 0, entryX: 0, entryZ: 0 }),
+  () => ({ area: 0, next: -1, swapAt: 0, entryX: 0, entryZ: 0, returnX: 0, returnZ: 0, returnFacing: 0 }),
 )
 
 /**

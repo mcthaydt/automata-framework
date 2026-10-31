@@ -32,7 +32,7 @@ export const ACTION_CLIP = { slash: 1, point: 2, pickup: 3 } as const
 /** Each action's length in ticks at 60 Hz: its clip's `length` (0.4 s, 0.8 s, 0.9 s), which the content test checks. */
 export const ACTION_TICKS = { slash: 24, point: 48, pickup: 54 } as const
 /** Each action button's bit in `HeroControl.actHeld` and `actPressed`. */
-export const ACTION_BITS = { slash: 1, guard: 2, point: 4, pickup: 8 } as const
+export const ACTION_BITS = { slash: 1, guard: 2, point: 4, pickup: 8, action: 16 } as const
 /** The area change's fade out, 300 ms (DESIGN.md §13): the sim swaps the area this many ticks after the exit. */
 export const AREA_FADE_TICKS = 18
 
@@ -54,6 +54,8 @@ export const CombatState = {
   stagger: 4,
   down: 5,
   defeated: 6,
+  rise: 7,
+  fall: 8,
 } as const
 
 /** What a move's active frames reach: a band along the facing and a height band, in Q16.16 metres (§7.3). */
@@ -75,6 +77,8 @@ export interface MoveHit {
   /** Under the shield: a `low` hit is never blocked, nor is an unblockable one (§7.4). */
   readonly low?: boolean
   readonly unblockable?: boolean
+  /** A ring round the attacker (`brawl/moves.ts` `around`): every defender within `far` (plus its radius) is reached. */
+  readonly around?: boolean
 }
 
 /**
@@ -88,6 +92,12 @@ export interface MoveDef {
   readonly window?: readonly [number, number]
   readonly next?: string
   readonly hit?: MoveHit
+  /** Carried this far (Q16.16 metres) over the move's frames, evenly (a roll, a hop). */
+  readonly travel?: number
+  /** Frames on which no hit lands on the fighter. */
+  readonly invuln?: readonly [number, number]
+  /** The hurt cylinder's height while the move runs (a roll is 0.9 m, §7.3). */
+  readonly height?: number
 }
 
 /** A slash's reach: 0.2 m to 1.4 m ahead, from the knee to above the shoulder. Not in §7.2's table; a starting value. */
@@ -120,6 +130,25 @@ export const HERO_MOVES: readonly MoveDef[] = [
     active: [10, 14],
     hit: { ...SLASH_REACH, far: metres(1.8), dmg: 2, stop: 8, stun: 30, kb: metres(4), power: 3 },
   },
+  {
+    id: 'spin',
+    total: 36,
+    active: [8, 20],
+    hit: {
+      ...SLASH_REACH,
+      near: 0,
+      far: metres(1.6),
+      dmg: 2,
+      stop: 6,
+      stun: 24,
+      kb: metres(3),
+      power: 2,
+      around: true,
+    },
+  },
+  { id: 'roll', total: 24, active: [0, 0], travel: metres(3.2), invuln: [2, 12], height: metres(0.9) },
+  { id: 'hop-side', total: 20, active: [0, 0], travel: metres(2), invuln: [2, 10] },
+  { id: 'hop-back', total: 20, active: [0, 0], travel: metres(2), invuln: [2, 10] },
 ]
 
 /** A press from this frame of a slash to the end of its window queues the next (§7.2, buffering). */
@@ -138,5 +167,17 @@ export const BLOCK_FREEZE = 4
 /** Wick hurt: stunned 18 ticks, then not hit again for 60 from the hit (§7.2 `hurt`). */
 export const HURT_STUN = 18
 export const HURT_IFRAMES = 60
-/** At 0 health Wick is down this long before the game over (§7.2 `knockdown`, §7.8). */
+/** At 0 health Wick is down this long before the game over; a power-3 hit downs anyone this long (§7.2 `knockdown`). */
 export const KNOCKDOWN_TICKS = 40
+/** A hit of this power or more knocks the defender down (§7.2: the thrust, 1d's bombs). */
+export const KNOCKDOWN_POWER = 3
+/** Getting up after a knockdown (§7.2 `rise`). Nothing lands while down or rising. */
+export const RISE_TICKS = 14
+/** Attack held this many ticks, then released, spins (§7.2 `spin`). */
+export const SPIN_CHARGE = 40
+/** A fall into a pit: its length, its cost in half-hearts and the i-frames after it (§7.8). */
+export const FALL_TICKS = 60
+export const FALL_COST = 1
+export const FALL_IFRAMES = 60
+/** The game over's Continue: 3 hearts (§7.8). */
+export const CONTINUE_HEALTH = 6

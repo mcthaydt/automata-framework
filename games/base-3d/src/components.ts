@@ -92,6 +92,8 @@ const fighterFields = {
   /** The move a press queued (index + 1, 0 none), and a press kept through hitstop for the first live tick. */
   queued: 'u32',
   latched: 'bool',
+  /** Ticks the attack button has been held running: released at `SPIN_CHARGE` or more, it spins. */
+  charge: 'u32',
   /** The last move that hit this fighter: its attacker and start tick, so a move lands once (§7.3 `hitDone`). */
   hitBy: 'entity',
   hitStamp: 'u32',
