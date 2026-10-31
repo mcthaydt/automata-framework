@@ -12,7 +12,7 @@
 ## Interfaces
 
 **Produced:**
-- `@mcthaydt/automata-game` (published; patch changeset with the umbrella): `inputs(...maps: InputMap[]): InputMap`. Each map sends its own command every tick in map order, from one Input over the merged profile (`id` the command ids joined by `+`); `seq` is `tick × maps.length + index` (the sim rejects a duplicate seq from one source); `command` is the first map's; touch buttons and labels merge in order; `touchMode` is `swipe` only when every map's is. Throws on no maps, a command mapped twice, and a key or pad button two maps bind.
+- `@mcthaydt/automata-game` (published; patch changeset with the umbrella): `inputs(...maps: InputMap[]): InputMap`. Each map sends its own command every tick in map order, from one Input over the merged profile (`id` the command ids joined by `+`); `seq` is `tick × maps.length + index` (the sim rejects a duplicate seq from one source); `command` is the first map's; touch buttons and labels merge in order; `touchMode` is `swipe` only when every map's is. Throws on no maps, a command mapped twice, and an action id, a key or a pad button two maps share.
 - `@mcthaydt/automata-render-pixi3d` (private, D-1; no changeset): `Pixi3dOptions.models?: string[]`, loaded with the views' files; `scene` gains a fifth argument, `models: ModelLibrary`. `Pixi3dCameraOptions.position?(components) → Vec3`, the followed point in metres (default the `follow` component's `x`, `y`, `z`), interpolated between ticks; `Pixi3dCameraOptions.lock?(components, rowOf) → Vec3 | undefined`, read each frame and passed to `rig.frame`; with it the driver keeps every row's components by sid.
 
 **Consumed:** runtime `makeInput`, `inputProfileSchema`, `touchModesFor`; render-pixi3d `loadModels`, `CameraRig.frame`.
@@ -31,3 +31,4 @@
 ## Execution log
 
 - 2026-10-30: written and executed; results in the PR body.
+- 2026-10-31, review of #289 (coordinator): `bindings` and `labels` merged with `Object.assign`, so an action id two maps define would lose the earlier map's binding silently. A failing test first (a hand-made map whose actions are named after another command: `expected [Function] to throw`), then `checkShared` throws on a shared action id; 9/9.

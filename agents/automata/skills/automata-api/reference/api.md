@@ -993,8 +993,8 @@ interface InputMap {
 
 One input map from `maps`, each sending its own command every tick in map order. The commands share source 0, so
 each gets its own `seq`: `tick × maps.length + index` (a u32, which at 60 Hz lasts 2³²/60/86,400/n ≈ 828/n days of
-play). `command` is the first map's. Throws on no maps, on two maps for one command and on a key or pad button
-two maps bind.
+play). `command` is the first map's. Throws on no maps, on two maps for one command, and on an action id, a key or
+a pad button two maps share.
 
 ```ts
 function inputs(...maps: readonly InputMap[]): InputMap {
@@ -3017,8 +3017,8 @@ interface InputMap {
 
 One input map from `maps`, each sending its own command every tick in map order. The commands share source 0, so
 each gets its own `seq`: `tick × maps.length + index` (a u32, which at 60 Hz lasts 2³²/60/86,400/n ≈ 828/n days of
-play). `command` is the first map's. Throws on no maps, on two maps for one command and on a key or pad button
-two maps bind.
+play). `command` is the first map's. Throws on no maps, on two maps for one command, and on an action id, a key or
+a pad button two maps share.
 
 ```ts
 function inputs(...maps: readonly InputMap[]): InputMap;

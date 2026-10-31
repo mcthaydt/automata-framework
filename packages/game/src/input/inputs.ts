@@ -16,8 +16,21 @@ import type { InputMap } from './keys.ts'
 /** `attach` builds an Input of its own; nothing reads its facts. */
 const SILENT_BUS: PresentationBus = { publish: () => {}, subscribe: () => () => {} }
 
-/** Each key and pad button may be bound by one map only, or one press would send two commands. */
+/**
+ * Each action id, key and pad button belongs to one map only: a shared action id would merge one map's binding
+ * over the other's and lose it, and a shared key would send two commands for one press.
+ */
 function checkShared(maps: readonly InputMap[]): void {
+  const actionOwner = new Map<string, string>()
+  for (const map of maps)
+    for (const action of Object.keys(map.profile.bindings)) {
+      const first = actionOwner.get(action)
+      if (first !== undefined)
+        throw new Error(
+          `inputs(): the action "${action}" is defined by both "${first}" and "${map.command.id}"`,
+        )
+      actionOwner.set(action, map.command.id)
+    }
   const owner = new Map<string, string>()
   for (const map of maps)
     for (const binding of Object.values(map.profile.bindings)) {
@@ -34,8 +47,8 @@ function checkShared(maps: readonly InputMap[]): void {
 /**
  * One input map from `maps`, each sending its own command every tick in map order. The commands share source 0, so
  * each gets its own `seq`: `tick × maps.length + index` (a u32, which at 60 Hz lasts 2³²/60/86,400/n ≈ 828/n days of
- * play). `command` is the first map's. Throws on no maps, on two maps for one command and on a key or pad button
- * two maps bind.
+ * play). `command` is the first map's. Throws on no maps, on two maps for one command, and on an action id, a key or
+ * a pad button two maps share.
  */
 export function inputs(...maps: readonly InputMap[]): InputMap {
   const first = maps[0]
