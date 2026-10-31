@@ -2,17 +2,17 @@
   base-3d's HUD (DESIGN.md §9.5, GAME-3D.1e part 5a), in the play screen's `hud.overlay` slot: Wick's hearts in
   half steps at the top inline-start (flashing on a hurt), the embers under them, the boss bar at the top centre while
   a Warden lives, and the equipped item and its ammo as a chip at the bottom inline-end, kept off in touch mode (the
-  Item button's face is GAME-3D.1h's). It reads the running sim every animation frame (`hudOf`) and is never a
-  control: no pointer reaches it.
+  Item button's face is GAME-3D.1h's). It reads the running sim every animation frame (`hudOf`). Only its Items
+  button (44 px, under the embers; touch's way to swap items) takes the pointer.
 -->
 <script lang="ts">
 import { InputMethodTracker } from '@mcthaydt/automata-ui'
 import { onMount } from 'svelte'
 import { type HudState, heartsOf, hudInPlay, hudOf } from './hud.ts'
+import { ITEM_NAMES } from './items.ts'
 
 /** How long the hearts flash after Wick loses health, in ms of presentation time. */
 const FLASH_MS = 400
-const ITEM_LABELS = { sling: 'Spark Sling', bombs: 'Ember Bombs', hookchain: 'Hookchain' } as const
 
 let state = $state<HudState | undefined>(hudOf(hudInPlay.sim))
 let flashUntil = $state(0)
@@ -68,6 +68,14 @@ const flashing = $derived(now < flashUntil)
       <div class="b3-hud__embers" data-testid="hud-embers" aria-label={`Embers ${state.embers}`}>
         <span class="b3-hud__ember" aria-hidden="true"></span>{state.embers}
       </div>
+      {#if hudInPlay.openItems !== undefined}
+        <button
+          type="button"
+          class="af-control af-control--ghost b3-hud__items"
+          data-testid="hud-items"
+          onclick={() => hudInPlay.openItems?.()}>Items</button
+        >
+      {/if}
     </div>
 
     {#if state.boss !== undefined}
@@ -88,7 +96,7 @@ const flashing = $derived(now < flashUntil)
 
     {#if state.equipped !== undefined && tracker.method !== 'touch'}
       <div class="b3-hud__item" data-testid="hud-item">
-        <span>{ITEM_LABELS[state.equipped.item]}</span>
+        <span>{ITEM_NAMES[state.equipped.item]}</span>
         {#if state.equipped.ammo !== undefined}<span class="b3-hud__ammo">× {state.equipped.ammo}</span>{/if}
       </div>
     {/if}
@@ -134,6 +142,12 @@ const flashing = $derived(now < flashUntil)
   .b3-hud__hearts--flash .b3-hud__heart-fill,
   .b3-hud__hearts--flash .b3-hud__heart-empty {
     fill: #fee761;
+  }
+  .b3-hud__items {
+    justify-self: start;
+    min-block-size: 44px;
+    min-inline-size: 44px;
+    pointer-events: auto;
   }
   .b3-hud__embers {
     display: flex;

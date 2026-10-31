@@ -54,16 +54,26 @@ describe('lockInput (GAME-3D.1b part 2)', () => {
     expect(byType(input.toCommand(actionsFor(input, 'KeyE'), 4))['lock-cycle']).toEqual({ dir: 1 })
   })
 
-  it('numbers the commands tick × 5 + n, the cycle fifth', () => {
+  it('numbers the commands tick × 6 + n, the cycle fifth and an equip sixth', () => {
     const input = lockInput(map(), { KeyQ: -1, KeyE: 1 })
+    input.equip('sling')
     const commands = input.toCommand(actionsFor(input, 'KeyE'), 7)
     expect(commands.map((command) => [command.type, command.seq])).toEqual([
-      ['move', 35],
-      ['camera-turn', 36],
-      ['lock', 37],
-      ['act', 38],
-      ['lock-cycle', 39],
+      ['move', 42],
+      ['camera-turn', 43],
+      ['lock', 44],
+      ['act', 45],
+      ['lock-cycle', 46],
+      ['equip', 47],
     ])
+  })
+
+  it('sends a queued equip on the next tick, once, the last one asked for (GAME-3D.1e part 5b)', () => {
+    const input = lockInput(map(), { KeyQ: -1, KeyE: 1 })
+    input.equip('sling')
+    input.equip('hookchain')
+    expect(byType(input.toCommand([], 0)).equip).toEqual({ item: 'hookchain' })
+    expect(byType(input.toCommand([], 1)).equip).toBeUndefined()
   })
 
   it('sends a queued cycle on the next tick, once', () => {

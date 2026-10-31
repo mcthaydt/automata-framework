@@ -627,4 +627,92 @@ describe("base-3d's flow", () => {
       expect(bar?.getAttribute('aria-label')).toBe('The Ashen Warden health')
     })
   })
+  describe('the Items screen (DESIGN.md §9.3, GAME-3D.1e part 5b)', () => {
+    const running = () => {
+      if (hudInPlay.sim === undefined) throw new Error('no running sim')
+      return hudInPlay.sim
+    }
+    const slot = (id: string) => root.querySelector<HTMLButtonElement>(`[data-slot="${id}"]`)
+    /** Wick owns the sling (12 pellets) and the hookchain, the sling equipped. */
+    const ownSome = () =>
+      Object.assign(running().resource(Inventory), {
+        sling: true,
+        hookchain: true,
+        equipped: ItemCode.sling,
+        pellets: 12,
+      })
+
+    it('opens with I over a paused sim, with the owned slots, the outlined ones and the ammo', async () => {
+      await toRoom()
+      ownSome()
+      key('keydown', 'KeyI')
+      await until(() => screen() === 'items', 'the Items screen')
+      const applied = results.length
+      step(5)
+      expect(results.length).toBe(applied)
+      expect([...root.querySelectorAll<HTMLElement>('[data-slot]')].map((el) => el.dataset.slot)).toEqual([
+        'sword',
+        'shield',
+        'sling',
+        'bombs',
+        'hookchain',
+      ])
+      expect(slot('sling')?.dataset.owned).toBe('true')
+      expect(slot('bombs')?.dataset.owned).toBe('false')
+      expect(slot('bombs')?.getAttribute('aria-disabled')).toBe('true')
+      expect(slot('sling')?.textContent).toContain('12 / 30')
+      expect(slot('sling')?.getAttribute('aria-pressed')).toBe('true')
+      expect(root.querySelector('[data-testid="items-embers"]')?.textContent).toContain('0')
+    })
+
+    it('opens from the HUD’s Items button', async () => {
+      await toRoom()
+      await until(() => byTestId('hud-items') !== null, 'the Items button')
+      byTestId('hud-items')?.click()
+      await until(() => screen() === 'items', 'the Items screen')
+    })
+
+    it('equips the chosen item on play’s first tick, and the HUD’s chip follows', async () => {
+      await toRoom()
+      ownSome()
+      key('keydown', 'KeyI')
+      await until(() => screen() === 'items', 'the Items screen')
+      slot('hookchain')?.click()
+      await until(() => slot('hookchain')?.getAttribute('aria-pressed') === 'true', 'the hookchain marked')
+      expect(slot('sling')?.getAttribute('aria-pressed')).toBe('false')
+      slot('bombs')?.click()
+      expect(slot('hookchain')?.getAttribute('aria-pressed')).toBe('true')
+      byTestId('corner-back')?.click()
+      await until(() => screen() === 'play', 'play again')
+      step()
+      expect(running().resource(Inventory).equipped).toBe(ItemCode.hookchain)
+      await until(
+        () => root.querySelector('[data-testid="hud-item"]')?.textContent?.includes('Hookchain') === true,
+        'the chip',
+      )
+    })
+
+    // The arrow keys steer the grid by the slots' boxes, which jsdom does not lay out: items.layout.test.ts.
+    it('goes back to play on Escape', async () => {
+      await toRoom()
+      key('keydown', 'KeyI')
+      await until(() => screen() === 'items', 'the Items screen')
+      key('keydown', 'Escape')
+      await until(() => screen() === 'play', 'play again')
+    })
+
+    it('equips with 1, 2 and 3 in play, an owned item only', async () => {
+      await toRoom()
+      ownSome()
+      key('keydown', 'Digit3')
+      step()
+      expect(running().resource(Inventory).equipped).toBe(ItemCode.hookchain)
+      key('keydown', 'Digit2')
+      step()
+      expect(running().resource(Inventory).equipped).toBe(ItemCode.hookchain)
+      key('keydown', 'Digit1')
+      step()
+      expect(running().resource(Inventory).equipped).toBe(ItemCode.sling)
+    })
+  })
 })

@@ -26,8 +26,14 @@ export interface HudState {
  */
 export const BOSS_NAMES: Readonly<Record<string, string>> = { warden: 'The Ashen Warden' }
 
-/** The running sim, given by the screens' `watchSim` (screens.ts), as `settingsInPlay` holds the settings store. */
-export const hudInPlay: { sim: Sim | undefined } = { sim: undefined }
+/**
+ * The running sim, given by the screens' `watchSim` (screens.ts), as `settingsInPlay` holds the settings store, and
+ * the way to the Items screen while play is open (its HUD button).
+ */
+export const hudInPlay: { sim: Sim | undefined; openItems: (() => void) | undefined } = {
+  sim: undefined,
+  openItems: undefined,
+}
 
 /** One fill a heart: two half-hearts make a heart, and an odd maximum rounds up to a whole heart. */
 export function heartsOf(health: number, maxHealth: number): HeartFill[] {

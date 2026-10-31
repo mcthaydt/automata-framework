@@ -11,15 +11,18 @@ import { Hosting } from '@mcthaydt/automata-host'
 import { Flow, PresentationBus, type ScreenDef, Settings } from '@mcthaydt/automata-runtime'
 import { resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import type { Sim } from '@mcthaydt/automata-sim'
+import { interceptBackGesture } from '@mcthaydt/automata-ui'
 import { Effect, type Scope } from 'effect'
 import { flushSync, mount, unmount } from 'svelte'
 import { TICK_HZ } from '../constants/index.ts'
 import { AreaEntered, AreaExit, EmberTaken, HeroDefeated } from '../events.ts'
 import { continueWith3Hearts } from '../state/index.ts'
+import { type Base3dSave, newGame } from '../state/save.ts'
 import { areaFade } from './area-fade.ts'
 import EndScreen from './EndScreen.svelte'
 import GameOverScreen from './GameOverScreen.svelte'
-import { hudInPlay } from './hud.ts'
+import { hudInPlay, type ItemName } from './hud.ts'
+import ItemsScreen from './ItemsScreen.svelte'
 import type { LockInput } from './lock-input.ts'
 import SplashScreen from './SplashScreen.svelte'
 import { lockModeOf, settingsInPlay } from './settings.ts'
@@ -42,6 +45,17 @@ function show<Props extends Record<string, unknown>>(
     (instance) => Effect.promise(() => unmount(instance)),
   ).pipe(Effect.asVoid)
 }
+
+/** The keys that equip in play (DESIGN.md §14.2): 1, 2 and 3. */
+const EQUIP_KEYS: Readonly<Record<string, ItemName>> = {
+  Digit1: 'sling',
+  Digit2: 'bombs',
+  Digit3: 'hookchain',
+}
+
+/** A key press with no modifier and no auto-repeat: the game's own one-shot keys (I, 1, 2, 3). */
+const plainPress = (event: KeyboardEvent): boolean =>
+  !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
 
 /** A window listener for as long as the screen is open. */
 function listen<K extends keyof WindowEventMap>(
@@ -127,6 +141,27 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
         if (context.from === 'title' || context.from === 'game-over') yield* hosting.round.start
         game.input.mode = lockModeOf((yield* Settings).store?.get())
         const fade = yield* areaFade(context.layer)
+        const target = context.layer.ownerDocument.defaultView ?? window
+        // I opens the Items screen, as the HUD's Items button does; 1, 2 and 3 equip (§14.2). The sim ignores an
+        // item Wick does not own.
+        const openItems = (): void => void flow.dispatch('items')
+        yield* Effect.acquireRelease(
+          Effect.sync(() => {
+            hudInPlay.openItems = openItems
+          }),
+          () =>
+            Effect.sync(() => {
+              hudInPlay.openItems = undefined
+            }),
+        )
+        yield* listen(target, 'keydown', (event) => {
+          if (!plainPress(event)) return
+          const item = EQUIP_KEYS[event.code]
+          if (item !== undefined) game.input.equip(item)
+          else if (event.code === 'KeyI') openItems()
+          else return
+          event.preventDefault()
+        })
         yield* Effect.acquireRelease(
           Effect.sync(() =>
             bus.subscribe('sim.events', (events) => {
@@ -202,6 +237,45 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
       }),
   }
 
+  // The Items screen (§9.3) over the paused sim: the save as play would write it now (the heart pieces and the kiln
+  // are only there), and a choice queued as `equip` for play's first tick. Escape, the corner Back and the system
+  // back return to play.
+  const items: ScreenDef = {
+    id: 'items',
+    pausesSim: true,
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        const hosting = yield* Hosting
+        const target = layer.ownerDocument.defaultView ?? window
+        const back = (): void => void flow.dispatch('back')
+        const save = (
+          running !== undefined && game.saves !== undefined ? game.saves.capture(running) : newGame()
+        ) as Base3dSave
+        yield* show(ItemsScreen, layer, {
+          save,
+          onEquip: (item: ItemName) => game.input.equip(item),
+          onBack: back,
+        })
+        yield* listen(target, 'keydown', (event) => {
+          if (event.code !== 'Escape') return
+          event.preventDefault()
+          back()
+        })
+        // Hosted, the host owns system back (M4-D10).
+        if (hosting.kind === 'standalone')
+          yield* Effect.acquireRelease(
+            Effect.sync(() =>
+              interceptBackGesture(target, () => {
+                back()
+                return true
+              }),
+            ),
+            (stop) => Effect.sync(stop),
+          )
+      }),
+  }
+
   const replaced = [title, play, defaultSettings]
   return [
     splash,
@@ -209,6 +283,7 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
     room,
     settings,
     gameOver,
+    items,
     ...defaults.filter((screen) => !replaced.includes(screen)),
     end,
   ]

@@ -205,13 +205,46 @@ Rules:
 
 ### 5b: the Items screen (§9.3) and the 1/2/3 keys (§14.2)
 
-Produced: `screens/ItemsScreen.svelte` and an `items` screen in BASE3D_FLOW (`play --items--> items --back--> play`,
-pausing the sim); a HUD chip "Items" and the I key open it; the grid of five slots (Sword, Shield, Sling with ammo,
-Bombs with count, Hookchain; unowned slots outlined), the heart pieces as quarters, embers; selecting an owned
-item sends `equip`; arrow keys and the D-pad move focus in the grid; Back and Escape return. The 1/2/3 keys send
-`equip` through a sender of their own in main.ts (`keys()` sends an idle payload every tick, and `equip` has none).
-Steps: DOM tests (open by I and the chip, equip, focus as a grid, Back), layout tests (844×390, 780×270: a declared
-scroll region, 44 px slots, the 48 px Back), review images.
+Consumed: `Equip` (commands.ts) and `item.equip` (part 4); the save as play captures it (`game.saves.capture`, the
+heart pieces and the kiln live only there); `hudInPlay` (5a); ui's `ScreenFrame` (its corner Back), `FocusNavigator`
+and `arrowKeyNav` (`[data-focus-grid]` steers spatially).
+
+Produced:
+- `screens/items.ts`: `itemsOf(save, pending?)` (the five slots with `owned`, `equippable` and ammo against its most,
+  the equipped item, heart pieces toward the next heart, embers, the kiln's keys, map and compass) and `ITEM_NAMES`
+  (the HUD's chip uses it too: one name map).
+- `LockInput.equip(item)` (screens/lock-input.ts): one queued `equip`, sent on the next tick; commands renumber
+  `tick × 6 + n` (the equip sixth).
+- `screens/ItemsScreen.svelte` and an `items` screen in screens.ts and BASE3D_FLOW (`play --items--> items`,
+  `items --back--> play`, `pausesSim`).
+- The HUD's Items button (44 px, under the embers; touch's way to swap, GAME3D-D16), `hudInPlay.openItems`, set by
+  play while it is open.
+- In play: I opens Items; 1, 2 and 3 equip the sling, the bombs and the hookchain (`input.equip`; the sim ignores an
+  item not owned).
+
+Rules:
+1. Choosing an owned sling, bombs or hookchain slot asks for `equip` and marks it equipped at once (the sim is paused;
+   the command goes on play's first tick). The sword, the shield and an unowned slot do nothing (`aria-disabled`).
+2. Unowned slots are outlined and say so to a screen reader ("not found yet"); the equipped slot is marked
+   (`aria-pressed`).
+3. Arrow keys move focus over the grid (the screen's own listener, ui's `FocusNavigator`); Back (the corner button,
+   Escape, the system back when standalone) returns to play.
+4. The contents scroll inside a declared scroll region at compact height; the corner Back stays fixed; every slot is
+   at least 44 px.
+5. Defaults: 1, 2 and 3 are fixed keys (not yet in the rebindable map, M4.4); the gamepad's D-pad and LB wait on the
+   menu-input seam (`driveMenu` is not exported from `@mcthaydt/automata-game`) and GAME-3D.1h; the kiln row shows
+   in every area until the hub exists.
+
+- [x] 1. Tests (node): `itemsOf` (slots, ammo, equipped, pieces, kiln, a pending choice); `lockInput`'s queued
+      equip and the new numbering.
+- [x] 2. DOM tests (screens.dom.test.ts, "the Items screen"): I and the HUD's Items button open it over a paused sim;
+      it shows owned and outlined slots and the ammo; choosing the hookchain marks it and play's first tick equips it
+      (the HUD's chip follows); Escape and Back return to play; 1, 2 and 3 in play equip owned items only. (The
+      arrow keys' steering moved to the layout test: jsdom lays nothing out, so the grid has no boxes to steer by.)
+- [x] 3. Layout tests (items.layout.test.ts, 844×390 and 780×270, three engines): slots at least 44 px, the corner
+      Back fixed and in view, the contents inside the declared scroll region, nothing past the viewport outside it;
+      the arrow keys steer the grid.
+- [ ] 4. Review images (844×390, 780×270) beside DESIGN §9.3; goldens unchanged; gates as 5a.
 
 ### 5c: the Map screen (§9.4)
 
@@ -331,3 +364,22 @@ body).
 
 **Goldens (part 5a).** Unchanged: route `94925b319d992b19`, fights `59b84ddde6bfeb94`, boss `de0bb982dcf6aa53`
 (no sim change).
+
+**Part 5b (2026-10-31, branch `claude/3d-game-3d-1e-5b`).**
+
+- Red first: items.test.ts on the missing module; the two `lockInput` cases on the missing `equip`; the five Items
+  DOM cases (the screen never opened, the button was missing, and 3 did not equip).
+- The arrow-key case failed in jsdom for a reason of the harness, not the screen: `FocusNavigator.steer` walks a
+  grid by its children's boxes, and jsdom gives every box 0 × 0. The steering moved into `ItemsScreen.svelte` (its
+  own window listener) and its case into items.layout.test.ts, which runs in the three engines. That case and the
+  layout cases were written after the move and passed first time: they check CSS and steering already in place.
+- The first capture had no title; the frame's `header` now says "Items".
+- `lockInput` numbers its commands `tick × 6 + n` (was 5): a sixth, the queued equip. The goldens send their own
+  commands (testing/sim.ts), so they do not see this.
+
+**Defaults (part 5b, for the Owner's veto):** 1, 2 and 3 are fixed keys (not in the rebindable map); a second ask
+before the next tick replaces the first; the gamepad's LB and D-pad focus on the screen wait on GAME-3D.1h (the menu
+input seam is not exported); the kiln row shows in every area; the sword and shield are shown owned and are not
+choosable; the HUD's Items button sits under the embers in every input mode.
+
+**Goldens (part 5b).** Unchanged: route `94925b319d992b19`, fights `59b84ddde6bfeb94`, boss `de0bb982dcf6aa53`.

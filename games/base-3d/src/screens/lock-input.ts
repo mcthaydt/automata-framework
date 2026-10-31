@@ -1,5 +1,7 @@
 // The lock's inputs (GAME-3D.1b part 2, DESIGN.md §11.2, §12.2): the player's saved Lock mode in every `lock`
-// command, and `lock-cycle` from the camera-turn keys, a camera drag and a right-stick flick.
+// command, and `lock-cycle` from the camera-turn keys, a camera drag and a right-stick flick. It also carries the one
+// queued `equip` (GAME-3D.1e part 5b, §14.1): the Items screen and the 1, 2 and 3 keys ask for an item, and the next
+// tick sends it. `equip` has no idle payload, so it cannot be a `keys()` command sent every tick.
 //
 // The cycle inputs are the camera's: the sim ignores `camera-turn` while locked (`rotate` is off) and `lock-cycle`
 // while not, so a Q press sends both and nothing here needs to know whether Wick is locked. `lock-cycle` is one
@@ -9,7 +11,8 @@ import { makeInput, type PresentationBus } from '@mcthaydt/automata-runtime'
 import type { Command } from '@mcthaydt/automata-sim'
 import type { DragTracker } from '@mcthaydt/automata-ui'
 import { Effect, Exit, Scope } from 'effect'
-import { Lock, LockCycle } from '../commands.ts'
+import { Equip, Lock, LockCycle } from '../commands.ts'
+import type { ItemName } from './hud.ts'
 import type { LockMode } from './settings.ts'
 
 /** 1 clockwise seen from above, −1 anticlockwise (`lock-cycle`). */
@@ -21,6 +24,8 @@ export interface LockInput extends InputMap {
   mode: LockMode
   /** Sends `lock-cycle { dir }` on the next tick (a drag or a flick). */
   cycle(dir: CycleDir): void
+  /** Sends `equip { item }` on the next tick; a second ask before then replaces the first. */
+  equip(item: ItemName): void
 }
 
 /** A camera drag this far, in CSS px, cycles while locked (§11.2). */
@@ -34,7 +39,7 @@ const SILENT_BUS: PresentationBus = { publish: () => {}, subscribe: () => () => 
 /**
  * `map` (the page's `inputs(...)`, four commands a tick) with the saved Lock mode in its `lock` command and a fifth,
  * `lock-cycle`, on the first tick a key of `cycleKeys` is held (by `KeyboardEvent.code`) or after a queued `cycle`.
- * Every command is renumbered `tick × 5 + n`, so the cycle has its own `seq`.
+ * Every command is renumbered `tick × 6 + n`, so the cycle (fifth) and a queued equip (sixth) have their own `seq`.
  */
 export function lockInput(map: InputMap, cycleKeys: Readonly<Record<string, CycleDir>>): LockInput {
   // Each cycle key's action id: the key map gives every distinct payload its own action.
@@ -47,6 +52,7 @@ export function lockInput(map: InputMap, cycleKeys: Readonly<Record<string, Cycl
 
   let lastKeyDir: CycleDir | 0 = 0
   let queued: CycleDir | 0 = 0
+  let queuedItem: ItemName | undefined
 
   const toCommand = (held: Iterable<string>, tick: number): readonly Command[] => {
     const actions = [...held]
@@ -60,10 +66,13 @@ export function lockInput(map: InputMap, cycleKeys: Readonly<Record<string, Cycl
     const inner = map.toCommand(actions, tick)
     const commands: Command[] = inner.map((command, index) => ({
       ...command,
-      seq: tick * 5 + index,
+      seq: tick * 6 + index,
       ...(command.type === Lock.id ? { payload: { ...(command.payload as object), mode: result.mode } } : {}),
     }))
-    if (dir !== 0) commands.push({ tick, source: 0, seq: tick * 5 + 4, type: LockCycle.id, payload: { dir } })
+    if (dir !== 0) commands.push({ tick, source: 0, seq: tick * 6 + 4, type: LockCycle.id, payload: { dir } })
+    if (queuedItem !== undefined)
+      commands.push({ tick, source: 0, seq: tick * 6 + 5, type: Equip.id, payload: { item: queuedItem } })
+    queuedItem = undefined
     return commands
   }
 
@@ -72,6 +81,9 @@ export function lockInput(map: InputMap, cycleKeys: Readonly<Record<string, Cycl
     mode: 'toggle',
     cycle(dir) {
       queued = dir
+    },
+    equip(item) {
+      queuedItem = item
     },
     toCommand,
     attach(target) {
