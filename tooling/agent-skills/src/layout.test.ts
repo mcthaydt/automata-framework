@@ -173,10 +173,11 @@ describe("AF's own agent package", () => {
     expect(result.problems).toEqual([])
   })
 
-  it('carries exactly the four skills of spec §3.7', () => {
+  it('carries the four skills of spec §3.7 and the editor skill (ED3D.14)', () => {
     expect(result.skills.map((s) => s.name)).toEqual([
       'automata',
       'automata-api',
+      'automata-editor',
       'automata-feature',
       'automata-verify',
     ])

@@ -1112,7 +1112,7 @@ interface ProjectListSource<E, B extends string = string> {
 
 ```ts
 interface ProjectStore {
-    readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
+    readonly kind: 'memory' | 'opfs' | 'folder' | 'download' | 'http';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
     write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
@@ -1850,6 +1850,12 @@ function createFolderStore(handle: FolderHandle): FolderStore;
 function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
 ```
 
+### `createHttpStore` (function)
+
+```ts
+function createHttpStore(options: HttpStoreOptions): ProjectStore;
+```
+
 ### `createIndexedDbVault` (function)
 
 ```ts
@@ -2109,6 +2115,16 @@ interface HomeCard {
 }
 ```
 
+### `HttpStoreOptions` (interface)
+
+```ts
+interface HttpStoreOptions {
+    readonly base: string;
+    readonly token?: string | undefined;
+    readonly fetch?: typeof fetch | undefined;
+}
+```
+
 ### `KeyInput` (interface)
 
 ```ts
@@ -2160,6 +2176,12 @@ function modifiedLabel(mtime: number, now: number, timeZone?: string): string;
 
 ```ts
 function normalizeShortcut(text: string): string;
+```
+
+### `openServedWorkspace` (function)
+
+```ts
+function openServedWorkspace(env: ServedWorkspaceEnv): Promise<Workspace | undefined>;
 ```
 
 ### `openWorkspace` (function)
@@ -2258,7 +2280,7 @@ interface ProjectListSource<E, B extends string = string> {
 
 ```ts
 interface ProjectStore {
-    readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
+    readonly kind: 'memory' | 'opfs' | 'folder' | 'download' | 'http';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
     write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
@@ -2394,6 +2416,22 @@ interface Selection<Id extends SelectionId> {
 
 ```ts
 type SelectionId = string | number;
+```
+
+### `ServedWorkspaceEnv` (interface)
+
+```ts
+interface ServedWorkspaceEnv {
+    readonly origin: string;
+    readonly search: string;
+    readonly fetch?: typeof fetch | undefined;
+    readonly sessionStorage?: {
+        getItem(key: string): string | null;
+        setItem(key: string, value: string): void;
+    } | undefined;
+    readonly storage?: WorkspaceEnv['storage'];
+    readonly download?: DownloadEnv;
+}
 ```
 
 ### `Shortcut` (interface)
