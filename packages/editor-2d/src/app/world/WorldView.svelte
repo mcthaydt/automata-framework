@@ -71,6 +71,12 @@ const levelsBox = $derived(
     ? undefined
     : `${camera.y + Math.min(...rects.map((rect) => rect.y)) * camera.scale},${camera.y + Math.max(...rects.map((rect) => rect.y + rect.h)) * camera.scale}`,
 )
+/** Where the levels' left and right edges fall on the map: the layout checks read it to see every level in view. */
+const levelsSpan = $derived(
+  rects.length === 0
+    ? undefined
+    : `${camera.x + Math.min(...rects.map((rect) => rect.x)) * camera.scale},${camera.x + Math.max(...rects.map((rect) => rect.x + rect.w)) * camera.scale}`,
+)
 const levels = $derived(
   project === undefined || world === undefined
     ? []
@@ -202,6 +208,7 @@ function layout(next: string): void {
         aria-label="World map"
         data-testid="world-map"
         data-levels-box={levelsBox}
+        data-levels-span={levelsSpan}
         bind:this={map}
       >
         <MapCanvas {rects} {camera} {links} />

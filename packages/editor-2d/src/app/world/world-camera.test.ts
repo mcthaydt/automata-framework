@@ -41,15 +41,24 @@ describe('the World view camera (plan ED2D.8a decision 2)', () => {
     expect(camera.camera).toEqual(fitted)
   })
 
-  it('keeps the centre on a new box, and tells its listeners each move', () => {
+  it('fits a new box until the person pans or zooms; after that a new box keeps the centre', () => {
     const camera = createWorldCamera()
     let moves = 0
     camera.subscribe(() => moves++)
     camera.measure(BOX, RECTS)
-    const centre = camera.toWorld({ x: 400, y: 300 })
     camera.measure({ w: 400, h: 600 }, RECTS)
-    expect(camera.toWorld({ x: 200, y: 300 }).x).toBeCloseTo(centre.x)
-    expect(moves).toBe(2)
+    // Refitted: (400 - 48) / 1000.
+    expect(camera.camera?.scale).toBeCloseTo(0.352)
+    camera.zoomAt({ x: 200, y: 300 }, 2)
+    const centre = camera.toWorld({ x: 200, y: 300 })
+    camera.measure(BOX, RECTS)
+    expect(camera.toWorld({ x: 400, y: 300 }).x).toBeCloseTo(centre.x)
+    expect(camera.camera?.scale).toBeCloseTo(0.704)
+    // Fit hands the camera back to the box.
+    camera.fit(RECTS)
+    camera.measure({ w: 400, h: 600 }, RECTS)
+    expect(camera.camera?.scale).toBeCloseTo(0.352)
+    expect(moves).toBe(6)
   })
 
   it('fits an empty world to the box at 100 %', () => {

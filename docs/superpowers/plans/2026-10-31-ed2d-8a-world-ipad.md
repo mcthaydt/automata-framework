@@ -18,8 +18,8 @@ footprint, short-height and accessibility passes once EDK.6b lands.
    middle button, two fingers and the wheel pan; a pinch and Ctrl/Meta+wheel zoom about the pointer; a two-finger tap
    undoes and three fingers redo. Once the Pencil has touched the map a finger only navigates, so a resting hand never
    moves a level.
-2. **The camera is a kit `Viewport2D`** (`world-camera.ts`): the first measure fits every level inside 24 px, a new box
-   keeps the centre, and "Fit" (a 44 px button over the map) fits again. Zoom is 1/32 to 64; panning keeps 64 px of the
+2. **The camera is a kit `Viewport2D`** (`world-camera.ts`): every measure fits the levels inside 24 px until the
+   person pans or zooms, after which a new box keeps the centre, and "Fit" (a 44 px button over the map) fits again. Zoom is 1/32 to 64; panning keeps 64 px of the
    levels in view. ED2D.6b's "the camera holds still while a drag is under way" falls out: nothing refits mid-drag.
 3. **Duplicate and Remove** in the World inspector. Duplicate copies the level (`duplicateLevel`: fresh ids, refs inside
    the copy follow it) as `<name> copy`, selected, one step. Remove asks first and says how many links from other levels
@@ -44,7 +44,7 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
 - [x] 4. The view attaches them; Fit; the existing World view DOM cases still pass (selection, drag, reorder, G-h).
 - [x] 5. Duplicate and Remove (model helpers in unit tests; DOM: duplicate selected and one undo step; remove asks with
   the link count, removes in one step, disabled on the last level).
-- [ ] 6. Layout (three browsers): Fit and the new buttons are 44 px and in view at every size; review images with the
+- [x] 6. Layout (three browsers): Fit and the new buttons are 44 px and in view at every size; review images with the
   `world` mockup frame.
 - [ ] 7. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, editor-2d `test:parity` and `test:canvas`.
 
@@ -62,3 +62,10 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
   written after the wiring and not run red first. World unit+dom: 7 files, 37 tests pass; typecheck 0 errors.
 - 2026-10-31, step 5: `copyLevelInput` and `linksInto` cases failed (not functions), then pass; the Duplicate and
   Remove DOM cases failed (no buttons), then pass. World unit+dom: 7 files, 41 tests; typecheck 0 errors.
+- 2026-10-31, step 6: the layout test checks Fit, Add level, Duplicate and Remove are 44 px and in view at every
+  size (three browsers: 3 files, 24 tests). The first landscape image showed the map zoomed and cut off: the camera fit
+  the first box the page reported (800 × 600) and only kept the centre when the real box came. Decision 2 now reads
+  "fits every new box until the person pans or zooms; Fit hands it back": the camera case was changed first (failed,
+  0.752 for 0.352), then the camera (passes). A new layout check that every level is inside the map across failed at
+  six sizes with the old rule (left edges at -99 and -13 px) and passes with the new one. Images:
+  `docs/evidence/owner-visual/2026-10-31-ed2d-8a/`.

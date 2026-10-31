@@ -3,10 +3,10 @@ import type { Camera } from '../../canvas/level-view'
 import type { Size } from '../../model/project-types'
 import type { WorldRect } from './world-model'
 
-// The World view's camera (plan ED2D.8a decision 2): a kit `Viewport2D`, as the Level view's. The first measure fits
-// every level inside the margin; a new box keeps the world point at the centre; pan and zoom follow the gestures; `fit`
-// fits again. Nothing refits on its own, so a level being dragged never moves under the pointer. An empty world shows
-// the origin at 100 %.
+// The World view's camera (plan ED2D.8a decision 2): a kit `Viewport2D`, as the Level view's. Until the person pans or
+// zooms, every measure fits the levels inside the margin (the first box a page reports is often not its last); after
+// that a new box keeps the world point at the centre, and `fit` hands the camera back to the box. A drag never refits,
+// so a level being dragged never moves under the pointer. An empty world shows the origin at 100 %.
 
 const MARGIN = 24
 
@@ -34,6 +34,8 @@ function fitted(viewport: Viewport2D, rects: readonly WorldRect[]): Viewport2D {
 export function createWorldCamera(): WorldCamera {
   const listeners = new Set<() => void>()
   let viewport: Viewport2D | undefined
+  /** The person has panned or zoomed since the last fit. */
+  let handMoved = false
 
   const moved = (next: Viewport2D): void => {
     viewport = next
@@ -47,16 +49,22 @@ export function createWorldCamera(): WorldCamera {
         : { x: viewport.pan.x, y: viewport.pan.y, scale: viewport.zoom }
     },
     measure(size, rects) {
-      moved(viewport === undefined ? fitted(createViewport({ size }), rects) : viewport.resize(size))
+      const sized = viewport === undefined ? createViewport({ size }) : viewport.resize(size)
+      moved(handMoved ? sized : fitted(sized, rects))
     },
     fit(rects) {
+      handMoved = false
       if (viewport !== undefined) moved(fitted(viewport, rects))
     },
     panBy(dx, dy) {
-      if (viewport !== undefined) moved(viewport.panBy(dx, dy))
+      if (viewport === undefined) return
+      handMoved = true
+      moved(viewport.panBy(dx, dy))
     },
     zoomAt(point, factor) {
-      if (viewport !== undefined) moved(viewport.zoomAt(point, factor))
+      if (viewport === undefined) return
+      handMoved = true
+      moved(viewport.zoomAt(point, factor))
     },
     toWorld: (point) => viewport?.screenToWorld(point) ?? point,
     subscribe(run) {
