@@ -66,7 +66,7 @@ Each failure in §7.2 shows its own text, keeps what the spec says it keeps, and
 - [x] 7. e2e: "offline, the first frame times out and Retry starts a fresh one": route `/playground/runtime/**` to
   abort until released; after 20 s, "The preview couldn't load. Check the connection and press Retry." and a Retry
   button of at least 44 px; release, press Retry, the preview runs. Fails: the text and the control are Play's.
-- [ ] 8. Gates.
+- [x] 8. Gates.
 
 ## Commands and expected results
 
@@ -105,3 +105,5 @@ the full e2e once.
     times out; Retry runs the reader's last good edit, else the original, in a fresh first frame.
   - Unit 59/59; the playground spec: Chromium 28/28, WebKit 27/27 (the IME test is Chromium-only). `pnpm check` 0
     errors, `pnpm test` 418 passed, `pnpm build`, `pnpm check:site` (editor 151,318 B, worker 123,049 B).
+  - Gates: the full e2e 753 passed, 3 skipped (19.8 min). Then website#23's `replaceWord` fix (585c497) was merged in;
+    the playground spec again passes on Chromium 28/28 and WebKit 27/27.
