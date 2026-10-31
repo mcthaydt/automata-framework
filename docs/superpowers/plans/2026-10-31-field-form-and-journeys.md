@@ -4,7 +4,7 @@
 - **Specs:** [editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.8 (`FieldDef`, the kit owns the field contract); [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.7, §5.4 (`thing.setField`), §13 ED3-r; [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §8, §12, §13 and its journeys (G-k: a stroke cancelled by rotation without a remount).
 - **Lane:** editors. **Depends on:** ED2D.6–8 (#332, merged), EDK.6b (#337, merged: `journeyProject`, `createPointers`, `IPAD_PROFILES`, `turned`), ED3D.7d-a (#350, open: the thing card this form fills; part B merges #350's branch or `main` once it lands).
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 3 of 12 steps.
+- **Progress:** 6 of 12 steps.
 
 ## Parts
 
@@ -20,7 +20,7 @@ editor-2d's `app/level/FieldEditor.svelte`, `RefPicker.svelte` and the pure fiel
 
 - [x] B1. `inspectorOf` gives a thing card its field rows (`fieldRow` over the definition's `FieldDef`s and the thing's values) and its ref targets (the level's things a `ref` may name); `InspectorChange` gains `{ kind: 'thing', field, value }` → `setThingField` (unit, red first; a value the field rejects answers the model's sentence and changes nothing).
 - [x] B2. The thing card renders the kit's `FieldEditor` per row (DOM): a stepper press sets a number field as one step; a refused value shows under the field.
-- [ ] B3. ED3-r placement journey (layout, three browsers): pick crate, place two, set one's field, Save, reopen: both crates and the value are in the file; picking spawn and placing a second is refused by `single`, in words.
+- [x] B3. ED3-r placement journey (layout, three browsers): pick crate, place two, set one's field, Save, reopen: both crates and the value are in the file; picking spawn and placing a second is refused by `single`, in words.
 
 ### C. ED2D.8: Pencil and touch polish, accessibility, journeys
 
@@ -39,3 +39,4 @@ editor-2d's `app/level/FieldEditor.svelte`, `RefPicker.svelte` and the pure fiel
 - 2026-10-31, A gates (cont.): `pnpm build` 0; `pnpm api-index` 0 (no stale cheatsheet); `pnpm agent-skills` 0; `pnpm api-report` 0 against the updated report. Part A done; parts B and C are next (handed to the next editors session).
 - 2026-10-31, B1: red first (`inspector-cards.test.ts`, `inspector-edits.test.ts`: no `fields`, no thing-field change), then `app/thing-fields.ts` (`thingFieldRows`: the kit's `fieldRow` over `valuesWithDefaults`; a `ref` row gets groups per allowed definition plus "Rooms" for `$sector`, never the holder) and `InspectorChange {kind:'thing', field, value}` → `setThingField`. A refused value answers the model's sentence and changes nothing. 17 of 17 + `thing-fields.test.ts` 2 of 2.
 - 2026-10-31, B2: `ThingCard.svelte` (split out of `Inspector.svelte`) renders the kit's `FieldEditor` per row; a field change goes through `onfield`, which returns the sentence so the field shows it under itself (no second alert); Delete's refusal stays under the card. DOM 10 of 10 (red first on the thing-card tests); svelte-check 0 errors.
+- 2026-10-31, B3: `ui/plan/things-placement.layout.test.ts` (18 of 18: six non-compact sizes × Chromium, WebKit, Firefox): T, pick crate, place two on the dock, set the second's contents from the card (`Undo Set contents of …`), Save, the file holds `['tools','supplies','empty']`; then spawn is picked and a second placement is refused in words by `single` (`tool-refusal`). Finding: the 900 × 600 window has no inspector (the column is only from 1100 px, #350's accepted veto item), so there the field step is skipped and the crates keep the default; named in the test. editor-3d full: unit+dom 2858 of 2858, layout 414 passed, 6 skipped (pre-existing: no WebGL2 in headless Firefox).
