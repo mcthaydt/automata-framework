@@ -25,8 +25,10 @@ interface Props {
   /** The shell is `compact` (a phone): the profile is left out so the title keeps its room. */
   compact: boolean
   mode: ViewMode
-  /** Whether the views are offered: at `wide` only, where the bar has the room (below it the 3D modes replace Plan). */
+  /** Whether the views are offered: not on a phone, where the bar has no room. */
   views: boolean
+  /** Below `wide`: Plan and 3D only (ED3D.5f). */
+  narrow?: boolean | undefined
   /** The checks pill's words and tone (`checksWords`). */
   checks: { readonly text: string; readonly tone: PillTone }
   /** Whether the layers drawer is open, below `wide`; `undefined` where the panel is always in view (no button). */
@@ -50,6 +52,7 @@ const {
   compact,
   mode,
   views: showViews,
+  narrow = false,
   checks,
   layersOpen,
   onlayers,
@@ -60,7 +63,7 @@ const {
   onmode,
 }: Props = $props()
 
-const views = modeOptions()
+const views = $derived(modeOptions({ narrow }))
 const chosen = (id: string): void => {
   const view = views.find((option) => option.id === id)
   if (view !== undefined) onmode(view.id)

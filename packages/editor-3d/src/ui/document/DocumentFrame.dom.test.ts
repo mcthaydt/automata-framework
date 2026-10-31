@@ -1,6 +1,6 @@
 import { createToasts } from '@mcthaydt/automata-editor-kit/core'
 import { stubGeometry } from '@mcthaydt/automata-editor-kit/testing'
-import { render, screen, waitFor, within } from '@testing-library/svelte'
+import { act, render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { createDocumentController, type DocumentController } from '../../app/document/document-controller'
@@ -40,19 +40,28 @@ async function setup(options: { width?: number; height?: number; journal?: boole
     controller = await open()
   }
   const onback = vi.fn()
+  const geometry = stubGeometry(options.width ?? 1194, options.height ?? 834)
   render(DocumentFrame, {
-    geometry: stubGeometry(options.width ?? 1194, options.height ?? 834),
+    geometry,
     controller,
     toasts,
     clock,
     renderer: async () => undefined,
+    dollhouse: async () => undefined,
     schedule: (_delay: number, run: () => void) => {
       run()
       return () => undefined
     },
     onback,
   })
-  return { clock, workspace, controller, onback, file: async () => textOf(await workspace.store.read(PATH)) }
+  return {
+    clock,
+    workspace,
+    controller,
+    onback,
+    geometry,
+    file: async () => textOf(await workspace.store.read(PATH)),
+  }
 }
 
 function levelOf(controller: DocumentController): OpenLevel {
@@ -81,6 +90,25 @@ describe('DocumentFrame', () => {
     expect(screen.getByRole('radio', { name: 'Plan' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByTestId('checks-pill')).toHaveTextContent(/No problems|warning|problem/)
     expect(screen.getByText(/Nothing selected/)).toBeInTheDocument()
+  })
+
+  it('shows the plan and the 3D view side by side in Split, and the 3D view alone in 3D (ED3D.5e)', async () => {
+    await setup()
+    await userEvent.click(screen.getByRole('radio', { name: 'Split' }))
+    expect(screen.getByRole('application', { name: 'Plan' })).toBeInTheDocument()
+    expect(screen.getByRole('application', { name: '3D view' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('radio', { name: '3D' }))
+    expect(screen.queryByRole('application', { name: 'Plan' })).toBeNull()
+    expect(screen.getByRole('application', { name: '3D view' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('radio', { name: 'Plan' }))
+    expect(screen.queryByRole('application', { name: '3D view' })).toBeNull()
+  })
+
+  it('shows the 3D view alone, not Split, below wide (ED3D spec §10: the 3D modes replace Plan)', async () => {
+    const { controller } = await setup({ width: 834, height: 1194 })
+    levelOf(controller).editor.view.set({ mode: 'split' })
+    await waitFor(() => expect(screen.getByRole('application', { name: '3D view' })).toBeInTheDocument())
+    expect(screen.queryByRole('application', { name: 'Plan' })).toBeNull()
   })
 
   it('has the tool rail beside the plan, and V S X P D N choose the tools (ED3D.6g-a)', async () => {
@@ -126,6 +154,74 @@ describe('DocumentFrame', () => {
   it('has no tool rail on a phone (ED3D spec §10: compact is view and select), so the plan keeps the height', async () => {
     await setup({ width: 390, height: 844 })
     expect(screen.queryByRole('toolbar', { name: 'Tools' })).toBeNull()
+  })
+
+  it('shows the selected room’s card in the inspector at wide, and a floor change is one undo step (ED3D.5f)', async () => {
+    const { controller } = await setup()
+    expect(screen.getByText('Tap a room, a wall or a thing to see it here.')).toBeInTheDocument()
+    await act(() => levelOf(controller).editor.selection.set(['sector:hall']))
+    expect(screen.getByRole('heading', { name: 'hall' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Increase Floor' }))
+    expect(screen.getByTestId('undo')).toHaveAccessibleName('Undo Set the heights of hall')
+  })
+
+  it('below wide: a tool strip over the plan, Plan and 3D in the bar, the inspector a sheet with tabs (ED3D.5f)', async () => {
+    const { controller } = await setup({ width: 834, height: 1194 })
+    expect(
+      within(screen.getByTestId('tool-strip')).getByRole('toolbar', { name: 'Tools' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Plan' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: '3D' })).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: 'Split' })).toBeNull()
+    const sheet = screen.getByTestId('portrait-sheet')
+    expect(
+      within(sheet)
+        .getAllByRole('tab')
+        .map((tab) => tab.textContent?.trim()),
+    ).toEqual(['Sector', 'Walls', 'Things', 'Checks'])
+    await act(() => levelOf(controller).editor.selection.set(['sector:hall']))
+    expect(within(sheet).getByRole('heading', { name: 'hall' })).toBeInTheDocument()
+    await userEvent.click(within(sheet).getByRole('tab', { name: 'Walls' }))
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Wall 4 · door · 6.00 m' }))
+    expect(levelOf(controller).editor.selection.ids).toEqual(['wall:hall/3'])
+    expect(within(sheet).getByRole('button', { name: 'Wall 4 · door · 6.00 m' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    await userEvent.click(within(sheet).getByRole('tab', { name: 'Things' }))
+    expect(within(sheet).getByRole('button', { name: 'crate · crate1' })).toBeInTheDocument()
+    await userEvent.click(within(sheet).getByRole('tab', { name: 'Checks' }))
+    expect(within(sheet).getByText(/No problems|problem|warning/)).toBeInTheDocument()
+  })
+
+  it('keeps the selection, the sheet’s tab and an open drawing through a rotation (ED3D.5f, ED3D spec §9)', async () => {
+    const { controller, geometry } = await setup()
+    const editor = levelOf(controller).editor
+    await act(() => editor.selection.set(['sector:hall']))
+    await userEvent.keyboard('s')
+    await act(() => geometry.resize(834, 1194))
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+    expect(within(screen.getByTestId('tool-strip')).getByRole('button', { name: 'Sector' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    const sheet = screen.getByTestId('portrait-sheet')
+    await userEvent.click(within(sheet).getByRole('tab', { name: 'Walls' }))
+    await act(() => geometry.resize(1194, 834))
+    await act(() => geometry.resize(834, 1194))
+    expect(within(screen.getByTestId('portrait-sheet')).getByRole('tab', { name: 'Walls' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+  })
+
+  it('shows the Things palette with T, and picking a definition presses it (ED3D.7d)', async () => {
+    await setup()
+    await userEvent.keyboard('t')
+    const palette = screen.getByRole('group', { name: 'Things to place' })
+    await userEvent.click(within(palette).getByRole('button', { name: 'crate' }))
+    expect(within(palette).getByRole('button', { name: 'crate' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {

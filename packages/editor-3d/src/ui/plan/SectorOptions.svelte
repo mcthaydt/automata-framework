@@ -90,12 +90,22 @@ const options = $derived(
     transform: translateX(-50%);
     max-width: calc(100% - 2 * var(--space-3));
   }
-  .actions,
   .offers {
-    bottom: var(--space-3);
+    bottom: calc(var(--space-3) + var(--plan-foot, 0px));
     left: 50%;
     transform: translateX(-50%);
     max-width: calc(100% - 2 * var(--space-3));
+  }
+  /* The draw actions at the plan's foot on the left, as in the mockup, clear of the nudge pad on the right; the canvas
+     moves them right when the pad goes left (data-pad on its controls). */
+  .actions {
+    bottom: calc(var(--space-3) + var(--plan-foot, 0px));
+    left: var(--space-3);
+    max-width: calc(100% - 2 * var(--space-3));
+  }
+  :global([data-pad='left']) .actions {
+    left: auto;
+    right: var(--space-3);
   }
   .offers {
     flex-direction: column;

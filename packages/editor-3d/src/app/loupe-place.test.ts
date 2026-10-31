@@ -32,12 +32,12 @@ describe('loupePlace', () => {
 
 describe('nudgePlace', () => {
   it('puts the pad in the bottom-right corner', () => {
-    expect(nudgePlace(undefined, CANVAS)).toEqual({ x: 640, y: 440 })
-    expect(nudgePlace({ x: 100, y: 100 }, CANVAS)).toEqual({ x: 640, y: 440 })
+    expect(nudgePlace(undefined, CANVAS)).toBe('right')
+    expect(nudgePlace({ x: 100, y: 100 }, CANVAS)).toBe('right')
   })
 
   it('moves it to the bottom-left when the point is under it or within a finger of it', () => {
-    expect(nudgePlace({ x: 700, y: 500 }, CANVAS)).toEqual({ x: 12, y: 440 })
-    expect(nudgePlace({ x: 625, y: 430 }, CANVAS)).toEqual({ x: 12, y: 440 })
+    expect(nudgePlace({ x: 700, y: 500 }, CANVAS)).toBe('left')
+    expect(nudgePlace({ x: 625, y: 430 }, CANVAS)).toBe('left')
   })
 })
