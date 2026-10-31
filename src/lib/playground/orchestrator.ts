@@ -1,4 +1,5 @@
 import { frameMessage, PROTOCOL_VERSION, type FrameMessage, type RunMessage } from './protocol'
+import type { DeterminismView } from './determinism'
 import { STATUS } from './status'
 
 // The preview's frames (spec §6 F4, F10, F11; §7.1, §7.2). Each run gets a candidate frame under the current one; the
@@ -37,6 +38,8 @@ export interface OrchestratorView {
   readonly frames: number
   /** Where the last frame failure that named a line was, for the editor to mark; cleared by the next `running`. */
   readonly failure?: { readonly line: number; readonly column: number; readonly message: string }
+  /** The determinism row (§13) for the frame on show; absent: no row. */
+  readonly determinism?: DeterminismView
 }
 
 export interface OrchestratorOptions {
@@ -50,6 +53,9 @@ interface Held {
   readonly frame: PreviewFrame
   readonly runId: number
   readonly code: string
+  readonly determinism: RunMessage['determinism']
+  /** The commit the frame booted. */
+  framework?: string
   sent: boolean
   timer: unknown
 }
@@ -71,6 +77,7 @@ export function createOrchestrator(options: OrchestratorOptions) {
   let everRan = false
   let disposed = false
   let lastCode: string | undefined
+  let lastDeterminism: RunMessage['determinism']
   let view: OrchestratorView = { preview: 'poster', runId: 0, status: '', stopped: null, frames: 0 }
 
   const update = (change: Partial<OrchestratorView>) => {
@@ -96,12 +103,13 @@ export function createOrchestrator(options: OrchestratorOptions) {
     else update({ preview: 'failed', status })
   }
 
-  const run = (code: string) => {
+  const run = (code: string, determinism?: RunMessage['determinism']) => {
     if (disposed) return
     dropCandidate()
     lastCode = code
+    lastDeterminism = determinism
     const first = !everRan
-    const held: Held = { frame: options.createFrame(), runId: nextRunId++, code, sent: false, timer: undefined }
+    const held: Held = { frame: options.createFrame(), runId: nextRunId++, code, determinism, sent: false, timer: undefined }
     held.timer = clock.setTimeout(() => {
       if (candidate !== held) return
       if (current) {
@@ -118,7 +126,8 @@ export function createOrchestrator(options: OrchestratorOptions) {
     if (message.type === 'booted') {
       if (held !== candidate || held.sent) return
       held.sent = true
-      held.frame.post({ v: PROTOCOL_VERSION, type: 'run', runId: held.runId, code: held.code })
+      held.framework = message.framework
+      held.frame.post({ v: PROTOCOL_VERSION, type: 'run', runId: held.runId, code: held.code, ...(held.determinism && { determinism: held.determinism }) })
       return
     }
     if (message.runId !== held.runId) return
@@ -131,7 +140,8 @@ export function createOrchestrator(options: OrchestratorOptions) {
       current = held
       candidate = undefined
       everRan = true
-      update({ preview: 'running', runId: held.runId, stopped: null, failure: undefined, status: replaced ? STATUS.updated : STATUS.running })
+      const determinism = held.determinism && { kind: 'checking' as const, ticks: held.determinism.ticks }
+      update({ preview: 'running', runId: held.runId, stopped: null, failure: undefined, determinism, status: replaced ? STATUS.updated : STATUS.running })
       return
     }
     if (message.type === 'failed') {
@@ -144,14 +154,22 @@ export function createOrchestrator(options: OrchestratorOptions) {
       }
       const stopped = `Stopped: ${text.replace(/^Line/, 'line')}`
       update({ preview: 'failed', stopped, status: stopped })
+      return
     }
-    // `determinism` and `determinism-unavailable` are for the determinism row (WEB.PLAY.10).
+    // Only the frame on show, and only a run that asked: no row claims a check nobody requested.
+    if (held !== current || held.determinism === undefined) return
+    if (message.type === 'determinism-unavailable') update({ determinism: undefined })
+    if (message.type !== 'determinism') return
+    const { ticks, hash } = message
+    if (message.golden === 'pass') update({ determinism: { kind: 'pass', ticks, hash, framework: held.framework! } })
+    else if (message.golden === 'diverged') update({ determinism: { kind: 'diverged', tick: message.tick ?? ticks } })
+    else update({ determinism: { kind: 'edited', ticks, hash } })
   }
 
   return {
     run,
     restart() {
-      if (lastCode !== undefined) run(lastCode)
+      if (lastCode !== undefined) run(lastCode, lastDeterminism)
     },
     receive(event: { source: unknown; origin: string; data: unknown }) {
       if (disposed || event.origin !== 'null' || event.source === null) return

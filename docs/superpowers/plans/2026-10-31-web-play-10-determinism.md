@@ -40,15 +40,15 @@
 
 ## Steps (each test fails first, for the reason given)
 
-- [ ] 1. e2e A-10 (three tests): unedited `shapes-rects` shows the pass text with a 16-hex hash and the frame's short
+- [x] 1. e2e A-10 (three tests): unedited `shapes-rects` shows the pass text with a 16-hex hash and the frame's short
   ref, and the hash is in no file under `src/`; an edit shows "Your edit: 120 ticks hash to …"; `core-basic-window`
   reaches `running` with no row. Fails: no row exists.
-- [ ] 2. `determinism.test.ts`: the four texts, exactly. Fails: no module.
-- [ ] 3. `orchestrator.test.ts`: `run(code, request)` posts `determinism` in `run` (and none without one); `running`
+- [x] 2. `determinism.test.ts`: the four texts, exactly. Fails: no module.
+- [x] 3. `orchestrator.test.ts`: `run(code, request)` posts `determinism` in `run` (and none without one); `running`
   shows `checking`; `golden: 'pass'` shows pass with the booted framework; `'none'` shows edited; `'diverged'` shows
   the tick; `determinism-unavailable` removes the row; a message from a replaced frame's `runId` is dropped; `restart`
   sends the same request. Fails: `run` posts no `determinism`.
-- [ ] 4. Minimal code: `determinism.ts`, the orchestrator, `DeterminismRow.svelte`, and `Playground.svelte` passing
+- [x] 4. Minimal code: `determinism.ts`, the orchestrator, `DeterminismRow.svelte`, and `Playground.svelte` passing
   the request (`edited ? { ticks } : { ticks, replay }`). Steps 1 to 3 pass.
 
 ## Commands and expected results
@@ -73,3 +73,12 @@ the full e2e once.
 
 - 2026-10-31: plan written by the website lane (session_01QYLU1fQBPTit3AUJBJS4gT). Worktree `/home/user/wt/play10`,
   branch `claude/website-WEB.PLAY.10-determinism` from WEB.PLAY.9's head `cb25120`.
+- Step 1 failed first in Chromium: the pass and edit tests found no `.determinism-row`. The no-golden test passed from
+  the start, as a guard should: it pins that no row appears.
+- Step 2 failed first: no module `determinism`. Step 3 failed first: `run` posted no `determinism` and the view had
+  none (5 of the 6 new tests; the unavailable case passed trivially because no row ever appeared).
+- Step 4 deviation: WEB.PLAY.7's placeholder test "ignores determinism reports for now (the row is WEB.PLAY.10)" now
+  reads "ignores a determinism report for a run that asked for none", with its body unchanged. The orchestrator drops a
+  report for a run that sent no request, so the row never claims a check nobody asked for.
+- After step 4: `vitest run tests/playground` 76/76; `pnpm check` 0 errors; `playground.e2e.ts` 72/72 on Chromium and
+  WebKit.
