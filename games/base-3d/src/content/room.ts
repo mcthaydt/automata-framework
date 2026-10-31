@@ -13,7 +13,8 @@ const bounds = (x0: number, z0: number, x1: number, z1: number) => ({
 export const ROOM_VIEWS = [
   { id: 'start', yawDeg: 0, bounds: bounds(-4, 1, 4, 7) },
   { id: 'middle', yawDeg: 0, bounds: bounds(-4, 11, 4, 17) },
-  { id: 'goal', yawDeg: 0, bounds: bounds(-4, 21, 4, 27) },
+  // The goal's platform is framed from higher and farther, so the beam and the ember read when Wick stands on it.
+  { id: 'goal', yawDeg: 0, tiltDeg: 35, distance: 7, bounds: bounds(-4, 21, 4, 27) },
 ]
 
 /** The room: three platforms and the two channels between them that only the roll crosses. */

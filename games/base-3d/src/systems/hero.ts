@@ -5,7 +5,7 @@ import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@
 import { Act, Move } from '../commands.ts'
 import { Hero, HeroAction, HeroControl } from '../components.ts'
 import { ACTION_CLIP, HERO_HALF, ROLL, WALK_PER_TICK } from '../constants/index.ts'
-import { HeroFell } from '../events.ts'
+import { HeroFell, HeroRolled } from '../events.ts'
 import { Location } from '../resources.ts'
 import { type Area, areaOf, slide, viewAt } from './area.ts'
 import { angleOf } from './geometry.ts'
@@ -69,6 +69,7 @@ export const heroMove: SystemDef = defineSystem({
           pushTicks: ROLL.ticks,
         })
         rolling = true
+        ctx.emit(HeroRolled, { x: hero.x, z: hero.z })
       }
 
       const walls = area.walls
