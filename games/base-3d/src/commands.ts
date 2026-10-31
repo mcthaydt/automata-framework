@@ -44,3 +44,8 @@ const actSchema = z.object({
  * every button up. GAME-3D.1h splits it into §14.1's `attack`, `shield` and `action`.
  */
 export const Act: CommandDef<typeof actSchema> = defineCommand('act', actSchema)
+
+const equipSchema = z.object({ item: z.enum(['sling', 'bombs', 'hookchain']) })
+
+/** Equips an item to the Item button (DESIGN.md §14.1 `equip`): the Items screen, and 1, 2 and 3 (GAME-3D.1h). */
+export const Equip: CommandDef<typeof equipSchema> = defineCommand('equip', equipSchema)

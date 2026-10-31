@@ -3,7 +3,7 @@
 // Sim code: `pnpm boundaries` checks it.
 import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { Act, Lock, LockCycle, Move } from '../commands.ts'
+import { Act, Equip, Lock, LockCycle, Move } from '../commands.ts'
 import {
   Bomb,
   Chain,
@@ -49,6 +49,7 @@ import {
   heroInput,
   heroMove,
   heroView,
+  itemEquip,
   itemUse,
   lockAssist,
   lockSelect,
@@ -118,6 +119,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     Lock,
     LockCycle,
     Act,
+    Equip,
     EmberTaken,
     HeroDefeated,
     HitLanded,
@@ -133,6 +135,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     AreaEntered,
     heroInput,
     combatFreeze,
+    itemEquip,
     lockSelect,
     lockAssist,
     heroAct,

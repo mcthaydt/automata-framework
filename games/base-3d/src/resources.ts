@@ -2,14 +2,16 @@
 // in (DESIGN.md §13, area change). Sim code.
 import { defineResource } from '@mcthaydt/automata-sim'
 import { z } from 'zod'
+import { HERO_HEALTH } from './constants/index.ts'
 
-/** Embers taken this game; `screens/saves.ts` captures it into the save and applies it back before tick 0. */
+/**
+ * Embers taken this game, and Wick's maximum health in half-hearts (the save's hearts × 2, DESIGN.md §7.8);
+ * `screens/saves.ts` captures both into the save and applies them back before tick 0.
+ */
 export const Progress = defineResource(
   'progress',
-  z.object({ embers: z.number().int().nonnegative() }),
-  () => ({
-    embers: 0,
-  }),
+  z.object({ embers: z.number().int().nonnegative(), maxHealth: z.number().int().positive() }),
+  () => ({ embers: 0, maxHealth: HERO_HEALTH }),
 )
 
 /**

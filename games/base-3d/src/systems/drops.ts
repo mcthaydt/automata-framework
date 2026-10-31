@@ -2,7 +2,6 @@
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Drop, Fighter, Hero } from '../components.ts'
 import { DROP_REACH, DropKind, HEART_HEAL } from '../constants/enemies.ts'
-import { HERO_HEALTH } from '../constants/index.ts'
 import { BOMBS, SLING } from '../constants/items.ts'
 import { DropTaken } from '../events.ts'
 import { Inventory, Progress } from '../resources.ts'
@@ -10,7 +9,7 @@ import { frozen } from './combat.ts'
 
 /**
  * Wick's centre within `DROP_REACH` of a drop, each way in plan, takes it after he moved: embers into the run's
- * count, a heart healing 2 half-hearts up to `HERO_HEALTH` (heart pieces raise it with GAME-3D.1e). It is despawned
+ * count, pellets and bombs into his ammo up to its cap, a heart healing 2 half-hearts up to his maximum health. It is despawned
  * at the end of the tick, and `drop.taken` tells presentation.
  */
 export const dropsTake: SystemDef = defineSystem({
@@ -32,7 +31,8 @@ export const dropsTake: SystemDef = defineSystem({
         inventory.bombAmmo = Math.min(BOMBS.max, inventory.bombAmmo + drop.amount)
       else {
         const { health } = wick.get(Fighter)
-        wick.set(Fighter, { health: Math.min(HERO_HEALTH, health + HEART_HEAL * drop.amount) })
+        const most = ctx.resource(Progress).maxHealth
+        wick.set(Fighter, { health: Math.min(most, health + HEART_HEAL * drop.amount) })
       }
       ctx.emit(DropTaken, drop)
       ctx.despawn(entity.sid)

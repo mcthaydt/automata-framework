@@ -633,10 +633,10 @@ describe('actions (the four clips’ sim side, M3 spec §4.4.5 and §4.7)', () =
 describe('the save, captured and applied outside the sim (DESIGN.md §12.1)', () => {
   it('counts a taken ember in the progress, and captures it with the play time', async () => {
     const sim = await startSim(openArea(0, true, [], { x: 0, z: 0.5 }))
-    expect(sim.resource(Progress)).toEqual({ embers: 0 })
+    expect(sim.resource(Progress)).toEqual({ embers: 0, maxHealth: 8 })
     run(sim, {}, 3)
     run(sim, { act: { pickup: true } })
-    expect(sim.resource(Progress)).toEqual({ embers: 1 })
+    expect(sim.resource(Progress)).toEqual({ embers: 1, maxHealth: 8 })
     const saves = base3dSaves()
     expect(saves.capture(sim)).toEqual({ ...newGame(), embers: 1, playTicks: sim.tick })
     sim.dispose()
@@ -650,7 +650,7 @@ describe('the save, captured and applied outside the sim (DESIGN.md §12.1)', ()
     const saves = base3dSaves()
     const resumed = await startSim()
     saves.apply(resumed, saved)
-    expect(resumed.resource(Progress)).toEqual({ embers: 1 })
+    expect(resumed.resource(Progress)).toEqual({ embers: 1, maxHealth: 8 })
     const { spawn } = FIRST_AREA
     expect(hero(resumed)).toMatchObject({ x: spawn.x, z: spawn.z })
     // Fields the sim does not hold (and ones a later build added) are kept from the applied slot.
@@ -1249,9 +1249,11 @@ const GOLDEN_KILN_TICK = 118
  * GAME-3D.1e part 1's sling (was `1cc2582080223c43`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move. The route sends `item: false` on every tick
  * and owns no sling, so its state did not move: the same assertions hold unchanged. Re-recorded for part 2's bombs
  * (was `9fad84dd7ebb29d1`): the schema gained the `bomb` component, the `bomb.blast` event and the `bomb.fuse` system, and the content the bomb's blast move and `wickDmg`; the route owns no bombs, so the same assertions hold unchanged. Re-recorded for part 3's
- * hookchain (was `a82292370d4f0a0c`): the schema gained the `chain` component, the `chain.hooked` event, `shot.fired`'s `hookchain` and the `chain.fly` system, and each area's content its `posts`; the route owns no hookchain, so the same assertions hold.
+ * hookchain (was `a82292370d4f0a0c`): the schema gained the `chain` component, the `chain.hooked` event, `shot.fired`'s `hookchain` and the `chain.fly` system, and each area's content its `posts`; the route owns no hookchain, so the same assertions hold. Re-recorded for
+ * part 4 (was `ead70ed6a0084968`): the schema gained `progress.maxHealth`, the `equip` command and the `item.equip` system (the resource row carries 8, Wick's 4 hearts, as before); the same
+ * assertions hold unchanged.
  */
-const GOLDEN_HASH = 'ead70ed6a0084968'
+const GOLDEN_HASH = '94925b319d992b19'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

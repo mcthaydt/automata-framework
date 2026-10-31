@@ -501,9 +501,9 @@ const FIGHTS_ROUTE: readonly RouteSegment[] = [
  * the same events, tokens, embers, health and ticks, still asserted below. Re-recorded for GAME-3D.1e part 1 (was
  * `72f569192c8c293d`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move; nothing on the route fires it, so the same assertions hold. Re-recorded for part 2 (was `bf79815307dba14c`):
  * the schema gained the `bomb` component, the `bomb.blast` event and the `bomb.fuse` system, and the content the bomb's blast move and `wickDmg`; Wick owns no items in the yard, so the drops roll as before (6 embers) and the same assertions hold. Re-recorded for
- * part 3 (was `b8c81523f5712ca5`): the schema gained the `chain` component, the `chain.hooked` event, `shot.fired`'s `hookchain` and the `chain.fly` system, and each area's content its `posts`; the same assertions hold.
+ * part 3 (was `b8c81523f5712ca5`) and part 4 (was `b7d6c15114c2ba92`, the schema gained `progress.maxHealth`, the `equip` command and the `item.equip` system): the schema gained the `chain` component, the `chain.hooked` event, `shot.fired`'s `hookchain` and the `chain.fly` system, and each area's content its `posts`; the same assertions hold.
  */
-const FIGHTS_HASH = 'b7d6c15114c2ba92'
+const FIGHTS_HASH = '59b84ddde6bfeb94'
 
 async function runFights() {
   const spec = base3dSim(compileWorld([FIGHT_YARD]))

@@ -4,6 +4,7 @@
 // the area's entrance (GAME3D-D9): nothing here moves Wick.
 import type { GameSaves } from '@mcthaydt/automata-game'
 import type { Sim } from '@mcthaydt/automata-sim'
+import { Fighter, Hero } from '../components.ts'
 import { ItemCode } from '../constants/items.ts'
 import { Inventory, Progress } from '../resources.ts'
 import { type Base3dSave, base3dSave, newGame } from '../state/save.ts'
@@ -16,6 +17,7 @@ export function base3dSaves(): GameSaves<Base3dSave> {
     capture: (sim: Sim) => ({
       ...applied,
       embers: sim.resource(Progress).embers,
+      hearts: { ...applied.hearts, max: Math.floor(sim.resource(Progress).maxHealth / 2) },
       ...captureInventory(sim.resource(Inventory)),
       // The sim starts at tick 0 on every Continue, so the play time is the slot's plus this sim's.
       playTicks: applied.playTicks + sim.tick,
@@ -23,6 +25,10 @@ export function base3dSaves(): GameSaves<Base3dSave> {
     apply: (sim: Sim, data: Base3dSave) => {
       applied = data
       sim.resource(Progress).embers = data.embers
+      // A loaded game starts full at the area entrance, with the save's hearts as Wick's maximum (DESIGN.md §7.8).
+      const maxHealth = data.hearts.max * 2
+      sim.resource(Progress).maxHealth = maxHealth
+      for (const { sid } of sim.query(Hero, Fighter)) sim.entity(sid)?.set(Fighter, { health: maxHealth })
       Object.assign(sim.resource(Inventory), {
         ...data.items,
         equipped: data.equipped === null ? 0 : ItemCode[data.equipped],

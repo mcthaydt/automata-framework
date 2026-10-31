@@ -3,6 +3,7 @@
 // `pnpm boundaries` checks it.
 import { CameraHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
+import { Equip } from '../commands.ts'
 import { Bomb, Chain, Enemy, Fighter, Hero, HeroControl, Pellet, Target } from '../components.ts'
 import { enemyOf } from '../constants/enemies.ts'
 import { ACTION_BITS, CombatState } from '../constants/index.ts'
@@ -20,6 +21,24 @@ function ahead(facing: number, step: number): { dx: number; dz: number } {
   const direction = facingVector(facing)
   return { dx: Math.trunc((direction.x * step) / 4096), dz: Math.trunc((direction.z * step) / 4096) }
 }
+
+/**
+ * Equips the item an `equip` command names, when Wick owns it (§9.3), dropping any draw under way; an item he does
+ * not own changes nothing.
+ */
+export const itemEquip: SystemDef = defineSystem({
+  name: 'item.equip',
+  phase: 'input',
+  after: ['hero.input'],
+  run(ctx) {
+    const inventory = ctx.resource(Inventory)
+    for (const { payload } of ctx.commands.of(Equip)) {
+      if (!inventory[payload.item]) continue
+      inventory.equipped = ItemCode[payload.item]
+      inventory.draw = 0
+    }
+  },
+})
 
 /**
  * The Item button (§9.1, §9.2): with the sling owned, equipped and loaded, holding Item draws; letting go after

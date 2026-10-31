@@ -131,7 +131,31 @@ foes as candidates (a post's height is its own; the chain ignores height).
 - [x] 4. Tests: nothing with the hookchain unowned or unequipped; one chain at a time.
 - [ ] 5. Goldens re-recorded with the explanation; gates as part 1's.
 
-Parts 4 and 5 get their interfaces and steps here before their code.
+## Part 4: hearts from the save and the `equip` command (interfaces, rules, steps)
+
+The screens of the old part 4 (the Items screen) move to part 5 with the HUD and the map: the default paused screen
+has no seam for a game's buttons. The coordinator chose (c), 2026-10-31: Items opens with the I key and a HUD chip,
+Map with M and the corner Map button, equipping with 1/2/3, all in base-3d with no copied framework screen. **Pause →
+Items and pause → Map wait on GAME.PAUSE1** (a `paused.actions` extension slot in `@mcthaydt/automata-game`, the
+coordinator's core lane; not built here).
+
+Produced: `Progress.maxHealth` (half-hearts; resources.ts); `newGame` with 4 hearts (§7.8); `equip { item }`
+(commands.ts, §14.1) and `item.equip` (systems/items.ts, input phase after `hero.input`).
+
+1. `newGame` starts at 4 hearts (§7.8; was 3, the 1c follow-up). Applying a save sets the sim's maximum health to
+   `hearts.max` × 2 and Wick's health to it (a loaded game starts full at the area entrance); capturing writes the
+   maximum back as hearts. The game over's Continue still sets 3 hearts.
+2. A recovery heart heals up to the maximum health, not the constant.
+3. `equip { item }` equips an owned item (its code into `Inventory.equipped`) and drops any draw under way; an item
+   not owned changes nothing.
+
+- [x] 1. Tests: `newGame` has 4 hearts; applying 5 hearts gives Wick 10 half-hearts and a maximum of 10, captured
+      back as 5; a heart drop heals up to it.
+- [x] 2. Tests: `equip` equips the sling when owned, leaves the equipped item when bombs are not owned, and resets
+      the draw.
+- [x] 3. Goldens re-recorded with the explanation; gates as part 1's.
+
+Part 5 (the Items screen, the HUD and the map) gets its interfaces and steps here before its code.
 
 ## Execution log
 
@@ -201,3 +225,19 @@ posts are an area list until GAME-3D.1f's `hook-post` entities.
 `b8c81523f5712ca5` → `b7d6c15114c2ba92`; `base-3d/golden-boss` `e44b61fb2e3004a9` → `c9d3f93da355ae54`. Schema
 (`chain`, `chain.hooked`, `shot.fired`'s `hookchain`, `chain.fly`) and content (`posts`); every other assertion
 unchanged.
+
+**Part 4 (2026-10-31, branch `claude/3d-game-3d-1e-4`).**
+
+- Red first: `newGame`'s 4 hearts, the save's hearts in the sim, and `equip` failed before their code.
+- game.test.ts's two save cases compared the whole `progress` row, which gained `maxHealth`; they now include it
+  (8, Wick's 4 hearts) and still assert the embers as before.
+- The Items screen moved to part 5 (the paused screen has no seam for a game's buttons; asked the coordinator, default
+  (c) in the part 4 section above).
+
+**Defaults (part 4, for the Owner's veto):** a loaded game starts with full health at the area entrance (the game
+over's Continue keeps its 3 hearts); the save's version stays 1, since `hearts.max`'s shape did not change, only the
+new game's value (no build has deployed a save yet); `equip` runs on frozen ticks too (it changes no fight state).
+
+**Goldens (part 4).** `base-3d/golden-route` `ead70ed6a0084968` → `94925b319d992b19`; `base-3d/golden-fights`
+`b7d6c15114c2ba92` → `59b84ddde6bfeb94`; `base-3d/golden-boss` `c9d3f93da355ae54` → `de0bb982dcf6aa53`. Schema only
+(`progress.maxHealth`, `equip`, `item.equip`); every other assertion unchanged.

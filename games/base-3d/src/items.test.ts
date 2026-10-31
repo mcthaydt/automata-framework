@@ -4,7 +4,7 @@ import { Bomb, Chain, Drop, Enemy, Fighter, Pellet, Target } from './components.
 import { BrainState, DropKind, dropOf } from './constants/enemies.ts'
 import { CombatState, metres } from './constants/index.ts'
 import { BOMBS, HOOKCHAIN, ItemCode, SLING } from './constants/items.ts'
-import { Inventory } from './resources.ts'
+import { Inventory, Progress } from './resources.ts'
 import { base3dSaves } from './screens/saves.ts'
 import { newGame } from './state/save.ts'
 import { type AreaSource, compileArea } from './systems/index.ts'
@@ -335,6 +335,41 @@ describe('the Hookchain (DESIGN.md §9.1)', () => {
     throwChain(sim)
     throwChain(sim)
     expect(chains(sim)).toHaveLength(1)
+    sim.dispose()
+  })
+})
+
+describe('hearts from the save (DESIGN.md §7.8, §12.1)', () => {
+  it('gives Wick the save’s hearts as his maximum and his health, heals a heart up to it, and captures it back', async () => {
+    const sim = await slingArea()
+    const saves = base3dSaves()
+    saves.apply(sim, { ...newGame(), hearts: { max: 5, pieces: ['a', 'b', 'c', 'd'] } })
+    expect(sim.resource(Progress).maxHealth).toBe(10)
+    expect(fighter(sim, wickSid(sim))?.health).toBe(10)
+    sim.entity(wickSid(sim))?.set(Fighter, { health: 7 })
+    sim.spawn([[Drop, { x: 0, z: metres(1), kind: DropKind.heart, amount: 1 }]])
+    sim.spawn([[Drop, { x: 0, z: metres(2), kind: DropKind.heart, amount: 1 }]])
+    run(sim, { stick: { x: 0, y: -127 } }, 40)
+    expect(fighter(sim, wickSid(sim))?.health).toBe(10)
+    expect(saves.capture(sim).hearts).toEqual({ max: 5, pieces: ['a', 'b', 'c', 'd'] })
+    sim.dispose()
+  })
+})
+
+describe('equip (DESIGN.md §14.1)', () => {
+  const equip = (sim: Sim, item: 'sling' | 'bombs' | 'hookchain') =>
+    sim.step([{ tick: sim.tick, source: 0, seq: 0, type: 'equip', payload: { item } }])
+
+  it('equips an owned item and drops a draw under way; an item not owned changes nothing', async () => {
+    const sim = await slingArea()
+    Object.assign(sim.resource(Inventory), { equipped: 0, draw: 5 })
+    equip(sim, 'sling')
+    expect(sim.resource(Inventory)).toMatchObject({ equipped: ItemCode.sling, draw: 0 })
+    equip(sim, 'bombs')
+    expect(sim.resource(Inventory).equipped).toBe(ItemCode.sling)
+    Object.assign(sim.resource(Inventory), { hookchain: true })
+    equip(sim, 'hookchain')
+    expect(sim.resource(Inventory).equipped).toBe(ItemCode.hookchain)
     sim.dispose()
   })
 })

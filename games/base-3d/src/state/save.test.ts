@@ -17,10 +17,10 @@ describe('base3dSave', () => {
     })
   })
 
-  it('starts a new game in the hub with three hearts, nothing found and no play time', () => {
+  it('starts a new game in the hub with four hearts (DESIGN.md §7.8), nothing found and no play time', () => {
     const fresh = newGame()
     expect(base3dSaveSchema.parse(fresh)).toEqual(fresh)
-    expect(fresh).toMatchObject({ hearts: { max: 3, pieces: [] }, embers: 0, resume: 'hub', playTicks: 0 })
+    expect(fresh).toMatchObject({ hearts: { max: 4, pieces: [] }, embers: 0, resume: 'hub', playTicks: 0 })
     expect(fresh.items).toEqual({ sling: false, bombs: false, hookchain: false })
     expect(base3dSave.empty()).toEqual(fresh)
   })
