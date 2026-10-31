@@ -25,6 +25,8 @@ export const FIRST_SLICE: AreaSource = {
     { min: [-4, 4 - WALL / 2], max: [-1, 4 + WALL / 2] }, // the dividing wall, west of the 2 m doorway
     { min: [1, 4 - WALL / 2], max: [4, 4 + WALL / 2] }, // and east of it
   ],
+  // The kiln's north wall, in the doorway's line, is the way on: the Cold Kiln's mouth (content/kiln.ts).
+  exits: [{ min: [-1, 11.4], max: [1, 12], to: 'cold-kiln', entry: { x: 100, z: 101.5 } }],
   // The second figure, standing in for a lock target.
   targets: [{ x: 2, z: 9 }],
   // The ember, in the kiln’s north-west corner, in reach of Wick standing in the corner: he picks it up (F) to end the run.

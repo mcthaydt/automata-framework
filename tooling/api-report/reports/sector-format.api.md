@@ -4,6 +4,135 @@
 
 ## `.`
 
+### `AF_SECTOR_FORMAT` (const)
+
+```ts
+const AF_SECTOR_FORMAT = "af-sector/1";
+```
+
+### `AfCorner` (type)
+
+```ts
+type AfCorner = readonly [number, number, (AfWall | undefined)?];
+```
+
+### `AfEntity` (interface)
+
+```ts
+interface AfEntity {
+    readonly def: string;
+    readonly id: string;
+    readonly x: number;
+    readonly z: number;
+    readonly y?: number | undefined;
+    readonly [member: string]: unknown;
+}
+```
+
+### `AfEntityDef` (interface)
+
+```ts
+interface AfEntityDef {
+    readonly id: string;
+    readonly [member: string]: unknown;
+}
+```
+
+### `afEntityDefSchema` (const)
+
+```ts
+const afEntityDefSchema: z.ZodType<AfEntityDef>;
+```
+
+### `afEntitySchema` (const)
+
+```ts
+const afEntitySchema: z.ZodType<AfEntity>;
+```
+
+### `afFormatVersion` (function)
+
+```ts
+function afFormatVersion(format: string): {
+    readonly major: number;
+    readonly minor: number;
+} | undefined;
+```
+
+### `AfMaterial` (interface)
+
+```ts
+interface AfMaterial {
+    readonly category: string;
+    readonly label?: string | undefined;
+    readonly wallOnly?: boolean | undefined;
+}
+```
+
+### `afMaterialSchema` (const)
+
+```ts
+const afMaterialSchema: z.ZodType<AfMaterial>;
+```
+
+### `AfSector` (interface)
+
+```ts
+interface AfSector {
+    readonly format: string;
+    readonly name: string;
+    readonly materials?: Readonly<Record<string, AfMaterial>> | undefined;
+    readonly styles?: Readonly<Record<string, Style>> | undefined;
+    readonly sectors: readonly AfSectorEntry[];
+    readonly entityDefs?: readonly AfEntityDef[] | undefined;
+    readonly entities?: readonly AfEntity[] | undefined;
+}
+```
+
+### `AfSectorEntry` (interface)
+
+```ts
+interface AfSectorEntry {
+    readonly id: string;
+    readonly floor: number;
+    readonly ceiling: number;
+    readonly light: number;
+    readonly open?: boolean | undefined;
+    readonly style?: string | undefined;
+    readonly floorTexture?: string | undefined;
+    readonly ceilingTexture?: string | undefined;
+    readonly wallTexture?: string | undefined;
+    readonly trim?: PartialTrim | undefined;
+    readonly view?: string | undefined;
+    readonly corners: readonly AfCorner[];
+    readonly holes?: readonly (readonly AfCorner[])[] | undefined;
+}
+```
+
+### `afSectorEntrySchema` (const)
+
+```ts
+const afSectorEntrySchema: z.ZodType<AfSectorEntry>;
+```
+
+### `afSectorSchema` (const)
+
+```ts
+const afSectorSchema: z.ZodType<AfSector>;
+```
+
+### `AfWall` (type)
+
+```ts
+type AfWall = Omit<WallDef, 'hideFrom' | 'cut'>;
+```
+
+### `afWallSchema` (const)
+
+```ts
+const afWallSchema: z.ZodType<AfWall>;
+```
+
 ### `Corner` (type)
 
 ```ts
@@ -149,6 +278,23 @@ const sectorDefSchema: z.ZodType<SectorDef>;
 
 ```ts
 const STEP = 0.25;
+```
+
+### `Style` (interface)
+
+```ts
+interface Style {
+    readonly floorTexture?: string | undefined;
+    readonly ceilingTexture?: string | undefined;
+    readonly wallTexture?: string | undefined;
+    readonly trim?: PartialTrim | undefined;
+}
+```
+
+### `styleSchema` (const)
+
+```ts
+const styleSchema: z.ZodType<Style>;
 ```
 
 ### `Trim` (interface)

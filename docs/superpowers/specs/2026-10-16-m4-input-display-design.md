@@ -745,3 +745,59 @@ export interface CameraDragSurfaceProps {
 | M4-D14 | Floating or fixed stick?                   | **Floating inside a 96 px zone** at the overlay's start (The Last Light)                                                   | Proven in the source; the zone keeps it inside §4.9's placement rule                        |
 | M4-D15 | Is camera speed per device or per account? | **Per account** (not a `deviceFields` entry)                                                                               | A player's preference follows them; revisit if phone and desktop need different values      |
 | M4-D16 | Helpers for the stick and key turn rates?  | **None in M4**: the game multiplies `stick('right').x / 127` by 180°/s and held keys by 120°/s                             | Two lines in the game; a helper waits for a second consumer                                 |
+
+## 17. Addendum 2026-10-31: the game half of M4.12 (GAME-3D.1h)
+
+Accepted under the Owner's 2026-10-31 standing words, "Reminder that everything is auto approved and accepted, do not wait on me to do any approvals". §16 left the play screen's wiring and the game's analog mapping to GAME-3D; `packages/game` is where every game's play screen lives, so it is built there once (the coordinator's decision A).
+
+### 17.1 `keys(command, bindings, { analog })` (`packages/game/src/input/keys.ts`)
+
+```ts
+interface AnalogReading {
+  /** The active pad's stick, or the touch stick, as integers −127..127 (M4-D2). */
+  stick(side: "left" | "right"): { readonly x: number; readonly y: number };
+  /** CSS px dragged to the right since the previous tick (0 unless the map binds the drag). */
+  cameraDrag(): number;
+  /** The player's camera settings (§16.3.6). */
+  readonly camera: CameraSettings;
+}
+interface AnalogOptions<Z> {
+  /**
+   * Per tick: what the sticks and the drag add to the held keys' payload. The held payload is passed in so a game
+   * can sum a key term and a stick term (clamping to ±8,192 is the game's, `turnUnitsFromPixels` does the drag's).
+   */
+  read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>;
+  /** Bind `camera-drag` (§16.3.1): the play screen mounts the drag surface. */
+  drag?: boolean;
+  /** Show the touch stick: its vector is `stick('left')` (§16.4). */
+  touchStick?: boolean;
+}
+// KeysOptions gains `analog?: AnalogOptions<Z>`
+// InputMap gains `readonly touchStick: boolean` and toCommand(held, tick, reading?: AnalogReading)
+```
+
+- It is an option of `keys()` and not a second map kind: the one command (`camera-turn`) takes its key term (Q/E), its stick term and its drag term, and `inputs()` refuses a command mapped twice.
+- `read`'s fields are merged over the held payload and parsed by the command's schema. When the schema refuses the merge (a `NaN` or a float into an integer field), **the analog part is dropped and the held payload is sent**: a bad reading never reaches the sim, and a held key still works.
+- `drag: true` adds the profile action `<command id>-drag` bound to the `camera-drag` gesture only (no keys, no button); `touchStick: true` makes the play screen pass `stick` to `TouchControls`. `inputs()` ORs `touchStick` and merges the bindings.
+- A map with `analog` reads fresh every tick; its payload is never cached.
+
+### 17.2 The play screen (`packages/game/src/screens/PlayScreen.svelte`, `default-screens.ts`)
+
+- **Boot:** the screen's `Input` is the one reading. When the map's profile binds `camera-drag`, the play screen draws `CameraDragSurface` over a `CameraDragTracker(input.drag)` (touch and mouse both: the surface takes the secondary-button drag; touch only while the player uses touch is not required, the surface is inert without a contact). When the map has `touchStick`, it passes `stick={{ label: copy.current.play.move }}` with `onstick → input.touchStick.set` and `onstickend → input.touchStick.release` to `TouchControls`.
+- **Per fixed step:** `input.poll()`, then `map.toCommand(input.held(), tick, reading)` with `reading` built from `input.stick`, `input.cameraDrag` and the settings' `camera` (the defaults when unset).
+- No change to ui or runtime contracts.
+
+### 17.3 Acceptance cases
+
+1. A map without `analog` is unchanged (every existing test).
+2. With `analog.read`, the payload is the held payload with `read`'s fields merged, per tick, not cached.
+3. A `read` returning a `NaN` or a non-integer in an integer field sends the held payload alone.
+4. `drag: true` adds `<command>-drag` with `gesture: ['camera-drag']`, touch off, and the profile validates; touch mode stays `buttons`.
+5. The play screen mounts the camera-drag surface only when bound and the stick only when `touchStick`; a drag of N px on the surface reaches `cameraDrag()` on the next poll; the stick's vector reaches `stick('left')`.
+
+### 17.4 Decisions (recommended defaults in effect until the Owner reviews)
+
+| ID     | Question                                          | Recommended default                                              | Why                                                                         |
+| ------ | ------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| M4-D17 | A second map kind or an option of `keys()`?       | **An `analog` option of `keys()`**                               | One command may take keys, stick and drag; `inputs()` forbids two maps      |
+| M4-D18 | A bad analog reading: drop the command or the part? | **Drop the analog part**, send the held payload                | A held key keeps working; the sim only ever sees valid integers             |

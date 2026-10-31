@@ -1088,6 +1088,76 @@ describe('default screens', () => {
     expect(lastX()).toBe(11)
   })
 
+  describe('analog input (M4 spec §17)', () => {
+    const analogMap = () =>
+      keys(
+        Move,
+        { ArrowLeft: { x: -1 } },
+        {
+          analog: {
+            drag: true,
+            touchStick: true,
+            read: (reading) => ({
+              x: Math.sign(reading.cameraDrag()) || Math.sign(reading.stick('left').x),
+            }),
+          },
+        },
+      )
+    const touch = () => window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+    const pointer = (target: Element, type: string, clientX: number, extra: PointerEventInit = {}) =>
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 7,
+          pointerType: 'touch',
+          button: 0,
+          clientX,
+          clientY: 50,
+          bubbles: true,
+          cancelable: true,
+          ...extra,
+        }),
+      )
+
+    it('mounts the drag surface and the stick only when the map binds them', async () => {
+      await boot()
+      await toPlay()
+      touch()
+      await until(() => root.querySelector('[data-testid="move-0"]') !== null, 'the touch buttons')
+      expect(root.querySelector('[data-testid="camera-drag"]')).toBeNull()
+      expect(root.querySelector('[data-touch-stick]')).toBeNull()
+    })
+
+    it('a touch drag on the surface reaches the map as the camera drag, once', async () => {
+      await boot({ input: analogMap() })
+      await toPlay()
+      touch()
+      await until(() => root.querySelector('[data-testid="camera-drag"]') !== null, 'the drag surface')
+      const surface = root.querySelector('[data-testid="camera-drag"]') as HTMLElement
+      pointer(surface, 'pointerdown', 100)
+      pointer(surface, 'pointermove', 140)
+      step()
+      expect(lastX()).toBe(11)
+      step()
+      expect(lastX()).toBe(11)
+      pointer(surface, 'pointerup', 140)
+    })
+
+    it('the touch stick drives stick("left") and lets go on release', async () => {
+      await boot({ input: analogMap() })
+      await toPlay()
+      touch()
+      await until(() => root.querySelector('[data-touch-stick]') !== null, 'the stick')
+      const stick = root.querySelector('[data-touch-stick]') as HTMLElement
+      pointer(stick, 'pointerdown', 20)
+      pointer(stick, 'pointermove', 80)
+      step()
+      expect(lastX()).toBe(11)
+      pointer(stick, 'pointerup', 80)
+      step()
+      expect(lastX()).toBe(11)
+    })
+  })
+
   it('shows no touch buttons when the input map says touch: false', async () => {
     await boot({ input: keys(Move, { ArrowLeft: { x: -1 } }, { touch: false }) })
     await toPlay()

@@ -77,7 +77,14 @@ describe('the dungeon solver (G3-q)', () => {
   it('reaches every room of the shipped world, with nothing to soft-lock', () => {
     const result = solveWorld(BASE3D_SIM.content)
     expect(result.softLocks).toEqual([])
-    expect(result.rooms).toEqual(['first-slice/hall', 'first-slice/kiln'])
+    expect(result.rooms).toEqual([
+      'cold-kiln/bellows-gallery',
+      'cold-kiln/furnace-mouth',
+      'cold-kiln/hearth-chamber',
+      'cold-kiln/niche',
+      'first-slice/hall',
+      'first-slice/kiln',
+    ])
   })
 
   it('opens every chest and reaches the boss room through two key doors, the boss key and the boss door', () => {

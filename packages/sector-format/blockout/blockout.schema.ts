@@ -3,6 +3,7 @@
 // format it expands into; the 3D level editor and the `pipe blockout` pipeline import it from here. A game's own `validate`
 // decides whether a level is sound; a schema only says whether it is shaped.
 import { z } from 'zod'
+import { type Style, styleSchema } from '../src/af-sector.schema'
 import {
   type MassDef,
   massSchema,
@@ -28,20 +29,7 @@ export type BlockoutCorner = readonly [number, number, (WallRef | undefined)?]
 
 const cornerSchema: z.ZodType<BlockoutCorner> = z.tuple([z.number(), z.number(), wallRefSchema.optional()])
 
-/** Sector look fields a room can take from a named style. */
-export interface Style {
-  readonly floorTexture?: string | undefined
-  readonly ceilingTexture?: string | undefined
-  readonly wallTexture?: string | undefined
-  readonly trim?: PartialTrim | undefined
-}
-
-export const styleSchema: z.ZodType<Style> = z.looseObject({
-  floorTexture: z.string().optional(),
-  ceilingTexture: z.string().optional(),
-  wallTexture: z.string().optional(),
-  trim: partialTrimSchema.optional(),
-})
+export { type Style, styleSchema }
 
 export interface Room {
   readonly id: string

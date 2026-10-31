@@ -17,6 +17,7 @@ import { ENEMIES } from '../constants/enemies.ts'
 import { AREA_FADE_TICKS, metres } from '../constants/index.ts'
 import { ItemCode } from '../constants/items.ts'
 import { FIRST_SLICE } from '../content/first-slice.ts'
+import { WORLD_SOURCES } from '../content/world.ts'
 import { HeroDefeated } from '../events.ts'
 import { base3d, input } from '../main.ts'
 import { Inventory } from '../resources.ts'
@@ -241,6 +242,40 @@ describe("base-3d's flow", () => {
     expect(results[0]?.tick).toBe(1)
   })
 
+  it('on touch, the stick walks Wick, the camera drag surface is there and the five buttons are on the play screen (G3-a, §14.4)', async () => {
+    await toRoom()
+    window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+    await until(() => root.querySelector('[data-touch-stick]') !== null, 'the touch stick')
+    expect(root.querySelector('[data-testid="camera-drag"]')).not.toBeNull()
+    const labels = [...root.querySelectorAll('[data-touch-overlay] [data-action]')].map((b) =>
+      b.textContent?.trim(),
+    )
+    expect(new Set(labels)).toEqual(new Set(['Attack', 'Shield', 'Action', 'Item', 'Lock']))
+    step(2)
+    const fromZ = wick()?.z ?? 0
+    const stick = root.querySelector('[data-touch-stick]') as HTMLElement
+    const pointer = (type: string, clientY: number) =>
+      stick.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 5,
+          pointerType: 'touch',
+          clientX: 40,
+          clientY,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    pointer('pointerdown', 80)
+    pointer('pointermove', 0)
+    step(30)
+    expect(wick()?.z ?? 0).toBeGreaterThan(fromZ)
+    pointer('pointerup', 0)
+    step(2)
+    const stopped = wick()?.z ?? 0
+    step(10)
+    expect(wick()?.z).toBe(stopped)
+  })
+
   it('Wick picks up the ember in the kiln: the round completes, the end screen shows the time, and Menu keeps the ember in the slot', async () => {
     await toRoom()
     const { x, z } = FIRST_SLICE.ember
@@ -249,9 +284,9 @@ describe("base-3d's flow", () => {
     await hold('KeyW', () => (wick()?.z ?? 0) >= metres(z))
     await hold('KeyS', () => (wick()?.x ?? 0) <= metres(x))
     expect(screen()).toBe('play')
-    key('keydown', 'KeyF')
+    key('keydown', 'Space')
     step()
-    key('keyup', 'KeyF')
+    key('keyup', 'Space')
     await until(() => screen() === 'end', 'the end screen')
     const tick = results.at(-1)?.tick ?? 0
     expect(root.querySelector('[data-slot="time"]')?.textContent).toBe(`${(tick / 60).toFixed(2)} s`)
@@ -398,7 +433,7 @@ describe("base-3d's flow", () => {
       ],
     })
     const defeatable = () => {
-      const sim = base3dSim(compileWorld([FIRST_SLICE]))
+      const sim = base3dSim(compileWorld(WORLD_SOURCES))
       return base3dScreens({
         title: base3d.title,
         sim: { ...sim, plugins: [...sim.plugins, defeatNorth] },
@@ -476,11 +511,11 @@ describe("base-3d's flow", () => {
         rows.findLast((row) => row.components.hero !== undefined)?.components.hero?.lockTarget ?? 0,
       )
     }
-    /** Shift pressed for a tick and let go, then a few ticks more. */
+    /** F pressed for a tick and let go, then a few ticks more. */
     const tapLock = () => {
-      key('keydown', 'ShiftLeft')
+      key('keydown', 'KeyF')
       step(2)
-      key('keyup', 'ShiftLeft')
+      key('keyup', 'KeyF')
       step(3)
     }
     /** Walks Wick a few metres up the hall, toward the target in the kiln. */
@@ -489,7 +524,7 @@ describe("base-3d's flow", () => {
       await hold('KeyW', () => (wick()?.z ?? fromZ) >= fromZ + metres(4))
     }
 
-    it('play locks in Toggle by default: the lock stays after Shift is let go, and the next press lets go', async () => {
+    it('play locks in Toggle by default: the lock stays after F is let go, and the next press lets go', async () => {
       await toRoom()
       await walkIn()
       tapLock()
@@ -498,7 +533,7 @@ describe("base-3d's flow", () => {
       expect(locked()).toBe(0)
     })
 
-    it('play takes Hold from Settings: the lock lets go with Shift', async () => {
+    it('play takes Hold from Settings: the lock lets go with F', async () => {
       await toSettings()
       lockMode('hold')?.click()
       button('Back')?.click()
@@ -506,10 +541,10 @@ describe("base-3d's flow", () => {
       button('Resume')?.click()
       await until(() => screen() === 'play', 'the room')
       await walkIn()
-      key('keydown', 'ShiftLeft')
+      key('keydown', 'KeyF')
       step(3)
       expect(locked()).not.toBe(0)
-      key('keyup', 'ShiftLeft')
+      key('keyup', 'KeyF')
       step(3)
       expect(locked()).toBe(0)
     })
@@ -543,7 +578,7 @@ describe("base-3d's flow", () => {
       }
       return base3dScreens({
         title: base3d.title,
-        sim: base3dSim(compileWorld([first, { ...FIRST_SLICE, id: 'second' }])),
+        sim: base3dSim(compileWorld([first, { ...FIRST_SLICE, id: 'second', exits: [] }])),
         input,
         extensions: [render3dExtension],
         saves: base3dSaves() as never,
