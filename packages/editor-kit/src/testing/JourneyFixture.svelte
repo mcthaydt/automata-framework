@@ -21,7 +21,7 @@ export interface JourneyState {
   readonly volume: number
 }
 
-interface Props {
+type Props = {
   history: History<JourneyState>
   /** Each gesture the surface recognised, by its handler's name. */
   onsurface: (name: string, event: unknown) => void
@@ -34,8 +34,8 @@ const { history, onsurface, ondetach }: Props = $props()
 const mount = ++mounts
 // The fixture is made for one history.
 // svelte-ignore state_referenced_locally
-let state = $state.raw(history.state)
-$effect(() => history.subscribe((current) => (state = current.state)))
+let shown = $state.raw<JourneyState>(history.state)
+$effect(() => history.subscribe((changed) => (shown = changed.state)))
 
 let open: Transaction<JourneyState> | undefined
 function edit(key: keyof JourneyState): (event: EditEvent<number>) => void {
@@ -68,9 +68,9 @@ $effect(() => {
 
 <div class="journey" data-mount={mount}>
   <div class="panel" data-scroll-region data-testid="panel">
-    <Stepper label="Hit points" value={state.hp} min={0} max={99} pixelsPerStep={8} onedit={edit('hp')} />
+    <Stepper label="Hit points" value={shown.hp} min={0} max={99} pixelsPerStep={8} onedit={edit('hp')} />
     <div class="gap"></div>
-    <Slider label="Volume" value={state.volume} min={0} max={100} onedit={edit('volume')} />
+    <Slider label="Volume" value={shown.volume} min={0} max={100} onedit={edit('volume')} />
   </div>
   <div class="surface" data-testid="surface" bind:this={surface}></div>
 </div>
