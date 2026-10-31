@@ -71,7 +71,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 6. `screenplay` (byte-identical twice; the clinic's matches a committed fixture). Fails: no module.
    - [x] 6
 7. `automata pipe narrative` through the router and from the bin; `check` fails on NR-c's graph. Fails: not registered.
-   - [ ] 7
+   - [x] 7
 8. Gates, provenance row (an AF docs PR), ready line.
    - [ ] 8
 
