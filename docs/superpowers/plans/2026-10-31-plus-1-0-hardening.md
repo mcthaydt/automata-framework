@@ -72,7 +72,7 @@ it, a core change that drops a seam's entry would pass here until a Plus package
 - [x] 1. This plan (first commit).
 - [x] 2. Part 1: failing `seams.test.ts`, then `seams.ts`; `tooling/boundary` green.
 - [x] 3. Part 2a: failing summary-panel and summary-function tests, then `summaryPanel`, `SummaryPanel.svelte`, the two summaries.
-- [ ] 4. Part 2b: failing browser layout test, then any CSS fix.
+- [x] 4. Part 2b: failing browser layout test, then any CSS fix.
 - [ ] 5. Part 3: failing music-loudness tests, then the spec field and check row.
 - [ ] 6. Gates: `pnpm exec biome check --write`, `pnpm format`, `pnpm check`, and the browser projects named below.
 

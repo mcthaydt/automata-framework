@@ -19,9 +19,10 @@
     "./vite": "./src/vite.ts"
   },
   "scripts": {
-    "test": "vitest run",
-    "test:unit": "vitest run",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+    "test": "vitest run --project jsdom --project browsers",
+    "test:unit": "vitest run --project jsdom",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "test:browser": "vitest run --project browsers"
   },
   "peerDependencies": {
     "@mcthaydt/automata-audio-synth": "0.0.0",
@@ -43,7 +44,9 @@
     "@testing-library/svelte": "5.4.2",
     "@testing-library/user-event": "14.6.7",
     "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
     "jsdom": "30.1.1",
+    "playwright": "1.63.0",
     "svelte": "5.57.3",
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",
