@@ -95,6 +95,11 @@ test('a second session lists the slot with its label, and Continue plays equal d
 test('another device changes the slot: a Toast in play, then Load newer at the pause plays their progress (M5-D6)', async ({
   page,
 }) => {
+  // 45 s, not the default 30 s. Headless Chromium on Linux composites in software, so each play-screen frame reads the
+  // game canvas back from SwiftShader with a blocking ReadPixels (~6 fps), and each key press, click or evaluate on
+  // the play screen waits about one such frame. This journey makes the most of those actions: measured at 19.7 s
+  // alone and 29.1 s with 2 workers on 4 CPUs (docs/superpowers/plans/2026-10-31-core-saves-e2e-budget.md).
+  test.setTimeout(45_000)
   const errors = await collectErrors(page)
   const frame = await openHosted(page, `${origin}/core/saves/`, 'core-saves')
   await startNewGame(frame)

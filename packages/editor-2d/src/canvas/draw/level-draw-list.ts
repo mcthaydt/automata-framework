@@ -11,7 +11,7 @@ import type {
 } from '../../model/project-types'
 import { createCellChunks } from './cell-chunks'
 import type { EntityDraw, LayerDraw, LevelDrawInput, LevelDrawList, ObjectDraw } from './draw-list-types'
-import { footprint, gridLines, selectionBoxes } from './overlays'
+import { footprint, gridLines, linkChips, selectionBoxes } from './overlays'
 import { tileDraw } from './tile-draw'
 
 // The level canvas as data (ED2D.4c3a, 2D editor spec §8): from the project, the Level view's state and the images the
@@ -155,6 +155,7 @@ export function createLevelDrawList(): (input: LevelDrawInput) => LevelDrawList 
       grid: active === undefined ? undefined : gridLines(active, level.size),
       footprint: active === undefined ? undefined : footprint(active, view, level.size),
       selection: selectionBoxes(project, level, view),
+      links: linkChips(project, level, view),
     }
   }
 }

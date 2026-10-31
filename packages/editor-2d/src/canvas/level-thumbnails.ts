@@ -32,8 +32,9 @@ export interface LevelThumbnails {
   dispose(): void
 }
 
-/** A view with no active layer and nothing hovered or selected, so the draw list has no overlays. */
-const plainView = (level: string): DrawView => ({
+/** A view with no active layer and nothing hovered or selected, so the draw list has no overlays: Home's thumbnails
+ * and the World map's pictures. */
+export const plainDrawView = (level: string): DrawView => ({
   level,
   layer: '',
   tool: 'select',
@@ -76,7 +77,7 @@ export function createLevelThumbnails(options: LevelThumbnailsOptions): LevelThu
       if (disposed) return undefined
       const list = createLevelDrawList()({
         project,
-        view: plainView(level),
+        view: plainDrawView(level),
         images: textures.loaded,
         generations: textures.generations,
       })

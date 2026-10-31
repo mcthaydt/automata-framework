@@ -68,10 +68,10 @@ const views: ViewDef[] = [
 const exports: ExportTarget<Project>[] = [
   {
     id: 'af2d-json',
-    label: 'Working file (.af2d.json)',
+    label: 'Project file',
     files: (project) => [{ path: `${fileStem(project.name)}.af2d.json`, contents: printProject(project) }],
   },
-  { id: 'af-content', label: 'AF content (TOML)', files: exportContent },
+  { id: 'af-content', label: 'Game files', files: exportContent },
 ]
 
 export const levelProject: Profile<Project> = {

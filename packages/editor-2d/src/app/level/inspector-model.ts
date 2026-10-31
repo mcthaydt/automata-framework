@@ -6,6 +6,8 @@ import {
   valuesWithDefaults,
 } from '@mcthaydt/automata-editor-kit/fields'
 import type { EntityDef2D, EntityInstance, Project, Size } from '../../model/project-types'
+import { type RefTargetLevel, refName, refTargets } from '../../model/refs/ref-links'
+import { isRefValue } from '../../model/refs/ref-resolve'
 import { findLevel } from '../../model/world/level-edits'
 import type { Diagnostic, Severity } from '../../profiles/profile'
 
@@ -38,6 +40,11 @@ export interface FieldRow {
   readonly bounds?: { readonly min?: number; readonly max?: number; readonly step: number }
   /** `segmented` and `picker` only. */
   readonly options?: readonly string[]
+  /**
+   * `ref` only, and only where the project is known (plan ED2D.6c step 4): the target's name (`undefined` when not set
+   * or broken) and what the picker offers.
+   */
+  readonly ref?: { readonly name: string | undefined; readonly targets: readonly RefTargetLevel[] }
 }
 
 /** Past this many options an enum is a picker, so a segmented control never wraps at phone width. */
@@ -86,10 +93,25 @@ export function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow
   }
 }
 
-/** A field's stored value, or its stand-in (the kit's default) when the holder stores none. */
-function rowsOf(fields: readonly FieldDef[], values: FieldValues): readonly FieldRow[] {
+/** The project's side of a `ref` row: what the value is called and what it may point at instead. */
+function withRef(row: FieldRow, def: FieldDef, project: Project, holder: string | undefined): FieldRow {
+  if (row.widget !== 'ref') return row
+  const name = isRefValue(row.value) ? refName(project, def, row.value) : undefined
+  return { ...row, ref: { name, targets: refTargets(project, def, holder) } }
+}
+
+/**
+ * A field's stored value, or its stand-in (the kit's default) when the holder stores none. `holder` is the instance the
+ * fields belong to (never its own target), `undefined` for a level's.
+ */
+function rowsOf(
+  fields: readonly FieldDef[],
+  values: FieldValues,
+  project: Project,
+  holder: string | undefined,
+): readonly FieldRow[] {
   const shown = valuesWithDefaults(fields, values)
-  return fields.map((field) => fieldRow(field, shown[field.id]))
+  return fields.map((field) => withRef(fieldRow(field, shown[field.id]), field, project, holder))
 }
 
 export type EntityInspector =
@@ -133,7 +155,7 @@ export function entityInspector(
     layer: first.layer,
     instance,
     def,
-    fields: rowsOf(def.fields, instance.fields),
+    fields: rowsOf(def.fields, instance.fields, project, instance.id),
     position: { x: instance.x, y: instance.y },
     size: def.resizable === 'none' ? undefined : { w: instance.w ?? def.size.w, h: instance.h ?? def.size.h },
   }
@@ -152,7 +174,7 @@ export function levelInspector(project: Project, level: string): LevelInspector 
     id: found.id,
     name: found.name,
     size: found.size,
-    fields: rowsOf(project.defs.levelFields, found.fields),
+    fields: rowsOf(project.defs.levelFields, found.fields, project, undefined),
   }
 }
 
