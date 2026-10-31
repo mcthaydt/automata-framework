@@ -1,15 +1,15 @@
 import type { Sim } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import { Bomb, Drop, Enemy, Fighter, Pellet, Target } from './components.ts'
+import { Bomb, Chain, Drop, Enemy, Fighter, Pellet, Target } from './components.ts'
 import { BrainState, DropKind, dropOf } from './constants/enemies.ts'
 import { CombatState, metres } from './constants/index.ts'
-import { BOMBS, ItemCode, SLING } from './constants/items.ts'
+import { BOMBS, HOOKCHAIN, ItemCode, SLING } from './constants/items.ts'
 import { Inventory } from './resources.ts'
 import { base3dSaves } from './screens/saves.ts'
 import { newGame } from './state/save.ts'
 import { type AreaSource, compileArea } from './systems/index.ts'
 import { fighter, foes, wickSid } from './testing/foes.ts'
-import { run, startSim, type TickInput } from './testing/sim.ts'
+import { hero, run, startSim, type TickInput } from './testing/sim.ts'
 
 // base-3d's items (GAME-3D.1e, DESIGN.md §9): the sling's draw, its pellets' flight and what they hit, the ammo and the
 // inventory through the save. The browsers project runs this file in Chromium, WebKit and Firefox too.
@@ -239,6 +239,102 @@ describe('the drop table’s ammo row (DESIGN.md §8.1 rule 6)', () => {
     sim.spawn([[Drop, { x: 0, z: metres(2), kind: DropKind.bombs, amount: 2 }]])
     run(sim, { stick: { x: 0, y: -127 } }, 40)
     expect(sim.resource(Inventory)).toMatchObject({ pellets: SLING.maxPellets, bombAmmo: BOMBS.max })
+    sim.dispose()
+  })
+})
+
+describe('the Hookchain (DESIGN.md §9.1)', () => {
+  /** Wick at the origin facing +z, with hook `posts`, `foesIn` and `walls`, the hookchain owned and equipped. */
+  async function hookArea(
+    posts: AreaSource['posts'],
+    foesIn: AreaSource['foes'] = [],
+    walls: AreaSource['walls'] = [],
+  ) {
+    const sim = await startSim(
+      compileArea({
+        id: 'hooks',
+        spawn: { x: 0, z: 0 },
+        views: [{ id: 'open', yawDeg: 0 }],
+        rooms: [{ view: 'open', min: [-30, -30], max: [30, 30] }],
+        walls,
+        targets: [],
+        ember: { x: 29, z: 29 },
+        foes: foesIn,
+        posts,
+      }),
+    )
+    Object.assign(sim.resource(Inventory), { hookchain: true, equipped: ItemCode.hookchain })
+    return sim
+  }
+  const chains = (sim: Sim) => sim.query(Chain)
+  const throwChain = (sim: Sim) =>
+    [...run(sim, ITEM), ...run(sim, {})].map((event) => event.split('@')[0] as string)
+
+  it('pulls Wick in a straight line to 0.6 m from a post 5 m ahead, at 10 m/s, invulnerable, the stick ignored', async () => {
+    const sim = await hookArea([{ x: 0, z: 5 }])
+    const events = throwChain(sim)
+    for (let i = 0; i < 40 && !events.includes('chain.hooked'); i++)
+      events.push(...run(sim, {}).map((e) => e.split('@')[0] as string))
+    expect(events).toContain('chain.hooked')
+    const zs: number[] = []
+    for (let i = 0; i < 60 && chains(sim).length > 0; i++) {
+      run(sim, { stick: { x: 127, y: 0 } })
+      zs.push(hero(sim).z)
+      expect(hero(sim).x).toBe(0)
+      if (chains(sim).length > 0) expect(fighter(sim, wickSid(sim))?.iframes).toBeGreaterThan(0)
+    }
+    expect(chains(sim)).toHaveLength(0)
+    expect((zs[1] ?? 0) - (zs[0] ?? 0)).toBe(HOOKCHAIN.pull)
+    expect(hero(sim).z).toBe(metres(5) - HOOKCHAIN.stop)
+    sim.dispose()
+  })
+
+  it('pulls nothing to a post behind a wall or past 8 m: the chain is gone', async () => {
+    for (const [posts, walls] of [
+      [[{ x: 0, z: 5 }], [{ min: [-1, 2], max: [1, 2.2] }]],
+      [[{ x: 0, z: 8.6 }], []],
+    ] as const) {
+      const sim = await hookArea([...posts], [], [...walls] as AreaSource['walls'])
+      throwChain(sim)
+      run(sim, {}, 50)
+      expect(chains(sim)).toHaveLength(0)
+      expect(hero(sim)).toMatchObject({ x: 0, z: 0 })
+      sim.dispose()
+    }
+  })
+
+  it('stuns a Sootling or a Wisp it meets 90 ticks; an Ash Knight only stops it', async () => {
+    for (const [kind, stunned] of [
+      ['sootling', true],
+      ['wisp', true],
+      ['ash-knight', false],
+    ] as const) {
+      const sim = await hookArea([], [{ kind, x: 0, z: 4, facing: 180 }])
+      const [sid] = foes(sim).map((entity) => entity.sid) as [number]
+      throwChain(sim)
+      for (let i = 0; i < 30 && chains(sim).length > 0; i++) run(sim, {})
+      expect(chains(sim)).toHaveLength(0)
+      if (stunned) {
+        expect(fighter(sim, sid)?.state).toBe(CombatState.stun)
+        expect(fighter(sim, sid)?.stun).toBeGreaterThanOrEqual(HOOKCHAIN.stun - 1)
+      } else expect(fighter(sim, sid)?.state).not.toBe(CombatState.stun)
+      if (kind === 'wisp') expect(fighter(sim, sid)?.lift).toBe(0)
+      sim.dispose()
+    }
+  })
+
+  it('throws nothing with the hookchain unowned or not equipped, and one chain at a time', async () => {
+    for (const inventory of [{ hookchain: false }, { equipped: ItemCode.sling }]) {
+      const sim = await hookArea([{ x: 0, z: 5 }])
+      Object.assign(sim.resource(Inventory), inventory)
+      throwChain(sim)
+      expect(chains(sim)).toHaveLength(0)
+      sim.dispose()
+    }
+    const sim = await hookArea([])
+    throwChain(sim)
+    throwChain(sim)
+    expect(chains(sim)).toHaveLength(1)
     sim.dispose()
   })
 })

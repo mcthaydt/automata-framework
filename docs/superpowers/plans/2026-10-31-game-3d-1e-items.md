@@ -84,7 +84,7 @@ Produced (base-3d only; no package API changes):
 - [x] 3. The inventory through the save: applied before tick 0, captured back (screens.dom.test or saves test).
 - [x] 4. Goldens re-recorded with the explanation (the schema gains `act.item`, `Inventory`, `pellet`); the routes'
       states unchanged.
-- [ ] 5. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, base-3d `test:parity`, `build`, the base-3d e2e spec.
+- [x] 5. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, base-3d `test:parity`, `build`, the base-3d e2e spec.
 
 ## Part 2: Ember Bombs (interfaces, rules, steps)
 
@@ -108,7 +108,30 @@ unblockable; `MoveHit.wickDmg` 1, the damage it does to Wick); `bomb.fuse` (syst
 - [x] 3. Tests: `dropOf` with ammo (the swaps and their limits); taking a pellet or bomb drop adds up to the cap.
 - [x] 4. Goldens re-recorded with the explanation; gates as part 1's.
 
-Parts 3 to 5 get their interfaces and steps here before their code, as parts 1 and 2.
+## Part 3: the Hookchain (interfaces, rules, steps)
+
+Produced: `HOOKCHAIN { step 12 m/s, range 8 m, pull 10 m/s, post radius 0.4 m, stops 0.6 m from the post, stun 90 }`
+(constants/items.ts); `Chain { x, z, facing, travelled, pulling, postX, postZ }` (components.ts); `AreaSource.posts`
+(hook posts, metres; 1f's `hook-post` entity later); `chain.fly` (systems/items.ts, physics after `hero.move`);
+`chain.hooked { x, z }` (events.ts). `aimDirection` and `pickTarget` are shared with the sling: the posts join the
+foes as candidates (a post's height is its own; the chain ignores height).
+
+1. Holding Item with the hookchain owned and equipped aims; letting go throws a chain along the aim (or at the picked
+   post or foe), one at a time.
+2. The chain flies 12 m/s, at most 8 m. Each tick: a wall across this tick's flight ends it (it returns); a post
+   within 0.4 m of the flight hooks it; else the first foe whose hurt cylinder the flight meets stops it, and a
+   Sootling or a Wisp is stunned 90 ticks (another foe only stops it).
+3. Hooked, Wick is pulled in a straight line toward the post at 10 m/s until he is 0.6 m from it, with no hit landing
+   on him (i-frames held), the stick ignored; then the chain is gone. The flight checked the line for walls, so the
+   pull never crosses one.
+
+- [x] 1. Tests: a post 5 m ahead pulls Wick straight to 0.6 m from it at 10 m/s, invulnerable, the stick ignored.
+- [x] 2. Tests: a post behind a wall, or past 8 m, pulls nothing; the chain is gone.
+- [x] 3. Tests: a Sootling or a Wisp it meets is stunned 90 (the Wisp on the floor); an Ash Knight only stops it.
+- [x] 4. Tests: nothing with the hookchain unowned or unequipped; one chain at a time.
+- [ ] 5. Goldens re-recorded with the explanation; gates as part 1's.
+
+Parts 4 and 5 get their interfaces and steps here before their code.
 
 ## Execution log
 
@@ -160,3 +183,21 @@ ammo row swaps the one-ember result for 5 pellets and the five-ember result for 
 **Goldens (part 2).** `base-3d/golden-route` `9fad84dd7ebb29d1` → `a82292370d4f0a0c`; `base-3d/golden-fights`
 `bf79815307dba14c` → `b8c81523f5712ca5`; `base-3d/golden-boss` `28e5ff49a2269c98` → `e44b61fb2e3004a9`. Schema
 (`bomb`, `bomb.blast`, `bomb.fuse`) and content (the blast move); every other assertion unchanged.
+
+**Part 3 (2026-10-31, branch `claude/3d-game-3d-1e-3`).**
+
+- Red first: the 4 new cases failed on the unknown `posts` field and the missing `Chain`.
+- One real fault after the first code: the chain's 24 steps left it 8 Q16.16 units short of 8 m, so it took one more
+  full step and hooked a post at 8.6 m. Its last tick's flight is now cut at the range.
+- The chain is its own sim entity, stepped in `chain.fly` (physics, after `hero.move`, which leaves Wick to the chain
+  while it pulls). It does not go through `combat.hits`: it deals no damage, and its stun is set directly.
+
+**Defaults (part 3, for the Owner's veto):** the throw needs only a press and release (no draw); a chain that misses,
+meets a wall or stops on a foe is gone at once (its return is presentation); a hook post is hooked when its point lies
+within 0.4 m of the flight, and the pull stops 0.6 m from it; the chain ignores height (§9.2: hook posts are targets);
+posts are an area list until GAME-3D.1f's `hook-post` entities.
+
+**Goldens (part 3).** `base-3d/golden-route` `a82292370d4f0a0c` → `ead70ed6a0084968`; `base-3d/golden-fights`
+`b8c81523f5712ca5` → `b7d6c15114c2ba92`; `base-3d/golden-boss` `e44b61fb2e3004a9` → `c9d3f93da355ae54`. Schema
+(`chain`, `chain.hooked`, `shot.fired`'s `hookchain`, `chain.fly`) and content (`posts`); every other assertion
+unchanged.

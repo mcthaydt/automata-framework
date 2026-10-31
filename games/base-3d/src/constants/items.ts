@@ -18,6 +18,19 @@ export const SLING = {
 /** Ember Bombs (§9.1): a 120-tick fuse, then a blast 1.6 m round; 10 at most. */
 export const BOMBS = { fuse: 120, radius: metres(1.6), max: 10 } as const
 
+/**
+ * The Hookchain (§9.1): a chain at 12 m/s for at most 8 m; a hook post within 0.4 m of its flight hooks it, and Wick
+ * is pulled at 10 m/s to 0.6 m from the post; a Sootling or a Wisp it meets is stunned 90 ticks.
+ */
+export const HOOKCHAIN = {
+  step: Math.round(metres(12) / TICK_HZ),
+  range: metres(8),
+  pull: Math.round(metres(10) / TICK_HZ),
+  post: metres(0.4),
+  stop: metres(0.6),
+  stun: 90,
+} as const
+
 /** Each item's code in `Inventory.equipped` (0 none). */
 export const ItemCode = { sling: 1, bombs: 2, hookchain: 3 } as const
 

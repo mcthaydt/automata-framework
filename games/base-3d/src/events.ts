@@ -50,7 +50,7 @@ export const DropTaken: EventDef<typeof drop> = defineEvent('drop.taken', drop)
 /** The Ash Knight Captain is beaten (DESIGN.md §8.3): D4's doors open and the Ember Bombs chest appears (1f, 1e). */
 export const CaptainDefeated: EventDef<typeof foe> = defineEvent('captain.defeated', foe)
 
-const shot = z.object({ item: z.enum(['sling']), x: z.int(), z: z.int() })
+const shot = z.object({ item: z.enum(['sling', 'hookchain']), x: z.int(), z: z.int() })
 
 /** Wick fired an item from his place (DESIGN.md §9.1): presentation's twang. */
 export const ShotFired: EventDef<typeof shot> = defineEvent('shot.fired', shot)
@@ -59,6 +59,11 @@ const blast = z.object({ x: z.int(), z: z.int() })
 
 /** A bomb blasted at its place (DESIGN.md §9.1): presentation's flash and boom. */
 export const BombBlast: EventDef<typeof blast> = defineEvent('bomb.blast', blast)
+
+const hooked = z.object({ x: z.int(), z: z.int() })
+
+/** The Hookchain caught a hook post at its place (DESIGN.md §9.1): the clank, and the pull begins. */
+export const ChainHooked: EventDef<typeof hooked> = defineEvent('chain.hooked', hooked)
 
 const phase = z.object({ target: z.int().nonnegative(), phase: z.int().positive() })
 

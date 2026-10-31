@@ -42,6 +42,8 @@ const areaSchema = z.strictObject({
   /** Plan boxes Wick falls into when his feet cross into one (DESIGN.md §7.8). */
   pits: z.array(planBox).default([]),
   /** The enemies standing in the area (DESIGN.md §8.2): a type by id, where, and a facing in degrees (0 toward +z). */
+  /** The hook posts the Hookchain catches (DESIGN.md §9.1), in metres; GAME-3D.1f makes them entities. */
+  posts: z.array(point).default([]),
   /** Where an angry Captain's calls come out (DESIGN.md §8.3), in metres. */
   vents: z.array(point).default([]),
   foes: z
@@ -90,6 +92,7 @@ export interface Area {
   readonly pits: readonly PlanBox[]
   readonly foes: readonly AreaFoe[]
   readonly vents: readonly PlanPoint[]
+  readonly posts: readonly PlanPoint[]
 }
 
 /** The sim's content: every area, the first being where a new game starts. */
@@ -133,6 +136,7 @@ export function compileArea(source: AreaSource): Area {
     exits: parsed.exits.map((exit) => ({ ...toBox(exit), to: exit.to, entry: toPoint(exit.entry) })),
     pits: parsed.pits.map(toBox),
     vents: parsed.vents.map(toPoint),
+    posts: parsed.posts.map(toPoint),
     foes: parsed.foes.map((foe) => {
       const kind = ENEMIES.findIndex((type) => type.id === foe.kind) + 1
       if (kind === 0) throw new Error(`base-3d area: a foe names the unknown enemy "${foe.kind}"`)

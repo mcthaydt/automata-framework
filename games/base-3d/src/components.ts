@@ -185,3 +185,19 @@ const bombFields = {
  * Wick and the foes alike.
  */
 export const Bomb: ComponentDef<typeof bombFields> = defineComponent('bomb', bombFields)
+
+const chainFields = {
+  /** Where this tick's flight starts, Q16.16 metres, and the aim it flies along, in turn units. */
+  x: 'i32',
+  z: 'i32',
+  facing: 'u32',
+  /** How far it has flown, Q16.16 metres; at the hookchain's range it returns. */
+  travelled: 'i32',
+  /** Whether it has hooked a post and pulls Wick to it, and the post's place. */
+  pulling: 'bool',
+  postX: 'i32',
+  postZ: 'i32',
+} as const
+
+/** The Hookchain thrown (DESIGN.md §9.1): flying out, or hooked on a post and pulling Wick to it. One at a time. */
+export const Chain: ComponentDef<typeof chainFields> = defineComponent('chain', chainFields)

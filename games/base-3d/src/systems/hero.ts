@@ -3,7 +3,7 @@
 import { CameraHeading, enterView, mapStick, moveDirection, Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
 import { Act, Lock, LockCycle, Move } from '../commands.ts'
-import { Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { Chain, Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
 import {
   ACTION_BITS,
   ACTION_CLIP,
@@ -79,6 +79,11 @@ export const heroMove: SystemDef = defineSystem({
     for (const entity of ctx.query(Hero, HeroControl, CameraHeading)) {
       const control = entity.get(HeroControl)
       const hero = entity.get(Hero)
+      // Pulled by the Hookchain, the chain moves him (`chain.fly`), not the stick (DESIGN.md §9.1).
+      if (ctx.query(Chain).some((chain) => chain.get(Chain).pulling)) {
+        entity.set(Hero, { moving: false, moveDir: 0 })
+        continue
+      }
       // Stunned, blocking, staggered or down, he does not walk; a knockback or a block's push moves him instead.
       const fighter = entity.has(Fighter) ? entity.get(Fighter) : undefined
       if (fighter !== undefined && isHeld(fighter.state)) {

@@ -4,7 +4,18 @@
 import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Lock, LockCycle, Move } from '../commands.ts'
-import { Bomb, Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Pellet, Target } from '../components.ts'
+import {
+  Bomb,
+  Chain,
+  Drop,
+  Enemy,
+  Fighter,
+  Hero,
+  HeroAction,
+  HeroControl,
+  Pellet,
+  Target,
+} from '../components.ts'
 import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants/index.ts'
 import {
   AreaEntered,
@@ -13,6 +24,7 @@ import {
   BossDefeated,
   BossPhase,
   CaptainDefeated,
+  ChainHooked,
   DropTaken,
   EmberTaken,
   FoeDefeated,
@@ -25,6 +37,7 @@ import {
   type Area,
   areaExit,
   bombFuse,
+  chainFly,
   combatFreeze,
   combatHits,
   combatMoves,
@@ -100,6 +113,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     Drop,
     Pellet,
     Bomb,
+    Chain,
     Move,
     Lock,
     LockCycle,
@@ -114,6 +128,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     BossDefeated,
     ShotFired,
     BombBlast,
+    ChainHooked,
     AreaExit,
     AreaEntered,
     heroInput,
@@ -127,6 +142,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     combatMoves,
     emberTake,
     heroMove,
+    chainFly,
     dropsTake,
     areaExit,
     heroView,
