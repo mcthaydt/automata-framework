@@ -3,7 +3,7 @@
 - **Task:** EDS.2c-c in [02](../../02-master-delivery-plan.md) (row added by #302). The follow-ups recorded on #290 (EDS.2c-b) by the coordinator's visual acceptance, the #275 toast follow-up, and the "1 cell use tiles" grammar fix in the 2D editor's checks. [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §9 (`review-desk`, `interchange`), §10 (sizes, 44 px targets); [editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.6 (toasts); AGENTS.md "Responsive UI".
 - **Lane:** editors. **Depends on:** EDS.2c-b (#290, merged). **Unblocks:** nothing directly; clears the EDS.2c review notes.
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) once reviewed.
-- **Progress:** 1 of 6 steps.
+- **Progress:** 2 of 6 steps.
 
 ## Scope
 
@@ -32,7 +32,7 @@
 Each step: write the test, run it and see it fail for the stated reason, make the minimal change, see it pass.
 
 - [x] **1. This plan.** Committed first.
-- [ ] **2. Count agreement.** `levels.test.ts`: a 1-cell tiles case expecting `/1 cell uses tiles/`, a 1-cell IntGrid case expecting `/1 cell holds a value/`, a 1-object case expecting `/1 object uses tiles/`, and the existing 2-cell case tightened to `/2 cells use tiles/`. Fails: "1 cell use tiles". Fix: `agree()` in `diagnostics.ts`, used by the three messages in `levels.ts`.
+- [x] **2. Count agreement.** `levels.test.ts`: a 1-cell tiles case expecting `/1 cell uses tiles/`, a 1-cell IntGrid case expecting `/1 cell holds a value/`, a 1-object case expecting `/1 object uses tiles/`, and the existing 2-cell case tightened to `/2 cells use tiles/`. Fails: "1 cell use tiles". Fix: `agree()` in `diagnostics.ts`, used by the three messages in `levels.ts`.
   `pnpm --filter @mcthaydt/automata-editor-2d exec vitest run src/profiles/level-project/checks/levels.test.ts`
 - [ ] **3. The file chooser.** `InterchangeDialog.dom.test.ts`: in Import, a "Choose a file" button exists; clicking it clicks the hidden file input; a chosen file fills "Document to import". Fails: no such button. `suite-ship.layout.test.ts`: the "Choose a file" button is at least 44 px tall and wide at every §10 size. Fix: the hidden input and a kit `Button`.
   `pnpm --filter @mcthaydt/automata-editor-suite exec vitest run src/shell/InterchangeDialog.dom.test.ts` and the layout project for `suite-ship.layout.test.ts`.
@@ -50,3 +50,4 @@ Each step: write the test, run it and see it fail for the stated reason, make th
 ## Execution log
 
 - 2026-10-31: plan drafted from the #290 visual-acceptance comment and the previous lane's handoff.
+- Step 2: the three new expectations failed with the old wording ("1 cell use tiles", "1 object use tiles", "1 cell hold a value"); with `agree()` the checks folder passes 57 of 57.

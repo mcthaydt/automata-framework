@@ -4,6 +4,9 @@ import type { Diagnostic, Severity } from '../../profile'
 
 export const plural = (count: number, noun: string): string => `${count} ${noun}${count === 1 ? '' : 's'}`
 
+/** The verb that agrees with a count: `agree(1, 'uses', 'use')` is "uses". */
+export const agree = (count: number, one: string, many: string): string => (count === 1 ? one : many)
+
 export function diagnostic(
   severity: Severity,
   code: string,
