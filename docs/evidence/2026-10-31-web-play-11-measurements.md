@@ -20,4 +20,14 @@ Both keystroke rows are about three times their budgets here, including the unth
 not only this machine. A fresh frame per edit has to boot the runtime. On `af-mac`, measure where the time goes before
 the budgets are judged: the quiet period (300 ms), the compile, the frame's boot, or the first frame.
 
-Lighthouse (`pnpm lighthouse`) was not run here; see the PR's gates.
+## Lighthouse
+
+`pnpm lighthouse` (`lighthouserc.json`, mobile, 3 runs a URL, `CHROME_PATH` set to Playwright's Chromium 1243) ran on
+head `dc79943` in this container: every assertion passed. Medians:
+
+| Page | Performance | LCP | CLS | TBT |
+| --- | --- | --- | --- | --- |
+| `/examples` | 1.00 | 1,361 ms | 0 | 52 ms |
+| `/examples/core-basic-window` | 1.00 | 1,356 ms | 0 | 83 ms |
+| `/examples/shapes-rects` | 0.99 | 1,356 ms | 0 | 134 ms |
+| `/`, `/docs`, `/start` | 0.99 to 1.00 | 1,358 to 1,515 ms | 0 | 88 to 135 ms |

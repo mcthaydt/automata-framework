@@ -59,7 +59,7 @@
 - [x] 6. A-16 soak. Expected to pass (the orchestrator's two-frame rule is unit-tested): kept as the acceptance test.
 - [x] 7. A-15 axe with the editor open at 375 and 1280.
 - [x] 8. Minimal code for 2 to 5; all of 1 to 7 pass on Chromium and WebKit.
-- [ ] 9. Measurements: the §10.2 latency rows in Chromium with 4× CPU (CDP `Emulation.setCPUThrottlingRate`) in this
+- [x] 9. Measurements: the §10.2 latency rows in Chromium with 4× CPU (CDP `Emulation.setCPUThrottlingRate`) in this
   container, labelled as indicative (the budget's machine is `af-mac`); `pnpm lighthouse`. Owner screenshots of the four
   layouts and the toggle.
 
@@ -104,3 +104,8 @@ Chromium and WebKit, then the full e2e once. `pnpm lighthouse` if it runs in thi
 - Gates after step 8: `pnpm check` 0 errors; `pnpm test` 435 passed + 1 expected fail; `pnpm build` done;
   `pnpm check:site` 45 pages; `playground.e2e.ts`, `site.e2e.ts` and `playground-layout.e2e.ts` 767 passed on
   Chromium and WebKit (29.0 min).
+- Step 9: twelve screenshots (Chromium and WebKit) in `docs/evidence/owner-visual/2026-10-31-web-play-11-layouts/`.
+  In this container the latency rows are about three times their budgets (keystroke to `running`: 1,599 ms unthrottled,
+  3,558 ms at 4×; tap to editor 1,039 ms at 4×). They are recorded in
+  `docs/evidence/2026-10-31-web-play-11-measurements.md` as indicative, and the `af-mac` run is still owed. Lighthouse
+  passed every assertion (`/examples/shapes-rects`: 0.99, LCP 1,356 ms, CLS 0, TBT 134 ms).
