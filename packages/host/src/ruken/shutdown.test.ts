@@ -16,9 +16,8 @@ import {
   TestContext,
 } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Hosting } from './hosting'
-import { HOST_EXIT_CAP } from './hosting-live'
-import { FakeHostHandle, HostingTest, type HostingTestOptions, manualClock, runScoped } from './testing'
+import { HOST_EXIT_CAP, Hosting } from '../contract/hosting'
+import { FakeHostHandle, HostingTest, type HostingTestOptions, manualClock, runScoped } from '../testing'
 
 const settled: Effect.Effect<void> = Effect.promise(() => settle())
 

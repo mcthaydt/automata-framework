@@ -1,21 +1,27 @@
 import { fileURLToPath } from 'node:url'
 import { build, defaultClientConditions, type Rolldown } from 'vite'
 import { describe, expect, it } from 'vitest'
-import { WEB_STORAGE_PROBE_KEY } from './hosting-web'
 import { findRukenSdkMarkers, RUKEN_SDK_MARKERS } from './sdk-markers'
+import { WEB_STORAGE_PROBE_KEY } from './web/hosting-web'
 
 // PUB spec §3 and §7 (build row): `./target` puts exactly one adapter in a bundle. The entry imports the host as
 // the runtime's boot does; Vite builds it the way PUB.2's `--target` will, from the workspace sources.
 const fixture = fileURLToPath(new URL('./testing/fixtures/target-bundle/', import.meta.url))
 
-/** All the JavaScript of a production build of the fixture, optionally with the `automata-web` condition. */
-async function bundle(target: 'ruken' | 'web' | 'itch'): Promise<string> {
+/**
+ * All the JavaScript of a production build of the fixture: with the target's AF condition, or with none
+ * (`'none'`, a tool that knows nothing of AF's conditions).
+ */
+async function bundle(target: 'ruken' | 'web' | 'itch' | 'none'): Promise<string> {
+  const condition = { ruken: 'automata-ruken', web: 'automata-web', itch: 'automata-web', none: undefined }[
+    target
+  ]
   const output = await build({
     root: fixture,
     configFile: false,
     logLevel: 'silent',
     // `resolve.conditions` replaces Vite's defaults, so a target build adds its condition in front of them.
-    resolve: target === 'ruken' ? {} : { conditions: ['automata-web', ...defaultClientConditions] },
+    resolve: condition === undefined ? {} : { conditions: [condition, ...defaultClientConditions] },
     // What PUB.2's build sets for an itch build; only `hostName` reads it.
     define: target === 'itch' ? { __AUTOMATA_TARGET__: JSON.stringify('itch') } : {},
     build: {
@@ -31,7 +37,7 @@ async function bundle(target: 'ruken' | 'web' | 'itch'): Promise<string> {
     .join('\n')
 }
 
-describe('the ./target export in a real bundle (PUB spec §3)', () => {
+describe('the ./target export in a real bundle (PUB spec §3, DIST spec §5.3)', () => {
   it('an automata-web build holds the web adapter and no Ruken SDK code', async () => {
     const code = await bundle('web')
     expect(findRukenSdkMarkers(code)).toEqual([])
@@ -46,7 +52,13 @@ describe('the ./target export in a real bundle (PUB spec §3)', () => {
     expect(code).toContain('itch.io')
   }, 90_000)
 
-  it('a default build still holds the Ruken SDK, and not the web adapter', async () => {
+  it('a build with no AF condition holds the web adapter and no Ruken SDK code: no target is the default', async () => {
+    const code = await bundle('none')
+    expect(findRukenSdkMarkers(code)).toEqual([])
+    expect(code).toContain(WEB_STORAGE_PROBE_KEY)
+  }, 90_000)
+
+  it('an automata-ruken build holds the Ruken SDK, and not the web adapter', async () => {
     const code = await bundle('ruken')
     expect(findRukenSdkMarkers(code)).toEqual(RUKEN_SDK_MARKERS)
     expect(code).not.toContain(WEB_STORAGE_PROBE_KEY)

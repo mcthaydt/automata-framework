@@ -1,6 +1,6 @@
-import { RukenError } from '@ruken/sdk'
 import { Data } from 'effect'
 import type { YieldableError } from 'effect/Cause'
+import type { ErrorCode } from './error-code.schema'
 
 /*
  * The typed failures of `Hosting` (M1 shared contracts §1.2).
@@ -16,13 +16,10 @@ type TaggedErrorClass<Tag extends string, Fields> = new (
   fields: Fields,
 ) => YieldableError & { readonly _tag: Tag } & Readonly<Fields>
 
-/** Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError` carries them. */
-export type ErrorCode = RukenError['code']
-
 interface HostErrorFields {
-  /** Ruken's code, unchanged. */
+  /** The contract's code (DIST spec §4.1); the Ruken adapter relays Ruken's unchanged. */
   readonly code: ErrorCode
-  /** Ruken's flag, unchanged. Retry only when true, with Effect's `Schedule`. */
+  /** Whether a retry may succeed (Ruken's flag, relayed unchanged). Retry only when true, with Effect's `Schedule`. */
   readonly retryable: boolean
   /** The protocol request or `Hosting` call that failed, for example `saves.set`. */
   readonly operation: string
@@ -33,7 +30,7 @@ const HostErrorBase: TaggedErrorClass<'HostError', HostErrorFields> = Data.Tagge
 export class HostError extends HostErrorBase {}
 
 interface HostHandshakeFailedFields {
-  /** The SDK does not say whether it timed out or rejected a welcome. */
+  /** The Ruken SDK does not say whether it timed out or rejected a welcome. */
   readonly reason: 'no-welcome'
 }
 const HostHandshakeFailedBase: TaggedErrorClass<'HostHandshakeFailed', HostHandshakeFailedFields> =
@@ -44,21 +41,3 @@ const HostHandshakeFailedBase: TaggedErrorClass<'HostHandshakeFailed', HostHands
  * and logged once (shared contracts §1.2).
  */
 export class HostHandshakeFailed extends HostHandshakeFailedBase {}
-
-/**
- * Turns whatever the SDK threw or rejected with into a `HostError`.
- * - A `RukenError` keeps its code and retryable flag.
- * - A `QuotaExceededError` is what Ruken's save map throws for a save over a
- *   limit (`sdk/src/save-map.ts`); it becomes `QUOTA_EXCEEDED`, which Ruken
- *   marks not retryable.
- * - Anything else (a closed port, a bug) becomes `INTERNAL`, which Ruken marks retryable.
- */
-export function toHostError(operation: string, cause: unknown): HostError {
-  if (cause instanceof RukenError) {
-    return new HostError({ code: cause.code, retryable: cause.retryable, operation, cause })
-  }
-  if (cause instanceof DOMException && cause.name === 'QuotaExceededError') {
-    return new HostError({ code: 'QUOTA_EXCEEDED', retryable: false, operation, cause })
-  }
-  return new HostError({ code: 'INTERNAL', retryable: true, operation, cause })
-}

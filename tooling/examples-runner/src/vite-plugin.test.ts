@@ -150,6 +150,13 @@ describe('examplesRunner', () => {
     expect(Object.keys(input).sort()).toEqual(['core-later-source', 'core-stub', 'core-stub-source', 'index'])
   })
 
+  // The examples run inside the fake Ruken host's frame, so the build takes the Ruken adapter (DIST spec §5.3: with no
+  // AF condition, `@mcthaydt/automata-host/target` is the web adapter).
+  it('builds every example for the ruken target', async () => {
+    const config = await resolveConfig({ configFile: false, plugins: [examplesRunner(options)] }, 'build')
+    expect(config.resolve.conditions[0]).toBe('automata-ruken')
+  })
+
   // Vite inlines an asset under `assetsInlineLimit` as a `data:` URL, and Pixi's loader fetches it, which
   // Ruken's CSP (`connect-src 'self'`) refuses: a 278-byte sprite sheet drew nothing (textures-sprite).
   it('emits every asset as a file, so none becomes a data: URL the CSP refuses to fetch', async () => {

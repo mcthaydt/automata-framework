@@ -1,3 +1,6 @@
+import { Deferred, Effect, Layer, Option, type Scope, Stream } from 'effect'
+import { HostError } from '../contract/errors'
+import { Hosting, type HostingOptions } from '../contract/hosting'
 import type {
   AudioChange,
   Capability,
@@ -9,14 +12,9 @@ import type {
   LifecyclePayload,
   LifecycleReason,
   RoundOutcome,
-  StorageLike,
-} from '@ruken/sdk'
-import { Deferred, Effect, Layer, Option, type Scope, Stream } from 'effect'
-import { HostError } from './errors'
-import { Hosting, type HostingOptions } from './hosting'
-import type { HostingSeams } from './hosting-live'
-import { guardRounds } from './rounds'
-import { fromListener } from './subscribable'
+} from '../contract/index'
+import { guardRounds } from '../rounds'
+import { fromListener } from '../subscribable'
 
 /*
  * The web adapter (PUB spec §3.1): `Hosting` for a page outside Ruken, chosen at build time for the `itch` and
@@ -24,8 +22,8 @@ import { fromListener } from './subscribable'
  * wherever the SDK defines one and adds what a page can observe. It never falls back to memory for saves: when
  * the browser blocks storage, `saves` is not granted and every call fails `DENIED`.
  *
- * Ruken stays the vocabulary: every type comes from `@ruken/sdk`, imported as types only, so a bundle built with
- * this adapter holds no SDK code (`target.build.test.ts` builds one and checks for `RUKEN_SDK_MARKERS`).
+ * Every type comes from AF's host contract (DIST spec §4), so a bundle built with this adapter holds no Ruken SDK
+ * code (`target.build.test.ts` builds one and checks for `RUKEN_SDK_MARKERS`).
  */
 
 type PageListener = (event: Event) => void
@@ -34,6 +32,15 @@ type PageListener = (event: Event) => void
 export interface WebEvents {
   addEventListener(type: string, listener: PageListener, options?: AddEventListenerOptions | boolean): void
   removeEventListener(type: string, listener: PageListener, options?: EventListenerOptions | boolean): void
+}
+
+/** The parts of `localStorage` the web adapter uses (the same shape as the Ruken SDK's `StorageLike`). */
+export interface StorageLike {
+  getItem(key: string): string | null
+  setItem(key: string, value: string): void
+  removeItem(key: string): void
+  key(index: number): string | null
+  readonly length: number
 }
 
 /** The parts of the browser page the web adapter reads. The real `window` is one; tests pass a fake. */
@@ -309,10 +316,9 @@ export function makeWebHosting(
         get: (key) => withStorage('saves.get', (local) => local.getItem(prefix + key)),
         set: (key, value) => withStorage('saves.set', (local) => local.setItem(prefix + key, value)),
         remove: (key) => withStorage('saves.remove', (local) => local.removeItem(prefix + key)),
-        // Writes reach localStorage synchronously, so there is nothing left to hand over. Ruken has no
-        // `persisted` value for device storage yet (PUB spec §9 request 3), so this answers as the SDK's
-        // standalone session does.
-        flush: withStorage('saves.flush', () => ({ persisted: 'host-outbox' as const })),
+        // Writes reach localStorage synchronously, so there is nothing left to hand over: the saves are on this
+        // device (DIST-D3).
+        flush: withStorage('saves.flush', () => ({ persisted: 'device' as const })),
         // Only this game's keys, without the prefix (the origin also holds other games' and the page's own),
         // in code-unit order so a slot list reads the same on every engine (M5 spec §4.1).
         keys: withStorage('saves.keys', (local) => {
@@ -383,21 +389,17 @@ export function makeWebHosting(
 }
 
 /**
- * The web adapter over the real page, with the same signature as the Ruken adapter's `makeHosting`, so
- * `@mcthaydt/automata-host/target` can swap one for the other. `seams.env` is the Ruken SDK's test seam and
- * means nothing here.
+ * The web adapter over the real page. It takes the Ruken adapter's arguments, so `@mcthaydt/automata-host/target`
+ * can swap one for the other; the second is the Ruken SDK's test seam and means nothing here.
  */
 export function makeHosting(
   options: HostingOptions,
-  _seams: HostingSeams = {},
+  _seams?: unknown,
 ): Effect.Effect<Hosting, HostError, Scope.Scope> {
   return makeWebHosting(options, window, buildTarget())
 }
 
 /** The single `Hosting` layer for a web build, as `HostingLive` is for a Ruken build. */
-export function HostingLive(
-  options: HostingOptions,
-  seams: HostingSeams = {},
-): Layer.Layer<Hosting, HostError> {
+export function HostingLive(options: HostingOptions, seams?: unknown): Layer.Layer<Hosting, HostError> {
   return Layer.scoped(Hosting, makeHosting(options, seams))
 }

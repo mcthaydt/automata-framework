@@ -204,21 +204,57 @@
 
 ### `import { … } from '@mcthaydt/automata-host'`
 
-- `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts them.
-- `ErrorCode` (type): Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError` carries them.
+- `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans.
+- `AudioChange` (interface): The host's audio state: focus (an ad or overlay may duck or mute the game), the master volume, and the gain.
+- `AudioChangeSchema` (const): Checks an audio change.
+- `CAPABILITIES` (const): What a game may ask its host for (DIST spec §4.1).
+- `Capability` (type): One capability a game may ask for.
+- `CapabilitySchema` (const): Checks a capability name.
+- `DisplayMetricsPayload` (interface): The game's display: insets the game must keep clear, the area the host reserves for its own controls, and the UI scale hint (1.333 on a TV: enlarge text and targets, never CSS zoom).
+- `DisplayMetricsPayloadSchema` (const): Checks display metrics.
+- `EntitlementsPayload` (interface): What the player owns: whether ads show, permanent items and subscriptions, and whether this is a dev build.
+- `EntitlementsPayloadSchema` (const): Checks entitlements.
+- `ERROR_CODES` (const): Why a host call failed (DIST spec §4.1).
+- `ErrorCode` (type): One error code.
+- `ErrorCodeSchema` (const): Checks an error code.
 - `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
-- `HOST_EXIT_CAP` (const): How long the game may hold the host's close (FloorFifty `ruken/exit.ts`, Ruken P6 §4 "1 s cap").
+- `FullscreenRes` (interface): The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
+- `FullscreenResSchema` (const): Checks a fullscreen answer.
+- `HOST_EXIT_CAP` (const): How long the game may hold the host's close (Ruken P6 §4 "1 s cap").
 - `HostError` (class): Any failure after the handshake.
 - `HostHandshakeFailed` (class): The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session.
 - `Hosting` (interface): Everything a game may ask of, or hear from, its host: the `Hosting` contract of the M1 shared contracts spec §1, implemented by the host lane.
 - `HostingLeaderboards` (interface): The host's leaderboards (Ruken's `LeaderboardsApi`, PRODUCT spec §2 F1).
-- `HostingLive(options, seams?)`: The single `Hosting` layer for games (shared contracts §1.1).
 - `HostingOptions` (interface): What the game asks of its host.
 - `HostingSaves` (interface): The player's saves (shared contracts §1.1).
 - `HostingSeams` (interface): Test seams.
-- `makeHosting(options, seams?)`: Builds `Hosting` over `Ruken.init`.
+- `InputMode` (type): How the player is playing right now.
+- `InputModePayload` (interface): The current input mode, and the gamepad when one is in use.
+- `InputModePayloadSchema` (const): Checks an input mode change.
+- `LeaderboardEntry` (interface): One row of a board.
+- `LeaderboardGetRes` (interface): The rows of a board.
+- `LeaderboardGetResSchema` (const): Checks a board's rows.
+- `LeaderboardQuery` (interface): Which entries to read from a board.
+- `LeaderboardQuerySchema` (const): Checks a board query.
+- `LeaderboardSubmitMeta` (type): Extra facts sent with a score, passed to the host as they are.
+- `LeaderboardSubmitMetaSchema` (const): Checks a score's extra facts.
+- `LeaderboardSubmitRes` (interface): The host's answer to a submitted score.
+- `LeaderboardSubmitResSchema` (const): Checks a submit answer.
+- `LifecyclePayload` (interface): Whether the game is in front, and if not, why.
+- `LifecyclePayloadSchema` (const): Checks a lifecycle change.
+- `LifecycleReason` (type): Why the game is in the background.
+- `PauseBehavior` (type): Whether the game pauses when it goes to the background; fixed for the game's whole life.
+- `PauseBehaviorSchema` (const): Checks a pause behavior.
+- `RoundOutcome` (type): How a round ended.
+- `RoundOutcomeSchema` (const): Checks a round outcome.
 - `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at b30d31b).
-- `toHostError(operation, cause)`: Turns whatever the SDK threw or rejected with into a `HostError`.
+- `SavesChangedPayload` (interface): Another device's write, or the host's conflict choice, reached this session.
+- `SavesChangedPayloadSchema` (const): Checks a saves change.
+- `SavesFlushRes` (interface): Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`, `itch` and `tauri` targets; DIST-D3).
+- `SavesFlushResSchema` (const): Checks a flush answer.
+- `SavesStatus` (type): Where the player's saves stand with the host.
+- `SavesStatusSchema` (const): Checks a saves status.
+- `SubscriptionEntitlement` (interface): One subscription the player holds.
 
 ### `import { … } from '@mcthaydt/automata-host/testing'`
 

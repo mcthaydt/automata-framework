@@ -7,21 +7,14 @@ import {
   type SavesChangedPayload,
   type SdkEnv,
 } from '@ruken/sdk'
-import { Deferred, Duration, Effect, Layer, Option, Runtime, type Scope, Stream } from 'effect'
-import { HostError, HostHandshakeFailed, toHostError } from './errors'
-import { makeExitHandlers } from './exit-handlers'
-import { Hosting, type HostingOptions } from './hosting'
-import { makeMenuHandlers } from './menu'
-import { guardRounds } from './rounds'
-import { fromListener } from './subscribable'
-
-/**
- * How long the game may hold the host's close (FloorFifty `ruken/exit.ts`,
- * Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
- * (`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always
- * answers before the host gives up on it.
- */
-export const HOST_EXIT_CAP: Duration.Duration = Duration.seconds(1)
+import { Deferred, Effect, Layer, Option, Runtime, type Scope, Stream } from 'effect'
+import { HostError, HostHandshakeFailed } from '../contract/errors'
+import { HOST_EXIT_CAP, Hosting, type HostingOptions } from '../contract/hosting'
+import { makeExitHandlers } from '../exit-handlers'
+import { makeMenuHandlers } from '../menu'
+import { guardRounds } from '../rounds'
+import { fromListener } from '../subscribable'
+import { toHostError } from './errors-ruken'
 
 /** Test seams. Games pass nothing; `HostingTest` passes the fake host's in-memory window pair. */
 export interface HostingSeams {

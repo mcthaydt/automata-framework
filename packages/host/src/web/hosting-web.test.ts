@@ -1,4 +1,3 @@
-import { settle } from '@ruken/sdk-host/testing'
 import {
   Effect,
   Either,
@@ -14,11 +13,11 @@ import {
   TestContext,
 } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Hosting, type HostingOptions } from './hosting'
+import { Hosting, type HostingOptions } from '../contract/hosting'
+import { runScoped } from '../testing'
+import { type FakeWebPage, type FakeWebPageOptions, fakeWebPage } from '../testing/fake-web-page'
+import { describeHostingContract } from '../testing/hosting-contract'
 import { buildTarget, makeWebHosting, WEB_STORAGE_PROBE_KEY, type WebTarget } from './hosting-web'
-import { HostingTest, runScoped } from './testing'
-import { type FakeWebPage, type FakeWebPageOptions, fakeWebPage } from './testing/fake-web-page'
-import { describeHostingContract } from './testing/hosting-contract'
 
 const OPTIONS: HostingOptions = { gameId: 'blank-game', wants: ['saves'], pauseBehavior: 'pause' }
 
@@ -33,12 +32,8 @@ const delivered: Effect.Effect<void> = Effect.promise(
   () => new Promise<void>((resolve) => setTimeout(resolve, 0)),
 )
 
-// PUB-a: the same contract cases on both adapters.
-describeHostingContract(
-  'the Ruken adapter over the fake Ruken host',
-  () => HostingTest(),
-  Effect.promise(() => settle()),
-)
+// PUB-a and DIST-c: the contract cases every adapter passes (the Ruken adapter's run is in
+// `ruken/hosting-ruken.contract.test.ts`).
 describeHostingContract('the web adapter over a page', () => webHosting().layer, delivered)
 
 /** Runs `program` against the web adapter over a fresh fake page. */
@@ -301,6 +296,14 @@ describe('the web adapter: intended differences from the Ruken adapter', () => {
           expect(yield* hosting.saves.get('progress')).toBe('small')
         }),
       { quotaBytes: 100 },
+    ))
+
+  it("flush answers 'device': the saves are in this browser's storage, not a host's outbox (DIST-D3)", () =>
+    onWebPage((hosting) =>
+      Effect.gen(function* () {
+        yield* hosting.saves.set('progress', 'level-2')
+        expect(yield* hosting.saves.flush).toEqual({ persisted: 'device' })
+      }),
     ))
 
   it('no handshake wait: Hosting is built and ready without the TestClock moving (Ruken in a frame: up to 10 s)', async () => {

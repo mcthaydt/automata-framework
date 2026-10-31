@@ -1,8 +1,8 @@
 import { settle } from '@ruken/sdk-host/testing'
 import { Effect, Fiber } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Hosting } from './hosting'
-import { HostingTest, manualClock, runScoped } from './testing'
+import { Hosting } from '../contract/hosting'
+import { HostingTest, manualClock, runScoped } from '../testing'
 
 /** The address a phone test serves Ruken from (FloorFifty tests/client/ruken/test-host-origin.test.ts). */
 const TEST_HOST = 'https://ruken-host.e2e.test'

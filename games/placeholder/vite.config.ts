@@ -1,7 +1,7 @@
 import { checkManifest, rukenToml } from '@mcthaydt/automata-ship'
 import { compileHeaders } from '@ruken/manifest'
 import { Effect } from 'effect'
-import { defineConfig } from 'vite'
+import { defaultClientConditions, defineConfig } from 'vite'
 import config from './ship.config.ts'
 
 // `vite preview` serves the build with the headers Ruken would serve it with (compileHeaders on this game's
@@ -15,6 +15,8 @@ function previewHeaders(): Record<string, string> {
 }
 
 export default defineConfig({
+  // A Ruken build: the Ruken host adapter (DIST spec §5.3), in front of Vite's defaults, which `conditions` replaces.
+  resolve: { conditions: ['automata-ruken', ...defaultClientConditions] },
   // Relative URLs: inside Ruken the game is served from /b/<buildId>/ and on the dev host from
   // /builds/<buildId>/, never from the origin's root (ship prepare refuses root-absolute paths).
   base: './',

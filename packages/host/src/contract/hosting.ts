@@ -1,3 +1,6 @@
+import type { Option, Scope, Stream, Subscribable } from 'effect'
+import { Context, Duration, type Effect } from 'effect'
+import type { HostError, HostHandshakeFailed } from './errors'
 import type {
   AudioChange,
   Capability,
@@ -6,39 +9,39 @@ import type {
   FullscreenRes,
   InputModePayload,
   LeaderboardGetRes,
+  LeaderboardQuery,
+  LeaderboardSubmitMeta,
   LeaderboardSubmitRes,
-  LeaderboardsApi,
   LifecyclePayload,
   PauseBehavior,
   RoundOutcome,
   SavesChangedPayload,
   SavesFlushRes,
   SavesStatus,
-} from '@ruken/sdk'
-import type { Effect, Option, Scope, Stream, Subscribable } from 'effect'
-import { Context } from 'effect'
-import type { HostError, HostHandshakeFailed } from './errors'
+} from './index'
 
 /** What the game asks of its host. In M1 the game passes these by hand; later they come from content. */
 export interface HostingOptions {
-  /** `[game].id` in ruken.toml; the host checks it. */
+  /** The game config's `game.id`; a host that knows the game (Ruken) checks it. */
   readonly gameId: string
   /** The capabilities the game asks the host for (`wants` in the hello). */
   readonly wants: readonly Capability[]
   /** Fixed for the game's whole life (Ruken's answer 7 in docs/spikes/s6-ruken-stub.md). */
   readonly pauseBehavior: PauseBehavior
   /**
-   * `[analytics].custom_events` in ruken.toml. When given, `track` drops every
+   * The game config's `analytics.custom_events`. When given, `track` drops every
    * other name before it reaches the SDK (FloorFifty `ruken/host.ts` `track`).
    */
   readonly disclosedEvents?: readonly string[]
-  /** Test builds only: exact https origins also trusted to send the welcome. Passed to `Ruken.init` as is. */
+  /**
+   * Ruken adapter, test builds only: exact https origins also trusted to send the welcome. Passed to `Ruken.init`
+   * as is; other adapters ignore it.
+   */
   readonly testHostOrigins?: readonly string[]
 }
 
 /**
- * The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts
- * them.
+ * The properties of one analytics event: flat names to strings, numbers or booleans.
  */
 export type AnalyticsProps = Record<string, string | number | boolean>
 
@@ -67,17 +70,14 @@ export interface HostingLeaderboards {
   submit(
     board: string,
     score: number,
-    meta?: Parameters<LeaderboardsApi['submit']>[2],
+    meta?: LeaderboardSubmitMeta,
   ): Effect.Effect<LeaderboardSubmitRes, HostError>
   /**
    * Reads `board` with the SDK's options (`scope` `top` or `around-me`, `limit`). Ruken's host now answers with the
    * player's own entry only, or none, whatever the options (the SDK marks `get` deprecated at RukenApp d0fa2fe, since
    * Ruken added achievements); the call and its answer's shape are unchanged.
    */
-  get(
-    board: string,
-    query?: Parameters<LeaderboardsApi['get']>[1],
-  ): Effect.Effect<LeaderboardGetRes, HostError>
+  get(board: string, query?: LeaderboardQuery): Effect.Effect<LeaderboardGetRes, HostError>
 }
 
 /**
@@ -87,10 +87,14 @@ export interface HostingLeaderboards {
 export interface Hosting {
   /**
    * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
-   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3).
+   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3); 'tauri' for the
+   * desktop adapter (DIST spec §4.2).
    */
-  readonly kind: 'ruken' | 'standalone' | 'web'
-  /** The host's name for UI, such as "Back to …": 'Ruken', 'itch.io' or 'this page' (PUB spec §3). */
+  readonly kind: 'ruken' | 'standalone' | 'web' | 'tauri'
+  /**
+   * The host's name for UI: 'Ruken', 'itch.io', 'this page' (PUB spec §3), or the game's title on the desktop (DIST
+   * spec §4.2).
+   */
   readonly hostName: string
   /** Some when the page is inside a frame but the SDK fell back to standalone (shared contracts §1.2). */
   readonly handshake: { readonly fellBack: Option.Option<HostHandshakeFailed> }
@@ -110,7 +114,7 @@ export interface Hosting {
 
   readonly saves: HostingSaves
   readonly leaderboards: HostingLeaderboards
-  /** Ruken's `FullscreenRes`: `support` says what the device allows (for example `ios-home-screen`). */
+  /** `support` says what the device allows (for example `ios-home-screen`). */
   setFullscreen(on: boolean): Effect.Effect<FullscreenRes, HostError>
   readonly round: {
     /** A round began. A second start before an end is dropped. */
@@ -144,6 +148,13 @@ export interface Hosting {
    */
   onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>
 }
+
+/**
+ * How long the game may hold the host's close (Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
+ * (`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always answers before the host gives up on it;
+ * every adapter cuts the `onExiting` handlers and the flush off at this cap.
+ */
+export const HOST_EXIT_CAP: Duration.Duration = Duration.seconds(1)
 
 /** The `Hosting` service tag. */
 export const Hosting: Context.Tag<Hosting, Hosting> = Context.GenericTag<Hosting>(

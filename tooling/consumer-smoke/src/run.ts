@@ -247,7 +247,7 @@ function steps(project: string): Step[] {
     ],
     [
       // PUB spec §3: an itch.io or web build resolves `@mcthaydt/automata-host/target` to the web adapter, so the
-      // published `dist` must let it drop every byte of the Ruken SDK that `.` bundles.
+      // published `dist` must let it drop every byte of the Ruken SDK.
       'bundle: vite build with the automata-web condition, no Ruken SDK',
       () => {
         sh(join(project, 'web-target'), bin('vite'), [
@@ -271,7 +271,7 @@ function steps(project: string): Step[] {
     ],
     [
       // DX.2a: runtime, render-pixi, game and the umbrella, installed from their packs, make one game whose
-      // Ruken build carries the SDK once (host's `.` and `./target` share it).
+      // Ruken build (the `automata-ruken` condition) carries the SDK once.
       'game: vite build of a minimal @mcthaydt/automata game for Ruken, one Ruken SDK',
       () => {
         const game = join(project, 'game')

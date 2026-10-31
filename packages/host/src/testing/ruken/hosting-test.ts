@@ -1,10 +1,10 @@
 import type { SdkEnv } from '@ruken/sdk'
 import { createFakeHost, type FakeHost, type FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Context, Effect, Layer } from 'effect'
-import type { HostError } from '../errors'
-import { Hosting, type HostingOptions } from '../hosting'
-import { makeHosting } from '../hosting-live'
-import { realClock } from './clocks'
+import type { HostError } from '../../contract/errors'
+import { Hosting, type HostingOptions } from '../../contract/hosting'
+import { makeHosting } from '../../ruken/hosting-ruken'
+import { realClock } from '../clocks'
 
 /** The fake host behind `HostingTest`, for tests that drive the host side. */
 export interface FakeHostHandle {

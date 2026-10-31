@@ -1,11 +1,12 @@
 // The `Hosting` contract cases every adapter passes (PUB spec §7 and §12 PUB-a; shared contracts §1.1, §1.5).
-// `hosting-web.test.ts` runs them against the Ruken adapter (over the fake Ruken host) and the web adapter (over
-// a fake page). A case that only one adapter can pass is not here: it lives beside that adapter, and every
-// intended difference has its own test named after it. Internal to the host package's tests.
+// `ruken/hosting-ruken.contract.test.ts` runs them against the Ruken adapter (over the fake Ruken host) and
+// `web/hosting-web.test.ts` against the web adapter (over a fake page). A case that only one adapter can pass is
+// not here: it lives beside that adapter, and every intended difference has its own test named after it. Internal
+// to the host package's tests.
 import { Chunk, Context, Effect, Either, Exit, Fiber, Layer, Option, Scope, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
-import type { HostError } from '../errors'
-import { Hosting } from '../hosting'
+import type { HostError } from '../contract/errors'
+import { Hosting } from '../contract/hosting'
 import { runScoped } from './run'
 
 /** An adapter under test: a fresh layer per case, with `saves` granted. */
@@ -39,7 +40,7 @@ export function describeHostingContract(name: string, layer: HostingLayer, settl
     it('names its kind and its host for the UI', () =>
       withHosting((hosting) =>
         Effect.sync(() => {
-          expect(['ruken', 'standalone', 'web']).toContain(hosting.kind)
+          expect(['ruken', 'standalone', 'web', 'tauri']).toContain(hosting.kind)
           expect(hosting.hostName).toMatch(/\S/)
         }),
       ))
@@ -74,7 +75,7 @@ export function describeHostingContract(name: string, layer: HostingLayer, settl
           const flushing = yield* Effect.fork(hosting.saves.flush)
           yield* settled
           expect(yield* Fiber.join(flushing)).toMatchObject({
-            persisted: expect.stringMatching(/^(host-outbox|server)$/),
+            persisted: expect.stringMatching(/^(host-outbox|server|device)$/),
           })
         }),
       ))

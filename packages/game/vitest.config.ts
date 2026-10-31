@@ -14,8 +14,10 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-        // Svelte's client build, so `mount` works in jsdom (the default resolves its server entry).
-        resolve: { conditions: ['browser'] },
+        // Svelte's client build, so `mount` works in jsdom (the default resolves its server entry). Boot runs over
+        // Ruken's fake host here, so `@mcthaydt/automata-host/target` must be the Ruken adapter (DIST spec §5.3)
+        // until these tests move to `FakeHosting` (DIST.4).
+        resolve: { conditions: ['automata-ruken', 'browser'] },
         test: {
           name: 'unit',
           environment: 'jsdom',

@@ -16,8 +16,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./target": {
-      "automata-web": "./src/target-web.ts",
-      "default": "./src/target-ruken.ts"
+      "automata-ruken": "./src/ruken/target.ts",
+      "automata-web": "./src/web/target.ts",
+      "default": "./src/web/target.ts"
     },
     "./testing": "./src/testing/index.ts"
   },
@@ -29,13 +30,17 @@
         "import": "./dist/index.js"
       },
       "./target": {
+        "automata-ruken": {
+          "types": "./dist/target-ruken.d.ts",
+          "import": "./dist/target-ruken.js"
+        },
         "automata-web": {
           "types": "./dist/target-web.d.ts",
           "import": "./dist/target-web.js"
         },
         "default": {
-          "types": "./dist/target.d.ts",
-          "import": "./dist/target.js"
+          "types": "./dist/target-web.d.ts",
+          "import": "./dist/target-web.js"
         }
       },
       "./testing": {

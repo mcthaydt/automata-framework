@@ -5,7 +5,7 @@ import { checkManifest, rukenToml } from '@mcthaydt/automata-ship'
 import { compileHeaders } from '@ruken/manifest'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { Effect } from 'effect'
-import { defineConfig } from 'vite'
+import { defaultClientConditions, defineConfig } from 'vite'
 import config from './ship.config.ts'
 
 // `vite preview` serves the build with the headers Ruken would serve it with (compileHeaders on this game's
@@ -28,6 +28,8 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
 }
 
 export default defineConfig({
+  // A Ruken build: the Ruken host adapter (DIST spec §5.3), in front of Vite's defaults, which `conditions` replaces.
+  resolve: { conditions: ['automata-ruken', ...defaultClientConditions] },
   // Svelte compiles the ui panels the runtime and the default screens show; the content plugin serves the content.
   plugins: [svelte(), contentPlugin()],
   // Relative URLs: inside Ruken the game is served from /b/<buildId>/ (ship prepare refuses root-absolute paths).

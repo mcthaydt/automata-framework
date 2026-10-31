@@ -3384,19 +3384,145 @@ function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is Defined
 
 #### `AnalyticsProps` (type)
 
-The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts
-them.
+The properties of one analytics event: flat names to strings, numbers or booleans.
 
 ```ts
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
-#### `ErrorCode` (type)
+#### `AudioChange` (interface)
 
-Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError` carries them.
+The host's audio state: focus (an ad or overlay may duck or mute the game), the master volume, and the gain.
 
 ```ts
-type ErrorCode = RukenError["code"];
+interface AudioChange {
+  focus: {
+    state: "full" | "ducked" | "muted";
+    reason: "ad" | "hidden" | "host-overlay" | "system";
+  };
+  master: {
+    volume: number;
+    muted: boolean;
+  };
+  /** 0..1: multiply the game's own mix by this. */
+  gain: number;
+}
+```
+
+#### `AudioChangeSchema` (const)
+
+Checks an audio change.
+
+```ts
+const AudioChangeSchema: z.ZodType<AudioChange>;
+```
+
+#### `CAPABILITIES` (const)
+
+What a game may ask its host for (DIST spec §4.1). The names are Ruken's (`@ruken/protocol` `CAPABILITIES`),
+kept where they fit; `ruken/conformance.test.ts` holds them to the vendored SDK. Which target grants which is in
+the DIST spec §4.3.
+
+```ts
+const CAPABILITIES: readonly ["lifecycle", "input", "display", "audio", "exit", "menu", "saves", "leaderboards", "entitlements", "store", "ads", "telemetry", "analytics.custom", "links"];
+```
+
+#### `Capability` (type)
+
+One capability a game may ask for.
+
+```ts
+type Capability = (typeof CAPABILITIES)[number];
+```
+
+#### `CapabilitySchema` (const)
+
+Checks a capability name.
+
+```ts
+const CapabilitySchema: z.ZodType<Capability>;
+```
+
+#### `DisplayMetricsPayload` (interface)
+
+The game's display: insets the game must keep clear, the area the host reserves for its own controls, and the
+UI scale hint (1.333 on a TV: enlarge text and targets, never CSS zoom).
+
+```ts
+interface DisplayMetricsPayload {
+  safeArea: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  hostReserved: {
+    edge: "right" | "left";
+    rect: {
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    };
+  };
+  orientation: "portrait" | "landscape";
+  fullscreen: boolean;
+  scale: 1 | 1.333;
+}
+```
+
+#### `DisplayMetricsPayloadSchema` (const)
+
+Checks display metrics.
+
+```ts
+const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
+```
+
+#### `EntitlementsPayload` (interface)
+
+What the player owns: whether ads show, permanent items and subscriptions, and whether this is a dev build.
+
+```ts
+interface EntitlementsPayload {
+  ads: boolean;
+  items: string[];
+  subscriptions: SubscriptionEntitlement[];
+  devBuild: boolean;
+}
+```
+
+#### `EntitlementsPayloadSchema` (const)
+
+Checks entitlements.
+
+```ts
+const EntitlementsPayloadSchema: z.ZodType<EntitlementsPayload>;
+```
+
+#### `ERROR_CODES` (const)
+
+Why a host call failed (DIST spec §4.1). The codes are Ruken's (`@ruken/protocol` `ERROR_CODES`), kept where they
+fit; `ruken/conformance.test.ts` holds them to the vendored SDK.
+
+```ts
+const ERROR_CODES: readonly ["UNSUPPORTED", "NOT_READY", "TIMEOUT", "RATE_LIMITED", "QUOTA_EXCEEDED", "INVALID_PAYLOAD", "DENIED", "OFFLINE", "CANCELLED", "INTERNAL"];
+```
+
+#### `ErrorCode` (type)
+
+One error code.
+
+```ts
+type ErrorCode = (typeof ERROR_CODES)[number];
+```
+
+#### `ErrorCodeSchema` (const)
+
+Checks an error code.
+
+```ts
+const ErrorCodeSchema: z.ZodType<ErrorCode>;
 ```
 
 #### `findRukenSdkMarkers` (function)
@@ -3407,12 +3533,30 @@ The markers found in `code` (built JavaScript), each named once; empty means no 
 function findRukenSdkMarkers(code: string): string[];
 ```
 
+#### `FullscreenRes` (interface)
+
+The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
+
+```ts
+interface FullscreenRes {
+  fullscreen: boolean;
+  support: "element" | "ios-home-screen" | "none";
+}
+```
+
+#### `FullscreenResSchema` (const)
+
+Checks a fullscreen answer.
+
+```ts
+const FullscreenResSchema: z.ZodType<FullscreenRes>;
+```
+
 #### `HOST_EXIT_CAP` (const)
 
-How long the game may hold the host's close (FloorFifty `ruken/exit.ts`,
-Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
-(`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always
-answers before the host gives up on it.
+How long the game may hold the host's close (Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
+(`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always answers before the host gives up on it;
+every adapter cuts the `onExiting` handlers and the flush off at this cap.
 
 ```ts
 const HOST_EXIT_CAP: Duration.Duration;
@@ -3446,10 +3590,14 @@ The `Hosting` service tag.
 interface Hosting {
   /**
    * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
-   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3).
+   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3); 'tauri' for the
+   * desktop adapter (DIST spec §4.2).
    */
-  readonly kind: "ruken" | "standalone" | "web";
-  /** The host's name for UI, such as "Back to …": 'Ruken', 'itch.io' or 'this page' (PUB spec §3). */
+  readonly kind: "ruken" | "standalone" | "web" | "tauri";
+  /**
+   * The host's name for UI: 'Ruken', 'itch.io', 'this page' (PUB spec §3), or the game's title on the desktop (DIST
+   * spec §4.2).
+   */
   readonly hostName: string;
   /** Some when the page is inside a frame but the SDK fell back to standalone (shared contracts §1.2). */
   readonly handshake: {
@@ -3471,7 +3619,7 @@ interface Hosting {
   readonly savesStatus: Subscribable.Subscribable<SavesStatus>;
   readonly saves: HostingSaves;
   readonly leaderboards: HostingLeaderboards;
-  /** Ruken's `FullscreenRes`: `support` says what the device allows (for example `ios-home-screen`). */
+  /** `support` says what the device allows (for example `ios-home-screen`). */
   setFullscreen(on: boolean): Effect.Effect<FullscreenRes, HostError>;
   readonly round: {
     /** A round began. A second start before an end is dropped. */
@@ -3517,22 +3665,14 @@ Each call relays the SDK's answer or error as a `HostError`: without the grant a
 ```ts
 interface HostingLeaderboards {
   /** Submits `score` to `board` (a Ruken slug); `meta` is passed to the host as is. */
-  submit(board: string, score: number, meta?: Parameters<LeaderboardsApi["submit"]>[2]): Effect.Effect<LeaderboardSubmitRes, HostError>;
+  submit(board: string, score: number, meta?: LeaderboardSubmitMeta): Effect.Effect<LeaderboardSubmitRes, HostError>;
   /**
    * Reads `board` with the SDK's options (`scope` `top` or `around-me`, `limit`). Ruken's host now answers with the
    * player's own entry only, or none, whatever the options (the SDK marks `get` deprecated at RukenApp d0fa2fe, since
    * Ruken added achievements); the call and its answer's shape are unchanged.
    */
-  get(board: string, query?: Parameters<LeaderboardsApi["get"]>[1]): Effect.Effect<LeaderboardGetRes, HostError>;
+  get(board: string, query?: LeaderboardQuery): Effect.Effect<LeaderboardGetRes, HostError>;
 }
-```
-
-#### `HostingLive` (function)
-
-The single `Hosting` layer for games (shared contracts §1.1).
-
-```ts
-function HostingLive(options: HostingOptions, seams?: HostingSeams): Layer.Layer<Hosting, HostError>;
 ```
 
 #### `HostingOptions` (interface)
@@ -3541,18 +3681,21 @@ What the game asks of its host. In M1 the game passes these by hand; later they 
 
 ```ts
 interface HostingOptions {
-  /** `[game].id` in ruken.toml; the host checks it. */
+  /** The game config's `game.id`; a host that knows the game (Ruken) checks it. */
   readonly gameId: string;
   /** The capabilities the game asks the host for (`wants` in the hello). */
   readonly wants: readonly Capability[];
   /** Fixed for the game's whole life (Ruken's answer 7 in docs/spikes/s6-ruken-stub.md). */
   readonly pauseBehavior: PauseBehavior;
   /**
-   * `[analytics].custom_events` in ruken.toml. When given, `track` drops every
+   * The game config's `analytics.custom_events`. When given, `track` drops every
    * other name before it reaches the SDK (FloorFifty `ruken/host.ts` `track`).
    */
   readonly disclosedEvents?: readonly string[];
-  /** Test builds only: exact https origins also trusted to send the welcome. Passed to `Ruken.init` as is. */
+  /**
+   * Ruken adapter, test builds only: exact https origins also trusted to send the welcome. Passed to `Ruken.init`
+   * as is; other adapters ignore it.
+   */
   readonly testHostOrigins?: readonly string[];
 }
 ```
@@ -3587,18 +3730,179 @@ interface HostingSeams {
 }
 ```
 
-#### `makeHosting` (function)
+#### `InputMode` (type)
 
-Builds `Hosting` over `Ruken.init`. The SDK decides between a hosted session
-and its standalone one (shared contracts §1.1), enforces grants and limits,
-and owns the handshake's timing; AF relays what it reports.
-
-When the scope closes, in this order: Hosting marks itself closed (later
-calls fail with `HostError{code:'CANCELLED'}`), every observed stream ends,
-and then the session is disposed.
+How the player is playing right now.
 
 ```ts
-function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>;
+type InputMode = "touch" | "keyboard-mouse" | "gamepad";
+```
+
+#### `InputModePayload` (interface)
+
+The current input mode, and the gamepad when one is in use.
+
+```ts
+interface InputModePayload {
+  mode: InputMode;
+  gamepad?: {
+    layout: "xbox" | "other";
+    connected: boolean;
+  } | undefined;
+}
+```
+
+#### `InputModePayloadSchema` (const)
+
+Checks an input mode change.
+
+```ts
+const InputModePayloadSchema: z.ZodType<InputModePayload>;
+```
+
+#### `LeaderboardEntry` (interface)
+
+One row of a board.
+
+```ts
+interface LeaderboardEntry {
+  rank: number;
+  displayName: string;
+  score: number;
+  isMe: boolean;
+}
+```
+
+#### `LeaderboardGetRes` (interface)
+
+The rows of a board.
+
+```ts
+interface LeaderboardGetRes {
+  entries: LeaderboardEntry[];
+}
+```
+
+#### `LeaderboardGetResSchema` (const)
+
+Checks a board's rows.
+
+```ts
+const LeaderboardGetResSchema: z.ZodType<LeaderboardGetRes>;
+```
+
+#### `LeaderboardQuery` (interface)
+
+Which entries to read from a board.
+
+```ts
+interface LeaderboardQuery {
+  scope?: "top" | "around-me";
+  limit?: number;
+}
+```
+
+#### `LeaderboardQuerySchema` (const)
+
+Checks a board query.
+
+```ts
+const LeaderboardQuerySchema: z.ZodType<LeaderboardQuery>;
+```
+
+#### `LeaderboardSubmitMeta` (type)
+
+Extra facts sent with a score, passed to the host as they are.
+
+```ts
+type LeaderboardSubmitMeta = Record<string, string | number>;
+```
+
+#### `LeaderboardSubmitMetaSchema` (const)
+
+Checks a score's extra facts.
+
+```ts
+const LeaderboardSubmitMetaSchema: z.ZodType<LeaderboardSubmitMeta>;
+```
+
+#### `LeaderboardSubmitRes` (interface)
+
+The host's answer to a submitted score.
+
+```ts
+interface LeaderboardSubmitRes {
+  accepted: boolean;
+  personalBest: number;
+  rank?: number | undefined;
+}
+```
+
+#### `LeaderboardSubmitResSchema` (const)
+
+Checks a submit answer.
+
+```ts
+const LeaderboardSubmitResSchema: z.ZodType<LeaderboardSubmitRes>;
+```
+
+#### `LifecyclePayload` (interface)
+
+Whether the game is in front, and if not, why.
+
+```ts
+interface LifecyclePayload {
+  state: "active" | "background";
+  reasons: LifecycleReason[];
+}
+```
+
+#### `LifecyclePayloadSchema` (const)
+
+Checks a lifecycle change.
+
+```ts
+const LifecyclePayloadSchema: z.ZodType<LifecyclePayload>;
+```
+
+#### `LifecycleReason` (type)
+
+Why the game is in the background.
+
+```ts
+type LifecycleReason = "hidden" | "blurred" | "host-overlay" | "ad" | "offline-grace";
+```
+
+#### `PauseBehavior` (type)
+
+Whether the game pauses when it goes to the background; fixed for the game's whole life.
+
+```ts
+type PauseBehavior = "pause" | "continue";
+```
+
+#### `PauseBehaviorSchema` (const)
+
+Checks a pause behavior.
+
+```ts
+const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+#### `RoundOutcome` (type)
+
+How a round ended.
+
+```ts
+type RoundOutcome = "complete" | "fail" | "quit";
+```
+
+#### `RoundOutcomeSchema` (const)
+
+Checks a round outcome.
+
+```ts
+const RoundOutcomeSchema: z.ZodType<RoundOutcome>;
 ```
 
 #### `RUKEN_SDK_MARKERS` (const)
@@ -3614,17 +3918,74 @@ Re-check these after re-vendoring the SDK: `target.build.test.ts` fails if a def
 const RUKEN_SDK_MARKERS: readonly string[];
 ```
 
-#### `toHostError` (function)
+#### `SavesChangedPayload` (interface)
 
-Turns whatever the SDK threw or rejected with into a `HostError`.
-- A `RukenError` keeps its code and retryable flag.
-- A `QuotaExceededError` is what Ruken's save map throws for a save over a
-  limit (`sdk/src/save-map.ts`); it becomes `QUOTA_EXCEEDED`, which Ruken
-  marks not retryable.
-- Anything else (a closed port, a bug) becomes `INTERNAL`, which Ruken marks retryable.
+Another device's write, or the host's conflict choice, reached this session. `null` is a removed key.
 
 ```ts
-function toHostError(operation: string, cause: unknown): HostError;
+interface SavesChangedPayload {
+  key: string;
+  value: string | null;
+  revision: number;
+}
+```
+
+#### `SavesChangedPayloadSchema` (const)
+
+Checks a saves change.
+
+```ts
+const SavesChangedPayloadSchema: z.ZodType<SavesChangedPayload>;
+```
+
+#### `SavesFlushRes` (interface)
+
+Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`,
+`itch` and `tauri` targets; DIST-D3).
+
+```ts
+interface SavesFlushRes {
+  persisted: "host-outbox" | "server" | "device";
+}
+```
+
+#### `SavesFlushResSchema` (const)
+
+Checks a flush answer.
+
+```ts
+const SavesFlushResSchema: z.ZodType<SavesFlushRes>;
+```
+
+#### `SavesStatus` (type)
+
+Where the player's saves stand with the host.
+
+```ts
+type SavesStatus = "checking" | "syncing" | "saved" | "offline-queued" | "retry" | "conflict" | "recovered";
+```
+
+#### `SavesStatusSchema` (const)
+
+Checks a saves status.
+
+```ts
+const SavesStatusSchema: z.ZodType<SavesStatus>;
+```
+
+#### `SubscriptionEntitlement` (interface)
+
+One subscription the player holds. The host computes `active`.
+
+```ts
+interface SubscriptionEntitlement {
+  sku: string;
+  plan: "monthly" | "season";
+  active: boolean;
+  seasonId?: string | undefined;
+  /** ISO 8601 UTC instant. */
+  endsAt?: string | undefined;
+}
 ```
 
 ### `import { … } from '@mcthaydt/automata-host/testing'`
