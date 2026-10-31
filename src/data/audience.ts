@@ -1,3 +1,4 @@
+import { DISTRIBUTION_TARGETS } from './targets'
 export const AUDIENCE_FIT = [
   'You build with coding agents and want source files and tests you can inspect.',
   'You are making a 2D browser game and want phone-first interface foundations.',
@@ -22,6 +23,6 @@ export const FAQ_ITEMS = [
   { question: 'Does it support full 3D today?', answer: 'The current public starting point is 2D. Further rendering and full 3D work are on the roadmap. Choose based on current capability status rather than planned features.' },
   { question: 'Can I import an existing engine project?', answer: 'There is no automatic Unity, Godot, Unreal or GameMaker project converter. The migration guides map familiar concepts and recommend rebuilding one small mechanic first.' },
   { question: 'How does it help a game grow beyond a prototype?', answer: 'Explicit state ownership, separate systems and packages, and repeatable tests help keep changes bounded as the project grows. They do not promise a particular player count or performance level; measure your own game.' },
-  { question: 'What is Ruken?', answer: 'Ruken is the reference gaming host integrated by the framework. The starter can also run standalone in a browser; see hosting guidance when adding platform services.' },
+  { question: 'Where can a game be published?', answer: DISTRIBUTION_TARGETS + ' The starter also runs standalone in a browser; see hosting guidance when adding platform services.' },
   { question: 'How do I get my game into the showcase?', answer: 'Use the community showcase submission link. Include a public playable URL, your creator name, a short description, the Automata version and screenshots you have permission to share. Submissions are reviewed before publication.' },
 ]

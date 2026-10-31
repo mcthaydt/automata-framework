@@ -65,20 +65,16 @@ These are not TODOs to make software infallible. Restore specific, bounded state
 
 ## Showcase claims and links held back
 
-The real relationship is now explicit: Emberwick is the bundled Automata starter; FloorFifty and The Last Light are reference projects that informed the framework. Reference status does not prove migration to the current Automata packages.
+Emberwick is the bundled Automata starter. Since STANDALONE.1 (Owner, 2026-10-31: "automata framework is standalone"), the site shows no reference project, so claims about the projects the framework was extracted from are retired, not held back. Where code came from is the framework's own provenance record (STANDALONE.2), not site copy.
 
 | Removed detail | Why / condition for restoring |
 | --- | --- |
-| “Made with Automata” applied indiscriminately to all three projects | Verify an actual current dependency/integration before labelling a project as an Automata consumer. |
-| FloorFifty described as “built on Ruken and Automata sim principles,” with Koota ECS / Flow State / Replay Codec tags | Establish the actual project's implementation and its relationship to the current framework. Architectural influence and package adoption are different claims. |
-| FloorFifty “deployed on Ruken” | Verify the live product and supported access route before presenting a deployment claim. |
+| “Made with Automata” applied indiscriminately to the starter and two reference projects | Verify an actual current dependency/integration before labelling a project as an Automata consumer. |
+| Every claim, tag, badge and link about the reference projects | Retired (STANDALONE.1): the site names no reference project. |
 | “Proven test suite of 13 Ruken integration contract tests” | Link current test evidence and its revision; a fixed total is not ongoing proof. |
 | “Full .replay v1 recording, playback, and bisection” | Verify the actual consumer journey and versioned replay contract before advertising the full suite. |
-| FloorFifty UI “tested across 780×270 viewports” | Attach current viewport/device acceptance and identify whether it is DOM, integration or actual-device evidence. |
 | Emberwick Web/Ruken App/Desktop platform badges and “Rapier 2D” / “Deterministic Replays” tags | Verify each capability for that exact starter, not another physics demo or the wider framework. |
 | Emberwick's measured high-refresh behavior, custom-vignette and strict Ruken CSP claims | Match these claims to the starter's current source, built bundle and runtime acceptance. The room/lifecycle itself remains described on the site. |
-| The Last Light platform and technical feature badges: PixiJS 3D, normal maps, dynamic lighting, GLB props/budget validators, fixed-camera sector navigation and room boundaries | These may describe the reference project. They were not verified as current delivered Automata capabilities; verify the project revision and label the relationship before restoring them. |
-| GitHub links used as public project destinations for `SNEKPRTY/FloorFifty` and `mcthaydt/PixiJS3D_Experiment_001` | Public accessibility and the intended visitor destination were not established. A repository URL is not a playable public game link. Confirm access and label links accurately. |
 
 ## API examples that were incorrect as published
 

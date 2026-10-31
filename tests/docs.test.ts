@@ -10,7 +10,7 @@ describe('Docs Page & Loader', () => {
     const titles = sections.map((s) => s.title)
     expect(titles).toContain('Overview & Vision')
     expect(titles).toContain('ECS Simulation & Determinism')
-    expect(titles).toContain('Zero-Eval CSP & Ruken Security')
+    expect(titles).toContain('Zero-Eval CSP & Host Security')
   })
 
   it('renders documentation layout in UI', () => {

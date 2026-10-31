@@ -103,7 +103,7 @@ async function freePort(): Promise<number> {
 const SERVE_TIMEOUT_MS = 15_000
 
 /** Serves the build with serve-static.ts on a free port; resolves with its origin and a stop function. */
-async function serveLocally(buildDir: string): Promise<{ origin: string; stop: () => void }> {
+export async function serveLocally(buildDir: string): Promise<{ origin: string; stop: () => void }> {
   const port = await freePort()
   const script = fileURLToPath(new URL('./serve-static.ts', import.meta.url))
   const server = spawn(process.execPath, ['--import', 'tsx', script, buildDir, String(port)], { stdio: ['ignore', 'pipe', 'inherit'] })

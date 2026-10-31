@@ -5,6 +5,7 @@ import { MIGRATION_GUIDES } from '../src/data/migrations'
 import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from '../src/data/audience'
 import { SKILL_PREFLIGHT, PIXIJS_INSTALL, SKILL_SOURCES } from '../src/data/agent-setup'
 import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
+import { DISTRIBUTION_TARGETS } from '../src/data/targets'
 import { AI_CONTEXT_FILES, AI_PROJECT_PROMPT, AI_RULES, AI_TASKS, AI_REVIEW_CHECKS, AI_VERIFY_COMMANDS } from '../src/data/ai-guidance'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -56,7 +57,7 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "Overview & Vision",
     "category": "Getting Started",
     "description": "AI-assisted game development with code and content you can own.",
-    "content": "# Overview & Vision\n\nAutomata is a TypeScript game framework for modern web browsers and Ruken, the reference gaming host.\n\nAutomata is designed for developers using coding agents: agents write code and tests; people direct the game and author its content. Start with a working example, make a bounded change, and review the result.\n\n## License\n\n> [!NOTE]\n> Framework code is MIT licensed. Third-party dependencies and example artwork retain their own stated terms. See the repository license and asset provenance before redistributing assets.\n\n## Ownership\n\nOnly simulation systems change gameplay state during a run. Input sends commands. PixiJS reads render deltas. Effect manages resources and side effects outside the simulation.\n\n## Current starting point\n\nExplore the 2D starter and focused examples before adding your own systems. The Last Light and FloorFifty are reference projects that informed the architecture.\n\n## Packages\n\n| Package | Responsibility |\n|---|---|\n| @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |\n| @mcthaydt/automata-runtime | Boot, flow and scoped runtime |\n| @mcthaydt/automata-render-pixi | PixiJS presentation |\n| @mcthaydt/automata-ui | Responsive geometry and UI |\n| @mcthaydt/automata-host | Hosting sessions |\n| @mcthaydt/automata-content | Content validation and compilation |"
+    "content": "# Overview & Vision\n\nAutomata is a TypeScript game framework for the web. " + DISTRIBUTION_TARGETS + "\n\nAutomata is designed for developers using coding agents: agents write code and tests; people direct the game and author its content. Start with a working example, make a bounded change, and review the result.\n\n## License\n\n> [!NOTE]\n> Framework code is MIT licensed. Third-party dependencies and example artwork retain their own stated terms. See the repository license and asset provenance before redistributing assets.\n\n## Ownership\n\nOnly simulation systems change gameplay state during a run. Input sends commands. PixiJS reads render deltas. Effect manages resources and side effects outside the simulation.\n\n## Current starting point\n\nExplore the 2D starter and focused examples before adding your own systems.\n\n## Packages\n\n| Package | Responsibility |\n|---|---|\n| @mcthaydt/automata-sim | Simulation, definitions, snapshots and RNG |\n| @mcthaydt/automata-runtime | Boot, flow and scoped runtime |\n| @mcthaydt/automata-render-pixi | PixiJS presentation |\n| @mcthaydt/automata-ui | Responsive geometry and UI |\n| @mcthaydt/automata-host | Hosting sessions |\n| @mcthaydt/automata-content | Content validation and compilation |"
   },
   {
     "id": "quick-start",
@@ -93,10 +94,10 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
   {
     "id": "security-csp",
     "slug": "security-csp",
-    "title": "Zero-Eval CSP & Ruken Security",
+    "title": "Zero-Eval CSP & Host Security",
     "category": "Core",
     "description": "Avoiding dynamic evaluation under the host policy.",
-    "content": "# Zero-Eval CSP & Ruken Security\n\n## Dynamic evaluation\n\nDo not use eval or new Function in game code. Ruken does not permit unsafe-eval. Import the renderer's no-eval entry before initializing PixiJS.\n\n## Policy scope\n\nAvoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy: a Ruken game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).\n\n## Trust boundaries\n\nKeep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake."
+    "content": "# Zero-Eval CSP & Host Security\n\n## Dynamic evaluation\n\nDo not use eval or new Function in game code. Every web build follows the no-eval rule, whatever its target. Import the renderer's no-eval entry before initializing PixiJS.\n\n## Policy scope\n\nAvoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under the headers its target serves. On Ruken, a game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).\n\n## Trust boundaries\n\nKeep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake."
   },
   {
     "id": "mobile-ui",
@@ -104,7 +105,7 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "Mobile UI Primitives",
     "category": "Core",
     "description": "Geometry, controls and accessible layout.",
-    "content": "# Mobile UI Primitives\n\n## Geometry\n\ncreateGeometryOwner tracks the space available to game UI, including host geometry and viewport changes. Use its state instead of independent measurements in every component.\n\n## Layout and controls\n\nScreenFrame, ActionBar, CornerControls and Dialog provide building blocks. Check their current Props definitions rather than guessing component inputs.\n\n## Device checks\n\nVerify touch targets, focus order, orientation changes, safe areas and keyboard occlusion on supported devices. A responsive layout test does not establish GPU performance or real-device acceptance.\n\n## Tested input journeys\n\nAt 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake Ruken host. Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size. These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open. [Read the matrix](https://github.com/mcthaydt/automata-framework/blob/" + apiIndex.commit + "/packages/testing/src/e2e/input-matrix.ts) at the framework commit this site was built from.\n"
+    "content": "# Mobile UI Primitives\n\n## Geometry\n\ncreateGeometryOwner tracks the space available to game UI, including host geometry and viewport changes. Use its state instead of independent measurements in every component.\n\n## Layout and controls\n\nScreenFrame, ActionBar, CornerControls and Dialog provide building blocks. Check their current Props definitions rather than guessing component inputs.\n\n## Device checks\n\nVerify touch targets, focus order, orientation changes, safe areas and keyboard occlusion on supported devices. A responsive layout test does not establish GPU performance or real-device acceptance.\n\n## Tested input journeys\n\nAt 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake host. Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size. These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open. [Read the matrix](https://github.com/mcthaydt/automata-framework/blob/" + apiIndex.commit + "/packages/testing/src/e2e/input-matrix.ts) at the framework commit this site was built from.\n"
   },
   {
     "id": "ai-rules",
@@ -120,7 +121,7 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "Capabilities and licensing",
     "category": "Getting Started",
     "description": "What you can use today, what is planned, and how the license applies.",
-    "content": "# Capabilities and licensing\n\n## Available foundations\n\n- Browser games with a playable 2D starter and standalone delivery.\n- Phone-first interface primitives, keyboard and touch input examples.\n- Simulation systems, seeded randomness, snapshots and replays.\n- Explicit source files and tests that people and coding agents can inspect and change.\n\n## Planned\n\nMultiplayer networking and server packages are planned. Deterministic simulation and replays are foundations for that work, not a complete multiplayer service. Full 3D support and further gameplay extensions follow the framework roadmap.\n\n## MIT framework code\n\nThe framework code uses the MIT license. You may use it in commercial games and modify it without publishing your game's source, subject to retaining the required license notice. Read the repository's LICENSE for the full terms.\n\n## Assets and extensions\n\nThe framework license does not replace third-party dependency licenses or asset-specific terms. Example art has provenance files in its project; fonts have their own licenses. Any extension sold under separate terms must state those terms explicitly.\n"
+    "content": "# Capabilities and licensing\n\n## Available foundations\n\n- Browser games with a playable 2D starter and standalone delivery.\n- Phone-first interface primitives, keyboard and touch input examples.\n- Simulation systems, seeded randomness, snapshots and replays.\n- Explicit source files and tests that people and coding agents can inspect and change.\n\n## Where a game goes\n\n" + DISTRIBUTION_TARGETS + " A game chooses its target when it is built.\n\n## Planned\n\nMultiplayer networking and server packages are planned. Deterministic simulation and replays are foundations for that work, not a complete multiplayer service. Full 3D support and further gameplay extensions follow the framework roadmap.\n\n## MIT framework code\n\nThe framework code uses the MIT license. You may use it in commercial games and modify it without publishing your game's source, subject to retaining the required license notice. Read the repository's LICENSE for the full terms.\n\n## Assets and extensions\n\nThe framework license does not replace third-party dependency licenses or asset-specific terms. Example art has provenance files in its project; fonts have their own licenses. Any extension sold under separate terms must state those terms explicitly.\n"
   }
 ]
 
@@ -167,7 +168,7 @@ export function syncDocs(outputDir = websiteDir) {
 
   const llmsIndex = `# Automata Framework
 
-> Automata is a deterministic 2D game framework built for modern web browsers and the Ruken gaming platform.
+> Automata is a deterministic 2D game framework for the web. ${DISTRIBUTION_TARGETS}
 
 ## Documentation
 ${docs.map((d) => `- [${d.title}](/docs/${d.slug}): ${d.description}`).join('\n')}
@@ -186,7 +187,7 @@ ${CHEATSHEET_MODULES.map(module => `- [${module.title}](/cheatsheet#${module.id}
   // 3. Generate static/llms-guides.txt (static/llms-full.txt and llms-api.txt are the framework's, from scripts/sync-api-index.ts)
   const llmsGuides = `# Automata Framework — Site Guides for Coding Agents
 
-> Automata is a deterministic 2D game framework for the modern web and Ruken platform.
+> Automata is a deterministic 2D game framework for the web. ${DISTRIBUTION_TARGETS}
 > Strict Core Laws: Koota ECS determinism, Effect outside sim, Zero Eval CSP, PixiJS 2D sub-tick alpha interpolation.
 
 ---

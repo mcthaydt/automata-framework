@@ -5,6 +5,7 @@
   import LazyPicture from '$lib/components/LazyPicture.svelte'
   import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from '../data/audience'
   import { MIGRATION_GUIDES } from '../data/migrations'
+  import { DISTRIBUTION_TARGETS } from '../data/targets'
   import PageMeta from '$lib/components/PageMeta.svelte'
   import { STARTER_FILE } from '../data/home-sources'
   import type { PageData } from './$types'
@@ -15,7 +16,7 @@
     { label: 'Simulation', path: 'games/emberwick/src/sim/player-move.system.ts', description: 'The movement system reads control state, applies gravity and collision rules, and writes player state inside fixed simulation ticks.' },
     { label: 'Presentation', path: 'games/emberwick/src/render/renderer.ts', description: 'The renderer draws the room, character and lighting from the current game state. Gameplay rules stay in the simulation.' },
     { label: 'Wiring', path: 'games/emberwick/src/play-room.ts', description: 'The playable room connects input, simulation and rendering. Follow onStep into sim.step and onFrame into drawing; loop.ts owns the fixed-step schedule.' },
-    { label: 'Boot', path: 'games/emberwick/src/boot.ts', description: 'Effect handles the Ruken handshake and readiness outside simulation code. The SDK also supports running this game standalone.' },
+    { label: 'Boot', path: 'games/emberwick/src/boot.ts', description: 'Effect handles the host handshake and readiness outside simulation code. The same boot runs the game standalone in a browser.' },
   ]
   const previews = [
     { slug: 'hot-reload', title: 'Content', description: 'An authored room with content updates applied while the game runs.' },
@@ -42,6 +43,7 @@
     <div><dt>You make the content</dt><dd>Shape the rooms, art, rules and narrative. Keep creative decisions with the people making the game.</dd></div>
     <div><dt>Step in at any point</dt><dd>Open the source, change a system, or ask an agent to revise one part. Explicit ownership and separate packages give a growing project structure you can work with.</dd></div>
     <div><dt>Browser and mobile foundations</dt><dd>Browser delivery, phone-first UI and keyboard and touch examples are here to build on. Deterministic state, snapshots and replays lay the groundwork for multiplayer; networking and server packages are planned.</dd></div>
+    <div><dt>Publish where your players are</dt><dd>{DISTRIBUTION_TARGETS}</dd></div>
     {#if data.enginesAgree}<div><dt>Same result in every engine</dt><dd>The same code, content, seed, starting state and commands give the same simulation hash in Node, Chromium, Firefox and WebKit, in every scenario the framework’s CI checks. <a href="/proof">See the latest evidence</a></dd></div>{/if}
   </dl>
 </section>
