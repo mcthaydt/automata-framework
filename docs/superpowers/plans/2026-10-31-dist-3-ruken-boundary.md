@@ -106,3 +106,7 @@ host-neutral copy.
   `check-changesets` 31, 0 problems; consumer smoke from packs passed; `build:examples`, `build:demos` pass; E2E
   placeholder, base-2d and demos 14/14. Parity omitted: no sim, renderer or golden change; `ui`'s change is type
   imports only.
+- DIST.3a, after review: merged #323 (with #321's declared breaks and `main`). No package imports `@ruken/*` outside a
+  `ruken/` folder after the merge. The changeset declares 3a's own breaks with a `BREAKING:` line (`ShipConfig`,
+  `defineExtension`'s `GameConfig`, `ui`'s `ErrorCode`, the vendored declarations gone); the plain `pnpm api-report`:
+  13 breaks, 0 undeclared. `pnpm check` passes; `api-index`, `agent-skills`, `check-changesets` clean.
