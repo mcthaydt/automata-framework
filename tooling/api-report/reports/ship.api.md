@@ -623,14 +623,7 @@ const SHIP_PACKAGE = "@mcthaydt/automata-ship";
 ### `ShipConfig` (interface)
 
 ```ts
-interface ShipConfig {
-    readonly game: Manifest['game'];
-    readonly runtime: Omit<Manifest['runtime'], 'allow_eval'>;
-    readonly network: Manifest['network'];
-    readonly content: Manifest['content'];
-    readonly analytics?: Manifest['analytics'];
-    readonly loading?: NonNullable<Manifest['loading']>;
-    readonly leaderboards?: Manifest['leaderboards'];
+interface ShipConfig extends GameConfig {
     readonly itch?: ItchConfig | undefined;
     readonly audience?: 'public' | 'private' | undefined;
 }

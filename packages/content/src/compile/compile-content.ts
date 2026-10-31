@@ -20,7 +20,7 @@ import {
   languagesOf,
   rukenFields,
 } from '../game/game-facts'
-import { checkWithRuken } from '../game/ruken-check'
+import { checkWithRuken } from '../game/ruken/ruken-check'
 import { type ContentData, type ContentGenerator, runGenerators } from '../generate/content-generator'
 import { contentHash } from '../hash/content-hash'
 import { type ParaglideOptions, paraglideProblems } from '../locale/compile-messages'

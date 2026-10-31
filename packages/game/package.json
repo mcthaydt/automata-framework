@@ -15,8 +15,7 @@
     "./dist/no-eval.js"
   ],
   "files": [
-    "dist",
-    "VENDORED.md"
+    "dist"
   ],
   "exports": {
     ".": {
@@ -49,9 +48,10 @@
     "test:unit": "vitest run --project unit",
     "test:parity": "vitest run --project browsers --project layout",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
-    "build": "svelte-package -i src -o dist --tsconfig tsconfig.package.json && tsdown && node build/finish-dist.ts"
+    "build": "svelte-package -i src -o dist --tsconfig tsconfig.package.json && node build/finish-dist.ts"
   },
   "dependencies": {
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-host": "workspace:*",
     "@mcthaydt/automata-render-pixi": "workspace:*",
     "@mcthaydt/automata-runtime": "workspace:*",
@@ -66,7 +66,6 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@sveltejs/package": "3.0.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",

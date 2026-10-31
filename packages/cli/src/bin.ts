@@ -6,7 +6,7 @@ import { KitSourceLive } from './add/kit-source.ts'
 import { type AddError, type AddResult, addExitCode, type RunAddOptions, runAdd } from './add/run-add.ts'
 import { parseCheckArgs } from './check/check-args.ts'
 import { type CheckReport, exitCodeFor, formatText, toJson } from './check/check-report.ts'
-import { CspProbeLive } from './check/csp-probe-live.ts'
+import { CspProbeLive } from './check/ruken/csp-probe-live.ts'
 import { type RunCheckOptions, runCheck } from './check/run-check.ts'
 import { createGame } from './create-game.ts'
 

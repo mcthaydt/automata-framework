@@ -11,7 +11,7 @@
 import { readFileSync } from 'node:fs'
 import { relative, sep } from 'node:path'
 import { parseSync } from 'oxc-parser'
-import { inputsProblems, type ShipInputBindings } from '../manifest/check-inputs.ts'
+import { inputsProblems, type ShipInputBindings } from '../targets/ruken/check-inputs.ts'
 import {
   isNode,
   isShippedSource,

@@ -38,6 +38,7 @@
     "build": "tsdown"
   },
   "dependencies": {
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-node": "workspace:*",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",

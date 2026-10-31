@@ -1701,7 +1701,7 @@ class ExtensionError extends ExtensionErrorBase {
 ### `GameConfig` (type)
 
 ```ts
-type GameConfig = Pick<Manifest, 'game' | 'runtime' | 'content'>;
+type GameConfig = Pick<FullGameConfig, 'game' | 'runtime' | 'content'>;
 ```
 
 ### `ResolvedExtensions` (interface)

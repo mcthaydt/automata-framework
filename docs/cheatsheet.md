@@ -90,20 +90,33 @@
 - `FlowGraph` (interface): The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every transition, in a fixed order.
 - `FlowTransition` (interface): One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the `transition` style (`cut` when unwritten).
 - `formatDiagnostic(d)`: `content/tuning.toml:12:1 GRAVITY outOfRange: expected -1200..-100, received -2000`
+- `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+- `GameConfig` (interface): What every target knows about a game.
+- `gameConfigSchema` (const): Checks a game's config.
 - `GameSource` (interface): What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated hours, the analytics events it may send, and the screens whose files are preloaded.
 - `GeneratorInput` (interface): Everything a generator is given: the compiled content and its hash, the sim partition, the registered schemas, the message catalog and the tuning metadata.
 - `GeneratorOutput` (interface): What a generator returns: files to write and diagnostics to report.
+- `Input` (type): One input a game can be played with.
+- `INPUTS` (const): The inputs a game can be played with.
 - `InvalidContentConfig` (class): The game's code registered something unusable (a duplicate kind, a clashing generator).
+- `LEADERBOARD_ORDERS` (const): The orders a score board sorts in.
+- `LeaderboardConfig` (interface): A score board a game declares.
 - `localized()`: Text a player reads, written in the source language.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.
 - `MessageLocation` (interface): A message's place in its file, 1-based.
+- `Orientation` (type): One orientation a game supports.
+- `ORIENTATIONS` (const): The orientations a game supports.
 - `Palette` (interface): The game's palette: a name and its colors.
 - `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
 - `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset build's outputs below `outDir`) and the built game folder.
 - `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir` and the build serves in `atlases/` and `fonts/`; without repeats.
+- `Rating` (type): One content rating.
+- `RATINGS` (const): The content ratings a game declares.
+- `Renderer` (type): One renderer a game may ask for.
+- `RENDERERS` (const): The renderers a game may ask for.
 - `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
-- `RukenFields` (type): The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
+- `RukenFields` (type): The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
 - `SimPartition` (interface): The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash, which gates snapshots and replays.
 - `sortDiagnostics(diagnostics)`: Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing the input.
 - `TunableDeclaration` (interface): A tunable a game declares in code: `int` or `float`, an inclusive range and a default.
@@ -130,6 +143,22 @@
 - `packFrames(frames)`: Packs `frames` into atlas pages.
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
 - `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
+
+### `import { … } from '@mcthaydt/automata-content/game-config'`
+
+- `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+- `GameConfig` (interface): What every target knows about a game.
+- `gameConfigSchema` (const): Checks a game's config.
+- `Input` (type): One input a game can be played with.
+- `INPUTS` (const): The inputs a game can be played with.
+- `LEADERBOARD_ORDERS` (const): The orders a score board sorts in.
+- `LeaderboardConfig` (interface): A score board a game declares.
+- `Orientation` (type): One orientation a game supports.
+- `ORIENTATIONS` (const): The orientations a game supports.
+- `Rating` (type): One content rating.
+- `RATINGS` (const): The content ratings a game declares.
+- `Renderer` (type): One renderer a game may ask for.
+- `RENDERERS` (const): The renderers a game may ask for.
 
 ### `import { … } from '@mcthaydt/automata-content/locale'`
 
@@ -542,7 +571,7 @@
 - `defineExtension(def)`: Returns its argument.
 - `ExtensionDef` (interface): One opt-in feature of a game (M1 shared contracts §2).
 - `ExtensionError` (class): A bad extension list.
-- `GameConfig` (type): The parts of Ruken's manifest an extension may read (`@ruken/manifest` `Manifest`, never copied).
+- `GameConfig` (type): The parts of the game config an extension may read (content's `GameConfig`, DIST spec §4.4).
 - `ResolvedExtensions` (interface): Everything the runtime and the build tools need from a game's extension list, in one fixed order.
 - `resolveExtensions(defs)`: Checks the list and puts it in a fixed order.
 - `RukenManifestContribution` (type): What an extension may add to ruken.toml in M1: preload files.
@@ -647,7 +676,7 @@
 - `SecretFound` (interface): A secret the bundle scan found in a built file, located without repeating the secret.
 - `SecretInBuild` (class): The build holds a key, an `.env` value or a high-entropy string (QB-b).
 - `SHIP_PACKAGE` (const): The name this package is published under.
-- `ShipConfig` (interface): What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
+- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s `GameConfig`, DIST spec §4.4) and each target's own section.
 - `ShipInputBindings` (interface): What ship reads of a game's input profile. ship is published and the profile's owner (`runtime`) is private, so this is the read-only subset ship consumes, not a copy of the contract: a profile's `bindings` is assignable to it.
 - `testRemote(input)`: Pushes the current branch, dispatches CI for it, waits and returns the run's URL and one `<result>\t<job>` line per job when it is green.
 - `TestRemoteFailed` (class): `test-remote` stopped without a green run; `reason` says why and `message` says what to do.
@@ -918,14 +947,14 @@
 - `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
 - `enterFullscreen(doc, screen?)`: Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app.
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
-- `ErrorCode` (type): Ruken's error code.
+- `ErrorCode` (type): The host contract's error code (DIST spec §4.1).
 - `ErrorPanel` (const): A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty `ui/components/ErrorPanel.svelte` at 122a220).
 - `fitColumns(shape, groups)`: The shape cut to the columns the largest group fills, at its rows.
 - `fitShape(most, box, minTile, gap)`: The most tiles of `minTile` px the box holds, never more than `most`, never below one by one.
 - `FocusNavigator` (class): Moves focus the way a d-pad would: `move` walks Tab order, `steer` walks a `[data-focus-grid]` spatially, `page` offers a page turn, and `recover` puts focus back on the first control when a screen change dropped it.
 - `FormFactor` (type): The four form factors (M1.6 spec §3.1; from FloorFifty `ui/form-factor.ts` at 122a220).
 - `fullscreenSupport(doc, nav)`: Which fullscreen, if any, this browser can give a standalone page.
-- `FullscreenSupport` (type): Ruken's answer to whether this browser can go fullscreen, and how.
+- `FullscreenSupport` (type): The host's answer to whether this browser can go fullscreen, and how.
 - `GateInputs` (type): What `landscapeGate` decides from: the form factor, whether the pointer is coarse, the browser's fullscreen support and state, and whether the page is installed as an app.
 - `Geometry` (interface): The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the usable and visible regions, what covers the page's foot, and the host's scale hint.
 - `GeometryInput` (interface): What `measureGeometry` reads: the layout viewport, the visual viewport, the safe-area insets, the host's display metrics, a hidden bar's height and the layout before a keyboard shrank it.

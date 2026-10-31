@@ -228,6 +228,54 @@ interface FlowTransition {
 function formatDiagnostic(d: Diagnostic): string;
 ```
 
+### `GAME_ID_PATTERN` (const)
+
+```ts
+const GAME_ID_PATTERN: RegExp;
+```
+
+### `GameConfig` (interface)
+
+```ts
+interface GameConfig {
+    readonly game: {
+        readonly id: string;
+        readonly title: string;
+        readonly version: string;
+        readonly entry: string;
+        readonly sdk?: string;
+    };
+    readonly runtime: {
+        readonly renderer: Renderer;
+        readonly orientation: Orientation;
+        readonly inputs: readonly Input[];
+        readonly pause_behavior: 'pause' | 'continue';
+    };
+    readonly network: {
+        readonly connect: readonly string[];
+    };
+    readonly content: {
+        readonly languages: readonly string[];
+        readonly rating: Rating;
+        readonly estimated_hours?: number;
+        readonly descriptors: readonly string[];
+    };
+    readonly analytics?: {
+        readonly custom_events: readonly string[];
+    };
+    readonly loading?: {
+        readonly preload: readonly string[];
+    };
+    readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+}
+```
+
+### `gameConfigSchema` (const)
+
+```ts
+const gameConfigSchema: z.ZodType<GameConfig>;
+```
+
 ### `GameSource` (interface)
 
 ```ts
@@ -263,10 +311,39 @@ interface GeneratorOutput {
 }
 ```
 
+### `Input` (type)
+
+```ts
+type Input = (typeof INPUTS)[number];
+```
+
+### `INPUTS` (const)
+
+```ts
+const INPUTS: readonly ["touch", "keyboard", "gamepad"];
+```
+
 ### `InvalidContentConfig` (class)
 
 ```ts
 class InvalidContentConfig extends InvalidConfigBase {
+}
+```
+
+### `LEADERBOARD_ORDERS` (const)
+
+```ts
+const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
+```
+
+### `LeaderboardConfig` (interface)
+
+```ts
+interface LeaderboardConfig {
+    readonly order: (typeof LEADERBOARD_ORDERS)[number];
+    readonly min: number;
+    readonly max: number;
+    readonly title?: string;
 }
 ```
 
@@ -296,6 +373,18 @@ interface MessageLocation {
     readonly line: number;
     readonly column: number;
 }
+```
+
+### `Orientation` (type)
+
+```ts
+type Orientation = (typeof ORIENTATIONS)[number];
+```
+
+### `ORIENTATIONS` (const)
+
+```ts
+const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
 ```
 
 ### `Palette` (interface)
@@ -331,6 +420,30 @@ interface PreloadInput {
 const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;
 ```
 
+### `Rating` (type)
+
+```ts
+type Rating = (typeof RATINGS)[number];
+```
+
+### `RATINGS` (const)
+
+```ts
+const RATINGS: readonly ["everyone", "teen", "mature"];
+```
+
+### `Renderer` (type)
+
+```ts
+type Renderer = (typeof RENDERERS)[number];
+```
+
+### `RENDERERS` (const)
+
+```ts
+const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
+```
+
 ### `renderTuningTable` (function)
 
 ```ts
@@ -340,7 +453,10 @@ function renderTuningTable(meta: TuningMeta): string;
 ### `RukenFields` (type)
 
 ```ts
-type RukenFields = Pick<Manifest, 'content' | 'analytics'>;
+type RukenFields = {
+    readonly content: GameConfig['content'];
+    readonly analytics: NonNullable<GameConfig['analytics']>;
+};
 ```
 
 ### `SimPartition` (interface)
@@ -517,6 +633,121 @@ interface Placement {
 
 ```ts
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+```
+
+## `./game-config`
+
+### `GAME_ID_PATTERN` (const)
+
+```ts
+const GAME_ID_PATTERN: RegExp;
+```
+
+### `GameConfig` (interface)
+
+```ts
+interface GameConfig {
+    readonly game: {
+        readonly id: string;
+        readonly title: string;
+        readonly version: string;
+        readonly entry: string;
+        readonly sdk?: string;
+    };
+    readonly runtime: {
+        readonly renderer: Renderer;
+        readonly orientation: Orientation;
+        readonly inputs: readonly Input[];
+        readonly pause_behavior: 'pause' | 'continue';
+    };
+    readonly network: {
+        readonly connect: readonly string[];
+    };
+    readonly content: {
+        readonly languages: readonly string[];
+        readonly rating: Rating;
+        readonly estimated_hours?: number;
+        readonly descriptors: readonly string[];
+    };
+    readonly analytics?: {
+        readonly custom_events: readonly string[];
+    };
+    readonly loading?: {
+        readonly preload: readonly string[];
+    };
+    readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+}
+```
+
+### `gameConfigSchema` (const)
+
+```ts
+const gameConfigSchema: z.ZodType<GameConfig>;
+```
+
+### `Input` (type)
+
+```ts
+type Input = (typeof INPUTS)[number];
+```
+
+### `INPUTS` (const)
+
+```ts
+const INPUTS: readonly ["touch", "keyboard", "gamepad"];
+```
+
+### `LEADERBOARD_ORDERS` (const)
+
+```ts
+const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
+```
+
+### `LeaderboardConfig` (interface)
+
+```ts
+interface LeaderboardConfig {
+    readonly order: (typeof LEADERBOARD_ORDERS)[number];
+    readonly min: number;
+    readonly max: number;
+    readonly title?: string;
+}
+```
+
+### `Orientation` (type)
+
+```ts
+type Orientation = (typeof ORIENTATIONS)[number];
+```
+
+### `ORIENTATIONS` (const)
+
+```ts
+const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
+```
+
+### `Rating` (type)
+
+```ts
+type Rating = (typeof RATINGS)[number];
+```
+
+### `RATINGS` (const)
+
+```ts
+const RATINGS: readonly ["everyone", "teen", "mature"];
+```
+
+### `Renderer` (type)
+
+```ts
+type Renderer = (typeof RENDERERS)[number];
+```
+
+### `RENDERERS` (const)
+
+```ts
+const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 ```
 
 ## `./locale`

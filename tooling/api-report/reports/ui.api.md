@@ -484,7 +484,7 @@ interface ErrorAction {
 ### `ErrorCode` (type)
 
 ```ts
-type ErrorCode = RukenError['code'];
+type ErrorCode = HostErrorCode;
 ```
 
 ### `ErrorPanel` (svelte)

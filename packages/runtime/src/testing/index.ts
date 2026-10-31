@@ -19,4 +19,4 @@ export {
 export {
   RuntimeTest,
   type RuntimeTestOptions,
-} from './runtime-test.js'
+} from './ruken/runtime-test.js'

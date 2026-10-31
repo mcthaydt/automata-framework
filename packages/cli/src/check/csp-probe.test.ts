@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { defineShipConfig } from '@mcthaydt/automata-ship'
 import { Effect } from 'effect'
 import { afterAll, describe, expect, it } from 'vitest'
-import { headersFor, serveDist } from './csp-probe-live.ts'
+import { headersFor, serveDist } from './ruken/csp-probe-live.ts'
 
 const config = defineShipConfig({
   game: { id: 'check-fixture', title: 'Check Fixture', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },

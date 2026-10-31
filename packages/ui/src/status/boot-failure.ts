@@ -6,10 +6,10 @@
  * typecheck here until it has a state.
  */
 
-import type { RukenError } from '@ruken/sdk'
+import type { ErrorCode as HostErrorCode } from '@mcthaydt/automata-host'
 
-/** Ruken's error code. The SDK exports the class, not the alias. */
-export type ErrorCode = RukenError['code']
+/** The host contract's error code (DIST spec §4.1). */
+export type ErrorCode = HostErrorCode
 
 /**
  * The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never

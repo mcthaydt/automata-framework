@@ -60,7 +60,6 @@
     "@inlang/paraglide-js": "2.25.4",
     "@inlang/plugin-message-format": "4.4.4",
     "@mcthaydt/automata-testing": "workspace:*",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

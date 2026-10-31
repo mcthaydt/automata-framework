@@ -2015,6 +2015,65 @@ interface FlowTransition {
 function formatDiagnostic(d: Diagnostic): string;
 ```
 
+#### `GAME_ID_PATTERN` (const)
+
+A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+
+```ts
+const GAME_ID_PATTERN: RegExp;
+```
+
+#### `GameConfig` (interface)
+
+What every target knows about a game.
+
+```ts
+interface GameConfig {
+  readonly game: {
+    readonly id: string;
+    readonly title: string;
+    readonly version: string;
+    /** The entry page in the build. */
+    readonly entry: string;
+    /** The Ruken SDK's version range; the Ruken target requires it. */
+    readonly sdk?: string;
+  };
+  readonly runtime: {
+    readonly renderer: Renderer;
+    readonly orientation: Orientation;
+    readonly inputs: readonly Input[];
+    readonly pause_behavior: "pause" | "continue";
+  };
+  /** The origins the game connects to; empty means it works offline. */
+  readonly network: {
+    readonly connect: readonly string[];
+  };
+  readonly content: {
+    readonly languages: readonly string[];
+    readonly rating: Rating;
+    readonly estimated_hours?: number;
+    readonly descriptors: readonly string[];
+  };
+  /** The analytics events the game may send (`Hosting.track` drops any other). */
+  readonly analytics?: {
+    readonly custom_events: readonly string[];
+  };
+  /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
+  readonly loading?: {
+    readonly preload: readonly string[];
+  };
+  readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+}
+```
+
+#### `gameConfigSchema` (const)
+
+Checks a game's config.
+
+```ts
+const gameConfigSchema: z.ZodType<GameConfig>;
+```
+
 #### `GameSource` (interface)
 
 What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated
@@ -2062,12 +2121,49 @@ interface GeneratorOutput {
 }
 ```
 
+#### `Input` (type)
+
+One input a game can be played with.
+
+```ts
+type Input = (typeof INPUTS)[number];
+```
+
+#### `INPUTS` (const)
+
+The inputs a game can be played with.
+
+```ts
+const INPUTS: readonly ["touch", "keyboard", "gamepad"];
+```
+
 #### `InvalidContentConfig` (class)
 
 The game's code registered something unusable (a duplicate kind, a clashing generator).
 
 ```ts
 class InvalidContentConfig extends InvalidConfigBase {}
+```
+
+#### `LEADERBOARD_ORDERS` (const)
+
+The orders a score board sorts in.
+
+```ts
+const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
+```
+
+#### `LeaderboardConfig` (interface)
+
+A score board a game declares.
+
+```ts
+interface LeaderboardConfig {
+  readonly order: (typeof LEADERBOARD_ORDERS)[number];
+  readonly min: number;
+  readonly max: number;
+  readonly title?: string;
+}
 ```
 
 #### `localized` (function)
@@ -2104,6 +2200,22 @@ interface MessageLocation {
   readonly line: number;
   readonly column: number;
 }
+```
+
+#### `Orientation` (type)
+
+One orientation a game supports.
+
+```ts
+type Orientation = (typeof ORIENTATIONS)[number];
+```
+
+#### `ORIENTATIONS` (const)
+
+The orientations a game supports.
+
+```ts
+const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
 ```
 
 #### `Palette` (interface)
@@ -2158,6 +2270,38 @@ font not declared (`unknownReference`) or not built (`missingAsset`), all at onc
 const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;
 ```
 
+#### `Rating` (type)
+
+One content rating.
+
+```ts
+type Rating = (typeof RATINGS)[number];
+```
+
+#### `RATINGS` (const)
+
+The content ratings a game declares.
+
+```ts
+const RATINGS: readonly ["everyone", "teen", "mature"];
+```
+
+#### `Renderer` (type)
+
+One renderer a game may ask for.
+
+```ts
+type Renderer = (typeof RENDERERS)[number];
+```
+
+#### `RENDERERS` (const)
+
+The renderers a game may ask for.
+
+```ts
+const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
+```
+
 #### `renderTuningTable` (function)
 
 Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
@@ -2168,11 +2312,14 @@ function renderTuningTable(meta: TuningMeta): string;
 
 #### `RukenFields` (type)
 
-The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages
-present and written to `ruken-fields.json`.
+The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out
+from `game.toml` and the languages present and written to `ruken-fields.json`.
 
 ```ts
-type RukenFields = Pick<Manifest, "content" | "analytics">;
+type RukenFields = {
+  readonly content: GameConfig["content"];
+  readonly analytics: NonNullable<GameConfig["analytics"]>;
+};
 ```
 
 #### `SimPartition` (interface)
@@ -2409,6 +2556,152 @@ The font cut to `characters`, as woff2. A character the font lacks is simply not
 
 ```ts
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+```
+
+### `import { … } from '@mcthaydt/automata-content/game-config'`
+
+#### `GAME_ID_PATTERN` (const)
+
+A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+
+```ts
+const GAME_ID_PATTERN: RegExp;
+```
+
+#### `GameConfig` (interface)
+
+What every target knows about a game.
+
+```ts
+interface GameConfig {
+  readonly game: {
+    readonly id: string;
+    readonly title: string;
+    readonly version: string;
+    /** The entry page in the build. */
+    readonly entry: string;
+    /** The Ruken SDK's version range; the Ruken target requires it. */
+    readonly sdk?: string;
+  };
+  readonly runtime: {
+    readonly renderer: Renderer;
+    readonly orientation: Orientation;
+    readonly inputs: readonly Input[];
+    readonly pause_behavior: "pause" | "continue";
+  };
+  /** The origins the game connects to; empty means it works offline. */
+  readonly network: {
+    readonly connect: readonly string[];
+  };
+  readonly content: {
+    readonly languages: readonly string[];
+    readonly rating: Rating;
+    readonly estimated_hours?: number;
+    readonly descriptors: readonly string[];
+  };
+  /** The analytics events the game may send (`Hosting.track` drops any other). */
+  readonly analytics?: {
+    readonly custom_events: readonly string[];
+  };
+  /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
+  readonly loading?: {
+    readonly preload: readonly string[];
+  };
+  readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+}
+```
+
+#### `gameConfigSchema` (const)
+
+Checks a game's config.
+
+```ts
+const gameConfigSchema: z.ZodType<GameConfig>;
+```
+
+#### `Input` (type)
+
+One input a game can be played with.
+
+```ts
+type Input = (typeof INPUTS)[number];
+```
+
+#### `INPUTS` (const)
+
+The inputs a game can be played with.
+
+```ts
+const INPUTS: readonly ["touch", "keyboard", "gamepad"];
+```
+
+#### `LEADERBOARD_ORDERS` (const)
+
+The orders a score board sorts in.
+
+```ts
+const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
+```
+
+#### `LeaderboardConfig` (interface)
+
+A score board a game declares.
+
+```ts
+interface LeaderboardConfig {
+  readonly order: (typeof LEADERBOARD_ORDERS)[number];
+  readonly min: number;
+  readonly max: number;
+  readonly title?: string;
+}
+```
+
+#### `Orientation` (type)
+
+One orientation a game supports.
+
+```ts
+type Orientation = (typeof ORIENTATIONS)[number];
+```
+
+#### `ORIENTATIONS` (const)
+
+The orientations a game supports.
+
+```ts
+const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
+```
+
+#### `Rating` (type)
+
+One content rating.
+
+```ts
+type Rating = (typeof RATINGS)[number];
+```
+
+#### `RATINGS` (const)
+
+The content ratings a game declares.
+
+```ts
+const RATINGS: readonly ["everyone", "teen", "mature"];
+```
+
+#### `Renderer` (type)
+
+One renderer a game may ask for.
+
+```ts
+type Renderer = (typeof RENDERERS)[number];
+```
+
+#### `RENDERERS` (const)
+
+The renderers a game may ask for.
+
+```ts
+const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 ```
 
 ### `import { … } from '@mcthaydt/automata-content/locale'`
@@ -7428,7 +7721,7 @@ interface ExtensionDef<Name extends string = string> {
     readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>>;
   };
   /** Called at build time with the game's manifest facts. */
-  readonly manifest?: (config: GameConfig) => RukenManifestContribution;
+  readonly manifest?: (config: GameConfig$1) => RukenManifestContribution;
 }
 ```
 
@@ -7444,10 +7737,10 @@ class ExtensionError extends ExtensionErrorBase {
 
 #### `GameConfig` (type)
 
-The parts of Ruken's manifest an extension may read (`@ruken/manifest` `Manifest`, never copied).
+The parts of the game config an extension may read (content's `GameConfig`, DIST spec §4.4).
 
 ```ts
-type GameConfig = Pick<Manifest, "game" | "runtime" | "content">;
+type GameConfig = Pick<GameConfig, "game" | "runtime" | "content">;
 ```
 
 #### `ResolvedExtensions` (interface)
@@ -8580,20 +8873,13 @@ const SHIP_PACKAGE = "@mcthaydt/automata-ship";
 
 #### `ShipConfig` (interface)
 
-What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
-Keys keep Ruken's snake_case so the config reads like the `ruken.toml` it becomes. ship fills in
-`schema` and `allow_eval` (always false); every other field and allowed value is Ruken's, so a field
-Ruken does not define is a type error here.
+What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s
+`GameConfig`, DIST spec §4.4) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
+the config reads like the `ruken.toml` the Ruken target writes from it (ship fills in `schema` and `allow_eval`,
+always false); `prepare --target ruken` checks the whole of it with Ruken's own parser.
 
 ```ts
-interface ShipConfig {
-  readonly game: Manifest["game"];
-  readonly runtime: Omit<Manifest["runtime"], "allow_eval">;
-  readonly network: Manifest["network"];
-  readonly content: Manifest["content"];
-  readonly analytics?: Manifest["analytics"];
-  readonly loading?: NonNullable<Manifest["loading"]>;
-  readonly leaderboards?: Manifest["leaderboards"];
+interface ShipConfig extends GameConfig {
   /**
    * Where `automata-ship publish --target itch` pushes (PUB spec §4). Not a Ruken field: it is never written to
    * `ruken.toml`, and a Ruken build ignores it.
@@ -11574,10 +11860,10 @@ interface ErrorAction {
 
 #### `ErrorCode` (type)
 
-Ruken's error code. The SDK exports the class, not the alias.
+The host contract's error code (DIST spec §4.1).
 
 ```ts
-type ErrorCode = RukenError['code'];
+type ErrorCode = HostErrorCode;
 ```
 
 #### `ErrorPanel` (const)
@@ -11703,7 +11989,7 @@ function fullscreenSupport(doc: Document, nav: Navigator): FullscreenSupport;
 
 #### `FullscreenSupport` (type)
 
-Ruken's answer to whether this browser can go fullscreen, and how.
+The host's answer to whether this browser can go fullscreen, and how.
 
 ```ts
 type FullscreenSupport = FullscreenRes['support'];
@@ -11919,7 +12205,7 @@ class HiddenBrowserBar {
 #### `HostDisplay` (type)
 
 What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
-Imported from the vendored `@ruken/sdk`, never copied (M1 shared contracts).
+The host contract's type (`@mcthaydt/automata-host`, DIST spec §4), never copied.
 `scale` is 1.333 on Ruken's TV mode: a hint to enlarge text and targets, never CSS zoom.
 
 ```ts

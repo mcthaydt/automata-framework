@@ -1,5 +1,7 @@
 // defineGame: a `GameSpec` with every default filled in (DX spec §3.1, §5 step 1). Pure: it reads no document
 // until the runtime asks for the root, so a game module also loads in Node (the examples' golden parity).
+
+import { GAME_ID_PATTERN } from '@mcthaydt/automata-content/game-config'
 import type { HostingOptions } from '@mcthaydt/automata-host'
 import {
   createPixiRenderer,
@@ -25,7 +27,6 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { type ExtensionDef, resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
-import { SLUG_RE } from '@ruken/manifest'
 import { defaultContent } from './default-content.ts'
 import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
 import type { InputMap } from './input/keys.ts'
@@ -173,8 +174,8 @@ function simPluginsOf<S, D>(spec: GameSpec<S, D>): readonly PluginDef[] {
 
 function problemsOf<S, D>(spec: GameSpec<S, D>, plugins: readonly PluginDef[]): string[] {
   const problems: string[] = []
-  if (!SLUG_RE.test(spec.id))
-    problems.push(`id: "${spec.id}" is not a Ruken game id (lowercase letters, digits and hyphens)`)
+  if (!GAME_ID_PATTERN.test(spec.id))
+    problems.push(`id: "${spec.id}" is not a game id (lowercase letters, digits and hyphens)`)
   for (const side of ['width', 'height'] as const)
     if (!isSize(spec.size[side])) problems.push(`size.${side}: ${spec.size[side]} is not a positive integer`)
   const drawn = new Set(

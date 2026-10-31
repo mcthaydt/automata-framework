@@ -77,7 +77,6 @@
   "devDependencies": {
     "@mcthaydt/evidence": "workspace:*",
     "@playwright/test": "1.63.0",
-    "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",

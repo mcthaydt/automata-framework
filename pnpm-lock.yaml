@@ -757,6 +757,9 @@ importers:
 
   packages/game:
     dependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
       '@mcthaydt/automata-host':
         specifier: workspace:*
         version: link:../host
@@ -782,9 +785,6 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
@@ -1012,9 +1012,6 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
@@ -1048,6 +1045,9 @@ importers:
 
   packages/ship:
     dependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
       '@mcthaydt/automata-node':
         specifier: workspace:*
         version: link:../node
@@ -1129,9 +1129,6 @@ importers:
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
-      '@ruken/sdk':
-        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
-        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
@@ -1162,13 +1159,13 @@ importers:
       '@mcthaydt/automata-content':
         specifier: workspace:*
         version: link:../content
+      '@mcthaydt/automata-host':
+        specifier: workspace:*
+        version: link:../host
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
-      '@ruken/sdk':
-        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
-        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
       '@sveltejs/package':
         specifier: 3.0.0
         version: 3.0.0(svelte@5.57.1)(typescript@6.0.3)

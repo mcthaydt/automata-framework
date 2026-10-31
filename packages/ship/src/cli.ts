@@ -8,14 +8,14 @@ import { FilesLive, ProcessRunner, ProcessRunnerLive } from '@mcthaydt/automata-
 import { Effect, Layer } from 'effect'
 import { type CliCommand, parseCliArgs, USAGE } from './cli-args.ts'
 import type { ShipConfig } from './config/ship-config.ts'
-import { deployDev } from './deploy/deploy-dev.ts'
 import { checkBuild, prepareBuild } from './prepare/prepare-build.ts'
 import { prepareMode } from './prepare/prepare-mode.ts'
 import { findExecutable } from './publish/find-executable.ts'
 import { publishBuild } from './publish/publish-build.ts'
-import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from './publish/publish-to-itch.ts'
 import { testRemote } from './remote/test-remote.ts'
-import { prepareItch } from './targets/prepare-itch.ts'
+import { prepareItch } from './targets/itch/prepare-itch.ts'
+import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from './targets/itch/publish-to-itch.ts'
+import { deployDev } from './targets/ruken/deploy-dev.ts'
 
 const cwd = process.cwd()
 

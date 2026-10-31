@@ -41,19 +41,19 @@ tools:
 
 ### Steps
 
-1. [ ] **Game config schema.** `game-config.schema.test.ts`: parses Emberwick's and the template's configs; rejects an
+1. [x] **Game config schema.** `game-config.schema.test.ts`: parses Emberwick's and the template's configs; rejects an
    unknown renderer, rating, input or orientation and an id that breaks the pattern. Red: no module. Green: the schema.
-2. [ ] **Conformance with Ruken's manifest** (`content/src/game/ruken/conformance.test.ts`): AF's `RENDERERS`,
+2. [x] **Conformance with Ruken's manifest** (`content/src/game/ruken/conformance.test.ts`): AF's `RENDERERS`,
    `ORIENTATIONS`, `INPUTS`, `RATINGS` equal Ruken's; `GAME_ID_PATTERN` and `SLUG_RE` agree on a fixture list. Red: a
    deliberately wrong enum, then restored.
-3. [ ] **Consumers on the AF schema:** `game-facts.ts`, `define-extension.ts`, `define-game.ts`, `ship-config.ts`. Each
+3. [x] **Consumers on the AF schema:** `game-facts.ts`, `define-extension.ts`, `define-game.ts`, `ship-config.ts`. Each
    package's suite and `tsc` pass; every `ship.config.ts` type-checks unchanged.
-4. [ ] **`ui` and `testing` on host types;** their Ruken type vendoring removed. `ui`'s and `testing`'s suites, `pnpm
+4. [x] **`ui` and `testing` on host types;** their Ruken type vendoring removed. `ui`'s and `testing`'s suites, `pnpm
    build` and `api-report` show no public type change except the declarations' source.
-5. [ ] **Moves into `ruken/`** (the Files table), relative imports fixed; every moved suite passes unchanged.
-6. [ ] **Red/green for the moves:** a temporary `rg` check (the same as DIST.3b's rule will enforce) lists no file
+5. [x] **Moves into `ruken/`** (the Files table), relative imports fixed; every moved suite passes unchanged.
+6. [x] **Red/green for the moves:** a temporary `rg` check (the same as DIST.3b's rule will enforce) lists no file
    under `packages/*/src` or `packages/*/build` importing `@ruken/*` outside a `ruken/` segment.
-7. [ ] Changeset (patch: `content`, `ui`, `testing`, `runtime`, `game`, `ship`); `api-report --update`, `api-index`,
+7. [x] Changeset (patch: `content`, `ui`, `testing`, `runtime`, `game`, `ship`); `api-report --update`, `api-index`,
    `agent-skills --write`.
 8. [ ] Gates; one push; draft PR stacked on #323.
 
@@ -74,3 +74,35 @@ host-neutral copy.
 
 - 2026-10-31: plan written on `claude/dist-4-fake-host` `b112a019`. Measured: 55 files import `@ruken/*` outside a
   `ruken/` folder (packages 41, games 11, tooling 10 before excluding strings in tests).
+- DIST.3a step 1: red (no module), then green 7/7 (`content/src/game/game-config.schema.ts`; `exactOptional()` for the
+  optional keys under `exactOptionalPropertyTypes`).
+- Step 2: `content/src/game/ruken/conformance.test.ts`. Red with `'adult'` added to `RATINGS` (the enum case
+  failed), green restored, 3/3; type-level checks that each config section fits the manifest section the Ruken target
+  writes.
+- Step 3: `game-facts.ts` on the AF schema (`RukenFields` keeps its name and shape: it still names the file the Ruken
+  target reads). `define-extension.ts`, `define-game.ts` and `ship-config.ts` import the schema from a new browser-safe
+  `@mcthaydt/automata-content/game-config` entry (content's root carries Node-only compiler code). `defineGame`'s
+  message says "is not a game id". `ShipConfig extends GameConfig`; `game.sdk` is optional, and `rukenToml` writes no
+  `sdk` line without one (new test, red then green: Ruken's parser then refuses the manifest naming `game.sdk`).
+- Step 4: `ui` (geometry, landscape gate, boot failure) and `testing` (viewport fixture) on host types; `ui`'s
+  `tsdown.dts.config.ts` and `build/ruken-sdk.ts`, and `game`'s `tsdown.config.ts` and `build/ruken-manifest.ts`, are
+  deleted with their vendoring; `runtime` vendors `@ruken/sdk-host`'s types only. `packages/ui/dist` and
+  `packages/game/dist` have no `vendor/` folder and no `@ruken` string after `pnpm build`.
+- Step 5: the moves of the Files table, with an import-aware mover (rewrites only import specifiers, `vi.mock` and
+  `new URL(…, import.meta.url)`). Found and fixed on the way: a first mover rewrote a fixture string (`'../up'` in
+  `ruken-check.test.ts`, caught by its test); files moved together kept a sibling import (`./ruken-check`,
+  `./runtime-test.js`, caught by `tsc`); a test computing `src/` from `__dirname` (`run-game.test.ts`, caught by its
+  test); and a broad `@ruken/` grep that matched comments, moving `run-game.ts` and `build/finish-dist.ts`, which were
+  moved back unchanged.
+- Step 6: no `import`/`export … from`/`import()` of `@ruken/*` under `packages/*/src` or `packages/*/build` outside a
+  `ruken/` segment (grep; DIST.3b's rule makes it permanent).
+- Deferred to DIST.3b: content's compiler still runs the Ruken fields check for every game (`compile-content.ts` calls
+  `ruken/ruken-check.ts`); spec §5.2 runs it only for a game that builds for `ruken`, which needs the target passed to
+  the compiler's Vite plugin.
+- Gates: `pnpm format`; `TURBO_FORCE=true pnpm check`: lint, typecheck (37), boundaries, style pass; knip found the
+  now-unused `@ruken/manifest` dev dependency of `runtime` (removed; knip clean). `pnpm build`; `api-report --update`
+  (content's new entry and types; `ShipConfig extends GameConfig`; runtime's and ui's aliases); `api-index` after doc
+  comments on the four type aliases; `pnpm cheatsheet`; `agent-skills --write`. `pnpm test:unit` 35/35;
+  `check-changesets` 31, 0 problems; consumer smoke from packs passed; `build:examples`, `build:demos` pass; E2E
+  placeholder, base-2d and demos 14/14. Parity omitted: no sim, renderer or golden change; `ui`'s change is type
+  imports only.

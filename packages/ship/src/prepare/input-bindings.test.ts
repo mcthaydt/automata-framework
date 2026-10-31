@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { inputsProblems } from '../manifest/check-inputs.ts'
+import { inputsProblems } from '../targets/ruken/check-inputs.ts'
 import { declaredInputsIn, findInputsProblems, keysBindingsIn } from './input-bindings.ts'
 
 // The inputs check (M4.1 follow-up): `runtime.inputs` against the game's input map, read from the `keys()` calls in
