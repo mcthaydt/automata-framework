@@ -20,11 +20,10 @@ import type { GeometryState } from '@mcthaydt/automata-ui'
 import { onDestroy } from 'svelte'
 import { createChecksPanel, type Scheduler } from '../../app/checks-panel-controller'
 import type { DocumentController, DocumentState } from '../../app/document/document-controller'
-import { editorLayerRows, type LayerRow } from '../../app/layers-model'
 import { planZoom } from '../../app/plan-picture'
 import { checksWords, planStatus } from '../../app/plan-status'
 import type { Point } from '../../format/sector.schema'
-import LayersPanel from '../plan/LayersPanel.svelte'
+import EditorLayers from '../plan/EditorLayers.svelte'
 import PlanCanvas from '../plan/PlanCanvas.svelte'
 import type { PlanRendererFactory } from '../plan/plan-renderer'
 import DocumentBar from './DocumentBar.svelte'
@@ -71,7 +70,6 @@ const editor = view.level.editor
 const checks = createChecksPanel(editor, { schedule })
 onDestroy(() => checks.dispose())
 
-let rows = $state.raw<readonly LayerRow[]>(editorLayerRows(editor))
 let mode = $state(editor.view.state.mode)
 let selection = $state.raw<readonly string[]>(editor.selection.ids)
 let zoom = $state(planZoom(editor.view.state.camera))
@@ -80,9 +78,7 @@ let pointer = $state.raw<Point | undefined>(undefined)
 
 $effect(() => {
   const stops = [
-    editor.history.subscribe(() => (rows = editorLayerRows(editor))),
     editor.view.subscribe((state) => {
-      rows = editorLayerRows(editor)
       mode = state.mode
       zoom = planZoom(state.camera)
     }),
@@ -125,11 +121,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
   {/snippet}
 
   {#snippet panel()}
-    <LayersPanel
-      {rows}
-      ontoggle={(list, layer) => editor.view.toggle(list, layer)}
-      onactivate={(layer) => editor.view.set({ layer })}
-    />
+    <EditorLayers {editor} />
   {/snippet}
 
   {#snippet canvas()}
