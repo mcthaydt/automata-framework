@@ -22,6 +22,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@mcthaydt/automata-systems": "workspace:*",
     "@modelcontextprotocol/sdk": "1.32.1",
     "effect": "3.22.2",
     "smol-toml": "1.9.0",
