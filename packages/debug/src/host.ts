@@ -30,15 +30,27 @@ export interface DebugHost {
   readonly feel?: FeelBoardPort | undefined
   /** Flow's existing pause, for the overlay's "Pause sim" toggle. */
   readonly setPaused?: ((paused: boolean) => void) | undefined
+  /** The game's test driver (DBG-D3): named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */
+  readonly driver?: Readonly<Record<string, (...args: never[]) => unknown>> | undefined
 }
 
 let current: DebugHost | undefined
 
-/** Makes `host` the one the overlay shows. Returns a dispose that removes it (if it is still the current one). */
+type DriverHandle = Readonly<Record<string, unknown>>
+const globals = (): { __automataDebug?: DriverHandle | undefined } => globalThis as never
+
+/**
+ * Makes `host` the one the overlay shows, and its driver (if any) `window.__automataDebug`, with `panels()` added. Returns a
+ * dispose that removes both, unless a later install has replaced them.
+ */
 export function installDebug(host: DebugHost): () => void {
   current = host
+  const handle: DriverHandle | undefined =
+    host.driver === undefined ? undefined : { ...host.driver, panels: () => host.panels.map((p) => p.id) }
+  globals().__automataDebug = handle
   return () => {
     if (current === host) current = undefined
+    if (globals().__automataDebug === handle) globals().__automataDebug = undefined
   }
 }
 /** The installed host, if any. */
