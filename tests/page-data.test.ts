@@ -1,19 +1,22 @@
 import { render } from '@testing-library/svelte'
 import { describe, expect, it, vi } from 'vitest'
 vi.mock('$app/environment', () => ({ browser: true }))
-import { load as loadHome } from '../src/routes/+page'
+import { load as loadHome } from '../src/routes/+page.server'
 import { load as loadExample } from '../src/routes/examples/[id]/+page.server'
 import { type ProjectSource } from '../src/data/projects'
+import { EVIDENCE } from '../src/data/evidence'
+import { allGoldensAgree } from '../src/lib/evidence'
 import Home from '../src/routes/+page.svelte'
 
 // QB.3h. The example sources are 372 KB (every example project, shared files once) and the home page and the gallery
 // showed one project each, yet both imported the whole module, so the browser modulepreloaded a 380 KB chunk in the first
 // second, ahead of the images and styles the first paint waits for. The pages now get their project from their load
-// function, which imports the module on demand. tests/site-checks.test.ts holds the gate on the built pages.
+// function; the home page's is a server load (tests/home-sources.test.ts). tests/site-checks.test.ts holds the gate on the
+// built pages.
 describe('the project a page shows comes from its load function', () => {
-  it('gives the home page the starter project, keeping what its server load decided', async () => {
-    const data = await loadHome({ data: { enginesAgree: true } } as Parameters<typeof loadHome>[0])
-    expect(data.enginesAgree).toBe(true)
+  it('gives the home page the starter project, and whether the evidence shows the engines agree', async () => {
+    const data = await loadHome()
+    expect(data.enginesAgree).toBe(allGoldensAgree(EVIDENCE))
     expect(data.starterProject.slug).toBe('base-2d')
     expect(data.starterProject.files.map(file => file.path)).toContain('games/emberwick/src/content/room.ts')
   })
