@@ -1,10 +1,12 @@
 import { createLevels2d } from '@mcthaydt/automata-editor-2d/suite'
+import { createLevels3d, type PlanRendererFactory } from '@mcthaydt/automata-editor-3d/suite'
 import type { SuiteEditor } from '@mcthaydt/automata-editor-kit/ports'
 import { screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { EDITOR_LIST_PATH } from '../core'
 import { fixtureEditor } from '../testing/fixture-editor'
+import depot from '../testing/fixtures/depot.af-sector.json?raw'
 import platformer from '../testing/fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from '../testing/StandInLevelCanvas.svelte'
 import { samplePorts } from '../testing/sample-ports'
@@ -13,7 +15,9 @@ import { createSuite } from './create-suite'
 
 // The level editors mounted in the suite (plan EDS.2d steps 3 and 6; editor suite spec §4.7, EDS-D12, §13 EDS-k): the
 // suite's one shell holds their regions, and a switch to the Tuner and back keeps the level's selection and its own
-// Undo. `platformer.af2d.json` is editor-2d's platformer template as its canonical printer writes it (counter ids).
+// Undo. `platformer.af2d.json` is editor-2d's platformer template as its canonical printer writes it (counter ids);
+// `depot.af-sector.json` is a copy of editor-3d's authored sample (`src/testing/fixtures`), whose rooms are `hall` and
+// `dock`.
 
 const LIST = `format = "af-editors/1"
 [[file]]
@@ -121,5 +125,124 @@ describe('Levels 2D in the suite', () => {
     const refused = await screen.findByTestId('levels-2d-refused')
     expect(within(refused).getByText(/can’t be opened as a level project/)).toBeInTheDocument()
     expect(within(refused).getByText('Your file is unchanged.')).toBeInTheDocument()
+  })
+})
+
+const LIST_3D = `format = "af-editors/1"
+[[file]]
+glob = "content/tuning.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "content/levels/*.af-sector.json"
+editor = "levels-3d"
+modes = ["edit", "ask"]
+gates = []
+checks = []
+`
+
+const FILES_3D = {
+  [EDITOR_LIST_PATH]: LIST_3D,
+  'content/tuning.toml': '[player]\nspeed = 6\n',
+  'content/levels/depot.af-sector.json': depot,
+}
+
+describe('Levels 3D in the suite', () => {
+  let resize: ((w: number, h: number) => void) | undefined
+  const draws: { fills: { sector: string; points: number[]; selected?: boolean }[] }[] = []
+  const renderer: PlanRendererFactory = async () => ({
+    paused: {
+      subscribe: (run: (value: boolean) => void) => {
+        run(false)
+        return () => {}
+      },
+    },
+    draw: (paint) => void draws.push(paint as never),
+    resize: () => {},
+    destroy: () => {},
+  })
+
+  beforeEach(() => {
+    draws.length = 0
+    // jsdom has no ResizeObserver: this one reports the size the test gives.
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(private readonly run: ResizeObserverCallback) {}
+        observe(): void {
+          resize = (w, h) =>
+            this.run(
+              [{ contentRect: { width: w, height: h } } as ResizeObserverEntry],
+              this as unknown as ResizeObserver,
+            )
+        }
+        disconnect(): void {}
+      },
+    )
+    Object.assign(HTMLElement.prototype, {
+      setPointerCapture: () => undefined,
+      releasePointerCapture: () => undefined,
+      hasPointerCapture: () => false,
+    })
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  const levels3d = () =>
+    createLevels3d({ now: () => 0, renderer, schedule: () => () => {} }) as SuiteEditor<unknown>
+
+  function tap(x: number, y: number): void {
+    const host = screen.getByTestId('plan-canvas')
+    for (const type of ['pointerdown', 'pointerup'])
+      host.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          pointerId: 1,
+          pointerType: 'mouse',
+          clientX: x,
+          clientY: y,
+        }),
+      )
+  }
+
+  async function selectHall(): Promise<void> {
+    await waitFor(() => expect(resize).toBeDefined())
+    resize?.(640, 480)
+    await waitFor(() => expect(draws.length).toBeGreaterThan(0))
+    const hall = draws.at(-1)?.fills.find((fill) => fill.sector === 'hall')
+    const [x0 = 0, y0 = 0, x1 = 0, , , y2 = 0] = hall?.points ?? []
+    // jsdom puts every element at (0, 0), so client and element coordinates agree.
+    tap((x0 + x1) / 2, (y0 + y2) / 2)
+    await waitFor(() => expect(screen.getByTestId('levels-3d-selection')).toHaveTextContent(/hall/))
+  }
+
+  it('EDS-k: select a sector, switch to the Tuner and edit, switch back: the sector is still selected and Undo is the level’s', async () => {
+    await start([fixtureEditor as SuiteEditor<unknown>, levels3d()], FILES_3D)
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    expect(await screen.findByTestId('layers-panel')).toBeInTheDocument()
+    await selectHall()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Tuner' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Raise speed' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Name this change' })
+    await userEvent.type(within(dialog).getByRole('textbox', { name: 'Title' }), 'Faster')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Start' }))
+    expect(await screen.findByRole('button', { name: 'Undo Raise speed' })).toBeEnabled()
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
+    expect(await screen.findByTestId('levels-3d-selection')).toHaveTextContent(/hall/)
+    // The Tuner's step is not the level's to undo.
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
+  })
+
+  it('shows a file it cannot open as a state', async () => {
+    await start([levels3d()], { ...FILES_3D, 'content/levels/depot.af-sector.json': '{ "format": ' })
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    const refused = await screen.findByTestId('levels-3d-refused')
+    expect(within(refused).getByText(/can’t be opened as a level/)).toBeInTheDocument()
   })
 })

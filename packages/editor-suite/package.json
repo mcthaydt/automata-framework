@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@mcthaydt/automata-editor-2d": "workspace:*",
+    "@mcthaydt/automata-editor-3d": "workspace:*",
     "@mcthaydt/automata-editor-kit": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
     "smol-toml": "1.9.0",
