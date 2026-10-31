@@ -68,3 +68,9 @@ CommandBufferHelper::Finish` for 1.73 s of 2 s, while the GPU process runs Swift
   changed); parity (no sim, renderer, ui or golden touched); the whole e2e suite (focused spec only, per the lane
   rules).
 - Pending: the `af-linux` nightly e2e run.
+
+## Superseded (CI.E2E2)
+
+CI.E2E2 removed the cause: the examples journeys emulate a device-pixel ratio of 1, so a third of the canvas is read
+back per frame. The conflict journey ran 15.4 s with 2 workers across the whole suite, and the 45 s budget went back
+to the default 30 s ([CI hardening plan](2026-10-31-ci-hardening.md)).
