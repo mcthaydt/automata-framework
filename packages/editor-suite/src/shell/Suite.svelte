@@ -6,7 +6,15 @@
   rotation; only what is inside its regions changes.
 -->
 <script lang="ts">
-import { Button, createToasts, EditorShell, shellModeOf, ToastRegion } from '@mcthaydt/automata-editor-kit'
+import {
+  Button,
+  createToasts,
+  defaultDockOpen,
+  dockPlacementOf,
+  EditorShell,
+  shellModeOf,
+  ToastRegion,
+} from '@mcthaydt/automata-editor-kit'
 import type {
   CheckFinding,
   SuiteEditor,
@@ -47,10 +55,15 @@ let current = $state<string | undefined>()
 let reading = $state<WorkspaceFile | undefined>()
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
+/** `undefined` follows the shell's default for the size. */
+let dockOpen = $state<boolean | undefined>()
 const sessions = new SvelteMap<string, unknown>()
 const opening = new Set<string>()
 
 const mode = $derived(shellModeOf(geometry.current.formFactor))
+// Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
+const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
+const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
 const entry = $derived(SUITE_ENTRIES.find((candidate) => candidate.id === current))
 
 // The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
@@ -247,6 +260,7 @@ function choose(id: string | undefined): void {
   reading = undefined
   panelOpen = false
   inspectorOpen = false
+  dockOpen = undefined
 }
 
 function openCard(card: EditorCard): void {
@@ -258,6 +272,7 @@ function openCard(card: EditorCard): void {
   {geometry}
   bind:panelOpen
   bind:inspectorOpen
+  bind:dockOpen
   panel={mounted ? panel : undefined}
   inspector={mounted ? inspector : undefined}
   dock={mounted?.editor.regions.dock ? dock : undefined}
@@ -289,6 +304,9 @@ function openCard(card: EditorCard): void {
     {#if mounted && mode !== 'wide'}
       <Button aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Panel</Button>
       <Button aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}>Details</Button>
+    {/if}
+    {#if mounted?.editor.regions.dock && dockIsSheet}
+      <Button aria-expanded={dockShown} onclick={() => (dockOpen = !dockShown)}>Dock</Button>
     {/if}
   {/snippet}
 
