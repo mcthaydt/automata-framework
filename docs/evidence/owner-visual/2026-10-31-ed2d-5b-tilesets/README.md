@@ -12,3 +12,5 @@ Chromium screenshots written by `packages/editor-2d/src/app/tilesets/tilesets-vi
 | `tilesets-rules-ipad-pro-11-portrait.png` | The Rules drawer scrolled to the end of the 47-rule Terrain group; the matched-cell outline in the preview behind it. |
 
 Known limits, recorded as follow-ups in the plan: rule ids are truncated in the 264 px panel (the full id is the inspector's heading); "Replace image" and "Re-roll variation" from the mockup are not drawn (their flows belong to later rows).
+
+**Refreshed 2026-10-31 after the Mac's WebKit parity run:** "Outside the level" is now the kit `Picker` (a 44 px button that opens a listbox), not a native `<select>`. The images show it as a field-styled row, "Outside the level" with the rule's choice beside it (Same as the centre for the terrain rules). The outline of the matched cell and the "1 cell" caption also show their earlier fixes.

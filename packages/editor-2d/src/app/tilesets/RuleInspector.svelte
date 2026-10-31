@@ -6,7 +6,7 @@
   a refusal shows its message and changes nothing.
 -->
 <script lang="ts">
-import { Button, Segmented, Stepper, Tabs } from '@mcthaydt/automata-editor-kit'
+import { Button, Picker, Segmented, Stepper, Tabs } from '@mcthaydt/automata-editor-kit'
 import type { Project } from '../../model/project-types'
 import type { FieldCommit } from '../level/field-commit'
 import { spriteStyle } from '../tile-sprite'
@@ -163,14 +163,12 @@ function rename(event: Event): void {
                 >
               {/each}
             </div>
-            <label class="outside">
-              <span class="label">Outside the level</span>
-              <select value={inspector.outside} onchange={(event) => show(session.setOutside(event.currentTarget.value))}>
-                {#each inspector.outsideOptions as option (option.id)}
-                  <option value={option.id}>{option.label}</option>
-                {/each}
-              </select>
-            </label>
+            <Picker
+              label="Outside the level"
+              options={inspector.outsideOptions}
+              value={inspector.outside}
+              onpick={(choice) => show(session.setOutside(choice))}
+            />
             {#if message !== undefined}
               <p class="message" role="alert">{message}</p>
             {/if}
@@ -327,7 +325,6 @@ function rename(event: Event): void {
     display: grid;
     gap: var(--space-1);
   }
-  select,
   input {
     min-height: 44px;
     padding: 0 var(--space-2);

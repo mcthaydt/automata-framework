@@ -163,9 +163,9 @@ describe('Tilesets view: the rule inspector and the preview', () => {
   it('sets what is read beyond the edge, duplicates and deletes the rule', async () => {
     const { ground, hazards } = await mount()
     await chooseHazards()
-    await userEvent.selectOptions(
-      within(inspector()).getByLabelText('Outside the level'),
-      'Same as the centre',
+    await userEvent.click(within(inspector()).getByRole('button', { name: 'Outside the level: Empty' }))
+    await userEvent.click(
+      screen.getByRole('option', { name: (name) => name.startsWith('Same as the centre') }),
     )
     expect(ground().groups[1]?.rules[0]?.outside).toBe('same')
     await userEvent.click(within(inspector()).getByRole('button', { name: 'Duplicate' }))
