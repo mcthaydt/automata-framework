@@ -58,9 +58,9 @@
     const timer = setTimeout(() => { announced = text }, ANNOUNCE_AFTER_MS)
     return () => clearTimeout(timer)
   })
-  let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : liveFailed ? STATUS.liveUnavailable : diagnosticStatus ?? previewStatus)
   /** The runtime or the compiled original didn't download: Retry, not Play (§7.2, §8.2). */
   let showRetry = $derived(fetchFailed || (view.preview === 'failed' && view.frames === 0 && view.status === STATUS.offline))
+  let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : liveFailed && !showRetry ? STATUS.liveUnavailable : diagnosticStatus ?? previewStatus)
   let showPlay = $derived(!showRetry && (waitingForPlay && view.preview === 'poster' || (view.preview === 'failed' && view.frames === 0)))
 
   /** A sandboxed frame on the example's frame page, under the one on show until it reports `running` (spec F4). */
