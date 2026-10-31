@@ -20,7 +20,7 @@ import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { QualityTier } from '@mcthaydt/automata-runtime'
 import { reducedMotion } from '@mcthaydt/automata-ui'
 import { Act, Lock, Move } from './commands.ts'
-import { Hero, Target } from './components.ts'
+import { Door, Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
@@ -32,6 +32,7 @@ import { base3dScreens } from './screens/screens.ts'
 import { base3dSettings } from './screens/settings.ts'
 import { base3dSim } from './state/index.ts'
 import { compileWorld } from './systems/index.ts'
+import { doorView } from './views/doors.ts'
 import { ENEMY_FIGURES, enemyFigureState, enemyView } from './views/enemies.ts'
 import { feelHooks } from './views/feel.ts'
 import {
@@ -210,6 +211,8 @@ export const base3d = defineGame({
           now: () => now() * 1000,
           locked: () => lockedSid,
         }),
+        // Each door, closed, as its slab and its kind's marker (G3-r); an open door is not drawn.
+        [Door.id]: doorView(AREA),
       },
       camera: {
         views: AREA.views,

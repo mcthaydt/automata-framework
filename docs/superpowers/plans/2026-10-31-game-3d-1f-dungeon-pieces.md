@@ -101,7 +101,7 @@
       cases (a push, each blocked push, never over Wick, G3-F6); the resets on room entry.
 - [x] Part 4: chest cases (each contents kind; hidden until its ref; a fourth heart piece raises the hearts); pot,
       cracked, one-way and ledge-drop cases; npc and shop answer Action.
-- [ ] Part 5: G3-p's content check (a failing area per rule); G3-q's solver over the Kiln as it stands (the first
+- [x] Part 5: G3-p's content check (a failing area per rule); G3-q's solver over the Kiln as it stands (the first
       slice plus the test areas until 1i authors D1–D7; re-run when 1i lands); G3-r's render test and images; the
       map's door kinds and compass marks (DOM and layout).
 
@@ -263,3 +263,48 @@ assertion is unchanged.
 **Gates (part 4).** `pnpm exec automata-check-boundaries --game src`: 28 files, 0 findings. `TURBO_FORCE=true pnpm
 check`: 35/35. base-3d `test:unit`: 337 passed. base-3d `test:parity` (Chromium, WebKit, Firefox): 30 files, 585
 tests passed, the three goldens equal in every engine.
+
+**Part 5 (2026-10-31, branch `claude/3d-game-3d-1f`, local; session_01QYLU1gPdfpqyJgh9oNhJpE).** Four commits.
+
+- G3-p (red first: systems/area-check.test.ts, no `checkWorld`): `checkWorld(world)` (systems/area-check.ts) names
+  each sling target outside 0.5–3 m, each hook post with no floor cell (0.5 m grid, in a room, in no pit or wall)
+  within the chain's 8 m in plan with a clear line, and each door whose lock names nothing that opens it (as many
+  small-key chests as small-key doors across the world, a boss-key chest, a foe standing in a clear door's rooms).
+  `base3dSim` runs it and refuses a world that fails, naming each fault (so at boot and in every test of the game's
+  sim). One fault of my own on the way: the first sampling took points on room edges, which a full-width pit's strict
+  test let through; the floor is now sampled at cell centres with edges counted as pit or wall.
+- G3-q (red first: dungeon-solver.test.ts, no solver): `solveWorld` (testing/solver.ts) joins rooms through the gaps
+  their walls leave on a shared edge (at least Wick's width), through the pieces standing in a gap (a door by its
+  lock, a cracked wall with bombs, a one-way gate or a ledge drop one way), and area exits to their entries' rooms;
+  chests open as their rooms and `hidden` refs are reached; every order of opening the small-key and boss doors is
+  tried, and a state with goals (every chest, the boss rooms) left and no door to open is a soft lock. It passes the
+  shipped world and a two-key, boss-key test dungeon, follows a hidden chest, a switch door and a bombed wall, and
+  finds the soft lock of a key spent on the wrong door and the chests a missing item or a one-way gate leaves out. Not
+  yet modelled, with 1i's D1–D7: the pit crossings by hook post (D6) and stairs between levels (D5); the solver is
+  re-run over the authored Kiln then.
+- Map (red first: map.test.ts's two cases, `doors` and `chests` undefined): `mapOf` lists the doors of the rooms it
+  draws (lock kind, open from the save's flags, a switch door's link to its switch) and, with the compass, every chest
+  (open or closed) and the boss room's centre (the room a Warden stands in); `MapAt` gains `hasCompass` and `flags`,
+  which screens.ts passes from the save. MapScreen draws them in §6.5's legend. The layout case (Chromium, WebKit,
+  Firefox) was written after the Svelte change; it was then run with the change reverted and failed for the expected
+  reason (no door marks), and passes with it.
+- G3-r (red first: views/doors.test.ts, no `doorParts`): `doorParts` draws a closed door as a slab with its kind's
+  marker (a keyhole plate on each face, a larger boss plate, three bars, a floor link to its switch), each kind in its
+  own colour; `doorView(area)` draws each `door` row from them and hides it while open; main.ts registers it under
+  `door`. Review images: docs/evidence/owner-visual/2026-10-31-game-3d-1f-doors/ (README sets each against §6.5 and
+  §9.4, with the throwaway patch that placed the doors).
+
+**Defaults (part 5, for the Owner's veto):** the content check runs at boot in `base3dSim` (G3-F2's "at build and at
+boot": the build runs it once 1i's level files are compiled by the content step); small keys count across the world;
+the solver is test code (testing/solver.ts) and, until 1i, opens a clear door from either side, lights an eye with the
+sling, and treats blocks as pushable; the door view reads the first area's entities (main.ts draws one area until 1i's
+area loading); a door's slab is a flat placeholder, 2.2 m tall, not drawn when open; the map's door and chest colours
+are the HUD's Endesga 64 ones.
+
+**Goldens (part 5).** Unchanged: no sim schema or content changed (the check reads the world; the views and the map
+are presentation).
+
+**Gates (part 5).** `pnpm exec automata-check-boundaries --game src`: 29 files, 0 findings. `TURBO_FORCE=true pnpm
+check`: 35/35. base-3d `test:parity` (Chromium, WebKit, Firefox): 30 files, 588 tests passed, the goldens unchanged in
+every engine. base-3d `pnpm build`: passes. Omitted: the base-3d e2e journeys (the shipped first slice has no pieces, so
+play is unchanged; the boot check runs in every unit test that makes the game's sim).
