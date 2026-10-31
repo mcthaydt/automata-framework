@@ -10,7 +10,7 @@ import { toyAfSector } from '../../testing/toy-af-sector'
 import type { PlanPaint } from '../../view/plan/plan-paint'
 import { planViewport, toScreen } from '../../view/plan/plan-viewport'
 import PlanCanvas from './PlanCanvas.svelte'
-import type { PlanRenderer, PlanRendererFactory } from './plan-renderer'
+import type { LoupeDraw, PlanRenderer, PlanRendererFactory } from './plan-renderer'
 
 // The Plan view's canvas (plan ED3D.5d step 5) with a fake renderer: it draws once it knows its size, a tap selects
 // through the kit's gestures, and a page that cannot draw says so and offers Try again. Pixels are the canvas
@@ -52,17 +52,19 @@ afterEach(() => {
 function fakeRenderer() {
   const draws: PlanPaint[] = []
   const tools: (ToolPaint | undefined)[] = []
+  const loupes: (LoupeDraw | undefined)[] = []
   const paused = writable(false)
   const made: PlanRenderer = {
     paused: { subscribe: paused.subscribe },
-    draw: (paint, tool) => {
+    draw: (paint, tool, loupe) => {
       draws.push(paint)
       tools.push(tool)
+      loupes.push(loupe)
     },
     resize: vi.fn(),
     destroy: vi.fn(),
   }
-  return { made, draws, tools, paused }
+  return { made, draws, tools, loupes, paused }
 }
 
 function mount(factory: PlanRendererFactory) {
@@ -213,6 +215,42 @@ describe('PlanCanvas', () => {
       await act(() => tools.choose('polygon'))
       await tapAt(editor, 0, -4)
       expect(fake.tools.at(-1)?.dots.length).toBeGreaterThan(0)
+    })
+
+    it('shows the nudge pad after a Pencil tap, whose arrow moves the last corner a grid step (ED3D.6g-b)', async () => {
+      const fake = fakeRenderer()
+      const { editor, tools } = mount(async () => fake.made)
+      await act(() => resize?.(640, 480))
+      await act(() => tools.choose('polygon'))
+      await tapAt(editor, 0, -4)
+      await userEvent.click(screen.getByRole('button', { name: 'Nudge right' }))
+      expect(tools.sector?.view.corners).toEqual([{ x: 0.5, z: -4 }])
+    })
+
+    it('shows no nudge pad for a mouse', async () => {
+      const fake = fakeRenderer()
+      const { editor, tools } = mount(async () => fake.made)
+      await act(() => resize?.(640, 480))
+      await act(() => tools.choose('polygon'))
+      const at = toScreen(planViewport(editor.view.state.camera, { w: 640, h: 480 }), { x: 0, z: -4 })
+      await act(() => {
+        press('pointerdown', at.x, at.y)
+        press('pointerup', at.x, at.y)
+      })
+      expect(tools.sector?.view.corners.length).toBe(1)
+      expect(screen.queryByRole('group', { name: 'Nudge the last corner' })).toBeNull()
+    })
+
+    it('hands the renderer the loupe while a Pencil hovers, and none once it leaves (ED3D.6g-b)', async () => {
+      const fake = fakeRenderer()
+      const { editor, tools } = mount(async () => fake.made)
+      await act(() => resize?.(640, 480))
+      await act(() => tools.choose('polygon'))
+      const at = toScreen(planViewport(editor.view.state.camera, { w: 640, h: 480 }), { x: 0, z: -4 })
+      await act(() => press('pointermove', at.x, at.y, 'pen'))
+      expect(fake.loupes.at(-1)?.size).toBe(140)
+      await act(() => host().dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'pen' })))
+      expect(fake.loupes.at(-1)).toBeUndefined()
     })
   })
 })

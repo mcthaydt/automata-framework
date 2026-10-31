@@ -151,4 +151,21 @@ describe('createPlanRenderer', () => {
     view.draw(square)
     expect(colorAt(5, 5)).toBe(hex(PLAN_COLORS.background))
   })
+
+  it('draws the loupe as a round lens of its own paint over the plan, ringed in the accent (plan ED3D.6g-b)', async () => {
+    const view = await rendererOf(200, 120)
+    const lensPaint: PlanPaint = {
+      ...EMPTY,
+      fills: [{ ...hall, color: 0x00ff00, points: [0, 0, 60, 0, 60, 60, 0, 60] }],
+    }
+    view.draw(square, undefined, { paint: lensPaint, tool: undefined, x: 100, y: 20, size: 60 })
+    // Inside the lens: its own paint. Its corner, outside the circle: the plan's background. Outside it: the plan.
+    expect(colorAt(130, 50)).toBe('#00ff00')
+    expect(colorAt(101, 21)).toBe(hex(PLAN_COLORS.background))
+    expect(colorAt(20, 22)).toBe('#336699')
+    // The ring at the lens's left edge.
+    expect(colorAt(100, 50)).toBe(hex(PLAN_COLORS.accent))
+    view.draw(square)
+    expect(colorAt(130, 50)).toBe(hex(PLAN_COLORS.background))
+  })
 })

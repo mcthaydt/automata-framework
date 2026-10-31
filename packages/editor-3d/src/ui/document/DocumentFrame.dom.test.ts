@@ -97,6 +97,16 @@ describe('DocumentFrame', () => {
     expect(within(tools).getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('shows the New sector card in the inspector at wide while the Sector tool is chosen (ED3D.6g-b)', async () => {
+    await setup()
+    expect(screen.queryByRole('heading', { name: 'New sector' })).toBeNull()
+    await userEvent.keyboard('s')
+    expect(screen.getByRole('heading', { name: 'New sector' })).toBeInTheDocument()
+    expect(screen.getByText('Tap to place point 1')).toBeInTheDocument()
+    await userEvent.keyboard('v')
+    expect(screen.queryByRole('heading', { name: 'New sector' })).toBeNull()
+  })
+
   it('leaves the keys to a text field that has focus', async () => {
     await setup()
     const field = document.createElement('input')

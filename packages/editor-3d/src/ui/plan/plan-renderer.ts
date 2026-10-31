@@ -2,6 +2,7 @@ import type { Point as ScreenPoint } from '@mcthaydt/automata-editor-kit/core'
 import {
   type AutoDetectOptions,
   autoDetectRenderer,
+  Container,
   Graphics,
   type Renderer,
   type WebGLRenderer,
@@ -22,11 +23,20 @@ export interface RendererSize {
   readonly resolution: number
 }
 
+/** The loupe (ED3D.6g-b): its own paint lists for a camera of its own, drawn as a round lens of `size` at (x, y). */
+export interface LoupeDraw {
+  readonly paint: PlanPaint
+  readonly tool: ToolPaint | undefined
+  readonly x: number
+  readonly y: number
+  readonly size: number
+}
+
 export interface PlanRenderer {
   /** True from `webglcontextlost` until `webglcontextrestored`. */
   readonly paused: Readable<boolean>
-  /** Draws `paint`, and the active tool's overlay over it, now, or keeps them for when the context is back. */
-  draw(paint: PlanPaint, tool?: ToolPaint): void
+  /** Draws `paint`, the active tool's overlay and the loupe over it, now, or keeps them for when the context is back. */
+  draw(paint: PlanPaint, tool?: ToolPaint, loupe?: LoupeDraw): void
   /** Resizes the drawing buffer and draws the newest list again. */
   resize(size: RendererSize): void
   /** Releases the renderer; later calls do nothing. Leaves the canvas element alone. */
@@ -152,18 +162,45 @@ export const createPlanRenderer: PlanRendererFactory = async (canvas, size) => {
   if (created === undefined) return undefined
   const renderer: Renderer = created
   const graphics = new Graphics()
+  // The lens: the plan's background, the lens's paint masked to the circle, and the accent ring over both.
+  const lens = new Container()
+  const lensBack = new Graphics()
+  const lensPicture = new Graphics()
+  const lensMask = new Graphics()
+  const lensRing = new Graphics()
+  lensPicture.mask = lensMask
+  lens.addChild(lensBack, lensPicture, lensMask, lensRing)
+  const stage = new Container()
+  stage.addChild(graphics, lens)
   const paused = writable(false)
   let lost = false
   let destroyed = false
   let latest: PlanPaint | undefined
   let latestTool: ToolPaint | undefined
+  let latestLoupe: LoupeDraw | undefined
+
+  function drawLoupe(loupe: LoupeDraw | undefined, background: number, accent: number): void {
+    lens.visible = loupe !== undefined
+    if (loupe === undefined) return
+    const radius = loupe.size / 2
+    lens.position.set(loupe.x, loupe.y)
+    lensBack.clear().circle(radius, radius, radius).fill({ color: background })
+    paintInto(lensPicture, loupe.paint)
+    if (loupe.tool !== undefined) toolInto(lensPicture, loupe.tool)
+    lensMask.clear().circle(radius, radius, radius).fill({ color: 0xffffff })
+    lensRing
+      .clear()
+      .circle(radius, radius, radius - 1)
+      .stroke({ color: accent, width: 3 })
+  }
 
   function render(): void {
     if (lost || destroyed || latest === undefined) return
     renderer.background.color = latest.background
     paintInto(graphics, latest)
     if (latestTool !== undefined) toolInto(graphics, latestTool)
-    renderer.render(graphics)
+    drawLoupe(latestLoupe, latest.background, latest.accent)
+    renderer.render(stage)
   }
 
   const onLost = (): void => {
@@ -181,9 +218,10 @@ export const createPlanRenderer: PlanRendererFactory = async (canvas, size) => {
 
   return {
     paused: { subscribe: paused.subscribe },
-    draw(paint, tool) {
+    draw(paint, tool, loupe) {
       latest = paint
       latestTool = tool
+      latestLoupe = loupe
       render()
     },
     resize(next) {
@@ -197,7 +235,7 @@ export const createPlanRenderer: PlanRendererFactory = async (canvas, size) => {
       canvas.removeEventListener('webglcontextlost', onLost)
       canvas.removeEventListener('webglcontextrestored', onRestored)
       paused.set(false)
-      graphics.destroy()
+      stage.destroy({ children: true })
       renderer.destroy({ removeView: false })
     },
   }

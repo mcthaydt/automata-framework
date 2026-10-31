@@ -13,12 +13,14 @@
 import { attachGestures } from '@mcthaydt/automata-editor-kit'
 import type { Size } from '@mcthaydt/automata-editor-kit/core'
 import { onDestroy } from 'svelte'
+import { loupeOf, nudgePadOf } from '../../app/loupe'
 import { createPlanPicture, planPointAt } from '../../app/plan-picture'
 import type { PlanToolState, PlanTools } from '../../app/plan-tools'
 import { type ToolLabel, toolOverlay } from '../../app/tool-paint'
 import type { Point } from '../../format/sector.schema'
 import type { LevelEditor } from '../../model/level-editor'
 import type { PlanPaint } from '../../view/plan/plan-paint'
+import NudgePad from './NudgePad.svelte'
 import { planGestures } from './plan-gestures'
 import type { PlanRenderer, PlanRendererFactory } from './plan-renderer'
 import SectorOptions from './SectorOptions.svelte'
@@ -48,6 +50,8 @@ let rulers = $state.raw<PlanPaint['rulers']>({ x: [], z: [] })
 // svelte-ignore state_referenced_locally
 let tool = $state.raw<PlanToolState>(tools.state)
 let labels = $state.raw<readonly ToolLabel[]>([])
+/** Where the nudge pad sits while it shows (touch or Pencil, corners placed; ED3D.6g-b). */
+let pad = $state.raw<{ x: number; y: number } | undefined>(undefined)
 
 let size: Size | undefined
 let view: PlanRenderer | undefined
@@ -61,7 +65,8 @@ function draw(): void {
   rulers = paint.rulers
   const overlay = toolOverlay(tool, editor.view.state.camera, size, paint.fills)
   labels = overlay.labels
-  view.draw(paint, overlay)
+  pad = nudgePadOf(editor, tools, size)
+  view.draw(paint, overlay, loupeOf(editor, tool, size, picture))
 }
 
 /** The first measure makes the controller and frames the level; every measure resizes. */
@@ -215,6 +220,14 @@ onDestroy(() => {
       ondecline={(index) => tools.sector?.declineOffer(index)}
       onacceptall={() => tools.sector?.acceptAll()}
     />
+    {#if pad !== undefined}
+      <NudgePad
+        x={pad.x}
+        y={pad.y}
+        onnudge={(dx, dz) => tools.sector?.nudge(dx, dz)}
+        onclose={() => tools.sector?.close()}
+      />
+    {/if}
     </div>
   {/if}
   <div class="notice" role="status" hidden={phase !== 'unavailable' && !paused}>
