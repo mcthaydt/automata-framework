@@ -37,6 +37,12 @@ describe('inputs() construction', () => {
     )
   })
 
+  it('throws when two maps define the same action id, naming it', () => {
+    // keys() names actions after their command, so only a hand-made map can collide: its binding would be lost.
+    const renamed = { ...keys(Lock, { KeyL: { down: true } }, { idle: { down: false } }), command: Swipe }
+    expect(() => inputs(lock, renamed)).toThrow(/action "lock-0".*"lock".*"swipe"/)
+  })
+
   it('merges the profiles, the touch buttons and the labels in map order', () => {
     expect(Object.keys(both.profile.bindings)).toEqual(['move-0', 'move-1', 'lock-0'])
     expect(both.profile.id).toBe('move+lock')
