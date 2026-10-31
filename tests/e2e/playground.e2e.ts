@@ -5,6 +5,8 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
+import { BOOT_TIMEOUT_MS, FIRST_BOOT_TIMEOUT_MS } from '../../src/lib/playground/orchestrator'
+import { LOOP_GUARD_MS } from '../../src/lib/playground/protocol'
 import { watchPage } from './gates'
 
 const ORIGIN = `http://127.0.0.1:${SITE_PORT}`
@@ -470,10 +472,18 @@ test('an IME composition compiles once, when it ends', async ({ page, browserNam
 
 test('a loop that never ends is stopped and named, and the next good edit runs', async ({ page }) => {
   await page.goto('/examples/shapes-rects')
+  // The edit starts from the original running, so the first boot (its own 20 s budget) is not part of what follows.
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: FIRST_BOOT_TIMEOUT_MS })
   const move = await typeAfter(page, "defineSystem('move', (ctx) => {", '\nwhile (true) {}')
+  // The loop runs in a fresh frame, so the stop comes after three steps: the edit compiles (data-compile is `ok` once
+  // it has and its run is sent), the frame boots, and the guard waits a second. A boot may take up to the
+  // orchestrator's BOOT_TIMEOUT_MS before it is a failure of its own, so the stop is awaited for that plus the guard.
+  await expect(root(page)).toHaveAttribute('data-compile', 'ok', { timeout: 10_000 })
   await expect(page.locator('.playground-status')).toHaveText(
     // By phase (§7.2): a stop while running is "Stopped: line N", a candidate that never got going "Line N".
-    new RegExp(`^(Stopped: line|Line) ${move + 1}: this loop ran for over a second without a break, so the preview stopped it\\.`), { timeout: 5_000 })
+    new RegExp(`^(Stopped: line|Line) ${move + 1}: this loop ran for over a second without a break, so the preview stopped it\\.`),
+    { timeout: BOOT_TIMEOUT_MS + LOOP_GUARD_MS },
+  )
   // The editor takes typing again: the loop is deleted, and the fix runs.
   for (let i = 0; i < '\nwhile (true) {}'.length; i++) await page.keyboard.press('Backspace')
   await expect(page.locator('.playground-status')).toHaveText('Preview updated.', { timeout: 10_000 })
