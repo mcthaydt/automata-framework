@@ -1,6 +1,7 @@
 <!--
-  base-3d's end screen (DESIGN.md §13, End): the run's time and one primary Menu, focused on entry. There is no
-  Play again: the menu drops the finished run's sim, so its Play starts a fresh one (screens.ts).
+  base-3d’s end screen (DESIGN.md §13, End): over the run’s last frame, dimmed as paused dims play, the time and
+  one primary Menu, focused on entry. There is no Play again: the menu drops the finished run’s sim, so its Play
+  starts a fresh one (screens.ts).
 -->
 <script lang="ts">
 import { ActionBar, ScreenFrame } from '@mcthaydt/automata-ui'
@@ -24,6 +25,6 @@ const { time, onMenu }: Props = $props()
   <ActionBar actions={[{ id: 'menu', label: 'Menu', kind: 'primary', onSelect: onMenu }]} />
 {/snippet}
 
-<div class="af-game-menu" data-game-screen="end">
+<div class="af-game-menu af-game-menu--scrim" data-game-screen="end">
   <ScreenFrame arrangement="stack" testId="end-screen" {body} {actions} />
 </div>

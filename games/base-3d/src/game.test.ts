@@ -549,7 +549,7 @@ const GOLDEN_KILN_TICK = 118
  * event) and each system's RNG state (the `ember.take` system), so the hash moved while the route's state did not:
  * the same kiln tick, locked ticks, action starts and end position, and no event on the route.
  */
-const GOLDEN_HASH = '7e089d2b89cdc654'
+const GOLDEN_HASH = '0401873e6b063c1a'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

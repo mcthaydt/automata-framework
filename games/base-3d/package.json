@@ -12,7 +12,8 @@
     "test:unit": "vitest run --configLoader runner --project node --project dom",
     "test:parity": "vitest run --configLoader runner --project browsers",
     "test:evidence": "vitest run --configLoader runner --project node --project browsers src/game.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
-    "typecheck": "tsc -p . && tsc -p tsconfig.node.json"
+    "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
+    "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT"
   },
   "dependencies": {
     "@mcthaydt/automata-figures": "workspace:*",
@@ -33,6 +34,7 @@
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
+    "@playwright/test": "1.63.0",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",

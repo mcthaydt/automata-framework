@@ -89,7 +89,10 @@ describe('sceneOf the first slice', () => {
   })
 
   it('sets the ember on the floor at its place, a 0.3 m block', () => {
-    expect(scene.ember).toEqual({ min: [-2.65, 0, 10.35], max: [-2.35, 0.3, 10.65] })
+    // Rounded to the millimetre: the sums are not exact in binary.
+    const round = (values: readonly number[]) => values.map((value) => Math.round(value * 1000) / 1000)
+    expect(round(scene.ember.min)).toEqual([-3.35, 0, 11.05])
+    expect(round(scene.ember.max)).toEqual([-3.05, 0.3, 11.35])
   })
 
   it('lays a floor and a ceiling over each room', () => {

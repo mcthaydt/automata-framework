@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 import * as contentDemo from './examples/content/hot-reload/e2e/origin.ts'
 import { demoPort, demoUrl } from './examples/ui/primitives/e2e/origin.ts'
+import * as base3d from './games/base-3d/e2e/origin.ts'
 import * as base2d from './games/emberwick/e2e/origins.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './games/placeholder/e2e/origins.ts'
 import { INPUT_MATRIX } from './packages/testing/src/e2e/input-matrix.ts'
@@ -67,6 +68,12 @@ const journeys = defineConfig({
       name: 'base-2d-compact',
       testDir: 'games/emberwick/e2e',
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 780, height: 270 } },
+    },
+    // The base 3D game is landscape only (M3.7b): a phone held sideways at the 844 × 390 the game is sized for.
+    {
+      name: 'base-3d',
+      testDir: 'games/base-3d/e2e',
+      use: { ...devices['Pixel 7 landscape'], viewport: { width: 844, height: 390 } },
     },
     { name: 'ui-primitives', testDir: 'examples/ui/primitives/e2e', use: { ...devices['Pixel 7'] } },
     // The one-file examples (EX spec §5) and the runner's own stub example, each under the fake host: a phone,
@@ -140,6 +147,17 @@ const journeys = defineConfig({
       command: 'pnpm --filter @af-examples/base-2d e2e:host',
       url: `${base2d.hostOrigin}/`,
       env: base2dPorts,
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      // Framed by the shared demo host (AF_E2E_HOST_ORIGIN is the origin its CSP lets frame it).
+      command: 'pnpm --filter @af-games/base-3d e2e:game',
+      url: base3d.gameUrl,
+      env: {
+        AF_E2E_PREVIEW_PORT: String(base3d.gamePort),
+        AF_E2E_GAME_PATH: base3d.gameBuildPath,
+        AF_E2E_HOST_ORIGIN: demoHostOrigin,
+      },
       reuseExistingServer: process.env.CI === undefined,
     },
     {
