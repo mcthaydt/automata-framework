@@ -1,0 +1,28 @@
+# The adventure source's clinic-dawn story beats (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[beats]]
+id = "clinic-dawn.arrival"
+required = true
+learn = "The exit stands open from outside. The clinic clock is moving again, and the register is at reception."
+deliveredBy = [ "clinic-dawn.cutscene.arrival.2", "clinic-dawn.cutscene.arrival.3" ]
+
+[[beats]]
+id = "clinic-dawn.register"
+required = false
+learn = "The register's last line: SIGNED ON 20:00, A. Voss. HANDED OVER TO is blank."
+deliveredBy = [ "clinic-dawn.registerPage" ]
+after = [ "clinic-dawn.arrival" ]
+
+[[beats]]
+id = "clinic-dawn.nurseLast"
+required = false
+learn = "At the edge of the dawn: \"It's getting light. I never learned what comes after.\""
+deliveredBy = [ "clinic-dawn.nurse.last" ]
+after = [ "clinic-dawn.register" ]
+
+[[beats]]
+id = "clinic-dawn.ending"
+required = false
+learn = "Vigil, Release or Handover: the closing Ada chose at the register."
+deliveredBy = [ "clinic-dawn.cutscene.finaleVigil.2", "clinic-dawn.cutscene.finaleRelease.2", "clinic-dawn.cutscene.finaleHandover.5" ]
+after = [ "clinic-dawn.nurseLast" ]

@@ -443,6 +443,9 @@ importers:
 
   tooling/pipelines:
     dependencies:
+      '@mcthaydt/automata-narrative':
+        specifier: workspace:*
+        version: link:../../packages/narrative
       '@mcthaydt/automata-node':
         specifier: file:../../.core/packs/automata-node
         version: file:.core/packs/automata-node
