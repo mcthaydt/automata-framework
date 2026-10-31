@@ -47,7 +47,7 @@ note on the harness).
 ## Steps
 
 - [x] 1. Plan (this file).
-- [ ] 2. `pointers.ts`: each helper's event sequence (types, pointer ids, kinds, pressure, contact size, positions)
+- [x] 2. `pointers.ts`: each helper's event sequence (types, pointer ids, kinds, pressure, contact size, positions)
   against a recording target (unit, failing first).
 - [ ] 3. `ipad-profiles.ts` and `journey-project.ts`; the `journeys` project in the kit config and its script; a first
   journey (EK-g at one profile) proves the WebKit iPad context (`navigator.maxTouchPoints > 0`, `devicePixelRatio` 2).
@@ -63,3 +63,6 @@ note on the harness).
 ## Execution log
 
 - 2026-10-31: plan written on `main` at `6a5f03c5`.
+- 2026-10-31, step 2: `pointers.test.ts` failed on the missing module, then 7 of 8 passed; the eighth expected a palm
+  landing while the Pencil is down to be `isPrimary: false`, but Pointer Events count primaries per pointer type, so the
+  first touch is primary; the expectation was wrong and now says so (8 pass).
