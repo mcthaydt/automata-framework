@@ -12,11 +12,13 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./sim": "./src/sim/index.ts"
+    "./sim": "./src/sim/index.ts",
+    "./physics": "./src/sim/physics/index.ts"
   },
   "automata": {
     "simEntries": [
-      "./sim"
+      "./sim",
+      "./physics"
     ]
   },
   "scripts": {
@@ -30,12 +32,19 @@
   },
   "peerDependencies": {
     "@mcthaydt/automata-content": "0.0.3",
+    "@mcthaydt/automata-physics": "0.0.3",
     "@mcthaydt/automata-runtime": "0.0.3",
     "@mcthaydt/automata-sector-format": "0.0.0",
     "@mcthaydt/automata-sim": "0.0.3"
   },
+  "peerDependenciesMeta": {
+    "@mcthaydt/automata-physics": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@mcthaydt/automata-content": "0.0.3",
+    "@mcthaydt/automata-physics": "workspace:*",
     "@mcthaydt/automata-runtime": "0.0.3",
     "@mcthaydt/automata-sector-format": "0.0.0",
     "@mcthaydt/automata-sim": "0.0.3",

@@ -133,6 +133,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/automata-physics':
+        specifier: workspace:*
+        version: link:../physics
       '@mcthaydt/evidence':
         specifier: file:../../.core/packs/evidence
         version: file:.core/packs/evidence

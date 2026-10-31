@@ -4,7 +4,7 @@
 import { canonicalJson, type Sim } from '@mcthaydt/automata-sim'
 import { hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import type { SectorMap } from '../sim/index'
-import { createWalkers, load, type Order, spawn, stepWith, walk } from './walkers'
+import { createWalkers, load, type Order, spawn, stepWith, type WalkersOptions, walk } from './walkers'
 
 const rooms: SectorMap = {
   sectors: [
@@ -128,16 +128,19 @@ export interface GoldenRun {
   readonly eventCount: number
 }
 
-/** Runs the script straight, or restored from a snapshot at `restoreAt`, and hashes the state and every event. */
-export async function runGolden(restoreAt?: number): Promise<GoldenRun> {
+/**
+ * Runs the script straight, or restored from a snapshot at `restoreAt`, and hashes the state and every event. With
+ * `physics`, each map brings its collider boxes, which the hash then covers.
+ */
+export async function runGolden(restoreAt?: number, options: WalkersOptions = {}): Promise<GoldenRun> {
   const maps = { rooms, yard }
-  let sim: Sim = await createWalkers(maps)
+  let sim: Sim = await createWalkers(maps, options)
   const lines: string[] = []
   while (sim.tick < TICKS) {
     if (sim.tick === restoreAt) {
       const bytes = sim.snapshot()
       sim.dispose()
-      sim = await createWalkers(maps)
+      sim = await createWalkers(maps, options)
       sim.restore(bytes)
     }
     for (const e of stepWith(sim, orders(sim.tick)).events) lines.push(canonicalJson(e))
