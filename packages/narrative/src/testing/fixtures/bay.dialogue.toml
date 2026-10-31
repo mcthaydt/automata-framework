@@ -1,0 +1,386 @@
+# The adventure source's bay dialogue graphs (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[graphs]]
+id = "bay.c1"
+speaker = "porter"
+start = "hear"
+
+[graphs.nodes.hear]
+say = [ "bay.porter.c1.hear", "bay.porter.c1.inner", "bay.porter.c1.cold", "bay.porter.c1.ask" ]
+
+[[graphs.nodes.hear.choices]]
+line = "bay.porter.c1.staff"
+stance = -1
+next = "staff"
+
+[graphs.nodes.hear.choices.set]
+porterMet = "staff"
+
+[[graphs.nodes.hear.choices]]
+line = "bay.porter.c1.unsure"
+stance = 0
+next = "unsure"
+
+[graphs.nodes.hear.choices.set]
+porterMet = "unsure"
+
+[[graphs.nodes.hear.choices]]
+line = "bay.porter.c1.yours"
+stance = 1
+next = "yours"
+
+[graphs.nodes.hear.choices.set]
+porterMet = "yours"
+
+[graphs.nodes.staff]
+say = [ "bay.porter.c1.staffReply" ]
+next = "end"
+
+[graphs.nodes.unsure]
+say = [ "bay.porter.c1.unsureReply" ]
+next = "end"
+
+[graphs.nodes.yours]
+say = [ "bay.porter.c1.yoursReply" ]
+next = "end"
+
+[graphs.nodes.end]
+say = []
+
+[[graphs]]
+id = "bay.c2"
+speaker = "porter"
+start = "read"
+
+[graphs.nodes.read]
+say = [ "bay.porter.c2.glove", "bay.porter.c2.read", "bay.porter.c2.empty", "bay.porter.c2.inner", "bay.porter.c2.ask" ]
+
+[[graphs.nodes.read.choices]]
+line = "bay.porter.c2.shift"
+stance = -1
+next = "shift"
+
+[graphs.nodes.read.choices.set]
+ledgerAnswer = "shift"
+
+[[graphs.nodes.read.choices]]
+line = "bay.porter.c2.nobody"
+stance = 0
+next = "nobody"
+
+[graphs.nodes.read.choices.set]
+ledgerAnswer = "nobody"
+
+[[graphs.nodes.read.choices]]
+line = "bay.porter.c2.here"
+stance = 1
+next = "here"
+
+[graphs.nodes.read.choices.set]
+ledgerAnswer = "here"
+
+[graphs.nodes.shift]
+say = [ "bay.porter.c2.shiftReply" ]
+next = "byeNurse"
+
+[graphs.nodes.nobody]
+say = [ "bay.porter.c2.nobodyReply" ]
+next = "byeNurse"
+
+[graphs.nodes.here]
+say = [ "bay.porter.c2.hereReply" ]
+next = "byeNurse"
+
+[graphs.nodes.byeNurse]
+say = [ "bay.porter.c2.byeNurse" ]
+next = "byeAda"
+
+[[graphs.nodes.byeNurse.when]]
+fact = "stance"
+atMost = -2
+
+[graphs.nodes.byeAda]
+say = [ "bay.porter.c2.byeAda" ]
+next = "byeDrawer"
+
+[[graphs.nodes.byeAda.when]]
+fact = "stance"
+atLeast = -1
+
+[[graphs.nodes.byeAda.when]]
+fact = "stance"
+atMost = 1
+
+[graphs.nodes.byeDrawer]
+say = [ "bay.porter.c2.byeDrawer" ]
+next = "end"
+
+[[graphs.nodes.byeDrawer.when]]
+fact = "stance"
+atLeast = 2
+
+[graphs.nodes.end]
+say = []
+
+[[graphs]]
+id = "bay.c3"
+speaker = "porter"
+start = "hiNurse"
+
+[graphs.nodes.hiNurse]
+say = [ "bay.porter.c3.hiNurse" ]
+next = "hiAda"
+
+[[graphs.nodes.hiNurse.when]]
+[[graphs.nodes.hiNurse.when.not.any]]
+fact = "riverAnswer"
+is = "stay"
+
+[[graphs.nodes.hiNurse.when.not.any]]
+fact = "riverAnswer"
+is = "tell"
+
+[[graphs.nodes.hiNurse.when.not.any]]
+fact = "riverAnswer"
+is = "go"
+
+[[graphs.nodes.hiNurse.when]]
+fact = "porterOut"
+is = false
+
+[[graphs.nodes.hiNurse.when]]
+[[graphs.nodes.hiNurse.when.any]]
+fact = "drum"
+is = "burning"
+
+[[graphs.nodes.hiNurse.when.any]]
+fact = "burner"
+is = true
+
+[[graphs.nodes.hiNurse.when]]
+[[graphs.nodes.hiNurse.when.any]]
+fact = "ledgerAnswer"
+is = "shift"
+
+[[graphs.nodes.hiNurse.when.any]]
+fact = "ledgerAnswer"
+is = "nobody"
+
+[[graphs.nodes.hiNurse.when.any]]
+fact = "ledgerAnswer"
+is = "here"
+
+[[graphs.nodes.hiNurse.when]]
+fact = "stance"
+atMost = -2
+
+[graphs.nodes.hiAda]
+say = [ "bay.porter.c3.hiAda" ]
+next = "hiDrawer"
+
+[[graphs.nodes.hiAda.when]]
+[[graphs.nodes.hiAda.when.not.any]]
+fact = "riverAnswer"
+is = "stay"
+
+[[graphs.nodes.hiAda.when.not.any]]
+fact = "riverAnswer"
+is = "tell"
+
+[[graphs.nodes.hiAda.when.not.any]]
+fact = "riverAnswer"
+is = "go"
+
+[[graphs.nodes.hiAda.when]]
+fact = "porterOut"
+is = false
+
+[[graphs.nodes.hiAda.when]]
+[[graphs.nodes.hiAda.when.any]]
+fact = "drum"
+is = "burning"
+
+[[graphs.nodes.hiAda.when.any]]
+fact = "burner"
+is = true
+
+[[graphs.nodes.hiAda.when]]
+[[graphs.nodes.hiAda.when.any]]
+fact = "ledgerAnswer"
+is = "shift"
+
+[[graphs.nodes.hiAda.when.any]]
+fact = "ledgerAnswer"
+is = "nobody"
+
+[[graphs.nodes.hiAda.when.any]]
+fact = "ledgerAnswer"
+is = "here"
+
+[[graphs.nodes.hiAda.when]]
+fact = "stance"
+atLeast = -1
+
+[[graphs.nodes.hiAda.when]]
+fact = "stance"
+atMost = 1
+
+[graphs.nodes.hiDrawer]
+say = [ "bay.porter.c3.hiDrawer" ]
+next = "river"
+
+[[graphs.nodes.hiDrawer.when]]
+[[graphs.nodes.hiDrawer.when.not.any]]
+fact = "riverAnswer"
+is = "stay"
+
+[[graphs.nodes.hiDrawer.when.not.any]]
+fact = "riverAnswer"
+is = "tell"
+
+[[graphs.nodes.hiDrawer.when.not.any]]
+fact = "riverAnswer"
+is = "go"
+
+[[graphs.nodes.hiDrawer.when]]
+fact = "porterOut"
+is = false
+
+[[graphs.nodes.hiDrawer.when]]
+[[graphs.nodes.hiDrawer.when.any]]
+fact = "drum"
+is = "burning"
+
+[[graphs.nodes.hiDrawer.when.any]]
+fact = "burner"
+is = true
+
+[[graphs.nodes.hiDrawer.when]]
+[[graphs.nodes.hiDrawer.when.any]]
+[[graphs.nodes.hiDrawer.when.any.not.any]]
+fact = "ledgerAnswer"
+is = "shift"
+
+[[graphs.nodes.hiDrawer.when.any.not.any]]
+fact = "ledgerAnswer"
+is = "nobody"
+
+[[graphs.nodes.hiDrawer.when.any.not.any]]
+fact = "ledgerAnswer"
+is = "here"
+
+[[graphs.nodes.hiDrawer.when.any]]
+fact = "stance"
+atLeast = 2
+
+[graphs.nodes.river]
+next = "end"
+say = [ "bay.porter.c3.river", "bay.porter.c3.keeps", "bay.porter.c3.kindness", "bay.porter.c3.inner", "bay.porter.c3.ask" ]
+
+[[graphs.nodes.river.when]]
+[[graphs.nodes.river.when.not.any]]
+fact = "riverAnswer"
+is = "stay"
+
+[[graphs.nodes.river.when.not.any]]
+fact = "riverAnswer"
+is = "tell"
+
+[[graphs.nodes.river.when.not.any]]
+fact = "riverAnswer"
+is = "go"
+
+[[graphs.nodes.river.choices]]
+line = "bay.porter.c3.stay"
+stance = -2
+next = "stay"
+
+[graphs.nodes.river.choices.set]
+riverAnswer = "stay"
+
+[[graphs.nodes.river.choices]]
+line = "bay.porter.c3.tell"
+stance = 0
+next = "tell"
+
+[graphs.nodes.river.choices.set]
+riverAnswer = "tell"
+
+[[graphs.nodes.river.choices]]
+line = "bay.porter.c3.go"
+stance = 2
+next = "go"
+
+[graphs.nodes.river.choices.set]
+riverAnswer = "go"
+
+[graphs.nodes.stay]
+say = [ "bay.porter.c3.stayReply" ]
+next = "end"
+
+[graphs.nodes.tell]
+say = [ "bay.porter.c3.tellReply" ]
+next = "end"
+
+[graphs.nodes.go]
+say = [ "bay.porter.c3.goReply" ]
+next = "end"
+
+[graphs.nodes.end]
+say = []
+
+[[graphs]]
+id = "bay.radioProgramme"
+speaker = "radio"
+start = "time"
+
+[graphs.nodes.time]
+say = [ "bay.radio.time" ]
+next = "weather"
+
+[[graphs.nodes.time.when]]
+fact = "radioSegment"
+is = 0
+
+[graphs.nodes.weather]
+say = [ "bay.radio.weather" ]
+next = "eve"
+
+[[graphs.nodes.weather.when]]
+fact = "radioSegment"
+is = 1
+
+[graphs.nodes.eve]
+say = [ "bay.radio.eve" ]
+next = "request"
+
+[[graphs.nodes.eve.when]]
+fact = "radioSegment"
+is = 2
+
+[graphs.nodes.request]
+say = [ "bay.radio.request" ]
+next = "letter"
+
+[[graphs.nodes.request.when]]
+fact = "radioSegment"
+is = 3
+
+[graphs.nodes.letter]
+say = [ "bay.radio.letter" ]
+next = "signOff"
+
+[[graphs.nodes.letter.when]]
+fact = "radioSegment"
+is = 4
+
+[graphs.nodes.signOff]
+say = [ "bay.radio.signOff" ]
+next = "end"
+
+[[graphs.nodes.signOff.when]]
+fact = "radioSegment"
+is = 5
+
+[graphs.nodes.end]
+say = []

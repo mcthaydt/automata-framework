@@ -3,7 +3,7 @@
 import type { Sim } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createToy, loadScene, said, TOY, verb } from '../testing/toy-room'
-import { PuzzleState } from './index'
+import { type PuzzleDef, PuzzleState } from './index'
 
 let sim: Sim | undefined
 afterEach(() => sim?.dispose())
@@ -106,6 +106,44 @@ describe('the puzzle interpreter (P-c, engine)', () => {
 })
 
 describe('the puzzle plugin', () => {
+  it('starts a `{ dialogue }` effect’s graph through the `dialogue` option, after the action’s line', async () => {
+    const def: PuzzleDef = {
+      ...TOY,
+      hotspots: { ...TOY.hotspots, phone: { x: 0, z: 0 } },
+      actions: [...TOY.actions, { id: 'phone', at: 'phone', then: [{ dialogue: 'call' }], say: 'pickUp' }],
+    }
+    const order: unknown[] = []
+    sim = await createToy({ dialogue: (ctx, id) => order.push([ctx.tick, id]) }, { toy: def })
+    const tick = sim.tick
+    expect(said(verb(sim, { at: 'phone' }))).toEqual([
+      ['puzzle.said', { action: 'phone', at: 'phone', line: 'pickUp', gained: [] }],
+      ['puzzle.dialogue', { id: 'call' }],
+    ])
+    expect(order).toEqual([[tick, 'call']])
+  })
+
+  it('tells the `verb` option which verb it took, what it said and whether it turned away', async () => {
+    const def: PuzzleDef = {
+      ...TOY,
+      hotspots: { ...TOY.hotspots, phone: { x: 0, z: 0 } },
+      actions: [...TOY.actions, { id: 'phone', at: 'phone', then: [{ dialogue: 'call' }], say: '' }],
+    }
+    const heard: unknown[] = []
+    sim = await createToy({ verb: (_ctx, report) => heard.push(report) }, { toy: def })
+    verb(sim, { at: 'drawer' })
+    verb(sim, { at: 'phone' })
+    verb(sim, { at: 'window' })
+    verb(sim, { at: 'floor', held: 'lamp', point: { x: 0, z: 0 } })
+    verb(sim, { at: 'door', held: 'key' })
+    expect(heard).toEqual([
+      { at: 'drawer', held: undefined, action: 'drawer.key', said: true, away: false },
+      { at: 'phone', held: undefined, action: 'phone', said: false, away: true },
+      { at: 'window', held: undefined, action: null, said: true, away: false },
+      { at: 'floor', held: 'lamp', action: null, said: false, away: false },
+      { at: 'door', held: 'key', action: 'door.unlock', said: true, away: false },
+    ])
+  })
+
   it('reports the goal once, when it first holds', async () => {
     const s = await toy()
     verb(s, { at: 'code', code: '42' })

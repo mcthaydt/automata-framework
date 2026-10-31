@@ -1,0 +1,1244 @@
+# The adventure source's bay line records (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[lines]]
+id = "bay.arrivalDoor"
+kind = "examine"
+speaker = "ada"
+text = "bay.arrivalDoor"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "bay.ambulanceFirst"
+kind = "examine"
+speaker = "ada"
+text = "bay.ambulanceFirst"
+
+[[lines]]
+id = "bay.runSheet"
+kind = "note"
+text = "bay.runSheet"
+facts = [ "call", "doa" ]
+beat = "bay.runSheet"
+motifs = [ "four", "clocks" ]
+
+[[lines]]
+id = "bay.drum"
+kind = "examine"
+speaker = "ada"
+text = "bay.drum"
+
+[[lines]]
+id = "bay.drumEmpty"
+kind = "examine"
+speaker = "ada"
+text = "bay.drumEmpty"
+
+[[lines]]
+id = "bay.drumFull"
+kind = "examine"
+speaker = "ada"
+text = "bay.drumFull"
+
+[[lines]]
+id = "bay.drumSpirit"
+kind = "examine"
+speaker = "ada"
+text = "bay.drumSpirit"
+
+[[lines]]
+id = "bay.drumPetrol"
+kind = "examine"
+speaker = "ada"
+text = "bay.drumPetrol"
+
+[[lines]]
+id = "bay.drumFluid"
+kind = "examine"
+speaker = "ada"
+text = "bay.drumFluid"
+
+[[lines]]
+id = "bay.drumLit"
+kind = "examine"
+speaker = "ada"
+text = "bay.drumLit"
+motifs = [ "warmth", "pools" ]
+
+[[lines]]
+id = "bay.drumBurning"
+kind = "examine"
+speaker = "ada"
+text = "bay.drumBurning"
+hints = [ "flameDrawsHim" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.drumDoused"
+kind = "examine"
+speaker = "ada"
+text = "bay.drumDoused"
+
+[[lines]]
+id = "bay.burner"
+kind = "examine"
+speaker = "ada"
+text = "bay.burner"
+
+[[lines]]
+id = "bay.burnerLit"
+kind = "examine"
+speaker = "ada"
+text = "bay.burnerLit"
+motifs = [ "warmth", "pools" ]
+
+[[lines]]
+id = "bay.burnerOn"
+kind = "examine"
+speaker = "ada"
+text = "bay.burnerOn"
+
+[[lines]]
+id = "bay.burnerOff"
+kind = "examine"
+speaker = "ada"
+text = "bay.burnerOff"
+
+[[lines]]
+id = "bay.shutterLocked"
+kind = "examine"
+speaker = "ada"
+text = "bay.shutterLocked"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "bay.padlockOff"
+kind = "examine"
+speaker = "ada"
+text = "bay.padlockOff"
+
+[[lines]]
+id = "bay.crank1"
+kind = "examine"
+speaker = "ada"
+text = "bay.crank1"
+
+[[lines]]
+id = "bay.crank2"
+kind = "examine"
+speaker = "ada"
+text = "bay.crank2"
+
+[[lines]]
+id = "bay.crank3"
+kind = "examine"
+speaker = "ada"
+text = "bay.crank3"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "bay.shutterOpen"
+kind = "examine"
+speaker = "ada"
+text = "bay.shutterOpen"
+
+[[lines]]
+id = "bay.mortuaryDoor"
+kind = "examine"
+speaker = "ada"
+text = "bay.mortuaryDoor"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "bay.mortuaryLatch"
+kind = "examine"
+speaker = "ada"
+text = "bay.mortuaryLatch"
+
+[[lines]]
+id = "bay.latchInside"
+kind = "examine"
+speaker = "ada"
+text = "bay.latchInside"
+
+[[lines]]
+id = "bay.mortuaryQuiet"
+kind = "examine"
+speaker = "ada"
+text = "bay.mortuaryQuiet"
+
+[[lines]]
+id = "bay.keysUnderDoor"
+kind = "examine"
+speaker = "ada"
+text = "bay.keysUnderDoor"
+facts = [ "porterName" ]
+motifs = [ "tags" ]
+
+[[lines]]
+id = "bay.keyHook"
+kind = "examine"
+speaker = "ada"
+text = "bay.keyHook"
+facts = [ "keysOnHook" ]
+
+[[lines]]
+id = "bay.keysTaken"
+kind = "examine"
+speaker = "ada"
+text = "bay.keysTaken"
+facts = [ "porterName", "keysOnHook" ]
+motifs = [ "tags" ]
+
+[[lines]]
+id = "bay.ledger"
+kind = "note"
+text = "bay.ledger"
+facts = [ "ledgerEntry", "releasedEmpty" ]
+beat = "bay.ledger"
+motifs = [ "handwriting", "line", "four" ]
+
+[[lines]]
+id = "bay.officeNotice"
+kind = "note"
+text = "bay.officeNotice"
+hints = [ "porterTouch" ]
+facts = [ "keysOnHook", "porterBlind" ]
+beat = "bay.notice"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "bay.drawer4"
+kind = "examine"
+speaker = "ada"
+text = "bay.drawer4"
+facts = [ "drawerFour" ]
+beat = "bay.drawer4"
+motifs = [ "four", "tags" ]
+
+[[lines]]
+id = "bay.mortuarySign"
+kind = "note"
+text = "bay.mortuarySign"
+hints = [ "flameDrawsHim" ]
+facts = [ "burnerSign" ]
+beat = "bay.sign"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.spiritTake"
+kind = "examine"
+speaker = "ada"
+text = "bay.spiritTake"
+
+[[lines]]
+id = "bay.fluidTin"
+kind = "examine"
+speaker = "ada"
+text = "bay.fluidTin"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.shelfEmpty"
+kind = "examine"
+speaker = "ada"
+text = "bay.shelfEmpty"
+motifs = [ "tags" ]
+
+[[lines]]
+id = "bay.sink"
+kind = "examine"
+speaker = "ada"
+text = "bay.sink"
+
+[[lines]]
+id = "bay.sinkFill"
+kind = "examine"
+speaker = "ada"
+text = "bay.sinkFill"
+
+[[lines]]
+id = "bay.sinkFull"
+kind = "examine"
+speaker = "ada"
+text = "bay.sinkFull"
+
+[[lines]]
+id = "bay.trolley"
+kind = "examine"
+speaker = "ada"
+text = "bay.trolley"
+
+[[lines]]
+id = "bay.shroudCut"
+kind = "examine"
+speaker = "ada"
+text = "bay.shroudCut"
+
+[[lines]]
+id = "bay.trolleyBare"
+kind = "examine"
+speaker = "ada"
+text = "bay.trolleyBare"
+
+[[lines]]
+id = "bay.flash"
+kind = "examine"
+speaker = "ada"
+text = "bay.flash"
+motifs = [ "pools" ]
+
+[[lines]]
+id = "bay.flashTorch"
+kind = "examine"
+speaker = "ada"
+text = "bay.flashTorch"
+motifs = [ "pools" ]
+
+[[lines]]
+id = "bay.noEffect"
+kind = "examine"
+speaker = "ada"
+text = "bay.noEffect"
+
+[[lines]]
+id = "bay.lighterEmpty"
+kind = "examine"
+speaker = "ada"
+text = "bay.lighterEmpty"
+
+[[lines]]
+id = "bay.torchOut"
+kind = "examine"
+speaker = "ada"
+text = "bay.torchOut"
+
+[[lines]]
+id = "bay.haveTorch"
+kind = "examine"
+speaker = "ada"
+text = "bay.haveTorch"
+
+[[lines]]
+id = "bay.combineTorch"
+kind = "examine"
+speaker = "ada"
+text = "bay.combineTorch"
+
+[[lines]]
+id = "bay.combineFluid"
+kind = "examine"
+speaker = "ada"
+text = "bay.combineFluid"
+
+[[lines]]
+id = "bay.throw"
+kind = "examine"
+speaker = "ada"
+text = "bay.throw"
+
+[[lines]]
+id = "bay.pour"
+kind = "examine"
+speaker = "ada"
+text = "bay.pour"
+
+[[lines]]
+id = "bay.crewWheels"
+kind = "examine"
+speaker = "ada"
+text = "bay.crewWheels"
+hints = [ "crewTouch" ]
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "bay.crewCap"
+kind = "examine"
+speaker = "ada"
+text = "bay.crewCap"
+hints = [ "crewTouch" ]
+facts = [ "crewAnswered" ]
+motifs = [ "faces" ]
+
+[[lines]]
+id = "bay.ledgerAsk"
+kind = "note"
+text = "bay.ledgerAsk"
+
+[[lines]]
+id = "bay.ledgerSign"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.ledgerSign"
+
+[[lines]]
+id = "bay.ledgerLeave"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.ledgerLeave"
+
+[[lines]]
+id = "bay.ledgerSigned"
+kind = "file"
+text = "bay.ledgerSigned"
+facts = [ "ledgerEntry", "releasedEmpty" ]
+motifs = [ "handwriting", "line", "four" ]
+
+[[lines]]
+id = "bay.porter.routine.1"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.routine.1"
+hints = [ "flameDrawsHim" ]
+beat = "bay.warmth"
+
+[[lines]]
+id = "bay.porter.routine.2"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.routine.2"
+
+[[lines]]
+id = "bay.porter.routine.3"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.routine.3"
+
+[[lines]]
+id = "bay.porter.routine.4"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.routine.4"
+
+[[lines]]
+id = "bay.porter.routine.5"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.routine.5"
+
+[[lines]]
+id = "bay.porter.signing.1"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.signing.1"
+beat = "bay.ledger"
+
+[[lines]]
+id = "bay.porter.signing.2"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.signing.2"
+
+[[lines]]
+id = "bay.porter.stirring.1"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.stirring.1"
+hints = [ "flameDrawsHim" ]
+beat = "bay.warmth"
+
+[[lines]]
+id = "bay.porter.stirring.2"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.stirring.2"
+hints = [ "flameDrawsHim" ]
+
+[[lines]]
+id = "bay.porter.drawn.1"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.drawn.1"
+hints = [ "flameDrawsHim" ]
+beat = "bay.warmth"
+
+[[lines]]
+id = "bay.porter.drawn.2"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.drawn.2"
+hints = [ "flameDrawsHim" ]
+beat = "bay.warmth"
+
+[[lines]]
+id = "bay.porter.drawn.3"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.drawn.3"
+hints = [ "porterTouch", "flameDrawsHim" ]
+
+[[lines]]
+id = "bay.porter.warming.1"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.warming.1"
+
+[[lines]]
+id = "bay.porter.warming.2"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.warming.2"
+
+[[lines]]
+id = "bay.porter.warming.3"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.warming.3"
+
+[[lines]]
+id = "bay.porter.investigate.1"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.investigate.1"
+hints = [ "porterTouch" ]
+
+[[lines]]
+id = "bay.porter.investigate.2"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.investigate.2"
+hints = [ "porterTouch" ]
+
+[[lines]]
+id = "bay.porter.searching.1"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.searching.1"
+
+[[lines]]
+id = "bay.porter.searching.2"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.searching.2"
+hints = [ "porterTouch" ]
+
+[[lines]]
+id = "bay.porter.latched.1"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.latched.1"
+
+[[lines]]
+id = "bay.porter.latched.2"
+kind = "bark"
+speaker = "porter"
+text = "bay.porter.latched.2"
+
+[[lines]]
+id = "bay.crew.patrol.1"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.patrol.1"
+facts = [ "crewAnswered" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.crew.patrol.2"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.patrol.2"
+facts = [ "crewControl" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.crew.investigate.1"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.investigate.1"
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.crew.investigate.2"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.investigate.2"
+
+[[lines]]
+id = "bay.crew.hunt.1"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.hunt.1"
+hints = [ "crewTouch" ]
+
+[[lines]]
+id = "bay.crew.hunt.2"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.hunt.2"
+hints = [ "crewTouch" ]
+
+[[lines]]
+id = "bay.crew.follow.1"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.follow.1"
+
+[[lines]]
+id = "bay.crew.follow.2"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.follow.2"
+
+[[lines]]
+id = "bay.crew.hold.1"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.hold.1"
+motifs = [ "four", "thresholds" ]
+
+[[lines]]
+id = "bay.crew.hold.2"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.hold.2"
+facts = [ "crewControl" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.crew.ambush.1"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.ambush.1"
+facts = [ "crewAnswered" ]
+motifs = [ "four", "clocks" ]
+
+[[lines]]
+id = "bay.crew.ambush.2"
+kind = "bark"
+speaker = "crew"
+text = "bay.crew.ambush.2"
+facts = [ "crewControl" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.cutscene.grapple.1"
+kind = "caption"
+speaker = "porter"
+text = "bay.cutscene.grapple.1"
+hints = [ "porterTouch" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.cutscene.grappleCrew.1"
+kind = "caption"
+speaker = "crew"
+text = "bay.cutscene.grappleCrew.1"
+motifs = [ "four", "warmth" ]
+
+[[lines]]
+id = "bay.cutscene.arrival.1"
+kind = "caption"
+speaker = "ada"
+text = "bay.cutscene.arrival.1"
+beat = "bay.arrival"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "bay.cutscene.arrival.2"
+kind = "caption"
+text = "bay.cutscene.arrival.2"
+facts = [ "doa" ]
+beat = "bay.runSheet"
+motifs = [ "four", "tags" ]
+
+[[lines]]
+id = "bay.cutscene.arrival.3"
+kind = "caption"
+speaker = "porter"
+text = "bay.cutscene.arrival.3"
+hints = [ "flameDrawsHim" ]
+beat = "bay.warmth"
+facts = [ "porterCold" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.cutscene.latched.1"
+kind = "caption"
+text = "bay.cutscene.latched.1"
+
+[[lines]]
+id = "bay.cutscene.latched.2"
+kind = "caption"
+speaker = "porter"
+text = "bay.cutscene.latched.2"
+
+[[lines]]
+id = "bay.cutscene.dawn.1"
+kind = "caption"
+text = "bay.cutscene.dawn.1"
+beat = "bay.dawn"
+motifs = [ "thresholds", "clocks" ]
+
+[[lines]]
+id = "bay.cutscene.dawn.2"
+kind = "caption"
+text = "bay.cutscene.dawn.2"
+facts = [ "releasedEmpty" ]
+beat = "bay.ledger"
+motifs = [ "line", "handwriting" ]
+
+[[lines]]
+id = "bay.cutscene.dawn.3"
+kind = "caption"
+speaker = "porter"
+text = "bay.cutscene.dawn.3"
+facts = [ "porterWaits" ]
+
+[[lines]]
+id = "bay.cutscene.dawn.4"
+kind = "caption"
+speaker = "ada"
+text = "bay.cutscene.dawn.4"
+
+[[lines]]
+id = "bay.cutscene.dawn.5"
+kind = "caption"
+text = "bay.cutscene.dawn.5"
+motifs = [ "thresholds" ]
+
+[[lines]]
+id = "bay.cutscene.dawn.6"
+kind = "caption"
+speaker = "ada"
+text = "bay.cutscene.dawn.6"
+
+[[lines]]
+id = "bay.cutscene.dawn.7"
+kind = "caption"
+speaker = "ada"
+text = "bay.cutscene.dawn.7"
+
+[[lines]]
+id = "bay.item.lighter.name"
+kind = "item"
+text = "bay.item.lighter.name"
+
+[[lines]]
+id = "bay.item.lighter"
+kind = "item"
+speaker = "ada"
+text = "bay.item.lighter"
+
+[[lines]]
+id = "bay.item.basin.name"
+kind = "item"
+text = "bay.item.basin.name"
+
+[[lines]]
+id = "bay.item.basin"
+kind = "item"
+speaker = "ada"
+text = "bay.item.basin"
+
+[[lines]]
+id = "bay.item.scalpel.name"
+kind = "item"
+text = "bay.item.scalpel.name"
+
+[[lines]]
+id = "bay.item.scalpel"
+kind = "item"
+speaker = "ada"
+text = "bay.item.scalpel"
+
+[[lines]]
+id = "bay.item.cloth.name"
+kind = "item"
+text = "bay.item.cloth.name"
+
+[[lines]]
+id = "bay.item.cloth"
+kind = "item"
+speaker = "ada"
+text = "bay.item.cloth"
+
+[[lines]]
+id = "bay.item.torch.name"
+kind = "item"
+text = "bay.item.torch.name"
+
+[[lines]]
+id = "bay.item.torch"
+kind = "item"
+speaker = "ada"
+text = "bay.item.torch"
+motifs = [ "warmth", "pools" ]
+
+[[lines]]
+id = "bay.item.bottle.name"
+kind = "item"
+text = "bay.item.bottle.name"
+
+[[lines]]
+id = "bay.item.bottle"
+kind = "item"
+speaker = "ada"
+text = "bay.item.bottle"
+
+[[lines]]
+id = "bay.item.brassKey.name"
+kind = "item"
+text = "bay.item.brassKey.name"
+
+[[lines]]
+id = "bay.item.brassKey"
+kind = "item"
+speaker = "ada"
+text = "bay.item.brassKey"
+
+[[lines]]
+id = "bay.item.fuse.name"
+kind = "item"
+text = "bay.item.fuse.name"
+
+[[lines]]
+id = "bay.item.fuse"
+kind = "item"
+speaker = "ada"
+text = "bay.item.fuse"
+
+[[lines]]
+id = "bay.item.fluid.name"
+kind = "item"
+text = "bay.item.fluid.name"
+
+[[lines]]
+id = "bay.item.fluid"
+kind = "item"
+speaker = "ada"
+text = "bay.item.fluid"
+
+[[lines]]
+id = "bay.item.matches.name"
+kind = "item"
+text = "bay.item.matches.name"
+
+[[lines]]
+id = "bay.item.matches"
+kind = "item"
+speaker = "ada"
+text = "bay.item.matches"
+
+[[lines]]
+id = "bay.item.spirit.name"
+kind = "item"
+text = "bay.item.spirit.name"
+
+[[lines]]
+id = "bay.item.spirit"
+kind = "item"
+speaker = "ada"
+text = "bay.item.spirit"
+
+[[lines]]
+id = "bay.item.petrol.name"
+kind = "item"
+text = "bay.item.petrol.name"
+
+[[lines]]
+id = "bay.item.petrol"
+kind = "item"
+speaker = "ada"
+text = "bay.item.petrol"
+
+[[lines]]
+id = "bay.item.keys.name"
+kind = "item"
+text = "bay.item.keys.name"
+
+[[lines]]
+id = "bay.item.keys"
+kind = "item"
+speaker = "ada"
+text = "bay.item.keys"
+facts = [ "porterName" ]
+motifs = [ "tags" ]
+
+[[lines]]
+id = "bay.caught.porter.title"
+kind = "caught"
+text = "bay.caught.porter.title"
+
+[[lines]]
+id = "bay.caught.porter"
+kind = "caught"
+text = "bay.caught.porter"
+hints = [ "porterTouch" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.caught.crew.title"
+kind = "caught"
+text = "bay.caught.crew.title"
+
+[[lines]]
+id = "bay.caught.crew"
+kind = "caught"
+text = "bay.caught.crew"
+hints = [ "crewTouch" ]
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.objective.start"
+kind = "objective"
+text = "bay.objective.start"
+
+[[lines]]
+id = "bay.objective.keys"
+kind = "objective"
+text = "bay.objective.keys"
+
+[[lines]]
+id = "bay.objective.unlock"
+kind = "objective"
+text = "bay.objective.unlock"
+
+[[lines]]
+id = "bay.objective.crank"
+kind = "objective"
+text = "bay.objective.crank"
+
+[[lines]]
+id = "bay.porter.c1.hear"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c1.hear"
+
+[[lines]]
+id = "bay.porter.c1.cold"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c1.cold"
+facts = [ "porterBlind" ]
+motifs = [ "faces" ]
+
+[[lines]]
+id = "bay.porter.c1.ask"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c1.ask"
+
+[[lines]]
+id = "bay.porter.c1.inner"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c1.inner"
+
+[[lines]]
+id = "bay.porter.c1.staff"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c1.staff"
+
+[[lines]]
+id = "bay.porter.c1.unsure"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c1.unsure"
+
+[[lines]]
+id = "bay.porter.c1.yours"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c1.yours"
+
+[[lines]]
+id = "bay.porter.c1.staffReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c1.staffReply"
+
+[[lines]]
+id = "bay.porter.c1.unsureReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c1.unsureReply"
+
+[[lines]]
+id = "bay.porter.c1.yoursReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c1.yoursReply"
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.porter.c2.glove"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.glove"
+facts = [ "porterBlind" ]
+motifs = [ "handwriting", "warmth" ]
+
+[[lines]]
+id = "bay.porter.c2.read"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.read"
+facts = [ "ledgerEntry" ]
+motifs = [ "four", "handwriting" ]
+
+[[lines]]
+id = "bay.porter.c2.empty"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.empty"
+facts = [ "releasedEmpty", "porterWaits" ]
+motifs = [ "line" ]
+
+[[lines]]
+id = "bay.porter.c2.inner"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c2.inner"
+motifs = [ "handwriting", "faces" ]
+
+[[lines]]
+id = "bay.porter.c2.ask"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.ask"
+
+[[lines]]
+id = "bay.porter.c2.shift"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c2.shift"
+
+[[lines]]
+id = "bay.porter.c2.nobody"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c2.nobody"
+
+[[lines]]
+id = "bay.porter.c2.here"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c2.here"
+
+[[lines]]
+id = "bay.porter.c2.shiftReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.shiftReply"
+
+[[lines]]
+id = "bay.porter.c2.nobodyReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.nobodyReply"
+
+[[lines]]
+id = "bay.porter.c2.hereReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.hereReply"
+
+[[lines]]
+id = "bay.porter.c2.byeNurse"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.byeNurse"
+
+[[lines]]
+id = "bay.porter.c2.byeAda"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.byeAda"
+
+[[lines]]
+id = "bay.porter.c2.byeDrawer"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c2.byeDrawer"
+motifs = [ "four", "tags" ]
+
+[[lines]]
+id = "bay.porter.c3.hiNurse"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.hiNurse"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.porter.c3.hiAda"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.hiAda"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.porter.c3.hiDrawer"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.hiDrawer"
+motifs = [ "warmth", "four" ]
+
+[[lines]]
+id = "bay.porter.c3.river"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.river"
+
+[[lines]]
+id = "bay.porter.c3.keeps"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.keeps"
+
+[[lines]]
+id = "bay.porter.c3.kindness"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.kindness"
+motifs = [ "pools" ]
+
+[[lines]]
+id = "bay.porter.c3.inner"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c3.inner"
+
+[[lines]]
+id = "bay.porter.c3.ask"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.ask"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.porter.c3.stay"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c3.stay"
+
+[[lines]]
+id = "bay.porter.c3.tell"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c3.tell"
+
+[[lines]]
+id = "bay.porter.c3.go"
+kind = "dialogue"
+speaker = "ada"
+text = "bay.porter.c3.go"
+
+[[lines]]
+id = "bay.porter.c3.stayReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.stayReply"
+motifs = [ "four" ]
+
+[[lines]]
+id = "bay.porter.c3.tellReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.tellReply"
+facts = [ "porterBlind" ]
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "bay.porter.c3.goReply"
+kind = "dialogue"
+speaker = "porter"
+text = "bay.porter.c3.goReply"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "bay.st.sys.fuel.low"
+kind = "examine"
+speaker = "ada"
+text = "bay.st.sys.fuel.low"
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.st.sys.grapple.porter"
+kind = "bark"
+speaker = "porter"
+text = "bay.st.sys.grapple.porter"
+hints = [ "porterTouch" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.st.p2.lighter"
+kind = "examine"
+speaker = "ada"
+text = "bay.st.p2.lighter"
+facts = [ "lighterLamb" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.st.p2.drawer"
+kind = "examine"
+speaker = "ada"
+text = "bay.st.p2.drawer"
+facts = [ "drawerFour", "ledgerEntry" ]
+motifs = [ "four", "tags", "handwriting" ]
+
+[[lines]]
+id = "bay.register.warmthDrawsHim"
+kind = "note"
+text = "bay.register.warmthDrawsHim"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "bay.register.keysOnHook"
+kind = "note"
+text = "bay.register.keysOnHook"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "bay.register.keysFitPadlock"
+kind = "note"
+text = "bay.register.keysFitPadlock"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "bay.register.crankSafely"
+kind = "note"
+text = "bay.register.crankSafely"
+motifs = [ "handwriting" ]
+
+[[lines]]
+id = "bay.radio.time"
+kind = "dialogue"
+speaker = "radio"
+text = "bay.radio.time"
+motifs = [ "clocks" ]
+
+[[lines]]
+id = "bay.radio.weather"
+kind = "dialogue"
+speaker = "radio"
+text = "bay.radio.weather"
+facts = [ "firstLight" ]
+motifs = [ "clocks" ]
+
+[[lines]]
+id = "bay.radio.eve"
+kind = "dialogue"
+speaker = "radio"
+text = "bay.radio.eve"
+facts = [ "stAgnesEve" ]
+motifs = [ "warmth" ]
+
+[[lines]]
+id = "bay.radio.request"
+kind = "dialogue"
+speaker = "radio"
+text = "bay.radio.request"
+
+[[lines]]
+id = "bay.radio.letter"
+kind = "dialogue"
+speaker = "radio"
+text = "bay.radio.letter"
+motifs = [ "pools" ]
+
+[[lines]]
+id = "bay.radio.signOff"
+kind = "dialogue"
+speaker = "radio"
+text = "bay.radio.signOff"
+motifs = [ "clocks" ]

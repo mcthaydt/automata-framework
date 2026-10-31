@@ -1,0 +1,253 @@
+# The adventure source's canon (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+glossary = [ "Ada", "Ada Voss", "Voss", "A. Voss", "A. VOSS", "VOSS, A.", "Night Nurse", "Nurse", "Porter", "F. Lamb", "F. LAMB", "F.L.", "Lamb", "Mr. Lamb", "Drawer Four", "Keats", "Control", "Echo Four", "ECHO FOUR", "St. Agnes", "ST. AGNES", "St. Agnes Clinic", "St. Agnes ward", "ST. AGNES WARD", "St. Agnes' Eve", "The Eve of St. Agnes", "Bed 04", "BED 04", "ALARM", "SUPPLY", "EMERGENCY POWER", "NIGHT REGISTER", "STAFF NOTICE", "PATIENT RECORD", "PATIENT", "ADMISSION", "ADMITTED", "ADM", "SIGNED ON", "HANDED OVER TO", "RECEIVED", "RELEASED", "RELEASE AT FIRST LIGHT", "DRAWER 4", "Drawer 4", "CALL", "PT", "STAFF NURSE", "FOUND AT BED 04", "DOA", "ACT ONE", "ACT TWO", "ACT THREE", "NIGHT SHIFT", "THE PORTER", "FIRST LIGHT", "Vigil", "Release", "Handover", "VIGIL", "RELEASE", "HANDOVER" ]
+motifs = [ "four", "pools", "handwriting", "faces", "tags", "thresholds", "clocks", "warmth", "line" ]
+
+[people.ada]
+name = "Ada Voss"
+short = "A. Voss"
+role = "Staff nurse, nights at St. Agnes since 1979. Wakes in Bed 04. The one who must choose (synthesis: the handover)."
+
+[people.nurse]
+name = "the Night Nurse"
+short = "the Nurse"
+role = "Thesis: the vigil. Ada's duty grown into a shape. Speaks three times in the game, in Ada's voice."
+
+[people.porter]
+name = "F. Lamb"
+short = "the Porter"
+role = "Counter-thesis: the release. The blind mortuary porter who signs the dead out at first light."
+
+[people.dayNurse]
+name = "the day nurse"
+role = "The synthesis made flesh: the relief who comes in the morning. Appears only in the Handover ending."
+
+[people.radio]
+name = "the night programme"
+short = "the radio"
+role = "The world outside, still going. An unnamed presenter on the radio in the porter's office."
+
+[people.patient]
+name = "the patient in Bed 04"
+role = "Never named. Asked for the lights to be left on."
+
+[people.crew]
+name = "the ambulance crew"
+short = "the crew"
+role = "Answered the 04:09 call and wrote the run sheet. One attendant is seen, with a stretcher trolley; the driver is only a voice on the radio. Comes to close the sheet. Never hostile, never harmed."
+
+[places]
+clinic = "St. Agnes Clinic"
+ward = "St. Agnes ward"
+reception = "reception"
+corridor = "the north corridor"
+supply = "the supply room"
+bay = "the ambulance bay"
+office = "the porter's office"
+mortuary = "the mortuary"
+street = "the street"
+river = "the river"
+
+[times]
+firstNight = "1979"
+eve = "St. Agnes' Eve, 20 January 1987"
+eveDate = "20.01.87"
+morningDate = "21.01.87"
+signOn = "20:00"
+call = "04:09"
+death = "04:17"
+firstLight = "06:02"
+
+[numbers]
+bed = "04"
+drawer = "4"
+code = "0417"
+drawers = "6"
+
+[[facts]]
+id = "clockStopped"
+text = "The clinic clock stopped at 04:17."
+revealedIn = [ "clinic" ]
+
+[[facts]]
+id = "wakesInBed"
+text = "Ada wakes in Bed 04. Her wristband reads A. VOSS."
+revealedIn = [ "clinic" ]
+
+[[facts]]
+id = "monitorName"
+text = "The monitor at Bed 04 reads PATIENT: VOSS, A. ADMITTED 04:17."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "recordNoName"
+text = "The patient record for Bed 04 reads: admission 04:17, no name, no pulse."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "lightsOn"
+text = "The patient in Bed 04 asked for the lights to be left on."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "registerSigned"
+text = "Every night shift since 1987 is signed A. Voss, in Ada's handwriting."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "firstNight"
+text = "Ada's first night at St. Agnes was in 1979. The register's first page is hers."
+revealedIn = [ "clinic" ]
+
+[[facts]]
+id = "nightsAlone"
+text = "From 1979 to 1987 Ada covered every night shift. No other name is in the register."
+revealedIn = [ "clinic", "bay" ]
+
+[[facts]]
+id = "noRelief"
+text = "The HANDED OVER TO column of the register is blank on every line. No one ever took over from Ada."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "lastDate"
+text = "The last dated line in the register is 20.01.87. Every line after it carries the same date."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "nurseHatesLight"
+text = "The Night Nurse does not like the light."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "code"
+text = "The key cabinet code is 0417."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "brassKeyTag"
+text = "The brass key has a paper tag: SUPPLY on the front, BED 04 on the back."
+revealedIn = [ "clinic", "clinic-dawn" ]
+
+[[facts]]
+id = "fuseLabel"
+text = "The spare fuse is labelled in Ada's handwriting: for when I finally leave."
+revealedIn = [ "clinic" ]
+
+[[facts]]
+id = "neverNightShift"
+text = "Low on the corridor wall someone has scratched: THERE WAS NEVER A NIGHT SHIFT. THEN WHO SIGNS THE REGISTER?"
+revealedIn = [ "clinic" ]
+
+[[facts]]
+id = "lighterLamb"
+text = "The brass lighter is F. Lamb's. He left it at Bed 04 the night he came for her. Its base is scratched F.L."
+revealedIn = [ "clinic", "bay" ]
+
+[[facts]]
+id = "stAgnesEve"
+text = "The night is St. Agnes' Eve, 20 January 1987: in the old custom, the night you sit up and keep watch."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "call"
+text = "A call went out from St. Agnes ward at 04:09."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "crewAnswered"
+text = "The ambulance crew answered the 04:09 call. Their run sheet is still open."
+revealedIn = [ "bay", "clinic-dawn" ]
+
+[[facts]]
+id = "crewControl"
+text = "The crew call themselves Echo Four. They call Control, and Control never answers."
+revealedIn = [ "bay", "clinic-dawn" ]
+
+[[facts]]
+id = "doa"
+text = "Ada was found at Bed 04 and declared dead on arrival at 04:17: PT: VOSS, A. (STAFF NURSE)."
+revealedIn = [ "bay", "clinic-dawn" ]
+
+[[facts]]
+id = "ledgerEntry"
+text = "Every night the ledger reads: 04:17 RECEIVED VOSS, A., FROM BED 04, DRAWER 4. RELEASE AT FIRST LIGHT."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "releasedEmpty"
+text = "The RELEASED column against her name has always been empty."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "drawerFour"
+text = "Drawer 4 is empty. Its toe tag reads A. VOSS."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "firstLight"
+text = "First light is at 06:02."
+revealedIn = [ "bay", "clinic-dawn" ]
+
+[[facts]]
+id = "porterName"
+text = "The Porter's name tag and his key tag read F. LAMB."
+revealedIn = [ "bay", "clinic-dawn" ]
+
+[[facts]]
+id = "porterBlind"
+text = "F. Lamb is blind."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "porterCold"
+text = "The heater in the porter's office is broken. He is always cold."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "porterWaits"
+text = "Every night F. Lamb waits to release Ada at first light, and she never comes."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "keysOnHook"
+text = "The porter hangs his keys on the hook while he signs in."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "burnerSign"
+text = "If the mortuary burner is left on, he sits by it all night."
+revealedIn = [ "bay" ]
+
+[[facts]]
+id = "clockMoves"
+text = "After Ada leaves the bay, the clinic clock moves again. First light reaches reception at 06:02."
+revealedIn = [ "clinic-dawn" ]
+
+[[facts]]
+id = "releasedWritten"
+text = "In the Release ending, F. Lamb writes RELEASED against her name for the first time."
+revealedIn = [ "clinic-dawn" ]
+
+[[facts]]
+id = "handoverRead"
+text = "In the Handover ending, the day nurse reads the handover aloud. Only someone who can see the page can take it over."
+revealedIn = [ "clinic-dawn" ]
+
+[[facts]]
+id = "nameBadge"
+text = "Ada's name badge reads A. VOSS, the same as her wristband."
+revealedIn = [ "clinic" ]
+
+[[facts]]
+id = "spiritFuel"
+text = "The methylated spirit on the mortuary shelf will fill the lighter."
+revealedIn = [ "bay" ]
+
+[tone]
+banned = [ "blood", "bloody", "bleeding", "gore", "gory", "guts", "corpse", "cadaver", "entrails", "severed", "mutilated", "rotting", "maggot", "maggots", "vomit", "kill", "killed", "killing", "murder", "suicide", "ghost", "haunted", "monster", "demon", "evil" ]
+style = "Worn, not grimy; no gore. Dialogue is KRZ-style: plain, lyrical lines. Under it: Safdie-brothers momentum (people run on, repeat themselves and talk over their own sentences), Disco Elysium interiority (Ada’s own thoughts answer back, in the second person, sharp and wry), and Hereditary dread (grief in a family register, the wrong thing said kindly, horror only by implication). Ada: short, plain, first person, no exclamation marks. No exclamation marks from anyone. British spelling. Nobody in the game is evil, and no line says what anyone is."
+
+[stance]
+min = -4
+max = 4

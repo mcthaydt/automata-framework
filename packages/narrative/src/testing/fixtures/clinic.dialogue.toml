@@ -1,0 +1,115 @@
+# The adventure source's clinic dialogue graphs (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/narrative/scripts/convert-adventure-narrative.ts. Do not edit.
+[[graphs]]
+id = "clinic.opening"
+speaker = "ada"
+start = "wake"
+
+[graphs.nodes.wake]
+say = [ "clinic.openingAsk" ]
+
+[[graphs.nodes.wake.choices]]
+line = "clinic.openingDuty"
+stance = -1
+next = "duty"
+
+[graphs.nodes.wake.choices.set]
+opening = "duty"
+
+[[graphs.nodes.wake.choices]]
+line = "clinic.openingUnsure"
+stance = 0
+next = "unsure"
+
+[graphs.nodes.wake.choices.set]
+opening = "unsure"
+
+[[graphs.nodes.wake.choices]]
+line = "clinic.openingAsleep"
+stance = 1
+next = "asleep"
+
+[graphs.nodes.wake.choices.set]
+opening = "asleep"
+
+[graphs.nodes.duty]
+say = [ "clinic.openingDutyReact", "clinic.openingDutyInner" ]
+next = "end"
+
+[graphs.nodes.unsure]
+say = [ "clinic.openingUnsureReact", "clinic.openingUnsureInner" ]
+next = "end"
+
+[graphs.nodes.asleep]
+say = [ "clinic.openingAsleepReact", "clinic.openingAsleepInner" ]
+next = "end"
+
+[graphs.nodes.end]
+say = []
+
+[[graphs]]
+id = "clinic.power"
+speaker = "nurse"
+start = "ask"
+
+[graphs.nodes.ask]
+say = [ "clinic.nurse.power" ]
+
+[[graphs.nodes.ask.choices]]
+line = "clinic.powerBack"
+stance = -1
+next = "back"
+
+[graphs.nodes.ask.choices.set]
+nurseAnswer = "back"
+
+[[graphs.nodes.ask.choices]]
+line = "clinic.powerSilent"
+stance = 0
+next = "silent"
+
+[graphs.nodes.ask.choices.set]
+nurseAnswer = "silent"
+
+[[graphs.nodes.ask.choices]]
+line = "clinic.powerElse"
+stance = 1
+next = "else"
+
+[graphs.nodes.ask.choices.set]
+nurseAnswer = "else"
+
+[graphs.nodes.back]
+say = [ "clinic.powerBackInner" ]
+next = "end"
+
+[graphs.nodes.silent]
+say = [ "clinic.powerSilentInner" ]
+next = "end"
+
+[graphs.nodes.else]
+say = [ "clinic.powerElseInner" ]
+next = "end"
+
+[graphs.nodes.end]
+say = []
+
+[[graphs]]
+id = "clinic.registerRead"
+speaker = "register"
+start = "first"
+
+[graphs.nodes.first]
+say = [ "clinic.registerFirstNight" ]
+next = "nights"
+
+[graphs.nodes.nights]
+say = [ "clinic.registerNights" ]
+next = "last"
+
+[graphs.nodes.last]
+say = [ "clinic.registerLastDate" ]
+next = "end"
+
+[graphs.nodes.end]
+say = []
