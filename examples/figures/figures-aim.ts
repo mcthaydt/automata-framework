@@ -95,10 +95,11 @@ export default defineGame({
         [Hero.id]: figure(wick, { library, motion, state: (c) => watching(c[Hero.id]) }),
         [Orb.id]: box({ width: 0.12, height: 0.12, depth: 0.12 }, { color: 0xe43b44 }),
       },
-      // A fixed camera 3.4 m in front and above, looking at the chest, so the orb shows behind him too.
+      // A fixed camera 3.4 m in front at shoulder height, looking at the chest: the orb shows behind him, and his eyes
+      //   (a pixel each) still read; from much higher they hide under his brow and his front reads as his back.
       scene: (view, _stage, occluders) => {
-        view.camera.position.set(0, 1.9, 3.4)
-        view.camera.lookAt({ x: 0, y: 0.8, z: 0 })
+        view.camera.position.set(0, 1.4, 3.4)
+        view.camera.lookAt({ x: 0, y: 0.9, z: 0 })
         view.environment = { skyColor: 0xc7dcd0, groundColor: 0x3e3546 }
         occluders.box({ min: [-3, -0.1, -3], max: [3, 0, 3] }, 0x8b9bb4)
         return undefined

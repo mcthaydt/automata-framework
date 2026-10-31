@@ -1,4 +1,4 @@
-// figures-clips: Wick walking his square with clips played over the walk: a reach, a look and a flinch
+// figures-clips: Wick walking back and forth along a line with clips played over the walk: a reach, a look and a flinch
 //
 // Shows: clips as data (timed keys into poses, a mask of the parts they move, `once` or `hold`); the sim starts
 //   the next clip every 1.5 s and the view plays it over the gait, so the legs keep walking under a reach of the
