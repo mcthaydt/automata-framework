@@ -96,14 +96,18 @@ function workspacePackagesIn(dir: string): string[] {
 
 /**
  * Where Plus packages live: everything under `packages/`, and each workspace package under `tooling/` (a folder with
- * its own package.json, such as the pipelines platform) and `starters/` (a starter game, such as the Party Racer).
+ * its own package.json, such as the pipelines platform) `starters/` (a starter game, such as the Party Racer) and `kits/` (copy-in source, such as the UI screens).
  * Loose tooling scripts are not packages and are not scanned.
  */
 function scannedRoots(root: string): string[] {
   const roots: string[] = []
   const packagesDir = join(root, 'packages')
   if (existsSync(packagesDir)) roots.push(packagesDir)
-  roots.push(...workspacePackagesIn(join(root, 'tooling')), ...workspacePackagesIn(join(root, 'starters')))
+  roots.push(
+    ...workspacePackagesIn(join(root, 'tooling')),
+    ...workspacePackagesIn(join(root, 'starters')),
+    ...workspacePackagesIn(join(root, 'kits')),
+  )
   return roots
 }
 

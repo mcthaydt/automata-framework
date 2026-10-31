@@ -1,0 +1,45 @@
+{
+  "name": "@mcthaydt/automata-kit-ui-screens",
+  "version": "0.0.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-plus.git",
+    "directory": "kits/ui-screens"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:layout": "vitest run --project layout",
+    "test:parity": "vitest run --project layout",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+  },
+  "peerDependencies": {
+    "@mcthaydt/automata-game": "0.0.4",
+    "@mcthaydt/automata-ui": "0.0.4",
+    "svelte": "^5.57.1"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-content": "0.0.4",
+    "@mcthaydt/automata-game": "0.0.4",
+    "@mcthaydt/automata-testing": "0.0.4",
+    "@mcthaydt/automata-ui": "0.0.4",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/svelte": "5.4.2",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "jsdom": "30.1.1",
+    "playwright": "1.63.0",
+    "svelte": "5.57.3",
+    "svelte-check": "4.7.6",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.3"
+  }
+}

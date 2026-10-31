@@ -235,6 +235,15 @@ describe('coreImportFindings', () => {
     ])
   })
 
+  // PRODUCT.6: a kit (copy-in source under kits/, such as ui-screens) is Plus source that imports core, so it is held to the same rule.
+  it('checks workspace packages under kits/', () => {
+    write('kits/screens/package.json', JSON.stringify({ name: 'screens-kit' }))
+    write('kits/screens/src/screens/A.svelte', "<script>import '@mcthaydt/automata-ui/src/deep'</script>\n")
+    expect(coreImportFindings(root)).toEqual([
+      'kits/screens/src/screens/A.svelte:1: "@mcthaydt/automata-ui/src/deep" is not a public exports entry of a core package',
+    ])
+  })
+
   it('says to run the sync when there are no packs', () => {
     rmSync(join(root, '.core'), { recursive: true })
     expect(() => coreImportFindings(root)).toThrow('run pnpm core:sync')

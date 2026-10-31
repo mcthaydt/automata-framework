@@ -1,0 +1,5 @@
+{
+  "name": "ui-screens",
+  "requires": { "core": ">=0.0.4" },
+  "files": [{ "from": "src/screens/ResultsScreen.svelte", "to": "src/screens/ResultsScreen.svelte" }]
+}

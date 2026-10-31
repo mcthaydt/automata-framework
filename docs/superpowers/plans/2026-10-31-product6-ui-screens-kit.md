@@ -74,9 +74,9 @@ change to core; real-device testing (the Owner's).
 
 ## Steps
 
-- [ ] 1. This plan (first commit); `kits/*` in the workspace and the boundary scan, failing test first.
-- [ ] 2. The kit package, `kit.json` and its manifest tests (red first), the copy-in proof skeleton.
-- [ ] 3. `ResultsScreen`: DOM tests red, then the component; layout test at all sizes and variants.
+- [x] 1. This plan (first commit); `kits/*` in the workspace and the boundary scan, failing test first.
+- [x] 2. The kit package, `kit.json` and its manifest tests (red first), the copy-in proof skeleton.
+- [x] 3. `ResultsScreen`: DOM tests red, then the component; layout test at all sizes and variants.
 - [ ] 4. `LoadingScreen` and `ErrorScreen`: DOM and layout tests, then the components.
 - [ ] 5. `TitleScreen`, `PauseScreen`, `SettingsScreen`: DOM and layout tests, then the components.
 - [ ] 6. Kit rule test, copy-in proof complete, README.
