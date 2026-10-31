@@ -3,10 +3,12 @@
 // entries are read from the core packs Plus installs (.core/packs, P5-D1): a packed manifest's `exports` is the
 // published one, so a core package that is private (runtime and render-pixi until they publish) has no pack and
 // no entry. A private pack Plus needs for its own tests (the framework's evidence tool, a core-packs extra) is
-// allowed in test files only, because it is never published. Every `@mcthaydt/` name that is not a Plus package is core (as in tooling/core/manifest-rules.ts).
+// allowed in test files only, because it is never published. The one exception is the sector format (M6-D17): a
+// private core pack that a private Plus package (`sectors`, private while D-1 stands) ships against, since neither is
+// ever published. A published Plus package may not import it. Every `@mcthaydt/` name that is not a Plus package is core (as in tooling/core/manifest-rules.ts).
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import { plusPackageNames } from '../core/manifest-rules.ts'
 import { parsePacks } from '../core/overrides.ts'
 
@@ -14,6 +16,8 @@ const CORE_SCOPE = '@mcthaydt/'
 const SOURCE_FILE = /\.(?:[mc]?[jt]sx?|svelte)$/
 /** A test file may import a private core pack (the framework's evidence tool); shipped code may not. */
 const TEST_FILE = /\.test\.[mc]?[jt]sx?$/
+/** Private core packs that a private Plus package's shipped code may import as well (M6-D17). */
+const PRIVATE_PACKS_FOR_PRIVATE_PACKAGES: readonly string[] = ['@mcthaydt/automata-sector-format']
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist', '.turbo'])
 
 /**
@@ -103,6 +107,20 @@ function scannedRoots(root: string): string[] {
   return roots
 }
 
+/** The nearest folder above `file` (inside `root`) with a package.json: the Plus package the file belongs to. */
+function owningPackage(root: string, file: string): string | undefined {
+  for (let dir = dirname(file); dir.startsWith(root) && dir !== root; dir = dirname(dir))
+    if (existsSync(join(dir, 'package.json'))) return dir
+  return undefined
+}
+
+/** Whether the package at `dir` says `private: true` (never published). */
+function isPrivatePackage(dir: string | undefined): boolean {
+  if (dir === undefined) return false
+  const manifest: { private?: unknown } = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'))
+  return manifest.private === true
+}
+
 /** True when `specifier` names `name` itself or a path inside it. */
 const isIn = (specifier: string, name: string): boolean =>
   specifier === name || specifier.startsWith(`${name}/`)
@@ -114,13 +132,19 @@ export function coreImportFindings(root: string): string[] {
   const findings: string[] = []
   for (const file of scannedRoots(root).flatMap(sourceFiles)) {
     const where = relative(root, file)
+    const packageRoot = owningPackage(root, file)
     const isTest = TEST_FILE.test(file)
     for (const { specifier, line } of findImports(readFileSync(file, 'utf8'))) {
       if (!specifier.startsWith(CORE_SCOPE) || entries.public.has(specifier)) continue
       if (plusNames.some((name) => isIn(specifier, name))) continue
       if (entries.testOnly.has(specifier)) {
-        if (!isTest)
+        if (isTest) continue
+        if (!PRIVATE_PACKS_FOR_PRIVATE_PACKAGES.some((name) => isIn(specifier, name)))
           findings.push(`${where}:${line}: "${specifier}" is a private core package, for test files only`)
+        else if (!isPrivatePackage(packageRoot))
+          findings.push(
+            `${where}:${line}: "${specifier}" is a private core package, for test files and private Plus packages only`,
+          )
         continue
       }
       findings.push(`${where}:${line}: "${specifier}" is not a public exports entry of a core package`)

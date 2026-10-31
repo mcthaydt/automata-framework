@@ -13,7 +13,12 @@ import { type Git, gitEnv, liveGit, type Shell, syncCore } from './sync-core.ts'
 const COMMIT = 'b7ef19d978d4751eaf08d1374dcfbcf2459d8c2b'
 const OTHER = 'c'.repeat(40)
 const REPOSITORY = 'https://example.invalid/automata-framework.git'
-const PACKED = ['@mcthaydt/automata-physics', '@mcthaydt/automata-sim', '@mcthaydt/evidence']
+const PACKED = [
+  '@mcthaydt/automata-physics',
+  '@mcthaydt/automata-sector-format',
+  '@mcthaydt/automata-sim',
+  '@mcthaydt/evidence',
+]
 const WORKSPACE = ['packages:', '  - packages/*', BEGIN, END, ''].join('\n')
 
 let root: string
@@ -79,7 +84,7 @@ const calls = () => [
   `git checkout ${afDir()} ${REPOSITORY} ${COMMIT}`,
   `pnpm install --frozen-lockfile --ignore-scripts @ ${afDir()}`,
   `pnpm build @ ${afDir()}`,
-  `pnpm packs --out ${packsDir()} --unpack --extra @mcthaydt/evidence --source-commit ${COMMIT} @ ${afDir()}`,
+  `pnpm packs --out ${packsDir()} --unpack --extra @mcthaydt/automata-sector-format --extra @mcthaydt/evidence --source-commit ${COMMIT} @ ${afDir()}`,
 ]
 
 const sync = (fake: Fakes) =>
@@ -90,19 +95,22 @@ describe('syncCore', () => {
     const fake = fakes()
     const result = sync(fake)
     expect(fake.calls).toEqual(calls())
-    expect(result).toEqual({ commit: COMMIT, built: true, packs: 3 })
+    expect(result).toEqual({ commit: COMMIT, built: true, packs: 4 })
   })
 
   it('then points every packed name at its folder', () => {
     sync(fakes())
     expect(workspace()).toContain("  '@mcthaydt/automata-sim': file:.core/packs/automata-sim\n")
     expect(workspace()).toContain("  '@mcthaydt/evidence': file:.core/packs/evidence\n")
+    expect(workspace()).toContain(
+      "  '@mcthaydt/automata-sector-format': file:.core/packs/automata-sector-format\n",
+    )
   })
 
   it('skips the framework work when packs.json already records core.ref', () => {
     writePacks(packsDir(), COMMIT)
     const fake = fakes()
-    expect(sync(fake)).toEqual({ commit: COMMIT, built: false, packs: 3 })
+    expect(sync(fake)).toEqual({ commit: COMMIT, built: false, packs: 4 })
     expect(fake.calls).toEqual([])
   })
 

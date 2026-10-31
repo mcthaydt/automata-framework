@@ -168,6 +168,53 @@ describe('coreImportFindings', () => {
     ])
   })
 
+  // M6-D17: the sector format is a private core pack that a private Plus package (sectors, private while D-1 stands)
+  // ships against; neither is ever published. A published Plus package still may not, and other private packs stay
+  // test-only.
+  it('allows the private sector format in a private Plus package only', () => {
+    write(
+      '.core/packs/packs.json',
+      JSON.stringify({
+        sourceCommit: 'b7ef19d978d4751eaf08d1374dcfbcf2459d8c2b',
+        packs: [
+          {
+            name: '@mcthaydt/automata-sector-format',
+            version: '0.0.0',
+            file: 'mcthaydt-automata-sector-format-0.0.0.tgz',
+            sha256: 'c'.repeat(64),
+            dir: 'automata-sector-format',
+          },
+          {
+            name: '@mcthaydt/evidence',
+            version: '0.0.0',
+            file: 'mcthaydt-evidence-0.0.0.tgz',
+            sha256: 'b'.repeat(64),
+            dir: 'evidence',
+          },
+        ],
+      }),
+    )
+    write(
+      '.core/packs/automata-sector-format/package.json',
+      JSON.stringify({ name: '@mcthaydt/automata-sector-format', private: true, exports: { '.': {} } }),
+    )
+    write(
+      '.core/packs/evidence/package.json',
+      JSON.stringify({ name: '@mcthaydt/evidence', private: true, exports: { './golden': {} } }),
+    )
+    write(
+      'packages/sectors/package.json',
+      JSON.stringify({ name: '@mcthaydt/automata-sectors', private: true }),
+    )
+    write('packages/sectors/src/sim/map.ts', "import { STEP } from '@mcthaydt/automata-sector-format'\n")
+    write('packages/sectors/src/sim/golden.ts', "import { r } from '@mcthaydt/evidence/golden'\n")
+    write('packages/ext/src/shipped.ts', "import { STEP } from '@mcthaydt/automata-sector-format'\n")
+    expect(coreImportFindings(root)).toEqual([
+      'packages/ext/src/shipped.ts:1: "@mcthaydt/automata-sector-format" is a private core package, for test files and private Plus packages only',
+      'packages/sectors/src/sim/golden.ts:1: "@mcthaydt/evidence/golden" is a private core package, for test files only',
+    ])
+  })
+
   // M3.8a: a workspace package under tooling/ (the pipelines platform) is a Plus package too; plain tooling scripts
   // with no package.json of their own (this test's fixtures among them) are not scanned.
   it('checks workspace packages under tooling/, and not loose tooling scripts', () => {
