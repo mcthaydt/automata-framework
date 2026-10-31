@@ -6,16 +6,21 @@
   stays under the finger even when the world's extent changes.
 -->
 <script lang="ts">
-import { EditorShell, Segmented, shellModeOf } from '@mcthaydt/automata-editor-kit'
+import { attachGestures, Button, EditorShell, Segmented, shellModeOf } from '@mcthaydt/automata-editor-kit'
+import { untrack } from 'svelte'
 import type { Camera } from '../../canvas/level-view'
 import type { Project, Size, WorldLayout } from '../../model/project-types'
+import { addLevel } from '../../model/world/level-edits'
 import { setWorldLayout } from '../../model/world/world-layout'
 import { projectHistory } from '../level/edit-history'
 import type { ViewProps } from '../views/view-props'
 import WorldCanvas from './WorldCanvas.svelte'
 import WorldInspector from './WorldInspector.svelte'
+import { createWorldCamera } from './world-camera'
 import { createWorldDrag } from './world-drag'
-import { fitWorld, worldRects } from './world-model'
+import { worldGestures } from './world-gestures'
+import { worldLinks } from './world-links'
+import { fitWorld, levelAt, newLevelInput, uncoveredArea, worldRects } from './world-model'
 
 const { geometry, document: opened, frame, services }: ViewProps = $props()
 
@@ -44,8 +49,9 @@ $effect(() => opened.history.subscribe(() => (project = history?.state)))
 let worldId = $state(history?.state.worlds[0]?.id ?? '')
 let selected = $state<string | undefined>()
 let box = $state.raw<Size>(DEFAULT_BOX)
-/** The camera a drag started with, kept until it ends. */
-let held = $state.raw<Camera | undefined>()
+const worldCamera = createWorldCamera()
+let moved = $state.raw<Camera | undefined>()
+$effect(() => worldCamera.subscribe(() => (moved = worldCamera.camera)))
 let map = $state<HTMLElement>()
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
@@ -56,13 +62,20 @@ const world = $derived(project?.worlds.find((candidate) => candidate.id === worl
 const rects = $derived(
   project === undefined || world === undefined ? [] : worldRects(project, worldId, selected),
 )
-const fitted = $derived(fitWorld(rects, box, MARGIN))
-const camera = $derived(held ?? fitted)
+const links = $derived(project === undefined ? [] : worldLinks(project, rects))
+/** Until the map is measured, the fit the camera will start from. */
+const camera = $derived(moved ?? fitWorld(rects, box, MARGIN))
 /** Where the levels' top and bottom edges fall on the map, in CSS pixels: the layout checks read it to see them centred. */
 const levelsBox = $derived(
   rects.length === 0
     ? undefined
     : `${camera.y + Math.min(...rects.map((rect) => rect.y)) * camera.scale},${camera.y + Math.max(...rects.map((rect) => rect.y + rect.h)) * camera.scale}`,
+)
+/** Where the levels' left and right edges fall on the map: the layout checks read it to see every level in view. */
+const levelsSpan = $derived(
+  rects.length === 0
+    ? undefined
+    : `${camera.x + Math.min(...rects.map((rect) => rect.x)) * camera.scale},${camera.x + Math.max(...rects.map((rect) => rect.x + rect.w)) * camera.scale}`,
 )
 const levels = $derived(
   project === undefined || world === undefined
@@ -96,35 +109,83 @@ $effect(() => {
   return () => observer.disconnect()
 })
 
-function pointOf(event: PointerEvent): { x: number; y: number } {
-  const bounds = map?.getBoundingClientRect()
-  return { x: event.clientX - (bounds?.left ?? 0), y: event.clientY - (bounds?.top ?? 0) }
+const pageBox = (rect: DOMRect) => ({ x: rect.left, y: rect.top, w: rect.width, h: rect.height })
+
+/**
+ * The part of the map no open drawer or sheet covers (plan ED2D.8b decision 2); the whole map in wide, where nothing
+ * covers it, and before the map is in the page.
+ */
+function openArea(): ReturnType<typeof uncoveredArea> | undefined {
+  const element = map
+  if (element === undefined || wide) return undefined
+  const shell = element.closest('[data-testid="world-view"]')
+  const covers = [
+    ...(shell?.querySelectorAll<HTMLElement>(
+      '[data-region="panel"][data-open="true"], [data-region="inspector"][data-open="true"]',
+    ) ?? []),
+  ]
+  return uncoveredArea(
+    pageBox(element.getBoundingClientRect()),
+    covers.map((cover) => pageBox(cover.getBoundingClientRect())),
+  )
 }
 
-function down(event: PointerEvent): void {
-  if (event.button !== 0 || drag === undefined) return
-  try {
-    map?.setPointerCapture?.(event.pointerId)
-  } catch {
-    // jsdom and a pointer that is already gone: the drag still works while the pointer stays over the map.
+// The camera follows the map's box and the drawers: until the person pans or zooms it fits the levels into the part of
+// the map nothing covers (plan ED2D.8a decision 2, ED2D.8b decision 2).
+$effect(() => {
+  const size = box
+  untrack(() => worldCamera.measure(size, rects, openArea()))
+})
+
+// A drawer or sheet opening or closing: measure once it is laid out, and again when its slide ends.
+$effect(() => {
+  void [panelOpen, inspectorOpen, wide]
+  const element = map
+  const page = element?.ownerDocument.defaultView
+  if (element === undefined || page === undefined || page === null) return
+  const refit = (): void => untrack(() => worldCamera.measure(box, rects, openArea()))
+  const frame = page.requestAnimationFrame?.(refit)
+  const shell = element.closest('[data-testid="world-view"]')
+  const slid = (event: Event): void => {
+    if ((event as TransitionEvent).propertyName === 'transform') refit()
   }
-  held = fitted
-  drag.down(pointOf(event))
+  shell?.addEventListener('transitionend', slid)
+  return () => {
+    if (frame !== undefined) page.cancelAnimationFrame(frame)
+    shell?.removeEventListener('transitionend', slid)
+  }
+})
+
+// The gestures go on the map once it is in the page (plan ED2D.8a decision 1).
+$effect(() => {
+  const element = map
+  if (element === undefined || drag === undefined) return
+  const target = {
+    levelAt: (screen: { x: number; y: number }) => levelAt(rects, worldCamera.toWorld(screen)),
+    drag,
+    panBy: (dx: number, dy: number) => worldCamera.panBy(dx, dy),
+    zoomAt: (point: { x: number; y: number }, factor: number) => worldCamera.zoomAt(point, factor),
+  }
+  return attachGestures(element, worldGestures(target, services))
+})
+
+/** Fits the map again once a step that moves every level (a new level, a new layout) has landed. */
+function fitAfter(): void {
+  queueMicrotask(() => worldCamera.fit(rects, openArea()))
 }
 
-function up(): void {
-  drag?.up()
-  held = undefined
-}
-
-function cancel(): void {
-  drag?.cancel()
-  held = undefined
+function addOne(): void {
+  if (history === undefined || project === undefined) return
+  const input = newLevelInput(project, worldId)
+  history.apply('Add level', (current) => addLevel(current, input))
+  selected = input.id
+  fitAfter()
 }
 
 function layout(next: string): void {
   if (history === undefined || world === undefined || next === world.layout) return
   history.apply('Switch layout', (current) => setWorldLayout(current, worldId, next as WorldLayout))
+  fitAfter()
 }
 </script>
 
@@ -164,6 +225,9 @@ function layout(next: string): void {
           </li>
         {/each}
       </ul>
+      {#if history !== undefined}
+        <Button onclick={addOne}>Add level</Button>
+      {/if}
     </div>
   {/snippet}
   {#snippet canvas()}
@@ -177,6 +241,7 @@ function layout(next: string): void {
           <button type="button" aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}
             >Inspector</button
           >
+          <Button onclick={() => worldCamera.fit(rects, openArea())}>Fit</Button>
         </div>
       {/if}
       <div
@@ -185,20 +250,30 @@ function layout(next: string): void {
         aria-label="World map"
         data-testid="world-map"
         data-levels-box={levelsBox}
+        data-levels-span={levelsSpan}
         bind:this={map}
-        onpointerdown={down}
-        onpointermove={(event) => drag?.move(pointOf(event))}
-        onpointerup={up}
-        onpointercancel={cancel}
       >
-        <MapCanvas {rects} {camera} />
+        {#if project !== undefined}<MapCanvas {project} read={services.read} {rects} {camera} {links} />{/if}
       </div>
+      {#if wide}
+        <div class="fit"><Button onclick={() => worldCamera.fit(rects)}>Fit</Button></div>
+      {/if}
       </div>
     {/if}
   {/snippet}
   {#snippet inspector()}
     {#if project !== undefined && history !== undefined && selected !== undefined}
-      <WorldInspector {project} level={selected} {history} />
+      <WorldInspector
+        {project}
+        level={selected}
+        {history}
+        ids={services.ids}
+        onadded={(level) => {
+          selected = level
+          fitAfter()
+        }}
+        onremoved={() => (selected = undefined)}
+      />
     {:else}
       <p class="empty">Choose a level on the map or in the list.</p>
     {/if}
@@ -241,9 +316,14 @@ function layout(next: string): void {
   /* Below wide the drawer buttons sit over the map; the map takes the rest of the canvas. */
   /* A column, so the map takes all the height the drawer buttons leave, with or without them (wide has none). */
   .stage {
+    position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
+  }
+  .fit {
+    position: absolute;
+    inset: auto var(--space-3) var(--space-3) auto;
   }
   .drawers {
     display: flex;

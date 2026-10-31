@@ -14,6 +14,10 @@ export const PLAN_COLORS = {
   accent: 0xe0a54a,
   grid: 0xffffff,
   ruler: 0x8b909a,
+  /** The snap ring and the room Merge would take in (the mockup's `Draw sector` loupe ring). */
+  snap: 0x4fd1c5,
+  /** A target a tap would be refused at. */
+  refused: 0xe5534b,
 } as const
 
 /** Fills for the zones and styles, muted so the walls and things stay readable over them. */

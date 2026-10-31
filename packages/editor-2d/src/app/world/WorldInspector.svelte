@@ -1,34 +1,62 @@
 <!--
   The World view's inspector (plan ED2D.6b step 6): the selected level's name, its place (X, Y, depth), its size with
   the side it grows or shrinks from, and its typed fields. Each change is one undo step through `commitEdit`; a refused
-  value shows its message and the field shows what the project holds. Resize applies at once when nothing is lost and
+  value shows its message and the field shows what the project holds. Below the fields, the level's links and the levels
+  that link to it (ED2D.6c decision 5), then Duplicate and Remove (ED2D.8a decision 3): Remove asks first, saying how
+  many links from other levels will break, and is off on a project's last level. Resize applies at once when nothing is lost and
   asks first, listing the cells per layer, when painted cells would fall outside (spec §13).
 -->
 <script lang="ts">
 import type { EditEvent } from '@mcthaydt/automata-editor-kit'
 import { Button, Dialog, Segmented, Stepper } from '@mcthaydt/automata-editor-kit'
+import type { IdSource } from '../../model/ids'
 import type { Project, Size } from '../../model/project-types'
-import { renameLevel } from '../../model/world/level-edits'
+import { duplicateLevel, removeLevel, renameLevel } from '../../model/world/level-edits'
 import { moveLevelInWorld, setLevelDepth } from '../../model/world/level-placement'
 import { type AnchorSide, resizeLevel, resizeLevelLoss } from '../../model/world/level-resize'
 import FieldEditor from '../level/FieldEditor.svelte'
 import { commitEdit, commitField } from '../level/field-commit'
 import { levelInspector } from '../level/inspector-model'
 import type { EditHistory } from '../level-editor'
+import { levelLinks } from './world-links'
+import { copyLevelInput, linksInto } from './world-model'
 
 interface Props {
   project: Project
   level: string
   history: EditHistory
+  ids: IdSource
+  /** A level was added (a duplicate): the view selects it and fits the map. */
+  onadded: (level: string) => void
+  /** The level was removed: the view clears the selection. */
+  onremoved: () => void
 }
 
-const { project, level, history }: Props = $props()
+const { project, level, history, ids, onadded, onremoved }: Props = $props()
 
 const found = $derived(project.levels.find((candidate) => candidate.id === level))
 const placement = $derived(
   project.worlds.flatMap((world) => world.placements).find((candidate) => candidate.level === level),
 )
 const fields = $derived(levelInspector(project, level).fields)
+const linked = $derived(levelLinks(project, level))
+const breaking = $derived(linksInto(project, level))
+let removing = $state(false)
+
+function duplicate(): void {
+  const copy = copyLevelInput(project, level)
+  const result = commitEdit(history, 'Duplicate level', (current) =>
+    duplicateLevel(current, level, copy, ids),
+  )
+  if (result.ok) onadded(copy.id)
+  else message = result.message
+}
+
+function remove(): void {
+  const result = commitEdit(history, 'Remove level', (current) => removeLevel(current, level))
+  if (result.ok) onremoved()
+  else message = result.message
+}
 const palette = $derived([
   ...new Set(
     project.defs.entities.flatMap((def) => (def.color?.startsWith('#') === true ? [def.color] : [])),
@@ -165,7 +193,41 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
         oncommit={(value) => commitField(history, { kind: 'level', level }, row.id, value)}
       />
     {/each}
+    <h3 class="eyebrow">Links</h3>
+    {#if linked.out.length === 0}
+      <p class="quiet">No links from this level.</p>
+    {:else}
+      <ul class="links" aria-label="Links">
+        {#each linked.out as link, index (index)}
+          <li>{`${link.label} → ${link.to}`}</li>
+        {/each}
+      </ul>
+    {/if}
+    <p class="quiet">{linked.from.length === 0 ? 'Nothing links to this level.' : `Linked from: ${linked.from.join(', ')}`}</p>
+    <div class="actions">
+      <Button onclick={duplicate}>Duplicate</Button>
+      <Button variant="danger" disabled={project.levels.length <= 1} onclick={() => (removing = true)}>Remove</Button>
+    </div>
   </div>
+  <Dialog open={removing} title={`Remove ${found.name}?`} onclose={() => (removing = false)}>
+    <p>
+      {breaking === 0
+        ? 'Nothing links here from another level.'
+        : breaking === 1
+          ? '1 link leads here. It will show in Checks as broken.'
+          : `${breaking} links lead here. They will show in Checks as broken.`}
+    </p>
+    {#snippet actions({ close })}
+      <Button onclick={close}>Cancel</Button>
+      <Button
+        variant="danger"
+        onclick={() => {
+          close()
+          remove()
+        }}>Remove</Button
+      >
+    {/snippet}
+  </Dialog>
   <Dialog open={confirming} title={`Resize ${found.name}?`} onclose={() => (confirming = false)}>
     <p>These cells fall outside the new size and are dropped:</p>
     <ul>
@@ -212,5 +274,36 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
     margin: 0;
     color: var(--color-state-bad);
     font: var(--text-body-13);
+  }
+  .eyebrow {
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-dim);
+    font: var(--text-eyebrow-11);
+    text-transform: uppercase;
+  }
+  .links {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .links li {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-field);
+    color: var(--color-text-primary);
+    font: var(--text-mono-12);
+  }
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+  .quiet {
+    margin: 0;
+    color: var(--color-text-dim);
+    font: var(--text-label-12);
   }
 </style>

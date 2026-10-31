@@ -2,7 +2,14 @@ import { autoDetectRenderer, type Container, Rectangle, type Renderer } from 'pi
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { cellsPng } from '../testing/png'
 import { createColorResolver } from './colors'
-import type { IntChunk, LayerDraw, LevelDrawList, TileChunk, TileDraw } from './draw/draw-list-types'
+import type {
+  IntChunk,
+  LayerDraw,
+  LevelDrawList,
+  LinkDraw,
+  TileChunk,
+  TileDraw,
+} from './draw/draw-list-types'
 import { createLevelScene, type LevelScene } from './level-scene'
 import { createTextureManager, type TextureManager } from './textures.manager'
 
@@ -97,6 +104,7 @@ const list = (layers: readonly LayerDraw[], patch: Partial<LevelDrawList> = {}):
   grid: undefined,
   footprint: undefined,
   selection: [],
+  links: [],
   ...patch,
 })
 const sceneOf = () => {
@@ -192,6 +200,51 @@ describe('level scene: what it draws', () => {
     expect(colorAt(s.root, 20, 12)).not.toBe('#000000')
     expect(colorAt(s.root, 40, 12)).toBe('#000000')
     expect(colorAt(s.root, 16, 16)).toBe('#e0a54a')
+  })
+})
+
+describe('level scene: links (plan ED2D.6c decision 4)', () => {
+  const link = (patch: Partial<LinkDraw> = {}): LinkDraw => ({
+    id: 'a',
+    field: 'target',
+    from: { x: 8, y: 8 },
+    label: 'Inn · Door',
+    color: '#ff0000',
+    selected: false,
+    to: undefined,
+    ...patch,
+  })
+
+  it('draws a chip in the source colour at the source, the accent when selected, and a line to a target here', () => {
+    const s = sceneOf()
+    s.update(list([], { links: [link()] }))
+    const chip = s.root.children.at(-1)
+    expect(chip?.children.length).toBe(1)
+    s.update(list([], { links: [link({ selected: true, to: { x: 56, y: 24 } })] }))
+    // On the line from (8, 8) to (56, 24), above the chip that starts 6 px below and right of the source.
+    expect(colorAt(s.root, 20, 12)).toBe('#e0a54a')
+    s.update(list([], { links: [] }))
+    expect(s.root.children.at(-1)?.children.length).toBe(0)
+  })
+})
+
+describe('level scene: a link near the right edge', () => {
+  it('puts its chip on the left of the source, so it stays inside the level', () => {
+    const s = sceneOf()
+    const near = {
+      id: 'a',
+      field: 'target',
+      from: { x: 60, y: 8 },
+      label: 'Inn',
+      color: '#ff0000',
+      selected: false,
+      to: undefined,
+    }
+    s.update(list([], { links: [near] }))
+    const tag = s.root.children.at(-1)?.children[0]?.children.at(-1)
+    if (tag === undefined) throw new Error('no chip')
+    expect(tag.x + tag.width).toBeLessThanOrEqual(60)
+    expect(tag.x).toBeGreaterThanOrEqual(0)
   })
 })
 

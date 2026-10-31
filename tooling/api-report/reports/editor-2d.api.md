@@ -886,6 +886,7 @@ interface LevelDrawList {
     readonly selection: readonly (Bounds & {
         readonly id: string;
     })[];
+    readonly links: readonly LinkDraw[];
 }
 ```
 

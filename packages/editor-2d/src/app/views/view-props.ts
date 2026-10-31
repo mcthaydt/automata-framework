@@ -1,3 +1,4 @@
+import type { Workspace } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import type { Component, Snippet } from 'svelte'
 import type { DrawView } from '../../canvas/draw/draw-list-types'
@@ -5,6 +6,7 @@ import type { Camera } from '../../canvas/level-view'
 import type { IdSource } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import type { OpenDocument } from '../editor-app'
+import type { WorldLink } from '../world/world-links'
 import type { WorldRect } from '../world/world-model'
 
 // What every rail destination is given (plan ED2D.4c4a decision 1). The document screen draws the parts every view
@@ -45,12 +47,20 @@ export interface ViewServices {
   readonly locate?: ((path: string) => void) | undefined
   /** The world map; the Pixi `WorldCanvas` when absent. jsdom has no WebGL, so the DOM tests pass a stand-in. */
   readonly worldCanvas?: Component<WorldCanvasProps> | undefined
+  /** Where the Export view writes: the document's store (a folder store takes Write to folder) and the downloads. */
+  readonly workspace?: Pick<Workspace, 'store' | 'exports' | 'persistent'> | undefined
 }
 
 /** What the World view hands its map (`WorldCanvas.svelte`'s props). */
 export interface WorldCanvasProps {
+  /** The project the levels' pictures are drawn from (ED2D.8b). */
+  readonly project: Project
+  /** Reads a workspace file's bytes, for the pictures' images. */
+  readonly read: (path: string) => Promise<Uint8Array | undefined>
   readonly rects: readonly WorldRect[]
   readonly camera: Camera
+  /** The links between the levels (ED2D.6c), drawn over them. */
+  readonly links: readonly WorldLink[]
 }
 
 /** What the Level view hands its canvas (`LevelCanvas.svelte`'s props). */
