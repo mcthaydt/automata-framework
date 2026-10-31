@@ -91,7 +91,7 @@ and the share link (.9); the determinism row (.10); the layout pass and the late
 - [x] 9. e2e: "the compile worker starts with the editor, not before": no worker script request before a tap or
   focus on the code; one after. And the polite announcement: a diagnostic still standing after 1 s is in the live
   region once.
-- [ ] 10. Unit `site-checks.test.ts`: a worker over 125,000 B gzip fails; a page naming the worker file fails; a
+- [x] 10. Unit `site-checks.test.ts`: a worker over 125,000 B gzip fails; a page naming the worker file fails; a
   build without the worker fails. Fails: no `checkCompileWorker`. Then the check, wired into `check-site.ts`.
 - [ ] 11. Gates.
 
@@ -131,3 +131,7 @@ once.
   worker already started with the editor); the announcement test failed with no region. The region is
   `.playground-announce` because CodeMirror has its own polite `.cm-announced`. `ANNOUNCE_AFTER_MS` lives in
   `status.ts` with the texts, for the same entry-size reason as `diagnosticText`. Chromium and WebKit: 20 of 20.
+- Step 10: the five cases failed first (`checkCompileWorker` is not a function). The worker is found by name under
+  `_app/immutable/workers/` because Vite leaves workers out of the manifest. `check:site`: the compile worker is
+  123,049 B gzip (budget 125,000; the spec measured 119,666 B with esbuild's minifier), and the editor chunk
+  151,301 B (141.8 kB before `@codemirror/lint`; budget 175,000).

@@ -355,3 +355,26 @@ export function checkEditorChunk(root: string, manifest: Record<string, Manifest
   }
   return { failures, gzipBytes }
 }
+
+/** The compile worker's gzip budget: `@babel/parser` and sucrase (spec §10.1). */
+export const MAX_COMPILE_WORKER_GZIP_BYTES = 125_000
+const WORKERS_DIR = '_app/immutable/workers'
+
+/**
+ * The compile worker (WEB.PLAY.7) starts with the editor, so no page names it, and it stays within
+ * MAX_COMPILE_WORKER_GZIP_BYTES. Vite emits a worker under `_app/immutable/workers/` and leaves it out of the manifest,
+ * so it is found by its name.
+ */
+export function checkCompileWorker(root: string): { failures: string[]; gzipBytes: number } {
+  const dir = join(root, WORKERS_DIR)
+  const files = existsSync(dir) ? readdirSync(dir).filter(name => /^compile\.worker-[\w-]+\.js$/.test(name)).map(name => `${WORKERS_DIR}/${name}`) : []
+  if (files.length === 0) return { failures: [`the build has no compile worker under ${WORKERS_DIR}/`], gzipBytes: 0 }
+  const failures: string[] = []
+  const gzipBytes = Math.max(...files.map(file => gzipSync(readFileSync(join(root, file)), { level: 9 }).length))
+  if (gzipBytes > MAX_COMPILE_WORKER_GZIP_BYTES) failures.push(`the compile worker is ${gzipBytes} bytes gzip, over the ${MAX_COMPILE_WORKER_GZIP_BYTES} byte budget`)
+  for (const page of builtPages(root)) {
+    const html = readFileSync(join(root, page), 'utf8')
+    for (const file of files) if (html.includes(file)) failures.push(`${page}: names ${file}, the compile worker, which starts only with the editor`)
+  }
+  return { failures, gzipBytes }
+}
