@@ -2,8 +2,7 @@
 // sectors.ts at 92e6704) on the same inputs; the shipped blockouts are compared with what that code made of them
 // (the golden) and checked with the collider case of Last Light's tests/scenes.test.ts.
 import { describe, expect, it } from 'vitest'
-import type { SectorDef } from '../format/expand'
-import type { WallDef } from '../format/sector.schema'
+import { type SectorDef, STEP, type WallDef } from '../format/sector.schema'
 import { BLOCKOUT_NAMES, expandedBlockout, loadGeometryGolden, piecesShape } from '../testing/geometry-golden'
 import { room } from '../testing/toy-sectors'
 import {
@@ -17,7 +16,6 @@ import {
   type ResolvedMap,
   resolveMap,
   resolveSectors,
-  STEP,
   walkBlocker,
 } from './sectors'
 

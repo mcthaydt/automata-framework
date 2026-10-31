@@ -44,8 +44,8 @@ describe('./camera-view', () => {
     expect(entry.MAX_CAMERA_TURN).toBe(8_192)
   })
 
-  it('imports nothing but zod: no pixi.js, no @pixi/3d', () => {
+  it('imports nothing but zod and the sector format: no pixi.js, no @pixi/3d', () => {
     const imports = [...bareImports(resolve(import.meta.dirname, 'camera-view.ts'))].sort()
-    expect(imports).toEqual(['zod'])
+    expect(imports).toEqual(['@mcthaydt/automata-sector-format', 'zod'])
   })
 })
