@@ -11,7 +11,7 @@ engineStrict: true
 # `pnpm core:sync` owns everything between the two marker lines: it points each core package at its unpacked
 # folder in .core/packs. Do not edit the block by hand; move core.ref and run the sync.
 # core-overrides:begin
-# Written by `pnpm core:sync` from .core/packs/packs.json (framework commit e723be688a49fb7142e46d44cafb3179cb18254b).
+# Written by `pnpm core:sync` from .core/packs/packs.json (framework commit 23b031501934a98550ac09f577a9824df2469ea4).
 overrides:
   '@mcthaydt/automata': file:.core/packs/automata
   '@mcthaydt/automata-check-boundaries': file:.core/packs/automata-check-boundaries

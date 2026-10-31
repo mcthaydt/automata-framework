@@ -578,7 +578,7 @@ packages:
   '@mcthaydt/automata-ui@file:.core/packs/automata-ui':
     resolution: {directory: .core/packs/automata-ui, type: directory}
     peerDependencies:
-      '@mcthaydt/automata-testing': 0.0.3
+      '@mcthaydt/automata-testing': 0.0.4
       svelte: ^5.57.1
     peerDependenciesMeta:
       '@mcthaydt/automata-testing':
