@@ -2,8 +2,8 @@
 
 - **Task:** ED3D.6g in [02](../../02-master-delivery-plan.md), second part (after ED3D.6g-a, #341, on whose branch this is built). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flow 2 (Pencil: the loupe shows the corner under the tip, the nudge pad moves it by one grid step), §9 (`Draw a sector`: loupe, nudge pad, the point list; loupe and nudge only for touch and Pencil), §10 (placed clear of the contact point and of the screen edge), §13 (ED3-c, ED3-d). Mockup `Draw sector · landscape`.
 - **Lane:** editors. **Depends on:** ED3D.6g-a (#341), ED3D.6a (`SectorToolView.loupe`, `nudge`).
-- **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 7 of 9 steps.
+- **Status:** Implemented and locally checked 2026-10-31; not CI verified; no real iPad run. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
+- **Progress:** 9 of 9 steps.
 
 ## Scope
 
@@ -30,9 +30,9 @@
 - [x] 4. `createPlanPicture(editor)(size, camera)` (unit): a camera centred on a point of the hall at four times the zoom puts the hall's fill under the middle of a 140 px paint.
 - [x] 5. Renderer (Chromium canvas test, red first): a lens drawn at (x, y) shows its own paint inside the circle (its centre pixel is the lens paint's fill), the plan outside it, and an accent ring.
 - [x] 6. `NudgePad` and `NewSectorCard` (DOM, red first): the arrows call `nudge(±1, 0)` and `(0, ±1)`, the check closes, each is 44 px (48 for the check) and named; the card lists the points with three decimals and the edge lengths, and the cursor row.
-- [x] 7. `PlanCanvas` and `DocumentFrame` (DOM): with a Pencil the pad shows and its arrow moves the last corner; with a mouse it does not; the lens is handed to the renderer while `view.loupe` is set; the card shows in the inspector at `wide` while the Sector tool is chosen.
-- [ ] 8. Layout (three browsers): the pad and the lens on screen, clear of the edges and the status line; ED3-c (a rectangle against the hall's top wall: a portal is offered, Portal adds both portals, the checks pill stays clear) and ED3-d (a polygon over the hall: refused, naming the hall, nothing added), placing points from the rulers' metre ticks. Review images beside the mockup in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-b/`.
-- [ ] 9. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity`. No changeset (private package).
+- [x] 7. `PlanCanvas` and `DocumentFrame` (DOM): with a Pencil the pad shows and its arrow moves the last corner; with a mouse it does not; the lens is handed to the renderer while `view.loupe` is set; the card shows over the plan at `wide` while the Sector tool is chosen.
+- [x] 8. Layout (three browsers): the pad and the lens on screen, clear of the edges and the status line; ED3-c (a rectangle against the hall's top wall: a portal is offered, Portal adds both portals, the checks pill stays clear) and ED3-d (a polygon over the hall: refused, naming the hall, nothing added), placing points from the status line's pointer read-out. Review images beside the mockup in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-b/`.
+- [x] 9. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity`. No changeset (private package).
 
 ## Execution log
 - 2026-10-31, step 2: `loupe-place.test.ts` red (module missing), then 4 of 4.
@@ -41,3 +41,11 @@
 - 2026-10-31, step 5: the lens test red (the lens's middle was the background), then 7 of 7 in Chromium. The renderer now renders a stage: the plan's `Graphics`, then the lens (background disc, the lens paint masked to the circle, the accent ring).
 - 2026-10-31, step 6: `NudgePad` and `NewSectorCard` DOM tests red (components missing), then 4 of 4. The pad's middle is named "Close" inside its "Nudge the last corner" group, since the draw actions already have a "Close sector".
 - 2026-10-31, step 7: `app/loupe.ts` (`loupeOf`, `nudgePadOf`) because `ui/` may not import `view/`: `loupeOf` red (module missing), then green; `nudgePadOf`'s test was written first but its red run was skipped (it was added to the same file in one edit), 3 of 3. Three new `PlanCanvas` DOM tests red (no pad, no lens), then 12 of 12; the `DocumentFrame` card test red, then green. Deviation: the card shows in the inspector at `wide` while the Sector tool is chosen, not only while drawing, so choosing the tool (not the first corner) narrows the plan; below `wide` the plan keeps its width. editor-3d `src/ui` DOM 77 of 77; `svelte-check` 0 errors.
+- 2026-10-31, step 8, what the layout runs found and what changed:
+  - Putting the New sector card in the inspector column narrowed the plan when the tool was chosen and cut the dock off at `wide`; the card now floats over the plan's right side below the toolbar row (at 900×600 it first sat at the top and covered Split and Merge in all three browsers).
+  - A rectangle closes on a tap on its second corner; the card said "point 1". It now takes the shape.
+  - The offer's button was named "Portal", as the rail's Portal tool is; the first ED3-c run pressed the tool, which finished the step with the wall solid and the shared-walls check rightly reported one problem. It is now "Make portal". Headless, the same rectangle and accepted offer pass every check (probe run, then removed).
+  - The journeys read plan points from the rulers first; Firefox here has no WebGL2, so the plan never draws and has no rulers. They now calibrate from the status line's pointer read-out, which works either way. Where the plan cannot draw, the nudge-pad journey asserts the "needs WebGL2" notice and no pad, instead of skipping.
+  - An error of mine on the way: a `git checkout -- .` meant to clean up a probe file discarded the uncommitted card edits; they were re-applied from the session and committed (802e4fc0) with the DOM tests at 79 of 79.
+  - Then `draw-journeys.layout.test.ts` and `sector-tools.layout.test.ts` in Chromium, WebKit and Firefox: 96 passed, 6 skipped (phones). Review images in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-b/` with the mockup and a README of every difference.
+- 2026-10-31, step 9: biome and `pnpm format` clean; `TURBO_FORCE=true pnpm check` exit 0; editor-3d `test:parity` (layout, Chromium, WebKit, Firefox): 336 passed, 6 skipped (phone journeys). No changeset (private package).
