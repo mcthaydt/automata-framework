@@ -13,7 +13,7 @@ describe('Documentation generation', () => {
       expect(docs.find(doc => doc.slug === 'capabilities')?.content).toContain('MIT')
       const stored = JSON.parse(readFileSync(join(output, 'src/data/docs.json'), 'utf8'))
       expect(stored).toEqual(docs)
-      const full = readFileSync(join(output, 'static/llms-full.txt'), 'utf8')
+      const full = readFileSync(join(output, 'static/llms-guides.txt'), 'utf8')
       expect(full).toContain('configurable player start')
       expect(full).not.toMatch(/STARTER_PLACEHOLDER|developer preview|private dependencies/)
     } finally { rmSync(output, { recursive: true, force: true }) }

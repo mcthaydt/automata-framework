@@ -2,7 +2,7 @@
 
 - **Row:** framework `docs/02-master-delivery-plan.md`, DX.10a (DX.10 slice 1). Prerequisites DX.9w (merged, website #4) and WEB.S1 (`framework.ref` is `f8023a9`).
 - **Spec:** framework DX spec `docs/superpowers/specs/2026-10-16-dx-small-games-ai-native-design.md` §3.10 and §11 (restoration rules); the site's ledger `docs/2026-10-14-cut-claims.md`.
-- **Status:** drafted 2026-10-31. **Progress:** 0 of 9 steps.
+- **Status:** drafted 2026-10-31. **Progress:** 2 of 9 steps (1, 8).
 - **Branch:** `claude/website-DX.10a-restore-claims`.
 
 ## Rules every step follows
@@ -34,14 +34,14 @@
 
 ## Steps
 
-- [ ] **1. Ledger skeleton.** Add the empty Restored section and its column set (wording, where, proof, test) to the ledger. No copy change.
+- [x] **1. Ledger skeleton.** Add the empty Restored section and its column set (wording, where, proof, test) to the ledger. No copy change.
 - [ ] **2. Determinism wording and generated hashes.** Test first: the homepage and `/inside` say determinism holds for the same code, content, seed, initial state and commands, and link `/proof`; no "complete" or "100%"; the hashes shown are only the evidence file's (existing guard). Then the copy.
 - [ ] **3. The parity run, revision and scenario.** Test first: `/proof` names the CI workflow and job, the run link, the revision and each golden's scenario and tick count, all read from `EVIDENCE`; the copy says "on each push to `main`" only if AF's `ci.yml` at `framework.ref` runs parity on push (check the file and quote its line in the ledger), otherwise "in the parity job of the linked run".
 - [ ] **4. Bounded AI-integration and CSP wording naming `compileHeaders`.** Test first: `/ai` says instructions are context, not enforcement, and names `compileHeaders` as the function that renders a game's headers, with a link to its source at `framework.ref`; no "guarantee" or "100% compliant".
 - [ ] **5. Typed `BootError` docs.** Test first: the boot-errors doc lists exactly the tagged errors api-index reports for `@mcthaydt/automata-runtime` (read from `src/data/api-index.json`), each with its doc comment; no "zero untrapped crashes".
 - [ ] **6. The 780×270 input journeys (M4.10).** Test first: the copy says the keyboard, touch and gamepad journeys run at 780×270 in Chromium, WebKit and Firefox under the fake host, links the matrix spec at `framework.ref`, and says real-device acceptance is separate and open.
 - [ ] **7. Hot-reload journey and diagnostics; the restart journey.** Test first: the copy describes the playground's live update, its file/line/column diagnostics and its Restart, bounded to the playground, linking the example page; the content hash is not called the sim hash.
-- [ ] **8. `llms-full.txt` and the API reference from api-index.** Test first (`tests/sync-api-index.test.ts`): a valid sample copies byte for byte; a revision other than `framework.ref` writes nothing; a missing file is named. Then `scripts/sync-api-index.ts`, wire it into `pnpm sync`, drop the hand-written `llms-full.txt` from `sync-docs.ts`, and retire "Complete plain-text documentation" / "Exhaustive" only to the extent the generated corpus supports (the label says what the corpus is).
+- [x] **8. `llms-full.txt` and the API reference from api-index.** Test first (`tests/sync-api-index.test.ts`): a valid sample copies byte for byte; a revision other than `framework.ref` writes nothing; a missing file is named. Then `scripts/sync-api-index.ts`, wire it into `pnpm sync`, drop the hand-written `llms-full.txt` from `sync-docs.ts`, and retire "Complete plain-text documentation" / "Exhaustive" only to the extent the generated corpus supports (the label says what the corpus is).
 - [ ] **9. Gates.** `pnpm check`, `pnpm test`, `pnpm build` (restore `src/data/first-change-proof.json` after), `pnpm check:site`, the QB.3 browser gates on the changed pages in Chromium and WebKit, Lighthouse on the changed pages within the existing budgets, and owner-visual images under `docs/evidence/owner-visual/2026-10-31-dx-10a/` with a README.
 
 ## Owner gate
@@ -51,3 +51,4 @@ Acceptance of the restored copy (row DX.10a). Never ticked by an agent.
 ## Execution log
 
 - 2026-10-31: plan drafted at website `a7cc68e`, framework reference `f8023a9` (AF clone read at `1590f03`). DX.9w's evidence re-sync is blocked (every AF `main` push run checked from 2026-10-30 13:27Z to 2026-10-31 03:43Z is cancelled; the run at `f8023a9`, 41091073745, has no `evidence` artifact), so steps 2 and 3 render the current evidence file (run 39113372614 at `c2cca72`) and must not describe it as the `f8023a9` run.
+- 2026-10-31, step 8 (deviation from the Files list, for the Owner's veto): instead of folding the framework text into the site's `llms-full.txt`, `/llms-full.txt` is now the framework's generated file byte for byte (DX spec §2.3: generated from a defined corpus), `/llms-api.txt` is its API reference, and the site's former text (guides, task prompts, selected API examples) moved unchanged to `/llms-guides.txt`; `llms.txt` lists all three. `src/data/api-index.json` records only the commit, version, export count and digests (`api.json` is 565 kB and nothing on the site needs it yet; step 5 will add what it needs). The framework reference checkout needed `pnpm install` and `pnpm build` before `pnpm api-index` (900 exports, 30 entry points, 0.0.3, 0 undocumented). Red first: `tests/sync-api-index.test.ts` failed on the missing module, and each guard removed in turn (the `framework.ref` check, the missing-file check, the full-ends-with-reference check) turned its test red; `tests/api-index-published.test.ts` failed on the missing record; the cheatsheet pin failed on the old link. `tests/llms-txt.test.ts` and `tests/docs-generation.test.ts` now read the guide text from `llms-guides.txt`, where it lives; their assertions are unchanged.

@@ -4,6 +4,9 @@ import TerminalBox from '../src/lib/components/TerminalBox.svelte'
 import Header from '../src/lib/components/Header.svelte'
 import CommandMenu from '../src/lib/components/CommandMenu.svelte'
 import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
+import Cheatsheet from '../src/routes/cheatsheet/+page.svelte'
+import docs from '../src/data/docs.json'
+import apiIndex from '../src/data/api-index.json'
 import { resolve } from 'node:path'
 import { findHardCodedHashes, siteSourceFiles } from './helpers/hard-coded-hashes'
 
@@ -67,3 +70,18 @@ describe('Evidence, not typed numbers (DX.9w)', () => {
   })
 })
 
+// Each claim restored from docs/2026-10-14-cut-claims.md is pinned here with its proof link (DX.10a).
+describe('Restored claims (DX.10a)', () => {
+  it('labels the generated API reference as complete for the packages it was generated from, and links it', () => {
+    const view = render(Cheatsheet)
+    expect(view.getByRole('link', { name: 'Complete generated reference (plain text)' }).getAttribute('href')).toBe('/llms-api.txt')
+    expect(apiIndex.exports).toBeGreaterThan(0)
+  })
+
+  it('says what each plain-text file holds and that none of them is the framework source', () => {
+    const rules = docs.find(doc => doc.slug === 'ai-rules')!.content
+    expect(rules).toContain("llms-full.txt, the framework's defined documentation corpus followed by its complete API reference, and llms-api.txt, that reference alone, both generated from the package declarations by the framework's API index")
+    expect(rules).toContain('None of them is the framework source.')
+    expect(rules).not.toMatch(/complete plain-text documentation|exhaustive/i)
+  })
+})

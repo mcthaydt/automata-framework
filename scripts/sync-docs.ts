@@ -9,6 +9,7 @@ import { AI_CONTEXT_FILES, AI_PROJECT_PROMPT, AI_RULES, AI_TASKS, AI_REVIEW_CHEC
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const websiteDir = resolve(__dirname, '..')
+const apiIndex = JSON.parse(readFileSync(join(websiteDir, 'src/data/api-index.json'), 'utf8')) as { version: string }
 
 export interface TocItem {
   id: string
@@ -109,7 +110,7 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "AI Coding Agent Rules",
     "category": "Guidance",
     "description": "Project context for agents, followed by verification.",
-    "content": "# AI Coding Agent Rules\n\n## Start from source\n\nInstall Superpowers and the official PixiJS v8 skills, then have the agent report which guidance it loaded. See [Install agent skills](/docs/agent-setup). Give the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.\n\n## Boundaries\n\n- Only simulation systems mutate gameplay state during a run.\n- Effect runs outside the sim.\n- Avoid dynamic evaluation; verify the actual host CSP.\n- Presentation interpolates between ticks and observes render deltas.\n- Report the checks performed and the gates still open.\n\n## Verify the result\n\nInstructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.\n\n## Plain-text context\n\nThe website publishes llms.txt as an index and llms-full.txt as a combined text reference. They contain curated introductory documentation, not the complete framework source."
+    "content": "# AI Coding Agent Rules\n\n## Start from source\n\nInstall Superpowers and the official PixiJS v8 skills, then have the agent report which guidance it loaded. See [Install agent skills](/docs/agent-setup). Give the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.\n\n## Boundaries\n\n- Only simulation systems mutate gameplay state during a run.\n- Effect runs outside the sim.\n- Avoid dynamic evaluation; verify the actual host CSP.\n- Presentation interpolates between ticks and observes render deltas.\n- Report the checks performed and the gates still open.\n\n## Verify the result\n\nInstructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.\n\n## Plain-text context\n\nThe website publishes llms.txt as an index; llms-full.txt, the framework's defined documentation corpus followed by its complete API reference, and llms-api.txt, that reference alone, both generated from the package declarations by the framework's API index; and llms-guides.txt, this site's guides and task prompts. None of them is the framework source."
   },
   {
     "id": "capabilities",
@@ -167,15 +168,17 @@ ${docs.map((d) => `- [${d.title}](/docs/${d.slug}): ${d.description}`).join('\n'
 
 ## AI & Agent Skills
 - [Automata AI Portal](/ai): Project context, architectural rules, and verification guidance.
-- [Full Text Docs](/llms-full.txt): Guides, selected API contracts, examples, and task prompts for coding agents.
+- [Full documentation](/llms-full.txt): The framework's defined documentation corpus and its complete API reference for version ${apiIndex.version}, generated from the package declarations.
+- [API reference](/llms-api.txt): Every export of the ${apiIndex.version} packages with its signature and doc comment, generated from the package declarations.
+- [Site guides](/llms-guides.txt): The guides, task prompts and selected API examples on this site.
 
 ## API Reference
 ${CHEATSHEET_MODULES.map(module => `- [${module.title}](/cheatsheet#${module.id}): ${module.description}`).join('\n')}
 `
   writeFileSync(join(staticDir, 'llms.txt'), llmsIndex.trim() + '\n')
 
-  // 3. Generate static/llms-full.txt
-  const llmsFull = `# Automata Framework — Documentation and API Reference for Coding Agents
+  // 3. Generate static/llms-guides.txt (static/llms-full.txt and llms-api.txt are the framework's, from scripts/sync-api-index.ts)
+  const llmsGuides = `# Automata Framework — Site Guides for Coding Agents
 
 > Automata is a deterministic 2D game framework for the modern web and Ruken platform.
 > Strict Core Laws: Koota ECS determinism, Effect outside sim, Zero Eval CSP, PixiJS 2D sub-tick alpha interpolation.
@@ -235,12 +238,12 @@ The current checkout's instructions and TypeScript definitions take precedence.
 
 ${CHEATSHEET_MODULES.map(module => `## ${module.title}\nImport: ${module.name}\nURL: /cheatsheet#${module.id}\nSource: https://github.com/mcthaydt/automata-framework/blob/main/${module.sourcePath}\n\n${module.description}\n\n\`\`\`ts\n${module.example}\n\`\`\`\n\n${module.entries.map(entry => `### ${entry.name}\n\n${entry.description}\n${entry.receiver ? `Instance method on ${entry.receiver}.\n` : ''}\n\`\`\`ts\n${entry.signature}\n\`\`\`\nReturns: ${entry.returnType}\n${(entry.parameters ?? []).map(parameter => `- ${parameter.name} (${parameter.type}): ${parameter.desc}`).join('\n')}\n${(entry.notes ?? []).map(note => `- ${note}`).join('\n')}`).join('\n\n')}`).join('\n\n---\n\n')}
 `
-  writeFileSync(join(staticDir, 'llms-full.txt'), llmsFull.trim() + '\n')
+  writeFileSync(join(staticDir, 'llms-guides.txt'), llmsGuides.trim() + '\n')
 
   return docs
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   syncDocs()
-  console.log('Successfully synced docs to src/data/docs.json, static/llms.txt, and static/llms-full.txt')
+  console.log('Successfully synced docs to src/data/docs.json, static/llms.txt, and static/llms-guides.txt')
 }
