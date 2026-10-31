@@ -1,12 +1,25 @@
 <script lang="ts">
   import CodeBlock from './CodeBlock.svelte'
-  import type { ProjectSource, SourceFile } from '../../data/projects'
+  import type { DeferredFile, ProjectSource, SourceFile } from '../../data/projects'
 
   type Guide = { label: string; path: string; description: string }
-  type Node = { name: string; file?: SourceFile; children: Node[] }
+  type Node = { name: string; file?: SourceFile | DeferredFile; children: Node[] }
   let { project, initialFile, guides = [] }: { project: ProjectSource; initialFile?: string; guides?: Guide[] } = $props()
   let choice = $state<{ slug: string; path: string } | undefined>()
-  const selected = $derived(project.files.find(file => file.path === (choice?.slug === project.slug ? choice.path : initialFile ?? project.root + '/main.ts')) ?? project.files[0])
+  const listed = $derived(project.files.find(file => file.path === (choice?.slug === project.slug ? choice.path : initialFile ?? project.root + '/main.ts')) ?? project.files[0])
+  // A page may leave files' content out of its data (the home page does, to keep the example sources off its first
+  // load); the first time one is shown, the project's prerendered sources are fetched once and the rest come from them.
+  let fetched = $state<{ slug: string; files?: SourceFile[]; failed?: boolean } | undefined>()
+  const selected = $derived(listed && 'deferred' in listed ? fetched?.slug === project.slug ? fetched.files?.find(file => file.path === listed.path) ?? listed : listed : listed)
+  $effect(() => {
+    if (!listed || !('deferred' in listed) || fetched?.slug === project.slug) return
+    const slug = project.slug
+    fetched = { slug }
+    fetch(`/sources/${slug}.json`)
+      .then(response => { if (!response.ok) throw new Error(String(response.status)); return response.json() as Promise<SourceFile[]> })
+      .then(files => { if (fetched?.slug === slug) fetched = { slug, files } })
+      .catch(() => { if (fetched?.slug === slug) fetched = { slug, failed: true } })
+  })
   const guide = $derived(guides.find(item => item.path === selected?.path))
   const sourceUrl = $derived('https://github.com/mcthaydt/automata-framework/blob/main/' + selected?.path.split('/').map(encodeURIComponent).join('/'))
   const tree = $derived.by(() => {
@@ -63,7 +76,8 @@
     <div class="source-viewer">
       {#if selected}
         {#key selected.path}
-          {#if selected.content !== undefined}<CodeBlock code={selected.content} lang={selected.language} filename={selected.path} />
+          {#if 'deferred' in selected}<div class="source-asset" aria-busy={!fetched?.failed}><strong><code>{selected.path}</code></strong><p>{fetched?.failed ? 'This file could not be loaded. View it on GitHub instead.' : 'Loading this file…'}</p></div>
+          {:else if selected.content !== undefined}<CodeBlock code={selected.content} lang={selected.language} filename={selected.path} />
           {:else}<div class="source-asset"><strong><code>{selected.path}</code></strong><p>This binary asset is part of the project. View or download it from the repository.</p></div>{/if}
           <div class="source-file-footer"><a href={sourceUrl}>View file on GitHub</a></div>
         {/key}
