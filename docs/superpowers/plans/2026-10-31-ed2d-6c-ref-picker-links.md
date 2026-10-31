@@ -79,9 +79,9 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
 - [x] 6. World map: `worldLinks` tests (edges facing each other, label point, skip same-level and unplaced); the map
   draws them (canvas test, image); inspector Links and Linked from (DOM).
 - [x] 7. "Add level" in the World view (DOM: one undo step, selected, on the map and in the dock).
-- [ ] 8. G-g in Node (link, delete the spawn: `brokenRef` with `choose-target`, `projectLinks` loses it) and in jsdom
+- [x] 8. G-g in Node (link, delete the spawn: `brokenRef` with `choose-target`, `projectLinks` loses it) and in jsdom
   (the world inspector's Links empties; the Checks view offers Choose target and it repairs in one step).
-- [ ] 9. G-r linking journey in jsdom (decision 7).
+- [x] 9. G-r linking journey in jsdom (decision 7).
 - [ ] 10. Gates and review images (built screenshots beside the `level-rpg` and `world` mockup frames, with a README).
 
 ## Gates
@@ -109,3 +109,11 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
   before the drawing but not run red first; it renders the same rectangles with and without the link and checks the
   pixel turns from the background to the link's colour, so it does tell the two apart. Canvas: 6 tests pass. Layout
   (World view, three browsers): 3 files, 24 tests pass.
+- 2026-10-31, steps 8 and 9 (`app/links.dom.test.ts`): these are acceptance journeys over steps 2 to 7, so their
+  first red runs were the journeys' own mistakes, not missing features: "No problems" was too strict (the template's
+  five unused definitions stay as info, and G-r asks for zero errors, so the test checks there is no Errors or
+  Warnings group); the RPG's entities snap to 16 px, so the inn door is at 32, 192; the added level is `level-1`
+  because the RPG's first map is `map-1`; and the codec prints levels by id (their order means nothing in the file), so
+  "re-opens equal" compares `printProject` text, the codec's own equality. The Node half of G-g is
+  `profiles/level-project/checks/links.test.ts` (brokenRef with `choose-target`) and `ref-links.test.ts` (a broken
+  ref is no link). Unit+dom: 157 files, 2559 tests pass; typecheck 0 errors.
