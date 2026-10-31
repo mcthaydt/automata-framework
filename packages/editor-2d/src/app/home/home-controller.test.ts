@@ -11,14 +11,14 @@ import type { ChoiceOutcome, PanelOutcome } from '../document/open-flow-model'
 import { createEditorApp, type EditorApp, type OpenOutcome } from '../editor-app'
 import { createAppProfiles } from '../profiles'
 import type { ProjectEntry } from '../project-list'
-import { createHomeController, type HomeState } from './home-controller'
+import { createHomeController, type HomeState, type LastOpened } from './home-controller'
 
 // The state machine behind Home (plan ED2D.4c2a step 5), over a memory workspace, the real level project and a planted
 // second profile. The controller never navigates: it tells its owner when a document opened.
 
 type Opened = Extract<OpenOutcome, { status: 'opened' }>
 
-function setup(wrap: (app: EditorApp) => EditorApp = (app) => app) {
+function setup(wrap: (app: EditorApp) => EditorApp = (app) => app, lastOpened?: LastOpened) {
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   const registry = createAppProfiles()
@@ -33,6 +33,7 @@ function setup(wrap: (app: EditorApp) => EditorApp = (app) => app) {
     toasts,
     onOpened: (outcome) => opened.push(outcome),
     onProblem: (outcome) => problems.push(outcome),
+    ...(lastOpened === undefined ? {} : { lastOpened }),
   })
   const write = async (path: string, data: string | Uint8Array): Promise<void> => {
     clock.advance(1000)
@@ -93,6 +94,53 @@ describe('state', () => {
     const { controller, state } = setup()
     await controller.refresh()
     expect(state()).toMatchObject({ phase: 'ready', entries: [], selected: undefined })
+  })
+})
+
+describe('the last open project (ED2D.8)', () => {
+  const remembering = (initial: string | undefined) => {
+    let path = initial
+    const writes: string[] = []
+    const lastOpened: LastOpened = {
+      read: () => path,
+      write: (next) => {
+        path = next
+        writes.push(next)
+      },
+    }
+    return { lastOpened, writes }
+  }
+  const seed = async (harness: ReturnType<typeof setup>) => {
+    await harness.write('mossgate.af2d.json', printProject(mossgate()))
+    await harness.write('hollowmere.af2d.json', printProject(hollowmere()))
+    await harness.controller.refresh()
+  }
+
+  it('selects the project opened last time on the first listing instead of the newest', async () => {
+    const harness = setup(undefined, remembering('mossgate.af2d.json').lastOpened)
+    await seed(harness)
+    expect(harness.state().selected).toBe('mossgate.af2d.json')
+  })
+
+  it('falls back to the newest when that project is gone, and keeps the person’s own choice on later listings', async () => {
+    const gone = setup(undefined, remembering('deleted.af2d.json').lastOpened)
+    await seed(gone)
+    expect(gone.state().selected).toBe('hollowmere.af2d.json')
+    const harness = setup(undefined, remembering('mossgate.af2d.json').lastOpened)
+    await seed(harness)
+    harness.controller.select('hollowmere.af2d.json')
+    await harness.controller.refresh()
+    expect(harness.state().selected).toBe('hollowmere.af2d.json')
+  })
+
+  it('writes the path of a project that opens, and nothing for one that does not', async () => {
+    const { lastOpened, writes } = remembering(undefined)
+    const harness = setup(undefined, lastOpened)
+    await seed(harness)
+    await harness.controller.open('mossgate.af2d.json')
+    expect(writes).toEqual(['mossgate.af2d.json'])
+    await harness.controller.open('missing.af2d.json')
+    expect(writes).toEqual(['mossgate.af2d.json'])
   })
 })
 
