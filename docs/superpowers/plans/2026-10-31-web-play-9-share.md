@@ -64,7 +64,7 @@
 - [x] 6. e2e: Copy link (44 px) copies `location.href` with the fragment and says "Link copied"; Copy code copies the
   edited text. Fails: no Copy link.
 - [x] 7. The privacy sentence (the site e2e's privacy checks and banned-phrase check still pass).
-- [ ] 8. Gates.
+- [x] 8. Gates.
 
 ## Commands and expected results
 
@@ -97,3 +97,4 @@ the full e2e once.
   hit it.
 - Gates: `pnpm check` 0 errors, `pnpm test` 425 passed, `pnpm build`, `pnpm check:site` (editor 151,346 B, worker
   123,049 B), playground spec Chromium 34/34, WebKit 32 passed, 2 skipped (IME, clipboard).
+- Full e2e: 764 passed, 4 skipped (20.5 min).
