@@ -1,16 +1,35 @@
 import '@mcthaydt/automata-editor-kit/tokens.css'
 import '@mcthaydt/automata-editor-kit/fonts.css'
 import './main.css'
+import { openServedWorkspace } from '@mcthaydt/automata-editor-kit/core'
 import { startEditor } from './ui/boot'
 import { lazyPlanRenderer } from './ui/plan/lazy-renderer'
 
 // The only file that reaches for the page's globals (plan ED3D.5c); everything else gets them through
 // `startEditor`'s environment.
 
+/** The tab's session storage, or nothing where the browser refuses it (a private window may throw). */
+function sessionStorageOrNothing(): Storage | undefined {
+  try {
+    return window.sessionStorage
+  } catch {
+    return undefined
+  }
+}
+
 const target = document.getElementById('app')
 if (target === null) throw new Error('index.html has no #app element')
 
+// Served by `automata editor`, the page's own origin is the game checkout; anywhere else it opens its own storage.
+const served = await openServedWorkspace({
+  origin: window.location.origin,
+  search: window.location.search,
+  sessionStorage: sessionStorageOrNothing(),
+  storage: navigator.storage,
+}).catch(() => undefined)
+
 startEditor(target, {
+  ...(served === undefined ? {} : { workspace: served }),
   window,
   document,
   clock: {
