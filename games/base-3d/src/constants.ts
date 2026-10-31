@@ -28,7 +28,7 @@ export const LOCK_ASSIST_PER_TICK = 546
 /** How near the ember a pickup must start to take it, 1 m each way in plan (a square, so no square root). */
 export const EMBER_REACH = metres(1)
 /** Each action's code in `HeroAction.clip` (0 is none); the figure plays the clip of the same name (M3 spec §4.7). */
-export const ACTION_CLIP = { slash: 1, point: 2, pickup: 3 } as const
+export const ACTION_CLIP = { slash: 1, point: 2, pickup: 3, move: 4 } as const
 /** Each action's length in ticks at 60 Hz: its clip's `length` (0.4 s, 0.8 s, 0.9 s), which the content test checks. */
 export const ACTION_TICKS = { slash: 24, point: 48, pickup: 54 } as const
 /** Each action button's bit in `HeroControl.actHeld` and `actPressed`. */
@@ -87,6 +87,8 @@ export interface MoveHit {
  */
 export interface MoveDef {
   readonly id: string
+  /** The figure clip it plays, retimed to `total` (§7.2); its `contact` marker lands on the active start (G3-d). */
+  readonly clip?: string
   readonly total: number
   readonly active: readonly [number, number]
   readonly window?: readonly [number, number]
@@ -110,6 +112,7 @@ const SLASH_REACH = { near: metres(0.2), far: metres(1.4), bottom: metres(0.6), 
 export const HERO_MOVES: readonly MoveDef[] = [
   {
     id: 'slash-1',
+    clip: 'slash-1',
     total: 22,
     active: [6, 9],
     window: [10, 18],
@@ -118,6 +121,7 @@ export const HERO_MOVES: readonly MoveDef[] = [
   },
   {
     id: 'slash-2',
+    clip: 'slash-2',
     total: 24,
     active: [7, 10],
     window: [11, 19],
@@ -126,12 +130,14 @@ export const HERO_MOVES: readonly MoveDef[] = [
   },
   {
     id: 'thrust',
+    clip: 'thrust',
     total: 34,
     active: [10, 14],
     hit: { ...SLASH_REACH, far: metres(1.8), dmg: 2, stop: 8, stun: 30, kb: metres(4), power: 3 },
   },
   {
     id: 'spin',
+    clip: 'spin',
     total: 36,
     active: [8, 20],
     hit: {
@@ -146,9 +152,17 @@ export const HERO_MOVES: readonly MoveDef[] = [
       around: true,
     },
   },
-  { id: 'roll', total: 24, active: [0, 0], travel: metres(3.2), invuln: [2, 12], height: metres(0.9) },
-  { id: 'hop-side', total: 20, active: [0, 0], travel: metres(2), invuln: [2, 10] },
-  { id: 'hop-back', total: 20, active: [0, 0], travel: metres(2), invuln: [2, 10] },
+  {
+    id: 'roll',
+    clip: 'roll',
+    total: 24,
+    active: [0, 0],
+    travel: metres(3.2),
+    invuln: [2, 12],
+    height: metres(0.9),
+  },
+  { id: 'hop-side', clip: 'hop-side', total: 20, active: [0, 0], travel: metres(2), invuln: [2, 10] },
+  { id: 'hop-back', clip: 'hop-back', total: 20, active: [0, 0], travel: metres(2), invuln: [2, 10] },
 ]
 
 /** A press from this frame of a slash to the end of its window queues the next (§7.2, buffering). */

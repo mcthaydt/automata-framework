@@ -1130,6 +1130,18 @@ describe('combat (GAME-3D.1c, DESIGN.md §7)', () => {
       hurt.dispose()
     })
 
+    it('marks a roll in hero-action from its start, so its clip holds through hitstop, and clears it at its end', async () => {
+      const sim = await startSim(openArea(), MOVES)
+      const start = sim.tick
+      run(sim, { stick: UP, act: { action: true } })
+      expect(heroAction(sim)).toMatchObject({ clip: ACTION_CLIP.move, startedAt: start })
+      run(sim, {}, 23)
+      expect(heroAction(sim).clip).toBe(ACTION_CLIP.move)
+      run(sim, {})
+      expect(heroAction(sim).clip).toBe(0)
+      sim.dispose()
+    })
+
     it('hops 2 m to the side or back while locked, facing the target; forward does nothing', async () => {
       for (const [stick, dx, dz] of [
         [RIGHT, -2, 0],
@@ -1290,9 +1302,12 @@ const GOLDEN_KILN_TICK = 118
  * slice), the schema hash covers `act.action`, `fighter.charge` and the `location` resource's return point, which the
  * snapshot's rows carry (the spawn's). The route presses no Action and holds no Attack past a tick, so its state did
  * not move: the rejected commands, events, kiln tick, locked ticks, action starts, end action and end position are
- * unchanged, and still asserted below.
+ * unchanged, and still asserted below. Re-recorded for GAME-3D.1c part 3 (was `ddddbb42a540c167`): each move
+ * names its clip (`clip`, in the content the hash covers). Nothing in the sim's state or schema changed: the route's
+ * rejected commands, events, kiln tick, locked ticks, action starts, end action and end position are unchanged,
+ * and still asserted below.
  */
-const GOLDEN_HASH = 'ddddbb42a540c167'
+const GOLDEN_HASH = '7cc88141989e44b7'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

@@ -457,7 +457,7 @@ declare module 'virtual:automata/content' {
     }
   }
 
-  export type FigureClipId = 'guard' | 'pickup' | 'point' | 'slash'
+  export type FigureClipId = 'guard' | 'hop-back' | 'hop-side' | 'pickup' | 'point' | 'roll' | 'slash' | 'slash-1' | 'slash-2' | 'spin' | 'thrust'
   export type FigureClip = {
     readonly blend?: {
       readonly inMs: number

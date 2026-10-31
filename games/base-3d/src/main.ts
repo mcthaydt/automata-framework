@@ -18,6 +18,7 @@ import { defineGame, type GameSaves, inputs, keys, startGame } from '@mcthaydt/a
 import { createPixi3dRenderer, figure, render3dExtension } from '@mcthaydt/automata-render-pixi3d'
 import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { QualityTier } from '@mcthaydt/automata-runtime'
+import { reducedMotion } from '@mcthaydt/automata-ui'
 import { Act, Lock, Move } from './commands.ts'
 import { Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants.ts'
@@ -30,6 +31,7 @@ import { base3dScreens } from './screens/screens.ts'
 import { base3dSettings } from './screens/settings.ts'
 import { base3dSim } from './state/index.ts'
 import { compileWorld } from './systems/index.ts'
+import { feelHooks } from './views/feel.ts'
 import {
   buildScene,
   FOG,
@@ -40,7 +42,7 @@ import {
   PROPS,
   placed,
   recentred,
-} from './views.ts'
+} from './views/index.ts'
 
 // Compiling the areas is boot's content cost (DESIGN.md §13 boot step 3): measured, so G3-u's journey holds it to a
 // budget.
@@ -168,7 +170,7 @@ export const base3d = defineGame({
             library,
             motion,
             now,
-            state: (c) => heroFigureState(c, targets.get(Number(c.hero?.lockTarget ?? 0))),
+            state: (c) => heroFigureState(c, targets.get(Number(c.hero?.lockTarget ?? 0)), WORLD.moves),
           }),
         ),
         // The target faces back down the kiln toward the doorway (−z).
@@ -182,10 +184,15 @@ export const base3d = defineGame({
         lock: lockPoint,
         easeHeading: recentred,
       },
-      scene: (view, _stage, occluders, _light, models) => {
+      scene: (view, stage, occluders, _light, models) => {
         buildScene(view, occluders, models, FIRST_SLICE)
+        // Shake and sparks from the sim's hits (DESIGN.md §7.6), under the player's reduced-motion preference.
+        const feel = feelHooks(view, stage, () => reducedMotion())
         return {
+          draw: (frame) => feel.draw?.(frame),
+          reset: () => feel.reset?.(),
           apply(result) {
+            feel.apply?.(result)
             simTick = result.tick
             // The tick the page last drew, for the journeys (G3-x: the rotate cover holds it).
             document.documentElement.dataset.tick = String(result.tick)

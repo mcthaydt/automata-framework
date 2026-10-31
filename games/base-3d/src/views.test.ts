@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { ACTION_CLIP, metres, WALK_SPEED } from './constants.ts'
+import { ACTION_CLIP, HERO_MOVES, metres, WALK_SPEED } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
-import { HERO_ITEM, heroFigureState, lockPoint, PILLAR, PROPS, placed, recentred, sceneOf } from './views.ts'
+import {
+  HERO_ITEM,
+  heroFigureState,
+  lockPoint,
+  PILLAR,
+  PROPS,
+  placed,
+  recentred,
+  sceneOf,
+} from './views/index.ts'
 
 // The render rows as the figure view reads them (M3 spec §4.4.5): turn units to radians, ticks to seconds at
 // 60 Hz, the action code to its clip id, the guard to a stance, the lock to aim points.
@@ -34,6 +43,27 @@ describe('heroFigureState', () => {
     expect(heroFigureState({ hero, 'hero-action': { ...idle, clip: ACTION_CLIP.pickup } }).action?.id).toBe(
       'pickup',
     )
+  })
+
+  it('plays the running move’s own clip, retimed to its total, from the action’s start (GAME-3D.1c part 3)', () => {
+    const swinging = { clip: ACTION_CLIP.slash, startedAt: 120, guard: false, guardSince: 0 }
+    const slash2 = HERO_MOVES.findIndex((move) => move.id === 'slash-2') + 1
+    expect(
+      heroFigureState({ hero, 'hero-action': swinging, fighter: { move: slash2 } }, undefined, HERO_MOVES),
+    ).toMatchObject({
+      action: { id: 'slash-2', startedAt: 2, length: 24 / 60 },
+    })
+    const roll = HERO_MOVES.findIndex((move) => move.id === 'roll') + 1
+    const rolling = { ...swinging, clip: ACTION_CLIP.move }
+    expect(
+      heroFigureState({ hero, 'hero-action': rolling, fighter: { move: roll } }, undefined, HERO_MOVES)
+        .action,
+    ).toMatchObject({ id: 'roll', length: 24 / 60 })
+    // Point and pickup are not moves: their clips play at their own length, as before.
+    expect(
+      heroFigureState({ hero, 'hero-action': { ...idle, clip: ACTION_CLIP.point } }, undefined, HERO_MOVES)
+        .action,
+    ).toEqual({ id: 'point', startedAt: 0 })
   })
 
   it('aims the head and chest at the locked target’s head and chest, in metres', () => {

@@ -168,9 +168,34 @@ Rules (part 2):
   values still asserted.
 - [x] 2.4 Gates as 1.6.
 
-## Part 3
+## Part 3: the look
 
-Written in detail at the start of part 3, in this file.
+Branch `claude/3d-game-3d-1c-3` (worktree `/home/user/wt/game-3d-1c3`), stacked on `claude/3d-game-3d-1c-2` (#313);
+draft PR base `claude/3d-game-3d-1c-2`.
+
+Interfaces (base-3d only):
+
+| Name | File | Shape |
+|---|---|---|
+| `views/` (was `views.ts`) | src/views/index.ts | views.ts passes 300 lines with this part, so it becomes a folder (GL spec); its exports are unchanged |
+| `MoveDef.clip` | constants.ts | the figure clip a move plays (its own id for Wick's seven) |
+| `ACTION_CLIP.move` 4 | constants.ts | `hero-action.clip` for a roll or hop, so its start shifts through hitstop as a slash's does |
+| seven placeholder clips | content/figure-clips/`slash-1`, `slash-2`, `thrust`, `spin`, `roll`, `hop-side`, `hop-back`.toml | each `total / 60` s long, `contact` on the active start's tick for the sword moves, `blend.inMs` 50 on `slash-2` and `thrust` (§7.7). Placeholders until 1j authors them in the Studio |
+| `moveClipProblems(moves, clips)` | src/views/move-clips.ts | G3-d/G3-F1: for each move naming a clip, the clip exists, a sword move's clip has `contact`, and `contact` retimed to `total` lands within one tick of the active start; one line per problem naming the move and the clip |
+| `heroFigureState(c, target, moves)` | src/views/index.ts | plays the running move's clip (from `fighter.move`) retimed to its `total` (`action.length`), starting at `hero-action.startedAt` |
+| `shakeOffset`, `sparkFrame` | src/views/feel.ts (pure) | §7.6: a shake of 1, 2 or 4 internal px by power decaying over 120 ms, none under reduced motion; sparks at the hit point lasting 150 ms (75 ms under reduced motion), coloured by kind |
+| `feel` scene hooks | src/views/feel.ts | `hit.landed` events in `apply`, `stage.world` offset and the spark meshes in `draw` |
+
+- [x] 3.1 Failing tests: `views/move-clips.test.ts` (Wick's moves against the compiled clips pass; a clip with no
+  `contact`, one 2 ticks off and a missing clip each fail naming the move and the clip); `views.test.ts`
+  (`heroFigureState` plays `slash-2` retimed to 24 ticks from the action's start, a roll's clip, the point clip as
+  before); `views/feel.test.ts` (shake sizes by power, decay to 0 at 120 ms, none under reduced motion; sparks' life
+  and colours); `game.test.ts` (a roll sets `hero-action` to `move` from its start, and back to 0 at its end);
+  `content.test.ts` (the seven clips compile, `once`, their lengths `total / 60`).
+- [x] 3.2 Implementation; 3.1 passes.
+- [x] 3.3 Review images of a hit's sparks and a frame of shake (a throwaway patch, as part 2 of 1b did), with a
+  README; the golden (re-recorded only if the route's state or schema moves).
+- [x] 3.4 Gates as 1.6.
 
 ## Gates
 
@@ -236,3 +261,23 @@ Pending: the Mac's CI.
 - 2.4: `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0; base-3d `test:parity` 264/264 (84 game cases and 4
   layout cases in Chromium, WebKit and Firefox; the golden `ddddbb42a540c167` in all three); `pnpm build:demos` exit
   0; base-3d e2e 7/7.
+- Part 3 (branch `claude/3d-game-3d-1c-3`): `views.ts` moved to `views/index.ts` first (`git mv`, imports only).
+- 3.1: failed for the expected reasons: `./feel.ts` and `./move-clips.ts` missing (feel, move-clips and content
+  tests), `heroFigureState` without the move's clip (`action` absent), and `hero-action.clip` 0 during a roll.
+- 3.2: `MoveDef.clip` and `ACTION_CLIP.move`; `combat.moves` marks a roll or hop `move` and a sword move `slash`, both
+  from the move's start; `hero.move` marks a dodge at its start; `heroFigureState(c, target, moves)` plays the move's
+  clip retimed to `total`; `views/move-clips.ts`; `views/feel.ts` (shake on `stage.world`, sparks as 0.06 m flat
+  cubes on `view.root`) wired in main.ts's scene hooks; the seven placeholder clips. 160 node cases pass.
+- 3.2, interpretations (veto items): the clips are placeholders (the slash's arc retimed, mirrored for `slash-2`, a
+  draw-and-drive for the thrust, a wind-and-sweep for the spin, the pickup's crouch for the roll and hops); `windup`
+  markers are approximate; the shake flicks every 16 ms with half the size vertically; the sparks are four flat cubes
+  along fixed diagonals, scaled down as they fade (no alpha blending), in three colours chosen here (ember orange,
+  ash grey, flame yellow), not from a named palette.
+- 3.3: golden `ddddbb42a540c167` → `7cc88141989e44b7` (Node): content only (each move's `clip`); the route's state is
+  unchanged and still asserted. Review images in `docs/evidence/owner-visual/2026-10-31-game-3d-1c/` with a README
+  (two throwaway patches, reverted: the dummy 1 m ahead of the spawn, and the presentation clock held 40 ms after a
+  hit).
+- 3.4: `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0; base-3d `test:parity` 267/267 (85 game cases and 4 layout
+  cases in Chromium, WebKit and Firefox; the golden `7cc88141989e44b7` in all three); `pnpm build:demos` exit 0;
+  base-3d e2e 7/7. GAME-3D.1c's three parts are done; G3-d, G3-i, G3-j, G3-k, G3-F1 and G3-F8 (the dummy's half;
+  the boss's phase half is 1d's) are covered.

@@ -209,13 +209,21 @@ export const combatMoves: SystemDef = defineSystem({
       }
       entity.set(Fighter, { move, moveTick, moveStart, queued, state, latched: false, charge })
       if (entity.has(HeroAction)) {
-        // The slash clip plays from each sword move's start, and stops with it (ended, cut short by a hit, or turned
-        // into a roll). A roll or hop has no clip until GAME-3D.1c part 3.
+        // The figure plays the running move's clip from its start: a sword move as `slash`, a roll or hop as `move`
+        // (the view finds which from `fighter.move`). It stops with the move: ended, cut short by a hit, or turned
+        // into a roll. Both codes' starts shift through hitstop (`combat.freeze`), so the clip holds while frozen.
         const action = entity.get(HeroAction)
-        const sword = move !== 0 && moves[move - 1]?.hit !== undefined
-        if (sword && (moveStart !== fighter.moveStart || fighter.move === 0))
-          entity.set(HeroAction, { clip: ACTION_CLIP.slash, startedAt: moveStart })
-        else if (!sword && action.clip === ACTION_CLIP.slash) entity.set(HeroAction, { clip: 0 })
+        const running = move === 0 ? undefined : moves[move - 1]
+        const code =
+          running?.hit !== undefined
+            ? ACTION_CLIP.slash
+            : running?.travel !== undefined
+              ? ACTION_CLIP.move
+              : 0
+        if (code !== 0 && (moveStart !== fighter.moveStart || fighter.move === 0))
+          entity.set(HeroAction, { clip: code, startedAt: moveStart })
+        else if (code === 0 && (action.clip === ACTION_CLIP.slash || action.clip === ACTION_CLIP.move))
+          entity.set(HeroAction, { clip: 0 })
       }
     }
   },

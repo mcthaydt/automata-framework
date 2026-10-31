@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseGlb } from '@mcthaydt/automata-render-pixi3d'
 import { describe, expect, it } from 'vitest'
-import { PROPS } from './views.ts'
+import { PROPS } from './views/index.ts'
 
 // The first slice's three static props (M3.7b part 3): The Last Light's GLBs (public/models/PROVENANCE.md), each
 // read as the renderer reads it at boot: a skinned or damaged file would fail boot with `ModelInvalid`.

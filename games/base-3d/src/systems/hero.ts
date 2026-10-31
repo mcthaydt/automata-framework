@@ -119,8 +119,8 @@ export const heroMove: SystemDef = defineSystem({
           }
           const started = { move: index, moveTick: 1, moveStart: ctx.tick, state: CombatState.act, queued: 0 }
           entity.set(Fighter, { ...started, ...push, pushTicks: def.total })
-          if (entity.has(HeroAction) && entity.get(HeroAction).clip === ACTION_CLIP.slash)
-            entity.set(HeroAction, { clip: 0 })
+          // The figure plays the dodge's clip from now (`combat.moves` keeps it, and clears it at the end).
+          if (entity.has(HeroAction)) entity.set(HeroAction, { clip: ACTION_CLIP.move, startedAt: ctx.tick })
           carry = { ...push, pushTicks: def.total }
         }
       }
