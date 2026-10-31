@@ -614,3 +614,9 @@ thead th { font-size: var(--step-small); font-weight: 600; color: var(--ink); bo
   .fit-section { gap: 1rem; }
   .showcase-submit { flex-direction: column; align-items: start; padding: 1.25rem; gap: 1.5rem; }
 }
+/* A reference signature wraps instead of scrolling, so it needs no focus stop (hundreds sit on one package page). */
+.api-signature-wrapped { white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: var(--step-small, 0.875rem); }
+.api-signature-wrapped code { white-space: inherit; overflow-wrap: anywhere; }
+/* Package and export names are long unbroken words; let them wrap on a phone. */
+.api-page h1, .api-page h2, .api-page h3 { overflow-wrap: anywhere; }
+.api-entry p { overflow-wrap: anywhere; white-space: pre-line; }

@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { writeApiReference } from './api-reference'
 import { frameworkCommit } from './framework-source'
 
 // The framework's API index (`pnpm api-index`, tooling/api-index) generates llms-full.txt from a defined corpus plus
@@ -73,6 +74,7 @@ export function installApiIndex(distDir: string, website: string, commit: string
   if (!text['llms-full.txt'].endsWith(text['llms-api.txt'])) throw new Error('llms-full.txt does not end with the API reference in llms-api.txt; regenerate both in one api-index run')
   const boot = bootErrors(index)
   for (const name of PUBLISHED) writeFileSync(join(website, 'static', name), text[name])
+  writeApiReference(text['llms-api.txt'], commit, website)
   writeFileSync(join(website, 'src/data/boot-errors.json'), `${JSON.stringify({ commit, ...boot }, null, 2)}\n`)
   const source: ApiIndexSource = {
     commit,

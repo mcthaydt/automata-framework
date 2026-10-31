@@ -31,8 +31,8 @@ function dist(leaveOut?: string): string {
   const dir = temp()
   const files: Record<string, string> = {
     'api.json': `${JSON.stringify({ version: '0.0.3', exports: [{ name: 'createSim', version: '0.0.3' }, { name: 'runGame', version: '0.0.3' }, ...BOOT_ROWS] }, null, 2)}\n`,
-    'llms-api.txt': '# API reference\n\n## createSim\n',
-    'llms-full.txt': '# Automata Framework 0.0.3: full documentation\n\n---\n\n# API reference\n\n## createSim\n',
+    'llms-api.txt': '# Automata API reference, version 0.0.3\n\n## `@mcthaydt/automata-sim`\n',
+    'llms-full.txt': '# Automata Framework 0.0.3: full documentation\n\n---\n\n# Automata API reference, version 0.0.3\n\n## `@mcthaydt/automata-sim`\n',
   }
   for (const [name, text] of Object.entries(files)) if (name !== leaveOut) writeFileSync(join(dir, name), text)
   return dir
