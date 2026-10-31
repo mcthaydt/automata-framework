@@ -46,7 +46,7 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
   the link count, removes in one step, disabled on the last level).
 - [x] 6. Layout (three browsers): Fit and the new buttons are 44 px and in view at every size; review images with the
   `world` mockup frame.
-- [ ] 7. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, editor-2d `test:parity` and `test:canvas`.
+- [x] 7. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, editor-2d `test:parity` and `test:canvas`.
 
 ## Execution log
 
@@ -69,3 +69,6 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
   0.752 for 0.352), then the camera (passes). A new layout check that every level is inside the map across failed at
   six sizes with the old rule (left edges at -99 and -13 px) and passes with the new one. Images:
   `docs/evidence/owner-visual/2026-10-31-ed2d-8a/`.
+- 2026-10-31, step 7 after merging `origin/claude/ed2d-6c-links` (already in) and `origin/main` (`5d9b46e9`, docs):
+  `pnpm format` clean; `TURBO_FORCE=true pnpm check` exit 0 (37/37 and 35/35 tasks, 0 cached); editor-2d
+  `test:parity` 24 files, 606 tests; `test:canvas` 14 files, 94 tests (12 opt-in visuals skipped).
