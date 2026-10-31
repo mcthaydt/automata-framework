@@ -22,6 +22,11 @@
         "packages/cutscenes/**"
       ],
       "linter": { "rules": { "suspicious": { "noThenProperty": "off" } } }
+    },
+    {
+      // M6.2: Biome reads a Svelte file's script only, so a variable or import used in the template looks unused.
+      "includes": ["**/*.svelte"],
+      "linter": { "rules": { "correctness": { "noUnusedVariables": "off", "noUnusedImports": "off" } } }
     }
   ]
 }
