@@ -10,7 +10,7 @@ declare module 'virtual:automata/content' {
 
   export type ScreenId = never
   export type FlowEvent = never
-  export type TuningName = never
+  export type TuningName = 'AIR_ACCEL' | 'BUFFER_TICKS' | 'COYOTE_TICKS' | 'GRAVITY' | 'HALF_GRAVITY_BELOW' | 'JUMP_SPEED' | 'MAX_FALL' | 'MAX_RUN' | 'RUN_ACCEL' | 'VAR_JUMP_TICKS'
 
   export interface ContentData {
     readonly room: Room

@@ -11,6 +11,7 @@
     "src/vite-config.test.ts",
     "src/art/art.test.ts",
     "src/plumbing.test.ts",
+    "content/generated/content.d.ts",
     "e2e/**/*.ts"
   ],
   "exclude": []

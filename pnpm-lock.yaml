@@ -274,6 +274,9 @@ importers:
       '@mcthaydt/automata-cli':
         specifier: workspace:*
         version: link:../../packages/cli
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../../packages/content
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship

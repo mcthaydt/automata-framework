@@ -10,7 +10,9 @@
       "!tooling/api-index/fixtures",
       "!packages/editor-3d/src/testing/fixtures",
       "!games/base-3d/src/content/generated",
-      "!**/*.af2d.json"
+      "!**/*.af2d.json",
+      "!games/emberwick/content/generated",
+      "!examples/content/hot-reload/content/generated"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },
