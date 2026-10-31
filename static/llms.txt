@@ -17,13 +17,16 @@
 - [Mobile UI Primitives](/docs/mobile-ui): Geometry, controls and accessible layout.
 - [AI Coding Agent Rules](/docs/ai-rules): Project context for agents, followed by verification.
 - [Capabilities and licensing](/docs/capabilities): What you can use today, what is planned, and how the license applies.
+- [Boot errors](/docs/boot-errors): The typed failures boot reports, generated from the framework API index.
 - [Install agent skills](/docs/agent-setup): Install Superpowers and the official PixiJS collection, then verify the agent can load them.
 - [Who Automata is for](/docs/audience): Choose Automata based on your workflow and current requirements.
 - [FAQ](/docs/faq): Answers about agents, content, licensing, platforms, migration and community games.
 
 ## AI & Agent Skills
 - [Automata AI Portal](/ai): Project context, architectural rules, and verification guidance.
-- [Full Text Docs](/llms-full.txt): Guides, selected API contracts, examples, and task prompts for coding agents.
+- [Full documentation](/llms-full.txt): The framework's defined documentation corpus and its complete API reference for version 0.0.3, generated from the package declarations.
+- [API reference](/llms-api.txt): Every export of the 0.0.3 packages with its signature and doc comment, generated from the package declarations.
+- [Site guides](/llms-guides.txt): The guides, task prompts and selected API examples on this site.
 
 ## API Reference
 - [Simulation](/cheatsheet#simulation): Define gameplay state and advance it with synchronous fixed ticks. Use instance methods on the Sim returned by createSim.

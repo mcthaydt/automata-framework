@@ -42,6 +42,7 @@
     <div><dt>You make the content</dt><dd>Shape the rooms, art, rules and narrative. Keep creative decisions with the people making the game.</dd></div>
     <div><dt>Step in at any point</dt><dd>Open the source, change a system, or ask an agent to revise one part. Explicit ownership and separate packages give a growing project structure you can work with.</dd></div>
     <div><dt>Browser and mobile foundations</dt><dd>Browser delivery, phone-first UI and keyboard and touch examples are here to build on. Deterministic state, snapshots and replays lay the groundwork for multiplayer; networking and server packages are planned.</dd></div>
+    {#if data.enginesAgree}<div><dt>Same result in every engine</dt><dd>The same code, content, seed, starting state and commands give the same simulation hash in Node, Chromium, Firefox and WebKit, in every scenario the framework’s CI checks. <a href="/proof">See the latest evidence</a></dd></div>{/if}
   </dl>
 </section>
 <section id="fit" class="chapter fit-section"><div><h2>Who this is for</h2><ul>{#each AUDIENCE_FIT as item}<li>{item}</li>{/each}</ul></div><div><h2>Who this is not for</h2><ul>{#each AUDIENCE_NOT_FIT as item}<li>{item}</li>{/each}</ul></div></section>
