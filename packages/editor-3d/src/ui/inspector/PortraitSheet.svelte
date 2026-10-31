@@ -9,6 +9,7 @@
 import { Tabs } from '@mcthaydt/automata-editor-kit'
 import type { InspectorCard, InspectorRow } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
+import type { MaterialTarget } from '../../app/material-session'
 import Inspector from './Inspector.svelte'
 
 interface Props {
@@ -18,11 +19,21 @@ interface Props {
   checks: string
   onchange: (change: InspectorChange, phase: InspectorPhase) => string | undefined
   onselect: (id: string) => void
+  onmaterial?: ((target: MaterialTarget) => void) | undefined
   /** The open tab, bound by the frame. */
   tab?: string
 }
 
-let { card, walls, things, checks, onchange, onselect, tab = $bindable('sector') }: Props = $props()
+let {
+  card,
+  walls,
+  things,
+  checks,
+  onchange,
+  onselect,
+  onmaterial,
+  tab = $bindable('sector'),
+}: Props = $props()
 
 const TABS = [
   { id: 'sector', label: 'Sector' },
@@ -50,7 +61,7 @@ const TABS = [
   <Tabs label="Inspector" tabs={TABS} value={tab} onselect={(id) => (tab = id)}>
     {#snippet panel(id)}
       {#if id === 'sector'}
-        <Inspector {card} {onchange} />
+        <Inspector {card} {onchange} {onmaterial} />
       {:else if id === 'walls'}
         {@render rows(walls, 'Select a room to list its walls.')}
       {:else if id === 'things'}

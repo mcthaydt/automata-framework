@@ -8,6 +8,7 @@
 import { Button } from '@mcthaydt/automata-editor-kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
+import type { MaterialTarget } from '../../app/material-session'
 import SectorCard from './SectorCard.svelte'
 import WallCard from './WallCard.svelte'
 
@@ -15,9 +16,11 @@ interface Props {
   card: InspectorCard
   /** Runs a change; answers the model's sentence when it is refused. */
   onchange: (change: InspectorChange, phase: InspectorPhase) => string | undefined
+  /** Opens the material sheet on a wall or a room's surface. */
+  onmaterial?: ((target: MaterialTarget) => void) | undefined
 }
 
-const { card, onchange }: Props = $props()
+const { card, onchange, onmaterial }: Props = $props()
 
 let refusal = $state<string | undefined>()
 
@@ -35,9 +38,9 @@ const metres = (value: number): string => value.toFixed(2)
   {#if card.kind === 'none'}
     <p class="empty">Tap a room, a wall or a thing to see it here.</p>
   {:else if card.kind === 'sector'}
-    <SectorCard {card} onchange={change} />
+    <SectorCard {card} onchange={change} {onmaterial} />
   {:else if card.kind === 'wall'}
-    <WallCard {card} onchange={change} />
+    <WallCard {card} onchange={change} {onmaterial} />
   {:else}
     <h2>{card.id}</h2>
     <p class="meta">{card.definition} · x {metres(card.x)} · z {metres(card.z)}{card.y === undefined ? '' : ` · y ${metres(card.y)}`}</p>

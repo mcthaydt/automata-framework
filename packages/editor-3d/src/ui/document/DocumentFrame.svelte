@@ -23,6 +23,7 @@ import { createChecksPanel, type Scheduler } from '../../app/checks-panel-contro
 import type { DocumentController, DocumentState } from '../../app/document/document-controller'
 import { inspectorOf, thingRowsOf, wallRowsOf } from '../../app/inspector-cards'
 import { createInspectorEdits } from '../../app/inspector-edits'
+import type { MaterialTarget } from '../../app/material-session'
 import { planZoom } from '../../app/plan-picture'
 import { checksWords, planStatus } from '../../app/plan-status'
 import { planToolCommands } from '../../app/plan-tool-commands'
@@ -32,11 +33,14 @@ import DollhouseCanvas from '../dollhouse/DollhouseCanvas.svelte'
 import type { DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'
 import { lazyDollhouseRenderer } from '../dollhouse/lazy-dollhouse-renderer'
 import Inspector from '../inspector/Inspector.svelte'
+import MaterialSheet from '../inspector/MaterialSheet.svelte'
 import PortraitSheet from '../inspector/PortraitSheet.svelte'
 import EditorLayers from '../plan/EditorLayers.svelte'
 import PlanCanvas from '../plan/PlanCanvas.svelte'
 import type { PlanRendererFactory } from '../plan/plan-renderer'
 import ToolRail from '../plan/ToolRail.svelte'
+import { type Frames, NO_FRAMES } from '../walk/frames'
+import WalkCanvas from '../walk/WalkCanvas.svelte'
 import DocumentBar from './DocumentBar.svelte'
 import HeldSaveDialog from './HeldSaveDialog.svelte'
 
@@ -50,6 +54,8 @@ interface Props {
   renderer: PlanRendererFactory
   /** Makes the 3D view's renderer; Pixi loaded on first use when not given (the tests pass a fake). */
   dollhouse?: DollhouseRendererFactory | undefined
+  /** The frame clock the Walk view's eye moves on (the boot's); none when not given, as in the tests, which walk by hand. */
+  frames?: Frames | undefined
   /** Runs the checks after the editing pauses. */
   schedule: Scheduler
   onback: () => void
@@ -62,6 +68,7 @@ const {
   clock,
   renderer,
   dollhouse = lazyDollhouseRenderer(),
+  frames = NO_FRAMES,
   schedule,
   onback,
 }: Props = $props()
@@ -136,6 +143,8 @@ function onkeydown(event: KeyboardEvent): void {
 // The inspector's card for what is selected (ED3D.5f), read again after each change of the level or the selection.
 // svelte-ignore state_referenced_locally
 const inspectorEdits = createInspectorEdits(editor)
+/** The material sheet is open on this wall or surface. */
+let materialTarget = $state<MaterialTarget | undefined>()
 // svelte-ignore state_referenced_locally
 let card = $state.raw(inspectorOf(editor))
 
@@ -157,6 +166,8 @@ let selection = $state.raw<readonly string[]>(editor.selection.ids)
 let zoom = $state(planZoom(editor.view.state.camera))
 let counts = $state.raw(checks.view)
 let pointer = $state.raw<Point | undefined>(undefined)
+/** What Walk says while it is shown: its warning, else what the crosshair is on. */
+let walkWords = $state<string | undefined>(undefined)
 
 $effect(() => {
   const stops = [
@@ -179,7 +190,8 @@ $effect(() => {
 const pill = $derived(checksWords(counts))
 const planWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection, brief: compact }))
 // On a phone the bar has no room for the checks pill, so its words lead the status line.
-const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWords)
+const viewWords = $derived(mode === 'walk' && walkWords !== undefined ? walkWords : planWords)
+const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWords)
 </script>
 
 <svelte:window {onkeydown} />
@@ -210,11 +222,16 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
     checks={pill.text}
     onchange={(change, phase) => inspectorEdits.change(change, phase)}
     onselect={(id) => editor.selection.set([id])}
+    onmaterial={(target) => (materialTarget = target)}
   />
 {/snippet}
 
 {#snippet inspector()}
-  <Inspector {card} onchange={(change, phase) => inspectorEdits.change(change, phase)} />
+  <Inspector
+    {card}
+    onchange={(change, phase) => inspectorEdits.change(change, phase)}
+    onmaterial={(target) => (materialTarget = target)}
+  />
 {/snippet}
 
 <!--
@@ -265,6 +282,15 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
         {@render plan()}
         <DollhouseCanvas {editor} renderer={dollhouse} onundo={() => controller.undo()} onredo={() => controller.redo()} />
       </div>
+    {:else if mode === 'walk'}
+      <WalkCanvas
+        {editor}
+        renderer={dollhouse}
+        {frames}
+        onundo={() => controller.undo()}
+        onredo={() => controller.redo()}
+        onwords={(words) => (walkWords = words)}
+      />
     {:else if mode === 'split' || mode === 'dollhouse'}
       <DollhouseCanvas {editor} renderer={dollhouse} onundo={() => controller.undo()} onredo={() => controller.redo()} />
     {:else}
@@ -309,6 +335,9 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
       onexport={() => controller.exportCopy()}
       oncancel={() => controller.dismissHeld()}
     />
+    {#if materialTarget !== undefined}
+      <MaterialSheet {editor} surface={materialTarget} onclose={() => (materialTarget = undefined)} />
+    {/if}
     <ToastRegion {toasts} />
   {/snippet}
 </EditorShell>

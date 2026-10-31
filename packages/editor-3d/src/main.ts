@@ -20,6 +20,10 @@ startEditor(target, {
   },
   storage: navigator.storage,
   renderer: lazyPlanRenderer(() => import('./ui/plan/plan-renderer')),
+  frames: {
+    request: (callback) => requestAnimationFrame((ms) => callback(ms / 1000)),
+    cancel: (handle) => cancelAnimationFrame(handle),
+  },
 }).catch((error: unknown) => {
   target.textContent = `The editor could not start: ${error instanceof Error ? error.message : String(error)}`
 })

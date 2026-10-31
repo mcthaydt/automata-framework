@@ -64,6 +64,10 @@ export interface WalkController {
   subscribe(run: () => void): () => void
   setMode(mode: WalkMode): void
   stick(which: 'move' | 'look', tilt: Stick): void
+  /** A drag of the view: the heading and the pitch turn by these radians (Orbit's turn the orbit). */
+  lookBy(yawRadians: number, pitchRadians: number): void
+  /** The level's mesh to draw, rebuilt only when the level changes. */
+  readonly mesh: SectorMesh
   /** A key by its `KeyboardEvent.code`, pressed or let go; true when it is one Walk uses. */
   key(code: string, down: boolean): boolean
   /** Fly's up and down buttons: -1 to 1, 0 when let go. */
@@ -393,6 +397,18 @@ export function createWalkController<D>(editor: LevelEditor<D>, canvas: Size): W
         else ({ eye, yaw, pitch } = orbitCamera(orbit, fov))
       } else if (next === 'walk') landAt({ x: eye[0], z: eye[2] }, yaw)
       mode = next
+      refresh()
+    },
+    get mesh() {
+      return meshOf(geometry())
+    },
+    lookBy(yawRadians, pitchRadians) {
+      if (!Number.isFinite(yawRadians) || !Number.isFinite(pitchRadians)) return
+      if (mode === 'orbit') orbit = orbitBy(orbit, yawRadians, pitchRadians)
+      else {
+        yaw += yawRadians
+        pitch = clamp(pitch + pitchRadians, -MAX_PITCH, MAX_PITCH)
+      }
       refresh()
     },
     stick(which, tilt) {
