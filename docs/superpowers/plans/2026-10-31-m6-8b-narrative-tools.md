@@ -67,7 +67,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 4. `lintHelp`, `currentHint`. Fails: no module.
    - [x] 4
 5. Traces from solver routes; `beatCoverage`, `hintCheck`. Fails: no module.
-   - [ ] 5
+   - [x] 5
 6. `screenplay` (byte-identical twice; the clinic's matches a committed fixture). Fails: no module.
    - [ ] 6
 7. `automata pipe narrative` through the router and from the bin; `check` fails on NR-c's graph. Fails: not registered.
