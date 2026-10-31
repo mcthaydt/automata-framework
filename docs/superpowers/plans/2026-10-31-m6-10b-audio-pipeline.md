@@ -8,7 +8,7 @@
 - **Source (read-only):** the adventure source at `92e6704`: `scripts/pipeline/audio-lib.ts` (WAV, BS.1770-4 loudness, 4x true peak, click
   detector), `scripts/pipeline/audio.ts` (render and check stages), `src/audio/render.ts`, `src/audio/board.ts` and `tests/audio.test.ts`.
   Provenance goes in the framework's `docs/provenance/sources.md` only.
-- **Status:** plan drafted. Nothing built yet.
+- **Status:** plan drafted; steps 1-6 built and locally checked (2026-10-31). CI verified, deployed and Owner accepted: not yet.
 
 ## Scope
 
@@ -24,8 +24,8 @@ In:
   and the targets (sample rate, tail, true-peak ceiling, click floor, gameplay LUFS and tolerance, mixes). `render` writes WAVs and
   `render.json`; `check` fails on true peak, clicks, loudness (when enforced), ducking depth against the rule, panning, a stale render
   and event coverage (every event a cue or a silent reason). Free: no paid stage.
-- **The audio board** (`audio-synth/board`): a `debug` panel (`DebugPanelDef`) with every cue on a button grouped by bus, the beds, and
-  the events that play each cue. Plays through the mixer the game installed.
+- **The audio board** (`debug`, AU-D7): a panel with every cue on a button grouped by bus, the beds as toggles, and the events that
+  play each cue. Plays through the mixer the game installed.
 - **The example** (AS-a): a small `audio` fixture (`packages/audio-synth/fixtures/cues/`) that the pipeline's own test renders and
   checks: every cue renders under the true-peak and click limits.
 
@@ -39,13 +39,13 @@ the editor panels (EDS.5b).
   fails closed when no browser exists. Default: Playwright's Chromium as in CI.
 - **AU-D6:** the sample budget and recorded-music loudness checks stay out: the budget belongs to core's asset budget (M5) and music
   files are the game's. `check` reports them as not part of this pipeline, not as passed.
-- **AU-D7:** the board is a `DebugPanelDef` exported from `@mcthaydt/automata-audio-synth/board`, so the main entry stays free of Svelte
-  and of `debug`.
+- **AU-D7:** the board lives in the `debug` package beside the feel board (`AudioPanel`, an `audio` handle on `DebugHost` and an
+  `audioBoard` adapter over the content and the synth's controls), so `audio-synth` stays free of Svelte and of `debug`.
 
 ## Interfaces
 
 - Produces: `@mcthaydt/automata-audio-synth/measure` (`encodeWav`, `decodeWav`, `integratedLoudness`, `truePeak`, `clicks`, `decay`),
-  `.../render` (`renderCue`, `renderBed`, `renderMix`, `renderDuck`), `.../board` (`audioBoardPanel`, needs `debug`),
+  `.../render` (`renderCue`, `renderBed`, `renderMix`, `renderDuck`), `debug`: `AudioPanel`, `audioBoard`, `DebugHost.audio`,
   `tooling/pipelines` `audioPipeline` and `audioPipeSpec`.
 - Consumes: M6.10a (`createMixer`, `playCue`, `startBed`, `cueLength`, `coverage`), M3.8a (`definePipeline`), M6.2 (`DebugPanelDef`).
 
@@ -61,12 +61,29 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
    - [x] 3
 4. The `audio` pipeline and its checks, with the fixture (AS-a). Fails: no pipeline.
    - [x] 4
-5. The board panel (after #33 merges): buttons per cue and bed, event list, plays through the mixer. Fails: no component.
-   - [ ] 5
+5. The board panel (in `debug`, after #33 merged): buttons per cue and bed, event list, plays through the mixer. Fails: no component.
+   - [x] 5
 6. Gates, provenance row, ready line.
-   - [ ] 6
+   - [x] 6
 
 ## Gates
 
 - `pnpm format`, Plus `pnpm check`. No golden (presentation only). No changeset (private). The browser tests run in Node Vitest through
   Playwright's Chromium; no parity project (no sim entry).
+
+## Execution log
+
+- #33 merged during the work, so the board (step 5) is built on `debug`'s real host (AU-D7 moved it into `debug`).
+- The browser runner and the pipeline are in `tooling/pipelines` (new dependencies: `playwright`, `vite`, the `audio-synth` package);
+  its tsconfig gained the DOM lib because it type-checks the render module's sources. The bin loads the measure module when the stage
+  runs, not at import (the SB-D6 hook resolves extensionless imports only after the stage starts), as `narrative` does.
+- Measurements are taken in the render stage and kept in `render.json`; `check` reads the record and its staleness hash (content text
+  plus spec text), so it does not render again. The example's loudness target (-18 LUFS, 4 LU) is the measured mix, recorded as the
+  fixture's target, not a game's.
+- The click check is unit-tested on synthetic signals; no integration fixture produces a click on purpose (the synth's envelopes
+  ramp), so the pipeline's `clicks` row passes the example and is not exercised failing end to end.
+- Tests of the render module use a recording fake context; the Chromium test in `tooling/pipelines` renders for real and measures a
+  12 dB duck within 1 dB. The `mcp-cli` test's registered list gained `audio`.
+- Not done: the one-file `audio-synth/audio-synth-cues.ts` runnable example (no Plus examples runner; the fixture is the AS-a
+  example), parity with a legacy module, the space/convolver probe.
+- Gates: package tests, svelte-check, tsc, biome, Plus `pnpm check`. No golden, no changeset (private), no parity project.
