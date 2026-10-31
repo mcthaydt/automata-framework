@@ -15,7 +15,7 @@ This spec **wins** over `games/base-3d/DESIGN.md` §0 (the trimmed slice) and ov
 
 **Seed.** PR #354 (GAME-3D.1h + 1i) lands first with the full adventure inside `games/base-3d`. Then:
 
-1. Plus copies the adventure from AF at that commit (provenance row in `docs/provenance/sources.md`: AF's own commit; M6.12).
+1. The adventure is preserved by a pushed ref `archive/base-3d-adventure` at #354's merge commit (deleting it stays the Owner's). Plus copies it from there **after 1.0** (M6.12 is cut to post-1.0 by the launch-cut spec); the provenance row is written then.
 2. A new AF row, GAME-3D.1m, strips the adventure from `games/base-3d` down to the free game below, keeping the free-package candidates (controller, camera, figures, 3D render) and their tests.
 3. The sim goldens split: `base-3d` records a new route golden for the free game (the PR names the sim change and the removed behaviours; the old adventure goldens move to Plus with the code, where they stay asserted). A cross-engine mismatch is investigated, never rebaselined.
 
@@ -47,7 +47,7 @@ Emberwick's room is a hard-coded tile string (`games/emberwick/src/content/room.
 ## 4. Failure and recovery
 
 - If #354 fails parity, nothing in this spec starts; the seed commit is the merge commit of #354.
-- If the Plus copy is not green on its own CI, GAME-3D.1m waits (the adventure must live somewhere green before AF deletes it).
+- GAME-3D.1m needs the archive ref pushed and verified before any strip commit; it does not wait for Plus (M6.12 is post-1.0).
 - Save migration: version 1 saves written by the adventure (`resume: 'kiln'`, inventory fields) are not read by the free game; the free game's slot has its own `schema` id so a stale adventure save is ignored, not mis-read.
 
 ## 5. Acceptance cases
@@ -59,7 +59,7 @@ Emberwick's room is a hard-coded tile string (`games/emberwick/src/content/room.
 - **F3-c:** `pnpm boundaries --game base-3d` is clean and the game imports only free packages.
 - **F3-d:** a save written by the free game round-trips through `Hosting`; a denied capability shows the hosted failure, with no device fallback (adapter tests).
 - **F3-e:** controls at 360×640 and 640×360: touch targets ≥ 44 px, camera drag and stick work together.
-- **F3-f:** `base-adventure` in Plus passes the moved adventure golden with its hash unchanged from `base-3d`@#354.
+- **F3-f (post-1.0, with M6.12):** `base-adventure` in Plus passes the moved adventure goldens with their hashes unchanged from `base-3d` at the archive ref.
 - **Owner:** a real-device pass (Android phone and an iPhone) and visual acceptance against Emberwick's quality.
 
 ## 6. Row changes (applied in `docs/02` in the same PR)
