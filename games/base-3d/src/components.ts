@@ -154,3 +154,21 @@ const dropFields = {
 
 /** Something a beaten enemy left on the floor (DESIGN.md §8.1 rule 6): Wick takes it by walking over it. */
 export const Drop: ComponentDef<typeof dropFields> = defineComponent('drop', dropFields)
+
+const pelletFields = {
+  /** Where this tick's flight starts, Q16.16 metres; it reaches one tick's flight along `facing`. */
+  x: 'i32',
+  z: 'i32',
+  /** The height it flies at, Q16.16 metres above the floor: the picked foe's middle, or chest height (DESIGN.md §9.2). */
+  y: 'i32',
+  /** The aim it flies along, in turn units. */
+  facing: 'u32',
+  /** How far it has flown, Q16.16 metres; at the sling's range it is gone. */
+  travelled: 'i32',
+} as const
+
+/**
+ * A sling pellet in flight (DESIGN.md §9.1). It is a fighter on Wick's side whose `sling-pellet` move is active on
+ * every tick it flies, so `combat.hits` lands it as any hit; it is spent on its first contact.
+ */
+export const Pellet: ComponentDef<typeof pelletFields> = defineComponent('pellet', pelletFields)

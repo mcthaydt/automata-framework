@@ -1245,9 +1245,11 @@ const GOLDEN_KILN_TICK = 118
  * The first slice has no foe: its rejected commands, events, kiln tick, locked ticks, action starts, end action and
  * end position are unchanged, and still asserted below. Re-recorded for GAME-3D.1d part 4 (was `6cfedf97464a98e2`):
  * the enemy moves name their clips (`clip`, in the content the hash covers) and `foe.defeated` gained the place the foe
- * fell (`x`, `z`, in the schema). Nothing on the route changed: the same assertions hold unchanged.
+ * fell (`x`, `z`, in the schema). Nothing on the route changed: the same assertions hold unchanged. Re-recorded for
+ * GAME-3D.1e part 1's sling (was `1cc2582080223c43`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move. The route sends `item: false` on every tick
+ * and owns no sling, so its state did not move: the same assertions hold unchanged.
  */
-const GOLDEN_HASH = '1cc2582080223c43'
+const GOLDEN_HASH = '9fad84dd7ebb29d1'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

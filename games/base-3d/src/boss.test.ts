@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { Enemy, Fighter, Target } from './components.ts'
 import { BrainState, ENEMIES, ENEMY_MOVES } from './constants/enemies.ts'
 import { CombatState, type MoveDef, metres } from './constants/index.ts'
+import { ItemCode, SLING } from './constants/items.ts'
+import { Inventory } from './resources.ts'
 import { type AreaSource, compileArea } from './systems/index.ts'
 import { enemy, fighter, foes, hitKinds, MOVES, slashes, wickSid } from './testing/foes.ts'
 import { commandsFor, hero, run, startSim, type TickInput } from './testing/sim.ts'
@@ -11,19 +13,13 @@ import { commandsFor, hero, run, startSim, type TickInput } from './testing/sim.
 // The Ashen Warden (GAME-3D.1d part 3, DESIGN.md §8.4): its two phases, its openings and its defeat, in the sim. The
 // browsers project runs this file in Chromium, WebKit and Firefox too (G3-c).
 
-// Stand-ins for GAME-3D.1e's items: a sling pellet (it opens the Warden's mouth) and a bomb blast (power 3), both
-// reaching 6 m ahead from the floor to 4 m up.
+// Stand-ins for GAME-3D.1e's later items: a bomb blast (power 3) reaching 6 m ahead from the floor to 4 m up (part 2
+// replaces it), and a blow big enough to end the Warden. The sling is the real one (items.ts).
 const reachAll = { near: 0, far: metres(6), bottom: 0, top: metres(4), stop: 2, stun: 10, kb: 0 }
-const PELLET: MoveDef = {
-  id: 'test-pellet',
-  total: 10,
-  active: [1, 1],
-  hit: { ...reachAll, dmg: 1, power: 1, pellet: true },
-}
 const BOMB: MoveDef = { id: 'test-bomb', total: 10, active: [1, 1], hit: { ...reachAll, dmg: 2, power: 3 } }
 // A blow big enough to end the Warden from 13 health in one hit while it kneels (7, doubled).
 const BLAST: MoveDef = { id: 'test-blast', total: 10, active: [1, 1], hit: { ...reachAll, dmg: 7, power: 1 } }
-const BOSS_MOVES = [...MOVES, PELLET, BOMB, BLAST]
+const BOSS_MOVES = [...MOVES, BOMB, BLAST]
 const moveIndex = (id: string) => BOSS_MOVES.findIndex((move) => move.id === id) + 1
 const WARDEN = ENEMIES.find((type) => type.id === 'warden')
 
@@ -52,7 +48,7 @@ function attack(sim: Sim, sid: number, move: string) {
 }
 
 /** A stand-in item fired from beside Wick, straight ahead, on the next step. */
-function fire(sim: Sim, item: 'test-pellet' | 'test-bomb' | 'test-blast') {
+function fire(sim: Sim, item: 'test-bomb' | 'test-blast') {
   const sid = sim.spawn([
     [Target, { x: metres(0.1), z: 0, facing: 0 }],
     [Fighter, { side: 0, health: 6, radius: metres(0.3), height: metres(1.6) }],
@@ -152,8 +148,12 @@ describe('phase 2 (DESIGN.md §8.4, G3-n)', () => {
     sim.entity(sid)?.set(Enemy, { phase: 2 })
     attack(sim, sid, 'warden-breath')
     run(sim, {}, 20)
-    fire(sim, 'test-pellet')
-    expect(hitKinds(sim, {})).toEqual(['hit'])
+    // The sling, drawn and let go: the pellet rises to the Warden's middle and meets it in the inhale (frames 1–48).
+    Object.assign(sim.resource(Inventory), { sling: true, equipped: ItemCode.sling, pellets: 5 })
+    run(sim, { act: { item: true } }, SLING.draw)
+    let kinds: string[] = []
+    for (let i = 0; i < 15 && kinds.length === 0; i++) kinds = hitKinds(sim, {})
+    expect(kinds).toEqual(['hit'])
     expect(fighter(sim, sid)).toMatchObject({ state: CombatState.stagger, stun: 120, move: 0 })
     sim.dispose()
   })
@@ -266,10 +266,11 @@ async function replayBossFight(log: readonly Command[][]) {
 /**
  * The boss fight's defeat tick and final hash, with seed 1 (recorded in Node); every engine must end on both.
  * Re-recorded for part 4 (was `6001e1c06a58eabe`): the moves' `clip` names in the content and `foe.defeated`'s `x`
- * and `z` in the schema; the same events and defeat tick, still asserted below.
+ * and `z` in the schema; the same events and defeat tick, still asserted below. Re-recorded for GAME-3D.1e part 1
+ * (was `b36cb175b4bade73`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move; the test player never fires it, so the same events and defeat tick hold.
  */
 const BOSS_DEFEATED_AT = 458
-const BOSS_HASH = 'b36cb175b4bade73'
+const BOSS_HASH = '28e5ff49a2269c98'
 
 describe('the boss fight’s recorded log (G3-c)', () => {
   it('beats the Warden through a parried slam’s kneel and phase 2, and its log replays to the same defeat tick and hash', async ({

@@ -50,6 +50,11 @@ export const DropTaken: EventDef<typeof drop> = defineEvent('drop.taken', drop)
 /** The Ash Knight Captain is beaten (DESIGN.md §8.3): D4's doors open and the Ember Bombs chest appears (1f, 1e). */
 export const CaptainDefeated: EventDef<typeof foe> = defineEvent('captain.defeated', foe)
 
+const shot = z.object({ item: z.enum(['sling']), x: z.int(), z: z.int() })
+
+/** Wick fired an item from his place (DESIGN.md §9.1): presentation's twang. */
+export const ShotFired: EventDef<typeof shot> = defineEvent('shot.fired', shot)
+
 const phase = z.object({ target: z.int().nonnegative(), phase: z.int().positive() })
 
 /** The Warden entered `phase` (DESIGN.md §8.4): the grate shuts; presentation's cue. */

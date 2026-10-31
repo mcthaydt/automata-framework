@@ -57,7 +57,7 @@ const BASE3D_SIM = base3dSim(WORLD)
 /** The keyboard's camera turn, 120° a second (M4-D16): 65,536 × 120 / 360 / 60 ≈ 364 turn units a tick. */
 const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
 
-const idleAct = { slash: false, guard: false, point: false, pickup: false, action: false }
+const idleAct = { slash: false, guard: false, point: false, pickup: false, action: false, item: false }
 
 /**
  * WASD and the arrows push the stick to its edge (`move` is the stick, M4-D2), as the left stick's directions do;
@@ -104,10 +104,18 @@ export const input = lockInput(
         KeyL: { point: true },
         KeyF: { pickup: true },
         Space: { action: true },
+        KeyR: { item: true },
       },
       {
         idle: idleAct,
-        labels: { KeyJ: 'Slash', KeyK: 'Guard', KeyL: 'Point', KeyF: 'Pick up', Space: 'Action' },
+        labels: {
+          KeyJ: 'Slash',
+          KeyK: 'Guard',
+          KeyL: 'Point',
+          KeyF: 'Pick up',
+          Space: 'Action',
+          KeyR: 'Item',
+        },
       },
     ),
   ),

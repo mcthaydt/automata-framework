@@ -16,7 +16,7 @@ const map = () =>
     keys(
       Act,
       { KeyJ: { slash: true } },
-      { idle: { slash: false, guard: false, point: false, pickup: false, action: false } },
+      { idle: { slash: false, guard: false, point: false, pickup: false, action: false, item: false } },
     ),
   )
 

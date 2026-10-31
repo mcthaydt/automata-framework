@@ -44,6 +44,7 @@ export const heroInput: SystemDef = defineSystem({
     if (act?.point === true) actHeld |= ACTION_BITS.point
     if (act?.pickup === true) actHeld |= ACTION_BITS.pickup
     if (act?.action === true) actHeld |= ACTION_BITS.action
+    if (act?.item === true) actHeld |= ACTION_BITS.item
     for (const entity of ctx.query(HeroControl)) {
       const before = entity.get(HeroControl)
       const lockPressed = lockHeld && !before.lockHeld

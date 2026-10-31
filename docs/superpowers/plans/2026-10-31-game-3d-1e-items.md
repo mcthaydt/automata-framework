@@ -76,13 +76,13 @@ Produced (base-3d only; no package API changes):
 
 ## Part 1: steps
 
-- [ ] 1. Tests for `aimDirection` and `pickTarget` (pure): lock wins, then stick, then facing; the ±6° and 15 m
+- [x] 1. Tests for `aimDirection` and `pickTarget` (pure): lock wins, then stick, then facing; the ±6° and 15 m
       limits; the nearest wins; the height is the cylinder's middle, else 1.2 m.
-- [ ] 2. Tests for the sling in the sim: draw and fire (a release before 8 ticks fires nothing); the pellet's
+- [x] 2. Tests for the sling in the sim: draw and fire (a release before 8 ticks fires nothing); the pellet's
       flight, wall stop and range; it drops a hovering Wisp; it opens the Warden's mouth (the boss.test stand-in
       replaced); it stuns a Sootling 60; ammo spent, none fired at 0; nothing with the sling unowned or unequipped.
-- [ ] 3. The inventory through the save: applied before tick 0, captured back (screens.dom.test or saves test).
-- [ ] 4. Goldens re-recorded with the explanation (the schema gains `act.item`, `Inventory`, `pellet`); the routes'
+- [x] 3. The inventory through the save: applied before tick 0, captured back (screens.dom.test or saves test).
+- [x] 4. Goldens re-recorded with the explanation (the schema gains `act.item`, `Inventory`, `pellet`); the routes'
       states unchanged.
 - [ ] 5. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, base-3d `test:parity`, `build`, the base-3d e2e spec.
 
@@ -90,4 +90,30 @@ Parts 2 to 5 get their interfaces and steps here before their code, as part 1's.
 
 ## Execution log
 
-(Filled in as the steps pass.)
+**Part 1 (2026-10-31, branch `claude/3d-game-3d-1e`).**
+
+- Red first: aim.test.ts failed on the missing module; items.test.ts's 8 cases on the missing `Inventory`; the key
+  map's cases on the missing `item` field and `KeyR`.
+- Two cases still failed after the first code, each for a real reason:
+  - the test harness compiled worlds with Wick's moves only, so `sling-pellet` was not in the table and no pellet
+    could land; the harness now defaults to the game's own move table (`BASE3D_SIM.content.moves`);
+  - a pellet flew straight up the aim line and passed 0.4 m beside a Wisp the pick had chosen 4.8° off it (its
+    radius is 0.3 m). §9.2 says the shot hits the target it picks, so the pellet flies at the picked foe's bearing
+    in plan (`pickTarget` returns it; a new case pins it at 867 turn units), and Wick turns that way.
+- A pellet is a fighter on Wick's side playing the one-frame `sling-pellet` move on every tick it flies, so
+  `combat.hits` lands it through every 1c and 1d rule (the Wisp grounds, the Warden's mouth opens, a knight's shield
+  blocks it from the front); it is spent on its first contact (by attacker, then defender, id) and its band is the
+  height it flies at. boss.test.ts's pellet stand-in is replaced by the real sling.
+
+**Defaults (part 1, for the Owner's veto):**
+
+1. A pellet stuns any foe it hits 60 ticks (§9.1 names the Sootling); a knight's shield blocks one from the front.
+2. Its last tick of flight may reach up to one tick's flight (0.33 m) short of 15 m; it never reaches past 15 m.
+3. Two foes on one tick's flight: the lower id is hit, not the nearer (a pellet covers 0.33 m a tick).
+4. The draw counts only while the sling is owned, equipped and loaded; Item is R on the keyboard (§14.2).
+5. 1f's `sling-target` entities join `pickTarget`'s candidates; until then it picks among foes.
+
+**Goldens (part 1).** `base-3d/golden-route` `1cc2582080223c43` → `9fad84dd7ebb29d1`; `base-3d/golden-fights`
+`72f569192c8c293d` → `bf79815307dba14c`; `base-3d/golden-boss` `b36cb175b4bade73` → `28e5ff49a2269c98`. The
+schema (`act.item`, `inventory`, `pellet`, `shot.fired`, two systems) and the content (the sling's move); nothing
+fires the sling on the routes, and every other assertion is unchanged.

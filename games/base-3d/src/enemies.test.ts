@@ -498,9 +498,10 @@ const FIGHTS_ROUTE: readonly RouteSegment[] = [
  * (was `a41116f82fa68a84`): the Warden's type and moves in the content, `enemy.phase` and the `boss.*` events in
  * the schema; the yard has no Warden, so the same assertions hold unchanged. Re-recorded for part 4 (was
  * `276ca92fcddd55ea`): the enemy moves' `clip` names in the content and `foe.defeated`'s `x` and `z` in the schema;
- * the same events, tokens, embers, health and ticks, still asserted below.
+ * the same events, tokens, embers, health and ticks, still asserted below. Re-recorded for GAME-3D.1e part 1 (was
+ * `72f569192c8c293d`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move; nothing on the route fires it, so the same assertions hold.
  */
-const FIGHTS_HASH = '72f569192c8c293d'
+const FIGHTS_HASH = 'bf79815307dba14c'
 
 async function runFights() {
   const spec = base3dSim(compileWorld([FIGHT_YARD]))

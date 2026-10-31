@@ -4,7 +4,7 @@
 // a block costing blockstun and a push, hitstop as one freeze counter. Rewritten on integers for the sim; the source
 // is not edited. Sim code: `pnpm boundaries` checks it.
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
-import { Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Pellet, Target } from '../components.ts'
 import { dropOf, enemyOf } from '../constants/enemies.ts'
 import {
   ACTION_BITS,
@@ -60,6 +60,7 @@ export const isHeld = (state: number): boolean => HELD_STATES.includes(state)
 /** A fighter's place and facing: Wick's `hero` row, or anyone else's `target` row. */
 function placeOf(entity: EntityRef): { x: number; z: number; facing: number } | undefined {
   if (entity.has(Hero)) return entity.get(Hero)
+  if (entity.has(Pellet)) return entity.get(Pellet)
   if (entity.has(Target)) return entity.get(Target)
   return undefined
 }
@@ -250,7 +251,11 @@ function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
     const from = placeOf(attacker)
     if (from === undefined) continue
     const forward = facingVector(from.facing)
+    // A pellet reaches only the height it flies at (DESIGN.md §9.2), not its move's band.
+    const pellet = attacker.has(Pellet) ? attacker.get(Pellet) : undefined
+    const band = pellet === undefined ? hit : { bottom: pellet.y, top: pellet.y }
     for (const defender of fighters) {
+      if (defender.has(Pellet)) continue
       const target = defender.get(Fighter)
       if (target.side === fighter.side || target.health <= 0 || target.iframes > 0) continue
       if (UNTOUCHABLE.includes(target.state)) continue
@@ -262,7 +267,7 @@ function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
       const at = placeOf(defender)
       // The hurt cylinder stands from its floor (`lift`, a hovering Wisp's) up its height.
       const height = running?.height ?? target.height
-      if (at === undefined || hit.bottom > target.lift + height || hit.top < target.lift) continue
+      if (at === undefined || band.bottom > target.lift + height || band.top < target.lift) continue
       // A cone (a breath) is stopped by a wall between them: the Warden's pillars (DESIGN.md §8.4).
       const reaches =
         hit.cone !== undefined
@@ -289,7 +294,14 @@ export const combatHits: SystemDef = defineSystem({
     if (frozen(ctx)) return
     const moves = movesOf(ctx)
     let freeze = 0
+    // A pellet is spent on its first contact (by attacker, then defender, id); it is gone at the end of the tick.
+    const spent = new Set<number>()
     for (const { attacker, defender, def } of gather(ctx, moves)) {
+      if (spent.has(attacker.sid)) continue
+      if (attacker.has(Pellet)) {
+        spent.add(attacker.sid)
+        ctx.despawn(attacker.sid)
+      }
       const hit = def.hit
       const target = defender.get(Fighter)
       const from = placeOf(attacker)

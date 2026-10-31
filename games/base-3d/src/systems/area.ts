@@ -3,6 +3,7 @@ import { type CameraView, cameraViewSchema } from '@mcthaydt/automata-render-pix
 import { z } from 'zod'
 import { ENEMIES, ENEMY_MOVES } from '../constants/enemies.ts'
 import { HERO_HALF, HERO_MOVES, type MoveDef, metres } from '../constants/index.ts'
+import { ITEM_MOVES } from '../constants/items.ts'
 
 const plan = z.tuple([z.number(), z.number()])
 const minNotPastMax = (box: { min: [number, number]; max: [number, number] }): boolean =>
@@ -158,7 +159,7 @@ export function compileArea(source: AreaSource): Area {
  */
 export function compileWorld(
   sources: readonly AreaSource[],
-  moves: readonly MoveDef[] = [...HERO_MOVES, ...ENEMY_MOVES],
+  moves: readonly MoveDef[] = [...HERO_MOVES, ...ENEMY_MOVES, ...ITEM_MOVES],
 ): World {
   const areas = sources.map(compileArea)
   if (areas.length === 0) throw new Error('base-3d world: there are no areas')

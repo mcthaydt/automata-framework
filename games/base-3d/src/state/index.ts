@@ -4,7 +4,7 @@
 import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Lock, LockCycle, Move } from '../commands.ts'
-import { Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Pellet, Target } from '../components.ts'
 import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants/index.ts'
 import {
   AreaEntered,
@@ -17,8 +17,9 @@ import {
   FoeDefeated,
   HeroDefeated,
   HitLanded,
+  ShotFired,
 } from '../events.ts'
-import { Freeze, Location, Progress } from '../resources.ts'
+import { Freeze, Inventory, Location, Progress } from '../resources.ts'
 import {
   type Area,
   areaExit,
@@ -33,8 +34,10 @@ import {
   heroInput,
   heroMove,
   heroView,
+  itemUse,
   lockAssist,
   lockSelect,
+  pelletFly,
   spawnFoes,
   viewAt,
   type World,
@@ -84,7 +87,7 @@ export function continueWith3Hearts(sim: Sim): void {
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
-  resources: [Progress, Location, Freeze],
+  resources: [Progress, Location, Freeze, Inventory],
   defs: [
     Hero,
     HeroControl,
@@ -93,6 +96,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     Fighter,
     Enemy,
     Drop,
+    Pellet,
     Move,
     Lock,
     LockCycle,
@@ -105,6 +109,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     CaptainDefeated,
     BossPhase,
     BossDefeated,
+    ShotFired,
     AreaExit,
     AreaEntered,
     heroInput,
@@ -112,6 +117,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     lockSelect,
     lockAssist,
     heroAct,
+    itemUse,
     combatStatus,
     enemyBrain,
     combatMoves,
@@ -120,6 +126,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     dropsTake,
     areaExit,
     heroView,
+    pelletFly,
     combatHits,
   ],
 })

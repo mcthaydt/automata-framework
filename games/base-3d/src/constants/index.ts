@@ -32,7 +32,7 @@ export const ACTION_CLIP = { slash: 1, point: 2, pickup: 3, move: 4 } as const
 /** Each action's length in ticks at 60 Hz: its clip's `length` (0.4 s, 0.8 s, 0.9 s), which the content test checks. */
 export const ACTION_TICKS = { slash: 24, point: 48, pickup: 54 } as const
 /** Each action button's bit in `HeroControl.actHeld` and `actPressed`. */
-export const ACTION_BITS = { slash: 1, guard: 2, point: 4, pickup: 8, action: 16 } as const
+export const ACTION_BITS = { slash: 1, guard: 2, point: 4, pickup: 8, action: 16, item: 32 } as const
 /** The area change's fade out, 300 ms (DESIGN.md §13): the sim swaps the area this many ticks after the exit. */
 export const AREA_FADE_TICKS = 18
 

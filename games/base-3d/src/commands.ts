@@ -34,6 +34,8 @@ const actSchema = z.object({
   pickup: z.boolean(),
   /** The Action button (DESIGN.md §14.1 `action`): a roll, or a hop while locked. */
   action: z.boolean(),
+  /** The Item button (DESIGN.md §14.1 `item`): held to draw the sling, let go to fire (GAME-3D.1e). */
+  item: z.boolean(),
 })
 
 /**

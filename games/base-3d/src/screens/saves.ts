@@ -4,7 +4,8 @@
 // the area's entrance (GAME3D-D9): nothing here moves Wick.
 import type { GameSaves } from '@mcthaydt/automata-game'
 import type { Sim } from '@mcthaydt/automata-sim'
-import { Progress } from '../resources.ts'
+import { ItemCode } from '../constants/items.ts'
+import { Inventory, Progress } from '../resources.ts'
 import { type Base3dSave, base3dSave, newGame } from '../state/save.ts'
 
 /** One game's saves: `defineGame`'s `saves`. A new instance per game, since it remembers the slot it applied. */
@@ -15,12 +16,38 @@ export function base3dSaves(): GameSaves<Base3dSave> {
     capture: (sim: Sim) => ({
       ...applied,
       embers: sim.resource(Progress).embers,
+      ...captureInventory(sim.resource(Inventory)),
       // The sim starts at tick 0 on every Continue, so the play time is the slot's plus this sim's.
       playTicks: applied.playTicks + sim.tick,
     }),
     apply: (sim: Sim, data: Base3dSave) => {
       applied = data
       sim.resource(Progress).embers = data.embers
+      Object.assign(sim.resource(Inventory), {
+        ...data.items,
+        equipped: data.equipped === null ? 0 : ItemCode[data.equipped],
+        pellets: data.ammo.pellets,
+        bombAmmo: data.ammo.bombs,
+      })
     },
+  }
+}
+
+const EQUIPPED: readonly Base3dSave['equipped'][] = [null, 'sling', 'bombs', 'hookchain']
+
+/** The sim's inventory as the save holds it (DESIGN.md §12.1): items, ammo and the equipped item. */
+function captureInventory(inventory: {
+  readonly sling: boolean
+  readonly bombs: boolean
+  readonly hookchain: boolean
+  readonly equipped: number
+  readonly pellets: number
+  readonly bombAmmo: number
+}): Pick<Base3dSave, 'items' | 'ammo' | 'equipped'> {
+  const { sling, bombs, hookchain, equipped, pellets, bombAmmo } = inventory
+  return {
+    items: { sling, bombs, hookchain },
+    ammo: { pellets, bombs: bombAmmo },
+    equipped: EQUIPPED[equipped] ?? null,
   }
 }

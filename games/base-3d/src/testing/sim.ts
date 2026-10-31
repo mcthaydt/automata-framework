@@ -24,7 +24,7 @@ export const FIRST_AREA = BASE3D_SIM.content.areas[0] as Area
 /** A sim made the way the game makes it (`GAME_SIM`), on the first slice or a test area. */
 export async function startSim(
   area: Area = FIRST_AREA,
-  moves: readonly MoveDef[] = HERO_MOVES,
+  moves: readonly MoveDef[] = BASE3D_SIM.content.moves,
 ): Promise<Sim> {
   const sim = await createSim({ ...GAME_SIM, content: { areas: [area], moves } })
   if (area === FIRST_AREA) BASE3D_SIM.setup(sim)
@@ -46,7 +46,7 @@ export interface TickInput {
   readonly mode?: 'toggle' | 'hold'
   /** A `lock-cycle` this tick: 1 clockwise, −1 anticlockwise. */
   readonly cycle?: 1 | -1
-  readonly act?: Partial<Record<'slash' | 'guard' | 'point' | 'pickup' | 'action', boolean>>
+  readonly act?: Partial<Record<'slash' | 'guard' | 'point' | 'pickup' | 'action' | 'item', boolean>>
 }
 
 /**
@@ -62,7 +62,15 @@ export function commandsFor(sim: Sim, input: TickInput): Command[] {
     commands.push({ ...at, seq: sim.tick * 5 + 1, type: 'camera-turn', payload: { units: input.turn } })
   const lock = { down: input.lock ?? false, mode: input.mode ?? 'hold' }
   commands.push({ ...at, seq: sim.tick * 5 + 2, type: 'lock', payload: lock })
-  const act = { slash: false, guard: false, point: false, pickup: false, action: false, ...input.act }
+  const act = {
+    slash: false,
+    guard: false,
+    point: false,
+    pickup: false,
+    action: false,
+    item: false,
+    ...input.act,
+  }
   commands.push({ ...at, seq: sim.tick * 5 + 3, type: 'act', payload: act })
   if (input.cycle !== undefined)
     commands.push({ ...at, seq: sim.tick * 5 + 4, type: 'lock-cycle', payload: { dir: input.cycle } })

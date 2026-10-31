@@ -4,6 +4,7 @@ import type { Sim } from '@mcthaydt/automata-sim'
 import { Enemy, Fighter, Hero, Target } from '../components.ts'
 import { ENEMIES, ENEMY_MOVES } from '../constants/enemies.ts'
 import { HERO_MOVES } from '../constants/index.ts'
+import { ITEM_MOVES } from '../constants/items.ts'
 import { type Area, type AreaSource, compileArea } from '../systems/index.ts'
 import { commandsFor, hero, run, startSim, type TickInput } from './sim.ts'
 
@@ -19,7 +20,7 @@ export const foeArea = (foes: AreaSource['foes'], walls: AreaSource['walls'] = [
     ember: { x: 40, z: 40 },
     foes,
   })
-export const MOVES = [...HERO_MOVES, ...ENEMY_MOVES]
+export const MOVES = [...HERO_MOVES, ...ENEMY_MOVES, ...ITEM_MOVES]
 export const startFoes = (foes: AreaSource['foes'], walls?: AreaSource['walls']) =>
   startSim(foeArea(foes, walls), MOVES)
 export const foes = (sim: Sim) => sim.query(Enemy)
