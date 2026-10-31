@@ -2,7 +2,7 @@
 
 - **Row:** framework `docs/02-master-delivery-plan.md` STANDALONE.1 (AF #311). Size M.
 - **Direction:** Owner, 2026-10-31: "Let's not couple the automata framework so tightly to Ruken - that's just one of the many places we can distribute content to easily; we have tauri export, Ruken export, and itch export"; "But especially the website, the website makes it seem like it's specifically for Ruken"; "Let's also cut references to Last Light and Floor Fifty, automata framework is standalone". ADR 0006 (AF #311): `web`, `itch`, `ruken` and `tauri` are peer targets.
-- **Status:** drafted 2026-10-31. **Progress:** 5 of 7 steps (1 to 5).
+- **Status:** drafted 2026-10-31. **Progress:** 7 of 7 steps.
 - **Branch:** `claude/website-STANDALONE.1-target-neutral`, stacked on DX.10a (`claude/website-DX.10a-restore-claims`, website#28, head `82e0a87`), whose `/ai#csp` copy this task also changes.
 
 ## What is true today (framework.ref `f8023a9`)
@@ -26,8 +26,8 @@
 - [x] **3. Docs and plain text.** `scripts/sync-docs.ts`: the overview, the security doc (renamed "Zero-eval CSP and host security", target by target), the capabilities doc (the four targets), the FAQ ("Where can I publish?" in place of "What is Ruken?"), `llms.txt` and `llms-guides.txt` intros. Then `pnpm sync` for `docs.json` and the text files.
 - [x] **4. Pages.** The homepage (a distribution item naming the four targets; the Boot guide without "the Ruken handshake"), `/ai` (the hosting rule and the verify steps target by target; `#csp` scoped "On Ruken"), the cheatsheet's Hosting module description, and any other page step 1 lists.
 - [x] **5. Framework copies marked.** `data-framework-copy` on `/inside`'s article and the source viewers' code panes; the stale-exemption test.
-- [ ] **6. Gates.** `pnpm check`, `pnpm test`, `pnpm build` (restore `src/data/first-change-proof.json`), `pnpm check:site`, `site.e2e` in Chromium and WebKit, `pnpm lighthouse`.
-- [ ] **7. Review images** of every changed page at 1280x800 and 390x844, Chromium and WebKit, under `docs/evidence/owner-visual/2026-10-31-standalone-1/` with a README.
+- [x] **6. Gates.** `pnpm check`, `pnpm test`, `pnpm build` (restore `src/data/first-change-proof.json`), `pnpm check:site`, `site.e2e` in Chromium and WebKit, `pnpm lighthouse`.
+- [x] **7. Review images** of every changed page at 1280x800 and 390x844, Chromium and WebKit, under `docs/evidence/owner-visual/2026-10-31-standalone-1/` with a README.
 
 ## Decisions for the Owner's veto (defaults taken; Owner approvals are auto-accepted, 2026-10-31)
 
@@ -46,3 +46,10 @@
   - Framework copies are marked `data-framework-copy`: `/inside`, the source viewer, and the playground's static code and editor. `tests/standalone-exemption.test.ts` fails once none of them names a reference project.
   - Red first: the 13 new site-check cases and the showcase test failed before their changes.
   - Tests changed with the copy, each assertion kept: `tests/docs.test.ts` (the security doc's title) and three DX.10a pins in `tests/audit-regressions.test.ts` (the `/ai#csp`, security-doc and 780×270 sentences).
+- 2026-10-31, steps 6–7 (head e5778bf, plus the images):
+  - `pnpm check` 0 errors; `pnpm test` 67 files, 468 passed, 1 expected fail.
+  - `pnpm build`; `pnpm check:site` 46 pages pass. A planted name and a planted framing phrase in a built page both fail it.
+  - `site.e2e`: Chromium 344 passed; WebKit 342 passed, 2 skipped.
+  - `pnpm lighthouse`: 0 assertion failures (performance 98–100).
+  - Remaining names in the build: only `/inside` and `llms-full.txt`/`llms-api.txt`, all framework copies.
+  - Images: 10 regions × 2 sizes × 2 browsers, 0 px overflow, no name in any page's text.
