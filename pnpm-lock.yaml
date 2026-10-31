@@ -43,6 +43,37 @@ importers:
         specifier: 2.9.1
         version: 2.9.1
 
+  packages/audio-synth:
+    dependencies:
+      '@mcthaydt/automata-content':
+        specifier: file:../../.core/packs/automata-content
+        version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@mcthaydt/automata-runtime':
+        specifier: file:../../.core/packs/automata-runtime
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@mcthaydt/automata-sim':
+        specifier: file:../../.core/packs/automata-sim
+        version: file:.core/packs/automata-sim
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@mcthaydt/automata-feel':
+        specifier: workspace:*
+        version: link:../feel
+      '@mcthaydt/evidence':
+        specifier: file:../../.core/packs/evidence
+        version: file:.core/packs/evidence
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      smol-toml:
+        specifier: 1.9.0
+        version: 1.9.0
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+
   packages/cutscenes:
     dependencies:
       '@mcthaydt/automata-content':

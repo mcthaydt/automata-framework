@@ -42,7 +42,7 @@ the source's `blips`, `foley`, `hallucinations` and `space` (a room reverb) and 
 Each step: write the test, see it fail for the stated reason, write the minimum, see it pass.
 
 1. Package; the `audio` schema (cues, beds, events, ducks, slots, rules), content kind. Fails: no package.
-   - [ ] 1
+   - [x] 1 (the extension joins in step 6)
 2. Synth on a recording fake context: voices, cues, beds, noise, `cueLength`. Fails: no module.
    - [ ] 2
 3. Mixer: bus routing, spatial pan and distance, ducking. Fails: no module.
