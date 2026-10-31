@@ -11,6 +11,7 @@
   import { SITE_ORIGIN } from '$lib/site.js'
   import CodePanel from './CodePanel.svelte'
   import PreviewPanel from './PreviewPanel.svelte'
+  import DeterminismRow from './DeterminismRow.svelte'
   import type { Orchestrator, OrchestratorView, PreviewFrame } from './orchestrator'
   import { ANNOUNCE_AFTER_MS, diagnosticText, STATUS } from './status'
   import type { Diagnostic } from './compile'
@@ -102,6 +103,13 @@
     }
   }
 
+  /** F6: an example with a golden asks for the check; only the unedited original replays the golden, an edit is hashed. */
+  function determinismRequest(isEdit: boolean) {
+    const golden = example.golden
+    if (golden === undefined) return undefined
+    return isEdit ? { ticks: golden.ticks } : { ticks: golden.ticks, replay: golden.replay }
+  }
+
   /** The original, precompiled at sync time, so the first run needs neither the editor nor the compiler (spec F1). */
   async function runOriginal() {
     fetchFailed = false
@@ -112,7 +120,7 @@
       const response = await fetch('/playground/compiled/' + example.id + '.js')
       if (!response.ok) throw new Error(String(response.status))
       const code = atOrigin(await response.text(), SITE_ORIGIN, location.origin)
-      if (run === runs) orchestrator.run(code)
+      if (run === runs) orchestrator.run(code, determinismRequest(false))
     } catch {
       if (run === runs) fetchFailed = true
     }
@@ -125,7 +133,7 @@
     const run = ++runs
     try {
       const orchestrator = await getOrchestrator()
-      if (run === runs) orchestrator.run(code)
+      if (run === runs) orchestrator.run(code, determinismRequest(edited))
     } catch {
       // The page has gone.
     }
@@ -319,6 +327,7 @@
   <div class="playground-preview" bind:this={box}>
     <PreviewPanel title={example.title} {view} {showPlay} onplay={play} {showRetry} onretry={retry} onrestart={() => orchestrator?.restart()} bind:stage />
     <p class="playground-status" id={statusId}>{#if diagnosticStatus && status === diagnosticStatus}<button type="button" class="diagnostic" onclick={() => codePanel?.focusAt(diagnostics[0]!.line, diagnostics[0]!.column)}>{status}</button>{:else}{status}{/if}</p>
+    {#if view.determinism}<DeterminismRow view={view.determinism} exampleId={example.id} />{/if}
     <p class="playground-announce sr-only" aria-live="polite">{announced}</p>
   </div>
   </div>
