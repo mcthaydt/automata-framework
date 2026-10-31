@@ -10,7 +10,7 @@ import { startAt, stopEditor } from '../../testing/layout-start'
 // Walk with the production CSS in Chromium, WebKit and Firefox (plan ED3D.8b; ED3D spec §5.3 flow 4, §10): the view fills
 // the canvas region; its HUD (the mode switch, the minimap, the sticks, Fly's Up and Down) is on screen inside the region
 // at the touch sizes; the status line names what the crosshair is on or why the view cannot draw. Where the page cannot
-// draw (Firefox here has no WebGL2) the notice takes the canvas's place and the HUD's words still show.
+// draw (Firefox here has no WebGL2; ED3-p) the notice takes the canvas's place, with its Try again at full size.
 
 const DEPOT = 'depot/depot.json'
 
