@@ -10,8 +10,8 @@ import { startAt, stopEditor } from '../../testing/layout-start'
 // The Sector tool's journeys with the production CSS in Chromium, WebKit and Firefox (plan ED3D.6g-b step 8; ED3D spec
 // §13): the nudge pad on screen at full size and clear of the status line after a Pencil tap; ED3-c, a rectangle drawn
 // against the dock's south wall, is offered a portal and Portal adds it with the checks still clear; ED3-d, a polygon
-// over the hall, is refused naming the hall and adds nothing. Plan points become page points through the rulers' metre
-// ticks, the same numbers a person reads. Drawing is not a phone target (spec §10), so phones are left out.
+// over the hall, is refused naming the hall and adds nothing. Plan points become page points through the status line's
+// pointer read-out, which works whether or not the page can draw (Firefox here has no WebGL2). Drawing is not a phone target (spec §10), so phones are left out.
 
 const DEPOT = 'depot/depot.json'
 
@@ -27,31 +27,52 @@ async function openDepot(size: EditorSize) {
     ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
   await expect.poll(() => document.querySelector('[data-testid="plan-canvas"]')).not.toBeNull()
   await arrived()
+  await calibrate()
   return started
 }
 
 const plan = (): HTMLElement => byTestId('plan-canvas')
 
-/** A ruler's ticks as (metres, pixels from the plan's edge); the rulers print a true minus sign. */
-function ticks(side: 'top' | 'left'): readonly (readonly [number, number])[] {
-  const spans = plan().querySelectorAll<HTMLElement>(`.ruler.${side} span`)
-  return [...spans]
-    .map((span) => {
-      const metres = Number((span.textContent ?? '').replace('\u2212', '-'))
-      const pixels = Number.parseFloat(side === 'top' ? span.style.left : span.style.top)
-      return [metres, pixels] as const
-    })
-    .filter(([metres, pixels]) => Number.isFinite(metres) && Number.isFinite(pixels))
+/** The status line's pointer read-out, in metres; it prints a true minus sign. */
+function statusPoint(): { x: number; z: number } {
+  const words = document.querySelector('[data-widget="status-line"] [role="status"]')?.textContent ?? ''
+  const read = (axis: 'x' | 'z') =>
+    Number(new RegExp(`${axis} (\\S+) m`).exec(words)?.[1]?.replace('\u2212', '-'))
+  return { x: read('x'), z: read('z') }
 }
 
-/** The page point a plan point is drawn at, from the rulers. */
-function pageOf(x: number, z: number): { x: number; y: number } {
-  const line = (pairs: readonly (readonly [number, number])[], value: number) => {
-    const [[m0, p0], [m1, p1]] = pairs as [[number, number], [number, number]]
-    return p0 + ((value - m0) * (p1 - p0)) / (m1 - m0)
-  }
+/** Page pixels to plan metres, measured by hovering two points and reading where the status line says they are. */
+let calibration:
+  | {
+      readonly page: readonly [{ x: number; y: number }, { x: number; y: number }]
+      readonly plan: readonly [{ x: number; z: number }, { x: number; z: number }]
+    }
+  | undefined
+
+async function calibrate(): Promise<void> {
   const box = plan().getBoundingClientRect()
-  return { x: box.left + line(ticks('top'), x), y: box.top + line(ticks('left'), z) }
+  const pages = [
+    { x: box.left + box.width * 0.25, y: box.top + box.height * 0.25 },
+    { x: box.left + box.width * 0.75, y: box.top + box.height * 0.75 },
+  ] as const
+  const plans: { x: number; z: number }[] = []
+  for (const at of pages) {
+    pointerAt('pointermove', 'mouse', at)
+    await arrived()
+    plans.push(statusPoint())
+  }
+  calibration = { page: pages, plan: plans as [{ x: number; z: number }, { x: number; z: number }] }
+}
+
+/** The page point a plan point is drawn at. */
+function pageOf(x: number, z: number): { x: number; y: number } {
+  if (calibration === undefined) throw new Error('not calibrated')
+  const [p0, p1] = calibration.page
+  const [m0, m1] = calibration.plan
+  return {
+    x: p0.x + ((x - m0.x) * (p1.x - p0.x)) / (m1.x - m0.x),
+    y: p0.y + ((z - m0.z) * (p1.y - p0.y)) / (m1.z - m0.z),
+  }
 }
 
 function pointerAt(type: string, kind: 'mouse' | 'pen', at: { x: number; y: number }): void {
@@ -104,6 +125,12 @@ describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
       chooseTool('Sector')
       await arrived()
       await tapPlan('pen', 4, -1)
+      // A page that cannot draw the plan (here, Firefox without WebGL2) says so and shows none of the plan's overlays.
+      if (plan().dataset.phase !== 'drawing') {
+        expect(plan().querySelector('[role="status"]')?.textContent).toContain('needs WebGL2')
+        expect(document.querySelector('[role="group"][aria-label="Nudge the last corner"]')).toBeNull()
+        return
+      }
       const pad = document.querySelector<HTMLElement>('[role="group"][aria-label="Nudge the last corner"]')
       expect(pad).not.toBeNull()
       const buttons = [...(pad?.querySelectorAll<HTMLElement>('button') ?? [])]

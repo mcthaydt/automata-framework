@@ -312,13 +312,14 @@ onDestroy(() => {
   .controls {
     display: contents;
   }
+  /* Below the sector toolbar's row (12 px down, 56 px tall, then a gap), so a narrow plan never puts it over the shapes. */
   .points {
     position: absolute;
     z-index: 1;
-    top: var(--space-3);
+    top: 80px;
     right: var(--space-3);
     width: 248px;
-    max-height: calc(100% - 2 * var(--space-3) - 160px);
+    max-height: calc(100% - 80px - var(--space-3) - 160px);
     overflow-y: auto;
     border: 1px solid var(--color-border-default);
     border-radius: var(--radius-md);
