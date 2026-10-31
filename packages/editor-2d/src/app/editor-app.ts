@@ -36,6 +36,8 @@ export interface OpenDocument {
   /** Save as copy: the first unused `name copy.ext`; the document keeps its own path. */
   saveCopy(): Promise<SaveOutcome>
   /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
+  /** The text the document was loaded or last saved as, which a profile's export targets patch (plan ED2D.7b). */
+  base(): string
   restore(recovery: Recovery): Result<true, readonly ParseError[]>
   discardRecovery(): Promise<void>
   dispose(): void
@@ -222,6 +224,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
       save: () => writing(() => session.save(), true),
       overwrite: () => writing(() => session.overwrite(), true),
       saveCopy: () => writing(() => session.saveCopy(), false),
+      base: () => base,
       restore(recovery) {
         const parsed = profile.parse(recovery.payload)
         if (!parsed.ok) return parsed

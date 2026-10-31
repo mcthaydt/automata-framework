@@ -2333,10 +2333,10 @@ screens.push({
 screens.push({
   id: 'export',
   page: '2D · States',
-  name: 'Export · working file and AF content',
+  name: 'Export · project file and game files',
   w: 720,
   h: 860,
-  note: 'Export offers the lossless project file and the AF content for the game (project.toml, world.toml, one file per level). Errors never stop an export: Download, Share and Copy still work, and only writing into a game folder waits until they are fixed.',
+  note: 'Export offers the lossless project file and the game files the game loads (project.toml, world.toml, one file per level). Errors never stop an export: Download, Share and Copy still work, and only writing into a game folder waits until they are fixed.',
   build: (S, P) => {
     const { F, R, C, T, I, alpha, spacer, eyebrow, pill, btn, callout, dialog, modalFrame } = P
     const target = (name, files, size, on, sub) =>
@@ -2380,7 +2380,7 @@ screens.push({
         'Everything, lossless. Open it again here, in this editor, any time.',
       ),
       target(
-        'AF content',
+        'Game files',
         'project.toml · world.toml · levels/ × 5',
         '38 KB',
         true,
@@ -2418,7 +2418,7 @@ screens.push({
       ),
     ]
     return modalFrame(
-      'Export · working file and AF content',
+      'Export · project file and game files',
       640,
       780,
       dialog('export dialog', 640, 780, 'Export project', body, [

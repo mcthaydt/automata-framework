@@ -14,7 +14,7 @@ import {
   shellModeOf,
   ToastRegion,
 } from '@mcthaydt/automata-editor-kit'
-import type { ToastStore } from '@mcthaydt/automata-editor-kit/core'
+import type { ToastStore, Workspace } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import type { Component } from 'svelte'
 import type { IdSource } from '../../model/ids'
@@ -39,11 +39,24 @@ interface Props {
   canvas?: Component<LevelCanvasProps> | undefined
   /** The world map; the DOM tests pass a stand-in. */
   worldCanvas?: Component<WorldCanvasProps> | undefined
+  /** Where the Export view writes; without it the view can only list the files. */
+  workspace?: Pick<Workspace, 'store' | 'exports' | 'persistent'> | undefined
   onback: () => void
 }
 
-const { geometry, controller, toasts, clock, read, ids, objectUrls, canvas, worldCanvas, onback }: Props =
-  $props()
+const {
+  geometry,
+  controller,
+  toasts,
+  clock,
+  read,
+  ids,
+  objectUrls,
+  canvas,
+  worldCanvas,
+  workspace,
+  onback,
+}: Props = $props()
 
 /** The controller's state right now (its store answers at once). */
 function snapshot(source: DocumentController): DocumentState {
@@ -86,6 +99,7 @@ const services = $derived<ViewServices>({
     chosen = views[0]?.id
     fromRail = false
   },
+  workspace,
 })
 </script>
 

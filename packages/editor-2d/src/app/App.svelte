@@ -128,6 +128,7 @@ onDestroy(() => {
     {ids}
     {objectUrls}
     {canvas}
+    {workspace}
     onback={back}
   />
 {:else}
