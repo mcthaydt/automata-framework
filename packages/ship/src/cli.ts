@@ -9,7 +9,8 @@ import { Effect, Layer } from 'effect'
 import { type CliCommand, parseCliArgs, USAGE } from './cli-args.ts'
 import type { ShipConfig } from './config/ship-config.ts'
 import { deployDev } from './deploy/deploy-dev.ts'
-import { prepareBuild } from './prepare/prepare-build.ts'
+import { checkBuild, prepareBuild } from './prepare/prepare-build.ts'
+import { prepareMode } from './prepare/prepare-mode.ts'
 import { findExecutable } from './publish/find-executable.ts'
 import { publishBuild } from './publish/publish-build.ts'
 import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from './publish/publish-to-itch.ts'
@@ -92,15 +93,19 @@ async function program(
     )
   }
 
-  // The dev host sits behind its access control, so deploy-dev may carry @pixi/3d; `prepare` is for the public
-  // store (M3 spec §4.8, X-b). `publish --private` checks for Ruken's local stack itself (publishBuild).
-  const audience = command.command === 'deploy-dev' ? 'private' : 'public'
-  const prepare = prepareBuild({ distDir, gameDir: cwd, config, tag: command.tag, audience })
+  // deploy-dev may carry @pixi/3d; `prepare` follows the game's audience, writing no ruken.toml for a private game
+  // (M3 spec §4.8, X-b). `publish --private` checks for Ruken's local stack itself (publishBuild).
+  const mode = prepareMode(command.command === 'deploy-dev' ? 'deploy-dev' : 'prepare', config)
+  const input = { distDir, gameDir: cwd, config, tag: command.tag, audience: mode.audience }
+  const prepare = prepareBuild(input)
   if (command.command === 'prepare') {
-    return Effect.provide(
-      Effect.map(prepare, (result) => `wrote ${result.manifestPath}`),
-      layers,
-    )
+    const done = mode.writeManifest
+      ? Effect.map(prepare, (result) => `wrote ${result.manifestPath}`)
+      : Effect.as(
+          checkBuild(input),
+          'checked a private build; no ruken.toml written (deploy-dev or publish --private ships it)',
+        )
+    return Effect.provide(done, layers)
   }
   if (command.command === 'publish') {
     const api = setting('RUKEN_API')
