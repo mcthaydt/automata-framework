@@ -30,9 +30,17 @@ export interface HomeController extends ProjectListSource<ProjectEntry, Busy> {
   importFiles(files: readonly { readonly name: string; readonly bytes: Uint8Array }[]): Promise<void>
 }
 
+/** Where the project opened last is kept between visits: Home selects it again (ED2D.8). A store that cannot keep it is no store. */
+export interface LastOpened {
+  read(): string | undefined
+  write(path: string): void
+}
+
 export interface HomeControllerOptions {
   readonly app: EditorApp
   readonly toasts: ToastStore
+  /** The project opened last time; absent, Home selects the newest as it always did. */
+  readonly lastOpened?: LastOpened
   /** A document opened (from Open or from New): the owner takes the person to it. */
   onOpened(opened: Extract<OpenOutcome, { readonly status: 'opened' }>): void
   /** A file that needs looking at (the error panel) or a choice of profile: the owner shows it over Home. */
@@ -40,7 +48,7 @@ export interface HomeControllerOptions {
 }
 
 export function createHomeController(options: HomeControllerOptions): HomeController {
-  const { app, toasts, onOpened, onProblem } = options
+  const { app, toasts, lastOpened, onOpened, onProblem } = options
   const say = (kind: ToastKind, message: string): void => {
     toasts.push({ kind, message })
   }
@@ -49,6 +57,14 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
     words: searchWords,
     onError: (message) => say('error', message),
   })
+  /** The first listing selects the project opened last time when it is still there; later ones keep the person's choice. */
+  let firstListing = true
+  const refresh = (): Promise<void> => {
+    if (!firstListing) return browser.refresh()
+    firstListing = false
+    const last = lastOpened?.read()
+    return browser.load(last === undefined ? undefined : (visible) => listedPath(last)(visible))
+  }
   const listedPath =
     (path: string | undefined) =>
     (visible: readonly ProjectEntry[]): string | undefined =>
@@ -60,6 +76,7 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
    */
   async function settleOpen(outcome: OpenOutcome): Promise<void> {
     if (outcome.status === 'opened') {
+      lastOpened?.write(outcome.document.path)
       onOpened(outcome)
       return
     }
@@ -70,7 +87,7 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
 
   return {
     state: browser.state,
-    refresh: browser.refresh,
+    refresh,
     search: browser.search,
     select: browser.select,
     step: browser.step,

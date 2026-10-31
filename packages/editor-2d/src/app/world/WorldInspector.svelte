@@ -8,13 +8,12 @@
 -->
 <script lang="ts">
 import type { EditEvent } from '@mcthaydt/automata-editor-kit'
-import { Button, Dialog, Segmented, Stepper } from '@mcthaydt/automata-editor-kit'
+import { Button, Dialog, FieldEditor, Segmented, Stepper } from '@mcthaydt/automata-editor-kit'
 import type { IdSource } from '../../model/ids'
 import type { Project, Size } from '../../model/project-types'
 import { duplicateLevel, removeLevel, renameLevel } from '../../model/world/level-edits'
 import { moveLevelInWorld, setLevelDepth } from '../../model/world/level-placement'
 import { type AnchorSide, resizeLevel, resizeLevelLoss } from '../../model/world/level-resize'
-import FieldEditor from '../level/FieldEditor.svelte'
 import { commitEdit, commitField } from '../level/field-commit'
 import { levelInspector } from '../level/inspector-model'
 import type { EditHistory } from '../level-editor'

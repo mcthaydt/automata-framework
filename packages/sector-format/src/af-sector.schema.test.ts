@@ -1,10 +1,9 @@
 // The `af-sector/1` schema (ED3D spec §4.6, the exact shape in the ED3D.1b plan): a pure validator over the sector
 // vocabulary Last Light proved, without its camera zones, nav graph, openings or exports. It adds no defaults, changes
 // nothing, and keeps a member it does not know.
-import { OCCLUDES as OWNER_OCCLUDES } from '@mcthaydt/automata-sector-format'
 import { describe, expect, it } from 'vitest'
 import { AF_SECTOR_FORMAT, afFormatVersion, afSectorSchema } from './af-sector.schema'
-import { OCCLUDES } from './sector.schema'
+import { OCCLUDES } from './occlude'
 
 // biome-ignore lint/suspicious/noExplicitAny: tests edit a level by path
 type Json = Record<string, any>
@@ -107,10 +106,6 @@ describe('the af-sector schema', () => {
   describe('wall occlusion and the sector view id (ED3D.4b)', () => {
     it('names the three occlusions the camera rule knows', () => {
       expect(OCCLUDES).toEqual(['cut', 'fade', 'never'])
-    })
-
-    it('takes the list from the sector format, its one owner (M6-D17)', () => {
-      expect(OCCLUDES).toBe(OWNER_OCCLUDES)
     })
 
     it.each(OCCLUDES)('keeps a wall that says occlude %s, and a sector with a view', (occlude) => {

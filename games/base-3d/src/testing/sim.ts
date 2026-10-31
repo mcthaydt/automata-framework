@@ -4,12 +4,12 @@ import { CameraHeading, cameraHeadingPlugin } from '@mcthaydt/automata-render-pi
 import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
 import { Hero } from '../components.ts'
 import { HERO_MOVES, type MoveDef } from '../constants/index.ts'
-import { FIRST_SLICE } from '../content/first-slice.ts'
+import { WORLD_SOURCES } from '../content/world.ts'
 import { base3dPlugin, base3dSim, spawnArea } from '../state/index.ts'
 import { type Area, type AreaSource, compileArea, compileWorld } from '../systems/index.ts'
 
 /** The game's own sim spec, on the first slice, as `main.ts` makes it. */
-export const BASE3D_SIM = base3dSim(compileWorld([FIRST_SLICE]))
+export const BASE3D_SIM = base3dSim(compileWorld(WORLD_SOURCES))
 
 /**
  * The game's sim spec as `defineGame` makes it: `BASE3D_SIM`'s plugin, then render3dExtension's heading plugin

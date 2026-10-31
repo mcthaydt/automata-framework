@@ -57,8 +57,19 @@ async function calibrate(): Promise<void> {
   ] as const
   const plans: { x: number; z: number }[] = []
   for (const at of pages) {
+    const before = statusPoint()
     pointerAt('pointermove', 'mouse', at)
     await arrived()
+    // The read-out follows the hover a frame or more later on a cold, loaded browser: wait until it shows a finite
+    // point that differs from the one before the move, or the calibration (and every tap after it) is NaN.
+    await expect
+      .poll(() => {
+        const read = statusPoint()
+        return (
+          Number.isFinite(read.x) && Number.isFinite(read.z) && (read.x !== before.x || read.z !== before.z)
+        )
+      })
+      .toBe(true)
     plans.push(statusPoint())
   }
   calibration = { page: pages, plan: plans as [{ x: number; z: number }, { x: number; z: number }] }
@@ -127,7 +138,9 @@ describe.each(SIZES.filter((size) => size.mode !== 'compact'))(
       await tapPlan('pen', 4, -1)
       // A page that cannot draw the plan (here, Firefox without WebGL2) says so and shows none of the plan's overlays.
       if (plan().dataset.phase !== 'drawing') {
-        expect(plan().querySelector('[role="status"]')?.textContent).toContain('needs WebGL2')
+        // Says why when it fails: a phase other than the no-WebGL2 one, or a calibration that is not finite.
+        const why = `phase ${plan().dataset.phase}; calibration ${JSON.stringify(calibration)}`
+        expect(plan().querySelector('[role="status"]')?.textContent, why).toContain('needs WebGL2')
         expect(document.querySelector('[role="group"][aria-label="Nudge the last corner"]')).toBeNull()
         return
       }

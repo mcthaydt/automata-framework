@@ -24,7 +24,7 @@ import type { ChoiceOutcome, PanelOutcome } from './document/open-flow-model'
 import ProfileChoice from './document/ProfileChoice.svelte'
 import type { EditorApp } from './editor-app'
 import Home from './home/Home.svelte'
-import { createHomeController } from './home/home-controller'
+import { createHomeController, type LastOpened } from './home/home-controller'
 import type { LevelCanvasProps, ObjectUrls } from './views/view-props'
 
 interface Props {
@@ -44,6 +44,8 @@ interface Props {
   objectUrls?: ObjectUrls | undefined
   /** The level canvas; the DOM tests pass a stand-in (jsdom has no WebGL). */
   canvas?: Component<LevelCanvasProps> | undefined
+  /** The project opened last time, which Home selects again. */
+  lastOpened?: LastOpened | undefined
 }
 
 const {
@@ -58,6 +60,7 @@ const {
   ids,
   objectUrls,
   canvas,
+  lastOpened,
 }: Props = $props()
 
 let open = $state.raw<DocumentController | undefined>(undefined)
@@ -93,6 +96,7 @@ const opening: EditorApp = {
 const controller = createHomeController({
   app: opening,
   toasts,
+  ...(lastOpened === undefined ? {} : { lastOpened }),
   onOpened: (opened) => {
     open = createDocumentController({ app, opened, toasts, lifecycle })
   },
