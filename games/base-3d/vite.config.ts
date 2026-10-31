@@ -25,6 +25,8 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
   return automataContent({
     root: fileURLToPath(new URL('./src', import.meta.url)),
     schemas: [...(figuresExtension.content ?? [])],
+    // The game's own words (G3-t): its catalog, compiled with Paraglide into src/paraglide (DESIGN.md §12.3).
+    paraglide: { outdir: 'paraglide', catalogs: ['messages/ui/{locale}.json'] },
   })
 }
 

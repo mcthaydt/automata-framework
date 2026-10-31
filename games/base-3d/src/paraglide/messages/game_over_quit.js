@@ -1,0 +1,24 @@
+/* eslint-disable */
+import { getLocale, experimentalStaticLocale } from '../runtime.js';
+
+/** @typedef {import('../runtime.js').LocalizedString} LocalizedString */
+
+/** @typedef {{}} Game_Over_QuitInputs */
+
+const en_game_over_quit = /** @type {(inputs: Game_Over_QuitInputs) => LocalizedString} */ () => {
+	return /** @type {LocalizedString} */ (`Quit`)
+};
+
+/**
+* | output |
+* | --- |
+* | "Quit" |
+*
+* @param {Game_Over_QuitInputs} inputs
+* @param {{ locale?: "en" }} options
+* @returns {LocalizedString}
+*/
+export const game_over_quit = /** @type {((inputs?: Game_Over_QuitInputs, options?: { locale?: "en" }) => LocalizedString) & import('../runtime.js').MessageMetadata<Game_Over_QuitInputs, { locale?: "en" }, {}>} */ ((inputs = {}, options = {}) => {
+	experimentalStaticLocale ?? options.locale ?? getLocale()
+	return en_game_over_quit(inputs)
+});

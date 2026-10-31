@@ -76,9 +76,9 @@
 
 ## Steps (red first)
 
-- [ ] 1. Red: `strings.test.ts` (node): every key the screens use exists in `en.json` (a list kept beside `t.ts`,
+- [x] 1. Red: `strings.test.ts` (node): every key the screens use exists in `en.json` (a list kept beside `t.ts`,
       checked both ways: no unused key, no missing key). Fails on the missing catalog.
-- [ ] 2. Catalog and compile: `en.json`, the `paraglide` option, `.gitignore` for `src/paraglide/`; the compile runs
+- [x] 2. Catalog and compile: `en.json`, the `paraglide` option, `.gitignore` for `src/paraglide/`; the compile runs
       in `pnpm build` and in Vitest's content plugin. Step 1 passes.
 - [x] 3. Red: a DOM case per screen in screens.dom.test.ts that the words follow the locale (a test locale record
       through `Locale`, as DX.2d's cases do): fails while the words are inline.
@@ -86,7 +86,7 @@
       buttons by the English words.
 - [x] 5. Red: `strings.layout.test.ts` in `xx-long` (raw English found while any word is inline), then green;
       `checkLayout` at 844×390 and 780×270 in Chromium, WebKit and Firefox, every primary action an essential.
-- [ ] 6. With the 1e stack on `main`: `copy.ts` from `t()`, its record removed; the HUD, Items and Map join the
+- [x] 6. With the 1e stack on `main`: `copy.ts` from `t()`, its record removed; the HUD, Items and Map join the
       `xx-long` run (their layout tests already cover 844×390 and 780×270).
 - [ ] 7. Review images: each screen in English and `xx-long` at both sizes (the DX.2d evidence pattern), with the
       differences explained; goldens unchanged (no sim change); gates as in the lane rules (check, parity,
@@ -134,3 +134,28 @@ and #297 merged; this part now lands in the 3D milestone PR with the trimmed-sli
   yet: its layout test mounts it over a play fixture; it joins with step 6.
 - Step 7 (images): with step 6, once the words come from the catalog.
 - Goldens unchanged (no sim change).
+
+**2026-10-31, later: the blocker fixed, steps 1, 2 and 6 done (session_01QYLU1gPdfpqyJgh9oNhJpE).** The coordinator:
+"make the content fix yourself, inside this milestone PR, as its own commit".
+
+- **Deviation, found by base-3d, first user of PRODUCT.L2's paraglide option** (commit bd91af2c,
+  `fix(content)`, a patch changeset for `@mcthaydt/automata-content`). Red first in packages/content: a case loads
+  write-outputs.ts through Vite's `runnerImport` (the runner closes after the import, as `--configLoader runner` does)
+  and then compiles with `paraglide`; it failed with "ContentWriteFailed: Error: Vite module runner has been closed".
+  The fix loads Paraglide with `createRequire(import.meta.url)(PARAGLIDE)`: Node's own `require`, which loads ES
+  modules in Node 24. Importing the resolved file URL with `import()`, as first suggested, would not do: the runner
+  rewrites every `import()` in the modules it loads, whatever the specifier. The case passes, and so do the other four.
+- Step 1 red: screens/strings.test.ts (no `copyFrom`), then green: the copy reads exactly the catalog's 46 keys.
+- Step 2: src/messages/ui/en.json (inlang message format, snake_case keys); vite.config.ts's content plugin
+  `paraglide: { outdir: 'paraglide', catalogs: ['messages/ui/{locale}.json'] }` (root `src`). **Deviation:**
+  src/paraglide is committed, as src/content/generated is, not git-ignored: `tsc` reads its JSDoc types (tsconfig
+  `allowJs`, `checkJs: false`), and the typecheck runs without a content compile. Biome (base-3d's biome.json) and knip
+  ignore it; every build and test run rewrites it.
+- Step 6: `copyFrom(say)` builds the copy from the catalog by key; `BASE3D_COPY.en = copyFrom(t)`, `t =
+  createT(messages)` (screens/t.ts); `main.ts` passes `locale: paraglideRuntime` to `defineGame`, so `Locale` answers
+  Paraglide's `getLocale`. The HUD joined the `xx-long` run (its own words only: the play screen around it is the
+  default screens', DX.2d's): 42 passed in the three engines.
+- Step 7 (images): not taken. The English words are unchanged, so no screen changes, and the `xx-long` run's 42 cases
+  in three engines are the layout evidence. Pseudo-locale images would show only test text.
+- Gates: `TURBO_FORCE=true pnpm check` 35/35; base-3d unit 356; base-3d `test:parity` 33 files, 615 tests (the goldens
+  unchanged); base-3d `pnpm build` passes.

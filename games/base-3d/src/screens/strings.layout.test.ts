@@ -9,13 +9,19 @@ import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthayd
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
+import { Enemy, Fighter } from '../components.ts'
+import { ENEMIES } from '../constants/enemies.ts'
 import { metres } from '../constants/index.ts'
+import { ItemCode } from '../constants/items.ts'
+import { Inventory, Progress } from '../resources.ts'
 import { newGame } from '../state/save.ts'
-import { FIRST_AREA } from '../testing/sim.ts'
+import HudInPlay from '../testing/HudInPlay.svelte'
+import { FIRST_AREA, startSim } from '../testing/sim.ts'
 import { liveCopy } from './copy.svelte.ts'
 import { BASE3D_COPY, type Base3dCopy } from './copy.ts'
 import EndScreen from './EndScreen.svelte'
 import GameOverScreen from './GameOverScreen.svelte'
+import { hudInPlay } from './hud.ts'
 import ItemsScreen from './ItemsScreen.svelte'
 import LockModeSection from './LockModeSection.svelte'
 import MapScreen from './MapScreen.svelte'
@@ -97,7 +103,26 @@ const SCREENS = {
     () => mount(MapScreen, { target: document.body, props: { plan: PLAN, onClose: () => {} } }),
     ['corner-back'],
   ],
+  hud: [showHud, ['hud-items', 'hud-map']],
 } as const
+
+/**
+ * The fullest HUD over the play screen (hud.layout.test.ts's fixture): the sling with 30 pellets, 999 embers and the
+ * Warden's bar. The play screen's own words are the default screens' (DX.2d), so only the HUD's are read for English.
+ */
+async function showHud(): Promise<ReturnType<typeof mount>> {
+  const sim = await startSim()
+  sim.resource(Progress).embers = 999
+  Object.assign(sim.resource(Inventory), { sling: true, equipped: ItemCode.sling, pellets: 30 })
+  sim.spawn([
+    [Enemy, { kind: ENEMIES.findIndex((type) => type.id === 'warden') + 1 }],
+    [Fighter, { health: 24 }],
+  ])
+  hudInPlay.sim = sim
+  hudInPlay.openItems = () => {}
+  hudInPlay.openMap = () => {}
+  return mount(HudInPlay, { target: document.body, props: { touch: false } })
+}
 
 describe(`base-3d’s screens in ${PSEUDO_LOCALE} (G3-t)`, () => {
   let shown: ReturnType<typeof mount> | undefined
@@ -114,7 +139,7 @@ describe(`base-3d’s screens in ${PSEUDO_LOCALE} (G3-t)`, () => {
         await page.viewport(size.width, size.height)
         const conditions = publishConditions(document.documentElement, size, REST)
         liveCopy.current = pseudo<Base3dCopy>(BASE3D_COPY.en)
-        shown = show()
+        shown = await show()
         flushSync()
         await settleLayout()
         // The primary actions: each screen's buttons, found by their action ids or test ids.
@@ -122,6 +147,7 @@ describe(`base-3d’s screens in ${PSEUDO_LOCALE} (G3-t)`, () => {
           ...essentials.map(byTestId),
           ...document.querySelectorAll<HTMLElement>('[data-action-id], .af-game-menu__actions button'),
         ]
-        expect([...untranslated(document.body), ...checkLayout(conditions, actions)]).toEqual([])
+        const words = document.querySelector<HTMLElement>('[data-testid="hud"]') ?? document.body
+        expect([...untranslated(words), ...checkLayout(conditions, actions)]).toEqual([])
       })
 })

@@ -23,6 +23,7 @@ import { Act, Lock, Move } from './commands.ts'
 import { Door, Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
+import * as paraglideRuntime from './paraglide/runtime.js'
 import { BASE3D_COPY } from './screens/copy.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
 import { hudExtension } from './screens/hud.extension.ts'
@@ -164,6 +165,8 @@ export const base3d = defineGame({
   content: { ...BASE3D_FLOW, sim: BASE3D_SIM.content },
   saves,
   settings: base3dSettings,
+  // The runtime's `Locale` answers Paraglide's `getLocale`, so `t()` (screens/t.ts) follows it (G3-t).
+  locale: paraglideRuntime,
   // Splash, menu, room, paused, Settings and end (screens/screens.ts) over the flow in screens/flow.ts.
   screens: base3dScreens({
     title: TITLE,
