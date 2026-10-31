@@ -1,5 +1,6 @@
 // Narrative's content kinds (M6 spec §4.7, §6): the canon's shape (`content/canon`), each scene's line records
-// (`content/lines`), its dialogue graphs (`content/dialogue`) and its storylet deck (`content/storylets`). Each schema
+// (`content/lines`), its dialogue graphs (`content/dialogue`), its storylet deck (`content/storylets`), its beats
+// (`content/beats`) and its puzzle help (`content/help`). Each schema
 // checks its references at their paths, so the compiler names the file and line.
 import { type ContentSchemaDef, defineContentSchema } from '@mcthaydt/automata-content'
 import type { z } from 'zod'
@@ -13,6 +14,8 @@ import {
   type StoryletsFile,
   storyletsFileSchema,
 } from './sim/index'
+import { type BeatsFile, beatsFileSchema } from './tools/beats.schema'
+import { helpFileSchema, type SceneHelp } from './tools/help.schema'
 
 export const canonContent: ContentSchemaDef<'canon', z.ZodType<Canon>> = defineContentSchema(
   'canon',
@@ -35,4 +38,14 @@ export const storyletsContent: ContentSchemaDef<'storylets', z.ZodType<Storylets
   'storylets',
   storyletsFileSchema,
   { folder: 'storylets' },
+)
+export const beatsContent: ContentSchemaDef<'beats', z.ZodType<BeatsFile>> = defineContentSchema(
+  'beats',
+  beatsFileSchema,
+  { folder: 'beats' },
+)
+export const helpContent: ContentSchemaDef<'help', z.ZodType<SceneHelp>> = defineContentSchema(
+  'help',
+  helpFileSchema,
+  { folder: 'help' },
 )

@@ -38,10 +38,20 @@ describe('the automata-pipe-mcp bin', () => {
         content: { text: string }[]
       }
       expect(JSON.parse(list.content[0]?.text ?? '')).toEqual({
-        // `puzzle` (M6.6b) and `systems` (M6.7b) are registered; character and props are still planned.
+        // `puzzle` (M6.6b), `systems` (M6.7b) and `narrative` (M6.8b) are registered; character and props are still planned.
         pipelines: [
           { name: 'puzzle', stages: [{ id: 'analyse' }, { id: 'doc' }, { id: 'audit' }] },
           { name: 'systems', stages: [{ id: 'scenarios' }, { id: 'playtest' }, { id: 'sweep' }] },
+          {
+            name: 'narrative',
+            stages: [
+              { id: 'lint' },
+              { id: 'coverage' },
+              { id: 'screenplay' },
+              { id: 'help' },
+              { id: 'audit' },
+            ],
+          },
         ],
         planned: ['character', 'props'],
       })

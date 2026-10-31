@@ -12,7 +12,10 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./sim": "./src/sim/index.ts"
+    "./sim": "./src/sim/index.ts",
+    "./tools": "./src/tools/index.ts",
+    "./testing/toy-scene.pipe": "./src/testing/toy-scene.pipe.ts",
+    "./testing/dead-end-scene.pipe": "./src/testing/dead-end-scene.pipe.ts"
   },
   "automata": {
     "simEntries": [
