@@ -101,3 +101,8 @@ renderer, ui or golden).
   `api-index` asked for, `pnpm cheatsheet` and `agent-skills --write`: `api-index` and `agent-skills` clean,
   `pnpm test:unit` 35/35, `changeset status`, `check-changesets` (30, 0 problems), consumer smoke from packs passed.
   Omitted: E2E (no build, example or Vite config change outside tests), parity (no sim, renderer, ui or golden).
+- Merged #321 (its `BREAKING:` changeset and `main`). `main` brought `games/base-3d`'s screens test, which booted
+  over Ruken's fake host: it moves onto `FakeHosting` through `seams.hosting`, as Emberwick's did, and loses the
+  `automata-ruken` condition #321 had given its dom project, and its unused `@ruken/sdk-host` dev dependency (3D lane's
+  files): 71/71. `pnpm check` passes (lint, typecheck, boundaries, style, knip, `test:unit`); `pnpm build`; the plain
+  `pnpm api-report`: 9 breaks, 0 undeclared; `api-index`, `agent-skills` and `check-changesets` clean.

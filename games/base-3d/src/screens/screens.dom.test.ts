@@ -7,7 +7,7 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { createFakeHost, type FakeHost } from '@ruken/sdk-host/testing'
+import { type FakeHostControl, fakeHosting } from '@mcthaydt/automata-testing/host'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { metres } from '../constants.ts'
@@ -15,7 +15,7 @@ import { FIRST_SLICE } from '../content/first-slice.ts'
 import { base3d } from '../main.ts'
 import { SPLASH_MS } from './screens.ts'
 
-// base-3d's flow on the real runtime (M3.7b part 4) in jsdom: the in-memory fake Ruken host, manual frames, and a
+// base-3d's flow on the real runtime (M3.7b part 4) in jsdom: AF's fake host (DIST spec §7), manual frames, and a
 // renderer that keeps each step (Pixi 3D needs WebGL2, which jsdom lacks). The props' models are not fetched here:
 // the recording renderer draws nothing, so the game runs with no preload.
 
@@ -25,7 +25,7 @@ describe("base-3d's flow", () => {
   let root: HTMLElement
   let frames: ManualFrames
   let results: StepResult[]
-  let host: FakeHost
+  let host: { readonly control: FakeHostControl; make: ReturnType<typeof fakeHosting>['make'] }
   let handle: RuntimeHandle | undefined
   const size = { width: window.innerWidth, height: window.innerHeight }
 
@@ -45,10 +45,15 @@ describe("base-3d's flow", () => {
   const step = (count = 1) => {
     for (let index = 0; index < count; index++) frames.advance(STEP_MS)
   }
+  /** The rounds the host received, as `{ kind, outcome? }`. */
   const rounds = () =>
-    host.messages
-      .filter((entry) => entry.dir === 'in' && entry.msg.type === 'telemetry.round')
-      .map((entry) => entry.msg.payload)
+    host.control.rounds.map((round) =>
+      'start' in round
+        ? { kind: 'start' }
+        : round.end === undefined
+          ? { kind: 'end' }
+          : { kind: 'end', outcome: round.end },
+    )
   /** Wick's place from the last render row that carried him. */
   const wick = () => {
     const rows = results.flatMap((result) => [...result.render.added, ...result.render.changed])
@@ -91,7 +96,7 @@ describe("base-3d's flow", () => {
       root,
       renderer: recording,
       preload: [],
-      seams: { frames, fetch: fakeFetch({}).fetch, sdkEnv: () => host.gameEnv as never },
+      seams: { frames, fetch: fakeFetch({}).fetch, hosting: host.make },
     })
     await until(() => frames.pending, 'the first frame')
     step()
@@ -112,20 +117,11 @@ describe("base-3d's flow", () => {
     frames = manualFrames()
     results = []
     resize(844, 390)
-    host = createFakeHost({
-      gameOrigin: window.location.origin,
-      gameId: base3d.id,
-      clock: {
-        epochMs: () => Date.now(),
-        setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),
-        clearTimeout: (timer: unknown) => clearTimeout(timer as number),
-      },
-    })
+    host = fakeHosting()
   })
   afterEach(async () => {
     await handle?.shutdown()
     handle = undefined
-    host.dispose()
     root.remove()
     resize(size.width, size.height)
     Reflect.deleteProperty(window, 'matchMedia')
