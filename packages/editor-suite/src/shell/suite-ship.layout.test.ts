@@ -132,6 +132,21 @@ const dialogNamed = (name: string): HTMLElement | null =>
   ) ?? document.querySelector<HTMLElement>('[role="dialog"]')
 
 describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (size) => {
+  test('the reload toast sits above the rail and the status line, not over them', async () => {
+    await open(size)
+    await expect.poll(() => document.querySelector('[data-widget="toast-region"] .toast')).not.toBeNull()
+    await settleLayout()
+    const toast = document
+      .querySelector<HTMLElement>('[data-widget="toast-region"] .toast')
+      ?.getBoundingClientRect()
+    // The rail as a column (wide) is beside the canvas, not under it; as a tab bar it is the foot.
+    const foot = [...document.querySelectorAll<HTMLElement>('[data-region="rail"], [data-region="status"]')]
+      .filter((region) => region.dataset.presentation !== 'rail')
+      .map((region) => region.getBoundingClientRect().top)
+    expect(toast?.bottom).toBeLessThanOrEqual(Math.min(size.height, ...foot) + 0.5)
+    await page.screenshot({ path: `.vitest/shots/reload-toast-${size.name}.png` })
+  })
+
   test('the Ship dialog: the description and Ship reachable at 48 px', async () => {
     await open(size)
     button('Ship').click()

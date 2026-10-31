@@ -254,6 +254,7 @@ function openCard(card: EditorCard): void {
   status={mounted?.editor.regions.status ? status : undefined}
   testId="suite-shell"
 >
+  {#snippet sheets()}<ToastRegion {toasts} />{/snippet}
   {#snippet topbar()}
     <Button aria-current={current === undefined && reading === undefined ? 'page' : undefined} onclick={() => choose(undefined)}
       >Home</Button
@@ -349,7 +350,6 @@ function openCard(card: EditorCard): void {
     onclose={() => (interchange = undefined)}
   />
 {/if}
-<ToastRegion {toasts} />
 
 {#snippet panel()}{#if mounted}{@render mounted.editor.regions.panel(mounted.session)}{/if}{/snippet}
 {#snippet inspector()}{#if mounted}{@render mounted.editor.regions.inspector(mounted.session)}{/if}{/snippet}
