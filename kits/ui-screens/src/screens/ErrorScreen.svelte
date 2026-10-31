@@ -1,6 +1,6 @@
 <!--
   @component
-  The error screen (PRODUCT.6): the game's title on core's ScreenFrame with core's ErrorPanel. Every failure names a way forward: an
+  The error screen (PRODUCT.6): core's ErrorPanel on core's ScreenFrame (the frame gives Back its place). The panel is opaque and sits at the top of the visible region, so the screen carries no title of its own. Every failure names a way forward: an
   action, or, when the device cannot run the game at all (`final`), the frame's Back, so a final failure needs `onBack`. The primary
   action takes focus on entry; Escape goes back when the game gives a way back. The panel's own layout rules (where the message
   scrolls, where the actions stack) are core's.
@@ -10,7 +10,6 @@ import { type ErrorAction, ErrorPanel, ScreenFrame } from '@mcthaydt/automata-ui
 import { onMount } from 'svelte'
 
 interface Props {
-  title: string
   /** A stable code for tests and telemetry. */
   code: string
   message: string
@@ -22,7 +21,7 @@ interface Props {
   backLabel?: string | undefined
 }
 
-const { title, code, message, actions, final = false, onBack, backLabel }: Props = $props()
+const { code, message, actions, final = false, onBack, backLabel }: Props = $props()
 
 $effect.pre(() => {
   if (final && onBack === undefined)
@@ -40,26 +39,10 @@ onMount(() => {
 })
 </script>
 
-{#snippet body()}
-  <div class="error__body">
-    <h1 class="error__title">{title}</h1>
-  </div>
-{/snippet}
+{#snippet body()}{/snippet}
 
 <div bind:this={root} class="error" data-game-screen="error">
   <ScreenFrame arrangement="stack" testId="error-screen" back={onBack} {backLabel} {body} />
   <ErrorPanel {code} {message} {actions} {final} />
 </div>
 
-<style>
-  .error__body {
-    display: grid;
-    justify-items: center;
-    min-width: 0;
-  }
-  .error__title {
-    margin: 0;
-    font: 700 calc(24px * var(--af-scale, 1)) / 1.2 var(--af-font);
-    text-align: center;
-  }
-</style>

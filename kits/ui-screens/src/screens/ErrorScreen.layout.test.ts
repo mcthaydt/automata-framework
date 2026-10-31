@@ -10,7 +10,6 @@ const MESSAGE =
 
 const mount = (locale: Locale, final: boolean) =>
   mountFixture(ErrorScreen, {
-    title: say(locale, 'Moss Garden'),
     code: 'save-failed',
     message: say(locale, MESSAGE),
     actions: final

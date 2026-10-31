@@ -8,7 +8,7 @@
   consume core's copy contracts.
 - **Source (read-only):** the game UI source at its recorded extraction commit, for the results layout only. Its repository and commit go
   in the framework's `docs/provenance/sources.md` (an AF PR) and nowhere here.
-- **Status:** plan drafted; no part built. CI verified, deployed and Owner accepted: not yet. Visual acceptance is recorded by the
+- **Status:** built and locally checked (steps 1 to 7). CI verified, deployed and Owner accepted: not yet. Visual acceptance is recorded by the
   coordinator after it opens the committed images (`docs/evidence/owner-visual/product6-ui-screens-kit/`).
 
 ## What core already has (so the kit does not repeat it)
@@ -80,7 +80,7 @@ change to core; real-device testing (the Owner's).
 - [x] 4. `LoadingScreen` and `ErrorScreen`: DOM and layout tests, then the components.
 - [x] 5. `TitleScreen`, `PauseScreen`, `SettingsScreen`: DOM and layout tests, then the components.
 - [x] 6. Kit rule test, copy-in proof complete, README.
-- [ ] 7. Review images (expected/actual of each screen at three sizes) committed under `docs/evidence/owner-visual/product6-ui-screens-kit/`
+- [x] 7. Review images (expected/actual of each screen at three sizes) committed under `docs/evidence/owner-visual/product6-ui-screens-kit/`
   with a README; gates; PR; the AF provenance PR.
 
 ## Gates
@@ -91,4 +91,19 @@ coordinator's visual acceptance. Owner gates: real-device testing of the kit scr
 
 ## Execution log
 
-(empty)
+- Step 1: the boundary test and manifest rules both failed first for `kits/` (they read only `packages/`, `tooling/` and `starters/`); both now
+  cover `kits/*`, and `pnpm-workspace.yaml` lists `kits/*`.
+- Step 2: `kit.json` is checked by the CLI's own `kitManifestSchema`, read from the framework checkout at core.ref (the `cli` package is
+  private and not packed), so the manifest rules have one owner. It failed first on the missing screen file.
+- Step 3 to 5: every DOM test failed first (the component did not exist). The layout contract's first run found real problems that
+  shaped the screens: with the `xx-long` pseudo-locale the action bar collapsed to level 3 on narrow phones, so Results and Title take a
+  `shortLabel` per secondary action (README says so); and a reconnect line above Pause's menu pushed the buttons out of reach at 780 x 270
+  and TV scale, so it sits under the menu, as core's own default pause puts its save lines.
+- Core finding (no change made, no stop needed): core's default Paused screen can put its reconnect line above the menu, and core's
+  layout contract does not cover that variant. The same short-screen problem would show there. Reported to the coordinator.
+- Settings is a mapping layer, not new presentation: core's `SettingsScreen` is already presentational and the sections' wiring lives in
+  `@mcthaydt/automata-game` (not exported), so the kit maps core's `settings.screen` words onto it and takes the game's `tabs`.
+- Step 7: opening the images found two defects, fixed before they were committed: the error screen's title sat under core's opaque error
+  panel (the screen no longer has a title), and the loading screen's title was dimmed by core's overlay scrim (the frame now sits above
+  the scrim). The Loading layout contract has no controls to check, so it passes without proving the title is visible; the images do.
+- No sim, golden or published package is touched; no changeset. The AF provenance row goes in the framework's `docs/provenance/sources.md`.

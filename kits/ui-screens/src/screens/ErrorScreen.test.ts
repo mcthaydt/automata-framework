@@ -8,7 +8,6 @@ import ErrorScreen from './ErrorScreen.svelte'
 afterEach(cleanup)
 const retry = vi.fn()
 const props = (over: Record<string, unknown> = {}) => ({
-  title: 'Moss Garden',
   code: 'save-failed',
   message: 'The save could not be written.',
   actions: [
@@ -19,9 +18,8 @@ const props = (over: Record<string, unknown> = {}) => ({
 })
 
 describe('ErrorScreen', () => {
-  it('shows the title and the message as an alert', () => {
+  it('shows the message as an alert', () => {
     render(ErrorScreen, props())
-    expect(screen.getByRole('heading', { name: 'Moss Garden' })).toBeInTheDocument()
     expect(screen.getByRole('alert')).toHaveTextContent('The save could not be written.')
   })
 

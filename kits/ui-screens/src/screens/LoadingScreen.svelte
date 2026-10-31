@@ -32,6 +32,11 @@ const { title, label, slowLabel, progress, slow = false }: Props = $props()
 </div>
 
 <style>
+  /* Core's overlay is a fixed layer at z-index 90 with a scrim: lift the frame above it so the title is not dimmed. The frame takes no taps here. */
+  .loading :global([data-screen-frame]) {
+    z-index: 91;
+    pointer-events: none;
+  }
   .loading__body {
     display: grid;
     align-content: start;
