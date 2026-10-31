@@ -247,6 +247,7 @@
 - `ErrorCode` (type): One error code.
 - `ErrorCodeSchema` (const): Checks an error code.
 - `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
+- `findTauriMarkers(code)`: The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code.
 - `FullscreenRes` (interface): The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
 - `FullscreenResSchema` (const): Checks a fullscreen answer.
 - `HOST_EXIT_CAP` (const): How long the game may hold the host's close (Ruken P6 §4 "1 s cap").
@@ -284,6 +285,7 @@
 - `SavesStatus` (type): Where the player's saves stand with the host.
 - `SavesStatusSchema` (const): Checks a saves status.
 - `SubscriptionEntitlement` (interface): One subscription the player holds.
+- `TAURI_MARKERS` (const): String literals only Tauri's IPC code contains, which survive minification: the global the webview injects (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`).
 
 ### `import { … } from '@mcthaydt/automata-host/contract-suite'`
 

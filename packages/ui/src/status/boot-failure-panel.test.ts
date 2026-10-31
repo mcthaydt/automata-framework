@@ -18,7 +18,7 @@ const FIXTURES: readonly BootFailure[] = [
 ]
 
 interface Host {
-  readonly hostKind: 'ruken' | 'standalone'
+  readonly hostKind: 'ruken' | 'standalone' | 'tauri'
   readonly hostName: string
   readonly canExit: boolean
 }
@@ -94,6 +94,25 @@ describe('BootFailurePanel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Back to itch.io' }))
     expect(onExit).toHaveBeenCalledOnce()
     expect(screen.queryByRole('button', { name: /Ruken|\{host\}/ })).not.toBeInTheDocument()
+  })
+
+  it('on the desktop, the exit action reads Quit and calls onExit (DIST spec §8 flow 2)', async () => {
+    const { onExit } = open(
+      { _tag: 'RendererUnavailable', tried: ['webgl2'] },
+      { hostKind: 'tauri', hostName: 'Cinder', canExit: true },
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Quit' }))
+    expect(onExit).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('button', { name: /^Back to/ })).not.toBeInTheDocument()
+  })
+
+  it('on the desktop, a saves failure that will not clear offers Continue without loading, not Quit', () => {
+    open(
+      { _tag: 'HostError', code: 'DENIED', retryable: false, operation: 'saves.get' },
+      { hostKind: 'tauri', hostName: 'Cinder', canExit: true },
+    )
+    expect(screen.getByRole('button', { name: 'Continue without loading' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Quit' })).not.toBeInTheDocument()
   })
 
   it('hides Back to … when the host does not grant exit, leaving a final panel', () => {

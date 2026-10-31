@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { build, defaultClientConditions, type Rolldown } from 'vite'
 import { describe, expect, it } from 'vitest'
-import { findRukenSdkMarkers, RUKEN_SDK_MARKERS } from './sdk-markers'
+import { findRukenSdkMarkers, findTauriMarkers, RUKEN_SDK_MARKERS, TAURI_MARKERS } from './sdk-markers'
 import { WEB_STORAGE_PROBE_KEY } from './web/hosting-web'
 
 // PUB spec §3 and §7 (build row): `./target` puts exactly one adapter in a bundle. The entry imports the host as
@@ -12,10 +12,14 @@ const fixture = fileURLToPath(new URL('./testing/fixtures/target-bundle/', impor
  * All the JavaScript of a production build of the fixture: with the target's AF condition, or with none
  * (`'none'`, a tool that knows nothing of AF's conditions).
  */
-async function bundle(target: 'ruken' | 'web' | 'itch' | 'none'): Promise<string> {
-  const condition = { ruken: 'automata-ruken', web: 'automata-web', itch: 'automata-web', none: undefined }[
-    target
-  ]
+async function bundle(target: 'ruken' | 'web' | 'itch' | 'tauri' | 'none'): Promise<string> {
+  const condition = {
+    ruken: 'automata-ruken',
+    web: 'automata-web',
+    itch: 'automata-web',
+    tauri: 'automata-tauri',
+    none: undefined,
+  }[target]
   const output = await build({
     root: fixture,
     configFile: false,
@@ -63,4 +67,15 @@ describe('the ./target export in a real bundle (PUB spec §3, DIST spec §5.3)',
     expect(findRukenSdkMarkers(code)).toEqual(RUKEN_SDK_MARKERS)
     expect(code).not.toContain(WEB_STORAGE_PROBE_KEY)
   }, 90_000)
+
+  it('an automata-tauri build holds the desktop adapter and Tauri IPC code, and no Ruken SDK code', async () => {
+    const code = await bundle('tauri')
+    expect(findTauriMarkers(code)).toEqual(TAURI_MARKERS)
+    expect(findRukenSdkMarkers(code)).toEqual([])
+  }, 90_000)
+
+  it('web and Ruken builds hold no Tauri IPC code (DIST spec §5.3)', async () => {
+    for (const target of ['web', 'ruken', 'none'] as const)
+      expect(findTauriMarkers(await bundle(target)), target).toEqual([])
+  }, 180_000)
 })

@@ -122,6 +122,12 @@ const ErrorCodeSchema: z.ZodType<ErrorCode>;
 function findRukenSdkMarkers(code: string): string[];
 ```
 
+### `findTauriMarkers` (function)
+
+```ts
+function findTauriMarkers(code: string): string[];
+```
+
 ### `FullscreenRes` (interface)
 
 ```ts
@@ -432,6 +438,12 @@ interface SubscriptionEntitlement {
     seasonId?: string | undefined;
     endsAt?: string | undefined;
 }
+```
+
+### `TAURI_MARKERS` (const)
+
+```ts
+const TAURI_MARKERS: readonly string[];
 ```
 
 ## `./target`

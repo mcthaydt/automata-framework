@@ -31,6 +31,8 @@ describe('public entry points', () => {
         'SavesFlushResSchema',
         'SavesStatusSchema',
         'findRukenSdkMarkers',
+        'findTauriMarkers',
+        'TAURI_MARKERS',
       ].sort(),
     )
   })

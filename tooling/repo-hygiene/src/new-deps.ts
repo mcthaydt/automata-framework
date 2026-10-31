@@ -75,7 +75,9 @@ async function describeOne(dependency: NewDependency, fetch: Fetch): Promise<Dep
   if (dependency.registry !== NPMJS) return { ...dependency, status: 'not checked' }
   const packument = await fetch(`${NPMJS}/${dependency.name.replace('/', '%2f')}`)
   if (!packument.ok) return { ...dependency, status: 'missing' }
-  const version = ((await packument.json()) as Packument).versions?.[dependency.version]
+  // A range (`^2.12.4`, `~2.12.4`, a peer dependency's form) is checked by the version it names, its lower bound.
+  const named = dependency.version.replace(/^[\^~]/, '')
+  const version = ((await packument.json()) as Packument).versions?.[named]
   if (version === undefined) return { ...dependency, status: 'missing' }
   const downloads = await fetch(`https://api.npmjs.org/downloads/point/last-week/${dependency.name}`)
   const weeklyDownloads = downloads.ok

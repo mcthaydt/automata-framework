@@ -3826,6 +3826,14 @@ The markers found in `code` (built JavaScript), each named once; empty means no 
 function findRukenSdkMarkers(code: string): string[];
 ```
 
+#### `findTauriMarkers` (function)
+
+The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code.
+
+```ts
+function findTauriMarkers(code: string): string[];
+```
+
 #### `FullscreenRes` (interface)
 
 The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
@@ -4279,6 +4287,17 @@ interface SubscriptionEntitlement {
   /** ISO 8601 UTC instant. */
   endsAt?: string | undefined;
 }
+```
+
+#### `TAURI_MARKERS` (const)
+
+String literals only Tauri's IPC code contains, which survive minification: the global the webview injects
+(`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`). A `tauri` build holds
+both; a `web`, `itch` or `ruken` build holds neither (DIST spec §5.3). Re-check them after a Tauri upgrade:
+`target.build.test.ts` fails if a `tauri` build stops containing them.
+
+```ts
+const TAURI_MARKERS: readonly string[];
 ```
 
 ### `import { … } from '@mcthaydt/automata-host/contract-suite'`
@@ -11396,7 +11415,7 @@ The words for every boot failure state and action, by name. `BOOT_FAILURE_COPY_E
 defaults.
 
 ```ts
-type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>;
+type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction | 'quit', string>>;
 ```
 
 #### `BootFailurePanel` (const)
@@ -12236,7 +12255,7 @@ type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'sc
 spec §3) draws as `standalone`: it has no host to go back to.
 
 ```ts
-type HostKind = 'ruken' | 'standalone';
+type HostKind = 'ruken' | 'standalone' | 'tauri';
 ```
 
 #### `hostReservedInsets` (function)

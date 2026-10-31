@@ -171,7 +171,7 @@ type BootFailureAction = 'retry' | 'continue' | 'exit';
 ### `BootFailureCopy` (type)
 
 ```ts
-type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>;
+type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction | 'quit', string>>;
 ```
 
 ### `BootFailurePanel` (svelte)
@@ -693,7 +693,7 @@ type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'sc
 ### `HostKind` (type)
 
 ```ts
-type HostKind = 'ruken' | 'standalone';
+type HostKind = 'ruken' | 'standalone' | 'tauri';
 ```
 
 ### `hostReservedInsets` (function)

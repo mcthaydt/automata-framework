@@ -13,4 +13,4 @@ export {
 export * from './contract/index'
 // The Ruken adapter's test seam, a type only, until DIST.4 replaces the runtime's `sdkEnv` seam with `FakeHosting`.
 export type { HostingSeams } from './ruken/hosting-ruken'
-export { findRukenSdkMarkers, RUKEN_SDK_MARKERS } from './sdk-markers'
+export { findRukenSdkMarkers, findTauriMarkers, RUKEN_SDK_MARKERS, TAURI_MARKERS } from './sdk-markers'
