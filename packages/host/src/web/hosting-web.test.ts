@@ -14,9 +14,9 @@ import {
 } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Hosting, type HostingOptions } from '../contract/hosting'
+import { describeHostingContract } from '../contract-suite'
 import { runScoped } from '../testing'
 import { type FakeWebPage, type FakeWebPageOptions, fakeWebPage } from '../testing/fake-web-page'
-import { describeHostingContract } from '../testing/hosting-contract'
 import { buildTarget, makeWebHosting, WEB_STORAGE_PROBE_KEY, type WebTarget } from './hosting-web'
 
 const OPTIONS: HostingOptions = { gameId: 'blank-game', wants: ['saves'], pauseBehavior: 'pause' }

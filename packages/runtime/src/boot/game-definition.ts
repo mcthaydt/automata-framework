@@ -1,6 +1,7 @@
 import type { AssetsSource, FlowGraph, GameSource } from '@mcthaydt/automata-content'
-import type { HostingOptions, HostingSeams } from '@mcthaydt/automata-host'
+import type { HostError, Hosting, HostingOptions, HostingSeams } from '@mcthaydt/automata-host'
 import type { BootFailureCopy } from '@mcthaydt/automata-ui'
+import type { Effect, Scope } from 'effect'
 import type { AudioContextLike } from '../audio/audio-graph.js'
 import type { EventSounds } from '../audio/event-sounds.js'
 import type { GameOrientation, RotateHintMode } from '../display/display-policy.svelte.js'
@@ -29,6 +30,12 @@ export interface RuntimeSeams {
   readonly frames?: FrameSource
   readonly fonts?: Pick<FontFaceSet, 'load'>
   readonly sdkEnv?: () => NonNullable<HostingSeams['env']>
+  /**
+   * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata-host/target`), for
+   * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host` (DIST spec §7). When given, `sdkEnv` is
+   * not used.
+   */
+  readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>
   readonly document?: Document
   /** The browser's languages, best first; defaults to `navigator.languages`. */
   readonly languages?: readonly string[]

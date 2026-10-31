@@ -9,6 +9,7 @@ export default publishedBuild(import.meta.url, {
     'sim/commands': 'src/sim/commands.ts',
     'sim/property': 'src/sim/property.ts',
     'input/fake-gamepads': 'src/input/fake-gamepads.ts',
+    'host/index': 'src/host/index.ts',
     'e2e/index': 'src/e2e/index.ts',
   },
   platform: 'browser',

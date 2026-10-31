@@ -256,6 +256,12 @@
 - `SavesStatusSchema` (const): Checks a saves status.
 - `SubscriptionEntitlement` (interface): One subscription the player holds.
 
+### `import { … } from '@mcthaydt/automata-host/contract-suite'`
+
+- `describeHostingContract(name, layer, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
+- `HostingLayer` (type): An adapter under test: a fresh layer per case, with `saves` granted.
+- `Settle` (type): Lets the fake Ruken host answer over its in-memory ports, and forked stream readers subscribe.
+
 ### `import { … } from '@mcthaydt/automata-host/testing'`
 
 - `FakeHostClock` (interface): The clock shape `@ruken/sdk-host`'s fake host takes; the game's `SdkEnv.timers` run on it too.
@@ -806,6 +812,16 @@
 - `Point` (interface): A point in the target frame's own CSS pixels.
 - `swipe(scope, from, to, ms)`: A finger from `from` to `to` over `ms` milliseconds, one move a frame, on whatever is under it.
 - `tap(target)`: A finger down on `target`'s centre and straight up again.
+
+### `import { … } from '@mcthaydt/automata-testing/host'`
+
+- `FakeHostControl` (interface): What a test does to, and reads from, the fake host.
+- `fakeHosting(options?)`: A fake host and the control handle that drives it.
+- `FakeHosting(options?, hosting?)`: The fake host as a layer: `Hosting` for the game (built from `hosting`, default a game that wants saves) and `FakeHostControl` for the test.
+- `FakeHostingOptions` (interface): How the fake host starts.
+- `FakeTarget` (type): The four distribution targets a fake host can stand in for (ADR 0006).
+- `Submission` (interface): One leaderboard submission the host received.
+- `TrackedEvent` (interface): One analytics event the host received.
 
 ### `import { … } from '@mcthaydt/automata-testing/input'`
 

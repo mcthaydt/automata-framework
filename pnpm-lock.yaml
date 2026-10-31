@@ -262,6 +262,9 @@ importers:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
@@ -1107,9 +1110,15 @@ importers:
 
   packages/testing:
     dependencies:
+      '@mcthaydt/automata-host':
+        specifier: workspace:*
+        version: link:../host
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../sim
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
       zod:
         specifier: 4.6.6
         version: 4.6.6

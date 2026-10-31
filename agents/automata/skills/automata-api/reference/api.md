@@ -3988,6 +3988,34 @@ interface SubscriptionEntitlement {
 }
 ```
 
+### `import { … } from '@mcthaydt/automata-host/contract-suite'`
+
+#### `describeHostingContract` (function)
+
+Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `layer` builds a fresh
+`Hosting` for each case, with `saves` granted; `settled` lets the host answer and forked stream readers subscribe
+(for example one macrotask). Every target's adapter and `FakeHosting` pass these cases (DIST spec §7).
+
+```ts
+function describeHostingContract(name: string, layer: HostingLayer, settled: Settle): void;
+```
+
+#### `HostingLayer` (type)
+
+An adapter under test: a fresh layer per case, with `saves` granted.
+
+```ts
+type HostingLayer = () => Layer.Layer<Hosting, HostError>;
+```
+
+#### `Settle` (type)
+
+Lets the fake Ruken host answer over its in-memory ports, and forked stream readers subscribe.
+
+```ts
+type Settle = Effect.Effect<void>;
+```
+
 ### `import { … } from '@mcthaydt/automata-host/testing'`
 
 #### `FakeHostClock` (interface)
@@ -6782,6 +6810,12 @@ interface RuntimeSeams {
   readonly frames?: FrameSource;
   readonly fonts?: Pick<FontFaceSet, "load">;
   readonly sdkEnv?: () => NonNullable<HostingSeams["env"]>;
+  /**
+   * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata-host/target`), for
+   * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host` (DIST spec §7). When given, `sdkEnv` is
+   * not used.
+   */
+  readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>;
   readonly document?: Document;
   /** The browser's languages, best first; defaults to `navigator.languages`. */
   readonly languages?: readonly string[];
@@ -10312,6 +10346,140 @@ A finger down on `target`'s centre and straight up again.
 
 ```ts
 function tap(target: Locator): Promise<void>;
+```
+
+### `import { … } from '@mcthaydt/automata-testing/host'`
+
+#### `FakeHostControl` (interface)
+
+What a test does to, and reads from, the fake host.
+The `FakeHostControl` service tag, provided beside `Hosting` by `FakeHosting`.
+
+```ts
+interface FakeHostControl {
+  /** Makes `ready` resolve (with `deferReady`). */
+  welcome(): void;
+  /** Makes `ready` fail with `code` (with `deferReady`). */
+  failReady(code: ErrorCode): void;
+  /** Sends the game a host change. Each payload is checked by its contract schema, so a bad fixture throws here. */
+  readonly push: {
+    lifecycle(payload: LifecyclePayload): void;
+    input(payload: InputModePayload): void;
+    display(payload: DisplayMetricsPayload): void;
+    audio(payload: AudioChange): void;
+    entitlements(payload: EntitlementsPayload): void;
+    savesStatus(status: SavesStatus): void;
+    /** Another device's write: the host's saves change and `saves.changed` carries it. */
+    savesChanged(payload: SavesChangedPayload): void;
+  };
+  /** The host's saves now. */
+  readonly saved: ReadonlyMap<string, string>;
+  /** Makes the next call named `operation` (for example `saves.set`) fail with `code`. */
+  failNext(operation: string, code: ErrorCode): void;
+  /** Holds every call named `operation` unanswered until `release(operation)`, so a test can time it out. */
+  hold(operation: string): void;
+  release(operation: string): void;
+  readonly tracked: readonly TrackedEvent[];
+  readonly exits: readonly ("player" | "completed")[];
+  /** Every fullscreen request, in order. */
+  readonly fullscreen: readonly boolean[];
+  /** Every round start and end the host received (after the contract's guard), in order. */
+  readonly rounds: readonly ({
+    readonly start: true;
+  } | {
+    readonly end: RoundOutcome | undefined;
+  })[];
+  readonly submits: readonly Submission[];
+  /** The host's "Open game menu": the latest handler's answer, or false before `ready` or with none. */
+  requestMenu(): boolean;
+  /** The host closes the game: the exiting handlers in order, then the save flush, all within `HOST_EXIT_CAP`. */
+  readonly close: Effect.Effect<void>;
+}
+const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl>;
+```
+
+#### `fakeHosting` (function)
+
+A fake host and the control handle that drives it. `make` builds the game's `Hosting` in a scope; closing the
+scope shuts it down (later calls fail `CANCELLED`, every stream ends).
+
+```ts
+function fakeHosting(options?: FakeHostingOptions): {
+  readonly control: FakeHostControl;
+  make(hosting: HostingOptions): Effect.Effect<Hosting, HostError, Scope.Scope>;
+};
+```
+
+#### `FakeHosting` (function)
+
+The fake host as a layer: `Hosting` for the game (built from `hosting`, default a game that wants saves) and
+`FakeHostControl` for the test. Both are released when the layer's scope closes.
+
+```ts
+function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<Hosting | FakeHostControl, HostError>;
+```
+
+#### `FakeHostingOptions` (interface)
+
+How the fake host starts. Every field has a default, so `FakeHosting()` is a web page with saves.
+
+```ts
+interface FakeHostingOptions {
+  /** The target to stand in for: its `kind`, `hostName`, grants and error codes (DIST spec §4.3). Default `web`. */
+  readonly target?: FakeTarget;
+  /** The capabilities granted, in place of the target's default ones. */
+  readonly granted?: readonly Capability[];
+  /** When true, `ready` waits for `control.welcome()` (or `control.failReady`); otherwise it is ready at once. */
+  readonly deferReady?: boolean;
+  readonly player?: {
+    readonly id: string;
+    readonly displayName: string;
+  };
+  readonly locale?: string;
+  /** The game's title, which the desktop target uses as its `hostName`. Default `Game`. */
+  readonly title?: string;
+  /** Saves already on the host when the session starts. */
+  readonly saves?: Readonly<Record<string, string>>;
+  /** Whether the player consented to analytics. Default true; false drops every `track`. */
+  readonly consent?: boolean;
+  readonly lifecycle?: LifecyclePayload;
+  readonly input?: InputModePayload;
+  readonly display?: DisplayMetricsPayload;
+  readonly audio?: AudioChange;
+  readonly entitlements?: EntitlementsPayload;
+  readonly savesStatus?: SavesStatus;
+}
+```
+
+#### `FakeTarget` (type)
+
+The four distribution targets a fake host can stand in for (ADR 0006).
+
+```ts
+type FakeTarget = "web" | "itch" | "ruken" | "tauri";
+```
+
+#### `Submission` (interface)
+
+One leaderboard submission the host received.
+
+```ts
+interface Submission {
+  readonly board: string;
+  readonly score: number;
+  readonly meta?: LeaderboardSubmitMeta | undefined;
+}
+```
+
+#### `TrackedEvent` (interface)
+
+One analytics event the host received.
+
+```ts
+interface TrackedEvent {
+  readonly event: string;
+  readonly props?: AnalyticsProps | undefined;
+}
 ```
 
 ### `import { … } from '@mcthaydt/automata-testing/input'`

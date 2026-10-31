@@ -5,6 +5,7 @@ import type { FlowGraph } from '@mcthaydt/automata-content'
 import { HostError, Hosting } from '@mcthaydt/automata-host'
 import { realClock, TEST_GAME_ORIGIN } from '@mcthaydt/automata-host/testing'
 import { createSim, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
+import { fakeHosting } from '@mcthaydt/automata-testing/host'
 import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
 import { Cause, Effect, Exit, Option, Scope } from 'effect'
 import { flushSync } from 'svelte'
@@ -1101,6 +1102,44 @@ describe('seams.onFailure', () => {
     await driveFirstFrame(frames)
     await waitForState('failed')
     expect(root.querySelector('[role="alert"]')).not.toBeNull()
+    await handle.shutdown()
+  })
+})
+
+describe('seams.hosting (DIST.4)', () => {
+  let root: HTMLElement
+
+  beforeEach(() => {
+    document.documentElement.removeAttribute('data-state')
+    root = document.createElement('div')
+    document.body.appendChild(root)
+    return () => {
+      root.remove()
+      document.documentElement.removeAttribute('data-state')
+    }
+  })
+
+  it('boots on the Hosting the seam makes, in place of the build target’s adapter', async () => {
+    const frames = manualFrames()
+    const fake = fakeHosting({ target: 'itch', deferReady: true })
+    const handle = runGame({
+      root,
+      hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
+      content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+      screens: [{ id: 'title', enter: () => Effect.void }],
+      renderer: nullRenderer(),
+      seams: {
+        frames,
+        fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+        hosting: fake.make,
+      },
+    })
+    await driveFirstFrame(frames)
+    // The fake host holds ready, so boot waits on it: the game is on the fake, not on the target's adapter.
+    expect(document.documentElement.getAttribute('data-state')).not.toBe('ready')
+    fake.control.welcome()
+    await driveFirstFrame(frames)
+    await waitForState('ready')
     await handle.shutdown()
   })
 })

@@ -171,9 +171,13 @@ export function bootProgram<S>(
       ...game.hosting,
       ...(disclosedEvents !== undefined ? { disclosedEvents } : {}),
     }
-    const sdkEnv = game.seams?.sdkEnv?.()
-    const hostingSeams: HostingSeams = sdkEnv !== undefined ? { env: sdkEnv } : {}
-    const hosting = yield* makeHosting(hostingOptions, hostingSeams)
+    const hosting = yield* game.seams?.hosting !== undefined
+      ? game.seams.hosting(hostingOptions)
+      : Effect.suspend(() => {
+          const sdkEnv = game.seams?.sdkEnv?.()
+          const hostingSeams: HostingSeams = sdkEnv !== undefined ? { env: sdkEnv } : {}
+          return makeHosting(hostingOptions, hostingSeams)
+        })
     options?.onHosting?.(hosting)
 
     const initialDisplay = yield* hosting.display.get

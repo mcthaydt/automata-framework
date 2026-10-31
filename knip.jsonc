@@ -50,7 +50,6 @@
     },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     "packages/ship": { "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "zod"] },
-    "packages/host": { "ignoreDependencies": ["zod"] },
     // PRODUCT.L2: compile-messages.ts loads Paraglide with a dynamic import of a constant and resolves the inlang
     // plugin by name (createRequire().resolve), neither of which knip follows.
     "packages/content": { "ignoreDependencies": ["@inlang/paraglide-js", "@inlang/plugin-message-format"] },

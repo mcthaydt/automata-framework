@@ -20,6 +20,7 @@
       "automata-web": "./src/web/target.ts",
       "default": "./src/web/target.ts"
     },
+    "./contract-suite": "./src/contract-suite.ts",
     "./testing": "./src/testing/index.ts"
   },
   "publishConfig": {
@@ -43,6 +44,10 @@
           "import": "./dist/target-web.js"
         }
       },
+      "./contract-suite": {
+        "types": "./dist/contract-suite.d.ts",
+        "import": "./dist/contract-suite.js"
+      },
       "./testing": {
         "types": "./dist/testing.d.ts",
         "import": "./dist/testing.js"
@@ -64,5 +69,13 @@
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "vite": "8.3.3",
     "vitest": "5.0.3"
+  },
+  "peerDependencies": {
+    "vitest": "^5.0.3"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
   }
 }

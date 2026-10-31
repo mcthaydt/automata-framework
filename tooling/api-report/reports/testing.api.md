@@ -486,6 +486,106 @@ function fakeGamepads(options?: {
 }): FakeGamepads;
 ```
 
+## `./host`
+
+### `FakeHostControl` (interface)
+
+```ts
+interface FakeHostControl {
+    welcome(): void;
+    failReady(code: ErrorCode): void;
+    readonly push: {
+        lifecycle(payload: LifecyclePayload): void;
+        input(payload: InputModePayload): void;
+        display(payload: DisplayMetricsPayload): void;
+        audio(payload: AudioChange): void;
+        entitlements(payload: EntitlementsPayload): void;
+        savesStatus(status: SavesStatus): void;
+        savesChanged(payload: SavesChangedPayload): void;
+    };
+    readonly saved: ReadonlyMap<string, string>;
+    failNext(operation: string, code: ErrorCode): void;
+    hold(operation: string): void;
+    release(operation: string): void;
+    readonly tracked: readonly TrackedEvent[];
+    readonly exits: readonly ('player' | 'completed')[];
+    readonly fullscreen: readonly boolean[];
+    readonly rounds: readonly ({
+        readonly start: true;
+    } | {
+        readonly end: RoundOutcome | undefined;
+    })[];
+    readonly submits: readonly Submission[];
+    requestMenu(): boolean;
+    readonly close: Effect.Effect<void>;
+}
+const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl>;
+```
+
+### `FakeHosting` (function)
+
+```ts
+function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<Hosting | FakeHostControl, HostError>;
+```
+
+### `fakeHosting` (function)
+
+```ts
+function fakeHosting(options?: FakeHostingOptions): {
+    readonly control: FakeHostControl;
+    make(hosting: HostingOptions): Effect.Effect<Hosting, HostError, Scope.Scope>;
+};
+```
+
+### `FakeHostingOptions` (interface)
+
+```ts
+interface FakeHostingOptions {
+    readonly target?: FakeTarget;
+    readonly granted?: readonly Capability[];
+    readonly deferReady?: boolean;
+    readonly player?: {
+        readonly id: string;
+        readonly displayName: string;
+    };
+    readonly locale?: string;
+    readonly title?: string;
+    readonly saves?: Readonly<Record<string, string>>;
+    readonly consent?: boolean;
+    readonly lifecycle?: LifecyclePayload;
+    readonly input?: InputModePayload;
+    readonly display?: DisplayMetricsPayload;
+    readonly audio?: AudioChange;
+    readonly entitlements?: EntitlementsPayload;
+    readonly savesStatus?: SavesStatus;
+}
+```
+
+### `FakeTarget` (type)
+
+```ts
+type FakeTarget = 'web' | 'itch' | 'ruken' | 'tauri';
+```
+
+### `Submission` (interface)
+
+```ts
+interface Submission {
+    readonly board: string;
+    readonly score: number;
+    readonly meta?: LeaderboardSubmitMeta | undefined;
+}
+```
+
+### `TrackedEvent` (interface)
+
+```ts
+interface TrackedEvent {
+    readonly event: string;
+    readonly props?: AnalyticsProps | undefined;
+}
+```
+
 ## `./e2e`
 
 ### `Direction` (type)

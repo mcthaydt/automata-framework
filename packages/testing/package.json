@@ -18,6 +18,7 @@
     "./sim/commands": "./src/sim/commands.ts",
     "./sim/property": "./src/sim/property.ts",
     "./input": "./src/input/fake-gamepads.ts",
+    "./host": "./src/host/index.ts",
     "./e2e": "./src/e2e/index.ts"
   },
   "publishConfig": {
@@ -43,6 +44,10 @@
         "types": "./dist/input/fake-gamepads.d.ts",
         "import": "./dist/input/fake-gamepads.js"
       },
+      "./host": {
+        "types": "./dist/host/index.d.ts",
+        "import": "./dist/host/index.js"
+      },
       "./e2e": {
         "types": "./dist/e2e/index.d.ts",
         "import": "./dist/e2e/index.js"
@@ -59,7 +64,9 @@
     "build": "tsdown"
   },
   "dependencies": {
+    "@mcthaydt/automata-host": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
+    "effect": "3.22.2",
     "zod": "4.6.6"
   },
   "peerDependencies": {

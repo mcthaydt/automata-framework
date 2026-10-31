@@ -448,6 +448,26 @@ function HostingLive(options: HostingOptions, seams?: unknown): Layer.Layer<Host
 function makeHosting(options: HostingOptions, _seams?: unknown): Effect.Effect<Hosting, HostError, Scope.Scope>;
 ```
 
+## `./contract-suite`
+
+### `describeHostingContract` (function)
+
+```ts
+function describeHostingContract(name: string, layer: HostingLayer, settled: Settle): void;
+```
+
+### `HostingLayer` (type)
+
+```ts
+type HostingLayer = () => Layer.Layer<Hosting, HostError>;
+```
+
+### `Settle` (type)
+
+```ts
+type Settle = Effect.Effect<void>;
+```
+
 ## `./testing`
 
 ### `FakeHostClock` (interface)

@@ -1260,6 +1260,7 @@ interface RuntimeSeams {
     readonly frames?: FrameSource;
     readonly fonts?: Pick<FontFaceSet, 'load'>;
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
+    readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>;
     readonly document?: Document;
     readonly languages?: readonly string[];
     readonly createAudioContext?: () => AudioContextLike;

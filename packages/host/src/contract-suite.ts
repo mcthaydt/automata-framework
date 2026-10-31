@@ -1,13 +1,14 @@
 // The `Hosting` contract cases every adapter passes (PUB spec §7 and §12 PUB-a; shared contracts §1.1, §1.5).
 // `ruken/hosting-ruken.contract.test.ts` runs them against the Ruken adapter (over the fake Ruken host) and
 // `web/hosting-web.test.ts` against the web adapter (over a fake page). A case that only one adapter can pass is
-// not here: it lives beside that adapter, and every intended difference has its own test named after it. Internal
-// to the host package's tests.
+// not here: it lives beside that adapter, and every intended difference has its own test named after it. Published
+// as `@mcthaydt/automata-host/contract-suite` so `FakeHosting` in `@mcthaydt/automata-testing` runs the same cases
+// (DIST spec §7); it needs Vitest.
 import { Chunk, Context, Effect, Either, Exit, Fiber, Layer, Option, Scope, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
-import type { HostError } from '../contract/errors'
-import { Hosting } from '../contract/hosting'
-import { runScoped } from './run'
+import type { HostError } from './contract/errors'
+import { Hosting } from './contract/hosting'
+import { runScoped } from './testing/run'
 
 /** An adapter under test: a fresh layer per case, with `saves` granted. */
 export type HostingLayer = () => Layer.Layer<Hosting, HostError>
@@ -24,6 +25,11 @@ const observedOf = (hosting: Hosting) => ({
   savesStatus: hosting.savesStatus,
 })
 
+/**
+ * Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `layer` builds a fresh
+ * `Hosting` for each case, with `saves` granted; `settled` lets the host answer and forked stream readers subscribe
+ * (for example one macrotask). Every target's adapter and `FakeHosting` pass these cases (DIST spec §7).
+ */
 export function describeHostingContract(name: string, layer: HostingLayer, settled: Settle): void {
   const withHosting = <A>(program: (hosting: Hosting) => Effect.Effect<A, unknown>) =>
     runScoped(Effect.flatMap(Hosting, program).pipe(Effect.provide(layer())))
