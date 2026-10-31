@@ -12,7 +12,13 @@ const { listJsonLiterals } = await import(jsonEdit)
 const fixtures = fileURLToPath(new URL('.', import.meta.url))
 
 const golden = {}
-for (const name of ['blockout-clinic', 'blockout-clinic-dawn', 'blockout-bay', 'blockout-prologue', 'facility']) {
+for (const name of [
+  'blockout-clinic',
+  'blockout-clinic-dawn',
+  'blockout-bay',
+  'blockout-prologue',
+  'facility',
+]) {
   const text = readFileSync(`${fixtures}${name}.json`, 'utf8')
   golden[name] = listJsonLiterals(text).map((literal) => [literal.path, literal.start, literal.end])
 }
