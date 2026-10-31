@@ -78,6 +78,8 @@ async function start(size: EditorSize, options: { autosave?: boolean } = {}) {
   return { conditions, workspace }
 }
 
+const OPEN_TIMEOUT_MS = 10_000
+
 /** Opens a project from Home the way a double click does. */
 async function openFromHome(path: string): Promise<void> {
   const card = [...document.querySelectorAll<HTMLElement>('[role="option"]')].find((option) =>
@@ -85,8 +87,12 @@ async function openFromHome(path: string): Promise<void> {
   )
   if (card === undefined) throw new Error(`no card for ${path}`)
   card.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
+  // The first open in a cold browser can take more than the poll's 1 s default on a loaded runner (Firefox on af-mac
+  // missed it at the first size on #301 and #303); the wait is still for the dialog or the document bar to appear.
   await expect
-    .poll(() => document.querySelector('[role="dialog"], [data-testid="document-bar"]'))
+    .poll(() => document.querySelector('[role="dialog"], [data-testid="document-bar"]'), {
+      timeout: OPEN_TIMEOUT_MS,
+    })
     .not.toBeNull()
   await arrived()
 }
@@ -172,7 +178,9 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     await arrived()
     await workspace.store.write(PROJECT, printProject({ ...mossgate(), name: 'Changed elsewhere' }))
     byTestId('save').click()
-    await expect.poll(() => document.querySelector('[role="dialog"]')).not.toBeNull()
+    await expect
+      .poll(() => document.querySelector('[role="dialog"]'), { timeout: OPEN_TIMEOUT_MS })
+      .not.toBeNull()
     await arrived()
     const conflict = dialog()
     expectInside(conflict, size)
