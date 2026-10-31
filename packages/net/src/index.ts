@@ -1,6 +1,6 @@
 // `@mcthaydt/automata-net`: the wire (one owner; `server` imports it), the `net.toml` schema, and the client (M7 spec
-// §4.2): the Colyseus transport, `NetRoom`, reconnection and the room store (M7.5a). Prediction and interpolation
-// arrive with M7.5b and M7.5c; the sim side is `./sim`, the link harness and the fake SDK `./testing`.
+// §4.2): the Colyseus transport, `NetRoom`, reconnection and the room store (M7.5a); prediction and reconciliation,
+// `NetSession` (M7.5b). Interpolation arrives with M7.5c; the sim side is `./sim`, the link harness and the fake SDK `./testing`.
 export type { NetSnapshot, Pong } from './client/colyseus-transport'
 export { NetError, refusalCode } from './client/net-error'
 export type { ClientNetworkPort } from './client/net-port'
@@ -19,6 +19,27 @@ export { makeRoomStore, type RoomStore } from './client/room-store'
 export { colyseusClient, type NetSdkClient, type NetSdkRoom } from './client/sdk'
 export { SEAT_TOKEN_KEY, type SeatStorage, seatTokenKey } from './client/seat-token'
 export { type NetConfig, type NetConfigInput, netConfigSchema } from './config/net.schema'
+export {
+  INITIAL_LEAD_TICKS,
+  InputLead,
+  type InputLeadOptions,
+  leadForRoundTrip,
+  MAX_LEAD_TICKS,
+} from './session/input-lead'
+export { type MakeNetSessionOptions, makeNetSession, type NetSessionHandle } from './session/make-net-session'
+export {
+  DESYNC_WINDOW_MS,
+  type LocalCommand,
+  MAX_CATCH_UP_TICKS,
+  MAX_PENDING_COMMANDS,
+  type NetFrame,
+  NetSession,
+  type NetSessionOptions,
+  PING_EVERY_MS,
+  type Sampler,
+  type SessionEnd,
+  type SessionRoomState,
+} from './session/net-session'
 export { type ClientMessage, clientMessageSchema } from './wire/client-message.schema'
 export { type JoinOptions, joinOptionsSchema } from './wire/join-options.schema'
 export {

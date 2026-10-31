@@ -1,5 +1,5 @@
 // `@mcthaydt/automata-net/testing`: the deterministic link harness (M7 spec §4.7) and the scripted Colyseus SDK the
-// client's tests run on (M7.5a).
+// client's tests run on (M7.5a), and net's wire over a link for a room and its clients (M7.5b).
 
 export {
   type FakeColyseus,
@@ -9,3 +9,10 @@ export {
   fakeColyseus,
 } from './fake-colyseus'
 export { createLink, type LinkOptions, type Transport, type WireData } from './link'
+export {
+  type LinkClient,
+  type LinkRoomClient,
+  linkClient,
+  linkRoomClient,
+  type RunEffect,
+} from './link-client'
