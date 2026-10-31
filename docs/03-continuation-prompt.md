@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-31 ~08:00Z by the coordinator (session_01QYLU1iZKdmysJwC6Hc9Pn8). Source HEAD verified before this update: `5d9b46e` on `main`. Merged since 04:05Z: #305 EDS.2c-c, #301 ED2D.7a, #306 CI.MAIN1, #311 DIST.0/STANDALONE.0 (ADR 0006), #317 DIST.1 spec; website#26 WEB.PLAY.10, #27 WEB.PLAY.11, #28 DX.10a; plus#16 M7.5b, #17 (plus issue #14's races). Closed unmerged: #315 (the FloorFifty 2D profile was dropped). The earlier history of this line is in git.
+> Updated 2026-10-31 ~08:00Z by the coordinator (session_01QYLU1iZKdmysJwC6Hc9Pn8). Source HEAD verified before this update: `f921716` on `main`. Merged since 04:05Z: #294 M3.7b part 4 (M3.7b complete), #305 EDS.2c-c, #301 ED2D.7a, #306 CI.MAIN1, #311 DIST.0/STANDALONE.0 (ADR 0006), #317 DIST.1 spec; website#26 WEB.PLAY.10, #27 WEB.PLAY.11, #28 DX.10a; plus#16 M7.5b, #17 (plus issue #14's races). Closed unmerged: #315 (the FloorFifty 2D profile was dropped). The earlier history of this line is in git.
 
 ## Prompt for the next agent
 
@@ -93,7 +93,7 @@ Each lane is a cloud session that works only in its own worktrees and PRs, never
 
 | Lane | Session | State on 2026-10-31 ~08:00Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03/00/01 and `AGENTS.md`, the Ruken repacks, APP and PLUS.FREE docs, the runtime); the only session that watches PRs and CI | `session_01QYLU1iZKdmysJwC6Hc9Pn8` (since 07:45Z) | Watching and merging on green: #294 M3.7b part 4, then the 3D stack (#297, #300, #304, #307, #309, #313, #314, #318, #319, #320, #324: each retargets to `main` once its parent merges); #303 EDS.2d, #308 ED2D.7b then #325, #310 ED2D.6b then #322, #312 DX.2d, #316 STANDALONE.3, #321 DIST.2 then #323 DIST.4; website#30 STANDALONE.1, #31 QB.4c, #32 QB.4b. All reviewed and accepted. |
+| Coordinator (core and 2D path, CI, docs 02/03/00/01 and `AGENTS.md`, the Ruken repacks, APP and PLUS.FREE docs, the runtime); the only session that watches PRs and CI | `session_01QYLU1iZKdmysJwC6Hc9Pn8` (since 07:45Z) | Watching and merging on green: the 3D stack (#297, #300, #304, #307, #309, #313, #314, #318, #319, #320, #324, #327: each retargets to `main` once its parent merges); #303 EDS.2d, #308 ED2D.7b then #325, #310 ED2D.6b then #322, #312 DX.2d, #316 STANDALONE.3, #321 DIST.2 then #323 DIST.4 then #326 DIST.3a; #328 ED2D.8a (after #322); website#30 STANDALONE.1, #31 QB.4c, #32 QB.4b. All reviewed and accepted. |
 | 3D (M3, GAME-3D, M9 free parts) | `session_01QYLU1fetRTT3kToxUAx8FS` | GAME-3D.1d done (#318, #319, #320, #324); GAME-3D.1e (the HUD) next, stacked on #324's branch. Carries: hearts.max 3 against DESIGN §7.8's 4; 1h's drag and flick cycling; 1i, 1j. |
 | Editors (ED2D, ED3D, EDK, EDS) | `session_01QYLU1hYdgks6bMrvZX4wba` | Done #316, #322, #325 (no Ruken words left in editor UI text); next ED2D.8 (the iPad pass), then the unticked editor rows in order. |
 | Website and Plus | `session_01QYLU1igkd7HH81jef9VqhB` | The home-page hydration fix, then M6.0a (amend the M6 spec for ADR 0006), then M6.3 and the M6 chain (M6.4a, M6.5, M6.6a, M6.8a, M6.8c, M6.9a, M6.9b). PLUS.FREE waits on the Owner's licence text; DX.9w waits on a successful `main` `ci` run with an `evidence` artifact; DX.11w on DX.11a. |
@@ -120,9 +120,9 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 
 ## Exact next action
 
-1. Merge the open PRs above as each goes green on its head (parity included); #294 first, then walk the 3D stack down (retarget the child to `main`, merge `main` in, run `pnpm --filter @af-games/base-3d test`, `pnpm exec biome check --write` on what changed, push, mark ready, merge on green). #308 and #310 conflict in the 2D editor's `views.ts`, `ViewServices` and `DocumentScreen`: keep both views. #308's branch still carries the stage profile #316 removes; keep it removed.
+1. Merge the open PRs above as each goes green on its head (parity included); Walk the 3D stack down from #297 (retarget the child to `main`, merge `main` in, run `pnpm --filter @af-games/base-3d test`, `pnpm exec biome check --write` on what changed, push, mark ready, merge on green). #308 and #310 conflict in the 2D editor's `views.ts`, `ViewServices` and `DocumentScreen`: keep both views. #308's branch still carries the stage profile #316 removes; keep it removed.
 2. When a `main` `ci` push run succeeds with its `evidence` artifact (CI.MAIN1 merged), send its run id to the website and Plus lane for DX.9w.
-3. The next 02/03 batch: tick M3.7b (parts 3a #289, 3b #292, 4 #294) when #294 merges, and the rows of whatever else merges (STANDALONE.1, QB.4b and QB.4c on website#30 to #32).
+3. The next 02/03 batch: tick the rows of whatever else merges (STANDALONE.1, QB.4b and QB.4c on website#30 to #32).
 4. The runtime focus follow-up (`packages/runtime/src/flow/flow.manager.ts`, the auto-focus on entry) is **not** a plain `!document.hasFocus()` skip: that breaks M4 spec §4.7 under a host, where the game focusing its first control is what gives its frame the keyboard (`examples/e2e/default-screens.e2e.ts` asserts Play focused under the fake host). It needs a narrow opt-out for an inert preview frame, written into the M4 spec first.
 5. The "Version packages" PR (#226): its publish waits for the Owner's release-environment approval; not watched.
 6. Next coordinator rows with no prerequisite: STANDALONE.2 (dedicated lane, after the 3D stack), PRODUCT.1b2, DX.6a, DX.7b/c, CI.N1a, CI.N3, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu, CI.BND2.
