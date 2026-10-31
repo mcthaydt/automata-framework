@@ -4,10 +4,12 @@
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands'
 import { typescriptLanguage } from '@codemirror/lang-javascript'
 import { bracketMatching, indentOnInput, syntaxHighlighting } from '@codemirror/language'
+import { lintGutter, setDiagnostics } from '@codemirror/lint'
 import { searchKeymap } from '@codemirror/search'
 import { EditorSelection, EditorState } from '@codemirror/state'
 import { EditorView, highlightSpecialChars, keymap, lineNumbers } from '@codemirror/view'
 import { classHighlighter } from '@lezer/highlight'
+import type { Diagnostic } from './compile'
 
 export interface EditorOptions {
   readonly parent: HTMLElement
@@ -18,6 +20,8 @@ export interface EditorOptions {
   readonly describedBy: string
   /** Where the caret starts: the source offset the reader tapped. */
   readonly anchor: number
+  /** Called with the whole text after each change, but not during IME composition: once it ends (spec F3). */
+  readonly onchange: (doc: string) => void
 }
 
 const theme = EditorView.theme({
@@ -25,15 +29,20 @@ const theme = EditorView.theme({
   '.cm-scroller': { fontFamily: 'var(--font-mono)', lineHeight: '1.5', overflow: 'visible' },
   '.cm-content': { padding: '1rem 0', caretColor: 'var(--ink)' },
   '.cm-line': { padding: '0 1rem 0 0' },
-  '.cm-gutters': { paddingLeft: '1rem', border: 'none', background: 'transparent', color: 'var(--muted)' },
+  '.cm-gutters': { border: 'none', background: 'transparent', color: 'var(--muted)' },
+  '.cm-gutter-lint': { width: '1rem' },
+  '.cm-gutter-lint .cm-gutterElement': { padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   '.cm-lineNumbers .cm-gutterElement': { boxSizing: 'content-box', minWidth: '3ch', padding: '0 1rem 0 0', textAlign: 'right' },
 })
 
-export function mountEditor({ parent, doc, label, describedBy, anchor }: EditorOptions): EditorView {
+export function mountEditor({ parent, doc, label, describedBy, anchor, onchange }: EditorOptions): EditorView {
+  let changedWhileComposing = false
   const state = EditorState.create({
     doc,
     selection: EditorSelection.cursor(Math.min(Math.max(anchor, 0), doc.length)),
     extensions: [
+      // The lint gutter takes the gutters' left padding, so the line numbers stay where the static code has them.
+      lintGutter(),
       lineNumbers(),
       highlightSpecialChars(),
       history(),
@@ -47,6 +56,19 @@ export function mountEditor({ parent, doc, label, describedBy, anchor }: EditorO
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
       EditorView.contentAttributes.of({ 'aria-label': label, 'aria-describedby': describedBy, autocorrect: 'off', autocapitalize: 'off', spellcheck: 'false' }),
       theme,
+      EditorView.updateListener.of(update => {
+        if (!update.docChanged) return
+        if (update.view.composing) changedWhileComposing = true
+        else onchange(update.state.doc.toString())
+      }),
+      // Changes made while composing are reported when it ends. A change CodeMirror applies after `compositionend`
+      // reaches the listener above, since `composing` is false by then; a composition that changed nothing reports none.
+      EditorView.domEventHandlers({
+        compositionend: (_event, view) => {
+          if (changedWhileComposing) onchange(view.state.doc.toString())
+          changedWhileComposing = false
+        },
+      }),
     ],
   })
   const view = new EditorView({ state, parent })
@@ -62,4 +84,26 @@ export function mountEditor({ parent, doc, label, describedBy, anchor }: EditorO
     internal.viewState.printing = false
   }
   return view
+}
+
+/** The offset of a 1-based line and column, held inside the document. */
+function offsetOf(view: EditorView, line: number, column: number): number {
+  const at = view.state.doc.line(Math.min(Math.max(line, 1), view.state.doc.lines))
+  return Math.min(at.from + Math.max(column, 1) - 1, at.to)
+}
+
+/** Marks each diagnostic in the gutter and underlines it to the end of its line (spec F5); none clears them. */
+export function showDiagnostics(view: EditorView, diagnostics: readonly Diagnostic[]) {
+  view.dispatch(setDiagnostics(view.state, diagnostics.map(({ line, column, message }) => {
+    const from = offsetOf(view, line, column)
+    const to = view.state.doc.lineAt(from).to
+    // A problem at the very end of a line still gets an underline: its last character, or nothing on an empty line.
+    return { from: from < to ? from : Math.max(view.state.doc.lineAt(from).from, to - 1), to, severity: 'error' as const, message }
+  })))
+}
+
+/** Puts the caret at a 1-based line and column and focuses the editor (the status line's diagnostic, §8.2). */
+export function moveCaret(view: EditorView, line: number, column: number) {
+  view.dispatch({ selection: EditorSelection.cursor(offsetOf(view, line, column)), scrollIntoView: true })
+  view.focus()
 }

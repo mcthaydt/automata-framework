@@ -221,3 +221,246 @@ test('a preview that starts while the reader is in the code leaves focus in the 
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
   await expect(page.locator('.cm-content')).toBeFocused()
 })
+
+// WEB.PLAY.7 (spec F3–F5, §7.4, A-1, A-3, A-4, A-13): edits compile in a worker after a quiet period and replace the
+// preview through a candidate frame, with no button; a broken edit marks its line and keeps the last good preview.
+
+/** The editor's line `line` (1-based). */
+const editorLine = (page: Page, line: number) => page.locator('.cm-line').nth(line - 1)
+
+/** The 1-based line of the shapes-rects source that holds `text`. */
+async function lineOf(page: Page, text: string): Promise<number> {
+  const lines = await staticCode(page).locator('.line').allTextContents()
+  const index = lines.findIndex(line => line.includes(text))
+  if (index < 0) throw new Error(`no line holds ${text}`)
+  return index + 1
+}
+
+/** Selects the word `word` in the editor by double-clicking it, then types `replacement` over it. Just after the
+ * swap the page can still be settling its scroll, so a double-click on a box measured a moment earlier selects
+ * another word (in a comment, the typed replacement even compiles): measure and double-click until `word` is the
+ * selection. */
+async function replaceWord(page: Page, word: string, replacement: string) {
+  await expect.poll(async () => { await dblclickWord(page, word); return page.evaluate(() => window.getSelection()?.toString()) }, { timeout: 5_000 }).toBe(word)
+  await page.keyboard.type(replacement)
+}
+
+async function dblclickWord(page: Page, word: string) {
+  const range = await page.locator('.cm-content').evaluate((content, wanted) => {
+    const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const index = node.textContent!.indexOf(wanted)
+      if (index < 0) continue
+      const range = document.createRange()
+      range.setStart(node, index)
+      range.setEnd(node, index + wanted.length)
+      const rect = range.getBoundingClientRect()
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+    }
+    throw new Error('no such word')
+  }, word)
+  await page.mouse.dblclick(range.x, range.y)
+}
+
+/** How many pixels of the preview frame's screenshot are close to pure red. */
+async function redPixels(page: Page): Promise<number> {
+  const png = (await page.locator('.playground iframe.shown').screenshot()).toString('base64')
+  // Decoded in a blank page of the same context: the site's CSP rightly refuses a `data:` fetch.
+  const blank = await page.context().newPage()
+  const red = await blank.evaluate(async data => {
+    const bitmap = await createImageBitmap(await (await fetch('data:image/png;base64,' + data)).blob())
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+    const context = canvas.getContext('2d')!
+    context.drawImage(bitmap, 0, 0)
+    const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height).data
+    let red = 0
+    for (let i = 0; i < pixels.length; i += 4) if (pixels[i]! > 200 && pixels[i + 1]! < 60 && pixels[i + 2]! < 60) red++
+    return red
+  }, png)
+  await blank.close()
+  return red
+}
+
+test('an edit updates the preview with no button', async ({ page }) => {
+  const watch = watchPage(page, ORIGIN)
+  await page.goto('/examples/shapes-rects')
+  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  expect(await redPixels(page)).toBeLessThan(100)
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+  await expect(page.locator('.playground-status')).toHaveText('Preview updated.')
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeGreaterThan(100)
+  expect(watch.problems).toEqual([])
+})
+
+/** The 1-based line of the editor that holds the caret. */
+const caretLine = (page: Page) => page.evaluate(() => {
+  const node = window.getSelection()?.anchorNode
+  const line = (node instanceof Element ? node : node?.parentElement)?.closest('.cm-line')
+  return line ? [...document.querySelectorAll('.cm-line')].indexOf(line) + 1 : 0
+})
+
+/** Opens the editor and types `typed` just after `text`, placing the caret by the text's own box: the End key would
+ * stop at the end of a wrapped line's first row. */
+async function typeAfter(page: Page, text: string, typed: string) {
+  const line = await lineOf(page, text)
+  await tapLine(page, line)
+  await expect(page.locator('.cm-content')).toBeFocused()
+  // WebKit can still be settling the page's scroll after the swap, so a click on a box measured a moment earlier lands
+  // on another line: measure and click until the caret is on the intended one.
+  await expect.poll(async () => { await clickAfter(page, line, text); return caretLine(page) }, { timeout: 5_000 }).toBe(line)
+  await page.keyboard.type(typed)
+  return line
+}
+
+/** Clicks just after the last character of `text` on the editor's line `line`. */
+async function clickAfter(page: Page, line: number, text: string) {
+  const point = await editorLine(page, line).evaluate((element, wanted) => {
+    // The highlighting splits the line into spans, so the last character is found by its offset in the whole line.
+    let last = element.textContent!.indexOf(wanted) + wanted.length - 1
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const length = node.textContent!.length
+      if (last < length) {
+        const range = document.createRange()
+        range.setStart(node, last)
+        range.setEnd(node, last + 1)
+        const rect = range.getBoundingClientRect()
+        return { x: rect.right - 1, y: rect.top + rect.height / 2 }
+      }
+      last -= length
+    }
+    throw new Error('no such text')
+  }, text)
+  await page.mouse.click(point.x, point.y)
+}
+
+test('a syntax error marks its line, names it, and keeps the running preview', async ({ page }) => {
+  const watch = watchPage(page, ORIGIN)
+  await page.goto('/examples/shapes-rects')
+  const move = await typeAfter(page, "defineSystem('move', (ctx) => {", '\nconst broken = 1 +;')
+  const frame = await page.locator('.playground iframe').elementHandle()
+  await expect(root(page)).toHaveAttribute('data-compile', 'syntax-error', { timeout: 2_000 })
+  await expect(page.locator('.playground-status')).toHaveText(`Line ${move + 1}: Unexpected token. The preview is still running your last working version.`)
+  await expect(editorLine(page, move + 1).locator('.cm-lintRange-error')).toHaveCount(1)
+  await expect(page.locator('.cm-lint-marker-error')).toHaveCount(1)
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  expect(await frame!.evaluate(element => element.isConnected)).toBe(true)
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+  // Fixing it runs the fix.
+  for (let i = 0; i < '\nconst broken = 1 +;'.length; i++) await page.keyboard.press('Backspace')
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect(page.locator('.cm-lint-marker-error')).toHaveCount(0)
+  await expect(page.locator('.playground-status')).toHaveText('Preview updated.')
+  expect(watch.problems).toEqual([])
+})
+
+test('an import from another package marks its line and requests nothing', async ({ page }) => {
+  const requested: string[] = []
+  page.on('request', request => { if (request.url().includes('lodash')) requested.push(request.url()) })
+  await page.goto('/examples/shapes-rects')
+  await tapLine(page, 1)
+  await page.keyboard.press('ControlOrMeta+Home')
+  await page.keyboard.type("import _ from 'lodash'\n")
+  await expect(root(page)).toHaveAttribute('data-compile', 'syntax-error', { timeout: 2_000 })
+  await expect(page.locator('.playground-status')).toHaveText('Line 1: The playground can import only @mcthaydt/automata and zod. The preview is still running your last working version.')
+  await expect(editorLine(page, 1).locator('.cm-lintRange-error')).toHaveCount(1)
+  await page.waitForTimeout(500)
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running')
+  expect(requested).toEqual([])
+})
+
+test('pressing the diagnostic puts the caret on its line', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  const move = await typeAfter(page, "defineSystem('move', (ctx) => {", '\nconst broken = 1 +;')
+  await expect(root(page)).toHaveAttribute('data-compile', 'syntax-error', { timeout: 2_000 })
+  await page.keyboard.press('ControlOrMeta+End')
+  const button = page.locator('.playground-status button')
+  await expect(button).toHaveText(new RegExp(`^Line ${move + 1}: Unexpected token`))
+  expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+  await button.click()
+  await expect(page.locator('.cm-content')).toBeFocused()
+  expect(await caretLine(page)).toBe(move + 1)
+})
+
+test('an edit before the first run replaces it, and the original is not run after it', async ({ page }) => {
+  let release: () => void = () => {}
+  const held = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/playground/compiled/shapes-rects.js', async route => { await held; await route.continue() })
+  await page.goto('/examples/shapes-rects')
+  await staticCode(page).focus()
+  await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
+  await expect(root(page)).toHaveAttribute('data-preview', 'poster')
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeGreaterThan(100)
+  release()
+  await page.waitForResponse('**/playground/compiled/shapes-rects.js')
+  await page.waitForTimeout(1_000)
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+  expect(await redPixels(page)).toBeGreaterThan(100)
+})
+
+test('with reduced motion an edit runs nothing until Play, then edits update the preview live', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const requests = playgroundRequests(page)
+  await page.goto('/examples/shapes-rects')
+  await staticCode(page).focus()
+  await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-compile', 'ok', { timeout: 2_000 })
+  await page.waitForTimeout(500)
+  expect(requests).toEqual([])
+  await expect(root(page)).toHaveAttribute('data-preview', 'poster')
+  await expect(page.locator('[data-testid="preview-poster"]')).toBeVisible()
+  await page.getByRole('button', { name: 'Play' }).click()
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  // Play ran the edited code, not the precompiled original.
+  expect(requests.map(request => request.path)).not.toContain('/playground/compiled/shapes-rects.js')
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeGreaterThan(100)
+  await replaceWord(page, '0xff0000', '0x00cdf9')
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeLessThan(100)
+})
+
+test('the compile worker starts with the editor, not before', async ({ page }) => {
+  const workers: string[] = []
+  page.on('request', request => { if (/\/workers\/compile\.worker-[^/]+\.js$/.test(new URL(request.url()).pathname)) workers.push(request.url()) })
+  await page.goto('/examples/shapes-rects')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  await page.waitForTimeout(500)
+  expect(workers).toEqual([])
+  await staticCode(page).focus()
+  await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
+  await expect.poll(() => workers.length).toBe(1)
+})
+
+test('a diagnostic that stands for a second is announced once, politely', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  const move = await typeAfter(page, "defineSystem('move', (ctx) => {", '\nconst broken = 1 +;')
+  // Not CodeMirror's own `.cm-announced` region, which is polite too.
+  const region = page.locator('.playground-announce[aria-live="polite"]')
+  await expect(root(page)).toHaveAttribute('data-compile', 'syntax-error', { timeout: 2_000 })
+  await expect(region).toHaveText('')
+  await expect(region).toHaveText(`Line ${move + 1}: Unexpected token. The preview is still running your last working version.`, { timeout: 2_000 })
+})
+
+test('an IME composition compiles once, when it ends', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'composition is driven through the Chrome DevTools Protocol')
+  await page.goto('/examples/shapes-rects')
+  await typeAfter(page, '// Blocks fall and wrap', '')
+  const cdp = await page.context().newCDPSession(page)
+  await cdp.send('Input.imeSetComposition', { text: 'に', selectionStart: 1, selectionEnd: 1 })
+  await cdp.send('Input.imeSetComposition', { text: 'にほ', selectionStart: 2, selectionEnd: 2 })
+  await page.waitForTimeout(800)
+  await expect(root(page)).toHaveAttribute('data-compile', 'original')
+  await cdp.send('Input.insertText', { text: '日本' })
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect(editorLine(page, await lineOf(page, '// Blocks fall and wrap'))).toContainText('// Blocks fall and wrap日本')
+  await page.waitForTimeout(800)
+  await expect(root(page)).toHaveAttribute('data-run-id', '2')
+})

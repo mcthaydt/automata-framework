@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { withContentSecurityPolicy } from '../src/lib/csp'
-import { BANNED_PHRASES, EDITOR_SOURCE, MAX_EDITOR_CHUNK_GZIP_BYTES, MAX_PRELOADED_SCRIPT_BYTES, checkEditorChunk, checkSite } from '../scripts/site-checks'
+import { BANNED_PHRASES, EDITOR_SOURCE, MAX_COMPILE_WORKER_GZIP_BYTES, MAX_EDITOR_CHUNK_GZIP_BYTES, MAX_PRELOADED_SCRIPT_BYTES, checkCompileWorker, checkEditorChunk, checkSite } from '../scripts/site-checks'
 import { writeSeoFiles } from '../scripts/write-seo-files'
 
 const ORIGIN = 'https://automata.ruken.com'
@@ -365,5 +365,41 @@ describe('checkEditorChunk', () => {
   it('fails when the manifest has no editor, so the check cannot pass by finding nothing', () => {
     const site = goodSite()
     expect(checkEditorChunk(site.root, {}).failures).toEqual([`the build's manifest has no ${EDITOR_SOURCE}`])
+  })
+})
+
+// WEB.PLAY.7 (playground spec §10.1): the compile worker (Babel and sucrase) starts with the editor, never with a page,
+// and stays within 125 kB gzip. Vite emits it under `_app/immutable/workers/` and leaves it out of the manifest.
+describe('checkCompileWorker', () => {
+  const WORKER = '_app/immutable/workers/compile.worker-abc123.js'
+  const noise = (bytes: number) => randomBytes(bytes).toString('base64')
+
+  it('holds the worker to 125 kB gzip', () => {
+    expect(MAX_COMPILE_WORKER_GZIP_BYTES).toBe(125_000)
+  })
+
+  it('passes a small worker that no page names, and reports its gzip size', () => {
+    const site = goodSite()
+    site.write(WORKER, 'self.onmessage = () => {}')
+    const result = checkCompileWorker(site.root)
+    expect(result.failures).toEqual([])
+    expect(result.gzipBytes).toBeGreaterThan(0)
+  })
+
+  it('fails a worker over the budget', () => {
+    const site = goodSite()
+    site.write(WORKER, noise(MAX_COMPILE_WORKER_GZIP_BYTES * 2))
+    expect(checkCompileWorker(site.root).failures).toEqual([expect.stringMatching(/^the compile worker is \d+ bytes gzip, over the 125000 byte budget/)])
+  })
+
+  it('fails when a page names the worker', () => {
+    const site = goodSite()
+    site.write(WORKER, 'self.onmessage = () => {}')
+    site.write('index.html', page('/', { body: '<p><a href="/docs">Docs</a></p>', head: ICON_LINKS + `<link rel="modulepreload" href="./${WORKER}" />` }))
+    expect(checkCompileWorker(site.root).failures).toEqual([`index.html: names ${WORKER}, the compile worker, which starts only with the editor`])
+  })
+
+  it('fails when the build has no compile worker, so the check cannot pass by finding nothing', () => {
+    expect(checkCompileWorker(goodSite().root).failures).toEqual(['the build has no compile worker under _app/immutable/workers/'])
   })
 })
