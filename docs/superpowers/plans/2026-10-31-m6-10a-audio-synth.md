@@ -44,7 +44,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 1. Package; the `audio` schema (cues, beds, events, ducks, slots, rules), content kind. Fails: no package.
    - [x] 1 (the extension joins in step 6)
 2. Synth on a recording fake context: voices, cues, beds, noise, `cueLength`. Fails: no module.
-   - [ ] 2
+   - [x] 2
 3. Mixer: bus routing, spatial pan and distance, ducking. Fails: no module.
    - [ ] 3
 4. Driver: events at the drawn tick, patterns, silent entries, beds, `coverage`. Fails: no module.
