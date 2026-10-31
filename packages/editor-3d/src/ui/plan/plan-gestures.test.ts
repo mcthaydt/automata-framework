@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { PlanController } from '../../app/plan-controller'
-import { planGestures } from './plan-gestures'
+import { type PlanGestureTarget, planGestures } from './plan-gestures'
 
 // What each gesture of the kit's recogniser does on the plan (plan ED3D.5d step 5; ED3D spec §10): taps, drags and
 // hovers go to the Select tool's controller with the pointer's kind and keys; two fingers and the wheel move the
@@ -39,7 +38,10 @@ const drag = {
 function setup() {
   const controller = fakeController()
   const history = { onundo: vi.fn(), onredo: vi.fn() }
-  const handlers = planGestures(controller as unknown as PlanController, history)
+  const handlers = planGestures(
+    { ...controller, select: controller } as unknown as PlanGestureTarget,
+    history,
+  )
   return { controller, handlers, ...history }
 }
 

@@ -103,6 +103,51 @@ describe('DocumentFrame', () => {
     expect(screen.queryByRole('application', { name: 'Plan' })).toBeNull()
   })
 
+  it('has the tool rail beside the plan, and V S X P D N choose the tools (ED3D.6g-a)', async () => {
+    await setup()
+    const tools = screen.getByRole('toolbar', { name: 'Tools' })
+    expect(within(tools).getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.keyboard('s')
+    expect(within(tools).getByRole('button', { name: 'Sector' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('radio', { name: 'Polygon' })).toBeChecked()
+    await userEvent.keyboard('d')
+    expect(within(tools).getByRole('button', { name: 'Door' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('radio', { name: 'Polygon' })).toBeNull()
+    await userEvent.click(within(tools).getByRole('button', { name: 'Select' }))
+    expect(within(tools).getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('shows the New sector card over the plan at wide while the Sector tool is chosen (ED3D.6g-b)', async () => {
+    await setup()
+    expect(screen.queryByRole('heading', { name: 'New sector' })).toBeNull()
+    await userEvent.keyboard('s')
+    expect(screen.getByRole('heading', { name: 'New sector' })).toBeInTheDocument()
+    expect(screen.getByText('Tap to place point 1')).toBeInTheDocument()
+    await userEvent.keyboard('v')
+    expect(screen.queryByRole('heading', { name: 'New sector' })).toBeNull()
+  })
+
+  it('has no New sector card below wide, where the plan keeps the whole width', async () => {
+    await setup({ width: 834, height: 1194 })
+    await userEvent.keyboard('s')
+    expect(screen.queryByRole('heading', { name: 'New sector' })).toBeNull()
+  })
+
+  it('leaves the keys to a text field that has focus', async () => {
+    await setup()
+    const field = document.createElement('input')
+    document.body.append(field)
+    field.focus()
+    await userEvent.keyboard('s')
+    expect(screen.getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
+    field.remove()
+  })
+
+  it('has no tool rail on a phone (ED3D spec §10: compact is view and select), so the plan keeps the height', async () => {
+    await setup({ width: 390, height: 844 })
+    expect(screen.queryByRole('toolbar', { name: 'Tools' })).toBeNull()
+  })
+
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {
     const { controller } = await setup()
     const level = levelOf(controller)
