@@ -7,7 +7,8 @@ import { PLAN_COLORS } from '../view/plan/plan-colors'
 import type { PaintFill } from '../view/plan/plan-paint'
 import { planViewport } from '../view/plan/plan-viewport'
 import type { PlanToolState } from './plan-tools'
-import { toolPaint } from './tool-paint'
+import type { SectorToolView } from './sector-tool-controller'
+import { toolOverlay, toolPaint } from './tool-paint'
 
 // 32 px to a metre, the origin at (400, 200).
 const viewport = planViewport({ x: 0, z: 0, zoom: 1 }, { w: 800, h: 400 })
@@ -16,9 +17,7 @@ const fills: readonly PaintFill[] = [
   { sector: 'dock', points: [20, 0, 30, 0, 30, 10], holes: [], color: 0, selected: false },
 ]
 
-const drawing = (
-  overrides: Partial<Extract<PlanToolState, { tool: 'polygon' }>['view']> = {},
-): PlanToolState => ({
+const drawing = (overrides: Partial<SectorToolView> = {}): PlanToolState => ({
   tool: 'polygon',
   view: {
     shape: 'polygon',
@@ -136,5 +135,11 @@ describe('tool paint', () => {
       { points: [0, 0, 10, 0, 10, 10], color: PLAN_COLORS.accent },
       { points: [20, 0, 30, 0, 30, 10], color: PLAN_COLORS.snap },
     ])
+  })
+
+  it('paints for a camera and a canvas size as the plan does (the canvas calls this one)', () => {
+    expect(toolOverlay(drawing(), { x: 0, z: 0, zoom: 1 }, { w: 800, h: 400 }, fills)).toEqual(
+      toolPaint(drawing(), viewport, fills),
+    )
   })
 })

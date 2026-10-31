@@ -83,6 +83,40 @@ describe('DocumentFrame', () => {
     expect(screen.getByText(/Nothing selected/)).toBeInTheDocument()
   })
 
+  it('has the tool rail beside the plan, and V S X P D N choose the tools (ED3D.6g-a)', async () => {
+    await setup()
+    const tools = screen.getByRole('toolbar', { name: 'Tools' })
+    expect(within(tools).getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.keyboard('s')
+    expect(within(tools).getByRole('button', { name: 'Sector' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('radio', { name: 'Polygon' })).toBeChecked()
+    await userEvent.keyboard('d')
+    expect(within(tools).getByRole('button', { name: 'Door' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('radio', { name: 'Polygon' })).toBeNull()
+    await userEvent.click(within(tools).getByRole('button', { name: 'Select' }))
+    expect(within(tools).getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('leaves the keys to a text field that has focus', async () => {
+    await setup()
+    const field = document.createElement('input')
+    document.body.append(field)
+    field.focus()
+    await userEvent.keyboard('s')
+    expect(screen.getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
+    field.remove()
+  })
+
+  it('offers only Select on a phone (ED3D spec §10: compact is view and select)', async () => {
+    await setup({ width: 390, height: 844 })
+    const tools = screen.getByRole('toolbar', { name: 'Tools' })
+    expect(
+      within(tools)
+        .getAllByRole('button')
+        .map((button) => button.textContent?.trim()),
+    ).toEqual(['Select'])
+  })
+
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {
     const { controller } = await setup()
     const level = levelOf(controller)

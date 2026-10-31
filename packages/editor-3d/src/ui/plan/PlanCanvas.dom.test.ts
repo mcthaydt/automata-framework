@@ -2,10 +2,13 @@ import { act, render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { writable } from 'svelte/store'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createPlanTools } from '../../app/plan-tools'
+import type { ToolPaint } from '../../app/tool-paint'
 import { createLevelEditor } from '../../model/level-editor'
 import { afSectorProfile } from '../../profile/af-sector-profile'
 import { toyAfSector } from '../../testing/toy-af-sector'
 import type { PlanPaint } from '../../view/plan/plan-paint'
+import { planViewport, toScreen } from '../../view/plan/plan-viewport'
 import PlanCanvas from './PlanCanvas.svelte'
 import type { PlanRenderer, PlanRendererFactory } from './plan-renderer'
 
@@ -48,32 +51,37 @@ afterEach(() => {
 
 function fakeRenderer() {
   const draws: PlanPaint[] = []
+  const tools: (ToolPaint | undefined)[] = []
   const paused = writable(false)
   const made: PlanRenderer = {
     paused: { subscribe: paused.subscribe },
-    draw: (paint) => draws.push(paint),
+    draw: (paint, tool) => {
+      draws.push(paint)
+      tools.push(tool)
+    },
     resize: vi.fn(),
     destroy: vi.fn(),
   }
-  return { made, draws, paused }
+  return { made, draws, tools, paused }
 }
 
 function mount(factory: PlanRendererFactory) {
   const editor = createLevelEditor({ profile: afSectorProfile, level: toyAfSector() })
+  const tools = createPlanTools(editor, { w: 1, h: 1 })
   const handlers = { onundo: vi.fn(), onredo: vi.fn(), onpointer: vi.fn() }
-  render(PlanCanvas, { editor: editor as never, renderer: factory, ...handlers })
-  return { editor, ...handlers }
+  render(PlanCanvas, { editor: editor as never, tools, renderer: factory, ...handlers })
+  return { editor, tools, ...handlers }
 }
 
 const host = (): HTMLElement => screen.getByTestId('plan-canvas')
 
-function press(type: string, x: number, y: number): void {
+function press(type: string, x: number, y: number, kind: 'mouse' | 'pen' = 'mouse'): void {
   host().dispatchEvent(
     new PointerEvent(type, {
       bubbles: true,
       cancelable: true,
       pointerId: 1,
-      pointerType: 'mouse',
+      pointerType: kind,
       clientX: x,
       clientY: y,
     }),
@@ -143,5 +151,68 @@ describe('PlanCanvas', () => {
     expect(factory).toHaveBeenCalledOnce()
     expect(fake.made.resize).toHaveBeenCalledWith({ w: 480, h: 640, resolution: 1 })
     expect(fake.draws.length).toBeGreaterThan(before)
+  })
+
+  describe('with the Sector tool (plan ED3D.6g-a step 7)', () => {
+    /** Taps a plan point with a Pencil, as the camera shows it in a 640 by 480 canvas. */
+    const tapAt = async (editor: ReturnType<typeof mount>['editor'], x: number, z: number) => {
+      const at = toScreen(planViewport(editor.view.state.camera, { w: 640, h: 480 }), { x, z })
+      await act(() => {
+        press('pointermove', at.x, at.y, 'pen')
+        press('pointerdown', at.x, at.y, 'pen')
+        press('pointerup', at.x, at.y, 'pen')
+      })
+    }
+
+    it('draws a sector with taps and adds it on a tap on the first corner, as one undo step', async () => {
+      const fake = fakeRenderer()
+      const { editor, tools } = mount(async () => fake.made)
+      await act(() => resize?.(640, 480))
+      await act(() => tools.choose('polygon'))
+      for (const [x, z] of [
+        [0, -4],
+        [4, -4],
+        [4, -2],
+        [0, -4],
+      ] as const)
+        await tapAt(editor, x, z)
+      expect(editor.history.undoLabel).toBe('Draw sector sector-1')
+    })
+
+    it('labels each edge with its length, and shows Undo point and Close sector once there are corners', async () => {
+      const fake = fakeRenderer()
+      const { editor, tools } = mount(async () => fake.made)
+      await act(() => resize?.(640, 480))
+      await act(() => tools.choose('polygon'))
+      expect(screen.getByRole('radio', { name: 'Polygon' })).toBeChecked()
+      expect(screen.queryByRole('button', { name: 'Close sector' })).toBeNull()
+      await tapAt(editor, 0, -4)
+      await tapAt(editor, 4, -4)
+      expect(screen.getByText('4.00 m')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Close sector' })).toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: 'Undo point' }))
+      expect(tools.sector?.view.corners.length).toBe(1)
+    })
+
+    it('refuses a close with two corners in plain words and adds nothing (ED3-m)', async () => {
+      const fake = fakeRenderer()
+      const { editor, tools } = mount(async () => fake.made)
+      await act(() => resize?.(640, 480))
+      await act(() => tools.choose('polygon'))
+      await tapAt(editor, 0, -4)
+      await tapAt(editor, 4, -4)
+      await userEvent.click(screen.getByRole('button', { name: 'Close sector' }))
+      expect(screen.getByTestId('tool-refusal')).toHaveTextContent(/three corners/)
+      expect(editor.history.canUndo).toBe(false)
+    })
+
+    it('hands the renderer the tool overlay with the plan', async () => {
+      const fake = fakeRenderer()
+      const { editor, tools } = mount(async () => fake.made)
+      await act(() => resize?.(640, 480))
+      await act(() => tools.choose('polygon'))
+      await tapAt(editor, 0, -4)
+      expect(fake.tools.at(-1)?.dots.length).toBeGreaterThan(0)
+    })
   })
 })
