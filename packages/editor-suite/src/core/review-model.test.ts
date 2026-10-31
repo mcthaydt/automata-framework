@@ -115,6 +115,13 @@ describe('the Ship description (EDS-D10: drafted from the changes, the checks an
     )
   })
 
+  test('an open gate has no decision yet', () => {
+    const open = { id: 'g-feel', name: 'Feel review', decision: 'open' as const }
+    expect(draftShip(reviewModel(SUMMARY, FILES, [open])).body).toContain(
+      '- Feel review (g-feel): open, no decision yet.',
+    )
+  })
+
   test('no reopened gates say "No gates"; unreadable gates say "state unknown"', () => {
     const noGates = draftShip(
       reviewModel(

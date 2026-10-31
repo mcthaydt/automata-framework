@@ -4,7 +4,6 @@
 -->
 <script lang="ts">
 import type { WorkspaceFile } from '@mcthaydt/automata-editor-kit/ports'
-import type { Snippet } from 'svelte'
 import EditorCardView from './EditorCardView.svelte'
 import type { EditorCard, HomeState } from './home-model'
 import ListProblems from './ListProblems.svelte'
@@ -18,11 +17,9 @@ interface Props {
   empty: string
   onopen: (card: EditorCard) => void
   onread: (file: WorkspaceFile) => void
-  /** In place of the cards: a page with nothing of the list's to show (Review, until EDS.2c). */
-  children?: Snippet | undefined
 }
 
-const { title, home, editors, empty, onopen, onread, children }: Props = $props()
+const { title, home, editors, empty, onopen, onread }: Props = $props()
 
 const cards = $derived(
   home.kind === 'cards'
@@ -33,9 +30,7 @@ const cards = $derived(
 
 <div class="scroll" data-testid="suite-home">
   <h1>{title}</h1>
-  {#if children}
-    {@render children()}
-  {:else if home.kind === 'problems'}
+  {#if home.kind === 'problems'}
     <ListProblems problems={home.problems} />
   {:else if cards.length === 0}
     <p class="note">{empty}</p>
