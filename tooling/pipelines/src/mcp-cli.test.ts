@@ -53,7 +53,7 @@ describe('the automata-pipe-mcp bin', () => {
             ],
           },
           { name: 'audio', stages: [{ id: 'render' }] },
-          { name: 'blockout', stages: [{ id: 'validate' }, { id: 'generate' }] },
+          { name: 'blockout', stages: [{ id: 'validate' }, { id: 'generate' }, { id: 'shots' }] },
         ],
         planned: ['character', 'props'],
       })

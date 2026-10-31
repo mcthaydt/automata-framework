@@ -67,7 +67,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 3. The pipeline: stages `validate` and `generate`, `check` (fresh, hand edit, stale); EP-a, EP-b. Fails: no pipeline.
    - [x] 3
 4. `shots`: the runner contract, standing points, PNG legibility, `shots.json`. Fails: no stage.
-   - [ ] 4
+   - [x] 4
 5. `import`. Fails: no command.
    - [ ] 5
 6. Gates, provenance row, ready line.
