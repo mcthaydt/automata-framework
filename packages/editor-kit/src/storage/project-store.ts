@@ -1,5 +1,5 @@
 // The storage contract of the editor kit (kit spec §4.7): what an editor can ask of wherever a project lives.
-// Four adapters implement it (memory, OPFS, a user folder, download); the editors never see which one.
+// Five adapters implement it (memory, OPFS, a user folder, download, and a served checkout over HTTP); the editors never see which one.
 
 export interface StoredEntry {
   readonly path: string
@@ -67,7 +67,7 @@ export function classifyStorageError(error: unknown): { reason: StorageFailure; 
 }
 
 export interface ProjectStore {
-  readonly kind: 'memory' | 'opfs' | 'folder' | 'download'
+  readonly kind: 'memory' | 'opfs' | 'folder' | 'download' | 'http'
   /** Files whose whole path starts with `prefix` (plain string prefix), sorted by path in code-unit order. */
   list(prefix?: string): Promise<StoredEntry[]>
   /** The file's bytes, or `undefined` when there is no such file. */

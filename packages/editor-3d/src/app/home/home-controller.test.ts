@@ -165,4 +165,18 @@ describe('the 3D Home controller', () => {
     await controller.refresh()
     expect(current()).toMatchObject({ phase: 'unavailable', message: 'The disk is gone.' })
   })
+
+  it('creates a level from a name and opens it', async () => {
+    const { controller, opened, workspace } = await setup()
+    await controller.create('Annex')
+    expect(opened.map((outcome) => outcome.level.path)).toEqual(['annex/annex.json'])
+    expect((await workspace.store.list()).map((entry) => entry.path)).toContain('annex/annex.json')
+  })
+
+  it('says why a name was refused, and opens nothing', async () => {
+    const { controller, opened, said } = await setup()
+    await controller.create('   ')
+    expect(opened).toEqual([])
+    expect(said.map((toast) => toast.kind)).toEqual(['error'])
+  })
 })

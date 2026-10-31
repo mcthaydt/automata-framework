@@ -4,9 +4,9 @@
 // is cut away unless it says `fade` (drawn at a quarter) or `never`; a triangle with a point behind the eye is left out.
 // The selection is a sector's id (all its surfaces) or a wall's (that wall).
 import type { Size } from '@mcthaydt/automata-editor-kit/core'
-import { type Orbit, orbitCamera, projectPoint } from '../view/mesh/camera-3d'
+import { type Camera3D, clipToNear, type Orbit, orbitCamera, projectPoint } from '../view/mesh/camera-3d'
 import { surfaceVisibility } from '../view/mesh/mesh-pick'
-import type { SectorMesh, Surface, SurfaceRole } from '../view/mesh/sector-mesh'
+import type { SectorMesh, Surface, SurfaceRole, Vec3 } from '../view/mesh/sector-mesh'
 import { PLAN_COLORS } from '../view/plan/plan-colors'
 
 export interface DollhousePolygon {
@@ -73,51 +73,80 @@ const isSelected = (surface: Surface, selected: ReadonlySet<string>): boolean =>
   (surface.selection !== undefined && selected.has(surface.selection)) ||
   selected.has(`sector:${surface.sector}`)
 
+/** The dollhouse: the mesh through the orbit camera. */
 export function dollhousePaint(
   mesh: SectorMesh,
   orbit: Orbit,
   size: Size,
   selected: ReadonlySet<string>,
 ): DollhousePaint {
-  const camera = orbitCamera(orbit)
+  return meshPaint(mesh, orbitCamera(orbit), size, selected)
+}
+
+/**
+ * The mesh through any camera: the dollhouse's orbit and Walk's first-person eye (ED3D.8b) paint the same list, so a
+ * surface looks the same in both. A first-person eye is inside a room: the walls around it face it and are drawn, the
+ * ones behind it have points behind the eye and are left out.
+ */
+export function meshPaint(
+  mesh: SectorMesh,
+  camera: Camera3D,
+  size: Size,
+  selected: ReadonlySet<string>,
+): DollhousePaint {
   const polygons: DollhousePolygon[] = []
   for (const surface of mesh.surfaces) {
     const visibility = surfaceVisibility(surface, camera.eye)
     if (visibility === 'cut') continue
     const outline = outlineEdges(surface.indices)
-    const corner = (index: number) => {
-      const at = index * 3
-      return projectPoint(camera, size, [
-        surface.positions[at] ?? 0,
-        surface.positions[at + 1] ?? 0,
-        surface.positions[at + 2] ?? 0,
-      ])
-    }
     for (let i = 0; i + 2 < surface.indices.length; i += 3) {
-      const indices = [surface.indices[i] ?? 0, surface.indices[i + 1] ?? 0, surface.indices[i + 2] ?? 0]
-      const triangle = indices.map(corner)
-      if (triangle.some((point) => point === undefined)) continue
-      const points = triangle as { x: number; y: number; depth: number }[]
-      const edges: number[] = []
-      for (const [from, to] of [
-        [0, 1],
-        [1, 2],
-        [2, 0],
-      ] as const) {
-        if (!outline.has(edgeKey(indices[from] as number, indices[to] as number))) continue
-        const [a, b] = [points[from], points[to]] as [{ x: number; y: number }, { x: number; y: number }]
-        edges.push(a.x, a.y, b.x, b.y)
+      const indices = [
+        surface.indices[i] ?? 0,
+        surface.indices[i + 1] ?? 0,
+        surface.indices[i + 2] ?? 0,
+      ] as const
+      const corners = indices.map((index) => {
+        const at = index * 3
+        return [
+          surface.positions[at] ?? 0,
+          surface.positions[at + 1] ?? 0,
+          surface.positions[at + 2] ?? 0,
+        ] as Vec3
+      }) as [Vec3, Vec3, Vec3]
+      const clipped = clipToNear(camera, corners)
+      if (clipped === undefined) continue
+      const projected = clipped.points.map((point) => projectPoint(camera, size, point))
+      if (projected.some((point) => point === undefined)) continue
+      const points = projected as { x: number; y: number; depth: number }[]
+      // The polygon is a fan of triangles from its first corner; each outline segment goes with the triangle it is on.
+      const last = points.length - 2
+      for (let j = 1; j <= last; j++) {
+        const edges: number[] = []
+        const owns = (segment: number): boolean =>
+          segment === j || (j === 1 && segment === 0) || (j === last && segment === points.length - 1)
+        for (let segment = 0; segment < points.length; segment++) {
+          const own = clipped.edge[segment] ?? -1
+          if (own < 0 || !owns(segment)) continue
+          const [from, to] = [own, (own + 1) % 3] as const
+          if (!outline.has(edgeKey(indices[from] as number, indices[to] as number))) continue
+          const [a, b] = [points[segment], points[(segment + 1) % points.length]] as [
+            { x: number; y: number },
+            { x: number; y: number },
+          ]
+          edges.push(a.x, a.y, b.x, b.y)
+        }
+        const triangle = [points[0], points[j], points[j + 1]] as { x: number; y: number; depth: number }[]
+        polygons.push({
+          points: triangle.flatMap((point) => [point.x, point.y]),
+          edges,
+          color: lit(ROLE_COLORS[surface.role], surface.shade),
+          alpha: visibility === 'faded' ? FADED : 1,
+          role: surface.role,
+          selection: surface.selection,
+          selected: isSelected(surface, selected),
+          depth: Math.max(...triangle.map((point) => point.depth)),
+        })
       }
-      polygons.push({
-        points: points.flatMap((point) => [point.x, point.y]),
-        edges,
-        color: lit(ROLE_COLORS[surface.role], surface.shade),
-        alpha: visibility === 'faded' ? FADED : 1,
-        role: surface.role,
-        selection: surface.selection,
-        selected: isSelected(surface, selected),
-        depth: Math.max(...points.map((point) => point.depth)),
-      })
     }
   }
   // Far to near; of two at the same depth, the mesh's order.

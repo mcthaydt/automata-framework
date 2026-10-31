@@ -10,6 +10,7 @@ import type { GeometryLayer } from '../../profile/level-profile'
 import { toyAfSector, toyDock, toyHall } from '../../testing/toy-af-sector'
 import {
   type Camera3D,
+  clipToNear,
   fitOrbit,
   forward,
   ORBIT_FOV,
@@ -490,5 +491,64 @@ describe('walkStart', () => {
     const start = walkStart([], { x: 1, z: 2, facing: 0 })
     expect(start.camera.eye).toEqual([1, 1.6, 2])
     expect(start).not.toHaveProperty('warning')
+  })
+})
+
+// Near-plane clipping (ED3D.8b): a first-person eye is inside the room, so its floor, ceiling and walls reach behind it;
+// the part ahead of a plane just in front of the eye is what is drawn.
+describe('clipToNear', () => {
+  const eye: Camera3D = { eye: [0, 0, 0], yaw: 0, pitch: 0, fov: Math.PI / 3 }
+
+  it('keeps a triangle wholly ahead as it is, each edge its own', () => {
+    const clipped = clipToNear(eye, [
+      [0, 0, -2],
+      [1, 0, -2],
+      [0, 1, -2],
+    ])
+    expect(clipped?.points).toEqual([
+      [0, 0, -2],
+      [1, 0, -2],
+      [0, 1, -2],
+    ])
+    expect(clipped?.edge).toEqual([0, 1, 2])
+  })
+
+  it('drops a triangle wholly behind the plane', () => {
+    expect(
+      clipToNear(eye, [
+        [0, 0, 2],
+        [1, 0, 2],
+        [0, 1, 2],
+      ]),
+    ).toBeUndefined()
+  })
+
+  it('cuts a triangle that reaches behind into a quadrilateral on the plane, with the cut edge belonging to no original edge', () => {
+    const clipped = clipToNear(
+      eye,
+      [
+        [0, 0, -2],
+        [1, 0, -2],
+        [0, 0, 2],
+      ],
+      0.1,
+    )
+    expect(clipped?.points).toHaveLength(4)
+    for (const point of clipped?.points ?? []) expect(-point[2]).toBeGreaterThanOrEqual(0.1 - 1e-9)
+    expect(clipped?.edge.filter((edge) => edge < 0)).toHaveLength(1)
+  })
+
+  it('cuts a triangle with one corner ahead into a smaller triangle', () => {
+    const clipped = clipToNear(
+      eye,
+      [
+        [0, 0, -2],
+        [1, 0, 2],
+        [-1, 0, 2],
+      ],
+      0.1,
+    )
+    expect(clipped?.points).toHaveLength(3)
+    expect(clipped?.edge.filter((edge) => edge < 0)).toHaveLength(1)
   })
 })

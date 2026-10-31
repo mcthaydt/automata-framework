@@ -4,9 +4,10 @@
   the 3D views hide it (occlude); its handrail. Each change is one undo step; a scrub of a stepper is one too.
 -->
 <script lang="ts">
-import { Segmented, Stepper } from '@mcthaydt/automata-editor-kit'
+import { Button, Segmented, Stepper } from '@mcthaydt/automata-editor-kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
+import type { MaterialTarget } from '../../app/material-session'
 import type { Occlude } from '../../format/sector.schema'
 
 type WallCardData = Extract<InspectorCard, { kind: 'wall' }>
@@ -14,9 +15,11 @@ type WallCardData = Extract<InspectorCard, { kind: 'wall' }>
 interface Props {
   card: WallCardData
   onchange: (change: InspectorChange, phase: InspectorPhase) => void
+  /** Opens the material sheet on this wall. */
+  onmaterial?: ((target: MaterialTarget) => void) | undefined
 }
 
-const { card, onchange }: Props = $props()
+const { card, onchange, onmaterial }: Props = $props()
 
 const wall = $derived({ kind: 'wall' as const, sector: card.sector, corner: card.corner })
 const kinds = $derived([
@@ -123,6 +126,9 @@ const occludes = [
   unit="m"
   onedit={(event) => onchange({ ...wall, flags: { handrail: event.value === 0 ? null : event.value } }, event.phase)}
 />
+{#if onmaterial}
+  <Button onclick={() => onmaterial({ wall: { sector: card.sector, corner: card.corner } })}>Material</Button>
+{/if}
 
 <style>
   /* One stepper to a row: two side by side wrap their buttons in the 320 px column. */
