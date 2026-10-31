@@ -82,3 +82,6 @@ the full e2e once.
   report for a run that sent no request, so the row never claims a check nobody asked for.
 - After step 4: `vitest run tests/playground` 76/76; `pnpm check` 0 errors; `playground.e2e.ts` 72/72 on Chromium and
   WebKit.
+- Gates: `pnpm test` 435 passed + 1 expected fail (after fetching framework commit `91e9fee` into the shallow
+  checkout for `stack-page.test.ts`); `pnpm build` done; `pnpm check:site` verified 45 pages; full e2e 770 passed
+  (26.7 min).
