@@ -3,8 +3,8 @@
   undo step. Renaming and resizing a level are the World view's (ED2D.6b), where a resize that loses cells is confirmed.
 -->
 <script lang="ts">
+import { FieldEditor } from '@mcthaydt/automata-editor-kit'
 import type { EditHistory } from '../level-editor'
-import FieldEditor from './FieldEditor.svelte'
 import { commitField } from './field-commit'
 import type { LevelInspector } from './inspector-model'
 

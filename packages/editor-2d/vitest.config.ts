@@ -95,7 +95,8 @@ export default defineConfig({
         },
       },
       // The iPad journeys (the kit's EDK.6b harness): WebKit with touch and a 2× screen; ED2D.8 adds the journeys.
-      journeyProject(playwright),
+      // The Svelte plugins sit on the project, as on the other component projects (see above).
+      { ...journeyProject(playwright), plugins: [svelte(), svelteTesting()] },
     ],
   },
 })

@@ -2,11 +2,12 @@
 // the field and its value, becomes the model's edit, and runs by the widget's phase. A `set` is one undo step; a scrub
 // (`start`, `update`, `commit`) runs in one session, so it is one step too; `cancel` drops the session. A refusal changes
 // nothing and answers the model's own sentence for the card to show.
+import type { FieldValue } from '@mcthaydt/automata-editor-kit/fields'
 import type { Occlude } from '../format/sector.schema'
 import type { Edit } from '../model/edit'
 import type { EditSession, LevelEditor } from '../model/level-editor'
 import { type SetMaterialsArgs, setHeights, setLight, setMaterials } from '../model/sector-edits'
-import { removeThing } from '../model/thing-edits'
+import { removeThing, setThingField } from '../model/thing-edits'
 import {
   type DoorArgs,
   setDoor,
@@ -29,6 +30,14 @@ export type InspectorPhase = 'set' | 'start' | 'update' | 'commit' | 'cancel'
 
 export type InspectorChange =
   | { readonly kind: 'thing'; readonly definition: string; readonly id: string; readonly remove: true }
+  | {
+      readonly kind: 'thing'
+      readonly definition: string
+      readonly id: string
+      readonly field: string
+      /** `null` clears the field. */
+      readonly value: FieldValue | null
+    }
   | { readonly kind: 'sector'; readonly id: string; readonly floor: number }
   | { readonly kind: 'sector'; readonly id: string; readonly ceiling: number }
   | { readonly kind: 'sector'; readonly id: string; readonly light: number }
@@ -49,7 +58,12 @@ export interface InspectorEdits {
 
 /** The model's edit for a change. */
 function editOf<D>(change: InspectorChange): Edit<D> {
-  if (change.kind === 'thing') return removeThing({ def: change.definition, id: change.id })
+  if (change.kind === 'thing') {
+    const thing = { def: change.definition, id: change.id }
+    return 'field' in change
+      ? setThingField({ ...thing, field: change.field, value: change.value })
+      : removeThing(thing)
+  }
   if (change.kind === 'sector') {
     if ('floor' in change) return setHeights({ id: change.id, floor: change.floor })
     if ('ceiling' in change) return setHeights({ id: change.id, ceiling: change.ceiling })

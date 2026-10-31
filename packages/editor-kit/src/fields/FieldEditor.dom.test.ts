@@ -1,10 +1,9 @@
-import type { FieldDef, FieldValue } from '@mcthaydt/automata-editor-kit/fields'
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import FieldEditor from './FieldEditor.svelte'
-import type { FieldCommit } from './field-commit'
-import { fieldRow } from './inspector-model'
+import { type FieldCommit, fieldRow } from './field-row'
+import type { FieldDef, FieldValue } from './field-types'
 
 // One inspector row per widget kind (plan ED2D.4c4b step 5, decision 1): a stepper, toggle, segmented control or picker
 // commits on change, text on blur or Enter; a refused value shows the message and the field shows the stored value.
@@ -103,12 +102,12 @@ describe('FieldEditor', () => {
         name: undefined,
         targets: [
           {
-            level: 'map-1',
+            id: 'map-1',
             name: 'Village',
             choices: [{ label: 'The level itself', value: { target: 'map-1' } }],
           },
           {
-            level: 'inn',
+            id: 'inn',
             name: 'Inn',
             choices: [
               { label: 'The level itself', value: { target: 'inn' } },

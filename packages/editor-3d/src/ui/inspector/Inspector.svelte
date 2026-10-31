@@ -5,11 +5,11 @@
   Several selected show the first and say so; nothing selected says how to select.
 -->
 <script lang="ts">
-import { Button } from '@mcthaydt/automata-editor-kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
 import type { MaterialTarget } from '../../app/material-session'
 import SectorCard from './SectorCard.svelte'
+import ThingCard from './ThingCard.svelte'
 import WallCard from './WallCard.svelte'
 
 interface Props {
@@ -26,11 +26,15 @@ const { card, onchange, onmaterial, ondefinitions }: Props = $props()
 
 let refusal = $state<string | undefined>()
 
+/** A field edit shows its refusal under the field itself, so it only clears the card's. */
+function field(next: InspectorChange): string | undefined {
+  refusal = undefined
+  return onchange(next, 'set')
+}
+
 function change(next: InspectorChange, phase: InspectorPhase): void {
   refusal = onchange(next, phase)
 }
-
-const metres = (value: number): string => value.toFixed(2)
 </script>
 
 <section class="inspector" aria-label="Inspector" data-testid="inspector">
@@ -44,16 +48,7 @@ const metres = (value: number): string => value.toFixed(2)
   {:else if card.kind === 'wall'}
     <WallCard {card} onchange={change} {onmaterial} />
   {:else}
-    <h2>{card.id}</h2>
-    <p class="meta">{card.definition} · x {metres(card.x)} · z {metres(card.z)}{card.y === undefined ? '' : ` · y ${metres(card.y)}`}</p>
-    <p class="later">Its fields come with the field form (ED3D.7d-b).</p>
-    <Button
-      variant="danger"
-      aria-label={`Delete ${card.id}`}
-      onclick={() => change({ kind: 'thing', definition: card.definition, id: card.id, remove: true }, 'set')}
-    >
-      Delete
-    </Button>
+    <ThingCard {card} onchange={change} onfield={field} />
   {/if}
   {#if refusal !== undefined}
     <p class="refusal" role="alert">{refusal}</p>
@@ -79,8 +74,7 @@ const metres = (value: number): string => value.toFixed(2)
     font: 500 12px / 16px var(--font-mono, monospace);
   }
   .several,
-  .empty,
-  .later {
+  .empty {
     margin: 0;
     color: var(--color-text-dim);
     font: var(--text-body-13);

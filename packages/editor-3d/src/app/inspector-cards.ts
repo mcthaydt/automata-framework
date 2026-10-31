@@ -1,10 +1,12 @@
 // The inspector's cards as plain data (ED3D.5f, plan decision 1; ED3D spec §9): what is selected, read from the live
 // level through the profile, so the cards work for both formats. Several selected show the first and say how many (plan
 // decision 2). A selection naming nothing the level has shows the none card.
+import type { FieldRow } from '@mcthaydt/automata-editor-kit/fields'
 import type { DoorDef, Occlude, WindowDef } from '../format/sector.schema'
 import type { LevelEditor } from '../model/level-editor'
 import { parseSelection } from '../model/selection-ref'
 import type { EditCorner, EditWall } from '../profile/sector-access'
+import { thingFieldRows } from './thing-fields'
 
 export type WallType = 'solid' | 'portal' | 'door' | 'window'
 
@@ -50,6 +52,8 @@ export type InspectorCard = { readonly selected: number } & (
       readonly x: number
       readonly z: number
       readonly y: number | undefined
+      /** The definition's fields with the thing's values (a missing one shows its default). */
+      readonly fields: readonly FieldRow[]
     }
 )
 
@@ -72,10 +76,10 @@ export function inspectorOf<D>(
   const none: InspectorCard = { kind: 'none', selected }
   if (first === undefined) return none
   if (first.kind === 'entity') {
-    const thing = editor.profile
-      .entities(editor.level)
-      .things.find((each) => each.def === first.definition && each.id === first.id)
+    const kit = editor.profile.entities(editor.level)
+    const thing = kit.things.find((each) => each.def === first.definition && each.id === first.id)
     if (thing === undefined) return none
+    const definition = kit.definitions.find((each) => each.id === thing.def)
     return {
       kind: 'thing',
       selected,
@@ -84,6 +88,14 @@ export function inspectorOf<D>(
       x: thing.x,
       z: thing.z,
       y: thing.y,
+      fields:
+        definition === undefined
+          ? []
+          : thingFieldRows(thing, definition, {
+              definitions: kit.definitions,
+              things: kit.things,
+              sectorIds: editor.profile.sectors.list(editor.level).map((each) => each.id),
+            }),
     }
   }
   const sector = editor.profile.sectors.list(editor.level).find((each) => each.id === first.sector)

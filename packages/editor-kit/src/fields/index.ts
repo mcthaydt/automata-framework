@@ -16,6 +16,14 @@ export {
   fieldValuesSchema,
 } from './field.schema'
 export {
+  type FieldCommit,
+  type FieldRow,
+  type FieldWidget,
+  fieldRow,
+  type RefChoice,
+  type RefTargetGroup,
+} from './field-row'
+export {
   ENTITY_ID,
   type EntityDef,
   type EntityDefCode,
