@@ -9,7 +9,7 @@ import { type Camera, createWebGL2Renderer } from './level-view'
 import type { TextureManager } from './textures.manager'
 
 // The World view's map (plan ED2D.6b step 4; 2D editor spec §8, the World row): each level a rectangle at its world
-// position, the selected one outlined in the accent, its name in the top-left corner at screen size; over them, each
+// position, the selected one outlined in the accent, its name on a plate in the top-left corner at screen size; over them, each
 // link between two levels as a curve with an arrowhead and its holder's label (ED2D.6c decision 5). Under the outlines,
 // each level's picture: the level canvas's own scene over a draw list with no overlays, kept per level so only what
 // changed is rebuilt (ED2D.8b decision 1). A world has a few
@@ -42,6 +42,9 @@ export interface WorldView {
 /** The outline in screen pixels, drawn inside the rectangle so neighbours touching it keep their own edge. */
 const OUTLINE = 2
 const LABEL_INSET = 6
+/** Screen pixels: the name plate's padding and corner radius (plan ED2D.8c). */
+const PLATE_PAD = 4
+const PLATE_RADIUS = 4
 /** Screen pixels: the link's line width, its arrowhead's length and the gap between its label and the curve. */
 const LINK_WIDTH = 2
 const ARROW = 9
@@ -63,8 +66,9 @@ export async function createWorldView(options: WorldViewOptions): Promise<WorldV
   const fills = new Graphics()
   const scenesRoot = new Container()
   const shapes = new Graphics()
+  const plates = new Graphics()
   const labels = new Container()
-  stage.addChild(fills, scenesRoot, shapes, labels)
+  stage.addChild(fills, scenesRoot, shapes, plates, labels)
   const scenes = new Map<string, LevelScene>()
   const paused = writable(false)
   let lost = false
@@ -114,6 +118,7 @@ export async function createWorldView(options: WorldViewOptions): Promise<WorldV
     const { rects, camera, links, pictures } = latest
     fills.clear()
     shapes.clear()
+    plates.clear()
     for (const label of labels.removeChildren()) label.destroy()
     for (const rect of rects) {
       const x = camera.x + rect.x * camera.scale
@@ -131,7 +136,17 @@ export async function createWorldView(options: WorldViewOptions): Promise<WorldV
         text: rect.name,
         style: { fill: colors('text/primary'), fontFamily: 'sans-serif', fontSize: 12 },
       })
-      label.position.set(x + LABEL_INSET, y + LABEL_INSET)
+      // On an opaque plate, so a busy picture under the name cannot swallow it (plan ED2D.8c).
+      plates
+        .roundRect(
+          x + LABEL_INSET,
+          y + LABEL_INSET,
+          label.width + 2 * PLATE_PAD,
+          label.height + PLATE_PAD,
+          PLATE_RADIUS,
+        )
+        .fill(colors('bg/surface'))
+      label.position.set(x + LABEL_INSET + PLATE_PAD, y + LABEL_INSET + PLATE_PAD / 2)
       labels.addChild(label)
     }
     const screen = (point: { x: number; y: number }) => ({

@@ -15,6 +15,7 @@ const TOKENS: Readonly<Record<string, string>> = {
   '--color-border-strong': '#505860',
   '--color-accent-default': '#e8a33d',
   '--color-text-primary': '#f0f0f0',
+  '--color-bg-surface': '#16191c',
 }
 const colors = createColorResolver((name) => TOKENS[name] ?? '')
 
@@ -121,5 +122,29 @@ describe('world view', () => {
     expect(colorAt(111, 50)).toBe('#e8a33d')
     world.render([rect('a', 0, false), rect('b', 100, true)], { x: 10, y: 20, scale: 1 }, [], new Map())
     expect(colorAt(150, 50)).toBe('#202428')
+  })
+
+  it('puts each name on a plate over the picture, so a busy picture cannot swallow it (plan ED2D.8c)', async () => {
+    const world = await viewOf()
+    const picture: LevelDrawList = {
+      level: 'b',
+      size: { w: 80, h: 60 },
+      background: { color: '#ff0000', mode: 'fit' },
+      layers: [],
+      grid: undefined,
+      footprint: undefined,
+      selection: [],
+      links: [],
+    }
+    world.render(
+      [{ ...rect('b', 100, false), name: 'Village' }],
+      { x: 10, y: 20, scale: 1 },
+      [],
+      new Map([['b', picture]]),
+    )
+    // b's top-left corner is at (110, 20); the plate starts 6 px in, and its left padding has no glyph.
+    expect(colorAt(117, 30)).toBe('#16191c')
+    // Below the plate: the picture.
+    expect(colorAt(117, 70)).toBe('#ff0000')
   })
 })
