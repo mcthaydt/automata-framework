@@ -41,7 +41,10 @@ export interface Palette {
 /** The colour of a definition that has none of its own (the canvas's neutral). */
 const NEUTRAL = '#8e8c85'
 
-function tilesOf(tileset: TilesetDef | undefined, images: ReadonlySet<string>): PaletteItem[] {
+export type TileItem = Extract<PaletteItem, { readonly kind: 'tile' }>
+
+/** Every tile of a tileset in index order, as the palette and the Tilesets view show them. */
+export function tileItems(tileset: TilesetDef | undefined, images: ReadonlySet<string>): TileItem[] {
   if (tileset === undefined) return []
   const { count } = tilesetTiles(tileset)
   return Array.from({ length: count }, (_, tile) => {
@@ -90,7 +93,7 @@ export function paletteOf(project: Project, layer: string, images: ReadonlySet<s
     }
   }
   return {
-    items: tilesOf(
+    items: tileItems(
       project.defs.tilesets.find((set) => set.id === def.tileset),
       images,
     ),

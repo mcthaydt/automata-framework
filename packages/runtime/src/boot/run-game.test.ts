@@ -124,7 +124,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     describeBootError({ _tag: 'NonExistentTag' })
   })
 
-  it('no location.reload: scan of every file under src/ finds no reload(', () => {
+  it('no location.reload: scan of every file under src/ finds no reload( but the one Try again uses inside a Ruken session (RT.BOOT1)', () => {
     const srcDir = path.resolve(__dirname, '..')
 
     function scanFiles(dir: string): string[] {
@@ -148,9 +148,15 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     const files = scanFiles(srcDir)
     expect(files.length).toBeGreaterThan(10)
 
+    const runGameFile = path.join(srcDir, 'boot', 'run-game.ts')
     for (const file of files) {
       const content = fs.readFileSync(file, 'utf8')
-      expect(content).not.toMatch(/\breload\s*\(/)
+      if (file === runGameFile) {
+        // The default of `seams.reload`, called only inside a Ruken session (M1 runtime spec §4).
+        expect(content.match(/\blocation\.reload\s*\(/g)?.length).toBe(1)
+      } else {
+        expect(content, file).not.toMatch(/\breload\s*\(/)
+      }
     }
   })
 
@@ -450,10 +456,104 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     })
   })
 
-  it('Try again closes the attempt scope and boots again in a new one (sends second hello, reaches ready, reuses root)', async () => {
+  it('standalone, Try again closes the attempt scope and boots again in a new one (a new SDK session, ready, the same root, no reload)', async () => {
     const frames = manualFrames()
     const fakeHosts: FakeHost[] = []
     let fetchCount = 0
+    let reloads = 0
+
+    const mockFetch = fakeFetch({
+      '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] },
+    })
+
+    const customFetch: typeof fetch = (input, init) => {
+      fetchCount++
+      if (fetchCount === 1) {
+        return Promise.resolve(new Response('Not found', { status: 404 }))
+      }
+      return mockFetch.fetch(input, init)
+    }
+
+    const game: GameDefinition = {
+      root,
+      hosting: {
+        gameId: 'test-game',
+        wants: [],
+        pauseBehavior: 'pause',
+      },
+      content: {
+        data: fixtureContentData,
+        hash: contentHashOf(fixtureContentData),
+      },
+      screens: [
+        {
+          id: 'title',
+          enter: (ctx) =>
+            Effect.sync(() => {
+              const el = document.createElement('div')
+              el.setAttribute('data-testid', 'title-screen')
+              ctx.layer.appendChild(el)
+            }),
+        },
+      ],
+      renderer: nullRenderer(),
+      seams: {
+        frames,
+        fetch: customFetch,
+        sdkEnv: () => {
+          const fakeHost = createFakeHost({
+            gameOrigin: TEST_GAME_ORIGIN,
+            gameId: 'test-game',
+            clock: realClock,
+            autoReady: true,
+          })
+          fakeHosts.push(fakeHost)
+          // A top-level page: the SDK runs standalone and sends no hello (RT.BOOT1 keeps the in-place retry here).
+          return { ...fakeHost.gameEnv!, isTopLevel: true }
+        },
+        reload: () => {
+          reloads++
+        },
+      },
+    }
+
+    const countHellos = () =>
+      fakeHosts.flatMap((h) => h.messages).filter((m) => m.dir === 'in' && m.msg.type === 'hello').length
+
+    const handle = runGame(game)
+    await driveFirstFrame(frames)
+    await waitForState('failed')
+
+    expect(fakeHosts.length).toBe(1)
+
+    // Click Try again
+    const retryBtn = Array.from(root.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Try again'),
+    )
+    expect(retryBtn).toBeDefined()
+    retryBtn?.click()
+
+    // Drive the frame for the second attempt
+    await driveFirstFrame(frames)
+    await waitForState('ready')
+
+    // A second SDK session, in place
+    expect(fakeHosts.length).toBe(2)
+    expect(countHellos()).toBe(0)
+    expect(reloads).toBe(0)
+
+    // Exactly the same root element was used
+    expect(game.root).toBe(root)
+    expect(root.querySelector('[data-testid="title-screen"]')).not.toBeNull()
+
+    await handle.shutdown()
+  })
+
+  it('inside a Ruken session, Try again reloads the frame and sends no second hello (RT.BOOT1: the host answers one hello per frame load)', async () => {
+    const frames = manualFrames()
+    const fakeHosts: FakeHost[] = []
+    let fetchCount = 0
+    let reloads = 0
 
     const mockFetch = fakeFetch({
       '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] },
@@ -503,6 +603,9 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           fakeHosts.push(fakeHost)
           return fakeHost.gameEnv!
         },
+        reload: () => {
+          reloads++
+        },
       },
     }
 
@@ -514,26 +617,17 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     await waitForState('failed')
 
     expect(countHellos()).toBe(1)
-    expect(fakeHosts.length).toBe(1)
 
-    // Click Try again
-    const retryBtn = Array.from(root.querySelectorAll('button')).find((b) =>
+    const retry = Array.from(root.querySelectorAll('button')).find((b) =>
       b.textContent?.includes('Try again'),
     )
-    expect(retryBtn).toBeDefined()
-    retryBtn?.click()
+    expect(retry).toBeDefined()
+    retry?.click()
+    await Promise.resolve()
 
-    // Drive the frame for the second attempt
-    await driveFirstFrame(frames)
-    await waitForState('ready')
-
-    // Second hello was sent
-    expect(countHellos()).toBe(2)
-    expect(fakeHosts.length).toBe(2)
-
-    // Exactly the same root element was used
-    expect(game.root).toBe(root)
-    expect(root.querySelector('[data-testid="title-screen"]')).not.toBeNull()
+    expect(reloads).toBe(1)
+    expect(countHellos()).toBe(1)
+    expect(fakeHosts.length).toBe(1)
 
     await handle.shutdown()
   })

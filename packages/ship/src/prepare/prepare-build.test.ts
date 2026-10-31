@@ -6,9 +6,10 @@ import { parseManifest } from '@ruken/manifest'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { defineShipConfig, type ShipConfig } from '../config/ship-config.ts'
-import { type PrepareInput, prepareBuild } from './prepare-build.ts'
+import { checkBuild, type PrepareInput, prepareBuild } from './prepare-build.ts'
 
 const prepare = (input: PrepareInput) => Effect.provide(prepareBuild(input), FilesLive)
+const check = (input: PrepareInput) => Effect.provide(checkBuild(input), FilesLive)
 
 const config: ShipConfig = defineShipConfig({
   game: { id: 'placeholder', title: 'Placeholder', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },
@@ -177,6 +178,21 @@ describe('prepareBuild', () => {
       expect(Effect.runSync(prepare({ distDir: dir, config, audience: 'private' })).manifestPath).toBe(
         join(dir, 'ruken.toml'),
       )
+    })
+
+    // CI's `prepare` of a game whose ship config says `audience: 'private'` (base-3d until Pixi 3D's public
+    // release): every check runs, but no ruken.toml is written, so a raw `ruken publish` of the folder has no
+    // manifest to upload (the review of #241 refused a private prepare that wrote one).
+    it('checks a private build without writing ruken.toml (checkBuild)', () => {
+      const dir = with3d()
+      expect(Effect.runSync(check({ distDir: dir, config, audience: 'private' })).toml).toContain('[game]')
+      expect(existsSync(join(dir, 'ruken.toml'))).toBe(false)
+    })
+
+    it('still refuses what Ruken refuses when it writes nothing', () => {
+      const dir = with3d()
+      const bad = { ...config, content: { ...config.content, languages: ['fr'] } }
+      expect(failure(check({ distDir: dir, config: bad, audience: 'private' }))._tag).toBe('ManifestInvalid')
     })
 
     it('stops any build that contains @pixi/3d/extras, private too', () => {
