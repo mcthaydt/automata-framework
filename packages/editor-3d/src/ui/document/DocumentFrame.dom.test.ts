@@ -216,6 +216,14 @@ describe('DocumentFrame', () => {
     expect(editor.selection.ids).toEqual(['sector:hall'])
   })
 
+  it('shows the Things palette with T, and picking a definition presses it (ED3D.7d)', async () => {
+    await setup()
+    await userEvent.keyboard('t')
+    const palette = screen.getByRole('group', { name: 'Things to place' })
+    await userEvent.click(within(palette).getByRole('button', { name: 'crate' }))
+    expect(within(palette).getByRole('button', { name: 'crate' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {
     const { controller } = await setup()
     const level = levelOf(controller)

@@ -6,6 +6,7 @@ import type { Occlude } from '../format/sector.schema'
 import type { Edit } from '../model/edit'
 import type { EditSession, LevelEditor } from '../model/level-editor'
 import { type SetMaterialsArgs, setHeights, setLight, setMaterials } from '../model/sector-edits'
+import { removeThing } from '../model/thing-edits'
 import {
   type DoorArgs,
   setDoor,
@@ -27,6 +28,7 @@ type Without<T, K extends keyof T> = Omit<T, K>
 export type InspectorPhase = 'set' | 'start' | 'update' | 'commit' | 'cancel'
 
 export type InspectorChange =
+  | { readonly kind: 'thing'; readonly definition: string; readonly id: string; readonly remove: true }
   | { readonly kind: 'sector'; readonly id: string; readonly floor: number }
   | { readonly kind: 'sector'; readonly id: string; readonly ceiling: number }
   | { readonly kind: 'sector'; readonly id: string; readonly light: number }
@@ -47,6 +49,7 @@ export interface InspectorEdits {
 
 /** The model's edit for a change. */
 function editOf<D>(change: InspectorChange): Edit<D> {
+  if (change.kind === 'thing') return removeThing({ def: change.definition, id: change.id })
   if (change.kind === 'sector') {
     if ('floor' in change) return setHeights({ id: change.id, floor: change.floor })
     if ('ceiling' in change) return setHeights({ id: change.id, ceiling: change.ceiling })

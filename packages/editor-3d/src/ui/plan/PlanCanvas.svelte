@@ -25,6 +25,7 @@ import NudgePad from './NudgePad.svelte'
 import { planGestures } from './plan-gestures'
 import type { PlanRenderer, PlanRendererFactory } from './plan-renderer'
 import SectorOptions from './SectorOptions.svelte'
+import ThingsPalette from './ThingsPalette.svelte'
 
 interface Props {
   editor: LevelEditor<unknown>
@@ -219,6 +220,15 @@ onDestroy(() => {
   </div>
   {#if refusal !== undefined}
     <p class="refusal" role="status" data-testid="tool-refusal">{refusal}</p>
+  {/if}
+  {#if tool.tool === 'things'}
+    <div class="controls" {@attach keepPresses}>
+      <ThingsPalette
+        palette={tool.view.palette}
+        active={tool.view.active}
+        onpick={(def) => tools.things?.pick(def)}
+      />
+    </div>
   {/if}
   {#if tool.tool === 'polygon' || tool.tool === 'rectangle' || tool.tool === 'split' || tool.tool === 'merge'}
     <!-- A press on the options is not a tap on the plan under them: the gestures listen on the whole canvas. -->

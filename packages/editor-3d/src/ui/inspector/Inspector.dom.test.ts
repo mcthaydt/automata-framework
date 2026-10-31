@@ -94,4 +94,21 @@ describe('Inspector', () => {
     mount({ ...hall, selected: 3 })
     expect(screen.getByText('3 selected: showing the first')).toBeInTheDocument()
   })
+
+  it('deletes a thing from its card (ED3D.7d)', async () => {
+    const onchange = mount({
+      kind: 'thing',
+      selected: 1,
+      definition: 'crate',
+      id: 'crate1',
+      x: 11,
+      z: 2,
+      y: undefined,
+    })
+    await userEvent.click(screen.getByRole('button', { name: 'Delete crate1' }))
+    expect(onchange).toHaveBeenCalledWith(
+      { kind: 'thing', definition: 'crate', id: 'crate1', remove: true },
+      'set',
+    )
+  })
 })

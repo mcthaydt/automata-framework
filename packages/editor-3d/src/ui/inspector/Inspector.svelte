@@ -5,6 +5,7 @@
   Several selected show the first and say so; nothing selected says how to select.
 -->
 <script lang="ts">
+import { Button } from '@mcthaydt/automata-editor-kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
 import SectorCard from './SectorCard.svelte'
@@ -40,7 +41,14 @@ const metres = (value: number): string => value.toFixed(2)
   {:else}
     <h2>{card.id}</h2>
     <p class="meta">{card.definition} · x {metres(card.x)} · z {metres(card.z)}{card.y === undefined ? '' : ` · y ${metres(card.y)}`}</p>
-    <p class="later">Its fields come with the Things layer.</p>
+    <p class="later">Its fields come with the field form (ED3D.7d-b).</p>
+    <Button
+      variant="danger"
+      aria-label={`Delete ${card.id}`}
+      onclick={() => change({ kind: 'thing', definition: card.definition, id: card.id, remove: true }, 'set')}
+    >
+      Delete
+    </Button>
   {/if}
   {#if refusal !== undefined}
     <p class="refusal" role="alert">{refusal}</p>

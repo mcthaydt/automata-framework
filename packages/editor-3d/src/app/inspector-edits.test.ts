@@ -78,4 +78,16 @@ describe('inspector edits', () => {
     ).toBeUndefined()
     expect(card()).toMatchObject({ floorTexture: 'tile' })
   })
+
+  it('removes a thing as one step (ED3D.7d)', () => {
+    const { editor, edits } = setup('entity:crate/crate1')
+    expect(
+      edits.change({ kind: 'thing', definition: 'crate', id: 'crate1', remove: true }, 'set'),
+    ).toBeUndefined()
+    expect(afSectorProfile.entities(editor.level as AfSector).things.map((thing) => thing.id)).toEqual([
+      'spawn',
+    ])
+    editor.history.undo()
+    expect(editor.level).toEqual(depot)
+  })
 })
