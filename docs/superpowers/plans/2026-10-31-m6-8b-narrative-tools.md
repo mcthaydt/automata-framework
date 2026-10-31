@@ -65,7 +65,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 3. `lintDialogues` with NR-c (a dead end fails), and `lintDeck`. Fails: no module.
    - [x] 3
 4. `lintHelp`, `currentHint`. Fails: no module.
-   - [ ] 4
+   - [x] 4
 5. Traces from solver routes; `beatCoverage`, `hintCheck`. Fails: no module.
    - [ ] 5
 6. `screenplay` (byte-identical twice; the clinic's matches a committed fixture). Fails: no module.

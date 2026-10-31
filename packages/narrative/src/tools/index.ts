@@ -16,6 +16,7 @@ export {
   walk,
 } from './dialogue-paths'
 export type { Finding } from './finding'
+export { CLUES, currentHint, type HelpInput, helpInputOf, LEVELS, lintHelp } from './help'
 export {
   type Clue,
   type Deduction,

@@ -15,6 +15,7 @@
     "./sim": "./src/sim/index.ts",
     "./solver": "./src/solver/index.ts",
     "./testing/converted-puzzles": "./src/testing/converted-puzzles.ts",
+    "./testing/toy-scene": "./src/testing/toy-scene.ts",
     "./testing/toy-scene.pipe": "./src/testing/toy-scene.pipe.ts",
     "./testing/softlock-scene.pipe": "./src/testing/softlock-scene.pipe.ts"
   },
