@@ -120,6 +120,15 @@ export async function serveLocally(buildDir: string): Promise<{ origin: string; 
   return { origin: `http://127.0.0.1:${port}`, stop: () => server.kill() }
 }
 
+/** Every check this script makes of `origin` against the build: the served files, the header set and the page policies. */
+export async function checkDeployed(origin: string, buildDir: string): Promise<string[]> {
+  return [
+    ...(await checkServedFiles(origin, buildDir)),
+    ...(await checkHeaders(origin, HEADER_PATHS)),
+    ...(await checkServedPolicies(origin, POLICY_PAGES)),
+  ]
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const { values, positionals } = parseArgs({
     allowPositionals: true,
@@ -135,11 +144,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const origin = local?.origin ?? positionals[0]!
   let problems: string[]
   try {
-    problems = [
-      ...(await checkServedFiles(origin, buildDir)),
-      ...(await checkHeaders(origin, HEADER_PATHS)),
-      ...(await checkServedPolicies(origin, POLICY_PAGES)),
-    ]
+    problems = await checkDeployed(origin, buildDir)
   } finally {
     local?.stop()
   }

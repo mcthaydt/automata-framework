@@ -19,6 +19,7 @@
     "sync:evidence": "node --import tsx scripts/sync-evidence.ts",
     "release": "node --import tsx scripts/release.ts",
     "check:deployed": "node --import tsx scripts/check-deployed.ts",
+    "rehearse:rollback": "node --import tsx scripts/rehearse-rollback.ts",
     "check:uptime": "node --import tsx scripts/check-uptime.ts"
   },
   "dependencies": {
