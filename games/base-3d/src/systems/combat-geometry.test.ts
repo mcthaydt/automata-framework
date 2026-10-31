@@ -1,7 +1,7 @@
 // The hit test's plan geometry (DESIGN.md §7.3, §7.4): integers only, so a hit lands on the same tick in every engine.
 import { describe, expect, it } from 'vitest'
 import { metres } from '../constants/index.ts'
-import { facingVector, inArc, reachHits } from './combat-geometry.ts'
+import { coneHits, facingVector, inArc, reachHits } from './combat-geometry.ts'
 
 const QUARTER = 16_384
 
@@ -52,5 +52,20 @@ describe('inArc', () => {
 
   it('wraps through 0', () => {
     expect(inArc(deg(350), deg(20), HALF)).toBe(true)
+  })
+})
+
+describe('coneHits (the Warden’s breath, DESIGN.md §8.4)', () => {
+  // 70° wide, so ±35° (6,372 turn units), and 5 m long, from the origin facing +z.
+  const HALF = 6_372
+  const from = { x: 0, z: 0 }
+  it('reaches a cylinder ahead within its length and its half-angle', () => {
+    expect(coneHits(from, 0, metres(5), HALF, { x: 0, z: metres(4.5) }, metres(0.3))).toBe(true)
+    expect(coneHits(from, 0, metres(5), HALF, { x: metres(2), z: metres(3.5) }, metres(0.3))).toBe(true)
+  })
+  it('misses one past its length, outside its angle, or behind', () => {
+    expect(coneHits(from, 0, metres(5), HALF, { x: 0, z: metres(5.5) }, metres(0.3))).toBe(false)
+    expect(coneHits(from, 0, metres(5), HALF, { x: metres(3), z: metres(3) }, metres(0.3))).toBe(false)
+    expect(coneHits(from, 0, metres(5), HALF, { x: 0, z: metres(-2) }, metres(0.3))).toBe(false)
   })
 })

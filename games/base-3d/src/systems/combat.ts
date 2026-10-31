@@ -29,11 +29,11 @@ import {
   SPIN_CHARGE,
   TICK_HZ,
 } from '../constants/index.ts'
-import { CaptainDefeated, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
+import { BossDefeated, CaptainDefeated, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
 import { Freeze, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
-import { facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
-import { angleOf } from './lock-target.ts'
+import { coneHits, facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
+import { angleOf, lineOfSight } from './lock-target.ts'
 
 /** Whether this tick is a hitstop tick: every system but the input copy and `combat.freeze` skips it. */
 export const frozen = (ctx: SimContext): boolean => ctx.resource(Freeze).active
@@ -238,6 +238,7 @@ interface Contact {
 
 /** The hits this tick's active frames make, gathered before any applies (attackers, then defenders, by id). */
 function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
+  const { walls } = areaIn(ctx.content, ctx.resource(Location))
   const fighters = ctx.query(Fighter)
   const contacts: Contact[] = []
   for (const attacker of fighters) {
@@ -262,10 +263,13 @@ function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
       // The hurt cylinder stands from its floor (`lift`, a hovering Wisp's) up its height.
       const height = running?.height ?? target.height
       if (at === undefined || hit.bottom > target.lift + height || hit.top < target.lift) continue
+      // A cone (a breath) is stopped by a wall between them: the Warden's pillars (DESIGN.md §8.4).
       const reaches =
-        hit.around === true
-          ? ringHits(from, hit.far, at, target.radius)
-          : reachHits(from, forward, hit, at, target.radius)
+        hit.cone !== undefined
+          ? coneHits(from, from.facing, hit.far, hit.cone, at, target.radius) && lineOfSight(walls, from, at)
+          : hit.around === true
+            ? ringHits(from, hit.far, at, target.radius)
+            : reachHits(from, forward, hit, at, target.radius)
       if (reaches) contacts.push({ attacker, defender, def })
     }
   }
@@ -308,13 +312,16 @@ export const combatHits: SystemDef = defineSystem({
       }
       if (action?.guard === true && facesIt && hit.low !== true && hit.unblockable !== true) {
         if (ctx.tick - action.guardSince < PARRY_FRAMES) {
-          attacker.set(Fighter, {
-            state: CombatState.stagger,
-            stun: PARRY_STAGGER,
-            move: 0,
-            moveTick: 0,
-            queued: 0,
-          })
+          // Most moves stagger their attacker when parried; some for longer (the slam), some not at all (the swipe).
+          const stagger = def.parried ?? PARRY_STAGGER
+          if (stagger > 0)
+            attacker.set(Fighter, {
+              state: CombatState.stagger,
+              stun: stagger,
+              move: 0,
+              moveTick: 0,
+              queued: 0,
+            })
           defender.set(Fighter, stamp)
           freeze = Math.max(freeze, PARRY_FREEZE)
           landed('parry')
@@ -354,12 +361,40 @@ export const combatHits: SystemDef = defineSystem({
         ctx.despawn(defender.sid)
         // A beaten enemy may leave something where it fell: one roll on the seeded table (DESIGN.md §8.1 rule 6).
         if (kind?.rank === 'captain') ctx.emit(CaptainDefeated, { target: defender.sid })
+        if (kind?.rank === 'warden') ctx.emit(BossDefeated, { target: defender.sid })
         const drop = kind === undefined || kind.rank !== undefined ? undefined : dropOf(ctx.rng.int(10))
         if (drop !== undefined) ctx.spawn([Drop, { x: at.x, z: at.z, ...drop }])
         continue
       }
       if (health === 0) {
         defender.set(Fighter, { ...stamp, ...cancel, health, state: CombatState.down, stun: KNOCKDOWN_TICKS })
+        continue
+      }
+      // The Warden's openings (DESIGN.md §8.4): a pellet into its mouth during the inhale staggers it, and a bomb in
+      // its charge's path knocks it down. Otherwise it is steady: a hit only hurts it, and a kneel goes on (×2).
+      const running = target.move === 0 ? undefined : moves[target.move - 1]
+      const opening = running?.opening
+      if (
+        opening !== undefined &&
+        hit.pellet === true &&
+        target.moveTick >= opening.from &&
+        target.moveTick <= opening.to
+      ) {
+        defender.set(Fighter, {
+          ...stamp,
+          ...cancel,
+          health,
+          state: CombatState.stagger,
+          stun: opening.stagger,
+        })
+        continue
+      }
+      if (running?.downed !== undefined && hit.power >= KNOCKDOWN_POWER) {
+        defender.set(Fighter, { ...stamp, ...cancel, health, state: CombatState.down, stun: running.downed })
+        continue
+      }
+      if (kind?.steady === true) {
+        defender.set(Fighter, { ...stamp, health })
         continue
       }
       // A hit on a hovering Wisp drops it to the floor, stunned (DESIGN.md §8.2: the sling's answer).

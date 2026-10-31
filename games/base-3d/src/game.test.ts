@@ -1239,9 +1239,13 @@ const GOLDEN_KILN_TICK = 118
  * GAME-3D.1d part 2's Captain (was `c4f3e5bcee14989b`): the move table gained the Captain's two chops, each area
  * `vents`, `enemy` the `follow`, `calls` and `called` fields, and the sim the `captain.defeated` event, which the
  * content and schema hashes cover. The first slice has no foe: the rejected commands, events, kiln tick, locked
- * ticks, action starts, end action and end position are unchanged, and still asserted below.
+ * ticks, action starts, end action and end position are unchanged, and still asserted below. Re-recorded for
+ * GAME-3D.1d part 3's Warden (was `4d222d95aa66c94b`): the move table gained the Warden's four moves (with `cone`,
+ * `parried`, `opening` and `downed`) and the schema `enemy.phase` and the `boss.phase` and `boss.defeated` events.
+ * The first slice has no foe: its rejected commands, events, kiln tick, locked ticks, action starts, end action and
+ * end position are unchanged, and still asserted below.
  */
-const GOLDEN_HASH = '4d222d95aa66c94b'
+const GOLDEN_HASH = '6cfedf97464a98e2'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

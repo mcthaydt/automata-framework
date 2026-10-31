@@ -1,7 +1,7 @@
 import { createSim, type Sim } from '@mcthaydt/automata-sim'
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
-import { Drop, Enemy, Fighter, Hero, Target } from './components.ts'
+import { Drop, Enemy, Fighter, Target } from './components.ts'
 import {
   angerSkip,
   BrainState,
@@ -13,11 +13,27 @@ import {
   RING_FAR,
   RING_NEAR,
 } from './constants/enemies.ts'
-import { CombatState, HERO_MOVES, type MoveDef, metres } from './constants/index.ts'
+import { CombatState, type MoveDef, metres } from './constants/index.ts'
 import { Location, Progress } from './resources.ts'
 import { base3dSim, spawnArea } from './state/index.ts'
 import { type Area, type AreaSource, compileArea, compileWorld } from './systems/index.ts'
 import { FIGHT_YARD } from './testing/fight-yard.ts'
+import {
+  distance,
+  enemy,
+  enemyKind,
+  fighter,
+  foeArea,
+  foes,
+  hitKinds,
+  kindOf,
+  MOVES,
+  place,
+  slashes,
+  startFoes,
+  stepUntil,
+  wickSid,
+} from './testing/foes.ts'
 import {
   commandsFor,
   GAME_PLUGINS,
@@ -71,32 +87,10 @@ describe('the enemy tables (DESIGN.md §8.1, §8.2)', () => {
       ['ash-knight', 6],
       ['wisp', 2],
       ['ash-captain', 14],
+      ['warden', 24],
     ])
   })
 })
-
-/** One open room with `foes` in it, and Wick at the origin facing +z. */
-const foeArea = (foes: AreaSource['foes'], walls: AreaSource['walls'] = []): Area =>
-  compileArea({
-    id: 'foes',
-    spawn: { x: 0, z: 0 },
-    views: [{ id: 'open', yawDeg: 0 }],
-    rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
-    walls,
-    targets: [],
-    ember: { x: 40, z: 40 },
-    foes,
-  })
-const MOVES = [...HERO_MOVES, ...ENEMY_MOVES]
-const startFoes = (foes: AreaSource['foes'], walls?: AreaSource['walls']) =>
-  startSim(foeArea(foes, walls), MOVES)
-const foes = (sim: Sim) => sim.query(Enemy)
-const wickSid = (sim: Sim) => sim.query(Hero)[0]?.sid as number
-const fighter = (sim: Sim, sid: number) => sim.entity(sid)?.get(Fighter)
-const enemy = (sim: Sim, sid: number) => sim.entity(sid)?.get(Enemy)
-const place = (sim: Sim, sid: number) => sim.entity(sid)?.get(Target)
-const kindOf = (id: string) => ENEMIES.findIndex((type) => type.id === id) + 1
-const enemyKind = (kind: number) => ENEMIES[kind - 1]?.id
 
 describe('an area’s foes', () => {
   it('spawn with their type’s health and cylinder, lockable, facing as authored', async () => {
@@ -127,20 +121,6 @@ describe('an area’s foes', () => {
     expect(() => foeArea([{ kind: 'dragon', x: 2, z: 2 }])).toThrow(/unknown enemy "dragon"/)
   })
 })
-
-/** Steps with Wick standing still until `done` holds, at most `limit` ticks; returns the ticks taken. */
-function stepUntil(sim: Sim, done: () => boolean, limit = 600, input: TickInput = {}): number {
-  for (let ticks = 1; ticks <= limit; ticks++) {
-    run(sim, input)
-    if (done()) return ticks
-  }
-  throw new Error(`not within ${limit} ticks`)
-}
-const distance = (sim: Sim, sid: number) => {
-  const at = place(sim, sid) as { x: number; z: number }
-  const wick = hero(sim)
-  return Math.sqrt((at.x - wick.x) ** 2 + (at.z - wick.z) ** 2)
-}
 
 describe('a brain (DESIGN.md §8.1 rule 5)', () => {
   it('paces at home while Wick is farther than it notices', async () => {
@@ -267,18 +247,6 @@ describe('attack tokens (DESIGN.md §8.1 rules 2 and 3, G3-l)', () => {
     sim.dispose()
   })
 })
-
-/** Steps `ticks` of `input` and returns the kinds of the hits that landed, in order. */
-function hitKinds(sim: Sim, input: TickInput, ticks = 1): string[] {
-  const kinds: string[] = []
-  for (let i = 0; i < ticks; i++)
-    for (const event of sim.step(commandsFor(sim, input)).events)
-      if (event.type === 'hit.landed') kinds.push((event.payload as { kind: string }).kind)
-  return kinds
-}
-
-/** A slash and the 12 ticks after it, as the kinds of the hits it lands. */
-const slashes = (sim: Sim) => [...hitKinds(sim, { act: { slash: true } }), ...hitKinds(sim, {}, 12)]
 
 describe('the Ash Knight (DESIGN.md §8.2, G3-m)', () => {
   const knight = async (facing: number) => {
@@ -526,9 +494,11 @@ const FIGHTS_ROUTE: readonly RouteSegment[] = [
  * The fights golden's hash after the whole route, with seed 1 (recorded in Node). Re-recorded for GAME-3D.1d part 2
  * (was `e230d634075f5dde`): the content gained the Captain (its type, its two chops, `vents`) and the schema the
  * `enemy` fields `follow`, `calls`, `called` and the `captain.defeated` event. The yard has no Captain and no vent,
- * so its events, tokens, embers, health and ticks are unchanged, and still asserted below.
+ * so its events, tokens, embers, health and ticks are unchanged, and still asserted below. Re-recorded for part 3
+ * (was `a41116f82fa68a84`): the Warden's type and moves in the content, `enemy.phase` and the `boss.*` events in
+ * the schema; the yard has no Warden, so the same assertions hold unchanged.
  */
-const FIGHTS_HASH = 'a41116f82fa68a84'
+const FIGHTS_HASH = '276ca92fcddd55ea'
 
 async function runFights() {
   const spec = base3dSim(compileWorld([FIGHT_YARD]))

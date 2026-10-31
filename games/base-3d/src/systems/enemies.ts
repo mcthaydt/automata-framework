@@ -18,6 +18,7 @@ import {
   RING_NEAR,
 } from '../constants/enemies.ts'
 import { CombatState, type MoveDef, metres } from '../constants/index.ts'
+import { BossPhase } from '../events.ts'
 import { Location } from '../resources.ts'
 import { type Area, areaIn, type PlanPoint, slide, worldOf } from './area.ts'
 import { foeParts } from './area-foes.ts'
@@ -74,7 +75,15 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
   // Exact under 2^53 for any room under a few hundred metres; the square root of an integer is the same everywhere.
   const distance = Math.floor(Math.sqrt(dx * dx + dz * dz))
   const toWick = angleOf(dx, dz)
-  let { brain, timer, token, attacks, follow, calls, called } = enemy
+  let { brain, timer, token, attacks, follow, calls, called, phase } = enemy
+  // A boss at its phase 2 health enters phase 2 for good, starting its new attacks from the first (§8.4, G3-F8).
+  const second = type.phase2
+  if (second !== undefined && phase < 2 && fighter.health <= second.at) {
+    phase = 2
+    attacks = 0
+    ctx.emit(BossPhase, { target: entity.sid, phase })
+  }
+  const moveset = second !== undefined && phase === 2 ? second : type
   // At half health or less an angry type's windups are shorter (§8.3): its moves start a few frames in.
   const angry = type.anger === true && fighter.health * 2 <= type.health
   const start = (move: number, opener: boolean) => {
@@ -153,15 +162,15 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
         scene.tokens += 1
       }
       brain = token ? BrainState.approach : BrainState.circle
-      if (token && distance <= type.reach + REACH_SLACK) {
-        const id = type.attacks[attacks % type.attacks.length]
+      if (token && distance <= moveset.reach + REACH_SLACK) {
+        const id = moveset.attacks[attacks % moveset.attacks.length]
         const move = scene.moves.findIndex((candidate) => candidate.id === id) + 1
         if (move !== 0) {
           brain = BrainState.attack
           attacks += 1
           start(move, true)
         }
-      } else if (token) walk(toWick, Math.min(type.speed, distance - type.reach))
+      } else if (token) walk(toWick, Math.min(type.speed, distance - moveset.reach))
       else if (distance < RING_NEAR) walk(toWick + HALF_TURN, Math.min(type.speed, RING_NEAR - distance))
       else if (distance > RING_FAR) walk(toWick, Math.min(type.speed, distance - RING_FAR))
       // Inside the ring: it strafes round Wick at half its walk, never starting a windup without a token.
@@ -181,7 +190,7 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
       calls = every
     }
   }
-  entity.set(Enemy, { brain, timer, token, attacks, follow, calls, called })
+  entity.set(Enemy, { brain, timer, token, attacks, follow, calls, called, phase })
   entity.set(Target, { x, z, facing })
   if (lift !== fighter.lift) entity.set(Fighter, { lift })
 }

@@ -133,6 +133,8 @@ const enemyFields = {
   /** Ticks until an angry Captain may call again, and the calls it has made (the next vent is `called % vents`). */
   calls: 'u32',
   called: 'u32',
+  /** A boss's phase: 0 or 1 the first, 2 the second, never back (DESIGN.md §8.4, G3-F8). */
+  phase: 'u32',
 } as const
 
 /**

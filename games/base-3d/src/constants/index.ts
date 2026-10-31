@@ -79,6 +79,10 @@ export interface MoveHit {
   readonly unblockable?: boolean
   /** A ring round the attacker (`brawl/moves.ts` `around`): every defender within `far` (plus its radius) is reached. */
   readonly around?: boolean
+  /** A cone along the facing, this many turn units either side, `far` long, that a wall in between stops (a breath). */
+  readonly cone?: number
+  /** A sling pellet's hit (GAME-3D.1e): it opens a move's `opening` (the Warden's mouth). */
+  readonly pellet?: boolean
 }
 
 /**
@@ -102,6 +106,12 @@ export interface MoveDef {
   readonly height?: number
   /** Carried this far (Q16.16 metres) along the facing over the active frames, evenly: an enemy's bite or dive. */
   readonly lunge?: number
+  /** How long a parry staggers the attacker (default `PARRY_STAGGER`); 0 when a parry opens nothing. */
+  readonly parried?: number
+  /** A pellet landing on these frames staggers the fighter `stagger` ticks (the Warden's inhale, DESIGN.md §8.4). */
+  readonly opening?: { readonly from: number; readonly to: number; readonly stagger: number }
+  /** A power-3 hit during the move knocks the fighter down this long (the Warden's charge and a bomb). */
+  readonly downed?: number
 }
 
 /** A slash's reach: 0.2 m to 1.4 m ahead, from the knee to above the shoulder. Not in §7.2's table; a starting value. */

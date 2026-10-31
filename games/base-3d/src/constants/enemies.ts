@@ -35,8 +35,15 @@ export interface EnemyDef {
   readonly anger?: boolean
   /** Angry, it calls one `kind` at a time from the area's vents, every `every` ticks, while fewer than `most` live. */
   readonly calls?: { readonly kind: string; readonly every: number; readonly most: number }
-  /** A mini-boss: its defeat raises `captain.defeated` (the doors, the chest) instead of a roll on the drop table. */
-  readonly rank?: 'captain'
+  /**
+   * A mini-boss or the boss: its defeat raises `captain.defeated` (the doors, the chest) or `boss.defeated` (the end)
+   * instead of a roll on the drop table.
+   */
+  readonly rank?: 'captain' | 'warden'
+  /** Hits only hurt it: no stun, push or knockdown, its move goes on (the Warden); its moves' openings still work. */
+  readonly steady?: boolean
+  /** At `at` health or less it enters phase 2 for good, with these attacks and this reach (the Warden, §8.4). */
+  readonly phase2?: { readonly at: number; readonly attacks: readonly string[]; readonly reach: number }
 }
 
 /** What a move's hit reaches when it never misses for height: from the floor to above Wick's head. */
@@ -123,6 +130,83 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
     },
   },
   {
+    // The Warden's hammer slam (§8.4): 40 ticks raised, then a shockwave ring 2.5 m round it. A parry on its contact
+    // kneels it 90 ticks with its grate open.
+    id: 'warden-slam',
+    total: 70,
+    active: [41, 46],
+    parried: 90,
+    hit: {
+      near: 0,
+      far: metres(2.5),
+      bottom: 0,
+      top: metres(1),
+      dmg: 2,
+      stop: 6,
+      stun: 24,
+      kb: metres(3),
+      power: 2,
+      around: true,
+    },
+  },
+  {
+    // The grate swipe: 36 ticks, blockable; a parry opens nothing.
+    id: 'warden-swipe',
+    total: 60,
+    active: [37, 44],
+    parried: 0,
+    hit: {
+      near: metres(0.3),
+      far: metres(2.8),
+      bottom: metres(0.3),
+      top: metres(2),
+      dmg: 2,
+      stop: 5,
+      stun: 20,
+      kb: metres(3),
+      power: 2,
+    },
+  },
+  {
+    // Phase 2's ember breath: 48 ticks of inhale, its mouth open to a pellet (120 ticks of stagger), then a cone 70°
+    // wide and 5 m long that no shield stops and a pillar does.
+    id: 'warden-breath',
+    total: 90,
+    active: [49, 70],
+    opening: { from: 1, to: 48, stagger: 120 },
+    hit: {
+      near: 0,
+      far: metres(5),
+      ...FLOOR_UP,
+      dmg: 2,
+      stop: 4,
+      stun: 20,
+      kb: metres(2),
+      power: 2,
+      unblockable: true,
+      cone: 6_372,
+    },
+  },
+  {
+    // The charge: 40 ticks, then 8 m in a straight line across the arena; a bomb in its path downs it 90 ticks.
+    id: 'warden-charge',
+    total: 90,
+    active: [41, 70],
+    lunge: metres(8),
+    downed: 90,
+    hit: {
+      near: 0,
+      far: metres(1.2),
+      bottom: 0,
+      top: metres(2.5),
+      dmg: 2,
+      stop: 5,
+      stun: 20,
+      kb: metres(5),
+      power: 2,
+    },
+  },
+  {
     // The Wisp stops, flares and shrieks for 30 ticks, then dives 4 m in a straight line, down to Wick's height.
     id: 'wisp-dive',
     total: 70,
@@ -132,7 +216,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
   },
 ]
 
-/** The three types (§8.2) and the Captain (§8.3), by their index + 1 in `Enemy.kind`. */
+/** The three types (§8.2), the Captain (§8.3) and the Warden (§8.4), by their index + 1 in `Enemy.kind`. */
 export const ENEMIES: readonly EnemyDef[] = [
   {
     id: 'sootling',
@@ -196,6 +280,23 @@ export const ENEMIES: readonly EnemyDef[] = [
     anger: true,
     calls: { kind: 'sootling', every: 240, most: 2 },
     rank: 'captain',
+  },
+  {
+    // The Ashen Warden (§8.4): 3.2 m, 24 health, phase 2 at 12.
+    id: 'warden',
+    health: 24,
+    radius: metres(0.8),
+    height: metres(3.2),
+    lift: 0,
+    speed: perTick(1.2),
+    turn: turnPerTick(90),
+    notice: metres(14),
+    reach: metres(2),
+    attacks: ['warden-slam', 'warden-swipe'],
+    recover: 40,
+    rank: 'warden',
+    steady: true,
+    phase2: { at: 12, attacks: ['warden-breath', 'warden-charge'], reach: metres(4) },
   },
 ]
 

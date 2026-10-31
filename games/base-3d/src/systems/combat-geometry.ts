@@ -2,7 +2,7 @@
 // `Hit.reach`, read at `92e6704`) rewritten on integers. Pure: positions in, a yes or no out. Sim code.
 import { mapStick, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { PlanPoint } from './area.ts'
-import { signedTurn } from './lock-target.ts'
+import { angleOf, signedTurn } from './lock-target.ts'
 
 /** A direction in Q12 (4,096 to a metre's length): small enough that a product with a Q4 offset stays exact. */
 export interface Q12Direction {
@@ -61,4 +61,19 @@ export function ringHits(from: PlanPoint, far: number, at: PlanPoint, radius: nu
 /** Whether `bearing` lies within `half` turn units either side of `facing` (both in turn units). */
 export function inArc(facing: number, bearing: number, half: number): boolean {
   return Math.abs(signedTurn(bearing - facing)) <= half
+}
+
+/**
+ * Whether a cone of `far` along `facing` from `from`, `half` turn units either side, meets a cylinder of `radius` at
+ * `at`, in plan (the Warden's breath): within the ring, and its centre's bearing inside the arc.
+ */
+export function coneHits(
+  from: PlanPoint,
+  facing: number,
+  far: number,
+  half: number,
+  at: PlanPoint,
+  radius: number,
+): boolean {
+  return ringHits(from, far, at, radius) && inArc(facing, angleOf(at.x - from.x, at.z - from.z), half)
 }

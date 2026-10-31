@@ -9,6 +9,8 @@ import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } fro
 import {
   AreaEntered,
   AreaExit,
+  BossDefeated,
+  BossPhase,
   CaptainDefeated,
   DropTaken,
   EmberTaken,
@@ -101,6 +103,8 @@ export const base3dPlugin: PluginDef = definePlugin({
     FoeDefeated,
     DropTaken,
     CaptainDefeated,
+    BossPhase,
+    BossDefeated,
     AreaExit,
     AreaEntered,
     heroInput,

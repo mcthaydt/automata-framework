@@ -46,3 +46,11 @@ export const DropTaken: EventDef<typeof drop> = defineEvent('drop.taken', drop)
 
 /** The Ash Knight Captain is beaten (DESIGN.md §8.3): D4's doors open and the Ember Bombs chest appears (1f, 1e). */
 export const CaptainDefeated: EventDef<typeof foe> = defineEvent('captain.defeated', foe)
+
+const phase = z.object({ target: z.int().nonnegative(), phase: z.int().positive() })
+
+/** The Warden entered `phase` (DESIGN.md §8.4): the grate shuts; presentation's cue. */
+export const BossPhase: EventDef<typeof phase> = defineEvent('boss.phase', phase)
+
+/** The Warden is beaten (DESIGN.md §8.4): the hearth shot, then the end screen (GAME-3D.1d part 4). */
+export const BossDefeated: EventDef<typeof foe> = defineEvent('boss.defeated', foe)

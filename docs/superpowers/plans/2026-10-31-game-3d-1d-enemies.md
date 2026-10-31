@@ -150,6 +150,27 @@ Produced (base-3d only): `ash-captain` in `ENEMIES` with `anger`, `calls` and `r
 - [x] 4. Its death raises `captain.defeated` once and rolls nothing on the drop table.
 - [x] 5. Goldens re-recorded with the explanation (content and schema only); gates as part 1's.
 
+## Part 3: the Warden (interfaces and steps)
+
+Produced (base-3d only): `warden` in `ENEMIES` (`rank: 'warden'`, `steady`, `phase2`); its moves `warden-slam`,
+`warden-swipe`, `warden-breath`, `warden-charge`; `MoveHit.cone`, `MoveHit.pellet`, `MoveDef.parried`,
+`MoveDef.opening`, `MoveDef.downed` (constants); `enemy.phase`; `boss.phase { target, phase }`,
+`boss.defeated { target }` (events.ts); `coneHits` (systems/combat-geometry.ts). Tests in `src/boss.test.ts`, which
+the browsers project runs; the foe helpers moved to `src/testing/foes.ts`.
+
+- [x] 1. `coneHits`: in its length and half-angle, not past, beside or behind (combat-geometry.test.ts).
+- [x] 2. The tables: 3.2 m, 24 health, each attack's windup at least 36.
+- [x] 3. Phase 1: a parried slam kneels it 90 ticks and every slash in the kneel does double; the slam's ring
+      reaches behind it; a parried swipe opens nothing, a blocked one costs nothing; a slash only hurts it.
+- [x] 4. Phase 2: entered at 12 health, once, opening with the breath; a pellet in the inhale staggers it 120; the
+      breath is unblockable and a pillar stops it; the charge runs straight and a bomb in it downs it 90, while a
+      bomb outside it only hurts.
+- [x] 5. G3-F8's boss half: one lethal blow from 13 health raises `foe.defeated` and `boss.defeated` and never
+      `boss.phase`.
+- [x] 6. G3-c: a test player reading only the sim records the fight's commands; replaying the log ends on the same
+      `boss.defeated` tick and hash, pinned and run in the three browsers (`base-3d/golden-boss`).
+- [x] 7. Goldens re-recorded with the explanation; gates as part 1's.
+
 ## Execution log
 
 **Part 1 (2026-10-31, branch `claude/3d-game-3d-1d`).**
@@ -207,3 +228,34 @@ asserted). `base-3d/golden-fights` (new): `e230d634075f5dde`, 763 ticks, recorde
   The doors and the Ember Bombs chest are 1f's and 1e's; part 2 raises `captain.defeated` for them.
 - Goldens: `base-3d/golden-route` `c4f3e5bcee14989b` → `4d222d95aa66c94b`; `base-3d/golden-fights`
   `e230d634075f5dde` → `a41116f82fa68a84`. Content and schema only; every other assertion of both is unchanged.
+
+**Part 3 (2026-10-31, branch `claude/3d-game-3d-1d-3`).**
+
+- The boss cases were written before the rules but first run after them. To have the failing evidence, they were
+  then run against the parent's `combat.ts` and `enemies.ts` (copied back, run, restored): 8 of 10 failed, and the
+  2 that passed are the table (data only) and the slam's ring (1c's `around`, unchanged).
+- The first G3-F8 case set the Warden to 2 health before the blow, so its brain entered phase 2 on that tick: a
+  setup fault, not the rule. It is now one blow of 14 from 13 health.
+- The entry shot and the hearth shot are presentation (DESIGN.md §8.4: game code); they move to part 4 with the
+  look, beside the boss bar. The boss-door restart needs no code: Continue restores the area entrance's snapshot,
+  where the swap has just spawned the Warden at full health; 1i's boss room proves it end to end.
+- The recorded fight (458 ticks) ends inside the parried slam's kneel, so phase 2's attacks are covered by the unit
+  cases, not by the log.
+
+**Defaults (part 3, for the Owner's veto):**
+
+1. The Warden is steady: a hit only costs it health (no stun, push or knockdown, its move goes on). Its openings
+   are the only way to stop it, which is the lesson table of §8.4. A kneel stays a kneel through hits, so every
+   sword hit in it is doubled ("the sword hits the grate (×2)"), not only the first as for other enemies.
+2. Numbers §8.4 leaves open: radius 0.8 m, walk 1.2 m/s, turn 90°/s, notice 14 m, reach 2 m (phase 2: 4 m),
+   recover 40; slam 70 frames, active 41–46, ring 2.5 m, up to 1 m; swipe 60, active 37–44, 0.3–2.8 m; breath 90,
+   active 49–70, ±35° (6,372 units), 5 m; charge 90, active 41–70, 8 m; 2 damage each.
+3. The breath's pillar rule is a line of sight from the Warden to Wick across the area's walls (pillars are walls).
+4. A pellet (`MoveHit.pellet`, 1e's sling) and a power-3 hit (1e's bomb) are the openings' triggers; the tests use
+   stand-in moves for both until 1e.
+5. Phase 2's move "across the trench by a pillar" waits for 1i's authored room (it has no trench or pillar to go to
+   yet).
+
+**Goldens (part 3).** `base-3d/golden-route` `4d222d95aa66c94b` → `6cfedf97464a98e2`; `base-3d/golden-fights`
+`a41116f82fa68a84` → `276ca92fcddd55ea` (content and schema only; every other assertion unchanged).
+`base-3d/golden-boss` (new, G3-c): defeat on tick 458, `6001e1c06a58eabe`.
