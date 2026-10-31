@@ -77,6 +77,21 @@ export function prepareBuild(
   input: PrepareInput,
 ): Effect.Effect<{ manifestPath: string }, PrepareError, Files> {
   return Effect.gen(function* () {
+    const { toml } = yield* checkBuild(input)
+    const files = yield* Files
+    const manifestPath = join(input.distDir, 'ruken.toml')
+    yield* files.writeText(manifestPath, toml)
+    return { manifestPath }
+  })
+}
+
+/**
+ * Every check `prepareBuild` makes, Ruken's parser included, writing nothing: the `ruken.toml` it would write.
+ * CI's `prepare` of a private game uses it alone, so a raw `ruken publish` of the folder has no manifest to upload
+ * (M3 spec §4.8).
+ */
+export function checkBuild(input: PrepareInput): Effect.Effect<{ toml: string }, PrepareError, Files> {
+  return Effect.gen(function* () {
     const { distDir, config, tag } = input
     const files = yield* Files
     const mismatch = checkVersion(config.game.version, tag)
@@ -136,8 +151,6 @@ export function prepareBuild(
 
     const toml = rukenToml(config)
     yield* checkManifest(toml)
-    const manifestPath = join(distDir, 'ruken.toml')
-    yield* files.writeText(manifestPath, toml)
-    return { manifestPath }
+    return { toml }
   })
 }
