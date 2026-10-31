@@ -1,0 +1,48 @@
+{
+  "name": "@mcthaydt/automata-debug",
+  "version": "0.0.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-plus.git",
+    "directory": "packages/debug"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.svelte"
+  ],
+  "svelte": "./src/index.ts",
+  "exports": {
+    ".": {
+      "svelte": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./vite": "./src/vite.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
+  },
+  "peerDependencies": {
+    "@mcthaydt/automata-runtime": "0.0.3",
+    "@mcthaydt/automata-ui": "0.0.4",
+    "svelte": "^5.57.1"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-runtime": "0.0.3",
+    "@mcthaydt/automata-ui": "0.0.4",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/svelte": "5.4.2",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "24.19.1",
+    "jsdom": "30.1.1",
+    "svelte": "5.57.3",
+    "svelte-check": "4.7.6",
+    "vite": "8.3.5",
+    "vitest": "5.0.3"
+  }
+}
