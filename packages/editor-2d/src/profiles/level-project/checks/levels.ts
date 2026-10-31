@@ -97,6 +97,7 @@ function layerChecks(project: Project, level: Level, def: LayerDef, layer: Layer
               'unknownEntityDef',
               itemPath(level.id, def.id, item.id),
               `There is no entity definition "${item.def}".`,
+              'delete',
             ),
           )
         }

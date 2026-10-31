@@ -3,7 +3,7 @@
 - **Task:** ED2D.7a in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §7 (`Profile.fix`), §8 (the Checks row), §9 (codes and the fixes they name), §12 (44 px targets), §15 G-g; mockup `checks` in `docs/design/editor-2d/`.
 - **Lane:** editor-2d. **Depends on:** ED2D.4c4b (the inspector's Checks tab, merged). **Unblocks:** ED2D.7b (export is blocked while errors stand, and the Checks view is where they are fixed).
 - **Status:** drafted 2026-10-31 on `claude/ed2d-7a-checks-view` from `origin/main` 6f1318b5. Owner, 2026-10-30: "Auto accept all spec and plans"; this plan is accepted once its review is done.
-- **Progress:** 0 of 7 steps.
+- **Progress:** 2 of 7 steps.
 
 ## Scope
 
@@ -14,7 +14,7 @@
   - `move-inside` on `entityOutOfBounds`: clamps the instance's or object's anchor into `[0, w] × [0, h]`. Button: "Move inside".
   - `delete` on `unknownEntityDef` (new fix name on an existing code): removes the instance whose definition is gone. Button: "Delete anyway", since the instance's field values go with it.
   - A finding with no fix, an unknown fix, or a target that is gone throws `RangeError` (as `applyStageFix` does).
-- **`choose-target` on `brokenRef`** is not a profile fix (`Profile.fix` takes no input): the Checks view opens a picker of the instances (and levels, for `$level`) the field's `to` allows and commits the choice through `setEntityField` as one step. `brokenRefTargets(project, diagnostic)` lists them.
+- **`choose-target` on `brokenRef`** is not a profile fix (`Profile.fix` takes no input): the Checks view opens a picker of the instances (and levels, for `$level`) the field's `to` allows and commits the choice through `setEntityField` as one step. `refChoices(project, diagnostic)` lists them and `chooseTarget` sets the pick (both in `project-fixes.ts`).
 - **The Checks view** (`ChecksView`, both profiles list `checks` → `ChecksView`): the diagnostics in the profile's order grouped Errors, Warnings, Info with counts; each row shows the message, the object it names (`slime-2 in moss-steps`, `Tileset terrain`) and its fix button when the profile has `fix` and the finding names one; **Locate** opens the Level view on the object (level, layer, the instance selected) for `level-project`, and for `floorfifty-stage` opens its first view. Each fix is one undo step; the list recomputes after every edit; an empty list says "No problems".
 - **Locate** needs one new service: `ViewServices.locate(path)`, which `DocumentScreen` implements by switching to the profile's first view and handing it the path as `ViewProps.focus`; the Level view selects the level, layer and instance a path names (`levelFocus(project, path)`).
 
@@ -69,8 +69,8 @@ export function levelFocus(
 
 ## Steps
 
-1. [ ] **Fixes.** `project-fixes.test.ts`: `remove` clears exactly the stray tile cells (tiles and auto overrides), the undefined IntGrid cells and the objects beyond the tileset, and the finding is gone from `checkProject`; `move-inside` clamps an instance and an object; `delete` removes the unknown-definition instance; a missing target, no fix and `choose-target` throw `RangeError`. `level-project.ts` exposes `fix`.
-2. [ ] **Targets.** `brokenRefTargets`: a door's `target` lists the instances of `door`, `checkpoint` and `player-start` across levels with their container; `$level` lists levels.
+1. [x] **Fixes.** `project-fixes.test.ts`: `remove` clears exactly the stray tile cells (tiles and auto overrides), the undefined IntGrid cells and the objects beyond the tileset, and the finding is gone from `checkProject`; `move-inside` clamps an instance and an object; `delete` removes the unknown-definition instance; a missing target, no fix and `choose-target` throw `RangeError`. `level-project.ts` exposes `fix`.
+2. [x] **Targets.** `brokenRefTargets`: a door's `target` lists the instances of `door`, `checkpoint` and `player-start` across levels with their container; `$level` lists levels.
 3. [ ] **Checks model.** `checkGroups`, `fixLabel` (`Remove 3 stray tiles` from the message count, `Move inside`, `Delete anyway`, `Choose target`), `objectLabel`.
 4. [ ] **Focus.** `levelFocus` for an item, a layer, a level and a definition path (undefined); the Level session starts on it (level, layer, selected instance).
 5. [ ] **View.** `ChecksView.dom.test.ts` mounted as the app mounts it: a seeded stray tile and an out-of-bounds slime show under Errors and Warnings with counts; "Remove 1 stray tile" and "Move inside" each make one undo step and the rows go; Locate opens the Level view with the slime selected; "Choose target" on a broken door lists targets and the pick is one step; the FloorFifty profile's Checks view lists its findings and its fixes work. `views.ts` maps `ChecksView`.
@@ -84,3 +84,5 @@ export function levelFocus(
 ## Execution log
 
 - 2026-10-31: plan drafted from the spec §7 to §9, 02's row and the existing checks (`levels.ts` names `remove` and `move-inside`, `links.ts` names `choose-target`; FloorFifty's `applyStageFix` is the model for the profile's `fix`).
+- 2026-10-31: step 1. `project-fixes.test.ts` (9) failed first on the missing module; `applyProjectFix` written, `unknownEntityDef` carries `delete`, `levelProject.fix` set; then 9 pass and the profile's other 133 tests stay green.
+- 2026-10-31: step 2. Four cases added (choices for a broken door: the checkpoint and the player start, in `to` order, the door itself left out; the pick clears `brokenRef`; `$level` offers the levels; a finding not about a ref throws) failed first on `refChoices is not a function`. The plan's `brokenRefTargets` became `refChoices` plus `chooseTarget`, so the view commits a pick through one pure function (list places too, and level fields). 13 of 13; `svelte-check` clean. `choose-target` also rides `refWrongKind` (the checks already name it there), which this handles the same way.

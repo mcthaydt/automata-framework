@@ -4,6 +4,7 @@ import type { Project } from '../../model/project-types'
 import type { ExportTarget, ParseError, Profile, Result, ViewDef } from '../profile'
 import { exportContent } from './content-export'
 import { checkProject } from './project-checks'
+import { applyProjectFix } from './project-fixes'
 import { summarizeProject } from './project-summary'
 import { blankTemplate } from './templates/blank'
 import { platformerTemplate } from './templates/platformer'
@@ -82,6 +83,7 @@ export const levelProject: Profile<Project> = {
   // The canonical printer owns the whole text, so the text as loaded (`base`) is not needed.
   print: (_base, project) => printProject(project),
   check: checkProject,
+  fix: (project, diagnostic) => applyProjectFix(project, diagnostic),
   summary: summarizeProject,
   // The first level is the one a template starts on, so a new project's card shows what its Level view opens on.
   preview: (project) => {
