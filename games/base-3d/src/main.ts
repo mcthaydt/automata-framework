@@ -14,7 +14,7 @@
 import '@mcthaydt/automata-render-pixi3d/no-eval'
 import { content } from 'virtual:automata/content'
 import type { FigureDef } from '@mcthaydt/automata-figures'
-import { defineGame, inputs, keys, startGame } from '@mcthaydt/automata-game'
+import { defineGame, type GameSaves, inputs, keys, startGame } from '@mcthaydt/automata-game'
 import { createPixi3dRenderer, figure, render3dExtension } from '@mcthaydt/automata-render-pixi3d'
 import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { QualityTier } from '@mcthaydt/automata-runtime'
@@ -23,9 +23,10 @@ import { Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
+import { base3dSaves } from './screens/saves.ts'
 import { base3dScreens } from './screens/screens.ts'
-import { base3dSim } from './state.ts'
-import { compileArea } from './systems.ts'
+import { base3dSim } from './state/index.ts'
+import { compileArea } from './systems/index.ts'
 import {
   buildScene,
   FOG,
@@ -105,6 +106,8 @@ const TITLE = 'The Cold Kiln'
 const EXTENSIONS = [render3dExtension]
 /** The stage, once the renderer has made it: the screens give it the player's graphics quality (M4.4). */
 let stage: { setQuality(tier: QualityTier): void } | undefined
+/** The one slot (state/save.ts): the menu lists it, and play keeps the loaded one saved. One instance for both. */
+const saves = base3dSaves()
 
 export const base3d = defineGame({
   id: 'base-3d',
@@ -115,12 +118,14 @@ export const base3d = defineGame({
   extensions: EXTENSIONS,
   input,
   content: { ...BASE3D_FLOW, sim: BASE3D_SIM.content },
+  saves,
   // Splash, menu, room, paused, Settings and end (screens/screens.ts) over the flow in screens/flow.ts.
   screens: base3dScreens({
     title: TITLE,
     sim: BASE3D_SIM,
     input,
     extensions: EXTENSIONS,
+    saves: saves as GameSaves<unknown>,
     setQuality: (tier) => stage?.setQuality(tier),
   }),
   preload: PROPS.map((prop) => prop.file),

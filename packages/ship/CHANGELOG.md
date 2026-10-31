@@ -1,5 +1,19 @@
 # @mcthaydt/automata-ship
 
+## 0.0.4
+
+### Patch Changes
+
+- 57f411e: `prepare` and itch.io's `prepare --target itch` refuse a build that contains `@pixi/3d`, a closed beta, for a public target (`Pixi3dInPublicBuild`, M3 spec §4.8 X-b); `deploy-dev` and the new `publish --private`, which uploads only when `RUKEN_API` is Ruken's local stack (`PrivatePublishNotLocal` otherwise), allow it. Every build that contains `@pixi/3d/extras` is refused (`Pixi3dExtrasInBuild`, S7-g). `PrepareInput.audience`, `publishBuild`, `isLocalStack`, `findPixi3d` and the marker lists are exported.
+  
+  BREAKING: the API report counts `PrepareInput`'s new optional `audience` as a changed interface. Existing callers compile; a public `prepare` of a build without `@pixi/3d` behaves as before.
+- bb4e89d: Bundle Ruken's packages from RukenApp `e376a2d`, where they are MIT licensed. `VENDORED.md` names the new commit and hashes, and now also each bundled package's licence and the licence text, which MIT asks every copy of the code to carry. The bundled Ruken code itself is unchanged: every `dist/` is the same as at `d0fa2fe`.
+- 2687799: Bundle Ruken's packages from RukenApp `d0fa2fe` instead of `b30d31b` (`VENDORED.md` names the commit and hashes). The bundled `@ruken/sdk-host` and `@ruken/cli` now declare `zod` 4.6.6 (the SDK only as a dev dependency; `@ruken/manifest` does not use zod), so nothing in AF installs 4.6.5 (GHSA-mrhx-c7xc-m3w5). The SDK also trusts Ruken's private beta sites as hosts, and Ruken's host now answers `Hosting.leaderboards.get` with the player's own entry only; the call is unchanged.
+- 53d2743: The bundle secret scan reports a Slack token under gitleaks' own rule IDs, by prefix: `slack-bot-token` (`xoxb-`), `slack-user-token` (`xoxp-`), `slack-legacy-token` (`xoxs-`) and `slack-legacy-workspace-token` (`xoxa-`, `xoxr-`), instead of `slack-token`, which gitleaks 8.30.1 does not have. It finds the same strings as before and still calls each one "a Slack token"; only a Slack finding's `rule` changes.
+- b47e796: A game's ship config can declare `audience: 'private'`: `automata-ship prepare` then checks the build as private and writes no `ruken.toml` (M3 spec §4.8).
+- Updated dependencies [6dea6a0]
+  - @mcthaydt/automata-node@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes
