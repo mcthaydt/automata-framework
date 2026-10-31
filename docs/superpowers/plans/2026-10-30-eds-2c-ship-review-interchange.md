@@ -3,7 +3,7 @@
 - **Task:** EDS.2c in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §4.3 (`ChangeSet.ship`, `list`), §4.5 (journal), §4.8 (scene-interchange v2), §5 flows 9 to 11, §9 (`ship-dialog`, `review-desk`, `interchange`), §11 (failures), EDS-D10, EDS-D15, EDS-D19; acceptance EDS-j, EDS-o, EDS-p, EDS-p2, EDS-aa.
 - **Lane:** editors. **Depends on:** EDS.2b (#275, merged: the write path, the journal through `ChangeSet.record(files, writes)`, the pills), EDS.1a (documents), EDS.1d-a (the git change set's `ship` and `list`, merged). **Unblocks:** COLLAB.2, EDS.2d's import of scenes, every editor's Ship.
 - **Status:** Drafted 2026-10-30. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) once reviewed.
-- **Progress:** 6 of 12 steps (EDS.2c-a implemented and locally checked 2026-10-30; not CI verified).
+- **Progress:** 11 of 12 steps (EDS.2c-a #287 and EDS.2c-b implemented and locally checked; not CI verified).
 
 ## The split, and why
 
@@ -57,11 +57,11 @@ Each step: write the test, run `pnpm --filter @mcthaydt/automata-editor-suite ex
 
 ### EDS.2c-b, the UI
 
-- [ ] **7. Session wiring** — `src/shell/suite-session.ts`, `suite-session.test.ts`: `ship()`, `review()`, `exportScene()`, `planImport()`, `applyImport()` over the ports; a missing `changeSet` hides Ship (`canShip()` false).
-- [ ] **8. Ship dialog** — `ShipDialog.svelte`, `ShipDialog.dom.test.ts`: §9 states (ready, a check failing warns and still allows, pushing, pushed with PR, compare link only, push failed with the reason); the description is editable before Ship; EDS-j through the memory change set (PR URL, then compare link only).
-- [ ] **9. Review desk** — `ReviewDesk.svelte`, `ReviewDesk.dom.test.ts`: no open change set, gates not readable, a failing check, an approved gate still reopened; a Review rail entry opens it; it has no button that records.
-- [ ] **10. Export and Import** — `InterchangeDialog.svelte`, `InterchangeDialog.dom.test.ts`: export (format, files, the text to copy or save), import (paste or choose a file, the plan with changes, diffs, gates, checks and refusals; Apply 48 px, disabled unless applicable; a file moved on → "Plan again"); EDS-o, EDS-p and EDS-p2 as journeys; Apply then Undo.
-- [ ] **11. Layout** — `suite-ship.layout.test.ts`: the three dialogs at 1194×834, 834×1194, 1133×744 and 390×844: no overflow, primary actions 48 px, touch targets 44 px, the dialog scrolls in its own region; review images under `docs/evidence/owner-visual/2026-10-30-eds-2c/` with a README.
+- [x] **7. Session wiring** — `src/shell/suite-session.ts`, `suite-session.test.ts`: `canShip()`, `review()`, `draft()`, `ship()`, `exportGame(format, scene?)`, `planImport()`, `applyImport()` over the ports; a missing `changeSet` hides Ship (`canShip()` false).
+- [x] **8. Ship dialog** — `ShipDialog.svelte`, `ShipDialog.dom.test.ts`: §9 states (ready, a check failing warns and still allows, pushing, pushed with PR, compare link only, push failed with the reason); the description is editable before Ship; EDS-j through the memory change set (PR URL, then compare link only).
+- [x] **9. Review desk** — `ReviewDesk.svelte`, `ReviewDesk.dom.test.ts`: no open change set, gates not readable, a failing check, an approved gate still reopened; a Review rail entry opens it; it has no button that records.
+- [x] **10. Export and Import** — `InterchangeDialog.svelte`, `InterchangeDialog.dom.test.ts`: export (format, files, the text to copy or save), import (paste or choose a file, the plan with changes, diffs, gates, checks and refusals; Apply 48 px, disabled unless applicable; a file moved on → "Plan again"); EDS-o, EDS-p and EDS-p2 as journeys; Apply then Undo.
+- [x] **11. Layout** — `suite-ship.layout.test.ts`: the three dialogs at 1194×834, 834×1194, 1133×744 and 390×844: no overflow, primary actions 48 px, touch targets 44 px, the dialog scrolls in its own region; review images under `docs/evidence/owner-visual/2026-10-31-eds-2c-b/` with a README.
 - [ ] **12. Gates** — below.
 
 ## Gates
@@ -75,3 +75,9 @@ Each step: write the test, run `pnpm --filter @mcthaydt/automata-editor-suite ex
 - **Deviation:** the write-path test's `speed` check now fails when any candidate is over 9 (it read only the first); a one-file write is unchanged, and `writeAll` gives every file of a run as a candidate. Files that name the same `before` checks share one run.
 - **Deviation:** the import plan does not run the `before` checks itself; Apply's `writeAll` runs them on every candidate before writing and refuses with their findings (decision 3's check half). The plan lists the checks each change runs.
 - **Gates (EDS.2c-a):** `pnpm format`; `TURBO_FORCE=true pnpm check` passed (37 and 35 tasks); `pnpm api-report --update` (the suite's report, `./core`'s new exports); `pnpm changeset status --since=origin/main` and `check-changesets` (0 problems; the suite is private, so no changeset). No UI: no layout or parity runs.
+- **2026-10-31, steps 7 to 11 (EDS.2c-b).** `suite-session.test.ts` failed first ("canShip is not a function"), then 6 passed; `ReviewDesk.dom.test.ts` and `InterchangeDialog.dom.test.ts` failed first on the missing components, then 6 and 6 passed; `Suite.ship.dom.test.ts` (4 journeys: no Ship without the port, EDS-j, the Review entry, EDS-o with Undo) failed first on the missing wiring, then passed; `suite-ship.layout.test.ts` 72 passed (3 checks × 8 sizes × Chromium, WebKit, Firefox). The suite's `test:unit` 303 passed; `svelte-check` clean.
+- **Deviation:** `ShipDialog.svelte` was written before its DOM test (6 cases, passing on first run), not test first; its behaviour is also covered by the EDS-j journey, which failed first.
+- **Deviation:** with no editor open, the top bar's Undo and Redo step the suite's own history (an import from Home); with an editor open they still also step the editor's history, so an import followed by an editor's Undo is EDS.2d's to reconcile (follow-up), as is refreshing an open editor's session after an import writes its file.
+- **Deviation:** an `open` gate reads "open, no decision yet" on the desk and in the Ship draft (it read "open before this change"); `ship-draft.ts` (from EDS.2c-a) changed with a new case.
+- **Deviation:** Export and Import sit on Home above the cards; the scene picker that would export one scene is EDS.2d's, so Export takes the whole game for now (`exportGame(format, scene?)` already takes a scene).
+- **Gates (EDS.2c-b):** `pnpm format`; `TURBO_FORCE=true pnpm check` passed (37 and 35 tasks; the first run failed `pnpm style` on the word "checkout" in the Ship dialog, reworded); the suite's `test:layout` 195 passed in Chromium, WebKit and Firefox (the new file 72); `test:unit` 303. Private package: no changeset; `./core` exports unchanged.

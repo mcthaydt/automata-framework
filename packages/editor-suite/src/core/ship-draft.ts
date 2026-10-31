@@ -37,7 +37,9 @@ export function draftShip(review: ReviewChangeSet): { readonly title: string; re
     lines.push(
       gate.decision === 'unknown'
         ? `- ${gate.id}: state unknown${unreadable === undefined ? '' : ` (${unreadable})`}`
-        : `- ${gate.name} (${gate.id}): ${gate.decision} before this change, reopened by it.${gate.url === undefined ? '' : ` ${gate.url}`}`,
+        : gate.decision === 'open'
+          ? `- ${gate.name} (${gate.id}): open, no decision yet.${gate.url === undefined ? '' : ` ${gate.url}`}`
+          : `- ${gate.name} (${gate.id}): ${gate.decision} before this change, reopened by it.${gate.url === undefined ? '' : ` ${gate.url}`}`,
     )
   if (reopened.length === 0) lines.push('No gates.')
   else lines.push('', 'Gates still need the owner: the editor records no decision.')
