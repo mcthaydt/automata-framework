@@ -24,12 +24,16 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "peerDependencies": {
+    "@mcthaydt/automata-feel": "0.0.0",
     "@mcthaydt/automata-runtime": "0.0.3",
+    "@mcthaydt/automata-sim": "0.0.3",
     "@mcthaydt/automata-ui": "0.0.4",
     "svelte": "^5.57.1"
   },
   "devDependencies": {
+    "@mcthaydt/automata-feel": "workspace:*",
     "@mcthaydt/automata-runtime": "0.0.3",
+    "@mcthaydt/automata-sim": "0.0.3",
     "@mcthaydt/automata-ui": "0.0.4",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",

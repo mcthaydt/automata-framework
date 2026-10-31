@@ -128,10 +128,16 @@ importers:
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
         version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@mcthaydt/automata-sim':
+        specifier: file:../../.core/packs/automata-sim
+        version: file:.core/packs/automata-sim
       '@mcthaydt/automata-ui':
         specifier: file:../../.core/packs/automata-ui
         version: file:.core/packs/automata-ui(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
     devDependencies:
+      '@mcthaydt/automata-feel':
+        specifier: workspace:*
+        version: link:../feel
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
