@@ -3930,6 +3930,35 @@ interface WorkspaceScenario {
 function arrived(): Promise<void>;
 ```
 
+### `Contact` (interface)
+
+```ts
+interface Contact {
+    readonly id: number;
+    move(to: Point, extras?: ContactExtras): Promise<void>;
+    release(): Promise<void>;
+    cancel(): Promise<void>;
+}
+```
+
+### `ContactExtras` (interface)
+
+```ts
+interface ContactExtras {
+    readonly pressure?: number;
+    readonly tiltX?: number;
+    readonly tiltY?: number;
+    readonly size?: number;
+    readonly button?: number;
+}
+```
+
+### `createPointers` (function)
+
+```ts
+function createPointers(target: PointerTarget, options?: PointersOptions): Pointers;
+```
+
 ### `EditorSize` (interface)
 
 ```ts
@@ -3938,10 +3967,100 @@ interface EditorSize extends ReferenceSize {
 }
 ```
 
+### `IPAD_PROFILES` (const)
+
+```ts
+const IPAD_PROFILES: readonly IpadProfile[];
+```
+
+### `IPAD_USER_AGENT` (const)
+
+```ts
+const IPAD_USER_AGENT: string;
+```
+
+### `IpadProfile` (interface)
+
+```ts
+interface IpadProfile {
+    readonly name: string;
+    readonly width: number;
+    readonly height: number;
+}
+```
+
+### `journeyProject` (function)
+
+```ts
+function journeyProject<P>(provider: ProviderFactory<P>, options?: JourneyProjectOptions): JourneyProject<P>;
+```
+
+### `JourneyProjectOptions` (interface)
+
+```ts
+interface JourneyProjectOptions {
+    readonly include?: readonly string[];
+}
+```
+
 ### `Mode` (type)
 
 ```ts
 type Mode = 'wide' | 'medium' | 'compact';
+```
+
+### `Pointers` (interface)
+
+```ts
+interface Pointers {
+    down(kind: PointerKind, at: Point, extras?: ContactExtras): Promise<Contact>;
+    tap(at: Point, options?: Gesture): Promise<void>;
+    longPress(at: Point, options?: Gesture & {
+        readonly holdMs?: number;
+    }): Promise<void>;
+    drag(path: readonly Point[], options?: Gesture & ContactExtras): Promise<void>;
+    pinch(centre: Point, scale: number, options?: {
+        readonly distance?: number;
+        readonly steps?: number;
+    }): Promise<void>;
+    twist(centre: Point, radians: number, options?: {
+        readonly distance?: number;
+        readonly steps?: number;
+    }): Promise<void>;
+    pencilHover(path: readonly Point[]): Promise<void>;
+    pencilStroke(path: readonly Point[], extras?: ContactExtras): Promise<void>;
+    palm(at: Point): Promise<Contact>;
+}
+```
+
+### `PointersOptions` (interface)
+
+```ts
+interface PointersOptions {
+    readonly makeEvent?: (type: string, init: PointerEventInit) => Event;
+    readonly frame?: () => Promise<void>;
+    readonly wait?: (ms: number) => Promise<void>;
+}
+```
+
+### `PointerTarget` (interface)
+
+```ts
+interface PointerTarget {
+    getBoundingClientRect(): {
+        readonly left: number;
+        readonly top: number;
+    };
+    dispatchEvent(event: Event): boolean;
+}
+```
+
+### `ProviderFactory` (type)
+
+```ts
+type ProviderFactory<P> = (options: {
+    readonly contextOptions: JourneyContextOptions;
+}) => P;
 ```
 
 ### `ResizableGeometry` (interface)
@@ -3968,4 +4087,78 @@ const SIZES: readonly EditorSize[];
 
 ```ts
 function stubGeometry(width: number, height: number): ResizableGeometry;
+```
+
+### `turned` (const)
+
+```ts
+const turned: (profile: IpadProfile) => IpadProfile;
+```
+
+## `./journey-project`
+
+### `IPAD_USER_AGENT` (const)
+
+```ts
+const IPAD_USER_AGENT: string;
+```
+
+### `JourneyContextOptions` (interface)
+
+```ts
+interface JourneyContextOptions {
+    readonly hasTouch: boolean;
+    readonly deviceScaleFactor: number;
+    readonly userAgent: string;
+    readonly viewport: {
+        readonly width: number;
+        readonly height: number;
+    };
+}
+```
+
+### `JourneyProject` (interface)
+
+```ts
+interface JourneyProject<P> {
+    readonly extends: true;
+    readonly resolve: {
+        conditions: string[];
+    };
+    readonly contextOptions: JourneyContextOptions;
+    readonly test: {
+        name: 'journeys';
+        include: string[];
+        browser: {
+            enabled: true;
+            headless: true;
+            provider: P;
+            instances: {
+                browser: 'webkit';
+            }[];
+        };
+    };
+}
+```
+
+### `journeyProject` (function)
+
+```ts
+function journeyProject<P>(provider: ProviderFactory<P>, options?: JourneyProjectOptions): JourneyProject<P>;
+```
+
+### `JourneyProjectOptions` (interface)
+
+```ts
+interface JourneyProjectOptions {
+    readonly include?: readonly string[];
+}
+```
+
+### `ProviderFactory` (type)
+
+```ts
+type ProviderFactory<P> = (options: {
+    readonly contextOptions: JourneyContextOptions;
+}) => P;
 ```
