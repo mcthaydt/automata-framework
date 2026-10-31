@@ -42,7 +42,9 @@ export type PlanRendererFactory = (
  * A Pixi renderer on WebGL2, or `undefined` (AGENTS.md: WebGL2 is the default; editor-2d's level view keeps the same
  * rule). Pixi is asked for WebGL only, preferring version 2, and a renderer that came up on WebGL 1 anyway is refused.
  */
-async function createWebGL2Renderer(options: Partial<AutoDetectOptions>): Promise<Renderer | undefined> {
+export async function createWebGL2Renderer(
+  options: Partial<AutoDetectOptions>,
+): Promise<Renderer | undefined> {
   let renderer: Renderer
   try {
     renderer = await autoDetectRenderer({ ...options, preference: ['webgl'], preferWebGLVersion: 2 })

@@ -3,7 +3,7 @@
 - **Task:** ED3D.5e in [02](../../02-master-delivery-plan.md), the first part of milestone "ED3D.5e–7d" (with ED3D.5f and ED3D.7d; one branch, one PR when the milestone is done). [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §3 (ED3D-D6: an editor-private flat-shaded PixiJS v8 renderer of `buildSectorMesh`, not `@pixi/3d`), §6 (Dollhouse: sectors extruded with the near walls cut away; select and highlight; orbit, pitch 30° default; Split: Plan and Dollhouse side by side with one selection), §9 (the Split frame), §10 (wide: Split by default ... medium: the 3D modes replace Plan; touch: twist rotates the dollhouse), §11 / ED3-p (with WebGL unavailable or lost, Plan keeps working and the viewport offers a recover action). Mockup `Split · landscape`.
 - **Lane:** editors. **Depends on:** ED3D.5d (the Plan view in the shell), ED3D.4 (`buildSectorMesh`, `pickMesh`, `fitOrbit`, `orbitBy`, `projectPoint`, `rayThrough`, `surfaceVisibility`). All merged.
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 2 of 8 steps.
+- **Progress:** 4 of 8 steps.
 
 ## Scope
 
@@ -27,8 +27,8 @@
 
 - [x] 1. Plan (this file).
 - [x] 2. `dollhousePaint` (unit, red first): a floor and a wall of a toy room project inside the canvas; the near walls are cut and the far ones drawn; faded surfaces at alpha 0.25; polygons sorted far to near; a selected sector's surfaces carry the accent; a surface behind the eye is left out.
-- [ ] 3. `createDollhouseController` (unit, red first): `fit` frames the level's bounds; a drag of `dx` turns the yaw and `dy` the pitch (held to 5–85°); pinch and wheel change the distance; twist turns the yaw; a tap on the hall's floor selects `sector:hall`, a tap on the sky clears the selection; subscribers hear each change; the view's mode and the document are untouched.
-- [ ] 4. Renderer (Chromium canvas test, red first): a paint list's polygon colour at its middle; a later polygon drawn over an earlier one; pause and redraw on context loss and restore.
+- [x] 3. `createDollhouseController` (unit, red first): `fit` frames the level's bounds; a drag of `dx` turns the yaw and `dy` the pitch (held to 5–85°); pinch and wheel change the distance; twist turns the yaw; a tap on the hall's floor selects `sector:hall`, a tap on the sky clears the selection; subscribers hear each change; the view's mode and the document are untouched.
+- [x] 4. Renderer (Chromium canvas test, red first): a paint list's polygon colour at its middle; a later polygon drawn over an earlier one; pause and redraw on context loss and restore.
 - [ ] 5. `DollhouseCanvas` (DOM with a fake renderer): makes the renderer at its measured size and draws the framed level; a tap selects; the "can't draw" notice and Try again; the plan's selection outline follows.
 - [ ] 6. `DocumentFrame` and `modeOptions` (DOM): Split and 3D enabled at `wide`; Split shows both canvases, 3D the dollhouse alone; a selection made in one shows in the other and in the status line.
 - [ ] 7. Layout (three browsers): Split at the `wide` sizes: both viewports side by side filling the canvas region, the bar's views on screen at full size; 3D fills the region. Review images (Chromium, WebGL2) beside the `Split · landscape` mockup in `docs/evidence/owner-visual/2026-10-31-ed3d-5e/`.
@@ -36,3 +36,5 @@
 
 ## Execution log
 - 2026-10-31, step 2: `dollhouse-paint.test.ts` red (module missing), then 5 of 5. Hand-made surfaces, so each expectation is plain; colours by role scaled by the surface's shade over a 35% ambient.
+- 2026-10-31, step 3: `dollhouse-controller.test.ts` red (module missing), then 6 of 6. The orbit reframes on resize and on a new level only until it is moved by hand (as editor-2d's World camera).
+- 2026-10-31, step 4: the renderer test red (module missing), then 3 of 3 after one test fix: the outline pixel was on the stroke's edge (row 11 of a 2 px stroke centred on row 10). `createWebGL2Renderer` is now exported from `plan-renderer.ts` and shared, not copied. With the plan renderer's tests: 8 of 8.
