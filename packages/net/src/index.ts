@@ -40,6 +40,15 @@ export {
   type SessionEnd,
   type SessionRoomState,
 } from './session/net-session'
+export { MAX_DELAY_SECONDS, RenderClock, type RenderClockOptions } from './session/render-clock'
+export {
+  type BlendOptions,
+  blendViews,
+  type RemoteFields,
+  type RemoteView,
+  SnapshotBuffer,
+  type SnapshotBufferOptions,
+} from './session/snapshot-buffer'
 export { type ClientMessage, clientMessageSchema } from './wire/client-message.schema'
 export { type JoinOptions, joinOptionsSchema } from './wire/join-options.schema'
 export {
