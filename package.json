@@ -18,7 +18,8 @@
     "sync:stack": "node --import tsx scripts/sync-stack.ts",
     "sync:evidence": "node --import tsx scripts/sync-evidence.ts",
     "release": "node --import tsx scripts/release.ts",
-    "check:deployed": "node --import tsx scripts/check-deployed.ts"
+    "check:deployed": "node --import tsx scripts/check-deployed.ts",
+    "check:uptime": "node --import tsx scripts/check-uptime.ts"
   },
   "dependencies": {
     "@babel/parser": "8.0.10",
