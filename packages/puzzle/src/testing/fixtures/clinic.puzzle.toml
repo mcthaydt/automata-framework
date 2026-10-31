@@ -1,0 +1,920 @@
+# The adventure source's clinic puzzle (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/puzzle/scripts/convert-adventure-puzzles.ts. Do not edit.
+scene = "clinic"
+items = [ "lighter", "basin", "scalpel", "cloth", "torch", "bottle", "brassKey", "fuse", "fluid" ]
+
+[facts]
+bedSearched = false
+nightstand = 0
+trolley = 0
+monitorSeen = false
+monitorAlarm = 0
+cabinetOpen = false
+closetOpen = false
+shelfTaken = false
+valveShut = false
+fuseSeated = false
+power = false
+sighted = false
+curtainWest = "hanging"
+curtainEast = "hanging"
+basinFull = false
+fuel = 50
+exitOpen = false
+
+[[entry]]
+name = "start"
+items = [ "lighter" ]
+
+[[actions]]
+id = "curtainWest.douse"
+at = "curtainWest"
+use = "basin"
+say = "douse"
+
+[[actions.when]]
+fact = "basinFull"
+is = true
+
+[[actions.when]]
+fact = "curtainWest"
+is = "burning"
+
+[[actions.then]]
+set = "basinFull"
+to = false
+
+[[actions.then]]
+set = "curtainWest"
+to = "ash"
+
+[[actions]]
+id = "curtainEast.douse"
+at = "curtainEast"
+use = "basin"
+say = "douse"
+
+[[actions.when]]
+fact = "basinFull"
+is = true
+
+[[actions.when]]
+fact = "curtainEast"
+is = "burning"
+
+[[actions.then]]
+set = "basinFull"
+to = false
+
+[[actions.then]]
+set = "curtainEast"
+to = "ash"
+
+[[actions]]
+id = "puddle.pour"
+at = "puddle"
+use = "basin"
+say = ""
+
+[[actions.when]]
+fact = "basinFull"
+is = true
+
+[[actions.then]]
+call = "pourPuddle"
+
+[[actions]]
+id = "fuseBox.pour"
+at = "fuseBox"
+use = "basin"
+say = ""
+
+[[actions.when]]
+fact = "basinFull"
+is = true
+
+[[actions.then]]
+call = "pourFuseBox"
+
+[[actions]]
+id = "bed.search"
+at = "bed"
+say = "bedFirst"
+seconds = 3
+
+[[actions.when]]
+fact = "bedSearched"
+is = false
+
+[[actions.then]]
+set = "bedSearched"
+to = true
+
+[[actions.then]]
+give = "scalpel"
+
+[[actions]]
+id = "bed.again"
+at = "bed"
+then = []
+say = "bed"
+
+[[actions]]
+id = "monitor.read"
+at = "monitor"
+say = "monitorFirst"
+seconds = 3
+
+[[actions.when]]
+fact = "monitorSeen"
+is = false
+
+[[actions.then]]
+set = "monitorSeen"
+to = true
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "monitor.busy"
+at = "monitor"
+then = []
+say = "monitorBusy"
+
+[[actions.when]]
+fact = "monitorAlarm"
+atLeast = 5e-324
+
+[[actions]]
+id = "monitor.alarm"
+at = "monitor"
+say = "monitorAlarm"
+
+[[actions.then]]
+set = "monitorAlarm"
+to = 9
+
+[[actions.then]]
+[actions.then.noise]
+loudness = 10
+kind = "beep"
+
+[actions.then.noise.at]
+x = -2.3
+z = -0.3
+
+[[actions]]
+id = "curtainWest.burning"
+at = "curtainWest"
+then = []
+say = "curtainBurning"
+
+[[actions.when]]
+fact = "curtainWest"
+is = "burning"
+
+[[actions]]
+id = "curtainWest.gone"
+at = "curtainWest"
+then = []
+say = "curtainGone"
+
+[[actions.when]]
+[actions.when.not]
+fact = "curtainWest"
+is = "hanging"
+
+[[actions]]
+id = "curtainWest.noFuel"
+at = "curtainWest"
+use = "lighter"
+then = []
+say = "lighterEmpty"
+
+[[actions.when]]
+fact = "fuel"
+atMost = 0
+
+[[actions]]
+id = "curtainWest.light"
+at = "curtainWest"
+use = "lighter"
+say = "curtainLit"
+
+[[actions.then]]
+call = "ignite"
+
+[[actions]]
+id = "curtainWest.torch"
+at = "curtainWest"
+use = "torch"
+say = "curtainLit"
+
+[[actions.then]]
+call = "ignite"
+
+[[actions]]
+id = "curtainWest.cut"
+at = "curtainWest"
+use = "scalpel"
+say = "curtainCut"
+
+[[actions.then]]
+set = "curtainWest"
+to = "cut"
+
+[[actions.then]]
+give = "cloth"
+
+[[actions]]
+id = "curtainWest.look"
+at = "curtainWest"
+then = []
+say = "curtain"
+
+[[actions]]
+id = "curtainEast.burning"
+at = "curtainEast"
+then = []
+say = "curtainBurning"
+
+[[actions.when]]
+fact = "curtainEast"
+is = "burning"
+
+[[actions]]
+id = "curtainEast.gone"
+at = "curtainEast"
+then = []
+say = "curtainGone"
+
+[[actions.when]]
+[actions.when.not]
+fact = "curtainEast"
+is = "hanging"
+
+[[actions]]
+id = "curtainEast.noFuel"
+at = "curtainEast"
+use = "lighter"
+then = []
+say = "lighterEmpty"
+
+[[actions.when]]
+fact = "fuel"
+atMost = 0
+
+[[actions]]
+id = "curtainEast.light"
+at = "curtainEast"
+use = "lighter"
+say = "curtainLit"
+
+[[actions.then]]
+call = "ignite"
+
+[[actions]]
+id = "curtainEast.torch"
+at = "curtainEast"
+use = "torch"
+say = "curtainLit"
+
+[[actions.then]]
+call = "ignite"
+
+[[actions]]
+id = "curtainEast.cut"
+at = "curtainEast"
+use = "scalpel"
+say = "curtainCut"
+
+[[actions.then]]
+set = "curtainEast"
+to = "cut"
+
+[[actions.then]]
+give = "cloth"
+
+[[actions]]
+id = "curtainEast.look"
+at = "curtainEast"
+then = []
+say = "curtain"
+
+[[actions]]
+id = "scratches.read"
+at = "scratches"
+say = "scratches"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "nightstand.basin"
+at = "nightstand"
+say = "nightstandBasin"
+
+[[actions.when]]
+fact = "nightstand"
+is = 0
+
+[[actions.then]]
+set = "nightstand"
+to = 1
+
+[[actions.then]]
+give = "basin"
+
+[[actions]]
+id = "nightstand.bottle"
+at = "nightstand"
+say = "nightstandBottle"
+
+[[actions.when]]
+fact = "nightstand"
+is = 1
+
+[[actions.then]]
+set = "nightstand"
+to = 2
+
+[[actions.then]]
+give = "bottle"
+
+[[actions]]
+id = "nightstand.empty"
+at = "nightstand"
+then = []
+say = "nightstandEmpty"
+
+[[actions]]
+id = "trolley.bottle"
+at = "trolley"
+say = "trolleyBottle"
+
+[[actions.when]]
+fact = "trolley"
+is = 0
+
+[[actions.then]]
+set = "trolley"
+to = 1
+
+[[actions.then]]
+give = "bottle"
+
+[[actions]]
+id = "trolley.empty"
+at = "trolley"
+then = []
+say = "trolleyEmpty"
+
+[[actions]]
+id = "sink.full"
+at = "sink"
+then = []
+say = "sinkFull"
+
+[[actions.when]]
+has = "basin"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = ""
+
+[[actions.when.any]]
+fact = "held"
+is = "basin"
+
+[[actions.when]]
+fact = "basinFull"
+is = true
+
+[[actions]]
+id = "sink.fill"
+at = "sink"
+say = "sinkFill"
+
+[[actions.when]]
+has = "basin"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = ""
+
+[[actions.when.any]]
+fact = "held"
+is = "basin"
+
+[[actions.then]]
+set = "basinFull"
+to = true
+
+[[actions]]
+id = "sink.look"
+at = "sink"
+then = []
+say = "sink"
+
+[[actions]]
+id = "wheelchair.read"
+at = "wheelchair"
+say = "wheelchair"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "record.read"
+at = "record"
+say = "record"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "register.read"
+at = "register"
+say = "register"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "noticeboard.read"
+at = "noticeboard"
+say = "noticeboard"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "clock.read"
+at = "clock"
+say = "clock"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "scrawl.read"
+at = "scrawl"
+say = "scrawl"
+seconds = 3
+
+[[actions.then]]
+call = "read"
+
+[[actions]]
+id = "cabinet.open"
+at = "cabinet"
+then = []
+say = "cabinetOpen"
+
+[[actions.when]]
+fact = "cabinetOpen"
+is = true
+
+[[actions]]
+id = "cabinet.keypad"
+at = "cabinet"
+say = ""
+
+[[actions.then]]
+keypad = true
+
+[[actions]]
+id = "closetDoor.bolt"
+at = "closetDoor"
+say = ""
+
+[[actions.when]]
+fact = "closetOpen"
+is = true
+
+[[actions.when]]
+fact = "held"
+is = ""
+
+[[actions.then]]
+call = "bolt"
+
+[[actions]]
+id = "closetDoor.open"
+at = "closetDoor"
+then = []
+say = "doorOpen"
+
+[[actions.when]]
+fact = "closetOpen"
+is = true
+
+[[actions]]
+id = "closetDoor.unlock"
+at = "closetDoor"
+say = "doorOpened"
+
+[[actions.when]]
+has = "brassKey"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = ""
+
+[[actions.when.any]]
+fact = "held"
+is = "brassKey"
+
+[[actions.then]]
+set = "closetOpen"
+to = true
+
+[[actions.then]]
+take = "brassKey"
+
+[[actions.then]]
+checkpoint = true
+
+[[actions]]
+id = "closetDoor.locked"
+at = "closetDoor"
+then = []
+say = "doorLocked"
+
+[[actions]]
+id = "shelf.take"
+at = "shelf"
+say = "shelfFuse"
+seconds = 3
+
+[[actions.when]]
+fact = "shelfTaken"
+is = false
+
+[[actions.then]]
+set = "shelfTaken"
+to = true
+
+[[actions.then]]
+give = "fuse"
+
+[[actions.then]]
+give = "fluid"
+
+[[actions.then]]
+checkpoint = true
+
+[[actions]]
+id = "shelf.empty"
+at = "shelf"
+then = []
+say = "shelfEmpty"
+
+[[actions]]
+id = "valve.done"
+at = "valve"
+then = []
+say = "valveDone"
+
+[[actions.when]]
+fact = "valveShut"
+is = true
+
+[[actions]]
+id = "valve.shut"
+at = "valve"
+say = "valveShut"
+seconds = 3
+
+[[actions.then]]
+set = "valveShut"
+to = true
+
+[[actions]]
+id = "fuseBox.on"
+at = "fuseBox"
+then = []
+say = "fuseOn"
+
+[[actions.when]]
+fact = "power"
+is = true
+
+[[actions]]
+id = "fuseBox.retry"
+at = "fuseBox"
+say = ""
+
+[[actions.when]]
+fact = "fuseSeated"
+is = true
+
+[[actions.then]]
+call = "throwBreaker"
+
+[[actions]]
+id = "fuseBox.seat"
+at = "fuseBox"
+say = ""
+seconds = 3
+
+[[actions.when]]
+has = "fuse"
+
+[[actions.when]]
+[[actions.when.any]]
+fact = "held"
+is = ""
+
+[[actions.when.any]]
+fact = "held"
+is = "fuse"
+
+[[actions.then]]
+take = "fuse"
+
+[[actions.then]]
+set = "fuseSeated"
+to = true
+
+[[actions.then]]
+call = "throwBreaker"
+
+[[actions]]
+id = "fuseBox.look"
+at = "fuseBox"
+say = ""
+
+[[actions.then]]
+call = "lookFuseBox"
+
+[[actions]]
+id = "puddle.use"
+at = "puddle"
+say = ""
+
+[[actions.then]]
+call = "puddle"
+
+[[actions]]
+id = "exit.locked"
+at = "exit"
+then = []
+say = "exitLocked"
+
+[[actions.when]]
+fact = "power"
+is = false
+
+[[actions]]
+id = "exit.leave"
+at = "exit"
+say = ""
+
+[[actions.then]]
+set = "exitOpen"
+to = true
+
+[[actions.then]]
+cutscene = "exit"
+
+[[actions]]
+id = "floor.bottle"
+at = "floor"
+use = "bottle"
+say = ""
+
+[[actions.then]]
+call = "throwBottle"
+
+[[actions]]
+id = "floor.basin"
+at = "floor"
+use = "basin"
+say = ""
+
+[[actions.when]]
+fact = "basinFull"
+is = true
+
+[[actions.then]]
+call = "pourFloor"
+
+[[actions]]
+id = "combine.torch"
+at = "combine"
+use = [ "lighter", "cloth" ]
+say = ""
+
+[[actions.then]]
+call = "tools"
+
+[[actions]]
+id = "combine.fluid"
+at = "combine"
+use = [ "lighter", "fluid" ]
+say = ""
+
+[[actions.then]]
+call = "tools"
+
+[[actions]]
+id = "code.open"
+at = "code"
+then = []
+say = ""
+
+[[actions.when]]
+fact = "cabinetOpen"
+is = true
+
+[[actions]]
+id = "code.wrong"
+at = "code"
+say = "keypadWrong"
+
+[[actions.when]]
+[actions.when.not]
+fact = "code"
+is = "0417"
+
+[[actions.then]]
+[actions.then.noise]
+at = "cabinet"
+loudness = 4
+kind = "buzz"
+
+[[actions]]
+id = "code.right"
+at = "code"
+say = "keypadRight"
+
+[[actions.then]]
+set = "cabinetOpen"
+to = true
+
+[[actions.then]]
+give = "brassKey"
+
+[[actions.then]]
+checkpoint = true
+
+[[systemic]]
+id = "nurseLured"
+note = "A loud noise (a thrown bottle, the monitor alarm, the fire alarm) draws her to it."
+via = [ "floor.bottle", "monitor.alarm", "curtainWest.light", "curtainEast.light" ]
+risk = "chase"
+
+[[systemic.enables]]
+fact = "nurseLured"
+is = true
+
+[[systemic]]
+id = "nurseStunned"
+note = "A breaker short while she stands in the water stuns her; the water is live for Ada too."
+via = [ "fuseBox.pour", "fuseBox.seat" ]
+risk = "lethal"
+
+[[systemic.enables]]
+fact = "nurseStunned"
+is = true
+
+[[systemic]]
+id = "nurseBarred"
+note = "The supply room door bolted from inside holds her at it a while; then the bolt slides back by itself (F14)."
+via = [ "closetDoor.bolt" ]
+risk = "chase"
+
+[[systemic.enables]]
+fact = "nurseBarred"
+is = true
+
+[[systemic]]
+id = "nurseRepelled"
+note = "Light (the lighter, the torch, a lamp) keeps her back."
+via = [ "combine.torch" ]
+
+[[systemic.enables]]
+fact = "nurseRepelled"
+is = true
+
+[[lethal]]
+id = "liveWater"
+rule = "R6: a live puddle kills Ada."
+hintedBy = [ "puddle.use", "fuseBox.look" ]
+
+[[lethal]]
+id = "nurseCatch"
+rule = "R1: she catches Ada in the dark; with the lighter and 20 s of fuel Ada can hold the flame up instead (the grapple, once a minute), and she steps back."
+hintedBy = [ "noticeboard.read" ]
+
+[[goal]]
+fact = "exitOpen"
+is = true
+
+[fallback]
+"*" = "noEffect"
+floor = "noEffect"
+combine = "noEffect"
+
+[hotspots.bed]
+x = -4.1
+z = 0.6
+
+[hotspots.monitor]
+x = -2.4
+z = -3.3
+
+[hotspots.curtainWest]
+x = -3
+z = -0.66
+
+[hotspots.curtainEast]
+x = -2.35
+z = 1.55
+
+[hotspots.nightstand]
+x = -3.12
+z = -0.3
+
+[hotspots.record]
+x = -2.2
+z = 3.3
+
+[hotspots.sink]
+x = -4.85
+z = 3
+
+[hotspots.trolley]
+x = 2.3
+z = 2.4
+
+[hotspots.register]
+x = 2.95
+z = 1.5
+
+[hotspots.cabinet]
+x = 4.8
+z = 3.6
+
+[hotspots.noticeboard]
+x = 3.3
+z = -0.86
+
+[hotspots.clock]
+x = 4.45
+z = -0.86
+
+[hotspots.wheelchair]
+x = -4.2
+z = 1.9
+
+[hotspots.scratches]
+x = -4.86
+z = -2.4
+
+[hotspots.closetDoor]
+x = 1.5
+z = -4
+
+[hotspots.shelf]
+x = 4
+z = -4.5
+
+[hotspots.valve]
+x = 2.4
+z = -6.35
+
+[hotspots.fuseBox]
+x = -1.45
+z = -4.1
+
+[hotspots.puddle]
+x = -1.05
+z = -4.1
+
+[hotspots.scrawl]
+x = 1.45
+z = -5.8
+
+[hotspots.exit]
+x = 0
+z = -6.55
+
+[hotspots.locker]
+x = 3.94
+z = -5.9
+
+[hotspots.screen]
+x = -2.75
+z = -2.55

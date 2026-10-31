@@ -10,5 +10,13 @@
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },
   "javascript": { "formatter": { "quoteStyle": "single", "semicolons": "asNeeded" } },
-  "linter": { "enabled": true, "rules": { "preset": "recommended" } }
+  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
+  "overrides": [
+    {
+      // M6.6a: an action's effects are its `then` member, the puzzle contract's own name (M6 spec §4.5 keeps the
+      // contract's shape), so a def is an object with a `then` key. No puzzle object is ever awaited.
+      "includes": ["packages/puzzle/**"],
+      "linter": { "rules": { "suspicious": { "noThenProperty": "off" } } }
+    }
+  ]
 }
