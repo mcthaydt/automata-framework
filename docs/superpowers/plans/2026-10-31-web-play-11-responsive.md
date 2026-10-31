@@ -47,18 +47,18 @@
 
 ## Steps (each test fails first, for the reason given)
 
-- [ ] 1. A-14 height-only at 375 px. Expected to pass from the start (the preview's size follows its width): kept as
+- [x] 1. A-14 height-only at 375 px. Expected to pass from the start (the preview's size follows its width): kept as
   the spec's named guard, and recorded.
-- [ ] 2. A-14 Preview toggle at 375×667 and its absence at 1280×800. Fails: no button.
-- [ ] 3. A-14 layouts: one column at 375; side by side and sticky at 768 and 1280; at 780×270 the preview panel's
+- [x] 2. A-14 Preview toggle at 375×667 and its absence at 1280×800. Fails: no button.
+- [x] 3. A-14 layouts: one column at 375; side by side and sticky at 768 and 1280; at 780×270 the preview panel's
   bottom is within the viewport. Fails at 780×270: the 16:10 preview is taller than the room left.
-- [ ] 4. A-14 sizes: every button and link in `.playground` ≥ 44×44 at the four sizes, Play 48 high; a Fullscreen
+- [x] 4. A-14 sizes: every button and link in `.playground` ≥ 44×44 at the four sizes, Play 48 high; a Fullscreen
   button exists. Fails: no Fullscreen.
-- [ ] 5. Fullscreen: pressing it makes `.preview-panel` the fullscreen element (Chromium); a refused request shows the
+- [x] 5. Fullscreen: pressing it makes `.preview-panel` the fullscreen element (Chromium); a refused request shows the
   message. Fails: no button.
-- [ ] 6. A-16 soak. Expected to pass (the orchestrator's two-frame rule is unit-tested): kept as the acceptance test.
-- [ ] 7. A-15 axe with the editor open at 375 and 1280.
-- [ ] 8. Minimal code for 2 to 5; all of 1 to 7 pass on Chromium and WebKit.
+- [x] 6. A-16 soak. Expected to pass (the orchestrator's two-frame rule is unit-tested): kept as the acceptance test.
+- [x] 7. A-15 axe with the editor open at 375 and 1280.
+- [x] 8. Minimal code for 2 to 5; all of 1 to 7 pass on Chromium and WebKit.
 - [ ] 9. Measurements: the §10.2 latency rows in Chromium with 4× CPU (CDP `Emulation.setCPUThrottlingRate`) in this
   container, labelled as indicative (the budget's machine is `af-mac`); `pnpm lighthouse`. Owner screenshots of the four
   layouts and the toggle.
@@ -90,3 +90,17 @@ Chromium and WebKit, then the full e2e once. `pnpm lighthouse` if it runs in thi
 
 - 2026-10-31: plan written by the website lane (session_01QYLU1fQBPTit3AUJBJS4gT). Worktree `/home/user/wt/play11`,
   branch `claude/website-WEB.PLAY.11-responsive` from WEB.PLAY.10's head `fa39095`.
+- Steps 1 to 7 first run (Chromium): the height-only test and "no Preview toggle when side by side" passed from the
+  start, as guards (the preview's size already followed its width; there was no toggle to show). The toggle test
+  failed: no button. The four layout tests failed: no Fullscreen button. At 780×270 the panel was 254.5 px tall with
+  196 px of room. Both Fullscreen tests failed: no button. Axe with the editor open passed at 375 and 1280.
+- The soak failed twice, both times on the 30 s test timeout (fifty edits at the quiet period's pace take about 12 s
+  before the last run settles), not on frames. It now has a 90 s timeout and says what it saw while it waits: 3/3 on
+  Chromium and WebKit.
+- Step 8: the toggle in `CodePanel` (hidden by the container query at 700 px), `previewShown` and a `ResizeObserver`
+  for one column in `Playground` (a toggled-off preview is shown and takes input again once the playground widens),
+  Fullscreen with its message in `PreviewPanel`, and the short-height cap
+  (`@media (max-height: 499.98px)` around `@container playground (min-width: 700px)`).
+- Gates after step 8: `pnpm check` 0 errors; `pnpm test` 435 passed + 1 expected fail; `pnpm build` done;
+  `pnpm check:site` 45 pages; `playground.e2e.ts`, `site.e2e.ts` and `playground-layout.e2e.ts` 767 passed on
+  Chromium and WebKit (29.0 min).
