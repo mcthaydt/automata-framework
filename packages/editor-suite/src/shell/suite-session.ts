@@ -23,8 +23,10 @@ export interface SuiteSessionOptions {
 }
 
 export interface SuiteSession {
-  /** The ports editors are opened with. */
+  /** The ports the suite's own writes take (an import). */
   readonly ports: SuitePorts
+  /** The ports an editor is opened with: its writes join its own history on the write path (EDS-D19). */
+  portsFor(editor: string): SuitePorts
   readonly writePath: WritePath
   pills(): readonly Pill[]
   /** The open change set's tokens, when there is one. */
@@ -35,9 +37,9 @@ export interface SuiteSession {
   asking(): boolean
   /** The person's title, or `undefined` for Cancel. */
   answerTitle(title: string | undefined): void
-  /** The write path's undo or redo, its `after` checks followed on the pills; `undefined` with nothing to do. */
-  undo(): Promise<WriteOutcome | undefined>
-  redo(): Promise<WriteOutcome | undefined>
+  /** `owner`'s undo or redo on the write path, its `after` checks followed on the pills; `undefined` with nothing to do. */
+  undo(owner?: string): Promise<WriteOutcome | undefined>
+  redo(owner?: string): Promise<WriteOutcome | undefined>
   /** Reads the journal and the gate records again. */
   refresh(): Promise<void>
   /** True when there is a change set port, so Ship is shown. */
@@ -146,20 +148,23 @@ export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions
     )
   }
 
-  const session: SuiteSession = {
-    ports: {
-      ...raw,
-      workspace: {
-        ...raw.workspace,
-        async write(path, text) {
-          const outcome = await writePath.write(path, text, session.label())
-          const mtime = (await raw.workspace.read(path))?.mtime
-          await refresh()
-          void follow(outcome)
-          return resultOf(outcome, mtime)
-        },
+  const portsFor = (owner: string): SuitePorts => ({
+    ...raw,
+    workspace: {
+      ...raw.workspace,
+      async write(path, text) {
+        const outcome = await writePath.write(path, text, session.label(), owner)
+        const mtime = (await raw.workspace.read(path))?.mtime
+        await refresh()
+        void follow(outcome)
+        return resultOf(outcome, mtime)
       },
     },
+  })
+
+  const session: SuiteSession = {
+    ports: portsFor(''),
+    portsFor,
     writePath,
     pills: () => pills,
     tokens: () => tokens,
@@ -171,13 +176,13 @@ export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions
       resolve?.(value)
       changed()
     },
-    async undo() {
-      const outcome = await writePath.undo()
+    async undo(owner) {
+      const outcome = await writePath.undo(owner)
       if (outcome !== undefined) void follow(outcome)
       return outcome
     },
-    async redo() {
-      const outcome = await writePath.redo()
+    async redo(owner) {
+      const outcome = await writePath.redo(owner)
       if (outcome !== undefined) void follow(outcome)
       return outcome
     },

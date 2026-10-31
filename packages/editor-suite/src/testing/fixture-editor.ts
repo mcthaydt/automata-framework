@@ -1,4 +1,4 @@
-// A suite editor for the DOM and layout tests (no shipped editor has a suite session yet, EDS.2d): one TOML file, a
+// A suite editor for the DOM and layout tests (beside the level editors EDS.2d mounts): one TOML file, a
 // kit history of its whole text, a "Raise speed" control that adds one to the first number and writes the result
 // through the ports it was opened with, and the Undo and Ask hooks. A refused write takes its own step back, as a kit
 // widget's refusal state keeps the old value. `locked` holds the key paths the test locks for the session.

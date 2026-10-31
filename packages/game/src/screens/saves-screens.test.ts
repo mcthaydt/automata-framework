@@ -191,6 +191,18 @@ describe('default screens with a save (M5.2)', () => {
     await until(() => document.activeElement === button('save-slots-new'), 'focus on New game')
   })
 
+  it('names the slots and their actions in the game’s words from copy.screens (DX.2d)', async () => {
+    await boot({
+      copy: {
+        screens: {
+          saves: { slots: { slot: (slot) => `Emplacement ${slot + 1}`, newGame: 'Nouvelle partie' } },
+        },
+      },
+    })
+    expect(row(0)?.textContent).toContain('Emplacement 1')
+    expect(button('save-slots-new')?.textContent).toContain('Nouvelle partie')
+  })
+
   it('New game writes the starting data to the chosen slot with its label, and plays', async () => {
     await boot()
     row(1)?.click()
@@ -340,6 +352,13 @@ describe('default screens with a save (M5.2)', () => {
       await until(() => line()?.dataset.state === 'saved', 'the host to have saved')
       expect(line()?.textContent).toContain('Progress saved')
       expect(line()?.getAttribute('role')).toBe('status')
+    })
+
+    it('says it in the game’s words from copy.screens (DX.2d)', async () => {
+      await boot({ copy: { screens: { saves: { status: { saved: 'Progression enregistrée' } } } } })
+      await pauseInNewGame()
+      await until(() => line()?.dataset.state === 'saved', 'the host to have saved')
+      expect(line()?.textContent).toContain('Progression enregistrée')
     })
 
     it('shows no status on a game without a save', async () => {

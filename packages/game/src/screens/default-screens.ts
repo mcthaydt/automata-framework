@@ -9,6 +9,7 @@ import {
   Haptics,
   inputSettingsSchema,
   Leaderboards,
+  Locale,
   makeInput,
   PresentationBus,
   type QualityTier,
@@ -20,7 +21,7 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { type ExtensionDef, resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { CursorRunner, InputMethodTracker, type LeaderboardCopy, sendBack } from '@mcthaydt/automata-ui'
+import { CursorRunner, InputMethodTracker, sendBack } from '@mcthaydt/automata-ui'
 import { Effect, Scope, SubscriptionRef } from 'effect'
 import type { GameSaves } from '../define-game.ts'
 import type { InputMap } from '../input/keys.ts'
@@ -28,7 +29,6 @@ import { applyAudio, changeAudio, savedAudio } from './audio-settings.ts'
 import { savedHaptics } from './haptics-settings.ts'
 import PausedScreen from './PausedScreen.svelte'
 import PlayScreen from './PlayScreen.svelte'
-import { CHANGED_ELSEWHERE_TOAST } from './saves-copy.ts'
 import { pausedSaves } from './saves-paused.ts'
 import type { SavesStart } from './saves-start.ts'
 import { titleSaves } from './saves-title.ts'
@@ -44,6 +44,8 @@ import {
   show,
   windowOf,
 } from './screen-kit.ts'
+import { type LiveScreensCopy, screensCopy } from './screens-copy.svelte.ts'
+import type { ScreensCopyInput } from './screens-copy.ts'
 import { settingsScreen } from './settings-screen.svelte.ts'
 import TitleScreen from './TitleScreen.svelte'
 
@@ -67,17 +69,8 @@ export interface ScreensGame {
   readonly saves?: GameSaves<unknown> | undefined
   /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
   readonly extensions?: readonly ExtensionDef[] | undefined
-}
-
-/** The board's words on the default paused screen. English, like the other default screens' words (02 follow-up). */
-const BOARD_COPY: LeaderboardCopy = {
-  title: 'Scores',
-  loading: 'Loading scores…',
-  empty: 'No scores yet',
-  unavailable: "Scores aren't available here",
-  offline: "You're offline",
-  you: 'You',
-  more: (count) => `+${count} more`,
+  /** The game's words for these screens (`GameSpec.copy.screens`, DX.2d), over the English defaults. */
+  readonly copy?: ScreensCopyInput | undefined
 }
 
 const asRecord = (value: unknown): Record<string, unknown> =>
@@ -94,6 +87,11 @@ const asRecord = (value: unknown): Record<string, unknown> =>
  * play restores the sim's own snapshot, which makes the next step a resync.
  */
 export function defaultScreens(game: ScreensGame): ScreenDef[] {
+  /** The screens' words in the player's language, re-read on each change, for as long as the screen is open. */
+  const words: Effect.Effect<LiveScreensCopy, never, Locale | Scope.Scope> = Effect.flatMap(
+    Locale,
+    (locale) => screensCopy(game.copy, locale),
+  )
   // The pads already told they are not supported (M4 spec §6), for the whole session.
   const toldPads = new Set<string>()
   let sim: Sim | undefined
@@ -161,7 +159,8 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
                   play()
                 },
               } satisfies SavesStart)
-        yield* show(TitleScreen, layer, { title: game.title, onPlay: play, saves })
+        const copy = yield* words
+        yield* show(TitleScreen, layer, { title: game.title, onPlay: play, saves, copy })
         // Enter or Space anywhere on the title plays; on a focused button the button's own click does.
         if (saves === undefined)
           yield* listen(target, 'keydown', (event) => {
@@ -173,7 +172,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         // Nothing on the title takes Back, so a back step leaves the game.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
-        yield* noticeUnsupportedPads(layer, toldPads)
+        yield* noticeUnsupportedPads(layer, toldPads, () => copy.current.padUnsupported)
       }),
   }
 
@@ -232,9 +231,10 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
         const detachCursor = cursor.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
-        yield* noticeUnsupportedPads(layer, toldPads)
+        const copy = yield* words
+        yield* noticeUnsupportedPads(layer, toldPads, () => copy.current.padUnsupported)
         if (game.saves !== undefined)
-          yield* noticeChangedElsewhere(layer, game.saves.def.key, CHANGED_ELSEWHERE_TOAST)
+          yield* noticeChangedElsewhere(layer, game.saves.def.key, copy.current.saves.changedElsewhereToast)
         appLoop.run({
           sim: running,
           commands: (tick) => {
@@ -282,6 +282,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const detach = tracker.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(detach))
         yield* show(PlayScreen, layer, {
+          copy,
           onPause: pause,
           tracker,
           touchButtons: game.input?.touch === false ? [] : (game.input?.touchButtons ?? []),
@@ -301,7 +302,6 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const flow = yield* Flow
         const time = yield* Time
         const target = windowOf(layer)
-        const message = reconnect ? 'Reconnect your controller' : undefined
         // Any device that reaches Resume or Quit lets the game go on (M4 spec §5, pad hot-plug).
         const clearReconnect = (): void => {
           reconnect = false
@@ -320,7 +320,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const board =
           game.board === undefined
             ? undefined
-            : { copy: BOARD_COPY, load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
+            : { load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
         const settings = (): void => void flow.dispatch('settings')
         // Load newer replaces the sim with the other device's progress and plays on from it.
         const saves =
@@ -337,20 +337,22 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         // Mute is the Audio group's setting (M5.4), as FloorFifty's pause has it.
         const { store } = yield* Settings
         const targets = { audio: yield* Audio, buses: yield* AudioBuses }
+        const copy = yield* words
         yield* show(PausedScreen, layer, {
+          copy,
           onResume: resume,
           onQuit: quit,
           onSettings: settings,
           muted: savedAudio(store).muted,
           onMute: (muted: boolean) => changeAudio(targets, store, { ...savedAudio(store), muted }),
-          message,
+          reconnect,
           board,
           saves,
         })
         // Escape is the dialog's (Modal): it steps back from the Quit confirm, and from the menu it resumes.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
-        yield* noticeUnsupportedPads(layer, toldPads)
+        yield* noticeUnsupportedPads(layer, toldPads, () => copy.current.padUnsupported)
       }),
   }
 

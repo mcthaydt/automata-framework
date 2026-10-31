@@ -7,14 +7,17 @@
 <script lang="ts">
 import { ActionBar, SaveSlots, ScreenFrame } from '@mcthaydt/automata-ui'
 import type { TitleSaves } from './saves-title.ts'
+import type { LiveScreensCopy } from './screens-copy.svelte.ts'
 
 interface Props {
   title: string
   onPlay: () => void
   saves?: TitleSaves | undefined
+  /** The screens' words in the player's language (DX.2d). */
+  copy: LiveScreensCopy
 }
 
-const { title, onPlay, saves }: Props = $props()
+const { title, onPlay, saves, copy }: Props = $props()
 </script>
 
 {#snippet body()}
@@ -28,7 +31,7 @@ const { title, onPlay, saves }: Props = $props()
       <div class="af-game-menu__slots">
         <SaveSlots
           view={saves.model.view}
-          copy={saves.copy}
+          copy={copy.current.saves.slots}
           formatTime={saves.formatTime}
           onload={saves.onLoad}
           onnew={saves.onNew}
@@ -40,7 +43,7 @@ const { title, onPlay, saves }: Props = $props()
 {/snippet}
 
 {#snippet actions()}
-  <ActionBar actions={[{ id: 'play', label: 'Play', kind: 'primary', onSelect: onPlay }]} />
+  <ActionBar actions={[{ id: 'play', label: copy.current.title.play, kind: 'primary', onSelect: onPlay }]} />
 {/snippet}
 
 <div class="af-game-menu" data-game-screen="title">

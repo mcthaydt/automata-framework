@@ -24,16 +24,7 @@ import {
   type UiComponent,
   VibrationSection,
 } from '@mcthaydt/automata-ui'
-import {
-  AUDIO_COPY,
-  CONTROLS_COPY,
-  DISPLAY_COPY,
-  LANGUAGE_COPY,
-  PROMPT_COPY,
-  SETTINGS_COPY,
-  TOUCH_COPY,
-  VIBRATION_COPY,
-} from './settings-copy.ts'
+import type { LiveScreensCopy } from './screens-copy.svelte.ts'
 import type { SettingsViewState } from './settings-view.ts'
 
 interface Props {
@@ -54,6 +45,8 @@ interface Props {
   /** The Vibration toggle (`Haptics.setEnabled`), applied and saved by the screen. */
   onhaptics: (enabled: boolean) => void
   onback: () => void
+  /** The screens' words in the player's language (DX.2d). */
+  copy: LiveScreensCopy
 }
 
 const {
@@ -69,12 +62,14 @@ const {
   onhaptics,
   onsample,
   onback,
+  copy,
 }: Props = $props()
+const words = $derived(copy.current.settings)
 
 const tabs = $derived<SettingsTab[]>([
   {
     id: 'settings',
-    label: SETTINGS_COPY.settingsTab,
+    label: words.screen.settingsTab,
     sections: [
       { snippet: language },
       { snippet: audio },
@@ -86,7 +81,7 @@ const tabs = $derived<SettingsTab[]>([
   },
   ...(view.rows === undefined
     ? []
-    : [{ id: 'controls', label: SETTINGS_COPY.controlsTab, sections: [{ snippet: controls }] }]),
+    : [{ id: 'controls', label: words.screen.controlsTab, sections: [{ snippet: controls }] }]),
 ])
 </script>
 
@@ -97,9 +92,9 @@ const tabs = $derived<SettingsTab[]>([
     touch={view.coarse || tracker.method === 'touch' ? (view.rows ?? []).some((row) => row.binding.touch) : false}
     inUse={tracker.method}
     glyphs={view.glyphs}
-    promptCopy={PROMPT_COPY}
+    promptCopy={words.prompts}
     layout={view.layout}
-    copy={CONTROLS_COPY}
+    copy={words.controls}
     state={view.controls}
     {onrebind}
     {onreset}
@@ -107,20 +102,20 @@ const tabs = $derived<SettingsTab[]>([
 {/snippet}
 
 {#snippet touch()}
-  <TouchSection copy={TOUCH_COPY} modes={view.touchModes} value={view.touchMode} onchange={ontouchmode} />
+  <TouchSection copy={words.touch} modes={view.touchModes} value={view.touchMode} onchange={ontouchmode} />
 {/snippet}
 
 {#snippet language()}
-  <LanguageSection copy={LANGUAGE_COPY} locales={view.locales} choice={view.localeChoice} onchange={onlocale} />
+  <LanguageSection copy={words.language} locales={view.locales} choice={view.localeChoice} onchange={onlocale} />
 {/snippet}
 
 {#snippet vibration()}
-  <VibrationSection copy={VIBRATION_COPY} enabled={view.hapticsEnabled} onchange={onhaptics} />
+  <VibrationSection copy={words.vibration} enabled={view.hapticsEnabled} onchange={onhaptics} />
 {/snippet}
 
 {#snippet audio()}
   <AudioSection
-    copy={AUDIO_COPY}
+    copy={words.audio}
     value={view.audio}
     available={view.audioAvailable}
     hostBelowFull={view.hostVolumeBelowFull}
@@ -130,16 +125,16 @@ const tabs = $derived<SettingsTab[]>([
 {/snippet}
 
 {#snippet display()}
-  <DisplaySection copy={DISPLAY_COPY} quality={view.quality} {onquality} reducedMotion={view.reducedMotion} />
+  <DisplaySection copy={words.display} quality={view.quality} {onquality} reducedMotion={view.reducedMotion} />
 {/snippet}
 
 <div class="af-game-menu" data-game-screen="settings">
   <SettingsScreen
-    title={SETTINGS_COPY.title}
-    backLabel={SETTINGS_COPY.back}
+    title={words.screen.title}
+    backLabel={words.screen.back}
     {onback}
     {tabs}
-    tabsLabel={SETTINGS_COPY.tabs}
-    moreLabel={SETTINGS_COPY.more}
+    tabsLabel={words.screen.tabs}
+    moreLabel={words.screen.more}
   />
 </div>

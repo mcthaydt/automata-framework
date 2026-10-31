@@ -201,7 +201,10 @@ function blockPageGestures(node: HTMLElement): () => void {
     z-index: 0;
     pointer-events: auto;
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
+    /* A side may be narrower than its buttons in one row: a long label in another language wraps the row (DX.2d). */
+    min-width: 0;
   }
 
   .af-touch__side::before {
@@ -219,6 +222,8 @@ function blockPageGestures(node: HTMLElement): () => void {
   .af-touch__button {
     min-width: var(--af-target-primary);
     min-height: var(--af-target-primary);
+    /* A label longer than the row breaks inside the button rather than pushing the row off screen (xx-long, DX.2d). */
+    overflow-wrap: anywhere;
     touch-action: none;
   }
 

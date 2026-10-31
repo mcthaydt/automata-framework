@@ -10,7 +10,10 @@
 //
 // Undo and redo are steps of whole-file text. Each is written back through the same path, so it is checked and
 // journalled like an edit; a step any of whose files no longer reads what this path wrote is refused with that path and kept
-// (§11). Beginning a change set, and `clear()` (closing one), empty the history. Plain TypeScript: no DOM, no clock.
+// (§11). Each editor has its own history, named by its id (EDS-D19: the top bar's Undo acts on the active editor's
+// document, so a switch to the Tuner and back still undoes the level's own step, EDS-k); the suite's own steps (an
+// import) are the unnamed owner `''`. Beginning a change set, and `clear()` (closing one), empty every history. Plain
+// TypeScript: no DOM, no clock.
 import type {
   ChangeSetCheck,
   CheckFinding,
@@ -51,17 +54,18 @@ export interface FileWrite {
 }
 
 export interface WritePath {
-  write(path: string, text: string, label: string): Promise<WriteOutcome>
+  /** `owner` names the history the step joins: the editor's id, or `''` (the default) for the suite's own. */
+  write(path: string, text: string, label: string, owner?: string): Promise<WriteOutcome>
   /** Several files as one undo step: every file is written, or none is (an import, EDS-D19). */
-  writeAll(files: readonly FileWrite[], label: string): Promise<WriteOutcome>
-  /** `undefined` with nothing to undo. */
-  undo(): Promise<WriteOutcome | undefined>
-  redo(): Promise<WriteOutcome | undefined>
-  canUndo(): boolean
-  canRedo(): boolean
-  undoLabel(): string | undefined
-  redoLabel(): string | undefined
-  /** Empties the history (a change set begun or closed). */
+  writeAll(files: readonly FileWrite[], label: string, owner?: string): Promise<WriteOutcome>
+  /** Undoes `owner`'s last step; `undefined` with nothing to undo. */
+  undo(owner?: string): Promise<WriteOutcome | undefined>
+  redo(owner?: string): Promise<WriteOutcome | undefined>
+  canUndo(owner?: string): boolean
+  canRedo(owner?: string): boolean
+  undoLabel(owner?: string): string | undefined
+  redoLabel(owner?: string): string | undefined
+  /** Empties every history (a change set begun or closed). */
   clear(): void
   /** Resolves once every `after` run started so far is in the journal. */
   settled(): Promise<void>
@@ -91,8 +95,16 @@ const unique = (ids: readonly string[]): string[] => [...new Set(ids)]
 
 export function createWritePath({ ports, title }: WritePathOptions): WritePath {
   const { workspace, changeSet, checks } = ports
-  const steps: Step[] = []
-  let done = 0
+  /** Each owner's steps, and how many of them are done. */
+  const histories = new Map<string, { steps: Step[]; done: number }>()
+  const historyOf = (owner: string) => {
+    let history = histories.get(owner)
+    if (history === undefined) {
+      history = { steps: [], done: 0 }
+      histories.set(owner, history)
+    }
+    return history
+  }
   /** The mtime each path had when this path last wrote it. */
   const wrote = new Map<string, number>()
   /** Each measure check's measures before the open change set's first write. */
@@ -104,8 +116,7 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
   }
 
   const clear = () => {
-    steps.length = 0
-    done = 0
+    histories.clear()
     changed()
   }
 
@@ -268,48 +279,51 @@ export function createWritePath({ ports, title }: WritePathOptions): WritePath {
     return outcome
   }
 
-  async function writeAll(files: readonly FileWrite[], label: string): Promise<WriteOutcome> {
+  async function writeAll(files: readonly FileWrite[], label: string, owner = ''): Promise<WriteOutcome> {
     const befores = await Promise.all(files.map(async (file) => (await workspace.read(file.path))?.text))
     const outcome = await applyAll(files)
     if ('written' in outcome) {
-      steps.length = done
-      steps.push({
+      const history = historyOf(owner)
+      history.steps.length = history.done
+      history.steps.push({
         label,
         files: files.map((file, index) => ({ path: file.path, before: befores[index], after: file.text })),
       })
-      done = steps.length
+      history.done = history.steps.length
       changed()
     }
     return outcome
   }
 
   return {
-    write: (path, text, label) => writeAll([{ path, text }], label),
+    write: (path, text, label, owner) => writeAll([{ path, text }], label, owner),
     writeAll,
-    async undo() {
-      const step = steps[done - 1]
+    async undo(owner = '') {
+      const history = historyOf(owner)
+      const step = history.steps[history.done - 1]
       if (step === undefined) return undefined
       const outcome = await replay(step, 'before')
       if ('written' in outcome) {
-        done--
+        history.done--
         changed()
       }
       return outcome
     },
-    async redo() {
-      const step = steps[done]
+    async redo(owner = '') {
+      const history = historyOf(owner)
+      const step = history.steps[history.done]
       if (step === undefined) return undefined
       const outcome = await replay(step, 'after')
       if ('written' in outcome) {
-        done++
+        history.done++
         changed()
       }
       return outcome
     },
-    canUndo: () => done > 0,
-    canRedo: () => done < steps.length,
-    undoLabel: () => steps[done - 1]?.label,
-    redoLabel: () => steps[done]?.label,
+    canUndo: (owner = '') => historyOf(owner).done > 0,
+    canRedo: (owner = '') => historyOf(owner).done < historyOf(owner).steps.length,
+    undoLabel: (owner = '') => historyOf(owner).steps[historyOf(owner).done - 1]?.label,
+    redoLabel: (owner = '') => historyOf(owner).steps[historyOf(owner).done]?.label,
     clear,
     async settled() {
       await pending
