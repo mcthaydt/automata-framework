@@ -3,7 +3,7 @@
 - **Task:** ED3D.5f in [02](../../02-master-delivery-plan.md), the second part of milestone "ED3D.5e–7d". [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flow 3 (inspector steppers; a drag is one transaction), §5.4 (`sector.setHeights`, `setLight`, `setMaterials`, `wall.setKind`, `setDoor`, `setWindow`, `setMaterial`, `setFlags`), §9 (the Split frame's sector card; the Portrait frame: compact top bar, floating tool strip, bottom sheet with Sector, Walls, Things and Checks tabs; rotation keeps the selection and the open draft), §10. Mockups `Split · landscape` (sector card), `Portrait`.
 - **Lane:** editors. **Depends on:** ED3D.5e (this branch), ED3D.6g (#341: the tool rail and tools, merged into this branch before step 5), the model edits (ED3D.3, 6b, 8a), the kit's widgets (EDK.4).
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 6 of 9 steps.
+- **Progress:** 7 of 9 steps.
 
 ## Scope
 
@@ -29,7 +29,7 @@
 - [x] 4. `SectorCard`, `WallCard`, `ThingCard`, `Inspector` (DOM, red first): fields from the card; a stepper press runs one step; a refusal is shown in words; 44 px targets; the none card's words.
 - [x] 5. Merge `origin/main` (with #341, ED3D.6g) and wire the inspector into `DocumentFrame` at `wide` (DOM): selecting the hall shows its card; changing its floor is one undo step on Undo's label.
 - [x] 6. `ToolStrip` and `PortraitSheet` (DOM): below `wide` the strip shows the tools, Fit, Layers and Plan/3D; the sheet's tabs show the card, the walls of the selected sector, the things, and the checks' counts; choosing a tab keeps the selection.
-- [ ] 7. Rotation (DOM and layout): `wide` → `medium` and back keeps the selection, the open sheet tab and an open drawing.
+- [x] 7. Rotation (DOM and layout): `wide` → `medium` and back keeps the selection, the open sheet tab and an open drawing.
 - [ ] 8. Layout (three browsers) at every size: the cards' controls on screen at full size, scrolled to in the inspector or the sheet; the strip clear of the status line and the sheet's peek; review images beside the `Split` sector card and `Portrait` mockups in `docs/evidence/owner-visual/2026-10-31-ed3d-5f/`.
 - [ ] 9. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity`. No changeset (private package).
 
@@ -39,3 +39,4 @@
 - 2026-10-31, step 4: `Inspector.dom.test.ts` red (component missing), then 7 of 7 after one test fix: the kit's stepper is a spinbutton whose value is its number (`aria-valuenow`), not a formatted string. `app/inspector-edits.ts` declares `InspectorPhase` (the kit's `EditPhase` written out) because the architecture test keeps `app/` off the kit's root and `core` does not export it.
 - 2026-10-31, step 5: merged #341's accepted branch (ED3D.6g) rather than `origin/main`, where it had not landed yet, so the frame is reconciled once (both sides kept in `DocumentFrame`: 6g's rail, keys and tools; 5e's Split and 3D). editor-3d `test:unit` 2835 of 2835 after the merge. Then the inspector column at `wide`: the `DocumentFrame` test red (no inspector), then 18 of 18.
 - 2026-10-31, step 6: the rows (`wallRowsOf`, `thingRowsOf`) red then 8 of 8; the portrait `DocumentFrame` test red, then green after one fix (the rows did not follow the selection until derived from the frame's reactive selection and card). Below `wide`: no shell rail; the tools float over the plan's foot (`tool-strip`, with `--plan-foot` lifting the draw actions above it); the bar offers Plan and 3D (`modeOptions({ narrow })`, tested); the inspector is the shell's dock sheet (`PortraitSheet`) with Sector, Walls, Things and Checks. editor-3d `src/ui` DOM 94 of 94; `svelte-check` 0 errors. This replaces 6g's tab-bar rail at `medium` with the mockup's floating strip.
+- 2026-10-31, step 7: the rotation test red (the sheet's tab reset when the sheet left at `wide`), then green with the tab bound to the frame; 95 of 95. The tools (and so an open drawing, which lives in the Sector tool) are the frame's and survive the change; the canvas is not remounted (its `{#if}` branch is unchanged), as ED3D.5d's rotation journey already checks.

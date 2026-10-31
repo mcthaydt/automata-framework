@@ -40,8 +40,9 @@ async function setup(options: { width?: number; height?: number; journal?: boole
     controller = await open()
   }
   const onback = vi.fn()
+  const geometry = stubGeometry(options.width ?? 1194, options.height ?? 834)
   render(DocumentFrame, {
-    geometry: stubGeometry(options.width ?? 1194, options.height ?? 834),
+    geometry,
     controller,
     toasts,
     clock,
@@ -53,7 +54,14 @@ async function setup(options: { width?: number; height?: number; journal?: boole
     },
     onback,
   })
-  return { clock, workspace, controller, onback, file: async () => textOf(await workspace.store.read(PATH)) }
+  return {
+    clock,
+    workspace,
+    controller,
+    onback,
+    geometry,
+    file: async () => textOf(await workspace.store.read(PATH)),
+  }
 }
 
 function levelOf(controller: DocumentController): OpenLevel {
@@ -184,6 +192,28 @@ describe('DocumentFrame', () => {
     expect(within(sheet).getByRole('button', { name: 'crate · crate1' })).toBeInTheDocument()
     await userEvent.click(within(sheet).getByRole('tab', { name: 'Checks' }))
     expect(within(sheet).getByText(/No problems|problem|warning/)).toBeInTheDocument()
+  })
+
+  it('keeps the selection, the sheet’s tab and an open drawing through a rotation (ED3D.5f, ED3D spec §9)', async () => {
+    const { controller, geometry } = await setup()
+    const editor = levelOf(controller).editor
+    await act(() => editor.selection.set(['sector:hall']))
+    await userEvent.keyboard('s')
+    await act(() => geometry.resize(834, 1194))
+    expect(editor.selection.ids).toEqual(['sector:hall'])
+    expect(within(screen.getByTestId('tool-strip')).getByRole('button', { name: 'Sector' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    const sheet = screen.getByTestId('portrait-sheet')
+    await userEvent.click(within(sheet).getByRole('tab', { name: 'Walls' }))
+    await act(() => geometry.resize(1194, 834))
+    await act(() => geometry.resize(834, 1194))
+    expect(within(screen.getByTestId('portrait-sheet')).getByRole('tab', { name: 'Walls' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(editor.selection.ids).toEqual(['sector:hall'])
   })
 
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {

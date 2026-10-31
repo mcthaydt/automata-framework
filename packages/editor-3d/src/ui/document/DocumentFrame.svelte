@@ -132,6 +132,8 @@ const inspectorEdits = createInspectorEdits(editor)
 // svelte-ignore state_referenced_locally
 let card = $state.raw(inspectorOf(editor))
 
+/** The portrait sheet's tab, kept here so a rotation through wide comes back to it. */
+let sheetTab = $state('sector')
 let mode = $state(editor.view.state.mode)
 // The sheet's lists follow the selection and the level, which `selection` and `card` are read again for.
 const wallRows = $derived.by(() => {
@@ -194,6 +196,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
 <!-- A phone has no tool rail: the plan there is view and select only (ED3D spec §10), and the plan keeps the height. -->
 {#snippet portrait()}
   <PortraitSheet
+    bind:tab={sheetTab}
     {card}
     walls={wallRows}
     things={thingRows}

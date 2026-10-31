@@ -2,7 +2,8 @@
   The portrait inspector (ED3D.5f; ED3D spec §9 the Portrait frame): below `wide` the inspector is the shell's bottom
   sheet, with four tabs. Sector shows the card for what is selected (a room, a wall or a thing); Walls lists the selected
   room's walls and Things the level's things, and tapping a row selects it; Checks says how the level's checks stand.
-  The tab is the sheet's own state, so a selection made elsewhere never moves it.
+  The tab is bound to the frame, which keeps it while the sheet is away at `wide`, so a rotation comes back to it; a
+  selection made elsewhere never moves it.
 -->
 <script lang="ts">
 import { Tabs } from '@mcthaydt/automata-editor-kit'
@@ -17,9 +18,11 @@ interface Props {
   checks: string
   onchange: (change: InspectorChange, phase: InspectorPhase) => string | undefined
   onselect: (id: string) => void
+  /** The open tab, bound by the frame. */
+  tab?: string
 }
 
-const { card, walls, things, checks, onchange, onselect }: Props = $props()
+let { card, walls, things, checks, onchange, onselect, tab = $bindable('sector') }: Props = $props()
 
 const TABS = [
   { id: 'sector', label: 'Sector' },
@@ -27,7 +30,6 @@ const TABS = [
   { id: 'things', label: 'Things' },
   { id: 'checks', label: 'Checks' },
 ]
-let tab = $state('sector')
 </script>
 
 {#snippet rows(list: readonly InspectorRow[], empty: string)}
