@@ -5,11 +5,10 @@
 > §12 DIST-D9, acceptance DIST-h. Lane: ship (template, docs). Website copy is the website lane's (other repo).
 > Strict TDD in `packages/cli`.
 
-**Status: drafted, held.** The template's scripts and config consume work that is not on `main` yet: the
-`automata-web`/`automata-ruken`/`automata-tauri` conditions on `@mcthaydt/automata-host/target` (DIST.2, DIST.3a,
-DIST.5a: #321, #326, #336), the `tauri` section of `ShipConfig` and `prepare --target tauri` (DIST.5b). Implementation
-starts on a branch from `main` once DIST.5b has merged; until then this plan is the only change. Every "verify on the
-merged stack" item below is read again then, and a difference is logged under Deviations.
+**Status: drafted; code next.** The Owner folded the DIST stack into one milestone PR (2026-10-31: "PRs should be
+milestone level"; "Yes, consolidate now"), so DIST.6 lands on `claude/dist-5a-tauri-adapter` (#336) on top of DIST.2
+to DIST.5c, which carry everything this plan consumes. Every "verify on the merged stack" item below is read there, and
+a difference is logged under Deviations.
 
 ## Interfaces
 
@@ -112,6 +111,8 @@ A generated `README.md` lists the chosen targets' commands and links the guides.
 
 - 2026-10-31: plan drafted from `main` at `547ce175` and the DIST stack tip `claude/dist-5c-desktop-release`
   `c88a91a4`. Held until DIST.5b merges (see Status).
+- 2026-10-31: the stack was consolidated into #336; this plan rides its first push, and the code follows in the
+  next.
 
 ## Deviations
 
