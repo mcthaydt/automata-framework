@@ -26,11 +26,11 @@ describe('createProfileRegistry', () => {
   it('lists profiles in the order they were registered, and finds one by id', () => {
     const registry = createProfileRegistry()
     const a = fakeProfile('level-project')
-    const b = fakeProfile('floorfifty-stage')
+    const b = fakeProfile('stage-profile')
     registry.register(a)
     registry.register(b)
     expect(registry.list()).toEqual([a, b])
-    expect(registry.get('floorfifty-stage')).toBe(b)
+    expect(registry.get('stage-profile')).toBe(b)
     expect(registry.get('nope')).toBeUndefined()
   })
 
@@ -71,7 +71,7 @@ describe('createProfileRegistry', () => {
     const registry = createProfileRegistry()
     registry.register(fakeProfile('level-project'))
     const before = registry.list()
-    registry.register(fakeProfile('floorfifty-stage'))
+    registry.register(fakeProfile('stage-profile'))
     expect(before).toHaveLength(1)
     expect(registry.list()).toHaveLength(2)
   })
@@ -80,7 +80,7 @@ describe('createProfileRegistry', () => {
     it('returns every profile that claims the file, in registration order', () => {
       const registry = createProfileRegistry()
       const json = fakeProfile('level-project', (name) => name.endsWith('.af2d.json'))
-      const toml = fakeProfile('floorfifty-stage', (name) => name.endsWith('.toml'))
+      const toml = fakeProfile('stage-profile', (name) => name.endsWith('.toml'))
       const greedy = fakeProfile('anything', () => true)
       for (const profile of [json, toml, greedy]) registry.register(profile)
       expect(registry.sniff('mossgate.af2d.json', '{}')).toEqual([json, greedy])

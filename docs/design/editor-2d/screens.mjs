@@ -1,12 +1,11 @@
-// The 2D editor's screens in gallery order: the general editor (Home, Level, Tilesets, Entities, World, states),
-// the FloorFifty stage profile, and the kit sheet. Each file exports an array of
+// The 2D editor's screens in gallery order: the general editor (Home, Level, Tilesets, Entities, World, states)
+// and the kit sheet. Each file exports an array of
 // `{ id, page, name, w, h, note, build(S, P) }`; the builders are self-contained so build.mjs can render them
 // to HTML and to Figma.
 
-import { screens as floorfifty } from './screens-floorfifty.mjs'
 import { screens as general } from './screens-general.mjs'
 
-export const screens = [...general, ...floorfifty]
+export const screens = [...general]
 
 // ── Kit sheet: the tokens and the parts every screen above is made of ──
 screens.push({
@@ -68,7 +67,7 @@ screens.push({
       R(
         { name: n, w: 'fill', h: 30, gap: 12 },
         T(n, { style: 'Mono/11', color: 'text/faint', w: 110 }),
-        T('Rooftops · cityMid sink 270', { style: n, w: 'fill', trunc: true }),
+        T('Mossgate · Moss Steps · 4 layers', { style: n, w: 'fill', trunc: true }),
       ),
     )
     const space = R(
@@ -136,7 +135,7 @@ screens.push({
         ),
         R(
           { gap: 8 },
-          pill('FloorFifty stage', { color: 'accent/default' }),
+          pill('Platformer', { color: 'accent/default' }),
           pill('Valid', { color: 'state/ok', icon: 'check' }),
           pill('1 error', { color: 'state/bad', icon: 'warn' }),
           pill('2 info', { color: 'state/warn', icon: 'info' }),

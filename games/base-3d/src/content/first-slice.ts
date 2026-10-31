@@ -26,4 +26,6 @@ export const FIRST_SLICE: AreaSource = {
   ],
   // The second figure, standing in for a lock target.
   targets: [{ x: 2, z: 9 }],
+  // The ember, in the kiln’s north-west corner, in reach of Wick standing in the corner: he picks it up (F) to end the run.
+  ember: { x: -3.2, z: 11.2 },
 }

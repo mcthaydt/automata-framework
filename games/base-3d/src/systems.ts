@@ -1,6 +1,6 @@
 // base-3d's systems and their order (DESIGN.md §3.1). Sim code: `pnpm boundaries` checks every file in src/.
 // A tick runs: the camera's turn (render-pixi3d, input), the stick and lock copied onto Wick (input), the lock
-// target held or chosen (prePhysics), Wick moved through the heading (physics), the room's view entered
+// target held or chosen, the action buttons' presses, the ember taken by a pickup beside it (prePhysics), Wick moved through the heading (physics), the room's view entered
 // (postPhysics).
 import {
   CameraHeading,
@@ -21,11 +21,13 @@ import {
   ACTION_BITS,
   ACTION_CLIP,
   ACTION_TICKS,
+  EMBER_REACH,
   HERO_HALF,
   LOCK_RANGE,
   metres,
   WALK_PER_TICK,
 } from './constants.ts'
+import { EmberTaken } from './events.ts'
 
 // --- the area: the level content compiled to fixed point, and the geometry the systems read ---
 
@@ -57,6 +59,8 @@ const areaSchema = z.strictObject({
   walls: z.array(planBox),
   /** Where the lock targets stand. */
   targets: z.array(point),
+  /** Where the ember lies: a pickup within `EMBER_REACH` of it takes it and ends the run. */
+  ember: point,
 })
 
 /** An area as authored: metres, views by id. */
@@ -82,6 +86,7 @@ export interface Area {
   readonly rooms: readonly (PlanBox & { readonly view: string })[]
   readonly walls: readonly PlanBox[]
   readonly targets: readonly PlanPoint[]
+  readonly ember: PlanPoint
 }
 
 const toPoint = (p: { x: number; z: number }): PlanPoint => ({ x: metres(p.x), z: metres(p.z) })
@@ -113,9 +118,12 @@ export function compileArea(source: AreaSource): Area {
     rooms: parsed.rooms.map((room) => ({ view: room.view, ...toBox(room) })),
     walls: parsed.walls.map(toBox),
     targets: parsed.targets.map(toPoint),
+    ember: toPoint(parsed.ember),
   }
   const { x, z } = area.spawn
   if (viewAt(area, x, z) === undefined) throw new Error('base-3d area: the spawn is outside every room')
+  if (viewAt(area, area.ember.x, area.ember.z) === undefined)
+    throw new Error('base-3d area: the ember is outside every room')
   // Touching a wall's face is allowed; overlapping it is not (the same strict test `slide` uses).
   const blocked = area.walls.some(
     (w) =>
@@ -139,7 +147,9 @@ export function areaOf(content: unknown): Area {
     !Array.isArray(area.views) ||
     !Array.isArray(area.rooms) ||
     !Array.isArray(area.walls) ||
-    !Array.isArray(area.targets)
+    !Array.isArray(area.targets) ||
+    typeof area.ember?.x !== 'number' ||
+    typeof area.ember.z !== 'number'
   )
     throw new Error('base-3d: the sim content is not an area')
   return area as Area
@@ -349,6 +359,26 @@ export const heroAct: SystemDef = defineSystem({
       const guard = (actHeld & ACTION_BITS.guard) !== 0
       const guardSince = guard && !before.guard ? ctx.tick : before.guardSince
       entity.set(HeroAction, { clip, startedAt, guard, guardSince })
+    }
+  },
+})
+
+/**
+ * Takes the ember: on the tick a pickup starts (`heroAct` stamps `startedAt` with it), within `EMBER_REACH` of the
+ * ember in both axes, emits `ember.taken`. It keeps no state, because the play screen leaves on the first one.
+ */
+export const emberTake: SystemDef = defineSystem({
+  name: 'ember.take',
+  phase: 'prePhysics',
+  after: ['hero.act'],
+  run(ctx) {
+    const { ember } = areaOf(ctx.content)
+    for (const entity of ctx.query(Hero, HeroAction)) {
+      const { clip, startedAt } = entity.get(HeroAction)
+      if (clip !== ACTION_CLIP.pickup || startedAt !== ctx.tick) continue
+      const { x, z } = entity.get(Hero)
+      if (Math.abs(x - ember.x) <= EMBER_REACH && Math.abs(z - ember.z) <= EMBER_REACH)
+        ctx.emit(EmberTaken, { x: ember.x, z: ember.z })
     }
   },
 })
