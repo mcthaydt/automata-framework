@@ -11,6 +11,8 @@ import {
   pairSchema,
   partialTrimSchema,
   pointSchema,
+  type Style,
+  styleSchema,
   type WallDef,
   wallSchema,
 } from './sector.schema'
@@ -28,20 +30,7 @@ export type BlockoutCorner = readonly [number, number, (WallRef | undefined)?]
 
 const cornerSchema: z.ZodType<BlockoutCorner> = z.tuple([z.number(), z.number(), wallRefSchema.optional()])
 
-/** Sector look fields a room can take from a named style. */
-export interface Style {
-  readonly floorTexture?: string | undefined
-  readonly ceilingTexture?: string | undefined
-  readonly wallTexture?: string | undefined
-  readonly trim?: PartialTrim | undefined
-}
-
-export const styleSchema: z.ZodType<Style> = z.looseObject({
-  floorTexture: z.string().optional(),
-  ceilingTexture: z.string().optional(),
-  wallTexture: z.string().optional(),
-  trim: partialTrimSchema.optional(),
-})
+export { type Style, styleSchema }
 
 export interface Room {
   readonly id: string
