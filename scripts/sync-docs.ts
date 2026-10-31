@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { readGuides } from './sync-guides'
 import { MIGRATION_GUIDES } from '../src/data/migrations'
 import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from '../src/data/audience'
 import { SKILL_PREFLIGHT, PIXIJS_INSTALL, SKILL_SOURCES } from '../src/data/agent-setup'
@@ -140,10 +141,12 @@ DEFAULT_DOCS.push(
   { id: 'faq', slug: 'faq', title: 'FAQ', category: 'Getting Started', description: 'Answers about agents, content, licensing, platforms, migration and community games.', content: '# FAQ\n\n' + FAQ_ITEMS.map(item => '## ' + item.question + '\n\n' + item.answer).join('\n\n') + '\n\n[Install agent skills](/docs/agent-setup), [make a first change](/start), or [visit the community showcase](/showcase).' },
 )
 
-export function syncDocs(outputDir = websiteDir) {
+export function syncDocs(outputDir = websiteDir, options: { frameworkDir?: string } = {}) {
   const docs: DocSection[] = []
 
-  for (const item of DEFAULT_DOCS) {
+  // The framework's guides (M8.6w) follow the hand-written docs; none exist until the framework writes `docs/guide`.
+  const frameworkGuides = readGuides(options.frameworkDir ?? resolve(websiteDir, '../automata-framework'))
+  for (const item of [...DEFAULT_DOCS, ...frameworkGuides]) {
     const content = item.content
     const toc = extractToc(content)
     docs.push({
