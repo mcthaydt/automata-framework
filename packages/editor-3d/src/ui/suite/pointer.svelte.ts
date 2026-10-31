@@ -5,7 +5,7 @@ import type { Levels3dSuiteSession } from './levels-3d.suite'
 // suite's shell, so the place they share is kept beside the session, as Svelte state, and goes with it.
 
 export class PlanPointer {
-  at = $state.raw<Point | undefined>()
+  at: Point | undefined = $state.raw<Point | undefined>()
 }
 
 const pointers = new WeakMap<Levels3dSuiteSession, PlanPointer>()
