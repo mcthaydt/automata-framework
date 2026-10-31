@@ -54,6 +54,7 @@ import {
   areaExit,
   bombFuse,
   chainFly,
+  checkWorld,
   combatFreeze,
   combatHits,
   combatMoves,
@@ -217,6 +218,12 @@ export interface Base3dSim {
 export function base3dSim(world: World): Base3dSim {
   const [first] = world.areas
   if (first === undefined) throw new Error('base-3d: the world has no areas')
+  // The content check (G3-p): content the game cannot play stops it at boot, never at play.
+  const issues = checkWorld(world)
+  if (issues.length > 0)
+    throw new Error(
+      `base-3d content check: ${issues.map((issue) => `${issue.area}: ${issue.path} (${issue.rule})`).join('; ')}`,
+    )
   return {
     // The heading's plugin is render3dExtension's (`main.ts`): `defineGame` adds an extension's sim plugins (RT.EXT1).
     plugins: [base3dPlugin],
