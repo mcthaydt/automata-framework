@@ -40,7 +40,11 @@ import {
   placed,
 } from './views.ts'
 
+// Compiling the areas is boot's content cost (DESIGN.md §13 boot step 3): measured, so G3-u's journey holds it to a
+// budget.
+performance.mark('base-3d:compile-areas:start')
 const WORLD = compileWorld([FIRST_SLICE])
+performance.measure('base-3d:compile-areas', 'base-3d:compile-areas:start')
 const AREA = WORLD.areas[0] as (typeof WORLD.areas)[number]
 /** The game's sim on the first slice, its world's only area until GAME-3D.1i; the sim takes it as data (`base3dSim`). */
 const BASE3D_SIM = base3dSim(WORLD)
@@ -166,6 +170,8 @@ export const base3d = defineGame({
         return {
           apply(result) {
             simTick = result.tick
+            // The tick the page last drew, for the journeys (G3-x: the rotate cover holds it).
+            document.documentElement.dataset.tick = String(result.tick)
             if (result.render.resync) targets.clear()
             for (const sid of result.render.removed) targets.delete(sid)
             for (const row of [...result.render.added, ...result.render.changed]) {
