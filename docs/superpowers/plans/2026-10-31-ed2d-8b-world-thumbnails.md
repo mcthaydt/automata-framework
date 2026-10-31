@@ -53,3 +53,8 @@ pictures inside rectangles, outlines over them), `app/world/WorldCanvas.svelte` 
   passes (world canvas 4 tests). The first images showed screen-size entity labels and link chips inside the pictures;
   the pictures now update without a scale and without links, as Home's thumbnails do (`plainDrawView` is exported
   from `level-thumbnails.ts` and shared). editor-2d unit+dom (app and canvas) 65 files, 700 tests; canvas 80 tests.
+- 2026-10-31, step 5 gates after merging `origin/claude/ed2d-8a-world-ipad` (already in) and `origin/main` (`8468cd10`,
+  with #316): the first `TURBO_FORCE=true pnpm check` failed in `@af-games/base-3d#typecheck` because the merged
+  lockfile had new dependencies not yet installed in this worktree; after `pnpm install --frozen-lockfile` it passes
+  (exit 0, 37/37 and 35/35 tasks, 0 cached). editor-2d `test:parity` 24 files, 606 tests; `test:canvas` 14 files, 96
+  tests (12 opt-in visuals skipped).
