@@ -164,6 +164,9 @@ importers:
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../../packages/sim
+      '@pixi/3d':
+        specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
+        version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
       effect:
         specifier: 3.22.2
         version: 3.22.2
