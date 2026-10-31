@@ -142,60 +142,61 @@ const write = (mode: 'guarded' | 'overwrite') =>
   testId="export-view"
 >
   {#snippet canvas()}
-    <div class="export" data-scroll-region>
-      <h1>Export</h1>
-      <fieldset>
-        <legend>What to export</legend>
-        {#each targets as target (target.id)}
-          <label class="target" data-chosen={chosen.has(target.id)}>
-            <input type="checkbox" checked={chosen.has(target.id)} onchange={() => toggle(target.id)} />
-            <span class="name">{target.label}</span>
-            <span class="size">{sizeLabel(target.bytes)}</span>
-          </label>
-        {/each}
-      </fieldset>
+    <div class="export">
+        <div class="body" data-scroll-region>
+        <h1>Export</h1>
+        <fieldset>
+          <legend>What to export</legend>
+          {#each targets as target (target.id)}
+            <label class="target" data-chosen={chosen.has(target.id)}>
+              <input type="checkbox" checked={chosen.has(target.id)} onchange={() => toggle(target.id)} />
+              <span class="name">{target.label}</span>
+              <span class="size">{sizeLabel(target.bytes)}</span>
+            </label>
+          {/each}
+        </fieldset>
 
-      <p class="summary">{`${plural(current.files.length, 'file')} · ${sizeLabel(current.bytes)}`}</p>
-      <ul class="files" aria-label="Files">
-        {#each current.files as file (file.path)}
-          <li><span class="path" data-path>{file.path}</span><span class="size">{sizeLabel(file.bytes)}</span></li>
-        {/each}
-      </ul>
+        <p class="summary">{`${plural(current.files.length, 'file')} · ${sizeLabel(current.bytes)}`}</p>
+        <ul class="files" aria-label="Files">
+          {#each current.files as file (file.path)}
+            <li><span class="path" data-path>{file.path}</span><span class="size">{sizeLabel(file.bytes)}</span></li>
+          {/each}
+        </ul>
 
-      {#if errors > 0}
-        <div class="callout">
-          <strong>{plural(errors, 'error')}</strong>
-          <span>The game may reject them. You can still export; writing into a folder waits until Checks is clear.</span>
+        {#if errors > 0}
+          <div class="callout">
+            <strong>{plural(errors, 'error')}</strong>
+            <span>The game may reject them. You can still export; writing into a folder waits until Checks is clear.</span>
+          </div>
+        {/if}
+      </div>
+      <div class="foot">
+        <div class="actions">
+          <Button variant="primary" disabled={busy || !current.download || workspace === undefined} onclick={download}>
+            Download
+          </Button>
+          <Button
+            disabled={busy || current.single === undefined || workspace?.exports.canShare !== true}
+            onclick={share}>Share</Button
+          >
+          <Button disabled={busy || current.single === undefined || workspace === undefined} onclick={copy}>Copy</Button>
+          <Button disabled={busy || !current.write.ok || seen === undefined} onclick={() => write('guarded')}>
+            Write to folder
+          </Button>
         </div>
-      {/if}
-
-      <div class="actions">
-        <Button variant="primary" disabled={busy || !current.download || workspace === undefined} onclick={download}>
-          Download
-        </Button>
-        <Button
-          disabled={busy || current.single === undefined || workspace?.exports.canShare !== true}
-          onclick={share}>Share</Button
-        >
-        <Button disabled={busy || current.single === undefined || workspace === undefined} onclick={copy}>Copy</Button>
+        {#if current.files.length > 1}
+          <p class="note">Share and Copy take one file; Download takes them all.</p>
+        {/if}
+        {#if !current.write.ok}
+          <p class="note">{current.write.why}</p>
+        {/if}
+        {#if message !== undefined}
+          <p class="message" role="status">{message}</p>
+        {/if}
+        {#if problem !== undefined}
+          <p class="problem" role="alert">{problem}</p>
+        {/if}
       </div>
-      {#if current.files.length > 1}
-        <p class="note">Share and Copy take one file; Download takes them all.</p>
-      {/if}
-      <div class="actions">
-        <Button disabled={busy || !current.write.ok || seen === undefined} onclick={() => write('guarded')}>
-          Write to folder
-        </Button>
-      </div>
-      {#if !current.write.ok}
-        <p class="note">{current.write.why}</p>
-      {/if}
-      {#if message !== undefined}
-        <p class="message" role="status">{message}</p>
-      {/if}
-      {#if problem !== undefined}
-        <p class="problem" role="alert">{problem}</p>
-      {/if}
     </div>
     <Dialog
       open={conflict !== undefined}
@@ -218,15 +219,31 @@ const write = (mode: 'guarded' | 'overwrite') =>
 </EditorShell>
 
 <style>
+  /* The files scroll in their own region; the actions stay in view at the foot at every height (spec §12). */
   .export {
     box-sizing: border-box;
     display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+  }
+  .body {
+    display: grid;
     align-content: start;
     gap: var(--space-3);
-    height: 100%;
-    max-width: 40rem;
+    min-height: 0;
     padding: var(--space-4);
     overflow-y: auto;
+  }
+  .body > *,
+  .foot > * {
+    max-width: 40rem;
+  }
+  .foot {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--color-border-default);
+    background: var(--color-bg-app);
   }
   h1 {
     margin: 0;
