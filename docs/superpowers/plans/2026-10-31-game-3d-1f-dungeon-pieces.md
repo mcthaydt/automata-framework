@@ -149,6 +149,23 @@ tall around its height; a sword or a blast on it lands (sparks) but reports noth
 tick 458, health 8, unchanged). Schema (`sling-target`, `sling-target.hit`) and content (`entities` for `posts`; the
 first slice has none); every other assertion is unchanged.
 
+**Part 1's two causes, measured apart (2026-10-31, the coordinator's golden item (a)).** In a scratch worktree at
+225064cd, a throwaway patch left the compiled area's `entities` key out when it is empty (and `spawnPieces` read
+`area.entities ?? []`), so the content had the shape it had before 1f (`posts: []`, no `entities`) while the schema
+kept part 1's additions. Measured with `createSim(GAME_SIM).contentHash` and the three golden cases (node):
+
+| | content hash | route | fights | boss (tick, health) |
+|---|---|---|---|---|
+| before 1f (225064cd~1) | `fef723a72fc674e0` | `94925b319d992b19` | `59b84ddde6bfeb94` | `de0bb982dcf6aa53` (458, 8) |
+| part 1's schema only (patched 225064cd) | `fef723a72fc674e0` | `0399a92d8606ffaf` | `ab64111610077306` | `9e921e77802a71e4` (458, 8) |
+| part 1 as committed (225064cd) | `d894381c47fd70d8` | `ceedc79c82950861` | `7dd808482d9dd9bc` | `61691d237e2d2427` (458, 8) |
+
+So the schema (`sling-target`, `sling-target.hit`) moved each hash from its pre-1f value to the schema-only one, and
+the content's new `entities: []` on each area (the content hash `fef723a7…` → `d894381c…`) moved it on to the recorded
+one. With the patch reverted, the three cases pass on the recorded hashes at 225064cd. The content hash is
+`d894381c47fd70d8` at 8c891db6 (part 2), 471d8bd0 (part 3) and ee67b1c8 alike: parts 2 and 3 moved the goldens through
+the schema alone. History was not rewritten; the patch was never committed.
+
 **Part 2 (2026-10-31, branch `claude/3d-game-3d-1f`, local).**
 
 - Red first: dungeon.test.ts's 7 door and save cases (no `Door`, no `Dungeon`); hud.test.ts's keys cases; the HUD
