@@ -45,6 +45,8 @@ export const TEST_NET: NetConfig = {
   maxLeadTicks: 60,
   interpolationTicks: 6,
   reconnectGraceSeconds: 1,
+  degradedRoundTripMs: 1000,
+  degradedGapMs: 1000,
 }
 
 let sessions = 0

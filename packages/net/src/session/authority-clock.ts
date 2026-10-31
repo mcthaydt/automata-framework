@@ -25,7 +25,7 @@ const MAX_RATE_SKEW = 0.1
  * Error past which the clock jumps rather than eases: a fifth of a second at 60 Hz, far more than jitter or drift can
  * produce and far less than a resumed tab or a reconnect.
  */
-const SNAP_TICKS = 12
+export const SNAP_TICKS = 12
 
 /**
  * How long every snapshot must say the clock is ahead before it moves back. A snapshot's tick is a lower bound on the
@@ -64,6 +64,8 @@ export class AuthorityClock {
   private aheadSince: number | undefined
   /** The clock moved back to a restarted timeline since `takeRestart` last asked. */
   private restarted = false
+  /** How many times the clock has jumped rather than eased. */
+  private snapCount = 0
 
   constructor(options: AuthorityClockOptions) {
     this.tickMs = 1000 / options.tickHz
@@ -97,6 +99,23 @@ export class AuthorityClock {
     this.newest = tick
     this.anchorTick = tick
     this.anchorAt = at
+  }
+
+  /** The clock's time: Effect's `Clock` milliseconds, or the sum of the frame deltas without one. */
+  timeNow(): number {
+    return this.time()
+  }
+
+  /** Where the clock puts authority at time `at`, running at the nominal rate from the last frame; undefined before a snapshot. */
+  authorityAt(at: number): number | undefined {
+    return this.authority === undefined
+      ? undefined
+      : this.authority + Math.max(0, at - this.lastAdvanceAt) / this.tickMs
+  }
+
+  /** How many times the clock has jumped rather than eased. */
+  get snaps(): number {
+    return this.snapCount
   }
 
   /** How far the clock's authority trails its anchor, in ticks. Zero before the first snapshot. */
@@ -133,6 +152,7 @@ export class AuthorityClock {
       // Too far to ease: land exactly where the freshest anchor says authority is now. Back (only after half a second
       // of agreement) is a restarted timeline, which the prediction must follow.
       if (behind < 0) this.restarted = true
+      this.snapCount += 1
       this.aheadSince = undefined
       this.authority = this.anchorAtTime(at)
     } else {
@@ -161,5 +181,6 @@ export class AuthorityClock {
     this.virtualTime = 0
     this.aheadSince = undefined
     this.restarted = false
+    this.snapCount = 0
   }
 }

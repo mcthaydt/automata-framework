@@ -64,6 +64,11 @@ export interface NetRoom {
   removeBot(seat: number): Effect.Effect<void, NetError>
   /** Leaves and forgets the seat, so no later reconnect or reload reclaims it. */
   readonly leave: Effect.Effect<void>
+  /**
+   * The session's diagnostics say the link is slow or silent (M7 spec §4.2 "Degraded"): while the connection is up it reads
+   * `degraded` instead of `connected`. A drop shows `reconnecting`, and going offline forgets the mark.
+   */
+  markDegraded(degraded: boolean): void
   /** Reclaims the stored seat after a reload, once: `expired` forgets the token and is never retried. */
   readonly resume: Effect.Effect<ResumeOutcome, NetError>
   readonly info: Subscribable.Subscribable<RoomInfo | undefined>
@@ -169,10 +174,14 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
     let resumeUsed = false
     let lastPingAt = Number.NEGATIVE_INFINITY
 
+    // The diagnostics' mark: shown instead of `connected` while it is set, and forgotten when the connection goes offline.
+    let degradedMark = false
     const setConnection = (next: ConnectionState): void => {
-      if (connection === next) return
-      connection = next
-      run(SubscriptionRef.set(connectionRef, next))
+      if (next === 'offline') degradedMark = false
+      const shown = next === 'connected' && degradedMark ? 'degraded' : next
+      if (connection === shown) return
+      connection = shown
+      run(SubscriptionRef.set(connectionRef, shown))
     }
     const setInfo = (next: RoomInfo | undefined): void => {
       if (sameRoomInfo(info, next)) return
@@ -394,7 +403,7 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
 
     const request = (operation: string, message: RoomRequest): Effect.Effect<void, NetError> =>
       Effect.async<void, NetError>((resume) => {
-        if (transport === undefined || connection !== 'connected') {
+        if (transport === undefined || (connection !== 'connected' && connection !== 'degraded')) {
           resume(Effect.fail(new NetError({ code: 'OFFLINE', operation })))
           return
         }
@@ -467,7 +476,8 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
     // A probe a second while connected, skipped while play is already probing (FloorFifty `BACKGROUND_PING_MS`).
     yield* Effect.forkScoped(
       Effect.sync(() => {
-        if (connection === 'connected' && now() - lastPingAt >= PROBE_EVERY_MS) port.ping(-1)
+        if ((connection === 'connected' || connection === 'degraded') && now() - lastPingAt >= PROBE_EVERY_MS)
+          port.ping(-1)
       }).pipe(Effect.repeat(Schedule.spaced(PROBE_EVERY_MS))),
     )
 
@@ -502,6 +512,10 @@ export function makeNetRoom(options: NetRoomOptions): Effect.Effect<NetRoom, nev
       addBot: () => request('addBot', { t: 'bot.add' }),
       removeBot: (seat) => request('removeBot', { t: 'bot.remove', seat }),
       leave,
+      markDegraded: (degraded) => {
+        degradedMark = degraded
+        if (connection === 'connected' || connection === 'degraded') setConnection('connected')
+      },
       resume,
       info: infoRef,
       connection: connectionRef,

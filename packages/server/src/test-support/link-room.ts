@@ -38,6 +38,8 @@ const NET: NetConfig = {
   maxLeadTicks: 60,
   interpolationTicks: 6,
   reconnectGraceSeconds: 30,
+  degradedRoundTripMs: 1000,
+  degradedGapMs: 1000,
 }
 
 export interface LinkRoomOptions {

@@ -50,7 +50,11 @@ export class Prediction {
    * or never had it (net.toml's `maxLeadTicks`: a sent command had its resend long before), so it is given up and
    * the prediction stops replaying it.
    */
-  constructor(sim: Sim, expireAfterTicks = 60) {
+  /** Called with the snapshot's tick right after its state is restored and its hash has passed, before the sim is stepped on. */
+  private readonly onRestored: ((tick: number) => void) | undefined
+
+  constructor(sim: Sim, expireAfterTicks = 60, onRestored?: (tick: number) => void) {
+    this.onRestored = onRestored
     this.sim = sim
     this.expireAfterTicks = expireAfterTicks
     this.start = { tick: sim.tick, bytes: sim.snapshot(), hash: sim.hash(), authoritative: false }
@@ -101,6 +105,7 @@ export class Prediction {
     if (this.pending.some((command) => command.seq <= (ack ?? -1) || command.tick < expired))
       this.pending = this.pending.filter((command) => command.seq > (ack ?? -1) && command.tick >= expired)
     this.applied = 0
+    this.onRestored?.(snapshot.tick)
     if (through !== undefined) this.advanceThrough(through)
     return 'restored'
   }

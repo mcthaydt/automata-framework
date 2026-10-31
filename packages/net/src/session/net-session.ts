@@ -19,9 +19,11 @@
 
 import type { Command, Sim } from '@mcthaydt/automata-sim'
 import type { NetSnapshot } from '../client/colyseus-transport'
-import { AuthorityClock } from './authority-clock'
 import { InputLead, leadForRoundTrip } from './input-lead'
+import type { NetDiagnostics } from './net-diagnostics'
 import { Prediction } from './prediction'
+import { RenderClock } from './render-clock'
+import { type RemoteView, SnapshotBuffer } from './snapshot-buffer'
 
 /** How often the clock is probed. Four a second is five seconds per lead window. */
 export const PING_EVERY_MS = 250
@@ -64,9 +66,20 @@ export interface LocalCommand {
 export type Sampler = (tick: number) => readonly LocalCommand[]
 
 /** One frame's answer: where authority is and the tick the predicted sim has stepped. */
-export interface NetFrame {
+export interface NetFrame<T = RemoteView> {
   readonly authorityTick: number
   readonly predictedTick: number
+  /** The moment the others are drawn at: authority less the interpolation delay. */
+  readonly renderTick: number
+  /** The others at `renderTick`, blended from the authoritative states; undefined without a `remote` option or before one. */
+  readonly remote: T | undefined
+}
+
+/** How the game draws the others (M7 spec §4.2): which entities are remote, read from each authoritative state, and how to blend. */
+export interface RemoteSource<T = RemoteView> {
+  /** The view of the remote entities in `sim`, right after a snapshot was restored (before the prediction steps on). */
+  read(sim: Sim): T
+  blend(from: T, to: T, t: number): T
 }
 
 /** Why the session stopped: a second snapshot hash mismatch within `DESYNC_WINDOW_MS`, at this snapshot tick. */
@@ -81,7 +94,7 @@ export interface SessionRoomState {
   readonly accepting: boolean
 }
 
-export interface NetSessionOptions {
+export interface NetSessionOptions<T = RemoteView> {
   /** The client's sim: the game's plugins and content, as the room runs them. The session steps and restores it. */
   readonly sim: Sim
   /** Sends one stamped command (`ClientNetworkPort.sendCommand`). */
@@ -96,11 +109,21 @@ export interface NetSessionOptions {
   readonly now?: (() => number) | undefined
   /** Called once, when the session ends. */
   readonly onEnd?: ((end: SessionEnd) => void) | undefined
+  /** The others, drawn from the authoritative states (M7.5c). */
+  readonly remote?: RemoteSource<T> | undefined
+  /** net.toml's `snapshotEvery` [3]: the interpolation delay is never less than a snapshot's span. */
+  readonly snapshotTicks?: number | undefined
+  /** net.toml's `interpolationTicks` [6]: the delay a perfect link needs. */
+  readonly interpolationTicks?: number | undefined
+  /** Measures the link (round trips, snapshot gaps, the buffer); the session only feeds it. */
+  readonly diagnostics?: NetDiagnostics | undefined
 }
 
-export class NetSession {
+export class NetSession<T = RemoteView> {
   private readonly prediction: Prediction
-  private readonly clock: AuthorityClock
+  private readonly clock: RenderClock
+  private readonly buffer: SnapshotBuffer<T> | undefined
+  private readonly diagnostics: NetDiagnostics | undefined
   private readonly lead: InputLead
   private readonly send: (command: Command) => void
   private readonly ping: ((tick: number) => number | undefined) | undefined
@@ -117,7 +140,10 @@ export class NetSession {
   private nextSeq = 1
   private sincePing = Number.POSITIVE_INFINITY
   /** The lead each outstanding probe was sent with, and whether it can count, by id. */
-  private readonly pings = new Map<number, { readonly lead: number; readonly reliable: boolean }>()
+  private readonly pings = new Map<
+    number,
+    { readonly lead: number; readonly reliable: boolean; readonly sentAt: number }
+  >()
   /** Commands already sent a second time, by seq. */
   private readonly resent = new Set<number>()
   private virtualTime = 0
@@ -125,13 +151,37 @@ export class NetSession {
   private mismatchCount = 0
   private end: SessionEnd | undefined
   /** One frame's answer, reused: `frame` allocates nothing (ADR 0003). */
-  private readonly answer = { authorityTick: 0, predictedTick: 0 }
+  private readonly answer: {
+    authorityTick: number
+    predictedTick: number
+    renderTick: number
+    remote: T | undefined
+  } = {
+    authorityTick: 0,
+    predictedTick: 0,
+    renderTick: 0,
+    remote: undefined,
+  }
 
-  constructor(options: NetSessionOptions) {
+  constructor(options: NetSessionOptions<T>) {
     const tickHz = options.sim.tickHz
     const maxTicks = Math.floor((options.maxLeadTicks ?? 60) / 2)
-    this.prediction = new Prediction(options.sim, options.maxLeadTicks ?? 60)
-    this.clock = new AuthorityClock({ tickHz, now: options.now })
+    const interpolationTicks = options.interpolationTicks ?? 6
+    const remote = options.remote
+    this.buffer =
+      remote === undefined
+        ? undefined
+        : new SnapshotBuffer<T>({ windowTicks: interpolationTicks * 8, blend: remote.blend })
+    this.diagnostics = options.diagnostics
+    this.prediction = new Prediction(options.sim, options.maxLeadTicks ?? 60, (tick) => {
+      if (remote !== undefined) this.buffer?.push(tick, remote.read(options.sim))
+    })
+    this.clock = new RenderClock({
+      tickHz,
+      snapshotTicks: options.snapshotTicks ?? 3,
+      baseDelayTicks: interpolationTicks,
+      now: options.now,
+    })
     this.lead = new InputLead(leadForRoundTrip(options.roundTripMs, { tickHz, maxTicks }), {
       tickHz,
       maxTicks,
@@ -155,6 +205,7 @@ export class NetSession {
    */
   observe(snapshot: NetSnapshot, receivedAt?: number): void {
     if (this.end !== undefined) return
+    this.diagnostics?.snapshot(snapshot.tick)
     const outcome = this.prediction.reconcile(snapshot, this.seat, this.inputTick)
     if (outcome === 'mismatch') {
       this.mismatch(snapshot.tick, receivedAt ?? this.time())
@@ -174,7 +225,7 @@ export class NetSession {
    * (there is no game to be at a moment of) and once the session has ended. The answer is one object, reused: read it
    * before the next frame.
    */
-  frame(sample: Sampler, deltaMs: number): NetFrame | undefined {
+  frame(sample: Sampler, deltaMs: number): NetFrame<T> | undefined {
     if (this.end !== undefined) return undefined
     if (this.now === undefined) this.virtualTime += deltaMs
     this.clock.advance(deltaMs)
@@ -196,6 +247,7 @@ export class NetSession {
       const id = this.ping(authority + this.lead.ticks)
       if (id !== undefined) {
         this.pings.set(id, {
+          sentAt: this.time(),
           lead: this.lead.ticks,
           reliable: Math.abs(this.clock.error) <= RELIABLE_CLOCK_ERROR_TICKS,
         })
@@ -205,8 +257,21 @@ export class NetSession {
         }
       }
     }
+    const drawn = this.clock.current() ?? authority
     this.answer.authorityTick = authority
     this.answer.predictedTick = this.inputTick as number
+    this.answer.renderTick = drawn
+    this.answer.remote = this.buffer?.sample(drawn)
+    if (this.diagnostics !== undefined) {
+      const reach = this.buffer?.reach(drawn)
+      if (reach !== undefined) this.diagnostics.buffer(reach)
+      this.diagnostics.clock({
+        error: this.clock.error,
+        delayTicks: this.clock.interpolationDelay,
+        snaps: this.clock.snaps,
+      })
+      this.diagnostics.poll()
+    }
     return this.answer
   }
 
@@ -214,6 +279,7 @@ export class NetSession {
   pong(pong: { readonly id: number; readonly slack: number }): void {
     const sent = this.pings.get(pong.id)
     this.pings.delete(pong.id)
+    if (sent !== undefined) this.diagnostics?.roundTrip(Math.max(0, this.time() - sent.sentAt))
     if (sent?.reliable === true) this.lead.observe(sent.lead, pong.slack)
   }
 
@@ -240,6 +306,8 @@ export class NetSession {
     this.mismatchCount = 0
     this.prediction.clear()
     this.clock.clear()
+    this.buffer?.clear()
+    this.diagnostics?.reset()
     this.inputTick = undefined
     this.sincePing = Number.POSITIVE_INFINITY
     this.pings.clear()
@@ -306,6 +374,7 @@ export class NetSession {
     for (const command of pending) {
       if (command.tick >= tick || this.resent.has(command.seq)) continue
       this.resent.add(command.seq)
+      this.diagnostics?.lateCommand()
       this.send(command)
     }
   }

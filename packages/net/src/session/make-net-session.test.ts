@@ -112,6 +112,38 @@ describe('makeNetSession', () => {
     expect(commands(second)).toEqual(commands(first))
   })
 
+  it('resends what was not acked when the room comes back degraded too', async () => {
+    const { h, handle, room, snapshot, play, commands } = await setup()
+    await play()
+    snapshot(30)
+    handle.session.frame(right, 1000 / 60)
+    const first = room()
+    h.room.markDegraded(true)
+    first.close(1006)
+    expect(h.connection()).toBe('reconnecting')
+    await h.settle()
+    expect(h.connection()).toBe('degraded')
+    expect(commands(room())).toEqual(commands(first))
+  })
+
+  it('reads degraded while the round trips are slow and connected when they recover', async () => {
+    const { h, handle, play } = await setup()
+    await play()
+    for (const rtt of [1200, 1300, 1100, 1250, 1400]) handle.diagnostics.roundTrip(rtt)
+    expect(h.connection()).toBe('degraded')
+    for (const rtt of [100, 100, 100, 100, 100]) handle.diagnostics.roundTrip(rtt)
+    expect(h.connection()).toBe('connected')
+  })
+
+  it('forgets the mark with the game, as leaving a room does', async () => {
+    const { h, handle, play } = await setup()
+    await play()
+    for (const rtt of [1200, 1300, 1100, 1250, 1400]) handle.diagnostics.roundTrip(rtt)
+    await h.run(h.room.leave)
+    expect(h.connection()).toBe('offline')
+    expect(handle.diagnostics.degraded).toBe(false)
+  })
+
   it('starts afresh in another room: its earlier ticks restore, and numbering starts over', async () => {
     const { h, handle, room, snapshot, play, commands, restart } = await setup()
     await play()
@@ -233,6 +265,7 @@ describe('the session clock', () => {
       port: port.port,
       info: SubscriptionRef.make<RoomInfo | undefined>(undefined).pipe(Effect.runSync),
       connection: SubscriptionRef.make<ConnectionState>('connected').pipe(Effect.runSync),
+      markDegraded: () => undefined,
     }
     const scope = Effect.runSync(Scope.make())
     const handle = Effect.runSync(

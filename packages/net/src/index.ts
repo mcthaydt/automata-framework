@@ -28,6 +28,15 @@ export {
 } from './session/input-lead'
 export { type MakeNetSessionOptions, makeNetSession, type NetSessionHandle } from './session/make-net-session'
 export {
+  DEFAULT_DEGRADED,
+  type DegradedThresholds,
+  Distribution,
+  type DistributionSummary,
+  NetDiagnostics,
+  type NetDiagnosticsOptions,
+  type NetSummary,
+} from './session/net-diagnostics'
+export {
   DESYNC_WINDOW_MS,
   type LocalCommand,
   MAX_CATCH_UP_TICKS,
@@ -36,10 +45,20 @@ export {
   NetSession,
   type NetSessionOptions,
   PING_EVERY_MS,
+  type RemoteSource,
   type Sampler,
   type SessionEnd,
   type SessionRoomState,
 } from './session/net-session'
+export { MAX_DELAY_SECONDS, RenderClock, type RenderClockOptions } from './session/render-clock'
+export {
+  type BlendOptions,
+  blendViews,
+  type RemoteFields,
+  type RemoteView,
+  SnapshotBuffer,
+  type SnapshotBufferOptions,
+} from './session/snapshot-buffer'
 export { type ClientMessage, clientMessageSchema } from './wire/client-message.schema'
 export { type JoinOptions, joinOptionsSchema } from './wire/join-options.schema'
 export {

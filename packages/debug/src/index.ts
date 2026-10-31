@@ -11,8 +11,10 @@ export {
   type DebugHost,
   type FeelBoardPort,
   installDebug,
+  type NetDiagnosticsPort,
   type SimProbe,
 } from './host'
 export { createOverlay, type Overlay, type OverlayOptions, type OverlayState } from './overlay'
 export { type DebugPanelDef, debugPanels } from './panels'
 export { shippedPanels } from './shipped-panels'
+export { type SummaryRow, summaryRows } from './summary-rows'
