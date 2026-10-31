@@ -1,5 +1,6 @@
 import { get } from 'svelte/store'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { ToolPaint } from '../../app/tool-paint'
 import { PLAN_COLORS } from '../../view/plan/plan-colors'
 import type { PlanPaint } from '../../view/plan/plan-paint'
 import { createPlanRenderer, type PlanRenderer } from './plan-renderer'
@@ -125,5 +126,29 @@ describe('createPlanRenderer', () => {
     lose.restoreContext()
     await resumed
     expect(colorAt(20, 22)).toBe('#336699')
+  })
+
+  it('draws the tool overlay over the plan: its strokes, filled dots, rings and room outlines (plan ED3D.6g-a)', async () => {
+    const view = await rendererOf()
+    const tool: ToolPaint = {
+      strokes: [{ a: { x: 0, y: 5 }, b: { x: 60, y: 5 }, color: 0xff00ff, width: 2, dashed: false }],
+      dots: [
+        { at: { x: 50, y: 30 }, radius: 4, color: 0x00ffff, ring: false },
+        { at: { x: 20, y: 20 }, radius: 7, color: 0xffff00, ring: true },
+      ],
+      outlines: [{ points: [10, 10, 30, 10, 30, 30, 10, 30], color: 0x0000ff }],
+      labels: [],
+    }
+    view.draw(square, tool)
+    expect(colorAt(5, 5)).toBe('#ff00ff')
+    // The dot covers the lamp under it.
+    expect(colorAt(50, 30)).toBe('#00ffff')
+    // A ring leaves its middle alone: the hall's fill.
+    expect(colorAt(20, 20)).toBe('#336699')
+    expect(colorAt(27, 20)).toBe('#ffff00')
+    // The outline runs along the hall's left edge, over the fill.
+    expect(colorAt(10, 25)).toBe('#0000ff')
+    view.draw(square)
+    expect(colorAt(5, 5)).toBe(hex(PLAN_COLORS.background))
   })
 })

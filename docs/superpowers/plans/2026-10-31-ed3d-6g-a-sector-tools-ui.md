@@ -3,7 +3,7 @@
 - **Task:** ED3D.6g in [02](../../02-master-delivery-plan.md), first part. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flow 2 (draw a sector: corners, lengths, Close, refusals, the portal offer), §9 (the `Draw a sector` frame: sector toolbar, length labels, shared-wall hint, Undo point, Close sector), §10 (keys V S X P D N; Pencil draws and never pans), §13 (ED3-c, ED3-d, ED3-m). Mockup `Draw sector · landscape` (`docs/design/editor-3d/screens.mjs`, `draw`).
 - **Lane:** editors. **Depends on:** ED3D.5d (#265, the Plan view in the shell), the headless tools ED3D.6a to 6f (`app/{sector,wall,vertex,split,merge}-tool-controller.ts`), EDK.2 (command registry and keymap), EDK.3 (gestures). All merged.
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 4 of 9 steps.
+- **Progress:** 5 of 9 steps.
 
 ## Why
 
@@ -44,7 +44,7 @@ The six sector tools exist as controllers with tests, but nothing on screen choo
 - [x] 2. `createPlanTools` (unit, red first): starts on Select; `choose('polygon')` routes taps to a Sector tool (three taps and a tap on the first corner add a sector, one undo step); `choose('select')` while a polygon is open cancels it (no sector, no history); while offers are open it finishes them (the sector stays); pan and zoom go to the Select controller whatever the tool; `dispose` disposes the active tool.
 - [x] 3. `planToolCommands` (unit): V S X P D N choose their tools; Enter closes, Backspace undoes a point, Escape cancels; each disabled when it would do nothing (Close with no drawing), so the key falls through.
 - [x] 4. `toolPaint` (unit): a polygon with two corners and a pointer paints two placed edges and one dashed pending edge, a dot per corner, the snap point, and a length label per edge at its middle (`2.98 m`); `closing` rings the first corner; a Wall or Vertex target paints a mark at its point in the accent, or in the refusal colour with its reason; a Split cut paints the cut; Merge marks the kept sector.
-- [ ] 5. Renderer: `plan-renderer.canvas.test.ts` (Chromium) draws a `ToolPaint` over a plan (a pending edge's pixel is the accent).
+- [x] 5. Renderer: `plan-renderer.canvas.test.ts` (Chromium) draws a `ToolPaint` over a plan (a pending edge's pixel is the accent).
 - [ ] 6. `ToolRail` and `SectorOptions` (DOM, red first): the rail's buttons are 44 px, pressed for the active tool; the toolbar's Polygon/Rectangle/Split/Merge choose; Close sector is disabled with fewer than three corners and says why (the tool's sentence on a refused close); the offers list Accept, Decline and Accept all.
 - [ ] 7. `PlanCanvas` and `DocumentFrame` (DOM with the fake renderer): taps with Sector chosen add a sector through the editor; the labels follow the drawing; keys choose tools; a refusal shows its sentence; ED3-m in the DOM (two corners and Close: refused, "needs three corners", nothing added).
 - [ ] 8. Layout (three browsers): the rail and toolbar at `wide`, `medium` and `compact` with 44 px targets, nothing overlapping the status line; review images beside the mockup's `Draw sector · landscape` frame in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-a/` with a README of differences.
@@ -54,3 +54,4 @@ The six sector tools exist as controllers with tests, but nothing on screen choo
 - 2026-10-31, step 2: `plan-tools.test.ts` red first (module missing), then 10 of 10. One test fix on the way: the drag test recomputed its end pixel after the camera moved, which panned twice; it now fixes the pixels before the drag, as a finger's are.
 - 2026-10-31, step 3: `plan-tool-commands.test.ts` red (module missing), then 4 of 4, ED3-m's refusal by Enter included.
 - 2026-10-31, step 4: `tool-paint.test.ts` red (module missing), then 6 of 6. Deviation: `toolPaint` lives in `app/`, not `view/plan/`, because it reads the tools' state and the architecture test keeps `view/` from importing `app/`; it takes the plan's fills so Merge can outline its rooms.
+- 2026-10-31, step 5: the renderer test red (the stroke's pixel was the background), then 6 of 6 in Chromium. `PlanRenderer.draw(paint, tool?)`.

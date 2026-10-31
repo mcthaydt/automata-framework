@@ -7,6 +7,7 @@ import {
   type WebGLRenderer,
 } from 'pixi.js'
 import { type Readable, writable } from 'svelte/store'
+import type { ToolPaint } from '../../app/tool-paint'
 import type { PaintStroke, PlanPaint } from '../../view/plan/plan-paint'
 
 // The Plan view's renderer (ED3D.5d, ED3D spec §6): a WebGL2 Pixi renderer on the page's canvas that strokes and fills
@@ -24,8 +25,8 @@ export interface RendererSize {
 export interface PlanRenderer {
   /** True from `webglcontextlost` until `webglcontextrestored`. */
   readonly paused: Readable<boolean>
-  /** Draws `paint` now, or keeps it for when the context is back. */
-  draw(paint: PlanPaint): void
+  /** Draws `paint`, and the active tool's overlay over it, now, or keeps them for when the context is back. */
+  draw(paint: PlanPaint, tool?: ToolPaint): void
   /** Resizes the drawing buffer and draws the newest list again. */
   resize(size: RendererSize): void
   /** Releases the renderer; later calls do nothing. Leaves the canvas element alone. */
@@ -128,6 +129,18 @@ function paintInto(graphics: Graphics, paint: PlanPaint): void {
   }
 }
 
+/** The active tool's overlay, over the plan (ED3D.6g-a): strokes, room outlines, then the dots and rings on top. */
+function toolInto(graphics: Graphics, tool: ToolPaint): void {
+  for (const line of tool.strokes) stroke(graphics, line)
+  for (const outline of tool.outlines)
+    graphics.poly([...outline.points]).stroke({ color: outline.color, width: 2, alignment: 0.5 })
+  for (const dot of tool.dots) {
+    graphics.circle(dot.at.x, dot.at.y, dot.radius)
+    if (dot.ring) graphics.stroke({ color: dot.color, width: 2 })
+    else graphics.fill({ color: dot.color })
+  }
+}
+
 export const createPlanRenderer: PlanRendererFactory = async (canvas, size) => {
   const created = await createWebGL2Renderer({
     canvas,
@@ -143,11 +156,13 @@ export const createPlanRenderer: PlanRendererFactory = async (canvas, size) => {
   let lost = false
   let destroyed = false
   let latest: PlanPaint | undefined
+  let latestTool: ToolPaint | undefined
 
   function render(): void {
     if (lost || destroyed || latest === undefined) return
     renderer.background.color = latest.background
     paintInto(graphics, latest)
+    if (latestTool !== undefined) toolInto(graphics, latestTool)
     renderer.render(graphics)
   }
 
@@ -166,8 +181,9 @@ export const createPlanRenderer: PlanRendererFactory = async (canvas, size) => {
 
   return {
     paused: { subscribe: paused.subscribe },
-    draw(paint) {
+    draw(paint, tool) {
       latest = paint
+      latestTool = tool
       render()
     },
     resize(next) {
