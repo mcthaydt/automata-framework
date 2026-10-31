@@ -51,9 +51,9 @@ note on the harness).
   against a recording target (unit, failing first).
 - [x] 3. `ipad-profiles.ts` and `journey-project.ts`; the `journeys` project in the kit config and its script; a first
   journey (EK-g at one profile) proves the WebKit iPad context (`navigator.maxTouchPoints > 0`, `devicePixelRatio` 2).
-- [ ] 4. `JourneyFixture.svelte`; EK-a (a 40 px drag on the stepper's label is one undo step, by the configured rate;
+- [x] 4. `JourneyFixture.svelte`; EK-a (a 40 px drag on the stepper's label is one undo step, by the configured rate;
   undo restores it).
-- [ ] 5. EK-b (Pencil down, then a palm: the palm is ignored, the stroke unaffected) and EK-i (teardown mid-gesture:
+- [x] 5. EK-b (Pencil down, then a palm: the palm is ignored, the stroke unaffected) and EK-i (teardown mid-gesture:
   capture released, nothing fires after).
 - [ ] 6. EK-c (rotate mid-drag of a slider: the drag ends cancelled, the value unchanged, no remount, the panel's scroll
   kept) and EK-g at all four profiles (the layout contract; every action reachable).
@@ -76,3 +76,10 @@ note on the harness).
   and `(hover: none)` match, touch events exist, the screen is 2× and the user agent is the iPad's (logged). The journey
   asserts those instead; `ui/src/browser/fullscreen.ts`, the one reader of `maxTouchPoints`, also matches an iPad by
   its user agent. `test:journeys`: 1 file, 4 tests pass (one per profile).
+- 2026-10-31, steps 4 and 5: the fixture (a stepper and a slider over a `History`, a logging gesture surface, a mount
+  counter) and three journeys pass in WebKit: EK-a at the four profiles (hit points 3 to 8 in one undo step; undo back
+  to 3), EK-b (a palm while the Pencil draws makes no gesture; the four events seen are the Pencil's) and EK-i (nothing
+  fires after the teardown). These journeys check behaviour the kit already has, through the new harness, so their
+  first runs passed; each reads an outcome only the dispatched events can produce (a changed value, a pen-only log).
+  Limit: a synthetic pointer cannot be captured in WebKit (`setPointerCapture` throws `NotFoundError`, which the kit
+  swallows), so EK-i's "capture released" is trivially true here and stays the device pass's to prove.
