@@ -63,9 +63,9 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 1. `validateBlockout`: schema, expand, generated map and graph, the generic checks (each with a failing fixture). Fails: no module.
    - [x] 1
 2. `generateContent` and the stamp: deterministic TOML, round trip through the content schemas. Fails: no module.
-   - [ ] 2
+   - [x] 2
 3. The pipeline: stages `validate` and `generate`, `check` (fresh, hand edit, stale); EP-a, EP-b. Fails: no pipeline.
-   - [ ] 3
+   - [x] 3
 4. `shots`: the runner contract, standing points, PNG legibility, `shots.json`. Fails: no stage.
    - [ ] 4
 5. `import`. Fails: no command.
