@@ -43,3 +43,6 @@ const drop = z.object({ kind: z.int().positive(), amount: z.int().positive(), x:
 
 /** Wick took a drop (an ember or a heart) at its place: presentation's pickup sound and sparkle. */
 export const DropTaken: EventDef<typeof drop> = defineEvent('drop.taken', drop)
+
+/** The Ash Knight Captain is beaten (DESIGN.md §8.3): D4's doors open and the Ember Bombs chest appears (1f, 1e). */
+export const CaptainDefeated: EventDef<typeof foe> = defineEvent('captain.defeated', foe)

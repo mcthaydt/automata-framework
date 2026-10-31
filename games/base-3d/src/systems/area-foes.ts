@@ -3,7 +3,7 @@ import type { SpawnPart } from '@mcthaydt/automata-sim'
 import { Enemy, Fighter, Target } from '../components.ts'
 import { enemyOf } from '../constants/enemies.ts'
 import { DUMMY, DUMMY_FACING } from '../constants/index.ts'
-import type { Area } from './area.ts'
+import type { Area, AreaFoe } from './area.ts'
 
 /**
  * The entities an area starts with besides Wick: a training dummy at each target point, and its foes (DESIGN.md
@@ -14,14 +14,15 @@ export function spawnFoes(area: Area): SpawnPart[][] {
     [Target, { x, z, facing: DUMMY_FACING }],
     [Fighter, { side: 1, ...DUMMY }],
   ])
-  const foes = area.foes.map(({ kind, x, z, facing }): SpawnPart[] => {
-    const type = enemyOf(kind)
-    const { health = 1, radius = 0, height = 0, lift = 0 } = type ?? {}
-    return [
-      [Target, { x, z, facing }],
-      [Fighter, { side: 1, health, radius, height, lift }],
-      [Enemy, { kind, homeX: x, homeZ: z, homeFacing: facing }],
-    ]
-  })
-  return [...dummies, ...foes]
+  return [...dummies, ...area.foes.map(foeParts)]
+}
+
+/** One foe as spawn parts: its type's fighter, a `target` row (so it is lockable) and an idle brain at home. */
+export function foeParts({ kind, x, z, facing }: AreaFoe): SpawnPart[] {
+  const { health = 1, radius = 0, height = 0, lift = 0 } = enemyOf(kind) ?? {}
+  return [
+    [Target, { x, z, facing }],
+    [Fighter, { side: 1, health, radius, height, lift }],
+    [Enemy, { kind, homeX: x, homeZ: z, homeFacing: facing }],
+  ]
 }

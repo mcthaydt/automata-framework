@@ -9,6 +9,7 @@ import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } fro
 import {
   AreaEntered,
   AreaExit,
+  CaptainDefeated,
   DropTaken,
   EmberTaken,
   FoeDefeated,
@@ -99,6 +100,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     HitLanded,
     FoeDefeated,
     DropTaken,
+    CaptainDefeated,
     AreaExit,
     AreaEntered,
     heroInput,

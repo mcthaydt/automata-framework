@@ -31,6 +31,12 @@ export interface EnemyDef {
   readonly shield?: boolean
   /** A hit while it hovers drops it to the floor, stunned, this many ticks (the Wisp and the sling, §8.2). */
   readonly grounded?: number
+  /** At half health or less its windups are `ANGER_SHORTEN` ticks shorter (the Captain, §8.3). */
+  readonly anger?: boolean
+  /** Angry, it calls one `kind` at a time from the area's vents, every `every` ticks, while fewer than `most` live. */
+  readonly calls?: { readonly kind: string; readonly every: number; readonly most: number }
+  /** A mini-boss: its defeat raises `captain.defeated` (the doors, the chest) instead of a roll on the drop table. */
+  readonly rank?: 'captain'
 }
 
 /** What a move's hit reaches when it never misses for height: from the floor to above Wick's head. */
@@ -82,6 +88,41 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
     hit: { near: 0, far: metres(1.5), ...FLOOR_UP, dmg: 0, stop: 3, stun: 18, kb: metres(10), power: 1 },
   },
   {
+    // The Captain's combo (§8.3): a chop with a 30-tick windup, then at once a second with its own 20 (the combo's
+    // tell is the first: a follow-up is exempt from §8.1 rule 1's 24 ticks).
+    id: 'captain-chop-1',
+    total: 50,
+    active: [31, 34],
+    next: 'captain-chop-2',
+    hit: {
+      near: metres(0.2),
+      far: metres(1.9),
+      bottom: metres(0.4),
+      top: metres(2.3),
+      dmg: 2,
+      stop: 5,
+      stun: 20,
+      kb: metres(2),
+      power: 2,
+    },
+  },
+  {
+    id: 'captain-chop-2',
+    total: 44,
+    active: [21, 24],
+    hit: {
+      near: metres(0.2),
+      far: metres(1.9),
+      bottom: metres(0.4),
+      top: metres(2.3),
+      dmg: 2,
+      stop: 5,
+      stun: 20,
+      kb: metres(2),
+      power: 2,
+    },
+  },
+  {
     // The Wisp stops, flares and shrieks for 30 ticks, then dives 4 m in a straight line, down to Wick's height.
     id: 'wisp-dive',
     total: 70,
@@ -91,7 +132,7 @@ export const ENEMY_MOVES: readonly MoveDef[] = [
   },
 ]
 
-/** The three types (§8.2), by their index + 1 in `Enemy.kind`. */
+/** The three types (§8.2) and the Captain (§8.3), by their index + 1 in `Enemy.kind`. */
 export const ENEMIES: readonly EnemyDef[] = [
   {
     id: 'sootling',
@@ -138,6 +179,24 @@ export const ENEMIES: readonly EnemyDef[] = [
     recover: 60,
     grounded: 120,
   },
+  {
+    // The Ash Knight Captain (§8.3): the knight, 2.1 m and 14 health, opening with its combo.
+    id: 'ash-captain',
+    health: 14,
+    radius: metres(0.45),
+    height: metres(2.1),
+    lift: 0,
+    speed: perTick(1.6),
+    turn: turnPerTick(150),
+    notice: metres(8),
+    reach: metres(1.5),
+    attacks: ['captain-chop-1', 'knight-chop', 'knight-bash'],
+    recover: 30,
+    shield: true,
+    anger: true,
+    calls: { kind: 'sootling', every: 240, most: 2 },
+    rank: 'captain',
+  },
 ]
 
 /** The id of the enemy type with `kind` (its index + 1), or undefined. */
@@ -146,6 +205,19 @@ export const enemyOf = (kind: number): EnemyDef | undefined => ENEMIES[kind - 1]
 /** An enemy's brain (§8.1 rule 5), as `Enemy.brain` holds it. */
 export const BrainState = { idle: 0, notice: 1, approach: 2, circle: 3, attack: 4, recover: 5 } as const
 
+/** An angry enemy's windups are this many ticks shorter (§8.3: the Captain at half health). */
+export const ANGER_SHORTEN = 4
+/** The shortest windup an enemy opens an attack with (§8.1 rule 1). */
+export const MIN_WINDUP = 24
+
+/**
+ * The windup frames an angry enemy skips on `move` (§8.3): `ANGER_SHORTEN`, except that an attack it opens with keeps
+ * §8.1 rule 1's `MIN_WINDUP` (the bash's 24 stay 24). A combo's follow-up (`opener` false) loses all 4.
+ */
+export function angerSkip(move: MoveDef, opener: boolean): number {
+  const windup = move.active[0] - 1
+  return opener ? Math.max(0, Math.min(ANGER_SHORTEN, windup - MIN_WINDUP)) : ANGER_SHORTEN
+}
 /** How long an enemy that noticed Wick stands and turns toward him before it closes in. */
 export const NOTICE_TICKS = 20
 /** At most this many enemies hold an attack token at once (§8.1 rule 2). */

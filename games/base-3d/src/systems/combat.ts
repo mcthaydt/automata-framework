@@ -29,7 +29,7 @@ import {
   SPIN_CHARGE,
   TICK_HZ,
 } from '../constants/index.ts'
-import { FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
+import { CaptainDefeated, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
 import { Freeze, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
 import { facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
@@ -353,7 +353,8 @@ export const combatHits: SystemDef = defineSystem({
         ctx.emit(FoeDefeated, { target: defender.sid })
         ctx.despawn(defender.sid)
         // A beaten enemy may leave something where it fell: one roll on the seeded table (DESIGN.md §8.1 rule 6).
-        const drop = kind === undefined ? undefined : dropOf(ctx.rng.int(10))
+        if (kind?.rank === 'captain') ctx.emit(CaptainDefeated, { target: defender.sid })
+        const drop = kind === undefined || kind.rank !== undefined ? undefined : dropOf(ctx.rng.int(10))
         if (drop !== undefined) ctx.spawn([Drop, { x: at.x, z: at.z, ...drop }])
         continue
       }

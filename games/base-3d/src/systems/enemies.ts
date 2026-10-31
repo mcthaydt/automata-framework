@@ -6,7 +6,9 @@
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
 import { Enemy, Fighter, Hero, Target } from '../components.ts'
 import {
+  angerSkip,
   BrainState,
+  ENEMIES,
   type EnemyDef,
   enemyOf,
   MAX_TOKENS,
@@ -18,6 +20,7 @@ import {
 import { CombatState, type MoveDef, metres } from '../constants/index.ts'
 import { Location } from '../resources.ts'
 import { type Area, areaIn, type PlanPoint, slide, worldOf } from './area.ts'
+import { foeParts } from './area-foes.ts'
 import { frozen, isHeld } from './combat.ts'
 import { facingVector } from './combat-geometry.ts'
 import { angleOf, lineOfSight, signedTurn } from './lock-target.ts'
@@ -71,7 +74,16 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
   // Exact under 2^53 for any room under a few hundred metres; the square root of an integer is the same everywhere.
   const distance = Math.floor(Math.sqrt(dx * dx + dz * dz))
   const toWick = angleOf(dx, dz)
-  let { brain, timer, token, attacks } = enemy
+  let { brain, timer, token, attacks, follow, calls, called } = enemy
+  // At half health or less an angry type's windups are shorter (§8.3): its moves start a few frames in.
+  const angry = type.anger === true && fighter.health * 2 <= type.health
+  const start = (move: number, opener: boolean) => {
+    const def = scene.moves[move - 1]
+    if (def === undefined) return
+    follow = def.next === undefined ? 0 : scene.moves.findIndex((other) => other.id === def.next) + 1
+    const moveTick = angry ? angerSkip(def, opener) : 0
+    entity.set(Fighter, { move, moveTick, moveStart: ctx.tick, state: CombatState.act })
+  }
   let { x, z, facing } = at
   let lift = type.lift
   const walk = (heading: number, step: number) => {
@@ -91,10 +103,13 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
     release()
     brain = BrainState.recover
     timer = type.recover
+    follow = 0
     if (type.grounded !== undefined) lift = 0
   } else if (brain === BrainState.attack) {
     const def = scene.moves[fighter.move - 1]
-    if (fighter.move === 0 || def === undefined) {
+    // A combo's move about to end chains into its next at once, keeping the token (§8.3).
+    if (def !== undefined && follow !== 0 && fighter.moveTick + 1 > def.total) start(follow, false)
+    else if (fighter.move === 0 || def === undefined) {
       release()
       brain = BrainState.recover
       timer = type.recover
@@ -144,7 +159,7 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
         if (move !== 0) {
           brain = BrainState.attack
           attacks += 1
-          entity.set(Fighter, { move, moveTick: 0, moveStart: ctx.tick, state: CombatState.act })
+          start(move, true)
         }
       } else if (token) walk(toWick, Math.min(type.speed, distance - type.reach))
       else if (distance < RING_NEAR) walk(toWick + HALF_TURN, Math.min(type.speed, RING_NEAR - distance))
@@ -153,7 +168,20 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
       else walk(toWick + QUARTER_TURN, Math.trunc(type.speed / 2))
     }
   }
-  entity.set(Enemy, { brain, timer, token, attacks })
+  // An angry Captain calls one of its kind from the next vent while fewer than `most` live (§8.3).
+  if (angry && type.calls !== undefined && !isHeld(fighter.state)) {
+    const { kind: callKind, every, most } = type.calls
+    const kind = ENEMIES.findIndex((other) => other.id === callKind) + 1
+    const vent = area.vents[called % Math.max(1, area.vents.length)]
+    const alive = ctx.query(Enemy).filter((other) => other.get(Enemy).kind === kind).length
+    if (calls > 0) calls -= 1
+    else if (vent !== undefined && kind !== 0 && alive < most) {
+      ctx.spawn(...foeParts({ kind, ...vent, facing: 0 }))
+      called += 1
+      calls = every
+    }
+  }
+  entity.set(Enemy, { brain, timer, token, attacks, follow, calls, called })
   entity.set(Target, { x, z, facing })
   if (lift !== fighter.lift) entity.set(Fighter, { lift })
 }

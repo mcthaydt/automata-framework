@@ -133,6 +133,23 @@ Each step: the failing test first (run, confirm the reason), then the minimal co
 - [ ] 12. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm --filter @mcthaydt/base-3d test:parity`,
       `pnpm build:demos` if the page changed. No published package changes (no changeset).
 
+## Part 2: the Captain (interfaces and steps)
+
+Produced (base-3d only): `ash-captain` in `ENEMIES` with `anger`, `calls` and `rank: 'captain'`; the moves
+`captain-chop-1` (`next: 'captain-chop-2'`) and `captain-chop-2`; `ANGER_SHORTEN`, `MIN_WINDUP`, `angerSkip`
+(constants/enemies.ts); `enemy.follow`, `enemy.calls`, `enemy.called` (components.ts); `AreaSource.vents`;
+`captain.defeated { target }` (events.ts); `foeParts` (systems/area-foes.ts).
+
+- [x] 1. Tests: the Captain is 2.1 m with 14 health and its shield; the opening attacks keep 24 ticks even angry and
+      the combo's second chop has 20 (16 angry); failed on the missing type and moves.
+- [x] 2. The combo: a running move with a `next` chains into it on the tick it would end, keeping the token. Test:
+      the second chop follows at once and Wick's shield blocks it.
+- [x] 3. Anger and calls: at half health or less its moves start `angerSkip` frames in, and it calls a Sootling from
+      the next vent at once and every 240 ticks while fewer than 2 live. Tests: the angry chop lands 26 ticks after
+      it starts; one Sootling at the first vent; never more than 2 over 900 ticks; none before it is angry.
+- [x] 4. Its death raises `captain.defeated` once and rolls nothing on the drop table.
+- [x] 5. Goldens re-recorded with the explanation (content and schema only); gates as part 1's.
+
 ## Execution log
 
 **Part 1 (2026-10-31, branch `claude/3d-game-3d-1d`).**
@@ -176,3 +193,17 @@ Each step: the failing test first (run, confirm the reason), then the minimal co
 changed (the enemy moves, `foes`, `enemy`, `drop`, `fighter.lift`, `drop.taken`, two systems), its state did not
 (rejected 0, events 0, kiln tick 118, 62 locked ticks, the action starts, end action and end position, all still
 asserted). `base-3d/golden-fights` (new): `e230d634075f5dde`, 763 ticks, recorded in Node.
+
+**Part 2 (2026-10-31, branch `claude/3d-game-3d-1d-2`).**
+
+- Every case failed first (no `ash-captain`, no `captain-chop-*`, no `vents`, no `captain.defeated`), then passed.
+- The table check caught a conflict in the design: §8.3's anger shortens every windup by 4, which takes the bash
+  (24) under §8.1 rule 1's floor. Default taken (for the Owner's veto): anger never shortens an attack the Captain
+  opens with below 24 (`angerSkip`), so the bash stays 24 and the chops go to 26. A combo's second chop is a
+  follow-up, not an opener: its 20-tick windup (§8.3) is exempt from the floor and goes to 16 angry, because the
+  combo's tell is the first chop's 30.
+- Other defaults: the Captain reaches 1.9 m and to 2.3 m up, notices at 8 m, opens with the combo and then takes the
+  knight's chop and bash in turn; its first call comes on the first tick it is angry, the next 240 ticks after each.
+  The doors and the Ember Bombs chest are 1f's and 1e's; part 2 raises `captain.defeated` for them.
+- Goldens: `base-3d/golden-route` `c4f3e5bcee14989b` → `4d222d95aa66c94b`; `base-3d/golden-fights`
+  `e230d634075f5dde` → `a41116f82fa68a84`. Content and schema only; every other assertion of both is unchanged.

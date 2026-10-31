@@ -1235,9 +1235,13 @@ const GOLDEN_KILN_TICK = 118
  * `fighter.lift`, the `drop.taken` event and the `enemy.brain` and `drops.take` systems, whose RNG states the snapshot
  * carries. The first slice has no foe and the route kills nothing, so no brain runs, no drop is rolled and its state
  * did not move: the rejected commands, events, kiln tick, locked ticks, action starts, end action and end position
- * are unchanged, and still asserted below. The fights are their own golden (enemies.test.ts).
+ * are unchanged, and still asserted below. The fights are their own golden (enemies.test.ts). Re-recorded for
+ * GAME-3D.1d part 2's Captain (was `c4f3e5bcee14989b`): the move table gained the Captain's two chops, each area
+ * `vents`, `enemy` the `follow`, `calls` and `called` fields, and the sim the `captain.defeated` event, which the
+ * content and schema hashes cover. The first slice has no foe: the rejected commands, events, kiln tick, locked
+ * ticks, action starts, end action and end position are unchanged, and still asserted below.
  */
-const GOLDEN_HASH = 'c4f3e5bcee14989b'
+const GOLDEN_HASH = '4d222d95aa66c94b'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

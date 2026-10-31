@@ -3,6 +3,7 @@ import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
 import { Drop, Enemy, Fighter, Hero, Target } from './components.ts'
 import {
+  angerSkip,
   BrainState,
   DropKind,
   dropOf,
@@ -32,8 +33,28 @@ import {
 // The browsers project runs this file in Chromium, WebKit and Firefox too, so its scenes hold in four engines.
 
 describe('the enemy tables (DESIGN.md §8.1, §8.2)', () => {
-  it('gives every enemy attack a windup of at least 24 ticks (G3-l)', () => {
-    for (const move of ENEMY_MOVES) expect(move.active[0] - 1, move.id).toBeGreaterThanOrEqual(24)
+  it('gives every attack an enemy opens with a windup of at least 24 ticks, even angry (G3-l)', () => {
+    const followUps = new Set(ENEMY_MOVES.map((move) => move.next))
+    for (const type of ENEMIES)
+      for (const id of type.attacks) {
+        const move = ENEMY_MOVES.find((candidate) => candidate.id === id) as MoveDef
+        expect(followUps.has(id), id).toBe(false)
+        const shortened = type.anger === undefined ? 0 : angerSkip(move, true)
+        expect(move.active[0] - 1 - shortened, `${type.id}: ${id}`).toBeGreaterThanOrEqual(24)
+      }
+    // Angry, the Captain's chop and its combo's first chop lose 4 ticks (26); its bash keeps its 24.
+    const windup = (id: string) => {
+      const move = ENEMY_MOVES.find((candidate) => candidate.id === id) as MoveDef
+      return move.active[0] - 1 - angerSkip(move, true)
+    }
+    expect(['captain-chop-1', 'knight-chop', 'knight-bash'].map(windup)).toEqual([26, 26, 24])
+  })
+
+  it('chains a combo’s second chop with a windup of its own: 20 ticks, 16 angry (§8.3)', () => {
+    const second = ENEMY_MOVES.find((move) => move.id === 'captain-chop-2') as MoveDef
+    expect(ENEMY_MOVES.find((move) => move.id === 'captain-chop-1')?.next).toBe('captain-chop-2')
+    expect(second.active[0] - 1).toBe(20)
+    expect(second.active[0] - 1 - angerSkip(second, false)).toBe(16)
   })
 
   it('names only moves in the table, each with a hit', () => {
@@ -49,6 +70,7 @@ describe('the enemy tables (DESIGN.md §8.1, §8.2)', () => {
       ['sootling', 2],
       ['ash-knight', 6],
       ['wisp', 2],
+      ['ash-captain', 14],
     ])
   })
 })
@@ -255,23 +277,25 @@ function hitKinds(sim: Sim, input: TickInput, ticks = 1): string[] {
   return kinds
 }
 
+/** A slash and the 12 ticks after it, as the kinds of the hits it lands. */
+const slashes = (sim: Sim) => [...hitKinds(sim, { act: { slash: true } }), ...hitKinds(sim, {}, 12)]
+
 describe('the Ash Knight (DESIGN.md §8.2, G3-m)', () => {
   const knight = async (facing: number) => {
     const sim = await startFoes([{ kind: 'ash-knight', x: 0, z: 1.2, facing }])
     return { sim, sid: foes(sim)[0]?.sid as number }
   }
-  const slashOnce = (sim: Sim) => [...hitKinds(sim, { act: { slash: true } }), ...hitKinds(sim, {}, 12)]
 
   it('blocks a frontal slash with its shield: no damage', async () => {
     const { sim, sid } = await knight(180)
-    expect(slashOnce(sim)).toEqual(['block'])
+    expect(slashes(sim)).toEqual(['block'])
     expect(fighter(sim, sid)).toMatchObject({ health: 6, state: CombatState.idle })
     sim.dispose()
   })
 
   it('takes a slash from behind', async () => {
     const { sim, sid } = await knight(0)
-    expect(slashOnce(sim)).toEqual(['hit'])
+    expect(slashes(sim)).toEqual(['hit'])
     expect(fighter(sim, sid)?.health).toBe(5)
     sim.dispose()
   })
@@ -285,7 +309,7 @@ describe('the Ash Knight (DESIGN.md §8.2, G3-m)', () => {
     expect(hitKinds(sim, { act: { guard: true } }, 6)).toEqual(['parry'])
     expect(fighter(sim, sid)).toMatchObject({ state: CombatState.stagger, stun: 28 })
     hitKinds(sim, {}, 14) // the parry's hitstop
-    expect(slashOnce(sim)).toEqual(['hit'])
+    expect(slashes(sim)).toEqual(['hit'])
     expect(fighter(sim, sid)?.health).toBe(4)
     expect(fighter(sim, wickSid(sim))?.health).toBe(8)
     sim.dispose()
@@ -498,8 +522,13 @@ const FIGHTS_ROUTE: readonly RouteSegment[] = [
   [{ stick: { x: 60, y: 115 } }, 40], // and back over the Sootling's
   [{}, 10],
 ]
-/** The fights golden's hash after the whole route, with seed 1 (recorded in Node). */
-const FIGHTS_HASH = 'e230d634075f5dde'
+/**
+ * The fights golden's hash after the whole route, with seed 1 (recorded in Node). Re-recorded for GAME-3D.1d part 2
+ * (was `e230d634075f5dde`): the content gained the Captain (its type, its two chops, `vents`) and the schema the
+ * `enemy` fields `follow`, `calls`, `called` and the `captain.defeated` event. The yard has no Captain and no vent,
+ * so its events, tokens, embers, health and ticks are unchanged, and still asserted below.
+ */
+const FIGHTS_HASH = 'a41116f82fa68a84'
 
 async function runFights() {
   const spec = base3dSim(compileWorld([FIGHT_YARD]))
@@ -567,5 +596,79 @@ describe('the fights golden (B-a, G3-b’s two fights, G3-l)', () => {
 
   it('replays to the same hash twice in one engine', async () => {
     expect((await runFights()).hash).toBe((await runFights()).hash)
+  })
+})
+
+describe('the Ash Knight Captain (DESIGN.md §8.3)', () => {
+  const captain = async (vents: AreaSource['vents'] = []) => {
+    const area = compileArea({
+      id: 'd4',
+      spawn: { x: 0, z: 0 },
+      views: [{ id: 'open', yawDeg: 0 }],
+      rooms: [{ view: 'open', min: [-20, -20], max: [20, 20] }],
+      walls: [],
+      targets: [],
+      ember: { x: 19, z: 19 },
+      foes: [{ kind: 'ash-captain', x: 0, z: 1.4, facing: 180 }],
+      vents,
+    })
+    const sim = await startSim(area, MOVES)
+    return { sim, sid: foes(sim)[0]?.sid as number }
+  }
+  const moveId = (sim: Sim, sid: number) => MOVES[(fighter(sim, sid)?.move ?? 0) - 1]?.id
+
+  it('is a 2.1 m Ash Knight with 14 health and its shield', async () => {
+    const { sim, sid } = await captain()
+    expect(fighter(sim, sid)).toMatchObject({ health: 14, height: metres(2.1) })
+    expect(slashes(sim)).toEqual(['block'])
+    sim.dispose()
+  })
+
+  it('opens with the two-chop combo: the second chop follows the first at once, on its 21st frame', async () => {
+    const { sim, sid } = await captain()
+    stepUntil(sim, () => enemy(sim, sid)?.brain === BrainState.attack)
+    expect(moveId(sim, sid)).toBe('captain-chop-1')
+    stepUntil(sim, () => moveId(sim, sid) === 'captain-chop-2', 200, { act: { guard: true } })
+    expect(enemy(sim, sid)?.token).toBe(true)
+    // Its contact lands 20 frames after its start: Wick's shield blocks it.
+    const kinds = hitKinds(sim, { act: { guard: true } }, 20)
+    expect(kinds).toEqual(['block'])
+    sim.dispose()
+  })
+
+  it('gets angry at half health: its windups 4 ticks shorter, and it calls a Sootling at a time from the vents, 2 at most', async () => {
+    const { sim, sid } = await captain([
+      { x: -5, z: 5 },
+      { x: 5, z: 5 },
+    ])
+    sim.entity(sid)?.set(Fighter, { health: 7 })
+    stepUntil(sim, () => enemy(sim, sid)?.brain === BrainState.attack)
+    const started = sim.tick
+    stepUntil(sim, () => fighter(sim, wickSid(sim))?.health !== 8)
+    // The chop's contact on frame 31, reached 4 frames sooner: 26 ticks after it started, plus a tick of reporting.
+    expect(sim.tick - started).toBe(26)
+    const sootlings = () => foes(sim).filter((entity) => enemyKind(entity.get(Enemy).kind) === 'sootling')
+    expect(sootlings()).toHaveLength(1)
+    // At the first vent (it has begun pacing from there).
+    expect(sootlings()[0]?.get(Enemy)).toMatchObject({ homeX: metres(-5), homeZ: metres(5) })
+    let most = 0
+    for (let i = 0; i < 900; i++) {
+      run(sim, {})
+      most = Math.max(most, sootlings().length)
+    }
+    expect(most).toBe(2)
+    sim.dispose()
+  })
+
+  it('never calls before it is angry, and its death says so once, with no roll on the drop table', async () => {
+    const { sim, sid } = await captain([{ x: -5, z: 5 }])
+    run(sim, {}, 300)
+    expect(foes(sim)).toHaveLength(1)
+    sim.entity(sid)?.set(Fighter, { health: 1, state: CombatState.stun, stun: 30 })
+    sim.entity(sid)?.set(Target, { facing: 0 })
+    const events = run(sim, { act: { slash: true } }, 12)
+    expect(events.filter((event) => event.startsWith('captain.defeated'))).toHaveLength(1)
+    expect(sim.query(Drop)).toHaveLength(0)
+    sim.dispose()
   })
 })

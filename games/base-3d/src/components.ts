@@ -128,6 +128,11 @@ const enemyFields = {
   homeZ: 'i32',
   /** The facing its idle pacing walks out along, in turn units. */
   homeFacing: 'u32',
+  /** The move its running one chains into when it ends (index + 1, 0 none): a combo's next chop. */
+  follow: 'u32',
+  /** Ticks until an angry Captain may call again, and the calls it has made (the next vent is `called % vents`). */
+  calls: 'u32',
+  called: 'u32',
 } as const
 
 /**
