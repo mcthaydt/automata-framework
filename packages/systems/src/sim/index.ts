@@ -52,4 +52,5 @@ export type {
 export { effectSchema, probeSchema, systemsDefShape } from './systems.schema'
 export { NOISE_LIFE } from './systems.system'
 export { checkSystems, type SystemsCheckOptions } from './systems-checks'
+export { createWatch, SystemsWatch } from './watch'
 export type { SystemsOptions, SystemsWorld } from './world'

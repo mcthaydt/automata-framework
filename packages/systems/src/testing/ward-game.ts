@@ -1,9 +1,15 @@
 // A test game for systems on the clinic (nav's fixture: sectors' map, the nav graph and the clinic's boxes): it loads
 // a def by command, moves the player, sets facts and makes noises. The player is an entity with `InSector`, named in
 // `systems.env`. Hooks log what they were called with.
-import { createNavPlugin, loadNavGraph } from '@mcthaydt/automata-nav/sim'
+import { createNavPlugin, loadNavGraph, NavAgent } from '@mcthaydt/automata-nav/sim'
 import { clinicBlocked, clinicGraph, clinicMap } from '@mcthaydt/automata-nav/testing/clinic'
-import { createPuzzlePlugin, PuzzleState, type Value } from '@mcthaydt/automata-puzzle/sim'
+import {
+  createPuzzlePlugin,
+  loadPuzzle,
+  type PuzzleDef,
+  PuzzleState,
+  type Value,
+} from '@mcthaydt/automata-puzzle/sim'
 import {
   InSector,
   loadSectorMap,
@@ -17,6 +23,7 @@ import {
   defineCommand,
   definePlugin,
   defineSystem,
+  type PluginDef,
   type Sim,
   type SimEvent,
   type StepResult,
@@ -38,6 +45,7 @@ const Fact = defineCommand(
   'ward.fact',
   z.strictObject({ name: z.string(), value: z.union([z.boolean(), z.number(), z.string()]) }),
 )
+const Items = defineCommand('ward.items', z.strictObject({ items: z.array(z.string()) }))
 const MakeNoise = defineCommand(
   'ward.noise',
   z.strictObject({ at: point, loudness: z.number(), kind: z.string() }),
@@ -50,10 +58,21 @@ export interface WardGame {
   readonly log: string[]
 }
 
+/** What a bot's run adds (none of it is there by default, so the golden's sim is unchanged). */
+export interface WardExtras {
+  /** A puzzle loaded with the scene, and the `ward.items` command that sets the items carried. */
+  readonly puzzle?: PuzzleDef
+  /** The player walks with nav (`nav.agent`, at `speed` m/s) instead of only being moved. */
+  readonly walker?: number
+  /** More plugins (a run's watcher). */
+  readonly plugins?: readonly PluginDef[]
+}
+
 export async function createWardGame(
   def: SystemsDef,
   options: SystemsOptions = {},
   hookNames: readonly string[] = [],
+  extras: WardExtras = {},
 ): Promise<WardGame> {
   const log: string[] = []
   const hooks: Record<string, NonNullable<SystemsOptions['hooks']>[string]> = {}
@@ -70,14 +89,19 @@ export async function createWardGame(
   const game = definePlugin({
     name: 'ward',
     dependsOn: ['sectors', 'nav', 'puzzle', 'systems'],
-    commands: [Load, Move, Fact, MakeNoise],
+    commands:
+      extras.puzzle === undefined ? [Load, Move, Fact, MakeNoise] : [Load, Move, Fact, MakeNoise, Items],
     systems: [
       defineSystem('ward.drive', 'input', (ctx) => {
         for (const { payload } of ctx.commands.of(Load)) {
           loadSectorMap(ctx, clinicMap())
           loadNavGraph(ctx, clinicGraph())
           systems.load(ctx, def, payload.places)
+          if (extras.puzzle !== undefined) loadPuzzle(ctx, extras.puzzle)
         }
+        if (extras.puzzle !== undefined)
+          for (const { payload } of ctx.commands.of(Items))
+            ctx.resource(PuzzleState).items = [...payload.items].sort()
         const player = ctx.resource(SystemsEnv).player
         for (const { payload } of ctx.commands.of(Move)) ctx.entity(player)?.set(InSector, payload)
         for (const { payload } of ctx.commands.of(Fact))
@@ -98,9 +122,16 @@ export async function createWardGame(
       }),
       systems.plugin,
       game,
+      ...(extras.plugins ?? []),
     ],
   })
-  const player = sim.spawn([[InSector, { x: 3, z: 5 }]])
+  const player =
+    extras.walker === undefined
+      ? sim.spawn([[InSector, { x: 3, z: 5 }]])
+      : sim.spawn([
+          [InSector, { x: 3, z: 5 }],
+          [NavAgent, { speed: extras.walker }],
+        ])
   sim.resource(SystemsEnv).player = player
   return { sim, player, log }
 }
@@ -139,3 +170,7 @@ export const place = (sim: Sim, id: string, at: Point): void => {
 }
 export const kinds = (events: readonly SimEvent[], type: string): unknown[] =>
   events.filter((e) => e.type === type).map((e) => e.payload)
+export const items = (list: readonly string[]): Order => ({
+  type: 'ward.items',
+  payload: { items: [...list] },
+})

@@ -12,7 +12,10 @@
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./sim": "./src/sim/index.ts"
+    "./sim": "./src/sim/index.ts",
+    "./bots": "./src/bots/index.ts",
+    "./testing/ward-scene.pipe": "./src/testing/ward-scene.pipe.ts",
+    "./testing/ward-scene-strict.pipe": "./src/testing/ward-scene-strict.pipe.ts"
   },
   "automata": {
     "simEntries": [

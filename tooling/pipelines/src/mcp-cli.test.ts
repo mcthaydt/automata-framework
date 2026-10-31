@@ -38,7 +38,8 @@ describe('the automata-pipe-mcp bin', () => {
         content: { text: string }[]
       }
       expect(JSON.parse(list.content[0]?.text ?? '')).toEqual({
-        pipelines: [],
+        // `systems` is registered (M6.7b); character and props are still planned.
+        pipelines: [{ name: 'systems', stages: [{ id: 'scenarios' }, { id: 'playtest' }, { id: 'sweep' }] }],
         planned: ['character', 'props'],
       })
     } finally {
