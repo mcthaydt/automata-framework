@@ -16,8 +16,13 @@ const mount = (locale: Locale, final: boolean) =>
     actions: final
       ? []
       : [
-          { id: 'retry', label: say(locale, 'Try again'), kind: 'primary', onSelect: nothing },
-          { id: 'skip', label: say(locale, 'Continue without saving'), kind: 'secondary', onSelect: nothing },
+          { id: 'retry', label: say(locale, 'Try again'), kind: 'primary' as const, onSelect: nothing },
+          {
+            id: 'skip',
+            label: say(locale, 'Continue without saving'),
+            kind: 'secondary' as const,
+            onSelect: nothing,
+          },
         ],
     final,
     onBack: nothing,
