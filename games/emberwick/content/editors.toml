@@ -1,0 +1,9 @@
+format = "af-editors/1"
+
+# Emberwick's room is a level-project file, edited in the 2D editor. Its tuning (src/sim/tuning.ts) has no editor yet.
+[[file]]
+glob = "content/rooms/*.af2d.json"
+editor = "levels-2d"
+modes = ["edit"]
+gates = []
+checks = ["content"]
