@@ -4,7 +4,7 @@ import type { Point } from '../../tiles/footprint'
 import type { WorldRect } from './world-model'
 
 // The links on the world map (plan ED2D.6c decision 5; 2D editor spec §5.7): one curve per resolved link between two
-// placed levels, and the selected level's links as the inspector lists them. Pure; the Pixi map draws the curves and
+// placed levels, from the source's place on the map to the target's (a level's centre for the level itself), and the selected level's links as the inspector lists them. Pure; the Pixi map draws the curves and
 // jsdom tests read the inspector.
 
 export interface WorldLink {
@@ -21,8 +21,12 @@ export interface WorldLink {
   readonly middle: Point
 }
 
-/** How far a curve bows to its left, as a share of its length: a link each way between two levels stays apart. */
+/**
+ * How far a curve bows to its left: a share of its length, and at least `MIN_BEND` world pixels, so a link each way
+ * between two levels stays apart even when the levels nearly touch.
+ */
 const BEND = 0.15
+const MIN_BEND = 40
 
 function sourceOf(project: Project, link: ProjectLink): { label: string; color: string | undefined } {
   const item = link.from.item
@@ -34,25 +38,19 @@ function sourceOf(project: Project, link: ProjectLink): { label: string; color: 
   return { label: def?.label ?? item.def, color: def?.color }
 }
 
-const centre = (rect: WorldRect): Point => ({ x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 })
-
-/** The middle of the side of `rect` that faces `toward`: left or right when it is mostly across, else top or bottom. */
-function facingEdge(rect: WorldRect, toward: Point): Point {
-  const c = centre(rect)
-  const dx = toward.x - c.x
-  const dy = toward.y - c.y
-  if (Math.abs(dx) >= Math.abs(dy)) return { x: dx >= 0 ? rect.x + rect.w : rect.x, y: c.y }
-  return { x: c.x, y: dy >= 0 ? rect.y + rect.h : rect.y }
+/** Where a link end is on the map: its instance at the level's place, or the level's centre for the level itself. */
+function pointOf(end: LinkEnd, rect: WorldRect): Point {
+  return end.item === undefined
+    ? { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 }
+    : { x: rect.x + end.item.x, y: rect.y + end.item.y }
 }
 
-function curve(from: WorldRect, to: WorldRect): Pick<WorldLink, 'start' | 'control' | 'end' | 'middle'> {
-  const start = facingEdge(from, centre(to))
-  const end = facingEdge(to, centre(from))
+function curve(start: Point, end: Point): Pick<WorldLink, 'start' | 'control' | 'end' | 'middle'> {
   const dx = end.x - start.x
   const dy = end.y - start.y
-  const bend = BEND * Math.hypot(dx, dy)
   const length = Math.hypot(dx, dy) || 1
-  // The left normal of the direction of travel (screen y points down).
+  const bend = Math.max(BEND * length, MIN_BEND)
+  // The left normal of the direction of travel (screen y points down), so the way back bows to the other side.
   const control = {
     x: (start.x + end.x) / 2 + (dy / length) * bend,
     y: (start.y + end.y) / 2 - (dx / length) * bend,
@@ -71,7 +69,8 @@ export function worldLinks(project: Project, rects: readonly WorldRect[]): reado
     const from = placed.get(link.from.level)
     const to = placed.get(link.to.level)
     if (from === undefined || to === undefined || from === to) return []
-    return [{ from: from.id, to: to.id, ...sourceOf(project, link), ...curve(from, to) }]
+    const ends = curve(pointOf(link.from, from), pointOf(link.to, to))
+    return [{ from: from.id, to: to.id, ...sourceOf(project, link), ...ends }]
   })
 }
 

@@ -177,12 +177,14 @@ const CHIP_DROP = 6
 
 /**
  * The links of the level (plan ED2D.6c decision 4), rebuilt on each update into `container`: a line to a target in the
- * same level, and a chip naming the target just below the source's anchor, both in the source's colour (the accent
- * when the source is selected). Drawn at screen size like the entity labels; a level has a handful of links.
+ * same level, and a chip naming the target just below the source's anchor (left of it near the right edge), both in
+ * the source's colour (the accent when the source is selected). Drawn at screen size like the entity labels; a level
+ * has a handful of links.
  */
 export function drawLinks(
   container: Container,
   links: readonly LinkDraw[],
+  size: Size,
   context: ItemContext,
   px: number,
 ): void {
@@ -213,7 +215,10 @@ export function drawLinks(
     const tag = new Container()
     tag.addChild(chip, label)
     tag.scale.set(px)
-    tag.position.set(link.from.x + CHIP_DROP * px, link.from.y + CHIP_DROP * px)
+    // Right of the source, or left of it when that would run past the level's right edge.
+    const right = link.from.x + CHIP_DROP * px
+    const x = right + tag.width > size.w ? link.from.x - CHIP_DROP * px - tag.width : right
+    tag.position.set(Math.max(0, x), link.from.y + CHIP_DROP * px)
     view.addChild(tag)
     container.addChild(view)
   }

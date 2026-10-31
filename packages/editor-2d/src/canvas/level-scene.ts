@@ -154,7 +154,7 @@ export function createLevelScene(options: LevelSceneOptions): LevelScene {
         [...next.values()].map((view) => view.container),
       )
       drawOverlays(overlay, list, context, px)
-      drawLinks(links, list.links, context, px)
+      drawLinks(links, list.links, list.size, context, px)
     },
     chunkView(chunk) {
       for (const view of layers.values()) {

@@ -228,6 +228,26 @@ describe('level scene: links (plan ED2D.6c decision 4)', () => {
   })
 })
 
+describe('level scene: a link near the right edge', () => {
+  it('puts its chip on the left of the source, so it stays inside the level', () => {
+    const s = sceneOf()
+    const near = {
+      id: 'a',
+      field: 'target',
+      from: { x: 60, y: 8 },
+      label: 'Inn',
+      color: '#ff0000',
+      selected: false,
+      to: undefined,
+    }
+    s.update(list([], { links: [near] }))
+    const tag = s.root.children.at(-1)?.children[0]?.children.at(-1)
+    if (tag === undefined) throw new Error('no chip')
+    expect(tag.x + tag.width).toBeLessThanOrEqual(60)
+    expect(tag.x).toBeGreaterThanOrEqual(0)
+  })
+})
+
 describe('level scene: rebuilding only what changed (ED2D-D4)', () => {
   it('keeps the Pixi object of every chunk that comes back the same, and replaces only the new one', () => {
     const s = sceneOf()

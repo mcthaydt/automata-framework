@@ -26,8 +26,8 @@ offer "Choose target" (7a's dialog, unchanged); two linked RPG maps can be built
 4. **Level canvas:** a chip with that name above each entity of the level whose ref resolves, in the entity's colour
    (the accent when selected), and a line to the target when it is in the same level. Drawn at screen size, like the
    entity labels.
-5. **World map:** one curve per resolved link between two different placed levels, from the edge of the source level
-   facing the target to the facing edge of the target, with an arrowhead and the source definition's label at its
+5. **World map:** one curve per resolved link between two different placed levels, from the source's place on the
+   map to the target's (a level's centre for the level itself), bowing to its left by at least 40 world px, with an arrowhead and the source definition's label at its
    middle, in the source definition's colour. Pixi 8's `Graphics` has no dash, so the line is solid (the mockup's is
    dashed). Links within one level are not drawn on the map. The inspector lists the selected level's links ("Links")
    and the levels that link to it ("Linked from"), which is also how jsdom tests see them.
@@ -117,3 +117,9 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
   "re-opens equal" compares `printProject` text, the codec's own equality. The Node half of G-g is
   `profiles/level-project/checks/links.test.ts` (brokenRef with `choose-target`) and `ref-links.test.ts` (a broken
   ref is no link). Unit+dom: 157 files, 2559 tests pass; typecheck 0 errors.
+- 2026-10-31, step 10 (review images) found two drawing problems, each fixed test first: (1) links running edge to edge
+  between levels that nearly touch (Hollowmere's village and inn, 12 px apart) knotted together, so a link now runs
+  from its source's place on the map to its target's (a level's centre for the level itself), bowing at least 40 world
+  px (`world-links.test.ts` rewritten: failed, then passes); (2) a chip near the level's right edge was clipped, so it
+  flips to the left of its source (`level-scene.canvas.test.ts`: failed, then passes). Decision 5 now reads "from the
+  source to the target". Images and the comparison: `docs/evidence/owner-visual/2026-10-31-ed2d-6c/`.
