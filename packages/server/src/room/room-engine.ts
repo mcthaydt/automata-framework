@@ -329,10 +329,11 @@ export class RoomEngine {
    * One command from a seat, on the room's only input path. `metered` is false for bots and the test driver, which
    * supply commands faster than a hand; every other rule still applies.
    *
-   * A reloaded client (`NetRoom.resume`) numbers its commands from 0 again, while a client whose connection came
-   * back continues its numbering and resends only what the next snapshot has not acked. So the first command after
-   * a return tells them apart: seq 0 restarts the seat's numbering (`InputQueue.forget`, M7.3a's obligation); any
-   * other continues it.
+   * A client whose connection came back continues its numbering and resends what the next snapshot has not acked.
+   * A client that restarts its numbering at 0 after a reload (a hand-written or headless client) is told apart by its
+   * first command after a return: seq 0 restarts the seat's numbering (`InputQueue.forget`, M7.3a's obligation); any
+   * other continues it. net's `NetSession` never sends 0: it numbers from 1, and a reloaded page numbers on from the
+   * ack in its first snapshot, so a resent first command is never read as a restart.
    */
   submit(seat: number, input: QueuedInput, metered: boolean): SubmitOutcome {
     if (!acceptsInput(this.lobby)) return 'phase'
