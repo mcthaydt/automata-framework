@@ -677,6 +677,12 @@ importers:
 
   packages/editor-suite:
     dependencies:
+      '@mcthaydt/automata-editor-2d':
+        specifier: workspace:*
+        version: link:../editor-2d
+      '@mcthaydt/automata-editor-3d':
+        specifier: workspace:*
+        version: link:../editor-3d
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
@@ -4961,7 +4967,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))
+      vitest: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
 
   '@vitest/utils@5.0.3':
     dependencies:

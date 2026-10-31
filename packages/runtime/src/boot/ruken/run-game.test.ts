@@ -1142,4 +1142,32 @@ describe('seams.hosting (DIST.4)', () => {
     await waitForState('ready')
     await handle.shutdown()
   })
+
+  it('boots on settings defaults when the target does not grant saves (DIST spec §8 flow 5)', async () => {
+    const frames = manualFrames()
+    // A web page whose storage is blocked: everything a page observes, and no saves.
+    const fake = fakeHosting({ target: 'web', granted: ['lifecycle', 'input', 'display', 'audio'] })
+    const handle = runGame({
+      root,
+      hosting: { gameId: 'test-game', wants: ['saves'], pauseBehavior: 'pause' },
+      content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
+      screens: [{ id: 'title', enter: () => Effect.void }],
+      renderer: nullRenderer(),
+      settings: {
+        key: 'settings',
+        version: 1,
+        schema: z.object({ volume: z.number() }),
+        defaults: { volume: 100 },
+      },
+      seams: {
+        frames,
+        fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
+        hosting: fake.make,
+      },
+    })
+    await driveFirstFrame(frames)
+    await waitForState('ready')
+    expect(root.querySelector('[role="alert"]')).toBeNull()
+    await handle.shutdown()
+  })
 })

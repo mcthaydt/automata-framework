@@ -1,5 +1,5 @@
-// The default Settings screen's words (M4 spec §4.8). English, like the other default screens' words; PRODUCT.L
-// localizes them (02 follow-up).
+// The default Settings screen's English words (M4 spec §4.8): the `settings` part of `DEFAULT_SCREENS_COPY`
+// (screens-copy.ts), which a game overrides in its own language with `copy.screens` (DX.2d).
 import type {
   AudioCopy,
   ControlsCopy,

@@ -1,5 +1,37 @@
 # @mcthaydt/automata-ui
 
+## 0.0.4
+
+### Patch Changes
+
+- 66fe89d: The default screens' words come from the game (DX.2d). `GameSpec.copy.screens` takes a part of the new `ScreensCopy`
+  record, or a function of the locale that returns one, over the English defaults: Play, Pause, the paused menu and its
+  quit confirm, every Settings group, the save slots and status, the board, and the unsupported-controller notice. The
+  screens read it in the player's language and again on each change, without remounting. `TouchControls` now wraps a
+  side whose labels do not fit on one row, and breaks a long label inside its button, so a longer language never pushes
+  the touch row off screen.
+- 7af981d: `BootFailure` gains `ModelInvalid { file, reason }` (a 3D model file that could not be read, M3 spec §6). It draws the new `model-invalid` state, "A 3D model in this copy of the game is damaged: {file}.", with Try again and, where the host grants it, Back to the host. The panel names the file by its base name, and its message wraps a long name anywhere.
+  
+  BREAKING: `BootFailure` and `BootFailureState` gain the `ModelInvalid` failure and the `model-invalid` state, so an exhaustive `switch` over either must add a case; code that only draws `BootFailurePanel` is unchanged.
+- 263d3e0: Analog touch input for 3D (M4.12): a floating move stick on `TouchControls` (`stick`, `onstick`, `onstickend`) and
+  `CameraDragSurface`, which forwards a finger's or a secondary-button mouse drag to a drag tracker, under the controls
+  and outside the host's reserved strip.
+  
+  BREAKING: the API report counts `TouchControlsProps`' new optional `stick`, `onstick` and `onstickend` props as a changed interface. Existing callers compile and behave as before.
+- 3c965f8: The touch move stick's ring stays on screen at a compact height (780 x 270). At rest it stands on the zone's foot instead of running past the screen's edge below it, and held it is drawn as near the thumb as the visible region allows, clear of the safe area and Ruken's reserved strip. The stick still floats: its vector runs from where the thumb landed, and the ring, the zone and the touch targets keep their sizes.
+- 7f2c27c: The font build cuts every content language's name, as the language picker shows it, into every subset, and the glyph gate holds each language's subsets to the names of the languages the fonts serve: a missing glyph is `missingGlyph` at the language's entry in `locales` in `content/fonts.toml` (M5.5F). `endonymOf` moves to `@mcthaydt/automata-content/locale`, so the build and the picker share one function; `@mcthaydt/automata-ui` re-exports it unchanged and now depends on `@mcthaydt/automata-content`.
+- 1fa16c8: Add the `xx-long` pseudo-locale to `@mcthaydt/automata-content/locale` (`PSEUDO_LOCALE`, `pseudoLocalize`, `pseudoMessages`, `hasRawText`, `MessageValue`): every letter accented, about 40% longer, between `⟦ ⟧`, placeholders kept. `@mcthaydt/automata-testing` gains `findCutAtSide` (a control cut at the side of a declared scroll region that clips it; a region that scrolls sideways on purpose declares `data-scroll-region="both"`) and `pressedPart` (a checkbox's or radio's label). `checkLayout` (`@mcthaydt/automata-ui/testing`) now also fails a control cut at the side of the scroll region it scrolls in and a control whose words run past its edge. Long-language fixes: ScreenFrame's actions let an ActionBar give way instead of widening the body, Settings' tabs wrap and its groups keep to the list's width, and a Toggle keeps its state word whole beside the track while a long name breaks a word only where the toggle is given less room than its longest word.
+- 2687799: Bundle Ruken's packages from RukenApp `d0fa2fe` instead of `b30d31b` (`VENDORED.md` names the commit and hashes). The bundled `@ruken/sdk-host` and `@ruken/cli` now declare `zod` 4.6.6 (the SDK only as a dev dependency; `@ruken/manifest` does not use zod), so nothing in AF installs 4.6.5 (GHSA-mrhx-c7xc-m3w5). The SDK also trusts Ruken's private beta sites as hosts, and Ruken's host now answers `Hosting.leaderboards.get` with the player's own entry only; the call is unchanged.
+- e0fe104: `checkLayout` no longer reports a scrolling control's words as running past its edge: a control that scrolls on an axis (a focusable scroll region with long lines) clips its words to itself on that axis. A control that cuts its words off without scrolling still fails.
+- Updated dependencies [2908b30]
+- Updated dependencies [7f2c27c]
+- Updated dependencies [b15b260]
+- Updated dependencies [1fa16c8]
+- Updated dependencies [bb4e89d]
+- Updated dependencies [2687799]
+  - @mcthaydt/automata-content@0.0.4
+  - @mcthaydt/automata-testing@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes

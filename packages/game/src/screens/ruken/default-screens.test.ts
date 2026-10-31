@@ -160,6 +160,51 @@ describe('default screens', () => {
     expect(document.activeElement).toBe(button('play'))
   })
 
+  // DX.2d: the screens' words come from the game's `copy.screens`, laid over the English defaults.
+  it('title, play and paused show the game’s words from copy.screens', async () => {
+    await boot({
+      copy: {
+        screens: {
+          title: { play: 'Jouer' },
+          play: { pause: 'Mettre en pause' },
+          paused: {
+            title: 'En pause',
+            resume: 'Reprendre',
+            back: 'Retour',
+            mute: 'Couper le son',
+            settings: 'Réglages',
+            quit: 'Quitter',
+            quitPrompt: 'Quitter ? La partie est perdue.',
+            quitConfirm: 'Oui, quitter',
+            cancel: 'Annuler',
+          },
+        },
+      },
+    })
+    expect(button('play')?.textContent?.trim()).toBe('Jouer')
+    await toPlay()
+    expect(button('pause')?.getAttribute('aria-label')).toBe('Mettre en pause')
+    press('Escape')
+    await until(() => screen('paused') !== null, 'the paused screen')
+    const paused = screen('paused')
+    if (paused === null) throw new Error('no paused screen')
+    expect(
+      paused.querySelector('h2, [role="heading"], .af-modal__title')?.textContent ?? paused.textContent,
+    ).toContain('En pause')
+    expect(button('resume')?.textContent?.trim()).toBe('Reprendre')
+    expect(button('pause-mute')?.textContent?.trim()).toBe('Couper le son')
+    expect(button('settings')?.textContent?.trim()).toBe('Réglages')
+    expect(button('quit')?.textContent?.trim()).toBe('Quitter')
+    expect(paused.querySelector('button[aria-label="Reprendre"]')).not.toBeNull()
+    button('quit')?.click()
+    await until(() => button('quit-confirm') !== null, 'the quit confirm')
+    expect(button('quit-confirm')?.textContent?.trim()).toBe('Oui, quitter')
+    expect(button('quit-cancel')?.textContent?.trim()).toBe('Annuler')
+    expect(paused.textContent).toContain('Quitter ? La partie est perdue.')
+    expect(paused.querySelector('button[aria-label="Retour"]')).not.toBeNull()
+    expect(paused.textContent).not.toMatch(/Resume|Quit to title|Cancel/)
+  })
+
   it.each(['Enter', 'Space'])('%s on the title goes to play', async (code) => {
     await boot()
     ;(document.activeElement as HTMLElement | null)?.blur()
@@ -226,6 +271,23 @@ describe('default screens', () => {
       'the unavailable board',
     )
     expect(root.querySelector('[data-leaderboard]')?.textContent).toContain("Scores aren't available here")
+  })
+
+  it('the board on paused says the game’s words from copy.screens (DX.2d)', async () => {
+    const Done = defineEvent('done', z.object({ score: z.number() }))
+    const scoring = definePlugin({ name: 'scoring', defs: [Done] })
+    await boot({
+      sim: { plugins: [square, scoring], seed: 3, setup: (sim) => sims.push(sim) },
+      scores: { [Done.id]: { board: 'best', score: (payload) => Done.schema.parse(payload).score } },
+      copy: { screens: { board: { unavailable: 'Pas de scores ici' } } },
+    })
+    await toPlay()
+    press('Escape')
+    await until(
+      () => root.querySelector('[data-leaderboard]')?.getAttribute('data-state') === 'unavailable',
+      'the board',
+    )
+    expect(root.querySelector('[data-leaderboard]')?.textContent).toContain('Pas de scores ici')
   })
 
   it('shows no board on paused for a game without scores', async () => {
@@ -556,6 +618,37 @@ describe('default screens', () => {
       await until(() => document.documentElement.lang === 'en', 'Automatic again')
     })
 
+    // DX.2d, PRODUCT spec L-c: a language picked on Settings changes its words in place, with focus kept.
+    it('re-reads the game’s words in the language picked, without remounting Settings, and keeps focus', async () => {
+      const french = {
+        settings: {
+          screen: { title: 'Réglages', back: 'Retour' },
+          language: { title: 'Langue', automatic: 'Automatique' },
+        },
+      }
+      await toSettings(
+        {
+          locale: { locales: ['en', 'fr'], baseLocale: 'en' },
+          copy: { screens: (locale) => (locale === 'fr' ? french : {}) },
+        },
+        true,
+        'settings',
+      )
+      const settings = settingsScreen()
+      expect(settings?.textContent).toContain('Language')
+      const fr = root.querySelector<HTMLInputElement>('[data-testid="language-fr"] input')
+      if (fr === null) throw new Error('no French choice')
+      fr.focus()
+      fr.click()
+      await until(() => document.documentElement.lang === 'fr', 'the game in French')
+      await until(() => settings?.textContent?.includes('Langue') === true, 'the French words')
+      expect(settingsScreen()).toBe(settings)
+      expect(settings?.textContent).toContain('Réglages')
+      expect(settings?.textContent).toContain('Automatique')
+      expect(settings?.textContent).not.toContain('Language')
+      expect(document.activeElement).toBe(fr)
+    })
+
     // Redo step 10 (Owner, 2026-10-18): the Vibration group, only where the device can rumble or buzz.
     describe('the Vibration group', () => {
       const phone = () => {
@@ -866,6 +959,15 @@ describe('default screens', () => {
   describe('a pad without the standard mapping (M4 spec §6)', () => {
     afterEach(() => Reflect.deleteProperty(window.navigator, 'getGamepads'))
     const toasts = () => [...root.querySelectorAll('[data-testid="pad-unsupported"]')]
+
+    it('says it in the game’s words from copy.screens (DX.2d)', async () => {
+      const pads = fakeGamepads({ target: window })
+      Object.defineProperty(window.navigator, 'getGamepads', { configurable: true, value: pads.getGamepads })
+      await boot({ copy: { screens: { padUnsupported: 'Manette pas encore prise en charge' } } })
+      pads.connect(0, { mapping: '', id: 'Odd Pad' })
+      await until(() => toasts().length === 1, 'the toast on the title')
+      expect(toasts()[0]?.textContent).toContain('Manette pas encore prise en charge')
+    })
 
     it('says once, on any screen, that the controller is not supported yet', async () => {
       const pads = fakeGamepads({ target: window })

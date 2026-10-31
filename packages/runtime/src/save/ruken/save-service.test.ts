@@ -1,5 +1,6 @@
 import { Hosting, type HostingSaves } from '@mcthaydt/automata-host'
 import { FakeHostHandle, HostingTest, manualClock, runScoped } from '@mcthaydt/automata-host/testing'
+import { FakeHostControl, FakeHosting } from '@mcthaydt/automata-testing/host'
 import { settle } from '@ruken/sdk-host/testing'
 import { Deferred, Effect, Either, Exit, Fiber, PubSub, Scope, Stream, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
@@ -97,6 +98,51 @@ describe('the slot list', () => {
           ])
         }),
     )
+  })
+})
+
+describe('a target that does not grant saves (DIST spec §8 flow 5)', () => {
+  it('opens with every slot empty and asks the host for nothing, so the game runs on', async () => {
+    const slots = await runScoped(
+      Effect.gen(function* () {
+        const bus = yield* makePresentationBus()
+        const save = yield* saveService(run, { contentHash: BUILD }).pipe(
+          Effect.provideService(PresentationBus, bus),
+        )
+        return yield* save.slots.get
+      }).pipe(
+        // A web page with storage blocked: what a page observes, and no saves.
+        Effect.provide(FakeHosting({ target: 'web', granted: ['lifecycle', 'input', 'display', 'audio'] })),
+        Effect.provide(TestContext.TestContext),
+      ),
+    )
+    expect(slots).toEqual([
+      { kind: 'empty', slot: 0 },
+      { kind: 'empty', slot: 1 },
+      { kind: 'empty', slot: 2 },
+    ])
+  })
+
+  it('loads the empty value and writes nothing, failing nothing: the game plays on, and the host and the device hold nothing', async () => {
+    const { held, failed } = await runScoped(
+      Effect.gen(function* () {
+        const bus = yield* makePresentationBus()
+        const failures: unknown[] = []
+        bus.subscribe('save.failed', (fact) => failures.push(fact))
+        const save = yield* saveService(run, { contentHash: BUILD }).pipe(
+          Effect.provideService(PresentationBus, bus),
+        )
+        // New game: the empty slot loads as the empty value, then the starting data is written.
+        yield* save.load(0)
+        yield* save.write(0, { name: 'Kite', bestTime: 1, coins: 2 })
+        return { held: [...(yield* FakeHostControl).saved.keys()], failed: failures }
+      }).pipe(
+        Effect.provide(FakeHosting({ target: 'web', granted: ['lifecycle', 'input', 'display', 'audio'] })),
+        Effect.provide(TestContext.TestContext),
+      ),
+    )
+    expect(held).toEqual([])
+    expect(failed).toEqual([])
   })
 })
 

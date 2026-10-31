@@ -3,6 +3,7 @@ import ChecksView from '../checks/ChecksView.svelte'
 import EntitiesView from '../entities/EntitiesView.svelte'
 import LevelView from '../level/LevelView.svelte'
 import TilesetsView from '../tilesets/TilesetsView.svelte'
+import WorldView from '../world/WorldView.svelte'
 import PendingView from './PendingView.svelte'
 import { componentOf } from './views'
 
@@ -20,8 +21,12 @@ describe('the view components', () => {
     expect(componentOf('EntitiesView')).toBe(EntitiesView)
   })
 
+  it('maps the World view by its component name', () => {
+    expect(componentOf('WorldView')).toBe(WorldView)
+  })
+
   it('maps a view not built yet to the pending view', () => {
-    expect(componentOf('WorldView')).toBe(PendingView)
+    expect(componentOf('ComposeView')).toBe(PendingView)
     expect(componentOf('')).toBe(PendingView)
   })
 })
