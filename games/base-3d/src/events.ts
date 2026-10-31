@@ -77,3 +77,6 @@ const piece = z.object({ piece: z.int().positive() })
 
 /** A pellet hit a sling target (DESIGN.md §10), by its entity's index + 1: part 3's eye switches answer it. */
 export const SlingTargetHit: EventDef<typeof piece> = defineEvent('sling-target.hit', piece)
+
+/** A door opened (DESIGN.md §10), by its entity's index + 1: the clunk, and it is saved. */
+export const DoorOpened: EventDef<typeof piece> = defineEvent('door.opened', piece)

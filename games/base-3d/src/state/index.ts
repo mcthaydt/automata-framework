@@ -7,6 +7,7 @@ import { Act, Equip, Lock, LockCycle, Move } from '../commands.ts'
 import {
   Bomb,
   Chain,
+  Door,
   Drop,
   Enemy,
   Fighter,
@@ -26,6 +27,7 @@ import {
   BossPhase,
   CaptainDefeated,
   ChainHooked,
+  DoorOpened,
   DropTaken,
   EmberTaken,
   FoeDefeated,
@@ -34,7 +36,7 @@ import {
   ShotFired,
   SlingTargetHit,
 } from '../events.ts'
-import { Freeze, Inventory, Location, Progress } from '../resources.ts'
+import { Dungeon, Freeze, Inventory, Location, Progress } from '../resources.ts'
 import {
   type Area,
   areaExit,
@@ -45,6 +47,8 @@ import {
   combatMoves,
   combatStatus,
   dropsTake,
+  dungeonDoors,
+  dungeonVisit,
   emberTake,
   enemyBrain,
   heroAct,
@@ -105,7 +109,7 @@ export function continueWith3Hearts(sim: Sim): void {
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
-  resources: [Progress, Location, Freeze, Inventory],
+  resources: [Progress, Location, Freeze, Inventory, Dungeon],
   defs: [
     Hero,
     HeroControl,
@@ -118,6 +122,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     Bomb,
     Chain,
     SlingTarget,
+    Door,
     Move,
     Lock,
     LockCycle,
@@ -135,6 +140,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     BombBlast,
     ChainHooked,
     SlingTargetHit,
+    DoorOpened,
     AreaExit,
     AreaEntered,
     heroInput,
@@ -144,6 +150,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     lockAssist,
     heroAct,
     itemUse,
+    dungeonDoors,
     combatStatus,
     enemyBrain,
     combatMoves,
@@ -153,6 +160,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     dropsTake,
     areaExit,
     heroView,
+    dungeonVisit,
     pelletFly,
     bombFuse,
     combatHits,

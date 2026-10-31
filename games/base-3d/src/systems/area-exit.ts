@@ -1,6 +1,6 @@
 // The area change (DESIGN.md §13): an exit, a fade, then the next area with Wick at its entry.
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
-import { Drop, Hero, Target } from '../components.ts'
+import { Door, Drop, Hero, Target } from '../components.ts'
 import { AREA_FADE_TICKS } from '../constants/index.ts'
 import { AreaEntered, AreaExit } from '../events.ts'
 import { Location } from '../resources.ts'
@@ -33,8 +33,8 @@ export const areaExit: SystemDef = defineSystem({
         place.returnFacing = entity.get(Hero).facing
         place.area = place.next
         place.next = -1
-        // The old area's dummies, foes and drops go, and the new area's stand (DESIGN.md §8.2).
-        for (const other of [...ctx.query(Target), ...ctx.query(Drop)])
+        // The old area's dummies, foes, drops and doors go, and the new area's stand (DESIGN.md §8.2).
+        for (const other of [...ctx.query(Target), ...ctx.query(Drop), ...ctx.query(Door)])
           if (!other.has(Hero)) ctx.despawn(other.sid)
         const next = areas[place.area]
         if (next !== undefined) for (const parts of spawnFoes(next)) ctx.spawn(...parts)

@@ -8,6 +8,7 @@ export interface Base3dCopy {
     /** The hearts' accessible name, from health and its maximum in half-hearts. */
     readonly hearts: (health: number, maxHealth: number) => string
     readonly embers: (count: number) => string
+    readonly smallKeys: (count: number) => string
     /** The HUD's buttons to the Items and Map screens. */
     readonly items: string
     readonly map: string
@@ -45,6 +46,7 @@ const EN: Base3dCopy = {
   hud: {
     hearts: (health, maxHealth) => `Hearts ${health / 2} of ${maxHealth / 2}`,
     embers: (count) => `Embers ${count}`,
+    smallKeys: (count) => `Small keys ${count}`,
     items: 'Items',
     map: 'Map',
     bossHealth: (name) => `${name} health`,

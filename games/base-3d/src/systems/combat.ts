@@ -52,6 +52,7 @@ import { Freeze, Inventory, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
 import { coneHits, facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
 import { angleOf, lineOfSight } from './lock-target.ts'
+import { wallsOf } from './walls.ts'
 
 /** Whether this tick is a hitstop tick: every system but the input copy and `combat.freeze` skips it. */
 export const frozen = (ctx: SimContext): boolean => ctx.resource(Freeze).active
@@ -132,7 +133,7 @@ export const combatStatus: SystemDef = defineSystem({
   before: ['combat.moves'],
   run(ctx) {
     if (frozen(ctx)) return
-    const { walls } = areaIn(ctx.content, ctx.resource(Location))
+    const walls = wallsOf(ctx)
     for (const entity of ctx.query(Fighter)) {
       const fighter = entity.get(Fighter)
       const next: Partial<{ iframes: number; stun: number; state: number; pushTicks: number }> = {}
@@ -258,7 +259,7 @@ interface Contact {
 
 /** The hits this tick's active frames make, gathered before any applies (attackers, then defenders, by id). */
 function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
-  const { walls } = areaIn(ctx.content, ctx.resource(Location))
+  const walls = wallsOf(ctx)
   const fighters = ctx.query(Fighter)
   const contacts: Contact[] = []
   for (const attacker of fighters) {

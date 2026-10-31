@@ -47,6 +47,8 @@ export const DUMMY = { health: 6, radius: metres(0.4), height: metres(1.8) } as 
  * its health never changes (nothing harms it), so it only has to be above 0.
  */
 export const SLING_TARGET = { health: 1, radius: metres(0.3), height: metres(0.5) } as const
+/** How near Wick's edge must be to a door's box to open it with a press (DESIGN.md §10), Q16.16 metres. */
+export const DOOR_REACH = metres(0.6)
 /** Where a dummy faces, a half turn: back toward the doorway, as the view drew it before it had a facing. */
 export const DUMMY_FACING = 32_768
 

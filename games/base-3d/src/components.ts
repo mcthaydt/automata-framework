@@ -215,3 +215,18 @@ export const SlingTarget: ComponentDef<typeof slingTargetFields> = defineCompone
   'sling-target',
   slingTargetFields,
 )
+
+const doorFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+  /** Open, it is nothing; closed, it is a wall to everything (DESIGN.md §10). */
+  open: 'bool',
+  /** Its box in plan, Q16.16 metres. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/** A door (DESIGN.md §10, GAME-3D.1f part 2): its lock is its entity's; opened ones are saved by id. */
+export const Door: ComponentDef<typeof doorFields> = defineComponent('door', doorFields)

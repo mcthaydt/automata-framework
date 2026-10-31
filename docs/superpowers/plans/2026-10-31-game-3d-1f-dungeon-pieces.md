@@ -94,7 +94,7 @@
 - [x] Part 1: tests for each def's schema (a good entity of each def loads; an unknown def, `lock`, `kind` or
       `contents`, and a dangling ref fail with the area and JSON path, G3-F2); `hook-post` entities pull as
       `posts` did (items.test.ts's chain cases move onto them); a `sling-target` is picked and hit.
-- [ ] Part 2: door cases (each lock kind closed and open; a key spent once; the boss key; `clear` and the captain's
+- [x] Part 2: door cases (each lock kind closed and open; a key spent once; the boss key; `clear` and the captain's
       arena; `switch` doors follow their switch); save cases (opened doors, keys and visits round-trip; a fresh sim
       has none); the HUD's keys and the map's visits from the sim (DOM).
 - [ ] Part 3: switch cases (plate by block, plate by Wick when latching, eye by pellet, lever by Action); block
@@ -148,3 +148,32 @@ tall around its height; a sword or a blast on it lands (sparks) but reports noth
 `59b84ddde6bfeb94` → `7dd808482d9dd9bc`; `base-3d/golden-boss` `de0bb982dcf6aa53` → `61691d237e2d2427` (defeat on
 tick 458, health 8, unchanged). Schema (`sling-target`, `sling-target.hit`) and content (`entities` for `posts`; the
 first slice has none); every other assertion is unchanged.
+
+**Part 2 (2026-10-31, branch `claude/3d-game-3d-1f`, local).**
+
+- Red first: dungeon.test.ts's 7 door and save cases (no `Door`, no `Dungeon`); hud.test.ts's keys cases; the HUD
+  DOM case's keys label.
+- Produced: the `door` component (its piece, `open`, its plan box), spawned closed with the area's pieces and
+  despawned on an area swap; the `dungeon` resource (`flags` as sorted `<area>/<entity id>`, the small keys, the
+  boss key, the map, the compass, the visited rooms by view id); `door.opened`; `wallsOf(ctx)` (systems/walls.ts):
+  the area's walls and the closed doors, now read by every wall check (Wick's and foes' moves and pushes, line of
+  sight, the lock, pellets, the chain); `dungeon.doors` (prePhysics, after `hero.act`): a door saved open opens, a
+  `clear` door opens when no living foe stands in a room that holds its centre (the Captain's arena included: a
+  beaten foe is not living), and a pick-up press within reach opens a `none` door, a `small-key` door with a key
+  (spent) or the boss door with the boss key (spent); `dungeon.visit` (postPhysics, after `hero.view`); the save
+  applies and captures the flags whole (unknown flags kept) and the kiln's keys, map, compass and visits; the HUD
+  shows the small keys.
+- game.test.ts's capture case now includes the room Wick stood in (`kiln.visited: ['open']`): the save records
+  visits now, as intended.
+- Not in part 2: `switch` doors follow their switch in part 3; the map still reads visits through the save's capture,
+  which now comes from the sim.
+
+**Defaults (part 2, for the Owner's veto):** doors open with the pick-up press (F, the build's interact verb) until
+1h splits `act` (§14.1's Action also rolls); a `clear` door stays open once opened (saved); a `none` door is closed
+until pressed; the boss key is spent by the boss door; the HUD shows the small keys in every area while the kiln is
+the only one.
+
+**Goldens (part 2).** `base-3d/golden-route` `ceedc79c82950861` → `a1c35d544c35e923`; `base-3d/golden-fights`
+`7dd808482d9dd9bc` → `309c87cc6b57a8d2`; `base-3d/golden-boss` `61691d237e2d2427` → `7c36c7e4cc306eea` (defeat on
+tick 458, health 8, unchanged). Schema only (`door`, `dungeon`, `door.opened`, two systems); no door stands in
+these areas, and every other assertion is unchanged.

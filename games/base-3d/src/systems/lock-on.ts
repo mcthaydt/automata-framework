@@ -15,6 +15,7 @@ import {
   selectLock,
   signedTurn,
 } from './lock-target.ts'
+import { wallsOf } from './walls.ts'
 
 /** Whether the room's view lets the camera turn: what `camera-heading.rotate` goes back to once the lock lets go. */
 const viewTurns = (area: Area, view: string): boolean | undefined =>
@@ -33,6 +34,7 @@ export const lockSelect: SystemDef = defineSystem({
   run(ctx) {
     if (frozen(ctx)) return
     const area = areaIn(ctx.content, ctx.resource(Location))
+    const walls = wallsOf(ctx)
     const targets: LockPoint[] = ctx
       .query(Target)
       .map((entity) => ({ id: entity.sid, ...entity.get(Target) }))
@@ -47,7 +49,7 @@ export const lockSelect: SystemDef = defineSystem({
         const letGo = control.lockHold ? !control.lockHeld : control.lockPressed
         const dx = (held?.x ?? 0) - hero.x
         const dz = (held?.z ?? 0) - hero.z
-        lockHidden = held !== undefined && !lineOfSight(area.walls, hero, held) ? lockHidden + 1 : 0
+        lockHidden = held !== undefined && !lineOfSight(walls, hero, held) ? lockHidden + 1 : 0
         if (
           letGo ||
           held === undefined ||
@@ -56,13 +58,13 @@ export const lockSelect: SystemDef = defineSystem({
         )
           lockTarget = 0
       } else if (control.lockPressed) {
-        lockTarget = selectLock(lockCandidates(area.walls, hero, targets), hero, units)
+        lockTarget = selectLock(lockCandidates(walls, hero, targets), hero, units)
         if (lockTarget === 0 && viewTurns(area, heading.view) === true) units = hero.facing
       }
       const current = targets.find((target) => target.id === lockTarget)
       if (current !== undefined && control.lockCycle !== 0) {
         const dir = control.lockCycle > 0 ? 1 : -1
-        const next = cycleLock(lockCandidates(area.walls, hero, targets), hero, current, dir)
+        const next = cycleLock(lockCandidates(walls, hero, targets), hero, current, dir)
         if (next !== 0) lockTarget = next
       }
       if (lockTarget === 0) lockHidden = 0

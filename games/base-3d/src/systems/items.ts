@@ -15,6 +15,7 @@ import { areaIn, worldOf } from './area.ts'
 import { frozen } from './combat.ts'
 import { facingVector, reachHits } from './combat-geometry.ts'
 import { angleOf, lineOfSight } from './lock-target.ts'
+import { wallsOf } from './walls.ts'
 
 /** `step` Q16.16 metres along `facing` (turn units), truncated. */
 function ahead(facing: number, step: number): { dx: number; dz: number } {
@@ -161,7 +162,7 @@ export const chainFly: SystemDef = defineSystem({
       const step = Math.min(HOOKCHAIN.step, HOOKCHAIN.range - chain.travelled)
       const flight = ahead(chain.facing, step)
       const to = { x: from.x + flight.dx, z: from.z + flight.dz }
-      if (!lineOfSight(area.walls, from, to)) {
+      if (!lineOfSight(wallsOf(ctx), from, to)) {
         ctx.despawn(entity.sid)
         continue
       }
@@ -215,7 +216,7 @@ export const pelletFly: SystemDef = defineSystem({
     if (frozen(ctx)) return
     const moves = worldOf(ctx.content).moves
     const move = moves.findIndex((candidate) => candidate.id === 'sling-pellet') + 1
-    const { walls } = areaIn(ctx.content, ctx.resource(Location))
+    const walls = wallsOf(ctx)
     for (const entity of ctx.query(Pellet, Fighter)) {
       const pellet = entity.get(Pellet)
       let { x, z } = pellet

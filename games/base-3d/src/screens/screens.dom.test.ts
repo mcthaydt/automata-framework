@@ -592,6 +592,7 @@ describe("base-3d's flow", () => {
         'Hearts 4 of 4',
       )
       expect(root.querySelector('[data-testid="hud-embers"]')?.textContent?.trim()).toBe('0')
+      expect(root.querySelector('[data-testid="hud-keys"]')?.getAttribute('aria-label')).toBe('Small keys 0')
       expect(root.querySelector('[data-testid="hud-item"]')).toBeNull()
       expect(root.querySelector('[data-testid="hud-boss"]')).toBeNull()
       key('keydown', 'Escape')
