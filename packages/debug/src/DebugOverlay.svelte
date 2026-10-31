@@ -4,6 +4,7 @@
 import { onMount, setContext } from 'svelte'
 import { currentHost, HOST_CONTEXT } from './host'
 import { createOverlay, type OverlayState } from './overlay'
+import PanelFrame from './PanelFrame.svelte'
 
 const host = currentHost()
 const overlay = createOverlay({ panels: host?.panels ?? [], setPaused: host?.setPaused })
@@ -57,9 +58,8 @@ const shown = $derived(host?.panels.find((p) => p.id === view.tab))
     <div class="body" role="region" aria-label="Debug panel" tabindex="0">
       {#if shown !== undefined}
         {#key shown.id}
-          {@const Panel = shown.component}
           <svelte:boundary>
-            <Panel />
+            <PanelFrame panel={shown} />
             {#snippet failed(error)}
               <p role="alert">{shown.title}: {error instanceof Error ? error.message : String(error)}</p>
             {/snippet}

@@ -1,6 +1,7 @@
 // Debug panels (M6 spec §4.2): a titled component the overlay shows as a tab. The id is kebab-case and unique; the title is a
 // dev-only literal (debug text is not localized). A panel reads the host through the overlay's context, never props (DBG-D1).
 import type { UiComponent } from '@mcthaydt/automata-ui'
+import SummaryPanel from './panels/SummaryPanel.svelte'
 
 export interface DebugPanelDef {
   readonly id: string
@@ -20,4 +21,12 @@ export function debugPanels(...panels: readonly DebugPanelDef[]): readonly Debug
     seen.add(panel.id)
   }
   return Object.freeze([...panels])
+}
+
+/**
+ * A panel for an extension's summary (DBG-D4): it lists `host.summaries[id].summary()` as rows. `debug` imports no extension, so
+ * each extension exports a function that turns its state into a plain object and the game hands it over under this id.
+ */
+export function summaryPanel(id: string, title: string): DebugPanelDef {
+  return { id, title, component: SummaryPanel }
 }

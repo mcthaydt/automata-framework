@@ -49,6 +49,10 @@ export interface AudioBoardPort {
 export interface NetDiagnosticsPort {
   summary(): unknown
 }
+/** An extension's debug summary (DBG-D4): a plain object the extension builds from its own state, shown as rows by `summaryPanel`. */
+export interface SummaryPort {
+  summary(): unknown
+}
 export interface DebugHost {
   readonly panels: readonly DebugPanelDef[]
   readonly bus?: BusPort | undefined
@@ -58,6 +62,8 @@ export interface DebugHost {
   readonly feel?: FeelBoardPort | undefined
   readonly audio?: AudioBoardPort | undefined
   readonly net?: NetDiagnosticsPort | undefined
+  /** Each extension's summary, by the id of its `summaryPanel` (DBG-D4). */
+  readonly summaries?: Readonly<Record<string, SummaryPort>> | undefined
   /** Flow's existing pause, for the overlay's "Pause sim" toggle. */
   readonly setPaused?: ((paused: boolean) => void) | undefined
   /** The game's test driver (DBG-D3): named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */
@@ -88,3 +94,6 @@ export const currentHost = (): DebugHost | undefined => current
 
 /** The Svelte context key panels use to get the host from the overlay. */
 export const HOST_CONTEXT: unique symbol = Symbol('automata-debug-host')
+
+/** The Svelte context key under which the overlay gives a panel its own id. */
+export const PANEL_CONTEXT: unique symbol = Symbol('automata-debug-panel')

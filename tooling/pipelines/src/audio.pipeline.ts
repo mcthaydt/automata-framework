@@ -3,7 +3,8 @@
 // and records what it measured in `render.json`: true peak, clicks and loudness per file, the depth each duck takes the music
 // down, the pan of a world cue and the loudness of the mixes. `check` reads that record and fails on a render that is stale, a cue
 // over the true-peak ceiling, a click, a loudness target missed, a duck off its rule, a world cue that does not pan and an event
-// nothing answers. Free: no stage is paid. The sample budget and recorded-music loudness are not part of it (AU-D6).
+// nothing answers, and, with a `[music]` table, recorded music over its loudness target or true-peak ceiling. Free: no stage is
+// paid. The sample budget is not part of it: it is core's asset budget (AU-D6).
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { AudioContent } from '@mcthaydt/automata-audio-synth'
@@ -37,6 +38,16 @@ export interface AudioPipeSpec {
   readonly loudness?:
     | { readonly mix: string; readonly lufs: number; readonly tolerance_lu: number }
     | undefined
+  /** Recorded music (AU-D6, amended): every WAV in `dir` is measured against the target. */
+  readonly music?:
+    | {
+        readonly dir: string
+        readonly lufs: number
+        readonly tolerance_lu: number
+        /** The true-peak ceiling in dBTP (default: the pipeline's `true_peak_dbtp`, else -1). */
+        readonly true_peak_dbtp?: number | undefined
+      }
+    | undefined
   readonly mix?:
     | Readonly<
         Record<
@@ -59,6 +70,14 @@ export const audioPipeSpec: z.ZodType<AudioPipeSpec> = z.strictObject({
   true_peak_dbtp: z.number().max(0).optional(),
   loudness: z
     .strictObject({ mix: z.string().min(1), lufs: z.number(), tolerance_lu: z.number().positive() })
+    .optional(),
+  music: z
+    .strictObject({
+      dir: z.string().min(1),
+      lufs: z.number(),
+      tolerance_lu: z.number().positive(),
+      true_peak_dbtp: z.number().max(0).optional(),
+    })
     .optional(),
   mix: z
     .record(
@@ -125,6 +144,58 @@ const load = (ctx: Ctx, stage: string) =>
       catch: (cause) => new StageFailed({ stage, reason: `${ctx.spec.content}: ${String(cause)}` }),
     })
     return { content, hash: hex64(xxhash64(utf8(`${text}\0${spec}`))) }
+  })
+
+type MusicTarget = NonNullable<AudioPipeSpec['music']>
+
+/**
+ * Recorded music against its target (AU-D6, amended). Every WAV under `dir` is decoded and measured; a file that is not a WAV
+ * cannot be measured and fails the row by name (never skipped, never passed), and a folder with no music fails too, so a mistyped
+ * `dir` cannot read as a pass. It needs no render: the files are the game's, not the pipeline's.
+ */
+const musicLoudness = (ctx: Ctx, target: MusicTarget) =>
+  Effect.gen(function* () {
+    const files = yield* Files
+    const root = join(ctx.dir, target.dir)
+    const names = (yield* files.exists(root)) ? yield* files.listFiles(root) : []
+    const ceiling = target.true_peak_dbtp ?? ctx.spec.true_peak_dbtp ?? -1
+    const { decodeWav, integratedLoudness, truePeak } = yield* Effect.tryPromise({
+      try: () => import('@mcthaydt/automata-audio-synth/measure'),
+      catch: failing('check'),
+    })
+    const problems: string[] = []
+    const fine: string[] = []
+    for (const name of names) {
+      const label = `${target.dir}/${name}`
+      let wav: ReturnType<typeof decodeWav> | undefined
+      try {
+        wav = decodeWav(yield* files.readBytes(join(root, name)))
+      } catch (cause) {
+        const why = cause instanceof Error ? cause.message : String(cause)
+        problems.push(`${label} cannot be measured (${why})`)
+        continue
+      }
+      const lufs = finite(integratedLoudness(wav.channels, wav.sampleRate))
+      const peak = finite(truePeak(wav.channels))
+      const off = lufs === null ? null : lufs - target.lufs
+      if (off === null) problems.push(`${label} is too quiet to measure`)
+      else if (Math.abs(off) > target.tolerance_lu)
+        problems.push(`${label} ${db(lufs as number)} LUFS, target ${target.lufs} ± ${target.tolerance_lu}`)
+      else if (peak !== null && peak > ceiling)
+        problems.push(`${label} ${db(peak)} dBTP, over ${ceiling} dBTP`)
+      else fine.push(label)
+    }
+    const ok = names.length > 0 && problems.length === 0
+    return {
+      id: 'music-loudness',
+      ok,
+      detail:
+        names.length === 0
+          ? `no music files in ${target.dir}`
+          : ok
+            ? `${fine.join(', ')} within ${target.lufs} ± ${target.tolerance_lu} LUFS and under ${ceiling} dBTP`
+            : problems.join('; '),
+    } satisfies CheckResult
   })
 
 const cueSeconds = async (content: AudioContent, id: string, tail: number): Promise<number> => {
@@ -343,6 +414,7 @@ export const audioPipeline: PipelineDef<AudioPipeSpec> = definePipeline<AudioPip
             `${s.cue}: left source L/R ${db(20 * Math.log10(s.left[0] / s.left[1]))} dB, right source R/L ${db(20 * Math.log10(s.right[1] / s.right[0]))} dB`,
           )
       }
+      if (ctx.spec.music !== undefined) results.push(yield* musicLoudness(ctx, ctx.spec.music))
       if (ctx.spec.events !== undefined) {
         const { coverage } = yield* Effect.tryPromise({
           try: () => import('@mcthaydt/automata-audio-synth'),

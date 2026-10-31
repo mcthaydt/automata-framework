@@ -42,6 +42,7 @@ export {
   NarrativeStorylets,
 } from './narrative.resource'
 export type { NarrativeOptions } from './narrative.system'
+export { type NarrativeDebugSummary, narrativeDebugSummary } from './narrative-debug'
 export {
   parseTrigger,
   type Storylet,
