@@ -275,3 +275,36 @@ describe('World view: the camera (plan ED2D.8a)', () => {
     expect(camera()).toBe(`${fitted.x},${fitted.y},${fitted.scale}`)
   })
 })
+
+describe('World view: duplicate and remove (plan ED2D.8a decision 3)', () => {
+  it('duplicates the selected level as "<name> copy", selected, as one undo step', async () => {
+    const { history } = await mount()
+    await userEvent.click(levelList().getByRole('button', { name: 'Second' }))
+    const steps = history.revision
+    await userEvent.click(inspector().getByRole('button', { name: 'Duplicate' }))
+    expect(history.revision).toBe(steps + 1)
+    expect(levelList().getByRole('button', { name: 'Second copy' })).toHaveAttribute('aria-pressed', 'true')
+    history.undo()
+    await vi.waitFor(() => expect(levelList().queryByRole('button', { name: 'Second copy' })).toBeNull())
+  })
+
+  it('asks before removing, says which links break, removes in one step, and keeps the last level', async () => {
+    const { history, first } = await mount((project) => {
+      const spawned = withEntities(project, 'level-2', [entity('spawn-2', 'player-start', 32, 32)])
+      return withEntities(spawned, project.levels[0]?.id ?? '', [
+        entity('door-1', 'door', 64, 64, { target: { target: 'spawn-2', container: 'level-2' } }),
+      ])
+    })
+    await userEvent.click(levelList().getByRole('button', { name: 'Second' }))
+    const steps = history.revision
+    await userEvent.click(inspector().getByRole('button', { name: 'Remove' }))
+    const dialog = within(await screen.findByRole('dialog', { name: 'Remove Second?' }))
+    expect(dialog.getByText('1 link leads here. It will show in Checks as broken.')).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole('button', { name: 'Remove' }))
+    expect(history.revision).toBe(steps + 1)
+    expect(history.state.levels.map((level) => level.id)).toEqual([first])
+    expect(screen.getByText('Choose a level on the map or in the list.')).toBeInTheDocument()
+    await userEvent.click(levelList().getAllByRole('button')[0] as HTMLElement)
+    expect(inspector().getByRole('button', { name: 'Remove' })).toBeDisabled()
+  })
+})

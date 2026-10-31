@@ -212,7 +212,17 @@ function layout(next: string): void {
   {/snippet}
   {#snippet inspector()}
     {#if project !== undefined && history !== undefined && selected !== undefined}
-      <WorldInspector {project} level={selected} {history} />
+      <WorldInspector
+        {project}
+        level={selected}
+        {history}
+        ids={services.ids}
+        onadded={(level) => {
+          selected = level
+          fitAfter()
+        }}
+        onremoved={() => (selected = undefined)}
+      />
     {:else}
       <p class="empty">Choose a level on the map or in the list.</p>
     {/if}

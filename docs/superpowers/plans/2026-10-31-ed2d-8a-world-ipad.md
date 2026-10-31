@@ -42,7 +42,7 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
 - [x] 3. `world-gestures`: tap selects or clears, drag on a level moves it as one step, drag on space pans, pinch and
   wheel zoom, middle button pans, finger after pen navigates only, two- and three-finger taps (unit, with a fake target).
 - [x] 4. The view attaches them; Fit; the existing World view DOM cases still pass (selection, drag, reorder, G-h).
-- [ ] 5. Duplicate and Remove (model helpers in unit tests; DOM: duplicate selected and one undo step; remove asks with
+- [x] 5. Duplicate and Remove (model helpers in unit tests; DOM: duplicate selected and one undo step; remove asks with
   the link count, removes in one step, disabled on the last level).
 - [ ] 6. Layout (three browsers): Fit and the new buttons are 44 px and in view at every size; review images with the
   `world` mockup frame.
@@ -60,3 +60,5 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
   fits again after a layout switch as after Add level (a refit only on steps that move every level). A logging run
   showed the tap arriving at the old fit's point. The camera case (wheel pans, Ctrl+wheel zooms, Fit restores) was
   written after the wiring and not run red first. World unit+dom: 7 files, 37 tests pass; typecheck 0 errors.
+- 2026-10-31, step 5: `copyLevelInput` and `linksInto` cases failed (not functions), then pass; the Duplicate and
+  Remove DOM cases failed (no buttons), then pass. World unit+dom: 7 files, 41 tests; typecheck 0 errors.

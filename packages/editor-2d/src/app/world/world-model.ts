@@ -1,5 +1,6 @@
 import type { Camera } from '../../canvas/level-view'
 import type { Project, Size } from '../../model/project-types'
+import { projectLinks } from '../../model/refs/ref-links'
 import { findLevel, type NewLevel } from '../../model/world/level-edits'
 import { findWorld } from '../../model/world/world-layout'
 import type { Point } from '../../tiles/footprint'
@@ -103,4 +104,17 @@ export function newLevelInput(project: Project, worldId: string): NewLevel {
     y: top,
     size: project.levels[0]?.size ?? { w: 320, h: 240 },
   }
+}
+
+/** What Duplicate names a copy of `level` (plan ED2D.8a decision 3): `<name> copy`, the first free `<id>-copy[-n]`. */
+export function copyLevelInput(project: Project, level: string): { id: string; name: string } {
+  const taken = new Set(project.levels.map((each) => each.id))
+  let id = `${level}-copy`
+  for (let number = 2; taken.has(id); number += 1) id = `${level}-copy-${number}`
+  return { id, name: `${findLevel(project, level).name} copy` }
+}
+
+/** How many links from other levels lead into `level`: what Remove says will break. */
+export function linksInto(project: Project, level: string): number {
+  return projectLinks(project).filter((link) => link.to.level === level && link.from.level !== level).length
 }

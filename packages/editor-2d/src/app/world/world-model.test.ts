@@ -2,8 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
-import { withNewLevel } from '../../testing/project-edit'
-import { dragPosition, fitWorld, levelAt, newLevelInput, toWorld, worldRects } from './world-model'
+import { linkedMaps } from '../../testing/linked-maps'
+import { entity, withEntities, withNewLevel } from '../../testing/project-edit'
+import {
+  copyLevelInput,
+  dragPosition,
+  fitWorld,
+  levelAt,
+  linksInto,
+  newLevelInput,
+  toWorld,
+  worldRects,
+} from './world-model'
 
 const project = (): Project => {
   const base = platformerTemplate.create(counterIds())
@@ -93,5 +103,24 @@ describe('newLevelInput (Add level, plan ED2D.6c decision 6)', () => {
       name: 'Level 4',
       x: 600 + size.w + 32,
     })
+  })
+})
+
+describe('copyLevelInput and linksInto (Duplicate and Remove, plan ED2D.8a decision 3)', () => {
+  it('names a copy "<name> copy" with the first free "<id>-copy" id', () => {
+    const p = project()
+    expect(copyLevelInput(p, 'level-2')).toEqual({ id: 'level-2-copy', name: 'level-2 copy' })
+    const copied = withNewLevel(p, 'level-2-copy', { x: 0, y: 900 })
+    expect(copyLevelInput(copied, 'level-2')).toEqual({ id: 'level-2-copy-2', name: 'level-2 copy' })
+  })
+
+  it('counts the links from other levels that lead into a level', () => {
+    const p = linkedMaps()
+    expect(linksInto(p, 'inn')).toBe(1)
+    const withWarp = withEntities(p, 'inn', [
+      entity('warp-1', 'warp', 10, 10, { target: { target: 'door-in', container: 'inn' } }),
+    ])
+    expect(linksInto(withWarp, 'inn')).toBe(1)
+    expect(linksInto(p, 'map-1')).toBe(1)
   })
 })
