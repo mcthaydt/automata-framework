@@ -4,7 +4,8 @@
 // a block costing blockstun and a push, hitstop as one freeze counter. Rewritten on integers for the sim; the source
 // is not edited. Sim code: `pnpm boundaries` checks it.
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
-import { Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { dropOf, enemyOf } from '../constants/enemies.ts'
 import {
   ACTION_BITS,
   ACTION_CLIP,
@@ -27,7 +28,7 @@ import {
   RISE_TICKS,
   SPIN_CHARGE,
   TICK_HZ,
-} from '../constants.ts'
+} from '../constants/index.ts'
 import { FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
 import { Freeze, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
@@ -258,8 +259,9 @@ function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
       const invuln = running?.invuln
       if (invuln !== undefined && target.moveTick >= invuln[0] && target.moveTick <= invuln[1]) continue
       const at = placeOf(defender)
+      // The hurt cylinder stands from its floor (`lift`, a hovering Wisp's) up its height.
       const height = running?.height ?? target.height
-      if (at === undefined || hit.bottom > height || hit.top < 0) continue
+      if (at === undefined || hit.bottom > target.lift + height || hit.top < target.lift) continue
       const reaches =
         hit.around === true
           ? ringHits(from, hit.far, at, target.radius)
@@ -296,6 +298,14 @@ export const combatHits: SystemDef = defineSystem({
 
       const action = defender.has(HeroAction) ? defender.get(HeroAction) : undefined
       const facesIt = inArc(at.facing, angleOf(from.x - at.x, from.z - at.z), GUARD_HALF_ARC)
+      // An Ash Knight's shield blocks a frontal hit while it neither attacks nor reels (DESIGN.md §8.2).
+      const kind = defender.has(Enemy) ? enemyOf(defender.get(Enemy).kind) : undefined
+      if (kind?.shield === true && target.state === CombatState.idle && facesIt && hit.unblockable !== true) {
+        defender.set(Fighter, stamp)
+        freeze = Math.max(freeze, BLOCK_FREEZE)
+        landed('block')
+        continue
+      }
       if (action?.guard === true && facesIt && hit.low !== true && hit.unblockable !== true) {
         if (ctx.tick - action.guardSince < PARRY_FRAMES) {
           attacker.set(Fighter, {
@@ -317,6 +327,15 @@ export const combatHits: SystemDef = defineSystem({
             ...push,
             pushTicks: BLOCK_STUN,
           })
+          // A blocked bite or dive stops short: the enemy reels back, its move over (DESIGN.md §8.2).
+          if (def.lunge !== undefined)
+            attacker.set(Fighter, {
+              state: CombatState.stun,
+              stun: BLOCK_STUN,
+              move: 0,
+              moveTick: 0,
+              queued: 0,
+            })
           freeze = Math.max(freeze, BLOCK_FREEZE)
           landed('block')
         }
@@ -333,10 +352,26 @@ export const combatHits: SystemDef = defineSystem({
         defender.set(Fighter, { ...stamp, ...cancel, health, state: CombatState.defeated })
         ctx.emit(FoeDefeated, { target: defender.sid })
         ctx.despawn(defender.sid)
+        // A beaten enemy may leave something where it fell: one roll on the seeded table (DESIGN.md §8.1 rule 6).
+        const drop = kind === undefined ? undefined : dropOf(ctx.rng.int(10))
+        if (drop !== undefined) ctx.spawn([Drop, { x: at.x, z: at.z, ...drop }])
         continue
       }
       if (health === 0) {
         defender.set(Fighter, { ...stamp, ...cancel, health, state: CombatState.down, stun: KNOCKDOWN_TICKS })
+        continue
+      }
+      // A hit on a hovering Wisp drops it to the floor, stunned (DESIGN.md §8.2: the sling's answer).
+      const grounded = kind?.grounded !== undefined && target.lift > 0 ? kind.grounded : undefined
+      if (grounded !== undefined) {
+        defender.set(Fighter, {
+          ...stamp,
+          ...cancel,
+          health,
+          state: CombatState.stun,
+          stun: grounded,
+          lift: 0,
+        })
         continue
       }
       // A power-3 hit knocks the defender down, then it rises (§7.2); any other hit stuns.

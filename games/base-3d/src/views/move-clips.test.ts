@@ -2,7 +2,7 @@
 // active frame, within one tick. Fixture clips here; the game's own are checked in content.test.ts.
 import type { FigureClipDef } from '@mcthaydt/automata-figures'
 import { describe, expect, it } from 'vitest'
-import type { MoveDef } from '../constants.ts'
+import type { MoveDef } from '../constants/index.ts'
 import { moveClipProblems } from './move-clips.ts'
 
 // A 22-frame move active from frame 6: contact belongs on tick 5 of 22.

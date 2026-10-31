@@ -4,9 +4,10 @@ import { defineConfig } from 'vitest/config'
 import { contentPlugin } from './vite.config.ts'
 
 // Node runs every test but the screens', which run in jsdom (the dom project) or, for their layout, in the three
-// browsers (the layout project); the browsers project runs the same game.test.ts in Chromium, WebKit and Firefox, so
-// the whole sim (the golden replay included, B-a) is held to the cross-engine rule (AGENTS.md, determinism). Svelte
-// compiles the ui panels the game package imports (ship-config.test.ts reads the game's input map).
+// browsers (the layout project); the browsers project runs the same game.test.ts and enemies.test.ts in Chromium,
+// WebKit and Firefox, so the whole sim (both golden replays included, B-a) is held to the cross-engine rule (AGENTS.md,
+// determinism). Svelte compiles the ui panels the game package imports (ship-config.test.ts reads the game's input
+// map).
 export default defineConfig({
   plugins: [svelte(), contentPlugin()],
   optimizeDeps: { include: ['zod'] },
@@ -45,7 +46,7 @@ export default defineConfig({
       {
         test: {
           name: 'browsers',
-          include: ['src/game.test.ts'],
+          include: ['src/game.test.ts', 'src/enemies.test.ts'],
           browser: {
             enabled: true,
             headless: true,

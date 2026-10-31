@@ -38,3 +38,8 @@ const foe = z.object({ target: z.int().nonnegative() })
 
 /** A foe's health reached 0; it is despawned at the end of the tick. */
 export const FoeDefeated: EventDef<typeof foe> = defineEvent('foe.defeated', foe)
+
+const drop = z.object({ kind: z.int().positive(), amount: z.int().positive(), x: z.int(), z: z.int() })
+
+/** Wick took a drop (an ember or a heart) at its place: presentation's pickup sound and sparkle. */
+export const DropTaken: EventDef<typeof drop> = defineEvent('drop.taken', drop)

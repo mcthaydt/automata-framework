@@ -2,7 +2,7 @@
 // `area.entered` fades back from, 300 ms each way (`AREA_FADE_TICKS` at 60 Hz), at once under reduced motion. It
 // never takes a pointer, so the touch overlay and the pause button stay usable through it.
 import { Effect, type Scope } from 'effect'
-import { AREA_FADE_TICKS, TICK_HZ } from '../constants.ts'
+import { AREA_FADE_TICKS, TICK_HZ } from '../constants/index.ts'
 
 const FADE_MS = Math.round((AREA_FADE_TICKS * 1000) / TICK_HZ)
 

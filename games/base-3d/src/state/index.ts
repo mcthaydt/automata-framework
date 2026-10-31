@@ -4,17 +4,17 @@
 import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Lock, LockCycle, Move } from '../commands.ts'
-import { Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Target } from '../components.ts'
+import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants/index.ts'
 import {
-  CONTINUE_HEALTH,
-  CombatState,
-  DUMMY,
-  DUMMY_FACING,
-  HERO_HALF,
-  HERO_HEALTH,
-  HERO_HEIGHT,
-} from '../constants.ts'
-import { AreaEntered, AreaExit, EmberTaken, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
+  AreaEntered,
+  AreaExit,
+  DropTaken,
+  EmberTaken,
+  FoeDefeated,
+  HeroDefeated,
+  HitLanded,
+} from '../events.ts'
 import { Freeze, Location, Progress } from '../resources.ts'
 import {
   type Area,
@@ -23,13 +23,16 @@ import {
   combatHits,
   combatMoves,
   combatStatus,
+  dropsTake,
   emberTake,
+  enemyBrain,
   heroAct,
   heroInput,
   heroMove,
   heroView,
   lockAssist,
   lockSelect,
+  spawnFoes,
   viewAt,
   type World,
 } from '../systems/index.ts'
@@ -53,11 +56,7 @@ export function spawnArea(sim: Sim, area: Area): void {
   place.returnX = area.spawn.x
   place.returnZ = area.spawn.z
   place.returnFacing = heading.heading
-  for (const { x, z } of area.targets)
-    sim.spawn([
-      [Target, { x, z, facing: DUMMY_FACING }],
-      [Fighter, { side: 1, ...DUMMY }],
-    ])
+  for (const parts of spawnFoes(area)) sim.spawn(parts)
 }
 
 /**
@@ -89,6 +88,8 @@ export const base3dPlugin: PluginDef = definePlugin({
     HeroAction,
     Target,
     Fighter,
+    Enemy,
+    Drop,
     Move,
     Lock,
     LockCycle,
@@ -97,6 +98,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     HeroDefeated,
     HitLanded,
     FoeDefeated,
+    DropTaken,
     AreaExit,
     AreaEntered,
     heroInput,
@@ -105,9 +107,11 @@ export const base3dPlugin: PluginDef = definePlugin({
     lockAssist,
     heroAct,
     combatStatus,
+    enemyBrain,
     combatMoves,
     emberTake,
     heroMove,
+    dropsTake,
     areaExit,
     heroView,
     combatHits,

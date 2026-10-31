@@ -1,5 +1,5 @@
-import { CameraHeading, cameraHeadingPlugin, cameraView } from '@mcthaydt/automata-render-pixi3d/sim'
-import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
+import { cameraHeadingPlugin, cameraView } from '@mcthaydt/automata-render-pixi3d/sim'
+import { createSim, type Sim } from '@mcthaydt/automata-sim'
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
 import { Fighter, Hero, HeroAction, Target } from './components.ts'
@@ -13,17 +13,27 @@ import {
   type MoveDef,
   metres,
   WALK_PER_TICK,
-} from './constants.ts'
+} from './constants/index.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { Freeze, Location, Progress } from './resources.ts'
 import { base3dSaves } from './screens/saves.ts'
-import { base3dPlugin, base3dSim, spawnArea } from './state/index.ts'
+import { base3dPlugin } from './state/index.ts'
 import { newGame } from './state/save.ts'
 import { type Area, type AreaSource, areaOf, compileArea, compileWorld, viewAt } from './systems/index.ts'
 import { angleOf, signedTurn } from './systems/lock-target.ts'
-
-/** The game's own sim spec, on the first slice, as `main.ts` makes it. */
-const BASE3D_SIM = base3dSim(compileWorld([FIRST_SLICE]))
+import {
+  BASE3D_SIM,
+  commandsFor,
+  FIRST_AREA,
+  GAME_SIM,
+  hero,
+  openArea,
+  RIGHT,
+  run,
+  startSim,
+  type TickInput,
+  UP,
+} from './testing/sim.ts'
 
 // base-3d's sim, commands in, step, state out (DESIGN.md §3.1). The browsers project runs this whole file in
 // Chromium, WebKit and Firefox, so every case here, the golden replay included, holds in four engines (B-a).
@@ -104,30 +114,6 @@ describe('the area', () => {
   })
 })
 
-/**
- * The game's sim spec as `defineGame` makes it: `BASE3D_SIM`'s plugin, then render3dExtension's heading plugin
- * (RT.EXT1). `game-spec.test.ts` checks the defined game's list is exactly this; this file runs in the browsers too,
- * where the game module's Node-side imports do not load.
- */
-const GAME_PLUGINS = [base3dPlugin, cameraHeadingPlugin]
-const GAME_SIM = { ...BASE3D_SIM, plugins: GAME_PLUGINS }
-/** The first slice, the world's only area. */
-const FIRST_AREA = BASE3D_SIM.content.areas[0] as Area
-
-/** A sim made the way the game makes it (`GAME_SIM`), on the first slice or a test area. */
-async function startSim(area: Area = FIRST_AREA, moves: readonly MoveDef[] = HERO_MOVES): Promise<Sim> {
-  const sim = await createSim({ ...GAME_SIM, content: { areas: [area], moves } })
-  if (area === FIRST_AREA) BASE3D_SIM.setup(sim)
-  else spawnArea(sim, area)
-  return sim
-}
-
-function hero(sim: Sim) {
-  const [entity] = sim.query(Hero, CameraHeading)
-  if (entity === undefined) throw new Error('no hero')
-  return { ...entity.get(Hero), ...entity.get(CameraHeading) }
-}
-
 describe('setup', () => {
   it('places Wick at the spawn, in the spawn room’s view with its heading and no latch, and the target', async () => {
     const sim = await startSim()
@@ -147,68 +133,6 @@ describe('setup', () => {
     sim.dispose()
   })
 })
-
-interface TickInput {
-  readonly stick?: { readonly x: number; readonly y: number }
-  readonly turn?: number
-  readonly lock?: boolean
-  /** The player's Lock mode, sent on every `lock` command; the tests default to hold (a held button is a lock). */
-  readonly mode?: 'toggle' | 'hold'
-  /** A `lock-cycle` this tick: 1 clockwise, −1 anticlockwise. */
-  readonly cycle?: 1 | -1
-  readonly act?: Partial<Record<'slash' | 'guard' | 'point' | 'pickup' | 'action', boolean>>
-}
-
-/**
- * One tick's commands from player slot 0: the stick every tick (as the input layer sends it), a turn, lock, and
- * the action buttons held.
- */
-function commandsFor(sim: Sim, input: TickInput): Command[] {
-  const at = { tick: sim.tick, source: 0 }
-  const commands: Command[] = [
-    { ...at, seq: sim.tick * 5, type: 'move', payload: input.stick ?? { x: 0, y: 0 } },
-  ]
-  if (input.turn !== undefined)
-    commands.push({ ...at, seq: sim.tick * 5 + 1, type: 'camera-turn', payload: { units: input.turn } })
-  const lock = { down: input.lock ?? false, mode: input.mode ?? 'hold' }
-  commands.push({ ...at, seq: sim.tick * 5 + 2, type: 'lock', payload: lock })
-  const act = { slash: false, guard: false, point: false, pickup: false, action: false, ...input.act }
-  commands.push({ ...at, seq: sim.tick * 5 + 3, type: 'act', payload: act })
-  if (input.cycle !== undefined)
-    commands.push({ ...at, seq: sim.tick * 5 + 4, type: 'lock-cycle', payload: { dir: input.cycle } })
-  return commands
-}
-
-/** Steps `ticks` ticks of `input` and returns the events they emitted, as `type@tick`. */
-function run(sim: Sim, input: TickInput, ticks = 1): string[] {
-  const events: string[] = []
-  for (let i = 0; i < ticks; i++) {
-    const result = sim.step(commandsFor(sim, input))
-    if (result.rejected.length > 0) throw new Error(`rejected: ${JSON.stringify(result.rejected)}`)
-    for (const event of result.events) events.push(`${event.type}@${result.tick}`)
-  }
-  return events
-}
-
-const UP = { x: 0, y: -127 }
-const RIGHT = { x: 127, y: 0 }
-
-/** One open room, no walls, a view with `yawDeg` and `rotate`. */
-const openArea = (
-  yawDeg = 0,
-  rotate = true,
-  targets: AreaSource['targets'] = [],
-  ember: AreaSource['ember'] = { x: 40, z: 40 },
-): Area =>
-  compileArea({
-    id: 'test',
-    spawn: { x: 0, z: 0 },
-    views: [{ id: 'open', yawDeg, rotate }],
-    rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
-    walls: [],
-    targets,
-    ember,
-  })
 
 describe('moving', () => {
   it('pushes Wick away from the camera at 4 m/s: +z at heading 0, +x at 90°', async () => {
@@ -1305,9 +1229,15 @@ const GOLDEN_KILN_TICK = 118
  * unchanged, and still asserted below. Re-recorded for GAME-3D.1c part 3 (was `ddddbb42a540c167`): each move
  * names its clip (`clip`, in the content the hash covers). Nothing in the sim's state or schema changed: the route's
  * rejected commands, events, kiln tick, locked ticks, action starts, end action and end position are unchanged,
- * and still asserted below.
+ * and still asserted below. Re-recorded for GAME-3D.1d part 1's enemies (was `7cc88141989e44b7`): the world's move
+ * table gained the enemies' four moves after Wick's (`lunge` among their fields) and each area gained `foes` (none in
+ * the first slice), which the content hash covers; the schema hash covers the `enemy` and `drop` components,
+ * `fighter.lift`, the `drop.taken` event and the `enemy.brain` and `drops.take` systems, whose RNG states the snapshot
+ * carries. The first slice has no foe and the route kills nothing, so no brain runs, no drop is rolled and its state
+ * did not move: the rejected commands, events, kiln tick, locked ticks, action starts, end action and end position
+ * are unchanged, and still asserted below. The fights are their own golden (enemies.test.ts).
  */
-const GOLDEN_HASH = '7cc88141989e44b7'
+const GOLDEN_HASH = 'c4f3e5bcee14989b'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

@@ -2,7 +2,7 @@
 // cycle moves to. Pure functions over Q16.16 plan points, so the systems and the tests share them. Sim code.
 import { mapStick, STICK_MAX, TURN_UNITS, wrapHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { atan2 } from '@mcthaydt/automata-sim/math'
-import { LOCK_FALLBACK, LOCK_RANGE } from '../constants.ts'
+import { LOCK_FALLBACK, LOCK_RANGE } from '../constants/index.ts'
 import type { PlanBox, PlanPoint } from './area.ts'
 
 /** A target the lock can pick: its entity id and where it stands. */

@@ -14,7 +14,10 @@ export {
   type World,
 } from './area.ts'
 export { areaExit } from './area-exit.ts'
+export { spawnFoes } from './area-foes.ts'
 export { combatFreeze, combatHits, combatMoves, combatStatus } from './combat.ts'
+export { dropsTake } from './drops.ts'
 export { emberTake } from './embers.ts'
+export { enemyBrain } from './enemies.ts'
 export { heroAct, heroInput, heroMove, heroView } from './hero.ts'
 export { lockAssist, lockSelect } from './lock-on.ts'

@@ -3,7 +3,7 @@ import { compileContent, formatDiagnostic } from '@mcthaydt/automata-content'
 import { type FigureClipDef, figuresExtension } from '@mcthaydt/automata-figures'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { ACTION_TICKS, HERO_MOVES, TICK_HZ } from './constants.ts'
+import { ACTION_TICKS, HERO_MOVES, TICK_HZ } from './constants/index.ts'
 import { moveClipProblems } from './views/move-clips.ts'
 
 // base-3d's figure content (M3 spec §4.7): Wick and the target as `figure` content with their libraries, the

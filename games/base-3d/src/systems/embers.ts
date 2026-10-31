@@ -1,7 +1,7 @@
 // The ember taken by a pickup beside it.
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Hero, HeroAction } from '../components.ts'
-import { ACTION_CLIP, EMBER_REACH } from '../constants.ts'
+import { ACTION_CLIP, EMBER_REACH } from '../constants/index.ts'
 import { EmberTaken } from '../events.ts'
 import { Location, Progress } from '../resources.ts'
 import { areaIn } from './area.ts'

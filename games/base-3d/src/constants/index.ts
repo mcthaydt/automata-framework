@@ -100,6 +100,8 @@ export interface MoveDef {
   readonly invuln?: readonly [number, number]
   /** The hurt cylinder's height while the move runs (a roll is 0.9 m, §7.3). */
   readonly height?: number
+  /** Carried this far (Q16.16 metres) along the facing over the active frames, evenly: an enemy's bite or dive. */
+  readonly lunge?: number
 }
 
 /** A slash's reach: 0.2 m to 1.4 m ahead, from the knee to above the shoulder. Not in §7.2's table; a starting value. */

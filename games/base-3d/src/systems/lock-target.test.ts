@@ -1,6 +1,6 @@
 // The lock's selection math (DESIGN.md §11.1, cases G3-e and G3-h): pure functions, so no sim is made.
 import { describe, expect, it } from 'vitest'
-import { LOCK_RANGE, metres } from '../constants.ts'
+import { LOCK_RANGE, metres } from '../constants/index.ts'
 import { cycleLock, lineOfSight, lockCandidates, selectLock } from './lock-target.ts'
 
 const ORIGIN = { x: 0, z: 0 }

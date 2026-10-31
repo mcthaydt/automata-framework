@@ -101,9 +101,10 @@ const fighterFields = {
   pushX: 'i32',
   pushZ: 'i32',
   pushTicks: 'u32',
-  /** The hurt cylinder (§7.3), Q16.16 metres. */
+  /** The hurt cylinder (§7.3), Q16.16 metres: its radius, its height, and its floor above the ground (a hover). */
   radius: 'i32',
   height: 'i32',
+  lift: 'i32',
 } as const
 
 /**
@@ -111,3 +112,38 @@ const fighterFields = {
  * facing are its `hero` or `target` row's.
  */
 export const Fighter: ComponentDef<typeof fighterFields> = defineComponent('fighter', fighterFields)
+
+const enemyFields = {
+  /** Its type, as its index + 1 in `ENEMIES` (constants/enemies.ts). */
+  kind: 'u32',
+  /** `BrainState`, and the ticks the state has left (notice, recover) or has run (the idle pacing). */
+  brain: 'u32',
+  timer: 'u32',
+  /** Whether it holds one of the attack tokens (§8.1 rule 2): the tokens are these flags, counted. */
+  token: 'bool',
+  /** The attacks it has started, so it takes its type's `attacks` in turn. */
+  attacks: 'u32',
+  /** Where it was spawned: an idle enemy paces from here. Q16.16 metres. */
+  homeX: 'i32',
+  homeZ: 'i32',
+  /** The facing its idle pacing walks out along, in turn units. */
+  homeFacing: 'u32',
+} as const
+
+/**
+ * An enemy's brain (DESIGN.md §8.1 rule 5): a deterministic state machine on sim state and integer timers. Its place
+ * is its `target` row (so it is lockable) and its fighting its `fighter` row.
+ */
+export const Enemy: ComponentDef<typeof enemyFields> = defineComponent('enemy', enemyFields)
+
+const dropFields = {
+  x: 'i32',
+  z: 'i32',
+  /** `DropKind`: an ember or a recovery heart. */
+  kind: 'u32',
+  /** How many embers (1 or 5); 1 for a heart. */
+  amount: 'u32',
+} as const
+
+/** Something a beaten enemy left on the floor (DESIGN.md §8.1 rule 6): Wick takes it by walking over it. */
+export const Drop: ComponentDef<typeof dropFields> = defineComponent('drop', dropFields)

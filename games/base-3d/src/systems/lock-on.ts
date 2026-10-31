@@ -2,7 +2,7 @@
 import { CameraHeading, wrapHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Hero, HeroControl, Target } from '../components.ts'
-import { LOCK_ASSIST_LIMIT, LOCK_ASSIST_PER_TICK, LOCK_BREAK, LOCK_HIDDEN_TICKS } from '../constants.ts'
+import { LOCK_ASSIST_LIMIT, LOCK_ASSIST_PER_TICK, LOCK_BREAK, LOCK_HIDDEN_TICKS } from '../constants/index.ts'
 import { Location } from '../resources.ts'
 import { type Area, areaIn } from './area.ts'
 import { frozen } from './combat.ts'

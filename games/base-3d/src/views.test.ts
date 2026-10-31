@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ACTION_CLIP, HERO_MOVES, metres, WALK_SPEED } from './constants.ts'
+import { ACTION_CLIP, HERO_MOVES, metres, WALK_SPEED } from './constants/index.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import {
   HERO_ITEM,

@@ -15,7 +15,7 @@ import {
   KNOCKDOWN_TICKS,
   type MoveDef,
   WALK_PER_TICK,
-} from '../constants.ts'
+} from '../constants/index.ts'
 import { Location } from '../resources.ts'
 import { areaIn, slide, viewAt, worldOf } from './area.ts'
 import { frozen, isHeld } from './combat.ts'

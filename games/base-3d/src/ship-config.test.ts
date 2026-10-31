@@ -4,7 +4,7 @@ import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import packageJson from '../package.json' with { type: 'json' }
 import config from '../ship.config.ts'
-import { TICK_HZ } from './constants.ts'
+import { TICK_HZ } from './constants/index.ts'
 import { base3d, input } from './main.ts'
 
 describe('base-3d ship.config.ts', () => {

@@ -2,7 +2,7 @@
 // the move's first active frame, within one tick, so the sword meets the target when the sim's hit window opens.
 // A content check on the compiled clips (content.test.ts); presentation code, outside the sim.
 import type { FigureClipDef } from '@mcthaydt/automata-figures'
-import { type MoveDef, TICK_HZ } from '../constants.ts'
+import { type MoveDef, TICK_HZ } from '../constants/index.ts'
 
 /**
  * One line per problem, naming the move and its clip: a clip that does not exist, a sword move's clip with no

@@ -11,7 +11,7 @@
     "test": "vitest run --configLoader runner",
     "test:unit": "vitest run --configLoader runner --project node --project dom",
     "test:parity": "vitest run --configLoader runner --project browsers --project layout",
-    "test:evidence": "vitest run --configLoader runner --project node --project browsers src/game.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "test:evidence": "vitest run --configLoader runner --project node --project browsers src/game.test.ts src/enemies.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT"
   },

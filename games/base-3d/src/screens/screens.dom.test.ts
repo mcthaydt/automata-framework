@@ -13,7 +13,7 @@ import { createFakeHost, type FakeHost, type FakeHostOptions } from '@ruken/sdk-
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Hero } from '../components.ts'
-import { AREA_FADE_TICKS, metres } from '../constants.ts'
+import { AREA_FADE_TICKS, metres } from '../constants/index.ts'
 import { FIRST_SLICE } from '../content/first-slice.ts'
 import { HeroDefeated } from '../events.ts'
 import { base3d, input } from '../main.ts'

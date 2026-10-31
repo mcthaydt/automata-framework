@@ -1,16 +1,17 @@
 // The area change (DESIGN.md §13): an exit, a fade, then the next area with Wick at its entry.
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
-import { Hero } from '../components.ts'
-import { AREA_FADE_TICKS } from '../constants.ts'
+import { Drop, Hero, Target } from '../components.ts'
+import { AREA_FADE_TICKS } from '../constants/index.ts'
 import { AreaEntered, AreaExit } from '../events.ts'
 import { Location } from '../resources.ts'
 import { worldOf } from './area.ts'
+import { spawnFoes } from './area-foes.ts'
 import { frozen } from './combat.ts'
 
 /**
  * Wick's centre inside one of his area's exits starts a change: `area.exit` names the area it leads to, and
- * `AREA_FADE_TICKS` later (presentation's fade out) the sim makes that area his, places him at the entry and emits
- * `area.entered`; `hero.view`, after it, cuts the camera to the entry's view on the same tick. No exit is noticed
+ * `AREA_FADE_TICKS` later (presentation's fade out) the sim makes that area his, places him at the entry, swaps the
+ * old area's dummies, foes and drops for the new one's, and emits `area.entered`; `hero.view`, after it, cuts the camera to the entry's view on the same tick. No exit is noticed
  * while a change is under way. Wick still walks during the fade: the swap places him wherever he got to.
  */
 export const areaExit: SystemDef = defineSystem({
@@ -32,6 +33,11 @@ export const areaExit: SystemDef = defineSystem({
         place.returnFacing = entity.get(Hero).facing
         place.area = place.next
         place.next = -1
+        // The old area's dummies, foes and drops go, and the new area's stand (DESIGN.md §8.2).
+        for (const other of [...ctx.query(Target), ...ctx.query(Drop)])
+          if (!other.has(Hero)) ctx.despawn(other.sid)
+        const next = areas[place.area]
+        if (next !== undefined) for (const parts of spawnFoes(next)) ctx.spawn(...parts)
         ctx.emit(AreaEntered, { area: place.area })
         continue
       }

@@ -1,7 +1,8 @@
 // The area: the level content compiled to fixed point, and the geometry the systems read.
 import { type CameraView, cameraViewSchema } from '@mcthaydt/automata-render-pixi3d/sim'
 import { z } from 'zod'
-import { HERO_HALF, HERO_MOVES, type MoveDef, metres } from '../constants.ts'
+import { ENEMIES, ENEMY_MOVES } from '../constants/enemies.ts'
+import { HERO_HALF, HERO_MOVES, type MoveDef, metres } from '../constants/index.ts'
 
 const plan = z.tuple([z.number(), z.number()])
 const minNotPastMax = (box: { min: [number, number]; max: [number, number] }): boolean =>
@@ -39,6 +40,10 @@ const areaSchema = z.strictObject({
   exits: z.array(planBoxWith({ to: z.string().min(1), entry: point })).default([]),
   /** Plan boxes Wick falls into when his feet cross into one (DESIGN.md §7.8). */
   pits: z.array(planBox).default([]),
+  /** The enemies standing in the area (DESIGN.md §8.2): a type by id, where, and a facing in degrees (0 toward +z). */
+  foes: z
+    .array(z.strictObject({ kind: z.string(), x: z.number(), z: z.number(), facing: z.number().default(0) }))
+    .default([]),
 })
 
 /** An area as authored: metres, views by id. */
@@ -63,6 +68,12 @@ export interface AreaExitBox extends PlanBox {
   readonly entry: PlanPoint
 }
 
+/** A foe as the sim spawns it: its type's index + 1 in `ENEMIES`, its place and its facing in turn units. */
+export interface AreaFoe extends PlanPoint {
+  readonly kind: number
+  readonly facing: number
+}
+
 /** An area as the sim reads it: Q16.16 metres and compiled views. */
 export interface Area {
   readonly id: string
@@ -74,12 +85,13 @@ export interface Area {
   readonly ember: PlanPoint
   readonly exits: readonly AreaExitBox[]
   readonly pits: readonly PlanBox[]
+  readonly foes: readonly AreaFoe[]
 }
 
 /** The sim's content: every area, the first being where a new game starts. */
 export interface World {
   readonly areas: readonly Area[]
-  /** Every move a fighter can make (DESIGN.md §7.2): Wick's, and GAME-3D.1d's enemies'. */
+  /** Every move a fighter can make (DESIGN.md §7.2, §8.2): Wick's, then the enemies'. */
   readonly moves: readonly MoveDef[]
 }
 
@@ -116,6 +128,12 @@ export function compileArea(source: AreaSource): Area {
     ember: toPoint(parsed.ember),
     exits: parsed.exits.map((exit) => ({ ...toBox(exit), to: exit.to, entry: toPoint(exit.entry) })),
     pits: parsed.pits.map(toBox),
+    foes: parsed.foes.map((foe) => {
+      const kind = ENEMIES.findIndex((type) => type.id === foe.kind) + 1
+      if (kind === 0) throw new Error(`base-3d area: a foe names the unknown enemy "${foe.kind}"`)
+      const facing = Math.round((foe.facing * 65_536) / 360)
+      return { kind, ...toPoint(foe), facing: ((facing % 65_536) + 65_536) % 65_536 }
+    }),
   }
   const { x, z } = area.spawn
   if (viewAt(area, x, z) === undefined) throw new Error('base-3d area: the spawn is outside every room')
@@ -134,7 +152,10 @@ export function compileArea(source: AreaSource): Area {
  * Compiles each area (`compileArea`) into the world, the first being where a new game starts. Throws on an empty
  * list, a repeated id, and an exit naming an unknown area or arriving outside its rooms.
  */
-export function compileWorld(sources: readonly AreaSource[], moves: readonly MoveDef[] = HERO_MOVES): World {
+export function compileWorld(
+  sources: readonly AreaSource[],
+  moves: readonly MoveDef[] = [...HERO_MOVES, ...ENEMY_MOVES],
+): World {
   const areas = sources.map(compileArea)
   if (areas.length === 0) throw new Error('base-3d world: there are no areas')
   areas.forEach((area, index) => {

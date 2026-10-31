@@ -17,7 +17,7 @@ import type {
 import { CameraHeading, Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { FieldRecord } from '@mcthaydt/automata-sim'
 import { Mesh3D, type View3D } from '@pixi/3d'
-import { ACTION_CLIP, type MoveDef, TICK_HZ, WALK_SPEED } from '../constants.ts'
+import { ACTION_CLIP, type MoveDef, TICK_HZ, WALK_SPEED } from '../constants/index.ts'
 import type { AreaSource } from '../systems/index.ts'
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>

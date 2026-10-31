@@ -1,6 +1,6 @@
 // The hit test's plan geometry (DESIGN.md §7.3, §7.4): integers only, so a hit lands on the same tick in every engine.
 import { describe, expect, it } from 'vitest'
-import { metres } from '../constants.ts'
+import { metres } from '../constants/index.ts'
 import { facingVector, inArc, reachHits } from './combat-geometry.ts'
 
 const QUARTER = 16_384
