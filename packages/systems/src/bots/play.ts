@@ -4,10 +4,10 @@
 import { PuzzleState } from '@mcthaydt/automata-puzzle/sim'
 import type { Point } from '@mcthaydt/automata-sectors/sim'
 import { canonicalJson, createRng, type Sim, type SimEvent } from '@mcthaydt/automata-sim'
-import { createWatch, type Probe, SystemsPursuit, SystemsWatch } from '../sim/index'
+import { createWatch, type Probe, SystemsPursuit, SystemsState, SystemsWatch } from '../sim/index'
 import type { Bot } from './bot'
 import { pursuitModes, threatModes } from './fairness'
-import type { Appearance, Death, RunResult } from './results'
+import type { Appearance, Death, RunResult, ThreatCause } from './results'
 import type { Setup, SystemsScene } from './scene'
 import type { Order } from './view'
 
@@ -45,6 +45,32 @@ function jittered(setup: Setup, seed: number, jitter: number): Setup {
 const stamp = (sim: Sim, orders: readonly Order[]) =>
   sim.step(orders.map((order, seq) => ({ tick: sim.tick, source: 0, seq, ...order })))
 
+/** What was going on when agent `a` first became a threat. */
+function causeOf(
+  sim: Sim,
+  a: { readonly id: string; readonly x: number; readonly z: number; readonly mode: string },
+  player: Point,
+  issued: readonly string[],
+  verbAt: number | null,
+  t: number,
+): ThreatCause {
+  const record = sim.resource(SystemsState).agents[a.id]
+  const state: Record<string, string | number | boolean | null> = {}
+  for (const k of Object.keys(record?.own ?? {}).sort()) state[k] = record?.own[k] ?? null
+  const verbs = issued.filter((token) => token !== 'light')
+  const round = (n: number) => Math.round(n * 100) / 100
+  return {
+    agent: a.id,
+    mode: a.mode,
+    moving: record?.moving ?? false,
+    distance: round(distance(a, player)),
+    goalToPlayer: record?.goal == null ? null : round(distance(record.goal, player)),
+    state,
+    lastVerb: verbs[verbs.length - 1] ?? null,
+    sinceVerb: verbAt === null || verbs.length === 0 ? null : round(t - verbAt),
+  }
+}
+
 export async function play(scene: SystemsScene, o: PlayOptions): Promise<RunResult> {
   const sim = await scene.create(o.until === undefined ? [] : [createWatch(scene.options, o.until, o.as)])
   try {
@@ -73,6 +99,8 @@ function run(sim: Sim, scene: SystemsScene, o: PlayOptions): RunResult {
   let safeFrom = 0
   let hide: { from: number; last: number } | undefined
   let conditionAt: number | null = null
+  let cause: ThreatCause | null = null
+  let verbAt: number | null = null
   let outcome: RunResult['outcome'] = 'timeout'
   let last: Record<string, Point> = {}
 
@@ -85,6 +113,7 @@ function run(sim: Sim, scene: SystemsScene, o: PlayOptions): RunResult {
     const before = canonicalJson(sim.resource(PuzzleState))
     const issued = o.bot.issued.length
     const events: readonly SimEvent[] = stamp(sim, o.bot.next(scene.view(sim, (step - 1) / hz))).events
+    if (o.bot.issued.length > issued) verbAt = (step - 1) / hz
     if (canonicalJson(sim.resource(PuzzleState)) !== before)
       skeleton.push(...o.bot.issued.slice(issued).filter((token) => token !== 'light'))
     const view = scene.view(sim, t)
@@ -95,7 +124,10 @@ function run(sim: Sim, scene: SystemsScene, o: PlayOptions): RunResult {
       if (threat.has(a.mode)) {
         threatened = true
         if (threatSince[a.id] === undefined) threatSince[a.id] = t
-        if (firstThreat === null) firstThreat = t
+        if (firstThreat === null) {
+          firstThreat = t
+          cause = causeOf(sim, a, view.player, o.bot.issued, verbAt, t)
+        }
       } else delete threatSince[a.id]
       const was = last[a.id]
       if (was !== undefined && distance(was, a) > JUMP && (follow.has(a.mode) || ambush.has(a.mode))) {
@@ -162,6 +194,7 @@ function run(sim: Sim, scene: SystemsScene, o: PlayOptions): RunResult {
     safeWindows,
     skeleton,
     conditionAt,
+    cause,
     appearances,
     ambushCatches,
     hides,
