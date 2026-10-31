@@ -51,6 +51,20 @@ async function planned(text = 'pasted') {
 }
 
 describe('InterchangeDialog', () => {
+  it('import: "Choose a file" is a kit button that opens the chooser, and the file fills the document', async () => {
+    setup('import')
+    const chooser = document.querySelector<HTMLInputElement>('input[type="file"]')
+    if (chooser === null) throw new Error('no file input')
+    const opened = vi.spyOn(chooser, 'click').mockImplementation(() => {})
+    const button = screen.getByRole('button', { name: 'Choose a file' })
+    expect(button).toHaveAttribute('data-kind', 'plain')
+    await userEvent.click(button)
+    expect(opened).toHaveBeenCalledOnce()
+    opened.mockRestore()
+    await userEvent.upload(chooser, new File(['JUMP = 4\n'], 'scene.toml', { type: 'text/plain' }))
+    await vi.waitFor(() => expect(screen.getByLabelText('Document to import')).toHaveValue('JUMP = 4\n'))
+  })
+
   it('export: TOML by default, JSON on choice, in a read-only text to copy', async () => {
     const { onexport } = setup('export')
     const text = screen.getByLabelText('Exported document')

@@ -132,6 +132,21 @@ const dialogNamed = (name: string): HTMLElement | null =>
   ) ?? document.querySelector<HTMLElement>('[role="dialog"]')
 
 describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (size) => {
+  test('the reload toast sits above the rail and the status line, not over them', async () => {
+    await open(size)
+    await expect.poll(() => document.querySelector('[data-widget="toast-region"] .toast')).not.toBeNull()
+    await settleLayout()
+    const toast = document
+      .querySelector<HTMLElement>('[data-widget="toast-region"] .toast')
+      ?.getBoundingClientRect()
+    // The rail as a column (wide) is beside the canvas, not under it; as a tab bar it is the foot.
+    const foot = [...document.querySelectorAll<HTMLElement>('[data-region="rail"], [data-region="status"]')]
+      .filter((region) => region.dataset.presentation !== 'rail')
+      .map((region) => region.getBoundingClientRect().top)
+    expect(toast?.bottom).toBeLessThanOrEqual(Math.min(size.height, ...foot) + 0.5)
+    await page.screenshot({ path: `.vitest/shots/reload-toast-${size.name}.png` })
+  })
+
   test('the Ship dialog: the description and Ship reachable at 48 px', async () => {
     await open(size)
     button('Ship').click()
@@ -162,6 +177,27 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
       .querySelector<HTMLElement>('[data-testid="review-desk"] pre')
       ?.getBoundingClientRect()
     expect(diff?.right).toBeLessThanOrEqual((desk?.right ?? 0) + 0.5)
+    const rows = [...document.querySelectorAll<HTMLElement>('[data-testid="review-desk"] [data-gate]')]
+    expect(rows.map((row) => row.dataset.gate)).toEqual(['g-feel', 'g-speed'])
+    for (const row of rows) {
+      const link = row.querySelector('a')?.getBoundingClientRect()
+      expect(link?.height, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(44)
+      expect(link?.width, `${row.dataset.gate} link`).toBeGreaterThanOrEqual(44)
+    }
+    // Each record link sits at the row's right edge, beside its state however that wraps, with one gap between rows.
+    const rights = rows.map((row) => row.querySelector('a')?.getBoundingClientRect().right)
+    expect(rights[0]).toBeCloseTo(rights[1] ?? 0, 0)
+    for (const row of rows) {
+      const state = row.querySelector('span')?.getBoundingClientRect()
+      const link = row.querySelector('a')?.getBoundingClientRect()
+      expect(link?.left, `${row.dataset.gate} link beside its state`).toBeGreaterThanOrEqual(
+        (state?.right ?? 0) - 0.5,
+      )
+    }
+    const [feel, speed] = rows.map((row) => row.getBoundingClientRect())
+    const gap = (speed?.top ?? 0) - (feel?.bottom ?? 0)
+    expect(gap).toBeGreaterThanOrEqual(4)
+    expect(gap).toBeLessThanOrEqual(12.5)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/review-desk-${size.name}.png` })
   })
@@ -181,6 +217,9 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
     await expect.poll(() => dialog.querySelector('[data-kind="added"]')).not.toBeNull()
     await settleLayout()
     reachable('Apply', dialog, size)
+    const chooser = button('Choose a file', dialog).getBoundingClientRect()
+    expect(chooser.height).toBeGreaterThanOrEqual(44)
+    expect(chooser.width).toBeGreaterThanOrEqual(44)
     expect(button('Apply', dialog)).not.toHaveProperty('disabled', true)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/interchange-${size.name}.png` })
