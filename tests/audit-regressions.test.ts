@@ -10,6 +10,7 @@ import apiIndex from '../src/data/api-index.json'
 import bootErrors from '../src/data/boot-errors.json'
 import Home from '../src/routes/+page.svelte'
 import Ai from '../src/routes/ai/+page.svelte'
+import Examples from '../src/routes/examples/+page.svelte'
 import { homeData } from './helpers/page-data'
 import { resolve } from 'node:path'
 import { findHardCodedHashes, siteSourceFiles } from './helpers/hard-coded-hashes'
@@ -114,6 +115,16 @@ describe('Restored claims (DX.10a)', () => {
     expect(doc).toContain('These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open.')
     expect(doc).toContain(`https://github.com/mcthaydt/automata-framework/blob/${apiIndex.commit}/packages/testing/src/e2e/input-matrix.ts`)
     expect(doc).not.toMatch(/verified at 780|full parity|input parity/i)
+  })
+
+  it('describes the playground’s live updates, diagnostics and restart, bounded to the playground', () => {
+    const view = render(Examples, { props: { data: { index: [] } } })
+    const section = view.getByRole('region', { name: 'How an example runs' })
+    expect(section.textContent).toContain('Edit the code and the example runs again once you pause typing. Each run starts in a new preview frame and is shown only once it is running, so an edit that fails leaves the last working preview in place.')
+    expect(section.textContent).toContain('A compile error is marked in the editor at its line and column and named under the preview; selecting it moves the cursor there.')
+    expect(section.textContent).toContain('Restart runs the last code that compiled again, in a new frame, without reloading the page.')
+    expect(section.textContent).toContain('This is how the playground on this site works, not a description of a game’s own hot reload or restart.')
+    expect(section.textContent).not.toMatch(/instant|in-place|without losing state/i)
   })
 
   it('labels the generated API reference as complete for the packages it was generated from, and links it', () => {
