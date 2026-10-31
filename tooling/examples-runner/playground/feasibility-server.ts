@@ -2,8 +2,8 @@ import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { playgroundOrigin, playgroundPort } from '../host/ports.ts'
-import { framePolicy } from '../src/playground/frame-policy.ts'
 import { playgroundHeaders } from '../src/playground/playground-headers.ts'
+import { framePolicy } from '../src/playground/ruken/frame-policy.ts'
 import { fileUnder, sendFile } from './static-files.ts'
 
 // The site in miniature for WEB.PLAY.1 (website playground spec §17): a parent page on the site's origin, the frame

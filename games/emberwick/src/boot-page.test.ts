@@ -1,8 +1,8 @@
 import { Effect } from 'effect'
 import { describe, expect, it, vi } from 'vitest'
-import { BaseBootFailed } from './boot.ts'
 import { CONNECT_FAILED, DEVICE_FAILED, RendererFailed, SimFailed } from './boot-failure.ts'
 import { bootPage } from './boot-page.ts'
+import { BaseBootFailed } from './ruken/boot.ts'
 
 // main.ts hands startGame to bootPage; this is what the player sees for each way it can end.
 async function pageAfter(start: Effect.Effect<void, unknown>) {

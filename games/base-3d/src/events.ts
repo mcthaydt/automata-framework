@@ -72,3 +72,29 @@ export const BossPhase: EventDef<typeof phase> = defineEvent('boss.phase', phase
 
 /** The Warden is beaten (DESIGN.md §8.4): the hearth shot, then the end screen (GAME-3D.1d part 4). */
 export const BossDefeated: EventDef<typeof foe> = defineEvent('boss.defeated', foe)
+
+const piece = z.object({ piece: z.int().positive() })
+
+/** A pellet hit a sling target (DESIGN.md §10), by its entity's index + 1: part 3's eye switches answer it. */
+export const SlingTargetHit: EventDef<typeof piece> = defineEvent('sling-target.hit', piece)
+
+/** A door opened (DESIGN.md §10), by its entity's index + 1: the clunk, and it is saved. */
+export const DoorOpened: EventDef<typeof piece> = defineEvent('door.opened', piece)
+
+const switched = z.object({ piece: z.int().positive(), on: z.boolean() })
+
+/** A switch went on or off (DESIGN.md §10), by its entity's index + 1. */
+export const SwitchChanged: EventDef<typeof switched> = defineEvent('switch.changed', switched)
+
+const moved = z.object({ piece: z.int().positive(), x: z.int(), z: z.int() })
+
+/** A block was pushed a cell to its new centre (DESIGN.md §10). */
+export const BlockMoved: EventDef<typeof moved> = defineEvent('block.moved', moved)
+
+const opened = z.object({ piece: z.int().positive(), contents: z.string() })
+
+/** A chest opened (DESIGN.md §10), by its entity's index + 1, with what it held: 1k's item-get pose and banner. */
+export const ChestOpened: EventDef<typeof opened> = defineEvent('chest.opened', opened)
+
+/** A pot broke or a cracked wall went (DESIGN.md §10), by its entity's index + 1. */
+export const PieceBroke: EventDef<typeof piece> = defineEvent('piece.broke', piece)

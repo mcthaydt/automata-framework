@@ -6,10 +6,10 @@
  * typecheck here until it has a state.
  */
 
-import type { RukenError } from '@ruken/sdk'
+import type { ErrorCode as HostErrorCode } from '@mcthaydt/automata-host'
 
-/** Ruken's error code. The SDK exports the class, not the alias. */
-export type ErrorCode = RukenError['code']
+/** The host contract's error code (DIST spec §4.1). */
+export type ErrorCode = HostErrorCode
 
 /**
  * The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never
@@ -39,7 +39,7 @@ export type BootFailure =
  * `Hosting['kind']` (shared contracts §1.1), written out because ui never imports host. A `web` session (PUB
  * spec §3) draws as `standalone`: it has no host to go back to.
  */
-export type HostKind = 'ruken' | 'standalone'
+export type HostKind = 'ruken' | 'standalone' | 'tauri'
 
 /**
  * What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled`,
@@ -71,7 +71,7 @@ export interface BootFailureViewModel {
  * The words for every boot failure state and action, by name. `BOOT_FAILURE_COPY_EN` holds the English
  * defaults.
  */
-export type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>
+export type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction | 'quit', string>>
 
 /**
  * English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5. `{host}` is filled
@@ -89,6 +89,8 @@ export const BOOT_FAILURE_COPY_EN: BootFailureCopy = {
   retry: 'Try again',
   continue: 'Continue without loading',
   exit: 'Back to {host}',
+  // The exit action's words on the desktop, where leaving the game quits the app (DIST spec §8 flow 2).
+  quit: 'Quit',
 }
 
 /**
@@ -144,7 +146,7 @@ function viewFor(failure: BootFailure, hostKind: HostKind): BootFailureViewModel
       if (failure.operation === 'init') return { state: 'start', actions: failure.retryable ? ['retry'] : [] }
       if (!failure.operation.startsWith('saves.')) return { state: 'connect', actions: ['retry'] }
       if (failure.retryable) return { state: 'progress', actions: ['retry'] }
-      return { state: 'progress', actions: [hostKind === 'standalone' ? 'continue' : 'exit'] }
+      return { state: 'progress', actions: [hostKind === 'ruken' ? 'exit' : 'continue'] }
     case 'ContentHashMismatch':
       return { state: 'damaged', actions: ['retry'] }
     case 'AssetLoadFailed':
@@ -152,7 +154,7 @@ function viewFor(failure: BootFailure, hostKind: HostKind): BootFailureViewModel
     case 'LoadStalled':
       return { state: 'download-stalled', actions: ['retry'] }
     case 'RendererUnavailable':
-      return { state: 'unsupported', actions: hostKind === 'ruken' ? ['exit'] : [] }
+      return { state: 'unsupported', actions: hostKind === 'standalone' ? [] : ['exit'] }
     case 'ModelInvalid':
       return { state: 'model-invalid', actions: ['retry', 'exit'] }
     case 'BootDefect':

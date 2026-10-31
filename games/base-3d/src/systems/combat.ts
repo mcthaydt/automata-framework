@@ -4,7 +4,19 @@
 // a block costing blockstun and a push, hitstop as one freeze counter. Rewritten on integers for the sim; the source
 // is not edited. Sim code: `pnpm boundaries` checks it.
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
-import { Bomb, Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Pellet, Target } from '../components.ts'
+import {
+  Bomb,
+  Breakable,
+  Drop,
+  Enemy,
+  Fighter,
+  Hero,
+  HeroAction,
+  HeroControl,
+  Pellet,
+  SlingTarget,
+  Target,
+} from '../components.ts'
 import { dropOf, enemyOf } from '../constants/enemies.ts'
 import {
   ACTION_BITS,
@@ -29,11 +41,21 @@ import {
   SPIN_CHARGE,
   TICK_HZ,
 } from '../constants/index.ts'
-import { BossDefeated, CaptainDefeated, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
+import {
+  BossDefeated,
+  CaptainDefeated,
+  FoeDefeated,
+  HeroDefeated,
+  HitLanded,
+  SlingTargetHit,
+} from '../events.ts'
 import { Freeze, Inventory, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
 import { coneHits, facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
+import { slingTargetHit } from './dungeon.ts'
+import { breakableHit } from './dungeon-pieces.ts'
 import { angleOf, lineOfSight } from './lock-target.ts'
+import { wallsOf } from './walls.ts'
 
 /** Whether this tick is a hitstop tick: every system but the input copy and `combat.freeze` skips it. */
 export const frozen = (ctx: SimContext): boolean => ctx.resource(Freeze).active
@@ -114,7 +136,7 @@ export const combatStatus: SystemDef = defineSystem({
   before: ['combat.moves'],
   run(ctx) {
     if (frozen(ctx)) return
-    const { walls } = areaIn(ctx.content, ctx.resource(Location))
+    const walls = wallsOf(ctx)
     for (const entity of ctx.query(Fighter)) {
       const fighter = entity.get(Fighter)
       const next: Partial<{ iframes: number; stun: number; state: number; pushTicks: number }> = {}
@@ -240,7 +262,7 @@ interface Contact {
 
 /** The hits this tick's active frames make, gathered before any applies (attackers, then defenders, by id). */
 function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
-  const { walls } = areaIn(ctx.content, ctx.resource(Location))
+  const walls = wallsOf(ctx)
   const fighters = ctx.query(Fighter)
   const contacts: Contact[] = []
   for (const attacker of fighters) {
@@ -312,6 +334,25 @@ export const combatHits: SystemDef = defineSystem({
       const forward = facingVector(from.facing)
       const landed = (kind: 'hit' | 'block' | 'parry') =>
         ctx.emit(HitLanded, { attacker: attacker.sid, target: defender.sid, kind, power: hit.power, ...at })
+
+      // A sling target (DESIGN.md §10) takes a pellet and reports it, and nothing harms it.
+      if (defender.has(SlingTarget)) {
+        defender.set(Fighter, stamp)
+        landed('hit')
+        if (attacker.has(Pellet)) {
+          const { piece } = defender.get(SlingTarget)
+          ctx.emit(SlingTargetHit, { piece })
+          slingTargetHit(ctx, piece)
+        }
+        continue
+      }
+      // A pot breaks on any hit, a cracked wall on a blast (DESIGN.md §10); neither is harmed otherwise.
+      if (defender.has(Breakable)) {
+        defender.set(Fighter, stamp)
+        landed('hit')
+        breakableHit(ctx, defender.sid, defender.get(Breakable).piece, at, def.id === 'bomb-blast')
+        continue
+      }
 
       const action = defender.has(HeroAction) ? defender.get(HeroAction) : undefined
       const facesIt = inArc(at.facing, angleOf(from.x - at.x, from.z - at.z), GUARD_HALF_ARC)

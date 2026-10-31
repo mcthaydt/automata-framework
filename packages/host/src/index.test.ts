@@ -3,18 +3,36 @@ import * as host from './index'
 import * as testing from './testing'
 
 describe('public entry points', () => {
-  it('export the Hosting contract and its one live layer', () => {
+  it('export the target-neutral contract, and no adapter (DIST spec §4, §5.3)', () => {
     expect(Object.keys(host).sort()).toEqual(
       [
+        'AudioChangeSchema',
+        'CAPABILITIES',
+        'CapabilitySchema',
+        'DisplayMetricsPayloadSchema',
+        'ERROR_CODES',
+        'EntitlementsPayloadSchema',
+        'ErrorCodeSchema',
+        'FullscreenResSchema',
         'HOST_EXIT_CAP',
-        'RUKEN_SDK_MARKERS',
-        'findRukenSdkMarkers',
         'HostError',
         'HostHandshakeFailed',
         'Hosting',
-        'HostingLive',
-        'makeHosting',
-        'toHostError',
+        'InputModePayloadSchema',
+        'LeaderboardGetResSchema',
+        'LeaderboardQuerySchema',
+        'LeaderboardSubmitMetaSchema',
+        'LeaderboardSubmitResSchema',
+        'LifecyclePayloadSchema',
+        'PauseBehaviorSchema',
+        'RUKEN_SDK_MARKERS',
+        'RoundOutcomeSchema',
+        'SavesChangedPayloadSchema',
+        'SavesFlushResSchema',
+        'SavesStatusSchema',
+        'findRukenSdkMarkers',
+        'findTauriMarkers',
+        'TAURI_MARKERS',
       ].sort(),
     )
   })

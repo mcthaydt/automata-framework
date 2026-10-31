@@ -4,7 +4,7 @@
 import { CameraHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Equip } from '../commands.ts'
-import { Bomb, Chain, Enemy, Fighter, Hero, HeroControl, Pellet, Target } from '../components.ts'
+import { Bomb, Breakable, Chain, Enemy, Fighter, Hero, HeroControl, Pellet, Target } from '../components.ts'
 import { enemyOf } from '../constants/enemies.ts'
 import { ACTION_BITS, CombatState } from '../constants/index.ts'
 import { BOMBS, CHEST_HEIGHT, HOOKCHAIN, ItemCode, SLING } from '../constants/items.ts'
@@ -15,6 +15,7 @@ import { areaIn, worldOf } from './area.ts'
 import { frozen } from './combat.ts'
 import { facingVector, reachHits } from './combat-geometry.ts'
 import { angleOf, lineOfSight } from './lock-target.ts'
+import { wallsOf } from './walls.ts'
 
 /** `step` Q16.16 metres along `facing` (turn units), truncated. */
 function ahead(facing: number, step: number): { dx: number; dz: number } {
@@ -79,9 +80,13 @@ export const itemUse: SystemDef = defineSystem({
     const locked = hero.lockTarget === 0 ? undefined : ctx.entity(hero.lockTarget)?.get(Target)
     const stick = { x: control.stickX, y: control.stickY }
     const aim = aimDirection(hero, locked, stick, wick.get(CameraHeading).heading)
+    // Every shootable thing is a declared target (§9.2): a pot or a cracked wall is not one.
     const foes = ctx
       .query(Fighter, Target)
-      .filter((entity) => entity.get(Fighter).side === 1 && entity.get(Fighter).health > 0)
+      .filter(
+        (entity) =>
+          entity.get(Fighter).side === 1 && entity.get(Fighter).health > 0 && !entity.has(Breakable),
+      )
       .map((entity) => ({ id: entity.sid, ...entity.get(Target), ...entity.get(Fighter) }))
     // The hookchain's targets are the hook posts too (§9.2), ahead of any foe at the same distance.
     const { posts } = areaIn(ctx.content, ctx.resource(Location))
@@ -161,7 +166,7 @@ export const chainFly: SystemDef = defineSystem({
       const step = Math.min(HOOKCHAIN.step, HOOKCHAIN.range - chain.travelled)
       const flight = ahead(chain.facing, step)
       const to = { x: from.x + flight.dx, z: from.z + flight.dz }
-      if (!lineOfSight(area.walls, from, to)) {
+      if (!lineOfSight(wallsOf(ctx), from, to)) {
         ctx.despawn(entity.sid)
         continue
       }
@@ -215,7 +220,7 @@ export const pelletFly: SystemDef = defineSystem({
     if (frozen(ctx)) return
     const moves = worldOf(ctx.content).moves
     const move = moves.findIndex((candidate) => candidate.id === 'sling-pellet') + 1
-    const { walls } = areaIn(ctx.content, ctx.resource(Location))
+    const walls = wallsOf(ctx)
     for (const entity of ctx.query(Pellet, Fighter)) {
       const pellet = entity.get(Pellet)
       let { x, z } = pellet

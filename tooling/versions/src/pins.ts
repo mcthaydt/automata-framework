@@ -73,3 +73,16 @@ export function publishedPeerFloors(manifest: Manifest): Manifest {
   })
   return { ...manifest, peerDependencies: Object.fromEntries(peers) }
 }
+
+/**
+ * The exact pins `create-game` writes into a new game's package.json, read from its source: `'name': 'x.y.z'` or
+ * `name: 'x.y.z'` in an object, or `deps['name'] = 'x.y.z'`. A scaffold-only pin (a game's Tauri CLI) is used by
+ * every game it creates, though no workspace package installs it.
+ */
+export function pinsFromScaffoldSource(source: string): Pin[] {
+  const pin = /(?:'(@?[\w./-]+)'|\b([a-z][\w.-]*))\]?\s*[:=]\s*'(\d+\.\d+\.\d+)'/g
+  return [...source.matchAll(pin)].map((match) => ({
+    name: (match[1] ?? match[2]) as string,
+    version: match[3] as string,
+  }))
+}

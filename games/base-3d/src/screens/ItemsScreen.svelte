@@ -1,7 +1,7 @@
 <!--
   base-3d's Items screen (DESIGN.md §9.3, GAME-3D.1e part 5b), over the paused game: the five slots as a grid (the
   arrow keys steer it, `[data-focus-grid]`), each owned sling, bombs or hookchain choosable to put it on the Item
-  button, the heart pieces as quarters, the embers and the kiln's keys, map and compass. The contents scroll inside a
+  button, the embers and the kiln's keys, map and compass (heart pieces cut by the 2026-10-31 rescope). The contents scroll inside a
   declared scroll region at compact height; the frame's corner Back stays fixed.
 -->
 <script lang="ts">
@@ -77,16 +77,6 @@ function choose(slot: ItemSlot): void {
     </div>
 
     <dl class="b3-items__facts">
-      <div>
-        <dt>{words.items.heartPieces}</dt>
-        <dd>
-          <span class="b3-items__quarters" role="img" aria-label={words.items.piecesOf(view.heartPieces)}>
-            {#each [0, 1, 2, 3] as quarter (quarter)}
-              <span class="b3-items__quarter" data-filled={String(quarter < view.heartPieces)}></span>
-            {/each}
-          </span>
-        </dd>
-      </div>
       <div>
         <dt>{words.items.embers}</dt>
         <dd data-testid="items-embers">{view.embers}</dd>
@@ -194,18 +184,5 @@ function choose(slot: ItemSlot): void {
   }
   .b3-items__facts dd {
     margin: 0;
-  }
-  .b3-items__quarters {
-    display: inline-grid;
-    grid-template-columns: repeat(2, 8px);
-    gap: 1px;
-  }
-  .b3-items__quarter {
-    inline-size: 8px;
-    block-size: 8px;
-    border: 1px solid var(--af-ink);
-  }
-  .b3-items__quarter[data-filled='true'] {
-    background: #e43b44;
   }
 </style>

@@ -4,9 +4,10 @@
 -->
 <script lang="ts">
 import { OptionGroup } from '@mcthaydt/automata-ui'
+import { liveCopy } from './copy.svelte.ts'
 import { LOCK_MODES, type LockMode, lockModeOf, settingsInPlay } from './settings.ts'
 
-const LABELS: Record<LockMode, string> = { toggle: 'Toggle', hold: 'Hold' }
+const words = $derived(liveCopy.current)
 
 const store = settingsInPlay.store
 let value = $state(lockModeOf(store?.get()))
@@ -19,10 +20,10 @@ function choose(mode: string): void {
 </script>
 
 <section class="lock-mode" data-settings-section="lock-mode">
-  <h3 class="af-settings__heading">Game</h3>
+  <h3 class="af-settings__heading">{words.lockMode.heading}</h3>
   <OptionGroup
-    label="Lock mode"
-    options={LOCK_MODES.map((mode) => ({ value: mode, label: LABELS[mode], testId: `lock-mode-${mode}` }))}
+    label={words.lockMode.label}
+    options={LOCK_MODES.map((mode) => ({ value: mode, label: words.lockMode[mode], testId: `lock-mode-${mode}` }))}
     {value}
     onchange={choose}
   />

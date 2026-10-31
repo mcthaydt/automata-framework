@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { WEB_STORAGE_PROBE_KEY } from './hosting-web'
 import { findRukenSdkMarkers, RUKEN_SDK_MARKERS } from './sdk-markers'
+import { WEB_STORAGE_PROBE_KEY } from './web/hosting-web'
 
 describe("the Ruken SDK's bundle markers (PUB spec §3)", () => {
   it('are the two SDK string literals that survive minification', () => {

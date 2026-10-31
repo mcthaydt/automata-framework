@@ -2,6 +2,7 @@
 // equipped item and its ammo, and the boss bar while a Warden lives.
 import { describe, expect, it } from 'vitest'
 import { Fighter } from '../components.ts'
+import { Dungeon } from '../resources.ts'
 import { newGame } from '../state/save.ts'
 import { startFoes, wickSid } from '../testing/foes.ts'
 import { startSim } from '../testing/sim.ts'
@@ -24,7 +25,14 @@ describe('heartsOf', () => {
 describe('hudOf', () => {
   it('reads a new game: 4 hearts full, no embers, nothing equipped and no boss', async () => {
     const sim = await startSim()
-    expect(hudOf(sim)).toEqual({ health: 8, maxHealth: 8, embers: 0, equipped: undefined, boss: undefined })
+    expect(hudOf(sim)).toEqual({
+      health: 8,
+      maxHealth: 8,
+      embers: 0,
+      smallKeys: 0,
+      equipped: undefined,
+      boss: undefined,
+    })
     sim.dispose()
   })
 
@@ -64,6 +72,13 @@ describe('hudOf', () => {
     expect(hudOf(sim)?.boss).toEqual({ id: 'warden', health: 9, max: 24 })
     warden?.set(Fighter, { health: 0 })
     expect(hudOf(sim)?.boss).toBeUndefined()
+    sim.dispose()
+  })
+
+  it('counts the small keys in hand (GAME-3D.1f part 2)', async () => {
+    const sim = await startSim()
+    sim.resource(Dungeon).smallKeys = 2
+    expect(hudOf(sim)?.smallKeys).toBe(2)
     sim.dispose()
   })
 

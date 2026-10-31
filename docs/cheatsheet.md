@@ -96,20 +96,33 @@
 - `FlowGraph` (interface): The checked screen flow from `flow.toml`: the entry screen, every screen, the terminal screens and every transition, in a fixed order.
 - `FlowTransition` (interface): One checked move in the flow: on `event` the game goes `from` one screen `to` another, drawn in the `transition` style (`cut` when unwritten).
 - `formatDiagnostic(d)`: `content/tuning.toml:12:1 GRAVITY outOfRange: expected -1200..-100, received -2000`
+- `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+- `GameConfig` (interface): What every target knows about a game.
+- `gameConfigSchema` (const): Checks a game's config.
 - `GameSource` (interface): What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated hours, the analytics events it may send, and the screens whose files are preloaded.
 - `GeneratorInput` (interface): Everything a generator is given: the compiled content and its hash, the sim partition, the registered schemas, the message catalog and the tuning metadata.
 - `GeneratorOutput` (interface): What a generator returns: files to write and diagnostics to report.
+- `Input` (type): One input a game can be played with.
+- `INPUTS` (const): The inputs a game can be played with.
 - `InvalidContentConfig` (class): The game's code registered something unusable (a duplicate kind, a clashing generator).
+- `LEADERBOARD_ORDERS` (const): The orders a score board sorts in.
+- `LeaderboardConfig` (interface): A score board a game declares.
 - `localized()`: Text a player reads, written in the source language.
 - `MessageCatalog` (type): One locale's messages: message key to translated text.
 - `messageKey(kind, id, path)`: The message key of one text.
 - `MessageLocation` (interface): A message's place in its file, 1-based.
+- `Orientation` (type): One orientation a game supports.
+- `ORIENTATIONS` (const): The orientations a game supports.
 - `Palette` (interface): The game's palette: a name and its colors.
 - `ParaglideOptions` (interface): Where and which catalogs `ContentOptions.paraglide` compiles with Paraglide on build.
 - `PreloadInput` (interface): What `preloadList` reads: the content options (to compile `game.toml` and `assets.toml`, and to find the asset build's outputs below `outDir`) and the built game folder.
 - `preloadList` (const): The files Ruken preloads before the game starts, in order, for `[loading] preload`: each `preload_screens` screen's files from `assets.toml` (the flow's entry when none is named), then the pages of the atlases and every language's subset of the fonts it names there, which `automata-content assets` wrote below `outDir` and the build serves in `atlases/` and `fonts/`; without repeats.
+- `Rating` (type): One content rating.
+- `RATINGS` (const): The content ratings a game declares.
+- `Renderer` (type): One renderer a game may ask for.
+- `RENDERERS` (const): The renderers a game may ask for.
 - `renderTuningTable(meta)`: Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
-- `RukenFields` (type): The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
+- `RukenFields` (type): The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out from `game.toml` and the languages present and written to `ruken-fields.json`.
 - `SimPartition` (interface): The part of the compiled content the sim receives (`tuning` and every kind with `sim: true`) and its hash, which gates snapshots and replays.
 - `sortDiagnostics(diagnostics)`: Returns the diagnostics in the one fixed order (file, line, column, key, code, message), without changing the input.
 - `TunableDeclaration` (interface): A tunable a game declares in code: `int` or `float`, an inclusive range and a default.
@@ -136,6 +149,22 @@
 - `packFrames(frames)`: Packs `frames` into atlas pages.
 - `Placement` (interface): Where a frame's own pixels are: inside its extrusion, on page `page`.
 - `subsetWoff2(source, characters)`: The font cut to `characters`, as woff2.
+
+### `import { … } from '@mcthaydt/automata-content/game-config'`
+
+- `GAME_ID_PATTERN` (const): A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+- `GameConfig` (interface): What every target knows about a game.
+- `gameConfigSchema` (const): Checks a game's config.
+- `Input` (type): One input a game can be played with.
+- `INPUTS` (const): The inputs a game can be played with.
+- `LEADERBOARD_ORDERS` (const): The orders a score board sorts in.
+- `LeaderboardConfig` (interface): A score board a game declares.
+- `Orientation` (type): One orientation a game supports.
+- `ORIENTATIONS` (const): The orientations a game supports.
+- `Rating` (type): One content rating.
+- `RATINGS` (const): The content ratings a game declares.
+- `Renderer` (type): One renderer a game may ask for.
+- `RENDERERS` (const): The renderers a game may ask for.
 
 ### `import { … } from '@mcthaydt/automata-content/locale'`
 
@@ -216,21 +245,65 @@
 
 ### `import { … } from '@mcthaydt/automata-host'`
 
-- `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts them.
-- `ErrorCode` (type): Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError` carries them.
+- `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans.
+- `AudioChange` (interface): The host's audio state: focus (an ad or overlay may duck or mute the game), the master volume, and the gain.
+- `AudioChangeSchema` (const): Checks an audio change.
+- `CAPABILITIES` (const): What a game may ask its host for (DIST spec §4.1).
+- `Capability` (type): One capability a game may ask for.
+- `CapabilitySchema` (const): Checks a capability name.
+- `DisplayMetricsPayload` (interface): The game's display: insets the game must keep clear, the area the host reserves for its own controls, and the UI scale hint (1.333 on a TV: enlarge text and targets, never CSS zoom).
+- `DisplayMetricsPayloadSchema` (const): Checks display metrics.
+- `EntitlementsPayload` (interface): What the player owns: whether ads show, permanent items and subscriptions, and whether this is a dev build.
+- `EntitlementsPayloadSchema` (const): Checks entitlements.
+- `ERROR_CODES` (const): Why a host call failed (DIST spec §4.1).
+- `ErrorCode` (type): One error code.
+- `ErrorCodeSchema` (const): Checks an error code.
 - `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
-- `HOST_EXIT_CAP` (const): How long the game may hold the host's close (FloorFifty `ruken/exit.ts`, Ruken P6 §4 "1 s cap").
+- `findTauriMarkers(code)`: The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code.
+- `FullscreenRes` (interface): The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
+- `FullscreenResSchema` (const): Checks a fullscreen answer.
+- `HOST_EXIT_CAP` (const): How long the game may hold the host's close (Ruken P6 §4 "1 s cap").
 - `HostError` (class): Any failure after the handshake.
 - `HostHandshakeFailed` (class): The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session.
 - `Hosting` (interface): Everything a game may ask of, or hear from, its host: the `Hosting` contract of the M1 shared contracts spec §1, implemented by the host lane.
 - `HostingLeaderboards` (interface): The host's leaderboards (Ruken's `LeaderboardsApi`, PRODUCT spec §2 F1).
-- `HostingLive(options, seams?)`: The single `Hosting` layer for games (shared contracts §1.1).
 - `HostingOptions` (interface): What the game asks of its host.
 - `HostingSaves` (interface): The player's saves (shared contracts §1.1).
 - `HostingSeams` (interface): Test seams.
-- `makeHosting(options, seams?)`: Builds `Hosting` over `Ruken.init`.
+- `InputMode` (type): How the player is playing right now.
+- `InputModePayload` (interface): The current input mode, and the gamepad when one is in use.
+- `InputModePayloadSchema` (const): Checks an input mode change.
+- `LeaderboardEntry` (interface): One row of a board.
+- `LeaderboardGetRes` (interface): The rows of a board.
+- `LeaderboardGetResSchema` (const): Checks a board's rows.
+- `LeaderboardQuery` (interface): Which entries to read from a board.
+- `LeaderboardQuerySchema` (const): Checks a board query.
+- `LeaderboardSubmitMeta` (type): Extra facts sent with a score, passed to the host as they are.
+- `LeaderboardSubmitMetaSchema` (const): Checks a score's extra facts.
+- `LeaderboardSubmitRes` (interface): The host's answer to a submitted score.
+- `LeaderboardSubmitResSchema` (const): Checks a submit answer.
+- `LifecyclePayload` (interface): Whether the game is in front, and if not, why.
+- `LifecyclePayloadSchema` (const): Checks a lifecycle change.
+- `LifecycleReason` (type): Why the game is in the background.
+- `PauseBehavior` (type): Whether the game pauses when it goes to the background; fixed for the game's whole life.
+- `PauseBehaviorSchema` (const): Checks a pause behavior.
+- `RoundOutcome` (type): How a round ended.
+- `RoundOutcomeSchema` (const): Checks a round outcome.
 - `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at b30d31b).
-- `toHostError(operation, cause)`: Turns whatever the SDK threw or rejected with into a `HostError`.
+- `SavesChangedPayload` (interface): Another device's write, or the host's conflict choice, reached this session.
+- `SavesChangedPayloadSchema` (const): Checks a saves change.
+- `SavesFlushRes` (interface): Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`, `itch` and `tauri` targets; DIST-D3).
+- `SavesFlushResSchema` (const): Checks a flush answer.
+- `SavesStatus` (type): Where the player's saves stand with the host.
+- `SavesStatusSchema` (const): Checks a saves status.
+- `SubscriptionEntitlement` (interface): One subscription the player holds.
+- `TAURI_MARKERS` (const): String literals only Tauri's IPC code contains, which survive minification: the global the webview injects (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`).
+
+### `import { … } from '@mcthaydt/automata-host/contract-suite'`
+
+- `describeHostingContract(name, layer, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
+- `HostingLayer` (type): An adapter under test: a fresh layer per case, with `saves` granted.
+- `Settle` (type): Lets the fake Ruken host answer over its in-memory ports, and forked stream readers subscribe.
 
 ### `import { … } from '@mcthaydt/automata-host/testing'`
 
@@ -512,7 +585,7 @@
 - `defineExtension(def)`: Returns its argument.
 - `ExtensionDef` (interface): One opt-in feature of a game (M1 shared contracts §2).
 - `ExtensionError` (class): A bad extension list.
-- `GameConfig` (type): The parts of Ruken's manifest an extension may read (`@ruken/manifest` `Manifest`, never copied).
+- `GameConfig` (type): The parts of the game config an extension may read (content's `GameConfig`, DIST spec §4.4).
 - `ResolvedExtensions` (interface): Everything the runtime and the build tools need from a game's extension list, in one fixed order.
 - `resolveExtensions(defs)`: Checks the list and puts it in a fixed order.
 - `RukenManifestContribution` (type): What an extension may add to ruken.toml in M1: preload files.
@@ -577,6 +650,7 @@
 - `ItchCheck` (type): The `prepare --target itch` check that failed, in the order they run (PUB spec §4).
 - `ItchConfig` (interface): What a game writes in `ship.config.ts`.
 - `itchConfigSchema` (const): Checks a game's `itch` section: `project` is `user/game` in lower case, and `channel` defaults to `html5`.
+- `ItchDownloadsMissing` (class): `publish --target itch --from tauri` found no desktop bundle of this version; found before any push.
 - `ItchSettingMissing` (class): `publish --target itch` lacks the config section, the key or butler; found before anything runs.
 - `ItchSettings` (interface): The checked settings, with the channel filled in.
 - `keysBindingsIn(file, code)`: What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and `gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could name a device that is not there).
@@ -596,11 +670,17 @@
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
 - `prepareItch(input)`: Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d` (X-b, S7-g), `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.
 - `PrepareItchInput` (interface): What `prepareItch` checks and zips: the built folder, the ship config and the release tag.
+- `prepareTauri(input)`: Builds the desktop bundles for this OS (DIST spec §6.2).
+- `PrepareTauriError` (type): Every way `prepareTauri` can fail, each before or instead of writing bundles.
+- `PrepareTauriInput` (interface): What `prepareTauri` builds: the web build, the game's folder, its config, and the release tag.
 - `PrivatePublishNotLocal` (class): `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
 - `publishBuild(input)`: `ship publish` for Ruken (ship spec §3.4): prepare the build, then hand it to Ruken's own CLI.
 - `PublishBuildInput` (interface): What `publishBuild` needs: `publishToRuken`'s input, the game's ship config, the release tag and the audience.
+- `PublishDownloadsError` (type): Every way `publishDownloadsToItch` can fail, each stopping the pushes.
+- `PublishDownloadsInput` (interface): What `publishDownloadsToItch` needs: the game's folder, its config, the key and where butler is.
+- `publishDownloadsToItch(input)`: Pushes this version's bundles from `dist-tauri/`, one per OS, each to its channel (`itch.downloads`, default `linux`, `mac`, `windows`), and answers the channels pushed.
 - `PublishFailed` (class): Any other exit code.
 - `PublishInput` (interface): What `publishToRuken` needs: the prepared build folder, the game's folder, Ruken's site and token, and whether to activate the build.
 - `PublishItchInput` (interface): What `publishToItch` needs: the built folder, the ship config, the tag, the key and where butler is.
@@ -612,13 +692,21 @@
 - `readEnvValues(gameDir)`: The variables of every top-level `.env*` file in the game folder; none when the folder does not exist.
 - `RootAbsoluteReference` (class): The build names its own files from the origin's root, which 404s under `/b/<buildId>/`.
 - `rukenCliPath(moduleUrl?, exists?)`: The `ruken` bin of the vendored `@ruken/cli` package.
+- `rukenHeaders(config, target)`: The headers Ruken serves a game's build with (Ruken's CSP, which allows no eval), from the game's config, for a game's `vite preview` or a dev host (DIST spec §5.1: the game imports no `@ruken/*` itself).
+- `RukenHeaderTarget` (type): Where the headers are for: Ruken's production site, or a page on the given origins that frames the game.
 - `rukenToml(config)`: The text of `ruken.toml` (Ruken manifest schema 1) for a ship config.
 - `scanTextForSecrets(file, text, envValues)`: Every secret in one file's text.
 - `SecretFound` (interface): A secret the bundle scan found in a built file, located without repeating the secret.
 - `SecretInBuild` (class): The build holds a key, an `.env` value or a high-entropy string (QB-b).
 - `SHIP_PACKAGE` (const): The name this package is published under.
-- `ShipConfig` (interface): What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
+- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s `GameConfig`, DIST spec §4.4) and each target's own section.
 - `ShipInputBindings` (interface): What ship reads of a game's input profile. ship is published and the profile's owner (`runtime`) is private, so this is the read-only subset ship consumes, not a copy of the contract: a profile's `bindings` is assignable to it.
+- `TAURI_CLI` (const): The `@tauri-apps/cli` a desktop game installs as a dev dependency, named when it is missing: released 2026-10-14, at least 14 days before it was chosen (2.12.4 was not), and the release the adapter's `@tauri-apps/api` pairs with.
+- `TauriBuildFailed` (class): `tauri build` exited with an error; its output was shown as it ran.
+- `TauriBuildInvalid` (class): The config or the web build is not ready for a desktop build; each problem says what to change.
+- `TauriConfig` (interface): What a game writes in `ship.config.ts` to build for the desktop.
+- `tauriConfigSchema` (const): Checks a game's `tauri` section.
+- `TauriToolchainMissing` (class): A tool the desktop build needs is not installed; found before anything is written.
 - `testRemote(input)`: Pushes the current branch, dispatches CI for it, waits and returns the run's URL and one `<result>\t<job>` line per job when it is green.
 - `TestRemoteFailed` (class): `test-remote` stopped without a green run; `reason` says why and `message` says what to do.
 - `TestRemoteInput` (interface): What `testRemote` runs and how long it waits.
@@ -783,6 +871,16 @@
 - `swipe(scope, from, to, ms)`: A finger from `from` to `to` over `ms` milliseconds, one move a frame, on whatever is under it.
 - `tap(target)`: A finger down on `target`'s centre and straight up again.
 
+### `import { … } from '@mcthaydt/automata-testing/host'`
+
+- `FakeHostControl` (interface): What a test does to, and reads from, the fake host.
+- `fakeHosting(options?)`: A fake host and the control handle that drives it.
+- `FakeHosting(options?, hosting?)`: The fake host as a layer: `Hosting` for the game (built from `hosting`, default a game that wants saves) and `FakeHostControl` for the test.
+- `FakeHostingOptions` (interface): How the fake host starts.
+- `FakeTarget` (type): The four distribution targets a fake host can stand in for (ADR 0006).
+- `Submission` (interface): One leaderboard submission the host received.
+- `TrackedEvent` (interface): One analytics event the host received.
+
 ### `import { … } from '@mcthaydt/automata-testing/input'`
 
 - `fakeGamepads(options?)`: `target` hears `gamepadconnected` and `gamepaddisconnected`, as `window` does in a browser.
@@ -878,14 +976,14 @@
 - `endonymOf(tag)`: A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`.
 - `enterFullscreen(doc, screen?)`: Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app.
 - `ErrorAction` (interface): One way forward from a failure (M1.6 spec §3.4).
-- `ErrorCode` (type): Ruken's error code.
+- `ErrorCode` (type): The host contract's error code (DIST spec §4.1).
 - `ErrorPanel` (const): A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty `ui/components/ErrorPanel.svelte` at 122a220).
 - `fitColumns(shape, groups)`: The shape cut to the columns the largest group fills, at its rows.
 - `fitShape(most, box, minTile, gap)`: The most tiles of `minTile` px the box holds, never more than `most`, never below one by one.
 - `FocusNavigator` (class): Moves focus the way a d-pad would: `move` walks Tab order, `steer` walks a `[data-focus-grid]` spatially, `page` offers a page turn, and `recover` puts focus back on the first control when a screen change dropped it.
 - `FormFactor` (type): The four form factors (M1.6 spec §3.1; from FloorFifty `ui/form-factor.ts` at 122a220).
 - `fullscreenSupport(doc, nav)`: Which fullscreen, if any, this browser can give a standalone page.
-- `FullscreenSupport` (type): Ruken's answer to whether this browser can go fullscreen, and how.
+- `FullscreenSupport` (type): The host's answer to whether this browser can go fullscreen, and how.
 - `GateInputs` (type): What `landscapeGate` decides from: the form factor, whether the pointer is coarse, the browser's fullscreen support and state, and whether the page is installed as an app.
 - `Geometry` (interface): The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the usable and visible regions, what covers the page's foot, and the host's scale hint.
 - `GeometryInput` (interface): What `measureGeometry` reads: the layout viewport, the visual viewport, the safe-area insets, the host's display metrics, a hidden bar's height and the layout before a keyboard shrank it.

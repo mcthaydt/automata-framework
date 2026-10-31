@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { FilesLive } from '@mcthaydt/automata-node'
-import { checkManifest, prepareBuild } from '@mcthaydt/automata-ship'
+import { checkManifest, prepareBuild, prepareItch } from '@mcthaydt/automata-ship'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createGame } from './create-game.ts'
@@ -67,5 +67,27 @@ describe('createGame integration', () => {
     expect(manifest.game.title).toBe('My Adventure')
     expect(manifest.game.version).toBe('0.1.0')
     expect(manifest.runtime.renderer).toBe('webgl2')
+  })
+
+  it('scaffolds all four targets by default, and the itch.io packaging accepts the build as written (DIST-h)', async () => {
+    const gameDir = join(tempDir, 'four-peers')
+    await Effect.runPromise(createGame({ targetDir: gameDir, id: 'four-peers', title: 'Four Peers' }))
+    const distDir = join(gameDir, 'dist')
+    mkdirSync(distDir, { recursive: true })
+    copyFileSync(join(gameDir, 'index.html'), join(distDir, 'index.html'))
+    const config = (await import(join(gameDir, 'ship.config.ts'))).default
+
+    expect(config.itch.project).toBe('your-itch-user/four-peers')
+    expect(config.tauri.identifier).toBe('dev.example.four-peers')
+    const { zipPath } = await Effect.runPromise(
+      prepareItch({ distDir, config }).pipe(Effect.provide(FilesLive)),
+    )
+    expect(existsSync(zipPath)).toBe(true)
+    // The Ruken build still writes a manifest Ruken's parser accepts, with the other targets' sections beside it.
+    const { manifestPath } = await Effect.runPromise(
+      prepareBuild({ distDir, config }).pipe(Effect.provide(FilesLive)),
+    )
+    const manifest = await Effect.runPromise(checkManifest(readFileSync(manifestPath, 'utf8')))
+    expect(manifest.game.id).toBe('four-peers')
   })
 })

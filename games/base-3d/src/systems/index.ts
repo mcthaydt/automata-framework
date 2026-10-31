@@ -6,6 +6,7 @@
 // the room's view entered (postPhysics), and the tick's hits gathered and landed (gameplay).
 export {
   type Area,
+  AreaLoadError,
   type AreaSource,
   areaOf,
   compileArea,
@@ -13,10 +14,13 @@ export {
   viewAt,
   type World,
 } from './area.ts'
+export { checkWorld } from './area-check.ts'
 export { areaExit } from './area-exit.ts'
 export { spawnFoes } from './area-foes.ts'
 export { combatFreeze, combatHits, combatMoves, combatStatus } from './combat.ts'
 export { dropsTake } from './drops.ts'
+export { dungeonBlocks, dungeonDoors, dungeonSwitches, dungeonVisit } from './dungeon.ts'
+export { dungeonPieces } from './dungeon-pieces.ts'
 export { emberTake } from './embers.ts'
 export { enemyBrain } from './enemies.ts'
 export { heroAct, heroInput, heroMove, heroView } from './hero.ts'

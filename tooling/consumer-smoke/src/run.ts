@@ -9,7 +9,6 @@ import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, wri
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { compileHeaders, parseManifest } from '@ruken/manifest'
 import { findRukenSdkMarkers } from '../../../packages/host/src/sdk-markers.ts'
 import { resolveSourceCommit } from '../../core-packs/src/args.ts'
 import { packWorkspace } from '../../core-packs/src/pack.ts'
@@ -23,6 +22,7 @@ import {
   type ToolVersions,
 } from './project.ts'
 import { readmeCommands, readWorkspace, unresolvedCommands } from './readme.ts'
+import { rukenHeaders } from './ruken/ruken-headers.ts'
 import { serveStatic } from './serve.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
@@ -155,13 +155,6 @@ const bundleCode = (dist: string): string =>
     .map((file) => readFileSync(file, 'utf8'))
     .join('\n')
 
-/** The headers Ruken serves the game with in prod, from the game's own `ruken.toml` (Ruken's CSP has no eval). */
-function rukenHeaders(manifestFile: string): Record<string, string> {
-  const parsed = parseManifest(readFileSync(manifestFile, 'utf8'))
-  if (!parsed.ok) throw new Error(`ruken.toml: ${parsed.errors.map((error) => error.message).join('; ')}`)
-  return compileHeaders(parsed.manifest, 'prod')
-}
-
 function steps(project: string): Step[] {
   const bin = (name: string) => join(project, 'node_modules/.bin', name)
   const installed = join(project, 'node_modules/@mcthaydt')
@@ -247,7 +240,7 @@ function steps(project: string): Step[] {
     ],
     [
       // PUB spec §3: an itch.io or web build resolves `@mcthaydt/automata-host/target` to the web adapter, so the
-      // published `dist` must let it drop every byte of the Ruken SDK that `.` bundles.
+      // published `dist` must let it drop every byte of the Ruken SDK.
       'bundle: vite build with the automata-web condition, no Ruken SDK',
       () => {
         sh(join(project, 'web-target'), bin('vite'), [
@@ -271,7 +264,7 @@ function steps(project: string): Step[] {
     ],
     [
       // DX.2a: runtime, render-pixi, game and the umbrella, installed from their packs, make one game whose
-      // Ruken build carries the SDK once (host's `.` and `./target` share it).
+      // Ruken build (the `automata-ruken` condition) carries the SDK once.
       'game: vite build of a minimal @mcthaydt/automata game for Ruken, one Ruken SDK',
       () => {
         const game = join(project, 'game')

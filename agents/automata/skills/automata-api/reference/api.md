@@ -2142,6 +2142,65 @@ interface FlowTransition {
 function formatDiagnostic(d: Diagnostic): string;
 ```
 
+#### `GAME_ID_PATTERN` (const)
+
+A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+
+```ts
+const GAME_ID_PATTERN: RegExp;
+```
+
+#### `GameConfig` (interface)
+
+What every target knows about a game.
+
+```ts
+interface GameConfig {
+  readonly game: {
+    readonly id: string;
+    readonly title: string;
+    readonly version: string;
+    /** The entry page in the build. */
+    readonly entry: string;
+    /** The Ruken SDK's version range; the Ruken target requires it. */
+    readonly sdk?: string;
+  };
+  readonly runtime: {
+    readonly renderer: Renderer;
+    readonly orientation: Orientation;
+    readonly inputs: readonly Input[];
+    readonly pause_behavior: "pause" | "continue";
+  };
+  /** The origins the game connects to; empty means it works offline. */
+  readonly network: {
+    readonly connect: readonly string[];
+  };
+  readonly content: {
+    readonly languages: readonly string[];
+    readonly rating: Rating;
+    readonly estimated_hours?: number;
+    readonly descriptors: readonly string[];
+  };
+  /** The analytics events the game may send (`Hosting.track` drops any other). */
+  readonly analytics?: {
+    readonly custom_events: readonly string[];
+  };
+  /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
+  readonly loading?: {
+    readonly preload: readonly string[];
+  };
+  readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+}
+```
+
+#### `gameConfigSchema` (const)
+
+Checks a game's config.
+
+```ts
+const gameConfigSchema: z.ZodType<GameConfig>;
+```
+
 #### `GameSource` (interface)
 
 What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated
@@ -2189,12 +2248,49 @@ interface GeneratorOutput {
 }
 ```
 
+#### `Input` (type)
+
+One input a game can be played with.
+
+```ts
+type Input = (typeof INPUTS)[number];
+```
+
+#### `INPUTS` (const)
+
+The inputs a game can be played with.
+
+```ts
+const INPUTS: readonly ["touch", "keyboard", "gamepad"];
+```
+
 #### `InvalidContentConfig` (class)
 
 The game's code registered something unusable (a duplicate kind, a clashing generator).
 
 ```ts
 class InvalidContentConfig extends InvalidConfigBase {}
+```
+
+#### `LEADERBOARD_ORDERS` (const)
+
+The orders a score board sorts in.
+
+```ts
+const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
+```
+
+#### `LeaderboardConfig` (interface)
+
+A score board a game declares.
+
+```ts
+interface LeaderboardConfig {
+  readonly order: (typeof LEADERBOARD_ORDERS)[number];
+  readonly min: number;
+  readonly max: number;
+  readonly title?: string;
+}
 ```
 
 #### `localized` (function)
@@ -2231,6 +2327,22 @@ interface MessageLocation {
   readonly line: number;
   readonly column: number;
 }
+```
+
+#### `Orientation` (type)
+
+One orientation a game supports.
+
+```ts
+type Orientation = (typeof ORIENTATIONS)[number];
+```
+
+#### `ORIENTATIONS` (const)
+
+The orientations a game supports.
+
+```ts
+const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
 ```
 
 #### `Palette` (interface)
@@ -2285,6 +2397,38 @@ font not declared (`unknownReference`) or not built (`missingAsset`), all at onc
 const preloadList: (input: PreloadInput) => Effect.Effect<string[], ContentCompileFailed | InvalidContentConfig>;
 ```
 
+#### `Rating` (type)
+
+One content rating.
+
+```ts
+type Rating = (typeof RATINGS)[number];
+```
+
+#### `RATINGS` (const)
+
+The content ratings a game declares.
+
+```ts
+const RATINGS: readonly ["everyone", "teen", "mature"];
+```
+
+#### `Renderer` (type)
+
+One renderer a game may ask for.
+
+```ts
+type Renderer = (typeof RENDERERS)[number];
+```
+
+#### `RENDERERS` (const)
+
+The renderers a game may ask for.
+
+```ts
+const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
+```
+
 #### `renderTuningTable` (function)
 
 Every tunable once, sorted by name, with its type, range and value in `content/tuning.toml`.
@@ -2295,11 +2439,14 @@ function renderTuningTable(meta: TuningMeta): string;
 
 #### `RukenFields` (type)
 
-The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages
-present and written to `ruken-fields.json`.
+The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out
+from `game.toml` and the languages present and written to `ruken-fields.json`.
 
 ```ts
-type RukenFields = Pick<Manifest, "content" | "analytics">;
+type RukenFields = {
+  readonly content: GameConfig["content"];
+  readonly analytics: NonNullable<GameConfig["analytics"]>;
+};
 ```
 
 #### `SimPartition` (interface)
@@ -2536,6 +2683,152 @@ The font cut to `characters`, as woff2. A character the font lacks is simply not
 
 ```ts
 function subsetWoff2(source: Uint8Array, characters: ReadonlySet<string>): Promise<Uint8Array>;
+```
+
+### `import { … } from '@mcthaydt/automata-content/game-config'`
+
+#### `GAME_ID_PATTERN` (const)
+
+A game id and a board id: lower-case letters, digits and hyphens, starting with a letter or digit, up to 64.
+
+```ts
+const GAME_ID_PATTERN: RegExp;
+```
+
+#### `GameConfig` (interface)
+
+What every target knows about a game.
+
+```ts
+interface GameConfig {
+  readonly game: {
+    readonly id: string;
+    readonly title: string;
+    readonly version: string;
+    /** The entry page in the build. */
+    readonly entry: string;
+    /** The Ruken SDK's version range; the Ruken target requires it. */
+    readonly sdk?: string;
+  };
+  readonly runtime: {
+    readonly renderer: Renderer;
+    readonly orientation: Orientation;
+    readonly inputs: readonly Input[];
+    readonly pause_behavior: "pause" | "continue";
+  };
+  /** The origins the game connects to; empty means it works offline. */
+  readonly network: {
+    readonly connect: readonly string[];
+  };
+  readonly content: {
+    readonly languages: readonly string[];
+    readonly rating: Rating;
+    readonly estimated_hours?: number;
+    readonly descriptors: readonly string[];
+  };
+  /** The analytics events the game may send (`Hosting.track` drops any other). */
+  readonly analytics?: {
+    readonly custom_events: readonly string[];
+  };
+  /** Files to load before the game starts, besides those the entry page names (the Ruken target). */
+  readonly loading?: {
+    readonly preload: readonly string[];
+  };
+  readonly leaderboards?: Readonly<Record<string, LeaderboardConfig>>;
+}
+```
+
+#### `gameConfigSchema` (const)
+
+Checks a game's config.
+
+```ts
+const gameConfigSchema: z.ZodType<GameConfig>;
+```
+
+#### `Input` (type)
+
+One input a game can be played with.
+
+```ts
+type Input = (typeof INPUTS)[number];
+```
+
+#### `INPUTS` (const)
+
+The inputs a game can be played with.
+
+```ts
+const INPUTS: readonly ["touch", "keyboard", "gamepad"];
+```
+
+#### `LEADERBOARD_ORDERS` (const)
+
+The orders a score board sorts in.
+
+```ts
+const LEADERBOARD_ORDERS: readonly ["asc", "desc"];
+```
+
+#### `LeaderboardConfig` (interface)
+
+A score board a game declares.
+
+```ts
+interface LeaderboardConfig {
+  readonly order: (typeof LEADERBOARD_ORDERS)[number];
+  readonly min: number;
+  readonly max: number;
+  readonly title?: string;
+}
+```
+
+#### `Orientation` (type)
+
+One orientation a game supports.
+
+```ts
+type Orientation = (typeof ORIENTATIONS)[number];
+```
+
+#### `ORIENTATIONS` (const)
+
+The orientations a game supports.
+
+```ts
+const ORIENTATIONS: readonly ["landscape", "portrait", "any"];
+```
+
+#### `Rating` (type)
+
+One content rating.
+
+```ts
+type Rating = (typeof RATINGS)[number];
+```
+
+#### `RATINGS` (const)
+
+The content ratings a game declares.
+
+```ts
+const RATINGS: readonly ["everyone", "teen", "mature"];
+```
+
+#### `Renderer` (type)
+
+One renderer a game may ask for.
+
+```ts
+type Renderer = (typeof RENDERERS)[number];
+```
+
+#### `RENDERERS` (const)
+
+The renderers a game may ask for.
+
+```ts
+const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 ```
 
 ### `import { … } from '@mcthaydt/automata-content/locale'`
@@ -3629,19 +3922,145 @@ function isDefinedGame<S>(value: GameSpec<S> | DefinedGame<S>): value is Defined
 
 #### `AnalyticsProps` (type)
 
-The properties of one analytics event: flat names to strings, numbers or booleans, as the Ruken SDK accepts
-them.
+The properties of one analytics event: flat names to strings, numbers or booleans.
 
 ```ts
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
-#### `ErrorCode` (type)
+#### `AudioChange` (interface)
 
-Ruken's error codes (`@ruken/protocol` `ERROR_CODES`), as the SDK's `RukenError` carries them.
+The host's audio state: focus (an ad or overlay may duck or mute the game), the master volume, and the gain.
 
 ```ts
-type ErrorCode = RukenError["code"];
+interface AudioChange {
+  focus: {
+    state: "full" | "ducked" | "muted";
+    reason: "ad" | "hidden" | "host-overlay" | "system";
+  };
+  master: {
+    volume: number;
+    muted: boolean;
+  };
+  /** 0..1: multiply the game's own mix by this. */
+  gain: number;
+}
+```
+
+#### `AudioChangeSchema` (const)
+
+Checks an audio change.
+
+```ts
+const AudioChangeSchema: z.ZodType<AudioChange>;
+```
+
+#### `CAPABILITIES` (const)
+
+What a game may ask its host for (DIST spec §4.1). The names are Ruken's (`@ruken/protocol` `CAPABILITIES`),
+kept where they fit; `ruken/conformance.test.ts` holds them to the vendored SDK. Which target grants which is in
+the DIST spec §4.3.
+
+```ts
+const CAPABILITIES: readonly ["lifecycle", "input", "display", "audio", "exit", "menu", "saves", "leaderboards", "entitlements", "store", "ads", "telemetry", "analytics.custom", "links"];
+```
+
+#### `Capability` (type)
+
+One capability a game may ask for.
+
+```ts
+type Capability = (typeof CAPABILITIES)[number];
+```
+
+#### `CapabilitySchema` (const)
+
+Checks a capability name.
+
+```ts
+const CapabilitySchema: z.ZodType<Capability>;
+```
+
+#### `DisplayMetricsPayload` (interface)
+
+The game's display: insets the game must keep clear, the area the host reserves for its own controls, and the
+UI scale hint (1.333 on a TV: enlarge text and targets, never CSS zoom).
+
+```ts
+interface DisplayMetricsPayload {
+  safeArea: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  hostReserved: {
+    edge: "right" | "left";
+    rect: {
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+    };
+  };
+  orientation: "portrait" | "landscape";
+  fullscreen: boolean;
+  scale: 1 | 1.333;
+}
+```
+
+#### `DisplayMetricsPayloadSchema` (const)
+
+Checks display metrics.
+
+```ts
+const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
+```
+
+#### `EntitlementsPayload` (interface)
+
+What the player owns: whether ads show, permanent items and subscriptions, and whether this is a dev build.
+
+```ts
+interface EntitlementsPayload {
+  ads: boolean;
+  items: string[];
+  subscriptions: SubscriptionEntitlement[];
+  devBuild: boolean;
+}
+```
+
+#### `EntitlementsPayloadSchema` (const)
+
+Checks entitlements.
+
+```ts
+const EntitlementsPayloadSchema: z.ZodType<EntitlementsPayload>;
+```
+
+#### `ERROR_CODES` (const)
+
+Why a host call failed (DIST spec §4.1). The codes are Ruken's (`@ruken/protocol` `ERROR_CODES`), kept where they
+fit; `ruken/conformance.test.ts` holds them to the vendored SDK.
+
+```ts
+const ERROR_CODES: readonly ["UNSUPPORTED", "NOT_READY", "TIMEOUT", "RATE_LIMITED", "QUOTA_EXCEEDED", "INVALID_PAYLOAD", "DENIED", "OFFLINE", "CANCELLED", "INTERNAL"];
+```
+
+#### `ErrorCode` (type)
+
+One error code.
+
+```ts
+type ErrorCode = (typeof ERROR_CODES)[number];
+```
+
+#### `ErrorCodeSchema` (const)
+
+Checks an error code.
+
+```ts
+const ErrorCodeSchema: z.ZodType<ErrorCode>;
 ```
 
 #### `findRukenSdkMarkers` (function)
@@ -3652,12 +4071,38 @@ The markers found in `code` (built JavaScript), each named once; empty means no 
 function findRukenSdkMarkers(code: string): string[];
 ```
 
+#### `findTauriMarkers` (function)
+
+The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code.
+
+```ts
+function findTauriMarkers(code: string): string[];
+```
+
+#### `FullscreenRes` (interface)
+
+The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
+
+```ts
+interface FullscreenRes {
+  fullscreen: boolean;
+  support: "element" | "ios-home-screen" | "none";
+}
+```
+
+#### `FullscreenResSchema` (const)
+
+Checks a fullscreen answer.
+
+```ts
+const FullscreenResSchema: z.ZodType<FullscreenRes>;
+```
+
 #### `HOST_EXIT_CAP` (const)
 
-How long the game may hold the host's close (FloorFifty `ruken/exit.ts`,
-Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
-(`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always
-answers before the host gives up on it.
+How long the game may hold the host's close (Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
+(`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always answers before the host gives up on it;
+every adapter cuts the `onExiting` handlers and the flush off at this cap.
 
 ```ts
 const HOST_EXIT_CAP: Duration.Duration;
@@ -3691,10 +4136,14 @@ The `Hosting` service tag.
 interface Hosting {
   /**
    * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
-   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3).
+   * standalone session; 'web' for the web adapter of an `itch` or `web` build (PUB spec §3); 'tauri' for the
+   * desktop adapter (DIST spec §4.2).
    */
-  readonly kind: "ruken" | "standalone" | "web";
-  /** The host's name for UI, such as "Back to …": 'Ruken', 'itch.io' or 'this page' (PUB spec §3). */
+  readonly kind: "ruken" | "standalone" | "web" | "tauri";
+  /**
+   * The host's name for UI: 'Ruken', 'itch.io', 'this page' (PUB spec §3), or the game's title on the desktop (DIST
+   * spec §4.2).
+   */
   readonly hostName: string;
   /** Some when the page is inside a frame but the SDK fell back to standalone (shared contracts §1.2). */
   readonly handshake: {
@@ -3716,7 +4165,7 @@ interface Hosting {
   readonly savesStatus: Subscribable.Subscribable<SavesStatus>;
   readonly saves: HostingSaves;
   readonly leaderboards: HostingLeaderboards;
-  /** Ruken's `FullscreenRes`: `support` says what the device allows (for example `ios-home-screen`). */
+  /** `support` says what the device allows (for example `ios-home-screen`). */
   setFullscreen(on: boolean): Effect.Effect<FullscreenRes, HostError>;
   readonly round: {
     /** A round began. A second start before an end is dropped. */
@@ -3762,22 +4211,14 @@ Each call relays the SDK's answer or error as a `HostError`: without the grant a
 ```ts
 interface HostingLeaderboards {
   /** Submits `score` to `board` (a Ruken slug); `meta` is passed to the host as is. */
-  submit(board: string, score: number, meta?: Parameters<LeaderboardsApi["submit"]>[2]): Effect.Effect<LeaderboardSubmitRes, HostError>;
+  submit(board: string, score: number, meta?: LeaderboardSubmitMeta): Effect.Effect<LeaderboardSubmitRes, HostError>;
   /**
    * Reads `board` with the SDK's options (`scope` `top` or `around-me`, `limit`). Ruken's host now answers with the
    * player's own entry only, or none, whatever the options (the SDK marks `get` deprecated at RukenApp d0fa2fe, since
    * Ruken added achievements); the call and its answer's shape are unchanged.
    */
-  get(board: string, query?: Parameters<LeaderboardsApi["get"]>[1]): Effect.Effect<LeaderboardGetRes, HostError>;
+  get(board: string, query?: LeaderboardQuery): Effect.Effect<LeaderboardGetRes, HostError>;
 }
-```
-
-#### `HostingLive` (function)
-
-The single `Hosting` layer for games (shared contracts §1.1).
-
-```ts
-function HostingLive(options: HostingOptions, seams?: HostingSeams): Layer.Layer<Hosting, HostError>;
 ```
 
 #### `HostingOptions` (interface)
@@ -3786,18 +4227,21 @@ What the game asks of its host. In M1 the game passes these by hand; later they 
 
 ```ts
 interface HostingOptions {
-  /** `[game].id` in ruken.toml; the host checks it. */
+  /** The game config's `game.id`; a host that knows the game (Ruken) checks it. */
   readonly gameId: string;
   /** The capabilities the game asks the host for (`wants` in the hello). */
   readonly wants: readonly Capability[];
   /** Fixed for the game's whole life (Ruken's answer 7 in docs/spikes/s6-ruken-stub.md). */
   readonly pauseBehavior: PauseBehavior;
   /**
-   * `[analytics].custom_events` in ruken.toml. When given, `track` drops every
+   * The game config's `analytics.custom_events`. When given, `track` drops every
    * other name before it reaches the SDK (FloorFifty `ruken/host.ts` `track`).
    */
   readonly disclosedEvents?: readonly string[];
-  /** Test builds only: exact https origins also trusted to send the welcome. Passed to `Ruken.init` as is. */
+  /**
+   * Ruken adapter, test builds only: exact https origins also trusted to send the welcome. Passed to `Ruken.init`
+   * as is; other adapters ignore it.
+   */
   readonly testHostOrigins?: readonly string[];
 }
 ```
@@ -3832,18 +4276,179 @@ interface HostingSeams {
 }
 ```
 
-#### `makeHosting` (function)
+#### `InputMode` (type)
 
-Builds `Hosting` over `Ruken.init`. The SDK decides between a hosted session
-and its standalone one (shared contracts §1.1), enforces grants and limits,
-and owns the handshake's timing; AF relays what it reports.
-
-When the scope closes, in this order: Hosting marks itself closed (later
-calls fail with `HostError{code:'CANCELLED'}`), every observed stream ends,
-and then the session is disposed.
+How the player is playing right now.
 
 ```ts
-function makeHosting(options: HostingOptions, seams?: HostingSeams): Effect.Effect<Hosting, HostError, Scope.Scope>;
+type InputMode = "touch" | "keyboard-mouse" | "gamepad";
+```
+
+#### `InputModePayload` (interface)
+
+The current input mode, and the gamepad when one is in use.
+
+```ts
+interface InputModePayload {
+  mode: InputMode;
+  gamepad?: {
+    layout: "xbox" | "other";
+    connected: boolean;
+  } | undefined;
+}
+```
+
+#### `InputModePayloadSchema` (const)
+
+Checks an input mode change.
+
+```ts
+const InputModePayloadSchema: z.ZodType<InputModePayload>;
+```
+
+#### `LeaderboardEntry` (interface)
+
+One row of a board.
+
+```ts
+interface LeaderboardEntry {
+  rank: number;
+  displayName: string;
+  score: number;
+  isMe: boolean;
+}
+```
+
+#### `LeaderboardGetRes` (interface)
+
+The rows of a board.
+
+```ts
+interface LeaderboardGetRes {
+  entries: LeaderboardEntry[];
+}
+```
+
+#### `LeaderboardGetResSchema` (const)
+
+Checks a board's rows.
+
+```ts
+const LeaderboardGetResSchema: z.ZodType<LeaderboardGetRes>;
+```
+
+#### `LeaderboardQuery` (interface)
+
+Which entries to read from a board.
+
+```ts
+interface LeaderboardQuery {
+  scope?: "top" | "around-me";
+  limit?: number;
+}
+```
+
+#### `LeaderboardQuerySchema` (const)
+
+Checks a board query.
+
+```ts
+const LeaderboardQuerySchema: z.ZodType<LeaderboardQuery>;
+```
+
+#### `LeaderboardSubmitMeta` (type)
+
+Extra facts sent with a score, passed to the host as they are.
+
+```ts
+type LeaderboardSubmitMeta = Record<string, string | number>;
+```
+
+#### `LeaderboardSubmitMetaSchema` (const)
+
+Checks a score's extra facts.
+
+```ts
+const LeaderboardSubmitMetaSchema: z.ZodType<LeaderboardSubmitMeta>;
+```
+
+#### `LeaderboardSubmitRes` (interface)
+
+The host's answer to a submitted score.
+
+```ts
+interface LeaderboardSubmitRes {
+  accepted: boolean;
+  personalBest: number;
+  rank?: number | undefined;
+}
+```
+
+#### `LeaderboardSubmitResSchema` (const)
+
+Checks a submit answer.
+
+```ts
+const LeaderboardSubmitResSchema: z.ZodType<LeaderboardSubmitRes>;
+```
+
+#### `LifecyclePayload` (interface)
+
+Whether the game is in front, and if not, why.
+
+```ts
+interface LifecyclePayload {
+  state: "active" | "background";
+  reasons: LifecycleReason[];
+}
+```
+
+#### `LifecyclePayloadSchema` (const)
+
+Checks a lifecycle change.
+
+```ts
+const LifecyclePayloadSchema: z.ZodType<LifecyclePayload>;
+```
+
+#### `LifecycleReason` (type)
+
+Why the game is in the background.
+
+```ts
+type LifecycleReason = "hidden" | "blurred" | "host-overlay" | "ad" | "offline-grace";
+```
+
+#### `PauseBehavior` (type)
+
+Whether the game pauses when it goes to the background; fixed for the game's whole life.
+
+```ts
+type PauseBehavior = "pause" | "continue";
+```
+
+#### `PauseBehaviorSchema` (const)
+
+Checks a pause behavior.
+
+```ts
+const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
+```
+
+#### `RoundOutcome` (type)
+
+How a round ended.
+
+```ts
+type RoundOutcome = "complete" | "fail" | "quit";
+```
+
+#### `RoundOutcomeSchema` (const)
+
+Checks a round outcome.
+
+```ts
+const RoundOutcomeSchema: z.ZodType<RoundOutcome>;
 ```
 
 #### `RUKEN_SDK_MARKERS` (const)
@@ -3859,17 +4464,113 @@ Re-check these after re-vendoring the SDK: `target.build.test.ts` fails if a def
 const RUKEN_SDK_MARKERS: readonly string[];
 ```
 
-#### `toHostError` (function)
+#### `SavesChangedPayload` (interface)
 
-Turns whatever the SDK threw or rejected with into a `HostError`.
-- A `RukenError` keeps its code and retryable flag.
-- A `QuotaExceededError` is what Ruken's save map throws for a save over a
-  limit (`sdk/src/save-map.ts`); it becomes `QUOTA_EXCEEDED`, which Ruken
-  marks not retryable.
-- Anything else (a closed port, a bug) becomes `INTERNAL`, which Ruken marks retryable.
+Another device's write, or the host's conflict choice, reached this session. `null` is a removed key.
 
 ```ts
-function toHostError(operation: string, cause: unknown): HostError;
+interface SavesChangedPayload {
+  key: string;
+  value: string | null;
+  revision: number;
+}
+```
+
+#### `SavesChangedPayloadSchema` (const)
+
+Checks a saves change.
+
+```ts
+const SavesChangedPayloadSchema: z.ZodType<SavesChangedPayload>;
+```
+
+#### `SavesFlushRes` (interface)
+
+Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`,
+`itch` and `tauri` targets; DIST-D3).
+
+```ts
+interface SavesFlushRes {
+  persisted: "host-outbox" | "server" | "device";
+}
+```
+
+#### `SavesFlushResSchema` (const)
+
+Checks a flush answer.
+
+```ts
+const SavesFlushResSchema: z.ZodType<SavesFlushRes>;
+```
+
+#### `SavesStatus` (type)
+
+Where the player's saves stand with the host.
+
+```ts
+type SavesStatus = "checking" | "syncing" | "saved" | "offline-queued" | "retry" | "conflict" | "recovered";
+```
+
+#### `SavesStatusSchema` (const)
+
+Checks a saves status.
+
+```ts
+const SavesStatusSchema: z.ZodType<SavesStatus>;
+```
+
+#### `SubscriptionEntitlement` (interface)
+
+One subscription the player holds. The host computes `active`.
+
+```ts
+interface SubscriptionEntitlement {
+  sku: string;
+  plan: "monthly" | "season";
+  active: boolean;
+  seasonId?: string | undefined;
+  /** ISO 8601 UTC instant. */
+  endsAt?: string | undefined;
+}
+```
+
+#### `TAURI_MARKERS` (const)
+
+String literals only Tauri's IPC code contains, which survive minification: the global the webview injects
+(`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`). A `tauri` build holds
+both; a `web`, `itch` or `ruken` build holds neither (DIST spec §5.3). Re-check them after a Tauri upgrade:
+`target.build.test.ts` fails if a `tauri` build stops containing them.
+
+```ts
+const TAURI_MARKERS: readonly string[];
+```
+
+### `import { … } from '@mcthaydt/automata-host/contract-suite'`
+
+#### `describeHostingContract` (function)
+
+Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `layer` builds a fresh
+`Hosting` for each case, with `saves` granted; `settled` lets the host answer and forked stream readers subscribe
+(for example one macrotask). Every target's adapter and `FakeHosting` pass these cases (DIST spec §7).
+
+```ts
+function describeHostingContract(name: string, layer: HostingLayer, settled: Settle): void;
+```
+
+#### `HostingLayer` (type)
+
+An adapter under test: a fresh layer per case, with `saves` granted.
+
+```ts
+type HostingLayer = () => Layer.Layer<Hosting, HostError>;
+```
+
+#### `Settle` (type)
+
+Lets the fake Ruken host answer over its in-memory ports, and forked stream readers subscribe.
+
+```ts
+type Settle = Effect.Effect<void>;
 ```
 
 ### `import { … } from '@mcthaydt/automata-host/testing'`
@@ -6666,6 +7367,12 @@ interface RuntimeSeams {
   readonly frames?: FrameSource;
   readonly fonts?: Pick<FontFaceSet, "load">;
   readonly sdkEnv?: () => NonNullable<HostingSeams["env"]>;
+  /**
+   * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata-host/target`), for
+   * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host` (DIST spec §7). When given, `sdkEnv` is
+   * not used.
+   */
+  readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>;
   readonly document?: Document;
   /** The browser's languages, best first; defaults to `navigator.languages`. */
   readonly languages?: readonly string[];
@@ -7278,7 +7985,7 @@ interface ExtensionDef<Name extends string = string> {
     readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>>;
   };
   /** Called at build time with the game's manifest facts. */
-  readonly manifest?: (config: GameConfig) => RukenManifestContribution;
+  readonly manifest?: (config: GameConfig$1) => RukenManifestContribution;
 }
 ```
 
@@ -7294,10 +8001,10 @@ class ExtensionError extends ExtensionErrorBase {
 
 #### `GameConfig` (type)
 
-The parts of Ruken's manifest an extension may read (`@ruken/manifest` `Manifest`, never copied).
+The parts of the game config an extension may read (content's `GameConfig`, DIST spec §4.4).
 
 ```ts
-type GameConfig = Pick<Manifest, "game" | "runtime" | "content">;
+type GameConfig = Pick<GameConfig, "game" | "runtime" | "content">;
 ```
 
 #### `ResolvedExtensions` (interface)
@@ -7927,6 +8634,15 @@ interface ItchConfig {
   readonly project: string;
   /** The butler channel. Defaults to `html5`. */
   readonly channel?: string | undefined;
+  /**
+   * The butler channel of each desktop bundle (`publish --target itch --from tauri`, DIST spec §6.4). Each defaults to
+   * its OS's name: `linux`, `mac`, `windows`.
+   */
+  readonly downloads?: {
+    readonly linux?: string | undefined;
+    readonly mac?: string | undefined;
+    readonly windows?: string | undefined;
+  } | undefined;
 }
 ```
 
@@ -7936,6 +8652,14 @@ Checks a game's `itch` section: `project` is `user/game` in lower case, and `cha
 
 ```ts
 const itchConfigSchema: z.ZodType<ItchSettings, ItchConfig>;
+```
+
+#### `ItchDownloadsMissing` (class)
+
+`publish --target itch --from tauri` found no desktop bundle of this version; found before any push.
+
+```ts
+class ItchDownloadsMissing extends ItchDownloadsMissingBase {}
 ```
 
 #### `ItchSettingMissing` (class)
@@ -7954,6 +8678,11 @@ The checked settings, with the channel filled in.
 interface ItchSettings {
   readonly project: string;
   readonly channel: string;
+  readonly downloads: {
+    readonly linux: string;
+    readonly mac: string;
+    readonly windows: string;
+  };
 }
 ```
 
@@ -8174,6 +8903,47 @@ interface PrepareItchInput {
 }
 ```
 
+#### `prepareTauri` (function)
+
+Builds the desktop bundles for this OS (DIST spec §6.2). In order, and stopping at the first that fails: the
+release tag; the `tauri` section, a semver version, the `index.html` entry and a CSP without eval; the public-build
+scans (secrets, `@pixi/3d`); the toolchain (`cargo`, WebKitGTK on Linux, the `tauri` CLI). Only then is the
+project written to `<game>/.automata/tauri/` (its `target/` cache is kept between builds), `tauri build` run
+there with its output shown, and each bundle copied to `<game>/dist-tauri/<id>-<version>-<os>-<kind><ext>`.
+
+```ts
+function prepareTauri(input: PrepareTauriInput): Effect.Effect<{
+  bundles: string[];
+}, PrepareTauriError, ProcessRunner>;
+```
+
+#### `PrepareTauriError` (type)
+
+Every way `prepareTauri` can fail, each before or instead of writing bundles.
+
+```ts
+type PrepareTauriError = VersionMismatch | TauriBuildInvalid | SecretInBuild | Pixi3dInPublicBuild | Pixi3dExtrasInBuild | TauriToolchainMissing | TauriBuildFailed | FileError$1 | ProcessError$1;
+```
+
+#### `PrepareTauriInput` (interface)
+
+What `prepareTauri` builds: the web build, the game's folder, its config, and the release tag.
+
+```ts
+interface PrepareTauriInput {
+  /** The web build (`vite build --mode tauri`). It is checked and loaded as it is; nothing is written into it. */
+  readonly distDir: string;
+  /** The game's folder: the project goes to `.automata/tauri/`, the bundles to `dist-tauri/` beside the build. */
+  readonly gameDir: string;
+  readonly config: ShipConfig;
+  readonly tag?: string | undefined;
+  /** The OS to build for, which must be the one this runs on (Tauri does not cross-build). Default: this one. */
+  readonly platform?: NodeJS.Platform | undefined;
+  /** Where to look for `tauri` when the game has none installed. Default: `PATH`. */
+  readonly pathEnv?: string | undefined;
+}
+```
+
 #### `PrivatePublishNotLocal` (class)
 
 `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
@@ -8233,6 +9003,40 @@ interface PublishBuildInput extends PublishInput {
    */
   readonly private?: boolean | undefined;
 }
+```
+
+#### `PublishDownloadsError` (type)
+
+Every way `publishDownloadsToItch` can fail, each stopping the pushes.
+
+```ts
+type PublishDownloadsError = ItchSettingMissing | ItchDownloadsMissing | ButlerFailed | FileError$1 | ProcessError$1;
+```
+
+#### `PublishDownloadsInput` (interface)
+
+What `publishDownloadsToItch` needs: the game's folder, its config, the key and where butler is.
+
+```ts
+interface PublishDownloadsInput {
+  readonly gameDir: string;
+  readonly config: ShipConfig;
+  /** `BUTLER_API_KEY`. Passed in butler's environment, never on its command line. */
+  readonly apiKey: string | undefined;
+  readonly butlerPath: string | undefined;
+}
+```
+
+#### `publishDownloadsToItch` (function)
+
+Pushes this version's bundles from `dist-tauri/`, one per OS, each to its channel (`itch.downloads`, default
+`linux`, `mac`, `windows`), and answers the channels pushed. The section, the key, butler and at least one bundle
+are checked before anything is staged or started; a butler failure stops the pushes after it.
+
+```ts
+function publishDownloadsToItch(input: PublishDownloadsInput): Effect.Effect<{
+  pushed: string[];
+}, PublishDownloadsError, ProcessRunner>;
 ```
 
 #### `PublishFailed` (class)
@@ -8373,6 +9177,24 @@ no copy, and the workspace's `@ruken/cli` dev dependency is used instead (`dist/
 function rukenCliPath(moduleUrl?: string, exists?: (path: string) => boolean): string;
 ```
 
+#### `rukenHeaders` (function)
+
+The headers Ruken serves a game's build with (Ruken's CSP, which allows no eval), from the game's config, for a
+game's `vite preview` or a dev host (DIST spec §5.1: the game imports no `@ruken/*` itself). Fails `ManifestInvalid`
+when Ruken refuses the config.
+
+```ts
+function rukenHeaders(config: ShipConfig, target: RukenHeaderTarget): Effect.Effect<Record<string, string>, ManifestInvalid>;
+```
+
+#### `RukenHeaderTarget` (type)
+
+Where the headers are for: Ruken's production site, or a page on the given origins that frames the game.
+
+```ts
+type RukenHeaderTarget = Parameters<typeof compileHeaders>[1];
+```
+
 #### `rukenToml` (function)
 
 The text of `ruken.toml` (Ruken manifest schema 1) for a ship config. The same config always gives the same
@@ -8430,25 +9252,23 @@ const SHIP_PACKAGE = "@mcthaydt/automata-ship";
 
 #### `ShipConfig` (interface)
 
-What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
-Keys keep Ruken's snake_case so the config reads like the `ruken.toml` it becomes. ship fills in
-`schema` and `allow_eval` (always false); every other field and allowed value is Ruken's, so a field
-Ruken does not define is a type error here.
+What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s
+`GameConfig`, DIST spec §4.4) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
+the config reads like the `ruken.toml` the Ruken target writes from it (ship fills in `schema` and `allow_eval`,
+always false); `prepare --target ruken` checks the whole of it with Ruken's own parser.
 
 ```ts
-interface ShipConfig {
-  readonly game: Manifest["game"];
-  readonly runtime: Omit<Manifest["runtime"], "allow_eval">;
-  readonly network: Manifest["network"];
-  readonly content: Manifest["content"];
-  readonly analytics?: Manifest["analytics"];
-  readonly loading?: NonNullable<Manifest["loading"]>;
-  readonly leaderboards?: Manifest["leaderboards"];
+interface ShipConfig extends GameConfig {
   /**
    * Where `automata-ship publish --target itch` pushes (PUB spec §4). Not a Ruken field: it is never written to
    * `ruken.toml`, and a Ruken build ignores it.
    */
   readonly itch?: ItchConfig | undefined;
+  /**
+   * The desktop build's settings (`automata-ship prepare --target tauri`, DIST spec §6.3). Not a Ruken field: it is
+   * never written to `ruken.toml`.
+   */
+  readonly tauri?: TauriConfig | undefined;
   /**
    * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
    * public release: `automata-ship prepare` then checks the build as private and writes no `ruken.toml`, and only
@@ -8472,6 +9292,68 @@ interface ShipInputBindings {
     readonly gesture?: readonly string[] | undefined;
   };
 }
+```
+
+#### `TAURI_CLI` (const)
+
+The `@tauri-apps/cli` a desktop game installs as a dev dependency, named when it is missing: released 2026-10-14,
+at least 14 days before it was chosen (2.12.4 was not), and the release the adapter's `@tauri-apps/api` pairs with.
+
+```ts
+const TAURI_CLI = "@tauri-apps/cli@2.12.3";
+```
+
+#### `TauriBuildFailed` (class)
+
+`tauri build` exited with an error; its output was shown as it ran.
+
+```ts
+class TauriBuildFailed extends TauriBuildFailedBase {
+  override get message(): string;
+}
+```
+
+#### `TauriBuildInvalid` (class)
+
+The config or the web build is not ready for a desktop build; each problem says what to change.
+
+```ts
+class TauriBuildInvalid extends TauriBuildInvalidBase {
+  override get message(): string;
+}
+```
+
+#### `TauriConfig` (interface)
+
+What a game writes in `ship.config.ts` to build for the desktop.
+
+```ts
+interface TauriConfig {
+  /**
+   * The app's reverse-DNS identifier, unique to the game (`dev.mcthaydt.emberwick`): letters, digits and hyphens in
+   * two or more dot-separated parts, the first starting with a letter, and not ending in `.app`
+   * (https://v2.tauri.app/reference/config/#identifier).
+   */
+  readonly identifier: string;
+  /** A square PNG of at least 512 px for the app's icon, relative to the game's folder. Left out, ship draws one. */
+  readonly icon?: string | undefined;
+}
+```
+
+#### `tauriConfigSchema` (const)
+
+Checks a game's `tauri` section.
+
+```ts
+const tauriConfigSchema: z.ZodType<TauriConfig>;
+```
+
+#### `TauriToolchainMissing` (class)
+
+A tool the desktop build needs is not installed; found before anything is written.
+
+```ts
+class TauriToolchainMissing extends TauriToolchainMissingBase {}
 ```
 
 #### `testRemote` (function)
@@ -10198,6 +11080,140 @@ A finger down on `target`'s centre and straight up again.
 function tap(target: Locator): Promise<void>;
 ```
 
+### `import { … } from '@mcthaydt/automata-testing/host'`
+
+#### `FakeHostControl` (interface)
+
+What a test does to, and reads from, the fake host.
+The `FakeHostControl` service tag, provided beside `Hosting` by `FakeHosting`.
+
+```ts
+interface FakeHostControl {
+  /** Makes `ready` resolve (with `deferReady`). */
+  welcome(): void;
+  /** Makes `ready` fail with `code` (with `deferReady`). */
+  failReady(code: ErrorCode): void;
+  /** Sends the game a host change. Each payload is checked by its contract schema, so a bad fixture throws here. */
+  readonly push: {
+    lifecycle(payload: LifecyclePayload): void;
+    input(payload: InputModePayload): void;
+    display(payload: DisplayMetricsPayload): void;
+    audio(payload: AudioChange): void;
+    entitlements(payload: EntitlementsPayload): void;
+    savesStatus(status: SavesStatus): void;
+    /** Another device's write: the host's saves change and `saves.changed` carries it. */
+    savesChanged(payload: SavesChangedPayload): void;
+  };
+  /** The host's saves now. */
+  readonly saved: ReadonlyMap<string, string>;
+  /** Makes the next call named `operation` (for example `saves.set`) fail with `code`. */
+  failNext(operation: string, code: ErrorCode): void;
+  /** Holds every call named `operation` unanswered until `release(operation)`, so a test can time it out. */
+  hold(operation: string): void;
+  release(operation: string): void;
+  readonly tracked: readonly TrackedEvent[];
+  readonly exits: readonly ("player" | "completed")[];
+  /** Every fullscreen request, in order. */
+  readonly fullscreen: readonly boolean[];
+  /** Every round start and end the host received (after the contract's guard), in order. */
+  readonly rounds: readonly ({
+    readonly start: true;
+  } | {
+    readonly end: RoundOutcome | undefined;
+  })[];
+  readonly submits: readonly Submission[];
+  /** The host's "Open game menu": the latest handler's answer, or false before `ready` or with none. */
+  requestMenu(): boolean;
+  /** The host closes the game: the exiting handlers in order, then the save flush, all within `HOST_EXIT_CAP`. */
+  readonly close: Effect.Effect<void>;
+}
+const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl>;
+```
+
+#### `fakeHosting` (function)
+
+A fake host and the control handle that drives it. `make` builds the game's `Hosting` in a scope; closing the
+scope shuts it down (later calls fail `CANCELLED`, every stream ends).
+
+```ts
+function fakeHosting(options?: FakeHostingOptions): {
+  readonly control: FakeHostControl;
+  make(hosting: HostingOptions): Effect.Effect<Hosting, HostError, Scope.Scope>;
+};
+```
+
+#### `FakeHosting` (function)
+
+The fake host as a layer: `Hosting` for the game (built from `hosting`, default a game that wants saves) and
+`FakeHostControl` for the test. Both are released when the layer's scope closes.
+
+```ts
+function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<Hosting | FakeHostControl, HostError>;
+```
+
+#### `FakeHostingOptions` (interface)
+
+How the fake host starts. Every field has a default, so `FakeHosting()` is a web page with saves.
+
+```ts
+interface FakeHostingOptions {
+  /** The target to stand in for: its `kind`, `hostName`, grants and error codes (DIST spec §4.3). Default `web`. */
+  readonly target?: FakeTarget;
+  /** The capabilities granted, in place of the target's default ones. */
+  readonly granted?: readonly Capability[];
+  /** When true, `ready` waits for `control.welcome()` (or `control.failReady`); otherwise it is ready at once. */
+  readonly deferReady?: boolean;
+  readonly player?: {
+    readonly id: string;
+    readonly displayName: string;
+  };
+  readonly locale?: string;
+  /** The game's title, which the desktop target uses as its `hostName`. Default `Game`. */
+  readonly title?: string;
+  /** Saves already on the host when the session starts. */
+  readonly saves?: Readonly<Record<string, string>>;
+  /** Whether the player consented to analytics. Default true; false drops every `track`. */
+  readonly consent?: boolean;
+  readonly lifecycle?: LifecyclePayload;
+  readonly input?: InputModePayload;
+  readonly display?: DisplayMetricsPayload;
+  readonly audio?: AudioChange;
+  readonly entitlements?: EntitlementsPayload;
+  readonly savesStatus?: SavesStatus;
+}
+```
+
+#### `FakeTarget` (type)
+
+The four distribution targets a fake host can stand in for (ADR 0006).
+
+```ts
+type FakeTarget = "web" | "itch" | "ruken" | "tauri";
+```
+
+#### `Submission` (interface)
+
+One leaderboard submission the host received.
+
+```ts
+interface Submission {
+  readonly board: string;
+  readonly score: number;
+  readonly meta?: LeaderboardSubmitMeta | undefined;
+}
+```
+
+#### `TrackedEvent` (interface)
+
+One analytics event the host received.
+
+```ts
+interface TrackedEvent {
+  readonly event: string;
+  readonly props?: AnalyticsProps | undefined;
+}
+```
+
 ### `import { … } from '@mcthaydt/automata-testing/input'`
 
 #### `fakeGamepads` (function)
@@ -10808,7 +11824,7 @@ The words for every boot failure state and action, by name. `BOOT_FAILURE_COPY_E
 defaults.
 
 ```ts
-type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>;
+type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction | 'quit', string>>;
 ```
 
 #### `BootFailurePanel` (const)
@@ -11290,10 +12306,10 @@ interface ErrorAction {
 
 #### `ErrorCode` (type)
 
-Ruken's error code. The SDK exports the class, not the alias.
+The host contract's error code (DIST spec §4.1).
 
 ```ts
-type ErrorCode = RukenError['code'];
+type ErrorCode = HostErrorCode;
 ```
 
 #### `ErrorPanel` (const)
@@ -11419,7 +12435,7 @@ function fullscreenSupport(doc: Document, nav: Navigator): FullscreenSupport;
 
 #### `FullscreenSupport` (type)
 
-Ruken's answer to whether this browser can go fullscreen, and how.
+The host's answer to whether this browser can go fullscreen, and how.
 
 ```ts
 type FullscreenSupport = FullscreenRes['support'];
@@ -11635,7 +12651,7 @@ class HiddenBrowserBar {
 #### `HostDisplay` (type)
 
 What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
-Imported from the vendored `@ruken/sdk`, never copied (M1 shared contracts).
+The host contract's type (`@mcthaydt/automata-host`, DIST spec §4), never copied.
 `scale` is 1.333 on Ruken's TV mode: a hint to enlarge text and targets, never CSS zoom.
 
 ```ts
@@ -11648,7 +12664,7 @@ type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'sc
 spec §3) draws as `standalone`: it has no host to go back to.
 
 ```ts
-type HostKind = 'ruken' | 'standalone';
+type HostKind = 'ruken' | 'standalone' | 'tauri';
 ```
 
 #### `hostReservedInsets` (function)

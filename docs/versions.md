@@ -56,6 +56,10 @@ Where Ruken pins the same package, AF uses Ruken's version, unless the row says 
 | `zod` | 4.6.6 | 2026-10-01 | Same as Ruken: the one schema language (ADR 0003) |
 | `@sveltejs/package` | 3.0.0 | 2026-10-11 | ship lane: builds `@mcthaydt/automata-ui`'s published `dist/` (M2.4 spec §3.3), Svelte's documented library layout: `.svelte` shipped as Svelte source with TypeScript stripped. Peer `typescript` ^6, so it runs on ui's 6.0.3 |
 | `@sveltejs/vite-plugin-svelte` | 7.3.1 | 2026-10-11 | ui lane: compiles Svelte 5 in `packages/ui` and `examples/ui/primitives` |
+| `@tauri-apps/api` | 2.12.4 | 2026-10-31 | host lane (DIST.5a): the desktop adapter's window API (`onCloseRequested`) and the IPC mocks its tests use, in `@mcthaydt/automata-host`'s `tauri/` folder only. MIT or Apache-2.0; released 2026-10-14. An optional peer: a game that builds for `tauri` installs it |
+| `@tauri-apps/plugin-process` | 2.4.0 | 2026-10-31 | host lane (DIST.5a): Quit (`exit(0)`) in the desktop adapter. MIT or Apache-2.0; released 2026-09-26. An optional peer of `@mcthaydt/automata-host` |
+| `@tauri-apps/plugin-store` | 2.5.0 | 2026-10-31 | host lane (DIST.5a): the desktop adapter's saves, one `saves.json` store in the app's data folder (DIST spec §6.1). MIT or Apache-2.0; released 2026-09-26. An optional peer of `@mcthaydt/automata-host` |
+| `@tauri-apps/cli` | 2.12.3 | 2026-10-31 | ship lane (DIST.6): the Tauri CLI `prepare --target tauri` runs, a dev dependency `create-game` writes for a game that builds for `tauri` (ship does not carry it, DIST.5b). MIT or Apache-2.0; released 2026-10-14 |
 | `@testing-library/dom` | 10.4.2 | 2026-10-11 | ui lane: DOM behaviour tests (AGENTS.md, Responsive UI) |
 | `@testing-library/jest-dom` | 7.0.1 | 2026-10-11 | ui lane: DOM matchers for those tests |
 | `@testing-library/svelte` | 5.4.2 | 2026-10-11 | ui lane: renders Svelte components in those tests |

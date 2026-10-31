@@ -3,7 +3,10 @@
   "compilerOptions": {
     "types": ["vite/client"],
     "allowImportingTsExtensions": true,
-    "isolatedDeclarations": false
+    "isolatedDeclarations": false,
+    // Paraglide's generated src/paraglide is JavaScript typed with JSDoc (G3-t): read for its types, never checked.
+    "allowJs": true,
+    "checkJs": false
   },
   "include": ["src/**/*.ts"],
   // It reads Node-only files (ship.config.ts, package.json); tsconfig.node.json checks it.

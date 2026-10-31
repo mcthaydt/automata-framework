@@ -14,9 +14,9 @@ import {
   UndeclaredBoard,
   VersionMismatch,
 } from '../errors.ts'
-import { inputsProblems, type ShipInputBindings } from '../manifest/check-inputs.ts'
-import { checkManifest } from '../manifest/check-manifest.ts'
-import { rukenToml } from '../manifest/ruken-toml.ts'
+import { inputsProblems, type ShipInputBindings } from '../targets/ruken/check-inputs.ts'
+import { checkManifest } from '../targets/ruken/check-manifest.ts'
+import { rukenToml } from '../targets/ruken/ruken-toml.ts'
 import { findUndeclaredBoards } from './board-names.ts'
 import { checkVersion } from './check-version.ts'
 import { findInputsProblems } from './input-bindings.ts'

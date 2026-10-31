@@ -327,6 +327,8 @@ export function base3dScreens(
           heading: wick.get(CameraHeading).heading,
           visited: save.kiln.visited,
           hasMap: save.kiln.map,
+          hasCompass: save.kiln.compass,
+          flags: save.flags,
         })
         yield* show(MapScreen, layer, { plan, onClose: close })
         yield* listen(target, 'keydown', (event) => {

@@ -3,8 +3,8 @@ import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import packageJson from '../package.json' with { type: 'json' }
 import config from '../ship.config.ts'
-import { GAME_ID } from './boot.ts'
 import { input } from './game.ts'
+import { GAME_ID } from './ruken/boot.ts'
 
 describe('base-2d ship.config.ts', () => {
   it("is a manifest Ruken's parser accepts, rendered with WebGL2", () => {

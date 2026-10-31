@@ -3,7 +3,7 @@ import { Effect } from 'effect'
 import type { ShipConfig } from '../config/ship-config.ts'
 import { PrivatePublishNotLocal } from '../errors.ts'
 import { type PrepareError, prepareBuild } from '../prepare/prepare-build.ts'
-import { type PublishError, type PublishInput, publishToRuken } from './publish-to-ruken.ts'
+import { type PublishError, type PublishInput, publishToRuken } from '../targets/ruken/publish-to-ruken.ts'
 
 /** What `publishBuild` needs: `publishToRuken`'s input, the game's ship config, the release tag and the audience. */
 export interface PublishBuildInput extends PublishInput {

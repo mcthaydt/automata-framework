@@ -1,5 +1,4 @@
 import type { TaggedErrorClass } from '@mcthaydt/automata-node'
-import type { ManifestError } from '@ruken/manifest'
 import { Data } from 'effect'
 import type { UndeclaredBoardFound } from './prepare/board-names.ts'
 import type { OrientationMismatchFound } from './prepare/orientation.ts'
@@ -7,24 +6,11 @@ import type { Pixi3dFound } from './prepare/pixi3d-markers.ts'
 import type { SecretFound } from './prepare/secret-scan.ts'
 
 export { FileError, ProcessError } from '@mcthaydt/automata-node'
+export { ManifestInvalid } from './targets/ruken/errors-ruken.ts'
+export { TauriBuildFailed, TauriBuildInvalid, TauriToolchainMissing } from './targets/tauri/errors-tauri.ts'
 
 // Every way a ship step can fail, as tagged errors (ADR 0003). The CLI prints `message`, one line per problem.
 // Each extends a constant typed with `TaggedErrorClass` so the package builds with isolatedDeclarations.
-
-const ManifestInvalidBase: TaggedErrorClass<
-  'ManifestInvalid',
-  {
-    readonly problems: readonly ManifestError[]
-  }
-> = Data.TaggedError('ManifestInvalid')
-/** Ruken's parser refused the generated `ruken.toml`. `problems` are Ruken's own issues, unchanged. */
-export class ManifestInvalid extends ManifestInvalidBase {
-  override get message(): string {
-    return this.problems
-      .map((problem) => `ruken.toml ${problem.path || '(file)'}: ${problem.message}`)
-      .join('\n')
-  }
-}
 
 const VersionMismatchBase: TaggedErrorClass<
   'VersionMismatch',
@@ -284,6 +270,11 @@ const ItchSettingMissingBase: TaggedErrorClass<
 > = Data.TaggedError('ItchSettingMissing')
 /** `publish --target itch` lacks the config section, the key or butler; found before anything runs. */
 export class ItchSettingMissing extends ItchSettingMissingBase {}
+
+const ItchDownloadsMissingBase: TaggedErrorClass<'ItchDownloadsMissing', { readonly message: string }> =
+  Data.TaggedError('ItchDownloadsMissing')
+/** `publish --target itch --from tauri` found no desktop bundle of this version; found before any push. */
+export class ItchDownloadsMissing extends ItchDownloadsMissingBase {}
 
 const ButlerFailedBase: TaggedErrorClass<'ButlerFailed', { readonly exitCode: number }> =
   Data.TaggedError('ButlerFailed')

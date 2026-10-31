@@ -21,6 +21,7 @@ import { areaIn, slide, viewAt, worldOf } from './area.ts'
 import { frozen, isHeld } from './combat.ts'
 import { facingVector } from './combat-geometry.ts'
 import { angleOf, signedTurn } from './lock-target.ts'
+import { wallsOf } from './walls.ts'
 
 /**
  * Copies this tick's stick, lock and action buttons onto Wick, and marks the tick each went down. No command is a
@@ -74,7 +75,7 @@ export const heroMove: SystemDef = defineSystem({
   phase: 'physics',
   run(ctx) {
     if (frozen(ctx)) return
-    const { walls } = areaIn(ctx.content, ctx.resource(Location))
+    const walls = wallsOf(ctx)
     const { moves } = worldOf(ctx.content)
     for (const entity of ctx.query(Hero, HeroControl, CameraHeading)) {
       const control = entity.get(HeroControl)

@@ -5,8 +5,8 @@ import { defineShipConfig } from '@mcthaydt/automata-ship'
 import { Effect } from 'effect'
 import { build } from 'vite'
 import { afterAll, describe, expect, it } from 'vitest'
-import { headersFor } from './csp-probe-live.ts'
 import { scanForDataUrls } from './data-url-scan.ts'
+import { headersFor } from './ruken/csp-probe-live.ts'
 
 // The `data-urls` step's scan (DX.5a). The real-build cases build a game-like page with Vite itself, so a Vite that
 // changes how it writes an inlined asset fails here instead of letting the scan go blind.

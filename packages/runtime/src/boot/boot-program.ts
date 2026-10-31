@@ -28,6 +28,7 @@ import { AppLoop, makeAppLoop } from '../loop/app-loop.manager.js'
 import { liveFrames } from '../loop/frames.js'
 import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
 import { type GameRenderer, Renderer, type RenderTarget } from '../render/renderer.js'
+import { savesKept } from '../save/save.manager.js'
 import { makeSaves, Saves } from '../save/saves.manager.js'
 import { liveDeviceStorage } from '../settings/device-storage.js'
 import { makeSettings, Settings } from '../settings/settings.manager.js'
@@ -171,9 +172,13 @@ export function bootProgram<S>(
       ...game.hosting,
       ...(disclosedEvents !== undefined ? { disclosedEvents } : {}),
     }
-    const sdkEnv = game.seams?.sdkEnv?.()
-    const hostingSeams: HostingSeams = sdkEnv !== undefined ? { env: sdkEnv } : {}
-    const hosting = yield* makeHosting(hostingOptions, hostingSeams)
+    const hosting = yield* game.seams?.hosting !== undefined
+      ? game.seams.hosting(hostingOptions)
+      : Effect.suspend(() => {
+          const sdkEnv = game.seams?.sdkEnv?.()
+          const hostingSeams: HostingSeams = sdkEnv !== undefined ? { env: sdkEnv } : {}
+          return makeHosting(hostingOptions, hostingSeams)
+        })
     options?.onHosting?.(hosting)
 
     const initialDisplay = yield* hosting.display.get
@@ -196,7 +201,9 @@ export function bootProgram<S>(
           }),
         )
       }
-      rawSettings = yield* hosting.saves.get(game.settings.key)
+      // A target that does not grant saves (a web page with storage blocked) boots on the defaults and says so on the
+      // paused screen; reading would fail DENIED and stop a game that can run (DIST spec §8 flow 5).
+      if (savesKept(hosting)) rawSettings = yield* hosting.saves.get(game.settings.key)
     }
     // Fields a game keeps on the device go to the frame's own storage unless a test hands over another (M5 spec §4.5).
     const deviceStorage =
