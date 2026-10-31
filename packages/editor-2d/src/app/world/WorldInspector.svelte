@@ -1,7 +1,8 @@
 <!--
   The World view's inspector (plan ED2D.6b step 6): the selected level's name, its place (X, Y, depth), its size with
   the side it grows or shrinks from, and its typed fields. Each change is one undo step through `commitEdit`; a refused
-  value shows its message and the field shows what the project holds. Resize applies at once when nothing is lost and
+  value shows its message and the field shows what the project holds. Below the fields, the level's links and the levels
+  that link to it (ED2D.6c decision 5). Resize applies at once when nothing is lost and
   asks first, listing the cells per layer, when painted cells would fall outside (spec §13).
 -->
 <script lang="ts">
@@ -15,6 +16,7 @@ import FieldEditor from '../level/FieldEditor.svelte'
 import { commitEdit, commitField } from '../level/field-commit'
 import { levelInspector } from '../level/inspector-model'
 import type { EditHistory } from '../level-editor'
+import { levelLinks } from './world-links'
 
 interface Props {
   project: Project
@@ -29,6 +31,7 @@ const placement = $derived(
   project.worlds.flatMap((world) => world.placements).find((candidate) => candidate.level === level),
 )
 const fields = $derived(levelInspector(project, level).fields)
+const linked = $derived(levelLinks(project, level))
 const palette = $derived([
   ...new Set(
     project.defs.entities.flatMap((def) => (def.color?.startsWith('#') === true ? [def.color] : [])),
@@ -165,6 +168,17 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
         oncommit={(value) => commitField(history, { kind: 'level', level }, row.id, value)}
       />
     {/each}
+    <h3 class="eyebrow">Links</h3>
+    {#if linked.out.length === 0}
+      <p class="quiet">No links from this level.</p>
+    {:else}
+      <ul class="links" aria-label="Links">
+        {#each linked.out as link, index (index)}
+          <li>{`${link.label} → ${link.to}`}</li>
+        {/each}
+      </ul>
+    {/if}
+    <p class="quiet">{linked.from.length === 0 ? 'Nothing links to this level.' : `Linked from: ${linked.from.join(', ')}`}</p>
   </div>
   <Dialog open={confirming} title={`Resize ${found.name}?`} onclose={() => (confirming = false)}>
     <p>These cells fall outside the new size and are dropped:</p>
@@ -212,5 +226,31 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
     margin: 0;
     color: var(--color-state-bad);
     font: var(--text-body-13);
+  }
+  .eyebrow {
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-dim);
+    font: var(--text-eyebrow-11);
+    text-transform: uppercase;
+  }
+  .links {
+    display: grid;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .links li {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-field);
+    color: var(--color-text-primary);
+    font: var(--text-mono-12);
+  }
+  .quiet {
+    margin: 0;
+    color: var(--color-text-dim);
+    font: var(--text-label-12);
   }
 </style>

@@ -6,16 +6,18 @@
   stays under the finger even when the world's extent changes.
 -->
 <script lang="ts">
-import { EditorShell, Segmented, shellModeOf } from '@mcthaydt/automata-editor-kit'
+import { Button, EditorShell, Segmented, shellModeOf } from '@mcthaydt/automata-editor-kit'
 import type { Camera } from '../../canvas/level-view'
 import type { Project, Size, WorldLayout } from '../../model/project-types'
+import { addLevel } from '../../model/world/level-edits'
 import { setWorldLayout } from '../../model/world/world-layout'
 import { projectHistory } from '../level/edit-history'
 import type { ViewProps } from '../views/view-props'
 import WorldCanvas from './WorldCanvas.svelte'
 import WorldInspector from './WorldInspector.svelte'
 import { createWorldDrag } from './world-drag'
-import { fitWorld, worldRects } from './world-model'
+import { worldLinks } from './world-links'
+import { fitWorld, newLevelInput, worldRects } from './world-model'
 
 const { geometry, document: opened, frame, services }: ViewProps = $props()
 
@@ -56,6 +58,7 @@ const world = $derived(project?.worlds.find((candidate) => candidate.id === worl
 const rects = $derived(
   project === undefined || world === undefined ? [] : worldRects(project, worldId, selected),
 )
+const links = $derived(project === undefined ? [] : worldLinks(project, rects))
 const fitted = $derived(fitWorld(rects, box, MARGIN))
 const camera = $derived(held ?? fitted)
 /** Where the levels' top and bottom edges fall on the map, in CSS pixels: the layout checks read it to see them centred. */
@@ -122,6 +125,13 @@ function cancel(): void {
   held = undefined
 }
 
+function addOne(): void {
+  if (history === undefined || project === undefined) return
+  const input = newLevelInput(project, worldId)
+  history.apply('Add level', (current) => addLevel(current, input))
+  selected = input.id
+}
+
 function layout(next: string): void {
   if (history === undefined || world === undefined || next === world.layout) return
   history.apply('Switch layout', (current) => setWorldLayout(current, worldId, next as WorldLayout))
@@ -164,6 +174,9 @@ function layout(next: string): void {
           </li>
         {/each}
       </ul>
+      {#if history !== undefined}
+        <Button onclick={addOne}>Add level</Button>
+      {/if}
     </div>
   {/snippet}
   {#snippet canvas()}
@@ -191,7 +204,7 @@ function layout(next: string): void {
         onpointerup={up}
         onpointercancel={cancel}
       >
-        <MapCanvas {rects} {camera} />
+        <MapCanvas {rects} {camera} {links} />
       </div>
       </div>
     {/if}

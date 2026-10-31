@@ -76,9 +76,9 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
   step; Back; the level itself; nothing to pick says so; 44 px choices.
 - [x] 5. Level canvas: draw-list tests for `links` (label, colour, selected, same-level line, broken gives none);
   scene draws them (canvas test, chromium image).
-- [ ] 6. World map: `worldLinks` tests (edges facing each other, label point, skip same-level and unplaced); the map
+- [x] 6. World map: `worldLinks` tests (edges facing each other, label point, skip same-level and unplaced); the map
   draws them (canvas test, image); inspector Links and Linked from (DOM).
-- [ ] 7. "Add level" in the World view (DOM: one undo step, selected, on the map and in the dock).
+- [x] 7. "Add level" in the World view (DOM: one undo step, selected, on the map and in the dock).
 - [ ] 8. G-g in Node (link, delete the spawn: `brokenRef` with `choose-target`, `projectLinks` loses it) and in jsdom
   (the world inspector's Links empties; the Checks view offers Choose target and it repairs in one step).
 - [ ] 9. G-r linking journey in jsdom (decision 7).
@@ -103,3 +103,9 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
 - 2026-10-31, step 5: the draw-list link cases failed (no `links`), then pass; the scene case failed in Chromium (no
   link container), then passes (24 canvas tests). The two-map fixture moved to `testing/linked-maps.ts`. Typecheck 0
   errors; unit+dom 155 files, 2550 tests pass. The chromium review image is taken in step 10.
+- 2026-10-31, steps 6 and 7: `world-links.test.ts` failed on the missing module, then passes (4 tests); the
+  `newLevelInput` case and the World view DOM cases (links handed to the map, Links and Linked from, Add level as one
+  step that undoes) failed, then pass (world unit+dom: 4 files, 25 tests). The world canvas link case was written
+  before the drawing but not run red first; it renders the same rectangles with and without the link and checks the
+  pixel turns from the background to the link's colour, so it does tell the two apart. Canvas: 6 tests pass. Layout
+  (World view, three browsers): 3 files, 24 tests pass.

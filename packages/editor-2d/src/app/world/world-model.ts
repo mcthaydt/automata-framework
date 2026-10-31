@@ -1,6 +1,6 @@
 import type { Camera } from '../../canvas/level-view'
 import type { Project, Size } from '../../model/project-types'
-import { findLevel } from '../../model/world/level-edits'
+import { findLevel, type NewLevel } from '../../model/world/level-edits'
 import { findWorld } from '../../model/world/world-layout'
 import type { Point } from '../../tiles/footprint'
 
@@ -78,4 +78,29 @@ export function toWorld(camera: Camera, screen: Point): Point {
 /** Where a level that started at `start` is after the pointer travelled `travel` screen pixels: whole world pixels. */
 export function dragPosition(start: Point, travel: Point, scale: number): Point {
   return { x: Math.round(start.x + travel.x / scale), y: Math.round(start.y + travel.y / scale) }
+}
+
+/** World pixels between a new level and the rightmost one. */
+const NEW_LEVEL_GAP = 32
+
+/**
+ * What "Add level" adds (plan ED2D.6c decision 6): the first free `level-N` (named `Level N`), the size of the project's
+ * first level, placed right of the world's rightmost level with a gap and level with its topmost; the world's layout
+ * then snaps or sequences it.
+ */
+export function newLevelInput(project: Project, worldId: string): NewLevel {
+  const taken = new Set(project.levels.map((level) => level.id))
+  let number = 1
+  while (taken.has(`level-${number}`)) number += 1
+  const rects = worldRects(project, worldId, undefined)
+  const right = rects.length === 0 ? 0 : Math.max(...rects.map((rect) => rect.x + rect.w)) + NEW_LEVEL_GAP
+  const top = rects.length === 0 ? 0 : Math.min(...rects.map((rect) => rect.y))
+  return {
+    id: `level-${number}`,
+    name: `Level ${number}`,
+    world: worldId,
+    x: right,
+    y: top,
+    size: project.levels[0]?.size ?? { w: 320, h: 240 },
+  }
 }

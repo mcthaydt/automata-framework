@@ -15,7 +15,7 @@ import { renameLevel } from '../../model/world/level-edits'
 import FakeLevelCanvas from '../../testing/FakeLevelCanvas.svelte'
 import FakeWorldCanvas from '../../testing/FakeWorldCanvas.svelte'
 import { memoryWorkspace } from '../../testing/memory-workspace'
-import { withLayer, withNewLevel } from '../../testing/project-edit'
+import { entity, withEntities, withLayer, withNewLevel } from '../../testing/project-edit'
 import { createTestClock } from '../../testing/test-clock'
 import DocumentScreen from '../document/DocumentScreen.svelte'
 import { createDocumentController } from '../document/document-controller'
@@ -212,5 +212,39 @@ describe('World view: the inspector', () => {
     await userEvent.click(within(again).getByRole('button', { name: 'Resize anyway' }))
     expect(history.state.levels[1]?.size.w).toBe(64)
     expect(screen.getByRole('button', { name: 'Undo Resize level' })).toBeEnabled()
+  })
+})
+
+describe('World view: links and new levels (plan ED2D.6c)', () => {
+  /** A door in the first level that leads to a spawn in Second. */
+  const linked = (project: Project): Project => {
+    const first = project.levels[0]?.id ?? ''
+    const spawned = withEntities(project, 'level-2', [entity('spawn-2', 'player-start', 32, 32)])
+    return withEntities(spawned, first, [
+      entity('door-1', 'door', 64, 64, { target: { target: 'spawn-2', container: 'level-2' } }),
+    ])
+  }
+
+  it('hands the map its links, and lists them in the inspector both ways', async () => {
+    const { first } = await mount(linked)
+    expect(screen.getByTestId('fake-world-canvas')).toHaveAttribute('data-links', `${first}>level-2`)
+    await userEvent.click(levelList().getAllByRole('button')[0] as HTMLElement)
+    const links = within(inspector().getByRole('list', { name: 'Links' }))
+    expect(links.getByRole('listitem')).toHaveTextContent('Door → Second · Player start')
+    await userEvent.click(levelList().getByRole('button', { name: 'Second' }))
+    expect(inspector().getByText(/^Linked from:/)).toHaveTextContent('Linked from: Level 1')
+    expect(inspector().getByText('No links from this level.')).toBeInTheDocument()
+  })
+
+  it('adds a level next to the others, selected, as one undo step', async () => {
+    const { history } = await mount()
+    const steps = history.revision
+    await userEvent.click(screen.getByRole('button', { name: 'Add level' }))
+    expect(history.revision).toBe(steps + 1)
+    expect(levelList().getByRole('button', { name: 'Level 3' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('fake-world-canvas').getAttribute('data-levels')).toContain('level-3@')
+    history.undo()
+    expect(await screen.findByTestId('world-view')).toBeInTheDocument()
+    expect(levelList().queryByRole('button', { name: 'Level 3' })).toBeNull()
   })
 })

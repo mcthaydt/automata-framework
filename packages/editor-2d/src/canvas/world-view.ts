@@ -1,11 +1,13 @@
 import { Container, Graphics, type Renderer, Text } from 'pixi.js'
 import { writable } from 'svelte/store'
+import type { WorldLink } from '../app/world/world-links'
 import type { WorldRect } from '../app/world/world-model'
 import type { ColorResolver } from './colors'
 import { type Camera, createWebGL2Renderer } from './level-view'
 
 // The World view's map (plan ED2D.6b step 4; 2D editor spec §8, the World row): each level a rectangle at its world
-// position, the selected one outlined in the accent, its name in the top-left corner at screen size. A world has a few
+// position, the selected one outlined in the accent, its name in the top-left corner at screen size; over them, each
+// link between two levels as a curve with an arrowhead and its holder's label (ED2D.6c decision 5). A world has a few
 // dozen levels at most, so each render redraws everything. Like the level canvas it is WebGL2 only and says when its
 // context is lost; `paused` follows `webglcontextlost` and `webglcontextrestored`.
 
@@ -19,7 +21,7 @@ export interface WorldViewOptions {
 
 export interface WorldView {
   readonly paused: { subscribe(run: (paused: boolean) => void): () => void }
-  render(rects: readonly WorldRect[], camera: Camera): void
+  render(rects: readonly WorldRect[], camera: Camera, links: readonly WorldLink[]): void
   resize(width: number, height: number, resolution: number): void
   destroy(): void
 }
@@ -27,6 +29,10 @@ export interface WorldView {
 /** The outline in screen pixels, drawn inside the rectangle so neighbours touching it keep their own edge. */
 const OUTLINE = 2
 const LABEL_INSET = 6
+/** Screen pixels: the link's line width, its arrowhead's length and the gap between its label and the curve. */
+const LINK_WIDTH = 2
+const ARROW = 9
+const LINK_LABEL_GAP = 4
 
 export async function createWorldView(options: WorldViewOptions): Promise<WorldView | undefined> {
   const { canvas, colors } = options
@@ -47,11 +53,13 @@ export async function createWorldView(options: WorldViewOptions): Promise<WorldV
   const paused = writable(false)
   let lost = false
   let destroyed = false
-  let latest: { readonly rects: readonly WorldRect[]; readonly camera: Camera } | undefined
+  let latest:
+    | { readonly rects: readonly WorldRect[]; readonly camera: Camera; readonly links: readonly WorldLink[] }
+    | undefined
 
   function draw(): void {
     if (lost || destroyed || latest === undefined) return
-    const { rects, camera } = latest
+    const { rects, camera, links } = latest
     shapes.clear()
     for (const label of labels.removeChildren()) label.destroy()
     for (const rect of rects) {
@@ -75,6 +83,32 @@ export async function createWorldView(options: WorldViewOptions): Promise<WorldV
       label.position.set(x + LABEL_INSET, y + LABEL_INSET)
       labels.addChild(label)
     }
+    const screen = (point: { x: number; y: number }) => ({
+      x: camera.x + point.x * camera.scale,
+      y: camera.y + point.y * camera.scale,
+    })
+    for (const link of links) {
+      const color = colors(link.color ?? 'accent/default')
+      const start = screen(link.start)
+      const control = screen(link.control)
+      const end = screen(link.end)
+      const angle = Math.atan2(end.y - control.y, end.x - control.x)
+      shapes
+        .moveTo(start.x, start.y)
+        .quadraticCurveTo(control.x, control.y, end.x, end.y)
+        .moveTo(end.x - ARROW * Math.cos(angle - 0.45), end.y - ARROW * Math.sin(angle - 0.45))
+        .lineTo(end.x, end.y)
+        .lineTo(end.x - ARROW * Math.cos(angle + 0.45), end.y - ARROW * Math.sin(angle + 0.45))
+        .stroke({ width: LINK_WIDTH, color, join: 'round' })
+      const middle = screen(link.middle)
+      const label = new Text({
+        text: link.label,
+        style: { fill: color, fontFamily: 'sans-serif', fontSize: 11 },
+      })
+      label.anchor.set(0.5, 1)
+      label.position.set(middle.x, middle.y - LINK_LABEL_GAP)
+      labels.addChild(label)
+    }
     renderer.render(stage)
   }
 
@@ -92,8 +126,8 @@ export async function createWorldView(options: WorldViewOptions): Promise<WorldV
 
   return {
     paused: { subscribe: paused.subscribe },
-    render(rects, camera) {
-      latest = { rects, camera }
+    render(rects, camera, links) {
+      latest = { rects, camera, links }
       draw()
     },
     resize(width, height, resolution) {

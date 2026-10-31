@@ -11,7 +11,7 @@ import { createWorldView, type WorldView } from '../../canvas/world-view'
 import type { Size } from '../../model/project-types'
 import type { WorldCanvasProps } from '../views/view-props'
 
-const { rects, camera }: WorldCanvasProps = $props()
+const { rects, camera, links }: WorldCanvasProps = $props()
 
 let host = $state<HTMLElement>()
 let canvas = $state<HTMLCanvasElement>()
@@ -73,7 +73,7 @@ onMount(() => {
   }
 })
 
-// One draw for every change of the levels, the camera or the box; a new box resizes the renderer first.
+// One draw for every change of the levels, their links, the camera or the box; a new box resizes the renderer first.
 $effect(() => {
   const current = worldView
   const box = size
@@ -82,7 +82,7 @@ $effect(() => {
     current.resize(box.w, box.h, box.resolution)
     drawnAt = box
   }
-  current.render(rects, camera)
+  current.render(rects, camera, links)
   drawn = true
 })
 </script>

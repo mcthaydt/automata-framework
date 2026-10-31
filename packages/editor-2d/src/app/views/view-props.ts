@@ -5,6 +5,7 @@ import type { Camera } from '../../canvas/level-view'
 import type { IdSource } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import type { OpenDocument } from '../editor-app'
+import type { WorldLink } from '../world/world-links'
 import type { WorldRect } from '../world/world-model'
 
 // What every rail destination is given (plan ED2D.4c4a decision 1). The document screen draws the parts every view
@@ -51,6 +52,8 @@ export interface ViewServices {
 export interface WorldCanvasProps {
   readonly rects: readonly WorldRect[]
   readonly camera: Camera
+  /** The links between the levels (ED2D.6c), drawn over them. */
+  readonly links: readonly WorldLink[]
 }
 
 /** What the Level view hands its canvas (`LevelCanvas.svelte`'s props). */

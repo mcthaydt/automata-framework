@@ -3,7 +3,7 @@ import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
 import { withNewLevel } from '../../testing/project-edit'
-import { dragPosition, fitWorld, levelAt, toWorld, worldRects } from './world-model'
+import { dragPosition, fitWorld, levelAt, newLevelInput, toWorld, worldRects } from './world-model'
 
 const project = (): Project => {
   const base = platformerTemplate.create(counterIds())
@@ -72,5 +72,26 @@ describe('toWorld and dragPosition', () => {
     const camera = { x: 20, y: 10, scale: 0.5 }
     expect(toWorld(camera, { x: 70, y: 60 })).toEqual({ x: 100, y: 100 })
     expect(dragPosition({ x: 600, y: 0 }, { x: 25, y: -12.6 }, camera.scale)).toEqual({ x: 650, y: -25 })
+  })
+})
+
+describe('newLevelInput (Add level, plan ED2D.6c decision 6)', () => {
+  it('names the next free level, the size of the first, right of the rightmost with a gap, at the top', () => {
+    const base = platformerTemplate.create(counterIds())
+    const size = base.levels[0]?.size ?? { w: 0, h: 0 }
+    expect(newLevelInput(base, 'main')).toEqual({
+      id: 'level-2',
+      name: 'Level 2',
+      world: 'main',
+      x: size.w + 32,
+      y: 0,
+      size,
+    })
+    // level-2 and level-3 are taken: the next is level-4, right of level-2 (at 600) and its width.
+    expect(newLevelInput(project(), 'main')).toMatchObject({
+      id: 'level-4',
+      name: 'Level 4',
+      x: 600 + size.w + 32,
+    })
   })
 })

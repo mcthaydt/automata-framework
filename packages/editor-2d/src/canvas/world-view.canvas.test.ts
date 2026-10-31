@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import type { WorldLink } from '../app/world/world-links'
 import type { WorldRect } from '../app/world/world-model'
 import { createColorResolver } from './colors'
 import { createWorldView, type WorldView } from './world-view'
@@ -57,7 +58,7 @@ const rect = (id: string, x: number, selected: boolean): WorldRect => ({
 describe('world view', () => {
   it('draws each level as a rectangle at the camera, the selected one outlined, on the canvas background', async () => {
     const world = await viewOf()
-    world.render([rect('a', 0, false), rect('b', 100, true)], { x: 10, y: 20, scale: 1 })
+    world.render([rect('a', 0, false), rect('b', 100, true)], { x: 10, y: 20, scale: 1 }, [])
     expect(colorAt(50, 50)).toBe('#202428')
     expect(colorAt(150, 50)).toBe('#202428')
     expect(colorAt(5, 5)).toBe('#0a0b0d')
@@ -69,8 +70,27 @@ describe('world view', () => {
 
   it('follows the camera', async () => {
     const world = await viewOf()
-    world.render([rect('a', 0, false)], { x: 0, y: 0, scale: 0.5 })
+    world.render([rect('a', 0, false)], { x: 0, y: 0, scale: 0.5 }, [])
     expect(colorAt(20, 15)).toBe('#202428')
     expect(colorAt(60, 15)).toBe('#0a0b0d')
+  })
+
+  it('draws a link as a curve in its colour between the facing edges, with an arrowhead (plan ED2D.6c)', async () => {
+    const world = await viewOf()
+    const link: WorldLink = {
+      from: 'a',
+      to: 'b',
+      label: 'Door',
+      color: '#ff0000',
+      start: { x: 80, y: 30 },
+      control: { x: 90, y: 30 },
+      end: { x: 100, y: 30 },
+      middle: { x: 90, y: 30 },
+    }
+    world.render([rect('a', 0, false), rect('b', 100, false)], { x: 10, y: 20, scale: 1 }, [link])
+    // Halfway along the gap between the levels, on the canvas background.
+    expect(colorAt(95, 50)).toBe('#ff0000')
+    world.render([rect('a', 0, false), rect('b', 100, false)], { x: 10, y: 20, scale: 1 }, [])
+    expect(colorAt(95, 50)).toBe('#0a0b0d')
   })
 })
