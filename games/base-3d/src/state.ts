@@ -5,7 +5,17 @@ import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Lock, Move } from './commands.ts'
 import { Hero, HeroAction, HeroControl, Target } from './components.ts'
-import { type Area, heroAct, heroInput, heroMove, heroView, lockSelect, viewAt } from './systems.ts'
+import { EmberTaken } from './events.ts'
+import {
+  type Area,
+  emberTake,
+  heroAct,
+  heroInput,
+  heroMove,
+  heroView,
+  lockSelect,
+  viewAt,
+} from './systems.ts'
 
 /**
  * Spawns Wick at the area's spawn, already in its room's view (the first view never latches) and facing away from
@@ -35,9 +45,11 @@ export const base3dPlugin: PluginDef = definePlugin({
     Move,
     Lock,
     Act,
+    EmberTaken,
     heroInput,
     lockSelect,
     heroAct,
+    emberTake,
     heroMove,
     heroView,
   ],
