@@ -17,9 +17,20 @@ interface Props {
 const { shown, copy }: Props = $props()
 
 // The paused game behind it is out of reach while it shows, as behind a modal; the hint itself takes no focus.
-// `bind:this` sets null when the hint goes.
+// `bind:this` sets null when the hint goes. A browser drops the focus from a control made inert, so the control that
+// held it gets it back when the hint goes, unless the focus has moved on meanwhile or the control has gone (G3-x).
 let root = $state<HTMLElement | null | undefined>(undefined)
-$effect(() => (root == null ? undefined : inertOutside(root)))
+$effect(() => {
+  if (root == null) return undefined
+  const focused = document.activeElement
+  const release = inertOutside(root)
+  return () => {
+    release()
+    const moved = document.activeElement !== null && document.activeElement !== document.body
+    if (!moved && focused instanceof HTMLElement && focused !== document.body && focused.isConnected)
+      focused.focus()
+  }
+})
 </script>
 
 {#if shown}

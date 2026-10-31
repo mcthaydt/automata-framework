@@ -2,7 +2,7 @@
 declare module 'virtual:automata/content' {
   import type { AssetsSource, FlowGraph, GameSource, Palette } from '@mcthaydt/automata-content'
 
-  export type FigureId = 'target' | 'wick'
+  export type FigureId = 'ash-captain' | 'ash-knight' | 'sootling' | 'target' | 'warden' | 'wick'
   export type Figure = {
     readonly default: string
     readonly gait: unknown /* figure.gait has no JSON form */
@@ -457,7 +457,7 @@ declare module 'virtual:automata/content' {
     }
   }
 
-  export type FigureClipId = 'guard' | 'pickup' | 'point' | 'slash'
+  export type FigureClipId = 'captain-chop-1' | 'captain-chop-2' | 'guard' | 'hop-back' | 'hop-side' | 'knight-bash' | 'knight-chop' | 'pickup' | 'point' | 'roll' | 'slash' | 'slash-1' | 'slash-2' | 'sootling-lunge' | 'spin' | 'thrust' | 'warden-breath' | 'warden-charge' | 'warden-slam' | 'warden-swipe'
   export type FigureClip = {
     readonly blend?: {
       readonly inMs: number

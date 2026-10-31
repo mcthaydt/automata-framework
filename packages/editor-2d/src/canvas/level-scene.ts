@@ -3,6 +3,7 @@ import type { ColorResolver } from './colors'
 import type { LayerDraw, LevelDrawList } from './draw/draw-list-types'
 import {
   backgroundView,
+  drawLinks,
   drawOverlays,
   entityKey,
   entityView,
@@ -18,7 +19,8 @@ import type { TextureManager } from './textures.manager'
 // the same chunk object for every chunk a stroke did not touch, so the scene keeps the Pixi container it built for each
 // chunk object and builds only for the new ones; a chunk object that is not in the next list is destroyed with its
 // container. Entities and objects are kept per instance id while what they draw is unchanged. The overlays (grid,
-// footprint, selection) are one `Graphics` redrawn on each update: a few hundred lines at most.
+// footprint, selection) are one `Graphics` redrawn on each update: a few hundred lines at most. The links (ED2D.6c)
+// are rebuilt over them on each update too.
 
 export interface LevelSceneOptions {
   readonly textures: TextureManager
@@ -61,7 +63,8 @@ export function createLevelScene(options: LevelSceneOptions): LevelScene {
   const backgroundSlot = new Container()
   const layersRoot = new Container()
   const overlay = new Graphics()
-  root.addChild(backgroundSlot, layersRoot, overlay)
+  const links = new Container()
+  root.addChild(backgroundSlot, layersRoot, overlay, links)
   let background: Kept | undefined
   let layers = new Map<string, LayerView>()
 
@@ -151,6 +154,7 @@ export function createLevelScene(options: LevelSceneOptions): LevelScene {
         [...next.values()].map((view) => view.container),
       )
       drawOverlays(overlay, list, context, px)
+      drawLinks(links, list.links, list.size, context, px)
     },
     chunkView(chunk) {
       for (const view of layers.values()) {

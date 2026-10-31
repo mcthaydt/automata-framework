@@ -7,7 +7,8 @@
 import type { NavEdge } from '../format/blockout.schema'
 import type { Box } from '../format/expand'
 import type { Point } from '../format/sector.schema'
-import { type Edge, insideSector, type ResolvedMap, type Sector, STEP, segmentDistance } from './sectors'
+import { STEP } from '../format/sector.schema'
+import { type Edge, insideSector, type ResolvedMap, type Sector, segmentDistance } from './sectors'
 
 /** Which doors are open, by door id. */
 export type NavState = Readonly<Record<string, boolean | undefined>>

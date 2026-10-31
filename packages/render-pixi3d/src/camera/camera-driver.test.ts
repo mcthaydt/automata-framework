@@ -113,6 +113,34 @@ describe('cameraDriver', () => {
     expect(draw(0.8)).toContain('heading 90 track')
   })
 
+  it('eases a heading change the game says to ease (a recentre), on its first frame only; others track', () => {
+    const { rig, calls } = fakeRig()
+    const seen: [unknown, unknown][] = []
+    const hooks = cameraDriver(rig, {
+      views: VIEWS,
+      initial: 'hall',
+      follow: 'body',
+      easeHeading: (curr, prev) => {
+        seen.push([curr['camera-heading']?.heading, prev?.['camera-heading']?.heading])
+        return curr['camera-heading']?.heading === QUARTER
+      },
+    })
+    const draw = () => {
+      calls.length = 0
+      hooks.draw?.(frame(1))
+      return calls.filter((call) => call.startsWith('heading'))
+    }
+    hooks.apply?.(delta({ added: [player('hall', 0, 0)] }))
+    draw()
+    hooks.apply?.(delta({ changed: [player('hall', QUARTER, 0)] }))
+    expect(draw()).toEqual(['heading 90 ease'])
+    // Later frames of the same tick track the same target, which lets the ease finish.
+    expect(draw()).toEqual(['heading 90 track'])
+    hooks.apply?.(delta({ changed: [player('hall', 1_000, 0)] }))
+    expect(draw()).toEqual([`heading ${(1_000 * 360) / 65_536} track`])
+    expect(seen).toContainEqual([QUARTER, 0])
+  })
+
   it('a view with no yawDeg keeps the player’s heading and only tracks it', () => {
     const { hooks, draw } = driven()
     hooks.apply?.(delta({ added: [player('north', QUARTER, 0)] }))

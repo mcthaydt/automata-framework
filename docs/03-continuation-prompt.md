@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-31 ~08:00Z by the coordinator (session_01QYLU1iZKdmysJwC6Hc9Pn8). Source HEAD verified before this update: `f921716` on `main`. Merged since 04:05Z: #294 M3.7b part 4 (M3.7b complete), #305 EDS.2c-c, #301 ED2D.7a, #306 CI.MAIN1, #311 DIST.0/STANDALONE.0 (ADR 0006), #317 DIST.1 spec; website#26 WEB.PLAY.10, #27 WEB.PLAY.11, #28 DX.10a; plus#16 M7.5b, #17 (plus issue #14's races). Closed unmerged: #315 (the FloorFifty 2D profile was dropped). The earlier history of this line is in git.
+> Updated 2026-10-31 ~10:05Z by the coordinator (session_01QYLU1iDbVLLVyDwRRpB8wM, since 09:50Z). Source HEAD verified before this update: `547ce17` on `main`. Merged since 08:00Z: #331 M6.0a, #294 M3.7b part 4, #316 STANDALONE.3, #329 docs 02/03, #312 DX.2d, #303 EDS.2d; website#32 QB.4b, #30 STANDALONE.1 (website#33, a perf follow-up for SourceExplorer with no row, is open); plus#18 M6.3, #19 M6.4a plan, #21 M6.5/M6.6a plans, #22 M6.6a, #23 M6.7a plan.
 
 ## Prompt for the next agent
 
@@ -87,17 +87,25 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 - M3 will not finish within the two weeks before Pixi 3D goes public (the map puts M3's critical path, M3.0A through the figures to M3.10, at about three weeks for one agent), and the launch also waits on GAME-3D.1 and M9.0.
 - `mcthaydt/automata-skills` holds only its initial commit `e14c0ba`. This session's Discord plugin failed to connect (CONNECTION_CLOSED).
 
+## Owner decisions of 2026-10-31 (coordinator session_01QYLU1iDbVLLVyDwRRpB8wM)
+
+- **Publish.** "publish is approved": #226 Version packages merged (`220083b`); the release run 41194357616 published the `@mcthaydt/automata-*` packages at 0.0.4 to GitHub Packages, with the registry consumer smoke green. The publish job did not pause at the `release` environment (no pending deployment), so QB.1's gate needs the Owner to check Settings → Environments → `release`.
+- **Queued runs.** "Cancel queued runs": runs on stacked drafts and superseded `main` pushes are cancelled; a run for a PR on `main` is kept.
+- **Model.** "Switch to sonnet 5 high with our next cycle": every session the launcher creates from the next rotation uses `claude-sonnet-5-5`, with high effort set in the prompt (the launcher has no effort parameter).
+- **base-3d scope.** "I think we overscoped the 3D one a bit", then "Trimmed slice": keep the systems already built; the content is one short dungeon of 3 rooms (entry, a keys/doors/switches puzzle room, the boss room); no hub, townsfolk, shop or minigame; 2 enemy types plus the boss; stair IK (GAME-3D.1g) leaves 1.0; 1i, 1j and 1k shrink to match. The 3D lane amends `games/base-3d/DESIGN.md`; the GAME-3D rows in 02 change when it merges.
+- **Milestone PRs.** "PRs should be milestone level", then "Yes, consolidate now": one PR per milestone (see [04](04-how-we-build.md)); the open stacks were folded into #342, #336, #332 and #341, and the intermediate PRs closed with a pointer.
+
 ## Open PRs and lanes in flight
 
 Each lane is a cloud session that works only in its own worktrees and PRs, never edits 02, 03, 00, 01 or `AGENTS.md`, and reports "ready: #N <task> head <sha>" lines to the coordinator; the coordinator reviews, marks the PR ready, watches its CI, merges it on green (merge commit, full head sha) and ticks 02. Sessions are created and archived only by the launcher `session_01QYLU1fJPdbAybiTAWuSqLd` (every coordinator and lane sits at depth 1); the coordinator rotates every two hours and lanes are replaced when their context fills. No Agent or Workflow tool anywhere ("Apply all 4, no more subagents").
 
-| Lane | Session | State on 2026-10-31 ~08:00Z |
+| Lane | Session | State on 2026-10-31 ~10:05Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03/00/01 and `AGENTS.md`, the Ruken repacks, APP and PLUS.FREE docs, the runtime); the only session that watches PRs and CI | `session_01QYLU1iZKdmysJwC6Hc9Pn8` (since 07:45Z) | Watching and merging on green: the 3D stack (#297, #300, #304, #307, #309, #313, #314, #318, #319, #320, #324, #327: each retargets to `main` once its parent merges); #303 EDS.2d, #308 ED2D.7b then #325, #310 ED2D.6b then #322, #312 DX.2d, #316 STANDALONE.3, #321 DIST.2 then #323 DIST.4 then #326 DIST.3a; #328 ED2D.8a (after #322); website#30 STANDALONE.1, #31 QB.4c, #32 QB.4b. All reviewed and accepted. |
-| 3D (M3, GAME-3D, M9 free parts) | `session_01QYLU1fetRTT3kToxUAx8FS` | GAME-3D.1d done (#318, #319, #320, #324); GAME-3D.1e (the HUD) next, stacked on #324's branch. Carries: hearts.max 3 against DESIGN §7.8's 4; 1h's drag and flick cycling; 1i, 1j. |
-| Editors (ED2D, ED3D, EDK, EDS) | `session_01QYLU1hYdgks6bMrvZX4wba` | Done #316, #322, #325 (no Ruken words left in editor UI text); next ED2D.8 (the iPad pass), then the unticked editor rows in order. |
-| Website and Plus | `session_01QYLU1igkd7HH81jef9VqhB` | The home-page hydration fix, then M6.0a (amend the M6 spec for ADR 0006), then M6.3 and the M6 chain (M6.4a, M6.5, M6.6a, M6.8a, M6.8c, M6.9a, M6.9b). PLUS.FREE waits on the Owner's licence text; DX.9w waits on a successful `main` `ci` run with an `evidence` artifact; DX.11w on DX.11a. |
-| DIST (host contract and targets) | `session_01QYLU1hgfPKpcAxfBmeF78F` | #321 DIST.2 (fixing api-report's undeclared breaks), #323 DIST.4; then DIST.3 (stacked on #323), DIST.5, DIST.6. |
+| Coordinator (core and 2D path, CI, docs 02/03/00/01 and `AGENTS.md`, the Ruken repacks, APP and PLUS.FREE docs, the runtime, GAME.PAUSE1); the only session that watches PRs and CI | `session_01QYLU1iDbVLLVyDwRRpB8wM` (since 09:50Z) | Watching and merging on green: the 3D stack #297 → #300 → #304 → #307 → #309 → #313 → #314 → #318 → #319 → #320 → #324 → #327 → #330 → #333 → #335 → #339 → #340; #308 then #325; #310 then #322 → #328 → #332; #341; #337; #321 then #323 → #326 → #334 → #336; #338; website#31, #33, #34; plus#20 (after its core.ref bump to #338's merge). |
+| 3D (M3, GAME-3D, M9 free parts) | `session_01QYLU1fZavy4Ye1Rt5Xd3Ek` | GAME-3D.1e parts 5a/5b (#339, #340) accepted; 5c (Map screen, plus a scrim behind Items and an owned-not-choosable Sword/Shield state) under review; then GAME-3D.1a part 2 (G3-t) once #297 and #300 land. Items/Map reached by keys and HUD chips until GAME.PAUSE1. |
+| Editors (ED2D, ED3D, EDK, EDS) | `session_01QYLU1fqjnTz3C4FMBoewcM` | #341 ED3D.6g-a ready; ED2D.8c (local, pushes after #332), ED3D.6g-b (local, pushes after #341); ED2D.8 journeys after #337 and the ED2D stack. |
+| Website and Plus | `session_01QYLU1hZY1TXhastuYtC6Gb` | plus#20 M6.4a parts 1+2 waits for the core.ref bump to #338's merge; then puzzleExtension, M6.5 nav code, M6.7a code. PLUS.FREE waits on the Owner's licence text; DX.9w on a successful `main` `ci` run. |
+| DIST (host contract and targets) | `session_01QYLU1hmd33YRb3ny6fN1Ea` | Stack #321 → #323 → #326 → #334 → #336 accepted; DIST.5b (`claude/dist-5b-ship-tauri`) opens after #336, DIST.5c after 5b, DIST.6 plan and code after 5b. Root-causing CI.E2E1. |
 
 **CI bottleneck.** One PC runner (`owner-pc-wsl-af`, label `af-linux`) runs every checks, game-ci and consumer-smoke job, one at a time; a PR's game-ci jobs queue only after its checks job, so they land behind every newer checks run (#294's waited over two hours). Parity, release and the nightly run on the Macs. A second `af-linux` runner, or leave to cancel queued runs on stacked drafts, is with the Owner.
 
@@ -122,7 +130,7 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 
 1. Merge the open PRs above as each goes green on its head (parity included); Walk the 3D stack down from #297 (retarget the child to `main`, merge `main` in, run `pnpm --filter @af-games/base-3d test`, `pnpm exec biome check --write` on what changed, push, mark ready, merge on green). #308 and #310 conflict in the 2D editor's `views.ts`, `ViewServices` and `DocumentScreen`: keep both views. #308's branch still carries the stage profile #316 removes; keep it removed.
 2. When a `main` `ci` push run succeeds with its `evidence` artifact (CI.MAIN1 merged), send its run id to the website and Plus lane for DX.9w.
-3. The next 02/03 batch: tick the rows of whatever else merges (STANDALONE.1, QB.4b and QB.4c on website#30 to #32).
+3. The next 02/03 batch: tick what merges next (QB.4c on website#31, DIST.2/3/4 as the DIST stack lands, the 3D stack's GAME-3D rows, EDK.6b on #337, M6.4a-0a on #338).
 4. The runtime focus follow-up (`packages/runtime/src/flow/flow.manager.ts`, the auto-focus on entry) is **not** a plain `!document.hasFocus()` skip: that breaks M4 spec §4.7 under a host, where the game focusing its first control is what gives its frame the keyboard (`examples/e2e/default-screens.e2e.ts` asserts Play focused under the fake host). It needs a narrow opt-out for an inert preview frame, written into the M4 spec first.
 5. The "Version packages" PR (#226): its publish waits for the Owner's release-environment approval; not watched.
 6. Next coordinator rows with no prerequisite: STANDALONE.2 (dedicated lane, after the 3D stack), PRODUCT.1b2, DX.6a, DX.7b/c, CI.N1a, CI.N3, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu, CI.BND2.

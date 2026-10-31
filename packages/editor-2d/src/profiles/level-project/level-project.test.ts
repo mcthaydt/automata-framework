@@ -207,8 +207,11 @@ describe('the level-project profile', () => {
   describe('exports', () => {
     const project = platformerTemplate.create(counterIds())
 
-    it('has the working file and the AF content', () => {
-      expect(levelProject.exports.map((target) => target.id)).toEqual(['af2d-json', 'af-content'])
+    it('has the working file and the AF content, named in plain words (APP §5b)', () => {
+      expect(levelProject.exports.map((target) => [target.id, target.label])).toEqual([
+        ['af2d-json', 'Project file'],
+        ['af-content', 'Game files'],
+      ])
     })
 
     it('writes the working file named after the project', () => {

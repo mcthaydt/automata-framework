@@ -313,6 +313,19 @@ Definitions editor widgets (field list, type picker, option editor, default edit
 | Tablet journeys | Playwright WebKit with iPad profiles | Touch and pen sequences from `testing` helpers: drag-scrub, long-press menu, pinch, reorder |
 | Visual | GPU runner (D-5) | Screenshots only for Owner visual acceptance; never auto-promoted |
 
+**As built (EDK.6b, 2026-10-31; the [plan](../plans/2026-10-31-edk-6b-ipad-journeys.md) has the reasoning):** the
+journeys run in Vitest browser mode, not a second runner. `journeyProject(playwright)` (from
+`@mcthaydt/automata-editor-kit/journey-project`, and re-exported by `./testing`) is the `journeys` project each editor
+package spreads into its config: WebKit with `hasTouch`, a 2× screen and Safari's iPad user agent, over
+`src/**/*.journey.test.ts`, run by `pnpm test:journeys`. `IPAD_PROFILES` are the four iPads of §7 and `turned(profile)`
+the same iPad a quarter round; a journey sets the window with `page.viewport`. `createPointers(element)` sends the
+`PointerEvent`s an iPad sends, a frame apart: `tap`, `longPress`, `drag`, `pinch`, `twist`, `pencilHover`,
+`pencilStroke`, `palm` and `down` (an open contact to move, release or cancel mid-gesture; iPadOS cancels touches when
+the iPad turns). The kit's journeys cover EK-a, EK-b, EK-c, EK-g and EK-i over `JourneyFixture.svelte`. Limits of the
+emulation, which stay the Owner's device pass: Playwright's WebKit on Linux reports `navigator.maxTouchPoints` as 0
+(the coarse-pointer and no-hover media queries match), and a synthetic pointer cannot be captured, so "capture
+released" is not proven here.
+
 Fixtures: `FakePointer` (touch, pen, mouse), `FakeOpfs`, `FakeFolderHandle`, a `TestClock`. Focused feedback first: one widget or one gesture, then the layer, then `pnpm check`.
 
 ## 9. Acceptance cases

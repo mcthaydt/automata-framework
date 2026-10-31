@@ -10,6 +10,7 @@ import { memoryWorkspace } from '../../testing/memory-workspace'
 import { hollowmere } from '../../testing/samples'
 import { createTestClock } from '../../testing/test-clock'
 import { type EditorHandle, startEditor } from '../boot'
+import { uncoveredArea } from './world-model'
 
 // The World view with the production CSS in a real browser (plan ED2D.6b step 7; 2D editor spec §12), at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: the map fills the canvas and has drawn (or says why not), the
@@ -136,6 +137,12 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     const [top, bottom] = (mapElement.dataset.levelsBox ?? '').split(',').map(Number)
     expect(top).toBeGreaterThan(0)
     expect(Math.abs((top ?? 0) - (map.height - (bottom ?? 0)))).toBeLessThanOrEqual(1.5)
+    // And every level is inside the map across: the camera fits the real box, not the first one the page reported.
+    const [left, right] = (mapElement.dataset.levelsSpan ?? '').split(',').map(Number)
+    expect(left).toBeGreaterThanOrEqual(0)
+    expect(right).toBeLessThanOrEqual(map.width + 0.5)
+    // Fit sits over the map, a full-size target in view (plan ED2D.8a).
+    await expectTarget(buttonNamed(view(), 'Fit'), size)
 
     await openDrawer(size, 'Levels', 'panel')
     const panel = region('panel')
@@ -145,11 +152,35 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     const rows = [...panel.querySelectorAll<HTMLElement>('ul[aria-label="Levels"] button')]
     expect(rows.length).toBeGreaterThan(1)
     for (const row of rows) await expectTarget(row, size)
+    await expectTarget(buttonNamed(panel, 'Add level'), size)
     rows[0]?.click()
     await arrived()
     await closeDrawer(size, 'Levels', 'panel')
 
     await openDrawer(size, 'Inspector', 'inspector')
+    if (size.mode !== 'wide') {
+      // With the inspector open the levels fit the part of the map it leaves uncovered, and Fit is still a full-size
+      // target in view (review of #328; plan ED2D.8b decision 2).
+      await arrived()
+      await settleLayout()
+      const mapBox = byTestId('world-map').getBoundingClientRect()
+      const boxOf = (rect: DOMRect) => ({ x: rect.left, y: rect.top, w: rect.width, h: rect.height })
+      const area = uncoveredArea(boxOf(mapBox), [boxOf(region('inspector').getBoundingClientRect())])
+      const [levelsTop, levelsBottom] = (byTestId('world-map').dataset.levelsBox ?? '').split(',').map(Number)
+      const [levelsLeft, levelsRight] = (byTestId('world-map').dataset.levelsSpan ?? '')
+        .split(',')
+        .map(Number)
+      expect(levelsLeft).toBeGreaterThanOrEqual(area.x - 0.5)
+      expect(levelsRight).toBeLessThanOrEqual(area.x + area.w + 0.5)
+      expect(levelsTop).toBeGreaterThanOrEqual(area.y - 0.5)
+      expect(levelsBottom).toBeLessThanOrEqual(area.y + area.h + 0.5)
+      await expectTarget(buttonNamed(view(), 'Fit'), size)
+      const fit = buttonNamed(view(), 'Fit').getBoundingClientRect()
+      const cover = region('inspector').getBoundingClientRect()
+      const hidden =
+        fit.left < cover.right && fit.right > cover.left && fit.top < cover.bottom && fit.bottom > cover.top
+      expect(hidden).toBe(false)
+    }
     // The inspector opens at its top (Name first); the checks below scroll it to reach each control.
     const inspectorScroll = region('inspector').querySelector<HTMLElement>('[data-scroll-region]')
     expect(inspectorScroll?.scrollTop ?? 0).toBe(0)
@@ -162,6 +193,8 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     for (const radio of inspector.querySelectorAll<HTMLElement>('[role="radio"]'))
       await expectTarget(radio, size)
     await expectTarget(buttonNamed(inspector, 'Resize'), size)
+    await expectTarget(buttonNamed(inspector, 'Duplicate'), size)
+    await expectTarget(buttonNamed(inspector, 'Remove'), size)
     noPageScroll()
     // The image shows the inspector as it opens, at its top, not where the checks above left it.
     inspectorScroll?.scrollTo(0, 0)

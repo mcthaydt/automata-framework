@@ -1,0 +1,40 @@
+# The enemy move `captain-chop-1`'s clip (DESIGN.md §8.2 to §8.4, GAME-3D.1d part 4): 50 frames, `contact` on frame 31
+# (tick 30: 0.5 s), so it lines up with the sim's first active frame (G3-d's check, content.test.ts). A
+# placeholder until GAME-3D.1j authors it in the Studio: the arm drawn back through the windup, then driven forward.
+
+length = 0.8333
+loop = "once"
+mask = [ "armR", "torso" ]
+
+[markers]
+windup = 0.3
+contact = 0.5
+
+[[keys]]
+t = 0
+pose = "guard-high"
+
+[[keys]]
+t = 0.3
+ease = "out"
+
+[keys.pose.effectors.handR]
+pos = [ -0.1, 1.6, -0.25 ]
+
+[keys.pose.effectors.chest]
+rot = [ -10, -15, 0 ]
+
+[[keys]]
+t = 0.5
+ease = "in"
+
+[keys.pose.effectors.handR]
+pos = [ 0, 1, 0.6 ]
+
+[keys.pose.effectors.chest]
+rot = [ 15, 5, 0 ]
+
+[[keys]]
+t = 0.8333
+pose = "guard-high"
+ease = "inOut"

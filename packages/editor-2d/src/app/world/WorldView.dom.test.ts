@@ -15,7 +15,7 @@ import { renameLevel } from '../../model/world/level-edits'
 import FakeLevelCanvas from '../../testing/FakeLevelCanvas.svelte'
 import FakeWorldCanvas from '../../testing/FakeWorldCanvas.svelte'
 import { memoryWorkspace } from '../../testing/memory-workspace'
-import { withLayer, withNewLevel } from '../../testing/project-edit'
+import { entity, withEntities, withLayer, withNewLevel } from '../../testing/project-edit'
 import { createTestClock } from '../../testing/test-clock'
 import DocumentScreen from '../document/DocumentScreen.svelte'
 import { createDocumentController } from '../document/document-controller'
@@ -109,8 +109,10 @@ describe('World view: the map and the panel', () => {
 
   it('drags a level on the map by the travel over the scale, as one undo step; a tap only selects', async () => {
     const { history } = await mount()
-    const scale = fitWorld(worldRects(history.state, 'main', undefined), BOX, MARGIN).scale
-    const at = onMap(history.state, 1010, 10)
+    // The camera fits once and then holds still (plan ED2D.8a decision 2), so every point is aimed with the first fit.
+    const start = history.state
+    const scale = fitWorld(worldRects(start, 'main', undefined), BOX, MARGIN).scale
+    const at = onMap(start, 1010, 10)
     pointer('pointerdown', at.x, at.y)
     pointer('pointermove', at.x + 40, at.y + 20)
     pointer('pointerup', at.x + 40, at.y + 20)
@@ -120,7 +122,7 @@ describe('World view: the map and the panel', () => {
     })
     expect(await screen.findByRole('button', { name: 'Undo Move level' })).toBeEnabled()
     const before = history.revision
-    const first = onMap(history.state, 10, 10)
+    const first = onMap(start, 10, 10)
     pointer('pointerdown', first.x, first.y)
     pointer('pointerup', first.x, first.y)
     expect(history.revision).toBe(before)
@@ -212,5 +214,97 @@ describe('World view: the inspector', () => {
     await userEvent.click(within(again).getByRole('button', { name: 'Resize anyway' }))
     expect(history.state.levels[1]?.size.w).toBe(64)
     expect(screen.getByRole('button', { name: 'Undo Resize level' })).toBeEnabled()
+  })
+})
+
+describe('World view: links and new levels (plan ED2D.6c)', () => {
+  /** A door in the first level that leads to a spawn in Second. */
+  const linked = (project: Project): Project => {
+    const first = project.levels[0]?.id ?? ''
+    const spawned = withEntities(project, 'level-2', [entity('spawn-2', 'player-start', 32, 32)])
+    return withEntities(spawned, first, [
+      entity('door-1', 'door', 64, 64, { target: { target: 'spawn-2', container: 'level-2' } }),
+    ])
+  }
+
+  it('hands the map its links, and lists them in the inspector both ways', async () => {
+    const { first } = await mount(linked)
+    expect(screen.getByTestId('fake-world-canvas')).toHaveAttribute('data-links', `${first}>level-2`)
+    await userEvent.click(levelList().getAllByRole('button')[0] as HTMLElement)
+    const links = within(inspector().getByRole('list', { name: 'Links' }))
+    expect(links.getByRole('listitem')).toHaveTextContent('Door → Second · Player start')
+    await userEvent.click(levelList().getByRole('button', { name: 'Second' }))
+    expect(inspector().getByText(/^Linked from:/)).toHaveTextContent('Linked from: Level 1')
+    expect(inspector().getByText('No links from this level.')).toBeInTheDocument()
+  })
+
+  it('adds a level next to the others, selected, as one undo step', async () => {
+    const { history } = await mount()
+    const steps = history.revision
+    await userEvent.click(screen.getByRole('button', { name: 'Add level' }))
+    expect(history.revision).toBe(steps + 1)
+    expect(levelList().getByRole('button', { name: 'Level 3' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('fake-world-canvas').getAttribute('data-levels')).toContain('level-3@')
+    history.undo()
+    expect(await screen.findByTestId('world-view')).toBeInTheDocument()
+    expect(levelList().queryByRole('button', { name: 'Level 3' })).toBeNull()
+  })
+})
+
+describe('World view: the camera (plan ED2D.8a)', () => {
+  it('pans with the wheel, zooms with Ctrl+wheel about the pointer, and Fit puts every level back in view', async () => {
+    const { history } = await mount()
+    const fitted = fitWorld(worldRects(history.state, 'main', undefined), BOX, MARGIN)
+    const camera = () => screen.getByTestId('fake-world-canvas').getAttribute('data-camera')
+    expect(camera()).toBe(`${fitted.x},${fitted.y},${fitted.scale}`)
+    const map = screen.getByTestId('world-map')
+    map.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaX: 0, deltaY: 30 }))
+    await vi.waitFor(() => expect(camera()).toBe(`${fitted.x},${fitted.y - 30},${fitted.scale}`))
+    map.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -100,
+        ctrlKey: true,
+        clientX: 400,
+        clientY: 300,
+      }),
+    )
+    await vi.waitFor(() => expect(Number(camera()?.split(',')[2])).toBeGreaterThan(fitted.scale))
+    await userEvent.click(screen.getByRole('button', { name: 'Fit' }))
+    expect(camera()).toBe(`${fitted.x},${fitted.y},${fitted.scale}`)
+  })
+})
+
+describe('World view: duplicate and remove (plan ED2D.8a decision 3)', () => {
+  it('duplicates the selected level as "<name> copy", selected, as one undo step', async () => {
+    const { history } = await mount()
+    await userEvent.click(levelList().getByRole('button', { name: 'Second' }))
+    const steps = history.revision
+    await userEvent.click(inspector().getByRole('button', { name: 'Duplicate' }))
+    expect(history.revision).toBe(steps + 1)
+    expect(levelList().getByRole('button', { name: 'Second copy' })).toHaveAttribute('aria-pressed', 'true')
+    history.undo()
+    await vi.waitFor(() => expect(levelList().queryByRole('button', { name: 'Second copy' })).toBeNull())
+  })
+
+  it('asks before removing, says which links break, removes in one step, and keeps the last level', async () => {
+    const { history, first } = await mount((project) => {
+      const spawned = withEntities(project, 'level-2', [entity('spawn-2', 'player-start', 32, 32)])
+      return withEntities(spawned, project.levels[0]?.id ?? '', [
+        entity('door-1', 'door', 64, 64, { target: { target: 'spawn-2', container: 'level-2' } }),
+      ])
+    })
+    await userEvent.click(levelList().getByRole('button', { name: 'Second' }))
+    const steps = history.revision
+    await userEvent.click(inspector().getByRole('button', { name: 'Remove' }))
+    const dialog = within(await screen.findByRole('dialog', { name: 'Remove Second?' }))
+    expect(dialog.getByText('1 link leads here. It will show in Checks as broken.')).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole('button', { name: 'Remove' }))
+    expect(history.revision).toBe(steps + 1)
+    expect(history.state.levels.map((level) => level.id)).toEqual([first])
+    expect(screen.getByText('Choose a level on the map or in the list.')).toBeInTheDocument()
+    await userEvent.click(levelList().getAllByRole('button')[0] as HTMLElement)
+    expect(inspector().getByRole('button', { name: 'Remove' })).toBeDisabled()
   })
 })

@@ -1,5 +1,5 @@
 import type { FieldDef, FieldValue } from '@mcthaydt/automata-editor-kit/fields'
-import { render, screen } from '@testing-library/svelte'
+import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import FieldEditor from './FieldEditor.svelte'
@@ -94,12 +94,60 @@ describe('FieldEditor', () => {
     expect(oncommit).toHaveBeenLastCalledWith([])
   })
 
-  it('shows a ref and says the target picker is still to come', async () => {
-    const { oncommit, user } = mount({ id: 'target', type: 'ref', label: 'Leads to' }, undefined)
+  it('shows a ref by name and picks its target: a level, then a thing in it (flow 4)', async () => {
+    const def: FieldDef = { id: 'target', type: 'ref', label: 'Leads to', to: ['$level', 'door'] }
+    const oncommit = vi.fn((_value: FieldValue) => ({ ok: true }) as FieldCommit)
+    const row = {
+      ...fieldRow(def, undefined),
+      ref: {
+        name: undefined,
+        targets: [
+          {
+            level: 'map-1',
+            name: 'Village',
+            choices: [{ label: 'The level itself', value: { target: 'map-1' } }],
+          },
+          {
+            level: 'inn',
+            name: 'Inn',
+            choices: [
+              { label: 'The level itself', value: { target: 'inn' } },
+              { label: 'Door at 32, 200', value: { target: 'door-in', container: 'inn' } },
+            ],
+          },
+        ],
+      },
+    }
+    render(FieldEditor, { row, palette: [], oncommit })
+    const user = userEvent.setup()
     expect(screen.getByText('Not set')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Choose target' }))
-    expect(screen.getByRole('status')).toHaveTextContent(/coming/i)
-    expect(oncommit).not.toHaveBeenCalled()
+    const dialog = await screen.findByRole('dialog', { name: 'Choose a target for Leads to' })
+    await user.click(within(dialog).getByRole('button', { name: /^Inn/ }))
+    expect(within(dialog).getByRole('heading', { name: 'Inn' })).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Back' }))
+    await user.click(within(dialog).getByRole('button', { name: /^Inn/ }))
+    await user.click(within(dialog).getByRole('button', { name: 'Door at 32, 200' }))
+    expect(oncommit).toHaveBeenCalledExactlyOnceWith({ target: 'door-in', container: 'inn' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('says when a ref has nothing to point at, and shows a broken target as missing', async () => {
+    const def: FieldDef = { id: 'target', type: 'ref', label: 'Leads to' }
+    render(FieldEditor, {
+      row: { ...fieldRow(def, { target: 'gone' }), ref: { name: undefined, targets: [] } },
+      palette: [],
+      oncommit: vi.fn(() => ({ ok: true }) as FieldCommit),
+    })
+    expect(screen.getByText('gone (missing)')).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Choose target' }))
+    expect(await screen.findByText('Nothing in the project can be its target.')).toBeInTheDocument()
+  })
+
+  it('shows a ref with no project behind it (a default) without a picker', () => {
+    mount({ id: 'target', type: 'ref', label: 'Leads to' }, undefined)
+    expect(screen.getByText('Not set')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Choose target' })).toBeNull()
   })
 
   it('opens a colour field on the stored colour', () => {

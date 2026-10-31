@@ -35,6 +35,7 @@
     "@mcthaydt/automata-figures": "workspace:*",
     "@mcthaydt/automata-render-pixi": "workspace:*",
     "@mcthaydt/automata-runtime": "workspace:*",
+    "@mcthaydt/automata-sector-format": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",
