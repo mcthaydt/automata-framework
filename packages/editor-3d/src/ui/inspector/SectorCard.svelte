@@ -64,9 +64,10 @@ const materials = $derived(
 {#if card.style !== undefined}<p class="meta">Style {card.style}</p>{/if}
 
 <style>
+  /* One stepper to a row: two side by side wrap their buttons in the 320 px column. */
   .pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-2);
   }
   .materials {

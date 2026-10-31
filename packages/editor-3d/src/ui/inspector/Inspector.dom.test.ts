@@ -72,7 +72,7 @@ describe('Inspector', () => {
 
   it('shows a wall’s kind and its door, and changes the kind', async () => {
     const onchange = mount(doorWall)
-    expect(screen.getByRole('heading', { name: 'Wall 3 of hall' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Wall 4 of hall' })).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: 'Door' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByRole('spinbutton', { name: 'Door width' })).toHaveValue(1.2)
     await userEvent.click(screen.getByRole('radio', { name: 'Window' }))

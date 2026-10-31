@@ -37,7 +37,7 @@ const occludes = [
 ]
 </script>
 
-<h2>Wall {card.corner} of {card.sector}</h2>
+<h2>Wall {card.corner + 1} of {card.sector}</h2>
 <p class="meta">
   {card.length.toFixed(2)} m{card.type === 'portal' && card.to !== undefined ? ` · into ${card.to}` : ''}{card.preset ===
   undefined
@@ -125,9 +125,10 @@ const occludes = [
 />
 
 <style>
+  /* One stepper to a row: two side by side wrap their buttons in the 320 px column. */
   .pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-2);
   }
 </style>

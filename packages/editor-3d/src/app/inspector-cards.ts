@@ -152,7 +152,8 @@ export function wallRowsOf<D>(editor: Readable<D>): readonly InspectorRow[] {
     const kind = type === 'portal' ? `portal into ${wall?.next}` : type
     const id = `wall:${sector.id}/${corner}`
     const length = Math.hypot(end[0] - start[0], end[1] - start[1])
-    return { id, label: `Wall ${corner} · ${kind} · ${length.toFixed(2)} m`, selected: chosen.has(id) }
+    // Counted from 1, as the status line counts walls for people.
+    return { id, label: `Wall ${corner + 1} · ${kind} · ${length.toFixed(2)} m`, selected: chosen.has(id) }
   })
 }
 

@@ -89,10 +89,10 @@ describe('inspectorOf', () => {
 describe('the portrait sheet’s lists (ED3D.5f step 6)', () => {
   it('lists the walls of the selected room, or of the wall’s room, with each kind', () => {
     expect(wallRowsOf(editorWith('sector:hall'))).toEqual([
-      { id: 'wall:hall/0', label: 'Wall 0 · window · 8.00 m', selected: false },
-      { id: 'wall:hall/1', label: 'Wall 1 · portal into dock · 6.00 m', selected: false },
-      { id: 'wall:hall/2', label: 'Wall 2 · solid · 8.00 m', selected: false },
-      { id: 'wall:hall/3', label: 'Wall 3 · door · 6.00 m', selected: false },
+      { id: 'wall:hall/0', label: 'Wall 1 · window · 8.00 m', selected: false },
+      { id: 'wall:hall/1', label: 'Wall 2 · portal into dock · 6.00 m', selected: false },
+      { id: 'wall:hall/2', label: 'Wall 3 · solid · 8.00 m', selected: false },
+      { id: 'wall:hall/3', label: 'Wall 4 · door · 6.00 m', selected: false },
     ])
     expect(wallRowsOf(editorWith('wall:hall/2')).find((row) => row.selected)?.id).toBe('wall:hall/2')
     expect(wallRowsOf(editorWith())).toEqual([])

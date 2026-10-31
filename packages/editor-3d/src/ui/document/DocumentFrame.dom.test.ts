@@ -182,9 +182,9 @@ describe('DocumentFrame', () => {
     await act(() => levelOf(controller).editor.selection.set(['sector:hall']))
     expect(within(sheet).getByRole('heading', { name: 'hall' })).toBeInTheDocument()
     await userEvent.click(within(sheet).getByRole('tab', { name: 'Walls' }))
-    await userEvent.click(within(sheet).getByRole('button', { name: 'Wall 3 · door · 6.00 m' }))
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Wall 4 · door · 6.00 m' }))
     expect(levelOf(controller).editor.selection.ids).toEqual(['wall:hall/3'])
-    expect(within(sheet).getByRole('button', { name: 'Wall 3 · door · 6.00 m' })).toHaveAttribute(
+    expect(within(sheet).getByRole('button', { name: 'Wall 4 · door · 6.00 m' })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
