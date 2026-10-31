@@ -17,6 +17,8 @@
 2. **A selection of several** shows the first selected item's card and says how many are selected (the mockup has no multi-edit; a follow-up).
 3. **The Portrait tool strip** carries the rail's tools, Fit and Layers, and Plan/3D; the views move there below `wide` (the bar has no room), so 3D is reachable at `medium` (ED3D.5e left that open).
 
+4. **The inspector column only on a wide window of 1100 px or more** (iPad mini landscape, 1133, keeps it): below that the rail, the layers and the column leave the plan a few hundred pixels, too little for its toolbar, lens, pad and actions; the status line names what is selected there. The draw actions move to the plan's foot on the left (the mockup's place), clear of the nudge pad on the right, and swap sides when the pad does.
+
 ## Interfaces
 
 **Produced (editor-private):** `app/inspector-cards.ts` (`inspectorOf`, `InspectorCard`), `app/inspector-edits.ts` (`createInspectorEdits`, `InspectorChange`), `ui/inspector/{SectorCard,WallCard,Inspector}.svelte` (the thing card is a few lines in `Inspector.svelte` until ED3D.7d's form), `ui/inspector/PortraitSheet.svelte`, `ui/plan/ToolStrip.svelte`.
@@ -40,3 +42,9 @@
 - 2026-10-31, step 5: merged #341's accepted branch (ED3D.6g) rather than `origin/main`, where it had not landed yet, so the frame is reconciled once (both sides kept in `DocumentFrame`: 6g's rail, keys and tools; 5e's Split and 3D). editor-3d `test:unit` 2835 of 2835 after the merge. Then the inspector column at `wide`: the `DocumentFrame` test red (no inspector), then 18 of 18.
 - 2026-10-31, step 6: the rows (`wallRowsOf`, `thingRowsOf`) red then 8 of 8; the portrait `DocumentFrame` test red, then green after one fix (the rows did not follow the selection until derived from the frame's reactive selection and card). Below `wide`: no shell rail; the tools float over the plan's foot (`tool-strip`, with `--plan-foot` lifting the draw actions above it); the bar offers Plan and 3D (`modeOptions({ narrow })`, tested); the inspector is the shell's dock sheet (`PortraitSheet`) with Sector, Walls, Things and Checks. editor-3d `src/ui` DOM 94 of 94; `svelte-check` 0 errors. This replaces 6g's tab-bar rail at `medium` with the mockup's floating strip.
 - 2026-10-31, step 7: the rotation test red (the sheet's tab reset when the sheet left at `wide`), then green with the tab bound to the frame; 95 of 95. The tools (and so an open drawing, which lives in the Sector tool) are the frame's and survive the change; the canvas is not remounted (its `{#if}` branch is unchanged), as ED3D.5d's rotation journey already checks.
+- 2026-10-31, step 8 (layout), what the runs found and changed:
+  - The shell's bottom sheet covered the floating strip; the strip and the plan's foot controls (`--plan-foot`) now stand on the shell's `--dock-lift`, and the nudge pad is placed by side with CSS (`nudgePlace` returns `'left' | 'right'`; its tests and the pad's follow) so it stands above them too.
+  - The strip squeezed "Window" (the rail's tab-bar sizing): strip buttons are as wide as their names.
+  - In the short peek sheet the flex column shrank the tab row under the panel (a stepper's label was on top of the tabs): the tab row keeps its height and stays in view as the sheet scrolls.
+  - With the inspector column at `wide`, a 900 px window left the plan 260 px and iPad mini landscape put the pad over Close sector: decision 4.
+  - Then `inspector.layout.test.ts`, `draw-journeys`, `sector-tools`, `split-view`, `plan-view` and the document layouts in Chromium, WebKit and Firefox: 279 passed and 6 skipped (phone journeys) with the 900 px inspector case failing as expected before its test was updated to assert the new behaviour; then that file 18 of 18.

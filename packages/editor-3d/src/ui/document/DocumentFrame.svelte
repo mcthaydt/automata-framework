@@ -77,6 +77,13 @@ function snapshot(source: DocumentController): DocumentState {
 }
 
 const shellMode = $derived(shellModeOf(geometry.current.formFactor))
+/**
+ * The inspector column at wide needs room beside the rail, the layers and the plan: on a window narrower than this the
+ * plan would be left a few hundred pixels for its toolbar, lens, pad and actions, so the column is left out and the
+ * status line names what is selected (iPad mini landscape, 1133 px, keeps it; plan decision 4).
+ */
+const INSPECTOR_MIN_WIDTH = 1100
+const inspectorShown = $derived(shellMode === 'wide' && geometry.current.layout.width >= INSPECTOR_MIN_WIDTH)
 const compact = $derived(shellMode === 'compact')
 /** The layers drawer (or sheet on a phone), below `wide`; at `wide` the panel is always in view. */
 let panelOpen = $state(false)
@@ -218,7 +225,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
   {geometry}
   bind:panelOpen
   rail={shellMode === 'wide' ? toolRail : undefined}
-  inspector={shellMode === 'wide' ? inspector : undefined}
+  inspector={inspectorShown ? inspector : undefined}
   dock={shellMode === 'medium' ? portrait : undefined}
   testId="document-frame"
 >
@@ -314,13 +321,20 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
     min-height: 0;
   }
   /* The plan's own controls at its foot (the draw actions, the portal offers) stand above the strip. */
+  /* Above the strip, which stands above the bottom sheet's height (the shell's --dock-lift; a sheet dragged to half or
+     full covers the plan on purpose). */
   .stage.strip {
-    --plan-foot: 64px;
+    --plan-foot: calc(var(--dock-lift, 0px) + 64px);
+  }
+  /* In the strip each tool is as wide as its name (the rail's tab-bar sizing would squeeze "Window"). */
+  .tool-strip :global(.rail[data-orientation='horizontal'] button) {
+    flex: 0 0 auto;
+    padding: 0 var(--space-2);
   }
   .tool-strip {
     position: absolute;
     z-index: 2;
-    bottom: var(--space-3);
+    bottom: calc(var(--space-3) + var(--dock-lift, 0px));
     left: 50%;
     max-width: calc(100% - 2 * var(--space-3));
     transform: translateX(-50%);

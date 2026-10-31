@@ -65,7 +65,7 @@ let rulers = $state.raw<PlanPaint['rulers']>({ x: [], z: [] })
 let tool = $state.raw<PlanToolState>(tools.state)
 let labels = $state.raw<readonly ToolLabel[]>([])
 /** Where the nudge pad sits while it shows (touch or Pencil, corners placed; ED3D.6g-b). */
-let pad = $state.raw<{ x: number; y: number } | undefined>(undefined)
+let pad = $state.raw<'left' | 'right' | undefined>(undefined)
 
 let size: Size | undefined
 let view: PlanRenderer | undefined
@@ -222,7 +222,7 @@ onDestroy(() => {
   {/if}
   {#if tool.tool === 'polygon' || tool.tool === 'rectangle' || tool.tool === 'split' || tool.tool === 'merge'}
     <!-- A press on the options is not a tap on the plan under them: the gestures listen on the whole canvas. -->
-    <div class="controls" {@attach keepPresses}>
+    <div class="controls" data-pad={pad} {@attach keepPresses}>
     <SectorOptions
       tool={tool.tool}
       corners={tool.tool === 'polygon' || tool.tool === 'rectangle' ? tool.view.corners.length : 0}
@@ -246,8 +246,7 @@ onDestroy(() => {
     {/if}
     {#if pad !== undefined}
       <NudgePad
-        x={pad.x}
-        y={pad.y}
+        side={pad}
         onnudge={(dx, dz) => tools.sector?.nudge(dx, dz)}
         onclose={() => tools.sector?.close()}
       />

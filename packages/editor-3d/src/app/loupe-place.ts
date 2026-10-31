@@ -23,8 +23,11 @@ export function loupePlace(at: ScreenPoint, canvas: Size, lens: number = LENS): 
   return { x: clamp(x, EDGE, canvas.w - EDGE - lens), y: clamp(y, EDGE, canvas.h - EDGE - lens) }
 }
 
-/** The pad's top-left: the bottom-right corner, or the bottom-left when `at` is under it or a finger's reach from it. */
-export function nudgePlace(at: ScreenPoint | undefined, canvas: Size, pad: number = PAD): ScreenPoint {
+/**
+ * The pad's corner: the bottom right, or the bottom left when `at` is under the pad there or a finger's reach from it.
+ * The canvas places it in that corner with CSS, above whatever covers the plan's foot (ED3D.5f's tool strip and sheet).
+ */
+export function nudgePlace(at: ScreenPoint | undefined, canvas: Size, pad: number = PAD): 'left' | 'right' {
   const right = { x: canvas.w - PAD_EDGE - pad, y: canvas.h - PAD_EDGE - pad }
   const reach = PICK_RADIUS.touch
   const near =
@@ -33,5 +36,5 @@ export function nudgePlace(at: ScreenPoint | undefined, canvas: Size, pad: numbe
     at.x <= right.x + pad + reach &&
     at.y >= right.y - reach &&
     at.y <= right.y + pad + reach
-  return near ? { x: PAD_EDGE, y: right.y } : right
+  return near ? 'left' : 'right'
 }

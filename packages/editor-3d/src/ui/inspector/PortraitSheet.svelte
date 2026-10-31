@@ -68,6 +68,15 @@ const TABS = [
     flex-direction: column;
     min-height: 0;
   }
+  /* The tabs keep their height in the short peek sheet (a flex column would shrink them under the panel), and stay in
+     view while the sheet's content scrolls under them. */
+  .sheet :global([role='tablist']) {
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--color-bg-surface);
+  }
   ul {
     display: flex;
     flex-direction: column;
