@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The web targets' CSP: no eval (render-pixi3d/no-eval must carry everything drawn here). -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; worker-src 'self' blob:" />
+    <link rel="icon" href="data:," />
+    <title>base-3d art spike</title>
+    <style>html,body{margin:0;background:#0e071b;overflow:hidden}canvas{display:block}</style>
+  </head>
+  <body>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
