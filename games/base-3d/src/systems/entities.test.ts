@@ -50,6 +50,13 @@ describe('area entities (GAME-3D.1f part 1, G3-F2)', () => {
     expect(area.entities[3]).toMatchObject({ width: metres(1), depth: metres(1) })
   })
 
+  it('leaves out a field given as undefined, so the content stays canonical JSON', () => {
+    const area = compileArea(
+      withEntities([{ def: 'door', id: 'd', x: 0, z: 4, lock: 'none', switch: undefined }]),
+    )
+    expect(Object.hasOwn(area.entities[0] ?? {}, 'switch')).toBe(false)
+  })
+
   it('takes an area with no entities', () => {
     expect(compileArea(FIRST_SLICE).entities).toEqual([])
   })

@@ -230,3 +230,32 @@ const doorFields = {
 
 /** A door (DESIGN.md §10, GAME-3D.1f part 2): its lock is its entity's; opened ones are saved by id. */
 export const Door: ComponentDef<typeof doorFields> = defineComponent('door', doorFields)
+
+const switchFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+  on: 'bool',
+  /** Its box in plan, Q16.16 metres: a plate's footprint, a lever's or an eye's place. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/** A switch (DESIGN.md §10, GAME-3D.1f part 3): a plate, an eye or a lever; a latching one stays on and is saved. */
+export const Switch: ComponentDef<typeof switchFields> = defineComponent('switch', switchFields)
+
+const blockFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+  /** Its centre, and where it goes back to on room entry, Q16.16 metres. */
+  x: 'i32',
+  z: 'i32',
+  homeX: 'i32',
+  homeZ: 'i32',
+  /** Ticks Wick has pushed it running; at `BLOCK_PUSH_TICKS` it moves a cell. */
+  push: 'u32',
+} as const
+
+/** A pushable block (DESIGN.md §10, GAME-3D.1f part 3): a 1 m cube, a wall to everything but a push. */
+export const Block: ComponentDef<typeof blockFields> = defineComponent('block', blockFields)

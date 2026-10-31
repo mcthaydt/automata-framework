@@ -80,3 +80,13 @@ export const SlingTargetHit: EventDef<typeof piece> = defineEvent('sling-target.
 
 /** A door opened (DESIGN.md §10), by its entity's index + 1: the clunk, and it is saved. */
 export const DoorOpened: EventDef<typeof piece> = defineEvent('door.opened', piece)
+
+const switched = z.object({ piece: z.int().positive(), on: z.boolean() })
+
+/** A switch went on or off (DESIGN.md §10), by its entity's index + 1. */
+export const SwitchChanged: EventDef<typeof switched> = defineEvent('switch.changed', switched)
+
+const moved = z.object({ piece: z.int().positive(), x: z.int(), z: z.int() })
+
+/** A block was pushed a cell to its new centre (DESIGN.md §10). */
+export const BlockMoved: EventDef<typeof moved> = defineEvent('block.moved', moved)

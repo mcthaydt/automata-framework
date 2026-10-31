@@ -5,6 +5,7 @@ import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Equip, Lock, LockCycle, Move } from '../commands.ts'
 import {
+  Block,
   Bomb,
   Chain,
   Door,
@@ -16,12 +17,14 @@ import {
   HeroControl,
   Pellet,
   SlingTarget,
+  Switch,
   Target,
 } from '../components.ts'
 import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants/index.ts'
 import {
   AreaEntered,
   AreaExit,
+  BlockMoved,
   BombBlast,
   BossDefeated,
   BossPhase,
@@ -35,6 +38,7 @@ import {
   HitLanded,
   ShotFired,
   SlingTargetHit,
+  SwitchChanged,
 } from '../events.ts'
 import { Dungeon, Freeze, Inventory, Location, Progress } from '../resources.ts'
 import {
@@ -47,7 +51,9 @@ import {
   combatMoves,
   combatStatus,
   dropsTake,
+  dungeonBlocks,
   dungeonDoors,
+  dungeonSwitches,
   dungeonVisit,
   emberTake,
   enemyBrain,
@@ -123,6 +129,8 @@ export const base3dPlugin: PluginDef = definePlugin({
     Chain,
     SlingTarget,
     Door,
+    Switch,
+    Block,
     Move,
     Lock,
     LockCycle,
@@ -141,6 +149,8 @@ export const base3dPlugin: PluginDef = definePlugin({
     ChainHooked,
     SlingTargetHit,
     DoorOpened,
+    SwitchChanged,
+    BlockMoved,
     AreaExit,
     AreaEntered,
     heroInput,
@@ -150,6 +160,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     lockAssist,
     heroAct,
     itemUse,
+    dungeonSwitches,
     dungeonDoors,
     combatStatus,
     enemyBrain,
@@ -157,6 +168,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     emberTake,
     heroMove,
     chainFly,
+    dungeonBlocks,
     dropsTake,
     areaExit,
     heroView,

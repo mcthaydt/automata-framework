@@ -51,6 +51,7 @@ import {
 import { Freeze, Inventory, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
 import { coneHits, facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
+import { slingTargetHit } from './dungeon.ts'
 import { angleOf, lineOfSight } from './lock-target.ts'
 import { wallsOf } from './walls.ts'
 
@@ -336,7 +337,11 @@ export const combatHits: SystemDef = defineSystem({
       if (defender.has(SlingTarget)) {
         defender.set(Fighter, stamp)
         landed('hit')
-        if (attacker.has(Pellet)) ctx.emit(SlingTargetHit, { piece: defender.get(SlingTarget).piece })
+        if (attacker.has(Pellet)) {
+          const { piece } = defender.get(SlingTarget)
+          ctx.emit(SlingTargetHit, { piece })
+          slingTargetHit(ctx, piece)
+        }
         continue
       }
 

@@ -3,14 +3,14 @@
 // this file in Chromium, WebKit and Firefox too.
 import type { Sim, SimEvent } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import { Door, Enemy, Fighter, Hero, SlingTarget, Target } from './components.ts'
+import { Block, Door, Enemy, Fighter, Hero, SlingTarget, Switch, Target } from './components.ts'
 import { HERO_HALF, metres } from './constants/index.ts'
 import { ItemCode, SLING } from './constants/items.ts'
 import { Dungeon, Inventory } from './resources.ts'
 import { base3dSaves } from './screens/saves.ts'
 import { newGame } from './state/save.ts'
 import { type AreaSource, compileArea } from './systems/index.ts'
-import { commandsFor, hero, startSim, type TickInput, UP } from './testing/sim.ts'
+import { commandsFor, DOWN, hero, startSim, type TickInput, UP } from './testing/sim.ts'
 
 /** Wick at the origin facing +z, with the area's `entities`, the sling owned and equipped with 10 pellets. */
 async function piecesArea(entities: AreaSource['entities']): Promise<Sim> {
@@ -208,6 +208,175 @@ describe('the dungeon through the save (GAME-3D.1f part 2, DESIGN.md §10, §12.
     walkNorth(sim, 60)
     expect(sim.resource(Dungeon).visited).toEqual(['north', 'south'])
     expect(sim.query(Hero)).toHaveLength(1)
+    sim.dispose()
+  })
+})
+
+/**
+ * One room, `hall`, 20 m square, Wick at the origin facing +z, with `entities` and `pits`; the door `door-1` across
+ * the hall's north part at z = 8 opens on the switch `sw` when there is one.
+ */
+async function hall(entities: AreaSource['entities'], pits: AreaSource['pits'] = []) {
+  const sim = await startSim(
+    compileArea({
+      id: 'hall',
+      spawn: { x: 0, z: 0 },
+      views: [
+        { id: 'hall', yawDeg: 0 },
+        { id: 'yard', yawDeg: 0 },
+      ],
+      rooms: [
+        { view: 'hall', min: [-10, -10], max: [10, 10] },
+        { view: 'yard', min: [-10, 10], max: [10, 30] },
+      ],
+      walls: [],
+      targets: [],
+      ember: { x: 9, z: 9 },
+      pits,
+      entities,
+    }),
+  )
+  Object.assign(sim.resource(Inventory), { sling: true, equipped: ItemCode.sling, pellets: 10 })
+  return sim
+}
+const switchOn = (sim: Sim) => sim.query(Switch)[0]?.get(Switch).on
+const blockAt = (sim: Sim) => {
+  const block = sim.query(Block)[0]?.get(Block)
+  return block === undefined ? undefined : { x: block.x, z: block.z }
+}
+const switchDoor = {
+  def: 'door',
+  id: 'door-1',
+  x: 0,
+  z: 8,
+  width: 20,
+  depth: 0.3,
+  lock: 'switch',
+  switch: 'sw',
+}
+/** Holds pick up and the stick north `ticks` ticks: Wick walks to the block and pushes. */
+const push = (sim: Sim, ticks: number) => stepWith(sim, { stick: UP, act: { pickup: true } }, ticks)
+
+describe('switches (GAME-3D.1f part 3, DESIGN.md §10)', () => {
+  it('turns an eye switch on when a pellet hits the sling target that names it, and opens its door', async () => {
+    const sim = await hall([
+      { def: 'switch', id: 'sw', x: 0, z: 6, kind: 'eye' },
+      { def: 'sling-target', id: 'eye', x: 0, z: 6, height: 2.6, targets: ['sw'] },
+      switchDoor,
+    ])
+    expect(switchOn(sim)).toBe(false)
+    const events = [...stepWith(sim, { act: { item: true } }, SLING.draw), ...stepWith(sim, {}, 30)]
+    expect(events.filter((event) => event.type === 'switch.changed').map((event) => event.payload)).toEqual([
+      { piece: 1, on: true },
+    ])
+    expect(switchOn(sim)).toBe(true)
+    expect(sim.query(Door)[0]?.get(Door).open).toBe(true)
+    sim.dispose()
+  })
+
+  it('pulls a lever with a press beside it', async () => {
+    const sim = await hall([{ def: 'switch', id: 'sw', x: 0, z: 1, kind: 'lever' }, switchDoor])
+    stepWith(sim, { act: { pickup: true } })
+    stepWith(sim, {}, 2)
+    expect(switchOn(sim)).toBe(true)
+    expect(sim.query(Door)[0]?.get(Door).open).toBe(true)
+    sim.dispose()
+  })
+
+  it('holds a plate on under a block; Wick’s weight counts only on a latching plate, which stays on and saves', async () => {
+    const plain = await hall([{ def: 'switch', id: 'sw', x: 0, z: 0, kind: 'plate' }, switchDoor])
+    stepWith(plain, {}, 2)
+    expect(switchOn(plain)).toBe(false)
+    plain.dispose()
+
+    const latching = await hall([
+      { def: 'switch', id: 'sw', x: 0, z: 0, kind: 'plate', latch: true },
+      switchDoor,
+    ])
+    stepWith(latching, {}, 2)
+    expect(switchOn(latching)).toBe(true)
+    stepWith(latching, { stick: DOWN }, 60)
+    expect(switchOn(latching)).toBe(true)
+    expect(latching.resource(Dungeon).flags).toEqual(['hall/sw'])
+    expect(latching.query(Door)[0]?.get(Door).open).toBe(true)
+    latching.dispose()
+  })
+
+  it('closes a switch door again when its switch goes off', async () => {
+    const sim = await hall([
+      { def: 'switch', id: 'sw', x: 0, z: 3, kind: 'plate' },
+      { def: 'block', id: 'b', x: 0, z: 2 },
+      switchDoor,
+    ])
+    // Walking up (about 18 ticks) and 30 held: one cell in 60 ticks, not two.
+    push(sim, 60)
+    expect(blockAt(sim)).toEqual({ x: 0, z: metres(3) })
+    expect(switchOn(sim)).toBe(true)
+    expect(sim.query(Door)[0]?.get(Door).open).toBe(true)
+    // Pushed on past the plate, the block lets it go and the door shuts.
+    push(sim, 60)
+    expect(blockAt(sim)).toEqual({ x: 0, z: metres(4) })
+    expect(switchOn(sim)).toBe(false)
+    expect(sim.query(Door)[0]?.get(Door).open).toBe(false)
+    sim.dispose()
+  })
+})
+
+describe('blocks (GAME-3D.1f part 3, DESIGN.md §10, G3-F6)', () => {
+  it('moves one 1 m cell after the push is held 30 ticks against it, along the axis Wick faces most', async () => {
+    const sim = await hall([{ def: 'block', id: 'b', x: 0, z: 2 }])
+    // Walking up to it: it is a wall to Wick until pushed.
+    stepWith(sim, { stick: UP }, 40)
+    expect(hero(sim).z).toBeLessThanOrEqual(metres(1.5) - HERO_HALF)
+    expect(blockAt(sim)).toEqual({ x: 0, z: metres(2) })
+    const events = push(sim, 29)
+    expect(blockAt(sim)).toEqual({ x: 0, z: metres(2) })
+    events.push(...push(sim, 2))
+    expect(blockAt(sim)).toEqual({ x: 0, z: metres(3) })
+    expect(events.filter((event) => event.type === 'block.moved').map((event) => event.payload)).toEqual([
+      { piece: 1, x: 0, z: metres(3) },
+    ])
+    sim.dispose()
+  })
+
+  it('stays put when pushed into a wall, another block or a pit, and never overlaps Wick (G3-F6)', async () => {
+    const intoBlock = await hall([
+      { def: 'block', id: 'b', x: 0, z: 2 },
+      { def: 'block', id: 'c', x: 0, z: 3 },
+    ])
+    push(intoBlock, 120)
+    expect(intoBlock.query(Block).map((entity) => entity.get(Block).z)).toEqual([metres(2), metres(3)])
+    intoBlock.dispose()
+
+    const intoDoor = await hall([
+      { def: 'block', id: 'b', x: 0, z: 7 },
+      { ...switchDoor, z: 8, lock: 'small-key', switch: undefined },
+    ])
+    push(intoDoor, 400)
+    expect(blockAt(intoDoor)).toEqual({ x: 0, z: metres(7) })
+    intoDoor.dispose()
+
+    const intoPit = await hall([{ def: 'block', id: 'b', x: 0, z: 2 }], [{ min: [-1, 2.6], max: [1, 4] }])
+    push(intoPit, 120)
+    expect(blockAt(intoPit)).toEqual({ x: 0, z: metres(2) })
+    const wick = hero(intoPit)
+    expect(Math.abs(wick.z - metres(2)) >= metres(0.5) + HERO_HALF).toBe(true)
+    intoPit.dispose()
+  })
+
+  it('goes home and the plain switches off when Wick comes back into the room, unless its plate latched', async () => {
+    const sim = await hall([
+      { def: 'block', id: 'b', x: 0, z: 2 },
+      { def: 'switch', id: 'sw', x: 5, z: 5, kind: 'lever' },
+    ])
+    push(sim, 60)
+    expect(blockAt(sim)).toEqual({ x: 0, z: metres(3) })
+    // Into the yard round the block and back: the hall's pieces reset.
+    stepWith(sim, { stick: { x: 127, y: 0 } }, 30)
+    stepWith(sim, { stick: UP }, 200)
+    expect(sim.resource(Dungeon).visited).toContain('yard')
+    stepWith(sim, { stick: DOWN }, 200)
+    expect(blockAt(sim)).toEqual({ x: 0, z: metres(2) })
     sim.dispose()
   })
 })

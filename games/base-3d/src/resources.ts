@@ -78,6 +78,8 @@ export const Dungeon = defineResource(
     map: z.boolean(),
     compass: z.boolean(),
     visited: z.array(z.string()),
+    /** The room Wick is in, by view id ('' before the first tick): entering another resets its pieces (§10). */
+    room: z.string(),
   }),
-  () => ({ flags: [], smallKeys: 0, bossKey: false, map: false, compass: false, visited: [] }),
+  () => ({ flags: [], smallKeys: 0, bossKey: false, map: false, compass: false, visited: [], room: '' }),
 )

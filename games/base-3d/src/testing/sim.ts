@@ -107,3 +107,4 @@ export const openArea = (
     targets,
     ember,
   })
+export const DOWN = { x: 0, y: 127 }

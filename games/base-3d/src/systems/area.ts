@@ -1,5 +1,6 @@
 // The area: the level content compiled to fixed point, and the geometry the systems read.
 import { type CameraView, cameraViewSchema } from '@mcthaydt/automata-render-pixi3d/sim'
+import { sortedEntries } from '@mcthaydt/automata-sim'
 import { z } from 'zod'
 import { ENEMIES, ENEMY_MOVES } from '../constants/enemies.ts'
 import { ENTITY_DEFS, type EntityDefName, type EntitySource } from '../constants/entities.ts'
@@ -274,7 +275,9 @@ function compileEntities(
         )
   })
   return parsed.map((entity) => {
-    const compiled: Record<string, unknown> = { ...entity }
+    // A field given as `undefined` is left out: the content is hashed as canonical JSON, which has no undefined.
+    const compiled: Record<string, unknown> = {}
+    for (const [field, value] of sortedEntries(entity)) if (value !== undefined) compiled[field] = value
     for (const field of LENGTHS)
       if (typeof entity[field] === 'number') compiled[field] = metres(entity[field] as number)
     return compiled as unknown as AreaEntity

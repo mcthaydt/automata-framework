@@ -97,7 +97,7 @@
 - [x] Part 2: door cases (each lock kind closed and open; a key spent once; the boss key; `clear` and the captain's
       arena; `switch` doors follow their switch); save cases (opened doors, keys and visits round-trip; a fresh sim
       has none); the HUD's keys and the map's visits from the sim (DOM).
-- [ ] Part 3: switch cases (plate by block, plate by Wick when latching, eye by pellet, lever by Action); block
+- [x] Part 3: switch cases (plate by block, plate by Wick when latching, eye by pellet, lever by Action); block
       cases (a push, each blocked push, never over Wick, G3-F6); the resets on room entry.
 - [ ] Part 4: chest cases (each contents kind; hidden until its ref; a fourth heart piece raises the hearts); pot,
       cracked, one-way and ledge-drop cases; npc and shop answer Action.
@@ -177,3 +177,30 @@ the only one.
 `7dd808482d9dd9bc` → `309c87cc6b57a8d2`; `base-3d/golden-boss` `61691d237e2d2427` → `7c36c7e4cc306eea` (defeat on
 tick 458, health 8, unchanged). Schema only (`door`, `dungeon`, `door.opened`, two systems); no door stands in
 these areas, and every other assertion is unchanged.
+
+**Part 3 (2026-10-31, branch `claude/3d-game-3d-1f`, local).**
+
+- Red first: dungeon.test.ts's 7 switch and block cases (no `Switch`, no `Block`).
+- Two expectations in my own cases were wrong, not the rules: 120 ticks of pushing moves a block two cells (Wick
+  walks the 1 m back to it and pushes again), so the one-cell cases push 60; and one fixture named a switch that did
+  not exist.
+- A real fault the fixture's fix found: an entity field given as `undefined` survived `compileArea` and broke the
+  content's canonical-JSON hash. The compile now leaves such fields out (a case pins it).
+- Produced: the `switch` and `block` components, spawned from the pieces and despawned on a swap; `switch.changed`
+  and `block.moved`; `dungeon.switches` (prePhysics, before the doors): a latching switch saved on is on, a plate is on
+  while a block's centre stands on it (or Wick, when it latches), a lever goes on with a pick-up press within reach;
+  an eye goes on when a pellet hits a sling target naming it in `targets` (`slingTargetHit`, called by combat's sling
+  target rule); a switch door is open exactly while its switch is on (the switch is what is saved); blocks are walls
+  (`wallsOf`) and `dungeon.blocks` (physics, after `hero.move`) moves one a cell after the push is held 30 ticks flush
+  against its face, along Wick's dominant facing axis, unless the cell holds a wall, a closed door, a block, a pit or
+  Wick (G3-F6); on entering another room (`Dungeon.room`), its blocks go home unless on a latched plate, and its
+  switches that do not latch go off.
+
+**Defaults (part 3, for the Owner's veto):** a lever, like a plate, goes on and (unless it latches) back off on room
+entry; an eye switch is lit only through a sling target that names it (§10's eye has no height of its own; the
+target carries it); the push is the pick-up button held with the stick (until 1h's push); a switch's `targets` field
+is a link for the editor and the door marker (G3-r), not a rule: doors name their switch.
+
+**Goldens (part 3).** `base-3d/golden-route` `a1c35d544c35e923` → `520ebd09e49bf0da`; `base-3d/golden-fights`
+`309c87cc6b57a8d2` → `979e36f60d306703`; `base-3d/golden-boss` `7c36c7e4cc306eea` → `9c78334797c5e035` (defeat on
+tick 458, health 8, unchanged). Schema only; every other assertion is unchanged.
