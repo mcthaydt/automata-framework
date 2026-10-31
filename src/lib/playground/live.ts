@@ -8,8 +8,6 @@ import type { Clock } from './orchestrator'
 
 /** The compile waits this long after the last change (PLAY-D6). */
 export const EDIT_QUIET_MS = 300
-/** An error is announced to screen readers only after it has stood this long. */
-export const ANNOUNCE_AFTER_MS = 1_000
 
 export interface CompileJob { readonly seq: number; readonly source: string }
 

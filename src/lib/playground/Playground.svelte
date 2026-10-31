@@ -10,7 +10,7 @@
   import CodePanel from './CodePanel.svelte'
   import PreviewPanel from './PreviewPanel.svelte'
   import type { Orchestrator, OrchestratorView, PreviewFrame } from './orchestrator'
-  import { diagnosticText, STATUS } from './status'
+  import { ANNOUNCE_AFTER_MS, diagnosticText, STATUS } from './status'
   import type { Diagnostic } from './compile'
   import type { LiveCompile, LiveResult } from './live'
   import { atOrigin } from './origin'
@@ -46,6 +46,14 @@
 
   let previewStatus = $derived(fetchFailed ? STATUS.firstBootTimeout : waitingForPlay && view.preview === 'poster' ? REDUCED : view.status)
   let diagnosticStatus = $derived(diagnostics[0] ? diagnosticText(diagnostics[0], view.preview === 'running') : undefined)
+  /** The polite live region's text: a diagnostic, once it has stood for ANNOUNCE_AFTER_MS (spec F5). */
+  let announced = $state('')
+  $effect(() => {
+    const text = diagnosticStatus
+    if (text === undefined) { announced = ''; return }
+    const timer = setTimeout(() => { announced = text }, ANNOUNCE_AFTER_MS)
+    return () => clearTimeout(timer)
+  })
   let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : diagnosticStatus ?? previewStatus)
   let showPlay = $derived(waitingForPlay && view.preview === 'poster' || (view.preview === 'failed' && view.frames === 0) || fetchFailed)
 
@@ -216,6 +224,7 @@
   <div class="playground-preview" bind:this={box}>
     <PreviewPanel title={example.title} {view} {showPlay} onplay={play} onrestart={() => orchestrator?.restart()} bind:stage />
     <p class="playground-status" id={statusId}>{#if diagnosticStatus && status === diagnosticStatus}<button type="button" class="diagnostic" onclick={() => codePanel?.focusAt(diagnostics[0]!.line, diagnostics[0]!.column)}>{status}</button>{:else}{status}{/if}</p>
+    <p class="playground-announce sr-only" aria-live="polite">{announced}</p>
   </div>
   </div>
 </div>

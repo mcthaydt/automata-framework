@@ -1,6 +1,9 @@
 // The status line's texts (spec §8.3) that the page shows before the orchestrator, and its Zod schemas, have loaded.
 import type { Diagnostic } from './compile'
 
+/** An error is announced to screen readers only after it has stood this long (spec §5.7). */
+export const ANNOUNCE_AFTER_MS = 1_000
+
 export const STATUS = {
   starting: 'Starting the preview…',
   running: 'Running. Edit the code and the preview updates as you type.',

@@ -81,14 +81,14 @@ and the share link (.9); the determinism row (.10); the layout pass and the late
 - [x] 6. e2e: "pressing the diagnostic puts the caret on its line": the status line's button is at least 44 px high;
   pressing it focuses `.cm-content` with the caret on the marked line. Fails: no button. Then the button and
   `focusAt`.
-- [ ] 7. e2e: "an edit before the first run replaces it": hold `/playground/compiled/shapes-rects.js` (route, released
+- [x] 7. e2e: "an edit before the first run replaces it": hold `/playground/compiled/shapes-rects.js` (route, released
   after the edit compiles), edit the colour; the edited code runs (red pixels) and, once the held original is
   released, it is not run (`data-run-id` stays 1, one frame). Fails: the original runs after the edit. Then the
   race guard in `Playground`.
-- [ ] 8. e2e A-13 (`reducedMotion: 'reduce'`): an edit compiles (`data-compile="ok"`) but requests nothing under
+- [x] 8. e2e A-13 (`reducedMotion: 'reduce'`): an edit compiles (`data-compile="ok"`) but requests nothing under
   `/playground/` and the poster stays; after Play the current (edited) code runs, and the next edit updates it live.
   Fails as the gate stands or passes; either way it pins the rule.
-- [ ] 9. e2e: "the compile worker starts with the editor, not before": no worker script request before a tap or
+- [x] 9. e2e: "the compile worker starts with the editor, not before": no worker script request before a tap or
   focus on the code; one after. And the polite announcement: a diagnostic still standing after 1 s is in the live
   region once.
 - [ ] 10. Unit `site-checks.test.ts`: a worker over 125,000 B gzip fails; a page naming the worker file fails; a
@@ -125,3 +125,9 @@ once.
   and retry the click until the caret is on the line: WebKit was still settling the page's scroll after the swap, so a
   click measured a moment earlier landed two to five lines lower (3 of 6 runs before, 6 of 6 after). Chromium and
   WebKit pass, the WEB.PLAY.6 tests included.
+- Steps 7–9: the race guard went in with step 3, so step 7's test was checked against a build without it: it fails
+  there (`data-run-id` 2, the held original run after the edit) and passes with it. Step 8 passes as written: Play runs
+  the last good edit, and the precompiled original is never requested. In step 9 the worker test passed first (the
+  worker already started with the editor); the announcement test failed with no region. The region is
+  `.playground-announce` because CodeMirror has its own polite `.cm-announced`. `ANNOUNCE_AFTER_MS` lives in
+  `status.ts` with the texts, for the same entry-size reason as `diagnosticText`. Chromium and WebKit: 20 of 20.

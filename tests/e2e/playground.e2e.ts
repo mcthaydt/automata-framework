@@ -377,3 +377,67 @@ test('pressing the diagnostic puts the caret on its line', async ({ page }) => {
   await expect(page.locator('.cm-content')).toBeFocused()
   expect(await caretLine(page)).toBe(move + 1)
 })
+
+test('an edit before the first run replaces it, and the original is not run after it', async ({ page }) => {
+  let release: () => void = () => {}
+  const held = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/playground/compiled/shapes-rects.js', async route => { await held; await route.continue() })
+  await page.goto('/examples/shapes-rects')
+  await staticCode(page).focus()
+  await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
+  await expect(root(page)).toHaveAttribute('data-preview', 'poster')
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeGreaterThan(100)
+  release()
+  await page.waitForResponse('**/playground/compiled/shapes-rects.js')
+  await page.waitForTimeout(1_000)
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+  expect(await redPixels(page)).toBeGreaterThan(100)
+})
+
+test('with reduced motion an edit runs nothing until Play, then edits update the preview live', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  const requests = playgroundRequests(page)
+  await page.goto('/examples/shapes-rects')
+  await staticCode(page).focus()
+  await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-compile', 'ok', { timeout: 2_000 })
+  await page.waitForTimeout(500)
+  expect(requests).toEqual([])
+  await expect(root(page)).toHaveAttribute('data-preview', 'poster')
+  await expect(page.locator('[data-testid="preview-poster"]')).toBeVisible()
+  await page.getByRole('button', { name: 'Play' }).click()
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  // Play ran the edited code, not the precompiled original.
+  expect(requests.map(request => request.path)).not.toContain('/playground/compiled/shapes-rects.js')
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeGreaterThan(100)
+  await replaceWord(page, '0xff0000', '0x00cdf9')
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect.poll(() => redPixels(page), { timeout: 5_000 }).toBeLessThan(100)
+})
+
+test('the compile worker starts with the editor, not before', async ({ page }) => {
+  const workers: string[] = []
+  page.on('request', request => { if (/\/workers\/compile\.worker-[^/]+\.js$/.test(new URL(request.url()).pathname)) workers.push(request.url()) })
+  await page.goto('/examples/shapes-rects')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  await page.waitForTimeout(500)
+  expect(workers).toEqual([])
+  await staticCode(page).focus()
+  await expect(root(page)).toHaveAttribute('data-code', 'ready', { timeout: 10_000 })
+  await expect.poll(() => workers.length).toBe(1)
+})
+
+test('a diagnostic that stands for a second is announced once, politely', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  const move = await typeAfter(page, "defineSystem('move', (ctx) => {", '\nconst broken = 1 +;')
+  // Not CodeMirror's own `.cm-announced` region, which is polite too.
+  const region = page.locator('.playground-announce[aria-live="polite"]')
+  await expect(root(page)).toHaveAttribute('data-compile', 'syntax-error', { timeout: 2_000 })
+  await expect(region).toHaveText('')
+  await expect(region).toHaveText(`Line ${move + 1}: Unexpected token. The preview is still running your last working version.`, { timeout: 2_000 })
+})
