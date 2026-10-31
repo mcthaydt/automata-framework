@@ -2,6 +2,7 @@
 // commands (a move, a lock, the action buttons) sends each map's command every tick, from one Input over the merged
 // bindings: one poll, one set of touch buttons, one Controls section.
 import {
+  CAMERA_SETTINGS_DEFAULT,
   type InputProfile,
   inputProfileSchema,
   makeInput,
@@ -11,6 +12,7 @@ import {
 } from '@mcthaydt/automata-runtime'
 import type { Command } from '@mcthaydt/automata-sim'
 import { Effect, Exit, Scope } from 'effect'
+import { type AnalogReading, analogReading } from './analog-reading.ts'
 import type { InputMap } from './keys.ts'
 
 /** `attach` builds an Input of its own; nothing reads its facts. */
@@ -66,11 +68,11 @@ export function inputs(...maps: readonly InputMap[]): InputMap {
   const touchMode: TouchMode = maps.every((map) => map.touchMode === 'swipe') ? 'swipe' : 'buttons'
   if (!modes.includes(touchMode)) throw new Error(`inputs(): touchMode "${touchMode}" has nothing to touch`)
 
-  const toCommand = (held: Iterable<string>, tick: number): readonly Command[] => {
+  const toCommand = (held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[] => {
     const actions = [...held]
     const commands: Command[] = []
     for (const [index, map] of maps.entries())
-      for (const command of map.toCommand(actions, tick))
+      for (const command of map.toCommand(actions, tick, reading))
         commands.push({ ...command, seq: tick * maps.length + index })
     return commands
   }
@@ -80,6 +82,7 @@ export function inputs(...maps: readonly InputMap[]): InputMap {
     touch: maps.some((map) => map.touch),
     touchButtons: maps.flatMap((map) => (map.touch ? map.touchButtons : [])),
     touchMode,
+    touchStick: maps.some((map) => map.touchStick),
     profile,
     labels: Object.assign({}, ...maps.map((map) => map.labels)),
     toCommand,
@@ -90,7 +93,7 @@ export function inputs(...maps: readonly InputMap[]): InputMap {
       return {
         commands(tick) {
           input.poll()
-          return toCommand(input.held(), tick)
+          return toCommand(input.held(), tick, analogReading(input, CAMERA_SETTINGS_DEFAULT))
         },
         hold: (buttonId) => input.hold(buttonId),
         release: (buttonId) => input.release(buttonId),

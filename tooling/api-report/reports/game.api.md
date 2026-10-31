@@ -4,6 +4,29 @@
 
 ## `.`
 
+### `AnalogOptions` (interface)
+
+```ts
+interface AnalogOptions<Z extends z.ZodType> {
+    read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>;
+    readonly drag?: boolean;
+    readonly touchStick?: boolean;
+}
+```
+
+### `AnalogReading` (interface)
+
+```ts
+interface AnalogReading {
+    stick(side: 'left' | 'right'): {
+        readonly x: number;
+        readonly y: number;
+    };
+    cameraDrag(): number;
+    readonly camera: CameraSettings;
+}
+```
+
 ### `AutosavePolicy` (interface)
 
 ```ts
@@ -252,7 +275,8 @@ interface InputMap {
     readonly touchMode: TouchMode;
     readonly profile: InputProfile;
     readonly labels: Readonly<Record<string, string>>;
-    toCommand(held: Iterable<string>, tick: number): readonly Command[];
+    readonly touchStick: boolean;
+    toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[];
     attach(target: Window): InputSource;
 }
 ```
@@ -299,6 +323,7 @@ interface KeysOptions<Z extends z.ZodType> {
     readonly idle?: z.input<Z>;
     readonly required?: readonly string[];
     readonly labels?: Readonly<Record<string, string>>;
+    readonly analog?: AnalogOptions<Z>;
 }
 ```
 
@@ -373,6 +398,7 @@ interface ScreensCopy {
     };
     readonly play: {
         readonly pause: string;
+        readonly move: string;
     };
     readonly paused: {
         readonly title: string;
@@ -495,6 +521,7 @@ interface TouchButton {
     readonly id: string;
     readonly label: string;
     readonly keys: readonly string[];
+    readonly side?: 'start' | 'end' | undefined;
     readonly required?: boolean | undefined;
 }
 ```

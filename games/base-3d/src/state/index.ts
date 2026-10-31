@@ -200,7 +200,7 @@ export interface Base3dSim {
 
 /**
  * How the game makes its sim from a compiled world: `main.ts` and the golden replay both start from here, with the
- * first slice (`compileWorld([FIRST_SLICE])`; the sim takes content as data, never as an import, GL spec §4.5), and
+ * first slice (`compileWorld(WORLD_SOURCES)`; the sim takes content as data, never as an import, GL spec §4.5), and
  * a new game starts in its first area. It
  * names no `tickHz`, because `defineGame`'s sim spec has none: the page's sim runs at the sim's default, 60 Hz,
  * which is `TICK_HZ` (the page's test checks it), so the replay steps at the rate the game plays at.

@@ -6,6 +6,7 @@ import type { Box3, View3dFactory } from '@mcthaydt/automata-render-pixi3d'
 import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import { Container3D, CubeGeometry, FlatMaterial, Mesh3D } from '@pixi/3d'
 import type { Area } from '../systems/index.ts'
+import { areaOfPoint } from './pieces.ts'
 
 type Lock = 'none' | 'small-key' | 'boss-key' | 'clear' | 'switch'
 
@@ -119,14 +120,21 @@ export function doorParts(door: DoorDrawn): DoorPart[] {
 }
 
 /**
- * The view of every `door` row in `area` (main.ts registers it): its parts as flat boxes, hidden while the door is
- * open. The lock and the switch's place come from the area's entity the row names.
+ * The view of every `door` row in the world (main.ts registers it): its parts as flat boxes, hidden while the door is
+ * open. The area is the one whose rooms hold the doorway; the lock and the switch's place come from the entity the
+ * row names.
  */
-export function doorView(area: Area): View3dFactory {
+export function doorView(areas: readonly Area[]): View3dFactory {
   return (row) => {
     const fields = row.components.door
-    const entity = area.entities[Number(fields?.piece ?? 0) - 1]
-    if (fields === undefined || entity === undefined) return undefined
+    if (fields === undefined) return undefined
+    const centre = {
+      x: (Number(fields.minX) + Number(fields.maxX)) / 2 / Q16,
+      z: (Number(fields.minZ) + Number(fields.maxZ)) / 2 / Q16,
+    }
+    const area = areaOfPoint(areas, centre.x, centre.z)
+    const entity = area?.entities[Number(fields.piece ?? 0) - 1]
+    if (area === undefined || entity === undefined) return undefined
     const named =
       entity.lock === 'switch' ? area.entities.find((other) => other.id === entity.switch) : undefined
     const node = new Container3D()
