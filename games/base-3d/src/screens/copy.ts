@@ -4,6 +4,8 @@
 import type { SlotId } from './items.ts'
 
 export interface Base3dCopy {
+  /** The game's title: the splash, the menu and the page (read once at boot, as `defineGame`'s title). */
+  readonly title: string
   readonly hud: {
     /** The hearts' accessible name, from health and its maximum in half-hearts. */
     readonly hearts: (health: number, maxHealth: number) => string
@@ -37,12 +39,33 @@ export interface Base3dCopy {
     /** The plan's accessible name. */
     readonly plan: string
   }
+  /** The splash, the end, the game over and the Lock mode section (GAME-3D.1a part 2, G3-t). */
+  readonly splash: { readonly mark: string; readonly hint: string }
+  readonly end: { readonly title: string; readonly menu: string }
+  readonly gameOver: { readonly title: string; readonly continue: string; readonly quit: string }
+  readonly lockMode: {
+    readonly heading: string
+    readonly label: string
+    readonly toggle: string
+    readonly hold: string
+  }
+  /** The keys' and touch buttons' labels, read once at boot (the input map is data). */
+  readonly keys: {
+    readonly lock: string
+    readonly slash: string
+    readonly guard: string
+    readonly point: string
+    readonly pickup: string
+    readonly action: string
+    readonly item: string
+  }
   readonly itemNames: Readonly<Record<SlotId, string>>
   /** Each boss's name by its `ENEMIES` id, for the boss bar. */
   readonly bossNames: Readonly<Record<string, string>>
 }
 
 const EN: Base3dCopy = {
+  title: 'The Cold Kiln',
   hud: {
     hearts: (health, maxHealth) => `Hearts ${health / 2} of ${maxHealth / 2}`,
     embers: (count) => `Embers ${count}`,
@@ -68,6 +91,19 @@ const EN: Base3dCopy = {
     no: 'No',
   },
   map: { title: 'Map', close: 'Close', plan: 'Map of the area: Wick’s arrow and the camera’s view' },
+  splash: { mark: 'AutomataFramework', hint: 'Press any key or tap' },
+  end: { title: 'The ember is yours', menu: 'Menu' },
+  gameOver: { title: 'The flame went out', continue: 'Continue', quit: 'Quit' },
+  lockMode: { heading: 'Game', label: 'Lock mode', toggle: 'Toggle', hold: 'Hold' },
+  keys: {
+    lock: 'Lock',
+    slash: 'Slash',
+    guard: 'Guard',
+    point: 'Point',
+    pickup: 'Pick up',
+    action: 'Action',
+    item: 'Item',
+  },
   itemNames: {
     sword: 'Sword',
     shield: 'Shield',

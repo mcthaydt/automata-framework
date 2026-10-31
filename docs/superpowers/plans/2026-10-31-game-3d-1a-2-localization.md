@@ -80,11 +80,11 @@
       checked both ways: no unused key, no missing key). Fails on the missing catalog.
 - [ ] 2. Catalog and compile: `en.json`, the `paraglide` option, `.gitignore` for `src/paraglide/`; the compile runs
       in `pnpm build` and in Vitest's content plugin. Step 1 passes.
-- [ ] 3. Red: a DOM case per screen in screens.dom.test.ts that the words follow the locale (a test locale record
+- [x] 3. Red: a DOM case per screen in screens.dom.test.ts that the words follow the locale (a test locale record
       through `Locale`, as DX.2d's cases do): fails while the words are inline.
-- [ ] 4. The screens and `main.ts`'s labels read `t()`. Step 3 passes; the existing DOM cases still find their
+- [x] 4. The screens and `main.ts`'s labels read `t()`. Step 3 passes; the existing DOM cases still find their
       buttons by the English words.
-- [ ] 5. Red: `strings.layout.test.ts` in `xx-long` (raw English found while any word is inline), then green;
+- [x] 5. Red: `strings.layout.test.ts` in `xx-long` (raw English found while any word is inline), then green;
       `checkLayout` at 844×390 and 780×270 in Chromium, WebKit and Firefox, every primary action an essential.
 - [ ] 6. With the 1e stack on `main`: `copy.ts` from `t()`, its record removed; the HUD, Items and Map join the
       `xx-long` run (their layout tests already cover 844×390 and 780×270).
@@ -108,4 +108,29 @@
 
 ## Execution log
 
-(Empty until the branch is rebased onto `main` after #297 and #300.)
+**2026-10-31 (session_01QYLU1gPdfpqyJgh9oNhJpE).** The coordinator folded #300 to #340 into #342 ("GAME-3D.1a–1e")
+and #297 merged; this part now lands in the 3D milestone PR with the trimmed-slice amendment and GAME-3D.1f, on
+`claude/3d-game-3d-1f` (this plan cherry-picked onto it after #342's branch, `bca86d7`, was merged in).
+
+- **Blocked: steps 1, 2 and 6 (the catalog through Paraglide and `t()`).** The content plugin's `paraglide` option
+  fails in a game build: base-3d's `vite build --configLoader runner` (the default loader cannot load the workspace's
+  TypeScript sources: `ERR_MODULE_NOT_FOUND` on `packages/content/src/vite/automata-content`) ends with "could not write
+  …/src/paraglide: Error: Vite module runner has been closed", from `await import(PARAGLIDE)` in
+  packages/content/src/locale/compile-messages.ts. Reproduced with a two-key `src/messages/ui/en.json` and `paraglide:
+  { outdir: 'paraglide', catalogs: ['messages/ui/{locale}.json'] }`, then reverted. Reported to the coordinator as a
+  content-lane request (the plan's rule: not a copy of its compiler).
+- **Done meanwhile, so the catalog has one seam to feed:** every word base-3d's own screens show is in `copy.ts` (the
+  splash's mark and hint, the end's title and Menu, the game over's title, Continue and Quit, the Lock mode section's
+  heading, label, Toggle and Hold, the key labels and the title), with the HUD's, Items' and Map's words already there
+  (1e). The screens read the live copy; `main.ts` reads the key labels and the title once at boot (the input map is
+  data). When Paraglide compiles, `base3dCopy` builds that record from `t()` (step 6) and the both-ways key check
+  (step 1) runs over it.
+- Step 3 red: screens/strings.dom.test.ts, 4 cases (a marked copy; any word outside the marks fails), failing on the
+  inline words (`AutomataFramework`, `Press any key or tap`, …), then green.
+- Step 5: screens/strings.layout.test.ts, the splash, end, game over, Lock mode, Items and Map in `xx-long` (the
+  copy pseudo-localized with `pseudoLocalize`) at 844×390 and 780×270, the `rest` variant, `untranslated` and
+  `checkLayout` with each screen's actions as essentials: 36 passed in Chromium, WebKit and Firefox. Shown to fail with
+  the game over's change reverted ("Continue", "Quit", "The flame went out" not in `xx-long`). The HUD is not in it
+  yet: its layout test mounts it over a play fixture; it joins with step 6.
+- Step 7 (images): with step 6, once the words come from the catalog.
+- Goldens unchanged (no sim change).

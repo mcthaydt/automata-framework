@@ -5,6 +5,7 @@
 <script lang="ts">
 import { ScreenFrame } from '@mcthaydt/automata-ui'
 import CentredActions from './CentredActions.svelte'
+import { liveCopy } from './copy.svelte.ts'
 
 interface Props {
   onContinue: () => void
@@ -12,19 +13,20 @@ interface Props {
 }
 
 const { onContinue, onQuit }: Props = $props()
+const words = $derived(liveCopy.current)
 </script>
 
 {#snippet body()}
   <div class="af-game-menu__body">
-    <h2 class="af-game-menu__title">The flame went out</h2>
+    <h2 class="af-game-menu__title">{words.gameOver.title}</h2>
   </div>
 {/snippet}
 
 {#snippet actions()}
   <CentredActions
     actions={[
-      { id: 'continue', label: 'Continue', kind: 'primary', onSelect: onContinue },
-      { id: 'quit', label: 'Quit', kind: 'secondary', onSelect: onQuit },
+      { id: 'continue', label: words.gameOver.continue, kind: 'primary', onSelect: onContinue },
+      { id: 'quit', label: words.gameOver.quit, kind: 'secondary', onSelect: onQuit },
     ]}
   />
 {/snippet}
