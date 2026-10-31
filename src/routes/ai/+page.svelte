@@ -3,6 +3,7 @@
   import AgentSetup from '$lib/components/AgentSetup.svelte'
   import PageMeta from '$lib/components/PageMeta.svelte'
   import CodeBlock from '$lib/components/CodeBlock.svelte'
+  import apiIndex from '../../data/api-index.json'
 </script>
 <PageMeta title="Build with a coding agent" description="Give your coding agent Automata project context, architectural rules and verification steps. Use AI for code and tests while you direct the game and author its content." />
 <div class="page-shell ai-page">
@@ -16,6 +17,7 @@
   <section id="context"><h2>Start with the project.</h2><p>Give your agent a checkout and a concrete acceptance case: what the player should be able to do when the change is finished. Have it read these sources through its supported project-context mechanism.</p><dl class="rules-list">{#each AI_CONTEXT_FILES as file}<div><dt><code>{file.path}</code></dt><dd>{file.purpose}</dd></div>{/each}</dl><p>The API reference shows selected exports and usage. The checkout's current instructions and types take precedence if a version differs.</p></section>
   <section><h2>Step in when you need to.</h2><p>Work directly in the same files as your agent. Edit content, change a system, or review the files behind a working example. Keep changes small enough to understand and run the relevant checks before building on them.</p><a href="/examples">Explore the example projects</a></section>
   <section id="boundaries"><h2>Keep the boundaries.</h2><dl class="rules-list">{#each AI_RULES as rule}<div><dt>{rule.title}</dt><dd>{rule.detail}</dd></div>{/each}</dl></section>
+  <section id="csp" aria-labelledby="csp-title"><h2 id="csp-title">The content security policy</h2><p>Instructions give an agent context; they do not enforce anything. A Ruken game’s headers, its content security policy among them, come from <code>compileHeaders</code> in <code>@ruken/manifest</code>, which derives them from the game’s manifest. The framework CLI’s CSP probe loads the built game in Chromium under those headers, for Ruken’s local origins, and reports every violation the policy fires. Read <a href={`https://github.com/mcthaydt/automata-framework/blob/${apiIndex.commit}/packages/cli/src/check/csp-probe-live.ts`}>the CSP probe’s source</a> for what it covers.</p></section>
   <section id="review"><h2>Review the result.</h2><ol>{#each AI_REVIEW_CHECKS as check}<li>{check}</li>{/each}</ol><p>For Emberwick, these workspace commands run the example's type, unit, and simulation-boundary checks, build it, and prepare its manifest.</p><CodeBlock code={AI_VERIFY_COMMANDS} lang="sh" filename="Starter checks" /><p>Other packages have their own scripts. Read their manifests before adapting these commands. Preparation creates a local artifact; browser, device, host, and publishing checks remain separate.</p><p>If a result fails, give the agent the exact error, failing test, or first divergent tick and ask it to trace the cause before making another edit. An instruction file or passing unit test cannot guarantee a correct game.</p></section>
 </div>
 

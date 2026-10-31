@@ -8,6 +8,7 @@ import Cheatsheet from '../src/routes/cheatsheet/+page.svelte'
 import docs from '../src/data/docs.json'
 import apiIndex from '../src/data/api-index.json'
 import Home from '../src/routes/+page.svelte'
+import Ai from '../src/routes/ai/+page.svelte'
 import { homeData } from './helpers/page-data'
 import { resolve } from 'node:path'
 import { findHardCodedHashes, siteSourceFiles } from './helpers/hard-coded-hashes'
@@ -80,6 +81,16 @@ describe('Restored claims (DX.10a)', () => {
     expect(claim.textContent).toContain('The same code, content, seed, starting state and commands give the same simulation hash in Node, Chromium, Firefox and WebKit, in every scenario the framework’s CI checks.')
     expect(view.getByRole('link', { name: 'See the latest evidence' }).getAttribute('href')).toBe('/proof')
     expect(view.container.textContent).not.toMatch(/complete determinism|100% match|run identically/i)
+  })
+
+  it('bounds the CSP wording to what is checked, names compileHeaders and links its use at framework.ref', () => {
+    const view = render(Ai)
+    const csp = view.getByRole('region', { name: 'The content security policy' })
+    expect(csp.textContent).toContain('Instructions give an agent context; they do not enforce anything.')
+    expect(csp.textContent).toContain('A Ruken game’s headers, its content security policy among them, come from compileHeaders in @ruken/manifest, which derives them from the game’s manifest.')
+    expect(csp.textContent).toContain('The framework CLI’s CSP probe loads the built game in Chromium under those headers, for Ruken’s local origins, and reports every violation the policy fires.')
+    expect(view.getByRole('link', { name: 'the CSP probe’s source' }).getAttribute('href')).toBe(`https://github.com/mcthaydt/automata-framework/blob/${apiIndex.commit}/packages/cli/src/check/csp-probe-live.ts`)
+    expect(csp.textContent).not.toMatch(/guarantee|100%|fully compliant|eliminate/i)
   })
 
   it('labels the generated API reference as complete for the packages it was generated from, and links it', () => {
