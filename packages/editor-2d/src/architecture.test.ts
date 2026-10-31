@@ -123,7 +123,7 @@ describe('checkArchitecture: the pure core (model and tiles)', () => {
 })
 
 describe('checkArchitecture: profiles', () => {
-  it('lets only app/profiles.ts import a profile', () => {
+  it('lets only the registration lists (app/profiles.ts, app/profile-views.ts) import a profile', () => {
     const profile = { 'profiles/level-project/index.ts': 'export const levelProject = 1' }
     const allowed = tree({
       ...profile,
@@ -131,6 +131,13 @@ describe('checkArchitecture: profiles', () => {
         "import { levelProject } from '../profiles/level-project'\nexport const all = [levelProject]",
     })
     expect(checkArchitecture(allowed)).toEqual([])
+    // A profile's views register beside it, in a file of their own so the headless list stays free of components.
+    const views = tree({
+      'profiles/level-project/views/V.svelte': '<p>v</p>',
+      'app/profile-views.ts':
+        "import V from '../profiles/level-project/views/V.svelte'\nexport const all = { V }",
+    })
+    expect(checkArchitecture(views)).toEqual([])
     for (const from of ['model/a.ts', 'tiles/a.ts', 'canvas/a.ts', 'app/other.ts']) {
       const files = tree({
         ...profile,

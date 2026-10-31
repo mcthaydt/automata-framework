@@ -1,6 +1,7 @@
 import type { Component } from 'svelte'
 import EntitiesView from '../entities/EntitiesView.svelte'
 import LevelView from '../level/LevelView.svelte'
+import { profileViews } from '../profile-views'
 import TilesetsView from '../tilesets/TilesetsView.svelte'
 import PendingView from './PendingView.svelte'
 import type { ViewProps } from './view-props'
@@ -10,6 +11,10 @@ import type { ViewProps } from './view-props'
 
 const built: Readonly<Record<string, Component<ViewProps>>> = { EntitiesView, LevelView, TilesetsView }
 
+/** The views the registered profiles bring (`app/profiles.ts`), looked up after the editor's own. */
+const fromProfiles = profileViews()
+
 export function componentOf(name: string): Component<ViewProps> {
-  return Object.hasOwn(built, name) ? (built[name] as Component<ViewProps>) : PendingView
+  if (Object.hasOwn(built, name)) return built[name] as Component<ViewProps>
+  return Object.hasOwn(fromProfiles, name) ? (fromProfiles[name] as Component<ViewProps>) : PendingView
 }

@@ -41,7 +41,8 @@ const PROFILE_AND_TEMPLATE_IDS: ReadonlySet<string> = new Set([
   'blank',
 ])
 /** The one file that may import a profile: the registration list. */
-const REGISTRATION_FILE = 'app/profiles.ts'
+/** The registration lists: the profiles, and the views a profile brings (kept apart so the first stays headless). */
+const REGISTRATION_FILES: ReadonlySet<string> = new Set(['app/profiles.ts', 'app/profile-views.ts'])
 
 /** The DOM, the wall clock, timers and entropy: what makes a core depend on where it runs. */
 const BANNED_GLOBALS: ReadonlySet<string> = new Set([
@@ -296,8 +297,11 @@ export function checkArchitecture(files: ReadonlyMap<string, string>): Violation
       const own = profileOf(file)
       if (own !== undefined && own !== profile) {
         report('profile-isolation', `${specifier}: the ${own} profile imports the ${profile} profile`)
-      } else if (own === undefined && file !== REGISTRATION_FILE) {
-        report('profiles-from-app-only', `${specifier}: only ${REGISTRATION_FILE} imports a profile`)
+      } else if (own === undefined && !REGISTRATION_FILES.has(file)) {
+        report(
+          'profiles-from-app-only',
+          `${specifier}: only ${[...REGISTRATION_FILES].join(' and ')} import a profile`,
+        )
       }
     }
     if (pure) {
