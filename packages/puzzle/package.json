@@ -30,10 +30,12 @@
   },
   "peerDependencies": {
     "@mcthaydt/automata-content": "0.0.3",
+    "@mcthaydt/automata-runtime": "0.0.3",
     "@mcthaydt/automata-sim": "0.0.3"
   },
   "devDependencies": {
     "@mcthaydt/automata-content": "0.0.3",
+    "@mcthaydt/automata-runtime": "0.0.3",
     "@mcthaydt/automata-sim": "0.0.3",
     "@mcthaydt/evidence": "0.0.0",
     "@types/node": "24.19.1",
