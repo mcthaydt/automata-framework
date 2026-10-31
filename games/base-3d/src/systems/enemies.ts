@@ -20,11 +20,12 @@ import {
 import { CombatState, type MoveDef, metres } from '../constants/index.ts'
 import { BossPhase } from '../events.ts'
 import { Location } from '../resources.ts'
-import { type Area, areaIn, type PlanPoint, slide, worldOf } from './area.ts'
+import { type Area, areaIn, type PlanBox, type PlanPoint, slide, worldOf } from './area.ts'
 import { foeParts } from './area-foes.ts'
 import { frozen, isHeld } from './combat.ts'
 import { facingVector } from './combat-geometry.ts'
 import { angleOf, lineOfSight, signedTurn } from './lock-target.ts'
+import { wallsOf } from './walls.ts'
 
 const HALF_TURN = 32_768
 const QUARTER_TURN = 16_384
@@ -58,6 +59,8 @@ function paceOffset(cycle: number): number {
 interface Scene {
   readonly ctx: SimContext
   readonly area: Area
+  /** The area's walls and closed doors (`wallsOf`). */
+  readonly walls: readonly PlanBox[]
   readonly moves: readonly MoveDef[]
   readonly wick: PlanPoint
   /** The tokens held so far this tick, counted in id order as each enemy takes or gives one up. */
@@ -66,7 +69,7 @@ interface Scene {
 
 /** One enemy's tick: its brain's state, its place and facing, its token and the move it starts. */
 function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
-  const { ctx, area, wick } = scene
+  const { ctx, area, walls, wick } = scene
   const enemy = entity.get(Enemy)
   const fighter = entity.get(Fighter)
   const at = entity.get(Target)
@@ -97,7 +100,7 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
   let lift = type.lift
   const walk = (heading: number, step: number) => {
     const { dx: mx, dz: mz } = along(heading, step)
-    const moved = slide(area.walls, type.radius, { x, z }, mx, mz)
+    const moved = slide(walls, type.radius, { x, z }, mx, mz)
     x = moved.x
     z = moved.z
   }
@@ -142,11 +145,11 @@ function think(scene: Scene, entity: EntityRef, type: EnemyDef): void {
     const out = cycle < 2 * PACE_TICKS
     facing = out ? enemy.homeFacing : (enemy.homeFacing + HALF_TURN) % 65_536
     const offset = along(enemy.homeFacing, paceOffset(cycle))
-    const moved = slide(area.walls, type.radius, at, enemy.homeX + offset.dx - x, enemy.homeZ + offset.dz - z)
+    const moved = slide(walls, type.radius, at, enemy.homeX + offset.dx - x, enemy.homeZ + offset.dz - z)
     x = moved.x
     z = moved.z
     timer += 1
-    if (distance <= type.notice && lineOfSight(area.walls, at, wick)) {
+    if (distance <= type.notice && lineOfSight(walls, at, wick)) {
       brain = BrainState.notice
       timer = NOTICE_TICKS
     }
@@ -213,6 +216,7 @@ export const enemyBrain: SystemDef = defineSystem({
     const scene: Scene = {
       ctx,
       area: areaIn(ctx.content, ctx.resource(Location)),
+      walls: wallsOf(ctx),
       moves: worldOf(ctx.content).moves,
       wick: wick.get(Hero),
       tokens: enemies.filter((entity) => entity.get(Enemy).token).length,

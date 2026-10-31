@@ -62,3 +62,32 @@ export const Freeze = defineResource(
   z.object({ ticks: z.number().int().nonnegative(), active: z.boolean() }),
   () => ({ ticks: 0, active: false }),
 )
+
+/**
+ * The dungeon's state the save keeps (DESIGN.md §10, §12.1; GAME-3D.1f): `flags` holds every persisted piece as
+ * `<area>/<entity id>` (opened doors so far) and any flag the save brought in, sorted; the small keys and the boss key
+ * in hand, the map and the compass; and the rooms visited, by view id, sorted. `screens/saves.ts` applies it from
+ * the save before tick 0 and captures it back.
+ */
+export const Dungeon = defineResource(
+  'dungeon',
+  z.object({
+    flags: z.array(z.string()),
+    smallKeys: z.number().int().nonnegative(),
+    bossKey: z.boolean(),
+    map: z.boolean(),
+    compass: z.boolean(),
+    visited: z.array(z.string()),
+    /** The room Wick is in, by view id ('' before the first tick): entering another resets its pieces (§10). */
+    room: z.string(),
+  }),
+  () => ({
+    flags: [],
+    smallKeys: 0,
+    bossKey: false,
+    map: false,
+    compass: false,
+    visited: [],
+    room: '',
+  }),
+)

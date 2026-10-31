@@ -20,9 +20,11 @@ import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { QualityTier } from '@mcthaydt/automata-runtime'
 import { reducedMotion } from '@mcthaydt/automata-ui'
 import { Act, Lock, Move } from './commands.ts'
-import { Hero, Target } from './components.ts'
+import { Door, Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
+import * as paraglideRuntime from './paraglide/runtime.js'
+import { BASE3D_COPY } from './screens/copy.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
 import { hudExtension } from './screens/hud.extension.ts'
 import { lockInput } from './screens/lock-input.ts'
@@ -32,6 +34,7 @@ import { base3dScreens } from './screens/screens.ts'
 import { base3dSettings } from './screens/settings.ts'
 import { base3dSim } from './state/index.ts'
 import { compileWorld } from './systems/index.ts'
+import { doorView } from './views/doors.ts'
 import { ENEMY_FIGURES, enemyFigureState, enemyView } from './views/enemies.ts'
 import { feelHooks } from './views/feel.ts'
 import {
@@ -50,6 +53,8 @@ import {
 // budget.
 performance.mark('base-3d:compile-areas:start')
 const WORLD = compileWorld([FIRST_SLICE])
+/** The keys' and touch buttons' labels, in the source language: the input map is data, read once at boot (G3-t). */
+const KEYS = BASE3D_COPY.en.keys
 performance.measure('base-3d:compile-areas', 'base-3d:compile-areas:start')
 const AREA = WORLD.areas[0] as (typeof WORLD.areas)[number]
 /** The game's sim on the first slice, its world's only area until GAME-3D.1i; the sim takes it as data (`base3dSim`). */
@@ -95,7 +100,7 @@ export const input = lockInput(
       Lock,
       // `lockInput` replaces the mode with the player's saved one (DESIGN.md §12.2).
       { ShiftLeft: { down: true, mode: 'toggle' }, ShiftRight: { down: true, mode: 'toggle' } },
-      { idle: { down: false, mode: 'toggle' }, labels: { ShiftLeft: 'Lock' } },
+      { idle: { down: false, mode: 'toggle' }, labels: { ShiftLeft: KEYS.lock } },
     ),
     keys(
       Act,
@@ -110,12 +115,12 @@ export const input = lockInput(
       {
         idle: idleAct,
         labels: {
-          KeyJ: 'Slash',
-          KeyK: 'Guard',
-          KeyL: 'Point',
-          KeyF: 'Pick up',
-          Space: 'Action',
-          KeyR: 'Item',
+          KeyJ: KEYS.slash,
+          KeyK: KEYS.guard,
+          KeyL: KEYS.point,
+          KeyF: KEYS.pickup,
+          Space: KEYS.action,
+          KeyR: KEYS.item,
         },
       },
     ),
@@ -138,7 +143,7 @@ const targets = new Map<number, { readonly x: number; readonly z: number }>()
 /** The sid of the target Wick locks (0 for none), from his row, for the lock reticle (views/enemies.ts). */
 let lockedSid = 0
 
-const TITLE = 'The Cold Kiln'
+const TITLE = BASE3D_COPY.en.title
 /**
  * The camera's heading plugin and its `camera-view` content kind, the Lock mode section in Settings, and the HUD on
  * play.
@@ -160,6 +165,8 @@ export const base3d = defineGame({
   content: { ...BASE3D_FLOW, sim: BASE3D_SIM.content },
   saves,
   settings: base3dSettings,
+  // The runtime's `Locale` answers Paraglide's `getLocale`, so `t()` (screens/t.ts) follows it (G3-t).
+  locale: paraglideRuntime,
   // Splash, menu, room, paused, Settings and end (screens/screens.ts) over the flow in screens/flow.ts.
   screens: base3dScreens({
     title: TITLE,
@@ -210,6 +217,8 @@ export const base3d = defineGame({
           now: () => now() * 1000,
           locked: () => lockedSid,
         }),
+        // Each door, closed, as its slab and its kind's marker (G3-r); an open door is not drawn.
+        [Door.id]: doorView(AREA),
       },
       camera: {
         views: AREA.views,

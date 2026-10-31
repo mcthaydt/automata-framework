@@ -4,19 +4,21 @@
 -->
 <script lang="ts">
 import { ScreenFrame } from '@mcthaydt/automata-ui'
+import { liveCopy } from './copy.svelte.ts'
 
 interface Props {
   title: string
 }
 
 const { title }: Props = $props()
+const words = $derived(liveCopy.current)
 </script>
 
 {#snippet body()}
   <div class="af-game-menu__body">
-    <p class="base3d-splash__mark">AutomataFramework</p>
+    <p class="base3d-splash__mark">{words.splash.mark}</p>
     <h1 class="af-game-menu__title">{title}</h1>
-    <p class="base3d-splash__hint">Press any key or tap</p>
+    <p class="base3d-splash__hint">{words.splash.hint}</p>
   </div>
 {/snippet}
 

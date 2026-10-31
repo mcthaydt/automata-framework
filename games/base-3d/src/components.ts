@@ -201,3 +201,93 @@ const chainFields = {
 
 /** The Hookchain thrown (DESIGN.md §9.1): flying out, or hooked on a post and pulling Wick to it. One at a time. */
 export const Chain: ComponentDef<typeof chainFields> = defineComponent('chain', chainFields)
+
+const slingTargetFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+} as const
+
+/**
+ * A sling target (DESIGN.md §10): a lantern, a bell or an eye at a height the area gives it, lockable (a `target` row
+ * and a `fighter` on the foes' side), which a pellet hits and nothing harms (GAME-3D.1f part 1).
+ */
+export const SlingTarget: ComponentDef<typeof slingTargetFields> = defineComponent(
+  'sling-target',
+  slingTargetFields,
+)
+
+const doorFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+  /** Open, it is nothing; closed, it is a wall to everything (DESIGN.md §10). */
+  open: 'bool',
+  /** Its box in plan, Q16.16 metres. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/** A door (DESIGN.md §10, GAME-3D.1f part 2): its lock is its entity's; opened ones are saved by id. */
+export const Door: ComponentDef<typeof doorFields> = defineComponent('door', doorFields)
+
+const switchFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+  on: 'bool',
+  /** Its box in plan, Q16.16 metres: a plate's footprint, a lever's or an eye's place. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/** A switch (DESIGN.md §10, GAME-3D.1f part 3): a plate, an eye or a lever; a latching one stays on and is saved. */
+export const Switch: ComponentDef<typeof switchFields> = defineComponent('switch', switchFields)
+
+const blockFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+  /** Its centre, and where it goes back to on room entry, Q16.16 metres. */
+  x: 'i32',
+  z: 'i32',
+  homeX: 'i32',
+  homeZ: 'i32',
+  /** Ticks Wick has pushed it running; at `BLOCK_PUSH_TICKS` it moves a cell. */
+  push: 'u32',
+} as const
+
+/** A pushable block (DESIGN.md §10, GAME-3D.1f part 3): a 1 m cube, a wall to everything but a push. */
+export const Block: ComponentDef<typeof blockFields> = defineComponent('block', blockFields)
+
+const chestFields = {
+  /** Its entity in the area's `entities`, as its index + 1. */
+  piece: 'u32',
+  /** Shown: no `hidden` ref, or the entity it names is on or open. A shown chest is a wall; a hidden one is nothing. */
+  shown: 'bool',
+  open: 'bool',
+  /** Its box in plan, Q16.16 metres. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/** A chest (DESIGN.md §10, GAME-3D.1f part 4): opened with a press, it gives its contents once and is saved. */
+export const Chest: ComponentDef<typeof chestFields> = defineComponent('chest', chestFields)
+
+const breakableFields = {
+  /** Its entity in the area's `entities`, as its index + 1: a `pot` or a `cracked` wall. */
+  piece: 'u32',
+  /** Its box in plan, Q16.16 metres: a wall while it stands. */
+  minX: 'i32',
+  minZ: 'i32',
+  maxX: 'i32',
+  maxZ: 'i32',
+} as const
+
+/**
+ * A pot or a cracked wall (DESIGN.md §10, GAME-3D.1f part 4): a wall with a hurt cylinder (a `target` row and a
+ * `fighter` on the foes' side, never a lock or aim candidate). A pot breaks on any hit, a cracked wall on a blast.
+ */
+export const Breakable: ComponentDef<typeof breakableFields> = defineComponent('breakable', breakableFields)

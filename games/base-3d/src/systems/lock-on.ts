@@ -1,7 +1,7 @@
 // The lock (DESIGN.md §11): the target picked, cycled, held or let go, and the heading assist while locked.
 import { CameraHeading, wrapHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
-import { Hero, HeroControl, Target } from '../components.ts'
+import { Breakable, Hero, HeroControl, Target } from '../components.ts'
 import { LOCK_ASSIST_LIMIT, LOCK_ASSIST_PER_TICK, LOCK_BREAK, LOCK_HIDDEN_TICKS } from '../constants/index.ts'
 import { Location } from '../resources.ts'
 import { type Area, areaIn } from './area.ts'
@@ -15,6 +15,7 @@ import {
   selectLock,
   signedTurn,
 } from './lock-target.ts'
+import { wallsOf } from './walls.ts'
 
 /** Whether the room's view lets the camera turn: what `camera-heading.rotate` goes back to once the lock lets go. */
 const viewTurns = (area: Area, view: string): boolean | undefined =>
@@ -33,8 +34,11 @@ export const lockSelect: SystemDef = defineSystem({
   run(ctx) {
     if (frozen(ctx)) return
     const area = areaIn(ctx.content, ctx.resource(Location))
+    const walls = wallsOf(ctx)
+    // A pot or a cracked wall stands in the way but is never a lock target (DESIGN.md §11.1's candidates).
     const targets: LockPoint[] = ctx
       .query(Target)
+      .filter((entity) => !entity.has(Breakable))
       .map((entity) => ({ id: entity.sid, ...entity.get(Target) }))
     for (const entity of ctx.query(Hero, HeroControl, CameraHeading)) {
       const hero = entity.get(Hero)
@@ -47,7 +51,7 @@ export const lockSelect: SystemDef = defineSystem({
         const letGo = control.lockHold ? !control.lockHeld : control.lockPressed
         const dx = (held?.x ?? 0) - hero.x
         const dz = (held?.z ?? 0) - hero.z
-        lockHidden = held !== undefined && !lineOfSight(area.walls, hero, held) ? lockHidden + 1 : 0
+        lockHidden = held !== undefined && !lineOfSight(walls, hero, held) ? lockHidden + 1 : 0
         if (
           letGo ||
           held === undefined ||
@@ -56,13 +60,13 @@ export const lockSelect: SystemDef = defineSystem({
         )
           lockTarget = 0
       } else if (control.lockPressed) {
-        lockTarget = selectLock(lockCandidates(area.walls, hero, targets), hero, units)
+        lockTarget = selectLock(lockCandidates(walls, hero, targets), hero, units)
         if (lockTarget === 0 && viewTurns(area, heading.view) === true) units = hero.facing
       }
       const current = targets.find((target) => target.id === lockTarget)
       if (current !== undefined && control.lockCycle !== 0) {
         const dir = control.lockCycle > 0 ? 1 : -1
-        const next = cycleLock(lockCandidates(area.walls, hero, targets), hero, current, dir)
+        const next = cycleLock(lockCandidates(walls, hero, targets), hero, current, dir)
         if (next !== 0) lockTarget = next
       }
       if (lockTarget === 0) lockHidden = 0

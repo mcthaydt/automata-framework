@@ -1,6 +1,6 @@
 <!--
   base-3d's HUD (DESIGN.md §9.5, GAME-3D.1e part 5a), in the play screen's `hud.overlay` slot: Wick's hearts in
-  half steps at the top inline-start (flashing on a hurt), the embers under them, the boss bar at the top centre while
+  half steps at the top inline-start (flashing on a hurt), the embers and the small keys under them, the boss bar at the top centre while
   a Warden lives, and the equipped item and its ammo as a chip at the bottom inline-end, kept off in touch mode (the
   Item button's face is GAME-3D.1h's). It reads the running sim every animation frame (`hudOf`). Only its Items
   button (44 px, under the embers; touch's way to swap items) takes the pointer.
@@ -67,6 +67,9 @@ const flashing = $derived(now < flashUntil)
       </div>
       <div class="b3-hud__embers" data-testid="hud-embers" aria-label={liveCopy.current.hud.embers(state.embers)}>
         <span class="b3-hud__ember" aria-hidden="true"></span>{state.embers}
+      </div>
+      <div class="b3-hud__keys" data-testid="hud-keys" aria-label={liveCopy.current.hud.smallKeys(state.smallKeys)}>
+        <span class="b3-hud__key" aria-hidden="true"></span>{state.smallKeys}
       </div>
       {#if hudInPlay.openItems !== undefined}
         <button
@@ -167,6 +170,17 @@ const flashing = $derived(now < flashUntil)
     min-block-size: 44px;
     min-inline-size: 44px;
     pointer-events: auto;
+  }
+  .b3-hud__keys {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .b3-hud__key {
+    inline-size: 6px;
+    block-size: 12px;
+    border-radius: 3px 3px 1px 1px;
+    background: #feae34;
   }
   .b3-hud__embers {
     display: flex;

@@ -638,7 +638,13 @@ describe('the save, captured and applied outside the sim (DESIGN.md §12.1)', ()
     run(sim, { act: { pickup: true } })
     expect(sim.resource(Progress)).toEqual({ embers: 1, maxHealth: 8 })
     const saves = base3dSaves()
-    expect(saves.capture(sim)).toEqual({ ...newGame(), embers: 1, playTicks: sim.tick })
+    // The room he stood in is recorded as visited (GAME-3D.1f part 2), for the map.
+    expect(saves.capture(sim)).toEqual({
+      ...newGame(),
+      embers: 1,
+      playTicks: sim.tick,
+      kiln: { ...newGame().kiln, visited: ['open'] },
+    })
     sim.dispose()
   })
 
@@ -1251,9 +1257,9 @@ const GOLDEN_KILN_TICK = 118
  * (was `9fad84dd7ebb29d1`): the schema gained the `bomb` component, the `bomb.blast` event and the `bomb.fuse` system, and the content the bomb's blast move and `wickDmg`; the route owns no bombs, so the same assertions hold unchanged. Re-recorded for part 3's
  * hookchain (was `a82292370d4f0a0c`): the schema gained the `chain` component, the `chain.hooked` event, `shot.fired`'s `hookchain` and the `chain.fly` system, and each area's content its `posts`; the route owns no hookchain, so the same assertions hold. Re-recorded for
  * part 4 (was `ead70ed6a0084968`): the schema gained `progress.maxHealth`, the `equip` command and the `item.equip` system (the resource row carries 8, Wick's 4 hearts, as before); the same
- * assertions hold unchanged.
+ * assertions hold unchanged. Re-recorded for GAME-3D.1f part 1 (was `94925b319d992b19`): the schema gained the `sling-target` component and the `sling-target.hit` event, and each area's content its `entities` in place of `posts` (the first slice has none); every other assertion is unchanged. Re-recorded for GAME-3D.1f part 2 (was `ceedc79c82950861`): the schema gained the `door` component, the `dungeon` resource, the `door.opened` event and the `dungeon.doors` and `dungeon.visit` systems (the walls now include closed doors; there are none here); every other assertion is unchanged. Re-recorded for GAME-3D.1f part 3 (was `a1c35d544c35e923`): the schema gained the `switch` and `block` components, the `switch.changed` and `block.moved` events, the `dungeon.switches` and `dungeon.blocks` systems and the `dungeon` resource's `room` (none stand here); every other assertion is unchanged. Re-recorded for GAME-3D.1f part 4 (was `520ebd09e49bf0da`): the schema gained the `chest`, `breakable` and `gate` components, the `chest.opened`, `piece.broke`, `ledge.dropped`, `npc.talk` and `shop.open` events, the `dungeon.pieces` and `dungeon.gates` systems and the `dungeon` resource's `heartPieces` (none stand here; the content is unchanged, `d894381c47fd70d8`); every other assertion is unchanged. Re-recorded for the 2026-10-31 rescope's cuts (was `7f9dd7df51a5c134`): the schema lost the `gate` component, the `ledge.dropped`, `npc.talk` and `shop.open` events, the `dungeon.gates` system and the `dungeon` resource's `heartPieces` (the content is unchanged, `d894381c47fd70d8`); every other assertion is unchanged.
  */
-const GOLDEN_HASH = '94925b319d992b19'
+const GOLDEN_HASH = '89a7944f44728902'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

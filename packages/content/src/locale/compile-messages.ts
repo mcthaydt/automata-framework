@@ -121,8 +121,11 @@ async function compileInFolder(folder: string, input: CompileMessagesInput): Pro
   )
   // Loaded here, not at the top: a game that does not localize, and `check`, never load the inlang SDK. The
   // specifier is a variable so TypeScript does not pull Paraglide's declarations into every program that
-  // type-checks this package's source (they do not check without `skipLibCheck`).
-  const { compile } = (await import(PARAGLIDE)) as {
+  // type-checks this package's source (they do not check without `skipLibCheck`). Node's own `require` (it loads ES
+  // modules) and not `import()`: a game's `vite build --configLoader runner` loads this file through Vite's module
+  // runner, which rewrites `import()` to go through itself and closes once the config is read, before the content
+  // compiles.
+  const { compile } = createRequire(import.meta.url)(PARAGLIDE) as {
     compile: (options: ParaglideCompileOptions) => Promise<unknown>
   }
   await compile({

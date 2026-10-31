@@ -42,6 +42,24 @@ export const HERO_HEALTH = 8
 export const HERO_HEIGHT = metres(1.6)
 /** A training dummy (the area's targets, until GAME-3D.1d's enemies): 3 hearts, 0.4 m across, 1.8 m tall. */
 export const DUMMY = { health: 6, radius: metres(0.4), height: metres(1.8) } as const
+/**
+ * A sling target's hurt cylinder (DESIGN.md §10): a lantern-sized 0.3 m round and 0.5 m tall, centred on its height;
+ * its health never changes (nothing harms it), so it only has to be above 0.
+ */
+export const SLING_TARGET = { health: 1, radius: metres(0.3), height: metres(0.5) } as const
+/** How near Wick's edge must be to a door's box to open it with a press (DESIGN.md §10), Q16.16 metres. */
+export const DOOR_REACH = metres(0.6)
+/** A block's cell (DESIGN.md §10): 1 m a side, so a push moves it 1 m; Q16.16 metres. */
+export const BLOCK_CELL = metres(1)
+/** How long Wick pushes before a block moves a cell (§10), in ticks. */
+export const BLOCK_PUSH_TICKS = 30
+/**
+ * A pot's or a cracked wall's hurt cylinder (DESIGN.md §10), standing from the floor this tall; its radius is half its
+ * box's longer side. One hit of the right kind breaks it, so its health only has to be above 0.
+ */
+export const BREAKABLE = { health: 1, potHeight: metres(0.8), crackedHeight: metres(3) } as const
+/** How near Wick's face must be to a block's to push it, Q16.16 metres: a tick's walk and a little. */
+export const BLOCK_CONTACT = metres(0.1)
 /** Where a dummy faces, a half turn: back toward the doorway, as the view drew it before it had a facing. */
 export const DUMMY_FACING = 32_768
 

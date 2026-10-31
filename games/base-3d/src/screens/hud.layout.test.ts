@@ -40,7 +40,7 @@ describe('the HUD (GAME-3D.1e part 5a)', () => {
     document.body.replaceChildren()
   })
 
-  /** The fullest HUD: 10 hearts (the most heart pieces give), the sling with 30 pellets, and the Warden's bar. */
+  /** The fullest HUD: 10 hearts (the most the save holds), the sling with 30 pellets, and the Warden's bar. */
   async function fullest(touch: boolean): Promise<void> {
     const sim = await startSim()
     sim.resource(Progress).maxHealth = 20

@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { Effect, Either } from 'effect'
+import { runnerImport } from 'vite'
 import { describe, expect, it } from 'vitest'
 import type { ContentOptions } from '../compile/compile-content'
 import { compileContent } from '../compile/compile-content'
@@ -51,6 +52,24 @@ describe('the Paraglide compile of the content catalogs', () => {
     const { messages } = await generated(root)
     expect(messages.play?.({}, { locale: 'fr' })).toBe('Jouer')
     expect(messages.content_stage_rooftops_display_name?.({}, { locale: 'fr' })).toBe('Toits')
+  })
+
+  // Found by base-3d, the first user of the option: a game's `vite build --configLoader runner` loads this package
+  // through Vite's module runner, which closes once the config is read, so an `import()` the runner rewrote fails
+  // when the content compiles later ("Vite module runner has been closed").
+  it('compiles when this package was loaded through a Vite module runner that has since closed', async () => {
+    const root = copyFixture('valid')
+    const { module } = await runnerImport<typeof import('../compile/write-outputs')>(
+      join(import.meta.dirname, '../compile/write-outputs.ts'),
+      { configFile: false, logLevel: 'silent' },
+    )
+    const result = await Effect.runPromise(
+      Effect.either(module.buildContent({ ...fixtureOptions(root), paraglide: { outdir: 'src/paraglide' } })),
+    )
+    expect(Either.isRight(result) ? 'built' : `${result.left._tag}: ${String(result.left.cause)}`).toBe(
+      'built',
+    )
+    expect(existsSync(join(root, 'src/paraglide/messages.js'))).toBe(true)
   })
 
   it('does nothing for a game that does not ask for it', async () => {

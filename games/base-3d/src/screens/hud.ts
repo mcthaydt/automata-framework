@@ -5,7 +5,7 @@ import type { Sim } from '@mcthaydt/automata-sim'
 import { Enemy, Fighter, Hero } from '../components.ts'
 import { enemyOf } from '../constants/enemies.ts'
 import { ItemCode } from '../constants/items.ts'
-import { Inventory, Progress } from '../resources.ts'
+import { Dungeon, Inventory, Progress } from '../resources.ts'
 
 export type ItemName = keyof typeof ItemCode
 export type HeartFill = 'full' | 'half' | 'empty'
@@ -15,6 +15,8 @@ export interface HudState {
   readonly health: number
   readonly maxHealth: number
   readonly embers: number
+  /** The small keys in hand (the kiln's, GAME-3D.1f). */
+  readonly smallKeys: number
   /** The item on the Item button, and its ammo for the sling and the bombs. */
   readonly equipped: { readonly item: ItemName; readonly ammo?: number } | undefined
   /** The boss bar: the boss's `ENEMIES` id (its name is the copy's, copy.ts) and its health. */
@@ -84,6 +86,7 @@ export function hudOf(sim: Sim | undefined): HudState | undefined {
     health: wick?.get(Fighter).health ?? 0,
     maxHealth: progress.maxHealth,
     embers: progress.embers,
+    smallKeys: sim.resource(Dungeon).smallKeys,
     equipped: equippedOf(sim.resource(Inventory)),
     boss: bossOf(sim),
   }

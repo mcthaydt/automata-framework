@@ -6,6 +6,102 @@
 - **Counterpart:** `games/emberwick`, the 2D base game. Emberwick has no design doc in its folder; its design is the [M1.8 base-2d spec](../../docs/superpowers/specs/2026-10-11-m1-base-2d-design.md). This doc follows that spec's shape and the headings that [01 Decomposition](../../docs/01-decomposition.md) §5 requires, and adds the game design.
 - **Owner direction it serves** (the M3 spec's direction table has the message ids): "make the character action adventure like ocarina of time switch 2 remake, but use an angle like crow country for the 3D" and "procedural only for now" (2026-10-23 08:45); "25deg tilt, 5m distance is great … per pixel rotation … that's our base 3D game like our 2D platformer game - I want to do everything we did for 2D but for 3D with procedural character" (14:18); "3D ships 1.0" (14:18); "Visually it should match the 2D game too in terms of quality, use the editors" (14:21); "we launch when pixi 3D goes public" (14:49). **2026-10-30, decision 7:** `games/base-3d` is free and uses core only, like Emberwick.
 
+## 0. Amendment: the trimmed slice (2026-10-31)
+
+**The Owner's words** (2026-10-31, about 11:05Z, through the coordinator): "I think we overscoped the 3D one a bit".
+Asked what scope the 1.0 base-3d game should have, the Owner chose **"Trimmed slice"**: keep the systems already
+built, and cut the content to one short dungeon. The coordinator's brief: 3 rooms (an entry room, a puzzle room using
+keys/doors plus the switch and block pieces, and the boss room with the Ashen Warden); no hub (Cinderford), no
+townsfolk, no shop, no target minigame; 2 enemy types plus the boss; the items already built stay, each given a use in
+the 3 rooms where that is cheap, otherwise off the required path; stair foot IK (GAME-3D.1g) out of 1.0; 1i, 1j and 1k
+shrink to the 3 rooms and the reduced cast; in 1f, npc and shop are dropped, and the other part-4 pieces kept only
+where the 3 rooms use them. Acceptance: the Owner, 2026-10-31: "Reminder that everything is auto approved and accepted,
+do not wait on me to do any approvals".
+
+**This section wins** over §2, §6, §8, §9, §10, §17, §19 and §20 wherever they disagree; each carries a one-line
+pointer here. Every other section stands. Code already built stays unless a row below cuts it.
+
+### 0.1 Goal and boundaries (replaces parts of §2)
+
+- **Flow:** splash → menu → the Cold Kiln (3 rooms) → the Warden → end, with pause, settings, items and map. No hub,
+  so New game and Continue start at the kiln's mouth (`resume: 'kiln'` always; the save's `'hub'` value stays legal in
+  version 1 and is read as `'kiln'`).
+- **Added exclusions:** the hub and its area change, townsfolk and talk, the shop and buying, the target minigame,
+  heart pieces, ground-contact IK on stairs (GAME-3D.1g), stairs and two-level rooms, the mini-boss as content (the
+  Captain's code stays), the Wisp as content (its code stays).
+
+### 0.2 The 3 rooms (replaces §6.1, §6.4 and §6.5)
+
+| Item | Count |
+|---|---|
+| Hub | none |
+| Dungeon | 1: the Cold Kiln, **3 rooms** (R1, R2, R3) plus R2's niche, in one `af-sector` file |
+| Boss | 1: the Ashen Warden (§8.4, unchanged) |
+| Items | Sword and shield (start), the Spark Sling (R1), Ember Bombs (R2), the Hookchain (R2's niche) |
+| Enemy types | 2: Sootling and Ash Knight |
+| Collectables | Embers, recovery hearts, ammo refills; **no heart pieces** (Wick keeps 4 hearts) |
+| Dungeon pickups | 1 small key, the map, the compass; **no boss key** (the boss door is the small-key door) |
+| Save slots | 1 |
+
+| Room | Size | Camera | Enemies | Pieces and pickups | Exits |
+|---|---|---|---|---|---|
+| **R1 Furnace Mouth** (entry) | 12×10 | Default | 2 Sootlings | Spawn by the south wall. 3 pots. The **Spark Sling** chest and the **map** chest. An **eye switch** (a latching `sling-target` 2.6 m up over the north door) opens the **switch door** to R2: the sling's first use | North (switch door) to R2 |
+| **R2 Bellows Gallery** (the puzzle) | 14×12 | Default, bounds clamp | 1 Ash Knight, 2 Sootlings (at most 3 alive) | One **block** and a **latching plate**: on the plate, the **Ember Bombs** chest appears. The **compass** chest. A **cracked wall** on the east side closes **the niche** (2×3 m, its own view), which holds the **small key** and the **Hookchain**. A slag channel 4 m wide across the west end with **2 hook posts** leads to a ledge with an `embers:50` chest (optional: the Hookchain's use; a fall costs a half-heart, §7.8) | South to R1; north (the **small-key door**, the boss door) to R3 |
+| **R3 Hearth Chamber** (the boss) | 11×11 (an arena) | `rotate: true`, bounds tight | The **Ashen Warden** (§8.4) | Its doors lock (`clear`) behind Wick until it falls; then the hearth, and the end screen | — |
+
+**The solver's path (G3-q):** R1: the sling and the map → the eye switch (sling) opens the switch door → R2: the block
+onto the latching plate shows the bombs chest; the compass → a bomb opens the cracked wall → the niche: the small key
+and the Hookchain → (optional) hook post to hook post across the channel to the embers chest → the small key opens the
+boss door → R3: the Warden. One small key and one small-key door, so no order of opening spends a key needed elsewhere.
+Every built item has a use: the sling is on the required path (the eye, and the Warden's mouth), the bombs too (the
+cracked wall, and the Warden's charge), the Hookchain only on the optional ledge.
+
+### 0.3 Enemies (replaces §8.2's cast and §8.3 as content)
+
+The 1.0 content places **Sootlings and Ash Knights** only, with the Warden. The Wisp (§8.2) and the Ash Knight
+Captain (§8.3) stay in code with their tests, unplaced. The Sootling's vent respawn (D3) is not used.
+
+### 0.4 Items and pieces (replaces §9.1's "Got" column and §10's table where they disagree)
+
+- The Spark Sling comes from R1's chest (not the hub's Lamplighter), with a full bag (30 pellets); Ember Bombs from
+  R2's plate chest (10); the Hookchain from R2's niche. Refills come from pots and drops only (no shop).
+- **Pieces in the 1.0 content:** `spawn`, `door` (`switch`, `small-key`, `clear`), `switch` (`eye`, `plate`), `block`,
+  `chest`, `pot`, `cracked`, `hook-post`, `sling-target`, `pit`. **Cut from the code** (GAME-3D.1f, "cut by the
+  2026-10-31 rescope"): `npc`, `shop`, `one-way`, `ledge-drop`, and the chest contents `heart-piece`. **Kept in code,
+  unplaced:** the `lever` switch and the `boss-key` lock (built in 1f parts 2 and 3, small and tested), `area-exit`
+  and `entry` (the area change stays core to the game's flow code).
+
+### 0.5 Editor gaps (replaces §17's rows where they disagree)
+
+One level file, `content/levels/kiln.af-sector.json`, with R1, R2, the niche and R3. Gap 2 (slopes and stairs) no
+longer applies (no stairs). Figures authored in the Studio: Wick, the Sootling, the Ash Knight and the Warden, and the
+item library entries; no townsfolk. Gaps 1 and 3 to 9 stand, gap 5's strings shrink to the screens and the 3 rooms'
+signs, and gap 9's music to the kiln and the boss.
+
+### 0.6 Acceptance cases (changes to §19)
+
+- **Dropped:** 1g's own cases (stair feet), since 1g is out of 1.0.
+- **Reduced:** G3-a (the journeys open every chest of the 3 rooms, the optional ledge included); G3-b (the golden's
+  route becomes R1 and R2 with two fights, a parry, a lock cycle, a camera turn and a doorway latch, with no hub
+  lanterns); G3-m (the Sootling and the Ash Knight in content; the Wisp's unit case stays, as its code does); G3-p,
+  G3-q and G3-u ("both areas" becomes the kiln; G3-q follows §0.2's path, and "every heart piece" leaves the list);
+  G3-y (the heaviest scenes are R2's fight and the Warden).
+- **Unchanged:** every other case, G3-r included.
+- **Owner acceptance:** unchanged, over the trimmed game.
+
+### 0.7 Rows (changes to §20)
+
+| Row | Change |
+|---|---|
+| **1a** flow, saves, localization | No hub: menu → kiln; `resume` reads `'kiln'` |
+| **1e** items, inventory, map | Unchanged in code; the sling's source is R1's chest |
+| **1f** dungeon pieces | As built, less the cuts in §0.4 |
+| **1g** ground-contact IK | **Cut from 1.0** |
+| **1i** levels in ED3D | The one kiln file of §0.2 |
+| **1j** figures, poses, clips | Wick, the Sootling, the Ash Knight, the Warden and the item library; no townsfolk, no Captain or Wisp authoring |
+| **1k** text, tuning, audio, feel | The 3 rooms' strings and cues; no npc lines; music for the kiln and the boss |
+| **1l** gates, deploy, acceptance | Over the trimmed game |
+
 ## 1. Concept and tone
 
 **One line.** Wick, the small lamplighter from Emberwick, goes down into the cold kiln under a hillside village to bring the hearth-ember back. It is a third-person action-adventure in the spirit of Ocarina of Time, with lock-on sword-and-shield combat, one dungeon of locked doors and switches, three items, and a boss.
@@ -26,6 +122,8 @@
 **The camera (M3 §4.2; the Owner's numbers).** Crow Country's angle: a follow camera on a **24 mm lens** (53.13° vertical), **25° down** and **5 m back**, focus 1.0 m above Wick. The player turns it **freely, per pixel**: a one-finger drag, a right-button mouse drag, the right stick (180° a second) or Q/E (120° a second). The heading is an integer in the sim, 65,536 units to a turn. Each room has its own `camera-view` (bounds, an optional entry yaw, and `rotate: false` only for the boss arena's entry shot, §6.8). The near walls cut away and tall props fade (M3's occluder rule). At 844×390 the default view shows about 10.8 m across, and a 1.62 m figure is about 115 px tall; at 780×270 it shows about 14.4 m across and the figure is about 79 px (M3 §8). The rooms are sized for that (§6.3).
 
 ## 2. Goal and boundaries
+
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
 
 **Observable result.** `pnpm --filter @af-games/base-3d dev` (the package name is set by M3.7a) serves the game. It boots under Ruken's CSP, standalone or inside Ruken's frame, and shows nothing before ready. The flow is splash → menu → hub → dungeon → boss → end, with pause, settings, items and map screens. It plays with touch, keyboard and mouse, or a gamepad, in landscape on a phone. It saves to one Ruken slot with migrations. It localizes every string. It holds p95 ≤ 33.3 ms on both phone profiles. Its golden replay is identical in Node, Chromium, WebKit and Firefox.
 
@@ -133,6 +231,8 @@ The loop's promises are what the acceptance cases check (§19):
 - Nothing needs a reflex the touch controls cannot give.
 
 ## 6. Playable scope and the room-by-room outline
+
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
 
 ### 6.1 Scope (GAME3D-D2)
 
@@ -276,6 +376,8 @@ The Last Light's `src/game/agents.ts` and `pursuit.ts` (at `92e6704`) are the re
 
 ### 8.2 The three types
 
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
+
 | Enemy | Figure | HP | Behaviour | Telegraph | Counterplay |
 |---|---|---|---|---|---|
 | **Sootling** | A small figure, 0.9 m, in a soot hood (Studio content) | 2 | Wanders; notices at 6 m; approaches to 1.6 m; **lunge bite** (active 3 frames, 1 dmg) | Crouches and its eyes glow for 30 ticks | Two slashes; a shield block; it can be stunned by the hookchain. It respawns from vents in D3 while the plates are empty |
@@ -283,6 +385,8 @@ The Last Light's `src/game/agents.ts` and `pursuit.ts` (at `92e6704`) are the re
 | **Wisp** | **Not a figure:** a floating ember mask, a static mesh animated in game code (GAME3D-D10) | 2 | Hovers at 2.2 m, out of sword reach, and circles; **dive** in a straight line at Wick (windup 30 with a shriek, active through the dive, 1 dmg) | Stops, flares and shrieks | One sling pellet drops it to the floor for 120 ticks, where the sword finishes it; a block stops the dive |
 
 ### 8.3 The mini-boss: the Ash Knight Captain (D4)
+
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
 
 The Ash Knight Captain is the Ash Knight with 14 HP, 2.1 m tall, and one extra move, a **two-chop combo** (windups 30 and 20). At half health it gets angry: its windups shorten by 4 ticks and it calls one Sootling at a time from the vents (at most 2 alive). Its death opens the doors and drops the Ember Bombs chest. It teaches strafing and parrying before the boss.
 
@@ -304,6 +408,8 @@ Blockable windups glow orange. Unblockable windups glow **white-yellow and pulse
 ## 9. Items, the inventory and the map
 
 ### 9.1 The items
+
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
 
 | Item | Got | Use | Sim rule | Ammo |
 |---|---|---|---|---|
@@ -361,6 +467,8 @@ The map scales to the container. At compact height it scrolls inside a declared 
 | Prompt | Above the Action button: "Talk", "Open", "Push", "Read" | Shows when a context action is in reach; the Action button's label changes too |
 
 ## 10. Dungeon pieces
+
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
 
 All are game code in `src/systems/dungeon.ts`. They are placed from `af-sector` **entity definitions** that the area files declare (ED3D §4.7). The fields are typed, so ED3D's inspector edits them.
 
@@ -574,6 +682,8 @@ If the probe misses, the ceilings are cut, never the budget (03: "the frame budg
 
 ## 17. Content: authored in the editors, and the editor gaps
 
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
+
 The Owner: "use the editors". The editors and formats come from the EDS spec (§2, EDS-D4) and the ED3D spec (§4.6, §4.7).
 
 | Content | Format and path | Editor | Gap? |
@@ -619,6 +729,8 @@ The Owner: "use the editors". The editors and formats come from the EDS spec (§
 | **(new row)** Golden replays of player journeys (Emberwick's scripted run) | **Added** | base-3d's golden is a scripted run through the hub's lantern puzzle and D1 to D2 with combat and lock-on, plus a recorded run through the boss (G3-b, G3-c) |
 
 ## 19. Acceptance cases
+
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
 
 The gates are reported separately: implemented; locally verified; GPU-runner verified; deployed (Ruken's local stack and the private dev host); Owner accepted.
 
@@ -668,6 +780,8 @@ The gates are reported separately: implemented; locally verified; GPU-runner ver
 - The touch layout (GAME3D-D8) on the devices.
 
 ## 20. GAME-3D.1a to 1l: what each row builds
+
+> **Amended 2026-10-31 (the trimmed slice):** see §0, which wins where they disagree.
 
 | Row | Builds (sections) | Its acceptance cases |
 |---|---|---|

@@ -5,8 +5,12 @@ import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Equip, Lock, LockCycle, Move } from '../commands.ts'
 import {
+  Block,
   Bomb,
+  Breakable,
   Chain,
+  Chest,
+  Door,
   Drop,
   Enemy,
   Fighter,
@@ -14,35 +18,49 @@ import {
   HeroAction,
   HeroControl,
   Pellet,
+  SlingTarget,
+  Switch,
   Target,
 } from '../components.ts'
 import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants/index.ts'
 import {
   AreaEntered,
   AreaExit,
+  BlockMoved,
   BombBlast,
   BossDefeated,
   BossPhase,
   CaptainDefeated,
   ChainHooked,
+  ChestOpened,
+  DoorOpened,
   DropTaken,
   EmberTaken,
   FoeDefeated,
   HeroDefeated,
   HitLanded,
+  PieceBroke,
   ShotFired,
+  SlingTargetHit,
+  SwitchChanged,
 } from '../events.ts'
-import { Freeze, Inventory, Location, Progress } from '../resources.ts'
+import { Dungeon, Freeze, Inventory, Location, Progress } from '../resources.ts'
 import {
   type Area,
   areaExit,
   bombFuse,
   chainFly,
+  checkWorld,
   combatFreeze,
   combatHits,
   combatMoves,
   combatStatus,
   dropsTake,
+  dungeonBlocks,
+  dungeonDoors,
+  dungeonPieces,
+  dungeonSwitches,
+  dungeonVisit,
   emberTake,
   enemyBrain,
   heroAct,
@@ -103,7 +121,7 @@ export function continueWith3Hearts(sim: Sim): void {
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
-  resources: [Progress, Location, Freeze, Inventory],
+  resources: [Progress, Location, Freeze, Inventory, Dungeon],
   defs: [
     Hero,
     HeroControl,
@@ -115,6 +133,12 @@ export const base3dPlugin: PluginDef = definePlugin({
     Pellet,
     Bomb,
     Chain,
+    SlingTarget,
+    Door,
+    Switch,
+    Block,
+    Breakable,
+    Chest,
     Move,
     Lock,
     LockCycle,
@@ -131,6 +155,12 @@ export const base3dPlugin: PluginDef = definePlugin({
     ShotFired,
     BombBlast,
     ChainHooked,
+    SlingTargetHit,
+    DoorOpened,
+    SwitchChanged,
+    BlockMoved,
+    ChestOpened,
+    PieceBroke,
     AreaExit,
     AreaEntered,
     heroInput,
@@ -140,15 +170,20 @@ export const base3dPlugin: PluginDef = definePlugin({
     lockAssist,
     heroAct,
     itemUse,
+    dungeonSwitches,
+    dungeonDoors,
+    dungeonPieces,
     combatStatus,
     enemyBrain,
     combatMoves,
     emberTake,
     heroMove,
     chainFly,
+    dungeonBlocks,
     dropsTake,
     areaExit,
     heroView,
+    dungeonVisit,
     pelletFly,
     bombFuse,
     combatHits,
@@ -173,6 +208,12 @@ export interface Base3dSim {
 export function base3dSim(world: World): Base3dSim {
   const [first] = world.areas
   if (first === undefined) throw new Error('base-3d: the world has no areas')
+  // The content check (G3-p): content the game cannot play stops it at boot, never at play.
+  const issues = checkWorld(world)
+  if (issues.length > 0)
+    throw new Error(
+      `base-3d content check: ${issues.map((issue) => `${issue.area}: ${issue.path} (${issue.rule})`).join('; ')}`,
+    )
   return {
     // The heading's plugin is render3dExtension's (`main.ts`): `defineGame` adds an extension's sim plugins (RT.EXT1).
     plugins: [base3dPlugin],
