@@ -43,12 +43,12 @@ Each failure in §7.2 shows its own text, keeps what the spec says it keeps, and
 
 ## Steps (each test fails first, for the reason given)
 
-- [ ] 1. **First failing test** (e2e, Chromium): A-6, "a loop that never ends is stopped, named, and the next good
+- [x] 1. **First failing test** (e2e, Chromium): A-6, "a loop that never ends is stopped, named, and the next good
   edit runs": add `while (true) {}` inside the `move` system; within the test's 3 s wait the status line says
   "Line N: this loop ran for over a second without a break, so the preview stopped it." (N the `while` line), the
   editor still takes typing, deleting the loop runs (`data-run-id` 2). Fails: the status line has the frame's
   "over 1 s" text.
-- [ ] 2. Unit `orchestrator.test.ts`: a `hung` failure gives the spec's text; `failure` carries the line of a
+- [x] 2. Unit `orchestrator.test.ts`: a `hung` failure gives the spec's text; `failure` carries the line of a
   candidate's or a running frame's failure and is cleared by the next `running`. Fails: no `failure`, the frame's text.
   Then the orchestrator; step 1 passes.
 - [ ] 3. e2e A-5: `throw new Error('x')` as `setup`'s first statement shows "Line N: x. The preview is still running
@@ -84,3 +84,8 @@ the full e2e once.
 - 2026-10-31: plan written by the website lane (session_01QYLU1iBXhs9QdohCWXcLfV). Worktree `/home/user/wt/web-play-8`,
   branch `claude/website-WEB.PLAY.8-failures` from WEB.PLAY.7's head `ccbaf32` (website#23, not yet merged; merge
   `main` in once it is).
+- Steps 1–2: A-6 failed first with the frame's own text ("Stopped: line 18: this loop ran for over 1 s …"). The hang
+  in `move` stops a running frame, so its text is the run phase's "Stopped: line N: …"; the test accepts either
+  phase's form, as §7.2 says the text follows the phase. The orchestrator now uses the spec's words for any `hung`
+  failure, and its view carries `failure` (line, column, message) until the next `running`. Unit 59/59; A-6 passes in
+  Chromium and WebKit.

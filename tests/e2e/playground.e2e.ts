@@ -457,3 +457,19 @@ test('an IME composition compiles once, when it ends', async ({ page, browserNam
   await page.waitForTimeout(800)
   await expect(root(page)).toHaveAttribute('data-run-id', '2')
 })
+
+// WEB.PLAY.8 (spec §7.2, A-5, A-6, A-7): each failure shows its text, keeps the last good preview where the spec says
+// so, and the next good edit, Restart or Retry recovers.
+
+test('a loop that never ends is stopped and named, and the next good edit runs', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  const move = await typeAfter(page, "defineSystem('move', (ctx) => {", '\nwhile (true) {}')
+  await expect(page.locator('.playground-status')).toHaveText(
+    // By phase (§7.2): a stop while running is "Stopped: line N", a candidate that never got going "Line N".
+    new RegExp(`^(Stopped: line|Line) ${move + 1}: this loop ran for over a second without a break, so the preview stopped it\\.`), { timeout: 5_000 })
+  // The editor takes typing again: the loop is deleted, and the fix runs.
+  for (let i = 0; i < '\nwhile (true) {}'.length; i++) await page.keyboard.press('Backspace')
+  await expect(page.locator('.playground-status')).toHaveText('Preview updated.', { timeout: 10_000 })
+  await expect(root(page)).toHaveAttribute('data-preview', 'running')
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+})

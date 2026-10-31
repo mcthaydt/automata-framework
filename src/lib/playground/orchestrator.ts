@@ -35,6 +35,8 @@ export interface OrchestratorView {
   /** Shown over a preview whose run threw or hung after it started. */
   readonly stopped: string | null
   readonly frames: number
+  /** Where the last frame failure that named a line was, for the editor to mark; cleared by the next `running`. */
+  readonly failure?: { readonly line: number; readonly column: number; readonly message: string }
 }
 
 export interface OrchestratorOptions {
@@ -51,6 +53,9 @@ interface Held {
   sent: boolean
   timer: unknown
 }
+
+/** The loop guard's stop, in the spec's words (§7.2); the frame's own message says "over 1 s". */
+const HANG_MESSAGE = 'this loop ran for over a second without a break, so the preview stopped it'
 
 /** A failure's text, with its line when the frame found one in the reader's source. */
 function failureText(message: string, line: number | undefined): string {
@@ -126,11 +131,13 @@ export function createOrchestrator(options: OrchestratorOptions) {
       current = held
       candidate = undefined
       everRan = true
-      update({ preview: 'running', runId: held.runId, stopped: null, status: replaced ? STATUS.updated : STATUS.running })
+      update({ preview: 'running', runId: held.runId, stopped: null, failure: undefined, status: replaced ? STATUS.updated : STATUS.running })
       return
     }
     if (message.type === 'failed') {
-      const text = failureText(message.message, message.line)
+      const reason = message.hung ? HANG_MESSAGE : message.message
+      const text = failureText(reason, message.line)
+      if (message.line !== undefined) view = { ...view, failure: { line: message.line, column: message.column ?? 1, message: reason } }
       if (held === candidate) {
         candidateFailed(text)
         return

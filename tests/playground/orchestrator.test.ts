@@ -161,6 +161,41 @@ describe('the orchestrator', () => {
     expect(view().stopped).toBe('Stopped: line 30: x.')
   })
 
+  it('names a hang in the spec’s words, by phase (§7.2, §7.3)', () => {
+    const { orchestrator, frames, booted, say, start, view } = setup()
+    const first = start()
+    orchestrator.run('hangs at boot')
+    booted(frames[1]!)
+    say(frames[1]!, { v: 1, type: 'failed', runId: 2, phase: 'boot', message: 'this loop ran for over 1 s without a break, so the preview stopped it', line: 9, hung: true })
+    expect(view().status).toBe('Line 9: this loop ran for over a second without a break, so the preview stopped it. The preview is still running your last working version.')
+    say(first, { v: 1, type: 'failed', runId: 1, phase: 'run', message: 'anything', line: 18, hung: true })
+    expect(view().stopped).toBe('Stopped: line 18: this loop ran for over a second without a break, so the preview stopped it.')
+  })
+
+  it('carries the line of the last failure that had one, for the editor, until the next run reaches running', () => {
+    const { orchestrator, frames, booted, say, running, start, view } = setup()
+    const first = start()
+    expect(view().failure).toBeUndefined()
+    orchestrator.run('throws in setup')
+    booted(frames[1]!)
+    say(frames[1]!, { v: 1, type: 'failed', runId: 2, phase: 'boot', message: 'x', line: 12, column: 3 })
+    expect(view().failure).toEqual({ line: 12, column: 3, message: 'x' })
+    say(first, { v: 1, type: 'failed', runId: 1, phase: 'run', message: 'y', line: 30 })
+    expect(view().failure).toEqual({ line: 30, column: 1, message: 'y' })
+    orchestrator.run('fixed')
+    booted(frames[2]!)
+    running(frames[2]!)
+    expect(view().failure).toBeUndefined()
+  })
+
+  it('carries no line for a failure without one', () => {
+    const { frames, orchestrator, booted, say, view } = setup()
+    orchestrator.run('broken')
+    booted(frames[0]!)
+    say(frames[0]!, { v: 1, type: 'failed', runId: 1, phase: 'import', message: 'no line' })
+    expect(view().failure).toBeUndefined()
+  })
+
   it('times the first frame out at 20 seconds and later ones at 10, removing only the candidate', () => {
     const { clock, frames, orchestrator, booted, view, live, start } = setup()
     orchestrator.run('slow')
