@@ -37,7 +37,7 @@ export interface TilesetsSession {
   readonly selection: ResolvedSelection
   /** Called after the selection or the project changes; returns a way to stop. */
   subscribe(run: () => void): () => void
-  /** Choosing an auto layer also shows its tileset. */
+  /** Choosing an auto layer also shows its tileset; showing another tileset clears the tile selection. */
   select(patch: Partial<TilesetsSelection>): void
   toggleTile(tile: number): void
   clearTiles(): void
@@ -147,7 +147,10 @@ export function createTilesetsSession(options: TilesetsSessionOptions): Tilesets
         patch.layer === undefined
           ? undefined
           : autoLayersOf(edits.state).find((def) => def.id === patch.layer)
-      choose(layer === undefined ? patch : { tileset: layer.tileset, ...patch })
+      const next = layer === undefined ? patch : { tileset: layer.tileset, ...patch }
+      // A tile index means a tile of one sheet: showing another sheet starts with nothing picked.
+      const moved = next.tileset !== undefined && next.tileset !== current().tileset
+      choose(moved ? { tiles: [], ...next } : next)
     },
     toggleTile(tile) {
       const { tiles } = current()

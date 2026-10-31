@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { counterIds } from '../../model/ids'
 import type { AutoLayerDef, Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
+import { topdownRpgTemplate } from '../../profiles/level-project/templates/topdown-rpg'
 import type { Rule } from '../../tiles/autotile/rule.schema'
 import { createTilesetsSession, type TilesetsSession } from './tilesets-session'
 
@@ -58,6 +59,31 @@ describe('the Tilesets session: selection', () => {
     expect(told).toBe(3)
     session.clearTiles()
     expect(session.selection.tiles).toEqual([])
+  })
+
+  it('clears the tile selection when another tileset is shown, and keeps it for the same one', () => {
+    const history = createHistory<unknown>(topdownRpgTemplate.create(counterIds()))
+    const session = createTilesetsSession({ history, ids: counterIds(500) })
+    const sets = (history.state as Project).defs.tilesets.map((set) => set.id)
+    session?.toggleTile(1)
+    session?.select({ tileset: sets[0] })
+    expect(session?.selection.tiles).toEqual([1])
+    const other: Project = {
+      ...(history.state as Project),
+      defs: {
+        ...(history.state as Project).defs,
+        tilesets: [
+          ...(history.state as Project).defs.tilesets,
+          {
+            ...((history.state as Project).defs.tilesets[0] as Project['defs']['tilesets'][number]),
+            id: 'other',
+          },
+        ],
+      },
+    }
+    history.apply('Add tileset', () => other)
+    session?.select({ tileset: 'other' })
+    expect(session?.selection).toMatchObject({ tileset: 'other', tiles: [] })
   })
 
   it('is undefined for a document that is not a level project', () => {
