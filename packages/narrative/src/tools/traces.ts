@@ -130,7 +130,7 @@ function verbOf(puzzle: PuzzleScene, step: Step): Order {
       : step.at === 'combine'
         ? { at: 'combine', pair: step.pair }
         : step.at === 'floor'
-          ? { at: 'floor', held: step.held, point: puzzle.spawn }
+          ? { at: 'floor', point: puzzle.spawn, ...(step.held === undefined ? {} : { held: step.held }) }
           : { at: step.at, ...(step.held === undefined ? {} : { held: step.held }) }
   return { type: 'puzzle.verb', payload }
 }
