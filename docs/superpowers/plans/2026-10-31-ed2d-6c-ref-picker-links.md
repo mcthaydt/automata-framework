@@ -68,9 +68,9 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
 ## Steps (each: failing test first, confirm the reason, minimal code, green)
 
 - [x] 1. Plan (this file).
-- [ ] 2. `ref-resolve`: cases (level target, instance target, container mismatch, wrong kind, missing, `to` empty) fail
+- [x] 2. `ref-resolve`: cases (level target, instance target, container mismatch, wrong kind, missing, `to` empty) fail
   on the missing module; move the rule; `links.ts` consumes it; its existing tests stay green unchanged.
-- [ ] 3. `ref-links`: `projectLinks` (instance and level holders, lists, broken skipped), `refTargets` (levels first,
+- [x] 3. `ref-links`: `projectLinks` (instance and level holders, lists, broken skipped), `refTargets` (levels first,
   level itself when allowed, holder excluded, empty levels left out), `refName`.
 - [ ] 4. Inspector row and `RefPicker`: model test for the row; DOM tests: choose a level then an entity commits one
   step; Back; the level itself; nothing to pick says so; 44 px choices.
@@ -94,3 +94,6 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
 ## Execution log
 
 - 2026-10-31: plan written on `claude/ed2d-6b-world-view` at `8936088a`.
+- 2026-10-31, steps 2 and 3: `model/refs/ref-resolve.test.ts` and `ref-links.test.ts` failed on the missing modules,
+  then pass (11 tests); `profiles/level-project` and `model/refs` unit tests: 14 files, 152 tests pass with
+  `links.ts` reading `resolveRef` and its own tests unchanged.
