@@ -25,7 +25,7 @@ UI text, so there is nothing else to change for ADR 0006 here.
 - [x] 2. The label case in `level-project.test.ts` and the DOM test's names fail on the old labels; change the labels;
   editor-2d unit+dom pass.
 - [x] 3. Mockup words; `node docs/design/editor-2d/build.mjs list` still lists the export screen.
-- [ ] 4. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, editor-2d `test:parity`.
+- [x] 4. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, editor-2d `test:parity`.
 
 ## Execution log
 
@@ -33,3 +33,5 @@ UI text, so there is nothing else to change for ADR 0006 here.
 - 2026-10-31, steps 2 and 3: the label case and the two Export view cases failed on the old labels (3 failed), then
   pass; editor-2d unit+dom 154 files, 2529 tests. The mockup's export screen is now "Export · project file and game
   files" and its second target "Game files"; `build.mjs list` lists it.
+- 2026-10-31, step 4: `pnpm format` clean; `TURBO_FORCE=true pnpm check` exit 0 (37/37 and 35/35 tasks, 0 cached);
+  editor-2d `test:parity` 24 files, 606 tests. Then merged `origin/main` (`bb0b330c`, docs only).
