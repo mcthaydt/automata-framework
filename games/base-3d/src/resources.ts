@@ -1,4 +1,5 @@
-// base-3d's resources: the progress a save keeps that the sim itself changes (DESIGN.md §12.1). Sim code.
+// base-3d's resources: the progress a save keeps that the sim itself changes (DESIGN.md §12.1), and the area Wick is
+// in (DESIGN.md §13, area change). Sim code.
 import { defineResource } from '@mcthaydt/automata-sim'
 import { z } from 'zod'
 
@@ -9,4 +10,20 @@ export const Progress = defineResource(
   () => ({
     embers: 0,
   }),
+)
+
+/**
+ * The area of the world Wick is in, by its index in `World.areas`, and the change under way: `next` is the area an
+ * exit leads to (-1 for none), swapped in at tick `swapAt` with Wick at `entryX`, `entryZ` (Q16.16 metres).
+ */
+export const Location = defineResource(
+  'location',
+  z.object({
+    area: z.number().int().nonnegative(),
+    next: z.number().int().min(-1),
+    swapAt: z.number().int().nonnegative(),
+    entryX: z.number().int(),
+    entryZ: z.number().int(),
+  }),
+  () => ({ area: 0, next: -1, swapAt: 0, entryX: 0, entryZ: 0 }),
 )

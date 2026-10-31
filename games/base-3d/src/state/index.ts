@@ -5,10 +5,11 @@ import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Lock, Move } from '../commands.ts'
 import { Hero, HeroAction, HeroControl, Target } from '../components.ts'
-import { EmberTaken } from '../events.ts'
-import { Progress } from '../resources.ts'
+import { AreaEntered, AreaExit, EmberTaken, HeroDefeated } from '../events.ts'
+import { Location, Progress } from '../resources.ts'
 import {
   type Area,
+  areaExit,
   emberTake,
   heroAct,
   heroInput,
@@ -16,6 +17,7 @@ import {
   heroView,
   lockSelect,
   viewAt,
+  type World,
 } from '../systems/index.ts'
 
 /**
@@ -38,7 +40,7 @@ export function spawnArea(sim: Sim, area: Area): void {
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
-  resources: [Progress],
+  resources: [Progress, Location],
   defs: [
     Hero,
     HeroControl,
@@ -48,11 +50,15 @@ export const base3dPlugin: PluginDef = definePlugin({
     Lock,
     Act,
     EmberTaken,
+    HeroDefeated,
+    AreaExit,
+    AreaEntered,
     heroInput,
     lockSelect,
     heroAct,
     emberTake,
     heroMove,
+    areaExit,
     heroView,
   ],
 })
@@ -61,22 +67,25 @@ export const base3dPlugin: PluginDef = definePlugin({
 export interface Base3dSim {
   readonly plugins: readonly PluginDef[]
   readonly seed: number
-  readonly content: Area
+  readonly content: World
   readonly setup: (sim: Sim) => void
 }
 
 /**
- * How the game makes its sim from a compiled area: `main.ts` and the golden replay both start from here, with the
- * first slice (`compileArea(FIRST_SLICE)`; the sim takes content as data, never as an import, GL spec §4.5). It
+ * How the game makes its sim from a compiled world: `main.ts` and the golden replay both start from here, with the
+ * first slice (`compileWorld([FIRST_SLICE])`; the sim takes content as data, never as an import, GL spec §4.5), and
+ * a new game starts in its first area. It
  * names no `tickHz`, because `defineGame`'s sim spec has none: the page's sim runs at the sim's default, 60 Hz,
  * which is `TICK_HZ` (the page's test checks it), so the replay steps at the rate the game plays at.
  */
-export function base3dSim(area: Area): Base3dSim {
+export function base3dSim(world: World): Base3dSim {
+  const [first] = world.areas
+  if (first === undefined) throw new Error('base-3d: the world has no areas')
   return {
     // The heading's plugin is render3dExtension's (`main.ts`): `defineGame` adds an extension's sim plugins (RT.EXT1).
     plugins: [base3dPlugin],
     seed: 1,
-    content: area,
-    setup: (sim) => spawnArea(sim, area),
+    content: world,
+    setup: (sim) => spawnArea(sim, first),
   }
 }

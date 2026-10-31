@@ -1,4 +1,5 @@
 import type { DefinedGame } from '@mcthaydt/automata-game'
+import { render3dExtension } from '@mcthaydt/automata-render-pixi3d'
 import {
   type GameRenderer,
   type RendererFactory,
@@ -7,14 +8,21 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
 import type { StepResult } from '@mcthaydt/automata-sim'
+import { definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import { createFakeHost, type FakeHost, type FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { metres } from '../constants.ts'
+import { Hero } from '../components.ts'
+import { AREA_FADE_TICKS, metres } from '../constants.ts'
 import { FIRST_SLICE } from '../content/first-slice.ts'
-import { base3d } from '../main.ts'
+import { HeroDefeated } from '../events.ts'
+import { base3d, input } from '../main.ts'
+import { base3dSim } from '../state/index.ts'
 import { newGame } from '../state/save.ts'
-import { SPLASH_MS } from './screens.ts'
+import { compileWorld } from '../systems/index.ts'
+import { base3dSaves } from './saves.ts'
+import { base3dScreens, SPLASH_MS } from './screens.ts'
+import type { Base3dSettings } from './settings.ts'
 
 // base-3d's flow on the real runtime (M3.7b part 4) in jsdom: the in-memory fake Ruken host, manual frames, and a
 // renderer that keeps each step (Pixi 3D needs WebGL2, which jsdom lacks). The props' models are not fetched here:
@@ -68,6 +76,7 @@ describe("base-3d's flow", () => {
       z: number
     }
   }
+  const spawnZOf = () => metres(FIRST_SLICE.spawn.z)
   const resize = (width: number, height: number) => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
@@ -114,10 +123,11 @@ describe("base-3d's flow", () => {
     host = createFakeHost({ ...hostOptions(), ...options })
   }
 
-  async function boot(): Promise<void> {
-    const game: DefinedGame = base3d
+  async function boot(screens?: DefinedGame<Base3dSettings>['screens']): Promise<void> {
+    const game: DefinedGame<Base3dSettings> = base3d
     handle = runGame({
       ...game,
+      ...(screens === undefined ? {} : { screens }),
       root,
       renderer: recording,
       preload: [],
@@ -128,8 +138,8 @@ describe("base-3d's flow", () => {
     await until(() => screen() === 'splash', 'the splash')
   }
 
-  async function toRoom(): Promise<void> {
-    await boot()
+  async function toRoom(screens?: DefinedGame<Base3dSettings>['screens']): Promise<void> {
+    await boot(screens)
     key('keydown', 'KeyX')
     await until(() => screen() === 'title', 'the menu')
     await until(() => byTestId('save-slots-new') !== null, 'New game')
@@ -368,6 +378,140 @@ describe("base-3d's flow", () => {
         setItem.mockRestore()
         open?.mockRestore()
       }
+    })
+  })
+
+  describe('game over (DESIGN.md §7.8, §13)', () => {
+    // Health is GAME-3D.1c's: until it lands, a test plugin raises the sim's `hero.defeated` once Wick is a metre
+    // north of the spawn, on the game's own screens over that sim.
+    const spawnZ = metres(FIRST_SLICE.spawn.z)
+    const defeatNorth = definePlugin({
+      name: 'test-defeat',
+      dependsOn: ['base-3d'],
+      defs: [
+        defineSystem({
+          name: 'test.defeat',
+          phase: 'postPhysics',
+          run(ctx) {
+            for (const entity of ctx.query(Hero))
+              if (entity.get(Hero).z >= spawnZ + metres(1)) ctx.emit(HeroDefeated, {})
+          },
+        }),
+      ],
+    })
+    const defeatable = () => {
+      const sim = base3dSim(compileWorld([FIRST_SLICE]))
+      return base3dScreens({
+        title: base3d.title,
+        sim: { ...sim, plugins: [...sim.plugins, defeatNorth] },
+        input,
+        extensions: [render3dExtension],
+        saves: base3dSaves() as never,
+      })
+    }
+
+    async function toGameOver(): Promise<void> {
+      await toRoom(defeatable())
+      await hold('KeyW', () => (wick()?.z ?? spawnZ) >= spawnZ + metres(1))
+      // The step's events reach the screens with the next frame.
+      step()
+      await until(() => screen() === 'game-over', 'the game over')
+    }
+
+    it('shows Continue, focused, and Quit when Wick is defeated, and ends the round as failed', async () => {
+      await toGameOver()
+      expect(button('Continue')).toBeDefined()
+      expect(button('Quit')).toBeDefined()
+      expect(document.activeElement).toBe(button('Continue'))
+      expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'fail' }])
+    })
+
+    it('Continue plays on from the area entrance in a new round', async () => {
+      await toGameOver()
+      results.length = 0
+      button('Continue')?.click()
+      await until(() => screen() === 'play', 'the room')
+      step()
+      expect(wick()).toMatchObject({ x: metres(FIRST_SLICE.spawn.x), z: spawnZ })
+      expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'fail' }, { kind: 'start' }])
+    })
+
+    it('Quit goes to the menu', async () => {
+      await toGameOver()
+      button('Quit')?.click()
+      await until(() => screen() === 'title', 'the menu')
+      expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'fail' }])
+    })
+  })
+
+  describe('the Lock mode setting (DESIGN.md §12.2)', () => {
+    const lockMode = (mode: 'toggle' | 'hold') =>
+      root.querySelector<HTMLInputElement>(
+        `[data-testid="lock-mode-${mode}"] input, input[data-testid="lock-mode-${mode}"]`,
+      )
+
+    async function toSettings(): Promise<void> {
+      await toRoom()
+      key('keydown', 'Escape')
+      await until(() => screen() === 'paused', 'paused')
+      button('Settings')?.click()
+      await until(() => screen() === 'settings', 'Settings')
+    }
+
+    it('offers Toggle and Hold in its own section, Toggle by default', async () => {
+      await toSettings()
+      const section = root.querySelector('[data-settings-section="lock-mode"]')
+      expect(section?.textContent).toContain('Lock mode')
+      expect(lockMode('toggle')?.checked).toBe(true)
+      expect(lockMode('hold')?.checked).toBe(false)
+    })
+
+    it("keeps Hold in the game's settings record on the player's account", async () => {
+      await toSettings()
+      lockMode('hold')?.click()
+      expect(lockMode('hold')?.checked).toBe(true)
+      await synced(
+        () => (host.fakes.server.slots.get('settings')?.value ?? '').includes('"lockMode":"hold"'),
+        'the settings record holding Hold',
+      )
+    })
+  })
+
+  describe('the area change (DESIGN.md §13)', () => {
+    // Two first-slice areas, the first's exit across the hall a metre north of the spawn (GAME-3D.1i brings the hub
+    // and the kiln).
+    const twoAreas = () => {
+      const first = {
+        ...FIRST_SLICE,
+        id: 'first',
+        exits: [
+          {
+            min: [-4, -1] as [number, number],
+            max: [4, -0.5] as [number, number],
+            to: 'second',
+            entry: { x: 0, z: 8 },
+          },
+        ],
+      }
+      return base3dScreens({
+        title: base3d.title,
+        sim: base3dSim(compileWorld([first, { ...FIRST_SLICE, id: 'second' }])),
+        input,
+        extensions: [render3dExtension],
+        saves: base3dSaves() as never,
+      })
+    }
+    const fade = () => root.querySelector<HTMLElement>('[data-testid="area-fade"]')
+
+    it('fades out on the exit and back in once the sim has swapped the area', async () => {
+      await toRoom(twoAreas())
+      expect(fade()?.dataset.state).toBe('in')
+      await hold('KeyW', () => (wick()?.z ?? spawnZOf()) >= metres(-1))
+      step()
+      await until(() => fade()?.dataset.state === 'out', 'the fade out')
+      step(AREA_FADE_TICKS)
+      await until(() => fade()?.dataset.state === 'in', 'the fade back in')
+      expect(wick()?.z).toBeGreaterThanOrEqual(metres(8))
     })
   })
 })

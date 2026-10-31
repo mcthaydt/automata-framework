@@ -23,10 +23,12 @@ import { Hero, Target } from './components.ts'
 import { TICK_HZ } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
+import { lockModeExtension } from './screens/lock-mode.extension.ts'
 import { base3dSaves } from './screens/saves.ts'
 import { base3dScreens } from './screens/screens.ts'
+import { base3dSettings } from './screens/settings.ts'
 import { base3dSim } from './state/index.ts'
-import { compileArea } from './systems/index.ts'
+import { compileWorld } from './systems/index.ts'
 import {
   buildScene,
   FOG,
@@ -38,9 +40,10 @@ import {
   placed,
 } from './views.ts'
 
-const AREA = compileArea(FIRST_SLICE)
-/** The game's sim on the first slice; the sim takes the area as data (state.ts `base3dSim`). */
-const BASE3D_SIM = base3dSim(AREA)
+const WORLD = compileWorld([FIRST_SLICE])
+const AREA = WORLD.areas[0] as (typeof WORLD.areas)[number]
+/** The game's sim on the first slice, its world's only area until GAME-3D.1i; the sim takes it as data (`base3dSim`). */
+const BASE3D_SIM = base3dSim(WORLD)
 
 /** The keyboard's camera turn, 120° a second (M4-D16): 65,536 × 120 / 360 / 60 ≈ 364 turn units a tick. */
 const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
@@ -102,8 +105,8 @@ const now = (): number => simTick / TICK_HZ
 const targets = new Map<number, { readonly x: number; readonly z: number }>()
 
 const TITLE = 'The Cold Kiln'
-/** The camera's heading plugin and its `camera-view` content kind. */
-const EXTENSIONS = [render3dExtension]
+/** The camera's heading plugin and its `camera-view` content kind, and the Lock mode section in Settings. */
+const EXTENSIONS = [render3dExtension, lockModeExtension]
 /** The stage, once the renderer has made it: the screens give it the player's graphics quality (M4.4). */
 let stage: { setQuality(tier: QualityTier): void } | undefined
 /** The one slot (state/save.ts): the menu lists it, and play keeps the loaded one saved. One instance for both. */
@@ -119,6 +122,7 @@ export const base3d = defineGame({
   input,
   content: { ...BASE3D_FLOW, sim: BASE3D_SIM.content },
   saves,
+  settings: base3dSettings,
   // Splash, menu, room, paused, Settings and end (screens/screens.ts) over the flow in screens/flow.ts.
   screens: base3dScreens({
     title: TITLE,

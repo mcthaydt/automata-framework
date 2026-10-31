@@ -2,20 +2,24 @@
 // paused and Settings, so play keeps the Input service, the touch overlay and the player's settings, and two of the
 // game's own around them: the splash and the end. BASE3D_FLOW says which follows which.
 //
-// Play is the default play screen with one addition: the sim's `ember.taken` ends the round as complete and moves
-// on to the end screen. The round starts when play is entered from the menu and ends as `quit` when Quit leaves
-// paused for the menu.
+// Play is the default play screen with two additions: the sim's `ember.taken` ends the round as complete and moves
+// on to the end screen, and its `hero.defeated` ends it as failed and moves on to the game over. The round starts
+// when play is entered from the menu or the game over's Continue, and ends as `quit` when Quit leaves paused for the
+// menu. Continue plays on from the area entrance: the sim as it stood when play entered the area, restored.
 import { defaultScreens, type ScreensGame } from '@mcthaydt/automata-game'
 import { Hosting } from '@mcthaydt/automata-host'
-import { Flow, PresentationBus, type ScreenDef } from '@mcthaydt/automata-runtime'
+import { Flow, PresentationBus, type ScreenDef, Settings } from '@mcthaydt/automata-runtime'
 import { resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import type { Sim } from '@mcthaydt/automata-sim'
 import { Effect, type Scope } from 'effect'
 import { flushSync, mount, unmount } from 'svelte'
 import { TICK_HZ } from '../constants.ts'
-import { EmberTaken } from '../events.ts'
+import { AreaEntered, AreaExit, EmberTaken, HeroDefeated } from '../events.ts'
+import { areaFade } from './area-fade.ts'
 import EndScreen from './EndScreen.svelte'
+import GameOverScreen from './GameOverScreen.svelte'
 import SplashScreen from './SplashScreen.svelte'
+import { settingsInPlay } from './settings.ts'
 
 /** How long the splash shows before moving on by itself. */
 export const SPLASH_MS = 1500
@@ -54,10 +58,13 @@ const byId = (screens: readonly ScreenDef[], id: string): ScreenDef => {
   return screen
 }
 
-/** The six screens BASE3D_FLOW names, over the default screens for `game`. */
+/** The seven screens BASE3D_FLOW names, over the default screens for `game`. */
 export function base3dScreens(game: ScreensGame): ScreenDef[] {
   // The sim play runs, told by the default screens (`watchSim`): the end screen's time is its tick.
   let running: Sim | undefined
+  // The running sim as it stood at the area entrance, which the game over's Continue restores: taken when play gets
+  // a new sim (from the menu's slot list, or paused's Load newer) and when the sim swaps to another area.
+  let entrance: ReturnType<Sim['snapshot']> | undefined
   let seconds = 0
   const defaults = defaultScreens({
     ...game,
@@ -68,12 +75,14 @@ export function base3dScreens(game: ScreensGame): ScreenDef[] {
       plugins: [...game.sim.plugins, ...resolveExtensions(game.extensions ?? []).simPlugins],
     },
     watchSim: (sim) => {
+      if (sim !== running) entrance = sim?.snapshot()
       running = sim
       game.watchSim?.(sim)
     },
   })
   const title = byId(defaults, 'title')
   const play = byId(defaults, 'play')
+  const defaultSettings = byId(defaults, 'settings')
 
   const splash: ScreenDef = {
     id: 'splash',
@@ -108,14 +117,25 @@ export function base3dScreens(game: ScreensGame): ScreenDef[] {
         const flow = yield* Flow
         const hosting = yield* Hosting
         const bus = yield* PresentationBus
-        if (context.from === 'title') yield* hosting.round.start
+        if (context.from === 'title' || context.from === 'game-over') yield* hosting.round.start
+        const fade = yield* areaFade(context.layer)
         yield* Effect.acquireRelease(
           Effect.sync(() =>
             bus.subscribe('sim.events', (events) => {
-              if (!events.some((event) => event.type === EmberTaken.id)) return
-              seconds = (running?.tick ?? 0) / TICK_HZ
-              Effect.runFork(hosting.round.end('complete'))
-              flow.dispatch('ember')
+              if (events.some((event) => event.type === AreaExit.id)) fade.out()
+              if (events.some((event) => event.type === AreaEntered.id)) {
+                fade.in()
+                // The game over's Continue starts from this area's entrance.
+                entrance = running?.snapshot()
+              }
+              if (events.some((event) => event.type === EmberTaken.id)) {
+                seconds = (running?.tick ?? 0) / TICK_HZ
+                Effect.runFork(hosting.round.end('complete'))
+                flow.dispatch('ember')
+              } else if (events.some((event) => event.type === HeroDefeated.id)) {
+                Effect.runFork(hosting.round.end('fail'))
+                flow.dispatch('defeated')
+              }
             }),
           ),
           (stop) => Effect.sync(stop),
@@ -136,5 +156,48 @@ export function base3dScreens(game: ScreensGame): ScreenDef[] {
       }),
   }
 
-  return [splash, menu, room, ...defaults.filter((screen) => screen !== title && screen !== play), end]
+  // Settings hands its store to the game's own section (`settingsInPlay`) before it mounts, and takes it back on exit.
+  const settings: ScreenDef = {
+    ...defaultSettings,
+    enter: (context) =>
+      Effect.gen(function* () {
+        const { store } = yield* Settings
+        yield* Effect.acquireRelease(
+          Effect.sync(() => {
+            settingsInPlay.store = store
+          }),
+          () =>
+            Effect.sync(() => {
+              settingsInPlay.store = undefined
+            }),
+        )
+        yield* defaultSettings.enter(context)
+      }),
+  }
+
+  const gameOver: ScreenDef = {
+    id: 'game-over',
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        yield* show(GameOverScreen, layer, {
+          onContinue: () => {
+            if (running !== undefined && entrance !== undefined) running.restore(entrance)
+            flow.dispatch('continue')
+          },
+          onQuit: () => void flow.dispatch('quit'),
+        })
+      }),
+  }
+
+  const replaced = [title, play, defaultSettings]
+  return [
+    splash,
+    menu,
+    room,
+    settings,
+    gameOver,
+    ...defaults.filter((screen) => !replaced.includes(screen)),
+    end,
+  ]
 }

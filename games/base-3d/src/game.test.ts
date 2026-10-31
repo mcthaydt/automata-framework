@@ -3,16 +3,16 @@ import { type Command, createSim, type Sim } from '@mcthaydt/automata-sim'
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { describe, expect, it } from 'vitest'
 import { Hero, HeroAction, Target } from './components.ts'
-import { ACTION_CLIP, ACTION_TICKS, HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
+import { ACTION_CLIP, ACTION_TICKS, AREA_FADE_TICKS, HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
-import { Progress } from './resources.ts'
+import { Location, Progress } from './resources.ts'
 import { base3dSaves } from './screens/saves.ts'
 import { base3dPlugin, base3dSim, spawnArea } from './state/index.ts'
 import { newGame } from './state/save.ts'
-import { type Area, type AreaSource, areaOf, compileArea, viewAt } from './systems/index.ts'
+import { type Area, type AreaSource, areaOf, compileArea, compileWorld, viewAt } from './systems/index.ts'
 
 /** The game's own sim spec, on the first slice, as `main.ts` makes it. */
-const BASE3D_SIM = base3dSim(compileArea(FIRST_SLICE))
+const BASE3D_SIM = base3dSim(compileWorld([FIRST_SLICE]))
 
 // base-3d's sim, commands in, step, state out (DESIGN.md §3.1). The browsers project runs this whole file in
 // Chromium, WebKit and Firefox, so every case here, the golden replay included, holds in four engines (B-a).
@@ -27,6 +27,7 @@ describe('the plugin', () => {
 
 describe('the area', () => {
   const tiny: AreaSource = {
+    id: 'tiny',
     spawn: { x: 0.5, z: -1.25 },
     views: [{ id: 'hall', yawDeg: 90 }],
     rooms: [{ view: 'hall', min: [-2, -2], max: [2, 2] }],
@@ -99,11 +100,13 @@ describe('the area', () => {
  */
 const GAME_PLUGINS = [base3dPlugin, cameraHeadingPlugin]
 const GAME_SIM = { ...BASE3D_SIM, plugins: GAME_PLUGINS }
+/** The first slice, the world's only area. */
+const FIRST_AREA = BASE3D_SIM.content.areas[0] as Area
 
 /** A sim made the way the game makes it (`GAME_SIM`), on the first slice or a test area. */
-async function startSim(area: Area = BASE3D_SIM.content): Promise<Sim> {
-  const sim = await createSim({ ...GAME_SIM, content: area })
-  if (area === BASE3D_SIM.content) BASE3D_SIM.setup(sim)
+async function startSim(area: Area = FIRST_AREA): Promise<Sim> {
+  const sim = await createSim({ ...GAME_SIM, content: { areas: [area] } })
+  if (area === FIRST_AREA) BASE3D_SIM.setup(sim)
   else spawnArea(sim, area)
   return sim
 }
@@ -177,6 +180,7 @@ const openArea = (
   ember: AreaSource['ember'] = { x: 40, z: 40 },
 ): Area =>
   compileArea({
+    id: 'test',
     spawn: { x: 0, z: 0 },
     views: [{ id: 'open', yawDeg, rotate }],
     rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
@@ -227,6 +231,7 @@ describe('moving', () => {
 describe('walls', () => {
   const walled = (): Area =>
     compileArea({
+      id: 'test',
       spawn: { x: 0, z: 0 },
       views: [{ id: 'open', yawDeg: 0 }],
       rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
@@ -489,13 +494,13 @@ describe('the save, captured and applied outside the sim (DESIGN.md §12.1)', ()
   it('Continue starts a fresh sim at the area entrance with the ember kept and the play time running on', async () => {
     const played = await startSim()
     run(played, { stick: RIGHT }, 40)
-    expect(hero(played).x).not.toBe(BASE3D_SIM.content.spawn.x)
+    expect(hero(played).x).not.toBe(FIRST_AREA.spawn.x)
     const saved = { ...base3dSaves().capture(played), embers: 1, flags: ['kept'], lantern: 'lit' }
     const saves = base3dSaves()
     const resumed = await startSim()
     saves.apply(resumed, saved)
     expect(resumed.resource(Progress)).toEqual({ embers: 1 })
-    const { spawn } = BASE3D_SIM.content
+    const { spawn } = FIRST_AREA
     expect(hero(resumed)).toMatchObject({ x: spawn.x, z: spawn.z })
     // Fields the sim does not hold (and ones a later build added) are kept from the applied slot.
     run(resumed, {}, 10)
@@ -540,8 +545,62 @@ describe('taking the ember', () => {
   })
 
   it('places the first slice’s ember in the kiln, off the golden route', () => {
-    const area = BASE3D_SIM.content
+    const area = FIRST_AREA
     expect(viewAt(area, area.ember.x, area.ember.z)?.id).toBe('kiln')
+  })
+})
+
+describe('the area exit (DESIGN.md §13, area change)', () => {
+  // Two first-slice areas: the first's exit, across the hall a metre north of the spawn, leads to the second's
+  // kiln. GAME-3D.1i brings the real hub and kiln.
+  const first: AreaSource = {
+    ...FIRST_SLICE,
+    id: 'first',
+    exits: [{ min: [-4, -1], max: [4, -0.5], to: 'second', entry: { x: 0, z: 8 } }],
+  }
+  const second: AreaSource = { ...FIRST_SLICE, id: 'second' }
+
+  async function walkToTheExit(): Promise<{ sim: Sim; events: string[] }> {
+    const world = compileWorld([first, second])
+    const sim = await createSim({ ...GAME_SIM, content: world })
+    BASE3D_SIM.setup(sim)
+    const events: string[] = []
+    for (let ticks = 0; ticks < 120 && !events.some((e) => e.startsWith('area.exit')); ticks++)
+      events.push(...run(sim, { stick: UP }))
+    return { sim, events }
+  }
+
+  it('on stepping into an exit, says where it leads and keeps Wick in his area while the fade runs', async () => {
+    const { sim, events } = await walkToTheExit()
+    const exitTick = sim.tick
+    expect(events).toContain(`area.exit@${exitTick}`)
+    expect(sim.resource(Location).area).toBe(0)
+    run(sim, {}, AREA_FADE_TICKS - 1)
+    expect(sim.resource(Location).area).toBe(0)
+    sim.dispose()
+  })
+
+  it('after AREA_FADE_TICKS swaps the area, places Wick at the entry and cuts to its view', async () => {
+    const { sim } = await walkToTheExit()
+    const exitTick = sim.tick
+    const events = run(sim, {}, AREA_FADE_TICKS)
+    expect(events).toEqual([`area.entered@${exitTick + AREA_FADE_TICKS}`])
+    expect(sim.resource(Location)).toMatchObject({ area: 1, next: -1 })
+    const { x, z, view } = hero(sim)
+    expect({ x, z }).toEqual({ x: 0, z: metres(8) })
+    expect(view).toBe('kiln')
+    // In the second area, which has no exit, walking on never leaves it.
+    expect(run(sim, { stick: UP }, 30).some((e) => e.startsWith('area.'))).toBe(false)
+    sim.dispose()
+  })
+
+  it('refuses a world whose exit names no area, whose entry is outside every room, or that repeats an id', () => {
+    const exit = first.exits?.[0] as NonNullable<AreaSource['exits']>[number]
+    expect(() => compileWorld([first])).toThrow(/second/)
+    expect(() => compileWorld([{ ...first, exits: [{ ...exit, entry: { x: 0, z: 20 } }] }, second])).toThrow(
+      /entry/,
+    )
+    expect(() => compileWorld([first, { ...second, id: 'first' }])).toThrow(/first/)
   })
 })
 
@@ -588,9 +647,14 @@ const GOLDEN_KILN_TICK = 118
  * the same kiln tick, locked ticks, action starts and end position, and no event on the route. Re-recorded for
  * GAME-3D.1a's save (was `0401873e6b063c1a`): the sim gained the `progress` resource (`embers: 0`, which
  * `ember.take` counts into), which the snapshot's schema hash and resource rows cover; the route takes no ember, so
- * its rejected commands, events, kiln tick, locked ticks, action starts and end position are unchanged.
+ * its rejected commands, events, kiln tick, locked ticks, action starts and end position are unchanged. Re-recorded
+ * for GAME-3D.1a's flow (was `1e1cf37b5fbe5d75`): the content became a world (`{ areas }`, each area gaining `id` and
+ * `exits`), the schema hash covers the `hero.defeated`, `area.exit` and `area.entered` events and the `location`
+ * resource, whose row the snapshot carries, and the `area.exit` system adds its RNG state. The first slice has no
+ * exit, so the route's rejected commands, events, kiln tick, locked ticks, action starts and end position are
+ * unchanged, and still asserted below.
  */
-const GOLDEN_HASH = '1e1cf37b5fbe5d75'
+const GOLDEN_HASH = 'd78ee833353d562f'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

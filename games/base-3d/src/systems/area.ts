@@ -21,6 +21,8 @@ const point = z.strictObject({ x: z.number(), z: z.number() })
 const viewSource = z.looseObject({ id: z.string().min(1) })
 
 const areaSchema = z.strictObject({
+  /** The area's name, which exits use to lead to it. */
+  id: z.string().min(1),
   /** Where Wick starts, in metres. */
   spawn: point,
   /** The area's camera views. */
@@ -33,6 +35,8 @@ const areaSchema = z.strictObject({
   targets: z.array(point),
   /** Where the ember lies: a pickup within `EMBER_REACH` of it takes it and ends the run. */
   ember: point,
+  /** Plan boxes that lead to the area `to`, where Wick arrives at `entry` (metres). */
+  exits: z.array(planBoxWith({ to: z.string().min(1), entry: point })).default([]),
 })
 
 /** An area as authored: metres, views by id. */
@@ -51,14 +55,27 @@ export interface PlanPoint {
   readonly z: number
 }
 
+/** An exit as the sim reads it: the box, the area it leads to by id, and where Wick arrives there. */
+export interface AreaExitBox extends PlanBox {
+  readonly to: string
+  readonly entry: PlanPoint
+}
+
 /** An area as the sim reads it: Q16.16 metres and compiled views. */
 export interface Area {
+  readonly id: string
   readonly spawn: PlanPoint
   readonly views: readonly CameraView[]
   readonly rooms: readonly (PlanBox & { readonly view: string })[]
   readonly walls: readonly PlanBox[]
   readonly targets: readonly PlanPoint[]
   readonly ember: PlanPoint
+  readonly exits: readonly AreaExitBox[]
+}
+
+/** The sim's content: every area, the first being where a new game starts. */
+export interface World {
+  readonly areas: readonly Area[]
 }
 
 const toPoint = (p: { x: number; z: number }): PlanPoint => ({ x: metres(p.x), z: metres(p.z) })
@@ -85,12 +102,14 @@ export function compileArea(source: AreaSource): Area {
     if (!ids.includes(room.view))
       throw new Error(`base-3d area: a room names the unknown view "${room.view}"`)
   const area: Area = {
+    id: parsed.id,
     spawn: toPoint(parsed.spawn),
     views,
     rooms: parsed.rooms.map((room) => ({ view: room.view, ...toBox(room) })),
     walls: parsed.walls.map(toBox),
     targets: parsed.targets.map(toPoint),
     ember: toPoint(parsed.ember),
+    exits: parsed.exits.map((exit) => ({ ...toBox(exit), to: exit.to, entry: toPoint(exit.entry) })),
   }
   const { x, z } = area.spawn
   if (viewAt(area, x, z) === undefined) throw new Error('base-3d area: the spawn is outside every room')
@@ -102,6 +121,46 @@ export function compileArea(source: AreaSource): Area {
       x + HERO_HALF > w.minX && x - HERO_HALF < w.maxX && z + HERO_HALF > w.minZ && z - HERO_HALF < w.maxZ,
   )
   if (blocked) throw new Error('base-3d area: the spawn overlaps a wall')
+  return area
+}
+
+/**
+ * Compiles each area (`compileArea`) into the world, the first being where a new game starts. Throws on an empty
+ * list, a repeated id, and an exit naming an unknown area or arriving outside its rooms.
+ */
+export function compileWorld(sources: readonly AreaSource[]): World {
+  const areas = sources.map(compileArea)
+  if (areas.length === 0) throw new Error('base-3d world: there are no areas')
+  areas.forEach((area, index) => {
+    if (areas.findIndex((other) => other.id === area.id) !== index)
+      throw new Error(`base-3d world: the area "${area.id}" is defined twice`)
+  })
+  for (const area of areas)
+    for (const exit of area.exits) {
+      const to = areas.find((other) => other.id === exit.to)
+      if (to === undefined)
+        throw new Error(`base-3d world: an exit of "${area.id}" names the unknown area "${exit.to}"`)
+      if (viewAt(to, exit.entry.x, exit.entry.z) === undefined)
+        throw new Error(
+          `base-3d world: an exit of "${area.id}" has its entry outside every room of "${to.id}"`,
+        )
+    }
+  return { areas }
+}
+
+/** The sim's content as a world of areas, each checked as `areaOf` does. */
+export function worldOf(content: unknown): World {
+  const world = content as Partial<World> | null
+  if (world === null || typeof world !== 'object' || !Array.isArray(world.areas) || world.areas.length === 0)
+    throw new Error('base-3d: the sim content is not a world')
+  for (const area of world.areas) areaOf(area)
+  return world as World
+}
+
+/** The area Wick is in: `place.area` of the sim's world. */
+export function areaIn(content: unknown, place: { readonly area: number }): Area {
+  const area = worldOf(content).areas[place.area]
+  if (area === undefined) throw new Error(`base-3d: the world has no area ${place.area}`)
   return area
 }
 
@@ -121,7 +180,8 @@ export function areaOf(content: unknown): Area {
     !Array.isArray(area.walls) ||
     !Array.isArray(area.targets) ||
     typeof area.ember?.x !== 'number' ||
-    typeof area.ember.z !== 'number'
+    typeof area.ember.z !== 'number' ||
+    !Array.isArray(area.exits)
   )
     throw new Error('base-3d: the sim content is not an area')
   return area as Area

@@ -3,8 +3,8 @@ import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Hero, HeroAction } from '../components.ts'
 import { ACTION_CLIP, EMBER_REACH } from '../constants.ts'
 import { EmberTaken } from '../events.ts'
-import { Progress } from '../resources.ts'
-import { areaOf } from './area.ts'
+import { Location, Progress } from '../resources.ts'
+import { areaIn } from './area.ts'
 
 /**
  * Takes the ember: on the tick a pickup starts (`heroAct` stamps `startedAt` with it), within `EMBER_REACH` of the
@@ -15,7 +15,7 @@ export const emberTake: SystemDef = defineSystem({
   phase: 'prePhysics',
   after: ['hero.act'],
   run(ctx) {
-    const { ember } = areaOf(ctx.content)
+    const { ember } = areaIn(ctx.content, ctx.resource(Location))
     for (const entity of ctx.query(Hero, HeroAction)) {
       const { clip, startedAt } = entity.get(HeroAction)
       if (clip !== ACTION_CLIP.pickup || startedAt !== ctx.tick) continue

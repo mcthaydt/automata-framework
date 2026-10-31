@@ -21,7 +21,8 @@ import {
   LOCK_RANGE,
   WALK_PER_TICK,
 } from '../constants.ts'
-import { areaOf, slide, viewAt } from './area.ts'
+import { Location } from '../resources.ts'
+import { areaIn, slide, viewAt } from './area.ts'
 
 // 2π spelled out: `Math.PI` is not sim-safe.
 const TAU = 6.283185307179586
@@ -77,7 +78,7 @@ export const heroMove: SystemDef = defineSystem({
   name: 'hero.move',
   phase: 'physics',
   run(ctx) {
-    const { walls } = areaOf(ctx.content)
+    const { walls } = areaIn(ctx.content, ctx.resource(Location))
     for (const entity of ctx.query(Hero, HeroControl, CameraHeading)) {
       const control = entity.get(HeroControl)
       const hero = entity.get(Hero)
@@ -111,7 +112,7 @@ export const heroView: SystemDef = defineSystem({
   name: 'hero.view',
   phase: 'postPhysics',
   run(ctx) {
-    const area = areaOf(ctx.content)
+    const area = areaIn(ctx.content, ctx.resource(Location))
     for (const entity of ctx.query(Hero, HeroControl, CameraHeading)) {
       const { x, z } = entity.get(Hero)
       const view = viewAt(area, x, z)

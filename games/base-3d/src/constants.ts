@@ -23,3 +23,5 @@ export const ACTION_CLIP = { slash: 1, point: 2, pickup: 3 } as const
 export const ACTION_TICKS = { slash: 24, point: 48, pickup: 54 } as const
 /** Each action button's bit in `HeroControl.actHeld` and `actPressed`. */
 export const ACTION_BITS = { slash: 1, guard: 2, point: 4, pickup: 8 } as const
+/** The area change's fade out, 300 ms (DESIGN.md §13): the sim swaps the area this many ticks after the exit. */
+export const AREA_FADE_TICKS = 18
