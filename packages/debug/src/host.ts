@@ -21,6 +21,30 @@ export interface FeelBoardPort {
   entries(): readonly string[]
   fire(on: string): void
 }
+/** One cue on the audio board: its bus, its line, and the sim events that play it. */
+export interface AudioBoardCue {
+  readonly id: string
+  readonly bus: string
+  readonly about?: string
+  readonly draft: boolean
+  readonly events: readonly string[]
+}
+export interface AudioBoardBed {
+  readonly id: string
+  readonly bus: string
+  readonly about?: string
+  readonly draft: boolean
+}
+/** The audio board: every cue and bed, and a way to play them through the mixer the game installed. */
+export interface AudioBoardPort {
+  cues(): readonly AudioBoardCue[]
+  beds(): readonly AudioBoardBed[]
+  play(cue: string): void
+  startBed(id: string): void
+  stopBed(id: string): void
+  /** The beds playing now. */
+  playing(): readonly string[]
+}
 export interface DebugHost {
   readonly panels: readonly DebugPanelDef[]
   readonly bus?: BusPort | undefined
@@ -28,6 +52,7 @@ export interface DebugHost {
   readonly facts?: readonly string[] | undefined
   readonly sim?: SimProbe | undefined
   readonly feel?: FeelBoardPort | undefined
+  readonly audio?: AudioBoardPort | undefined
   /** Flow's existing pause, for the overlay's "Pause sim" toggle. */
   readonly setPaused?: ((paused: boolean) => void) | undefined
   /** The game's test driver (DBG-D3): named functions a Playwright playthrough calls, exposed as `window.__automataDebug`. */

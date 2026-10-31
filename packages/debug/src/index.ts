@@ -1,8 +1,12 @@
+export { type AudioControls, audioBoard } from './audio-board'
 export { default as DebugOverlay } from './DebugOverlay.svelte'
 export { debugExtension } from './debug.extension'
 export { type FactEntry, type FactLog, RUNTIME_FACTS, recordFacts } from './fact-log'
 export { feelBoard } from './feel-board'
 export {
+  type AudioBoardBed,
+  type AudioBoardCue,
+  type AudioBoardPort,
   type BusPort,
   type DebugHost,
   type FeelBoardPort,
