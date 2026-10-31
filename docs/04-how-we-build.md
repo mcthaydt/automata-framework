@@ -9,6 +9,7 @@ AF follows Ruken's way of working (Ruken's [`docs/04-how-we-build.md`](https://g
 - **Specs per milestone.** A milestone starts with its spec. The Owner's review freezes that milestone's contracts; after that they change only additively or through a written change request.
 - **Plans per task, just in time.** Each task gets a TDD plan in `docs/superpowers/plans/` before its code.
 - **Every change is a pull request** whose title starts with the task ID. Nothing is pushed to `main`.
+- **One pull request per milestone** (Owner, 2026-10-31: "We need to make our PRs bigger, we're doing whole PRs for 3 file changes, PRs should be milestone level"). A milestone, or a group of rows that ships together, is one branch and one PR with one commit or more per part. Push the branch for backup at any time (a branch with no PR runs no CI); open the PR once, when the milestone is done, and push to it again only to fix red CI. The coordinator reviews part by part from the commits. Open stacks were folded on 2026-10-31 ("Yes, consolidate now"): #342 GAME-3D.1a–1e, #336 DIST.2–6, #332 ED2D.6–8, #341 ED3D.6g.
 - **Nothing is done on an agent's word.** Done means tests pass, CI is green, and where the plan says so the Owner has looked and accepted.
 
 ## Ruken first
@@ -57,6 +58,6 @@ Rules for every lane:
 1. **Pick** the next unblocked task in the master plan (its prerequisites done, its milestone spec reviewed).
 2. **Plan** it in `docs/superpowers/plans/`: exact files, interfaces, failing tests first, commands and expected results.
 3. **Build** on its own branch in its own worktree. Strict TDD in `packages/`, `tooling/` and `examples/`.
-4. **PR** with the task ID first in the title; CI green.
+4. **PR**, one per milestone, with the milestone's task IDs first in the title and a table of its parts in the body; CI green.
 5. **Review and merge.** Anything needing the Owner's eyes (UI states, screenshots, copy) is flagged in the PR and on the status page.
 6. **Record** the evidence in the master plan's execution record and update the continuation.

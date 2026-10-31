@@ -87,6 +87,14 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 - M3 will not finish within the two weeks before Pixi 3D goes public (the map puts M3's critical path, M3.0A through the figures to M3.10, at about three weeks for one agent), and the launch also waits on GAME-3D.1 and M9.0.
 - `mcthaydt/automata-skills` holds only its initial commit `e14c0ba`. This session's Discord plugin failed to connect (CONNECTION_CLOSED).
 
+## Owner decisions of 2026-10-31 (coordinator session_01QYLU1iDbVLLVyDwRRpB8wM)
+
+- **Publish.** "publish is approved": #226 Version packages merged (`220083b`); the release run 41194357616 published the `@mcthaydt/automata-*` packages at 0.0.4 to GitHub Packages, with the registry consumer smoke green. The publish job did not pause at the `release` environment (no pending deployment), so QB.1's gate needs the Owner to check Settings → Environments → `release`.
+- **Queued runs.** "Cancel queued runs": runs on stacked drafts and superseded `main` pushes are cancelled; a run for a PR on `main` is kept.
+- **Model.** "Switch to sonnet 5 high with our next cycle": every session the launcher creates from the next rotation uses `claude-sonnet-5-5`, with high effort set in the prompt (the launcher has no effort parameter).
+- **base-3d scope.** "I think we overscoped the 3D one a bit", then "Trimmed slice": keep the systems already built; the content is one short dungeon of 3 rooms (entry, a keys/doors/switches puzzle room, the boss room); no hub, townsfolk, shop or minigame; 2 enemy types plus the boss; stair IK (GAME-3D.1g) leaves 1.0; 1i, 1j and 1k shrink to match. The 3D lane amends `games/base-3d/DESIGN.md`; the GAME-3D rows in 02 change when it merges.
+- **Milestone PRs.** "PRs should be milestone level", then "Yes, consolidate now": one PR per milestone (see [04](04-how-we-build.md)); the open stacks were folded into #342, #336, #332 and #341, and the intermediate PRs closed with a pointer.
+
 ## Open PRs and lanes in flight
 
 Each lane is a cloud session that works only in its own worktrees and PRs, never edits 02, 03, 00, 01 or `AGENTS.md`, and reports "ready: #N <task> head <sha>" lines to the coordinator; the coordinator reviews, marks the PR ready, watches its CI, merges it on green (merge commit, full head sha) and ticks 02. Sessions are created and archived only by the launcher `session_01QYLU1fJPdbAybiTAWuSqLd` (every coordinator and lane sits at depth 1); the coordinator rotates every two hours and lanes are replaced when their context fills. No Agent or Workflow tool anywhere ("Apply all 4, no more subagents").
