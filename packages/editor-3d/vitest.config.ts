@@ -1,9 +1,10 @@
+import { journeyProject } from '@mcthaydt/automata-editor-kit/journey-project'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
-// Four projects (3D editor spec §12), the same split as editor-2d:
+// Five projects (3D editor spec §12), the same split as editor-2d:
 // - unit: the headless layers (format, codec, checks, model, views' math, the app's models and controllers) in Node,
 //   with no renderer and no Svelte.
 // - dom: Svelte components in jsdom through Testing Library (states and behavior, no snapshots). `*.dom.test.ts`.
@@ -11,6 +12,8 @@ import { defineConfig } from 'vitest/config'
 //   (WebKit with touch and pen samples). `*.layout.test.ts`.
 // - canvas: the Plan view's Pixi renderer (`*.canvas.test.ts`, ED3D.5d) in Chromium with WebGL2: pixels read back,
 //   resize and context loss. `ED3D_VISUALS=1` makes the review-image test write its PNGs.
+// - journeys: the iPad journeys (the kit's EDK.6b harness: WebKit with touch and a 2x screen), `*.journey.test.ts`, with
+//   real pointer events from a finger, a Pencil and a palm (ED3D.11).
 //
 // The Svelte plugins sit on the two projects that mount components, not at the top, so the Node project never loads
 // the Svelte compiler or a package's `browser` build.
@@ -22,7 +25,12 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           include: ['src/**/*.test.ts'],
-          exclude: ['src/**/*.dom.test.ts', 'src/**/*.layout.test.ts', 'src/**/*.canvas.test.ts'],
+          exclude: [
+            'src/**/*.dom.test.ts',
+            'src/**/*.layout.test.ts',
+            'src/**/*.canvas.test.ts',
+            'src/**/*.journey.test.ts',
+          ],
         },
       },
       {
@@ -72,6 +80,12 @@ export default defineConfig({
             instances: [{ browser: 'chromium' }],
           },
         },
+      },
+      // The Svelte plugins and the Pixi pre-bundle sit on the project, as on the other browser projects (see above).
+      {
+        ...journeyProject(playwright),
+        plugins: [svelte(), svelteTesting()],
+        optimizeDeps: { include: ['pixi.js'] },
       },
     ],
   },

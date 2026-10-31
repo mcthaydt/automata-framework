@@ -398,3 +398,32 @@ describe('createWalkController: the shipped Last Light levels', () => {
     },
   )
 })
+
+describe('createWalkController: looking by a drag and the mesh to draw (ED3D.8b)', () => {
+  it('turns the heading and tips the pitch by a drag, holding the pitch to 85 degrees', () => {
+    const { walk } = walkOn(withSpawn(EAST))
+    const yaw = walk.view.camera.yaw
+    walk.lookBy(0.2, 0.1)
+    expect(walk.view.camera.yaw).toBeCloseTo(yaw + 0.2, 12)
+    expect(walk.view.camera.pitch).toBeCloseTo(0.1, 12)
+    walk.lookBy(0, 10)
+    expect(walk.view.camera.pitch).toBeCloseTo(85 * DEGREES, 12)
+  })
+
+  it('turns Orbit’s heading by a drag', () => {
+    const { walk } = walkOn(withSpawn(EAST))
+    walk.setMode('orbit')
+    const before = walk.view.camera
+    walk.lookBy(0.3, 0)
+    expect(walk.view.camera.yaw).not.toBeCloseTo(before.yaw, 6)
+  })
+
+  it('has the level’s mesh for the view to draw, the same one while the level does not change', () => {
+    const { walk, editor } = walkOn(withSpawn(EAST))
+    const mesh = walk.mesh
+    expect(mesh.surfaces.length).toBeGreaterThan(0)
+    expect(walk.mesh).toBe(mesh)
+    editor.run(setHeights({ id: 'hall', ceiling: 5 }))
+    expect(walk.mesh).not.toBe(mesh)
+  })
+})

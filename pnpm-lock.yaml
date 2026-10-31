@@ -409,6 +409,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/automata-editor-suite':
+        specifier: workspace:*
+        version: link:../editor-suite
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -692,9 +695,21 @@ importers:
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
+      '@mcthaydt/automata-figures':
+        specifier: workspace:*
+        version: link:../figures
+      '@mcthaydt/automata-render-pixi3d':
+        specifier: workspace:*
+        version: link:../render-pixi3d
       '@mcthaydt/automata-ui':
         specifier: workspace:*
         version: link:../ui
+      '@pixi/3d':
+        specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
+        version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
       smol-toml:
         specifier: 1.9.0
         version: 1.9.0

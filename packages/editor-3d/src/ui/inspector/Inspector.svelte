@@ -5,8 +5,10 @@
   Several selected show the first and say so; nothing selected says how to select.
 -->
 <script lang="ts">
+import { Button } from '@mcthaydt/automata-editor-kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
+import type { MaterialTarget } from '../../app/material-session'
 import SectorCard from './SectorCard.svelte'
 import ThingCard from './ThingCard.svelte'
 import WallCard from './WallCard.svelte'
@@ -15,9 +17,13 @@ interface Props {
   card: InspectorCard
   /** Runs a change; answers the model's sentence when it is refused. */
   onchange: (change: InspectorChange, phase: InspectorPhase) => string | undefined
+  /** Opens the material sheet on a wall or a room's surface. */
+  onmaterial?: ((target: MaterialTarget) => void) | undefined
+  /** Opens the definitions sheet. */
+  ondefinitions?: (() => void) | undefined
 }
 
-const { card, onchange }: Props = $props()
+const { card, onchange, onmaterial, ondefinitions }: Props = $props()
 
 let refusal = $state<string | undefined>()
 
@@ -39,15 +45,16 @@ function change(next: InspectorChange, phase: InspectorPhase): void {
   {#if card.kind === 'none'}
     <p class="empty">Tap a room, a wall or a thing to see it here.</p>
   {:else if card.kind === 'sector'}
-    <SectorCard {card} onchange={change} />
+    <SectorCard {card} onchange={change} {onmaterial} />
   {:else if card.kind === 'wall'}
-    <WallCard {card} onchange={change} />
+    <WallCard {card} onchange={change} {onmaterial} />
   {:else}
     <ThingCard {card} onchange={change} onfield={field} />
   {/if}
   {#if refusal !== undefined}
     <p class="refusal" role="alert">{refusal}</p>
   {/if}
+  {#if ondefinitions}<Button onclick={ondefinitions}>Definitions…</Button>{/if}
 </section>
 
 <style>
