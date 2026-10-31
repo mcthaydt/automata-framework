@@ -66,8 +66,16 @@ export interface ModeOption {
   readonly reason?: string
 }
 
-/** The views of the top bar. Only Plan is built; the others say they are coming, in words. */
-export function modeOptions(): readonly ModeOption[] {
+/**
+ * The views of the top bar. Walk and World say they are coming, in words. Below `wide` (`narrow`) the bar offers Plan and
+ * 3D only: Split needs the width, and the 3D modes replace Plan there (ED3D spec §10; ED3D.5f).
+ */
+export function modeOptions({ narrow = false }: { readonly narrow?: boolean } = {}): readonly ModeOption[] {
+  if (narrow)
+    return [
+      { id: 'plan', label: 'Plan' },
+      { id: 'dollhouse', label: '3D' },
+    ]
   const coming = (id: ViewMode, label: string, what: string): ModeOption => ({
     id,
     label,
@@ -76,8 +84,8 @@ export function modeOptions(): readonly ModeOption[] {
   })
   return [
     { id: 'plan', label: 'Plan' },
-    coming('split', 'Split', 'the plan beside a 3D view of the rooms is coming next.'),
-    coming('dollhouse', '3D', 'a 3D view of the rooms is coming next.'),
+    { id: 'split', label: 'Split' },
+    { id: 'dollhouse', label: '3D' },
     coming('walk', 'Walk', 'walking through the level is coming soon.'),
     coming('world', 'World', 'the map of all your levels is coming soon.'),
   ]

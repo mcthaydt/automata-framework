@@ -173,4 +173,38 @@ describe('the plan tools', () => {
     tools.hover(at(1, -3, 'mouse'))
     expect(tools.pointerKind).toBe('mouse')
   })
+
+  describe('the Things tool (ED3D.7d)', () => {
+    it('places the picked definition with a tap, as one undo step', () => {
+      const { tools, editor, at } = setup()
+      tools.choose('things')
+      expect(tools.state.tool).toBe('things')
+      expect(tools.things?.pick('crate')).toBeUndefined()
+      tools.hover(at(11, 4))
+      tools.tap(at(11, 4))
+      expect(editor.history.undoLabel).toMatch(/^Add crate/)
+      const crates = afSectorProfile
+        .entities(editor.level as AfSector)
+        .things.filter((each) => each.def === 'crate')
+      expect(crates).toHaveLength(2)
+    })
+
+    it('moves a thing with a drag, as one undo step, and does not pan', () => {
+      const { tools, editor, at } = setup()
+      tools.choose('things')
+      const camera = editor.view.state.camera
+      tools.dragStart(at(11, 2), at(11, 2))
+      tools.drag(at(12, 3))
+      tools.dragEnd(at(12, 3), false)
+      expect(editor.view.state.camera).toEqual(camera)
+      expect(editor.history.undoLabel).toMatch(/^Move crate/)
+    })
+
+    it('disposes the Things tool when another is chosen', () => {
+      const { tools } = setup()
+      tools.choose('things')
+      tools.choose('select')
+      expect(tools.things).toBeUndefined()
+    })
+  })
 })

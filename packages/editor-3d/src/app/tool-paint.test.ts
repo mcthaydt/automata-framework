@@ -142,4 +142,43 @@ describe('tool paint', () => {
       toolPaint(drawing(), viewport, fills),
     )
   })
+
+  it('marks where the Things tool would place, in the refusal colour with its sentence, and an area’s rectangle (ED3D.7d)', () => {
+    const view = (place: unknown) =>
+      ({
+        palette: [],
+        active: 'crate',
+        hover: undefined,
+        place,
+        gesture: 'idle',
+        linking: undefined,
+        link: undefined,
+        refusal: undefined,
+      }) as never
+    const ok = toolPaint(
+      { tool: 'things', view: view({ x: 1, z: 0, id: 'crate2', action: 'add' }) },
+      viewport,
+      fills,
+    )
+    expect(ok.dots).toEqual([{ at: { x: 432, y: 200 }, radius: 7, color: PLAN_COLORS.accent, ring: true }])
+    const no = toolPaint(
+      {
+        tool: 'things',
+        view: view({ x: 1, z: 0, id: 'crate2', action: 'none', reason: 'outside every sector' }),
+      },
+      viewport,
+      fills,
+    )
+    expect(no.labels).toEqual([{ at: { x: 432, y: 200 }, text: 'outside every sector', tone: 'refused' }])
+    const area = toolPaint(
+      {
+        tool: 'things',
+        view: view({ x: 1, z: 1, id: 'zone1', action: 'add', area: { x0: 0, z0: 0, x1: 2, z1: 2 } }),
+      },
+      viewport,
+      fills,
+    )
+    expect(area.strokes).toHaveLength(4)
+    expect(area.strokes.every((stroke) => stroke.dashed)).toBe(true)
+  })
 })

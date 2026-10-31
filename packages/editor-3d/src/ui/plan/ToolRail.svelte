@@ -15,7 +15,7 @@ interface Props {
 
 const { active, orientation = 'vertical', onchoose }: Props = $props()
 
-type RailTool = 'select' | 'sector' | 'vertex' | 'portal' | 'door' | 'window'
+type RailTool = 'select' | 'sector' | 'vertex' | 'portal' | 'door' | 'window' | 'things'
 
 const TOOLS: readonly {
   readonly id: RailTool
@@ -29,6 +29,7 @@ const TOOLS: readonly {
   { id: 'portal', label: 'Portal', key: 'P', choose: 'portal' },
   { id: 'door', label: 'Door', key: 'D', choose: 'door' },
   { id: 'window', label: 'Window', key: 'N', choose: 'window' },
+  { id: 'things', label: 'Things', key: 'T', choose: 'things' },
 ]
 
 const SECTOR_SHAPES: readonly PlanToolId[] = ['polygon', 'rectangle', 'split', 'merge']

@@ -1,7 +1,7 @@
 // The loupe the Plan canvas hands its renderer (ED3D.6g-b, plan decision 1): while the Sector tool has a loupe point
 // (the snapped point under a Pencil, or the last corner after a nudge), the plan and the tool's overlay for a camera
 // centred on that point at four times the zoom, in a lens placed clear of the point and the canvas edge.
-import type { Point as ScreenPoint, Size } from '@mcthaydt/automata-editor-kit/core'
+import type { Size } from '@mcthaydt/automata-editor-kit/core'
 import type { LevelEditor } from '../model/level-editor'
 import type { PlanPaint } from '../view/plan/plan-paint'
 import { planViewport, toScreen } from '../view/plan/plan-viewport'
@@ -46,7 +46,11 @@ export function loupeOf<D>(
  * Where the nudge pad goes while the Sector tool has corners placed with touch or a Pencil (spec §9: never for a mouse),
  * clear of the last corner; nothing otherwise, and nothing while portal offers are open.
  */
-export function nudgePadOf<D>(editor: LevelEditor<D>, tools: PlanTools, size: Size): ScreenPoint | undefined {
+export function nudgePadOf<D>(
+  editor: LevelEditor<D>,
+  tools: PlanTools,
+  size: Size,
+): 'left' | 'right' | undefined {
   const view = tools.sector?.view
   const last = view?.corners.at(-1)
   if (view === undefined || last === undefined || view.offers.length > 0) return undefined
