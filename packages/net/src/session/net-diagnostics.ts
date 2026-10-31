@@ -268,8 +268,11 @@ export class NetDiagnostics {
 
   /** Forgets everything, as leaving a room does. */
   reset(): void {
-    this.snapshotCount = this.duplicates = this.reordered = 0
-    this.newestTick = this.lastArrival = undefined
+    this.snapshotCount = 0
+    this.duplicates = 0
+    this.reordered = 0
+    this.newestTick = undefined
+    this.lastArrival = undefined
     for (const d of [
       this.interval,
       this.tickStep,

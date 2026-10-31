@@ -58,7 +58,8 @@ export class RenderClock {
     this.base = options.baseDelayTicks
     this.snapshotTicks = options.snapshotTicks
     this.maxDelay = Math.max(options.baseDelayTicks, MAX_DELAY_SECONDS * options.tickHz)
-    this.delay = this.delayTarget = options.baseDelayTicks
+    this.delay = options.baseDelayTicks
+    this.delayTarget = options.baseDelayTicks
   }
 
   /** Adopts a snapshot's tick; it never moves the clock itself, and it measures how early the snapshot came. */
@@ -120,6 +121,16 @@ export class RenderClock {
     return this.authority.authorityTick()
   }
 
+  /** How far the authority clock trails its anchor, in ticks. */
+  get error(): number {
+    return this.authority.error
+  }
+
+  /** Whether the clock moved back to a restarted timeline since the last call; true once per restart. */
+  takeRestart(): boolean {
+    return this.authority.takeRestart()
+  }
+
   /** How far behind authority the others are drawn, now. */
   get interpolationDelay(): number {
     return this.delay
@@ -133,7 +144,8 @@ export class RenderClock {
   /** Forgets the room, as leaving does. */
   clear(): void {
     this.authority.clear()
-    this.delay = this.delayTarget = this.base
+    this.delay = this.base
+    this.delayTarget = this.base
     this.arrivals.length = 0
     this.newest = Number.NEGATIVE_INFINITY
     this.lastAt = 0

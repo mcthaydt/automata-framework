@@ -45,6 +45,7 @@ export {
   NetSession,
   type NetSessionOptions,
   PING_EVERY_MS,
+  type RemoteSource,
   type Sampler,
   type SessionEnd,
   type SessionRoomState,

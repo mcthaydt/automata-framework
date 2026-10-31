@@ -134,7 +134,10 @@ describe('the interpolation delay on a jittery link', () => {
     const widened = clock.interpolationDelay
     let tick = Math.round(clock.authorityTick() as number)
     for (let frame = 0; frame < 60 * 8; frame += 1) {
-      if (frame % 3 === 0) clock.observe((tick += 3))
+      if (frame % 3 === 0) {
+        tick += 3
+        clock.observe(tick)
+      }
       clock.advance(FRAME_MS)
     }
     expect(clock.interpolationDelay).toBeLessThan(widened)
@@ -149,7 +152,10 @@ describe('a jump of the clock', () => {
       let tick = 0
       clock.observe(0)
       for (let frame = 0; frame < 60 * 4; frame += 1) {
-        if (frame % 3 === 0) clock.observe((tick += 3) - (frame % 12 === 0 ? 3 : 0))
+        if (frame % 3 === 0) {
+          tick += 3
+          clock.observe(tick - (frame % 12 === 0 ? 3 : 0))
+        }
         clock.advance(FRAME_MS)
       }
       return clock.interpolationDelay

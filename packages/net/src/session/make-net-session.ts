@@ -15,19 +15,34 @@ import type { Sim } from '@mcthaydt/automata-sim'
 import { Effect, type Scope, Stream, type Subscribable, SubscriptionRef } from 'effect'
 import type { ConnectionState, NetRoom } from '../client/net-room'
 import type { RoomInfo } from '../client/room-info'
-import { NetSession, type SessionEnd } from './net-session'
+import { NetDiagnostics } from './net-diagnostics'
+import { NetSession, type RemoteSource, type SessionEnd } from './net-session'
+import type { RemoteView } from './snapshot-buffer'
 
-export interface MakeNetSessionOptions {
-  readonly room: Pick<NetRoom, 'port' | 'info' | 'connection'>
+export interface MakeNetSessionOptions<T = RemoteView> {
+  readonly room: Pick<NetRoom, 'port' | 'info' | 'connection' | 'markDegraded'>
   /** The client's sim: the game's plugins and content, as the room runs them. */
   readonly sim: Sim
   /** net.toml's `maxLeadTicks` [60]. */
   readonly maxLeadTicks?: number | undefined
+  /** How the game draws the others from the authoritative states (M7.5c). */
+  readonly remote?: RemoteSource<T> | undefined
+  /** net.toml's `snapshotEvery`, `interpolationTicks`, `degradedRoundTripMs` and `degradedGapMs`; their defaults when absent. */
+  readonly config?:
+    | {
+        readonly snapshotEvery?: number | undefined
+        readonly interpolationTicks?: number | undefined
+        readonly degradedRoundTripMs?: number | undefined
+        readonly degradedGapMs?: number | undefined
+      }
+    | undefined
 }
 
-export interface NetSessionHandle {
+export interface NetSessionHandle<T = RemoteView> {
   /** The game's loop calls `session.frame` once per rendered frame. */
-  readonly session: NetSession
+  readonly session: NetSession<T>
+  /** What the netcode is doing, measured; the connection reads `degraded` from it. */
+  readonly diagnostics: NetDiagnostics
   /** Why the session ended (a desync), once it has. */
   readonly ended: Subscribable.Subscribable<SessionEnd | undefined>
 }
@@ -37,9 +52,9 @@ const takesInput = (info: RoomInfo | undefined, connection: ConnectionState): bo
   (info.phase === 'countdown' || info.phase === 'playing') &&
   (connection === 'connected' || connection === 'degraded')
 
-export function makeNetSession(
-  options: MakeNetSessionOptions,
-): Effect.Effect<NetSessionHandle, never, Scope.Scope> {
+export function makeNetSession<T = RemoteView>(
+  options: MakeNetSessionOptions<T>,
+): Effect.Effect<NetSessionHandle<T>, never, Scope.Scope> {
   return Effect.gen(function* () {
     const clock = yield* Effect.clock
     // Monotonic: the wall clock (`unsafeCurrentTimeMillis`) can step back when the system time is set, and an
@@ -49,7 +64,16 @@ export function makeNetSession(
     const ended = yield* SubscriptionRef.make<SessionEnd | undefined>(undefined)
     // Once the scope closes, nothing more goes to the room: no command and no probe.
     let closed = false
-    const session = new NetSession({
+    const { config } = options
+    const diagnostics = new NetDiagnostics({
+      now,
+      thresholds: {
+        roundTripMs: config?.degradedRoundTripMs ?? 1000,
+        gapMs: config?.degradedGapMs ?? 1000,
+      },
+      onDegraded: (degraded) => options.room.markDegraded(degraded),
+    })
+    const session = new NetSession<T>({
       sim: options.sim,
       send: (command) => {
         if (!closed) port.sendCommand(command)
@@ -57,6 +81,10 @@ export function makeNetSession(
       ping: (tick) => (closed ? undefined : port.ping(tick)),
       roundTripMs: port.roundTripMs(),
       maxLeadTicks: options.maxLeadTicks,
+      remote: options.remote,
+      snapshotTicks: config?.snapshotEvery,
+      interpolationTicks: config?.interpolationTicks,
+      diagnostics,
       now,
       // Once per session, never per frame.
       onEnd: (end) => Effect.runSync(SubscriptionRef.set(ended, end)),
@@ -111,10 +139,10 @@ export function makeNetSession(
           const was = connection
           connection = next
           update()
-          if (was === 'reconnecting' && next === 'connected') session.resync()
+          if (was === 'reconnecting' && (next === 'connected' || next === 'degraded')) session.resync()
         }),
       ),
     )
-    return { session, ended }
+    return { session, diagnostics, ended }
   })
 }
