@@ -1183,6 +1183,10 @@ function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
 ```ts
 interface RuntimeFacts {
     readonly 'sim.events': readonly SimEvent[];
+    readonly 'sim.step': {
+        readonly tick: number;
+        readonly events: readonly SimEvent[];
+    };
     readonly 'screen.entered': {
         readonly screen: string;
         readonly from: string | undefined;
