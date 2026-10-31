@@ -9,6 +9,9 @@ import { AI_CONTEXT_FILES, AI_PROJECT_PROMPT, AI_RULES, AI_TASKS, AI_REVIEW_CHEC
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const websiteDir = resolve(__dirname, '..')
+const apiIndex = JSON.parse(readFileSync(join(websiteDir, 'src/data/api-index.json'), 'utf8')) as { commit: string; version: string }
+// The runtime's BootError union and its members, as the framework's API index documents them (scripts/sync-api-index.ts).
+const bootErrors = JSON.parse(readFileSync(join(websiteDir, 'src/data/boot-errors.json'), 'utf8')) as { commit: string; signature: string; doc: string; members: { name: string; package: string; doc: string }[] }
 
 export interface TocItem {
   id: string
@@ -93,7 +96,7 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "Zero-Eval CSP & Ruken Security",
     "category": "Core",
     "description": "Avoiding dynamic evaluation under the host policy.",
-    "content": "# Zero-Eval CSP & Ruken Security\n\n## Dynamic evaluation\n\nDo not use eval or new Function in game code. Ruken does not permit unsafe-eval. Import the renderer's no-eval entry before initializing PixiJS.\n\n## Policy scope\n\nAvoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy.\n\n## Trust boundaries\n\nKeep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake."
+    "content": "# Zero-Eval CSP & Ruken Security\n\n## Dynamic evaluation\n\nDo not use eval or new Function in game code. Ruken does not permit unsafe-eval. Import the renderer's no-eval entry before initializing PixiJS.\n\n## Policy scope\n\nAvoiding dynamic evaluation is one part of CSP compatibility. Asset origins, connections, workers and other directives must also match the host policy. Test the built game under that actual policy: a Ruken game's headers come from compileHeaders in @ruken/manifest, and the framework CLI's CSP probe loads the build in Chromium under them. See [the content security policy](/ai#csp).\n\n## Trust boundaries\n\nKeep credentials outside game bundles. Validate host messages at the integration boundary. Use the supported hosting API instead of inventing another handshake."
   },
   {
     "id": "mobile-ui",
@@ -101,7 +104,7 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "Mobile UI Primitives",
     "category": "Core",
     "description": "Geometry, controls and accessible layout.",
-    "content": "# Mobile UI Primitives\n\n## Geometry\n\ncreateGeometryOwner tracks the space available to game UI, including host geometry and viewport changes. Use its state instead of independent measurements in every component.\n\n## Layout and controls\n\nScreenFrame, ActionBar, CornerControls and Dialog provide building blocks. Check their current Props definitions rather than guessing component inputs.\n\n## Device checks\n\nVerify touch targets, focus order, orientation changes, safe areas and keyboard occlusion on supported devices. A responsive layout test does not establish GPU performance or real-device acceptance."
+    "content": "# Mobile UI Primitives\n\n## Geometry\n\ncreateGeometryOwner tracks the space available to game UI, including host geometry and viewport changes. Use its state instead of independent measurements in every component.\n\n## Layout and controls\n\nScreenFrame, ActionBar, CornerControls and Dialog provide building blocks. Check their current Props definitions rather than guessing component inputs.\n\n## Device checks\n\nVerify touch targets, focus order, orientation changes, safe areas and keyboard occlusion on supported devices. A responsive layout test does not establish GPU performance or real-device acceptance.\n\n## Tested input journeys\n\nAt 780×270, the framework’s input matrix plays a touch journey and a gamepad journey in Chromium under a fake Ruken host. Keyboard journeys run at the tablet and desktop sizes, in Chromium, WebKit and Firefox at desktop size. These are browser tests with simulated input and DOM geometry. Acceptance on real phones and controllers is separate and still open. [Read the matrix](https://github.com/mcthaydt/automata-framework/blob/" + apiIndex.commit + "/packages/testing/src/e2e/input-matrix.ts) at the framework commit this site was built from.\n"
   },
   {
     "id": "ai-rules",
@@ -109,7 +112,7 @@ const DEFAULT_DOCS: Omit<DocSection, 'toc'>[] = [
     "title": "AI Coding Agent Rules",
     "category": "Guidance",
     "description": "Project context for agents, followed by verification.",
-    "content": "# AI Coding Agent Rules\n\n## Start from source\n\nInstall Superpowers and the official PixiJS v8 skills, then have the agent report which guidance it loaded. See [Install agent skills](/docs/agent-setup). Give the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.\n\n## Boundaries\n\n- Only simulation systems mutate gameplay state during a run.\n- Effect runs outside the sim.\n- Avoid dynamic evaluation; verify the actual host CSP.\n- Presentation interpolates between ticks and observes render deltas.\n- Report the checks performed and the gates still open.\n\n## Verify the result\n\nInstructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.\n\n## Plain-text context\n\nThe website publishes llms.txt as an index and llms-full.txt as a combined text reference. They contain curated introductory documentation, not the complete framework source."
+    "content": "# AI Coding Agent Rules\n\n## Start from source\n\nInstall Superpowers and the official PixiJS v8 skills, then have the agent report which guidance it loaded. See [Install agent skills](/docs/agent-setup). Give the agent AGENTS.md, current package types and the nearest working example. Read instructions through the agent's supported project-context mechanism.\n\n## Boundaries\n\n- Only simulation systems mutate gameplay state during a run.\n- Effect runs outside the sim.\n- Avoid dynamic evaluation; verify the actual host CSP.\n- Presentation interpolates between ticks and observes render deltas.\n- Report the checks performed and the gates still open.\n\n## Verify the result\n\nInstructions cannot eliminate hallucinations or guarantee correct code. Check exported names, typecheck changes, run relevant tests and inspect runtime behavior.\n\n## Plain-text context\n\nThe website publishes llms.txt as an index; llms-full.txt, the framework's defined documentation corpus followed by its complete API reference, and llms-api.txt, that reference alone, both generated from the package declarations by the framework's API index; and llms-guides.txt, this site's guides and task prompts. None of them is the framework source."
   },
   {
     "id": "capabilities",
@@ -126,6 +129,10 @@ const migrationDocs: Omit<DocSection, 'toc'>[] = MIGRATION_GUIDES.map(guide => (
   content: '# From ' + guide.engine + '\n\n' + guide.introduction + '\n\n## Map familiar concepts\n\n| Your starting point | Automata responsibility |\n|---|---|\n' + guide.mappings.map(([from, to]) => '| ' + from + ' | ' + to + ' |').join('\n') + '\n\n## The habit to change\n\n' + guide.habit + '\n\n## Your first small port\n\n' + guide.task + '\n\n[Open Emberwick’s source](/examples?demo=base-2d) and [try the worked change](/start#worked-change).\n\n## Compatibility and scope\n\n' + guide.caution + '\n\n[Current capabilities](/docs/capabilities).',
 }))
 DEFAULT_DOCS.splice(2, 0, ...migrationDocs)
+DEFAULT_DOCS.push({
+  id: 'boot-errors', slug: 'boot-errors', title: 'Boot errors', category: 'Core', description: 'The typed failures boot reports, generated from the framework API index.',
+  content: '# Boot errors\n\n' + bootErrors.doc + '\n\n```ts\n' + bootErrors.signature + '\n```\n\nThese are the failures boot reports as typed values. A defect in game code after boot is not one of them, and this list is not a claim that every failure is caught. [Read the source](https://github.com/mcthaydt/automata-framework/blob/' + bootErrors.commit + '/packages/runtime/src/boot/boot-error.ts) at the framework commit this site was built from.\n\n## The failures\n\n' + bootErrors.members.map(member => '### ' + member.name + '\n\nFrom `' + member.package + '`. ' + member.doc).join('\n\n') + '\n',
+})
 DEFAULT_DOCS.push(
   { id: 'agent-setup', slug: 'agent-setup', title: 'Install agent skills', category: 'Getting Started', description: 'Install Superpowers and the official PixiJS collection, then verify the agent can load them.', content: '# Install agent skills\n\n## Required for the guided AI workflow\n\nInstall Superpowers and the official PixiJS v8 skill collection for the agent you will use. They guide planning, testing and rendering work; they are not runtime dependencies of the game.\n\n## Install Superpowers\n\nIn the Codex app, open Plugins and install Superpowers. In Codex CLI, use /plugins, search for Superpowers and select Install Plugin.\n\nIn Claude Code, use its official plugin marketplace:\n\n```text\n/plugin install superpowers@claude-plugins-official\n```\n\nIn Cursor Agent chat:\n\n```text\n/add-plugin superpowers\n```\n\nOther agents have their own installation routes. Use the [upstream Superpowers instructions](' + SKILL_SOURCES.superpowers + ').\n\n## Install PixiJS skills\n\nRun this in the checkout and follow the prompts for your coding agent and the full PixiJS collection:\n\n```sh\n' + PIXIJS_INSTALL + '\n```\n\nSee the [official PixiJS instructions](' + SKILL_SOURCES.pixijs + ').\n\n## Verify before coding\n\nAsk the agent to confirm installed and loaded skills, rather than inferring readiness from a website checkbox.\n\n```text\n' + SKILL_PREFLIGHT + '\n```\n\n[Use the interactive setup checklist](/start). Installation sources were checked on 15 October 2026; follow upstream instructions when a tool changes.' },
   { id: 'audience', slug: 'audience', title: 'Who Automata is for', category: 'Getting Started', description: 'Choose Automata based on your workflow and current requirements.', content: '# Who Automata is for\n\n## Who this is for\n\n' + AUDIENCE_FIT.map(item => '- ' + item).join('\n') + '\n\n## Who this is not for\n\n' + AUDIENCE_NOT_FIT.map(item => '- ' + item).join('\n') + '\n\n## Start from your background\n\n' + MIGRATION_GUIDES.map(guide => '- [From ' + guide.engine + '](/docs/' + guide.slug + ')').join('\n') + '\n\n[Current capabilities and licensing](/docs/capabilities).'},
@@ -167,15 +174,17 @@ ${docs.map((d) => `- [${d.title}](/docs/${d.slug}): ${d.description}`).join('\n'
 
 ## AI & Agent Skills
 - [Automata AI Portal](/ai): Project context, architectural rules, and verification guidance.
-- [Full Text Docs](/llms-full.txt): Guides, selected API contracts, examples, and task prompts for coding agents.
+- [Full documentation](/llms-full.txt): The framework's defined documentation corpus and its complete API reference for version ${apiIndex.version}, generated from the package declarations.
+- [API reference](/llms-api.txt): Every export of the ${apiIndex.version} packages with its signature and doc comment, generated from the package declarations.
+- [Site guides](/llms-guides.txt): The guides, task prompts and selected API examples on this site.
 
 ## API Reference
 ${CHEATSHEET_MODULES.map(module => `- [${module.title}](/cheatsheet#${module.id}): ${module.description}`).join('\n')}
 `
   writeFileSync(join(staticDir, 'llms.txt'), llmsIndex.trim() + '\n')
 
-  // 3. Generate static/llms-full.txt
-  const llmsFull = `# Automata Framework — Documentation and API Reference for Coding Agents
+  // 3. Generate static/llms-guides.txt (static/llms-full.txt and llms-api.txt are the framework's, from scripts/sync-api-index.ts)
+  const llmsGuides = `# Automata Framework — Site Guides for Coding Agents
 
 > Automata is a deterministic 2D game framework for the modern web and Ruken platform.
 > Strict Core Laws: Koota ECS determinism, Effect outside sim, Zero Eval CSP, PixiJS 2D sub-tick alpha interpolation.
@@ -235,12 +244,12 @@ The current checkout's instructions and TypeScript definitions take precedence.
 
 ${CHEATSHEET_MODULES.map(module => `## ${module.title}\nImport: ${module.name}\nURL: /cheatsheet#${module.id}\nSource: https://github.com/mcthaydt/automata-framework/blob/main/${module.sourcePath}\n\n${module.description}\n\n\`\`\`ts\n${module.example}\n\`\`\`\n\n${module.entries.map(entry => `### ${entry.name}\n\n${entry.description}\n${entry.receiver ? `Instance method on ${entry.receiver}.\n` : ''}\n\`\`\`ts\n${entry.signature}\n\`\`\`\nReturns: ${entry.returnType}\n${(entry.parameters ?? []).map(parameter => `- ${parameter.name} (${parameter.type}): ${parameter.desc}`).join('\n')}\n${(entry.notes ?? []).map(note => `- ${note}`).join('\n')}`).join('\n\n')}`).join('\n\n---\n\n')}
 `
-  writeFileSync(join(staticDir, 'llms-full.txt'), llmsFull.trim() + '\n')
+  writeFileSync(join(staticDir, 'llms-guides.txt'), llmsGuides.trim() + '\n')
 
   return docs
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   syncDocs()
-  console.log('Successfully synced docs to src/data/docs.json, static/llms.txt, and static/llms-full.txt')
+  console.log('Successfully synced docs to src/data/docs.json, static/llms.txt, and static/llms-guides.txt')
 }

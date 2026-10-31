@@ -6,7 +6,7 @@ import { AI_PROJECT_PROMPT, AI_TASKS } from '../src/data/ai-guidance'
 
 describe('LLMs.txt & Docs Pipeline', () => {
   it('publishes the same API examples and task prompts that people read on the site', () => {
-    const full = readFileSync(resolve(__dirname, '../static/llms-full.txt'), 'utf8')
+    const full = readFileSync(resolve(__dirname, '../static/llms-guides.txt'), 'utf8')
     const index = readFileSync(resolve(__dirname, '../static/llms.txt'), 'utf8')
     expect(full).toContain(AI_PROJECT_PROMPT)
     for (const task of AI_TASKS) expect(full).toContain(task.prompt)
@@ -31,8 +31,8 @@ describe('LLMs.txt & Docs Pipeline', () => {
     expect(content).toContain('- [AI Coding Agent Rules](/docs/ai-rules)')
   })
 
-  it('generates llms-full.txt with 5 Golden Rules and full markdown', () => {
-    const filePath = resolve(__dirname, '../static/llms-full.txt')
+  it('generates llms-guides.txt with 5 Golden Rules and full markdown', () => {
+    const filePath = resolve(__dirname, '../static/llms-guides.txt')
     expect(existsSync(filePath)).toBe(true)
     const content = readFileSync(filePath, 'utf-8')
     expect(content).toContain('The 5 Golden Rules for LLMs')

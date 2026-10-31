@@ -18,7 +18,7 @@
 <PageMeta title="API reference" description="Automata API examples, parameters, return values, and lifecycle guidance for simulation, rendering, runtime, content, hosting, and shipping." />
 <div class="page-shell api-page">
   <h1>API reference</h1><p class="lead">Find the API. See how it fits.</p><p>Each module starts with an example, followed by parameters, return values, and failure or cleanup notes. Signatures are abbreviated where needed; the linked TypeScript definitions own the full contract.</p>
-  <div class="link-row"><a href="/ai">Build with a coding agent</a><a href="/examples">Browse working projects</a><a href="/llms-full.txt">Plain-text reference</a></div>
+  <div class="link-row"><a href="/ai">Build with a coding agent</a><a href="/examples">Browse working projects</a><a href="/llms-api.txt">Complete generated reference (plain text)</a></div>
   <h2 class="task-heading">What are you making?</h2><nav class="link-row" aria-label="Find an API by task">{#each AI_TASKS as task}<a href={task.apiHref} onclick={showAll}>{task.title}</a>{/each}</nav>
   <nav class="link-row" aria-label="API modules">{#each CHEATSHEET_MODULES as mod}<a href={'#' + mod.id} onclick={showAll}>{mod.title}</a>{/each}</nav>
   <label for="api-search">Search API names, parameters, and usage</label><input id="api-search" bind:this={input} type="search" bind:value={query} placeholder="Try snapshot, duplicate-seq, or pause menu" />

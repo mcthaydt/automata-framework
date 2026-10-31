@@ -10,8 +10,10 @@
 <section class="proof-source" aria-labelledby="proof-source-title">
   <h2 id="proof-source-title">Where these numbers come from</h2>
   <p>
-    The framework’s CI writes this file on every push to <code>main</code>: revision <code>{revision}</code>, {generated}.
-    {#if evidence.run.kind === 'ci'}<a href={evidence.run.url}>CI run {evidence.run.id}</a>{/if}
+    The framework’s CI is configured to write this file in its parity job on each push to <code>main</code>
+    (<a href={`https://github.com/mcthaydt/automata-framework/blob/${evidence.revision.sha}/.github/workflows/ci.yml`}>ci.yml</a>).
+    This copy is from revision <code>{revision}</code>, {generated}.
+    {#if evidence.run.kind === 'ci'}<a href={evidence.run.url}>CI run {evidence.run.id}</a>, the {evidence.run.workflow} workflow’s {evidence.run.job} job,{/if}
     drove Chromium, Firefox and WebKit with Playwright {evidence.playwright}; Node ran the same scenarios directly.
   </p>
 </section>
