@@ -54,9 +54,38 @@ export interface PuzzleOptions {
       readonly kind: string
     },
   ) => void
+  /**
+   * Where a `{ dialogue }` effect starts its graph, on the verb's step and after the action's line (the `narrative`
+   * extension's `startDialogue`, NR-D3). `puzzle.dialogue` is emitted either way.
+   */
+  readonly dialogue?: (ctx: SimContext, id: string) => void
+  /**
+   * Told of every verb once it has run, taken or not (the `narrative` extension's inspect storylets, NR-D3): the
+   * action taken or null, whether a line was said, and whether the action turned away to a cutscene, dialogue, keypad
+   * or exit.
+   */
+  readonly verb?: (ctx: SimContext, report: VerbReport) => void
+}
+
+export interface VerbReport {
+  readonly at: string
+  readonly held: string | undefined
+  readonly action: string | null
+  readonly said: boolean
+  readonly away: boolean
 }
 
 function runVerb(ctx: SimContext, def: PuzzleDef, input: Verb, options: PuzzleOptions): void {
+  const taken = takeVerb(ctx, def, input, options)
+  options.verb?.(ctx, { at: input.at, held: input.held, ...taken })
+}
+
+type Taken = Pick<VerbReport, 'action' | 'said' | 'away'>
+const NOTHING: Taken = { action: null, said: false, away: false }
+
+const AWAY = ['cutscene', 'dialogue', 'keypad', 'exit'] as const
+
+function takeVerb(ctx: SimContext, def: PuzzleDef, input: Verb, options: PuzzleOptions): Taken {
   const state = ctx.resource(PuzzleState)
   const reader: Reader = {
     fact: (name) => options.facts?.get(ctx, name) ?? state.facts[name],
@@ -67,15 +96,16 @@ function runVerb(ctx: SimContext, def: PuzzleDef, input: Verb, options: PuzzleOp
   }
   // The verbs check what is carried first, as the source's interact, useAt and combine do.
   let verb = input
-  if (verb.at === 'floor' && !(verb.held && reader.has(verb.held))) return
-  if (verb.at === 'combine' && !(verb.pair && reader.has(verb.pair[0]) && reader.has(verb.pair[1]))) return
+  if (verb.at === 'floor' && !(verb.held && reader.has(verb.held))) return NOTHING
+  if (verb.at === 'combine' && !(verb.pair && reader.has(verb.pair[0]) && reader.has(verb.pair[1])))
+    return NOTHING
   if (verb.held !== undefined && !reader.has(verb.held)) verb = { ...verb, held: undefined }
 
   const action = match(def, reader, verb)
   if (!action) {
     const line = fallbackLine(def, verb)
     if (line !== undefined) ctx.emit(PuzzleSaid, { action: null, at: verb.at, line, gained: [] })
-    return
+    return { action: null, said: line !== undefined, away: false }
   }
   const gained: string[] = []
   const late: (() => void)[] = []
@@ -92,6 +122,8 @@ function runVerb(ctx: SimContext, def: PuzzleDef, input: Verb, options: PuzzleOp
     state.goal = true
     ctx.emit(PuzzleGoal, {})
   }
+  const away = action.then.some((e) => AWAY.some((kind) => kind in e))
+  return { action: action.id, said: Boolean(action.say), away }
 }
 
 interface Apply {
@@ -130,7 +162,11 @@ function applyEffect(
   else if ('checkpoint' in e) at.later(() => ctx.emit(PuzzleCheckpoint, {}))
   else if ('keypad' in e) ctx.emit(PuzzleKeypad, {})
   else if ('exit' in e) at.later(() => ctx.emit(PuzzleExit, { to: e.exit.to, cutscene: e.exit.cutscene }))
-  else if ('dialogue' in e) at.later(() => ctx.emit(PuzzleDialogue, { id: e.dialogue }))
+  else if ('dialogue' in e)
+    at.later(() => {
+      ctx.emit(PuzzleDialogue, { id: e.dialogue })
+      options.dialogue?.(ctx, e.dialogue)
+    })
   else {
     const call = options.calls?.[e.call]
     if (call === undefined) throw new Error(`${def.scene}: puzzle call "${e.call}" is not defined`)
