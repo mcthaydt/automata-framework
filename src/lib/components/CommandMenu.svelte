@@ -4,6 +4,8 @@
   import { getDocSections } from '../../data/docs-loader'
   import { CHEATSHEET_MODULES, cheatsheetSearchText } from '../../data/cheatsheet'
   import { AI_TASKS } from '../../data/ai-guidance'
+  import { latestApiVersion, loadApiSearch, searchApi } from '$lib/api-reference'
+  import type { ApiSearchRow } from '../../../scripts/api-reference'
   let { isOpen = false, onClose = () => {} }: { isOpen?: boolean; onClose?: () => void } = $props()
   let dialog: HTMLDialogElement
   let input: HTMLInputElement
@@ -20,12 +22,18 @@
     ...CHEATSHEET_MODULES.flatMap(m => m.entries.map(e => ({ title: e.name, detail: cheatsheetSearchText(m, e), url: '/cheatsheet#' + e.name }))),
   ]
   let results = $derived(links.filter(l => query.trim().toLowerCase().split(/\s+/).every(q => (l.title + ' ' + l.detail).toLowerCase().includes(q))))
+  // The complete generated reference loads the first time the menu opens, so a page that never searches does not carry it.
+  const apiVersion = latestApiVersion()
+  let apiRows = $state<ApiSearchRow[]>([])
+  let apiLoaded = false
+  const apiResults = $derived(searchApi(apiRows, query, 20).filter(row => !links.some(l => l.url === '/cheatsheet#' + row.name)).map(row => ({ title: row.name, detail: row.kind + ' in ' + row.package, url: '/api/' + apiVersion + '/' + row.package + '#' + row.name })))
   $effect(() => {
     if (!dialog) return
     if (isOpen) {
       const previous = document.activeElement as HTMLElement | null
       query = ''
       dialog.showModal()
+      if (!apiLoaded) { apiLoaded = true; void loadApiSearch(apiVersion).then(rows => { apiRows = rows }) }
       void tick().then(() => input?.focus())
       return () => { dialog.close(); previous?.focus() }
     }
@@ -46,7 +54,8 @@
   <input bind:this={input} id="site-search" type="search" bind:value={query} placeholder="Try createSim or snapshot" />
   <div class="search-results">
     {#each results as item}<a href={item.url} onclick={onClose}>{item.title}</a>{/each}
-    {#if !results.length}<p role="status">No matches. Try a function name or topic.</p>{/if}
+    {#each apiResults as item}<a href={item.url} onclick={onClose}>{item.title} <span class="small">{item.detail}</span></a>{/each}
+    {#if !results.length && !apiResults.length}<p role="status">No matches. Try a function name or topic.</p>{/if}
   </div>
   <p class="small">Use arrow keys to move, Enter to open, Escape to close.</p>
 </dialog>
