@@ -56,7 +56,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 2. `evaluate` and `resolveAnchors` (the source's evaluate cases). Fails: no module.
    - [x] 2
 3. The sim plugin: start, ticks, skip, end, missing anchor, `locked`; CS-a, CS-b, CS-c. Fails: no plugin.
-   - [ ] 3
+   - [x] 3
 4. `locked` in puzzle, narrative and nav; puzzle's `cutscene` hook. Fails: input still applies.
    - [ ] 4
 5. The lint. Fails: no module.
