@@ -6,6 +6,7 @@ import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 import { removeProfiles } from './scripts/remove-profiles.ts'
+import { journeyProject } from './src/testing/journey-project.ts'
 
 // Two projects (editor kit spec §8), the same split as @mcthaydt/automata-ui:
 // - unit: pure rules and component behavior in jsdom, through Testing Library (states and behavior, no snapshots).
@@ -49,7 +50,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'jsdom',
           include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
-          exclude: ['src/**/*.layout.test.ts'],
+          exclude: ['src/**/*.layout.test.ts', 'src/**/*.journey.test.ts'],
           setupFiles: ['./src/vitest-setup.ts'],
           css: true,
         },
@@ -74,6 +75,8 @@ export default defineConfig({
           },
         },
       },
+      // The iPad journeys (EDK.6b): WebKit with touch and a 2× screen, over src/**/*.journey.test.ts.
+      journeyProject(playwright),
     ],
   },
 })

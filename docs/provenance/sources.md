@@ -17,7 +17,8 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | First read | `17eb568`, 2026-10-16 (the M6 spec's line and test counts) |
 | Recorded extraction commit | `92e67047a33161c5cfb1c5f9d8b981e91e1c55b9` (`92e6704`, committed 2026-10-22), re-read 2026-10-31 for M6.0a |
 | Taken (M6.3 onward, into `mcthaydt/automata-plus`) | `sectors`, `nav`, `puzzle`, `systems`, `narrative`, `cutscenes`, `feel`'s frame model and coverage, `audio-synth`, `debug`'s boards and driver, the environment (blockout) pipeline, and the modules in M6 spec §4.13 (storylets, conversations, delivery, portraits, music), all rewritten on Koota under the porting rules (M6 spec §4.9), with the source's tests as behavior specs. The source itself is not edited (decision 8) |
-| Earlier extraction | `@mcthaydt/automata-editor-3d` `format/` and `geometry/` (ED3D.1, ED3D.1c) from `src/game/sector-format.ts` at `92e6704` (the format file's header records it) and the source's sector and nav geometry |
+| Earlier extraction | `@mcthaydt/automata-editor-3d` `format/` and `geometry/` (ED3D.1, ED3D.1c) from `src/game/sector-format.ts` at `92e6704` and the source's sector and nav geometry |
+| Moved, M6-D17 (2026-10-31) | The format file (`sector.schema.ts`, from `src/game/sector-format.ts` at `92e6704`) moved with its constants to core `@mcthaydt/automata-sector-format` (`packages/sector-format/src`); its header no longer names the source |
 | Licence | No `LICENSE` file and no `license` field at `92e6704`: the Owner's own private repository, extracted on the Owner's direction (2026-10-11) |
 
 ### The arcade source

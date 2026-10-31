@@ -1,0 +1,101 @@
+# EDK.6b: the WebKit iPad journey harness
+
+**Row:** `docs/02-master-delivery-plan.md` EDK.6b. Lane **editors** (the editor-kit row has no owner; the coordinator
+assigned it here on 2026-10-31). Size M. Prerequisite EDK.6a: in effect on `main` (the kit's and editor-2d's `layout`
+projects already run Chromium, WebKit and Firefox), though its row is not ticked; the coordinator owns the tick.
+**Spec:** [editor kit spec](../specs/2026-10-23-editor-kit-design.md) §4.5 (pointer pipeline), §7 (responsive and input
+inventory), §8 (the "Tablet journeys" layer), §9 (EK-a, EK-b, EK-c, EK-g, EK-i). Accepted under the Owner's "Auto accept
+all spec and plans". It unblocks ED2D.8, ED3D.11 and EDS.10, so its API is written for those lanes.
+
+## Decisions (veto-defaults)
+
+1. **Journeys run in Vitest browser mode, not a second test runner.** The repo already runs Playwright through
+   `@vitest/browser-playwright`; a `journeys` project uses its WebKit instance with an iPad context (`hasTouch: true`,
+   `deviceScaleFactor: 2`, an iPad Safari user agent) through the provider's `contextOptions`. Each journey sets its
+   window with `page.viewport` from the shared profiles. One runner, one install, one way to mount a fixture.
+2. **The helpers dispatch `PointerEvent`s in the page** (the row's words): `pointerType` touch, pen or mouse, with
+   pressure, tilt and contact size, and a `pointerId` each. Playwright's real touch input exists only in Chromium, and
+   Pencil pressure, tilt and a palm's contact size exist nowhere in it, so the kit's own recogniser is fed what an iPad
+   sends. What a real iPad does with its own hardware stays the Owner's device pass.
+3. **The public surface** (`@mcthaydt/automata-editor-kit/testing`):
+   - `IPAD_PROFILES`: iPad 11" landscape 1194×834 and portrait 834×1194, iPad mini 1133×744, iPad 13" 1366×1024, each
+     `{ name, width, height }`.
+   - `journeyProject(options)`: the Vitest project config both editors spread into their own config (WebKit, iPad
+     context, `src/**/*.journey.test.ts`), so a lane adds journeys without copying settings. Each package gets a
+     `test:journeys` script.
+   - `createPointers(target)`: `tap`, `longPress`, `drag(path)`, `pinch(centre, scale)`, `twist(centre, radians)`,
+     `pencilHover(path)`, `pencilStroke(path, { pressure, tilt })`, `palm(at)` (a touch with a large contact),
+     `release(id)`. A step waits a frame, so the page sees the gesture as a person makes it, not in one task.
+   - `rotate(to)`: swaps the viewport between a profile's landscape and portrait mid-gesture, as EK-c turns the iPad.
+4. **A fixture page for the kit** (`testing/JourneyFixture.svelte`): an `EditorShell` with a panel holding a stepper, a
+   slider in a scroll region, and a canvas surface with `attachGestures` logging what it recognised, plus a History,
+   so each EK case reads its outcome from the page.
+
+## Files
+
+**Create** in `packages/editor-kit/src/testing/`: `ipad-profiles.ts`, `journey-project.ts`, `pointers.ts` (+
+`pointers.test.ts` for the event sequences each helper produces, in the unit project with a recording target),
+`JourneyFixture.svelte`. In `packages/editor-kit/src/journeys/`: `stepper-scrub.journey.test.ts` (EK-a),
+`palm.journey.test.ts` (EK-b), `rotate.journey.test.ts` (EK-c), `layout.journey.test.ts` (EK-g at the four iPad
+profiles), `teardown.journey.test.ts` (EK-i).
+**Modify:** `packages/editor-kit/src/testing/index.ts` (exports), `packages/editor-kit/vitest.config.ts` (the
+`journeys` project), `packages/editor-kit/package.json` (`test:journeys`), `packages/editor-2d/vitest.config.ts` and
+`package.json` (the project and the script, with no journeys yet: ED2D.8 adds them), the kit spec §8 (an as-built
+note on the harness).
+**Interfaces:** consumed by ED2D.8, ED3D.11 and EDS.10. The kit is private, so no changeset.
+
+## Steps
+
+- [x] 1. Plan (this file).
+- [x] 2. `pointers.ts`: each helper's event sequence (types, pointer ids, kinds, pressure, contact size, positions)
+  against a recording target (unit, failing first).
+- [x] 3. `ipad-profiles.ts` and `journey-project.ts`; the `journeys` project in the kit config and its script; a first
+  journey (EK-g at one profile) proves the WebKit iPad context (`navigator.maxTouchPoints > 0`, `devicePixelRatio` 2).
+- [x] 4. `JourneyFixture.svelte`; EK-a (a 40 px drag on the stepper's label is one undo step, by the configured rate;
+  undo restores it).
+- [x] 5. EK-b (Pencil down, then a palm: the palm is ignored, the stroke unaffected) and EK-i (teardown mid-gesture:
+  capture released, nothing fires after).
+- [x] 6. EK-c (rotate mid-drag of a slider: the drag ends cancelled, the value unchanged, no remount, the panel's scroll
+  kept) and EK-g at all four profiles (the layout contract; every action reachable).
+- [x] 7. editor-2d gets the project and script; the kit spec's as-built note; gates: `pnpm format`,
+  `TURBO_FORCE=true pnpm check`, the kit's `test:layout` and `test:journeys`, editor-2d `test:parity`.
+
+## Execution log
+
+- 2026-10-31: plan written on `main` at `6a5f03c5`.
+- 2026-10-31, step 2: `pointers.test.ts` failed on the missing module, then 7 of 8 passed; the eighth expected a palm
+  landing while the Pencil is down to be `isPrimary: false`, but Pointer Events count primaries per pointer type, so the
+  first touch is primary; the expectation was wrong and now says so (8 pass).
+- 2026-10-31, step 3: the profile and project cases failed on the missing modules, then pass (3). Two deviations from
+  decision 3, each with its evidence: (a) `journeyProject(provider, options)` takes `playwright` from the calling config
+  instead of importing it, because loading `@vitest/browser-playwright` in the kit's jsdom `unit` project fails (`ws`
+  has no `WebSocketServer` export under its resolve conditions); it then needs no separate entry and is exported from
+  `./testing`. (b) There is no `rotate()`: `turned(profile)` gives the quarter-turned size and the journey calls
+  `page.viewport`, which keeps `vitest/browser` out of `./testing`. The first context journey failed on
+  `navigator.maxTouchPoints > 0`: Playwright's WebKit on Linux reports 0 with `hasTouch` on, while `(pointer: coarse)`
+  and `(hover: none)` match, touch events exist, the screen is 2× and the user agent is the iPad's (logged). The journey
+  asserts those instead; `ui/src/browser/fullscreen.ts`, the one reader of `maxTouchPoints`, also matches an iPad by
+  its user agent. `test:journeys`: 1 file, 4 tests pass (one per profile).
+- 2026-10-31, steps 4 and 5: the fixture (a stepper and a slider over a `History`, a logging gesture surface, a mount
+  counter) and three journeys pass in WebKit: EK-a at the four profiles (hit points 3 to 8 in one undo step; undo back
+  to 3), EK-b (a palm while the Pencil draws makes no gesture; the four events seen are the Pencil's) and EK-i (nothing
+  fires after the teardown). These journeys check behaviour the kit already has, through the new harness, so their
+  first runs passed; each reads an outcome only the dispatched events can produce (a changed value, a pen-only log).
+  Limit: a synthetic pointer cannot be captured in WebKit (`setPointerCapture` throws `NotFoundError`, which the kit
+  swallows), so EK-i's "capture released" is trivially true here and stays the device pass's to prove.
+- 2026-10-31, step 6: EK-c (the drag first moves the value, then the window turns and the touch is cancelled, as
+  iPadOS does: the value is back at 50 with no undo step, `data-mount` unchanged, the panel's scroll the same) and
+  EK-g (the shell fixture's layout contract with the top bar and rail reachable) at the four profiles. EK-c failed
+  twice on the fixture, not the kit: its gap was `120vh`, so turning the window resized the content and the browser
+  clamped the scroll (978 to 726 px); with a fixed 1600 px gap the slider sat near the end, and the taller portrait
+  panel clamped it again (1325 to 1145 px); with the same gap below the slider it passes. `test:journeys`: 4 files,
+  18 tests.
+- 2026-10-31, step 7: editor-2d's config spreads `journeyProject(playwright)` (through the new
+  `./journey-project` subpath, since its config runs in Node and `./testing` loads browser-side modules), its unit
+  project skips `*.journey.test.ts`, and `test:journeys` runs with `--passWithNoTests` until ED2D.8 adds journeys. The
+  kit spec §8 has the as-built note.
+- 2026-10-31, gates after merging `origin/main` (`6a5f03c5`, unchanged): `pnpm format` clean; the first
+  `TURBO_FORCE=true pnpm check` failed in `@mcthaydt/api-report` (`editor-kit.api.md` lacked the new `./testing`
+  exports); `pnpm api-report --update` added them (193 lines, additions only) and the re-run passes (exit 0, 37/37 and
+  35/35 tasks, 0 cached). editor-kit `test:layout` 10 files, 382 tests (1 skipped, as before); `test:journeys` 4 files,
+  18 tests; editor-2d `test:parity` 21 files, 582 tests.
