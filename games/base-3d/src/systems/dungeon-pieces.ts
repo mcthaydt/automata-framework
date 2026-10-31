@@ -1,22 +1,12 @@
 // The dungeon pieces of GAME-3D.1f part 4 (DESIGN.md §10): chests and what they give, pots and cracked walls that
-// break, one-way gates and ledge drops, and the npc and shop that answer a press. Sim code.
+// break. The one-way gate, the ledge drop, the npc, the shop and heart pieces were cut by the 2026-10-31 rescope
+// (DESIGN.md §0.4). Sim code.
 import { defineSystem, type SimContext, type SpawnPart, type SystemDef } from '@mcthaydt/automata-sim'
-import {
-  Breakable,
-  Chest,
-  Door,
-  Drop,
-  Fighter,
-  Gate,
-  Hero,
-  HeroControl,
-  Switch,
-  Target,
-} from '../components.ts'
+import { Breakable, Chest, Door, Drop, Fighter, Hero, HeroControl, Switch, Target } from '../components.ts'
 import { dropOf } from '../constants/enemies.ts'
-import { ACTION_BITS, BREAKABLE, HEART_PIECES_PER_HEART } from '../constants/index.ts'
+import { ACTION_BITS, BREAKABLE } from '../constants/index.ts'
 import { BOMBS, ItemCode, SLING } from '../constants/items.ts'
-import { ChestOpened, LedgeDropped, NpcTalk, PieceBroke, ShopOpen } from '../events.ts'
+import { ChestOpened, PieceBroke } from '../events.ts'
 import { Dungeon, Freeze, Inventory, Location, Progress } from '../resources.ts'
 import { type Area, type AreaEntity, areaIn, type PlanBox } from './area.ts'
 import { addFlag, boxOf, flagOf, heroBox, inReach, inside, overlaps } from './dungeon-common.ts'
@@ -35,14 +25,12 @@ function breakableParts(entity: AreaEntity, index: number): SpawnPart[] {
 
 /**
  * The part-4 pieces an area starts with (`spawnPieces` adds them): each chest, hidden until `dungeon.pieces` shows it;
- * each pot and cracked wall standing; each one-way gate and ledge drop, closed until `dungeon.gates` opens it.
+ * and each pot and cracked wall standing.
  */
 export function pieceParts(entity: AreaEntity, index: number): SpawnPart[][] {
   const piece = index + 1
   if (entity.def === 'chest') return [[[Chest, { piece, shown: false, open: false, ...boxOf(entity) }]]]
   if (entity.def === 'pot' || entity.def === 'cracked') return [breakableParts(entity, index)]
-  if (entity.def === 'one-way' || entity.def === 'ledge-drop')
-    return [[[Gate, { piece, open: false, crossing: false, ...boxOf(entity) }]]]
   return []
 }
 
@@ -59,23 +47,16 @@ function holds(ctx: SimContext, area: Area, id: string): boolean {
 
 /**
  * Gives what a chest holds (§10): a key, the map or the compass into the dungeon; embers into the run; an item owned
- * with a full bag, and on the Item button when nothing is; a heart piece recorded, every fourth a heart (Wick's
- * maximum up 2 half-hearts, and his health filled to it).
+ * with a full bag, and on the Item button when nothing is.
  */
-function give(ctx: SimContext, contents: string, flag: string): void {
+function give(ctx: SimContext, contents: string): void {
   const dungeon = ctx.resource(Dungeon)
   const inventory = ctx.resource(Inventory)
   if (contents === 'small-key') dungeon.smallKeys += 1
   else if (contents === 'boss-key') dungeon.bossKey = true
   else if (contents === 'map') dungeon.map = true
   else if (contents === 'compass') dungeon.compass = true
-  else if (contents === 'heart-piece') {
-    addFlag(dungeon.heartPieces, flag)
-    if (dungeon.heartPieces.length % HEART_PIECES_PER_HEART !== 0) return
-    const progress = ctx.resource(Progress)
-    progress.maxHealth += 2
-    for (const wick of ctx.query(Hero, Fighter)) wick.set(Fighter, { health: progress.maxHealth })
-  } else if (contents.startsWith('embers:'))
+  else if (contents.startsWith('embers:'))
     ctx.resource(Progress).embers += Number.parseInt(contents.slice('embers:'.length), 10)
   else if (contents === 'sling' || contents === 'bombs' || contents === 'hookchain') {
     inventory[contents] = true
@@ -85,19 +66,10 @@ function give(ctx: SimContext, contents: string, flag: string): void {
   }
 }
 
-/** A point entity as a box with no size, for the reach test. */
-const pointBox = (entity: AreaEntity): PlanBox => ({
-  minX: entity.x,
-  minZ: entity.z,
-  maxX: entity.x,
-  maxZ: entity.z,
-})
-
 /**
  * The pieces a press or the save answers (DESIGN.md §10): a cracked wall the save has broken goes; a chest shows once
  * it has no `hidden` ref or its ref holds, opens from the save, or opens with a pick-up press beside it, giving its
- * contents once (saved, announced with what it held); and an npc or a shop beside the press answers it. Runs after
- * the doors and switches, so a chest they reveal shows on the same tick.
+ * contents once (saved, announced with what it held). Runs after the doors and switches, so a chest they reveal shows on the same tick.
  */
 export const dungeonPieces: SystemDef = defineSystem({
   name: 'dungeon.pieces',
@@ -124,16 +96,11 @@ export const dungeonPieces: SystemDef = defineSystem({
       if (shown && !open && pressed && inReach(chest, x, z)) {
         open = true
         addFlag(dungeon.flags, flag)
-        give(ctx, def.contents as string, flag)
+        give(ctx, def.contents as string)
         ctx.emit(ChestOpened, { piece: chest.piece, contents: def.contents as string })
       }
       if (shown !== chest.shown || open !== chest.open) entity.set(Chest, { shown, open })
     }
-    if (!pressed) return
-    area.entities.forEach((def, index) => {
-      if (def.def === 'npc' && inReach(pointBox(def), x, z)) ctx.emit(NpcTalk, { piece: index + 1 })
-      if (def.def === 'shop' && inReach(boxOf(def), x, z)) ctx.emit(ShopOpen, { piece: index + 1 })
-    })
   },
 })
 
@@ -171,32 +138,3 @@ export function resetPots(ctx: SimContext, area: Area, room: PlanBox): void {
     ctx.spawn(...breakableParts(entity, index))
   })
 }
-
-/**
- * Opens and closes the one-way gates and ledge drops (DESIGN.md §10) before Wick moves: a one-way gate is open while
- * Wick stands in its `from` room, a ledge drop while he stands anywhere but its `to` room below, and either while he
- * is in it, so it never closes on him. Leaving a ledge drop into its `to` room announces the drop.
- */
-export const dungeonGates: SystemDef = defineSystem({
-  name: 'dungeon.gates',
-  phase: 'prePhysics',
-  run(ctx) {
-    if (ctx.resource(Freeze).active) return
-    const wick = ctx.query(Hero)[0]
-    if (wick === undefined) return
-    const { x, z } = wick.get(Hero)
-    const area = areaIn(ctx.content, ctx.resource(Location))
-    const room = area.rooms.find((box) => inside(box, x, z))?.view
-    for (const entity of ctx.query(Gate)) {
-      const gate = entity.get(Gate)
-      const def = area.entities[gate.piece - 1]
-      if (def === undefined) continue
-      const crossing = overlaps(heroBox(x, z), gate)
-      const passing = def.def === 'one-way' ? room === def.from : room !== def.to
-      const open = passing || crossing
-      if (gate.crossing && !crossing && def.def === 'ledge-drop' && room === def.to)
-        ctx.emit(LedgeDropped, { piece: gate.piece })
-      if (open !== gate.open || crossing !== gate.crossing) entity.set(Gate, { open, crossing })
-    }
-  },
-})

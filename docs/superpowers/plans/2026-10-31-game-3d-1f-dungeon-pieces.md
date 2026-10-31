@@ -308,3 +308,24 @@ are presentation).
 check`: 35/35. base-3d `test:parity` (Chromium, WebKit, Firefox): 30 files, 588 tests passed, the goldens unchanged in
 every engine. base-3d `pnpm build`: passes. Omitted: the base-3d e2e journeys (the shipped first slice has no pieces, so
 play is unchanged; the boot check runs in every unit test that makes the game's sim).
+
+**Cut by the 2026-10-31 rescope (session_01QYLU1gPdfpqyJgh9oNhJpE).** The Owner, 2026-10-31: "I think we overscoped
+the 3D one a bit", then "Trimmed slice" (DESIGN.md §0). The coordinator: "remove the npc and shop entity defs,
+`npc.talk`, `shop.open` and their tests in a new commit, rather than keeping them unused … If a piece has no use in
+the 3 rooms, cut it the same way". §0.2's three rooms use chests, pots, cracked walls, switches (eye, plate), blocks,
+doors (switch, small-key, clear) and hook posts, so these were cut from code and tests: the `npc` and `shop` defs and
+`npc.talk`, `shop.open`; the `one-way` and `ledge-drop` defs, the `gate` component, `ledge.dropped`, the
+`dungeon.gates` system, the area's room refs (only those two defs had them) and the solver's one-way passages; the
+chest contents `heart-piece`, `Dungeon.heartPieces` and its save capture (the save's `hearts.pieces` stays in the
+version-1 shape, always empty now). Kept in code, unplaced (built and tested in parts 2 and 3): the `lever` switch
+and the `boss-key` lock. The cases that went with them: dungeon-pieces.test.ts's heart-piece, gate and npc/shop cases,
+entities.test.ts's room-ref paths, and the solver's one-way case (its heart-piece fixture chest now holds embers).
+
+**Goldens (the cuts).** `base-3d/golden-route` `7f9dd7df51a5c134` → `89a7944f44728902`; `base-3d/golden-fights`
+`ba6fe5d1044ff0c8` → `bf08cd1a1fc23e74`; `base-3d/golden-boss` `7400e13e71871368` → `07e43ce75ab06a1a` (defeat on
+tick 458, health 8, unchanged). Schema only (the components, events, system and resource field above left it); the
+content hash is still `d894381c47fd70d8` (measured); every other assertion is unchanged.
+
+**Gates (the cuts).** `TURBO_FORCE=true pnpm check`: 35/35. Boundaries: 29 files, 0 findings. base-3d `test:unit`:
+350 passed. base-3d `test:parity` (Chromium, WebKit, Firefox): 30 files, 573 tests passed, the new goldens equal in
+every engine.

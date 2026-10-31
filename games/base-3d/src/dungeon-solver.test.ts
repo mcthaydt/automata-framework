@@ -87,13 +87,13 @@ describe('the dungeon solver (G3-q)', () => {
       [
         chest('key-1', -3, 3, 'small-key'),
         chest('boss-key', 0, 17, 'boss-key'),
-        chest('heart', 3, 17, 'heart-piece'),
+        chest('embers', 3, 17, 'embers:10'),
       ],
       [{ kind: 'warden', x: 10, z: 5, facing: 0 }],
     )
     const result = solveWorld(world)
     expect(result.softLocks).toEqual([])
-    expect(result.chests).toEqual(['kiln/boss-key', 'kiln/heart', 'kiln/key-1'])
+    expect(result.chests).toEqual(['kiln/boss-key', 'kiln/embers', 'kiln/key-1'])
     expect(result.bossRooms).toEqual(['kiln/c'])
   })
 
@@ -122,18 +122,12 @@ describe('the dungeon solver (G3-q)', () => {
     expect(result.rooms).toEqual(['kiln/a', 'kiln/b', 'kiln/c'])
   })
 
-  it('names the chest a missing item or a one-way gate leaves out of reach', () => {
+  it('names the chest a missing item leaves out of reach', () => {
     const loot = chest('loot', 10, 5, 'embers:20')
     const cracked = tee(undefined, undefined, [
       { def: 'cracked', id: 'crack', x: 5, z: 5, width: 0.3, depth: 2 },
       loot,
     ])
     expect(solveWorld(cracked).softLocks).toEqual(['opened nothing; unreached kiln/loot'])
-    // A one-way gate passable only from `c` is a way back out, never a way in.
-    const gate = { def: 'one-way', id: 'gate', x: 5, z: 5, width: 0.3, depth: 2, from: 'c' }
-    expect(solveWorld(tee(undefined, undefined, [gate, loot])).softLocks).toEqual([
-      'opened nothing; unreached kiln/loot',
-    ])
-    expect(solveWorld(tee(undefined, undefined, [{ ...gate, from: 'a' }, loot])).softLocks).toEqual([])
   })
 })

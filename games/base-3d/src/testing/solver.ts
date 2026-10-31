@@ -1,6 +1,6 @@
 // The dungeon solver for G3-q (DESIGN.md §6.5, §19; GAME-3D.1f part 5), over a compiled world. Rooms are nodes; two
 // rooms touching along an edge are joined where a gap at least Wick's width is left by the walls, through whatever
-// pieces stand in it (a door by its lock, a cracked wall with bombs, a one-way gate or a ledge drop one way), and an
+// pieces stand in it (a door by its lock, a cracked wall with bombs), and an
 // area exit joins its room to the room of its entry. Chests open as soon as their room is reached and their `hidden`
 // ref holds, which can only help. The small-key and boss doors are the choices: every order of opening them is tried,
 // and a state with goals left and no door to open is a soft lock. Test code.
@@ -88,7 +88,7 @@ function passagesBetween(area: Area, a: Area['rooms'][number], b: Area['rooms'][
     .filter(([l, h]) => h - l >= WIDTH)
     .flatMap(([l, h]): Passage[] => {
       const pieces = area.entities.filter((entity) => {
-        if (!['door', 'cracked', 'one-way', 'ledge-drop'].includes(entity.def)) return false
+        if (entity.def !== 'door' && entity.def !== 'cracked') return false
         const span = across(boxOf(entity))
         return span !== undefined && span[0] < h && span[1] > l
       })
@@ -99,19 +99,13 @@ function passagesBetween(area: Area, a: Area['rooms'][number], b: Area['rooms'][
           { from, to, needs: [] },
           { from: to, to: from, needs: [] },
         ]
-      const needs: Need[] = []
-      let forward = true
-      let back = true
-      for (const entity of pieces) {
-        if (entity.def === 'door') needs.push({ door: `${area.id}/${entity.id}` })
-        if (entity.def === 'cracked') needs.push({ item: 'bombs' })
-        // One way: from its `from` room through a one-way gate, into its `to` room over a ledge.
-        const into = entity.def === 'ledge-drop' ? `${area.id}/${entity.to as string}` : undefined
-        const outOf = entity.def === 'one-way' ? `${area.id}/${entity.from as string}` : undefined
-        if (into === from || outOf === to) forward = false
-        if (into === to || outOf === from) back = false
-      }
-      return [...(forward ? [{ from, to, needs }] : []), ...(back ? [{ from: to, to: from, needs }] : [])]
+      const needs: Need[] = pieces.map((entity) =>
+        entity.def === 'door' ? { door: `${area.id}/${entity.id}` } : { item: 'bombs' },
+      )
+      return [
+        { from, to, needs },
+        { from: to, to: from, needs },
+      ]
     })
 }
 

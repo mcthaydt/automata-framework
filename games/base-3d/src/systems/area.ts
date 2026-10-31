@@ -161,7 +161,7 @@ export function compileArea(source: AreaSource): Area {
   for (const room of parsed.rooms)
     if (!ids.includes(room.view))
       throw new Error(`base-3d area: a room names the unknown view "${room.view}"`)
-  const entities = compileEntities(parsed.id, source.entities ?? [], parsed.rooms)
+  const entities = compileEntities(parsed.id, source.entities ?? [])
   const area: Area = {
     id: parsed.id,
     spawn: toPoint(parsed.spawn),
@@ -195,17 +195,13 @@ export function compileArea(source: AreaSource): Area {
   return area
 }
 
-/** The fields of each definition that name another entity (a list or one id), and those that name a room. */
+/** The fields of each definition that name another entity (a list or one id). */
 const ENTITY_REFS: Readonly<Partial<Record<EntityDefName, readonly string[]>>> = {
   door: ['switch'],
   switch: ['targets'],
   chest: ['hidden'],
   'sling-target': ['targets'],
   entry: ['portal'],
-}
-const ROOM_REFS: Readonly<Partial<Record<EntityDefName, readonly string[]>>> = {
-  'one-way': ['from'],
-  'ledge-drop': ['to'],
 }
 /** The lengths a definition's fields hold, in metres, which compile into Q16.16 metres. */
 const LENGTHS = ['x', 'z', 'y', 'width', 'depth', 'height'] as const
@@ -219,13 +215,9 @@ const pathOf = (index: number, path: readonly PropertyKey[]): string =>
 
 /**
  * Checks every entity against its definition, its id against the others, and every reference against the entities
- * and rooms there are, then compiles the lengths into fixed point. Throws `AreaLoadError` at the first fault.
+ * there are, then compiles the lengths into fixed point. Throws `AreaLoadError` at the first fault.
  */
-function compileEntities(
-  area: string,
-  sources: readonly EntitySource[],
-  rooms: readonly { readonly view: string }[],
-): AreaEntity[] {
+function compileEntities(area: string, sources: readonly EntitySource[]): AreaEntity[] {
   const parsed = sources.map((source, index) => {
     if (!Object.hasOwn(ENTITY_DEFS, source.def))
       throw new AreaLoadError(area, `entities[${index}].def`, `there is no definition "${source.def}"`)
@@ -246,7 +238,6 @@ function compileEntities(
       throw new AreaLoadError(area, `entities[${index}].id`, `the id "${entity.id}" is used twice`)
     ids.set(entity.id, entity.def)
   })
-  const views = new Set(rooms.map((room) => room.view))
   parsed.forEach((entity, index) => {
     for (const field of ENTITY_REFS[entity.def] ?? []) {
       const value = entity[field]
@@ -266,13 +257,6 @@ function compileEntities(
       if (ids.get(named) !== 'switch')
         throw new AreaLoadError(area, `entities[${index}].switch`, `"${named}" is not a switch`)
     }
-    for (const field of ROOM_REFS[entity.def] ?? [])
-      if (!views.has(entity[field] as string))
-        throw new AreaLoadError(
-          area,
-          `entities[${index}].${field}`,
-          `no room has the view "${entity[field]}"`,
-        )
   })
   return parsed.map((entity) => {
     // A field given as `undefined` is left out: the content is hashed as canonical JSON, which has no undefined.

@@ -1,9 +1,9 @@
-// base-3d's dungeon pieces in the sim, part 4 (GAME-3D.1f, DESIGN.md §10): chests and what they hold, heart pieces,
-// pots, cracked walls, one-way gates, ledge drops, and the npc and shop that answer a press. The browsers project
+// base-3d's dungeon pieces in the sim, part 4 (GAME-3D.1f, DESIGN.md §10): chests and what they hold, pots and
+// cracked walls (one-way gates, ledge drops, the npc, the shop and heart pieces cut by the 2026-10-31 rescope). The browsers project
 // runs this file in Chromium, WebKit and Firefox too.
 import type { Sim, SimEvent } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import { Breakable, Chest, Drop, Enemy, Fighter, Gate, Hero } from './components.ts'
+import { Breakable, Chest, Drop, Enemy, Fighter } from './components.ts'
 import { HERO_HALF, HERO_HEALTH, metres } from './constants/index.ts'
 import { BOMBS, ItemCode, SLING } from './constants/items.ts'
 import { Dungeon, Inventory, Progress } from './resources.ts'
@@ -163,36 +163,6 @@ describe('chests (GAME-3D.1f part 4, DESIGN.md §10)', () => {
   })
 })
 
-describe('heart pieces (GAME-3D.1f part 4, DESIGN.md §10, §12.1)', () => {
-  it('raises Wick’s hearts by one, full, on every fourth piece, and records each piece', async () => {
-    const third = await rooms([chestOf('heart-piece')])
-    third.resource(Dungeon).heartPieces = ['kiln/hp-1', 'kiln/hp-2']
-    openChest(third)
-    expect(third.resource(Dungeon).heartPieces).toEqual(['kiln/hp-1', 'kiln/hp-2', 'pieces/chest-1'])
-    expect(third.resource(Progress).maxHealth).toBe(HERO_HEALTH)
-    third.dispose()
-
-    const fourth = await rooms([chestOf('heart-piece')])
-    fourth.resource(Dungeon).heartPieces = ['kiln/hp-1', 'kiln/hp-2', 'kiln/hp-3']
-    const [wick] = fourth.query(Hero, Fighter)
-    wick?.set(Fighter, { health: 3 })
-    openChest(fourth)
-    expect(fourth.resource(Progress).maxHealth).toBe(HERO_HEALTH + 2)
-    expect(fourth.entity(wick?.sid ?? 0)?.get(Fighter).health).toBe(HERO_HEALTH + 2)
-    fourth.dispose()
-  })
-
-  it('round-trips the pieces through the save', async () => {
-    const saves = base3dSaves()
-    const sim = await rooms([chestOf('heart-piece')])
-    saves.apply(sim, { ...newGame(), hearts: { max: 4, pieces: ['kiln/hp-1'] } })
-    expect(sim.resource(Dungeon).heartPieces).toEqual(['kiln/hp-1'])
-    openChest(sim)
-    expect(saves.capture(sim).hearts).toEqual({ max: 4, pieces: ['kiln/hp-1', 'pieces/chest-1'] })
-    sim.dispose()
-  })
-})
-
 /** A pot 0.8 m round, 1 m north of Wick's start at z −3. */
 const potAt = (z = -2) => ({ def: 'pot', id: 'pot-1', x: 0, z, width: 0.8, depth: 0.8, drop: 'pot' })
 
@@ -271,70 +241,5 @@ describe('cracked walls (GAME-3D.1f part 4, DESIGN.md §10)', () => {
     stepWith(sim, { stick: UP }, 40)
     expect(hero(sim).z).toBeGreaterThan(metres(1.5))
     sim.dispose()
-  })
-})
-
-/** A gate across the whole line between the rooms. */
-const gateOf = (def: 'one-way' | 'ledge-drop', field: Record<string, string>) => ({
-  def,
-  id: 'gate-1',
-  x: 0,
-  z: 0,
-  width: 20,
-  depth: 0.3,
-  ...field,
-})
-
-describe('one-way gates and ledge drops (GAME-3D.1f part 4, DESIGN.md §10)', () => {
-  it('lets Wick through a one-way gate from its `from` room only', async () => {
-    const sim = await rooms([gateOf('one-way', { from: 'south' })])
-    stepWith(sim, { stick: UP }, 60)
-    expect(hero(sim).z).toBeGreaterThan(metres(0.15) + HERO_HALF)
-    expect(sim.query(Gate)[0]?.get(Gate).open).toBe(false)
-    stepWith(sim, { stick: DOWN }, 90)
-    expect(hero(sim).z).toBeGreaterThanOrEqual(metres(0.15) + HERO_HALF)
-    sim.dispose()
-
-    const shut = await rooms([gateOf('one-way', { from: 'north' })])
-    stepWith(shut, { stick: UP }, 60)
-    expect(hero(shut).z).toBeLessThanOrEqual(metres(-0.15) - HERO_HALF)
-    shut.dispose()
-  })
-
-  it('drops Wick over a ledge into its `to` room, one way, and says so', async () => {
-    const sim = await rooms([gateOf('ledge-drop', { to: 'north' })])
-    const events = stepWith(sim, { stick: UP }, 60)
-    expect(ofType(events, 'ledge.dropped')).toEqual([{ piece: 1 }])
-    expect(hero(sim).z).toBeGreaterThan(metres(0.15) + HERO_HALF)
-    stepWith(sim, { stick: DOWN }, 90)
-    expect(hero(sim).z).toBeGreaterThanOrEqual(metres(0.15) + HERO_HALF)
-    sim.dispose()
-
-    const below = await rooms([gateOf('ledge-drop', { to: 'south' })])
-    stepWith(below, { stick: UP }, 60)
-    expect(hero(below).z).toBeLessThanOrEqual(metres(-0.15) - HERO_HALF)
-    below.dispose()
-  })
-})
-
-describe('the npc and the shop (GAME-3D.1f part 4, DESIGN.md §10)', () => {
-  const npc = { def: 'npc', id: 'smith', x: 0.8, z: -2, figure: 'wick', lines: 'npc.smith' }
-  const shop = { def: 'shop', id: 'stall', x: -1, z: -2, width: 1, depth: 1, stock: 'kiln-stall' }
-
-  it('answer a press beside them with an event, and one out of reach does not', async () => {
-    const sim = await rooms([npc, shop])
-    const events = press(sim)
-    expect(ofType(events, 'npc.talk')).toEqual([{ piece: 1 }])
-    expect(ofType(events, 'shop.open')).toEqual([{ piece: 2 }])
-    sim.dispose()
-
-    const far = await rooms([
-      { ...npc, x: 5 },
-      { ...shop, x: -5 },
-    ])
-    const none = press(far)
-    expect(ofType(none, 'npc.talk')).toEqual([])
-    expect(ofType(none, 'shop.open')).toEqual([])
-    far.dispose()
   })
 })

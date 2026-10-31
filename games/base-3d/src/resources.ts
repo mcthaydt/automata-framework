@@ -78,8 +78,6 @@ export const Dungeon = defineResource(
     map: z.boolean(),
     compass: z.boolean(),
     visited: z.array(z.string()),
-    /** The heart pieces taken, as `<area>/<entity id>`, sorted (the save's `hearts.pieces`). */
-    heartPieces: z.array(z.string()),
     /** The room Wick is in, by view id ('' before the first tick): entering another resets its pieces (§10). */
     room: z.string(),
   }),
@@ -90,7 +88,6 @@ export const Dungeon = defineResource(
     map: false,
     compass: false,
     visited: [],
-    heartPieces: [],
     room: '',
   }),
 )

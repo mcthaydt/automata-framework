@@ -98,12 +98,3 @@ export const ChestOpened: EventDef<typeof opened> = defineEvent('chest.opened', 
 
 /** A pot broke or a cracked wall went (DESIGN.md §10), by its entity's index + 1. */
 export const PieceBroke: EventDef<typeof piece> = defineEvent('piece.broke', piece)
-
-/** Wick dropped over a ledge into the room below (DESIGN.md §10): presentation's landing. */
-export const LedgeDropped: EventDef<typeof piece> = defineEvent('ledge.dropped', piece)
-
-/** Wick spoke to an npc (DESIGN.md §10): its lines are the hub's and 1k's. */
-export const NpcTalk: EventDef<typeof piece> = defineEvent('npc.talk', piece)
-
-/** Wick opened a shop (DESIGN.md §10): its stock is the hub's. */
-export const ShopOpen: EventDef<typeof piece> = defineEvent('shop.open', piece)

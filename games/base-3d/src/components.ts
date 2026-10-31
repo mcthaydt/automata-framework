@@ -291,20 +291,3 @@ const breakableFields = {
  * `fighter` on the foes' side, never a lock or aim candidate). A pot breaks on any hit, a cracked wall on a blast.
  */
 export const Breakable: ComponentDef<typeof breakableFields> = defineComponent('breakable', breakableFields)
-
-const gateFields = {
-  /** Its entity in the area's `entities`, as its index + 1: a `one-way` gate or a `ledge-drop`. */
-  piece: 'u32',
-  /** Open to Wick from its passing side, or while he is in it; closed, it is a wall. */
-  open: 'bool',
-  /** Wick stood in it last tick (a ledge drop is announced as he leaves it below). */
-  crossing: 'bool',
-  /** Its box in plan, Q16.16 metres. */
-  minX: 'i32',
-  minZ: 'i32',
-  maxX: 'i32',
-  maxZ: 'i32',
-} as const
-
-/** A one-way gate or a ledge drop (DESIGN.md §10, GAME-3D.1f part 4): passable one way only. */
-export const Gate: ComponentDef<typeof gateFields> = defineComponent('gate', gateFields)

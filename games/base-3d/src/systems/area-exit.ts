@@ -1,6 +1,6 @@
 // The area change (DESIGN.md §13): an exit, a fade, then the next area with Wick at its entry.
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
-import { Block, Chest, Door, Drop, Gate, Hero, Switch, Target } from '../components.ts'
+import { Block, Chest, Door, Drop, Hero, Switch, Target } from '../components.ts'
 import { AREA_FADE_TICKS } from '../constants/index.ts'
 import { AreaEntered, AreaExit } from '../events.ts'
 import { Location } from '../resources.ts'
@@ -41,7 +41,6 @@ export const areaExit: SystemDef = defineSystem({
           ...ctx.query(Switch),
           ...ctx.query(Block),
           ...ctx.query(Chest),
-          ...ctx.query(Gate),
         ])
           if (!other.has(Hero)) ctx.despawn(other.sid)
         const next = areas[place.area]

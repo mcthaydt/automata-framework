@@ -15,16 +15,12 @@ const EVERY_DEF: NonNullable<AreaSource['entities']> = [
   { def: 'door', id: 'door-1', x: 0, z: 4, lock: 'switch', switch: 'plate-1', width: 2, depth: 0.3 },
   { def: 'door', id: 'door-2', x: 2, z: 4, lock: 'small-key' },
   { def: 'block', id: 'block-1', x: -2, z: 0 },
-  { def: 'one-way', id: 'gate-1', x: 0, z: 6, from: 'kiln' },
   { def: 'chest', id: 'chest-1', x: 3, z: 10, contents: 'small-key', hidden: 'plate-1' },
   { def: 'chest', id: 'chest-2', x: -3, z: 10, contents: 'embers:20' },
   { def: 'pot', id: 'pot-1', x: 3, z: -3, drop: 'pot' },
   { def: 'cracked', id: 'crack-1', x: -3, z: 6 },
   { def: 'hook-post', id: 'post-1', x: 0, z: 9 },
   { def: 'sling-target', id: 'eye-1', x: 3, z: 3, height: 2.6, targets: ['door-1'] },
-  { def: 'ledge-drop', id: 'ledge-1', x: 2, z: 8, to: 'hall' },
-  { def: 'npc', id: 'lamplighter', x: -2, z: -2, figure: 'target', lines: 'npc.lamplighter' },
-  { def: 'shop', id: 'shop-1', x: 2, z: -3, stock: 'kiln' },
   { def: 'entry', id: 'entry-1', x: 0, z: -2, facing: 0, portal: 'door-2' },
 ]
 
@@ -102,10 +98,6 @@ describe('area entities (GAME-3D.1f part 1, G3-F2)', () => {
     expect(loadError([{ def: 'chest', id: 'c', x: 0, z: 0, contents: 'map', hidden: 'gone' }])?.path).toBe(
       'entities[0].hidden',
     )
-    expect(loadError([{ def: 'one-way', id: 'o', x: 0, z: 0, from: 'cellar' }])?.path).toBe(
-      'entities[0].from',
-    )
-    expect(loadError([{ def: 'ledge-drop', id: 'l', x: 0, z: 0, to: 'cellar' }])?.path).toBe('entities[0].to')
     expect(loadError([{ def: 'entry', id: 'e', x: 0, z: 0, portal: 'gone' }])?.path).toBe(
       'entities[0].portal',
     )

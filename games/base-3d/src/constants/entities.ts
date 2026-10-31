@@ -4,7 +4,10 @@
 // pits and exits are still its own lists until GAME-3D.1i moves the areas into af-sector files.
 import { z } from 'zod'
 
-/** What a chest can hold (§10): an item by its `ItemCode` name, a key, the map, the compass, a heart piece, or `embers:N`. */
+/**
+ * What a chest can hold (§10): an item by its `ItemCode` name, a key, the map, the compass, or `embers:N` (heart pieces
+ * cut by the 2026-10-31 rescope, DESIGN.md §0.4).
+ */
 export const CHEST_CONTENTS = [
   'sling',
   'bombs',
@@ -13,7 +16,6 @@ export const CHEST_CONTENTS = [
   'boss-key',
   'map',
   'compass',
-  'heart-piece',
 ] as const
 
 /** The drop tables a pot rolls (§10): `pot` is the enemies' table (§8.1 rule 6). */
@@ -48,11 +50,6 @@ export const ENTITY_DEFS = {
     targets: refs,
   }),
   block: z.strictObject({ ...base, ...box }),
-  'one-way': z.strictObject({
-    ...base,
-    ...box,
-    /** The room (by view id) it lets Wick through from. */ from: ref,
-  }),
   chest: z.strictObject({
     ...base,
     ...box,
@@ -68,9 +65,6 @@ export const ENTITY_DEFS = {
   cracked: z.strictObject({ ...base, ...box }),
   'hook-post': z.strictObject({ ...base }),
   'sling-target': z.strictObject({ ...base, height: z.number().min(0.5).max(3), targets: refs }),
-  'ledge-drop': z.strictObject({ ...base, ...box, /** The room (by view id) it drops Wick to. */ to: ref }),
-  npc: z.strictObject({ ...base, figure: ref, /** The message key prefix of its lines. */ lines: ref }),
-  shop: z.strictObject({ ...base, ...box, /** The stock table it sells from. */ stock: ref }),
   entry: z.strictObject({ ...base, facing: z.number().default(0), portal: ref.optional() }),
 } as const
 

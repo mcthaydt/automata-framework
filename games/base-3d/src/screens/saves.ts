@@ -22,10 +22,7 @@ export function base3dSaves(): GameSaves<Base3dSave> {
       return {
         ...applied,
         embers: sim.resource(Progress).embers,
-        hearts: {
-          max: Math.floor(sim.resource(Progress).maxHealth / 2),
-          pieces: [...sim.resource(Dungeon).heartPieces],
-        },
+        hearts: { ...applied.hearts, max: Math.floor(sim.resource(Progress).maxHealth / 2) },
         ...captureInventory(sim.resource(Inventory)),
         ...captureDungeon(sim.resource(Dungeon), applied),
         // The sim starts at tick 0 on every Continue, so the play time is the slot's plus this sim's.
@@ -39,7 +36,7 @@ export function base3dSaves(): GameSaves<Base3dSave> {
       const maxHealth = data.hearts.max * 2
       sim.resource(Progress).maxHealth = maxHealth
       for (const { sid } of sim.query(Hero, Fighter)) sim.entity(sid)?.set(Fighter, { health: maxHealth })
-      // The dungeon's pieces, keys, map, compass, visits and heart pieces (DESIGN.md §10): the flags whole, so a flag this build does
+      // The dungeon's pieces, keys, map, compass and visits (DESIGN.md §10): the flags whole, so a flag this build does
       // not know is kept.
       Object.assign(sim.resource(Dungeon), {
         flags: [...data.flags].sort(),
@@ -48,7 +45,6 @@ export function base3dSaves(): GameSaves<Base3dSave> {
         map: data.kiln.map,
         compass: data.kiln.compass,
         visited: [...data.kiln.visited].sort(),
-        heartPieces: [...data.hearts.pieces].sort(),
       })
       Object.assign(sim.resource(Inventory), {
         ...data.items,
