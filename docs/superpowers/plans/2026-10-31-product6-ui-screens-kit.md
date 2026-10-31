@@ -79,7 +79,7 @@ change to core; real-device testing (the Owner's).
 - [x] 3. `ResultsScreen`: DOM tests red, then the component; layout test at all sizes and variants.
 - [x] 4. `LoadingScreen` and `ErrorScreen`: DOM and layout tests, then the components.
 - [x] 5. `TitleScreen`, `PauseScreen`, `SettingsScreen`: DOM and layout tests, then the components.
-- [ ] 6. Kit rule test, copy-in proof complete, README.
+- [x] 6. Kit rule test, copy-in proof complete, README.
 - [ ] 7. Review images (expected/actual of each screen at three sizes) committed under `docs/evidence/owner-visual/product6-ui-screens-kit/`
   with a README; gates; PR; the AF provenance PR.
 
