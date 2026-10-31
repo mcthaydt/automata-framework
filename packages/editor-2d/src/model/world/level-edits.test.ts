@@ -7,7 +7,7 @@ import { hollowmere } from '../../testing/samples'
 import { counterIds, type IdSource } from '../ids'
 import { emptyLayers } from '../level-layers'
 import type { EntityInstance, Level, Placement, Project } from '../project-types'
-import { addLevel, duplicateLevel, removeLevel, setLevelField } from './level-edits'
+import { addLevel, duplicateLevel, removeLevel, renameLevel, setLevelField } from './level-edits'
 import { setWorldLayout } from './world-layout'
 
 const platformer = (): Project => platformerTemplate.create(counterIds())
@@ -305,5 +305,27 @@ describe('setLevelField', () => {
       /no level field "weather"/,
     )
     expect(() => setLevelField(platformer(), 'nope', 'music', 'a')).toThrow(/no level "nope"/)
+  })
+})
+
+describe('renameLevel', () => {
+  it('renames the level, trimmed, and leaves the others', () => {
+    const project = withNewLevel(platformer(), 'level-2', { x: 512, y: 0 })
+    const [first, second] = project.levels
+    const renamed = renameLevel(project, first?.id ?? '', '  Moss steps  ')
+    expect(levelOf(renamed, first?.id ?? '').name).toBe('Moss steps')
+    expect(levelOf(renamed, second?.id ?? '')).toBe(second)
+  })
+
+  it('returns the same project for the same name', () => {
+    const project = platformer()
+    const level = project.levels[0]
+    expect(renameLevel(project, level?.id ?? '', level?.name ?? '')).toBe(project)
+  })
+
+  it('refuses an empty name and a level that is not there', () => {
+    const project = platformer()
+    expect(() => renameLevel(project, project.levels[0]?.id ?? '', '   ')).toThrow(RangeError)
+    expect(() => renameLevel(project, 'gone', 'Name')).toThrow(RangeError)
   })
 })

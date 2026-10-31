@@ -1,5 +1,19 @@
 # @mcthaydt/automata-content
 
+## 0.0.4
+
+### Patch Changes
+
+- 2908b30: The content Vite plugin (`automataContent` from `@mcthaydt/automata-content/vite`) now sets `build.assetsInlineLimit: 0` when the game's Vite config leaves it unset, so every asset ships as a file. Vite would otherwise inline an asset under 4 kB as a `data:` URL, which Pixi's loader fetches and Ruken's CSP (`connect-src`, which has no `data:`) refuses, so the asset never loaded. A value the game sets itself is kept.
+- 7f2c27c: The font build cuts every content language's name, as the language picker shows it, into every subset, and the glyph gate holds each language's subsets to the names of the languages the fonts serve: a missing glyph is `missingGlyph` at the language's entry in `locales` in `content/fonts.toml` (M5.5F). `endonymOf` moves to `@mcthaydt/automata-content/locale`, so the build and the picker share one function; `@mcthaydt/automata-ui` re-exports it unchanged and now depends on `@mcthaydt/automata-content`.
+- b15b260: A preloaded screen's atlases and fonts join the generated preload list (M5 spec §4.7). A screen names them in `assets.toml` beside its `files` (`atlases = ["wick"]`, `fonts = ["pixel"]`, by their names in `atlases.toml` and `fonts.toml`); `preloadList` then adds each atlas page's Spritesheet JSON and image (`atlases/<atlas>-<page>.json` and `.png`) and every language's subset that `fonts.json` names (`fonts/<file>`), from the outputs `automata-content assets` wrote below `outDir`. A name not declared is `unknownReference`; an atlas or font not built, or a page or subset missing from the build, is `missingAsset`, all reported at once at the screen's key. An `assets.toml` that names none compiles and preloads as before.
+  
+  BREAKING: the API report counts `AssetsSource`'s new optional `atlases` and `fonts` as a changed interface. Code that reads or builds an `AssetsSource` compiles and behaves as before.
+- 1fa16c8: Add the `xx-long` pseudo-locale to `@mcthaydt/automata-content/locale` (`PSEUDO_LOCALE`, `pseudoLocalize`, `pseudoMessages`, `hasRawText`, `MessageValue`): every letter accented, about 40% longer, between `⟦ ⟧`, placeholders kept. `@mcthaydt/automata-testing` gains `findCutAtSide` (a control cut at the side of a declared scroll region that clips it; a region that scrolls sideways on purpose declares `data-scroll-region="both"`) and `pressedPart` (a checkbox's or radio's label). `checkLayout` (`@mcthaydt/automata-ui/testing`) now also fails a control cut at the side of the scroll region it scrolls in and a control whose words run past its edge. Long-language fixes: ScreenFrame's actions let an ActionBar give way instead of widening the body, Settings' tabs wrap and its groups keep to the list's width, and a Toggle keeps its state word whole beside the track while a long name breaks a word only where the toggle is given less room than its longest word.
+- bb4e89d: Bundle Ruken's packages from RukenApp `e376a2d`, where they are MIT licensed. `VENDORED.md` names the new commit and hashes, and now also each bundled package's licence and the licence text, which MIT asks every copy of the code to carry. The bundled Ruken code itself is unchanged: every `dist/` is the same as at `d0fa2fe`.
+- 2687799: Bundle Ruken's packages from RukenApp `d0fa2fe` instead of `b30d31b` (`VENDORED.md` names the commit and hashes). The bundled `@ruken/sdk-host` and `@ruken/cli` now declare `zod` 4.6.6 (the SDK only as a dev dependency; `@ruken/manifest` does not use zod), so nothing in AF installs 4.6.5 (GHSA-mrhx-c7xc-m3w5). The SDK also trusts Ruken's private beta sites as hosts, and Ruken's host now answers `Hosting.leaderboards.get` with the player's own entry only; the call is unchanged.
+- @mcthaydt/automata-sim@0.0.4
+
 ## 0.0.3
 
 ### Patch Changes
