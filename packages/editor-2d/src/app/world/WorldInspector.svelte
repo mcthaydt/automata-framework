@@ -108,10 +108,8 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
       />
     </label>
     {#if message !== undefined}<p class="message" role="alert">{message}</p>{/if}
-    <div class="pair">
       <Stepper label="X" value={placement.x} integer onedit={(event) => place('x', event)} />
       <Stepper label="Y" value={placement.y} integer onedit={(event) => place('y', event)} />
-    </div>
     <Stepper
       label="Depth"
       value={placement.depth}
@@ -120,7 +118,6 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
         if (committed(event)) edit('Set depth', (current) => setLevelDepth(current, level, event.value))
       }}
     />
-    <div class="pair">
       <Stepper
         label="Width"
         value={size.w}
@@ -139,7 +136,6 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
           if (committed(event)) size = { ...size, h: event.value }
         }}
       />
-    </div>
     <Segmented
       label="Keep the side"
       options={[
@@ -211,11 +207,6 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13);
-  }
-  .pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-2);
   }
   .message {
     margin: 0;

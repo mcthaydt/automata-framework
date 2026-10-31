@@ -134,7 +134,7 @@ describe('World view: the map and the panel', () => {
 
   it("reorders a horizontal world when a level is dragged past its neighbour, and the Level view's dock follows (G-h)", async () => {
     const { history, first } = await mount()
-    await userEvent.click(screen.getByRole('radio', { name: 'Horizontal' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'Row' }))
     const width = history.state.levels[0]?.size.w ?? 0
     const scale = fitWorld(worldRects(history.state, 'main', undefined), BOX, MARGIN).scale
     const at = onMap(history.state, 10, 10)

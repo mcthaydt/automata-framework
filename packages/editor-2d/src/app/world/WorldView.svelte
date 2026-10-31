@@ -6,7 +6,7 @@
   stays under the finger even when the world's extent changes.
 -->
 <script lang="ts">
-import { EditorShell, Segmented } from '@mcthaydt/automata-editor-kit'
+import { EditorShell, Segmented, shellModeOf } from '@mcthaydt/automata-editor-kit'
 import type { Camera } from '../../canvas/level-view'
 import type { Project, Size, WorldLayout } from '../../model/project-types'
 import { setWorldLayout } from '../../model/world/world-layout'
@@ -25,8 +25,9 @@ const MARGIN = 24
 const LAYOUTS: readonly { id: WorldLayout; label: string }[] = [
   { id: 'free', label: 'Free' },
   { id: 'grid', label: 'Grid' },
-  { id: 'horizontal', label: 'Horizontal' },
-  { id: 'vertical', label: 'Vertical' },
+  // A sequence in plain words (the APP spec's plain words for non-developers), short enough for the 264 px panel.
+  { id: 'horizontal', label: 'Row' },
+  { id: 'vertical', label: 'Column' },
 ]
 
 // The view is made for one document: the screen remounts it when the document is replaced.
@@ -46,6 +47,10 @@ let box = $state.raw<Size>(DEFAULT_BOX)
 /** The camera a drag started with, kept until it ends. */
 let held = $state.raw<Camera | undefined>()
 let map = $state<HTMLElement>()
+let panelOpen = $state(false)
+let inspectorOpen = $state(false)
+
+const wide = $derived(shellModeOf(geometry.current.formFactor) === 'wide')
 
 const world = $derived(project?.worlds.find((candidate) => candidate.id === worldId))
 const rects = $derived(
@@ -123,6 +128,8 @@ function layout(next: string): void {
   rail={frame.rail}
   status={frame.status}
   sheets={frame.sheets}
+  bind:panelOpen
+  bind:inspectorOpen
   testId="world-view"
 >
   {#snippet panel()}
@@ -157,6 +164,15 @@ function layout(next: string): void {
     {#if history === undefined}
       <p class="empty">This document has no world to show.</p>
     {:else}
+      <div class="stage">
+      {#if !wide}
+        <div class="drawers">
+          <button type="button" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Levels</button>
+          <button type="button" aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}
+            >Inspector</button
+          >
+        </div>
+      {/if}
       <div
         class="map"
         role="application"
@@ -169,6 +185,7 @@ function layout(next: string): void {
         onpointercancel={cancel}
       >
         <Map {rects} {camera} />
+      </div>
       </div>
     {/if}
   {/snippet}
@@ -184,6 +201,7 @@ function layout(next: string): void {
 <style>
   .panel {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     align-content: start;
     gap: var(--space-3);
     height: 100%;
@@ -213,9 +231,29 @@ function layout(next: string): void {
   .levels button[aria-pressed='true'] {
     border-color: var(--color-accent-default);
   }
-  .map {
-    width: 100%;
+  /* Below wide the drawer buttons sit over the map; the map takes the rest of the canvas. */
+  .stage {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     height: 100%;
+  }
+  .drawers {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+  .drawers button {
+    min-width: var(--size-hit);
+    min-height: var(--size-hit);
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-field);
+    color: var(--color-text-primary);
+    font: var(--text-body-13-medium);
+  }
+  .map {
+    min-height: 0;
     touch-action: none;
   }
   .empty {
