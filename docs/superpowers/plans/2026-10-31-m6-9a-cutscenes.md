@@ -52,7 +52,7 @@ back-to-camera lint rules read the source's renderer (NR-D9, CS-D3).
 Each step: write the test, see it fail for the stated reason, write the minimum, see it pass.
 
 1. Package; the `cutscene` schema, content kind and extension. Fails: no package.
-   - [ ] 1
+   - [x] 1 (the extension joins the plugin in step 3)
 2. `evaluate` and `resolveAnchors` (the source's evaluate cases). Fails: no module.
    - [ ] 2
 3. The sim plugin: start, ticks, skip, end, missing anchor, `locked`; CS-a, CS-b, CS-c. Fails: no plugin.
