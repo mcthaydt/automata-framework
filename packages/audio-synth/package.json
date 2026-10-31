@@ -14,7 +14,8 @@
     ".": "./src/index.ts",
     "./measure": "./src/measure/index.ts",
     "./render": "./src/render/index.ts",
-    "./browser": "./src/render/browser-entry.ts"
+    "./browser": "./src/render/browser-entry.ts",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "test": "vitest run",
