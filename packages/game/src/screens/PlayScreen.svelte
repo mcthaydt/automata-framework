@@ -54,7 +54,12 @@ const showButtons = $derived(
   touching && swipe === undefined && (touchButtons.length > 0 || stick !== undefined),
 )
 const buttons = $derived(
-  touchButtons.map((button) => ({ action: button.id, label: button.label, required: button.required })),
+  touchButtons.map((button) => ({
+    action: button.id,
+    label: button.label,
+    side: button.side,
+    required: button.required,
+  })),
 )
 </script>
 

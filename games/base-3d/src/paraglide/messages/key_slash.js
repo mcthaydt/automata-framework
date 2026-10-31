@@ -6,13 +6,13 @@ import { getLocale, experimentalStaticLocale } from '../runtime.js';
 /** @typedef {{}} Key_SlashInputs */
 
 const en_key_slash = /** @type {(inputs: Key_SlashInputs) => LocalizedString} */ () => {
-	return /** @type {LocalizedString} */ (`Slash`)
+	return /** @type {LocalizedString} */ (`Attack`)
 };
 
 /**
 * | output |
 * | --- |
-* | "Slash" |
+* | "Attack" |
 *
 * @param {Key_SlashInputs} inputs
 * @param {{ locale?: "en" }} options

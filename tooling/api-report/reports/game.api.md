@@ -521,6 +521,7 @@ interface TouchButton {
     readonly id: string;
     readonly label: string;
     readonly keys: readonly string[];
+    readonly side?: 'start' | 'end' | undefined;
     readonly required?: boolean | undefined;
 }
 ```

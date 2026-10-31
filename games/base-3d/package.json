@@ -33,6 +33,7 @@
     "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
+    "@mcthaydt/automata-testing": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
     "@playwright/test": "1.63.0",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",

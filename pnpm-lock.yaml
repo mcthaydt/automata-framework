@@ -198,6 +198,9 @@ importers:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence

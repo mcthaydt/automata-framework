@@ -27,6 +27,8 @@ export interface TouchButton {
   readonly id: string
   readonly label: string
   readonly keys: readonly string[]
+  /** Which lower corner's group it sits in (M4 spec §4.4). Default `start`; a game moves buttons to `end` itself. */
+  readonly side?: 'start' | 'end' | undefined
   /** The game cannot be played without it: where the touch buttons do not all fit, only these show (M4.7). */
   readonly required?: boolean | undefined
 }
