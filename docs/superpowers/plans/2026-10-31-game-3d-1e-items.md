@@ -211,8 +211,14 @@ and `arrowKeyNav` (`[data-focus-grid]` steers spatially).
 
 Produced:
 - `screens/items.ts`: `itemsOf(save, pending?)` (the five slots with `owned`, `equippable` and ammo against its most,
-  the equipped item, heart pieces toward the next heart, embers, the kiln's keys, map and compass) and `ITEM_NAMES`
-  (the HUD's chip uses it too: one name map).
+  the equipped item, heart pieces toward the next heart, embers, the kiln's keys, map and compass).
+- `screens/copy.ts` and `copy.svelte.ts` (the #339 review's follow-up 1): the game's own words, one `Base3dCopy`
+  record a language (`BASE3D_COPY`, English only so far; a language falls back to its base language, then English),
+  and `liveCopy`/`followLocale`, which keep them in the runtime `Locale`'s language while play or Items is open, as
+  DX.2d's `screensCopy` does for the default screens. The HUD (hearts, embers, Items, item names, the boss's name and
+  bar) and the Items screen read them; `hudOf`'s boss row carries the boss's id, not its name.
+- `screens/saves.ts` (the #339 review's follow-up 2): the applied slot is kept per sim, so a new game never carries
+  what an earlier Continue applied.
 - `LockInput.equip(item)` (screens/lock-input.ts): one queued `equip`, sent on the next tick; commands renumber
   `tick × 6 + n` (the equip sixth).
 - `screens/ItemsScreen.svelte` and an `items` screen in screens.ts and BASE3D_FLOW (`play --items--> items`,
@@ -244,7 +250,7 @@ Rules:
 - [x] 3. Layout tests (items.layout.test.ts, 844×390 and 780×270, three engines): slots at least 44 px, the corner
       Back fixed and in view, the contents inside the declared scroll region, nothing past the viewport outside it;
       the arrow keys steer the grid.
-- [ ] 4. Review images (844×390, 780×270) beside DESIGN §9.3; goldens unchanged; gates as 5a.
+- [x] 4. Review images (844×390, 780×270) beside DESIGN §9.3; goldens unchanged; gates as 5a.
 
 ### 5c: the Map screen (§9.4)
 
@@ -383,3 +389,21 @@ input seam is not exported); the kiln row shows in every area; the sword and shi
 choosable; the HUD's Items button sits under the embers in every input mode.
 
 **Goldens (part 5b).** Unchanged: route `94925b319d992b19`, fights `59b84ddde6bfeb94`, boss `de0bb982dcf6aa53`.
+
+**Part 5b, the #339 review's follow-ups (2026-10-31).**
+
+- New game and the save. The default screens' New game captures a fresh sim and writes it; it applies nothing (the
+  game package's own case pins this: its starting data is the fresh sim's, not `empty()`). `base3dSaves` kept one
+  `applied` slot for every sim, so a Continue, Quit, Delete and New game wrote the old slot's heart pieces, kiln,
+  flags and play time into the new game. That is why 5a's patched `newGame()` never showed: nothing applies it.
+  Red first: saves.test.ts's second case (the fresh sim carried the flags and 9000 play ticks). Fixed in base-3d
+  alone (a `WeakMap` by sim; a fresh sim captures over `newGame()`); its first case holds a fresh sim's capture to
+  `newGame()` exactly, so the sim's defaults and `newGame()` cannot drift apart unseen. No framework change.
+- The words. DX.2d's `ScreensCopy` (#312, on main, not under this stack) covers the default screens only; a game's
+  own screens have no seam there. base-3d follows its way with its own record (copy.ts above). Red first:
+  copy.test.ts on the missing module; hud.test.ts's boss case (an id, not a name); the HUD DOM case's live language
+  change (it re-renders the boss's name in place, the HUD not remounted).
+
+**Defaults (follow-ups, for the Owner's veto):** English only (the game has no translations yet; `fr-CA` falls back
+to `fr`, then English); no pseudo-locale record (the pseudo-localizer lives in the content tooling, not the game's
+bundle); the words are read live while play and Items are open, as DX.2d's screens do.

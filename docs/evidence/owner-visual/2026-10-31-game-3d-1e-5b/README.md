@@ -22,4 +22,5 @@ gave Wick the sling (12 pellets, equipped) and the hookchain, and 37 embers. Bom
   gamepad's LB and D-pad focus are not wired yet (the menu-input seam is not exported from the game package;
   GAME-3D.1h). Arrow keys steer the grid.
 - Opened by I and the HUD button, not pause → Items, which waits on GAME.PAUSE1.
-- Texts are English until the game has a message catalogue.
+- Texts come from the game's copy record (screens/copy.ts), in the player's language as the runtime's `Locale`
+  gives it; the game has only English so far, so the images show the English record.

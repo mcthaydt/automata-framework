@@ -23,6 +23,8 @@ import { Inventory } from '../resources.ts'
 import { base3dSim } from '../state/index.ts'
 import { newGame } from '../state/save.ts'
 import { compileWorld } from '../systems/index.ts'
+import { liveCopy } from './copy.svelte.ts'
+import { BASE3D_COPY } from './copy.ts'
 import { hudInPlay } from './hud.ts'
 import { base3dSaves } from './saves.ts'
 import { base3dScreens, SPLASH_MS } from './screens.ts'
@@ -625,6 +627,19 @@ describe("base-3d's flow", () => {
       expect(root.querySelector('[data-testid="hud-boss"]')?.textContent).toContain('The Ashen Warden')
       expect([bar?.getAttribute('aria-valuenow'), bar?.getAttribute('aria-valuemax')]).toEqual(['17', '24'])
       expect(bar?.getAttribute('aria-label')).toBe('The Ashen Warden health')
+      // The words follow the player's language in place (DX.2d's way): a new record re-renders the bar's name.
+      const drawn = hud()
+      liveCopy.current = { ...BASE3D_COPY.en, bossNames: { warden: 'La Gardienne cendrée' } }
+      try {
+        await until(
+          () =>
+            root.querySelector('[data-testid="hud-boss"]')?.textContent?.includes('La Gardienne') === true,
+          'the new name',
+        )
+        expect(hud()).toBe(drawn)
+      } finally {
+        liveCopy.current = BASE3D_COPY.en
+      }
     })
   })
   describe('the Items screen (DESIGN.md §9.3, GAME-3D.1e part 5b)', () => {

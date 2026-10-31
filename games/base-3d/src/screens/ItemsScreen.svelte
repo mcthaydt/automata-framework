@@ -8,6 +8,7 @@
 import { arrowKeyNav, FocusNavigator, ScreenFrame } from '@mcthaydt/automata-ui'
 import { onMount } from 'svelte'
 import type { Base3dSave } from '../state/save.ts'
+import { liveCopy } from './copy.svelte.ts'
 import type { ItemName } from './hud.ts'
 import { type ItemSlot, itemsOf } from './items.ts'
 
@@ -21,6 +22,7 @@ const { save, onEquip, onBack }: Props = $props()
 
 let pending = $state<ItemName | undefined>(undefined)
 const view = $derived(itemsOf(save, pending))
+const words = $derived(liveCopy.current)
 
 // The arrow keys steer focus over the grid by the slots' boxes (ui's FocusNavigator over `[data-focus-grid]`).
 onMount(() => {
@@ -46,11 +48,11 @@ function choose(slot: ItemSlot): void {
 </script>
 
 {#snippet header()}
-  <h2 class="b3-items__title">Items</h2>
+  <h2 class="b3-items__title">{words.items.title}</h2>
 {/snippet}
 
 {#snippet body()}
-  <div class="b3-items" data-scroll-region role="region" aria-label="Items" data-testid="items-scroll">
+  <div class="b3-items" data-scroll-region role="region" aria-label={words.items.region} data-testid="items-scroll">
     <div class="b3-items__grid" data-focus-grid>
       {#each view.slots as slot (slot.id)}
         <button
@@ -63,10 +65,10 @@ function choose(slot: ItemSlot): void {
           onclick={() => choose(slot)}
         >
           {#if slot.owned}
-            <span class="b3-items__name">{slot.name}</span>
+            <span class="b3-items__name">{words.itemNames[slot.id]}</span>
             {#if slot.ammo !== undefined}<span class="b3-items__ammo">{slot.ammo.count} / {slot.ammo.most}</span>{/if}
           {:else}
-            <span class="b3-items__name b3-items__name--missing">Not found yet</span>
+            <span class="b3-items__name b3-items__name--missing">{words.items.notFound}</span>
           {/if}
         </button>
       {/each}
@@ -74,9 +76,9 @@ function choose(slot: ItemSlot): void {
 
     <dl class="b3-items__facts">
       <div>
-        <dt>Heart pieces</dt>
+        <dt>{words.items.heartPieces}</dt>
         <dd>
-          <span class="b3-items__quarters" role="img" aria-label={`${view.heartPieces} of 4`}>
+          <span class="b3-items__quarters" role="img" aria-label={words.items.piecesOf(view.heartPieces)}>
             {#each [0, 1, 2, 3] as quarter (quarter)}
               <span class="b3-items__quarter" data-filled={String(quarter < view.heartPieces)}></span>
             {/each}
@@ -84,31 +86,31 @@ function choose(slot: ItemSlot): void {
         </dd>
       </div>
       <div>
-        <dt>Embers</dt>
+        <dt>{words.items.embers}</dt>
         <dd data-testid="items-embers">{view.embers}</dd>
       </div>
       <div>
-        <dt>Small keys</dt>
+        <dt>{words.items.smallKeys}</dt>
         <dd>{view.kiln.smallKeys}</dd>
       </div>
       <div>
-        <dt>Boss key</dt>
-        <dd>{view.kiln.bossKey ? 'Yes' : 'No'}</dd>
+        <dt>{words.items.bossKey}</dt>
+        <dd>{view.kiln.bossKey ? words.items.yes : words.items.no}</dd>
       </div>
       <div>
-        <dt>Map</dt>
-        <dd>{view.kiln.map ? 'Yes' : 'No'}</dd>
+        <dt>{words.items.map}</dt>
+        <dd>{view.kiln.map ? words.items.yes : words.items.no}</dd>
       </div>
       <div>
-        <dt>Compass</dt>
-        <dd>{view.kiln.compass ? 'Yes' : 'No'}</dd>
+        <dt>{words.items.compass}</dt>
+        <dd>{view.kiln.compass ? words.items.yes : words.items.no}</dd>
       </div>
     </dl>
   </div>
 {/snippet}
 
 <div class="af-game-menu af-game-menu--scrim" data-game-screen="items">
-  <ScreenFrame arrangement="stack" testId="items-screen" back={onBack} backLabel="Back" {header} {body} />
+  <ScreenFrame arrangement="stack" testId="items-screen" back={onBack} backLabel={words.items.back} {header} {body} />
 </div>
 
 <style>

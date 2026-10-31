@@ -17,14 +17,12 @@ export interface HudState {
   readonly embers: number
   /** The item on the Item button, and its ammo for the sling and the bombs. */
   readonly equipped: { readonly item: ItemName; readonly ammo?: number } | undefined
-  readonly boss: { readonly name: string; readonly health: number; readonly max: number } | undefined
+  /** The boss bar: the boss's `ENEMIES` id (its name is the copy's, copy.ts) and its health. */
+  readonly boss: { readonly id: string; readonly health: number; readonly max: number } | undefined
 }
 
-/**
- * The bosses' names as the boss bar shows them. The game has no message catalogue yet, so they are English and kept
- * here in one place for the locale work.
- */
-export const BOSS_NAMES: Readonly<Record<string, string>> = { warden: 'The Ashen Warden' }
+/** The enemies with a boss bar, by `ENEMIES` id. */
+const BOSSES: ReadonlySet<string> = new Set(['warden'])
 
 /**
  * The running sim, given by the screens' `watchSim` (screens.ts), as `settingsInPlay` holds the settings store, and
@@ -45,7 +43,7 @@ export function heartsOf(health: number, maxHealth: number): HeartFill[] {
   })
 }
 
-const ITEM_NAMES = Object.fromEntries(
+const ITEM_BY_CODE = Object.fromEntries(
   Object.entries(ItemCode).map(([name, code]) => [code, name]),
 ) as Readonly<Record<number, ItemName>>
 
@@ -54,7 +52,7 @@ function equippedOf(inventory: {
   readonly pellets: number
   readonly bombAmmo: number
 }): HudState['equipped'] {
-  const item = ITEM_NAMES[inventory.equipped]
+  const item = ITEM_BY_CODE[inventory.equipped]
   if (item === undefined) return undefined
   if (item === 'sling') return { item, ammo: inventory.pellets }
   if (item === 'bombs') return { item, ammo: inventory.bombAmmo }
@@ -65,9 +63,9 @@ function equippedOf(inventory: {
 function bossOf(sim: Sim): HudState['boss'] {
   for (const entity of sim.query(Enemy, Fighter)) {
     const type = enemyOf(entity.get(Enemy).kind)
-    const name = type === undefined ? undefined : BOSS_NAMES[type.id]
     const { health } = entity.get(Fighter)
-    if (type !== undefined && name !== undefined && health > 0) return { name, health, max: type.health }
+    if (type !== undefined && BOSSES.has(type.id) && health > 0)
+      return { id: type.id, health, max: type.health }
   }
   return undefined
 }

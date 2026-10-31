@@ -1,6 +1,7 @@
 // The Items screen's contents (DESIGN.md §9.3, GAME-3D.1e part 5b): the five slots, the ammo, the equipped item, the
 // heart pieces toward the next heart, the embers and the kiln's keys, map and compass, read from the save as play
-// captures it (the sim holds only the items and ammo; the pieces and the kiln are the save's). Presentation.
+// captures it (the sim holds only the items and ammo; the pieces and the kiln are the save's). Presentation; the
+// words are the copy's (copy.ts).
 import { BOMBS, SLING } from '../constants/items.ts'
 import type { Base3dSave } from '../state/save.ts'
 import type { ItemName } from './hud.ts'
@@ -9,7 +10,6 @@ export type SlotId = 'sword' | 'shield' | ItemName
 
 export interface ItemSlot {
   readonly id: SlotId
-  readonly name: string
   readonly owned: boolean
   /** Whether choosing it puts it on the Item button: the sword and shield have their own buttons. */
   readonly equippable: boolean
@@ -25,20 +25,10 @@ export interface ItemsView {
   readonly kiln: Pick<Base3dSave['kiln'], 'smallKeys' | 'bossKey' | 'map' | 'compass'>
 }
 
-/** The items' names as the screen and the HUD show them. English until the game has a message catalogue. */
-export const ITEM_NAMES: Readonly<Record<SlotId, string>> = {
-  sword: 'Sword',
-  shield: 'Shield',
-  sling: 'Spark Sling',
-  bombs: 'Ember Bombs',
-  hookchain: 'Hookchain',
-}
-
 /** What the Items screen shows of `save`, with `pending` (an equip asked for while the sim is paused) as equipped. */
 export function itemsOf(save: Base3dSave, pending?: ItemName): ItemsView {
   const slot = (id: SlotId, owned: boolean, ammo?: ItemSlot['ammo']): ItemSlot => ({
     id,
-    name: ITEM_NAMES[id],
     owned,
     equippable: id !== 'sword' && id !== 'shield',
     ...(ammo !== undefined && owned ? { ammo } : {}),

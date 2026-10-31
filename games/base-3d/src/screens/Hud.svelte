@@ -8,8 +8,8 @@
 <script lang="ts">
 import { InputMethodTracker } from '@mcthaydt/automata-ui'
 import { onMount } from 'svelte'
+import { liveCopy } from './copy.svelte.ts'
 import { type HudState, heartsOf, hudInPlay, hudOf } from './hud.ts'
-import { ITEM_NAMES } from './items.ts'
 
 /** How long the hearts flash after Wick loses health, in ms of presentation time. */
 const FLASH_MS = 400
@@ -49,7 +49,7 @@ const flashing = $derived(now < flashUntil)
         class:b3-hud__hearts--flash={flashing}
         data-testid="hud-hearts"
         role="img"
-        aria-label={`Hearts ${state.health / 2} of ${state.maxHealth / 2}`}
+        aria-label={liveCopy.current.hud.hearts(state.health, state.maxHealth)}
       >
         {#each hearts as fill, index (index)}
           <svg class="b3-hud__heart" data-fill={fill} viewBox="0 0 20 18" aria-hidden="true">
@@ -65,7 +65,7 @@ const flashing = $derived(now < flashUntil)
           </svg>
         {/each}
       </div>
-      <div class="b3-hud__embers" data-testid="hud-embers" aria-label={`Embers ${state.embers}`}>
+      <div class="b3-hud__embers" data-testid="hud-embers" aria-label={liveCopy.current.hud.embers(state.embers)}>
         <span class="b3-hud__ember" aria-hidden="true"></span>{state.embers}
       </div>
       {#if hudInPlay.openItems !== undefined}
@@ -73,18 +73,19 @@ const flashing = $derived(now < flashUntil)
           type="button"
           class="af-control af-control--ghost b3-hud__items"
           data-testid="hud-items"
-          onclick={() => hudInPlay.openItems?.()}>Items</button
+          onclick={() => hudInPlay.openItems?.()}>{liveCopy.current.hud.items}</button
         >
       {/if}
     </div>
 
     {#if state.boss !== undefined}
+      {@const name = liveCopy.current.bossNames[state.boss.id] ?? state.boss.id}
       <div class="b3-hud__boss" data-testid="hud-boss">
-        <span class="b3-hud__boss-name">{state.boss.name}</span>
+        <span class="b3-hud__boss-name">{name}</span>
         <div
           class="b3-hud__boss-bar"
           role="meter"
-          aria-label={`${state.boss.name} health`}
+          aria-label={liveCopy.current.hud.bossHealth(name)}
           aria-valuemin="0"
           aria-valuemax={state.boss.max}
           aria-valuenow={state.boss.health}
@@ -96,7 +97,7 @@ const flashing = $derived(now < flashUntil)
 
     {#if state.equipped !== undefined && tracker.method !== 'touch'}
       <div class="b3-hud__item" data-testid="hud-item">
-        <span>{ITEM_NAMES[state.equipped.item]}</span>
+        <span>{liveCopy.current.itemNames[state.equipped.item]}</span>
         {#if state.equipped.ammo !== undefined}<span class="b3-hud__ammo">× {state.equipped.ammo}</span>{/if}
       </div>
     {/if}

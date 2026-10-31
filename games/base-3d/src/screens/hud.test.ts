@@ -56,12 +56,12 @@ describe('hudOf', () => {
     sim.dispose()
   })
 
-  it('shows the boss bar while a Warden lives, with its name and health of 24', async () => {
+  it('shows the boss bar while a Warden lives, with its id and health of 24', async () => {
     const sim = await startFoes([{ kind: 'warden', x: 0, z: 8, facing: 180 }])
-    expect(hudOf(sim)?.boss).toEqual({ name: 'The Ashen Warden', health: 24, max: 24 })
+    expect(hudOf(sim)?.boss).toEqual({ id: 'warden', health: 24, max: 24 })
     const [warden] = sim.query(Fighter).filter((entity) => entity.sid !== wickSid(sim))
     warden?.set(Fighter, { health: 9 })
-    expect(hudOf(sim)?.boss).toEqual({ name: 'The Ashen Warden', health: 9, max: 24 })
+    expect(hudOf(sim)?.boss).toEqual({ id: 'warden', health: 9, max: 24 })
     warden?.set(Fighter, { health: 0 })
     expect(hudOf(sim)?.boss).toBeUndefined()
     sim.dispose()

@@ -8,7 +8,7 @@
 // menu. Continue plays on from the area entrance: the sim as it stood when play entered the area, restored.
 import { defaultScreens, type ScreensGame } from '@mcthaydt/automata-game'
 import { Hosting } from '@mcthaydt/automata-host'
-import { Flow, PresentationBus, type ScreenDef, Settings } from '@mcthaydt/automata-runtime'
+import { Flow, Locale, PresentationBus, type ScreenDef, Settings } from '@mcthaydt/automata-runtime'
 import { resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import type { Sim } from '@mcthaydt/automata-sim'
 import { interceptBackGesture } from '@mcthaydt/automata-ui'
@@ -19,6 +19,7 @@ import { AreaEntered, AreaExit, EmberTaken, HeroDefeated } from '../events.ts'
 import { continueWith3Hearts } from '../state/index.ts'
 import { type Base3dSave, newGame } from '../state/save.ts'
 import { areaFade } from './area-fade.ts'
+import { followLocale } from './copy.svelte.ts'
 import EndScreen from './EndScreen.svelte'
 import GameOverScreen from './GameOverScreen.svelte'
 import { hudInPlay, type ItemName } from './hud.ts'
@@ -56,6 +57,15 @@ const EQUIP_KEYS: Readonly<Record<string, ItemName>> = {
 /** A key press with no modifier and no auto-repeat: the game's own one-shot keys (I, 1, 2, 3). */
 const plainPress = (event: KeyboardEvent): boolean =>
   !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+
+/** The game's words (copy.ts) kept in the player's language for as long as the screen is open (DX.2d's way). */
+const followTheLocale: Effect.Effect<void, never, Scope.Scope | Locale> = Effect.gen(function* () {
+  const locale = yield* Locale
+  yield* Effect.acquireRelease(
+    Effect.sync(() => followLocale(locale)),
+    (stop) => Effect.sync(stop),
+  )
+})
 
 /** A window listener for as long as the screen is open. */
 function listen<K extends keyof WindowEventMap>(
@@ -144,6 +154,7 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
         const target = context.layer.ownerDocument.defaultView ?? window
         // I opens the Items screen, as the HUD's Items button does; 1, 2 and 3 equip (§14.2). The sim ignores an
         // item Wick does not own.
+        yield* followTheLocale
         const openItems = (): void => void flow.dispatch('items')
         yield* Effect.acquireRelease(
           Effect.sync(() => {
@@ -249,6 +260,7 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
         const hosting = yield* Hosting
         const target = layer.ownerDocument.defaultView ?? window
         const back = (): void => void flow.dispatch('back')
+        yield* followTheLocale
         const save = (
           running !== undefined && game.saves !== undefined ? game.saves.capture(running) : newGame()
         ) as Base3dSave
