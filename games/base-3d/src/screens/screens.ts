@@ -8,16 +8,20 @@
 // menu. Continue plays on from the area entrance: the sim as it stood when play entered the area, restored.
 import { defaultScreens, type ScreensGame } from '@mcthaydt/automata-game'
 import { Hosting } from '@mcthaydt/automata-host'
+import { CameraHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { Flow, Locale, PresentationBus, type ScreenDef, Settings } from '@mcthaydt/automata-runtime'
 import { resolveExtensions } from '@mcthaydt/automata-runtime/extension'
 import type { Sim } from '@mcthaydt/automata-sim'
 import { interceptBackGesture } from '@mcthaydt/automata-ui'
 import { Effect, type Scope } from 'effect'
 import { flushSync, mount, unmount } from 'svelte'
+import { Hero } from '../components.ts'
 import { TICK_HZ } from '../constants/index.ts'
 import { AreaEntered, AreaExit, EmberTaken, HeroDefeated } from '../events.ts'
+import { Location } from '../resources.ts'
 import { continueWith3Hearts } from '../state/index.ts'
 import { type Base3dSave, newGame } from '../state/save.ts'
+import type { World } from '../systems/index.ts'
 import { areaFade } from './area-fade.ts'
 import { followLocale } from './copy.svelte.ts'
 import EndScreen from './EndScreen.svelte'
@@ -25,6 +29,8 @@ import GameOverScreen from './GameOverScreen.svelte'
 import { hudInPlay, type ItemName } from './hud.ts'
 import ItemsScreen from './ItemsScreen.svelte'
 import type { LockInput } from './lock-input.ts'
+import MapScreen from './MapScreen.svelte'
+import { mapOf } from './map.ts'
 import SplashScreen from './SplashScreen.svelte'
 import { lockModeOf, settingsInPlay } from './settings.ts'
 
@@ -89,7 +95,9 @@ const byId = (screens: readonly ScreenDef[], id: string): ScreenDef => {
  * The seven screens BASE3D_FLOW names, over the default screens for `game`. Play gives `game.input` the player's
  * saved Lock mode on entry, and Settings on its way out (lock-input.ts).
  */
-export function base3dScreens(game: ScreensGame & { readonly input: LockInput }): ScreenDef[] {
+export function base3dScreens(
+  game: ScreensGame & { readonly input: LockInput; readonly world?: World | undefined },
+): ScreenDef[] {
   // The sim play runs, told by the default screens (`watchSim`): the end screen's time is its tick.
   let running: Sim | undefined
   // The running sim as it stood at the area entrance, which the game over's Continue restores: taken when play gets
@@ -152,17 +160,20 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
         game.input.mode = lockModeOf((yield* Settings).store?.get())
         const fade = yield* areaFade(context.layer)
         const target = context.layer.ownerDocument.defaultView ?? window
-        // I opens the Items screen, as the HUD's Items button does; 1, 2 and 3 equip (§14.2). The sim ignores an
-        // item Wick does not own.
+        // I opens the Items screen and M the map, as the HUD's buttons do; 1, 2 and 3 equip (§14.2). The sim
+        // ignores an item Wick does not own.
         yield* followTheLocale
         const openItems = (): void => void flow.dispatch('items')
+        const openMap = (): void => void flow.dispatch('map')
         yield* Effect.acquireRelease(
           Effect.sync(() => {
             hudInPlay.openItems = openItems
+            hudInPlay.openMap = game.world === undefined ? undefined : openMap
           }),
           () =>
             Effect.sync(() => {
               hudInPlay.openItems = undefined
+              hudInPlay.openMap = undefined
             }),
         )
         yield* listen(target, 'keydown', (event) => {
@@ -170,6 +181,7 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
           const item = EQUIP_KEYS[event.code]
           if (item !== undefined) game.input.equip(item)
           else if (event.code === 'KeyI') openItems()
+          else if (event.code === 'KeyM' && game.world !== undefined) openMap()
           else return
           event.preventDefault()
         })
@@ -288,6 +300,43 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
       }),
   }
 
+  // The Map screen (§9.4) over the paused sim: the plan of the area Wick is in, from its compiled geometry, his place
+  // and facing, the camera's heading, and the visits and the map as the save holds them. Escape and the corner Close
+  // return to play.
+  const map: ScreenDef = {
+    id: 'map',
+    pausesSim: true,
+    enter: ({ layer }) =>
+      Effect.gen(function* () {
+        const flow = yield* Flow
+        const target = layer.ownerDocument.defaultView ?? window
+        const close = (): void => void flow.dispatch('close')
+        yield* followTheLocale
+        const area = running === undefined ? undefined : game.world?.areas[running.resource(Location).area]
+        const wick = running?.query(Hero, CameraHeading)[0]
+        if (running === undefined || area === undefined || wick === undefined) {
+          close()
+          return
+        }
+        const save = (game.saves?.capture(running) ?? newGame()) as Base3dSave
+        const { x, z, facing } = wick.get(Hero)
+        const plan = mapOf(area, {
+          x,
+          z,
+          facing,
+          heading: wick.get(CameraHeading).heading,
+          visited: save.kiln.visited,
+          hasMap: save.kiln.map,
+        })
+        yield* show(MapScreen, layer, { plan, onClose: close })
+        yield* listen(target, 'keydown', (event) => {
+          if (event.code !== 'Escape' && event.code !== 'KeyM') return
+          event.preventDefault()
+          close()
+        })
+      }),
+  }
+
   const replaced = [title, play, defaultSettings]
   return [
     splash,
@@ -296,6 +345,7 @@ export function base3dScreens(game: ScreensGame & { readonly input: LockInput })
     settings,
     gameOver,
     items,
+    map,
     ...defaults.filter((screen) => !replaced.includes(screen)),
     end,
   ]

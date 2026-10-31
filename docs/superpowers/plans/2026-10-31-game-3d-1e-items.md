@@ -254,11 +254,41 @@ Rules:
 
 ### 5c: the Map screen (§9.4)
 
-Produced: `screens/map.ts` (`mapOf(area, sim)`: each room's sectors as plan polygons from the compiled area, visited
-rooms, Wick's place and facing, the camera's heading) and `screens/MapScreen.svelte` (an SVG plan scaled to the
-container inside a declared scroll region at compact height, a fixed 44 px Close), opened by M and a corner Map
-button. Steps: node tests of `mapOf`, DOM tests (open by M and the button, Close, focus), layout tests (844×390,
-780×270), review images.
+Consumed: the compiled `Area` (systems/area.ts: `rooms` as plan boxes named by their view, `walls`), `Location.area`,
+`Hero` (`x`, `z`, `facing`), `CameraHeading.heading`, the save's `kiln.visited` and `kiln.map` (as play captures it);
+the copy (5b) and `hudInPlay` (5a).
+
+Produced:
+- `screens/map.ts`: `mapOf(area, at)` (`at`: Wick's place and facing, the camera's heading, the visited room ids and
+  whether Wick has the map) → the plan in metres: its bounds, each room with `here`, `visited` or `outline` (an
+  unvisited room shows only with the map; without it, it is left out), the walls, Wick's arrow and the camera's
+  heading, both in degrees clockwise from +z (north up).
+- `screens/MapScreen.svelte`: the plan as an SVG scaled to the container (north up, Wick's arrow, the camera wedge)
+  inside a declared scroll region, a fixed 44 px Close (the frame's corner back, labelled Close), Escape closes.
+- A `map` screen in screens.ts and BASE3D_FLOW (`play --map--> map`, `map --close--> play`, `pausesSim`); M opens
+  it; a 44 px Map button at the HUD's top inline-end (`hudInPlay.openMap`). `base3dScreens` takes the `world`.
+
+Rules:
+1. A room is `here` while Wick stands in it, `visited` when its view id is in `kiln.visited`, else `outline` with the
+   map and absent without it.
+2. Wick's arrow points along his facing; the wedge (60°) along the camera's heading; turn units 0 is +z (map north)
+   and grow toward +x (clockwise on the map).
+3. The plan fills the container's width at most, keeps its aspect ratio, is never under 240 px tall, scrolls in its
+   region when taller, and opens scrolled to Wick's arrow.
+
+Defaults (for the Owner's veto): the Map button sits at the HUD's top inline-end under Pause, not in the frame's
+corner row (the play screen has no seam for a game's corner controls; GAME.PAUSE1's kind of seam); doors, chests and
+the boss mark wait on GAME-3D.1f's entities (nothing in the sim names them yet); visited rooms come from the save's
+`kiln.visited` plus the room Wick stands in (no sim state records visits yet: 1f); the hub's own map waits on the hub.
+
+- [x] 1. Tests (node, map.test.ts): the first slice's two rooms, the hall `here` at the spawn and the kiln absent
+      without the map, `outline` with it, `visited` from the save; Wick's arrow and the camera's heading in
+      degrees; the bounds.
+- [x] 2. DOM tests (screens.dom.test.ts, "the Map screen"): M and the HUD's Map button open it over a paused sim;
+      it draws the rooms and Wick's arrow; Close and Escape return to play.
+- [x] 3. Layout tests (map.layout.test.ts, 844×390 and 780×270, three engines): Close 44 px, fixed and in view;
+      the plan inside the declared scroll region and no wider than it.
+- [x] 4. Review images beside DESIGN §9.4; goldens unchanged; gates as 5a.
 
 ## Execution log
 
@@ -407,3 +437,21 @@ choosable; the HUD's Items button sits under the embers in every input mode.
 **Defaults (follow-ups, for the Owner's veto):** English only (the game has no translations yet; `fr-CA` falls back
 to `fr`, then English); no pseudo-locale record (the pseudo-localizer lives in the content tooling, not the game's
 bundle); the words are read live while play and Items are open, as DX.2d's screens do.
+
+**Part 5c (2026-10-31, branch `claude/3d-game-3d-1e-5c`).**
+
+- Red first: map.test.ts on the missing module; the two Map DOM cases (the screen never opened, the button was
+  missing).
+- The DOM cases then failed on a real fault: Svelte's `bind:clientWidth` needs `ResizeObserver`, which jsdom lacks,
+  and the screen failed to mount ("Couldn't start the game"). The region is now measured by a guarded observer (no
+  observer: the plan draws at its smallest).
+- The first capture showed the paused game through the plan, and at 780 × 270 Wick's arrow scrolled out of view.
+  The plan now has a panel under it, and a layout assertion (red first at 780 × 270 in all three engines) holds the
+  arrow in view on open: the region opens scrolled to Wick.
+- The HUD's layout case now covers the Items and Map buttons too (44 px, clear of Pause and the boss bar).
+
+**Defaults (part 5c, for the Owner's veto):** the Map button at the HUD's top inline-end under Pause (no corner seam
+for a game); M also closes the map; visits from the save plus the current room; the compass's marks, doors' lock
+kinds and the hub map wait on GAME-3D.1f and the hub; the wedge is 60° and 2.5 m.
+
+**Goldens (part 5c).** Unchanged: route `94925b319d992b19`, fights `59b84ddde6bfeb94`, boss `de0bb982dcf6aa53`.

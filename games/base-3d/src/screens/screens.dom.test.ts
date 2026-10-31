@@ -730,4 +730,33 @@ describe("base-3d's flow", () => {
       expect(running().resource(Inventory).equipped).toBe(ItemCode.sling)
     })
   })
+  describe('the Map screen (DESIGN.md §9.4, GAME-3D.1e part 5c)', () => {
+    it('opens with M over a paused sim, draws the room Wick is in and his arrow, and Close goes back', async () => {
+      await toRoom()
+      key('keydown', 'KeyM')
+      await until(() => screen() === 'map', 'the Map screen')
+      const applied = results.length
+      step(5)
+      expect(results.length).toBe(applied)
+      expect(
+        [...root.querySelectorAll<SVGElement>('[data-room]')].map((room) => [
+          room.dataset.room,
+          room.dataset.state,
+        ]),
+      ).toEqual([['hall', 'here']])
+      expect(root.querySelector('[data-testid="map-wick"]')).not.toBeNull()
+      expect(root.querySelector('[data-testid="map-heading"]')).not.toBeNull()
+      byTestId('corner-back')?.click()
+      await until(() => screen() === 'play', 'play again')
+    })
+
+    it('opens from the HUD’s Map button, and Escape goes back', async () => {
+      await toRoom()
+      await until(() => byTestId('hud-map') !== null, 'the Map button')
+      byTestId('hud-map')?.click()
+      await until(() => screen() === 'map', 'the Map screen')
+      key('keydown', 'Escape')
+      await until(() => screen() === 'play', 'play again')
+    })
+  })
 })

@@ -164,6 +164,7 @@ export const base3d = defineGame({
   screens: base3dScreens({
     title: TITLE,
     sim: BASE3D_SIM,
+    world: WORLD,
     input,
     extensions: EXTENSIONS,
     saves: saves as GameSaves<unknown>,

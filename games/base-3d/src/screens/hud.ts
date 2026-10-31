@@ -26,11 +26,16 @@ const BOSSES: ReadonlySet<string> = new Set(['warden'])
 
 /**
  * The running sim, given by the screens' `watchSim` (screens.ts), as `settingsInPlay` holds the settings store, and
- * the way to the Items screen while play is open (its HUD button).
+ * the ways to the Items and Map screens while play is open (their HUD buttons).
  */
-export const hudInPlay: { sim: Sim | undefined; openItems: (() => void) | undefined } = {
+export const hudInPlay: {
+  sim: Sim | undefined
+  openItems: (() => void) | undefined
+  openMap: (() => void) | undefined
+} = {
   sim: undefined,
   openItems: undefined,
+  openMap: undefined,
 }
 
 /** One fill a heart: two half-hearts make a heart, and an odd maximum rounds up to a whole heart. */

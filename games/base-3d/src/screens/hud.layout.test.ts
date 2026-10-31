@@ -35,6 +35,8 @@ describe('the HUD (GAME-3D.1e part 5a)', () => {
     shown = undefined
     hudInPlay.sim?.dispose()
     hudInPlay.sim = undefined
+    hudInPlay.openItems = undefined
+    hudInPlay.openMap = undefined
     document.body.replaceChildren()
   })
 
@@ -49,6 +51,8 @@ describe('the HUD (GAME-3D.1e part 5a)', () => {
       [Fighter, { health: 24 }],
     ])
     hudInPlay.sim = sim
+    hudInPlay.openItems = () => {}
+    hudInPlay.openMap = () => {}
     shown = mount(HudInPlay, { target: document.body, props: { touch } })
     flushSync()
     await document.fonts.ready
@@ -70,11 +74,18 @@ describe('the HUD (GAME-3D.1e part 5a)', () => {
         '[data-testid="hud-embers"]',
         '[data-testid="hud-boss"]',
         '[data-testid="hud-item"]',
+        '[data-testid="hud-items"]',
+        '[data-testid="hud-map"]',
       ]) {
         expect(inside(rect(part), body), `${part} inside the frame's body`).toBe(true)
         expect(overlaps(rect(part), pause), `${part} clear of Pause`).toBe(false)
       }
       expect(overlaps(rect('[data-testid="hud-hearts"]'), rect('[data-testid="hud-boss"]'))).toBe(false)
+      expect(overlaps(rect('[data-testid="hud-map"]'), rect('[data-testid="hud-boss"]'))).toBe(false)
+      for (const button of ['[data-testid="hud-items"]', '[data-testid="hud-map"]']) {
+        expect(rect(button).height, button).toBeGreaterThanOrEqual(44)
+        expect(rect(button).width, button).toBeGreaterThanOrEqual(44)
+      }
       expect(document.querySelectorAll('[data-testid="hud-hearts"] svg')).toHaveLength(10)
     })
 

@@ -8,8 +8,9 @@ export interface Base3dCopy {
     /** The hearts' accessible name, from health and its maximum in half-hearts. */
     readonly hearts: (health: number, maxHealth: number) => string
     readonly embers: (count: number) => string
-    /** The HUD's button to the Items screen. */
+    /** The HUD's buttons to the Items and Map screens. */
     readonly items: string
+    readonly map: string
     readonly bossHealth: (name: string) => string
   }
   readonly items: {
@@ -27,6 +28,12 @@ export interface Base3dCopy {
     readonly yes: string
     readonly no: string
   }
+  readonly map: {
+    readonly title: string
+    readonly close: string
+    /** The plan's accessible name. */
+    readonly plan: string
+  }
   readonly itemNames: Readonly<Record<SlotId, string>>
   /** Each boss's name by its `ENEMIES` id, for the boss bar. */
   readonly bossNames: Readonly<Record<string, string>>
@@ -37,6 +44,7 @@ const EN: Base3dCopy = {
     hearts: (health, maxHealth) => `Hearts ${health / 2} of ${maxHealth / 2}`,
     embers: (count) => `Embers ${count}`,
     items: 'Items',
+    map: 'Map',
     bossHealth: (name) => `${name} health`,
   },
   items: {
@@ -54,6 +62,7 @@ const EN: Base3dCopy = {
     yes: 'Yes',
     no: 'No',
   },
+  map: { title: 'Map', close: 'Close', plan: 'Map of the area: Wick’s arrow and the camera’s view' },
   itemNames: {
     sword: 'Sword',
     shield: 'Shield',

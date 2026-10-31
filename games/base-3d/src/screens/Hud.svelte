@@ -78,6 +78,15 @@ const flashing = $derived(now < flashUntil)
       {/if}
     </div>
 
+    {#if hudInPlay.openMap !== undefined}
+      <button
+        type="button"
+        class="af-control af-control--ghost b3-hud__map"
+        data-testid="hud-map"
+        onclick={() => hudInPlay.openMap?.()}>{liveCopy.current.hud.map}</button
+      >
+    {/if}
+
     {#if state.boss !== undefined}
       {@const name = liveCopy.current.bossNames[state.boss.id] ?? state.boss.id}
       <div class="b3-hud__boss" data-testid="hud-boss">
@@ -146,6 +155,15 @@ const flashing = $derived(now < flashUntil)
   }
   .b3-hud__items {
     justify-self: start;
+    min-block-size: 44px;
+    min-inline-size: 44px;
+    pointer-events: auto;
+  }
+  /* At the top inline-end, under the frame's corner Pause: the play screen has no seam for a game's corner controls. */
+  .b3-hud__map {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-end: 0;
     min-block-size: 44px;
     min-inline-size: 44px;
     pointer-events: auto;
