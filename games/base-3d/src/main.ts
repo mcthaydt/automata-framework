@@ -24,7 +24,7 @@ import { TICK_HZ } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
 import { base3dScreens } from './screens/screens.ts'
-import { base3dSim } from './state.ts'
+import { base3dSim } from './state/index.ts'
 import { compileArea } from './systems/index.ts'
 import {
   buildScene,
