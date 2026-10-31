@@ -25,7 +25,7 @@ import { FIRST_SLICE } from './content/first-slice.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
 import { base3dScreens } from './screens/screens.ts'
 import { base3dSim } from './state.ts'
-import { compileArea } from './systems.ts'
+import { compileArea } from './systems/index.ts'
 import {
   buildScene,
   FOG,

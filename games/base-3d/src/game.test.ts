@@ -6,7 +6,7 @@ import { Hero, HeroAction, Target } from './components.ts'
 import { ACTION_CLIP, ACTION_TICKS, HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { base3dPlugin, base3dSim, spawnArea } from './state.ts'
-import { type Area, type AreaSource, areaOf, compileArea, viewAt } from './systems.ts'
+import { type Area, type AreaSource, areaOf, compileArea, viewAt } from './systems/index.ts'
 
 /** The game's own sim spec, on the first slice, as `main.ts` makes it. */
 const BASE3D_SIM = base3dSim(compileArea(FIRST_SLICE))

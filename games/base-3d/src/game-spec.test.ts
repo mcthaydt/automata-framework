@@ -2,7 +2,7 @@ import { cameraHeadingPlugin } from '@mcthaydt/automata-render-pixi3d/sim'
 import { describe, expect, it, vi } from 'vitest'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { base3dPlugin, base3dSim } from './state.ts'
-import { compileArea } from './systems.ts'
+import { compileArea } from './systems/index.ts'
 
 // `startGame` spied on, so importing the page entry shows whether it starts the game (GL spec §4.6).
 const started = vi.hoisted(() => ({ calls: 0 }))

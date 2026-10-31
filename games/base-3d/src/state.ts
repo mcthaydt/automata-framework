@@ -15,7 +15,7 @@ import {
   heroView,
   lockSelect,
   viewAt,
-} from './systems.ts'
+} from './systems/index.ts'
 
 /**
  * Spawns Wick at the area's spawn, already in its room's view (the first view never latches) and facing away from
