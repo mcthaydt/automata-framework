@@ -18,6 +18,7 @@ export type Rule =
   | 'locale'
   | 'import'
   | 'koota-soa'
+  | 'platform-import'
   | 'parse-error'
 
 export interface Finding {

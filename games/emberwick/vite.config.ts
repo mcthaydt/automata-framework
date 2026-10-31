@@ -1,18 +1,17 @@
-import { checkManifest, rukenToml } from '@mcthaydt/automata-ship'
-import { compileHeaders } from '@ruken/manifest'
+import { rukenHeaders } from '@mcthaydt/automata-ship'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { Effect } from 'effect'
 import { defaultClientConditions, defineConfig } from 'vite'
 import config from './ship.config.ts'
 
-// `vite preview` serves the build with the headers Ruken would serve it with (compileHeaders on this game's
+// `vite preview` serves the build with the headers Ruken would serve it with (`rukenHeaders` on this game's
 // manifest: Ruken's CSP with no eval), so the browser journeys catch a build that breaks under Ruken. The page
 // that may frame it is the e2e host page (AF_E2E_SERVER_PORT, set by playwright.config.ts), otherwise Ruken's
 // local web app (http://localhost:5173, Ruken's dev port).
 function previewHeaders(): Record<string, string> {
   const hostPort = process.env.AF_E2E_SERVER_PORT
   const hostOrigins = [hostPort === undefined ? 'http://localhost:5173' : `http://127.0.0.1:${hostPort}`]
-  return compileHeaders(Effect.runSync(checkManifest(rukenToml(config))), { hostOrigins })
+  return Effect.runSync(rukenHeaders(config, { hostOrigins }))
 }
 
 export default defineConfig({

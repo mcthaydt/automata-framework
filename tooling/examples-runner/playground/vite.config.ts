@@ -13,7 +13,7 @@ const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: packageRoot, en
 export default defineConfig({
   root: packageRoot,
   plugins: [svelte()],
-  // The frame runs examples over Ruken's in-memory fake host (harness.ts): the Ruken adapter (DIST spec §5.3).
+  // The frame runs examples over Ruken's in-memory fake host (ruken/harness.ts): the Ruken adapter (DIST spec §5.3).
   resolve: { conditions: ['automata-ruken', ...defaultClientConditions] },
   define: { __AF_FRAMEWORK_COMMIT__: JSON.stringify(commit) },
   logLevel: 'warn',

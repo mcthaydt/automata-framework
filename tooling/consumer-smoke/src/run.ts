@@ -9,7 +9,6 @@ import { cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, wri
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { compileHeaders, parseManifest } from '@ruken/manifest'
 import { findRukenSdkMarkers } from '../../../packages/host/src/sdk-markers.ts'
 import { resolveSourceCommit } from '../../core-packs/src/args.ts'
 import { packWorkspace } from '../../core-packs/src/pack.ts'
@@ -23,6 +22,7 @@ import {
   type ToolVersions,
 } from './project.ts'
 import { readmeCommands, readWorkspace, unresolvedCommands } from './readme.ts'
+import { rukenHeaders } from './ruken/ruken-headers.ts'
 import { serveStatic } from './serve.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
@@ -154,13 +154,6 @@ const bundleCode = (dist: string): string =>
     .filter((file) => file.endsWith('.js'))
     .map((file) => readFileSync(file, 'utf8'))
     .join('\n')
-
-/** The headers Ruken serves the game with in prod, from the game's own `ruken.toml` (Ruken's CSP has no eval). */
-function rukenHeaders(manifestFile: string): Record<string, string> {
-  const parsed = parseManifest(readFileSync(manifestFile, 'utf8'))
-  if (!parsed.ok) throw new Error(`ruken.toml: ${parsed.errors.map((error) => error.message).join('; ')}`)
-  return compileHeaders(parsed.manifest, 'prod')
-}
 
 function steps(project: string): Step[] {
   const bin = (name: string) => join(project, 'node_modules/.bin', name)

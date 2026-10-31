@@ -6,9 +6,9 @@ import { createSim, type Sim } from '@mcthaydt/automata-sim'
 import { createReplayStepper, type ReplayStepper, unpackReplay } from '@mcthaydt/automata-sim/replay'
 import { streamCompression } from '@mcthaydt/automata-testing/sim'
 import { createFakeHost } from '@ruken/sdk-host/testing'
-import type { HostSettings } from '../header.ts'
+import type { HostSettings } from '../../header.ts'
+import { startAtPlay } from '../start-at-play.ts'
 import { fakeHostOptions } from './fake-host-options.ts'
-import { startAtPlay } from './start-at-play.ts'
 
 // The fake host's clock is the frame's own: it times host replies, never the sim (the sim has no clock).
 const frameClock = {

@@ -1,7 +1,7 @@
 // The e2e host page: Ruken's own fake host (`@ruken/sdk-host/testing`, real-iframe mode) around base-2d,
 // which is served on another origin. Test-only; never part of a build that ships.
 import { createFakeHost } from '@ruken/sdk-host/testing'
-import { GAME_ID } from '../../src/boot.ts'
+import { GAME_ID } from '../../src/ruken/boot.ts'
 
 const gameOrigin = import.meta.env.VITE_GAME_ORIGIN
 const gamePath = import.meta.env.VITE_GAME_PATH

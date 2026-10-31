@@ -3,7 +3,7 @@ import { checkManifest, rukenToml } from '@mcthaydt/automata-ship'
 import { compileHeaders } from '@ruken/manifest'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { EXAMPLES_SHIP_CONFIG } from '../examples-ship-config.ts'
+import { EXAMPLES_SHIP_CONFIG } from '../../examples-ship-config.ts'
 import { framePolicy } from './frame-policy.ts'
 
 const IMPORT_MAP = '{"imports":{"zod":"/playground/runtime/zod.js"}}'

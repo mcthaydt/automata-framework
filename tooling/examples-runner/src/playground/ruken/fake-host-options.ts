@@ -1,5 +1,5 @@
 import type { createFakeHost } from '@ruken/sdk-host/testing'
-import type { HostSettings } from '../header.ts'
+import type { HostSettings } from '../../header.ts'
 
 type FakeHostCreateOptions = Parameters<typeof createFakeHost>[0]
 type Capability = NonNullable<FakeHostCreateOptions['grant']>[number]

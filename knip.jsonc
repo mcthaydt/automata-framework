@@ -27,8 +27,8 @@
     "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
     "games/emberwick": { "ignoreDependencies": ["@mcthaydt/automata-cli"] },
-    // s8/measure.ts builds s8/no-effect.html, whose script is this file.
-    "games/placeholder": { "entry": ["s8/no-effect.ts"] },
+    // ruken/s8/measure.ts builds ruken/s8/no-effect.html, whose script is this file.
+    "games/placeholder": { "entry": ["ruken/s8/no-effect.ts"] },
     // The smoke specs run from the root playwright.config.ts. This workspace loads that config for knip, so the
     // config's patterns count every workspace's e2e files as entries; a workspace's own `test:e2e` script used
     // to do it (`--config=../../../playwright.config.ts`), and the last one went with the demos (EX.4).

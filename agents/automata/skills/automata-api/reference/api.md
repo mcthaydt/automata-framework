@@ -8816,6 +8816,24 @@ no copy, and the workspace's `@ruken/cli` dev dependency is used instead (`dist/
 function rukenCliPath(moduleUrl?: string, exists?: (path: string) => boolean): string;
 ```
 
+#### `rukenHeaders` (function)
+
+The headers Ruken serves a game's build with (Ruken's CSP, which allows no eval), from the game's config, for a
+game's `vite preview` or a dev host (DIST spec §5.1: the game imports no `@ruken/*` itself). Fails `ManifestInvalid`
+when Ruken refuses the config.
+
+```ts
+function rukenHeaders(config: ShipConfig, target: RukenHeaderTarget): Effect.Effect<Record<string, string>, ManifestInvalid>;
+```
+
+#### `RukenHeaderTarget` (type)
+
+Where the headers are for: Ruken's production site, or a page on the given origins that frames the game.
+
+```ts
+type RukenHeaderTarget = Parameters<typeof compileHeaders>[1];
+```
+
 #### `rukenToml` (function)
 
 The text of `ruken.toml` (Ruken manifest schema 1) for a ship config. The same config always gives the same

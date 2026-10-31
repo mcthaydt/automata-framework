@@ -581,6 +581,18 @@ class RootAbsoluteReference extends RootAbsoluteReferenceBase {
 function rukenCliPath(moduleUrl?: string, exists?: (path: string) => boolean): string;
 ```
 
+### `rukenHeaders` (function)
+
+```ts
+function rukenHeaders(config: ShipConfig, target: RukenHeaderTarget): Effect.Effect<Record<string, string>, ManifestInvalid>;
+```
+
+### `RukenHeaderTarget` (type)
+
+```ts
+type RukenHeaderTarget = Parameters<typeof compileHeaders>[1];
+```
+
 ### `rukenToml` (function)
 
 ```ts

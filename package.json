@@ -19,7 +19,7 @@
     "test": "turbo run test",
     "test:unit": "VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}} turbo run test:unit -- --testTimeout=90000",
     "bench": "pnpm --recursive --workspace-concurrency=1 --if-present bench",
-    "boundaries": "automata-check-boundaries packages/sim/src packages/render-pixi3d/src/sim games/emberwick/src/sim tooling/frame-budget/stress/sim agents/automata/skills/automata-feature/example/src/sim --game games/base-3d/src && automata-check-boundaries --inline examples",
+    "boundaries": "automata-check-boundaries packages/sim/src packages/render-pixi3d/src/sim games/emberwick/src/sim tooling/frame-budget/stress/sim agents/automata/skills/automata-feature/example/src/sim --game games/base-3d/src && automata-check-boundaries --inline examples && automata-check-boundaries --platform-imports packages games examples tooling",
     "style": "node tooling/check-style/src/cli.ts packages/*/src --game games/*/src",
     "knip": "knip --no-progress",
     "check": "pnpm lint && pnpm typecheck && pnpm boundaries && pnpm style && pnpm knip && pnpm test:unit",

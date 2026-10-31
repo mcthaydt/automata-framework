@@ -1,4 +1,4 @@
-// The S8 budgets (docs/spikes/s8-effect.md) as a check. `node s8/measure.ts --check` measures and fails on any
+// The S8 budgets (docs/spikes/s8-effect.md) as a check. `node ruken/s8/measure.ts --check` measures and fails on any
 // breach; `--sizes-only` skips the browser (E1, E3), which is what every CI run does. E5, no CSP violation,
 // fails the boot measurement itself.
 

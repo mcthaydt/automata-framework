@@ -671,6 +671,8 @@
 - `readEnvValues(gameDir)`: The variables of every top-level `.env*` file in the game folder; none when the folder does not exist.
 - `RootAbsoluteReference` (class): The build names its own files from the origin's root, which 404s under `/b/<buildId>/`.
 - `rukenCliPath(moduleUrl?, exists?)`: The `ruken` bin of the vendored `@ruken/cli` package.
+- `rukenHeaders(config, target)`: The headers Ruken serves a game's build with (Ruken's CSP, which allows no eval), from the game's config, for a game's `vite preview` or a dev host (DIST spec §5.1: the game imports no `@ruken/*` itself).
+- `RukenHeaderTarget` (type): Where the headers are for: Ruken's production site, or a page on the given origins that frames the game.
 - `rukenToml(config)`: The text of `ruken.toml` (Ruken manifest schema 1) for a ship config.
 - `scanTextForSecrets(file, text, envValues)`: Every secret in one file's text.
 - `SecretFound` (interface): A secret the bundle scan found in a built file, located without repeating the secret.

@@ -62,4 +62,5 @@ export { inputsProblems, type ShipInputBindings } from './targets/ruken/check-in
 export { checkManifest } from './targets/ruken/check-manifest.ts'
 export { type DeployDevInput, deployDev } from './targets/ruken/deploy-dev.ts'
 export { type PublishInput, publishToRuken, rukenCliPath } from './targets/ruken/publish-to-ruken.ts'
+export { type RukenHeaderTarget, rukenHeaders } from './targets/ruken/ruken-headers.ts'
 export { rukenToml } from './targets/ruken/ruken-toml.ts'

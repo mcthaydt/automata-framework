@@ -192,9 +192,6 @@ importers:
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
@@ -271,9 +268,6 @@ importers:
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz

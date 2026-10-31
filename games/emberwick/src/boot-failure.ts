@@ -1,5 +1,5 @@
 import { Cause, Data, Option } from 'effect'
-import { BaseBootFailed } from './boot.ts'
+import { BaseBootFailed } from './ruken/boot.ts'
 
 // What the page says when the game cannot start (main.ts). Only a failed Ruken handshake or ready is a
 // connection problem; everything else (no canvas context, a sim that can't be made, a bug) means this

@@ -66,9 +66,40 @@ consumer smoke from packs (build configs change); `build:examples`, `build:demos
 
 ## DIST.3b
 
-Planned in this file once DIST.3a is in review: the `platform-imports` check (`tooling/check-boundaries`, TS AST, so
-string fixtures do not count), the games' and tools' moves, `build:<target>` scripts with Vite `--mode`, and
-host-neutral copy.
+### Interfaces
+
+- **Produces:** `automata-check-boundaries --platform-imports <root>...` (rule `platform-import`); `pnpm boundaries`
+  runs it over `packages games examples tooling`. `@mcthaydt/automata-ship` `rukenHeaders(config, target)` and
+  `RukenHeaderTarget`.
+
+### Files
+
+| Where | Change |
+|---|---|
+| `tooling/check-boundaries` | Create `src/platform-imports.ts` (+ test); `cli.ts` `--platform-imports`; `check.ts` adds the rule name |
+| `packages/ship` | Create `src/targets/ruken/ruken-headers.ts` (+ test), exported from the root |
+| `games/emberwick`, `games/placeholder`, `games/base-3d` | `vite.config.ts` uses `rukenHeaders` (no `@ruken/manifest`); `e2e/host/` → `e2e/ruken/`; `src/boot.ts`(+test) → `src/ruken/`; the placeholder's `s8/` → `ruken/s8/` |
+| `tooling/examples-runner` | `host/preview-headers.ts` uses `rukenHeaders`; `host/host.ts` → `host/ruken/host.ts`; the playground's `harness.ts`, `fake-host-options.ts`, `frame-policy.ts` (+ tests) → `src/playground/ruken/` |
+| `tooling/consumer-smoke` | the `ruken.toml` header reader → `src/ruken/ruken-headers.ts` |
+| root | `package.json` `boundaries`; `knip.jsonc` (the placeholder's moved entry) |
+
+### Steps
+
+1. [x] **The rule.** `platform-imports.test.ts`: each import form outside its folder is found with the import and the
+   replacement named; each platform is allowed only under its own folder; strings, comments and templates are not
+   imports; Svelte scripts are read at their lines; tests and Svelte files are collected, `node_modules`, `dist` and
+   declarations are not; the CLI exits 1 with each finding and 0 on a clean tree. Red: no module. Green.
+2. [x] **The repo, red:** the rule over the four trees (and `agents/`) found 18 imports (games 11, tooling 7).
+3. [x] **`rukenHeaders`.** Red: no module; green (3 cases, equal to `compileHeaders` on the checked manifest).
+4. [x] **Moves and the games' Vite configs** (the Files table); every moved suite passes.
+5. [x] **The repo, green:** 0 findings; `pnpm boundaries` runs the rule.
+6. [x] Changeset (patch: `check-boundaries`, `ship`); API outputs.
+7. [ ] Gates; one push; draft PR stacked on #326.
+
+**Out of 3b, by decision (veto items):** the games' `build:<target>` scripts with `--mode` go to DIST.6 with
+`create-game` (every game today ships to Ruken only; dropping plain `build` would change turbo's and CI's build of
+the games), so the three games keep an explicit `automata-ruken` condition. Running content's Ruken fields check only
+for Ruken builds needs the target passed to the content compiler; proposed as a follow-up row.
 
 ## Execution log
 
@@ -106,3 +137,19 @@ host-neutral copy.
   `check-changesets` 31, 0 problems; consumer smoke from packs passed; `build:examples`, `build:demos` pass; E2E
   placeholder, base-2d and demos 14/14. Parity omitted: no sim, renderer or golden change; `ui`'s change is type
   imports only.
+- DIST.3b steps 1–6: the rule red (no module), then green with its tests (check-boundaries 109 tests); the repo red with
+  18 findings (games 11, tooling 7; the release tooling's string fixtures correctly not counted), then 0 after the
+  moves; `rukenHeaders` red then green (its first "no eval" assertion was wrong: Ruken's CSP has
+  `'wasm-unsafe-eval'`, so it now matches the quoted `'unsafe-eval'` keyword). `automata-verify`'s rule table
+  documents `platform-import` (an agent-skills test requires every rule there). knip: the placeholder's moved entry,
+  and `@ruken/manifest` no longer used by `games/emberwick` and `games/base-3d` (3D lane's `package.json`, one line).
+- DIST.3b gates: `pnpm format`; `TURBO_FORCE=true pnpm check`: lint, typecheck (37), boundaries (60, 55 and 2,563
+  files, 0 findings), style, knip pass; `test:unit` failed once on the undocumented rule (fixed), then 35/35. `pnpm
+  build`; `api-report --update` (ship: `rukenHeaders`, `RukenHeaderTarget`); `api-index`, `pnpm cheatsheet`,
+  `agent-skills --write`. `check-changesets` 32, 0 problems. Consumer smoke from packs passed. `build:examples`,
+  `build:demos` pass; the placeholder's S8 budget (`budget:size`) met from `ruken/s8/`. E2E (Chromium) placeholder,
+  base-2d, demos, examples and playground-frame: first run 95 passed, 1 skipped, **1 failed**:
+  `core-saves.e2e.ts` "another device changes the slot" ran out of its 30 s test budget (31.6 s) at a key press after
+  the remote write and Load newer had succeeded through the moved host; first-attempt trace kept in the session
+  scratchpad. Re-run alone: 3/3 passed, that test in 19.9 s. Not this change's: the run was two workers on four
+  CPUs, and the test sits near its budget; noted for the integration owner rather than changed here.

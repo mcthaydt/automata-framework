@@ -1,19 +1,20 @@
 import { fileURLToPath } from 'node:url'
 import { automataContent } from '@mcthaydt/automata-content/vite'
 import { figuresExtension } from '@mcthaydt/automata-figures'
-import { checkManifest, rukenToml } from '@mcthaydt/automata-ship'
-import { compileHeaders } from '@ruken/manifest'
+import { rukenHeaders } from '@mcthaydt/automata-ship'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { Effect } from 'effect'
 import { defaultClientConditions, defineConfig } from 'vite'
 import config from './ship.config.ts'
 
-// `vite preview` serves the build with the headers Ruken would serve it with (compileHeaders on this game's
+// `vite preview` serves the build with the headers Ruken would serve it with (`rukenHeaders` on this game's
 // manifest: Ruken's CSP with no eval). The page that may frame it is Ruken's local web app (http://localhost:5173).
 function previewHeaders(): Record<string, string> {
-  return compileHeaders(Effect.runSync(checkManifest(rukenToml(config))), {
-    hostOrigins: ['http://localhost:5173'],
-  })
+  return Effect.runSync(
+    rukenHeaders(config, {
+      hostOrigins: ['http://localhost:5173'],
+    }),
+  )
 }
 
 /**

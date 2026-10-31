@@ -5,11 +5,11 @@
 // Pages are served with the headers Ruken would send for this game (`compileHeaders` on the placeholder's
 // manifest, so Ruken's CSP with no `eval`); a CSP violation fails the run.
 //
-// Run from games/placeholder: `node s8/measure.ts` (needs Playwright's Chromium; set
+// Run from games/placeholder: `node ruken/s8/measure.ts` (needs Playwright's Chromium; set
 // PLAYWRIGHT_BROWSERS_PATH if it is not in the default place). Prints a Markdown table for
 // docs/spikes/s8-effect.md. Its numbers are only as good as the machine it ran on, which the doc records.
 //
-//   --check        also fail (exit 1) when a budget in s8/budgets.ts is broken (CI's nightly run)
+//   --check        also fail (exit 1) when a budget in ruken/s8/budgets.ts is broken (CI's nightly run)
 //   --sizes-only   build and weigh only, no browser (E1 and E3; CI's every-push run, with --check)
 import { createReadStream, readdirSync, readFileSync, statSync } from 'node:fs'
 import { createServer, type Server } from 'node:http'
@@ -20,14 +20,14 @@ import { compileHeaders } from '@ruken/manifest'
 import { Effect } from 'effect'
 import { chromium, devices } from 'playwright'
 import { build } from 'vite'
-import config from '../ship.config.ts'
+import config from '../../ship.config.ts'
 import { type Measurement, overBudget } from './budgets.ts'
 
 const check = process.argv.includes('--check')
 const sizesOnly = process.argv.includes('--sizes-only')
 
 const here = import.meta.dirname
-const placeholder = resolve(here, '..')
+const placeholder = resolve(here, '..', '..')
 const outRoot = resolve(placeholder, 'dist-s8')
 const RUNS = 5
 const CPU_THROTTLE = 4

@@ -30,7 +30,6 @@
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
