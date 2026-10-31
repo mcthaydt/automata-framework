@@ -131,6 +131,7 @@ type ScreenId =
   | 'paused-board'
   | 'paused-saves'
   | 'paused-elsewhere'
+  | 'paused-reconnect'
 
 function mountScreen(id: ScreenId, locale: Locale = 'en') {
   const copy = copyIn(locale)
@@ -147,6 +148,8 @@ function mountScreen(id: ScreenId, locale: Locale = 'en') {
     copy,
   }
   if (id === 'paused') return mountFixture(PausedScreen, pausedProps)
+  // Play paused because the controller was unplugged (M4-D9): the line that says so must not push the actions out of reach (FR.5).
+  if (id === 'paused-reconnect') return mountFixture(PausedScreen, { ...pausedProps, reconnect: true })
   if (id === 'paused-saves' || id === 'paused-elsewhere')
     return mountFixture(PausedScreen, {
       ...pausedProps,
@@ -172,6 +175,7 @@ const ESSENTIALS = {
   'title-saves': ['save-slots-load', 'save-slots-delete'],
   play: ['pause', 'touch-0', 'touch-1', 'touch-2'],
   paused: ['resume', 'pause-mute', 'quit', 'settings'],
+  'paused-reconnect': ['resume', 'pause-mute', 'quit', 'settings'],
   'paused-board': ['resume', 'pause-mute', 'quit', 'settings'],
   'paused-saves': ['resume', 'pause-mute', 'quit', 'settings'],
   'paused-elsewhere': ['load-newer', 'keep-playing'],
@@ -197,6 +201,7 @@ describe.each([
   'title-saves',
   'play',
   'paused',
+  'paused-reconnect',
   'paused-board',
   'paused-saves',
   'paused-elsewhere',
