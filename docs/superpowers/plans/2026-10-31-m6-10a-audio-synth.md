@@ -50,9 +50,9 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 4. Driver: events at the drawn tick, patterns, silent entries, beds, `coverage`. Fails: no module.
    - [x] 4
 5. Music: slots, `resolveSlot`, rules, the director. Fails: no module.
-   - [ ] 5
+   - [x] 5
 6. The extension; gates, provenance row, ready line.
-   - [ ] 6
+   - [x] 6
 
 ## Gates
 
@@ -65,3 +65,11 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
 ## Execution log
 
 - 2026-10-31: plan written from the M6 spec, Plus `claude/plus-M6.1a-feel` and the adventure source at `92e6704`.
+
+## Execution log
+
+- Stacked on M6.1a (#31): feel's `Beats`, `hash` and `matches` are imported from `@mcthaydt/automata-feel` (feel's index now exports `Beats` and `hash`).
+- Buses are core's (AU-D2). ASSET.2 is not adopted (AU-D1): a cue may name a core `sound` alias.
+- Tests run on a recording fake `BaseAudioContext`, not real audio. Some switches were written in the same edit as their tests; mutation checks showed the tests bite.
+- Step 5: the director is generic over a flat state. Silence and `relief` slots end a linger at once (the source's "in play only" and "hidden" rules become data: a `silence` row and a `relief` slot). No `MusicPort`: core's `MusicSlot` owns playback and crossfade (AU-D4), so the game feeds `director.step(state, dt)` to it.
+- Gates: package tests (6 files, 53), tsc, biome, Plus `pnpm check`. No golden, no changeset (private), no parity project (no sim entry).

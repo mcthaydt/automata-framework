@@ -29,6 +29,7 @@ export {
   createAudioSynth,
   rowFor,
 } from './audio-synth'
+export { audioSynthExtension } from './audio-synth.extension'
 export {
   createMixer,
   DISTANCE,
@@ -42,4 +43,15 @@ export {
   type Spatial,
   spatial,
 } from './mixer'
+export {
+  type Candidate,
+  createMusicDirector,
+  holds,
+  type MusicDirector,
+  type MusicDirectorOptions,
+  type MusicState,
+  resolveSlot,
+  slotFor,
+  slotsFor,
+} from './music'
 export { cueLength, noiseBuffer, playCue, playVoice, startBed } from './synth'
