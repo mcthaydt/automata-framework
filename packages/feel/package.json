@@ -1,0 +1,39 @@
+{
+  "name": "@mcthaydt/automata-feel",
+  "version": "0.0.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-plus.git",
+    "directory": "packages/feel"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "effect": "3.22.2",
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@mcthaydt/automata-content": "0.0.3",
+    "@mcthaydt/automata-runtime": "0.0.3",
+    "@mcthaydt/automata-sim": "0.0.3"
+  },
+  "devDependencies": {
+    "@mcthaydt/automata-content": "0.0.3",
+    "@mcthaydt/automata-runtime": "0.0.3",
+    "@mcthaydt/automata-sim": "0.0.3",
+    "@mcthaydt/evidence": "0.0.0",
+    "@types/node": "24.19.1",
+    "smol-toml": "1.9.0",
+    "vitest": "5.0.3"
+  }
+}

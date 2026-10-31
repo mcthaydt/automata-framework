@@ -1,0 +1,20 @@
+// @mcthaydt/automata-feel: game feel as data (M6 spec §4.1): hits that shake, hold, flash, squash and pop a word, from `feel.toml`,
+// switchable by the player. Presentation only.
+export { feelContent } from './feel.content'
+export { feelExtension } from './feel.extension'
+export {
+  type AudioRow,
+  type CameraRow,
+  DEFAULT_LIMITS,
+  type FeelContent,
+  type FeelEntry,
+  feelSchema,
+  type HapticRow,
+  type Limits,
+  limitWarnings,
+  type PoseRow,
+  resolveLimits,
+  type SpringTuning,
+  type VisualRow,
+  type WordRow,
+} from './feel.schema'
