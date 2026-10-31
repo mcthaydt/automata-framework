@@ -58,12 +58,15 @@ describe('the bins on a signal', () => {
   ] as const)('release the target lock on %s and exit %i', async (signal, code) => {
     const dir = temp()
     const child = spawn(process.execPath, [holder, dir], { stdio: ['ignore', 'pipe', 'pipe'] })
-    const exited = new Promise<number | null>((done) => child.on('exit', (status) => done(status)))
+    // The signal too (issue #14): a status of null with the signal set means no handler was listening.
+    const exited = new Promise<{ status: number | null; signal: NodeJS.Signals | null }>((done) =>
+      child.on('exit', (status, signal) => done({ status, signal })),
+    )
     for (let tries = 0; !existsSync(join(dir, 'held')) && tries < 600; tries++)
       await new Promise((done) => setTimeout(done, 50))
     expect(existsSync(join(dir, TARGET_LOCK))).toBe(true)
     child.kill(signal)
-    expect(await exited).toBe(code)
+    expect(await exited).toEqual({ status: code, signal: null })
     expect(existsSync(join(dir, TARGET_LOCK))).toBe(false)
   })
 })

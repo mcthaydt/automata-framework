@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { startTestServer, TEST_LIMITS, type TestServer, waitFor } from '../test-support/colyseus-harness'
 import { TEST_NET } from '../test-support/engine-harness'
 import { fixtureServer } from '../test-support/fixture-game'
-import { startServer } from './start-server'
+import { createServerRuntime, startServer } from './start-server'
 
 // The server process (M7 spec §4.3 startServer, FloorFifty colyseus-server.test.ts): Effect and Scope around
 // Colyseus, on ephemeral ports only.
@@ -60,6 +60,48 @@ describe('startServer', () => {
     await Effect.runPromise(Fiber.interrupt(fiber))
     await Effect.runPromise(Scope.close(scope, Exit.void))
     expect(signals.listenerCount('SIGTERM')).toBe(0)
+  })
+})
+
+describe('the address the server listens on', () => {
+  it('refuses an empty host, before it listens', async () => {
+    const exit = await Effect.runPromiseExit(
+      Effect.scoped(startServer(fixtureServer(), { ...config, host: '' })),
+    )
+    expect(Exit.isFailure(exit)).toBe(true)
+    if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toMatch(/host must be an address, or unset/)
+  })
+
+  // Issue #14: unset, Node listens on every address, and on macOS a wildcard listener can share its port number with
+  // another process's 127.0.0.1 listener, which then takes the IPv4 connections. The harness listens on 127.0.0.1, so
+  // its port is the system's choice among ports free on 127.0.0.1 and no other process can answer the test's requests.
+  it('listens on the host it is given, and the test harness gives 127.0.0.1', async () => {
+    server = await startTestServer()
+    expect(server.runtime.host).toBe('127.0.0.1')
+    const answer = await server.matchmake('create', server.joinOptions('Ada'))
+    expect(answer.status).toBeLessThan(500)
+  })
+
+  // Issue #14: the failed create read only "MatchMakeError: [object Object]". The harness names the call, the code and
+  // the message, serialized when it is not a string, so the next failure says what answered.
+  it('reports a refused matchmake through the harness with its call, code and message', async () => {
+    server = await startTestServer({ config: { limits: { ...TEST_LIMITS, maxRooms: 1 } } })
+    await server.create('Ada')
+    await expect(server.create('Bea')).rejects.toThrow(
+      /^matchmake create failed: code 523, message "SERVER_BUSY[^"]*"$/,
+    )
+  })
+
+  it('listens on every address with no host, as before', async () => {
+    const scope = Effect.runSync(Scope.make())
+    try {
+      const runtime = await Effect.runPromise(
+        createServerRuntime(fixtureServer(), config).pipe(Scope.extend(scope)),
+      )
+      expect(['0.0.0.0', '::']).toContain(runtime.host)
+    } finally {
+      await Effect.runPromise(Scope.close(scope, Exit.void))
+    }
   })
 })
 

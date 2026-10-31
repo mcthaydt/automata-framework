@@ -174,6 +174,8 @@ export async function startTestServer(
   const runtime = await Effect.runPromise(
     createServerRuntime(options.def ?? fixtureServer(), {
       port: 0,
+      // Issue #14: never Node's wildcard, which on macOS can share its port with another process's loopback listener.
+      host: '127.0.0.1',
       limits: TEST_LIMITS,
       net: TEST_NET,
       seed: 11,
@@ -210,6 +212,18 @@ export async function startTestServer(
     await waitFor(() => client.of('seated').length > 0, 'the room never told the client its seat')
     return client
   }
+  // Issue #14: the SDK's error read "MatchMakeError: [object Object]" with a code of 401. This names the call, the
+  // code and the message, serialized when it is not a string, so a failure says what answered.
+  const matchmade = async <T>(call: string, request: Promise<T>): Promise<T> => {
+    try {
+      return await request
+    } catch (error) {
+      const { code, message } = error as { code?: unknown; message?: unknown }
+      throw new Error(`matchmake ${call} failed: code ${String(code)}, message ${JSON.stringify(message)}`, {
+        cause: error,
+      })
+    }
+  }
   const server: TestServer = {
     runtime,
     colyseus,
@@ -224,21 +238,30 @@ export async function startTestServer(
       })
     },
     async create(name) {
-      const sdkRoom = (await colyseus.sdk.create(ROOM_NAME, optionsFor(name))) as unknown as SdkRoom
+      const sdkRoom = (await matchmade(
+        'create',
+        colyseus.sdk.create(ROOM_NAME, optionsFor(name)),
+      )) as unknown as SdkRoom
       room(sdkRoom.roomId)
       return seated(wrap(sdkRoom))
     },
     async joinById(code, name) {
-      const sdkRoom = (await colyseus.sdk.joinById(code, optionsFor(name))) as unknown as SdkRoom
+      const sdkRoom = (await matchmade(
+        'joinById',
+        colyseus.sdk.joinById(code, optionsFor(name)),
+      )) as unknown as SdkRoom
       return seated(wrap(sdkRoom))
     },
     async quickMatch(name) {
-      const sdkRoom = (await colyseus.sdk.joinOrCreate(ROOM_NAME, optionsFor(name))) as unknown as SdkRoom
+      const sdkRoom = (await matchmade(
+        'joinOrCreate',
+        colyseus.sdk.joinOrCreate(ROOM_NAME, optionsFor(name)),
+      )) as unknown as SdkRoom
       room(sdkRoom.roomId)
       return seated(wrap(sdkRoom))
     },
     async reconnect(token) {
-      const sdkRoom = (await colyseus.sdk.reconnect(token)) as unknown as SdkRoom
+      const sdkRoom = (await matchmade('reconnect', colyseus.sdk.reconnect(token))) as unknown as SdkRoom
       return seated(wrap(sdkRoom))
     },
     room,

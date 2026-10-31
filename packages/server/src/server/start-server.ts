@@ -58,6 +58,8 @@ export class ServerStartError extends ServerStartErrorBase {}
 export interface ServerRuntime {
   /** The port the listener bound: the one asked for, or the operating system's choice for port 0. */
   readonly port: number
+  /** The address the listener bound: the configured host, or Node's wildcard (`::` or `0.0.0.0`) with none. */
+  readonly host: string
   readonly gameServer: Server
   readonly rooms: LiveRooms<AutomataRoom>
   readonly draining: boolean
@@ -127,6 +129,8 @@ function configProblem(config: ServerConfig): string | undefined {
   const bucket = limits.commandsPerSeat
   if (!(bucket.burst > 0) || !(bucket.perSecond >= 0)) return 'commandsPerSeat needs a burst above 0'
   if (!Number.isInteger(config.port) || config.port < 0) return 'port must be a whole number from 0'
+  if (config.host !== undefined && (typeof config.host !== 'string' || config.host.trim() === ''))
+    return 'host must be an address, or unset'
   return undefined
 }
 
@@ -215,13 +219,14 @@ export function createServerRuntime(
     }
     yield* Effect.acquireRelease(
       Effect.tryPromise({
-        try: () => gameServer.listen(config.port),
+        try: () => gameServer.listen(config.port, config.host),
         catch: (cause) => new ServerStartError({ reason: `could not listen on port ${config.port}`, cause }),
       }),
       () => Effect.promise(shutdown),
     )
     const address = http.address()
     const port = typeof address === 'object' && address !== null ? address.port : config.port
+    const host = typeof address === 'object' && address !== null ? address.address : (config.host ?? '')
 
     // Colyseus bound its listeners at `listen()`; the gates go in front of them (spec §5, §6).
     const refused = (code: string): void => log({ event: 'refused', code })
@@ -295,6 +300,7 @@ export function createServerRuntime(
 
     return {
       port,
+      host,
       gameServer,
       rooms,
       get draining() {
