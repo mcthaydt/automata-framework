@@ -5,7 +5,7 @@ import type { Grid } from '../../model/grid'
 import type { LayerDef, LayerInstance, Level, Project } from '../../model/project-types'
 import { tilesetTiles } from '../../model/tileset-grid'
 import { setLevelField } from '../../model/world/level-edits'
-import type { Diagnostic } from '../profile'
+import type { Diagnostic, TargetChoice } from '../profile'
 
 // The level-project profile's repairs (plan ED2D.7a decisions 1 to 3; 2D editor spec §7 `fix`, §9): the name a
 // finding carries turned into one returned project, which the app applies as one undo step. `remove` clears what
@@ -126,12 +126,6 @@ export function applyProjectFix(project: Project, diagnostic: Diagnostic): Proje
 const REF_PATH =
   /^levels\[([^\]]+)\](?:\.layers\[([^\]]+)\]\.items\[([^\]]+)\])?\.fields\.([A-Za-z][A-Za-z0-9_]*)(?:\[(\d+)\])?$/
 
-/** A target the field allows: `check-1 · checkpoint in level-1`, or a level's id. */
-export interface RefChoice {
-  readonly label: string
-  readonly value: RefValue
-}
-
 interface RefHolder {
   readonly level: string
   readonly layer: string | undefined
@@ -167,11 +161,11 @@ function refHolder(project: Project, diagnostic: Diagnostic): RefHolder {
   }
 }
 
-export function refChoices(project: Project, diagnostic: Diagnostic): readonly RefChoice[] {
+export function refChoices(project: Project, diagnostic: Diagnostic): readonly TargetChoice[] {
   const holder = refHolder(project, diagnostic)
   const allowed = holder.field.to ?? []
   const any = allowed.length === 0
-  const choices: RefChoice[] = []
+  const choices: TargetChoice[] = []
   const defs = any
     ? project.defs.entities.map((def) => def.id)
     : allowed.filter((entry) => entry !== '$level')

@@ -4,7 +4,7 @@ import type { Project } from '../../model/project-types'
 import type { ExportTarget, ParseError, Profile, Result, ViewDef } from '../profile'
 import { exportContent } from './content-export'
 import { checkProject } from './project-checks'
-import { applyProjectFix } from './project-fixes'
+import { applyProjectFix, chooseTarget, refChoices } from './project-fixes'
 import { summarizeProject } from './project-summary'
 import { blankTemplate } from './templates/blank'
 import { platformerTemplate } from './templates/platformer'
@@ -84,6 +84,8 @@ export const levelProject: Profile<Project> = {
   print: (_base, project) => printProject(project),
   check: checkProject,
   fix: (project, diagnostic) => applyProjectFix(project, diagnostic),
+  choices: (project, diagnostic) => refChoices(project, diagnostic),
+  choose: (project, diagnostic, choice) => chooseTarget(project, diagnostic, choice.value),
   summary: summarizeProject,
   // The first level is the one a template starts on, so a new project's card shows what its Level view opens on.
   preview: (project) => {

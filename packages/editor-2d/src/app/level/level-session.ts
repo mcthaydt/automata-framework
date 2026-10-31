@@ -9,6 +9,7 @@ import type { Camera } from '../../canvas/level-view'
 import type { IdSource } from '../../model/ids'
 import { createLevelEditor, type LevelEditor } from '../level-editor'
 import { projectHistory } from './edit-history'
+import type { LevelFocus } from './level-focus'
 
 // One Level view's state over an open document (plan ED2D.4c4a decision 2; 2D editor spec §5.9, §8; kit spec §4.5): the
 // ED2D.4b controller on the document's history, and the viewport that says where the level sits on the canvas. Plain
@@ -40,16 +41,24 @@ export interface LevelSessionOptions {
   readonly ids: IdSource
   /** Default: the project's first level. */
   readonly level?: string
+  /** Where Locate opens the view: its level wins over `level`, then its layer is chosen and its instance selected. */
+  readonly focus?: LevelFocus | undefined
 }
 
 /** Undefined for a document that is not a level project, or one with no level to show. */
 export function createLevelSession(options: LevelSessionOptions): LevelSession | undefined {
   const edits = projectHistory(options.history)
   const levels = edits?.state.levels ?? []
-  const first = levels.find((level) => level.id === options.level) ?? levels[0]
+  const wanted = options.focus?.level ?? options.level
+  const first = levels.find((level) => level.id === wanted) ?? levels[0]
   if (edits === undefined || first === undefined) return undefined
 
   const editor = createLevelEditor({ history: edits, ids: options.ids, level: first.id })
+  const focus = options.focus
+  if (focus?.level === first.id && focus.layer !== undefined) {
+    editor.setLayer(focus.layer)
+    if (focus.item !== undefined) editor.select([focus.item])
+  }
   const listeners = new Set<() => void>()
   let viewport: Viewport2D | undefined
 
