@@ -3,7 +3,7 @@
 - **Rows:** FR.1 to FR.4 in `docs/02-master-delivery-plan.md`; FR.5 is the coordinator's row for the lane's own core finding (added in its next
   docs batch). The Plus side of each: automata-plus#28 (TR-D3), #31 (FE-D1), #33 (DBG-D2), #38 (the reconnect finding).
 - **Branch:** `claude/core-requests-from-plus`, from main `02bf908a`; one wide PR, one commit per part, the branch pushed after each part.
-- **Status:** plan drafted; no part built. CI verified, deployed and Owner accepted: not yet.
+- **Status:** built and locally checked (FR.1 to FR.5). CI verified, deployed and Owner accepted: not yet.
 
 ## FR.1: the private sector format builds to `dist` (TR-D3)
 
@@ -74,4 +74,20 @@ browsers. Private packages (cli, sector-format) take no changeset. Pending: CI o
 
 ## Execution log
 
-(empty)
+- FR.1: `private-build.test.ts` failed first (the sector format declared no built exports; the private cli also has `publishConfig`, so the
+  test is for private libraries without a `bin`), `pack.test.ts` failed first (an extra with built exports needed no `dist`). With
+  `AF_CHECK_DIST=1` after `pnpm build`, both built entries load. `release test:dist` now runs the new file as well, so CI needs no workflow change.
+- FR.2: the fact is named `sim.step` and carries `result.tick` (`StepResult.tick`, the tick after the step). `step-once.test.ts` failed first.
+  Changeset is a patch, because `check-changesets` refuses anything else before 1.0 (the plan said minor).
+- FR.3: `automata build` did not exist, so this adds the minimal `[dir] [--debug]` command (`--target` stays M8.5) and the constant in the
+  content plugin's `config` hook. All tests failed first. A first, failing `bin.test.ts` run fell through to `create-game` and scaffolded a
+  game into `packages/cli/build/`, which `git add -A` committed; knip caught it, and 652ff4bd removes it. Lesson kept: stage by path.
+- FR.4: the scan failed first on exactly the three changelog lines, then passed after the reword. It covers changelogs, package READMEs,
+  the root README and the agent skills' own pages; it runs in `pnpm test:unit` (no workflow change). It does NOT cover the generated API
+  summaries: `docs/cheatsheet.md` (40 lines) and the agent skills' `reference/api.md` (60 lines) are built from exported doc comments, which
+  cite their origin in about 360 source files. Rewording those is a wider cleanup (CR-D3) and needs its own row; the generated files stay out
+  of the scan until then.
+- FR.5: the new `paused-reconnect` layout contract failed first at 780 x 270 in English and `xx-long`, then passed after the line moved under the
+  menu (401 layout tests in Chromium). ScrollList's "+N more" badge covering the last visible row is intended: `ScrollList.svelte` documents it as
+  "a label, never a target: it can sit over the last row's control, and a tap there must reach it" (`pointer-events: none`, sticky at the
+  bottom, over the faded edge), and `scroll-list.test.ts` pins it. No change.
