@@ -161,4 +161,16 @@ describe('the plan tools', () => {
     tools.dispose()
     expect(sectorIds()).toContain('sector-1')
   })
+
+  it('remembers the kind of the last tap or hover, for the nudge pad (ED3D.6g-b)', () => {
+    const { tools, at } = setup()
+    expect(tools.pointerKind).toBeUndefined()
+    tools.choose('polygon')
+    tools.hover(at(1, -3, 'pen'))
+    expect(tools.pointerKind).toBe('pen')
+    tools.tap(at(1, -3, 'touch'))
+    expect(tools.pointerKind).toBe('touch')
+    tools.hover(at(1, -3, 'mouse'))
+    expect(tools.pointerKind).toBe('mouse')
+  })
 })

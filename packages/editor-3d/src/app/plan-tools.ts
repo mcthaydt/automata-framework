@@ -4,7 +4,7 @@
 // finishes its open portal offers (the walls stay solid) and drops an outline that was never closed, so changing tools
 // never loses a sector that was drawn, and never leaves half of one. Polygon and Rectangle are one Sector tool in two
 // shapes, so changing the shape mid-outline is refused in the tool's own sentence.
-import type { Size } from '@mcthaydt/automata-editor-kit/core'
+import type { PointerKind, Size } from '@mcthaydt/automata-editor-kit/core'
 import type { LevelEditor } from '../model/level-editor'
 import { createMergeTool, type MergeTool, type MergeToolView } from './merge-tool-controller'
 import { createPlanController, type PlanController, type PlanPointer, type PlanView } from './plan-controller'
@@ -37,6 +37,8 @@ export interface PlanTools {
   readonly state: PlanToolState
   /** The Select controller: always alive, for pan, zoom and fit. */
   readonly select: PlanController
+  /** The kind of the last tap or hover: the nudge pad shows for touch and Pencil only. */
+  readonly pointerKind: PointerKind | undefined
   /** The Sector tool while Polygon or Rectangle is chosen. */
   readonly sector: SectorTool | undefined
   /** Calls `run` after the tool or its view changes. Returns the unsubscribe. */
@@ -71,6 +73,7 @@ export function createPlanTools<D>(editor: LevelEditor<D>, canvas: Size): PlanTo
   let stopMade: (() => void) | undefined
   /** The last point of a panning drag, while a drawing tool pans. */
   let panFrom: PlanPointer | undefined
+  let pointerKind: PointerKind | undefined
 
   const notify = (): void => {
     for (const run of [...listeners]) run()
@@ -126,9 +129,18 @@ export function createPlanTools<D>(editor: LevelEditor<D>, canvas: Size): PlanTo
       }
       notify()
     },
-    hover: (at) => active().hover(at),
+    get pointerKind() {
+      return pointerKind
+    },
+    hover(at) {
+      pointerKind = at.kind
+      active().hover(at)
+    },
     leave: () => active().leave(),
-    tap: (at) => active().tap(at),
+    tap(at) {
+      pointerKind = at.kind
+      active().tap(at)
+    },
     dragStart(press, at) {
       if (made === undefined) return select.dragStart(press, at)
       panFrom = press.kind === 'pen' ? undefined : press

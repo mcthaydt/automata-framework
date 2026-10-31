@@ -13,7 +13,8 @@ import { planScene } from '../view/plan/plan-scene'
 import { planViewport, toWorld } from '../view/plan/plan-viewport'
 import { createGeometryCache } from './geometry-cache'
 
-export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size) => PlanPaint {
+/** The plan for a canvas of `size`, through the view's camera or, for the loupe, a `camera` of its own. */
+export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size, camera?: Camera) => PlanPaint {
   const geometry = createGeometryCache(editor)
   let things: { readonly level: D; readonly kit: EntityKit; readonly links: readonly ThingLink[] } | undefined
 
@@ -23,9 +24,9 @@ export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size) => Pl
     return things
   }
 
-  return (size) => {
+  return (size, camera = editor.view.state.camera) => {
     const { layers, select, level } = geometry()
-    const { hidden, camera, grid } = editor.view.state
+    const { hidden, grid } = editor.view.state
     const { kit, links } = thingsOf(level)
     return planPaint({
       scene: planScene(layers, select, { hidden }),
@@ -41,6 +42,16 @@ export function createPlanPicture<D>(editor: LevelEditor<D>): (size: Size) => Pl
 }
 
 type Camera = ViewState['camera']
+
+/** How much more the loupe magnifies than the plan. */
+const LOUPE_ZOOM = 4
+
+/** The loupe's camera: centred on `at`, at four times the plan's zoom. */
+export const loupeCamera = (camera: Camera, at: Point): Camera => ({
+  x: at.x,
+  z: at.z,
+  zoom: camera.zoom * LOUPE_ZOOM,
+})
 
 /** The camera's scale in screen pixels to a metre, held to the plan's limits. */
 export const planZoom = (camera: Camera): number => planViewport(camera, { w: 1, h: 1 }).zoom
