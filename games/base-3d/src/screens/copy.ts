@@ -23,8 +23,6 @@ export interface Base3dCopy {
     readonly notFound: string
     /** Under the sword and the shield: owned, on buttons of their own, so never put on the Item button. */
     readonly ownButton: string
-    readonly heartPieces: string
-    readonly piecesOf: (count: number) => string
     readonly embers: string
     readonly smallKeys: string
     readonly bossKey: string
@@ -80,8 +78,6 @@ const EN: Base3dCopy = {
     region: 'Items',
     notFound: 'Not found yet',
     ownButton: 'Own button',
-    heartPieces: 'Heart pieces',
-    piecesOf: (count) => `${count} of 4`,
     embers: 'Embers',
     smallKeys: 'Small keys',
     bossKey: 'Boss key',

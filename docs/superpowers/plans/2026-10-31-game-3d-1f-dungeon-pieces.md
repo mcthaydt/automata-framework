@@ -329,3 +329,8 @@ content hash is still `d894381c47fd70d8` (measured); every other assertion is un
 **Gates (the cuts).** `TURBO_FORCE=true pnpm check`: 35/35. Boundaries: 29 files, 0 findings. base-3d `test:unit`:
 350 passed. base-3d `test:parity` (Chromium, WebKit, Firefox): 30 files, 573 tests passed, the new goldens equal in
 every engine.
+
+**The Items screen's heart pieces (the rescope, after #342 was merged in).** 1e's Items screen showed heart pieces as
+quarters; with heart pieces cut, the row, `ItemsView.heartPieces` and the copy's `heartPieces` and `piecesOf` went
+(red first: items.test.ts expects no `heartPieces`). Unit 354 passed; the Items and xx-long layout runs, 51 passed in
+the three engines. Goldens unchanged (presentation only).

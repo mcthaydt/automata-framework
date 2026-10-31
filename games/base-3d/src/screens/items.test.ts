@@ -14,7 +14,7 @@ describe('itemsOf', () => {
       ['hookchain', false, true],
     ])
     expect(view.equipped).toBeUndefined()
-    expect(view).toMatchObject({ heartPieces: 0, embers: 0 })
+    expect(view).toMatchObject({ embers: 0 })
   })
 
   it('shows the sling’s pellets and the bombs’ count against their most, and the equipped item', () => {
@@ -32,13 +32,13 @@ describe('itemsOf', () => {
     expect(view).toMatchObject({ equipped: 'bombs', embers: 140 })
   })
 
-  it('counts the heart pieces toward the next heart, in quarters, and reads the kiln’s keys, map and compass', () => {
+  it('reads the kiln’s keys, map and compass, and no heart pieces (cut by the 2026-10-31 rescope)', () => {
     const view = itemsOf({
       ...newGame(),
       hearts: { max: 5, pieces: ['a', 'b', 'c', 'd', 'e', 'f'] },
       kiln: { ...newGame().kiln, smallKeys: 2, bossKey: true, map: true, compass: false },
     })
-    expect(view.heartPieces).toBe(2)
+    expect(view).not.toHaveProperty('heartPieces')
     expect(view.kiln).toEqual({ smallKeys: 2, bossKey: true, map: true, compass: false })
   })
 

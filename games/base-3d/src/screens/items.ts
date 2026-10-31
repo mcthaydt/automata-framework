@@ -1,6 +1,6 @@
 // The Items screen's contents (DESIGN.md §9.3, GAME-3D.1e part 5b): the five slots, the ammo, the equipped item, the
-// heart pieces toward the next heart, the embers and the kiln's keys, map and compass, read from the save as play
-// captures it (the sim holds only the items and ammo; the pieces and the kiln are the save's). Presentation; the
+// embers and the kiln's keys, map and compass, read from the save as play captures it (heart pieces cut by the
+// 2026-10-31 rescope, DESIGN.md §0). Presentation; the
 // words are the copy's (copy.ts).
 import { BOMBS, SLING } from '../constants/items.ts'
 import type { Base3dSave } from '../state/save.ts'
@@ -19,8 +19,6 @@ export interface ItemSlot {
 export interface ItemsView {
   readonly slots: readonly ItemSlot[]
   readonly equipped: ItemName | undefined
-  /** Heart pieces toward the next heart: 0 to 3, every 4 being a heart already counted in `hearts.max`. */
-  readonly heartPieces: number
   readonly embers: number
   readonly kiln: Pick<Base3dSave['kiln'], 'smallKeys' | 'bossKey' | 'map' | 'compass'>
 }
@@ -43,7 +41,6 @@ export function itemsOf(save: Base3dSave, pending?: ItemName): ItemsView {
       slot('hookchain', save.items.hookchain),
     ],
     equipped: pending ?? save.equipped ?? undefined,
-    heartPieces: save.hearts.pieces.length % 4,
     embers: save.embers,
     kiln: { smallKeys, bossKey, map, compass },
   }
