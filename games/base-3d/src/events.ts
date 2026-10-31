@@ -55,6 +55,11 @@ const shot = z.object({ item: z.enum(['sling']), x: z.int(), z: z.int() })
 /** Wick fired an item from his place (DESIGN.md §9.1): presentation's twang. */
 export const ShotFired: EventDef<typeof shot> = defineEvent('shot.fired', shot)
 
+const blast = z.object({ x: z.int(), z: z.int() })
+
+/** A bomb blasted at its place (DESIGN.md §9.1): presentation's flash and boom. */
+export const BombBlast: EventDef<typeof blast> = defineEvent('bomb.blast', blast)
+
 const phase = z.object({ target: z.int().nonnegative(), phase: z.int().positive() })
 
 /** The Warden entered `phase` (DESIGN.md §8.4): the grate shuts; presentation's cue. */

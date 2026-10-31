@@ -4,7 +4,7 @@
 // a block costing blockstun and a push, hitstop as one freeze counter. Rewritten on integers for the sim; the source
 // is not edited. Sim code: `pnpm boundaries` checks it.
 import { defineSystem, type EntityRef, type SimContext, type SystemDef } from '@mcthaydt/automata-sim'
-import { Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Pellet, Target } from '../components.ts'
+import { Bomb, Drop, Enemy, Fighter, Hero, HeroAction, HeroControl, Pellet, Target } from '../components.ts'
 import { dropOf, enemyOf } from '../constants/enemies.ts'
 import {
   ACTION_BITS,
@@ -30,7 +30,7 @@ import {
   TICK_HZ,
 } from '../constants/index.ts'
 import { BossDefeated, CaptainDefeated, FoeDefeated, HeroDefeated, HitLanded } from '../events.ts'
-import { Freeze, Location } from '../resources.ts'
+import { Freeze, Inventory, Location } from '../resources.ts'
 import { areaIn, slide, worldOf } from './area.ts'
 import { coneHits, facingVector, inArc, type Q12Direction, reachHits, ringHits } from './combat-geometry.ts'
 import { angleOf, lineOfSight } from './lock-target.ts'
@@ -61,6 +61,7 @@ export const isHeld = (state: number): boolean => HELD_STATES.includes(state)
 function placeOf(entity: EntityRef): { x: number; z: number; facing: number } | undefined {
   if (entity.has(Hero)) return entity.get(Hero)
   if (entity.has(Pellet)) return entity.get(Pellet)
+  if (entity.has(Bomb)) return { ...entity.get(Bomb), facing: 0 }
   if (entity.has(Target)) return entity.get(Target)
   return undefined
 }
@@ -255,7 +256,7 @@ function gather(ctx: SimContext, moves: readonly MoveDef[]): Contact[] {
     const pellet = attacker.has(Pellet) ? attacker.get(Pellet) : undefined
     const band = pellet === undefined ? hit : { bottom: pellet.y, top: pellet.y }
     for (const defender of fighters) {
-      if (defender.has(Pellet)) continue
+      if (defender.has(Pellet) || defender.has(Bomb)) continue
       const target = defender.get(Fighter)
       if (target.side === fighter.side || target.health <= 0 || target.iframes > 0) continue
       if (UNTOUCHABLE.includes(target.state)) continue
@@ -361,7 +362,9 @@ export const combatHits: SystemDef = defineSystem({
         continue
       }
 
-      const damage = target.state === CombatState.stagger ? hit.dmg * 2 : hit.dmg
+      // A bomb's blast hurts Wick less than a foe (DESIGN.md §9.1).
+      const base = defender.has(Hero) && hit.wickDmg !== undefined ? hit.wickDmg : hit.dmg
+      const damage = target.state === CombatState.stagger ? base * 2 : base
       const health = Math.max(0, target.health - damage)
       const isHero = defender.has(Hero)
       const cancel = { move: 0, moveTick: 0, queued: 0 }
@@ -374,7 +377,8 @@ export const combatHits: SystemDef = defineSystem({
         // A beaten enemy may leave something where it fell: one roll on the seeded table (DESIGN.md §8.1 rule 6).
         if (kind?.rank === 'captain') ctx.emit(CaptainDefeated, { target: defender.sid })
         if (kind?.rank === 'warden') ctx.emit(BossDefeated, { target: defender.sid })
-        const drop = kind === undefined || kind.rank !== undefined ? undefined : dropOf(ctx.rng.int(10))
+        const ammo = ctx.resource(Inventory)
+        const drop = kind === undefined || kind.rank !== undefined ? undefined : dropOf(ctx.rng.int(10), ammo)
         if (drop !== undefined) ctx.spawn([Drop, { x: at.x, z: at.z, ...drop }])
         continue
       }

@@ -172,3 +172,16 @@ const pelletFields = {
  * every tick it flies, so `combat.hits` lands it as any hit; it is spent on its first contact.
  */
 export const Pellet: ComponentDef<typeof pelletFields> = defineComponent('pellet', pelletFields)
+
+const bombFields = {
+  x: 'i32',
+  z: 'i32',
+  /** Live ticks left before it blasts (DESIGN.md §9.1). */
+  fuse: 'u32',
+} as const
+
+/**
+ * An Ember Bomb on the floor (DESIGN.md §9.1). It is a fighter on neither side, so its blast (`bomb-blast`) reaches
+ * Wick and the foes alike.
+ */
+export const Bomb: ComponentDef<typeof bombFields> = defineComponent('bomb', bombFields)

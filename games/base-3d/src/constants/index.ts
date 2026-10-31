@@ -83,6 +83,8 @@ export interface MoveHit {
   readonly cone?: number
   /** A sling pellet's hit (GAME-3D.1e): it opens a move's `opening` (the Warden's mouth). */
   readonly pellet?: boolean
+  /** The damage it does to Wick, when not `dmg` (a bomb's blast hurts him 1, DESIGN.md §9.1). */
+  readonly wickDmg?: number
 }
 
 /**

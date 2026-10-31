@@ -1247,9 +1247,10 @@ const GOLDEN_KILN_TICK = 118
  * the enemy moves name their clips (`clip`, in the content the hash covers) and `foe.defeated` gained the place the foe
  * fell (`x`, `z`, in the schema). Nothing on the route changed: the same assertions hold unchanged. Re-recorded for
  * GAME-3D.1e part 1's sling (was `1cc2582080223c43`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move. The route sends `item: false` on every tick
- * and owns no sling, so its state did not move: the same assertions hold unchanged.
+ * and owns no sling, so its state did not move: the same assertions hold unchanged. Re-recorded for part 2's bombs
+ * (was `9fad84dd7ebb29d1`): the schema gained the `bomb` component, the `bomb.blast` event and the `bomb.fuse` system, and the content the bomb's blast move and `wickDmg`; the route owns no bombs, so the same assertions hold unchanged.
  */
-const GOLDEN_HASH = '9fad84dd7ebb29d1'
+const GOLDEN_HASH = 'a82292370d4f0a0c'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)

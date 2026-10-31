@@ -86,7 +86,29 @@ Produced (base-3d only; no package API changes):
       states unchanged.
 - [ ] 5. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, base-3d `test:parity`, `build`, the base-3d e2e spec.
 
-Parts 2 to 5 get their interfaces and steps here before their code, as part 1's.
+## Part 2: Ember Bombs (interfaces, rules, steps)
+
+Produced: `Bomb { x, z, fuse }` (components.ts); `BOMBS { fuse 120, radius 1.6 m, max 10 }` and the `bomb-blast`
+move (constants/items.ts: one active frame, an `around` ring of 1.6 m, from the floor to 3.5 m, 2 damage, power 3,
+unblockable; `MoveHit.wickDmg` 1, the damage it does to Wick); `bomb.fuse` (systems/items.ts, gameplay before
+`combat.hits`); `bomb.blast { x, z }` (events.ts); `DropKind.pellets`, `DropKind.bombs` and `dropOf(roll, ammo)`.
+
+1. A press of Item with bombs owned, equipped and in stock places a bomb at Wick's feet and spends one; one per
+   press.
+2. The fuse counts 120 live ticks; then the bomb plays `bomb-blast` once (a fighter on neither side, so it reaches
+   both sides) and is gone. A power-3 hit knocks down anyone it reaches but the steady Warden (it downs the Warden
+   only in its charge, 1d); it is unblockable, so a knight's shield does not stop it; Wick takes 1 (`wickDmg`).
+3. The drop row (§8.1 rule 6): a roll that gives one ember gives 5 pellets instead when Wick owns the sling and has
+   fewer than 15; a roll that gives five embers gives 2 bombs instead when he owns bombs and has fewer than 5.
+   Taking them adds to the ammo up to its cap (30, 10).
+
+- [x] 1. Tests: placing (ammo spent, one per press, none at 0, unowned or unequipped).
+- [x] 2. Tests: the fuse's 120 ticks; the blast knocks a Sootling within 1.6 m down and leaves one at 2.5 m; it
+      knocks an Ash Knight down from the front; it hurts Wick 1 and knocks him down when he stands in it.
+- [x] 3. Tests: `dropOf` with ammo (the swaps and their limits); taking a pellet or bomb drop adds up to the cap.
+- [x] 4. Goldens re-recorded with the explanation; gates as part 1's.
+
+Parts 3 to 5 get their interfaces and steps here before their code, as parts 1 and 2.
 
 ## Execution log
 
@@ -117,3 +139,24 @@ Parts 2 to 5 get their interfaces and steps here before their code, as part 1's.
 `72f569192c8c293d` → `bf79815307dba14c`; `base-3d/golden-boss` `b36cb175b4bade73` → `28e5ff49a2269c98`. The
 schema (`act.item`, `inventory`, `pellet`, `shot.fired`, two systems) and the content (the sling's move); nothing
 fires the sling on the routes, and every other assertion is unchanged.
+
+**Part 2 (2026-10-31, branch `claude/3d-game-3d-1e-2`).**
+
+- Red first: the 6 new cases failed on the missing `Bomb`, `BOMBS` and `dropOf`'s ammo argument.
+- Two expectations in my own cases were wrong, not the rules: the blast's 2 damage beats a 2-health Sootling
+  outright (the case now says so; the knight's case shows the knockdown), and a knight's chop on Wick holds the fuse
+  through its hitstop (the fuse counts live ticks), so the knight's case steps to the blast's own tick instead of
+  counting 120.
+- A bomb is a fighter on neither side (`side: 2`) playing `bomb-blast` on its last tick, so `combat.hits` lands it on
+  both sides through every existing rule (the Warden is steady except in its charge; a shield does not stop an
+  unblockable hit). boss.test.ts keeps its bomb stand-in for the Warden's charge (a placed bomb would need the charge
+  to cross it on its blast tick); items.test.ts covers the real bomb.
+
+**Defaults (part 2, for the Owner's veto):** a blast does 2 to a foe and 1 to Wick (§9.1 names only Wick's 1), no
+knockback (a ring has no one direction), hitstop 6; it knocks Wick down too (§7.2: "a power-3 hit or a bomb"); the
+ammo row swaps the one-ember result for 5 pellets and the five-ember result for 2 bombs, below half (15 pellets,
+5 bombs).
+
+**Goldens (part 2).** `base-3d/golden-route` `9fad84dd7ebb29d1` → `a82292370d4f0a0c`; `base-3d/golden-fights`
+`bf79815307dba14c` → `b8c81523f5712ca5`; `base-3d/golden-boss` `28e5ff49a2269c98` → `e44b61fb2e3004a9`. Schema
+(`bomb`, `bomb.blast`, `bomb.fuse`) and content (the blast move); every other assertion unchanged.

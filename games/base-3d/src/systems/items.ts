@@ -3,10 +3,10 @@
 // `pnpm boundaries` checks it.
 import { CameraHeading } from '@mcthaydt/automata-render-pixi3d/sim'
 import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
-import { Fighter, Hero, HeroControl, Pellet, Target } from '../components.ts'
+import { Bomb, Fighter, Hero, HeroControl, Pellet, Target } from '../components.ts'
 import { ACTION_BITS, CombatState } from '../constants/index.ts'
-import { CHEST_HEIGHT, ItemCode, SLING } from '../constants/items.ts'
-import { ShotFired } from '../events.ts'
+import { BOMBS, CHEST_HEIGHT, ItemCode, SLING } from '../constants/items.ts'
+import { BombBlast, ShotFired } from '../events.ts'
 import { Inventory, Location } from '../resources.ts'
 import { aimDirection, pickTarget } from './aim.ts'
 import { areaIn, worldOf } from './area.ts'
@@ -35,6 +35,13 @@ export const itemUse: SystemDef = defineSystem({
     const [wick] = ctx.query(Hero, HeroControl, CameraHeading)
     if (wick === undefined) return
     const control = wick.get(HeroControl)
+    // A press with bombs owned, equipped and in stock places one at his feet (§9.1).
+    const placing = inventory.bombs && inventory.equipped === ItemCode.bombs && inventory.bombAmmo > 0
+    if (placing && (control.actPressed & ACTION_BITS.item) !== 0) {
+      const { x, z } = wick.get(Hero)
+      ctx.spawn([Bomb, { x, z, fuse: BOMBS.fuse }], [Fighter, { side: 2, health: 1, radius: 0, height: 0 }])
+      inventory.bombAmmo -= 1
+    }
     const ready = inventory.sling && inventory.equipped === ItemCode.sling && inventory.pellets > 0
     if ((control.actHeld & ACTION_BITS.item) !== 0) {
       if (ready) inventory.draw += 1
@@ -60,6 +67,30 @@ export const itemUse: SystemDef = defineSystem({
     inventory.pellets -= 1
     wick.set(Hero, { facing })
     ctx.emit(ShotFired, { item: 'sling', x: hero.x, z: hero.z })
+  },
+})
+
+/**
+ * Counts every bomb's fuse down a live tick (§9.1); a bomb whose fuse has run out plays `bomb-blast` on this tick,
+ * for `combat.hits` to land on everyone within its ring, and is gone at the end of the tick.
+ */
+export const bombFuse: SystemDef = defineSystem({
+  name: 'bomb.fuse',
+  phase: 'gameplay',
+  before: ['combat.hits'],
+  run(ctx) {
+    if (frozen(ctx)) return
+    const move = worldOf(ctx.content).moves.findIndex((candidate) => candidate.id === 'bomb-blast') + 1
+    for (const entity of ctx.query(Bomb, Fighter)) {
+      const bomb = entity.get(Bomb)
+      if (bomb.fuse > 0) {
+        entity.set(Bomb, { fuse: bomb.fuse - 1 })
+        continue
+      }
+      entity.set(Fighter, { move, moveTick: 1, moveStart: ctx.tick, state: CombatState.act })
+      ctx.emit(BombBlast, { x: bomb.x, z: bomb.z })
+      ctx.despawn(entity.sid)
+    }
   },
 })
 

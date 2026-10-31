@@ -267,10 +267,11 @@ async function replayBossFight(log: readonly Command[][]) {
  * The boss fight's defeat tick and final hash, with seed 1 (recorded in Node); every engine must end on both.
  * Re-recorded for part 4 (was `6001e1c06a58eabe`): the moves' `clip` names in the content and `foe.defeated`'s `x`
  * and `z` in the schema; the same events and defeat tick, still asserted below. Re-recorded for GAME-3D.1e part 1
- * (was `b36cb175b4bade73`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move; the test player never fires it, so the same events and defeat tick hold.
+ * (was `b36cb175b4bade73`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move; the test player never fires it, so the same events and defeat tick hold. Re-recorded for part 2 (was
+ * `28e5ff49a2269c98`): the schema gained the `bomb` component, the `bomb.blast` event and the `bomb.fuse` system, and the content the bomb's blast move and `wickDmg`; the same events and defeat tick hold.
  */
 const BOSS_DEFEATED_AT = 458
-const BOSS_HASH = '28e5ff49a2269c98'
+const BOSS_HASH = 'e44b61fb2e3004a9'
 
 describe('the boss fight’s recorded log (G3-c)', () => {
   it('beats the Warden through a parried slam’s kneel and phase 2, and its log replays to the same defeat tick and hash', async ({

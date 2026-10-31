@@ -3,8 +3,9 @@ import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Drop, Fighter, Hero } from '../components.ts'
 import { DROP_REACH, DropKind, HEART_HEAL } from '../constants/enemies.ts'
 import { HERO_HEALTH } from '../constants/index.ts'
+import { BOMBS, SLING } from '../constants/items.ts'
 import { DropTaken } from '../events.ts'
-import { Progress } from '../resources.ts'
+import { Inventory, Progress } from '../resources.ts'
 import { frozen } from './combat.ts'
 
 /**
@@ -23,7 +24,12 @@ export const dropsTake: SystemDef = defineSystem({
     for (const entity of ctx.query(Drop)) {
       const drop = entity.get(Drop)
       if (Math.abs(drop.x - x) > DROP_REACH || Math.abs(drop.z - z) > DROP_REACH) continue
+      const inventory = ctx.resource(Inventory)
       if (drop.kind === DropKind.ember) ctx.resource(Progress).embers += drop.amount
+      else if (drop.kind === DropKind.pellets)
+        inventory.pellets = Math.min(SLING.maxPellets, inventory.pellets + drop.amount)
+      else if (drop.kind === DropKind.bombs)
+        inventory.bombAmmo = Math.min(BOMBS.max, inventory.bombAmmo + drop.amount)
       else {
         const { health } = wick.get(Fighter)
         wick.set(Fighter, { health: Math.min(HERO_HEALTH, health + HEART_HEAL * drop.amount) })

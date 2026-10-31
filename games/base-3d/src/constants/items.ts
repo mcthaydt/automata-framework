@@ -15,6 +15,9 @@ export const SLING = {
   maxPellets: 30,
 } as const
 
+/** Ember Bombs (§9.1): a 120-tick fuse, then a blast 1.6 m round; 10 at most. */
+export const BOMBS = { fuse: 120, radius: metres(1.6), max: 10 } as const
+
 /** Each item's code in `Inventory.equipped` (0 none). */
 export const ItemCode = { sling: 1, bombs: 2, hookchain: 3 } as const
 
@@ -40,6 +43,27 @@ export const ITEM_MOVES: readonly MoveDef[] = [
       kb: 0,
       power: 1,
       pellet: true,
+    },
+  },
+  {
+    // A bomb's blast (§9.1): one frame, a ring of 1.6 m from the floor to 3.5 m, unblockable, power 3 (a knockdown),
+    // hurting Wick 1.
+    id: 'bomb-blast',
+    total: 1,
+    active: [1, 1],
+    hit: {
+      near: 0,
+      far: BOMBS.radius,
+      bottom: 0,
+      top: metres(3.5),
+      dmg: 2,
+      wickDmg: 1,
+      stop: 6,
+      stun: 30,
+      kb: 0,
+      power: 3,
+      around: true,
+      unblockable: true,
     },
   },
 ]

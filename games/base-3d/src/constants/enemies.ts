@@ -339,16 +339,32 @@ export const RING_FAR = metres(3.8)
 export const PACE_TICKS = 60
 
 /** What a drop is (§8.1 rule 6), as `Drop.kind` holds it. */
-export const DropKind = { ember: 1, heart: 2 } as const
+export const DropKind = { ember: 1, heart: 2, pellets: 3, bombs: 4 } as const
+
+/** What Wick carries that the drop table reads: whether he owns the sling and bombs, and how many he has. */
+export interface DropAmmo {
+  readonly sling: boolean
+  readonly pellets: number
+  readonly bombs: boolean
+  readonly bombAmmo: number
+}
+const NO_AMMO: DropAmmo = { sling: false, pellets: 0, bombs: false, bombAmmo: 0 }
 
 /**
  * The drop table (§8.1 rule 6) for a roll of 0 to 9: 0–2 nothing, 3–6 one ember, 7–8 five embers, 9 a recovery heart.
- * The pellets-and-bombs row waits for GAME-3D.1e's items.
+ * Its ammo row: the one ember is 5 pellets instead while Wick owns the sling and has under half (15), and the five
+ * embers are 2 bombs instead while he owns bombs and has under half (5).
  */
-export function dropOf(roll: number): { kind: number; amount: number } | undefined {
+export function dropOf(roll: number, ammo: DropAmmo = NO_AMMO): { kind: number; amount: number } | undefined {
   if (roll < 3) return undefined
-  if (roll < 7) return { kind: DropKind.ember, amount: 1 }
-  if (roll < 9) return { kind: DropKind.ember, amount: 5 }
+  if (roll < 7)
+    return ammo.sling && ammo.pellets < 15
+      ? { kind: DropKind.pellets, amount: 5 }
+      : { kind: DropKind.ember, amount: 1 }
+  if (roll < 9)
+    return ammo.bombs && ammo.bombAmmo < 5
+      ? { kind: DropKind.bombs, amount: 2 }
+      : { kind: DropKind.ember, amount: 5 }
   return { kind: DropKind.heart, amount: 1 }
 }
 

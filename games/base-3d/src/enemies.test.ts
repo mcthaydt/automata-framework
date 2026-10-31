@@ -499,9 +499,10 @@ const FIGHTS_ROUTE: readonly RouteSegment[] = [
  * the schema; the yard has no Warden, so the same assertions hold unchanged. Re-recorded for part 4 (was
  * `276ca92fcddd55ea`): the enemy moves' `clip` names in the content and `foe.defeated`'s `x` and `z` in the schema;
  * the same events, tokens, embers, health and ticks, still asserted below. Re-recorded for GAME-3D.1e part 1 (was
- * `72f569192c8c293d`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move; nothing on the route fires it, so the same assertions hold.
+ * `72f569192c8c293d`): the schema gained `act.item`, the `inventory` resource, the `pellet` component, the `shot.fired` event and the `item.use` and `pellet.fly` systems, and the content the sling's move; nothing on the route fires it, so the same assertions hold. Re-recorded for part 2 (was `bf79815307dba14c`):
+ * the schema gained the `bomb` component, the `bomb.blast` event and the `bomb.fuse` system, and the content the bomb's blast move and `wickDmg`; Wick owns no items in the yard, so the drops roll as before (6 embers) and the same assertions hold.
  */
-const FIGHTS_HASH = 'bf79815307dba14c'
+const FIGHTS_HASH = 'b8c81523f5712ca5'
 
 async function runFights() {
   const spec = base3dSim(compileWorld([FIGHT_YARD]))
