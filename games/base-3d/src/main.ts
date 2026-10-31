@@ -20,9 +20,11 @@ import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { QualityTier } from '@mcthaydt/automata-runtime'
 import { reducedMotion } from '@mcthaydt/automata-ui'
 import { Act, Lock, Move } from './commands.ts'
-import { Door, Hero, Target } from './components.ts'
+import { Block, Breakable, Chest, Door, Hero, Switch, Target } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
+import { KILN } from './content/kiln.ts'
+import { WORLD_SOURCES } from './content/world.ts'
 import * as paraglideRuntime from './paraglide/runtime.js'
 import { cameraTurnUnits, endGroup, moveFromStick } from './screens/controls.ts'
 import { BASE3D_COPY } from './screens/copy.ts'
@@ -39,6 +41,7 @@ import { doorView } from './views/doors.ts'
 import { ENEMY_FIGURES, enemyFigureState, enemyView } from './views/enemies.ts'
 import { feelHooks } from './views/feel.ts'
 import {
+  buildArea,
   buildScene,
   FOG,
   figureContent,
@@ -49,16 +52,16 @@ import {
   placed,
   recentred,
 } from './views/index.ts'
+import { pieceView } from './views/pieces.ts'
 
 // Compiling the areas is boot's content cost (DESIGN.md §13 boot step 3): measured, so G3-u's journey holds it to a
 // budget.
 performance.mark('base-3d:compile-areas:start')
-const WORLD = compileWorld([FIRST_SLICE])
+const WORLD = compileWorld(WORLD_SOURCES)
 /** The keys' and touch buttons' labels, in the source language: the input map is data, read once at boot (G3-t). */
 const KEYS = BASE3D_COPY.en.keys
 performance.measure('base-3d:compile-areas', 'base-3d:compile-areas:start')
-const AREA = WORLD.areas[0] as (typeof WORLD.areas)[number]
-/** The game's sim on the first slice, its world's only area until GAME-3D.1i; the sim takes it as data (`base3dSim`). */
+/** The game's sim over the world: the first slice, then the Cold Kiln; the sim takes it as data (`base3dSim`). */
 const BASE3D_SIM = base3dSim(WORLD)
 
 /** The keyboard's camera turn, 120° a second (M4-D16): 65,536 × 120 / 360 / 60 ≈ 364 turn units a tick. */
@@ -227,10 +230,16 @@ export const base3d = defineGame({
           locked: () => lockedSid,
         }),
         // Each door, closed, as its slab and its kind's marker (G3-r); an open door is not drawn.
-        [Door.id]: doorView(AREA),
+        [Door.id]: doorView(WORLD.areas),
+        // The pieces as placeholder boxes until the art (GAME-3D.1j): they follow the sim's rows.
+        [Switch.id]: pieceView(Switch.id, WORLD.areas),
+        [Block.id]: pieceView(Block.id, WORLD.areas),
+        [Chest.id]: pieceView(Chest.id, WORLD.areas),
+        [Breakable.id]: pieceView(Breakable.id, WORLD.areas),
       },
       camera: {
-        views: AREA.views,
+        // Every area's views: the areas stand apart in one scene, so an area change is a cut to its entry's view.
+        views: WORLD.areas.flatMap((area) => area.views),
         initial: 'hall',
         follow: Hero.id,
         position: (c) => placed(c.hero),
@@ -239,6 +248,7 @@ export const base3d = defineGame({
       },
       scene: (view, stage, occluders, _light, models) => {
         buildScene(view, occluders, models, FIRST_SLICE)
+        buildArea(occluders, KILN)
         // Shake and sparks from the sim's hits (DESIGN.md §7.6), under the player's reduced-motion preference.
         const feel = feelHooks(view, stage, () => reducedMotion())
         return {

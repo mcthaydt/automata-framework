@@ -17,6 +17,7 @@ import { ENEMIES } from '../constants/enemies.ts'
 import { AREA_FADE_TICKS, metres } from '../constants/index.ts'
 import { ItemCode } from '../constants/items.ts'
 import { FIRST_SLICE } from '../content/first-slice.ts'
+import { WORLD_SOURCES } from '../content/world.ts'
 import { HeroDefeated } from '../events.ts'
 import { base3d, input } from '../main.ts'
 import { Inventory } from '../resources.ts'
@@ -440,7 +441,7 @@ describe("base-3d's flow", () => {
       ],
     })
     const defeatable = () => {
-      const sim = base3dSim(compileWorld([FIRST_SLICE]))
+      const sim = base3dSim(compileWorld(WORLD_SOURCES))
       return base3dScreens({
         title: base3d.title,
         sim: { ...sim, plugins: [...sim.plugins, defeatNorth] },
@@ -585,7 +586,7 @@ describe("base-3d's flow", () => {
       }
       return base3dScreens({
         title: base3d.title,
-        sim: base3dSim(compileWorld([first, { ...FIRST_SLICE, id: 'second' }])),
+        sim: base3dSim(compileWorld([first, { ...FIRST_SLICE, id: 'second', exits: [] }])),
         input,
         extensions: [render3dExtension],
         saves: base3dSaves() as never,

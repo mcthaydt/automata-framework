@@ -167,6 +167,9 @@ importers:
       '@mcthaydt/automata-runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
+      '@mcthaydt/automata-sector-format':
+        specifier: workspace:*
+        version: link:../../packages/sector-format
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../../packages/sim
