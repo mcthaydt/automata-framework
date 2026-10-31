@@ -88,7 +88,7 @@
       `checkLayout` at 844×390 and 780×270 in Chromium, WebKit and Firefox, every primary action an essential.
 - [x] 6. With the 1e stack on `main`: `copy.ts` from `t()`, its record removed; the HUD, Items and Map join the
       `xx-long` run (their layout tests already cover 844×390 and 780×270).
-- [ ] 7. Review images: each screen in English and `xx-long` at both sizes (the DX.2d evidence pattern), with the
+- [x] 7. Review images: each screen in English and `xx-long` at both sizes (the DX.2d evidence pattern), with the
       differences explained; goldens unchanged (no sim change); gates as in the lane rules (check, parity,
       build, the base-3d e2e project; no changeset, base-3d is private).
 
@@ -155,7 +155,9 @@ and #297 merged; this part now lands in the 3D milestone PR with the trimmed-sli
   createT(messages)` (screens/t.ts); `main.ts` passes `locale: paraglideRuntime` to `defineGame`, so `Locale` answers
   Paraglide's `getLocale`. The HUD joined the `xx-long` run (its own words only: the play screen around it is the
   default screens', DX.2d's): 42 passed in the three engines.
-- Step 7 (images): not taken. The English words are unchanged, so no screen changes, and the `xx-long` run's 42 cases
-  in three engines are the layout evidence. Pseudo-locale images would show only test text.
+- Step 7 (images): the outgoing coordinator asked for them, so they were taken after all.
+  docs/evidence/owner-visual/2026-10-31-game-3d-1a-2-strings/ holds 28 images (7 screens, English and `xx-long`, 844×390
+  and 780×270, Chromium), from a throwaway copy of the layout run that called `page.screenshot`; its README sets them
+  against §12.3 and §13.
 - Gates: `TURBO_FORCE=true pnpm check` 35/35; base-3d unit 356; base-3d `test:parity` 33 files, 615 tests (the goldens
   unchanged); base-3d `pnpm build` passes.
