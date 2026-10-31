@@ -8,6 +8,7 @@
 -->
 <script lang="ts">
 import { attachGestures, Button, Segmented } from '@mcthaydt/automata-editor-kit'
+import { untrack } from 'svelte'
 import { dragPlane, orbit, pickRay, project, rayAtPlane, turned, type Vec3 } from '../stage/stage-camera'
 import type { StageRenderer, StageRendererFactory } from '../stage/stage-renderer'
 import type { StudioController } from '../studio-controller'
@@ -71,15 +72,17 @@ $effect(() => {
   return () => watch.disconnect()
 })
 
-// The renderer is made once the canvas has a size, and again on Try again.
+// The renderer is made once the canvas has a size, and again on Try again; a resize is the next effect's, never a new renderer.
+const sized = $derived(size.w >= 2 && size.h >= 2)
 $effect(() => {
   void attempt
   const target = canvas
-  if (target === undefined || size.w < 2 || size.h < 2) return
+  if (target === undefined || !sized) return
   let current: StageRenderer | undefined
   let gone = false
   status = 'loading'
-  void stage(target, size, background).then((made) => {
+  const first = untrack(() => size)
+  void stage(target, first, background).then((made) => {
     if (gone) {
       made?.destroy()
       return
@@ -201,19 +204,31 @@ const round = (value: Vec3): Vec3 => [
   Math.round(value[2] * 1000) / 1000,
 ]
 
-/** The handles take their own presses: a drag of one must not turn the stage under it (Svelte delegates `pointerdown` to the root). */
-const keepPresses = (node: HTMLElement): (() => void) => {
-  const stop = (event: Event): void => event.stopPropagation()
-  node.addEventListener('pointerdown', stop)
-  return () => node.removeEventListener('pointerdown', stop)
-}
+/**
+ * A handle's own pointer listeners, native: Svelte delegates `pointerdown` to the root, so a press stopped here (so the
+ * stage's gestures under it do not turn the figure as well) would never reach a delegated handler.
+ */
+const dragHandleWith =
+  (id: Parameters<StudioController['dragHandle']>[0], position: Vec3) =>
+  (node: HTMLElement): (() => void) => {
+    const onDown = (event: PointerEvent): void => {
+      event.stopPropagation()
+      capture(event)
+      controller.view.selectHandle(id)
+      dragging = { id, start: position, last: position }
+    }
+    node.addEventListener('pointerdown', onDown)
+    node.addEventListener('pointermove', move)
+    node.addEventListener('pointerup', up)
+    node.addEventListener('pointercancel', up)
+    return () => {
+      node.removeEventListener('pointerdown', onDown)
+      node.removeEventListener('pointermove', move)
+      node.removeEventListener('pointerup', up)
+      node.removeEventListener('pointercancel', up)
+    }
+  }
 
-function down(event: PointerEvent, id: Parameters<StudioController['dragHandle']>[0], position: Vec3): void {
-  if (event.pointerType === 'touch' && event.isPrimary === false) return
-  ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
-  controller.view.selectHandle(id)
-  dragging = { id, start: position, last: position }
-}
 function move(event: PointerEvent): void {
   if (dragging === undefined) return
   const at = hit(event, dragging.start)
@@ -247,6 +262,15 @@ function key(event: KeyboardEvent, id: string, position: Vec3): void {
     round([position[0] + move[0], position[1] + move[1], position[2] + move[2]]),
   )
 }
+
+/** Capture is best effort: a synthetic pointer, or one that already ended, has nothing to capture. */
+function capture(event: PointerEvent): void {
+  try {
+    ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+  } catch {
+    // Nothing to capture.
+  }
+}
 </script>
 
 <div class="stage" bind:this={host} role="group" aria-label="Figure stage" data-testid="studio-stage" data-status={status} data-mode={$viewState.mode}>
@@ -260,7 +284,7 @@ function key(event: KeyboardEvent, id: string, position: Vec3): void {
     />
   </div>
   {#if $viewState.mode === 'pose'}
-    <div class="handles" {@attach keepPresses}>
+    <div class="handles">
       {#each placed as { handle, at } (handle.id)}
         <button
           type="button"
@@ -272,10 +296,7 @@ function key(event: KeyboardEvent, id: string, position: Vec3): void {
           aria-label={`${handle.id} handle${handle.reached ? '' : ', out of reach'}`}
           aria-pressed={$viewState.handle === handle.id}
           data-handle={handle.id}
-          onpointerdown={(event) => down(event, handle.id, handle.position)}
-          onpointermove={move}
-          onpointerup={up}
-          onpointercancel={up}
+          {@attach dragHandleWith(handle.id, handle.position)}
           onkeydown={(event) => key(event, handle.id, handle.position)}
           onclick={() => controller.view.selectHandle(handle.id)}
         ></button>

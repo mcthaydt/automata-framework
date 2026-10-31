@@ -74,6 +74,8 @@ export const createStageRenderer: StageRendererFactory = async (canvas, size, ba
   const renderer: Renderer = made
   const stage = new Container()
   const view = new View3D({ width: size.w, height: size.h, toneMapping: 'none' })
+  // The figure is drawn as the game's examples draw one: a sky and a ground colour for the ambient light, and a flat floor of it.
+  view.environment = { skyColor: 0xc7dcd0, groundColor: 0x6a6270 }
   stage.addChild(view)
   const paused = writable(false)
   let lost = false

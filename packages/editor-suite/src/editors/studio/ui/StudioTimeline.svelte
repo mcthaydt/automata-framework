@@ -36,7 +36,7 @@ function timeOf(event: PointerEvent): number {
 }
 
 function down(event: PointerEvent, index: number, t: number): void {
-  ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
+  capture(event)
   controller.view.selectKey(index)
   controller.view.setPlayhead(t)
   drag = { index, t }
@@ -50,6 +50,15 @@ function up(event: PointerEvent): void {
   if (done === undefined || event.type === 'pointercancel') return
   const key = clip?.keys[done.index]
   if (key !== undefined && done.t !== key.t) void controller.moveKey(done.index, done.t)
+}
+
+/** Capture is best effort: a synthetic pointer, or one that already ended, has nothing to capture. */
+function capture(event: PointerEvent): void {
+  try {
+    ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+  } catch {
+    // Nothing to capture.
+  }
 }
 </script>
 
