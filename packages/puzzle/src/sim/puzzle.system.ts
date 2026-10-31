@@ -42,6 +42,18 @@ export interface PuzzleOptions {
     get(ctx: SimContext, name: string): Value | undefined
     set(ctx: SimContext, name: string, value: Value): boolean
   }
+  /**
+   * Where a `noise` effect is heard, on the verb's step (the `systems` extension's `hear`, SY-D2). `puzzle.noise` is
+   * emitted either way, for presentation.
+   */
+  readonly noise?: (
+    ctx: SimContext,
+    noise: {
+      readonly at: { readonly x: number; readonly z: number }
+      readonly loudness: number
+      readonly kind: string
+    },
+  ) => void
 }
 
 function runVerb(ctx: SimContext, def: PuzzleDef, input: Verb, options: PuzzleOptions): void {
@@ -111,7 +123,9 @@ function applyEffect(
   } else if ('noise' in e) {
     const where = typeof e.noise.at === 'string' ? def.hotspots[e.noise.at] : e.noise.at
     if (where === undefined) throw new Error(`${def.scene}: no hotspot "${String(e.noise.at)}" for a noise`)
-    ctx.emit(PuzzleNoise, { at: { x: where.x, z: where.z }, loudness: e.noise.loudness, kind: e.noise.kind })
+    const noise = { at: { x: where.x, z: where.z }, loudness: e.noise.loudness, kind: e.noise.kind }
+    ctx.emit(PuzzleNoise, noise)
+    options.noise?.(ctx, noise)
   } else if ('cutscene' in e) at.later(() => ctx.emit(PuzzleCutscene, { id: e.cutscene }))
   else if ('checkpoint' in e) at.later(() => ctx.emit(PuzzleCheckpoint, {}))
   else if ('keypad' in e) ctx.emit(PuzzleKeypad, {})

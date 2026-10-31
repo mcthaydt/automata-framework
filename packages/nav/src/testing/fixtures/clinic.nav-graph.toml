@@ -1,0 +1,75 @@
+# The adventure source's clinic nav graph (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/nav/scripts/convert-adventure-nav.ts. Do not edit.
+edges = [ [ "end", "cmid" ], [ "cmid", "closet", "closetDoor" ], [ "closet", "closetN" ], [ "cmid", "mouth" ], [ "mouth", "hallN" ], [ "hallN", "ward" ], [ "hallN", "recep" ], [ "hallN", "hallS" ], [ "hallN", "recepN" ], [ "ward", "bench" ], [ "wardSouth", "hallS" ], [ "ward", "hallS" ], [ "ward", "bedside" ], [ "bedside", "alcoveMouth" ], [ "alcoveMouth", "alcove" ], [ "bedside", "sinkSide" ], [ "bench", "hallS" ], [ "recep", "recepSW" ], [ "recepSW", "recepS" ], [ "recepSW", "hallS" ], [ "recepS", "hallS" ], [ "recep", "recepN" ] ]
+
+[nodes.alcove]
+x = -3.2
+z = -2.2
+
+[nodes.alcoveMouth]
+x = -2.15
+z = -0.3
+
+[nodes.bedside]
+x = -2.9
+z = 2.45
+
+[nodes.bench]
+x = -1.45
+z = 3.4
+
+[nodes.closet]
+x = 3
+z = -4
+
+[nodes.closetN]
+x = 3
+z = -5.7
+
+[nodes.cmid]
+x = 0.3
+z = -4
+
+[nodes.end]
+x = 0
+z = -6.1
+
+[nodes.hallN]
+x = 0
+z = 0.3
+
+[nodes.hallS]
+x = 0
+z = 4.8
+
+[nodes.mouth]
+x = 0
+z = -1.9
+
+[nodes.recep]
+x = 1.75
+z = 1.45
+
+[nodes.recepN]
+x = 2
+z = 0.15
+
+[nodes.recepS]
+x = 3.95
+z = 3.95
+
+[nodes.recepSW]
+x = 1.4
+z = 3.6
+
+[nodes.sinkSide]
+x = -4.2
+z = 2.75
+
+[nodes.ward]
+x = -1.6
+z = 2.1
+
+[nodes.wardSouth]
+x = -2.75
+z = 5.65

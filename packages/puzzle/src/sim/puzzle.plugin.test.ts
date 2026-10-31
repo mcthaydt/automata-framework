@@ -67,6 +67,17 @@ describe('the puzzle interpreter (P-c, engine)', () => {
     ])
   })
 
+  it('hands a noise to the game’s `noise` option on the verb’s step, as well as emitting it', async () => {
+    const heard: unknown[] = []
+    sim = await createToy({ noise: (ctx, noise) => heard.push([ctx.tick, noise]) })
+    const tick = sim.tick
+    expect(said(verb(sim, { at: 'door', held: 'key' }))[0]).toEqual([
+      'puzzle.noise',
+      { at: { x: 1, z: 2 }, loudness: 4, kind: 'bang' },
+    ])
+    expect(heard).toEqual([[tick, { at: { x: 1, z: 2 }, loudness: 4, kind: 'bang' }]])
+  })
+
   it('combines a pair in either order, calls the game’s function, and falls back per verb', async () => {
     const s = await toy()
     verb(s, { at: 'drawer' })

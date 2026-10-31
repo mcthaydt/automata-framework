@@ -13,7 +13,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./sim": "./src/sim/index.ts",
-    "./physics": "./src/sim/physics/index.ts"
+    "./physics": "./src/sim/physics/index.ts",
+    "./testing/fixtures/*": "./src/testing/fixtures/*"
   },
   "automata": {
     "simEntries": [

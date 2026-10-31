@@ -1,0 +1,949 @@
+# The adventure source's prologue systems (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/systems/scripts/convert-adventure-systems.ts. Do not edit.
+scene = "prologue"
+
+[[objects]]
+id = "light"
+name = "Light"
+signal = "the hand lamp's warm pool on the floor; her sprite flickers at its edge"
+
+[[objects]]
+id = "sound"
+name = "Sound"
+signal = "expanding ring on the floor, on-screen caption"
+
+[[objects]]
+id = "figure"
+name = "The figure"
+signal = "tall silhouette in the corridor mouth, footfalls"
+
+[[matrix]]
+row = "light"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "figure"
+verb = "Repel"
+rule = "R1"
+
+[[matrix]]
+row = "sound"
+col = "light"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "sound"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "sound"
+col = "figure"
+verb = "Attract"
+rule = "R2"
+
+[[matrix]]
+row = "figure"
+col = "light"
+verb = "Snuffs the lamp"
+cut = "not built: light must stay Ada's answer to her"
+
+[[matrix]]
+row = "figure"
+col = "sound"
+verb = "Hunts"
+rule = "R2"
+
+[[matrix]]
+row = "figure"
+col = "figure"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "light"
+col = "tool:handLamp"
+verb = "Keep the lamp lit and she will not come close, but the paraffin goes down"
+rule = "R15"
+
+[[matrix]]
+row = "sound"
+col = "tool:handLamp"
+verb = "–"
+cut = "no interaction"
+
+[[matrix]]
+row = "figure"
+col = "tool:handLamp"
+verb = "Hold the lamp and walk past her"
+rule = "R1"
+
+[[matrix]]
+row = "light"
+col = "impact:lack"
+verb = "Darkness is her ground"
+presentation = "the lamps all go at once"
+
+[[matrix]]
+row = "light"
+col = "impact:tooMany"
+verb = "Nothing to fear"
+presentation = "one lamp, and its paraffin runs down"
+
+[[matrix]]
+row = "light"
+col = "impact:fantasy"
+verb = "I held one small light and she would not come near"
+presentation = "the hand lamp"
+
+[[matrix]]
+row = "sound"
+col = "impact:lack"
+verb = "She walks her loop, and nothing else"
+presentation = "her patrol"
+
+[[matrix]]
+row = "sound"
+col = "impact:tooMany"
+verb = "She is always on top of you"
+presentation = "footsteps carry only 1.8 m"
+
+[[matrix]]
+row = "sound"
+col = "impact:fantasy"
+verb = "I stood still and she walked past"
+presentation = "the screen and the locker"
+
+[[matrix]]
+row = "figure"
+col = "impact:lack"
+verb = "A tour, not a night shift"
+presentation = "she walks out when the lights go"
+
+[[matrix]]
+row = "figure"
+col = "impact:tooMany"
+verb = "Unfair on the first night"
+presentation = "one figure, slower than Ada, and a catch that only practises"
+
+[[matrix]]
+row = "figure"
+col = "impact:fantasy"
+verb = "I learned her before she learned me"
+presentation = "the vigil"
+
+[tunables.lampRadius]
+value = 2.2
+min = 1
+max = 4
+unit = "m"
+note = "R1: the hand lamp's gameplay light, as the lighter's (act one's value)"
+
+[tunables.patrolSpeed]
+value = 1.05
+min = 0.5
+max = 2
+unit = "m/s"
+note = "the figure on patrol (Ada walks 3 m/s) (act one's value)"
+
+[tunables.investigateSpeed]
+value = 1.75
+min = 0.5
+max = 3
+unit = "m/s"
+note = "the figure going to a noise (act one's value)"
+
+[tunables.huntSpeed]
+value = 2.2
+min = 1
+max = 3
+unit = "m/s"
+note = "R3: the figure chasing Ada (act one's value)"
+
+[tunables.fleeSpeed]
+value = 2.8
+min = 1
+max = 4
+unit = "m/s"
+note = "R1: the figure fleeing light (act one's value)"
+
+[tunables.sight]
+value = 4.5
+min = 2
+max = 8
+unit = "m"
+note = "R3: how far she sees Ada in the dark, past walls only (act one's value)"
+
+[tunables.catch]
+value = 0.62
+min = 0.3
+max = 1
+unit = "m"
+note = "how close she must come to find Ada (act one's value)"
+
+[tunables.replan]
+value = 0.25
+min = 0.05
+max = 1
+unit = "s"
+note = "R3: she re-routes to where she saw Ada this often (act one's value)"
+
+[tunables.huntGiveUp]
+value = 1.5
+min = 0.5
+max = 5
+unit = "s"
+note = "R3: at the end of her path, out of sight this long, she investigates (act one's value)"
+
+[tunables.investigateGiveUp]
+value = 2.5
+min = 0.5
+max = 8
+unit = "s"
+note = "R2: at the noise this long, she goes back to her patrol (act one's value)"
+
+[tunables.fleeRest]
+value = 1
+min = 0.2
+max = 5
+unit = "s"
+note = "R1: out of the light this long, she patrols again (act one's value)"
+
+[tunables.edgeGiveUp]
+value = 4
+min = 1
+max = 10
+unit = "s"
+note = "R1: waiting at a light's edge this long, she gives up and patrols (act one's value)"
+
+[tunables.patrolDwell]
+value = 0.6
+min = 0
+max = 5
+unit = "s"
+note = "she pauses this long at each patrol stop (act one's value)"
+
+[tunables.stepEvery]
+value = 0.45
+min = 0.2
+max = 1
+unit = "s"
+note = "Ada's footsteps while she walks (act one's value)"
+
+[tunables.stepLoudness]
+value = 1.8
+min = 0
+max = 5
+unit = "m"
+note = "how far Ada's footsteps carry (act one's value)"
+
+[tunables.followDelay]
+value = 2
+min = 1.5
+max = 2.5
+unit = "s"
+note = "door-follow: out of sight, she comes through the door Ada took this long after her (act one's value)"
+
+[tunables.followClear]
+value = 1.5
+min = 1.5
+max = 3
+unit = "m"
+note = "door-follow: she never comes through a door this close to Ada (she waits) (act one's value)"
+
+[tunables.seenHide]
+value = 4
+min = 2
+max = 6
+unit = "m"
+note = "hiding: she sees Ada go in from this close, in sight past the walls, and pulls her out (act one's value)"
+
+[tunables.vigil]
+value = 35
+min = 15
+max = 90
+unit = "s"
+note = "P2: after the lights go, she walks this long; then, unless she is hunting, she goes back into the corridor"
+
+[[rules]]
+id = "R1"
+text = "Light repels: the figure flees the hand lamp's light (2.2 m) to the darkest reachable node, and will not step into it (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R2"
+text = "Sound attracts: a noise draws her to it (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "R3"
+text = "Sight hunts: in the dark she sees Ada within 4.5 m past the walls, and chases her at 2.2 m/s (her transitions)."
+when = []
+then = []
+
+[[rules]]
+id = "P1"
+text = "Practice: her touch finds Ada; Ada is back at the lights-out checkpoint, with no caught screen and no death (her transitions; src/game/session.ts)."
+when = []
+then = []
+
+[[rules]]
+id = "R15"
+text = "Light costs fuel: the lit lamp burns its paraffin."
+
+[[rules.when]]
+[rules.when.not]
+fact = "light"
+is = "off"
+
+[[rules.then]]
+call = "burnLight"
+
+[[rules]]
+id = "lightsOut"
+text = "Once Bed 04 is made, every lamp goes out but Ada's, and the figure walks out of the north corridor (a checkpoint first)."
+
+[[rules.when]]
+fact = "bedMade"
+is = true
+
+[[rules.when]]
+fact = "lightsOut"
+is = false
+
+[[rules.then]]
+set = "lightsOut"
+to = true
+
+[[rules.then]]
+call = "wake"
+
+[[rules.then]]
+[rules.then.emit]
+cutscene = "lightsOut"
+
+[[rules]]
+id = "P2"
+text = "The vigil: 35 s after the lights go, she goes back into the corridor unless she is hunting; then it is quiet."
+
+[[rules.when]]
+fact = "lightsOut"
+is = true
+
+[[rules.then]]
+call = "vigil"
+
+[[rules]]
+id = "footsteps"
+text = "Ada's footsteps make a small noise every 0.45 s while she walks."
+when = []
+
+[[rules.then]]
+call = "footsteps"
+
+[[agents]]
+id = "nurse"
+modes = [ "dormant", "patrol", "investigate", "hunt", "flee", "follow", "leaving" ]
+initial = "dormant"
+hooks = [ "chase", "replan", "fleeGoal", "stop", "leave" ]
+
+[agents.speed]
+dormant = 0
+patrol = 1.05
+investigate = 1.75
+hunt = 2.2
+flee = 2.8
+follow = 2.2
+leaving = 1.05
+
+[[agents.senses]]
+[agents.senses.light]
+[[agents.senses]]
+[agents.senses.sound]
+[[agents.senses]]
+[agents.senses.sight]
+range = 4.5
+wallsOnly = true
+
+[[agents.senses]]
+[agents.senses.touch]
+radius = 0.62
+
+[[agents.transitions]]
+from = "*"
+to = "hunt"
+priority = 85
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "dormant"
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "leaving"
+
+[[agents.transitions.when]]
+[agents.transitions.when.sawHide]
+radius = 4
+los = true
+
+[[agents.transitions.do]]
+set = "pursuit.hidden"
+to = ""
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "*"
+to = "flee"
+priority = 80
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "dormant"
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "flee"
+
+[[agents.transitions.when]]
+inLight = true
+
+[[agents.transitions.do]]
+flee = "light"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "patrol"
+to = "leaving"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "vigilOver"
+is = true
+
+[[agents.transitions.do]]
+goTo = "end"
+
+[[agents.transitions]]
+from = "investigate"
+to = "leaving"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "vigilOver"
+is = true
+
+[[agents.transitions.do]]
+goTo = "end"
+
+[[agents.transitions]]
+from = "flee"
+to = "leaving"
+priority = 76
+
+[[agents.transitions.when]]
+fact = "vigilOver"
+is = true
+
+[[agents.transitions.do]]
+goTo = "end"
+
+[[agents.transitions]]
+from = "leaving"
+to = "dormant"
+priority = 77
+
+[[agents.transitions.when]]
+at = "end"
+
+[[agents.transitions.do]]
+call = "leave"
+
+[[agents.transitions]]
+from = "patrol"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "investigate"
+to = "hunt"
+priority = 70
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 69
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "follow"
+priority = 75
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 74
+
+[[agents.transitions.when]]
+crossed = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.followThrough]
+portal = "crossed"
+delay = 2
+clear = 1.5
+then = "hunt"
+
+[[agents.transitions]]
+from = "follow"
+to = "hunt"
+priority = 73
+
+[[agents.transitions.when]]
+sees = true
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions.do]]
+set = "self.replan"
+to = 0
+
+[[agents.transitions.do]]
+call = "chase"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+when = []
+priority = 60
+
+[[agents.transitions.do]]
+call = "replan"
+
+[[agents.transitions]]
+from = "patrol"
+to = "patrol"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "practice"
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "practice"
+
+[[agents.transitions]]
+from = "hunt"
+to = "hunt"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "practice"
+
+[[agents.transitions]]
+from = "follow"
+to = "follow"
+priority = 50
+
+[[agents.transitions.when]]
+touching = true
+
+[[agents.transitions.do]]
+[agents.transitions.do.emit]
+caught = "practice"
+
+[[agents.transitions]]
+from = "*"
+to = "patrol"
+priority = 40
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "dormant"
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+mode = "leaving"
+
+[[agents.transitions.when]]
+fact = "self.blocked"
+is = true
+
+[[agents.transitions.when]]
+timer = 4
+
+[[agents.transitions.do]]
+call = "stop"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "hunt"
+to = "investigate"
+priority = 30
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+sees = true
+
+[[agents.transitions.when]]
+timer = 1.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "patrol"
+priority = 29
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+timer = 2.5
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "flee"
+to = "patrol"
+priority = 28
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+[agents.transitions.when.not]
+inLight = true
+
+[[agents.transitions.when]]
+timer = 1
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "flee"
+to = "flee"
+priority = 27
+
+[[agents.transitions.when]]
+fact = "self.idle"
+is = true
+
+[[agents.transitions.when]]
+inLight = true
+
+[[agents.transitions.do]]
+call = "fleeGoal"
+
+[[agents.transitions]]
+from = "patrol"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.transitions]]
+from = "investigate"
+to = "investigate"
+priority = 20
+
+[[agents.transitions.when]]
+heard = "*"
+
+[[agents.transitions.do]]
+goTo = "noise"
+
+[[agents.transitions.do]]
+set = "self.timer"
+to = 0
+
+[[agents.routine]]
+node = "end"
+dwell = 0.6
+
+[[agents.routine]]
+node = "cmid"
+dwell = 0.6
+
+[[agents.routine]]
+node = "mouth"
+dwell = 0.6
+
+[[agents.routine]]
+node = "hallN"
+dwell = 0.6
+
+[[agents.routine]]
+node = "ward"
+dwell = 0.6
+
+[[agents.routine]]
+node = "hallN"
+dwell = 0.6
+
+[[agents.routine]]
+node = "mouth"
+dwell = 0.6
+
+[[agents.routine]]
+node = "cmid"
+dwell = 0.6
+
+[[agents.routine]]
+node = "closet"
+dwell = 0.6
+
+[[agents.routine]]
+node = "closetN"
+dwell = 0.6
+
+[[agents.routine]]
+node = "closet"
+dwell = 0.6
+
+[[agents.routine]]
+node = "cmid"
+dwell = 0.6
+
+[[scenarios]]
+id = "repelledByLamp"
+policy = "scripted"
+seeds = 10
+
+[scenarios.setup]
+items = [ "handLamp" ]
+
+[scenarios.setup.place.player]
+x = 0
+z = -1.9
+
+[scenarios.setup.place.nurse]
+x = 0
+z = -3.5
+
+[scenarios.setup.facts]
+bedMade = true
+lightsOut = true
+"nurse.mode" = "patrol"
+light = "lighter"
+fuel = 40
+
+[scenarios.expect]
+within = 1
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "flee"
+agent = "nurse"
+
+[[scenarios]]
+id = "hideUnseen"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup]
+actions = [ "hide:screen" ]
+
+[scenarios.setup.place.player]
+x = -2.6
+z = -2
+
+[scenarios.setup.place.nurse]
+x = 0
+z = -6.1
+
+[scenarios.setup.facts]
+bedMade = true
+lightsOut = true
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 12
+probability = 1
+
+[[scenarios.expect.condition]]
+mode = "patrol"
+agent = "nurse"
+
+[[scenarios.expect.condition]]
+fact = "pursuit.hidden"
+is = "screen"
+
+[[scenarios]]
+id = "practiceCatch"
+policy = "scripted"
+seeds = 5
+
+[scenarios.setup.place.player]
+x = 0
+z = -2.6
+
+[scenarios.setup.place.nurse]
+x = 0
+z = -3.6
+
+[scenarios.setup.facts]
+bedMade = true
+lightsOut = true
+"nurse.mode" = "hunt"
+
+[scenarios.expect]
+within = 4
+probability = 1
+
+[[scenarios.expect.condition]]
+touching = true
+
+[[scenarios]]
+id = "vigilEnds"
+policy = "scripted"
+seeds = 3
+
+[scenarios.setup]
+items = [ "handLamp" ]
+
+[scenarios.setup.place.player]
+x = 3.4
+z = 3.4
+
+[scenarios.setup.place.nurse]
+x = 0
+z = -6.1
+
+[scenarios.setup.facts]
+bedMade = true
+lightsOut = true
+light = "lighter"
+fuel = 80
+
+[scenarios.expect]
+within = 75
+probability = 1
+
+[[scenarios.expect.condition]]
+fact = "figureGone"
+is = true
+
+[fairness]
+cautiousWin = 0.9
+firstThreatAfter = 20
+telegraph = 1.5
+maxDeathsPerRun = 1
+safeWindowMargin = 1.3
+followClear = 1.5
+hideRelease = 12
