@@ -26,6 +26,8 @@ import { type Here, type Outcome, onStep, onSystem, onVerb, type Room } from './
 export interface NarrativeOptions {
   /** Facts the game keeps in its own fields (as puzzle's `facts.get`): undefined for a fact it does not map. */
   readonly facts?: (ctx: SimContext, name: string) => Value | undefined
+  /** While this holds (a cutscene is playing), the conversation commands are ignored (the `cutscenes` extension's `locked`, M6.9a). */
+  readonly locked?: (ctx: SimContext) => boolean
 }
 
 /** Puzzle's facts and items, under the game's own facts, with `read.<hotspot>` for a hotspot an action was taken at. */
@@ -104,6 +106,7 @@ function chooseAnswer(ctx: SimContext, index: number, options: NarrativeOptions)
 
 export const dialogueSystem = (options: NarrativeOptions): SystemDef =>
   defineSystem('narrative.dialogue', 'gameplay', (ctx) => {
+    if (options.locked?.(ctx) === true) return
     for (const { payload } of ctx.commands.of(StartCommand)) startDialogue(ctx, payload.graph, options)
     for (const _ of ctx.commands.of(AdvanceCommand)) advanceDialogue(ctx, options)
     for (const { payload } of ctx.commands.of(ChooseCommand)) chooseAnswer(ctx, payload.index, options)

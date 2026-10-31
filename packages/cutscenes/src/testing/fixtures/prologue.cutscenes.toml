@@ -1,0 +1,1021 @@
+# The adventure source's prologue cutscenes (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/cutscenes/scripts/convert-adventure-cutscenes.ts, each evaluated in one context. Do not edit.
+[[cutscenes]]
+id = "found"
+duration = 7
+flicker = [ [ 0, 0.8 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ -3, 3.4, 5.8 ]
+look = [ 0.6, 0.9, 3.6 ]
+cut = true
+lens = 20
+
+[[cutscenes.camera]]
+t = 4.2
+pos = [ -3, 3.4, 5.8 ]
+look = [ 0.6, 0.9, 3.6 ]
+lens = 25
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 4.5
+pos = [ -1, 2.6, -1.6 ]
+look = [ -3.25, 0.75, 0.7 ]
+cut = true
+lens = 21
+
+[[cutscenes.camera]]
+t = 7
+pos = [ -1, 2.6, -1.6 ]
+look = [ -3.25, 0.8, 0.7 ]
+lens = 23
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = 0.6
+z = 3.6
+facing = -2.593043251139265
+y = 0.05
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.6
+x = 0.6
+z = 3.6
+facing = -2.593043251139265
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.7
+x = 0.6
+z = 3.6
+facing = -2.593043251139265
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.2
+x = 0.6
+z = 3.6
+facing = -2.593043251139265
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.5
+x = -3.25
+z = 0.7
+facing = 2.3671830588750784
+pose = "sit"
+cut = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 7
+x = -3.25
+z = 0.7
+facing = 2.3671830588750784
+pose = "sit"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 0.13069499149142244
+z = 2.832046349713237
+alpha = 1
+facing = 0.548549402450528
+pose = "pulse"
+frame = 1
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0.8
+x = 0.13069499149142244
+z = 2.832046349713237
+facing = 0.548549402450528
+pose = "pulse"
+frame = 3
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 4.2
+x = 0.13069499149142244
+z = 2.832046349713237
+alpha = 1
+facing = 0.548549402450528
+pose = "pulse"
+frame = 3
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 4.5
+x = 0
+z = -6.1
+alpha = 0
+cut = true
+
+[[cutscenes.caption]]
+t = 0
+until = 7
+line = "prologue.cutscene.found.1"
+speaker = "ada"
+
+[[cutscenes.fade]]
+t = 0
+value = 0
+
+[[cutscenes.fade]]
+t = 3.85
+value = 0
+
+[[cutscenes.fade]]
+t = 4.2
+value = 1
+
+[[cutscenes.fade]]
+t = 4.5
+value = 1
+
+[[cutscenes.fade]]
+t = 5.1000000000000005
+value = 0
+
+[[cutscenes.fade]]
+t = 6.3
+value = 0
+
+[[cutscenes.fade]]
+t = 7
+value = 1
+
+[[cutscenes]]
+id = "keypad"
+duration = 3
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 2.95, 1.85, 3.25 ]
+look = [ 4.7, 1.4, 3.4 ]
+cut = true
+lens = 26
+
+[[cutscenes.camera]]
+t = 3
+pos = [ 3.2, 1.8, 3.3 ]
+look = [ 4.7, 1.4, 3.4 ]
+lens = 32
+ease = "out"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = 4.1
+z = 4.45
+facing = 2.356194490192345
+
+[[cutscenes.caption]]
+t = 0.3
+until = 3
+line = "prologue.cutscene.keypad.1"
+
+[[cutscenes.fade]]
+t = 0
+value = 1
+
+[[cutscenes.fade]]
+t = 0.3
+value = 0
+
+[[cutscenes.fade]]
+t = 2.7
+value = 0
+
+[[cutscenes.fade]]
+t = 3
+value = 1
+
+[[cutscenes.states]]
+t = 0.9
+state = "cabinet.open"
+
+[[cutscenes]]
+id = "lightsOut"
+duration = 16
+flicker = [ [ 0.7, 1 ], [ 6.6, 7 ], [ 12.1, 12.5 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 2, 3.4, -0.9 ]
+look = [ -2.9, 0.9, 0.7 ]
+cut = true
+lens = 22
+
+[[cutscenes.camera]]
+t = 3
+pos = [ 2, 3.4, -0.9 ]
+look = [ -2.9, 0.9, 0.7 ]
+lens = 23
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 3
+pos = [ -1.2, 1.5, -2.0999999999999996 ]
+look = [ -2.9, 1.1, 0.7 ]
+cut = true
+lens = 21
+
+[[cutscenes.camera]]
+t = 6.5
+pos = [ -1.2, 1.5, -2.0999999999999996 ]
+look = [ -2.9, 1.1, 0.7 ]
+lens = 21
+
+[[cutscenes.camera]]
+t = 6.5
+pos = [ 0, 1.7, 0.2 ]
+look = [ 0, 1.2, -6.1 ]
+cut = true
+lens = 40
+
+[[cutscenes.camera]]
+t = 7.6
+pos = [ 0, 1.7, 0.2 ]
+look = [ 0, 1.2, -6.1 ]
+lens = 41
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 7.6
+pos = [ -0.3684639018019329, 0.9, -1.5696530535568882 ]
+look = [ -2.9, 1.2, 0.7 ]
+cut = true
+lens = 22
+
+[[cutscenes.camera]]
+t = 9.4
+pos = [ -0.3684639018019329, 0.9, -1.5696530535568882 ]
+look = [ -2.9, 1.2, 0.7 ]
+lens = 23
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 9.4
+pos = [ 0, 1.75, -0.6 ]
+look = [ 0, 1.3, -5.8 ]
+cut = true
+lens = 28
+
+[[cutscenes.camera]]
+t = 13.6
+pos = [ 0, 1.75, -0.6 ]
+look = [ 0, 1.3, -5.8 ]
+lens = 34
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 13.6
+pos = [ -1.0999999999999999, 1.55, -2.2 ]
+look = [ -2.9, 1.1, 0.7 ]
+cut = true
+lens = 24
+
+[[cutscenes.camera]]
+t = 16
+pos = [ -1.0999999999999999, 1.55, -2.2 ]
+look = [ -2.9, 1, 0.7 ]
+lens = 21
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+cut = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.2
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.6
+x = -2.9
+z = 0.7
+facing = 2.356194490192345
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.5
+x = -2.9
+z = 0.7
+facing = 2.356194490192345
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.75
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 3
+x = -2.9
+z = 0.7
+facing = 0.7853981633974483
+
+[[cutscenes.actor]]
+who = "player"
+t = 3.9000000000000004
+x = -2.9
+z = 0.7
+facing = 0.7853981633974483
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.1499999999999995
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.5
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.6
+x = -2.9
+z = 0.7
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.739999999999999
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.6
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.25
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.3
+x = -2.9
+z = 1
+facing = 2.301703033951614
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.5
+x = -2.9
+z = 1
+facing = 2.301703033951614
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "player"
+t = 9.4
+x = -2.9
+z = 1
+facing = 2.301703033951614
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "player"
+t = 13.6
+x = -2.9
+z = 1
+facing = 2.301703033951614
+
+[[cutscenes.actor]]
+who = "player"
+t = 15.2
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 16
+x = -2.9
+z = 0.7
+facing = 2.301703033951614
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 0
+z = -6.1
+alpha = 0
+facing = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 6.85
+x = 0
+z = -6.1
+alpha = 0
+facing = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 7
+x = 0
+z = -6.1
+alpha = 1
+facing = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 10.6
+x = 0
+z = -6.1
+alpha = 1
+facing = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 12.8
+x = 0
+z = -5.4
+alpha = 1
+facing = 0
+moving = true
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 16
+x = 0
+z = -5.4
+alpha = 1
+facing = 0
+
+[[cutscenes.caption]]
+t = 0.8
+until = 6.5
+line = "prologue.cutscene.lightsOut.1"
+speaker = "ada"
+
+[[cutscenes.caption]]
+t = 7.8
+until = 13.6
+line = "prologue.cutscene.lightsOut.2"
+speaker = "ada"
+
+[[cutscenes.light]]
+t = 0
+lamp = "hallLamp"
+level = 1
+
+[[cutscenes.light]]
+t = 0
+lamp = "deskLamp"
+level = 1
+
+[[cutscenes.light]]
+t = 0
+lamp = "sconce"
+level = 1
+
+[[cutscenes.light]]
+t = 0
+lamp = "corridorLamp"
+level = 0.6
+
+[[cutscenes.light]]
+t = 0.95
+lamp = "hallLamp"
+level = 1
+
+[[cutscenes.light]]
+t = 0.95
+lamp = "deskLamp"
+level = 1
+
+[[cutscenes.light]]
+t = 0.95
+lamp = "sconce"
+level = 1
+
+[[cutscenes.light]]
+t = 0.95
+lamp = "corridorLamp"
+level = 0.6
+
+[[cutscenes.light]]
+t = 0
+lamp = "wardLamp"
+level = 1
+
+[[cutscenes.light]]
+t = 0.95
+lamp = "wardLamp"
+level = 1
+
+[[cutscenes.light]]
+t = 1.05
+lamp = "wardLamp"
+level = 0
+
+[[cutscenes.light]]
+t = 1.05
+lamp = "hallLamp"
+level = 0
+
+[[cutscenes.light]]
+t = 1.05
+lamp = "deskLamp"
+level = 0
+
+[[cutscenes.light]]
+t = 1.05
+lamp = "sconce"
+level = 0
+
+[[cutscenes.light]]
+t = 1.05
+lamp = "corridorLamp"
+level = 0
+
+[[cutscenes.sound]]
+t = 6.9
+kind = "sting"
+
+[[cutscenes.fade]]
+t = 0
+value = 1
+
+[[cutscenes.fade]]
+t = 0.5
+value = 0
+
+[[cutscenes.fade]]
+t = 15.5
+value = 0
+
+[[cutscenes.fade]]
+t = 16
+value = 1
+
+[[cutscenes.lintAllow]]
+rule = "hidden"
+reason = "the reaction shot looks toward the corridor: the figure stands behind its wall, off screen, as intended (C-G1 to confirm)"
+
+[[cutscenes]]
+id = "opening"
+duration = 17
+
+[[cutscenes.camera]]
+t = 0
+pos = [ -1.6, 4.3, 6.3 ]
+look = [ 0.9, 1.5, 1.6 ]
+lens = 22
+
+[[cutscenes.camera]]
+t = 4.6
+pos = [ -1.6, 4.3, 6.3 ]
+look = [ 0.9, 1.5, 1.6 ]
+lens = 25
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 4.6
+pos = [ 1.4, 1.95, 0.3 ]
+look = [ 0.6, 1.15, 3.6 ]
+cut = true
+lens = 21
+
+[[cutscenes.camera]]
+t = 11
+pos = [ 1.4, 1.95, 0.3 ]
+look = [ 0.6, 1.15, 3.6 ]
+lens = 24
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 11
+pos = [ 2.05, 1.95, 1.6 ]
+look = [ 3.3, 1.85, -0.86 ]
+cut = true
+lens = 32
+
+[[cutscenes.camera]]
+t = 13
+pos = [ 2.05, 1.95, 1.6 ]
+look = [ 3.3, 1.85, -0.86 ]
+lens = 35
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 13
+pos = [ 2, 1.9, 0.1 ]
+look = [ 0.6, 1.2, 3.6 ]
+cut = true
+lens = 25
+
+[[cutscenes.camera]]
+t = 15.9
+pos = [ 2, 1.9, 0.1 ]
+look = [ 0.6, 1.2, 3.6 ]
+lens = 27
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 15.9
+pos = [ 0, 9.399999999999999, 15.533635302821683 ]
+look = [ 0, 1.1, 1.1576136 ]
+cut = true
+lens = 40
+
+[[cutscenes.camera]]
+t = 17
+pos = [ 0, 9.399999999999999, 15.533635302821683 ]
+look = [ 0, 1.1, 1.1576136 ]
+lens = 50
+ease = "out"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.6
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 5
+x = 0.6
+z = 3.6
+facing = 3.9269908169872414
+
+[[cutscenes.actor]]
+who = "player"
+t = 5.8
+x = 0.6
+z = 3.6
+facing = 3.9269908169872414
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.05
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.3
+x = 0.6
+z = 3.6
+facing = 2.356194490192345
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.1
+x = 0.6
+z = 3.6
+facing = 2.356194490192345
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.35
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.6
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.8
+x = 0.6
+z = 3.6
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.9399999999999995
+x = 0.6
+z = 3.6
+facing = 2.5972258054002246
+
+[[cutscenes.actor]]
+who = "player"
+t = 13
+x = 0.6
+z = 3.6
+facing = 2.5972258054002246
+pose = "read"
+
+[[cutscenes.actor]]
+who = "player"
+t = 15.5
+x = 0.6
+z = 3.6
+facing = 2.5972258054002246
+pose = "read"
+
+[[cutscenes.actor]]
+who = "player"
+t = 15.6
+x = 0.6
+z = 3.6
+facing = 2.5972258054002246
+
+[[cutscenes.actor]]
+who = "player"
+t = 15.719999999999999
+x = 0.6
+z = 3.6
+facing = 1.7314838702668163
+
+[[cutscenes.actor]]
+who = "player"
+t = 15.84
+x = 0.6
+z = 3.6
+facing = 0.8657419351334081
+
+[[cutscenes.actor]]
+who = "player"
+t = 15.959999999999999
+x = 0.6
+z = 3.6
+facing = 0
+
+[[cutscenes.actor]]
+who = "player"
+t = 17
+x = 0.6
+z = 3.6
+facing = 0
+
+[[cutscenes.caption]]
+t = 0.8
+until = 3.8
+line = "prologue.cutscene.opening.1"
+
+[[cutscenes.caption]]
+t = 4.6
+until = 11.6
+line = "prologue.cutscene.opening.2"
+speaker = "ada"
+
+[[cutscenes.caption]]
+t = 11.7
+until = 15.6
+line = "prologue.cutscene.opening.3"
+speaker = "ada"
+
+[[cutscenes.fade]]
+t = 0
+value = 1
+
+[[cutscenes.fade]]
+t = 2
+value = 0
+
+[[cutscenes.fade]]
+t = 17
+value = 0
+
+[[cutscenes.lintAllow]]
+rule = "direction:unmotivated-move"
+reason = "the last move is the settle onto the hall camera: the handover to play (rule 75)"
+
+[[cutscenes]]
+id = "rest"
+duration = 16
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 0.4, 2.6, -0.6 ]
+look = [ -2.9, 1, 0.7 ]
+cut = true
+lens = 24
+
+[[cutscenes.camera]]
+t = 4.5
+pos = [ 0.1, 2.4, -0.4 ]
+look = [ -2.9, 1, 0.7 ]
+lens = 24
+ease = "out"
+
+[[cutscenes.camera]]
+t = 4.5
+pos = [ -2.75, 2.5, 3.3 ]
+look = [ -3.2, 0.9, 0.7 ]
+cut = true
+lens = 20
+
+[[cutscenes.camera]]
+t = 9
+pos = [ -2.75, 2.5, 3.3 ]
+look = [ -3.2, 0.9, 0.7 ]
+lens = 20
+
+[[cutscenes.camera]]
+t = 9
+pos = [ -1.1, 3, -1.9000000000000001 ]
+look = [ -3.2, 0.6, 0.7 ]
+cut = true
+lens = 22
+
+[[cutscenes.camera]]
+t = 13
+pos = [ -1.2000000000000002, 2.9, -1.8 ]
+look = [ -3.2, 0.6, 0.7 ]
+lens = 22
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 13
+pos = [ -0.3, 1.1, 0 ]
+look = [ -3.2, 0.75, 0.7 ]
+cut = true
+lens = 20
+
+[[cutscenes.camera]]
+t = 16
+pos = [ -0.35, 1.1, 0.1 ]
+look = [ -3.2, 0.75, 0.7 ]
+lens = 21
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -2.9
+z = 0.7
+facing = -1.5707963267948966
+cut = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.6
+x = -3.2
+z = 0.7
+facing = -1.5707963267948966
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 2
+x = -3.2
+z = 0.7
+facing = -1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.12
+x = -3.2
+z = 0.7
+facing = -0.7853981633974483
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.24
+x = -3.2
+z = 0.7
+facing = 0
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.36
+x = -3.2
+z = 0.7
+facing = 0.7853981633974483
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.48
+x = -3.2
+z = 0.7
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 3
+x = -3.2
+z = 0.7
+facing = 1.5707963267948966
+pose = "sit"
+
+[[cutscenes.actor]]
+who = "player"
+t = 12.9
+x = -3.2
+z = 0.7
+facing = 1.5707963267948966
+pose = "sit"
+
+[[cutscenes.actor]]
+who = "player"
+t = 13
+x = -4.1
+z = 0.7
+facing = 3.141592653589793
+pose = "sleep"
+y = 0.55
+cut = true
+through = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 16
+x = -4.1
+z = 0.7
+facing = 3.141592653589793
+pose = "sleep"
+y = 0.55
+through = true
+
+[[cutscenes.caption]]
+t = 2.5
+until = 8.1
+line = "prologue.cutscene.rest.1"
+speaker = "ada"
+
+[[cutscenes.caption]]
+t = 8.2
+until = 15.2
+line = "prologue.cutscene.rest.2"
+speaker = "ada"
+
+[[cutscenes.light]]
+t = 9
+lamp = "wardLamp"
+level = 0
+
+[[cutscenes.light]]
+t = 11
+lamp = "hallLamp"
+level = 0
+
+[[cutscenes.light]]
+t = 13
+lamp = "deskLamp"
+level = 0
+
+[[cutscenes.fade]]
+t = 0
+value = 1
+
+[[cutscenes.fade]]
+t = 0.6
+value = 0
+
+[[cutscenes.fade]]
+t = 14.6
+value = 0
+
+[[cutscenes.fade]]
+t = 16
+value = 1
+
+[[cutscenes.lintAllow]]
+rule = "direction:match-action"
+reason = "an ellipsis: the cut to the low shot skips her lying down, from the bed edge to asleep on the bed"

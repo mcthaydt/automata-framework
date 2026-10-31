@@ -11,7 +11,7 @@ import {
   type StepResult,
 } from '@mcthaydt/automata-sim'
 import { z } from 'zod'
-import { createNavPlugin, loadNavGraph, NavAgent } from '../sim/index'
+import { createNavPlugin, loadNavGraph, NavAgent, type NavOptions } from '../sim/index'
 import { clinicBlocked, clinicGraph, clinicMap } from './clinic'
 
 const Load = defineCommand('walk-game.load', z.strictObject({}))
@@ -28,12 +28,12 @@ const game = definePlugin({
   ],
 })
 
-export const createWalkGame = (): Promise<Sim> =>
+export const createWalkGame = (options: Pick<NavOptions, 'locked'> = {}): Promise<Sim> =>
   createSim({
     seed: 2026,
     plugins: [
       sectorsPlugin,
-      createNavPlugin({ blocked: (ctx, doors) => clinicBlocked(resolvedMap(ctx), doors) }),
+      createNavPlugin({ blocked: (ctx, doors) => clinicBlocked(resolvedMap(ctx), doors), ...options }),
       game,
     ],
   })

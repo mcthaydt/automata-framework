@@ -25,6 +25,22 @@ const game = async (): Promise<Sim> => {
   stepWith(sim, [load()])
   return sim
 }
+describe('the `locked` option', () => {
+  it('ignores a new walk-to while it holds, and takes it once it does not (a cutscene is playing)', async () => {
+    let locked = true
+    const sim = await createWalkGame({ locked: () => locked })
+    sims.push(sim)
+    stepWith(sim, [load()])
+    const walker = spawnWalker(sim, -3, 3)
+    stepWith(sim, [walkTo(walker, 0, -5)])
+    expect(at(sim, walker)).toEqual({ x: -3, z: 3 })
+    expect(sim.resource(NavRoutes)).toEqual({})
+    locked = false
+    stepWith(sim, [walkTo(walker, 0, -5)])
+    expect(at(sim, walker)).not.toEqual({ x: -3, z: 3 })
+  })
+})
+
 const named = (events: readonly SimEvent[], type: string) => events.filter((e) => e.type === type)
 
 /** Steps until `type` is emitted (or `limit` steps), and gives the events of every step on the way. */

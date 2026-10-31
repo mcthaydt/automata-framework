@@ -1,0 +1,1001 @@
+# The adventure source's clinic cutscenes (provenance: the framework's docs/provenance/sources.md), converted once
+# by packages/cutscenes/scripts/convert-adventure-cutscenes.ts, each evaluated in one context. Do not edit.
+[[cutscenes]]
+id = "caught"
+duration = 5.4
+flicker = [ [ 0, 1.5 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ -2.5395683271521654, 3.5999999999999996, 5.804226533525778 ]
+look = [ -1.6, 1, 1.4 ]
+lens = 24
+
+[[cutscenes.camera]]
+t = 2.6
+pos = [ 2.0943145505292975, 3.1999999999999997, -3.5615267258761087 ]
+look = [ 0, 1.3, -6.1 ]
+cut = true
+lens = 21
+
+[[cutscenes.camera]]
+t = 5.4
+pos = [ 2.0943145505292975, 3.1999999999999997, -3.5615267258761087 ]
+look = [ 0, 1.3, -6.1 ]
+lens = 22
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -1.6
+z = 1.4
+facing = 2.9314100669276235
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.6
+x = -1.6
+z = 1.4
+facing = 2.9314100669276235
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.7
+x = -1.6
+z = 1.4
+facing = 2.9314100669276235
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "player"
+t = 5.4
+x = -1.6
+z = 1.4
+facing = 2.9314100669276235
+shiver = 0.012
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 0
+z = -6.1
+alpha = 1
+facing = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 2.6
+x = 0
+z = -6.1
+alpha = 1
+facing = 6.073002720517417
+pose = "pulse"
+frame = 1
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 3.4
+x = 0
+z = -6.1
+facing = 6.073002720517417
+pose = "pulse"
+frame = 3
+
+[[cutscenes.caption]]
+t = 0
+until = 5.4
+line = "clinic.caught.nurse"
+speaker = "she found you."
+
+[[cutscenes.fade]]
+t = 0
+value = 0
+
+[[cutscenes.fade]]
+t = 4
+value = 0.2
+
+[[cutscenes.fade]]
+t = 5.4
+value = 1
+
+[[cutscenes]]
+id = "exit"
+duration = 7
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 0, 2.7, -2.4 ]
+look = [ 0, 1.2, -6.3 ]
+lens = 24
+
+[[cutscenes.camera]]
+t = 1.95
+pos = [ 0, 2.7, -2.4 ]
+look = [ 0, 1.2, -6.3 ]
+lens = 25
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 2
+pos = [ 0, 1.25, -1 ]
+look = [ 0, 1.15, -6.75 ]
+cut = true
+lens = 34
+
+[[cutscenes.camera]]
+t = 7
+pos = [ 0, 1.25, -1 ]
+look = [ 0, 1.15, -6.75 ]
+lens = 38
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -1.6
+z = 1.4
+facing = 3.141592653589793
+alpha = 1
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.6
+x = 0
+z = -6.4
+facing = 3.141592653589793
+moving = true
+alpha = 1
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.7
+x = 0
+z = -6.4
+facing = 3.141592653589793
+pose = "reach"
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.4
+x = 0
+z = -6.4
+facing = 3.141592653589793
+pose = "reach"
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.6
+x = 0
+z = -6.55
+facing = 3.141592653589793
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.65
+x = 0
+z = -6.55
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.77
+x = 0
+z = -6.55
+facing = 2.356194490192345
+
+[[cutscenes.actor]]
+who = "player"
+t = 1.89
+x = 0
+z = -6.55
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 6
+x = 0
+z = -6.55
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.05
+x = 0
+z = -6.55
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.17
+x = 0
+z = -6.55
+facing = 2.356194490192345
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.29
+x = 0
+z = -6.55
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.6
+x = 0
+z = -7.1
+facing = 3.141592653589793
+moving = true
+through = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.9
+x = 0
+z = -7.3
+facing = 3.141592653589793
+moving = true
+alpha = 0
+through = true
+
+[[cutscenes.caption]]
+t = 2
+until = 6
+line = "clinic.cutscene.exit.1"
+speaker = "ada"
+
+[[cutscenes.states]]
+t = 0
+state = "flatline"
+
+[[cutscenes.states]]
+t = 0.8
+state = "exitOpen"
+
+[[cutscenes]]
+id = "grapple"
+duration = 3.4
+shake = [ [ 0, 0.3, 0.02 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ -0.4375803268020067, 2.55, -3.891262021516393 ]
+look = [ 0, 1.25, -6.1 ]
+lens = 14
+
+[[cutscenes.camera]]
+t = 1
+pos = [ -0.4375803268020067, 2.55, -3.891262021516393 ]
+look = [ 0, 1.25, -6.1 ]
+lens = 15
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 1
+pos = [ -1.0981121622580043, 2.55, -0.795019042816409 ]
+look = [ -1.6, 1.25, 1.4 ]
+cut = true
+lens = 14
+
+[[cutscenes.camera]]
+t = 3.4
+pos = [ -1.0981121622580043, 2.55, -0.795019042816409 ]
+look = [ -1.6, 1.25, 1.4 ]
+lens = 15.5
+ease = "out"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -1.6
+z = 1.4
+facing = 2.9314100669276235
+pose = "thrust"
+
+[[cutscenes.actor]]
+who = "player"
+t = 3.4
+x = -1.6
+z = 1.4
+facing = 2.9314100669276235
+pose = "thrust"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 0
+z = -6.1
+alpha = 1
+facing = 6.073002720517417
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0.2
+x = 0
+z = -6.1
+alpha = 1
+facing = 6.073002720517417
+pose = "recoil"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 3.4
+x = 0
+z = -6.1
+alpha = 1
+facing = 6.073002720517417
+pose = "recoil"
+
+[[cutscenes.caption]]
+t = 1.1
+until = 3.32
+line = "clinic.cutscene.grapple.1"
+speaker = "ada"
+
+[[cutscenes]]
+id = "keypad"
+duration = 3
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 2.95, 1.85, 3.25 ]
+look = [ 4.7, 1.4, 3.4 ]
+lens = 26
+
+[[cutscenes.camera]]
+t = 3
+pos = [ 3.2, 1.8, 3.3 ]
+look = [ 4.7, 1.4, 3.4 ]
+lens = 32
+ease = "out"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = 4.1
+z = 4.45
+facing = 2.356194490192345
+
+[[cutscenes.caption]]
+t = 0.3
+until = 3
+line = "clinic.cutscene.keypad.1"
+
+[[cutscenes.fade]]
+t = 0
+value = 1
+
+[[cutscenes.fade]]
+t = 0.3
+value = 0
+
+[[cutscenes.fade]]
+t = 2.7
+value = 0
+
+[[cutscenes.fade]]
+t = 3
+value = 1
+
+[[cutscenes.states]]
+t = 0.9
+state = "cabinet.open"
+
+[[cutscenes]]
+id = "opening"
+duration = 23
+flicker = [ [ 8.6, 9.6 ], [ 11.8, 13 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 0.5, 3.6, -1 ]
+look = [ -2.6, 0.9, 1 ]
+lens = 24
+
+[[cutscenes.camera]]
+t = 4.35
+pos = [ 0.5, 3.6, -1 ]
+look = [ -2.6, 0.9, 1 ]
+lens = 26
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 4.4
+pos = [ -3.4022982521825353, 3.0499999999999994, 4.566036049312698 ]
+look = [ -1.7, 1, 1.45 ]
+cut = true
+lens = 22
+
+[[cutscenes.camera]]
+t = 7.05
+pos = [ -3.4022982521825353, 3.0499999999999994, 4.566036049312698 ]
+look = [ -1.7, 1, 1.45 ]
+lens = 24
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 7.1
+pos = [ -1.1286137123589728, 2.3, -1.441619816184436 ]
+look = [ -2.4, 1, -3.3 ]
+cut = true
+lens = 38
+
+[[cutscenes.camera]]
+t = 8.6
+pos = [ 0, 3.9999999999999996, -0.4038475772933676 ]
+look = [ 0, 1, -5.6 ]
+cut = true
+lens = 34
+
+[[cutscenes.camera]]
+t = 13.35
+pos = [ 0, 3.9999999999999996, -0.4038475772933676 ]
+look = [ 0, 1, -5.6 ]
+lens = 38
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 13.4
+pos = [ -0.2, 1.3, -1.1 ]
+look = [ -1.55, 0.95, 1.4 ]
+cut = true
+lens = 20
+
+[[cutscenes.camera]]
+t = 16.95
+pos = [ -0.2, 1.3, -1.1 ]
+look = [ -1.55, 0.95, 1.4 ]
+lens = 20.5
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 17
+pos = [ -0.2897280000000001, 9.399999999999999, 15.126021702821683 ]
+look = [ -0.2897280000000001, 1.1, 0.75 ]
+cut = true
+lens = 44
+
+[[cutscenes.camera]]
+t = 19
+pos = [ -0.2897280000000001, 9.399999999999999, 15.126021702821683 ]
+look = [ -0.2897280000000001, 1.1, 0.75 ]
+lens = 50
+ease = "out"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -1.7
+z = 1.45
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.4
+x = -1.7
+z = 1.45
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 4.6
+x = -1.7
+z = 1.45
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 5
+x = -1.7
+z = 1.45
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 5.4
+x = -1.7
+z = 1.45
+facing = 5.497787143782138
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.300000000000001
+x = -1.7
+z = 1.45
+facing = 5.497787143782138
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.550000000000001
+x = -1.7
+z = 1.45
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.800000000000001
+x = -1.7
+z = 1.45
+facing = 3.9269908169872414
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.7
+x = -1.7
+z = 1.45
+facing = 3.9269908169872414
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.95
+x = -1.7
+z = 1.45
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.5
+x = -1.7
+z = 1.45
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.6
+x = -1.7
+z = 1.45
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.719999999999999
+x = -1.7
+z = 1.45
+facing = 3.77580961579584
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.84
+x = -1.7
+z = 1.45
+facing = 2.83923025120699
+
+[[cutscenes.actor]]
+who = "player"
+t = 13.4
+x = -1.7
+z = 1.45
+facing = 2.83923025120699
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 13.9
+x = -1.7
+z = 1.45
+facing = 2.83923025120699
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 14
+x = -1.7
+z = 1.45
+facing = 2.83923025120699
+pose = "reach"
+
+[[cutscenes.actor]]
+who = "player"
+t = 16.8
+x = -1.7
+z = 1.45
+facing = 2.83923025120699
+pose = "reach"
+
+[[cutscenes.actor]]
+who = "player"
+t = 16.9
+x = -1.7
+z = 1.45
+facing = 2.83923025120699
+
+[[cutscenes.actor]]
+who = "player"
+t = 17
+x = -1.6
+z = 1.4
+facing = 3.141592653589793
+moving = true
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = -0.6
+z = -6.1
+alpha = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 8.6
+x = -0.6
+z = -6.1
+alpha = 0
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 9
+x = -0.6
+z = -6.1
+alpha = 0.85
+facing = 1.5707963267948966
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 12.4
+x = 1.05
+z = -6.1
+alpha = 0.85
+facing = 1.5707963267948966
+moving = true
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 12.9
+x = 1.15
+z = -6.1
+alpha = 0
+
+[[cutscenes.caption]]
+t = 1.2
+until = 4.2
+line = "clinic.cutscene.opening.1"
+
+[[cutscenes.caption]]
+t = 4.6
+until = 8.866666666666667
+line = "clinic.cutscene.opening.2"
+speaker = "ada"
+
+[[cutscenes.caption]]
+t = 9
+until = 12.733333333333334
+line = "clinic.cutscene.opening.3"
+speaker = "ada"
+
+[[cutscenes.caption]]
+t = 13.7
+until = 16.6
+line = "clinic.cutscene.opening.4"
+speaker = "ada"
+
+[[cutscenes.caption]]
+t = 17.2
+until = 22
+line = "clinic.cutscene.opening.5"
+
+[[cutscenes.fade]]
+t = 0
+value = 1
+
+[[cutscenes.fade]]
+t = 2.5
+value = 0
+
+[[cutscenes.fade]]
+t = 21.5
+value = 0
+
+[[cutscenes.fade]]
+t = 23
+value = 0.6
+
+[[cutscenes.states]]
+t = 0
+state = "flatline"
+
+[[cutscenes]]
+id = "power"
+duration = 9
+flicker = [ [ 0, 3 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 0.5, 2.95, -3 ]
+look = [ -1.3, 1.1, -4.1 ]
+lens = 17
+
+[[cutscenes.camera]]
+t = 2.95
+pos = [ 0.5, 2.95, -3 ]
+look = [ -1.3, 1.1, -4.1 ]
+lens = 18
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 3
+pos = [ 2.214261626401397, 3, -3.905223143495849 ]
+look = [ 0, 1.2, -6.1 ]
+cut = true
+lens = 21
+
+[[cutscenes.camera]]
+t = 9
+pos = [ 2.214261626401397, 3, -3.905223143495849 ]
+look = [ 0, 1.2, -6.1 ]
+lens = 22
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -1.6
+z = 1.4
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.8
+x = -0.85
+z = 1.4
+facing = 4.71238898038469
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.9
+x = -0.85
+z = 1.4
+facing = 4.71238898038469
+pose = "reach"
+
+[[cutscenes.actor]]
+who = "player"
+t = 3
+x = -0.85
+z = 1.4
+facing = 4.71238898038469
+pose = "reach"
+
+[[cutscenes.actor]]
+who = "player"
+t = 3.1
+x = -0.85
+z = 1.4
+facing = 4.71238898038469
+
+[[cutscenes.actor]]
+who = "player"
+t = 3.19
+x = -0.85
+z = 1.4
+facing = 3.8218995236561564
+
+[[cutscenes.actor]]
+who = "player"
+t = 3.2800000000000002
+x = -0.85
+z = 1.4
+facing = 2.931410066927623
+
+[[cutscenes.actor]]
+who = "player"
+t = 7.6
+x = -0.85
+z = 1.4
+facing = 2.9314100669276235
+
+[[cutscenes.actor]]
+who = "player"
+t = 8.6
+x = -1.6
+z = 1.4
+facing = 2.9314100669276235
+moving = true
+
+[[cutscenes.actor]]
+who = "player"
+t = 9
+x = -1.6
+z = 1.4
+facing = 2.9314100669276235
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 0
+z = -6.1
+alpha = 1
+facing = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 3.6
+x = 0
+z = -6.1
+alpha = 1
+facing = -0.21018258666216955
+pose = "idle"
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 5.8
+x = 0.08345538870820758
+z = -6.491197134569723
+alpha = 0
+facing = -0.21018258666216955
+
+[[cutscenes.caption]]
+t = 3.4
+until = 8.8
+line = "clinic.cutscene.power.1"
+speaker = "ada"
+
+[[cutscenes.sound]]
+t = 0
+kind = "power"
+
+[[cutscenes.states]]
+t = 3
+state = "power"
+
+[[cutscenes]]
+id = "shock"
+duration = 5.4
+flicker = [ [ 0, 1.5 ], [ 3.6, 3.9 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ 0.7482625659520457, 3.5999999999999996, 5.242611471557893 ]
+look = [ -1.6, 1, 1.4 ]
+lens = 24
+
+[[cutscenes.camera]]
+t = 2.6
+pos = [ 0.5, 2.9, -6.3 ]
+look = [ -1.2, 0.6, -4 ]
+cut = true
+lens = 22
+
+[[cutscenes.camera]]
+t = 5.4
+pos = [ 0.5, 2.9, -6.3 ]
+look = [ -1.2, 0.6, -4 ]
+lens = 23
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -1.6
+z = 1.4
+facing = 3.141592653589793
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 2.5
+x = -1.6
+z = 1.4
+facing = 3.141592653589793
+pose = "flinch"
+frame = 3
+
+[[cutscenes.caption]]
+t = 0.6
+until = 5.4
+line = "clinic.caught.shock"
+speaker = "the water was live."
+
+[[cutscenes.fade]]
+t = 0
+value = 0
+
+[[cutscenes.fade]]
+t = 4
+value = 0.2
+
+[[cutscenes.fade]]
+t = 5.4
+value = 1
+
+[[cutscenes]]
+id = "sighting"
+duration = 6.5
+flicker = [ [ 0, 1.2 ], [ 4.5, 5.2 ] ]
+
+[[cutscenes.camera]]
+t = 0
+pos = [ -2.674897626461458, 2.9999999999999996, -2.074851808729047 ]
+look = [ -1.6, 0.9, 1.4 ]
+lens = 24
+
+[[cutscenes.camera]]
+t = 2.55
+pos = [ -2.674897626461458, 2.9999999999999996, -2.074851808729047 ]
+look = [ -1.6, 0.9, 1.4 ]
+lens = 26
+ease = "linear"
+
+[[cutscenes.camera]]
+t = 2.6
+pos = [ -0.8, 1.55, 1.0499999999999998 ]
+look = [ 0, 1.25, -6.1 ]
+cut = true
+lens = 23.5
+
+[[cutscenes.camera]]
+t = 6.5
+pos = [ -0.8, 1.55, 1.0499999999999998 ]
+look = [ 0, 1.25, -6.1 ]
+lens = 24.5
+ease = "linear"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0
+x = -1.6
+z = 1.4
+facing = 3.141592653589793
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.6
+x = -1.6
+z = 1.4
+facing = 3.141592653589793
+pose = "flinch"
+
+[[cutscenes.actor]]
+who = "player"
+t = 0.7
+x = -1.6
+z = 1.4
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "player"
+t = 6.5
+x = -1.6
+z = 1.4
+facing = 3.141592653589793
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 0
+x = 0
+z = -6.1
+alpha = 0
+facing = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 1.2
+x = 0
+z = -6.1
+alpha = 1
+facing = 0
+
+[[cutscenes.actor]]
+who = "nurse"
+t = 6.5
+x = 0
+z = -5.6
+alpha = 1
+facing = 0
+moving = true
+
+[[cutscenes.caption]]
+t = 1.4
+until = 6.3
+line = "clinic.cutscene.sighting.1"
+speaker = "ada"
+
+[[cutscenes.sound]]
+t = 0
+kind = "sting"
