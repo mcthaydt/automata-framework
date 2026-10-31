@@ -39,6 +39,10 @@ proves the generic areas still name no profile.
   list fixture's header comment: the suite's sample drops its stage file (the 2D editor no longer opens that format).
   Renaming the fixture and the sample constant is STANDALONE.2's.
 
+- `docs/design/editor-2d/` (added after the predecessor's final handoff): delete the profile's mockup screens
+  (`screens-<profile>.mjs`) and their gallery section; Home drops the stage project and template; the README and the
+  notes stop describing the profile. Review images in `docs/evidence/owner-visual/2026-10-31-standalone-3/`.
+
 **Consumed/produced interfaces:** none change. `Profile`, `ProfileRegistry`, `createAppProfiles()` and the suite's
 `samplePorts()` keep their shapes; the sample map loses one entry.
 
@@ -55,6 +59,9 @@ proves the generic areas still name no profile.
 - [x] 6. Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`; parity for editor-2d and editor-suite (`test:parity`,
   three browsers) since their tests changed; `grep -rni` for the profile's name in `packages/editor-2d` and the suite's
   sample returns nothing.
+
+- [x] 7. Mockups: the profile's screens and Home entries removed; `node build.mjs list` gives 13 screens and
+  `node build.mjs gallery` builds; before and after images of Home and the Kit are committed with a README.
 
 ## Gates
 
@@ -75,3 +82,6 @@ proves the generic areas still name no profile.
 - 2026-10-31, step 6: `pnpm format` clean; `TURBO_FORCE=true pnpm check` exit 0 (35/35 tasks, 0 cached);
   editor-2d `test:parity` 21 files, 582 tests pass; editor-suite `test:parity` 9 files, 219 tests pass. A grep for the
   profile's name in `packages/editor-2d` finds nothing.
+- 2026-10-31, step 7 (scope added from the predecessor's final handoff): the eight profile mockups are deleted;
+  `build.mjs list` gives 13 screens; the gallery builds. The kit sheet's layered-scene parts still use stage data
+  (follow-up), and so does the Figma file's profile page (the Owner's file, not edited here).
