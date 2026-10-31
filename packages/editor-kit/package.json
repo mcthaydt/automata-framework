@@ -20,6 +20,7 @@
     "./ports": "./src/ports/index.ts",
     "./ports/testing": "./src/ports/testing/index.ts",
     "./testing": "./src/testing/index.ts",
+    "./journey-project": "./src/testing/journey-project.ts",
     "./tokens.css": "./src/tokens.css",
     "./fonts.css": "./src/fonts.css"
   },
@@ -28,6 +29,7 @@
     "test:unit": "vitest run --project unit",
     "test:layout": "vitest run --project layout",
     "test:parity": "vitest run --project layout",
+    "test:journeys": "vitest run --project journeys",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
     "tokens": "node scripts/generate-tokens.ts"
   },

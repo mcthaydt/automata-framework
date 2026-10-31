@@ -2,8 +2,8 @@
 // `throughWall` (src/game/nav.ts at 92e6704) on the same inputs; the shipped blockouts are compared with what that
 // code answered (the golden) and checked with the nav cases of Last Light's tests/scenes.test.ts.
 import { describe, expect, it } from 'vitest'
-import type { Box, SectorDef } from '../format/expand'
-import type { Point } from '../format/sector.schema'
+import type { Box } from '../format/expand'
+import type { Point, SectorDef } from '../format/sector.schema'
 import { BLOCKOUT_NAMES, expandedBlockout, loadGeometryGolden, navShape } from '../testing/geometry-golden'
 import { room, square } from '../testing/toy-sectors'
 import {

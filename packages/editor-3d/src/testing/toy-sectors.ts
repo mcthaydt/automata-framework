@@ -1,5 +1,5 @@
 // Small rooms for the geometry tests' toy cases.
-import type { Corner, SectorDef } from '../format/expand'
+import type { Corner, SectorDef } from '../format/sector.schema'
 
 /** The corners of an axis-aligned rectangle, counter-clockwise on the plan. */
 export const square = (x0: number, z0: number, x1: number, z1: number): Corner[] => [

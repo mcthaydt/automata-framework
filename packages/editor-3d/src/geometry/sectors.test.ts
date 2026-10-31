@@ -2,8 +2,8 @@
 // 92e6704) on the same inputs; the shipped blockouts are compared with what that code made of them (the golden) and
 // checked with the geometry cases of Last Light's tests/scenes.test.ts.
 import { describe, expect, it } from 'vitest'
-import type { Corner } from '../format/expand'
-import type { Point } from '../format/sector.schema'
+import type { Corner, Point } from '../format/sector.schema'
+import { DEFAULT_TRIM, WALL_THICK } from '../format/sector.schema'
 import {
   BLOCKOUT_NAMES,
   expandedBlockout,
@@ -14,7 +14,6 @@ import {
 import { room, square } from '../testing/toy-sectors'
 import {
   crossing,
-  DEFAULT_TRIM,
   edges,
   floorAt,
   insideSector,
@@ -24,7 +23,6 @@ import {
   type Sector,
   sectorAt,
   segmentDistance,
-  WALL_THICK,
 } from './sectors'
 
 const at = <T>(items: readonly T[], index: number): T => items[index] as T

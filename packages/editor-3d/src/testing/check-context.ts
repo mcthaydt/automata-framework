@@ -2,8 +2,7 @@
 // straight from the expanded edge. (The real locator, which maps an edge back to the document's corner, is the
 // `wallLocator`.)
 import { type GeometryContext, type Locator, wallSelection } from '../checks/check'
-import type { SectorDef } from '../format/expand'
-import type { MassDef } from '../format/sector.schema'
+import type { MassDef, SectorDef } from '../format/sector.schema'
 import { type Edge, resolveMap } from '../geometry/sectors'
 
 export const plainWall = (edge: Edge): Locator => ({

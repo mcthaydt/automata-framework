@@ -1,7 +1,7 @@
 // The `materials` check (ED3D.2b-2): every material a level names is in the profile's list. Seeded over small rooms,
 // then held to the shipped files with the game's own list.
 import { describe, expect, it } from 'vitest'
-import type { SectorDef } from '../format/expand'
+import type { SectorDef } from '../format/sector.schema'
 import { TRIM_PIECES, type WallDef } from '../format/sector.schema'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { lastLightProfile } from '../profile/last-light-profile'

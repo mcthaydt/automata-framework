@@ -2,7 +2,7 @@
 // `build`). It is Last Light's `roomSector` without presets, camera zones or openings: a named style lies under the
 // sector's own fields, and the sector's other members are the file's, not the engine's.
 import type { AfCorner, AfSector, AfSectorEntry } from '../../format/af-sector.schema'
-import type { Corner, SectorDef } from '../../format/expand'
+import type { Corner, SectorDef } from '../../format/sector.schema'
 
 /** The level cannot be built: a sector names a style the file does not have. */
 export class AfBuildError extends Error {}

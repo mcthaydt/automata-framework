@@ -1,7 +1,7 @@
 // The `af-sector/1` schema (ED3D spec §4.6, the exact shape in the ED3D.1b plan): a pure validator over the sector
 // vocabulary Last Light proved, without its camera zones, nav graph, openings or exports. It adds no defaults, changes
 // nothing, and keeps a member it does not know.
-import { OCCLUDES as OWNER_OCCLUDES } from '@mcthaydt/automata-render-pixi3d/camera-view'
+import { OCCLUDES as OWNER_OCCLUDES } from '@mcthaydt/automata-sector-format'
 import { describe, expect, it } from 'vitest'
 import { AF_SECTOR_FORMAT, afFormatVersion, afSectorSchema } from './af-sector.schema'
 import { OCCLUDES } from './sector.schema'
@@ -109,7 +109,7 @@ describe('the af-sector schema', () => {
       expect(OCCLUDES).toEqual(['cut', 'fade', 'never'])
     })
 
-    it('takes the list from render-pixi3d’s camera-view, its one owner (M3.4c)', () => {
+    it('takes the list from the sector format, its one owner (M6-D17)', () => {
       expect(OCCLUDES).toBe(OWNER_OCCLUDES)
     })
 
