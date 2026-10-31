@@ -1,23 +1,19 @@
 // The recorded fixture game of the Studio's tests (EDS.9a): Wick, four poses, three clips and what they use, copied from
 // base-3d's content, over memory ports whose editor list gives every file to the `studio` editor, writable.
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import type { SuitePorts, UnlistedFile, WorkspaceFile } from '@mcthaydt/automata-editor-kit/ports'
 import { createMemoryPorts } from '@mcthaydt/automata-editor-kit/ports/testing'
 
-const ROOT = new URL('./fixtures/studio/', import.meta.url).pathname
+// The fixture files as Vite hands them over (the same in Node, jsdom and a browser), keyed by their path under `content/`.
+const raw = import.meta.glob('./fixtures/studio/content/**/*.toml', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>
 
 export function studioFixtureFiles(): Record<string, string> {
-  const found: Record<string, string> = {}
-  const walk = (dir: string): void => {
-    for (const entry of readdirSync(join(ROOT, dir), { withFileTypes: true })) {
-      const path = `${dir}/${entry.name}`
-      if (entry.isDirectory()) walk(path)
-      else found[path] = readFileSync(join(ROOT, path), 'utf8')
-    }
-  }
-  walk('content')
-  return found
+  return Object.fromEntries(
+    Object.entries(raw).map(([path, text]) => [path.replace('./fixtures/studio/', ''), text]),
+  )
 }
 
 const classify = (path: string): WorkspaceFile | UnlistedFile => ({

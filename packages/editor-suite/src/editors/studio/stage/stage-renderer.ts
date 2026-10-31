@@ -62,9 +62,16 @@ async function webgl2(
   return undefined
 }
 
+interface Drawing {
+  readonly container: unknown
+  update(curr: unknown, prev: unknown, alpha: number): void
+  destroy(): void
+}
+
 export const createStageRenderer: StageRendererFactory = async (canvas, size, background) => {
-  const renderer = await webgl2(canvas, size, background)
-  if (renderer === undefined) return undefined
+  const made = await webgl2(canvas, size, background)
+  if (made === undefined) return undefined
+  const renderer: Renderer = made
   const stage = new Container()
   const view = new View3D({ width: size.w, height: size.h, toneMapping: 'none' })
   stage.addChild(view)
@@ -112,7 +119,7 @@ export const createStageRenderer: StageRendererFactory = async (canvas, size, ba
         const factory = figure(def, { library, motion, state: () => state, now: () => time, warn: () => {} })
         const row = { sid: 1, components: components() }
         // The figure view reads its place from the row's `model` component; the library of models is not used.
-        drawing = factory(row as never, 'model', {} as never) as typeof drawing
+        drawing = factory(row as never, 'model', {} as never) as unknown as Drawing | undefined
         if (drawing !== undefined) view.root.addChild(drawing.container as never)
       }
       render()

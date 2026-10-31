@@ -11,6 +11,7 @@ import {
   handleEdit,
   moveKey,
   removeCue,
+  removeHandle,
   removeKey,
   removeMarker,
   setKeyEase,
@@ -33,6 +34,8 @@ export interface StudioController {
   readonly view: StudioView
   /** The sentence for the last refused action; cleared by the next. */
   readonly refusal: Readable<string | undefined>
+  /** Moves after every step, Undo and Redo: what a component re-reads `content()` on. */
+  readonly revision: Readable<number>
   content(): StudioContent
   undo(): Promise<StudioOutcome>
   redo(): Promise<StudioOutcome>
@@ -46,6 +49,9 @@ export interface StudioController {
   // pose
   dragHandle(handle: EffectorId, position: Vec3): void
   dropHandle(handle: EffectorId, position: Vec3): Promise<StudioOutcome>
+  /** A turn of the chest or the head, in degrees. */
+  setHandleTurn(handle: EffectorId, rot: Vec3): Promise<StudioOutcome>
+  removeHandle(handle: EffectorId): Promise<StudioOutcome>
   cancelDrag(): void
   addPose(id: string): Promise<StudioOutcome>
   // animate
@@ -77,7 +83,11 @@ export async function createStudioController(ports: SuitePorts): Promise<StudioC
   const session = await openStudio(ports)
   const view = createStudioView(session.content())
   const refusal = writable<string | undefined>(undefined)
-  session.history.subscribe(() => view.reconcile(session.content()))
+  const revision = writable(0)
+  session.history.subscribe(() => {
+    view.reconcile(session.content())
+    revision.update((count) => count + 1)
+  })
   const content = (): StudioContent => session.content()
 
   const say = (outcome: StudioOutcome): StudioOutcome => {
@@ -127,6 +137,7 @@ export async function createStudioController(ports: SuitePorts): Promise<StudioC
     session,
     view,
     refusal: { subscribe: refusal.subscribe },
+    revision: { subscribe: revision.subscribe },
     content,
     undo: () => travel(true),
     redo: () => travel(false),
@@ -156,6 +167,16 @@ export async function createStudioController(ports: SuitePorts): Promise<StudioC
       view.setLive(undefined)
       if (entry?.value === undefined) return say(no('no pose is chosen'))
       return run(entry, handleEdit(entry.value, handle, 'pos', position), `Move ${handle} of ${entry.id}`)
+    },
+    async setHandleTurn(handle, rot) {
+      const entry = pose()
+      if (entry?.value === undefined) return say(no('no pose is chosen'))
+      return run(entry, handleEdit(entry.value, handle, 'rot', rot), `Turn ${handle} of ${entry.id}`)
+    },
+    async removeHandle(handle) {
+      const entry = pose()
+      if (entry?.value === undefined) return say(no('no pose is chosen'))
+      return run(entry, removeHandle(entry.value, handle), `Remove ${handle} of ${entry.id}`)
     },
     cancelDrag: () => view.setLive(undefined),
     async addPose(id) {

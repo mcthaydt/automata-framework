@@ -130,3 +130,19 @@ describe('animate', () => {
     ])
   })
 })
+
+describe('pose handles beyond a drag', () => {
+  it('turns the chest and removes a handle, each one step', async () => {
+    const studio = await open()
+    studio.view.select('pose', 'stand')
+    expect(await studio.setHandleTurn('chest', [6, 0, 0])).toEqual({ ok: true })
+    expect(studio.content().poses.find((entry) => entry.id === 'stand')?.value?.effectors.chest?.rot).toEqual(
+      [6, 0, 0],
+    )
+    expect(await studio.removeHandle('chest')).toEqual({ ok: true })
+    expect(
+      studio.content().poses.find((entry) => entry.id === 'stand')?.value?.effectors.chest,
+    ).toBeUndefined()
+    expect(studio.session.history.undoLabel).toBe('Remove chest of stand')
+  })
+})

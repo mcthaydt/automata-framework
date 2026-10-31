@@ -234,9 +234,12 @@ export function handlesOf(content: StudioContent, view: StudioViewState): Handle
   return HANDLE_JOINTS.map(([id, joint]) => {
     const world = evaluated.world[J[joint]]
     const reach = evaluated.report.reached[id]
+    // A handle the pose sets stands at its target (that is what a drag moves; amber says the body fell short of it);
+    // one it does not set stands where the body is.
+    const target = (pose?.effectors[id] as { pos?: Vec3 } | undefined)?.pos
     return {
       id,
-      position: [world?.[9] ?? 0, world?.[10] ?? 0, world?.[11] ?? 0] as const,
+      position: target ?? ([world?.[9] ?? 0, world?.[10] ?? 0, world?.[11] ?? 0] as const),
       set: pose?.effectors[id] !== undefined,
       reached: reach?.ok ?? true,
       error: reach === undefined || reach.ok ? 0 : reach.error,
