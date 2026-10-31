@@ -17,7 +17,7 @@ const built: Readonly<Record<string, Component<ViewProps>>> = {
   TilesetsView,
 }
 
-/** The views the registered profiles bring (`app/profiles.ts`), looked up after the editor's own. */
+/** The views the registered profiles bring (`app/profile-views.ts`), looked up after the editor's own. */
 const fromProfiles = profileViews()
 
 export function componentOf(name: string): Component<ViewProps> {

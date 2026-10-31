@@ -12,9 +12,7 @@ import { packTile } from '../../model/cells-codec'
 import { counterIds } from '../../model/ids'
 import type { Project } from '../../model/project-types'
 import { moveLayer } from '../../profiles/floorfifty-stage/commands/layer-edits'
-import { floorFiftyStage } from '../../profiles/floorfifty-stage/floorfifty-stage'
 import type { StageDocument } from '../../profiles/floorfifty-stage/stage-document'
-import type { ProfileRegistry } from '../../profiles/profile'
 import FakeLevelCanvas from '../../testing/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '../../testing/memory-workspace'
 import { entity, withDefs, withEntities, withLayer } from '../../testing/project-edit'
@@ -31,17 +29,10 @@ const quietPage = (): { document: LifecycleDocument; window: LifecycleWindow } =
   window: { addEventListener: () => {}, removeEventListener: () => {} },
 })
 
-/** The app's profiles plus the FloorFifty extension, as a game that installs it registers them. */
-function profiles(): ProfileRegistry {
-  const registry = createAppProfiles()
-  registry.register(floorFiftyStage)
-  return registry
-}
-
 async function mount(profile: string, template: string, seed: (value: never) => unknown) {
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
-  const app = createEditorApp({ workspace, registry: profiles(), ids: counterIds(), clock })
+  const app = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
   const opened = await app.create(profile, template)
   if (opened.status !== 'opened') throw new Error(opened.status)
   const history = opened.document.history as History<unknown>
