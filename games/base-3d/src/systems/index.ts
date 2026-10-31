@@ -14,7 +14,7 @@ export {
   viewAt,
   type World,
 } from './area.ts'
-export { type AreaIssue, checkWorld } from './area-check.ts'
+export { checkWorld } from './area-check.ts'
 export { areaExit } from './area-exit.ts'
 export { spawnFoes } from './area-foes.ts'
 export { combatFreeze, combatHits, combatMoves, combatStatus } from './combat.ts'
