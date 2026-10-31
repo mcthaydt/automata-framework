@@ -654,3 +654,35 @@ test('a share link with no compile worker runs the original', async ({ page }) =
   await expect(page.locator('.playground-status')).toHaveText('Live updates are unavailable in this browser. Play still runs the original.', { timeout: 10_000 })
   await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
 })
+
+// WEB.PLAY.10 (spec §13, F6, A-10): the determinism row says only what this browser checked.
+const row = (page: Page) => page.locator('.determinism-row')
+
+test('the unedited original replays its golden in this browser, and the row names the hash and the framework', async ({ page }) => {
+  const watch = watchPage(page, ORIGIN)
+  await page.goto('/examples/shapes-rects')
+  await expect(row(page)).toHaveText(/^Determinism: these 120 ticks replay in this browser to the golden recorded in the framework \(examples\/__goldens__\/shapes-rects\.replay, framework [0-9a-f]{7}\)\. Hash [0-9a-f]{16}\.$/, { timeout: 20_000 })
+  await expect(row(page)).not.toHaveAttribute('role', 'alert')
+  // Computed at runtime: the hash is in none of the site's sources.
+  const hash = (await row(page).textContent())!.match(/Hash ([0-9a-f]{16})/)![1]!
+  const holders = readdirSync('src', { recursive: true, encoding: 'utf8' }).filter(file => /\.(ts|svelte|json|js)$/.test(file) && readFileSync(join('src', file), 'utf8').includes(hash))
+  expect(holders).toEqual([])
+  expect(watch.problems).toEqual([])
+})
+
+test('an edit hashes its own run and claims no golden', async ({ page }) => {
+  const watch = watchPage(page, ORIGIN)
+  await page.goto('/examples/shapes-rects')
+  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(root(page)).toHaveAttribute('data-run-id', '2', { timeout: 10_000 })
+  await expect(row(page)).toHaveText(/^Your edit: 120 ticks hash to [0-9a-f]{16} in this browser\. The golden belongs to the original code; agreement across engines is checked in the framework's CI\.$/, { timeout: 20_000 })
+  expect(watch.problems).toEqual([])
+})
+
+test('an example with no golden shows no determinism row', async ({ page }) => {
+  await page.goto('/examples/core-basic-window')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  await page.waitForTimeout(1_000)
+  await expect(row(page)).toHaveCount(0)
+})
