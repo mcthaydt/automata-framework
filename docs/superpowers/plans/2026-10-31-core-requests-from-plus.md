@@ -24,7 +24,7 @@
   step, `StepResult.tick`) and the step's events, in the same place and under the same condition as `sim.events` (events non-empty).
 - Test first: `packages/runtime/src/loop/app-loop.test.ts` or a new `frame-loop.test.ts`: a step that emits events publishes `sim.step`
   with the step's tick and events once, in order after `sim.events`; a step with no events publishes neither.
-- A changeset (`@mcthaydt/automata-runtime`, minor); `pnpm api-report --update`, `pnpm agent-skills --write`, `pnpm cheatsheet` if stale.
+- A changeset (`@mcthaydt/automata-runtime`, patch: before 1.0 every changeset is a patch); `pnpm api-report --update`, `pnpm agent-skills --write`, `pnpm cheatsheet` if stale.
 
 ## FR.3: `automata build --debug` and its constant
 
