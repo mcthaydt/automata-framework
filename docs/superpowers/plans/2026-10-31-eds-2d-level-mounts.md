@@ -3,7 +3,7 @@
 - **Task:** EDS.2d in [02](../../02-master-delivery-plan.md). [Editor suite spec](../specs/2026-10-30-editor-suite-design.md) §4.1 (`SuiteEditor`), §4.7 (how the level editors mount), EDS-D12 (the suite owns the one `EditorShell`; sessions outlive their views), §10 (sizes and input), §12 (layout contract, tablet journeys), §13 EDS-k (switch and return keeps selection and undo).
 - **Lane:** editor-suite. **Depends on:** EDS.2a (suite app, merged), ED2D.4c4b (Level view with inspector and dock, merged), ED3D.5f (merged). **Unblocks:** EDS.1d-b's `automata editor --editor levels-2d|levels-3d`, EDS.4a's switch journeys.
 - **Status:** drafted 2026-10-31 on `claude/eds-2d-level-mounts` from `origin/main` a48b2c78. Owner, 2026-10-30: "Auto accept all spec and plans"; this plan is accepted once its review is done.
-- **Progress:** 0 of 8 steps.
+- **Progress:** 1 of 8 steps.
 
 ## Scope
 
@@ -53,7 +53,7 @@ export const levels3d: SuiteEditor<Levels3dSession>;
 
 ## Steps
 
-1. [ ] **2D session.** `levels-2d.suite.test.ts` (Node): `open` over a memory workspace reads the platformer project into an `open` session whose `level.editor.view.level` is `level-1`; a broken file gives `{ kind: 'error' }` and does not reject; `undo(session)` reports `canUndo` false, then true with "Undo Paint" after a stroke through `level.editor`, and `undo()` takes it back; a step writes through `ports.workspace.write` (the fake records it).
+1. [x] **2D session.** `levels-2d.suite.test.ts` (Node): `open` over a memory workspace reads the platformer project into an `open` session whose `level.editor.view.level` is `level-1`; a broken file gives `{ kind: 'error' }` and does not reject; `undo(session)` reports `canUndo` false, then true with "Undo Paint" after a stroke through `level.editor`, and `undo()` takes it back; a step writes through `ports.workspace.write` (the fake records it).
 2. [ ] **2D regions split.** Move the Level view's panel, canvas, inspector and dock into components that take a `LevelSession`; `LevelView` composes them. Every existing `app/level/*.dom.test.ts` and `level-view.layout.test.ts` stays green unchanged (the evidence the split changed nothing).
 3. [ ] **2D in the suite.** `levels-2d.suite.dom.test.ts`: mounted in `Suite` with the fixture editor beside it, Levels shows the layer list and the stand-in canvas inside the suite's single shell (one top bar); selecting an instance, switching to Tuner and back keeps it selected (EDS-k, 2D half).
 4. [ ] **3D session.** `levels-3d.suite.test.ts`: `open` over a sector fixture gives a session over `OpenLevel`; a bad file is a state; `undo` and `ask` adapt the level editor's history and patched document (accept applies one step).
@@ -69,3 +69,4 @@ export const levels3d: SuiteEditor<Levels3dSession>;
 ## Execution log
 
 - 2026-10-31: plan drafted from the suite spec §4.1, §4.7, EDS-D12, EDS-k, 02's row, `editor-kit/src/ports/suite-editor.ts`, `editor-suite/src/shell/{Suite.svelte, suite-entries.ts}` (sessions kept in a `SvelteMap` per editor id for the app's life; the Levels entry already names `levels-2d` and `levels-3d`), `editor-suite/src/testing/fixture-editor.ts` (the shape a session-backed editor takes), `editor-2d/src/app/level/{LevelView.svelte, level-session.ts}` (the session is made inside the component today) and `editor-3d/src/{app/open-level.ts, ui/document/DocumentFrame.svelte}`.
+- 2026-10-31, step 1: `suite/levels-2d-session.ts` (`openLevels2d`, `levels2dUndo`) and its Node test. Red first: the test failed with "Cannot find module './levels-2d-session'". Green: 4 of 4. Deviations: the test's first stroke lands on the platformer's entity layer, so its label is "Place entity", not "Undo Paint"; the session is plain TypeScript in `levels-2d-session.ts` and the `SuiteEditor` (which carries Svelte snippets) is a separate file, because the `unit` project has no Svelte plugin; `ids` come from the caller (`openLevels2d(files, ports, { ids })`), so the suite entry is a factory (`createLevels2d`) rather than a bare `levels2d` constant.
