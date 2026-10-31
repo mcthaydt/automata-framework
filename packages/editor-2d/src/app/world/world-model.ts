@@ -118,3 +118,35 @@ export function copyLevelInput(project: Project, level: string): { id: string; n
 export function linksInto(project: Project, level: string): number {
   return projectLinks(project).filter((link) => link.to.level === level && link.from.level !== level).length
 }
+
+interface Box {
+  readonly x: number
+  readonly y: number
+  readonly w: number
+  readonly h: number
+}
+
+/**
+ * The part of the map no open drawer or sheet covers (plan ED2D.8b decision 2), in the map's own coordinates. `map` and
+ * `covers` are page rectangles. A cover as tall as the map is a drawer from the left or the right; one that reaches the
+ * map's bottom is a sheet; one that reaches its top is a bar. A cover that misses the map changes nothing.
+ */
+export function uncoveredArea(map: Box, covers: readonly Box[]): Box {
+  let left = 0
+  let right = map.w
+  let top = 0
+  let bottom = map.h
+  for (const cover of covers) {
+    const x0 = cover.x - map.x
+    const x1 = x0 + cover.w
+    const y0 = cover.y - map.y
+    const y1 = y0 + cover.h
+    if (x1 <= 0 || x0 >= map.w || y1 <= 0 || y0 >= map.h) continue
+    if (y0 <= 0 && y1 >= map.h) {
+      if (x0 <= 0) left = Math.max(left, x1)
+      else right = Math.min(right, x0)
+    } else if (y1 >= map.h) bottom = Math.min(bottom, y0)
+    else if (y0 <= 0) top = Math.max(top, y1)
+  }
+  return { x: left, y: top, w: Math.max(0, right - left), h: Math.max(0, bottom - top) }
+}

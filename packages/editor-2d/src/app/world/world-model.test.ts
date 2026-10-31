@@ -12,6 +12,7 @@ import {
   linksInto,
   newLevelInput,
   toWorld,
+  uncoveredArea,
   worldRects,
 } from './world-model'
 
@@ -122,5 +123,21 @@ describe('copyLevelInput and linksInto (Duplicate and Remove, plan ED2D.8a decis
     ])
     expect(linksInto(withWarp, 'inn')).toBe(1)
     expect(linksInto(p, 'map-1')).toBe(1)
+  })
+})
+
+describe('uncoveredArea (plan ED2D.8b decision 2)', () => {
+  const map = { x: 0, y: 100, w: 800, h: 1000 }
+  it('is the whole map when nothing covers it', () => {
+    expect(uncoveredArea(map, [])).toEqual({ x: 0, y: 0, w: 800, h: 1000 })
+  })
+  it('leaves out a drawer from the left or the right, and a sheet from the bottom, in map coordinates', () => {
+    expect(uncoveredArea(map, [{ x: 0, y: 50, w: 300, h: 1100 }])).toEqual({ x: 300, y: 0, w: 500, h: 1000 })
+    expect(uncoveredArea(map, [{ x: 500, y: 50, w: 400, h: 1100 }])).toEqual({ x: 0, y: 0, w: 500, h: 1000 })
+    expect(uncoveredArea(map, [{ x: 0, y: 700, w: 800, h: 500 }])).toEqual({ x: 0, y: 0, w: 800, h: 600 })
+  })
+  it('ignores a cover that misses the map, and never goes below nothing', () => {
+    expect(uncoveredArea(map, [{ x: 900, y: 0, w: 100, h: 100 }])).toEqual({ x: 0, y: 0, w: 800, h: 1000 })
+    expect(uncoveredArea(map, [{ x: -10, y: 0, w: 900, h: 2000 }]).w).toBe(0)
   })
 })

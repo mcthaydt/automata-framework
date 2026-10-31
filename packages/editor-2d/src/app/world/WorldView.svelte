@@ -20,7 +20,7 @@ import { createWorldCamera } from './world-camera'
 import { createWorldDrag } from './world-drag'
 import { worldGestures } from './world-gestures'
 import { worldLinks } from './world-links'
-import { fitWorld, levelAt, newLevelInput, worldRects } from './world-model'
+import { fitWorld, levelAt, newLevelInput, uncoveredArea, worldRects } from './world-model'
 
 const { geometry, document: opened, frame, services }: ViewProps = $props()
 
@@ -109,10 +109,51 @@ $effect(() => {
   return () => observer.disconnect()
 })
 
-// The camera follows the map's box: the first measure fits the levels, later ones keep the centre (plan ED2D.8a).
+const pageBox = (rect: DOMRect) => ({ x: rect.left, y: rect.top, w: rect.width, h: rect.height })
+
+/**
+ * The part of the map no open drawer or sheet covers (plan ED2D.8b decision 2); the whole map in wide, where nothing
+ * covers it, and before the map is in the page.
+ */
+function openArea(): ReturnType<typeof uncoveredArea> | undefined {
+  const element = map
+  if (element === undefined || wide) return undefined
+  const shell = element.closest('[data-testid="world-view"]')
+  const covers = [
+    ...(shell?.querySelectorAll<HTMLElement>(
+      '[data-region="panel"][data-open="true"], [data-region="inspector"][data-open="true"]',
+    ) ?? []),
+  ]
+  return uncoveredArea(
+    pageBox(element.getBoundingClientRect()),
+    covers.map((cover) => pageBox(cover.getBoundingClientRect())),
+  )
+}
+
+// The camera follows the map's box and the drawers: until the person pans or zooms it fits the levels into the part of
+// the map nothing covers (plan ED2D.8a decision 2, ED2D.8b decision 2).
 $effect(() => {
   const size = box
-  untrack(() => worldCamera.measure(size, rects))
+  untrack(() => worldCamera.measure(size, rects, openArea()))
+})
+
+// A drawer or sheet opening or closing: measure once it is laid out, and again when its slide ends.
+$effect(() => {
+  void [panelOpen, inspectorOpen, wide]
+  const element = map
+  const page = element?.ownerDocument.defaultView
+  if (element === undefined || page === undefined || page === null) return
+  const refit = (): void => untrack(() => worldCamera.measure(box, rects, openArea()))
+  const frame = page.requestAnimationFrame?.(refit)
+  const shell = element.closest('[data-testid="world-view"]')
+  const slid = (event: Event): void => {
+    if ((event as TransitionEvent).propertyName === 'transform') refit()
+  }
+  shell?.addEventListener('transitionend', slid)
+  return () => {
+    if (frame !== undefined) page.cancelAnimationFrame(frame)
+    shell?.removeEventListener('transitionend', slid)
+  }
 })
 
 // The gestures go on the map once it is in the page (plan ED2D.8a decision 1).
@@ -130,7 +171,7 @@ $effect(() => {
 
 /** Fits the map again once a step that moves every level (a new level, a new layout) has landed. */
 function fitAfter(): void {
-  queueMicrotask(() => worldCamera.fit(rects))
+  queueMicrotask(() => worldCamera.fit(rects, openArea()))
 }
 
 function addOne(): void {
@@ -200,6 +241,7 @@ function layout(next: string): void {
           <button type="button" aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}
             >Inspector</button
           >
+          <Button onclick={() => worldCamera.fit(rects, openArea())}>Fit</Button>
         </div>
       {/if}
       <div
@@ -213,7 +255,9 @@ function layout(next: string): void {
       >
         <MapCanvas {rects} {camera} {links} />
       </div>
-      <div class="fit"><Button onclick={() => worldCamera.fit(rects)}>Fit</Button></div>
+      {#if wide}
+        <div class="fit"><Button onclick={() => worldCamera.fit(rects)}>Fit</Button></div>
+      {/if}
       </div>
     {/if}
   {/snippet}

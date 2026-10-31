@@ -66,4 +66,15 @@ describe('the World view camera (plan ED2D.8a decision 2)', () => {
     camera.measure(BOX, [])
     expect(camera.camera).toEqual({ x: 0, y: 0, scale: 1 })
   })
+
+  it('fits inside an area of the box, the rest of the box covered (plan ED2D.8b)', () => {
+    const camera = createWorldCamera()
+    camera.measure(BOX, RECTS)
+    // The right 400 px covered: (400 - 48) / 1000 = 0.352, centred in the left half.
+    camera.fit(RECTS, { x: 0, y: 0, w: 400, h: 600 })
+    expect(camera.camera?.scale).toBeCloseTo(0.352)
+    expect(camera.camera?.x).toBeCloseTo(24)
+    camera.measure(BOX, RECTS, { x: 400, y: 0, w: 400, h: 600 })
+    expect(camera.camera?.x).toBeCloseTo(424)
+  })
 })

@@ -34,7 +34,7 @@ pictures inside rectangles, outlines over them), `app/world/WorldCanvas.svelte` 
 
 - [x] 1. Plan (this file).
 - [ ] 2. `uncoveredArea(map, covers)` (left, right and bottom covers; none) and `fit(rects, area)` in the camera (unit).
-- [ ] 3. The World view fits to the uncovered area when a drawer or sheet opens or closes and on Fit; Fit in the bar
+- [x] 3. The World view fits to the uncovered area when a drawer or sheet opens or closes and on Fit; Fit in the bar
   below wide (layout, three browsers: every level inside the uncovered part with the inspector open; Fit 44 px in view).
 - [ ] 4. Pictures: the world view draws a level scene inside each rectangle under its outline (Chromium canvas test:
   a pixel inside the rectangle is the level's background, the outline still the accent); WorldCanvas loads the images.
@@ -44,3 +44,8 @@ pictures inside rectangles, outlines over them), `app/world/WorldCanvas.svelte` 
 ## Execution log
 
 - 2026-10-31: plan written on `claude/ed2d-8a-world-ipad` at `5402516b`.
+- 2026-10-31, steps 2 and 3: `uncoveredArea` and the area fit failed (not defined; 4 cases), then pass (world unit 31
+  tests). The new layout check failed in Chromium at the four sizes below wide for the right reason once its own rect
+  conversion was fixed (levels' right edge 810 px against an uncovered edge of 514.5 px), then passes in three browsers
+  (3 files, 24 tests): the view refits on the next frame after a drawer opens or closes and again when its slide
+  ends, and Fit sits in the bar with Levels and Inspector below wide.
