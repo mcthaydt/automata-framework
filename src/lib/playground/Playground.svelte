@@ -35,6 +35,8 @@
   let compile = $state<'original' | 'compiling' | 'ok' | 'syntax-error'>('original')
   let diagnostics = $state<readonly Diagnostic[]>([])
   let live: LiveCompile | undefined
+  /** The compile worker failed to start or crashed: edits stop compiling, and Play still runs the original (§7.2). */
+  let liveFailed = $state(false)
   /** An edit made while the worker is still loading, compiled once it is up. */
   let pendingEdit: string | undefined
   /** The last edit that compiled, which Play runs under reduced motion. */
@@ -44,7 +46,9 @@
   let started = false
   let disposed = false
 
-  let previewStatus = $derived(fetchFailed ? STATUS.firstBootTimeout : waitingForPlay && view.preview === 'poster' ? REDUCED : view.status)
+  let previewStatus = $derived(fetchFailed ? STATUS.offline : waitingForPlay && view.preview === 'poster' ? REDUCED : view.status)
+  /** The editor marks the compile's diagnostics and the line of the last frame failure (§7.2). */
+  let marked = $derived(view.failure ? [...diagnostics, view.failure] : diagnostics)
   let diagnosticStatus = $derived(diagnostics[0] ? diagnosticText(diagnostics[0], view.preview === 'running') : undefined)
   /** The polite live region's text: a diagnostic, once it has stood for ANNOUNCE_AFTER_MS (spec F5). */
   let announced = $state('')
@@ -54,8 +58,10 @@
     const timer = setTimeout(() => { announced = text }, ANNOUNCE_AFTER_MS)
     return () => clearTimeout(timer)
   })
-  let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : diagnosticStatus ?? previewStatus)
-  let showPlay = $derived(waitingForPlay && view.preview === 'poster' || (view.preview === 'failed' && view.frames === 0) || fetchFailed)
+  /** The runtime or the compiled original didn't download: Retry, not Play (§7.2, §8.2). */
+  let showRetry = $derived(fetchFailed || (view.preview === 'failed' && view.frames === 0 && view.status === STATUS.offline))
+  let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : liveFailed && !showRetry ? STATUS.liveUnavailable : diagnosticStatus ?? previewStatus)
+  let showPlay = $derived(!showRetry && (waitingForPlay && view.preview === 'poster' || (view.preview === 'failed' && view.frames === 0)))
 
   /** A sandboxed frame on the example's frame page, under the one on show until it reports `running` (spec F4). */
   function createFrame(): PreviewFrame {
@@ -136,11 +142,18 @@
       onResult,
     })
     worker.onmessage = event => live?.receive(event.data)
+    worker.onerror = () => {
+      liveFailed = true
+      live?.dispose()
+      // An edit it was compiling is dropped; the preview runs what it ran.
+      if (compile === 'compiling') compile = compiled === undefined ? 'original' : 'ok'
+    }
     if (pendingEdit !== undefined) live.edit(pendingEdit)
     pendingEdit = undefined
   }
 
   function onedit(source: string) {
+    if (liveFailed) return
     compile = 'compiling'
     if (live) live.edit(source)
     else pendingEdit = source
@@ -164,6 +177,12 @@
     // After a failed run Play tries the same code again; otherwise it runs the reader's last good edit, or the original.
     if (view.preview === 'failed' && !fetchFailed) orchestrator?.restart()
     else if (compiled !== undefined) void runCompiled(compiled)
+    else void runOriginal()
+  }
+
+  /** A fresh first frame for the code in the editor: the reader's last good edit, or the original. */
+  function retry() {
+    if (compiled !== undefined) void runCompiled(compiled)
     else void runOriginal()
   }
 
@@ -220,9 +239,9 @@
 </script>
 <div class="playground" data-code={code} data-compile={compile} data-preview={view.preview} data-run-id={view.runId}>
   <div class="playground-grid">
-  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} {oncodestate} {onedit} {diagnostics} bind:this={codePanel} /></div>
+  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} {oncodestate} {onedit} diagnostics={marked} bind:this={codePanel} /></div>
   <div class="playground-preview" bind:this={box}>
-    <PreviewPanel title={example.title} {view} {showPlay} onplay={play} onrestart={() => orchestrator?.restart()} bind:stage />
+    <PreviewPanel title={example.title} {view} {showPlay} onplay={play} {showRetry} onretry={retry} onrestart={() => orchestrator?.restart()} bind:stage />
     <p class="playground-status" id={statusId}>{#if diagnosticStatus && status === diagnosticStatus}<button type="button" class="diagnostic" onclick={() => codePanel?.focusAt(diagnostics[0]!.line, diagnostics[0]!.column)}>{status}</button>{:else}{status}{/if}</p>
     <p class="playground-announce sr-only" aria-live="polite">{announced}</p>
   </div>

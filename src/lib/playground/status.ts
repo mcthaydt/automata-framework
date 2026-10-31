@@ -9,9 +9,10 @@ export const STATUS = {
   running: 'Running. Edit the code and the preview updates as you type.',
   updated: 'Preview updated.',
   bootTimeout: 'The preview did not start within 10 seconds.',
-  firstBootTimeout: 'The preview couldn’t load. Check the connection and press Play to try again.',
+  offline: 'The preview couldn’t load. Check the connection and press Retry.',
   kept: 'The preview is still running your last working version.',
   loadingEditor: 'Loading the editor…',
+  liveUnavailable: 'Live updates are unavailable in this browser. Play still runs the original.',
   editorFailed: 'The editor couldn’t load. The code is shown read-only, and Play still runs the original.',
 } as const
 

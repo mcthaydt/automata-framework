@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { OrchestratorView } from './orchestrator'
-  let { title, view, showPlay, onplay, onrestart, stage = $bindable() }: {
-    title: string; view: OrchestratorView; showPlay: boolean; onplay: () => void; onrestart: () => void; stage?: HTMLElement
+  let { title, view, showPlay, onplay, showRetry, onretry, onrestart, stage = $bindable() }: {
+    title: string; view: OrchestratorView; showPlay: boolean; onplay: () => void; showRetry: boolean; onretry: () => void; onrestart: () => void; stage?: HTMLElement
   } = $props()
 </script>
 <section class="preview-panel" aria-label="Preview">
@@ -14,6 +14,7 @@
     <div class="frames" bind:this={stage}></div>
     {#if view.stopped}<p class="stopped">{view.stopped}</p>{/if}
     {#if showPlay}<button type="button" class="play" onclick={onplay}>Play</button>{/if}
+    {#if showRetry}<button type="button" class="play" onclick={onretry}>Retry</button>{/if}
   </div>
 </section>
 <style>
