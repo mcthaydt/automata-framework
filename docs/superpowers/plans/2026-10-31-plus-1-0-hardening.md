@@ -49,9 +49,11 @@ it, a core change that drops a seam's entry would pass here until a Plus package
   is a failure that says it cannot be measured (never a skip, never a pass); no `[music]` table means no row.
 - Files: `tooling/pipelines/src/audio.pipeline.ts` (spec field and check row), `audio.pipeline.test.ts` (red first: a loud file, a quiet
   file, a non-WAV file, an in-tolerance file, no table), a generated fixture WAV written by the test (no binary files committed).
-- **Blocked, not built:** legacy parity and the space (convolver) probe need the adventure source, which is not on this machine. They
-  stay open in this plan until it is supplied; nothing is invented. The sample budget stays out: it is core's asset budget (M5),
-  and a second implementation here would be a second owner.
+- **Read and ruled out (source read at `92e6704`, 2026-10-31):** legacy parity compares each cue with the source game's own pre-migration
+  audio module; Plus has no such module and a game's migration is that game's, so there is nothing to compare. The space probe measures a room
+  convolver (per-camera-zone RT60) that `audio-synth` does not have and that the M6 spec does not list: adding it is a new feature
+  (zone data, a send and crossfade in the mixer, a render path), not a check, so it is a new row for the Owner, not part of this PR.
+  The sample budget stays out: it is core's asset budget (M5), and a second implementation here would be a second owner.
 
 ## Decisions for the Owner's veto
 
@@ -92,4 +94,4 @@ Pending: Plus CI on the head.
   in the `browsers` project or `mount` resolves the server build. The tab bar wraps (it does not scroll), so the plan's "tab bar
   scrolls" became "every control on screen".
 - Part 3: six tests failed first (the strict spec refused `music`). Sine-wave WAVs are written by the tests; no binary is committed.
-  Legacy parity and the space probe stay open: the adventure source is not on this machine.
+  The adventure source was then read at `92e6704`: legacy parity and the space probe are ruled out above, not blocked.
