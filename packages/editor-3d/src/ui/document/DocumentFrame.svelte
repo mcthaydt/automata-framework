@@ -24,10 +24,9 @@ import type { DocumentController, DocumentState } from '../../app/document/docum
 import { planZoom } from '../../app/plan-picture'
 import { checksWords, planStatus } from '../../app/plan-status'
 import { planToolCommands } from '../../app/plan-tool-commands'
-import { createPlanTools, type PlanToolId, type PlanToolState } from '../../app/plan-tools'
+import { createPlanTools, type PlanToolId } from '../../app/plan-tools'
 import type { Point } from '../../format/sector.schema'
 import EditorLayers from '../plan/EditorLayers.svelte'
-import NewSectorCard from '../plan/NewSectorCard.svelte'
 import PlanCanvas from '../plan/PlanCanvas.svelte'
 import type { PlanRendererFactory } from '../plan/plan-renderer'
 import ToolRail from '../plan/ToolRail.svelte'
@@ -82,10 +81,8 @@ const keymap = createKeymap(
   commands,
   /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '') ? 'apple' : 'other',
 )
-// svelte-ignore state_referenced_locally
-let toolState = $state.raw<PlanToolState>(tools.state)
-const activeTool = $derived<PlanToolId>(toolState.tool)
-const stopTools = tools.subscribe(() => (toolState = tools.state))
+let activeTool = $state<PlanToolId>(tools.state.tool)
+const stopTools = tools.subscribe(() => (activeTool = tools.state.tool))
 onDestroy(() => {
   checks.dispose()
   stopTools()
@@ -144,23 +141,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
 {/snippet}
 
 <!-- A phone has no tool rail: the plan there is view and select only (ED3D spec §10), and the plan keeps the height. -->
-{#snippet newSector()}
-  {#if toolState.tool === 'polygon' || toolState.tool === 'rectangle'}
-    <NewSectorCard corners={toolState.view.corners} edges={toolState.view.edges} closing={toolState.view.closing} />
-  {/if}
-{/snippet}
-
-<!--
-  The inspector holds the New sector card at wide while the Sector tool is chosen (ED3D.6g-b), so choosing the tool, not
-  placing the first corner, is what narrows the plan; below wide the plan keeps its width while drawing.
--->
-<EditorShell
-  {geometry}
-  bind:panelOpen
-  rail={compact ? undefined : toolRail}
-  inspector={shellMode === 'wide' && (activeTool === 'polygon' || activeTool === 'rectangle') ? newSector : undefined}
-  testId="document-frame"
->
+<EditorShell {geometry} bind:panelOpen rail={compact ? undefined : toolRail} testId="document-frame">
 
   {#snippet topbar()}
     <DocumentBar
@@ -193,6 +174,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
     <PlanCanvas
       {editor}
       {tools}
+      pointList={shellMode === 'wide'}
       {renderer}
       onundo={() => controller.undo()}
       onredo={() => controller.redo()}

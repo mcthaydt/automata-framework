@@ -97,13 +97,19 @@ describe('DocumentFrame', () => {
     expect(within(tools).getByRole('button', { name: 'Select' })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('shows the New sector card in the inspector at wide while the Sector tool is chosen (ED3D.6g-b)', async () => {
+  it('shows the New sector card over the plan at wide while the Sector tool is chosen (ED3D.6g-b)', async () => {
     await setup()
     expect(screen.queryByRole('heading', { name: 'New sector' })).toBeNull()
     await userEvent.keyboard('s')
     expect(screen.getByRole('heading', { name: 'New sector' })).toBeInTheDocument()
     expect(screen.getByText('Tap to place point 1')).toBeInTheDocument()
     await userEvent.keyboard('v')
+    expect(screen.queryByRole('heading', { name: 'New sector' })).toBeNull()
+  })
+
+  it('has no New sector card below wide, where the plan keeps the whole width', async () => {
+    await setup({ width: 834, height: 1194 })
+    await userEvent.keyboard('s')
     expect(screen.queryByRole('heading', { name: 'New sector' })).toBeNull()
   })
 

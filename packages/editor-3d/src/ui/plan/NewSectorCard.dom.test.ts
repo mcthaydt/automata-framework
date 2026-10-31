@@ -33,4 +33,14 @@ describe('NewSectorCard', () => {
     render(NewSectorCard, { corners, edges, closing: true })
     expect(screen.getByText('A tap on point 1 closes the sector')).toBeInTheDocument()
   })
+
+  it('says a rectangle closes on its second point', () => {
+    render(NewSectorCard, {
+      corners: [first, second],
+      edges: edges.slice(0, 1),
+      closing: true,
+      shape: 'rectangle',
+    })
+    expect(screen.getByText('A tap on point 2 closes the sector')).toBeInTheDocument()
+  })
 })

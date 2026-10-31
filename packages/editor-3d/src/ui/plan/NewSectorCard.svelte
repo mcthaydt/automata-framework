@@ -1,7 +1,7 @@
 <!--
   The New sector card in the inspector (ED3D.6g-b; ED3D spec §9 the `Draw a sector` frame): each placed point with its
   plan coordinates (three decimals, as the file writes them) and the length of the edge that reaches it, then what the
-  next tap does.
+  next tap does (a polygon closes on its first point, a rectangle on its second).
 -->
 <script lang="ts">
 import type { DrawEdge } from '../../app/sector-tool-controller'
@@ -11,9 +11,10 @@ interface Props {
   corners: readonly Point[]
   edges: readonly DrawEdge[]
   closing: boolean
+  shape?: 'polygon' | 'rectangle' | undefined
 }
 
-const { corners, edges, closing }: Props = $props()
+const { corners, edges, closing, shape = 'polygon' }: Props = $props()
 
 const placed = $derived(edges.filter((edge) => !edge.pending))
 </script>
@@ -32,7 +33,9 @@ const placed = $derived(edges.filter((edge) => !edge.pending))
     {/each}
   </ul>
   <p class="next">
-    {closing ? 'A tap on point 1 closes the sector' : `Tap to place point ${corners.length + 1}`}
+    {closing
+      ? `A tap on point ${shape === 'rectangle' ? 2 : 1} closes the sector`
+      : `Tap to place point ${corners.length + 1}`}
   </p>
 </section>
 

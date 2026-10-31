@@ -20,6 +20,7 @@ import { type ToolLabel, toolOverlay } from '../../app/tool-paint'
 import type { Point } from '../../format/sector.schema'
 import type { LevelEditor } from '../../model/level-editor'
 import type { PlanPaint } from '../../view/plan/plan-paint'
+import NewSectorCard from './NewSectorCard.svelte'
 import NudgePad from './NudgePad.svelte'
 import { planGestures } from './plan-gestures'
 import type { PlanRenderer, PlanRendererFactory } from './plan-renderer'
@@ -29,6 +30,11 @@ interface Props {
   editor: LevelEditor<unknown>
   /** The frame's tools: the canvas sizes them, frames the level through Select and forwards the pointer. */
   tools: PlanTools
+  /**
+   * Whether the New sector card floats over the plan's top right while the Sector tool is chosen (at wide: the frame's
+   * choice). Over the plan, not in an inspector column, so choosing the tool never narrows the plan (ED3D.6g-b).
+   */
+  pointList?: boolean | undefined
   renderer: PlanRendererFactory
   onundo: () => void
   onredo: () => void
@@ -36,7 +42,15 @@ interface Props {
   onpointer?: ((at: Point | undefined) => void) | undefined
 }
 
-const { editor, tools, renderer: makeRenderer, onundo, onredo, onpointer }: Props = $props()
+const {
+  editor,
+  tools,
+  pointList = false,
+  renderer: makeRenderer,
+  onundo,
+  onredo,
+  onpointer,
+}: Props = $props()
 
 type Phase = 'starting' | 'drawing' | 'unavailable'
 
@@ -220,6 +234,16 @@ onDestroy(() => {
       ondecline={(index) => tools.sector?.declineOffer(index)}
       onacceptall={() => tools.sector?.acceptAll()}
     />
+    {#if pointList && (tool.tool === 'polygon' || tool.tool === 'rectangle')}
+      <div class="points">
+        <NewSectorCard
+          corners={tool.view.corners}
+          edges={tool.view.edges}
+          closing={tool.view.closing}
+          shape={tool.view.shape}
+        />
+      </div>
+    {/if}
     {#if pad !== undefined}
       <NudgePad
         x={pad.x}
@@ -287,6 +311,18 @@ onDestroy(() => {
   }
   .controls {
     display: contents;
+  }
+  .points {
+    position: absolute;
+    z-index: 1;
+    top: var(--space-3);
+    right: var(--space-3);
+    width: 248px;
+    max-height: calc(100% - 2 * var(--space-3) - 160px);
+    overflow-y: auto;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-surface);
   }
   .labels {
     position: absolute;
