@@ -1,0 +1,81 @@
+import type { Camera } from '../../canvas/level-view'
+import type { Project, Size } from '../../model/project-types'
+import { findLevel } from '../../model/world/level-edits'
+import { findWorld } from '../../model/world/world-layout'
+import type { Point } from '../../tiles/footprint'
+
+// The World view's map (plan ED2D.6b step 3; 2D editor spec §8, the World row): each placed level as a rectangle in
+// world pixels, the camera that fits them all in the canvas, which level a point falls on, and where a drag puts a
+// level. Pure; the Pixi canvas draws the rectangles and the view turns pointer events into these calls.
+
+export interface WorldRect {
+  readonly id: string
+  readonly name: string
+  readonly x: number
+  readonly y: number
+  readonly w: number
+  readonly h: number
+  readonly depth: number
+  readonly selected: boolean
+}
+
+/** The world's levels in paint order: lower depth first, then the world's own order. */
+export function worldRects(
+  project: Project,
+  worldId: string,
+  selected: string | undefined,
+): readonly WorldRect[] {
+  const world = findWorld(project, worldId)
+  return world.placements
+    .map((placement, order) => ({ placement, order }))
+    .sort((a, b) => a.placement.depth - b.placement.depth || a.order - b.order)
+    .map(({ placement }) => {
+      const level = findLevel(project, placement.level)
+      return {
+        id: level.id,
+        name: level.name,
+        x: placement.x,
+        y: placement.y,
+        w: level.size.w,
+        h: level.size.h,
+        depth: placement.depth,
+        selected: level.id === selected,
+      }
+    })
+}
+
+/** The camera that shows every level inside `margin`, as large as it fits, centred; an empty world at scale 1. */
+export function fitWorld(rects: readonly WorldRect[], box: Size, margin: number): Camera {
+  if (rects.length === 0) return { x: margin, y: margin, scale: 1 }
+  const left = Math.min(...rects.map((rect) => rect.x))
+  const top = Math.min(...rects.map((rect) => rect.y))
+  const width = Math.max(...rects.map((rect) => rect.x + rect.w)) - left
+  const height = Math.max(...rects.map((rect) => rect.y + rect.h)) - top
+  const scale = Math.min((box.w - 2 * margin) / width, (box.h - 2 * margin) / height)
+  return {
+    x: (box.w - width * scale) / 2 - left * scale,
+    y: (box.h - height * scale) / 2 - top * scale,
+    scale,
+  }
+}
+
+/** The topmost level under a world point (the last in paint order), or `undefined` on empty space. */
+export function levelAt(rects: readonly WorldRect[], point: Point): string | undefined {
+  for (let index = rects.length - 1; index >= 0; index -= 1) {
+    const rect = rects[index]
+    if (rect === undefined) continue
+    if (point.x >= rect.x && point.x < rect.x + rect.w && point.y >= rect.y && point.y < rect.y + rect.h)
+      return rect.id
+  }
+  return undefined
+}
+
+/** A point on the canvas, in CSS pixels, as a point in the world. */
+export function toWorld(camera: Camera, screen: Point): Point {
+  return { x: (screen.x - camera.x) / camera.scale, y: (screen.y - camera.y) / camera.scale }
+}
+
+/** Where a level that started at `start` is after the pointer travelled `travel` screen pixels: whole world pixels. */
+export function dragPosition(start: Point, travel: Point, scale: number): Point {
+  return { x: Math.round(start.x + travel.x / scale), y: Math.round(start.y + travel.y / scale) }
+}

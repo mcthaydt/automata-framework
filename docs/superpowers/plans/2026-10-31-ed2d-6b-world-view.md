@@ -3,7 +3,7 @@
 - **Task:** ED2D.6b in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §5.7 (layouts), §5.8 (`moveLevelInWorld`, `setWorldLayout`, `resizeLevel(anchor)`), §8 (the World row; flow 7: "World view → drag levels; switch layout; the dock cards on the Level view follow"), §12 (44 px targets, finger and Pencil drags), §13 (a level resized smaller than its content), acceptance G-h (the UI half). Mockup `world` in `docs/design/editor-2d/screens-general.mjs`.
 - **Lane:** editors. **Depends on:** ED2D.6a (merged, #230: the world and level commands), ED2D.4c3b (merged: Pixi at the repo pin, `createWebGL2Renderer`), ED2D.4c4b (merged: the inspector's field editor, the dock). **Unblocks:** ED2D.6c (the reference picker and links drawn on the map).
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) and "everything is auto approved and accepted" (2026-10-31) once reviewed.
-- **Progress:** 1 of 8 steps.
+- **Progress:** 3 of 8 steps.
 
 ## Scope
 
@@ -35,8 +35,8 @@
 Each step: write the test, run it and see it fail for the stated reason, make the minimal change, see it pass.
 
 - [x] **1. This plan.** Committed first.
-- [ ] **2. `renameLevel`.** `level-edits.test.ts`: renames, trims; an empty name is a `RangeError`; the same name returns the same object; a missing id is a `RangeError`. Fails: not exported.
-- [ ] **3. The world model.** `world-model.test.ts`: rectangles for the platformer and RPG templates at their placements; `fitWorld` centres the bounding box in the box with a margin; `levelAt` returns the topmost (depth, then order) and `undefined` on empty space; `dragPosition` divides travel by the scale and rounds. Fails: no module.
+- [x] **2. `renameLevel`.** `level-edits.test.ts`: renames, trims; an empty name is a `RangeError`; the same name returns the same object; a missing id is a `RangeError`. Fails: not exported.
+- [x] **3. The world model.** `world-model.test.ts`: rectangles for the platformer and RPG templates at their placements; `fitWorld` centres the bounding box in the box with a margin; `levelAt` returns the topmost (depth, then order) and `undefined` on empty space; `dragPosition` divides travel by the scale and rounds. Fails: no module.
 - [ ] **4. The world canvas (Pixi).** `world-view.canvas.test.ts` (Chromium `canvas` project): draws a rectangle per level, the selected outlined (pixels read back at a level's centre and its outline), `destroy` frees the renderer. Fails: no module.
 - [ ] **5. The World view: panel and canvas.** `WorldView.dom.test.ts` with a stand-in canvas: the levels listed and selectable; switching to Grid snaps the placements (one undo step); a pointer drag on a level moves it by the travel over the scale as one undo step, a tap only selects; in a horizontal world a drag past a neighbour reorders, and the Level view's dock shows the new order (G-h, flow 7). Fails: the pending view.
 - [ ] **6. The World view: inspector.** `WorldView.dom.test.ts`: rename; X and Y move the level (snapped in a grid world); depth; a level field through the field editor, a refused value keeping the old one; Resize larger applies at once; Resize smaller with painted cells outside asks, lists the cells per layer, and Cancel changes nothing while Resize anyway is one undo step (§13). Fails: no inspector.
@@ -52,3 +52,5 @@ Each step: write the test, run it and see it fail for the stated reason, make th
 ## Execution log
 
 - 2026-10-31: plan drafted from `main` at `c9952bfd`.
+- Step 2: the three new cases failed with "renameLevel is not a function"; with `renameLevel` the `model/world` tests pass 75 of 75. The rename case first failed on its own fixture (the platformer template has one level), fixed with `withNewLevel`.
+- Step 3: failed with "Cannot find module './world-model'"; `world-model.ts` (`worldRects`, `fitWorld`, `levelAt`, `toWorld`, `dragPosition`) passes 6 of 6. `toWorld` was added to the produced interface: the view needs it for the hit test.
