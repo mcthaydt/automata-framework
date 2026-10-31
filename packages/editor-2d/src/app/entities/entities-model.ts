@@ -10,8 +10,9 @@ import type { EntityDef2D, Project } from '../../model/project-types'
 export type EntitiesOwner = FieldOwner
 
 export interface EntitiesSelection {
-  readonly owner?: EntitiesOwner
-  readonly field?: string
+  readonly owner?: EntitiesOwner | undefined
+  /** Undefined selects the owner's first field. */
+  readonly field?: string | undefined
 }
 
 export interface ResolvedEntitiesSelection {
@@ -71,9 +72,9 @@ function valueText(value: FieldValue): string {
   if (typeof value === 'string') return value === '' ? '“”' : value
   if (typeof value === 'boolean') return value ? 'on' : 'off'
   if (typeof value === 'number') return String(value)
-  if (Array.isArray(value)) return value.map(valueText).join(' ')
   if ('x' in value) return `${value.x}, ${value.y}`
-  return value.id
+  if ('target' in value) return value.target
+  return (value as readonly FieldValue[]).map(valueText).join(' ')
 }
 
 function boundsText(field: FieldDef): string | undefined {

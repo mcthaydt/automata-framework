@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { deleteDefinition } from '../../model/commands/definition-uses'
 import { placeEntity } from '../../model/commands/entity-edits'
 import { counterIds } from '../../model/ids'
-import type { Project } from '../../model/project-types'
+import type { EntityDef2D, Project } from '../../model/project-types'
 import { platformerTemplate } from '../../profiles/level-project/templates/platformer'
 import { topdownRpgTemplate } from '../../profiles/level-project/templates/topdown-rpg'
 import {
@@ -18,6 +18,8 @@ import {
 } from './entities-model'
 
 const platformer = (): Project => platformerTemplate.create(counterIds())
+const defOf = (project: Project, id: string): EntityDef2D =>
+  project.defs.entities.find((def) => def.id === id) as EntityDef2D
 const target = { level: 'level-1', layer: 'entities' } as const
 
 function withSlimes(count: number): Project {
@@ -147,7 +149,7 @@ describe('the definition preview', () => {
 
   it('scales a large shape down to fit, never below 1', () => {
     const project = platformer()
-    const big = { ...project.defs.entities[0]!, id: 'big', size: { w: 64, h: 64 } }
+    const big = { ...defOf(project, 'player-start'), id: 'big', size: { w: 64, h: 64 } }
     const tall = { ...big, id: 'tall', size: { w: 8, h: 900 } }
     const grown = { ...project, defs: { ...project.defs, entities: [...project.defs.entities, big, tall] } }
     expect(definitionPreview(grown, 'big', room).scale).toBe(6)
@@ -162,7 +164,7 @@ describe('the definition preview', () => {
 
   it('carries the tile the definition draws with', () => {
     const project = platformer()
-    const tiled = { ...project.defs.entities[2]!, tile: { tileset: 'terrain', index: 3 } }
+    const tiled = { ...defOf(project, 'coin'), tile: { tileset: 'terrain', index: 3 } }
     const next = { ...project, defs: { ...project.defs, entities: [tiled] } }
     expect(definitionPreview(next, tiled.id, room).tile).toEqual({ tileset: 'terrain', index: 3 })
   })
