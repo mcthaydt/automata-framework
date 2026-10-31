@@ -30,7 +30,8 @@ function checkContext(context: ProjectContext): StageCheckContext {
 }
 
 const views: readonly ViewDef[] = [
-  { id: 'compose', label: 'Compose', component: 'ComposeView' },
+  // "Scene": "Compose" does not fit the 56 px rail (plan EDFF.2a-1 decision 5).
+  { id: 'compose', label: 'Scene', component: 'ComposeView' },
   { id: 'course', label: 'Course', component: 'CourseView' },
   { id: 'pieces', label: 'Pieces', component: 'PiecesView' },
   { id: 'stage', label: 'Stage', component: 'StageView' },

@@ -152,7 +152,7 @@ describe('the floorfifty-stage profile', () => {
 
     it('has the rail of the spec', () => {
       expect(floorFiftyStage.views.map((view) => [view.id, view.label, view.component])).toEqual([
-        ['compose', 'Compose', 'ComposeView'],
+        ['compose', 'Scene', 'ComposeView'],
         ['course', 'Course', 'CourseView'],
         ['pieces', 'Pieces', 'PiecesView'],
         ['stage', 'Stage', 'StageView'],
