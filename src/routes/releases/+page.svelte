@@ -19,7 +19,8 @@
         <h3>{release.version}</h3>
         {#each release.changes as group}
           <h4>{group.kind}</h4>
-          <ul>{#each group.items as item}<li>{#each item.text.split('\n') as line}<InlineText text={line} /> {/each}{#if item.commit}<code class="small">{item.commit}</code>{/if}</li>{/each}</ul>
+          <!-- The framework's changelog entries, unchanged (data-framework-copy). -->
+          <ul data-framework-copy>{#each group.items as item}<li>{#each item.text.split('\n') as line}<InlineText text={line} /> {/each}{#if item.commit}<code class="small">{item.commit}</code>{/if}</li>{/each}</ul>
         {/each}
       {/each}
     </section>

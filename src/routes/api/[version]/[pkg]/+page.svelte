@@ -25,7 +25,8 @@
     <section aria-labelledby={'ep-' + point.path}>
       <h2 id={'ep-' + point.path}><code>{point.path}</code></h2>
       {#each point.entries as entry}
-        <article class="api-entry" id={entry.name}>
+        <!-- The framework's doc comment and signature, unchanged: site-checks leaves their words to the framework (data-framework-copy). -->
+        <article class="api-entry" id={entry.name} data-framework-copy>
           <h3>{entry.name} <span class="small">{entry.kind}</span></h3>
           {#if entry.doc}<p>{entry.doc}</p>{/if}
           <CodeBlock code={entry.signature} filename={entry.name + ' signature'} />
