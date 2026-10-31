@@ -18,7 +18,7 @@ import type { ToastStore } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import type { Component } from 'svelte'
 import type { IdSource } from '../../model/ids'
-import type { LevelCanvasProps, ObjectUrls, ViewServices } from '../views/view-props'
+import type { LevelCanvasProps, ObjectUrls, ViewServices, WorldCanvasProps } from '../views/view-props'
 import { componentOf } from '../views/views'
 import DocumentBar from './DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document-controller'
@@ -37,10 +37,13 @@ interface Props {
   objectUrls?: ObjectUrls | undefined
   /** The level canvas; the DOM tests pass a stand-in. */
   canvas?: Component<LevelCanvasProps> | undefined
+  /** The world map; the DOM tests pass a stand-in. */
+  worldCanvas?: Component<WorldCanvasProps> | undefined
   onback: () => void
 }
 
-const { geometry, controller, toasts, clock, read, ids, objectUrls, canvas, onback }: Props = $props()
+const { geometry, controller, toasts, clock, read, ids, objectUrls, canvas, worldCanvas, onback }: Props =
+  $props()
 
 /** The controller's state right now (its store answers at once). */
 function snapshot(source: DocumentController): DocumentState {
@@ -73,6 +76,7 @@ const services = $derived<ViewServices>({
   ids,
   objectUrls,
   canvas,
+  worldCanvas,
   onundo: () => controller.undo(),
   onredo: () => controller.redo(),
 })

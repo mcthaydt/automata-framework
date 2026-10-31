@@ -1,8 +1,7 @@
-import type { History, Transaction } from '@mcthaydt/automata-editor-kit/core'
 import type { Camera } from '../../canvas/level-view'
-import type { Project } from '../../model/project-types'
 import { moveLevelInWorld } from '../../model/world/level-placement'
 import type { Point } from '../../tiles/footprint'
+import type { EditHistory } from '../level-editor'
 import { dragPosition, levelAt, toWorld, worldRects } from './world-model'
 
 // A press and drag on the World view's map (plan ED2D.6b step 5; spec §8 flow 7). A press picks the topmost level
@@ -11,7 +10,7 @@ import { dragPosition, levelAt, toWorld, worldRects } from './world-model'
 // selects. The world's layout snaps or reorders through `moveLevelInWorld`.
 
 export interface WorldDragOptions {
-  readonly history: History<Project>
+  readonly history: EditHistory
   readonly world: () => string
   readonly camera: () => Camera
   readonly onselect: (level: string | undefined) => void
@@ -28,7 +27,7 @@ interface Pressed {
   readonly level: string
   readonly from: Point
   readonly start: Point
-  transaction: Transaction<Project> | undefined
+  transaction: ReturnType<EditHistory['begin']> | undefined
 }
 
 export function createWorldDrag(options: WorldDragOptions): WorldDrag {
