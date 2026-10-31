@@ -357,6 +357,9 @@ importers:
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
+      '@mcthaydt/automata-systems':
+        specifier: workspace:*
+        version: link:../../packages/systems
       '@modelcontextprotocol/sdk':
         specifier: 1.32.1
         version: 1.32.1(zod@4.6.6)

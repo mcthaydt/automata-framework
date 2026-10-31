@@ -11,7 +11,7 @@
   (250 lines), `scripts/pipeline/systems-lib.ts` (548: `play`, `scenario`, `playtest`, `fairness`, `sweep`,
   `claimsCheck`), `scripts/pipeline/systems.ts` (218, the command line), `tests/bots.test.ts` (13) and
   `tests/crew-fairness.test.ts` (9). Provenance goes in the framework's `docs/provenance/sources.md` only.
-- **Status:** plan drafted.
+- **Status:** code written on `claude/plus-M6.7b-systems-bots`; steps 1 to 5 done, step 6 pending.
 
 ## Scope
 
@@ -109,26 +109,26 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
      stands still while hunted;
    - a bot's choices come from its seed, not the sim (two bots with one seed issue the same verbs on different sims).
    Fails: no `createBot`.
-   - [ ] 1
+   - [x] 1
 2. Fairness maths, the source's four synthetic cases: the pursuit rows over runs and scenarios where the scene sets
    them; a fair report passes; each miss is reported with its number; no threats and no catches are not misses.
    Fails: no `fairness`.
-   - [ ] 2
+   - [x] 2
 3. Scenarios on the ward scene: a scenario's setup is applied (places, facts, items); its actions are the plan; its
    probability over its declared seeds; SY-b (the same result, times and deaths in two runs); `claimsCheck` (each
    systemic claimed by a passing scenario, the source's "every puzzle Systemic is claimed" case). Fails: no
    `runScenario`.
-   - [ ] 3
+   - [x] 3
 4. Playtest and sweep on the ward scene: the scripted bot wins both routes with the watchman on over 3 seeds (the
    source's clinic case, on the ward scene's routes, SB-D1); a run's measures (first threat, telegraph, deaths, the
    skeleton) are exact; `sweep` over a tunable gives a row per value through `retune`, and a scene without `retune`
    cannot be swept (the source's error). Fails: no `playtest`.
-   - [ ] 4
+   - [x] 4
 5. The pipeline: `systems.pipe.toml` parses (an unknown policy and a sweep with fewer than one step fail at their
    path); `run` writes the three reports; a second `run` with the same inputs is cached; `check` reports every fairness
    row and claim, and fails a missed row with its number. Through the platform's router on a temporary target folder.
    Fails: no pipeline.
-   - [ ] 5
+   - [x] 5
 6. Gates, provenance row in the framework, ready line.
    - [ ] 6
 
@@ -159,3 +159,31 @@ hooks exist; `crew-fairness.test.ts` (the source game's crew).
 ## Execution log
 
 - 2026-10-31: plan written from the M6 spec, plus#24 (M6.7a as built) and the adventure source at `92e6704`.
+- 2026-10-31, code (on plus#24's branch):
+  - Red first: bots (`./index` missing), fairness (`fairness is not a function`), playtest and sweep (`playtest is not
+    a function`), the pipeline (`./systems.pipeline.ts` missing). The scenario tests were written before
+    `play` and `runScenario` but not run red before them (a slip; they then passed on the first run).
+  - Source tests: `bots.test.ts`'s 3 bot cases and 4 fairness cases ported; its "every puzzle Systemic is claimed"
+    case is `scenario.test.ts`'s claim check; "the scripted bot wins … over 3 seeds" runs on the ward scene's route
+    (SB-D1). Not ported, as planned: the trace, the emergent search, the doc, and `crew-fairness.test.ts`.
+  - Gates: Plus `pnpm check` exit 0 (boundaries 97 files, 0 findings; systems 59, pipelines 144 unit tests);
+    systems `test:parity` 3 passed, M6.7a's golden unchanged (the ward game's run extras are opt-in).
+  - Deviations (for veto with SB-D1 to SB-D5):
+    - **The pipeline lives in `tooling/pipelines/src/systems.pipeline.ts`**, beside the registry, not in
+      `packages/systems/src/pipeline/`: the platform is tooling, and the package keeps no tooling or core-node
+      dependency. `tooling/pipelines` depends on `@mcthaydt/automata-systems`.
+    - **SB-D6:** the pipeline imports the bots when a stage runs, not when the registry loads, so the bins (run on
+      Node's type stripping, which does not resolve the extension's extensionless sources) still start. A run of
+      `automata pipe systems` from the bin needs TypeScript resolution for the extension and the game's scene module
+      (the converters' `.ts` resolve hook, or a built Plus); the platform reports a module that cannot load as a failed
+      stage. The tests run the pipeline through the router under Vitest. `PIPE_POLICIES` repeats the bots' list for
+      the spec schema, and a test keeps the two equal.
+    - The scene module must be inside the scene folder (the platform's path policy refuses absolute and `..` paths).
+    - A run's condition is checked by `createWatch` (`systems/sim`), a plugin a run adds in `cleanup`, so a scenario
+      asks the systems' own probes, derived facts included.
+    - A catch reloads the last `puzzle.checkpoint` snapshot (or the start); the catching agent is the nearest agent in
+      a threat mode, since `systems.caught` names a cause, not an agent.
+    - The safe-window margin is not measured (no scene adapter times a window yet); its row says so and passes, as
+      the source's did for the clinic.
+    - The ward game gained opt-in run extras (a puzzle, a walking player, extra plugins); its defaults are unchanged.
+    - `tooling/pipelines`' `mcp-cli.test.ts` pinned an empty registry; it now expects `systems`.
