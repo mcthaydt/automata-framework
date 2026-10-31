@@ -139,6 +139,27 @@ const dockLift: string | undefined = $derived(
     : undefined,
 )
 
+// How far the foot of the shell (the tab bar, and the status line above it or beside the canvas) rises from the
+// bottom of the window, so a toast in `sheets` sits above it rather than over its controls. Without a ResizeObserver
+// (jsdom) nothing is measured and the toast keeps to the window's foot.
+let railElement = $state<HTMLElement>()
+let statusElement = $state<HTMLElement>()
+let railHeight = $state(0)
+let statusHeight = $state(0)
+$effect(() => {
+  if (typeof ResizeObserver === 'undefined') return
+  const measured = [railElement, statusElement].filter((element) => element !== undefined)
+  const observer = new ResizeObserver(() => {
+    railHeight = railElement?.offsetHeight ?? 0
+    statusHeight = statusElement?.offsetHeight ?? 0
+  })
+  for (const element of measured) observer.observe(element)
+  return () => observer.disconnect()
+})
+const footLift = $derived(
+  `${(rail !== undefined && mode !== 'wide' ? railHeight : 0) + (status !== undefined ? statusHeight : 0)}px`,
+)
+
 function sheetStyle(name: ShellRegion): string | undefined {
   return presentation[name] === 'sheet' ? `--sheet-height: ${detentLength(name, detents[name])}` : undefined
 }
@@ -185,6 +206,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
       data-region="rail"
       data-presentation={mode === 'wide' ? 'rail' : 'tabbar'}
       aria-label="Editor sections"
+      bind:this={railElement}
     >
       <!-- Inline rather than `guarded`: the rail's snippet takes an argument (its orientation). -->
       <svelte:boundary>
@@ -249,7 +271,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   {/if}
 
   {#if status}
-    <footer class="region" data-region="status">{@render guarded('status', 'bar', status)}</footer>
+    <footer class="region" data-region="status" bind:this={statusElement}>{@render guarded('status', 'bar', status)}</footer>
   {/if}
 
   {#if scrimmed}
@@ -264,9 +286,13 @@ function sheetStyle(name: ShellRegion): string | undefined {
   {/if}
 </div>
 
-{@render sheets?.()}
+<!-- `display: contents`: the sheets position themselves; this only hands them the height of the shell's foot. -->
+<div class="sheets" style:--shell-foot={footLift}>{@render sheets?.()}</div>
 
 <style>
+  .sheets {
+    display: contents;
+  }
   /* Sizes from the mockups (docs/design/editor-2d). Targets never shrink with the window; only gutters do. */
   .shell {
     --shell-topbar: 52px;

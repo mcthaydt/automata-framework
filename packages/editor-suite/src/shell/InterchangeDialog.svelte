@@ -56,6 +56,8 @@ async function apply(): Promise<void> {
   busy = false
 }
 
+let chooser = $state<HTMLInputElement>()
+
 async function choose(event: Event): Promise<void> {
   const file = (event.currentTarget as HTMLInputElement).files?.[0]
   if (file !== undefined) source = await file.text()
@@ -86,7 +88,12 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
   {:else}
     <label for={`${uid}-in`}>Document to import</label>
     <textarea id={`${uid}-in`} rows="6" bind:value={source} disabled={busy}></textarea>
-    <label class="file">Or choose a file <input type="file" accept=".toml,.json" onchange={(event) => void choose(event)} /></label>
+    <!-- The browser's own file control is under 44 px and cannot be sized: a kit button opens it instead. -->
+    <div class="file">
+      <span>Or</span>
+      <Button disabled={busy} onclick={() => chooser?.click()}>Choose a file</Button>
+      <input bind:this={chooser} class="hidden" type="file" accept=".toml,.json" tabindex="-1" aria-hidden="true" onchange={(event) => void choose(event)} />
+    </div>
 
     {#if plan !== undefined && 'error' in plan}
       <p class="bad" role="alert">{plan.error}</p>
@@ -173,7 +180,15 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
     flex-wrap: wrap;
     gap: var(--space-2);
     align-items: center;
-    min-height: 44px;
+    margin-top: var(--space-2);
+  }
+  .hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   figure {
     margin: var(--space-3) 0 0;
