@@ -107,14 +107,19 @@ describe('startEditor', () => {
   })
 
   it('journey: an opened level’s plan asks the page’s renderer for its canvas once it has a size (ED3D.5d)', async () => {
-    let measure: (() => void) | undefined
+    // Every observer in the page (the shell measures its foot too) hears the size, as a real one would.
+    const observed: (() => void)[] = []
+    const measure = (): void => {
+      for (const run of observed) run()
+    }
     vi.stubGlobal(
       'ResizeObserver',
       class {
         constructor(private readonly run: ResizeObserverCallback) {}
         observe(): void {
-          measure = () =>
-            this.run([{ contentRect: { width: 800, height: 600 } } as ResizeObserverEntry], this as never)
+          observed.push(() =>
+            this.run([{ contentRect: { width: 800, height: 600 } } as ResizeObserverEntry], this as never),
+          )
         }
         disconnect(): void {}
       },
@@ -123,7 +128,7 @@ describe('startEditor', () => {
     await boot(undefined, renderer)
     await openDepot()
     expect(screen.getByRole('application', { name: 'Plan' })).toBeInTheDocument()
-    measure?.()
+    measure()
     await vi.waitFor(() => expect(renderer).toHaveBeenCalledOnce())
     expect(await screen.findByText(/needs WebGL2/)).toBeInTheDocument()
     vi.unstubAllGlobals()
