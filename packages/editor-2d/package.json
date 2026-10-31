@@ -6,7 +6,8 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./suite": "./src/suite/index.ts"
   },
   "scripts": {
     "dev": "vite",
@@ -19,7 +20,6 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
-    "@decimalturn/toml-patch": "3.3.1",
     "@mcthaydt/automata-editor-kit": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
     "pixi.js": "8.22.0",

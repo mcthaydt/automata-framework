@@ -41,21 +41,6 @@ const GROUPS = [
     ],
   },
   {
-    id: 'floorfifty',
-    title: 'FloorFifty profile',
-    lead: 'FloorFifty stages are one profile of the same editor: a registered document kind with its own screens, still lossless against the stage file and the vendored schema.',
-    screens: [
-      ['ff-compose', 'Compose', 'wide'],
-      ['ff-course', 'Course', 'wide'],
-      ['ff-pieces', 'Set pieces', 'wide'],
-      ['ff-portrait', 'Compose in portrait', 'half'],
-      ['ff-settings', 'Stage settings', 'half'],
-      ['ff-checks', 'Checks', 'wide'],
-      ['ff-export', 'Export', 'half'],
-      ['ff-parse-error', 'Open failed', 'half'],
-    ],
-  },
-  {
     id: 'kit',
     title: 'Kit',
     lead: 'Tokens and controls the screens are built from.',
@@ -207,7 +192,7 @@ figcaption p { margin: 4px 0 0; color: var(--dim); max-width: 75ch; }
   <header class="intro">
     <span class="eyebrow">Design review · ${screens.length} screens</span>
     <h1>Automata 2D Editor</h1>
-    <p>One <strong>genre-general 2D editor</strong>, designed for the iPad first and modelled on LDtk: projects hold definitions (layers, tilesets, entities with typed fields) and a world of levels. It builds a <strong>platformer level</strong> and a <strong>top-down RPG map</strong> end to end, and a FloorFifty stage is one profile of it. Platformer screens show Mossgate, RPG screens show Hollowmere; both are illustrative.</p>
+    <p>One <strong>genre-general 2D editor</strong>, designed for the iPad first and modelled on LDtk: projects hold definitions (layers, tilesets, entities with typed fields) and a world of levels. It builds a <strong>platformer level</strong> and a <strong>top-down RPG map</strong> end to end; a game can register more document kinds as profiles. Platformer screens show Mossgate, RPG screens show Hollowmere; both are illustrative.</p>
     <dl class="facts">
       <div><dt>Landscape</dt><dd>1194 × 834</dd></div>
       <div><dt>Portrait</dt><dd>834 × 1194</dd></div>
@@ -223,7 +208,7 @@ figcaption p { margin: 4px 0 0; color: var(--dim); max-width: 75ch; }
 ${sections}
   <section class="notes" aria-labelledby="real">
     <h2 id="real">What is real and what is a placeholder</h2>
-    <p>The two sample projects, Mossgate and Hollowmere, their tilesets, artwork, levels and entity names are illustrative placeholders. The FloorFifty profile screens use values from the Rooftops stage file (layer names, depths, sinks, haze, seed 35229, the four phrases, the three extension ranges and the six set pieces); the course geometry and the sample level there are illustrative, and its Checks screen shows an invented error (cityMid's depth set to 0.40).</p>
+    <p>The two sample projects, Mossgate and Hollowmere, their tilesets, artwork, levels and entity names are illustrative placeholders.</p>
     <p>Owner visual acceptance for the 2D editor is not recorded yet; this gallery is the sheet to review.</p>
     <p>Each frame is the same tree that was pushed to the Figma file, so the two match. Tap Full size to read a frame at 1:1.</p>
   </section>

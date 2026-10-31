@@ -1283,6 +1283,8 @@ interface Profile<V> {
     print(base: string, value: V): string;
     check(value: V, context: ProjectContext): readonly Diagnostic[];
     fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V;
+    choices?(value: V, diagnostic: Diagnostic): readonly TargetChoice[];
+    choose?(value: V, diagnostic: Diagnostic, choice: TargetChoice): V;
     summary?(value: V): ProfileSummary;
     preview?(value: V): LevelPreview | undefined;
     readonly templates: readonly TemplateDef<V>[];
@@ -1587,6 +1589,15 @@ interface Stamp {
 function tagTiles(project: Project, tileset: string, tag: string, tiles: readonly number[]): Project;
 ```
 
+### `TargetChoice` (interface)
+
+```ts
+interface TargetChoice {
+    readonly label: string;
+    readonly value: RefValue;
+}
+```
+
 ### `TemplateDef` (interface)
 
 ```ts
@@ -1740,4 +1751,68 @@ type WorldLayout = 'free' | 'grid' | 'horizontal' | 'vertical';
 
 ```ts
 function worldNeighbours(project: Project, world: World): LevelNeighbours[];
+```
+
+## `./suite`
+
+### `createLevels2d` (function)
+
+```ts
+function createLevels2d(options: Levels2dOptions): SuiteEditor<Levels2dSession>;
+```
+
+### `LevelCanvasProps` (interface)
+
+```ts
+interface LevelCanvasProps {
+    readonly project: Project;
+    readonly view: DrawView;
+    readonly read: (path: string) => Promise<Uint8Array | undefined>;
+    readonly camera?: Camera | undefined;
+}
+```
+
+### `Levels2dOptions` (interface)
+
+```ts
+interface Levels2dOptions {
+    readonly ids: IdSource;
+    readonly read?: ((path: string) => Promise<Uint8Array | undefined>) | undefined;
+    readonly canvas?: Component<LevelCanvasProps> | undefined;
+}
+```
+
+### `Levels2dSession` (interface)
+
+```ts
+interface Levels2dSession {
+    readonly path: string;
+    readonly options: Levels2dOptions;
+    readonly others: readonly string[];
+    readonly state: Levels2dState;
+    readonly refusal: string | undefined;
+    settled(): Promise<void>;
+    quietly(change: () => void): void;
+}
+```
+
+### `Levels2dState` (type)
+
+```ts
+type Levels2dState = {
+    readonly kind: 'open';
+    readonly profile: Profile<unknown>;
+    readonly history: History<unknown>;
+    readonly level: LevelSession;
+} | {
+    readonly kind: 'error';
+    readonly message: string;
+    readonly errors: readonly ParseError[];
+};
+```
+
+### `randomIds` (function)
+
+```ts
+function randomIds(fill: (bytes: Uint8Array<ArrayBuffer>) => void): IdSource;
 ```

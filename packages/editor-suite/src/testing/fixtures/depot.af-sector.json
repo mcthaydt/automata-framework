@@ -1,0 +1,54 @@
+{
+  "format": "af-sector/1",
+  "name": "depot",
+  "materials": {
+    "brick": { "category": "walls", "label": "Brick" },
+    "plank": { "category": "floors", "label": "Planks" },
+    "tile": { "category": "floors" }
+  },
+  "sectors": [
+    {
+      "id": "hall",
+      "floor": 0,
+      "ceiling": 4,
+      "light": 1,
+      "floorTexture": "tile",
+      "wallTexture": "brick",
+      "corners": [
+        [0, 0, { "window": { "at": 4, "width": 1.6, "y0": 1, "y1": 2.6 } }],
+        [8, 0, { "next": "dock" }],
+        [8, 6],
+        [0, 6, { "door": { "at": 3, "width": 1.2, "height": 2.2 } }]
+      ]
+    },
+    {
+      "id": "dock",
+      "floor": -0.5,
+      "ceiling": 4,
+      "light": 0.7,
+      "floorTexture": "plank",
+      "wallTexture": "brick",
+      "corners": [[8, 0], [14, 0], [14, 6], [8, 6, { "next": "hall" }]]
+    }
+  ],
+  "entityDefs": [
+    {
+      "id": "spawn",
+      "shape": "point",
+      "single": true,
+      "fields": [{ "id": "facing", "type": "angle", "default": 0 }]
+    },
+    {
+      "id": "crate",
+      "shape": "box",
+      "size": [1, 1, 1],
+      "fields": [
+        { "id": "contents", "type": "enum", "options": ["supplies", "tools", "empty"], "default": "supplies" }
+      ]
+    }
+  ],
+  "entities": [
+    { "def": "spawn", "id": "spawn", "x": 1, "z": 1, "facing": 0 },
+    { "def": "crate", "id": "crate1", "x": 11, "z": 2, "contents": "tools" }
+  ]
+}

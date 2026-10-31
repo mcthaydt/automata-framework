@@ -3,7 +3,8 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-const ALLOWED_IMPORTS = new Set(['zod', 'smol-toml'])
+// The kit's content documents are headless too (no Svelte, no DOM, no clock): the interchange's import edits through them.
+const ALLOWED_IMPORTS = new Set(['zod', 'smol-toml', '@mcthaydt/automata-editor-kit/documents'])
 /** The kit's port shapes, as types only: they are erased, so they bring no code (and no Svelte) to run. */
 const TYPE_ONLY_IMPORTS = new Set(['@mcthaydt/automata-editor-kit/ports'])
 // `document` is the DOM global, not an object key: `AskRequest.document` is a port field the Ask session fills in.
@@ -23,7 +24,7 @@ describe('editor-suite/core is headless', () => {
   })
 
   for (const name of sources) {
-    it(`${name} imports only zod, smol-toml, its own files and the kit's port types, and touches no clock, DOM or process`, () => {
+    it(`${name} imports only zod, smol-toml, the kit's documents, its own files and the kit's port types, and touches no clock, DOM or process`, () => {
       const text = code(readFileSync(new URL(name, import.meta.url), 'utf8'))
       for (const match of text.matchAll(/\bimport\s+(type\s+)?[^;]*?\bfrom\s+'([^']+)'/g)) {
         const specifier = match[2] ?? ''

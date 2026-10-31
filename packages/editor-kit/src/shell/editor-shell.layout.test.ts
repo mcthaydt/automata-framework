@@ -219,6 +219,22 @@ describe('the status line fills the status region', () => {
   )
 })
 
+describe('a toast in the sheets clears the foot (the tab bar and the status line)', () => {
+  test.each(SIZES.map((each) => [each.name, each] as const))('%s', async (_name, each) => {
+    await open(each, { toast: 'Locked values were cleared when the page reloaded.' })
+    await expect.poll(() => document.querySelector('[data-widget="toast-region"] .toast')).not.toBeNull()
+    await settleLayout()
+    const toast = document
+      .querySelector<HTMLElement>('[data-widget="toast-region"] .toast')
+      ?.getBoundingClientRect()
+    const foot = Math.min(
+      rect('status').top,
+      each.mode === 'wide' ? Number.POSITIVE_INFINITY : rect('rail').top,
+    )
+    expect(toast?.bottom).toBeLessThanOrEqual(foot + 0.5)
+  })
+})
+
 describe('a screen with no dock does not leave room for one', () => {
   test('medium: open drawers run to the foot of the canvas, not to where a dock sheet would begin', async () => {
     await open(size('ipad-pro-11-portrait'), {

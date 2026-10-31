@@ -1,6 +1,6 @@
-# Automata API reference, version 0.0.3
+# Automata API reference, version 0.0.4
 
-> Every export of every published `@mcthaydt/automata-*` entry point at version 0.0.3, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
+> Every export of every published `@mcthaydt/automata-*` entry point at version 0.0.4, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
 
 ## `@mcthaydt/automata`
 
@@ -76,6 +76,20 @@ interface CameraRect {
   readonly y: number
   readonly width: number
   readonly height: number
+}
+```
+
+#### `ChangedElsewhereCopy` (interface)
+
+The words of the choice paused offers once another device has changed the slot being played (M5-D6).
+
+```ts
+interface ChangedElsewhereCopy {
+  readonly message: string
+  readonly loadNewer: string
+  readonly keepPlaying: string
+  /** Load newer was chosen and the other device's progress could not be used; this game goes on as it was. */
+  readonly failed: string
 }
 ```
 
@@ -228,6 +242,11 @@ play restores the sim's own snapshot, which makes the next step a resync.
 
 ```ts
 function defaultScreens(game: ScreensGame): ScreenDef[] {
+  /** The screens' words in the player's language, re-read on each change, for as long as the screen is open. */
+  const words: Effect.Effect<LiveScreensCopy, never, Locale | Scope.Scope> = Effect.flatMap(
+    Locale,
+    (locale) => screensCopy(game.copy, locale),
+  )
   // The pads already told they are not supported (M4 spec §6), for the whole session.
   const toldPads = new Set<string>()
   let sim: Sim | undefined
@@ -295,7 +314,8 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
                   play()
                 },
               } satisfies SavesStart)
-        yield* show(TitleScreen, layer, { title: game.title, onPlay: play, saves })
+        const copy = yield* words
+        yield* show(TitleScreen, layer, { title: game.title, onPlay: play, saves, copy })
         // Enter or Space anywhere on the title plays; on a focused button the button's own click does.
         if (saves === undefined)
           yield* listen(target, 'keydown', (event) => {
@@ -307,7 +327,7 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
         // Nothing on the title takes Back, so a back step leaves the game.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
-        yield* noticeUnsupportedPads(layer, toldPads)
+        yield* noticeUnsupportedPads(layer, toldPads, () => copy.current.padUnsupported)
       }),
   }
 
@@ -366,9 +386,10 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
         const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })
         const detachCursor = cursor.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(detachCursor))
-        yield* noticeUnsupportedPads(layer, toldPads)
+        const copy = yield* words
+        yield* noticeUnsupportedPads(layer, toldPads, () => copy.current.padUnsupported)
         if (game.saves !== undefined)
-          yield* noticeChangedElsewhere(layer, game.saves.def.key, CHANGED_ELSEWHERE_TOAST)
+          yield* noticeChangedElsewhere(layer, game.saves.def.key, copy.current.saves.changedElsewhereToast)
         appLoop.run({
           sim: running,
           commands: (tick) => {
@@ -416,6 +437,7 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
         const detach = tracker.attach(target)
         yield* Effect.addFinalizer(() => Effect.sync(detach))
         yield* show(PlayScreen, layer, {
+          copy,
           onPause: pause,
           tracker,
           touchButtons: game.input?.touch === false ? [] : (game.input?.touchButtons ?? []),
@@ -435,7 +457,6 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
         const flow = yield* Flow
         const time = yield* Time
         const target = windowOf(layer)
-        const message = reconnect ? 'Reconnect your controller' : undefined
         // Any device that reaches Resume or Quit lets the game go on (M4 spec §5, pad hot-plug).
         const clearReconnect = (): void => {
           reconnect = false
@@ -454,7 +475,7 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
         const board =
           game.board === undefined
             ? undefined
-            : { copy: BOARD_COPY, load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
+            : { load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
         const settings = (): void => void flow.dispatch('settings')
         // Load newer replaces the sim with the other device's progress and plays on from it.
         const saves =
@@ -471,20 +492,22 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
         // Mute is the Audio group's setting (M5.4), as FloorFifty's pause has it.
         const { store } = yield* Settings
         const targets = { audio: yield* Audio, buses: yield* AudioBuses }
+        const copy = yield* words
         yield* show(PausedScreen, layer, {
+          copy,
           onResume: resume,
           onQuit: quit,
           onSettings: settings,
           muted: savedAudio(store).muted,
           onMute: (muted: boolean) => changeAudio(targets, store, { ...savedAudio(store), muted }),
-          message,
+          reconnect,
           board,
           saves,
         })
         // Escape is the dialog's (Modal): it steps back from the Quit confirm, and from the menu it resumes.
         yield* backGesture(target, () => sendBack(layer.ownerDocument))
         yield* driveMenu(target)
-        yield* noticeUnsupportedPads(layer, toldPads)
+        yield* noticeUnsupportedPads(layer, toldPads, () => copy.current.padUnsupported)
       }),
   }
 
@@ -580,6 +603,9 @@ Throws `BootDefect` (its cause a `GameSpecError`) for an invalid spec.
 
 ```ts
 function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S> {
+  // The runtime gets its own copy; `screens` is the default screens' (DX.2d).
+  const { screens: _screens, ...rest } = spec.copy ?? {}
+  const runtimeCopy = spec.copy === undefined ? undefined : rest
   const plugins = simPluginsOf(spec)
   const problems = problemsOf(spec, plugins)
   if (problems.length > 0) throw new BootDefect({ cause: new GameSpecError(problems) })
@@ -625,6 +651,7 @@ function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S
         ...(spec.saves === undefined ? {} : { saves: spec.saves as GameSaves<unknown> }),
         setQuality: (tier) => stage?.setQuality(tier),
         ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+        ...(spec.copy?.screens === undefined ? {} : { copy: spec.copy.screens }),
       }),
     renderer,
     // Without settings of its own, the game keeps the player's bindings and quality in the core settings (M4.4).
@@ -635,7 +662,7 @@ function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),
-    ...(spec.copy === undefined ? {} : { copy: spec.copy }),
+    ...(runtimeCopy === undefined ? {} : { copy: runtimeCopy }),
     ...(spec.locale === undefined ? {} : { locale: spec.locale }),
     ...(spec.seams === undefined ? {} : { seams: spec.seams }),
   }
@@ -839,6 +866,17 @@ interface EventDef<Z extends z.ZodType = z.ZodType> {
 }
 ```
 
+#### `GameCopy` (type)
+
+A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d).
+
+```ts
+type GameCopy = NonNullable<GameDefinition['copy']> & {
+  /** The default screens' words, over their English defaults: a part of `ScreensCopy`, or a function of the locale. */
+  readonly screens?: ScreensCopyInput | undefined
+}
+```
+
 #### `GameSaves` (interface)
 
 What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the
@@ -941,7 +979,12 @@ interface GameSpec<S = never, D = unknown> {
    * new origin or a rebuilt file never changes the hash a save is stamped with.
    */
   readonly preload?: readonly string[]
-  readonly copy?: GameDefinition['copy']
+  /**
+   * The game's words: the runtime's boot and failure copy, and `screens`, the default screens' words over their
+   * English defaults (DX.2d). `screens` may be a function of the locale, run again on each language change, so a
+   * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`.
+   */
+  readonly copy?: GameCopy
   /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
   readonly locale?: GameDefinition['locale']
   /** Tests only. */
@@ -1427,6 +1470,73 @@ interface SaveDef<S> {
 }
 ```
 
+#### `ScreensCopy` (interface)
+
+Every word the default title, play, paused and settings screens show (DX spec §7, M4 spec §4.8, M5 spec §4.8).
+
+```ts
+interface ScreensCopy {
+  readonly title: { readonly play: string }
+  /** The play screen's corner button, read by assistive technology. */
+  readonly play: { readonly pause: string }
+  readonly paused: {
+    readonly title: string
+    readonly resume: string
+    /** The dialog's close button away from the menu (the quit confirm, the changed-elsewhere step). */
+    readonly back: string
+    readonly mute: string
+    readonly unmute: string
+    readonly settings: string
+    readonly quit: string
+    readonly quitPrompt: string
+    readonly quitConfirm: string
+    readonly cancel: string
+    /** Why play paused when a controller in use was unplugged (M4-D9). */
+    readonly reconnect: string
+  }
+  readonly settings: {
+    readonly screen: SettingsScreenCopy
+    readonly prompts: PromptCopy
+    readonly controls: ControlsCopy
+    readonly language: LanguageCopy
+    readonly vibration: VibrationCopy
+    readonly audio: AudioCopy
+    readonly touch: TouchCopy
+    readonly display: DisplayCopy
+  }
+  readonly saves: {
+    readonly slots: SaveSlotsCopy
+    readonly status: SaveStatusCopy
+    readonly changedElsewhere: ChangedElsewhereCopy
+    readonly changedElsewhereToast: string
+  }
+  /** The scored board on the paused screen (M5.7). */
+  readonly board: LeaderboardCopy
+  /** Told once when a controller the input does not support is plugged in (M4 spec §6). */
+  readonly padUnsupported: string
+}
+```
+
+#### `ScreensCopyInput` (type)
+
+A game's words for the default screens: a part of the record, or a function of the player's locale returning one.
+The function runs again on each language change, so a Paraglide game can pass its messages:
+`screens: () => ({ title: { play: m.play() } })`.
+
+```ts
+type ScreensCopyInput = ScreensCopyOverrides | ((locale: string) => ScreensCopyOverrides)
+```
+
+#### `ScreensCopyOverrides` (type)
+
+A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
+
+```ts
+type ScreensCopyOverrides<T = ScreensCopy> = {
+  readonly [K in keyof T]?: T[K] extends Leaf ? T[K] : ScreensCopyOverrides<T[K]>
+}
+```
+
 #### `ScreensGame` (interface)
 
 What the default screens need from the game.
@@ -1451,6 +1561,23 @@ interface ScreensGame {
   readonly saves?: GameSaves<unknown> | undefined
   /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
   readonly extensions?: readonly ExtensionDef[] | undefined
+  /** The game's words for these screens (`GameSpec.copy.screens`, DX.2d), over the English defaults. */
+  readonly copy?: ScreensCopyInput | undefined
+}
+```
+
+#### `SettingsScreenCopy` (interface)
+
+The Settings screen's own words: its title, Back, the tabs and the overflow count.
+
+```ts
+interface SettingsScreenCopy {
+  readonly title: string
+  readonly back: string
+  readonly tabs: string
+  readonly settingsTab: string
+  readonly controlsTab: string
+  readonly more: (count: number) => string
 }
 ```
 
@@ -2657,6 +2784,20 @@ interface CameraRect {
 }
 ```
 
+#### `ChangedElsewhereCopy` (interface)
+
+The words of the choice paused offers once another device has changed the slot being played (M5-D6).
+
+```ts
+interface ChangedElsewhereCopy {
+    readonly message: string;
+    readonly loadNewer: string;
+    readonly keepPlaying: string;
+    /** Load newer was chosen and the other device's progress could not be used; this game goes on as it was. */
+    readonly failed: string;
+}
+```
+
 #### `createCamera2d` (function)
 
 A camera writing `stage`'s transform (usually `PixiStage.world`). `seed` fixes the shake's random sequence,
@@ -2860,6 +3001,17 @@ interface DrawTextOptions {
 }
 ```
 
+#### `GameCopy` (type)
+
+A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d).
+
+```ts
+type GameCopy = NonNullable<GameDefinition['copy']> & {
+    /** The default screens' words, over their English defaults: a part of `ScreensCopy`, or a function of the locale. */
+    readonly screens?: ScreensCopyInput | undefined;
+};
+```
+
 #### `GameSaves` (interface)
 
 What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the
@@ -2969,7 +3121,12 @@ interface GameSpec<S = never, D = unknown> {
      * new origin or a rebuilt file never changes the hash a save is stamped with.
      */
     readonly preload?: readonly string[];
-    readonly copy?: GameDefinition['copy'];
+    /**
+     * The game's words: the runtime's boot and failure copy, and `screens`, the default screens' words over their
+     * English defaults (DX.2d). `screens` may be a function of the locale, run again on each language change, so a
+     * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`.
+     */
+    readonly copy?: GameCopy;
     /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
     readonly locale?: GameDefinition['locale'];
     /** Tests only. */
@@ -3211,6 +3368,77 @@ interface SaveDef<S> {
 }
 ```
 
+#### `ScreensCopy` (interface)
+
+Every word the default title, play, paused and settings screens show (DX spec §7, M4 spec §4.8, M5 spec §4.8).
+
+```ts
+interface ScreensCopy {
+    readonly title: {
+        readonly play: string;
+    };
+    /** The play screen's corner button, read by assistive technology. */
+    readonly play: {
+        readonly pause: string;
+    };
+    readonly paused: {
+        readonly title: string;
+        readonly resume: string;
+        /** The dialog's close button away from the menu (the quit confirm, the changed-elsewhere step). */
+        readonly back: string;
+        readonly mute: string;
+        readonly unmute: string;
+        readonly settings: string;
+        readonly quit: string;
+        readonly quitPrompt: string;
+        readonly quitConfirm: string;
+        readonly cancel: string;
+        /** Why play paused when a controller in use was unplugged (M4-D9). */
+        readonly reconnect: string;
+    };
+    readonly settings: {
+        readonly screen: SettingsScreenCopy;
+        readonly prompts: PromptCopy;
+        readonly controls: ControlsCopy;
+        readonly language: LanguageCopy;
+        readonly vibration: VibrationCopy;
+        readonly audio: AudioCopy;
+        readonly touch: TouchCopy;
+        readonly display: DisplayCopy;
+    };
+    readonly saves: {
+        readonly slots: SaveSlotsCopy;
+        readonly status: SaveStatusCopy;
+        readonly changedElsewhere: ChangedElsewhereCopy;
+        readonly changedElsewhereToast: string;
+    };
+    /** The scored board on the paused screen (M5.7). */
+    readonly board: LeaderboardCopy;
+    /** Told once when a controller the input does not support is plugged in (M4 spec §6). */
+    readonly padUnsupported: string;
+}
+```
+
+#### `ScreensCopyInput` (type)
+
+A game's words for the default screens: a part of the record, or a function of the player's locale returning one.
+The function runs again on each language change, so a Paraglide game can pass its messages:
+`screens: () => ({ title: { play: m.play() } })`.
+
+```ts
+type ScreensCopyInput = ScreensCopyOverrides | ((locale: string) => ScreensCopyOverrides);
+```
+
+#### `ScreensCopyOverrides` (type)
+
+A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
+
+```ts
+type ScreensCopyOverrides<T = ScreensCopy> = {
+    readonly [K in keyof T]?: T[K] extends Leaf ? T[K] : ScreensCopyOverrides<T[K]>;
+};
+```
+
 #### `ScreensGame` (interface)
 
 What the default screens need from the game.
@@ -3235,6 +3463,23 @@ interface ScreensGame {
     readonly saves?: GameSaves<unknown> | undefined;
     /** The game's extensions: play draws their `hud.overlay` components (M4.7), Settings shows their `settings.sections` (M4.4). */
     readonly extensions?: readonly ExtensionDef[] | undefined;
+    /** The game's words for these screens (`GameSpec.copy.screens`, DX.2d), over the English defaults. */
+    readonly copy?: ScreensCopyInput | undefined;
+}
+```
+
+#### `SettingsScreenCopy` (interface)
+
+The Settings screen's own words: its title, Back, the tabs and the overflow count.
+
+```ts
+interface SettingsScreenCopy {
+    readonly title: string;
+    readonly back: string;
+    readonly tabs: string;
+    readonly settingsTab: string;
+    readonly controlsTab: string;
+    readonly more: (count: number) => string;
 }
 ```
 
@@ -6301,7 +6546,9 @@ Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
 Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
 the attempt scope open so Back to {host} can access its Hosting service. Try again
 and Continue without loading close the failed attempt scope and re-run bootProgram
-in a fresh Scope on the same root without reloading the page.
+in a fresh Scope on the same root without reloading the page. Inside a Ruken session,
+Try again reloads the game's frame instead: `@ruken/sdk-host` answers one hello per
+frame load, so a second session in this load would never be welcomed (RT.BOOT1).
 
 RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIFO order.
 
@@ -6435,6 +6682,11 @@ interface RuntimeSeams {
    * playground spec §7.2).
    */
   readonly onFailure?: (cause: unknown) => void;
+  /**
+   * Reloads the game's frame: what Try again does after a boot failure inside a Ruken session, where the host answers
+   * one hello per frame load (M1 runtime spec §4, RT.BOOT1). Defaults to reloading the document's location.
+   */
+  readonly reload?: () => void;
 }
 ```
 
@@ -8197,6 +8449,12 @@ interface ShipConfig {
    * `ruken.toml`, and a Ruken build ignores it.
    */
   readonly itch?: ItchConfig | undefined;
+  /**
+   * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
+   * public release: `automata-ship prepare` then checks the build as private and writes no `ruken.toml`, and only
+   * `deploy-dev` and `publish --private` ship it (M3 spec §4.8). Not a Ruken field. Left out, a game is `public`.
+   */
+  readonly audience?: "public" | "private" | undefined;
 }
 ```
 

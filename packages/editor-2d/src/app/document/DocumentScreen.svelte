@@ -18,7 +18,7 @@ import type { ToastStore } from '@mcthaydt/automata-editor-kit/core'
 import type { GeometryState } from '@mcthaydt/automata-ui'
 import type { Component } from 'svelte'
 import type { IdSource } from '../../model/ids'
-import type { LevelCanvasProps, ObjectUrls, ViewServices } from '../views/view-props'
+import type { LevelCanvasProps, ObjectUrls, ViewServices, WorldCanvasProps } from '../views/view-props'
 import { componentOf } from '../views/views'
 import DocumentBar from './DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document-controller'
@@ -37,10 +37,13 @@ interface Props {
   objectUrls?: ObjectUrls | undefined
   /** The level canvas; the DOM tests pass a stand-in. */
   canvas?: Component<LevelCanvasProps> | undefined
+  /** The world map; the DOM tests pass a stand-in. */
+  worldCanvas?: Component<WorldCanvasProps> | undefined
   onback: () => void
 }
 
-const { geometry, controller, toasts, clock, read, ids, objectUrls, canvas, onback }: Props = $props()
+const { geometry, controller, toasts, clock, read, ids, objectUrls, canvas, worldCanvas, onback }: Props =
+  $props()
 
 /** The controller's state right now (its store answers at once). */
 function snapshot(source: DocumentController): DocumentState {
@@ -63,6 +66,8 @@ let chosen = $state<string | undefined>(undefined)
 let arrived = $state(false)
 /** A view was chosen from the rail, so the rail of the view it opens takes the focus. */
 let fromRail = $state(false)
+/** The path Locate asked for, handed to the view it opens; choosing from the rail drops it. */
+let focus = $state<string | undefined>(undefined)
 
 const views = $derived(viewsOf(shown.document.profile))
 const route = $derived(routeOf(views, chosen))
@@ -73,8 +78,14 @@ const services = $derived<ViewServices>({
   ids,
   objectUrls,
   canvas,
+  worldCanvas,
   onundo: () => controller.undo(),
   onredo: () => controller.redo(),
+  locate: (path) => {
+    focus = path
+    chosen = views[0]?.id
+    fromRail = false
+  },
 })
 </script>
 
@@ -106,6 +117,7 @@ const services = $derived<ViewServices>({
     onselect={(id) => {
       chosen = id
       fromRail = true
+      focus = undefined
     }}
   />
 {/snippet}
@@ -143,6 +155,7 @@ const services = $derived<ViewServices>({
       label={route?.label ?? shown.document.profile.label}
       frame={{ topbar, rail, status, sheets }}
       {services}
+      {focus}
     />
   {/key}
 {/key}
