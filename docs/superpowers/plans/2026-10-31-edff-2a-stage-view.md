@@ -3,7 +3,7 @@
 - **Task:** EDFF.2a in [02](../../02-master-delivery-plan.md), first half. [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §4 (the registration list), §10.6 (commands; the Stage row: identity, presentation, the `courseTuning` table; flow "New stage"), §10.7 (checks), §12 (44 px targets). Mockup `ff-settings` in `docs/design/editor-2d/screens-floorfifty.mjs`.
 - **Lane:** editors. **Depends on:** EDFF.1 (merged: the profile, its commands, templates and checks), ED2D.4c4a (merged: the view router). **Unblocks:** EDFF.2a-2 (Assets), EDFF.2b (the composition canvas).
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" (2026-10-30) and "everything is auto approved and accepted" (2026-10-31) once reviewed.
-- **Progress:** 1 of 6 steps.
+- **Progress:** 2 of 6 steps.
 
 ## The split, and why
 
@@ -40,7 +40,7 @@ EDFF.2a is size M with four parts: the registration, the Stage view, the Assets 
 Each step: write the test, run it and see it fail for the stated reason, make the minimal change, see it pass.
 
 - [x] **1. This plan.** Committed first.
-- [ ] **2. Registration.** `profiles.test.ts`: the registry lists Level project then FloorFifty stage; a `.toml` stage file is claimed by the stage profile; the stage profile's templates are Empty, Sky only and Simple city. Fails: one profile. Then the app tests that counted one profile's templates are read again (record any that change and why).
+- [x] **2. Registration.** `profiles.test.ts`: the registry lists Level project then FloorFifty stage; a `.toml` stage file is claimed by the stage profile; the stage profile's templates are Empty, Sky only and Simple city. Fails: one profile. Then the app tests that counted one profile's templates are read again (record any that change and why).
 - [ ] **3. The form model.** `stage-form.test.ts`: the Simple city template's identity, its presentation values, no overrides and every course tunable available; with an override, it is listed with its type, bounds and default and is no longer available; a stage without presentation says so. Fails: no module.
 - [ ] **4. The Stage view.** `StageView.dom.test.ts`, a stage created from Home's template and reached from the rail: rename, id, unlock (cleared when empty), platform alias, each one undo step; presentation on, a value changed, off; an override added from the list, changed, removed; a value outside its declared range is kept and Checks reports it. Fails: the pending view.
 - [ ] **5. Layout.** `stage-view.layout.test.ts` at the eight sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never scrolls; screenshots.
@@ -55,3 +55,4 @@ Each step: write the test, run it and see it fail for the stated reason, make th
 ## Execution log
 
 - 2026-10-31: plan drafted from `main` at `d945756`.
+- Step 2: `profiles.test.ts` failed (one profile; no stage templates; the stage file unclaimed); with `floorFiftyStage` registered after the level project it passes. Five `home-model.test.ts` cases then failed because they used the app's registry as their one-profile starting point (accent count, template list, tagging, the "could be a …" wording). They test rules that hold for any registry, so they now start from an explicit level-project-only registry; the "every template of every profile" case lists the three stage templates after the level project's. Visible change: with two profiles registered, Home's template cards carry their profile's tag (the existing tagging rule), and the three stage templates follow the level project's. editor-2d `unit` and `dom` pass 2482 of 2482.

@@ -1,7 +1,8 @@
 import { filterEntries } from '@mcthaydt/automata-editor-kit/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { LevelThumbnails } from '../../canvas/level-thumbnails'
-import { createProfileRegistry } from '../../profiles/profile'
+import { levelProject } from '../../profiles/level-project/level-project'
+import { createProfileRegistry, type ProfileRegistry } from '../../profiles/profile'
 import { plantedProfile } from '../../testing/planted-profile'
 import { mossgate } from '../../testing/samples'
 import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../editor-app'
@@ -20,6 +21,13 @@ import {
   searchWords,
   templateCards,
 } from './home-model'
+
+/** The level project alone: the rules below hold for any registry, and one profile is where they start. */
+function levelOnly(): ProfileRegistry {
+  const registry = createProfileRegistry()
+  registry.register(levelProject)
+  return registry
+}
 
 // What Home decides before anything is drawn (plan ED2D.4c2a step 4): pure functions of the list, the registry and the
 // workspace. The components only show what these return.
@@ -107,7 +115,7 @@ describe('entryBadge', () => {
 
 describe('kindTone', () => {
   it('gives each registered profile its own accent by position, and the same one every time', () => {
-    const registry = createAppProfiles()
+    const registry = levelOnly()
     registry.register(plantedProfile())
     registry.register(plantedProfile({ id: 'third', label: 'Third' }))
     const tones = registry.list().map((profile) => kindTone(registry, profile.id))
@@ -131,11 +139,14 @@ describe('templateCards', () => {
       ['level-project/platformer', 'Platformer', 'side view'],
       ['level-project/topdown-rpg', 'Top-down RPG', 'maps · NPCs'],
       ['level-project/blank', 'Blank', 'own layers'],
+      ['floorfifty-stage/empty', 'Empty', undefined],
+      ['floorfifty-stage/sky-only', 'Sky only', undefined],
+      ['floorfifty-stage/simple-city', 'Simple city', undefined],
     ])
   })
 
   it('tags a card with its profile only when more than one profile is registered', () => {
-    const registry = createAppProfiles()
+    const registry = levelOnly()
     expect(templateCards(registry).every((card) => !card.tagged)).toBe(true)
     registry.register(plantedProfile())
     const cards = templateCards(registry)
@@ -197,7 +208,7 @@ describe('openProblem', () => {
   })
 
   it('lists the kinds that claim a file that more than one profile claims', () => {
-    const registry = createAppProfiles()
+    const registry = levelOnly()
     registry.register(plantedProfile())
     expect(problem({ status: 'choose', path: 'x.dat', text: '', candidates: registry.list() })).toBe(
       'x.dat could be a Level project or a Planted note.',
@@ -205,7 +216,7 @@ describe('openProblem', () => {
   })
 
   it('lists three candidates with commas and a last or', () => {
-    const registry = createAppProfiles()
+    const registry = levelOnly()
     registry.register(plantedProfile())
     registry.register(plantedProfile({ id: 'third', label: 'Third' }))
     expect(problem({ status: 'choose', path: 'x.dat', text: '', candidates: registry.list() })).toBe(

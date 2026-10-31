@@ -7,17 +7,26 @@ import { createAppProfiles } from './profiles'
 // the app does, so they hold for any profile that is added to the list.
 
 describe('createAppProfiles', () => {
-  it('registers the built-in level project first', () => {
+  it('registers the built-in level project first, then the FloorFifty stage', () => {
     const registry = createAppProfiles()
-    expect(registry.list().map((profile) => profile.label)).toEqual(['Level project'])
+    expect(registry.list().map((profile) => profile.label)).toEqual(['Level project', 'FloorFifty stage'])
+  })
+
+  it('offers the stage templates and claims a stage file (EDFF.2a)', () => {
+    const registry = createAppProfiles()
+    const stage = registry.get('floorfifty-stage')
+    expect(stage?.templates.map((template) => template.label)).toEqual(['Empty', 'Sky only', 'Simple city'])
+    expect(
+      registry.sniff('rooftops.toml', 'id = "rooftops"\nplatformAlias = "world.platform"\n').map((p) => p.id),
+    ).toEqual(['floorfifty-stage'])
   })
 
   it('returns a new registry each time, so a test cannot leak a registration into the next', () => {
     const first = createAppProfiles()
     const second = createAppProfiles()
     first.register(plantedProfile())
-    expect(first.list()).toHaveLength(2)
-    expect(second.list()).toHaveLength(1)
+    expect(first.list()).toHaveLength(3)
+    expect(second.list()).toHaveLength(2)
   })
 
   it('finds the profile that claims a working file by name', () => {
