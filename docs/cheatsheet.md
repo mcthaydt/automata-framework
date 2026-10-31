@@ -6,6 +6,8 @@
 
 ### `import { … } from '@mcthaydt/automata'`
 
+- `AnalogOptions` (interface): The `analog` option of `keys()`.
+- `AnalogReading` (interface): The analog input at one fixed step, read once after `Input.poll()`.
 - `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
 - `AutosaveTrigger` (type): What can make the loaded slot write itself (M5 spec §4.4).
 - `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
@@ -165,6 +167,8 @@
 
 ### `import { … } from '@mcthaydt/automata-game'`
 
+- `AnalogOptions` (interface): The `analog` option of `keys()`.
+- `AnalogReading` (interface): The analog input at one fixed step, read once after `Input.poll()`.
 - `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
 - `AutosaveTrigger` (type): What can make the loaded slot write itself (M5 spec §4.4).
 - `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.

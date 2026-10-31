@@ -6,6 +6,40 @@
 
 ### `import { … } from '@mcthaydt/automata'`
 
+#### `AnalogOptions` (interface)
+
+The `analog` option of `keys()`.
+
+```ts
+interface AnalogOptions<Z extends z.ZodType> {
+  /**
+   * Per tick: what the sticks and the drag add to the held keys' payload, merged over it and parsed by the
+   * command's schema. The held payload is passed in so a game can sum a key term and a stick term. When the schema
+   * refuses the merge (a `NaN`, a float in an integer field), the held payload is sent alone.
+   */
+  read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>
+  /** Bind the `camera-drag` gesture: the play screen mounts the drag surface (M4 spec §16.3.1). */
+  readonly drag?: boolean
+  /** Show the touch stick; its vector is `stick('left')`. */
+  readonly touchStick?: boolean
+}
+```
+
+#### `AnalogReading` (interface)
+
+The analog input at one fixed step, read once after `Input.poll()`.
+
+```ts
+interface AnalogReading {
+  /** The active pad's stick, or the touch stick, as integers −127..127 (M4-D2). */
+  stick(side: 'left' | 'right'): { readonly x: number; readonly y: number }
+  /** CSS px dragged to the right since the previous tick; 0 unless the map binds the camera drag. */
+  cameraDrag(): number
+  /** The player's camera settings. */
+  readonly camera: CameraSettings
+}
+```
+
 #### `AutosavePolicy` (interface)
 
 When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval`
@@ -375,6 +409,11 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
           settings: store,
           hostInput: yield* hostInput,
         })
+        const bindsCameraDrag = Object.values(map?.profile.bindings ?? {}).some(
+          (binding) => binding.gesture?.includes('camera-drag') === true,
+        )
+        // The player's camera choices, read each tick so a change in Settings applies at once.
+        const camera = (): CameraSettings => cameraSettingsSchema.parse(asRecord(store?.get()).camera)
         const touchMode = inputSettingsSchema.parse(asRecord(store?.get()).input).touchMode ?? map?.touchMode
         const running = current
         game.watchSim?.(running)
@@ -397,7 +436,7 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
             save?.touch(keep)
             if (map === undefined) return []
             input.poll()
-            return map.toCommand(input.held(), tick)
+            return map.toCommand(input.held(), tick, analogReading(input, camera()))
           },
         })
         yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.stop()))
@@ -444,6 +483,14 @@ function defaultScreens(game: ScreensGame): ScreenDef[] {
           onHold: (id: string) => input.hold(id),
           onRelease: (id: string) => input.release(id),
           swipe: touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
+          drag: bindsCameraDrag ? new CameraDragTracker(input.drag) : undefined,
+          stick:
+            map?.touchStick === true
+              ? {
+                  onstick: (x: number, y: number) => input.touchStick.set(x, y),
+                  onstickend: () => input.touchStick.release(),
+                }
+              : undefined,
           hud: resolveExtensions(game.extensions ?? []).slots('hud.overlay'),
         })
       }),
@@ -1026,8 +1073,13 @@ interface InputMap {
   readonly profile: InputProfile
   /** Each action's name, as the Settings screen's Controls section lists it (M4.4). */
   readonly labels: Readonly<Record<string, string>>
-  /** Pure: the one command for the held actions, merged in iteration order (a later action wins per field). */
-  toCommand(held: Iterable<string>, tick: number): readonly Command[]
+  /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
+  readonly touchStick: boolean
+  /**
+   * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
+   * `analog` option, `reading` adds the sticks and the drag (M4 spec §17); without one it is ignored.
+   */
+  toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[]
   attach(target: Window): InputSource
 }
 ```
@@ -1056,11 +1108,11 @@ function inputs(...maps: readonly InputMap[]): InputMap {
   const touchMode: TouchMode = maps.every((map) => map.touchMode === 'swipe') ? 'swipe' : 'buttons'
   if (!modes.includes(touchMode)) throw new Error(`inputs(): touchMode "${touchMode}" has nothing to touch`)
 
-  const toCommand = (held: Iterable<string>, tick: number): readonly Command[] => {
+  const toCommand = (held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[] => {
     const actions = [...held]
     const commands: Command[] = []
     for (const [index, map] of maps.entries())
-      for (const command of map.toCommand(actions, tick))
+      for (const command of map.toCommand(actions, tick, reading))
         commands.push({ ...command, seq: tick * maps.length + index })
     return commands
   }
@@ -1070,6 +1122,7 @@ function inputs(...maps: readonly InputMap[]): InputMap {
     touch: maps.some((map) => map.touch),
     touchButtons: maps.flatMap((map) => (map.touch ? map.touchButtons : [])),
     touchMode,
+    touchStick: maps.some((map) => map.touchStick),
     profile,
     labels: Object.assign({}, ...maps.map((map) => map.labels)),
     toCommand,
@@ -1080,7 +1133,7 @@ function inputs(...maps: readonly InputMap[]): InputMap {
       return {
         commands(tick) {
           input.poll()
-          return toCommand(input.held(), tick)
+          return toCommand(input.held(), tick, analogReading(input, CAMERA_SETTINGS_DEFAULT))
         },
         hold: (buttonId) => input.hold(buttonId),
         release: (buttonId) => input.release(buttonId),
@@ -1182,10 +1235,11 @@ function keys<Z extends z.ZodType>(
   const requiredKeys = new Set(options.required ?? [])
   const isRequired = (action: (typeof actions)[number]): boolean =>
     action.keys.some((code) => requiredKeys.has(code))
+  const analog = options.analog
   const parsedProfile = inputProfileSchema.safeParse({
     id: command.id,
-    bindings: Object.fromEntries(
-      actions.map((action) => [
+    bindings: Object.fromEntries([
+      ...actions.map((action) => [
         action.id,
         {
           keys: action.keys,
@@ -1196,7 +1250,11 @@ function keys<Z extends z.ZodType>(
           ...(isRequired(action) ? { required: true } : {}),
         },
       ]),
-    ),
+      // Binding the camera drag is what turns it on (M4 spec §16.3.1); it has no key and no button.
+      ...(analog?.drag === true
+        ? [[`${command.id}-drag`, { keys: [], pad: [], touch: false, gesture: ['camera-drag'] }]]
+        : []),
+    ]),
   })
   // A reserved key or pad button is a developer error, thrown now (M4-D3, I-j).
   if (!parsedProfile.success)
@@ -1250,6 +1308,23 @@ function keys<Z extends z.ZodType>(
     }
     return asCommands(cached, tick)
   }
+  const toCommandWith = (
+    held: Iterable<string>,
+    tick: number,
+    reading?: AnalogReading,
+  ): readonly Command[] => {
+    if (analog === undefined || reading === undefined) return toCommand(held, tick)
+    const known: string[] = []
+    for (const action of held) if (payloadOf.has(action)) known.push(action)
+    const heldPayload = merge(known.map((action) => payloadOf.get(action)))
+    if (heldPayload === undefined) return []
+    // Fresh every tick, never cached. A refused merge (a NaN, a float) drops the analog part, not the held keys.
+    const parsed = schema.safeParse({
+      ...asRecord(heldPayload),
+      ...asRecord(analog.read(reading, heldPayload as z.output<Z>)),
+    })
+    return asCommands(parsed.success ? parsed.data : heldPayload, tick)
+  }
 
   return {
     command,
@@ -1258,7 +1333,8 @@ function keys<Z extends z.ZodType>(
     touchMode,
     profile,
     labels,
-    toCommand,
+    touchStick: analog?.touchStick === true,
+    toCommand: toCommandWith,
     attach(target) {
       // The Input service over `target`, in a scope of its own that `dispose` closes. Nothing here listens to
       // its facts, so it publishes to a bus no one reads.
@@ -1267,7 +1343,7 @@ function keys<Z extends z.ZodType>(
       return {
         commands(tick) {
           input.poll()
-          return toCommand(input.held(), tick)
+          return toCommandWith(input.held(), tick, analogReading(input, CAMERA_SETTINGS_DEFAULT))
         },
         hold: (buttonId) => input.hold(buttonId),
         release: (buttonId) => input.release(buttonId),
@@ -1308,6 +1384,8 @@ interface KeysOptions<Z extends z.ZodType> {
    * command and payload (`move x -1`).
    */
   readonly labels?: Readonly<Record<string, string>>
+  /** The sticks and the camera drag, added to the held keys' payload each tick (M4 spec §17). */
+  readonly analog?: AnalogOptions<Z>
 }
 ```
 
@@ -1477,8 +1555,8 @@ Every word the default title, play, paused and settings screens show (DX spec §
 ```ts
 interface ScreensCopy {
   readonly title: { readonly play: string }
-  /** The play screen's corner button, read by assistive technology. */
-  readonly play: { readonly pause: string }
+  /** The play screen's corner button and the touch stick, read by assistive technology. */
+  readonly play: { readonly pause: string; readonly move: string }
   readonly paused: {
     readonly title: string
     readonly resume: string
@@ -2711,6 +2789,43 @@ const VIRTUAL_MODULE_ID = "virtual:automata/content";
 
 ### `import { … } from '@mcthaydt/automata-game'`
 
+#### `AnalogOptions` (interface)
+
+The `analog` option of `keys()`.
+
+```ts
+interface AnalogOptions<Z extends z.ZodType> {
+    /**
+     * Per tick: what the sticks and the drag add to the held keys' payload, merged over it and parsed by the
+     * command's schema. The held payload is passed in so a game can sum a key term and a stick term. When the schema
+     * refuses the merge (a `NaN`, a float in an integer field), the held payload is sent alone.
+     */
+    read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>;
+    /** Bind the `camera-drag` gesture: the play screen mounts the drag surface (M4 spec §16.3.1). */
+    readonly drag?: boolean;
+    /** Show the touch stick; its vector is `stick('left')`. */
+    readonly touchStick?: boolean;
+}
+```
+
+#### `AnalogReading` (interface)
+
+The analog input at one fixed step, read once after `Input.poll()`.
+
+```ts
+interface AnalogReading {
+    /** The active pad's stick, or the touch stick, as integers −127..127 (M4-D2). */
+    stick(side: 'left' | 'right'): {
+        readonly x: number;
+        readonly y: number;
+    };
+    /** CSS px dragged to the right since the previous tick; 0 unless the map binds the camera drag. */
+    cameraDrag(): number;
+    /** The player's camera settings. */
+    readonly camera: CameraSettings;
+}
+```
+
 #### `AutosavePolicy` (interface)
 
 When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval`
@@ -3164,8 +3279,13 @@ interface InputMap {
     readonly profile: InputProfile;
     /** Each action's name, as the Settings screen's Controls section lists it (M4.4). */
     readonly labels: Readonly<Record<string, string>>;
-    /** Pure: the one command for the held actions, merged in iteration order (a later action wins per field). */
-    toCommand(held: Iterable<string>, tick: number): readonly Command[];
+    /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
+    readonly touchStick: boolean;
+    /**
+     * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
+     * `analog` option, `reading` adds the sticks and the drag (M4 spec §17); without one it is ignored.
+     */
+    toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[];
     attach(target: Window): InputSource;
 }
 ```
@@ -3246,6 +3366,8 @@ interface KeysOptions<Z extends z.ZodType> {
      * command and payload (`move x -1`).
      */
     readonly labels?: Readonly<Record<string, string>>;
+    /** The sticks and the camera drag, added to the held keys' payload each tick (M4 spec §17). */
+    readonly analog?: AnalogOptions<Z>;
 }
 ```
 
@@ -3377,9 +3499,10 @@ interface ScreensCopy {
     readonly title: {
         readonly play: string;
     };
-    /** The play screen's corner button, read by assistive technology. */
+    /** The play screen's corner button and the touch stick, read by assistive technology. */
     readonly play: {
         readonly pause: string;
+        readonly move: string;
     };
     readonly paused: {
         readonly title: string;

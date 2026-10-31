@@ -4,6 +4,7 @@
 // window loses focus. It sends what is held, never a "pressed" edge: the sim compares this tick's command with
 // the last one's, so a replay stays a pure function of the command stream.
 import {
+  CAMERA_SETTINGS_DEFAULT,
   type GestureName,
   type GestureSink,
   type InputProfile,
@@ -17,6 +18,9 @@ import {
 import type { Command, CommandDef } from '@mcthaydt/automata-sim'
 import { Effect, Exit, Scope } from 'effect'
 import type { z } from 'zod'
+import { type AnalogOptions, type AnalogReading, analogReading } from './analog-reading.ts'
+
+export type { AnalogOptions, AnalogReading }
 
 /** One on-screen touch button: every key bound to the same payload shares it. */
 export interface TouchButton {
@@ -54,8 +58,13 @@ export interface InputMap {
   readonly profile: InputProfile
   /** Each action's name, as the Settings screen's Controls section lists it (M4.4). */
   readonly labels: Readonly<Record<string, string>>
-  /** Pure: the one command for the held actions, merged in iteration order (a later action wins per field). */
-  toCommand(held: Iterable<string>, tick: number): readonly Command[]
+  /** Whether the play screen shows the touch stick (the `analog.touchStick` option). */
+  readonly touchStick: boolean
+  /**
+   * Pure: the one command for the held actions, merged in iteration order (a later action wins per field). With an
+   * `analog` option, `reading` adds the sticks and the drag (M4 spec §17); without one it is ignored.
+   */
+  toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[]
   attach(target: Window): InputSource
 }
 
@@ -91,6 +100,8 @@ export interface KeysOptions<Z extends z.ZodType> {
    * command and payload (`move x -1`).
    */
   readonly labels?: Readonly<Record<string, string>>
+  /** The sticks and the camera drag, added to the held keys' payload each tick (M4 spec §17). */
+  readonly analog?: AnalogOptions<Z>
 }
 
 const KEY_LABELS: Readonly<Record<string, string>> = {
@@ -172,10 +183,11 @@ export function keys<Z extends z.ZodType>(
   const requiredKeys = new Set(options.required ?? [])
   const isRequired = (action: (typeof actions)[number]): boolean =>
     action.keys.some((code) => requiredKeys.has(code))
+  const analog = options.analog
   const parsedProfile = inputProfileSchema.safeParse({
     id: command.id,
-    bindings: Object.fromEntries(
-      actions.map((action) => [
+    bindings: Object.fromEntries([
+      ...actions.map((action) => [
         action.id,
         {
           keys: action.keys,
@@ -186,7 +198,11 @@ export function keys<Z extends z.ZodType>(
           ...(isRequired(action) ? { required: true } : {}),
         },
       ]),
-    ),
+      // Binding the camera drag is what turns it on (M4 spec §16.3.1); it has no key and no button.
+      ...(analog?.drag === true
+        ? [[`${command.id}-drag`, { keys: [], pad: [], touch: false, gesture: ['camera-drag'] }]]
+        : []),
+    ]),
   })
   // A reserved key or pad button is a developer error, thrown now (M4-D3, I-j).
   if (!parsedProfile.success)
@@ -240,6 +256,23 @@ export function keys<Z extends z.ZodType>(
     }
     return asCommands(cached, tick)
   }
+  const toCommandWith = (
+    held: Iterable<string>,
+    tick: number,
+    reading?: AnalogReading,
+  ): readonly Command[] => {
+    if (analog === undefined || reading === undefined) return toCommand(held, tick)
+    const known: string[] = []
+    for (const action of held) if (payloadOf.has(action)) known.push(action)
+    const heldPayload = merge(known.map((action) => payloadOf.get(action)))
+    if (heldPayload === undefined) return []
+    // Fresh every tick, never cached. A refused merge (a NaN, a float) drops the analog part, not the held keys.
+    const parsed = schema.safeParse({
+      ...asRecord(heldPayload),
+      ...asRecord(analog.read(reading, heldPayload as z.output<Z>)),
+    })
+    return asCommands(parsed.success ? parsed.data : heldPayload, tick)
+  }
 
   return {
     command,
@@ -248,7 +281,8 @@ export function keys<Z extends z.ZodType>(
     touchMode,
     profile,
     labels,
-    toCommand,
+    touchStick: analog?.touchStick === true,
+    toCommand: toCommandWith,
     attach(target) {
       // The Input service over `target`, in a scope of its own that `dispose` closes. Nothing here listens to
       // its facts, so it publishes to a bus no one reads.
@@ -257,7 +291,7 @@ export function keys<Z extends z.ZodType>(
       return {
         commands(tick) {
           input.poll()
-          return toCommand(input.held(), tick)
+          return toCommandWith(input.held(), tick, analogReading(input, CAMERA_SETTINGS_DEFAULT))
         },
         hold: (buttonId) => input.hold(buttonId),
         release: (buttonId) => input.release(buttonId),
