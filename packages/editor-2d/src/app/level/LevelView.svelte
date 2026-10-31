@@ -14,12 +14,12 @@ import { defaultDockOpen, dockPlacementOf, EditorShell, shellModeOf } from '@mct
 import { onDestroy } from 'svelte'
 import type { Project } from '../../model/project-types'
 import type { ViewProps } from '../views/view-props'
+import { projectHistory } from './edit-history'
 import LevelCards from './LevelCards.svelte'
 import LevelDock from './LevelDock.svelte'
 import LevelInspector from './LevelInspector.svelte'
 import LevelPanel from './LevelPanel.svelte'
 import LevelStage from './LevelStage.svelte'
-import { projectHistory } from './edit-history'
 import { levelFocus } from './level-focus'
 import { createLevelSession } from './level-session'
 
