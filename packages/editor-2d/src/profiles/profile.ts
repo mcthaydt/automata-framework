@@ -4,7 +4,7 @@ import type { Project } from '../model/project-types'
 
 // What a document type plugs into the editor (2D editor spec §7). The editor lists the documents of every registered
 // profile on Home, opens one with the profile that `sniff`s it (and asks when two do), shows the profile's views on the
-// rail and runs its checks. `level-project` is built in (ED2D.3); `floorfifty-stage` is an extension (EDFF.1).
+// rail and runs its checks. `level-project` is built in (ED2D.3); a game can register more.
 //
 // The members that take a value are declared as methods, which TypeScript checks bivariantly, so a `Profile<Stage>` is
 // a `Profile<unknown>` and registers without a cast. The registry never calls them: the app pairs a profile's own
@@ -86,7 +86,7 @@ export interface ProfileSummary {
 /**
  * The level a Home card draws as the document's thumbnail (ED2D.4c3b): a level of a level project. It names the
  * level-project `Project` type because the card is drawn by the level canvas, which draws nothing else; a profile whose
- * documents are not level projects (the FloorFifty stage) leaves `preview` out until it has a picture of its own.
+ * documents are not level projects leaves `preview` out until it has a picture of its own.
  */
 export interface LevelPreview {
   readonly project: Project
@@ -95,7 +95,7 @@ export interface LevelPreview {
 }
 
 export interface Profile<V> {
-  /** `level-project`, `floorfifty-stage`. */
+  /** `level-project`. */
   readonly id: string
   readonly label: string
   /** Can this profile open the file? */

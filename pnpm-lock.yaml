@@ -482,9 +482,6 @@ importers:
 
   packages/editor-2d:
     dependencies:
-      '@decimalturn/toml-patch':
-        specifier: 3.3.1
-        version: 3.3.1
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
