@@ -1283,6 +1283,8 @@ interface Profile<V> {
     print(base: string, value: V): string;
     check(value: V, context: ProjectContext): readonly Diagnostic[];
     fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V;
+    choices?(value: V, diagnostic: Diagnostic): readonly TargetChoice[];
+    choose?(value: V, diagnostic: Diagnostic, choice: TargetChoice): V;
     summary?(value: V): ProfileSummary;
     preview?(value: V): LevelPreview | undefined;
     readonly templates: readonly TemplateDef<V>[];
@@ -1585,6 +1587,15 @@ interface Stamp {
 
 ```ts
 function tagTiles(project: Project, tileset: string, tag: string, tiles: readonly number[]): Project;
+```
+
+### `TargetChoice` (interface)
+
+```ts
+interface TargetChoice {
+    readonly label: string;
+    readonly value: RefValue;
+}
 ```
 
 ### `TemplateDef` (interface)
