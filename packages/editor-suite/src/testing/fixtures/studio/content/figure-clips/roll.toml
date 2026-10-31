@@ -1,0 +1,24 @@
+# Wick's roll (DESIGN.md §7.2 `roll`, GAME-3D.1c part 3): a forward roll, crouched low through its 3.2 m, as long as the move's 24 frames. It has no hit,
+# so no `contact`. A placeholder (the pickup's crouch) until GAME-3D.1j authors it in the Studio.
+
+length = 0.4
+loop = "once"
+mask = [ "pelvis", "torso", "head", "armR" ]
+
+[[keys]]
+t = 0
+pose = "stand"
+
+[[keys]]
+t = 0.12
+pose = "pickup-low"
+ease = "out"
+
+[[keys]]
+t = 0.28
+pose = "pickup-low"
+
+[[keys]]
+t = 0.4
+pose = "stand"
+ease = "inOut"

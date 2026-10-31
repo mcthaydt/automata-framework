@@ -10,6 +10,7 @@ import { CspProbeLive } from './check/ruken/csp-probe-live.ts'
 import { type RunCheckOptions, runCheck } from './check/run-check.ts'
 import { createGame } from './create-game.ts'
 import { parseTargets } from './create-game-targets.ts'
+import { editorCommand, liveEditorDeps } from './editor/editor-command.ts'
 
 export interface ParsedArgs {
   readonly targetDir?: string | undefined
@@ -66,6 +67,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
 const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <title>] [--targets <list>]
        automata add <kit> [--dir <game>] [--repo <url>] [--force]
        automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]
+       automata editor [dir] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
 
 create-game scaffolds a new Automata Framework game project.
 add copies an Automata Plus kit into a game at its installed core version, then runs check
@@ -76,6 +78,8 @@ check runs, in a game folder: boundaries, typecheck, tests, the boards, orientat
 sources, no-eval (vite build, then a scan of the bundle), the secrets and data-urls scans of that build, and
 with --csp the browser CSP check; --sim-only runs only the first three
 (exit 0 pass, 1 findings, 2 a tool could not run).
+editor serves an editor against a game checkout (automata editor --help): loopback by default, --lan with a
+token for a tablet.
 
 Options:
   --id <id>        Unique game identifier (lowercase alphanumeric with hyphens)
@@ -165,6 +169,7 @@ export async function runCli(
 ): Promise<number> {
   if (args[0] === 'check') return checkCommand(args.slice(1), io, check)
   if (args[0] === 'add') return addCommand(args.slice(1), io, add)
+  if (args[0] === 'editor') return editorCommand(args.slice(1), io, liveEditorDeps())
   const parsed = parseArgs(args)
 
   if (parsed.help) {

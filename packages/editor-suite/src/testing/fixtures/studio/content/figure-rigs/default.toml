@@ -1,0 +1,34 @@
+# The shared rig limits, in degrees. Starting values from the M3 spec (§4.4.2), tuned in M3.6a: the shoulder
+# cone lets an arm point well above level, the hip cone a deep seat or a climb, and the spec's head turn
+# (yaw ±70°) is split over the neck and the head, so the head turns at most 35 + 35 + 45 = 115° from the hips.
+# The chest's twist and pitch are shared by the spine (0.3) and the chest (0.7). The Studio's drags (EDS.9b)
+# tune them further.
+
+about = "The limits every figure shares unless it names its own."
+
+[elbow]
+min = 0
+max = 150
+
+[knee]
+min = 0
+max = 150
+
+[shoulder]
+cone = 170
+
+[hip]
+cone = 120
+
+[chest]
+twist = { min = -35, max = 35 }
+pitch = { min = -20, max = 30 }
+
+[neck]
+yaw = { min = -35, max = 35 }
+pitch = { min = -20, max = 25 }
+
+[head]
+yaw = { min = -45, max = 45 }
+pitch = { min = -25, max = 30 }
+roll = { min = -25, max = 25 }

@@ -47,6 +47,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@mcthaydt/automata-editor-suite": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
     "@types/semver": "7.8.0",

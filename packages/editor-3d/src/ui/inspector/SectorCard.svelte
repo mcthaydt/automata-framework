@@ -1,21 +1,24 @@
 <!--
   A sector's card (ED3D.5f; ED3D spec §9, the Split frame's Sector section): its name, walls and portals; floor and
-  ceiling steppers (5 cm a step, a scrub one undo step); the light slider; its style and textures. The material sheet
-  that changes a texture is ED3D.8b, so Change says so.
+  ceiling steppers (5 cm a step, a scrub one undo step); the light slider; its style and textures. Change materials opens
+  the material sheet (ED3D.8b).
 -->
 <script lang="ts">
 import { Button, Slider, Stepper } from '@mcthaydt/automata-editor-kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
+import type { MaterialTarget } from '../../app/material-session'
 
 type SectorCardData = Extract<InspectorCard, { kind: 'sector' }>
 
 interface Props {
   card: SectorCardData
   onchange: (change: InspectorChange, phase: InspectorPhase) => void
+  /** Opens the material sheet on this room's walls. */
+  onmaterial?: ((target: MaterialTarget) => void) | undefined
 }
 
-const { card, onchange }: Props = $props()
+const { card, onchange, onmaterial }: Props = $props()
 
 const plural = (count: number, one: string): string => `${count} ${one}${count === 1 ? '' : 's'}`
 const materials = $derived(
@@ -60,7 +63,9 @@ const materials = $derived(
     <li><span class="label">{material.label}</span> <span class="value">{material.value}</span></li>
   {/each}
 </ul>
-<Button disabled title="The material sheet comes with Walk (ED3D.8b)">Change materials</Button>
+<Button disabled={onmaterial === undefined} onclick={() => onmaterial?.({ sector: card.id, surface: 'walls' })}>
+  Change materials
+</Button>
 {#if card.style !== undefined}<p class="meta">Style {card.style}</p>{/if}
 
 <style>

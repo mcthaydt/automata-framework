@@ -82,6 +82,52 @@ export function projectPoint(
   }
 }
 
+/** The nearest a first-person view draws: a plane this far ahead of the eye, in metres. */
+export const NEAR = 0.05
+
+/** A triangle cut to what is ahead of the near plane: its points, and for each segment to the next the original edge it lies on (-1 on the cut). */
+export interface ClippedTriangle {
+  readonly points: readonly Vec3[]
+  readonly edge: readonly number[]
+}
+
+/**
+ * A triangle of the world cut by the plane `near` metres ahead of the eye (Sutherland–Hodgman, one plane). A first-person
+ * eye is inside a room, so the room's floor, ceiling and walls reach behind it, and a projection that drops every triangle
+ * with a point behind the eye would leave the room empty. Nothing for a triangle wholly behind the plane.
+ */
+export function clipToNear(
+  camera: Camera3D,
+  triangle: readonly [Vec3, Vec3, Vec3],
+  near: number = NEAR,
+): ClippedTriangle | undefined {
+  const { ahead } = basis(camera)
+  const depths = triangle.map((point) => dot(sub(point, camera.eye), ahead))
+  if (depths.every((depth) => depth >= near)) return { points: triangle, edge: [0, 1, 2] }
+  if (depths.every((depth) => depth < near)) return undefined
+  const points: Vec3[] = []
+  const edge: number[] = []
+  for (let i = 0; i < 3; i++) {
+    const [a, b] = [triangle[i] as Vec3, triangle[(i + 1) % 3] as Vec3]
+    const [da, db] = [depths[i] as number, depths[(i + 1) % 3] as number]
+    const crossing = (da - near) * (db - near) < 0
+    const at = crossing ? add(a, scale(sub(b, a), (near - da) / (db - da))) : undefined
+    if (da >= near) {
+      points.push(a)
+      // The segment from a corner ahead lies on its own edge, to the next corner or to the cut.
+      edge.push(i)
+      if (at !== undefined) {
+        points.push(at)
+        edge.push(-1)
+      }
+    } else if (at !== undefined) {
+      points.push(at)
+      edge.push(i)
+    }
+  }
+  return { points, edge }
+}
+
 /** The ray from the eye through a pixel of the canvas: the inverse of `projectPoint`. */
 export function rayThrough(camera: Camera3D, size: Size, at: ScreenPoint): Ray {
   const { ahead, right, up } = basis(camera)
