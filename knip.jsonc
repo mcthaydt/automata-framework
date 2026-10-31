@@ -37,9 +37,6 @@
     "packages/editor-kit": {
       "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]
     },
-    // EDFF.1c: make-goldens.mjs is run by hand with node (its header says how) to write the goldens the course and
-    // composition ports are tested against.
-    "packages/editor-2d": { "entry": ["src/profiles/floorfifty-stage/testing/make-goldens.mjs"] },
     // M3.5b: the FigureBuilder goldens' generator is run by hand with node (its header says how).
     "packages/figures": {
       "entry": [
