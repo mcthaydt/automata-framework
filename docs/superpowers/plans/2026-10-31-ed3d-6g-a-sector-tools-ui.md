@@ -3,7 +3,7 @@
 - **Task:** ED3D.6g in [02](../../02-master-delivery-plan.md), first part. [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §5.3 flow 2 (draw a sector: corners, lengths, Close, refusals, the portal offer), §9 (the `Draw a sector` frame: sector toolbar, length labels, shared-wall hint, Undo point, Close sector), §10 (keys V S X P D N; Pencil draws and never pans), §13 (ED3-c, ED3-d, ED3-m). Mockup `Draw sector · landscape` (`docs/design/editor-3d/screens.mjs`, `draw`).
 - **Lane:** editors. **Depends on:** ED3D.5d (#265, the Plan view in the shell), the headless tools ED3D.6a to 6f (`app/{sector,wall,vertex,split,merge}-tool-controller.ts`), EDK.2 (command registry and keymap), EDK.3 (gestures). All merged.
 - **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
-- **Progress:** 7 of 9 steps.
+- **Progress:** 8 of 9 steps.
 
 ## Why
 
@@ -20,7 +20,7 @@ The six sector tools exist as controllers with tests, but nothing on screen choo
 1. **One switcher, `createPlanTools`,** owns the active tool: it makes the tool's controller when it is chosen and disposes the last one. The Select controller stays alive throughout because it owns the camera's pan and zoom; taps, hovers and drags go to the active tool. Choosing another tool while a polygon is open cancels it; while portal offers are open it calls `finish` first (the sector stays, with the portals already accepted), so switching never loses a closed sector.
 2. **The tool's overlay is a separate paint list,** `toolPaint(state, viewport)`, drawn by the plan renderer after the plan, so `planPaint` is unchanged. Labels (lengths, the offer hint, the refusal) are DOM over the canvas, as the rulers are.
 3. **Keys go through the kit's command registry and keymap** (`plan.tool.*`, `sector.close`, `sector.undoPoint`, `sector.cancel`), so 6g-b and 7d add to the same registry.
-4. **Below `wide` the rail is the shell's horizontal rail** (the kit's `rail` snippet with its orientation); a phone shows Select only (spec §10: compact is view and select).
+4. **Below `wide` the rail is the shell's horizontal rail** (the kit's `rail` snippet with its orientation); a phone has no rail (spec §10: compact is view and select), so the plan keeps the height.
 
 ## Interfaces
 
@@ -47,7 +47,7 @@ The six sector tools exist as controllers with tests, but nothing on screen choo
 - [x] 5. Renderer: `plan-renderer.canvas.test.ts` (Chromium) draws a `ToolPaint` over a plan (a pending edge's pixel is the accent).
 - [x] 6. `ToolRail` and `SectorOptions` (DOM, red first): the rail's buttons are 44 px, pressed for the active tool; the toolbar's Polygon/Rectangle/Split/Merge choose; Undo point and Close sector show once there is a corner, and Close stays pressable with two so the tool refuses it in its own sentence (ED3-m); the offers list Accept, Decline and Accept all.
 - [x] 7. `PlanCanvas` and `DocumentFrame` (DOM with the fake renderer): taps with Sector chosen add a sector through the editor; the labels follow the drawing; keys choose tools; a refusal shows its sentence; ED3-m in the DOM (two corners and Close: refused, "needs three corners", nothing added).
-- [ ] 8. Layout (three browsers): the rail and toolbar at `wide`, `medium` and `compact` with 44 px targets, nothing overlapping the status line; review images beside the mockup's `Draw sector · landscape` frame in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-a/` with a README of differences.
+- [x] 8. Layout (three browsers): the rail and toolbar at `wide`, `medium` and `compact` with 44 px targets, nothing overlapping the status line; review images beside the mockup's `Draw sector · landscape` frame in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-a/` with a README of differences.
 - [ ] 9. Gates: biome, `pnpm format`, `TURBO_FORCE=true pnpm check`; editor-3d `test:parity` (three browsers). No published package, so no changeset.
 
 ## Execution log
@@ -58,3 +58,4 @@ The six sector tools exist as controllers with tests, but nothing on screen choo
 - 2026-10-31, step 6: `ToolRail.dom.test.ts` and `SectorOptions.dom.test.ts` red (components missing), then 8 of 8. Deviation from the step's wording: Close sector is not disabled below three corners; ED3-m needs the press and the tool's refusal, so it shows from the first corner.
 - 2026-10-31, step 7: four new `PlanCanvas` DOM tests red (no tools prop), then green; three new `DocumentFrame` tests red (no rail), then green. Two fixes on the way: a press on the options reached the canvas's gesture listeners as a plan tap (Svelte delegates `onpointerdown` to the root, too late to stop it), so the options' wrapper stops pointer events with native listeners (`{@attach}`); and the canvas now follows the tools from mount, not from its first measure, so a page that cannot draw still shows the tool's options. `planGestures` takes the tools (`PlanGestureTarget`): pointer to the active tool, pan and zoom to Select. editor-3d DOM and unit tests under `src/ui` and `src/app/plan-tools*`: 87 of 87; `svelte-check`: 0 errors, 0 warnings.
 - 2026-10-31: the architecture test refused `ui/plan/PlanCanvas.svelte` importing `view/plan/plan-viewport` (ui reaches the editor through app); `app/tool-paint.ts` now has `toolOverlay(state, camera, size, fills)` for the canvas (with a test).
+- 2026-10-31, step 8: `sector-tools.layout.test.ts` red in Chromium at first for two real reasons: the rail's text labels were clipped in the kit's 56 px rail (now the 2D view rail's 11 px eyebrow type, which fits "Window"), and the test drew in a left margin the fitted level fills (it now draws in the band the fit leaves above the level). A phone first showed a whole tab bar for one Select button; decision 4 now leaves the rail out on a phone. Then `sector-tools.layout.test.ts` and `plan-view.layout.test.ts` in Chromium, WebKit and Firefox: 90 passed, 6 skipped (the phone journeys); the whole editor-3d layout project before the phone change: 282 passed, 6 skipped. Review images (`ED3D_VISUALS=1`, Chromium) beside the rendered `Draw a sector` mockup in `docs/evidence/owner-visual/2026-10-31-ed3d-6g-a/` with a README of every difference.

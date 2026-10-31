@@ -1,20 +1,19 @@
 <!--
   The Plan view's tool rail (ED3D.6g-a; ED3D spec §9 the Split and Draw frames' tool rail, §10 the keys): one 44 px
   button per tool, the active one pressed and each naming its key. Polygon, Rectangle, Split and Merge are the Sector
-  tool's shapes, so they all press Sector, and Sector chooses the polygon. On a phone the plan is view and select only
-  (spec §10), so the rail offers Select alone. Vertical beside the plan at `wide`, a row above it below that.
+  tool's shapes, so they all press Sector, and Sector chooses the polygon. Vertical beside the plan at `wide`, a tab bar
+  along the foot below that. A phone has no rail: the plan there is view and select only (spec §10).
 -->
 <script lang="ts">
 import type { PlanToolId } from '../../app/plan-tools'
 
 interface Props {
   active: PlanToolId
-  compact: boolean
   orientation?: 'vertical' | 'horizontal' | undefined
   onchoose: (tool: PlanToolId) => void
 }
 
-const { active, compact, orientation = 'vertical', onchoose }: Props = $props()
+const { active, orientation = 'vertical', onchoose }: Props = $props()
 
 type RailTool = 'select' | 'sector' | 'vertex' | 'portal' | 'door' | 'window'
 
@@ -34,11 +33,10 @@ const TOOLS: readonly {
 
 const SECTOR_SHAPES: readonly PlanToolId[] = ['polygon', 'rectangle', 'split', 'merge']
 const pressed = $derived<RailTool>(SECTOR_SHAPES.includes(active) ? 'sector' : (active as RailTool))
-const shown = $derived(compact ? TOOLS.filter((tool) => tool.id === 'select') : TOOLS)
 </script>
 
 <div class="rail" role="toolbar" aria-label="Tools" aria-orientation={orientation} data-orientation={orientation}>
-  {#each shown as tool (tool.id)}
+  {#each TOOLS as tool (tool.id)}
     <button
       type="button"
       aria-pressed={pressed === tool.id}
@@ -52,34 +50,43 @@ const shown = $derived(compact ? TOOLS.filter((tool) => tool.id === 'select') : 
 </div>
 
 <style>
+  /* As the 2D editor's view rail: the eyebrow size fits "Window" and "Vertex" whole in the kit's 56 px rail. */
   .rail {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0;
     gap: var(--space-1);
-    padding: var(--space-2);
+    padding: var(--space-1);
   }
   .rail[data-orientation='horizontal'] {
     flex-direction: row;
-    overflow-x: auto;
   }
   button {
+    flex: 0 0 auto;
     min-width: 44px;
     min-height: 44px;
-    padding: 0 var(--space-2);
-    border: 1px solid transparent;
+    padding: 0 2px;
+    border: 0;
     border-radius: var(--radius-md);
     background: transparent;
     color: var(--color-text-dim);
-    font: var(--text-label-12);
+    font: var(--text-eyebrow-11);
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     cursor: pointer;
   }
+  .rail[data-orientation='horizontal'] button {
+    flex: 1 1 0;
+  }
   button[aria-pressed='true'] {
-    border-color: var(--color-accent-default);
     background: var(--color-bg-raised);
-    color: var(--color-text-primary);
+    color: var(--color-accent-default);
   }
   button:focus-visible {
     outline: 2px solid var(--color-accent-default);
-    outline-offset: 1px;
+    outline-offset: -2px;
   }
 </style>

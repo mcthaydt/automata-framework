@@ -107,14 +107,9 @@ describe('DocumentFrame', () => {
     field.remove()
   })
 
-  it('offers only Select on a phone (ED3D spec §10: compact is view and select)', async () => {
+  it('has no tool rail on a phone (ED3D spec §10: compact is view and select), so the plan keeps the height', async () => {
     await setup({ width: 390, height: 844 })
-    const tools = screen.getByRole('toolbar', { name: 'Tools' })
-    expect(
-      within(tools)
-        .getAllByRole('button')
-        .map((button) => button.textContent?.trim()),
-    ).toEqual(['Select'])
+    expect(screen.queryByRole('toolbar', { name: 'Tools' })).toBeNull()
   })
 
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {

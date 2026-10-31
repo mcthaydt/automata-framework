@@ -140,10 +140,12 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
 
 <svelte:window {onkeydown} />
 
-<EditorShell {geometry} bind:panelOpen testId="document-frame">
-  {#snippet rail({ orientation })}
-    <ToolRail active={activeTool} {compact} {orientation} onchoose={(tool) => tools.choose(tool)} />
-  {/snippet}
+{#snippet toolRail({ orientation }: { orientation: 'vertical' | 'horizontal' })}
+  <ToolRail active={activeTool} {orientation} onchoose={(tool) => tools.choose(tool)} />
+{/snippet}
+
+<!-- A phone has no tool rail: the plan there is view and select only (ED3D spec §10), and the plan keeps the height. -->
+<EditorShell {geometry} bind:panelOpen rail={compact ? undefined : toolRail} testId="document-frame">
 
   {#snippet topbar()}
     <DocumentBar
