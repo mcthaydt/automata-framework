@@ -473,3 +473,83 @@ test('a loop that never ends is stopped and named, and the next good edit runs',
   await expect(root(page)).toHaveAttribute('data-preview', 'running')
   await expect(page.locator('.playground iframe')).toHaveCount(1)
 })
+
+test('a throw in setup marks its line and keeps the running preview', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  const setup = await typeAfter(page, 'setup: (sim) => {', "\nthrow new Error('x')")
+  await expect(page.locator('.playground-status')).toHaveText(`Line ${setup + 1}: x. The preview is still running your last working version.`, { timeout: 10_000 })
+  await expect(page.locator('.cm-lint-marker-error')).toHaveCount(1)
+  await expect(editorLine(page, setup + 1).locator('.cm-lintRange-error')).toHaveCount(1)
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running')
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+})
+
+test('a throw on tick 60 stops the preview, marks its line, and the next good edit runs', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  const move = await typeAfter(page, "defineSystem('move', (ctx) => {", "\nif (ctx.tick === 60) throw new Error('x')")
+  await expect(page.locator('.playground-status')).toHaveText(`Stopped: line ${move + 1}: x.`, { timeout: 10_000 })
+  await expect(page.locator('.cm-lint-marker-error')).toHaveCount(1)
+  await expect(editorLine(page, move + 1).locator('.cm-lintRange-error')).toHaveCount(1)
+  for (let i = 0; i < "\nif (ctx.tick === 60) throw new Error('x')".length; i++) await page.keyboard.press('Backspace')
+  await expect(page.locator('.playground-status')).toHaveText('Preview updated.', { timeout: 10_000 })
+  await expect(page.locator('.cm-lint-marker-error')).toHaveCount(0)
+  await expect(root(page)).toHaveAttribute('data-preview', 'running')
+})
+
+test('a default export that is not defineGame(...) is named, and the preview keeps running', async ({ page }) => {
+  await page.goto('/examples/shapes-rects')
+  // `export default 1;` takes the place of the defineGame call, which is left as an unused expression.
+  await typeAfter(page, 'export default', ' 1;\nconst game =')
+  await expect(page.locator('.playground-status')).toContainText("The example's default export must be defineGame(...)", { timeout: 10_000 })
+  await expect(page.locator('.playground-status')).toContainText('The preview is still running your last working version.')
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running')
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+})
+
+test('a later frame that never starts is removed after 10 s, and the running preview stays', async ({ page }) => {
+  let frames = 0
+  await page.route(`${ORIGIN}/playground/examples/shapes/rects/**`, route => {
+    if (route.request().resourceType() !== 'document' || ++frames === 1) return route.fallback()
+    // The second frame's page never posts `booted`.
+    return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>stuck</title>' })
+  })
+  await page.goto('/examples/shapes-rects')
+  await tapLine(page, await lineOf(page, '0x00cdf9'))
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 10_000 })
+  await replaceWord(page, '0x00cdf9', '0xff0000')
+  await expect(page.locator('.playground iframe')).toHaveCount(2, { timeout: 5_000 })
+  expect(frames).toBe(2)
+  await expect(page.locator('.playground-status')).toHaveText('The preview did not start within 10 seconds.', { timeout: 12_000 })
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running')
+})
+
+test('when the compile worker fails, the status line says so and Play still runs the original', async ({ page }) => {
+  await page.route(/\/workers\/compile\.worker-[^/]+\.js$/, route => route.fulfill({ status: 500, body: '' }))
+  await page.goto('/examples/shapes-rects')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 10_000 })
+  await typeAfter(page, "defineSystem('move', (ctx) => {", '\nconst edited = 1')
+  await expect(page.locator('.playground-status')).toHaveText('Live updates are unavailable in this browser. Play still runs the original.', { timeout: 5_000 })
+  await expect(root(page)).toHaveAttribute('data-run-id', '1')
+  await expect(root(page)).toHaveAttribute('data-preview', 'running')
+})
+
+test('offline, the first frame times out and Retry starts a fresh one', async ({ page }) => {
+  test.setTimeout(60_000)
+  let offline = true
+  await page.route(`${ORIGIN}/playground/runtime/**`, route => offline ? route.abort('internetdisconnected') : route.fallback())
+  await page.goto('/examples/shapes-rects')
+  await expect(page.locator('.playground-status')).toHaveText('The preview couldn’t load. Check the connection and press Retry.', { timeout: 25_000 })
+  const retry = page.getByRole('button', { name: 'Retry' })
+  await expect(page.getByRole('button', { name: 'Play' })).toHaveCount(0)
+  const box = (await retry.boundingBox())!
+  expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44)
+  offline = false
+  await retry.click()
+  await expect(root(page)).toHaveAttribute('data-preview', 'running', { timeout: 20_000 })
+  await expect(page.locator('.playground iframe')).toHaveCount(1)
+  await expect(retry).toHaveCount(0)
+})

@@ -51,19 +51,19 @@ Each failure in §7.2 shows its own text, keeps what the spec says it keeps, and
 - [x] 2. Unit `orchestrator.test.ts`: a `hung` failure gives the spec's text; `failure` carries the line of a
   candidate's or a running frame's failure and is cleared by the next `running`. Fails: no `failure`, the frame's text.
   Then the orchestrator; step 1 passes.
-- [ ] 3. e2e A-5: `throw new Error('x')` as `setup`'s first statement shows "Line N: x. The preview is still running
+- [x] 3. e2e A-5: `throw new Error('x')` as `setup`'s first statement shows "Line N: x. The preview is still running
   your last working version." and marks line N; the preview keeps running (`data-run-id` 1). A throw on tick 60 (a
   counter in `move`) shows "Stopped: line N: x." over the preview and marks line N; the next good edit runs. Fails: no
   marker. Then `Playground` passes `failure` to the editor alongside the compile's diagnostics.
-- [ ] 4. e2e: "a default export that is not defineGame(...) is named": `export default 1` in place of the
+- [x] 4. e2e: "a default export that is not defineGame(...) is named": `export default 1` in place of the
   `defineGame` call; "The example's default export must be defineGame(...)"; the preview keeps running.
-- [ ] 5. e2e A-7: route the frame page to one that never posts `booted` for the second frame only (count the
+- [x] 5. e2e A-7: route the frame page to one that never posts `booted` for the second frame only (count the
   requests); an edit leaves the running preview, and after 10 s the candidate is removed with "The preview did not
   start within 10 seconds." Fails or passes as the timer stands; it pins the row in a browser.
-- [ ] 6. e2e: "when the compile worker fails, the status line says so and Play still runs the original": route the
+- [x] 6. e2e: "when the compile worker fails, the status line says so and Play still runs the original": route the
   worker script to a 500; after the first edit, "Live updates are unavailable in this browser. Play still runs the
   original."; the preview keeps running. Fails: nothing handles the worker's `error`.
-- [ ] 7. e2e: "offline, the first frame times out and Retry starts a fresh one": route `/playground/runtime/**` to
+- [x] 7. e2e: "offline, the first frame times out and Retry starts a fresh one": route `/playground/runtime/**` to
   abort until released; after 20 s, "The preview couldn't load. Check the connection and press Retry." and a Retry
   button of at least 44 px; release, press Retry, the preview runs. Fails: the text and the control are Play's.
 - [ ] 8. Gates.
@@ -89,3 +89,19 @@ the full e2e once.
   phase's form, as §7.2 says the text follows the phase. The orchestrator now uses the spec's words for any `hung`
   failure, and its view carries `failure` (line, column, message) until the next `running`. Unit 59/59; A-6 passes in
   Chromium and WebKit.
+- 2026-10-31, steps 3–7, by the website lane's successor (session_01QYLU1fqsxhm5BbLGxLS22c; worktree
+  `/home/user/wt/play8`, the AF checkout at `framework.ref` f8023a9).
+  - Step 3: both A-5 journeys failed first on the marker (the status texts were already right: "Line N: x. …kept" and
+    "Stopped: line N: x."). `Playground` now hands `CodePanel` the compile's diagnostics plus `view.failure`.
+  - Step 4: passed first, as the goal table says (the frame already names the default export); it pins the row. The
+    test types ` 1;\nconst game =` after `export default`, so the `defineGame` call is left as an unused expression.
+  - Step 5: passed first (the 10 s timer was unit-tested); the second frame's document is answered with a page that
+    never posts `booted`.
+  - Step 6: failed first ("Running. …" stayed). `worker.onerror` sets `liveFailed`: the live compile is disposed, later
+    edits are ignored, an edit in flight drops back to the last compile state, and the status line shows
+    `STATUS.liveUnavailable`.
+  - Step 7: failed first (Play's text). `STATUS.firstBootTimeout` is now `STATUS.offline`; `PreviewPanel` shows a Retry
+    (the Play button's 48 px style) in place of Play when the compiled original fails to download or the first frame
+    times out; Retry runs the reader's last good edit, else the original, in a fresh first frame.
+  - Unit 59/59; the playground spec: Chromium 28/28, WebKit 27/27 (the IME test is Chromium-only). `pnpm check` 0
+    errors, `pnpm test` 418 passed, `pnpm build`, `pnpm check:site` (editor 151,318 B, worker 123,049 B).

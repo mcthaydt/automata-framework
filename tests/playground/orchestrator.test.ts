@@ -203,7 +203,7 @@ describe('the orchestrator', () => {
     expect(frames[0]!.removed).toBe(false)
     clock.advance(1)
     expect(frames[0]!.removed).toBe(true)
-    expect(view()).toMatchObject({ preview: 'failed', status: 'The preview couldn’t load. Check the connection and press Play to try again.' })
+    expect(view()).toMatchObject({ preview: 'failed', status: 'The preview couldn’t load. Check the connection and press Retry.' })
     const running = start()
     orchestrator.run('slow again')
     booted(frames.at(-1)!)

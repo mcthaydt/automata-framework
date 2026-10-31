@@ -107,7 +107,7 @@ export function createOrchestrator(options: OrchestratorOptions) {
       if (current) {
         dropCandidate()
         update({ status: STATUS.bootTimeout })
-      } else candidateFailed(first ? STATUS.firstBootTimeout : STATUS.bootTimeout)
+      } else candidateFailed(first ? STATUS.offline : STATUS.bootTimeout)
     }, first ? FIRST_BOOT_TIMEOUT_MS : BOOT_TIMEOUT_MS)
     candidate = held
     if (current) update({})
