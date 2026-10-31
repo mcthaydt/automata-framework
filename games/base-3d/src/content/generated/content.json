@@ -1,0 +1,1262 @@
+{
+  "figure": {
+    "target": {
+      "default": "lamplighter",
+      "gait": "elderly",
+      "hair": {
+        "stiff": 70,
+        "trail": 0.15
+      },
+      "hand": "L",
+      "outfits": {
+        "lamplighter": [
+          {
+            "collar": "starch-shade",
+            "sleeves": "long",
+            "top": "starch"
+          },
+          {
+            "waistcoat": "tweed"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "boot-sole"
+          },
+          {
+            "buttons": "brass",
+            "coat": "navy-deep",
+            "length": 0.8
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "cap": "tweed",
+            "style": "flat"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "pale-lid",
+            "mouth": "mouth"
+          }
+        ],
+        "shirtsleeves": [
+          {
+            "sleeves": "short",
+            "top": "starch"
+          },
+          {
+            "trousers": "charcoal"
+          },
+          {
+            "belt": "boot-brown",
+            "buckle": "brass"
+          },
+          {
+            "boots": true,
+            "shoes": "boot-brown",
+            "sole": "sole"
+          },
+          {
+            "hair": "steel-grey",
+            "style": "cropped"
+          },
+          {
+            "brows": "steel-grey",
+            "eyes": "eye-dark",
+            "lids": "lid",
+            "mouth": "mouth"
+          }
+        ]
+      },
+      "skin": "pale",
+      "sliders": {
+        "age": 0.85,
+        "arms": 0.85,
+        "chunk": 0.6,
+        "face": {
+          "bridge": 0.8,
+          "browWeight": 0.8,
+          "chin": 0.65,
+          "hood": 0.6,
+          "jaw": 0.7
+        },
+        "fat": 0.2,
+        "frame": 0.2,
+        "head": 0.4,
+        "height": 186,
+        "hunch": 0.4,
+        "legs": 0.75,
+        "muscle": 0.3,
+        "neckLength": 0.6,
+        "posture": 0.2,
+        "shoulders": 0.6
+      },
+      "stand": "hand-in-jacket-pocket"
+    },
+    "wick": {
+      "default": "wanderer",
+      "gait": "bounce",
+      "hand": "R",
+      "outfits": {
+        "wanderer": [
+          {
+            "cuffs": "wick-trim",
+            "sleeves": "long",
+            "top": "wick-cloak"
+          },
+          {
+            "trousers": "wick-cloak-shade"
+          },
+          {
+            "boots": true,
+            "shoes": "wick-boot",
+            "sole": "sole"
+          },
+          {
+            "cape": "wick-cloak",
+            "length": 0.9,
+            "trim": "wick-trim"
+          },
+          {
+            "cap": "wick-cloak",
+            "style": {
+              "locks": [
+                {
+                  "at": [
+                    0,
+                    0.62,
+                    -0.08
+                  ],
+                  "e": [
+                    0.6,
+                    0.7
+                  ],
+                  "on": "head",
+                  "r": [
+                    1.3,
+                    0.62,
+                    1.2
+                  ]
+                },
+                {
+                  "at": [
+                    0,
+                    0.95,
+                    -0.9
+                  ],
+                  "on": "back",
+                  "pitch": -0.6,
+                  "r": [
+                    0.3,
+                    0.42,
+                    0.3
+                  ],
+                  "taper": [
+                    1,
+                    0.4
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "brows": "brow",
+            "eyes": "wick-eye",
+            "lids": "lid",
+            "mouth": "mouth"
+          }
+        ]
+      },
+      "rig": "default",
+      "skin": "wick-shadow",
+      "sliders": {
+        "age": 0.1,
+        "arms": 0.3,
+        "chunk": 1,
+        "faceForward": 0.5,
+        "fat": 0.3,
+        "feet": 0.6,
+        "frame": 0.4,
+        "hands": 0.6,
+        "head": 1,
+        "height": 120,
+        "hips": 0.45,
+        "legs": 0.2,
+        "muscle": 0.4,
+        "neckLength": 0.1,
+        "posture": 0.6,
+        "shoulders": 0.4
+      }
+    }
+  },
+  "figure-clip": {
+    "guard": {
+      "blend": {
+        "inMs": 120,
+        "outMs": 120
+      },
+      "keys": [
+        {
+          "pose": "stand",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": "guard-high",
+          "t": 0.25
+        }
+      ],
+      "length": 0.25,
+      "loop": "hold",
+      "mask": [
+        "armL",
+        "armR",
+        "torso"
+      ]
+    },
+    "pickup": {
+      "keys": [
+        {
+          "pose": "stand",
+          "t": 0
+        },
+        {
+          "ease": "inOut",
+          "pose": "pickup-low",
+          "t": 0.4
+        },
+        {
+          "pose": "pickup-low",
+          "t": 0.55
+        },
+        {
+          "ease": "inOut",
+          "pose": "stand",
+          "t": 0.9
+        }
+      ],
+      "length": 0.9,
+      "loop": "once",
+      "markers": {
+        "take": 0.4
+      },
+      "mask": [
+        "pelvis",
+        "torso",
+        "head",
+        "armR"
+      ]
+    },
+    "point": {
+      "keys": [
+        {
+          "pose": "free",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": "point",
+          "t": 0.2
+        },
+        {
+          "pose": "point",
+          "t": 0.6
+        },
+        {
+          "ease": "inOut",
+          "pose": "free",
+          "t": 0.8
+        }
+      ],
+      "length": 0.8,
+      "loop": "once",
+      "markers": {
+        "pointing": 0.2
+      },
+      "mask": [
+        "armR",
+        "head"
+      ]
+    },
+    "slash": {
+      "keys": [
+        {
+          "pose": "guard-high",
+          "t": 0
+        },
+        {
+          "ease": "out",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  0,
+                  -20,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  -0.3,
+                  1.5,
+                  0.05
+                ]
+              }
+            }
+          },
+          "t": 0.096
+        },
+        {
+          "ease": "in",
+          "pose": {
+            "effectors": {
+              "chest": {
+                "rot": [
+                  5,
+                  25,
+                  0
+                ]
+              },
+              "handR": {
+                "pos": [
+                  0.15,
+                  0.95,
+                  0.45
+                ]
+              }
+            }
+          },
+          "t": 0.224
+        },
+        {
+          "ease": "inOut",
+          "pose": "guard-high",
+          "t": 0.4
+        }
+      ],
+      "length": 0.4,
+      "loop": "once",
+      "markers": {
+        "contact": 0.224,
+        "windup": 0.096
+      },
+      "mask": [
+        "armR",
+        "torso"
+      ]
+    }
+  },
+  "figure-gait": {
+    "bounce": {
+      "armLag": 0.04,
+      "armOut": 0.08,
+      "armSwing": 0.5,
+      "bob": 0.05,
+      "breath": 0.03,
+      "breathPeriod": 3.4,
+      "chestCounter": 0.5,
+      "chin": 0.04,
+      "crouch": 0.01,
+      "cycle": 0.46,
+      "drag": 0,
+      "duty": 0.54,
+      "elbow": 0.45,
+      "elbowSwing": 0.45,
+      "hang": 0.04,
+      "headLead": 0.7853981633974483,
+      "headLevel": 0,
+      "headStabilize": 0.8,
+      "heel": 0.24,
+      "hipRoll": 0.08,
+      "hipYaw": 0.09,
+      "idleElbow": 0.3,
+      "idlePoses": 8,
+      "lean": 0.03,
+      "lift": 0.065,
+      "poseRate": 12,
+      "push": 0.35,
+      "reach": 1.4,
+      "shift": 0.012,
+      "shiftPeriod": 5.5,
+      "shoulderRoll": 0.75,
+      "speed": 3,
+      "spring": 0.6,
+      "stance": 0.045,
+      "stanceLead": 0.07,
+      "standOut": 0.04,
+      "stride": 0.6,
+      "sway": 0.03,
+      "track": 0.3,
+      "turnRate": 0.7853981633974483,
+      "twitch": 0,
+      "twitchEvery": 3,
+      "walkPoses": 8
+    },
+    "elderly": {
+      "armLag": 0.1,
+      "armOut": 0.1,
+      "armSwing": 0.14,
+      "bob": 0.015,
+      "breath": 0.035,
+      "breathPeriod": 3,
+      "chestCounter": 0.3,
+      "crouch": 0.03,
+      "cycle": 1,
+      "drag": 0.35,
+      "duty": 0.65,
+      "elbow": 0.35,
+      "elbowSwing": 0.2,
+      "hang": 0.12,
+      "headLead": 0.5235987755982988,
+      "headLevel": 0.3,
+      "headStabilize": 0.6,
+      "hipRoll": 0.03,
+      "hipYaw": 0.06,
+      "idleElbow": 0.4,
+      "lean": 0.12,
+      "lift": 0.032,
+      "plumb": 0.75,
+      "poseRate": 8,
+      "reach": 2,
+      "shift": 0.01,
+      "shiftPeriod": 4,
+      "speed": 1.05,
+      "stance": 0.015,
+      "stanceLead": 0.05,
+      "stride": 0.4,
+      "sway": 0.03,
+      "track": 0.75,
+      "turnRate": 0.39269908169872414,
+      "twitch": 0.05,
+      "twitchEvery": 1.1,
+      "walkPoses": 8
+    }
+  },
+  "figure-hair": {
+    "cropped": {
+      "about": "Short hair at the sides and down to the nape, low enough that a cap covers its crown.",
+      "locks": [
+        {
+          "at": [
+            0,
+            0.56,
+            -0.18
+          ],
+          "e": [
+            0.55,
+            0.65
+          ],
+          "on": "head",
+          "r": [
+            1.06,
+            0.32,
+            0.96
+          ]
+        },
+        {
+          "at": [
+            0,
+            0.3,
+            -0.5
+          ],
+          "e": [
+            0.55,
+            0.65
+          ],
+          "on": "head",
+          "r": [
+            0.98,
+            0.22,
+            0.56
+          ],
+          "taper": [
+            0.9,
+            1
+          ]
+        }
+      ]
+    }
+  },
+  "figure-headwear": {
+    "flat": {
+      "about": "A flat cap: the crown, and the peak over the brow.",
+      "locks": [
+        {
+          "at": [
+            0,
+            0.84,
+            -0.1
+          ],
+          "e": [
+            0.55,
+            0.75
+          ],
+          "on": "head",
+          "r": [
+            1.2,
+            0.19,
+            1.2
+          ],
+          "taper": [
+            0.92,
+            1
+          ]
+        },
+        {
+          "at": [
+            0,
+            0.76,
+            1
+          ],
+          "e": [
+            0.3,
+            0.7
+          ],
+          "follow": 1,
+          "on": "head",
+          "r": [
+            1,
+            0.045,
+            0.5
+          ]
+        }
+      ],
+      "mark": {
+        "at": [
+          0,
+          0.9,
+          1.2
+        ],
+        "normal": [
+          0,
+          0.3,
+          1
+        ]
+      }
+    }
+  },
+  "figure-item": {
+    "shield": {
+      "about": "A round wooden buckler with a brass rim and boss, held flat before the forearm.",
+      "hold": {
+        "hand": [
+          {
+            "k": 0.15
+          },
+          {
+            "k": -0.34
+          },
+          {
+            "k": 0.25
+          }
+        ],
+        "pole": [
+          0.7,
+          -0.4,
+          -0.6
+        ],
+        "turn": [
+          0,
+          0,
+          0
+        ]
+      },
+      "parts": [
+        {
+          "at": [
+            0,
+            0,
+            0.02
+          ],
+          "material": "wood",
+          "r": [
+            0.2,
+            0.2,
+            0.02
+          ],
+          "rings": 2,
+          "seg": 12
+        },
+        {
+          "at": [
+            0,
+            0,
+            0.05
+          ],
+          "material": "brass",
+          "r": [
+            0.05,
+            0.05,
+            0.03
+          ],
+          "rings": 3,
+          "seg": 8
+        }
+      ],
+      "tip": [
+        0,
+        0,
+        0
+      ]
+    },
+    "sword": {
+      "about": "A short arming sword: a steel blade, a brass cross-guard and pommel, a leather grip.",
+      "hold": {
+        "hand": [
+          {
+            "k": 0.15
+          },
+          {
+            "k": -0.34
+          },
+          {
+            "k": 0.25
+          }
+        ],
+        "pole": [
+          0.7,
+          -0.4,
+          -0.6
+        ],
+        "turn": [
+          -1.5707963267948966,
+          0,
+          0
+        ]
+      },
+      "parts": [
+        {
+          "at": [
+            0,
+            0,
+            0.44
+          ],
+          "material": "steel-grey",
+          "pitch": 1.5707963267948966,
+          "r": [
+            0.026,
+            0.3,
+            0.007
+          ],
+          "rings": 2,
+          "seg": 4
+        },
+        {
+          "at": [
+            0,
+            0,
+            0.13
+          ],
+          "material": "brass",
+          "pitch": 1.5707963267948966,
+          "r": [
+            0.08,
+            0.013,
+            0.016
+          ],
+          "rings": 2,
+          "seg": 6
+        },
+        {
+          "at": [
+            0,
+            0,
+            0.05
+          ],
+          "material": "boot-brown",
+          "pitch": 1.5707963267948966,
+          "r": [
+            0.016,
+            0.07,
+            0.016
+          ],
+          "rings": 2,
+          "seg": 6
+        },
+        {
+          "at": [
+            0,
+            0,
+            -0.03
+          ],
+          "material": "brass",
+          "r": [
+            0.022,
+            0.022,
+            0.022
+          ],
+          "rings": 3,
+          "seg": 6
+        }
+      ],
+      "tip": [
+        0,
+        0,
+        0.74
+      ]
+    }
+  },
+  "figure-pose": {
+    "free": {
+      "about": "Sets no handle: every channel is left to the layers below.",
+      "effectors": {}
+    },
+    "guard-high": {
+      "about": "Guard up: both hands before the face, the right a little higher and further out, the elbows down and out, the shoulders raised.",
+      "effectors": {
+        "chest": {
+          "rot": [
+            5,
+            0,
+            0
+          ]
+        },
+        "handL": {
+          "pos": [
+            0.1,
+            1.3,
+            0.22
+          ]
+        },
+        "handR": {
+          "pos": [
+            -0.1,
+            1.35,
+            0.25
+          ]
+        }
+      },
+      "fk": {
+        "clavicle.L": [
+          0,
+          0,
+          6
+        ],
+        "clavicle.R": [
+          0,
+          0,
+          -6
+        ]
+      },
+      "poles": {
+        "elbowL": {
+          "dir": [
+            0.6,
+            -1,
+            0
+          ]
+        },
+        "elbowR": {
+          "dir": [
+            -0.6,
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    "guard-low": {
+      "about": "Guard low: the hips sunk over bent knees, the hands at the belly, the chest leaning in.",
+      "effectors": {
+        "chest": {
+          "rot": [
+            8,
+            0,
+            0
+          ]
+        },
+        "handL": {
+          "pos": [
+            0.1,
+            0.9,
+            0.25
+          ]
+        },
+        "handR": {
+          "pos": [
+            -0.12,
+            0.95,
+            0.3
+          ]
+        },
+        "pelvis": {
+          "pos": [
+            0,
+            0.8,
+            -0.02
+          ]
+        }
+      }
+    },
+    "pickup-low": {
+      "about": "Stooping to pick something up: the hips down and back, the chest bent over, the right hand low before the feet.",
+      "effectors": {
+        "chest": {
+          "rot": [
+            35,
+            0,
+            0
+          ]
+        },
+        "handR": {
+          "pos": [
+            -0.12,
+            0.22,
+            0.32
+          ]
+        },
+        "head": {
+          "rot": [
+            15,
+            0,
+            0
+          ]
+        },
+        "pelvis": {
+          "pos": [
+            0,
+            0.62,
+            -0.08
+          ]
+        }
+      }
+    },
+    "point": {
+      "about": "Pointing ahead with the right hand at shoulder height, the head turned to it, the body turned a little toward the left.",
+      "effectors": {
+        "handR": {
+          "pos": [
+            -0.16,
+            1.3,
+            0.52
+          ],
+          "rot": [
+            -90,
+            0,
+            0
+          ]
+        },
+        "head": {
+          "rot": [
+            0,
+            -10,
+            0
+          ]
+        }
+      },
+      "root": {
+        "yaw": 15
+      }
+    },
+    "stand": {
+      "about": "Standing easy: the hands hanging a little out and forward, the chest up a touch, the chin level.",
+      "effectors": {
+        "chest": {
+          "rot": [
+            2,
+            0,
+            0
+          ]
+        },
+        "handL": {
+          "pos": [
+            0.2,
+            0.78,
+            0.05
+          ]
+        },
+        "handR": {
+          "pos": [
+            -0.2,
+            0.78,
+            0.05
+          ]
+        },
+        "head": {
+          "rot": [
+            -2,
+            0,
+            0
+          ]
+        }
+      }
+    }
+  },
+  "figure-rig": {
+    "default": {
+      "about": "The limits every figure shares unless it names its own.",
+      "chest": {
+        "pitch": {
+          "max": 30,
+          "min": -20
+        },
+        "twist": {
+          "max": 35,
+          "min": -35
+        }
+      },
+      "elbow": {
+        "max": 150,
+        "min": 0
+      },
+      "head": {
+        "pitch": {
+          "max": 30,
+          "min": -25
+        },
+        "roll": {
+          "max": 25,
+          "min": -25
+        },
+        "yaw": {
+          "max": 45,
+          "min": -45
+        }
+      },
+      "hip": {
+        "cone": 120
+      },
+      "knee": {
+        "max": 150,
+        "min": 0
+      },
+      "neck": {
+        "pitch": {
+          "max": 25,
+          "min": -20
+        },
+        "yaw": {
+          "max": 35,
+          "min": -35
+        }
+      },
+      "shoulder": {
+        "cone": 170
+      }
+    }
+  },
+  "figure-stand": {
+    "hand-in-jacket-pocket": {
+      "about": "Still, with attitude: the weight back on the far leg, the near hand in the jacket's slash pocket from an elbow out and back off the body, the far arm loose with a soft bend, the shoulders easy, the chin a touch down and the eyes on the camera.",
+      "chest": [
+        0.05,
+        0.1,
+        0.02
+      ],
+      "fallback": [
+        "hand-in-pocket",
+        "hand-on-hip"
+      ],
+      "free": [
+        0.12,
+        0.03,
+        0.35,
+        0.1
+      ],
+      "hands": {
+        "L": {
+          "bend": 0.35,
+          "out": 0.12,
+          "swing": -0.04
+        },
+        "R": {
+          "at": "jacketPocket",
+          "elbow": 0.6
+        }
+      },
+      "head": [
+        -0.22,
+        0.04,
+        0.04
+      ],
+      "roll": 0.08,
+      "shift": 0.04,
+      "under": 0.3,
+      "weight": "L"
+    },
+    "hand-in-pocket": {
+      "about": "Upright and still, the weight back, the near hand down in a front pocket with the forearm angled to it from an elbow out at the side, the other arm hanging with a soft bend, the chin level.",
+      "chest": [
+        0.03,
+        -0.05,
+        -0.03
+      ],
+      "fallback": [
+        "hand-in-jacket-pocket",
+        "hip-and-pocket",
+        "hand-on-hip"
+      ],
+      "free": [
+        0.12,
+        0.02,
+        0.3,
+        0.02
+      ],
+      "hands": {
+        "L": {
+          "bend": 0.22,
+          "out": 0.07
+        },
+        "R": {
+          "at": "frontPocket",
+          "elbow": 0.2
+        }
+      },
+      "head": [
+        -0.12,
+        0,
+        -0.06
+      ],
+      "roll": 0.07,
+      "shift": 0.03,
+      "under": 0.25,
+      "weight": "L"
+    },
+    "hand-on-hip": {
+      "about": "The hip out over the weight leg and the near hand on it, the elbow out and back so the arm reads as a V off the waist; the other arm loose; the chin up.",
+      "chest": [
+        0.07,
+        -0.12,
+        -0.04
+      ],
+      "fallback": [
+        "hip-and-pocket"
+      ],
+      "free": [
+        0.11,
+        0.035,
+        0.42,
+        0.2
+      ],
+      "hands": {
+        "L": {
+          "bend": 0.32,
+          "out": 0.14,
+          "swing": 0.04
+        },
+        "R": {
+          "at": "hip",
+          "elbow": 0.8,
+          "nudge": [
+            0.01,
+            -0.02,
+            -0.12
+          ]
+        }
+      },
+      "head": [
+        -0.22,
+        -0.06,
+        -0.14
+      ],
+      "roll": 0.09,
+      "shift": 0.05,
+      "under": 0.4,
+      "weight": "R"
+    },
+    "hip-and-pocket": {
+      "about": "The near hand on the hip with the elbow wide off the waist, the far hand down in a pocket: the weight on the far leg, the near hip out, the chest turned to the camera, the head tipped.",
+      "chest": [
+        0.07,
+        0.08,
+        -0.03
+      ],
+      "fallback": [
+        "hand-on-hip"
+      ],
+      "free": [
+        0.1,
+        0.03,
+        0.35,
+        0.22
+      ],
+      "hands": {
+        "L": {
+          "at": "bellyPocket",
+          "elbow": 0.4
+        },
+        "R": {
+          "at": "hip",
+          "elbow": 0.8,
+          "nudge": [
+            0.01,
+            -0.02,
+            -0.12
+          ]
+        }
+      },
+      "head": [
+        -0.2,
+        0.1,
+        -0.05
+      ],
+      "roll": 0.09,
+      "shift": 0.05,
+      "under": 0.4,
+      "weight": "L"
+    }
+  },
+  "figure-swatch": {
+    "boot-brown": {
+      "colour": 19,
+      "gloss": 0.93
+    },
+    "boot-sole": {
+      "colour": 17,
+      "flat": true
+    },
+    "brass": {
+      "colour": 21,
+      "gloss": 0.93,
+      "kind": "metal",
+      "role": "hardware"
+    },
+    "brow": {
+      "colour": 17,
+      "flat": true
+    },
+    "charcoal": {
+      "colour": 4
+    },
+    "eye-dark": {
+      "colour": 2,
+      "flat": true
+    },
+    "lid": {
+      "colour": 10,
+      "flat": true
+    },
+    "mouth": {
+      "colour": 18,
+      "flat": true
+    },
+    "navy-deep": {
+      "colour": 13
+    },
+    "pale": {
+      "colour": 7
+    },
+    "pale-lid": {
+      "colour": 6,
+      "flat": true
+    },
+    "sole": {
+      "colour": 15,
+      "flat": true
+    },
+    "starch": {
+      "colour": 7
+    },
+    "starch-shade": {
+      "colour": 7
+    },
+    "steel-grey": {
+      "colour": 6,
+      "gloss": 0.94
+    },
+    "tweed": {
+      "colour": 5
+    },
+    "wick-boot": {
+      "colour": 17
+    },
+    "wick-cloak": {
+      "colour": 41
+    },
+    "wick-cloak-shade": {
+      "colour": 40
+    },
+    "wick-eye": {
+      "colour": 32,
+      "flat": true
+    },
+    "wick-shadow": {
+      "colour": 15,
+      "flat": true
+    },
+    "wick-trim": {
+      "colour": 24,
+      "gloss": 0.9
+    },
+    "wood": {
+      "colour": 5
+    }
+  },
+  "palette": {
+    "colors": [
+      "#ff0040",
+      "#131313",
+      "#1b1b1b",
+      "#272727",
+      "#3d3d3d",
+      "#5d5d5d",
+      "#858585",
+      "#b4b4b4",
+      "#ffffff",
+      "#c7cfdd",
+      "#92a1b9",
+      "#657392",
+      "#424c6e",
+      "#2a2f4e",
+      "#1a1932",
+      "#0e071b",
+      "#1c121c",
+      "#391f21",
+      "#5d2c28",
+      "#8a4836",
+      "#bf6f4a",
+      "#e69c69",
+      "#f6ca9f",
+      "#f9e6cf",
+      "#edab50",
+      "#e07438",
+      "#c64524",
+      "#8e251d",
+      "#ff5000",
+      "#ed7614",
+      "#ffa214",
+      "#ffc825",
+      "#ffeb57",
+      "#d3fc7e",
+      "#99e65f",
+      "#5ac54f",
+      "#33984b",
+      "#1e6f50",
+      "#134c4c",
+      "#0c2e44",
+      "#00396d",
+      "#0069aa",
+      "#0098dc",
+      "#00cdf9",
+      "#0cf1ff",
+      "#94fdff",
+      "#fdd2ed",
+      "#f389f5",
+      "#db3ffd",
+      "#7a09fa",
+      "#3003d9",
+      "#0c0293",
+      "#03193f",
+      "#3b1443",
+      "#622461",
+      "#93388f",
+      "#ca52c9",
+      "#c85086",
+      "#f68187",
+      "#f5555d",
+      "#ea323c",
+      "#c42430",
+      "#891e2b",
+      "#571c27"
+    ],
+    "name": "Endesga 64"
+  },
+  "tuning": {}
+}
