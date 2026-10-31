@@ -1,36 +1,9 @@
 import type { FieldDef } from '@mcthaydt/automata-editor-kit/fields'
 import { describe, expect, it } from 'vitest'
-import { topdownRpgTemplate } from '../../profiles/level-project/templates/topdown-rpg'
-import {
-  entity,
-  renameLevel,
-  withDefs,
-  withEntities,
-  withLevel,
-  withNewLevel,
-} from '../../testing/project-edit'
-import { counterIds } from '../ids'
+import { linkedMaps } from '../../testing/linked-maps'
+import { withDefs, withLevel } from '../../testing/project-edit'
 import type { Project } from '../project-types'
 import { projectLinks, refName, refTargets } from './ref-links'
-
-// The RPG template's door and warp point at `player-start`, `door` or `warp`. Two maps: the village (`map-1`, with
-// the template's player start) and the inn (`inn`), a door each way.
-
-function village(): Project {
-  const base = topdownRpgTemplate.create(counterIds())
-  const named = withLevel(base, 'map-1', (level) => ({ ...level, name: 'Village' }))
-  const inn = renameLevel(withNewLevel(named, 'inn', { x: 400, y: 0 }), 'inn', 'inn', 'Inn')
-  return withEntities(
-    withEntities(inn, 'map-1', [
-      entity('door-out', 'door', 96, 64, { target: { target: 'door-in', container: 'inn' } }),
-    ]),
-    'inn',
-    [
-      entity('door-in', 'door', 32, 200, { target: { target: 'door-out', container: 'map-1' } }),
-      entity('chest-1', 'chest', 64, 64),
-    ],
-  )
-}
 
 const defOf = (project: Project, id: string): FieldDef => {
   const field = project.defs.entities
@@ -42,7 +15,7 @@ const defOf = (project: Project, id: string): FieldDef => {
 
 describe('projectLinks', () => {
   it('lists every resolved ref with its source and its target, in level order', () => {
-    expect(projectLinks(village())).toEqual([
+    expect(projectLinks(linkedMaps())).toEqual([
       {
         from: { level: 'map-1', item: { id: 'door-out', def: 'door', x: 96, y: 64 } },
         field: 'target',
@@ -57,7 +30,7 @@ describe('projectLinks', () => {
   })
 
   it('leaves out a broken ref: a link to something deleted is not drawn (G-g)', () => {
-    const project = withLevel(village(), 'inn', (level) => ({
+    const project = withLevel(linkedMaps(), 'inn', (level) => ({
       ...level,
       layers: level.layers.map((layer) =>
         layer.kind === 'entities'
@@ -69,7 +42,7 @@ describe('projectLinks', () => {
   })
 
   it('follows level fields and every member of a ref list', () => {
-    const project = withDefs(village(), (defs) => ({
+    const project = withDefs(linkedMaps(), (defs) => ({
       ...defs,
       levelFields: [...defs.levelFields, { id: 'exits', type: 'ref', list: true, to: ['$level'] }],
     }))
@@ -86,7 +59,7 @@ describe('projectLinks', () => {
 
 describe('refTargets (the picker: levels first, then what the field allows)', () => {
   it('lists each level holding an allowed target, without the holder itself', () => {
-    const project = village()
+    const project = linkedMaps()
     expect(refTargets(project, defOf(project, 'door'), 'door-out')).toEqual([
       {
         level: 'map-1',
@@ -104,7 +77,7 @@ describe('refTargets (the picker: levels first, then what the field allows)', ()
   })
 
   it('offers the level itself first when the field may point at a level, and leaves out empty levels', () => {
-    const project = village()
+    const project = linkedMaps()
     const exits: FieldDef = { id: 'exit', type: 'ref', to: ['$level', 'chest'] }
     expect(refTargets(project, exits, undefined)).toEqual([
       {
@@ -128,7 +101,7 @@ describe('refTargets (the picker: levels first, then what the field allows)', ()
 
 describe('refName', () => {
   it('names a target by its level and definition, a level by its name, and nothing it cannot resolve', () => {
-    const project = village()
+    const project = linkedMaps()
     const door = defOf(project, 'door')
     expect(refName(project, door, { target: 'door-in', container: 'inn' })).toBe('Inn · Door')
     expect(refName(project, { id: 'exit', type: 'ref', to: ['$level'] }, { target: 'inn' })).toBe('Inn')

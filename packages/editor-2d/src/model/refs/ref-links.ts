@@ -121,10 +121,15 @@ export function refTargets(
   return found
 }
 
-/** A resolved value's name: `<level name> · <definition label>`, or the level's name; `undefined` when it is broken. */
+/** What a link's target is called: `<level name> · <definition label>`, or the level's name. */
+export function linkName(project: Project, to: LinkEnd): string {
+  const level = project.levels.find((each) => each.id === to.level)?.name ?? to.level
+  return to.item === undefined ? level : `${level} · ${defLabel(project, to.item.def)}`
+}
+
+/** A value's name as `linkName` gives it; `undefined` when it is broken. */
 export function refName(project: Project, field: FieldDef, value: RefValue): string | undefined {
   const resolved = resolveRef(refIndex(project), field, value)
   if (!resolved.ok) return undefined
-  const level = project.levels.find((each) => each.id === resolved.level)?.name ?? resolved.level
-  return resolved.item === undefined ? level : `${level} · ${defLabel(project, resolved.item.def)}`
+  return linkName(project, resolved.item === undefined ? { level: resolved.level } : resolved)
 }

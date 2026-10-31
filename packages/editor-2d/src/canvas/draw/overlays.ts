@@ -1,8 +1,9 @@
 import { type Bounds, entityBounds, entityDefOf } from '../../model/commands/entity-geometry'
 import { layerCells } from '../../model/level-layers'
 import type { LayerDef, Level, Project, Size } from '../../model/project-types'
+import { linkName, projectLinks } from '../../model/refs/ref-links'
 import { brushCells, type Point } from '../../tiles/footprint'
-import type { DrawView, Footprint, GridLines } from './draw-list-types'
+import type { DrawView, Footprint, GridLines, LinkDraw } from './draw-list-types'
 
 // What the canvas draws over the layers (2D editor spec §5.9, §8): the active layer's grid, the cells the next pointer
 // down would edit, and the selected instances. Each follows the controller's view, so the canvas shows exactly what a
@@ -85,5 +86,32 @@ export function selectionBoxes(
       if (item !== undefined && def !== undefined) return [{ id, ...entityBounds(def, item) }]
     }
     return []
+  })
+}
+
+/**
+ * The links whose source is an instance of `level` on a visible layer (plan ED2D.6c decision 4), in the project's link
+ * order. A broken ref is no link, so it draws nothing (G-g); a link to something in the same level also gets a line.
+ */
+export function linkChips(project: Project, level: Level, view: DrawView): LinkDraw[] {
+  const visible = new Set<string>()
+  for (const layer of level.layers)
+    if (layer.kind === 'entities' && !view.hidden.has(layer.def))
+      for (const item of layer.items) visible.add(item.id)
+  const selected = new Set(view.selected)
+  return projectLinks(project).flatMap(({ from, field, to }) => {
+    const source = from.item
+    if (from.level !== level.id || source === undefined || !visible.has(source.id)) return []
+    return [
+      {
+        id: source.id,
+        field,
+        from: { x: source.x, y: source.y },
+        label: linkName(project, to),
+        color: entityDefOf(project, source.def)?.color,
+        selected: selected.has(source.id),
+        to: to.level === level.id && to.item !== undefined ? { x: to.item.x, y: to.item.y } : undefined,
+      },
+    ]
   })
 }

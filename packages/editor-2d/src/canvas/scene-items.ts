@@ -5,6 +5,7 @@ import type {
   EntityDraw,
   IntChunk,
   LevelDrawList,
+  LinkDraw,
   ObjectDraw,
   TileChunk,
   TileDraw,
@@ -168,4 +169,52 @@ export function drawOverlays(overlay: Graphics, list: LevelDrawList, context: It
   const accent = context.colors('accent/default')
   for (const box of selection)
     overlay.rect(box.x, box.y, box.w, box.h).stroke({ color: accent, width: 2 * px })
+}
+
+/** Screen pixels: the chip's padding and its offset below the source's anchor. */
+const CHIP_PAD = 4
+const CHIP_DROP = 6
+
+/**
+ * The links of the level (plan ED2D.6c decision 4), rebuilt on each update into `container`: a line to a target in the
+ * same level, and a chip naming the target just below the source's anchor, both in the source's colour (the accent
+ * when the source is selected). Drawn at screen size like the entity labels; a level has a handful of links.
+ */
+export function drawLinks(
+  container: Container,
+  links: readonly LinkDraw[],
+  context: ItemContext,
+  px: number,
+): void {
+  for (const old of container.removeChildren()) old.destroy({ children: true })
+  for (const link of links) {
+    const color = link.selected
+      ? context.colors('accent/default')
+      : context.colors(link.color ?? 'layer/entities')
+    const view = new Container()
+    if (link.to !== undefined) {
+      const line = new Graphics()
+      line
+        .moveTo(link.from.x, link.from.y)
+        .lineTo(link.to.x, link.to.y)
+        .stroke({ color, width: 2 * px })
+      view.addChild(line)
+    }
+    const label = new Text({
+      text: `→ ${link.label}`,
+      style: { fontFamily: 'sans-serif', fontSize: 11, fill: color },
+      resolution: 2,
+    })
+    const chip = new Graphics()
+      .roundRect(0, 0, label.width + 2 * CHIP_PAD, label.height + CHIP_PAD, 6)
+      .fill({ color: context.colors('bg/surface'), alpha: 0.9 })
+      .stroke({ color, width: 1 })
+    label.position.set(CHIP_PAD, CHIP_PAD / 2)
+    const tag = new Container()
+    tag.addChild(chip, label)
+    tag.scale.set(px)
+    tag.position.set(link.from.x + CHIP_DROP * px, link.from.y + CHIP_DROP * px)
+    view.addChild(tag)
+    container.addChild(view)
+  }
 }

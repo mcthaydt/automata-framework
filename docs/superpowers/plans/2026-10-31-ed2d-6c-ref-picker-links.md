@@ -74,7 +74,7 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
   level itself when allowed, holder excluded, empty levels left out), `refName`.
 - [x] 4. Inspector row and `RefPicker`: model test for the row; DOM tests: choose a level then an entity commits one
   step; Back; the level itself; nothing to pick says so; 44 px choices.
-- [ ] 5. Level canvas: draw-list tests for `links` (label, colour, selected, same-level line, broken gives none);
+- [x] 5. Level canvas: draw-list tests for `links` (label, colour, selected, same-level line, broken gives none);
   scene draws them (canvas test, chromium image).
 - [ ] 6. World map: `worldLinks` tests (edges facing each other, label point, skip same-level and unplaced); the map
   draws them (canvas test, image); inspector Links and Linked from (DOM).
@@ -100,3 +100,6 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
 - 2026-10-31, step 4: the row and picker tests failed (no `ref` on the row; no picker: the old "coming soon" case is
   replaced), then pass; editor-2d typecheck 0 errors; unit+dom 155 files, 2547 tests pass. The FieldDefEditor's
   default row has no project, so a ref default shows its value without a picker (the third FieldEditor case).
+- 2026-10-31, step 5: the draw-list link cases failed (no `links`), then pass; the scene case failed in Chromium (no
+  link container), then passes (24 canvas tests). The two-map fixture moved to `testing/linked-maps.ts`. Typecheck 0
+  errors; unit+dom 155 files, 2550 tests pass. The chromium review image is taken in step 10.

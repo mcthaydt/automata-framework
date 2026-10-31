@@ -92,6 +92,20 @@ export interface Footprint extends Bounds {
   readonly erase: boolean
 }
 
+/** A link from an instance of the level (plan ED2D.6c decision 4): a chip naming the target at the source's anchor. */
+export interface LinkDraw {
+  /** The source instance. */
+  readonly id: string
+  readonly field: string
+  readonly from: Point
+  readonly label: string
+  /** The source definition's colour. */
+  readonly color: string | undefined
+  readonly selected: boolean
+  /** The target's anchor when it is in this level, for a line to it. */
+  readonly to: Point | undefined
+}
+
 export interface LevelDrawList {
   readonly level: string
   readonly size: Size
@@ -102,6 +116,7 @@ export interface LevelDrawList {
   readonly grid: GridLines | undefined
   readonly footprint: Footprint | undefined
   readonly selection: readonly (Bounds & { readonly id: string })[]
+  readonly links: readonly LinkDraw[]
 }
 
 /** What the canvas reads of the Level view controller's state (ED2D.4b owns it). */
