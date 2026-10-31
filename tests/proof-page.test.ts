@@ -51,6 +51,15 @@ describe('the proof report', () => {
     expect(view_.container.textContent).toContain('Playwright 1.63.0')
   })
 
+  it('says the CI is configured to write the file on pushes to main, names the workflow and job, and links the config (DX.10a)', () => {
+    const view_ = view()
+    const source = view_.getByRole('region', { name: 'Where these numbers come from' })
+    expect(source.textContent).toMatch(/configured to write this file in its parity job on each push to\s*main/)
+    expect(source.textContent).toContain(`the ${evidence.run.kind === 'ci' ? evidence.run.workflow : ''} workflow’s ${evidence.run.kind === 'ci' ? evidence.run.job : ''} job`)
+    expect(view_.getByRole('link', { name: 'ci.yml' }).getAttribute('href')).toBe(`https://github.com/mcthaydt/automata-framework/blob/${evidence.revision.sha}/.github/workflows/ci.yml`)
+    expect(source.textContent).not.toMatch(/on every push/)
+  })
+
   it('lists package versions and whether each was released', () => {
     const view_ = view()
     const table = view_.getByRole('table', { name: 'Published packages' })

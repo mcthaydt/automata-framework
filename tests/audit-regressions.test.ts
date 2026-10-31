@@ -7,6 +7,8 @@ import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
 import Cheatsheet from '../src/routes/cheatsheet/+page.svelte'
 import docs from '../src/data/docs.json'
 import apiIndex from '../src/data/api-index.json'
+import Home from '../src/routes/+page.svelte'
+import { homeData } from './helpers/page-data'
 import { resolve } from 'node:path'
 import { findHardCodedHashes, siteSourceFiles } from './helpers/hard-coded-hashes'
 
@@ -72,6 +74,14 @@ describe('Evidence, not typed numbers (DX.9w)', () => {
 
 // Each claim restored from docs/2026-10-14-cut-claims.md is pinned here with its proof link (DX.10a).
 describe('Restored claims (DX.10a)', () => {
+  it('states cross-engine determinism with its conditions and links the evidence', () => {
+    const view = render(Home, { props: { data: homeData } })
+    const claim = view.getByText('Same result in every engine').closest('div')!
+    expect(claim.textContent).toContain('The same code, content, seed, starting state and commands give the same simulation hash in Node, Chromium, Firefox and WebKit, in every scenario the framework’s CI checks.')
+    expect(view.getByRole('link', { name: 'See the latest evidence' }).getAttribute('href')).toBe('/proof')
+    expect(view.container.textContent).not.toMatch(/complete determinism|100% match|run identically/i)
+  })
+
   it('labels the generated API reference as complete for the packages it was generated from, and links it', () => {
     const view = render(Cheatsheet)
     expect(view.getByRole('link', { name: 'Complete generated reference (plain text)' }).getAttribute('href')).toBe('/llms-api.txt')

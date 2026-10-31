@@ -11,8 +11,9 @@ import Home from '../src/routes/+page.svelte'
 // second, ahead of the images and styles the first paint waits for. The pages now get their project from their load
 // function, which imports the module on demand. tests/site-checks.test.ts holds the gate on the built pages.
 describe('the project a page shows comes from its load function', () => {
-  it('gives the home page the starter project', async () => {
-    const data = await loadHome()
+  it('gives the home page the starter project, keeping what its server load decided', async () => {
+    const data = await loadHome({ data: { enginesAgree: true } } as Parameters<typeof loadHome>[0])
+    expect(data.enginesAgree).toBe(true)
     expect(data.starterProject.slug).toBe('base-2d')
     expect(data.starterProject.files.map(file => file.path)).toContain('games/emberwick/src/content/room.ts')
   })
@@ -36,7 +37,7 @@ describe('the pages show the project in their data', () => {
   }
 
   it('on the home page', () => {
-    const view = render(Home, { props: { data: { starterProject: project } } })
+    const view = render(Home, { props: { data: { starterProject: project, enginesAgree: false } } })
     expect(view.getByRole('button', { name: 'Open games/sample/main.ts' })).toBeTruthy()
   })
 })

@@ -68,4 +68,9 @@ export function parseEvidence(evidence: unknown, schema: unknown): Evidence {
   return doc
 }
 
+/** Whether the file proves cross-engine determinism: it has goldens and the engines agree on every one of them. */
+export function allGoldensAgree(evidence: Evidence | undefined): boolean {
+  return evidence !== undefined && evidence.goldens.length > 0 && evidence.goldens.every(golden => golden.enginesAgree)
+}
+
 export const ENGINE_NAMES: Record<Engine, string> = { node: 'Node', chromium: 'Chromium', firefox: 'Firefox', webkit: 'WebKit' }
