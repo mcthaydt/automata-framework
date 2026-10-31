@@ -455,3 +455,11 @@ for a game); M also closes the map; visits from the save plus the current room; 
 kinds and the hub map wait on GAME-3D.1f and the hub; the wedge is 60° and 2.5 m.
 
 **Goldens (part 5c).** Unchanged: route `94925b319d992b19`, fights `59b84ddde6bfeb94`, boss `de0bb982dcf6aa53`.
+
+**Part 5c, the #340 review's follow-ups (2026-10-31).**
+
+- The Items screen's contents now sit on a panel (`--af-surface`): the grey labels sat straight on the 3D scene.
+  Red first: items.layout.test.ts's new assertion (a transparent region background) failed in all three engines.
+- The sword and shield have a state of their own, owned and not choosable (`data-choosable="false"`,
+  `aria-disabled`, flat with no edge, "Own button" from the copy). Red first: the Items DOM case's new assertions.
+- Review images: `docs/evidence/owner-visual/2026-10-31-game-3d-1e-5c/items-panel-*.png`.

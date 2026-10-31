@@ -24,3 +24,13 @@ so the patch shows directly.)
 - Scales to the container; at compact height it scrolls inside a declared region and Close stays fixed: as specified.
 - The Map button is not in the frame's corner row beside Pause: the play screen has no seam for a game's corner
   controls, so it sits at the HUD's top inline-end, under Pause.
+
+## The Items screen, after the #340 review
+
+The same throwaway patch as 5b's (`resources.ts`: the sling with 12 pellets, equipped, the hookchain, 37 embers;
+reverted).
+
+| Image | What it shows |
+|---|---|
+| `items-panel-844x390.png` | The contents on a panel of their own (`--af-surface`), so the grey labels no longer sit on the 3D scene; the Sword and Shield flat and edgeless with "Own button" under their names (owned, not choosable, `aria-disabled`), apart from the choosable Spark Sling (equipped, accent border) and Hookchain (focused), and the dashed "Not found yet" Bombs |
+| `items-panel-780x270.png` | The same at the compact height |

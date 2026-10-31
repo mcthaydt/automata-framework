@@ -676,6 +676,14 @@ describe("base-3d's flow", () => {
       expect(slot('bombs')?.dataset.owned).toBe('false')
       expect(slot('bombs')?.getAttribute('aria-disabled')).toBe('true')
       expect(slot('sling')?.textContent).toContain('12 / 30')
+      // The sword and shield are owned but on buttons of their own: a state of their own, not choosable.
+      for (const id of ['sword', 'shield']) {
+        expect(slot(id)?.dataset.owned).toBe('true')
+        expect(slot(id)?.dataset.choosable).toBe('false')
+        expect(slot(id)?.getAttribute('aria-disabled')).toBe('true')
+        expect(slot(id)?.textContent).toContain('Own button')
+      }
+      expect(slot('sling')?.dataset.choosable).toBe('true')
       expect(slot('sling')?.getAttribute('aria-pressed')).toBe('true')
       expect(root.querySelector('[data-testid="items-embers"]')?.textContent).toContain('0')
     })

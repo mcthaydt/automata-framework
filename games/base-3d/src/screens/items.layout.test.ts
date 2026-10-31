@@ -64,6 +64,10 @@ describe('the Items screen (GAME-3D.1e part 5b)', () => {
       const region = document.querySelector<HTMLElement>('[data-testid="items-scroll"]')
       expect(region?.hasAttribute('data-scroll-region')).toBe(true)
       const box = rect(region)
+      // A panel of its own under the contents, so their words never sit straight on the game.
+      const background = getComputedStyle(region as HTMLElement).backgroundColor
+      expect(background).not.toBe('rgba(0, 0, 0, 0)')
+      expect(background).not.toBe('transparent')
       expect(box.bottom).toBeLessThanOrEqual(height + 0.5)
       expect(document.documentElement.scrollHeight).toBeLessThanOrEqual(height)
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(width)

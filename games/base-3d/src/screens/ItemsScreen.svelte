@@ -60,6 +60,7 @@ function choose(slot: ItemSlot): void {
           class="b3-items__slot"
           data-slot={slot.id}
           data-owned={String(slot.owned)}
+          data-choosable={String(choosable(slot))}
           aria-disabled={choosable(slot) ? undefined : 'true'}
           aria-pressed={slot.equippable ? String(view.equipped === slot.id) : undefined}
           onclick={() => choose(slot)}
@@ -67,6 +68,7 @@ function choose(slot: ItemSlot): void {
           {#if slot.owned}
             <span class="b3-items__name">{words.itemNames[slot.id]}</span>
             {#if slot.ammo !== undefined}<span class="b3-items__ammo">{slot.ammo.count} / {slot.ammo.most}</span>{/if}
+            {#if !slot.equippable}<span class="b3-items__note">{words.items.ownButton}</span>{/if}
           {:else}
             <span class="b3-items__name b3-items__name--missing">{words.items.notFound}</span>
           {/if}
@@ -118,7 +120,12 @@ function choose(slot: ItemSlot): void {
     margin: 0;
     font: var(--af-text-body);
   }
+  /* A panel under the contents, so their words never sit straight on the paused game. */
   .b3-items {
+    padding: 12px;
+    border-radius: var(--af-radius);
+    background: var(--af-surface);
+    box-sizing: border-box;
     min-block-size: 0;
     block-size: 100%;
     overflow-y: auto;
@@ -146,6 +153,16 @@ function choose(slot: ItemSlot): void {
     font: var(--af-text-small);
     text-align: center;
     overflow-wrap: anywhere;
+  }
+  /* Owned, but on buttons of their own: flat, no edge, never pressed. */
+  .b3-items__slot[data-owned='true'][data-choosable='false'] {
+    border-color: transparent;
+    background: rgb(255 255 255 / 6%);
+    cursor: default;
+  }
+  .b3-items__note {
+    color: var(--af-muted);
+    font-size: 0.85em;
   }
   .b3-items__slot[data-owned='false'] {
     border-style: dashed;
