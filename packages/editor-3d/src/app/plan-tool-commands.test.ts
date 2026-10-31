@@ -24,7 +24,7 @@ function setup() {
   editor.view.set({ camera: { x: 7, z: 3, zoom: 1 } })
   const tools = createPlanTools(editor, SIZE)
   const registry = createCommandRegistry()
-  for (const command of planToolCommands(tools)) registry.register(command)
+  for (const command of planToolCommands(tools, () => editor.selection.ids)) registry.register(command)
   const keymap = createKeymap(registry, 'apple')
   const press = (key: string): boolean =>
     keymap.handle({
@@ -93,5 +93,15 @@ describe('the plan tool keys', () => {
     expect(press('Enter')).toBe(true)
     expect(tools.sector?.view.refusal).toMatch(/three corners/)
     expect(editor.history.canUndo).toBe(false)
+  })
+
+  it('chooses Things with T, and Delete removes the selected thing as one step, falling through with none (ED3D.7d)', () => {
+    const { tools, press, editor } = setup()
+    expect(press('t')).toBe(true)
+    expect(tools.state.tool).toBe('things')
+    expect(press('Delete')).toBe(false)
+    editor.selection.set(['entity:crate/crate1'])
+    expect(press('Delete')).toBe(true)
+    expect(editor.history.undoLabel).toMatch(/^Remove crate crate1/)
   })
 })

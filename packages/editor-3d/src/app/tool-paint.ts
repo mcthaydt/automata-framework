@@ -137,6 +137,25 @@ export function toolPaint(
         ],
       }
     }
+    case 'things': {
+      const place = state.view.place
+      if (place === undefined) return NO_TOOL_PAINT
+      const marked = target(place, reasonOf(place))
+      const area = place.area
+      if (area === undefined) return marked
+      const corners: Point[] = [
+        { x: area.x0, z: area.z0 },
+        { x: area.x1, z: area.z0 },
+        { x: area.x1, z: area.z1 },
+        { x: area.x0, z: area.z1 },
+      ]
+      return {
+        ...marked,
+        strokes: corners.map((corner, index) =>
+          edge(corner, corners[(index + 1) % corners.length] as Point, true),
+        ),
+      }
+    }
     case 'merge': {
       const { view } = state
       const outline = (sector: string, color: number): ToolOutline[] =>

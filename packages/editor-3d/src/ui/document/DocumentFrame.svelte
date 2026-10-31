@@ -101,7 +101,7 @@ const checks = createChecksPanel(editor, { schedule })
 // svelte-ignore state_referenced_locally
 const tools = createPlanTools(editor, { w: 1, h: 1 })
 const commands = createCommandRegistry()
-for (const command of planToolCommands(tools)) commands.register(command)
+for (const command of planToolCommands(tools, () => editor.selection.ids)) commands.register(command)
 const keymap = createKeymap(
   commands,
   /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '') ? 'apple' : 'other',
