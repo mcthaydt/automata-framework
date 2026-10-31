@@ -69,6 +69,11 @@ export interface SignalSource {
 export interface ServerConfig {
   /** `0` asks the operating system for a free port, as every test does. */
   readonly port: number
+  /**
+   * The address to listen on. Unset, every address (Node's default), as a deployed server wants. The test harness
+   * gives `127.0.0.1` (issue #14): on macOS a wildcard listener can share its port with another process's loopback one.
+   */
+  readonly host?: string | undefined
   readonly limits: ServerLimits
   /** `content/net.toml`: the snapshot rate, the lead a client may take and the reconnect grace. */
   readonly net: NetConfig
