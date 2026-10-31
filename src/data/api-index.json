@@ -1,0 +1,9 @@
+{
+  "commit": "f8023a907725cccd84277372c0d4f1b73d2da90c",
+  "version": "0.0.3",
+  "exports": 900,
+  "files": {
+    "llms-full.txt": "166d45f933414f393b4a5511dcf6d7c0823af57e8dde1d59c5353d8e96d71b9d",
+    "llms-api.txt": "bbb90d96ffd02cd91125f637ce39059f9e1d8d333c5e2aba8143521efd4a4e88"
+  }
+}

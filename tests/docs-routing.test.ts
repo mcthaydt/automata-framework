@@ -4,9 +4,9 @@ import { entries, load } from '../src/routes/docs/[slug]/+page'
 import SlugPage from '../src/routes/docs/[slug]/+page.svelte'
 
 describe('Docs Canonical Slug Routing', () => {
-  it('entries() emits all 17 canonical documentation slugs', async () => {
+  it('entries() emits all 18 canonical documentation slugs', async () => {
     const slugs = (await entries()) as Array<{ slug: string }>
-    expect(slugs.length).toBe(17)
+    expect(slugs.length).toBe(18)
     const slugNames = slugs.map((s) => s.slug)
     expect(slugNames).toContain('overview')
     expect(slugNames).toContain('quick-start')
@@ -17,6 +17,7 @@ describe('Docs Canonical Slug Routing', () => {
     expect(slugNames).toContain('mobile-ui')
     expect(slugNames).toContain('ai-rules')
     expect(slugNames).toContain('capabilities')
+    expect(slugNames).toContain('boot-errors')
   })
 
   it('load({ params }) returns the slug for rendering', async () => {

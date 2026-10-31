@@ -2,7 +2,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parseEvidence } from '../src/lib/evidence'
+import { allGoldensAgree, parseEvidence } from '../src/lib/evidence'
 import sample from './fixtures/evidence.sample.json'
 import schema from './fixtures/evidence.schema.sample.json'
 
@@ -53,6 +53,16 @@ describe('parseEvidence', () => {
 
   it('refuses a golden that lists one engine twice', () => {
     expect(() => parseEvidence(mutated(doc => { doc.goldens[0].hashes[1].engine = 'node' }), schema)).toThrow(/sample\/agreeing.*each engine once/)
+  })
+})
+
+describe('allGoldensAgree (DX.10a: the homepage claims determinism only when it holds)', () => {
+  it('is true only when there are goldens and every one has the engines agreeing', () => {
+    const evidence = parseEvidence(sample, schema)
+    expect(allGoldensAgree(evidence)).toBe(false)
+    expect(allGoldensAgree({ ...evidence, goldens: evidence.goldens.filter(golden => golden.enginesAgree) })).toBe(true)
+    expect(allGoldensAgree({ ...evidence, goldens: [] })).toBe(false)
+    expect(allGoldensAgree(undefined)).toBe(false)
   })
 })
 
