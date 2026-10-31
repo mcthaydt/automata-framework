@@ -1,5 +1,4 @@
 <script lang="ts">
-  import CodeBlock from '$lib/components/CodeBlock.svelte'
   import PageMeta from '$lib/components/PageMeta.svelte'
   import { apiVersions } from '$lib/api-reference'
   import type { PageData } from './$types'
@@ -29,7 +28,8 @@
         <article class="api-entry" id={entry.name} data-framework-copy>
           <h3>{entry.name} <span class="small">{entry.kind}</span></h3>
           {#if entry.doc}<p>{entry.doc}</p>{/if}
-          <CodeBlock code={entry.signature} filename={entry.name + ' signature'} />
+          <!-- Plain wrapped text: a package has hundreds of exports, and a control or scroll region on each would bury the keyboard path. -->
+          <pre class="api-signature-wrapped"><code>{entry.signature}</code></pre>
         </article>
       {/each}
     </section>
