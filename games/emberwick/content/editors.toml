@@ -7,3 +7,10 @@ editor = "levels-2d"
 modes = ["edit"]
 gates = []
 checks = ["content"]
+
+[[file]]
+glob = "content/tuning.toml"
+editor = "tuner"
+modes = ["edit"]
+gates = []
+checks = ["content"]

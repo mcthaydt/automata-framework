@@ -1,0 +1,14 @@
+# How Wick moves: Celeste's published constants in the sim's units (subpixels per tick at 60 ticks a second; see
+# src/sim/tuning.ts for each original value). Each tunable carries its own range; the compiler range-checks it.
+# SUB, TICK_HZ and the hitbox stay code-only invariants: they change what a tick means, not how the character feels.
+
+MAX_RUN = { value = 384, min = 128, max = 768, step = 1 }
+RUN_ACCEL = { value = 71, min = 8, max = 256, step = 1 }
+AIR_ACCEL = { value = 46, min = 8, max = 256, step = 1 }
+GRAVITY = { value = 64, min = 16, max = 192, step = 1 }
+HALF_GRAVITY_BELOW = { value = 171, min = 0, max = 512, step = 1 }
+MAX_FALL = { value = 683, min = 256, max = 1536, step = 1 }
+JUMP_SPEED = { value = -448, min = -1024, max = -128, step = 1 }
+VAR_JUMP_TICKS = { value = 12, min = 0, max = 30, step = 1 }
+COYOTE_TICKS = { value = 6, min = 0, max = 15, step = 1 }
+BUFFER_TICKS = { value = 5, min = 0, max = 15, step = 1 }
