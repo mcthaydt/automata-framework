@@ -14,9 +14,12 @@ import {
   type UiComponent,
 } from '@mcthaydt/automata-ui'
 import type { TouchButton } from '../input/keys.ts'
+import type { LiveScreensCopy } from './screens-copy.svelte.ts'
 
 interface Props {
   onPause: () => void
+  /** The screens' words in the player's language (DX.2d). */
+  copy: LiveScreensCopy
   tracker: InputMethodTracker
   touchButtons: readonly TouchButton[]
   onHold: (id: string) => void
@@ -27,7 +30,7 @@ interface Props {
   hud?: readonly UiComponent[] | undefined
 }
 
-const { onPause, tracker, touchButtons, onHold, onRelease, swipe, hud = [] }: Props = $props()
+const { onPause, tracker, touchButtons, onHold, onRelease, swipe, hud = [], copy }: Props = $props()
 
 const touching = $derived(tracker.method === 'touch')
 const showButtons = $derived(touching && swipe === undefined && touchButtons.length > 0)
@@ -37,7 +40,7 @@ const buttons = $derived(
 </script>
 
 {#snippet end()}
-  <button type="button" class="af-control af-control--ghost" data-testid="pause" aria-label="Pause" onclick={onPause}
+  <button type="button" class="af-control af-control--ghost" data-testid="pause" aria-label={copy.current.play.pause} onclick={onPause}
     ><span aria-hidden="true">II</span></button
   >
 {/snippet}

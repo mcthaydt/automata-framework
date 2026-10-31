@@ -773,6 +773,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing

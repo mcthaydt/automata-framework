@@ -30,6 +30,7 @@ import { defaultContent } from './default-content.ts'
 import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
 import type { InputMap } from './input/keys.ts'
 import { defaultScreens } from './screens/default-screens.ts'
+import type { ScreensCopyInput } from './screens/screens-copy.ts'
 
 /**
  * What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the
@@ -54,6 +55,12 @@ export interface GameSaves<D> {
  * scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
  * `defineGame` fills in every default.
  */
+/** A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d). */
+export type GameCopy = NonNullable<GameDefinition['copy']> & {
+  /** The default screens' words, over their English defaults: a part of `ScreensCopy`, or a function of the locale. */
+  readonly screens?: ScreensCopyInput | undefined
+}
+
 export interface GameSpec<S = never, D = unknown> {
   /** Ruken's game id (`[game].id`), checked with Ruken's own rule; it is `hosting.gameId`. */
   readonly id: string
@@ -128,7 +135,12 @@ export interface GameSpec<S = never, D = unknown> {
    * new origin or a rebuilt file never changes the hash a save is stamped with.
    */
   readonly preload?: readonly string[]
-  readonly copy?: GameDefinition['copy']
+  /**
+   * The game's words: the runtime's boot and failure copy, and `screens`, the default screens' words over their
+   * English defaults (DX.2d). `screens` may be a function of the locale, run again on each language change, so a
+   * Paraglide game passes its messages: `screens: () => ({ title: { play: m.play() } })`.
+   */
+  readonly copy?: GameCopy
   /** The game's languages (PRODUCT.L): Settings' Language group offers them. Absent, the content's one language. */
   readonly locale?: GameDefinition['locale']
   /** Tests only. */
@@ -262,6 +274,9 @@ export function pixiOptions<S>(
  * Throws `BootDefect` (its cause a `GameSpecError`) for an invalid spec.
  */
 export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): DefinedGame<S> {
+  // The runtime gets its own copy; `screens` is the default screens' (DX.2d).
+  const { screens: _screens, ...rest } = spec.copy ?? {}
+  const runtimeCopy = spec.copy === undefined ? undefined : rest
   const plugins = simPluginsOf(spec)
   const problems = problemsOf(spec, plugins)
   if (problems.length > 0) throw new BootDefect({ cause: new GameSpecError(problems) })
@@ -307,6 +322,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
         ...(spec.saves === undefined ? {} : { saves: spec.saves as GameSaves<unknown> }),
         setQuality: (tier) => stage?.setQuality(tier),
         ...(spec.extensions === undefined ? {} : { extensions: spec.extensions }),
+        ...(spec.copy?.screens === undefined ? {} : { copy: spec.copy.screens }),
       }),
     renderer,
     // Without settings of its own, the game keeps the player's bindings and quality in the core settings (M4.4).
@@ -317,7 +333,7 @@ export function defineGame<S = never, D = unknown>(spec: GameSpec<S, D>): Define
     ...(spec.sounds === undefined ? {} : { sounds: spec.sounds }),
     ...(spec.scores === undefined ? {} : { scores: spec.scores }),
     ...(spec.saves === undefined ? {} : { saves: spec.saves.def }),
-    ...(spec.copy === undefined ? {} : { copy: spec.copy }),
+    ...(runtimeCopy === undefined ? {} : { copy: runtimeCopy }),
     ...(spec.locale === undefined ? {} : { locale: spec.locale }),
     ...(spec.seams === undefined ? {} : { seams: spec.seams }),
   }
