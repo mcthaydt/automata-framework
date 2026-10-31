@@ -2,10 +2,9 @@
 // on the progress, and the choice offered once another device has changed the slot being played (M5-D6).
 import { Hosting } from '@mcthaydt/automata-host'
 import { type Save, type Saves, saveOf } from '@mcthaydt/automata-runtime'
-import type { SaveStatusCopy, SaveStatusState } from '@mcthaydt/automata-ui'
+import type { SaveStatusState } from '@mcthaydt/automata-ui'
 import { Effect, Runtime, type Scope, Stream } from 'effect'
 import type { GameSaves } from '../define-game.ts'
-import { CHANGED_ELSEWHERE_COPY, type ChangedElsewhereCopy, SAVE_STATUS_COPY } from './saves-copy.ts'
 import { orDispose, type SavesStart } from './saves-start.ts'
 import { createPausedSavesView, type PausedSavesView } from './saves-view.svelte.ts'
 
@@ -13,8 +12,6 @@ import { createPausedSavesView, type PausedSavesView } from './saves-view.svelte
 export interface PausedSaves {
   /** Changed in place by the screen's own streams. */
   readonly view: PausedSavesView
-  readonly statusCopy: SaveStatusCopy
-  readonly choiceCopy: ChangedElsewhereCopy
   /** Replace the game being played with what the other device wrote, and resume into it. */
   readonly onLoadNewer: () => void
   /** Carry on with this game: its next write replaces what the other device wrote. */
@@ -65,8 +62,6 @@ export function pausedSaves(
     let busy = false
     return {
       view,
-      statusCopy: SAVE_STATUS_COPY,
-      choiceCopy: CHANGED_ELSEWHERE_COPY,
       onLoadNewer: () => {
         if (busy) return
         busy = true
