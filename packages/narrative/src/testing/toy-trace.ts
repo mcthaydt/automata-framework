@@ -10,8 +10,11 @@ import { createSim, defineCommand, definePlugin, defineSystem } from '@mcthaydt/
 import { parse } from 'smol-toml'
 import { z } from 'zod'
 import { createNarrative, type DialogueGraph, type LineRecord, type Storylet } from '../sim/index'
+import type { Beat } from '../tools/beats.schema'
+import type { SceneHelp } from '../tools/help.schema'
+import type { NarrativeToolsScene } from '../tools/scene'
 import type { TraceGame } from '../tools/traces'
-import { rec, TALK } from './toy-dialogue'
+import { CANON, rec, TALK } from './toy-dialogue'
 
 const Load = defineCommand('toy.load', z.strictObject({ entry: z.string() }))
 
@@ -99,6 +102,81 @@ export function toyTraceGame(over: Partial<TraceGame> = {}): TraceGame {
       sim.step([{ tick: sim.tick, source: 0, seq: 0, type: 'toy.load', payload: { entry } }])
       return sim
     },
+    ...over,
+  }
+}
+
+export const TOY_BEATS: Beat[] = [
+  { id: 'toy.key', learn: 'The key is in the drawer.', required: true, deliveredBy: ['toy.drawer'] },
+  { id: 'toy.meet', learn: 'The porter asks who she is.', required: true, deliveredBy: ['toy.hello'] },
+  {
+    id: 'toy.dawn',
+    learn: 'It is first light.',
+    required: true,
+    deliveredBy: ['toy.dawn.1'],
+    after: ['toy.key'],
+  },
+  { id: 'toy.chose', learn: 'She answers him.', required: false, deliveredBy: ['toy.duty'] },
+]
+export const TOY_HELP: SceneHelp = {
+  hints: [
+    {
+      id: 'drawer',
+      puzzle: 'Find the key.',
+      done: [{ fact: 'drawerOpen', is: true }],
+      levels: [
+        { line: 'toy.hello', at: 'dialogue:meet' },
+        { line: 'toy.item.key', at: 'item:key' },
+        { line: 'toy.drawer', at: 'drawer' },
+      ],
+    },
+    {
+      id: 'door',
+      puzzle: 'Open the door.',
+      levels: [
+        { line: 'toy.door', at: 'door' },
+        { line: 'toy.dawn.1', at: 'cutscene:dawn' },
+        { line: 'toy.warm', at: 'dialogue:meet' },
+      ],
+    },
+  ],
+  deductions: [
+    {
+      id: 'keyInDrawer',
+      learn: 'The key is in the drawer.',
+      for: ['drawer'],
+      clues: [
+        { line: 'toy.drawer', at: 'drawer' },
+        { line: 'toy.item.key', at: 'item:key' },
+        { line: 'toy.ask', at: 'dialogue:meet' },
+      ],
+    },
+    {
+      id: 'keyOpensDoor',
+      learn: 'The key opens the door.',
+      for: ['door'],
+      clues: [
+        { line: 'toy.door', at: 'door' },
+        { line: 'toy.dawn.1', at: 'cutscene:dawn' },
+        { line: 'toy.warm', at: 'dialogue:meet' },
+      ],
+    },
+  ],
+}
+
+/** The toy as the pipeline's scene module exports it. */
+export function toyNarrativeScene(over: Partial<NarrativeToolsScene> = {}): NarrativeToolsScene {
+  return {
+    game: toyTraceGame(),
+    title: 'Toy Ward',
+    canon: CANON,
+    text: TOY_TEXT,
+    storylets: TOY_STORYLETS,
+    beats: TOY_BEATS,
+    help: TOY_HELP,
+    dialogueRules: { player: 'ada', quiet: ['ada'] },
+    deck: { rooms: ['hall'] },
+    player: 'Ada',
     ...over,
   }
 }
