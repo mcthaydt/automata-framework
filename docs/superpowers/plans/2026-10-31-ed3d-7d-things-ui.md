@@ -2,7 +2,7 @@
 
 - **Task:** ED3D.7d in [02](../../02-master-delivery-plan.md), the third part of milestone "ED3D.5e–7d". [ED3D spec](../specs/2026-10-23-editor-3d-design.md) §4.7 (things are instances of entity definitions; the palette lists the definitions), §5.2 (one sub-layer per definition; a hidden layer is not drawn, a locked one not hit), §5.4 (`thing.add`, `thing.move`, `thing.remove`, `thing.setField`), §9, §13 (ED3-r placement). Mockup `Split · landscape` (the Things rail tools, the layers).
 - **Lane:** editors. **Depends on:** ED3D.7b (`createThingsTool`), ED3D.7a (thing edits), ED3D.5f (the inspector, this branch), ED3D.6g (the tool switcher, merged into this branch).
-- **Status:** Drafted 2026-10-31. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
+- **Status:** 7d-a implemented and locally checked 2026-10-31 (steps 1–6); 7d-b (steps 7–8) moves to the next editors milestone with the ED2D.8 journeys, because the field form it needs moves out of editor-2d into the kit. Accepted under the Owner's "Auto accept all spec and plans" once reviewed. Steps are ticked only when their checks pass.
 - **Progress:** 6 of 8 steps.
 
 ## Parts
