@@ -8,7 +8,6 @@ const TUNING = 'content/tuning.toml'
 const FILES = {
   [EDITOR_LIST_PATH]: floorfiftyList,
   [TUNING]: 'MAX_MOVE_SPEED = 356.0\n',
-  'content/stages/floor-01.toml': 'id = "floor-01"\n',
 }
 
 async function setup(options: { changeSet?: false; gh?: boolean } = {}) {

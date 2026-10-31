@@ -9,10 +9,11 @@ import { defineConfig } from 'vite'
 import config from './ship.config.ts'
 
 // `vite preview` serves the build with the headers Ruken would serve it with (compileHeaders on this game's
-// manifest: Ruken's CSP with no eval). The page that may frame it is Ruken's local web app (http://localhost:5173).
+// manifest: Ruken's CSP with no eval). The page that may frame it is the e2e fake host (AF_E2E_HOST_ORIGIN, set by
+// playwright.config.ts), otherwise Ruken's local web app (http://localhost:5173, Ruken's dev port).
 function previewHeaders(): Record<string, string> {
   return compileHeaders(Effect.runSync(checkManifest(rukenToml(config))), {
-    hostOrigins: ['http://localhost:5173'],
+    hostOrigins: [process.env.AF_E2E_HOST_ORIGIN ?? 'http://localhost:5173'],
   })
 }
 

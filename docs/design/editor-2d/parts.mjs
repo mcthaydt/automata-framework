@@ -873,16 +873,6 @@ export function parts(S) {
         state: 'ok',
         when: '3 days ago',
       },
-      {
-        id: 'rooftops',
-        name: 'Rooftops',
-        kind: 'FloorFifty stage',
-        file: 'rooftops.toml',
-        levels: [],
-        stats: '12 layers · 6 set pieces · seed 35229',
-        state: 'ok',
-        when: '4 days ago',
-      },
     ],
   }
   const NAV = [

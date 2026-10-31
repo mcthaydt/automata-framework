@@ -4,7 +4,7 @@ import type { Diagnostic, Profile, ProjectContext } from '../profiles/profile'
 // A second profile for the app's tests, so the code that opens, lists and creates documents is shown to be
 // profile-blind (G-s) without depending on a profile that lives in another stack. A "note" file is `NOTE`, a line of
 // text, and a line `# saved N` that the printer counts up from the text it is given as `base`, which is what a codec
-// that patches the text it loaded does (FloorFifty's keeps comments). So a save that forgets to hand the next one the
+// that patches the text it loaded to keep its comments does. So a save that forgets to hand the next one the
 // text it wrote prints the same number twice.
 
 export interface Note {
