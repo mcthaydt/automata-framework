@@ -57,7 +57,7 @@ note on the harness).
   capture released, nothing fires after).
 - [x] 6. EK-c (rotate mid-drag of a slider: the drag ends cancelled, the value unchanged, no remount, the panel's scroll
   kept) and EK-g at all four profiles (the layout contract; every action reachable).
-- [ ] 7. editor-2d gets the project and script; the kit spec's as-built note; gates: `pnpm format`,
+- [x] 7. editor-2d gets the project and script; the kit spec's as-built note; gates: `pnpm format`,
   `TURBO_FORCE=true pnpm check`, the kit's `test:layout` and `test:journeys`, editor-2d `test:parity`.
 
 ## Execution log
@@ -94,3 +94,8 @@ note on the harness).
   `./journey-project` subpath, since its config runs in Node and `./testing` loads browser-side modules), its unit
   project skips `*.journey.test.ts`, and `test:journeys` runs with `--passWithNoTests` until ED2D.8 adds journeys. The
   kit spec §8 has the as-built note.
+- 2026-10-31, gates after merging `origin/main` (`6a5f03c5`, unchanged): `pnpm format` clean; the first
+  `TURBO_FORCE=true pnpm check` failed in `@mcthaydt/api-report` (`editor-kit.api.md` lacked the new `./testing`
+  exports); `pnpm api-report --update` added them (193 lines, additions only) and the re-run passes (exit 0, 37/37 and
+  35/35 tasks, 0 cached). editor-kit `test:layout` 10 files, 382 tests (1 skipped, as before); `test:journeys` 4 files,
+  18 tests; editor-2d `test:parity` 21 files, 582 tests.
