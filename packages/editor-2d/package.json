@@ -16,6 +16,7 @@
     "test:layout": "vitest run --project layout",
     "test:canvas": "vitest run --project canvas",
     "test:parity": "vitest run --project browsers --project layout",
+    "test:journeys": "vitest run --project journeys --passWithNoTests",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {

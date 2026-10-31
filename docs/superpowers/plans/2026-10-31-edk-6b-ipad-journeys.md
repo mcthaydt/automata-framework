@@ -90,3 +90,7 @@ note on the harness).
   clamped the scroll (978 to 726 px); with a fixed 1600 px gap the slider sat near the end, and the taller portrait
   panel clamped it again (1325 to 1145 px); with the same gap below the slider it passes. `test:journeys`: 4 files,
   18 tests.
+- 2026-10-31, step 7: editor-2d's config spreads `journeyProject(playwright)` (through the new
+  `./journey-project` subpath, since its config runs in Node and `./testing` loads browser-side modules), its unit
+  project skips `*.journey.test.ts`, and `test:journeys` runs with `--passWithNoTests` until ED2D.8 adds journeys. The
+  kit spec §8 has the as-built note.

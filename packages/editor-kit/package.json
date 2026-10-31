@@ -20,6 +20,7 @@
     "./ports": "./src/ports/index.ts",
     "./ports/testing": "./src/ports/testing/index.ts",
     "./testing": "./src/testing/index.ts",
+    "./journey-project": "./src/testing/journey-project.ts",
     "./tokens.css": "./src/tokens.css",
     "./fonts.css": "./src/fonts.css"
   },

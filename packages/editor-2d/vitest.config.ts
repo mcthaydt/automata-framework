@@ -1,3 +1,4 @@
+import { journeyProject } from '@mcthaydt/automata-editor-kit/journey-project'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { svelteTesting } from '@testing-library/svelte/vite'
 import { playwright } from '@vitest/browser-playwright'
@@ -27,7 +28,12 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           include: ['src/**/*.test.ts'],
-          exclude: ['src/**/*.dom.test.ts', 'src/**/*.layout.test.ts', 'src/**/*.canvas.test.ts'],
+          exclude: [
+            'src/**/*.dom.test.ts',
+            'src/**/*.layout.test.ts',
+            'src/**/*.canvas.test.ts',
+            'src/**/*.journey.test.ts',
+          ],
         },
       },
       {
@@ -88,6 +94,8 @@ export default defineConfig({
           },
         },
       },
+      // The iPad journeys (the kit's EDK.6b harness): WebKit with touch and a 2× screen; ED2D.8 adds the journeys.
+      journeyProject(playwright),
     ],
   },
 })
