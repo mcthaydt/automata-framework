@@ -9,9 +9,9 @@ auto-accepted.
   (`openServedWorkspace`), so `automata editor --app 2d` edits the checkout; the command, server, kit HTTP store, guide and
   agent skill are #367's. Checked: build, svelte-check, and a real-browser load of the built editor served by the built CLI
   (Home opens on the served workspace).
-- [ ] B. ED2D.7b export dialog and the recovery journeys.
-- [ ] C. ED2D.6c reference picker and level links.
-- [ ] D. ED2D.10 acceptance G-q to G-t on one build.
+- [x] B. ED2D.7b export dialog and the recovery journeys. Already merged: #332 (`8117a2f`) is an ancestor of this branch (`export/`, `recovery-journey.dom.test.ts`); nothing left.
+- [x] C. ED2D.6c reference picker and level links. Already merged in #332 (`links.dom.test.ts`, `links.journey.test.ts`); nothing left.
+- [x] D. ED2D.10 acceptance G-q to G-t on one build (headless and Chromium; the iPad pass stays the Owner's). `app/acceptance.test.ts` runs G-q and G-r through the one app (import, open, zero errors, valid AF content, save, re-open equal); G-s is `architecture.test.ts`; G-t is `definition-uses.test.ts`. Checked: editor-2d `unit`+`dom` 128 files / 1548 tests, `journeys` 5 files / 8 tests, all pass.
 - [ ] E. GAME-2D.ED: Emberwick's room and tuning authored in the 2D editor; golden `31f50888ccb4cf0a` unchanged.
 - [ ] F. Reconcile the ED2D.8 row: origin/main has ED2D.8a and 8b; #353 has the polish, a11y and journeys.
 - [ ] G. gates and the PR.
