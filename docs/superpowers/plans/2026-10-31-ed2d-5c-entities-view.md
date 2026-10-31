@@ -3,7 +3,7 @@
 - **Task:** ED2D.5c in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §5.5 (entity definitions), §5.8 (the 5a commands, as built), §8 (the Entities row, flow 5), §12 (inputs, 44 px targets), §13, §15 G-f; mockup `entities` in `docs/design/editor-2d/screens-general.mjs`.
 - **Lane:** editor-2d. **Depends on:** ED2D.5a (the commands, merged) and ED2D.4c4b (the inspector and its `FieldEditor`, merged); built on ED2D.5b's branch (#293) for `tile-sprite.ts` and the `views.ts` registration until #293 merges. **Unblocks:** ED2D.8 (journeys, the retype refusal journey).
 - **Status:** drafted 2026-10-31 on `claude/ed2d-5c-entities-view`. Owner, 2026-10-30: "Auto accept all spec and plans"; this plan is accepted once its review is done.
-- **Progress:** 0 of 7 steps.
+- **Progress:** 4 of 7 steps.
 
 ## Scope
 
@@ -32,7 +32,7 @@
 3. **Every field-definition change goes through `retypeField`** (label, list, required, default, bounds, options, multiline, `to`), and an id change through `renameField`, so one rule decides what breaks a value.
 4. **Changing a field's type** keeps its id, label, list and required, and drops the settings of the old type (default, bounds, step, options, multiline, `to`); an `enum` starts with the option `a`, so the definition is valid. The values that no longer fit are the refusal's list.
 5. **Selection follows the data:** the first definition and its first field on open; a removed definition or field falls back to the first remaining; "Level fields" is the owner `level`.
-6. **New ids** come from the view's `IdSource` (`entity-<id>`, `field-<id>`). A new definition is a 16 × 16 `rect` with pivot (0.5, 1), no fields; a new field is an optional `text` with default `""`. Duplicate copies a definition under a new id, labelled `Copy of <label or id>`, with no instances.
+6. **New ids** come from the view's `IdSource` (`entity-<id>`, `field_<id>`: the kit's field ids are letters, digits and underscores). A new definition is a 16 × 16 `rect` with pivot (0.5, 1), no fields; a new field is an optional `text` with default `""`. Duplicate copies a definition under a new id, labelled `Copy of <label or id>`, with no instances.
 7. **The preview** scales the shape by the largest whole number that fits the canvas (at most 8), so pixel art stays crisp; a `point` is a cross at the pivot; a `tile` shape or a definition with a `tile` draws the sprite with `tile-sprite.ts`.
 8. **Use labels** come from the use's path (`levels[level-1].layers[entities].items[npc-2]` → `npc-2 in level-1`), with the path kept as the row's title.
 
@@ -79,10 +79,10 @@ export function createEntitiesSession(options: {
 
 ## Steps
 
-1. [ ] **Rows.** `entities-model.test.ts` on the platformer and RPG templates: definition rows with summaries (`0 fields · single`, `1 field · rect`), level field rows, `fieldSummary` for each type (`text · default “”`, `enum · a b · default a`, `int · 0 to 9`, `point · list`, `ref · door`, `required`), `useLabel`.
-2. [ ] **Selection and preview.** `resolveSelection` defaults and fallbacks (a removed definition or field); `definitionPreview`: the scale (16 × 24 in 554 × 400 is 8; 64 × 64 is 6), the pivot point in preview pixels, the instance count text (`no instances`, `1 instance · 1 level`, `2 instances · 1 level`), the tile sprite when set; `withType` drops the old type's settings and gives an enum `a`.
-3. [ ] **Session, definitions.** `entities-session.test.ts`: add (one step, selected), rename (instances follow), label, colour, shape, size, pivot, single, tile, duplicate; a refused value (size 0, an id in use) returns its message and adds no step; delete unused is one step without asking; delete in use returns the uses and adds no step, then `anyway` is one step that removes the instances; undo restores them and the selection falls back.
-4. [ ] **Session, fields.** For an entity definition and for `level`: add, rename (values move), label, required, list, default, bounds, options, type; a change that breaks values returns the uses (G-f), and `anyway` is one step; delete field in use refuses, then `anyway` is one step.
+1. [x] **Rows.** `entities-model.test.ts` on the platformer and RPG templates: definition rows with summaries (`0 fields · rect · single`, `1 field · rect`), level field rows, `fieldSummary` for each type (`text · default “”`, `enum · a b · default a`, `int · 0 to 9`, `point · list`, `ref · door`, `required`), `useLabel`.
+2. [x] **Selection and preview.** `resolveSelection` defaults and fallbacks (a removed definition or field); `definitionPreview`: the scale (16 × 24 in 554 × 400 is 8; 64 × 64 is 6), the pivot point in preview pixels, the instance count text (`no instances`, `1 instance · 1 level`, `2 instances · 1 level`), the tile sprite when set; `withType` drops the old type's settings and gives an enum `a`.
+3. [x] **Session, definitions.** `entities-session.test.ts`: add (one step, selected), rename (instances follow), label, colour, shape, size, pivot, single, tile, duplicate; a refused value (size 0, an id in use) returns its message and adds no step; delete unused is one step without asking; delete in use returns the uses and adds no step, then `anyway` is one step that removes the instances; undo restores them and the selection falls back.
+4. [x] **Session, fields.** For an entity definition and for `level`: add, rename (values move), label, required, list, default, bounds, options, type; a change that breaks values returns the uses (G-f), and `anyway` is one step; delete field in use refuses, then `anyway` is one step.
 5. [ ] **Views.** `EntitiesView.dom.test.ts` mounted as the app mounts it (switching the rail to Entities): the panel lists definitions and level fields; the header and preview show the selected definition; editing width updates the preview; adding a field and choosing `int` shows min, max and step; a refused default shows its message; deleting a definition in use opens the dialog listing the instances, Cancel keeps it, "Delete anyway" removes it as one undo step; changing a used field's type does the same with "Change anyway". `views.ts` registers the view. `svelte-check` clean.
 6. [ ] **Layout.** `entities-view.layout.test.ts` in Chromium, WebKit and Firefox at the kit's eight sizes (`SIZES`): no page scroll, every control at least 44 px, the panel and the field list scroll inside their regions, the inspector's footer and the dialog's actions stay reachable.
 7. [ ] **Review images** under `docs/evidence/owner-visual/2026-10-31-ed2d-5c-entities/` with a README saying what each shows and what to check.
@@ -94,3 +94,5 @@ export function createEntitiesSession(options: {
 ## Execution log
 
 - 2026-10-31: plan drafted from the spec, the mockup and the 5a commands; read at `origin/main` 1c6b7a3f with #293's head bc367452 merged in.
+- 2026-10-31: steps 1 and 2. `entities-model.test.ts` (16) failed first on the missing module, then passes. A use's path from the 5a commands ends in `.fields.<id>` for a field's value, so `useLabel` reads that form too (a case added, failing first).
+- 2026-10-31: steps 3 and 4. `entities-session.test.ts` (15) failed first on the missing module; with the session written, 5 failed on the tests' own assumptions, each checked against the model: the coin is already an ellipse (the case sets `point`), the kit's field ids allow no hyphen (new fields are `field_<id>`), a refusal's paths end in `.fields.<id>`, a field's use is only a value someone chose (the fixture tints one slime by hand, so deleting `tint` lists that one), and adding a field notifies twice (history, then selection; the case asserts at least once and nothing after `stop`). Then 31 of 31 pass across both files.
