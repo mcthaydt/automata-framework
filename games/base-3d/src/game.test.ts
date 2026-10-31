@@ -6,7 +6,7 @@ import { Hero, HeroAction, Target } from './components.ts'
 import { ACTION_CLIP, ACTION_TICKS, HERO_HALF, metres, WALK_PER_TICK } from './constants.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
 import { base3dPlugin, base3dSim, spawnArea } from './state.ts'
-import { type Area, type AreaSource, areaOf, compileArea } from './systems.ts'
+import { type Area, type AreaSource, areaOf, compileArea, viewAt } from './systems.ts'
 
 /** The game's own sim spec, on the first slice, as `main.ts` makes it. */
 const BASE3D_SIM = base3dSim(compileArea(FIRST_SLICE))
@@ -29,6 +29,7 @@ describe('the area', () => {
     rooms: [{ view: 'hall', min: [-2, -2], max: [2, 2] }],
     walls: [{ min: [-2.1, 2], max: [2.1, 2.2] }],
     targets: [{ x: 1, z: 0.25 }],
+    ember: { x: -1, z: 1.5 },
   }
 
   it('compiles metres to Q16.16 integers and fills the views’ defaults', () => {
@@ -46,6 +47,7 @@ describe('the area', () => {
       },
     ])
     expect(area.targets).toEqual([{ x: 65_536, z: 16_384 }])
+    expect(area.ember).toEqual({ x: -65_536, z: 98_304 })
     expect(area.views).toEqual([cameraView('hall', { yawDeg: 90 })])
   })
 
@@ -66,11 +68,16 @@ describe('the area', () => {
     expect(() => compileArea({ ...tiny, spawn: { x: 3, z: 0 } })).toThrow(/spawn/)
   })
 
+  it('refuses an ember outside every room', () => {
+    expect(() => compileArea({ ...tiny, ember: { x: 3, z: 0 } })).toThrow(/ember/)
+  })
+
   it('reads only an area as the sim’s content', () => {
     const area = compileArea(tiny)
     expect(areaOf(area)).toBe(area)
     expect(() => areaOf({ ...area, views: undefined })).toThrow(/not an area/)
     expect(() => areaOf({ ...area, targets: 'none' })).toThrow(/not an area/)
+    expect(() => areaOf({ ...area, ember: undefined })).toThrow(/not an area/)
     expect(() => areaOf(null)).toThrow(/not an area/)
   })
 
@@ -145,24 +152,34 @@ function commandsFor(sim: Sim, input: TickInput): Command[] {
   return commands
 }
 
-function run(sim: Sim, input: TickInput, ticks = 1): void {
+/** Steps `ticks` ticks of `input` and returns the events they emitted, as `type@tick`. */
+function run(sim: Sim, input: TickInput, ticks = 1): string[] {
+  const events: string[] = []
   for (let i = 0; i < ticks; i++) {
     const result = sim.step(commandsFor(sim, input))
     if (result.rejected.length > 0) throw new Error(`rejected: ${JSON.stringify(result.rejected)}`)
+    for (const event of result.events) events.push(`${event.type}@${result.tick}`)
   }
+  return events
 }
 
 const UP = { x: 0, y: -127 }
 const RIGHT = { x: 127, y: 0 }
 
 /** One open room, no walls, a view with `yawDeg` and `rotate`. */
-const openArea = (yawDeg = 0, rotate = true, targets: AreaSource['targets'] = []): Area =>
+const openArea = (
+  yawDeg = 0,
+  rotate = true,
+  targets: AreaSource['targets'] = [],
+  ember: AreaSource['ember'] = { x: 40, z: 40 },
+): Area =>
   compileArea({
     spawn: { x: 0, z: 0 },
     views: [{ id: 'open', yawDeg, rotate }],
     rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
     walls: [],
     targets,
+    ember,
   })
 
 describe('moving', () => {
@@ -212,6 +229,7 @@ describe('walls', () => {
       rooms: [{ view: 'open', min: [-50, -50], max: [50, 50] }],
       walls: [{ min: [-5, 2], max: [5, 2.2] }],
       targets: [],
+      ember: { x: 40, z: 40 },
     })
 
   it('stop Wick flush against their face and never let him through', async () => {
@@ -453,6 +471,42 @@ describe('actions (the four clips’ sim side, M3 spec §4.4.5 and §4.7)', () =
   })
 })
 
+describe('taking the ember', () => {
+  it('emits ember.taken on the tick a pickup starts within a metre of it, at the ember', async () => {
+    const sim = await startSim(openArea(0, true, [], { x: 0.9, z: -0.9 }))
+    expect(run(sim, {}, 3)).toEqual([])
+    const pressed = sim.tick
+    const events = run(sim, { act: { pickup: true } })
+    expect(events).toEqual([`ember.taken@${pressed + 1}`])
+    expect(heroAction(sim)).toMatchObject({ clip: ACTION_CLIP.pickup, startedAt: pressed })
+    // Held, and through the rest of the pickup: nothing more.
+    expect(run(sim, { act: { pickup: true } }, ACTION_TICKS.pickup)).toEqual([])
+    sim.dispose()
+  })
+
+  it('emits it at the ember’s place', async () => {
+    const sim = await startSim(openArea(0, true, [], { x: 0.5, z: 0.25 }))
+    const taken = sim.step(commandsFor(sim, { act: { pickup: true } }))
+    expect(taken.events.map((event) => event.payload)).toEqual([{ x: metres(0.5), z: metres(0.25) }])
+    sim.dispose()
+  })
+
+  it('emits nothing for a pickup out of reach, or a slash or point in reach', async () => {
+    const far = await startSim(openArea(0, true, [], { x: 1.1, z: 0 }))
+    expect(run(far, { act: { pickup: true } })).toEqual([])
+    far.dispose()
+    const near = await startSim(openArea(0, true, [], { x: 0, z: 0.5 }))
+    expect(run(near, { act: { slash: true } }, ACTION_TICKS.slash + 1)).toEqual([])
+    expect(run(near, { act: { point: true } })).toEqual([])
+    near.dispose()
+  })
+
+  it('places the first slice’s ember in the kiln, off the golden route', () => {
+    const area = BASE3D_SIM.content
+    expect(viewAt(area, area.ember.x, area.ember.z)?.id).toBe('kiln')
+  })
+})
+
 // The golden replay (B-a): a scripted route through the first slice as commands, from the game's own sim spec. It
 // pins the sim: Node records the hash, and Chromium, WebKit and Firefox must end on the same one bit for bit. A
 // change to movement, the area or the plugin changes it on purpose: investigate it, never rebaseline it per engine.
@@ -490,9 +544,12 @@ const GOLDEN_KILN_TICK = 118
  * `d6ca2f2bc83ed284`; same route, same kiln tick, same 50 locked ticks, same end state). Re-recorded for M3.7b's
  * actions (was `aa170b86451f0838`): Wick gained `hero-action`, `hero-control` gained `actHeld` and `actPressed`, and
  * the route gained the slash, mid-swing slash, guard, pickup and point segments after the walk, whose kiln tick,
- * locked ticks and end position are unchanged.
+ * locked ticks and end position are unchanged. Re-recorded for M3.7b part 4 (was `ce0f0628722db568`): the snapshot
+ * the hash is taken over carries the content hash (the area gained `ember`), the schema hash (the `ember.taken`
+ * event) and each system's RNG state (the `ember.take` system), so the hash moved while the route's state did not:
+ * the same kiln tick, locked ticks, action starts and end position, and no event on the route.
  */
-const GOLDEN_HASH = 'ce0f0628722db568'
+const GOLDEN_HASH = '7e089d2b89cdc654'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)
@@ -501,12 +558,14 @@ async function runGolden() {
   let kilnTick: number | undefined
   let rejected = 0
   let lockedTicks = 0
+  let events = 0
   // Every action start on the route, as `clip@startedAt`.
   const starts: string[] = []
   for (const [input, ticks] of GOLDEN_ROUTE)
     for (let i = 0; i < ticks; i++) {
       const result = sim.step(commandsFor(sim, input))
       rejected += result.rejected.length
+      events += result.events.length
       if (kilnTick === undefined && hero(sim).view === 'kiln') kilnTick = result.tick
       if (hero(sim).lockTarget !== 0) lockedTicks += 1
       const { clip, startedAt } = heroAction(sim)
@@ -518,6 +577,7 @@ async function runGolden() {
     kilnTick,
     rejected,
     lockedTicks,
+    events,
     starts,
     action: heroAction(sim),
     hero: hero(sim),
@@ -533,6 +593,8 @@ describe('the golden replay (B-a)', () => {
   }) => {
     const result = await runGolden()
     expect(result.rejected).toBe(0)
+    // The route's pickup is against the kiln's east wall, out of the ember's reach: the run never ends.
+    expect(result.events).toBe(0)
     expect(result.lockedTicks).toBe(50)
     expect(result.kilnTick).toBe(GOLDEN_KILN_TICK)
     // Against the kiln's east wall, on the kiln's heading, unlocked and unlatched.

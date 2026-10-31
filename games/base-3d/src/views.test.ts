@@ -88,6 +88,10 @@ describe('sceneOf the first slice', () => {
     for (const wall of scene.walls) expect(wall.height).toBeGreaterThan(2)
   })
 
+  it('sets the ember on the floor at its place, a 0.3 m block', () => {
+    expect(scene.ember).toEqual({ min: [-2.65, 0, 10.35], max: [-2.35, 0.3, 10.65] })
+  })
+
   it('lays a floor and a ceiling over each room', () => {
     expect(scene.floors).toEqual([
       { min: [-4, -0.1, -4], max: [4, 0, 4] },
