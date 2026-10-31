@@ -41,7 +41,7 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
 - [x] 2. `world-camera`: fit on first measure, resize keeps the centre, pan, zoom about a point, fit again (unit).
 - [x] 3. `world-gestures`: tap selects or clears, drag on a level moves it as one step, drag on space pans, pinch and
   wheel zoom, middle button pans, finger after pen navigates only, two- and three-finger taps (unit, with a fake target).
-- [ ] 4. The view attaches them; Fit; the existing World view DOM cases still pass (selection, drag, reorder, G-h).
+- [x] 4. The view attaches them; Fit; the existing World view DOM cases still pass (selection, drag, reorder, G-h).
 - [ ] 5. Duplicate and Remove (model helpers in unit tests; DOM: duplicate selected and one undo step; remove asks with
   the link count, removes in one step, disabled on the last level).
 - [ ] 6. Layout (three browsers): Fit and the new buttons are 44 px and in view at every size; review images with the
@@ -54,3 +54,9 @@ Remove and its dialog), `world-model.ts` (+ test: `copyLevelInput`, `linksInto`)
 - 2026-10-31, steps 2 and 3: `world-camera.test.ts` and `world-gestures.test.ts` failed on the missing modules, then
   pass (4 and 5 tests). The camera imports `createViewport` from the kit's `core` entry: the root entry also exports
   Svelte components, which the `unit` project cannot load.
+- 2026-10-31, step 4: with the gestures attached, two World view DOM cases failed for reasons the plan predicts: the
+  drag case aimed its second tap with a fit of the world after the move, and the camera now holds still (decision 2),
+  so it aims every point with the first fit; the Row case switched the layout, which moves every level, so the view now
+  fits again after a layout switch as after Add level (a refit only on steps that move every level). A logging run
+  showed the tap arriving at the old fit's point. The camera case (wheel pans, Ctrl+wheel zooms, Fit restores) was
+  written after the wiring and not run red first. World unit+dom: 7 files, 37 tests pass; typecheck 0 errors.

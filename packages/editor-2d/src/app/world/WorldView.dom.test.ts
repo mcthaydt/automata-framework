@@ -109,8 +109,10 @@ describe('World view: the map and the panel', () => {
 
   it('drags a level on the map by the travel over the scale, as one undo step; a tap only selects', async () => {
     const { history } = await mount()
-    const scale = fitWorld(worldRects(history.state, 'main', undefined), BOX, MARGIN).scale
-    const at = onMap(history.state, 1010, 10)
+    // The camera fits once and then holds still (plan ED2D.8a decision 2), so every point is aimed with the first fit.
+    const start = history.state
+    const scale = fitWorld(worldRects(start, 'main', undefined), BOX, MARGIN).scale
+    const at = onMap(start, 1010, 10)
     pointer('pointerdown', at.x, at.y)
     pointer('pointermove', at.x + 40, at.y + 20)
     pointer('pointerup', at.x + 40, at.y + 20)
@@ -120,7 +122,7 @@ describe('World view: the map and the panel', () => {
     })
     expect(await screen.findByRole('button', { name: 'Undo Move level' })).toBeEnabled()
     const before = history.revision
-    const first = onMap(history.state, 10, 10)
+    const first = onMap(start, 10, 10)
     pointer('pointerdown', first.x, first.y)
     pointer('pointerup', first.x, first.y)
     expect(history.revision).toBe(before)
@@ -246,5 +248,30 @@ describe('World view: links and new levels (plan ED2D.6c)', () => {
     history.undo()
     expect(await screen.findByTestId('world-view')).toBeInTheDocument()
     expect(levelList().queryByRole('button', { name: 'Level 3' })).toBeNull()
+  })
+})
+
+describe('World view: the camera (plan ED2D.8a)', () => {
+  it('pans with the wheel, zooms with Ctrl+wheel about the pointer, and Fit puts every level back in view', async () => {
+    const { history } = await mount()
+    const fitted = fitWorld(worldRects(history.state, 'main', undefined), BOX, MARGIN)
+    const camera = () => screen.getByTestId('fake-world-canvas').getAttribute('data-camera')
+    expect(camera()).toBe(`${fitted.x},${fitted.y},${fitted.scale}`)
+    const map = screen.getByTestId('world-map')
+    map.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaX: 0, deltaY: 30 }))
+    await vi.waitFor(() => expect(camera()).toBe(`${fitted.x},${fitted.y - 30},${fitted.scale}`))
+    map.dispatchEvent(
+      new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -100,
+        ctrlKey: true,
+        clientX: 400,
+        clientY: 300,
+      }),
+    )
+    await vi.waitFor(() => expect(Number(camera()?.split(',')[2])).toBeGreaterThan(fitted.scale))
+    await userEvent.click(screen.getByRole('button', { name: 'Fit' }))
+    expect(camera()).toBe(`${fitted.x},${fitted.y},${fitted.scale}`)
   })
 })

@@ -1,4 +1,4 @@
-import type { DragGesture, Modifiers, PointerKind } from '@mcthaydt/automata-editor-kit'
+import type { DragEndGesture, DragStartGesture, Modifiers, PointerKind } from '@mcthaydt/automata-editor-kit'
 import { describe, expect, it } from 'vitest'
 import { type WorldGestureTarget, worldGestures } from './world-gestures'
 
@@ -31,7 +31,7 @@ const drag = (
   pointerType: PointerKind = 'mouse',
   button = 0,
   cancelled = false,
-): DragGesture =>
+): DragStartGesture & DragEndGesture =>
   ({
     x,
     y,
@@ -46,7 +46,8 @@ const drag = (
     button,
     modifiers: NO_KEYS,
     cancelled,
-  }) as DragGesture
+    afterLongPress: false,
+  }) as DragStartGesture & DragEndGesture
 
 describe('worldGestures', () => {
   it('a tap selects what is under it through the drag, which moves nothing', () => {
