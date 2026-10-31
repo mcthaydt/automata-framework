@@ -5,6 +5,7 @@
 import '@mcthaydt/automata-ui/theme.css'
 import '@mcthaydt/automata-game'
 import { mountFixture, REFERENCE_SIZES, VARIANTS } from '@mcthaydt/automata-testing'
+import { STICKY_MARGIN_PX } from '@mcthaydt/automata-ui'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
 import { describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
@@ -42,15 +43,31 @@ describe('G3-v: the touch controls layout', () => {
             if (at === null || !byTestId(id).contains(at))
               problems.push(`${label}: ${id}'s centre is covered`)
           }
-          // A scene point between the stick and the buttons reaches the drag surface.
+          // The scene reaches the drag surface: above the controls, always; and between the stick and the buttons
+          // wherever they share a row with a gap wider than their sticky margins (ui's own rule: a tv-scale phone
+          // wraps the five buttons onto a second row and leaves no such gap, which `checkLayout` still holds on screen).
+          const pause = byTestId('pause').getBoundingClientRect()
           const stick = byTestId('touch-stick').getBoundingClientRect()
-          const first = byTestId('attack').getBoundingClientRect()
-          const x =
-            (stick.right + Math.min(...BUTTONS.map((id) => byTestId(id).getBoundingClientRect().left))) / 2
-          const y = Math.min(stick.top, first.top) + 4
-          const scene = hit(x, y)
-          if (scene === null || !byTestId('camera-drag').contains(scene))
-            problems.push(`${label}: the scene between the groups does not reach the drag`)
+          const lefts = BUTTONS.map((id) => byTestId(id).getBoundingClientRect())
+          const buttonsTop = Math.min(stick.top, ...lefts.map((box) => box.top))
+          if (buttonsTop - pause.bottom > 8) {
+            const above = hit(window.innerWidth / 2, (pause.bottom + buttonsTop) / 2)
+            if (above === null || !byTestId('camera-drag').contains(above))
+              problems.push(`${label}: the scene above the controls does not reach the drag`)
+          }
+          const gap = Math.min(...lefts.map((box) => box.left)) - stick.right
+          const wide = gap > 2 * STICKY_MARGIN_PX + 4
+          if (conditions.geometry.scale === 1 && !wide)
+            problems.push(
+              `${label}: the stick and the buttons leave a ${Math.round(gap)} px gap, under their sticky margins`,
+            )
+          if (wide) {
+            const x = stick.right + gap / 2
+            const y = Math.min(stick.top, ...lefts.map((box) => box.top)) + 4
+            const scene = hit(x, y)
+            if (scene === null || !byTestId('camera-drag').contains(scene))
+              problems.push(`${label}: the scene between the groups does not reach the drag`)
+          }
           // Never in the host's strips.
           for (const strip of conditions.reserved) {
             if (variant.hostReserved === undefined) continue
