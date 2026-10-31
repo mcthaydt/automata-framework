@@ -9,7 +9,7 @@
   import type { HighlightedLine } from './highlight'
   import type { Diagnostic } from './compile'
   import type * as Editor from './editor'
-  let { source, highlighted, title, describedBy, oncodestate, onedit, diagnostics = [] }: {
+  let { source, highlighted, title, describedBy, oncodestate, onedit, diagnostics = [], link, edited = false, onreset }: {
     source: string
     highlighted: HighlightedLine[]
     title: string
@@ -19,6 +19,11 @@
     onedit?: (source: string) => void
     /** The latest compile's problems, marked at their lines (spec F5). */
     diagnostics?: readonly Diagnostic[]
+    /** The page's address, which carries the edit (spec F8). */
+    link: string
+    /** The code differs from the original, so Reset is shown (F7). */
+    edited?: boolean
+    onreset?: () => void
   } = $props()
   // One span per line, each carrying its newline, so the code's text is the source byte for byte; the line numbers are
   // CSS counters and never part of it. The editor takes this box's size and font (spec §9.3), and the pieces carry the
@@ -28,6 +33,9 @@
   let host: HTMLElement | undefined = $state()
   let editor = $state.raw<ReturnType<typeof Editor.mountEditor>>()
   let editorModule: typeof Editor | undefined
+  /** The editor's text, which Copy code copies (§8.2). */
+  let edits = $state<string>()
+  let current = $derived(edits ?? source)
   let destroyed = false
 
   function setState(next: CodeState) {
@@ -35,7 +43,7 @@
     oncodestate?.(next)
   }
 
-  async function upgrade(anchor: number) {
+  async function upgrade(anchor: number, doc = source, focus = true) {
     if (codeState !== 'static') return
     setState('loading')
     try {
@@ -45,9 +53,11 @@
       // The swap keeps the page where the reader left it: for a moment both the static code and the editor are in the
       // layout, and Safari on macOS scrolled the page by more than a screen (CI, WebKit) as the static code went.
       const { scrollX, scrollY } = window
-      editor = mountEditor({ parent: host!, doc: source, label: 'Code for ' + title + '. Changes update the preview.', describedBy, anchor, onchange: text => onedit?.(text) })
+      editor = mountEditor({ parent: host!, doc, label: 'Code for ' + title + '. Changes update the preview.', describedBy, anchor, onchange: text => { edits = text; onedit?.(text) } })
+      edits = doc
       setState('ready')
       await tick()
+      if (!focus) return
       // The static code had focus (a tap or Tab put it there); it moves to the editor, which now holds the same text.
       editor.focus()
       if (window.scrollX !== scrollX || window.scrollY !== scrollY) window.scrollTo(scrollX, scrollY)
@@ -69,6 +79,16 @@
     if (editor) editorModule!.moveCaret(editor, line, column)
   }
 
+  /** Loads the editor at once with `doc`, leaving focus where it is (a share link, F9). */
+  export function open(doc: string) {
+    return upgrade(0, doc, false)
+  }
+
+  /** Puts the original back in one undoable transaction (F7). */
+  export function reset() {
+    if (editor) editorModule!.replaceAll(editor, source)
+  }
+
   onMount(() => {
     // A reader who reached the code before the page hydrated has already had their focusin.
     if (document.activeElement === pre) void upgrade(0)
@@ -79,7 +99,7 @@
   })
 </script>
 <section class="code-panel" aria-label={'Code for ' + title}>
-  <div class="code-header"><span>TypeScript</span><CopyButton text={source} /></div>
+  <div class="code-header"><span>TypeScript</span><div class="code-actions">{#if edited}<button type="button" class="reset" onclick={onreset}>Reset</button>{/if}<CopyButton text={link} label="Copy link" caption="Copy link" copied="Link copied" blocked="Copying is blocked by this browser" /><CopyButton text={current} /></div></div>
   <!-- Keyboard focus lets readers scroll the code with the arrow keys, and starts the editor. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <pre class="static-code" data-testid="static-code" tabindex="0" aria-describedby={describedBy} hidden={codeState === 'ready'} {onpointerdown} {onfocusin} bind:this={pre}><code>{#each highlighted as line}<span class="line">{#each line as piece}{#if piece.className}<span class={piece.className}>{piece.text}</span>{:else}{piece.text}{/if}{/each}</span>{/each}</code></pre>
@@ -90,6 +110,8 @@
   .code-panel { min-width: 0; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--paper); overflow: hidden; overflow-anchor: none; }
   .code-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 .5rem 0 1rem; border-bottom: 1px solid var(--line); font-size: var(--step-small); color: var(--muted); }
   .code-header :global(button) { min-height: 44px; min-width: 44px; }
+  .code-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }
+  .reset { padding: .3rem .8rem; font-size: var(--step-micro); }
   .static-code { margin: 0; padding: 1rem 1rem 1rem calc(3ch + 2rem); font-size: 1rem; line-height: 1.5; white-space: break-spaces; overflow-wrap: anywhere; word-break: break-word; overflow: visible; counter-reset: line; }
   /* The editor's own wrapping rules (`EditorView.lineWrapping`), which the site's `pre code` would otherwise reset. */
   .static-code code { white-space: inherit; overflow-wrap: inherit; word-break: inherit; }

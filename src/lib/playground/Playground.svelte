@@ -5,6 +5,8 @@
 </script>
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { replaceState } from '$app/navigation'
+  import { page } from '$app/state'
   import type { Example } from '../../data/examples'
   import { SITE_ORIGIN } from '$lib/site.js'
   import CodePanel from './CodePanel.svelte'
@@ -37,6 +39,19 @@
   let live: LiveCompile | undefined
   /** The compile worker failed to start or crashed: edits stop compiling, and Play still runs the original (§7.2). */
   let liveFailed = $state(false)
+  /** The code differs from the original (Reset is shown, F7). */
+  let edited = $state(false)
+  /** The page's address, which carries the last good edit (F8). */
+  let link = $state('')
+  /** A share link is being decoded, or its code runs: the original waits (F9). */
+  let sharedRun = false
+  /** The original was asked to start while a share link was being decoded. */
+  let startWanted = false
+  /** The share link could not be read; shown until the next edit (F9). */
+  let linkUnreadable = $state(false)
+  /** Edits that compile now, without the quiet period, once the worker is up (Reset, a share link). */
+  let pendingNow = false
+  let fragmentWrites = 0
   /** An edit made while the worker is still loading, compiled once it is up. */
   let pendingEdit: string | undefined
   /** The last edit that compiled, which Play runs under reduced motion. */
@@ -60,7 +75,7 @@
   })
   /** The runtime or the compiled original didn't download: Retry, not Play (§7.2, §8.2). */
   let showRetry = $derived(fetchFailed || (view.preview === 'failed' && view.frames === 0 && view.status === STATUS.offline))
-  let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : liveFailed && !showRetry ? STATUS.liveUnavailable : diagnosticStatus ?? previewStatus)
+  let status = $derived(code === 'loading' ? STATUS.loadingEditor : code === 'failed' ? STATUS.editorFailed : liveFailed && !showRetry ? STATUS.liveUnavailable : linkUnreadable ? STATUS.linkUnreadable : diagnosticStatus ?? previewStatus)
   let showPlay = $derived(!showRetry && (waitingForPlay && view.preview === 'poster' || (view.preview === 'failed' && view.frames === 0)))
 
   /** A sandboxed frame on the example's frame page, under the one on show until it reports `running` (spec F4). */
@@ -116,7 +131,7 @@
     }
   }
 
-  function onResult({ result }: LiveResult) {
+  function onResult({ source, result }: LiveResult) {
     if (!result.ok) {
       compile = 'syntax-error'
       diagnostics = result.diagnostics
@@ -124,6 +139,7 @@
     }
     compile = 'ok'
     diagnostics = []
+    void writeFragment(source)
     compiled = result.code
     // Under reduced motion nothing runs until Play, an edit included (§7.4).
     if (!waitingForPlay) void runCompiled(result.code)
@@ -147,16 +163,70 @@
       live?.dispose()
       // An edit it was compiling is dropped; the preview runs what it ran.
       if (compile === 'compiling') compile = compiled === undefined ? 'original' : 'ok'
+      // A share link's code can't compile now, so the original runs in its place, as the status line says.
+      if (sharedRun && !orchestratorLoad) {
+        sharedRun = false
+        if (startWanted) start()
+      }
     }
-    if (pendingEdit !== undefined) live.edit(pendingEdit)
+    if (pendingEdit !== undefined) {
+      if (pendingNow) live.now(pendingEdit)
+      else live.edit(pendingEdit)
+    }
     pendingEdit = undefined
+    pendingNow = false
   }
 
-  function onedit(source: string) {
+  function onedit(source: string, now = false) {
+    edited = source !== example.source
+    linkUnreadable = false
     if (liveFailed) return
     compile = 'compiling'
-    if (live) live.edit(source)
-    else pendingEdit = source
+    if (live) {
+      if (now) live.now(source)
+      else live.edit(source)
+    } else {
+      pendingEdit = source
+      pendingNow = now
+    }
+  }
+
+  /** The fragment carries the code that last compiled, and none for the original (F8). Shallow: no navigation. */
+  async function writeFragment(source: string) {
+    const write = ++fragmentWrites
+    const url = new URL(location.href)
+    url.hash = source === example.source ? '' : await import('./share').then(share => share.encodeShare(source))
+    if (write !== fragmentWrites || disposed) return
+    if (url.href !== location.href) replaceState(url.hash ? url : url.pathname + url.search, page.state)
+    link = location.href
+  }
+
+  /** The original back in the editor, undoably, compiled at once and the fragment gone (F7). */
+  function reset() {
+    codePanel?.reset()
+    onedit(example.source, true)
+    void writeFragment(example.source)
+  }
+
+  /** A `#code=` link, decoded after hydration: its code goes into the editor and through the worker (F9). */
+  async function openLink() {
+    sharedRun = true
+    let shared: string | undefined
+    try {
+      const { decodeShare } = await import('./share')
+      shared = await decodeShare(location.hash)
+    } catch {
+      linkUnreadable = true
+    }
+    if (disposed) return
+    if (shared === undefined) {
+      sharedRun = false
+      if (startWanted) start()
+      return
+    }
+    // The original's precompiled module is not run: the shared code is (PLAY-D1), once compiled.
+    await codePanel?.open(shared)
+    onedit(shared, true)
   }
 
   function oncodestate(next: CodeState) {
@@ -166,6 +236,10 @@
 
   function start() {
     if (started) return
+    if (sharedRun) {
+      startWanted = true
+      return
+    }
     started = true
     void runOriginal()
   }
@@ -199,6 +273,8 @@
   }
 
   onMount(() => {
+    link = location.href
+    if (location.hash.startsWith('#code=')) void openLink()
     const onMessage = (event: MessageEvent) => orchestrator?.receive({ source: event.source, origin: event.origin, data: event.data })
     window.addEventListener('message', onMessage)
     // Chromium lets a frame's own script take focus while the frame is still `inert`, so the arrival run took the
@@ -239,7 +315,7 @@
 </script>
 <div class="playground" data-code={code} data-compile={compile} data-preview={view.preview} data-run-id={view.runId}>
   <div class="playground-grid">
-  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} {oncodestate} {onedit} diagnostics={marked} bind:this={codePanel} /></div>
+  <div class="playground-code"><CodePanel source={example.source} {highlighted} title={example.title} describedBy={statusId} {oncodestate} onedit={text => onedit(text)} diagnostics={marked} {link} {edited} onreset={reset} bind:this={codePanel} /></div>
   <div class="playground-preview" bind:this={box}>
     <PreviewPanel title={example.title} {view} {showPlay} onplay={play} {showRetry} onretry={retry} onrestart={() => orchestrator?.restart()} bind:stage />
     <p class="playground-status" id={statusId}>{#if diagnosticStatus && status === diagnosticStatus}<button type="button" class="diagnostic" onclick={() => codePanel?.focusAt(diagnostics[0]!.line, diagnostics[0]!.column)}>{status}</button>{:else}{status}{/if}</p>
