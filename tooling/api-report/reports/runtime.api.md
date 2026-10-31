@@ -1266,6 +1266,7 @@ interface RuntimeSeams {
     readonly haptics?: Haptics;
     readonly deviceStorage?: DeviceStorage;
     readonly onFailure?: (cause: unknown) => void;
+    readonly reload?: () => void;
 }
 ```
 
