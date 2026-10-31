@@ -128,3 +128,39 @@ export function inspectorOf<D>(
     preset: typeof start[2] === 'string' ? start[2] : wall?.preset,
   }
 }
+
+/** A row of the portrait sheet's Walls or Things list: what tapping it selects, and what it says. */
+export interface InspectorRow {
+  readonly id: string
+  readonly label: string
+  readonly selected: boolean
+}
+
+type Readable<D> = Pick<LevelEditor<D>, 'profile' | 'level' | 'selection'>
+
+/** The walls of the selected room (or of the selected wall's room), in outline order, each with its kind and length. */
+export function wallRowsOf<D>(editor: Readable<D>): readonly InspectorRow[] {
+  const first = editor.selection.ids[0] === undefined ? undefined : parseSelection(editor.selection.ids[0])
+  if (first === undefined || first.kind === 'entity') return []
+  const sector = editor.profile.sectors.list(editor.level).find((each) => each.id === first.sector)
+  if (sector === undefined) return []
+  const chosen = new Set(editor.selection.ids)
+  return sector.corners.map((start, corner) => {
+    const end = sector.corners[(corner + 1) % sector.corners.length] ?? start
+    const wall = wallOf(start)
+    const type = typeOf(wall)
+    const kind = type === 'portal' ? `portal into ${wall?.next}` : type
+    const id = `wall:${sector.id}/${corner}`
+    const length = Math.hypot(end[0] - start[0], end[1] - start[1])
+    return { id, label: `Wall ${corner} · ${kind} · ${length.toFixed(2)} m`, selected: chosen.has(id) }
+  })
+}
+
+/** The level's things, in the level's order. */
+export function thingRowsOf<D>(editor: Readable<D>): readonly InspectorRow[] {
+  const chosen = new Set(editor.selection.ids)
+  return editor.profile.entities(editor.level).things.map((thing) => {
+    const id = `entity:${thing.def}/${thing.id}`
+    return { id, label: `${thing.def} · ${thing.id}`, selected: chosen.has(id) }
+  })
+}

@@ -92,7 +92,7 @@ const options = $derived(
   }
   .actions,
   .offers {
-    bottom: var(--space-3);
+    bottom: calc(var(--space-3) + var(--plan-foot, 0px));
     left: 50%;
     transform: translateX(-50%);
     max-width: calc(100% - 2 * var(--space-3));

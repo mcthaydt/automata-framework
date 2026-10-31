@@ -58,6 +58,10 @@ describe('checksWords', () => {
 })
 
 describe('modeOptions', () => {
+  it('offers Plan and 3D only below wide (ED3D.5f)', () => {
+    expect(modeOptions({ narrow: true }).map((option) => option.label)).toEqual(['Plan', '3D'])
+  })
+
   it('offers Plan, Split and 3D, and lists Walk and World as coming, each saying why (ED3D.5e)', () => {
     const options = modeOptions()
     expect(options.map((option) => option.label)).toEqual(['Plan', 'Split', '3D', 'Walk', 'World'])

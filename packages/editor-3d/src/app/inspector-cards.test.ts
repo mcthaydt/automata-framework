@@ -6,7 +6,7 @@ import type { AfSector } from '../format/af-sector.schema'
 import { createLevelEditor } from '../model/level-editor'
 import { afSectorProfile } from '../profile/af-sector-profile'
 import { loadAuthored } from '../testing/fixtures'
-import { inspectorOf } from './inspector-cards'
+import { inspectorOf, thingRowsOf, wallRowsOf } from './inspector-cards'
 
 const depot: AfSector = (() => {
   const result = afSectorProfile.parse(loadAuthored('depot.af-sector'))
@@ -83,5 +83,25 @@ describe('inspectorOf', () => {
 
   it('shows none for a selection that names nothing the level has', () => {
     expect(inspectorOf(editorWith('sector:gone'))).toEqual({ kind: 'none', selected: 1 })
+  })
+})
+
+describe('the portrait sheet’s lists (ED3D.5f step 6)', () => {
+  it('lists the walls of the selected room, or of the wall’s room, with each kind', () => {
+    expect(wallRowsOf(editorWith('sector:hall'))).toEqual([
+      { id: 'wall:hall/0', label: 'Wall 0 · window · 8.00 m', selected: false },
+      { id: 'wall:hall/1', label: 'Wall 1 · portal into dock · 6.00 m', selected: false },
+      { id: 'wall:hall/2', label: 'Wall 2 · solid · 8.00 m', selected: false },
+      { id: 'wall:hall/3', label: 'Wall 3 · door · 6.00 m', selected: false },
+    ])
+    expect(wallRowsOf(editorWith('wall:hall/2')).find((row) => row.selected)?.id).toBe('wall:hall/2')
+    expect(wallRowsOf(editorWith())).toEqual([])
+  })
+
+  it('lists the level’s things by definition and id', () => {
+    expect(thingRowsOf(editorWith('entity:crate/crate1'))).toEqual([
+      { id: 'entity:spawn/spawn', label: 'spawn · spawn', selected: false },
+      { id: 'entity:crate/crate1', label: 'crate · crate1', selected: true },
+    ])
   })
 })

@@ -157,6 +157,35 @@ describe('DocumentFrame', () => {
     expect(screen.getByTestId('undo')).toHaveAccessibleName('Undo Set the heights of hall')
   })
 
+  it('below wide: a tool strip over the plan, Plan and 3D in the bar, the inspector a sheet with tabs (ED3D.5f)', async () => {
+    const { controller } = await setup({ width: 834, height: 1194 })
+    expect(
+      within(screen.getByTestId('tool-strip')).getByRole('toolbar', { name: 'Tools' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Plan' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: '3D' })).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: 'Split' })).toBeNull()
+    const sheet = screen.getByTestId('portrait-sheet')
+    expect(
+      within(sheet)
+        .getAllByRole('tab')
+        .map((tab) => tab.textContent?.trim()),
+    ).toEqual(['Sector', 'Walls', 'Things', 'Checks'])
+    await act(() => levelOf(controller).editor.selection.set(['sector:hall']))
+    expect(within(sheet).getByRole('heading', { name: 'hall' })).toBeInTheDocument()
+    await userEvent.click(within(sheet).getByRole('tab', { name: 'Walls' }))
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Wall 3 · door · 6.00 m' }))
+    expect(levelOf(controller).editor.selection.ids).toEqual(['wall:hall/3'])
+    expect(within(sheet).getByRole('button', { name: 'Wall 3 · door · 6.00 m' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    await userEvent.click(within(sheet).getByRole('tab', { name: 'Things' }))
+    expect(within(sheet).getByRole('button', { name: 'crate · crate1' })).toBeInTheDocument()
+    await userEvent.click(within(sheet).getByRole('tab', { name: 'Checks' }))
+    expect(within(sheet).getByText(/No problems|problem|warning/)).toBeInTheDocument()
+  })
+
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {
     const { controller } = await setup()
     const level = levelOf(controller)
