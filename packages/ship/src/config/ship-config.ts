@@ -1,25 +1,24 @@
-import type { Manifest } from '@ruken/manifest'
+import type { GameConfig } from '@mcthaydt/automata-content/game-config'
 import type { ItchConfig } from './itch-config.schema.ts'
+import type { TauriConfig } from './tauri-config.schema.ts'
 
 /**
- * What a game tells ship about itself, in Ruken's own manifest shape (`@ruken/manifest`'s `Manifest`).
- * Keys keep Ruken's snake_case so the config reads like the `ruken.toml` it becomes. ship fills in
- * `schema` and `allow_eval` (always false); every other field and allowed value is Ruken's, so a field
- * Ruken does not define is a type error here.
+ * What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s
+ * `GameConfig`, DIST spec §4.4) and each target's own section. Keys keep Ruken's manifest names and snake_case, so
+ * the config reads like the `ruken.toml` the Ruken target writes from it (ship fills in `schema` and `allow_eval`,
+ * always false); `prepare --target ruken` checks the whole of it with Ruken's own parser.
  */
-export interface ShipConfig {
-  readonly game: Manifest['game']
-  readonly runtime: Omit<Manifest['runtime'], 'allow_eval'>
-  readonly network: Manifest['network']
-  readonly content: Manifest['content']
-  readonly analytics?: Manifest['analytics']
-  readonly loading?: NonNullable<Manifest['loading']>
-  readonly leaderboards?: Manifest['leaderboards']
+export interface ShipConfig extends GameConfig {
   /**
    * Where `automata-ship publish --target itch` pushes (PUB spec §4). Not a Ruken field: it is never written to
    * `ruken.toml`, and a Ruken build ignores it.
    */
   readonly itch?: ItchConfig | undefined
+  /**
+   * The desktop build's settings (`automata-ship prepare --target tauri`, DIST spec §6.3). Not a Ruken field: it is
+   * never written to `ruken.toml`.
+   */
+  readonly tauri?: TauriConfig | undefined
   /**
    * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
    * public release: `automata-ship prepare` then checks the build as private and writes no `ruken.toml`, and only

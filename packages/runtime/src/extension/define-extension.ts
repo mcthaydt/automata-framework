@@ -1,14 +1,14 @@
 import type { ContentSchemaDef } from '@mcthaydt/automata-content'
+import type { GameConfig as FullGameConfig } from '@mcthaydt/automata-content/game-config'
 import type { PluginDef } from '@mcthaydt/automata-sim'
 import type { UiComponent, UiSlotName } from '@mcthaydt/automata-ui'
-import type { Manifest } from '@ruken/manifest'
 import type { Layer } from 'effect'
 
 // Type-only imports throughout: `./extension` is loaded in Node by a game's vite.config.ts, so it must
 // not reach the DOM-bound ui package, Svelte, or content's Node-only compiler at run time.
 
-/** The parts of Ruken's manifest an extension may read (`@ruken/manifest` `Manifest`, never copied). */
-export type GameConfig = Pick<Manifest, 'game' | 'runtime' | 'content'>
+/** The parts of the game config an extension may read (content's `GameConfig`, DIST spec §4.4). */
+export type GameConfig = Pick<FullGameConfig, 'game' | 'runtime' | 'content'>
 
 /** What an extension may add to ruken.toml in M1: preload files. `wants` is not a manifest field (Q7). */
 export type RukenManifestContribution = {

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { findRanges, pinsFromManifests, pinsFromVersionsDoc, publishedPeerFloors } from './pins.ts'
+import {
+  findRanges,
+  pinsFromManifests,
+  pinsFromScaffoldSource,
+  pinsFromVersionsDoc,
+  publishedPeerFloors,
+} from './pins.ts'
 
 describe('pinsFromVersionsDoc', () => {
   it('reads the npm packages table and ignores the other tables', () => {
@@ -86,5 +92,20 @@ describe('publishedPeerFloors', () => {
   it('keeps a peer range that is not a plain caret on an exact version', () => {
     const loose = { ...published, peerDependencies: { svelte: '^5', vite: '>=8.3.2' } }
     expect(publishedPeerFloors(loose).peerDependencies).toEqual({ svelte: '^5', vite: '>=8.3.2' })
+  })
+})
+
+describe('pinsFromScaffoldSource', () => {
+  it('reads the exact pins create-game writes, as object keys or assignments, and skips ranges and workspace links', () => {
+    const source = `
+      dependencies: { '@mcthaydt/automata-sim': 'workspace:*', effect: '3.22.2', 'pixi.js': '8.22.0' },
+      dependencies['@ruken/sdk'] = '^0.0.0'
+      devDependencies['@tauri-apps/cli'] = '2.12.3'
+    `
+    expect(pinsFromScaffoldSource(source)).toEqual([
+      { name: 'effect', version: '3.22.2' },
+      { name: 'pixi.js', version: '8.22.0' },
+      { name: '@tauri-apps/cli', version: '2.12.3' },
+    ])
   })
 })

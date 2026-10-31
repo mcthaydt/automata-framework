@@ -1,12 +1,12 @@
-// Facts Ruken's manifest asks for that only the game knows (`content/game.toml`), and the files each screen
-// waits for (`content/assets.toml`). The compiler turns them into Ruken's `[content]` and `[analytics]`
-// tables (`ruken-fields.json`) and, after a build, the `[loading] preload` list. The ship lane writes
-// `ruken.toml` from these; content never writes it. Ruken's rules are never copied here: `RATINGS` is
-// imported, and everything else Ruken checks is checked by Ruken's own parser (ruken-check.ts).
+// Facts about the game that only the game knows (`content/game.toml`), and the files each screen waits for
+// (`content/assets.toml`). The compiler turns them into the game config's `content` and `analytics` sections
+// (`ruken-fields.json`, which the Ruken target writes into `ruken.toml`) and, after a build, the preload list.
+// Content never writes `ruken.toml`. The ratings are AF's game config's (DIST spec §4.4), held to Ruken's by
+// `ruken/conformance.test.ts`; what else Ruken checks, Ruken's own parser checks (`ruken/ruken-check.ts`).
 
-import { type Manifest, RATINGS, type Rating } from '@ruken/manifest'
 import { z } from 'zod'
 import type { Problem } from '../diagnostics/diagnostic'
+import { type GameConfig, RATINGS, type Rating } from './game-config.schema'
 
 /**
  * What `content/game.toml` says about the game: its source language, rating, content descriptors, estimated
@@ -66,10 +66,13 @@ export const assetsSchema: z.ZodType<AssetsSource> = z.strictObject({
 })
 
 /**
- * The `[content]` and `[analytics]` tables of Ruken's manifest, worked out from `game.toml` and the languages
- * present and written to `ruken-fields.json`.
+ * The game config's `content` and `analytics` sections (Ruken's `[content]` and `[analytics]` tables), worked out
+ * from `game.toml` and the languages present and written to `ruken-fields.json`.
  */
-export type RukenFields = Pick<Manifest, 'content' | 'analytics'>
+export type RukenFields = {
+  readonly content: GameConfig['content']
+  readonly analytics: NonNullable<GameConfig['analytics']>
+}
 
 /** BCP 47 tags of the shapes Ruken's store lists: `en`, `fr`, `pt-BR`, `zh-Hant`, `zh-Hant-TW`. */
 export const LANGUAGE_TAG: RegExp = /^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$/

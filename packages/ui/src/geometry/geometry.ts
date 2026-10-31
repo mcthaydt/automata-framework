@@ -7,7 +7,7 @@
  * and `ruken/host.ts` `reservedOf` at 122a220.
  */
 
-import type { DisplayMetricsPayload } from '@ruken/sdk'
+import type { DisplayMetricsPayload } from '@mcthaydt/automata-host'
 import { classifyFormFactor, type FormFactor } from './form-factor'
 import { classifyHeightTier, type HeightTier } from './height-tier'
 
@@ -29,7 +29,7 @@ export interface Rect {
 
 /**
  * What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
- * Imported from the vendored `@ruken/sdk`, never copied (M1 shared contracts).
+ * The host contract's type (`@mcthaydt/automata-host`, DIST spec §4), never copied.
  * `scale` is 1.333 on Ruken's TV mode: a hint to enlarge text and targets, never CSS zoom.
  */
 export type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'scale'>

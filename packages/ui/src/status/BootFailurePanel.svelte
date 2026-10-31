@@ -48,7 +48,7 @@ const handlerFor = (action: BootFailureAction): (() => void) =>
 const actions = $derived<ErrorAction[]>(
   view.actions.map((action, index) => ({
     id: action,
-    label: withHostName(words[action], hostName),
+    label: action === 'exit' && hostKind === 'tauri' ? words.quit : withHostName(words[action], hostName),
     kind: index === 0 ? 'primary' : 'secondary',
     onSelect: handlerFor(action),
   })),

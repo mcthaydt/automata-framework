@@ -171,7 +171,7 @@ type BootFailureAction = 'retry' | 'continue' | 'exit';
 ### `BootFailureCopy` (type)
 
 ```ts
-type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction, string>>;
+type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction | 'quit', string>>;
 ```
 
 ### `BootFailurePanel` (svelte)
@@ -484,7 +484,7 @@ interface ErrorAction {
 ### `ErrorCode` (type)
 
 ```ts
-type ErrorCode = RukenError['code'];
+type ErrorCode = HostErrorCode;
 ```
 
 ### `ErrorPanel` (svelte)
@@ -693,7 +693,7 @@ type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'sc
 ### `HostKind` (type)
 
 ```ts
-type HostKind = 'ruken' | 'standalone';
+type HostKind = 'ruken' | 'standalone' | 'tauri';
 ```
 
 ### `hostReservedInsets` (function)

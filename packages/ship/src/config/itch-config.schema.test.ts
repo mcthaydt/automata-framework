@@ -6,6 +6,7 @@ describe('itchConfigSchema', () => {
     expect(itchConfigSchema.parse({ project: 'mcthaydt/emberwick' })).toEqual({
       project: 'mcthaydt/emberwick',
       channel: 'html5',
+      downloads: { linux: 'linux', mac: 'mac', windows: 'windows' },
     })
     expect(itchConfigSchema.parse({ project: 'mcthaydt/emberwick', channel: 'html5-beta' }).channel).toBe(
       'html5-beta',
@@ -23,5 +24,24 @@ describe('itchConfigSchema', () => {
   it('refuses an empty or upper-case channel', () => {
     expect(itchConfigSchema.safeParse({ project: 'a/b', channel: '' }).success).toBe(false)
     expect(itchConfigSchema.safeParse({ project: 'a/b', channel: 'HTML5' }).success).toBe(false)
+  })
+
+  // DIST spec §6.4: the desktop bundles go to itch.io as Downloadable files, one butler channel per OS.
+  it('gives each desktop OS a channel, linux, mac and windows unless the config renames one', () => {
+    expect(itchConfigSchema.parse({ project: 'me/cinder' }).downloads).toEqual({
+      linux: 'linux',
+      mac: 'mac',
+      windows: 'windows',
+    })
+    expect(
+      itchConfigSchema.parse({ project: 'me/cinder', downloads: { mac: 'osx-universal' } }).downloads,
+    ).toEqual({
+      linux: 'linux',
+      mac: 'osx-universal',
+      windows: 'windows',
+    })
+    expect(itchConfigSchema.safeParse({ project: 'me/cinder', downloads: { mac: 'Mac OS' } }).success).toBe(
+      false,
+    )
   })
 })

@@ -24,7 +24,7 @@
     "test:evidence": "vitest run --project node --project browsers src/golden.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "e2e:game": "vite build && vite preview --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
-    "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT VITE_GAME_PATH=$AF_E2E_GAME_PATH vite build --config e2e/host/vite.config.ts && vite preview --config e2e/host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
+    "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT VITE_GAME_PATH=$AF_E2E_GAME_PATH vite build --config e2e/ruken/vite.config.ts && vite preview --config e2e/ruken/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
   },
   "dependencies": {
     "@fontsource/pixelify-sans": "5.3.0",
@@ -43,9 +43,9 @@
     "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@mcthaydt/automata-cli": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
+    "@mcthaydt/automata-testing": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
     "@playwright/test": "1.63.0",
-    "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

@@ -9,7 +9,7 @@
     "src/vite-config.test.ts",
     "src/layout.test.ts",
     "e2e/**/*.ts",
-    "s8/*.ts"
+    "ruken/s8/*.ts"
   ],
   "exclude": []
 }

@@ -93,6 +93,23 @@ describe('describeDependencies', () => {
     expect(versionReport?.status).toBe('missing')
   })
 
+  // A peer dependency is a range (`^2.12.4`): the version it names, its lower bound, must be published.
+  it("checks a caret or tilde range by the version it names, and marks it missing when that version isn't published", async () => {
+    const registry = async (url: string) =>
+      url === 'https://registry.npmjs.org/knip'
+        ? json({ versions: { '6.39.0': { _npmUser: { name: 'webpro' } } } })
+        : json({}, 404)
+    const [caret] = await describeDependencies(
+      [{ ...knip, section: 'peerDependencies', version: '^6.39.0' }],
+      registry,
+    )
+    expect(caret).toMatchObject({ version: '^6.39.0', status: 'found', publisher: 'webpro' })
+    const [tilde] = await describeDependencies([{ ...knip, version: '~6.39.0' }], registry)
+    expect(tilde?.status).toBe('found')
+    const [absent] = await describeDependencies([{ ...knip, version: '^6.40.0' }], registry)
+    expect(absent?.status).toBe('missing')
+  })
+
   it('does not query a registry that needs a token, and says so', async () => {
     const noNetwork = async (): Promise<Response> => {
       throw new Error('fetched')

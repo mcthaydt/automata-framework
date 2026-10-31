@@ -66,6 +66,26 @@ on:
         description: Builds the game for the itch target (the automata-web export condition) into dist/.
         type: string
         default: pnpm build:itch
+      desktop:
+        description: Also build the desktop bundles (DIST spec §6.4) on each of desktop-runners, kept as an artifact and, with itch, pushed to itch.io's Downloadable channels. Needs a `tauri` section in ship.config.ts.
+        type: boolean
+        default: false
+      desktop-build-command:
+        description: Builds the game for the tauri target (the automata-tauri export condition) into dist/.
+        type: string
+        default: pnpm build:tauri
+      desktop-runners:
+        description: The runners that build a bundle each, as a JSON list. Tauri builds only for the OS it runs on; there is no Windows runner.
+        type: string
+        default: '["af-linux", "af-mac"]'
+      desktop-macos-runner:
+        description: The Mac runner that builds the signed macOS bundle.
+        type: string
+        default: af-mac
+      desktop-signing:
+        description: Sign and notarize the macOS bundle in the release environment with the APPLE_* secrets; without one of them the job fails.
+        type: boolean
+        default: false
     secrets:
       RUKEN_TOKEN:
         required: false
@@ -75,6 +95,22 @@ on:
         required: false
       BUTLER_API_KEY:
         description: itch.io's butler key (`butler login`, then butler_creds). Optional at the call, but the itch job fails without it.
+        required: false
+      APPLE_CERTIFICATE:
+        description: The Developer ID Application certificate, a base64 .p12 (desktop-signing only).
+        required: false
+      APPLE_CERTIFICATE_PASSWORD:
+        required: false
+      APPLE_SIGNING_IDENTITY:
+        description: The certificate's name, such as Developer ID Application followed by your name and team id.
+        required: false
+      APPLE_ID:
+        description: The Apple ID that notarizes.
+        required: false
+      APPLE_PASSWORD:
+        description: An app-specific password of that Apple ID.
+        required: false
+      APPLE_TEAM_ID:
         required: false
       AF_READ_TOKEN:
         description: A classic personal access token with read:packages, to install AF's packages from GitHub Packages (its npm registry accepts no other kind). Not needed inside AF.
@@ -339,3 +375,133 @@ jobs:
       - name: Remove butler
         if: always()
         run: rm -rf "$RUNNER_TEMP/butler"
+
+  # DIST spec §6.4: the desktop bundles. Tauri builds only for the OS it runs on, so each runner builds its own
+  # (`af-linux`: .deb and AppImage; `af-mac`: .dmg); there is no Windows runner. The runner needs Rust and, on Linux,
+  # WebKitGTK 4.1 (`prepare --target tauri` names whatever is missing). Unsigned here; see desktop-macos-signed.
+  desktop:
+    name: desktop bundles (${{ matrix.runner }})
+    if: inputs.desktop && github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: ${{ fromJSON(inputs.desktop-runners) }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    env:
+      DESKTOP_BUILD_COMMAND: ${{ inputs.desktop-build-command }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: AF_READ_TOKEN is set
+        if: github.repository != 'mcthaydt/automata-framework'
+        env:
+          AF_READ_TOKEN: ${{ secrets.AF_READ_TOKEN }}
+        run: |
+          if [[ -z "$AF_READ_TOKEN" ]]; then echo "::error::AF_READ_TOKEN (a classic personal access token with read:packages) is missing"; exit 1; fi
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+          registry-url: https://npm.pkg.github.com
+          scope: "@mcthaydt"
+      - name: Install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.AF_READ_TOKEN }}
+        run: |
+          if ! pnpm install --frozen-lockfile; then
+            echo "::error::pnpm install failed. If GitHub Packages answered 401 or 403: AF_READ_TOKEN must be a classic personal access token with read:packages (GitHub Packages' npm registry accepts no other kind)."
+            exit 1
+          fi
+      - name: Build for the desktop
+        working-directory: ${{ inputs.working-directory }}
+        run: $DESKTOP_BUILD_COMMAND
+      - name: Build the bundles (unsigned)
+        working-directory: ${{ inputs.working-directory }}
+        run: pnpm exec automata-ship prepare --target tauri --tag "$TAG"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desktop-unsigned-${{ matrix.runner }}
+          path: ${{ inputs.working-directory }}/dist-tauri/*.*
+          if-no-files-found: error
+      - name: Push the bundles to itch.io (Downloadable)
+        if: inputs.itch
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: pnpm exec automata-ship publish --target itch --from tauri --tag "$TAG"
+
+  # The signed macOS bundle (DIST-D8): only in the release environment, whose approval is the Owner's, with the Owner's
+  # Apple secrets; tauri build signs and notarizes when they are set (https://v2.tauri.app/distribute/sign/macos/).
+  desktop-macos-signed:
+    name: signed macOS bundle
+    if: inputs.desktop && inputs.desktop-signing && github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
+    runs-on: ${{ inputs.desktop-macos-runner }}
+    environment: release
+    timeout-minutes: 60
+    env:
+      DESKTOP_BUILD_COMMAND: ${{ inputs.desktop-build-command }}
+    steps:
+      # Fail closed: a missing secret would build an unsigned bundle where a signed one was asked for.
+      - name: The Apple secrets are set
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          missing=()
+          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            if [[ -z "${!name}" ]]; then missing+=("$name"); fi
+          done
+          if (( ${#missing[@]} > 0 )); then echo "::error::desktop-signing needs these secrets: ${missing[*]}"; exit 1; fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: AF_READ_TOKEN is set
+        if: github.repository != 'mcthaydt/automata-framework'
+        env:
+          AF_READ_TOKEN: ${{ secrets.AF_READ_TOKEN }}
+        run: |
+          if [[ -z "$AF_READ_TOKEN" ]]; then echo "::error::AF_READ_TOKEN (a classic personal access token with read:packages) is missing"; exit 1; fi
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+          registry-url: https://npm.pkg.github.com
+          scope: "@mcthaydt"
+      - name: Install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.AF_READ_TOKEN }}
+        run: |
+          if ! pnpm install --frozen-lockfile; then
+            echo "::error::pnpm install failed. If GitHub Packages answered 401 or 403: AF_READ_TOKEN must be a classic personal access token with read:packages (GitHub Packages' npm registry accepts no other kind)."
+            exit 1
+          fi
+      - name: Build for the desktop
+        working-directory: ${{ inputs.working-directory }}
+        run: $DESKTOP_BUILD_COMMAND
+      - name: Build, sign and notarize the macOS bundle
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: pnpm exec automata-ship prepare --target tauri --tag "$TAG"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: desktop-signed-macos
+          path: ${{ inputs.working-directory }}/dist-tauri/*.*
+          if-no-files-found: error

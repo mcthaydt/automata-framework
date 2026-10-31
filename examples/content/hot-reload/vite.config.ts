@@ -1,6 +1,6 @@
 import { automataContent } from '@mcthaydt/automata-content/vite'
 import { previewHeaders } from '@mcthaydt/examples-runner/host/preview-headers'
-import { defineConfig } from 'vite'
+import { defaultClientConditions, defineConfig } from 'vite'
 import { roomSchema } from './room.schema.ts'
 import config from './ship.config.ts'
 
@@ -9,6 +9,8 @@ import config from './ship.config.ts'
 // can edit the room without touching this folder.
 export default defineConfig({
   base: './',
+  // A Ruken build, as before DIST.2: the Ruken host adapter (DIST spec §5.3), in front of Vite's defaults.
+  resolve: { conditions: ['automata-ruken', ...defaultClientConditions] },
   build: { outDir: 'dist', emptyOutDir: true },
   plugins: [automataContent({ root: process.env.AF_DEMO_CONTENT_ROOT, schemas: [roomSchema] })],
   preview: { headers: previewHeaders(config) },

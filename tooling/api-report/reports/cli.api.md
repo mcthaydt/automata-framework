@@ -67,6 +67,7 @@ interface CreateGameOptions {
     readonly title: string;
     readonly description?: string | undefined;
     readonly author?: string | undefined;
+    readonly targets?: readonly DistTarget[] | undefined;
 }
 ```
 

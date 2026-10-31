@@ -3,8 +3,5 @@
 import { finishSvelteDist } from '../../../tooling/release/src/finish-svelte-dist.ts'
 
 finishSvelteDist(new URL('../dist', import.meta.url).pathname, {
-  vendoredTypes: {
-    '@ruken/manifest': 'vendor/ruken-manifest.js',
-    '@ruken/sdk-host/testing': 'vendor/ruken-sdk-host-testing.js',
-  },
+  vendoredTypes: { '@ruken/sdk-host/testing': 'vendor/ruken-sdk-host-testing.js' },
 })

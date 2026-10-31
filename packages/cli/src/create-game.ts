@@ -2,6 +2,16 @@ import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:
 import { dirname, join } from 'node:path'
 import type { TaggedErrorClass } from '@mcthaydt/automata-node'
 import { Data, Effect } from 'effect'
+import {
+  adapterConditions,
+  DIST_TARGETS,
+  type DistTarget,
+  parseTargets,
+  targetDependencies,
+  targetGitignore,
+  targetReadme,
+  targetScripts,
+} from './create-game-targets.ts'
 
 export interface CreateGameOptions {
   readonly targetDir: string
@@ -9,6 +19,8 @@ export interface CreateGameOptions {
   readonly title: string
   readonly description?: string | undefined
   readonly author?: string | undefined
+  /** The distribution targets to build for (DIST spec §5.3); default all four (DIST-D9). */
+  readonly targets?: readonly DistTarget[] | undefined
 }
 
 export interface CreateGameResult {
@@ -21,7 +33,7 @@ export interface CreateGameResult {
 const CreateGameErrorBase: TaggedErrorClass<
   'CreateGameError',
   {
-    readonly reason: 'target-directory-exists' | 'invalid-id' | 'write-failed'
+    readonly reason: 'target-directory-exists' | 'invalid-id' | 'invalid-targets' | 'write-failed'
     readonly message: string
   }
 > = Data.TaggedError('CreateGameError')
@@ -31,12 +43,28 @@ export class CreateGameError extends CreateGameErrorBase {}
 /** A game id, and a kit name for `automata add`: lowercase letters, digits and single hyphens, so never a path. */
 export const ID_REGEX: RegExp = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
+const targetsOf = (options: CreateGameOptions): readonly DistTarget[] => options.targets ?? DIST_TARGETS
+
 interface TemplateFile {
   readonly path: string
   readonly content: (options: CreateGameOptions) => string
 }
 
+/** The \`ship.config.ts\` sections only some targets read: itch.io's project, the desktop app's identifier. */
+function shipTargetSections(options: CreateGameOptions): string {
+  const targets = targetsOf(options)
+  // Placeholders that pass ship's checks, so every build is green with no edits (DIST-h); the guides say to change
+  // them before publishing.
+  const itch = targets.includes('itch')
+    ? `\n  itch: { project: 'your-itch-user/${options.id}', channel: 'html5' },`
+    : ''
+  const tauri = targets.includes('tauri') ? `\n  tauri: { identifier: 'dev.example.${options.id}' },` : ''
+  return itch + tauri
+}
+
 const TEMPLATE_FILES: readonly TemplateFile[] = [
+  { path: '.gitignore', content: (options) => targetGitignore(targetsOf(options)) },
+  { path: 'README.md', content: (options) => targetReadme(options.title, targetsOf(options)) },
   {
     path: 'package.json',
     content: (options) =>
@@ -48,22 +76,23 @@ const TEMPLATE_FILES: readonly TemplateFile[] = [
           type: 'module',
           scripts: {
             dev: 'vite',
-            build: 'vite build',
-            'prepare-ruken': 'automata-ship prepare',
+            ...targetScripts(targetsOf(options)),
             typecheck: 'tsc -p .',
           },
           dependencies: {
+            '@mcthaydt/automata-host': 'workspace:*',
             '@mcthaydt/automata-sim': 'workspace:*',
-            '@ruken/sdk': '^0.0.0',
             effect: '3.22.2',
             'pixi.js': '8.22.0',
             zod: '4.6.6',
+            ...targetDependencies(targetsOf(options)).dependencies,
           },
           devDependencies: {
             '@mcthaydt/automata-ship': 'workspace:*',
             '@types/node': '24.19.1',
             typescript: '7.0.2',
             vite: '8.3.3',
+            ...targetDependencies(targetsOf(options)).devDependencies,
           },
         },
         null,
@@ -80,8 +109,7 @@ export default defineShipConfig({
     id: '${options.id}',
     title: '${options.title}',
     version: packageJson.version,
-    entry: 'index.html',
-    sdk: '^0.0.0',
+    entry: 'index.html',${targetsOf(options).includes('ruken') ? "\n    sdk: '^0.0.0'," : ''}
   },
   runtime: {
     renderer: 'webgl2',
@@ -90,16 +118,23 @@ export default defineShipConfig({
     pause_behavior: 'pause',
   },
   network: { connect: [] },
-  content: { languages: ['en'], rating: 'everyone', descriptors: [] },
+  content: { languages: ['en'], rating: 'everyone', descriptors: [] },${shipTargetSections(options)}
 })
 `,
   },
   {
     path: 'vite.config.ts',
-    content: () => `import { defineConfig } from 'vite'
+    content: (options) => `import { defaultClientConditions, defineConfig } from 'vite'
 
-export default defineConfig({
+// Each build holds one target's host adapter (\`vite build --mode <target>\`), picked through the package condition;
+// any other mode (plain \`vite\` while developing) gets the web adapter, the default.
+const ADAPTER_CONDITIONS: Record<string, string> = {
+${adapterConditions(targetsOf(options))}
+}
+
+export default defineConfig(({ mode }) => ({
   base: './',
+  resolve: { conditions: [ADAPTER_CONDITIONS[mode] ?? 'automata-web', ...defaultClientConditions] },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -107,7 +142,7 @@ export default defineConfig({
     // (connect-src 'self') refuses; a file from the game's own origin is what the CSP allows.
     assetsInlineLimit: 0,
   },
-})
+}))
 `,
   },
   {
@@ -188,11 +223,23 @@ boot(root).catch((err) => {
   },
   {
     path: 'src/boot.ts',
-    content: () => `import { createGameApp } from './game.ts'
+    content: (options) => `import { makeHosting } from '@mcthaydt/automata-host/target'
+import { Effect, Exit, Scope } from 'effect'
+import { createGameApp } from './game.ts'
 
+// The host session lives as long as the page. Which host answers is the build's choice: \`vite build --mode <target>\`
+// bundles that target's adapter (web, itch.io, Ruken or the desktop) and no other.
 export async function boot(container: HTMLElement): Promise<void> {
-  const app = createGameApp(container)
+  const session = Effect.runSync(Scope.make())
+  const hosting = await Effect.runPromise(
+    Scope.extend(makeHosting({ gameId: '${options.id}', wants: [], pauseBehavior: 'pause' }), session),
+  )
+  await Effect.runPromise(hosting.ready)
+  const app = createGameApp(container, hosting.hostName)
   await app.start()
+  window.addEventListener('pagehide', () => {
+    void app.stop().then(() => Effect.runPromise(Scope.close(session, Exit.void)))
+  })
 }
 `,
   },
@@ -205,11 +252,11 @@ export interface GameApp {
   stop(): Promise<void>
 }
 
-export function createGameApp(container: HTMLElement): GameApp {
+export function createGameApp(container: HTMLElement, hostName: string): GameApp {
   const _sim = createGameSim()
   return {
     async start() {
-      container.textContent = '${options.title} running'
+      container.textContent = \`${options.title} running on \${hostName}\`
     },
     async stop() {
       container.textContent = ''
@@ -245,6 +292,14 @@ export function createGame(options: CreateGameOptions): Effect.Effect<CreateGame
           message: `Invalid game id "${options.id}". ID must be lowercase alphanumeric with hyphens (e.g. my-game).`,
         }),
       )
+    }
+
+    if (options.targets !== undefined) {
+      const checked = parseTargets(options.targets.join(','))
+      if (!checked.ok)
+        return yield* Effect.fail(
+          new CreateGameError({ reason: 'invalid-targets', message: checked.message }),
+        )
     }
 
     if (existsSync(options.targetDir)) {

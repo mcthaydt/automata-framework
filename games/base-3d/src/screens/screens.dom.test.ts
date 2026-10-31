@@ -9,7 +9,7 @@ import {
 import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
 import type { StepResult } from '@mcthaydt/automata-sim'
 import { definePlugin, defineSystem } from '@mcthaydt/automata-sim'
-import { createFakeHost, type FakeHost, type FakeHostOptions } from '@ruken/sdk-host/testing'
+import { type FakeHostingOptions, fakeHosting } from '@mcthaydt/automata-testing/host'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Enemy, Fighter, Hero } from '../components.ts'
@@ -31,27 +31,17 @@ import { base3dSaves } from './saves.ts'
 import { base3dScreens, SPLASH_MS } from './screens.ts'
 import type { Base3dSettings } from './settings.ts'
 
-// base-3d's flow on the real runtime (M3.7b part 4) in jsdom: the in-memory fake Ruken host, manual frames, and a
+// base-3d's flow on the real runtime (M3.7b part 4) in jsdom: AF's fake host (DIST spec §7), manual frames, and a
 // renderer that keeps each step (Pixi 3D needs WebGL2, which jsdom lacks). The props' models are not fetched here:
 // the recording renderer draws nothing, so the game runs with no preload.
 
 const STEP_MS = 1000 / 60
 
-const hostOptions = (): FakeHostOptions => ({
-  gameOrigin: window.location.origin,
-  gameId: base3d.id,
-  clock: {
-    epochMs: () => Date.now(),
-    setTimeout: (fn: () => void, ms: number) => setTimeout(fn, ms),
-    clearTimeout: (timer: unknown) => clearTimeout(timer as number),
-  },
-})
-
 describe("base-3d's flow", () => {
   let root: HTMLElement
   let frames: ManualFrames
   let results: StepResult[]
-  let host: FakeHost
+  let host: ReturnType<typeof fakeHosting>
   let handle: RuntimeHandle | undefined
   const size = { width: window.innerWidth, height: window.innerHeight }
 
@@ -71,10 +61,15 @@ describe("base-3d's flow", () => {
   const step = (count = 1) => {
     for (let index = 0; index < count; index++) frames.advance(STEP_MS)
   }
+  /** The rounds the host received, as `{ kind, outcome? }`. */
   const rounds = () =>
-    host.messages
-      .filter((entry) => entry.dir === 'in' && entry.msg.type === 'telemetry.round')
-      .map((entry) => entry.msg.payload)
+    host.control.rounds.map((round) =>
+      'start' in round
+        ? { kind: 'start' }
+        : round.end === undefined
+          ? { kind: 'end' }
+          : { kind: 'end', outcome: round.end },
+    )
   /** Wick's place from the last render row that carried him. */
   const wick = () => {
     const rows = results.flatMap((result) => [...result.render.added, ...result.render.changed])
@@ -100,12 +95,11 @@ describe("base-3d's flow", () => {
     )
   }
 
-  /** The fake host sends a write to its server a second after the last (Ruken's sync debounce): waits for it. */
+  /** Waits for the host to hold what the game wrote (the save service writes on its own schedule). */
   async function synced(check: () => boolean, what: string): Promise<void> {
     for (let tries = 0; tries < 150 && !check(); tries++)
       await new Promise((resolve) => setTimeout(resolve, 20))
-    if (!check())
-      throw new Error(`timed out waiting for ${what}: ${JSON.stringify([...host.fakes.server.slots])}`)
+    if (!check()) throw new Error(`timed out waiting for ${what}: ${JSON.stringify([...host.control.saved])}`)
   }
 
   /** Steps with `code` held until `done`, at most `limit` ticks, then releases it. */
@@ -125,9 +119,8 @@ describe("base-3d's flow", () => {
   const byTestId = (id: string) => root.querySelector<HTMLButtonElement>(`[data-testid="${id}"]`)
 
   /** Replaces the host with one built from `options` (a seeded slot, or no saves granted). */
-  function hostWith(options: Partial<FakeHostOptions>): void {
-    host.dispose()
-    host = createFakeHost({ ...hostOptions(), ...options })
+  function hostWith(options: FakeHostingOptions): void {
+    host = fakeHosting(options)
   }
 
   async function boot(screens?: DefinedGame<Base3dSettings>['screens']): Promise<void> {
@@ -138,7 +131,7 @@ describe("base-3d's flow", () => {
       root,
       renderer: recording,
       preload: [],
-      seams: { frames, fetch: fakeFetch({}).fetch, sdkEnv: () => host.gameEnv as never },
+      seams: { frames, fetch: fakeFetch({}).fetch, hosting: host.make },
     })
     await until(() => frames.pending, 'the first frame')
     step()
@@ -165,11 +158,11 @@ describe("base-3d's flow", () => {
   }
 
   /**
-   * The host closes the game (Ruken's `session.exiting`): the game hands the host everything it holds, so a check that
+   * The host closes the game: the game hands the host everything it holds, so a check that
    * nothing was written comes after it.
    */
   async function closeGame(): Promise<void> {
-    await host.bridge.exit()
+    await Effect.runPromise(host.control.close)
     await handle?.shutdown()
     handle = undefined
     for (let turn = 0; turn < 20; turn++) await new Promise((resolve) => setTimeout(resolve, 0))
@@ -181,12 +174,11 @@ describe("base-3d's flow", () => {
     frames = manualFrames()
     results = []
     resize(844, 390)
-    host = createFakeHost(hostOptions())
+    host = fakeHosting()
   })
   afterEach(async () => {
     await handle?.shutdown()
     handle = undefined
-    host.dispose()
     root.remove()
     resize(size.width, size.height)
     Reflect.deleteProperty(window, 'matchMedia')
@@ -304,8 +296,7 @@ describe("base-3d's flow", () => {
     await until(() => screen() === 'title', 'the menu')
     // The ember is kept: leaving play wrote the slot, and Continue plays it.
     const kept = () =>
-      (JSON.parse(host.fakes.server.slots.get('base-3d')?.value ?? '{}') as { data?: { embers: number } })
-        .data
+      (JSON.parse(host.control.saved.get('base-3d') ?? '{}') as { data?: { embers: number } }).data
     await synced(() => kept()?.embers === 1, 'the slot holding the ember')
     results.length = 0
     await until(() => byTestId('save-slots-load') !== null, 'Continue')
@@ -333,7 +324,7 @@ describe("base-3d's flow", () => {
 
   describe('the save (DESIGN.md §12.1, G3-F3, G3-F4)', () => {
     /** The slot as the fake host's server holds it. */
-    const slotValue = () => host.fakes.server.slots.get(base3d.saves?.key ?? '')?.value
+    const slotValue = () => host.control.saved.get(base3d.saves?.key ?? '')
 
     it('offers New game, and no Continue, while the slot is empty', async () => {
       await toMenu()
@@ -401,7 +392,8 @@ describe("base-3d's flow", () => {
       // jsdom has no indexedDB; where there is one, nothing opens it.
       const open = globalThis.indexedDB === undefined ? undefined : vi.spyOn(globalThis.indexedDB, 'open')
       try {
-        hostWith({ grant: [] })
+        // Every capability a page can observe, without saves (storage blocked).
+        hostWith({ granted: ['lifecycle', 'input', 'display', 'audio'] })
         await toRoom()
         step(3)
         key('keydown', 'Escape')
@@ -562,7 +554,7 @@ describe("base-3d's flow", () => {
       lockMode('hold')?.click()
       expect(lockMode('hold')?.checked).toBe(true)
       await synced(
-        () => (host.fakes.server.slots.get('settings')?.value ?? '').includes('"lockMode":"hold"'),
+        () => (host.control.saved.get('settings') ?? '').includes('"lockMode":"hold"'),
         'the settings record holding Hold',
       )
     })

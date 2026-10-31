@@ -210,12 +210,6 @@ importers:
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
-      '@ruken/sdk-host':
-        specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
-        version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
@@ -286,15 +280,15 @@ importers:
       '@mcthaydt/automata-ship':
         specifier: workspace:*
         version: link:../../packages/ship
+      '@mcthaydt/automata-testing':
+        specifier: workspace:*
+        version: link:../../packages/testing
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
@@ -784,6 +778,9 @@ importers:
 
   packages/game:
     dependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
       '@mcthaydt/automata-host':
         specifier: workspace:*
         version: link:../host
@@ -806,15 +803,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-content':
-        specifier: workspace:*
-        version: link:../content
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
@@ -879,6 +870,18 @@ importers:
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
+      '@tauri-apps/api':
+        specifier: 2.12.4
+        version: 2.12.4
+      '@tauri-apps/plugin-process':
+        specifier: 2.4.0
+        version: 2.4.0
+      '@tauri-apps/plugin-store':
+        specifier: 2.5.0
+        version: 2.5.0
+      jsdom:
+        specifier: 30.1.1
+        version: 30.1.1
       vite:
         specifier: 8.3.3
         version: 8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1)
@@ -1045,9 +1048,6 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
@@ -1094,6 +1094,9 @@ importers:
 
   packages/ship:
     dependencies:
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
       '@mcthaydt/automata-node':
         specifier: workspace:*
         version: link:../node
@@ -1156,9 +1159,15 @@ importers:
 
   packages/testing:
     dependencies:
+      '@mcthaydt/automata-host':
+        specifier: workspace:*
+        version: link:../host
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../sim
+      effect:
+        specifier: 3.22.2
+        version: 3.22.2
       zod:
         specifier: 4.6.6
         version: 4.6.6
@@ -1169,9 +1178,6 @@ importers:
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
-      '@ruken/sdk':
-        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
-        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
@@ -1202,13 +1208,13 @@ importers:
       '@mcthaydt/automata-content':
         specifier: workspace:*
         version: link:../content
+      '@mcthaydt/automata-host':
+        specifier: workspace:*
+        version: link:../host
     devDependencies:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
-      '@ruken/sdk':
-        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
-        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
       '@sveltejs/package':
         specifier: 3.0.0
         version: 3.0.0(svelte@5.57.1)(typescript@6.0.3)
@@ -2538,6 +2544,15 @@ packages:
 
   '@swc/helpers@0.5.23':
     resolution: {integrity: sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==}
+
+  '@tauri-apps/api@2.12.4':
+    resolution: {integrity: sha512-pVmfis+4zT8H0Qhp3xPZx9Ju7kpzvA6rr/PSJPyuwfvucTQ8sVt61NYU9KMkK703UFlYadFmjKA4HhybOtN0gg==}
+
+  '@tauri-apps/plugin-process@2.4.0':
+    resolution: {integrity: sha512-GddrmsSLAYrLa/yTXlXK/YRDzUgYeeOnUXTbiyvJWkmI424RmDPD3FVLeqcon7rv6O6ZfhBilcrHWnSo7o6hIQ==}
+
+  '@tauri-apps/plugin-store@2.5.0':
+    resolution: {integrity: sha512-+ykjiQwMJCSk/U2enHA8peKBWgDKgrP7JfZnGwQpqzwA0nVtKTc0LCyxWr2whOrcQoQqtUdr9NVdDZpfKpT1Xw==}
 
   '@testing-library/dom@10.4.2':
     resolution: {integrity: sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q==}
@@ -4703,6 +4718,16 @@ snapshots:
   '@swc/helpers@0.5.23':
     dependencies:
       tslib: 2.8.1
+
+  '@tauri-apps/api@2.12.4': {}
+
+  '@tauri-apps/plugin-process@2.4.0':
+    dependencies:
+      '@tauri-apps/api': 2.12.4
+
+  '@tauri-apps/plugin-store@2.5.0':
+    dependencies:
+      '@tauri-apps/api': 2.12.4
 
   '@testing-library/dom@10.4.2':
     dependencies:

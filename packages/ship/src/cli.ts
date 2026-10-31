@@ -8,14 +8,16 @@ import { FilesLive, ProcessRunner, ProcessRunnerLive } from '@mcthaydt/automata-
 import { Effect, Layer } from 'effect'
 import { type CliCommand, parseCliArgs, USAGE } from './cli-args.ts'
 import type { ShipConfig } from './config/ship-config.ts'
-import { deployDev } from './deploy/deploy-dev.ts'
 import { checkBuild, prepareBuild } from './prepare/prepare-build.ts'
 import { prepareMode } from './prepare/prepare-mode.ts'
 import { findExecutable } from './publish/find-executable.ts'
 import { publishBuild } from './publish/publish-build.ts'
-import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from './publish/publish-to-itch.ts'
 import { testRemote } from './remote/test-remote.ts'
-import { prepareItch } from './targets/prepare-itch.ts'
+import { prepareItch } from './targets/itch/prepare-itch.ts'
+import { publishDownloadsToItch } from './targets/itch/publish-downloads-to-itch.ts'
+import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from './targets/itch/publish-to-itch.ts'
+import { deployDev } from './targets/ruken/deploy-dev.ts'
+import { prepareTauri } from './targets/tauri/prepare-tauri.ts'
 
 const cwd = process.cwd()
 
@@ -69,12 +71,34 @@ async function program(
   const config = await loadConfig()
   const distDir = resolve(cwd, command.dist)
 
+  // The desktop (DIST spec §6.2): ship checks the given build and runs tauri build for this OS.
+  if (command.command === 'prepare' && command.target === 'tauri') {
+    return Effect.provide(
+      Effect.map(prepareTauri({ distDir, gameDir: cwd, config, tag: command.tag }), (result) =>
+        result.bundles.map((bundle) => `wrote ${bundle}`).join('\n'),
+      ),
+      layers,
+    )
+  }
+
   // itch.io (PUB spec §4): ship checks and zips the given build, and butler pushes it. Ruken is untouched.
   if (command.command !== 'deploy-dev' && command.target === 'itch') {
     if (command.command === 'prepare') {
       return Effect.map(
         prepareItch({ distDir, gameDir: cwd, config, tag: command.tag }),
         (result) => `wrote ${result.zipPath}`,
+      )
+    }
+    if (command.from === 'tauri') {
+      const downloads = publishDownloadsToItch({
+        gameDir: cwd,
+        config,
+        apiKey: process.env.BUTLER_API_KEY,
+        butlerPath: findExecutable('butler'),
+      })
+      return Effect.provide(
+        Effect.map(downloads, (result) => `pushed to itch.io: ${result.pushed.join(', ')}`),
+        layers,
       )
     }
     const publish = publishToItch({

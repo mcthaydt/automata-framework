@@ -7,7 +7,7 @@
 // Base: none (it comes before the bases; base-2d replaces it as the M1 exit example, M1.8).
 // Packages: @ruken/sdk, effect; @mcthaydt/automata-ship for packaging.
 import { Effect } from 'effect'
-import { boot } from './boot.ts'
+import { boot } from './ruken/boot.ts'
 
 const root = document.querySelector<HTMLElement>('#game')
 if (root === null) throw new Error('index.html has no #game element')

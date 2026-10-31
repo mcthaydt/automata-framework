@@ -1260,6 +1260,7 @@ interface RuntimeSeams {
     readonly frames?: FrameSource;
     readonly fonts?: Pick<FontFaceSet, 'load'>;
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
+    readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>;
     readonly document?: Document;
     readonly languages?: readonly string[];
     readonly createAudioContext?: () => AudioContextLike;
@@ -1700,7 +1701,7 @@ class ExtensionError extends ExtensionErrorBase {
 ### `GameConfig` (type)
 
 ```ts
-type GameConfig = Pick<Manifest, 'game' | 'runtime' | 'content'>;
+type GameConfig = Pick<FullGameConfig, 'game' | 'runtime' | 'content'>;
 ```
 
 ### `ResolvedExtensions` (interface)

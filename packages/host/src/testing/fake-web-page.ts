@@ -1,8 +1,7 @@
 // A page for the web adapter's Node tests (PUB spec §7, unit row): real `EventTarget`s for the window, the
 // document and the visual viewport, and a Map-backed `localStorage` that can be blocked or filled. Internal to the
 // host package's tests; not exported from `./testing`.
-import type { StorageLike } from '@ruken/sdk'
-import type { WebPage } from '../hosting-web'
+import type { StorageLike, WebPage } from '../web/hosting-web'
 
 export interface FakeWebPageOptions {
   /** 'blocked' makes reading `localStorage` throw a SecurityError, as a frame denied storage does. */

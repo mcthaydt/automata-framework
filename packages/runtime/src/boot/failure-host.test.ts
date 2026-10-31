@@ -42,4 +42,12 @@ describe('failureHost: what the boot-failure panel knows of the host (PUB spec ย
     })
     expect(failureHost(session('web', 'this page', [])).hostName).toBe('this page')
   })
+
+  it('a desktop session draws as tauri, named for the game, with Quit when exit is granted (DIST spec ยง8 flow 2)', () => {
+    expect(failureHost({ kind: 'tauri', hostName: 'Cinder', granted: new Set(['exit']) })).toEqual({
+      hostKind: 'tauri',
+      hostName: 'Cinder',
+      canExit: true,
+    })
+  })
 })
