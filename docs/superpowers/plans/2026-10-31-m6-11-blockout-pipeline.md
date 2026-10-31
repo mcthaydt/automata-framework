@@ -59,9 +59,9 @@ guard itself (M3.8c).
 Each step: write the test, see it fail for the stated reason, write the minimum, see it pass.
 
 0. `core.ref` bump to a commit with M6-D18 (when #363 merges); `pnpm core:sync`. Fails: `@mcthaydt/automata-sector-format/blockout` does not resolve.
-   - [ ] 0
+   - [x] 0
 1. `validateBlockout`: schema, expand, generated map and graph, the generic checks (each with a failing fixture). Fails: no module.
-   - [ ] 1
+   - [x] 1
 2. `generateContent` and the stamp: deterministic TOML, round trip through the content schemas. Fails: no module.
    - [ ] 2
 3. The pipeline: stages `validate` and `generate`, `check` (fresh, hand edit, stale); EP-a, EP-b. Fails: no pipeline.

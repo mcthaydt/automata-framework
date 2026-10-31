@@ -24,7 +24,9 @@
   "dependencies": {
     "@mcthaydt/automata-audio-synth": "workspace:*",
     "@mcthaydt/automata-narrative": "workspace:*",
+    "@mcthaydt/automata-nav": "workspace:*",
     "@mcthaydt/automata-puzzle": "workspace:*",
+    "@mcthaydt/automata-sectors": "workspace:*",
     "@mcthaydt/automata-systems": "workspace:*",
     "@modelcontextprotocol/sdk": "1.32.1",
     "effect": "3.22.2",
@@ -35,10 +37,12 @@
   },
   "peerDependencies": {
     "@mcthaydt/automata-node": "0.0.3",
+    "@mcthaydt/automata-sector-format": "0.0.0",
     "@mcthaydt/automata-sim": "0.0.3"
   },
   "devDependencies": {
     "@mcthaydt/automata-node": "0.0.3",
+    "@mcthaydt/automata-sector-format": "0.0.0",
     "@mcthaydt/automata-sim": "0.0.3",
     "@types/node": "24.19.1",
     "vitest": "5.0.3"

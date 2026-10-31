@@ -50,7 +50,7 @@ importers:
         version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
@@ -81,7 +81,7 @@ importers:
         version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
@@ -127,13 +127,13 @@ importers:
     dependencies:
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
       '@mcthaydt/automata-ui':
         specifier: file:../../.core/packs/automata-ui
-        version: file:.core/packs/automata-ui(@mcthaydt/automata-testing@file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-ui(@mcthaydt/automata-testing@file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
     devDependencies:
       '@mcthaydt/automata-audio-synth':
         specifier: workspace:*
@@ -207,7 +207,7 @@ importers:
         version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
@@ -238,7 +238,7 @@ importers:
         version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
@@ -281,7 +281,7 @@ importers:
         version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
@@ -340,7 +340,7 @@ importers:
         version: file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3)
       '@mcthaydt/automata-ui':
         specifier: file:../../.core/packs/automata-ui
-        version: file:.core/packs/automata-ui(@mcthaydt/automata-testing@file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-ui(@mcthaydt/automata-testing@file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
     devDependencies:
       '@mcthaydt/automata-content':
         specifier: file:../../.core/packs/automata-content
@@ -429,7 +429,7 @@ importers:
         version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
@@ -466,7 +466,7 @@ importers:
         version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sector-format':
         specifier: file:../../.core/packs/automata-sector-format
         version: file:.core/packs/automata-sector-format
@@ -549,7 +549,7 @@ importers:
         version: file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       '@mcthaydt/automata-runtime':
         specifier: file:../../.core/packs/automata-runtime
-        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+        version: file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
@@ -624,12 +624,21 @@ importers:
       '@mcthaydt/automata-narrative':
         specifier: workspace:*
         version: link:../../packages/narrative
+      '@mcthaydt/automata-nav':
+        specifier: workspace:*
+        version: link:../../packages/nav
       '@mcthaydt/automata-node':
         specifier: file:../../.core/packs/automata-node
         version: file:.core/packs/automata-node
       '@mcthaydt/automata-puzzle':
         specifier: workspace:*
         version: link:../../packages/puzzle
+      '@mcthaydt/automata-sector-format':
+        specifier: file:../../.core/packs/automata-sector-format
+        version: file:.core/packs/automata-sector-format
+      '@mcthaydt/automata-sectors':
+        specifier: workspace:*
+        version: link:../../packages/sectors
       '@mcthaydt/automata-sim':
         specifier: file:../../.core/packs/automata-sim
         version: file:.core/packs/automata-sim
@@ -1030,6 +1039,20 @@ packages:
 
   '@mcthaydt/automata-host@file:.core/packs/automata-host':
     resolution: {directory: .core/packs/automata-host, type: directory}
+    peerDependencies:
+      '@tauri-apps/api': ^2.12.4
+      '@tauri-apps/plugin-process': ^2.4.0
+      '@tauri-apps/plugin-store': ^2.5.0
+      vitest: ^5.0.3
+    peerDependenciesMeta:
+      '@tauri-apps/api':
+        optional: true
+      '@tauri-apps/plugin-process':
+        optional: true
+      '@tauri-apps/plugin-store':
+        optional: true
+      vitest:
+        optional: true
 
   '@mcthaydt/automata-node@file:.core/packs/automata-node':
     resolution: {directory: .core/packs/automata-node, type: directory}
@@ -3250,46 +3273,56 @@ snapshots:
       - react
       - typescript
 
-  '@mcthaydt/automata-host@file:.core/packs/automata-host':
+  '@mcthaydt/automata-host@file:.core/packs/automata-host(vitest@5.0.3)':
     dependencies:
       effect: 3.22.2
       zod: 4.6.6
+    optionalDependencies:
+      vitest: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
 
   '@mcthaydt/automata-node@file:.core/packs/automata-node':
     dependencies:
       effect: 3.22.2
 
-  '@mcthaydt/automata-runtime@file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))':
+  '@mcthaydt/automata-runtime@file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)':
     dependencies:
       '@mcthaydt/automata-content': file:.core/packs/automata-content(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-      '@mcthaydt/automata-host': file:.core/packs/automata-host
+      '@mcthaydt/automata-host': file:.core/packs/automata-host(vitest@5.0.3)
       '@mcthaydt/automata-sim': file:.core/packs/automata-sim
-      '@mcthaydt/automata-ui': file:.core/packs/automata-ui(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@mcthaydt/automata-ui': file:.core/packs/automata-ui(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       effect: 3.22.2
       svelte: 5.57.3
       zod: 4.6.6
     transitivePeerDependencies:
       - '@mcthaydt/automata-testing'
+      - '@tauri-apps/api'
+      - '@tauri-apps/plugin-process'
+      - '@tauri-apps/plugin-store'
       - '@types/react'
       - react
       - typescript
       - vite
+      - vitest
 
-  '@mcthaydt/automata-runtime@file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))':
+  '@mcthaydt/automata-runtime@file:.core/packs/automata-runtime(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)':
     dependencies:
       '@mcthaydt/automata-content': file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-      '@mcthaydt/automata-host': file:.core/packs/automata-host
+      '@mcthaydt/automata-host': file:.core/packs/automata-host(vitest@5.0.3)
       '@mcthaydt/automata-sim': file:.core/packs/automata-sim
-      '@mcthaydt/automata-ui': file:.core/packs/automata-ui(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@mcthaydt/automata-ui': file:.core/packs/automata-ui(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
       effect: 3.22.2
       svelte: 5.57.3
       zod: 4.6.6
     transitivePeerDependencies:
       - '@mcthaydt/automata-testing'
+      - '@tauri-apps/api'
+      - '@tauri-apps/plugin-process'
+      - '@tauri-apps/plugin-store'
       - '@types/react'
       - react
       - typescript
       - vite
+      - vitest
 
   '@mcthaydt/automata-sector-format@file:.core/packs/automata-sector-format':
     dependencies:
@@ -3305,45 +3338,65 @@ snapshots:
 
   '@mcthaydt/automata-testing@file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3)':
     dependencies:
+      '@mcthaydt/automata-host': file:.core/packs/automata-host(vitest@5.0.3)
       '@mcthaydt/automata-sim': file:.core/packs/automata-sim
+      effect: 3.22.2
       svelte: 5.57.3
       vitest: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
       zod: 4.6.6
     transitivePeerDependencies:
+      - '@tauri-apps/api'
+      - '@tauri-apps/plugin-process'
+      - '@tauri-apps/plugin-store'
       - '@types/react'
       - react
 
-  '@mcthaydt/automata-ui@file:.core/packs/automata-ui(@mcthaydt/automata-testing@file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))':
+  '@mcthaydt/automata-ui@file:.core/packs/automata-ui(@mcthaydt/automata-testing@file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)':
     dependencies:
       '@mcthaydt/automata-content': file:.core/packs/automata-content(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@mcthaydt/automata-host': file:.core/packs/automata-host(vitest@5.0.3)
       svelte: 5.57.3
     optionalDependencies:
       '@mcthaydt/automata-testing': file:.core/packs/automata-testing(svelte@5.57.3)(vitest@5.0.3)
     transitivePeerDependencies:
+      - '@tauri-apps/api'
+      - '@tauri-apps/plugin-process'
+      - '@tauri-apps/plugin-store'
       - '@types/react'
       - react
       - typescript
       - vite
+      - vitest
 
-  '@mcthaydt/automata-ui@file:.core/packs/automata-ui(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))':
+  '@mcthaydt/automata-ui@file:.core/packs/automata-ui(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)':
     dependencies:
       '@mcthaydt/automata-content': file:.core/packs/automata-content(typescript@6.0.3)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@mcthaydt/automata-host': file:.core/packs/automata-host(vitest@5.0.3)
       svelte: 5.57.3
     transitivePeerDependencies:
+      - '@tauri-apps/api'
+      - '@tauri-apps/plugin-process'
+      - '@tauri-apps/plugin-store'
       - '@types/react'
       - react
       - typescript
       - vite
+      - vitest
 
-  '@mcthaydt/automata-ui@file:.core/packs/automata-ui(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))':
+  '@mcthaydt/automata-ui@file:.core/packs/automata-ui(svelte@5.57.3)(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)':
     dependencies:
       '@mcthaydt/automata-content': file:.core/packs/automata-content(typescript@7.0.2)(vite@8.3.5(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@mcthaydt/automata-host': file:.core/packs/automata-host(vitest@5.0.3)
       svelte: 5.57.3
     transitivePeerDependencies:
+      - '@tauri-apps/api'
+      - '@tauri-apps/plugin-process'
+      - '@tauri-apps/plugin-store'
       - '@types/react'
       - react
       - typescript
       - vite
+      - vitest
 
   '@mcthaydt/evidence@file:.core/packs/evidence':
     dependencies:
