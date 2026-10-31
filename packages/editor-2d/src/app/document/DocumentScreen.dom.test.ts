@@ -214,7 +214,7 @@ describe('DocumentScreen: the rail', () => {
     opened.document.history.apply('Rename', (project) => ({ ...(project as object), name: 'Moss' }))
     flushSync()
     await userEvent.click(within(rail()).getByRole('tab', { name: 'World' }))
-    expect(screen.getByRole('heading', { name: 'World is coming in a later update' })).toBeInTheDocument()
+    expect(screen.getByTestId('world-view')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Undo Rename' })).toBeEnabled()
     await userEvent.click(within(rail()).getByRole('tab', { name: 'Level' }))
     expect(screen.getByTestId('level-view')).toBeInTheDocument()

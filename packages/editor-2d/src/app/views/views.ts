@@ -3,6 +3,7 @@ import ChecksView from '../checks/ChecksView.svelte'
 import EntitiesView from '../entities/EntitiesView.svelte'
 import LevelView from '../level/LevelView.svelte'
 import TilesetsView from '../tilesets/TilesetsView.svelte'
+import WorldView from '../world/WorldView.svelte'
 import PendingView from './PendingView.svelte'
 import type { ViewProps } from './view-props'
 
@@ -14,6 +15,7 @@ const built: Readonly<Record<string, Component<ViewProps>>> = {
   EntitiesView,
   LevelView,
   TilesetsView,
+  WorldView,
 }
 
 export function componentOf(name: string): Component<ViewProps> {

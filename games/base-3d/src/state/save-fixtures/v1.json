@@ -1,0 +1,18 @@
+{
+  "hearts": { "max": 3, "pieces": ["hub-heart-piece-1"] },
+  "embers": 1,
+  "items": { "sling": true, "bombs": false, "hookchain": false },
+  "ammo": { "pellets": 12, "bombs": 0 },
+  "equipped": "sling",
+  "flags": ["hub-gate-open", "kiln-d1-chest"],
+  "kiln": {
+    "smallKeys": 1,
+    "bossKey": false,
+    "map": true,
+    "compass": false,
+    "visited": ["d1", "d2"],
+    "bossDefeated": false
+  },
+  "resume": "kiln",
+  "playTicks": 21600
+}
