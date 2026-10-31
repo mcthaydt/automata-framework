@@ -47,7 +47,7 @@ describe('SectorOptions', () => {
       ],
     })
     expect(screen.getByText('Shares a 6.00 m wall with hall. Make it a portal?')).toBeInTheDocument()
-    await userEvent.click(screen.getAllByRole('button', { name: 'Portal' })[1] as HTMLElement)
+    await userEvent.click(screen.getAllByRole('button', { name: 'Make portal' })[1] as HTMLElement)
     await userEvent.click(screen.getAllByRole('button', { name: 'Keep solid' })[0] as HTMLElement)
     await userEvent.click(screen.getByRole('button', { name: 'Portal on every shared wall' }))
     expect(onaccept).toHaveBeenCalledWith(1)
