@@ -103,7 +103,7 @@ async function freePort(): Promise<number> {
 const SERVE_TIMEOUT_MS = 15_000
 
 /** Serves the build with serve-static.ts on a free port; resolves with its origin and a stop function. */
-async function serveLocally(buildDir: string): Promise<{ origin: string; stop: () => void }> {
+export async function serveLocally(buildDir: string): Promise<{ origin: string; stop: () => void }> {
   const port = await freePort()
   const script = fileURLToPath(new URL('./serve-static.ts', import.meta.url))
   const server = spawn(process.execPath, ['--import', 'tsx', script, buildDir, String(port)], { stdio: ['ignore', 'pipe', 'inherit'] })
@@ -118,6 +118,15 @@ async function serveLocally(buildDir: string): Promise<{ origin: string; stop: (
     throw error
   }
   return { origin: `http://127.0.0.1:${port}`, stop: () => server.kill() }
+}
+
+/** Every check this script makes of `origin` against the build: the served files, the header set and the page policies. */
+export async function checkDeployed(origin: string, buildDir: string): Promise<string[]> {
+  return [
+    ...(await checkServedFiles(origin, buildDir)),
+    ...(await checkHeaders(origin, HEADER_PATHS)),
+    ...(await checkServedPolicies(origin, POLICY_PAGES)),
+  ]
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -135,11 +144,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const origin = local?.origin ?? positionals[0]!
   let problems: string[]
   try {
-    problems = [
-      ...(await checkServedFiles(origin, buildDir)),
-      ...(await checkHeaders(origin, HEADER_PATHS)),
-      ...(await checkServedPolicies(origin, POLICY_PAGES)),
-    ]
+    problems = await checkDeployed(origin, buildDir)
   } finally {
     local?.stop()
   }
