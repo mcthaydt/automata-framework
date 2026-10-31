@@ -9,7 +9,7 @@
   import type { HighlightedLine } from './highlight'
   import type { Diagnostic } from './compile'
   import type * as Editor from './editor'
-  let { source, highlighted, title, describedBy, oncodestate, onedit, diagnostics = [], link, edited = false, onreset }: {
+  let { source, highlighted, title, describedBy, oncodestate, onedit, diagnostics = [], link, edited = false, onreset, previewShown = true, ontogglepreview }: {
     source: string
     highlighted: HighlightedLine[]
     title: string
@@ -24,6 +24,9 @@
     /** The code differs from the original, so Reset is shown (F7). */
     edited?: boolean
     onreset?: () => void
+    /** One column only: whether the preview is shown (the toggle's `aria-pressed`, §8.2, §9.1). */
+    previewShown?: boolean
+    ontogglepreview?: () => void
   } = $props()
   // One span per line, each carrying its newline, so the code's text is the source byte for byte; the line numbers are
   // CSS counters and never part of it. The editor takes this box's size and font (spec §9.3), and the pieces carry the
@@ -99,7 +102,7 @@
   })
 </script>
 <section class="code-panel" aria-label={'Code for ' + title}>
-  <div class="code-header"><span>TypeScript</span><div class="code-actions">{#if edited}<button type="button" class="reset" onclick={onreset}>Reset</button>{/if}<CopyButton text={link} label="Copy link" caption="Copy link" copied="Link copied" blocked="Copying is blocked by this browser" /><CopyButton text={current} /></div></div>
+  <div class="code-header"><span>TypeScript</span><div class="code-actions"><button type="button" class="preview-toggle" aria-pressed={previewShown} onclick={ontogglepreview}>Preview</button>{#if edited}<button type="button" class="reset" onclick={onreset}>Reset</button>{/if}<CopyButton text={link} label="Copy link" caption="Copy link" copied="Link copied" blocked="Copying is blocked by this browser" /><CopyButton text={current} /></div></div>
   <!-- Keyboard focus lets readers scroll the code with the arrow keys, and starts the editor. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <pre class="static-code" data-testid="static-code" tabindex="0" aria-describedby={describedBy} hidden={codeState === 'ready'} {onpointerdown} {onfocusin} bind:this={pre}><code>{#each highlighted as line}<span class="line">{#each line as piece}{#if piece.className}<span class={piece.className}>{piece.text}</span>{:else}{piece.text}{/if}{/each}</span>{/each}</code></pre>
@@ -111,7 +114,9 @@
   .code-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 .5rem 0 1rem; border-bottom: 1px solid var(--line); font-size: var(--step-small); color: var(--muted); }
   .code-header :global(button) { min-height: 44px; min-width: 44px; }
   .code-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .5rem; }
-  .reset { padding: .3rem .8rem; font-size: var(--step-micro); }
+  .reset, .preview-toggle { padding: .3rem .8rem; font-size: var(--step-micro); }
+  /* Side by side the preview is always in view, so the toggle is only for one column (§8.2). */
+  @container playground (min-width: 700px) { .preview-toggle { display: none; } }
   .static-code { margin: 0; padding: 1rem 1rem 1rem calc(3ch + 2rem); font-size: 1rem; line-height: 1.5; white-space: break-spaces; overflow-wrap: anywhere; word-break: break-word; overflow: visible; counter-reset: line; }
   /* The editor's own wrapping rules (`EditorView.lineWrapping`), which the site's `pre code` would otherwise reset. */
   .static-code code { white-space: inherit; overflow-wrap: inherit; word-break: inherit; }
