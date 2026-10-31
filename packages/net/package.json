@@ -12,11 +12,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./sim": "./src/sim/index.ts",
-    "./testing": "./src/testing/index.ts",
-    "./ui": {
-      "svelte": "./src/ui/index.ts",
-      "default": "./src/ui/index.ts"
-    }
+    "./testing": "./src/testing/index.ts"
   },
   "automata": {
     "simEntries": [
@@ -24,10 +20,8 @@
     ]
   },
   "scripts": {
-    "test:unit": "vitest run --project node --project ui",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
-    "test:layout": "vitest run --project layout",
-    "test:parity": "vitest run --project layout"
+    "test:unit": "vitest run",
+    "typecheck": "tsc -p ."
   },
   "dependencies": {
     "@colyseus/sdk": "0.18.5",
@@ -35,36 +29,10 @@
     "zod": "4.6.6"
   },
   "peerDependencies": {
-    "@mcthaydt/automata-sim": "0.0.3",
-    "@mcthaydt/automata-testing": "0.0.4",
-    "@mcthaydt/automata-ui": "0.0.4",
-    "svelte": "^5.57.1"
+    "@mcthaydt/automata-sim": "0.0.3"
   },
   "devDependencies": {
-    "@mcthaydt/automata-content": "0.0.4",
-    "@mcthaydt/automata-runtime": "0.0.3",
     "@mcthaydt/automata-sim": "0.0.3",
-    "@mcthaydt/automata-testing": "0.0.4",
-    "@mcthaydt/automata-ui": "0.0.4",
-    "@sveltejs/vite-plugin-svelte": "7.3.1",
-    "@testing-library/dom": "10.4.2",
-    "@testing-library/jest-dom": "7.0.1",
-    "@testing-library/svelte": "5.4.2",
-    "@testing-library/user-event": "14.6.7",
-    "@types/node": "24.19.1",
-    "@vitest/browser-playwright": "5.0.3",
-    "jsdom": "30.1.1",
-    "playwright": "1.63.0",
-    "svelte": "5.57.3",
-    "svelte-check": "4.7.6",
-    "typescript": "6.0.3",
-    "vite": "8.3.5",
     "vitest": "5.0.3"
-  },
-  "svelte": "./src/index.ts",
-  "peerDependenciesMeta": {
-    "@mcthaydt/automata-testing": {
-      "optional": true
-    }
   }
 }

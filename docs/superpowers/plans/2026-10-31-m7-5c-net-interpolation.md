@@ -29,7 +29,7 @@ In (`packages/net`, plus the debug panel in `packages/debug`):
   respawn adoption), which stay in the arcade source.
 - **`ConnectionState` `degraded`:** `NetRoom` reads `degraded` from the diagnostics through `NetRoom.markDegraded(boolean)` (the session
   calls it on change); `reconnecting` and `connecting` win over it.
-- **UI** (`packages/net/ui`, Svelte, jsdom behaviour tests and real-browser layout tests): the connection badge in `hud.overlay`
+- **UI** (`packages/net-ui`, Svelte, NT-D4, jsdom behaviour tests and real-browser layout tests): the connection badge in `hud.overlay`
   (hidden offline; connecting; connected, hidden after 2 s; reconnecting with seconds left; degraded; a polite live region, not
   interactive) and the reconnect overlay (reconnecting with a countdown; disconnected too long with Leave at 48 px, focused, Back =
   Leave; pauses nothing). Text through locale keys (`net.badge.*`, `net.reconnect.*`, one `net.error.<CODE>` per `NetError` code).
@@ -48,10 +48,14 @@ Out: store (M7.7+), `createHeadlessClient`/`twoClientReplay` (M7.6), game-specif
   the catalog's keys; a locale pass fills the other languages. Default: English catalog in `net`, keys listed in `net.copy.ts`.
 - **NT-D3:** `degraded` thresholds are `net.toml` fields (`degradedRoundTripMs` 1000, `degradedGapMs` 1000), not constants.
 
+- **NT-D4:** the UI lives in its own private package, `@mcthaydt/automata-net-ui`, not in `net/ui`. Svelte tooling needs TypeScript 6 for
+  `svelte-check`, and giving `net` its own TypeScript 6 split the Colyseus peer instance from the server's (the server's real-room tests
+  failed with close code 4002). `net` keeps its Node-only dependencies; `net-ui` depends on `net` for types.
+
 ## Interfaces
 
 - Produces: `RenderClock`, `SnapshotBuffer`, `NetDiagnostics`, `blendFields`, `NetSessionOptions.remote`, `NetFrame.renderTick/remote`,
-  `NetRoom.markDegraded`, `netBadge`/`netReconnect` components, `installNetUi`, `netCopy`; `DebugHost.net`.
+  `NetRoom.markDegraded`, `NetBadge`/`ReconnectOverlay`/`NetHud` components, `installNetUi`, `netText` (in `net-ui`); `DebugHost.net`.
 - Consumes: `AuthorityClock` (M7.5b), `NetRoom` (M7.5a), `hud.overlay` slot, `debug` host (M6.2).
 
 ## Steps
@@ -98,7 +102,7 @@ Each step: write the test, see it fail for the stated reason, write the minimum,
   run (down to 520 x 180 with the keyboard up) are not run: a visible area of about 100 px cannot hold a 48 px Leave beside Back
   without covering it. Run here in Chromium only; WebKit and Firefox are not installed in this container, so they run on the CI
   Mac. The layout run fails (50 of 50) when Leave's height is cut, so it bites.
-- The package's `test:unit` runs the `node` and `ui` projects; `test:parity` runs the `layout` project in three engines.
+- `net-ui`'s `test:unit` runs the `ui` project; `test:parity` runs the `layout` project in three engines. `net` is as it was.
 - Debug: `NetPanel` and `DebugHost.net` (a `summary()` port, listed as rows by `summaryRows`).
 - Not done: the net `ExtensionDef` that fills `hud.overlay` (no `netExtension` exists yet; `NetHud` is its component), locale files
   beyond English, `bytes` wiring from the transport to the diagnostics.

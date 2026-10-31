@@ -1,5 +1,5 @@
+import { NET_ERROR_CODES } from '@mcthaydt/automata-net'
 import { describe, expect, it } from 'vitest'
-import { NET_ERROR_CODES } from '../wire/server-message.schema'
 import { NET_COPY_EN, netCopyKeys, netText } from './net-copy'
 
 // The words `net` puts on screen (M7 spec §7): locale keys with an English catalog. Every `NetError` code has its own message,

@@ -1,5 +1,5 @@
 // A connection a test can drive: the shape `NetUiHost.connection` asks for.
-import type { ConnectionState } from '../client/net-room'
+import type { ConnectionState } from '@mcthaydt/automata-net'
 import type { NetUiHost } from './host'
 
 export interface FakeConnection {
