@@ -36,6 +36,7 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | Repository | `SNEKPRTY/FloorFifty` (private) |
 | Recorded commit | `ac72660`, read 2026-10-16 |
 | Taken (M6.1, into `mcthaydt/automata-plus` `feel`) | `apps/client/src/systems/gameplay/juice/` (`hit-stop`, `second-order`, `squash`, `lean`, `dust-pool`, `word-pool`, `word-text`, `room-beats`, `feel-director`'s routing), `systems/haptics.ts`, `content/juice.toml`'s shape, and their tests (M6 spec §4.1). `trauma.ts` informs core's `camera2d.shake` (M4) and is not extracted twice |
+| Rewritten, M7.5c (automata-plus#35) | `net`: `apps/client/src/systems/netcode/snapshot-buffer.ts`, the interpolation half of `render-clock.ts` (the authority half came with M7.5b) and `net-diagnostics.ts` with their tests, made generic: the buffer holds a game-supplied view with a per-field jump rule in place of the race's wrap, the delay estimator is `RenderClock`, and the diagnostics drop the race-specific parts (sprite pull, respawn adoption, `?netstats`) and add the `degraded` rule |
 | Licence | Not checked in this record (no checkout here on 2026-10-31); the Owner's direction (2026-10-11) covers its use. M6.1's plan records it from the checkout it extracts from |
 
 ### Design input (not code)
