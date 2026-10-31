@@ -20,6 +20,12 @@ export interface ShipConfig {
    * `ruken.toml`, and a Ruken build ignores it.
    */
   readonly itch?: ItchConfig | undefined
+  /**
+   * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
+   * public release: `automata-ship prepare` then checks the build as private and writes no `ruken.toml`, and only
+   * `deploy-dev` and `publish --private` ship it (M3 spec §4.8). Not a Ruken field. Left out, a game is `public`.
+   */
+  readonly audience?: 'public' | 'private' | undefined
 }
 
 /** Identity function that gives a game's `ship.config.ts` type checking and editor completion. */

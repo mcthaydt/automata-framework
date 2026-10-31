@@ -1,18 +1,20 @@
 // Usage: node tooling/repo-hygiene/src/new-deps-cli.ts [--base origin/main]   (the root `pnpm deps:new`)
 //
-// Prints the new-dependency report for this checkout against --base (new-deps.ts), and appends it to the job
-// summary when GITHUB_STEP_SUMMARY is set. Exits 1 when a new package or version is missing from its registry.
+// Prints the new-dependency report for this checkout against where HEAD left --base (new-deps-base.ts), and
+// appends it to the job summary when GITHUB_STEP_SUMMARY is set. Exits 1 when a new package or version is missing from its registry.
 import { execFileSync } from 'node:child_process'
 import { appendFileSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describeDependencies, formatReport, type Manifest, newDependencies } from './new-deps.ts'
+import { newDepsBase } from './new-deps-base.ts'
 
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const argv = process.argv.slice(2)
-const base = argv.includes('--base') ? (argv[argv.indexOf('--base') + 1] ?? 'origin/main') : 'origin/main'
+const baseRef = argv.includes('--base') ? (argv[argv.indexOf('--base') + 1] ?? 'origin/main') : 'origin/main'
 
 const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, encoding: 'utf8' })
+const base = newDepsBase(git, baseRef)
 
 /** Workspace manifests only: fixtures are test inputs, never installed. */
 const isManifest = (path: string): boolean =>
@@ -41,7 +43,10 @@ const reports = await describeDependencies(
   newDependencies(baseManifests, headManifests, scopeRegistries()),
   (url) => fetch(url),
 )
-const report = formatReport(reports, base)
+const report = formatReport(
+  reports,
+  base === baseRef ? baseRef : `${baseRef} (merge base ${base.slice(0, 7)})`,
+)
 console.log(report)
 const summary = process.env.GITHUB_STEP_SUMMARY
 if (summary !== undefined && summary !== '') appendFileSync(summary, report)

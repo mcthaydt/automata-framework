@@ -45,6 +45,11 @@ export interface RuntimeSeams {
    * playground spec §7.2).
    */
   readonly onFailure?: (cause: unknown) => void
+  /**
+   * Reloads the game's frame: what Try again does after a boot failure inside a Ruken session, where the host answers
+   * one hello per frame load (M1 runtime spec §4, RT.BOOT1). Defaults to reloading the document's location.
+   */
+  readonly reload?: () => void
 }
 
 /** Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11). */

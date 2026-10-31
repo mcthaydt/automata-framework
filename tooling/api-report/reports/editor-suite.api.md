@@ -10,6 +10,14 @@
 const ALWAYS_NEVER: readonly string[];
 ```
 
+### `applyImport` (function)
+
+```ts
+function applyImport(plan: ImportPlan, writePath: WritePath): Promise<WriteOutcome | {
+    readonly refused: 'plan';
+}>;
+```
+
 ### `CHANGE_SET_JOURNAL_FORMAT` (const)
 
 ```ts
@@ -51,6 +59,15 @@ type CheckRow = CheckDef;
 
 ```ts
 const CONTENT_CHECK = "content";
+```
+
+### `draftShip` (function)
+
+```ts
+function draftShip(review: ReviewChangeSet): {
+    readonly title: string;
+    readonly body: string;
+};
 ```
 
 ### `EditMode` (type)
@@ -116,6 +133,26 @@ interface EditorListProblem {
 const editorListSchema: z.ZodType<EditorList>;
 ```
 
+### `ExportFile` (interface)
+
+```ts
+interface ExportFile {
+    readonly path: string;
+    readonly editor: string;
+    readonly text: string;
+}
+```
+
+### `exportInterchange` (function)
+
+```ts
+function exportInterchange(files: readonly ExportFile[], options: {
+    readonly format: 'toml' | 'json';
+    readonly scene?: string;
+    readonly commit?: string;
+}): string;
+```
+
 ### `FileAccess` (type)
 
 ```ts
@@ -172,10 +209,153 @@ function globMatch(glob: string, path: string, options?: {
 } | undefined;
 ```
 
+### `ImportPlan` (type)
+
+```ts
+type ImportPlan = {
+    readonly error: string;
+} | {
+    readonly changes: readonly PlannedChange[];
+    readonly refused: readonly PlanRefusal[];
+    readonly applicable: boolean;
+};
+```
+
+### `INTERCHANGE_FORMAT` (const)
+
+```ts
+const INTERCHANGE_FORMAT = "scene-interchange";
+```
+
+### `INTERCHANGE_VERSION` (const)
+
+```ts
+const INTERCHANGE_VERSION = 2;
+```
+
+### `InterchangeDocument` (interface)
+
+```ts
+interface InterchangeDocument {
+    readonly format: typeof INTERCHANGE_FORMAT;
+    readonly version: typeof INTERCHANGE_VERSION;
+    readonly scene?: string | undefined;
+    readonly source: {
+        readonly commit?: string | undefined;
+    };
+    readonly sections: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+    readonly provenance?: Readonly<Record<string, {
+        readonly path: string;
+        readonly keyPath: KeyPath;
+    }>> | undefined;
+}
+```
+
+### `interchangeSchema` (const)
+
+```ts
+const interchangeSchema: z.ZodType<InterchangeDocument, unknown>;
+```
+
 ### `loadEditorList` (function)
 
 ```ts
 function loadEditorList(text: string | undefined): EditorListLoad;
+```
+
+### `planImport` (function)
+
+```ts
+function planImport(text: string, options: PlanImportOptions): Promise<ImportPlan>;
+```
+
+### `PlanImportOptions` (interface)
+
+```ts
+interface PlanImportOptions {
+    readonly list: EditorList;
+    readonly read: (path: string) => Promise<{
+        readonly text: string;
+        readonly mtime: number;
+    } | undefined>;
+    readonly installed: readonly string[];
+    readonly provider?: ((editor: string) => string | undefined) | undefined;
+    readonly locked: (path: string) => readonly string[];
+}
+```
+
+### `PlannedChange` (interface)
+
+```ts
+interface PlannedChange {
+    readonly path: string;
+    readonly editor: string;
+    readonly before?: string | undefined;
+    readonly after: string;
+    readonly expected: {
+        readonly mtime: number;
+    } | 'absent';
+    readonly hunks: readonly Hunk[];
+    readonly gates: readonly string[];
+    readonly checks: readonly string[];
+}
+```
+
+### `PlanRefusal` (interface)
+
+```ts
+interface PlanRefusal {
+    readonly editor: string;
+    readonly path?: string | undefined;
+    readonly reason: 'not-installed' | 'unlisted' | 'read-only' | 'editor-mismatch' | 'locked' | 'unwritable';
+    readonly why: string;
+}
+```
+
+### `ReviewChangeSet` (interface)
+
+```ts
+interface ReviewChangeSet {
+    readonly title: string;
+    readonly branch: string;
+    readonly base: string;
+    readonly files: readonly ReviewFile[];
+    readonly checks: readonly ChangeSetCheck[];
+    readonly gates: ReviewGates;
+    readonly tokens: {
+        readonly used: number;
+        readonly cap: number;
+    };
+}
+```
+
+### `ReviewFile` (interface)
+
+```ts
+interface ReviewFile {
+    readonly path: string;
+    readonly created: boolean;
+    readonly before: string | undefined;
+    readonly after: string;
+    readonly hunks: readonly Hunk[];
+}
+```
+
+### `ReviewGates` (interface)
+
+```ts
+interface ReviewGates {
+    readonly reopened: readonly GateState[];
+    readonly unreadable?: string | undefined;
+}
+```
+
+### `reviewModel` (function)
+
+```ts
+function reviewModel(summary: ChangeSetSummary, files: readonly WorkspaceFile[], states: readonly GateState[] | {
+    readonly error: string;
+} | undefined): ReviewChangeSet;
 ```
 
 ### `workspaceFile` (function)

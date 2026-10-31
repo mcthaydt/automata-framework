@@ -1,6 +1,6 @@
 # AutomataFramework: living continuation
 
-> Updated 2026-10-30 23:55Z by the coordinator (session_01QYLU1fyLRfi9sXSeoySzoN). Source HEAD verified before this update: `2910a11` on `main`. Merged since 22:30Z: #281 (02/03 and the af-linux runner), #282 M3.7b part 2a, #279 GL.7 part 1. Earlier: Merged since 20:05Z: #273 M3.1b, #268 EDS.2a, #250 M3.7a, #270 M3.5d, #274 M3.5d part 2, #277 (S7-Q2 bug-report draft), #278 (02 ticks), #276 M3.6d, #280 M3.7b part 1, #272 ED2D.4c4b, #275 EDS.2b; website#21 WEB.PLAY.5 and website#22 WEB.PLAY.6. The earlier history of this line is in git.
+> Updated 2026-10-31 04:05Z by the coordinator (session_01QYLU1gFYzkyBLxhLDconcc). Source HEAD verified before this update: `1590f03` on `main`. Merged since 01:40Z: #295 (docs), #288 CI.API1a, #291 RT.BOOT1, #289 M3.7b part 3a, #287 EDS.2c (a+b), #293 ED2D.5b, #296 M3.6d part 2, #298 ED2D.5c, #299 CI.P3D1; website#23 WEB.PLAY.7, #24 WEB.PLAY.8, #25 WEB.PLAY.9. The earlier history of this line is in git.
 
 ## Prompt for the next agent
 
@@ -91,13 +91,14 @@ Readings the agent applied in 02 on 2026-10-30, also open to veto:
 
 Each lane is a cloud session that works only in its own worktrees and PRs, never edits 02, 03, 00, 01 or `AGENTS.md`, and states its rows in each PR body ("Rows: <id> done | partial"); the coordinator ticks 02 from those lines. A lane merges its own PR once every check, parity included, is green on the head. Message a lane with the `send_message` tool of the claude-code-remote MCP server; read its transcript with `list_events`.
 
-| Lane | Session | State on 2026-10-30 22:30Z |
+| Lane | Session | State on 2026-10-31 04:05Z |
 |---|---|---|
-| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | `session_01QYLU1fyLRfi9sXSeoySzoN` (since 23:37Z, depth 1 under the launcher) | Watching #284 (docs). Next: GL.3, then the coordinator rows in "Exact next action". |
-| 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1hJWsuzQPvjbezw4wi` (since 23:43Z, through the launcher; old: `session_01QYLU1fsuzzCNWoc84uTypf`) | M3.7b part 3 (the scene), then part 4, M3.6d part 2, GAME-3D.1a to 1l, M3.10, M9. |
-| Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1gGeUSWTgwK4XoZvPo` (since 23:43Z, through the launcher; old: `session_01QYLU1gUDkJKWKgwehpcLRG`) | EDS.2c (builds on #275: `suite-session.ts`, `write-path.ts`, `ask-session.ts`), then ED2D.5b/5c/7a. EDS.1d-b waits on ED2D.9. |
-| Website (`mcthaydt/automata-website`) | `session_01QYLU1iBXhs9QdohCWXcLfV` (since 23:43Z, through the launcher; old: `session_01QYLU1hE7DAF6hEy3zKsyRe`) | WEB.PLAY.7 (the compile worker and live updates; `@codemirror/lint` 6.9.7 is a new dependency), then .8 to .11, DX.9w, DX.10a, DX.11w, QB.4b/c, QB.5b, M10 (store links only). Deploys stay dry runs. |
-| Plus (automata-plus) | paused; starts when the website lane wraps up (Owner: "You can start plus when website is wrapped up") | plus #16 M7.5b's review fixes are on `backup/m7-5b-9a43885`; plus #14 (two Plus `main` CI failures). Then PLUS.FREE and the cutscene path (M6.4a, M6.5, M6.8a, M6.8c, M6.9a, M6.9b). |
+| Coordinator (core and 2D path, CI, docs 02/03, Ruken repack, GL); the only session that watches PRs and CI | `session_01QYLU1gFYzkyBLxhLDconcc` (since 03:47Z, depth 1 under the launcher `session_01QYLU1fJPdbAybiTAWuSqLd`; rotates every two hours) | Watching and merging on green: #292 M3.7b 3b (`main` merged in after #299; base-3d tests pass locally), #294 M3.7b part 4 (stacked on #292; retarget to `main` after it), #297 GAME-3D.1a part 1 (stacked on #294), #300 GAME-3D.1a part 3 (stacked on #297's branch), #301 ED2D.7a (conflict with ED2D.5b/5c resolved, every view kept); website#26 WEB.PLAY.10. Visual acceptance recorded on #292, #294, #297, #301 and website#26; the golden re-records of #294 and #297 accepted. |
+| 3D (M3, GAME-3D, M9 free parts, M4.12) | `session_01QYLU1eVV65c3YDM357G2ya` (since 02:59Z) | GAME-3D.1a part 3 (#300). Part 2 (G3-t) waits on DX.2d. Then GAME-3D.1b to 1l, M3.10, M9. |
+| Editors (ED2D, EDFF, ED3D, EDK, EDS) | `session_01QYLU1f8xbLdP7AQriQ7GN3` (since 03:07Z) | EDS.2d (branch `claude/eds-2d-level-mounts`), then EDS.2c-c, then ED2D.7b and on. EDS.1d-b waits on ED2D.9. |
+| Website (`mcthaydt/automata-website`) | `session_01QYLU1fQBPTit3AUJBJS4gT` (since 02:05Z) | WEB.PLAY.11 (stacked on website#26), then DX.9w, DX.10a, DX.11w, QB.4b/c, QB.5b, M10 (store links only). Deploys stay dry runs. |
+| Plus (automata-plus) | paused; replaces the website lane when its queue is done | plus #16 M7.5b's review fixes on `backup/m7-5b-9a43885`; plus #14. Then PLUS.FREE and the cutscene path (M6.4a, M6.5, M6.8a, M6.8c, M6.9a, M6.9b). |
+| Unassigned, blocking 3D | none yet | PRODUCT.L3 (lane ui) → DX.2d (lane game); GAME-3D.1a part 2 waits on it. Candidate for the next free lane slot. |
 
 ## Critical paths
 
@@ -117,11 +118,12 @@ Later: "We need to be able to push to git; our biggest priorities for the editor
 
 ## Exact next action
 
-1. #283 (M3.7b part 2b) merged as `fa2159a`. `ci.yml`'s base-3d `sim-roots: src` line and its "flat in src/" comment are stale since #279; that is a workflow change, so it waits for the Owner's word.
+1. Merge the open PRs above as each goes green on its head (parity included). `ci.yml`'s base-3d `sim-roots: src` line and its "flat in src/" comment are stale since #279; that is a workflow change, so it waits for the Owner's word. The single `af-linux` PC runner is the bottleneck (one job at a time: a checks job and three game-ci jobs per PR); a second `af-linux` runner would roughly halve the wait.
 2. The runtime focus follow-up from the website lane (`packages/runtime/src/flow/flow.manager.ts`, the auto-focus on entry) is **not** a plain `!document.hasFocus()` skip: that breaks M4 spec §4.7 under a host, where the game focusing its first control is what gives its frame the keyboard (`examples/e2e/default-screens.e2e.ts` asserts Play focused under the fake host; two game unit tests failed too). It needs a narrow opt-out for an inert preview frame, written into the M4 spec first. The website hands focus back meanwhile.
 3. The "Version packages" PR (#226): before merging it, check its version bumps and that no physics package publishes from AF; its publish waits for the Owner's approval in the release environment.
 4. Keep at most about ten AF PRs in flight (Owner, 2026-10-30: "You can raise the cap and CI"). The checks and parity jobs may run 20 minutes.
-5. Next coordinator rows with no prerequisite: GL.3 (the placeholder's `src/main.ts`, failing test first), PRODUCT.1b2, DX.6a, DX.6c1, DX.7b/c, CI.API1a, CI.N1a, CI.N3, RT.BOOT1, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu, CI.BND2. Also from the 3D handoff: Ruken's "Try again" never works inside a frame (the SDK host answers one hello per frame load), a core fix.
+5. Next coordinator rows with no prerequisite: PRODUCT.1b2, DX.6a, DX.7b/c, CI.N1a, CI.N3, PRODUCT.4r1, M4.4F.1/2, M4.6F.1, M8.5a, M8.6a, PUB.3s, EX.4cu, CI.BND2. New follow-ups in 02: DX.2e (an untitled 16×6 button on the default paused screen) and EDS.2c-c.
+6. Under load, `TilesetsView.dom.test.ts` (editor-2d) timed out three tests at 5 s in a full local run and passed alone; watch for it in CI.
 
 ## Blocked on the Owner
 

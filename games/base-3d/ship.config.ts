@@ -22,4 +22,7 @@ export default defineShipConfig({
   },
   network: { connect: [] },
   content: { languages: ['en'], rating: 'everyone', descriptors: [] },
+  // The scene carries @pixi/3d, a closed beta (D-1): CI's prepare checks the build as private and writes no
+  // ruken.toml; deploy-dev and publish --private ship it. Public at the AF 1.0 launch (M3 spec §4.8).
+  audience: 'private',
 })
