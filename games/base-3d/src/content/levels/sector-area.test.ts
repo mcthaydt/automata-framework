@@ -2,8 +2,7 @@
 // only in 1.0; a file that cannot be read fails naming the file and the JSON path (G3-F2).
 import { WALL_THICK } from '@mcthaydt/automata-sector-format'
 import { describe, expect, it } from 'vitest'
-import { AreaLoadError } from '../../systems/index.ts'
-import { areaFromSector } from './sector-area.ts'
+import { AreaLoadError, areaFromSector } from './sector-area.ts'
 
 const HALF = WALL_THICK / 2
 const views = [{ id: 'a' }, { id: 'b' }]
@@ -30,8 +29,8 @@ const rect = (
   ...more,
 })
 const spawn = { def: 'spawn', id: 'spawn', x: 1, z: 1 }
-const ember = { def: 'ember', id: 'ember', x: 2, z: 2 }
-const file = (sectors: Json[], entities: Json[] = [spawn, ember], more: Json = {}) => ({
+const goal = { def: 'goal', id: 'goal', x: 2, z: 2 }
+const file = (sectors: Json[], entities: Json[] = [spawn, goal], more: Json = {}) => ({
   format: 'af-sector/1',
   name: 'test',
   sectors,
@@ -109,34 +108,19 @@ describe('areaFromSector (GAME-3D.1i)', () => {
     expect(area.rooms.map((room) => room.view)).toEqual(['a'])
   })
 
-  it('reads the spawn, the ember, the exits and the foes; the other entities are the dungeon’s pieces', () => {
+  it('reads the spawn, the embers and the goal', () => {
     const area = convert(
       file(
         [rect('a', [0, 0, 4, 3])],
-        [
-          spawn,
-          ember,
-          { def: 'foe', id: 'f1', x: 3, z: 2, kind: 'sootling', facing: 90 },
-          {
-            def: 'area-exit',
-            id: 'out',
-            x: 3.5,
-            z: 1.5,
-            width: 1,
-            depth: 2,
-            to: 'next',
-            entryX: 7,
-            entryZ: 8,
-          },
-          { def: 'chest', id: 'c', x: 1, z: 2, contents: 'map' },
-        ],
+        [spawn, goal, { def: 'ember', id: 'e1', x: 3, z: 2 }, { def: 'ember', id: 'e2', x: 1, z: 2 }],
       ),
     )
     expect(area.spawn).toEqual({ x: 1, z: 1 })
-    expect(area.ember).toEqual({ x: 2, z: 2 })
-    expect(area.foes).toEqual([{ kind: 'sootling', x: 3, z: 2, facing: 90 }])
-    expect(area.exits).toEqual([{ min: [3, 0.5], max: [4, 2.5], to: 'next', entry: { x: 7, z: 8 } }])
-    expect(area.entities).toEqual([{ def: 'chest', id: 'c', x: 1, z: 2, contents: 'map' }])
+    expect(area.goal).toEqual({ x: 2, z: 2 })
+    expect(area.embers).toEqual([
+      { x: 3, z: 2 },
+      { x: 1, z: 2 },
+    ])
   })
 
   describe('a file it cannot read names the file and the JSON path (G3-F2)', () => {
@@ -185,12 +169,12 @@ describe('areaFromSector (GAME-3D.1i)', () => {
       expect(failure(file([rect('a', [0, 0, 4, 3], [], { view: 'nowhere' })])).path).toBe('sectors[0].view')
     })
 
-    it('refuses an unknown entity, a missing or doubled spawn, and a missing ember', () => {
+    it('refuses an unknown entity, a missing or doubled spawn, and a missing goal', () => {
       expect(
-        failure(file([rect('a', [0, 0, 4, 3])], [spawn, ember, { def: 'tree', id: 't', x: 0, z: 0 }])).path,
+        failure(file([rect('a', [0, 0, 4, 3])], [spawn, goal, { def: 'tree', id: 't', x: 0, z: 0 }])).path,
       ).toBe('entities[2].def')
-      expect(failure(file([rect('a', [0, 0, 4, 3])], [ember])).path).toBe('entities')
-      expect(failure(file([rect('a', [0, 0, 4, 3])], [spawn, spawn, ember])).path).toBe('entities[1]')
+      expect(failure(file([rect('a', [0, 0, 4, 3])], [goal])).path).toBe('entities')
+      expect(failure(file([rect('a', [0, 0, 4, 3])], [spawn, spawn, goal])).path).toBe('entities[1]')
       expect(failure(file([rect('a', [0, 0, 4, 3])], [spawn])).path).toBe('entities')
     })
 

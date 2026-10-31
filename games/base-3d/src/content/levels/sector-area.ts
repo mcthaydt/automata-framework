@@ -6,27 +6,35 @@
 // - Each wall edge is a wall box `WALL_THICK` thick, closed at the corners. An edge with a `next` and no `door` is a
 //   portal and stays open; one with a `door` leaves just that opening, which the `door` entity fills. A wall two rooms
 //   share is written once.
-// - Entities: `spawn`, `ember`, `foe` and `area-exit` are the area's own lists; every other one is a dungeon piece
-//   (constants/entities.ts) as written.
+// - Entities: `spawn`, `ember` and `goal` are the area's own; any other is a load error.
 // - Only axis-aligned rectangles in 1.0: another shape, or a sector with holes, is a load error naming its path (a
 //   level-editor gap if the content wants one, EDITOR-GAPS.md). Nothing here runs per tick: it is the load step.
 import { type AfSectorEntry, afSectorSchema, WALL_THICK } from '@mcthaydt/automata-sector-format'
-import { ENTITY_DEFS } from '../../constants/entities.ts'
-import { AreaLoadError, type AreaSource } from '../../systems/index.ts'
+import type { AreaSource } from '../../systems/index.ts'
 
-type Entities = NonNullable<AreaSource['entities']>
 type Box = { min: [number, number]; max: [number, number] }
-type Entity = { readonly def: string; readonly id: string; readonly x: number; readonly z: number } & {
-  readonly [field: string]: unknown
-}
 
 const HALF = WALL_THICK / 2
-const PIECES: ReadonlySet<string> = new Set(Object.keys(ENTITY_DEFS))
 
 /** What the converter needs besides the file: its name, for the errors, and the area's camera views. */
 export interface SectorAreaOptions {
   readonly file: string
   readonly views: AreaSource['views']
+}
+
+/**
+ * A level file that cannot be read: the file, the JSON path of the field at fault (`sectors[1].corners`) and why,
+ * as the level editor's locator finds them.
+ */
+export class AreaLoadError extends Error {
+  readonly area: string
+  readonly path: string
+  constructor(area: string, path: string, reason: string) {
+    super(`base-3d area "${area}": ${path}: ${reason}`)
+    this.name = 'AreaLoadError'
+    this.area = area
+    this.path = path
+  }
 }
 
 const at = (path: string, index: number): string => `${path}[${index}]`
@@ -130,53 +138,28 @@ export function areaFromSector(json: unknown, options: SectorAreaOptions): AreaS
   }
 
   let spawn: { x: number; z: number } | undefined
-  let ember: { x: number; z: number } | undefined
-  const foes: NonNullable<AreaSource['foes']> = []
-  const exits: NonNullable<AreaSource['exits']> = []
-  const pieces: Entity[] = []
-  ;(file.entities ?? []).forEach((entity, index) => {
+  let goal: { x: number; z: number } | undefined
+  const embers: { x: number; z: number }[] = []
+  for (const [index, entity] of (file.entities ?? []).entries()) {
     const path = at('entities', index)
-    const own = entity as Entity
     switch (entity.def) {
       case 'spawn':
         if (spawn !== undefined) fail(path, 'a second spawn; an area has one')
         spawn = { x: entity.x, z: entity.z }
         break
+      case 'goal':
+        if (goal !== undefined) fail(path, 'a second goal; an area has one')
+        goal = { x: entity.x, z: entity.z }
+        break
       case 'ember':
-        if (ember !== undefined) fail(path, 'a second ember; an area has one')
-        ember = { x: entity.x, z: entity.z }
+        embers.push({ x: entity.x, z: entity.z })
         break
-      case 'foe':
-        if (typeof own.kind !== 'string') fail(`${path}.kind`, 'a foe names its kind')
-        foes.push({
-          kind: own.kind as string,
-          x: entity.x,
-          z: entity.z,
-          facing: typeof own.facing === 'number' ? own.facing : 0,
-        })
-        break
-      case 'area-exit': {
-        const { width, depth, to, entryX, entryZ } = own
-        if (typeof to !== 'string') fail(`${path}.to`, 'an exit names the area it leads to')
-        if (typeof width !== 'number' || typeof depth !== 'number')
-          fail(path, 'an exit has a width and a depth')
-        if (typeof entryX !== 'number' || typeof entryZ !== 'number')
-          fail(path, 'an exit has an entryX and an entryZ')
-        exits.push({
-          min: [entity.x - (width as number) / 2, entity.z - (depth as number) / 2],
-          max: [entity.x + (width as number) / 2, entity.z + (depth as number) / 2],
-          to: to as string,
-          entry: { x: entryX as number, z: entryZ as number },
-        })
-        break
-      }
       default:
-        if (!PIECES.has(entity.def)) fail(`${path}.def`, `unknown entity "${entity.def}"`)
-        pieces.push(own)
+        fail(`${path}.def`, `unknown entity "${entity.def}"`)
     }
-  })
+  }
   if (spawn === undefined) fail('entities', 'no spawn')
-  if (ember === undefined) fail('entities', 'no ember')
+  if (goal === undefined) fail('entities', 'no goal')
 
   return {
     id: file.name,
@@ -185,10 +168,7 @@ export function areaFromSector(json: unknown, options: SectorAreaOptions): AreaS
     rooms,
     walls: [...walls.values()],
     pits,
-    targets: [],
-    ember: ember as { x: number; z: number },
-    exits,
-    foes,
-    entities: pieces as Entities,
+    embers,
+    goal: goal as { x: number; z: number },
   }
 }

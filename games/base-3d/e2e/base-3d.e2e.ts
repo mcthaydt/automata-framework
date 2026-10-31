@@ -47,11 +47,11 @@ interface HostHooks {
   hostSlots(): Record<string, string>
   hostBridge: { exit(): Promise<void> }
 }
-type Envelope = { readonly version: number; readonly data: { embers: number; playTicks: number } }
+type Envelope = { readonly version: number; readonly data: { taken: number[]; playTicks: number } }
 
 /** The slot as the player's account holds it, once the fake host has synced it (a second after the last write). */
 const accountSlot = async (page: Page): Promise<Envelope | undefined> => {
-  const value = await page.evaluate(() => (window as unknown as HostHooks).hostSlots()['base-3d'])
+  const value = await page.evaluate(() => (window as unknown as HostHooks).hostSlots()['base-3d-free'])
   return value === undefined ? undefined : (JSON.parse(value) as Envelope)
 }
 const SYNC_WAIT = { timeout: 10_000 }
@@ -158,8 +158,8 @@ test('in portrait, covers play with the rotate hint and holds the sim; turned ba
   expect(errors).toEqual([])
 })
 
-// The save round-trip (G3-s, DESIGN.md §12.1). Taking the ember in play is the DOM test's (screens.dom.test.ts):
-// the walk to the kiln is hundreds of software-drawn frames here. This journey proves the browser half: a session's
+// The save round-trip (G3-s, DESIGN.md §12.1). Taking the goal in play is the DOM test's (screens.dom.test.ts):
+// the walk across the room is hundreds of software-drawn frames here. This journey proves the browser half: a session's
 // write reaches the account, and a second session's Continue plays a slot that holds a taken ember and keeps it.
 test('a save round-trip: the first session writes the slot, and the next continues it with the ember kept', async ({
   page,
@@ -172,11 +172,11 @@ test('a save round-trip: the first session writes the slot, and the next continu
   await expect.poll(async () => (await accountSlot(page))?.version, SYNC_WAIT).toBe(1)
   await page.evaluate(() => (window as unknown as HostHooks).hostBridge.exit())
   const first = (await accountSlot(page)) as Envelope
-  expect(first.data.embers).toBe(0)
+  expect(first.data.taken).toEqual([])
 
   // The account the next session opens: the first session's slot, as it would be had Wick taken the ember.
-  const withEmber = { ...first, data: { ...first.data, embers: 1 } }
-  frame = await openHosted(page, gameUrl, GAME_ID, { saves: { 'base-3d': JSON.stringify(withEmber) } })
+  const withEmber = { ...first, data: { ...first.data, taken: [0] } }
+  frame = await openHosted(page, gameUrl, GAME_ID, { saves: { 'base-3d-free': JSON.stringify(withEmber) } })
   await toPlay(frame, 'save-slots-load')
   await frame.locator('body').press('Escape', { timeout: PLAY_STEP_MS })
   await expect(screen(frame, 'paused')).toBeAttached({ timeout: PLAY_STEP_MS })
@@ -184,7 +184,7 @@ test('a save round-trip: the first session writes the slot, and the next continu
   await expect
     .poll(async () => (await accountSlot(page))?.data.playTicks ?? 0, SYNC_WAIT)
     .toBeGreaterThan(first.data.playTicks)
-  expect((await accountSlot(page))?.data.embers).toBe(1)
+  expect((await accountSlot(page))?.data.taken).toEqual([0])
   expect(errors).toEqual([])
 })
 

@@ -1,9 +1,10 @@
-// base-3d's save through the sim (DESIGN.md §12.1): a new game's sim captures exactly the new game's data, and a
-// slot applied to one sim never reaches another's capture (the 1e part 5a follow-up: New game captures a fresh sim
+// base-3d's save through the sim (the save): a new game's sim captures exactly the new game's data, and a
+// slot applied to one sim never reaches another's capture (New game captures a fresh sim
 // without applying anything, so what an earlier Continue applied must not carry into it).
 import { describe, expect, it } from 'vitest'
+import { Ember } from '../components.ts'
 import { newGame } from '../state/save.ts'
-import { startSim } from '../testing/sim.ts'
+import { run, startSim } from '../testing/sim.ts'
 import { base3dSaves } from './saves.ts'
 
 describe('base3dSaves', () => {
@@ -18,17 +19,29 @@ describe('base3dSaves', () => {
     const continued = await startSim()
     const played = {
       ...newGame(),
-      hearts: { max: 5, pieces: ['hub-well'] },
-      flags: ['met-lamplighter'],
-      kiln: { ...newGame().kiln, smallKeys: 1, visited: ['hall'] },
-      resume: 'kiln' as const,
+      taken: [0, 3],
+      goal: false,
       playTicks: 9000,
+      note: 'a later build’s field',
     }
     saves.apply(continued, played)
-    expect(saves.capture(continued)).toMatchObject({ flags: ['met-lamplighter'], playTicks: 9000 })
+    expect(saves.capture(continued)).toMatchObject({
+      taken: [0, 3],
+      playTicks: 9000,
+      note: 'a later build’s field',
+    })
     continued.dispose()
     const fresh = await startSim()
     expect(saves.capture(fresh)).toEqual(newGame())
     fresh.dispose()
+  })
+
+  it('removes the embers a slot says are taken, on the first tick', async () => {
+    const saves = base3dSaves()
+    const sim = await startSim()
+    saves.apply(sim, { ...newGame(), taken: [0, 1, 2] })
+    run(sim, {})
+    expect(sim.query(Ember).map((entity) => entity.get(Ember).index)).toEqual([3, 4, 5])
+    sim.dispose()
   })
 })
