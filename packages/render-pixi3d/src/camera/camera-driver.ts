@@ -3,7 +3,9 @@
 // rig: the first view is a cut, a later view change an ease, and a view that sets `yawDeg` eases the heading to it
 // (the sim set it the same tick). Every other frame tracks the latest tick's heading exactly, not interpolated:
 // §4.2 says nothing eases between the finger and the camera, and a turn is at most a tick old. Positions are
-// interpolated as every view's are. A row whose view is still '' (the component's start) has no view yet.
+// interpolated as every view's are. A row whose view is still '' (the component's start) has no view yet. A game
+// whose sim keeps fixed-point positions reads metres with `position`, and frames a lock-on target with `lock`: the
+// driver then keeps every row's components by sid, so `lock` can find the target's.
 
 import type { PixiStageHooks } from '@mcthaydt/automata-render-pixi'
 import type { FrameInfo } from '@mcthaydt/automata-runtime'
@@ -13,6 +15,7 @@ import type { CameraView } from '../sim/camera-view.schema.js'
 import { headingDegrees } from '../sim/heading.js'
 import { interpolatePose3d } from '../views/pose-3d.js'
 import type { CameraRig } from './angled-camera.js'
+import type { Vec3 } from './camera-pose.js'
 
 /** `Pixi3dOptions.camera`: the angled camera on the player. */
 export interface Pixi3dCameraOptions {
@@ -24,6 +27,18 @@ export interface Pixi3dCameraOptions {
   readonly follow: string
   /** Metres from the followed position (the feet) to the head, for the occluder rule's lines. Default 1.62. */
   readonly height?: number | undefined
+  /**
+   * The followed position in metres from the followed entity's components, for a sim that keeps another unit
+   * (fixed point, say). Default: the `follow` component's `x`, `y`, `z`.
+   */
+  readonly position?: ((components: Components) => Vec3 | undefined) | undefined
+  /**
+   * Lock-on framing (§4.2): the point to frame with the player, from the player's components and any entity's by
+   * sid (`rowOf`), or none to frame the player alone. Read each frame and passed to the rig's `frame`.
+   */
+  readonly lock?:
+    | ((components: Components, rowOf: (sid: number) => Components | undefined) => Vec3 | undefined)
+    | undefined
 }
 
 /** The spec's figure (§4.2, D3-j): the occluder rule keeps the line to a head this high clear by default. */
@@ -50,10 +65,35 @@ const fieldsOf = (components: Components | undefined): { view: string; heading: 
 export function cameraDriver(rig: CameraRig, options: Pixi3dCameraOptions): PixiStageHooks {
   let tracked: Tracked | undefined
   let shownView: string | undefined
+  // Every row's components by sid, kept only when `lock` needs them.
+  const rows = new Map<number, Components>()
+  const rowOf = (sid: number): Components | undefined => rows.get(sid)
 
   const forget = (): void => {
     tracked = undefined
     shownView = undefined
+    rows.clear()
+  }
+  const keepRows = (delta: StepResult['render']): void => {
+    for (const sid of delta.removed) rows.delete(sid)
+    for (const row of delta.added) rows.set(row.sid, row.components)
+    for (const row of delta.changed) rows.set(row.sid, row.components)
+  }
+  const followed = (curr: Components, prev: Components | undefined, alpha: number): Vec3 | undefined => {
+    if (options.position === undefined) {
+      const record = curr[options.follow]
+      if (record === undefined) return undefined
+      const pose = interpolatePose3d(record, prev?.[options.follow], alpha)
+      return { x: pose.x, y: pose.y, z: pose.z }
+    }
+    const to = options.position(curr)
+    const from = prev === undefined ? undefined : options.position(prev)
+    if (to === undefined || from === undefined) return to
+    return {
+      x: from.x + (to.x - from.x) * alpha,
+      y: from.y + (to.y - from.y) * alpha,
+      z: from.z + (to.z - from.z) * alpha,
+    }
   }
 
   return {
@@ -61,6 +101,7 @@ export function cameraDriver(rig: CameraRig, options: Pixi3dCameraOptions): Pixi
       const delta = result.render
       if (delta.resync) forget()
       if (tracked !== undefined && delta.removed.includes(tracked.sid)) forget()
+      if (options.lock !== undefined) keepRows(delta)
       const row = [...delta.added, ...delta.changed].find(
         (candidate) =>
           CameraHeading.id in candidate.components &&
@@ -86,11 +127,9 @@ export function cameraDriver(rig: CameraRig, options: Pixi3dCameraOptions): Pixi
           shownView = curr.view
           rig.heading(headingDegrees(curr.heading), easeTo ? 'ease' : 'track')
         } else rig.heading(headingDegrees(curr.heading))
-        const record = tracked.curr[options.follow]
-        if (record !== undefined) {
-          const pose = interpolatePose3d(record, tracked.prev?.[options.follow], frame.alpha)
-          rig.follow(pose.x, pose.y, pose.z)
-        }
+        const at = followed(tracked.curr, tracked.prev, frame.alpha)
+        if (at !== undefined) rig.follow(at.x, at.y, at.z)
+        if (options.lock !== undefined) rig.frame(options.lock(tracked.curr, rowOf))
       }
       rig.update(frame.frameMs / 1000)
     },

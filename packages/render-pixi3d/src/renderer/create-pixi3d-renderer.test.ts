@@ -43,6 +43,13 @@ describe('createPixi3dRenderer before any Pixi app exists', () => {
     )
     expect(Exit.isFailure(exit) && JSON.stringify(exit.cause.toJSON())).toContain('"reason":"not loaded"')
   })
+  it("loads the scene's own model files with the views' (M3.7b part 3a): a skinned one fails boot the same way", async () => {
+    const host = recordingHost()
+    const factory = createPixi3dRenderer({ views: {}, models: ['models/bench.glb'] })
+    const exit = await run(factory, host, { 'models/bench.glb': encodeGlb(fixtureBox(), { skinned: true }) })
+    expect(Exit.isFailure(exit) && JSON.stringify(exit.cause.toJSON())).toContain('"reason":"skinned"')
+    expect(host.children).toEqual([])
+  })
 })
 
 describe('acceptsRenderer', () => {

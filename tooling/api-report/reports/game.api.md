@@ -238,6 +238,12 @@ interface InputMap {
 }
 ```
 
+### `inputs` (function)
+
+```ts
+function inputs(...maps: readonly InputMap[]): InputMap;
+```
+
 ### `InputSource` (interface)
 
 ```ts

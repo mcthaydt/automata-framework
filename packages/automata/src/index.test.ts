@@ -7,7 +7,8 @@ import * as automata from './index.ts'
 
 // `@mcthaydt/automata`, the one import (PRODUCT spec §7, plan U-2): the game package and the sim's define verbs,
 // each the very same value as its owner's. The list is pinned, so a new verb is added on purpose (`defineSave`, M5.2:
-// `defineGame({ saves })` takes a save, and a game imports the umbrella, not the runtime, to declare one).
+// `defineGame({ saves })` takes a save, and a game imports the umbrella, not the runtime, to declare one; `inputs`,
+// M3.7b: a game whose sim takes several commands joins its `keys()` maps).
 const FROM_GAME = [
   'GameSpecError',
   'createCamera2d',
@@ -15,6 +16,7 @@ const FROM_GAME = [
   'defaultScreens',
   'defineGame',
   'defineSave',
+  'inputs',
   'keys',
   'postFilter',
   'rect',

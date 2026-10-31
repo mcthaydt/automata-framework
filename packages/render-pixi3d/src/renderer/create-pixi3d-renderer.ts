@@ -30,7 +30,8 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    * After the `View3D` is mounted, before the first frame: the camera, the lights and the static scenery. Walls,
    * ceilings and tall props are registered with `occluders`, so the angled camera's occluder rule keeps them off the
    * player (M3 spec §4.2). With `lighting`, `light` is the room's light: bake each static mesh with
-   * `light.bake(mesh)`. It may return hooks, which run after the views (and the camera) each step and frame.
+   * `light.bake(mesh)`. `models` holds the views' model files and the scene's own (`models`), loaded. It may return
+   * hooks, which run after the views (and the camera) each step and frame.
    */
   readonly scene?:
     | ((
@@ -38,8 +39,14 @@ export interface Pixi3dOptions extends PixiRendererOptions {
         stage: PixiStage,
         occluders: Occluders,
         light: SceneLight | undefined,
+        models: ModelLibrary,
       ) => PixiStageHooks | undefined)
     | undefined
+  /**
+   * Model files the `scene` hook draws itself (static props with no sim entity), loaded with the views' before the
+   * first frame and failing boot the same way (`ModelInvalid`). The game preloads them as it does the views'.
+   */
+  readonly models?: readonly string[] | undefined
   /**
    * The view's linear fog (M3 spec §4.1). Without it, the lighting content's `fog`; without both, none. With fog, the
    * sky behind the scene is the colour fog reaches (in place of `backgroundColor`), so fogged walls meet it with no edge.
@@ -215,7 +222,11 @@ function buildInstance(
           const made = mount(stage, options, models)
           mounted = made
           const own = options.setup?.(stage) ?? undefined
-          return mergeHooks(made.hooks, own, options.scene?.(made.view, stage, made.occluders, made.light))
+          return mergeHooks(
+            made.hooks,
+            own,
+            options.scene?.(made.view, stage, made.occluders, made.light, models),
+          )
         },
       })(target)
       if (mounted === undefined) {
@@ -275,7 +286,10 @@ export function createPixi3dRenderer(
             "render-pixi3d: import '@mcthaydt/automata-render-pixi3d/no-eval' first, before anything else (in place of render-pixi/no-eval)",
           ),
         )
-      const files = Object.values(options.views).flatMap((factory) => factory.models ?? [])
+      const files = [
+        ...Object.values(options.views).flatMap((factory) => factory.models ?? []),
+        ...(options.models ?? []),
+      ]
       const models = yield* loadModels(files, target.assets)
       // Freed when the scope closes, after the app and the views that draw them (finalizers run last-added first).
       yield* Effect.addFinalizer(() => Effect.sync(() => models.dispose()))

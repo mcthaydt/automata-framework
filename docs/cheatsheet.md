@@ -36,6 +36,7 @@
 - `GameSpec` (interface): A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds, scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
 - `GameSpecError` (class): Every invalid field of a spec, by path: `size.width: …`.
 - `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
+- `inputs(...maps)`: One input map from `maps`, each sending its own command every tick in map order.
 - `InputSource` (interface): The input map attached to a window for one play session.
 - `KeyBindings` (type): By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout.
 - `keys(command, bindings, options?)`: An input map sending `command` once per tick with the payload of what is held: keys by `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the idle payload.
@@ -177,6 +178,7 @@
 - `GameSpec` (interface): A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds, scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
 - `GameSpecError` (class): Every invalid field of a spec, by path: `size.width: …`.
 - `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
+- `inputs(...maps)`: One input map from `maps`, each sending its own command every tick in map order.
 - `InputSource` (interface): The input map attached to a window for one play session.
 - `KeyBindings` (type): By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout.
 - `keys(command, bindings, options?)`: An input map sending `command` once per tick with the payload of what is held: keys by `KeyboardEvent.code`, on-screen touch buttons, gamepad buttons, the stick and gestures, merged over the idle payload.

@@ -108,6 +108,27 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
     }
   })
 
+  it("hands the scene hook the loaded model library, the scene's own files in it (M3.7b part 3a)", async () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    let seen: unknown
+    const factory = createPixi3dRenderer({
+      logicalWidth: 160,
+      logicalHeight: 90,
+      views: {},
+      models: ['models/bench.glb'],
+      scene: (_view, _stage, _occluders, _light, models) => {
+        seen = models.get('models/bench.glb')?.mesh.max
+        return undefined
+      },
+    })
+    scope = Effect.runSync(Scope.make())
+    await Effect.runPromise(
+      Scope.extend(factory(testTarget(host, { 'models/bench.glb': encodeGlb(fixtureBox()) })), scope),
+    )
+    expect(seen).toBeDefined()
+  })
+
   it('adds, moves (interpolated) and removes views over the Container3D root', async () => {
     const { renderer } = await start()
     const root = renderer.view.root
