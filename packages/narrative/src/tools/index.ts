@@ -36,6 +36,14 @@ export {
 export { hintProbes } from './hint-probes'
 export { type Box, type Boxes, type LintInput, lintNarrative, type Measure, properNouns, wrap } from './lint'
 export {
+  dialogueScreenplay,
+  type ScreenplayScene,
+  type ScreenplayStorylet,
+  screenplay,
+  seconds,
+  storyletRows,
+} from './screenplay'
+export {
   type Order,
   type PlayOptions,
   type PlayRoute,
