@@ -3,7 +3,7 @@
 - **Task:** ED2D.5b in [02](../../02-master-delivery-plan.md). [2D editor spec](../specs/2026-10-23-editor-2d-design.md) §5.4 (tilesets), §5.6 (rules), §8 (the Tilesets row, flow 6), §12 (inputs, 44 px pattern cells), §13; mockup `tileset` in `docs/design/editor-2d/screens-general.mjs`.
 - **Lane:** editor-2d. **Depends on:** ED2D.5a (the commands, merged) and ED2D.4c4b (the Level view's inspector and shell use, merged). **Unblocks:** ED2D.8 (journeys and polish).
 - **Status:** drafted 2026-10-31 on `claude/ed2d-5b-tilesets-view`. Owner, 2026-10-30: "Auto accept all spec and plans"; this plan is accepted once its review is done.
-- **Progress:** 7 of 8 steps.
+- **Progress:** 8 of 8 steps.
 
 ## Scope
 
@@ -72,7 +72,7 @@ export function createTilesetsSession(options: { history: History<unknown>; ids:
 5. [x] **Preview.** `rule-preview.test.ts`: the sample's shape; the result equals `autoTiles` of the sample; the matched cells of a `filled`-centre, all-`any` rule are exactly the filled sample cells; a rule with `{ is: 2 }` centre on a sample of value 1 matches nothing.
 6. [x] **Session.** `tilesets-session.test.ts`: each action is one undo step with its label (cycle a cell, size, outputs add and remove, chance, flips, break, outside, active, duplicate, delete, add rule, add group, group label and active, delete group, reorder rules and groups, tag and untag, a new tag); a refused value returns the message and adds no step; undo restores the selection's fallback.
 7. [x] **Views.** `TilesetsView.dom.test.ts` mounted as the app mounts it (switching the rail to Tilesets): the panel lists, the sheet's tiles and tags, tapping a pattern cell cycles it and the preview changes, Space, ArrowDown, Space on a rule's grip (the kit `ReorderList`'s keyboard) moves it (one undo step), adding an output from the selected tile, a refused chance shows the message, Delete and Duplicate. `views.ts` registers the view.
-8. [ ] **Layout.** `tilesets-view.layout.test.ts` in Chromium, WebKit and Firefox at 1194 × 834, 834 × 1194 and 390 × 844: no page scroll, pattern cells and every button at least 44 px, the panel's rule strip scrolls inside its region, the inspector's footer stays reachable. Review images under `docs/evidence/owner-visual/2026-10-31-ed2d-5b-tilesets/` with a README.
+8. [x] **Layout.** `tilesets-view.layout.test.ts` in Chromium, WebKit and Firefox at the kit's eight sizes (`SIZES`): no page scroll, pattern cells and every button at least 44 px, the panel's rule strip scrolls inside its region, the inspector's footer stays reachable. Review images under `docs/evidence/owner-visual/2026-10-31-ed2d-5b-tilesets/` with a README.
 
 ## Gates
 
@@ -84,3 +84,11 @@ export function createTilesetsSession(options: { history: History<unknown>; ids:
 - 2026-10-31: steps 1 to 5. `tile-sprite.test.ts` (2), `tilesets-model.test.ts` (13) and `rule-preview.test.ts` (5) failed first on the missing modules, then pass; the palette's DOM tests stay green on the moved sprite code. `palette-model.ts` exports `tileItems` (was the private `tilesOf`). The matched cells evaluate the selected rule alone with a stand-in output tile, so a rule with no output yet still shows where it would match; its chance roll still applies.
 - 2026-10-31: step 6. `tilesets-session.test.ts` (13) failed first on the missing module; one case then failed on the test itself (a tile left selected), fixed in the test; 13 pass.
 - 2026-10-31: step 7. `TilesetsView.dom.test.ts` (9) written before the view's behaviour was run; the first run failed 5 cases on an ambiguous query (the grip's name "Reorder Hazards and water" also matched), fixed by anchoring the query; 9 pass, and `views.dom.test.ts` maps `TilesetsView`. Deviation: the plan said Alt+ArrowDown on a grip; the kit `ReorderList` lifts with Space, moves with the arrows and drops with Space, so the test uses that. Components added beyond the plan's list: `PatternThumb.svelte` and `pattern-cell.ts` (the rule row's thumbnail and the shared kind name); `TileSprite.svelte` was not needed (each place uses `spriteStyle`). `svelte-check` clean.
+- 2026-10-31: step 8. `tilesets-view.layout.test.ts` first failed 6 of 24 Chromium cases: the canvas column and the sideways tile sheet were not declared scroll regions (`is off screen`, then `is cut at the side of its scroll region` at 900 × 600 and on phones). The column is `data-scroll-region`; the sheet scrolls sideways on purpose and is `data-scroll-region="both"`, as the layout contract says for an editor's strip. Then 72 of 72 pass (Chromium, WebKit, Firefox × 8 sizes) and the DOM suite stays 9 of 9. Looking at the screenshots found two faults the tests did not: the matched-cell outline was painted under the tiles (now an `::after` overlay) and the caption said "1 cells" (now singular, with a DOM assertion). Review images and their README: `docs/evidence/owner-visual/2026-10-31-ed2d-5b-tilesets/`.
+
+## Follow-ups
+
+- "Replace image" and adding a tileset need a file pick, a workspace write and an image measure (`importTileset` exists); a later row.
+- "Re-roll variation" belongs with `rerollSeed` (ED2D.6); the preview shows the first level's seed.
+- Rule ids are truncated in the 264 px panel; rules have no label of their own in the model (spec §5.6), so the id is the name.
+- Tile cells are 44 px at every size; spec §12 lets them grow to the grid size on `wide` (ED2D.8, with the palette's).

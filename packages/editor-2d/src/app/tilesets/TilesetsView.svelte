@@ -89,7 +89,7 @@ onDestroy(() => {
         <p>Your file is unchanged.</p>
       </div>
     {:else}
-      <div class="stage">
+      <div class="stage" data-scroll-region>
         {#if !wide}
           <div class="drawers">
             <button type="button" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Rules</button>

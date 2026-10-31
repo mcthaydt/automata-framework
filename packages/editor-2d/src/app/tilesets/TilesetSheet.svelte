@@ -57,7 +57,7 @@ function addTag(event: SubmitEvent): void {
     {grid.columns} × {grid.rows} tiles
   </p>
 
-  <div class="scroll">
+  <div class="scroll" data-scroll-region="both">
     <div class="tiles" role="group" aria-label="Tiles" style:--columns={grid.columns}>
       {#each tiles as item (item.tile)}
         {@const drawn = item.image !== undefined && imageUrl(item.image.path) !== undefined}

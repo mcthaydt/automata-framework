@@ -132,6 +132,7 @@ describe('Tilesets view: the rule inspector and the preview', () => {
     await chooseHazards()
     const caption = screen.getByTestId('rule-preview').querySelector('.caption')
     expect(caption).toHaveTextContent('Outlined: the 0 cells where spike matches on its own.')
+    expect(caption?.textContent).not.toMatch(/the 1 cells/)
     const cell = within(screen.getByTestId('pattern-editor')).getByRole('button')
     expect(cell).toHaveAccessibleName('Row 1, column 1 (centre): is Spike')
     await userEvent.click(cell)

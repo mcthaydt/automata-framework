@@ -69,7 +69,8 @@ function tileStyle(tile: number, flipX: boolean, flipY: boolean): string {
     {#if selection.rule === undefined}
       Choose a rule to see where it matches.
     {:else}
-      Outlined: the {preview.matched.length} cells where {selection.rule} matches on its own.
+      Outlined: the {preview.matched.length === 1 ? '1 cell' : `${preview.matched.length} cells`} where {selection.rule}
+      matches on its own.
     {/if}
   </p>
 </section>
@@ -122,10 +123,11 @@ function tileStyle(tile: number, flipX: boolean, flipY: boolean): string {
   .cell {
     position: relative;
   }
-  .cell.matched {
-    outline: 2px dashed var(--color-accent-default);
-    outline-offset: -2px;
-    z-index: 1;
+  .cell.matched::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px dashed var(--color-accent-default);
   }
   .tile {
     position: absolute;
