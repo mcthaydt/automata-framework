@@ -29,6 +29,7 @@ import { checksWords, planStatus } from '../../app/plan-status'
 import { planToolCommands } from '../../app/plan-tool-commands'
 import { createPlanTools, type PlanToolId } from '../../app/plan-tools'
 import type { Point } from '../../format/sector.schema'
+import DefinitionsSheet from '../definitions/DefinitionsSheet.svelte'
 import DollhouseCanvas from '../dollhouse/DollhouseCanvas.svelte'
 import type { DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'
 import { lazyDollhouseRenderer } from '../dollhouse/lazy-dollhouse-renderer'
@@ -145,6 +146,8 @@ function onkeydown(event: KeyboardEvent): void {
 const inspectorEdits = createInspectorEdits(editor)
 /** The material sheet is open on this wall or surface. */
 let materialTarget = $state<MaterialTarget | undefined>()
+/** The definitions sheet is open. */
+let definitionsOpen = $state(false)
 // svelte-ignore state_referenced_locally
 let card = $state.raw(inspectorOf(editor))
 
@@ -223,6 +226,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
     onchange={(change, phase) => inspectorEdits.change(change, phase)}
     onselect={(id) => editor.selection.set([id])}
     onmaterial={(target) => (materialTarget = target)}
+    ondefinitions={() => (definitionsOpen = true)}
   />
 {/snippet}
 
@@ -231,6 +235,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
     {card}
     onchange={(change, phase) => inspectorEdits.change(change, phase)}
     onmaterial={(target) => (materialTarget = target)}
+    ondefinitions={() => (definitionsOpen = true)}
   />
 {/snippet}
 
@@ -337,6 +342,9 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
     />
     {#if materialTarget !== undefined}
       <MaterialSheet {editor} surface={materialTarget} onclose={() => (materialTarget = undefined)} />
+    {/if}
+    {#if definitionsOpen}
+      <DefinitionsSheet {editor} onclose={() => (definitionsOpen = false)} />
     {/if}
     <ToastRegion {toasts} />
   {/snippet}

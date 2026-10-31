@@ -20,6 +20,7 @@ interface Props {
   onchange: (change: InspectorChange, phase: InspectorPhase) => string | undefined
   onselect: (id: string) => void
   onmaterial?: ((target: MaterialTarget) => void) | undefined
+  ondefinitions?: (() => void) | undefined
   /** The open tab, bound by the frame. */
   tab?: string
 }
@@ -32,6 +33,7 @@ let {
   onchange,
   onselect,
   onmaterial,
+  ondefinitions,
   tab = $bindable('sector'),
 }: Props = $props()
 
@@ -61,7 +63,7 @@ const TABS = [
   <Tabs label="Inspector" tabs={TABS} value={tab} onselect={(id) => (tab = id)}>
     {#snippet panel(id)}
       {#if id === 'sector'}
-        <Inspector {card} {onchange} {onmaterial} />
+        <Inspector {card} {onchange} {onmaterial} {ondefinitions} />
       {:else if id === 'walls'}
         {@render rows(walls, 'Select a room to list its walls.')}
       {:else if id === 'things'}

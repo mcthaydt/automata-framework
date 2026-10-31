@@ -18,9 +18,11 @@ interface Props {
   onchange: (change: InspectorChange, phase: InspectorPhase) => string | undefined
   /** Opens the material sheet on a wall or a room's surface. */
   onmaterial?: ((target: MaterialTarget) => void) | undefined
+  /** Opens the definitions sheet. */
+  ondefinitions?: (() => void) | undefined
 }
 
-const { card, onchange, onmaterial }: Props = $props()
+const { card, onchange, onmaterial, ondefinitions }: Props = $props()
 
 let refusal = $state<string | undefined>()
 
@@ -56,6 +58,7 @@ const metres = (value: number): string => value.toFixed(2)
   {#if refusal !== undefined}
     <p class="refusal" role="alert">{refusal}</p>
   {/if}
+  {#if ondefinitions}<Button onclick={ondefinitions}>Definitions…</Button>{/if}
 </section>
 
 <style>
