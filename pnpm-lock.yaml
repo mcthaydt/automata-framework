@@ -689,6 +689,12 @@ importers:
       '@mcthaydt/automata-editor-kit':
         specifier: workspace:*
         version: link:../editor-kit
+      '@mcthaydt/automata-figures':
+        specifier: workspace:*
+        version: link:../figures
+      '@mcthaydt/automata-render-pixi3d':
+        specifier: workspace:*
+        version: link:../render-pixi3d
       '@mcthaydt/automata-ui':
         specifier: workspace:*
         version: link:../ui
