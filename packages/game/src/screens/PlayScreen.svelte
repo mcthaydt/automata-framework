@@ -6,6 +6,8 @@
 -->
 <script lang="ts">
 import {
+  CameraDragSurface,
+  type DragTracker,
   type InputMethodTracker,
   type PointerTracker,
   ScreenFrame,
@@ -28,14 +30,36 @@ interface Props {
   swipe?: PointerTracker | undefined
   /** The extensions' `hud.overlay` components, drawn over the game inside the visible region (M4.7). */
   hud?: readonly UiComponent[] | undefined
+  /** The camera-drag tracker, when the input map binds `camera-drag` (M4 spec §16.4); none draws no surface. */
+  drag?: DragTracker | undefined
+  /** The touch stick, when the input map asks for it (M4 spec §17.1): its vector and its release. */
+  stick?: { onstick: (x: number, y: number) => void; onstickend: () => void } | undefined
 }
 
-const { onPause, tracker, touchButtons, onHold, onRelease, swipe, hud = [], copy }: Props = $props()
+const {
+  onPause,
+  tracker,
+  touchButtons,
+  onHold,
+  onRelease,
+  swipe,
+  hud = [],
+  copy,
+  drag,
+  stick,
+}: Props = $props()
 
 const touching = $derived(tracker.method === 'touch')
-const showButtons = $derived(touching && swipe === undefined && touchButtons.length > 0)
+const showButtons = $derived(
+  touching && swipe === undefined && (touchButtons.length > 0 || stick !== undefined),
+)
 const buttons = $derived(
-  touchButtons.map((button) => ({ action: button.id, label: button.label, required: button.required })),
+  touchButtons.map((button) => ({
+    action: button.id,
+    label: button.label,
+    side: button.side,
+    required: button.required,
+  })),
 )
 </script>
 
@@ -54,10 +78,21 @@ const buttons = $derived(
 {/snippet}
 
 {#snippet actions()}
-  <TouchControls testId="touch-buttons" {buttons} onhold={onHold} onrelease={onRelease} />
+  <TouchControls
+    testId="touch-buttons"
+    {buttons}
+    onhold={onHold}
+    onrelease={onRelease}
+    stick={stick === undefined ? undefined : { label: copy.current.play.move }}
+    onstick={stick?.onstick}
+    onstickend={stick?.onstickend}
+  />
 {/snippet}
 
 <div class="af-game-play" data-game-screen="play">
+  {#if drag !== undefined}
+    <CameraDragSurface tracker={drag} />
+  {/if}
   {#if touching && swipe !== undefined}
     <SwipeSurface tracker={swipe} />
   {/if}

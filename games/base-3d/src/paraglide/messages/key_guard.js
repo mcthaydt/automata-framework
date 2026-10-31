@@ -6,13 +6,13 @@ import { getLocale, experimentalStaticLocale } from '../runtime.js';
 /** @typedef {{}} Key_GuardInputs */
 
 const en_key_guard = /** @type {(inputs: Key_GuardInputs) => LocalizedString} */ () => {
-	return /** @type {LocalizedString} */ (`Guard`)
+	return /** @type {LocalizedString} */ (`Shield`)
 };
 
 /**
 * | output |
 * | --- |
-* | "Guard" |
+* | "Shield" |
 *
 * @param {Key_GuardInputs} inputs
 * @param {{ locale?: "en" }} options

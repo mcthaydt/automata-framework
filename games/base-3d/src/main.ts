@@ -6,9 +6,9 @@
 // freely, cuts the walls away and fades the pillar; three static props from The Last Light and fog. Shift locks
 // onto the second figure: Wick strafes and aims at it, and the camera frames them both. (Part 4) The flow: a splash,
 // the menu, the room, paused and Settings, and the end screen when Wick picks up the ember in the kiln.
-// Controls: WASD or the arrows to move, Q and E to turn the camera (or cycle the lock), Shift to lock, J slash, K
-// held to guard, L point, F pick up, Space to roll (or hop while locked), Escape to pause. On touch, the same as
-// buttons (the analog stick and the camera drag wait on the play screen, GAME-3D.1h).
+// Controls (GAME-3D.1h, DESIGN.md §14): WASD, the arrows or the left stick to move; Q and E, the right stick or a
+// drag to turn the camera (or cycle the lock); F to lock; J to attack; L or Shift to shield; Space or K to roll and
+// pick up; R for the item; Escape to pause. On touch, the stick, the drag and five buttons.
 // Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, @mcthaydt/automata-figures,
 // @mcthaydt/automata-render-pixi3d; @mcthaydt/automata-content (its Vite plugin) and @mcthaydt/automata-ship.
 import '@mcthaydt/automata-render-pixi3d/no-eval'
@@ -20,10 +20,13 @@ import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { QualityTier } from '@mcthaydt/automata-runtime'
 import { reducedMotion } from '@mcthaydt/automata-ui'
 import { Act, Lock, Move } from './commands.ts'
-import { Door, Hero, Target } from './components.ts'
+import { Block, Breakable, Chest, Door, Hero, Switch, Target } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
 import { FIRST_SLICE } from './content/first-slice.ts'
+import { KILN } from './content/kiln.ts'
+import { WORLD_SOURCES } from './content/world.ts'
 import * as paraglideRuntime from './paraglide/runtime.js'
+import { cameraTurnUnits, endGroup, moveFromStick } from './screens/controls.ts'
 import { BASE3D_COPY } from './screens/copy.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
 import { hudExtension } from './screens/hud.extension.ts'
@@ -38,6 +41,7 @@ import { doorView } from './views/doors.ts'
 import { ENEMY_FIGURES, enemyFigureState, enemyView } from './views/enemies.ts'
 import { feelHooks } from './views/feel.ts'
 import {
+  buildArea,
   buildScene,
   FOG,
   figureContent,
@@ -48,16 +52,16 @@ import {
   placed,
   recentred,
 } from './views/index.ts'
+import { pieceView } from './views/pieces.ts'
 
 // Compiling the areas is boot's content cost (DESIGN.md §13 boot step 3): measured, so G3-u's journey holds it to a
 // budget.
 performance.mark('base-3d:compile-areas:start')
-const WORLD = compileWorld([FIRST_SLICE])
+const WORLD = compileWorld(WORLD_SOURCES)
 /** The keys' and touch buttons' labels, in the source language: the input map is data, read once at boot (G3-t). */
 const KEYS = BASE3D_COPY.en.keys
 performance.measure('base-3d:compile-areas', 'base-3d:compile-areas:start')
-const AREA = WORLD.areas[0] as (typeof WORLD.areas)[number]
-/** The game's sim on the first slice, its world's only area until GAME-3D.1i; the sim takes it as data (`base3dSim`). */
+/** The game's sim over the world: the first slice, then the Cold Kiln; the sim takes it as data (`base3dSim`). */
 const BASE3D_SIM = base3dSim(WORLD)
 
 /** The keyboard's camera turn, 120° a second (M4-D16): 65,536 × 120 / 360 / 60 ≈ 364 turn units a tick. */
@@ -66,65 +70,73 @@ const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
 const idleAct = { slash: false, guard: false, point: false, pickup: false, action: false, item: false }
 
 /**
- * WASD and the arrows push the stick to its edge (`move` is the stick, M4-D2), as the left stick's directions do;
- * Q and E turn the camera, or cycle the lock while locked; Shift locks in the player's Lock mode; J, K, L and F are
- * the action buttons. Each is its own command, sent every tick (the sim finds the presses); `lockInput` adds the
- * saved Lock mode and `lock-cycle` (screens/lock-input.ts).
+ * DESIGN.md §14: WASD, the arrows, the left stick and the touch stick move (`move` is the stick, M4-D2); Q and E, the
+ * right stick and a camera drag turn the camera, or cycle the lock while locked (`lockInput`); F, LT and the Lock
+ * button lock in the player's Lock mode; J, X and the Attack button slash; L, Shift, RB and Shield guard; Space, K, A
+ * and Action are the roll and the pick-up; R, Y and Item use the item. Each is its own command, sent every tick (the
+ * sim finds the presses); the five touch buttons are the `end` group, all required.
  */
+const MOVE = keys(
+  Move,
+  {
+    KeyW: { y: -STICK_MAX },
+    ArrowUp: { y: -STICK_MAX },
+    KeyS: { y: STICK_MAX },
+    ArrowDown: { y: STICK_MAX },
+    KeyA: { x: -STICK_MAX },
+    ArrowLeft: { x: -STICK_MAX },
+    KeyD: { x: STICK_MAX },
+    ArrowRight: { x: STICK_MAX },
+  },
+  { idle: { x: 0, y: 0 }, touch: false, analog: { touchStick: true, read: moveFromStick } },
+)
+const TURN = keys(
+  CameraTurn,
+  { KeyQ: { units: -KEY_TURN }, KeyE: { units: KEY_TURN } },
+  { idle: { units: 0 }, touch: false, analog: { drag: true, read: cameraTurnUnits } },
+)
+// `lockInput` replaces the mode with the player's saved one (DESIGN.md §12.2).
+const LOCK = keys(
+  Lock,
+  { KeyF: { down: true, mode: 'toggle' } },
+  {
+    idle: { down: false, mode: 'toggle' },
+    pad: { 6: { down: true, mode: 'toggle' } },
+    labels: { KeyF: KEYS.lock },
+    required: ['KeyF'],
+  },
+)
+const ACT = keys(
+  Act,
+  {
+    KeyJ: { slash: true },
+    KeyL: { guard: true },
+    ShiftLeft: { guard: true },
+    ShiftRight: { guard: true },
+    Space: { action: true, pickup: true },
+    KeyK: { action: true, pickup: true },
+    KeyR: { item: true },
+  },
+  {
+    idle: idleAct,
+    pad: { 2: { slash: true }, 5: { guard: true }, 0: { action: true, pickup: true }, 3: { item: true } },
+    labels: {
+      KeyJ: KEYS.slash,
+      KeyL: KEYS.guard,
+      Space: KEYS.action,
+      KeyR: KEYS.item,
+    },
+    required: ['KeyJ', 'KeyL', 'Space', 'KeyR'],
+  },
+)
 export const input = lockInput(
-  inputs(
-    keys(
-      Move,
-      {
-        KeyW: { y: -STICK_MAX },
-        ArrowUp: { y: -STICK_MAX },
-        KeyS: { y: STICK_MAX },
-        ArrowDown: { y: STICK_MAX },
-        KeyA: { x: -STICK_MAX },
-        ArrowLeft: { x: -STICK_MAX },
-        KeyD: { x: STICK_MAX },
-        ArrowRight: { x: STICK_MAX },
-      },
-      {
-        idle: { x: 0, y: 0 },
-        stick: {
-          'left-up': { y: -STICK_MAX },
-          'left-down': { y: STICK_MAX },
-          'left-left': { x: -STICK_MAX },
-          'left-right': { x: STICK_MAX },
-        },
-      },
-    ),
-    keys(CameraTurn, { KeyQ: { units: -KEY_TURN }, KeyE: { units: KEY_TURN } }, { idle: { units: 0 } }),
-    keys(
-      Lock,
-      // `lockInput` replaces the mode with the player's saved one (DESIGN.md §12.2).
-      { ShiftLeft: { down: true, mode: 'toggle' }, ShiftRight: { down: true, mode: 'toggle' } },
-      { idle: { down: false, mode: 'toggle' }, labels: { ShiftLeft: KEYS.lock } },
-    ),
-    keys(
-      Act,
-      {
-        KeyJ: { slash: true },
-        KeyK: { guard: true },
-        KeyL: { point: true },
-        KeyF: { pickup: true },
-        Space: { action: true },
-        KeyR: { item: true },
-      },
-      {
-        idle: idleAct,
-        labels: {
-          KeyJ: KEYS.slash,
-          KeyK: KEYS.guard,
-          KeyL: KEYS.point,
-          KeyF: KEYS.pickup,
-          Space: KEYS.action,
-          KeyR: KEYS.item,
-        },
-      },
-    ),
-  ),
+  endGroup(inputs(MOVE, TURN, LOCK, ACT), {
+    KeyJ: KEYS.slash,
+    KeyL: KEYS.guard,
+    Space: KEYS.action,
+    KeyR: KEYS.item,
+    KeyF: KEYS.lock,
+  }),
   { KeyQ: -1, KeyE: 1 },
 )
 
@@ -218,10 +230,16 @@ export const base3d = defineGame({
           locked: () => lockedSid,
         }),
         // Each door, closed, as its slab and its kind's marker (G3-r); an open door is not drawn.
-        [Door.id]: doorView(AREA),
+        [Door.id]: doorView(WORLD.areas),
+        // The pieces as placeholder boxes until the art (GAME-3D.1j): they follow the sim's rows.
+        [Switch.id]: pieceView(Switch.id, WORLD.areas),
+        [Block.id]: pieceView(Block.id, WORLD.areas),
+        [Chest.id]: pieceView(Chest.id, WORLD.areas),
+        [Breakable.id]: pieceView(Breakable.id, WORLD.areas),
       },
       camera: {
-        views: AREA.views,
+        // Every area's views: the areas stand apart in one scene, so an area change is a cut to its entry's view.
+        views: WORLD.areas.flatMap((area) => area.views),
         initial: 'hall',
         follow: Hero.id,
         position: (c) => placed(c.hero),
@@ -230,6 +248,7 @@ export const base3d = defineGame({
       },
       scene: (view, stage, occluders, _light, models) => {
         buildScene(view, occluders, models, FIRST_SLICE)
+        buildArea(occluders, KILN)
         // Shake and sparks from the sim's hits (DESIGN.md §7.6), under the player's reduced-motion preference.
         const feel = feelHooks(view, stage, () => reducedMotion())
         return {

@@ -1,12 +1,11 @@
 // The Lock mode and the cycle inputs (GAME-3D.1b part 2, DESIGN.md §11.2, §12.2): `lockInput` over a key map like
 // the page's, so the commands are the ones the play screen sends each tick.
-import { inputs, keys } from '@mcthaydt/automata-game'
+import { type AnalogReading, inputs, keys } from '@mcthaydt/automata-game'
 import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { Command } from '@mcthaydt/automata-sim'
-import type { DragTracker } from '@mcthaydt/automata-ui'
 import { describe, expect, it } from 'vitest'
 import { Act, Lock, Move } from '../commands.ts'
-import { cycleOnDrag, cycleOnFlick, lockInput } from './lock-input.ts'
+import { cycleOnDrag, cycleOnFlick, DRAG_REST_TICKS, lockInput } from './lock-input.ts'
 
 const map = () =>
   inputs(
@@ -85,52 +84,42 @@ describe('lockInput (GAME-3D.1b part 2)', () => {
 })
 
 describe('cycleOnDrag (DESIGN.md §11.2: a 40 px camera drag cycles, once per drag)', () => {
-  const recorder = () => {
-    const calls: string[] = []
-    const tracker: DragTracker = {
-      down: (id, x) => {
-        calls.push(`down ${id} ${x}`)
-        return true
-      },
-      move: (id, x) => void calls.push(`move ${id} ${x}`),
-      up: (id) => void calls.push(`up ${id}`),
-      cancel: () => void calls.push('cancel'),
-    }
-    return { calls, tracker }
+  const run = (...samples: number[]) => {
+    const cycles: number[] = []
+    const drag = cycleOnDrag({ cycle: (dir) => void cycles.push(dir) })
+    for (const px of samples) drag(px)
+    return cycles
   }
 
-  it('forwards every sample to the camera’s tracker', () => {
-    const { calls, tracker } = recorder()
-    const drag = cycleOnDrag(tracker, { cycle: () => {} })
-    expect(drag.down(1, 100, { pointerType: 'touch', button: 0 })).toBe(true)
-    drag.move(1, 110)
-    drag.up(1)
-    drag.cancel()
-    expect(calls).toEqual(['down 1 100', 'move 1 110', 'up 1', 'cancel'])
+  it('cycles once a drag has summed 40 px, by its direction', () => {
+    expect(run(10, 10, 10, 9)).toEqual([])
+    expect(run(10, 10, 10, 10)).toEqual([1])
+    expect(run(-30, -10)).toEqual([-1])
   })
 
-  it('cycles once a drag has moved 40 px, by its direction, and not again until a new drag', () => {
-    const cycles: number[] = []
-    const drag = cycleOnDrag(recorder().tracker, { cycle: (dir) => void cycles.push(dir) })
-    drag.down(1, 100, { pointerType: 'touch', button: 0 })
-    drag.move(1, 139)
-    expect(cycles).toEqual([])
-    drag.move(1, 140)
-    drag.move(1, 300)
-    expect(cycles).toEqual([1])
-    drag.up(1)
-    drag.down(2, 300, { pointerType: 'mouse', button: 2 })
-    drag.move(2, 255)
-    expect(cycles).toEqual([1, -1])
+  it('cycles once per drag, and again after the drag has rested', () => {
+    const rest = Array.from({ length: DRAG_REST_TICKS }, () => 0)
+    expect(run(50, 50, 50)).toEqual([1])
+    expect(run(50, 0, 0, 50)).toEqual([1])
+    expect(run(50, ...rest, -50)).toEqual([1, -1])
+  })
+})
+
+describe('lockInput with an analog reading (GAME-3D.1h)', () => {
+  const reading = (over: { right?: number; drag?: number } = {}): AnalogReading => ({
+    stick: (side) => ({ x: side === 'right' ? (over.right ?? 0) : 0, y: 0 }),
+    cameraDrag: () => over.drag ?? 0,
+    camera: { degPerPixel: 0.25, invert: false },
   })
 
-  it('ignores a pointer the tracker refused', () => {
-    const cycles: number[] = []
-    const refusing: DragTracker = { ...recorder().tracker, down: () => false }
-    const drag = cycleOnDrag(refusing, { cycle: (dir) => void cycles.push(dir) })
-    drag.down(1, 0, { pointerType: 'mouse', button: 0 })
-    drag.move(1, 100)
-    expect(cycles).toEqual([])
+  it('cycles on a drag of 40 px and on a right-stick flick past 0.7, once each', () => {
+    const input = lockInput(map(), { KeyQ: -1, KeyE: 1 })
+    expect(byType(input.toCommand([], 0, reading({ drag: 39 })))['lock-cycle']).toBeUndefined()
+    expect(byType(input.toCommand([], 1, reading({ drag: 1 })))['lock-cycle']).toEqual({ dir: 1 })
+    expect(byType(input.toCommand([], 2, reading({ drag: 40 })))['lock-cycle']).toBeUndefined()
+    const flick = byType(input.toCommand([], 3, reading({ right: -100 })))
+    expect(flick['lock-cycle']).toEqual({ dir: -1 })
+    expect(byType(input.toCommand([], 4, reading({ right: -127 })))['lock-cycle']).toBeUndefined()
   })
 })
 
