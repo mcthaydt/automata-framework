@@ -1,7 +1,12 @@
 import '@mcthaydt/automata-editor-kit/tokens.css'
 import '@mcthaydt/automata-editor-kit/fonts.css'
 import '../main.css'
-import { arrived, createPointers, IPAD_PROFILES } from '@mcthaydt/automata-editor-kit/testing'
+import {
+  arrived,
+  createPointers,
+  IPAD_PROFILES,
+  type IpadProfile,
+} from '@mcthaydt/automata-editor-kit/testing'
 import { byTestId } from '@mcthaydt/automata-ui/testing'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
