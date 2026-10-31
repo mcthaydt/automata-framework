@@ -236,8 +236,16 @@ async function lineOf(page: Page, text: string): Promise<number> {
   return index + 1
 }
 
-/** Selects the word `word` in the editor by double-clicking it, then types `replacement` over it. */
+/** Selects the word `word` in the editor by double-clicking it, then types `replacement` over it. Just after the
+ * swap the page can still be settling its scroll, so a double-click on a box measured a moment earlier selects
+ * another word (in a comment, the typed replacement even compiles): measure and double-click until `word` is the
+ * selection. */
 async function replaceWord(page: Page, word: string, replacement: string) {
+  await expect.poll(async () => { await dblclickWord(page, word); return page.evaluate(() => window.getSelection()?.toString()) }, { timeout: 5_000 }).toBe(word)
+  await page.keyboard.type(replacement)
+}
+
+async function dblclickWord(page: Page, word: string) {
   const range = await page.locator('.cm-content').evaluate((content, wanted) => {
     const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
@@ -252,7 +260,6 @@ async function replaceWord(page: Page, word: string, replacement: string) {
     throw new Error('no such word')
   }, word)
   await page.mouse.dblclick(range.x, range.y)
-  await page.keyboard.type(replacement)
 }
 
 /** How many pixels of the preview frame's screenshot are close to pure red. */
