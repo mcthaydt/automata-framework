@@ -106,8 +106,8 @@ function up(event: PointerEvent): void {
 <style>
   .timeline {
     display: grid;
-    gap: var(--space-3);
-    padding: var(--space-3);
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
     color: var(--color-text-primary);
     font: var(--text-body-13);
   }
@@ -119,7 +119,7 @@ function up(event: PointerEvent): void {
   }
   .track {
     position: relative;
-    height: 88px;
+    height: 76px;
     margin: 0 22px;
     border-top: 2px solid var(--color-border, #3a3f48);
     touch-action: none;
@@ -133,7 +133,7 @@ function up(event: PointerEvent): void {
   }
   .key {
     position: absolute;
-    top: -22px;
+    top: 0;
     width: 44px;
     height: 44px;
     margin-left: -22px;
@@ -149,14 +149,14 @@ function up(event: PointerEvent): void {
   .marker,
   .cue {
     position: absolute;
-    top: 34px;
+    top: 48px;
     transform: translateX(-50%);
     color: var(--color-text-dim);
     font: var(--text-eyebrow-11);
     white-space: nowrap;
   }
   .cue {
-    top: 54px;
+    top: 62px;
   }
   .none {
     margin: 0;
