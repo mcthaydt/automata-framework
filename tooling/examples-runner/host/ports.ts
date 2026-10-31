@@ -58,3 +58,5 @@ export const playgroundOrigin = `http://127.0.0.1:${playgroundPort}`
 /** The playground frame's test server (WEB.PLAY.2): the runtime build, the frame pages and the examples' files. */
 export const playgroundFramePort: number = demoPort(9)
 export const playgroundFrameOrigin = `http://127.0.0.1:${playgroundFramePort}`
+/** The base 3D game's preview build (games/base-3d/e2e, M3.7b part 4), framed by the same fake host. */
+export const base3dPort: number = demoPort(10)

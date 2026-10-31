@@ -20,3 +20,9 @@ The packages import nothing of Ruken's outside a `ruken/` folder (DIST.3a, ADR 0
   `@mcthaydt/automata-host`, and no longer vendor Ruken's declarations. `game` no longer vendors Ruken's `SLUG_RE`.
 - `RuntimeTest` (Ruken's fake host) and the Ruken-backed tests move under `ruken/` folders, as do ship's Ruken
   target (`targets/ruken/`) and its itch target (`targets/itch/`). The public entry points are unchanged.
+
+BREAKING: `ShipConfig` is now `GameConfig & { itch?, audience? }` from `@mcthaydt/automata-content/game-config`, with the
+same keys; `game.sdk` is optional, so code that reads `config.game.sdk` must handle `undefined`. `defineExtension`'s
+`GameConfig` is `Pick<GameConfig, 'game' | 'runtime' | 'content'>` from the same entry. `ui`'s `ErrorCode` is
+`@mcthaydt/automata-host`'s `ErrorCode`, the same ten codes. The published `ui`, `game` and `testing` packages no
+longer ship `dist/vendor/` copies of Ruken's declarations or `SLUG_RE`.
