@@ -63,6 +63,8 @@ let chosen = $state<string | undefined>(undefined)
 let arrived = $state(false)
 /** A view was chosen from the rail, so the rail of the view it opens takes the focus. */
 let fromRail = $state(false)
+/** The path Locate asked for, handed to the view it opens; choosing from the rail drops it. */
+let focus = $state<string | undefined>(undefined)
 
 const views = $derived(viewsOf(shown.document.profile))
 const route = $derived(routeOf(views, chosen))
@@ -75,6 +77,11 @@ const services = $derived<ViewServices>({
   canvas,
   onundo: () => controller.undo(),
   onredo: () => controller.redo(),
+  locate: (path) => {
+    focus = path
+    chosen = views[0]?.id
+    fromRail = false
+  },
 })
 </script>
 
@@ -106,6 +113,7 @@ const services = $derived<ViewServices>({
     onselect={(id) => {
       chosen = id
       fromRail = true
+      focus = undefined
     }}
   />
 {/snippet}
@@ -143,6 +151,7 @@ const services = $derived<ViewServices>({
       label={route?.label ?? shown.document.profile.label}
       frame={{ topbar, rail, status, sheets }}
       {services}
+      {focus}
     />
   {/key}
 {/key}
