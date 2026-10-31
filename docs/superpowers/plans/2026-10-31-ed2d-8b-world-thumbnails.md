@@ -36,9 +36,9 @@ pictures inside rectangles, outlines over them), `app/world/WorldCanvas.svelte` 
 - [ ] 2. `uncoveredArea(map, covers)` (left, right and bottom covers; none) and `fit(rects, area)` in the camera (unit).
 - [x] 3. The World view fits to the uncovered area when a drawer or sheet opens or closes and on Fit; Fit in the bar
   below wide (layout, three browsers: every level inside the uncovered part with the inspector open; Fit 44 px in view).
-- [ ] 4. Pictures: the world view draws a level scene inside each rectangle under its outline (Chromium canvas test:
+- [x] 4. Pictures: the world view draws a level scene inside each rectangle under its outline (Chromium canvas test:
   a pixel inside the rectangle is the level's background, the outline still the accent); WorldCanvas loads the images.
-- [ ] 5. Review images beside the `world` mockup; gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, editor-2d
+- [x] 5. Review images beside the `world` mockup; gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, editor-2d
   `test:parity` and `test:canvas`.
 
 ## Execution log
@@ -49,3 +49,7 @@ pictures inside rectangles, outlines over them), `app/world/WorldCanvas.svelte` 
   conversion was fixed (levels' right edge 810 px against an uncovered edge of 514.5 px), then passes in three browsers
   (3 files, 24 tests): the view refits on the next frame after a drawer opens or closes and again when its slide
   ends, and Fit sits in the bar with Levels and Inspector below wide.
+- 2026-10-31, step 4: the picture canvas case failed in Chromium (the plain fill inside the pictured rectangle), then
+  passes (world canvas 4 tests). The first images showed screen-size entity labels and link chips inside the pictures;
+  the pictures now update without a scale and without links, as Home's thumbnails do (`plainDrawView` is exported
+  from `level-thumbnails.ts` and shared). editor-2d unit+dom (app and canvas) 65 files, 700 tests; canvas 80 tests.

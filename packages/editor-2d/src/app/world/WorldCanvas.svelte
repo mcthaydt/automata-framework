@@ -1,5 +1,7 @@
 <!--
-  The World view's map on the page (plan ED2D.6b step 4): the world's levels drawn by Pixi at the camera the view fits.
+  The World view's map on the page (plan ED2D.6b step 4): the world's levels drawn by Pixi at the camera the view fits,
+  each with its picture (ED2D.8b): the images every level uses are loaded once, and each level keeps its own draw list
+  maker so an unchanged level reuses what it drew.
   While the WebGL context is lost it says "Preview paused" and draws again once the browser gives it back; without
   WebGL it says "Preview unavailable" and the rest of the view (the list, the inspector) still works. `data-state`
   (loading, drawn, paused, unavailable) is what the tests and the review images wait on.
@@ -7,11 +9,49 @@
 <script lang="ts">
 import { onMount } from 'svelte'
 import { createColorResolver } from '../../canvas/colors'
+import type { LevelDrawList } from '../../canvas/draw/draw-list-types'
+import { createLevelDrawList } from '../../canvas/draw/level-draw-list'
+import { levelImages } from '../../canvas/draw/level-images'
+import { plainDrawView } from '../../canvas/level-thumbnails'
+import { createTextureManager } from '../../canvas/textures.manager'
 import { createWorldView, type WorldView } from '../../canvas/world-view'
 import type { Size } from '../../model/project-types'
 import type { WorldCanvasProps } from '../views/view-props'
 
-const { rects, camera, links }: WorldCanvasProps = $props()
+const { project, read, rects, camera, links }: WorldCanvasProps = $props()
+
+const textures = createTextureManager({ read: (path) => read(path) })
+const drawers = new Map<string, ReturnType<typeof createLevelDrawList>>()
+/** The image list whose load has finished: pictures wait for it, so a level never flashes placeholders first. */
+let readyImages = $state<string | undefined>(undefined)
+const images = $derived(
+  [...new Set(project.levels.flatMap((level) => levelImages(project, level.id)))].sort().join('\n'),
+)
+$effect(() => {
+  const wanted = images
+  void textures.load(wanted === '' ? [] : wanted.split('\n')).then(() => (readyImages = wanted))
+})
+const pictures = $derived.by((): ReadonlyMap<string, LevelDrawList> => {
+  if (readyImages !== images) return new Map()
+  const drawn = new Map<string, LevelDrawList>()
+  for (const rect of rects) {
+    let drawer = drawers.get(rect.id)
+    if (drawer === undefined) {
+      drawer = createLevelDrawList()
+      drawers.set(rect.id, drawer)
+    }
+    drawn.set(
+      rect.id,
+      drawer({
+        project,
+        view: plainDrawView(rect.id),
+        images: textures.loaded,
+        generations: textures.generations,
+      }),
+    )
+  }
+  return drawn
+})
 
 let host = $state<HTMLElement>()
 let canvas = $state<HTMLCanvasElement>()
@@ -44,6 +84,7 @@ onMount(() => {
   void createWorldView({
     canvas: target,
     colors,
+    textures,
     width: size.w,
     height: size.h,
     resolution: size.resolution,
@@ -70,6 +111,7 @@ onMount(() => {
     observer?.disconnect()
     stopPaused?.()
     worldView?.destroy()
+    textures.destroy()
   }
 })
 
@@ -82,7 +124,7 @@ $effect(() => {
     current.resize(box.w, box.h, box.resolution)
     drawnAt = box
   }
-  current.render(rects, camera, links)
+  current.render(rects, camera, links, pictures)
   drawn = true
 })
 </script>

@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { WorldLink } from '../app/world/world-links'
 import type { WorldRect } from '../app/world/world-model'
 import { createColorResolver } from './colors'
+import type { LevelDrawList } from './draw/draw-list-types'
+import { createTextureManager } from './textures.manager'
 import { createWorldView, type WorldView } from './world-view'
 
 // The World view's map (plan ED2D.6b step 4) in Chromium with WebGL2: a rectangle per level on the canvas background,
@@ -16,6 +18,7 @@ const TOKENS: Readonly<Record<string, string>> = {
 }
 const colors = createColorResolver((name) => TOKENS[name] ?? '')
 
+const textures = createTextureManager({ read: async () => undefined })
 let view: WorldView | undefined
 let canvas: HTMLCanvasElement
 afterEach(() => {
@@ -27,7 +30,7 @@ afterEach(() => {
 async function viewOf(width = 200, height = 100): Promise<WorldView> {
   canvas = document.createElement('canvas')
   document.body.append(canvas)
-  const created = await createWorldView({ canvas, colors, width, height, resolution: 1 })
+  const created = await createWorldView({ canvas, colors, textures, width, height, resolution: 1 })
   if (created === undefined) throw new Error('Chromium should have WebGL2')
   view = created
   return created
@@ -92,5 +95,31 @@ describe('world view', () => {
     expect(colorAt(95, 50)).toBe('#ff0000')
     world.render([rect('a', 0, false), rect('b', 100, false)], { x: 10, y: 20, scale: 1 }, [])
     expect(colorAt(95, 50)).toBe('#0a0b0d')
+  })
+
+  it('draws each level inside its rectangle, with the outline over the picture (plan ED2D.8b)', async () => {
+    const world = await viewOf()
+    const picture: LevelDrawList = {
+      level: 'b',
+      size: { w: 80, h: 60 },
+      background: { color: '#ff0000', mode: 'fit' },
+      layers: [],
+      grid: undefined,
+      footprint: undefined,
+      selection: [],
+      links: [],
+    }
+    world.render(
+      [rect('a', 0, false), rect('b', 100, true)],
+      { x: 10, y: 20, scale: 1 },
+      [],
+      new Map([['b', picture]]),
+    )
+    // Inside b: its level's background; inside a (no picture): the plain fill; b's left edge: still the accent.
+    expect(colorAt(150, 50)).toBe('#ff0000')
+    expect(colorAt(50, 50)).toBe('#202428')
+    expect(colorAt(111, 50)).toBe('#e8a33d')
+    world.render([rect('a', 0, false), rect('b', 100, true)], { x: 10, y: 20, scale: 1 }, [], new Map())
+    expect(colorAt(150, 50)).toBe('#202428')
   })
 })

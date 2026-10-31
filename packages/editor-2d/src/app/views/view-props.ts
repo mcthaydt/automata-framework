@@ -50,6 +50,10 @@ export interface ViewServices {
 
 /** What the World view hands its map (`WorldCanvas.svelte`'s props). */
 export interface WorldCanvasProps {
+  /** The project the levels' pictures are drawn from (ED2D.8b). */
+  readonly project: Project
+  /** Reads a workspace file's bytes, for the pictures' images. */
+  readonly read: (path: string) => Promise<Uint8Array | undefined>
   readonly rects: readonly WorldRect[]
   readonly camera: Camera
   /** The links between the levels (ED2D.6c), drawn over them. */

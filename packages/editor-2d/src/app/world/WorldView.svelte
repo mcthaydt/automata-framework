@@ -253,7 +253,7 @@ function layout(next: string): void {
         data-levels-span={levelsSpan}
         bind:this={map}
       >
-        <MapCanvas {rects} {camera} {links} />
+        {#if project !== undefined}<MapCanvas {project} read={services.read} {rects} {camera} {links} />{/if}
       </div>
       {#if wide}
         <div class="fit"><Button onclick={() => worldCamera.fit(rects)}>Fit</Button></div>
