@@ -58,11 +58,11 @@ describe('checksWords', () => {
 })
 
 describe('modeOptions', () => {
-  it('offers Plan, and lists the other views as coming, each saying why', () => {
+  it('offers Plan, Split and 3D, and lists Walk and World as coming, each saying why (ED3D.5e)', () => {
     const options = modeOptions()
     expect(options.map((option) => option.label)).toEqual(['Plan', 'Split', '3D', 'Walk', 'World'])
-    expect(options[0]?.disabled).toBeFalsy()
-    for (const option of options.slice(1)) {
+    for (const option of options.slice(0, 3)) expect(option.disabled).toBeFalsy()
+    for (const option of options.slice(3)) {
       expect(option.disabled).toBe(true)
       expect(option.reason).toMatch(/^Not ready yet: /)
     }

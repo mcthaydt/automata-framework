@@ -46,6 +46,7 @@ async function setup(options: { width?: number; height?: number; journal?: boole
     toasts,
     clock,
     renderer: async () => undefined,
+    dollhouse: async () => undefined,
     schedule: (_delay: number, run: () => void) => {
       run()
       return () => undefined
@@ -81,6 +82,25 @@ describe('DocumentFrame', () => {
     expect(screen.getByRole('radio', { name: 'Plan' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByTestId('checks-pill')).toHaveTextContent(/No problems|warning|problem/)
     expect(screen.getByText(/Nothing selected/)).toBeInTheDocument()
+  })
+
+  it('shows the plan and the 3D view side by side in Split, and the 3D view alone in 3D (ED3D.5e)', async () => {
+    await setup()
+    await userEvent.click(screen.getByRole('radio', { name: 'Split' }))
+    expect(screen.getByRole('application', { name: 'Plan' })).toBeInTheDocument()
+    expect(screen.getByRole('application', { name: '3D view' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('radio', { name: '3D' }))
+    expect(screen.queryByRole('application', { name: 'Plan' })).toBeNull()
+    expect(screen.getByRole('application', { name: '3D view' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('radio', { name: 'Plan' }))
+    expect(screen.queryByRole('application', { name: '3D view' })).toBeNull()
+  })
+
+  it('shows the 3D view alone, not Split, below wide (ED3D spec §10: the 3D modes replace Plan)', async () => {
+    const { controller } = await setup({ width: 834, height: 1194 })
+    levelOf(controller).editor.view.set({ mode: 'split' })
+    await waitFor(() => expect(screen.getByRole('application', { name: '3D view' })).toBeInTheDocument())
+    expect(screen.queryByRole('application', { name: 'Plan' })).toBeNull()
   })
 
   it('hides and locks a layer through the panel, and names what is selected in the status line (ED3D.5d)', async () => {

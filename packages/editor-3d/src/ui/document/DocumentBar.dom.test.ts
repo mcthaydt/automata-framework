@@ -61,13 +61,15 @@ describe('DocumentBar', () => {
     expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled()
   })
 
-  it('offers the views with Plan chosen, and says why the others cannot be chosen yet (ED3D.5d)', () => {
+  it('offers the views with Plan chosen; Split and 3D can be chosen, and Walk says why it cannot yet (ED3D.5d, 5e)', () => {
     mount()
     const views = screen.getByRole('radiogroup', { name: 'View' })
     expect(within(views).getByRole('radio', { name: 'Plan' })).toHaveAttribute('aria-checked', 'true')
-    const split = within(views).getByRole('radio', { name: 'Split' })
-    expect(split).toHaveAttribute('aria-disabled', 'true')
-    expect(split).toHaveAccessibleDescription(/^Not ready yet: /)
+    expect(within(views).getByRole('radio', { name: 'Split' })).not.toHaveAttribute('aria-disabled')
+    expect(within(views).getByRole('radio', { name: '3D' })).not.toHaveAttribute('aria-disabled')
+    const walk = within(views).getByRole('radio', { name: 'Walk' })
+    expect(walk).toHaveAttribute('aria-disabled', 'true')
+    expect(walk).toHaveAccessibleDescription(/^Not ready yet: /)
   })
 
   it('shows how the checks stand; below wide the views are left out, and on a phone the pill too (ED3D.5d)', () => {

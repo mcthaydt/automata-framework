@@ -76,8 +76,8 @@ export function modeOptions(): readonly ModeOption[] {
   })
   return [
     { id: 'plan', label: 'Plan' },
-    coming('split', 'Split', 'the plan beside a 3D view of the rooms is coming next.'),
-    coming('dollhouse', '3D', 'a 3D view of the rooms is coming next.'),
+    { id: 'split', label: 'Split' },
+    { id: 'dollhouse', label: '3D' },
     coming('walk', 'Walk', 'walking through the level is coming soon.'),
     coming('world', 'World', 'the map of all your levels is coming soon.'),
   ]

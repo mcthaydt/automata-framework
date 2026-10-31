@@ -23,6 +23,9 @@ import type { DocumentController, DocumentState } from '../../app/document/docum
 import { planZoom } from '../../app/plan-picture'
 import { checksWords, planStatus } from '../../app/plan-status'
 import type { Point } from '../../format/sector.schema'
+import DollhouseCanvas from '../dollhouse/DollhouseCanvas.svelte'
+import type { DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'
+import { lazyDollhouseRenderer } from '../dollhouse/lazy-dollhouse-renderer'
 import EditorLayers from '../plan/EditorLayers.svelte'
 import PlanCanvas from '../plan/PlanCanvas.svelte'
 import type { PlanRendererFactory } from '../plan/plan-renderer'
@@ -37,12 +40,23 @@ interface Props {
   clock: { now(): number }
   /** Makes the Plan view's renderer (a dynamic import of Pixi in the page; a fake in the tests). */
   renderer: PlanRendererFactory
+  /** Makes the 3D view's renderer; Pixi loaded on first use when not given (the tests pass a fake). */
+  dollhouse?: DollhouseRendererFactory | undefined
   /** Runs the checks after the editing pauses. */
   schedule: Scheduler
   onback: () => void
 }
 
-const { geometry, controller, toasts, clock, renderer, schedule, onback }: Props = $props()
+const {
+  geometry,
+  controller,
+  toasts,
+  clock,
+  renderer,
+  dollhouse = lazyDollhouseRenderer(),
+  schedule,
+  onback,
+}: Props = $props()
 
 /** The controller's state right now (its store answers at once). */
 function snapshot(source: DocumentController): DocumentState {
@@ -96,6 +110,16 @@ const planWords = $derived(planStatus({ pointer, pxPerMetre: zoom, selection, br
 const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWords)
 </script>
 
+{#snippet plan()}
+  <PlanCanvas
+    {editor}
+    {renderer}
+    onundo={() => controller.undo()}
+    onredo={() => controller.redo()}
+    onpointer={(at) => (pointer = at)}
+  />
+{/snippet}
+
 <EditorShell {geometry} bind:panelOpen testId="document-frame">
   {#snippet topbar()}
     <DocumentBar
@@ -125,13 +149,17 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
   {/snippet}
 
   {#snippet canvas()}
-    <PlanCanvas
-      {editor}
-      {renderer}
-      onundo={() => controller.undo()}
-      onredo={() => controller.redo()}
-      onpointer={(at) => (pointer = at)}
-    />
+    <!-- Split puts the plan and the 3D view side by side at wide; below it the 3D modes replace the plan (spec §10). -->
+    {#if mode === 'split' && shellMode === 'wide'}
+      <div class="split">
+        {@render plan()}
+        <DollhouseCanvas {editor} renderer={dollhouse} onundo={() => controller.undo()} onredo={() => controller.redo()} />
+      </div>
+    {:else if mode === 'split' || mode === 'dollhouse'}
+      <DollhouseCanvas {editor} renderer={dollhouse} onundo={() => controller.undo()} onredo={() => controller.redo()} />
+    {:else}
+      {@render plan()}
+    {/if}
   {/snippet}
 
   {#snippet status()}
@@ -168,3 +196,16 @@ const statusWords = $derived(compact ? `${pill.text} · ${planWords}` : planWord
     <ToastRegion {toasts} />
   {/snippet}
 </EditorShell>
+
+<style>
+  /* Split at wide: the plan and the 3D view in two equal columns with a hairline between (the mockup's divider). */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    background: var(--color-border-default);
+  }
+</style>
