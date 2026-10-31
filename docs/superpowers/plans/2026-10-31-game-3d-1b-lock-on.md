@@ -93,7 +93,7 @@ Every unit test runs with `cd games/base-3d && pnpm vitest run --configLoader ru
 - [x] 1.5 Golden (G3-b part): the route keeps its held lock in `hold` mode (old behaviour still asserted:
   kiln tick, 50 locked ticks, action starts, end position) and gains a toggle press, a `lock-cycle` and a toggle
   release. Re-record the hash in Node with the reason; then parity in Chromium, WebKit and Firefox must match.
-- [ ] 1.6 Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm --filter base-3d test:parity` (three
+- [x] 1.6 Gates: `pnpm format`, `TURBO_FORCE=true pnpm check`, `pnpm --filter base-3d test:parity` (three
   browsers), `pnpm build:demos`; no package exports change, so no api-report, changeset or agent-skills.
 
 ## Steps (part 2)
@@ -134,3 +134,5 @@ Pending: the Mac's CI.
   rejected, 0 events, kiln tick 118, the held segment's 50 locked ticks (62 with the toggle's 12), the action starts
   `1@278, 1@287, 3@348, 2@409` and the running point. Changed: the end pose (x 116,656, z 361,623, heading 6,556),
   because the held strafe now orbits the target and the assist turned the heading from 16,384 toward it.
+- 1.6: `pnpm format`; `TURBO_FORCE=true pnpm check` exit 0; `pnpm --filter base-3d test:parity` 189/189 (game.test.ts's
+  63 cases in Chromium, WebKit and Firefox, the golden `9fd1aebdb8f26a81` included); `pnpm build:demos` exit 0.
