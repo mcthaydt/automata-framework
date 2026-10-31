@@ -36,7 +36,7 @@ const copy = $derived(host === undefined ? undefined : copyOf(host))
 </script>
 
 {#if host !== undefined && copy !== undefined && view.overlay !== 'hidden'}
-  <section class="net-reconnect" data-testid="net-reconnect" data-state={view.overlay} aria-labelledby="net-reconnect-title">
+  <section class="net-reconnect" data-scroll-region data-testid="net-reconnect" data-state={view.overlay} aria-labelledby="net-reconnect-title">
     <div class="text">
       <strong id="net-reconnect-title">{netText('net.reconnect.title', {}, copy)}</strong>
       <span>
@@ -67,6 +67,21 @@ const copy = $derived(host === undefined ? undefined : copyOf(host))
     background: rgb(0 0 0 / 0.85);
     color: #fff;
     font-size: calc(1rem * var(--af-scale, 1));
+    /* Where the room is too short for it (a keyboard up in a short landscape), it scrolls as a declared region. */
+    max-height: calc(100% - 2 * var(--af-space-2, 8px));
+    overflow-y: auto;
+  }
+  @media (max-height: 420px) {
+    .net-reconnect {
+      flex-wrap: nowrap;
+      padding: 4px 8px;
+    }
+    .text {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: 8px;
+    }
   }
   .text {
     display: flex;
@@ -77,8 +92,8 @@ const copy = $derived(host === undefined ? undefined : copyOf(host))
   }
   button {
     flex: none;
-    min-height: 48px;
-    min-width: 48px;
+    min-height: calc(48px * var(--af-scale, 1));
+    min-width: calc(48px * var(--af-scale, 1));
     padding: 0 16px;
     font: inherit;
     color: inherit;
