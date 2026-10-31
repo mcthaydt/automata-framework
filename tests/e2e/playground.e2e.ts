@@ -665,7 +665,11 @@ test('the unedited original replays its golden in this browser, and the row name
   await expect(row(page)).not.toHaveAttribute('role', 'alert')
   // Computed at runtime: the hash is in none of the site's sources.
   const hash = (await row(page).textContent())!.match(/Hash ([0-9a-f]{16})/)![1]!
-  const holders = readdirSync('src', { recursive: true, encoding: 'utf8' }).filter(file => /\.(ts|svelte|json|js)$/.test(file) && readFileSync(join('src', file), 'utf8').includes(hash))
+  // Files only: a route folder can carry a file-like name (`src/routes/sources/[slug].json/`).
+  const holders = readdirSync('src', { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile() && /\.(ts|svelte|json|js)$/.test(entry.name))
+    .map(entry => join(entry.parentPath, entry.name))
+    .filter(file => readFileSync(file, 'utf8').includes(hash))
   expect(holders).toEqual([])
   expect(watch.problems).toEqual([])
 })

@@ -56,3 +56,8 @@ explorer fetches the project's prerendered `/sources/<slug>.json` once, the firs
 - Merged `main` `c27b8f9` (website#28). Its `+page.server.ts` (`enginesAgree`) and this one became a single server load,
   and `page-data.test.ts` checks `enginesAgree` against the evidence. After the merge: `pnpm check` 0/0;
   `pnpm test` 459 passed and 1 expected fail; `pnpm build`; `pnpm check:site` 46 pages.
+- Deviation found in CI (run 41182982391, job 124495510022, head `56c184d`): `playground.e2e.ts` "the unedited
+  original replays its golden…" threw `EISDIR` in both browsers. It listed `src` recursively by name and read every
+  name ending `.json`, and this branch's route folder `src/routes/sources/[slug].json/` is such a name. The test now
+  lists with `withFileTypes` and reads regular files only (91 files, the folder skipped). Red in Chromium before the
+  fix (`EISDIR`), then green in Chromium and WebKit; `pnpm check` 0/0; `pnpm test` 459 passed and 1 expected fail.
