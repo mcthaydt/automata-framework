@@ -11,7 +11,13 @@ export const narrative: NarrativeToolsScene = toyNarrativeScene({
         speaker: 'porter',
         start: 'a',
         nodes: {
-          a: { say: ['toy.hello'], choices: [{ line: 'toy.duty', next: 'b' }, { line: 'toy.unsure', next: 'b' }] },
+          a: {
+            say: ['toy.hello'],
+            choices: [
+              { line: 'toy.duty', next: 'b' },
+              { line: 'toy.unsure', next: 'b' },
+            ],
+          },
           b: { say: ['toy.ask'], next: 'a' },
         },
       },
