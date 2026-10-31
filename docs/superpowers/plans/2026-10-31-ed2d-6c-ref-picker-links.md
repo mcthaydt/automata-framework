@@ -82,7 +82,7 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
 - [x] 8. G-g in Node (link, delete the spawn: `brokenRef` with `choose-target`, `projectLinks` loses it) and in jsdom
   (the world inspector's Links empties; the Checks view offers Choose target and it repairs in one step).
 - [x] 9. G-r linking journey in jsdom (decision 7).
-- [ ] 10. Gates and review images (built screenshots beside the `level-rpg` and `world` mockup frames, with a README).
+- [x] 10. Gates and review images (built screenshots beside the `level-rpg` and `world` mockup frames, with a README).
 
 ## Gates
 
@@ -123,3 +123,9 @@ the `model/refs` functions above and `WorldCanvasProps.links`. No profile, file 
   px (`world-links.test.ts` rewritten: failed, then passes); (2) a chip near the level's right edge was clipped, so it
   flips to the left of its source (`level-scene.canvas.test.ts`: failed, then passes). Decision 5 now reads "from the
   source to the target". Images and the comparison: `docs/evidence/owner-visual/2026-10-31-ed2d-6c/`.
+- 2026-10-31, gates on the head after merging `origin/claude/ed2d-6b-world-view` (already in) and `origin/main`
+  (`bb0b330c`, docs only): `pnpm format` clean. The first `TURBO_FORCE=true pnpm check` failed in
+  `@mcthaydt/api-report` (`editor-2d.api.md` stale: `LevelDrawList.links`); `pnpm api-report --update` wrote that one
+  line, and the re-run passes (exit 0, 37/37 and 35/35 tasks, 0 cached). editor-2d `test:parity` 24 files, 606 tests;
+  `test:canvas` 14 files, 94 tests (12 opt-in visuals skipped). Omitted: `pnpm build`, `api-index`, `agent-skills`
+  (they read published packages' `dist`; editor-2d is private and unbuilt) and a changeset (private package).
