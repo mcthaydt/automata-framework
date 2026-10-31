@@ -3,7 +3,8 @@
   geometry (`mapOf`), north up, scaled to the container and at least 240 px tall, so at compact height it scrolls inside
   its declared scroll region while the frame's corner Close stays fixed. The room Wick stands in is filled bright, the
   visited ones filled, the rest outlined (with the map); his arrow points along his facing and a wedge shows the
-  camera's view.
+  camera's view. Doors show their lock kind in §6.5's legend (a switch door's link runs to its switch), and with the
+  compass the chests (open ones hollow) and a ring on the boss room (GAME-3D.1f part 5).
 -->
 <script lang="ts">
 import { ScreenFrame } from '@mcthaydt/automata-ui'
@@ -24,6 +25,9 @@ const MIN_HEIGHT = 240
 /** The camera wedge's reach, in metres, and its half angle. */
 const WEDGE_REACH = 2.5
 const WEDGE_HALF_DEG = 30
+/** A chest's mark, half a side, and the boss room's ring, in metres. */
+const CHEST_HALF = 0.35
+const BOSS_RADIUS = 0.9
 
 const words = $derived(liveCopy.current)
 let region = $state<HTMLElement | undefined>(undefined)
@@ -113,6 +117,43 @@ const wedge = (() => {
           height={wall.maxZ - wall.minZ}
         />
       {/each}
+      {#each plan.doors as door (door.id)}
+        {#if door.link !== undefined && !door.open}
+          <line
+            class="b3-map__link"
+            data-testid="map-link"
+            x1={(door.minX + door.maxX) / 2}
+            y1={-(door.minZ + door.maxZ) / 2}
+            x2={door.link.x}
+            y2={-door.link.z}
+          />
+        {/if}
+        <rect
+          class="b3-map__door"
+          data-testid="map-door"
+          data-door={door.id}
+          data-lock={door.lock}
+          data-open={door.open}
+          x={door.minX}
+          y={-door.maxZ}
+          width={door.maxX - door.minX}
+          height={door.maxZ - door.minZ}
+        />
+      {/each}
+      {#each plan.chests as chest (chest.id)}
+        <rect
+          class="b3-map__chest"
+          data-testid="map-chest"
+          data-open={chest.open}
+          x={chest.x - CHEST_HALF}
+          y={-chest.z - CHEST_HALF}
+          width={2 * CHEST_HALF}
+          height={2 * CHEST_HALF}
+        />
+      {/each}
+      {#if plan.boss !== undefined}
+        <circle class="b3-map__boss" data-testid="map-boss" cx={plan.boss.x} cy={-plan.boss.z} r={BOSS_RADIUS} />
+      {/if}
       <g transform={`translate(${plan.wick.x} ${-plan.wick.z})`}>
         <path class="b3-map__wedge" data-testid="map-heading" d={wedge} transform={`rotate(${plan.headingDeg})`} />
         <path
@@ -169,6 +210,48 @@ const wedge = (() => {
   .b3-map__wall {
     fill: var(--af-ink);
     opacity: 0.6;
+  }
+  /* §6.5's legend: a keyhole's brass, the boss door's red, a clear door's bars grey, a switch door's cyan link. */
+  .b3-map__door {
+    stroke: #181425;
+    stroke-width: 0.06;
+  }
+  .b3-map__door[data-lock='small-key'] {
+    fill: #feae34;
+  }
+  .b3-map__door[data-lock='boss-key'] {
+    fill: #e43b44;
+  }
+  .b3-map__door[data-lock='clear'] {
+    fill: #8b9bb4;
+  }
+  .b3-map__door[data-lock='switch'],
+  .b3-map__door[data-lock='none'] {
+    fill: #2ce8f5;
+  }
+  .b3-map__door[data-open='true'] {
+    fill: none;
+    stroke: var(--af-muted);
+    stroke-dasharray: 0.15 0.1;
+  }
+  .b3-map__link {
+    stroke: #2ce8f5;
+    stroke-width: 0.08;
+    stroke-dasharray: 0.3 0.2;
+  }
+  .b3-map__chest {
+    fill: #feae34;
+    stroke: #181425;
+    stroke-width: 0.06;
+  }
+  .b3-map__chest[data-open='true'] {
+    fill: none;
+    stroke: #feae34;
+  }
+  .b3-map__boss {
+    fill: none;
+    stroke: #e43b44;
+    stroke-width: 0.2;
   }
   .b3-map__wedge {
     fill: rgb(44 232 245 / 30%);
