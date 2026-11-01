@@ -44,6 +44,11 @@ and rising sparks; fireflies; Wick's lantern. New in 3D: lava that lights the ch
 - **Letterbox bars.** At 1280×720 the 3D game letterboxes to its 844×390 size in the runtime's purple-grey; Emberwick's
   page is the night colour. The bars come from the theme, not the scene.
 - **2D at phone sizes** crops its bottom row, so Wick is off-screen in `06` and `08` (Emberwick's own framing).
+- **Software rendering cost.** In headless Chromium here a frame of play costs about 190 ms against #373's 90 ms
+  (rAF mean over 35 frames, 844×390, `fps.cjs` in the lane's scratchpad; lights about 30 ms, dressing about 20 ms, the
+  rest spread over textures and geometry). The portrait journey G3-x passes at 28–30 s of its 30 s budget (it was
+  31 s before the mushrooms were merged and the bays lengthened): a flake risk on a slower runner. Real GPUs are the
+  target; the GPU runner's probe is the measure.
 - **Not measured:** WebGPU (no WebGPU headless here), the GPU runner's frame budget, real devices, hearing the sounds.
 
 ## Gates

@@ -30,7 +30,7 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
 - [x] 7. `views/ember.ts` (emissive core, point light, halo; goal sparks) + tests.
 - [x] 8. `views/lantern.ts` + test; wired on the hero view.
 - [x] 9. Roll clip from the Studio; markers inside 24 ticks.
-- [ ] 10. Route golden unchanged (`c735b5acacbbc716`); gates; acceptance images and README.
+- [x] 10. Route golden unchanged (`c735b5acacbbc716`); gates; acceptance images and README.
 
 ## Execution log
 
@@ -47,3 +47,9 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
   Studio's clip format, not re-saved in the Studio UI (EG-6 updated). Route golden still `c735b5acacbbc716`.
 - 2026-11-01: acceptance images in `docs/evidence/owner-visual/2026-11-01-base-3d-art-pass/` with an honest README.
   Deviation: the lava scroll (spec §2) is not built; noted in the spec as a follow-up.
+- 2026-11-01: gates. `TURBO_FORCE=true pnpm check` exit 0; base-3d `test:parity` 96/96; render-pixi3d `test:parity` 36
+  passed, 21 skipped (`runIf(hasWebGL2)` blocks, environment); `build:examples`, `build:demos` 0; api-report updated
+  (content `./palette`, render-pixi3d `WallOptions`), cheatsheet and agent skill rewritten; changesets 0 problems.
+  base-3d e2e (`--project=base-3d`): G3-x first failed at 31.3 s (30 s budget) while #373's head passed it at 20.8 s;
+  merged the mushrooms (`views/mushrooms.ts`, test first), bays of ~4 m and one particle container an ember; then 7/7,
+  G3-x at 29.6, 28.7 and 28.1 s. The test budget was not changed. Frame cost about 190 vs 90 ms on software rendering.
