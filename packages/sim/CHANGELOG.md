@@ -1,5 +1,12 @@
 # @mcthaydt/automata-sim
 
+## 0.0.5
+
+### Patch Changes
+
+- de363d9: The packages are MIT licensed: each has `"license": "MIT"` and a `LICENSE` file. Third-party code, fonts and artwork
+  keep their own terms; see `LICENSE-SCOPE.md` in the repository.
+
 ## 0.0.4
 
 No changes in this release.

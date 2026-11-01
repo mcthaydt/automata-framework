@@ -1,5 +1,63 @@
 # @mcthaydt/automata-host
 
+## 0.0.5
+
+### Patch Changes
+
+- cfb2cf0: AF owns the host contract (DIST.2, ADR 0006). `@mcthaydt/automata-host` now defines the capability names, error codes and
+  payloads in its own Zod schemas: `CAPABILITIES`, `ERROR_CODES`, a `*Schema` per payload and their types. The names are
+  Ruken's, kept where they fit, and a test holds them to the vendored SDK. `Hosting.kind` adds `'tauri'`. The web adapter's
+  `saves.flush` answers `{ persisted: 'device' }`.
+  
+  BREAKING: the root entry no longer exports an adapter. `HostingLive` and `makeHosting` come from
+  `@mcthaydt/automata-host/target` only, and `toHostError` is internal to the Ruken adapter. `ErrorCode`, `Hosting`,
+  `HostingLeaderboards` and `HostingSaves` are typed by AF's own contract (the same names and shapes as Ruken's;
+  `Hosting.kind` adds `'tauri'`, `SavesFlushRes.persisted` adds `'device'`, the leaderboard `meta` and `query` are
+  `LeaderboardSubmitMeta` and `LeaderboardQuery`). `./target` resolves to the web adapter by default: a Ruken build adds
+  the `automata-ruken` condition, `resolve: { conditions: ['automata-ruken', ...defaultClientConditions] }`. The
+  `automata-web` condition is unchanged.
+  
+  Migration:
+  
+  | Before | After |
+  | --- | --- |
+  | `import type { Capability, LifecyclePayload, … } from '@ruken/sdk'` | `from '@mcthaydt/automata-host'` (same names) |
+  | `RukenError['code']` | `ErrorCode` from `@mcthaydt/automata-host` |
+  | `Parameters<LeaderboardsApi['submit']>[2]`, `Parameters<LeaderboardsApi['get']>[1]` | `LeaderboardSubmitMeta`, `LeaderboardQuery` |
+  | `import { HostingLive, makeHosting } from '@mcthaydt/automata-host'` | `from '@mcthaydt/automata-host/target'` |
+  | A Ruken build or test with no condition | add the `automata-ruken` condition |
+  | `flush` answering `host-outbox` on the web adapter | `device` |
+- b112a01: AF's own fake host (DIST.4, DIST spec §7). `@mcthaydt/automata-testing/host` exports `FakeHosting` (a layer giving
+  `Hosting` and `FakeHostControl`) and `fakeHosting` (its control handle and a `make` for boot). They implement AF's host
+  contract in process for the `web`, `itch`, `ruken` and `tauri` targets: each target's kind, name, grants and error codes,
+  deferred readiness, schema-checked host changes, planned failures, held calls for timeouts, consent, menu and close.
+  
+  `@mcthaydt/automata-host/contract-suite` publishes the `Hosting` contract's Vitest cases (`describeHostingContract`), which
+  every adapter and the fake pass; `vitest` is an optional peer of `host`.
+  
+  The runtime takes `seams.hosting`: a function that builds the game's `Hosting` in place of the build target's adapter,
+  for example `fakeHosting().make`. A game's tests can boot on any target without Ruken's fake host.
+- bb98b8b: The desktop (`tauri`) host adapter (DIST.5a, ADR 0006). `@mcthaydt/automata-host/target` under the `automata-tauri`
+  condition gives a desktop build's `Hosting`. It is the web adapter's page plus:
+  - the game's saves in one `saves.json` store in the app's data folder. They are never kept in `localStorage` or memory;
+    when the store cannot be read, `saves` is not granted and every call fails `DENIED`;
+  - a flush that writes the store and answers `persisted: 'device'`;
+  - Quit (`exit` is granted). `exit` and the window's close request run the game's exiting handlers, then the flush,
+    within `HOST_EXIT_CAP`, then quit.
+  
+  `@tauri-apps/api`, `@tauri-apps/plugin-store` and `@tauri-apps/plugin-process` are optional peers that a desktop game
+  installs. `TAURI_MARKERS` and `findTauriMarkers` check that only a `tauri` build holds Tauri's IPC code.
+  
+  `ui`'s boot failure knows the `tauri` host kind. Its exit action reads "Quit" (the new `quit` copy key), and a saves
+  failure that will not clear offers "Continue without loading". The runtime passes `tauri` through to it.
+  
+  BREAKING: `ui`'s `HostKind` adds `'tauri'`, so an exhaustive `switch` over it must add a case. `BootFailureCopy` adds
+  the `quit` key, so a complete copy object must give it. `bootFailureView` now offers "Continue without loading" for a
+  non-retryable saves failure on every host but Ruken, and the exit action for an unsupported device wherever exit can be
+  granted (Ruken and the desktop).
+- de363d9: The packages are MIT licensed: each has `"license": "MIT"` and a `LICENSE` file. Third-party code, fonts and artwork
+  keep their own terms; see `LICENSE-SCOPE.md` in the repository.
+
 ## 0.0.4
 
 ### Patch Changes

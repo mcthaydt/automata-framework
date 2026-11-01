@@ -1,5 +1,71 @@
 # @mcthaydt/automata-ship
 
+## 0.0.5
+
+### Patch Changes
+
+- 6d60a91: The packages import nothing of Ruken's outside a `ruken/` folder (DIST.3a, ADR 0006).
+  
+  - `@mcthaydt/automata-content` owns the game config (`GameConfig`, `gameConfigSchema`, `RENDERERS`, `ORIENTATIONS`,
+    `INPUTS`, `RATINGS`, `LEADERBOARD_ORDERS`, `GAME_ID_PATTERN`), also from the browser-safe
+    `@mcthaydt/automata-content/game-config` entry. The keys are Ruken's manifest names, unchanged, and a test holds
+    AF's lists to Ruken's.
+  - `ShipConfig` extends that `GameConfig`. `game.sdk` is optional; `prepare --target ruken` refuses a config without
+    it, through Ruken's own parser. Every existing `ship.config.ts` type-checks unchanged.
+  - `defineExtension`'s `GameConfig` and `defineGame`'s id check use the game config.
+  - `ui` and `testing` take their host types (`DisplayMetricsPayload`, `FullscreenRes`, `ErrorCode`) from
+    `@mcthaydt/automata-host`, and no longer vendor Ruken's declarations. `game` no longer vendors Ruken's `SLUG_RE`.
+  - `RuntimeTest` (Ruken's fake host) and the Ruken-backed tests move under `ruken/` folders, as do ship's Ruken
+    target (`targets/ruken/`) and its itch target (`targets/itch/`). The public entry points are unchanged.
+  
+  BREAKING: `ShipConfig` is now `GameConfig & { itch?, audience? }` from `@mcthaydt/automata-content/game-config`, with the
+  same keys; `game.sdk` is optional, so code that reads `config.game.sdk` must handle `undefined`. `defineExtension`'s
+  `GameConfig` is `Pick<GameConfig, 'game' | 'runtime' | 'content'>` from the same entry. `ui`'s `ErrorCode` is
+  `@mcthaydt/automata-host`'s `ErrorCode`, the same ten codes. The published `ui`, `game` and `testing` packages no
+  longer ship `dist/vendor/` copies of Ruken's declarations or `SLUG_RE`.
+- a9d3f00: `automata-check-boundaries --platform-imports <root>...` checks that a distribution target's platform packages
+  (`@ruken/*`, `@tauri-apps/*`) are imported only by files under a folder named for that target (`ruken/`, `tauri/`),
+  tests included (DIST.3b, ADR 0006). Each finding names the file, the import and the AF replacement. Only real imports
+  count; a package named in a string, a comment or a template does not. `pnpm boundaries` runs it over `packages`,
+  `games`, `examples` and `tooling`.
+  
+  `@mcthaydt/automata-ship` exports `rukenHeaders(config, target)`: the headers Ruken serves a game's build with, from
+  its ship config, so a game's `vite preview` gets Ruken's CSP without importing `@ruken/manifest`.
+- 09bed6e: `automata-ship prepare --target tauri` builds a game's desktop bundles for the OS it runs on (DIST.5b, DIST spec §6.2).
+  It runs these checks first, and each one that fails names what to change:
+  - the release tag;
+  - the new `tauri` section of `ship.config.ts` (`identifier`, an optional `icon`);
+  - a semver `game.version`;
+  - an `index.html` entry;
+  - a webview CSP without `'unsafe-eval'`;
+  - the public-build scans (secrets, `@pixi/3d`);
+  - the toolchain: `cargo`, WebKitGTK 4.1 on Linux, and the game's `@tauri-apps/cli`.
+  
+  It then writes a Tauri project into `.automata/tauri/`. The crates are pinned exactly, the plugins are the store and
+  process ones the desktop adapter calls, and only those permissions are granted. It runs `tauri build` there and copies
+  each bundle to `dist-tauri/<id>-<version>-<os>-<kind>.<ext>`: Linux `deb` and `appimage`, macOS `dmg`, Windows `nsis`
+  and `msi`. The builds are unsigned; signing comes with the release job. New exports: `prepareTauri`, `TAURI_CLI`,
+  `TauriConfig`, `tauriConfigSchema`, and the errors `TauriBuildInvalid`, `TauriToolchainMissing` and `TauriBuildFailed`.
+- c88a91a: `automata-ship publish --target itch --from tauri` pushes a game's desktop bundles from `dist-tauri/` to itch.io as
+  Downloadable files (DIST.5c, DIST spec §6.4). It pushes one bundle per OS, each to its own butler channel: Linux's
+  AppImage, macOS's dmg and Windows's NSIS installer, on the channels `linux`, `mac` and `windows`. The new
+  `itch.downloads` setting can rename any of them. It needs the same `itch` section, key and butler as an HTML5 push, and
+  fails before anything runs when no bundle of this version is there (`ItchDownloadsMissing`). New exports:
+  `publishDownloadsToItch` and `ItchDownloadsMissing`.
+  
+  `game-release.yml` takes `desktop: true`, which builds unsigned bundles on each of `desktop-runners` (default
+  `af-linux` and `af-mac`), keeps them as an artifact and, with `itch: true`, pushes them to itch.io. With
+  `desktop-signing: true` it builds the signed and notarized macOS bundle in the `release` environment, using the
+  `APPLE_*` secrets; a missing secret fails the job by name.
+- de363d9: The packages are MIT licensed: each has `"license": "MIT"` and a `LICENSE` file. Third-party code, fonts and artwork
+  keep their own terms; see `LICENSE-SCOPE.md` in the repository.
+- Updated dependencies [3a22b55]
+- Updated dependencies [6d60a91]
+- Updated dependencies [de363d9]
+- Updated dependencies [bd91af2]
+  - @mcthaydt/automata-content@0.0.5
+  - @mcthaydt/automata-node@0.0.5
+
 ## 0.0.4
 
 ### Patch Changes

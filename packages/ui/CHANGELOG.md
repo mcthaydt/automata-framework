@@ -1,5 +1,60 @@
 # @mcthaydt/automata-ui
 
+## 0.0.5
+
+### Patch Changes
+
+- 6d60a91: The packages import nothing of Ruken's outside a `ruken/` folder (DIST.3a, ADR 0006).
+  
+  - `@mcthaydt/automata-content` owns the game config (`GameConfig`, `gameConfigSchema`, `RENDERERS`, `ORIENTATIONS`,
+    `INPUTS`, `RATINGS`, `LEADERBOARD_ORDERS`, `GAME_ID_PATTERN`), also from the browser-safe
+    `@mcthaydt/automata-content/game-config` entry. The keys are Ruken's manifest names, unchanged, and a test holds
+    AF's lists to Ruken's.
+  - `ShipConfig` extends that `GameConfig`. `game.sdk` is optional; `prepare --target ruken` refuses a config without
+    it, through Ruken's own parser. Every existing `ship.config.ts` type-checks unchanged.
+  - `defineExtension`'s `GameConfig` and `defineGame`'s id check use the game config.
+  - `ui` and `testing` take their host types (`DisplayMetricsPayload`, `FullscreenRes`, `ErrorCode`) from
+    `@mcthaydt/automata-host`, and no longer vendor Ruken's declarations. `game` no longer vendors Ruken's `SLUG_RE`.
+  - `RuntimeTest` (Ruken's fake host) and the Ruken-backed tests move under `ruken/` folders, as do ship's Ruken
+    target (`targets/ruken/`) and its itch target (`targets/itch/`). The public entry points are unchanged.
+  
+  BREAKING: `ShipConfig` is now `GameConfig & { itch?, audience? }` from `@mcthaydt/automata-content/game-config`, with the
+  same keys; `game.sdk` is optional, so code that reads `config.game.sdk` must handle `undefined`. `defineExtension`'s
+  `GameConfig` is `Pick<GameConfig, 'game' | 'runtime' | 'content'>` from the same entry. `ui`'s `ErrorCode` is
+  `@mcthaydt/automata-host`'s `ErrorCode`, the same ten codes. The published `ui`, `game` and `testing` packages no
+  longer ship `dist/vendor/` copies of Ruken's declarations or `SLUG_RE`.
+- bb98b8b: The desktop (`tauri`) host adapter (DIST.5a, ADR 0006). `@mcthaydt/automata-host/target` under the `automata-tauri`
+  condition gives a desktop build's `Hosting`. It is the web adapter's page plus:
+  - the game's saves in one `saves.json` store in the app's data folder. They are never kept in `localStorage` or memory;
+    when the store cannot be read, `saves` is not granted and every call fails `DENIED`;
+  - a flush that writes the store and answers `persisted: 'device'`;
+  - Quit (`exit` is granted). `exit` and the window's close request run the game's exiting handlers, then the flush,
+    within `HOST_EXIT_CAP`, then quit.
+  
+  `@tauri-apps/api`, `@tauri-apps/plugin-store` and `@tauri-apps/plugin-process` are optional peers that a desktop game
+  installs. `TAURI_MARKERS` and `findTauriMarkers` check that only a `tauri` build holds Tauri's IPC code.
+  
+  `ui`'s boot failure knows the `tauri` host kind. Its exit action reads "Quit" (the new `quit` copy key), and a saves
+  failure that will not clear offers "Continue without loading". The runtime passes `tauri` through to it.
+  
+  BREAKING: `ui`'s `HostKind` adds `'tauri'`, so an exhaustive `switch` over it must add a case. `BootFailureCopy` adds
+  the `quit` key, so a complete copy object must give it. `bootFailureView` now offers "Continue without loading" for a
+  non-retryable saves failure on every host but Ruken, and the exit action for an unsupported device wherever exit can be
+  granted (Ruken and the desktop).
+- de363d9: The packages are MIT licensed: each has `"license": "MIT"` and a `LICENSE` file. Third-party code, fonts and artwork
+  keep their own terms; see `LICENSE-SCOPE.md` in the repository.
+- ad11ae6: The rotate hint gives the focus back to the control that held it when the phone is turned back, unless the focus moved on meanwhile or the control has gone: a browser drops the focus from a control the hint made inert.
+- Updated dependencies [3a22b55]
+- Updated dependencies [cfb2cf0]
+- Updated dependencies [6d60a91]
+- Updated dependencies [b112a01]
+- Updated dependencies [bb98b8b]
+- Updated dependencies [de363d9]
+- Updated dependencies [bd91af2]
+  - @mcthaydt/automata-content@0.0.5
+  - @mcthaydt/automata-host@0.0.5
+  - @mcthaydt/automata-testing@0.0.5
+
 ## 0.0.4
 
 ### Patch Changes
