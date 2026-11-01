@@ -13,3 +13,6 @@ export const GoalReached: EventDef<typeof none> = defineEvent('goal.reached', no
 
 /** Wick fell into a channel or pit and was put back on the last safe spot, at the place he fell, Q16.16 metres. */
 export const HeroFell: EventDef<typeof at> = defineEvent('hero.fell', at)
+
+/** Wick started a roll, at the place he started it, Q16.16 metres: presentation plays the roll's sound. */
+export const HeroRolled: EventDef<typeof at> = defineEvent('hero.rolled', at)
