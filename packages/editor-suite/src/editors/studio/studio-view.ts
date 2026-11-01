@@ -1,13 +1,18 @@
 import {
+  apply,
+  chestFrame,
   type EffectorId,
   evaluate,
   type FigureClipDef,
   type FigureDef,
   type FigureLibrary,
+  invertRigid,
   J,
+  type M,
   MASK_GROUPS,
   type MotionLibrary,
   type PoseDef,
+  type Space,
   skeleton,
 } from '@mcthaydt/automata-figures'
 import type { FigureViewState } from '@mcthaydt/automata-render-pixi3d'
@@ -200,6 +205,12 @@ export interface Handle {
   readonly id: EffectorId
   /** The pose's own value: where it stands in the 1.62 m reference figure, metres. */
   readonly position: Vec3
+  /** The space the pose writes the value in: `chest` is the chest joint's frame, `root` the figure's. */
+  readonly space: Space
+  /** Where the target stands in root-space reference metres: the value itself, or the chest-space value taken through the chest. */
+  readonly root: Vec3
+  /** The standing chest frame in root space (reference units), which a chest-space value converts through. */
+  readonly chest: M
   /** The figure's height over 1.62 m: the stage draws `position × scale`, which is where the figure's limb stands. */
   readonly scale: number
   /** Whether the pose sets it (a handle it does not set shows where the body is). */
@@ -220,6 +231,18 @@ const HANDLE_JOINTS: ReadonlyArray<readonly [EffectorId, keyof typeof J]> = [
   ['head', 'head'],
 ]
 
+/** A value in the handle's space as a point in root-space reference metres. */
+export function rootOfValue(handle: { readonly space: Space; readonly chest: M }, value: Vec3): Vec3 {
+  if (handle.space === 'root') return value
+  return apply(handle.chest, [...value]) as unknown as Vec3
+}
+
+/** The pose value in the handle's space for a point in root-space reference metres (the inverse of `rootOfValue`). */
+export function valueOfRoot(handle: { readonly space: Space; readonly chest: M }, root: Vec3): Vec3 {
+  if (handle.space === 'root') return root
+  return apply(invertRigid(handle.chest), [...root]) as unknown as Vec3
+}
+
 export function handlesOf(content: StudioContent, view: StudioViewState): Handle[] {
   if (view.mode !== 'pose') return []
   const stage = stageOf(content, view)
@@ -234,18 +257,34 @@ export function handlesOf(content: StudioContent, view: StudioViewState): Handle
     stage.motion,
   )
   const scale = rig.genes.height / 1.62
+  // The frame a chest-space value converts through is the standing figure's chest (what the library uses for the layers
+  // below the pose), so it comes from an evaluation with no action.
+  const standing = evaluate(
+    rig,
+    stage.def,
+    { moving: false, facing: 0, speed: 0, outfit: stage.state.outfit } as never,
+    stage.time,
+    stage.motion,
+  )
+  const chest = chestFrame(rig, standing.world)
   return HANDLE_JOINTS.map(([id, joint]) => {
     const world = evaluated.world[J[joint]]
     const reach = evaluated.report.reached[id]
     // A handle the pose sets stands at its target (that is what a drag moves; amber says the body fell short of it);
     // one it does not set stands where the body is.
-    const target = (pose?.effectors[id] as { pos?: Vec3 } | undefined)?.pos
+    const written = pose?.effectors[id] as { pos?: Vec3; space?: Space } | undefined
+    const target = written?.pos
+    const space: Space = target === undefined ? 'root' : (written?.space ?? 'root')
+    // A body joint is in figure metres already; a pose's target is in reference metres.
+    const position: Vec3 =
+      target ?? ([(world?.[9] ?? 0) / scale, (world?.[10] ?? 0) / scale, (world?.[11] ?? 0) / scale] as const)
+    const handle = { space, chest }
     return {
       id,
-      // A body joint is in figure metres already; a pose's target is in reference metres.
-      position:
-        target ??
-        ([(world?.[9] ?? 0) / scale, (world?.[10] ?? 0) / scale, (world?.[11] ?? 0) / scale] as const),
+      position,
+      space,
+      chest,
+      root: rootOfValue(handle, position),
       scale,
       set: pose?.effectors[id] !== undefined,
       reached: reach?.ok ?? true,

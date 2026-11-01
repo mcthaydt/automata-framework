@@ -219,6 +219,16 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
     align-items: center;
     min-width: 0;
   }
+  /* The row's name is printed once, above. The slider's and the number box's own labels stay for assistive technology
+     (they name the controls) but are not drawn. */
+  .control :global(.label) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   .control > :global(*) {
     flex: 1 1 200px;
     max-width: 100%;

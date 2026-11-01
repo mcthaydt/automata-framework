@@ -49,11 +49,12 @@ const lastLine = (comment: string): string | undefined => {
   return lines[lines.length - 1]
 }
 
-/** `90 px/s.` is a number and a unit; a sentence is only a note. */
-const unitOf = (note: string): string | undefined => {
-  const found = /^-?\d+(?:\.\d+)?\s+(\S+?)[.,;]?$/.exec(note)
-  return found?.[1]
-}
+/**
+ * A comment that is just a unit (`px/s²`, `ticks`, `%`) is the unit. One with a number or words in it (`Celeste: 90 px/s.`)
+ * says what the number is and stays a note: the number in it is not this value, and its unit is not this value's.
+ */
+const unitOf = (note: string): string | undefined =>
+  /^[^\s\d.,;:()][^\s]{0,11}$/.test(note) ? note : undefined
 
 export function readTuning(text: string, meta: TuningMeta = {}): TuningRead {
   const document = openDocument(TUNING_PATH, text)

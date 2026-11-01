@@ -12,7 +12,7 @@ import { untrack } from 'svelte'
 import { dragPlane, orbit, pickRay, project, rayAtPlane, turned, type Vec3 } from '../stage/stage-camera'
 import type { StageRenderer, StageRendererFactory } from '../stage/stage-renderer'
 import type { StudioController } from '../studio-controller'
-import { handlesOf, type StudioMode, stageOf } from '../studio-view'
+import { type Handle, handlesOf, type StudioMode, stageOf, valueOfRoot } from '../studio-view'
 
 /** The frame clock, so a test plays a clip by hand. */
 export interface Frames {
@@ -183,12 +183,12 @@ $effect(() => {
 const handles = $derived(handlesOf(content, $viewState))
 const placed = $derived(
   handles.flatMap((handle) => {
-    const at = project($viewState.orbit, size, worldOf(handle.position, handle.scale))
+    const at = project($viewState.orbit, size, worldOf(handle.root, handle.scale))
     return at === undefined ? [] : [{ handle, at }]
   }),
 )
 
-let dragging: { id: string; start: Vec3; last: Vec3; scale: number } | undefined
+let dragging: { id: string; start: Vec3; last: Vec3; handle: Handle } | undefined
 
 /** A pose value is in the 1.62 m reference figure; the stage draws the figure at its own height. */
 const worldOf = (value: Vec3, scale: number): Vec3 => [value[0] * scale, value[1] * scale, value[2] * scale]
@@ -212,13 +212,13 @@ const round = (value: Vec3): Vec3 => [
  * stage's gestures under it do not turn the figure as well) would never reach a delegated handler.
  */
 const dragHandleWith =
-  (id: Parameters<StudioController['dragHandle']>[0], position: Vec3, scale: number) =>
+  (handle: Handle) =>
   (node: HTMLElement): (() => void) => {
     const onDown = (event: PointerEvent): void => {
       event.stopPropagation()
       capture(event)
-      controller.view.selectHandle(id)
-      dragging = { id, start: position, last: position, scale }
+      controller.view.selectHandle(handle.id)
+      dragging = { id: handle.id, start: handle.position, last: handle.position, handle }
     }
     node.addEventListener('pointerdown', onDown)
     node.addEventListener('pointermove', move)
@@ -234,9 +234,12 @@ const dragHandleWith =
 
 function move(event: PointerEvent): void {
   if (dragging === undefined) return
-  const at = hit(event, worldOf(dragging.start, dragging.scale))
+  // The pointer puts the handle in the world; the value is that point in the handle's own space (a chest-space target
+  // is written in the chest's frame, so a drag converts through it).
+  const { handle } = dragging
+  const at = hit(event, worldOf(handle.root, handle.scale))
   if (at === undefined) return
-  dragging.last = round(worldOf(at, 1 / dragging.scale))
+  dragging.last = round(valueOfRoot(handle, worldOf(at, 1 / handle.scale)))
   controller.dragHandle(dragging.id as never, dragging.last)
 }
 function up(event: PointerEvent): void {
@@ -247,7 +250,7 @@ function up(event: PointerEvent): void {
   else if (drag.last !== drag.start) void controller.dropHandle(drag.id as never, drag.last)
   else controller.cancelDrag()
 }
-function key(event: KeyboardEvent, id: string, position: Vec3): void {
+function key(event: KeyboardEvent, handle: Handle): void {
   const step = 0.02
   const delta: Record<string, Vec3> = {
     ArrowLeft: [step, 0, 0],
@@ -260,9 +263,11 @@ function key(event: KeyboardEvent, id: string, position: Vec3): void {
   const move = delta[event.key]
   if (move === undefined) return
   event.preventDefault()
+  // A key moves the handle in the world's axes, whatever space its value is written in.
+  const [x, y, z] = handle.root
   void controller.dropHandle(
-    id as never,
-    round([position[0] + move[0], position[1] + move[1], position[2] + move[2]]),
+    handle.id as never,
+    round(valueOfRoot(handle, [x + move[0], y + move[1], z + move[2]])),
   )
 }
 
@@ -299,8 +304,8 @@ function capture(event: PointerEvent): void {
           aria-label={`${handle.id} handle${handle.reached ? '' : ', out of reach'}`}
           aria-pressed={$viewState.handle === handle.id}
           data-handle={handle.id}
-          {@attach dragHandleWith(handle.id, handle.position, handle.scale)}
-          onkeydown={(event) => key(event, handle.id, handle.position)}
+          {@attach dragHandleWith(handle)}
+          onkeydown={(event) => key(event, handle)}
           onclick={() => controller.view.selectHandle(handle.id)}
         ></button>
       {/each}

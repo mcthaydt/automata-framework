@@ -43,8 +43,9 @@ export function createStudio(options: StudioSuiteOptions): SuiteEditor<StudioSui
       canRedo: () => session.controller.session.history.canRedo,
       undoLabel: () => session.controller.session.history.undoLabel,
       redoLabel: () => session.controller.session.history.redoLabel,
-      undo: () => void session.controller.undo(),
-      redo: () => void session.controller.redo(),
+      // The shell writes the files back through its own path (and removes a file the Studio created); the history only follows.
+      undo: () => session.controller.session.history.undo(),
+      redo: () => session.controller.session.history.redo(),
       subscribe: (listener) => session.controller.session.history.subscribe(() => listener()),
     }),
   })

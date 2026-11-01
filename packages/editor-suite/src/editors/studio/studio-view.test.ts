@@ -7,7 +7,14 @@ import { get } from 'svelte/store'
 import { describe, expect, it } from 'vitest'
 import { studioFixtureFiles } from '../../testing/studio-fixtures'
 import { readStudioContent } from './studio-content'
-import { createStudioView, handlesOf, type StudioViewState, stageOf } from './studio-view'
+import {
+  createStudioView,
+  handlesOf,
+  rootOfValue,
+  type StudioViewState,
+  stageOf,
+  valueOfRoot,
+} from './studio-view'
 
 const content = readStudioContent(
   Object.entries(studioFixtureFiles()).map(([path, text]) => ({ path, text })),
@@ -57,6 +64,57 @@ describe('stageOf', () => {
   it('draws nothing when no figure is chosen or the chosen one does not read', () => {
     expect(stageOf(content, { ...base, figure: undefined }).def).toBeUndefined()
     expect(stageOf(content, { ...base, figure: 'nobody' }).def).toBeUndefined()
+  })
+})
+
+describe('handlesOf, chest-space targets', () => {
+  const live = { effectors: { handR: { pos: [0.1, 0.25, 0.35], space: 'chest' as const } } }
+  const view = { ...base, mode: 'pose' as const, live: live as never }
+
+  const handR = () => {
+    const handle = handlesOf(content, view).find((entry) => entry.id === 'handR')
+    if (handle === undefined) throw new Error('no handle')
+    return handle
+  }
+
+  it('draws a chest-space handle where the figure’s hand is: its root-space position times the scale', () => {
+    const stage = stageOf(content, view)
+    if (stage.def === undefined) throw new Error('no figure')
+    const world = evaluate(
+      skeleton(stage.def),
+      stage.def,
+      { moving: false, facing: 0, speed: 0, action: stage.state.action } as never,
+      stage.time,
+      stage.motion,
+    ).world
+    const joint = world[J['hand.R']] as ArrayLike<number>
+    const handle = handR()
+    expect(handle.space).toBe('chest')
+    // The pose's own value stays what the file says; `root` is where it stands.
+    expect(handle.position).toEqual([0.1, 0.25, 0.35])
+    for (const axis of [0, 1, 2])
+      expect((handle.root[axis] as number) * handle.scale).toBeCloseTo(joint[9 + axis] as number, 2)
+  })
+
+  it('converts a root-space point back to the chest-space value, and a value to its root-space point', () => {
+    const handle = handR()
+    const back = valueOfRoot(handle, rootOfValue(handle, [0.2, 0.3, 0.4]))
+    for (const axis of [0, 1, 2]) expect(back[axis]).toBeCloseTo([0.2, 0.3, 0.4][axis] as number, 6)
+    // The chest-space value is not its root-space point.
+    expect(rootOfValue(handle, [0.2, 0.3, 0.4])).not.toEqual([0.2, 0.3, 0.4])
+  })
+
+  it('leaves a root-space handle’s value and point the same', () => {
+    const rootView = {
+      ...base,
+      mode: 'pose' as const,
+      live: { effectors: { handR: { pos: [0.1, 0.25, 0.35] } } } as never,
+    }
+    const handle = handlesOf(content, rootView).find((entry) => entry.id === 'handR')
+    if (handle === undefined) throw new Error('no handle')
+    expect(handle.space).toBe('root')
+    expect(handle.root).toEqual(handle.position)
+    expect(rootOfValue(handle, [0.2, 0.3, 0.4])).toEqual([0.2, 0.3, 0.4])
   })
 })
 
