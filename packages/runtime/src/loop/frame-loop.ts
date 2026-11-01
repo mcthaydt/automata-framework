@@ -27,7 +27,7 @@ const TOLERANCE_MS = 1e-6
  * 2. sim.step(cmds)
  * 3. renderer.apply(result)
  * 4. rejected commands logged to logError if provided
- * 5. sim.events published on the bus only when result.events is non-empty
+ * 5. sim.events, then sim.step (the same events with the step's tick), published on the bus only when result.events is non-empty
  */
 export function stepOnce(
   sim: Sim,
@@ -46,6 +46,7 @@ export function stepOnce(
   }
   if (result.events.length > 0) {
     bus.publish('sim.events', result.events)
+    bus.publish('sim.step', { tick: result.tick, events: result.events })
   }
 }
 

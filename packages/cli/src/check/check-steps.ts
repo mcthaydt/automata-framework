@@ -30,18 +30,18 @@ import { parseBoundaries, parseTsc, parseVitestJson } from './tool-output.ts'
 /** How long the `csp` step waits for the game's ready signal (DX spec §3.6). */
 export const CSP_READY_TIMEOUT_MS = 20_000
 
-interface Tool {
+export interface Tool {
   readonly bin: string
   /** The npm package that provides the bin. */
   readonly pkg: string
 }
 
-const TOOLS = {
+export const TOOLS: Readonly<Record<'boundaries' | 'tsc' | 'vitest' | 'vite', Tool>> = {
   boundaries: { bin: 'automata-check-boundaries', pkg: '@mcthaydt/automata-check-boundaries' },
   tsc: { bin: 'tsc', pkg: 'typescript' },
   vitest: { bin: 'vitest', pkg: 'vitest' },
   vite: { bin: 'vite', pkg: 'vite' },
-} as const satisfies Record<string, Tool>
+}
 
 type StepEffect = Effect.Effect<readonly CheckFinding[], CheckToolError, ProcessRunner | Files | CspProbe>
 
@@ -49,7 +49,7 @@ type StepEffect = Effect.Effect<readonly CheckFinding[], CheckToolError, Process
 const tail = (result: RunResult, lines = 20): string =>
   `${result.stdout}\n${result.stderr}`.trim().split('\n').slice(-lines).join('\n')
 
-const findBin = (gameDir: string, tool: Tool): Effect.Effect<string, CheckToolError, Files> =>
+export const findBin = (gameDir: string, tool: Tool): Effect.Effect<string, CheckToolError, Files> =>
   Effect.gen(function* () {
     const files = yield* Files
     let dir = gameDir

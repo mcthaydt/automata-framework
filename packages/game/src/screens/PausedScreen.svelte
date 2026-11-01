@@ -127,9 +127,6 @@ $effect(() => {
     actions={view === 'elsewhere' ? choice : undefined}
   >
     <div class="af-pause">
-      {#if reconnect}
-        <p class="af-pause__message" role="status">{words.reconnect}</p>
-      {/if}
       {#if view === 'menu'}
         <div class="af-pause__menu" data-pause-menu>
           <button
@@ -149,6 +146,9 @@ $effect(() => {
           >
         </div>
         <!-- Under the menu, so on a screen too short for both the actions stay on screen and the lines scroll. -->
+        {#if reconnect}
+          <p class="af-pause__message" role="status">{words.reconnect}</p>
+        {/if}
         {#if saves !== undefined}
           {#if saves.view.loadFailed}
             <p class="af-pause__message" role="alert" data-load-failed>{copy.current.saves.changedElsewhere.failed}</p>
