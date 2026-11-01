@@ -1782,6 +1782,7 @@ interface Workspace {
     readonly exports: DownloadStore;
     readonly persistent: boolean;
     readonly reason: string | undefined;
+    readonly served?: boolean;
 }
 ```
 
@@ -2755,6 +2756,7 @@ interface Workspace {
     readonly exports: DownloadStore;
     readonly persistent: boolean;
     readonly reason: string | undefined;
+    readonly served?: boolean;
 }
 ```
 

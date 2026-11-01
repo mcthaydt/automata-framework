@@ -183,12 +183,15 @@ $effect(() => {
 const handles = $derived(handlesOf(content, $viewState))
 const placed = $derived(
   handles.flatMap((handle) => {
-    const at = project($viewState.orbit, size, handle.position)
+    const at = project($viewState.orbit, size, worldOf(handle.position, handle.scale))
     return at === undefined ? [] : [{ handle, at }]
   }),
 )
 
-let dragging: { id: string; start: Vec3; last: Vec3 } | undefined
+let dragging: { id: string; start: Vec3; last: Vec3; scale: number } | undefined
+
+/** A pose value is in the 1.62 m reference figure; the stage draws the figure at its own height. */
+const worldOf = (value: Vec3, scale: number): Vec3 => [value[0] * scale, value[1] * scale, value[2] * scale]
 
 /** Where the pointer puts a handle: on the plane facing the camera through where the handle began. */
 function hit(event: PointerEvent, from: Vec3): Vec3 | undefined {
@@ -209,13 +212,13 @@ const round = (value: Vec3): Vec3 => [
  * stage's gestures under it do not turn the figure as well) would never reach a delegated handler.
  */
 const dragHandleWith =
-  (id: Parameters<StudioController['dragHandle']>[0], position: Vec3) =>
+  (id: Parameters<StudioController['dragHandle']>[0], position: Vec3, scale: number) =>
   (node: HTMLElement): (() => void) => {
     const onDown = (event: PointerEvent): void => {
       event.stopPropagation()
       capture(event)
       controller.view.selectHandle(id)
-      dragging = { id, start: position, last: position }
+      dragging = { id, start: position, last: position, scale }
     }
     node.addEventListener('pointerdown', onDown)
     node.addEventListener('pointermove', move)
@@ -231,9 +234,9 @@ const dragHandleWith =
 
 function move(event: PointerEvent): void {
   if (dragging === undefined) return
-  const at = hit(event, dragging.start)
+  const at = hit(event, worldOf(dragging.start, dragging.scale))
   if (at === undefined) return
-  dragging.last = round(at)
+  dragging.last = round(worldOf(at, 1 / dragging.scale))
   controller.dragHandle(dragging.id as never, dragging.last)
 }
 function up(event: PointerEvent): void {
@@ -296,7 +299,7 @@ function capture(event: PointerEvent): void {
           aria-label={`${handle.id} handle${handle.reached ? '' : ', out of reach'}`}
           aria-pressed={$viewState.handle === handle.id}
           data-handle={handle.id}
-          {@attach dragHandleWith(handle.id, handle.position)}
+          {@attach dragHandleWith(handle.id, handle.position, handle.scale)}
           onkeydown={(event) => key(event, handle.id, handle.position)}
           onclick={() => controller.view.selectHandle(handle.id)}
         ></button>

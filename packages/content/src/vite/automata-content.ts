@@ -161,9 +161,15 @@ export function automataContent(pluginOptions: AutomataContentOptions = { schema
     // Every asset ships as a file. Vite would inline one under 4 kB as a `data:` URL, which Pixi's loader fetches
     // and Ruken's CSP refuses (`connect-src` has no `data:`), so the asset would never load (DX.5a). A value the
     // game sets is kept: this hook's result is merged over the game's own config.
-    config(userConfig) {
-      if (userConfig.build?.assetsInlineLimit !== undefined) return undefined
-      return { build: { assetsInlineLimit: 0 } }
+    //
+    // It also defines `__AUTOMATA_DEBUG__` (FR.3): true in the dev server and in a build made with `AUTOMATA_DEBUG=1`
+    // (`automata build --debug`), false in a release build. A block a game guards with it is dropped from a release bundle, so a
+    // dev-only overlay (Plus's `debug`) never ships. The game declares it: `declare const __AUTOMATA_DEBUG__: boolean`.
+    config(userConfig, { command }) {
+      const debug = command === 'serve' || process.env.AUTOMATA_DEBUG === '1'
+      const define = { __AUTOMATA_DEBUG__: JSON.stringify(debug) }
+      if (userConfig.build?.assetsInlineLimit !== undefined) return { define }
+      return { define, build: { assetsInlineLimit: 0 } }
     },
 
     configResolved(config) {

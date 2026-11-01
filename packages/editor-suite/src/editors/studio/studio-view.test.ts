@@ -2,6 +2,7 @@
 // handles stand and which are out of reach, and the view's own state (mode, selection, playhead). Headless: the stage's
 // renderer takes what `stageOf` says, so these are the cases of what a person sees.
 
+import { evaluate, J, skeleton } from '@mcthaydt/automata-figures'
 import { get } from 'svelte/store'
 import { describe, expect, it } from 'vitest'
 import { studioFixtureFiles } from '../../testing/studio-fixtures'
@@ -60,6 +61,24 @@ describe('stageOf', () => {
 })
 
 describe('handlesOf', () => {
+  it('draws a handle where the figure’s hand is: a pose is in a 1.62 m figure and the figure scales it', () => {
+    const view = { ...base, mode: 'pose' as const, pose: 'guard-high' }
+    const stage = stageOf(content, view)
+    if (stage.def === undefined) throw new Error('no figure')
+    const world = evaluate(
+      skeleton(stage.def),
+      stage.def,
+      { moving: false, facing: 0, speed: 0, action: stage.state.action } as never,
+      stage.time,
+      stage.motion,
+    ).world
+    const joint = world[J['hand.R']] as ArrayLike<number>
+    const handle = handlesOf(content, view).find((entry) => entry.id === 'handR')
+    if (handle === undefined) throw new Error('no handle')
+    expect(handle.position[1] * handle.scale).toBeCloseTo(joint[10] as number, 1)
+    expect(handle.position[0] * handle.scale).toBeCloseTo(joint[9] as number, 1)
+  })
+
   it('stands a handle where each limb is in the pose, and says whether it was reached', () => {
     const handles = handlesOf(content, { ...base, mode: 'pose' })
     expect(handles.map((handle) => handle.id)).toEqual([

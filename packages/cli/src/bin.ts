@@ -4,6 +4,8 @@ import { Effect, Layer } from 'effect'
 import { parseAddArgs } from './add/add-args.ts'
 import { KitSourceLive } from './add/kit-source.ts'
 import { type AddError, type AddResult, addExitCode, type RunAddOptions, runAdd } from './add/run-add.ts'
+import { parseBuildArgs } from './build/build-args.ts'
+import { type BuildResult, runBuild } from './build/run-build.ts'
 import { parseCheckArgs } from './check/check-args.ts'
 import { type CheckReport, exitCodeFor, formatText, toJson } from './check/check-report.ts'
 import { CspProbeLive } from './check/ruken/csp-probe-live.ts'
@@ -67,6 +69,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
 const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <title>] [--targets <list>]
        automata add <kit> [--dir <game>] [--repo <url>] [--force]
        automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]
+       automata build [dir] [--debug]
        automata editor [dir] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
 
 create-game scaffolds a new Automata Framework game project.
@@ -78,6 +81,8 @@ check runs, in a game folder: boundaries, typecheck, tests, the boards, orientat
 sources, no-eval (vite build, then a scan of the bundle), the secrets and data-urls scans of that build, and
 with --csp the browser CSP check; --sim-only runs only the first three
 (exit 0 pass, 1 findings, 2 a tool could not run).
+build runs the game's vite build (exit 0 built, 1 the build failed, 2 vite could not run); --debug builds with the debug constant on, so
+the game's dev-only tools are in the bundle, and a release build, the default, drops them.
 editor serves an editor against a game checkout (automata editor --help): loopback by default, --lan with a
 token for a tablet.
 
@@ -88,6 +93,7 @@ Options:
   --dir <game>     add: the game folder (default: the working folder)
   --repo <url>     add: the kit repository (default: the Automata Plus repository)
   --force          add: replace files the game already has
+  --debug          build: build with __AUTOMATA_DEBUG__ on (dev-only tools included)
   -h, --help       Show this help message
 `
 
@@ -145,6 +151,37 @@ async function addCommand(
   return addExitCode(outcome)
 }
 
+/** Runs `automata build` with the real processes and files. */
+export const runBuildLive = (options: { gameDir: string; debug: boolean }): Promise<BuildResult> =>
+  Effect.runPromise(Effect.provide(runBuild(options), Layer.mergeAll(FilesLive, ProcessRunnerLive)))
+
+async function buildCommand(
+  args: readonly string[],
+  io: CliIo,
+  build: (options: { gameDir: string; debug: boolean }) => Promise<BuildResult>,
+): Promise<number> {
+  const parsed = parseBuildArgs(args)
+  if (!parsed.ok) {
+    io.stderr(`Error: ${parsed.problem}\n\n${USAGE}`)
+    return 2
+  }
+  const { dir, debug } = parsed.options
+  let result: BuildResult
+  try {
+    result = await build({ gameDir: resolve(process.cwd(), dir ?? '.'), debug })
+  } catch (error) {
+    // vite could not run (not installed, could not start): exit 2, never 1, which means the build failed.
+    io.stderr(`Error: ${error instanceof Error ? error.message : String(error)}\n`)
+    return 2
+  }
+  if (result.exitCode !== 0) {
+    io.stderr(`${result.tail}\nautomata build: vite build failed (exit ${result.exitCode})\n`)
+    return 1
+  }
+  io.stdout(`automata build: built${debug ? ' with the debug constant on' : ''}\n`)
+  return 0
+}
+
 async function checkCommand(
   args: readonly string[],
   io: CliIo,
@@ -166,7 +203,9 @@ export async function runCli(
   io: CliIo = DEFAULT_IO,
   check: (options: RunCheckOptions) => Promise<CheckReport> = runCheckLive,
   add: (options: RunAddOptions) => Promise<AddResult | AddError> = runAddLive,
+  build: (options: { gameDir: string; debug: boolean }) => Promise<BuildResult> = runBuildLive,
 ): Promise<number> {
+  if (args[0] === 'build') return buildCommand(args.slice(1), io, build)
   if (args[0] === 'check') return checkCommand(args.slice(1), io, check)
   if (args[0] === 'add') return addCommand(args.slice(1), io, add)
   if (args[0] === 'editor') return editorCommand(args.slice(1), io, liveEditorDeps())

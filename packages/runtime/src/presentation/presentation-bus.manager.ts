@@ -8,6 +8,11 @@ import type { BoardState } from '../leaderboards/board-state.js'
 /** Every fact the runtime publishes on the presentation bus, by name. */
 export interface RuntimeFacts {
   readonly 'sim.events': readonly SimEvent[]
+  /**
+   * The same events with the tick of the step that emitted them (`StepResult.tick`, the tick the sim is at after the step), for
+   * a listener that needs to know when an event happened. Published with `sim.events`, only when the step emitted events.
+   */
+  readonly 'sim.step': { readonly tick: number; readonly events: readonly SimEvent[] }
   readonly 'screen.entered': {
     readonly screen: string
     readonly from: string | undefined

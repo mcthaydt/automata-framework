@@ -5,7 +5,7 @@
     "allowImportingTsExtensions": true,
     "isolatedDeclarations": false
   },
-  "include": ["main.ts", "src/**/*.ts"],
+  "include": ["main.ts", "src/**/*.ts", "fixtures/*.ts", "content/generated/*.d.ts"],
   // These read Node-only files (ship.config.ts, the palette file, the game's sources); tsconfig.node.json checks them.
   "exclude": [
     "src/ship-config.test.ts",

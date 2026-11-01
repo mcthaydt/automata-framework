@@ -1,7 +1,6 @@
 <!--
   The touch controls as base-3d's play screen draws them (@mcthaydt/automata-game's PlayScreen, not exported): the
-  camera drag surface under a ScreenFrame with Pause, the floating stick, and the five buttons of DESIGN.md §14.4 in
-  the `end` group, all required. The button specs are the page's own (`input.touchButtons`, asserted in
+  camera drag surface under a ScreenFrame with Pause, the floating stick, and the Roll button in the `end` group, required. The button specs are the page's own (`input.touchButtons`, asserted in
   screens/controls.test.ts). For controls.layout.test.ts; test code.
 -->
 <script lang="ts">
@@ -14,7 +13,7 @@ const idle = {
   cancel: () => undefined,
 }
 const none = (): void => undefined
-const buttons = ['Attack', 'Action', 'Shield', 'Lock', 'Item'].map((label) => ({
+const buttons = ['Roll'].map((label) => ({
   action: label.toLowerCase(),
   label,
   side: 'end' as const,

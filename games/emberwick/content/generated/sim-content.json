@@ -1,0 +1,83 @@
+{
+  "levels": {
+    "room-1": {
+      "background": {
+        "color": "#1b2540",
+        "mode": "fit"
+      },
+      "fields": {},
+      "format": "af2d-content",
+      "id": "room-1",
+      "layers": [
+        {
+          "def": "entities",
+          "items": [
+            {
+              "def": "player-start",
+              "fields": {},
+              "id": "00000001",
+              "x": 52,
+              "y": 184
+            },
+            {
+              "def": "goal",
+              "fields": {},
+              "id": "00000002",
+              "x": 124,
+              "y": 28
+            }
+          ],
+          "kind": "entities"
+        },
+        {
+          "def": "collision",
+          "kind": "intgrid",
+          "rows": [
+            "1*40",
+            "1 .*38 1",
+            "1 .*38 1",
+            "1 .*38 1",
+            "1 .*38 1",
+            "1 .*11 1*7 .*20 1",
+            "1 .*38 1",
+            "1 .*38 1",
+            "1 .*20 1*8 .*10 1",
+            "1 .*3 1*6 .*29 1",
+            "1 .*38 1",
+            "1 .*31 1*6 . 1",
+            "1 .*38 1",
+            "1 .*38 1",
+            "1 .*2 1*6 .*14 1*8 .*8 1",
+            "1 .*38 1",
+            "1 .*38 1",
+            "1 .*12 1*8 .*18 1",
+            "1 .*38 1",
+            "1 .*38 1",
+            "1 .*2 1*8 .*28 1",
+            "1 .*29 1*2 .*7 1",
+            "1 .*29 1*2 .*7 1",
+            "1*40"
+          ]
+        }
+      ],
+      "name": "Room 1",
+      "size": {
+        "h": 192,
+        "w": 320
+      },
+      "version": 1
+    }
+  },
+  "tuning": {
+    "AIR_ACCEL": 46,
+    "BUFFER_TICKS": 5,
+    "COYOTE_TICKS": 6,
+    "GRAVITY": 64,
+    "HALF_GRAVITY_BELOW": 171,
+    "JUMP_SPEED": -448,
+    "MAX_FALL": 683,
+    "MAX_RUN": 384,
+    "RUN_ACCEL": 71,
+    "VAR_JUMP_TICKS": 12
+  }
+}

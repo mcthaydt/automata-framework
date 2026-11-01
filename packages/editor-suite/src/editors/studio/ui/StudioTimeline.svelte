@@ -115,8 +115,8 @@ function capture(event: PointerEvent): void {
 <style>
   .timeline {
     display: grid;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
     color: var(--color-text-primary);
     font: var(--text-body-13);
   }
@@ -128,7 +128,8 @@ function capture(event: PointerEvent): void {
   }
   .track {
     position: relative;
-    height: 76px;
+    /* The kit's dock is 148 px: the bar, then keys (44 px) and one row of marker and cue names fit without scrolling. */
+    height: 62px;
     margin: 0 22px;
     border-top: 2px solid var(--color-border, #3a3f48);
     touch-action: none;
@@ -158,14 +159,15 @@ function capture(event: PointerEvent): void {
   .marker,
   .cue {
     position: absolute;
-    top: 48px;
+    top: 46px;
     transform: translateX(-50%);
     color: var(--color-text-dim);
     font: var(--text-eyebrow-11);
     white-space: nowrap;
   }
   .cue {
-    top: 62px;
+    /* Beside the markers' row, in the accent, so the two read apart. */
+    color: var(--color-accent, #d9a441);
   }
   .none {
     margin: 0;

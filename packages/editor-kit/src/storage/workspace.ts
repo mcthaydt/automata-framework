@@ -15,6 +15,8 @@ export interface Workspace {
   readonly persistent: boolean
   /** Why OPFS is not used, when `persistent` is false. */
   readonly reason: string | undefined
+  /** True when `store` is a game checkout served by `automata editor`, not this browser's storage; Home says so. */
+  readonly served?: boolean
 }
 
 export interface WorkspaceEnv {
@@ -99,5 +101,6 @@ export async function openServedWorkspace(env: ServedWorkspaceEnv): Promise<Work
     exports: local.exports,
     persistent: true,
     reason: undefined,
+    served: true,
   }
 }

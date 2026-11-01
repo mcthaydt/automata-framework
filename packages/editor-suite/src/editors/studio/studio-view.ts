@@ -198,8 +198,10 @@ export function stageOf(content: StudioContent, view: StudioViewState): Stage {
 
 export interface Handle {
   readonly id: EffectorId
-  /** Where it stands in the figure's space, metres. */
+  /** The pose's own value: where it stands in the 1.62 m reference figure, metres. */
   readonly position: Vec3
+  /** The figure's height over 1.62 m: the stage draws `position × scale`, which is where the figure's limb stands. */
+  readonly scale: number
   /** Whether the pose sets it (a handle it does not set shows where the body is). */
   readonly set: boolean
   /** Whether the solve reached its target; false is drawn amber. */
@@ -231,6 +233,7 @@ export function handlesOf(content: StudioContent, view: StudioViewState): Handle
     stage.time,
     stage.motion,
   )
+  const scale = rig.genes.height / 1.62
   return HANDLE_JOINTS.map(([id, joint]) => {
     const world = evaluated.world[J[joint]]
     const reach = evaluated.report.reached[id]
@@ -239,7 +242,11 @@ export function handlesOf(content: StudioContent, view: StudioViewState): Handle
     const target = (pose?.effectors[id] as { pos?: Vec3 } | undefined)?.pos
     return {
       id,
-      position: target ?? ([world?.[9] ?? 0, world?.[10] ?? 0, world?.[11] ?? 0] as const),
+      // A body joint is in figure metres already; a pose's target is in reference metres.
+      position:
+        target ??
+        ([(world?.[9] ?? 0) / scale, (world?.[10] ?? 0) / scale, (world?.[11] ?? 0) / scale] as const),
+      scale,
       set: pose?.effectors[id] !== undefined,
       reached: reach?.ok ?? true,
       error: reach === undefined || reach.ok ? 0 : reach.error,

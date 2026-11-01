@@ -75,12 +75,15 @@ function slide(field: SliderField, value: number, phase: string): void {
       options={gaits}
       onpick={(id) => void controller.setFigureField('gait', id)}
     />
-    <Segmented
-      label="Hand"
-      value={def.hand}
-      options={[{ id: 'L', label: 'Left' }, { id: 'R', label: 'Right' }]}
-      onedit={(event) => void controller.setFigureField('hand', event.value)}
-    />
+    <div class="labelled">
+      <span class="name">Hand</span>
+      <Segmented
+        label="Hand"
+        value={def.hand}
+        options={[{ id: 'L', label: 'Left' }, { id: 'R', label: 'Right' }]}
+        onedit={(event) => void controller.setFigureField('hand', event.value)}
+      />
+    </div>
     <Picker label="Default outfit" value={def.default} options={outfits} onpick={(id) => void controller.setFigureField('default', id)} />
     <Picker
       label="Stand"
@@ -136,5 +139,13 @@ function slide(field: SliderField, value: number, phase: string): void {
   .none {
     margin: 0;
     color: var(--color-text-dim);
+  }
+  .labelled {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .name {
+    color: var(--color-text-dim);
+    font: var(--text-label-12);
   }
 </style>

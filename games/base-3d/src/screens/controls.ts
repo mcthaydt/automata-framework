@@ -28,8 +28,8 @@ export function cameraTurnUnits(reading: AnalogReading, held: { readonly units: 
 }
 
 /**
- * `map` with its touch buttons in the `end` group under the game's words: the five buttons of §14.4, each named by
- * its first key (`names`, by `KeyboardEvent.code`).
+ * `map` with its touch buttons in the `end` group under the game's words: the roll button, named by its first key
+ * (`names`, by `KeyboardEvent.code`).
  */
 export function endGroup(map: InputMap, names: Readonly<Record<string, string>>): InputMap {
   return {

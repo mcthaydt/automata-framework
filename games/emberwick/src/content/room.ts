@@ -1,6 +1,6 @@
-// The base's one room, as content. Stand-in until the content compiler lands (M1.3, PR #8): then this becomes a
-// `content/rooms/*.toml` file compiled by `automata-content`. The sim receives it as `content`, so the room is
-// frozen and hashed together with the sim state either way.
+// The room as the sim and the renderer read it: a `RoomSource` checked into a `Room`. The base's one room is authored in
+// the 2D editor and compiled from `content/` (`emberwick-content.ts`); the sim receives it as `content`, so the room is
+// frozen and hashed together with the sim state.
 //
 // Tiles: `#` solid, `.` empty, `P` where the character starts (standing on the tile below), `G` the ember (the goal).
 // 40 × 24 tiles of 8 pixels is 320 × 192 pixels: a single screen, Bubble Bobble style. Platforms climb in steps
@@ -19,37 +19,6 @@ export interface RoomSource {
 /** A checked room: its size in tiles, and where the start and the goal are. */
 export interface Room extends RoomGrid {
   readonly id: string
-}
-
-export const ROOM: RoomSource = {
-  id: 'room-1',
-  tileSize: 8,
-  rows: [
-    '########################################',
-    '#......................................#',
-    '#......................................#',
-    '#..............G.......................#',
-    '#......................................#',
-    '#...........#######....................#',
-    '#......................................#',
-    '#......................................#',
-    '#....................########..........#',
-    '#...######.............................#',
-    '#......................................#',
-    '#...............................######.#',
-    '#......................................#',
-    '#......................................#',
-    '#..######..............########........#',
-    '#......................................#',
-    '#......................................#',
-    '#............########..................#',
-    '#......................................#',
-    '#......................................#',
-    '#..########............................#',
-    '#.............................##.......#',
-    '#.....P.......................##.......#',
-    '########################################',
-  ],
 }
 
 const TILES = new Set(['#', '.', 'P', 'G'])
