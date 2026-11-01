@@ -9,8 +9,8 @@ import type { Token } from './palette.ts'
 /** Point lights the scene may hold at once: tiled lighting takes 32; the spec keeps 8 spare for phones (§4.10). */
 export const LIGHT_BUDGET = 24
 
-/** How far below the platforms the lava's surface lies, in metres: high enough to see from the angled view. */
-export const LAVA_Y = -0.7
+/** How deep the floating ruin's stone goes under the platforms, in metres; below it is open sky. */
+export const ISLAND_DEPTH = 3
 
 export interface Spot {
   readonly x: number
@@ -20,7 +20,7 @@ export interface Spot {
 
 /** A static point light: where, its colour, reach in metres and strength. */
 export interface LightSpot extends Spot {
-  readonly kind: 'mushroom' | 'lava'
+  readonly kind: 'mushroom'
   readonly colour: Token
   readonly range: number
   readonly intensity: number
@@ -38,9 +38,17 @@ export interface Bay {
   readonly height: number
 }
 
+/** A cool glowing rim along a channel's edge, from `x0` to `x1` on the line `z` (the channels open onto the sky). */
+export interface Rim {
+  readonly x0: number
+  readonly x1: number
+  readonly z: number
+}
+
 export interface Dressing {
   readonly mushrooms: readonly Spot[]
   readonly lights: readonly LightSpot[]
+  readonly rims: readonly Rim[]
   readonly grass: readonly Card[]
   readonly vines: readonly Card[]
   readonly shafts: readonly Card[]
@@ -53,8 +61,8 @@ export interface Dressing {
   readonly moon: Card
 }
 
-/** The bays' broken heights, read round in order: a ruin, never two neighbours alike. */
-const BAY_HEIGHTS = [2.6, 1.9, 2.3, 1.6, 2.5, 2.0, 1.7, 2.4, 2.2, 1.8] as const
+/** The bays' broken heights, read round in order: low ruin fragments, below the camera's line over them to the sky. */
+const BAY_HEIGHTS = [1.2, 0.6, 0.9, 0.5, 1.3, 0.8, 0.55, 1.1, 0.7, 1.0] as const
 /** A bay's length in metres, about. */
 const BAY_LENGTH = 4
 /** Mushrooms stand this far in from the walls, and keep this far from the spawn, the embers and the goal. */
@@ -97,32 +105,20 @@ export function dressingOf(area: AreaSource): Dressing {
       }
   })
 
-  const lights: LightSpot[] = [
-    ...mushrooms.map(
-      (m): LightSpot => ({
-        kind: 'mushroom',
-        x: m.x,
-        y: 0.4,
-        z: m.z,
-        colour: 'mushroom',
-        range: 3.2,
-        intensity: 1.6,
-      }),
-    ),
-    ...pits.flatMap((pit) =>
-      [0.25, 0.75].map(
-        (share): LightSpot => ({
-          kind: 'lava',
-          x: pit.min[0] + (pit.max[0] - pit.min[0]) * share,
-          y: LAVA_Y + 0.6,
-          z: (pit.min[1] + pit.max[1]) / 2,
-          colour: 'hot',
-          range: 4.5,
-          intensity: 2.2,
-        }),
-      ),
-    ),
-  ]
+  const lights: LightSpot[] = mushrooms.map(
+    (m): LightSpot => ({
+      kind: 'mushroom',
+      x: m.x,
+      y: 0.4,
+      z: m.z,
+      colour: 'mushroom',
+      range: 3.2,
+      intensity: 1.6,
+    }),
+  )
+  const rims: Rim[] = pits.flatMap((pit) =>
+    [pit.min[1], pit.max[1]].map((z) => ({ x0: pit.min[0], x1: pit.max[0], z })),
+  )
 
   // Grass along every platform edge and wall foot, a tuft every half metre or so.
   const grass: Card[] = []
@@ -171,21 +167,34 @@ export function dressingOf(area: AreaSource): Dressing {
   )
   const arch = { min: -ARCH.width / 2, max: ARCH.width / 2, z: farWall?.a.z ?? farZ, height: ARCH.height }
 
-  // The backdrop: pines on the plateau outside both side walls (none past the far wall, so the arch frames the moon), a valley of pines and ruined towers beyond the arch.
+  // The backdrop: the ruin floats in the night, so its silhouettes stand on islands far off and below: pine clumps
+  // round about, ruined towers farther out; and a large moon high in the frame to the right (Emberwick's top right).
+  const centre = { x: 0, z: (Math.min(...rooms.map((r) => r.min[1])) + farZ) / 2 }
   const pines: Card[] = []
-  for (const side of [-1, 1])
-    for (let z = -2; z < farZ; z += 2.2)
-      pines.push({ x: side * (8 + (jitter(z) + 0.5) * 3), y: 0, z, size: 6 + (jitter(z * 7) + 0.5) * 2 })
-  // The valley's pines leave a gap round the room's centre line, where the moon sits low in the arch.
-  for (let x = -16; x <= 16; x += 2.6)
-    if (Math.abs(x) > 4) pines.push({ x, y: -7, z: farZ + 12 + (jitter(x) + 0.5) * 3, size: 7 })
   const towers: Card[] = []
   for (let i = 0; i < 9; i++) {
-    const x = -26 + i * 6.5 + (i % 2) * 2
-    // The towers, too, leave the moon's line clear.
-    if (Math.abs(x) > 6) towers.push({ x, y: -9, z: farZ + 24 + (i % 3) * 5, size: 14 + (i % 3) * 4 })
+    const angle = (i / 9) * Math.PI * 2 + 0.3
+    const [ix, iz] = [centre.x + Math.sin(angle) * 36, centre.z + Math.cos(angle) * 36]
+    const islandY = -7 - (i % 3) * 2
+    for (let k = 0; k < 4; k++)
+      pines.push({
+        x: ix + (k - 1.5) * 2.4,
+        y: islandY,
+        z: iz + jitter(i * 4 + k) * 3,
+        size: 5 + (jitter(i + k * 7) + 0.5) * 3,
+      })
   }
-  const moon: Card = { x: 0.6, y: -4.2, z: farZ + 32, size: 8 }
+  for (let i = 0; i < 7; i++) {
+    const angle = (i / 7) * Math.PI * 2 + 1
+    towers.push({
+      x: Math.sin(angle) * 55,
+      y: -14 - (i % 2) * 3,
+      z: centre.z + Math.cos(angle) * 55,
+      size: 16 + (i % 3) * 4,
+    })
+  }
+  // Facing +z, as the start view does, screen right is −x.
+  const moon: Card = { x: -30, y: -4, z: 55, size: 16 }
 
-  return { mushrooms, lights, grass, vines, shafts, bays, arch, pines, towers, moon }
+  return { mushrooms, lights, rims, grass, vines, shafts, bays, arch, pines, towers, moon }
 }

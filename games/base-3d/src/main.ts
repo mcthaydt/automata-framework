@@ -129,6 +129,10 @@ export const base3d = defineGame({
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
+      // No letterbox: the 3D view fills the page at any shape, as Emberwick's 2D scene does; a taller window shows
+      // more of the night. The HUD and controls are DOM, laid out on the page, not in the playfield.
+      logicalWidth: undefined,
+      logicalHeight: undefined,
       setup: (made) => {
         stage = made
         return options.setup?.(made)

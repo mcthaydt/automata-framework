@@ -4,7 +4,6 @@ import type { Texture } from 'pixi.js'
 import {
   paintGlow,
   paintGrass,
-  paintLava,
   paintMoon,
   paintShaft,
   paintSilhouette,
@@ -17,7 +16,6 @@ export interface NightTextures {
   readonly floor: Texture
   readonly side: Texture
   readonly wall: Texture
-  readonly lava: Texture
   readonly grass: Texture
   readonly vine: Texture
   readonly glow: Texture
@@ -34,7 +32,6 @@ export function nightTextures(): NightTextures {
     floor: toTexture(paintStone('floor'), true),
     side: toTexture(paintStone('side'), true),
     wall: toTexture(paintStone('wall'), true),
-    lava: toTexture(paintLava(), true),
     grass: toTexture(paintGrass(), false),
     vine: toTexture(paintVine(), false),
     glow: toTexture(paintGlow(), false, true),

@@ -1,13 +1,13 @@
 // The night scene (art direction spec §2, §4): Emberwick's moonlit ruin built under the 3D view from the room and its
 // dressing. The sky, the ambient moonlight and the moon's direction; the ruined walls as textured bays through the
-// occluder rule, the far wall an arch; mossy flagstone platforms over the channels' stone sides; lava that lights the
-// channels; glowing mushrooms with their lights; additive halos, fireflies and moonlight shafts; grass and vines; and
+// occluder rule, the far wall an arch; mossy flagstone platforms floating over open sky, the channels gaps with cool
+// glowing rims; glowing mushrooms with their lights; additive halos, fireflies and moonlight shafts; grass and vines; and
 // the backdrop. Presentation only (law 1). The embers, the goal and Wick's lantern come with their own views.
 import { type Box3, type Occluders, type SceneFog, tiledCube } from '@mcthaydt/automata-render-pixi3d'
 import {
   type Container3D,
   DirectionalLight,
-  FlatMaterial,
+  type FlatMaterial,
   Mesh3D,
   ParticleContainer3D,
   PhongMaterial,
@@ -17,14 +17,14 @@ import {
 import type { Texture } from 'pixi.js'
 import type { AreaSource } from '../systems/index.ts'
 import { buildBackdrop } from './backdrop.ts'
-import { type Card, dressingOf, LAVA_Y } from './dressing.ts'
+import { type Card, dressingOf, ISLAND_DEPTH } from './dressing.ts'
 import { type SceneWall, sceneOf } from './index.ts'
 import { geometryOf, mushroomData } from './mushrooms.ts'
 import { nightTextures } from './night-textures.ts'
 import { colour } from './palette.ts'
 
-/** The night's fog: clear for 9 m, full at 30 m, in the haze of Emberwick's middle sky band. */
-export const FOG: SceneFog = { near: 9, far: 30, color: colour('skyMid') }
+/** The night's fog: clear for 9 m, full at 30 m, in the deep blue the ruin floats in. */
+export const FOG: SceneFog = { near: 9, far: 30, color: colour('skyDeep') }
 
 /** What the scene hook keeps of the night: one call a frame, with the page clock in seconds. */
 export interface NightScene {
@@ -33,11 +33,11 @@ export interface NightScene {
 
 /** Metres per repeat of the stone textures (32 px): a flagstone or brick about 0.7 m long. */
 const TILE = 2
-/** The pillars between bays and the far wall's height over its arch. */
-const PILLAR = { width: 0.7, depth: 0.6, height: 3.2 } as const
+/** The pillars between bays (broken stubs a little above their bay) and the far wall's height over its arch. */
+const PILLAR = { width: 0.7, depth: 0.6, above: 0.7 } as const
 const LINTEL = 0.5
-/** The grass and vines, tinted to the moonlight they stand in (they are unlit cards). */
-const MOONLIT = 0x7f9aa0
+/** The grass and vines at their own colours, Emberwick's bright greens (they are unlit cards). */
+const MOONLIT = 0xffffff
 
 const textured = (texture: Texture): PhongMaterial =>
   new PhongMaterial({ baseColor: 0xffffff, baseColorTexture: texture, shininess: 4 })
@@ -80,14 +80,14 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
   const textures = nightTextures()
 
   // Sky and moonlight: the sky gradient behind everything, a dim cool fill, and the moon's light from the far end.
-  view.background = { skyColor: colour('skyHigh'), groundColor: colour('skyLow') }
+  view.background = { skyColor: colour('skyHigh'), groundColor: colour('skyDeep') }
   view.environment = { skyColor: colour('ambient'), groundColor: colour('skyMid'), intensity: 0.6 }
   const moonlight = new DirectionalLight({ color: colour('moonlight'), intensity: 0.55 })
   moonlight.position.set(-6, 14, 40)
   moonlight.lookAt({ x: 0, y: 0, z: 10 })
   root.addChild(moonlight)
 
-  // The platforms: mossy flagstones on top, bare stone down their sides to the lava.
+  // The platforms: mossy flagstones on top, bare stone down their sides to the floating ruin's underside.
   const floor = textured(textures.floor)
   const side = textured(textures.side)
   const wall = textured(textures.wall)
@@ -95,18 +95,23 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
     const [x0, z0] = room.min
     const [x1, z1] = room.max
     root.addChild(stoneBox({ min: [x0, -0.2, z0], max: [x1, 0, z1] }, floor))
-    root.addChild(stoneBox({ min: [x0, LAVA_Y - 0.5, z0], max: [x1, -0.2, z1] }, side))
+    root.addChild(stoneBox({ min: [x0, -ISLAND_DEPTH, z0], max: [x1, -0.2, z1] }, side))
   }
-  // The channels: lava (unlit, unfogged: it is the light) between stone sides that carry the walls down to it.
-  const lava = new FlatMaterial({ baseColorTexture: textures.lava, fog: false })
-  for (const pit of area.pits ?? []) {
-    const [x0, z0] = pit.min
-    const [x1, z1] = pit.max
-    root.addChild(stoneBox({ min: [x0, LAVA_Y - 0.1, z0], max: [x1, LAVA_Y, z1] }, lava, 1))
-    for (const x of [x0 - 0.4, x1])
-      root.addChild(stoneBox({ min: [x, LAVA_Y - 0.5, z0], max: [x + 0.4, 0, z1] }, side))
-  }
-
+  // The channels open onto the sky the ruin floats in: no floor, only a cool glowing rim along each edge, so the gap
+  // reads at once (Emberwick has no red; its accents are teal and the ember's warmth).
+  const rimMaterial = new PhongMaterial({
+    baseColor: colour('mushroom'),
+    emissive: { color: colour('mushroom'), strength: 1.2 },
+  })
+  for (const rim of dressing.rims)
+    root.addChild(
+      Object.assign(
+        stoneBox({ min: [rim.x0, -0.02, rim.z - 0.05], max: [rim.x1, 0.03, rim.z + 0.05] }, rimMaterial, 1),
+        {
+          label: 'night:rim',
+        },
+      ),
+    )
   // The ruin: textured bays, a pillar at every bay's start (fading when it hides Wick), the near wall whole,
   // the far wall's two piers either side of the arch and the lintel over it.
   const surface = { texture: textures.wall, tile: TILE }
@@ -117,7 +122,7 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
     const x = bay.a.x + outward * (PILLAR.width / 2 - 0.15)
     const bounds: Box3 = {
       min: [x - PILLAR.width / 2, 0, bay.a.z - PILLAR.depth / 2],
-      max: [x + PILLAR.width / 2, PILLAR.height, bay.a.z + PILLAR.depth / 2],
+      max: [x + PILLAR.width / 2, bay.height + PILLAR.above, bay.a.z + PILLAR.depth / 2],
     }
     const pillar = stoneBox(bounds, textured(textures.wall))
     root.addChild(pillar)
@@ -125,7 +130,8 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
   })
   const { arch } = dressing
   const ends = endWalls(area)
-  if (ends.near !== undefined) occluders.wall({ ...ends.near, height: 2.6, color: white, surface })
+  // The near wall is a low parapet, like the bays, so nothing tall stands between the camera and the room.
+  if (ends.near !== undefined) occluders.wall({ ...ends.near, height: 0.9, color: white, surface })
   if (ends.far !== undefined) {
     const { a, b } = ends.far
     const height = arch.height + LINTEL
@@ -182,17 +188,17 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
       alpha: 0.8,
       phase: m.x + m.z,
     })),
-    ...(area.pits ?? []).flatMap((pit) => {
+    ...dressing.rims.flatMap((rim) => {
       const row = []
-      for (let x = pit.min[0] + 0.5; x < pit.max[0]; x += 1.5)
+      for (let x = rim.x0 + 0.4; x < rim.x1; x += 0.9)
         row.push({
           x,
-          y: LAVA_Y + 0.5,
-          z: (pit.min[1] + pit.max[1]) / 2,
-          size: 2.6,
-          colour: colour('hot'),
-          alpha: 0.5,
-          phase: x * 1.3,
+          y: 0.05,
+          z: rim.z,
+          size: 0.8,
+          colour: colour('mushroom'),
+          alpha: 0.45,
+          phase: x * 1.3 + rim.z,
         })
       return row
     }),

@@ -25,31 +25,26 @@ keyboard walking was unreliable, which is why spawns are used.
 
 ## Every element of the 2D scene, and its 3D counterpart (spec §2)
 
-Present in 3D: night sky and haze fog in Emberwick's palette entries; dim moonlit fill and moonlight from the far end;
-moon (in the far arch, framed above the goal); ruined towers and pine silhouettes beyond the walls; moonlight shafts;
-mossy stone platforms with grass at every edge and wall foot; vines down the channels; glowing mushrooms that light
-the walls cyan; embers that glow, pulse, throw sparks and carry their own warm light; the goal with a column of light
-and rising sparks; fireflies; Wick's lantern. New in 3D: lava that lights the channels red.
+Present in 3D: an open moonlit night (the ruin floats in it, so the sky shows above, beside and below): a large moon
+high on the right, silhouette islands of pines and ruined towers, stars and moonlight shafts; mossy stone platforms with
+bright grass tufts on every edge, vines down the ledges; low broken walls; glowing mushrooms that light the stone cyan;
+the channels as gaps onto the sky with cool glowing rims (no red: Emberwick has none); embers that glow, pulse, throw
+sparks and carry their own light; the goal with a column of light and rising sparks; fireflies; Wick in the sprite's lit
+blue with hood points, a cool rim light over his hood and a warm lantern pool. The view fills the page at any shape.
 
 ## Where 3D still falls short (honestly)
 
-- **Overall brightness and blue.** Lifted (moonlit fill 0.6 over blue, moonlight 0.55), and the floor and walls read
-  at a glance, but the 2D frame is still a more luminous, saturated mid-blue; the 3D stone reads grey-blue.
-- **The sky is a thin band.** The camera looks 25° down (35° at the goal), so the moon, stars and towers show only at
-  the far end and through the arch; in the 2D game they fill the top third of every frame.
+- **Saturation.** The 2D frame is a richer mid-blue; the 3D stone still reads grey-blue between the pools of light.
+- **Stone on screen.** The 25° camera looks mostly at the floor, so stone covers more of the frame than the 2D's
+  platforms do, even with the grass and moss.
+- **Wick from behind.** His eyes and face glow face away from the camera most of the time; the hood points read small.
 - **No bloom.** Glow is additive cards (as Emberwick fakes it); there is no real bloom filter (the spike's limits).
-- **Wick is small and plain beside the sprite.** His cloak now takes the sprite's lit blue and a cool light rides
-  over his hood, so he reads from behind; but the hood's ear points and the cape's flare are not modelled, and his
-  glowing eyes face away from the camera most of the time.
-- **Near-field noise.** Close to the camera the 32 px moss and grass textures read as busy specks.
-- **Letterbox bars.** At 1280×720 the 3D game letterboxes to its 844×390 size in the runtime's purple-grey; Emberwick's
-  page is the night colour. The bars come from the theme, not the scene.
+- **Near-field noise.** Close to the camera the 32 px moss reads as busy specks.
 - **2D at phone sizes** crops its bottom row, so Wick is off-screen in `06` and `08` (Emberwick's own framing).
-- **Software rendering cost.** In headless Chromium here a frame of play costs about 190 ms against #373's 90 ms
-  (rAF mean over 35 frames, 844×390, `fps.cjs` in the lane's scratchpad; lights about 30 ms, dressing about 20 ms, the
-  rest spread over textures and geometry). The portrait journey G3-x passes at 28–30 s of its 30 s budget (it was
-  31 s before the mushrooms were merged and the bays lengthened): a flake risk on a slower runner. Real GPUs are the
-  target; the GPU runner's probe is the measure.
+- **G3-x over budget.** The portrait journey G3-x fails at 31.6–31.7 s (three runs) of its 30 s budget with the
+  full-frame view; the same scene letterboxed passes at 26.6 s. The full-frame view resizes on each rotation. The budget
+  is not raised; this is the coordinator's call. A frame of play itself costs about 115 ms on this software renderer
+  (it was about 190 ms before the island, against #373's 90 ms).
 - **Not measured:** WebGPU (no WebGPU headless here), the GPU runner's frame budget, real devices, hearing the sounds.
 
 ## Gates

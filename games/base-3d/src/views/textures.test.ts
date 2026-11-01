@@ -7,7 +7,6 @@ import {
   type Pixels,
   paintGlow,
   paintGrass,
-  paintLava,
   paintMoon,
   paintShaft,
   paintSilhouette,
@@ -32,7 +31,6 @@ const PIXEL_ART: Record<string, () => Pixels> = {
   floor: () => paintStone('floor'),
   wall: () => paintStone('wall'),
   side: () => paintStone('side'),
-  lava: paintLava,
   grass: paintGrass,
   vine: paintVine,
   pine: () => paintSilhouette('pine'),
@@ -52,7 +50,7 @@ describe('the pixel-art textures', () => {
     })
 
   it('covers the floor with stone and clumps of moss, and the walls with stone only', () => {
-    const moss = ['#1e6f50', '#33984b', '#134c4c']
+    const moss = ['#1e6f50', '#33984b', '#5ac54f']
     const share = (pixels: Pixels, set: string[]) => {
       let n = 0
       for (let i = 0; i < pixels.data.length; i += 4) {

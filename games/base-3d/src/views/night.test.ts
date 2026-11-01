@@ -45,7 +45,8 @@ describe('buildNight', () => {
     const lights = descendants(root).filter((n): n is PointLight => n instanceof PointLight)
     expect(lights).toHaveLength(dressingOf(ROOM).lights.length)
     expect(lights.length).toBeLessThanOrEqual(LIGHT_BUDGET)
-    expect(lights.filter((l) => l.position.y < 0)).toHaveLength((ROOM.pits ?? []).length * 2)
+    // No light below the platforms: the channels open onto the sky, not lava.
+    expect(lights.filter((l) => l.position.y < 0)).toHaveLength(0)
   })
 
   it('builds the ruin from textured bays, the near wall and the arch’s two piers', () => {
@@ -59,13 +60,14 @@ describe('buildNight', () => {
 
   it('sets the night sky, the moonlit ambient and fog the colour of the haze', () => {
     const { view } = stage()
-    expect(view.background).toMatchObject({ skyColor: colour('skyHigh'), groundColor: colour('skyLow') })
+    // The ruin floats: below the horizon is night sky too, the deep blue of Wick's cloak shade, never teal ground.
+    expect(view.background).toMatchObject({ skyColor: colour('skyHigh'), groundColor: colour('skyDeep') })
     expect(view.environment).toMatchObject({ skyColor: colour('ambient'), groundColor: colour('skyMid') })
-    expect(FOG.color).toBe(colour('skyMid'))
+    expect(FOG.color).toBe(colour('skyDeep'))
     expect(FOG.far).toBeGreaterThan(FOG.near)
   })
 
-  it('draws the lava, the mushrooms and the backdrop as meshes, and the glow, motes, grass, vines and shafts as particles', () => {
+  it('draws the stone, the channel rims, the mushrooms and the backdrop as meshes, and the glow, motes, grass, vines and shafts as particles', () => {
     const { root } = stage()
     const all = descendants(root)
     expect(all.filter((n) => n instanceof ParticleContainer3D).length).toBeGreaterThanOrEqual(6)

@@ -11,6 +11,7 @@ describe('the night palette', () => {
       skyHigh: 52,
       skyMid: 39,
       skyLow: 38,
+      skyDeep: 40,
       moonlight: 45,
       ambient: 11,
       mushroom: 43,
@@ -19,6 +20,9 @@ describe('the night palette', () => {
       firefly: 33,
       spark: 32,
       hot: 28,
+      grass: 35,
+      grassTip: 34,
+      moss: 36,
     })
   })
 

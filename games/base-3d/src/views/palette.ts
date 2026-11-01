@@ -10,6 +10,8 @@ export const TOKENS = {
   skyHigh: 52,
   skyMid: 39,
   skyLow: 38,
+  /** The night below the floating ruin and in its fog: the deep blue of Wick's cloak shade. */
+  skyDeep: 40,
   /** The moon's light, its shafts and its glow. */
   moonlight: 45,
   /** The moon's disc, its highlight and its craters; the stars. */
@@ -35,10 +37,10 @@ export const TOKENS = {
   stoneEdge: 11,
   mortar: 14,
   mortarDeep: 15,
-  /** Moss and grass, darkest to brightest. */
-  mossDeep: 38,
-  moss: 37,
-  mossMid: 36,
+  /** Moss and grass, darkest to brightest: Emberwick's grass sprite (34 tips, 35 moss, 36 shade, 37 drips). */
+  mossDeep: 37,
+  moss: 36,
+  mossMid: 35,
   grass: 35,
   grassTip: 34,
   /** Ruined towers far off. */

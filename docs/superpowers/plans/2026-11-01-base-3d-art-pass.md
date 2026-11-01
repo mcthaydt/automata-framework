@@ -56,3 +56,10 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
 - 2026-11-01: coordinator's review (exposure, Wick). Cloak swatch 41 → 42 (the sprite's lit tone); a cool rim light
   rides over Wick (lantern test seen failing first); lantern 4.5 m / 3; fill 0.6, moonlight 0.55. Light budget test
   counts Wick's two. Images recaptured; spec and README updated.
+- 2026-11-01: coordinator's second review (not accepted at ccf350bf: grey bands, enclosed corridor, palette, Wick,
+  red channels). Done: the view fills the page (no letterbox: `logicalWidth/Height` undefined in main.ts); the ruin
+  floats in the night (sky below the horizon too, fog and below-sky in 40), low bays 0.5–1.3 m and pillar stubs, near
+  wall a 0.9 m parapet, silhouette islands far off and below, a 16 m moon high on the right; the channels are gaps onto
+  the sky with teal rims (lava and its lights removed); grass and moss in Emberwick's 34–37; Wick's hood points.
+  Tests changed first and seen failing (dressing, night, palette). G3-x: 31.6, 31.7, 31.6 s with the full-frame view;
+  26.6 s with the letterbox put back temporarily (same scene). Budget not raised; reported.

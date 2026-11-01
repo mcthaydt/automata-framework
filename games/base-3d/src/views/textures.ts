@@ -106,32 +106,6 @@ export function paintStone(kind: StoneKind): Pixels {
   return p
 }
 
-/** Lava: bright heat under patches of dark crust, threaded with orange and yellow cracks and a few sparkles. */
-export function paintLava(): Pixels {
-  const size = 32
-  const p = painter(size, size)
-  const rand = seeded(4)
-  p.rect(0, 0, size, size, 'hot')
-  for (let i = 0; i < 40; i++)
-    p.rect(
-      Math.floor(rand() * size),
-      Math.floor(rand() * size),
-      2 + Math.floor(rand() * 4),
-      2 + Math.floor(rand() * 3),
-      i % 2 === 0 ? 'crustDeep' : 'crust',
-    )
-  const cracks: readonly Token[] = ['hot', 'ember', 'lantern', 'ember']
-  for (let i = 0; i < 70; i++) {
-    const x = Math.floor(rand() * size)
-    const y = Math.floor(rand() * size)
-    const length = 2 + Math.floor(rand() * 5)
-    const token = cracks[Math.floor(rand() * 4)] as Token
-    for (let k = 0; k < length; k++) rand() < 0.5 ? p.dot(x + k, y, token) : p.dot(x, y + k, token)
-  }
-  for (let i = 0; i < 18; i++) p.dot(Math.floor(rand() * size), Math.floor(rand() * size), 'spark')
-  return p
-}
-
 /** A grass tuft, 16 px: nine blades of three greens with bright tips, rooted on the bottom row. */
 export function paintGrass(): Pixels {
   const size = 16

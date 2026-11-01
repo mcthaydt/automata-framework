@@ -35,6 +35,12 @@ EDS.9) on main for the roll clip.
 
 ## 2. The 2D scene, element by element, and its 3D counterpart
 
+**Revision (2026-11-01, the coordinator's second review):** the ruin floats in the open night, so the sky (deep blue 40
+below the horizon, 52 above) fills the frame beside and below the room; walls are low fragments (bays 0.5–1.3 m, pillar
+stubs, a 0.9 m near parapet); silhouettes stand on far islands below; the moon is 16 m, high on the right; the channels
+are gaps onto the sky with teal rims, with no lava, no red and no lava lights; grass and moss use Emberwick's 34–37; the
+view fills the page (no letterbox). Rows below that say otherwise are superseded by this paragraph.
+
 Colours are Endesga 64 entries by index (`ENDESGA_64[i]`), the indices Emberwick's `render/scene.ts` and
 `render/backdrop.ts` use, so both games name the same entries.
 

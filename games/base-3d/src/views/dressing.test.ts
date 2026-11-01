@@ -38,12 +38,13 @@ describe('the dressing', () => {
     }
   })
 
-  it('lights each mushroom cluster and each channel twice', () => {
+  it('lights each mushroom cluster, and rims each channel edge with a cool glow instead of lava light', () => {
     expect(dressing.lights.filter((l) => l.kind === 'mushroom')).toHaveLength(dressing.mushrooms.length)
+    expect(dressing.lights.every((l) => l.kind === 'mushroom')).toBe(true)
     for (const pit of ROOM.pits ?? []) {
-      const lava = dressing.lights.filter((l) => l.kind === 'lava' && l.z > pit.min[1] && l.z < pit.max[1])
-      expect(lava).toHaveLength(2)
-      for (const light of lava) expect(light.y).toBeLessThan(0)
+      const rims = dressing.rims.filter((r) => r.z === pit.min[1] || r.z === pit.max[1])
+      expect(rims).toHaveLength(2)
+      for (const rim of rims) expect([rim.x0, rim.x1]).toEqual([pit.min[0], pit.max[0]])
     }
   })
 
@@ -60,15 +61,15 @@ describe('the dressing', () => {
       ).toBe(true)
   })
 
-  it('cuts each side wall into bays that cover it exactly, between 1.6 and 2.6 m high', () => {
+  it('cuts each side wall into low ruined bays that cover it exactly, between 0.5 and 1.3 m high', () => {
     const sides = sceneOf(ROOM).walls.filter((w) => w.a.x === w.b.x)
     for (const wall of sides) {
       const bays = dressing.bays.filter((b) => b.a.x === wall.a.x && between(b, wall))
       const length = bays.reduce((sum, b) => sum + Math.abs(b.b.z - b.a.z), 0)
       expect(length).toBeCloseTo(Math.abs(wall.b.z - wall.a.z), 6)
       for (const bay of bays) {
-        expect(bay.height).toBeGreaterThanOrEqual(1.6)
-        expect(bay.height).toBeLessThanOrEqual(2.6)
+        expect(bay.height).toBeGreaterThanOrEqual(0.5)
+        expect(bay.height).toBeLessThanOrEqual(1.3)
         // The bay faces the room as its wall does.
         expect(Math.sign(bay.b.z - bay.a.z)).toBe(Math.sign(wall.b.z - wall.a.z))
       }
@@ -83,17 +84,22 @@ describe('the dressing', () => {
     expect(arch.z).toBe(far?.a.z)
   })
 
-  it('stands the backdrop outside the walls', () => {
-    for (const pine of dressing.pines) expect(Math.abs(pine.x) > 6 || pine.z > 29).toBe(true)
-    for (const tower of dressing.towers) {
-      expect(tower.z).toBeGreaterThan(40)
-      expect(Math.abs(tower.x)).toBeGreaterThan(6)
+  it('floats the room in the night: silhouette islands far off and below, and a large moon high and to the right', () => {
+    for (const card of [...dressing.pines, ...dressing.towers]) {
+      expect(Math.hypot(card.x, card.z - 14)).toBeGreaterThan(25)
+      expect(card.y).toBeLessThan(-3)
     }
-    expect(dressing.moon.z).toBeGreaterThan(40)
-    // Nothing in the valley stands between the arch and the moon.
-    for (const pine of dressing.pines.filter((p) => p.z > 29)) expect(Math.abs(pine.x)).toBeGreaterThan(4)
-    // Past the far wall only the valley's pines stand, below the plateau.
-    for (const pine of dressing.pines.filter((p) => p.z > 28)) expect(pine.y).toBeLessThan(0)
+    expect(dressing.towers.length).toBeGreaterThan(3)
+    expect(dressing.pines.length).toBeGreaterThan(10)
+    const { moon } = dressing
+    expect(moon.size).toBeGreaterThanOrEqual(16)
+    // Facing +z (the start view's heading), screen right is −x.
+    expect(moon.x).toBeLessThan(-15)
+    // Seen from the start view's eye (3.1 m up, 3 m behind the spawn), the moon's centre is within 12° below the
+    // horizon: the top of the frame, which sits 1.5° above it.
+    const below = Math.atan2(3.1 - moon.y, Math.hypot(moon.x, moon.z + 3)) * (180 / Math.PI)
+    expect(below).toBeGreaterThan(0)
+    expect(below).toBeLessThan(12)
   })
 })
 
