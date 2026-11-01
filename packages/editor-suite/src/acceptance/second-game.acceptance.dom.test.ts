@@ -134,7 +134,7 @@ const studio: Probe = {
       .session
     const figure = figures.content().figures.find((each) => each.value !== undefined)
     if (figure?.value === undefined) throw new Error('no figure')
-    const height = figure.value.sliders.height
+    const height = figure.value.sliders.height ?? 120
     const outcome = await figures.edit(
       figure.path,
       [{ keyPath: ['sliders', 'height'], expected: height, set: height + 1 }],
