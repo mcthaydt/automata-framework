@@ -55,7 +55,11 @@ function step(event: KeyboardEvent): void {
           aria-selected={layer.id === current}
           data-layer={layer.id}
           class:hidden={hidden.has(layer.id)}
+          tabindex="-1"
           onclick={() => onselect(layer.id)}
+          onkeydown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') onselect(layer.id)
+          }}
         >
           <span class="label">{layer.label}</span>
           <span class="kind">{KIND_WORDS[layer.kind]}</span>
