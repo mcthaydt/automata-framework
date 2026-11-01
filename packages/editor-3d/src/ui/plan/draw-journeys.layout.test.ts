@@ -26,6 +26,8 @@ async function openDepot(size: EditorSize) {
     .querySelector<HTMLElement>('[role="option"]')
     ?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
   await expect.poll(() => document.querySelector('[data-testid="plan-canvas"]')).not.toBeNull()
+  // The plan's renderer starts asynchronously: wait until it is drawing or has said it cannot, never mid-start.
+  await expect.poll(() => plan().dataset.phase, { timeout: 10_000 }).not.toBe('starting')
   await arrived()
   await calibrate()
   return started
