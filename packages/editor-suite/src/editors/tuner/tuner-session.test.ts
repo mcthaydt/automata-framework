@@ -2,11 +2,18 @@
 // text, each edit one literal's span, written through the workspace port before it counts and taken back by Undo.
 import { describe, expect, it } from 'vitest'
 import { TUNING_FIXTURE, tunerFixtureFiles, tunerFixturePorts } from '../../testing/tuner-fixtures'
+import type { Tunable } from './tuner-content'
 import { openTuner } from './tuner-session'
 
 const PATH = 'content/tuning.toml'
 const read = async (ports: Awaited<ReturnType<typeof tunerFixturePorts>>) =>
   (await ports.workspace.read(PATH))?.text
+
+const tunablesOf = (tuner: Awaited<ReturnType<typeof openTuner>>): readonly Tunable[] => {
+  const read = tuner.read()
+  if ('problem' in read) throw new Error(read.problem)
+  return read.tunables
+}
 
 const names = (tuner: Awaited<ReturnType<typeof openTuner>>): string[] => {
   const read = tuner.read()
@@ -18,9 +25,7 @@ describe('openTuner', () => {
     const ports = await tunerFixturePorts()
     const tuner = await openTuner(ports)
     expect(names(tuner)).toEqual(['MAX_RUN', 'GRAVITY', 'SCALE', 'DEBUG', 'GREETING', 'CURVE'])
-    const gravity = (tuner.read() as { tunables: { name: string; min?: number }[] }).tunables.find(
-      (t) => t.name === 'GRAVITY',
-    )
+    const gravity = tunablesOf(tuner).find((t) => t.name === 'GRAVITY')
     expect(gravity?.min).toBe(16)
     expect(tuner.history.canUndo).toBe(false)
     expect(await read(ports)).toBe(TUNING_FIXTURE)
@@ -37,11 +42,7 @@ describe('openTuner', () => {
     delete files['content/generated/tuning-meta.json']
     const tuner = await openTuner(await tunerFixturePorts(files))
     expect(tuner.boundsUnavailable()).toBe(true)
-    expect(
-      (tuner.read() as { tunables: { name: string; min?: number }[] }).tunables.find(
-        (t) => t.name === 'GRAVITY',
-      )?.min,
-    ).toBeUndefined()
+    expect(tunablesOf(tuner).find((t) => t.name === 'GRAVITY')?.min).toBeUndefined()
   })
 })
 
@@ -124,7 +125,7 @@ describe('a drag', () => {
     expect(tuner.drag.start('MAX_RUN')).toEqual({ ok: true })
     tuner.drag.update(500)
     tuner.drag.update(520)
-    expect((tuner.read() as { tunables: { name: string; value: unknown }[] }).tunables[0]?.value).toBe(520)
+    expect(tunablesOf(tuner)[0]?.value).toBe(520)
     expect(await read(ports)).toBe(TUNING_FIXTURE)
     expect(await tuner.drag.commit()).toEqual({ ok: true })
     expect(await read(ports)).toBe(TUNING_FIXTURE.replace('value = 384', 'value = 520'))
@@ -144,7 +145,7 @@ describe('a drag', () => {
     })
     tuner.drag.update(500)
     tuner.drag.cancel()
-    expect((tuner.read() as { tunables: { value: unknown }[] }).tunables[0]?.value).toBe(384)
+    expect(tunablesOf(tuner)[0]?.value).toBe(384)
     expect(tuner.history.canUndo).toBe(false)
   })
 })

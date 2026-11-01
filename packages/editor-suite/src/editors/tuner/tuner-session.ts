@@ -103,11 +103,16 @@ export async function openTuner(ports: SuitePorts): Promise<TunerSession> {
     return OK
   }
 
+  /**
+   * The shell's protocol (the fixture editor's): the step is applied first, so the write the shell records carries this
+   * editor's label, and a refused write takes the step back, as a kit widget's refusal keeps the old value.
+   */
   async function commit(label: string, next: TunerState): Promise<TunerOutcome> {
-    const written = await sync(history.state, next)
-    if (!written.ok) return written
+    const from = history.state
     history.apply(label, () => next)
-    return OK
+    const written = await sync(from, next)
+    if (!written.ok) history.undo()
+    return written
   }
 
   /** The new text for one tunable's value, or why it cannot be made (the check, the lock, the patcher). */
@@ -174,13 +179,10 @@ export async function openTuner(ports: SuitePorts): Promise<TunerSession> {
         tx.cancel()
         return OK
       }
-      const written = await sync(from, live)
-      if (!written.ok) {
-        tx.cancel()
-        return written
-      }
       tx.commit()
-      return OK
+      const written = await sync(from, live)
+      if (!written.ok) history.undo()
+      return written
     },
     cancel() {
       if (open === undefined) return

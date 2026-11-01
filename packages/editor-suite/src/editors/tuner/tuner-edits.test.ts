@@ -2,17 +2,18 @@ import { describe, expect, it } from 'vitest'
 import type { Tunable } from './tuner-content'
 import { checkValue, valueEdit } from './tuner-edits'
 
-const tunable = (over: Partial<Tunable>): Tunable => ({
-  name: 'MAX_RUN',
-  kind: 'int',
-  value: 384,
-  min: 128,
-  max: 768,
-  step: 1,
-  authored: true,
-  editable: true,
-  ...over,
-})
+const tunable = (over: { [K in keyof Tunable]?: Tunable[K] | undefined }): Tunable =>
+  ({
+    name: 'MAX_RUN',
+    kind: 'int',
+    value: 384,
+    min: 128,
+    max: 768,
+    step: 1,
+    authored: true,
+    editable: true,
+    ...over,
+  }) as Tunable
 
 describe('checkValue', () => {
   it('accepts a value inside the bounds, and the bounds themselves', () => {

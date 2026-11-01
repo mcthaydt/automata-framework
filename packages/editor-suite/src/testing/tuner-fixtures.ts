@@ -4,7 +4,7 @@ import { createMemoryPorts } from '@mcthaydt/automata-editor-kit/ports/testing'
 // A game's tuning for the Tuner's tests: authored bounds, a code-owned row (its bounds in the compiler's meta), a unit in a
 // comment, a toggle, a text row and a table the Tuner does not edit.
 
-export const TUNING_FIXTURE = `# How the character moves.
+export const TUNING_FIXTURE: string = `# How the character moves.
 # 90 px/s.
 MAX_RUN = { value = 384, min = 128, max = 768, step = 1 }
 GRAVITY = 64 # 900 px/s²
@@ -14,7 +14,7 @@ GREETING = "hello"
 CURVE = [ 1, 2, 3 ]
 `
 
-export const TUNING_META_FIXTURE = JSON.stringify({
+export const TUNING_META_FIXTURE: string = JSON.stringify({
   GRAVITY: { type: 'int', value: 64, min: 16, max: 192, step: 1 },
 })
 
