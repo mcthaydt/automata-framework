@@ -1,5 +1,15 @@
 # AutomataFramework: living continuation
 
+> **Update 2026-11-01 ~09:00Z by the coordinator (session_01QYLU1fEGLCBk6qMHwyeWVs). The programme is stopped by the Owner ("wrap everything up"; "Stop everything for now"); nothing runs until the Owner restarts it.** Decisions recorded today, in the Owner's words:
+>
+> - **What is paid:** "The only thing people have to pay for is the editors on mobile". Plus is free and MIT (automata-plus#39, `1766c622`). The mobile apps' native wrapper code, signing and store listings live in a separate private repository ("MIT, mobile app wrapper code in a private repo").
+> - **Public repositories:** "All the automata ones for this project". automata-skills is already public. automata-plus and automata-website are ready (MIT; fork-guarded CI; history scanned for secrets) and the Owner flips them. automata-framework waits for Pixi 3D's public release, because `vendor/pixi-3d/` holds the closed beta, whose terms allow no public release. On that day: swap the beta for the npm release, move CI to hosted runners, then flip.
+> - **Releases:** 0.0.5 was published on 2026-11-01 (#346, `9b9ddf7b`; publish, registry check and consumer smoke green). The `release` environment did not wait for approval (QB.1): add a required reviewer.
+> - **CI capacity:** boat (boat.dev) for CI runners (the Owner: "No boat for ci, I meant we use vultr for our multiplayer plus feature", meaning "no, boat is for CI"); measure one framework checks run on the 7-day trial first. Meanwhile, more WSL runner instances on the Owner's 32 GB PC. The Mac must not sleep while it is a runner: two release runs died at exactly 10 minutes while it slept.
+> - **Multiplayer hosting:** Vultr is the hosting target for Plus's multiplayer (`@mcthaydt/automata-server`), and developers host their own servers on their own Vultr account (the Owner chose option "A"). Shape to spec later: an `automata-server deploy` command with Vultr as the first provider behind an adapter, a region picker in `automata-net`, and the API key read from the environment, never written to a file. New scope, so it comes after the journeys (J1 to J6).
+> - **FloorFifty:** "we'll handle floor fifty later" (its laggy server and US/EU/Asia hosting).
+> - **Open draft PRs left by the stopped lanes:** #377 (3D art), #378 (old EDS.10/11, superseded by the reset), #379 (touch), #381 (J3), #382 (J4), #383 (J2: content root). Their handoffs are in their plan files.
+
 > **Update 2026-11-01 ~02:40Z by the coordinator (session_01QYLU1fEGLCBk6qMHwyeWVs, from 00:16Z; supersedes earlier notes where they differ).**
 >
 > - **RESET (Owner, 2026-11-01): "we need to stick to the plan, and actually get things done; 130k lines of code with barely anything to show for it is insane".** The Owner's iPad test showed that merged, ticked rows are not working features: the editor suite page always loads an in-memory sample game (`packages/editor-suite/src/main.ts`, `FLOORFIFTY_SAMPLE`) and ignores the checkout `automata editor` serves; base-3d's dev server is blank; the 3D level editor flags "17 problems" that its badge won't list. From now on:
