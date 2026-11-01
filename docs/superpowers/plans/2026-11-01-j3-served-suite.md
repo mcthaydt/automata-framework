@@ -21,3 +21,9 @@ Home listed `Levels 2D: content/rooms/room-1.af2d.json` and `Tuner: content/tuni
 
 ## Gates
 `TURBO_FORCE=true pnpm check`; focused editor-suite dom and unit; cli `src/editor`; the real WebKit run above. No published package changed (editor-suite and cli are private): no changeset, no api-report change. No sim, renderer or golden: no parity.
+
+## HANDOFF (editors lane 4, 2026-11-01, Owner: "stop everything for now")
+- **Done and pushed:** this branch (`claude/j3-served-suite`, draft PR #381). The suite page edits the checkout `automata editor` serves; two bugs fixed (list unreadable by the page; unhandled refresh rejection); `pnpm check` exit 0; real WebKit iPad-profile run against real `automata editor games/emberwick --app suite`.
+- **J3 in plain words:** tuning edits work end to end (Tuner edit wrote the checkout and the game build then contained `MAX_RUN:400`). Room edits save to `rooms/room-1.af2d.json` but do **not** reach the game: the game compiles the editor's export (`content/levels/room-1.toml`, `project.toml`, `world.toml`), which the suite does not write.
+- **Next:** the Owner's pick of (a) write the export with each save (recommended: needs a one-undo-step multi-file write for editors and list rows for the export paths), (b) compiler reads the project, (c) an Export button; then the same real run on a real iPad (the Owner's).
+- **Pending:** the Macs' CI. Related branches: `claude/fix-touch-selection` (#379, touch fix), `claude/j4-checks-list` (#382), `claude/eds-10-11` (#378, parked work).
