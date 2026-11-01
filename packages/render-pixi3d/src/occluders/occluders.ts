@@ -6,7 +6,15 @@
 import type { PixiStageHooks } from '@mcthaydt/automata-render-pixi'
 import type { Occlude } from '@mcthaydt/automata-sector-format'
 import { reducedMotion as prefersReducedMotion } from '@mcthaydt/automata-ui'
-import { type BaseMaterial3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
+import {
+  type BaseMaterial3D,
+  Container3D,
+  CubeGeometry,
+  type Geometry3D,
+  Mesh3D,
+  PhongMaterial,
+} from '@pixi/3d'
+import type { Texture } from 'pixi.js'
 import type { CameraRig } from '../camera/angled-camera.js'
 import { ownCopyOf } from '../views/shared-material.js'
 import {
@@ -18,6 +26,7 @@ import {
   type WallShown,
 } from './occluder-pass.js'
 import { type Box3, type PlanPoint, propOcclude } from './occluder-rule.js'
+import { tiledCube } from './tiled-cube.js'
 
 export interface WallOptions {
   /** The inside face runs from `a` to `b` with the room on its left. */
@@ -33,6 +42,11 @@ export interface WallOptions {
   readonly color: number
   /** Default `cut`. */
   readonly occlude?: Occlude | undefined
+  /**
+   * A texture on the wall (not its trim), repeating every `tile` metres on each face and tinted by `color`. The wall
+   * then has a cube of its own, freed by `dispose`. Without it the wall is plain `color`.
+   */
+  readonly surface?: { readonly texture: Texture; readonly tile: number } | undefined
 }
 
 export interface PropOptions {
@@ -86,12 +100,23 @@ function showAt(mesh: Mesh3D, opacity: number): void {
 }
 
 /** The unit cube scaled to a box `height` tall standing on the floor under `a → b`, its +z face on that line. */
-function slab(cube: CubeGeometry, options: WallOptions, height: number, thickness: number): Mesh3D {
+function slab(
+  cube: CubeGeometry | Geometry3D,
+  options: WallOptions,
+  height: number,
+  thickness: number,
+  texture?: Texture,
+): Mesh3D {
   const { a, b } = options
   const length = Math.hypot(b.x - a.x, b.z - a.z)
   const dir = { x: (b.x - a.x) / length, z: (b.z - a.z) / length }
   const inward = { x: -dir.z, z: dir.x }
-  const mesh = new Mesh3D({ geometry: cube, material: new PhongMaterial({ baseColor: options.color }) })
+  const material = new PhongMaterial(
+    texture === undefined
+      ? { baseColor: options.color }
+      : { baseColor: options.color, baseColorTexture: texture },
+  )
+  const mesh = new Mesh3D({ geometry: cube, material })
   mesh.scale.set(length, height, thickness)
   // Turning by θ about +y takes local +x to (cos θ, −sin θ) and local +z to (sin θ, cos θ) on the plan: the wall's
   // direction and its inward normal.
@@ -110,6 +135,8 @@ export function createOccluders(parent: Container3D): OccluderStage {
   const ceilings: Container3D[] = []
   // Every wall, trim and box is this cube, scaled: one geometry for the whole room.
   const cube = new CubeGeometry({ width: 1, height: 1, depth: 1 })
+  // The textured walls' own cubes (their UVs differ by size), freed with the shared one.
+  const ownCubes: Geometry3D[] = []
   // The materials props fade through, so two props never fade one material; and the copies made for them.
   const fading = new WeakSet<BaseMaterial3D>()
   const copies: BaseMaterial3D[] = []
@@ -123,7 +150,14 @@ export function createOccluders(parent: Container3D): OccluderStage {
         throw new Error(`occluders.wall: a and b are the same point (${a.x}, ${a.z})`)
       const thickness = options.thickness ?? WALL_THICKNESS
       const node = new Container3D()
-      const wall = slab(cube, options, options.height, thickness)
+      const surface = options.surface
+      let wallCube: CubeGeometry | Geometry3D = cube
+      if (surface !== undefined) {
+        const length = Math.hypot(b.x - a.x, b.z - a.z)
+        wallCube = tiledCube({ x: length, y: options.height, z: thickness }, surface.tile)
+        ownCubes.push(wallCube)
+      }
+      const wall = slab(wallCube, options, options.height, thickness, surface?.texture)
       const trim = slab(cube, options, options.trim ?? TRIM_HEIGHT, thickness)
       trim.visible = false
       node.addChild(wall, trim)
@@ -178,6 +212,8 @@ export function createOccluders(parent: Container3D): OccluderStage {
     },
     dispose() {
       cube.destroy(true)
+      for (const own of ownCubes) own.destroy(true)
+      ownCubes.length = 0
       for (const copy of copies) copy.destroy()
       copies.length = 0
     },

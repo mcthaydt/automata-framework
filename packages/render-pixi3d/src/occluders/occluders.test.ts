@@ -4,6 +4,7 @@
 // follows the rule. `occluderHooks` feeds the pass from the rig's pose each frame.
 import type { RenderRow } from '@mcthaydt/automata-sim'
 import { Camera3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
+import { Texture } from 'pixi.js'
 import { describe, expect, it, vi } from 'vitest'
 import { angledCamera } from '../camera/angled-camera.js'
 import { eyeOf, type Vec3 } from '../camera/camera-pose.js'
@@ -11,6 +12,7 @@ import { emptyModels } from '../model/load-models.js'
 import { cameraView } from '../sim/camera-view.schema.js'
 import { box } from '../views/box-view.js'
 import { createOccluders, occluderHooks } from './occluders.js'
+import { tiledCubeData } from './tiled-cube.js'
 
 const LOOK: Vec3 = { x: 2, y: 1, z: 2 }
 const frameAt = (headingDeg: number, seconds: number, reduced = false) => ({
@@ -61,6 +63,84 @@ describe('occluders.wall', () => {
     expect(other[0]?.material).not.toBe(wall.material)
     expect(wall.visible).toBe(true)
     expect(trim.visible).toBe(false)
+  })
+})
+
+describe('occluders.wall with a surface', () => {
+  it('gives the slab its own cube, its UVs in metres over the tile, and a material with the texture tinted by color', () => {
+    const occluders = createOccluders(new Container3D())
+    const texture = Texture.WHITE
+    const node = occluders.wall({
+      a: { x: 0, z: 0 },
+      b: { x: 6, z: 0 },
+      height: 2,
+      thickness: 0.4,
+      color: 0x808080,
+      surface: { texture, tile: 2 },
+    })
+    const [wall, trim] = meshesOf(node)
+    if (wall === undefined || trim === undefined) throw new Error('no meshes')
+    expect(wall.geometry).not.toBe(trim.geometry)
+    const material = wall.material as PhongMaterial
+    expect(material.textures.baseColor).toBe(texture)
+    expect(material.baseColor).toBe(0x808080)
+    // Without a surface the slab keeps the shared cube.
+    const plain = meshesOf(occluders.wall({ a: { x: 0, z: 0 }, b: { x: 1, z: 0 }, height: 2, color: 1 }))[0]
+    expect(plain?.geometry).toBe(trim.geometry)
+  })
+
+  it("frees each surfaced wall's own cube on dispose", () => {
+    const occluders = createOccluders(new Container3D())
+    const [wall] = meshesOf(
+      occluders.wall({
+        a: { x: 0, z: 0 },
+        b: { x: 2, z: 0 },
+        height: 2,
+        color: 1,
+        surface: { texture: Texture.WHITE, tile: 1 },
+      }),
+    )
+    const destroy = vi.spyOn(wall?.geometry as CubeGeometry, 'destroy')
+    occluders.dispose()
+    expect(destroy).toHaveBeenCalled()
+  })
+})
+
+describe('tiledCube', () => {
+  it("spans each face's UVs by the box's size over the tile: the ±z faces length by height", () => {
+    const data = tiledCubeData({ x: 6, y: 2, z: 0.4 }, 2)
+    const faceUvs = (nz: number) => {
+      const us: number[] = []
+      const vs: number[] = []
+      for (let i = 0; i < data.normals.length / 3; i++)
+        if (data.normals[i * 3 + 2] === nz) {
+          us.push(data.uvs[i * 2] as number)
+          vs.push(data.uvs[i * 2 + 1] as number)
+        }
+      return { u: Math.max(...us) - Math.min(...us), v: Math.max(...vs) - Math.min(...vs) }
+    }
+    expect(faceUvs(1)).toEqual({ u: 3, v: 1 })
+    expect(faceUvs(-1)).toEqual({ u: 3, v: 1 })
+    // A unit cube about its centre, 24 vertices, 36 indices.
+    expect(Math.max(...data.positions)).toBe(0.5)
+    expect(Math.min(...data.positions)).toBe(-0.5)
+    expect(data.positions.length).toBe(72)
+    expect(data.indices.length).toBe(36)
+    // Every triangle winds counter-clockwise seen from outside: its cross product points along its normal.
+    const at = (i: number) => [0, 1, 2].map((k) => data.positions[i * 3 + k] as number)
+    for (let t = 0; t < 12; t++) {
+      const [i0, i1, i2] = [0, 1, 2].map((k) => data.indices[t * 3 + k] as number) as [number, number, number]
+      const [p0, p1, p2] = [at(i0), at(i1), at(i2)] as [number[], number[], number[]]
+      const e1 = p1.map((c, k) => c - (p0[k] as number))
+      const e2 = p2.map((c, k) => c - (p0[k] as number))
+      const cross = [
+        (e1[1] as number) * (e2[2] as number) - (e1[2] as number) * (e2[1] as number),
+        (e1[2] as number) * (e2[0] as number) - (e1[0] as number) * (e2[2] as number),
+        (e1[0] as number) * (e2[1] as number) - (e1[1] as number) * (e2[0] as number),
+      ]
+      const n = [0, 1, 2].map((k) => data.normals[i0 * 3 + k] as number)
+      expect(cross.reduce((sum, c, k) => sum + c * (n[k] as number), 0)).toBeGreaterThan(0)
+    }
   })
 })
 
