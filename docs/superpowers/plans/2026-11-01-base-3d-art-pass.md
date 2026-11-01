@@ -63,7 +63,8 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
   behind him) so his cloak reads in the sprite's blue from behind (`lantern.test.ts` and the budget test changed first,
   seen failing; Wick now carries three lights, still inside the budget of 24). The moon painted at 128 px (test first).
   The stone's blue: the ambient sky colour 11 → 41 (`ambientSky`; `night.test.ts` and `palette.test.ts` changed first).
-- [ ] 15. Same-moment images recaptured; gates; report.
+- [x] 15. Same-moment images recaptured (`docs/evidence/owner-visual/2026-11-01-base-3d-art-pass/`, README updated);
+  origin/main merged (#373 landed); gates below; report to the coordinator.
 
 ## Execution log
 
@@ -107,3 +108,12 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
   2D platforms (it read grey under 11), and Wick reads in his cloak's blue from behind. Deviation: `palette.test.ts`
   pinned `ambient: 11` as an Emberwick role; the 3D light departs from it on purpose, so the test names the new token
   and why.
+- 2026-11-01 (lane 2): gates after merging origin/main. `pnpm install --frozen-lockfile` 0; `pnpm format` 0;
+  `TURBO_FORCE=true pnpm check` first failed on `@mcthaydt/api-report` (the render-pixi3d report was stale: expected,
+  the API changed); after `pnpm build`, `pnpm api-report --update` (render-pixi3d: `cellCube`, `CellColor`,
+  `CellOptions`, `maxInternalHeight`, `WallOptions.paint`; `tiledCube` and `surface` gone) it exits 0. `pnpm api-index`
+  0 (cheatsheet current), `pnpm agent-skills` current. `changeset status --since=origin/main` lists releases;
+  `check-changesets` 14 changesets, 0 problems (render-pixi3d is private: no changeset). render-pixi3d `test:parity` 40
+  passed, 23 skipped (`runIf(hasWebGL2)`: headless Firefox here has no WebGL2); base-3d `test:parity` 96/96.
+  `build:examples` 0, `build:demos` 0. base-3d e2e 7/7, G3-x 13.6 s. Route golden `c735b5acacbbc716` unchanged (the sim
+  is untouched).
