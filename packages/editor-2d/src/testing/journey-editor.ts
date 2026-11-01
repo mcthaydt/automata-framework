@@ -167,6 +167,6 @@ export async function chooseLayer(name: string): Promise<void> {
   if (!visible()) await pressButton('Layers')
   const row = rows().find((option) => option.querySelector('.label')?.textContent === name)
   if (row === undefined) throw new Error(`no layer ${name}`)
-  row.querySelector<HTMLElement>('button')?.click()
+  row.click()
   await arrived()
 }

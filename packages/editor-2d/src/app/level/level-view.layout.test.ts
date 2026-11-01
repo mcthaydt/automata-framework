@@ -239,7 +239,7 @@ describe('Level view rotation', () => {
     const list = document.querySelector<HTMLElement>('[role="listbox"][aria-label="Layers"]') as HTMLElement
     const rows = [...list.querySelectorAll<HTMLElement>('[role="option"]')]
     const last = rows[rows.length - 1] as HTMLElement
-    ;(last.querySelector('button') as HTMLElement).click()
+    last.click()
     const fill = [...document.querySelectorAll<HTMLElement>('[role="radio"]')].find(
       (option) => option.textContent?.trim() === 'Fill',
     ) as HTMLElement

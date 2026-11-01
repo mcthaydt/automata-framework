@@ -38,46 +38,53 @@ function step(event: KeyboardEvent): void {
 
 <section class="layers" aria-labelledby="layers-heading">
   <h2 id="layers-heading">Layers</h2>
-  <ul
-    role="listbox"
-    tabindex="0"
-    aria-label="Layers"
-    aria-activedescendant={`layer-${current}`}
-    onkeydown={step}
-  >
-    {#each layers as layer (layer.id)}
-      {@const isHidden = hidden.has(layer.id)}
-      {@const isLocked = locked.has(layer.id)}
-      <li
-        id={`layer-${layer.id}`}
-        role="option"
-        aria-selected={layer.id === current}
-        data-layer={layer.id}
-        class:hidden={isHidden}
-      >
-        <button type="button" class="name" tabindex="-1" onclick={() => onselect(layer.id)}>
+  <!-- A button inside an option is nested interactive content, so the options hold the names only and the Show and Lock
+       buttons are a column of their own beside the list. Rows are one fixed height, so the two columns line up. -->
+  <div class="rows">
+    <ul
+      role="listbox"
+      tabindex="0"
+      aria-label="Layers"
+      aria-activedescendant={`layer-${current}`}
+      onkeydown={step}
+    >
+      {#each layers as layer (layer.id)}
+        <li
+          id={`layer-${layer.id}`}
+          role="option"
+          aria-selected={layer.id === current}
+          data-layer={layer.id}
+          class:hidden={hidden.has(layer.id)}
+          onclick={() => onselect(layer.id)}
+        >
           <span class="label">{layer.label}</span>
           <span class="kind">{KIND_WORDS[layer.kind]}</span>
-        </button>
-        <button
-          type="button"
-          class="toggle"
-          tabindex="-1"
-          aria-pressed={isHidden}
-          aria-label={`${isHidden ? 'Show' : 'Hide'} ${layer.label}`}
-          onclick={() => onhidden(layer.id, !isHidden)}>{isHidden ? 'Show' : 'Hide'}</button
-        >
-        <button
-          type="button"
-          class="toggle"
-          tabindex="-1"
-          aria-pressed={isLocked}
-          aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${layer.label}`}
-          onclick={() => onlocked(layer.id, !isLocked)}>{isLocked ? 'Unlock' : 'Lock'}</button
-        >
-      </li>
-    {/each}
-  </ul>
+        </li>
+      {/each}
+    </ul>
+    <div class="toggles" role="group" aria-label="Layer visibility and locks">
+      {#each layers as layer (layer.id)}
+        {@const isHidden = hidden.has(layer.id)}
+        {@const isLocked = locked.has(layer.id)}
+        <div class="pair">
+          <button
+            type="button"
+            class="toggle"
+            aria-pressed={isHidden}
+            aria-label={`${isHidden ? 'Show' : 'Hide'} ${layer.label}`}
+            onclick={() => onhidden(layer.id, !isHidden)}>{isHidden ? 'Show' : 'Hide'}</button
+          >
+          <button
+            type="button"
+            class="toggle"
+            aria-pressed={isLocked}
+            aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${layer.label}`}
+            onclick={() => onlocked(layer.id, !isLocked)}>{isLocked ? 'Unlock' : 'Lock'}</button
+          >
+        </div>
+      {/each}
+    </div>
+  </div>
 </section>
 
 <style>
@@ -91,8 +98,16 @@ function step(event: KeyboardEvent): void {
     color: var(--color-text-dim);
     font: var(--text-label-12);
   }
-  ul {
+  .rows {
     display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-1);
+    align-items: start;
+  }
+  ul,
+  .toggles {
+    display: grid;
+    grid-auto-rows: 44px;
     gap: var(--space-1);
     margin: 0;
     padding: 0;
@@ -104,11 +119,14 @@ function step(event: KeyboardEvent): void {
     outline-offset: 2px;
   }
   li {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
+    display: grid;
+    align-content: center;
     min-width: 0;
+    padding: 0 var(--space-2);
     border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font: var(--text-body-13);
+    cursor: pointer;
   }
   li[aria-selected='true'] {
     background: var(--color-accent-soft);
@@ -116,21 +134,9 @@ function step(event: KeyboardEvent): void {
   li.hidden .label {
     color: var(--color-text-faint);
   }
-  button {
-    min-height: 44px;
-    border: 0;
-    border-radius: var(--radius-md);
-    background: transparent;
-    color: var(--color-text-primary);
-    font: var(--text-body-13);
-    cursor: pointer;
-  }
-  .name {
-    display: grid;
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 0 var(--space-2);
-    text-align: start;
+  .pair {
+    display: flex;
+    gap: var(--space-1);
   }
   .label,
   .kind {
@@ -143,10 +149,14 @@ function step(event: KeyboardEvent): void {
     font: var(--text-label-12);
   }
   .toggle {
-    flex: 0 0 auto;
     min-width: 56px;
+    min-height: 44px;
     padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius-md);
     background: var(--color-bg-raised);
+    color: var(--color-text-primary);
     font: var(--text-label-12);
+    cursor: pointer;
   }
 </style>

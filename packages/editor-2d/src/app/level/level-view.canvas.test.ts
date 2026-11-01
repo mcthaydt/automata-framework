@@ -69,9 +69,8 @@ function chooseLayer(name: string): void {
   const row = [...document.querySelectorAll<HTMLElement>('[role="option"]')].find(
     (option) => option.querySelector('.label')?.textContent === name,
   )
-  const button = row?.querySelector<HTMLElement>('button')
-  if (button === null || button === undefined) throw new Error(`no layer ${name}`)
-  button.click()
+  if (row === undefined) throw new Error(`no layer ${name}`)
+  row.click()
 }
 
 const project = (document: OpenDocument): Project => document.history.state as Project
