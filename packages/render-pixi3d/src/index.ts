@@ -74,6 +74,7 @@ export {
   WALL_THICKNESS,
   type WallOptions,
 } from './occluders/occluders.js'
+export { type BoxSpan, tiledCube } from './occluders/tiled-cube.js'
 export { render3dExtension } from './render3d.extension.js'
 export {
   acceptsRenderer,

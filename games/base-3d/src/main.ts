@@ -28,7 +28,9 @@ import { base3dSettings } from './screens/settings.ts'
 import { base3dSim } from './state/index.ts'
 import { compileArea } from './systems/index.ts'
 import { emberView } from './views/ember.ts'
-import { buildScene, FOG, figureContent, heroFigureState, inMetres, placed } from './views/index.ts'
+import { figureContent, heroFigureState, inMetres, placed } from './views/index.ts'
+import { withLantern } from './views/lantern.ts'
+import { buildNight, FOG } from './views/night.ts'
 
 // Compiling the room is boot's content cost: measured, so G3-u's journey holds it to a budget.
 performance.mark('base-3d:compile-areas:start')
@@ -83,6 +85,9 @@ const { figures, library, motion } = figureContent(content)
 let simTick = 0
 const now = (): number => simTick / TICK_HZ
 
+/** The page clock in seconds: the night's motes, the embers' pulse and the lantern's sway (presentation only). */
+const pageSeconds = (): number => performance.now() / 1000
+
 const TITLE = BASE3D_COPY.en.title
 /** The camera's heading plugin and its `camera-view` content kind, and the HUD on play. */
 const EXTENSIONS = [render3dExtension, hudExtension]
@@ -130,10 +135,13 @@ export const base3d = defineGame({
       },
       fog: FOG,
       views: {
-        [Hero.id]: inMetres(
-          figure(figures.wick as FigureDef, { library, motion, now, state: (c) => heroFigureState(c) }),
+        [Hero.id]: withLantern(
+          inMetres(
+            figure(figures.wick as FigureDef, { library, motion, now, state: (c) => heroFigureState(c) }),
+          ),
+          pageSeconds,
         ),
-        [Ember.id]: emberView(() => performance.now() / 1000),
+        [Ember.id]: emberView(pageSeconds),
       },
       camera: {
         views: AREA.views,
@@ -142,9 +150,9 @@ export const base3d = defineGame({
         position: (c) => placed(c.hero),
       },
       scene: (view, _stage, occluders) => {
-        buildScene(view, occluders, ROOM)
+        const night = buildNight(view, occluders, ROOM)
         return {
-          draw: () => {},
+          draw: () => night.update(pageSeconds()),
           reset: () => {},
           apply(result) {
             simTick = result.tick

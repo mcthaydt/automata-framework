@@ -17,6 +17,7 @@
     "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT"
   },
   "dependencies": {
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-figures": "workspace:*",
     "@mcthaydt/automata-game": "workspace:*",
     "@mcthaydt/automata-host": "workspace:*",
@@ -33,7 +34,6 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-check-boundaries": "workspace:*",
-    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/automata-testing": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",

@@ -43,8 +43,8 @@ export interface WallOptions {
   /** Default `cut`. */
   readonly occlude?: Occlude | undefined
   /**
-   * A texture on the wall (not its trim), repeating every `tile` metres on each face and tinted by `color`. The wall
-   * then has a cube of its own, freed by `dispose`. Without it the wall is plain `color`.
+   * A texture on the wall and its trim, repeating every `tile` metres on each face and tinted by `color`. Each then has
+   * a cube of its own, freed by `dispose`. Without it the wall is plain `color`.
    */
   readonly surface?: { readonly texture: Texture; readonly tile: number } | undefined
 }
@@ -151,14 +151,16 @@ export function createOccluders(parent: Container3D): OccluderStage {
       const thickness = options.thickness ?? WALL_THICKNESS
       const node = new Container3D()
       const surface = options.surface
-      let wallCube: CubeGeometry | Geometry3D = cube
-      if (surface !== undefined) {
-        const length = Math.hypot(b.x - a.x, b.z - a.z)
-        wallCube = tiledCube({ x: length, y: options.height, z: thickness }, surface.tile)
-        ownCubes.push(wallCube)
+      const trimHeight = options.trim ?? TRIM_HEIGHT
+      // A textured wall and its trim each get a cube whose UVs fit their own size.
+      const cubeFor = (height: number): CubeGeometry | Geometry3D => {
+        if (surface === undefined) return cube
+        const own = tiledCube({ x: Math.hypot(b.x - a.x, b.z - a.z), y: height, z: thickness }, surface.tile)
+        ownCubes.push(own)
+        return own
       }
-      const wall = slab(wallCube, options, options.height, thickness, surface?.texture)
-      const trim = slab(cube, options, options.trim ?? TRIM_HEIGHT, thickness)
+      const wall = slab(cubeFor(options.height), options, options.height, thickness, surface?.texture)
+      const trim = slab(cubeFor(trimHeight), options, trimHeight, thickness, surface?.texture)
       trim.visible = false
       node.addChild(wall, trim)
       parent.addChild(node)

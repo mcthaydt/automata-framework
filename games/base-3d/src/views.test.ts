@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { metres, ROLL, TICK_HZ, WALK_SPEED } from './constants/index.ts'
 import { ROOM } from './content/room.ts'
-import { channelBoxes, heroFigureState, placed, sceneOf } from './views/index.ts'
+import { heroFigureState, placed, sceneOf } from './views/index.ts'
 
 // base-3d's views: Wick's rows to the figure view's state, Q16.16 rows to metres for the views, and the room to its walls,
 // floors and ceilings. Presentation: the sim never reads them back (law 1).
@@ -51,17 +51,5 @@ describe('sceneOf the room', () => {
     for (const pit of ROOM.pits)
       for (const floor of scene.floors)
         expect(floor.max[2] <= pit.min[1] || floor.min[2] >= pit.max[1]).toBe(true)
-  })
-})
-
-describe('channelBoxes', () => {
-  it('lays a lava floor under each channel and a bright lip along both of its edges', () => {
-    const boxes = channelBoxes(ROOM)
-    expect(boxes).toHaveLength(ROOM.pits.length * 3)
-    const lava = boxes.filter((entry) => entry.box.max[1] < 0)
-    expect(lava).toHaveLength(ROOM.pits.length)
-    const lips = boxes.filter((entry) => entry.box.max[1] > 0)
-    expect(new Set(lips.map((entry) => entry.colour)).size).toBe(1)
-    for (const lip of lips) expect(lip.box.max[1]).toBeLessThan(0.2)
   })
 })

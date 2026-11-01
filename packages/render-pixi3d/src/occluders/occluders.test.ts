@@ -84,9 +84,14 @@ describe('occluders.wall with a surface', () => {
     const material = wall.material as PhongMaterial
     expect(material.textures.baseColor).toBe(texture)
     expect(material.baseColor).toBe(0x808080)
-    // Without a surface the slab keeps the shared cube.
-    const plain = meshesOf(occluders.wall({ a: { x: 0, z: 0 }, b: { x: 1, z: 0 }, height: 2, color: 1 }))[0]
-    expect(plain?.geometry).toBe(trim.geometry)
+    // The trim shown while the wall is cut wears the same stone.
+    expect((trim.material as PhongMaterial).textures.baseColor).toBe(texture)
+    // Without a surface the wall and its trim keep the shared cube.
+    const [plain, plainTrim] = meshesOf(
+      occluders.wall({ a: { x: 0, z: 0 }, b: { x: 1, z: 0 }, height: 2, color: 1 }),
+    )
+    expect(plain?.geometry).toBe(plainTrim?.geometry)
+    expect(plain?.geometry).not.toBe(trim.geometry)
   })
 
   it("frees each surfaced wall's own cube on dispose", () => {

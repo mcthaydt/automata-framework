@@ -4,17 +4,9 @@
 // back (law 1).
 
 import type { FigureClipDef, FigureDef, FigureLibrary, MotionLibrary } from '@mcthaydt/automata-figures'
-import type {
-  Box3,
-  FigureViewState,
-  Occluders,
-  PlanPoint,
-  SceneFog,
-  View3dFactory,
-} from '@mcthaydt/automata-render-pixi3d'
+import type { Box3, FigureViewState, PlanPoint, View3dFactory } from '@mcthaydt/automata-render-pixi3d'
 import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { FieldRecord } from '@mcthaydt/automata-sim'
-import type { View3D } from '@pixi/3d'
 import { ACTION_CLIP, ROLL, TICK_HZ, WALK_SPEED } from '../constants/index.ts'
 import type { AreaSource } from '../systems/index.ts'
 
@@ -142,43 +134,6 @@ export function sceneOf(area: AreaSource): Scene {
       max: [room.max[0], WALL_HEIGHT + 0.1, room.max[1]],
     })),
   }
-}
-
-/** The room's fog: none for 5 m, full at 14 m, its colour the sky the fogged walls meet (Endesga 64 #2e222f). */
-export const FOG: SceneFog = { near: 5, far: 14, color: 0x2e222f }
-
-// The room's colours (Endesga 64): a lighter floor than the walls so the platforms read, a dark lava below the channels, and
-// a bright lip along each channel's edge so the player can see where to roll from.
-const COLOURS = { wall: 0x3a4466, floor: 0x8b9bb4, ceiling: 0x262b44, lava: 0x7a2a12, lip: 0xfeae34 } as const
-/** The channels' floor, metres below the platforms, and the lip's height and width. */
-const LAVA_DEPTH = 3
-const LIP = { height: 0.06, width: 0.12 } as const
-
-/** Builds the area under the view's root (the renderer's `scene` hook): the walls cut away by the occluder rule, the floors and the ceilings the angled view never draws. */
-export function buildScene(view: View3D, occluders: Occluders, area: AreaSource): void {
-  view.environment = { skyColor: 0xc7dcd0, groundColor: COLOURS.floor }
-  const scene = sceneOf(area)
-  for (const floor of scene.floors) occluders.box(floor, COLOURS.floor)
-  for (const wall of scene.walls) occluders.wall({ ...wall, color: COLOURS.wall })
-  for (const ceiling of scene.ceilings) occluders.ceiling(occluders.box(ceiling, COLOURS.ceiling))
-  for (const box of channelBoxes(area)) occluders.box(box.box, box.colour)
-}
-
-/** A channel's lava floor, and a lip along each long edge on the platforms' sides (the pits run the room's width). */
-export function channelBoxes(area: AreaSource): { readonly box: Box3; readonly colour: number }[] {
-  return (area.pits ?? []).flatMap((pit) => {
-    const [x0, z0] = pit.min
-    const [x1, z1] = pit.max
-    const lip = (zEdge: number): Box3 => ({
-      min: [x0, 0, zEdge - LIP.width / 2],
-      max: [x1, LIP.height, zEdge + LIP.width / 2],
-    })
-    return [
-      { colour: COLOURS.lava, box: { min: [x0, -LAVA_DEPTH - 0.1, z0], max: [x1, -LAVA_DEPTH, z1] } as Box3 },
-      { colour: COLOURS.lip, box: lip(z0) },
-      { colour: COLOURS.lip, box: lip(z1) },
-    ]
-  })
 }
 
 type Kind<T> = Readonly<Record<string, T>>

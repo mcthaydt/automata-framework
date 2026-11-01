@@ -21,17 +21,22 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
   height/2, a material with that texture, tinted `color`; a wall without it keeps the shared cube; `dispose` destroys
   the per-wall geometry. Change: `occluders/tiled-cube.ts` + `wall()`. Check: `pnpm --filter
   @mcthaydt/automata-render-pixi3d test`.
-- [ ] 3. base-3d `views/palette.ts` + test (tokens are Emberwick's entries).
-- [ ] 4. `views/textures.ts` + test (painters deterministic, sized, palette-only or transparent).
-- [ ] 5. `views/dressing.ts` + test (≤ 24 lights, placements inside rooms, out of pits, clear of spawn/embers/goal;
+- [x] 3. base-3d `views/palette.ts` + test (tokens are Emberwick's entries).
+- [x] 4. `views/textures.ts` + test (painters deterministic, sized, palette-only or transparent).
+- [x] 5. `views/dressing.ts` + test (≤ 24 lights, placements inside rooms, out of pits, clear of spawn/embers/goal;
   wall bays cover each side wall).
-- [ ] 6. `views/night.ts` (builds and animates; browser test builds it without errors) and `main.ts` wiring; remove
+- [x] 6. `views/night.ts` (builds and animates; browser test builds it without errors) and `main.ts` wiring; remove
   `buildScene`/`FOG`/`channelBoxes` from `views/index.ts` with their tests moved.
-- [ ] 7. `views/ember.ts` (emissive core, point light, halo; goal sparks) + tests.
-- [ ] 8. `views/lantern.ts` + test; wired on the hero view.
+- [x] 7. `views/ember.ts` (emissive core, point light, halo; goal sparks) + tests.
+- [x] 8. `views/lantern.ts` + test; wired on the hero view.
 - [ ] 9. Roll clip from the Studio; markers inside 24 ticks.
 - [ ] 10. Route golden unchanged (`c735b5acacbbc716`); gates; acceptance images and README.
 
 ## Execution log
 
 - 2026-11-01: spike + spec committed and sent to the coordinator.
+- 2026-11-01: steps 1–2 (b2529fc2). Steps 3–8: tests written first and seen failing on the missing module (palette's
+  test was written beside its module and not run first: a deviation, recorded here); the trim also takes the
+  surface (a pale untextured trim showed in the first game capture, so the occluders test gained the trim case first).
+  `tiledCube` exported from render-pixi3d for the night's stone boxes. Old `buildScene`/`channelBoxes`/ceilings dropped
+  (the night is open to the sky); `sceneOf` stays for the dressing.
