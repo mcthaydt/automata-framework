@@ -6,13 +6,13 @@ import { getLocale, experimentalStaticLocale } from '../runtime.js';
 /** @typedef {{}} TitleInputs */
 
 const en_title = /** @type {(inputs: TitleInputs) => LocalizedString} */ () => {
-	return /** @type {LocalizedString} */ (`The Cold Kiln`)
+	return /** @type {LocalizedString} */ (`Ember Hall`)
 };
 
 /**
 * | output |
 * | --- |
-* | "The Cold Kiln" |
+* | "Ember Hall" |
 *
 * @param {TitleInputs} inputs
 * @param {{ locale?: "en" }} options

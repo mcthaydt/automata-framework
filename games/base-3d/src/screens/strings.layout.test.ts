@@ -9,23 +9,13 @@ import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthayd
 import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { Enemy, Fighter } from '../components.ts'
-import { ENEMIES } from '../constants/enemies.ts'
-import { metres } from '../constants/index.ts'
-import { ItemCode } from '../constants/items.ts'
-import { Inventory, Progress } from '../resources.ts'
-import { newGame } from '../state/save.ts'
+import { Progress } from '../resources.ts'
 import HudInPlay from '../testing/HudInPlay.svelte'
-import { FIRST_AREA, startSim } from '../testing/sim.ts'
+import { startSim } from '../testing/sim.ts'
 import { liveCopy } from './copy.svelte.ts'
 import { BASE3D_COPY, type Base3dCopy } from './copy.ts'
 import EndScreen from './EndScreen.svelte'
-import GameOverScreen from './GameOverScreen.svelte'
 import { hudInPlay } from './hud.ts'
-import ItemsScreen from './ItemsScreen.svelte'
-import LockModeSection from './LockModeSection.svelte'
-import MapScreen from './MapScreen.svelte'
-import { mapOf } from './map.ts'
 import SplashScreen from './SplashScreen.svelte'
 
 /** `copy` with every word, and every word a function makes, in `xx-long`. */
@@ -62,65 +52,23 @@ const SIZES = [
 /** The plain variant: no keyboard, no host strip, no TV scale (G3-v's variants are 1h's). */
 const REST: Parameters<typeof publishConditions>[2] = { name: 'rest' }
 
-const TITLE = pseudoLocalize('The Cold Kiln')
-const PLAN = mapOf(FIRST_AREA, {
-  x: metres(0),
-  z: metres(-2),
-  facing: 0,
-  heading: 0,
-  visited: [],
-  hasMap: true,
-  hasCompass: false,
-  flags: [],
-})
-const SAVE = {
-  ...newGame(),
-  items: { sling: true, bombs: true, hookchain: true },
-  equipped: 'sling' as const,
-}
+const TITLE = pseudoLocalize('Ember Hall')
 
 /** Each screen, how to show it, and its primary actions' test ids (none on the splash, which any key leaves). */
 const SCREENS = {
   splash: [() => mount(SplashScreen, { target: document.body, props: { title: TITLE } }), []],
   end: [() => mount(EndScreen, { target: document.body, props: { time: '1:02', onMenu: () => {} } }), []],
-  'game over': [
-    () => mount(GameOverScreen, { target: document.body, props: { onContinue: () => {}, onQuit: () => {} } }),
-    [],
-  ],
-  'lock mode': [
-    () => mount(LockModeSection, { target: document.body }),
-    ['lock-mode-toggle', 'lock-mode-hold'],
-  ],
-  items: [
-    () =>
-      mount(ItemsScreen, {
-        target: document.body,
-        props: { save: SAVE, onEquip: () => {}, onBack: () => {} },
-      }),
-    ['corner-back'],
-  ],
-  map: [
-    () => mount(MapScreen, { target: document.body, props: { plan: PLAN, onClose: () => {} } }),
-    ['corner-back'],
-  ],
-  hud: [showHud, ['hud-items', 'hud-map']],
+  hud: [showHud, []],
 } as const
 
 /**
- * The fullest HUD over the play screen (hud.layout.test.ts's fixture): the sling with 30 pellets, 999 embers and the
- * Warden's bar. The play screen's own words are the default screens' (DX.2d), so only the HUD's are read for English.
+ * The HUD over the play screen (hud.layout.test.ts's fixture) with some embers taken. The play screen's own words are the
+ * default screens' (DX.2d), so only the HUD's are read for English.
  */
 async function showHud(): Promise<ReturnType<typeof mount>> {
   const sim = await startSim()
-  sim.resource(Progress).embers = 999
-  Object.assign(sim.resource(Inventory), { sling: true, equipped: ItemCode.sling, pellets: 30 })
-  sim.spawn([
-    [Enemy, { kind: ENEMIES.findIndex((type) => type.id === 'warden') + 1 }],
-    [Fighter, { health: 24 }],
-  ])
+  sim.resource(Progress).taken = [0, 1, 2]
   hudInPlay.sim = sim
-  hudInPlay.openItems = () => {}
-  hudInPlay.openMap = () => {}
   return mount(HudInPlay, { target: document.body, props: { touch: false } })
 }
 

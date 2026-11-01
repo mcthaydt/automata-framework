@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import ControlsInPlay from '../testing/ControlsInPlay.svelte'
 
-const BUTTONS = ['attack', 'action', 'shield', 'lock', 'item']
+const BUTTONS = ['roll']
 const ESSENTIALS = ['touch-stick', 'pause', ...BUTTONS]
 
 const hit = (x: number, y: number): Element | null => document.elementFromPoint(x, y)
@@ -20,7 +20,7 @@ describe('G3-v: the touch controls layout', () => {
   for (const size of REFERENCE_SIZES.filter(({ name }) =>
     ['iphone-14-landscape', 'galaxy-chrome-landscape'].includes(name),
   )) {
-    it(`keeps the stick and the five buttons full size, on screen and hit-testable, at ${size.width} x ${size.height}`, async () => {
+    it(`keeps the stick and the Roll button full size, on screen and hit-testable, at ${size.width} x ${size.height}`, async () => {
       await page.viewport(size.width, size.height)
       const problems: string[] = []
       for (const variant of VARIANTS) {
