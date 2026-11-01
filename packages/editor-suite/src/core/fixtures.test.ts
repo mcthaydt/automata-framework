@@ -27,13 +27,13 @@ const opened = (list: EditorList, path: string) => {
 }
 
 describe("FloorFifty's editor list (677d456)", () => {
-  const list = load('floorfifty')
+  const list = load('sample-game')
 
   it('declares no gates, and every row says so with an empty list', () => {
     expect(list.gate).toEqual([])
     expect(list.file.length).toBeGreaterThan(0)
     for (const row of list.file) expect(row.gates, row.glob).toEqual([])
-    expect(fixture('floorfifty')).toMatch(/^gates = \[\]$/m)
+    expect(fixture('sample-game')).toMatch(/^gates = \[\]$/m)
   })
 
   it('has no scenes', () => {
@@ -58,8 +58,9 @@ describe("FloorFifty's editor list (677d456)", () => {
     expect(fileAccess(list, 'content/editors.toml')).toMatchObject({ reason: 'never' })
   })
 
-  it('names its source commit', () => {
-    expect(fixture('floorfifty')).toContain('677d456')
+  // AF is standalone: the source and its commit are recorded in docs/provenance/sources.md, not in the fixture.
+  it('names no source project', () => {
+    expect(fixture('sample-game')).not.toMatch(/floorfifty|snekprty|677d456/i)
   })
 })
 

@@ -6,7 +6,7 @@ import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH } from '../core'
-import { FLOORFIFTY_SAMPLE, samplePorts } from '../testing/sample-ports'
+import { SAMPLE_GAME, samplePorts } from '../testing/sample-ports'
 import { type SuiteHandle, startSuite } from './boot'
 import { createSuite } from './create-suite'
 
@@ -23,7 +23,7 @@ afterEach(async () => {
   target = undefined
 })
 
-async function open(size: EditorSize, files: Record<string, string> = FLOORFIFTY_SAMPLE) {
+async function open(size: EditorSize, files: Record<string, string> = SAMPLE_GAME) {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST)
   target = document.body.appendChild(document.createElement('div'))

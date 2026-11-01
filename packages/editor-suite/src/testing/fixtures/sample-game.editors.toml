@@ -1,8 +1,6 @@
-# FloorFifty's editor list, written AF-side (editor suite spec §8, decision 8: the game is never edited). Source:
-# SNEKPRTY/FloorFifty at 677d456: content/tuning.toml (the Tuner, code-owned bounds), the `[tuning]` tables of
-# content/modes/*.toml (tuning layers), content/stages/*.toml (routed to the 2D level editor, which has no profile for them), its
-# compiler's output in content/generated/, and `pnpm content:check` (package.json). FloorFifty has no gates: every
-# row says so with `gates = []`, and there is no [[gate]].
+# A sample game's editor list, written AF-side (editor suite spec §8, decision 8: the game is never edited): its tuning
+# (the Tuner, code-owned bounds), tuning layers, stages routed to the 2D level editor, the compiler's output in
+# content/generated/ and its `content:check` command. The game has no gates: every row says so with `gates = []`.
 format = "af-editors/1"
 generated = ["content/generated/**"]
 never = ["package.json", ".github/**", ".claude/**"]

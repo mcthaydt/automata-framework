@@ -3,16 +3,18 @@ import '@mcthaydt/automata-editor-kit/fonts.css'
 import './main.css'
 import { createLevels2d, randomIds } from '@mcthaydt/automata-editor-2d/suite'
 import { createLevels3d, lazyPlanRenderer, loadPlanRenderer } from '@mcthaydt/automata-editor-3d/suite'
+import { openServedWorkspace } from '@mcthaydt/automata-editor-kit/core'
 import type { SuiteEditor } from '@mcthaydt/automata-editor-kit/ports'
 import { createStudio } from './editors/studio/studio-suite-editor'
 import { createTuner } from './editors/tuner/tuner-suite-editor'
 import { startSuite } from './shell/boot'
 import { createSuite } from './shell/create-suite'
-import { FLOORFIFTY_SAMPLE, samplePorts } from './testing/sample-ports'
+import { servedPorts } from './shell/served-ports'
+import { SAMPLE_GAME, samplePorts } from './testing/sample-ports'
 
-// The only file that reaches for the page's globals. Until `automata editor` serves a game's checkout (EDS.1d), the
-// page opens a sample game held in memory, and says so in the top bar. The free build registers the level editors
-// (EDS.2d), the Tuner (EDS.4a) and the Studio (EDS.9).
+// The only file that reaches for the page's globals. Served by `automata editor`, the page edits that game's checkout
+// through the server (its token comes in the address); opened any other way it shows a sample game held in memory, and
+// says so in the top bar. The free build registers the level editors (EDS.2d), the Tuner (EDS.4a) and the Studio (EDS.9).
 
 const target = document.getElementById('app')
 if (target === null) throw new Error('index.html has no #app element')
@@ -39,14 +41,19 @@ const editors = [
   }),
 ]
 
-samplePorts(FLOORFIFTY_SAMPLE)
-  .then((ports) =>
+openServedWorkspace({
+  origin: window.location.origin,
+  search: window.location.search,
+  sessionStorage: window.sessionStorage,
+})
+  .catch(() => undefined)
+  .then(async (served) =>
     startSuite(target, {
       window,
       document,
-      ports,
+      ports: served === undefined ? await samplePorts(SAMPLE_GAME) : await servedPorts(served.store),
       suite: createSuite({ editors: editors as SuiteEditor<unknown>[] }),
-      sample: true,
+      sample: served === undefined,
     }),
   )
   .catch((error: unknown) => {

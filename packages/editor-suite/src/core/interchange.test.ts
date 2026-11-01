@@ -1,8 +1,8 @@
 import { createMemoryPorts } from '@mcthaydt/automata-editor-kit/ports/testing'
 import { parse as parseToml } from 'smol-toml'
 import { describe, expect, test } from 'vitest'
-import floorfiftyList from '../testing/fixtures/floorfifty.editors.toml?raw'
 import lastLightList from '../testing/fixtures/last-light-bay.editors.toml?raw'
+import sampleList from '../testing/fixtures/sample-game.editors.toml?raw'
 import { loadEditorList } from './editor-list'
 import { EDITOR_LIST_PATH } from './editors.schema'
 import { applyImport, exportInterchange, type ImportPlan, interchangeSchema, planImport } from './interchange'
@@ -29,12 +29,12 @@ const loaded = (text: string) => {
   if (!load.ok) throw new Error('fixture list does not load')
   return load.list
 }
-const FLOORFIFTY = loaded(floorfiftyList)
+const FLOORFIFTY = loaded(sampleList)
 const LAST_LIGHT = loaded(lastLightList)
 
 async function floorfifty(extra: Readonly<Record<string, string>> = {}) {
   const memory = await createMemoryPorts({
-    files: { [EDITOR_LIST_PATH]: floorfiftyList, [TUNING]: TUNING_TEXT, [STAGE]: STAGE_TEXT, ...extra },
+    files: { [EDITOR_LIST_PATH]: sampleList, [TUNING]: TUNING_TEXT, [STAGE]: STAGE_TEXT, ...extra },
     classify: (path) => workspaceFile(FLOORFIFTY, path),
   })
   const writePath = createWritePath({ ports: memory.ports, title: async () => 'Import' })

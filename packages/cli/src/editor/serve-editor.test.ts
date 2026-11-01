@@ -141,10 +141,13 @@ describe('serveEditor', () => {
     expect(
       (await api(url, '/api/file?path=levels%2Fdepot.json', { method: 'PUT', body: '{"a":3}' })).status,
     ).toBe(200)
-    // The list itself is never written by an editor.
+    // The list itself is never written by an editor, but the suite page must read it: it is how the page knows the rows.
     expect(
       (await api(url, '/api/file?path=content%2Feditors.toml', { method: 'PUT', body: 'x' })).status,
     ).toBe(403)
+    const read = await api(url, '/api/file?path=content%2Feditors.toml')
+    expect(read.status).toBe(200)
+    expect(await read.text()).toContain('af-editors/1')
   })
 
   it('wants the token off the loopback, and the Host header of a loopback server to be a loopback name', async () => {

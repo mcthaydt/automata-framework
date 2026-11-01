@@ -3,7 +3,7 @@
 // gate's records; a file that is read only is still readable, so the editor can show it); without one, the level files
 // (`*.json` outside the folders a build or a tool owns) are readable and writable. Paths outside the checkout are never
 // reachable.
-import { fileAccess, loadEditorList } from '@mcthaydt/automata-editor-suite/core'
+import { EDITOR_LIST_PATH, fileAccess, loadEditorList } from '@mcthaydt/automata-editor-suite/core'
 
 export interface EditorPolicy {
   /** Whether `path` (root-relative, `/`-separated) may be listed and read. */
@@ -36,6 +36,8 @@ export function editorPolicy(listText: string | undefined): EditorPolicy {
   return {
     canRead: (path) => {
       if (!inside(path)) return false
+      // The page reads the list to know its rows (it never writes it: `canWrite` below refuses it as a `never` path).
+      if (path === EDITOR_LIST_PATH) return true
       const access = fileAccess(list, path)
       return access.writable || (access.reason !== 'never' && access.reason !== 'outside')
     },

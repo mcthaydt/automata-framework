@@ -235,6 +235,7 @@ export function createSuiteSession(raw: SuitePorts, options: SuiteSessionOptions
       return () => listeners.delete(listener)
     },
   }
-  writePath.subscribe(() => void refresh())
+  // A store that cannot be listed just now (a served checkout whose server stopped) leaves the pills as they were.
+  writePath.subscribe(() => void refresh().catch(() => undefined))
   return session
 }
