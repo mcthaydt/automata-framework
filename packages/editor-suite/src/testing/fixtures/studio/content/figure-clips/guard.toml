@@ -1,0 +1,16 @@
+# Wick's guard (M3 spec §4.7): a stance held while the sim lists it. Both arms come up to guard over 0.25 s and hold
+# there. Figures' fixture raise-guard (at 077484c7).
+
+length = 0.25
+loop = "hold"
+mask = [ "armL", "armR", "torso" ]
+blend = { inMs = 120, outMs = 120 }
+
+[[keys]]
+t = 0
+pose = "stand"
+
+[[keys]]
+t = 0.25
+pose = "guard-high"
+ease = "out"

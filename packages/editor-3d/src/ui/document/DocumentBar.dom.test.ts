@@ -61,15 +61,16 @@ describe('DocumentBar', () => {
     expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled()
   })
 
-  it('offers the views with Plan chosen; Split and 3D can be chosen, and Walk says why it cannot yet (ED3D.5d, 5e)', () => {
+  it('offers the views with Plan chosen; Split, 3D and Walk can be chosen, and World says why it cannot yet (ED3D.5d, 5e, 8b)', () => {
     mount()
     const views = screen.getByRole('radiogroup', { name: 'View' })
     expect(within(views).getByRole('radio', { name: 'Plan' })).toHaveAttribute('aria-checked', 'true')
     expect(within(views).getByRole('radio', { name: 'Split' })).not.toHaveAttribute('aria-disabled')
     expect(within(views).getByRole('radio', { name: '3D' })).not.toHaveAttribute('aria-disabled')
-    const walk = within(views).getByRole('radio', { name: 'Walk' })
-    expect(walk).toHaveAttribute('aria-disabled', 'true')
-    expect(walk).toHaveAccessibleDescription(/^Not ready yet: /)
+    expect(within(views).getByRole('radio', { name: 'Walk' })).not.toHaveAttribute('aria-disabled')
+    const world = within(views).getByRole('radio', { name: 'World' })
+    expect(world).toHaveAttribute('aria-disabled', 'true')
+    expect(world).toHaveAccessibleDescription(/^Not ready yet: /)
   })
 
   it('shows how the checks stand; below wide the views are left out, and on a phone the pill too (ED3D.5d)', () => {

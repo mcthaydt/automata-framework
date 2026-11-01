@@ -15,6 +15,7 @@ import { mount, unmount } from 'svelte'
 import { createEditorApp } from '../app/editor-app'
 import App from './App.svelte'
 import type { PlanRendererFactory } from './plan/plan-renderer'
+import type { Frames } from './walk/frames'
 
 export interface EditorEnv {
   /** What the geometry owner reads and listens to, and whose `pagehide` writes an open level's journal. */
@@ -30,6 +31,8 @@ export interface EditorEnv {
   readonly workspace?: Workspace
   /** Makes the Plan view's renderer: `main.ts` loads Pixi lazily (`lazyPlanRenderer`); tests pass a fake. */
   readonly renderer: PlanRendererFactory
+  /** The page's animation frames, which the Walk view's eye moves on: `main.ts` passes them; tests walk by hand. */
+  readonly frames?: Frames
 }
 
 export interface EditorHandle {
@@ -59,6 +62,7 @@ export async function startEditor(target: HTMLElement, env: EditorEnv): Promise<
       clock: env.clock,
       lifecycle: { document: env.document, window: env.window },
       renderer: env.renderer,
+      frames: env.frames,
       // The checks run after the editing pauses, on the page's clock.
       schedule: (delayMs: number, run: () => void) => {
         const handle = env.clock.setTimer(delayMs, run)
