@@ -199,3 +199,26 @@ describe.runIf(hasWebGL2)('lighting and fog on WebGL2', () => {
     },
   )
 })
+
+describe.runIf(hasWebGL2)('walls under baked light', () => {
+  it("bakes the scene's occluder walls with the renderer's light: unlit, coloured per vertex", async () => {
+    const host = document.createElement('div')
+    document.body.appendChild(host)
+    let wall: Mesh3D | undefined
+    const factory = createPixi3dRenderer({
+      logicalWidth: WIDTH,
+      logicalHeight: 90,
+      views: {},
+      lighting,
+      scene: (_view, _stage, occluders) => {
+        wall = occluders.wall({ a: { x: -3, z: -1 }, b: { x: 3, z: -1 }, height: 2, color: 0xffffff })
+          .children[0] as Mesh3D
+        return undefined
+      },
+    })
+    scope = Effect.runSync(Scope.make())
+    await Effect.runPromise(Scope.extend(factory(testTarget(host)), scope))
+    expect(wall?.material).toBeInstanceOf(FlatMaterial)
+    expect(wall?.geometry.attributes.aColor).toBeDefined()
+  })
+})

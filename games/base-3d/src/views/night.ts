@@ -1,17 +1,22 @@
 // The night scene (art direction spec §2, §4): Emberwick's moonlit ruin built under the 3D view from the room and its
-// dressing. The sky, the ambient moonlight and the moon's direction; the ruined walls as textured bays through the
-// occluder rule, the far wall an arch; mossy flagstone platforms floating over open sky, the channels gaps with cool
-// glowing rims; glowing mushrooms with their lights; additive halos, fireflies and moonlight shafts; grass and vines; and
-// the backdrop. Presentation only (law 1). The embers, the goal and Wick's lantern come with their own views.
-import { type Box3, type Occluders, type SceneFog, tiledCube } from '@mcthaydt/automata-render-pixi3d'
+// dressing. The sky; the ruined walls as textured bays through the occluder rule, the far wall an arch; mossy flagstone
+// platforms floating over open sky, the channels gaps with cool glowing rims; glowing mushrooms; additive halos,
+// fireflies and moonlight shafts; grass and vines; and the backdrop. Every light is baked into the stone's vertices
+// (lighting.ts; the Owner: "no real time"). Presentation only (law 1). The embers, the goal and Wick's lantern come
+// with their own views.
+import {
+  type Box3,
+  type Occluders,
+  type SceneFog,
+  type SceneLight,
+  tiledCube,
+} from '@mcthaydt/automata-render-pixi3d'
 import {
   type Container3D,
-  DirectionalLight,
-  type FlatMaterial,
+  CubeGeometry,
+  FlatMaterial,
   Mesh3D,
   ParticleContainer3D,
-  PhongMaterial,
-  PointLight,
   type View3D,
 } from '@pixi/3d'
 import type { Texture } from 'pixi.js'
@@ -33,22 +38,31 @@ export interface NightScene {
 
 /** Metres per repeat of the stone textures (32 px): a flagstone or brick about 0.7 m long. */
 const TILE = 2
+/** The floor's 64 px texture over twice the length: the same texel density, a quarter of the repeats. */
+const FLOOR_TILE = 4
 /** The pillars between bays (broken stubs a little above their bay) and the far wall's height over its arch. */
 const PILLAR = { width: 0.7, depth: 0.6, above: 0.7 } as const
 const LINTEL = 0.5
 /** The grass and vines at their own colours, Emberwick's bright greens (they are unlit cards). */
 const MOONLIT = 0xffffff
 
-const textured = (texture: Texture): PhongMaterial =>
-  new PhongMaterial({ baseColor: 0xffffff, baseColorTexture: texture, shininess: 4 })
+/** Metres a stone face is cut into for the baked light: the 3D reference game's half-metre grid. */
+const BAKE_CELL = 0.5
 
-/** A box of stone filling `bounds`, its texture repeating every `TILE` metres on each face. */
-function stoneBox(bounds: Box3, material: PhongMaterial | FlatMaterial, tile = TILE): Mesh3D {
+/**
+ * A box of stone filling `bounds` under `root`: its texture repeating every `tile` metres on each face, on an unlit
+ * material of its own (a pillar fades through it), its faces cut into cells and the night's light baked into them.
+ */
+function stoneBox(root: Container3D, light: SceneLight, bounds: Box3, texture: Texture, tile = TILE): Mesh3D {
   const [min, max] = [bounds.min, bounds.max]
   const size = { x: max[0] - min[0], y: max[1] - min[1], z: max[2] - min[2] }
-  const mesh = new Mesh3D({ geometry: tiledCube(size, tile), material })
+  const material = new FlatMaterial({ baseColor: 0xffffff, baseColorTexture: texture })
+  const mesh = new Mesh3D({ label: 'night:stone', geometry: tiledCube(size, tile, BAKE_CELL), material })
   mesh.scale.set(size.x, size.y, size.z)
   mesh.position.set((min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2)
+  // Baked where it stands: the bake reads the mesh's place in the scene, so only once it is parented.
+  root.addChild(mesh)
+  light.bake(mesh)
   return mesh
 }
 
@@ -74,60 +88,52 @@ function cards(
   return container
 }
 
-export function buildNight(view: View3D, occluders: Occluders, area: AreaSource): NightScene {
+export function buildNight(
+  view: View3D,
+  occluders: Occluders,
+  area: AreaSource,
+  light: SceneLight,
+): NightScene {
   const root = view.root as Container3D
   const dressing = dressingOf(area)
   const textures = nightTextures()
 
-  // Sky and moonlight: the sky gradient behind everything, a dim cool fill, and the moon's light from the far end.
+  // The sky gradient behind everything. No light is added here: the moonlight, the mushrooms' and the goal's light
+  // are baked into the stone (lighting.ts), as the 3D reference game lights its rooms; nothing is lit in real time.
   view.background = { skyColor: colour('skyHigh'), groundColor: colour('skyDeep') }
-  view.environment = { skyColor: colour('ambientSky'), groundColor: colour('skyMid'), intensity: 0.7 }
-  const moonlight = new DirectionalLight({ color: colour('moonlight'), intensity: 0.55 })
-  moonlight.position.set(-6, 14, 40)
-  moonlight.lookAt({ x: 0, y: 0, z: 10 })
-  root.addChild(moonlight)
 
   // The platforms: mossy flagstones on top, bare stone down their sides to the floating ruin's underside.
-  const floor = textured(textures.floor)
-  const side = textured(textures.side)
-  const wall = textured(textures.wall)
   for (const room of area.rooms) {
     const [x0, z0] = room.min
     const [x1, z1] = room.max
-    root.addChild(stoneBox({ min: [x0, -0.2, z0], max: [x1, 0, z1] }, floor))
-    root.addChild(stoneBox({ min: [x0, -ISLAND_DEPTH, z0], max: [x1, -0.2, z1] }, side))
+    stoneBox(root, light, { min: [x0, -0.2, z0], max: [x1, 0, z1] }, textures.floor, FLOOR_TILE)
+    stoneBox(root, light, { min: [x0, -ISLAND_DEPTH, z0], max: [x1, -0.2, z1] }, textures.side)
   }
   // The channels open onto the sky the ruin floats in: no floor, only a cool glowing rim along each edge, so the gap
-  // reads at once (Emberwick has no red; its accents are teal and the ember's warmth).
-  const rimMaterial = new PhongMaterial({
-    baseColor: colour('mushroom'),
-    emissive: { color: colour('mushroom'), strength: 1.2 },
-  })
-  for (const rim of dressing.rims)
-    root.addChild(
-      Object.assign(
-        stoneBox({ min: [rim.x0, -0.02, rim.z - 0.05], max: [rim.x1, 0.03, rim.z + 0.05] }, rimMaterial, 1),
-        {
-          label: 'night:rim',
-        },
-      ),
-    )
-  // The ruin: textured bays, a pillar at every bay's start (fading when it hides Wick), the near wall whole,
-  // the far wall's two piers either side of the arch and the lintel over it.
+  // reads at once (Emberwick has no red; its accents are teal and the ember's warmth). Unlit: it glows.
+  const rimMaterial = new FlatMaterial({ baseColor: colour('mushroom') })
+  const rimCube = new CubeGeometry()
+  for (const rim of dressing.rims) {
+    const mesh = new Mesh3D({ label: 'night:rim', geometry: rimCube, material: rimMaterial })
+    mesh.scale.set(rim.x1 - rim.x0, 0.05, 0.1)
+    mesh.position.set((rim.x0 + rim.x1) / 2, 0.005, rim.z)
+    root.addChild(mesh)
+  }
+  // The ruin: textured bays (baked by the occluder stage, which has the renderer's light), a pillar at every bay's
+  // start (fading when it hides Wick), the near wall whole, the far wall's two piers either side of the arch and the
+  // lintel over it.
   const surface = { texture: textures.wall, tile: TILE }
   const white = 0xffffff
   for (const bay of dressing.bays) occluders.wall({ ...bay, color: white, surface })
-  dressing.bays.forEach((bay, i) => {
+  for (const bay of dressing.bays) {
     const outward = bay.a.x > 0 ? 1 : -1
     const x = bay.a.x + outward * (PILLAR.width / 2 - 0.15)
     const bounds: Box3 = {
       min: [x - PILLAR.width / 2, 0, bay.a.z - PILLAR.depth / 2],
       max: [x + PILLAR.width / 2, bay.height + PILLAR.above, bay.a.z + PILLAR.depth / 2],
     }
-    const pillar = stoneBox(bounds, textured(textures.wall))
-    root.addChild(pillar)
-    occluders.prop(pillar, { bounds })
-  })
+    occluders.prop(stoneBox(root, light, bounds, textures.wall), { bounds })
+  }
   const { arch } = dressing
   const ends = endWalls(area)
   // The near wall is a low parapet, like the bays, so nothing tall stands between the camera and the room.
@@ -138,40 +144,22 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
     occluders.wall({ a, b: { x: arch.max, z: a.z }, height, color: white, surface })
     occluders.wall({ a: { x: arch.min, z: a.z }, b, height, color: white, surface })
     const bounds: Box3 = { min: [arch.min, arch.height, arch.z], max: [arch.max, height, arch.z + 0.5] }
-    const lintel = stoneBox(bounds, textured(textures.wall))
-    root.addChild(lintel)
-    occluders.prop(lintel, { bounds })
+    occluders.prop(stoneBox(root, light, bounds, textures.wall), { bounds })
   }
   // The goal ember's plinth.
-  root.addChild(
-    stoneBox(
-      {
-        min: [area.goal.x - 0.45, 0, area.goal.z - 0.45],
-        max: [area.goal.x + 0.45, 0.35, area.goal.z + 0.45],
-      },
-      wall,
-      1,
-    ),
+  stoneBox(
+    root,
+    light,
+    { min: [area.goal.x - 0.45, 0, area.goal.z - 0.45], max: [area.goal.x + 0.45, 0.35, area.goal.z + 0.45] },
+    textures.wall,
+    1,
   )
 
-  // Static lights, and the mushrooms that give them: three caps a cluster, glowing, on pale stems.
-  for (const spot of dressing.lights) {
-    const light = new PointLight({ color: colour(spot.colour), intensity: spot.intensity, range: spot.range })
-    light.position.set(spot.x, spot.y, spot.z)
-    root.addChild(light)
-  }
-  // Every cluster's caps in one mesh and every stem in another: two draws for the room's mushrooms.
+  // The mushrooms (their light is baked into the stone): three caps a cluster, glowing, on pale stems, every
+  // cluster's caps in one mesh and every stem in another, two draws for the room's mushrooms. Unlit: they glow.
   const { caps, stems } = mushroomData(dressing.mushrooms)
-  const cap = new PhongMaterial({
-    baseColor: colour('mushroom'),
-    emissive: { color: colour('mushroom'), strength: 1.6 },
-    doubleSided: true,
-  })
-  const stem = new PhongMaterial({
-    baseColor: colour('moonlight'),
-    emissive: { color: colour('moonlight'), strength: 0.6 },
-    doubleSided: true,
-  })
+  const cap = new FlatMaterial({ baseColor: colour('mushroom'), doubleSided: true })
+  const stem = new FlatMaterial({ baseColor: colour('moonlight'), doubleSided: true })
   root.addChild(
     new Mesh3D({ label: 'night:mushroom-caps', geometry: geometryOf(caps), material: cap }),
     new Mesh3D({ label: 'night:mushroom-stems', geometry: geometryOf(stems), material: stem }),

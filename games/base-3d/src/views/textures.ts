@@ -64,43 +64,38 @@ function painter(width: number, height: number): Painter {
 export type StoneKind = 'floor' | 'side' | 'wall'
 
 /**
- * Stone blocks, 32 px a tile: four rows of offset 11 px slabs in two tones over mortar, a chipped lighter edge on
- * about half of them; the floor's grows clumps of moss.
+ * Stone blocks, 32 px a tile (the floor 64, laid over twice the length, so its moss repeats less): rows 8 px high of
+ * offset 11 px slabs in two tones over mortar, a chipped lighter edge on about half of them, one tone a slab; the
+ * floor's grows solid clumps of moss.
  */
 export function paintStone(kind: StoneKind): Pixels {
-  const size = 32
+  const size = kind === 'floor' ? 64 : 32
   const p = painter(size, size)
   const rand = seeded(kind === 'floor' ? 1 : kind === 'side' ? 2 : 3)
   const tones: readonly Token[] = kind === 'wall' ? ['stoneLight', 'stone'] : ['stone', 'stoneLight']
   p.rect(0, 0, size, size, kind === 'wall' ? 'mortarDeep' : 'mortar')
-  const rowHeight = size / 4
-  for (let row = 0; row < 4; row++) {
+  const rowHeight = 8
+  for (let row = 0; row < size / rowHeight; row++) {
     const offset = row % 2 === 0 ? 0 : 6
     for (let x = -offset; x < size; x += 12) {
       const tone = tones[Math.floor(rand() * tones.length)] as Token
       p.rect(x + 1, row * rowHeight + 1, 11, rowHeight - 1, tone)
       if (rand() < 0.5) p.rect(x + 2, row * rowHeight + 1, 4 + Math.floor(rand() * 6), 1, 'stoneEdge')
-      for (let k = 0; k < 2; k++)
-        p.dot(
-          x + 1 + Math.floor(rand() * 11),
-          row * rowHeight + 2 + Math.floor(rand() * (rowHeight - 3)),
-          tones[1] as Token,
-        )
     }
   }
   if (kind === 'floor') {
-    // Moss grows in clumps: blobs of dark and mid green round a seed, wrapping so the tile repeats seamlessly.
-    const moss: readonly Token[] = ['moss', 'moss', 'mossMid', 'mossDeep']
-    for (let clump = 0; clump < 14; clump++) {
+    // Moss grows in solid clumps (no scattered specks: at the view's resolution each reads as noise): a disc of dark
+    // green, a smaller lighter one inside it, wrapping so the tile repeats seamlessly.
+    const disc = (cx: number, cy: number, r: number, token: Token): void => {
+      for (let y = -r; y <= r; y++)
+        for (let x = -r; x <= r; x++) if (x * x + y * y <= r * r + r) p.dot(cx + x, cy + y, token)
+    }
+    for (let clump = 0; clump < 26; clump++) {
       const cx = Math.floor(rand() * size)
       const cy = Math.floor(rand() * size)
       const r = 2 + Math.floor(rand() * 3)
-      for (let k = 0; k < r * r * 2; k++)
-        p.dot(
-          cx + Math.floor((rand() - 0.5) * 2 * r),
-          cy + Math.floor((rand() - 0.5) * 2 * r),
-          moss[Math.floor(rand() * 4)] as Token,
-        )
+      disc(cx, cy, r, 'moss')
+      disc(cx - 1, cy - 1, r - 2, 'mossMid')
     }
   }
   return p

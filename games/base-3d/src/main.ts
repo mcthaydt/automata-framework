@@ -30,6 +30,7 @@ import { compileArea } from './systems/index.ts'
 import { emberView } from './views/ember.ts'
 import { figureContent, heroFigureState, inMetres, placed } from './views/index.ts'
 import { withLantern } from './views/lantern.ts'
+import { nightLighting } from './views/lighting.ts'
 import { buildNight, FOG } from './views/night.ts'
 
 // Compiling the room is boot's content cost: measured, so G3-u's journey holds it to a budget.
@@ -141,6 +142,8 @@ export const base3d = defineGame({
         return options.setup?.(made)
       },
       fog: FOG,
+      // The night's light, baked into the stone once and taken by Wick at his chest each frame: no real-time light.
+      lighting: nightLighting(ROOM),
       views: {
         [Hero.id]: withLantern(
           inMetres(
@@ -156,8 +159,10 @@ export const base3d = defineGame({
         follow: Hero.id,
         position: (c) => placed(c.hero),
       },
-      scene: (view, _stage, occluders) => {
-        const night = buildNight(view, occluders, ROOM)
+      scene: (view, _stage, occluders, light) => {
+        if (light === undefined)
+          throw new Error('base-3d: the night is lit by its baked lighting (lighting.ts)')
+        const night = buildNight(view, occluders, ROOM, light)
         return {
           draw: () => night.update(pageSeconds()),
           reset: () => {},

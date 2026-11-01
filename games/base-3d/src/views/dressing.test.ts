@@ -1,9 +1,9 @@
 // Where the night's dressing goes (art direction spec §4.2, §4.5–§4.7), worked out from the room: every light and prop
-// stands where it can be seen and never in Wick's way, the light count stays inside the tiled-lighting budget, and the
+// stands where it can be seen and never in Wick's way, and the
 // ruined side walls are cut into bays that cover each wall exactly.
 import { describe, expect, it } from 'vitest'
 import { ROOM } from '../content/room.ts'
-import { dressingOf, LIGHT_BUDGET } from './dressing.ts'
+import { dressingOf } from './dressing.ts'
 import { sceneOf } from './index.ts'
 
 const dressing = dressingOf(ROOM)
@@ -19,14 +19,6 @@ const KEEP_CLEAR = [ROOM.spawn, ...ROOM.embers, ROOM.goal]
 describe('the dressing', () => {
   it('is the same every time it is worked out', () => {
     expect(dressingOf(ROOM)).toEqual(dressing)
-  })
-
-  it('keeps every light within the budget, counting the embers, the goal and the lantern that come with their views', () => {
-    // The embers and the goal carry one each; Wick carries three (his lantern, the rim over his hood, the fill on
-    // his back).
-    const withViews = dressing.lights.length + ROOM.embers.length + 1 + 3
-    expect(withViews).toBeLessThanOrEqual(LIGHT_BUDGET)
-    expect(LIGHT_BUDGET).toBeLessThanOrEqual(32)
   })
 
   it('puts mushroom clusters on the platforms by the walls, clear of the spawn, the embers and the goal', () => {

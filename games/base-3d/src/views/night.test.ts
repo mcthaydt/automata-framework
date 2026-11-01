@@ -3,10 +3,20 @@
 // budget; the ruin's walls are textured bays plus the arch's piers; the sky, fog colour and ambient are the palette's;
 // and each frame moves the fireflies without rebuilding anything.
 import type { Occluders, WallOptions } from '@mcthaydt/automata-render-pixi3d'
-import { Container3D, Mesh3D, ParticleContainer3D, PointLight, type View3D } from '@pixi/3d'
+import { createSceneLight } from '@mcthaydt/automata-render-pixi3d'
+import {
+  Container3D,
+  DirectionalLight,
+  FlatMaterial,
+  Mesh3D,
+  ParticleContainer3D,
+  PointLight,
+  type View3D,
+} from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { ROOM } from '../content/room.ts'
-import { dressingOf, LIGHT_BUDGET } from './dressing.ts'
+import { dressingOf } from './dressing.ts'
+import { nightLighting } from './lighting.ts'
 import { buildNight, FOG } from './night.ts'
 import { colour } from './palette.ts'
 
@@ -32,7 +42,8 @@ function stage() {
       throw new Error('the night builds its own boxes')
     },
   }
-  const night = buildNight(view as unknown as View3D, occluders, ROOM)
+  const light = createSceneLight(nightLighting(ROOM))
+  const night = buildNight(view as unknown as View3D, occluders, ROOM, light)
   return { root, view, walls, props, night }
 }
 
@@ -40,13 +51,25 @@ const descendants = (node: Container3D): Container3D[] =>
   (node.children as Container3D[]).flatMap((child) => [child, ...descendants(child)])
 
 describe('buildNight', () => {
-  it('lights the room from the dressing, inside the budget', () => {
+  it('puts no real-time light in the scene: the light is baked (the Owner: "no real time")', () => {
+    const { root, view } = stage()
+    const lights = descendants(root).filter((n) => n instanceof PointLight || n instanceof DirectionalLight)
+    expect(lights).toHaveLength(0)
+    expect(view.environment).toBeUndefined()
+  })
+
+  it('bakes all its stone on unlit materials, the painted stone textures kept', () => {
     const { root } = stage()
-    const lights = descendants(root).filter((n): n is PointLight => n instanceof PointLight)
-    expect(lights).toHaveLength(dressingOf(ROOM).lights.length)
-    expect(lights.length).toBeLessThanOrEqual(LIGHT_BUDGET)
-    // No light below the platforms: the channels open onto the sky, not lava.
-    expect(lights.filter((l) => l.position.y < 0)).toHaveLength(0)
+    const stone = descendants(root).filter((n): n is Mesh3D => n.label === 'night:stone')
+    expect(stone.length).toBeGreaterThan(2 * ROOM.rooms.length + 4)
+    for (const mesh of stone) {
+      expect(mesh.material).toBeInstanceOf(FlatMaterial)
+      expect(mesh.material.vertexColors).toBe(true)
+      expect(mesh.geometry.attributes.aColor).toBeDefined()
+      expect((mesh.material as FlatMaterial).textures.baseColor).not.toBe(
+        new FlatMaterial().textures.baseColor,
+      )
+    }
   })
 
   it('builds the ruin from textured bays, the near wall and the arch’s two piers', () => {
@@ -62,8 +85,6 @@ describe('buildNight', () => {
     const { view } = stage()
     // The ruin floats: below the horizon is night sky too, the deep blue of Wick's cloak shade, never teal ground.
     expect(view.background).toMatchObject({ skyColor: colour('skyHigh'), groundColor: colour('skyDeep') })
-    // The ambient sky is a saturated blue, so the stone between the lamps keeps Emberwick's blue, not grey.
-    expect(view.environment).toMatchObject({ skyColor: colour('ambientSky'), groundColor: colour('skyMid') })
     expect(FOG.color).toBe(colour('skyDeep'))
     expect(FOG.far).toBeGreaterThan(FOG.near)
   })

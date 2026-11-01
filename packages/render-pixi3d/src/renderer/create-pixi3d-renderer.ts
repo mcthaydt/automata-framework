@@ -169,7 +169,8 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     draw: (frame) => consumer.interpolate(frame.alpha),
     reset: () => consumer.reset(),
   }
-  const occluders = createOccluders(view.root)
+  // Under baked light the occluder walls are baked with the room's light (no real-time light reaches them).
+  const occluders = createOccluders(view.root, light)
   if (options.camera === undefined)
     return { view, occluders, consumer, hooks: entities, light, camera: undefined, capped }
   const camera = angledCamera({

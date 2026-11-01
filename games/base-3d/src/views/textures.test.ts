@@ -69,6 +69,35 @@ describe('the pixel-art textures', () => {
     expect(share(paintStone('side'), moss)).toBe(0)
   })
 
+  it('paints the floor at 64 px (laid over 4 m), so its moss does not repeat in a visible grid; the rest at 32', () => {
+    expect(paintStone('floor').width).toBe(64)
+    expect(paintStone('wall').width).toBe(32)
+    expect(paintStone('side').width).toBe(32)
+  })
+
+  it("paints the stone calm, as the 3D reference game's matte textures are: almost no lone specks", () => {
+    // A speck is a pixel unlike all four of its neighbours (the tile wraps): at the view's resolution each reads as
+    // noise. Moss grows in solid clumps and the slabs are one tone each.
+    const specks = (pixels: Pixels) => {
+      const at = (x: number, y: number) => {
+        const i =
+          ((((y % pixels.height) + pixels.height) % pixels.height) * pixels.width +
+            (((x % pixels.width) + pixels.width) % pixels.width)) *
+          4
+        return `${pixels.data[i]},${pixels.data[i + 1]},${pixels.data[i + 2]}`
+      }
+      let lone = 0
+      for (let y = 0; y < pixels.height; y++)
+        for (let x = 0; x < pixels.width; x++) {
+          const c = at(x, y)
+          if (at(x - 1, y) !== c && at(x + 1, y) !== c && at(x, y - 1) !== c && at(x, y + 1) !== c) lone++
+        }
+      return lone / (pixels.width * pixels.height)
+    }
+    for (const kind of ['floor', 'side', 'wall'] as const)
+      expect(specks(paintStone(kind)), kind).toBeLessThan(0.02)
+  })
+
   it('leaves the cut-out shapes transparent round their edges', () => {
     for (const pixels of [paintGrass(), paintSilhouette('pine'), paintMoon()]) expect(pixels.data[3]).toBe(0)
   })

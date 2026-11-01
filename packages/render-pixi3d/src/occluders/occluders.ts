@@ -10,12 +10,14 @@ import {
   type BaseMaterial3D,
   Container3D,
   CubeGeometry,
+  FlatMaterial,
   type Geometry3D,
   Mesh3D,
   PhongMaterial,
 } from '@pixi/3d'
 import type { Texture } from 'pixi.js'
 import type { CameraRig } from '../camera/angled-camera.js'
+import type { SceneLight } from '../light/scene-light.js'
 import { ownCopyOf } from '../views/shared-material.js'
 import {
   type OccluderFrame,
@@ -105,17 +107,19 @@ function slab(
   options: WallOptions,
   height: number,
   thickness: number,
-  texture?: Texture,
+  texture: Texture | undefined,
+  baked: boolean,
 ): Mesh3D {
   const { a, b } = options
   const length = Math.hypot(b.x - a.x, b.z - a.z)
   const dir = { x: (b.x - a.x) / length, z: (b.z - a.z) / length }
   const inward = { x: -dir.z, z: dir.x }
-  const material = new PhongMaterial(
+  // Under baked light the wall is unlit: its light is the bake's vertex colours, so no real-time light reaches it.
+  const look =
     texture === undefined
       ? { baseColor: options.color }
-      : { baseColor: options.color, baseColorTexture: texture },
-  )
+      : { baseColor: options.color, baseColorTexture: texture }
+  const material = baked ? new FlatMaterial(look) : new PhongMaterial(look)
   const mesh = new Mesh3D({ geometry: cube, material })
   mesh.scale.set(length, height, thickness)
   // Turning by θ about +y takes local +x to (cos θ, −sin θ) and local +z to (sin θ, cos θ) on the plan: the wall's
@@ -129,7 +133,14 @@ function slab(
   return mesh
 }
 
-export function createOccluders(parent: Container3D): OccluderStage {
+/** Metres a baked wall's faces are cut into, so the light has vertices to sit on (the 3D reference game's grid). */
+export const BAKE_CELL = 0.5
+
+/**
+ * The occluder stage over `parent`. With `light` (the renderer's when `Pixi3dOptions.lighting` is set) every wall and
+ * its trim are unlit, cut into `BAKE_CELL` cells and baked once placed; `dispose` releases them.
+ */
+export function createOccluders(parent: Container3D, light?: SceneLight): OccluderStage {
   const walls: { entry: WallEntry; wall: Mesh3D; trim: Mesh3D }[] = []
   const props: { entry: PropEntry; mesh: Mesh3D }[] = []
   const ceilings: Container3D[] = []
@@ -137,6 +148,8 @@ export function createOccluders(parent: Container3D): OccluderStage {
   const cube = new CubeGeometry({ width: 1, height: 1, depth: 1 })
   // The textured walls' own cubes (their UVs differ by size), freed with the shared one.
   const ownCubes: Geometry3D[] = []
+  // The meshes baked here, released on dispose.
+  const bakedMeshes: Mesh3D[] = []
   // The materials props fade through, so two props never fade one material; and the copies made for them.
   const fading = new WeakSet<BaseMaterial3D>()
   const copies: BaseMaterial3D[] = []
@@ -152,18 +165,30 @@ export function createOccluders(parent: Container3D): OccluderStage {
       const node = new Container3D()
       const surface = options.surface
       const trimHeight = options.trim ?? TRIM_HEIGHT
-      // A textured wall and its trim each get a cube whose UVs fit their own size.
+      // A textured wall and its trim each get a cube whose UVs fit their own size; under baked light every wall does,
+      // cut into cells.
       const cubeFor = (height: number): CubeGeometry | Geometry3D => {
-        if (surface === undefined) return cube
-        const own = tiledCube({ x: Math.hypot(b.x - a.x, b.z - a.z), y: height, z: thickness }, surface.tile)
+        if (surface === undefined && light === undefined) return cube
+        const own = tiledCube(
+          { x: Math.hypot(b.x - a.x, b.z - a.z), y: height, z: thickness },
+          surface?.tile ?? 1,
+          light === undefined ? undefined : BAKE_CELL,
+        )
         ownCubes.push(own)
         return own
       }
-      const wall = slab(cubeFor(options.height), options, options.height, thickness, surface?.texture)
-      const trim = slab(cubeFor(trimHeight), options, trimHeight, thickness, surface?.texture)
+      const baked = light !== undefined
+      const wall = slab(cubeFor(options.height), options, options.height, thickness, surface?.texture, baked)
+      const trim = slab(cubeFor(trimHeight), options, trimHeight, thickness, surface?.texture, baked)
       trim.visible = false
       node.addChild(wall, trim)
       parent.addChild(node)
+      // Baked where they stand: the bake reads each mesh's place in the scene, so only once it is parented.
+      if (light !== undefined)
+        for (const mesh of [wall, trim]) {
+          light.bake(mesh)
+          bakedMeshes.push(mesh)
+        }
       const span = { a, b, height: options.height, thickness }
       walls.push({ entry: { span, occlude: options.occlude ?? 'cut' }, wall, trim })
       pass = undefined
@@ -213,6 +238,8 @@ export function createOccluders(parent: Container3D): OccluderStage {
       pass?.reset()
     },
     dispose() {
+      for (const mesh of bakedMeshes) light?.release(mesh)
+      bakedMeshes.length = 0
       cube.destroy(true)
       for (const own of ownCubes) own.destroy(true)
       ownCubes.length = 0

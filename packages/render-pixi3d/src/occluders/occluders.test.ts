@@ -3,11 +3,20 @@
 // blends while fading and is opaque when shown; a ceiling is never drawn in the angled view; a prop's material alpha
 // follows the rule. `occluderHooks` feeds the pass from the rig's pose each frame.
 import type { RenderRow } from '@mcthaydt/automata-sim'
-import { Camera3D, Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
+import {
+  Camera3D,
+  Container3D,
+  CubeGeometry,
+  FlatMaterial,
+  type Geometry3D,
+  Mesh3D,
+  PhongMaterial,
+} from '@pixi/3d'
 import { Texture } from 'pixi.js'
 import { describe, expect, it, vi } from 'vitest'
 import { angledCamera } from '../camera/angled-camera.js'
 import { eyeOf, type Vec3 } from '../camera/camera-pose.js'
+import { createSceneLight } from '../light/scene-light.js'
 import { emptyModels } from '../model/load-models.js'
 import { cameraView } from '../sim/camera-view.schema.js'
 import { box } from '../views/box-view.js'
@@ -111,7 +120,67 @@ describe('occluders.wall with a surface', () => {
   })
 })
 
+describe('occluders under baked light', () => {
+  const light = () =>
+    createSceneLight({
+      ambient: 0.3,
+      ambientColor: 0xffffff,
+      lamps: [{ id: 'lamp', x: 1, y: 1, z: 1, color: 0xffcc88, strength: 2, range: 4, level: 1 }],
+      boxes: [],
+      planes: [],
+    })
+
+  it('bakes every wall and trim on an unlit material, keeping a surface texture, cut into cells for the light', () => {
+    const occluders = createOccluders(new Container3D(), light())
+    const texture = Texture.WHITE
+    const [wall, trim] = meshesOf(
+      occluders.wall({
+        a: { x: 0, z: 0 },
+        b: { x: 4, z: 0 },
+        height: 2,
+        color: 0x808080,
+        surface: { texture, tile: 2 },
+      }),
+    )
+    const [plain] = meshesOf(
+      occluders.wall({ a: { x: 0, z: 0 }, b: { x: 0, z: 3 }, height: 1, color: 0x808080 }),
+    )
+    for (const mesh of [wall, trim, plain]) {
+      if (mesh === undefined) throw new Error('no mesh')
+      expect(mesh.material).toBeInstanceOf(FlatMaterial)
+      expect(mesh.material.vertexColors).toBe(true)
+      expect(mesh.geometry.attributes.aColor).toBeDefined()
+    }
+    if (wall === undefined) throw new Error('no wall')
+    expect((wall.material as FlatMaterial).textures.baseColor).toBe(texture)
+    // 4 m by 2 m at half-metre cells: the inside face alone has 9 × 5 vertices.
+    expect(wall.geometry.positions?.length ?? 0).toBeGreaterThanOrEqual(9 * 5 * 3)
+    // Lit by the lamp near its start, dark toward its far end: the light is in the vertices.
+    const colors = wall.geometry.attributes.aColor?.buffer.data as Float32Array
+    expect(Math.max(...colors)).toBeGreaterThan(Math.min(...colors.filter((_, i) => i % 4 !== 3)) + 0.1)
+  })
+
+  it('releases the baked walls on dispose', () => {
+    const occluders = createOccluders(new Container3D(), light())
+    const [wall] = meshesOf(occluders.wall({ a: { x: 0, z: 0 }, b: { x: 2, z: 0 }, height: 2, color: 1 }))
+    const destroy = vi.spyOn(wall?.geometry as Geometry3D, 'destroy')
+    occluders.dispose()
+    expect(destroy).toHaveBeenCalled()
+  })
+})
+
 describe('tiledCube', () => {
+  it('cuts each face into cells of at most `cell` metres when given one, for baked light; UVs still in metres', () => {
+    const data = tiledCubeData({ x: 6, y: 2, z: 0.4 }, 2, 1)
+    // ±z faces 7 × 3 vertices, ±x faces 2 × 3, ±y faces 7 × 2.
+    expect(data.positions.length).toBe((2 * 21 + 2 * 6 + 2 * 14) * 3)
+    expect(data.indices.length).toBe((2 * 12 + 2 * 2 + 2 * 6) * 6)
+    const us: number[] = []
+    for (let i = 0; i < data.normals.length / 3; i++)
+      if (data.normals[i * 3 + 2] === 1) us.push(data.uvs[i * 2] as number)
+    expect(Math.max(...us) - Math.min(...us)).toBeCloseTo(3)
+  })
+
   it("spans each face's UVs by the box's size over the tile: the ±z faces length by height", () => {
     const data = tiledCubeData({ x: 6, y: 2, z: 0.4 }, 2)
     const faceUvs = (nz: number) => {

@@ -25,11 +25,6 @@ describe('the night palette', () => {
     })
   })
 
-  it("lights the 3D stone from above with a saturated blue, not Emberwick's grey-blue clear colour (11)", () => {
-    // On the 3D stone under the moonlight, 11 reads grey; 41 keeps the 2D frame's blue (art pass step 14).
-    expect(TOKENS.ambientSky).toBe(41)
-  })
-
   it('reads each colour from the default palette', () => {
     for (const [name, index] of Object.entries(TOKENS))
       expect(colour(name as keyof typeof TOKENS), name).toBe(

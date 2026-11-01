@@ -18,11 +18,6 @@ export const TOKENS = {
   moon: 9,
   moonBright: 8,
   moonShade: 10,
-  /**
-   * Moonlight where no lamp reaches, from above: a saturated blue, so the stone between the lamps keeps Emberwick's
-   * blue (its light-map clear colour, 11, reads grey on the 3D stone under the moonlight).
-   */
-  ambientSky: 41,
   /** The glowing mushrooms' caps and light. */
   mushroom: 43,
   /** Embers, the lantern, the fireflies and the sparks. */

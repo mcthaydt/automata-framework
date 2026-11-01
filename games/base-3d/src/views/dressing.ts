@@ -6,9 +6,6 @@ import type { AreaSource } from '../systems/index.ts'
 import { type SceneWall, sceneOf } from './index.ts'
 import type { Token } from './palette.ts'
 
-/** Point lights the scene may hold at once: tiled lighting takes 32; the spec keeps 8 spare for phones (§4.10). */
-export const LIGHT_BUDGET = 24
-
 /** How deep the floating ruin's stone goes under the platforms, in metres; below it is open sky. */
 export const ISLAND_DEPTH = 3
 

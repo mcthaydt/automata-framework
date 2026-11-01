@@ -1,7 +1,7 @@
 // Wick's lantern (art direction spec §2, §3.4): Emberwick's Wick carries a warm light; here it rides in the hero
 // view's container, so it follows him and turns with him, and the wrapped view still updates and is destroyed as before.
 import type { View3dFactory } from '@mcthaydt/automata-render-pixi3d'
-import { Container3D, PointLight } from '@pixi/3d'
+import { Container3D, FlatMaterial, Mesh3D, ParticleContainer3D, PointLight } from '@pixi/3d'
 import { describe, expect, it, vi } from 'vitest'
 import { LANTERN, withLantern } from './lantern.ts'
 import { colour } from './palette.ts'
@@ -9,26 +9,18 @@ import { colour } from './palette.ts'
 const row = { sid: 1, components: {} }
 
 describe('withLantern', () => {
-  it('adds a warm light, a lantern, its halo, a cool rim light and a cool back fill to the figure’s container', () => {
+  it('adds the lantern and its halo to the figure’s container, and no real-time light (the night is baked)', () => {
     const container = new Container3D()
     const inner: View3dFactory = () => ({ container })
     const view = withLantern(inner, () => 0)(row, 'hero', undefined as never, undefined)
     expect(view?.container).toBe(container)
-    const lights = container.children.filter((c): c is PointLight => c instanceof PointLight)
-    expect(lights).toHaveLength(3)
-    const [lamp, rim, fill] = lights
-    expect(lamp?.range).toBe(LANTERN.range)
-    expect(lamp?.position.y).toBeGreaterThan(0.3)
-    // A cool light over his hood (the 2D sprite's cyan rim), so Wick reads against the dark from behind.
-    expect(rim?.position.y).toBeGreaterThan(1.5)
-    expect(rim?.color.toNumber()).toBe(colour('moonlight'))
-    expect(rim?.intensity).toBeGreaterThanOrEqual(2)
-    // A cool fill behind him (facing +z, the camera is mostly behind): his cloak and hood read in the sprite's lit blue
-    // from behind, as the 2D Wick does, instead of a dark shape.
-    expect(fill?.position.z).toBeLessThan(-0.5)
-    expect(fill?.position.y).toBeGreaterThan(0.8)
-    expect(fill?.color.toNumber()).toBe(colour('moonlight'))
-    expect(container.children.length).toBe(5)
+    expect(container.children.filter((c) => c instanceof PointLight)).toHaveLength(0)
+    const lantern = container.children.find(
+      (c): c is Mesh3D => c instanceof Mesh3D && !(c instanceof ParticleContainer3D),
+    )
+    expect(lantern?.material).toBeInstanceOf(FlatMaterial)
+    expect(lantern?.position.y).toBeCloseTo(LANTERN.y)
+    expect(container.children.length).toBe(2)
     expect(colour('lantern')).toBe(0xffc825)
   })
 

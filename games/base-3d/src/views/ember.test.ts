@@ -1,7 +1,7 @@
-// The ember's look (art direction spec §2): a glowing core that pulses and turns, its own light (so a taken ember's
-// light goes with it) and a halo; the goal is larger and gold, with a column of light and sparks rising from it.
+// The ember's look (art direction spec §2): a glowing core that pulses and turns and a halo, no real-time light (the
+// night's light is baked; the goal's warm pool is a baked lamp); the goal is larger and gold, with a column of light and sparks rising from it.
 import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
-import { type Container3D, type Mesh3D, ParticleContainer3D, type PhongMaterial, PointLight } from '@pixi/3d'
+import { type Container3D, FlatMaterial, type Mesh3D, ParticleContainer3D, PointLight } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { EMBER_LOOK, emberView, GOAL_LOOK, pulse, turn } from './ember.ts'
 import { colour } from './palette.ts'
@@ -33,7 +33,8 @@ describe('the ember look', () => {
     expect(GOAL_LOOK.size).toBeGreaterThan(EMBER_LOOK.size)
     expect(GOAL_LOOK.core).toBe('spark')
     expect(EMBER_LOOK.core).toBe('ember')
-    expect(GOAL_LOOK.light.range).toBeGreaterThan(EMBER_LOOK.light.range)
+    expect(GOAL_LOOK.glow).toBeGreaterThan(EMBER_LOOK.glow)
+    expect(GOAL_LOOK.halo).toBe('lantern')
     expect(GOAL_LOOK.column).toBeGreaterThan(3)
     expect(EMBER_LOOK.column).toBe(0)
     expect(GOAL_LOOK.sparks).toBeGreaterThan(EMBER_LOOK.sparks)
@@ -42,15 +43,15 @@ describe('the ember look', () => {
 })
 
 describe('emberView', () => {
-  it('stands at the ember, with a glowing core and its own light in the ember colour', () => {
+  it("stands at the ember, with an unlit glowing core and its halo, and no real-time light (the goal's is baked)", () => {
     const view = viewOf(false)
     expect(view.container.position.x).toBe(3)
     expect(view.container.position.z).toBe(14)
     const all = descendants(view.container)
     const lights = all.filter((n): n is PointLight => n instanceof PointLight)
-    expect(lights).toHaveLength(1)
+    expect(lights).toHaveLength(0)
     const core = all.find((n) => n.label === 'ember:core') as Mesh3D
-    expect((core.material as PhongMaterial).emissive).toBeDefined()
+    expect(core.material).toBeInstanceOf(FlatMaterial)
     expect(all.some((n) => n instanceof ParticleContainer3D)).toBe(true)
     expect(colour(EMBER_LOOK.core)).toBe(0xffa214)
   })

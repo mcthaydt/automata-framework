@@ -1,26 +1,22 @@
-// An ember in the night (art direction spec §2): a glowing crystal that turns and pulses, its own warm light and an
-// additive halo, as Emberwick's ember has its light, halo and sparks. The goal ember is larger and gold, with a column
+// An ember in the night (art direction spec §2): a glowing crystal that turns and pulses and an additive halo (no
+// real-time light: the night's light is baked), as Emberwick's ember has its light, halo and sparks. The goal ember is larger and gold, with a column
 // of light over it and sparks rising, so it reads from across the room and from behind Wick. A row view, so a taken
 // ember (its entity removed) takes its light with it. The clock is the page's own (presentation, not the sim).
 import type { View3dFactory } from '@mcthaydt/automata-render-pixi3d'
 import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
-import {
-  Container3D,
-  IcosahedronGeometry,
-  Mesh3D,
-  ParticleContainer3D,
-  PhongMaterial,
-  PointLight,
-} from '@pixi/3d'
+import { Container3D, FlatMaterial, IcosahedronGeometry, Mesh3D, ParticleContainer3D } from '@pixi/3d'
 import { nightTextures } from './night-textures.ts'
 import { colour, type Token } from './palette.ts'
 
-/** One kind of ember: its core's radius in metres, colour and glow, its light, and the column over it (0 for none). */
+/**
+ * One kind of ember: its core's radius in metres, colour and glow (its halo's strength, at most 1), its halo's colour, and the column over it (0 for
+ * none). It casts no real-time light: the night's light is baked, and the goal's warm pool is a baked lamp.
+ */
 export interface EmberLook {
   readonly size: number
   readonly core: Token
   readonly glow: number
-  readonly light: { readonly colour: Token; readonly range: number; readonly intensity: number }
+  readonly halo: Token
   readonly column: number
   /** Sparks rising from it at once (Emberwick's ember throws them). */
   readonly sparks: number
@@ -30,7 +26,7 @@ export const EMBER_LOOK: EmberLook = {
   size: 0.16,
   core: 'ember',
   glow: 0.7,
-  light: { colour: 'ember', range: 2.6, intensity: 1.4 },
+  halo: 'ember',
   column: 0,
   sparks: 6,
 }
@@ -38,7 +34,7 @@ export const GOAL_LOOK: EmberLook = {
   size: 0.3,
   core: 'spark',
   glow: 2.4,
-  light: { colour: 'lantern', range: 5, intensity: 2.2 },
+  halo: 'lantern',
   column: 6,
   sparks: 16,
 }
@@ -69,18 +65,10 @@ export const emberView =
     const core = new Mesh3D({
       label: 'ember:core',
       geometry: new IcosahedronGeometry({ radius: look.size }),
-      material: new PhongMaterial({
-        baseColor: colour(look.core),
-        emissive: { color: colour(look.core), strength: look.glow },
-      }),
+      // Unlit: it glows at its own colour whatever the light.
+      material: new FlatMaterial({ baseColor: colour(look.core) }),
     })
     core.position.set(0, height, 0)
-    const light = new PointLight({
-      color: colour(look.light.colour),
-      intensity: look.light.intensity,
-      range: look.light.range,
-    })
-    light.position.set(0, height + 0.05, 0)
 
     // The halo, and over the goal a column of fainter glows stacked up into the dark.
     const glows: [y: number, size: number, alpha: number][] = [[height, look.size * 8, 1]]
@@ -94,16 +82,18 @@ export const emberView =
       billboard: 'spherical',
       space: 'local',
     })
-    node.addChild(glow, core, light)
+    node.addChild(glow, core)
 
-    const haloColour = colour(look.light.colour)
+    const haloColour = colour(look.halo)
     const animate = (): void => {
       const seconds = clock()
       const scale = pulse(seconds, phase)
       core.scale.set(scale, scale * 1.5, scale)
       core.rotation.set(0, turn(seconds), 0)
       glows.forEach(([y, size, alpha], i) => {
-        glow.setParticleAt(i, 0, y, 0, size * (i === 0 ? 2 - scale : 1), 0, haloColour, alpha)
+        // The halo's strength is the look's glow (the goal's is full); the column keeps its own fade.
+        const shown = i === 0 ? Math.min(1, look.glow) * alpha : alpha
+        glow.setParticleAt(i, 0, y, 0, size * (i === 0 ? 2 - scale : 1), 0, haloColour, shown)
       })
       for (let i = 0; i < look.sparks; i++) {
         // Each spark rises 1.6 m over its life, spreading a little and fading; their starts are spread evenly.
