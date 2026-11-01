@@ -1,7 +1,7 @@
 {
   "name": "@mcthaydt/automata-render-pixi3d",
   "version": "0.0.0",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "description": "AF's 3D renderer on @pixi/3d (a closed beta): private while D-1 stands, never published.",
   "repository": {

@@ -132,9 +132,9 @@ describe('the published packages', () => {
   )
 
   it(
-    'say they grant no license (the Owner, 2026-10-11: UNLICENSED until launch)',
+    'are MIT licensed (the Owner, 2026-10-15; LICENSE-SCOPE.md)',
     each(({ manifest }) => {
-      expect((manifest as { license?: string }).license, manifest.name).toBe('UNLICENSED')
+      expect((manifest as { license?: string }).license, manifest.name).toBe('MIT')
     }),
   )
 

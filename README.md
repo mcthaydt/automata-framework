@@ -56,4 +56,6 @@ Contributors and agents start with [`AGENTS.md`](AGENTS.md) and
 
 Report a vulnerability as [`SECURITY.md`](SECURITY.md) describes, not in a public issue.
 
-There is no licence yet: every package says `"license": "UNLICENSED"` until DX.11 chooses one.
+The framework is MIT licensed, copyright (c) 2026 Team Automata: see [`LICENSE`](LICENSE). Every package carries
+`"license": "MIT"` and its own `LICENSE` file. Third-party code, fonts and artwork keep their own terms; see
+[`LICENSE-SCOPE.md`](LICENSE-SCOPE.md).
