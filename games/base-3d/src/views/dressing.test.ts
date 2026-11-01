@@ -22,7 +22,8 @@ describe('the dressing', () => {
   })
 
   it('keeps every light within the budget, counting the embers, the goal and the lantern that come with their views', () => {
-    const withViews = dressing.lights.length + ROOM.embers.length + 1 + 1
+    // The embers and the goal carry one each; Wick carries two (his lantern and the rim over his hood).
+    const withViews = dressing.lights.length + ROOM.embers.length + 1 + 2
     expect(withViews).toBeLessThanOrEqual(LIGHT_BUDGET)
     expect(LIGHT_BUDGET).toBeLessThanOrEqual(32)
   })

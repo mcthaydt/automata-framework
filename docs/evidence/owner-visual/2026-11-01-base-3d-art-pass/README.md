@@ -33,13 +33,14 @@ and rising sparks; fireflies; Wick's lantern. New in 3D: lava that lights the ch
 
 ## Where 3D still falls short (honestly)
 
-- **Overall brightness and blue.** The 2D frame is a luminous mid-blue; the 3D frame is darker and greyer, with the
-  colour carried by pools of light rather than by the whole picture. The stone reads grey-blue, not Emberwick's blue.
+- **Overall brightness and blue.** Lifted (moonlit fill 0.6 over blue, moonlight 0.55), and the floor and walls read
+  at a glance, but the 2D frame is still a more luminous, saturated mid-blue; the 3D stone reads grey-blue.
 - **The sky is a thin band.** The camera looks 25° down (35° at the goal), so the moon, stars and towers show only at
   the far end and through the arch; in the 2D game they fill the top third of every frame.
 - **No bloom.** Glow is additive cards (as Emberwick fakes it); there is no real bloom filter (the spike's limits).
-- **Wick is dark.** The procedural figure in its dark blue cloak reads as a silhouette with a lantern; the 2D Wick's
-  bright hood and glowing eyes read at once. A rim light or a lighter cloak swatch is a follow-up.
+- **Wick is small and plain beside the sprite.** His cloak now takes the sprite's lit blue and a cool light rides
+  over his hood, so he reads from behind; but the hood's ear points and the cape's flare are not modelled, and his
+  glowing eyes face away from the camera most of the time.
 - **Near-field noise.** Close to the camera the 32 px moss and grass textures read as busy specks.
 - **Letterbox bars.** At 1280×720 the 3D game letterboxes to its 844×390 size in the runtime's purple-grey; Emberwick's
   page is the night colour. The bars come from the theme, not the scene.

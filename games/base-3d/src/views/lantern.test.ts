@@ -9,16 +9,20 @@ import { colour } from './palette.ts'
 const row = { sid: 1, components: {} }
 
 describe('withLantern', () => {
-  it('adds a warm light, a lantern and its halo to the figure’s container', () => {
+  it('adds a warm light, a lantern, its halo and a cool rim light to the figure’s container', () => {
     const container = new Container3D()
     const inner: View3dFactory = () => ({ container })
     const view = withLantern(inner, () => 0)(row, 'hero', undefined as never, undefined)
     expect(view?.container).toBe(container)
     const lights = container.children.filter((c): c is PointLight => c instanceof PointLight)
-    expect(lights).toHaveLength(1)
-    expect(lights[0]?.range).toBe(LANTERN.range)
-    expect(lights[0]?.position.y).toBeGreaterThan(0.3)
-    expect(container.children.length).toBe(3)
+    expect(lights).toHaveLength(2)
+    const [lamp, rim] = lights
+    expect(lamp?.range).toBe(LANTERN.range)
+    expect(lamp?.position.y).toBeGreaterThan(0.3)
+    // A cool light over his hood (the 2D sprite's cyan rim), so Wick reads against the dark from behind.
+    expect(rim?.position.y).toBeGreaterThan(1.5)
+    expect(rim?.color.toNumber()).toBe(colour('moonlight'))
+    expect(container.children.length).toBe(4)
     expect(colour('lantern')).toBe(0xffc825)
   })
 

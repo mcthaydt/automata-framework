@@ -53,3 +53,6 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
   base-3d e2e (`--project=base-3d`): G3-x first failed at 31.3 s (30 s budget) while #373's head passed it at 20.8 s;
   merged the mushrooms (`views/mushrooms.ts`, test first), bays of ~4 m and one particle container an ember; then 7/7,
   G3-x at 29.6, 28.7 and 28.1 s. The test budget was not changed. Frame cost about 190 vs 90 ms on software rendering.
+- 2026-11-01: coordinator's review (exposure, Wick). Cloak swatch 41 → 42 (the sprite's lit tone); a cool rim light
+  rides over Wick (lantern test seen failing first); lantern 4.5 m / 3; fill 0.6, moonlight 0.55. Light budget test
+  counts Wick's two. Images recaptured; spec and README updated.

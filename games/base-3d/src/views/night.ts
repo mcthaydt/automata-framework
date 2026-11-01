@@ -81,8 +81,8 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
 
   // Sky and moonlight: the sky gradient behind everything, a dim cool fill, and the moon's light from the far end.
   view.background = { skyColor: colour('skyHigh'), groundColor: colour('skyLow') }
-  view.environment = { skyColor: colour('ambient'), groundColor: colour('skyMid'), intensity: 0.45 }
-  const moonlight = new DirectionalLight({ color: colour('moonlight'), intensity: 0.4 })
+  view.environment = { skyColor: colour('ambient'), groundColor: colour('skyMid'), intensity: 0.6 }
+  const moonlight = new DirectionalLight({ color: colour('moonlight'), intensity: 0.55 })
   moonlight.position.set(-6, 14, 40)
   moonlight.lookAt({ x: 0, y: 0, z: 10 })
   root.addChild(moonlight)

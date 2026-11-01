@@ -43,7 +43,7 @@ Colours are Endesga 64 entries by index (`ENDESGA_64[i]`), the indices Emberwick
 | Night background | `endesga(15)` #0e071b | Clear colour and the darkest silhouettes | night = 15 |
 | Sky bands | 52 #03193f, 39 #0c2e44, 38 #134c4c | `view.background` Hemisphere: sky 52 above, 38 below the horizon | — |
 | Ground fog band | 38 at 0.55 alpha | Linear fog, colour 39 | near 9 m, far 30 m (spec'd; was 5/14 in #2e222f) |
-| Moonlight ambient (light map clear) | 11 #657392 | `view.environment` Hemisphere 11 / 39 at intensity 0.45, plus a `DirectionalLight` in 45 at 0.4 from the far end, high (tuned up from the spike's 0.2 / 0.3 against the acceptance images) | — |
+| Moonlight ambient (light map clear) | 11 #657392 | `view.environment` Hemisphere 11 / 39 at intensity 0.6, plus a `DirectionalLight` in 45 at 0.55 from the far end, high (tuned up from the spike's 0.2 / 0.3 against the acceptance images and the coordinator's exposure note) | — |
 | Moon | disc 9, highlight 8, craters 10, glow 45 | Moon card (painted disc, unfogged) low beyond the far arch, with an additive glow card in 45 | disc 8 m at (0.6, −4.2, 60) |
 | Stars | 9 | Additive motes in 9/10 on the sky behind the far arch | 70 |
 | Far towers | 52 | Crossed-quad tower cards beyond the far wall, below the plateau, unfogged | 9 towers, 14–22 m |
@@ -55,7 +55,7 @@ Colours are Endesga 64 entries by index (`ENDESGA_64[i]`), the indices Emberwick
 | Walls | dark brick columns | Ruined side walls: 2 m bays of varying height (1.6–2.6 m), pillars every 4 m (3.2 m), brick texture 12/13 on mortar 15; far wall an arch (opening 3.2 m × 3 m) | — |
 | Glowing mushrooms | light 43 r14, halo 45 | Clusters of three emissive caps (43) on pale stems (45), each cluster a `PointLight` 43 and a halo card | 10 clusters, light range 3.2 m, intensity 1.6 |
 | The ember | light 30 r60, halo 28, sparks 32/31/30/28 | Each ember: emissive core (30, strength 0.7, so its facets stay orange), `PointLight` 30 (range 2.6, intensity 1.4), pulsing halo card and six sparks; the goal: larger core (32), `PointLight` 31 (range 5, intensity 2.2), halo 2.4 m, rising sparks, a column of light | 5 embers + goal |
-| Wick's lantern | light 31 r52 at (+6, −4), halo 30 | A small emissive lantern (31) at Wick's side, a `PointLight` 31 (range 4, intensity 2.2) and a halo card that follow him | offset 0.35 m right, 0.55 m up |
+| Wick's lantern | light 31 r52 at (+6, −4), halo 30 | A small emissive lantern (31) at Wick's side, a `PointLight` 31 (range 4.5, intensity 3) and a halo card, plus a cool `PointLight` 45 1.9 m over his hood (range 2.6, intensity 1.4) for the sprite's cyan rim that follow him | offset 0.35 m right, 0.55 m up |
 | Fireflies | light 33 r7, glow 33 | Additive motes in 33 drifting over the room | 22 |
 | Vignette | 15 at 0.7 | Fog and the dark falloff do it; a screen vignette is a follow-up | — |
 | (none: 3D only) Lava channels | — | Unlit bright lava texture (28 base, 26/27 crust, 29–31 cracks, 32 sparkles) 0.7 m below the platforms (a slow scroll is a follow-up: not built); two `PointLight` 28 per channel (range 4.5, intensity 2.2); a row of additive heat cards above it | — |
@@ -101,8 +101,8 @@ API report; listed under "Decisions for the Owner's veto".
 
 4.1 **Palette:** §2's indices; no colour literal in the views except through `colour(token)`.
 
-4.2 **Light rig:** hemisphere ambient 0.45 (11 over 39); one directional moonlight (45, 0.4) from (−6, 14, 40) toward
-(0, 0, 10); point lights: one per mushroom cluster, 4 lava, 5 embers, 1 goal, 1 lantern, cap 24 (`dressing.test.ts`) (tiled lighting holds 32).
+4.2 **Light rig:** hemisphere ambient 0.6 (11 over 39); one directional moonlight (45, 0.55) from (−6, 14, 40) toward
+(0, 0, 10); point lights: one per mushroom cluster, 4 lava, 5 embers, 1 goal, 2 on Wick (lantern and rim), cap 24 (`dressing.test.ts`) (tiled lighting holds 32).
 A taken ember's light goes with its entity.
 
 4.3 **Fog:** linear 9 → 30 m, colour 39; the backdrop (moon, silhouettes) unfogged.
@@ -123,8 +123,8 @@ towers below and beyond the far arch, clear of the centre line; the moon low in 
 the goal view 35° and 7 m. At 25° the frame's top edge is about 1.5° above the horizon, so the sky is a thin band; the
 night is carried by light, fog and shafts.
 
-4.9 **Wick:** the procedural figure (wick.toml: blue cloak, gold trim, glowing eyes) lit by the scene's lights, with
-the lantern (§3.4).
+4.9 **Wick:** the procedural figure (wick.toml: gold trim, glowing eyes) with the cloak in the sprite's lit blue (42,
+not 41, which read as a dark blob), lit by the scene's lights, with the lantern and the rim light (§3.4).
 
 4.10 **Budget (estimates until the GPU probe):** ≤ 24 point lights, ≤ 140 meshes, six particle containers, textures
 32 px. SwiftShader: about four times the flat room (spike table). If the probe fails the phone budget, the low quality

@@ -1,4 +1,6 @@
-# Wick's cloak, from Emberwick's sprite colours (games/emberwick/src/art/sprites.ts WICK_COLORS): the cloak, #0069aa, Endesga 64 index 41.
+# Wick's cloak, from Emberwick's sprite colours (games/emberwick/src/art/sprites.ts WICK_COLORS): the cloak as lit,
+# #0098dc, Endesga 64 index 42. The 3D figure is lit by the night's dim lights, so it takes the sprite's lit tone (the
+# scene's shading supplies the shade); 41, the sprite's base tone, read as a dark blob (art pass, 2026-11-01).
 # Not from FigureBuilder. Copied into base-3d from figures' test fixtures (packages/figures/src/testing/fixtures/content at 077484c7).
 
-colour = 41
+colour = 42
