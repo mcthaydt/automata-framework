@@ -90,7 +90,7 @@ function ask(): void {
           {#each hunk.lines as line, at (at)}
             <div class="line" data-kind={line.kind}>
               <span class="sign" aria-hidden="true">{line.kind === 'added' ? '+' : line.kind === 'removed' ? '−' : ' '}</span>
-              <code>{shownText(line.text)}</code>
+              <code data-selectable>{shownText(line.text)}</code>
             </div>
             {#if line.kind === 'added'}
               {#each shown.findings.filter((finding) => finding.line === line.after) as finding, n (n)}

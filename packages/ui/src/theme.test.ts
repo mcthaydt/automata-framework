@@ -117,3 +117,14 @@ describe('theme.css', () => {
     expect(contrast(colour(fore), colour(back))).toBeGreaterThanOrEqual(minimum)
   })
 })
+
+// A double tap must not zoom the page (the Owner, on a real iPad): the page carries `manipulation`, and the one place a
+// game's canvas wants every gesture (`touch-action: none`) says so on itself.
+describe('touch', () => {
+  test('the page ends double-tap zoom', () => {
+    expect(css).toMatch(/html,\s*body\s*\{[^}]*touch-action: manipulation/)
+  })
+  test('a typed field still selects', () => {
+    expect(css).toMatch(/input,\s*textarea\s*\{[^}]*user-select: text/)
+  })
+})

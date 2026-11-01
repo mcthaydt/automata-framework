@@ -144,6 +144,7 @@ function clearNoteOnLeave(event: FocusEvent): void {
     border: 1px solid var(--color-border-default);
     border-radius: var(--radius-md);
     user-select: text;
+    -webkit-user-select: text;
   }
 
   [data-layout='bar'] .details {

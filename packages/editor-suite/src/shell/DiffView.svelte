@@ -11,7 +11,7 @@ const sign = { same: ' ', removed: '-', added: '+' } as const
 const lineText = (text: string): string => text.replace(/\r?\n$/, '')
 </script>
 
-<pre class="diff" data-scroll-region="horizontal">{#each hunks as hunk, h (h)}{#each hunk.lines as line, l (l)}<span data-kind={line.kind}>{`${sign[line.kind]} ${lineText(line.text)}`}</span>{/each}{/each}</pre>
+<pre class="diff" data-selectable data-scroll-region="horizontal">{#each hunks as hunk, h (h)}{#each hunk.lines as line, l (l)}<span data-kind={line.kind}>{`${sign[line.kind]} ${lineText(line.text)}`}</span>{/each}{/each}</pre>
 
 <style>
   .diff {

@@ -87,6 +87,16 @@ describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
     await page.screenshot({ path: `.vitest/shots/suite-home-${size.name}.png` })
   })
 
+  test('a double tap does not zoom the page and a hold does not select the chrome (the Owner, on an iPad)', async () => {
+    await open(size)
+    expect(getComputedStyle(document.documentElement).touchAction).toBe('manipulation')
+    expect(getComputedStyle(document.body).touchAction).toBe('manipulation')
+    expect(
+      getComputedStyle(home()).userSelect || getComputedStyle(home()).getPropertyValue('-webkit-user-select'),
+    ).toBe('none')
+    expect(getComputedStyle(home()).getPropertyValue('-webkit-touch-callout') || 'none').toBe('none')
+  })
+
   test('the rail is a column in wide and a 64 px tab bar at the foot below it', async () => {
     await open(size)
     const rail = document.querySelector<HTMLElement>('[role="tablist"]')

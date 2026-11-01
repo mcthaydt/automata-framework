@@ -64,6 +64,12 @@ body {
   font-size: var(--af-text-body);
 }
 
+/* A double tap must not zoom the page (a canvas that wants every gesture says `touch-action: none` on itself). */
+html,
+body {
+  touch-action: manipulation;
+}
+
 /* A drawn screen is not a page: no text selection or long-press callout, except where a player types. */
 html {
   user-select: none;

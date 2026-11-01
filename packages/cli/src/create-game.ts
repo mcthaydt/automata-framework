@@ -197,6 +197,11 @@ body {
   background-color: #000;
   color: #fff;
   font-family: sans-serif;
+  /* A double tap must not zoom, and a hold must not select the screen like text. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 #game {

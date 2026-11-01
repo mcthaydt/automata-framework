@@ -99,6 +99,10 @@ describe('createGame', () => {
       expect(existsSync(join(testDir, 'tsconfig.json'))).toBe(true)
       expect(existsSync(join(testDir, 'index.html'))).toBe(true)
       expect(existsSync(join(testDir, 'style.css'))).toBe(true)
+      // A double tap must not zoom and a hold must not select the screen like text.
+      const style = readFileSync(join(testDir, 'style.css'), 'utf8')
+      expect(style).toContain('touch-action: manipulation')
+      expect(style).toContain('-webkit-user-select: none')
       expect(existsSync(join(testDir, 'src/main.ts'))).toBe(true)
       expect(existsSync(join(testDir, 'src/boot.ts'))).toBe(true)
       expect(existsSync(join(testDir, 'src/game.ts'))).toBe(true)
