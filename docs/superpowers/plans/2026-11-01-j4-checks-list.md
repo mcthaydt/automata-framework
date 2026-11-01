@@ -13,3 +13,9 @@ Home listed `room.af-sector.json` ("17 errors"); opening it showed the pill "17 
 
 ## Gates
 `TURBO_FORCE=true pnpm check`; editor-3d dom and layout; no published package changed (editor-3d is private): no changeset.
+
+## HANDOFF (editors lane 4, 2026-11-01, Owner: "stop everything for now")
+- **Done and pushed:** this branch (`claude/j4-checks-list`, draft PR #382): the problems list (pill, phone button, portrait sheet, suite inspector), `games/base-3d/content/editors.toml`, `base-3d-level.test.ts`; `pnpm check` exit 0; real WebKit iPad-profile run against real `automata editor games/base-3d --app 3d`.
+- **J4 in plain words:** the 17 problems are listed and reachable by touch and are all explained: they are real problems in base-3d's level data (the editor is right). The editor still shows 17 until the game's data is fixed.
+- **Next (the game's lane, not hand-edited here):** in `src/content/levels/room.af-sector.json` give the two pit channels a ceiling above 0 (for example 3) and give each entity definition (`ember`, `goal`, `spawn`) `shape = "point"` and `fields = []`; the test shows a patched copy has zero problems. Then confirm "No problems" on a real iPad (the Owner's).
+- **Pending:** the Macs' CI. One load flake seen on the first full layout run (`open-flows.layout`, passes alone 96/96).
