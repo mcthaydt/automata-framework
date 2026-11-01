@@ -133,6 +133,9 @@ export const base3d = defineGame({
       // more of the night. The HUD and controls are DOM, laid out on the page, not in the playfield.
       logicalWidth: undefined,
       logicalHeight: undefined,
+      // The view draws at most 360 px tall and is nearest-upscaled to the page (G3-x): a phone at resolution 2 shades
+      // about a fifth of the pixels, and the night reads as chunky pixels, like Emberwick's.
+      maxInternalHeight: 360,
       setup: (made) => {
         stage = made
         return options.setup?.(made)

@@ -10,7 +10,7 @@ import { type ModelInvalid, RendererUnavailable, type RenderTarget } from '@mcth
 import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
 import { Effect, ExecutionStrategy, Exit, Runtime, Scope } from 'effect'
-import { Graphics } from 'pixi.js'
+import { Graphics, type Renderer } from 'pixi.js'
 import { angledCamera, type CameraRig } from '../camera/angled-camera.js'
 import { cameraDriver, type Pixi3dCameraOptions, PLAYER_HEIGHT } from '../camera/camera-driver.js'
 import { lampSwitches } from '../light/lamp-switches.js'
@@ -21,6 +21,7 @@ import { loadModels, type ModelLibrary } from '../model/load-models.js'
 import { pixi3dUniformSyncInstalled } from '../no-eval/pixi3d-uniform-sync.js'
 import { createOccluders, type OccluderStage, type Occluders, occluderHooks } from '../occluders/occluders.js'
 import type { EntityView3d, EntityViewResolver3d } from '../views/view-3d.js'
+import { CappedView } from './capped-view.js'
 import { type ContextWatch, watchContextLoss } from './context-loss.js'
 
 export interface Pixi3dOptions extends PixiRendererOptions {
@@ -67,10 +68,16 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    * game's to place in `scene`.
    */
   readonly camera?: Pixi3dCameraOptions | undefined
+  /**
+   * Without a letterbox: the most CSS pixels tall the view draws at. A taller screen gets the view at that height (its
+   * aspect kept), drawn at resolution 1 and nearest-upscaled to fill the page, so the 3D frame's cost is bounded
+   * whatever the screen (G3-x). Ignored with a letterbox, whose logical size bounds it already. Default: no cap.
+   */
+  readonly maxInternalHeight?: number | undefined
 }
 
 export interface Pixi3dRenderer extends PixiRenderer {
-  /** The `@pixi/3d` view the scene draws in, mounted in `stage.world`. */
+  /** The `@pixi/3d` view the scene draws in, mounted in `stage.world` (under `maxInternalHeight`, drawn offscreen). */
   readonly view: View3D
   /** The angled camera when `options.camera` was given: the game calls `frame(lock)` on it. */
   readonly camera: CameraRig | undefined
@@ -111,6 +118,8 @@ interface Mounted {
   readonly hooks: PixiStageHooks
   readonly light: SceneLight | undefined
   readonly camera: CameraRig | undefined
+  /** The capped view under `maxInternalHeight`: its draw runs last each frame, and it is freed with the instance. */
+  readonly capped: CappedView | undefined
 }
 
 /**
@@ -124,10 +133,17 @@ function skyOf(options: Pixi3dOptions): number | undefined {
 
 function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): Mounted {
   const letterboxed = options.logicalWidth != null && options.logicalHeight != null
-  // Sized from the letterbox's logical field when there is one; otherwise it follows the screen.
+  // Sized from the letterbox's logical field when there is one; else by the cap (CappedView sizes it each frame);
+  // otherwise it follows the screen.
   const view = letterboxed
     ? new View3D({ width: options.logicalWidth, height: options.logicalHeight, toneMapping: 'none' })
-    : new View3D({ autoResize: true, toneMapping: 'none' })
+    : options.maxInternalHeight !== undefined
+      ? new View3D({ width: 1, height: 1, toneMapping: 'none' })
+      : new View3D({ autoResize: true, toneMapping: 'none' })
+  const capped =
+    !letterboxed && options.maxInternalHeight !== undefined
+      ? new CappedView(view, options.maxInternalHeight)
+      : undefined
   view.fog = viewFog(options.fog, options.lighting?.fog)
   // The sky. The view draws no colour where no mesh is, so the letterbox's black field shows through there (the app's
   // clear colour is under that field). A 2D fill of the view's rect, under it, draws the sky exactly on both backends;
@@ -136,7 +152,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   const sky = skyOf(options)
   if (letterboxed && sky !== undefined)
     stage.world.addChild(new Graphics().rect(0, 0, view.width, view.height).fill(sky))
-  stage.world.addChild(view)
+  stage.world.addChild(capped?.sprite ?? view)
   const light = options.lighting === undefined ? undefined : createSceneLight(options.lighting)
   const switches =
     light === undefined || options.lamps === undefined ? undefined : lampSwitches(options.lamps)
@@ -155,7 +171,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
   }
   const occluders = createOccluders(view.root)
   if (options.camera === undefined)
-    return { view, occluders, consumer, hooks: entities, light, camera: undefined }
+    return { view, occluders, consumer, hooks: entities, light, camera: undefined, capped }
   const camera = angledCamera({
     camera: view.camera,
     views: options.camera.views,
@@ -173,6 +189,7 @@ function mount(stage: PixiStage, options: Pixi3dOptions, models: ModelLibrary): 
     hooks: mergeHooks(entities, cameraDriver(camera, options.camera), occluding),
     light,
     camera,
+    capped,
   }
 }
 
@@ -226,6 +243,8 @@ function buildInstance(
             made.hooks,
             own,
             options.scene?.(made.view, stage, made.occluders, made.light, models),
+            // Last, once everything has moved the scene: the capped view draws into its texture.
+            made.capped && { draw: () => made.capped?.present(stage.app.renderer as Renderer) },
           )
         },
       })(target)
@@ -234,7 +253,7 @@ function buildInstance(
           options.preference === 'webgpu' ? ['webgpu', 'webgl2'] : ['webgl2']
         return yield* new RendererUnavailable({ tried })
       }
-      const { view, consumer, camera, occluders } = mounted
+      const { view, consumer, camera, occluders, capped } = mounted
       const device = (base.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
       const context = watchContextLoss({
         canvas: base.stage.app.canvas,
@@ -249,6 +268,7 @@ function buildInstance(
           context.stop()
           consumer.destroy()
           occluders.dispose()
+          capped?.destroy()
         }),
       )
       return { base, view, context, camera }

@@ -1,7 +1,8 @@
 # Plan: base-3d art pass (match Emberwick's look)
 
 Spec: [2026-11-01-base-3d-art-direction.md](../specs/2026-11-01-base-3d-art-direction.md). Branch
-`claude/3d-art-pass` (stacked on #373). One wide PR. Lane: session_01QYLU1hrGL6WtJhKZasRs8Z.
+`claude/3d-art-pass` (stacked on #373). One wide PR. Lanes: session_01QYLU1hrGL6WtJhKZasRs8Z (steps 0–10), then
+session_01QYLU1iRHT7V45nkE1aT4Lg (steps 11–15).
 
 Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMaterial` emissive, `FlatMaterial`,
 `ParticleContainer3D`, `Geometry3D`, `View3D` fog/background/environment); render-pixi3d `createPixi3dRenderer`
@@ -31,6 +32,22 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
 - [x] 8. `views/lantern.ts` + test; wired on the hero view.
 - [x] 9. Roll clip from the Studio; markers inside 24 ticks.
 - [x] 10. Route golden unchanged (`c735b5acacbbc716`); gates; acceptance images and README.
+
+Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D reference game, the five gaps, images):
+
+- [x] 11. render-pixi3d `maxInternalHeight` (G3-x, the coordinator's option (b): a capped internal resolution,
+  nearest-upscaled; no letterbox, budget kept at 30 s). Test first: `renderer/capped-view.test.ts` (`cappedViewSize`
+  keeps a screen within the cap, scales a taller one to the cap keeping the aspect, whole pixels, at least 1); failed
+  on the missing module. Then `parity/capped-view.parity.test.ts`: a 160 × 90 page with `maxInternalHeight: 45` draws
+  the view at 80 × 45 and every 2 × 2 block of the canvas is one colour; without the cap the view follows the screen.
+  Failed on `expected 160 to be 80`. Change: `renderer/capped-view.ts` (`CappedView`: the view in an offscreen
+  container drawn into a resolution-1 nearest `RenderTexture` last in each frame; a sprite stretches it over the page)
+  and the option in `create-pixi3d-renderer.ts`; base-3d `main.ts` passes `maxInternalHeight: 360`. Check:
+  render-pixi3d node + browsers tests, then G3-x three times.
+- [ ] 12. Vertex colour only: drop the painted textures; subdivided floors and walls coloured per vertex.
+- [ ] 13. Study of the 3D reference game; "what we took and why" in `docs/spikes/base-3d-art.md`; provenance.
+- [ ] 14. The gaps: Wick's face and colour, the moon disc, the stone share of the frame.
+- [ ] 15. Same-moment images recaptured; gates; report.
 
 ## Execution log
 
@@ -63,3 +80,6 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
   the sky with teal rims (lava and its lights removed); grass and moss in Emberwick's 34–37; Wick's hood points.
   Tests changed first and seen failing (dressing, night, palette). G3-x: 31.6, 31.7, 31.6 s with the full-frame view;
   26.6 s with the letterbox put back temporarily (same scene). Budget not raised; reported.
+- 2026-11-01 (lane 2): step 11. G3-x on this container, same scene, `--repeat-each=3`: uncapped (full-frame view)
+  32.3 s ✘, 32.2 s ✘, 23.5 s; with `maxInternalHeight: 360` 18.0, 18.1 and 11.3 s, all passing. The 30 s budget is
+  unchanged. At the e2e's 844 × 390 at resolution 2 the view shades 779 × 360 pixels instead of 1688 × 780.
