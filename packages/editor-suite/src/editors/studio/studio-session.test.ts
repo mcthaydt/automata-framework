@@ -68,6 +68,54 @@ describe('edit', () => {
   })
 })
 
+describe('the shell’s write protocol', () => {
+  it('has applied the step when the routed write runs, so the write is recorded under the step’s label', async () => {
+    const ports = await studioFixturePorts()
+    const seen: (string | undefined)[] = []
+    const holder: { studio?: Awaited<ReturnType<typeof openStudio>> } = {}
+    const wrapped = {
+      ...ports,
+      workspace: {
+        ...ports.workspace,
+        write: (...args: Parameters<typeof ports.workspace.write>) => {
+          seen.push(holder.studio?.history.undoLabel)
+          return ports.workspace.write(...args)
+        },
+      },
+    }
+    holder.studio = await openStudio(wrapped)
+    await holder.studio.edit(
+      WICK,
+      [{ keyPath: ['sliders', 'height'], expected: 120, set: 132 }],
+      'Set height of wick',
+    )
+    expect(seen).toEqual(['Set height of wick'])
+  })
+
+  it('takes the step back when the write is refused, as the history it was', async () => {
+    const ports = await studioFixturePorts()
+    const refusing = {
+      ...ports,
+      workspace: {
+        ...ports.workspace,
+        write: async () => ({ ok: false as const, reason: 'policy' as const, message: 'no' }),
+      },
+    }
+    const studio = await openStudio(refusing)
+    const before = studio.history.state
+    const result = await studio.edit(
+      WICK,
+      [{ keyPath: ['sliders', 'height'], expected: 120, set: 132 }],
+      'Set height',
+    )
+    expect(result.ok).toBe(false)
+    expect(studio.history.canUndo).toBe(false)
+    expect(studio.history.state).toBe(before)
+    // The refused step stays on the redo stack, as the fixture editor's does: a Redo retries the same write.
+    expect(studio.history.canRedo).toBe(true)
+  })
+})
+
 describe('create', () => {
   it('adds a pose as a new file and Undo removes it; a file edited outside the suite is not removed (EDS-aa)', async () => {
     const ports = await studioFixturePorts()

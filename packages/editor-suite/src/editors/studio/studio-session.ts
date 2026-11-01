@@ -93,11 +93,17 @@ export async function openStudio(ports: SuitePorts): Promise<StudioSession> {
     return OK
   }
 
+  /**
+   * The shell's protocol (the fixture editor's, `core/write-path.ts`): the step is applied first, so the write the shell
+   * routes and records carries this editor's label, and a refused write takes the step back, as a kit widget's refusal
+   * keeps the old value.
+   */
   async function commit(label: string, next: StudioState): Promise<StudioOutcome> {
-    const written = await sync(history.state, next)
-    if (!written.ok) return written
+    const from = history.state
     history.apply(label, () => next)
-    return OK
+    const written = await sync(from, next)
+    if (!written.ok) history.undo()
+    return written
   }
 
   /** Undo or redo: the step is taken, the files follow, and a refused write takes the step back. */
