@@ -45,6 +45,11 @@ describe('the pixel-art textures', () => {
       for (const hex of used) expect(PALETTE.has(hex), `${name} ${hex}`).toBe(true)
     })
 
+  it('paints the moon at 128 px, so its 16 m disc is not blocky up close', () => {
+    expect(paintMoon().width).toBe(128)
+    expect(paintMoon().height).toBe(128)
+  })
+
   it('leaves the cut-out shapes transparent round their edges', () => {
     for (const pixels of [paintGrass(), paintSilhouette('pine'), paintMoon()]) expect(pixels.data[3]).toBe(0)
   })

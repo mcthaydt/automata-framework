@@ -9,20 +9,26 @@ import { colour } from './palette.ts'
 const row = { sid: 1, components: {} }
 
 describe('withLantern', () => {
-  it('adds a warm light, a lantern, its halo and a cool rim light to the figure’s container', () => {
+  it('adds a warm light, a lantern, its halo, a cool rim light and a cool back fill to the figure’s container', () => {
     const container = new Container3D()
     const inner: View3dFactory = () => ({ container })
     const view = withLantern(inner, () => 0)(row, 'hero', undefined as never, undefined)
     expect(view?.container).toBe(container)
     const lights = container.children.filter((c): c is PointLight => c instanceof PointLight)
-    expect(lights).toHaveLength(2)
-    const [lamp, rim] = lights
+    expect(lights).toHaveLength(3)
+    const [lamp, rim, fill] = lights
     expect(lamp?.range).toBe(LANTERN.range)
     expect(lamp?.position.y).toBeGreaterThan(0.3)
     // A cool light over his hood (the 2D sprite's cyan rim), so Wick reads against the dark from behind.
     expect(rim?.position.y).toBeGreaterThan(1.5)
     expect(rim?.color.toNumber()).toBe(colour('moonlight'))
-    expect(container.children.length).toBe(4)
+    expect(rim?.intensity).toBeGreaterThanOrEqual(2)
+    // A cool fill behind him (facing +z, the camera is mostly behind): his cloak and hood read in the sprite's lit blue
+    // from behind, as the 2D Wick does, instead of a dark shape.
+    expect(fill?.position.z).toBeLessThan(-0.5)
+    expect(fill?.position.y).toBeGreaterThan(0.8)
+    expect(fill?.color.toNumber()).toBe(colour('moonlight'))
+    expect(container.children.length).toBe(5)
     expect(colour('lantern')).toBe(0xffc825)
   })
 

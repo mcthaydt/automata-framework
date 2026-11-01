@@ -13,7 +13,6 @@ describe('the night palette', () => {
       skyLow: 38,
       skyDeep: 40,
       moonlight: 45,
-      ambient: 11,
       mushroom: 43,
       ember: 30,
       lantern: 31,
@@ -24,6 +23,11 @@ describe('the night palette', () => {
       grassTip: 34,
       moss: 36,
     })
+  })
+
+  it("lights the 3D stone from above with a saturated blue, not Emberwick's grey-blue clear colour (11)", () => {
+    // On the 3D stone under the moonlight, 11 reads grey; 41 keeps the 2D frame's blue (art pass step 14).
+    expect(TOKENS.ambientSky).toBe(41)
   })
 
   it('reads each colour from the default palette', () => {

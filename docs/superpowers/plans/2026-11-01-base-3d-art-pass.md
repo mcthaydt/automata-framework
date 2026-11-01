@@ -58,7 +58,10 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
   texture (failed first). Dropped `paintStone` and the floor, side and wall textures. Cells: 0.25 m on the platform tops
   and walls, 0.5 m down the island sides. New token `mossShade` (38).
 - [ ] 13. Study of the 3D reference game; "what we took and why" in `docs/spikes/base-3d-art.md`; provenance.
-- [ ] 14. The gaps: Wick's face and colour, the moon disc, the stone share of the frame.
+- [x] 14. The gaps. Wick: the hood rim 1.4 → 2.2 and a cool back fill (`BACK_FILL`, moonlight, 1.1 m up and 0.9 m
+  behind him) so his cloak reads in the sprite's blue from behind (`lantern.test.ts` and the budget test changed first,
+  seen failing; Wick now carries three lights, still inside the budget of 24). The moon painted at 128 px (test first).
+  The stone's blue: the ambient sky colour 11 → 41 (`ambientSky`; `night.test.ts` and `palette.test.ts` changed first).
 - [ ] 15. Same-moment images recaptured; gates; report.
 
 ## Execution log
@@ -99,3 +102,7 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
   blurred murk with featureless walls; flat half-metre cells as a coarse patchwork; flat quarter-metre cells over a
   narrower tone range read as Emberwick's pixel mosaic, so that one stayed. The stone still reads greyer than the 2D's
   blue under the night light: step 14.
+- 2026-11-01 (lane 2): step 14 captured against the 2D: with the ambient sky 41 the stone reads blue-violet like the
+  2D platforms (it read grey under 11), and Wick reads in his cloak's blue from behind. Deviation: `palette.test.ts`
+  pinned `ambient: 11` as an Emberwick role; the 3D light departs from it on purpose, so the test names the new token
+  and why.

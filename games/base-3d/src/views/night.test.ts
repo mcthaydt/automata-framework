@@ -75,7 +75,8 @@ describe('buildNight', () => {
     const { view } = stage()
     // The ruin floats: below the horizon is night sky too, the deep blue of Wick's cloak shade, never teal ground.
     expect(view.background).toMatchObject({ skyColor: colour('skyHigh'), groundColor: colour('skyDeep') })
-    expect(view.environment).toMatchObject({ skyColor: colour('ambient'), groundColor: colour('skyMid') })
+    // The ambient sky is a saturated blue, so the stone between the lamps keeps Emberwick's blue, not grey.
+    expect(view.environment).toMatchObject({ skyColor: colour('ambientSky'), groundColor: colour('skyMid') })
     expect(FOG.color).toBe(colour('skyDeep'))
     expect(FOG.far).toBeGreaterThan(FOG.near)
   })

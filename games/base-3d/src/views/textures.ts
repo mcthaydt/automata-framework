@@ -108,19 +108,25 @@ export function paintSilhouette(kind: 'pine' | 'tower'): Pixels {
   return p
 }
 
-/** The moon, 32 px: Emberwick's pale disc, a brighter offset highlight and three craters. */
+/**
+ * The moon, 128 px: a pale disc, a brighter face up and to the left, and five craters. Painted at 128 so the 16 m disc
+ * stays round where the view shows it a hundred pixels or more across.
+ */
 export function paintMoon(): Pixels {
-  const p = painter(32, 32)
+  const size = 128
+  const p = painter(size, size)
   const disc = (cx: number, cy: number, r: number, token: Token): void => {
-    for (let y = 0; y < 32; y++)
-      for (let x = 0; x < 32; x++)
+    for (let y = 0; y < size; y++)
+      for (let x = 0; x < size; x++)
         if ((x + 0.5 - cx) * (x + 0.5 - cx) + (y + 0.5 - cy) * (y + 0.5 - cy) <= r * r) p.dot(x, y, token)
   }
-  disc(16, 16, 14, 'moon')
-  disc(13, 13, 11, 'moonBright')
-  disc(10, 20, 2, 'moonShade')
-  disc(19, 11, 1.5, 'moonShade')
-  disc(21, 21, 2.5, 'moonShade')
+  disc(64, 64, 58, 'moon')
+  disc(56, 56, 47, 'moonBright')
+  disc(40, 82, 9, 'moonShade')
+  disc(77, 44, 6, 'moonShade')
+  disc(86, 85, 11, 'moonShade')
+  disc(60, 96, 4, 'moonShade')
+  disc(93, 62, 3, 'moonShade')
   return p
 }
 
