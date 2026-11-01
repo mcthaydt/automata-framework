@@ -114,26 +114,6 @@ interface CameraRig {
 const cameraViewContent: ContentSchemaDef<'camera-view'>;
 ```
 
-### `CellColor` (type)
-
-```ts
-type CellColor = (offset: Vec3, normal: Vec3) => number;
-```
-
-### `cellCube` (function)
-
-```ts
-function cellCube(span: BoxSpan, cell: number, colorAt: CellColor, options?: CellOptions): Geometry3D;
-```
-
-### `CellOptions` (interface)
-
-```ts
-interface CellOptions {
-    readonly flat?: boolean | undefined;
-}
-```
-
 ### `characterTint` (function)
 
 ```ts
@@ -650,6 +630,12 @@ const segmentHitsBox: (from: Vec3, to: Vec3, box: Box3) => boolean;
 const TALL_PROP_METRES = 1.5;
 ```
 
+### `tiledCube` (function)
+
+```ts
+function tiledCube(span: BoxSpan, tile: number, cell?: number): Geometry3D;
+```
+
 ### `TRIM_HEIGHT` (const)
 
 ```ts
@@ -713,10 +699,9 @@ interface WallOptions {
     readonly trim?: number | undefined;
     readonly color: number;
     readonly occlude?: Occlude | undefined;
-    readonly paint?: {
-        readonly cell: number;
-        readonly colorAt: (point: Vec3, normal: Vec3) => number;
-        readonly flat?: boolean | undefined;
+    readonly surface?: {
+        readonly texture: Texture;
+        readonly tile: number;
     } | undefined;
 }
 ```

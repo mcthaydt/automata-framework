@@ -126,3 +126,8 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
   speckled moss read as noise, so the textures were calmed, then the 2 m moss tile repeated as a grid, so the floor is
   64 px over 4 m. base-3d e2e 7/7 with G3-x at 8.0 s (no real-time lights). Wick reads as a flat tinted silhouette:
   his light is one tint at the chest (a remaining gap).
+- 2026-11-01 (lane 2): gates after 12b and merging origin/main. `pnpm build` 0; `pnpm api-report --update`
+  (render-pixi3d: `tiledCube(span, tile, cell?)` and `WallOptions.surface` back, `cellCube`/`paint` gone);
+  `TURBO_FORCE=true pnpm check` 0; `check-changesets` 17, 0 problems; render-pixi3d `test:parity` 42 passed, 24 skipped
+  (`runIf(hasWebGL2)`, headless Firefox); base-3d `test:parity` 96/96; `build:examples` 0, `build:demos` 0; base-3d e2e
+  7/7, G3-x 8.2 s. Route golden `c735b5acacbbc716` unchanged.
