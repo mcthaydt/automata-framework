@@ -89,6 +89,16 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
         control.getAttribute('aria-label') ?? control.textContent ?? '',
       ).toEqual([])
     }
+    // The row's name is drawn once: the widgets' own labels name the controls without being drawn (Figma tuner-sliders).
+    for (const row of rows.querySelectorAll<HTMLElement>('[data-testid^="tuner-row-"]')) {
+      const name = row.getAttribute('aria-label')
+      const drawn = [...row.querySelectorAll<HTMLElement>('*')].filter((node) => {
+        if (node.children.length > 0 || node.textContent?.trim() !== name) return false
+        const box = node.getBoundingClientRect()
+        return box.width > 2 && box.height > 2
+      })
+      expect(drawn, `${name} is drawn once`).toHaveLength(1)
+    }
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/tuner-rows-${size.name}.png` })
   })

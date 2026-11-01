@@ -4,23 +4,23 @@
 # content compiler checks and the Tuner shows as a slider. SUB, TICK_HZ and the hitbox stay in code
 # (`src/sim/tuning.ts`): they change what a tick or a pixel means, not how the character feels.
 
-# 90 px/s.
+# Celeste: 90 px/s.
 MAX_RUN = { value = 384, min = 128, max = 768, step = 1 }
-# 1000 px/s², on the ground.
+# Celeste: 1000 px/s², on the ground.
 RUN_ACCEL = { value = 71, min = 8, max = 256, step = 1 }
-# RUN_ACCEL × 0.65 in the air (AirMult).
+# Celeste: RUN_ACCEL × 0.65 in the air (AirMult).
 AIR_ACCEL = { value = 46, min = 8, max = 256, step = 1 }
-# 900 px/s², only while airborne.
+# Celeste: 900 px/s², only while airborne.
 GRAVITY = { value = 64, min = 16, max = 192, step = 1 }
 # Gravity halves near the top of a jump while jump is held: below 40 px/s of vertical speed.
 HALF_GRAVITY_BELOW = { value = 171, min = 0, max = 512, step = 1 }
-# 160 px/s.
+# Celeste: 160 px/s.
 MAX_FALL = { value = 683, min = 256, max = 1536, step = 1 }
-# -105 px/s (up is negative).
+# Celeste: -105 px/s (up is negative).
 JUMP_SPEED = { value = -448, min = -1024, max = -128, step = 1 }
-# 0.2 s: how long holding jump keeps the full jump speed (VarJumpTime).
+# Celeste: 0.2 s: how long holding jump keeps the full jump speed (VarJumpTime).
 VAR_JUMP_TICKS = { value = 12, min = 0, max = 30, step = 1 }
-# 0.1 s: a jump still works this long after walking off a ledge (JumpGraceTime).
+# Celeste: 0.1 s: a jump still works this long after walking off a ledge (JumpGraceTime).
 COYOTE_TICKS = { value = 6, min = 0, max = 15, step = 1 }
-# About 0.08 s: a jump pressed this long before landing still happens.
+# Celeste: about 0.08 s: a jump pressed this long before landing still happens.
 BUFFER_TICKS = { value = 5, min = 0, max = 15, step = 1 }

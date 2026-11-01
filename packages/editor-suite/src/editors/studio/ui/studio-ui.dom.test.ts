@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { get, writable } from 'svelte/store'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { studioFixturePorts } from '../../../testing/studio-fixtures'
+import { studioFixtureFiles, studioFixturePorts } from '../../../testing/studio-fixtures'
 import type { StageRenderer } from '../stage/stage-renderer'
 import { createStudioController, type StudioController } from '../studio-controller'
 import StudioCanvas from './StudioCanvas.svelte'
@@ -118,11 +118,17 @@ describe('StudioInspector, Look', () => {
 })
 
 describe('StudioCanvas', () => {
-  async function mounted(mode: 'look' | 'pose' | 'animate') {
+  async function mounted(
+    mode: 'look' | 'pose' | 'animate',
+    pose = 'guard-high',
+    extra: Record<string, string> = {},
+  ) {
     measuredAt(800, 600)
-    const controller = await open()
+    const controller = await createStudioController(
+      await studioFixturePorts({ ...studioFixtureFiles(), ...extra }),
+    )
     controller.view.setMode(mode)
-    controller.view.select('pose', 'guard-high')
+    controller.view.select('pose', pose)
     const renderer = standin()
     render(StudioCanvas, {
       controller,
@@ -171,6 +177,24 @@ describe('StudioCanvas', () => {
     const after = controller.content().poses.find((entry) => entry.id === 'guard-high')?.value?.effectors
       .handR?.pos
     expect(after?.[1]).toBeCloseTo((before?.[1] ?? 0) + 0.02, 6)
+  })
+
+  it('keeps a chest-space target in the chest’s frame when an arrow moves its handle', async () => {
+    const carry = `about = "Held in the chest's frame."\n\n[effectors.handR]\npos = [ -0.15, -0.23, 0.3 ]\nspace = "chest"\n`
+    const path = 'content/figure-poses/carry.toml'
+    const { controller } = await mounted('pose', 'carry', { [path]: carry })
+    const hand = await screen.findByRole('button', { name: /^handR handle/ })
+    hand.focus()
+    await userEvent.keyboard('{ArrowUp}')
+    await vi.waitFor(() => expect(controller.session.history.undoLabel).toBe('Move handR of carry'))
+    const text = controller.session.history.state.texts[path] ?? ''
+    // The file still says chest, and the value moved by the chest's own up, not the world's.
+    expect(text).toContain('space = "chest"')
+    const moved = controller.content().poses.find((entry) => entry.id === 'carry')?.value?.effectors.handR
+    expect(moved?.space).toBe('chest')
+    expect(moved?.pos?.[0]).toBeCloseTo(-0.15, 1)
+    expect((moved?.pos?.[1] ?? 0) - -0.23).toBeGreaterThan(0.015)
+    expect((moved?.pos?.[1] ?? 0) - -0.23).toBeLessThan(0.025)
   })
 
   it('has no handles in Look or Animate', async () => {

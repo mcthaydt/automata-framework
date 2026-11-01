@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { readTuning } from './tuner-content'
 
 const FILE = `# How the character moves.
-# 90 px/s.
+# Celeste: 90 px/s.
 MAX_RUN = { value = 384, min = 128, max = 768, step = 1 }
-GRAVITY = 64 # 900 px/s²
+GRAVITY = 64 # px/s²
 COYOTE_TICKS = 6 # the grace a jump still works after a ledge
 SCALE = 0.25
 DEBUG = false
@@ -48,11 +48,25 @@ describe('readTuning', () => {
 
   it('takes the unit and the note from the comments (EDS-D18)', () => {
     const all = byName(FILE)
-    expect(all['MAX_RUN']).toMatchObject({ unit: 'px/s', note: '90 px/s.' })
-    expect(all['GRAVITY']).toMatchObject({ unit: 'px/s²', note: '900 px/s²' })
+    // A comment that is just a unit is the unit; one with a number in it describes the number and is only a note, so
+    // "90 px/s" (the original in other units) is never shown as the unit of 384.
+    expect(all['MAX_RUN']).toMatchObject({ note: 'Celeste: 90 px/s.' })
+    expect(all['MAX_RUN']?.unit).toBeUndefined()
+    expect(all['GRAVITY']).toMatchObject({ unit: 'px/s²', note: 'px/s²' })
     expect(all['COYOTE_TICKS']?.unit).toBeUndefined()
     expect(all['COYOTE_TICKS']?.note).toBe('the grace a jump still works after a ledge')
     expect(all['SCALE']?.note).toBeUndefined()
+  })
+
+  it('does not take a unit from a comment that holds a number', () => {
+    expect(byName('A = 1 # 90 px/s.\nB = 2 # 90 px/s\nC = 3 # about 0.08 s\n')).toMatchObject({
+      A: { note: '90 px/s.' },
+      B: { note: '90 px/s' },
+      C: { note: 'about 0.08 s' },
+    })
+    const all = byName('A = 1 # 90 px/s.\nB = 2 # s\nC = 3 # ticks\nD = 4 # m/s\nE = 5 # %\n')
+    expect(all['A']?.unit).toBeUndefined()
+    expect(['B', 'C', 'D', 'E'].map((name) => all[name]?.unit)).toEqual(['s', 'ticks', 'm/s', '%'])
   })
 
   it('takes the bounds of a bare number from the compiler’s tuning-meta.json', () => {
