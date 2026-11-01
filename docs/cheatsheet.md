@@ -186,6 +186,11 @@
 - `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
 - `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
 
+### `import { … } from '@mcthaydt/automata-content/palette'`
+
+- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+- `Palette` (interface): The game's palette: a name and its colors.
+
 ### `import { … } from '@mcthaydt/automata-content/vite'`
 
 - `automataContent(pluginOptions?)`: The Vite plugin that compiles content and serves it as `virtual:automata/content`.

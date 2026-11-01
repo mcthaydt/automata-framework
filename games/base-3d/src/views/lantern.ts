@@ -7,7 +7,7 @@ import { nightTextures } from './night-textures.ts'
 import { colour } from './palette.ts'
 
 /** Where the lantern hangs beside Wick (metres, in his frame), its light's reach and strength, and its halo's size. */
-export const LANTERN = { x: 0.32, y: 0.55, z: 0.12, range: 3.4, intensity: 1.5, halo: 0.7 } as const
+export const LANTERN = { x: 0.32, y: 0.55, z: 0.12, range: 4, intensity: 2.2, halo: 0.8 } as const
 
 /** `factory` (the hero's figure view) with the lantern added to every view it makes. */
 export function withLantern(factory: View3dFactory, clock: () => number): View3dFactory {

@@ -1,0 +1,20 @@
+# The low point of Wick's forward roll (EDITOR-GAPS EG-6): curled tight, the hips dropped and tucked under, the chest
+# folded over the knees, the head down and both hands drawn in before the shins. In figure units on Wick's body, as
+# the pickup's pose is written.
+
+about = "Tucked into a forward roll: hips low and under, chest folded down, chin to chest, hands in before the shins."
+
+[effectors.pelvis]
+pos = [ 0, 0.48, 0.04 ]
+
+[effectors.chest]
+rot = [ 70, 0, 0 ]
+
+[effectors.handR]
+pos = [ -0.1, 0.3, 0.26 ]
+
+[effectors.handL]
+pos = [ 0.1, 0.3, 0.26 ]
+
+[effectors.head]
+rot = [ 40, 0, 0 ]

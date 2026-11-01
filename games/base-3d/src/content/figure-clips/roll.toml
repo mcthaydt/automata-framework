@@ -1,22 +1,27 @@
-# Wick's roll (DESIGN.md §7.2 `roll`, GAME-3D.1c part 3): a forward roll, crouched low through its 3.2 m, as long as the move's 24 frames. It has no hit,
-# so no `contact`. A placeholder (the pickup's crouch) until GAME-3D.1j authors it in the Studio.
+# Wick's roll (DESIGN.md §7.2 `roll`, EDITOR-GAPS EG-6): a tucked forward roll through its 3.2 m, as long as the move's
+# 24 ticks (0.4 s at 60 Hz; the view retimes it to the roll either way). He drops into the tuck by `tuck`, holds it
+# low through the lunge and rises from `rise`. It has no hit, so no `contact`.
 
 length = 0.4
 loop = "once"
-mask = [ "pelvis", "torso", "head", "armR" ]
+mask = [ "pelvis", "torso", "head", "armL", "armR" ]
+
+[markers]
+tuck = 0.08
+rise = 0.3
 
 [[keys]]
 t = 0
 pose = "stand"
 
 [[keys]]
-t = 0.12
-pose = "pickup-low"
+t = 0.08
+pose = "roll-tuck"
 ease = "out"
 
 [[keys]]
-t = 0.28
-pose = "pickup-low"
+t = 0.3
+pose = "roll-tuck"
 
 [[keys]]
 t = 0.4

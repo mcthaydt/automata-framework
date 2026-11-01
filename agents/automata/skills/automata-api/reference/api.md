@@ -3047,6 +3047,28 @@ function pseudoMessages(file: {
 function snakeKey(value: string): string;
 ```
 
+### `import { … } from '@mcthaydt/automata-content/palette'`
+
+#### `DEFAULT_PALETTE` (const)
+
+The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+
+```ts
+const DEFAULT_PALETTE: Palette;
+```
+
+#### `Palette` (interface)
+
+The game's palette: a name and its colors.
+
+```ts
+interface Palette {
+  readonly name: string;
+  /** `#rrggbb`, lowercase, in authored order. */
+  readonly colors: readonly string[];
+}
+```
+
 ### `import { … } from '@mcthaydt/automata-content/vite'`
 
 #### `automataContent` (function)

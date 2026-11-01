@@ -105,12 +105,12 @@
         },
         {
           "ease": "out",
-          "pose": "pickup-low",
-          "t": 0.12
+          "pose": "roll-tuck",
+          "t": 0.08
         },
         {
-          "pose": "pickup-low",
-          "t": 0.28
+          "pose": "roll-tuck",
+          "t": 0.3
         },
         {
           "ease": "inOut",
@@ -120,10 +120,15 @@
       ],
       "length": 0.4,
       "loop": "once",
+      "markers": {
+        "rise": 0.3,
+        "tuck": 0.08
+      },
       "mask": [
         "pelvis",
         "torso",
         "head",
+        "armL",
         "armR"
       ]
     }
@@ -628,6 +633,46 @@
       },
       "root": {
         "yaw": 15
+      }
+    },
+    "roll-tuck": {
+      "about": "Tucked into a forward roll: hips low and under, chest folded down, chin to chest, hands in before the shins.",
+      "effectors": {
+        "chest": {
+          "rot": [
+            70,
+            0,
+            0
+          ]
+        },
+        "handL": {
+          "pos": [
+            0.1,
+            0.3,
+            0.26
+          ]
+        },
+        "handR": {
+          "pos": [
+            -0.1,
+            0.3,
+            0.26
+          ]
+        },
+        "head": {
+          "rot": [
+            40,
+            0,
+            0
+          ]
+        },
+        "pelvis": {
+          "pos": [
+            0,
+            0.48,
+            0.04
+          ]
+        }
       }
     },
     "stand": {

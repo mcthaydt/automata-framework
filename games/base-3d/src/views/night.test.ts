@@ -60,7 +60,7 @@ describe('buildNight', () => {
   it('sets the night sky, the moonlit ambient and fog the colour of the haze', () => {
     const { view } = stage()
     expect(view.background).toMatchObject({ skyColor: colour('skyHigh'), groundColor: colour('skyLow') })
-    expect(view.environment).toMatchObject({ skyColor: colour('ambient'), groundColor: colour('night') })
+    expect(view.environment).toMatchObject({ skyColor: colour('ambient'), groundColor: colour('skyMid') })
     expect(FOG.color).toBe(colour('skyMid'))
     expect(FOG.far).toBeGreaterThan(FOG.near)
   })

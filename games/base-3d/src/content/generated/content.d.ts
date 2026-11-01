@@ -362,7 +362,7 @@ declare module 'virtual:automata/content' {
     }
   }
 
-  export type FigurePoseId = 'free' | 'guard-high' | 'guard-low' | 'pickup-low' | 'point' | 'stand'
+  export type FigurePoseId = 'free' | 'guard-high' | 'guard-low' | 'pickup-low' | 'point' | 'roll-tuck' | 'stand'
   export type FigurePose = {
     readonly about?: string
     readonly effectors: {

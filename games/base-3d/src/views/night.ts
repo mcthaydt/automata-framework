@@ -6,14 +6,12 @@
 import { type Box3, type Occluders, type SceneFog, tiledCube } from '@mcthaydt/automata-render-pixi3d'
 import {
   type Container3D,
-  CylinderGeometry,
   DirectionalLight,
   FlatMaterial,
   Mesh3D,
   ParticleContainer3D,
   PhongMaterial,
   PointLight,
-  SphereGeometry,
   type View3D,
 } from '@pixi/3d'
 import type { Texture } from 'pixi.js'
@@ -21,6 +19,7 @@ import type { AreaSource } from '../systems/index.ts'
 import { buildBackdrop } from './backdrop.ts'
 import { type Card, dressingOf, LAVA_Y } from './dressing.ts'
 import { type SceneWall, sceneOf } from './index.ts'
+import { geometryOf, mushroomData } from './mushrooms.ts'
 import { nightTextures } from './night-textures.ts'
 import { colour } from './palette.ts'
 
@@ -82,8 +81,8 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
 
   // Sky and moonlight: the sky gradient behind everything, a dim cool fill, and the moon's light from the far end.
   view.background = { skyColor: colour('skyHigh'), groundColor: colour('skyLow') }
-  view.environment = { skyColor: colour('ambient'), groundColor: colour('night'), intensity: 0.2 }
-  const moonlight = new DirectionalLight({ color: colour('moonlight'), intensity: 0.3 })
+  view.environment = { skyColor: colour('ambient'), groundColor: colour('skyMid'), intensity: 0.45 }
+  const moonlight = new DirectionalLight({ color: colour('moonlight'), intensity: 0.4 })
   moonlight.position.set(-6, 14, 40)
   moonlight.lookAt({ x: 0, y: 0, z: 10 })
   root.addChild(moonlight)
@@ -108,13 +107,12 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
       root.addChild(stoneBox({ min: [x, LAVA_Y - 0.5, z0], max: [x + 0.4, 0, z1] }, side))
   }
 
-  // The ruin: textured bays, a pillar at every other bay's start (fading when it hides Wick), the near wall whole,
+  // The ruin: textured bays, a pillar at every bay's start (fading when it hides Wick), the near wall whole,
   // the far wall's two piers either side of the arch and the lintel over it.
   const surface = { texture: textures.wall, tile: TILE }
   const white = 0xffffff
   for (const bay of dressing.bays) occluders.wall({ ...bay, color: white, surface })
   dressing.bays.forEach((bay, i) => {
-    if (i % 2 !== 0) return
     const outward = bay.a.x > 0 ? 1 : -1
     const x = bay.a.x + outward * (PILLAR.width / 2 - 0.15)
     const bounds: Box3 = {
@@ -156,30 +154,22 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
     light.position.set(spot.x, spot.y, spot.z)
     root.addChild(light)
   }
-  const capGeometry = new SphereGeometry({ radius: 0.5 })
-  const stemGeometry = new CylinderGeometry({ radiusTop: 0.025, radiusBottom: 0.035, height: 1 })
+  // Every cluster's caps in one mesh and every stem in another: two draws for the room's mushrooms.
+  const { caps, stems } = mushroomData(dressing.mushrooms)
   const cap = new PhongMaterial({
     baseColor: colour('mushroom'),
     emissive: { color: colour('mushroom'), strength: 1.6 },
+    doubleSided: true,
   })
   const stem = new PhongMaterial({
     baseColor: colour('moonlight'),
     emissive: { color: colour('moonlight'), strength: 0.6 },
+    doubleSided: true,
   })
-  for (const m of dressing.mushrooms)
-    for (const [dx, dz, s] of [
-      [0, 0, 1],
-      [0.18, 0.12, 0.7],
-      [-0.12, 0.16, 0.55],
-    ] as const) {
-      const stalk = new Mesh3D({ geometry: stemGeometry, material: stem })
-      stalk.scale.set(1, 0.22 * s, 1)
-      stalk.position.set(m.x + dx, 0.11 * s, m.z + dz)
-      const top = new Mesh3D({ geometry: capGeometry, material: cap })
-      top.scale.set(0.2 * s, 0.09 * s, 0.2 * s)
-      top.position.set(m.x + dx, 0.22 * s, m.z + dz)
-      root.addChild(stalk, top)
-    }
+  root.addChild(
+    new Mesh3D({ label: 'night:mushroom-caps', geometry: geometryOf(caps), material: cap }),
+    new Mesh3D({ label: 'night:mushroom-stems', geometry: geometryOf(stems), material: stem }),
+  )
 
   // Glow: a halo over each mushroom cluster and a row of heat over each channel (Emberwick's additive halo layer).
   const glows: (Card & { readonly colour: number; readonly alpha: number; readonly phase: number })[] = [

@@ -29,7 +29,7 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
   `buildScene`/`FOG`/`channelBoxes` from `views/index.ts` with their tests moved.
 - [x] 7. `views/ember.ts` (emissive core, point light, halo; goal sparks) + tests.
 - [x] 8. `views/lantern.ts` + test; wired on the hero view.
-- [ ] 9. Roll clip from the Studio; markers inside 24 ticks.
+- [x] 9. Roll clip from the Studio; markers inside 24 ticks.
 - [ ] 10. Route golden unchanged (`c735b5acacbbc716`); gates; acceptance images and README.
 
 ## Execution log
@@ -40,3 +40,10 @@ Interfaces consumed: `@pixi/3d` core (`PointLight`, `DirectionalLight`, `PhongMa
   surface (a pale untextured trim showed in the first game capture, so the occluders test gained the trim case first).
   `tiledCube` exported from render-pixi3d for the night's stone boxes. Old `buildScene`/`channelBoxes`/ceilings dropped
   (the night is open to the sky); `sceneOf` stays for the dressing.
+- 2026-11-01: steps 7–8 retuned against game captures (ember glow 0.7 with sparks on every ember, lantern 4 m / 2.2;
+  ambient 0.45 over 39, moonlight 0.4). The dressing keeps the valley and the plateau pines and the towers off the
+  moon's line (tests seen failing first). Step 9: `roll-tuck` pose and the roll clip with `tuck`/`rise` markers;
+  `src/content/roll-clip.test.ts` failed first on the pickup pose and the missing markers. Hand-written in the
+  Studio's clip format, not re-saved in the Studio UI (EG-6 updated). Route golden still `c735b5acacbbc716`.
+- 2026-11-01: acceptance images in `docs/evidence/owner-visual/2026-11-01-base-3d-art-pass/` with an honest README.
+  Deviation: the lava scroll (spec §2) is not built; noted in the spec as a follow-up.

@@ -848,6 +848,23 @@ function pseudoMessages(file: {
 function snakeKey(value: string): string;
 ```
 
+## `./palette`
+
+### `DEFAULT_PALETTE` (const)
+
+```ts
+const DEFAULT_PALETTE: Palette;
+```
+
+### `Palette` (interface)
+
+```ts
+interface Palette {
+    readonly name: string;
+    readonly colors: readonly string[];
+}
+```
+
 ## `./vite`
 
 ### `automataContent` (function)

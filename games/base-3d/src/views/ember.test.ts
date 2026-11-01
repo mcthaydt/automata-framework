@@ -36,6 +36,8 @@ describe('the ember look', () => {
     expect(GOAL_LOOK.light.range).toBeGreaterThan(EMBER_LOOK.light.range)
     expect(GOAL_LOOK.column).toBeGreaterThan(3)
     expect(EMBER_LOOK.column).toBe(0)
+    expect(GOAL_LOOK.sparks).toBeGreaterThan(EMBER_LOOK.sparks)
+    expect(EMBER_LOOK.sparks).toBeGreaterThan(0)
   })
 })
 
@@ -56,12 +58,14 @@ describe('emberView', () => {
   it('gives the goal sparks that rise over time', () => {
     let now = 0
     const view = viewOf(true, () => now)
-    const sparks = descendants(view.container).find((n) => n.label === 'ember:sparks') as ParticleContainer3D
-    expect(sparks.capacity).toBeGreaterThanOrEqual(12)
-    const before = Array.from(sparks.data.f32.slice(0, 32))
+    // The halo, the column and the sparks are one container (one draw), the sparks after the glows.
+    const glow = descendants(view.container).find((n) => n.label === 'ember:glow') as ParticleContainer3D
+    expect(glow.capacity).toBe(1 + GOAL_LOOK.column + GOAL_LOOK.sparks)
+    const sparksAt = () => Array.from(glow.data.f32).slice(-GOAL_LOOK.sparks * 8)
+    const before = sparksAt()
     now = 0.4
     view.update?.({}, undefined, 1)
-    expect(Array.from(sparks.data.f32.slice(0, 32))).not.toEqual(before)
+    expect(sparksAt()).not.toEqual(before)
   })
 
   it('draws nothing for a row without an ember', () => {

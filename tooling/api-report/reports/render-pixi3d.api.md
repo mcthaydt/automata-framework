@@ -71,6 +71,16 @@ interface BoxSize {
 }
 ```
 
+### `BoxSpan` (interface)
+
+```ts
+interface BoxSpan {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+}
+```
+
 ### `CameraPose` (interface)
 
 ```ts
@@ -619,6 +629,12 @@ const segmentHitsBox: (from: Vec3, to: Vec3, box: Box3) => boolean;
 const TALL_PROP_METRES = 1.5;
 ```
 
+### `tiledCube` (function)
+
+```ts
+function tiledCube(span: BoxSpan, tile: number): Geometry3D;
+```
+
 ### `TRIM_HEIGHT` (const)
 
 ```ts
@@ -682,6 +698,10 @@ interface WallOptions {
     readonly trim?: number | undefined;
     readonly color: number;
     readonly occlude?: Occlude | undefined;
+    readonly surface?: {
+        readonly texture: Texture;
+        readonly tile: number;
+    } | undefined;
 }
 ```
 

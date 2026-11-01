@@ -55,6 +55,8 @@ export interface Dressing {
 
 /** The bays' broken heights, read round in order: a ruin, never two neighbours alike. */
 const BAY_HEIGHTS = [2.6, 1.9, 2.3, 1.6, 2.5, 2.0, 1.7, 2.4, 2.2, 1.8] as const
+/** A bay's length in metres, about. */
+const BAY_LENGTH = 4
 /** Mushrooms stand this far in from the walls, and keep this far from the spawn, the embers and the goal. */
 const MUSHROOM_INSET = 0.45
 const MUSHROOM_CLEARANCE = 1.2
@@ -147,14 +149,15 @@ export function dressingOf(area: AreaSource): Dressing {
     return { x: midX + (index % 2 === 0 ? -2.5 : 2.5), y: 2.4, z: (room.min[1] + room.max[1]) / 2, size: 5.5 }
   })
 
-  // The ruin: each side wall cut into bays of about 2 m; the far wall keeps its arch.
+  // The ruin: each side wall cut into bays of about 4 m (each bay is a wall and its trim: fewer draws on phones);
+  // the far wall keeps its arch.
   const walls = sceneOf(area).walls
   const bays: Bay[] = []
   walls
     .filter((wall) => wall.a.x === wall.b.x)
     .forEach((wall, wallIndex) => {
       const length = wall.b.z - wall.a.z
-      const count = Math.max(1, Math.round(Math.abs(length) / 2))
+      const count = Math.max(1, Math.round(Math.abs(length) / BAY_LENGTH))
       for (let i = 0; i < count; i++)
         bays.push({
           a: { x: wall.a.x, z: wall.a.z + (length * i) / count },
@@ -168,15 +171,20 @@ export function dressingOf(area: AreaSource): Dressing {
   )
   const arch = { min: -ARCH.width / 2, max: ARCH.width / 2, z: farWall?.a.z ?? farZ, height: ARCH.height }
 
-  // The backdrop: pines on the plateau outside both side walls, a valley of pines and ruined towers beyond the arch.
+  // The backdrop: pines on the plateau outside both side walls (none past the far wall, so the arch frames the moon), a valley of pines and ruined towers beyond the arch.
   const pines: Card[] = []
   for (const side of [-1, 1])
-    for (let z = -2; z < farZ + 16; z += 2.2)
+    for (let z = -2; z < farZ; z += 2.2)
       pines.push({ x: side * (8 + (jitter(z) + 0.5) * 3), y: 0, z, size: 6 + (jitter(z * 7) + 0.5) * 2 })
-  for (let x = -16; x <= 16; x += 2.6) pines.push({ x, y: -7, z: farZ + 12 + (jitter(x) + 0.5) * 3, size: 7 })
+  // The valley's pines leave a gap round the room's centre line, where the moon sits low in the arch.
+  for (let x = -16; x <= 16; x += 2.6)
+    if (Math.abs(x) > 4) pines.push({ x, y: -7, z: farZ + 12 + (jitter(x) + 0.5) * 3, size: 7 })
   const towers: Card[] = []
-  for (let i = 0; i < 9; i++)
-    towers.push({ x: -26 + i * 6.5 + (i % 2) * 2, y: -9, z: farZ + 24 + (i % 3) * 5, size: 14 + (i % 3) * 4 })
+  for (let i = 0; i < 9; i++) {
+    const x = -26 + i * 6.5 + (i % 2) * 2
+    // The towers, too, leave the moon's line clear.
+    if (Math.abs(x) > 6) towers.push({ x, y: -9, z: farZ + 24 + (i % 3) * 5, size: 14 + (i % 3) * 4 })
+  }
   const moon: Card = { x: 0.6, y: -4.2, z: farZ + 32, size: 8 }
 
   return { mushrooms, lights, grass, vines, shafts, bays, arch, pines, towers, moon }

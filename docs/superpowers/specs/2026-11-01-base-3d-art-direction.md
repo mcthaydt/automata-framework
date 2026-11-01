@@ -43,7 +43,7 @@ Colours are Endesga 64 entries by index (`ENDESGA_64[i]`), the indices Emberwick
 | Night background | `endesga(15)` #0e071b | Clear colour and the darkest silhouettes | night = 15 |
 | Sky bands | 52 #03193f, 39 #0c2e44, 38 #134c4c | `view.background` Hemisphere: sky 52 above, 38 below the horizon | — |
 | Ground fog band | 38 at 0.55 alpha | Linear fog, colour 39 | near 9 m, far 30 m (spec'd; was 5/14 in #2e222f) |
-| Moonlight ambient (light map clear) | 11 #657392 | `view.environment` Hemisphere 11 / 15 at intensity 0.2, plus a `DirectionalLight` in 45 at 0.3 from the far end, high | — |
+| Moonlight ambient (light map clear) | 11 #657392 | `view.environment` Hemisphere 11 / 39 at intensity 0.45, plus a `DirectionalLight` in 45 at 0.4 from the far end, high (tuned up from the spike's 0.2 / 0.3 against the acceptance images) | — |
 | Moon | disc 9, highlight 8, craters 10, glow 45 | Moon card (painted disc, unfogged) low beyond the far arch, with an additive glow card in 45 | disc 8 m at (0.6, −4.2, 60) |
 | Stars | 9 | Additive motes in 9/10 on the sky behind the far arch | 70 |
 | Far towers | 52 | Crossed-quad tower cards beyond the far wall, below the plateau, unfogged | 9 towers, 14–22 m |
@@ -54,11 +54,11 @@ Colours are Endesga 64 entries by index (`ENDESGA_64[i]`), the indices Emberwick
 | Hanging vines | vine sprites | Masked vine cards down the channels' walls | 28, 0.9 m |
 | Walls | dark brick columns | Ruined side walls: 2 m bays of varying height (1.6–2.6 m), pillars every 4 m (3.2 m), brick texture 12/13 on mortar 15; far wall an arch (opening 3.2 m × 3 m) | — |
 | Glowing mushrooms | light 43 r14, halo 45 | Clusters of three emissive caps (43) on pale stems (45), each cluster a `PointLight` 43 and a halo card | 10 clusters, light range 3.2 m, intensity 1.6 |
-| The ember | light 30 r60, halo 28, sparks 32/31/30/28 | Each ember: emissive core (30, strength 2), `PointLight` 30 (range 2.6, intensity 1.4), pulsing halo card; the goal: larger core (32), `PointLight` 31 (range 5, intensity 2.2), halo 2.4 m, rising sparks, a column of light | 5 embers + goal |
-| Wick's lantern | light 31 r52 at (+6, −4), halo 30 | A small emissive lantern (31) at Wick's side, a `PointLight` 31 (range 3.4, intensity 1.5) and a halo card that follow him | offset 0.35 m right, 0.55 m up |
+| The ember | light 30 r60, halo 28, sparks 32/31/30/28 | Each ember: emissive core (30, strength 0.7, so its facets stay orange), `PointLight` 30 (range 2.6, intensity 1.4), pulsing halo card and six sparks; the goal: larger core (32), `PointLight` 31 (range 5, intensity 2.2), halo 2.4 m, rising sparks, a column of light | 5 embers + goal |
+| Wick's lantern | light 31 r52 at (+6, −4), halo 30 | A small emissive lantern (31) at Wick's side, a `PointLight` 31 (range 4, intensity 2.2) and a halo card that follow him | offset 0.35 m right, 0.55 m up |
 | Fireflies | light 33 r7, glow 33 | Additive motes in 33 drifting over the room | 22 |
 | Vignette | 15 at 0.7 | Fog and the dark falloff do it; a screen vignette is a follow-up | — |
-| (none: 3D only) Lava channels | — | Unlit bright lava texture (28 base, 26/27 crust, 29–31 cracks, 32 sparkles) 0.7 m below the platforms, scrolling slowly; two `PointLight` 28 per channel (range 4.5, intensity 2.2); a row of additive heat cards above it | — |
+| (none: 3D only) Lava channels | — | Unlit bright lava texture (28 base, 26/27 crust, 29–31 cracks, 32 sparkles) 0.7 m below the platforms (a slow scroll is a follow-up: not built); two `PointLight` 28 per channel (range 4.5, intensity 2.2); a row of additive heat cards above it | — |
 
 ## 3. Ownership and contracts
 
@@ -101,8 +101,8 @@ API report; listed under "Decisions for the Owner's veto".
 
 4.1 **Palette:** §2's indices; no colour literal in the views except through `colour(token)`.
 
-4.2 **Light rig:** hemisphere ambient 0.2 (11 over 15); one directional moonlight (45, 0.3) from (−6, 14, 40) toward
-(0, 0, 10); point lights: 10 mushrooms, 4 lava, 5 embers, 1 goal, 1 lantern = 21, cap 24 (tiled lighting holds 32).
+4.2 **Light rig:** hemisphere ambient 0.45 (11 over 39); one directional moonlight (45, 0.4) from (−6, 14, 40) toward
+(0, 0, 10); point lights: one per mushroom cluster, 4 lava, 5 embers, 1 goal, 1 lantern, cap 24 (`dressing.test.ts`) (tiled lighting holds 32).
 A taken ember's light goes with its entity.
 
 4.3 **Fog:** linear 9 → 30 m, colour 39; the backdrop (moon, silhouettes) unfogged.
@@ -116,8 +116,8 @@ or the goal, never in a channel); the goal's plinth (0.9 × 0.35 m).
 4.6 **Particles:** halos and heat (one additive container), motes and sparks (one), grass (one, masked), vines (one,
 masked), shafts (one, additive), sky glow and stars (one, additive). Six containers.
 
-4.7 **Backdrop:** pines outside both side walls on the plateau; a valley of pines and ruined towers below and beyond the
-far arch; the moon low in the arch.
+4.7 **Backdrop:** pines outside both side walls on the plateau, none past the far wall; a valley of pines and ruined
+towers below and beyond the far arch, clear of the centre line; the moon low in the arch.
 
 4.8 **Camera:** unchanged: Crow Country's angle on a 24 mm lens (53.13° vertical), 25° down and 5 m back, turned freely;
 the goal view 35° and 7 m. At 25° the frame's top edge is about 1.5° above the horizon, so the sky is a thin band; the
@@ -137,7 +137,7 @@ roll's 24 ticks (the view retimes the clip to `ROLL.ticks / TICK_HZ`).
 
 - Boot: textures are painted once in `scene` (a few ms; measured into `base-3d:night` performance marks), then
   uploaded by Pixi. Nothing is fetched, so nothing new can fail to load.
-- Per frame: `NightScene.update(seconds)` rewrites the motes, halos and lava UV offset; no allocation per frame.
+- Per frame: `NightScene.update(seconds)` rewrites the motes and halos; no allocation per frame.
 - Context loss and Try again: the renderer rebuilds the view and calls `scene` again; `buildNight` builds afresh and the
   old `NightScene` is disposed through the hook's `reset`.
 - No bloom: additive cards stand in (spike limits table). A failure to create a light past the cap is impossible by

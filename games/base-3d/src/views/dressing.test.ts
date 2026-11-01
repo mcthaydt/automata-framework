@@ -84,8 +84,15 @@ describe('the dressing', () => {
 
   it('stands the backdrop outside the walls', () => {
     for (const pine of dressing.pines) expect(Math.abs(pine.x) > 6 || pine.z > 29).toBe(true)
-    for (const tower of dressing.towers) expect(tower.z).toBeGreaterThan(40)
+    for (const tower of dressing.towers) {
+      expect(tower.z).toBeGreaterThan(40)
+      expect(Math.abs(tower.x)).toBeGreaterThan(6)
+    }
     expect(dressing.moon.z).toBeGreaterThan(40)
+    // Nothing in the valley stands between the arch and the moon.
+    for (const pine of dressing.pines.filter((p) => p.z > 29)) expect(Math.abs(pine.x)).toBeGreaterThan(4)
+    // Past the far wall only the valley's pines stand, below the plateau.
+    for (const pine of dressing.pines.filter((p) => p.z > 28)) expect(pine.y).toBeLessThan(0)
   })
 })
 

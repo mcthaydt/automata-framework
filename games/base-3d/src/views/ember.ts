@@ -22,14 +22,17 @@ export interface EmberLook {
   readonly glow: number
   readonly light: { readonly colour: Token; readonly range: number; readonly intensity: number }
   readonly column: number
+  /** Sparks rising from it at once (Emberwick's ember throws them). */
+  readonly sparks: number
 }
 
 export const EMBER_LOOK: EmberLook = {
   size: 0.16,
   core: 'ember',
-  glow: 2,
+  glow: 0.7,
   light: { colour: 'ember', range: 2.6, intensity: 1.4 },
   column: 0,
+  sparks: 6,
 }
 export const GOAL_LOOK: EmberLook = {
   size: 0.3,
@@ -37,6 +40,7 @@ export const GOAL_LOOK: EmberLook = {
   glow: 2.4,
   light: { colour: 'lantern', range: 5, intensity: 2.2 },
   column: 6,
+  sparks: 16,
 }
 
 /** The pulse at `seconds`: 1 ± 0.14, four radians a second, offset by `phase` so neighbours do not beat together. */
@@ -45,8 +49,7 @@ export const pulse = (seconds: number, phase: number): number => 1 + 0.14 * Math
 /** The turn at `seconds`, 1.5 radians a second. */
 export const turn = (seconds: number): number => seconds * 1.5
 
-/** The goal's sparks, and how long one takes to rise and fade, in seconds. */
-const SPARKS = 16
+/** How long a spark takes to rise and fade, in seconds. */
 const SPARK_LIFE = 1.4
 const SPARK_COLOURS: readonly Token[] = ['spark', 'lantern', 'ember', 'hot']
 
@@ -80,30 +83,18 @@ export const emberView =
     light.position.set(0, height + 0.05, 0)
 
     // The halo, and over the goal a column of fainter glows stacked up into the dark.
-    const glows: [y: number, size: number, alpha: number][] = [[height, look.size * 7, 0.8]]
-    for (let i = 1; i <= look.column; i++) glows.push([height + i * 0.7, 0.9 - i * 0.06, 0.32 - i * 0.03])
-    const glow = nightTextures().glow
-    const halo = new ParticleContainer3D({
-      label: 'ember:halo',
-      texture: glow,
-      capacity: glows.length,
+    const glows: [y: number, size: number, alpha: number][] = [[height, look.size * 8, 1]]
+    for (let i = 1; i <= look.column; i++) glows.push([height + i * 0.7, 1.1 - i * 0.08, 0.5 - i * 0.05])
+    // The halo, the column and the sparks share one additive container: one draw an ember.
+    const glow = new ParticleContainer3D({
+      label: 'ember:glow',
+      texture: nightTextures().glow,
+      capacity: glows.length + look.sparks,
       blendMode: 'add',
       billboard: 'spherical',
       space: 'local',
     })
-    const sparks =
-      look === GOAL_LOOK
-        ? new ParticleContainer3D({
-            label: 'ember:sparks',
-            texture: glow,
-            capacity: SPARKS,
-            blendMode: 'add',
-            billboard: 'spherical',
-            space: 'local',
-          })
-        : undefined
-    node.addChild(halo, core, light)
-    if (sparks !== undefined) node.addChild(sparks)
+    node.addChild(glow, core, light)
 
     const haloColour = colour(look.light.colour)
     const animate = (): void => {
@@ -112,19 +103,18 @@ export const emberView =
       core.scale.set(scale, scale * 1.5, scale)
       core.rotation.set(0, turn(seconds), 0)
       glows.forEach(([y, size, alpha], i) => {
-        halo.setParticleAt(i, 0, y, 0, size * (i === 0 ? 2 - scale : 1), 0, haloColour, alpha)
+        glow.setParticleAt(i, 0, y, 0, size * (i === 0 ? 2 - scale : 1), 0, haloColour, alpha)
       })
-      if (sparks === undefined) return
-      for (let i = 0; i < SPARKS; i++) {
+      for (let i = 0; i < look.sparks; i++) {
         // Each spark rises 1.6 m over its life, spreading a little and fading; their starts are spread evenly.
-        const life = (seconds / SPARK_LIFE + i / SPARKS) % 1
+        const life = (seconds / SPARK_LIFE + i / look.sparks) % 1
         const angle = i * 2.4
         const tint = colour(SPARK_COLOURS[i % SPARK_COLOURS.length] as Token)
-        sparks.setParticleAt(
-          i,
-          Math.sin(angle) * 0.3 * life,
-          height + life * 1.6,
-          Math.cos(angle) * 0.3 * life,
+        glow.setParticleAt(
+          glows.length + i,
+          Math.sin(angle) * 0.25 * life,
+          height + life * (look === GOAL_LOOK ? 1.6 : 0.9),
+          Math.cos(angle) * 0.25 * life,
           0.1,
           0,
           tint,
