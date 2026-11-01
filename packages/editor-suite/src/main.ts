@@ -5,18 +5,20 @@ import { createLevels2d, randomIds } from '@mcthaydt/automata-editor-2d/suite'
 import { createLevels3d, lazyPlanRenderer, loadPlanRenderer } from '@mcthaydt/automata-editor-3d/suite'
 import type { SuiteEditor } from '@mcthaydt/automata-editor-kit/ports'
 import { createStudio } from './editors/studio/studio-suite-editor'
+import { createTuner } from './editors/tuner/tuner-suite-editor'
 import { startSuite } from './shell/boot'
 import { createSuite } from './shell/create-suite'
 import { FLOORFIFTY_SAMPLE, samplePorts } from './testing/sample-ports'
 
 // The only file that reaches for the page's globals. Until `automata editor` serves a game's checkout (EDS.1d), the
 // page opens a sample game held in memory, and says so in the top bar. The free build registers the level editors
-// (EDS.2d) and the Studio (EDS.9); the Tuner (EDS.4a) adds its own here.
+// (EDS.2d), the Tuner (EDS.4a) and the Studio (EDS.9).
 
 const target = document.getElementById('app')
 if (target === null) throw new Error('index.html has no #app element')
 
 const editors = [
+  createTuner(),
   createLevels2d({ ids: randomIds((bytes) => crypto.getRandomValues(bytes)) }),
   createLevels3d({
     now: () => Date.now(),
