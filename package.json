@@ -2,6 +2,7 @@
   "name": "@mcthaydt/automata-website",
   "version": "0.0.1",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "sync": "node --import tsx scripts/sync-demos.ts && node --import tsx scripts/sync-api-index.ts && node --import tsx scripts/sync-docs.ts && node --import tsx scripts/sync-playground.ts",
