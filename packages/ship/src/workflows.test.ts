@@ -141,7 +141,9 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
   })
 
   it('passes the same runner to the placeholder through game-ci', () => {
-    expect(ci.jobs.placeholder?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(ci.jobs.placeholder?.with?.runner).toBe(
+      "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
+    )
   })
 
   it.each(['game-ci.yml', 'game-release.yml'])(
@@ -560,7 +562,9 @@ describe('ci.yml (AF)', () => {
     expect(ci.jobs['base-2d']?.uses).toBe('./.github/workflows/game-ci.yml')
     expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('games/emberwick')
     expect(ci.jobs['base-2d']?.with?.['sim-roots']).toBe('src/sim')
-    expect(ci.jobs['base-2d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(ci.jobs['base-2d']?.with?.runner).toBe(
+      "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
+    )
   })
 
   // M3.7a: base-3d's sim is flat in src/ (DESIGN.md §3.1), so the whole folder is its sim root.
@@ -568,7 +572,9 @@ describe('ci.yml (AF)', () => {
     expect(ci.jobs['base-3d']?.uses).toBe('./.github/workflows/game-ci.yml')
     expect(ci.jobs['base-3d']?.with?.['working-directory']).toBe('games/base-3d')
     expect(ci.jobs['base-3d']?.with?.['sim-roots']).toBe('src')
-    expect(ci.jobs['base-3d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(ci.jobs['base-3d']?.with?.runner).toBe(
+      "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
+    )
   })
 
   it('gives each game-ci caller its own artifact name, since one run cannot upload two artifacts of the same name', () => {

@@ -79,6 +79,7 @@ export {
   pickFolder,
   restoreFolder,
 } from '../storage/folder'
+export { createHttpStore, type HttpStoreOptions } from '../storage/http-store'
 export { createMemoryStore } from '../storage/memory-store'
 export { flushOnHide, type LifecycleDocument, type LifecycleWindow } from '../storage/page-lifecycle'
 export {
@@ -96,7 +97,13 @@ export { readStored, type Stored } from '../storage/read-stored'
 export { discardRecovery, findRecovery, type Recovery } from '../storage/recovery'
 export type { SaveState } from '../storage/save-state'
 export { storePathProblem } from '../storage/store-path'
-export { openWorkspace, type Workspace, type WorkspaceEnv } from '../storage/workspace'
+export {
+  openServedWorkspace,
+  openWorkspace,
+  type ServedWorkspaceEnv,
+  type Workspace,
+  type WorkspaceEnv,
+} from '../storage/workspace'
 export {
   createToasts,
   type Toast,

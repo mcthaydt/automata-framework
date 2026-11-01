@@ -21,6 +21,8 @@ export interface HomeController extends ProjectListSource<ProjectEntry, Busy> {
   /** A picked folder's files, each with its path from the folder's name down. */
   importFolder(files: readonly PickedFile[]): Promise<void>
   importZip(file: { readonly name: string; readonly bytes: Uint8Array }): Promise<void>
+  /** Makes a new level called `name` and opens it; a refusal is a toast. */
+  create(name: string): Promise<void>
 }
 
 export interface HomeControllerOptions {
@@ -87,6 +89,15 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
     async importFolder(files) {
       if (files.length === 0) return
       await browser.run('import', async () => settleImport(await app.importFolder(files)))
+    },
+    async create(name) {
+      const made = await app.create(name)
+      if (made.status === 'refused') {
+        toasts.push({ kind: 'error', message: made.message })
+        return
+      }
+      await browser.load()
+      await this.open(made.path)
     },
     importZip: (file) =>
       browser.run('import', async () => settleImport(await app.importZip(file.name, file.bytes))),

@@ -29,5 +29,16 @@
     ],
     "tileSize": 8
   },
-  "tuning": {}
+  "tuning": {
+    "AIR_ACCEL": 46,
+    "BUFFER_TICKS": 5,
+    "COYOTE_TICKS": 6,
+    "GRAVITY": 64,
+    "HALF_GRAVITY_BELOW": 171,
+    "JUMP_SPEED": -448,
+    "MAX_FALL": 683,
+    "MAX_RUN": 384,
+    "RUN_ACCEL": 71,
+    "VAR_JUMP_TICKS": 12
+  }
 }

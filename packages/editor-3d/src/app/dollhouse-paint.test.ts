@@ -2,10 +2,10 @@
 // in canvas pixels, flat-shaded, far to near, the near walls cut away and a faded wall at a quarter, the selection in the
 // accent. Surfaces here are made by hand so each number is plain.
 import { describe, expect, it } from 'vitest'
-import type { Orbit } from '../view/mesh/camera-3d'
+import { type Camera3D, type Orbit, orbitCamera } from '../view/mesh/camera-3d'
 import type { SectorMesh, Surface } from '../view/mesh/sector-mesh'
 import { PLAN_COLORS } from '../view/plan/plan-colors'
-import { dollhousePaint } from './dollhouse-paint'
+import { dollhousePaint, meshPaint } from './dollhouse-paint'
 
 const SIZE = { w: 400, h: 300 }
 
@@ -96,5 +96,34 @@ describe('dollhousePaint', () => {
     const paint = dollhousePaint(meshOf(wall(0, 1)), ORBIT, SIZE, new Set())
     // A quad of two triangles: four outline edges between them (four numbers each), and no diagonal.
     expect(paint.polygons.map((polygon) => polygon.edges.length)).toEqual([8, 8])
+  })
+})
+
+// The Walk view paints through the same list from a first-person camera (ED3D.8b): the eye inside the room, looking north.
+describe('meshPaint from a first-person camera', () => {
+  const EYE: Camera3D = { eye: [1, 1.2, 1.5], yaw: 0, pitch: 0, fov: (60 * Math.PI) / 180 }
+
+  it('draws the wall ahead and not the one behind the eye, and the floor under it', () => {
+    const mesh = meshOf(flat('floor', 0), wall(0, 1), wall(2, -1))
+    const paint = meshPaint(mesh, EYE, SIZE, new Set())
+    expect(paint.polygons.some((polygon) => polygon.role === 'wall')).toBe(true)
+    expect(
+      paint.polygons
+        .filter((polygon) => polygon.role === 'wall')
+        .every((polygon) => polygon.selection === 'wall:room/0'),
+    ).toBe(true)
+    expect(paint.polygons.some((polygon) => polygon.role === 'floor')).toBe(true)
+  })
+
+  it('paints what the orbit paints when given the orbit’s camera', () => {
+    const mesh = meshOf(flat('floor', 0), wall(0, 1))
+    expect(dollhousePaint(mesh, ORBIT, SIZE, new Set())).toEqual(
+      meshPaint(mesh, orbitCamera(ORBIT), SIZE, new Set()),
+    )
+  })
+
+  it('marks the wall the crosshair is on as selected when the editor has it selected', () => {
+    const paint = meshPaint(meshOf(wall(0, 1)), EYE, SIZE, new Set(['wall:room/0']))
+    expect(paint.polygons.every((polygon) => polygon.selected)).toBe(true)
   })
 })

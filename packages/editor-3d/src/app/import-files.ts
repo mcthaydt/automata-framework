@@ -79,7 +79,7 @@ function rooted(paths: readonly string[], fallback: string): { root: string; rel
 }
 
 /** `root`, or the first of `root 2`, `root 3` that is neither a file nor a folder in the store. */
-async function freeRoot(store: ProjectStore, root: string): Promise<string> {
+export async function freeRoot(store: ProjectStore, root: string): Promise<string> {
   const taken = async (name: string): Promise<boolean> =>
     (await statPath(store, name)) !== undefined || (await store.list(`${name}/`)).length > 0
   let free = root
