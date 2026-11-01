@@ -5,9 +5,9 @@ import { createMemoryPorts } from '@mcthaydt/automata-editor-kit/ports/testing'
 // comment, a toggle, a text row and a table the Tuner does not edit.
 
 export const TUNING_FIXTURE: string = `# How the character moves.
-# 90 px/s.
+# Celeste: 90 px/s.
 MAX_RUN = { value = 384, min = 128, max = 768, step = 1 }
-GRAVITY = 64 # 900 px/s²
+GRAVITY = 64 # px/s²
 SCALE = 0.25
 DEBUG = false
 GREETING = "hello"

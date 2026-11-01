@@ -24,7 +24,10 @@ describe('TunerRows', () => {
     render(TunerRows, { controller })
     const maxRun = screen.getByTestId('tuner-row-MAX_RUN')
     expect(within(maxRun).getByRole('slider', { name: /MAX_RUN/ })).toBeTruthy()
-    expect(within(maxRun).getAllByText(/px\/s/).length).toBeGreaterThan(0)
+    // The note says what the number is; the unit comes only from a bare unit comment (GRAVITY's).
+    expect(within(maxRun).getByText('Celeste: 90 px/s.')).toBeTruthy()
+    expect(within(maxRun).queryByText(/384 px\/s/)).toBeNull()
+    expect(within(screen.getByTestId('tuner-row-GRAVITY')).getAllByText(/px\/s²/).length).toBeGreaterThan(0)
     // A bare number with the compiler's bounds has a slider too.
     expect(
       within(screen.getByTestId('tuner-row-GRAVITY')).getByRole('slider', { name: /GRAVITY/ }),
@@ -36,6 +39,14 @@ describe('TunerRows', () => {
       within(screen.getByTestId('tuner-row-GREETING')).getByRole('textbox', { name: /GREETING/ }),
     ).toBeTruthy()
     expect(within(screen.getByTestId('tuner-row-CURVE')).getByText(/Ask only/)).toBeTruthy()
+  })
+
+  it('names the slider and the number box for assistive technology', async () => {
+    const controller = await open()
+    render(TunerRows, { controller })
+    const row = screen.getByTestId('tuner-row-MAX_RUN')
+    expect(within(row).getByRole('slider', { name: /MAX_RUN/ })).toBeTruthy()
+    expect(within(row).getByRole('spinbutton', { name: /MAX_RUN/ })).toBeTruthy()
   })
 
   it('writes a toggle and a text value through the session', async () => {
