@@ -6,10 +6,10 @@ Spec: [2026-11-01-base-3d-art-direction.md](../../../superpowers/specs/2026-11-0
 [`../2026-11-01-base-3d-art-direction/`](../2026-11-01-base-3d-art-direction/).
 
 Each image is Emberwick (2D, left) beside base-3d (this PR, right) at the same viewport. Captured in headless Chromium
-on SwiftShader from production builds (`vite build`) served statically; WebGL2. Recaptured on 2026-11-01 by lane 2 at
-`5287e089` (the 3D half; the 2D half is the earlier capture, Emberwick is unchanged): the view drawn at most 360 px tall
-and nearest-upscaled, the stone coloured per vertex in palette cells, Wick's back fill, the 128 px moon and the blue
-ambient. The capture script (`capture.mjs`: build, serve, New game, wait for tick 5, optional key hold or pause, 1.5 s,
+on SwiftShader from production builds (`vite build`) served statically; WebGL2. Recaptured on 2026-11-01 by lane 2 at `3db0c3f5` (the 3D half; the 2D half is the earlier capture, Emberwick is
+unchanged): the view drawn at most 360 px tall and nearest-upscaled; the stone textured (calmer: no lone specks, solid
+moss clumps, the floor 64 px over 4 m) and lit only by baked vertex light (a moonlit ambient, the moon as a far lamp,
+the mushrooms' and the goal's lamps), with no real-time light at all (the Owner: "no real time"); the 128 px moon. The capture script (`capture.mjs`: build, serve, New game, wait for tick 5, optional key hold or pause, 1.5 s,
 screenshot) and the pairing script (`pair.py`) are in the lane's scratchpad, not committed.
 
 | File | Viewport | 2D | 3D |
@@ -40,13 +40,17 @@ blue with hood points, a cool rim light over his hood and a warm lantern pool. T
 
 - **Floor share.** The 25° camera still looks mostly at the platform tops. They now read as Emberwick's moss and
   blue-violet stone in palette cells, not noise, but they fill more of the frame than the 2D's thin grass strips do.
-- **Wick's face.** From behind he reads in his cloak's blue now; his face and eyes still face away most of the time.
+- **Wick reads as a flat silhouette.** Under baked light a character takes one tint at the chest, so his cloak is
+  one flat blue with no shading or rim; his face is mostly turned away. The reference game gives its player a share of
+  her own carried light; AF's tint has no such share yet.
+- **No lantern pool.** The lantern glows but lights nothing: a moving light is not baked.
 - **The pause button over the moon** (`04`): the button's white icon is lost where the moon sits behind it.
 - **No bloom.** Glow is additive cards (as Emberwick fakes it); there is no bloom filter yet.
 - **2D at phone sizes** crops its bottom row, so Wick is off-screen in `06` and `08` (Emberwick's own framing).
 - **Not measured:** WebGPU (no WebGPU headless here), the GPU runner's frame budget, real devices, hearing the sounds.
 
-G3-x passes with the cap: 18.0, 18.1 and 11.3 s (three runs) and 11.7 s in the full base-3d run, against 32.3 (fail),
+G3-x passes with the cap: 18.0, 18.1 and 11.3 s (three runs) and 11.7 s in the full base-3d run, and 8.0 s once
+the real-time lights were gone, against 32.3 (fail),
 32.2 (fail) and 23.5 s for the same scene uncapped on the same container. The 30 s budget is unchanged.
 
 ## Gates

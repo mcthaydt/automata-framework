@@ -35,13 +35,14 @@ EDS.9) on main for the roll clip.
 
 ## 2. The 2D scene, element by element, and its 3D counterpart
 
-**Revision (2026-11-01, lane 2: vertex colour only):** no stone is textured any more. Platform tops, their sides,
-the walls, pillars, lintel and plinth are cut into cells (0.25 m, 0.5 m down the island sides) and each cell is one
-palette entry (`views/stone.ts`): moss 38–35 in patches over stone 13/12, a rung darker within 0.6 m of an edge, banded
-sides, brick courses 12/11 with a mortar-dark foot (14) and mossy tops. §3.2's `WallOptions.surface` and `tiledCube`
-are replaced by `WallOptions.paint` and `cellCube`; the stone textures of §3.4 and §4.4 are gone. The ambient sky is 41,
-not 11; Wick carries a back fill; the moon is painted at 128 px; the view draws at most 360 px tall
-(`maxInternalHeight`). Why: `docs/spikes/base-3d-art.md`, "What we took from the 3D reference game".
+**Revision (2026-11-01, lane 2: baked vertex light only):** the Owner: "No we still used textures, we only used vertex
+lighting though, no real time". Nothing is lit in real time any more: no moonlight, environment or point lights. The
+stone keeps its painted textures (calmer: no lone specks, solid moss clumps, the floor 64 px over 4 m) on unlit
+materials, its faces cut into half-metre cells, and the night's light (`views/lighting.ts`: a moonlit ambient, the moon
+as a far lamp, a lamp per mushroom cluster and one at the goal) is baked into the vertices once; the occluder walls are
+baked by render-pixi3d. Embers, the lantern, rims and mushrooms glow unlit; Wick takes the bake's light at his chest.
+§4.4's Phong materials and §4.10's light budget no longer apply. The moon is painted at 128 px; the view draws at most
+360 px tall (`maxInternalHeight`). Why: `docs/spikes/base-3d-art.md`, "What we took from the 3D reference game".
 
 **Revision (2026-11-01, the coordinator's second review):** the ruin floats in the open night, so the sky (deep blue 40
 below the horizon, 52 above) fills the frame beside and below the room; walls are low fragments (bays 0.5–1.3 m, pillar
