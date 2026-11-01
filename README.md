@@ -1,8 +1,8 @@
 # automata-plus
 
-AutomataFramework Plus paid extensions.
+AutomataFramework Plus: optional extensions, kits and starters for AutomataFramework.
 
-Private and commercial: see `LICENSE`. Agents start at `AGENTS.md`.
+Free and MIT licensed: see `LICENSE`. Agents start at `AGENTS.md`.
 
 ## Setup
 

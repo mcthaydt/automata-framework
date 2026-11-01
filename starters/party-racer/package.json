@@ -2,7 +2,7 @@
   "name": "party-racer",
   "version": "0.0.0",
   "private": true,
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "test:unit": "vitest run --project node",

@@ -35,15 +35,16 @@ export function plusPackageNames(root: string): Set<string> {
 
 // The manifest rules of a Plus package (PRODUCT.5e, test 5).
 //
-// The license: Plus is commercial, so every manifest points at the LICENSE file rather than naming an open
-// license (P5-D5; the terms are the Owner's decision D-7).
+// The license: Plus is MIT, like the framework (the Owner, 2026-11-01: "MIT"; this replaces P5-D5's commercial
+// notice). Only the editor apps on iOS and Android are paid, and their wrapper code lives in a separate private
+// repository.
 //
 // Core is a peer: a game installs core itself, and a Plus package that depended on its own copy would put two
 // sims (two Kootas) in one install tree. devDependencies may list core for Plus's own tests; until core is on a
 // registry they resolve through the overrides block (P5-D1). Every @mcthaydt name that is not a Plus package is
 // core, the framework's private evidence pack included.
 
-export const PLUS_LICENSE = 'SEE LICENSE IN LICENSE'
+export const PLUS_LICENSE = 'MIT'
 const CORE_SCOPE = '@mcthaydt/'
 const NOT_FOR_CORE = ['dependencies', 'optionalDependencies'] as const
 
@@ -54,9 +55,7 @@ export function manifestProblems(
 ): string[] {
   const problems: string[] = []
   if (manifest.license !== PLUS_LICENSE)
-    problems.push(
-      `${path}: "license" must be "${PLUS_LICENSE}" (P5-D5); found ${JSON.stringify(manifest.license)}`,
-    )
+    problems.push(`${path}: "license" must be "${PLUS_LICENSE}"; found ${JSON.stringify(manifest.license)}`)
   for (const field of NOT_FOR_CORE) {
     const map = manifest[field]
     if (map === undefined) continue

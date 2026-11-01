@@ -1,7 +1,9 @@
 # Automata Plus: Agent Rules
 
-Automata Plus is the paid half of AutomataFramework (AF): extensions in `packages/`, and later kits, starters and
-agent packs (PRODUCT spec §6). Core lives in the framework repository, `mcthaydt/automata-framework`.
+Automata Plus is AutomataFramework's (AF's) optional half: extensions in `packages/`, and later kits, starters and
+agent packs (PRODUCT spec §6). Core lives in the framework repository, `mcthaydt/automata-framework`. Plus is free and
+MIT licensed, like the framework (the Owner, 2026-11-01: "The only thing people have to pay for is the editors on
+mobile"; "MIT, mobile app wrapper code in a private repo").
 
 ## Read first
 
@@ -13,16 +15,14 @@ agent packs (PRODUCT spec §6). Core lives in the framework repository, `mcthayd
    `2026-10-23-product5-plus-repo-and-physics-move.md`) and the PRODUCT spec
    (`docs/superpowers/specs/2026-10-16-product-core-and-plus-design.md`). Record a task's execution log in `docs/` here.
 
-## Paid and private
+## Licence and what is paid
 
-- Plus is paid and private. No Plus source, kit or package goes into the framework or into any public repository,
-  issue, log, package or artifact.
-- The license is `LICENSE`: all rights reserved, used under the Automata Plus commercial terms (the Owner's decision
-  D-7). Every package manifest says `"license": "SEE LICENSE IN LICENSE"` (P5-D5). Never write license, pricing or
-  terms text here that the Owner has not decided.
-- A paid capability is never silently replaced by a weaker free path. When a Plus capability is unavailable it fails
-  and says so; it does not fall back to a core or standalone path behind the player's back (the same rule as the
-  framework's host authority).
+- Plus is MIT licensed (`LICENSE`, copyright Team Automata), and every package manifest says `"license": "MIT"`
+  (`tooling/core/manifest-rules.ts` enforces it). This replaces the earlier commercial terms (D-7, P5-D5).
+- The only paid product is the editor apps on iOS and Android. Their native wrapper code, signing setup and store
+  listings live in a separate private repository, never here or in the framework.
+- An extension that is unavailable fails and says so; it never falls back to a weaker core or standalone path behind
+  the player's back (the same rule as the framework's host authority).
 
 ## Core
 

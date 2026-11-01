@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { manifestProblems, PLUS_LICENSE, workspaceManifestProblems } from './manifest-rules.ts'
 
-// Test 5 (PRODUCT.5e): every Plus package carries the Plus license (P5-D5) and lists core only under
+// Test 5 (PRODUCT.5e): every Plus package carries the Plus license (MIT since the Owner's decision of
+// 2026-11-01, replacing P5-D5's commercial notice) and lists core only under
 // peerDependencies, so a buyer's game supplies the one copy of core (devDependencies resolve through the overrides
 // for Plus's own tests). Plus has no package yet, so the check over the real workspace passes vacuously until 5f
 // brings physics; the cases below pin the rules themselves.
@@ -41,14 +42,18 @@ describe('manifestProblems', () => {
     expect(manifestProblems(PATH, manifest({ dependencies }), PLUS)).toEqual([])
   })
 
+  it('is MIT (the Owner, 2026-11-01: "MIT")', () => {
+    expect(PLUS_LICENSE).toBe('MIT')
+  })
+
   it.each([
     ['missing', undefined],
-    ['MIT', 'MIT'],
+    ['the old commercial notice', 'SEE LICENSE IN LICENSE'],
     ['UNLICENSED', 'UNLICENSED'],
-    ['a near miss', 'SEE LICENSE IN LICENSE.md'],
+    ['a near miss', 'mit'],
   ])('rejects a license that is %s', (_case, license) => {
     expect(manifestProblems(PATH, manifest({ license }), PLUS)).toEqual([
-      `${PATH}: "license" must be "${PLUS_LICENSE}" (P5-D5); found ${JSON.stringify(license)}`,
+      `${PATH}: "license" must be "${PLUS_LICENSE}"; found ${JSON.stringify(license)}`,
     ])
   })
 
@@ -71,7 +76,7 @@ describe('manifestProblems', () => {
   it('reports every problem of one manifest', () => {
     const problems = manifestProblems(
       PATH,
-      manifest({ license: 'MIT', dependencies: { '@mcthaydt/automata-sim': '0.1.0' } }),
+      manifest({ license: 'UNLICENSED', dependencies: { '@mcthaydt/automata-sim': '0.1.0' } }),
       PLUS,
     )
     expect(problems).toHaveLength(2)
@@ -102,9 +107,9 @@ describe('workspaceManifestProblems', () => {
 
   it('checks every package and names the file of each problem', () => {
     write('net', manifest())
-    write('physics', manifest({ name: '@mcthaydt/automata-physics', license: 'MIT' }))
+    write('physics', manifest({ name: '@mcthaydt/automata-physics', license: 'UNLICENSED' }))
     expect(workspaceManifestProblems(temp)).toEqual([
-      `packages/physics/package.json: "license" must be "${PLUS_LICENSE}" (P5-D5); found "MIT"`,
+      `packages/physics/package.json: "license" must be "${PLUS_LICENSE}"; found "UNLICENSED"`,
     ])
   })
 
