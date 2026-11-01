@@ -57,7 +57,8 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
   module, then on palette-only and flat cells); `night.test.ts` asserts painted walls and vertex-coloured stone with no
   texture (failed first). Dropped `paintStone` and the floor, side and wall textures. Cells: 0.25 m on the platform tops
   and walls, 0.5 m down the island sides. New token `mossShade` (38).
-- [ ] 13. Study of the 3D reference game; "what we took and why" in `docs/spikes/base-3d-art.md`; provenance.
+- [x] 13. Study of the 3D reference game (read at `92e6704`, no code copied); "What we took from the 3D reference game"
+  in `docs/spikes/base-3d-art.md`; a provenance row; the spec's lane-2 revision note.
 - [x] 14. The gaps. Wick: the hood rim 1.4 → 2.2 and a cool back fill (`BACK_FILL`, moonlight, 1.1 m up and 0.9 m
   behind him) so his cloak reads in the sprite's blue from behind (`lantern.test.ts` and the budget test changed first,
   seen failing; Wick now carries three lights, still inside the budget of 24). The moon painted at 128 px (test first).

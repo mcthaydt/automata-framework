@@ -74,3 +74,23 @@ must drop the mushroom lights.
 `docs/evidence/owner-visual/2026-11-01-base-3d-art-direction/mockup-{start,channel,ember,goal}.png`: Emberwick's
 gameplay screenshot, #373's current 3D frame at the same camera (not for `ember`), and the spike's frame. Wick in the
 spike is a stand-in (cone and hood); the game keeps its procedural figure.
+
+## What we took from the 3D reference game (art pass lane 2, 2026-11-01)
+
+The Owner: "The pixi 3D game looks amazing, so we can pull insights from that" and "We used the vertex coloring only
+that helped dramatically". The reference game is the Owner's own `@pixi/3d` adventure (recorded in
+`docs/provenance/sources.md`). We read its look profile, its mesh builder, its light and its framebuffer handling; no
+code was copied. What we took, and why:
+
+| Area | What the reference does | What base-3d does now, and why |
+| --- | --- | --- |
+| Surface colour | Surfaces are cut on a half-metre grid so light and colour can sit on vertices; textures are small, matte and posterised to one palette | Vertex colour only: every stone surface is cut into cells (0.25 m on tops and walls, 0.5 m down the sides) and each cell is one Endesga 64 entry (`views/stone.ts`, render-pixi3d `cellCube`). Smooth Gouraud blends read as blur against Emberwick's pixel art, so cells are flat (one colour each), which is the reference's posterised palette carried to geometry. The noisy 32 px tiled textures are gone |
+| Light in steps | Light snaps to steps of 0.1 (an old engine's shade table), so pools read as bands | Colour steps along fixed palette ladders (stone 14 → 11, moss 38 → 35): a platform's edge one rung darker, the sides in bands. The lamps stay real-time point lights (the lantern and the embers move, and the bake takes static lamps only) |
+| Ambient | A cool ambient and a low cool fill on upright surfaces keep walls legible between pools | The ambient sky is a saturated blue (41): under Emberwick's grey-blue (11) the 3D stone read grey; now it keeps the 2D frame's blue |
+| The player's light | The player's carried flame lights her (a share of 0.4), and she must read against the ring around her by 1.1× in brightness or outline | Wick carries his lantern, a stronger cool rim over the hood (2.2) and a cool fill on his back, so his cloak reads in the sprite's blue from behind |
+| Resolution | The framebuffer is capped at 640 × 480 and reaches the screen at whole device pixels | `maxInternalHeight: 360`: the view draws at most 360 px tall at resolution 1 and is nearest-upscaled, which also brings G3-x under its budget |
+| Haze | Linear haze anchored past the camera's focus, so the far end sinks into a tinted colour, never black | Kept: the night's fog already runs from 9 to 30 m into the deep blue the ruin floats in |
+| Glow | Bloom only over set thresholds (white 0.88, warm 0.45) | Not taken yet: AF has no bloom pass (GLSL and WGSL pair needed); additive halo cards stand in (follow-up) |
+| Props and figures | Matte props, a saturation cap, figures with a dark outline | Matte stone (shininess 4); the figures' outline is not taken (procedural figures, a follow-up if Wick still blends in) |
+| Overlays under no-eval | Post filters as hand-written GLSL programs | Not taken: AF's filters must be GLSL + WGSL pairs (ADR 0002) |
+

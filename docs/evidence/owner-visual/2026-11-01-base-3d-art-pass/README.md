@@ -6,12 +6,16 @@ Spec: [2026-11-01-base-3d-art-direction.md](../../../superpowers/specs/2026-11-0
 [`../2026-11-01-base-3d-art-direction/`](../2026-11-01-base-3d-art-direction/).
 
 Each image is Emberwick (2D, left) beside base-3d (this PR, right) at the same viewport. Captured in headless Chromium
-on SwiftShader from production builds (`vite build`) served statically; WebGL2.
+on SwiftShader from production builds (`vite build`) served statically; WebGL2. Recaptured on 2026-11-01 by lane 2 at
+`5287e089` (the 3D half; the 2D half is the earlier capture, Emberwick is unchanged): the view drawn at most 360 px tall
+and nearest-upscaled, the stone coloured per vertex in palette cells, Wick's back fill, the 128 px moon and the blue
+ambient. The capture script (`capture.mjs`: build, serve, New game, wait for tick 5, optional key hold or pause, 1.5 s,
+screenshot) and the pairing script (`pair.py`) are in the lane's scratchpad, not committed.
 
 | File | Viewport | 2D | 3D |
 |---|---|---|---|
 | `01-start.png` | 1280×720 | New game, Wick at the spawn | New game, Wick at the spawn |
-| `02-channel.png` | 1280×720 | Wick at the start (the held jump did not register headless, so this is the start again) | W held 1.7 s: Wick walking toward the first lava channel |
+| `02-channel.png` | 1280×720 | Wick at the start (the held jump did not register headless, so this is the start again) | W held 1.7 s: Wick walking toward the first channel |
 | `03-ember-pickup.png` | 1280×720 | Wick touches the one ember: the end screen ("The ember is yours") | Spawned on the first ember: just taken, the HUD reads 1 |
 | `04-goal.png` | 1280×720 | Spawned beside the ember | Spawned 2.6 m before the goal ember, the moon in the far arch |
 | `05-pause.png` | 1280×720 | Pause panel | Pause panel |
@@ -34,18 +38,16 @@ blue with hood points, a cool rim light over his hood and a warm lantern pool. T
 
 ## Where 3D still falls short (honestly)
 
-- **Saturation.** The 2D frame is a richer mid-blue; the 3D stone still reads grey-blue between the pools of light.
-- **Stone on screen.** The 25° camera looks mostly at the floor, so stone covers more of the frame than the 2D's
-  platforms do, even with the grass and moss.
-- **Wick from behind.** His eyes and face glow face away from the camera most of the time; the hood points read small.
-- **No bloom.** Glow is additive cards (as Emberwick fakes it); there is no real bloom filter (the spike's limits).
-- **Near-field noise.** Close to the camera the 32 px moss reads as busy specks.
+- **Floor share.** The 25° camera still looks mostly at the platform tops. They now read as Emberwick's moss and
+  blue-violet stone in palette cells, not noise, but they fill more of the frame than the 2D's thin grass strips do.
+- **Wick's face.** From behind he reads in his cloak's blue now; his face and eyes still face away most of the time.
+- **The pause button over the moon** (`04`): the button's white icon is lost where the moon sits behind it.
+- **No bloom.** Glow is additive cards (as Emberwick fakes it); there is no bloom filter yet.
 - **2D at phone sizes** crops its bottom row, so Wick is off-screen in `06` and `08` (Emberwick's own framing).
-- **G3-x over budget.** The portrait journey G3-x fails at 31.6–31.7 s (three runs) of its 30 s budget with the
-  full-frame view; the same scene letterboxed passes at 26.6 s. The full-frame view resizes on each rotation. The budget
-  is not raised; this is the coordinator's call. A frame of play itself costs about 115 ms on this software renderer
-  (it was about 190 ms before the island, against #373's 90 ms).
 - **Not measured:** WebGPU (no WebGPU headless here), the GPU runner's frame budget, real devices, hearing the sounds.
+
+G3-x passes with the cap: 18.0, 18.1 and 11.3 s (three runs) and 11.7 s in the full base-3d run, against 32.3 (fail),
+32.2 (fail) and 23.5 s for the same scene uncapped on the same container. The 30 s budget is unchanged.
 
 ## Gates
 
