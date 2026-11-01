@@ -1,14 +1,9 @@
-// games/base-3d: AF's 3D base game, The Cold Kiln (games/base-3d/DESIGN.md), Emberwick's 3D counterpart, as one
-// `defineGame` call (DX.3) that the page starts (GL spec §4.6).
+// games/base-3d: AF's free 3D game, Emberwick in 3D (the rescope spec), as one `defineGame` call (DX.3) that the page
+// starts (GL spec §4.6). Wick walks one room under the angled free-turn camera, takes embers, and rolls across the
+// channels that walking cannot cross to reach the goal ember. The flow, saves and settings follow Emberwick's.
 //
-// Shows (M3.7b part 3): the first slice in 3D. Wick (figure content: the pose library, four clips and a sword)
-// walks the hall and the kiln under the angled camera, which cuts between the rooms' views at the doorway, turns
-// freely, cuts the walls away and fades the pillar; three static props from The Last Light and fog. Shift locks
-// onto the second figure: Wick strafes and aims at it, and the camera frames them both. (Part 4) The flow: a splash,
-// the menu, the room, paused and Settings, and the end screen when Wick picks up the ember in the kiln.
-// Controls (GAME-3D.1h, DESIGN.md §14): WASD, the arrows or the left stick to move; Q and E, the right stick or a
-// drag to turn the camera (or cycle the lock); F to lock; J to attack; L or Shift to shield; Space or K to roll and
-// pick up; R for the item; Escape to pause. On touch, the stick, the drag and five buttons.
+// Controls: WASD, the arrows, the left stick or the touch stick to walk; Q and E, the right stick or a drag to turn the
+// camera; Space, K, A or the Roll button to roll; Escape to pause.
 // Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, @mcthaydt/automata-figures,
 // @mcthaydt/automata-render-pixi3d; @mcthaydt/automata-content (its Vite plugin) and @mcthaydt/automata-ship.
 import '@mcthaydt/automata-render-pixi3d/no-eval'
@@ -18,63 +13,39 @@ import { defineGame, type GameSaves, inputs, keys, startGame } from '@mcthaydt/a
 import { createPixi3dRenderer, figure, render3dExtension } from '@mcthaydt/automata-render-pixi3d'
 import { CameraTurn, STICK_MAX } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { QualityTier } from '@mcthaydt/automata-runtime'
-import { reducedMotion } from '@mcthaydt/automata-ui'
-import { Act, Lock, Move } from './commands.ts'
-import { Block, Breakable, Chest, Door, Hero, Switch, Target } from './components.ts'
+import { Act, Move } from './commands.ts'
+import { Ember, Hero } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
-import { FIRST_SLICE } from './content/first-slice.ts'
-import { KILN } from './content/kiln.ts'
-import { WORLD_SOURCES } from './content/world.ts'
+import { ROOM } from './content/room.ts'
 import * as paraglideRuntime from './paraglide/runtime.js'
 import { cameraTurnUnits, endGroup, moveFromStick } from './screens/controls.ts'
 import { BASE3D_COPY } from './screens/copy.ts'
 import { BASE3D_FLOW } from './screens/flow.ts'
 import { hudExtension } from './screens/hud.extension.ts'
-import { lockInput } from './screens/lock-input.ts'
-import { lockModeExtension } from './screens/lock-mode.extension.ts'
 import { base3dSaves } from './screens/saves.ts'
 import { base3dScreens } from './screens/screens.ts'
 import { base3dSettings } from './screens/settings.ts'
 import { base3dSim } from './state/index.ts'
-import { compileWorld } from './systems/index.ts'
-import { doorView } from './views/doors.ts'
-import { ENEMY_FIGURES, enemyFigureState, enemyView } from './views/enemies.ts'
-import { feelHooks } from './views/feel.ts'
-import {
-  buildArea,
-  buildScene,
-  FOG,
-  figureContent,
-  heroFigureState,
-  inMetres,
-  lockPoint,
-  PROPS,
-  placed,
-  recentred,
-} from './views/index.ts'
-import { pieceView } from './views/pieces.ts'
+import { compileArea } from './systems/index.ts'
+import { emberView } from './views/ember.ts'
+import { buildScene, FOG, figureContent, heroFigureState, inMetres, placed } from './views/index.ts'
 
-// Compiling the areas is boot's content cost (DESIGN.md §13 boot step 3): measured, so G3-u's journey holds it to a
-// budget.
+// Compiling the room is boot's content cost: measured, so G3-u's journey holds it to a budget.
 performance.mark('base-3d:compile-areas:start')
-const WORLD = compileWorld(WORLD_SOURCES)
+const AREA = compileArea(ROOM)
 /** The keys' and touch buttons' labels, in the source language: the input map is data, read once at boot (G3-t). */
 const KEYS = BASE3D_COPY.en.keys
 performance.measure('base-3d:compile-areas', 'base-3d:compile-areas:start')
-/** The game's sim over the world: the first slice, then the Cold Kiln; the sim takes it as data (`base3dSim`). */
-const BASE3D_SIM = base3dSim(WORLD)
+/** The game's sim over the room; the sim takes it as data (`base3dSim`). */
+const BASE3D_SIM = base3dSim(AREA)
 
 /** The keyboard's camera turn, 120° a second (M4-D16): 65,536 × 120 / 360 / 60 ≈ 364 turn units a tick. */
 const KEY_TURN = Math.round((65_536 * 120) / 360 / TICK_HZ)
 
-const idleAct = { slash: false, guard: false, point: false, pickup: false, action: false, item: false }
-
 /**
- * DESIGN.md §14: WASD, the arrows, the left stick and the touch stick move (`move` is the stick, M4-D2); Q and E, the
- * right stick and a camera drag turn the camera, or cycle the lock while locked (`lockInput`); F, LT and the Lock
- * button lock in the player's Lock mode; J, X and the Attack button slash; L, Shift, RB and Shield guard; Space, K, A
- * and Action are the roll and the pick-up; R, Y and Item use the item. Each is its own command, sent every tick (the
- * sim finds the presses); the five touch buttons are the `end` group, all required.
+ * The left stick, WASD and the arrows move (`move` is the stick, M4-D2); Q and E, the right stick and a camera drag turn
+ * the camera; Space, K, A and the Roll button roll. Each is its own command, sent every tick (the sim finds the
+ * press); the one touch button is in the `end` group, required.
  */
 const MOVE = keys(
   Move,
@@ -95,72 +66,26 @@ const TURN = keys(
   { KeyQ: { units: -KEY_TURN }, KeyE: { units: KEY_TURN } },
   { idle: { units: 0 }, touch: false, analog: { drag: true, read: cameraTurnUnits } },
 )
-// `lockInput` replaces the mode with the player's saved one (DESIGN.md §12.2).
-const LOCK = keys(
-  Lock,
-  { KeyF: { down: true, mode: 'toggle' } },
-  {
-    idle: { down: false, mode: 'toggle' },
-    pad: { 6: { down: true, mode: 'toggle' } },
-    labels: { KeyF: KEYS.lock },
-    required: ['KeyF'],
-  },
-)
-const ACT = keys(
+const ROLL_KEYS = keys(
   Act,
-  {
-    KeyJ: { slash: true },
-    KeyL: { guard: true },
-    ShiftLeft: { guard: true },
-    ShiftRight: { guard: true },
-    Space: { action: true, pickup: true },
-    KeyK: { action: true, pickup: true },
-    KeyR: { item: true },
-  },
-  {
-    idle: idleAct,
-    pad: { 2: { slash: true }, 5: { guard: true }, 0: { action: true, pickup: true }, 3: { item: true } },
-    labels: {
-      KeyJ: KEYS.slash,
-      KeyL: KEYS.guard,
-      Space: KEYS.action,
-      KeyR: KEYS.item,
-    },
-    required: ['KeyJ', 'KeyL', 'Space', 'KeyR'],
-  },
+  { Space: { roll: true }, KeyK: { roll: true } },
+  { idle: { roll: false }, pad: { 0: { roll: true } }, labels: { Space: KEYS.roll }, required: ['Space'] },
 )
-export const input = lockInput(
-  endGroup(inputs(MOVE, TURN, LOCK, ACT), {
-    KeyJ: KEYS.slash,
-    KeyL: KEYS.guard,
-    Space: KEYS.action,
-    KeyR: KEYS.item,
-    KeyF: KEYS.lock,
-  }),
-  { KeyQ: -1, KeyE: 1 },
-)
+export const input = endGroup(inputs(MOVE, TURN, ROLL_KEYS), { Space: KEYS.roll })
 
 // The figure content (src/content/figure*), compiled by the content plugin with the figures extension's kinds.
 const { figures, library, motion } = figureContent(content)
 
 /**
- * Sim presentation time in seconds: the last step's tick at 60 Hz. The figures sample their clips on it, because
- * the sim stamps an action's start in ticks (`hero-action.startedAt`), so a pause or a slow frame never runs a clip
- * ahead of the sim.
+ * Sim presentation time in seconds: the last step's tick at 60 Hz. The figure samples its clips on it, because the sim
+ * stamps an action's start in ticks (`hero-action.startedAt`), so a pause or a slow frame never runs a clip ahead of the sim.
  */
 let simTick = 0
 const now = (): number => simTick / TICK_HZ
-/** The targets' rows by sid, for the hero's aim at the one he locks. */
-const targets = new Map<number, { readonly x: number; readonly z: number }>()
-/** The sid of the target Wick locks (0 for none), from his row, for the lock reticle (views/enemies.ts). */
-let lockedSid = 0
 
 const TITLE = BASE3D_COPY.en.title
-/**
- * The camera's heading plugin and its `camera-view` content kind, the Lock mode section in Settings, and the HUD on
- * play.
- */
-const EXTENSIONS = [render3dExtension, lockModeExtension, hudExtension]
+/** The camera's heading plugin and its `camera-view` content kind, and the HUD on play. */
+const EXTENSIONS = [render3dExtension, hudExtension]
 /** The stage, once the renderer has made it: the screens give it the player's graphics quality (M4.4). */
 let stage: { setQuality(tier: QualityTier): void } | undefined
 /** The one slot (state/save.ts): the menu lists it, and play keeps the loaded one saved. One instance for both. */
@@ -183,13 +108,11 @@ export const base3d = defineGame({
   screens: base3dScreens({
     title: TITLE,
     sim: BASE3D_SIM,
-    world: WORLD,
     input,
     extensions: EXTENSIONS,
     saves: saves as GameSaves<unknown>,
     setQuality: (tier) => stage?.setQuality(tier),
   }),
-  preload: PROPS.map((prop) => prop.file),
   createRenderer: (options) =>
     createPixi3dRenderer({
       ...options,
@@ -198,75 +121,27 @@ export const base3d = defineGame({
         return options.setup?.(made)
       },
       fog: FOG,
-      models: PROPS.map((prop) => prop.file),
       views: {
         [Hero.id]: inMetres(
-          figure(figures.wick as FigureDef, {
-            library,
-            motion,
-            now,
-            state: (c) => heroFigureState(c, targets.get(Number(c.hero?.lockTarget ?? 0)), WORLD.moves),
-          }),
+          figure(figures.wick as FigureDef, { library, motion, now, state: (c) => heroFigureState(c) }),
         ),
-        // Every `target` row: a training dummy as the target figure (facing back down the kiln toward the doorway,
-        // −z), and an enemy as its kind's placeholder figure or the Wisp's mask (GAME-3D.1d part 4).
-        [Target.id]: enemyView({
-          dummy: inMetres(figure(figures.target as FigureDef, { library, motion, now }), Math.PI),
-          figures: Object.fromEntries(
-            Object.values(ENEMY_FIGURES).map(({ figure: id }) => [
-              id,
-              inMetres(
-                figure(figures[id] as FigureDef, {
-                  library,
-                  motion,
-                  now,
-                  state: (c) => enemyFigureState(c, WORLD.moves),
-                }),
-              ),
-            ]),
-          ),
-          moves: WORLD.moves,
-          now: () => now() * 1000,
-          locked: () => lockedSid,
-        }),
-        // Each door, closed, as its slab and its kind's marker (G3-r); an open door is not drawn.
-        [Door.id]: doorView(WORLD.areas),
-        // The pieces as placeholder boxes until the art (GAME-3D.1j): they follow the sim's rows.
-        [Switch.id]: pieceView(Switch.id, WORLD.areas),
-        [Block.id]: pieceView(Block.id, WORLD.areas),
-        [Chest.id]: pieceView(Chest.id, WORLD.areas),
-        [Breakable.id]: pieceView(Breakable.id, WORLD.areas),
+        [Ember.id]: emberView,
       },
       camera: {
-        // Every area's views: the areas stand apart in one scene, so an area change is a cut to its entry's view.
-        views: WORLD.areas.flatMap((area) => area.views),
-        initial: 'hall',
+        views: AREA.views,
+        initial: AREA.views[0]?.id ?? 'start',
         follow: Hero.id,
         position: (c) => placed(c.hero),
-        lock: lockPoint,
-        easeHeading: recentred,
       },
-      scene: (view, stage, occluders, _light, models) => {
-        buildScene(view, occluders, models, FIRST_SLICE)
-        buildArea(occluders, KILN)
-        // Shake and sparks from the sim's hits (DESIGN.md §7.6), under the player's reduced-motion preference.
-        const feel = feelHooks(view, stage, () => reducedMotion())
+      scene: (view, _stage, occluders) => {
+        buildScene(view, occluders, ROOM)
         return {
-          draw: (frame) => feel.draw?.(frame),
-          reset: () => feel.reset?.(),
+          draw: () => {},
+          reset: () => {},
           apply(result) {
-            feel.apply?.(result)
             simTick = result.tick
             // The tick the page last drew, for the journeys (G3-x: the rotate cover holds it).
             document.documentElement.dataset.tick = String(result.tick)
-            if (result.render.resync) targets.clear()
-            for (const sid of result.render.removed) targets.delete(sid)
-            for (const row of [...result.render.added, ...result.render.changed]) {
-              const target = row.components[Target.id]
-              if (target !== undefined) targets.set(row.sid, { x: Number(target.x), z: Number(target.z) })
-              const hero = row.components[Hero.id]
-              if (hero !== undefined) lockedSid = Number(hero.lockTarget ?? 0)
-            }
           },
         }
       },

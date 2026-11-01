@@ -32,9 +32,8 @@ describe('the catalog (G3-t)', () => {
 
   it('gives the copy its English words through t()', () => {
     const copy = BASE3D_COPY.en
-    expect(copy.title).toBe('The Cold Kiln')
-    expect(copy.hud.hearts(7, 10)).toBe('Hearts 3.5 of 5')
-    expect(copy.gameOver.continue).toBe('Continue')
-    expect(copy.keys.pickup).toBe('Pick up')
+    expect(copy.title).toBe('Ember Hall')
+    expect(copy.hud.embers(1, 6)).toBe('Embers 1 of 6')
+    expect(copy.keys.roll).toBe('Roll')
   })
 })

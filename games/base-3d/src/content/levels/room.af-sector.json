@@ -1,0 +1,172 @@
+{
+  "format": "af-sector/1",
+  "name": "room",
+  "sectors": [
+    {
+      "id": "start",
+      "floor": 0,
+      "ceiling": 3,
+      "light": 1,
+      "view": "start",
+      "corners": [
+        [-5, 0],
+        [5, 0],
+        [
+          5,
+          8,
+          {
+            "next": "channel-1"
+          }
+        ],
+        [-5, 8]
+      ]
+    },
+    {
+      "id": "channel-1",
+      "floor": -3,
+      "ceiling": 0,
+      "light": 1,
+      "corners": [
+        [
+          -5,
+          8,
+          {
+            "next": "start"
+          }
+        ],
+        [5, 8],
+        [
+          5,
+          10,
+          {
+            "next": "middle"
+          }
+        ],
+        [-5, 10]
+      ]
+    },
+    {
+      "id": "middle",
+      "floor": 0,
+      "ceiling": 3,
+      "light": 1,
+      "view": "middle",
+      "corners": [
+        [
+          -5,
+          10,
+          {
+            "next": "channel-1"
+          }
+        ],
+        [5, 10],
+        [
+          5,
+          18,
+          {
+            "next": "channel-2"
+          }
+        ],
+        [-5, 18]
+      ]
+    },
+    {
+      "id": "channel-2",
+      "floor": -3,
+      "ceiling": 0,
+      "light": 1,
+      "corners": [
+        [
+          -5,
+          18,
+          {
+            "next": "middle"
+          }
+        ],
+        [5, 18],
+        [
+          5,
+          20,
+          {
+            "next": "goal"
+          }
+        ],
+        [-5, 20]
+      ]
+    },
+    {
+      "id": "goal",
+      "floor": 0,
+      "ceiling": 3,
+      "light": 1,
+      "view": "goal",
+      "corners": [
+        [
+          -5,
+          20,
+          {
+            "next": "channel-2"
+          }
+        ],
+        [5, 20],
+        [5, 28],
+        [-5, 28]
+      ]
+    }
+  ],
+  "entityDefs": [
+    {
+      "id": "ember"
+    },
+    {
+      "id": "goal"
+    },
+    {
+      "id": "spawn"
+    }
+  ],
+  "entities": [
+    {
+      "def": "spawn",
+      "id": "spawn",
+      "x": 0,
+      "z": 1.5
+    },
+    {
+      "def": "ember",
+      "id": "ember-1",
+      "x": -3,
+      "z": 3
+    },
+    {
+      "def": "ember",
+      "id": "ember-2",
+      "x": 3,
+      "z": 3
+    },
+    {
+      "def": "ember",
+      "id": "ember-3",
+      "x": -3,
+      "z": 14
+    },
+    {
+      "def": "ember",
+      "id": "ember-4",
+      "x": 3,
+      "z": 14
+    },
+    {
+      "def": "ember",
+      "id": "ember-5",
+      "x": -3,
+      "z": 26
+    },
+    {
+      "def": "goal",
+      "id": "goal",
+      "x": 0,
+      "z": 26
+    }
+  ]
+}

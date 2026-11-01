@@ -6,8 +6,6 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { liveCopy } from './copy.svelte.ts'
 import { BASE3D_COPY, type Base3dCopy } from './copy.ts'
 import EndScreen from './EndScreen.svelte'
-import GameOverScreen from './GameOverScreen.svelte'
-import LockModeSection from './LockModeSection.svelte'
 import SplashScreen from './SplashScreen.svelte'
 
 /** `copy` with every word, and every word a function makes, wrapped in « ». */
@@ -43,14 +41,8 @@ describe('base-3d’s screens’ words (G3-t)', () => {
     document.body.replaceChildren()
   })
   const screens = [
-    ['the splash', () => mount(SplashScreen, { target: document.body, props: { title: '«The Cold Kiln»' } })],
+    ['the splash', () => mount(SplashScreen, { target: document.body, props: { title: '«Ember Hall»' } })],
     ['the end', () => mount(EndScreen, { target: document.body, props: { time: '1:02', onMenu: () => {} } })],
-    [
-      'the game over',
-      () =>
-        mount(GameOverScreen, { target: document.body, props: { onContinue: () => {}, onQuit: () => {} } }),
-    ],
-    ['the Lock mode section', () => mount(LockModeSection, { target: document.body })],
   ] as const
 
   for (const [name, show] of screens)

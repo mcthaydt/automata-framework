@@ -1,5 +1,5 @@
-// The controls (GAME-3D.1h, DESIGN.md §14): G3-F5 (what reaches the sim), G3-aa (the camera settings), and the touch
-// layout's data (five required `end` buttons, the stick, the drag) over the page's own input map.
+// The controls: G3-F5 (what reaches the sim), G3-aa (the camera settings), and the touch layout's data (the required
+// `end` Roll button, the stick, the drag) over the page's own input map.
 import type { AnalogReading } from '@mcthaydt/automata-game'
 import { MAX_TURN_UNITS_PER_STEP } from '@mcthaydt/automata-runtime'
 import { describe, expect, it, vi } from 'vitest'
@@ -63,15 +63,11 @@ describe('the left stick', () => {
   })
 })
 
-describe('the touch layout (DESIGN.md §14.4)', () => {
-  it('has the five buttons, in the end group, all required, named for what they do', () => {
+describe('the touch layout', () => {
+  it('has the one Roll button, in the end group, required', () => {
     expect(input.touch).toBe(true)
     expect(input.touchButtons.map((button) => [button.label, button.side, button.required])).toEqual([
-      ['Lock', 'end', true],
-      ['Attack', 'end', true],
-      ['Shield', 'end', true],
-      ['Action', 'end', true],
-      ['Item', 'end', true],
+      ['Roll', 'end', true],
     ])
   })
 

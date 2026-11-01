@@ -1,85 +1,16 @@
-// base-3d's state (DESIGN.md §3.1, the GL spec's `state.ts`): the plugin that lists every definition, and the
-// starting world (the first slice compiled once, before the sim is made, and the entities the sim starts with).
-// Sim code: `pnpm boundaries` checks it.
+// base-3d's state (the GL spec's `state.ts`): the plugin that lists every definition, and the starting world (the room
+// compiled once, before the sim is made, and the entities the sim starts with). Sim code: `pnpm boundaries` checks it.
 import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3d/sim'
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { Act, Equip, Lock, LockCycle, Move } from '../commands.ts'
-import {
-  Block,
-  Bomb,
-  Breakable,
-  Chain,
-  Chest,
-  Door,
-  Drop,
-  Enemy,
-  Fighter,
-  Hero,
-  HeroAction,
-  HeroControl,
-  Pellet,
-  SlingTarget,
-  Switch,
-  Target,
-} from '../components.ts'
-import { CONTINUE_HEALTH, CombatState, HERO_HALF, HERO_HEALTH, HERO_HEIGHT } from '../constants/index.ts'
-import {
-  AreaEntered,
-  AreaExit,
-  BlockMoved,
-  BombBlast,
-  BossDefeated,
-  BossPhase,
-  CaptainDefeated,
-  ChainHooked,
-  ChestOpened,
-  DoorOpened,
-  DropTaken,
-  EmberTaken,
-  FoeDefeated,
-  HeroDefeated,
-  HitLanded,
-  PieceBroke,
-  ShotFired,
-  SlingTargetHit,
-  SwitchChanged,
-} from '../events.ts'
-import { Dungeon, Freeze, Inventory, Location, Progress } from '../resources.ts'
-import {
-  type Area,
-  areaExit,
-  bombFuse,
-  chainFly,
-  checkWorld,
-  combatFreeze,
-  combatHits,
-  combatMoves,
-  combatStatus,
-  dropsTake,
-  dungeonBlocks,
-  dungeonDoors,
-  dungeonPieces,
-  dungeonSwitches,
-  dungeonVisit,
-  emberTake,
-  enemyBrain,
-  heroAct,
-  heroInput,
-  heroMove,
-  heroView,
-  itemEquip,
-  itemUse,
-  lockAssist,
-  lockSelect,
-  pelletFly,
-  spawnFoes,
-  viewAt,
-  type World,
-} from '../systems/index.ts'
+import { Act, Move } from '../commands.ts'
+import { Ember, Hero, HeroAction, HeroControl } from '../components.ts'
+import { EmberTaken, GoalReached, HeroFell } from '../events.ts'
+import { Location, Progress } from '../resources.ts'
+import { type Area, emberTake, heroInput, heroMove, heroView, viewAt } from '../systems/index.ts'
 
 /**
- * Spawns Wick at the area's spawn, already in its room's view (the first view never latches) and facing away from
- * the camera, with his 4 hearts, and a training dummy at each of the area's target points (DESIGN.md §7).
+ * Spawns Wick at the area's spawn, already in his room's view (the first view never latches) and facing away from the
+ * camera, and an ember at each of the area's ember points and the goal ember at its goal.
  */
 export function spawnArea(sim: Sim, area: Area): void {
   const view = viewAt(area, area.spawn.x, area.spawn.z)
@@ -89,104 +20,36 @@ export function spawnArea(sim: Sim, area: Area): void {
     HeroControl,
     HeroAction,
     [CameraHeading, heading],
-    [Fighter, { side: 0, health: HERO_HEALTH, radius: HERO_HALF, height: HERO_HEIGHT }],
   ])
-  // A fall before he crosses into another room returns him to the spawn, facing as he starts (DESIGN.md §7.8).
+  // A fall before he crosses into another room returns him to the spawn, facing as he starts.
   const place = sim.resource(Location)
   place.returnX = area.spawn.x
   place.returnZ = area.spawn.z
   place.returnFacing = heading.heading
-  for (const parts of spawnFoes(area)) sim.spawn(parts)
+  for (const [index, ember] of area.embers.entries())
+    sim.spawn([[Ember, { x: ember.x, z: ember.z, goal: false, index }]])
+  sim.spawn([[Ember, { x: area.goal.x, z: area.goal.z, goal: true, index: area.embers.length }]])
 }
 
-/**
- * The game over's Continue (DESIGN.md §7.8): after the screens restore the area entrance's snapshot, Wick goes on
- * with 3 hearts, standing, whatever the entrance held. Outside a step, as the save's `apply` is (§12.1).
- */
-export function continueWith3Hearts(sim: Sim): void {
-  for (const { sid } of sim.query(Hero, Fighter))
-    sim.entity(sid)?.set(Fighter, {
-      health: CONTINUE_HEALTH,
-      state: CombatState.idle,
-      stun: 0,
-      move: 0,
-      moveTick: 0,
-      queued: 0,
-      pushTicks: 0,
-      charge: 0,
-    })
-}
-
-/** The first slice's sim (M3 spec §4.7). It depends on render-pixi3d's `camera-heading` plugin for the heading. */
+/** The free game's sim. It depends on render-pixi3d's `camera-heading` plugin for the heading. */
 export const base3dPlugin: PluginDef = definePlugin({
   name: 'base-3d',
   dependsOn: ['camera-heading'],
-  resources: [Progress, Location, Freeze, Inventory, Dungeon],
+  resources: [Progress, Location],
   defs: [
     Hero,
     HeroControl,
     HeroAction,
-    Target,
-    Fighter,
-    Enemy,
-    Drop,
-    Pellet,
-    Bomb,
-    Chain,
-    SlingTarget,
-    Door,
-    Switch,
-    Block,
-    Breakable,
-    Chest,
+    Ember,
     Move,
-    Lock,
-    LockCycle,
     Act,
-    Equip,
     EmberTaken,
-    HeroDefeated,
-    HitLanded,
-    FoeDefeated,
-    DropTaken,
-    CaptainDefeated,
-    BossPhase,
-    BossDefeated,
-    ShotFired,
-    BombBlast,
-    ChainHooked,
-    SlingTargetHit,
-    DoorOpened,
-    SwitchChanged,
-    BlockMoved,
-    ChestOpened,
-    PieceBroke,
-    AreaExit,
-    AreaEntered,
+    GoalReached,
+    HeroFell,
     heroInput,
-    combatFreeze,
-    itemEquip,
-    lockSelect,
-    lockAssist,
-    heroAct,
-    itemUse,
-    dungeonSwitches,
-    dungeonDoors,
-    dungeonPieces,
-    combatStatus,
-    enemyBrain,
-    combatMoves,
-    emberTake,
     heroMove,
-    chainFly,
-    dungeonBlocks,
-    dropsTake,
-    areaExit,
     heroView,
-    dungeonVisit,
-    pelletFly,
-    bombFuse,
-    combatHits,
+    emberTake,
   ],
 })
 
@@ -194,31 +57,21 @@ export const base3dPlugin: PluginDef = definePlugin({
 export interface Base3dSim {
   readonly plugins: readonly PluginDef[]
   readonly seed: number
-  readonly content: World
+  readonly content: Area
   readonly setup: (sim: Sim) => void
 }
 
 /**
- * How the game makes its sim from a compiled world: `main.ts` and the golden replay both start from here, with the
- * first slice (`compileWorld(WORLD_SOURCES)`; the sim takes content as data, never as an import, GL spec §4.5), and
- * a new game starts in its first area. It
- * names no `tickHz`, because `defineGame`'s sim spec has none: the page's sim runs at the sim's default, 60 Hz,
- * which is `TICK_HZ` (the page's test checks it), so the replay steps at the rate the game plays at.
+ * How the game makes its sim from its compiled area: `main.ts` and the golden replay both start from here (the sim takes
+ * content as data, never as an import, GL spec §4.5). It names no `tickHz`, because `defineGame`'s sim spec has none: the
+ * page's sim runs at the sim's default, 60 Hz, which is `TICK_HZ` (the page's test checks it).
  */
-export function base3dSim(world: World): Base3dSim {
-  const [first] = world.areas
-  if (first === undefined) throw new Error('base-3d: the world has no areas')
-  // The content check (G3-p): content the game cannot play stops it at boot, never at play.
-  const issues = checkWorld(world)
-  if (issues.length > 0)
-    throw new Error(
-      `base-3d content check: ${issues.map((issue) => `${issue.area}: ${issue.path} (${issue.rule})`).join('; ')}`,
-    )
+export function base3dSim(area: Area): Base3dSim {
   return {
     // The heading's plugin is render3dExtension's (`main.ts`): `defineGame` adds an extension's sim plugins (RT.EXT1).
     plugins: [base3dPlugin],
     seed: 1,
-    content: world,
-    setup: (sim) => spawnArea(sim, first),
+    content: area,
+    setup: (sim) => spawnArea(sim, area),
   }
 }
