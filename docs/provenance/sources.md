@@ -52,3 +52,9 @@ STANDALONE.2 extends this file to every earlier extraction; until then it holds 
 | Repository | `mcthaydt/AutomataEngine-LegacyV2-` (private) |
 | Commit | `18525fc` |
 | Used | `docs/references/Narrative Architecture.md` (layered storylets; one shared state of facts, relationships, promises and reputations) as design input for `narrative` (row M6.8a; Owner, 2026-10-30: "Steal everything you need to") |
+
+## Original assets made in this repository
+
+| Asset | Made by | Source |
+| --- | --- | --- |
+| `games/base-3d/public/sounds/{ember,goal,roll,fall}.wav` | `games/base-3d/scripts/make-sounds.ts` (sine sweeps, a seeded noise swoosh) | None: original, synthesized from code on 2026-10-31 under the repository's licence; `src/sounds.test.ts` checks the committed files are exactly what the script writes |

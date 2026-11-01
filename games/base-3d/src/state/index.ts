@@ -4,7 +4,7 @@ import { CameraHeading, enterView, START } from '@mcthaydt/automata-render-pixi3
 import { definePlugin, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { Act, Move } from '../commands.ts'
 import { Ember, Hero, HeroAction, HeroControl } from '../components.ts'
-import { EmberTaken, GoalReached, HeroFell } from '../events.ts'
+import { EmberTaken, GoalReached, HeroFell, HeroRolled } from '../events.ts'
 import { Location, Progress } from '../resources.ts'
 import { type Area, emberTake, heroInput, heroMove, heroView, viewAt } from '../systems/index.ts'
 
@@ -46,6 +46,7 @@ export const base3dPlugin: PluginDef = definePlugin({
     EmberTaken,
     GoalReached,
     HeroFell,
+    HeroRolled,
     heroInput,
     heroMove,
     heroView,

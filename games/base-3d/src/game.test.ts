@@ -234,7 +234,10 @@ const GOLDEN_ROUTE: readonly (readonly [TickInput, number])[] = [
   [{ stick: UP, roll: true }, 1],
   [{ stick: UP }, 110],
 ]
-const GOLDEN_HASH = '4a218c05e968f861'
+// Re-recorded for the quality pass (was `4a218c05e968f861`): the schema gained the `hero.rolled` event and the `hero.move` system emits
+// it on the tick a roll starts (the roll's sound plays from it). Nothing else in the sim or the room changed: the route's falls,
+// rolls, embers and goal are the same ticks, and still asserted above.
+const GOLDEN_HASH = 'c735b5acacbbc716'
 
 async function runGolden() {
   const sim = await createSim(GAME_SIM)
@@ -276,8 +279,10 @@ describe('the golden replay (B-a)', () => {
       'ember.taken@59',
       'ember.taken@151',
       'hero.fell@278',
+      'hero.rolled@369',
       'ember.taken@481',
       'ember.taken@571',
+      'hero.rolled@665',
       'ember.taken@769',
       'goal.reached@769',
     ])

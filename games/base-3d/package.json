@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --configLoader runner",
     "build": "vite build --configLoader runner",
+    "sounds": "node scripts/make-sounds.ts",
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src",
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run --configLoader runner",
