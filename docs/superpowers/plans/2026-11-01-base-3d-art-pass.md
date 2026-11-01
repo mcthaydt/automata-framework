@@ -131,3 +131,37 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
   `TURBO_FORCE=true pnpm check` 0; `check-changesets` 17, 0 problems; render-pixi3d `test:parity` 42 passed, 24 skipped
   (`runIf(hasWebGL2)`, headless Firefox); base-3d `test:parity` 96/96; `build:examples` 0, `build:demos` 0; base-3d e2e
   7/7, G3-x 8.2 s. Route golden `c735b5acacbbc716` unchanged.
+
+## HANDOFF (lane 2, session_01QYLU1iRHT7V45nkE1aT4Lg, 2026-11-01, stopped on the Owner's "Stop everything for now")
+
+The coordinator's stop reached this lane late (the cross-session queue), after 12b was pushed; nothing is half done and
+both branches are clean.
+
+**Branches**
+- `claude/3d-art-pass` (draft #377, base main, main merged at `3db79a29`): head `7d97ee8d` before this handoff commit.
+- `claude/content-browser-entry` (draft #383, base main): head `46478034`. Content's browser-safe `/schema` and
+  `/palette` entries; figures, render-pixi3d and Emberwick import them; base-3d's dev server boots. It also adds the
+  `./palette` entry that #377 adds (identical), so whichever merges second merges cleanly or with a trivial conflict.
+
+**Done on #377 (lane 2)**: the resolution cap (`maxInternalHeight` 360); "vertex colour only" built then reverted on the
+Owner's correction; baked vertex light only, textures kept (12b); calmer textures; the 128 px moon; the study of the 3D
+reference game and its provenance row; same-moment images recaptured at `3db0c3f5`.
+
+**Gates (head `7d97ee8d`)**: `TURBO_FORCE=true pnpm check` 0; `pnpm build` 0; api-report updated; check-changesets 17, 0
+problems; render-pixi3d parity 42 passed, 24 skipped (no WebGL2 in headless Firefox here); base-3d parity 96/96;
+`build:examples` and `build:demos` 0; base-3d e2e 7/7, G3-x 8.2 s (budget 30 s, unchanged). Route golden
+`c735b5acacbbc716` unchanged; the sim untouched. Pending: the Mac's CI, the GPU probe, WebGPU.
+
+**J2 (the Owner plays base-3d on the iPad)**: on #383's branch, the dev server boots to play with no page error in
+WebKit (iPad landscape) and Chromium, verified by the committed `games/base-3d/e2e-dev` journey against a real
+`vite dev`; a production build boots in WebKit with no page error (checked by hand, `vite build` + `vite preview`), and
+the production journeys pass in Chromium. Not verified on a real iPad. #377 does not carry the dev-server fix: merge
+#383 first.
+
+**Next**
+1. Merge #383 (J2 blocker), then merge main into #377.
+2. Wick reads as a flat tinted silhouette under baked light: add a carried-light share to the character tint (the 3D
+   reference game gives its player 0.4 of her own light), or a lit figure material; then the lantern's pool.
+3. The pause icon over the moon (`04-goal.png`); an AF bloom pass (GLSL + WGSL); Emberwick onto the shared palette.
+4. The coordinator could not be reached from this session (`elevated_session_untrusted_device`): the ready lines for
+   #383 and #377 are in their PR bodies.
