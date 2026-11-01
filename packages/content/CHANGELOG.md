@@ -1,5 +1,35 @@
 # @mcthaydt/automata-content
 
+## 0.0.5
+
+### Patch Changes
+
+- 3a22b55: The Vite plugin defines `__AUTOMATA_DEBUG__` for the game: true in the dev server and in a build made with `AUTOMATA_DEBUG=1` (`automata build --debug`), false in a release build, so a block a game guards with it is dropped from what ships.
+- 6d60a91: The packages import nothing of Ruken's outside a `ruken/` folder (DIST.3a, ADR 0006).
+  
+  - `@mcthaydt/automata-content` owns the game config (`GameConfig`, `gameConfigSchema`, `RENDERERS`, `ORIENTATIONS`,
+    `INPUTS`, `RATINGS`, `LEADERBOARD_ORDERS`, `GAME_ID_PATTERN`), also from the browser-safe
+    `@mcthaydt/automata-content/game-config` entry. The keys are Ruken's manifest names, unchanged, and a test holds
+    AF's lists to Ruken's.
+  - `ShipConfig` extends that `GameConfig`. `game.sdk` is optional; `prepare --target ruken` refuses a config without
+    it, through Ruken's own parser. Every existing `ship.config.ts` type-checks unchanged.
+  - `defineExtension`'s `GameConfig` and `defineGame`'s id check use the game config.
+  - `ui` and `testing` take their host types (`DisplayMetricsPayload`, `FullscreenRes`, `ErrorCode`) from
+    `@mcthaydt/automata-host`, and no longer vendor Ruken's declarations. `game` no longer vendors Ruken's `SLUG_RE`.
+  - `RuntimeTest` (Ruken's fake host) and the Ruken-backed tests move under `ruken/` folders, as do ship's Ruken
+    target (`targets/ruken/`) and its itch target (`targets/itch/`). The public entry points are unchanged.
+  
+  BREAKING: `ShipConfig` is now `GameConfig & { itch?, audience? }` from `@mcthaydt/automata-content/game-config`, with the
+  same keys; `game.sdk` is optional, so code that reads `config.game.sdk` must handle `undefined`. `defineExtension`'s
+  `GameConfig` is `Pick<GameConfig, 'game' | 'runtime' | 'content'>` from the same entry. `ui`'s `ErrorCode` is
+  `@mcthaydt/automata-host`'s `ErrorCode`, the same ten codes. The published `ui`, `game` and `testing` packages no
+  longer ship `dist/vendor/` copies of Ruken's declarations or `SLUG_RE`.
+- de363d9: The packages are MIT licensed: each has `"license": "MIT"` and a `LICENSE` file. Third-party code, fonts and artwork
+  keep their own terms; see `LICENSE-SCOPE.md` in the repository.
+- bd91af2: The `paraglide` option compiles a game's catalogs when the game builds with `vite build --configLoader runner`: Paraglide is loaded with Node's own `require` instead of `import()`, which Vite's module runner rewrites and has closed by the time the content compiles ("Vite module runner has been closed").
+- Updated dependencies [de363d9]
+  - @mcthaydt/automata-sim@0.0.5
+
 ## 0.0.4
 
 ### Patch Changes

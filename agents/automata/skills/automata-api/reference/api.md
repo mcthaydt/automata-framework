@@ -1,6 +1,6 @@
-# Automata API reference, version 0.0.4
+# Automata API reference, version 0.0.5
 
-> Every export of every published `@mcthaydt/automata-*` entry point at version 0.0.4, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
+> Every export of every published `@mcthaydt/automata-*` entry point at version 0.0.5, generated from the published `.d.ts` files. An export that is not listed here does not exist in this version.
 
 ## `@mcthaydt/automata`
 

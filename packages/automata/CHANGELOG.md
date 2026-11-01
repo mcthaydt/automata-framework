@@ -1,5 +1,21 @@
 # @mcthaydt/automata
 
+## 0.0.5
+
+### Patch Changes
+
+- e6c5c3e: `keys()` takes an `analog` option (the sticks and the camera drag added to the held keys' payload), `InputMap` gains `touchStick` and `toCommand`'s optional third parameter, `TouchButton` an optional `side`, and the default play screen draws the camera-drag surface and the touch stick when the map asks for them.
+  
+  BREAKING: `InputMap` gains the required `touchStick` (only `keys()` and `inputs()` build one), `KeysOptions` gains the optional `analog`, `TouchButton` the optional `side`, and `ScreensCopy.play` gains the required `move` (the stick's accessible name; `DEFAULT_SCREENS_COPY` has it, a game that spells out the whole `play` object adds it).
+- de363d9: The packages are MIT licensed: each has `"license": "MIT"` and a `LICENSE` file. Third-party code, fonts and artwork
+  keep their own terms; see `LICENSE-SCOPE.md` in the repository.
+- Updated dependencies [6d60a91]
+- Updated dependencies [e6c5c3e]
+- Updated dependencies [3abd0e6]
+- Updated dependencies [de363d9]
+  - @mcthaydt/automata-game@0.0.5
+  - @mcthaydt/automata-sim@0.0.5
+
 ## 0.0.4
 
 ### Patch Changes

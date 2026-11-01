@@ -1,5 +1,51 @@
 # @mcthaydt/automata-game
 
+## 0.0.5
+
+### Patch Changes
+
+- 6d60a91: The packages import nothing of Ruken's outside a `ruken/` folder (DIST.3a, ADR 0006).
+  
+  - `@mcthaydt/automata-content` owns the game config (`GameConfig`, `gameConfigSchema`, `RENDERERS`, `ORIENTATIONS`,
+    `INPUTS`, `RATINGS`, `LEADERBOARD_ORDERS`, `GAME_ID_PATTERN`), also from the browser-safe
+    `@mcthaydt/automata-content/game-config` entry. The keys are Ruken's manifest names, unchanged, and a test holds
+    AF's lists to Ruken's.
+  - `ShipConfig` extends that `GameConfig`. `game.sdk` is optional; `prepare --target ruken` refuses a config without
+    it, through Ruken's own parser. Every existing `ship.config.ts` type-checks unchanged.
+  - `defineExtension`'s `GameConfig` and `defineGame`'s id check use the game config.
+  - `ui` and `testing` take their host types (`DisplayMetricsPayload`, `FullscreenRes`, `ErrorCode`) from
+    `@mcthaydt/automata-host`, and no longer vendor Ruken's declarations. `game` no longer vendors Ruken's `SLUG_RE`.
+  - `RuntimeTest` (Ruken's fake host) and the Ruken-backed tests move under `ruken/` folders, as do ship's Ruken
+    target (`targets/ruken/`) and its itch target (`targets/itch/`). The public entry points are unchanged.
+  
+  BREAKING: `ShipConfig` is now `GameConfig & { itch?, audience? }` from `@mcthaydt/automata-content/game-config`, with the
+  same keys; `game.sdk` is optional, so code that reads `config.game.sdk` must handle `undefined`. `defineExtension`'s
+  `GameConfig` is `Pick<GameConfig, 'game' | 'runtime' | 'content'>` from the same entry. `ui`'s `ErrorCode` is
+  `@mcthaydt/automata-host`'s `ErrorCode`, the same ten codes. The published `ui`, `game` and `testing` packages no
+  longer ship `dist/vendor/` copies of Ruken's declarations or `SLUG_RE`.
+- e6c5c3e: `keys()` takes an `analog` option (the sticks and the camera drag added to the held keys' payload), `InputMap` gains `touchStick` and `toCommand`'s optional third parameter, `TouchButton` an optional `side`, and the default play screen draws the camera-drag surface and the touch stick when the map asks for them.
+  
+  BREAKING: `InputMap` gains the required `touchStick` (only `keys()` and `inputs()` build one), `KeysOptions` gains the optional `analog`, `TouchButton` the optional `side`, and `ScreensCopy.play` gains the required `move` (the stick's accessible name; `DEFAULT_SCREENS_COPY` has it, a game that spells out the whole `play` object adds it).
+- 3abd0e6: The default Paused screen shows its "reconnect your controller" line under the menu, as it does the save lines, so on a short screen at TV scale (780 x 270) the actions stay on screen and the line scrolls. The line now shows on the menu only, not on the quit confirm. Core's layout contract covers the reconnect variant.
+- de363d9: The packages are MIT licensed: each has `"license": "MIT"` and a `LICENSE` file. Third-party code, fonts and artwork
+  keep their own terms; see `LICENSE-SCOPE.md` in the repository.
+- Updated dependencies [3a22b55]
+- Updated dependencies [cfb2cf0]
+- Updated dependencies [6d60a91]
+- Updated dependencies [b112a01]
+- Updated dependencies [bb98b8b]
+- Updated dependencies
+- Updated dependencies [de363d9]
+- Updated dependencies [bd91af2]
+- Updated dependencies [ad11ae6]
+- Updated dependencies [94d3212]
+  - @mcthaydt/automata-content@0.0.5
+  - @mcthaydt/automata-host@0.0.5
+  - @mcthaydt/automata-ui@0.0.5
+  - @mcthaydt/automata-runtime@0.0.5
+  - @mcthaydt/automata-render-pixi@0.0.5
+  - @mcthaydt/automata-sim@0.0.5
+
 ## 0.0.4
 
 ### Patch Changes

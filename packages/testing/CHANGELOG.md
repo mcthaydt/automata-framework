@@ -1,5 +1,47 @@
 # @mcthaydt/automata-testing
 
+## 0.0.5
+
+### Patch Changes
+
+- 6d60a91: The packages import nothing of Ruken's outside a `ruken/` folder (DIST.3a, ADR 0006).
+  
+  - `@mcthaydt/automata-content` owns the game config (`GameConfig`, `gameConfigSchema`, `RENDERERS`, `ORIENTATIONS`,
+    `INPUTS`, `RATINGS`, `LEADERBOARD_ORDERS`, `GAME_ID_PATTERN`), also from the browser-safe
+    `@mcthaydt/automata-content/game-config` entry. The keys are Ruken's manifest names, unchanged, and a test holds
+    AF's lists to Ruken's.
+  - `ShipConfig` extends that `GameConfig`. `game.sdk` is optional; `prepare --target ruken` refuses a config without
+    it, through Ruken's own parser. Every existing `ship.config.ts` type-checks unchanged.
+  - `defineExtension`'s `GameConfig` and `defineGame`'s id check use the game config.
+  - `ui` and `testing` take their host types (`DisplayMetricsPayload`, `FullscreenRes`, `ErrorCode`) from
+    `@mcthaydt/automata-host`, and no longer vendor Ruken's declarations. `game` no longer vendors Ruken's `SLUG_RE`.
+  - `RuntimeTest` (Ruken's fake host) and the Ruken-backed tests move under `ruken/` folders, as do ship's Ruken
+    target (`targets/ruken/`) and its itch target (`targets/itch/`). The public entry points are unchanged.
+  
+  BREAKING: `ShipConfig` is now `GameConfig & { itch?, audience? }` from `@mcthaydt/automata-content/game-config`, with the
+  same keys; `game.sdk` is optional, so code that reads `config.game.sdk` must handle `undefined`. `defineExtension`'s
+  `GameConfig` is `Pick<GameConfig, 'game' | 'runtime' | 'content'>` from the same entry. `ui`'s `ErrorCode` is
+  `@mcthaydt/automata-host`'s `ErrorCode`, the same ten codes. The published `ui`, `game` and `testing` packages no
+  longer ship `dist/vendor/` copies of Ruken's declarations or `SLUG_RE`.
+- b112a01: AF's own fake host (DIST.4, DIST spec §7). `@mcthaydt/automata-testing/host` exports `FakeHosting` (a layer giving
+  `Hosting` and `FakeHostControl`) and `fakeHosting` (its control handle and a `make` for boot). They implement AF's host
+  contract in process for the `web`, `itch`, `ruken` and `tauri` targets: each target's kind, name, grants and error codes,
+  deferred readiness, schema-checked host changes, planned failures, held calls for timeouts, consent, menu and close.
+  
+  `@mcthaydt/automata-host/contract-suite` publishes the `Hosting` contract's Vitest cases (`describeHostingContract`), which
+  every adapter and the fake pass; `vitest` is an optional peer of `host`.
+  
+  The runtime takes `seams.hosting`: a function that builds the game's `Hosting` in place of the build target's adapter,
+  for example `fakeHosting().make`. A game's tests can boot on any target without Ruken's fake host.
+- de363d9: The packages are MIT licensed: each has `"license": "MIT"` and a `LICENSE` file. Third-party code, fonts and artwork
+  keep their own terms; see `LICENSE-SCOPE.md` in the repository.
+- Updated dependencies [cfb2cf0]
+- Updated dependencies [b112a01]
+- Updated dependencies [bb98b8b]
+- Updated dependencies [de363d9]
+  - @mcthaydt/automata-host@0.0.5
+  - @mcthaydt/automata-sim@0.0.5
+
 ## 0.0.4
 
 ### Patch Changes
