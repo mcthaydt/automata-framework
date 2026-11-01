@@ -55,18 +55,24 @@ const set = (event: { phase: string }): boolean => event.phase === 'set' || even
   <div class="clip" data-testid="studio-clip">
     <h2>{entry?.id}</h2>
     <Stepper label="Length" value={clip.length} min={0.05} step={0.05} unit="s" onedit={(event) => set(event) && void controller.setClipLength(event.value)} />
-    <Segmented
-      label="Loop"
-      value={clip.loop}
-      options={[{ id: 'once', label: 'Once' }, { id: 'loop', label: 'Loop' }, { id: 'pingpong', label: 'Ping-pong' }, { id: 'hold', label: 'Hold' }]}
-      onedit={(event) => void controller.setClipLoop(event.value as typeof clip.loop)}
-    />
-    <Segmented
-      label="Mode"
-      value={clip.mode ?? 'override'}
-      options={[{ id: 'override', label: 'Override' }, { id: 'additive', label: 'Additive' }]}
-      onedit={(event) => void controller.setClipMode(event.value === 'override' ? undefined : (event.value as 'additive'))}
-    />
+    <div class="labelled">
+      <span class="name">Loop</span>
+      <Segmented
+        label="Loop"
+        value={clip.loop}
+        options={[{ id: 'once', label: 'Once' }, { id: 'loop', label: 'Loop' }, { id: 'pingpong', label: 'Ping-pong' }, { id: 'hold', label: 'Hold' }]}
+        onedit={(event) => void controller.setClipLoop(event.value as typeof clip.loop)}
+      />
+    </div>
+    <div class="labelled">
+      <span class="name">Mode</span>
+      <Segmented
+        label="Mode"
+        value={clip.mode ?? 'override'}
+        options={[{ id: 'override', label: 'Override' }, { id: 'additive', label: 'Additive' }]}
+        onedit={(event) => void controller.setClipMode(event.value === 'override' ? undefined : (event.value as 'additive'))}
+      />
+    </div>
     <Chips
       label="Body groups it owns"
       mode="multi"
@@ -187,5 +193,13 @@ const set = (event: { phase: string }): boolean => event.phase === 'set' || even
   .none {
     margin: 0;
     color: var(--color-text-dim);
+  }
+  .labelled {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .name {
+    color: var(--color-text-dim);
+    font: var(--text-label-12);
   }
 </style>

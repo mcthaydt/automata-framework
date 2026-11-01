@@ -1,6 +1,15 @@
-import { ROOM } from '@af-examples/base-2d/room'
 import { describe, expect, it } from 'vitest'
 import { roomSchema } from './room.schema.ts'
+
+// A small valid room: walls round 40 × 8 tiles, Wick on the floor (P) and the ember (G) in the air.
+const WALL = '#'.repeat(40)
+const AIR = `#${'.'.repeat(38)}#`
+const at = (row: string, column: number, tile: string): string =>
+  `${row.slice(0, column)}${tile}${row.slice(column + 1)}`
+const ROOM = {
+  tileSize: 8,
+  rows: [WALL, at(AIR, 20, 'G'), AIR, AIR, AIR, AIR, at(AIR, 3, 'P'), WALL],
+}
 
 const issues = (rows: readonly string[]) => {
   const result = roomSchema.schema.safeParse({ id: 'room', tileSize: ROOM.tileSize, rows })

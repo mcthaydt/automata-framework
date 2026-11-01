@@ -1,19 +1,22 @@
 import type { Command, Sim, StepResult } from '@mcthaydt/automata-sim'
 import { createBaseSim, moveCommand } from './base-sim.ts'
-import { parseRoom, ROOM, type Room, type RoomSource } from './content/room.ts'
+import { parseRoom, type Room, type RoomSource } from './content/room.ts'
 import { createInputDevices } from './input/devices.ts'
 import { type Held, toMove } from './input/keys.ts'
 import { createLoop } from './loop.ts'
 import { createRenderer, type Renderer, type RendererLayer } from './render/renderer.ts'
+import type { Tuning } from './sim/tuning.ts'
 
 // The room, playable, with nothing around it: what a feature demo starts from (examples/README.md). The base's
 // own game (game.ts) adds the splash, menu, pause and end screens; a demo gets the room, the character, input
 // and the loop, and adds only the thing it shows.
 
 export interface PlayRoomOptions {
-  /** The room to play. Default: the base's room. */
-  readonly room?: RoomSource
-  /** Makes each sim. Default: `createBaseSim({ room })`; a demo passes its own to add plugins. */
+  /** The room to play: the base's is compiled from `content/` (`content/emberwick-content.ts`); a demo brings its own. */
+  readonly room: RoomSource
+  /** The tunables: `content/tuning.toml`'s, which a demo with its own content has too. */
+  readonly tuning: Tuning
+  /** Makes each sim. Default: `createBaseSim({ room, tuning })`; a demo passes its own to add plugins. */
   readonly createSim?: (room: RoomSource) => Promise<Sim>
   /** The demo's own commands for the coming step, sent with the base's `move`. */
   readonly commands?: (sim: Sim) => readonly Command[]
@@ -53,7 +56,7 @@ export interface PlaySeams {
 }
 
 /** Puts the room in `root` and returns it stopped: call `start()` to play. */
-export async function playRoom(root: HTMLElement, options: PlayRoomOptions = {}): Promise<PlayRoom> {
+export async function playRoom(root: HTMLElement, options: PlayRoomOptions): Promise<PlayRoom> {
   root.insertAdjacentHTML(
     'afterbegin',
     `<div class="stage-box"></div>
@@ -103,9 +106,9 @@ export async function playRoom(root: HTMLElement, options: PlayRoomOptions = {})
   }
 }
 
-export async function createPlay(seams: PlaySeams, options: PlayRoomOptions = {}): Promise<PlayRoom> {
-  const makeSim = options.createSim ?? ((room: RoomSource) => createBaseSim({ room }))
-  let source = options.room ?? ROOM
+export async function createPlay(seams: PlaySeams, options: PlayRoomOptions): Promise<PlayRoom> {
+  const makeSim = options.createSim ?? ((room: RoomSource) => createBaseSim({ room, tuning: options.tuning }))
+  let source = options.room
   // Every renderer, the first and each one a new room brings, draws the demo's layers. A renderer being
   // replaced gives them back first: destroying it destroys everything still in it.
   const withLayers = async (room: RoomSource) => {

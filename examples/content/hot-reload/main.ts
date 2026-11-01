@@ -17,6 +17,7 @@ import '@af-examples/base-2d/style.css'
 import './content-panel.css'
 import { content, contentHash } from 'virtual:automata/content'
 import { type PlayRoom, playRoom } from '@af-examples/base-2d/play'
+import { tuning } from '@af-examples/base-2d/sim'
 import { makeHosting } from '@mcthaydt/automata-host/target'
 import { Effect } from 'effect'
 
@@ -89,7 +90,9 @@ const program = Effect.gen(function* () {
   const hosting = yield* makeHosting({ gameId: GAME_ID, wants: [], pauseBehavior: 'pause' })
   yield* hosting.ready
   // Nothing was drawn before this line: the page stays empty until the host says ready.
-  const play = yield* Effect.promise(() => playRoom(root, { room: content.room }))
+  const play = yield* Effect.promise(() =>
+    playRoom(root, { room: content.room, tuning: tuning.tuningFrom(content.tuning) }),
+  )
   root.append(problems)
   showContent(contentHash)
   followSaves(play)

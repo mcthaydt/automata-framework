@@ -1,24 +1,27 @@
 // Sets up the base's sim: the room as content, the plugin, and the character at the room's start. Demos and
 // games start from here (`@af-examples/base-2d`), then add their own plugins.
 import { type Command, createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { parseRoom, ROOM, type RoomSource } from './content/room.ts'
+import { parseRoom, type RoomSource } from './content/room.ts'
 import { base2dPlugin, type MoveInput, Player } from './sim/index.ts'
 import { placeWick } from './sim/place-wick.ts'
-import { TICK_HZ } from './sim/tuning.ts'
+import { TICK_HZ, type Tuning } from './sim/tuning.ts'
 
 export interface BaseSimOptions {
   readonly seed?: number
-  readonly room?: RoomSource
+  /** The room to play: the base's is compiled from `content/` (`content/emberwick-content.ts`). */
+  readonly room: RoomSource
+  /** The tunables: `content/tuning.toml`'s, in the sim's content. */
+  readonly tuning: Tuning
   /** Extra plugins a demo adds on top of the base. */
   readonly plugins?: readonly PluginDef[]
 }
 
-export async function createBaseSim(options: BaseSimOptions = {}): Promise<Sim> {
-  const room = parseRoom(options.room ?? ROOM)
+export async function createBaseSim(options: BaseSimOptions): Promise<Sim> {
+  const room = parseRoom(options.room)
   const sim = await createSim({
     seed: options.seed ?? 1,
     tickHz: TICK_HZ,
-    content: { room },
+    content: { room, tuning: options.tuning },
     plugins: [base2dPlugin, ...(options.plugins ?? [])],
   })
   placeWick(sim, room)

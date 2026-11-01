@@ -1,11 +1,16 @@
 import type { Sim, StepResult } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
+import { ROOM } from '../fixtures/hand-written-room.ts'
+import { HAND_WRITTEN_TUNING } from '../fixtures/hand-written-tuning.ts'
 import { createBaseSim, readPlayer } from './base-sim.ts'
-import { ROOM, type Room, type RoomSource } from './content/room.ts'
+import type { Room, RoomSource } from './content/room.ts'
 import type { Held } from './input/keys.ts'
 import { STEP_MS } from './loop.ts'
 import { createPlay, type PlaySeams } from './play-room.ts'
 import type { Renderer, RendererLayer } from './render/renderer.ts'
+
+/** What every play needs: the room and the tunables (the hand-written ones; the compiled ones are held equal in `content/level-room.test.ts`). */
+const base = { room: ROOM, tuning: HAND_WRITTEN_TUNING }
 
 /** A renderer that records what it was given instead of drawing. */
 function fakeRenderer(room: Room) {
@@ -84,7 +89,7 @@ function trackedSims() {
   const sims: Sim[] = []
   const disposed = new Set<Sim>()
   const createSim = async (room: RoomSource) => {
-    const sim = await createBaseSim({ room })
+    const sim = await createBaseSim({ room, tuning: HAND_WRITTEN_TUNING })
     const dispose = sim.dispose.bind(sim)
     sim.dispose = () => {
       disposed.add(sim)
@@ -100,7 +105,7 @@ describe('createPlay', () => {
   it('steps the sim with the held input and hands each result to the demo', async () => {
     const s = seams()
     const results: StepResult[] = []
-    const play = await createPlay(s.play, { onStep: (result) => results.push(result) })
+    const play = await createPlay(s.play, { ...base, onStep: (result) => results.push(result) })
     const startX = readPlayer(play.sim()).x
     play.start()
     for (let i = 0; i < 10; i++) s.frame()
@@ -114,6 +119,7 @@ describe('createPlay', () => {
     const s = seams()
     const rejected: string[] = []
     const play = await createPlay(s.play, {
+      ...base,
       commands: (sim) => [{ tick: sim.tick, source: 0, seq: sim.tick + 1000, type: 'nothing', payload: {} }],
       onStep: (result) => rejected.push(...result.rejected.map((each) => each.command.type)),
     })
@@ -127,7 +133,7 @@ describe('createPlay', () => {
   it("adds the demo's layers to the renderer, and to the new one when the room changes", async () => {
     const s = seams()
     const layer = { view: {} } as RendererLayer
-    const play = await createPlay(s.play, { layers: [layer] })
+    const play = await createPlay(s.play, { ...base, layers: [layer] })
     expect(s.renderers[0]?.layers).toEqual([layer])
     await play.restart(shifted)
     expect(s.renderers[1]?.layers).toEqual([layer])
@@ -138,7 +144,7 @@ describe('createPlay', () => {
 
   it('stops and starts without losing the sim', async () => {
     const s = seams()
-    const play = await createPlay(s.play)
+    const play = await createPlay(s.play, base)
     play.start()
     s.frame()
     play.stop()
@@ -153,7 +159,7 @@ describe('createPlay', () => {
 
   it('restarts on a fresh sim, and on a new renderer only when the room changed', async () => {
     const s = seams()
-    const play = await createPlay(s.play)
+    const play = await createPlay(s.play, base)
     const first = play.sim()
     play.start()
     s.frame()
@@ -172,7 +178,7 @@ describe('createPlay', () => {
 
   it('skips a restart that a newer one overtook, making nothing for it', async () => {
     const s = seams()
-    const play = await createPlay(s.play)
+    const play = await createPlay(s.play, base)
     const older = play.restart(shifted)
     const newer = play.restart()
     await Promise.all([older, newer])
@@ -184,7 +190,7 @@ describe('createPlay', () => {
 
   it('stays stopped after a restart when it was stopped', async () => {
     const s = seams()
-    const play = await createPlay(s.play)
+    const play = await createPlay(s.play, base)
     await play.restart()
     expect(play.running()).toBe(false)
     play.destroy()
@@ -199,7 +205,7 @@ describe('createPlay', () => {
         resets++
       },
     } as RendererLayer
-    const play = await createPlay(s.play, { layers: [layer] })
+    const play = await createPlay(s.play, { ...base, layers: [layer] })
     await play.restart(shifted)
     expect(resets).toBe(1)
     play.destroy()
@@ -217,7 +223,7 @@ describe('createPlay', () => {
           return s.play.createRenderer(room)
         },
       },
-      { createSim, layers: [layer] },
+      { ...base, createSim, layers: [layer] },
     )
     play.start()
     await expect(play.restart(shifted)).rejects.toThrow('no WebGL')
@@ -235,7 +241,7 @@ describe('createPlay', () => {
   it('a restart still running when the room is destroyed makes nothing that outlives it', async () => {
     const s = seams()
     const { sims, disposed, createSim } = trackedSims()
-    const play = await createPlay(s.play, { createSim })
+    const play = await createPlay(s.play, { ...base, createSim })
     const restart = play.restart(shifted)
     play.destroy()
     await restart
