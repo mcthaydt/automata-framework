@@ -4,7 +4,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { PLUS_REPOSITORY } from './add/add-args.ts'
 import { AddError, type AddResult, type RunAddOptions } from './add/run-add.ts'
 import { parseArgs, runCli } from './bin.ts'
+import type { BuildResult } from './build/run-build.ts'
 import type { CheckReport } from './check/check-report.ts'
+import { CheckToolError } from './check/csp-probe.ts'
 import type { RunCheckOptions } from './check/run-check.ts'
 
 describe('bin cli', () => {
@@ -199,6 +201,76 @@ describe('bin cli', () => {
       const { code, stderr, calls } = await runCheckCli(['check', '--bogus'])
       expect(code).toBe(2)
       expect(stderr).toContain('unknown option --bogus')
+      expect(calls).toEqual([])
+    })
+  })
+
+  // FR.3: `automata build [dir] [--debug]` runs the game's vite build; exit 0 built, 1 vite failed, 2 it could not run.
+  describe('build', () => {
+    async function runBuildCli(
+      args: string[],
+      result: BuildResult | CheckToolError = { exitCode: 0, tail: 'built' },
+    ) {
+      let stdout = ''
+      let stderr = ''
+      const calls: { gameDir: string; debug: boolean }[] = []
+      const code = await runCli(
+        args,
+        {
+          stdout: (msg) => {
+            stdout += msg
+          },
+          stderr: (msg) => {
+            stderr += msg
+          },
+        },
+        async () => ({ ok: true, steps: [] }),
+        async () => {
+          throw new Error('add is not part of build')
+        },
+        async (options) => {
+          calls.push(options)
+          if (result instanceof CheckToolError) throw result
+          return result
+        },
+      )
+      return { code, stdout, stderr, calls }
+    }
+
+    it('builds the working folder for release by default', async () => {
+      const { code, calls } = await runBuildCli(['build'])
+      expect(code).toBe(0)
+      expect(calls).toEqual([{ gameDir: process.cwd(), debug: false }])
+    })
+
+    it('builds the folder given with the debug constant on for --debug', async () => {
+      const { code, calls } = await runBuildCli(['build', 'games/x', '--debug'])
+      expect(code).toBe(0)
+      expect(calls).toEqual([{ gameDir: join(process.cwd(), 'games/x'), debug: true }])
+    })
+
+    it('is exit 1, with the tail of vite’s output, when the build fails', async () => {
+      const { code, stderr } = await runBuildCli(['build'], { exitCode: 1, tail: 'error: no entry' })
+      expect(code).toBe(1)
+      expect(stderr).toContain('error: no entry')
+    })
+
+    it('is exit 2 when vite could not run, and says why', async () => {
+      const missing = new CheckToolError({
+        kind: 'missing',
+        tool: 'vite',
+        detail: 'install it: npm install --save-dev vite',
+      })
+      const { code, stderr } = await runBuildCli(['build'], missing)
+      expect(code).toBe(2)
+      expect(stderr).toContain('vite not found; install it: npm install --save-dev vite')
+    })
+
+    it('is exit 2 with the usage for an unknown option', async () => {
+      const { code, stderr, calls } = await runBuildCli(['build', '--target', 'web'])
+      expect(code).toBe(2)
+      expect(stderr).toContain('unknown option --target')
+      expect(stderr).toContain('automata build [dir] [--debug]')
       expect(calls).toEqual([])
     })
   })

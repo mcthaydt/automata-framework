@@ -10,9 +10,24 @@
   },
   "type": "module",
   "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./blockout": "./blockout/index.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./blockout": {
+        "types": "./dist/blockout.d.ts",
+        "import": "./dist/blockout.js"
+      }
+    }
   },
   "automata": {
     "simEntries": [
@@ -22,7 +37,8 @@
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "build": "tsdown"
   },
   "dependencies": {
     "zod": "4.6.6"
