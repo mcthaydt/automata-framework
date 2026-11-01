@@ -60,3 +60,5 @@ export const playgroundFramePort: number = demoPort(9)
 export const playgroundFrameOrigin = `http://127.0.0.1:${playgroundFramePort}`
 /** The base 3D game's preview build (games/base-3d/e2e, M3.7b part 4), framed by the same fake host. */
 export const base3dPort: number = demoPort(10)
+/** base-3d's Vite dev server (games/base-3d/e2e-dev): the page as `pnpm dev` serves it, unbundled, in the next slot. */
+export const base3dDevPort: number = demoPort(11)

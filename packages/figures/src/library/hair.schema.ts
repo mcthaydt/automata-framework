@@ -3,7 +3,7 @@
 // round the skull, so a style fits any head. The generators that build them are M3.5b's; these are the content
 // shapes. A tone is one of the hair's own tones or a swatch id, checked like every library reference.
 
-import { contentRef } from '@mcthaydt/automata-content'
+import { contentRef } from '@mcthaydt/automata-content/schema'
 import { z } from 'zod'
 import { type Lock, lockSchema } from './headwear.schema'
 import { keyedUnion } from './keyed-union'

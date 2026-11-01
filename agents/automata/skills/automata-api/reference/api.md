@@ -3047,6 +3047,97 @@ function pseudoMessages(file: {
 function snakeKey(value: string): string;
 ```
 
+### `import { … } from '@mcthaydt/automata-content/palette'`
+
+#### `DEFAULT_PALETTE` (const)
+
+The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+
+```ts
+const DEFAULT_PALETTE: Palette;
+```
+
+#### `Palette` (interface)
+
+The game's palette: a name and its colors.
+
+```ts
+interface Palette {
+  readonly name: string;
+  /** `#rrggbb`, lowercase, in authored order. */
+  readonly colors: readonly string[];
+}
+```
+
+### `import { … } from '@mcthaydt/automata-content/schema'`
+
+#### `contentRef` (function)
+
+The ID of another content item of `kind`. Checked to exist, and to be that kind, after parsing.
+
+```ts
+function contentRef<const K extends string>(kind: K): z.ZodType<string, string>;
+```
+
+#### `ContentSchemaDef` (interface)
+
+A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live,
+and whether the sim receives it. Create one with `defineContentSchema`.
+
+```ts
+interface ContentSchemaDef<K extends string = string, S extends z.ZodType = z.ZodType> {
+  readonly kind: K;
+  readonly schema: S;
+  readonly place: ContentSchemaPlace;
+  /**
+   * Whether the sim receives this kind (M2.2 spec §3.1). Default true: content is gameplay unless the game
+   * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
+   */
+  readonly sim: boolean;
+}
+```
+
+#### `ContentSchemaOptions` (interface)
+
+Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
+
+```ts
+interface ContentSchemaOptions {
+  readonly sim?: boolean;
+}
+```
+
+#### `ContentSchemaPlace` (type)
+
+Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
+
+```ts
+type ContentSchemaPlace = {
+  readonly folder: string;
+} | {
+  readonly file: string;
+};
+```
+
+#### `defineContentSchema` (function)
+
+Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one
+file (a single document). The sim receives the kind unless `{ sim: false }`. A bad registration (a name
+that does not start with a lower-case letter followed by lower-case letters, digits and dashes, a built-in
+name, a duplicate, or a place two kinds share) is reported when content compiles, as `InvalidContentConfig`.
+
+```ts
+function defineContentSchema<const K extends string, S extends z.ZodType>(kind: K, schema: S, place: ContentSchemaPlace, options?: ContentSchemaOptions): ContentSchemaDef<K, S>;
+```
+
+#### `localized` (function)
+
+Text a player reads, written in the source language. It gets a message key for translators.
+
+```ts
+function localized(): z.ZodType<string, string>;
+```
+
 ### `import { … } from '@mcthaydt/automata-content/vite'`
 
 #### `automataContent` (function)

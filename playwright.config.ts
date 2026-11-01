@@ -6,6 +6,7 @@ import * as base2d from './games/emberwick/e2e/origins.ts'
 import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './games/placeholder/e2e/origins.ts'
 import { INPUT_MATRIX } from './packages/testing/src/e2e/input-matrix.ts'
 import {
+  base3dDevPort,
   demoHostOrigin,
   demoHostPort,
   examplesPort,
@@ -85,6 +86,17 @@ const journeys = defineConfig({
       name: 'base-3d',
       testDir: 'games/base-3d/e2e',
       use: { ...devices['Pixel 7 landscape'], viewport: { width: 844, height: 390 } },
+    },
+    // The same game from its Vite dev server (journey J2), in Chromium and WebKit (the Owner's iPad is WebKit).
+    {
+      name: 'base-3d-dev',
+      testDir: 'games/base-3d/e2e-dev',
+      use: { ...devices['Pixel 7 landscape'], viewport: { width: 844, height: 390 } },
+    },
+    {
+      name: 'base-3d-dev-webkit',
+      testDir: 'games/base-3d/e2e-dev',
+      use: { ...devices['iPad (gen 7) landscape'] },
     },
     { name: 'ui-primitives', testDir: 'examples/ui/primitives/e2e', use: { ...devices['Pixel 7'] } },
     // The one-file examples (EX spec §5) and the runner's own stub example, each under the fake host: a phone,
@@ -173,6 +185,11 @@ const journeys = defineConfig({
         AF_E2E_GAME_PATH: base3d.gameBuildPath,
         AF_E2E_HOST_ORIGIN: demoHostOrigin,
       },
+      reuseExistingServer: process.env.CI === undefined,
+    },
+    {
+      command: `pnpm --filter @af-games/base-3d exec vite --configLoader runner --strictPort --port ${base3dDevPort}`,
+      url: `http://localhost:${base3dDevPort}/`,
       reuseExistingServer: process.env.CI === undefined,
     },
     {

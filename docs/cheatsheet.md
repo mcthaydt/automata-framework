@@ -186,6 +186,20 @@
 - `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
 - `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
 
+### `import { … } from '@mcthaydt/automata-content/palette'`
+
+- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+- `Palette` (interface): The game's palette: a name and its colors.
+
+### `import { … } from '@mcthaydt/automata-content/schema'`
+
+- `contentRef(kind)`: The ID of another content item of `kind`.
+- `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
+- `ContentSchemaOptions` (interface): Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
+- `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
+- `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
+- `localized()`: Text a player reads, written in the source language.
+
 ### `import { … } from '@mcthaydt/automata-content/vite'`
 
 - `automataContent(pluginOptions?)`: The Vite plugin that compiles content and serves it as `virtual:automata/content`.
