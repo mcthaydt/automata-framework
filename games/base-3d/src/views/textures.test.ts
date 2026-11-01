@@ -10,7 +10,6 @@ import {
   paintMoon,
   paintShaft,
   paintSilhouette,
-  paintStone,
   paintVine,
 } from './textures.ts'
 
@@ -28,9 +27,6 @@ const colours = (pixels: Pixels): Set<string> => {
 }
 
 const PIXEL_ART: Record<string, () => Pixels> = {
-  floor: () => paintStone('floor'),
-  wall: () => paintStone('wall'),
-  side: () => paintStone('side'),
   grass: paintGrass,
   vine: paintVine,
   pine: () => paintSilhouette('pine'),
@@ -48,21 +44,6 @@ describe('the pixel-art textures', () => {
       expect(used.size).toBeGreaterThan(0)
       for (const hex of used) expect(PALETTE.has(hex), `${name} ${hex}`).toBe(true)
     })
-
-  it('covers the floor with stone and clumps of moss, and the walls with stone only', () => {
-    const moss = ['#1e6f50', '#33984b', '#5ac54f']
-    const share = (pixels: Pixels, set: string[]) => {
-      let n = 0
-      for (let i = 0; i < pixels.data.length; i += 4) {
-        const hex = `#${[0, 1, 2].map((k) => (pixels.data[i + k] as number).toString(16).padStart(2, '0')).join('')}`
-        if (set.includes(hex)) n++
-      }
-      return n / (pixels.width * pixels.height)
-    }
-    expect(share(paintStone('floor'), moss)).toBeGreaterThan(0.08)
-    expect(share(paintStone('floor'), moss)).toBeLessThan(0.4)
-    expect(share(paintStone('side'), moss)).toBe(0)
-  })
 
   it('leaves the cut-out shapes transparent round their edges', () => {
     for (const pixels of [paintGrass(), paintSilhouette('pine'), paintMoon()]) expect(pixels.data[3]).toBe(0)

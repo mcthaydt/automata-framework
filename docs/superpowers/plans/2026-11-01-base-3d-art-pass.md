@@ -44,7 +44,19 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
   container drawn into a resolution-1 nearest `RenderTexture` last in each frame; a sprite stretches it over the page)
   and the option in `create-pixi3d-renderer.ts`; base-3d `main.ts` passes `maxInternalHeight: 360`. Check:
   render-pixi3d node + browsers tests, then G3-x three times.
-- [ ] 12. Vertex colour only: drop the painted textures; subdivided floors and walls coloured per vertex.
+- [x] 12. Vertex colour only (the Owner: "We used the vertex coloring only that helped dramatically"). render-pixi3d:
+  `occluders/cell-cube.ts` (`cellCube`: a unit cube cut into cells of at most `cell` metres once scaled, coloured per
+  vertex from `colorAt(offset, normal)` as linear RGBA; `flat` gives each cell its own four vertices in the colour at its
+  centre) replaces `tiled-cube.ts`; `WallOptions.paint { cell, colorAt, flat }` (world point and normal) replaces
+  `WallOptions.surface`. Tests first: `occluders/cell-cube.test.ts` (cell counts, offsets in metres, linear colours,
+  winding, flat cells) failed on the missing module; the `occluders.wall with paint` cases failed on the shared cube,
+  then on the vertex count for `flat`. base-3d: `views/stone.ts` (`floorColour`, `sideColour`, `wallColour`,
+  `paintedBox`), each cell one palette entry stepped along a stone ladder (14, 13, 12, 11) or a moss ladder (38, 37, 36,
+  35): moss in ~1.7 m patches, a shade darker within 0.6 m of a platform's edge, banded sides with moss over the lip,
+  brick courses 0.25 × 0.5 m with a mortar-dark foot and a mossy top. `stone.test.ts` first (failed on the missing
+  module, then on palette-only and flat cells); `night.test.ts` asserts painted walls and vertex-coloured stone with no
+  texture (failed first). Dropped `paintStone` and the floor, side and wall textures. Cells: 0.25 m on the platform tops
+  and walls, 0.5 m down the island sides. New token `mossShade` (38).
 - [ ] 13. Study of the 3D reference game; "what we took and why" in `docs/spikes/base-3d-art.md`; provenance.
 - [ ] 14. The gaps: Wick's face and colour, the moon disc, the stone share of the frame.
 - [ ] 15. Same-moment images recaptured; gates; report.
@@ -83,3 +95,7 @@ Lane 2 (coordinator's order: the cap, vertex colour only, the study of the 3D re
 - 2026-11-01 (lane 2): step 11. G3-x on this container, same scene, `--repeat-each=3`: uncapped (full-frame view)
   32.3 s ✘, 32.2 s ✘, 23.5 s; with `maxInternalHeight: 360` 18.0, 18.1 and 11.3 s, all passing. The 30 s budget is
   unchanged. At the e2e's 844 × 390 at resolution 2 the view shades 779 × 360 pixels instead of 1688 × 780.
+- 2026-11-01 (lane 2): step 12, three looks captured against the 2D. Smooth Gouraud blends (shared vertices) read as
+  blurred murk with featureless walls; flat half-metre cells as a coarse patchwork; flat quarter-metre cells over a
+  narrower tone range read as Emberwick's pixel mosaic, so that one stayed. The stone still reads greyer than the 2D's
+  blue under the night light: step 14.
