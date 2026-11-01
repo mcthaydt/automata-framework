@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { createLevels2d } from '@mcthaydt/automata-editor-2d/suite'
 import { createLevels3d } from '@mcthaydt/automata-editor-3d/suite'
@@ -31,7 +31,8 @@ function gameFiles(root: string, skip: readonly string[]): Record<string, string
       else if (/\.(toml|json)$/.test(name)) files[shown] = readFileSync(path, 'utf8')
     }
   }
-  walk(join(root, 'content'))
+  for (const folder of ['content', 'src/content'])
+    if (existsSync(join(root, folder))) walk(join(root, folder))
   return files
 }
 
@@ -158,29 +159,10 @@ const emberwick: Game = {
   probes: [tuner, levels2d],
 }
 
-// base-3d keeps its content under `src/content` and has no editor list yet (logged in its EDITOR-GAPS.md): this is the
-// list it would carry, one row per kind of file it has.
-const BASE_3D_LIST = `format = "af-editors/1"
-[[file]]
-glob = "content/figure*/**/*.toml"
-editor = "studio"
-modes = ["edit"]
-gates = []
-checks = []
-
-[[file]]
-glob = "content/levels/*.af-sector.json"
-editor = "levels-3d"
-modes = ["edit"]
-gates = []
-checks = []
-`
 const base3d: Game = {
   name: 'base-3d (3D)',
-  files: {
-    ...gameFiles(join(REPO, 'games/base-3d/src'), ['content/generated']),
-    [EDITOR_LIST_PATH]: BASE_3D_LIST,
-  },
+  // base-3d keeps its content under `src/content` and its list at `content/editors.toml`, whose rows name `src/content/...`.
+  files: gameFiles(join(REPO, 'games/base-3d'), ['src/content/generated', 'src/paraglide']),
   probes: [studio, levels3d],
 }
 

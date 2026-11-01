@@ -14,7 +14,7 @@ import { createSuite } from '../shell/create-suite'
 import depot from './fixtures/depot.af-sector.json?raw'
 import platformer from './fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from './StandInLevelCanvas.svelte'
-import { FLOORFIFTY_SAMPLE, samplePorts } from './sample-ports'
+import { SAMPLE_GAME, samplePorts } from './sample-ports'
 import { studioFixtureFiles } from './studio-fixtures'
 import { tunerFixtureFiles } from './tuner-fixtures'
 
@@ -56,7 +56,7 @@ export interface Case {
   readonly ready?: string
 }
 export const EDITOR_CASES: readonly Case[] = [
-  { name: 'Home', files: FLOORFIFTY_SAMPLE, editors: () => [] },
+  { name: 'Home', files: SAMPLE_GAME, editors: () => [] },
   {
     name: 'Tuner',
     files: { ...tunerFixtureFiles(), [EDITOR_LIST_PATH]: list(row('content/tuning.toml', 'tuner')) },

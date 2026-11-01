@@ -7,9 +7,11 @@
 -->
 <script lang="ts">
 import { Tabs } from '@mcthaydt/automata-editor-kit'
+import type { ChecksPanel } from '../../app/checks-panel-controller'
 import type { InspectorCard, InspectorRow } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
 import type { MaterialTarget } from '../../app/material-session'
+import ChecksList from '../checks/ChecksList.svelte'
 import Inspector from './Inspector.svelte'
 
 interface Props {
@@ -17,6 +19,8 @@ interface Props {
   walls: readonly InspectorRow[]
   things: readonly InspectorRow[]
   checks: string
+  /** The panel the Checks tab lists problems from. */
+  checksPanel?: ChecksPanel | undefined
   onchange: (change: InspectorChange, phase: InspectorPhase) => string | undefined
   onselect: (id: string) => void
   onmaterial?: ((target: MaterialTarget) => void) | undefined
@@ -30,6 +34,7 @@ let {
   walls,
   things,
   checks,
+  checksPanel,
   onchange,
   onselect,
   onmaterial,
@@ -70,6 +75,7 @@ const TABS = [
         {@render rows(things, 'This level has no things yet.')}
       {:else}
         <p class="checks">{checks}</p>
+        {#if checksPanel !== undefined}<ChecksList checks={checksPanel} clean={false} />{/if}
       {/if}
     {/snippet}
   </Tabs>

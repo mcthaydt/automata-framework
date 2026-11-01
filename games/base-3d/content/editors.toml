@@ -1,0 +1,17 @@
+format = "af-editors/1"
+
+# base-3d's content is under src/content, so the rows name it from the game's folder. The level is edited in the 3D level
+# editor and the figures (with their poses, clips, gaits and swatches) in the Studio. There is no tuning.toml yet.
+[[file]]
+glob = "src/content/levels/*.af-sector.json"
+editor = "levels-3d"
+modes = ["edit"]
+gates = []
+checks = []
+
+[[file]]
+glob = "src/content/figure*/**/*.toml"
+editor = "studio"
+modes = ["edit"]
+gates = []
+checks = []

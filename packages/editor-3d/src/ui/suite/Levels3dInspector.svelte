@@ -3,6 +3,7 @@
 import type { ChecksPanel } from '../../app/checks-panel-controller'
 import { checksWords, planStatus } from '../../app/plan-status'
 import type { LevelEditor } from '../../model/level-editor'
+import ChecksList from '../checks/ChecksList.svelte'
 
 const { editor, checks }: { editor: LevelEditor<unknown>; checks: ChecksPanel } = $props()
 
@@ -26,6 +27,7 @@ $effect(() => {
   <p data-testid="levels-3d-selection">{planStatus({ pointer: undefined, pxPerMetre: 0, selection, brief: true })}</p>
   <h2>Checks</h2>
   <p>{checksWords(counts).text}</p>
+  <ChecksList {checks} clean={false} />
 </section>
 
 <style>

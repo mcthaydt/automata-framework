@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { createRawSnippet } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { EDITOR_LIST_PATH } from '../core'
-import { FLOORFIFTY_SAMPLE, samplePorts } from '../testing/sample-ports'
+import { SAMPLE_GAME, samplePorts } from '../testing/sample-ports'
 import { type SuiteHandle, startSuite } from './boot'
 import { createSuite } from './create-suite'
 
@@ -37,7 +37,7 @@ checks = []
 
 describe('Suite Home', () => {
   it("shows a card for each editor the game's list names, with the files each edits", async () => {
-    await start(FLOORFIFTY_SAMPLE)
+    await start(SAMPLE_GAME)
     const tuner = await screen.findByRole('region', { name: 'Tuner' })
     expect(within(tuner).getByRole('button', { name: /content\/tuning\.toml/ })).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
@@ -83,7 +83,7 @@ describe('Suite Home', () => {
 
 describe('Suite entries', () => {
   it("an entry's page lists its cards; Review opens the desk; Home brings the cards back", async () => {
-    await start(FLOORFIFTY_SAMPLE)
+    await start(SAMPLE_GAME)
     await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
     expect(screen.getByRole('tab', { name: 'Levels' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('region', { name: 'Levels 2D' })).toBeInTheDocument()
@@ -95,7 +95,7 @@ describe('Suite entries', () => {
   })
 
   it('an entry the list names no files for says so', async () => {
-    await start(FLOORFIFTY_SAMPLE)
+    await start(SAMPLE_GAME)
     await userEvent.click(await screen.findByRole('tab', { name: 'Studio' }))
     expect(screen.getByText(/names no files for Studio/)).toBeInTheDocument()
   })
@@ -114,7 +114,7 @@ describe('Suite entries', () => {
       open,
       regions: { panel: text('groups'), canvas: text('sliders'), inspector: text('details') },
     } as unknown as SuiteEditor<unknown>
-    await start(FLOORFIFTY_SAMPLE, [tuner])
+    await start(SAMPLE_GAME, [tuner])
     await userEvent.click(await screen.findByRole('tab', { name: 'Tuner' }))
     expect(await screen.findByText('sliders: tuning session')).toBeInTheDocument()
     expect(screen.getByText('groups: tuning session')).toBeInTheDocument()
