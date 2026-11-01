@@ -1,6 +1,6 @@
 import { createToasts } from '@mcthaydt/automata-editor-kit/core'
 import { stubGeometry } from '@mcthaydt/automata-editor-kit/testing'
-import { act, render, screen, waitFor, within } from '@testing-library/svelte'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { createDocumentController, type DocumentController } from '../../app/document/document-controller'
@@ -90,6 +90,18 @@ describe('DocumentFrame', () => {
     expect(screen.getByRole('radio', { name: 'Plan' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByTestId('checks-pill')).toHaveTextContent(/No problems|warning|problem/)
     expect(screen.getByText(/Nothing selected/)).toBeInTheDocument()
+  })
+
+  it('opens the list of problems from the checks pill, and from the Checks button on a phone (the Owner, testing base-3d)', async () => {
+    await setup()
+    await userEvent.click(screen.getByTestId('checks-pill'))
+    const dialog = await screen.findByRole('dialog', { name: 'Checks' })
+    expect(within(dialog).getByTestId('checks-list')).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Done' }))
+    cleanup()
+    await setup({ width: 390, height: 844 })
+    await userEvent.click(screen.getByTestId('checks-open'))
+    expect(await screen.findByRole('dialog', { name: 'Checks' })).toBeInTheDocument()
   })
 
   it('shows the plan and the 3D view side by side in Split, and the 3D view alone in 3D (ED3D.5e)', async () => {

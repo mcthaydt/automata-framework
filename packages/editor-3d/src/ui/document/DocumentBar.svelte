@@ -34,6 +34,8 @@ interface Props {
   /** Whether the layers drawer is open, below `wide`; `undefined` where the panel is always in view (no button). */
   layersOpen?: boolean | undefined
   onlayers?: (() => void) | undefined
+  /** The pill opens the list of problems. */
+  onchecks?: (() => void) | undefined
   onback: () => void
   onundo: () => void
   onredo: () => void
@@ -56,6 +58,7 @@ const {
   checks,
   layersOpen,
   onlayers,
+  onchecks,
   onback,
   onundo,
   onredo,
@@ -88,7 +91,7 @@ onMount(() => title?.focus())
     <Segmented label="View" options={views} value={mode} onedit={(event) => chosen(event.value)} />
   {/if}
   {#if !compact}
-    <span class="checks" data-testid="checks-pill"><Pill tone={checks.tone}>{checks.text}</Pill></span>
+    <button type="button" class="checks" data-testid="checks-pill" aria-label={`Checks: ${checks.text}`} onclick={() => onchecks?.()}><Pill tone={checks.tone}>{checks.text}</Pill></button>
   {/if}
   <Button
     disabled={!canUndo}
@@ -135,9 +138,20 @@ onMount(() => title?.focus())
     color: var(--color-text-faint);
     font: var(--text-mono-11);
   }
-  .kind,
+  .kind {
+    flex: none;
+  }
+  /* The pill is a button: it opens the list of problems, so it is a 44 px target with the pill's own look. */
   .checks {
     flex: none;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
   }
   .spacer {
     flex: 1;

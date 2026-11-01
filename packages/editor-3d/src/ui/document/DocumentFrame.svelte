@@ -9,6 +9,7 @@
 -->
 <script lang="ts">
 import {
+  Button,
   ConflictDialog,
   EditorShell,
   RecoveryDialog,
@@ -29,6 +30,7 @@ import { checksWords, planStatus } from '../../app/plan-status'
 import { planToolCommands } from '../../app/plan-tool-commands'
 import { createPlanTools, type PlanToolId } from '../../app/plan-tools'
 import type { Point } from '../../format/sector.schema'
+import ChecksSheet from '../checks/ChecksSheet.svelte'
 import DefinitionsSheet from '../definitions/DefinitionsSheet.svelte'
 import DollhouseCanvas from '../dollhouse/DollhouseCanvas.svelte'
 import type { DollhouseRendererFactory } from '../dollhouse/dollhouse-renderer'
@@ -148,6 +150,7 @@ const inspectorEdits = createInspectorEdits(editor)
 let materialTarget = $state<MaterialTarget | undefined>()
 /** The definitions sheet is open. */
 let definitionsOpen = $state(false)
+let checksOpen = $state(false)
 // svelte-ignore state_referenced_locally
 let card = $state.raw(inspectorOf(editor))
 
@@ -223,6 +226,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
     walls={wallRows}
     things={thingRows}
     checks={pill.text}
+    checksPanel={checks}
     onchange={(change, phase) => inspectorEdits.change(change, phase)}
     onselect={(id) => editor.selection.set([id])}
     onmaterial={(target) => (materialTarget = target)}
@@ -267,6 +271,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
       checks={pill}
       layersOpen={shellMode === 'wide' ? undefined : panelOpen}
       onlayers={() => (panelOpen = !panelOpen)}
+      onchecks={() => (checksOpen = true)}
       {onback}
       onundo={() => controller.undo()}
       onredo={() => controller.redo()}
@@ -310,6 +315,7 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
   {/snippet}
 
   {#snippet status()}
+    {#if compact}<Button data-testid="checks-open" onclick={() => (checksOpen = true)}>{pill.text}</Button>{/if}
     <StatusLine message={statusWords} save={view.save} />
   {/snippet}
 
@@ -342,6 +348,9 @@ const statusWords = $derived(compact ? `${pill.text} · ${viewWords}` : viewWord
     />
     {#if materialTarget !== undefined}
       <MaterialSheet {editor} surface={materialTarget} onclose={() => (materialTarget = undefined)} />
+    {/if}
+    {#if checksOpen}
+      <ChecksSheet checks={checks} onclose={() => (checksOpen = false)} />
     {/if}
     {#if definitionsOpen}
       <DefinitionsSheet {editor} onclose={() => (definitionsOpen = false)} />
