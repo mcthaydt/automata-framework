@@ -1,0 +1,72 @@
+{
+  "AIR_ACCEL": {
+    "max": 256,
+    "min": 8,
+    "step": 1,
+    "type": "int",
+    "value": 46
+  },
+  "BUFFER_TICKS": {
+    "max": 15,
+    "min": 0,
+    "step": 1,
+    "type": "int",
+    "value": 5
+  },
+  "COYOTE_TICKS": {
+    "max": 15,
+    "min": 0,
+    "step": 1,
+    "type": "int",
+    "value": 6
+  },
+  "GRAVITY": {
+    "max": 192,
+    "min": 16,
+    "step": 1,
+    "type": "int",
+    "value": 64
+  },
+  "HALF_GRAVITY_BELOW": {
+    "max": 512,
+    "min": 0,
+    "step": 1,
+    "type": "int",
+    "value": 171
+  },
+  "JUMP_SPEED": {
+    "max": -128,
+    "min": -1024,
+    "step": 1,
+    "type": "int",
+    "value": -448
+  },
+  "MAX_FALL": {
+    "max": 1536,
+    "min": 256,
+    "step": 1,
+    "type": "int",
+    "value": 683
+  },
+  "MAX_RUN": {
+    "max": 768,
+    "min": 128,
+    "step": 1,
+    "type": "int",
+    "value": 384
+  },
+  "RUN_ACCEL": {
+    "max": 256,
+    "min": 8,
+    "step": 1,
+    "type": "int",
+    "value": 71
+  },
+  "VAR_JUMP_TICKS": {
+    "max": 30,
+    "min": 0,
+    "step": 1,
+    "type": "int",
+    "value": 12
+  }
+}

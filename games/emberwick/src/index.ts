@@ -12,7 +12,7 @@ export {
   SimFailed,
 } from './boot-failure.ts'
 export { type BootPageParts, bootPage } from './boot-page.ts'
-export { parseRoom, ROOM, type Room, type RoomSource } from './content/room.ts'
+export { parseRoom, type Room, type RoomSource } from './content/room.ts'
 export { createLoop, type Loop, type LoopOptions } from './loop.ts'
 export { BaseBootFailed, connect, GAME_ID } from './ruken/boot.ts'
 export * from './sim/index.ts'

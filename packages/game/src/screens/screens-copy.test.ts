@@ -26,7 +26,7 @@ import {
 describe('DEFAULT_SCREENS_COPY', () => {
   it('holds the words the screens showed before, unchanged', () => {
     expect(DEFAULT_SCREENS_COPY.title).toEqual({ play: 'Play' })
-    expect(DEFAULT_SCREENS_COPY.play).toEqual({ pause: 'Pause' })
+    expect(DEFAULT_SCREENS_COPY.play).toEqual({ pause: 'Pause', move: 'Move' })
     expect(DEFAULT_SCREENS_COPY.paused).toEqual({
       title: 'Paused',
       resume: 'Resume',

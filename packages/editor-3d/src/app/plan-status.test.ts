@@ -58,17 +58,16 @@ describe('checksWords', () => {
 })
 
 describe('modeOptions', () => {
-  it('offers Plan and 3D only below wide (ED3D.5f)', () => {
-    expect(modeOptions({ narrow: true }).map((option) => option.label)).toEqual(['Plan', '3D'])
+  it('offers Plan, 3D and Walk only below wide (ED3D.5f, ED3D.8b)', () => {
+    expect(modeOptions({ narrow: true }).map((option) => option.label)).toEqual(['Plan', '3D', 'Walk'])
   })
 
-  it('offers Plan, Split and 3D, and lists Walk and World as coming, each saying why (ED3D.5e)', () => {
+  it('offers Plan, Split, 3D and Walk, and lists World as coming, saying why (ED3D.5e, ED3D.8b)', () => {
     const options = modeOptions()
     expect(options.map((option) => option.label)).toEqual(['Plan', 'Split', '3D', 'Walk', 'World'])
-    for (const option of options.slice(0, 3)) expect(option.disabled).toBeFalsy()
-    for (const option of options.slice(3)) {
-      expect(option.disabled).toBe(true)
-      expect(option.reason).toMatch(/^Not ready yet: /)
-    }
+    for (const option of options.slice(0, 4)) expect(option.disabled).toBeFalsy()
+    const world = options[4]
+    expect(world?.disabled).toBe(true)
+    expect(world?.reason).toMatch(/^Not ready yet: /)
   })
 })

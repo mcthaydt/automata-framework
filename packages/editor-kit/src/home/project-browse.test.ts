@@ -184,6 +184,14 @@ describe('storage notes', () => {
     expect(storageNotes(workspace({ persistent: false })).map((n) => n.tone)).toEqual(['warn', 'info'])
   })
 
+  it('says a served checkout is the game’s files, not browser storage', () => {
+    const served = workspace({ served: true })
+    expect(storageNotes(served)[1]?.text).toBe(
+      'Kept in your game’s checkout, on the computer running automata editor',
+    )
+    expect(workspaceSubtitle(served, 2)).toBe('2 projects · game checkout')
+  })
+
   it('subtitles the workspace row with a count and where it lives', () => {
     expect(workspaceSubtitle(workspace(), 4)).toBe('4 projects · browser storage')
     expect(workspaceSubtitle(workspace(), 1)).toBe('1 project · browser storage')

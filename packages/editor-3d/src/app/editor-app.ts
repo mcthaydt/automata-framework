@@ -12,6 +12,7 @@ import {
 import type { ParseIssue } from '../profile/file-codec'
 import type { LevelProfile } from '../profile/level-profile'
 import { hasFacility } from '../profile/registry'
+import { type CreateOutcome, createLevel } from './home/new-level'
 import { type ImportOutcome, importFolder, importZip, type PickedFile } from './import-files'
 import {
   type FacilityOutcome,
@@ -70,6 +71,8 @@ export interface EditorApp {
   importFolder(files: readonly PickedFile[]): Promise<ImportOutcome>
   /** A zip's bytes; `name` is the zip's file name. */
   importZip(name: string, bytes: Uint8Array): Promise<ImportOutcome>
+  /** A new level from a name (ED3D.13b): its folder and file are written, and its path comes back to open. */
+  create(name: string): Promise<CreateOutcome>
 }
 
 export interface EditorAppOptions {
@@ -108,5 +111,6 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     open,
     importFolder: (files) => importFolder(workspace.store, files),
     importZip: (name, bytes) => importZip(workspace.store, name, bytes),
+    create: (name) => createLevel(workspace.store, name),
   }
 }

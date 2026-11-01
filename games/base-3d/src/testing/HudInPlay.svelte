@@ -1,18 +1,14 @@
 <!--
-  The HUD as the default play screen draws it (@mcthaydt/automata-game's PlayScreen, not exported): ui's ScreenFrame
-  with the corner Pause, the HUD inside the body's field, and the touch row when `touch` is set. For
-  hud.layout.test.ts; test code.
+  The HUD as the default play screen draws it (@mcthaydt/automata-game's PlayScreen, not exported): ui's ScreenFrame with
+  the corner Pause, the HUD inside the body's field, and the touch row when `touch` is set. For hud.layout.test.ts and
+  strings.layout.test.ts; test code.
 -->
 <script lang="ts">
 import { ScreenFrame, TouchControls } from '@mcthaydt/automata-ui'
 import Hud from '../screens/Hud.svelte'
 
 const { touch = false }: { touch?: boolean } = $props()
-const buttons = ['Attack', 'Action', 'Shield', 'Lock', 'Item'].map((label) => ({
-  action: label,
-  label,
-  required: true,
-}))
+const buttons = [{ action: 'roll', label: 'Roll', side: 'end' as const, required: true }]
 </script>
 
 {#snippet end()}

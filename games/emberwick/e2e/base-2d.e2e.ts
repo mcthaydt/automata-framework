@@ -1,4 +1,6 @@
 import { expect, type Page, test } from '@playwright/test'
+import { ROOM } from '../fixtures/hand-written-room.ts'
+import { HAND_WRITTEN_TUNING } from '../fixtures/hand-written-tuning.ts'
 import { createBaseSim, moveCommand, readPlayer } from '../src/base-sim.ts'
 import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '../src/golden.ts'
 import { gameUrl, hostOrigin } from './origins.ts'
@@ -189,7 +191,7 @@ test('playing the golden route with the keyboard reaches the ember and the end s
 
   // The same route in a sim in this Node process: after every segment the page's character must be exactly
   // where the sim says, so a mismatch names the segment where the page and the sim parted.
-  const reference = await createBaseSim()
+  const reference = await createBaseSim({ room: ROOM, tuning: HAND_WRITTEN_TUNING })
   let ticks = 0
   for (const [index, [x, jump, length]] of GOLDEN_ROUTE.entries()) {
     const direction = keyFor[x]

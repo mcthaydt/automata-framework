@@ -4,6 +4,9 @@ import {
   AppLoop,
   Audio,
   AudioBuses,
+  CameraDragTracker,
+  type CameraSettings,
+  cameraSettingsSchema,
   displaySettingsSchema,
   Flow,
   Haptics,
@@ -24,6 +27,7 @@ import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { CursorRunner, InputMethodTracker, sendBack } from '@mcthaydt/automata-ui'
 import { Effect, Scope, SubscriptionRef } from 'effect'
 import type { GameSaves } from '../define-game.ts'
+import { analogReading } from '../input/analog-reading.ts'
 import type { InputMap } from '../input/keys.ts'
 import { applyAudio, changeAudio, savedAudio } from './audio-settings.ts'
 import { savedHaptics } from './haptics-settings.ts'
@@ -220,6 +224,11 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           settings: store,
           hostInput: yield* hostInput,
         })
+        const bindsCameraDrag = Object.values(map?.profile.bindings ?? {}).some(
+          (binding) => binding.gesture?.includes('camera-drag') === true,
+        )
+        // The player's camera choices, read each tick so a change in Settings applies at once.
+        const camera = (): CameraSettings => cameraSettingsSchema.parse(asRecord(store?.get()).camera)
         const touchMode = inputSettingsSchema.parse(asRecord(store?.get()).input).touchMode ?? map?.touchMode
         const running = current
         game.watchSim?.(running)
@@ -242,7 +251,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
             save?.touch(keep)
             if (map === undefined) return []
             input.poll()
-            return map.toCommand(input.held(), tick)
+            return map.toCommand(input.held(), tick, analogReading(input, camera()))
           },
         })
         yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.stop()))
@@ -289,6 +298,14 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
           onHold: (id: string) => input.hold(id),
           onRelease: (id: string) => input.release(id),
           swipe: touchMode === 'swipe' ? new SwipeTracker(input.gesture) : undefined,
+          drag: bindsCameraDrag ? new CameraDragTracker(input.drag) : undefined,
+          stick:
+            map?.touchStick === true
+              ? {
+                  onstick: (x: number, y: number) => input.touchStick.set(x, y),
+                  onstickend: () => input.touchStick.release(),
+                }
+              : undefined,
           hud: resolveExtensions(game.extensions ?? []).slots('hud.overlay'),
         })
       }),

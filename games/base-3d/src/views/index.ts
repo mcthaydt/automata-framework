@@ -7,80 +7,38 @@ import type { FigureClipDef, FigureDef, FigureLibrary, MotionLibrary } from '@mc
 import type {
   Box3,
   FigureViewState,
-  ModelLibrary,
   Occluders,
   PlanPoint,
   SceneFog,
-  Vec3,
   View3dFactory,
 } from '@mcthaydt/automata-render-pixi3d'
-import { CameraHeading, Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
+import { Q16 } from '@mcthaydt/automata-render-pixi3d/sim'
 import type { FieldRecord } from '@mcthaydt/automata-sim'
-import { Mesh3D, type View3D } from '@pixi/3d'
-import { ACTION_CLIP, type MoveDef, TICK_HZ, WALK_SPEED } from '../constants/index.ts'
+import type { View3D } from '@pixi/3d'
+import { ACTION_CLIP, ROLL, TICK_HZ, WALK_SPEED } from '../constants/index.ts'
 import type { AreaSource } from '../systems/index.ts'
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>
 
-/** The item Wick holds in the first slice: the sword (the shield waits on a second hand's item, M3.7b plan). */
-export const HERO_ITEM = 'sword'
-/** Where the lock aims on a target standing at the floor: its head and its chest, in metres above it. */
-const AIM_HEIGHTS = { head: 1.5, chest: 1.2 } as const
-
 /** Turn units (65,536 a turn) to radians, 2π spelled out (`pnpm boundaries` scans src/ until GL.7 lands). */
 const radians = (units: number): number => (units * 6.283185307179586) / 65_536
 const seconds = (tick: number): number => tick / TICK_HZ
-/** Each action code's clip id: `ACTION_CLIP` the other way round. */
-const CLIP_IDS: Readonly<Record<number, string>> = {
-  [ACTION_CLIP.slash]: 'slash',
-  [ACTION_CLIP.point]: 'point',
-  [ACTION_CLIP.pickup]: 'pickup',
-}
 
 /**
- * The clip an action plays: a move's own (from `fighter.move` among `moves`), retimed to its `total` (DESIGN.md §7.2,
- * GAME-3D.1c part 3), when the action is a sword move or a dodge; otherwise the action code's clip at its own length.
+ * Wick's figure state from his `hero` and `hero-action` rows: walking at the walk speed or standing, and the roll's clip
+ * from the tick it started, retimed to the roll's length so the lunge and the clip end together.
  */
-function actionClip(
-  components: Components,
-  code: number,
-  moves: readonly MoveDef[],
-): { readonly id: string; readonly length?: number } | undefined {
-  if (code === ACTION_CLIP.slash || code === ACTION_CLIP.move) {
-    const move = moves[Number(components.fighter?.move ?? 0) - 1]
-    if (move !== undefined) return { id: move.clip ?? move.id, length: move.total / TICK_HZ }
-  }
-  const id = CLIP_IDS[code]
-  return id === undefined ? undefined : { id }
-}
-
-/**
- * Wick's figure state from his `hero`, `hero-action` and `fighter` rows. `target` is the locked target's `target`
- * row (its plan position in Q16.16 metres), which the page looks up by `hero.lockTarget`; the head and chest aim at
- * it while he is locked. `moves` is the world's move table, which names each move's clip.
- */
-export function heroFigureState(
-  components: Components,
-  target?: { readonly x: number; readonly z: number },
-  moves: readonly MoveDef[] = [],
-): FigureViewState {
+export function heroFigureState(components: Components): FigureViewState {
   const hero = components.hero ?? {}
   const act = components['hero-action'] ?? {}
   const moving = hero.moving === true
-  const clip = actionClip(components, Number(act.clip ?? 0), moves)
-  const locked = Number(hero.lockTarget ?? 0) !== 0 && target !== undefined
+  const rolling = Number(act.clip ?? 0) === ACTION_CLIP.roll
   return {
     moving,
-    speed: moving ? WALK_SPEED : 0,
+    speed: moving && !rolling ? WALK_SPEED : 0,
     moveDir: radians(Number(hero.moveDir ?? 0)),
-    item: HERO_ITEM,
-    ...(clip !== undefined && { action: { ...clip, startedAt: seconds(Number(act.startedAt)) } }),
-    ...(act.guard === true && { stances: [{ id: 'guard', startedAt: seconds(Number(act.guardSince)) }] }),
-    ...(locked && {
-      aim: (['head', 'chest'] as const).map((part) => ({
-        part,
-        at: [target.x / Q16, AIM_HEIGHTS[part], target.z / Q16] as const,
-      })),
+    ...(rolling && {
+      action: { id: 'roll', length: ROLL.ticks / TICK_HZ, startedAt: seconds(Number(act.startedAt)) },
     }),
   }
 }
@@ -123,33 +81,6 @@ export function inMetres(factory: View3dFactory, yaw = 0): View3dFactory {
   return factory.models === undefined ? wrapped : Object.assign(wrapped, { models: factory.models })
 }
 
-/** The camera's lock-on framing (M3 spec §4.2): the locked target's chest, or none. */
-export function lockPoint(
-  components: Components,
-  rowOf: (sid: number) => Components | undefined,
-): Vec3 | undefined {
-  const sid = Number(components.hero?.lockTarget ?? 0)
-  const target = sid === 0 ? undefined : rowOf(sid)?.target
-  if (target === undefined) return undefined
-  return { x: Number(target.x) / Q16, y: AIM_HEIGHTS.chest, z: Number(target.z) / Q16 }
-}
-
-/**
- * Whether this tick's heading is a recentre (DESIGN.md §11.2): it jumped to Wick's facing with no lock before or
- * after, which only a lock press with no target does in one tick, so the camera eases it over 250 ms. A turn that
- * happens to land on the facing eases too, which shows as nothing more than a smoother turn.
- */
-export function recentred(curr: Components, prev: Components | undefined): boolean {
-  const heading = curr[CameraHeading.id]?.heading
-  const before = prev?.[CameraHeading.id]?.heading
-  if (before === undefined || heading === before) return false
-  return (
-    heading === curr.hero?.facing &&
-    Number(curr.hero?.lockTarget ?? 0) === 0 &&
-    Number(prev?.hero?.lockTarget ?? 0) === 0
-  )
-}
-
 /** Metres from the floor to the ceiling: above the views' 2 m bounds, so the camera never meets it. */
 const WALL_HEIGHT = 2.6
 /** A hair past a face, to ask which side a room is on. */
@@ -168,30 +99,7 @@ export interface Scene {
   readonly walls: readonly SceneWall[]
   readonly floors: readonly Box3[]
   readonly ceilings: readonly Box3[]
-  /** The ember Wick picks up to end the run, a block on the floor. */
-  readonly ember: Box3
 }
-
-/** A static prop from The Last Light (public/models/PROVENANCE.md), standing at `x`, `z` facing `yaw`. */
-export interface Prop {
-  readonly file: string
-  readonly x: number
-  readonly z: number
-  readonly yaw: number
-  /** Metres tall, as the renderer scales it. */
-  readonly height: number
-}
-
-/** The hall's pillar, west of the walk to the doorway: taller than 1.5 m, so it fades when it hides Wick. */
-export const PILLAR: Box3 = { min: [-2.25, 0, 0.75], max: [-1.75, 2.4, 1.25] }
-
-/** Three props, off the golden's route up x = 0 (they have no collider until the rooms are `af-sector` levels). */
-export const PROPS: readonly Prop[] = [
-  { file: 'models/oil-drum.glb', x: 3, z: 2.8, yaw: 0, height: 0.9 },
-  { file: 'models/pallet-stack.glb', x: -3, z: -3, yaw: 0.4, height: 1 },
-  // Against the kiln's east wall, in front of its camera (the view looks toward +x).
-  { file: 'models/burner-bench.glb', x: 3.3, z: 6.2, yaw: -1.5707963267948966, height: 0.9 },
-]
 
 type Rect = { readonly min: readonly [number, number]; readonly max: readonly [number, number] }
 
@@ -199,9 +107,9 @@ const inside = (rooms: readonly Rect[], x: number, z: number): boolean =>
   rooms.some((room) => x > room.min[0] && x < room.max[0] && z > room.min[1] && z < room.max[1])
 
 /**
- * The face of an area wall (an axis-aligned box) that a room lies against, the room on its left (the inward normal
- * is `(−dir.z, dir.x)`, render-pixi3d's occluder rule). The box's short side is the thickness; a dividing wall with
- * rooms on both sides takes its face toward −z or −x, the side the first slice's cameras look from.
+ * The face of an area wall (an axis-aligned box) that a room lies against, the room on its left (the inward normal is
+ * `(−dir.z, dir.x)`, render-pixi3d's occluder rule). The box's short side is the thickness; a wall with rooms on both
+ * sides takes its face toward −z or −x.
  */
 function wallOf(box: Rect, rooms: readonly Rect[]): SceneWall {
   const [x0, z0] = box.min
@@ -220,13 +128,9 @@ function wallOf(box: Rect, rooms: readonly Rect[]): SceneWall {
     : face({ x: x1, z: z1 }, { x: x1, z: z0 })
 }
 
-/** Half the side of the ember's block, in metres. */
-const EMBER_HALF = 0.15
-
-/** The area's walls, a floor and a ceiling over each room, and the ember. */
+/** The area's walls, and a floor and a ceiling over each room: a pit has none, so it shows as a gap. */
 export function sceneOf(area: AreaSource): Scene {
   const rooms = area.rooms
-  const { x, z } = area.ember
   return {
     walls: area.walls.map((wall) => wallOf(wall, rooms)),
     floors: rooms.map((room) => ({
@@ -237,54 +141,44 @@ export function sceneOf(area: AreaSource): Scene {
       min: [room.min[0], WALL_HEIGHT, room.min[1]],
       max: [room.max[0], WALL_HEIGHT + 0.1, room.max[1]],
     })),
-    ember: {
-      min: [x - EMBER_HALF, 0, z - EMBER_HALF],
-      max: [x + EMBER_HALF, 2 * EMBER_HALF, z + EMBER_HALF],
-    },
   }
 }
 
-/**
- * The first slice's fog (M3 spec §4.1): none for 5 m, full at 14 m down the hall and into the kiln, its colour the sky
- * the fogged walls meet (Endesga 64 #2e222f). Inline until render-pixi3d's `scene-lighting` kind can reach the
- * content plugin: the Vite config cannot load render-pixi3d's index in Node (M3.7b plan log).
- */
+/** The room's fog: none for 5 m, full at 14 m, its colour the sky the fogged walls meet (Endesga 64 #2e222f). */
 export const FOG: SceneFog = { near: 5, far: 14, color: 0x2e222f }
 
-// The first slice's colours (Endesga 64) until the rooms are authored levels (GAME-3D.1i).
-const COLOURS = {
-  wall: 0x5a6988,
-  floor: 0x3e3546,
-  ceiling: 0x262b44,
-  pillar: 0x8b9bb4,
-  ember: 0xfb6b1d,
-} as const
+// The room's colours (Endesga 64): a lighter floor than the walls so the platforms read, a dark lava below the channels, and
+// a bright lip along each channel's edge so the player can see where to roll from.
+const COLOURS = { wall: 0x3a4466, floor: 0x8b9bb4, ceiling: 0x262b44, lava: 0x7a2a12, lip: 0xfeae34 } as const
+/** The channels' floor, metres below the platforms, and the lip's height and width. */
+const LAVA_DEPTH = 3
+const LIP = { height: 0.06, width: 0.12 } as const
 
-/**
- * Builds the area under the view's root (the renderer's `scene` hook): the walls cut away by the occluder rule, the
- * floors, the ceilings the angled view never draws, the pillar as a fading prop, the ember and the three props, each scaled to
- * its height and standing on the floor. The props are shorter than 1.5 m, so they never fade and share their
- * model's material.
- */
-export function buildScene(view: View3D, occluders: Occluders, models: ModelLibrary, area: AreaSource): void {
+/** Builds the area under the view's root (the renderer's `scene` hook): the walls cut away by the occluder rule, the floors and the ceilings the angled view never draws. */
+export function buildScene(view: View3D, occluders: Occluders, area: AreaSource): void {
   view.environment = { skyColor: 0xc7dcd0, groundColor: COLOURS.floor }
   const scene = sceneOf(area)
   for (const floor of scene.floors) occluders.box(floor, COLOURS.floor)
   for (const wall of scene.walls) occluders.wall({ ...wall, color: COLOURS.wall })
   for (const ceiling of scene.ceilings) occluders.ceiling(occluders.box(ceiling, COLOURS.ceiling))
-  occluders.prop(occluders.box(PILLAR, COLOURS.pillar), { bounds: PILLAR })
-  occluders.box(scene.ember, COLOURS.ember)
-  for (const prop of PROPS) {
-    const model = models.get(prop.file)
-    if (model === undefined) throw new Error(`base-3d: the prop "${prop.file}" was not loaded`)
-    const [minY, maxY] = [model.mesh.min[1], model.mesh.max[1]]
-    const scale = prop.height / (maxY - minY)
-    const mesh = new Mesh3D({ geometry: model.geometry, material: model.material })
-    mesh.scale.set(scale, scale, scale)
-    mesh.position.set(prop.x, -minY * scale, prop.z)
-    mesh.rotation.set(0, prop.yaw, 0)
-    view.root.addChild(mesh)
-  }
+  for (const box of channelBoxes(area)) occluders.box(box.box, box.colour)
+}
+
+/** A channel's lava floor, and a lip along each long edge on the platforms' sides (the pits run the room's width). */
+export function channelBoxes(area: AreaSource): { readonly box: Box3; readonly colour: number }[] {
+  return (area.pits ?? []).flatMap((pit) => {
+    const [x0, z0] = pit.min
+    const [x1, z1] = pit.max
+    const lip = (zEdge: number): Box3 => ({
+      min: [x0, 0, zEdge - LIP.width / 2],
+      max: [x1, LIP.height, zEdge + LIP.width / 2],
+    })
+    return [
+      { colour: COLOURS.lava, box: { min: [x0, -LAVA_DEPTH - 0.1, z0], max: [x1, -LAVA_DEPTH, z1] } as Box3 },
+      { colour: COLOURS.lip, box: lip(z0) },
+      { colour: COLOURS.lip, box: lip(z1) },
+    ]
+  })
 }
 
 type Kind<T> = Readonly<Record<string, T>>

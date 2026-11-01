@@ -35,6 +35,8 @@ export type { DrawContext, DrawTextOptions } from './draw/draw-layer.ts'
 export type { DrawEntity, DrawSim } from './draw/read-sim.ts'
 export { inputs } from './input/inputs.ts'
 export {
+  type AnalogOptions,
+  type AnalogReading,
   type InputMap,
   type InputSource,
   type KeyBindings,

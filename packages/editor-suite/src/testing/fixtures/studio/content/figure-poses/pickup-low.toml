@@ -1,0 +1,16 @@
+# New for base-3d (M3 spec §4.7): the low point of Wick's pickup. In figure units on Wick's body, as the fixture
+# poses are written.
+
+about = "Stooping to pick something up: the hips down and back, the chest bent over, the right hand low before the feet."
+
+[effectors.pelvis]
+pos = [ 0, 0.62, -0.08 ]
+
+[effectors.chest]
+rot = [ 35, 0, 0 ]
+
+[effectors.handR]
+pos = [ -0.12, 0.22, 0.32 ]
+
+[effectors.head]
+rot = [ 15, 0, 0 ]

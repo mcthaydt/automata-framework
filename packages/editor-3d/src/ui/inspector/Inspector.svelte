@@ -8,24 +8,34 @@
 import { Button } from '@mcthaydt/automata-editor-kit'
 import type { InspectorCard } from '../../app/inspector-cards'
 import type { InspectorChange, InspectorPhase } from '../../app/inspector-edits'
+import type { MaterialTarget } from '../../app/material-session'
 import SectorCard from './SectorCard.svelte'
+import ThingCard from './ThingCard.svelte'
 import WallCard from './WallCard.svelte'
 
 interface Props {
   card: InspectorCard
   /** Runs a change; answers the model's sentence when it is refused. */
   onchange: (change: InspectorChange, phase: InspectorPhase) => string | undefined
+  /** Opens the material sheet on a wall or a room's surface. */
+  onmaterial?: ((target: MaterialTarget) => void) | undefined
+  /** Opens the definitions sheet. */
+  ondefinitions?: (() => void) | undefined
 }
 
-const { card, onchange }: Props = $props()
+const { card, onchange, onmaterial, ondefinitions }: Props = $props()
 
 let refusal = $state<string | undefined>()
+
+/** A field edit shows its refusal under the field itself, so it only clears the card's. */
+function field(next: InspectorChange): string | undefined {
+  refusal = undefined
+  return onchange(next, 'set')
+}
 
 function change(next: InspectorChange, phase: InspectorPhase): void {
   refusal = onchange(next, phase)
 }
-
-const metres = (value: number): string => value.toFixed(2)
 </script>
 
 <section class="inspector" aria-label="Inspector" data-testid="inspector">
@@ -35,24 +45,16 @@ const metres = (value: number): string => value.toFixed(2)
   {#if card.kind === 'none'}
     <p class="empty">Tap a room, a wall or a thing to see it here.</p>
   {:else if card.kind === 'sector'}
-    <SectorCard {card} onchange={change} />
+    <SectorCard {card} onchange={change} {onmaterial} />
   {:else if card.kind === 'wall'}
-    <WallCard {card} onchange={change} />
+    <WallCard {card} onchange={change} {onmaterial} />
   {:else}
-    <h2>{card.id}</h2>
-    <p class="meta">{card.definition} · x {metres(card.x)} · z {metres(card.z)}{card.y === undefined ? '' : ` · y ${metres(card.y)}`}</p>
-    <p class="later">Its fields come with the field form (ED3D.7d-b).</p>
-    <Button
-      variant="danger"
-      aria-label={`Delete ${card.id}`}
-      onclick={() => change({ kind: 'thing', definition: card.definition, id: card.id, remove: true }, 'set')}
-    >
-      Delete
-    </Button>
+    <ThingCard {card} onchange={change} onfield={field} />
   {/if}
   {#if refusal !== undefined}
     <p class="refusal" role="alert">{refusal}</p>
   {/if}
+  {#if ondefinitions}<Button onclick={ondefinitions}>Definitions…</Button>{/if}
 </section>
 
 <style>
@@ -73,8 +75,7 @@ const metres = (value: number): string => value.toFixed(2)
     font: 500 12px / 16px var(--font-mono, monospace);
   }
   .several,
-  .empty,
-  .later {
+  .empty {
     margin: 0;
     color: var(--color-text-dim);
     font: var(--text-body-13);

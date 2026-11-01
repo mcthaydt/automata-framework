@@ -141,7 +141,9 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
   })
 
   it('passes the same runner to the placeholder through game-ci', () => {
-    expect(ci.jobs.placeholder?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(ci.jobs.placeholder?.with?.runner).toBe(
+      "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
+    )
   })
 
   it.each(['game-ci.yml', 'game-release.yml'])(
@@ -181,26 +183,26 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
   )
 })
 
+const foldersIn = (group: string): string[] =>
+  readdirSync(join(root, group), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && entry.name !== 'node_modules')
+    .map((entry) => `${group}/${entry.name}`)
+const hasPackageJson = (path: string): boolean => {
+  try {
+    readFileSync(join(root, path, 'package.json'))
+    return true
+  } catch {
+    return false
+  }
+}
+// The workspace globs: packages/*, tooling/*, games/*, examples/* and examples/*/* (pnpm-workspace.yaml).
+const workspacePackages = [
+  ...['packages', 'tooling', 'games', 'examples'].flatMap(foldersIn),
+  ...foldersIn('examples').flatMap(foldersIn),
+].filter(hasPackageJson)
+
 describe('parity across packages', () => {
   const ci = workflow('ci.yml')
-  const foldersIn = (group: string): string[] =>
-    readdirSync(join(root, group), { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && entry.name !== 'node_modules')
-      .map((entry) => `${group}/${entry.name}`)
-  const hasPackageJson = (path: string): boolean => {
-    try {
-      readFileSync(join(root, path, 'package.json'))
-      return true
-    } catch {
-      return false
-    }
-  }
-  // The workspace globs: packages/*, tooling/*, games/*, examples/* and examples/*/* (pnpm-workspace.yaml).
-  const workspacePackages = [
-    ...['packages', 'tooling', 'games', 'examples'].flatMap(foldersIn),
-    ...foldersIn('examples').flatMap(foldersIn),
-  ].filter(hasPackageJson)
-
   // EX-D1: games (Emberwick, the placeholder) live apart from the one-file examples.
   it('lists the games folder in the workspace', () => {
     const globs = readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8')
@@ -293,6 +295,47 @@ describe('parity across packages', () => {
   })
 })
 
+// CI.JRN1: the editors' iPad journeys (EDK.6b's harness, WebKit with touch and a 2x screen) gate every pull request
+// in the checks job. They take seconds, so they run in full rather than through turbo --affected.
+describe('the iPad journeys (CI.JRN1)', () => {
+  const withJourneys = workspacePackages.filter((path) => {
+    try {
+      // A journeys project is the kit's `journeyProject(...)` (EDK.6b) or one named 'journeys'.
+      return /journeyProject\(|name:\s*'journeys'/.test(
+        readFileSync(join(root, path, 'vitest.config.ts'), 'utf8'),
+      )
+    } catch {
+      return false
+    }
+  })
+
+  it('gives every package with a journeys vitest project a test:journeys script, which the root script runs', () => {
+    expect(withJourneys).toContain('packages/editor-kit')
+    for (const path of withJourneys)
+      expect(packageJson(path).scripts['test:journeys']).toMatch(/^vitest run --project journeys/)
+    expect(packageJson('.').scripts['test:journeys']).toBe(`${VITEST_CAP} turbo run test:journeys`)
+    const turbo = JSON.parse(readFileSync(join(root, 'turbo.json'), 'utf8'))
+    expect(turbo.tasks['test:journeys']).toEqual({
+      cache: false,
+      passThroughEnv: ['PLAYWRIGHT_BROWSERS_PATH'],
+    })
+  })
+
+  it('runs them in the checks job after installing WebKit, on a hosted runner with its system libraries', () => {
+    const steps = workflow('ci.yml').jobs.checks?.steps ?? []
+    const runs = steps.map((step) => step.run ?? '')
+    const journeys = runs.indexOf('pnpm test:journeys')
+    expect(journeys).toBeGreaterThan(-1)
+    const installs = steps
+      .slice(0, journeys)
+      .filter((step) => /playwright install .*webkit/.test(step.run ?? ''))
+    expect(installs.map((step) => [step.if, step.run])).toEqual([
+      ["runner.environment == 'github-hosted'", 'pnpm exec playwright install --with-deps webkit'],
+      ["runner.environment == 'self-hosted'", 'pnpm exec playwright install webkit'],
+    ])
+  })
+})
+
 // af-mac, af-mac-2 and af-mac-web are three runners on one Mac M1. On 2026-10-23 their jobs ran at a load average up
 // to 115 and every failure was a 30 s or 90 s timeout (hub, automata/inbox/2026-10-23-1705-hub-cap-test-workers.md).
 // Nothing capped what one job starts: Playwright's default of half the cores per run, turbo's 10 packages at once
@@ -357,6 +400,8 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
       (ci.jobs[name]?.steps ?? [])
         // The Mac host's browser download is runner setup, not a check (a local run has its browsers).
         .filter((step) => step.if !== "runner.os == 'macOS'")
+        // Nor is a browser install on a runner (the journeys' WebKit, CI.JRN1).
+        .filter((step) => !(step.run ?? '').startsWith('pnpm exec playwright install'))
         // A local run always runs every parity suite; the affected variant is a pull request's shortcut.
         .filter((step) => step.run !== 'pnpm test:parity:affected')
         .map((step) => step.run ?? '')
@@ -517,7 +562,9 @@ describe('ci.yml (AF)', () => {
     expect(ci.jobs['base-2d']?.uses).toBe('./.github/workflows/game-ci.yml')
     expect(ci.jobs['base-2d']?.with?.['working-directory']).toBe('games/emberwick')
     expect(ci.jobs['base-2d']?.with?.['sim-roots']).toBe('src/sim')
-    expect(ci.jobs['base-2d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(ci.jobs['base-2d']?.with?.runner).toBe(
+      "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
+    )
   })
 
   // M3.7a: base-3d's sim is flat in src/ (DESIGN.md §3.1), so the whole folder is its sim root.
@@ -525,7 +572,9 @@ describe('ci.yml (AF)', () => {
     expect(ci.jobs['base-3d']?.uses).toBe('./.github/workflows/game-ci.yml')
     expect(ci.jobs['base-3d']?.with?.['working-directory']).toBe('games/base-3d')
     expect(ci.jobs['base-3d']?.with?.['sim-roots']).toBe('src')
-    expect(ci.jobs['base-3d']?.with?.runner).toBe("${{ vars.AF_LINUX_RUNNER || 'af-linux' }}")
+    expect(ci.jobs['base-3d']?.with?.runner).toBe(
+      "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
+    )
   })
 
   it('gives each game-ci caller its own artifact name, since one run cannot upload two artifacts of the same name', () => {

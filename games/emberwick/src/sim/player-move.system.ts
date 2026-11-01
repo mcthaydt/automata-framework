@@ -2,19 +2,7 @@ import { defineSystem, type SystemDef } from '@mcthaydt/automata-sim'
 import { Player, PlayerControl } from './player.component.ts'
 import { Jumped, Landed } from './player.event.ts'
 import { hitsSolid, type RoomGrid, roomOf } from './tiles.ts'
-import {
-  AIR_ACCEL,
-  BUFFER_TICKS,
-  COYOTE_TICKS,
-  GRAVITY,
-  HALF_GRAVITY_BELOW,
-  JUMP_SPEED,
-  MAX_FALL,
-  MAX_RUN,
-  RUN_ACCEL,
-  SUB,
-  VAR_JUMP_TICKS,
-} from './tuning.ts'
+import { SUB, tuningOf } from './tuning.ts'
 
 /**
  * Runs, jumps and collides the character, in Celeste's order: read the ground, set the jump timers, run,
@@ -25,36 +13,37 @@ export const playerMove: SystemDef = defineSystem({
   phase: 'physics',
   run(ctx) {
     const room = roomOf(ctx.content)
+    const t = tuningOf(ctx.content)
     for (const entity of ctx.query(Player, PlayerControl)) {
       const p = { ...entity.get(Player) }
       const c = { ...entity.get(PlayerControl) }
       const onGround = standingOnSolid(room, p.x, p.y)
 
       // Coyote time: a jump stays possible for a few ticks after leaving the ground.
-      if (onGround) c.coyote = COYOTE_TICKS
+      if (onGround) c.coyote = t.COYOTE_TICKS
       else if (c.coyote > 0) c.coyote -= 1
 
       // Run toward the held direction; with nothing held, toward a stop. Slower to change in the air.
       if (c.moveX !== 0) p.facing = c.moveX
-      p.vx = approach(p.vx, MAX_RUN * c.moveX, onGround ? RUN_ACCEL : AIR_ACCEL)
+      p.vx = approach(p.vx, t.MAX_RUN * c.moveX, onGround ? t.RUN_ACCEL : t.AIR_ACCEL)
 
       // Fall. Near the top of a held jump gravity halves, which gives the jump its float.
       if (!onGround) {
-        const half = c.jumpHeld && abs(p.vy) < HALF_GRAVITY_BELOW
-        p.vy = approach(p.vy, MAX_FALL, half ? GRAVITY / 2 : GRAVITY)
+        const half = c.jumpHeld && abs(p.vy) < t.HALF_GRAVITY_BELOW
+        p.vy = approach(p.vy, t.MAX_FALL, half ? t.GRAVITY / 2 : t.GRAVITY)
       }
 
       // A held jump keeps its full speed for a while; letting go ends that early (variable jump height).
       if (c.varJump > 0) {
-        if (c.jumpHeld) p.vy = Math.min(p.vy, JUMP_SPEED)
+        if (c.jumpHeld) p.vy = Math.min(p.vy, t.JUMP_SPEED)
         else c.varJump = 0
       }
 
       // Jump buffer: a press is remembered for a few ticks, so pressing just before landing still jumps.
-      if (c.jumpPressed) c.buffer = BUFFER_TICKS
+      if (c.jumpPressed) c.buffer = t.BUFFER_TICKS
       if (c.buffer > 0 && c.coyote > 0) {
-        p.vy = JUMP_SPEED
-        c.varJump = VAR_JUMP_TICKS
+        p.vy = t.JUMP_SPEED
+        c.varJump = t.VAR_JUMP_TICKS
         c.buffer = 0
         c.coyote = 0
         ctx.emit(Jumped, { x: pixel(p.x), y: pixel(p.y) })

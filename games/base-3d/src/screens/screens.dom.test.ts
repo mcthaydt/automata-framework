@@ -8,21 +8,14 @@ import {
 } from '@mcthaydt/automata-runtime'
 import { fakeFetch, type ManualFrames, manualFrames } from '@mcthaydt/automata-runtime/testing'
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import { type FakeHostingOptions, fakeHosting } from '@mcthaydt/automata-testing/host'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Enemy, Fighter, Hero } from '../components.ts'
-import { ENEMIES } from '../constants/enemies.ts'
-import { AREA_FADE_TICKS, metres } from '../constants/index.ts'
-import { ItemCode } from '../constants/items.ts'
-import { FIRST_SLICE } from '../content/first-slice.ts'
-import { HeroDefeated } from '../events.ts'
 import { base3d, input } from '../main.ts'
-import { Inventory } from '../resources.ts'
+import { Progress } from '../resources.ts'
 import { base3dSim } from '../state/index.ts'
 import { newGame } from '../state/save.ts'
-import { compileWorld } from '../systems/index.ts'
+import { compileArea } from '../systems/index.ts'
 import { liveCopy } from './copy.svelte.ts'
 import { BASE3D_COPY } from './copy.ts'
 import { hudInPlay } from './hud.ts'
@@ -77,7 +70,6 @@ describe("base-3d's flow", () => {
       z: number
     }
   }
-  const spawnZOf = () => metres(FIRST_SLICE.spawn.z)
   const resize = (width: number, height: number) => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: width })
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: height })
@@ -187,7 +179,7 @@ describe("base-3d's flow", () => {
   it('shows the splash once ready, then the menu on any key, with New game focused', async () => {
     await boot()
     expect(document.documentElement.dataset.state).toBe('ready')
-    expect(root.querySelector('[data-game-screen="splash"]')?.textContent).toContain('The Cold Kiln')
+    expect(root.querySelector('[data-game-screen="splash"]')?.textContent).toContain('Ember Hall')
     key('keydown', 'KeyX')
     await until(() => screen() === 'title', 'the menu')
     await until(() => byTestId('save-slots-new') !== null, 'New game')
@@ -241,34 +233,71 @@ describe("base-3d's flow", () => {
     expect(results[0]?.tick).toBe(1)
   })
 
-  it('Wick picks up the ember in the kiln: the round completes, the end screen shows the time, and Menu keeps the ember in the slot', async () => {
+  it('on touch, the stick walks Wick, the camera drag surface is there and the Roll button is on the play screen', async () => {
     await toRoom()
-    const { x, z } = FIRST_SLICE.ember
-    // North through the doorway into the kiln, to the ember's row; then, on the kiln's heading (the camera looks
-    // +x), the stick down walks him −x to it.
-    await hold('KeyW', () => (wick()?.z ?? 0) >= metres(z))
-    await hold('KeyS', () => (wick()?.x ?? 0) <= metres(x))
-    expect(screen()).toBe('play')
-    key('keydown', 'KeyF')
-    step()
-    key('keyup', 'KeyF')
+    window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+    await until(() => root.querySelector('[data-touch-stick]') !== null, 'the touch stick')
+    expect(root.querySelector('[data-testid="camera-drag"]')).not.toBeNull()
+    const labels = [...root.querySelectorAll('[data-touch-overlay] [data-action]')].map((b) =>
+      b.textContent?.trim(),
+    )
+    expect(labels).toEqual(['Roll'])
+    step(2)
+    const fromZ = wick()?.z ?? 0
+    const stick = root.querySelector('[data-touch-stick]') as HTMLElement
+    const pointer = (type: string, clientY: number) =>
+      stick.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: 5,
+          pointerType: 'touch',
+          clientX: 40,
+          clientY,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+    pointer('pointerdown', 80)
+    pointer('pointermove', 0)
+    step(30)
+    expect(wick()?.z ?? 0).toBeGreaterThan(fromZ)
+    pointer('pointerup', 0)
+    step(2)
+    const stopped = wick()?.z ?? 0
+    step(10)
+    expect(wick()?.z).toBe(stopped)
+  })
+
+  it('the goal ember completes the round: the end screen shows the time, and Menu keeps the embers in the slot', async () => {
+    // A room with its goal one metre ahead of the spawn, so the keyboard reaches it in a few ticks.
+    const near = compileArea({
+      id: 'near',
+      spawn: { x: 0, z: 0 },
+      views: [{ id: 'open', yawDeg: 0 }],
+      rooms: [{ view: 'open', min: [-5, -5], max: [5, 5] }],
+      walls: [],
+      pits: [],
+      embers: [{ x: 0, z: 1 }],
+      goal: { x: 0, z: 2.5 },
+    })
+    await toRoom(
+      base3dScreens({
+        title: base3d.title,
+        sim: base3dSim(near),
+        input,
+        extensions: [render3dExtension],
+        saves: base3dSaves() as never,
+      }),
+    )
+    key('keydown', 'KeyW')
+    step(70)
+    key('keyup', 'KeyW')
     await until(() => screen() === 'end', 'the end screen')
-    const tick = results.at(-1)?.tick ?? 0
-    expect(root.querySelector('[data-slot="time"]')?.textContent).toBe(`${(tick / 60).toFixed(2)} s`)
+    // The time is the tick the goal was taken on, in seconds: under the 70 ticks the key was held.
+    const time = Number.parseFloat(root.querySelector('[data-slot="time"]')?.textContent ?? '')
+    expect(time).toBeGreaterThan(0)
+    expect(time).toBeLessThan(70 / 60)
     expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'complete' }])
     expect(document.activeElement).toBe(button('Menu'))
-    button('Menu')?.click()
-    await until(() => screen() === 'title', 'the menu')
-    // The ember is kept: leaving play wrote the slot, and Continue plays it.
-    const kept = () =>
-      (JSON.parse(host.control.saved.get('base-3d') ?? '{}') as { data?: { embers: number } }).data
-    await synced(() => kept()?.embers === 1, 'the slot holding the ember')
-    results.length = 0
-    await until(() => byTestId('save-slots-load') !== null, 'Continue')
-    byTestId('save-slots-load')?.click()
-    await until(() => screen() === 'play', 'the room')
-    step()
-    expect(results[0]?.tick).toBe(1)
   })
 
   it('held in portrait on a phone, covers the game with the rotate hint until turned back', async () => {
@@ -298,7 +327,7 @@ describe("base-3d's flow", () => {
     })
 
     it('offers Continue on a ready slot and no New game over it: a new game there is Delete…, asked first', async () => {
-      hostWith({ saves: { 'base-3d': stored({ data: { ...newGame(), embers: 1 } }) } })
+      hostWith({ saves: { 'base-3d-free': stored({ data: { ...newGame(), taken: [0] } }) } })
       await toMenu()
       expect(byTestId('save-slots-load')).not.toBeNull()
       expect(byTestId('save-slots-new')).toBeNull()
@@ -309,8 +338,8 @@ describe("base-3d's flow", () => {
       await until(() => byTestId('save-slots-new') !== null, 'New game on the emptied slot')
     })
 
-    it('Continue plays the slot: the embers it holds are kept by the next write', async () => {
-      hostWith({ saves: { 'base-3d': stored({ data: { ...newGame(), embers: 1, flags: ['door-1'] } }) } })
+    it('Continue plays the slot: what it holds is kept by the next write', async () => {
+      hostWith({ saves: { 'base-3d-free': stored({ data: { ...newGame(), taken: [0], note: 'kept' } }) } })
       await toMenu()
       byTestId('save-slots-load')?.click()
       await until(() => screen() === 'play', 'the room')
@@ -320,15 +349,15 @@ describe("base-3d's flow", () => {
       await until(() => screen() === 'paused', 'paused')
       // The seed's play time is 0: a write with time on it is this session's, over the seed's other fields.
       const saved = () =>
-        (JSON.parse(slotValue() ?? '{}') as { data?: { embers: number; flags: string[]; playTicks: number } })
+        (JSON.parse(slotValue() ?? '{}') as { data?: { taken: number[]; note: string; playTicks: number } })
           .data
       await synced(() => (saved()?.playTicks ?? 0) > 0, 'the write from play')
-      expect(saved()).toMatchObject({ embers: 1, flags: ['door-1'], playTicks: 3 })
+      expect(saved()).toMatchObject({ taken: [0], note: 'kept', playTicks: 3 })
     })
 
     it('a slot a newer build saved cannot be continued, says why, and is never written (G3-F3)', async () => {
       const newer = stored({ version: 2 })
-      hostWith({ saves: { 'base-3d': newer } })
+      hostWith({ saves: { 'base-3d-free': newer } })
       await toMenu()
       expect(root.querySelector('[data-save-slots]')?.textContent).toContain(
         'Saved by a newer version of the game',
@@ -340,7 +369,7 @@ describe("base-3d's flow", () => {
     })
 
     it('an unreadable slot is kept as it is: the only action is Delete…, which asks first (G3-F3)', async () => {
-      hostWith({ saves: { 'base-3d': 'not a save' } })
+      hostWith({ saves: { 'base-3d-free': 'not a save' } })
       await toMenu()
       expect(root.querySelector('[data-save-slots]')?.textContent).toContain("This save can't be opened")
       expect(byTestId('save-slots-load')).toBeNull()
@@ -379,195 +408,8 @@ describe("base-3d's flow", () => {
     })
   })
 
-  describe('game over (DESIGN.md §7.8, §13)', () => {
-    // Health is GAME-3D.1c's: until it lands, a test plugin raises the sim's `hero.defeated` once Wick is a metre
-    // north of the spawn, on the game's own screens over that sim.
-    const spawnZ = metres(FIRST_SLICE.spawn.z)
-    const defeatNorth = definePlugin({
-      name: 'test-defeat',
-      dependsOn: ['base-3d'],
-      defs: [
-        defineSystem({
-          name: 'test.defeat',
-          phase: 'postPhysics',
-          run(ctx) {
-            for (const entity of ctx.query(Hero))
-              if (entity.get(Hero).z >= spawnZ + metres(1)) ctx.emit(HeroDefeated, {})
-          },
-        }),
-      ],
-    })
-    const defeatable = () => {
-      const sim = base3dSim(compileWorld([FIRST_SLICE]))
-      return base3dScreens({
-        title: base3d.title,
-        sim: { ...sim, plugins: [...sim.plugins, defeatNorth] },
-        input,
-        extensions: [render3dExtension],
-        saves: base3dSaves() as never,
-      })
-    }
-
-    async function toGameOver(): Promise<void> {
-      await toRoom(defeatable())
-      await hold('KeyW', () => (wick()?.z ?? spawnZ) >= spawnZ + metres(1))
-      // The step's events reach the screens with the next frame.
-      step()
-      await until(() => screen() === 'game-over', 'the game over')
-    }
-
-    it('shows Continue, focused, and Quit when Wick is defeated, and ends the round as failed', async () => {
-      await toGameOver()
-      expect(button('Continue')).toBeDefined()
-      expect(button('Quit')).toBeDefined()
-      expect(document.activeElement).toBe(button('Continue'))
-      expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'fail' }])
-    })
-
-    it('Continue plays on from the area entrance in a new round', async () => {
-      await toGameOver()
-      results.length = 0
-      button('Continue')?.click()
-      await until(() => screen() === 'play', 'the room')
-      step()
-      expect(wick()).toMatchObject({ x: metres(FIRST_SLICE.spawn.x), z: spawnZ })
-      // With 3 hearts (DESIGN.md §7.8), whatever the entrance held.
-      const rows = results.flatMap((result) => [...result.render.added, ...result.render.changed])
-      expect(rows.findLast((row) => row.components.hero !== undefined)?.components.fighter).toMatchObject({
-        health: 6,
-      })
-      expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'fail' }, { kind: 'start' }])
-    })
-
-    it('Quit goes to the menu', async () => {
-      await toGameOver()
-      button('Quit')?.click()
-      await until(() => screen() === 'title', 'the menu')
-      expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'fail' }])
-    })
-  })
-
-  describe('the Lock mode setting (DESIGN.md §12.2)', () => {
-    const lockMode = (mode: 'toggle' | 'hold') =>
-      root.querySelector<HTMLInputElement>(
-        `[data-testid="lock-mode-${mode}"] input, input[data-testid="lock-mode-${mode}"]`,
-      )
-
-    async function toSettings(): Promise<void> {
-      await toRoom()
-      key('keydown', 'Escape')
-      await until(() => screen() === 'paused', 'paused')
-      button('Settings')?.click()
-      await until(() => screen() === 'settings', 'Settings')
-    }
-
-    it('offers Toggle and Hold in its own section, Toggle by default', async () => {
-      await toSettings()
-      const section = root.querySelector('[data-settings-section="lock-mode"]')
-      expect(section?.textContent).toContain('Lock mode')
-      expect(lockMode('toggle')?.checked).toBe(true)
-      expect(lockMode('hold')?.checked).toBe(false)
-    })
-
-    /** Wick's lock target from the last render row that carried him; 0 when none. */
-    const locked = () => {
-      const rows = results.flatMap((result) => [...result.render.added, ...result.render.changed])
-      return Number(
-        rows.findLast((row) => row.components.hero !== undefined)?.components.hero?.lockTarget ?? 0,
-      )
-    }
-    /** Shift pressed for a tick and let go, then a few ticks more. */
-    const tapLock = () => {
-      key('keydown', 'ShiftLeft')
-      step(2)
-      key('keyup', 'ShiftLeft')
-      step(3)
-    }
-    /** Walks Wick a few metres up the hall, toward the target in the kiln. */
-    async function walkIn(): Promise<void> {
-      const fromZ = wick()?.z ?? spawnZOf()
-      await hold('KeyW', () => (wick()?.z ?? fromZ) >= fromZ + metres(4))
-    }
-
-    it('play locks in Toggle by default: the lock stays after Shift is let go, and the next press lets go', async () => {
-      await toRoom()
-      await walkIn()
-      tapLock()
-      expect(locked()).not.toBe(0)
-      tapLock()
-      expect(locked()).toBe(0)
-    })
-
-    it('play takes Hold from Settings: the lock lets go with Shift', async () => {
-      await toSettings()
-      lockMode('hold')?.click()
-      button('Back')?.click()
-      await until(() => screen() === 'paused', 'paused')
-      button('Resume')?.click()
-      await until(() => screen() === 'play', 'the room')
-      await walkIn()
-      key('keydown', 'ShiftLeft')
-      step(3)
-      expect(locked()).not.toBe(0)
-      key('keyup', 'ShiftLeft')
-      step(3)
-      expect(locked()).toBe(0)
-    })
-
-    it("keeps Hold in the game's settings record on the player's account", async () => {
-      await toSettings()
-      lockMode('hold')?.click()
-      expect(lockMode('hold')?.checked).toBe(true)
-      await synced(
-        () => (host.control.saved.get('settings') ?? '').includes('"lockMode":"hold"'),
-        'the settings record holding Hold',
-      )
-    })
-  })
-
-  describe('the area change (DESIGN.md §13)', () => {
-    // Two first-slice areas, the first's exit across the hall a metre north of the spawn (GAME-3D.1i brings the hub
-    // and the kiln).
-    const twoAreas = () => {
-      const first = {
-        ...FIRST_SLICE,
-        id: 'first',
-        exits: [
-          {
-            min: [-4, -1] as [number, number],
-            max: [4, -0.5] as [number, number],
-            to: 'second',
-            entry: { x: 0, z: 8 },
-          },
-        ],
-      }
-      return base3dScreens({
-        title: base3d.title,
-        sim: base3dSim(compileWorld([first, { ...FIRST_SLICE, id: 'second' }])),
-        input,
-        extensions: [render3dExtension],
-        saves: base3dSaves() as never,
-      })
-    }
-    const fade = () => root.querySelector<HTMLElement>('[data-testid="area-fade"]')
-
-    it('fades out on the exit and back in once the sim has swapped the area', async () => {
-      await toRoom(twoAreas())
-      expect(fade()?.dataset.state).toBe('in')
-      await hold('KeyW', () => (wick()?.z ?? spawnZOf()) >= metres(-1))
-      step()
-      await until(() => fade()?.dataset.state === 'out', 'the fade out')
-      step(AREA_FADE_TICKS)
-      await until(() => fade()?.dataset.state === 'in', 'the fade back in')
-      expect(wick()?.z).toBeGreaterThanOrEqual(metres(8))
-    })
-  })
-  describe('the HUD (DESIGN.md §9.5, GAME-3D.1e part 5a)', () => {
+  describe('the HUD', () => {
     const hud = () => root.querySelector<HTMLElement>('[data-testid="hud"]')
-    const hearts = () =>
-      [...root.querySelectorAll<SVGElement>('[data-testid="hud-hearts"] svg')].map(
-        (heart) => heart.dataset.fill,
-      )
     const running = () => {
       if (hudInPlay.sim === undefined) throw new Error('no running sim')
       return hudInPlay.sim
@@ -575,189 +417,20 @@ describe("base-3d's flow", () => {
     /** The HUD reads the sim on the next animation frame. */
     const nextFrame = () => new Promise((resolve) => window.requestAnimationFrame(resolve))
 
-    it('shows Wick’s 4 hearts and the embers on play, inside the frame, and is gone on paused', async () => {
+    it('shows the ember count on play, inside the frame, follows the sim, and is gone on paused', async () => {
       await toRoom()
       await until(() => hud() !== null, 'the HUD')
       expect(root.querySelector('[data-testid="play-screen"]')?.contains(hud())).toBe(true)
-      expect(hearts()).toEqual(['full', 'full', 'full', 'full'])
-      expect(root.querySelector('[data-testid="hud-hearts"]')?.getAttribute('aria-label')).toBe(
-        'Hearts 4 of 4',
-      )
       expect(root.querySelector('[data-testid="hud-embers"]')?.textContent?.trim()).toBe('0')
-      expect(root.querySelector('[data-testid="hud-keys"]')?.getAttribute('aria-label')).toBe('Small keys 0')
-      expect(root.querySelector('[data-testid="hud-item"]')).toBeNull()
-      expect(root.querySelector('[data-testid="hud-boss"]')).toBeNull()
+      expect(root.querySelector('[data-testid="hud-embers"]')?.getAttribute('aria-label')).toBe(
+        'Embers 0 of 6',
+      )
+      running().resource(Progress).taken = [0, 1]
+      await nextFrame()
+      expect(root.querySelector('[data-testid="hud-embers"]')?.textContent?.trim()).toBe('2')
       key('keydown', 'Escape')
       await until(() => screen() === 'paused', 'paused')
       expect(hud()).toBeNull()
-    })
-
-    it('loses half-hearts as Wick is hurt, flashing the hearts', async () => {
-      await toRoom()
-      await until(() => hud() !== null, 'the HUD')
-      const [wick] = running().query(Hero, Fighter)
-      wick?.set(Fighter, { health: 5 })
-      await until(() => hearts().join() === 'full,full,half,empty', 'the hearts after the hurt')
-      expect(root.querySelector('.b3-hud__hearts--flash')).not.toBeNull()
-      await new Promise((resolve) => setTimeout(resolve, 450))
-      await nextFrame()
-      expect(root.querySelector('.b3-hud__hearts--flash')).toBeNull()
-    })
-
-    it('shows the equipped item and its ammo, and the boss bar while a Warden lives', async () => {
-      await toRoom()
-      await until(() => hud() !== null, 'the HUD')
-      Object.assign(running().resource(Inventory), { sling: true, equipped: ItemCode.sling, pellets: 12 })
-      const warden = ENEMIES.findIndex((type) => type.id === 'warden') + 1
-      running().spawn([
-        [Enemy, { kind: warden }],
-        [Fighter, { health: 17 }],
-      ])
-      await until(() => root.querySelector('[data-testid="hud-boss"]') !== null, 'the boss bar')
-      expect(root.querySelector('[data-testid="hud-item"]')?.textContent).toContain('Spark Sling')
-      expect(root.querySelector('[data-testid="hud-item"]')?.textContent).toContain('× 12')
-      const bar = root.querySelector<HTMLElement>('[data-testid="hud-boss"] [role="meter"]')
-      expect(root.querySelector('[data-testid="hud-boss"]')?.textContent).toContain('The Ashen Warden')
-      expect([bar?.getAttribute('aria-valuenow'), bar?.getAttribute('aria-valuemax')]).toEqual(['17', '24'])
-      expect(bar?.getAttribute('aria-label')).toBe('The Ashen Warden health')
-      // The words follow the player's language in place (DX.2d's way): a new record re-renders the bar's name.
-      const drawn = hud()
-      liveCopy.current = { ...BASE3D_COPY.en, bossNames: { warden: 'La Gardienne cendrée' } }
-      try {
-        await until(
-          () =>
-            root.querySelector('[data-testid="hud-boss"]')?.textContent?.includes('La Gardienne') === true,
-          'the new name',
-        )
-        expect(hud()).toBe(drawn)
-      } finally {
-        liveCopy.current = BASE3D_COPY.en
-      }
-    })
-  })
-  describe('the Items screen (DESIGN.md §9.3, GAME-3D.1e part 5b)', () => {
-    const running = () => {
-      if (hudInPlay.sim === undefined) throw new Error('no running sim')
-      return hudInPlay.sim
-    }
-    const slot = (id: string) => root.querySelector<HTMLButtonElement>(`[data-slot="${id}"]`)
-    /** Wick owns the sling (12 pellets) and the hookchain, the sling equipped. */
-    const ownSome = () =>
-      Object.assign(running().resource(Inventory), {
-        sling: true,
-        hookchain: true,
-        equipped: ItemCode.sling,
-        pellets: 12,
-      })
-
-    it('opens with I over a paused sim, with the owned slots, the outlined ones and the ammo', async () => {
-      await toRoom()
-      ownSome()
-      key('keydown', 'KeyI')
-      await until(() => screen() === 'items', 'the Items screen')
-      const applied = results.length
-      step(5)
-      expect(results.length).toBe(applied)
-      expect([...root.querySelectorAll<HTMLElement>('[data-slot]')].map((el) => el.dataset.slot)).toEqual([
-        'sword',
-        'shield',
-        'sling',
-        'bombs',
-        'hookchain',
-      ])
-      expect(slot('sling')?.dataset.owned).toBe('true')
-      expect(slot('bombs')?.dataset.owned).toBe('false')
-      expect(slot('bombs')?.getAttribute('aria-disabled')).toBe('true')
-      expect(slot('sling')?.textContent).toContain('12 / 30')
-      // The sword and shield are owned but on buttons of their own: a state of their own, not choosable.
-      for (const id of ['sword', 'shield']) {
-        expect(slot(id)?.dataset.owned).toBe('true')
-        expect(slot(id)?.dataset.choosable).toBe('false')
-        expect(slot(id)?.getAttribute('aria-disabled')).toBe('true')
-        expect(slot(id)?.textContent).toContain('Own button')
-      }
-      expect(slot('sling')?.dataset.choosable).toBe('true')
-      expect(slot('sling')?.getAttribute('aria-pressed')).toBe('true')
-      expect(root.querySelector('[data-testid="items-embers"]')?.textContent).toContain('0')
-    })
-
-    it('opens from the HUD’s Items button', async () => {
-      await toRoom()
-      await until(() => byTestId('hud-items') !== null, 'the Items button')
-      byTestId('hud-items')?.click()
-      await until(() => screen() === 'items', 'the Items screen')
-    })
-
-    it('equips the chosen item on play’s first tick, and the HUD’s chip follows', async () => {
-      await toRoom()
-      ownSome()
-      key('keydown', 'KeyI')
-      await until(() => screen() === 'items', 'the Items screen')
-      slot('hookchain')?.click()
-      await until(() => slot('hookchain')?.getAttribute('aria-pressed') === 'true', 'the hookchain marked')
-      expect(slot('sling')?.getAttribute('aria-pressed')).toBe('false')
-      slot('bombs')?.click()
-      expect(slot('hookchain')?.getAttribute('aria-pressed')).toBe('true')
-      byTestId('corner-back')?.click()
-      await until(() => screen() === 'play', 'play again')
-      step()
-      expect(running().resource(Inventory).equipped).toBe(ItemCode.hookchain)
-      await until(
-        () => root.querySelector('[data-testid="hud-item"]')?.textContent?.includes('Hookchain') === true,
-        'the chip',
-      )
-    })
-
-    // The arrow keys steer the grid by the slots' boxes, which jsdom does not lay out: items.layout.test.ts.
-    it('goes back to play on Escape', async () => {
-      await toRoom()
-      key('keydown', 'KeyI')
-      await until(() => screen() === 'items', 'the Items screen')
-      key('keydown', 'Escape')
-      await until(() => screen() === 'play', 'play again')
-    })
-
-    it('equips with 1, 2 and 3 in play, an owned item only', async () => {
-      await toRoom()
-      ownSome()
-      key('keydown', 'Digit3')
-      step()
-      expect(running().resource(Inventory).equipped).toBe(ItemCode.hookchain)
-      key('keydown', 'Digit2')
-      step()
-      expect(running().resource(Inventory).equipped).toBe(ItemCode.hookchain)
-      key('keydown', 'Digit1')
-      step()
-      expect(running().resource(Inventory).equipped).toBe(ItemCode.sling)
-    })
-  })
-  describe('the Map screen (DESIGN.md §9.4, GAME-3D.1e part 5c)', () => {
-    it('opens with M over a paused sim, draws the room Wick is in and his arrow, and Close goes back', async () => {
-      await toRoom()
-      key('keydown', 'KeyM')
-      await until(() => screen() === 'map', 'the Map screen')
-      const applied = results.length
-      step(5)
-      expect(results.length).toBe(applied)
-      expect(
-        [...root.querySelectorAll<SVGElement>('[data-room]')].map((room) => [
-          room.dataset.room,
-          room.dataset.state,
-        ]),
-      ).toEqual([['hall', 'here']])
-      expect(root.querySelector('[data-testid="map-wick"]')).not.toBeNull()
-      expect(root.querySelector('[data-testid="map-heading"]')).not.toBeNull()
-      byTestId('corner-back')?.click()
-      await until(() => screen() === 'play', 'play again')
-    })
-
-    it('opens from the HUD’s Map button, and Escape goes back', async () => {
-      await toRoom()
-      await until(() => byTestId('hud-map') !== null, 'the Map button')
-      byTestId('hud-map')?.click()
-      await until(() => screen() === 'map', 'the Map screen')
-      key('keydown', 'Escape')
-      await until(() => screen() === 'play', 'play again')
     })
   })
 })

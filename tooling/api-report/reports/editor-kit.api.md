@@ -503,6 +503,17 @@ const FIELD_ID: RegExp;
 const FIELD_TYPES: readonly FieldType[];
 ```
 
+### `FieldCommit` (type)
+
+```ts
+type FieldCommit = {
+    readonly ok: true;
+} | {
+    readonly ok: false;
+    readonly message: string;
+};
+```
+
 ### `FieldDef` (interface)
 
 ```ts
@@ -534,6 +545,12 @@ type FieldDefCode = 'badId' | 'badBounds' | 'badStep' | 'noOptions' | 'duplicate
 const fieldDefSchema: z.ZodType<FieldDef>;
 ```
 
+### `FieldEditor` (svelte)
+
+```ts
+component from './fields/FieldEditor.svelte'
+```
+
 ### `FieldInstance` (interface)
 
 ```ts
@@ -550,6 +567,34 @@ interface FieldProblem<Code extends string = string> {
     readonly code: Code;
     readonly message: string;
 }
+```
+
+### `FieldRow` (interface)
+
+```ts
+interface FieldRow {
+    readonly id: string;
+    readonly label: string;
+    readonly type: FieldType;
+    readonly value: FieldValue | undefined;
+    readonly widget: FieldWidget;
+    readonly bounds?: {
+        readonly min?: number;
+        readonly max?: number;
+        readonly step: number;
+    };
+    readonly options?: readonly string[];
+    readonly ref?: {
+        readonly name: string | undefined;
+        readonly targets: readonly RefTargetGroup[];
+    };
+}
+```
+
+### `fieldRow` (function)
+
+```ts
+function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow;
 ```
 
 ### `FieldType` (type)
@@ -595,6 +640,12 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 
 ```ts
 const fieldValuesSchema: z.ZodType<FieldValues>;
+```
+
+### `FieldWidget` (type)
+
+```ts
+type FieldWidget = 'stepper' | 'toggle' | 'segmented' | 'picker' | 'color' | 'text' | 'multiline' | 'point' | 'points' | 'ref' | 'list';
 ```
 
 ### `FilePick` (svelte)
@@ -1112,7 +1163,7 @@ interface ProjectListSource<E, B extends string = string> {
 
 ```ts
 interface ProjectStore {
-    readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
+    readonly kind: 'memory' | 'opfs' | 'folder' | 'download' | 'http';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
     write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
@@ -1210,6 +1261,25 @@ interface Rect {
     readonly y: number;
     readonly w: number;
     readonly h: number;
+}
+```
+
+### `RefChoice` (interface)
+
+```ts
+interface RefChoice {
+    readonly label: string;
+    readonly value: RefValue;
+}
+```
+
+### `RefTargetGroup` (interface)
+
+```ts
+interface RefTargetGroup {
+    readonly id: string;
+    readonly name: string;
+    readonly choices: readonly RefChoice[];
 }
 ```
 
@@ -1712,6 +1782,7 @@ interface Workspace {
     readonly exports: DownloadStore;
     readonly persistent: boolean;
     readonly reason: string | undefined;
+    readonly served?: boolean;
 }
 ```
 
@@ -1848,6 +1919,12 @@ function createFolderStore(handle: FolderHandle): FolderStore;
 
 ```ts
 function createHistory<S>(initial: S, options?: HistoryOptions): History<S>;
+```
+
+### `createHttpStore` (function)
+
+```ts
+function createHttpStore(options: HttpStoreOptions): ProjectStore;
 ```
 
 ### `createIndexedDbVault` (function)
@@ -2109,6 +2186,16 @@ interface HomeCard {
 }
 ```
 
+### `HttpStoreOptions` (interface)
+
+```ts
+interface HttpStoreOptions {
+    readonly base: string;
+    readonly token?: string | undefined;
+    readonly fetch?: typeof fetch | undefined;
+}
+```
+
 ### `KeyInput` (interface)
 
 ```ts
@@ -2160,6 +2247,12 @@ function modifiedLabel(mtime: number, now: number, timeZone?: string): string;
 
 ```ts
 function normalizeShortcut(text: string): string;
+```
+
+### `openServedWorkspace` (function)
+
+```ts
+function openServedWorkspace(env: ServedWorkspaceEnv): Promise<Workspace | undefined>;
 ```
 
 ### `openWorkspace` (function)
@@ -2258,7 +2351,7 @@ interface ProjectListSource<E, B extends string = string> {
 
 ```ts
 interface ProjectStore {
-    readonly kind: 'memory' | 'opfs' | 'folder' | 'download';
+    readonly kind: 'memory' | 'opfs' | 'folder' | 'download' | 'http';
     list(prefix?: string): Promise<StoredEntry[]>;
     read(path: string): Promise<Uint8Array | undefined>;
     write(path: string, data: Uint8Array | string, expected?: WriteExpectation): Promise<WriteResult>;
@@ -2394,6 +2487,22 @@ interface Selection<Id extends SelectionId> {
 
 ```ts
 type SelectionId = string | number;
+```
+
+### `ServedWorkspaceEnv` (interface)
+
+```ts
+interface ServedWorkspaceEnv {
+    readonly origin: string;
+    readonly search: string;
+    readonly fetch?: typeof fetch | undefined;
+    readonly sessionStorage?: {
+        getItem(key: string): string | null;
+        setItem(key: string, value: string): void;
+    } | undefined;
+    readonly storage?: WorkspaceEnv['storage'];
+    readonly download?: DownloadEnv;
+}
 ```
 
 ### `Shortcut` (interface)
@@ -2647,6 +2756,7 @@ interface Workspace {
     readonly exports: DownloadStore;
     readonly persistent: boolean;
     readonly reason: string | undefined;
+    readonly served?: boolean;
 }
 ```
 
@@ -3184,6 +3294,17 @@ const FIELD_ID: RegExp;
 const FIELD_TYPES: readonly FieldType[];
 ```
 
+### `FieldCommit` (type)
+
+```ts
+type FieldCommit = {
+    readonly ok: true;
+} | {
+    readonly ok: false;
+    readonly message: string;
+};
+```
+
 ### `FieldDef` (interface)
 
 ```ts
@@ -3233,6 +3354,34 @@ interface FieldProblem<Code extends string = string> {
 }
 ```
 
+### `FieldRow` (interface)
+
+```ts
+interface FieldRow {
+    readonly id: string;
+    readonly label: string;
+    readonly type: FieldType;
+    readonly value: FieldValue | undefined;
+    readonly widget: FieldWidget;
+    readonly bounds?: {
+        readonly min?: number;
+        readonly max?: number;
+        readonly step: number;
+    };
+    readonly options?: readonly string[];
+    readonly ref?: {
+        readonly name: string | undefined;
+        readonly targets: readonly RefTargetGroup[];
+    };
+}
+```
+
+### `fieldRow` (function)
+
+```ts
+function fieldRow(def: FieldDef, value: FieldValue | undefined): FieldRow;
+```
+
 ### `FieldType` (type)
 
 ```ts
@@ -3278,6 +3427,12 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 const fieldValuesSchema: z.ZodType<FieldValues>;
 ```
 
+### `FieldWidget` (type)
+
+```ts
+type FieldWidget = 'stepper' | 'toggle' | 'segmented' | 'picker' | 'color' | 'text' | 'multiline' | 'point' | 'points' | 'ref' | 'list';
+```
+
 ### `HEX_COLOR` (const)
 
 ```ts
@@ -3306,6 +3461,25 @@ interface InstanceProblem extends FieldProblem<InstanceCode> {
 interface Point {
     readonly x: number;
     readonly y: number;
+}
+```
+
+### `RefChoice` (interface)
+
+```ts
+interface RefChoice {
+    readonly label: string;
+    readonly value: RefValue;
+}
+```
+
+### `RefTargetGroup` (interface)
+
+```ts
+interface RefTargetGroup {
+    readonly id: string;
+    readonly name: string;
+    readonly choices: readonly RefChoice[];
 }
 ```
 

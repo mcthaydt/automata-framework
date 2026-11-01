@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --configLoader runner",
     "build": "vite build --configLoader runner",
+    "sounds": "node scripts/make-sounds.ts",
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src",
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run --configLoader runner",
@@ -21,6 +22,7 @@
     "@mcthaydt/automata-host": "workspace:*",
     "@mcthaydt/automata-render-pixi3d": "workspace:*",
     "@mcthaydt/automata-runtime": "workspace:*",
+    "@mcthaydt/automata-sector-format": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
     "@mcthaydt/automata-ui": "workspace:*",
     "@pixi/3d": "file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz",

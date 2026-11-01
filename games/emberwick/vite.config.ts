@@ -1,8 +1,11 @@
+import { fileURLToPath } from 'node:url'
+import { automataContent } from '@mcthaydt/automata-content/vite'
 import { rukenHeaders } from '@mcthaydt/automata-ship'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { Effect } from 'effect'
 import { defaultClientConditions, defineConfig } from 'vite'
 import config from './ship.config.ts'
+import { EMBERWICK_KINDS } from './src/content/kinds.ts'
 
 // `vite preview` serves the build with the headers Ruken would serve it with (`rukenHeaders` on this game's
 // manifest: Ruken's CSP with no eval), so the browser journeys catch a build that breaks under Ruken. The page
@@ -14,11 +17,22 @@ function previewHeaders(): Record<string, string> {
   return Effect.runSync(rukenHeaders(config, { hostOrigins }))
 }
 
+/**
+ * The content plugin over the game's `content/` (`virtual:automata/content`): the room the 2D editor exports and the
+ * tuning. The page and the tests (vitest.config.ts) both compile it.
+ */
+export function contentPlugin(): ReturnType<typeof automataContent> {
+  return automataContent({
+    root: fileURLToPath(new URL('.', import.meta.url)),
+    schemas: EMBERWICK_KINDS,
+  })
+}
+
 export default defineConfig({
   // A Ruken build: the Ruken host adapter (DIST spec §5.3), in front of Vite's defaults, which `conditions` replaces.
   resolve: { conditions: ['automata-ruken', ...defaultClientConditions] },
   // Svelte compiles the ui panels the runtime shows (loader, boot failure) and the game package's screens.
-  plugins: [svelte()],
+  plugins: [svelte(), contentPlugin()],
   // Relative URLs: inside Ruken the game is served from /b/<buildId>/ and on the dev host from
   // /builds/<buildId>/, never from the origin's root (ship prepare refuses root-absolute paths).
   base: './',

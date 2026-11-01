@@ -101,6 +101,13 @@ jobs:
       # QB.1 (QB spec §4.1): unused files, exports and dependencies (knip.jsonc).
       - run: pnpm knip
       - run: pnpm test:unit
+      # The editors' iPad journeys (CI.JRN1; EDK.6b's harness: WebKit with touch and a 2x screen). They take seconds,
+      # so every pull request runs them in full. A self-hosted runner has WebKit's system libraries installed once.
+      - run: pnpm exec playwright install --with-deps webkit
+        if: runner.environment == 'github-hosted'
+      - run: pnpm exec playwright install webkit
+        if: runner.environment == 'self-hosted'
+      - run: pnpm test:journeys
       # QB.1: each of these first proves it fails on its planted fixture, then checks the repository. The audit is
       # `pnpm audit --prod --audit-level=high`; the secret scan runs the pinned gitleaks over the full history
       # (fetch-depth 0 above).
@@ -324,7 +331,7 @@ jobs:
     with:
       working-directory: games/placeholder
       sim-roots: ""
-      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
 
   base-2d:
     name: base-2d through game-ci
@@ -340,7 +347,7 @@ jobs:
       working-directory: games/emberwick
       sim-roots: src/sim
       artifact-name: base-2d-dist
-      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
 
   # base-3d's sim is its role files in src/ since #279 (the GL spec), which `pnpm boundaries --game` checks in the
   # checks job; game-ci skips its own sim-roots check inside this repository, so `src` here only matters to a copy
@@ -359,4 +366,4 @@ jobs:
       working-directory: games/base-3d
       sim-roots: src
       artifact-name: base-3d-dist
-      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}

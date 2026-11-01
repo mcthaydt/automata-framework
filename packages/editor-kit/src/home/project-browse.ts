@@ -153,7 +153,12 @@ export function storageNotes(workspace: Workspace): readonly StorageNote[] {
   if (workspace.persistent) {
     return [
       { tone: 'ok', text: 'Autosave on' },
-      { tone: 'ok', text: 'Kept in this browser’s private storage' },
+      {
+        tone: 'ok',
+        text: workspace.served
+          ? 'Kept in your game’s checkout, on the computer running automata editor'
+          : 'Kept in this browser’s private storage',
+      },
       { tone: 'info', text: 'Edits are autosaved beside your projects, so a crash does not lose them.' },
     ]
   }
@@ -167,5 +172,5 @@ export function storageNotes(workspace: Workspace): readonly StorageNote[] {
 /** "4 projects · browser storage" under the workspace row. */
 export function workspaceSubtitle(workspace: Workspace, count: number): string {
   const projects = count === 0 ? 'No projects' : plural(count, 'project', 'projects')
-  return `${projects} · ${workspace.persistent ? 'browser storage' : 'this session only'}`
+  return `${projects} · ${workspace.served ? 'game checkout' : workspace.persistent ? 'browser storage' : 'this session only'}`
 }

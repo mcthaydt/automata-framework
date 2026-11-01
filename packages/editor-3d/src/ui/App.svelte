@@ -22,6 +22,7 @@ import DocumentFrame from './document/DocumentFrame.svelte'
 import ErrorPanel from './document/ErrorPanel.svelte'
 import Home from './home/Home.svelte'
 import type { PlanRendererFactory } from './plan/plan-renderer'
+import type { Frames } from './walk/frames'
 
 interface Props {
   geometry: GeometryState
@@ -34,9 +35,11 @@ interface Props {
   /** The Plan view's renderer and the checks' scheduler, for an opened level. */
   renderer: PlanRendererFactory
   schedule: Scheduler
+  /** The Walk view's frame clock. */
+  frames?: Frames | undefined
 }
 
-const { geometry, app, workspace, toasts, clock, lifecycle, renderer, schedule }: Props = $props()
+const { geometry, app, workspace, toasts, clock, lifecycle, renderer, schedule, frames }: Props = $props()
 
 let open = $state.raw<DocumentController | undefined>(undefined)
 let failure = $state.raw<PanelOutcome | undefined>(undefined)
@@ -85,7 +88,7 @@ onDestroy(() => {
 </script>
 
 {#if open}
-  <DocumentFrame {geometry} controller={open} {toasts} {clock} {renderer} {schedule} onback={back} />
+  <DocumentFrame {geometry} controller={open} {toasts} {clock} {renderer} {schedule} {frames} onback={back} />
 {:else}
   <Home {geometry} {controller} {workspace} installed={app.installed} {toasts} {clock} />
   <ErrorPanel

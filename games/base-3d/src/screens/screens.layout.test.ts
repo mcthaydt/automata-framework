@@ -1,4 +1,4 @@
-// The game over's and the end screen's action row with production CSS in Chromium, WebKit and Firefox (GAME-3D.1b
+// The end screen's action row with production CSS in Chromium, WebKit and Firefox (GAME-3D.1b
 // part 2, follow-up from #300): the row is centred at a bounded width, so the primary's focus ring sits inside an
 // equal margin on both sides rather than overhanging a full-width row's 12 px gutter on the left only.
 import '@mcthaydt/automata-ui/theme.css'
@@ -7,17 +7,11 @@ import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import EndScreen from './EndScreen.svelte'
-import GameOverScreen from './GameOverScreen.svelte'
 
 /** The row's widest, in CSS px: 26rem. */
 const ROW_MAX = 26 * 16
 
 const screens = [
-  {
-    name: 'the game over',
-    mountIt: (target: HTMLElement) =>
-      mount(GameOverScreen, { target, props: { onContinue: () => {}, onQuit: () => {} } }),
-  },
   {
     name: 'the end screen',
     mountIt: (target: HTMLElement) =>
