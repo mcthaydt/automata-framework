@@ -1,9 +1,9 @@
 // The night scene (art direction spec §2, §4): what `buildNight` puts under the view, built against a bare root and a
 // recording stand-in for the occluder stage, so it runs in Node. Lights come from the dressing and stay within the
-// budget; the ruin's walls are bays coloured per vertex plus the arch's piers; the sky, fog colour and ambient are the palette's;
+// budget; the ruin's walls are textured bays plus the arch's piers; the sky, fog colour and ambient are the palette's;
 // and each frame moves the fireflies without rebuilding anything.
 import type { Occluders, WallOptions } from '@mcthaydt/automata-render-pixi3d'
-import { Container3D, Mesh3D, ParticleContainer3D, PhongMaterial, PointLight, type View3D } from '@pixi/3d'
+import { Container3D, Mesh3D, ParticleContainer3D, PointLight, type View3D } from '@pixi/3d'
 import { describe, expect, it } from 'vitest'
 import { ROOM } from '../content/room.ts'
 import { dressingOf, LIGHT_BUDGET } from './dressing.ts'
@@ -49,26 +49,13 @@ describe('buildNight', () => {
     expect(lights.filter((l) => l.position.y < 0)).toHaveLength(0)
   })
 
-  it('builds the ruin from bays coloured per vertex, the near wall and the arch’s two piers', () => {
+  it('builds the ruin from textured bays, the near wall and the arch’s two piers', () => {
     const { walls, props } = stage()
     const dressing = dressingOf(ROOM)
     expect(walls).toHaveLength(dressing.bays.length + 1 + 2)
-    for (const wall of walls) expect(wall.paint?.cell).toBeGreaterThan(0)
+    for (const wall of walls) expect(wall.surface?.tile).toBeGreaterThan(0)
     // The pillars between bays and the arch's lintel fade when they stand between the camera and Wick.
     expect(props.length).toBeGreaterThan(4)
-  })
-
-  it('colours all its stone per vertex, with no painted texture (vertex colour only)', () => {
-    const { root } = stage()
-    const stone = descendants(root).filter((n): n is Mesh3D => n.label === 'night:stone')
-    // Two boxes a room (the top and the island under it), the pillars, the lintel and the plinth.
-    expect(stone.length).toBeGreaterThan(2 * ROOM.rooms.length + 4)
-    const plain = new PhongMaterial().textures.baseColor
-    for (const mesh of stone) {
-      const material = mesh.material as PhongMaterial
-      expect(material.vertexColors).toBe(true)
-      expect(material.textures.baseColor).toBe(plain)
-    }
   })
 
   it('sets the night sky, the moonlit ambient and fog the colour of the haze', () => {

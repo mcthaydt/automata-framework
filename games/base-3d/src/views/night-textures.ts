@@ -7,11 +7,15 @@ import {
   paintMoon,
   paintShaft,
   paintSilhouette,
+  paintStone,
   paintVine,
   toTexture,
 } from './textures.ts'
 
 export interface NightTextures {
+  readonly floor: Texture
+  readonly side: Texture
+  readonly wall: Texture
   readonly grass: Texture
   readonly vine: Texture
   readonly glow: Texture
@@ -25,6 +29,9 @@ let painted: NightTextures | undefined
 
 export function nightTextures(): NightTextures {
   painted ??= {
+    floor: toTexture(paintStone('floor'), true),
+    side: toTexture(paintStone('side'), true),
+    wall: toTexture(paintStone('wall'), true),
     grass: toTexture(paintGrass(), false),
     vine: toTexture(paintVine(), false),
     glow: toTexture(paintGlow(), false, true),

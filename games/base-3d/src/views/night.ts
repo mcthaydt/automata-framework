@@ -1,13 +1,13 @@
 // The night scene (art direction spec §2, §4): Emberwick's moonlit ruin built under the 3D view from the room and its
-// dressing. The sky, the ambient moonlight and the moon's direction; the ruined walls as bays through the occluder
-// rule, the far wall an arch; mossy stone platforms floating over open sky, all the stone coloured per vertex (stone.ts), the channels gaps with cool
+// dressing. The sky, the ambient moonlight and the moon's direction; the ruined walls as textured bays through the
+// occluder rule, the far wall an arch; mossy flagstone platforms floating over open sky, the channels gaps with cool
 // glowing rims; glowing mushrooms with their lights; additive halos, fireflies and moonlight shafts; grass and vines; and
 // the backdrop. Presentation only (law 1). The embers, the goal and Wick's lantern come with their own views.
-import type { Box3, Occluders, SceneFog } from '@mcthaydt/automata-render-pixi3d'
+import { type Box3, type Occluders, type SceneFog, tiledCube } from '@mcthaydt/automata-render-pixi3d'
 import {
   type Container3D,
-  CubeGeometry,
   DirectionalLight,
+  type FlatMaterial,
   Mesh3D,
   ParticleContainer3D,
   PhongMaterial,
@@ -22,7 +22,6 @@ import { type SceneWall, sceneOf } from './index.ts'
 import { geometryOf, mushroomData } from './mushrooms.ts'
 import { nightTextures } from './night-textures.ts'
 import { colour } from './palette.ts'
-import { floorColour, paintedBox, sideColour, wallColour } from './stone.ts'
 
 /** The night's fog: clear for 9 m, full at 30 m, in the deep blue the ruin floats in. */
 export const FOG: SceneFog = { near: 9, far: 30, color: colour('skyDeep') }
@@ -32,19 +31,26 @@ export interface NightScene {
   update(seconds: number): void
 }
 
-/** Metres a cell of the stone's colours spans: half a metre down the island's sides; a flagstone on the platforms'
- * tops and half a brick on the walls a quarter. */
-const CELL = 0.5
-const BRICK_CELL = 0.25
+/** Metres per repeat of the stone textures (32 px): a flagstone or brick about 0.7 m long. */
+const TILE = 2
 /** The pillars between bays (broken stubs a little above their bay) and the far wall's height over its arch. */
 const PILLAR = { width: 0.7, depth: 0.6, above: 0.7 } as const
 const LINTEL = 0.5
 /** The grass and vines at their own colours, Emberwick's bright greens (they are unlit cards). */
 const MOONLIT = 0xffffff
 
-/** A box of stone, coloured per vertex by `colorAt` and labelled as the night's stone. */
-const stone = (bounds: Box3, colorAt: Parameters<typeof paintedBox>[2], cell = CELL): Mesh3D =>
-  Object.assign(paintedBox(bounds, cell, colorAt), { label: 'night:stone' })
+const textured = (texture: Texture): PhongMaterial =>
+  new PhongMaterial({ baseColor: 0xffffff, baseColorTexture: texture, shininess: 4 })
+
+/** A box of stone filling `bounds`, its texture repeating every `TILE` metres on each face. */
+function stoneBox(bounds: Box3, material: PhongMaterial | FlatMaterial, tile = TILE): Mesh3D {
+  const [min, max] = [bounds.min, bounds.max]
+  const size = { x: max[0] - min[0], y: max[1] - min[1], z: max[2] - min[2] }
+  const mesh = new Mesh3D({ geometry: tiledCube(size, tile), material })
+  mesh.scale.set(size.x, size.y, size.z)
+  mesh.position.set((min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2)
+  return mesh
+}
 
 /** Particles of one texture under `parent`, all written once (grass, vines, shafts). */
 function cards(
@@ -81,21 +87,15 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
   moonlight.lookAt({ x: 0, y: 0, z: 10 })
   root.addChild(moonlight)
 
-  // The platforms: moss over stone on top, darker toward the edges; bare stone down their sides to the floating
-  // ruin's underside, moss dripping over the lip.
+  // The platforms: mossy flagstones on top, bare stone down their sides to the floating ruin's underside.
+  const floor = textured(textures.floor)
+  const side = textured(textures.side)
+  const wall = textured(textures.wall)
   for (const room of area.rooms) {
     const [x0, z0] = room.min
     const [x1, z1] = room.max
-    root.addChild(
-      stone(
-        { min: [x0, -0.2, z0], max: [x1, 0, z1] },
-        (p, n) => (n.y > 0.5 ? floorColour(p.x, p.z, room) : sideColour(p.x, p.y, p.z)),
-        BRICK_CELL,
-      ),
-    )
-    root.addChild(
-      stone({ min: [x0, -ISLAND_DEPTH, z0], max: [x1, -0.2, z1] }, (p) => sideColour(p.x, p.y, p.z)),
-    )
+    root.addChild(stoneBox({ min: [x0, -0.2, z0], max: [x1, 0, z1] }, floor))
+    root.addChild(stoneBox({ min: [x0, -ISLAND_DEPTH, z0], max: [x1, -0.2, z1] }, side))
   }
   // The channels open onto the sky the ruin floats in: no floor, only a cool glowing rim along each edge, so the gap
   // reads at once (Emberwick has no red; its accents are teal and the ember's warmth).
@@ -103,51 +103,54 @@ export function buildNight(view: View3D, occluders: Occluders, area: AreaSource)
     baseColor: colour('mushroom'),
     emissive: { color: colour('mushroom'), strength: 1.2 },
   })
-  const rimCube = new CubeGeometry()
-  for (const rim of dressing.rims) {
-    const mesh = new Mesh3D({ label: 'night:rim', geometry: rimCube, material: rimMaterial })
-    mesh.scale.set(rim.x1 - rim.x0, 0.05, 0.1)
-    mesh.position.set((rim.x0 + rim.x1) / 2, 0.005, rim.z)
-    root.addChild(mesh)
-  }
-  // The ruin: bays coloured per vertex, a pillar at every bay's start (fading when it hides Wick), the near wall whole,
+  for (const rim of dressing.rims)
+    root.addChild(
+      Object.assign(
+        stoneBox({ min: [rim.x0, -0.02, rim.z - 0.05], max: [rim.x1, 0.03, rim.z + 0.05] }, rimMaterial, 1),
+        {
+          label: 'night:rim',
+        },
+      ),
+    )
+  // The ruin: textured bays, a pillar at every bay's start (fading when it hides Wick), the near wall whole,
   // the far wall's two piers either side of the arch and the lintel over it.
-  const paint = { cell: BRICK_CELL, colorAt: wallColour, flat: true }
+  const surface = { texture: textures.wall, tile: TILE }
   const white = 0xffffff
-  for (const bay of dressing.bays) occluders.wall({ ...bay, color: white, paint })
-  for (const bay of dressing.bays) {
+  for (const bay of dressing.bays) occluders.wall({ ...bay, color: white, surface })
+  dressing.bays.forEach((bay, i) => {
     const outward = bay.a.x > 0 ? 1 : -1
     const x = bay.a.x + outward * (PILLAR.width / 2 - 0.15)
     const bounds: Box3 = {
       min: [x - PILLAR.width / 2, 0, bay.a.z - PILLAR.depth / 2],
       max: [x + PILLAR.width / 2, bay.height + PILLAR.above, bay.a.z + PILLAR.depth / 2],
     }
-    const pillar = stone(bounds, wallColour, BRICK_CELL)
+    const pillar = stoneBox(bounds, textured(textures.wall))
     root.addChild(pillar)
     occluders.prop(pillar, { bounds })
-  }
+  })
   const { arch } = dressing
   const ends = endWalls(area)
   // The near wall is a low parapet, like the bays, so nothing tall stands between the camera and the room.
-  if (ends.near !== undefined) occluders.wall({ ...ends.near, height: 0.9, color: white, paint })
+  if (ends.near !== undefined) occluders.wall({ ...ends.near, height: 0.9, color: white, surface })
   if (ends.far !== undefined) {
     const { a, b } = ends.far
     const height = arch.height + LINTEL
-    occluders.wall({ a, b: { x: arch.max, z: a.z }, height, color: white, paint })
-    occluders.wall({ a: { x: arch.min, z: a.z }, b, height, color: white, paint })
+    occluders.wall({ a, b: { x: arch.max, z: a.z }, height, color: white, surface })
+    occluders.wall({ a: { x: arch.min, z: a.z }, b, height, color: white, surface })
     const bounds: Box3 = { min: [arch.min, arch.height, arch.z], max: [arch.max, height, arch.z + 0.5] }
-    const lintel = stone(bounds, wallColour, BRICK_CELL)
+    const lintel = stoneBox(bounds, textured(textures.wall))
     root.addChild(lintel)
     occluders.prop(lintel, { bounds })
   }
   // The goal ember's plinth.
   root.addChild(
-    stone(
+    stoneBox(
       {
         min: [area.goal.x - 0.45, 0, area.goal.z - 0.45],
         max: [area.goal.x + 0.45, 0.35, area.goal.z + 0.45],
       },
-      wallColour,
+      wall,
+      1,
     ),
   )
 

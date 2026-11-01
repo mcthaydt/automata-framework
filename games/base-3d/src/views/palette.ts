@@ -42,8 +42,6 @@ export const TOKENS = {
   mortarDeep: 15,
   /** Moss and grass, darkest to brightest: Emberwick's grass sprite (34 tips, 35 moss, 36 shade, 37 drips). */
   mossDeep: 37,
-  /** Moss in shadow: a platform's mossy edge. */
-  mossShade: 38,
   moss: 36,
   mossMid: 35,
   grass: 35,

@@ -44,7 +44,6 @@ export {
 } from './model/load-models.js'
 export { modelGeometry } from './model/model-geometry.js'
 export { type ModelMesh, parseGlb, parsePack } from './model/parse-glb.js'
-export { type BoxSpan, type CellColor, type CellOptions, cellCube } from './occluders/cell-cube.js'
 export { type FramingInput, type FramingMiss, framingMisses } from './occluders/framing.js'
 export {
   FADED_OPACITY,
@@ -75,6 +74,7 @@ export {
   WALL_THICKNESS,
   type WallOptions,
 } from './occluders/occluders.js'
+export { type BoxSpan, tiledCube } from './occluders/tiled-cube.js'
 export { render3dExtension } from './render3d.extension.js'
 export {
   acceptsRenderer,

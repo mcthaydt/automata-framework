@@ -14,11 +14,9 @@ import {
   Mesh3D,
   PhongMaterial,
 } from '@pixi/3d'
-
+import type { Texture } from 'pixi.js'
 import type { CameraRig } from '../camera/angled-camera.js'
-import type { Vec3 } from '../camera/camera-pose.js'
 import { ownCopyOf } from '../views/shared-material.js'
-import { type CellColor, cellCube } from './cell-cube.js'
 import {
   type OccluderFrame,
   type OccluderPass,
@@ -28,6 +26,7 @@ import {
   type WallShown,
 } from './occluder-pass.js'
 import { type Box3, type PlanPoint, propOcclude } from './occluder-rule.js'
+import { tiledCube } from './tiled-cube.js'
 
 export interface WallOptions {
   /** The inside face runs from `a` to `b` with the room on its left. */
@@ -44,19 +43,10 @@ export interface WallOptions {
   /** Default `cut`. */
   readonly occlude?: Occlude | undefined
   /**
-   * Colour per vertex instead of one plain `color` (which then tints it): the wall and its trim are cut into cells of
-   * at most `cell` metres, and `colorAt` gives each vertex's colour from its world point (y up from the floor) and its
-   * face's world normal (with `flat`, one colour a cell, asked at its centre). Each then has a cube of its own, freed
-   * by `dispose`.
+   * A texture on the wall and its trim, repeating every `tile` metres on each face and tinted by `color`. Each then has
+   * a cube of its own, freed by `dispose`. Without it the wall is plain `color`.
    */
-  readonly paint?:
-    | {
-        readonly cell: number
-        readonly colorAt: (point: Vec3, normal: Vec3) => number
-        /** Each cell one colour, asked at its centre (`cellCube`'s `flat`). */
-        readonly flat?: boolean | undefined
-      }
-    | undefined
+  readonly surface?: { readonly texture: Texture; readonly tile: number } | undefined
 }
 
 export interface PropOptions {
@@ -115,14 +105,17 @@ function slab(
   options: WallOptions,
   height: number,
   thickness: number,
-  vertexColors: boolean,
+  texture?: Texture,
 ): Mesh3D {
   const { a, b } = options
   const length = Math.hypot(b.x - a.x, b.z - a.z)
   const dir = { x: (b.x - a.x) / length, z: (b.z - a.z) / length }
   const inward = { x: -dir.z, z: dir.x }
-  const material = new PhongMaterial({ baseColor: options.color })
-  material.vertexColors = vertexColors
+  const material = new PhongMaterial(
+    texture === undefined
+      ? { baseColor: options.color }
+      : { baseColor: options.color, baseColorTexture: texture },
+  )
   const mesh = new Mesh3D({ geometry: cube, material })
   mesh.scale.set(length, height, thickness)
   // Turning by θ about +y takes local +x to (cos θ, −sin θ) and local +z to (sin θ, cos θ) on the plan: the wall's
@@ -134,35 +127,6 @@ function slab(
     (a.z + b.z) / 2 - (inward.z * thickness) / 2,
   )
   return mesh
-}
-
-/**
- * A painted wall's `colorAt` over its slab's own axes: the slab is the cube scaled to length × height × thickness,
- * turned so local +x runs a → b and local +z points into the room, and set back by half its thickness (see `slab`).
- */
-function wallColor(
-  options: WallOptions,
-  height: number,
-  thickness: number,
-  colorAt: (point: Vec3, normal: Vec3) => number,
-): CellColor {
-  const { a, b } = options
-  const length = Math.hypot(b.x - a.x, b.z - a.z)
-  const dir = { x: (b.x - a.x) / length, z: (b.z - a.z) / length }
-  const inward = { x: -dir.z, z: dir.x }
-  const centre = {
-    x: (a.x + b.x) / 2 - (inward.x * thickness) / 2,
-    z: (a.z + b.z) / 2 - (inward.z * thickness) / 2,
-  }
-  return (p, n) =>
-    colorAt(
-      {
-        x: centre.x + p.x * dir.x + p.z * inward.x,
-        y: height / 2 + p.y,
-        z: centre.z + p.x * dir.z + p.z * inward.z,
-      },
-      { x: n.x * dir.x + n.z * inward.x, y: n.y, z: n.x * dir.z + n.z * inward.z },
-    )
 }
 
 export function createOccluders(parent: Container3D): OccluderStage {
@@ -186,22 +150,17 @@ export function createOccluders(parent: Container3D): OccluderStage {
         throw new Error(`occluders.wall: a and b are the same point (${a.x}, ${a.z})`)
       const thickness = options.thickness ?? WALL_THICKNESS
       const node = new Container3D()
-      const paint = options.paint
+      const surface = options.surface
       const trimHeight = options.trim ?? TRIM_HEIGHT
-      // A painted wall and its trim each get a cube cut to their own size, coloured where it stands in the world.
+      // A textured wall and its trim each get a cube whose UVs fit their own size.
       const cubeFor = (height: number): CubeGeometry | Geometry3D => {
-        if (paint === undefined) return cube
-        const own = cellCube(
-          { x: Math.hypot(b.x - a.x, b.z - a.z), y: height, z: thickness },
-          paint.cell,
-          wallColor(options, height, thickness, paint.colorAt),
-          { flat: paint.flat },
-        )
+        if (surface === undefined) return cube
+        const own = tiledCube({ x: Math.hypot(b.x - a.x, b.z - a.z), y: height, z: thickness }, surface.tile)
         ownCubes.push(own)
         return own
       }
-      const wall = slab(cubeFor(options.height), options, options.height, thickness, paint !== undefined)
-      const trim = slab(cubeFor(trimHeight), options, trimHeight, thickness, paint !== undefined)
+      const wall = slab(cubeFor(options.height), options, options.height, thickness, surface?.texture)
+      const trim = slab(cubeFor(trimHeight), options, trimHeight, thickness, surface?.texture)
       trim.visible = false
       node.addChild(wall, trim)
       parent.addChild(node)
