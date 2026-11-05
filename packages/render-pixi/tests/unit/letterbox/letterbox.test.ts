@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LetterboxFrame, PORTRAIT_FIELD_TOP, portraitFieldHeight } from './letterbox.js'
+import { LetterboxFrame, PORTRAIT_FIELD_TOP, portraitFieldHeight } from '#src/letterbox/letterbox.ts'
 
 const LOGICAL = { width: 960, height: 540 }
 const DESKTOP = { width: 1280, height: 720 }

@@ -1,7 +1,7 @@
 import { Application, Filter, RenderTexture, Sprite, Texture } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
-import { filterPrograms } from '../filter/filter-programs.js'
-import { tryFilter } from '../filter/try-filter.js'
+import { filterPrograms } from '#src/filter/filter-programs.ts'
+import { tryFilter } from '#src/filter/try-filter.ts'
 
 const PASS_GLSL = `in vec2 vTextureCoord;
 in vec2 vPixelCoord;

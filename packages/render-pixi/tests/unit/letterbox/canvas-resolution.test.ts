@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canvasResolutionFor, MAX_RESOLUTION, RESOLUTION_CAPS } from './canvas-resolution.js'
+import { canvasResolutionFor, MAX_RESOLUTION, RESOLUTION_CAPS } from '#src/letterbox/canvas-resolution.ts'
 
 describe('canvasResolutionFor', () => {
   it("keeps the device's density, capped at 2, on phones and desktop", () => {

@@ -1,7 +1,7 @@
 import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
 import { Container } from 'pixi.js'
 import { describe, expect, it, vi } from 'vitest'
-import { type EntityView, RenderDeltaConsumer } from './render-delta-consumer.js'
+import { type EntityView, RenderDeltaConsumer } from '#src/delta/render-delta-consumer.ts'
 
 describe('RenderDeltaConsumer', () => {
   it('mounts entity view to world on added', () => {

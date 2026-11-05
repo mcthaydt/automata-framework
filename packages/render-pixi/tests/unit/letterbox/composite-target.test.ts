@@ -1,7 +1,7 @@
 import { type Filter, Sprite, Texture } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
-import { CompositeTarget } from './composite-target.js'
-import { LetterboxFrame } from './letterbox.js'
+import { CompositeTarget } from '#src/letterbox/composite-target.ts'
+import { LetterboxFrame } from '#src/letterbox/letterbox.ts'
 
 // From FloorFifty `tests/client/systems/render/render-target.test.ts` at `ac72660`; FloorFifty's fixed 960 × 540
 // is the game's logical size here.

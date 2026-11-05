@@ -1,31 +1,5 @@
+import { defineTests } from '@mcthaydt/vitest-preset'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
-import { playwright } from '@vitest/browser-playwright'
-import { defineConfig } from 'vitest/config'
 
-export default defineConfig({
-  plugins: [svelte()],
-  test: {
-    projects: [
-      {
-        test: {
-          name: 'node',
-          environment: 'jsdom',
-          include: ['src/**/*.test.ts'],
-          exclude: ['src/**/*.parity.test.ts'],
-        },
-      },
-      {
-        test: {
-          name: 'browsers',
-          include: ['src/**/*.parity.test.ts'],
-          browser: {
-            enabled: true,
-            headless: true,
-            provider: playwright(),
-            instances: [{ browser: 'chromium' }, { browser: 'webkit' }, { browser: 'firefox' }],
-          },
-        },
-      },
-    ],
-  },
-})
+// jsdom for the unit tests; the browser tests (parity) draw on a real renderer in three engines.
+export default defineTests({ environment: 'jsdom', plugins: [svelte()] })

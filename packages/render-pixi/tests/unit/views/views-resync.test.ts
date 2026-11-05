@@ -1,8 +1,8 @@
 import { createSim, defineComponent, definePlugin } from '@mcthaydt/automata-sim'
 import { Container } from 'pixi.js'
 import { expect, it } from 'vitest'
-import { RenderDeltaConsumer } from '../delta/render-delta-consumer.js'
-import { rect } from './rect-view.js'
+import { RenderDeltaConsumer } from '#src/delta/render-delta-consumer.ts'
+import { rect } from '#src/views/rect-view.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const bodies = definePlugin({ name: 'bodies', components: [Body] })

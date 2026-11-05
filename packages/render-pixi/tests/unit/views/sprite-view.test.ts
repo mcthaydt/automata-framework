@@ -1,7 +1,7 @@
 import type { RenderRow } from '@mcthaydt/automata-sim'
 import { Assets, type Sprite, Texture, TextureSource } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { sprite } from './sprite-view.js'
+import { sprite } from '#src/views/sprite-view.ts'
 
 function texture(width: number, height: number): Texture {
   return new Texture({ source: new TextureSource({ width, height }) })

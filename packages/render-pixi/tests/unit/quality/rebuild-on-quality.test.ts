@@ -1,6 +1,6 @@
 import type { QualityTier, SettingsStore } from '@mcthaydt/automata-runtime'
 import { describe, expect, it } from 'vitest'
-import { rebuildOnQuality } from './rebuild-on-quality.js'
+import { rebuildOnQuality } from '#src/quality/rebuild-on-quality.ts'
 
 // From FloorFifty `tests/client/systems/render/quality-rebuild.test.ts` at `ac72660`, over runtime's SettingsStore.
 interface TestSettings {

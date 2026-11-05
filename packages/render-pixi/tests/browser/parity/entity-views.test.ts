@@ -1,6 +1,6 @@
 import { Application, RenderTexture } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
-import { RenderDeltaConsumer, rect } from '../index.js'
+import { RenderDeltaConsumer, rect } from '#src/index.ts'
 
 // A real WebGL2 renderer in each browser engine: the rect view's display object must land at the position
 // interpolated between two ticks, and the rendered pixels must sit exactly there.

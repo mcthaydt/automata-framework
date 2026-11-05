@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import * as RenderPixi from './index.js'
+import * as RenderPixi from '#src/index.ts'
 
 describe('@mcthaydt/automata-render-pixi', () => {
   it('exports expected symbols', () => {

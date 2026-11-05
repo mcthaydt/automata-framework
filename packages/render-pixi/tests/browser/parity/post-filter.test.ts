@@ -2,8 +2,8 @@ import type { RenderTarget } from '@mcthaydt/automata-runtime'
 import { Effect, Exit, Scope } from 'effect'
 import { Graphics } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
-import { postFilter } from '../filter/post-filter.js'
-import { createPixiRenderer } from '../renderer.js'
+import { postFilter } from '#src/filter/post-filter.ts'
+import { createPixiRenderer } from '#src/renderer.ts'
 
 // A declared `postFilter` on a real renderer (PRODUCT spec §2 F1, M4 spec §6): it builds, it is in the slot, and the
 // picture shows it; one that cannot compile is left out and the others still draw.

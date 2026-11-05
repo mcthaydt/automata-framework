@@ -1,6 +1,6 @@
 import { GlProgram, GpuProgram } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
-import { FILTER_VERTEX, filterPrograms, WGSL_FILTER_HEADER } from './filter-programs.js'
+import { FILTER_VERTEX, filterPrograms, WGSL_FILTER_HEADER } from '#src/filter/filter-programs.ts'
 
 describe('filterPrograms and shader headers', () => {
   it('computes pixel coordinates in GLSL vertex shader', () => {

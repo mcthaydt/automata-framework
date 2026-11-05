@@ -4,8 +4,8 @@ import type { Geometry } from '@mcthaydt/automata-ui'
 import { Effect, Exit, Scope } from 'effect'
 import { Application, type ApplicationOptions, Container, type Filter } from 'pixi.js'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
-import { postFilter } from './filter/post-filter.js'
-import { createPixiRenderer } from './renderer.js'
+import { postFilter } from '#src/filter/post-filter.ts'
+import { createPixiRenderer } from '#src/renderer.ts'
 
 describe('createPixiRenderer', () => {
   let mockInitBehavior: (this: Application, opts?: Partial<ApplicationOptions>) => Promise<void> | void

@@ -1,8 +1,8 @@
 import type { RenderRow } from '@mcthaydt/automata-sim'
 import { Container } from 'pixi.js'
 import { describe, expect, it } from 'vitest'
-import { RenderDeltaConsumer } from '../delta/render-delta-consumer.js'
-import { rect } from './rect-view.js'
+import { RenderDeltaConsumer } from '#src/delta/render-delta-consumer.ts'
+import { rect } from '#src/views/rect-view.ts'
 
 function row(sid: number, components: RenderRow['components']): RenderRow {
   return { sid, components }

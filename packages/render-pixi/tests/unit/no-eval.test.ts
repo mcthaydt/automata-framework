@@ -4,12 +4,12 @@ import { config, z } from 'zod'
 
 describe('render-pixi/no-eval', () => {
   it('enforces jitless mode in zod', async () => {
-    await import('./no-eval.js')
+    await import('#src/no-eval.ts')
     expect(config().jitless).toBe(true)
   })
 
   it('parses schemas without invoking new Function', async () => {
-    await import('./no-eval.js')
+    await import('#src/no-eval.ts')
     const realFunction = globalThis.Function
     try {
       globalThis.Function = new Proxy(realFunction, {
@@ -31,7 +31,7 @@ describe('render-pixi/no-eval', () => {
   // Pixi checks ImageBitmap support in a Blob worker that fetches a data: URL; Ruken's connect-src refuses it, and
   // WebKit and Firefox report the violation (website playground A-17). Textures load on the main thread instead.
   it('loads textures without the worker probe', async () => {
-    await import('./no-eval.js')
+    await import('#src/no-eval.ts')
     expect(loadTextures.config?.preferWorkers).toBe(false)
   })
 })

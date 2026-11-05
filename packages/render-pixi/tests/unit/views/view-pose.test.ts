@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { interpolatePose, lerp, lerpAngle, poseComponent } from './view-pose.js'
+import { interpolatePose, lerp, lerpAngle, poseComponent } from '#src/views/view-pose.ts'
 
 describe('lerp', () => {
   it('blends linearly from a to b', () => {

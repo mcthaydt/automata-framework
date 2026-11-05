@@ -19,6 +19,9 @@
     ".": "./src/index.ts",
     "./no-eval": "./src/no-eval.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "exports": {
@@ -33,9 +36,9 @@
     }
   },
   "scripts": {
-    "test": "vitest run --project node",
-    "test:unit": "vitest run --project node",
-    "test:browser": "vitest run --project browsers",
+    "test": "vitest run --project unit",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
     "typecheck": "tsc -p .",
     "build": "tsdown"
   },
@@ -52,6 +55,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { postFilter } from './post-filter.js'
+import { postFilter } from '#src/filter/post-filter.ts'
 
 const glsl = `precision highp float;
 in vec2 vTextureCoord;
