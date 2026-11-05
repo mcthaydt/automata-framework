@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { type RenovateConfig, rukenMatchedNames, unfrozenRukenPins } from './renovate.ts'
+import { type RenovateConfig, rukenMatchedNames, unfrozenRukenPins } from '#src/renovate.ts'
 
 // Renovate proposes monthly upgrades (QB spec §4.1), but a pin that matches Ruken's follows Ruken's
 // docs/versions.md, never a bot (AGENTS.md, "Ruken first"). These tests hold renovate.json's disabled rule to
 // every "Same as Ruken" row in docs/versions.md.
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 
 const doc = [
   '## Runtimes',

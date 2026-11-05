@@ -5,7 +5,7 @@ import {
   pinsFromScaffoldSource,
   pinsFromVersionsDoc,
   publishedPeerFloors,
-} from './pins.ts'
+} from '#src/pins.ts'
 
 describe('pinsFromVersionsDoc', () => {
   it('reads the npm packages table and ignores the other tables', () => {

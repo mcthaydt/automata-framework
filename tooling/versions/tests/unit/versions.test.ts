@@ -10,9 +10,9 @@ import {
   pinsFromScaffoldSource,
   pinsFromVersionsDoc,
   publishedPeerFloors,
-} from './pins.ts'
+} from '#src/pins.ts'
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 
 /** The root package.json plus one per workspace folder (pnpm-workspace.yaml: packages/*, tooling/*, games/*, examples/*). */
 function workspaceManifests(): Manifest[] {

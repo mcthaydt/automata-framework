@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, it } from 'vitest'
-import { collectStackFacts, renderStackPage } from './stack.ts'
-import { STACK } from './stack-cards.ts'
+import { collectStackFacts, renderStackPage } from '#src/stack.ts'
+import { STACK } from '#src/stack-cards.ts'
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 
 // docs/stack.md is generated (PRODUCT spec §9). This is the check that keeps it in step with the pins, the
 // installed licenses and stack-cards.ts: `pnpm check` runs it through test:unit.

@@ -8,7 +8,7 @@ import {
   renderStackPage,
   type StackCard,
   type StackSource,
-} from './stack.ts'
+} from '#src/stack.ts'
 
 const source: StackSource = {
   intro: 'The libraries AF is built on.',
