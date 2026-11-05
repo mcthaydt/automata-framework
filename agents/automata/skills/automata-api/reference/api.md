@@ -117,7 +117,8 @@ const AppLoop: Context.Tag<AppLoop, AppLoop>;
 
 #### `Audio` (type)
 
-The audio service, as the runtime's context holds it.
+The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after
+`session.ready`; the game runs silent when no audio context can be built.
 
 ```ts
 type Audio = AudioService;
@@ -135,10 +136,14 @@ const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 
 #### `AudioBuses` (type)
 
-The audio-bus seam (the audio service implements it), as the runtime's context holds it.
+The audio-bus seam. The audio service implements it.
 
 ```ts
-type AudioBuses = AudioBusesService;
+type AudioBuses = {
+    input: AudioBusesService['input'];
+    gain: AudioBusesService['gain'];
+    setGain: AudioBusesService['setGain'];
+};
 const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
 ```
 
@@ -1905,7 +1910,7 @@ type LoaderOverlay = ReturnType<typeof LoaderOverlay>;
 
 #### `Locale` (type)
 
-The locale service, as the runtime's context holds it.
+The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
 
 ```ts
 type Locale = LocaleService;
@@ -2832,7 +2837,7 @@ type ScrollList = ReturnType<typeof ScrollList>;
 
 #### `Settings` (type)
 
-The booted game's settings, as the runtime's context holds them.
+The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 
 ```ts
 type Settings = SettingsService;

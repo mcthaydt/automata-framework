@@ -87,7 +87,11 @@ const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ### `AudioBuses` (type)
 
 ```ts
-type AudioBuses = AudioBusesService;
+type AudioBuses = {
+    input: AudioBusesService['input'];
+    gain: AudioBusesService['gain'];
+    setGain: AudioBusesService['setGain'];
+};
 const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
 ```
 

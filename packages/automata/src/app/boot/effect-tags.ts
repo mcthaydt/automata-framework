@@ -40,6 +40,12 @@ export const Audio: Context.Tag<AudioService, AudioService> = Context.GenericTag
 )
 
 /** The audio-bus seam. The audio service implements it. */
-export type AudioBuses = AudioBusesService
+// Spelled out member by member, each typed by the owner's interface, so the API report still shows the seam's members
+// (the PRODUCT spec's seam check reads them); it goes back to being the interface itself when this file is deleted.
+export type AudioBuses = {
+  input: AudioBusesService['input']
+  gain: AudioBusesService['gain']
+  setGain: AudioBusesService['setGain']
+}
 export const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService> =
   Context.GenericTag<AudioBusesService>('@mcthaydt/automata-runtime/AudioBuses')
