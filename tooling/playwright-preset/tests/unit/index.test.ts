@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defineJourneys, e2eWorkers, sizes } from './index.ts'
+import { defineJourneys, e2eWorkers, sizes } from '#src/index.ts'
 
 describe('sizes: where every 2D journey runs', () => {
   it('has a phone, the 780 × 270 compact height and an iPad', () => {

@@ -1570,6 +1570,9 @@ importers:
         specifier: 1.63.0
         version: 1.63.0
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1

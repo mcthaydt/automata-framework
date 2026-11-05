@@ -1,5 +1,9 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "types": ["node"], "allowImportingTsExtensions": true, "isolatedDeclarations": false },
-  "include": ["src/**/*.ts"]
+  "compilerOptions": {
+    "types": ["node"],
+    "allowImportingTsExtensions": true,
+    "isolatedDeclarations": false
+  },
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
 }
