@@ -32,7 +32,7 @@ export {
 } from '../features/input/input-profile.schema.js'
 export { Locale } from '../features/locale/locale.manager.js'
 export { createT, type Translate } from '../features/locale/paraglide.js'
-export { type Save } from '../features/saves/save.manager.js'
+export type { Save } from '../features/saves/save.manager.js'
 export {
   type AutosavePolicy,
   type AutosaveTrigger,
@@ -44,18 +44,18 @@ export {
   ModelInvalid,
   RendererUnavailable,
 } from '../shared/runtime/boot-error.js'
-export { type QualityTier } from '../shared/runtime/display-settings.schema.js'
+export type { QualityTier } from '../shared/runtime/display-settings.schema.js'
 export { AppLoop } from '../shared/runtime/loop/app-loop.manager.js'
-export { type FrameInfo } from '../shared/runtime/loop/frames.js'
+export type { FrameInfo } from '../shared/runtime/loop/frames.js'
 export {
   PresentationBus,
   type RuntimeFacts,
   typedBus,
 } from '../shared/runtime/presentation/presentation-bus.manager.js'
-export {
-  type GameRenderer,
-  type RendererFactory,
-  type RenderTarget,
+export type {
+  GameRenderer,
+  RendererFactory,
+  RenderTarget,
 } from '../shared/runtime/render/renderer.js'
 export {
   Settings,
