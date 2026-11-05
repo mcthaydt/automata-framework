@@ -103,10 +103,10 @@ describe('imports', () => {
     expect(text).toContain("from '#src/testing/helper.ts'")
   })
 
-  it('leaves out the extension and the /index a specifier left out', () => {
+  it('leaves out the extension a specifier left out, and names the index of a folder import', () => {
     const text = textOf('tests/unit/a/j.test.ts')
     expect(text).toContain("from '#src/a/b'")
-    expect(text).toContain("from '#src/a/sub'")
+    expect(text).toContain("from '#src/a/sub/index'")
   })
 
   it('rewrites vi.mock and dynamic import specifiers', () => {
@@ -150,7 +150,10 @@ describe('applyPlan', () => {
     expect(after).not.toContain('src/a/b.test.ts')
     expect(after).toContain('src/a/Published.test.svelte')
     expect(readFileSync(where('tests/unit/a/b.test.ts'), 'utf8')).toContain("from '#src/a/b.ts'")
-    expect(JSON.parse(readFileSync(where('package.json'), 'utf8')).imports).toEqual({ '#src/*': './src/*' })
+    expect(JSON.parse(readFileSync(where('package.json'), 'utf8')).imports).toEqual({
+      '#src/*.ts': './src/*.ts',
+      '#src/*': './src/*.ts',
+    })
   })
 
   it('is a no-op the second time', () => {

@@ -287,10 +287,12 @@ export function planMoves(
         if (!resolved) return null
         const query = span.value.includes('?') ? `?${span.value.split('?').slice(1).join('?')}` : ''
         const landed = moves.get(resolved.target)?.to ?? resolved.target
-        // A moved test keeps its extension; a source file's specifier leaves out what it left out before.
+        // A moved test keeps its extension; a source file's specifier leaves out the extension it left out before. A
+        // folder import keeps `/index`, because the `#src/*` alias maps to a file and cannot name a folder.
+        const omittedExtension = resolved.omitted === '' ? '' : '.ts'
         const landedAt =
-          resolved.omitted && landed.endsWith(resolved.omitted)
-            ? landed.slice(0, -resolved.omitted.length)
+          omittedExtension && landed.endsWith(omittedExtension)
+            ? landed.slice(0, -omittedExtension.length)
             : landed
         // Code under src/ is reached through the package's alias; a moved test or any other file, relatively.
         const next = landedAt.startsWith(`${src}/`)
@@ -311,15 +313,23 @@ export function planMoves(
 
 // --- applying -----------------------------------------------------------------------------------------------------
 
-/** Add `"imports": { "#src/*": "./src/*" }` to the package's package.json, keeping its other keys in order. */
+/**
+ * The alias tests import src through. Two patterns, because a package writes its imports either way: `#src/a/b.ts` (the
+ * first, longer pattern wins) or `#src/a/b` (the second adds the extension). TypeScript, Vite and Node all resolve
+ * an `imports` target exactly, so each pattern names the file.
+ */
+const SRC_ALIAS = { '#src/*.ts': './src/*.ts', '#src/*': './src/*.ts' } as const
+
+/** Add the `#src` alias to the package's package.json, keeping its other keys in order. */
 function withImportsAlias(text: string): string {
   const json = JSON.parse(text) as Record<string, unknown>
-  if ((json.imports as Record<string, string> | undefined)?.['#src/*'] === './src/*') return text
-  const entries = Object.entries(json)
+  const existing = (json.imports ?? {}) as Record<string, string>
+  if (Object.entries(SRC_ALIAS).every(([key, value]) => existing[key] === value)) return text
+  const entries = Object.entries(json).filter(([key]) => key !== 'imports')
   // Right after "exports" when there is one, else after "type".
   const after =
     entries.findIndex(([key]) => key === 'exports') + 1 || entries.findIndex(([key]) => key === 'type') + 1
-  entries.splice(after, 0, ['imports', { ...(json.imports as object | undefined), '#src/*': './src/*' }])
+  entries.splice(after, 0, ['imports', { ...existing, ...SRC_ALIAS }])
   return `${JSON.stringify(Object.fromEntries(entries), null, 2)}\n`
 }
 
