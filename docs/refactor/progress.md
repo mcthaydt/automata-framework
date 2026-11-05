@@ -27,7 +27,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 37% (11 of 30 tasks)
+### Build: 40% (12 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -45,7 +45,7 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 3.2 The test move codemod | 3 | Done, 2026-11-05 (CI run pending) | PR to open |
 | 3.3 Move tests, package by package | 3 | Done locally, 2026-11-05 (CI run pending): every core and 2D package, Emberwick, all 14 tooling packages and the three example packages moved; unit counts equal before and after; `pnpm check` passes. 3D and editor packages move in their own areas | PR to open |
 | 4.1 The boundaries rules | 4 | Done locally, 2026-11-05 (CI run pending); the file-list comparison fails on Emberwick (12 vs 10), so the `boundaries` line switches in task 6.3 | PR to open |
-| 4.2 The move map and import codemod | 4 | Not started | |
+| 4.2 The move map and import codemod | 4 | Done locally, 2026-11-05 (CI run pending): map and codemod tested; the dry run moves 764 files, none unmapped, none clashing; not applied until 4.3 | PR to open |
 | 4.3 Build `packages/automata` | 4 | Not started | |
 | 4.4 `tools`, and `sim` and `content` inside | 4 | Not started | |
 | 5.1 Bundle report, before | 5 | Not started | |

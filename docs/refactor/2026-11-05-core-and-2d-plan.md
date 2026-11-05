@@ -371,7 +371,7 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
 - Create: `docs/refactor/move-map.json`, `tooling/codemods/src/move-modules.ts`,
   `tooling/codemods/tests/unit/move-modules.test.ts`
 
-- [ ] **Step 1: Write the move map.** One entry per source folder (and per file where a folder splits), from its
+- [x] **Step 1: Write the move map.** One entry per source folder (and per file where a folder splits), from its
   current path to its new one, following the spec's section 3.3. The folder-level map:
 
   | From | To (`packages/automata/src/…` unless noted) |
@@ -413,14 +413,14 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
 
   And an entry map: every old public entry (`@mcthaydt/automata-runtime`, `…-ui/testing`, `…-render-pixi`, the 16
   that 3D and the editors import, and the rest) → its new entry and, per exported name, where it now comes from.
-- [ ] **Step 2: Failing tests for the codemod** on fixtures: it moves files by the map with `git mv`; rewrites
+- [x] **Step 2: Failing tests for the codemod** on fixtures: it moves files by the map with `git mv`; rewrites
   relative imports inside the moved package; moves each package's `tests/<kind>/<old folder>/` to
   `packages/<new package>/tests/<kind>/<new feature>/` by the same map (six `tests/` folders merge into
   `packages/automata/tests/`) and rewrites their `#src/…` imports to the new paths; rewrites bare imports in every
   other workspace package (3D, the editors, `tooling/`, `examples/` and `agents/` included) and in `vitest.config.ts`
   and `vite.config.ts` files by the entry map, splitting one import into two when names now come from two entries;
   and prints the names each consumer imports, which is the surface report (S4).
-- [ ] **Step 3:** Implement. Pass. Commit.
+- [x] **Step 3:** Implement. Pass. Commit.
 
 ### Task 4.3: Build `packages/automata` (PR `claude/refactor-2d-packages`)
 
@@ -789,3 +789,24 @@ the features it lacks are journeyed on the one-file examples that show them:
   file reaches them (the spec's claim that `place-wick.ts` is reached by import is wrong). Task 6.3 must close it when
   Emberwick moves: rename `place-wick.ts` to `place-wick.command.ts`, drop the barrel, and switch the line to
   `--game games/*/src` in the same commit; `base-3d` (12 role files, 0 by suffix) keeps its role layout until the 3D area.
+- **Task 4.2 (2026-11-05, second session).** `docs/refactor/move-map.json` (146 rows and the entry map),
+  `tooling/codemods/src/move-modules.ts` (the pure plan, `planModules`, and `applyModulePlan`), and
+  `src/move-modules-cli.ts` (`node tooling/codemods/src/move-modules-cli.ts [--dry-run] [--surface]`), with 17 tests on an
+  in-memory file system. **Not applied:** moving the files before task 4.3 builds the package would break the tree. The dry
+  run over today's tree: 764 files move, 1 duplicate is removed (the two identical `setup.ts`), 624 files change text, none
+  is unmapped and none clashes. Deviations: (33) A test follows the source file it tests (`tests/unit/audio/a.test.ts` is the
+  test of `src/audio/a.ts`), so a test needs no row of its own; rows exist only for the 16 tests with no source file by that
+  name (the `index.test.ts` of each old barrel, `target.test.ts`, the Ruken seam tests, the two `setup.ts` and `testing`'s golden
+  fixtures, which keep their path relative to the test file). (34) Two files with the same text on one path are one file
+  (the first stays, `git rm` the rest); different text stops the run. (35) Each old `index.ts` moves to
+  `entries/from-<package>.ts` and each old `no-eval.ts` to `entries/no-eval.ts` or `entries/from-<package>-no-eval.ts`, with
+  its relative imports already right; task 4.3 step 1 writes the real `entries/index.ts` from them. (36) The map decides what
+  the spec left open: `haptics` goes to `features/input/haptics`, `leaderboards` stays a feature (`features/leaderboards`),
+  `host/src/testing` to `testing/host/page` (beside `testing/src/host`, which becomes `testing/host`), `ship`'s `cli.ts` to
+  `app/ship-cli.ts` and `cli`'s `bin.ts` to `app/cli.ts` (task 4.4 merges them into the one bin). (37) **Not done in the codemod,
+  left to task 4.3 step 1:** a moved file that imports an old package of the same merge (230 imports today: `host` 45+24, `ui`
+  37, `node` 35, `runtime` 33, `testing` 23, …) keeps the bare specifier. The codemod lists them (`intra`); step 1 resolves each
+  imported name through the old entry file to the module that defines it and writes a relative import, which then shows every
+  cross-feature import to `--features`. The 197 imports from other workspace files (3D, editors, tooling, examples, agents) are
+  rewritten by the entry map; the entries a name must be sent to individually (`names`) are empty, so a name that is not in
+  its new entry is found by the typecheck in 4.3.
