@@ -1,5 +1,5 @@
 import { J, type Genes, type Side, type Skeleton } from './rig';
-import { CHAIN, clearance, type Anchor, type Gait, type Hold, type Stand } from './motion';
+import { CHAIN, clearance, standHolds, type Anchor, type Gait, type Hold, type Stand } from './motion';
 import { axisAngle, euler, type V3 } from './math';
 import { reach, type Material, type Part } from './parts';
 import { measure, type Sliders } from './genes';
@@ -128,5 +128,26 @@ export function fits(s: Skeleton, look: Look, stand: Stand): boolean {
   // body's own (motion.ts openings, place's fallback).
   const offers = (kind: string, side: string) => kind === 'hip' || anchors.some(a => a.kind === kind && (a.side ?? side) === side);
   return Object.entries(stand.hands ?? {}).every(([side, h]) => !h || !('at' in h) || (h.at === 'crossed' ? slim() : offers(CHAIN[h.at][0], side)));
+}
+/** The cast member at `density`: the sheets' tall cell, 64·D × 96·D texels showing 2.6 m, so every figure stands at one
+ * scale in a line-up and nothing clips. The feet's row stays 13.5 texels at every density: the goldens were drawn so. */
+export const memberOf = (def: CharacterDef, density = 1): CastMember => ({ ...fromDef(def), cell: [64 * density, 96 * density], metres: 2.6 });
+/** A stand's holds on a dressed figure: its placed hands at the look's openings (motion.ts standHolds), each laid on the
+ * surface a hand may rest on, which is the dressed figure but its arms, head and item, at rest. */
+export function holdsFor(s: Skeleton, look: Look, stand: Stand): Hold[] {
+  const cloth = look.parts.filter(p => ![GROUP.head, GROUP.armL, GROUP.armR, GROUP.item].includes(p.group as never));
+  return standHolds(s, stand, (o, d) => reach(cloth, s.rest, o, d), look.anchors);
+}
+/** A library stand on a dressed figure: the named one (POSES), or the first of its fallbacks that the outfit suits
+ * (`fits`), with its holds; null where none suits (the gait's relaxed stand). `name` is the one used. The hero
+ * (scripts/frames.ts) and the actors (actor.ts standFor) both place stands with this. */
+export function standOf(s: Skeleton, look: Look, name: string): { stand: Stand; holds: Hold[]; name: string } | null {
+  const named = POSES[name];
+  if (!named) throw new Error(`no pose ${name}`);
+  for (const n of [name, ...(named.fallback ?? [])]) {
+    const stand = POSES[n];
+    if (stand && fits(s, look, stand)) return { stand, name: n, holds: holdsFor(s, look, stand) };
+  }
+  return null;
 }
 export { euler, GROUP };

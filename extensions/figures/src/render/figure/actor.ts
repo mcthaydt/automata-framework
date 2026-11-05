@@ -1,9 +1,8 @@
 import { J, fk, type Pose, type Side, type Skeleton } from './rig';
-import { evaluate, standHolds, type ActionId, type Gait, type Hold, type MotionState, type Stand } from './motion';
+import { evaluate, type ActionId, type Gait, type Hold, type MotionState, type Stand } from './motion';
 import { euler, qmul, smooth, type V3 } from './math';
-import { fits, fromDef, GAITS, GROUP, POSES, type CastMember, type CharacterDef } from './cast';
+import { GAITS, memberOf, standOf, type CastMember, type CharacterDef } from './cast';
 import type { Expression } from './garments';
-import { reach } from './parts';
 import { Figure, type View } from './figure';
 import { actionOf, lengthOf, modeGait, specAt, weightAt, type ActionDef } from './actions';
 import { aim, blend, eyesOf, layer, lift, lowest, specPose, type Aims } from './pose-spec';
@@ -89,9 +88,7 @@ export function characterOf(who: string | CharacterDef): { def: CharacterDef; po
   if (!b) throw new Error(`no figure ${who} (a base id: ${BASE.map(c => c.def.id).join(', ')}, or a character file)`);
   return { def: b.def, pose: b.pose };
 }
-/** The cast member at `density` (the sheets' tall cell: 64·D × 96·D for 2.6 m, as scripts/frames.ts member). */
-export const memberOf = (def: CharacterDef, density: number): CastMember => ({ ...fromDef(def), cell: [64 * density, 96 * density], metres: 2.6 });
-
+export { memberOf } from './cast';
 const TAU = Math.PI * 2;
 const wrap = (a: number) => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 const deg = (d: number) => d * Math.PI / 180;
@@ -283,17 +280,8 @@ export class ScriptedActor {
    * its hands placed at the outfit's openings; null where none suits (the gait's relaxed stand). `name` the one used. */
   standFor(name: string, f: Figure): { stand: Stand; holds: Hold[]; name: string } | null {
     const key = `${f.outfit}|${name}`;
-    if (this.standCache.has(key)) return this.standCache.get(key)!;
-    if (!POSES[name]) throw new Error(`no pose ${name}`);
-    const s = f.skeleton, look = f.member.outfits[f.outfit](s);
-    const cloth = look.parts.filter(p => ![GROUP.head, GROUP.armL, GROUP.armR, GROUP.item].includes(p.group as never));
-    let out: { stand: Stand; holds: Hold[]; name: string } | null = null;
-    for (const n of [name, ...(POSES[name].fallback ?? [])]) {
-      const stand = POSES[n];
-      if (stand && fits(s, look, stand)) { out = { stand, name: n, holds: standHolds(s, stand, (o, d) => reach(cloth, s.rest, o, d), look.anchors) }; break; }
-    }
-    this.standCache.set(key, out);
-    return out;
+    if (!this.standCache.has(key)) this.standCache.set(key, standOf(f.skeleton, f.member.outfits[f.outfit](f.skeleton), name));
+    return this.standCache.get(key)!;
   }
   /** The acting side for an action. */
   private sideOf(cue: ActionCue, def: ActionDef | null, item: boolean): Side {
