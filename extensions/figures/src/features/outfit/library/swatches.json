@@ -14,5 +14,6 @@
   "lipsBrown": {"ramp":19,"base":2,"flat":true,"paint":["#7c4b47","#98595a","#633432","#633432"]},
   "lipsWarm": {"ramp":16,"base":3,"flat":true,"paint":["#a76057","#d28d7a","#904647","#904647"]},
   "hairBlack": {"ramp":7,"base":1,"paint":["#23324d","#181f2f","#181f2f","#181f2f"]},
-  "hairBraid": {"ramp":12,"base":1,"paint":["#4a353c","#31222a","#1d1d21","#1d1d21"]}
+  "hairBraid": {"ramp":12,"base":1,"paint":["#4a353c","#31222a","#1d1d21","#1d1d21"]},
+  "chromeDark": {"ramp":0,"base":5,"paint":["#a6aeba","#828b98","#626871","#434549"],"tones":[0.5,0.1,-0.3]}
 }
