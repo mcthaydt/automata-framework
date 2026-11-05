@@ -50,7 +50,27 @@ const packageJson = (path: string) => JSON.parse(readFileSync(join(root, path, '
 // sets one, nothing locally (see 'the load one CI job puts on the shared Mac').
 const VITEST_CAP = 'VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}}'
 
-const ALL = ['ci.yml', 'game-ci.yml', 'game-release.yml', 'release-packages.yml', 'consumer-smoke.yml']
+// The packages that leave the core and 2D gate (core-and-2D refactor spec section 3.4): the 3D renderer, its
+// figures, the sector format, the base 3D game and the editors run in 3d-and-editors.yml.
+const THREE_D_PACKAGES = [
+  './packages/editor-*',
+  '@af-games/base-3d',
+  './packages/render-pixi3d',
+  './packages/figures',
+  './packages/sector-format',
+]
+const CORE_FILTERS = THREE_D_PACKAGES.map((each) => `--filter='!${each}'`).join(' ')
+const THREE_D_FILTERS = THREE_D_PACKAGES.map((each) => `--filter='${each}'`).join(' ')
+
+const ALL = [
+  'ci.yml',
+  'game-ci.yml',
+  'game-release.yml',
+  'release-packages.yml',
+  'release-checks.yml',
+  '3d-and-editors.yml',
+  'consumer-smoke.yml',
+]
 
 describe('every workflow', () => {
   it.each(ALL)('%s pins third-party actions to a commit, as Ruken does', (name) => {
@@ -108,7 +128,7 @@ describe('every workflow', () => {
 describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runner on this account)", () => {
   const ci = workflow('ci.yml')
 
-  it.each(['checks', 'e2e', 'frame-budget'])(
+  it.each(['checks', 'e2e-2d', 'e2e-focused', 'frame-budget'])(
     'ci.yml %s runs on the AF runner label, switchable by vars.AF_LINUX_RUNNER, never falling back to hosted',
     (name) => {
       const runsOn = ci.jobs[name]?.['runs-on'] ?? ''
@@ -136,12 +156,12 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
     // right, so root's HOME is set for the later steps on Linux only, before parity and evidence.
     const home = steps.findIndex((step) => step.run === 'echo "HOME=/root" >> "$GITHUB_ENV"')
     expect(steps[home]?.if).toBe("runner.os == 'Linux'")
-    expect(home).toBeLessThan(steps.findIndex((step) => step.run === 'pnpm test:parity'))
+    expect(home).toBeLessThan(steps.findIndex((step) => step.run === 'pnpm test:parity:core'))
     for (const step of steps) expect(step.env?.HOME).toBeUndefined()
   })
 
-  it('passes the same runner to the placeholder through game-ci', () => {
-    expect(ci.jobs.placeholder?.with?.runner).toBe(
+  it('passes the same runner to base-2d through game-ci', () => {
+    expect(ci.jobs['base-2d']?.with?.runner).toBe(
       "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
     )
   })
@@ -221,10 +241,20 @@ describe('parity across packages', () => {
     expect(packageJson('.').scripts['test:parity']).toBe(
       `${VITEST_CAP} turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
-    expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity')
+    // The pull request gate runs the core and 2D suites; the 3D and editor suites run in 3d-and-editors.yml.
+    expect(packageJson('.').scripts['test:parity:core']).toBe(
+      `${VITEST_CAP} turbo run test:parity ${CORE_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
+    )
+    expect(packageJson('.').scripts['test:parity:3d']).toBe(
+      `${VITEST_CAP} turbo run test:parity ${THREE_D_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
+    )
+    expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity:core')
+    expect(JSON.stringify(workflow('3d-and-editors.yml').jobs['parity-3d']?.steps)).toContain(
+      'pnpm test:parity:3d',
+    )
     // The pull request variant runs the same suites, only those of the affected packages (turbo --affected).
     expect(packageJson('.').scripts['test:parity:affected']).toBe(
-      `${VITEST_CAP} turbo run test:parity --affected --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
+      `${VITEST_CAP} turbo run test:parity --affected ${CORE_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
   })
 
@@ -236,6 +266,13 @@ describe('parity across packages', () => {
   it('gives every unit suite a 90 s default timeout through the root test:unit script', () => {
     expect(packageJson('.').scripts['test:unit']).toBe(
       `${VITEST_CAP} turbo run test:unit -- --testTimeout=90000`,
+    )
+    // The pull request gate runs the core and 2D suites; the 3D and editor suites have their own script.
+    expect(packageJson('.').scripts['test:unit:core']).toBe(
+      `${VITEST_CAP} turbo run test:unit ${CORE_FILTERS} -- --testTimeout=90000`,
+    )
+    expect(packageJson('.').scripts['test:unit:3d']).toBe(
+      `${VITEST_CAP} turbo run test:unit ${THREE_D_FILTERS} -- --testTimeout=90000`,
     )
     // The flag only means something to vitest, so every package's test:unit must be a vitest run.
     for (const path of workspacePackages) {
@@ -296,7 +333,8 @@ describe('parity across packages', () => {
 })
 
 // CI.JRN1: the editors' iPad journeys (EDK.6b's harness, WebKit with touch and a 2x screen) gate every pull request
-// in the checks job. They take seconds, so they run in full rather than through turbo --affected.
+// that touches the editors or core, in 3d-and-editors.yml. They take seconds, so they run in full rather than through
+// turbo --affected.
 describe('the iPad journeys (CI.JRN1)', () => {
   const withJourneys = workspacePackages.filter((path) => {
     try {
@@ -321,8 +359,8 @@ describe('the iPad journeys (CI.JRN1)', () => {
     })
   })
 
-  it('runs them in the checks job after installing WebKit, on a hosted runner with its system libraries', () => {
-    const steps = workflow('ci.yml').jobs.checks?.steps ?? []
+  it('runs them in the 3D and editors workflow after installing WebKit, on a hosted runner with its system libraries', () => {
+    const steps = workflow('3d-and-editors.yml').jobs['unit-and-journeys']?.steps ?? []
     const runs = steps.map((step) => step.run ?? '')
     const journeys = runs.indexOf('pnpm test:journeys')
     expect(journeys).toBeGreaterThan(-1)
@@ -395,52 +433,36 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
   >
   const localSteps = (scripts['ci:local'] ?? '').split(' && ')
 
-  it('runs every pnpm step of the checks and parity jobs, in order, from a frozen install', () => {
-    const ciSteps = ['checks', 'parity'].flatMap((name) =>
-      (ci.jobs[name]?.steps ?? [])
-        // The Mac host's browser download is runner setup, not a check (a local run has its browsers).
-        .filter((step) => step.if !== "runner.os == 'macOS'")
-        // Nor is a browser install on a runner (the journeys' WebKit, CI.JRN1).
-        .filter((step) => !(step.run ?? '').startsWith('pnpm exec playwright install'))
-        // A local run always runs every parity suite; the affected variant is a pull request's shortcut.
-        .filter((step) => step.run !== 'pnpm test:parity:affected')
-        .map((step) => step.run ?? '')
-        .filter((script) => script.startsWith('pnpm ')),
-    )
-    expect(localSteps[0]).toBe('pnpm install --frozen-lockfile')
-    const inOrder = localSteps.filter((step) => ciSteps.includes(step))
-    expect(inOrder).toEqual([...new Set(ciSteps)])
+  it('is three steps after a frozen install: the checks, the core and 2D parity suites and the 2D journeys', () => {
+    expect(localSteps).toEqual([
+      'pnpm install --frozen-lockfile',
+      'pnpm check',
+      'pnpm test:parity:core',
+      'pnpm test:e2e --filter @af-examples/base-2d --filter @af-examples/examples',
+    ])
   })
 
-  it('builds and prepares the placeholder as game-ci does', () => {
-    expect(localSteps).toContain('pnpm --filter @af-examples/placeholder build')
-    expect(localSteps).toContain('pnpm --filter @af-examples/placeholder prepare-ruken')
+  it('runs in pnpm check every pnpm check the checks job runs, in the same order', () => {
+    const inCheck = (scripts.check ?? '').split(' && ')
+    const inCi = (ci.jobs.checks?.steps ?? [])
+      .map((step) => step.run ?? '')
+      .filter((run) => inCheck.includes(run))
+    expect(inCheck).toEqual([
+      'pnpm lint',
+      'pnpm typecheck',
+      'pnpm boundaries',
+      'pnpm style',
+      'pnpm knip',
+      'pnpm test:unit:core',
+    ])
+    expect(inCi).toEqual(inCheck)
   })
 
-  it('builds every feature demo (examples/README.md: CI builds every demo)', () => {
-    expect(scripts['build:demos']).toBe('pnpm --filter "./examples/*/*" build')
-    expect(JSON.stringify(ci.jobs.checks?.steps)).toContain('pnpm build:demos')
-    expect(localSteps).toContain('pnpm build:demos')
-  })
-
-  it('builds every one-file example (EX spec §5), beside the old demos until EX.4 deletes them', () => {
-    expect(scripts['build:examples']).toBe('pnpm --filter @af-examples/examples build')
-    expect(JSON.stringify(ci.jobs.checks?.steps)).toContain('pnpm build:examples')
-    expect(localSteps).toContain('pnpm build:examples')
-  })
-
-  it('builds and prepares base-2d, without repeating its check inside AF', () => {
-    // build:demos only covers `examples/*/*`; the games (Emberwick, the placeholder) live in `games/`, so they build here.
-    expect(localSteps).toContain('pnpm --filter @af-examples/base-2d build')
-    expect(localSteps).toContain('pnpm --filter @af-examples/base-2d prepare-ruken')
-    // `pnpm check` already runs base-2d's check (typecheck + test:unit + boundaries).
-    expect(localSteps).not.toContain('pnpm --filter @af-examples/base-2d check')
-  })
-
-  it('builds and prepares base-3d (M3.7a), without repeating its check inside AF', () => {
-    expect(localSteps).toContain('pnpm --filter @af-games/base-3d build')
-    expect(localSteps).toContain('pnpm --filter @af-games/base-3d prepare-ruken')
-    expect(localSteps).not.toContain('pnpm --filter @af-games/base-3d check')
+  it('runs the same journeys as the e2e-2d job, and the same parity suites as the parity job', () => {
+    const e2e = (ci.jobs['e2e-2d']?.steps ?? []).map((step) => step.run)
+    expect(e2e).toContain(localSteps[3])
+    const parity = (ci.jobs.parity?.steps ?? []).map((step) => step.run)
+    expect(parity).toContain(localSteps[2])
   })
 
   it('checks base-3d’s sim folder in the root boundaries script', () => {
@@ -462,7 +484,8 @@ describe('ci.yml (AF)', () => {
         'pnpm typecheck',
         'pnpm boundaries',
         'pnpm style',
-        'pnpm test:unit',
+        'pnpm knip',
+        'pnpm test:unit:core',
       ]),
     )
   })
@@ -482,20 +505,44 @@ describe('ci.yml (AF)', () => {
     )
   })
 
-  it('enforces the S8 budgets: sizes on every run, boot times nightly', () => {
-    const checks = (ci.jobs.checks?.steps ?? []).map((step) => step.run)
-    expect(checks).toContain('pnpm --filter @af-examples/placeholder budget:size')
-    const boot = (ci.jobs.e2e?.steps ?? []).find((step) => step.run?.includes('budget:boot'))
-    expect(boot?.if).toBe("inputs.spec == ''")
+  // Core-and-2D refactor, spec section 3.4 (O5): what only a release needs does not run on a pull request.
+  it('leaves the release-only checks to release-checks.yml', () => {
+    const runs = (ci.jobs.checks?.steps ?? []).map((step) => step.run ?? '')
+    for (const releaseOnly of [
+      'pnpm build',
+      'pnpm build:examples',
+      'pnpm build:demos',
+      'pnpm api-report',
+      'pnpm api-index',
+      'pnpm agent-skills',
+      'pnpm plugin:validate',
+      'pnpm test:unit',
+      'pnpm test:journeys',
+    ])
+      expect(runs, releaseOnly).not.toContain(releaseOnly)
+    expect(runs.some((run) => run.includes('test:dist'))).toBe(false)
   })
 
-  it('runs browser journeys only nightly or on request, focused by spec (test:remote)', () => {
+  it('runs the 2D journeys on every ready pull request and push to main: Emberwick in Chromium and WebKit, and the examples', () => {
+    const job = ci.jobs['e2e-2d']
+    expect(job?.needs).toBe('checks')
+    expect(job?.if).toContain('!cancelled()')
+    expect(job?.if).toContain('github.event.pull_request.draft != true')
+    expect(job?.if).toContain("needs.checks.outputs.docs_only != 'true'")
+    expect(job?.['timeout-minutes']).toBe(30)
+    const runs = (job?.steps ?? []).map((step) => step.run ?? '')
+    expect(runs).toContain('pnpm test:e2e --filter @af-examples/base-2d --filter @af-examples/examples')
+    expect(JSON.stringify(job?.steps)).toContain('e2e-report')
+  })
+
+  it('asks for one focused browser run by folder and Playwright arguments (test:remote), not from the PR gate', () => {
     expect(Object.keys(ci.on.workflow_dispatch?.inputs ?? {})).toEqual(['spec', 'nightly'])
-    const e2e = ci.jobs.e2e
-    expect(e2e?.if).toContain("github.event_name == 'schedule'")
-    expect(e2e?.if).toContain("github.event_name == 'workflow_dispatch'")
-    expect(e2e?.['runs-on']).toContain('vars.AF_GPU_RUNNER')
-    expect(JSON.stringify(e2e?.steps)).toContain('e2e-report')
+    const focused = ci.jobs['e2e-focused']
+    expect(focused?.if).toBe("github.event_name == 'workflow_dispatch' && inputs.spec != ''")
+    const run = (focused?.steps ?? []).map((step) => step.run ?? '').join('\n')
+    expect(run).toContain('cd "$folder"')
+    expect(run).toContain('pnpm exec playwright test $args')
+    expect(ci.jobs.e2e).toBeUndefined()
   })
 
   // PRODUCT.7 (PRODUCT spec §2 F5): ms/frame on the GPU runner, with the GPU to itself (AGENTS.md), compared
@@ -505,9 +552,9 @@ describe('ci.yml (AF)', () => {
     expect(job?.if).toContain("github.event_name == 'schedule'")
     expect(job?.if).toContain('inputs.nightly')
     expect(job?.if).toContain("inputs.spec == ''")
-    expect(job?.['runs-on']).toBe(ci.jobs.e2e?.['runs-on'])
-    // After the journeys, never beside them, and one probe at a time across runs.
-    expect(job?.needs).toBe('e2e')
+    expect(job?.['runs-on']).toContain('vars.AF_GPU_RUNNER')
+    // Never beside a journey run (it needs no other job), and one probe at a time across runs.
+    expect(job?.needs).toBeUndefined()
     expect(job?.if).toContain('!cancelled()')
     const concurrency = (job as { concurrency?: { group: string; 'cancel-in-progress': boolean } })
       .concurrency
@@ -541,16 +588,11 @@ describe('ci.yml (AF)', () => {
   })
 
   it('installs all three engines for the journeys: the input matrix runs cells in WebKit and Firefox (M4.10)', () => {
-    const installs = (ci.jobs.e2e?.steps ?? [])
+    const installs = [...(ci.jobs['e2e-2d']?.steps ?? []), ...(ci.jobs['e2e-focused']?.steps ?? [])]
       .map((step) => step.run ?? '')
       .filter((run) => run.includes('playwright install'))
     expect(installs.length).toBeGreaterThan(0)
     for (const install of installs) expect(install).toMatch(/chromium webkit firefox$/)
-  })
-
-  it('builds the placeholder through the reusable game workflow', () => {
-    expect(ci.jobs.placeholder?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs.placeholder?.with?.['working-directory']).toBe('games/placeholder')
   })
 
   it('builds base-2d through the reusable game workflow, with the determinism check on its sim', () => {
@@ -562,22 +604,25 @@ describe('ci.yml (AF)', () => {
     )
   })
 
-  // M3.7a: base-3d's sim is flat in src/ (DESIGN.md §3.1), so the whole folder is its sim root.
-  it('builds base-3d through the reusable game workflow, with the determinism check on its sim', () => {
-    expect(ci.jobs['base-3d']?.uses).toBe('./.github/workflows/game-ci.yml')
-    expect(ci.jobs['base-3d']?.with?.['working-directory']).toBe('games/base-3d')
-    expect(ci.jobs['base-3d']?.with?.['sim-roots']).toBe('src')
-    expect(ci.jobs['base-3d']?.with?.runner).toBe(
-      "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
-    )
+  // M3.7a: base-3d's sim is flat in src/ (DESIGN.md §3.1), so the whole folder is its sim root. Its game CI runs in
+  // the 3D and editors workflow, not in the core and 2D gate.
+  it('builds base-3d through the reusable game workflow in 3d-and-editors.yml, with the determinism check on its sim', () => {
+    const job = workflow('3d-and-editors.yml').jobs['base-3d']
+    expect(ci.jobs['base-3d']).toBeUndefined()
+    expect(job?.uses).toBe('./.github/workflows/game-ci.yml')
+    expect(job?.with?.['working-directory']).toBe('games/base-3d')
+    expect(job?.with?.['sim-roots']).toBe('src')
+    expect(job?.with?.runner).toBe("${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}")
   })
 
   it('gives each game-ci caller its own artifact name, since one run cannot upload two artifacts of the same name', () => {
-    const names = Object.values(ci.jobs)
-      .filter((job) => job.uses === './.github/workflows/game-ci.yml')
-      .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
-    expect(names.length).toBeGreaterThan(1)
-    expect(new Set(names).size).toBe(names.length)
+    for (const name of ['ci.yml', '3d-and-editors.yml']) {
+      const names = Object.values(workflow(name).jobs)
+        .filter((job) => job.uses === './.github/workflows/game-ci.yml')
+        .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
+      expect(names.length, name).toBeGreaterThan(0)
+      expect(new Set(names).size, name).toBe(names.length)
+    }
   })
 })
 
@@ -645,11 +690,6 @@ describe('ci.yml evidence file (DX spec §3.10)', () => {
     const checkout = steps.find((step) => step.uses?.startsWith('actions/checkout@'))
     expect(checkout?.with?.['fetch-tags'] as unknown).toBe(true)
   })
-
-  it('runs the evidence step in ci:local too, after parity', () => {
-    const local = (scripts['ci:local'] ?? '').split(' && ')
-    expect(local.indexOf('pnpm evidence')).toBe(local.indexOf('pnpm test:parity') + 1)
-  })
 })
 
 describe('ci.yml release checks (M2.4 spec §3.5)', () => {
@@ -663,44 +703,102 @@ describe('ci.yml release checks (M2.4 spec §3.5)', () => {
     expect(checkout?.with?.['fetch-depth']).toBe(0)
   })
 
-  it('requires a changeset for a changed published package, allows only patch bumps, and builds every package', () => {
+  // Spec section 12, veto default 9: they take seconds and catch a missing changeset before merge, not at publish.
+  it('requires a changeset for a changed published package and allows only patch bumps, on every pull request', () => {
     const status = runs.indexOf('pnpm changeset status --since=origin/main')
     const patchOnly = runs.indexOf('node tooling/release/src/check-changesets.ts')
-    const build = runs.indexOf('pnpm build')
-    const dist = runs.indexOf('pnpm --filter @mcthaydt/release test:dist')
     expect(status).toBeGreaterThan(-1)
     expect(patchOnly).toBeGreaterThan(status)
-    expect(build).toBeGreaterThan(patchOnly)
-    expect(dist).toBeGreaterThan(build)
     // On a push to main there is nothing to compare with: changeset status runs on pull requests only.
     expect(steps[status]?.if).toBe("github.event_name == 'pull_request'")
   })
+})
 
-  it('runs the same release checks in ci:local', () => {
-    const local = (
-      JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts['ci:local'] as string
-    ).split(' && ')
-    for (const step of [
-      'pnpm changeset status --since=origin/main',
-      'node tooling/release/src/check-changesets.ts',
+describe('release-checks.yml (core-and-2D refactor spec section 3.4)', () => {
+  const checks = workflow('release-checks.yml')
+  const steps = checks.jobs['release-checks']?.steps ?? []
+  const runs = steps.map((step) => step.run ?? '')
+
+  it('runs before a publish, nightly and by hand, never on a pull request', () => {
+    expect(Object.keys(checks.on).sort()).toEqual(['schedule', 'workflow_call', 'workflow_dispatch'])
+  })
+
+  it('builds, then runs the dist test, API report, API index, agent skills, plugin validation and consumer smoke', () => {
+    const order = [
+      'pnpm build:examples',
+      'pnpm build:demos',
+      'pnpm api-report',
       'pnpm build',
       'pnpm --filter @mcthaydt/release test:dist',
-    ]) {
-      expect(local).toContain(step)
-    }
+      'pnpm api-index',
+      'pnpm agent-skills',
+      'pnpm plugin:validate',
+      'node tooling/consumer-smoke/src/run.ts --from packs',
+      'pnpm --filter @mcthaydt/examples-runner test:e2e',
+    ]
+    expect(runs.filter((run) => order.includes(run))).toEqual(order)
+  })
+
+  it('checks out full history, so the API report can compare with origin/main', () => {
+    expect(steps.find((step) => step.uses?.startsWith('actions/checkout@'))?.with?.['fetch-depth']).toBe(0)
+  })
+
+  it('runs on the AF runner label, never falling back to hosted', () => {
+    const runsOn = checks.jobs['release-checks']?.['runs-on'] ?? ''
+    expect(runsOn).toContain('vars.AF_LINUX_RUNNER')
+    expect(runsOn).toContain("'af-linux'")
+    expect(runsOn).not.toContain('ubuntu-latest')
   })
 })
 
-describe('repo hygiene in ci.yml and ci:local (QB.1)', () => {
+describe('3d-and-editors.yml (core-and-2D refactor spec section 3.4)', () => {
+  const threeD = workflow('3d-and-editors.yml')
+
+  it('runs on pull requests that touch their files or any package, on pushes to main and nightly', () => {
+    expect(Object.keys(threeD.on).sort()).toEqual(['pull_request', 'push', 'schedule', 'workflow_dispatch'])
+    const paths = (threeD.on.pull_request as { paths?: string[] }).paths ?? []
+    expect(paths).toEqual(
+      expect.arrayContaining([
+        'packages/**',
+        'games/base-3d/**',
+        'examples/render3d/**',
+        'examples/figures/**',
+      ]),
+    )
+  })
+
+  it('runs the 3D and editor unit, parity and journey suites and base-3d, and skips drafts', () => {
+    expect(Object.keys(threeD.jobs)).toEqual(['unit-and-journeys', 'e2e-3d', 'parity-3d', 'base-3d'])
+    const runs = (threeD.jobs['unit-and-journeys']?.steps ?? []).map((step) => step.run ?? '')
+    expect(runs).toContain('pnpm test:unit:3d')
+    expect(runs).toContain('pnpm test:journeys')
+    const e2e = (threeD.jobs['e2e-3d']?.steps ?? []).map((step) => step.run ?? '')
+    expect(e2e).toContain('pnpm --filter @af-games/base-3d test:e2e')
+    for (const job of Object.values(threeD.jobs))
+      expect(job.if).toContain('github.event.pull_request.draft != true')
+  })
+
+  it('keeps the parity container on the pinned Playwright version, as ci.yml does', () => {
+    const sim = JSON.parse(readFileSync(join(root, 'packages/sim/package.json'), 'utf8'))
+    expect(threeD.jobs['parity-3d']?.container?.image).toContain(
+      `'mcr.microsoft.com/playwright:v${sim.devDependencies.playwright}-noble'`,
+    )
+  })
+})
+
+describe('repo hygiene in ci.yml and pnpm check (QB.1)', () => {
   const steps = workflow('ci.yml').jobs.checks?.steps ?? []
   const runs = steps.map((step) => step.run ?? '')
   const local = (
     JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts['ci:local'] as string
   ).split(' && ')
 
-  it.each(['pnpm knip', 'pnpm audit:deps', 'pnpm secrets'])('runs %s in CI and in ci:local', (command) => {
+  it.each(['pnpm knip', 'pnpm audit:deps', 'pnpm secrets'])('runs %s in CI', (command) => {
     expect(runs).toContain(command)
-    expect(local).toContain(command)
+  })
+
+  it('runs lint, typecheck, boundaries, style and knip in ci:local, through pnpm check', () => {
+    expect(local).toContain('pnpm check')
   })
 
   it('runs knip in pnpm check', () => {
@@ -723,8 +821,16 @@ describe('release-packages.yml (M2.4 spec §3.5, QB.1b)', () => {
   const changesetsIn = (job: Job | undefined) => stepIn(job, 'changesets/action@')
   const PUBLISHED = "steps.changesets.outputs.published == 'true'"
 
-  it('has exactly three jobs: plan, version and publish', () => {
-    expect(Object.keys(release.jobs)).toEqual(['plan', 'version', 'publish'])
+  it('has exactly four jobs: plan, version, release-checks and publish', () => {
+    expect(Object.keys(release.jobs)).toEqual(['plan', 'version', 'release-checks', 'publish'])
+  })
+
+  it('runs the release checks when nothing is pending, and publishes only after they pass', () => {
+    const checks = release.jobs['release-checks']
+    expect(checks?.uses).toBe('./.github/workflows/release-checks.yml')
+    expect(checks?.if).toBe("needs.plan.outputs.pending == 'false'")
+    expect(checks?.needs).toBe('plan')
+    expect(publish?.needs).toEqual(['plan', 'release-checks'])
   })
 
   it('runs on pushes to main only, one release at a time', () => {
@@ -791,7 +897,7 @@ describe('release-packages.yml (M2.4 spec §3.5, QB.1b)', () => {
   })
 
   it('waits for the Owner only to publish: the publish job alone runs in the release environment (QB.1, QB.1b)', () => {
-    expect(publish?.needs).toBe('plan')
+    expect(publish?.needs).toEqual(['plan', 'release-checks'])
     expect(publish?.if).toBe("needs.plan.outputs.pending == 'false'")
     expect(publish?.environment).toBe('release')
     expect(version?.environment).toBeUndefined()
@@ -865,15 +971,12 @@ describe('release-packages.yml (M2.4 spec §3.5, QB.1b)', () => {
 })
 
 describe('consumer smoke (M2.4 spec §3.6, §4)', () => {
-  it('runs nightly in the e2e job, after building the packages', () => {
-    const steps = workflow('ci.yml').jobs.e2e?.steps ?? []
-    const build = steps.findIndex((step) => step.run === 'pnpm build')
-    const smoke = steps.findIndex(
-      (step) => step.run === 'node tooling/consumer-smoke/src/run.ts --from packs',
-    )
+  it('runs nightly and before every publish in release-checks.yml, after building the packages', () => {
+    const runs = (workflow('release-checks.yml').jobs['release-checks']?.steps ?? []).map((step) => step.run)
+    const build = runs.indexOf('pnpm build')
+    const smoke = runs.indexOf('node tooling/consumer-smoke/src/run.ts --from packs')
     expect(build).toBeGreaterThan(-1)
     expect(smoke).toBeGreaterThan(build)
-    for (const index of [build, smoke]) expect(steps[index]?.if).toBe("inputs.spec == ''")
   })
 
   it('runs on pull requests that touch build config only, on the AF runner, skipping drafts', () => {
@@ -1136,7 +1239,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
     )
   })
 
-  it.each(['placeholder', 'base-2d', 'base-3d', 'parity'])(
+  it.each(['e2e-2d', 'base-2d', 'parity'])(
     '%s waits for the checks and, on a pull request, runs only a ready one that changes more than documentation',
     (name) => {
       const job = ci.jobs[name]
@@ -1257,7 +1360,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
   it('hands the parity scope to the parity job, which runs affected suites only on a pull request that allows it', () => {
     expect(ci.jobs.checks?.outputs?.parity_full).toBe('${{ steps.scope.outputs.parity_full }}')
     const steps = ci.jobs.parity?.steps ?? []
-    const full = steps.find((step) => step.run === 'pnpm test:parity')
+    const full = steps.find((step) => step.run === 'pnpm test:parity:core')
     const affected = steps.find((step) => step.run === 'pnpm test:parity:affected')
     expect(full?.if).toBe("github.event_name != 'pull_request' || needs.checks.outputs.parity_full == 'true'")
     expect(affected?.if).toBe(
