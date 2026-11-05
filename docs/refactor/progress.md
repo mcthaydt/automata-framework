@@ -23,20 +23,20 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
 | 3. Plan audit | Done, 2026-11-05: 31 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
-| 4. Build | Not started | |
+| 4. Build | In progress: phase 1 done locally, PR #388 | [plan](2026-11-05-core-and-2d-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 0% (0 of 30 tasks)
+### Build: 13% (4 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
-| 1.1 Per-area Playwright configs | 1 | Not started | |
-| 1.2 The pull request gate | 1 | Not started | |
-| 1.3 Frame budget skips on a software renderer | 1 | Not started | |
-| 1.4 `.vscode` | 1 | Not started | |
+| 1.1 Per-area Playwright configs | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
+| 1.2 The pull request gate | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
+| 1.3 Frame budget skips on a software renderer | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
+| 1.4 `.vscode` | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
 | 2.1 Tag the starting point | 2 | Not started | |
 | 2.2 Emberwick's stand-ins | 2 | Not started | |
 | 2.3 The placeholder game | 2 | Not started | |
