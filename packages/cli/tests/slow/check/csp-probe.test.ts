@@ -4,12 +4,12 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Effect } from 'effect'
 import { afterAll, describe, expect, it } from 'vitest'
-import { probeDist } from './ruken/csp-probe-live.ts'
+import { probeDist } from '#src/check/ruken/csp-probe-live.ts'
 
 // The live CSP probe in real Chromium, on tiny builds written here (a checked-in eval would fail biome). Needs
 // Playwright's Chromium: run with `pnpm --filter @mcthaydt/automata-cli test:slow` and PLAYWRIGHT_BROWSERS_PATH set.
 
-const repoRoot = fileURLToPath(new URL('../../../..', import.meta.url))
+const repoRoot = fileURLToPath(new URL('../../../../..', import.meta.url))
 const headers = {
   'Content-Security-Policy': "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'",
 }

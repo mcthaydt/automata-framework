@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DIST_TARGETS, parseTargets } from './create-game-targets.ts'
+import { DIST_TARGETS, parseTargets } from '#src/create-game-targets.ts'
 
 // The targets `create-game` writes a game for (DIST spec §5.3, DIST-D9): the four peers, all by default.
 

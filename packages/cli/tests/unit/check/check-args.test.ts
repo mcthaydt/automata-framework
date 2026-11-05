@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseCheckArgs } from './check-args.ts'
+import { parseCheckArgs } from '#src/check/check-args.ts'
 
 describe('parseCheckArgs', () => {
   it('defaults to the working folder with every option off', () => {

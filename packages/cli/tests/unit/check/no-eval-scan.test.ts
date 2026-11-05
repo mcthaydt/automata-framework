@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { scanForEval } from './no-eval-scan.ts'
+import { scanForEval } from '#src/check/no-eval-scan.ts'
 
 // Bundles are written here as strings: a checked-in fixture with `eval` would fail `biome`'s noGlobalEval.
 

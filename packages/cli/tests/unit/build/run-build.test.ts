@@ -1,7 +1,7 @@
 import { Files, ProcessRunner, type RunOptions, type RunResult } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { runBuild } from './run-build.ts'
+import { runBuild } from '#src/build/run-build.ts'
 
 // FR.3: `automata build` runs the game's own `vite build`; `--debug` sets AUTOMATA_DEBUG=1 for it, which the content plugin turns into
 // the `__AUTOMATA_DEBUG__` constant. A release build sets nothing, so its debug-only code is dropped.

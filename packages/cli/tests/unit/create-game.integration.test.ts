@@ -4,7 +4,7 @@ import { FilesLive } from '@mcthaydt/automata-node'
 import { checkManifest, prepareBuild, prepareItch } from '@mcthaydt/automata-ship'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { createGame } from './create-game.ts'
+import { createGame } from '#src/create-game.ts'
 
 describe('createGame integration', () => {
   const tempDir = join(process.cwd(), 'scratch-integration-test')

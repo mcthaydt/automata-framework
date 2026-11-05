@@ -1,7 +1,4 @@
-import { configDefaults, defineConfig } from 'vitest/config'
+import { defineTests } from '@mcthaydt/vitest-preset'
 
-// `*.slow.test.ts` drives real Chromium (the `csp` step's probe). It is left out of `test`/`test:unit`, which
-// run in the hosted unit job without browsers, and runs with `test:slow` (vitest.slow.config.ts).
-export default defineConfig({
-  test: { exclude: [...configDefaults.exclude, '**/*.slow.test.ts'] },
-})
+// Every test runs on Node, so there is no browser project.
+export default defineTests({ browsers: [] })

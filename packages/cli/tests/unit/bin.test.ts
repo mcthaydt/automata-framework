@@ -1,13 +1,13 @@
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { PLUS_REPOSITORY } from './add/add-args.ts'
-import { AddError, type AddResult, type RunAddOptions } from './add/run-add.ts'
-import { parseArgs, runCli } from './bin.ts'
-import type { BuildResult } from './build/run-build.ts'
-import type { CheckReport } from './check/check-report.ts'
-import { CheckToolError } from './check/csp-probe.ts'
-import type { RunCheckOptions } from './check/run-check.ts'
+import { PLUS_REPOSITORY } from '#src/add/add-args.ts'
+import { AddError, type AddResult, type RunAddOptions } from '#src/add/run-add.ts'
+import { parseArgs, runCli } from '#src/bin.ts'
+import type { BuildResult } from '#src/build/run-build.ts'
+import type { CheckReport } from '#src/check/check-report.ts'
+import { CheckToolError } from '#src/check/csp-probe.ts'
+import type { RunCheckOptions } from '#src/check/run-check.ts'
 
 describe('bin cli', () => {
   const testDir = join(process.cwd(), 'scratch-cli-test-game')

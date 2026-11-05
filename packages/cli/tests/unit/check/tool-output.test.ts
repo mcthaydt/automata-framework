@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseBoundaries, parseTsc, parseVitestJson } from './tool-output.ts'
+import { parseBoundaries, parseTsc, parseVitestJson } from '#src/check/tool-output.ts'
 
 describe('tool output parsers', () => {
   it('reads check-boundaries lines and ignores its summary', () => {

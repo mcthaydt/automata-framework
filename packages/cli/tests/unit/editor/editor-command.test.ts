@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { type EditorCommandDeps, editorCommand } from './editor-command.ts'
-import type { EditorServerOptions } from './serve-editor.ts'
+import { type EditorCommandDeps, editorCommand } from '#src/editor/editor-command.ts'
+import type { EditorServerOptions } from '#src/editor/serve-editor.ts'
 
 // `automata editor` (ED3D.14, ED2D.9): what it says, which build it serves, and when it will not start. The server itself
 // is `serve-editor.test.ts`'s; here it is a stand-in that records what it was asked to serve.

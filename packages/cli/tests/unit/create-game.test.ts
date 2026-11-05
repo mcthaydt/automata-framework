@@ -3,8 +3,8 @@ import { join } from 'node:path'
 import { tauriConfigSchema } from '@mcthaydt/automata-ship'
 import { Effect, Exit } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { CreateGameError, createGame } from './create-game.ts'
-import type { DistTarget } from './create-game-targets.ts'
+import { CreateGameError, createGame } from '#src/create-game.ts'
+import type { DistTarget } from '#src/create-game-targets.ts'
 
 describe('createGame', () => {
   const testDir = join(process.cwd(), 'scratch-test-game')
@@ -126,7 +126,7 @@ describe('createGame', () => {
     it('pins every exact dependency at a version recorded in docs/versions.md', async () => {
       await Effect.runPromise(createGame({ targetDir: testDir, id: 'pinned-game', title: 'Pinned Game' }))
 
-      const versionsDoc = readFileSync(new URL('../../../docs/versions.md', import.meta.url), 'utf8')
+      const versionsDoc = readFileSync(new URL('../../../../docs/versions.md', import.meta.url), 'utf8')
       const recorded = new Set(
         [...versionsDoc.matchAll(/^\|\s*`([^`]+)`\s*\|\s*([^|\s]+)\s*\|/gm)].map(
           (row) => `${row[1]}@${row[2]}`,

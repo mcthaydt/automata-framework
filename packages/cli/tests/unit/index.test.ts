@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import * as Cli from './index.js'
+import * as Cli from '#src/index.ts'
 
 describe('@mcthaydt/automata-cli', () => {
   it('exports createGame', () => {

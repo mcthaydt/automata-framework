@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, readFile, rm, stat, symlink, utimes, writeFile } from '
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { type RunningEditor, serveEditor } from './serve-editor.ts'
+import { type RunningEditor, serveEditor } from '#src/editor/serve-editor.ts'
 
 // `automata editor`'s server (ED3D.14, ED2D.9): the editor's static build and the checkout's files over `/api`, on the
 // loopback unless asked, with a token off it, the editor list's allowlist and the mtime guard. Real HTTP against a real

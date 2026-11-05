@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseEditorArgs } from './editor-args.ts'
+import { parseEditorArgs } from '#src/editor/editor-args.ts'
 
 // `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>]` (ED3D.14, ED2D.9).
 

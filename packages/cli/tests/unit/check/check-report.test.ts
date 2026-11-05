@@ -6,7 +6,7 @@ import {
   reportOf,
   type StepResult,
   toJson,
-} from './check-report.ts'
+} from '#src/check/check-report.ts'
 
 const pass = (name: StepResult['name']): StepResult => ({
   name,

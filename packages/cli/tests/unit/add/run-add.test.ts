@@ -13,9 +13,9 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { Effect, Either, Layer } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import type { CheckReport } from '../check/check-report.ts'
-import { KitSource, KitSourceError } from './kit-source.ts'
-import { type AddError, type AddResult, addExitCode, type RunAddOptions, runAdd } from './run-add.ts'
+import { KitSource, KitSourceError } from '#src/add/kit-source.ts'
+import { type AddError, type AddResult, addExitCode, type RunAddOptions, runAdd } from '#src/add/run-add.ts'
+import type { CheckReport } from '#src/check/check-report.ts'
 
 const REPO = 'https://github.com/mcthaydt/automata-plus.git'
 

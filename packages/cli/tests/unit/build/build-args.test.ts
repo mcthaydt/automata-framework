@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseBuildArgs } from './build-args.ts'
+import { parseBuildArgs } from '#src/build/build-args.ts'
 
 // FR.3: `automata build [dir] [--debug]`. `--target` is M8.5's and is refused here, not ignored.
 

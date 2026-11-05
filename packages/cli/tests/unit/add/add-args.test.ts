@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PLUS_REPOSITORY, parseAddArgs } from './add-args.ts'
+import { PLUS_REPOSITORY, parseAddArgs } from '#src/add/add-args.ts'
 
 describe('parseAddArgs', () => {
   it('needs a kit name', () => {

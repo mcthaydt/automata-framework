@@ -1,9 +1,9 @@
 import { FileError, Files, ProcessRunner, type RunResult } from '@mcthaydt/automata-node'
 import { Effect, Layer } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { exitCodeFor, type StepResult } from './check-report.ts'
-import { CheckToolError, CspProbe, type CspProbeResult } from './csp-probe.ts'
-import { runCheck } from './run-check.ts'
+import { exitCodeFor, type StepResult } from '#src/check/check-report.ts'
+import { CheckToolError, CspProbe, type CspProbeResult } from '#src/check/csp-probe.ts'
+import { runCheck } from '#src/check/run-check.ts'
 
 const GAME = '/work/game'
 const BIN = `${GAME}/node_modules/.bin`

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { kitManifestSchema } from './kit-manifest.schema.ts'
+import { kitManifestSchema } from '#src/add/kit-manifest.schema.ts'
 
 const valid = {
   name: 'results-screen',

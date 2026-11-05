@@ -5,9 +5,9 @@ import { dirname, join } from 'node:path'
 import { ProcessRunnerLive } from '@mcthaydt/automata-node'
 import { Effect, Either, Layer } from 'effect'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import type { CheckReport } from '../check/check-report.ts'
-import { KitSourceLive } from './kit-source.ts'
-import { type AddError, type AddResult, runAdd } from './run-add.ts'
+import { KitSourceLive } from '#src/add/kit-source.ts'
+import { type AddError, type AddResult, runAdd } from '#src/add/run-add.ts'
+import type { CheckReport } from '#src/check/check-report.ts'
 
 // Test 9 of the PRODUCT.5 plan's 5d: the live git port against a real repository with two core tags, read
 // through a file:// URL, so the tag rule (P5-D6) and the shallow clone run as they will against Automata Plus.
