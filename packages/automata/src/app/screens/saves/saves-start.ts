@@ -1,6 +1,7 @@
 // What the default screens share when a save starts or replaces the game being played: the title starts one
 // from a slot, and the paused screen replaces it with the newer progress another device wrote.
 import type { Sim } from '@mcthaydt/automata-sim'
+import type { Result } from '../../../shared/lib/result.ts'
 
 /** What starting play from a slot needs from the screens. */
 export interface SavesStart {
@@ -18,4 +19,11 @@ export async function orDispose<T>(sim: Sim, work: () => T | Promise<T>): Promis
     sim.dispose()
     throw error
   }
+}
+
+/** A save call's answer as a promise that rejects on a refusal, for the screens' one-thing-at-a-time attempts. */
+export async function orThrow<A>(answer: Promise<Result<A, unknown>>): Promise<A> {
+  const result = await answer
+  if (!result.ok) throw result.reason
+  return result.value
 }

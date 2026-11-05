@@ -1568,16 +1568,16 @@ interface RuntimeSeams {
 
 ```ts
 interface Save<S> {
-    readonly slots: Subscribable.Subscribable<readonly SlotState[]>;
-    readonly loaded: Subscribable.Subscribable<number | undefined>;
-    load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
-    write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>;
-    remove(slot: number): Effect.Effect<void, HostError>;
+    readonly slots: Subscribable<readonly SlotState[]>;
+    readonly loaded: Subscribable<number | undefined>;
+    load(slot: number): Promise<Result<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostRefusal>>;
+    write(slot: number, data: S, options?: SaveWriteOptions): Promise<Result<void, SaveRefused | HostRefusal>>;
+    remove(slot: number): Promise<Result<void, HostRefusal>>;
     touch(data: () => S): void;
-    readonly flushPending: Effect.Effect<void>;
-    autosave(trigger: AutosaveTrigger): Effect.Effect<void>;
-    readonly changedElsewhere: Subscribable.Subscribable<boolean>;
-    loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+    flushPending(): Promise<void>;
+    autosave(trigger: AutosaveTrigger): Promise<void>;
+    readonly changedElsewhere: Subscribable<boolean>;
+    loadNewer(): Promise<Result<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostRefusal>>;
     keepPlaying(): void;
 }
 ```
@@ -1598,14 +1598,11 @@ interface SaveDef<S> {
 }
 ```
 
-### `Saves` (interface)
+### `Saves` (type)
 
 ```ts
-interface Saves {
-    readonly key: string | undefined;
-    readonly save: Save<unknown> | undefined;
-}
-const Saves: Context.Tag<Saves, Saves>;
+type Saves = SavesService;
+const Saves: Context.Tag<SavesService, SavesService>;
 ```
 
 ### `SavesChangedPayload` (interface)

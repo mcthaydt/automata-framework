@@ -24,7 +24,7 @@ import { Time } from '../../shared/runtime/time/time.manager.ts'
 import { InputMethodTracker } from '../../shared/ui/browser/input-method.svelte.ts'
 import { sendBack } from '../../shared/ui/focus/back-gesture.ts'
 import { CursorRunner } from '../../shared/ui/focus/cursor-policy.ts'
-import { Audio, AudioBuses, Locale, Settings } from '../boot/effect-tags.ts'
+import { Audio, AudioBuses, Locale, Saves, Settings } from '../boot/effect-tags.ts'
 import type { GameSaves } from '../define-game.ts'
 import { Flow } from '../flow/flow.manager.ts'
 import type { ScreenDef } from '../flow/screen.ts'
@@ -136,7 +136,10 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
       Effect.gen(function* () {
         const flow = yield* Flow
         // Quit to title: progress play kept is written while the sim that holds it still lives.
-        if (game.saves !== undefined) yield* (yield* saveOf(game.saves.def)).flushPending
+        if (game.saves !== undefined) {
+          const save = saveOf(yield* Saves, game.saves.def)
+          yield* Effect.promise(() => save.flushPending())
+        }
         dropSim()
         // The player's saved quality reaches the stage before play draws anything.
         const { store } = yield* Settings
@@ -233,7 +236,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         game.watchSim?.(running)
         // The slot play was started from is kept saved: each tick says what the progress is, and the save's own
         // triggers (leaving play, a round's end, the page going to the background) write it.
-        const save = game.saves === undefined ? undefined : yield* saveOf(game.saves.def)
+        const save = game.saves === undefined ? undefined : saveOf(yield* Saves, game.saves.def)
         const keep = (): unknown => game.saves?.capture(running)
         // An idle pointer hides while playing; leaving play detaches it and shows the pointer again.
         const cursor = new CursorRunner(layer, { kind: () => 'gameplay' })

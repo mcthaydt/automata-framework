@@ -167,7 +167,7 @@
 - `RuntimeSeams` (interface): Test seams injected into the runtime boot program.
 - `Save` (interface): A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for the autosave triggers to write.
 - `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
-- `Saves` (interface): The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
+- `Saves` (type): The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
 - `SavesChangedPayload` (interface): Another device's write, or the host's conflict choice, reached this session.
 - `SavesChangedPayloadSchema` (const): Checks a saves change.
 - `SavesFlushRes` (interface): Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`, `itch` and `tauri` targets).

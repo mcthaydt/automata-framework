@@ -1,13 +1,14 @@
 // What the default paused screen does with a game's save: the host's word
 // on the progress, and the choice offered once another device has changed the slot being played.
 
-import { Effect, Runtime, type Scope, Stream } from 'effect'
+import { Effect, type Scope, Stream } from 'effect'
 import type { Save } from '../../../features/saves/save.manager.ts'
-import { type Saves, saveOf } from '../../../features/saves/saves.manager.ts'
+import { saveOf } from '../../../features/saves/saves.manager.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
 import type { SaveStatusState } from '../../../shared/ui/status/save-status.ts'
+import { Saves } from '../../boot/effect-tags.ts'
 import type { GameSaves } from '../../define-game.ts'
-import { orDispose, type SavesStart } from './saves-start.ts'
+import { orDispose, orThrow, type SavesStart } from './saves-start.ts'
 import { createPausedSavesView, type PausedSavesView } from './saves-view.svelte.ts'
 
 /** What the paused screen needs to speak for a game's save. */
@@ -39,13 +40,11 @@ export function pausedSaves(
   start: SavesStart,
 ): Effect.Effect<PausedSaves, never, Saves | Hosting | Scope.Scope> {
   return Effect.gen(function* () {
-    const save: Save<unknown> = yield* saveOf(saves.def)
+    const save: Save<unknown> = saveOf(yield* Saves, saves.def)
     const hosting = yield* Hosting
-    const run = Runtime.runPromise(yield* Effect.runtime<never>())
     const view = createPausedSavesView()
 
     view.status = statusOf(hosting, yield* hosting.savesStatus.get)
-    view.changedElsewhere = yield* save.changedElsewhere.get
     yield* Effect.forkScoped(
       Stream.runForEach(hosting.savesStatus.changes, (status) =>
         Effect.sync(() => {
@@ -53,13 +52,10 @@ export function pausedSaves(
         }),
       ),
     )
-    yield* Effect.forkScoped(
-      Stream.runForEach(save.changedElsewhere.changes, (changed) =>
-        Effect.sync(() => {
-          view.changedElsewhere = changed
-        }),
-      ),
-    )
+    const stopChanged = save.changedElsewhere.subscribe((changed) => {
+      view.changedElsewhere = changed
+    })
+    yield* Effect.addFinalizer(() => Effect.sync(stopChanged))
 
     let busy = false
     return {
@@ -69,7 +65,7 @@ export function pausedSaves(
         busy = true
         view.loadFailed = false
         void (async () => {
-          const loaded = await run(save.loadNewer())
+          const loaded = await orThrow(save.loadNewer())
           const sim = await start.fresh()
           await orDispose(sim, () => saves.apply(sim, loaded.data))
           start.play(sim)

@@ -11,7 +11,6 @@ import { submitEventScores } from '../../features/leaderboards/event-scores.js'
 import { Leaderboards, makeLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
 import { browserLanguages, createLocale, singleLocale } from '../../features/locale/locale.manager.js'
 import { savesKept } from '../../features/saves/save.manager.js'
-import { makeSaves, Saves } from '../../features/saves/saves.manager.js'
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
 import { plainAudioHosting, plainSaves } from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
@@ -39,7 +38,7 @@ import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.sve
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
-import { Audio, AudioBuses, Locale, Settings } from './effect-tags.ts'
+import { Audio, AudioBuses, Locale, openSaves, Saves, Settings } from './effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
@@ -346,10 +345,7 @@ export function bootProgram<S>(
 
     // The game's save: its slots read from the host now, its triggers and its exit flush
     // live for the session. A failure here is the host's, and boots to the failure panel like a refused settings read.
-    const saves = yield* makeSaves(game.saves, { contentHash: game.content.hash }).pipe(
-      Effect.provideService(Hosting, hosting),
-      Effect.provideService(PresentationBus, bus),
-    )
+    const saves = yield* openSaves(game.saves, { contentHash: game.content.hash, hosting, bus })
 
     const veil = yield* makeVeil({
       overlay: layers.overlay,

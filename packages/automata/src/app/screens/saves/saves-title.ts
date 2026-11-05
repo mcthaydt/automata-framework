@@ -2,13 +2,13 @@
 // shows it, and the three things a player does with a slot. A slot is taken before play starts, so a load or write
 // the host refuses leaves the player on the title with the row marked, not in a game that cannot be kept.
 
-import { Effect, Runtime, type Scope, Stream } from 'effect'
+import { Effect, type Scope } from 'effect'
 import { formatDateTime } from '../../../features/locale/format.ts'
 import type { Save } from '../../../features/saves/save.manager.ts'
-import { type Saves, saveOf } from '../../../features/saves/saves.manager.ts'
-import { Locale } from '../../boot/effect-tags.ts'
+import { saveOf } from '../../../features/saves/saves.manager.ts'
+import { Locale, Saves } from '../../boot/effect-tags.ts'
 import type { GameSaves } from '../../define-game.ts'
-import { orDispose, type SavesStart } from './saves-start.ts'
+import { orDispose, orThrow, type SavesStart } from './saves-start.ts'
 import { createSlotsModel, type SlotsModel } from './saves-view.svelte.ts'
 
 /** What the title needs to list a game's slots. */
@@ -31,14 +31,11 @@ export function titleSaves(
   start: SavesStart,
 ): Effect.Effect<TitleSaves, never, Saves | Locale | Scope.Scope> {
   return Effect.gen(function* () {
-    const save: Save<unknown> = yield* saveOf(saves.def)
+    const save: Save<unknown> = saveOf(yield* Saves, saves.def)
     const locale = yield* Locale
-    const run = Runtime.runPromise(yield* Effect.runtime<never>())
     const model = createSlotsModel()
-    model.set(yield* save.slots.get)
-    yield* Effect.forkScoped(
-      Stream.runForEach(save.slots.changes, (states) => Effect.sync(() => model.set(states))),
-    )
+    const stopSlots = save.slots.subscribe((states) => model.set(states))
+    yield* Effect.addFinalizer(() => Effect.sync(stopSlots))
 
     // One thing at a time: a second tap while a slot is loading must not start a second game.
     let busy = false
@@ -58,7 +55,7 @@ export function titleSaves(
       formatTime: (savedAt) => formatDateTime(locale.current, savedAt),
       onLoad: (slot) =>
         attempt(slot, async () => {
-          const loaded = await run(save.load(slot))
+          const loaded = await orThrow(save.load(slot))
           const sim = await start.fresh()
           await orDispose(sim, () => saves.apply(sim, loaded.data))
           start.play(sim)
@@ -68,15 +65,15 @@ export function titleSaves(
       onNew: (slot) =>
         attempt(slot, async () => {
           model.mark(slot, 'writing')
-          await run(save.load(slot))
+          await orThrow(save.load(slot))
           const sim = await start.fresh()
           const label = saves.label?.(slot)
           await orDispose(sim, () =>
-            run(save.write(slot, saves.capture(sim), label === undefined ? {} : { label })),
+            orThrow(save.write(slot, saves.capture(sim), label === undefined ? {} : { label })),
           )
           start.play(sim)
         }),
-      onDelete: (slot) => attempt(slot, () => run(save.remove(slot))),
+      onDelete: (slot) => attempt(slot, () => orThrow(save.remove(slot))),
     }
   })
 }

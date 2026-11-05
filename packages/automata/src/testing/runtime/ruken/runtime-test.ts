@@ -2,6 +2,7 @@ import type { FlowGraph } from '@mcthaydt/automata-content'
 import type { FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Context, Effect, Layer, Stream } from 'effect'
 import { buildRuntimeServices, contentHashOf } from '../../../app/boot/boot-program.js'
+import { openSaves } from '../../../app/boot/effect-tags.ts'
 import type { CompiledContentData } from '../../../app/boot/game-definition.js'
 import { makeFlow } from '../../../app/flow/flow.manager.js'
 import type { RuntimeServices, ScreenDef } from '../../../app/flow/screen.js'
@@ -13,7 +14,6 @@ import { createHaptics } from '../../../features/input/haptics/haptics.manager.j
 import { makeLeaderboards } from '../../../features/leaderboards/leaderboards.manager.js'
 import { createLocale, type LocaleDef, singleLocale } from '../../../features/locale/locale.manager.js'
 import type { SaveDef } from '../../../features/saves/save.schema.js'
-import { makeSaves } from '../../../features/saves/saves.manager.js'
 import { plainAudioHosting, plainSaves } from '../../../shared/host/effect-bridge.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
 import { makeAssets } from '../../../shared/runtime/assets.manager.js'
@@ -276,10 +276,7 @@ export function RuntimeTest(
         time,
         flow: flowHandle.flow,
         settings: settingsService,
-        saves: yield* makeSaves(options.saves, { contentHash: contentHashOf(content) }).pipe(
-          Effect.provideService(Hosting, hosting),
-          Effect.provideService(PresentationBus, bus),
-        ),
+        saves: yield* openSaves(options.saves, { contentHash: contentHashOf(content), hosting, bus }),
         appLoop,
         assets,
         renderer,

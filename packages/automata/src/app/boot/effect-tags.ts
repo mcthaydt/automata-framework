@@ -1,9 +1,15 @@
 // TEMPORARY (task 5.4): the Effect tags of features that are already plain TypeScript, for the parts of the runtime
 // that still read services from an Effect context (boot, the default screens). Deleted when `app/` is converted.
-import { Context, Effect } from 'effect'
+import { Context, Effect, type Scope } from 'effect'
 import type { Audio as AudioService } from '../../features/audio/audio.manager.ts'
 import type { AudioBuses as AudioBusesService } from '../../features/audio/audio-buses.ts'
 import type { Locale as LocaleService } from '../../features/locale/locale.manager.ts'
+import type { SaveDef } from '../../features/saves/save.schema.ts'
+import { createSaves, type Saves as SavesService } from '../../features/saves/saves.manager.ts'
+import { effectClock, toPlainHosting } from '../../shared/host/effect-bridge.ts'
+import { HostError } from '../../shared/host/errors.ts'
+import type { Hosting } from '../../shared/host/hosting.ts'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import {
   type SettingsDef,
   type Settings as SettingsService,
@@ -49,3 +55,39 @@ export type AudioBuses = {
 }
 export const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService> =
   Context.GenericTag<AudioBusesService>('@mcthaydt/automata-runtime/AudioBuses')
+
+/**
+ * The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined
+ * for a game without saves.
+ */
+export type Saves = SavesService
+export const Saves: Context.Tag<SavesService, SavesService> = Context.GenericTag<SavesService>(
+  '@mcthaydt/automata-runtime/Saves',
+)
+
+/**
+ * Opens the game's save as boot did before the saves were plain: for as long as the scope is open, timed by the
+ * runtime's Effect clock (so a `TestClock` still moves the timer and `savedAt`). A refused read fails with the
+ * `HostError` it carries.
+ */
+export function openSaves(
+  def: SaveDef<unknown> | undefined,
+  options: { readonly contentHash: string; readonly hosting: Hosting; readonly bus: PresentationBus },
+): Effect.Effect<SavesService, HostError, Scope.Scope> {
+  return Effect.gen(function* () {
+    const clock = effectClock(yield* Effect.runtime<never>())
+    const opened = yield* Effect.promise(() =>
+      createSaves(def, {
+        contentHash: options.contentHash,
+        hosting: toPlainHosting(options.hosting),
+        bus: options.bus,
+        clock,
+        now: () => clock.now(),
+      }),
+    )
+    if (!opened.ok) return yield* Effect.fail(new HostError(opened.reason))
+    const saves = opened.value
+    yield* Effect.addFinalizer(() => Effect.promise(() => saves.dispose()))
+    return { key: saves.key, save: saves.save }
+  })
+}

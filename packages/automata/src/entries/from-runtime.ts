@@ -1,6 +1,6 @@
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
 export { contentHashOf } from '../app/boot/boot-program.js'
-export { Audio, AudioBuses, Locale, Settings, settingsStore } from '../app/boot/effect-tags.ts'
+export { Audio, AudioBuses, Locale, Saves, Settings, settingsStore } from '../app/boot/effect-tags.ts'
 export type {
   CompiledContentData,
   GameDefinition,
@@ -37,7 +37,6 @@ export {
   defineSave,
   type SaveDef,
 } from '../features/saves/save.schema.js'
-export { Saves } from '../features/saves/saves.manager.js'
 export {
   ModelInvalid,
   RendererUnavailable,

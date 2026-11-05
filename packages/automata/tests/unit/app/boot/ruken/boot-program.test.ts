@@ -5,7 +5,7 @@ import { Effect, Exit, Fiber, Scope, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { bootProgram, contentHashOf } from '#src/app/boot/boot-program.ts'
-import { Audio, AudioBuses, settingsStore } from '#src/app/boot/effect-tags.ts'
+import { Audio, AudioBuses, Saves, settingsStore } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { CORE_SETTINGS, type CoreSettings } from '#src/app/core-settings.ts'
 import type { ScreenDef } from '#src/app/flow/screen.ts'
@@ -1280,7 +1280,7 @@ describe('bootProgram, the game save (M5.2)', () => {
         id: 'title',
         enter: () =>
           Effect.gen(function* () {
-            save = yield* saveOf(run)
+            save = saveOf(yield* Saves, run)
           }),
       }
       const game: GameDefinition = {
@@ -1301,7 +1301,7 @@ describe('bootProgram, the game save (M5.2)', () => {
       const fiber = yield* Effect.fork(bootProgram(game).pipe(Scope.extend(scope)))
       yield* advanceFirstFrame(frames)
       yield* Fiber.join(fiber)
-      yield* save!.load(0)
+      yield* Effect.promise(() => save!.load(0))
       save!.touch(() => ({ coins: 7 }))
 
       yield* Effect.promise(() => host.bridge.exit())

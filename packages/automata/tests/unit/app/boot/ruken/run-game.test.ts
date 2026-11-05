@@ -9,6 +9,7 @@ import { flushSync } from 'svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { contentHashOf } from '#src/app/boot/boot-program.ts'
+import { Saves } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { describeBootError, runGame } from '#src/app/boot/run-game.ts'
 import { Flow } from '#src/app/flow/flow.manager.ts'
@@ -912,8 +913,8 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           id: 'play',
           enter: () =>
             Effect.gen(function* () {
-              const save = yield* saveOf(run)
-              yield* save.load(0)
+              const save = saveOf(yield* Saves, run)
+              yield* Effect.promise(() => save.load(0))
               save.touch(() => {
                 events.push('save:capture')
                 return { coins: 7 }

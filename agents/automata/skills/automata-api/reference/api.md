@@ -139,11 +139,7 @@ const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 The audio-bus seam. The audio service implements it.
 
 ```ts
-type AudioBuses = {
-    input: AudioBusesService['input'];
-    gain: AudioBusesService['gain'];
-    setGain: AudioBusesService['setGain'];
-};
+type AudioBuses = AudioBusesService;
 const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
 ```
 
