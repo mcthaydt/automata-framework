@@ -1,5 +1,6 @@
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
 export { contentHashOf } from '../app/boot/boot-program.js'
+export { Locale } from '../app/boot/effect-tags.ts'
 export type {
   CompiledContentData,
   GameDefinition,
@@ -30,7 +31,6 @@ export {
   type InputProfile,
   inputProfileSchema,
 } from '../features/input/input-profile.schema.js'
-export { Locale } from '../features/locale/locale.manager.js'
 export { createT, type Translate } from '../features/locale/paraglide.js'
 export type { Save } from '../features/saves/save.manager.js'
 export {

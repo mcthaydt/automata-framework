@@ -14,11 +14,12 @@ import {
   Subscribable,
 } from 'effect'
 import type { Clock } from '../lib/clock'
+import { ok } from '../lib/result'
 import type { Listenable, Subscribable as PlainSubscribable } from '../lib/subscribable'
 import { HostError, HostHandshakeFailed } from './errors'
 import { type Hosting as EffectHosting, type HostingOptions, Hosting as HostingTag } from './hosting'
-import type { HostResult } from './plain-errors'
-import type { Hosting } from './plain-hosting'
+import { type HostResult, refuse } from './plain-errors'
+import type { Hosting, HostingSaves } from './plain-hosting'
 
 /** The Effect constructor of an adapter, as the target entries expose it. */
 export type MakeHosting<Seams> = (
@@ -185,4 +186,24 @@ export function bridgeFakeHosting(
 /** The Effect layer over a bridged constructor, as `HostingLive` was. */
 export function bridgeLayer<Seams>(make: MakeHosting<Seams>): HostingLayer<Seams> {
   return (options, seams) => Layer.scoped(HostingTag, make(options, seams))
+}
+
+/**
+ * The other way round: the Effect `Hosting.saves` the runtime still holds, seen as the plain calls a feature that is
+ * already converted takes (the locale). A failure comes back as the refusal it carries.
+ */
+export function plainSaves(saves: EffectHosting['saves']): Pick<HostingSaves, 'get' | 'set' | 'remove'> {
+  const run = <A>(call: Effect.Effect<A, HostError>): Promise<HostResult<A>> =>
+    Effect.runPromise(
+      Effect.match(call, {
+        onSuccess: (value): HostResult<A> => ok(value),
+        onFailure: (error): HostResult<A> =>
+          refuse(error.code, error.retryable, error.operation, error.cause),
+      }),
+    )
+  return {
+    get: (key) => run(saves.get(key)),
+    set: (key, value) => run(saves.set(key, value)),
+    remove: (key) => run(saves.remove(key)),
+  }
 }

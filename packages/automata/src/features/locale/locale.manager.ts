@@ -5,8 +5,8 @@
 // (AGENTS.md, Honor host authority). A change publishes `'locale.changed'`; no screen is remounted and the
 // sim never hears of it, so a language switch keeps the screen, its focus and the sim hash (L-c).
 
-import { Context, Effect, Runtime } from 'effect'
-import type { Hosting } from '../../shared/host/hosting.ts'
+import type { HostResult } from '../../shared/host/plain-errors.ts'
+import type { HostingSaves } from '../../shared/host/plain-hosting.ts'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import { applyDocumentLocale, textDirection } from './document-locale.js'
 import { negotiateLocale } from './negotiate-locale.js'
@@ -48,10 +48,6 @@ export interface Locale {
   set(choice: string | null): void
 }
 
-export const Locale: Context.Tag<Locale, Locale> = Context.GenericTag<Locale>(
-  '@mcthaydt/automata-runtime/Locale',
-)
-
 /** The game's locales when it declares none: the one language its content is written in. */
 export const singleLocale = (sourceLanguage: string): LocaleDef => ({
   locales: [sourceLanguage],
@@ -67,103 +63,96 @@ export function browserLanguages(
   return navigator.language ? [navigator.language] : []
 }
 
-export interface MakeLocaleOptions {
+/** The three save calls the locale makes: read the choice at start, then write or clear it. */
+export type LocaleSaves = Pick<HostingSaves, 'get' | 'set' | 'remove'>
+
+export interface LocaleOptions {
   readonly def: LocaleDef
-  readonly hosting: Pick<Hosting, 'kind' | 'locale' | 'saves'>
+  readonly hosting: { readonly kind: string; readonly locale: string; readonly saves: LocaleSaves }
   /** The browser's languages, best first (`navigator.languages`). */
   readonly browser: readonly string[]
-  readonly bus: PresentationBus
+  readonly bus: Pick<PresentationBus, 'publish'>
   /** `<html>`; absent where there is no document. */
   readonly element: HTMLElement | undefined
+  /** Where a refused save is reported. Default `console.warn`. */
+  readonly warn?: (message: string) => void
 }
 
-export function makeLocale(options: MakeLocaleOptions): Effect.Effect<Locale> {
-  return Effect.gen(function* () {
-    const { def, hosting, bus, element } = options
-    const runtime = yield* Effect.runtime<never>()
-    // Standalone, the SDK's session locale is navigator.language: the browser step already covers it.
-    const hosted = hosting.kind === 'ruken' ? hosting.locale : undefined
-    const negotiate = (saved: string | undefined) =>
-      negotiateLocale({
-        hosted,
-        saved,
-        browser: options.browser,
-        locales: def.locales,
-        baseLocale: def.baseLocale,
-      })
-
-    // A refused read is logged and negotiation goes on without the saved step; it never reads device storage.
-    const saved = yield* hosting.saves
-      .get(LOCALE_SAVE_KEY)
-      .pipe(
-        Effect.catchAll((error) =>
-          Effect.logWarning(`locale: saves.get for '${LOCALE_SAVE_KEY}' failed: ${String(error)}`).pipe(
-            Effect.as(null),
-          ),
-        ),
-      )
-
-    let current = negotiate(saved ?? undefined)
-    let chosen: string | null =
-      saved !== null && saved !== undefined && def.locales.includes(saved) ? saved : null
-    const listeners = new Set<(locale: string) => void>()
-    if (element !== undefined) applyDocumentLocale(element, current)
-
-    const persist = (write: Effect.Effect<void, unknown>) =>
-      Runtime.runFork(runtime)(
-        write.pipe(
-          Effect.catchAll((error) =>
-            Effect.logWarning(`locale: saving '${LOCALE_SAVE_KEY}' failed: ${String(error)}`),
-          ),
-        ),
-      )
-
-    const locale: Locale = {
+/** Negotiates the locale (reading the saved choice first) and sets `<html lang dir>` before it resolves. */
+export async function createLocale(options: LocaleOptions): Promise<Locale> {
+  const { def, hosting, bus, element } = options
+  const warn = options.warn ?? ((message: string) => console.warn(message))
+  // Standalone, the SDK's session locale is navigator.language: the browser step already covers it.
+  const hosted = hosting.kind === 'ruken' ? hosting.locale : undefined
+  const negotiate = (saved: string | undefined) =>
+    negotiateLocale({
+      hosted,
+      saved,
+      browser: options.browser,
       locales: def.locales,
       baseLocale: def.baseLocale,
-      get current() {
-        return current
-      },
-      get choice() {
-        return chosen
-      },
-      get direction() {
-        return textDirection(current)
-      },
-      subscribe(listener) {
-        listeners.add(listener)
-        listener(current)
-        return () => {
-          listeners.delete(listener)
-        }
-      },
-      set(choice) {
-        if (choice !== null && !def.locales.includes(choice)) {
-          throw new Error(
-            `Locale.set: '${choice}' is not one of the game's locales (${def.locales.join(', ')})`,
-          )
-        }
-        chosen = choice
-        // Memory first, then the host: the same order as Settings.update.
-        persist(
-          choice === null
-            ? hosting.saves.remove(LOCALE_SAVE_KEY)
-            : hosting.saves.set(LOCALE_SAVE_KEY, choice),
-        )
-        const next = choice ?? negotiate(undefined)
-        if (next === current) return
-        const previous = current
-        current = next
-        if (element !== undefined) applyDocumentLocale(element, current)
-        for (const listener of [...listeners]) listener(current)
-        bus.publish('locale.changed', { locale: current, previous })
-      },
-    }
+    })
 
-    // A Paraglide runtime: its messages now read `current`, and its setLocale goes through `set`.
-    if (def.overwriteGetLocale !== undefined && def.overwriteSetLocale !== undefined) {
-      bindParaglide(def as ParaglideRuntime, { current: () => current, set: (choice) => locale.set(choice) })
-    }
-    return locale
-  })
+  // A refused read is logged and negotiation goes on without the saved step; it never reads device storage.
+  const read = await hosting.saves.get(LOCALE_SAVE_KEY)
+  if (!read.ok) warn(`locale: saves.get for '${LOCALE_SAVE_KEY}' failed: ${read.reason.code}`)
+  const saved = read.ok ? read.value : null
+
+  let current = negotiate(saved ?? undefined)
+  let chosen: string | null =
+    saved !== null && saved !== undefined && def.locales.includes(saved) ? saved : null
+  const listeners = new Set<(locale: string) => void>()
+  if (element !== undefined) applyDocumentLocale(element, current)
+
+  // The write runs in the background: the switch is already shown, and a refusal only keeps it in memory.
+  const persist = (write: Promise<HostResult<void>>) =>
+    void write.then((result) => {
+      if (!result.ok) warn(`locale: saving '${LOCALE_SAVE_KEY}' failed: ${result.reason.code}`)
+    })
+
+  const locale: Locale = {
+    locales: def.locales,
+    baseLocale: def.baseLocale,
+    get current() {
+      return current
+    },
+    get choice() {
+      return chosen
+    },
+    get direction() {
+      return textDirection(current)
+    },
+    subscribe(listener) {
+      listeners.add(listener)
+      listener(current)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+    set(choice) {
+      if (choice !== null && !def.locales.includes(choice)) {
+        throw new Error(
+          `Locale.set: '${choice}' is not one of the game's locales (${def.locales.join(', ')})`,
+        )
+      }
+      chosen = choice
+      // Memory first, then the host: the same order as Settings.update.
+      persist(
+        choice === null ? hosting.saves.remove(LOCALE_SAVE_KEY) : hosting.saves.set(LOCALE_SAVE_KEY, choice),
+      )
+      const next = choice ?? negotiate(undefined)
+      if (next === current) return
+      const previous = current
+      current = next
+      if (element !== undefined) applyDocumentLocale(element, current)
+      for (const listener of [...listeners]) listener(current)
+      bus.publish('locale.changed', { locale: current, previous })
+    },
+  }
+
+  // A Paraglide runtime: its messages now read `current`, and its setLocale goes through `set`.
+  if (def.overwriteGetLocale !== undefined && def.overwriteSetLocale !== undefined) {
+    bindParaglide(def as ParaglideRuntime, { current: () => current, set: (choice) => locale.set(choice) })
+  }
+  return locale
 }

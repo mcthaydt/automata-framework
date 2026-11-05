@@ -4,9 +4,9 @@
 
 import { Effect, Runtime, type Scope, Stream } from 'effect'
 import { formatDateTime } from '../../../features/locale/format.ts'
-import { Locale } from '../../../features/locale/locale.manager.ts'
 import type { Save } from '../../../features/saves/save.manager.ts'
 import { type Saves, saveOf } from '../../../features/saves/saves.manager.ts'
+import { Locale } from '../../boot/effect-tags.ts'
 import type { GameSaves } from '../../define-game.ts'
 import { orDispose, type SavesStart } from './saves-start.ts'
 import { createSlotsModel, type SlotsModel } from './saves-view.svelte.ts'

@@ -15,7 +15,6 @@ import {
   type TouchMode,
   touchModesFor,
 } from '../../../features/input/input-profile.schema.ts'
-import { Locale } from '../../../features/locale/locale.manager.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
 import { displaySettingsSchema } from '../../../shared/runtime/display-settings.schema.ts'
 import { PresentationBus } from '../../../shared/runtime/presentation/presentation-bus.manager.ts'
@@ -24,6 +23,7 @@ import { InputMethodTracker } from '../../../shared/ui/browser/input-method.svel
 import { reducedMotion } from '../../../shared/ui/browser/reduced-motion.ts'
 import { sendBack } from '../../../shared/ui/focus/back-gesture.ts'
 import { readKeyboardLayout } from '../../../shared/ui/prompts/prompt-label.ts'
+import { Locale } from '../../boot/effect-tags.ts'
 import { Flow } from '../../flow/flow.manager.ts'
 import type { ScreenDef } from '../../flow/screen.ts'
 import type { ScreensGame } from '../default-screens.ts'

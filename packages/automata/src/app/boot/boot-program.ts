@@ -10,10 +10,11 @@ import { resolveExtensions } from '../../features/extension/resolve-extensions.j
 import { browserHaptics, Haptics } from '../../features/input/haptics/haptics.manager.js'
 import { submitEventScores } from '../../features/leaderboards/event-scores.js'
 import { Leaderboards, makeLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
-import { browserLanguages, Locale, makeLocale, singleLocale } from '../../features/locale/locale.manager.js'
+import { browserLanguages, createLocale, singleLocale } from '../../features/locale/locale.manager.js'
 import { savesKept } from '../../features/saves/save.manager.js'
 import { makeSaves, Saves } from '../../features/saves/saves.manager.js'
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
+import { plainSaves } from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
 import { Hosting, type HostingOptions } from '../../shared/host/hosting.ts'
 import { Assets, makeAssets } from '../../shared/runtime/assets.manager.js'
@@ -39,6 +40,7 @@ import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.sve
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
+import { Locale } from './effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
@@ -297,13 +299,15 @@ export function bootProgram<S>(
     const time = makeTime(bus)
 
     // The locale is negotiated, and <html lang dir> set, before the first screen enters.
-    const locale = yield* makeLocale({
-      def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
-      hosting,
-      browser: game.seams?.languages ?? browserLanguages(win.navigator),
-      bus,
-      element: doc.documentElement,
-    })
+    const locale = yield* Effect.promise(() =>
+      createLocale({
+        def: game.locale ?? singleLocale(game.content.data.game?.source_language ?? 'en'),
+        hosting: { kind: hosting.kind, locale: hosting.locale, saves: plainSaves(hosting.saves) },
+        browser: game.seams?.languages ?? browserLanguages(win.navigator),
+        bus,
+        element: doc.documentElement,
+      }),
+    )
 
     // Built now and silent until the first gesture after ready.
     const audio = yield* makeAudio({

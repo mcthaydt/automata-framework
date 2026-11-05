@@ -11,9 +11,10 @@ import type { AudioContextLike } from '../../../features/audio/audio-graph.js'
 import { fakeAudioContext } from '../../../features/audio/testing/fake-audio-context.js'
 import { createHaptics } from '../../../features/input/haptics/haptics.manager.js'
 import { makeLeaderboards } from '../../../features/leaderboards/leaderboards.manager.js'
-import { type LocaleDef, makeLocale, singleLocale } from '../../../features/locale/locale.manager.js'
+import { createLocale, type LocaleDef, singleLocale } from '../../../features/locale/locale.manager.js'
 import type { SaveDef } from '../../../features/saves/save.schema.js'
 import { makeSaves } from '../../../features/saves/saves.manager.js'
+import { plainSaves } from '../../../shared/host/effect-bridge.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
 import { makeAssets } from '../../../shared/runtime/assets.manager.js'
 import type { BootError } from '../../../shared/runtime/boot-error.js'
@@ -205,13 +206,15 @@ export function RuntimeTest(
 
       const bus = yield* makePresentationBus()
       const time = makeTime(bus)
-      const locale = yield* makeLocale({
-        def: options.locale ?? singleLocale(content.game?.source_language ?? 'en'),
-        hosting,
-        browser: options.languages ?? [],
-        bus,
-        element: doc?.documentElement,
-      })
+      const locale = yield* Effect.promise(() =>
+        createLocale({
+          def: options.locale ?? singleLocale(content.game?.source_language ?? 'en'),
+          hosting: { kind: hosting.kind, locale: hosting.locale, saves: plainSaves(hosting.saves) },
+          browser: options.languages ?? [],
+          bus,
+          element: doc?.documentElement,
+        }),
+      )
       const veil = yield* makeVeil({
         overlay: layers.overlay,
         reducedMotion: () => false,
