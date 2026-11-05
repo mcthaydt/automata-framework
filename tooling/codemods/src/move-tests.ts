@@ -307,7 +307,10 @@ export function planMoves(
   // 2. A file that stays and imports a moved file pins it in place (a published test helper uses a test host
   //    component). Repeat until nothing more is pinned, since a pinned file can pin what it imports.
   const known = new Set(files)
-  const exists = (path: string): boolean => known.has(path)
+  // A specifier can reach outside the package (a test of one tool that reads another's source): those files are not
+  // in `files`, so they are looked up on disk, and they never move.
+  const exists = (path: string): boolean =>
+    known.has(path) || (!path.startsWith(`${root}/`) && existsSync(path))
   const stayed: string[] = []
   for (let changed = true; changed; ) {
     changed = false

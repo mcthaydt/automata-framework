@@ -1,6 +1,15 @@
-import { cpSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync } from 'node:fs'
+import {
+  cpSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, relative, resolve } from 'node:path'
+import { basename, dirname, join, relative, resolve } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { applyPlan, type MoveConfig, planMoves } from '#src/move-tests.ts'
 
@@ -121,6 +130,21 @@ describe('imports', () => {
 
   it('leaves a new URL(...) call written inside a string alone', () => {
     expect(textOf('tests/unit/a/k.test.ts')).toContain('const page = "new URL(\'./b.ts\', import.meta.url)"')
+  })
+
+  it('points an import of a file outside the package at its place relative to the moved test', () => {
+    const outside = join(dirname(root), `outside-${basename(root)}.ts`)
+    writeFileSync(outside, 'export const outside = 1\n')
+    try {
+      const read = (path: string): string =>
+        path.endsWith('a/i.test.ts')
+          ? `import { outside } from '../../../${basename(outside)}'`
+          : readFileSync(path, 'utf8')
+      const text = planMoves(config(), listFiles(root), read).rewrites.get(where('tests/unit/a/i.test.ts'))
+      expect(text).toContain(`from '../../../../${basename(outside)}'`)
+    } finally {
+      rmSync(outside, { force: true })
+    }
   })
 
   it('maps .js to .ts, aliases json, and moves a new URL path to wherever it points now', () => {
