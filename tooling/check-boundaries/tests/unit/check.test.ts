@@ -67,6 +67,12 @@ test('collectSources finds every TS and JS module kind, skipping tests, declarat
   expect(names).toEqual(['a.ts', 'b.mts', 'c.cts', 'nested/d.js'])
 })
 
+test('collectSources leaves out a folder it is told to skip, wherever it sits', () => {
+  const dir = join(import.meta.dirname, '../../fixtures/tree')
+  const names = collectSources(dir, ['nested']).map((f) => f.slice(dir.length + 1).replaceAll('\\', '/'))
+  expect(names).toEqual(['a.ts', 'b.mts', 'c.cts'])
+})
+
 test('sim plugins outside packages/sim may import the sim’s public entry points, and only those', () => {
   const imports = (source: string) =>
     checkSource('/x/packages/physics/src/a.ts', `import { x } from '${source}'\n`).map((f) => f.rule)

@@ -427,7 +427,7 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
 Session breaks: after step 1 (the move builds and its unit tests pass), and after every five cross-feature fixes
 in step 2.
 
-- [ ] **Step 1:** Run the codemod for the browser rows. Merge the moved packages' `dependencies` into
+- [x] **Step 1:** Run the codemod for the browser rows. Merge the moved packages' `dependencies` into
   `packages/automata/package.json`; delete the old `package.json`, `tsconfig*.json`, `tsdown.config.ts`,
   `vitest.config.ts`, `biome.json`, `svelte.config.js`, `CHANGELOG.md` and `LICENSE` of `host`, `runtime`,
   `render-pixi`, `ui`, `game` and `testing` (keep `automata`'s, it is the survivor). One `tsdown.config.ts` builds
@@ -447,11 +447,11 @@ in step 2.
 
 ### Task 4.4: `tools`, and `sim` and `content` inside (PR `claude/refactor-2d-tools`)
 
-- [ ] **Step 1:** Run the codemod for `ship`, `cli`, `node` and `testing/src/e2e` into `packages/tools`. One bin,
+- [x] **Step 1:** Run the codemod for `ship`, `cli`, `node` and `testing/src/e2e` into `packages/tools`. One bin,
   `automata`, dispatches `create-game`, `ship <cmd>`, `add`, `check`, `editor`, `build`; `automata-ship` is an
   alias that prints `automata-ship is now "automata ship". This name goes away in the next release.` to stderr and
   runs. Test both in `tests/unit/cli/bin.test.ts` first.
-- [ ] **Step 2:** `sim` and `content` move to `src/{features,shared,app,entries,testing}` by the map (inside each
+- [x] **Step 2:** `sim` and `content` move to `src/{features,shared,app,entries,testing}` by the map (inside each
   package; their names do not change). `testing/src/sim` becomes `@mcthaydt/automata-sim/testing` (and
   `./testing/commands`, `./testing/property`); `vitest` becomes an optional peer of `automata-sim`; the sim purity
   check skips `packages/sim/src/testing/` (spec section 3.2).
@@ -832,3 +832,40 @@ the features it lacks are journeyed on the one-file examples that show them:
   gone, no mismatch. **Nothing was deleted or tagged**; task 9.2 waits for the Owner's go. Deviation (39): the
   appendix said 334 merged branches; one of them (`archive/base-3d-adventure`) is listed to be tagged first, as the
   audit suggested, so the delete section holds 333.
+- **Tasks 4.3 and 4.4, steps 1 (and 4.4 step 2), third session, 2026-11-05: done together in PR [#393](https://github.com/mcthaydt/automata-framework/pull/393)** (`claude/refactor-2d-packages`, stacked on #392). The codemod ran once over the whole map: 764
+  files moved by `git mv`, the old `host`, `runtime`, `render-pixi`, `ui`, `game`, `testing`, `ship`, `cli` and `node` folders are
+  gone, `packages/` holds `automata`, `tools`, `sim`, `content` and the 3D and editor packages. Measured here: typecheck passes in
+  all 33 turbo tasks; unit tests pass in automata (1,891), sim (316), content (340), tools (670), check-boundaries (145);
+  `pnpm lint`, `pnpm style`, `pnpm boundaries`, `pnpm knip` and `pnpm build` (9 packages) pass; `changeset status` and
+  `check-changesets` pass; API reports, `api-index`, the cheatsheet and the `automata-api` skill are regenerated. Deviations:
+  (40) 4.3 and 4.4 are one pass and one PR: the map is one list, and the old `testing` splits three ways (browser helpers to
+  `automata`, sim helpers to `sim`, Playwright helpers to `tools`), so a PR with only the browser rows would need a half-built
+  `tools`. (41) The published build of `automata` is `svelte-package` (the package holds `.svelte` files) then tsdown with
+  `clean: false` for the three build-target entries (the Ruken SDK is bundled there), then a declarations pass for the vendored
+  Ruken types, then `build/finish-dist.ts`; the plan's "one tsdown config" cannot build Svelte components. **Risk, not
+  checked:** the target bundles carry their own copy of the host contract chunks (`dist/rounds-*.js`, `dist/hosting-*.js`), so
+  `HostError` exists twice in `dist/`; `Hosting` is found by a string-keyed tag so it still matches, but class identity may not.
+  `test:dist` and the consumer smoke did not run here. (42) `entries/index.ts` re-exports the old entries side by side so no
+  consumer name changes; two names clashed (`ErrorCode` of the host contract and of the ui kit, `DisplayCopy` of the runtime
+  and of the settings screen), resolved by explicit re-export (host's, runtime's); task 6.4 cuts the surface. (43) `automata`'s one
+  Vitest config runs every unit test in jsdom (host's ran in Node) with the `automata-ruken` condition (was runtime and game
+  only); `target.test.ts` opts back into Node with a comment. (44) New `--skip-dir <name>` in `check-boundaries`, with a test;
+  the root `boundaries` line skips `testing` under the sim roots (spec 3.2). (45) A build cycle appeared: `tools` bundles the
+  editor suite (dev dependency), which builds `editor-3d`, which builds `render-pixi3d`, which depended on `tools` for a test.
+  `render-pixi3d`'s bundle test now reads `tools`' marker source by relative path and the dependency is gone; the lockfile was
+  edited by hand and `pnpm install --frozen-lockfile` accepts it (a full `pnpm install` took 11 minutes here, the registry
+  is slow). (46) The old `cli` index was private and its names are used by nothing outside `tools`, so it is not part of
+  `tools`' public entry (`from-cli.ts` and its test are deleted). (47) `automata-ship <cmd>` became `automata ship <cmd>` in
+  generated scripts, workflows, the games' scripts and tests (37 files); the `automata-ship` bin stays as an alias. (48) The
+  codemod rewrote two `examples-runner` catalog fixtures that stand for a wrong import (`automata-game`, `automata-render-pixi`);
+  restored. (49) `packages/sim`'s `test:evidence` runs the bounce golden too (`testing`'s did). (50) Tests that read
+  source paths relative to the test file (`import.meta.dirname/../../src/...`) were fixed with a script that resolves the old
+  path through the move map (about 15 files across four packages).
+  **Not done, and why the checkboxes stay open:** 4.3 step 2 and 4.4 step 3: `pnpm exec automata-check-boundaries --features`
+  finds **207** cross-feature imports (automata 120, content 48, sim 25, tools 14) and `--browser packages/content:game-config,locale,assets`
+  finds 21 (the `assets` entry reaches `read-sources.ts`, which imports `node:path` and `effect`; the spec lists `assets` as
+  browser-safe, the build comment says Node-only: decide). The pattern for automata: `features/screens` composes nearly every other feature, so it
+  is `app/` code; `features/settings/ui` and `features/saves/ui` are screens too; `app/{time,loop,presentation,render}` hold services
+  that features import (move them to `shared/`); `settings/core-settings.ts` wires every feature's setting schema (it is `app/`).
+  Not run here: the browser projects, Emberwick's journeys, the 3D and editor suites (unit tests of the 3D and editor packages
+  ran in the turbo pass; see progress.md), WebKit and Firefox, `test:dist`. Hosted CI has no runners.

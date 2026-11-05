@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Usage: node tooling/check-boundaries/src/cli.ts [--inline] [--allow-import <specifier>]... <root>... [--game <src>...]
+// Usage: node tooling/check-boundaries/src/cli.ts [--inline] [--allow-import <specifier>]... [--skip-dir <name>]... <root>... [--game <src>...]
 // Each root is a sim source folder (packages/sim/src, a sim-plugin package, a game's sim folder). Checks
 // every non-test source file under it, and that relative imports stay inside it; exits 1 on any finding.
 // `--allow-import` adds an import specifier, by exact name, that every root in this run may use (see CheckOptions).
+// `--skip-dir <name>` leaves out every folder of that name under the roots (the sim package's `testing`).
 // `--inline` checks one-file examples instead (EX spec §4): each root is a file or a folder of browser files, and
 // only the arguments of their `defineSystem` and `definePlugin` calls are checked.
 // Roots after `--game` are a game's src/ laid out by role (GL spec §4.5): only its sim set is checked, and a value
@@ -76,6 +77,7 @@ const dirs: string[] = []
 const gameRoots: string[] = []
 let afterGame = false
 const allowImports: string[] = []
+const skipDirs: string[] = []
 let inline = false
 const args = process.argv.slice(2)
 for (let i = 0; i < args.length; i++) {
@@ -89,6 +91,13 @@ for (let i = 0; i < args.length; i++) {
       process.exit(2)
     }
     allowImports.push(specifier)
+  } else if (arg === '--skip-dir') {
+    const name = args[++i]
+    if (name === undefined) {
+      console.error('check-boundaries: --skip-dir needs a folder name')
+      process.exit(2)
+    }
+    skipDirs.push(name)
   } else if (afterGame) gameRoots.push(arg)
   else dirs.push(arg)
 }
@@ -101,7 +110,7 @@ if (dirs.length + gameRoots.length === 0) {
 const files: string[] = []
 const findings: Finding[] = []
 for (const root of dirs) {
-  for (const file of statSync(root).isDirectory() ? collectSources(root) : [root]) {
+  for (const file of statSync(root).isDirectory() ? collectSources(root, skipDirs) : [root]) {
     files.push(file)
     findings.push(...checkSource(file, readFileSync(file, 'utf8'), { root, allowImports, inline }))
   }

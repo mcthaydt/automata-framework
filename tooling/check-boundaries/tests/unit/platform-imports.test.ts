@@ -14,7 +14,7 @@ describe('platformImportFindings', () => {
     ["import type { Capability } from '@ruken/sdk'", '@ruken/sdk', '@mcthaydt/automata'],
     ["export { createFakeHost } from '@ruken/sdk-host/testing'", '@ruken/sdk-host/testing', 'FakeHosting'],
     ["export * from '@ruken/manifest'", '@ruken/manifest', '@mcthaydt/automata-content/game-config'],
-    ["await import('@ruken/cli')", '@ruken/cli', 'automata-ship'],
+    ["await import('@ruken/cli')", '@ruken/cli', 'automata ship'],
     ["import '@tauri-apps/api/core'", '@tauri-apps/api/core', "'tauri'"],
   ])(
     'finds `%s` outside its target folder, naming the import and the replacement',

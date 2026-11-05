@@ -448,7 +448,12 @@ describe('bin cli', () => {
       let stdout = ''
       const code = await runCli(
         args,
-        { stdout: (msg) => void (stdout += msg), stderr: () => undefined },
+        {
+          stdout: (msg) => {
+            stdout += msg
+          },
+          stderr: () => undefined,
+        },
         noOtherCommand,
         noOtherCommand,
         noOtherCommand,
@@ -476,7 +481,9 @@ describe('bin cli', () => {
       let stderr = ''
       const code = await runShipAlias(
         ['publish', '--dist', 'dist'],
-        (msg) => void (stderr += msg),
+        (msg) => {
+          stderr += msg
+        },
         async (args) => {
           calls.push([...args])
           return 0

@@ -9,12 +9,16 @@ import { publishedBuild } from '../../tooling/release/src/tsdown-shared.ts'
 // - `entries/testing.js` also bundles `@ruken/sdk-host`, for the Ruken `RuntimeTest` (whose own dependency, zod, is
 //   declared in package.json). Its declarations import `@ruken/sdk-host` types, inlined by the second pass.
 // The second pass is `tsdown.dts.config.ts`.
-export default publishedBuild(import.meta.url, {
-  entry: {
-    'entries/target/ruken': 'src/entries/target/ruken.ts',
-    'entries/target/web': 'src/entries/target/web.ts',
-    'entries/target/tauri': 'src/entries/target/tauri.ts',
-  },
-  platform: 'browser',
-  bundleRuken: ['@ruken/sdk', '@ruken/sdk-host'],
-})
+// `clean: false`: tsdown would otherwise empty `dist/` and delete what `svelte-package` wrote there.
+export default {
+  ...publishedBuild(import.meta.url, {
+    entry: {
+      'entries/target/ruken': 'src/entries/target/ruken.ts',
+      'entries/target/web': 'src/entries/target/web.ts',
+      'entries/target/tauri': 'src/entries/target/tauri.ts',
+    },
+    platform: 'browser',
+    bundleRuken: ['@ruken/sdk', '@ruken/sdk-host'],
+  }),
+  clean: false,
+}

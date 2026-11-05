@@ -1,14 +1,16 @@
 // S7-g and X-b against the real tarball: Vite's minified builds of two fixture pages, one shipping the 3D renderer
-// through @pixi/3d's main entry and one importing `./extras`. ship's markers (packages/ship pixi3d-markers.ts) must
+// through @pixi/3d's main entry and one importing `./extras`. ship's markers (packages/tools pixi3d-markers.ts) must
 // find @pixi/3d in both and extras only in the second, after minification (S7 found a minifier can rename
 // `generateSpawnBurst`, so the code generator's own strings are markers too).
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { findPixi3d, PIXI3D_EXTRAS_MARKERS } from '@mcthaydt/automata-tools'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { build } from 'vite'
 import { afterAll, describe, expect, it } from 'vitest'
+// Read from the tools package's source, not through its package entry: tools builds the editor suite, which builds this
+// package, so a dependency here would be a build cycle.
+import { findPixi3d, PIXI3D_EXTRAS_MARKERS } from '../../../tools/src/features/ship/prepare/pixi3d-markers.ts'
 
 const packageRoot = join(import.meta.dirname, '../..')
 const built: string[] = []

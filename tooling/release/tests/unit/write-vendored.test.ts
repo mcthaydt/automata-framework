@@ -130,8 +130,8 @@ describe('writeVendored', () => {
   // The real tarballs, as host and ship install them: the four vendored packages carry the MIT licence the Owner
   // chose (2026-10-30, RukenApp #396), which every published package that bundles them repeats (PRODUCT.4r).
   it.each([
-    ['packages/host', ['@ruken/sdk', '@ruken/sdk-host']],
-    ['packages/ship', ['@ruken/manifest', '@ruken/cli']],
+    ['packages/automata', ['@ruken/sdk', '@ruken/sdk-host']],
+    ['packages/tools', ['@ruken/manifest', '@ruken/cli']],
   ])('carries the MIT licence of the vendored tarballs %s bundles', (packagePath, bundled) => {
     const dir = mkdtempSync(join(tmpdir(), 'af-vendored-'))
     symlinkSync(join(root, packagePath, 'node_modules'), join(dir, 'node_modules'))
