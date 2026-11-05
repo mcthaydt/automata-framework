@@ -2,8 +2,8 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'n
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { FIXTURE_EXCLUDED, FIXTURE_ROOT } from './fixture.ts'
-import { runApiReport } from './run.ts'
+import { FIXTURE_EXCLUDED, FIXTURE_ROOT } from '#src/fixture.ts'
+import { runApiReport } from '#src/run.ts'
 
 const dirs: string[] = []
 const reportsDir = () => {

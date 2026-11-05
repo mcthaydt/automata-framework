@@ -4,12 +4,12 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { corePackages } from './core-packages.ts'
-import { extractApi } from './extract.ts'
-import { renderReport } from './report.ts'
+import { corePackages } from '#src/core-packages.ts'
+import { extractApi } from '#src/extract.ts'
+import { renderReport } from '#src/report.ts'
 
-const KINDS_ROOT = fileURLToPath(new URL('../fixtures/kinds', import.meta.url))
-const PINNED = fileURLToPath(new URL('../fixtures/kinds/reports/kinds.api.md', import.meta.url))
+const KINDS_ROOT = fileURLToPath(new URL('../../fixtures/kinds', import.meta.url))
+const PINNED = fileURLToPath(new URL('../../fixtures/kinds/reports/kinds.api.md', import.meta.url))
 
 describe('the API report over every declaration kind', () => {
   it('equals the pinned report, byte for byte', () => {

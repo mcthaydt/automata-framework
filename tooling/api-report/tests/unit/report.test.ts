@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { PackageApi } from './extract.ts'
-import { parseReport, renderReport } from './report.ts'
+import type { PackageApi } from '#src/extract.ts'
+import { parseReport, renderReport } from '#src/report.ts'
 
 const api: PackageApi = {
   package: '@fx/alpha',

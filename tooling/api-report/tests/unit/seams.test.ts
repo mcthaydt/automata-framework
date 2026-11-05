@@ -2,12 +2,12 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { apiBreaks, undeclaredBreaks } from './breaks.ts'
-import { parseReport } from './report.ts'
-import { REPORTS_DIR, runApiReport } from './run.ts'
-import { SEAMS } from './seams.ts'
+import { apiBreaks, undeclaredBreaks } from '#src/breaks.ts'
+import { parseReport } from '#src/report.ts'
+import { REPORTS_DIR, runApiReport } from '#src/run.ts'
+import { SEAMS } from '#src/seams.ts'
 
-const ROOT = fileURLToPath(new URL('../../..', import.meta.url))
+const ROOT = fileURLToPath(new URL('../../../..', import.meta.url))
 const reportsDir = join(ROOT, REPORTS_DIR)
 const committed = readdirSync(reportsDir)
   .filter((file) => file.endsWith('.api.md'))

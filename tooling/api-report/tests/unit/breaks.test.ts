@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { type ApiBreak, apiBreaks, undeclaredBreaks } from './breaks.ts'
-import type { ApiEntry, ApiExport } from './extract.ts'
-import type { ParsedReport } from './report.ts'
+import { type ApiBreak, apiBreaks, undeclaredBreaks } from '#src/breaks.ts'
+import type { ApiEntry, ApiExport } from '#src/extract.ts'
+import type { ParsedReport } from '#src/report.ts'
 
 const report = (entries: ApiEntry[]): ParsedReport => ({ package: '@fx/alpha', entries })
 const base = report([

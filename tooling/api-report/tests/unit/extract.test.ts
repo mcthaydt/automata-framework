@@ -2,9 +2,9 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
-import { corePackages } from './core-packages.ts'
-import { declarationExports, extractApi, sourceExports } from './extract.ts'
-import { FIXTURE_EXCLUDED, FIXTURE_ROOT } from './fixture.ts'
+import { corePackages } from '#src/core-packages.ts'
+import { declarationExports, extractApi, sourceExports } from '#src/extract.ts'
+import { FIXTURE_EXCLUDED, FIXTURE_ROOT } from '#src/fixture.ts'
 
 describe('corePackages', () => {
   it('lists every packages/* folder but the excluded, with its TypeScript exports entries', () => {

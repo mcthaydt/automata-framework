@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { baseRefFor } from './base-ref.ts'
+import { baseRefFor } from '#src/base-ref.ts'
 
 const roots: string[] = []
 afterEach(() => {
