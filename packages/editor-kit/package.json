@@ -28,7 +28,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
     "test:layout": "vitest run --project layout",
-    "test:parity": "vitest run --project layout",
+    "test:browser": "vitest run --project layout",
     "test:journeys": "vitest run --project journeys",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
     "tokens": "node scripts/generate-tokens.ts"

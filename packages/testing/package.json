@@ -58,7 +58,7 @@
     "test": "vitest run",
     "test:unit": "vitest run --project unit --project sim",
     "test:layout": "vitest run --project layout",
-    "test:parity": "vitest run --project layout --project sim-browsers",
+    "test:browser": "vitest run --project layout --project sim-browsers",
     "test:evidence": "vitest run --project sim --project sim-browsers src/sim/bounce.golden.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p .",
     "build": "tsdown"

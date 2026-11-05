@@ -28,7 +28,7 @@ Opened on its own, Emberwick runs standalone. Inside Ruken it completes the host
 ```sh
 pnpm format                               # Biome writes the formatting
 pnpm check                                # lint, typecheck, boundaries, style, knip and unit tests
-pnpm test:parity                          # the determinism suites in Chromium, WebKit and Firefox
+pnpm test:browser                          # the determinism suites in Chromium, WebKit and Firefox
 pnpm test:e2e                             # the browser journeys
 pnpm ci:local                             # everything CI runs, in order
 ```

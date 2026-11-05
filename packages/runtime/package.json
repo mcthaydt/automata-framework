@@ -40,7 +40,7 @@
   "scripts": {
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
-    "test:parity": "vitest run --project browsers",
+    "test:browser": "vitest run --project browsers",
     "bench": "vitest run --project bench --project bench-chromium",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
     "build": "tsdown && tsdown -c tsdown.dts.config.ts && node build/finish-dist.ts"

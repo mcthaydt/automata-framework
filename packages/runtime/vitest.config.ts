@@ -6,7 +6,7 @@ import { defineConfig } from 'vitest/config'
 // - unit: every behavior test, in jsdom because boot and the page layers mount ui's Svelte components.
 // - bench: the frame-loop overhead check in Node, kept out of the gate (it is a measurement, not a test).
 // - bench-chromium: the same check in real Chromium, where requestAnimationFrame and the JIT are the shipped ones.
-// - browsers: the Audio service on real Web Audio in Chromium, WebKit and Firefox (M5.3), in `pnpm test:parity`.
+// - browsers: the Audio service on real Web Audio in Chromium, WebKit and Firefox (M5.3), in `pnpm test:browser`.
 export default defineConfig({
   plugins: [svelte()],
   test: {

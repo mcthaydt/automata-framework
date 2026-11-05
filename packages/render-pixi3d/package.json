@@ -27,7 +27,7 @@
   "scripts": {
     "test": "vitest run --project node",
     "test:unit": "vitest run --project node",
-    "test:parity": "vitest run --project browsers",
+    "test:browser": "vitest run --project browsers",
     "typecheck": "tsc -p ."
   },
   "dependencies": {

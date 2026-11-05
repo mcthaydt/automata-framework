@@ -156,7 +156,7 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
     // right, so root's HOME is set for the later steps on Linux only, before parity and evidence.
     const home = steps.findIndex((step) => step.run === 'echo "HOME=/root" >> "$GITHUB_ENV"')
     expect(steps[home]?.if).toBe("runner.os == 'Linux'")
-    expect(home).toBeLessThan(steps.findIndex((step) => step.run === 'pnpm test:parity:core'))
+    expect(home).toBeLessThan(steps.findIndex((step) => step.run === 'pnpm test:browser:core'))
     for (const step of steps) expect(step.env?.HOME).toBeUndefined()
   })
 
@@ -230,7 +230,7 @@ describe('parity across packages', () => {
     expect(workspacePackages).toEqual(expect.arrayContaining(['games/emberwick', 'games/base-3d']))
   })
 
-  it("runs every package's parity suite through the root test:parity script", () => {
+  it("runs every package's parity suite through the root test:browser script", () => {
     // Three suites at a time: each starts Chromium, WebKit and Firefox, and on the shared WSL Docker runner all of
     // #14's eight suites at once left Firefox past vitest's 60 s connect timeout (2026-10-11). The longer connect
     // timeout, passed through to every suite's vitest, is a backstop for a busy runner. 120 s was not enough on
@@ -238,23 +238,23 @@ describe('parity across packages', () => {
     // every test that ran passed, so it is 240 s. Tests get test:unit's 90 s default (below) instead of browser
     // mode's 15 s: on af-mac's first run (2026-10-17, PR #75, run 39073430409) examples-runner's first golden,
     // which imports a whole game cold, took 15.9 s in Chromium and 17.0 s in WebKit.
-    expect(packageJson('.').scripts['test:parity']).toBe(
-      `${VITEST_CAP} turbo run test:parity --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
+    expect(packageJson('.').scripts['test:browser']).toBe(
+      `${VITEST_CAP} turbo run test:browser --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
     // The pull request gate runs the core and 2D suites; the 3D and editor suites run in 3d-and-editors.yml.
-    expect(packageJson('.').scripts['test:parity:core']).toBe(
-      `${VITEST_CAP} turbo run test:parity ${CORE_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
+    expect(packageJson('.').scripts['test:browser:core']).toBe(
+      `${VITEST_CAP} turbo run test:browser ${CORE_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
-    expect(packageJson('.').scripts['test:parity:3d']).toBe(
-      `${VITEST_CAP} turbo run test:parity ${THREE_D_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
+    expect(packageJson('.').scripts['test:browser:3d']).toBe(
+      `${VITEST_CAP} turbo run test:browser ${THREE_D_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
-    expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:parity:core')
+    expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:browser:core')
     expect(JSON.stringify(workflow('3d-and-editors.yml').jobs['parity-3d']?.steps)).toContain(
-      'pnpm test:parity:3d',
+      'pnpm test:browser:3d',
     )
     // The pull request variant runs the same suites, only those of the affected packages (turbo --affected).
-    expect(packageJson('.').scripts['test:parity:affected']).toBe(
-      `${VITEST_CAP} turbo run test:parity --affected ${CORE_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
+    expect(packageJson('.').scripts['test:browser:affected']).toBe(
+      `${VITEST_CAP} turbo run test:browser --affected ${CORE_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
   })
 
@@ -311,8 +311,10 @@ describe('parity across packages', () => {
     expect(tooShort).toEqual([])
   })
 
-  it('gives every package with a browsers vitest project a test:parity script', () => {
+  it('gives every package with browser tests a test:browser script', () => {
+    // Browser tests sit in `tests/browser`; a package not yet moved (3D and editors) still names a `browsers` project.
     const withBrowsers = workspacePackages.filter((path) => {
+      if (existsSync(join(root, path, 'tests/browser'))) return true
       try {
         return /name:\s*'browsers'/.test(readFileSync(join(root, path, 'vitest.config.ts'), 'utf8'))
       } catch {
@@ -322,11 +324,11 @@ describe('parity across packages', () => {
     expect(withBrowsers).toContain('packages/sim')
     expect(withBrowsers).toContain('games/emberwick')
     expect(withBrowsers).toContain('games/base-3d')
-    // A package may add more browser projects to the same run (base-2d adds its Chromium renderer tests), and may load
-    // its config through Vite's module runner (base-3d: its config imports workspace sources, M3.7b part 3).
+    // A package may load its config through Vite's module runner (base-3d: its config imports workspace sources,
+    // M3.7b part 3), and may add more browser projects to the same run.
     for (const path of withBrowsers) {
-      expect(packageJson(path).scripts['test:parity']).toMatch(
-        /^vitest run( --configLoader runner)? --project browsers( --project [\w-]+)*$/,
+      expect(packageJson(path).scripts['test:browser']).toMatch(
+        /^vitest run( --configLoader runner)? --project browsers?( --project [\w-]+)*$/,
       )
     }
   })
@@ -395,13 +397,13 @@ describe('the load one CI job puts on the shared Mac', () => {
     concurrency?: string
     globalPassThroughEnv?: string[]
   }
-  const CAPPED = ['test:unit', 'test:parity', 'evidence']
+  const CAPPED = ['test:unit', 'test:browser', 'evidence']
 
   it('starts two vitest workers per project on CI, in the three root scripts that CI calls', () => {
     for (const name of CAPPED) expect(scripts[name], name).toMatch(/^VITEST_MAX_WORKERS=\S+ turbo run /)
     const ci = workflow('ci.yml')
     const calls = JSON.stringify(ci.jobs)
-    for (const name of ['test:unit', 'test:parity', 'evidence']) expect(calls).toContain(`pnpm ${name}`)
+    for (const name of ['test:unit', 'test:browser', 'evidence']) expect(calls).toContain(`pnpm ${name}`)
   })
 
   it('caps only on CI: two there, the caller’s own count if it sets one, empty (vitest ignores it) otherwise', () => {
@@ -437,7 +439,7 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toEqual([
       'pnpm install --frozen-lockfile',
       'pnpm check',
-      'pnpm test:parity:core',
+      'pnpm test:browser:core',
       'pnpm test:e2e --filter @af-examples/base-2d --filter @af-examples/examples',
     ])
   })
@@ -670,7 +672,7 @@ describe('ci.yml evidence file (DX spec §3.10)', () => {
   })
 
   it('writes the evidence file on pushes to main only, after parity passed, in the parity job', () => {
-    const parity = steps.findIndex((step) => step.run === 'pnpm test:parity')
+    const parity = steps.findIndex((step) => step.run === 'pnpm test:browser')
     const evidence = steps.findIndex((step) => step.run === 'pnpm evidence')
     expect(evidence).toBeGreaterThan(parity)
     expect(steps[evidence]?.if).toBe("github.event_name == 'push'")
@@ -1360,8 +1362,8 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
   it('hands the parity scope to the parity job, which runs affected suites only on a pull request that allows it', () => {
     expect(ci.jobs.checks?.outputs?.parity_full).toBe('${{ steps.scope.outputs.parity_full }}')
     const steps = ci.jobs.parity?.steps ?? []
-    const full = steps.find((step) => step.run === 'pnpm test:parity:core')
-    const affected = steps.find((step) => step.run === 'pnpm test:parity:affected')
+    const full = steps.find((step) => step.run === 'pnpm test:browser:core')
+    const affected = steps.find((step) => step.run === 'pnpm test:browser:affected')
     expect(full?.if).toBe("github.event_name != 'pull_request' || needs.checks.outputs.parity_full == 'true'")
     expect(affected?.if).toBe(
       "github.event_name == 'pull_request' && needs.checks.outputs.parity_full != 'true'",

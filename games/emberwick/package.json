@@ -20,7 +20,7 @@
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run --configLoader runner",
     "test:unit": "vitest run --configLoader runner --project node --project dom",
-    "test:parity": "vitest run --configLoader runner --project browsers --project renderer",
+    "test:browser": "vitest run --configLoader runner --project browsers --project renderer",
     "test:evidence": "vitest run --configLoader runner --project node --project browsers src/golden.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "test:e2e": "playwright test",

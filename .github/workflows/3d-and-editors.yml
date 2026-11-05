@@ -135,7 +135,7 @@ jobs:
       - run: echo "HOME=/root" >> "$GITHUB_ENV"
         if: runner.os == 'Linux'
       # Every 3D and editor package with a browsers vitest project runs its parity suite.
-      - run: pnpm test:parity:3d
+      - run: pnpm test:browser:3d
       # The container runs as root in the runner's shared work folder (/__w is _work, /__t the tool cache). Hand
       # everything back to the runner user, the owner of /__w, or the next job's checkout cannot delete the
       # root-owned node_modules ("Permission denied"). always() runs on failure and on cancel too.
