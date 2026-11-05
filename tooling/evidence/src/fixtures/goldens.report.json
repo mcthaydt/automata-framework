@@ -180,7 +180,7 @@
       ]
     },
     {
-      "name": "/repo/examples/base-2d/src/golden.test.ts",
+      "name": "/repo/examples/emberwick/src/golden.test.ts",
       "status": "passed",
       "message": "",
       "startTime": 1,
@@ -196,7 +196,7 @@
           "location": null,
           "meta": {
             "goldenEvidence": {
-              "scenario": "base-2d/golden-route",
+              "scenario": "emberwick/golden-route",
               "seed": 1,
               "ticks": 342,
               "hash": "31f50888ccb4cf0a",
@@ -211,7 +211,7 @@
       ]
     },
     {
-      "name": "/repo/examples/base-2d/src/golden.parity.test.ts",
+      "name": "/repo/examples/emberwick/src/golden.parity.test.ts",
       "status": "passed",
       "message": "",
       "startTime": 1,
@@ -227,7 +227,7 @@
           "location": null,
           "meta": {
             "goldenEvidence": {
-              "scenario": "base-2d/golden-route",
+              "scenario": "emberwick/golden-route",
               "seed": 1,
               "ticks": 342,
               "hash": "31f50888ccb4cf0a",
@@ -242,7 +242,7 @@
       ]
     },
     {
-      "name": "/repo/examples/base-2d/src/golden.parity.test.ts",
+      "name": "/repo/examples/emberwick/src/golden.parity.test.ts",
       "status": "passed",
       "message": "",
       "startTime": 1,
@@ -258,7 +258,7 @@
           "location": null,
           "meta": {
             "goldenEvidence": {
-              "scenario": "base-2d/golden-route",
+              "scenario": "emberwick/golden-route",
               "seed": 1,
               "ticks": 342,
               "hash": "31f50888ccb4cf0a",
@@ -273,7 +273,7 @@
       ]
     },
     {
-      "name": "/repo/examples/base-2d/src/golden.parity.test.ts",
+      "name": "/repo/examples/emberwick/src/golden.parity.test.ts",
       "status": "passed",
       "message": "",
       "startTime": 1,
@@ -289,7 +289,7 @@
           "location": null,
           "meta": {
             "goldenEvidence": {
-              "scenario": "base-2d/golden-route",
+              "scenario": "emberwick/golden-route",
               "seed": 1,
               "ticks": 342,
               "hash": "31f50888ccb4cf0a",

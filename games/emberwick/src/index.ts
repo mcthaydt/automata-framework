@@ -1,4 +1,4 @@
-// `@af-examples/base-2d`: what demos reuse from the base instead of copying it (examples/README.md). It stays
+// `@af-games/emberwick`: what demos reuse from the base instead of copying it (examples/README.md). It stays
 // free of Pixi: the game is `./game`, the renderer `./render`, and the sim plugin alone `./sim`.
 
 export { ENDESGA_64, endesga } from './art/palette.ts'

@@ -5,7 +5,7 @@ import { ROOM } from '../../fixtures/hand-written-room.ts'
 import { HAND_WRITTEN_TUNING } from '../../fixtures/hand-written-tuning.ts'
 import { gameUrl, hostOrigin } from './origins.ts'
 
-// base-2d in a real browser, served from /b/<buildId>/ with the headers Ruken would serve it with
+// emberwick in a real browser, served from /b/<buildId>/ with the headers Ruken would serve it with
 // (vite.config.ts, compileHeaders: no eval). Every journey fails on any console error, CSP violations included.
 
 /**

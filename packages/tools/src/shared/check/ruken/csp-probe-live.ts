@@ -13,7 +13,7 @@ import { CheckToolError, CspProbe, type CspProbeResult } from '../csp-probe.ts'
 
 // The live `csp` step (DX spec §3.6): serve `dist/` with the headers Ruken would serve this game with, open it
 // in Chromium, and wait for the runtime's ready signal (`<html data-state="ready">`, set by
-// `packages/runtime` page layers and base-2d's boot page) or `failed`. Every `securitypolicyviolation` the page
+// `packages/runtime` page layers and emberwick's boot page) or `failed`. Every `securitypolicyviolation` the page
 // fires is a finding, including one the game catches (a blocked `eval` in a try block still fires the event).
 //
 // Playwright is the game's own dependency, resolved from the game folder (`playwright`, else

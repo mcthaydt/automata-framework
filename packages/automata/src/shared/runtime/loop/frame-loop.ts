@@ -66,7 +66,7 @@ export function createFrameLoop(options: FrameLoopOptions): FrameLoop {
   const frame = (_timestamp?: number) => {
     if (!isRunning) return
 
-    // 1. Time comes from frames.now(), not the rAF timestamp (base-2d loop.ts: one time base for start and frames)
+    // 1. Time comes from frames.now(), not the rAF timestamp (emberwick loop.ts: one time base for start and frames)
     const now = options.frames.now()
     const rawElapsed = now - last
     last = now

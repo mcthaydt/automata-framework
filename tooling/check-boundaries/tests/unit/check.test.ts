@@ -125,10 +125,10 @@ test('a declaration problem is part of the import finding', () => {
 test('a root may allow another checked sim folder’s entry point by its exact name', () => {
   const imports = (source: string, allowImports: readonly string[] = []) =>
     checkSource('/x/demo/sim/a.ts', `import { x } from '${source}'\n`, { allowImports }).map((f) => f.rule)
-  expect(imports('@af-examples/base-2d/sim')).toEqual(['import'])
-  expect(imports('@af-examples/base-2d/sim', ['@af-examples/base-2d/sim'])).toEqual([])
+  expect(imports('@af-games/emberwick/sim')).toEqual(['import'])
+  expect(imports('@af-games/emberwick/sim', ['@af-games/emberwick/sim'])).toEqual([])
   // Exact names only: the package root (which reaches the host bridge) stays out.
-  expect(imports('@af-examples/base-2d', ['@af-examples/base-2d/sim'])).toEqual(['import'])
+  expect(imports('@af-games/emberwick', ['@af-games/emberwick/sim'])).toEqual(['import'])
 })
 
 // DX.6b: koota compiles struct-of-arrays accessors with `new Function`, which Ruken's CSP (no 'unsafe-eval') refuses.

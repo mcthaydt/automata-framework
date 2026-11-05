@@ -53,9 +53,9 @@ const NAMES: readonly (keyof Tuning)[] = [
  * table is a setup bug). A demo with its own content passes its `content.tuning` through this.
  */
 export function tuningFrom(table: Readonly<Record<string, unknown>> | undefined | null): Tuning {
-  if (table === undefined || table === null) throw new Error('base-2d: the sim content has no tuning')
+  if (table === undefined || table === null) throw new Error('emberwick: the sim content has no tuning')
   for (const name of NAMES)
-    if (!Number.isInteger(table[name])) throw new Error(`base-2d: tuning.${name} is not a whole number`)
+    if (!Number.isInteger(table[name])) throw new Error(`emberwick: tuning.${name} is not a whole number`)
   return table as unknown as Tuning
 }
 

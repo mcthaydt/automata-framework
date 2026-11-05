@@ -81,7 +81,7 @@ importers:
 
   examples/content/hot-reload:
     dependencies:
-      '@af-examples/base-2d':
+      '@af-games/emberwick':
         specifier: workspace:*
         version: link:../../../games/emberwick
       '@fontsource/pixelify-sans':

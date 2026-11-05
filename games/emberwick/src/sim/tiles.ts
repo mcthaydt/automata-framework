@@ -57,6 +57,6 @@ export function roomOf(content: unknown): RoomGrid {
     typeof room.goal?.tx !== 'number' ||
     typeof room.start?.tx !== 'number'
   )
-    throw new Error('base-2d: the sim content has no room')
+    throw new Error('emberwick: the sim content has no room')
   return room
 }

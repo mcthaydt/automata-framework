@@ -1,4 +1,4 @@
-import { parseRoom, type RoomSource } from '@af-examples/base-2d/room'
+import { parseRoom, type RoomSource } from '@af-games/emberwick/room'
 import { defineContentSchema } from '@mcthaydt/automata-content'
 import { z } from 'zod'
 

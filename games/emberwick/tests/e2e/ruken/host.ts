@@ -1,4 +1,4 @@
-// The e2e host page: Ruken's own fake host (`@ruken/sdk-host/testing`, real-iframe mode) around base-2d,
+// The e2e host page: Ruken's own fake host (`@ruken/sdk-host/testing`, real-iframe mode) around emberwick,
 // which is served on another origin. Test-only; never part of a build that ships.
 import { createFakeHost } from '@ruken/sdk-host/testing'
 import { GAME_ID } from '#src/game-id.ts'

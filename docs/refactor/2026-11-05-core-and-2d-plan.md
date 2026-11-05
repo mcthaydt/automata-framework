@@ -532,14 +532,14 @@ Then:
 
 ### Task 6.1: Emberwick is Emberwick
 
-- [ ] **Step 1: Failing test** in `games/emberwick/tests/unit/ship-config.test.ts`: id `emberwick`, title
+- [x] **Step 1: Failing test** in `games/emberwick/tests/unit/ship-config.test.ts`: id `emberwick`, title
   `Emberwick`.
-- [ ] **Step 2:** Package `@af-games/emberwick`; id in `ship.config.ts` and `src/game.ts`; the sim plugin
+- [x] **Step 2:** Package `@af-games/emberwick`; id in `ship.config.ts` and `src/game.ts`; the sim plugin
   `base-2d.plugin.ts` → `emberwick.plugin.ts` with `name: 'emberwick'`; the golden evidence scenario name; CI job
   name `emberwick`; `pnpm --filter` uses everywhere, including the hot-reload demo's dependency and imports,
   `check-boundaries`' tests and `ship`'s `workflows.test.ts` (`grep -rn "base-2d" --exclude-dir=node_modules` lists
   none in core or 2D afterwards, except the history in `docs/archive/` and `docs/refactor/`).
-- [ ] **Step 3: The golden hash.** The plugin name is part of the state hash (`sim/src/world/sim.ts`), so
+- [x] **Step 3: The golden hash.** The plugin name is part of the state hash (`sim/src/world/sim.ts`), so
   `golden.test.ts` now fails on `GOLDEN_HASH`. Confirm the route and `GOLDEN_GOAL_TICK` are unchanged, re-record the
   hash once in Node (`AUTOMATA_UPDATE_GOLDENS=1` or by hand in `golden.ts`, with the old hash in its comment like
   the earlier re-records), then run `test:browser`: Chromium, WebKit and Firefox must match the new hash. The

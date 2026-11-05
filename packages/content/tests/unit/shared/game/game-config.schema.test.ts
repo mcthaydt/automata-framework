@@ -5,7 +5,7 @@ import { GAME_ID_PATTERN, type GameConfig, gameConfigSchema } from '#src/shared/
 // manifest keys, kept as they are; `ruken/conformance.test.ts` holds AF's lists to Ruken's.
 
 const emberwick: GameConfig = {
-  game: { id: 'base-2d', title: 'AF Base 2D', version: '0.0.3', entry: 'index.html', sdk: '^0.0.0' },
+  game: { id: 'emberwick', title: 'Emberwick', version: '0.0.3', entry: 'index.html', sdk: '^0.0.0' },
   runtime: { renderer: 'webgl2', orientation: 'any', inputs: ['touch', 'keyboard'], pause_behavior: 'pause' },
   network: { connect: [] },
   content: { languages: ['en'], rating: 'everyone', descriptors: [] },
@@ -29,7 +29,7 @@ describe('the game config schema', () => {
   })
 
   it('takes a game id of lower-case letters, digits and hyphens, starting with a letter or digit, up to 64', () => {
-    for (const id of ['base-2d', 'a', '9lives', 'x'.repeat(64)])
+    for (const id of ['emberwick', 'a', '9lives', 'x'.repeat(64)])
       expect(GAME_ID_PATTERN.test(id), id).toBe(true)
     for (const id of ['', '-lead', 'Upper', 'under_score', 'x'.repeat(65)])
       expect(GAME_ID_PATTERN.test(id), id).toBe(false)

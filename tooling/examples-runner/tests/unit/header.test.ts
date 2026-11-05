@@ -66,7 +66,7 @@ describe('parseHeader', () => {
 
   it('rejects an unknown tier, a bad golden and an unknown field', () => {
     const source = full.replace('Tier: core', 'Tier: gold').replace('Golden: 120', 'Golden: soon')
-    const withBase = source.replace('// Pending: DX.2', '// Pending: DX.2\n// Base: base-2d')
+    const withBase = source.replace('// Pending: DX.2', '// Pending: DX.2\n// Base: emberwick')
     expect(errors(withBase).map((error) => error.field)).toEqual(['Tier', 'Golden', 'Base'])
   })
 

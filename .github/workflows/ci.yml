@@ -241,7 +241,7 @@ jobs:
       - run: pnpm exec playwright install chromium webkit firefox
         if: runner.environment == 'self-hosted'
       - name: 2D journeys
-        run: pnpm test:e2e --filter @af-examples/base-2d --filter @af-examples/examples
+        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
@@ -332,8 +332,8 @@ jobs:
           path: frame-budget-results/
           retention-days: 30
 
-  base-2d:
-    name: base-2d through game-ci
+  emberwick:
+    name: emberwick through game-ci
     needs: checks
     if: >-
       !cancelled() &&
@@ -345,5 +345,5 @@ jobs:
     with:
       working-directory: games/emberwick
       sim-roots: src/sim
-      artifact-name: base-2d-dist
+      artifact-name: emberwick-dist
       runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}

@@ -116,7 +116,7 @@ describe("Emberwick's plumbing, measured from main.ts", () => {
       'src/game.ts',
       'src/flow.ts',
       'src/screens/emberwick-screens.ts',
-      'src/sim/base-2d.plugin.ts',
+      'src/sim/emberwick.plugin.ts',
       'src/render/scene.ts',
       'src/render/scene-renderer.ts',
       'src/content/room.ts',

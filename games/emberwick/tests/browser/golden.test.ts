@@ -11,5 +11,5 @@ it('the golden route ends on the recorded hash in this browser', async ({ task }
   expect(result.hash).toBe(GOLDEN_HASH)
   // The hash this engine computed, for the evidence file (DX.9).
   const { seed, ticks, hash } = result
-  recordGoldenEvidence(task, { scenario: 'base-2d/golden-route', seed, ticks, hash })
+  recordGoldenEvidence(task, { scenario: 'emberwick/golden-route', seed, ticks, hash })
 })

@@ -8,7 +8,7 @@ import { EMBERWICK_FLOW } from './flow.ts'
 import { GAME_ID } from './game-id.ts'
 import { sceneRenderer, type WickAt } from './render/scene-renderer.ts'
 import { emberwickScreens } from './screens/emberwick-screens.ts'
-import { base2dPlugin, Move } from './sim/index.ts'
+import { emberwickPlugin, Move } from './sim/index.ts'
 import { placeWick } from './sim/place-wick.ts'
 import type { Tuning } from './sim/tuning.ts'
 
@@ -43,7 +43,7 @@ function showWick(at: WickAt): void {
 /** `id` is Ruken's game id, which the host checks against `[game] id` in ship.config.ts (default: `GAME_ID`). */
 export function makeEmberwick(content: EmberwickContent, { id = GAME_ID }: { readonly id?: string } = {}) {
   const { room } = content
-  const sim = { plugins: [base2dPlugin], seed: 1, setup: (made: Sim) => placeWick(made, room) }
+  const sim = { plugins: [emberwickPlugin], seed: 1, setup: (made: Sim) => placeWick(made, room) }
   return defineGame({
     id,
     title: 'Emberwick',

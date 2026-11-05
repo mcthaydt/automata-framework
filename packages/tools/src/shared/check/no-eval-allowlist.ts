@@ -13,7 +13,7 @@
 //   which this scan cannot tell apart: the `boundaries` step's `koota-soa` rule fails that call in the sim, and the
 //   `csp` step fails it at runtime.
 //
-// Measured on the `examples/base-2d` production build at 71c3410: pixi.js 8.21.0, zod 4.6.5, koota 0.6.6; zod's probe
+// Measured on the `examples/emberwick` production build at 71c3410: pixi.js 8.21.0, zod 4.6.5, koota 0.6.6; zod's probe
 // matches unchanged in 4.6.6 (`automata check games/emberwick --csp` passes on it). The five pixi.js files are byte
 // for byte the same in 8.22.0 and the same check passes on it (M3.2). A new entry needs the package,
 // version, source location and why the call never runs under Ruken's CSP.

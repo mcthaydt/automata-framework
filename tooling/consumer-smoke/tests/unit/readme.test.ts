@@ -36,7 +36,7 @@ describe('unresolvedCommands', () => {
     expect(problems).toEqual([
       'pnpm no-such-script: the root package.json has no "no-such-script" script',
       'pnpm --filter @af-examples/missing dev: no workspace package is named "@af-examples/missing"',
-      'pnpm --filter @af-examples/base-2d serve: @af-examples/base-2d has no "serve" script',
+      'pnpm --filter @af-games/emberwick serve: @af-games/emberwick has no "serve" script',
       'node tooling/missing/src/run.ts: tooling/missing/src/run.ts does not exist',
       'make all: not a command this check knows (git clone, cd, corepack enable, pnpm, node)',
     ])

@@ -7,7 +7,7 @@ import { parseRoom, type RoomSource } from './room.ts'
 // from the compiled content (`virtual:automata/content`, the content plugin in vite.config.ts).
 
 const level = simContent.levels['room-1']
-if (level === undefined) throw new Error('base-2d: the compiled content has no level "room-1"')
+if (level === undefined) throw new Error('emberwick: the compiled content has no level "room-1"')
 
 /** The base's room as the editor exported it: the one the game plays. */
 export const ROOM: RoomSource = roomSourceOfLevel(level)

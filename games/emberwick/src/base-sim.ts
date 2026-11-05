@@ -1,8 +1,8 @@
 // Sets up the base's sim: the room as content, the plugin, and the character at the room's start. Demos and
-// games start from here (`@af-examples/base-2d`), then add their own plugins.
+// games start from here (`@af-games/emberwick`), then add their own plugins.
 import { type Command, createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
 import { parseRoom, type RoomSource } from './content/room.ts'
-import { base2dPlugin, type MoveInput, Player } from './sim/index.ts'
+import { emberwickPlugin, type MoveInput, Player } from './sim/index.ts'
 import { placeWick } from './sim/place-wick.ts'
 import { TICK_HZ, type Tuning } from './sim/tuning.ts'
 
@@ -22,7 +22,7 @@ export async function createBaseSim(options: BaseSimOptions): Promise<Sim> {
     seed: options.seed ?? 1,
     tickHz: TICK_HZ,
     content: { room, tuning: options.tuning },
-    plugins: [base2dPlugin, ...(options.plugins ?? [])],
+    plugins: [emberwickPlugin, ...(options.plugins ?? [])],
   })
   placeWick(sim, room)
   return sim
@@ -43,6 +43,6 @@ export function readPlayer(sim: Sim): Readonly<{
   grounded: boolean
 }> {
   const [player] = sim.query(Player)
-  if (player === undefined) throw new Error('base-2d: the sim has no player')
+  if (player === undefined) throw new Error('emberwick: the sim has no player')
   return player.get(Player)
 }
