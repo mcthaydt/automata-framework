@@ -4,8 +4,6 @@
 // changes in place: a rebind, a pad connecting, a device switch or a capture's countdown never remount it.
 
 import { Effect, Either, Fiber, Runtime, Schedule, Stream, SubscriptionRef } from 'effect'
-import { Audio } from '../../../features/audio/audio.manager.ts'
-import { AudioBuses } from '../../../features/audio/audio-buses.ts'
 import { resolveExtensions } from '../../../features/extension/resolve-extensions.ts'
 import { inputSettingsSchema } from '../../../features/input/bindings/input-settings.schema.ts'
 import { Haptics } from '../../../features/input/haptics/haptics.manager.ts'
@@ -22,7 +20,7 @@ import { InputMethodTracker } from '../../../shared/ui/browser/input-method.svel
 import { reducedMotion } from '../../../shared/ui/browser/reduced-motion.ts'
 import { sendBack } from '../../../shared/ui/focus/back-gesture.ts'
 import { readKeyboardLayout } from '../../../shared/ui/prompts/prompt-label.ts'
-import { Locale, Settings } from '../../boot/effect-tags.ts'
+import { Audio, AudioBuses, Locale, Settings } from '../../boot/effect-tags.ts'
 import { Flow } from '../../flow/flow.manager.ts'
 import type { ScreenDef } from '../../flow/screen.ts'
 import type { ScreensGame } from '../default-screens.ts'
@@ -114,7 +112,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           hapticsSupported: haptics.supported,
           hapticsEnabled: savedHaptics(store),
           localeChoice: locale.choice,
-          audioAvailable: yield* audio.available.get,
+          audioAvailable: audio.available.get(),
           hostVolumeBelowFull: (yield* hosting.audio.get).master.volume < 1,
           reducedMotion: reducedMotion(target),
         })
@@ -146,13 +144,10 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         )
 
         // Sound that fails to start, and the host's volume, change the Audio group in place.
-        yield* Effect.forkScoped(
-          Stream.runForEach(audio.available.changes, (available) =>
-            Effect.sync(() => {
-              view.audioAvailable = available
-            }),
-          ),
-        )
+        const stopAvailable = audio.available.subscribe((available) => {
+          view.audioAvailable = available
+        })
+        yield* Effect.addFinalizer(() => Effect.sync(stopAvailable))
         yield* Effect.forkScoped(
           Stream.runForEach(hosting.audio.changes, (change) =>
             Effect.sync(() => {

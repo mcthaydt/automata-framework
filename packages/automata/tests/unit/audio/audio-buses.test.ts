@@ -1,15 +1,14 @@
-import { Context, Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import {
   AUDIO_BUS_NAMES,
   type AudioBusGains,
   audioBusGainsSchema,
 } from '#src/features/audio/audio-buses.schema.ts'
-import { AudioBuses, type AudioBusName } from '#src/features/audio/audio-buses.ts'
+import type { AudioBuses, AudioBusName } from '#src/features/audio/audio-buses.ts'
 
 // Audio buses (PRODUCT spec §2 F1, §3 "Audio buses"): master over music, sfx and ui. The Web Audio graph
 // behind the port is M5's core audio; an extension (Plus `audio-stream`) or the game connects sources to a
-// bus through the tag, and a settings screen stores the gains.
+// bus through the port, and a settings screen stores the gains.
 
 describe('audio bus gains', () => {
   it('names master and the buses under it, with voice (M5-D3)', () => {
@@ -34,7 +33,7 @@ describe('audio bus gains', () => {
 })
 
 describe('the AudioBuses port', () => {
-  it('lets extension code route a source to a bus and set its gain through the tag', () => {
+  it('lets extension code route a source to a bus and set its gain through the port', () => {
     // A stand-in for M5's Web Audio implementation, as a test or a game without M5 would write it.
     const gains: AudioBusGains = audioBusGainsSchema.parse({})
     const connected: Array<{ source: string; bus: AudioBusName }> = []
@@ -46,15 +45,14 @@ describe('the AudioBuses port', () => {
       },
     }
 
-    const musicExtension = Effect.gen(function* () {
-      const audio = yield* AudioBuses
+    const musicExtension = (audio: AudioBuses) => {
       const input = audio.input('music') as unknown as { bus: AudioBusName }
       connected.push({ source: 'menu-theme', bus: input.bus })
       audio.setGain('music', 0.5)
       return audio.gain('music')
-    })
+    }
 
-    const gain = Effect.runSync(musicExtension.pipe(Effect.provide(Context.make(AudioBuses, buses))))
+    const gain = musicExtension(buses)
     expect(connected).toEqual([{ source: 'menu-theme', bus: 'music' }])
     expect(gain).toBe(0.5)
   })

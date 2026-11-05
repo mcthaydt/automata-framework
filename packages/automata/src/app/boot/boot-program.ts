@@ -2,8 +2,7 @@
 import { makeHosting } from '@mcthaydt/automata/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { Context, Duration, Effect, ExecutionStrategy, Layer, Scope, Stream } from 'effect'
-import { Audio, makeAudio } from '../../features/audio/audio.manager.js'
-import { AudioBuses } from '../../features/audio/audio-buses.js'
+import { createAudio } from '../../features/audio/audio.manager.js'
 import { playEventSounds } from '../../features/audio/event-sounds.js'
 import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
 import { resolveExtensions } from '../../features/extension/resolve-extensions.js'
@@ -14,7 +13,7 @@ import { browserLanguages, createLocale, singleLocale } from '../../features/loc
 import { savesKept } from '../../features/saves/save.manager.js'
 import { makeSaves, Saves } from '../../features/saves/saves.manager.js'
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
-import { plainSaves } from '../../shared/host/effect-bridge.ts'
+import { plainAudioHosting, plainSaves } from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
 import { Hosting, type HostingOptions } from '../../shared/host/hosting.ts'
 import { Assets, makeAssets } from '../../shared/runtime/assets.manager.js'
@@ -40,7 +39,7 @@ import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.sve
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
-import { Locale, Settings } from './effect-tags.ts'
+import { Audio, AudioBuses, Locale, Settings } from './effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
@@ -315,8 +314,8 @@ export function bootProgram<S>(
     )
 
     // Built now and silent until the first gesture after ready.
-    const audio = yield* makeAudio({
-      hosting,
+    const audio = createAudio({
+      hosting: plainAudioHosting(hosting),
       assets,
       bus,
       window: win,
@@ -326,6 +325,7 @@ export function bootProgram<S>(
         : { createContext: game.seams.createAudioContext }),
       ...(game.seams?.fetch === undefined ? {} : { fetch: game.seams.fetch }),
     })
+    yield* Effect.addFinalizer(() => Effect.sync(() => audio.dispose()))
     if (game.sounds !== undefined) {
       const stopSounds = playEventSounds(bus, audio, game.sounds)
       yield* Effect.addFinalizer(() => Effect.sync(stopSounds))

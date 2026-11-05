@@ -71,21 +71,11 @@ interface AppLoop {
 const AppLoop: Context.Tag<AppLoop, AppLoop>;
 ```
 
-### `Audio` (interface)
+### `Audio` (type)
 
 ```ts
-interface Audio {
-    readonly unlocked: Subscribable.Subscribable<boolean>;
-    readonly available: Subscribable.Subscribable<boolean>;
-    sound(alias: string, options?: SoundOptions): void;
-    music(alias: string, options?: MusicOptions): Effect.Effect<void, AudioDecodeFailed | AssetLoadFailed>;
-    stopMusic(fadeSeconds?: number): void;
-    duck(bus: AudioBusName, amount: number, seconds: number): void;
-    setMuted(muted: boolean): void;
-    sample(bus: AudioBusName): void;
-    setMuteUnfocused(muteUnfocused: boolean): void;
-}
-const Audio: Context.Tag<Audio, Audio>;
+type Audio = AudioService;
+const Audio: Context.Tag<AudioService, AudioService>;
 ```
 
 ### `AUDIO_BUS_NAMES` (const)
@@ -94,15 +84,11 @@ const Audio: Context.Tag<Audio, Audio>;
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
-### `AudioBuses` (interface)
+### `AudioBuses` (type)
 
 ```ts
-interface AudioBuses {
-    input(bus: AudioBusName): AudioNode;
-    gain(bus: AudioBusName): number;
-    setGain(bus: AudioBusName, gain: number): void;
-}
-const AudioBuses: Context.Tag<AudioBuses, AudioBuses>;
+type AudioBuses = AudioBusesService;
+const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
 ```
 
 ### `audioBusGainsSchema` (const)

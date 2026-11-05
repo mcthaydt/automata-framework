@@ -1,4 +1,3 @@
-import { Context } from 'effect'
 import type { AudioBusName } from './audio-buses.schema.js'
 
 export type { AudioBusName } from './audio-buses.schema.js'
@@ -17,8 +16,3 @@ export interface AudioBuses {
   /** Sets the player's gain for `bus`, 0..1. Persisting it is the game's settings' job. */
   setGain(bus: AudioBusName, gain: number): void
 }
-
-/** The `AudioBuses` service tag. The Audio service implements it. */
-export const AudioBuses: Context.Tag<AudioBuses, AudioBuses> = Context.GenericTag<AudioBuses>(
-  '@mcthaydt/automata-runtime/AudioBuses',
-)

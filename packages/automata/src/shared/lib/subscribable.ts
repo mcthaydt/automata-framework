@@ -71,3 +71,22 @@ export function emitter<A>(owner?: Disposables): { emit(value: A): void; readonl
     },
   }
 }
+
+/** A value the owner sets and others observe: `set` with an equal value (`Object.is`) tells nobody. */
+export function state<A>(initial: A): Subscribable<A> & { set(value: A): void } {
+  let value = initial
+  const { emit, events } = emitter<A>()
+  return {
+    get: () => value,
+    set(next) {
+      if (Object.is(next, value)) return
+      value = next
+      emit(next)
+    },
+    subscribe(listener) {
+      const stop = events.subscribe(listener)
+      listener(value)
+      return stop
+    },
+  }
+}

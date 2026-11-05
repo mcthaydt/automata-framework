@@ -1,12 +1,9 @@
-import { Effect, Exit, Scope } from 'effect'
 import { expect, test } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
-import { makeAudio } from '#src/features/audio/audio.manager.ts'
+import { createAudio } from '#src/features/audio/audio.manager.ts'
 import { type AudioContextLike, AudioGraph } from '#src/features/audio/audio-graph.ts'
-import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { Hosting } from '../../../src/shared/host/hosting.ts'
-import { HostingTest } from '../../../src/testing/host/page/ruken/hosting-test.ts'
-import { runScoped } from '../../../src/testing/host/page/run.ts'
+import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import { withHostingTest } from '../../../src/testing/host/page/ruken/hosting-test.ts'
 
 // The Audio service on each engine's real Web Audio (M5.3 plan step 9), in Chromium, WebKit and Firefox: the
 // unlock on a real gesture, and the graph's levels rendered offline, where the samples can be read.
@@ -15,38 +12,35 @@ import { runScoped } from '../../../src/testing/host/page/run.ts'
 // `resume()` ("Failed to start the audio device") and Firefox's never settles (probed 2026-10-17). The offline
 // render needs no device and runs everywhere; sound on a real iPhone is an Owner gate (M5 spec §13).
 test.runIf(server.browser === 'chromium')(
-  'a real AudioContext unlocks on the first gesture after ready and closes with the scope',
+  'a real AudioContext unlocks on the first gesture after ready and closes when disposed',
   async () => {
     const contexts: AudioContext[] = []
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        yield* hosting.ready
-        const bus = yield* makePresentationBus()
-        const unlockedFacts: unknown[] = []
-        bus.subscribe('audio.unlocked', (fact) => unlockedFacts.push(fact))
-        const scope = yield* Scope.make()
-        const audio = yield* makeAudio({
-          hosting,
-          bus,
-          assets: { get: () => undefined },
-          createContext: () => {
-            const context = new AudioContext()
-            contexts.push(context)
-            return context
-          },
-        }).pipe(Scope.extend(scope))
-        expect(contexts).toEqual([])
+    await withHostingTest(async ({ hosting }) => {
+      await hosting.ready
+      const bus = createPresentationBus()
+      const unlockedFacts: unknown[] = []
+      bus.subscribe('audio.unlocked', (fact) => unlockedFacts.push(fact))
+      const audio = createAudio({
+        hosting,
+        bus,
+        assets: { get: () => undefined },
+        createContext: () => {
+          const context = new AudioContext()
+          contexts.push(context)
+          return context
+        },
+      })
+      expect(contexts).toEqual([])
 
-        yield* Effect.promise(() => userEvent.click(document.body))
-        yield* Effect.promise(() => waitFor(() => Effect.runSync(audio.unlocked.get)))
-        expect(contexts.map((context) => context.state)).toEqual(['running'])
-        expect(unlockedFacts).toEqual([{}])
+      await userEvent.click(document.body)
+      await waitFor(() => audio.unlocked.get())
+      expect(contexts.map((context) => context.state)).toEqual(['running'])
+      expect(unlockedFacts).toEqual([{}])
 
-        yield* Scope.close(scope, Exit.void)
-        yield* Effect.promise(() => waitFor(() => contexts[0]?.state === 'closed'))
-      }).pipe(Effect.provide(HostingTest())),
-    )
+      audio.dispose()
+      bus.dispose()
+      await waitFor(() => contexts[0]?.state === 'closed')
+    })
   },
 )
 

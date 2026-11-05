@@ -115,36 +115,13 @@ interface AppLoop {
 const AppLoop: Context.Tag<AppLoop, AppLoop>;
 ```
 
-#### `Audio` (interface)
+#### `Audio` (type)
 
-The audio service: one-shot sounds and looping music on the audio buses, unlocked by the
-first gesture after `session.ready`; the game runs silent when no audio context can be built.
+The audio service, as the runtime's context holds it.
 
 ```ts
-interface Audio {
-    /** False until the first gesture after `session.ready` builds and resumes the graph. */
-    readonly unlocked: Subscribable.Subscribable<boolean>;
-    /** False once a context could not be built (`audio.unavailable`): the game runs silent, and Settings says so. */
-    readonly available: Subscribable.Subscribable<boolean>;
-    /** Plays the asset at `alias` once. Fire and forget: silent before the unlock, while asleep, or if it fails. */
-    sound(alias: string, options?: SoundOptions): void;
-    /** Loops the asset at `alias` on the music bus. Asked for before the unlock, it starts on the unlock. */
-    music(alias: string, options?: MusicOptions): Effect.Effect<void, AudioDecodeFailed | AssetLoadFailed>;
-    /** Fades the music out over `fadeSeconds`, a click-free cut by default. */
-    stopMusic(fadeSeconds?: number): void;
-    /** Takes `bus` down by `amount` (0..1) for `seconds`; `master` ducks every bus. */
-    duck(bus: AudioBusName, amount: number, seconds: number): void;
-    /** The player's mute: the master only, so unmuting restores the mix as it was. */
-    setMuted(muted: boolean): void;
-    /**
-     * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
-     * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
-     */
-    sample(bus: AudioBusName): void;
-    /** The player's "mute when in the background": silences the master while another window has focus. */
-    setMuteUnfocused(muteUnfocused: boolean): void;
-}
-const Audio: Context.Tag<Audio, Audio>;
+type Audio = AudioService;
+const Audio: Context.Tag<AudioService, AudioService>;
 ```
 
 #### `AUDIO_BUS_NAMES` (const)
@@ -156,24 +133,13 @@ the set is an API change.
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
-#### `AudioBuses` (interface)
+#### `AudioBuses` (type)
 
-The audio-bus seam. Core audio implements it over Web Audio (a gain node per bus
-into `master`, combined there with `Hosting.audio`'s volume and focus); an extension such as Plus
-`audio-stream`, or the game, connects its sources to `input(bus)` and never to the destination directly,
-so the player's gains and the host's ducking always apply.
-The `AudioBuses` service tag. The Audio service implements it.
+The audio-bus seam (the audio service implements it), as the runtime's context holds it.
 
 ```ts
-interface AudioBuses {
-    /** The node a source connects to so that it plays on `bus`. */
-    input(bus: AudioBusName): AudioNode;
-    /** The player's current gain for `bus`, 0..1. */
-    gain(bus: AudioBusName): number;
-    /** Sets the player's gain for `bus`, 0..1. Persisting it is the game's settings' job. */
-    setGain(bus: AudioBusName, gain: number): void;
-}
-const AudioBuses: Context.Tag<AudioBuses, AudioBuses>;
+type AudioBuses = AudioBusesService;
+const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
 ```
 
 #### `audioBusGainsSchema` (const)
@@ -1937,30 +1903,13 @@ const LoaderOverlay: import("svelte").Component<Props, {}, "">;
 type LoaderOverlay = ReturnType<typeof LoaderOverlay>;
 ```
 
-#### `Locale` (interface)
+#### `Locale` (type)
 
-The locale service: the game's locales, the one text is drawn in now, the player's choice
-and the text direction.
+The locale service, as the runtime's context holds it.
 
 ```ts
-interface Locale {
-    /** The game's locales, in its own order (the picker's order). */
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-    /** The locale text is drawn in now. */
-    readonly current: string;
-    /** The player's pick: one of `locales`, or null for Automatic (nothing saved, or a saved locale the game dropped). */
-    readonly choice: string | null;
-    readonly direction: 'ltr' | 'rtl';
-    /** Svelte store contract: called at once with the current locale, then on each change. */
-    subscribe(listener: (locale: string) => void): () => void;
-    /**
-     * The picker's one call: one of `locales`, or null for Automatic. Saved through `Hosting.saves`.
-     * A locale the game does not ship throws: the picker only offers `locales`.
-     */
-    set(choice: string | null): void;
-}
-const Locale: Context.Tag<Locale, Locale>;
+type Locale = LocaleService;
+const Locale: Context.Tag<LocaleService, LocaleService>;
 ```
 
 #### `MAX_TURN_UNITS_PER_STEP` (const)
@@ -2881,17 +2830,13 @@ const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
 ```
 
-#### `Settings` (interface)
+#### `Settings` (type)
 
-The booted game's settings as a runtime service: its key and store, both undefined for a game without
-settings.
+The booted game's settings, as the runtime's context holds them.
 
 ```ts
-interface Settings {
-    readonly key: string | undefined;
-    readonly store: SettingsStore<unknown> | undefined;
-}
-const Settings: Context.Tag<Settings, Settings>;
+type Settings = SettingsService;
+const Settings: Context.Tag<SettingsService, SettingsService>;
 ```
 
 #### `SettingsDef` (interface)
@@ -2909,7 +2854,7 @@ interface SettingsDef<S> {
     /**
      * Fields that belong to one device: kept in its `DeviceStorage`, never in the player's saves, and the saves'
      * copy is never read. The rest of the record is the player's, as for any settings. Names, not
-     * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `makeSettings`
+     * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `createSettings`
      * refuses a name the defaults do not have.
      */
     readonly deviceFields?: readonly string[];
@@ -2933,11 +2878,10 @@ interface SettingsScreenCopy {
 
 #### `settingsStore` (function)
 
-Returns the booted settings store when def.key matches.
-Dies with a defect if requested key does not match booted key (planning note 7).
+Returns the booted settings store when `def.key` matches; dies with a defect when it does not.
 
 ```ts
-function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
+function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, SettingsService>;
 ```
 
 #### `Sheet` (const)

@@ -14,9 +14,9 @@
 - `AnalogReading` (interface): The analog input at one fixed step, read once after `Input.poll()`.
 - `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans.
 - `AppLoop` (interface): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
-- `Audio` (interface): The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
+- `Audio` (type): The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
 - `AUDIO_BUS_NAMES` (const): The core audio buses: `master` carries the other four, `voice` is announcers and dialogue.
-- `AudioBuses` (interface): The audio-bus seam.
+- `AudioBuses` (type): The audio-bus seam.
 - `audioBusGainsSchema` (const): Validates saved bus gains; a bus left out is at full gain.
 - `AudioChange` (interface): The host's audio state: focus (an ad or overlay may duck or mute the game), the master volume, and the gain.
 - `AudioChangeSchema` (const): Checks an audio change.
@@ -129,7 +129,7 @@
 - `LifecyclePayloadSchema` (const): Checks a lifecycle change.
 - `LifecycleReason` (type): Why the game is in the background.
 - `LoaderOverlay` (const): The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty `ui/components/LoaderOverlay.svelte` at 122a220).
-- `Locale` (interface): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
+- `Locale` (type): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `measureGeometry(input)`: Turns what the browser and the host report into one `Geometry`.
 - `Modal` (const): A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty `ui/components/Modal.svelte` at ac72660).
@@ -181,10 +181,10 @@
 - `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
 - `ScrollList` (const): A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
-- `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
+- `Settings` (type): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
 - `SettingsScreenCopy` (interface): The Settings screen's own words: its title, Back, the tabs and the overflow count.
-- `settingsStore(def)`: Returns the booted settings store when def.key matches.
+- `settingsStore(def)`: Returns the booted settings store when `def.key` matches; dies with a defect when it does not.
 - `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
 - `SimContext` (interface): What a system's `run` receives each tick.

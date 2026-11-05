@@ -5,12 +5,10 @@ import { Effect, Exit, Fiber, Scope, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { bootProgram, contentHashOf } from '#src/app/boot/boot-program.ts'
-import { settingsStore } from '#src/app/boot/effect-tags.ts'
+import { Audio, AudioBuses, settingsStore } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { CORE_SETTINGS, type CoreSettings } from '#src/app/core-settings.ts'
 import type { ScreenDef } from '#src/app/flow/screen.ts'
-import { Audio } from '#src/features/audio/audio.manager.ts'
-import { AudioBuses } from '#src/features/audio/audio-buses.ts'
 import { type FakeAudioContext, fakeAudioContext } from '#src/features/audio/testing/fake-audio-context.ts'
 import { createHaptics, Haptics } from '#src/features/input/haptics/haptics.manager.ts'
 import { Leaderboards } from '#src/features/leaderboards/leaderboards.manager.ts'
@@ -1013,7 +1011,7 @@ describe('bootProgram', () => {
       window.dispatchEvent(new Event('pointerdown'))
       yield* Effect.promise(() => settle(2))
       expect(contexts).toHaveLength(1)
-      expect(yield* seen.audio!.unlocked.get).toBe(true)
+      expect(seen.audio!.unlocked.get()).toBe(true)
 
       seen.bus!.publish('sim.events', [{ type: 'chime', payload: {} }])
       yield* Effect.promise(() => settle(2))

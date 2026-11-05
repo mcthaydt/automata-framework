@@ -1,6 +1,4 @@
 import type { Effect, Scope } from 'effect'
-import type { Audio } from '../../features/audio/audio.manager.js'
-import type { AudioBuses } from '../../features/audio/audio-buses.js'
 import type { Haptics } from '../../features/input/haptics/haptics.manager.js'
 import type { Leaderboards } from '../../features/leaderboards/leaderboards.manager.js'
 import type { Locale } from '../../features/locale/locale.manager.js'
@@ -13,6 +11,7 @@ import type { PresentationBus } from '../../shared/runtime/presentation/presenta
 import type { GameRenderer } from '../../shared/runtime/render/renderer.js'
 import type { Settings } from '../../shared/runtime/settings/settings.manager.js'
 import type { Time } from '../../shared/runtime/time/time.manager.js'
+import type { Audio, AudioBuses } from '../boot/effect-tags.ts'
 import type { Flow } from './flow.manager.js'
 
 /** What a screen's `enter` is given: the layer to mount into, and the screen it came from. */

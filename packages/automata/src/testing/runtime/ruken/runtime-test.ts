@@ -6,7 +6,7 @@ import type { CompiledContentData } from '../../../app/boot/game-definition.js'
 import { makeFlow } from '../../../app/flow/flow.manager.js'
 import type { RuntimeServices, ScreenDef } from '../../../app/flow/screen.js'
 import { makeVeil } from '../../../app/flow/veil.js'
-import { makeAudio } from '../../../features/audio/audio.manager.js'
+import { createAudio } from '../../../features/audio/audio.manager.js'
 import type { AudioContextLike } from '../../../features/audio/audio-graph.js'
 import { fakeAudioContext } from '../../../features/audio/testing/fake-audio-context.js'
 import { createHaptics } from '../../../features/input/haptics/haptics.manager.js'
@@ -14,7 +14,7 @@ import { makeLeaderboards } from '../../../features/leaderboards/leaderboards.ma
 import { createLocale, type LocaleDef, singleLocale } from '../../../features/locale/locale.manager.js'
 import type { SaveDef } from '../../../features/saves/save.schema.js'
 import { makeSaves } from '../../../features/saves/saves.manager.js'
-import { plainSaves } from '../../../shared/host/effect-bridge.ts'
+import { plainAudioHosting, plainSaves } from '../../../shared/host/effect-bridge.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
 import { makeAssets } from '../../../shared/runtime/assets.manager.js'
 import type { BootError } from '../../../shared/runtime/boot-error.js'
@@ -220,8 +220,8 @@ export function RuntimeTest(
         reducedMotion: () => false,
       })
       // A page without a DOM (Node) still gets an Audio: it is never unlocked, so it stays silent.
-      const audio = yield* makeAudio({
-        hosting,
+      const audio = createAudio({
+        hosting: plainAudioHosting(hosting),
         assets,
         bus,
         window: win ?? new EventTarget(),
@@ -229,6 +229,7 @@ export function RuntimeTest(
         createContext: options.createAudioContext ?? (() => fakeAudioContext()),
         ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
       })
+      yield* Effect.addFinalizer(() => Effect.sync(() => audio.dispose()))
 
       let runtimeContext: Context.Context<RuntimeServices | FakeHostHandle> =
         Context.empty() as Context.Context<RuntimeServices | FakeHostHandle>

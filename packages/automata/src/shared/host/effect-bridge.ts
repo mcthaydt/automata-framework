@@ -207,3 +207,38 @@ export function plainSaves(saves: EffectHosting['saves']): Pick<HostingSaves, 'g
     remove: (key) => run(saves.remove(key)),
   }
 }
+
+/** The Effect `Hosting.ready` as the plain promise a converted feature waits on. */
+export function plainReady(ready: EffectHosting['ready']): Promise<HostResult<void>> {
+  return Effect.runPromise(
+    Effect.match(ready, {
+      onSuccess: (): HostResult<void> => ok(undefined),
+      onFailure: (error): HostResult<void> =>
+        refuse(error.code, error.retryable, error.operation, error.cause),
+    }),
+  )
+}
+
+/** An Effect `Subscribable` the runtime still holds as the plain one (its current value, then each change). */
+export function plainObserved<A>(source: Subscribable.Subscribable<A>): PlainSubscribable<A> {
+  return {
+    get: () => Effect.runSync(source.get),
+    subscribe(listener) {
+      const fiber = Effect.runFork(
+        Stream.runForEach(source.changes, (value) => Effect.sync(() => listener(value))),
+      )
+      return () => void Effect.runFork(Fiber.interrupt(fiber))
+    },
+  }
+}
+
+/** What the audio service listens to, from the Effect `Hosting`. */
+export function plainAudioHosting(
+  hosting: Pick<EffectHosting, 'ready' | 'lifecycle' | 'audio'>,
+): Pick<Hosting, 'ready' | 'lifecycle' | 'audio'> {
+  return {
+    ready: plainReady(hosting.ready),
+    lifecycle: plainObserved(hosting.lifecycle),
+    audio: plainObserved(hosting.audio),
+  }
+}

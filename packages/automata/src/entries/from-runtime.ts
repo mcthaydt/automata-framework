@@ -1,6 +1,6 @@
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
 export { contentHashOf } from '../app/boot/boot-program.js'
-export { Locale, Settings, settingsStore } from '../app/boot/effect-tags.ts'
+export { Audio, AudioBuses, Locale, Settings, settingsStore } from '../app/boot/effect-tags.ts'
 export type {
   CompiledContentData,
   GameDefinition,
@@ -14,8 +14,6 @@ export {
 } from '../app/core-settings.js'
 export { Flow } from '../app/flow/flow.manager.js'
 export type { ScreenDef } from '../app/flow/screen.js'
-export { Audio } from '../features/audio/audio.manager.js'
-export { AudioBuses } from '../features/audio/audio-buses.js'
 export {
   AUDIO_BUS_NAMES,
   audioBusGainsSchema,
