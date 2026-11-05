@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { expect, it } from 'vitest'
 
-const CLI = join(import.meta.dirname, 'cli.ts')
+const CLI = join(import.meta.dirname, '../../src/cli.ts')
 const run = (dir: string) => spawnSync(process.execPath, [CLI, dir], { encoding: 'utf8', cwd: dir })
 
 function src(files: Record<string, string>): string {

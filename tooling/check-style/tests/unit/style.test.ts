@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { checkFile, checkGameRoot, MAX_SOURCE_LINES } from './style'
+import { checkFile, checkGameRoot, MAX_SOURCE_LINES } from '#src/style.ts'
 
 const sys =
   "import { defineSystem } from 'x'\nexport const moveSystem = defineSystem({ name: 'move', phase: 'gameplay', run() {} })\n"

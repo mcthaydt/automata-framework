@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { checkSvelte } from './svelte.ts'
+import { checkSvelte } from '#src/svelte.ts'
 
 // QB.2: `{@html}` is forbidden in `ui`, and kits never draw the host's chrome, sign-in or payment UI (QB spec §4.1,
 // §4.3; `ui` spec §3.11). No kit exists in core yet (PRODUCT.6 ships them in Automata Plus), so the rule is proven
 // on these fixtures.
-const FIXTURES = join(import.meta.dirname, 'testing', 'kit-fixtures')
+const FIXTURES = join(import.meta.dirname, '../fixtures/kit-fixtures')
 const fixture = (name: string) => {
   const file = join(FIXTURES, name)
   return checkSvelte(file, readFileSync(file, 'utf8'))
