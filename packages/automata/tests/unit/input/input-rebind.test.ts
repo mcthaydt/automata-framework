@@ -19,7 +19,7 @@ const profile: InputProfile = inputProfileSchema.parse({
   },
 })
 
-/** A settings store in memory, as `makeSettings` keeps it before the host write. */
+/** A settings store in memory, as `createSettings` keeps it before the host write. */
 function memoryStore(
   initial: Record<string, unknown> = {},
 ): SettingsStore<unknown> & { readonly writes: unknown[] } {

@@ -1,6 +1,6 @@
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
 export { contentHashOf } from '../app/boot/boot-program.js'
-export { Locale } from '../app/boot/effect-tags.ts'
+export { Locale, Settings, settingsStore } from '../app/boot/effect-tags.ts'
 export type {
   CompiledContentData,
   GameDefinition,
@@ -57,9 +57,5 @@ export type {
   RendererFactory,
   RenderTarget,
 } from '../shared/runtime/render/renderer.js'
-export {
-  Settings,
-  type SettingsDef,
-  settingsStore,
-} from '../shared/runtime/settings/settings.manager.js'
+export type { SettingsDef } from '../shared/runtime/settings/settings.manager.js'
 export { Time } from '../shared/runtime/time/time.manager.js'

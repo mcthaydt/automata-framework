@@ -30,7 +30,7 @@ import {
 } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import { type GameRenderer, Renderer, type RenderTarget } from '../../shared/runtime/render/renderer.js'
 import { liveDeviceStorage } from '../../shared/runtime/settings/device-storage.js'
-import { makeSettings, Settings } from '../../shared/runtime/settings/settings.manager.js'
+import { createSettings } from '../../shared/runtime/settings/settings.manager.js'
 import { makeTime, Time, watchLifecycle } from '../../shared/runtime/time/time.manager.js'
 import { installGlobalErrorHandlers } from '../../shared/ui/browser/global-errors.ts'
 import { lockOverscroll } from '../../shared/ui/browser/lock-overscroll.ts'
@@ -40,7 +40,7 @@ import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.sve
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
-import { Locale } from './effect-tags.ts'
+import { Locale, Settings } from './effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
@@ -212,7 +212,12 @@ export function bootProgram<S>(
     const deviceStorage =
       game.seams?.deviceStorage ??
       (typeof window === 'undefined' ? undefined : liveDeviceStorage(window, game.hosting.gameId))
-    const settingsService = yield* makeSettings(game.settings, rawSettings, hosting.saves, deviceStorage)
+    const settingsService = createSettings(
+      game.settings,
+      rawSettings,
+      plainSaves(hosting.saves),
+      deviceStorage,
+    )
 
     // Step 4: content hash verification
     const actualHash = contentHashOf(game.content.data)

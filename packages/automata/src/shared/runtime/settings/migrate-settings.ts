@@ -13,7 +13,7 @@ export interface SettingsDef<S> {
   /**
    * Fields that belong to one device: kept in its `DeviceStorage`, never in the player's saves, and the saves'
    * copy is never read. The rest of the record is the player's, as for any settings. Names, not
-   * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `makeSettings`
+   * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `createSettings`
    * refuses a name the defaults do not have.
    */
   readonly deviceFields?: readonly string[]

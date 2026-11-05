@@ -28,7 +28,7 @@ import {
 } from '../../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { GameRenderer, RendererFactory, RenderTarget } from '../../../shared/runtime/render/renderer.js'
 import type { DeviceStorage } from '../../../shared/runtime/settings/device-storage.js'
-import { makeSettings, type SettingsDef } from '../../../shared/runtime/settings/settings.manager.js'
+import { createSettings, type SettingsDef } from '../../../shared/runtime/settings/settings.manager.js'
 import { makeTime, watchLifecycle } from '../../../shared/runtime/time/time.manager.js'
 import { createGeometryOwner } from '../../../shared/ui/geometry/geometry-owner.svelte.ts'
 import { FakeHostHandle, HostingTest, type HostingTestOptions } from '../../host/page/ruken/hosting-test.ts'
@@ -141,10 +141,10 @@ export function RuntimeTest(
       if (options.settings !== undefined) {
         rawSettings = yield* hosting.saves.get(options.settings.key)
       }
-      const settingsService = yield* makeSettings(
+      const settingsService = createSettings(
         options.settings,
         rawSettings,
-        hosting.saves,
+        plainSaves(hosting.saves),
         options.deviceStorage ?? memoryDeviceStorage(),
       )
 

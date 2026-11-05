@@ -2,8 +2,10 @@ import { settle } from '@ruken/sdk-host/testing'
 import { Cause, Effect, Exit } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
+import { Settings, settingsStore } from '#src/app/boot/effect-tags.ts'
+import { plainSaves } from '#src/shared/host/effect-bridge.ts'
 import { type SettingsDef, writeSettings } from '#src/shared/runtime/settings/migrate-settings.ts'
-import { makeSettings, Settings, settingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
+import { createSettings } from '#src/shared/runtime/settings/settings.manager.ts'
 import { Hosting } from '../../../../../../src/shared/host/hosting.ts'
 import { FakeHostHandle, HostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
 import { runScoped } from '../../../../../../src/testing/host/page/run.ts'
@@ -36,7 +38,7 @@ describe('settings manager', () => {
         const hosting = yield* Hosting
         const { sentByGame } = yield* FakeHostHandle
 
-        const settingsService = yield* makeSettings(settingsDef, null, hosting.saves)
+        const settingsService = createSettings(settingsDef, null, plainSaves(hosting.saves))
         const store = yield* settingsStore(settingsDef).pipe(Effect.provideService(Settings, settingsService))
 
         store.update((prev) => ({ ...prev, volume: 0.5 }))
@@ -68,7 +70,7 @@ describe('settings manager', () => {
     await runScoped(
       Effect.gen(function* () {
         const hosting = yield* Hosting
-        const settingsService = yield* makeSettings(settingsDef, seededData, hosting.saves)
+        const settingsService = createSettings(settingsDef, seededData, plainSaves(hosting.saves))
         const store = yield* settingsStore(settingsDef).pipe(Effect.provideService(Settings, settingsService))
 
         expect(store.get()).toEqual({
@@ -90,7 +92,7 @@ describe('settings manager', () => {
     await runScoped(
       Effect.gen(function* () {
         const hosting = yield* Hosting
-        const settingsService = yield* makeSettings(settingsDef, corruptData, hosting.saves)
+        const settingsService = createSettings(settingsDef, corruptData, plainSaves(hosting.saves))
         const store = yield* settingsStore(settingsDef).pipe(Effect.provideService(Settings, settingsService))
 
         expect(store.get()).toEqual({
@@ -108,7 +110,7 @@ describe('settings manager', () => {
         const hosting = yield* Hosting
         const storageBefore = window.localStorage.length
 
-        const settingsService = yield* makeSettings(settingsDef, null, hosting.saves)
+        const settingsService = createSettings(settingsDef, null, plainSaves(hosting.saves))
         const store = yield* settingsStore(settingsDef).pipe(Effect.provideService(Settings, settingsService))
 
         // Large payload exceeding quota limit
@@ -129,7 +131,7 @@ describe('settings manager', () => {
     await runScoped(
       Effect.gen(function* () {
         const hosting = yield* Hosting
-        const settingsService = yield* makeSettings(settingsDef, null, hosting.saves)
+        const settingsService = createSettings(settingsDef, null, plainSaves(hosting.saves))
         const store = yield* settingsStore(settingsDef).pipe(Effect.provideService(Settings, settingsService))
 
         const values: PlayerSettings[] = []
@@ -157,7 +159,7 @@ describe('settings manager', () => {
     await runScoped(
       Effect.gen(function* () {
         const hosting = yield* Hosting
-        const settingsService = yield* makeSettings(settingsDef, null, hosting.saves)
+        const settingsService = createSettings(settingsDef, null, plainSaves(hosting.saves))
 
         // Matching key
         const store = yield* settingsStore(settingsDef).pipe(Effect.provideService(Settings, settingsService))
