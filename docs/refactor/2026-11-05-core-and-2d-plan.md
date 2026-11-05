@@ -971,3 +971,21 @@ the features it lacks are journeyed on the one-file examples that show them:
   both go when `app/` is converted. The public names are unchanged (the API report shows the two tags as type aliases of the
   same services). Verified: automata unit 1,830, `pnpm test:unit` 31 of 31, repo typecheck, boundaries, style, lint, knip,
   `api-report`; Emberwick journeys 28 of 28 in Chromium (phone, compact, iPad). Next: `audio`, then `saves` (session break).
+- **Task 5.4, part 2, sixth session, 2026-11-05 (PR `claude/refactor-2d-no-effect-2`).** `audio` and `saves` are plain
+  TypeScript, each test rewritten first and seen failing. `createAudio` returns the service with `dispose()`; `unlocked` and
+  `available` are plain `Subscribable`s (a new `state` helper in `shared/lib/subscribable.ts`), `music()` answers a `Result`,
+  and `AudioDecodeFailed` is a plain `Error`. The presentation bus gains `createPresentationBus` (the Effect
+  `makePresentationBus` wraps it until boot is converted). `saveService` answers `Result`s (the three save errors are plain
+  `Error`s; the host's refusal is its `HostRefusal`), a slot's writes take turns on a promise queue, and `createSaves` and a
+  plain `saveOf(saves, def)` replace `makeSaves` and the Effect `saveOf`. Deviation 70: `flushPending` is a method
+  (`flushPending()`) instead of an Effect value, the interval timer re-arms before it writes (fixed rate rather than "sleep
+  after each write"; writes of a slot still queue and collapse), and `dispose()` returns a promise: it stops the triggers,
+  then flushes once more. Deviation 71: the `Audio`, `AudioBuses` and `Saves` tags join `app/boot/effect-tags.ts`, with
+  `openSaves` (the save timed on the Effect clock, so a `TestClock` still moves it); the effect bridge gains `plainReady`,
+  `plainObserved`, `plainAudioHosting` and `toPlainHosting`. While the tag lives there, the public `AudioBuses` type is spelled
+  out member by member (each typed by the feature's interface), because the API report's seam check (`seams.test.ts`) reads
+  the members from the declaration; a bare alias turned CI's unit job red on the audio commit, fixed in `c04786b8`. Verified:
+  automata unit 1,831, repo typecheck 33 of 33, lint, boundaries, style, knip, `api-report` tests 65 of 65; browser (Chromium)
+  `tests/browser/audio` 2 of 2 and `tests/browser/app` 842 of 842; Emberwick journeys 28 of 28 and the create-game journey 1
+  of 1 in Chromium. Not run: WebKit and Firefox (downloads refused here), hosted CI. Next: `loading`.
+
