@@ -23,3 +23,6 @@ frame-budget-results/
 
 # Vitest browser-mode screenshots and attachments (generated per run, never evidence)
 .vitest/
+
+# A developer's own editor settings; the shared .vscode/settings.json and extensions.json are committed.
+.vscode/*.local.json

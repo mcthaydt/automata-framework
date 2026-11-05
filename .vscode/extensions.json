@@ -1,0 +1,4 @@
+{
+  // Biome formats and lints; Svelte for the .svelte files; Playwright and Vitest to run a single test from the editor.
+  "recommendations": ["biomejs.biome", "svelte.svelte-vscode", "ms-playwright.playwright", "vitest.explorer"]
+}
