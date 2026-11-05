@@ -946,14 +946,13 @@ interface Input {
     readonly drag: DragSink;
     cameraDrag(): number;
     setContext(context: InputContextNow): void;
-    readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
-    readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
-    readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
-    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>;
-    readonly resetBindings: Effect.Effect<void>;
-    capture(device: 'keyboard' | 'gamepad'): Effect.Effect<Capture, RebindCancelled | RebindTimedOut>;
+    readonly device: Subscribable<ActiveDevice>;
+    readonly profile: Subscribable<InputProfile>;
+    readonly pads: Subscribable<readonly PadInfo[]>;
+    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Result<void, RebindError>;
+    resetBindings(): void;
+    capture(device: 'keyboard' | 'gamepad', signal?: AbortSignal): Promise<Result<Capture, RebindCancelled | RebindTimedOut>>;
 }
-const Input: Context.Tag<Input, Input>;
 ```
 
 ### `InputMap` (interface)
@@ -2057,7 +2056,6 @@ interface ExtensionDef<Name extends string = string> {
     readonly requires?: readonly string[];
     readonly sim?: readonly PluginDef[];
     readonly content?: readonly ContentSchemaDef[];
-    readonly layers?: Layer.Layer<any, never, any>;
     readonly ui?: {
         readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>>;
     };
@@ -2068,8 +2066,11 @@ interface ExtensionDef<Name extends string = string> {
 ### `ExtensionError` (class)
 
 ```ts
-class ExtensionError extends ExtensionErrorBase {
-    get message(): string;
+class ExtensionError extends Error {
+    readonly _tag: "ExtensionError";
+    readonly reason: ExtensionErrorFields['reason'];
+    readonly names: readonly string[];
+    constructor(fields: ExtensionErrorFields);
 }
 ```
 
@@ -2086,7 +2087,6 @@ interface ResolvedExtensions {
     readonly order: readonly string[];
     readonly simPlugins: readonly PluginDef[];
     readonly contentSchemas: readonly ContentSchemaDef[];
-    readonly layer: Layer.Layer<any, never, any>;
     slots(name: UiSlotName): readonly UiComponent[];
     manifest(config: GameConfig): RukenManifestContribution;
 }

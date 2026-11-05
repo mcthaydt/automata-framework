@@ -139,7 +139,11 @@ const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 The audio-bus seam. The audio service implements it.
 
 ```ts
-type AudioBuses = AudioBusesService;
+type AudioBuses = {
+    input: AudioBusesService['input'];
+    gain: AudioBusesService['gain'];
+    setGain: AudioBusesService['setGain'];
+};
 const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
 ```
 
@@ -1550,25 +1554,24 @@ interface Input {
     cameraDrag(): number;
     /** `play` during gameplay, `menu` while a screen pauses the sim or a modal is open. Releases what is held. */
     setContext(context: InputContextNow): void;
-    readonly device: SubscriptionRef.SubscriptionRef<ActiveDevice>;
-    readonly profile: SubscriptionRef.SubscriptionRef<InputProfile>;
+    readonly device: Subscribable<ActiveDevice>;
+    readonly profile: Subscribable<InputProfile>;
     /** The pads connected since this Input started, in connection order. */
-    readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>;
+    readonly pads: Subscribable<readonly PadInfo[]>;
     /**
      * Binds the captured key or pad button to `action` on `device`, saved in the settings'
      * `input` when the Input has settings; refused, with nothing changed, by `RebindError`.
      */
-    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>;
+    rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Result<void, RebindError>;
     /** Every binding back to the game's profile. */
-    readonly resetBindings: Effect.Effect<void>;
+    resetBindings(): void;
     /**
      * The next key (`keyboard`) or pad button (`gamepad`) pressed, for `rebind`. Escape or pad B cancels; nothing
-     * for `REBIND_TIMEOUT_MS` on Effect's Clock times out. While it waits, every key it sees goes no further, and the
-     * pads drive nothing else.
+     * for `REBIND_TIMEOUT_MS` on the Input's clock times out. While it waits, every key it sees goes no further, and the
+     * pads drive nothing else. A new capture cancels the one waiting; `signal` aborting stops it and rejects.
      */
-    capture(device: 'keyboard' | 'gamepad'): Effect.Effect<Capture, RebindCancelled | RebindTimedOut>;
+    capture(device: 'keyboard' | 'gamepad', signal?: AbortSignal): Promise<Result<Capture, RebindCancelled | RebindTimedOut>>;
 }
-const Input: Context.Tag<Input, Input>;
 ```
 
 #### `InputMap` (interface)
@@ -2541,16 +2544,16 @@ the autosave triggers to write.
 ```ts
 interface Save<S> {
     /** Every slot's state, in slot order. */
-    readonly slots: Subscribable.Subscribable<readonly SlotState[]>;
+    readonly slots: Subscribable<readonly SlotState[]>;
     /** The slot being played: the last one `load` returned. Undefined before the first load. */
-    readonly loaded: Subscribable.Subscribable<number | undefined>;
+    readonly loaded: Subscribable<number | undefined>;
     /**
      * Reads a slot and makes it the one being played. Progress `touch`ed before is dropped: it came from the game this
-     * load replaces, and must not be written over what was just read.
+     * load replaces, and must not be written over what was just read. A slot the save does not have throws.
      */
-    load(slot: number): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
-    write(slot: number, data: S, options?: SaveWriteOptions): Effect.Effect<void, SaveRefused | HostError>;
-    remove(slot: number): Effect.Effect<void, HostError>;
+    load(slot: number): Promise<Result<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostRefusal>>;
+    write(slot: number, data: S, options?: SaveWriteOptions): Promise<Result<void, SaveRefused | HostRefusal>>;
+    remove(slot: number): Promise<Result<void, HostRefusal>>;
     /**
      * Says the loaded slot's progress changed and what it is now. A plain function, safe to call every tick: it only
      * keeps `data`, and the next autosave trigger writes it. With no slot loaded it keeps nothing.
@@ -2561,23 +2564,23 @@ interface Save<S> {
      * (an exit must not lose progress because `on` left out a trigger). It still never writes a slot whose state
      * is not `ready` or `empty` (a newer build's, a damaged one, one loaded with other content), nor the slot
      * another device changed while it was played, until the player answers: that progress stays kept (Keep
-     * playing releases it; Load newer and any other load drop it). It never fails, because it runs inside the host's exit; a refused write is the `save.failed`
-     * fact, and the progress stays kept for the next flush.
+     * playing releases it; Load newer and any other load drop it). It never rejects, because it runs inside the host's
+     * exit; a refused write is the `save.failed` fact, and the progress stays kept for the next flush.
      */
-    readonly flushPending: Effect.Effect<void>;
+    flushPending(): Promise<void>;
     /**
      * What a trigger calls: `flushPending` if the save's policy lists `trigger`, otherwise nothing. `saveService`
      * already wires every trigger to its source; this is for a game that raises one itself.
      */
-    autosave(trigger: AutosaveTrigger): Effect.Effect<void>;
+    autosave(trigger: AutosaveTrigger): Promise<void>;
     /**
      * True while the loaded slot holds something another device wrote after it was loaded (M5-D6). Nothing is
      * reloaded, and no trigger writes that slot over the other device's until the player answers. Lowered by
      * `keepPlaying`, `loadNewer` or any load.
      */
-    readonly changedElsewhere: Subscribable.Subscribable<boolean>;
-    /** Loads the loaded slot again, so the game plays what the other device wrote. Dies when nothing is loaded. */
-    loadNewer(): Effect.Effect<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostError>;
+    readonly changedElsewhere: Subscribable<boolean>;
+    /** Loads the loaded slot again, so the game plays what the other device wrote. Throws when nothing is loaded. */
+    loadNewer(): Promise<Result<Loaded<S>, SaveUnreadable | SaveFromNewerBuild | HostRefusal>>;
     /** The player chose to carry on: lowers `changedElsewhere`. The next trigger writes the progress kept over the other device's, as any write would. */
     keepPlaying(): void;
 }
@@ -2607,18 +2610,14 @@ interface SaveDef<S> {
 }
 ```
 
-#### `Saves` (interface)
+#### `Saves` (type)
 
-The booted game's save as a runtime service, as `Settings` is for settings: its key and the
-`Save`, both undefined for a game without saves.
+The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined
+for a game without saves.
 
 ```ts
-interface Saves {
-    /** The booted save's key prefix; undefined for a game without saves. */
-    readonly key: string | undefined;
-    readonly save: Save<unknown> | undefined;
-}
-const Saves: Context.Tag<Saves, Saves>;
+type Saves = SavesService;
+const Saves: Context.Tag<SavesService, SavesService>;
 ```
 
 #### `SavesChangedPayload` (interface)
@@ -3278,8 +3277,6 @@ interface ExtensionDef<Name extends string = string> {
     readonly sim?: readonly PluginDef[];
     /** `defineContentSchema` results. */
     readonly content?: readonly ContentSchemaDef[];
-    /** Effect services the extension provides. They cannot fail at construction. */
-    readonly layers?: Layer.Layer<any, never, any>;
     /** Components for the named ui slots. An extension fills the slots it wants, and cannot add a slot. */
     readonly ui?: {
         readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>>;
@@ -3294,8 +3291,11 @@ interface ExtensionDef<Name extends string = string> {
 A bad extension list. Thrown, not returned, so a game's Vite build fails with `message`.
 
 ```ts
-class ExtensionError extends ExtensionErrorBase {
-    get message(): string;
+class ExtensionError extends Error {
+    readonly _tag: "ExtensionError";
+    readonly reason: ExtensionErrorFields['reason'];
+    readonly names: readonly string[];
+    constructor(fields: ExtensionErrorFields);
 }
 ```
 
@@ -3319,8 +3319,6 @@ interface ResolvedExtensions {
     readonly simPlugins: readonly PluginDef[];
     /** For the content Vite plugin's `schemas`. */
     readonly contentSchemas: readonly ContentSchemaDef[];
-    /** Every extension's layers, merged in order. Each layer may use the services of those before it. */
-    readonly layer: Layer.Layer<any, never, any>;
     /** Every extension's component for that slot, in order. */
     slots(name: UiSlotName): readonly UiComponent[];
     /** The contributions merged: preload lists concatenated, a repeated path keeps its first place. */
