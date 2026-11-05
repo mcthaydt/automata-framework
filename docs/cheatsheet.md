@@ -13,7 +13,7 @@
 - `AnalogOptions` (interface): The `analog` option of `keys()`.
 - `AnalogReading` (interface): The analog input at one fixed step, read once after `Input.poll()`.
 - `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans.
-- `AppLoop` (interface): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
+- `AppLoop` (type): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
 - `Audio` (type): The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
 - `AUDIO_BUS_NAMES` (const): The core audio buses: `master` carries the other four, `voice` is announcers and dialogue.
 - `AudioBuses` (type): The audio-bus seam.
@@ -200,7 +200,7 @@
 - `suppressPageGestures(doc)`: Turns off the browser's document gestures over the game.
 - `SystemDef` (interface): A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and its `run`, called once per tick.
 - `TAURI_MARKERS` (const): String literals only Tauri's IPC code contains, which survive minification: the global the webview injects (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`).
-- `Time` (interface): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
+- `Time` (type): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
 - `Toast` (const): A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
 - `Toggle` (const): An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
 - `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.

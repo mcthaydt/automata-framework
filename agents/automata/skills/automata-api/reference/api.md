@@ -98,21 +98,14 @@ The properties of one analytics event: flat names to strings, numbers or boolean
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
-#### `AppLoop` (interface)
+#### `AppLoop` (type)
 
 The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each
-tick, and the renderer draws every frame. No step runs while `Time` is paused; a throw from a step stops it.
+tick, and the renderer draws every frame.
 
 ```ts
-interface AppLoop {
-    run(options: {
-        sim: Sim;
-        commands: (tick: number) => readonly Command[];
-    }): void;
-    stop(): void;
-    readonly running: boolean;
-}
-const AppLoop: Context.Tag<AppLoop, AppLoop>;
+type AppLoop = AppLoopService;
+const AppLoop: Context.Tag<AppLoopService, AppLoopService>;
 ```
 
 #### `Audio` (type)
@@ -3120,18 +3113,13 @@ both; a `web`, `itch` or `ruken` build holds neither. Re-check them after a Taur
 const TAURI_MARKERS: readonly string[];
 ```
 
-#### `Time` (interface)
+#### `Time` (type)
 
 The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
 
 ```ts
-interface Time {
-    readonly paused: boolean;
-    readonly reasons: ReadonlySet<PauseReason>;
-    pause(reason: PauseReason): void;
-    resume(reason: PauseReason): void;
-}
-const Time: Context.Tag<Time, Time>;
+type Time = TimeService;
+const Time: Context.Tag<TimeService, TimeService>;
 ```
 
 #### `Toast` (const)

@@ -57,18 +57,11 @@ interface AnalogReading {
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
-### `AppLoop` (interface)
+### `AppLoop` (type)
 
 ```ts
-interface AppLoop {
-    run(options: {
-        sim: Sim;
-        commands: (tick: number) => readonly Command[];
-    }): void;
-    stop(): void;
-    readonly running: boolean;
-}
-const AppLoop: Context.Tag<AppLoop, AppLoop>;
+type AppLoop = AppLoopService;
+const AppLoop: Context.Tag<AppLoopService, AppLoopService>;
 ```
 
 ### `Audio` (type)
@@ -1936,16 +1929,11 @@ interface SystemDef {
 const TAURI_MARKERS: readonly string[];
 ```
 
-### `Time` (interface)
+### `Time` (type)
 
 ```ts
-interface Time {
-    readonly paused: boolean;
-    readonly reasons: ReadonlySet<PauseReason>;
-    pause(reason: PauseReason): void;
-    resume(reason: PauseReason): void;
-}
-const Time: Context.Tag<Time, Time>;
+type Time = TimeService;
+const Time: Context.Tag<TimeService, TimeService>;
 ```
 
 ### `Toast` (svelte)
