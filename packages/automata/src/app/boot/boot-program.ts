@@ -1,11 +1,10 @@
 // The build's publish target picks the adapter: Ruken by default, the web adapter under `automata-web`.
 import { makeHosting } from '@mcthaydt/automata/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
-import { Context, Duration, Effect, ExecutionStrategy, Layer, Scope, Stream } from 'effect'
+import { Context, Duration, Effect, ExecutionStrategy, Scope, Stream } from 'effect'
 import { createAudio } from '../../features/audio/audio.manager.js'
 import { playEventSounds } from '../../features/audio/event-sounds.js'
 import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
-import { resolveExtensions } from '../../features/extension/resolve-extensions.js'
 import { browserHaptics } from '../../features/input/haptics/haptics.manager.js'
 import { submitEventScores } from '../../features/leaderboards/event-scores.js'
 import { Leaderboards, makeLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
@@ -429,11 +428,6 @@ export function bootProgram<S>(
       leaderboards,
       haptics: game.seams?.haptics ?? browserHaptics(win),
     })
-
-    if (game.extensions && game.extensions.length > 0) {
-      const resolved = resolveExtensions(game.extensions)
-      yield* Layer.build(resolved.layer).pipe(Effect.provide(runtimeContext))
-    }
 
     yield* flowHandle.start()
 

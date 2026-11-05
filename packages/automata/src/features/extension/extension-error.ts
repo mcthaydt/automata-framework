@@ -1,16 +1,4 @@
-import { Data } from 'effect'
-import type { YieldableError } from 'effect/Cause'
-
-/*
- * The one failure of `resolveExtensions`.
- *
- * The repo builds with `isolatedDeclarations`, which forbids `class X extends Data.TaggedError(…)`
- * directly, so the base constructor gets an explicit type first (the same pattern as `HostError`).
- */
-
-type TaggedErrorClass<Tag extends string, Fields> = new (
-  fields: Fields,
-) => YieldableError & { readonly _tag: Tag } & Readonly<Fields>
+// The one failure of `resolveExtensions`.
 
 interface ExtensionErrorFields {
   readonly reason: 'duplicate' | 'missing' | 'cycle' | 'manifest-field'
@@ -22,13 +10,17 @@ interface ExtensionErrorFields {
    */
   readonly names: readonly string[]
 }
-const ExtensionErrorBase: TaggedErrorClass<'ExtensionError', ExtensionErrorFields> =
-  Data.TaggedError('ExtensionError')
 
 /** A bad extension list. Thrown, not returned, so a game's Vite build fails with `message`. */
-export class ExtensionError extends ExtensionErrorBase {
-  // Effect's tagged errors have an empty message by default; the build output needs the names.
-  override get message(): string {
-    return `${this.reason}: ${this.names.join(', ')}`
+export class ExtensionError extends Error {
+  readonly _tag = 'ExtensionError' as const
+  readonly reason: ExtensionErrorFields['reason']
+  readonly names: readonly string[]
+
+  constructor(fields: ExtensionErrorFields) {
+    super(`${fields.reason}: ${fields.names.join(', ')}`)
+    this.name = 'ExtensionError'
+    this.reason = fields.reason
+    this.names = fields.names
   }
 }

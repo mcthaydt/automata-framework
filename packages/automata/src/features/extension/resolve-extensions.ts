@@ -1,6 +1,5 @@
 import type { ContentSchemaDef } from '@mcthaydt/automata-content'
 import type { PluginDef } from '@mcthaydt/automata-sim'
-import { Layer } from 'effect'
 import type { UiComponent, UiSlotName } from '../../shared/ui/slots/ui-slot.ts'
 import type { ExtensionDef, GameConfig, RukenManifestContribution } from './define-extension'
 import { ExtensionError } from './extension-error'
@@ -13,9 +12,6 @@ export interface ResolvedExtensions {
   readonly simPlugins: readonly PluginDef[]
   /** For the content Vite plugin's `schemas`. */
   readonly contentSchemas: readonly ContentSchemaDef[]
-  /** Every extension's layers, merged in order. Each layer may use the services of those before it. */
-  // biome-ignore lint/suspicious/noExplicitAny: the merged service types depend on the game's extensions.
-  readonly layer: Layer.Layer<any, never, any>
   /** Every extension's component for that slot, in order. */
   slots(name: UiSlotName): readonly UiComponent[]
   /** The contributions merged: preload lists concatenated, a repeated path keeps its first place. */
@@ -40,7 +36,6 @@ export function resolveExtensions(defs: readonly ExtensionDef[]): ResolvedExtens
     order: ordered.map((def) => def.name),
     simPlugins: ordered.flatMap((def) => def.sim ?? []),
     contentSchemas: ordered.flatMap((def) => def.content ?? []),
-    layer: mergeLayers(ordered),
     slots: (name) => ordered.flatMap((def) => slotComponent(def, name)),
     manifest: (config) => mergeManifests(ordered, config),
   }
@@ -107,23 +102,6 @@ function findLoop(byName: ReadonlyMap<string, ExtensionDef>, waiting: ReadonlySe
   const smallest = [...loop].sort()[0] as string
   const start = loop.indexOf(smallest)
   return [...loop.slice(start), ...loop.slice(0, start)]
-}
-
-/**
- * Folds the layers in extension order. `Layer.provideMerge(consumer, provider)` feeds the provider's
- * services to the consumer and keeps both outputs, so a layer can use the services of every extension
- * before it. Whatever the whole fold still requires (Hosting, Time, and so on) is left for the boot
- * program to provide.
- */
-// biome-ignore lint/suspicious/noExplicitAny: the merged service types depend on the game's extensions.
-function mergeLayers(ordered: readonly ExtensionDef[]): Layer.Layer<any, never, any> {
-  // `Layer.empty` requires nothing, which TypeScript will not widen to "requires anything", hence the cast.
-  // biome-ignore lint/suspicious/noExplicitAny: as above.
-  let merged = Layer.empty as unknown as Layer.Layer<any, never, any>
-  for (const def of ordered) {
-    if (def.layers !== undefined) merged = Layer.provideMerge(def.layers, merged)
-  }
-  return merged
 }
 
 function slotComponent(def: ExtensionDef, name: UiSlotName): UiComponent[] {

@@ -1,7 +1,6 @@
 import type { ContentSchemaDef } from '@mcthaydt/automata-content'
 import type { GameConfig as FullGameConfig } from '@mcthaydt/automata-content/game-config'
 import type { PluginDef } from '@mcthaydt/automata-sim'
-import type { Layer } from 'effect'
 import type { UiComponent, UiSlotName } from '../../shared/ui/slots/ui-slot.ts'
 
 // Type-only imports throughout: `./extension` is loaded in Node by a game's vite.config.ts, so it must
@@ -25,9 +24,6 @@ export interface ExtensionDef<Name extends string = string> {
   readonly sim?: readonly PluginDef[]
   /** `defineContentSchema` results. */
   readonly content?: readonly ContentSchemaDef[]
-  /** Effect services the extension provides. They cannot fail at construction. */
-  // biome-ignore lint/suspicious/noExplicitAny: a layer's service types are the extension's own.
-  readonly layers?: Layer.Layer<any, never, any>
   /** Components for the named ui slots. An extension fills the slots it wants, and cannot add a slot. */
   readonly ui?: { readonly slots?: Readonly<Partial<Record<UiSlotName, UiComponent>>> }
   /** Called at build time with the game's manifest facts. */
