@@ -10,12 +10,12 @@ export {
   type EntityView,
   RenderDeltaConsumer,
 } from '../features/render/delta/render-delta-consumer.js'
+export { filterPrograms } from '../features/render/filter/filter-programs.js'
 export {
   type PostFilterDef,
   type PostFilterSpec,
   postFilter,
 } from '../features/render/filter/post-filter.js'
-export { filterPrograms } from '../features/render/filter/filter-programs.js'
 export { createPostFilterSlot } from '../features/render/filter/post-filter-slot.js'
 export {
   createPixiRenderer,
