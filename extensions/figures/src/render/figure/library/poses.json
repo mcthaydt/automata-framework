@@ -1,0 +1,23 @@
+{
+  "handOnHip": {"about": "The hip out over the weight leg and the near hand on it, the elbow out and back so the arm reads as a V off the waist; the other arm loose; the chin up.",
+    "weight": "R", "shift": 0.05, "roll": 0.09, "under": 0.4, "free": [0.11, 0.035, 0.42, 0.2], "chest": [0.07, -0.12, -0.04], "head": [-0.22, -0.06, -0.14],
+    "hands": {"R": {"at": "hip", "elbow": 0.8, "nudge": [0.01, -0.02, -0.12]}, "L": {"out": 0.14, "bend": 0.32, "swing": 0.04}}, "fallback": ["hipAndPocket"]},
+  "thumbsInPockets": {"about": "Easy, the weight back on the far leg, both thumbs hooked into the front pockets at the hip with the hands outside them, the elbows out, the eyes on the camera.",
+    "weight": "L", "shift": 0.035, "roll": 0.06, "under": 0.3, "free": [0.07, 0.045, 0.4, 0.06], "chest": [0.05, 0.1, 0.02], "head": [-0.25, 0.04, 0.02],
+    "hands": {"R": {"at": "thumbHook", "elbow": -0.3, "nudge": [0, -0.03, 0]}, "L": {"at": "thumbHook", "elbow": 0.3, "nudge": [0, -0.03, 0]}}, "fallback": ["handInPocket", "handInJacketPocket", "handOnHip"]},
+  "kangarooPocket": {"about": "Both hands high in a belly pocket, the elbows bent hard and standing out from the body (the near one out and back, into the picture), the weight on the far hip, the near knee in, the head tipped.",
+    "weight": "L", "shift": 0.055, "roll": 0.1, "under": 0.45, "free": [0.09, 0.02, 0.15, 0.3], "chest": [0.08, -0.12, 0], "head": [-0.18, 0.13, -0.04],
+    "hands": {"R": {"at": "bellyPocket", "elbow": -0.3}, "L": {"at": "bellyPocket", "elbow": 0.5}}, "fallback": ["hipAndPocket", "handOnHip"]},
+  "armsCrossed": {"about": "The b-boy stance: the weight back on the far leg, the arms crossed over the ribs, the near forearm over the far, the chest back a little and open to the camera (so a pendant shows over the arms), the chin up and the head turned to the camera.",
+    "weight": "L", "shift": 0.03, "roll": 0.06, "under": 0.3, "free": [0.1, 0.05, 0.4, 0.04], "chest": [0.03, -0.06, -0.05], "head": [-0.18, 0.02, -0.15],
+    "hands": {"R": {"at": "crossed"}, "L": {"at": "crossed"}}, "fallback": ["handInJacketPocket", "handInPocket", "handOnHip"]},
+  "handInPocket": {"about": "Upright and still, the weight back, the near hand down in a front pocket with the forearm angled to it from an elbow out at the side, the other arm hanging with a soft bend, the chin level.",
+    "weight": "L", "shift": 0.03, "roll": 0.07, "under": 0.25, "free": [0.12, 0.02, 0.3, 0.02], "chest": [0.03, -0.05, -0.03], "head": [-0.12, 0, -0.06],
+    "hands": {"R": {"at": "frontPocket", "elbow": 0.2}, "L": {"out": 0.07, "bend": 0.22}}, "fallback": ["handInJacketPocket", "hipAndPocket", "handOnHip"]},
+  "hipAndPocket": {"about": "The near hand on the hip with the elbow wide off the waist, the far hand down in a pocket: the weight on the far leg, the near hip out, the chest turned to the camera, the head tipped.",
+    "weight": "L", "shift": 0.05, "roll": 0.09, "under": 0.4, "free": [0.1, 0.03, 0.35, 0.22], "chest": [0.07, 0.08, -0.03], "head": [-0.2, 0.1, -0.05],
+    "hands": {"R": {"at": "hip", "elbow": 0.8, "nudge": [0.01, -0.02, -0.12]}, "L": {"at": "bellyPocket", "elbow": 0.4}}, "fallback": ["handOnHip"]},
+  "handInJacketPocket": {"about": "Still, with attitude: the weight back on the far leg, the near hand in the jacket's slash pocket from an elbow out and back off the body, the far arm loose with a soft bend, the shoulders easy, the chin a touch down and the eyes on the camera.",
+    "weight": "L", "shift": 0.04, "roll": 0.08, "under": 0.3, "free": [0.12, 0.03, 0.35, 0.1], "chest": [0.05, 0.1, 0.02], "head": [-0.22, 0.04, 0.04],
+    "hands": {"R": {"at": "jacketPocket", "elbow": 0.6}, "L": {"out": 0.12, "bend": 0.35, "swing": -0.04}}, "fallback": ["handInPocket", "handOnHip"]}
+}

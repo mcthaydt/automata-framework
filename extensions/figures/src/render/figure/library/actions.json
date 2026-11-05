@@ -1,0 +1,203 @@
+{
+  "about": "The actions a scripted actor plays (figure/actions.ts), each keyed pose specs (figure/pose-spec.ts) over its envelope: the anticipation (the wind-up, blending in), the action, the recovery (blending back to the gait). A is the acting arm (+x toward its side), B the other; feet in leg lengths, each out from the middle on its own side. 'upper' actions lie over the gait (a wave plays over a walk); 'full' ones pose the whole body, kept on the floor. Times in seconds.",
+  "modes": {
+    "run": {
+      "about": "A run, from the figure's own gait: a faster cycle, a longer stride, the feet lifted high, the body leant into it, the arms bent and pumping.",
+      "scale": { "cycle": 0.72, "stride": 1.5, "speed": 1.6 },
+      "set": { "duty": 0.42, "lift": 0.13, "bob": 0.05, "lean": 0.2, "armSwing": 0.7, "armOut": 0.12, "elbow": 1.2, "elbowSwing": 0.25, "armLag": 0.06, "headLevel": 0.3, "spring": 0.35, "heel": 0.12, "push": 0.26, "drag": 0, "track": 0.3, "hipYaw": 0.1 }
+    }
+  },
+  "actions": {
+    "wave": {
+      "about": "A hand raised beside the head, the forearm wagging from the elbow; the head tipped toward it.",
+      "body": "upper", "hand": "either",
+      "anticipation": 0.3, "action": 1.2, "recovery": 0.4, "loop": [0.3, 0.7],
+      "keys": [
+        [0.3, { "head": [-0.04, 0.12, -0.1], "chest": [0, 0.08, 0.04], "sh": 0.08, "A": { "d": [1, 0.45, 0.2], "r": 0.8, "pole": [1, -0.9, -0.1] } }],
+        [0.5, { "head": [-0.04, 0.12, -0.1], "chest": [0, 0.08, 0.04], "sh": 0.08, "A": { "d": [0.6, 0.95, 0.2], "r": 0.8, "pole": [1, -0.9, -0.1] } }],
+        [0.7, { "head": [-0.04, 0.12, -0.1], "chest": [0, 0.08, 0.04], "sh": 0.08, "A": { "d": [1, 0.45, 0.2], "r": 0.8, "pole": [1, -0.9, -0.1] } }],
+        [1.1, { "head": [-0.04, 0.12, -0.1], "chest": [0, 0.08, 0.04], "sh": 0.08, "A": { "d": [0.6, 0.95, 0.2], "r": 0.8, "pole": [1, -0.9, -0.1] } }],
+        [1.5, { "head": [-0.04, 0.12, -0.1], "chest": [0, 0.08, 0.04], "sh": 0.08, "A": { "d": [1, 0.45, 0.2], "r": 0.8, "pole": [1, -0.9, -0.1] } }]
+      ]
+    },
+    "point": {
+      "about": "The arm straight out at the target (a point, another actor; ahead without one), the head and chest turned to it.",
+      "body": "upper", "hand": "either", "targeted": true,
+      "anticipation": 0.25, "action": 1.2, "recovery": 0.35,
+      "keys": [
+        [0.25, { "face": 1, "A": { "to": "target", "r": 0.99, "pole": [0.3, -1, -0.3] } }],
+        [1.45, { "face": 1, "A": { "to": "target", "r": 0.99, "pole": [0.3, -1, -0.3] } }]
+      ]
+    },
+    "nod": {
+      "about": "Two nods: the chin down and up, the chest giving a little.",
+      "body": "upper",
+      "anticipation": 0.1, "action": 0.8, "recovery": 0.2,
+      "keys": [
+        [0.1, { "head": [-0.06, 0, 0] }],
+        [0.3, { "head": [0.42, 0, 0], "chest": [0.06, 0, 0] }],
+        [0.5, { "head": [-0.04, 0, 0] }],
+        [0.7, { "head": [0.38, 0, 0], "chest": [0.05, 0, 0] }],
+        [0.9, { "head": [0, 0, 0] }]
+      ]
+    },
+    "shake": {
+      "about": "The head shaken no: side to side, two and a half times, the chest a little against it.",
+      "body": "upper",
+      "anticipation": 0.1, "action": 0.9, "recovery": 0.2,
+      "keys": [
+        [0.1, { "head": [0.04, 0, 0] }],
+        [0.27, { "head": [0.04, 0.55, 0], "chest": [0, -0.06, 0] }],
+        [0.47, { "head": [0.04, -0.55, 0], "chest": [0, 0.06, 0] }],
+        [0.65, { "head": [0.04, 0.5, 0], "chest": [0, -0.05, 0] }],
+        [0.83, { "head": [0.04, -0.45, 0], "chest": [0, 0.05, 0] }],
+        [1.0, { "head": [0.04, 0, 0] }]
+      ]
+    },
+    "shrug": {
+      "about": "The shoulders up, the forearms out with the palms up, the head tipped: who knows.",
+      "body": "upper",
+      "anticipation": 0.2, "action": 0.7, "recovery": 0.35,
+      "keys": [
+        [0.2, { "sh": 0.1, "A": { "d": [0.5, -0.75, 0.45], "r": 0.8, "pole": [0.6, -0.4, -0.7] }, "B": { "d": [-0.5, -0.75, 0.45], "r": 0.8, "pole": [-0.6, -0.4, -0.7] } }],
+        [0.4, { "sh": 0.4, "head": [0.04, 0, -0.22], "chest": [-0.06, 0, 0], "A": { "d": [0.7, -0.6, 0.4], "r": 0.72, "pole": [0.3, -0.5, -0.8] }, "B": { "d": [-0.7, -0.6, 0.4], "r": 0.72, "pole": [-0.3, -0.5, -0.8] } }],
+        [0.9, { "sh": 0.36, "head": [0.04, 0, -0.2], "chest": [-0.05, 0, 0], "A": { "d": [0.7, -0.6, 0.4], "r": 0.72, "pole": [0.3, -0.5, -0.8] }, "B": { "d": [-0.7, -0.6, 0.4], "r": 0.72, "pole": [-0.3, -0.5, -0.8] } }]
+      ]
+    },
+    "lookAround": {
+      "about": "No target to look at: the head turned out to one side, a beat there, then across to the other (the atlas's look).",
+      "body": "upper",
+      "anticipation": 0.4, "action": 2.0, "recovery": 0.4,
+      "keys": [
+        [0.4, { "head": [0, 0.8, 0], "chest": [0, 0.2, 0] }],
+        [1.2, { "head": [0, 0.8, 0], "chest": [0, 0.2, 0] }],
+        [1.9, { "head": [0, -0.8, 0], "chest": [0, -0.2, 0] }],
+        [2.4, { "head": [0, -0.8, 0], "chest": [0, -0.2, 0] }]
+      ]
+    },
+    "look": {
+      "about": "The head and then the chest turned to the target and held (lookAround with no target).",
+      "body": "upper", "targeted": true, "untargeted": "lookAround",
+      "anticipation": 0.3, "action": 1.6, "recovery": 0.4,
+      "keys": [
+        [0.3, { "face": 1 }],
+        [1.9, { "face": 1 }]
+      ]
+    },
+    "sit": {
+      "about": "Sat on a seat (its height, `seat`, else the knee's): the hips back and down over it, the feet set under the knees, the hands on the thighs. Held until it ends.",
+      "body": "full", "hold": true,
+      "anticipation": 0.55, "action": 0.15, "recovery": 0.55,
+      "keys": [
+        [0.3, { "hip": 0.8, "pel": [0, 0, -0.14], "pelR": [0.25, 0, 0], "chest": [0.35, 0, 0], "head": [-0.25, 0, 0], "fA": { "at": [0.02, 0, 0.06] }, "fB": { "at": [0.02, 0, 0.06] }, "A": { "d": [0.2, -0.8, 0.55], "r": 0.9, "w": 0.6 }, "B": { "d": [-0.2, -0.8, 0.55], "r": 0.9, "w": 0.6 } }],
+        [0.7, { "seat": 1, "pel": [0, 0, -0.27], "pelR": [-0.1, 0, 0], "chest": [0.12, 0, 0], "head": [-0.05, 0, 0], "fA": { "at": [0.03, 0, 0.12] }, "fB": { "at": [0.03, 0, 0.12] }, "A": { "d": [0.08, -0.55, 0.85], "r": 0.82, "pole": [0.4, -0.3, -1] }, "B": { "d": [-0.08, -0.55, 0.85], "r": 0.82, "pole": [-0.4, -0.3, -1] } }]
+      ]
+    },
+    "kneel": {
+      "about": "Down on one knee: A's foot forward, B's knee to the floor behind it on its toes, A's hand on its knee. Held until it ends.",
+      "body": "full", "hold": true,
+      "anticipation": 0.5, "action": 0.15, "recovery": 0.55,
+      "keys": [
+        [0.25, { "hip": 0.85, "chest": [0.2, 0, 0], "head": [-0.15, 0, 0], "fA": { "at": [0.02, 0, 0.25] } }],
+        [0.65, { "hip": 0.5, "chest": [0.12, 0, 0], "head": [-0.05, 0, 0], "fA": { "at": [0.03, 0, 0.45] }, "fB": { "at": [0, 0.06, -0.42], "pitch": 0.5 }, "A": { "d": [0.12, -0.55, 0.85], "r": 0.8, "pole": [0.6, -0.2, -1] }, "B": { "d": [-0.16, -1, 0.1], "r": 0.95 } }]
+      ]
+    },
+    "crouch": {
+      "about": "Low on both feet, knees out, the hips back, the back leant over, the head up and forearms over the knees. Held until it ends.",
+      "body": "full", "hold": true,
+      "anticipation": 0.35, "action": 0.15, "recovery": 0.45,
+      "keys": [
+        [0.5, { "hip": 0.56, "pel": [0, 0, -0.1], "pelR": [0.3, 0, 0], "chest": [0.35, 0, 0], "head": [-0.5, 0, 0], "stance": 1.7, "fA": { "at": [0.04, 0, 0.06], "turn": 0.35 }, "fB": { "at": [0.04, 0, 0.0], "turn": 0.35 }, "A": { "d": [0.3, -0.6, 0.75], "r": 0.72, "pole": [0.8, -0.2, -0.6] }, "B": { "d": [-0.3, -0.6, 0.75], "r": 0.72, "pole": [-0.8, -0.2, -0.6] } }]
+      ]
+    },
+    "hit": {
+      "about": "Hit: the head snapped back and away, the chest thrown back, the arms flung, B's foot a half step back to catch it; then settled.",
+      "body": "full",
+      "anticipation": 0.05, "action": 0.35, "recovery": 0.5,
+      "keys": [
+        [0.05, { "pel": [0, -0.02, -0.07], "pelR": [-0.12, 0, 0], "chest": [-0.4, -0.3, 0.12], "head": [-0.5, -0.45, 0.2], "A": { "d": [0.6, -0.4, -0.3], "r": 0.95 }, "B": { "d": [-0.65, -0.3, -0.25], "r": 0.95 }, "fB": { "at": [0.02, 0.04, -0.1] } }],
+        [0.2, { "pel": [0, -0.03, -0.08], "pelR": [-0.06, 0, 0], "chest": [-0.22, -0.18, 0.06], "head": [-0.25, -0.3, 0.12], "A": { "d": [0.45, -0.7, -0.1], "r": 0.95 }, "B": { "d": [-0.45, -0.7, -0.1], "r": 0.95 }, "fB": { "at": [0.02, 0, -0.17] } }],
+        [0.4, { "pel": [0, -0.03, -0.03], "chest": [0.12, 0, 0], "head": [0.18, 0, 0], "A": { "d": [0.2, -1, 0.2], "r": 0.95, "w": 0.5 }, "B": { "d": [-0.2, -1, 0.2], "r": 0.95, "w": 0.5 }, "fB": { "at": [0.02, 0, -0.14] } }]
+      ]
+    },
+    "fall": {
+      "about": "A fall onto the back: a stagger back with the arms thrown up, down hard onto the seat, then flat out, the arms out on the floor. Held lying until it ends (getUp gets up).",
+      "body": "full", "hold": true,
+      "anticipation": 0.18, "action": 0.7, "recovery": 0.4,
+      "keys": [
+        [0.18, { "pel": [0, -0.02, -0.04], "chest": [-0.3, 0, 0], "head": [-0.3, 0, 0], "fB": { "at": [0.02, 0, -0.16] }, "A": { "d": [0.55, 0.3, 0.3], "r": 0.9 }, "B": { "d": [-0.55, 0.3, 0.3], "r": 0.9 } }],
+        [0.5, { "hip": 0.4, "pel": [0, 0, -0.18], "pelR": [-0.5, 0, 0], "chest": [-0.15, 0, 0], "head": [0.3, 0, 0], "fA": { "at": [0.05, 0, 0.32] }, "fB": { "at": [0.07, 0, 0.22] }, "A": { "d": [0.6, -0.55, -0.45], "r": 0.95 }, "B": { "d": [-0.6, -0.55, -0.45], "r": 0.95 } }],
+        [0.88, { "hip": 0.13, "pel": [0, 0, -0.32], "pelR": [-1.5, 0, 0], "chest": [0, 0, 0], "head": [0.15, 0.2, 0], "fA": { "at": [0.1, 0.0, 0.52], "pitch": -0.4 }, "fB": { "at": [0.16, 0.0, 0.48], "pitch": -0.4, "turn": 0.4 }, "A": { "d": [0.85, -0.05, -0.55], "r": 0.95, "pole": [0.2, 1, 0] }, "B": { "d": [-0.85, 0.05, -0.45], "r": 0.95, "pole": [-0.2, 1, 0] } }]
+      ]
+    },
+    "ko": {
+      "about": "Knocked out: the knees go, the head drops, down onto the seat and over onto the back, limp, the head rolled aside. Held until it ends (getUp gets up).",
+      "body": "full", "hold": true,
+      "anticipation": 0.25, "action": 0.85, "recovery": 0.4,
+      "keys": [
+        [0.25, { "hip": 0.88, "pel": [0, 0, 0.02], "chest": [0.25, 0.1, 0.12], "head": [0.55, 0.3, 0.3], "A": { "d": [0.12, -1, 0.15], "r": 0.99 }, "B": { "d": [-0.12, -1, 0.15], "r": 0.99 } }],
+        [0.6, { "hip": 0.42, "pel": [0, 0, -0.14], "pelR": [-0.35, 0, 0], "chest": [0.3, 0, 0.1], "head": [0.6, 0.3, 0.2], "fA": { "at": [0.06, 0, 0.28], "turn": 0.4 }, "fB": { "at": [0.08, 0, 0.2], "turn": 0.3 }, "A": { "d": [0.3, -0.95, 0.1], "r": 0.95 }, "B": { "d": [-0.3, -0.95, 0.1], "r": 0.95 } }],
+        [1.1, { "hip": 0.13, "pel": [0, 0, -0.32], "pelR": [-1.5, 0, 0], "chest": [0, 0, 0.05], "head": [0.1, 0.95, 0], "fA": { "at": [0.06, 0.0, 0.5], "pitch": -0.4, "turn": 0.5 }, "fB": { "at": [0.2, 0.0, 0.42], "pitch": -0.4, "turn": 0.6 }, "A": { "d": [0.95, -0.1, -0.25], "r": 0.95, "pole": [0.2, 1, 0] }, "B": { "d": [-0.3, 0.6, -0.75], "r": 0.8, "pole": [-0.5, 1, 0] } }]
+      ]
+    },
+    "getUp": {
+      "about": "From flat on the back: sat up on the hands, over onto one knee, and up to standing.",
+      "body": "full", "enter": 0.15,
+      "anticipation": 0, "action": 1.4, "recovery": 0.35,
+      "keys": [
+        [0, { "hip": 0.13, "pel": [0, 0, -0.32], "pelR": [-1.5, 0, 0], "head": [0.15, 0.2, 0], "fA": { "at": [0.1, 0.0, 0.52], "pitch": -0.4 }, "fB": { "at": [0.16, 0.0, 0.48], "pitch": -0.4, "turn": 0.4 }, "A": { "d": [0.85, -0.05, -0.55], "r": 0.95, "pole": [0.2, 1, 0] }, "B": { "d": [-0.85, 0.05, -0.45], "r": 0.95, "pole": [-0.2, 1, 0] } }],
+        [0.45, { "hip": 0.16, "pel": [0, 0, -0.3], "pelR": [-0.75, 0, 0], "chest": [0.45, 0, 0], "head": [0.2, 0, 0], "fA": { "at": [0.06, 0, 0.36] }, "fB": { "at": [0.06, 0, 0.3] }, "A": { "d": [0.35, -0.85, -0.5], "r": 0.95 }, "B": { "d": [-0.35, -0.85, -0.5], "r": 0.95 } }],
+        [0.9, { "hip": 0.5, "chest": [0.25, 0, 0], "head": [-0.1, 0, 0], "fA": { "at": [0.03, 0, 0.42] }, "fB": { "at": [0, 0.06, -0.4], "pitch": 0.5 }, "A": { "d": [0.12, -0.55, 0.85], "r": 0.8, "pole": [0.6, -0.2, -1] }, "B": { "d": [-0.2, -1, 0.2], "r": 0.95 } }],
+        [1.4, { "fA": { "at": [0.0, 0, 0.04] } }]
+      ]
+    },
+    "swing": {
+      "about": "A swing: wound up high behind the shoulder with the chest turned away, brought down across the body (a held item swings with the hand), followed through, recovered.",
+      "body": "upper", "hand": "main",
+      "anticipation": 0.32, "action": 0.26, "recovery": 0.45,
+      "keys": [
+        [0.32, { "pelR": [0, 0.18, 0], "chest": [-0.08, 0.45, 0], "head": [0, -0.35, 0], "A": { "d": [0.5, 0.85, -0.3], "r": 0.82, "pole": [0.8, -0.1, -0.6] }, "B": { "d": [-0.35, -0.3, 0.7], "r": 0.7, "w": 0.7 } }],
+        [0.46, { "pelR": [0, -0.2, 0], "chest": [0.28, -0.45, 0], "head": [0.1, 0.3, 0], "A": { "d": [-0.3, -0.15, 1], "r": 0.98, "pole": [0.6, -0.8, 0.1] }, "B": { "d": [-0.35, -0.5, 0.5], "r": 0.8, "w": 0.6 } }],
+        [0.58, { "pelR": [0, -0.22, 0], "chest": [0.25, -0.45, 0], "head": [0.1, 0.3, 0], "A": { "d": [-0.45, -0.55, 0.7], "r": 0.95, "pole": [0.6, -0.8, 0.1] }, "B": { "d": [-0.35, -0.6, 0.4], "r": 0.85, "w": 0.5 } }]
+      ]
+    },
+    "punch": {
+      "about": "A punch: the fist chambered at the side with the chest turned back and the other fist up on guard, then driven straight out at shoulder height.",
+      "body": "upper", "hand": "main",
+      "anticipation": 0.22, "action": 0.22, "recovery": 0.35,
+      "keys": [
+        [0.22, { "pelR": [0, 0.15, 0], "chest": [0, 0.35, 0], "head": [0, -0.3, 0], "A": { "d": [0.12, -0.45, -0.45], "r": 0.6, "pole": [0.3, -1, -0.6] }, "B": { "d": [-0.12, 0.3, 0.9], "r": 0.52, "pole": [-0.7, -1, 0] } }],
+        [0.32, { "pel": [0, -0.01, 0.04], "pelR": [0, -0.2, 0], "chest": [0.1, -0.35, 0], "head": [0.05, 0.3, 0], "A": { "d": [-0.08, 0.1, 1], "r": 0.99, "pole": [0.5, -1, 0] }, "B": { "d": [-0.2, 0.2, 0.9], "r": 0.5, "pole": [-0.7, -1, 0] } }],
+        [0.44, { "pel": [0, -0.01, 0.04], "pelR": [0, -0.2, 0], "chest": [0.1, -0.35, 0], "head": [0.05, 0.3, 0], "A": { "d": [-0.08, 0.1, 1], "r": 0.97, "pole": [0.5, -1, 0] }, "B": { "d": [-0.2, 0.2, 0.9], "r": 0.5, "pole": [-0.7, -1, 0] } }]
+      ]
+    },
+    "attack": {
+      "about": "A generic attack: a swing with an item in the hand (it swings with it), a punch without.",
+      "alias": { "item": "swing", "bare": "punch" }
+    },
+    "victory": {
+      "about": "A cheer: a dip, then both arms thrown up in a V, the chest and chin up, the fists pumping.",
+      "body": "upper",
+      "anticipation": 0.25, "action": 1.5, "recovery": 0.5, "loop": [0.45, 0.85],
+      "keys": [
+        [0.2, { "pel": [0, -0.05, 0], "chest": [0.12, 0, 0], "A": { "d": [0.35, -0.7, 0.45], "r": 0.62, "pole": [0.8, -0.3, -0.6] }, "B": { "d": [-0.35, -0.7, 0.45], "r": 0.62, "pole": [-0.8, -0.3, -0.6] } }],
+        [0.45, { "chest": [-0.2, 0, 0], "head": [-0.28, 0, 0], "A": { "d": [0.55, 1, 0.15], "r": 0.99, "pole": [1, -0.3, -0.3] }, "B": { "d": [-0.55, 1, 0.15], "r": 0.99, "pole": [-1, -0.3, -0.3] } }],
+        [0.65, { "pel": [0, -0.015, 0], "chest": [-0.16, 0, 0], "head": [-0.22, 0, 0], "A": { "d": [0.6, 0.9, 0.2], "r": 0.72, "pole": [1, -0.3, -0.3] }, "B": { "d": [-0.6, 0.9, 0.2], "r": 0.72, "pole": [-1, -0.3, -0.3] } }],
+        [0.85, { "chest": [-0.2, 0, 0], "head": [-0.28, 0, 0], "A": { "d": [0.55, 1, 0.15], "r": 0.99, "pole": [1, -0.3, -0.3] }, "B": { "d": [-0.55, 1, 0.15], "r": 0.99, "pole": [-1, -0.3, -0.3] } }],
+        [1.75, { "chest": [-0.2, 0, 0], "head": [-0.28, 0, 0], "A": { "d": [0.55, 1, 0.15], "r": 0.99, "pole": [1, -0.3, -0.3] }, "B": { "d": [-0.55, 1, 0.15], "r": 0.99, "pole": [-1, -0.3, -0.3] } }]
+      ]
+    },
+    "handshake": {
+      "about": "A handshake with another actor (`at`): the main hand to the point between the two at the waist's height, two pumps, the head turned to them. Both play it, so the hands meet.",
+      "body": "upper", "hand": "main", "targeted": true,
+      "anticipation": 0.4, "action": 1.2, "recovery": 0.4,
+      "keys": [
+        [0.4, { "face": 0.7, "chest": [0.06, 0, 0], "A": { "to": "meet", "r": 0.97, "pole": [0.4, -1, -0.4] } }],
+        [0.65, { "face": 0.7, "chest": [0.06, 0, 0], "A": { "to": "meet", "r": 0.97, "pole": [0.4, -1, -0.4], "bob": 0.05 } }],
+        [0.9, { "face": 0.7, "chest": [0.06, 0, 0], "A": { "to": "meet", "r": 0.97, "pole": [0.4, -1, -0.4], "bob": -0.03 } }],
+        [1.15, { "face": 0.7, "chest": [0.06, 0, 0], "A": { "to": "meet", "r": 0.97, "pole": [0.4, -1, -0.4], "bob": 0.04 } }],
+        [1.6, { "face": 0.7, "chest": [0.06, 0, 0], "A": { "to": "meet", "r": 0.97, "pole": [0.4, -1, -0.4] } }]
+      ]
+    }
+  }
+}

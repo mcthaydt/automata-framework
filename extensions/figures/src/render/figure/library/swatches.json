@@ -1,0 +1,18 @@
+{
+  "charcoal": {"ramp":10,"base":1},
+  "flatGrey": {"ramp":10,"base":3},
+  "wood": {"ramp":12,"base":3,"lift":0},
+  "rag": {"ramp":12,"base":5},
+  "lid": {"ramp":27,"base":3,"flat":true},
+  "brow": {"ramp":24,"base":0,"flat":true},
+  "mouth": {"ramp":24,"base":1,"flat":true},
+  "skinBrown": {"ramp":2,"base":4,"paint":["#c7826c","#ad6e51","#885041","#733d3b"],"tones":[0.55,0.04,-0.5]},
+  "skinWarm": {"ramp":16,"base":5,"paint":["#edb67c","#ce9770","#bd7d64","#a76057"],"tones":[0.55,0.04,-0.5]},
+  "lidDeep": {"ramp":24,"base":1,"flat":true},
+  "eyeBrown": {"ramp":12,"base":1,"flat":true,"paint":["#4a353c","#1d1d21","#1d1d21","#000000"]},
+  "eyeWhite": {"ramp":1,"base":6,"flat":true,"paint":["#eadbc9","#ccc3b1","#bbafa4","#9e8c79"]},
+  "lipsBrown": {"ramp":19,"base":2,"flat":true,"paint":["#7c4b47","#98595a","#633432","#633432"]},
+  "lipsWarm": {"ramp":16,"base":3,"flat":true,"paint":["#a76057","#d28d7a","#904647","#904647"]},
+  "hairBlack": {"ramp":7,"base":1,"paint":["#23324d","#181f2f","#181f2f","#181f2f"]},
+  "hairBraid": {"ramp":12,"base":1,"paint":["#4a353c","#31222a","#1d1d21","#1d1d21"]}
+}
