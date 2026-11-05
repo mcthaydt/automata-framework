@@ -103,6 +103,12 @@ describe('imports', () => {
     expect(text).toContain("from '#src/testing/helper.ts'")
   })
 
+  it('leaves out the extension and the /index a specifier left out', () => {
+    const text = textOf('tests/unit/a/j.test.ts')
+    expect(text).toContain("from '#src/a/b'")
+    expect(text).toContain("from '#src/a/sub'")
+  })
+
   it('rewrites vi.mock and dynamic import specifiers', () => {
     const text = textOf('tests/unit/a/c.test.ts')
     expect(text).toContain("vi.mock('#src/a/b.ts'")

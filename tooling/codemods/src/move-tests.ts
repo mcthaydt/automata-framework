@@ -186,12 +186,21 @@ function relativeSpecifiers(file: string, code: string): { start: number; end: n
     .filter((span) => (seen.has(span.start) ? false : (seen.add(span.start), true)))
 }
 
-/** The file a specifier names, as an absolute path, or null when nothing on disk (or in the plan) matches. */
-function resolveTarget(from: string, specifier: string, exists: (path: string) => boolean): string | null {
+/**
+ * The file a specifier names (an absolute path), and the part of its name the specifier left out: `''` when it
+ * wrote the whole name, `.ts` when it left off the extension, `/index.ts` when it named a folder. Null when nothing
+ * on disk matches. A rewritten specifier leaves out the same part, so a package that imports without extensions
+ * keeps doing so.
+ */
+function resolveTarget(
+  from: string,
+  specifier: string,
+  exists: (path: string) => boolean,
+): { target: string; omitted: string } | null {
   const [path = ''] = specifier.split('?')
   const base = join(dirname(from), path)
-  for (const candidate of [base, `${base}.ts`, join(base, 'index.ts')])
-    if (exists(candidate)) return candidate
+  for (const omitted of ['', '.ts', '/index.ts'])
+    if (exists(`${base}${omitted}`)) return { target: `${base}${omitted}`, omitted }
   return null
 }
 
@@ -245,10 +254,10 @@ export function planMoves(
     for (const file of files) {
       if (moves.has(file) || !/\.(?:ts|svelte)$/.test(file)) continue
       for (const span of relativeSpecifiers(file, read(file))) {
-        const target = resolveTarget(file, span.value, exists)
-        if (target && moves.has(target)) {
-          moves.delete(target)
-          stayed.push(underRoot(target))
+        const resolved = resolveTarget(file, span.value, exists)
+        if (resolved && moves.has(resolved.target)) {
+          moves.delete(resolved.target)
+          stayed.push(underRoot(resolved.target))
           changed = true
         }
       }
@@ -274,10 +283,15 @@ export function planMoves(
     let code = read(move.from)
     const edits = relativeSpecifiers(move.from, code)
       .map((span) => {
-        const target = resolveTarget(move.from, span.value, exists)
-        if (!target) return null
+        const resolved = resolveTarget(move.from, span.value, exists)
+        if (!resolved) return null
         const query = span.value.includes('?') ? `?${span.value.split('?').slice(1).join('?')}` : ''
-        const landedAt = moves.get(target)?.to ?? target
+        const landed = moves.get(resolved.target)?.to ?? resolved.target
+        // A moved test keeps its extension; a source file's specifier leaves out what it left out before.
+        const landedAt =
+          resolved.omitted && landed.endsWith(resolved.omitted)
+            ? landed.slice(0, -resolved.omitted.length)
+            : landed
         // Code under src/ is reached through the package's alias; a moved test or any other file, relatively.
         const next = landedAt.startsWith(`${src}/`)
           ? `#src/${slash(relative(src, landedAt))}`
