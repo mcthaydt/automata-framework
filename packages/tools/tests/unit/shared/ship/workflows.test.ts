@@ -1305,7 +1305,11 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
 
     it('is docs-only when the pull request changes only docs/ and Markdown files', () => {
       expect(
-        classify(['docs/archive/superpowers/specs/new.md', 'docs/design/editor-3d/views.mjs', 'CHANGELOG.md']),
+        classify([
+          'docs/archive/superpowers/specs/new.md',
+          'docs/design/editor-3d/views.mjs',
+          'CHANGELOG.md',
+        ]),
       ).toBe('docs_only=true')
       expect(classify(['packages/a/README.md'])).toBe('docs_only=true')
     })
