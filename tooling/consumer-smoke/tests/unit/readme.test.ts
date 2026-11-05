@@ -2,13 +2,13 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { readmeCommands, readWorkspace, unresolvedCommands } from './readme.ts'
+import { readmeCommands, readWorkspace, unresolvedCommands } from '#src/readme.ts'
 
 // The root README's commands are a contract (QB spec §4.1): a reader who clones the repository and types
 // them gets a running Emberwick. These tests hold every command to a script, package or file that exists.
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
-const fixture = fileURLToPath(new URL('../fixtures/readme/README.md', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
+const fixture = fileURLToPath(new URL('../../fixtures/readme/README.md', import.meta.url))
 
 describe('readmeCommands', () => {
   it('reads every line of the sh blocks, dropping comments and splitting on &&', () => {

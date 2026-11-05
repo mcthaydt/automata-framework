@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { consumerManifest, consumerNpmrc, consumerWorkspace } from './project.ts'
+import { consumerManifest, consumerNpmrc, consumerWorkspace } from '#src/project.ts'
 
 const PNPM = 'pnpm@10.34.6+sha512.abc'
 const tools = {

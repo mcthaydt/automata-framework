@@ -3,7 +3,7 @@ import { request } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { type StaticServer, serveStatic } from './serve.ts'
+import { type StaticServer, serveStatic } from '#src/serve.ts'
 
 function buildWith(files: Record<string, string>): string {
   const dir = mkdtempSync(join(tmpdir(), 'af-smoke-serve-'))
