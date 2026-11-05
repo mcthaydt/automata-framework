@@ -27,7 +27,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 43% (13 of 30 tasks)
+### Build: 47% (14 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -61,7 +61,7 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 8.1 The copy table | 8 | Not started | |
 | 8.2 New Emberwick journeys | 8 | Not started | |
 | 8.3 The `create-game` journey | 8 | Not started | |
-| 9.1 Prepare the branch clean-up | 9 | Not started | |
+| 9.1 Prepare the branch clean-up | 9 | Done: `branches.md` and `pnpm branches:prune` (dry run only; nothing deleted) | |
 | 9.2 Run it (the Owner's go) | 9 | Not started | |
 
 **Bundle before D2 (Emberwick, `vite build --sourcemap`, measured 2026-11-05 on `claude/project-thread-f01qmj` with

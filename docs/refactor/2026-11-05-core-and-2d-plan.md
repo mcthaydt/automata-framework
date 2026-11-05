@@ -654,12 +654,12 @@ the features it lacks are journeyed on the one-file examples that show them:
 
 ### Task 9.1: Prepare
 
-- [ ] **Step 1:** Re-run the audit's branch comparison (appendix command) and write
+- [x] **Step 1:** Re-run the audit's branch comparison (appendix command) and write
   `docs/refactor/branches.md`: the merged list (to delete), the unmerged list (to tag `abandoned/<branch>`, then
   delete), the parked drafts #377, #381, #382 (tag `parked/<branch>`, close the PR with a comment naming the tag),
   #378 (close), #383 and #379 (closed as folded in, naming the refactor PR that carries their change; if either was
   not folded in, it stays open instead).
-- [ ] **Step 2:** Write `tooling/repo-hygiene/src/prune-branches.ts`: reads `branches.md`, tags first, verifies
+- [x] **Step 2:** Write `tooling/repo-hygiene/src/prune-branches.ts`: reads `branches.md`, tags first, verifies
   each tag points at the branch tip, then deletes; `--dry-run` by default, `--apply` to act. Test the parsing and the
   "tag before delete, stop on any mismatch" order with a fake `git` in `tests/unit/prune-branches.test.ts`.
 
@@ -821,3 +821,14 @@ the features it lacks are journeyed on the one-file examples that show them:
   hand-built chunks. On Emberwick: 1,183 kB raw, 360 kB gzip, Effect 187 kB raw and 57.6 kB gzip (16%), Pixi 42.9%, zod 8%
   (table in `progress.md`). This is the number task 5.4 compares against; the placeholder game's 28.3 kB gzip for Effect
   was a smaller page.
+- **Task 9.1 (2026-11-05, second session), done early because it needs no code from the other phases.** `docs/refactor/branches.md`
+  lists 351 of the 361 non-main branches by name and tip commit: 333 merged (delete), `archive/base-3d-adventure`
+  (tag `archived/`, then delete), 14 unmerged with no open pull request (tag `abandoned/`; this includes #378's branch),
+  and the drafts #377, #381 and #382 (tag `parked/`). The ten kept: the eight stacked refactor branches (#385 to #392)
+  and #383 and #379. `pnpm branches:prune` (`tooling/repo-hygiene/src/prune-branches.ts`) reads the list. With `--apply`
+  it first runs every check (the tip is still the listed commit; a "delete" branch is an ancestor of `origin/main`),
+  and only then, per branch, tags, pushes the tag, reads it back from origin at the tip, and deletes. 9 tests with a
+  fake `git`. The dry run against the live origin (all 351 checks): 333 to delete, 18 to tag then delete, 0 already
+  gone, no mismatch. **Nothing was deleted or tagged**; task 9.2 waits for the Owner's go. Deviation (39): the
+  appendix said 334 merged branches; one of them (`archive/base-3d-adventure`) is listed to be tagged first, as the
+  audit suggested, so the delete section holds 333.
