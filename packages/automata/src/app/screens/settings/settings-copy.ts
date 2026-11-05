@@ -64,7 +64,7 @@ export const AUDIO_COPY: AudioCopy = {
   buses: { master: 'Master', music: 'Music', sfx: 'Effects', ui: 'Menus', voice: 'Voices' },
   percent: (value) => `${Math.round(value * 100)}%`,
   unavailable: 'Sound could not start on this device.',
-  hostVolume: 'Your device’s volume in the host also applies.',
+  hostVolume: 'Your device’s own volume also applies.',
 }
 
 export const TOUCH_COPY: TouchCopy = {

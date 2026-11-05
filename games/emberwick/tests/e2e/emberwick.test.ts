@@ -133,7 +133,7 @@ test('menu → room → pause → resume → pause → quit, by keyboard and but
   await expect(game(page)).toHaveAttribute('data-screen', 'room')
   await page.getByRole('button', { name: 'Pause' }).click()
   await expect(game(page)).toHaveAttribute('data-screen', 'paused')
-  await page.getByRole('button', { name: 'Quit' }).click()
+  await page.getByRole('button', { name: 'Back to menu' }).click()
   await expect(game(page)).toHaveAttribute('data-screen', 'menu')
   expect(errors).toEqual([])
 })

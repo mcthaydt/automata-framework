@@ -48,7 +48,7 @@ const PANELS = {
       <h2 id="paused-title">Paused</h2>
       <div class="actions">
         <button type="button" class="primary" data-kind="primary" data-action="resume">Resume</button>
-        <button type="button" data-action="quit">Quit</button>
+        <button type="button" data-action="quit">Back to menu</button>
       </div>
     </section>`,
   end: `<section class="panel" aria-labelledby="end-title">
