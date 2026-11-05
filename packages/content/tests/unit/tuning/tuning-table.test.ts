@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { TUNABLE_DEFAULTS, TUNABLES } from '../testing/fixture-game'
-import { checkTuning } from './check-tuning'
-import { renderTuningTable, withTuningTable } from './tuning-table'
+import { TUNABLE_DEFAULTS, TUNABLES } from '#src/testing/fixture-game.ts'
+import { checkTuning } from '#src/tuning/check-tuning.ts'
+import { renderTuningTable, withTuningTable } from '#src/tuning/tuning-table.ts'
 
 // Ported from FloorFifty tests/content/compiler.test.ts "the author guide" (122a220).
 const meta = checkTuning(TUNABLE_DEFAULTS, { tunables: TUNABLES }).meta

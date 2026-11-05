@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { formatDiagnostic } from '../diagnostics/diagnostic'
-import { parseDocument } from '../parse/parse-document'
-import { fontFilesSchema, fontsSchema } from './fonts.schema'
+import { fontFilesSchema, fontsSchema } from '#src/assets/fonts.schema.ts'
+import { formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
+import { parseDocument } from '#src/parse/parse-document.ts'
 
 // `content/fonts.toml` (M5 spec §4.7 Fonts, M5-D7): each committed source font, its recorded hash and licence, and
 // the content languages it serves.

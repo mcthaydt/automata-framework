@@ -6,11 +6,11 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, 
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { encodePng } from '../assets/atlas-image'
-import { copyFixture } from '../testing/fixture-game'
-import { runCli } from './run-cli'
+import { encodePng } from '#src/assets/atlas-image.ts'
+import { runCli } from '#src/cli/run-cli.ts'
+import { copyFixture } from '#src/testing/fixture-game.ts'
 
-const FIXTURE_GAME = join(import.meta.dirname, '../testing/fixture-game.ts')
+const FIXTURE_GAME = join(import.meta.dirname, '../../../src/testing/fixture-game.ts')
 
 const GUIDE = '# Authoring\n\n<!-- BEGIN GENERATED TUNABLES -->\n<!-- END GENERATED TUNABLES -->\n'
 
@@ -48,7 +48,10 @@ function withAtlas(root: string, rgba: readonly number[]): string {
   return root
 }
 
-const FONT = join(import.meta.dirname, '../assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2')
+const FONT = join(
+  import.meta.dirname,
+  '../../../src/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2',
+)
 const FONT_SHA256 = 'd830612ac9131788ebae754b9268f83f7c1d3ffa9bc0f9a5514207a8283fe71e'
 
 /** Adds `content/fonts.toml` and the Latin fixture font, serving both content languages, to a project. */
@@ -218,8 +221,8 @@ describe('the automata-content bin', () => {
   // Audit of PR #8: the bin found its own files through a URL's `pathname`, which spells a space `%20`.
   it('runs from a package path and a project path with spaces', () => {
     const copy = join(mkdtempSync(join(tmpdir(), 'content-bin-')), 'package with spaces')
-    cpSync(join(import.meta.dirname, '..'), join(copy, 'src'), { recursive: true })
-    symlinkSync(join(import.meta.dirname, '../../node_modules'), join(copy, 'node_modules'))
+    cpSync(join(import.meta.dirname, '../../../src'), join(copy, 'src'), { recursive: true })
+    symlinkSync(join(import.meta.dirname, '../../../node_modules'), join(copy, 'node_modules'))
     const root = join(mkdtempSync(join(tmpdir(), 'content-project-')), 'my game')
     cpSync(project(), root, { recursive: true })
     const stdout = execFileSync(process.execPath, [join(copy, 'src/cli/main.ts'), 'check'], {
@@ -231,7 +234,7 @@ describe('the automata-content bin', () => {
 
   it('runs under Node', () => {
     const root = project()
-    const main = join(import.meta.dirname, 'main.ts')
+    const main = join(import.meta.dirname, '../../../src/cli/main.ts')
     const stdout = execFileSync(process.execPath, [main, 'check'], { cwd: root, encoding: 'utf8' })
     expect(stdout).toMatch(/^content [0-9a-f]{16}\n$/)
   }, 90_000)

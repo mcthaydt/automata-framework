@@ -2,7 +2,7 @@
 // compare it at boot and on restore. The compiler runs in Node; this pins one hash in Node, Chromium,
 // WebKit and Firefox.
 import { expect, test } from 'vitest'
-import { contentHash } from './content-hash'
+import { contentHash } from '#src/hash/content-hash.ts'
 
 test('a fixed content value hashes to the same id in every engine', () => {
   const data = {

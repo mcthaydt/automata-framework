@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { ENDESGA_64 } from './endesga-64'
-import { checkPalette, paletteSchema, parsePaintNetPalette } from './palette'
+import { ENDESGA_64 } from '#src/palette/endesga-64.ts'
+import { checkPalette, paletteSchema, parsePaintNetPalette } from '#src/palette/palette.ts'
 
 const endesgaFile = readFileSync(
-  new URL('../../../../docs/art/palettes/endesga-64.txt', import.meta.url),
+  new URL('../../../../../docs/art/palettes/endesga-64.txt', import.meta.url),
   'utf8',
 )
 

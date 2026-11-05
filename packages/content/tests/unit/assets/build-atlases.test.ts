@@ -3,9 +3,9 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import type { Diagnostic } from '../diagnostics/diagnostic'
-import { decodePng, encodePng, type Rgba } from './atlas-image'
-import { buildAtlases } from './build-atlases'
+import { decodePng, encodePng, type Rgba } from '#src/assets/atlas-image.ts'
+import { buildAtlases } from '#src/assets/build-atlases.ts'
+import type { Diagnostic } from '#src/diagnostics/diagnostic.ts'
 
 // The atlas build (M5 spec §4.7, §6): `content/atlases.toml` names each atlas's folder of PNG frames; the build
 // packs them into `<atlas>-<page>.png` and Pixi's `<atlas>-<page>.json`, the same bytes every time (G-c), and

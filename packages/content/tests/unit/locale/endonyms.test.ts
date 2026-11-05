@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { endonymOf } from './endonyms'
-import * as locale from './index'
+import { endonymOf } from '#src/locale/endonyms.ts'
+import * as locale from '#src/locale/index.ts'
 
 // A language's name in its own language, as the language picker shows it (ui's `LanguageSection`) and as the font
 // build cuts it into every subset (M5 spec §4.7). Moved from ui's `language-section.ts` (M5.5F), test included.

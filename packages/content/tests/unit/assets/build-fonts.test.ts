@@ -2,17 +2,17 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { type Diagnostic, formatDiagnostic } from '../diagnostics/diagnostic'
-import { copyFixture, fixtureOptions } from '../testing/fixture-game'
-import { buildFonts } from './build-fonts'
-import { fontCoverage } from './font-subset'
+import { buildFonts } from '#src/assets/build-fonts.ts'
+import { fontCoverage } from '#src/assets/font-subset.ts'
+import { type Diagnostic, formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
+import { copyFixture, fixtureOptions } from '#src/testing/fixture-game.ts'
 
 // The font build (M5 spec §4.7 Fonts, M5-D7): each font in `content/fonts.toml` is cut to each language it serves,
 // the same bytes every time (G-a), and every character of every message in a language must be in that language's
 // subsets, or the build fails at the message's `file:line:col` with the code point (G-b, PRODUCT.L's L-e).
 
 const fixture = (name: string) =>
-  new Uint8Array(readFileSync(new URL(`./fixtures/fonts/${name}`, import.meta.url)))
+  new Uint8Array(readFileSync(new URL(`../../../src/assets/fixtures/fonts/${name}`, import.meta.url)))
 /** Latin only: no CJK glyph. */
 const FONT = fixture('pixelify-sans-latin-400-normal.woff2')
 const HASH = 'd830612ac9131788ebae754b9268f83f7c1d3ffa9bc0f9a5514207a8283fe71e'

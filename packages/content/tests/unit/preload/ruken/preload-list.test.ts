@@ -4,13 +4,13 @@ import { dirname, join } from 'node:path'
 import { parseManifest } from '@ruken/manifest'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { encodePng } from '../../assets/atlas-image'
-import { buildAtlases } from '../../assets/build-atlases'
-import { buildFonts } from '../../assets/build-fonts'
-import { fontFilesSchema } from '../../assets/fonts.schema'
-import { type Diagnostic, formatDiagnostic } from '../../diagnostics/diagnostic'
-import { copyFixture, fixtureOptions } from '../../testing/fixture-game'
-import { preloadList } from '../preload-list'
+import { encodePng } from '#src/assets/atlas-image.ts'
+import { buildAtlases } from '#src/assets/build-atlases.ts'
+import { buildFonts } from '#src/assets/build-fonts.ts'
+import { fontFilesSchema } from '#src/assets/fonts.schema.ts'
+import { type Diagnostic, formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
+import { preloadList } from '#src/preload/preload-list.ts'
+import { copyFixture, fixtureOptions } from '#src/testing/fixture-game.ts'
 
 /** A built game folder holding `files` (a path ending in `/` is a folder). */
 function dist(files: readonly string[]): string {
@@ -263,7 +263,10 @@ describe('preloadList with the asset build', () => {
   it('lists the real atlas and font builds, written where automata-content assets writes them', async () => {
     const pixel = new Uint8Array(
       readFileSync(
-        new URL('../../assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2', import.meta.url),
+        new URL(
+          '../../../../src/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2',
+          import.meta.url,
+        ),
       ),
     )
     const frame = encodePng({ width: 2, height: 2, data: new Uint8Array(16).fill(255) })

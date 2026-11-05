@@ -5,9 +5,9 @@
 // fresh compile.
 import { createSim } from '@mcthaydt/automata-sim'
 import { expect, test } from 'vitest'
-import simContent from '../testing/fixtures/sim-rooms/sim-content.json'
-import { SIM_ROOMS_HASH } from '../testing/sim-rooms-hash'
-import { contentHash } from './content-hash'
+import { contentHash } from '#src/hash/content-hash.ts'
+import simContent from '#src/testing/fixtures/sim-rooms/sim-content.json'
+import { SIM_ROOMS_HASH } from '#src/testing/sim-rooms-hash.ts'
 
 test("the fixture's sim hash equals the sim's contentHash and one committed value in every engine", async () => {
   const sim = await createSim({ seed: 1, content: simContent, plugins: [] })

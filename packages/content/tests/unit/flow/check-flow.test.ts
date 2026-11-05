@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
-import { FIXTURES, FLOW } from '../testing/fixture-game'
-import { checkFlow, type FlowSource, flowSchema } from './check-flow'
-import { flowMermaid } from './flow-mermaid'
+import { checkFlow, type FlowSource, flowSchema } from '#src/flow/check-flow.ts'
+import { flowMermaid } from '#src/flow/flow-mermaid.ts'
+import { FIXTURES, FLOW } from '#src/testing/fixture-game.ts'
 
 const shipped = (): FlowSource =>
   flowSchema.parse(parse(readFileSync(join(FIXTURES, 'valid/content/flow.toml'), 'utf8')))

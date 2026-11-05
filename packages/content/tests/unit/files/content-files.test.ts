@@ -9,7 +9,7 @@ import {
   readBytesIfPresent,
   readTextIfPresent,
   writeFileAtomically,
-} from './content-files'
+} from '#src/files/content-files.ts'
 
 const scratch = (): string => mkdtempSync(join(tmpdir(), 'content-files-'))
 

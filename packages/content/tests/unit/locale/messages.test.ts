@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { checkTranslation, collectMessages, messageKey, renderMessages, snakeKey } from './messages'
+import {
+  checkTranslation,
+  collectMessages,
+  messageKey,
+  renderMessages,
+  snakeKey,
+} from '#src/locale/messages.ts'
 
 // Ported from FloorFifty tests/content/messages.test.ts (122a220): keys are content_<kind>_<id>_<field> in
 // snake_case, written in the inlang message format.

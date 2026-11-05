@@ -8,11 +8,11 @@ import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect } from 'effect'
 import { expect, it } from 'vitest'
-import { buildContent } from '../compile/write-outputs'
-import { copyFixture, simRoomsOptions } from '../testing/fixture-game'
+import { buildContent } from '#src/compile/write-outputs.ts'
+import { copyFixture, simRoomsOptions } from '#src/testing/fixture-game.ts'
 
-const SRC = join(import.meta.dirname, '..')
-const REPO = join(import.meta.dirname, '../../../..')
+const SRC = join(import.meta.dirname, '../../../src')
+const REPO = join(import.meta.dirname, '../../../../..')
 
 // 90 s budget: a whole tsc program, slow on the shared af-linux runner under load (render-types' took 70.7 s on
 // 2026-10-16). The root test:unit default is the same 90 s; packages/ship's workflows test pins both.

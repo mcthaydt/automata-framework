@@ -1,6 +1,6 @@
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { describe, expect, it } from 'vitest'
-import { contentHash } from './content-hash'
+import { contentHash } from '#src/hash/content-hash.ts'
 
 describe('contentHash', () => {
   it("is the sim's XXH64 of the sim's canonical JSON, so the sim can check it on restore", () => {

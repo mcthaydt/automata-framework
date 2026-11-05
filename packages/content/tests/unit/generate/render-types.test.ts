@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { contentRef, defineContentSchema, localized } from '../schema/content-schema'
-import { renderTypes } from './render-types'
+import { renderTypes } from '#src/generate/render-types.ts'
+import { contentRef, defineContentSchema, localized } from '#src/schema/content-schema.ts'
 
 const song = defineContentSchema(
   'song',
@@ -105,13 +105,13 @@ describe('renderTypes', () => {
           moduleResolution: 'bundler',
           // The package's source uses Node types (its file access), so the consumer needs them too.
           types: ['node'],
-          typeRoots: [join(import.meta.dirname, '../../node_modules/@types')],
-          paths: { '@mcthaydt/automata-content': [join(import.meta.dirname, '../index.ts')] },
+          typeRoots: [join(import.meta.dirname, '../../../node_modules/@types')],
+          paths: { '@mcthaydt/automata-content': [join(import.meta.dirname, '../../../src/index.ts')] },
         },
         include: ['*.ts'],
       }),
     )
-    const tsc = join(import.meta.dirname, '../../../../node_modules/.bin/tsc')
+    const tsc = join(import.meta.dirname, '../../../../../node_modules/.bin/tsc')
     const check = (consumer: string): string => {
       writeFileSync(join(dir, 'consumer.ts'), consumer)
       try {

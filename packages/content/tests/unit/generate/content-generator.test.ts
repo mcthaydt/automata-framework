@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { defineContentGenerator, type GeneratorInput, runGenerators } from './content-generator'
+import {
+  defineContentGenerator,
+  type GeneratorInput,
+  runGenerators,
+} from '#src/generate/content-generator.ts'
 
 const input: GeneratorInput = {
   data: { song: { dawn: {} } },

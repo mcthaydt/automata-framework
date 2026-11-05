@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canonicalFile } from './canonical-file'
+import { canonicalFile } from '#src/hash/canonical-file.ts'
 
 // Ported from FloorFifty tests/content/determinism.test.ts "canonicalizeValue" (122a220).
 describe('canonicalFile', () => {

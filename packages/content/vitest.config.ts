@@ -1,23 +1,5 @@
-import { playwright } from '@vitest/browser-playwright'
-import { defineConfig } from 'vitest/config'
+import { defineTests } from '@mcthaydt/vitest-preset'
 
-export default defineConfig({
-  test: {
-    projects: [
-      { test: { name: 'node', environment: 'node', include: ['src/**/*.test.ts'] } },
-      {
-        test: {
-          name: 'browsers',
-          // Only the hash parity check runs in browsers; the compiler itself is Node build tooling.
-          include: ['src/**/*.parity.test.ts'],
-          browser: {
-            enabled: true,
-            headless: true,
-            provider: playwright(),
-            instances: [{ browser: 'chromium' }, { browser: 'webkit' }, { browser: 'firefox' }],
-          },
-        },
-      },
-    ],
-  },
-})
+// Only the hash parity check runs in browsers; the compiler itself is Node build tooling. The parity tests also run
+// in Node, the fourth engine the hashes must match in.
+export default defineTests({ alsoInNode: ['tests/browser/**/*.test.ts'] })

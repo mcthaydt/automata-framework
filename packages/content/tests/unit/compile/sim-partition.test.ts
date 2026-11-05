@@ -3,12 +3,12 @@ import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { formatDiagnostic } from '../diagnostics/diagnostic'
-import { contentHash } from '../hash/content-hash'
-import { contentRef, defineContentSchema, localized } from '../schema/content-schema'
-import { copyFixture, FIXTURES, ROOM_KIND, SOUND_KIND, simRoomsOptions } from '../testing/fixture-game'
-import { SIM_ROOMS_HASH } from '../testing/sim-rooms-hash'
-import { type CompiledContent, type ContentOptions, compileContent } from './compile-content'
+import { type CompiledContent, type ContentOptions, compileContent } from '#src/compile/compile-content.ts'
+import { formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
+import { contentHash } from '#src/hash/content-hash.ts'
+import { contentRef, defineContentSchema, localized } from '#src/schema/content-schema.ts'
+import { copyFixture, FIXTURES, ROOM_KIND, SOUND_KIND, simRoomsOptions } from '#src/testing/fixture-game.ts'
+import { SIM_ROOMS_HASH } from '#src/testing/sim-rooms-hash.ts'
 
 const compile = (options: ContentOptions) => Effect.runPromise(Effect.either(compileContent(options)))
 

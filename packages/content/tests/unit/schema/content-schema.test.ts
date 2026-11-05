@@ -7,8 +7,8 @@ import {
   defineContentSchema,
   localized,
   localizedTexts,
-} from './content-schema'
-import { checkReferences, resolveMarkers } from './references'
+} from '#src/schema/content-schema.ts'
+import { checkReferences, resolveMarkers } from '#src/schema/references.ts'
 
 const song = defineContentSchema('song', z.strictObject({ displayName: localized() }), { folder: 'songs' })
 const stage = defineContentSchema(
@@ -122,7 +122,7 @@ describe('checkReferences', () => {
 describe('a second copy of the schema module', () => {
   it('makes markers and registrations the compiler recognizes', async () => {
     vi.resetModules()
-    const copy = await import('./content-schema')
+    const copy = await import('#src/schema/content-schema.ts')
     expect(copy.contentRef).not.toBe(contentRef)
     const schema = z.strictObject({ song: copy.contentRef('song'), name: copy.localized() })
     const resolved = resolveMarkers(schema.parse({ song: 'dusk-run', name: 'Rooftops' }))
