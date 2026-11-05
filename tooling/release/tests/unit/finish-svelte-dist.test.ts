@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { finishSvelteDist } from './finish-svelte-dist.ts'
+import { finishSvelteDist } from '#src/finish-svelte-dist.ts'
 
 function distWith(files: Record<string, string>): string {
   const dist = mkdtempSync(join(tmpdir(), 'af-svelte-dist-'))

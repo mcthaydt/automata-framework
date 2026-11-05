@@ -11,7 +11,7 @@ import { expect, it } from 'vitest'
 // --write-cheatsheet mode, tooling/api-index/src/ci.test.ts, which also rewrites the cheatsheet if it is stale),
 // and only then writes the skill's copy and the plugin version.
 const scripts = JSON.parse(
-  readFileSync(fileURLToPath(new URL('../../../package.json', import.meta.url)), 'utf8'),
+  readFileSync(fileURLToPath(new URL('../../../../package.json', import.meta.url)), 'utf8'),
 ).scripts as Record<string, string>
 
 it('bumps, syncs SIM_VERSION, builds, runs the API index and cheatsheet, then writes the agent skills, in order', () => {

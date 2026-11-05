@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, symlinkSync, writeFi
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { vendoredNotice, writeVendored } from './write-vendored.ts'
+import { vendoredNotice, writeVendored } from '#src/write-vendored.ts'
 
 const README = `# Vendored Ruken packages
 
@@ -90,7 +90,7 @@ describe('vendoredNotice', () => {
 })
 
 describe('writeVendored', () => {
-  const root = new URL('../../..', import.meta.url).pathname
+  const root = new URL('../../../..', import.meta.url).pathname
 
   /** A package folder whose node_modules holds `@ruken/sdk` with the given package.json and files. */
   const packageWithSdk = (manifest: object, files: Record<string, string>): string => {
@@ -147,7 +147,7 @@ describe('writeVendored', () => {
 // hashes of the tarballs actually in vendor/ruken/: a repack that forgets the README would otherwise publish
 // wrong hashes and pass every other check.
 describe('vendor/ruken/README.md', () => {
-  const vendor = new URL('../../../vendor/ruken/', import.meta.url).pathname
+  const vendor = new URL('../../../../vendor/ruken/', import.meta.url).pathname
 
   it('lists the SHA-256 of exactly the tarballs in vendor/ruken/', () => {
     const readme = readFileSync(join(vendor, 'README.md'), 'utf8')

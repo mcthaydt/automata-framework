@@ -5,7 +5,7 @@ import { expect, it } from 'vitest'
 // The workspace runs TypeScript sources, never built output (M2.4 spec §2), so only `build` waits for its
 // dependencies' builds. If typecheck or the tests depended on `^build`, every `pnpm check` would build first.
 const turbo = JSON.parse(
-  readFileSync(fileURLToPath(new URL('../../../turbo.json', import.meta.url)), 'utf8'),
+  readFileSync(fileURLToPath(new URL('../../../../turbo.json', import.meta.url)), 'utf8'),
 ) as {
   tasks: Record<string, { dependsOn?: string[]; inputs?: string[] }>
 }
@@ -34,7 +34,7 @@ it("build's cache key covers the shared build code in tooling/release and the ve
 // them, none of which is in this package, so without this input turbo would replay a pass after a repack.
 it("this package's tests have the vendored Ruken tarballs in their cache key", () => {
   const own = JSON.parse(
-    readFileSync(fileURLToPath(new URL('../turbo.json', import.meta.url)), 'utf8'),
+    readFileSync(fileURLToPath(new URL('../../turbo.json', import.meta.url)), 'utf8'),
   ) as typeof turbo
   expect(own.tasks['test:unit']?.inputs).toContain('$TURBO_ROOT$/vendor/ruken/**')
   expect(own.tasks.test?.inputs).toContain('$TURBO_ROOT$/vendor/ruken/**')

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { publishedBuild } from './tsdown-shared.ts'
+import { publishedBuild } from '#src/tsdown-shared.ts'
 
 /** A package folder with this package.json; returns the `import.meta.url` its `tsdown.config.ts` would have. */
 function packageWith(manifest: Record<string, unknown>): string {

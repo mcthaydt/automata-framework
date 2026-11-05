@@ -2,12 +2,12 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { workspacePackages } from './publishable-packages.ts'
+import { workspacePackages } from '#src/publishable-packages.ts'
 
 // FR.1 (Plus TR-D3): a private package whose built code a binary must load, the sector format, builds to `dist` like the published
 // packages, so `pnpm pack` (which applies `publishConfig.exports`) hands Plus a pack that exports built code, not TypeScript source. It
 // stays private: nothing here makes it publishable (release-list.test.ts pins what is).
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 
 // Libraries only: the private cli also builds to dist, but it is a binary with its own checks.
 const builtPrivate = workspacePackages(root).filter(

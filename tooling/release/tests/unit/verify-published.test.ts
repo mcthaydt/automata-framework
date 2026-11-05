@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { releasedVersion, verifyPublished } from './verify-published.ts'
+import { releasedVersion, verifyPublished } from '#src/verify-published.ts'
 
 const names = ['@mcthaydt/automata-sim', '@mcthaydt/automata-host']
 

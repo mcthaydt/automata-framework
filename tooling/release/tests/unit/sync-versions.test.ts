@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { syncSimVersion } from './sync-versions.ts'
+import { syncSimVersion } from '#src/sync-versions.ts'
 
 function repo(version: string, source?: string): string {
   const root = mkdtempSync(join(tmpdir(), 'af-sync-'))

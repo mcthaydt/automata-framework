@@ -2,12 +2,12 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { publishablePackages, type WorkspacePackage, workspacePackages } from './publishable-packages.ts'
+import { publishablePackages, type WorkspacePackage, workspacePackages } from '#src/publishable-packages.ts'
 
 // What AF publishes to GitHub Packages, and how (M2.4 spec §3.1, §3.2, §3.4). Changing the list is a deliberate
 // act: an example, `render-pixi3d` (D-1) or a tool marked publishable fails here before anything is released.
 // Physics is an Automata Plus extension and publishes from automata-plus (PRODUCT.5g).
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const published = publishablePackages(root)
 
 // DX.2a: runtime, render-pixi, game and the umbrella joined, so a game (and Automata Plus) can install them.

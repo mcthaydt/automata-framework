@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { changesetProblems, readChangeset } from './check-changesets.ts'
+import { changesetProblems, readChangeset } from '#src/check-changesets.ts'
 
 const published = ['@mcthaydt/automata-sim', '@mcthaydt/automata-host']
 const file = (body: string) => `---\n${body}\n---\n\nWhat changed.\n`
