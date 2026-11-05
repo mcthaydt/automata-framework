@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { fromDef, GROUP, POSES, GAITS, type CharacterDef } from '../src/render/figure/cast';
+import { fromDef, type CharacterDef } from '../src/render/figure/cast';
+import { GAITS, POSES } from '../src/render/figure/presets';
 import { evaluate, standHolds, type AnchorKind } from '../src/render/figure/motion';
 import { J, fk, skeleton } from '../src/render/figure/rig';
 import { apply, invertRigid, position, sub } from '../src/render/figure/math';
-import { reach } from '../src/render/figure/parts';
+import { GROUP, reach } from '../src/render/figure/parts';
 import { BASE } from '../base/base';
 
 // The base pair: the generator's poses and walks under test. Every stand in the library is held by both; one that

@@ -1,5 +1,5 @@
 import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from './rig';
-import { add, apply, applyDir, basis, cross, dot, euler, invertRigid, lerp3, matq, normalize, position, qmat, qmul, scale, smooth, sub, type M, type Q, type V3 } from './math';
+import { add, apply, applyDir, basis, cross, dot, euler, invertRigid, lerp3, matq, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from './math';
 import { reach, type Part } from './parts';
 /**
  * Procedural motion: every layer is a pure function of the figure's parameters and the (stepped) time,
@@ -150,7 +150,6 @@ export interface Evaluated { pose: Pose; world: M[] }
  * turned away, half a step back). Each runs from its own start for as long as the caller holds it.
  */
 export type ActionId = 'reach' | 'flinch';
-const TAU = Math.PI * 2;
 /** The most the hips turn either way over a stride (rad): with the chest's counter-turn the figure stays in its octant. */
 const OCTANT = 0.1;
 /** Walking, the chin a touch down (rad), whatever the gait's lift. */

@@ -1,9 +1,10 @@
 import { J, fk, skeleton, type Pose, type Side, type Skeleton } from './rig';
 import { evaluate, type ActionId, type MotionState } from './motion';
-import { apply, applyDir, type M, type V3 } from './math';
-import { GROUP, ITEMS, type CastMember } from './cast';
+import { apply, applyDir, wrapAngle, type M, type V3 } from './math';
+import type { CastMember } from './cast';
+import { ITEMS } from './items';
 import { blendJoins, cleanup, gbuffer, rasterize, resolve, smoothContour, stamp, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from './raster';
-import { boneGroups, type Decal, type Material, type Part } from './parts';
+import { boneGroups, GROUP, type Decal, type Material, type Part } from './parts';
 import type { Expression, FaceLook } from './garments';
 import { DEFAULT_HEAD } from './genes';
 import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Bends, type FaceStamp, type HandStamp, type PaintStyle } from './paint';
@@ -63,8 +64,6 @@ function handShapes(parts: Part[]): HandShape[] {
   }
   return out;
 }
-const TAU = Math.PI * 2;
-const wrapAngle = (a: number) => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 /** Builds the part list of a cast member in an outfit, holding an item, once per change. */
 export function build(member: CastMember, s: Skeleton, outfit: string, item: string | null): Built {
   const look = member.outfits[outfit](s, member.cell[1] / member.metres);

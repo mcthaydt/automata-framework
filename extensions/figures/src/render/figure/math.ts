@@ -82,3 +82,7 @@ export function invertRigid(m: M): M {
 export const position = (m: M): V3 => [m[9], m[10], m[11]];
 /** Deterministic hash noise in [0, 1) for an integer, for twitches and part jitter that must repeat exactly. */
 export function hash(n: number) { let x = Math.imul(n | 0, 0x27d4eb2d); x = Math.imul(x ^ (x >>> 15), 0x85ebca6b); x ^= x >>> 13; return (x >>> 0) / 4294967296; }
+/** A full turn (rad). */
+export const TAU = Math.PI * 2;
+/** An angle wrapped into [−π, π). */
+export const wrapAngle = (a: number) => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;

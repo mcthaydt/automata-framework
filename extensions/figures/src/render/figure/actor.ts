@@ -1,7 +1,8 @@
 import { J, fk, type Pose, type Side, type Skeleton } from './rig';
 import { evaluate, type ActionId, type Gait, type Hold, type MotionState, type Stand } from './motion';
-import { euler, qmul, smooth, type V3 } from './math';
-import { GAITS, memberOf, standOf, type CastMember, type CharacterDef } from './cast';
+import { euler, qmul, smooth, wrapAngle, type V3 } from './math';
+import { memberOf, standOf, type CastMember, type CharacterDef } from './cast';
+import { GAITS } from './presets';
 import type { Expression } from './garments';
 import { Figure, type View } from './figure';
 import { actionOf, lengthOf, modeGait, specAt, weightAt, type ActionDef } from './actions';
@@ -89,8 +90,6 @@ export function characterOf(who: string | CharacterDef): { def: CharacterDef; po
   return { def: b.def, pose: b.pose };
 }
 export { memberOf } from './cast';
-const TAU = Math.PI * 2;
-const wrap = (a: number) => ((a + Math.PI) % TAU + TAU) % TAU - Math.PI;
 const deg = (d: number) => d * Math.PI / 180;
 /** Turn speeds (rad/s): to a new way of walking at a corner, and to a face key. */
 const CORNER = 9, TURN = 5;
@@ -232,9 +231,9 @@ export class ScriptedActor {
     let cur = this.turns[0].to(t);
     for (let i = 1; i < this.turns.length && this.turns[i].t <= t; i++) {
       const tr = this.turns[i], next = this.turns[i + 1], until = next && next.t <= t ? next.t : t;
-      cur = cur + Math.max(-tr.rate * (until - tr.t), Math.min(tr.rate * (until - tr.t), wrap(tr.to(until) - cur)));
+      cur = cur + Math.max(-tr.rate * (until - tr.t), Math.min(tr.rate * (until - tr.t), wrapAngle(tr.to(until) - cur)));
     }
-    return wrap(cur);
+    return wrapAngle(cur);
   }
   /** The look at t: the target's yaw and pitch from the eyes (root space at `facing`), blended from the last key's over LOOK s. */
   private lookAt(t: number, at: [number, number], facing: number): [number, number] | null {
@@ -250,7 +249,7 @@ export class ScriptedActor {
     };
     const a = angles(keys[i - 1]), b = angles(keys[i]), k = smooth((t - keys[i].t) / LOOK);
     if (!keys[i].at && k >= 1) return null;
-    return [a[0] + wrap(b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+    return [a[0] + wrapAngle(b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
   }
   /** Everything it is doing at t but its pose: a pure function of t. */
   state(t: number): ActorState & { look: [number, number] | null } {
@@ -258,11 +257,11 @@ export class ScriptedActor {
     let facing = this.facingBase(t);
     // A look past what the neck and chest turn turns the body with it.
     let look = this.lookAt(t, at, facing);
-    if (look && Math.abs(look[0]) > NECK) { const over = look[0] - Math.sign(look[0]) * NECK; facing = wrap(facing + over); look = [look[0] - over, look[1]]; }
+    if (look && Math.abs(look[0]) > NECK) { const over = look[0] - Math.sign(look[0]) * NECK; facing = wrapAngle(facing + over); look = [look[0] - over, look[1]]; }
     const moving = s.kind !== 'still', cycles = s.cycles0 + s.cps * Math.max(0, t - s.t0), g = s.gait;
     const phase = Math.floor((cycles - Math.floor(cycles)) * g.walkPoses) / g.walkPoses;
     const speed = s.kind === 'move' ? Math.hypot(s.to[0] - s.from[0], s.to[1] - s.from[1]) / (s.t1 - s.t0) : 0;
-    return { at, facing, speed, moving, phase, gait: moving ? g : this.member.gait, heading: s.kind === 'move' ? wrap(s.dir - facing) : 0, march: s.kind === 'march', look };
+    return { at, facing, speed, moving, phase, gait: moving ? g : this.member.gait, heading: s.kind === 'move' ? wrapAngle(s.dir - facing) : 0, march: s.kind === 'march', look };
   }
   /** What it holds at t, its expression, its stand. */
   itemAt(t: number): string | null { let it: string | null = null; for (const k of this.script.items ?? []) if (k.t <= t) it = k.hold; return it; }

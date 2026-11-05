@@ -1,12 +1,9 @@
 import { J, type Genes, type Side, type Skeleton } from './rig';
 import { CHAIN, clearance, standHolds, type Anchor, type Gait, type Hold, type Stand } from './motion';
-import { axisAngle, euler, type V3 } from './math';
-import { reach, type Material, type Part } from './parts';
+import { GROUP, reach, type Material } from './parts';
 import { measure, type Sliders } from './genes';
-import { box, dress, GROUP, SWATCHES, type Garment, type Look as Dressed } from './garments';
-import gaitLibrary from './library/gaits.json';
-import itemLibrary from './library/items.json';
-import poseLibrary from './library/poses.json';
+import { dress, SWATCHES, type Garment, type Look as Dressed } from './garments';
+import { GAITS, POSES } from './presets';
 /**
  * The cast: every figure is a character file (a `CharacterDef`: base/base.ts holds the base pair's) of gene sliders, a
  * gait, outfits as lists of garments, and swatches of its own. `fromDef` turns any such file into a figure on the one
@@ -16,12 +13,6 @@ import poseLibrary from './library/poses.json';
 /** A dressed figure, how far out its arms hang to clear it (motion.ts clearance), and the openings its hands may use
  * (motion.ts Anchor). */
 export type Look = Dressed & { clear?: [number, number]; anchors?: Anchor[] };
-export interface Item {
-  /** The item's parts, authored in its socket's space (+z up when held upright). */
-  parts: (socket: number) => Part[];
-  /** The arm pose that holds it, for a skeleton and a hand. */
-  hold: (s: Skeleton, side: Side) => Hold;
-}
 export interface CastMember {
   id: string;
   genes: Genes; gait: Gait;
@@ -64,29 +55,6 @@ export interface CharacterDef {
   /** Swatches of its own, beside the library's (library/swatches.json). */
   swatches?: Record<string, Material>;
 }
-// ─── Gaits: presets a character picks and adjusts (library/gaits.json) ───
-export const GAITS = gaitLibrary as Record<string, Gait>;
-// ─── Stands: lookbook poses a character picks by name (library/poses.json) ───
-export const POSES = poseLibrary as unknown as Record<string, Stand>;
-// ─── Items: on a hand socket (library/items.json) ───
-/** An item as data: its parts in socket space (metres, +z up when held upright), and the
- * hold: the hand's place in the chest's space as sums of the figure's measures (k, shoulders, arms), mirrored in x for
- * the left hand, the hand's turn and the elbow's pole. */
-interface ItemDef {
-  parts: { material: string; at: V3; r: V3; e?: [number, number]; seg?: number; rings?: number; pitch?: number }[];
-  hold: { hand: { k?: number; shoulders?: number; arms?: number }[]; turn: [number, number, number]; pole: V3 };
-}
-function item(def: ItemDef): Item {
-  return {
-    parts: socket => def.parts.map(p => box(socket, p.material, GROUP.item, { at: p.at, r: p.r, ...(p.e ? { e: p.e } : {}), ...(p.seg ? { seg: p.seg } : {}), ...(p.rings ? { rings: p.rings } : {}), ...(p.pitch !== undefined ? { turn: axisAngle([1, 0, 0], p.pitch) } : {}) })),
-    hold: (s, side) => {
-      const x = side === 'L' ? 1 : -1, k = s.genes.height / 1.62;
-      const at = def.hold.hand.map(t => (t.shoulders ?? 0) * s.genes.shoulders + (t.arms ?? 0) * s.genes.arms + (t.k ?? 0) * k);
-      return { side, hand: [x * at[0], at[1], at[2]], turn: def.hold.turn, pole: [x * def.hold.pole[0], def.hold.pole[1], def.hold.pole[2]] };
-    },
-  };
-}
-export const ITEMS: Record<string, Item> = Object.fromEntries(Object.entries(itemLibrary as unknown as Record<string, ItemDef>).map(([id, d]) => [id, item(d)]));
 /** A character file → a figure on the shared rig. A figure up to 1.75 m tall takes the small 48×72 cell (1.95 m), a taller
  * one the 64×96 (2.6 m), both at the cast's one texel density; `memberOf` sets the sheets' cell instead. The feet's row is
  * 13.5 either way. */
@@ -150,4 +118,3 @@ export function standOf(s: Skeleton, look: Look, name: string): { stand: Stand; 
   }
   return null;
 }
-export { euler, GROUP };
