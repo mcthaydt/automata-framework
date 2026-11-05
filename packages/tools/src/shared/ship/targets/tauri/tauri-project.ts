@@ -2,7 +2,7 @@ import type { ShipConfig } from '../../config/ship-config.ts'
 import type { TauriConfig } from '../../config/tauri-config.schema.ts'
 import { tauriCsp } from './tauri-checks.ts'
 
-// The Tauri project ship generates for a desktop build (DIST spec §6.2), written to `<game>/.automata/tauri/src-tauri/`
+// The Tauri project ship generates for a desktop build, written to `<game>/.automata/tauri/src-tauri/`
 // on every `prepare --target tauri` and never into the game's source. The same config always gives the same files.
 
 /**

@@ -8,7 +8,7 @@ import { ButlerFailed, ItchDownloadsMissing, type ItchSettingMissing } from '../
 import { itchPushSettings } from './publish-to-itch.ts'
 
 /*
- * `automata ship publish --target itch --from tauri` (DIST spec §6.4): the desktop bundles `prepare --target tauri`
+ * `automata ship publish --target itch --from tauri`: the desktop bundles `prepare --target tauri`
  * wrote to `dist-tauri/` go to itch.io as Downloadable files, one butler channel per OS. butler pushes a folder, so
  * each bundle is staged alone in `dist-tauri/.itch/<channel>/`.
  */

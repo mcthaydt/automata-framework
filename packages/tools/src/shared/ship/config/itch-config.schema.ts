@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// The `itch` section of a game's ship.config.ts (PUB spec §4). butler names a project `user/game` in lower case
+// The `itch` section of a game's ship.config.ts. butler names a project `user/game` in lower case
 // (https://itch.io/docs/butler/pushing.html), and a channel is a lower-case slug such as `html5`.
 
 /** What a game writes in `ship.config.ts`. */
@@ -10,7 +10,7 @@ export interface ItchConfig {
   /** The butler channel. Defaults to `html5`. */
   readonly channel?: string | undefined
   /**
-   * The butler channel of each desktop bundle (`publish --target itch --from tauri`, DIST spec §6.4). Each defaults to
+   * The butler channel of each desktop bundle (`publish --target itch --from tauri`). Each defaults to
    * its OS's name: `linux`, `mac`, `windows`.
    */
   readonly downloads?:

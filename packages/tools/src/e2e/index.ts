@@ -1,4 +1,4 @@
-// Browser-journey helpers (M4 spec §4.14): the fake pad, touch, and the input × form-factor matrix. The only entry
+// Browser-journey helpers: the fake pad, touch, and the input × form-factor matrix. The only entry
 // of this package that imports `@playwright/test`.
 export {
   type Direction,

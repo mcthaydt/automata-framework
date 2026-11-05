@@ -1,4 +1,4 @@
-// The orientation check (M4.7 follow-up): the orientation a game plays in must be the `runtime.orientation` its
+// The orientation check: the orientation a game plays in must be the `runtime.orientation` its
 // ship config sends Ruken, or the rotate hint and the host's frame disagree. `defineGame({ orientation })` says it
 // (`any` when the property is left out, as `GameSpec` defaults it). Like the board check, the game's own sources are
 // read, not run, so a failure names the call site; only string literals are checked.

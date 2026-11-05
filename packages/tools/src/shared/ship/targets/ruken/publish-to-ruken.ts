@@ -9,7 +9,7 @@ import { PublishAuth, PublishFailed, PublishRejected, PublishTimeout, PublishUsa
 // `ship publish` hands the prepared build folder to Ruken's own `ruken publish` (vendor/ruken/ruken-cli, built
 // at the RukenApp commit vendor/ruken/README.md names). Ruken's CLI packs the folder deterministically, runs
 // Ruken's build validation, uploads, waits for Ruken's checks and prints where the build is served. AF does
-// none of that itself, so whatever Ruken accepts is what AF ships (ship spec §3.4). Exit codes are Ruken's
+// none of that itself, so whatever Ruken accepts is what AF ships. Exit codes are Ruken's
 // (`tooling/ruken-cli/src/run.ts`).
 
 /**
@@ -43,7 +43,7 @@ export type PublishError =
 
 /**
  * The `ruken` bin of the vendored `@ruken/cli` package. The published `@mcthaydt/automata-tools` carries a copy of
- * Ruken's built CLI in `dist/vendor/ruken-cli/` (D-8, M2.4 spec §3.4); every built module sits directly in
+ * Ruken's built CLI in `dist/vendor/ruken-cli/`; every built module sits directly in
  * `dist/`, so the copy is `./vendor/ruken-cli/cli.js` next to it. Running from `src` in the workspace there is
  * no copy, and the workspace's `@ruken/cli` dev dependency is used instead (`dist/cli.js`, next to its
  * `dist/index.js`). `moduleUrl` and `exists` are parameters only so tests can stand in for a built package.

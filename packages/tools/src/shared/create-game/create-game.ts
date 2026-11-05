@@ -19,7 +19,7 @@ export interface CreateGameOptions {
   readonly title: string
   readonly description?: string | undefined
   readonly author?: string | undefined
-  /** The distribution targets to build for (DIST spec §5.3); default all four (DIST-D9). */
+  /** The distribution targets to build for; default all four. */
   readonly targets?: readonly DistTarget[] | undefined
 }
 
@@ -53,7 +53,7 @@ interface TemplateFile {
 /** The \`ship.config.ts\` sections only some targets read: itch.io's project, the desktop app's identifier. */
 function shipTargetSections(options: CreateGameOptions): string {
   const targets = targetsOf(options)
-  // Placeholders that pass ship's checks, so every build is green with no edits (DIST-h); the guides say to change
+  // Placeholders that pass ship's checks, so every build is green with no edits; the guides say to change
   // them before publishing.
   const itch = targets.includes('itch')
     ? `\n  itch: { project: 'your-itch-user/${options.id}', channel: 'html5' },`

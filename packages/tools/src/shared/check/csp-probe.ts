@@ -1,7 +1,7 @@
 import { Context, Data, type Effect } from 'effect'
 import type { TaggedErrorClass } from '../node/errors.ts'
 
-// The `csp` step's browser run (DX spec §3.6), as an Effect service so the step's logic is tested without a
+// The `csp` step's browser run, as an Effect service so the step's logic is tested without a
 // browser. CspProbeLive (csp-probe-live.ts) serves the build with Ruken's headers and opens it in Chromium.
 
 export interface CspProbeInput {

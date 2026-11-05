@@ -11,7 +11,7 @@ import { checkManifest } from '../../ship/targets/ruken/check-manifest.ts'
 import { rukenToml } from '../../ship/targets/ruken/ruken-toml.ts'
 import { CheckToolError, CspProbe, type CspProbeResult } from '../csp-probe.ts'
 
-// The live `csp` step (DX spec §3.6): serve `dist/` with the headers Ruken would serve this game with, open it
+// The live `csp` step: serve `dist/` with the headers Ruken would serve this game with, open it
 // in Chromium, and wait for the runtime's ready signal (`<html data-state="ready">`, set by
 // `packages/runtime` page layers and emberwick's boot page) or `failed`. Every `securitypolicyviolation` the page
 // fires is a finding, including one the game catches (a blocked `eval` in a try block still fires the event).

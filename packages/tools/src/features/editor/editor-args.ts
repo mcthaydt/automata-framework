@@ -1,4 +1,4 @@
-// `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>]` (ED3D.14, ED2D.9): serve
+// `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>]`: serve
 // an editor against a game checkout. One command for every editor (the plan wants EDS.1d-b to reuse it).
 
 export type EditorApp = '2d' | '3d' | 'suite'

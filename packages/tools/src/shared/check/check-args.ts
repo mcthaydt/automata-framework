@@ -1,4 +1,4 @@
-// `automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]` (DX spec §3.6).
+// `automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]`.
 
 export interface CheckOptions {
   /** The game folder; the working folder when undefined. */

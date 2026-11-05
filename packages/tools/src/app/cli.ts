@@ -26,7 +26,7 @@ export interface ParsedArgs {
   readonly targetDir?: string | undefined
   readonly id?: string | undefined
   readonly title?: string | undefined
-  /** `--targets web,itch,…` as given; `create-game` checks it (DIST spec §5.3). */
+  /** `--targets web,itch,…` as given; `create-game` checks it. */
   readonly targets?: string | undefined
   readonly help: boolean
 }

@@ -1,4 +1,4 @@
-// `automata editor`'s server (ED3D.14, ED2D.9): the editor's static build, and the game checkout's files under `/api` for
+// `automata editor`'s server: the editor's static build, and the game checkout's files under `/api` for
 // the kit's HTTP store (`createHttpStore`, which documents the four routes). It listens on the loopback unless told to
 // listen wider, and then it insists on a token; on the loopback it refuses a `Host` that is not a loopback name (DNS
 // rebinding) and a cross-origin write. What a browser may read and write is the policy's (`editor-policy.ts`), and every

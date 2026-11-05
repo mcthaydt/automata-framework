@@ -37,13 +37,13 @@ export interface PrepareInput {
   /** The release tag being built, when there is one (`v1.2.3`). */
   readonly tag?: string | undefined
   /**
-   * The game folder, whose `.env*` values must not appear in the build (QB-b). The CLI passes its working folder;
+   * The game folder, whose `.env*` values must not appear in the build. The CLI passes its working folder;
    * when it is left out, no `.env` file is read and only key formats and high-entropy strings are checked.
    */
   readonly gameDir?: string | undefined
   /**
-   * The game's input bindings (its input map's `profile.bindings`), checked against `runtime.inputs` (I-g).
-   * Left out, the `keys()` calls in `gameDir`'s sources are read instead (M4.1 follow-up); with neither, nothing
+   * The game's input bindings (its input map's `profile.bindings`), checked against `runtime.inputs`.
+   * Left out, the `keys()` calls in `gameDir`'s sources are read instead; with neither, nothing
    * is checked.
    */
   readonly inputBindings?: ShipInputBindings | undefined
@@ -69,8 +69,8 @@ export type PrepareError =
   | FileError
 
 /**
- * Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the
- * entry page, root-absolute paths, secrets (QB-b), `@pixi/3d` (X-b, S7-g), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it. Every check
+ * Makes a built folder ready for `ruken publish` and the dev host: checks the tag, the
+ * entry page, root-absolute paths, secrets, `@pixi/3d`, the leaderboards the game names and the orientation it plays in and the devices its `keys()` calls bind, then writes `ruken.toml` once Ruken's parser accepts it. Every check
  * runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
  * (archive, size, file types) happen inside `ruken publish`, not here.
  */
@@ -89,7 +89,7 @@ export function prepareBuild(
 /**
  * Every check `prepareBuild` makes, Ruken's parser included, writing nothing: the `ruken.toml` it would write.
  * CI's `prepare` of a private game uses it alone, so a raw `ruken publish` of the folder has no manifest to upload
- * (M3 spec §4.8).
+ *.
  */
 export function checkBuild(input: PrepareInput): Effect.Effect<{ toml: string }, PrepareError, Files> {
   return Effect.gen(function* () {

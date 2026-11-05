@@ -2,7 +2,7 @@ import { parseArgs } from 'node:util'
 
 // The `automata-ship` command line, parsed into one value per command so cli.ts can switch on it.
 
-/** Where a build goes (PUB spec §3). Undefined means Ruken, the default, so existing scripts do not change. */
+/** Where a build goes. Undefined means Ruken, the default, so existing scripts do not change. */
 export type ShipTarget = 'ruken' | 'itch' | 'tauri'
 
 export type CliCommand =
@@ -19,9 +19,9 @@ export type CliCommand =
       readonly activate: boolean
       readonly game: string | undefined
       readonly target: ShipTarget | undefined
-      /** Upload to Ruken's local stack only, so the build may contain `@pixi/3d` (M3 spec §4.8). Ruken only. */
+      /** Upload to Ruken's local stack only, so the build may contain `@pixi/3d`. Ruken only. */
       readonly private?: true
-      /** Push the desktop bundles in `dist-tauri/` to itch.io's Downloadable channels (DIST spec §6.4). itch only. */
+      /** Push the desktop bundles in `dist-tauri/` to itch.io's Downloadable channels. itch only. */
       readonly from?: 'tauri'
     }
   | {

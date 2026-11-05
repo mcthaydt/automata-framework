@@ -1,4 +1,4 @@
-// `automata ship`: the ship lane's command line (ship spec §3), run by `automata` (`cli.ts`) and by the old
+// `automata ship`: ship's command line, run by `automata` (`cli.ts`) and by the old
 // `automata-ship` name (`ship-alias.ts`). Each command is a thin wrapper over the
 // Effect programs in this package; this file only reads the environment, loads the game's ship.config.ts
 // and prints results and errors.
@@ -72,7 +72,7 @@ async function program(
   const config = await loadConfig()
   const distDir = resolve(cwd, command.dist)
 
-  // The desktop (DIST spec §6.2): ship checks the given build and runs tauri build for this OS.
+  // The desktop: ship checks the given build and runs tauri build for this OS.
   if (command.command === 'prepare' && command.target === 'tauri') {
     return Effect.provide(
       Effect.map(prepareTauri({ distDir, gameDir: cwd, config, tag: command.tag }), (result) =>
@@ -82,7 +82,7 @@ async function program(
     )
   }
 
-  // itch.io (PUB spec §4): ship checks and zips the given build, and butler pushes it. Ruken is untouched.
+  // itch.io: ship checks and zips the given build, and butler pushes it. Ruken is untouched.
   if (command.command !== 'deploy-dev' && command.target === 'itch') {
     if (command.command === 'prepare') {
       return Effect.map(
@@ -119,7 +119,7 @@ async function program(
   }
 
   // deploy-dev may carry @pixi/3d; `prepare` follows the game's audience, writing no ruken.toml for a private game
-  // (M3 spec §4.8, X-b). `publish --private` checks for Ruken's local stack itself (publishBuild).
+  //. `publish --private` checks for Ruken's local stack itself (publishBuild).
   const mode = prepareMode(command.command === 'deploy-dev' ? 'deploy-dev' : 'prepare', config)
   const input = { distDir, gameDir: cwd, config, tag: command.tag, audience: mode.audience }
   const prepare = prepareBuild(input)

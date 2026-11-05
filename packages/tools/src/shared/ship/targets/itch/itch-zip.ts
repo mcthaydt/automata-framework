@@ -2,7 +2,7 @@ import { closeSync, openSync, readFileSync, renameSync, writeSync } from 'node:f
 import { join } from 'node:path'
 import { crc32, deflateRawSync } from 'node:zlib'
 
-// A small ZIP writer whose output depends only on the files' paths and bytes (PUB spec §4: the same build gives
+// A small ZIP writer whose output depends only on the files' paths and bytes (the same build gives
 // the same zip). It is used instead of yazl, which ship already carries for Ruken's CLI, because yazl has no
 // types and writes its DOS timestamp in the machine's local time zone, so a fixed date still differs by zone.
 //

@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, lstatSync, mkdirSync, rmdirSync, rmSync } fro
 import { join } from 'node:path'
 
 // Copies a kit's files into a game as one change: either every file is in place, or the game folder is put back
-// as it was (PRODUCT.5 plan 5d, test 7). Files are copied as bytes, so images and fonts in a kit survive.
+// as it was. Files are copied as bytes, so images and fonts in a kit survive.
 
 export type EntryKind = 'missing' | 'file' | 'other'
 

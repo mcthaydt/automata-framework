@@ -1,11 +1,11 @@
-// The input × form-factor matrix (M4 spec §9.1) as data. The matrix spec turns each cell into a Playwright project,
+// The input × form-factor matrix as data. The matrix spec turns each cell into a Playwright project,
 // and a game's own journeys can reuse the cells. Each cell runs one journey per host it lists.
 
 /** The device a matrix cell plays with. */
 export type InputDevice = 'keyboard' | 'gamepad' | 'touch'
 /** The browser engine a matrix cell runs in. */
 export type Engine = 'chromium' | 'webkit' | 'firefox'
-/** A matrix cell's form factor, each with one viewport (M4 spec §9.1). */
+/** A matrix cell's form factor, each with one viewport. */
 export type MatrixFormFactor =
   | 'phone-portrait'
   | 'phone-landscape'
@@ -36,7 +36,7 @@ const VIEWPORTS: Record<MatrixFormFactor, MatrixCell['viewport']> = {
   desktop: { width: 1280, height: 720 },
 }
 
-/** §9.1's table: per form factor, the engines each device runs in (none: the device has no cell there). */
+/** The input matrix: per form factor, the engines each device runs in (none: the device has no cell there). */
 const TABLE: Record<MatrixFormFactor, Partial<Record<InputDevice, readonly Engine[]>>> = {
   'phone-portrait': { gamepad: ['chromium'], touch: ['chromium', 'webkit'] },
   'phone-landscape': { gamepad: ['chromium'], touch: ['chromium', 'webkit'] },
@@ -47,7 +47,7 @@ const TABLE: Record<MatrixFormFactor, Partial<Record<InputDevice, readonly Engin
 
 const DEVICES: readonly InputDevice[] = ['keyboard', 'gamepad', 'touch']
 
-/** M4 spec §9.1's cells, in table order: 17 cells, 22 journeys (the desktop cells run under both hosts). */
+/** The matrix's cells, in table order: 17 cells, 22 journeys (the desktop cells run under both hosts). */
 export const INPUT_MATRIX: readonly MatrixCell[] = (Object.keys(TABLE) as MatrixFormFactor[]).flatMap(
   (formFactor) =>
     DEVICES.flatMap((device) =>

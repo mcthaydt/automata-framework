@@ -1,4 +1,4 @@
-// What the static checks over a game's sources share (the board check, M5.7, and the orientation check, M4.7):
+// What the static checks over a game's sources share (the board check and the orientation check):
 // which files are the game's sources, and the few syntax-tree helpers they need. The checks read the code as
 // written with `oxc-parser`; they never load a game, which cannot run under plain Node.
 

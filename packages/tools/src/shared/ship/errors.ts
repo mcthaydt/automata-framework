@@ -43,7 +43,7 @@ const SecretInBuildBase: TaggedErrorClass<
     readonly found: readonly SecretFound[]
   }
 > = Data.TaggedError('SecretInBuild')
-/** The build holds a key, an `.env` value or a high-entropy string (QB-b). The message never holds the secret. */
+/** The build holds a key, an `.env` value or a high-entropy string. The message never holds the secret. */
 export class SecretInBuild extends SecretInBuildBase {
   override get message(): string {
     const listed = this.found
@@ -62,7 +62,7 @@ const Pixi3dInPublicBuildBase: TaggedErrorClass<
     readonly found: readonly Pixi3dFound[]
   }
 > = Data.TaggedError('Pixi3dInPublicBuild')
-/** A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta (M3 spec §4.8, X-b). */
+/** A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta. */
 export class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
   override get message(): string {
     const listed = this.found.map((found) => `${found.file}: "${found.marker}"`).join('\n')
@@ -72,7 +72,7 @@ export class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
 
 const PrivatePublishNotLocalBase: TaggedErrorClass<'PrivatePublishNotLocal', { readonly api: string }> =
   Data.TaggedError('PrivatePublishNotLocal')
-/** `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local. */
+/** `publish --private` named a Ruken that is not the local stack: a private build stays local. */
 export class PrivatePublishNotLocal extends PrivatePublishNotLocalBase {
   override get message(): string {
     return `publish --private uploads only to Ruken's local stack (RUKEN_API on localhost, a .localhost name or a loopback address), not ${this.api}: a private build may contain @pixi/3d, a closed beta (D-1)`
@@ -85,7 +85,7 @@ const Pixi3dExtrasInBuildBase: TaggedErrorClass<
     readonly found: readonly Pixi3dFound[]
   }
 > = Data.TaggedError('Pixi3dExtrasInBuild')
-/** A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load (M3 spec S7-g). */
+/** A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load, which a no-eval CSP refuses. */
 export class Pixi3dExtrasInBuild extends Pixi3dExtrasInBuildBase {
   override get message(): string {
     const listed = this.found.map((found) => `${found.file}: "${found.marker}"`).join('\n')
@@ -99,7 +99,7 @@ const UndeclaredBoardBase: TaggedErrorClass<
     readonly found: readonly UndeclaredBoardFound[]
   }
 > = Data.TaggedError('UndeclaredBoard')
-/** The game names a leaderboard its ship config's `leaderboards` does not declare (M5 spec §4.8, L-b). */
+/** The game names a leaderboard its ship config's `leaderboards` does not declare. */
 export class UndeclaredBoard extends UndeclaredBoardBase {
   override get message(): string {
     const listed = this.found
@@ -115,7 +115,7 @@ const OrientationMismatchBase: TaggedErrorClass<
     readonly found: readonly OrientationMismatchFound[]
   }
 > = Data.TaggedError('OrientationMismatch')
-/** The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up). */
+/** The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken. */
 export class OrientationMismatch extends OrientationMismatchBase {
   override get message(): string {
     const listed = this.found
@@ -134,7 +134,7 @@ const ManifestInputsMismatchBase: TaggedErrorClass<
     readonly problems: readonly string[]
   }
 > = Data.TaggedError('ManifestInputsMismatch')
-/** `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g). */
+/** `runtime.inputs` disagrees with the game's input bindings. */
 export class ManifestInputsMismatch extends ManifestInputsMismatchBase {
   override get message(): string {
     return `ruken.toml's runtime.inputs disagrees with the game's input bindings; fix ship.config.ts or the bindings:\n${this.problems.join('\n')}`
@@ -244,7 +244,7 @@ const TestRemoteFailedBase: TaggedErrorClass<
 /** `test-remote` stopped without a green run; `reason` says why and `message` says what to do. */
 export class TestRemoteFailed extends TestRemoteFailedBase {}
 
-/** The `prepare --target itch` check that failed, in the order they run (PUB spec §4). */
+/** The `prepare --target itch` check that failed, in the order they run. */
 export type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' | 'ruken-toml'
 
 const ItchBuildInvalidBase: TaggedErrorClass<

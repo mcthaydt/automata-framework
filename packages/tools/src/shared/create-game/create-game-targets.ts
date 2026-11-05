@@ -1,6 +1,6 @@
 /**
- * The distribution targets a generated game builds for (ADR 0006, DIST spec §5.3): `web`, `itch`, `ruken` and
- * `tauri`, peers, each removable. `create-game` writes all four unless told otherwise (DIST-D9).
+ * The distribution targets a generated game builds for: `web`, `itch`, `ruken` and
+ * `tauri`, peers, each removable. `create-game` writes all four unless told otherwise.
  */
 export const DIST_TARGETS = ['web', 'itch', 'ruken', 'tauri'] as const
 
@@ -35,13 +35,13 @@ export function parseTargets(value: string | undefined): ParsedTargets {
 export function targetScripts(targets: readonly DistTarget[]): Record<string, string> {
   const scripts: Record<string, string> = {}
   for (const target of targets) scripts[`build:${target}`] = `vite build --mode ${target}`
-  // The web build is the artifact itself (`dist/`); the other three are packaged by ship (DIST spec §8 flow 1).
+  // The web build is the artifact itself (`dist/`); the other three are packaged by ship.
   for (const target of targets)
     if (target !== 'web') scripts[`prepare:${target}`] = `automata ship prepare --target ${target}`
   return scripts
 }
 
-/** Ruken's SDK for a `ruken` build; Tauri's packages for a `tauri` one (the host's optional peers, DIST spec §6.1). */
+/** Ruken's SDK for a `ruken` build; Tauri's packages for a `tauri` one (the host's optional peers). */
 export function targetDependencies(targets: readonly DistTarget[]): {
   readonly dependencies: Record<string, string>
   readonly devDependencies: Record<string, string>
@@ -53,7 +53,7 @@ export function targetDependencies(targets: readonly DistTarget[]): {
     dependencies['@tauri-apps/api'] = '2.12.4'
     dependencies['@tauri-apps/plugin-process'] = '2.4.0'
     dependencies['@tauri-apps/plugin-store'] = '2.5.0'
-    // `prepare --target tauri` runs the game's own Tauri CLI; ship does not carry it (DIST.5b).
+    // `prepare --target tauri` runs the game's own Tauri CLI; ship does not carry it.
     devDependencies['@tauri-apps/cli'] = '2.12.3'
   }
   return { dependencies, devDependencies }

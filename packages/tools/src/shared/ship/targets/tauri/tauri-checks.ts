@@ -1,7 +1,7 @@
 import type { ShipConfig } from '../../config/ship-config.ts'
 import { type TauriConfig, tauriConfigSchema } from '../../config/tauri-config.schema.ts'
 
-// The desktop build's checks (DIST spec §6.2). Each returns the problems it found, as lines a person can act on;
+// The desktop build's checks. Each returns the problems it found, as lines a person can act on;
 // none means the check passed.
 
 /** The game's `tauri` section, checked, or the problems that stop a desktop build. */

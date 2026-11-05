@@ -6,10 +6,10 @@ import type { ShipConfig } from '../../config/ship-config.ts'
 import { ButlerFailed, ItchSettingMissing } from '../../errors.ts'
 import { type PrepareItchError, prepareItch } from './prepare-itch.ts'
 
-// `automata ship publish --target itch` (PUB spec §4): prepare the build for itch.io, then hand the folder to
+// `automata ship publish --target itch`: prepare the build for itch.io, then hand the folder to
 // itch.io's own uploader, butler (https://itch.io/docs/butler/pushing.html). butler diffs against the
 // channel's last build, so it pushes the folder, not the zip. Its output is shown as it runs and its exit code
-// becomes ship's; nothing is retried (§8).
+// becomes ship's; nothing is retried.
 
 /** What `publishToItch` needs: the built folder, the ship config, the tag, the key and where butler is. */
 export interface PublishItchInput {
@@ -29,8 +29,8 @@ export interface PublishItchInput {
 export type PublishItchError = ItchSettingMissing | PrepareItchError | ButlerFailed | ProcessError
 
 /**
- * The one-time page settings butler cannot make (PUB spec §6), printed after a channel's first push. The
- * "Publish to itch.io" guide (PUB.5) carries the same list.
+ * The one-time page settings butler cannot make, printed after a channel's first push. The
+ * "Publish to itch.io" guide carries the same list.
  */
 export const ITCH_FIRST_PUSH_CHECKLIST: string = `This was the channel's first push. On the itch.io project's Edit page, once:
   1. Set "Kind of project" to HTML (the default is "Downloadable").

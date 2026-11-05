@@ -3,7 +3,7 @@ import type { ProcessError } from '../../node/errors.ts'
 import { ProcessRunner } from '../../node/process-runner.ts'
 import { TestRemoteFailed } from '../errors.ts'
 
-// `test-remote` (FloorFifty `tools/test-remote`, ship spec §3.6): runs CI for the current branch on the
+// `test-remote`: runs CI for the current branch on the
 // remote runners and waits, so a developer's machine runs no heavy suite itself.
 //
 //   test-remote                         the hosted checks for this commit
@@ -16,7 +16,7 @@ import { TestRemoteFailed } from '../errors.ts'
 // AF's jobs run on a self-hosted runner (ci.yml header). With none online a job does not fail, it waits in the
 // queue, and GitHub only gives up after a day. So test-remote polls the run itself: a run with no job started
 // after the queue timeout (10 minutes) is cancelled and reported as "no runner" with the local command to run
-// instead (ship spec §6), and a run still going after the run timeout (60 minutes, past every job's
+// instead, and a run still going after the run timeout (60 minutes, past every job's
 // timeout-minutes) is cancelled as "timeout". A hosted job that failed without running a step (no hosted
 // minutes) is also "no runner", not red CI.
 //

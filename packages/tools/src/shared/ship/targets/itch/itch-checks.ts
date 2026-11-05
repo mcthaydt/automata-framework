@@ -2,7 +2,7 @@ import { readFileSync, statSync } from 'node:fs'
 import { join, posix } from 'node:path'
 import { ITCH_LIMITS } from './itch-limits.ts'
 
-// The checks `automata ship prepare --target itch` runs on a built folder (PUB spec §4). Each takes the build's
+// The checks `automata ship prepare --target itch` runs on a built folder. Each takes the build's
 // file listing (`buildFiles`: `/`-separated, relative, sorted) and returns one line per problem, naming the file
 // and the limit; an empty list passes. prepare-itch.ts runs them in the spec's order.
 

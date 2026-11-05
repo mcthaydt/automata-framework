@@ -1,6 +1,6 @@
 // @mcthaydt/automata-tools (the ship API, the create-game, check, add, build and editor commands, and the Files and
 // ProcessRunner services they share): Ruken packaging, publish and dev hosting for AF games (ship spec), and itch.io
-// packaging and publish (PUB spec §4).
+// packaging and publish.
 export { SHIP_PACKAGE } from '../shared/package-name.ts'
 
 export {

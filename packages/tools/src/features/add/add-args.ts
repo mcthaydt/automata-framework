@@ -1,8 +1,8 @@
 import { ID_REGEX } from '../../shared/create-game/create-game.ts'
 
-// `automata add <kit> [--dir <game>] [--repo <url>] [--force]` (PRODUCT spec §9, PRODUCT.5 plan 5d).
+// `automata add <kit> [--dir <game>] [--repo <url>] [--force]`.
 
-/** The private Automata Plus repository; buyers are given read access on purchase (PRODUCT spec §6). */
+/** The private Automata Plus repository; buyers are given read access on purchase. */
 export const PLUS_REPOSITORY = 'https://github.com/mcthaydt/automata-plus.git'
 
 export interface AddOptions {

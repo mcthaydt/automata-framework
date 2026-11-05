@@ -16,7 +16,7 @@ import {
 } from './check-steps.ts'
 import type { CspProbe } from './csp-probe.ts'
 
-// `automata check` (DX spec §3.6): the steps in order, each timed with Effect's Clock. Without --fail-fast every
+// `automata check`: the steps in order, each timed with Effect's Clock. Without --fail-fast every
 // step runs, so one report lists every problem; with it, the first step that does not pass ends the run.
 
 export interface RunCheckOptions {

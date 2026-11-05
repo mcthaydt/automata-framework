@@ -17,12 +17,12 @@ import { scanForDataUrls } from './data-url-scan.ts'
 import { scanForEval } from './no-eval-scan.ts'
 import { parseBoundaries, parseTsc, parseVitestJson } from './tool-output.ts'
 
-// The steps of `automata check` (DX spec §3.6). Each runs the game's own tool, found in `node_modules/.bin`
+// The steps of `automata check`. Each runs the game's own tool, found in `node_modules/.bin`
 // from the game folder upwards (a workspace hoists tools to its root), with the game folder as the working
 // folder. A step returns its findings, or fails with CheckToolError when it could not run: a missing tool, or a
 // tool that exits non-zero without printing anything this file can read. A tool error is never a pass.
 
-/** How long the `csp` step waits for the game's ready signal (DX spec §3.6). */
+/** How long the `csp` step waits for the game's ready signal. */
 export const CSP_READY_TIMEOUT_MS = 20_000
 
 export interface Tool {
@@ -85,7 +85,7 @@ const findingsOrToolError = (tool: Tool, result: RunResult, findings: readonly C
       )
 
 // A game's sim is `src/sim/`, or laid out by feature (`src/features/`: its sim is found by role suffix and by import),
-// or laid out by role, these files in `src/` (GL spec §4.5). A copy of
+// or laid out by role, these files in `src/`. A copy of
 // check-boundaries' GAME_SIM_ROLES: that package is a bin with no library entry; run-check.test.ts pins the names.
 const GAME_SIM_ROLES = ['constants', 'components', 'commands', 'events', 'resources', 'systems', 'state']
 
@@ -173,7 +173,7 @@ export const noEvalStep = (gameDir: string): StepEffect =>
   })
 
 /**
- * DX.5a: the assets Vite inlined as `data:` URLs (data-url-scan.ts), in the JavaScript of the `dist/` the no-eval
+ * The assets Vite inlined as `data:` URLs (data-url-scan.ts), in the JavaScript of the `dist/` the no-eval
  * step just built. Ruken's CSP refuses to fetch them, so each one is an asset the game never loads.
  */
 export const dataUrlsStep = (gameDir: string): StepEffect =>
@@ -193,7 +193,7 @@ export const dataUrlsStep = (gameDir: string): StepEffect =>
   })
 
 /**
- * QB-b: the bundle secret scan from `ship` (the one `prepare-ruken` runs), over the `dist/` the no-eval step just
+ * The bundle secret scan from `ship` (the one `prepare-ruken` runs), over the `dist/` the no-eval step just
  * built, with the game folder's `.env*` values. Files are read as UTF-8 text here, so the offset in a message
  * counts characters; line and column are what an editor needs.
  */
@@ -226,7 +226,7 @@ export const secretsStep = (gameDir: string): StepEffect =>
   })
 
 /**
- * M5 spec §4.8, L-b: the board scan `prepare-ruken` runs, over the game's sources, against the boards its
+ * The board scan `prepare-ruken` runs, over the game's sources, against the boards its
  * `ship.config.ts` declares under `leaderboards` (read as written). No `ship.config.ts` declares no boards.
  */
 export const boardsStep = (gameDir: string): StepEffect =>
@@ -265,7 +265,7 @@ export const boardsStep = (gameDir: string): StepEffect =>
   })
 
 /**
- * M4.7 follow-up: the scan `prepare-ruken` runs over the game's sources for the orientation each `defineGame`
+ * The scan `prepare-ruken` runs over the game's sources for the orientation each `defineGame`
  * plays in, against the `runtime.orientation` its `ship.config.ts` sends Ruken (read as written). A game with no
  * `ship.config.ts`, or with no `defineGame` to compare, finds nothing; a config whose orientation is not a
  * literal, with a `defineGame` to compare against it, is a tool error, never a pass.
@@ -304,7 +304,7 @@ export const orientationStep = (gameDir: string): StepEffect =>
   })
 
 /**
- * M4.1 follow-up: the scan `prepare-ruken` runs over the game's sources for what its `keys()` calls bind, against
+ * The scan `prepare-ruken` runs over the game's sources for what its `keys()` calls bind, against
  * the `runtime.inputs` its `ship.config.ts` sends Ruken (read as written), with `inputsProblems`' own rule. A game
  * with no `ship.config.ts`, or with no `keys()` call to compare, finds nothing; a config whose inputs are not
  * string literals, with a `keys()` call to compare against them, is a tool error, never a pass.
