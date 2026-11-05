@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { readSettings, type SettingsDef, writeSettings } from '#src/features/settings/migrate-settings.ts'
+import {
+  readSettings,
+  type SettingsDef,
+  writeSettings,
+} from '#src/shared/runtime/settings/migrate-settings.ts'
 
 interface TestSettings {
   volume: number

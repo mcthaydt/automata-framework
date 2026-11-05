@@ -1,7 +1,7 @@
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import type { BoardState } from '#src/features/leaderboards/board-state.ts'
 import { submitEventScores } from '#src/features/leaderboards/event-scores.ts'
+import type { BoardState } from '#src/shared/runtime/board-state.ts'
 import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 
 // The game's scores for sim events (M5 spec §4.8): the sim emits an event, and the runtime submits the score the

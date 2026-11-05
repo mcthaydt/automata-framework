@@ -1,5 +1,5 @@
-import type { QualityTier } from '../../settings/display-settings.schema.ts'
-import type { SettingsStore } from '../../settings/settings.manager.ts'
+import type { QualityTier } from '../../../shared/runtime/display-settings.schema.ts'
+import type { SettingsStore } from '../../../shared/runtime/settings/settings.manager.ts'
 
 /** What `rebuildOnQuality` keeps mounted. */
 export interface QualityBuild<T> {

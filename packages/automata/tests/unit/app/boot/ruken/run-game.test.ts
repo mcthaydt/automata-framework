@@ -11,8 +11,7 @@ import { z } from 'zod'
 import { contentHashOf } from '#src/app/boot/boot-program.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { describeBootError, runGame } from '#src/app/boot/run-game.ts'
-import { Flow } from '#src/features/flow/flow.manager.ts'
-import { STALL_MS } from '#src/features/loading/load-meter.ts'
+import { Flow } from '#src/app/flow/flow.manager.ts'
 import { defineSave } from '#src/features/saves/save.schema.ts'
 import { saveOf } from '#src/features/saves/saves.manager.ts'
 import {
@@ -23,6 +22,7 @@ import {
   ModelInvalid,
   RendererUnavailable,
 } from '#src/shared/runtime/boot-error.ts'
+import { STALL_MS } from '#src/shared/runtime/load-meter.ts'
 import { AppLoop } from '#src/shared/runtime/loop/app-loop.manager.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-frames.ts'

@@ -1,8 +1,8 @@
 // The player's Vibration setting as the default screens use it (Owner, 2026-10-18): read from the settings store,
 // applied to `Haptics`, and saved back, in one place, as `audio-settings.ts` does for the mix.
 import type { Haptics } from '../../../features/input/haptics/haptics.manager.ts'
-import { hapticsSettingsSchema } from '../../../features/settings/core-settings.ts'
-import type { SettingsStore } from '../../../features/settings/settings.manager.ts'
+import type { SettingsStore } from '../../../shared/runtime/settings/settings.manager.ts'
+import { hapticsSettingsSchema } from '../../core-settings.ts'
 
 const asRecord = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}

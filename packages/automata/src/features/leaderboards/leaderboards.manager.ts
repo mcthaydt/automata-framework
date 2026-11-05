@@ -5,8 +5,12 @@
 
 import { Context, Effect } from 'effect'
 import { Hosting, type HostingLeaderboards } from '../../shared/host/hosting.ts'
+import {
+  type BoardState,
+  boardStateFromError,
+  boardStateFromSubmit,
+} from '../../shared/runtime/board-state.js'
 import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
-import { type BoardState, boardStateFromError, boardStateFromSubmit } from './board-state.js'
 
 /** What `readBoard` asks for: Ruken's `get` options (`scope` `top` or `around-me`, `limit`). */
 export type BoardQuery = NonNullable<Parameters<HostingLeaderboards['get']>[1]>

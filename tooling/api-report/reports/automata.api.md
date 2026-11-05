@@ -292,7 +292,7 @@ interface AudioOptions {
 ### `AudioSection` (svelte)
 
 ```ts
-component from '../features/settings/ui/AudioSection.svelte'
+component from '../app/screens/settings/AudioSection.svelte'
 ```
 
 ### `AudioSectionChange` (type)
@@ -874,7 +874,7 @@ interface ControlsRow {
 ### `ControlsSection` (svelte)
 
 ```ts
-component from '../features/settings/ui/ControlsSection.svelte'
+component from '../app/screens/settings/ControlsSection.svelte'
 ```
 
 ### `ControlsState` (type)
@@ -1215,7 +1215,7 @@ type DisplayQuality = 'high' | 'medium' | 'low';
 ### `DisplaySection` (svelte)
 
 ```ts
-component from '../features/settings/ui/DisplaySection.svelte'
+component from '../app/screens/settings/DisplaySection.svelte'
 ```
 
 ### `DisplaySettings` (interface)
@@ -2390,7 +2390,7 @@ interface LanguageCopy {
 ### `LanguageSection` (svelte)
 
 ```ts
-component from '../features/settings/ui/LanguageSection.svelte'
+component from '../app/screens/settings/LanguageSection.svelte'
 ```
 
 ### `LeaderboardCopy` (interface)
@@ -3847,7 +3847,7 @@ type SaveSlotActivity = 'writing' | 'failed';
 ### `SaveSlots` (svelte)
 
 ```ts
-component from '../features/saves/ui/SaveSlots.svelte'
+component from '../app/screens/saves/SaveSlots.svelte'
 ```
 
 ### `SaveSlotsCopy` (interface)
@@ -4158,7 +4158,7 @@ interface SettingsDef<S> {
 ### `SettingsScreen` (svelte)
 
 ```ts
-component from '../features/settings/ui/SettingsScreen.svelte'
+component from '../app/screens/settings/SettingsScreen.svelte'
 ```
 
 ### `SettingsScreenCopy` (interface)
@@ -4695,7 +4695,7 @@ function touchModesFor(profile: InputProfile): TouchMode[];
 ### `TouchSection` (svelte)
 
 ```ts
-component from '../features/settings/ui/TouchSection.svelte'
+component from '../app/screens/settings/TouchSection.svelte'
 ```
 
 ### `TouchStickSink` (interface)
@@ -4791,7 +4791,7 @@ interface VibrationCopy {
 ### `VibrationSection` (svelte)
 
 ```ts
-component from '../features/settings/ui/VibrationSection.svelte'
+component from '../app/screens/settings/VibrationSection.svelte'
 ```
 
 ### `ViewAnchor` (type)

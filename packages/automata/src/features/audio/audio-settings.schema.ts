@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { type AudioBusGains, audioBusGainsSchema } from '../audio/audio-buses.schema.js'
+import { type AudioBusGains, audioBusGainsSchema } from './audio-buses.schema.js'
 
 /**
  * The player's audio choices (M5 spec §7, M5.4), as FloorFifty's `audio` settings: the mute, the mute while another

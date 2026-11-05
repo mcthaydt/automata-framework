@@ -1,5 +1,5 @@
 import { Duration, Effect } from 'effect'
-import { LoadStalled } from '../../shared/runtime/boot-error.js'
+import { LoadStalled } from './boot-error.js'
 
 /** A download that makes no progress for this long, in ms, fails `LoadStalled`. */
 export const STALL_MS = 30_000

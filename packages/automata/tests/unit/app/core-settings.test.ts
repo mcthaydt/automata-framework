@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { AUDIO_SETTINGS_DEFAULT, audioSettingsSchema } from '#src/features/settings/audio-settings.schema.ts'
-import { CORE_SETTINGS } from '#src/features/settings/core-settings.ts'
+import { CORE_SETTINGS } from '#src/app/core-settings.ts'
+import { AUDIO_SETTINGS_DEFAULT, audioSettingsSchema } from '#src/features/audio/audio-settings.schema.ts'
 import {
   readSettings,
   writeAccountSettings,
   writeDeviceSettings,
   writeSettings,
-} from '#src/features/settings/migrate-settings.ts'
+} from '#src/shared/runtime/settings/migrate-settings.ts'
 
 // The core settings (M4 spec §4.5, §4.8): what a game that declares no settings saves, so the Settings screen's
 // Controls and Display sections always have somewhere to keep the player's choices.

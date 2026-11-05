@@ -7,9 +7,9 @@
 
 import { Context, Effect, Layer, type Scope, Stream, type Subscribable, SubscriptionRef } from 'effect'
 import { Hosting } from '../../shared/host/hosting.ts'
+import { Assets } from '../../shared/runtime/assets.manager.js'
 import { AssetLoadFailed } from '../../shared/runtime/boot-error.js'
 import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
-import { Assets } from '../loading/assets.manager.js'
 import { AudioBuses, type AudioBusName } from './audio-buses.js'
 import { AudioDecodeFailed } from './audio-error.js'
 import { type AudioContextLike, AudioGraph } from './audio-graph.js'

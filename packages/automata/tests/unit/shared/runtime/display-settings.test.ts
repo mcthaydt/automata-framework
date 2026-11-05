@@ -4,7 +4,7 @@ import {
   displaySettingsSchema,
   QUALITY_TIERS,
   qualityTierSchema,
-} from '#src/features/settings/display-settings.schema.ts'
+} from '#src/shared/runtime/display-settings.schema.ts'
 
 // The graphics quality setting (M4 spec §4.11, M4-D6): one owner for the tier, `display.quality` in a game's
 // settings, `high` until PRODUCT.7 has measured the phone profiles.

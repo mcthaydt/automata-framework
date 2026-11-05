@@ -2,11 +2,11 @@ import { settle } from '@ruken/sdk-host/testing'
 import { Cause, Effect, Exit } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { type SettingsDef, writeSettings } from '#src/features/settings/migrate-settings.ts'
-import { makeSettings, Settings, settingsStore } from '#src/features/settings/settings.manager.ts'
-import { Hosting } from '../../../../src/shared/host/hosting.ts'
-import { FakeHostHandle, HostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
-import { runScoped } from '../../../../src/testing/host/page/run.ts'
+import { type SettingsDef, writeSettings } from '#src/shared/runtime/settings/migrate-settings.ts'
+import { makeSettings, Settings, settingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
+import { Hosting } from '../../../../../../src/shared/host/hosting.ts'
+import { FakeHostHandle, HostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
+import { runScoped } from '../../../../../../src/testing/host/page/run.ts'
 
 interface PlayerSettings {
   name: string

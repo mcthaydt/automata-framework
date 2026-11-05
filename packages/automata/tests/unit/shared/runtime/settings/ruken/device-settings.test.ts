@@ -2,12 +2,12 @@ import { settle } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { type DeviceStorage, liveDeviceStorage } from '#src/features/settings/device-storage.ts'
-import { type SettingsDef, writeSettings } from '#src/features/settings/migrate-settings.ts'
-import { makeSettings, type Settings } from '#src/features/settings/settings.manager.ts'
-import { Hosting } from '../../../../src/shared/host/hosting.ts'
-import { FakeHostHandle, HostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
-import { runScoped } from '../../../../src/testing/host/page/run.ts'
+import { type DeviceStorage, liveDeviceStorage } from '#src/shared/runtime/settings/device-storage.ts'
+import { type SettingsDef, writeSettings } from '#src/shared/runtime/settings/migrate-settings.ts'
+import { makeSettings, type Settings } from '#src/shared/runtime/settings/settings.manager.ts'
+import { Hosting } from '../../../../../../src/shared/host/hosting.ts'
+import { FakeHostHandle, HostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
+import { runScoped } from '../../../../../../src/testing/host/page/run.ts'
 
 // Settings fields a game keeps on the device instead of in the player's saves (M5 spec §4.5, M5-D4). The cases come
 // from FloorFifty `tests/client/ruken/settings-hosted.test.ts`, "sound stays on the device inside Ruken"

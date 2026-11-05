@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { rebuildOnQuality } from '#src/features/render/quality/rebuild-on-quality.ts'
-import type { QualityTier } from '../../../../src/features/settings/display-settings.schema.ts'
-import type { SettingsStore } from '../../../../src/features/settings/settings.manager.ts'
+import type { QualityTier } from '../../../../src/shared/runtime/display-settings.schema.ts'
+import type { SettingsStore } from '../../../../src/shared/runtime/settings/settings.manager.ts'
 
 // From FloorFifty `tests/client/systems/render/quality-rebuild.test.ts` at `ac72660`, over runtime's SettingsStore.
 interface TestSettings {

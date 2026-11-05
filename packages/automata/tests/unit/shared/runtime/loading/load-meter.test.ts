@@ -1,7 +1,7 @@
 import { Chunk, Duration, Effect, Fiber, TestClock, TestContext, type TestServices } from 'effect'
 import { describe, expect, it, vi } from 'vitest'
-import { makeLoadMeter, SLOW_MS, STALL_MS } from '#src/features/loading/load-meter.ts'
 import type { LoadStalled } from '#src/shared/runtime/boot-error.ts'
+import { makeLoadMeter, SLOW_MS, STALL_MS } from '#src/shared/runtime/load-meter.ts'
 
 const runTest = <A, E>(effect: Effect.Effect<A, E, TestServices.TestServices>): Promise<A> =>
   Effect.runPromise(Effect.provide(effect, TestContext.TestContext) as Effect.Effect<A, E, never>)

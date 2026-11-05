@@ -87,4 +87,5 @@ export type BootError =
 
 // Shared contracts §4: BootError must be structurally assignable to BootFailure.
 type Drawable<T extends BootFailure> = T
+/** @public Compile-time check only; nothing imports it. */
 export type BootErrorIsDrawable = Drawable<BootError>

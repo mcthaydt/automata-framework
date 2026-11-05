@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { glyphFamily } from '#src/features/input/gamepad/glyph-family.ts'
+import { glyphFamily } from '#src/shared/runtime/glyph-family.ts'
 
 // Which labels a pad's buttons carry, sniffed from its `id` (M4 spec §4.2), from FloorFifty `ui/glyphs.ts` at
 // `ac72660` and `tests/client/ui/glyphs.test.ts`.

@@ -1,6 +1,6 @@
 import { Duration, Effect, Exit, Fiber, Scope, TestClock, TestContext, type TestServices } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { FADE_MS, makeVeil, REDUCED_FADE_MS } from '#src/features/flow/veil.ts'
+import { FADE_MS, makeVeil, REDUCED_FADE_MS } from '#src/app/flow/veil.ts'
 
 const runTest = <A, E>(effect: Effect.Effect<A, E, TestServices.TestServices>): Promise<A> =>
   Effect.runPromise(Effect.provide(effect, TestContext.TestContext) as Effect.Effect<A, E, never>)

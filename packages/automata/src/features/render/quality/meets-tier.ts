@@ -1,4 +1,4 @@
-import type { QualityTier } from '../../settings/display-settings.schema.ts'
+import type { QualityTier } from '../../../shared/runtime/display-settings.schema.ts'
 
 const RANK: Readonly<Record<QualityTier, number>> = { low: 0, medium: 1, high: 2 }
 

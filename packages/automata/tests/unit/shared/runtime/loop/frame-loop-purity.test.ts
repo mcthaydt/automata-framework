@@ -5,8 +5,12 @@ import { valueImportsOf } from '#src/testing/runtime/import-graph.ts'
 
 describe('frame loop purity', () => {
   it('frame-loop.ts and frames.ts contain no value imports of effect or effect/*', () => {
-    const frameLoopPath = fileURLToPath(new URL('../../../../src/app/loop/frame-loop.ts', import.meta.url))
-    const framesPath = fileURLToPath(new URL('../../../../src/app/loop/frames.ts', import.meta.url))
+    const frameLoopPath = fileURLToPath(
+      new URL('../../../../../src/shared/runtime/loop/frame-loop.ts', import.meta.url),
+    )
+    const framesPath = fileURLToPath(
+      new URL('../../../../../src/shared/runtime/loop/frames.ts', import.meta.url),
+    )
 
     const loopImports = [...valueImportsOf(frameLoopPath)]
     const framesImports = [...valueImportsOf(framesPath)]

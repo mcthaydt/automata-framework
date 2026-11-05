@@ -12,7 +12,9 @@
     "*.css",
     "*.svelte",
     "./src/entries/no-eval.ts",
-    "./dist/entries/no-eval.js"
+    "./src/shared/lib/no-eval.ts",
+    "./dist/entries/no-eval.js",
+    "./dist/shared/lib/no-eval.js"
   ],
   "files": [
     "dist",

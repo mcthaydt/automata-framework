@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { RebindConflict } from '#src/features/input/bindings/rebind.ts'
 import { makeInput } from '#src/features/input/input.manager.ts'
 import { type InputProfile, inputProfileSchema } from '#src/features/input/input-profile.schema.ts'
-import type { SettingsStore } from '#src/features/settings/settings.manager.ts'
 import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import type { SettingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
 import { runScoped } from '../../../src/testing/host/page/run.ts'
 
 // The Input's bindings follow the player's (M4 spec §4.5, §5 "Rebind"): the game's profile with the saved

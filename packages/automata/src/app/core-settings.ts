@@ -4,18 +4,26 @@
 // `display: displaySettingsSchema` and, for a camera the player turns, `camera: cameraSettingsSchema`.
 import { z } from 'zod'
 import {
+  AUDIO_SETTINGS_DEFAULT,
+  type AudioSettings,
+  audioSettingsSchema,
+} from '../features/audio/audio-settings.schema.js'
+import {
   CAMERA_SETTINGS_DEFAULT,
   type CameraSettings,
   cameraSettingsSchema,
-} from '../input/analog/camera-settings.schema.js'
+} from '../features/input/analog/camera-settings.schema.js'
 import {
   INPUT_SETTINGS_DEFAULT,
   type InputSettings,
   inputSettingsSchema,
-} from '../input/bindings/input-settings.schema.js'
-import { AUDIO_SETTINGS_DEFAULT, type AudioSettings, audioSettingsSchema } from './audio-settings.schema.js'
-import { DEFAULT_QUALITY, type DisplaySettings, displaySettingsSchema } from './display-settings.schema.js'
-import type { SettingsDef } from './migrate-settings.js'
+} from '../features/input/bindings/input-settings.schema.js'
+import {
+  DEFAULT_QUALITY,
+  type DisplaySettings,
+  displaySettingsSchema,
+} from '../shared/runtime/display-settings.schema.js'
+import type { SettingsDef } from '../shared/runtime/settings/migrate-settings.js'
 
 /** The settings every game carries: input bindings, display, audio and vibration. */
 export interface CoreSettings {

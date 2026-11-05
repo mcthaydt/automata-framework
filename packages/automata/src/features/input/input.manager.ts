@@ -6,8 +6,15 @@
 
 import { Context, Duration, Effect, Either, type Scope, Stream, SubscriptionRef } from 'effect'
 import type { Hosting } from '../../shared/host/hosting.ts'
+import { type GlyphFamily, glyphFamily } from '../../shared/runtime/glyph-family.js'
+import type {
+  ActiveDevice,
+  InputContextNow,
+  InputDevice,
+  PadInfo,
+} from '../../shared/runtime/input-device.js'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
-import type { SettingsStore } from '../settings/settings.manager.js'
+import type { SettingsStore } from '../../shared/runtime/settings/settings.manager.js'
 import { makeAnalogInput, type TouchStickSink } from './analog/analog-input.js'
 import { type InputSettings, inputSettingsSchema } from './bindings/input-settings.schema.js'
 import {
@@ -18,13 +25,11 @@ import {
   RebindTimedOut,
   rebindProfile,
 } from './bindings/rebind.js'
-import { type GlyphFamily, glyphFamily } from './gamepad/glyph-family.js'
 import { HandoverMask } from './gamepad/handover-mask.js'
 import { NavRepeat } from './gamepad/nav-repeat.js'
 import { type PadDirection, type PadLike, readPad } from './gamepad/read-pad.js'
 import type { DragSink } from './gestures/camera-drag-tracker.js'
 import type { GestureSink } from './gestures/swipe-tracker.js'
-import type { ActiveDevice, InputContextNow, InputDevice, PadInfo } from './input-device.js'
 import {
   actionsForGesture,
   actionsForKey,

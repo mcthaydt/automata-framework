@@ -8,6 +8,19 @@ export type {
 } from '../app/boot/game-definition.js'
 export { runGame } from '../app/boot/run-game.js'
 export {
+  CORE_SETTINGS,
+  type CoreSettings,
+  type HapticsSettings,
+  hapticsSettingsSchema,
+} from '../app/core-settings.js'
+export { Flow } from '../app/flow/flow.manager.js'
+export type {
+  FlowFailure,
+  RuntimeServices,
+  ScreenContext,
+  ScreenDef,
+} from '../app/flow/screen.js'
+export {
   Audio,
   AudioLive,
   type AudioOptions,
@@ -26,19 +39,17 @@ export {
 export { AudioDecodeFailed, type AudioDecodeFailedFields } from '../features/audio/audio-error.js'
 export type { AudioContextLike } from '../features/audio/audio-graph.js'
 export type { MusicOptions } from '../features/audio/audio-music.js'
+export {
+  AUDIO_SETTINGS_DEFAULT,
+  type AudioSettings,
+  audioSettingsSchema,
+} from '../features/audio/audio-settings.schema.js'
 export type { EventSounds } from '../features/audio/event-sounds.js'
 export type {
   DisplayCopy,
   GameOrientation,
   RotateHintMode,
 } from '../features/display/display-policy.svelte.js'
-export { Flow } from '../features/flow/flow.manager.js'
-export type {
-  FlowFailure,
-  RuntimeServices,
-  ScreenContext,
-  ScreenDef,
-} from '../features/flow/screen.js'
 export type { TouchStickSink } from '../features/input/analog/analog-input.js'
 export {
   CAMERA_SETTINGS_DEFAULT,
@@ -68,7 +79,6 @@ export {
   RebindUnknown,
   rebindProfile,
 } from '../features/input/bindings/rebind.js'
-export type { GlyphFamily } from '../features/input/gamepad/glyph-family.js'
 export {
   CameraDragTracker,
   type DragPointer,
@@ -90,7 +100,6 @@ export {
   type HapticsOptions,
 } from '../features/input/haptics/haptics.manager.js'
 export { Input, type InputOptions, makeInput, REBIND_TIMEOUT_MS } from '../features/input/input.manager.js'
-export type { ActiveDevice, InputContextNow, InputDevice, PadInfo } from '../features/input/input-device.js'
 export {
   actionsForGesture,
   actionsForKey,
@@ -109,7 +118,6 @@ export {
   touchModesFor,
 } from '../features/input/input-profile.schema.js'
 export type { MenuAction } from '../features/input/menu-actions.js'
-export type { BoardState } from '../features/leaderboards/board-state.js'
 export type { EventScores } from '../features/leaderboards/event-scores.js'
 export {
   type BoardEntry,
@@ -118,12 +126,6 @@ export {
   Leaderboards,
   makeLeaderboards,
 } from '../features/leaderboards/leaderboards.manager.js'
-export { Assets } from '../features/loading/assets.manager.js'
-export {
-  type LoadMeter,
-  SLOW_MS,
-  STALL_MS,
-} from '../features/loading/load-meter.js'
 export { applyDocumentLocale, textDirection } from '../features/locale/document-locale.js'
 export {
   formatDateTime,
@@ -171,32 +173,8 @@ export {
   type SaveUnreadableFields,
 } from '../features/saves/save-error.js'
 export { makeSaves, Saves, saveOf } from '../features/saves/saves.manager.js'
-export {
-  AUDIO_SETTINGS_DEFAULT,
-  type AudioSettings,
-  audioSettingsSchema,
-} from '../features/settings/audio-settings.schema.js'
-export {
-  CORE_SETTINGS,
-  type CoreSettings,
-  type HapticsSettings,
-  hapticsSettingsSchema,
-} from '../features/settings/core-settings.js'
-export { type DeviceStorage, liveDeviceStorage } from '../features/settings/device-storage.js'
-export {
-  DEFAULT_QUALITY,
-  type DisplaySettings,
-  displaySettingsSchema,
-  QUALITY_TIERS,
-  type QualityTier,
-  qualityTierSchema,
-} from '../features/settings/display-settings.schema.js'
-export {
-  Settings,
-  type SettingsDef,
-  type SettingsStore,
-  settingsStore,
-} from '../features/settings/settings.manager.js'
+export { Assets } from '../shared/runtime/assets.manager.js'
+export type { BoardState } from '../shared/runtime/board-state.js'
 export {
   AssetLoadFailed,
   BootDefect,
@@ -206,6 +184,21 @@ export {
   ModelInvalid,
   RendererUnavailable,
 } from '../shared/runtime/boot-error.js'
+export {
+  DEFAULT_QUALITY,
+  type DisplaySettings,
+  displaySettingsSchema,
+  QUALITY_TIERS,
+  type QualityTier,
+  qualityTierSchema,
+} from '../shared/runtime/display-settings.schema.js'
+export type { GlyphFamily } from '../shared/runtime/glyph-family.js'
+export type { ActiveDevice, InputContextNow, InputDevice, PadInfo } from '../shared/runtime/input-device.js'
+export {
+  type LoadMeter,
+  SLOW_MS,
+  STALL_MS,
+} from '../shared/runtime/load-meter.js'
 export { AppLoop } from '../shared/runtime/loop/app-loop.manager.js'
 export { type FrameInfo, MAX_FRAME_MS } from '../shared/runtime/loop/frames.js'
 export {
@@ -219,6 +212,13 @@ export {
   type RendererFactory,
   type RenderTarget,
 } from '../shared/runtime/render/renderer.js'
+export { type DeviceStorage, liveDeviceStorage } from '../shared/runtime/settings/device-storage.js'
+export {
+  Settings,
+  type SettingsDef,
+  type SettingsStore,
+  settingsStore,
+} from '../shared/runtime/settings/settings.manager.js'
 export {
   type PauseReason,
   Time,

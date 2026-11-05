@@ -1,6 +1,6 @@
 // The input service's device vocabulary (M4 spec §4.2), apart from the service so the presentation bus can name a
 // device without importing the service.
-import type { GlyphFamily } from './gamepad/glyph-family.js'
+import type { GlyphFamily } from './glyph-family.js'
 
 /** A kind of input device. */
 export type InputDevice = 'keyboard' | 'gamepad' | 'touch'

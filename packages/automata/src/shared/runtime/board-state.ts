@@ -2,8 +2,8 @@
 // state; none of them keeps a local board instead (host authority).
 
 import type { Effect } from 'effect'
-import type { HostError } from '../../shared/host/errors.ts'
-import type { HostingLeaderboards } from '../../shared/host/hosting.ts'
+import type { HostError } from '../host/errors.ts'
+import type { HostingLeaderboards } from '../host/hosting.ts'
 
 /** The host's answer to a submit (Ruken's `LeaderboardSubmitRes`), as `Hosting.leaderboards` relays it. */
 export type SubmitAnswer = Effect.Effect.Success<ReturnType<HostingLeaderboards['submit']>>

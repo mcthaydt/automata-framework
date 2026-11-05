@@ -11,13 +11,13 @@ import {
   Queue,
   Scope,
 } from 'effect'
+import type { Assets } from '../../shared/runtime/assets.manager.js'
 import type { PageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { Time } from '../../shared/runtime/time/time.manager.js'
 import { tabbables } from '../../shared/ui/focus/focus-nav.ts'
 import type { GeometryOwner } from '../../shared/ui/geometry/geometry-owner.svelte.ts'
 import { BOOT_FAILURE_COPY_EN, type BootFailureCopy } from '../../shared/ui/status/boot-failure.ts'
-import type { Assets } from '../loading/assets.manager.js'
 import type { FlowFailure, RuntimeServices, ScreenContext, ScreenDef } from './screen.js'
 import type { Veil } from './veil.js'
 

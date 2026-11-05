@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { readBlob } from '#src/features/loading/fetch-progress.ts'
+import { readBlob } from '#src/shared/runtime/fetch-progress.ts'
 
 describe('readBlob', () => {
   it('reports every chunk with the running total and announced content-length', async () => {

@@ -1,5 +1,5 @@
+import type { QualityTier } from '../../../shared/runtime/display-settings.schema.ts'
 import type { FormFactor } from '../../../shared/ui/geometry/form-factor.ts'
-import type { QualityTier } from '../../settings/display-settings.schema.ts'
 
 /**
  * The highest canvas resolution (device pixels per CSS pixel) the renderer uses, at the `high` quality tier.

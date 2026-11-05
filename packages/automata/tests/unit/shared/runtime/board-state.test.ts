@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { boardStateFromError, boardStateFromSubmit } from '#src/features/leaderboards/board-state.ts'
-import { HostError } from '../../../src/shared/host/errors.ts'
+import { boardStateFromError, boardStateFromSubmit } from '#src/shared/runtime/board-state.ts'
+import { HostError } from '../../../../src/shared/host/errors.ts'
 
 const hostError = (code: HostError['code']): HostError =>
   new HostError({ code, retryable: false, operation: 'leaderboard.submit', cause: undefined })

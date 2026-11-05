@@ -5,8 +5,8 @@
 import type { Audio } from '../../../features/audio/audio.manager.ts'
 import { AUDIO_BUS_NAMES } from '../../../features/audio/audio-buses.schema.ts'
 import type { AudioBuses } from '../../../features/audio/audio-buses.ts'
-import { type AudioSettings, audioSettingsSchema } from '../../../features/settings/audio-settings.schema.ts'
-import type { SettingsStore } from '../../../features/settings/settings.manager.ts'
+import { type AudioSettings, audioSettingsSchema } from '../../../features/audio/audio-settings.schema.ts'
+import type { SettingsStore } from '../../../shared/runtime/settings/settings.manager.ts'
 
 const asRecord = (value: unknown): Record<string, unknown> =>
   value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : {}

@@ -7,8 +7,6 @@ import { Effect, Either, Fiber, Runtime, Schedule, Stream, SubscriptionRef } fro
 import { Audio } from '../../../features/audio/audio.manager.ts'
 import { AudioBuses } from '../../../features/audio/audio-buses.ts'
 import { resolveExtensions } from '../../../features/extension/resolve-extensions.ts'
-import { Flow } from '../../../features/flow/flow.manager.ts'
-import type { ScreenDef } from '../../../features/flow/screen.ts'
 import { inputSettingsSchema } from '../../../features/input/bindings/input-settings.schema.ts'
 import { Haptics } from '../../../features/input/haptics/haptics.manager.ts'
 import { makeInput, REBIND_TIMEOUT_MS } from '../../../features/input/input.manager.ts'
@@ -18,14 +16,16 @@ import {
   touchModesFor,
 } from '../../../features/input/input-profile.schema.ts'
 import { Locale } from '../../../features/locale/locale.manager.ts'
-import { displaySettingsSchema } from '../../../features/settings/display-settings.schema.ts'
-import { Settings } from '../../../features/settings/settings.manager.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
+import { displaySettingsSchema } from '../../../shared/runtime/display-settings.schema.ts'
 import { PresentationBus } from '../../../shared/runtime/presentation/presentation-bus.manager.ts'
+import { Settings } from '../../../shared/runtime/settings/settings.manager.ts'
 import { InputMethodTracker } from '../../../shared/ui/browser/input-method.svelte.ts'
 import { reducedMotion } from '../../../shared/ui/browser/reduced-motion.ts'
 import { sendBack } from '../../../shared/ui/focus/back-gesture.ts'
 import { readKeyboardLayout } from '../../../shared/ui/prompts/prompt-label.ts'
+import { Flow } from '../../flow/flow.manager.ts'
+import type { ScreenDef } from '../../flow/screen.ts'
 import type { ScreensGame } from '../default-screens.ts'
 import {
   backGesture,

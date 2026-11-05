@@ -1,5 +1,5 @@
 import { Context, Effect, Runtime } from 'effect'
-import type { HostingSaves } from '../../shared/host/hosting.ts'
+import type { HostingSaves } from '../../host/hosting.ts'
 import type { DeviceStorage } from './device-storage.js'
 import {
   readSettings,

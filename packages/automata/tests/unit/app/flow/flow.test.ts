@@ -1,11 +1,11 @@
 import type { AssetsSource } from '@mcthaydt/automata-content'
 import { Context, Effect, Exit, Scope, TestClock, TestContext } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { type Flow, makeFlow } from '#src/features/flow/flow.manager.ts'
-import type { RuntimeServices, ScreenDef } from '#src/features/flow/screen.ts'
-import { makeVeil } from '#src/features/flow/veil.ts'
-import { makeAssets } from '#src/features/loading/assets.manager.ts'
-import { makeLoadMeter } from '#src/features/loading/load-meter.ts'
+import { type Flow, makeFlow } from '#src/app/flow/flow.manager.ts'
+import type { RuntimeServices, ScreenDef } from '#src/app/flow/screen.ts'
+import { makeVeil } from '#src/app/flow/veil.ts'
+import { makeAssets } from '#src/shared/runtime/assets.manager.ts'
+import { makeLoadMeter } from '#src/shared/runtime/load-meter.ts'
 import { createPageLayers, type PageLayers } from '#src/shared/runtime/page-layers.svelte.ts'
 import {
   makePresentationBus,
@@ -13,7 +13,7 @@ import {
 } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { makeTime, type Time } from '#src/shared/runtime/time/time.manager.ts'
 import { type FakeRoute, fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
-import { createGeometryOwner } from '../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
+import { createGeometryOwner } from '../../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
 
 describe('Flow and screens (spec §3.6)', () => {
   let root: HTMLElement

@@ -1,5 +1,5 @@
 import type { Filter } from 'pixi.js'
-import type { QualityTier } from '../../settings/display-settings.schema.ts'
+import type { QualityTier } from '../../../shared/runtime/display-settings.schema.ts'
 import { meetsTier } from '../quality/meets-tier.js'
 
 /** Where the composed filters go: `PixiStage` (its scene's `filters`), or any Pixi container. */

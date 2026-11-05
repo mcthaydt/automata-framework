@@ -1,5 +1,5 @@
 import { Filter } from 'pixi.js'
-import type { QualityTier } from '../../settings/display-settings.schema.ts'
+import type { QualityTier } from '../../../shared/runtime/display-settings.schema.ts'
 import { filterPrograms } from './filter-programs.js'
 import type { PostFilterSlot } from './post-filter-slot.js'
 
