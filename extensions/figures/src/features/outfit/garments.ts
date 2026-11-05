@@ -16,8 +16,11 @@ import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from '../h
  * (parts.ts), each one surface, with a head (head form, ears, nose), hands and bare feet. Colours are named DUEL
  * swatches (library/swatches.json). A fork adds its wardrobe beside this, in its own feature folder.
  */
-const armGroup = (side: Side) => (side === 'L' ? GROUP.armL : GROUP.armR), legGroup = (side: Side) => (side === 'L' ? GROUP.legL : GROUP.legR);
-const sides = [['L', 1], ['R', -1]] as const;
+/** The group (parts.ts GROUP) of a side's arm and of its leg: the parts a garment adds to a limb carry it, so the limb's
+ * surface rules (the body's seams, the painter's layers) treat them as that limb's. */
+export const armGroup = (side: Side) => (side === 'L' ? GROUP.armL : GROUP.armR), legGroup = (side: Side) => (side === 'L' ? GROUP.legL : GROUP.legR);
+/** Both sides with the sign of their x: the left is +x, the right −x. */
+export const sides = [['L', 1], ['R', -1]] as const;
 /** A rounded box: the kit's one primitive. */
 export const box = (bone: number, material: string, group: number, o: Superquadric, extra: Partial<Part> = {}): Part => ({ bone, material, group, mesh: superquadric({ e: [0.5, 0.55], seg: 10, rings: 6, ...o }), ...extra });
 
@@ -26,7 +29,8 @@ export const box = (bone: number, material: string, group: number, o: Superquadr
 export const SWATCHES = swatchLibrary as unknown as Record<string, Material>;
 
 // ─── Garments ───
-export type Garment =
+/** The garments the base pair wears (the union a fork widens through GarmentKinds, below). */
+export type BaseGarment =
   /** A top painted on the torso, and as much of the arms as its sleeves cover (the base pair's: none). */
   | { top: string; sleeves?: 'none' | 'short' | 'long'; cuffs?: string; collar?: string }
   /** Shorts painted on the body (the hips and thighs), with no cloth of their own: a base figure's modest block. */
@@ -35,7 +39,8 @@ export type Garment =
   | { hair: string; style: string | HairStyle; tie?: string }
   /** The eyes, the marks face's lids and brows, and the drawn face's (paint.ts) whites and lips. */
   | { eyes: string; stubble?: string; lids?: string; brows?: string; white?: string; lips?: string };
-const named = <T>(library: Record<string, T>, kind: string, style: string | T): T => {
+/** A library entry by name, or the entry itself where one is given in place of a name; throws on a name the library lacks. */
+export const named = <T>(library: Record<string, T>, kind: string, style: string | T): T => {
   if (typeof style !== 'string') return style;
   const found = library[style]; if (!found) throw new Error(`no ${kind} ${style}`); return found;
 };
@@ -47,10 +52,81 @@ export interface Regions { skin: string; chest: string; waist: string; pelvis: s
 export interface Look { parts: Part[]; decals: Decal[]; materials?: Record<string, Material>; face?: FaceLook; anchors?: Anchor[] }
 /** What the painter's drawn face takes from the outfit (paint.ts): the head's structure, and its colours as swatch names. */
 export interface FaceLook { shape: HeadShape; eyes?: string; white?: string; brows?: string; lips?: string }
+
+// ─── Hooks: how a fork adds garments and tunes the outfit, with nothing registered in base ───
+/**
+ * What a registered garment kind's builder is given (H1, `registerGarment`): the body, the whole outfit, the swatches,
+ * the density, the parts worn so far (not the body's own: `worn` is the very array dress() fills, so a kind built last
+ * sees every part worn by then), and a scratch record the outfit's kinds share for the length of one dress() (an apron
+ * reads there what a coat published, so it clears it).
+ */
+export interface Wearing {
+  m: Measure; s: Skeleton; garments: Garment[];
+  swatch: (name: string) => Material; swatches: Record<string, Material>;
+  ppm?: number; worn: Part[]; state: Record<string, unknown>;
+}
+/** What a garment kind makes (H1), applied by dress() in this order: its parts, its marks, its materials, the body
+ * regions it repaints (`paint`), and the openings a hand can reach (`anchors`, motion.ts Anchor). */
+export interface Fit {
+  parts: Part[]; decals?: Decal[]; materials?: Record<string, Material>;
+  paint?: Partial<Regions>; anchors?: Anchor[];
+  /** false: the body draws no thighs under it (a long skirt or coat). And-ed across the outfit. */
+  thighs?: boolean;
+}
+/** A garment kind a fork registers (H1): how its items are built, and when in the outfit they are worn. */
+export interface GarmentKind<T = any> {
+  /** The item's fit, built in garment order with the outfit's other kinds. */
+  build(c: Wearing, item: T): Fit;
+  /** Built after the rest of the outfit, on what is worn by then (a belt over the coat, shades pushed up). */
+  last?: boolean;
+  /** Built after the `last` kinds, in garment order (boots' shafts, over the shins the rest has drawn). */
+  after?(c: Wearing, item: T): Fit;
+  /** Headwear: the hair is drawn under it (HairInput `capped`). `press`, if it returns one, fits the hair's parts inside
+   * the headwear's dome. */
+  coversHair?(c: Wearing, item: T): { press?: (hair: Part[]) => Part[] };
+}
+/**
+ * The garment kinds a fork adds to the union of Garment, by augmentation: a fork declares
+ * `declare module '…/outfit/garments' { interface GarmentKinds { tee: Tee } }` for each kind it registers
+ * (`registerGarment`), and its items then typecheck as garments. Empty in base.
+ */
+export interface GarmentKinds {}
+/** Any garment: the base pair's, or one of the kinds a fork registers (GarmentKinds). */
+export type Garment = BaseGarment | GarmentKinds[keyof GarmentKinds];
+/**
+ * What a fork tunes in dress() without editing it (H2, `registerOutfitHooks`). Both are callbacks base never sets.
+ */
+export interface OutfitHooks {
+  /** The hair's tie when its entry names none (the wardrobe: the outfit's first metal swatch). */
+  tie?(garments: Garment[], swatches: Record<string, Material>): string | undefined;
+  /** The openings a hand can reach, from the anchors the kinds published (each with the garment that made it) and every
+   * part dressed (the body's included), in place of the kinds' anchors as they stand (the wardrobe: those a hand can
+   * reach, and a pendant's where no chain publishes one). */
+  anchors?(c: Wearing, worn: { anchor: Anchor; from: Garment }[], parts: Part[]): Anchor[];
+}
+/** The garment kinds a fork registers (registerGarment), by name, in registration order. Empty in base. */
+const KINDS = new Map<string, GarmentKind>();
+/** Registers a garment kind under `kind`, the key its items carry ({ tee: 'iceTee', … }). Throws on a name taken. */
+export function registerGarment(kind: string, entry: GarmentKind): void {
+  if (KINDS.has(kind)) throw new Error(`garment kind ${kind} is registered already`);
+  KINDS.set(kind, entry);
+}
+/** The registered kind an item is, if any: the first, in registration order, whose name is one of its keys. */
+const kindOf = (item: object): GarmentKind | undefined => { for (const [k, e] of KINDS) if (k in item) return e; return undefined; };
+/** The outfit hooks a fork installs (registerOutfitHooks). None in base. */
+let hooks: OutfitHooks = {};
+let hooked = false;
+/** Installs the outfit hooks (H2), once: a second registration throws. */
+export function registerOutfitHooks(h: OutfitHooks): void {
+  if (hooked) throw new Error('outfit hooks are registered already');
+  hooks = h; hooked = true;
+}
 /**
  * Dresses a body: the garments in order repaint regions and add parts, then the body is built under them. Returns
  * the parts and decals, every one sized from the measure; `ppm` the texels a metre it is drawn at (the cell's), so the
- * small features (a hair tie, an ear's rim) land on whole texels at any density.
+ * small features (a hair tie, an ear's rim) land on whole texels at any density. A fork's registered kinds (H1) are worn
+ * at their place in the garment order, those built `last` and then their `after` once the rest is on; the outfit hooks
+ * (H2) set the hair's tie where the entry names none and pick the anchors. With none registered, none of that runs.
  */
 export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[], swatches: Record<string, Material> = SWATCHES, ppm?: number): Look {
   const swatch = (name: string): Material => { const found = swatches[name]; if (!found) throw new Error(`no swatch ${name}`); return found; };
@@ -58,7 +134,19 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   const r: Regions = { skin, chest: skin, waist: skin, pelvis: skin, shoulder: skin, upper: skin, fore: skin, hand: skin, thigh: skin, knee: skin, shin: skin, shoe: skin, sole: skin, neck: skin };
   const parts: Part[] = [], decals: Decal[] = [], made: Record<string, Material> = {};
   let thighs = true, faceLook: FaceLook = { shape: m.face };
+  // What the registered kinds are given, and the anchors they publish, each with the garment that made it.
+  const state: Record<string, unknown> = {}, anchors: { anchor: Anchor; from: Garment }[] = [];
+  const c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state };
+  /** A kind's fit, applied in order: its parts, marks, materials, the regions it repaints, its openings. */
+  const wear = (f: Fit, from: Garment) => {
+    parts.push(...f.parts); decals.push(...f.decals ?? []); Object.assign(made, f.materials); Object.assign(r, f.paint);
+    for (const anchor of f.anchors ?? []) anchors.push({ anchor, from });
+    if (f.thighs === false) thighs = false;
+  };
   for (const item of garments) {
+    // A registered kind (a fork's wardrobe); one worn last waits for the rest of the outfit.
+    const kind = kindOf(item);
+    if (kind) { if (!kind.last) wear(kind.build(c, item), item); continue; }
     if ('top' in item) {
       r.chest = r.waist = item.top;
       // A sleeveless top leaves the shoulder's round bare: the arm one surface of skin from the shoulder to the hand.
@@ -75,18 +163,24 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
       const style = typeof item.style === 'string' ? named(HAIR_STYLES, 'hair style', item.style) : item.style;
       // The tie in the wearer's own palette: the one it names, else a band of the hair's own. The trunk the hair falls
       // clear of: the tops worn by now over the body's own torso.
-      const tie = item.tie;
+      const tie = item.tie ?? hooks.tie?.(garments, swatches);
       const trunk = [...parts, ...body(m, s, r, thighs)].filter(p => p.group === GROUP.torso);
-      const hair = hairParts({ m, s, hair: item.hair, skin, swatch, ppm, tie, trunk }, style);
-      parts.push(...hair.parts); decals.push(...hair.decals); Object.assign(made, hair.materials);
+      // Headwear in the outfit: the hair is drawn under it, and pressed inside it where the headwear says how.
+      const hat = garments.find(g => kindOf(g)?.coversHair), cover = hat && kindOf(hat)!.coversHair!(c, hat);
+      const hair = hairParts({ m, s, hair: item.hair, skin, swatch, capped: !!hat, ppm, tie, trunk }, style);
+      parts.push(...(cover?.press ? cover.press(hair.parts) : hair.parts)); decals.push(...hair.decals); Object.assign(made, hair.materials);
     } else if ('eyes' in item) {
       decals.push(...face(s, item.eyes, item.lids ?? 'lid', item.brows ?? 'brow'));
       faceLook = { shape: m.face, eyes: item.eyes, white: item.white, brows: item.brows, lips: item.lips };
       if (item.stubble) parts.push(box(J.head, item.stubble, GROUP.head, { at: [0, h * 0.12, hd * 0.52], r: [hw * 0.72, h * 0.12, hd * 0.5], e: [0.6, 0.65], taper: [0.7, 1] }, { seam: FACE_SEAM }));
     }
   }
+  // The kinds worn last, then each kind's `after`, both in garment order.
+  for (const item of garments) { const kind = kindOf(item); if (kind?.last) wear(kind.build(c, item), item); }
+  for (const item of garments) { const kind = kindOf(item); if (kind?.after) wear(kind.after(c, item), item); }
   Object.assign(made, earSkins(skin, swatch(skin)));
-  return { parts: [...body(m, s, r, thighs, ppm), ...parts], decals, materials: made, face: faceLook, anchors: [] };
+  const all = [...body(m, s, r, thighs, ppm), ...parts];
+  return { parts: all, decals, materials: made, face: faceLook, anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
 }
 /** The body's surfaces: the torso, each arm (shoulder to hand) and each leg (thigh to foot) one surface apiece, so the
  * painter draws no crevice or line at a waist, an elbow or a knee (paint.ts); garments keep their own edges. */
@@ -97,7 +191,7 @@ function surfaces(parts: Part[]): Part[] {
   return parts.map(p => (p.seam === undefined && SURFACE[p.group] !== undefined ? { ...p, seam: SURFACE[p.group] } : p));
 }
 /** The trapezius's slope (rad): the body's shoulder line runs up it to the neck. */
-const TRAPEZIUS = 0.6;
+export const TRAPEZIUS = 0.6;
 /** One stretch of a skinned limb in rest figure space: the profile cut to [hi, lo], painted `material`. */
 function stretch(material: string, group: number, o: Limb, hi: number, lo: number, skin: (x: number, y: number, z: number) => [number, number][]): Part {
   const mesh = limb({ ...o, span: [hi, lo] });
