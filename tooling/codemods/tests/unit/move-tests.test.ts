@@ -125,6 +125,7 @@ describe('imports', () => {
     expect(text).toContain("from '#src/a/data.json'")
     // src/a/ reached the package root with ../.. ; tests/unit/a/ needs one more level.
     expect(text).toContain("new URL('../../..', import.meta.url)")
+    expect(text).toContain("join(import.meta.dirname, '../../../src/a/data.json')")
   })
 
   it('rewrites vi.mock and dynamic import specifiers', () => {

@@ -160,6 +160,8 @@ const MOCK_SPECIFIERS: readonly RegExp[] = [
 /** A path, not a module: it may name a folder or a file that is not code, and it is kept relative. */
 const PATH_SPECIFIERS: readonly RegExp[] = [
   /\bnew URL\(\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1\s*,\s*import\.meta\.url/g,
+  // join(import.meta.dirname, '../x') and resolve(...), with the one relative segment (also '..' alone).
+  /\b(?:join|resolve)\(\s*import\.meta\.dirname\s*,\s*(['"])(?<value>\.{1,2}(?:\/[^'"]*)?)\1/g,
 ]
 const SVELTE_SPECIFIERS: readonly RegExp[] = [
   /\bfrom\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1/g,
