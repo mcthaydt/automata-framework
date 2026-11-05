@@ -1,8 +1,8 @@
 // One Vitest config shape for every package and game (core and 2D refactor spec, section 3.4).
 //
 // A package's tests sit in `tests/`, and the folder says what kind a test is:
-//   tests/unit/     Node, or jsdom when the package's default says so (a file can override it on its first line:
-//                   `// @vitest-environment jsdom`)
+//   tests/unit/     Node, or jsdom when the package's default says so (one file can override it with a
+//                   vitest-environment comment on its first line)
 //   tests/browser/  Vitest browser mode, in real Chromium, WebKit and Firefox (parity, layout, goldens)
 //   tests/bench/    timings, run by `pnpm bench` only (AF_BENCH=1), never in a gate
 // A package's `vitest.config.ts` is one call: `export default defineTests({ ... })`. The options are what the old
