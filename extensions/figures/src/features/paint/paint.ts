@@ -1,11 +1,11 @@
-import { RAMPS, RAMP_OUTLINE } from '../duel-ramps';
+import { RAMPS, RAMP_OUTLINE } from './duel-ramps';
 import { noise3, type GBuffer } from './raster';
-import { smooth } from './math';
-import { GROUP, type Material } from './parts';
-import type { HeadShape } from './genes';
+import { smooth } from '../../lib/math';
+import { GROUP, type Material } from '../body/parts';
+import type { HeadShape } from '../body/genes';
 /**
  * The painter: a figure's colours as pixel-art sprites are made, so a procedural figure is a sprite cell drawn live,
- * which the lighting feature (src/render/lighting) then lights from its normal map.
+ * which the lighting feature (src/features/lighting) then lights from its normal map.
  *
  * - Every material has a short hand-picked ramp (light, mid, shadow, deep), snapped to DUEL.
  * - One painted key light, up and to the left, on normals smoothed over each part: clean clusters, mostly mid tone, a

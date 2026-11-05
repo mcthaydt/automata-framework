@@ -1,6 +1,6 @@
 import { fill, mix, type Filled, type Spec } from './pose-spec';
-import { smooth } from './math';
-import type { Gait } from './motion';
+import { smooth } from '../../lib/math';
+import type { Gait } from '../motion/motion';
 import library from './library/actions.json';
 /**
  * The action set (library/actions.json): each action is pose specs (pose-spec.ts) keyed over its envelope, read here

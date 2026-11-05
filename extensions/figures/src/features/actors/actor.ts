@@ -1,10 +1,10 @@
-import { J, fk, type Pose, type Side, type Skeleton } from './rig';
-import { evaluate, type ActionId, type Gait, type Hold, type MotionState, type Stand } from './motion';
-import { euler, qmul, smooth, wrapAngle, type V3 } from './math';
-import { memberOf, standOf, type CastMember, type CharacterDef } from './cast';
-import { GAITS } from './presets';
-import type { Expression } from './garments';
-import { Figure, type View } from './figure';
+import { J, fk, type Pose, type Side, type Skeleton } from '../body/rig';
+import { evaluate, type ActionId, type Gait, type Hold, type MotionState, type Stand } from '../motion/motion';
+import { euler, qmul, smooth, wrapAngle, type V3 } from '../../lib/math';
+import { memberOf, standOf, type CastMember, type CharacterDef } from '../figure/cast';
+import { GAITS } from '../motion/presets';
+import type { Expression } from '../outfit/garments';
+import { Figure, type View } from '../figure/figure';
 import { actionOf, lengthOf, modeGait, specAt, weightAt, type ActionDef } from './actions';
 import { aim, blend, eyesOf, layer, lift, lowest, specPose, type Aims } from './pose-spec';
 import { BASE } from '../../../base/base';
@@ -89,7 +89,7 @@ export function characterOf(who: string | CharacterDef): { def: CharacterDef; po
   if (!b) throw new Error(`no figure ${who} (a base id: ${BASE.map(c => c.def.id).join(', ')}, or a character file)`);
   return { def: b.def, pose: b.pose };
 }
-export { memberOf } from './cast';
+export { memberOf } from '../figure/cast';
 const deg = (d: number) => d * Math.PI / 180;
 /** Turn speeds (rad/s): to a new way of walking at a corner, and to a face key. */
 const CORNER = 9, TURN = 5;

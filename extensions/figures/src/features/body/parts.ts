@@ -1,11 +1,11 @@
-import { add, apply, applyDir, compose, cross, dot, lerp, normalize, scale, sub, IDENTITY_Q, type Q, type V3 } from './math';
+import { add, apply, applyDir, compose, cross, dot, lerp, normalize, scale, sub, IDENTITY_Q, type Q, type V3 } from '../../lib/math';
 /**
  * Part meshes for the procedural figures smooth-normalled parametric primitives (a tapered
  * superquadric covers heads, limbs, torsos and boxes), each either
  * rigid on one bone (authored in the bone's space) or skinned to up to three bones (authored in rest figure space).
  */
 export interface Mesh { positions: number[]; normals: number[]; indices: number[] }
-/** A DUEL ramp row (src/render/duel-ramps.ts) and the step a lit-but-unhighlighted surface sits on. `lift` 0 or less: the
+/** A DUEL ramp row (src/features/paint/duel-ramps.ts) and the step a lit-but-unhighlighted surface sits on. `lift` 0 or less: the
  * painter gives it no highlight step (dark cloth, the torch's wood). */
 export interface Material {
   ramp: number; base: number; lift?: number; flat?: boolean;

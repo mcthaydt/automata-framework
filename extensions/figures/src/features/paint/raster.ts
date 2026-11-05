@@ -1,4 +1,4 @@
-import { GROUP } from './parts';
+import { GROUP } from '../body/parts';
 /**
  * The figure's own small render target. A CPU rasteriser draws the posed parts `supersample` times larger than the cell
  * into a G-buffer (depth, part, material, group, normal, and the surface's own place); `resolve` gives each texel the

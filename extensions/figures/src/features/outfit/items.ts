@@ -1,8 +1,8 @@
-import { axisAngle, type V3 } from './math';
-import type { Side, Skeleton } from './rig';
-import type { Hold } from './motion';
+import { axisAngle, type V3 } from '../../lib/math';
+import type { Side, Skeleton } from '../body/rig';
+import type { Hold } from '../motion/motion';
 import { box } from './garments';
-import { GROUP, type Part } from './parts';
+import { GROUP, type Part } from '../body/parts';
 import itemLibrary from './library/items.json';
 /** A held thing, in a hand socket (library/items.json): its parts and the arm pose that holds it. */
 export interface Item {

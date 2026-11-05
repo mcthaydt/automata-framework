@@ -1,9 +1,9 @@
-import { J, type Genes, type Side, type Skeleton } from './rig';
-import { CHAIN, clearance, standHolds, type Anchor, type Gait, type Hold, type Stand } from './motion';
-import { GROUP, reach, type Material } from './parts';
-import { measure, type Sliders } from './genes';
-import { dress, SWATCHES, type Garment, type Look as Dressed } from './garments';
-import { GAITS, POSES } from './presets';
+import { J, type Genes, type Side, type Skeleton } from '../body/rig';
+import { CHAIN, clearance, standHolds, type Anchor, type Gait, type Hold, type Stand } from '../motion/motion';
+import { GROUP, reach, type Material } from '../body/parts';
+import { measure, type Sliders } from '../body/genes';
+import { dress, SWATCHES, type Garment, type Look as Dressed } from '../outfit/garments';
+import { GAITS, POSES } from '../motion/presets';
 /**
  * The cast: every figure is a character file (a `CharacterDef`: base/base.ts holds the base pair's) of gene sliders, a
  * gait, outfits as lists of garments, and swatches of its own. `fromDef` turns any such file into a figure on the one

@@ -1,6 +1,6 @@
-import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from './rig';
-import { add, apply, applyDir, basis, cross, dot, euler, invertRigid, lerp3, matq, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from './math';
-import { reach, type Part } from './parts';
+import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from '../body/rig';
+import { add, apply, applyDir, basis, cross, dot, euler, invertRigid, lerp3, matq, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from '../../lib/math';
+import { reach, type Part } from '../body/parts';
 /**
  * Procedural motion: every layer is a pure function of the figure's parameters and the (stepped) time,
  * so a frame is reproducible and the hold can replace one arm without touching anything else.

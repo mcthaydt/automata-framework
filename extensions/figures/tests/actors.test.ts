@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import { BASE } from '../base/base';
 import { hero, member, standing, walking } from '../scripts/frames';
-import { ScriptedActor, Troupe, scriptOf, type ActorScript } from '../src/render/figure/actor';
-import { ACTIONS, actionOf, lengthOf, specAt, weightAt } from '../src/render/figure/actions';
-import { lowest } from '../src/render/figure/pose-spec';
-import { fk } from '../src/render/figure/rig';
+import { ScriptedActor, Troupe, scriptOf, type ActorScript } from '../src/features/actors/actor';
+import { ACTIONS, actionOf, lengthOf, specAt, weightAt } from '../src/features/actors/actions';
+import { lowest } from '../src/features/actors/pose-spec';
+import { fk } from '../src/features/body/rig';
 import golden from './fixtures/sprites.json';
 
 const view = { azimuth: 0, pitch: 18 * Math.PI / 180 };

@@ -1,5 +1,5 @@
 /**
- * The base pair lit (src/render/lighting): a contact sheet of a few lighting setups, one row each (daylight; golden
+ * The base pair lit (src/features/lighting): a contact sheet of a few lighting setups, one row each (daylight; golden
  * hour; dusk under a spot; night under a warm lamp with the floor's bounce; a bar's two lamps, one flickering), each
  * base figure in three views (front, three-quarter, side), at D2. Writes OUT_DIR/lit-sheet.png and lit-sheet-x2.png.
  *
@@ -8,9 +8,9 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createCanvas } from '@napi-rs/canvas';
-import { Figure } from '../src/render/figure/figure';
-import { lightFigure, type Lighting } from '../src/render/lighting/light';
-import { TIMES } from '../src/render/lighting/lamps';
+import { Figure } from '../src/features/figure/figure';
+import { lightFigure, type Lighting } from '../src/features/lighting/light';
+import { TIMES } from '../src/features/lighting/lamps';
 import { member, view } from './frames';
 import { BASE } from '../base/base';
 

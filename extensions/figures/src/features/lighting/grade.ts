@@ -1,5 +1,5 @@
-import { RAMPS } from '../duel-ramps';
-import { duel, oklab } from '../figure/paint';
+import { RAMPS } from '../paint/duel-ramps';
+import { duel, oklab } from '../paint/paint';
 /**
  * Colour moved the DUEL way: along a ramp in whole steps (stepBy), toward another colour in OKLab (toward), tinted by
  * a light's or a time's colour (grade), always snapped back to DUEL; and where a colour sits on the ramps (onRow).

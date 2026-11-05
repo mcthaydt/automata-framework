@@ -1,5 +1,5 @@
-import { noise3 } from '../figure/raster';
-import type { V3 } from '../figure/math';
+import { noise3 } from '../paint/raster';
+import type { V3 } from '../../lib/math';
 import timeLibrary from './library/times.json';
 /**
  * The light a figure stands in, as a pixel artist lights a sprite: a time of day (its exposure, whole steps down the

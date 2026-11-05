@@ -1,4 +1,4 @@
-import { IDENTITY_Q, apply, applyDir, basis, compose, cross, dot, matq, mmul, normalize, position, scale, sub, add, length, clamp, axisAngle, type M, type Q, type V3 } from './math';
+import { IDENTITY_Q, apply, applyDir, basis, compose, cross, dot, matq, mmul, normalize, position, scale, sub, add, length, clamp, axisAngle, type M, type Q, type V3 } from '../../lib/math';
 /**
  * The shared skeleton: 20 joints and a socket in each hand. Every figure is this rig with its own genes, so any two
  * characters are one rig with two sets of numbers. The figure faces +z, y is up, its own left is +x. Rest local

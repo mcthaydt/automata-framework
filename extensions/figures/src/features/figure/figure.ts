@@ -1,13 +1,13 @@
-import { J, fk, skeleton, type Pose, type Side, type Skeleton } from './rig';
-import { evaluate, type ActionId, type MotionState } from './motion';
-import { apply, applyDir, wrapAngle, type M, type V3 } from './math';
+import { J, fk, skeleton, type Pose, type Side, type Skeleton } from '../body/rig';
+import { evaluate, type ActionId, type MotionState } from '../motion/motion';
+import { apply, applyDir, wrapAngle, type M, type V3 } from '../../lib/math';
 import type { CastMember } from './cast';
-import { ITEMS } from './items';
-import { blendJoins, cleanup, gbuffer, rasterize, resolve, smoothContour, stamp, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from './raster';
-import { boneGroups, GROUP, type Decal, type Material, type Part } from './parts';
-import type { Expression, FaceLook } from './garments';
-import { DEFAULT_HEAD } from './genes';
-import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Bends, type FaceStamp, type HandStamp, type PaintStyle } from './paint';
+import { ITEMS } from '../outfit/items';
+import { blendJoins, cleanup, gbuffer, rasterize, resolve, smoothContour, stamp, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from '../paint/raster';
+import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body/parts';
+import type { Expression, FaceLook } from '../outfit/garments';
+import { DEFAULT_HEAD } from '../body/genes';
+import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Bends, type FaceStamp, type HandStamp, type PaintStyle } from '../paint/paint';
 /**
  * A procedural figure at run time: the stepped pose clock, the snap to 8 directions, the hair's spring, the triangle
  * soup, the G-buffer and the painter's cell with its normal map (which the lighting feature lights), each pose's cell

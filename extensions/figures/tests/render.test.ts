@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Figure } from '../src/render/figure/figure';
-import { fromDef } from '../src/render/figure/cast';
+import { Figure } from '../src/features/figure/figure';
+import { fromDef } from '../src/features/figure/cast';
 import { BASE } from '../base/base';
 
 describe('the base pair', () => {

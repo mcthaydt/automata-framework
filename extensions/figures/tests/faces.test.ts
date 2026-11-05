@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { BASE } from '../base/base';
-import { Figure, type FigureInput } from '../src/render/figure/figure';
-import { EXPRESSIONS, type Expression } from '../src/render/figure/garments';
+import { Figure, type FigureInput } from '../src/features/figure/figure';
+import { EXPRESSIONS, type Expression } from '../src/features/outfit/garments';
 import { member, view } from '../scripts/frames';
 
 /**

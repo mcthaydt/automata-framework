@@ -1,5 +1,5 @@
 /**
- * The scriptable actors' golden frames: what the actors (src/render/figure/actor.ts) draw on the base pair, kept as an
+ * The scriptable actors' golden frames: what the actors (src/features/actors/actor.ts) draw on the base pair, kept as an
  * md5 of each frame's RGBA and named `<who>/<case>/<moment>@D<density>`. The cases are: every action in the library at
  * five moments of its envelope (its start, its wind-up, its strike, its end and half its recovery), with the swing
  * holding a torch; the run, the strafe and stepping in place; each of the base pair's lookbook stands held, at D1 and D2;
@@ -10,8 +10,8 @@
  * the same frames. The set is frozen: it is not the demo's contact sheet (scripts/actors-demo.ts), which may change.
  */
 import { createHash } from 'node:crypto';
-import { Troupe, type ActionCue, type ActorScript } from '../src/render/figure/actor';
-import { ACTIONS, actionOf, lengthOf } from '../src/render/figure/actions';
+import { Troupe, type ActionCue, type ActorScript } from '../src/features/actors/actor';
+import { ACTIONS, actionOf, lengthOf } from '../src/features/actors/actions';
 import { view } from '../scripts/frames';
 
 /** The characters the actors are recorded on: the base pair, by id. */

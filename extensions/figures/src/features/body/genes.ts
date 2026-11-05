@@ -1,4 +1,4 @@
-import { lerp } from './math';
+import { lerp } from '../../lib/math';
 import type { Genes } from './rig';
 /**
  * Gene sliders: a figure is designed from a few normalised sliders, and one generator turns them into a skeleton and
@@ -65,7 +65,7 @@ export const DEFAULT_SLIDERS: Sliders = {
 /** Everything the body and the garments need, in metres. */
 export interface Measure {
   sliders: Sliders;
-  /** The rig's genes (src/render/figure/rig.ts). */
+  /** The rig's genes (src/features/body/rig.ts). */
   genes: Genes;
   /** Height over the reference height, 1.62 m: how the small fixed details scale. */
   k: number;

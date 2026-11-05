@@ -4,8 +4,8 @@
  * with no cloth of their own), barefoot, so the body, the face and the painter are judged and not the clothes. Every
  * visual change is judged on these two.
  */
-import type { CharacterDef } from '../src/render/figure/cast';
-import type { Garment } from '../src/render/figure/garments';
+import type { CharacterDef } from '../src/features/figure/cast';
+import type { Garment } from '../src/features/outfit/garments';
 
 /** A base figure: its character file, and the library stand its lookbook hero is drawn in (library/poses.json; none:
  * the gait's relaxed stand). */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BASE } from '../base/base';
-import { DEFAULT_HEAD, DEFAULT_SLIDERS, type HeadShape, type Sliders } from '../src/render/figure/genes';
-import type { CharacterDef } from '../src/render/figure/cast';
+import { DEFAULT_HEAD, DEFAULT_SLIDERS, type HeadShape, type Sliders } from '../src/features/body/genes';
+import type { CharacterDef } from '../src/features/figure/cast';
 import { member, standing, walking } from '../scripts/frames';
 
 /**

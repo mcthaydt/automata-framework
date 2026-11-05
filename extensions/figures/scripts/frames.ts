@@ -2,9 +2,9 @@
  * The review frames every script and golden draws, in Node: a character at the sheets' scale, its 8 views standing, its
  * walk's poses, and its lookbook hero in a library stand (library/poses.json), each as an RGBA cell.
  */
-import { Figure } from '../src/render/figure/figure';
-import { memberOf, standOf, type CastMember, type CharacterDef } from '../src/render/figure/cast';
-import { evaluate } from '../src/render/figure/motion';
+import { Figure } from '../src/features/figure/figure';
+import { memberOf, standOf, type CastMember, type CharacterDef } from '../src/features/figure/cast';
+import { evaluate } from '../src/features/motion/motion';
 
 export type Frame = Uint8ClampedArray;
 /** The camera: the sheets' 18° pitch, from the front. */

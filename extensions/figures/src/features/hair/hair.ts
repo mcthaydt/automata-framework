@@ -1,12 +1,12 @@
-import { J, type Skeleton } from './rig';
-import { add, axisAngle, clamp, cross, dot, hash, lerp, normalize, scale, smooth, sub, type V3 } from './math';
-import { reach, superquadric, type Decal, type Material, type Mesh, type Part } from './parts';
-import type { Measure } from './genes';
-import { FACE_SEAM, tonesOf } from './paint';
-import { RAMPS } from '../duel-ramps';
-import { hexOf } from './colour';
+import { J, type Skeleton } from '../body/rig';
+import { add, axisAngle, clamp, cross, dot, hash, lerp, normalize, scale, smooth, sub, type V3 } from '../../lib/math';
+import { reach, superquadric, type Decal, type Material, type Mesh, type Part } from '../body/parts';
+import type { Measure } from '../body/genes';
+import { FACE_SEAM, tonesOf } from '../paint/paint';
+import { RAMPS } from '../paint/duel-ramps';
+import { hexOf } from '../../lib/colour';
 import hairLibrary from './library/hair.json';
-import { headAt, headForm, headNormal, insideHead, type HeadForm } from './head';
+import { headAt, headForm, headNormal, insideHead, type HeadForm } from '../body/head';
 /**
  * Hair generators (library/hair.json). A style is a list of pieces fitted to the
  * skull in head units: angles round it from the front (rad, + toward the figure's left, mirrored), heights of its

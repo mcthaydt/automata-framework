@@ -1,13 +1,13 @@
-import { J, type Side, type Skeleton } from './rig';
-import { apply, axisAngle, compose, lerp, smooth, sub, type V3 } from './math';
-import { GROUP, limb, placed, superquadric, weights, type Decal, type Limb, type Material, type Part, type Superquadric } from './parts';
-import type { HeadShape, Measure } from './genes';
-import { FACE_SEAM, tonesOf } from './paint';
+import { J, type Side, type Skeleton } from '../body/rig';
+import { apply, axisAngle, compose, lerp, smooth, sub, type V3 } from '../../lib/math';
+import { GROUP, limb, placed, superquadric, weights, type Decal, type Limb, type Material, type Part, type Superquadric } from '../body/parts';
+import type { HeadShape, Measure } from '../body/genes';
+import { FACE_SEAM, tonesOf } from '../paint/paint';
 import swatchLibrary from './library/swatches.json';
-import type { Anchor } from './motion';
-import { ear, headForm, headMesh } from './head';
-import { hexOf } from './colour';
-import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from './hair';
+import type { Anchor } from '../motion/motion';
+import { ear, headForm, headMesh } from '../body/head';
+import { hexOf } from '../../lib/colour';
+import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from '../hair/hair';
 /**
  * The body and what the base pair wears. A character is sliders (genes.ts) plus a list of garments, each fitted to the
  * body the sliders make: a top painted on the torso and as much of the arms as its sleeves cover, shorts painted on the
@@ -21,7 +21,7 @@ const sides = [['L', 1], ['R', -1]] as const;
 /** A rounded box: the kit's one primitive. */
 export const box = (bone: number, material: string, group: number, o: Superquadric, extra: Partial<Part> = {}): Part => ({ bone, material, group, mesh: superquadric({ e: [0.5, 0.55], seg: 10, rings: 6, ...o }), ...extra });
 
-// ─── Swatches: named DUEL ramp rows and steps (src/render/duel-ramps.ts), from the library (library/swatches.json) ───
+// ─── Swatches: named DUEL ramp rows and steps (src/features/paint/duel-ramps.ts), from the library (library/swatches.json) ───
 /** The shared palette library; a character file adds its own swatches (cast.ts). Every colour is DUEL-checked (tests). */
 export const SWATCHES = swatchLibrary as unknown as Record<string, Material>;
 

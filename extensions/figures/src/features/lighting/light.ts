@@ -1,5 +1,5 @@
-import type { V3 } from '../figure/math';
-import { RAMPS } from '../duel-ramps';
+import type { V3 } from '../../lib/math';
+import { RAMPS } from '../paint/duel-ramps';
 import { grade, onRow, stepBy, toward } from './grade';
 import { lampSteps, strength, viewToWorld, type Lamp, type TimeOfDay } from './lamps';
 /**

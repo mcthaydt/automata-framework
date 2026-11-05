@@ -9,8 +9,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createCanvas, type Canvas } from '@napi-rs/canvas';
-import { Troupe, type ActionCue, type ActorScript } from '../src/render/figure/actor';
-import { ACTIONS, actionOf, lengthOf } from '../src/render/figure/actions';
+import { Troupe, type ActionCue, type ActorScript } from '../src/features/actors/actor';
+import { ACTIONS, actionOf, lengthOf } from '../src/features/actors/actions';
 import { view as sheetView } from './frames';
 
 const out = resolve(process.argv[2] ?? 'out/actors');

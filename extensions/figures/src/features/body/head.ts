@@ -1,5 +1,5 @@
 import type { Skeleton } from './rig';
-import { cross, dot, lerp, normalize, smooth, sub, type V3 } from './math';
+import { cross, dot, lerp, normalize, smooth, sub, type V3 } from '../../lib/math';
 import type { Mesh } from './parts';
 import type { Measure } from './genes';
 /**
