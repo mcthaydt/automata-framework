@@ -1,5 +1,5 @@
 import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from '../body/rig';
-import { add, apply, applyDir, basis, cross, dot, euler, invertRigid, lerp3, matq, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from '../../lib/math';
+import { add, apply, applyDir, basis, compose, cross, dot, euler, IDENTITY_Q, invertRigid, lerp, lerp3, matq, mmul, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from '../../lib/math';
 import { reach, type Part } from '../body/parts';
 /**
  * Procedural motion: every layer is a pure function of the figure's parameters and the (stepped) time,
@@ -546,7 +546,26 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
     pose.shift[J.neck][1] -= x * Math.sin(st.view ?? st.yaw) * Math.tan(st.pitch);
     world = fk(s, pose);
   }
+  placeHems(s, pose, world);
   return { pose, world: fk(s, pose) };
+}
+/** A planted foot ahead of its hip has its hem hang PLANT of the way from the plumb under the hip to the ankle, fore and
+ * aft (across, it keeps to the ankle), so the toe steps out from under the cloth; a foot BEHIND (m at k 1) its hip, or
+ * lifted LIFT off the floor, has it follow the ankle all the way, so the heel peels up inside the hem. */
+const PLANT = 0.5, LIFT = 0.03, BEHIND = 0.06;
+/**
+ * The hems (rig.ts J.hemL, J.hemR): each upright on the floor between its ankle and the plumb under its hip while the
+ * foot is planted, riding up with the ankle as the heel peels off and following it through the swing, so a wide hem
+ * always covers its shoe's collar and never tips with the shin. Written as each joint's turn and shift on its shin.
+ */
+export function placeHems(s: Skeleton, pose: Pose, world: M[]) {
+  const g = s.genes, k = g.height / 1.62, rootM = world[J.root], toRoot = invertRigid(rootM);
+  for (const side of ['L', 'R'] as const) {
+    const hem = J[`hem${side}`], ankle = apply(toRoot, position(world[J[`foot.${side}`]])), hip = apply(toRoot, position(world[J[`thigh.${side}`]]));
+    const lift = Math.max(0, ankle[1] - g.ankle), follow = lerp(PLANT, 1, Math.max(smooth(lift / (LIFT * k)), smooth((hip[2] - ankle[2]) / (BEHIND * k))));
+    const local = mmul(invertRigid(world[J[`shin.${side}`]]), mmul(rootM, compose(IDENTITY_Q, [ankle[0], g.ankle + lift, lerp(hip[2], ankle[2], follow)])));
+    pose.rot[hem] = matq(local.slice(0, 9)); pose.shift[hem] = sub(position(local), s.offset[hem]);
+  }
 }
 /** The hand's world turn for a hold in a joint's space `space`: its euler turn, or its aim (fingers along the hand's −y,
  * the palm on its inner side: −x for the left hand, +x for the right). */
