@@ -13,7 +13,7 @@ import type {
   LifecycleReason,
   RoundOutcome,
 } from '../../../shared/host/index'
-import { fromListener } from '../../../shared/lib/subscribable'
+import { fromListener } from '../../../shared/lib/effect-subscribable'
 import { guardRounds } from '../rounds'
 
 /*

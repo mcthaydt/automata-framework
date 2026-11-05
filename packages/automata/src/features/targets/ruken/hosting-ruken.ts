@@ -10,7 +10,7 @@ import {
 import { Deferred, Effect, Layer, Option, Runtime, type Scope, Stream } from 'effect'
 import { HostError, HostHandshakeFailed } from '../../../shared/host/errors'
 import { HOST_EXIT_CAP, Hosting, type HostingOptions } from '../../../shared/host/hosting'
-import { fromListener } from '../../../shared/lib/subscribable'
+import { fromListener } from '../../../shared/lib/effect-subscribable'
 import { makeExitHandlers } from '../exit-handlers'
 import { makeMenuHandlers } from '../menu'
 import { guardRounds } from '../rounds'
