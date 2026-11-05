@@ -155,7 +155,7 @@ export interface FaceStamp {
    * The mood's marks (figure.ts face tags): 'angry' the brows' inner ends down and the mouth's corners turned down;
    * 'smile' its corners up; 'dead' the lids heavy over flat eyes (the whites under the lid), the brows level; 'surprised'
    * the brows up; 'mouthOpen' (talking, a shout) the lips parted on the mouth's dark; 'lookL' / 'lookR' the irises to
-   * the viewer's left or right, 'beside' a little off the camera.
+   * the viewer's left or right, 'beside' the same as 'lookR' at this size (the eye has one texel to move).
    */
   mood?: Set<string>;
 }

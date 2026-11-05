@@ -159,7 +159,7 @@ export interface FigureInput {
   /** The face (garments.ts EXPRESSIONS): 'talk' opens and shuts the mouth. */
   expression?: Expression;
   /** More of the face's marks with it (the painter's, paint.ts stampFace): 'talk' with another expression (angry and
-   * talking), 'lookL' / 'lookR' the eyes to one side, 'beside' them just off the camera. */
+   * talking), 'lookL' / 'lookR' the eyes to one side, 'beside' is an alias of 'lookR' at this size. */
   mood?: string[];
   /**
    * A pose made outside the figure's own motion (the actors' made poses, actor.ts): local to the figure (facing +z, root at

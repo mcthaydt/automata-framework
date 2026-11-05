@@ -239,7 +239,8 @@ export function onHead(f: HeadForm, k: Skull, a: number, y: number, lift = 0): V
   return add(headAt(f, t, v), scale(headNormal(f, t, v), lift * k.r[0]));
 }
 /** A shell between two lines round the head (`to` the crown when left out), `lift` of the skull's half-width off its form
- * `f` along its normal, with a hole `cut` in it (a gap a fork's headwear may leave). `keep` picks its cells by row (a fade's tiers). */
+ * `f` along its normal, `keep` picks its cells by row (a fade's tiers), and `o.span` keeps it within that angle of the
+ * front (a line-up). */
 export function shell(k: Skull, o: Scalp, f: HeadForm, keep?: (i: number) => boolean): { mesh: Mesh; lit?: Mesh } {
   const cols = 56, rows = 18, lift = (t: number, a: number, y: number) => {
     const comb = o.ridges ? 1 + o.ridges[1] * Math.cos(o.ridges[0] * combPhase(k, o.comb ?? [0, 1, 0], a, y)) * smooth(t * 3) : 1;
