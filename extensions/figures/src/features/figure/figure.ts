@@ -396,8 +396,8 @@ export class Figure {
     const view = [[1, 0, 0], [0, cp, -sp], [0, sp, cp]], R: number[] = [];
     for (let i = 0; i < 3; i++) for (let k = 0; k < 3; k++) R.push(m[i] * view[k][0] + m[3 + i] * view[k][1] + m[6 + i] * view[k][2]);
     return {
-      // The eyes one size on every face, whatever its width or the figure's height: only the cell's density sizes them.
-      view: Math.round(yaw / (Math.PI / 4)), size: hw * ppm, eye: Math.max(1, Math.round(EYE * ppm)),
+      // The eyes one size on every face, whatever the figure's height: the cell's density sizes them, capped by the face's width.
+      view: Math.round(yaw / (Math.PI / 4)), size: hw * ppm, eye: eyeWidth(hw * ppm, ppm),
       centre: at([0, H * 0.45, z(1)]), eyes, nose: at([0, H * 0.23, z(1.06)]), mouth: at([0, H * 0.17, z(1)]),
       frame: { o: [w / 2 + m[9] * ppm, h - this.feet - (m[10] * cp - m[11] * sp) * ppm, m[10] * sp + m[11] * cp], ppm, R, head: [hw, H, hd, g.faceAhead] },
       skin, ...this.built.face, blink, mood,
@@ -437,6 +437,15 @@ const CELLS = 384;
 /** An eye's drawn width (m; paint.ts FaceStamp.eye): two texels at the brand kit's density, four at twice it (a JRPG
  * sprite's eye, with a two-texel iris). */
 const EYE = 0.05;
+/** The widest an eye may be, as a fraction of the head's half-width: a little over half of it, so the two eyes and the
+ * bridge between them leave the face its cheeks. The base pair's heads (half-width of 8 or more texels at density 2) never
+ * reach it, so the cap changes nothing for them; a small head (the `head` slider low) gets a narrower eye in place of one
+ * that covers a third of its face. */
+const EYE_OF_FACE = 0.52;
+/** An eye's drawn width (texels; paint.ts FaceStamp.eye) on a head of the given half-width (texels) at `ppm` pixels per
+ * metre: the density's own size (`EYE`), capped at `EYE_OF_FACE` of the half-width, and never under one texel. */
+export const eyeWidth = (halfWidth: number, ppm: number): number =>
+  Math.max(1, Math.min(Math.round(EYE * ppm), Math.round(EYE_OF_FACE * halfWidth)));
 /** The head's lead step. */
 const HEAD_STEP = Math.PI / 6;
 /** The three-quarter view's head turn toward the camera (rad), at 45° from it (motion: toCamera). */
