@@ -412,7 +412,7 @@ function shoe(bone: number, upper: string, sole: string, group: number, k: numbe
  * The face as a pixel artist draws it at this size: a texel per eye (two tall when afraid or surprised, a lid when
  * blinking), brows a texel above that slant with the mood, and a mouth that shows only when it means something.
  */
-export const EXPRESSIONS = ['neutral', 'fear', 'surprised', 'sad', 'angry', 'talk'] as const;
+export const EXPRESSIONS = ['neutral', 'fear', 'surprised', 'sad', 'angry', 'talk', 'smile', 'dead'] as const;
 export type Expression = typeof EXPRESSIONS[number];
 function face(s: Skeleton, eyes: string, lid: string, brow: string): Decal[] {
   const g = s.genes, hw = g.head * g.headWidth / 2, hd = g.head * g.headDepth / 2, h = g.head, front = hd * (1 + g.faceAhead) + 0.006;

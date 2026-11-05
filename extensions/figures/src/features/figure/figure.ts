@@ -158,6 +158,9 @@ export interface FigureInput {
   action?: { id: ActionId; t: number } | null;
   /** The face (garments.ts EXPRESSIONS): 'talk' opens and shuts the mouth. */
   expression?: Expression;
+  /** More of the face's marks with it (the painter's, paint.ts stampFace): 'talk' with another expression (angry and
+   * talking), 'lookL' / 'lookR' the eyes to one side, 'beside' them just off the camera. */
+  mood?: string[];
   /**
    * A pose made outside the figure's own motion (the actors' made poses, actor.ts): local to the figure (facing +z, root at
    * its feet), its `yaw` added to the facing. `key` names it for the cell cache, so the same key must mean the same
@@ -341,7 +344,7 @@ export class Figure {
     for (const d of decals) if (d.print?.seams) stampPrint(d, this.g);
     stamp(decals.filter(d => !d.print), this.g, this.metres / this.cell[1], [GROUP.item]);
     for (const d of decals) if (d.print && !d.print.seams) stampPrint(d, this.g);
-    this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink) : null;
+    this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink, faceState.tags) : null;
     this.handStamps = this.handsAt(pitch);
     paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends());
   }
@@ -371,15 +374,15 @@ export class Figure {
     const expression = input.expression ?? 'neutral', every = this.member.blink, rate = this.member.gait.poseRate;
     // Half a period in, so a figure does not open on a blink.
     const blink = every > 0 && ((t + every / 2) % every) < 1.5 / rate;
-    const tags = new Set<string>([expression]);
-    if (expression === 'talk' && Math.floor(t * 6) % 2 === 0) tags.add('mouthOpen');
+    const tags = new Set<string>([expression, ...(input.mood ?? [])]);
+    if (tags.has('talk') && Math.floor(t * 6) % 2 === 0) tags.add('mouthOpen');
     return { tags, blink };
   }
   /**
    * Where the drawn face goes this pose: the eye row's centre on the face, projected into the cell, and which template
    * the head's yaw toward the camera picks (0 front … ±2 profile; past that the face is turned away).
    */
-  private faceAt(pitch: number, blink: boolean): FaceStamp | null {
+  private faceAt(pitch: number, blink: boolean, mood: Set<string> = new Set()): FaceStamp | null {
     const skin = this.built.materialIndex.get(this.member.skin);
     if (skin === undefined) return null;
     const g = this.skeleton.genes, m = this.world[J.head], [w, h] = this.cell, ppm = h / this.metres, cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -397,7 +400,7 @@ export class Figure {
       view: Math.round(yaw / (Math.PI / 4)), size: hw * ppm, eye: Math.max(1, Math.round(EYE * ppm)),
       centre: at([0, H * 0.45, z(1)]), eyes, nose: at([0, H * 0.23, z(1.06)]), mouth: at([0, H * 0.17, z(1)]),
       frame: { o: [w / 2 + m[9] * ppm, h - this.feet - (m[10] * cp - m[11] * sp) * ppm, m[10] * sp + m[11] * cp], ppm, R, head: [hw, H, hd, g.faceAhead] },
-      skin, ...this.built.face, blink,
+      skin, ...this.built.face, blink, mood,
     };
   }
   /**

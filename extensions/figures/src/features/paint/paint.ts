@@ -151,6 +151,13 @@ export interface FaceStamp {
   skin: number; iris: number; lash: number; white: number; brow: number; lips: [number, number, number];
   shape: HeadShape;
   blink: boolean;
+  /**
+   * The mood's marks (figure.ts face tags): 'angry' the brows' inner ends down and the mouth's corners turned down;
+   * 'smile' its corners up; 'dead' the lids heavy over flat eyes (the whites under the lid), the brows level; 'surprised'
+   * the brows up; 'mouthOpen' (talking, a shout) the lips parted on the mouth's dark; 'lookL' / 'lookR' the irises to
+   * the viewer's left or right, 'beside' a little off the camera.
+   */
+  mood?: Set<string>;
 }
 /**
  * The face's planes, as a pixel artist models a head (not a sphere the key splits down the middle): a texel's normal on
@@ -205,6 +212,8 @@ function onForm(pl: readonly number[], n: readonly number[], wf: number) {
 function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedArray, tone: Int8Array, through: Map<number, number[]>, kept: Uint8Array) {
   const { w, h, material, part, group } = g, view = Math.abs(f.view), d = f.view < 0 ? -1 : 1, F = f.shape, s = f.size;
   if (view >= 3) return;
+  const has = (t: string) => !!f.mood?.has(t), angry = has('angry'), smile = has('smile'), dead = has('dead'), open = has('mouthOpen');
+  const gaze = has('lookL') ? -1 : has('lookR') || has('beside') ? 1 : 0;
   // Detail by size: from 3 texels an eye has its white and lid, the lips two tones, the nose a lit bridge.
   const big = f.eye >= 3, ew = f.eye, whiteFar = f.white;
   const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h;
@@ -250,12 +259,13 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
    * iris under it where the iris leaves room.
    */
   const eye = (x0: number, n: number, outer: number, iris: number) => {
+    iris = Math.max(0, Math.min(n - 1, iris + gaze));
     const xo = outer < 0 ? x0 : x0 + n - 1, xin = xo - outer * (n - 1);
     if (shaded(x0 - 1, x0 + n)) return false;
     // Small: the lid line over the eye's width, the iris under it (a closed eye, the line alone, a row down).
-    if (!big) { for (let i = 0; i < n; i++) mark(x0 + i, f.blink ? I : I - 1, f.lash); if (!f.blink) mark(x0 + iris, I, f.iris); return !behind; }
+    if (!big) { for (let i = 0; i < n; i++) mark(x0 + i, f.blink ? I : I - 1, f.lash); if (!f.blink && !(dead && n < 2)) mark(x0 + iris, I, f.iris); return !behind; }
     // The lid line: a hooded lid's shadow under the brow, or a crease short of the inner corner; a smooth lid has none.
-    if (behind) {} else if (F.hood >= 0.6) for (let i = -1; i <= n; i++) lid(x0 + i, I - 2);
+    if (behind) {} else if (F.hood >= 0.6 || dead) for (let i = -1; i <= n; i++) lid(x0 + i, I - 2);
     else if (F.crease >= 0.4) for (let i = 0; i < n; i++) if (n < 3 || x0 + i !== xin) lid(x0 + i, I - 2);
     // The iris, as a sprite artist draws an eye this size: two texels tall, its pupil dark under the lash and its colour
     // below, two wide in an eye of four; the white beside it on the upper row only, the lower lid the skin. Never
@@ -265,6 +275,8 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
       const x = x0 + i, inIris = i >= at && i < at + iw;
       if (f.blink) { mark(x, I, f.lash); continue; }
       if (n < 3 || x !== xin || n >= 4) mark(x, I - 1, f.lash);
+      // Dead eyes: the lid drawn down over the whites, the iris alone staring out under it.
+      if (dead && !inIris) { lid(x, I); continue; }
       mark(x, I, inIris ? f.lash : x < x0 + at ? f.white : whiteFar);
       if (inIris) mark(x, I + 1, f.iris);
     }
@@ -283,10 +295,12 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
    * only where a texel of skin parts it from the frame, or it reads as an eye.
    */
   const brow = (xi: number, n: number, outer: number, seen = true) => {
-    const B = I - 3 - (big && F.browHeight > 0.4 ? 1 : 0), peak = Math.round((n - 1) * 0.67);
-    const lift = (t: number) => (!big || t === 0 ? 0 : F.browArch >= 0.7 ? +(t >= peak) : F.browArch >= 0.3 ? +(t >= peak && n >= 6) : 0);
+    const B = I - 3 - (big && F.browHeight > 0.4 ? 1 : 0) - (has('surprised') ? 1 : 0), peak = Math.round((n - 1) * 0.67);
+    const lift = (t: number) => (!big || t === 0 || dead || angry ? 0 : F.browArch >= 0.7 ? +(t >= peak) : F.browArch >= 0.3 ? +(t >= peak && n >= 6) : 0);
+    // Angry: the inner end pulled down toward the nose a row (two at the brand kit's double), the outer end up a row.
+    const knit = (t: number) => (!angry ? 0 : t < Math.max(1, Math.round(n * 0.4)) ? 1 : t >= n - 1 && big ? -1 : 0);
     for (let t = 0; t < n; t++) {
-      const x = xi + outer * t, y = B - lift(t);
+      const x = xi + outer * t, y = B - lift(t) + knit(t);
       if (!seen && !own(x, y + 1)) continue;
       const thin = t === n - 1 && (F.browWeight < 0.4 || F.browArch >= 0.3);
       put(x, y, thin ? tones[3] : f.brow);
@@ -306,7 +320,24 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
    * goatee): the lower lip only with two rows of chin under the lips' line, the hollow only with three.
    */
   const lips = (a: number, b: number, cm: number) => {
-    if (!big) { for (let x = a; x <= b; x++) put(x, M, f.lips[0]); return; }
+    // The mood at the corners: up a row in a smile, down a row in anger (and closed).
+    const corners = (y: number, dark = small || y < M) => { for (const x of [a - 1, b + 1]) if (dark) put(x, y, f.lips[0]); else shade(x, y, 2); };
+    const small = !big;
+    if (!big) {
+      for (let x = a; x <= b; x++) put(x, M, f.lips[0]);
+      if (open) for (let x = Math.min(a + 1, cm), e = Math.max(b - 1, cm); x <= e; x++) put(x, M + 1, f.lash);
+      else if (smile) corners(M - 1); else if (angry) corners(M + 1);
+      return;
+    }
+    if (open && chin(cm) >= 3) {
+      // Parted: the upper lip, the mouth's dark under it between the corners, the lower lip lit under that.
+      for (let x = a; x <= b; x++) if (x === a || x === b) shade(x, M, 2); else put(x, M, f.lips[0]);
+      for (let x = a + 1; x < b; x++) put(x, M + 1, f.lash);
+      shade(a, M + 1, 2); shade(b, M + 1, 2);
+      for (let x = a + 1; x < b; x++) put(x, M + 2, f.lips[1]);
+      return;
+    }
+    if (smile) corners(M - 1); else if (angry) corners(M + 1);
     const below = chin(cm);
     for (let x = a; x <= b; x++) if (x === a || x === b) shade(x, M, 2); else put(x, M, f.lips[0]);
     if (below >= 2) for (let x = a + 1; x < b; x++) put(x, M + 1, x === b - 1 && b - a > 3 ? f.lips[0] : f.lips[1]);
@@ -380,7 +411,9 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     shade(Math.floor(f.nose[0]) - (big ? 2 : 1) * d, N, big ? 2 : 1);
     // The lips at the face's front on their rows: the upper dark with the mouth's corner behind it, the lower lit.
     const xm = edge(Math.floor(f.mouth[0]), M); put(xm, M, f.lips[0]);
-    if (big) { shade(xm - d, M, 2); const xl = edge(Math.floor(f.mouth[0]), M + 1); if (chin(xl) >= 2) put(xl, M + 1, f.lips[1]); }
+    if (open) { put(xm, M + 1, f.lash); put(xm - d, M + 1, f.lash); if (big && chin(xm) >= 3) put(edge(Math.floor(f.mouth[0]), M + 2), M + 2, f.lips[1]); }
+    else if (smile) shade(xm - 2 * d, M - 1, 2);
+    else if (big) { shade(xm - d, M, 2); const xl = edge(Math.floor(f.mouth[0]), M + 1); if (chin(xl) >= 2) put(xl, M + 1, f.lips[1]); }
   }
 }
 
