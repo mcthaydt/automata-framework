@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEVICE_RUN_HASH, runOn } from './testing/device-run.ts'
+import { DEVICE_RUN_HASH, runOn } from '#src/input/testing/device-run.ts'
 
 // I-a (M4 spec §13), Node half: the same script by keyboard, pad and touch sends the same commands and ends on the
 // same hash. The browsers half is keys.parity.test.ts, which must end on this same pinned hash.

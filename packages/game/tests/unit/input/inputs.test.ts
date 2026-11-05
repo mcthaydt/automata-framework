@@ -1,8 +1,8 @@
 import { defineCommand } from '@mcthaydt/automata-sim'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { inputs } from './inputs.ts'
-import { keys } from './keys.ts'
+import { inputs } from '#src/input/inputs.ts'
+import { keys } from '#src/input/keys.ts'
 
 // inputs(): several `keys()` maps as one input map, each sending its own command every tick (M3.7b part 3a): a
 // game whose sim takes a move, a lock and its action buttons as separate commands.

@@ -1,6 +1,6 @@
 import type { SlotState } from '@mcthaydt/automata-runtime'
 import { describe, expect, it } from 'vitest'
-import { createSlotsModel, slotViewOf } from './saves-view.svelte.ts'
+import { createSlotsModel, slotViewOf } from '#src/screens/saves-view.svelte.ts'
 
 // The title's slot list as a view of the runtime's `SlotState` (M5 spec §4.3, §7): the same five kinds, with the
 // slot's header copied out, and the activity only the screen knows (a write it started, or one that failed).

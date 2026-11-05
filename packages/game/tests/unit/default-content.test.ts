@@ -1,6 +1,6 @@
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { describe, expect, it } from 'vitest'
-import { defaultContent } from './default-content.ts'
+import { defaultContent } from '#src/default-content.ts'
 
 // A game without `content/` gets a generated minimal flow, hashed exactly as the content compiler hashes
 // (DX spec §3.1 defaults): the runtime's boot recomputes the hash and refuses a mismatch.

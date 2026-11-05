@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { statusOf } from './saves-paused.ts'
+import { statusOf } from '#src/screens/saves-paused.ts'
 
 // What paused says about the host's saves (M5 spec §7): nothing standalone, "no grant" under a host that did not grant
 // them, and the host's own word otherwise.

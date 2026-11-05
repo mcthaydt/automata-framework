@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEVICE_RUN_HASH, runOn } from './testing/device-run.ts'
+import { DEVICE_RUN_HASH, runOn } from '#src/input/testing/device-run.ts'
 
 // I-a (M4 spec §13), browsers half: Chromium, WebKit and Firefox play the same script by keyboard, pad and touch
 // and must end on the hash the Node run pinned, bit for bit.

@@ -2,7 +2,7 @@ import type { PixiStageHooks } from '@mcthaydt/automata-render-pixi'
 import { createSim, defineComponent, definePlugin, type Sim } from '@mcthaydt/automata-sim'
 import { Container, Graphics, Text } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createDrawLayer, type DrawContext, mergeStageHooks } from './draw-layer.ts'
+import { createDrawLayer, type DrawContext, mergeStageHooks } from '#src/draw/draw-layer.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const plugin = definePlugin({ name: 'drawn', defs: [Body] })

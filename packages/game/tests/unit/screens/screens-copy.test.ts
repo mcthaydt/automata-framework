@@ -5,10 +5,10 @@ import {
   CHANGED_ELSEWHERE_TOAST,
   SAVE_SLOTS_COPY,
   SAVE_STATUS_COPY,
-} from './saves-copy.ts'
-import { PAD_UNSUPPORTED } from './screen-kit.ts'
-import { screensCopy } from './screens-copy.svelte.ts'
-import { BOARD_COPY, DEFAULT_SCREENS_COPY, resolveScreensCopy } from './screens-copy.ts'
+} from '#src/screens/saves-copy.ts'
+import { PAD_UNSUPPORTED } from '#src/screens/screen-kit.ts'
+import { screensCopy } from '#src/screens/screens-copy.svelte.ts'
+import { BOARD_COPY, DEFAULT_SCREENS_COPY, resolveScreensCopy } from '#src/screens/screens-copy.ts'
 import {
   AUDIO_COPY,
   CONTROLS_COPY,
@@ -18,7 +18,7 @@ import {
   SETTINGS_COPY,
   TOUCH_COPY,
   VIBRATION_COPY,
-} from './settings-copy.ts'
+} from '#src/screens/settings-copy.ts'
 
 // DX.2d: the default screens' words are one record with English defaults that a game's `copy.screens` overrides,
 // re-read in the player's language each time it changes (PRODUCT spec §4 items 1 and 2, L-c).

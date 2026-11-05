@@ -1,7 +1,7 @@
 import { defineCommand } from '@mcthaydt/automata-sim'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { keys } from './keys.ts'
+import { keys } from '#src/input/keys.ts'
 
 // keys(): what is held → one command per tick (DX spec §3.3). Extracted from Emberwick's input
 // (games/emberwick/src/input/keys.ts and devices.ts): keys by `KeyboardEvent.code`, touch buttons that hold,

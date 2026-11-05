@@ -3,7 +3,7 @@ import { type Input, makeInput, type PresentationBus } from '@mcthaydt/automata-
 import { FocusNavigator } from '@mcthaydt/automata-ui'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { menuInput } from './menu-input.ts'
+import { menuInput } from '#src/screens/menu-input.ts'
 
 // The title and paused screens drive the ui FocusNavigator through the M4.1 Input service's menu edges (M4 spec
 // §4.7), over a real Input and a fake standard pad: A confirms, B backs out, the D-pad steers with I-d's repeat.

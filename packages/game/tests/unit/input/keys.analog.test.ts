@@ -2,8 +2,8 @@ import { CAMERA_SETTINGS_DEFAULT } from '@mcthaydt/automata-runtime'
 import { defineCommand } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { inputs } from './inputs.ts'
-import { type AnalogReading, keys } from './keys.ts'
+import { inputs } from '#src/input/inputs.ts'
+import { type AnalogReading, keys } from '#src/input/keys.ts'
 
 // keys({ analog }): the sticks and the camera drag added to the held keys' payload (M4 spec §17).
 const Turn = defineCommand('camera-turn', z.object({ units: z.number().int().default(0) }))

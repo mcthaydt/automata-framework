@@ -31,11 +31,11 @@ import { Effect } from 'effect'
 import { flushSync } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
-import { type DefinedGame, defineGame, type GameSpec } from '../../define-game.ts'
-import { keys } from '../../input/keys.ts'
-import { defaultScreens } from '../default-screens.ts'
-import HudExtension from '../HudExtension.test.svelte'
-import SettingsExtension from '../SettingsExtension.test.svelte'
+import { type DefinedGame, defineGame, type GameSpec } from '#src/define-game.ts'
+import { keys } from '#src/input/keys.ts'
+import { defaultScreens } from '#src/screens/default-screens.ts'
+import HudExtension from '../../../fixtures/screens/HudExtension.test.svelte'
+import SettingsExtension from '../../../fixtures/screens/SettingsExtension.test.svelte'
 
 // The default title, play and paused screens (DX spec §7), booted by the real runtime in jsdom: standalone
 // hosting, manual frames and a renderer that records what it is given (Pixi needs WebGL, which jsdom lacks).

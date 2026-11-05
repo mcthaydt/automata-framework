@@ -12,10 +12,10 @@ import { Effect } from 'effect'
 import { Container } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
-import { defaultContent } from './default-content.ts'
-import { defineGame, type GameSpec, pixiOptions } from './define-game.ts'
-import { createDrawLayer } from './draw/draw-layer.ts'
-import { rect } from './index.ts'
+import { defaultContent } from '#src/default-content.ts'
+import { defineGame, type GameSpec, pixiOptions } from '#src/define-game.ts'
+import { createDrawLayer } from '#src/draw/draw-layer.ts'
+import { rect } from '#src/index.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const Hidden = defineComponent('hidden', { n: 'i32' }, { render: false })

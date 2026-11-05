@@ -20,8 +20,8 @@ import { Effect } from 'effect'
 import { flushSync } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
-import { type DefinedGame, defineGame, type GameSaves, type GameSpec } from '../../define-game.ts'
-import { keys } from '../../input/keys.ts'
+import { type DefinedGame, defineGame, type GameSaves, type GameSpec } from '#src/define-game.ts'
+import { keys } from '#src/input/keys.ts'
 
 // The default screens of a game with a save (M5.2, M5 spec §5, §7): the title lists the slots in place of Play, New
 // game and Continue start play, play keeps the slot saved, and a second session on the same server lists what the

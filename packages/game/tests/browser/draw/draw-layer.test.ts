@@ -1,7 +1,7 @@
 import { createSim, defineComponent, definePlugin, type Sim } from '@mcthaydt/automata-sim'
 import { Application, RenderTexture } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createDrawLayer } from './draw-layer.ts'
+import { createDrawLayer } from '#src/draw/draw-layer.ts'
 
 // The draw layer on a real WebGL2 renderer in Chromium, WebKit and Firefox (PRODUCT.2 step 4): a rect lands on
 // exactly its logical pixels, and text draws over the playfield.

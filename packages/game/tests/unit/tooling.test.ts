@@ -1,7 +1,7 @@
 import { definePlugin } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import { defineGame, type GameSpec } from './define-game.ts'
-import { isDefinedGame } from './tooling.ts'
+import { defineGame, type GameSpec } from '#src/define-game.ts'
+import { isDefinedGame } from '#src/tooling.ts'
 
 // The framework's own tooling (the website playground's frame) asks whether an example's default export came from
 // defineGame, the check startGame makes, without widening the umbrella's one import.

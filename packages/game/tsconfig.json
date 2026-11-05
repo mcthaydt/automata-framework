@@ -4,5 +4,5 @@
     "types": ["vite/client", "@testing-library/jest-dom/vitest", "vitest/browser", "node"],
     "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte"]
+  "include": ["src/**/*.ts", "src/**/*.svelte", "tests/**/*.ts"]
 }

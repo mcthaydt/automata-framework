@@ -1,5 +1,5 @@
 import '@mcthaydt/automata-ui/theme.css'
-import './screens.css'
+import '#src/screens/screens.css'
 import { hasRawText, PSEUDO_LOCALE, pseudoLocalize } from '@mcthaydt/automata-content/locale'
 import {
   mountFixture,
@@ -12,14 +12,14 @@ import { InputMethodTracker } from '@mcthaydt/automata-ui'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata-ui/testing'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
-import type { TouchButton } from '../input/keys.ts'
-import PausedScreen from './PausedScreen.svelte'
-import PlayScreen from './PlayScreen.svelte'
-import type { PausedSaves } from './saves-paused.ts'
-import type { TitleSaves } from './saves-title.ts'
-import { createPausedSavesView, createSlotsModel } from './saves-view.svelte.ts'
-import { DEFAULT_SCREENS_COPY, type ScreensCopy } from './screens-copy.ts'
-import TitleScreen from './TitleScreen.svelte'
+import type { TouchButton } from '#src/input/keys.ts'
+import PausedScreen from '#src/screens/PausedScreen.svelte'
+import PlayScreen from '#src/screens/PlayScreen.svelte'
+import type { PausedSaves } from '#src/screens/saves-paused.ts'
+import type { TitleSaves } from '#src/screens/saves-title.ts'
+import { createPausedSavesView, createSlotsModel } from '#src/screens/saves-view.svelte.ts'
+import { DEFAULT_SCREENS_COPY, type ScreensCopy } from '#src/screens/screens-copy.ts'
+import TitleScreen from '#src/screens/TitleScreen.svelte'
 
 // The default screens' layout contract (M1.6 spec §7) with production CSS, at every reference size and
 // variant: no document scroll, whole 44 px targets (48 px primaries), nothing off screen or under the host's

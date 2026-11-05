@@ -4,8 +4,8 @@ import { defineComponent, definePlugin } from '@mcthaydt/automata-sim'
 import { fakeHosting } from '@mcthaydt/automata-testing/host'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
-import { defineGame, type GameSpec } from './define-game.ts'
-import { startGame } from './start-game.ts'
+import { defineGame, type GameSpec } from '#src/define-game.ts'
+import { startGame } from '#src/start-game.ts'
 
 // startGame composes defineGame's defaults with the runtime boot (DX spec §3.1). jsdom has no WebGL, so the
 // Pixi renderer cannot start: a boot that reaches it under AF's fake host (DIST spec §7) and fails with
