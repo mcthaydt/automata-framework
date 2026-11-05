@@ -1,6 +1,15 @@
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
 export { contentHashOf } from '../app/boot/boot-program.js'
-export { Audio, AudioBuses, Locale, Saves, Settings, settingsStore } from '../app/boot/effect-tags.ts'
+export {
+  AppLoop,
+  Audio,
+  AudioBuses,
+  Locale,
+  Saves,
+  Settings,
+  settingsStore,
+  Time,
+} from '../app/boot/effect-tags.ts'
 export type {
   CompiledContentData,
   GameDefinition,
@@ -42,7 +51,6 @@ export {
   RendererUnavailable,
 } from '../shared/runtime/boot-error.js'
 export type { QualityTier } from '../shared/runtime/display-settings.schema.js'
-export { AppLoop } from '../shared/runtime/loop/app-loop.manager.js'
 export type { FrameInfo } from '../shared/runtime/loop/frames.js'
 export {
   PresentationBus,
@@ -55,4 +63,3 @@ export type {
   RenderTarget,
 } from '../shared/runtime/render/renderer.js'
 export type { SettingsDef } from '../shared/runtime/settings/settings.manager.js'
-export { Time } from '../shared/runtime/time/time.manager.js'

@@ -13,16 +13,23 @@ import { inputSettingsSchema } from '../../features/input/bindings/input-setting
 import { CameraDragTracker } from '../../features/input/gestures/camera-drag-tracker.ts'
 import { SwipeTracker } from '../../features/input/gestures/swipe-tracker.ts'
 import type { InputMap } from '../../features/input/keys.ts'
-import { Leaderboards } from '../../features/leaderboards/leaderboards.manager.ts'
 import { saveOf } from '../../features/saves/saves.manager.ts'
 import { displaySettingsSchema, type QualityTier } from '../../shared/runtime/display-settings.schema.ts'
-import { AppLoop } from '../../shared/runtime/loop/app-loop.manager.ts'
 import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
-import { Time } from '../../shared/runtime/time/time.manager.ts'
 import { InputMethodTracker } from '../../shared/ui/browser/input-method.svelte.ts'
 import { sendBack } from '../../shared/ui/focus/back-gesture.ts'
 import { CursorRunner } from '../../shared/ui/focus/cursor-policy.ts'
-import { Audio, AudioBuses, Haptics, Locale, Saves, Settings } from '../boot/effect-tags.ts'
+import {
+  AppLoop,
+  Audio,
+  AudioBuses,
+  Haptics,
+  Leaderboards,
+  Locale,
+  Saves,
+  Settings,
+  Time,
+} from '../boot/effect-tags.ts'
 import type { GameSaves } from '../define-game.ts'
 import { Flow } from '../flow/flow.manager.ts'
 import type { ScreenDef } from '../flow/screen.ts'
@@ -335,9 +342,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const boards = yield* Leaderboards
         // Read from the host each time paused opens: what the host says, never a copy kept here.
         const board =
-          game.board === undefined
-            ? undefined
-            : { load: () => Effect.runPromise(boards.readBoard(game.board as string)) }
+          game.board === undefined ? undefined : { load: () => boards.readBoard(game.board as string) }
         const settings = (): void => void flow.dispatch('settings')
         // Load newer replaces the sim with the other device's progress and plays on from it.
         const saves =

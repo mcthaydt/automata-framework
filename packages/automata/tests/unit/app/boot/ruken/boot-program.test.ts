@@ -5,13 +5,20 @@ import { Effect, Exit, Fiber, Scope, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { bootProgram, contentHashOf } from '#src/app/boot/boot-program.ts'
-import { Audio, AudioBuses, Haptics, Saves, settingsStore } from '#src/app/boot/effect-tags.ts'
+import {
+  Audio,
+  AudioBuses,
+  Haptics,
+  Leaderboards,
+  Saves,
+  settingsStore,
+  Time,
+} from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { CORE_SETTINGS, type CoreSettings } from '#src/app/core-settings.ts'
 import type { ScreenDef } from '#src/app/flow/screen.ts'
 import { type FakeAudioContext, fakeAudioContext } from '#src/features/audio/testing/fake-audio-context.ts'
 import { createHaptics } from '#src/features/input/haptics/haptics.manager.ts'
-import { Leaderboards } from '#src/features/leaderboards/leaderboards.manager.ts'
 import type { Save } from '#src/features/saves/save.manager.ts'
 import { defineSave } from '#src/features/saves/save.schema.ts'
 import { saveOf } from '#src/features/saves/saves.manager.ts'
@@ -25,7 +32,6 @@ import {
 import { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import type { RenderTarget } from '#src/shared/runtime/render/renderer.ts'
 import type { SettingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
-import { Time } from '#src/shared/runtime/time/time.manager.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'

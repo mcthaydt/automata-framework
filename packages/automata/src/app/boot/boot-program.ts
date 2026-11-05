@@ -7,11 +7,18 @@ import { playEventSounds } from '../../features/audio/event-sounds.js'
 import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
 import { browserHaptics } from '../../features/input/haptics/haptics.manager.js'
 import { submitEventScores } from '../../features/leaderboards/event-scores.js'
-import { Leaderboards, makeLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
+import { createLeaderboards } from '../../features/leaderboards/leaderboards.manager.js'
 import { browserLanguages, createLocale, singleLocale } from '../../features/locale/locale.manager.js'
 import { savesKept } from '../../features/saves/save.manager.js'
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
-import { effectClock, plainAudioHosting, plainReady, plainSaves } from '../../shared/host/effect-bridge.ts'
+import {
+  effectClock,
+  plainAudioHosting,
+  plainObserved,
+  plainReady,
+  plainSaves,
+  toPlainHosting,
+} from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
 import { Hosting, type HostingOptions } from '../../shared/host/hosting.ts'
 import { refuse } from '../../shared/host/plain-errors.ts'
@@ -23,18 +30,18 @@ import {
   LoadStalled,
 } from '../../shared/runtime/boot-error.js'
 import { createLoadMeter, SLOW_MS } from '../../shared/runtime/load-meter.js'
-import { AppLoop, makeAppLoop } from '../../shared/runtime/loop/app-loop.manager.js'
+import { createAppLoop } from '../../shared/runtime/loop/app-loop.manager.js'
 import { liveFrames } from '../../shared/runtime/loop/frames.js'
 import type { LoaderControls, PageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import { createPageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import {
-  makePresentationBus,
+  createPresentationBus,
   PresentationBus,
 } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import { type GameRenderer, Renderer, type RenderTarget } from '../../shared/runtime/render/renderer.js'
 import { liveDeviceStorage } from '../../shared/runtime/settings/device-storage.js'
 import { createSettings } from '../../shared/runtime/settings/settings.manager.js'
-import { makeTime, Time, watchLifecycle } from '../../shared/runtime/time/time.manager.js'
+import { createTime, watchLifecycle } from '../../shared/runtime/time/time.manager.js'
 import { installGlobalErrorHandlers } from '../../shared/ui/browser/global-errors.ts'
 import { lockOverscroll } from '../../shared/ui/browser/lock-overscroll.ts'
 import { reducedMotion } from '../../shared/ui/browser/reduced-motion.ts'
@@ -42,8 +49,20 @@ import { suppressPageGestures } from '../../shared/ui/browser/suppress-page-gest
 import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.svelte.ts'
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
-import { makeVeil } from '../flow/veil.js'
-import { Assets, Audio, AudioBuses, Haptics, Locale, openSaves, Saves, Settings } from './effect-tags.ts'
+import { createVeil } from '../flow/veil.js'
+import {
+  AppLoop,
+  Assets,
+  Audio,
+  AudioBuses,
+  Haptics,
+  Leaderboards,
+  Locale,
+  openSaves,
+  Saves,
+  Settings,
+  Time,
+} from './effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
@@ -265,7 +284,10 @@ export function bootProgram<S>(
     }
 
     // Step 6: renderer factory. The bus exists first so the renderer can publish render facts.
-    const bus = yield* makePresentationBus()
+    const bus = yield* Effect.acquireRelease(
+      Effect.sync(() => createPresentationBus()),
+      (opened) => Effect.sync(() => opened.dispose()),
+    )
     const renderTarget: RenderTarget = {
       host: layers.stage,
       geometry,
@@ -312,7 +334,7 @@ export function bootProgram<S>(
     loaderHandle.close()
     layers.setState('ready')
 
-    const time = makeTime(bus)
+    const time = createTime(bus)
 
     // The locale is negotiated, and <html lang dir> set, before the first screen enters.
     const locale = yield* Effect.promise(() =>
@@ -342,10 +364,7 @@ export function bootProgram<S>(
       const stopSounds = playEventSounds(bus, audio, game.sounds)
       yield* Effect.addFinalizer(() => Effect.sync(stopSounds))
     }
-    const leaderboards = yield* makeLeaderboards.pipe(
-      Effect.provideService(Hosting, hosting),
-      Effect.provideService(PresentationBus, bus),
-    )
+    const leaderboards = createLeaderboards(toPlainHosting(hosting), bus)
     if (game.scores !== undefined) {
       const stopScores = submitEventScores(bus, leaderboards, game.scores)
       yield* Effect.addFinalizer(() => Effect.sync(stopScores))
@@ -360,10 +379,13 @@ export function bootProgram<S>(
     // live for the session. A failure here is the host's, and boots to the failure panel like a refused settings read.
     const saves = yield* openSaves(game.saves, { contentHash: game.content.hash, hosting, bus })
 
-    const veil = yield* makeVeil({
-      overlay: layers.overlay,
-      reducedMotion: () => reducedMotion(win),
-    })
+    const veilClock = effectClock(yield* Effect.runtime<never>())
+    const veil = yield* Effect.acquireRelease(
+      Effect.sync(() =>
+        createVeil({ overlay: layers.overlay, reducedMotion: () => reducedMotion(win), clock: veilClock }),
+      ),
+      (made) => Effect.sync(() => made.dispose()),
+    )
 
     let runtimeContext: Context.Context<RuntimeServices> = Context.empty() as Context.Context<RuntimeServices>
 
@@ -390,15 +412,16 @@ export function bootProgram<S>(
 
     yield* hosting.onMenuRequest(() => flowHandle.flow.openMenu())
 
-    yield* watchLifecycle({
-      hosting,
+    const stopWatching = watchLifecycle({
+      hosting: { lifecycle: plainObserved(hosting.lifecycle) },
       time,
       pauseBehavior: game.hosting.pauseBehavior,
       document: doc,
       openMenu: () => flowHandle.flow.openMenu(),
     })
+    yield* Effect.addFinalizer(() => Effect.sync(stopWatching))
 
-    const appLoop = yield* makeAppLoop({
+    const appLoop = createAppLoop({
       frames,
       renderer,
       time,
@@ -412,6 +435,7 @@ export function bootProgram<S>(
         notifyFailure(game.seams, cause)
       },
     })
+    yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.dispose()))
 
     runtimeContext = buildRuntimeServices({
       hosting,

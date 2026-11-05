@@ -6,30 +6,36 @@ import { openSaves } from '../../../app/boot/effect-tags.ts'
 import type { CompiledContentData } from '../../../app/boot/game-definition.js'
 import { makeFlow } from '../../../app/flow/flow.manager.js'
 import type { RuntimeServices, ScreenDef } from '../../../app/flow/screen.js'
-import { makeVeil } from '../../../app/flow/veil.js'
+import { createVeil } from '../../../app/flow/veil.js'
 import { createAudio } from '../../../features/audio/audio.manager.js'
 import type { AudioContextLike } from '../../../features/audio/audio-graph.js'
 import { fakeAudioContext } from '../../../features/audio/testing/fake-audio-context.js'
 import { createHaptics } from '../../../features/input/haptics/haptics.manager.js'
-import { makeLeaderboards } from '../../../features/leaderboards/leaderboards.manager.js'
+import { createLeaderboards } from '../../../features/leaderboards/leaderboards.manager.js'
 import { createLocale, type LocaleDef, singleLocale } from '../../../features/locale/locale.manager.js'
 import type { SaveDef } from '../../../features/saves/save.schema.js'
-import { effectClock, plainAudioHosting, plainSaves } from '../../../shared/host/effect-bridge.ts'
+import {
+  effectClock,
+  plainAudioHosting,
+  plainObserved,
+  plainSaves,
+  toPlainHosting,
+} from '../../../shared/host/effect-bridge.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
 import { createAssets } from '../../../shared/runtime/assets.manager.js'
 import type { BootError } from '../../../shared/runtime/boot-error.js'
 import { createLoadMeter } from '../../../shared/runtime/load-meter.js'
-import { makeAppLoop } from '../../../shared/runtime/loop/app-loop.manager.js'
+import { createAppLoop } from '../../../shared/runtime/loop/app-loop.manager.js'
 import type { FrameSource } from '../../../shared/runtime/loop/frames.js'
 import { createPageLayers, type PageLayers } from '../../../shared/runtime/page-layers.svelte.js'
 import {
-  makePresentationBus,
+  createPresentationBus,
   PresentationBus,
 } from '../../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { GameRenderer, RendererFactory, RenderTarget } from '../../../shared/runtime/render/renderer.js'
 import type { DeviceStorage } from '../../../shared/runtime/settings/device-storage.js'
 import { createSettings, type SettingsDef } from '../../../shared/runtime/settings/settings.manager.js'
-import { makeTime, watchLifecycle } from '../../../shared/runtime/time/time.manager.js'
+import { createTime, watchLifecycle } from '../../../shared/runtime/time/time.manager.js'
 import { createGeometryOwner } from '../../../shared/ui/geometry/geometry-owner.svelte.ts'
 import { FakeHostHandle, HostingTest, type HostingTestOptions } from '../../host/page/ruken/hosting-test.ts'
 import { fakeFetch } from '../fake-fetch.js'
@@ -204,8 +210,11 @@ export function RuntimeTest(
       yield* hosting.ready
       layers.setState('ready')
 
-      const bus = yield* makePresentationBus()
-      const time = makeTime(bus)
+      const bus = yield* Effect.acquireRelease(
+        Effect.sync(() => createPresentationBus()),
+        (opened) => Effect.sync(() => opened.dispose()),
+      )
+      const time = createTime(bus)
       const locale = yield* Effect.promise(() =>
         createLocale({
           def: options.locale ?? singleLocale(content.game?.source_language ?? 'en'),
@@ -215,10 +224,13 @@ export function RuntimeTest(
           element: doc?.documentElement,
         }),
       )
-      const veil = yield* makeVeil({
-        overlay: layers.overlay,
-        reducedMotion: () => false,
-      })
+      const veilClock = effectClock(yield* Effect.runtime<never>())
+      const veil = yield* Effect.acquireRelease(
+        Effect.sync(() =>
+          createVeil({ overlay: layers.overlay, reducedMotion: () => false, clock: veilClock }),
+        ),
+        (made) => Effect.sync(() => made.dispose()),
+      )
       // A page without a DOM (Node) still gets an Audio: it is never unlocked, so it stays silent.
       const audio = createAudio({
         hosting: plainAudioHosting(hosting),
@@ -248,15 +260,16 @@ export function RuntimeTest(
 
       yield* hosting.onMenuRequest(() => flowHandle.flow.openMenu())
 
-      yield* watchLifecycle({
-        hosting,
+      const stopWatching = watchLifecycle({
+        hosting: { lifecycle: plainObserved(hosting.lifecycle) },
         time,
         pauseBehavior: hostingTestOptions?.hosting?.pauseBehavior ?? 'pause',
         ...(doc ? { document: doc } : {}),
         openMenu: () => flowHandle.flow.openMenu(),
       })
+      yield* Effect.addFinalizer(() => Effect.sync(stopWatching))
 
-      const appLoop = yield* makeAppLoop({
+      const appLoop = createAppLoop({
         frames,
         renderer,
         time,
@@ -268,6 +281,7 @@ export function RuntimeTest(
             cause,
           }),
       })
+      yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.dispose()))
 
       const runtimeServices = buildRuntimeServices({
         audio,
@@ -281,10 +295,7 @@ export function RuntimeTest(
         assets,
         renderer,
         locale,
-        leaderboards: yield* makeLeaderboards.pipe(
-          Effect.provideService(Hosting, hosting),
-          Effect.provideService(PresentationBus, bus),
-        ),
+        leaderboards: createLeaderboards(toPlainHosting(hosting), bus),
         // A device that can neither rumble nor buzz: a test that pulses checks only that nothing throws.
         haptics: createHaptics({ touch: () => false }),
       })

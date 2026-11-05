@@ -132,7 +132,7 @@ export function makeFlow<R = never>(
         if (closed) return
         if (next.to === currentScreenId && !next.force) {
           if (isCovered && queue.length === 0) {
-            yield* options.veil.reveal()
+            yield* Effect.promise(() => options.veil.reveal())
             isCovered = false
           }
           return
@@ -181,7 +181,7 @@ export function makeFlow<R = never>(
 
         // (2) Cover, for `fade`
         if (next.style === 'fade' && !isCovered) {
-          const coveredOk = yield* options.veil.cover()
+          const coveredOk = yield* Effect.promise(() => options.veil.cover())
           if (coveredOk) {
             isCovered = true
           } else {
@@ -255,7 +255,7 @@ export function makeFlow<R = never>(
           currentScreenId = undefined
           queue.length = 0
           if (isCovered) {
-            yield* options.veil.reveal()
+            yield* Effect.promise(() => options.veil.reveal())
             isCovered = false
           }
           const dismiss = options.layers.showError({
@@ -301,7 +301,7 @@ export function makeFlow<R = never>(
 
         // (8) Reveal
         if (isCovered && queue.length === 0) {
-          yield* options.veil.reveal()
+          yield* Effect.promise(() => options.veil.reveal())
           isCovered = false
         }
 
@@ -338,7 +338,7 @@ export function makeFlow<R = never>(
           currentScreenScope = null
         }
         if (isCovered) {
-          yield* options.veil.reveal()
+          yield* Effect.promise(() => options.veil.reveal())
           isCovered = false
         }
         yield* Deferred.succeed(idleDeferred, undefined)

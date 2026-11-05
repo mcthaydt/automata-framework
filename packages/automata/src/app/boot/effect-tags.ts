@@ -4,6 +4,7 @@ import { Context, Effect, type Scope } from 'effect'
 import type { Audio as AudioService } from '../../features/audio/audio.manager.ts'
 import type { AudioBuses as AudioBusesService } from '../../features/audio/audio-buses.ts'
 import type { Haptics as HapticsService } from '../../features/input/haptics/haptics.manager.ts'
+import type { Leaderboards as LeaderboardsService } from '../../features/leaderboards/leaderboards.manager.ts'
 import type { Locale as LocaleService } from '../../features/locale/locale.manager.ts'
 import type { SaveDef } from '../../features/saves/save.schema.ts'
 import { createSaves, type Saves as SavesService } from '../../features/saves/saves.manager.ts'
@@ -11,6 +12,7 @@ import { effectClock, toPlainHosting } from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
 import type { Hosting } from '../../shared/host/hosting.ts'
 import type { Assets as AssetsService } from '../../shared/runtime/assets.manager.ts'
+import type { AppLoop as AppLoopService } from '../../shared/runtime/loop/app-loop.manager.ts'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import {
   type SettingsDef,
@@ -18,6 +20,22 @@ import {
   type SettingsStore,
   storeOf,
 } from '../../shared/runtime/settings/settings.manager.ts'
+import type { Time as TimeService } from '../../shared/runtime/time/time.manager.ts'
+
+/** The time service: whether the sim is paused, and why; each reason pauses until it is resumed. */
+export type Time = TimeService
+export const Time: Context.Tag<TimeService, TimeService> = Context.GenericTag<TimeService>(
+  '@mcthaydt/automata-runtime/Time',
+)
+
+/**
+ * The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each
+ * tick, and the renderer draws every frame.
+ */
+export type AppLoop = AppLoopService
+export const AppLoop: Context.Tag<AppLoopService, AppLoopService> = Context.GenericTag<AppLoopService>(
+  '@mcthaydt/automata-runtime/AppLoop',
+)
 
 /** The asset loader as a runtime service: a screen's files and fonts, loaded under the stall rule. */
 export type Assets = AssetsService
@@ -30,6 +48,11 @@ export type Haptics = HapticsService
 export const Haptics: Context.Tag<HapticsService, HapticsService> = Context.GenericTag<HapticsService>(
   '@mcthaydt/automata-runtime/Haptics',
 )
+
+/** The game's leaderboards for screens: `Hosting.leaderboards` with each answer turned into a named state. */
+export type Leaderboards<Board extends string = string> = LeaderboardsService<Board>
+export const Leaderboards: Context.Tag<LeaderboardsService, LeaderboardsService> =
+  Context.GenericTag<LeaderboardsService>('@mcthaydt/automata-runtime/Leaderboards')
 
 /** The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction. */
 export type Locale = LocaleService

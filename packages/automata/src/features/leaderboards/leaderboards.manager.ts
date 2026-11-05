@@ -3,19 +3,23 @@
 // Ruken checks a score's range on its side; AF only refuses what the SDK cannot send (a score that is not a whole
 // number), as FloorFifty's `scores-hosted` tests expect.
 
-import { Context, Effect } from 'effect'
-import { Hosting, type HostingLeaderboards } from '../../shared/host/hosting.ts'
+import type { HostRefusal } from '../../shared/host/plain-errors.ts'
+import type { Hosting, HostingLeaderboards } from '../../shared/host/plain-hosting.ts'
+import type { Result } from '../../shared/lib/result.ts'
 import {
   type BoardState,
   boardStateFromError,
   boardStateFromSubmit,
 } from '../../shared/runtime/board-state.js'
-import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 
 /** What `readBoard` asks for: Ruken's `get` options (`scope` `top` or `around-me`, `limit`). */
 export type BoardQuery = NonNullable<Parameters<HostingLeaderboards['get']>[1]>
 /** One row of a board, as Ruken gives it; `isMe` marks the player. */
-export type BoardEntry = Effect.Effect.Success<ReturnType<HostingLeaderboards['get']>>['entries'][number]
+export type BoardEntry = Extract<
+  Awaited<ReturnType<HostingLeaderboards['get']>>,
+  { ok: true }
+>['value']['entries'][number]
 
 /** A board read for a screen: its rows, or why there are none. */
 export type BoardView =
@@ -26,60 +30,61 @@ export type BoardView =
 
 /** `Board` is the game's board ids (its ship config's `leaderboards` keys); `string` until a game narrows it. */
 export interface Leaderboards<Board extends string = string> {
-  /** Sends `score` to `board`. Never fails: the result, also published as `leaderboard.submitted`, is the state. */
-  submitScore(board: Board, score: number): Effect.Effect<BoardState>
-  /** Reads `board` from the host. Never fails, and never answers from a copy kept here. */
-  readBoard(board: Board, query?: BoardQuery): Effect.Effect<BoardView>
+  /** Sends `score` to `board`. Never rejects: the result, also published as `leaderboard.submitted`, is the state. */
+  submitScore(board: Board, score: number): Promise<BoardState>
+  /** Reads `board` from the host. Never rejects, and never answers from a copy kept here. */
+  readBoard(board: Board, query?: BoardQuery): Promise<BoardView>
   /** The state of the last submit to `board` (`idle` before one). */
   state(board: Board): BoardState
 }
 
-export const Leaderboards: Context.Tag<Leaderboards, Leaderboards> = Context.GenericTag<Leaderboards>(
-  '@mcthaydt/automata-runtime/Leaderboards',
-)
-
 const IDLE: BoardState = { state: 'idle' }
+
+/** The host's answer once `ready` has answered: a refused ready is the call's refusal. */
+async function afterReady<A>(
+  ready: Promise<Result<void, HostRefusal>>,
+  call: () => Promise<Result<A, HostRefusal>>,
+): Promise<Result<A, HostRefusal>> {
+  const isReady = await ready
+  return isReady.ok ? call() : isReady
+}
 
 /**
  * Builds the leaderboards service over `Hosting`; each submit's state is published as
  * `leaderboard.submitted`.
  */
-export const makeLeaderboards: Effect.Effect<Leaderboards, never, Hosting | PresentationBus> = Effect.gen(
-  function* () {
-    const hosting = yield* Hosting
-    const bus = yield* PresentationBus
-    const states = new Map<string, BoardState>()
-    const settle = (board: string, state: BoardState): BoardState => {
-      states.set(board, state)
-      bus.publish('leaderboard.submitted', { board, state })
-      return state
-    }
+export function createLeaderboards(
+  hosting: Pick<Hosting, 'ready' | 'leaderboards'>,
+  bus: PresentationBus,
+): Leaderboards {
+  const states = new Map<string, BoardState>()
+  const settle = (board: string, state: BoardState): BoardState => {
+    states.set(board, state)
+    bus.publish('leaderboard.submitted', { board, state })
+    return state
+  }
 
-    return {
-      submitScore: (board, score) =>
-        Effect.suspend(() => {
-          // A score is a whole number the game computed from sim state (R-80); anything else never reaches the host.
-          if (!Number.isInteger(score)) return Effect.succeed(settle(board, { state: 'refused' }))
-          settle(board, { state: 'submitting' })
-          return hosting.ready.pipe(
-            Effect.zipRight(hosting.leaderboards.submit(board, score)),
-            Effect.match({ onFailure: boardStateFromError, onSuccess: boardStateFromSubmit }),
-            Effect.map((state) => settle(board, state)),
-          )
-        }),
-      readBoard: (board, query) =>
-        hosting.ready.pipe(
-          Effect.zipRight(hosting.leaderboards.get(board, query)),
-          Effect.match({
-            onFailure: (error): BoardView => {
-              const state = boardStateFromError(error)
-              return state.state === 'offline' ? { state: 'offline' } : { state: 'unavailable' }
-            },
-            onSuccess: ({ entries }): BoardView =>
-              entries.length === 0 ? { state: 'empty' } : { state: 'entries', entries },
-          }),
-        ),
-      state: (board) => states.get(board) ?? IDLE,
-    }
-  },
-)
+  return {
+    async submitScore(board, score) {
+      // A score is a whole number the game computed from sim state (R-80); anything else never reaches the host.
+      if (!Number.isInteger(score)) return settle(board, { state: 'refused' })
+      settle(board, { state: 'submitting' })
+      const answer = await afterReady(hosting.ready, () => hosting.leaderboards.submit(board, score))
+      return settle(
+        board,
+        answer.ok ? boardStateFromSubmit(answer.value) : boardStateFromError(answer.reason),
+      )
+    },
+    async readBoard(board, query) {
+      const answer = await afterReady(hosting.ready, () => hosting.leaderboards.get(board, query))
+      if (!answer.ok) {
+        const state = boardStateFromError(answer.reason)
+        return state.state === 'offline' ? { state: 'offline' } : { state: 'unavailable' }
+      }
+      return answer.value.entries.length === 0
+        ? { state: 'empty' }
+        : { state: 'entries', entries: answer.value.entries }
+    },
+    state: (board) => states.get(board) ?? IDLE,
+  }
+}

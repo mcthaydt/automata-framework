@@ -1,17 +1,14 @@
 import type { Effect, Scope } from 'effect'
 import type { Haptics } from '../../features/input/haptics/haptics.manager.js'
-import type { Leaderboards } from '../../features/leaderboards/leaderboards.manager.js'
 import type { Locale } from '../../features/locale/locale.manager.js'
 import type { Saves } from '../../features/saves/saves.manager.js'
 import type { Hosting } from '../../shared/host/hosting.ts'
 import type { Assets } from '../../shared/runtime/assets.manager.js'
 import type { AssetLoadFailed, LoadStalled } from '../../shared/runtime/boot-error.js'
-import type { AppLoop } from '../../shared/runtime/loop/app-loop.manager.js'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { GameRenderer } from '../../shared/runtime/render/renderer.js'
 import type { Settings } from '../../shared/runtime/settings/settings.manager.js'
-import type { Time } from '../../shared/runtime/time/time.manager.js'
-import type { Audio, AudioBuses } from '../boot/effect-tags.ts'
+import type { AppLoop, Audio, AudioBuses, Leaderboards, Time } from '../boot/effect-tags.ts'
 import type { Flow } from './flow.manager.js'
 
 /** What a screen's `enter` is given: the layer to mount into, and the screen it came from. */

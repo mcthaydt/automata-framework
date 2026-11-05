@@ -1,5 +1,5 @@
 import type { SimEvent } from '@mcthaydt/automata-sim'
-import { Context, Effect, type Scope } from 'effect'
+import { Context } from 'effect'
 import type { ErrorCode } from '../../host/error-code.schema.ts'
 import type { BoardState } from '../board-state.js'
 import type { GlyphFamily } from '../glyph-family.js'
@@ -150,16 +150,6 @@ export function createPresentationBus(
       listeners.clear()
     },
   }
-}
-
-/** TEMPORARY (task 5.4): the bus living as long as an Effect scope, for the parts of boot not yet converted. */
-export function makePresentationBus(
-  log: (error: unknown) => void = console.error,
-): Effect.Effect<PresentationBus, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => createPresentationBus(log)),
-    (bus) => Effect.sync(() => bus.dispose()),
-  )
 }
 
 /**

@@ -3,16 +3,17 @@ import { Context, Effect, Exit, Scope, TestClock, TestContext } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { type Flow, makeFlow } from '#src/app/flow/flow.manager.ts'
 import type { RuntimeServices, ScreenDef } from '#src/app/flow/screen.ts'
-import { makeVeil } from '#src/app/flow/veil.ts'
+import { createVeil } from '#src/app/flow/veil.ts'
+import { effectClock } from '#src/shared/host/effect-bridge.ts'
 import { systemClock } from '#src/shared/lib/clock.ts'
 import { createAssets } from '#src/shared/runtime/assets.manager.ts'
 import { createLoadMeter } from '#src/shared/runtime/load-meter.ts'
 import { createPageLayers, type PageLayers } from '#src/shared/runtime/page-layers.svelte.ts'
 import {
-  makePresentationBus,
+  createPresentationBus,
   type PresentationBus,
 } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { makeTime, type Time } from '#src/shared/runtime/time/time.manager.ts'
+import { createTime, type Time } from '#src/shared/runtime/time/time.manager.ts'
 import { type FakeRoute, fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { createGeometryOwner } from '../../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
 
@@ -45,8 +46,8 @@ describe('Flow and screens (spec §3.6)', () => {
     reducedMotion?: boolean
   }) =>
     Effect.gen(function* () {
-      bus = yield* makePresentationBus()
-      time = makeTime(bus)
+      bus = createPresentationBus()
+      time = createTime(bus)
       const meter = createLoadMeter(systemClock)
       const fetchResult = fakeFetch(options.routes ?? {})
       const assets = createAssets({
@@ -57,10 +58,12 @@ describe('Flow and screens (spec §3.6)', () => {
       })
       const geometry = createGeometryOwner({ window, root })
       yield* Effect.addFinalizer(() => Effect.sync(() => geometry.dispose()))
-      const veil = yield* makeVeil({
+      const veil = createVeil({
         overlay: layers.overlay,
         reducedMotion: () => options.reducedMotion ?? false,
+        clock: effectClock(yield* Effect.runtime<never>()),
       })
+      yield* Effect.addFinalizer(() => Effect.sync(() => veil.dispose()))
 
       const graph = {
         entry: options.entry ?? 'entry',
