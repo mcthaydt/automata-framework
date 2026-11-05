@@ -371,7 +371,7 @@ plan.
    builds and tests on its own and turbo can cache it.
 2. The browser package takes the umbrella's name, `@mcthaydt/automata`; the tools package is
    `@mcthaydt/automata-tools`.
-3. ~~The Tauri target leaves core.~~ Withdrawn on 2026-11-05: Tauri stays (section 5), pending the Owner's answer.
+3. ~~The Tauri target leaves core.~~ Withdrawn: the Owner chose "Keep Tauri" on 2026-11-05 (section 5).
 4. Games move from role files to features (section 3.3), retiring the GL spec for games.
 5. The game id becomes `emberwick`; old saves are not migrated.
 6. Evidence PNGs leave git going forward (history keeps the old ones).
