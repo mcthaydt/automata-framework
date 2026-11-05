@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Files, FilesLive } from './files.ts'
+import { Files, FilesLive } from '#src/files.ts'
 
 const run = <A, E>(effect: Effect.Effect<A, E, Files>): A => Effect.runSync(Effect.provide(effect, FilesLive))
 const temp = (): string => mkdtempSync(join(tmpdir(), 'automata-node-files-'))

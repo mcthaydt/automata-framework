@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { ProcessRunner, ProcessRunnerLive } from './process-runner.ts'
+import { ProcessRunner, ProcessRunnerLive } from '#src/process-runner.ts'
 
 const run = <A, E>(effect: Effect.Effect<A, E, ProcessRunner>): Promise<A> =>
   Effect.runPromise(Effect.provide(effect, ProcessRunnerLive))

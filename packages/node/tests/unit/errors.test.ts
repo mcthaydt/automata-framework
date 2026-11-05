@@ -1,6 +1,6 @@
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { FileError, ProcessError } from './errors.ts'
+import { FileError, ProcessError } from '#src/errors.ts'
 
 // The errors are typed through `TaggedErrorClass` so the package builds with isolatedDeclarations (M2.4 spec §2).
 // These pin what callers rely on: the tag, the fields, the message, `instanceof` and `Effect.catchTag`.
