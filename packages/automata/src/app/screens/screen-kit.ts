@@ -1,7 +1,6 @@
 // What the default screens share: mounting a component for the screen's life, a window
 // listener, the menu's controller and arrow keys, and the system back gesture.
 
-import { Duration, Effect, Runtime, type Scope } from 'effect'
 import { type Component, flushSync, mount, unmount } from 'svelte'
 import {
   createInput,
@@ -10,10 +9,11 @@ import {
   type InputOptions,
 } from '../../features/input/input.manager.ts'
 import type { InputProfile } from '../../features/input/input-profile.schema.ts'
-import { effectClock, plainObserved } from '../../shared/host/effect-bridge.ts'
-import { Hosting } from '../../shared/host/hosting.ts'
+import type { Hosting } from '../../shared/host/plain-hosting.ts'
+import type { Clock } from '../../shared/lib/clock.ts'
+import type { Disposables } from '../../shared/lib/disposables.ts'
 import type { Subscribable } from '../../shared/lib/subscribable.ts'
-import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { interceptBackGesture } from '../../shared/ui/focus/back-gesture.ts'
 import { FocusNavigator } from '../../shared/ui/focus/focus-nav.ts'
 import Toast from '../../shared/ui/status/Toast.svelte'
@@ -24,31 +24,26 @@ export const NO_BINDINGS: InputProfile = { id: 'none', bindings: {} }
 
 /** Mounts a screen component into the screen's layer for as long as the screen is open. */
 export function show<Props extends Record<string, unknown>>(
+  screen: Disposables,
   component: Component<Props>,
   target: HTMLElement,
   props: Props,
-): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => {
-      const instance = mount(component, { target, props })
-      // Rendered now, so the flow's focus step (runtime flow step 7) finds the primary action.
-      flushSync()
-      return instance
-    }),
-    (instance) => Effect.promise(() => unmount(instance)),
-  ).pipe(Effect.asVoid)
+): void {
+  const instance = mount(component, { target, props })
+  // Rendered now, so the flow's focus step (runtime flow step 7) finds the primary action.
+  flushSync()
+  screen.add(() => void unmount(instance))
 }
 
 /** A window listener for as long as the screen is open. */
 export function listen(
+  screen: Disposables,
   target: Window,
   type: 'keydown',
   listener: (event: KeyboardEvent) => void,
-): Effect.Effect<void, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => target.addEventListener(type, listener)),
-    () => Effect.sync(() => target.removeEventListener(type, listener)),
-  )
+): void {
+  target.addEventListener(type, listener)
+  screen.add(() => target.removeEventListener(type, listener))
 }
 
 /**
@@ -58,35 +53,30 @@ export function listen(
  * (Settings', with the game's bindings); without one it makes one with none.
  */
 export function driveMenu(
+  screen: Disposables,
   target: Window,
+  services: { readonly bus: PresentationBus; readonly clock: Clock },
   own?: Input,
-): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
-  return Effect.gen(function* () {
-    const bus = yield* PresentationBus
-    const input = own ?? (yield* ownInput({ target, profile: NO_BINDINGS, bus }))
-    input.setContext('menu')
-    const navigator = new FocusNavigator()
-    const menu = menuInput(input, navigator)
-    yield* Effect.acquireRelease(
-      Effect.sync(() => {
-        const detach = navigator.attach(target)
-        navigator.guard()
-        let frame: number | undefined
-        if (typeof target.requestAnimationFrame === 'function') {
-          const poll = (nowMs: number): void => {
-            menu.poll(nowMs)
-            frame = target.requestAnimationFrame(poll)
-          }
-          frame = target.requestAnimationFrame(poll)
-        }
-        return () => {
-          if (frame !== undefined) target.cancelAnimationFrame(frame)
-          menu.stop()
-          detach()
-        }
-      }),
-      (stop) => Effect.sync(stop),
-    )
+): void {
+  const input =
+    own ?? ownInput(screen, { target, profile: NO_BINDINGS, bus: services.bus, clock: services.clock })
+  input.setContext('menu')
+  const navigator = new FocusNavigator()
+  const menu = menuInput(input, navigator)
+  const detach = navigator.attach(target)
+  navigator.guard()
+  let frame: number | undefined
+  if (typeof target.requestAnimationFrame === 'function') {
+    const poll = (nowMs: number): void => {
+      menu.poll(nowMs)
+      frame = target.requestAnimationFrame(poll)
+    }
+    frame = target.requestAnimationFrame(poll)
+  }
+  screen.add(() => {
+    if (frame !== undefined) target.cancelAnimationFrame(frame)
+    menu.stop()
+    detach()
   })
 }
 
@@ -95,17 +85,13 @@ export function driveMenu(
  * Standalone only: hosted, the host owns system back (M4-D10, Ruken request R-2), so nothing is added to history.
  */
 export function backGesture(
+  screen: Disposables,
   target: Window,
+  hosting: Pick<Hosting, 'kind'>,
   onBack: () => boolean,
-): Effect.Effect<void, never, Scope.Scope | Hosting> {
-  return Effect.gen(function* () {
-    const hosting = yield* Hosting
-    if (hosting.kind !== 'standalone') return
-    yield* Effect.acquireRelease(
-      Effect.sync(() => interceptBackGesture(target, onBack)),
-      (stop) => Effect.sync(stop),
-    )
-  })
+): void {
+  if (hosting.kind !== 'standalone') return
+  screen.add(interceptBackGesture(target, onBack))
 }
 
 export const windowOf = (layer: HTMLElement): Window => layer.ownerDocument.defaultView ?? window
@@ -115,38 +101,41 @@ export const plain = (event: KeyboardEvent): boolean =>
   !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey
 
 /** The host's input mode for the screens' Input: under Ruken only; standalone the page decides. */
-export const hostInput: Effect.Effect<Subscribable<HostInputMode> | undefined, never, Hosting> = Effect.map(
-  Hosting,
-  (hosting) => (hosting.kind === 'standalone' ? undefined : plainObserved(hosting.input)),
-)
+export const hostInput = (
+  hosting: Pick<Hosting, 'kind' | 'input'>,
+): Subscribable<HostInputMode> | undefined => (hosting.kind === 'standalone' ? undefined : hosting.input)
 
-/**
- * A plain Input for as long as the screen's scope is open, timed on the runtime's Effect clock (so a `TestClock`
- * still times a capture out). Goes when the screens are plain.
- */
-export function ownInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope> {
-  return Effect.gen(function* () {
-    const clock = effectClock(yield* Effect.runtime<never>())
-    return yield* Effect.acquireRelease(
-      Effect.sync(() => createInput({ ...options, clock })),
-      (input) => Effect.sync(() => input.dispose()),
-    )
-  })
+/** An Input for as long as the screen is open. */
+export function ownInput(screen: Disposables, options: InputOptions): Input {
+  const input = createInput(options)
+  screen.add(() => input.dispose())
+  return input
 }
 
-/** How long a passing message stays on a screen. */
-const TOAST_FOR = Duration.seconds(4)
+/** How long a passing message stays on a screen, in milliseconds. */
+const TOAST_MS = 4000
 
 /** What a pad without the standard mapping is told. */
 export const PAD_UNSUPPORTED = 'This controller isn’t supported yet'
 
-/** A Toast on the layer for four seconds, taken away with it. */
-const tell = (layer: HTMLElement, text: string, testId: string): Effect.Effect<void> =>
-  Effect.acquireUseRelease(
-    Effect.sync(() => mount(Toast, { target: layer, props: { text, testId } })),
-    () => Effect.sleep(TOAST_FOR),
-    (toast) => Effect.promise(() => unmount(toast)),
-  )
+/** A Toast on the layer for four seconds, taken away with the screen if it is left sooner. */
+function tell(screen: Disposables, clock: Clock, layer: HTMLElement, text: string, testId: string): void {
+  const toast = mount(Toast, { target: layer, props: { text, testId } })
+  let removed = false
+  const remove = (): void => {
+    if (removed) return
+    removed = true
+    void unmount(toast)
+  }
+  const handle = clock.setTimeout(() => {
+    takeBack()
+    remove()
+  }, TOAST_MS)
+  const takeBack = screen.add(() => {
+    clock.clearTimeout(handle)
+    remove()
+  })
+}
 
 /**
  * A pad without the standard mapping cannot drive bindings: while this screen is open, the first time
@@ -154,28 +143,21 @@ const tell = (layer: HTMLElement, text: string, testId: string): Effect.Effect<v
  * by every screen, so each pad is told once a session (by id and index).
  */
 export function noticeUnsupportedPads(
+  screen: Disposables,
+  services: { readonly bus: PresentationBus; readonly clock: Clock },
   layer: HTMLElement,
   told: Set<string>,
   /** The words, read when a pad is told: the screens' copy in the player's language. */
   text: () => string = () => PAD_UNSUPPORTED,
-): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
-  return Effect.gen(function* () {
-    const bus = yield* PresentationBus
-    const runtime = yield* Effect.runtime<never>()
-    const scope = yield* Effect.scope
-    yield* Effect.acquireRelease(
-      Effect.sync(() =>
-        bus.subscribe('input.pad.connected', (pad) => {
-          const key = `${pad.index} ${pad.id}`
-          if (pad.standard || told.has(key)) return
-          told.add(key)
-          // In the screen's scope: leaving the screen takes the toast away with it.
-          Runtime.runFork(runtime)(Effect.forkIn(tell(layer, text(), 'pad-unsupported'), scope))
-        }),
-      ),
-      (stop) => Effect.sync(stop),
-    )
-  })
+): void {
+  screen.add(
+    services.bus.subscribe('input.pad.connected', (pad) => {
+      const key = `${pad.index} ${pad.id}`
+      if (pad.standard || told.has(key)) return
+      told.add(key)
+      tell(screen, services.clock, layer, text(), 'pad-unsupported')
+    }),
+  )
 }
 
 /**
@@ -183,22 +165,15 @@ export function noticeUnsupportedPads(
  * (M5-D6). Nothing is reloaded: the paused screen offers the choice.
  */
 export function noticeChangedElsewhere(
+  screen: Disposables,
+  services: { readonly bus: PresentationBus; readonly clock: Clock },
   layer: HTMLElement,
   key: string,
   text: string,
-): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
-  return Effect.gen(function* () {
-    const bus = yield* PresentationBus
-    const runtime = yield* Effect.runtime<never>()
-    const scope = yield* Effect.scope
-    yield* Effect.acquireRelease(
-      Effect.sync(() =>
-        bus.subscribe('save.changedElsewhere', (fact) => {
-          if (fact.key === key)
-            Runtime.runFork(runtime)(Effect.forkIn(tell(layer, text, 'changed-elsewhere'), scope))
-        }),
-      ),
-      (stop) => Effect.sync(stop),
-    )
-  })
+): void {
+  screen.add(
+    services.bus.subscribe('save.changedElsewhere', (fact) => {
+      if (fact.key === key) tell(screen, services.clock, layer, text, 'changed-elsewhere')
+    }),
+  )
 }

@@ -12,7 +12,7 @@ import { contentHashOf } from '#src/app/boot/boot-program.ts'
 import { AppLoop, Saves } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { describeBootError, runGame } from '#src/app/boot/run-game.ts'
-import { Flow } from '#src/app/flow/flow.manager.ts'
+import type { Flow } from '#src/app/flow/flow.manager.ts'
 import { defineSave } from '#src/features/saves/save.schema.ts'
 import { saveOf } from '#src/features/saves/saves.manager.ts'
 import {
@@ -29,6 +29,7 @@ import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-fra
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'
 import { HostError } from '../../../../../src/shared/host/errors.ts'
 import { Hosting } from '../../../../../src/shared/host/hosting.ts'
+import type { Hosting as PlainHosting } from '../../../../../src/shared/host/plain-hosting.ts'
 import { fakeHosting } from '../../../../../src/testing/host/fake-hosting.ts'
 import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
 import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
@@ -178,7 +179,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           data: fixtureContentData,
           hash: contentHashOf(fixtureContentData),
         },
-        screens: [{ id: 'title', enter: () => Effect.void }],
+        screens: [{ id: 'title', enter: () => {} }],
         renderer: nullRenderer(),
         seams: { frames },
       }
@@ -208,7 +209,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           data: fixtureContentData,
           hash: 'wrong-hash',
         },
-        screens: [{ id: 'title', enter: () => Effect.void }],
+        screens: [{ id: 'title', enter: () => {} }],
         renderer: nullRenderer(),
         seams: { frames },
       }
@@ -241,7 +242,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           data: fixtureContentData,
           hash: contentHashOf(fixtureContentData),
         },
-        screens: [{ id: 'title', enter: () => Effect.void }],
+        screens: [{ id: 'title', enter: () => {} }],
         renderer: nullRenderer(),
         seams: { frames, fetch: mockFetch.fetch },
       }
@@ -276,7 +277,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
             data: fixtureContentData,
             hash: contentHashOf(fixtureContentData),
           },
-          screens: [{ id: 'title', enter: () => Effect.void }],
+          screens: [{ id: 'title', enter: () => {} }],
           renderer: nullRenderer(),
           seams: { frames, fetch: mockFetch.fetch },
         }
@@ -321,7 +322,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
             data: fixtureContentData,
             hash: contentHashOf(fixtureContentData),
           },
-          screens: [{ id: 'title', enter: () => Effect.void }],
+          screens: [{ id: 'title', enter: () => {} }],
           renderer: nullRenderer(),
           seams: {
             frames,
@@ -377,7 +378,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           data: fixtureContentData,
           hash: contentHashOf(fixtureContentData),
         },
-        screens: [{ id: 'title', enter: () => Effect.void }],
+        screens: [{ id: 'title', enter: () => {} }],
         renderer: () => Effect.fail(new RendererUnavailable({ tried: ['webgl2', 'webgpu'] })),
         seams: { frames, fetch: mockFetch.fetch },
       }
@@ -403,7 +404,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
         root,
         hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
         content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
-        screens: [{ id: 'title', enter: () => Effect.void }],
+        screens: [{ id: 'title', enter: () => {} }],
         renderer: () => Effect.fail(new ModelInvalid({ file: 'models/crate.glb', reason: 'skinned' })),
         seams: { frames, fetch: mockFetch.fetch },
       }
@@ -438,7 +439,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           data: fixtureContentData,
           hash: contentHashOf(fixtureContentData),
         },
-        screens: [{ id: 'title', enter: () => Effect.void }],
+        screens: [{ id: 'title', enter: () => {} }],
         renderer: () =>
           Effect.sync(() => {
             throw new Error('Unexpected defect in renderer')
@@ -491,12 +492,11 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       screens: [
         {
           id: 'title',
-          enter: (ctx) =>
-            Effect.sync(() => {
-              const el = document.createElement('div')
-              el.setAttribute('data-testid', 'title-screen')
-              ctx.layer.appendChild(el)
-            }),
+          enter: (ctx) => {
+            const el = document.createElement('div')
+            el.setAttribute('data-testid', 'title-screen')
+            ctx.layer.appendChild(el)
+          },
         },
       ],
       renderer: nullRenderer(),
@@ -584,12 +584,11 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       screens: [
         {
           id: 'title',
-          enter: (ctx) =>
-            Effect.sync(() => {
-              const el = document.createElement('div')
-              el.setAttribute('data-testid', 'title-screen')
-              ctx.layer.appendChild(el)
-            }),
+          enter: (ctx) => {
+            const el = document.createElement('div')
+            el.setAttribute('data-testid', 'title-screen')
+            ctx.layer.appendChild(el)
+          },
         },
       ],
       renderer: nullRenderer(),
@@ -660,7 +659,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       screens: [
         {
           id: 'title',
-          enter: () => Effect.void,
+          enter: () => {},
         },
       ],
       renderer: nullRenderer(),
@@ -718,7 +717,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
         data: fixtureContentData,
         hash: contentHashOf(fixtureContentData),
       },
-      screens: [{ id: 'title', enter: () => Effect.void }],
+      screens: [{ id: 'title', enter: () => {} }],
       renderer: () => Effect.fail(new RendererUnavailable({ tried: ['webgl2', 'webgpu'] })),
       seams: {
         frames,
@@ -763,7 +762,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       root,
       hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
       content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
-      screens: [{ id: 'title', enter: () => Effect.void }],
+      screens: [{ id: 'title', enter: () => {} }],
       renderer: () => Effect.fail(new RendererUnavailable({ tried: ['webgl2'] })),
       seams: {
         frames,
@@ -786,7 +785,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
   it('shutdown order: screen finalizer, then nullRenderer destroy, then Hosting closed (saves.get fails CANCELLED), then root empty and frame cancelled; second shutdown is a no-op', async () => {
     const frames = manualFrames()
     const events: string[] = []
-    let capturedHosting: Hosting | undefined
+    let capturedHosting: PlainHosting | undefined
 
     const mockFetch = fakeFetch({
       '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] },
@@ -806,11 +805,10 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       screens: [
         {
           id: 'title',
-          enter: () =>
-            Effect.gen(function* () {
-              capturedHosting = yield* Hosting
-              yield* Effect.addFinalizer(() => Effect.sync(() => events.push('screen:exit')))
-            }),
+          enter: ({ screen, services }) => {
+            capturedHosting = services.hosting
+            screen.add(() => events.push('screen:exit'))
+          },
         },
       ],
       renderer: (target) =>
@@ -846,15 +844,9 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     expect(events).toEqual(['screen:exit', 'renderer:destroy'])
 
     // 2. Hosting closed: a later saves.get fails CANCELLED
-    const savesRes = await Effect.runPromise(Effect.exit(capturedHosting!.saves.get('foo')))
-    expect(Exit.isFailure(savesRes)).toBe(true)
-    if (Exit.isFailure(savesRes)) {
-      const failure = Cause.failureOption(savesRes.cause)
-      expect(Option.isSome(failure)).toBe(true)
-      if (Option.isSome(failure)) {
-        expect(failure.value.code).toBe('CANCELLED')
-      }
-    }
+    const savesRes = await capturedHosting?.saves.get('foo')
+    expect(savesRes?.ok).toBe(false)
+    if (savesRes?.ok === false) expect(savesRes.reason.code).toBe('CANCELLED')
 
     // 3. root empty
     expect(root.children.length).toBe(0)
@@ -897,29 +889,24 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       screens: [
         {
           id: 'title',
-          enter: ({ runtime }) =>
-            Effect.gen(function* () {
-              flow = yield* Flow
-              // Kept across screens: the title is long gone when the runtime releases it.
-              yield* Scope.addFinalizer(
-                runtime,
-                Effect.sync(() => events.push('runtime:closed')),
-              )
-              yield* Effect.addFinalizer(() => Effect.sync(() => events.push('title:exit')))
-            }),
+          enter: ({ runtime, screen, services }) => {
+            flow = services.flow
+            // Kept across screens: the title is long gone when the runtime releases it.
+            runtime.add(() => events.push('runtime:closed'))
+            screen.add(() => events.push('title:exit'))
+          },
         },
         {
           id: 'play',
-          enter: () =>
-            Effect.gen(function* () {
-              const save = saveOf(yield* Saves, run)
-              yield* Effect.promise(() => save.load(0))
-              save.touch(() => {
-                events.push('save:capture')
-                return { coins: 7 }
-              })
-              yield* Effect.addFinalizer(() => Effect.sync(() => events.push('play:exit')))
-            }),
+          enter: async ({ screen, services }) => {
+            const save = saveOf(services.saves, run)
+            await save.load(0)
+            save.touch(() => {
+              events.push('save:capture')
+              return { coins: 7 }
+            })
+            screen.add(() => events.push('play:exit'))
+          },
         },
       ],
       renderer: (target) =>
@@ -944,7 +931,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     await driveFirstFrame(frames)
     await waitForState('ready')
     expect(flow?.dispatch('play')).toBe(true)
-    await Effect.runPromise(flow!.settled)
+    await flow?.settled()
     await settle(2)
     expect(flow?.current).toBe('play')
     expect(events).toEqual(['title:exit'])
@@ -975,7 +962,7 @@ describe('seams.onFailure', () => {
     root,
     hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
     content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
-    screens: [{ id: 'title', enter: () => Effect.void }],
+    screens: [{ id: 'title', enter: () => {} }],
     renderer: nullRenderer(),
     ...overrides,
   })
@@ -1028,11 +1015,10 @@ describe('seams.onFailure', () => {
         screens: [
           {
             id: 'title',
-            enter: () =>
-              Effect.gen(function* () {
-                const loop = yield* AppLoop
-                loop.run({ sim, commands: () => [] })
-              }),
+            enter: ({ services }) => {
+              const loop = services.appLoop
+              loop.run({ sim, commands: () => [] })
+            },
           },
         ],
         seams: {
@@ -1063,10 +1049,9 @@ describe('seams.onFailure', () => {
         screens: [
           {
             id: 'title',
-            enter: () =>
-              Effect.sync(() => {
-                throw thrown
-              }),
+            enter: () => {
+              throw thrown
+            },
           },
         ],
         seams: {
@@ -1128,7 +1113,7 @@ describe('seams.hosting (DIST.4)', () => {
       root,
       hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
       content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
-      screens: [{ id: 'title', enter: () => Effect.void }],
+      screens: [{ id: 'title', enter: () => {} }],
       renderer: nullRenderer(),
       seams: {
         frames,
@@ -1153,7 +1138,7 @@ describe('seams.hosting (DIST.4)', () => {
       root,
       hosting: { gameId: 'test-game', wants: ['saves'], pauseBehavior: 'pause' },
       content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
-      screens: [{ id: 'title', enter: () => Effect.void }],
+      screens: [{ id: 'title', enter: () => {} }],
       renderer: nullRenderer(),
       settings: {
         key: 'settings',

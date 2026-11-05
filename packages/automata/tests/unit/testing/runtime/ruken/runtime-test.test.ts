@@ -4,12 +4,12 @@ import { settle } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { AppLoop, Assets, Settings, settingsStore, Time } from '#src/app/boot/effect-tags.ts'
+import { AppLoop, Assets, Flow, Settings, settingsStore, Time } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData } from '#src/app/boot/game-definition.ts'
-import { Flow } from '#src/app/flow/flow.manager.ts'
 import type { ScreenDef } from '#src/app/flow/screen.ts'
 import { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { Renderer } from '#src/shared/runtime/render/renderer.ts'
+import { storeOf } from '#src/shared/runtime/settings/settings.manager.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { RuntimeTest } from '#src/testing/runtime/ruken/runtime-test.ts'
 import { Hosting } from '../../../../../src/shared/host/hosting.ts'
@@ -51,54 +51,50 @@ describe('RuntimeTest (§3.1 ./testing)', () => {
         defaults: { volume: 80, mute: false },
       }
 
-      const testScreen: ScreenDef<FakeHostHandle> = {
+      const testScreen: ScreenDef = {
         id: 'test-screen',
-        enter: (_ctx) =>
-          Effect.gen(function* () {
-            // 1. Yield every RuntimeServices tag + FakeHostHandle
-            const hosting = yield* Hosting
-            if (hosting) yieldedTags.push('Hosting')
+        enter: (context) => {
+          // 1. Every runtime service is handed to the screen
+          const hosting = context.services.hosting
+          if (hosting) yieldedTags.push('Hosting')
 
-            const bus = yield* PresentationBus
-            if (bus) yieldedTags.push('PresentationBus')
+          const bus = context.services.bus
+          if (bus) yieldedTags.push('PresentationBus')
 
-            const time = yield* Time
-            if (time) yieldedTags.push('Time')
+          const time = context.services.time
+          if (time) yieldedTags.push('Time')
 
-            const flow = yield* Flow
-            if (flow) yieldedTags.push('Flow')
+          const flow = context.services.flow
+          if (flow) yieldedTags.push('Flow')
 
-            const settings = yield* Settings
-            if (settings) yieldedTags.push('Settings')
+          const settings = context.services.settings
+          if (settings) yieldedTags.push('Settings')
 
-            const appLoop = yield* AppLoop
-            if (appLoop) yieldedTags.push('AppLoop')
+          const appLoop = context.services.appLoop
+          if (appLoop) yieldedTags.push('AppLoop')
 
-            const assets = yield* Assets
-            if (assets) yieldedTags.push('Assets')
+          const assets = context.services.assets
+          if (assets) yieldedTags.push('Assets')
 
-            const renderer = yield* Renderer
-            if (renderer) yieldedTags.push('Renderer')
+          const renderer = context.services.renderer
+          if (renderer) yieldedTags.push('Renderer')
 
-            const fakeHost = yield* FakeHostHandle
-            if (fakeHost) yieldedTags.push('FakeHostHandle')
+          // 2. Settings holds defaults
+          const store = storeOf(context.services.settings, testSettingsDef)
+          settingsValue = store.get()
 
-            // 2. Settings holds defaults
-            const store = yield* settingsStore(testSettingsDef)
-            settingsValue = store.get()
-
-            // 3. AppLoop steps on manualFrames
-            const dummySim = {
-              tick: 0,
-              tickHz: 60,
-              step: () => {
-                steppedSim++
-                return { tick: steppedSim, events: [] }
-              },
-            }
-            appLoop.run({ sim: dummySim as unknown as Sim, commands: () => [] })
-            frames.advance(16.67)
-          }),
+          // 3. AppLoop steps on manualFrames
+          const dummySim = {
+            tick: 0,
+            tickHz: 60,
+            step: () => {
+              steppedSim++
+              return { tick: steppedSim, events: [] }
+            },
+          }
+          appLoop.run({ sim: dummySim as unknown as Sim, commands: () => [] })
+          frames.advance(16.67)
+        },
       }
 
       // Run under RuntimeTest layer
@@ -107,7 +103,7 @@ describe('RuntimeTest (§3.1 ./testing)', () => {
         const fakeHost = yield* FakeHostHandle
 
         // Wait until flow is settled (entry screen entered)
-        yield* flow.settled
+        yield* Effect.promise(() => flow.settled())
 
         // Verify fake host saw hello
         const hellos = fakeHost.sentByGame('hello')
@@ -117,7 +113,6 @@ describe('RuntimeTest (§3.1 ./testing)', () => {
         expect(yieldedTags.sort()).toEqual([
           'AppLoop',
           'Assets',
-          'FakeHostHandle',
           'Flow',
           'Hosting',
           'PresentationBus',

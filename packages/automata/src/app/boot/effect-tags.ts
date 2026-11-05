@@ -11,9 +11,11 @@ import { createSaves, type Saves as SavesService } from '../../features/saves/sa
 import { effectClock, toPlainHosting } from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
 import type { Hosting } from '../../shared/host/hosting.ts'
+import { Hosting as HostingTag } from '../../shared/host/hosting.ts'
 import type { Assets as AssetsService } from '../../shared/runtime/assets.manager.ts'
 import type { AppLoop as AppLoopService } from '../../shared/runtime/loop/app-loop.manager.ts'
-import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
+import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
+import { Renderer } from '../../shared/runtime/render/renderer.ts'
 import {
   type SettingsDef,
   type Settings as SettingsService,
@@ -21,6 +23,8 @@ import {
   storeOf,
 } from '../../shared/runtime/settings/settings.manager.ts'
 import type { Time as TimeService } from '../../shared/runtime/time/time.manager.ts'
+import type { Flow as FlowService } from '../flow/flow.manager.ts'
+import type { RuntimeServices } from '../flow/screen.ts'
 
 /** The time service: whether the sim is paused, and why; each reason pauses until it is resumed. */
 export type Time = TimeService
@@ -127,4 +131,50 @@ export function openSaves(
     yield* Effect.addFinalizer(() => Effect.promise(() => saves.dispose()))
     return { key: saves.key, save: saves.save }
   })
+}
+
+/** The screen flow service: the current screen, `dispatch`, `openMenu` and `settled()`. */
+export type Flow = FlowService
+export const Flow: Context.Tag<FlowService, FlowService> = Context.GenericTag<FlowService>(
+  '@mcthaydt/automata-runtime/Flow',
+)
+
+/** Every runtime tag the tests and games still read from an Effect context. */
+export type RuntimeTags =
+  | Hosting
+  | PresentationBus
+  | TimeService
+  | FlowService
+  | SettingsService
+  | SavesService
+  | AppLoopService
+  | AssetsService
+  | import('../../shared/runtime/render/renderer.ts').GameRenderer
+  | LocaleService
+  | AudioService
+  | AudioBusesService
+  | LeaderboardsService
+  | HapticsService
+
+/**
+ * The plain runtime services as the Effect context the tests and the games' own Effect code still read (`Hosting` is
+ * the Effect one, which the plain one was made from).
+ */
+export function runtimeContext(services: RuntimeServices, hosting: Hosting): Context.Context<RuntimeTags> {
+  return Context.empty().pipe(
+    Context.add(HostingTag, hosting),
+    Context.add(PresentationBus, services.bus),
+    Context.add(Time, services.time),
+    Context.add(Flow, services.flow),
+    Context.add(Settings, services.settings),
+    Context.add(Saves, services.saves),
+    Context.add(AppLoop, services.appLoop),
+    Context.add(Assets, services.assets),
+    Context.add(Renderer, services.renderer),
+    Context.add(Locale, services.locale),
+    Context.add(Audio, services.audio),
+    Context.add(AudioBuses, services.audio),
+    Context.add(Leaderboards, services.leaderboards),
+    Context.add(Haptics, services.haptics),
+  ) as Context.Context<RuntimeTags>
 }

@@ -85,7 +85,7 @@ describe('defineGame defaults (DX spec §3.1)', () => {
       'paused',
       'settings',
     ])
-    const own: ScreenDef[] = [{ id: 'title', enter: () => Effect.void }]
+    const own: ScreenDef[] = [{ id: 'title', enter: () => {} }]
     expect(defineGame({ ...spec, screens: own }).screens).toBe(own)
   })
 
@@ -281,7 +281,7 @@ describe('defineGame with extensions (RT.EXT1, M1 runtime spec §3.2)', () => {
 
 describe('defineGame with draw (PRODUCT spec §7)', () => {
   it('needs the default screens: custom screens do not feed the draw layer (plan D-4)', () => {
-    const own: ScreenDef[] = [{ id: 'title', enter: () => Effect.void }]
+    const own: ScreenDef[] = [{ id: 'title', enter: () => {} }]
     expect(problemsOf({ ...spec, draw: () => {}, screens: own })).toContain('draw: needs the default screens')
   })
 

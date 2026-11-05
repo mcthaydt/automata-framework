@@ -1,10 +1,10 @@
 import type { FlowGraph } from '@mcthaydt/automata-content'
 import type { FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Context, Effect, Layer, Stream } from 'effect'
-import { buildRuntimeServices, contentHashOf } from '../../../app/boot/boot-program.js'
-import { openSaves } from '../../../app/boot/effect-tags.ts'
+import { contentHashOf } from '../../../app/boot/boot-program.js'
+import { openSaves, type RuntimeTags, runtimeContext } from '../../../app/boot/effect-tags.ts'
 import type { CompiledContentData } from '../../../app/boot/game-definition.js'
-import { makeFlow } from '../../../app/flow/flow.manager.js'
+import { createFlow } from '../../../app/flow/flow.manager.js'
 import type { RuntimeServices, ScreenDef } from '../../../app/flow/screen.js'
 import { createVeil } from '../../../app/flow/veil.js'
 import { createAudio } from '../../../features/audio/audio.manager.js'
@@ -22,6 +22,7 @@ import {
   toPlainHosting,
 } from '../../../shared/host/effect-bridge.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
+import { disposables } from '../../../shared/lib/disposables.ts'
 import { createAssets } from '../../../shared/runtime/assets.manager.js'
 import type { BootError } from '../../../shared/runtime/boot-error.js'
 import { createLoadMeter } from '../../../shared/runtime/load-meter.js'
@@ -48,7 +49,7 @@ import { nullRenderer } from '../null-renderer.js'
  */
 export interface RuntimeTestOptions {
   readonly hosting?: HostingTestOptions | Partial<Omit<FakeHostOptions, 'gameOrigin' | 'gameId'>>
-  readonly screens?: readonly ScreenDef<any>[]
+  readonly screens?: readonly ScreenDef[]
   readonly content?: CompiledContentData
   readonly settings?: SettingsDef<unknown>
   /** The game's save, opened as boot opens it: its triggers and exit flush run, and `saveOf(def)` finds it. */
@@ -87,7 +88,7 @@ function memoryDeviceStorage(): DeviceStorage {
  */
 export function RuntimeTest(
   options: RuntimeTestOptions = {},
-): Layer.Layer<RuntimeServices | FakeHostHandle, BootError> {
+): Layer.Layer<RuntimeTags | FakeHostHandle, BootError> {
   return Layer.scopedContext(
     Effect.gen(function* () {
       let hostingTestOptions: HostingTestOptions | undefined
@@ -243,10 +244,11 @@ export function RuntimeTest(
       })
       yield* Effect.addFinalizer(() => Effect.sync(() => audio.dispose()))
 
-      let runtimeContext: Context.Context<RuntimeServices | FakeHostHandle> =
-        Context.empty() as Context.Context<RuntimeServices | FakeHostHandle>
+      let services: RuntimeServices | undefined
+      const keptAcrossScreens = disposables()
+      yield* Effect.addFinalizer(() => Effect.sync(() => keptAcrossScreens.dispose()))
 
-      const flowHandle = yield* makeFlow<FakeHostHandle>({
+      const flowHandle = createFlow({
         graph: content.flow,
         screens,
         layers,
@@ -255,8 +257,14 @@ export function RuntimeTest(
         bus,
         geometry,
         veil,
-        services: () => runtimeContext,
+        runtime: keptAcrossScreens,
+        services: () => {
+          if (services === undefined)
+            throw new Error('A screen entered before the runtime services were built')
+          return services
+        },
       })
+      yield* Effect.addFinalizer(() => Effect.promise(() => flowHandle.dispose()))
 
       yield* hosting.onMenuRequest(() => flowHandle.flow.openMenu())
 
@@ -283,10 +291,12 @@ export function RuntimeTest(
       })
       yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.dispose()))
 
-      const runtimeServices = buildRuntimeServices({
+      const plainHosting = toPlainHosting(hosting)
+      services = {
         audio,
-        hosting,
+        hosting: plainHosting,
         bus,
+        clock: veilClock,
         time,
         flow: flowHandle.flow,
         settings: settingsService,
@@ -295,18 +305,16 @@ export function RuntimeTest(
         assets,
         renderer,
         locale,
-        leaderboards: createLeaderboards(toPlainHosting(hosting), bus),
+        leaderboards: createLeaderboards(plainHosting, bus),
         // A device that can neither rumble nor buzz: a test that pulses checks only that nothing throws.
         haptics: createHaptics({ touch: () => false }),
-      })
-
-      runtimeContext = Context.merge(runtimeServices, Context.make(FakeHostHandle, fakeHostHandle))
-
-      if (screens.length > 0 && content.flow?.entry) {
-        yield* flowHandle.start()
       }
 
-      return runtimeContext
+      if (screens.length > 0 && content.flow?.entry) {
+        yield* Effect.promise(() => flowHandle.start())
+      }
+
+      return Context.merge(runtimeContext(services, hosting), Context.make(FakeHostHandle, fakeHostHandle))
     }),
   )
 }

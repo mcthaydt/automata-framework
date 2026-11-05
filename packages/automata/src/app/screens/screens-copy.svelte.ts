@@ -1,7 +1,7 @@
 // The default screens' words, live: resolved in the player's locale, and again on each change, for as long as
 // the screen that asked is open. A screen reads `copy.current` in its markup, so a change re-renders the words in
 // place: no remount, focus kept.
-import { Effect, type Scope } from 'effect'
+import type { Disposables } from '../../shared/lib/disposables.ts'
 import { resolveScreensCopy, type ScreensCopy, type ScreensCopyInput } from './screens-copy.ts'
 
 /** The parts of the runtime's `Locale` the copy reads. */
@@ -19,20 +19,19 @@ class Holder implements LiveScreensCopy {
   current = $state<ScreensCopy>() as ScreensCopy
 }
 
+/** The screens' words in `locale`, kept up to date until `owner` is disposed. */
 export function screensCopy(
+  owner: Disposables,
   input: ScreensCopyInput | undefined,
   locale: LocaleReader,
-): Effect.Effect<LiveScreensCopy, never, Scope.Scope> {
-  return Effect.acquireRelease(
-    Effect.sync(() => {
-      const holder = new Holder()
-      holder.current = resolveScreensCopy(input, locale.current)
-      // `subscribe` calls at once with the current locale, then on each change.
-      const stop = locale.subscribe((current) => {
-        holder.current = resolveScreensCopy(input, current)
-      })
-      return { holder, stop }
+): LiveScreensCopy {
+  const holder = new Holder()
+  holder.current = resolveScreensCopy(input, locale.current)
+  // `subscribe` calls at once with the current locale, then on each change.
+  owner.add(
+    locale.subscribe((current) => {
+      holder.current = resolveScreensCopy(input, current)
     }),
-    ({ stop }) => Effect.sync(stop),
-  ).pipe(Effect.map(({ holder }) => holder))
+  )
+  return holder
 }

@@ -1,4 +1,3 @@
-import { Effect, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
 import {
   CHANGED_ELSEWHERE_COPY,
@@ -19,6 +18,7 @@ import {
   TOUCH_COPY,
   VIBRATION_COPY,
 } from '#src/app/screens/settings/settings-copy.ts'
+import { disposables } from '#src/shared/lib/disposables.ts'
 
 // DX.2d: the default screens' words are one record with English defaults that a game's `copy.screens` overrides,
 // re-read in the player's language each time it changes (PRODUCT spec §4 items 1 and 2, L-c).
@@ -123,18 +123,16 @@ function fakeLocale(start: string) {
 }
 
 describe('screensCopy', () => {
-  it('reads the copy in the current locale, again on each change, until its scope closes', () => {
+  it('reads the copy in the current locale, again on each change, until its owner is disposed', () => {
     const locale = fakeLocale('en')
     const words = { en: 'Play', fr: 'Jouer', de: 'Spielen' } as Record<string, string>
-    const scope = Effect.runSync(Scope.make())
-    const copy = Effect.runSync(
-      screensCopy((current) => ({ title: { play: words[current] ?? '' } }), locale).pipe(Scope.extend(scope)),
-    )
+    const owner = disposables()
+    const copy = screensCopy(owner, (current) => ({ title: { play: words[current] ?? '' } }), locale)
     expect(copy.current.title.play).toBe('Play')
     locale.change('fr')
     expect(copy.current.title.play).toBe('Jouer')
     expect(locale.listening).toBe(1)
-    Effect.runSync(Scope.close(scope, { _tag: 'Success', value: undefined } as never))
+    owner.dispose()
     expect(locale.listening).toBe(0)
     locale.change('de')
     expect(copy.current.title.play).toBe('Jouer')

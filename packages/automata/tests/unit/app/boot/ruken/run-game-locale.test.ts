@@ -1,15 +1,11 @@
 import { createFakeHost, settle } from '@ruken/sdk-host/testing'
-import { Effect } from 'effect'
 import { flushSync } from 'svelte'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { contentHashOf } from '#src/app/boot/boot-program.ts'
-import { Locale } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { runGame } from '#src/app/boot/run-game.ts'
-import { Flow } from '#src/app/flow/flow.manager.ts'
 import { createT } from '#src/features/locale/paraglide.ts'
 import { loadParaglideFixture, type ParaglideFixture } from '#src/features/locale/testing/load-fixture.ts'
-import { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'
@@ -126,10 +122,9 @@ describe('runGame locale (PRODUCT spec §4)', () => {
         frames,
         welcomeLocale: 'fr',
         locale: fixture.runtime,
-        screen: () =>
-          Effect.sync(() => {
-            seen.push(`${document.documentElement.lang}:${t('play')}`)
-          }),
+        screen: () => {
+          seen.push(`${document.documentElement.lang}:${t('play')}`)
+        },
       }),
     )
     await bootUntilReady(frames)
@@ -145,10 +140,9 @@ describe('runGame locale (PRODUCT spec §4)', () => {
       game({
         frames,
         content: content('fr'),
-        screen: () =>
-          Effect.gen(function* () {
-            current = (yield* Locale).current
-          }),
+        screen: ({ services }) => {
+          current = services.locale.current
+        },
       }),
     )
     await bootUntilReady(frames)
@@ -167,10 +161,9 @@ describe('runGame locale (PRODUCT spec §4)', () => {
         hostSaves: { 'automata.locale': 'fr' },
         languages: ['en-GB'],
         locale: fixture.runtime,
-        screen: () =>
-          Effect.gen(function* () {
-            current = (yield* Locale).current
-          }),
+        screen: ({ services }) => {
+          current = services.locale.current
+        },
       }),
     )
     await bootUntilReady(frames)
@@ -190,26 +183,23 @@ describe('runGame locale (PRODUCT spec §4)', () => {
         frames,
         welcomeLocale: 'fr',
         locale: fixture.runtime,
-        screen: (context) =>
-          Effect.gen(function* () {
-            const locale = yield* Locale
-            const flow = yield* Flow
-            const bus = yield* PresentationBus
-            const element = document.createElement('button')
+        screen: (context) => {
+          const { locale, flow, bus } = context.services
+          const element = document.createElement('button')
+          element.textContent = t('play')
+          context.layer.appendChild(element)
+          element.focus()
+          button = element
+          bus.subscribe('locale.changed', () => {
             element.textContent = t('play')
-            context.layer.appendChild(element)
-            element.focus()
-            button = element
-            bus.subscribe('locale.changed', () => {
-              element.textContent = t('play')
-            })
-            // Listening starts after this screen's own 'screen.entered', so only a later entry is heard.
-            switchTo = (next) => {
-              bus.subscribe('screen.entered', (fact) => entered.push(fact.screen))
-              locale.set(next)
-            }
-            flowCurrent = () => flow.current
-          }),
+          })
+          // Listening starts after this screen's own 'screen.entered', so only a later entry is heard.
+          switchTo = (next) => {
+            bus.subscribe('screen.entered', (fact) => entered.push(fact.screen))
+            locale.set(next)
+          }
+          flowCurrent = () => flow.current
+        },
       }),
     )
     await bootUntilReady(frames)

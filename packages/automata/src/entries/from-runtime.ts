@@ -21,8 +21,8 @@ export {
   CORE_SETTINGS,
   type CoreSettings,
 } from '../app/core-settings.js'
-export { Flow } from '../app/flow/flow.manager.js'
-export type { ScreenDef } from '../app/flow/screen.js'
+export type { Flow } from '../app/flow/flow.manager.js'
+export type { RuntimeServices, ScreenContext, ScreenDef } from '../app/flow/screen.js'
 export {
   AUDIO_BUS_NAMES,
   audioBusGainsSchema,
@@ -46,6 +46,8 @@ export {
   defineSave,
   type SaveDef,
 } from '../features/saves/save.schema.js'
+export type { Clock } from '../shared/lib/clock.ts'
+export { type Disposables, disposables } from '../shared/lib/disposables.ts'
 export {
   ModelInvalid,
   RendererUnavailable,

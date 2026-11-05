@@ -6,13 +6,13 @@ import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { bootProgram, contentHashOf } from '#src/app/boot/boot-program.ts'
 import {
-  Audio,
-  AudioBuses,
-  Haptics,
-  Leaderboards,
+  type Audio,
+  type AudioBuses,
+  type Haptics,
+  type Leaderboards,
   Saves,
   settingsStore,
-  Time,
+  type Time,
 } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { CORE_SETTINGS, type CoreSettings } from '#src/app/core-settings.ts'
@@ -29,9 +29,9 @@ import {
   LoadStalled,
   RendererUnavailable,
 } from '#src/shared/runtime/boot-error.ts'
-import { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import type { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import type { RenderTarget } from '#src/shared/runtime/render/renderer.ts'
-import type { SettingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
+import { type SettingsStore, storeOf } from '#src/shared/runtime/settings/settings.manager.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'
@@ -75,14 +75,13 @@ function makeTestScreens() {
   const screens: ScreenDef[] = [
     {
       id: 'title',
-      enter: (ctx) =>
-        Effect.sync(() => {
-          entered.push('title')
-          const el = document.createElement('div')
-          el.setAttribute('data-testid', 'title-screen')
-          el.textContent = 'Title Screen'
-          ctx.layer.appendChild(el)
-        }),
+      enter: (ctx) => {
+        entered.push('title')
+        const el = document.createElement('div')
+        el.setAttribute('data-testid', 'title-screen')
+        el.textContent = 'Title Screen'
+        ctx.layer.appendChild(el)
+      },
       openMenu: () => {
         menuCalls.push('title')
         return true
@@ -90,13 +89,12 @@ function makeTestScreens() {
     },
     {
       id: 'play',
-      enter: (ctx) =>
-        Effect.sync(() => {
-          entered.push('play')
-          const el = document.createElement('div')
-          el.setAttribute('data-testid', 'play-screen')
-          ctx.layer.appendChild(el)
-        }),
+      enter: (ctx) => {
+        entered.push('play')
+        const el = document.createElement('div')
+        el.setAttribute('data-testid', 'play-screen')
+        ctx.layer.appendChild(el)
+      },
       openMenu: () => {
         menuCalls.push('play')
         return true
@@ -105,13 +103,12 @@ function makeTestScreens() {
     {
       id: 'paused',
       pausesSim: true,
-      enter: (ctx) =>
-        Effect.sync(() => {
-          entered.push('paused')
-          const el = document.createElement('div')
-          el.setAttribute('data-testid', 'paused-screen')
-          ctx.layer.appendChild(el)
-        }),
+      enter: (ctx) => {
+        entered.push('paused')
+        const el = document.createElement('div')
+        el.setAttribute('data-testid', 'paused-screen')
+        ctx.layer.appendChild(el)
+      },
       openMenu: () => {
         menuCalls.push('paused')
         return true
@@ -311,11 +308,10 @@ describe('bootProgram', () => {
       const screens: ScreenDef[] = [
         {
           id: 'title',
-          enter: () =>
-            Effect.gen(function* () {
-              const bus = yield* PresentationBus
-              bus.subscribe('render.filter.dropped', (fact) => heard.push(fact))
-            }),
+          enter: ({ services }) => {
+            const bus = services.bus
+            bus.subscribe('render.filter.dropped', (fact) => heard.push(fact))
+          },
         },
       ]
       const inner = nullRenderer()
@@ -977,12 +973,11 @@ describe('bootProgram', () => {
       const { screens } = makeTestScreens()
       const title: ScreenDef = {
         id: 'title',
-        enter: () =>
-          Effect.gen(function* () {
-            seen.audio = yield* Audio
-            seen.buses = yield* AudioBuses
-            seen.bus = yield* PresentationBus
-          }),
+        enter: ({ services }) => {
+          seen.audio = services.audio
+          seen.buses = services.audio
+          seen.bus = services.bus
+        },
       }
       const game: GameDefinition = {
         root,
@@ -1041,10 +1036,9 @@ describe('bootProgram', () => {
       const { screens } = makeTestScreens()
       const title: ScreenDef = {
         id: 'title',
-        enter: () =>
-          Effect.gen(function* () {
-            seen.haptics = yield* Haptics
-          }),
+        enter: ({ services }) => {
+          seen.haptics = services.haptics
+        },
       }
       const game: GameDefinition = {
         root,
@@ -1081,11 +1075,10 @@ describe('bootProgram', () => {
       const { screens } = makeTestScreens()
       const title: ScreenDef = {
         id: 'title',
-        enter: () =>
-          Effect.gen(function* () {
-            seen.boards = yield* Leaderboards
-            seen.bus = yield* PresentationBus
-          }),
+        enter: ({ services }) => {
+          seen.boards = services.leaderboards
+          seen.bus = services.bus
+        },
       }
       const game: GameDefinition = {
         root,
@@ -1156,10 +1149,9 @@ describe('bootProgram', () => {
       const { screens } = makeTestScreens()
       const title: ScreenDef = {
         id: 'title',
-        enter: () =>
-          Effect.gen(function* () {
-            seen.time = yield* Time
-          }),
+        enter: ({ services }) => {
+          seen.time = services.time
+        },
       }
       const game: GameDefinition = {
         root,
@@ -1214,10 +1206,9 @@ describe('bootProgram, settings kept on the device (M5.2, M5-D4)', () => {
       const { screens } = makeTestScreens()
       const title: ScreenDef = {
         id: 'title',
-        enter: () =>
-          Effect.gen(function* () {
-            store = yield* settingsStore(CORE_SETTINGS)
-          }),
+        enter: ({ services }) => {
+          store = storeOf(services.settings, CORE_SETTINGS)
+        },
       }
       const game: GameDefinition<CoreSettings> = {
         root,
@@ -1284,10 +1275,9 @@ describe('bootProgram, the game save (M5.2)', () => {
       const { screens } = makeTestScreens()
       const title: ScreenDef = {
         id: 'title',
-        enter: () =>
-          Effect.gen(function* () {
-            save = saveOf(yield* Saves, run)
-          }),
+        enter: ({ services }) => {
+          save = saveOf(services.saves, run)
+        },
       }
       const game: GameDefinition = {
         root,

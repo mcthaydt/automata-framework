@@ -4,6 +4,7 @@
 /** What a timeout is called back with: opaque, only ever handed back to `clearTimeout`. */
 export type TimeoutHandle = unknown
 
+/** Time as the runtime reads it: `now()` and timeouts. Tests hand over `fakeClock()` and move it by hand. */
 export interface Clock {
   /** Milliseconds; only differences between two calls mean anything. */
   now(): number

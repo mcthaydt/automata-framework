@@ -1,12 +1,11 @@
 // What the default paused screen does with a game's save: the host's word
 // on the progress, and the choice offered once another device has changed the slot being played.
 
-import { Effect, type Scope, Stream } from 'effect'
 import type { Save } from '../../../features/saves/save.manager.ts'
-import { saveOf } from '../../../features/saves/saves.manager.ts'
-import { Hosting } from '../../../shared/host/hosting.ts'
+import { type Saves, saveOf } from '../../../features/saves/saves.manager.ts'
+import type { Hosting } from '../../../shared/host/plain-hosting.ts'
+import type { Disposables } from '../../../shared/lib/disposables.ts'
 import type { SaveStatusState } from '../../../shared/ui/status/save-status.ts'
-import { Saves } from '../../boot/effect-tags.ts'
 import type { GameSaves } from '../../define-game.ts'
 import { orDispose, orThrow, type SavesStart } from './saves-start.ts'
 import { createPausedSavesView, type PausedSavesView } from './saves-view.svelte.ts'
@@ -36,51 +35,53 @@ export const statusOf = (
  * the sim with the newer progress and resumes into it.
  */
 export function pausedSaves(
+  screen: Disposables,
+  services: {
+    readonly saves: Saves
+    readonly hosting: Pick<Hosting, 'kind' | 'granted' | 'savesStatus'>
+  },
   saves: GameSaves<unknown>,
   start: SavesStart,
-): Effect.Effect<PausedSaves, never, Saves | Hosting | Scope.Scope> {
-  return Effect.gen(function* () {
-    const save: Save<unknown> = saveOf(yield* Saves, saves.def)
-    const hosting = yield* Hosting
-    const view = createPausedSavesView()
+): PausedSaves {
+  const save: Save<unknown> = saveOf(services.saves, saves.def)
+  const hosting = services.hosting
+  const view = createPausedSavesView()
 
-    view.status = statusOf(hosting, yield* hosting.savesStatus.get)
-    yield* Effect.forkScoped(
-      Stream.runForEach(hosting.savesStatus.changes, (status) =>
-        Effect.sync(() => {
-          view.status = statusOf(hosting, status)
-        }),
-      ),
-    )
-    const stopChanged = save.changedElsewhere.subscribe((changed) => {
+  // `subscribe` gives the current status first, then each change.
+  screen.add(
+    hosting.savesStatus.subscribe((status) => {
+      view.status = statusOf(hosting, status)
+    }),
+  )
+  screen.add(
+    save.changedElsewhere.subscribe((changed) => {
       view.changedElsewhere = changed
-    })
-    yield* Effect.addFinalizer(() => Effect.sync(stopChanged))
+    }),
+  )
 
-    let busy = false
-    return {
-      view,
-      onLoadNewer: () => {
-        if (busy) return
-        busy = true
-        view.loadFailed = false
-        void (async () => {
-          const loaded = await orThrow(save.loadNewer())
-          const sim = await start.fresh()
-          await orDispose(sim, () => saves.apply(sim, loaded.data))
-          start.play(sim)
-        })()
-          .catch(() => {
-            view.loadFailed = true
-          })
-          .finally(() => {
-            busy = false
-          })
-      },
-      onKeepPlaying: () => {
-        view.loadFailed = false
-        save.keepPlaying()
-      },
-    }
-  })
+  let busy = false
+  return {
+    view,
+    onLoadNewer: () => {
+      if (busy) return
+      busy = true
+      view.loadFailed = false
+      void (async () => {
+        const loaded = await orThrow(save.loadNewer())
+        const sim = await start.fresh()
+        await orDispose(sim, () => saves.apply(sim, loaded.data))
+        start.play(sim)
+      })()
+        .catch(() => {
+          view.loadFailed = true
+        })
+        .finally(() => {
+          busy = false
+        })
+    },
+    onKeepPlaying: () => {
+      view.loadFailed = false
+      save.keepPlaying()
+    },
+  }
 }

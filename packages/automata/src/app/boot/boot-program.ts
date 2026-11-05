@@ -1,7 +1,7 @@
 // The build's publish target picks the adapter: Ruken by default, the web adapter under `automata-web`.
 import { makeHosting } from '@mcthaydt/automata/target'
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
-import { Context, Duration, Effect, ExecutionStrategy, Scope, Stream } from 'effect'
+import { Duration, Effect, type Scope, Stream } from 'effect'
 import { createAudio } from '../../features/audio/audio.manager.js'
 import { playEventSounds } from '../../features/audio/event-sounds.js'
 import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
@@ -20,8 +20,9 @@ import {
   toPlainHosting,
 } from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
-import { Hosting, type HostingOptions } from '../../shared/host/hosting.ts'
+import type { Hosting, HostingOptions } from '../../shared/host/hosting.ts'
 import { refuse } from '../../shared/host/plain-errors.ts'
+import { disposables } from '../../shared/lib/disposables.ts'
 import { createAssets } from '../../shared/runtime/assets.manager.js'
 import {
   BootDefect,
@@ -34,11 +35,8 @@ import { createAppLoop } from '../../shared/runtime/loop/app-loop.manager.js'
 import { liveFrames } from '../../shared/runtime/loop/frames.js'
 import type { LoaderControls, PageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import { createPageLayers } from '../../shared/runtime/page-layers.svelte.js'
-import {
-  createPresentationBus,
-  PresentationBus,
-} from '../../shared/runtime/presentation/presentation-bus.manager.js'
-import { type GameRenderer, Renderer, type RenderTarget } from '../../shared/runtime/render/renderer.js'
+import { createPresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
+import type { RenderTarget } from '../../shared/runtime/render/renderer.js'
 import { liveDeviceStorage } from '../../shared/runtime/settings/device-storage.js'
 import { createSettings } from '../../shared/runtime/settings/settings.manager.js'
 import { createTime, watchLifecycle } from '../../shared/runtime/time/time.manager.js'
@@ -47,22 +45,10 @@ import { lockOverscroll } from '../../shared/ui/browser/lock-overscroll.ts'
 import { reducedMotion } from '../../shared/ui/browser/reduced-motion.ts'
 import { suppressPageGestures } from '../../shared/ui/browser/suppress-page-gestures.ts'
 import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.svelte.ts'
-import { Flow, makeFlow } from '../flow/flow.manager.js'
+import { createFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { createVeil } from '../flow/veil.js'
-import {
-  AppLoop,
-  Assets,
-  Audio,
-  AudioBuses,
-  Haptics,
-  Leaderboards,
-  Locale,
-  openSaves,
-  Saves,
-  Settings,
-  Time,
-} from './effect-tags.ts'
+import { openSaves } from './effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
@@ -105,43 +91,6 @@ export interface BootProgramOptions {
   readonly onHosting?: (hosting: Hosting) => void
   readonly onLayers?: (layers: PageLayers) => void
   readonly onLoader?: (loader: LoaderControls) => void
-}
-
-/**
- * Builds the Context<RuntimeServices> containing all 14 runtime tags (`Audio` and
- * `AudioBuses` are one service). Its own function so RuntimeTest reuses the exact service wiring.
- */
-export function buildRuntimeServices(services: {
-  readonly hosting: Hosting
-  readonly bus: PresentationBus
-  readonly time: Time
-  readonly flow: Flow
-  readonly settings: Settings
-  readonly saves: Saves
-  readonly appLoop: AppLoop
-  readonly assets: Assets
-  readonly renderer: GameRenderer
-  readonly locale: Locale
-  readonly audio: Audio & AudioBuses
-  readonly leaderboards: Leaderboards
-  readonly haptics: Haptics
-}): Context.Context<RuntimeServices> {
-  return Context.empty().pipe(
-    Context.add(Hosting, services.hosting),
-    Context.add(PresentationBus, services.bus),
-    Context.add(Time, services.time),
-    Context.add(Flow, services.flow),
-    Context.add(Settings, services.settings),
-    Context.add(Saves, services.saves),
-    Context.add(AppLoop, services.appLoop),
-    Context.add(Assets, services.assets),
-    Context.add(Renderer, services.renderer),
-    Context.add(Locale, services.locale),
-    Context.add(Audio, services.audio),
-    Context.add(AudioBuses, services.audio),
-    Context.add(Leaderboards, services.leaderboards),
-    Context.add(Haptics, services.haptics),
-  ) as Context.Context<RuntimeServices>
 }
 
 /**
@@ -364,7 +313,8 @@ export function bootProgram<S>(
       const stopSounds = playEventSounds(bus, audio, game.sounds)
       yield* Effect.addFinalizer(() => Effect.sync(stopSounds))
     }
-    const leaderboards = createLeaderboards(toPlainHosting(hosting), bus)
+    const plainHosting = toPlainHosting(hosting)
+    const leaderboards = createLeaderboards(plainHosting, bus)
     if (game.scores !== undefined) {
       const stopScores = submitEventScores(bus, leaderboards, game.scores)
       yield* Effect.addFinalizer(() => Effect.sync(stopScores))
@@ -373,23 +323,26 @@ export function bootProgram<S>(
     // What a game keeps across screens, handed to each as `ScreenContext.runtime`. Forked here, before the
     // save, because finalizers run last-in, first-out: at shutdown it closes after the current screen and the save's
     // last flush (which may still read what it holds), and before the renderer is destroyed and Hosting closes.
-    const keptAcrossScreens = yield* Scope.fork(yield* Scope.Scope, ExecutionStrategy.sequential)
+    const keptAcrossScreens = disposables()
+    yield* Effect.addFinalizer(() => Effect.sync(() => keptAcrossScreens.dispose()))
 
     // The game's save: its slots read from the host now, its triggers and its exit flush
     // live for the session. A failure here is the host's, and boots to the failure panel like a refused settings read.
     const saves = yield* openSaves(game.saves, { contentHash: game.content.hash, hosting, bus })
 
-    const veilClock = effectClock(yield* Effect.runtime<never>())
+    // The runtime's Effect clock until boot is plain, so a `TestClock` still moves the fades, toasts and countdowns.
+    const clock = effectClock(yield* Effect.runtime<never>())
     const veil = yield* Effect.acquireRelease(
       Effect.sync(() =>
-        createVeil({ overlay: layers.overlay, reducedMotion: () => reducedMotion(win), clock: veilClock }),
+        createVeil({ overlay: layers.overlay, reducedMotion: () => reducedMotion(win), clock }),
       ),
       (made) => Effect.sync(() => made.dispose()),
     )
 
-    let runtimeContext: Context.Context<RuntimeServices> = Context.empty() as Context.Context<RuntimeServices>
+    // Built once every service exists (the flow is one of them); a screen reads them when it enters.
+    let services: RuntimeServices | undefined
 
-    const flowHandle = yield* makeFlow({
+    const flowHandle = createFlow({
       graph: game.content.data.flow,
       screens: game.screens,
       layers,
@@ -399,7 +352,10 @@ export function bootProgram<S>(
       geometry,
       veil,
       ...(game.copy !== undefined ? { copy: game.copy } : {}),
-      services: () => runtimeContext,
+      services: () => {
+        if (services === undefined) throw new Error('A screen entered before the runtime services were built')
+        return services
+      },
       runtime: keptAcrossScreens,
       onFailure: (cause) => notifyFailure(game.seams, cause),
       ...(import.meta.env?.DEV
@@ -409,6 +365,8 @@ export function bootProgram<S>(
           }
         : {}),
     })
+    // Leaving the current screen comes before the save's last flush and `keptAcrossScreens` (finalizers run last first).
+    yield* Effect.addFinalizer(() => Effect.promise(() => flowHandle.dispose()))
 
     yield* hosting.onMenuRequest(() => flowHandle.flow.openMenu())
 
@@ -437,9 +395,10 @@ export function bootProgram<S>(
     })
     yield* Effect.addFinalizer(() => Effect.sync(() => appLoop.dispose()))
 
-    runtimeContext = buildRuntimeServices({
-      hosting,
+    services = {
+      hosting: plainHosting,
       bus,
+      clock,
       time,
       flow: flowHandle.flow,
       settings: settingsService,
@@ -451,9 +410,9 @@ export function bootProgram<S>(
       audio,
       leaderboards,
       haptics: game.seams?.haptics ?? browserHaptics(win),
-    })
+    }
 
-    yield* flowHandle.start()
+    yield* Effect.promise(() => flowHandle.start())
 
     // The landscape gate (standalone) and the rotate hint, over every screen for the session.
     const display = createDisplayPolicy({
