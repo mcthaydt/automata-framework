@@ -10,5 +10,5 @@ import seatLibrary from './library/seats.json';
  */
 export const GAITS = gaitLibrary as Record<string, Gait>;
 export const POSES = poseLibrary as unknown as Record<string, Stand>;
-/** Seated stands a scene picks by name (library/seats.json; motion.ts seated). */
+/** Seated stands a fork's code or an actor's pose picks by name (library/seats.json; motion.ts seated). */
 export const SEATS = seatLibrary as unknown as Record<string, Seat>;

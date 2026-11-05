@@ -598,7 +598,7 @@ function handTurn(space: M, hold: Hold): number[] {
   return o;
 }
 /** A hold: rewrites only its side's upper arm, forearm and hand the hand in its joint's space (the chest's). Exported so
- * a scene can lay a hold over any evaluated pose, a seat's included (`seated` places its hands this way). */
+ * a fork's code can lay a hold over any evaluated pose, a seat's included (`seated` places its hands this way). */
 export function applyHold(s: Skeleton, evaluated: Evaluated, hold: Hold): Evaluated {
   const pose = clonePose(evaluated.pose);
   const space = evaluated.world[hold.in ?? J.chest];
@@ -628,7 +628,7 @@ export interface Seat {
 }
 export type SeatHand = 'lap' | 'hang' | { to: V3; aim?: [fingers: V3, palm: V3] };
 /** The thigh's flesh under the hip joint on a seat (m at k 1): the hip rides this far over the seat. */
-const SIT = 0.07;
+export const SIT = 0.07;
 /**
  * A seated pose at time t (s): breath, and the typing hands' bob. `lookUp` the sprite cheat's tip toward the camera (as
  * MotionState's), `view` the camera's bearing on the figure. The hems ride the ankles (placeHems).

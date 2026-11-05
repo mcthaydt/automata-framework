@@ -155,7 +155,7 @@ export interface FaceStamp {
    * The mood's marks (figure.ts face tags): 'angry' the brows' inner ends down and the mouth's corners turned down;
    * 'smile' its corners up; 'dead' the lids heavy over flat eyes (the whites under the lid), the brows level; 'surprised'
    * the brows up; 'mouthOpen' (talking, a shout) the lips parted on the mouth's dark; 'lookL' / 'lookR' the irises to
-   * the viewer's left or right, 'beside' a little off the camera.
+   * the viewer's left or right, 'beside' the same as 'lookR' at this size (the eye has one texel to move).
    */
   mood?: Set<string>;
 }
@@ -275,8 +275,8 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
       const x = x0 + i, inIris = i >= at && i < at + iw;
       if (f.blink) { mark(x, I, f.lash); continue; }
       if (n < 3 || x !== xin || n >= 4) mark(x, I - 1, f.lash);
-      // Dead eyes: the lid drawn down over the whites, the iris alone staring out under it.
-      if (dead && !inIris) { lid(x, I); continue; }
+      // Dead eyes: the lid drawn down over the whites, the iris alone staring out under it (its colour, not the pupil row of a live eye).
+      if (dead) { if (inIris) mark(x, I, f.iris); else lid(x, I); continue; }
       mark(x, I, inIris ? f.lash : x < x0 + at ? f.white : whiteFar);
       if (inIris) mark(x, I + 1, f.iris);
     }

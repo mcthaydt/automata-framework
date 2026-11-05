@@ -3,7 +3,7 @@ import { BASE } from '../../../base/base';
 import { measure } from '../../../src/features/body/genes';
 import { J, skeleton } from '../../../src/features/body/rig';
 import { apply, invertRigid, position } from '../../../src/lib/math';
-import { seated } from '../../../src/features/motion/motion';
+import { SIT, seated } from '../../../src/features/motion/motion';
 import { GAITS, SEATS } from '../../../src/features/motion/presets';
 
 /**
@@ -13,8 +13,6 @@ import { GAITS, SEATS } from '../../../src/features/motion/presets';
  * the same every time it is asked for. (The hips are the thigh joints: the pelvis joint itself sits above them.)
  */
 const def = BASE[0].def, m = measure(def.sliders), s = skeleton(m.genes), gait = GAITS[def.gait], k = s.genes.height / 1.62;
-/** The thigh's flesh under the hip joint on a seat (m at k 1), as motion.ts SIT. */
-const SIT = 0.07;
 /** A joint's place in the root's space. */
 const inRoot = (world: ReturnType<typeof seated>['world'], joint: number) => apply(invertRigid(world[J.root]), position(world[joint]));
 
@@ -27,7 +25,7 @@ describe('every seat', () => {
     }
     expect(seated(s, gait, seat, 0.3).pose).toEqual(seated(s, gait, seat, 0.3).pose);
   });
-  it('the library has the seats a scene picks by name', () => {
+  it('the library has the seats the library names', () => {
     expect(Object.keys(SEATS)).toEqual(['upright', 'slump', 'typing', 'leanIn', 'mouse', 'reachClick', 'toMouth', 'triumph']);
   });
 });

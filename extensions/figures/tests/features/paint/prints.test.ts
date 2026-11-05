@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { J } from '../../../src/features/body/rig';
+import { GROUP } from '../../../src/features/body/parts';
 import type { Decal } from '../../../src/features/body/parts';
-import { registerGarment, type Garment } from '../../../src/features/outfit/garments';
+import { box, registerGarment, type Garment } from '../../../src/features/outfit/garments';
 import { dressed, differs, turned } from '../draw';
 
 /**
@@ -30,3 +31,16 @@ describe('a print', () => {
     expect(differs(wear({ printed: 'inks' } as unknown as Garment), wear({ printed: 'plain' } as unknown as Garment))).toBe(true);
   });
 });
+
+/** A panel over the hips, in a group of its own (`own`) or the torso's: a skirt and a cape are their own surfaces, so
+ * the painter draws their edges against the body's cloth where the torso's group would draw none. */
+for (const g of ['skirt', 'cape'] as const) {
+  registerGarment(`panel_${g}`, { build: (c, item: Record<string, string>) => ({ parts: [box(J.pelvis, 'flatGrey',
+    item[`panel_${g}`] === 'own' ? GROUP[g] : GROUP.torso,
+    { at: [0, -0.15 * c.m.k, 0.02 * c.m.k], r: [0.17 * c.m.k, 0.2 * c.m.k, 0.13 * c.m.k] })] }) });
+  it(`GROUP.${g} draws apart from the torso's cloth`, () => {
+    const w = (v: string) => wear({ [`panel_${g}`]: v } as unknown as Garment);
+    expect(differs(w('own'), w('torso'))).toBe(true);
+    expect(differs(w('own'), w('own'))).toBe(false);
+  });
+}
