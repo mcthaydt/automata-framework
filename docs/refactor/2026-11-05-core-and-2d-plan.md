@@ -730,3 +730,36 @@ the features it lacks are journeyed on the one-file examples that show them:
   1.0. Ran: `pnpm check`, `pnpm api-report` (2 breaks, 0 undeclared), `check-changesets`, `docs:stack`. Not run
   locally: `test:parity:core` (WebKit and Firefox are not installable here), left to the PR's CI. Deviation (12): the
   `stack-cards.ts` note about the planned `net` extension said "a `NetworkPort`"; it now says "a network seam".
+- 2026-11-05 (stage 4, phase 3, tasks 3.1 and 3.2, branch `claude/project-thread-twtegf`, stacked on #390): built the
+  Vitest preset (`tooling/vitest-preset`, `defineTests(options)`) and the move codemod (`tooling/codemods`, run with
+  `node tooling/codemods/src/cli.ts <package> --environment node|jsdom [--dry-run]`; the dry run prints move counts,
+  what stays and which files find files at run time). **Step 0 (what the old configs differed by):** environment (node
+  or jsdom), setup files, `globalSetup` (runtime's Paraglide fixture), `css`, the Svelte plugin and the `browser`
+  resolve condition, Testing Library's Svelte plugin (ui, game), the `automata-ruken` condition (runtime, game), a
+  content plugin (Emberwick), `optimizeDeps` lists, `testTimeout` (testing's goldens), `server.deps.inline` (the
+  Paraglide fixture), golden `commands`, a bench project, and parity/golden files that run in Node as well as in three
+  browsers (sim, content, testing, Emberwick). Deviations: (13) the preset has the options `plugins`, `conditions`,
+  `globalSetup`, `testTimeout`, `inline` and `alsoInNode` on top of the spec's list, because those are real
+  differences; `alsoInNode` keeps the rule that a golden is checked in four engines. (14) One alias, `"#src/*":
+  "./src/*"`, and every rewritten specifier names its file in full (`#src/a/b.ts`): several alias patterns that differ
+  by suffix were ambiguous to Vite (`#src/a/fonts` went to the `.ts` pattern), and the base tsconfig now sets
+  `allowImportingTsExtensions`. (15) `tsconfig.json` includes `tests`, not `vitest.config.ts`: a config's default export
+  fails `isolatedDeclarations`. (16) The script and turbo task `test:parity` became `test:browser` everywhere in one
+  commit, 3D and editor packages included (only the script name changed there), with the root scripts, workflows, README
+  and ship's workflow tests. (17) cli's Chromium-driving `csp-probe` goes to `tests/slow/` (new kind, run by
+  `test:slow`); runtime's `bench-chromium` project is gone (bench is Node-only now); Emberwick's `renderer` project had
+  no test left and is gone. (18) The codemod's clash rule: a qualifier is kept only for files named in
+  `keepQualifier` (`keys.analog`, `keys.devices`, `create-game.integration`, `fake-hosting.contract`). (19) Testing's
+  golden files moved to `tests/fixtures/sim/__goldens__` (the golden path is relative to the test file). (20) Per-package
+  commits were made with `LEFTHOOK=0`: the pre-commit hook runs every affected package's unit tests (4 minutes), so
+  `pnpm check` is the gate. (21) History note: codemod commits `93f98577` and `eaf9d458` swept in a first attempt at
+  moving content, host, node, ship and cli (staged by mistake); the per-package commits after them correct it and the net
+  tree is right. **Unit test counts, before and after (equal):** sim 267, content 340, host 192, ui 648, runtime 570,
+  render-pixi 121, game 229, automata 22, testing 168, node 12, ship 463, cli 188 (+4 slow), Emberwick 108. Chromium
+  browser projects (first run, no WebKit or Firefox here): ui 1671, game 403, runtime 2, render-pixi 8, testing 39,
+  content 3; Emberwick's journeys, phone Chromium: 8 passed.
+  **Resume at:** the tooling packages `api-index`, `check-boundaries`, `check-style`, `repo-hygiene` (their tests find
+  `src/cli.ts`, `turbo.json` and `kit-fixtures` by path; the codemod output is in git history of this branch, redo with
+  the CLI), then `agent-skills`, `examples-runner` (its `playground/e2e` stays until the playground moves; `e2e/` moves),
+  `frame-budget` (`stress/` is an extra root), the examples, and step 4 (`check-style` exempts by folder, `biome.json`
+  fixture paths, then `pnpm check`, the PR, and the CI run).
