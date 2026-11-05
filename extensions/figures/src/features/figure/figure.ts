@@ -235,7 +235,7 @@ export class Figure {
     const lead = Math.max(-gait.headLead, Math.min(gait.headLead, Math.round(wrapAngle(input.facing - shownYaw) / HEAD_STEP) * HEAD_STEP + toCamera));
     const turning = Math.abs(wrapAngle(input.facing - shownYaw)) > 1e-3;
     return {
-      t: steppedT, moving: input.moving, lookUp: this.member.faceCamera * input.view.pitch, pitch: input.view.pitch, phase, yaw: 0, headYaw: lead, shuffle: turning && !input.moving ? (Math.floor(beat * gait.poseRate) % 4) / 4 : 0,
+      t: steppedT, moving: input.moving, lookUp: this.member.faceCamera * input.view.pitch, pitch: input.view.pitch, phase, yaw: 0, headYaw: lead, shuffle: turning && !input.moving && gait.shuffle !== false ? (Math.floor(beat * gait.poseRate) % 4) / 4 : 0,
       action: input.action ? { id: input.action.id, t: input.action.t, side: this.member.hand === 'R' ? 'L' : 'R' } : null,
       hold: this.item ? ITEMS[this.item].hold(this.skeleton, this.member.hand) : null,
       hair: { pitch: this.hairPose.pitch, roll: this.hairPose.roll }, clear: this.built.clear,
@@ -256,8 +256,10 @@ export class Figure {
       this.step = step;
     }
     this.swingHair(dt, input);
-    // The pose clock. An idle of breath alone loops at the breath, so its poses repeat and come from the cell cache; the
-    // blink keeps the true time.
+    // The pose clock. Idle loops (the gait's idleLoop, or the breath alone), so idle poses repeat and come from the cell
+    // cache; the blink keeps the true time.
+    // An idle with `idlePoses` holds that many poses across its loop, as a pixel artist's idle is a few frames, not twelve
+    // a second; so an idle is a short, fixed set of cells.
     const { steppedT, faceT } = this.clockAt(this.time);
     const phase = Math.floor(this.phase * gait.walkPoses) / gait.walkPoses;
     const { rel, pitch } = this.snap(this.shown, input.view);
@@ -298,13 +300,13 @@ export class Figure {
     }
     return true;
   }
-  /** The idle's stepped time at clock `time` (looped at the breath when the weight never shifts, so its poses repeat
-   * and come from the cell cache), and the face's (stepped, unlooped). */
+  /** The idle's stepped time at clock `time` (looped, held to its few poses), and the face's (stepped, unlooped). */
   clockAt(time: number): { steppedT: number; faceT: number } {
     const gait = this.member.gait;
-    const loopS = gait.shift === 0 ? gait.breathPeriod : 0;
+    const loopS = gait.idleLoop ?? (gait.shift === 0 && !gait.twitch ? gait.breathPeriod : 0);
     const stepIndex = Math.floor(time * gait.poseRate), loop = Math.round(loopS * gait.poseRate), faceT = stepIndex / gait.poseRate;
-    const steppedT = (loop > 0 ? stepIndex % loop : stepIndex) / gait.poseRate;
+    const held = loopS > 0 && gait.idlePoses ? loopS / gait.idlePoses : 0;
+    const steppedT = held ? (Math.floor(time / held) % gait.idlePoses!) * held : (loop > 0 ? stepIndex % loop : stepIndex) / gait.poseRate;
     return { steppedT, faceT };
   }
   /**

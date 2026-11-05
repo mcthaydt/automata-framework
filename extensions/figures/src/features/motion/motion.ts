@@ -1,11 +1,11 @@
 import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from '../body/rig';
-import { add, apply, applyDir, basis, compose, cross, dot, euler, IDENTITY_Q, invertRigid, lerp, lerp3, matq, mmul, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from '../../lib/math';
+import { add, apply, applyDir, basis, compose, cross, dot, euler, hash, IDENTITY_Q, invertRigid, lerp, lerp3, matq, mmul, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from '../../lib/math';
 import { reach, type Part } from '../body/parts';
 /**
  * Procedural motion: every layer is a pure function of the figure's parameters and the (stepped) time,
  * so a frame is reproducible and the hold can replace one arm without touching anything else.
  *
- * Layers, in order: pelvis and torso (walk or stand, lean, breath, sway), head (stabilise, tilt, turn lead), legs
+ * Layers, in order: pelvis and torso (walk or stand, lean, breath, sway), head (stabilise, tilt, turn lead, twitch), legs
  * (foot paths, or a stand's feet → IK), arms (swing, a hang, or an action's IK), then the stand's hand places and the
  * hold, last.
  */
@@ -28,8 +28,19 @@ export interface Gait {
   poseRate: number; walkPoses: number;
   /** Turn speed (rad per pose step) and how far the head leads the body (rad). */
   turnRate: number; headLead: number;
+  /** A head twitch: its size (rad) and how often (s); 0 for none. */
+  twitch?: number; twitchEvery?: number;
   /** Idle: breath (rad), weight shift (m), and their periods (s). */
   breath: number; breathPeriod: number; shift: number; shiftPeriod: number;
+  /** Idle loops at this many seconds (its breath, shift and twitches tile it), so idle poses repeat and come from the
+   * figure's cell cache; left out, an idle of breath alone loops at the breath. */
+  idleLoop?: number;
+  /** How many poses the idle holds across its loop (a pixel artist's few idle frames); left out, one a pose step. */
+  idlePoses?: number;
+  /** Whether the feet shuffle through a turn on the spot (false: a pivot, the Nurse's). */
+  shuffle?: boolean;
+  /** How much of the torso's forward bend the arms take back so they hang plumb (0.75 for the Porter: the elbow bend carries the hands on forward); 0 by default. */
+  plumb?: number;
   /** Seconds a reach takes, out and back. */
   reach: number;
   /** Standing: weight on one leg (hip shift, m), that foot's lead (m), the arms' forward hang and extra elbow bend over
@@ -415,6 +426,12 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   const toward = Math.max(0, Math.cos(st.view ?? st.yaw));
   const headPitch = g.headPitch - (lean + g.posture) * 0.6 - ((st.lookUp ?? 0) + (gait.chin ?? 0)) * toward + 0.32 * flinch + (walking ? NOD : 0) + (stand?.head?.[2] ?? 0);
   const headYaw = st.headYaw + 0.3 * flinch + (stand?.head?.[0] ?? 0);
+  // A twitch: for one pose step in each `twitchEvery` seconds the head rolls to a side the slot picks, so a nervous
+  // gait ticks.
+  if (gait.twitch) {
+    const slot = Math.floor(st.t / gait.twitchEvery!), within = st.t - slot * gait.twitchEvery!;
+    if (within < 1 / gait.poseRate + 1e-9) headRoll += gait.twitch * (hash(slot) < 0.5 ? -1 : 1);
+  }
   // A hunch sinks the head forward on the neck; the head turns back up by as much, so the face still looks ahead.
   pose.rot[J.neck] = euler(headPitch * 0.4 + 0.55 * g.hunch, counter + headYaw * 0.4, headRoll * 0.4);
   pose.rot[J.head] = euler(headPitch * 0.6 - 0.55 * g.hunch, headYaw * 0.6, headRoll * 0.6);
@@ -447,8 +464,9 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
     const bend = walking
       ? Math.min(gait.elbow + gait.elbowSwing * forward / Math.max(1e-6, amp), Math.max(gait.elbow, FORE - forward))
       : hung ? hung.bend : gait.standElbow !== undefined ? gait.standElbow * (side === 'L' ? 1 : 0.75) : gait.elbow + gait.idleElbow * (side === 'L' ? 1 : 0.7);
-    // The chest's roll taken back at the shoulder, so the arms hang plumb from shoulders that tilt.
-    pose.rot[J[`upperArm.${side}`]] = euler(swing + idleSway * 0.5 - hang, 0, x * out - chestRoll);
+    // `plumb` of the torso's bend taken back at the shoulder, so a stooped figure's arms hang down rather than swing back
+    // with the chest; the chest's roll taken back too, so the arms hang plumb from shoulders that tilt.
+    pose.rot[J[`upperArm.${side}`]] = euler(swing + idleSway * 0.5 - hang - (gait.plumb ?? 0) * (lean + g.posture), 0, x * out - chestRoll);
     pose.rot[J[`foreArm.${side}`]] = euler(-(bend + Math.abs(idleSway)), 0, 0);
     // The hand hangs from the wrist, back toward plumb by a share of the forearm's angle forward of it.
     pose.rot[J[`hand.${side}`]] = euler(WRIST * (bend - swing - idleSway * 0.5 + hang), 0, 0);
