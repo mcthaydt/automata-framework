@@ -868,10 +868,12 @@ the features it lacks are journeyed on the one-file examples that show them:
   `shared/{ship,check,create-game}` and `features/{add,build,editor}`; `SHIP_PACKAGE` moved to `shared/package-name.ts` so
   `entries/` only re-exports. The root `boundaries` script now runs `--features` on the three packages. Tests that read paths
   beside the moved tests gained a `..` (`tools` workflows, turbo-inputs, deploy and create-game tests).
-  **Not done, and why the checkboxes stay open:** 4.4 step 3 for `content`: `--features` finds **48** cross-feature imports and
-  `--browser packages/content:game-config,locale,assets` finds 21 (the `assets` entry reaches `read-sources.ts`, which imports
-  `node:path` and `effect`; the spec lists `assets` as browser-safe, the build comment says Node-only: decide). `generate`,
-  `compile` and `locale` import each other, so a plain move is not enough: split `compile` into the pipeline (`app/`) and the
-  pieces the others share (`shared/`: errors, parse, palette). Not run here: the browser projects, Emberwick's journeys, the 3D and
+  (53) `content` has 0 `--features` findings: its pipeline pieces (assets, compile, flow, game, generate, locale, palette, parse,
+  tuning) form import cycles, so they are one layered `shared/` engine and `preload` and `vite` are the features. Test paths
+  gained a `..` (about 12 files). The root `boundaries` script runs `--features` on all four packages.
+  **Not done, and why the checkboxes stay open:** 4.4 step 3: `--browser packages/content:game-config,locale,assets` finds 21.
+  The `assets` entry imports `fontkit`, `pngjs` and `node:crypto` (evidence from the code): it is Node-only, as the build comment
+  says, and the spec's "browser-safe" is wrong. `game-config` and `locale` reach `compile-messages` and `compile-content`
+  (`effect`, `node:*`); the fix is to split the browser-safe reads from the Node compile in those two entries. Not run here: the browser projects, Emberwick's journeys, the 3D and
   editor suites (unit tests of the 3D and editor packages ran in the turbo pass; see progress.md), WebKit and Firefox,
   `test:dist`. Hosted CI has no runners.

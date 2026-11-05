@@ -2,17 +2,24 @@
 // (122a220) and generalized over game-registered schemas; see the M1.3 spec.
 
 export type { ContentConfig } from '../app/cli/run-cli'
+export { type PreloadInput, preloadList } from '../features/preload/preload-list'
 export {
   type CompiledContent,
   type ContentOptions,
   compileContent,
   DEFAULT_OUT_DIR,
   type MessageLocation,
-} from '../features/compile/compile-content'
-export { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from '../features/compile/errors'
-export type { SimPartition } from '../features/compile/sim-partition'
-export { buildContent, verifyContent } from '../features/compile/write-outputs'
-export type { FlowCapabilities, FlowGraph, FlowTransition } from '../features/flow/check-flow'
+} from '../shared/compile/compile-content'
+export { ContentCompileFailed, ContentWriteFailed, InvalidContentConfig } from '../shared/compile/errors'
+export type { SimPartition } from '../shared/compile/sim-partition'
+export { buildContent, verifyContent } from '../shared/compile/write-outputs'
+export {
+  type Diagnostic,
+  type DiagnosticCode,
+  formatDiagnostic,
+  sortDiagnostics,
+} from '../shared/diagnostics/diagnostic'
+export type { FlowCapabilities, FlowGraph, FlowTransition } from '../shared/flow/check-flow'
 export {
   GAME_ID_PATTERN,
   type GameConfig,
@@ -27,33 +34,19 @@ export {
   type Rating,
   RENDERERS,
   type Renderer,
-} from '../features/game/game-config.schema'
-export type { AssetsSource, GameSource, RukenFields } from '../features/game/game-facts'
+} from '../shared/game/game-config.schema'
+export type { AssetsSource, GameSource, RukenFields } from '../shared/game/game-facts'
 export {
   type ContentData,
   type ContentGenerator,
   defineContentGenerator,
   type GeneratorInput,
   type GeneratorOutput,
-} from '../features/generate/content-generator'
-export type { ParaglideOptions } from '../features/locale/compile-messages'
-export { type MessageCatalog, messageKey } from '../features/locale/messages'
-export { DEFAULT_PALETTE, type Palette } from '../features/palette/palette'
-export { type PreloadInput, preloadList } from '../features/preload/preload-list'
-export {
-  checkTuningLayer,
-  type TunableDeclaration,
-  type TunableDeclarations,
-  type TuningMeta,
-} from '../features/tuning/check-tuning'
-export { renderTuningTable, withTuningTable } from '../features/tuning/tuning-table'
-export {
-  type Diagnostic,
-  type DiagnosticCode,
-  formatDiagnostic,
-  sortDiagnostics,
-} from '../shared/diagnostics/diagnostic'
+} from '../shared/generate/content-generator'
 export { contentHash } from '../shared/hash/content-hash'
+export type { ParaglideOptions } from '../shared/locale/compile-messages'
+export { type MessageCatalog, messageKey } from '../shared/locale/messages'
+export { DEFAULT_PALETTE, type Palette } from '../shared/palette/palette'
 export {
   type ContentSchemaDef,
   type ContentSchemaOptions,
@@ -62,3 +55,10 @@ export {
   defineContentSchema,
   localized,
 } from '../shared/schema/content-schema'
+export {
+  checkTuningLayer,
+  type TunableDeclaration,
+  type TunableDeclarations,
+  type TuningMeta,
+} from '../shared/tuning/check-tuning'
+export { renderTuningTable, withTuningTable } from '../shared/tuning/tuning-table'

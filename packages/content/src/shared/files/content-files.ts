@@ -6,7 +6,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join, relative } from 'node:path'
 import { Data, Effect } from 'effect'
-import type { TaggedErrorClass } from '../../features/compile/errors'
+import type { TaggedErrorClass } from '../compile/errors'
 
 const FileErrorBase: TaggedErrorClass<'FileError', { readonly path: string; readonly cause: unknown }> =
   Data.TaggedError('FileError')

@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { runCli } from '#src/app/cli/run-cli.ts'
-import { encodePng } from '#src/features/assets/atlas-image.ts'
+import { encodePng } from '#src/shared/assets/atlas-image.ts'
 import { copyFixture } from '#src/testing/fixture-game.ts'
 
 const FIXTURE_GAME = join(import.meta.dirname, '../../../../src/testing/fixture-game.ts')
@@ -50,7 +50,7 @@ function withAtlas(root: string, rgba: readonly number[]): string {
 
 const FONT = join(
   import.meta.dirname,
-  '../../../../src/features/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2',
+  '../../../../src/shared/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2',
 )
 const FONT_SHA256 = 'd830612ac9131788ebae754b9268f83f7c1d3ffa9bc0f9a5514207a8283fe71e'
 

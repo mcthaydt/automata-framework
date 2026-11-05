@@ -17,25 +17,25 @@
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { normalizePath, runnerImport } from 'vite'
-import { ATLASES_FOLDER, FONTS_FOLDER } from '../../features/assets/asset-outputs'
-import { buildAtlases } from '../../features/assets/build-atlases'
-import { buildFonts } from '../../features/assets/build-fonts'
+import { ATLASES_FOLDER, FONTS_FOLDER } from '../../shared/assets/asset-outputs'
+import { buildAtlases } from '../../shared/assets/build-atlases'
+import { buildFonts } from '../../shared/assets/build-fonts'
 import {
   type CompiledContent,
   type ContentOptions,
   compileContent,
   outDirOf,
-} from '../../features/compile/compile-content'
+} from '../../shared/compile/compile-content'
 import type {
   ContentCompileFailed,
   ContentWriteFailed,
   InvalidContentConfig,
-} from '../../features/compile/errors'
-import { buildContent, verifyContent } from '../../features/compile/write-outputs'
-import type { TuningMeta } from '../../features/tuning/check-tuning'
-import { withTuningTable } from '../../features/tuning/tuning-table'
+} from '../../shared/compile/errors'
+import { buildContent, verifyContent } from '../../shared/compile/write-outputs'
 import { type Diagnostic, formatDiagnostic } from '../../shared/diagnostics/diagnostic'
 import { readTextIfPresent, writeFileAtomically } from '../../shared/files/content-files'
+import type { TuningMeta } from '../../shared/tuning/check-tuning'
+import { withTuningTable } from '../../shared/tuning/tuning-table'
 
 /** The default export of `automata.content.ts`. */
 export type ContentConfig = Omit<ContentOptions, 'root'> & {

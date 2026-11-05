@@ -10,6 +10,8 @@
 
 import { join } from 'node:path'
 import { Effect } from 'effect'
+import { type ContentOptions, compileContent, outDirOf } from '../../shared/compile/compile-content'
+import { ContentCompileFailed, type InvalidContentConfig } from '../../shared/compile/errors'
 import {
   type DataPath,
   type Diagnostic,
@@ -17,11 +19,9 @@ import {
   sortDiagnostics,
 } from '../../shared/diagnostics/diagnostic'
 import { pathKind, readTextIfPresent } from '../../shared/files/content-files'
-import { type ContentOptions, compileContent, outDirOf } from '../compile/compile-content'
-import { ContentCompileFailed, type InvalidContentConfig } from '../compile/errors'
-import type { FlowGraph } from '../flow/check-flow'
-import type { AssetsSource, GameSource } from '../game/game-facts'
-import { locateKeys, positionOf } from '../parse/locate-keys'
+import type { FlowGraph } from '../../shared/flow/check-flow'
+import type { AssetsSource, GameSource } from '../../shared/game/game-facts'
+import { locateKeys, positionOf } from '../../shared/parse/locate-keys'
 import { type AssetBuildFiles, readAssetBuildFiles } from './asset-build-files'
 
 /**

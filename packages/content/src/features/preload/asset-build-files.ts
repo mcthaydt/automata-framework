@@ -15,12 +15,12 @@
 import { join, posix } from 'node:path'
 import { Effect } from 'effect'
 import type { z } from 'zod'
+import { ATLASES_FOLDER, atlasPageFiles, FONT_FILES, FONTS_FOLDER } from '../../shared/assets/asset-outputs'
+import { atlasesSchema } from '../../shared/assets/atlases.schema'
+import { type FontFiles, fontFilesSchema, fontsSchema } from '../../shared/assets/fonts.schema'
 import type { Diagnostic, DiagnosticCode } from '../../shared/diagnostics/diagnostic'
 import { listFiles, readTextIfPresent } from '../../shared/files/content-files'
-import { ATLASES_FOLDER, atlasPageFiles, FONT_FILES, FONTS_FOLDER } from '../assets/asset-outputs'
-import { atlasesSchema } from '../assets/atlases.schema'
-import { type FontFiles, fontFilesSchema, fontsSchema } from '../assets/fonts.schema'
-import { parseDocument } from '../parse/parse-document'
+import { parseDocument } from '../../shared/parse/parse-document'
 
 /** One atlas or font a screen names: its files in the build, in order, or why it has none. */
 type Resolved =
