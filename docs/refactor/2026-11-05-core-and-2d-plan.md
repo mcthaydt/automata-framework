@@ -329,14 +329,14 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
 `games/emberwick`, then `tooling/*` and `examples`. Session breaks: after `ui`, after `cli`, after
 `games/emberwick` (four sessions).
 
-- [ ] **Step 1:** Run the codemod on the package. Replace its `vitest.config.ts` with one `defineTests({...})` call
+- [x] **Step 1:** Run the codemod on the package. Replace its `vitest.config.ts` with one `defineTests({...})` call
   carrying the options task 3.1 step 0 recorded for it. Add `tests` to its `tsconfig.json` `include`. Journeys move
   from `e2e/` to `tests/e2e/` and become `*.test.ts`; the area's Playwright config's `testDir` follows, and when the
   last area has moved, the preset's `testMatch` becomes `**/*.test.ts` (task 1.1).
-- [ ] **Step 2:** `pnpm --filter <pkg> test:unit`, `test:parity` (now `test:browser`) and `typecheck` pass, with the
+- [x] **Step 2:** `pnpm --filter <pkg> test:unit`, `test:parity` (now `test:browser`) and `typecheck` pass, with the
   **same test count as before** (record before and after in the execution log; a lower count is a lost test).
-- [ ] **Step 3:** One commit per package: `test(<pkg>): move tests to tests/`.
-- [ ] **Step 4:** Update `check-style` (tests exempt by folder, not suffix), `knip.jsonc` and `biome.json` fixture
+- [x] **Step 3:** One commit per package: `test(<pkg>): move tests to tests/`.
+- [x] **Step 4:** Update `check-style` (tests exempt by folder, not suffix), `knip.jsonc` and `biome.json` fixture
   paths, and the turbo task names (`test:parity` → `test:browser`). `pnpm check` passes. Open the PR, green, merge.
 
 ---
@@ -758,8 +758,19 @@ the features it lacks are journeyed on the one-file examples that show them:
   render-pixi 121, game 229, automata 22, testing 168, node 12, ship 463, cli 188 (+4 slow), Emberwick 108. Chromium
   browser projects (first run, no WebKit or Firefox here): ui 1671, game 403, runtime 2, render-pixi 8, testing 39,
   content 3; Emberwick's journeys, phone Chromium: 8 passed.
-  **Resume at:** the tooling packages `api-index`, `check-boundaries`, `check-style`, `repo-hygiene` (their tests find
-  `src/cli.ts`, `turbo.json` and `kit-fixtures` by path; the codemod output is in git history of this branch, redo with
-  the CLI), then `agent-skills`, `examples-runner` (its `playground/e2e` stays until the playground moves; `e2e/` moves),
-  `frame-budget` (`stress/` is an extra root), the examples, and step 4 (`check-style` exempts by folder, `biome.json`
-  fixture paths, then `pnpm check`, the PR, and the CI run).
+  **Tooling and examples (second session).** Unit counts, before and after (equal): api-index 43, check-boundaries 109,
+  check-style 71 (72 with the new folder test), repo-hygiene 65, agent-skills 95, examples-runner 112 + 1 skipped,
+  frame-budget 45, playwright-preset 8, hot-reload 3; the primitives smoke test, Chromium: 26. Deviations: (22) the
+  `turbo-inputs` tests of api-index and repo-hygiene resolve every relative import against its file, in `src/` and
+  `tests/`, so moving a file never changes which sibling tooling folders count as inputs. (23) Fixtures moved to
+  `tests/fixtures/` only where a test in `src/` owned them (`check-style` kit fixtures, `examples-runner` and
+  `frame-budget` fixtures); `api-index/fixtures`, `check-boundaries/fixtures` and `api-report/fixtures` stay at the package
+  root, where `biome.json` and `knip.jsonc` already exclude them, so no `biome.json` path changed. (24) `agent-skills`
+  keeps its own `vitest.config.ts` (its root is the repository, for the skill's worked example and the sim alias); its
+  install suite moved to `tests/install/` and `test:install` points there. (25) The `examples-runner` browser parity
+  test runs in Node too through the preset's `alsoInNode`; `test:unit` and `test:browser` now name the projects `unit`
+  and `browser`. (26) `check-style` skips any `tests/` folder; the `*.test.ts` suffix stays exempt until the 3D and
+  editor packages move (they still keep tests in `src/`), at which point the suffix rule is deleted. (27) The examples'
+  and `games/base-3d`'s Playwright configs, the 3D workflow's path filter and `knip.jsonc` follow the journeys to
+  `tests/e2e/*.test.ts`. `pnpm check` passes (30 unit tasks, 0 cached). **Not run here:** WebKit and Firefox parity,
+  every Playwright journey (the GPU/CI runner), `pnpm build` and the CI-only gates (left to the pull request's CI).
