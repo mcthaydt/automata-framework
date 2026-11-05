@@ -1014,4 +1014,37 @@ the features it lacks are journeyed on the one-file examples that show them:
   typecheck 33 of 33, lint, boundaries, style, knip, `api-report` tests 65 of 65 (the seam check included), changeset
   check; Emberwick journeys 28 of 28 in Chromium (phone, compact, iPad) at the input commit and again after the extension
   commit. Not run: WebKit and Firefox (downloads refused here), hosted CI. Next: flow, screens and app/ together.
+- **Task 5.4, part 4, eighth session, 2026-11-05 (PR `claude/refactor-2d-no-effect-2`).** The flow's leaves first:
+  `createTime(bus)`, `createAppLoop(options)` (with `dispose()`), `watchLifecycle` (the plain lifecycle in, its stop
+  function out), `createVeil({ overlay, reducedMotion, clock })` (its `cover()` and `reveal()` promises timed on the
+  `Clock`), and the Effect `makePresentationBus` deleted; then `leaderboards` (`createLeaderboards(hosting, bus)`, whose
+  `submitScore` and `readBoard` answer promises that never reject; its test moved under `ruken/` because it opens the
+  fake Ruken host). Each test was rewritten first and seen failing (`createVeil is not a function`, `createLeaderboards is
+  not a function`). Commit `47b46d66`. Then flow and screens together (deviation 72), on the contract written in part 3
+  with one addition (deviation 74): `RuntimeServices` also carries `clock`, the runtime's `Clock`, because two screens
+  wait on time (a toast's four seconds, Settings' rebind countdown) and Effect's clock gave them that before.
+  `createFlow(options)` runs transitions one at a time on a promise queue (the runner starts a microtask later, so two
+  dispatches in a row are queued before the first runs, as the Effect queue did); `dispose()` leaves the current screen,
+  reveals the veil and, for a flow that made its own `runtime`, disposes it last. A screen whose `enter` is still awaiting
+  when the flow is disposed is left at once; what it adds afterwards runs at once (the `Disposables` rule), and the play
+  screens dispose a sim made after they were left, which replaces the abort signal the Effect interruption gave them.
+  The screen kit's helpers take the screen's `Disposables` (and the services they need); `screensCopy`, `titleSaves` and
+  `pausedSaves` take an owner. Emberwick's screens, base-3d's screens (deviation 75: they are 3D, but `ScreenDef` is
+  shared, so they move in this commit, as decision D3 allows) and the frame-budget stress screen are converted, and
+  `effect` leaves `tooling/frame-budget`. Boot and `RuntimeTest` are still Effect programs: they build the plain
+  services object (`toPlainHosting` over the Effect `Hosting`, the Effect clock as `clock`, so a `TestClock` still moves
+  fades and countdowns) and `RuntimeTest` still provides the tags, now built by `runtimeContext(services, hosting)` in
+  `app/boot/effect-tags.ts` (with the `Time`, `AppLoop`, `Leaderboards` and `Flow` tags). Not test-first (a deviation from
+  strict TDD, recorded here): the flow's 21 tests and the boot, run-game and RuntimeTest screen fixtures were rewritten
+  after the code, by a mechanical rewrite then by hand, because the contract change breaks every fixture at once; the
+  two new flow cases ("a runtime the flow is given is the caller's", "a flow disposed while a screen is entering")
+  passed on first run. Verified: automata unit 1,832; repo typecheck 33 of 33 (forced, no cache); `pnpm check` (lint,
+  typecheck, boundaries, style, knip, core unit); every package's unit tests pass on their own (the forced parallel run
+  of all 31 timed out in five packages under load: emberwick, examples-runner, content, tools, editor-2d, each green
+  alone); `api-report` tests 65 of 65 after `--update`; Chromium journeys: Emberwick 28 of 28, create-game 1 of 1, the
+  examples' default-screens, saves, rebind, leaderboard, host-lifecycle, display-policy and audio journeys 14 of 14.
+  Not run: WebKit and Firefox (downloads refused here), the frame-budget stress run (GPU runner), hosted CI. Commit
+  `5c4c0169`. Next: boot and `run-game` plain (the boot tests are the large part: 1,316 and 1,176 lines of Effect
+  programs), with `render` (the `RendererFactory` is still an Effect; `nullRenderer` gained a plain `nullGameRenderer`
+  for the loop's tests) and `RuntimeTest`, then delete the bridge.
 
