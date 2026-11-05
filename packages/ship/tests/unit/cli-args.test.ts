@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseCliArgs } from './cli-args.ts'
+import { parseCliArgs } from '#src/cli-args.ts'
 
 describe('parseCliArgs', () => {
   it('reads prepare with an optional tag and build folder', () => {

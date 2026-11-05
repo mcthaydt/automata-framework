@@ -4,10 +4,10 @@ import { join } from 'node:path'
 import { FilesLive } from '@mcthaydt/automata-node'
 import { Effect, Either, Layer } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig } from '../../config/ship-config.ts'
-import { fakeProcessRunner, type RecordedRun } from '../../testing/fake-process-runner.ts'
-import { type DeployDevInput, deployDev } from './deploy-dev.ts'
-import { rukenToml } from './ruken-toml.ts'
+import { defineShipConfig } from '#src/config/ship-config.ts'
+import { type DeployDevInput, deployDev } from '#src/targets/ruken/deploy-dev.ts'
+import { rukenToml } from '#src/targets/ruken/ruken-toml.ts'
+import { fakeProcessRunner, type RecordedRun } from '#src/testing/fake-process-runner.ts'
 
 const config = defineShipConfig({
   game: { id: 'placeholder', title: 'Placeholder', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },

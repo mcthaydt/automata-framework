@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig, type ShipConfig } from '../../config/ship-config.ts'
-import { checkTauriEntry, checkTauriVersion, findEvalInCsp, tauriCsp, tauriSettings } from './tauri-checks.ts'
+import { defineShipConfig, type ShipConfig } from '#src/config/ship-config.ts'
+import {
+  checkTauriEntry,
+  checkTauriVersion,
+  findEvalInCsp,
+  tauriCsp,
+  tauriSettings,
+} from '#src/targets/tauri/tauri-checks.ts'
 
 const config: ShipConfig = defineShipConfig({
   game: { id: 'cinder', title: 'Cinder', version: '1.2.0', entry: 'index.html' },

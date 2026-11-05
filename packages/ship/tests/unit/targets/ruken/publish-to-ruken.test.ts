@@ -1,7 +1,7 @@
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { fakeProcessRunner } from '../../testing/fake-process-runner.ts'
-import { type PublishInput, publishToRuken, rukenCliPath } from './publish-to-ruken.ts'
+import { type PublishInput, publishToRuken, rukenCliPath } from '#src/targets/ruken/publish-to-ruken.ts'
+import { fakeProcessRunner } from '#src/testing/fake-process-runner.ts'
 
 const input: PublishInput = {
   distDir: '/game/dist',

@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { buildsIndex } from './builds-index.ts'
+import { buildsIndex } from '../../../../deploy/bin/builds-index.ts'
 
 function root(builds: Record<string, object>, live?: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'ship-index-'))

@@ -4,9 +4,9 @@ import { join } from 'node:path'
 import type { RunResult } from '@mcthaydt/automata-node'
 import { Effect, Either } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
-import { defineShipConfig, type ShipConfig } from '../../config/ship-config.ts'
-import { fakeProcessRunner, type RecordedRun } from '../../testing/fake-process-runner.ts'
-import { publishDownloadsToItch } from './publish-downloads-to-itch.ts'
+import { defineShipConfig, type ShipConfig } from '#src/config/ship-config.ts'
+import { publishDownloadsToItch } from '#src/targets/itch/publish-downloads-to-itch.ts'
+import { fakeProcessRunner, type RecordedRun } from '#src/testing/fake-process-runner.ts'
 
 // DIST spec §6.4: the desktop bundles go to itch.io as Downloadable files, one butler channel per OS.
 

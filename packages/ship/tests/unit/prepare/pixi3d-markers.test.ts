@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findPixi3d, PIXI3D_EXTRAS_MARKERS, PIXI3D_MARKERS } from './pixi3d-markers.ts'
+import { findPixi3d, PIXI3D_EXTRAS_MARKERS, PIXI3D_MARKERS } from '#src/prepare/pixi3d-markers.ts'
 
 function build(files: Record<string, string>): string {
   const dir = mkdtempSync(join(tmpdir(), 'ship-pixi3d-'))

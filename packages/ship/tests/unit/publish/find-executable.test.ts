@@ -2,7 +2,7 @@ import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { delimiter, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findExecutable } from './find-executable.ts'
+import { findExecutable } from '#src/publish/find-executable.ts'
 
 function folder(files: Record<string, number>): string {
   const dir = mkdtempSync(join(tmpdir(), 'ship-find-executable-'))

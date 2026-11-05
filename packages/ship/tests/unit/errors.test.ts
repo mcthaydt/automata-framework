@@ -15,7 +15,7 @@ import {
   RootAbsoluteReference,
   TestRemoteFailed,
   VersionMismatch,
-} from './errors.ts'
+} from '#src/errors.ts'
 
 // The errors are typed through `TaggedErrorClass` so ship builds with isolatedDeclarations (M2.4 spec §2).
 // Each keeps its tag, its fields and its message, and `Effect.catchTag` still finds it.

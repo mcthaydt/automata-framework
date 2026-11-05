@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { itchConfigSchema } from './itch-config.schema.ts'
+import { itchConfigSchema } from '#src/config/itch-config.schema.ts'
 
 describe('itchConfigSchema', () => {
   it('reads a lower-case user/game project and defaults the channel to html5', () => {

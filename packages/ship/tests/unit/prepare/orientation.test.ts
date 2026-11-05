@@ -7,7 +7,7 @@ import {
   findOrientationMismatches,
   gameOrientationsIn,
   isOrientationSource,
-} from './orientation.ts'
+} from '#src/prepare/orientation.ts'
 
 // The orientation check (M4.7 follow-up): the orientation a game plays in (`defineGame({ orientation })`, `any`
 // when left out) must be the `runtime.orientation` its ship config sends Ruken. Read from the sources, as the

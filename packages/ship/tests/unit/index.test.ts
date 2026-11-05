@@ -1,6 +1,6 @@
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import * as ship from './index.ts'
+import * as ship from '#src/index.ts'
 
 describe('@mcthaydt/automata-ship', () => {
   it('names itself and runs on Effect', () => {

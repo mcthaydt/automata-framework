@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BUILD_ID_PATTERN, buildIdFor } from './build-id.ts'
+import { BUILD_ID_PATTERN, buildIdFor } from '#src/deploy/build-id.ts'
 
 describe('buildIdFor', () => {
   it("is the commit's UTC time to the minute, then its short sha (FloorFifty build-tag)", () => {

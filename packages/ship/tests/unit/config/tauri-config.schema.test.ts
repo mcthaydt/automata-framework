@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { tauriConfigSchema } from './tauri-config.schema.ts'
+import { tauriConfigSchema } from '#src/config/tauri-config.schema.ts'
 
 // DIST spec §6.3: a desktop game's `tauri` section. Tauri's identifier is reverse-DNS and must not end in `.app`
 // (it clashes with the macOS bundle extension); https://v2.tauri.app/reference/config/#identifier.

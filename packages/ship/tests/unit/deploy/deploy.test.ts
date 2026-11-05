@@ -13,14 +13,13 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { afterAll, describe, expect, it } from 'vitest'
 
 // Runs the host's `deploy` script for real (bash, tar, node) against a temporary SHIP_ROOT, with a stub
 // `caddy` that records its arguments and fails `validate` when CADDY_FAIL_VALIDATE=1, or, with
 // CADDY_FAIL_RELOAD=1 fails `reload`, and with CADDY_REQUIRE_SITE=1 fails when the Caddyfile's {$AF_DEV_SITE} would be empty (as real Caddy rejects it).
 
-const deployScript = join(dirname(fileURLToPath(import.meta.url)), 'bin/deploy')
+const deployScript = join(import.meta.dirname, '../../../deploy/bin/deploy')
 
 // Every temporary folder a test makes, removed when the file's tests are done.
 const temporary: string[] = []
@@ -344,7 +343,7 @@ describe('deploy under sudo', { timeout: DEPLOY_TIMEOUT_MS }, () => {
 })
 
 describe("ssh-deploy (the deploy key's forced command)", () => {
-  const sshDeploy = join(dirname(fileURLToPath(import.meta.url)), 'bin/ssh-deploy')
+  const sshDeploy = join(import.meta.dirname, '../../../deploy/bin/ssh-deploy')
 
   function run(original: string | undefined) {
     const bin = temp('ship-ssh-bin-')
@@ -370,7 +369,7 @@ describe("ssh-deploy (the deploy key's forced command)", () => {
 })
 
 describe('Caddyfile (shared with FloorFifty on the VM)', () => {
-  const caddyfile = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'caddy/Caddyfile'), 'utf8')
+  const caddyfile = readFileSync(join(import.meta.dirname, '../../../deploy/caddy/Caddyfile'), 'utf8')
 
   it('imports only through globs, so a missing file before the first deploy cannot break the shared Caddy', () => {
     // Caddy refuses an import of a missing file but accepts a glob that matches nothing, even in a missing

@@ -1,7 +1,7 @@
 import { parseManifest } from '@ruken/manifest'
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig, type ShipConfig } from '../../config/ship-config.ts'
-import { rukenToml } from './ruken-toml.ts'
+import { defineShipConfig, type ShipConfig } from '#src/config/ship-config.ts'
+import { rukenToml } from '#src/targets/ruken/ruken-toml.ts'
 
 const minimal: ShipConfig = defineShipConfig({
   game: { id: 'placeholder', title: 'Placeholder', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },

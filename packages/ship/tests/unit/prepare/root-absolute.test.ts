@@ -6,7 +6,7 @@ import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findRootAbsoluteReferences } from './root-absolute.ts'
+import { findRootAbsoluteReferences } from '#src/prepare/root-absolute.ts'
 
 /** A built client with these files, and the folders a real one has. */
 function build(files: Record<string, string>): string {

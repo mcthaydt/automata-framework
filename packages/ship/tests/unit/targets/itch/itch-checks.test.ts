@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, truncateSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { buildFiles } from '../../prepare/build-files.ts'
+import { buildFiles } from '#src/prepare/build-files.ts'
 import {
   checkFileCount,
   checkFileSizes,
@@ -10,8 +10,8 @@ import {
   checkNoRukenToml,
   checkPathLengths,
   findCaseMismatches,
-} from './itch-checks.ts'
-import { ITCH_LIMITS } from './itch-limits.ts'
+} from '#src/targets/itch/itch-checks.ts'
+import { ITCH_LIMITS } from '#src/targets/itch/itch-limits.ts'
 
 /** A build folder with these files, and the listing the checks read. */
 function build(files: Record<string, string>): { distDir: string; files: readonly string[] } {
@@ -25,7 +25,7 @@ function build(files: Record<string, string>): { distDir: string; files: readonl
 
 describe('itch.io limits', () => {
   it('are the documented ones, with where and when they were read', async () => {
-    const { ITCH_LIMITS_SOURCE } = await import('./itch-limits.ts')
+    const { ITCH_LIMITS_SOURCE } = await import('#src/targets/itch/itch-limits.ts')
     expect(ITCH_LIMITS).toEqual({
       maxFiles: 1000,
       maxPathLength: 240,

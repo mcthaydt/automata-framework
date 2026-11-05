@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { declaredBoardsIn, findUndeclaredBoards } from './board-names.ts'
+import { declaredBoardsIn, findUndeclaredBoards } from '#src/prepare/board-names.ts'
 
 // The board check (M5 spec §4.8, L-b): a board a game names must be a key of its ship config's `leaderboards`, or
 // Ruken has no such board to take the score. Read from the game's sources, so the failure names the call site.

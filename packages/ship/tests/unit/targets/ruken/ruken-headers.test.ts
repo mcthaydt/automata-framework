@@ -1,10 +1,10 @@
 import { compileHeaders } from '@ruken/manifest'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig } from '../../config/ship-config.ts'
-import { checkManifest } from './check-manifest.ts'
-import { rukenHeaders } from './ruken-headers.ts'
-import { rukenToml } from './ruken-toml.ts'
+import { defineShipConfig } from '#src/config/ship-config.ts'
+import { checkManifest } from '#src/targets/ruken/check-manifest.ts'
+import { rukenHeaders } from '#src/targets/ruken/ruken-headers.ts'
+import { rukenToml } from '#src/targets/ruken/ruken-toml.ts'
 
 const config = defineShipConfig({
   game: { id: 'headers-game', title: 'Headers', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },

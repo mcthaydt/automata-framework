@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { inputsProblems } from './check-inputs.ts'
+import { inputsProblems } from '#src/targets/ruken/check-inputs.ts'
 
 // M4 spec §4.13 (I-g): `runtime.inputs` (Ruken's INPUTS) must agree with the game's input profile.
 describe('inputsProblems', () => {

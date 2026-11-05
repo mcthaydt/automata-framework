@@ -1,6 +1,6 @@
 import { inflateSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
-import { tauriIconPng } from './tauri-icon.ts'
+import { tauriIconPng } from '#src/targets/tauri/tauri-icon.ts'
 
 // The icon ship draws when a game names none (DIST spec §6.2): a valid RGBA PNG, the same bytes every time.
 describe('tauriIconPng', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { browserSafePort } from './browser-safe-port.ts'
+import { browserSafePort } from '#src/ports/browser-safe-port.ts'
 
 describe('browserSafePort', () => {
   it('keeps a port the browsers load', () => {

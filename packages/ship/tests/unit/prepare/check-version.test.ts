@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { checkVersion } from './check-version.ts'
+import { checkVersion } from '#src/prepare/check-version.ts'
 
 describe('checkVersion', () => {
   it('passes when there is no tag (a branch build)', () => {

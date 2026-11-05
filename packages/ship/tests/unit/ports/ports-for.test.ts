@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { portsFor } from './ports-for.ts'
+import { portsFor } from '#src/ports/ports-for.ts'
 
 describe('portsFor', () => {
   it('gives a checkout the same ports every time', () => {

@@ -2,7 +2,12 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { findSecretsInBuild, parseEnvFile, readEnvValues, scanTextForSecrets } from './secret-scan.ts'
+import {
+  findSecretsInBuild,
+  parseEnvFile,
+  readEnvValues,
+  scanTextForSecrets,
+} from '#src/prepare/secret-scan.ts'
 
 // Fake keys, built from pieces so this file never holds a whole key that a repository scanner (QB.1's gitleaks)
 // would report.

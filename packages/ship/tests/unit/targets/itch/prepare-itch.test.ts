@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig, type ShipConfig } from '../../config/ship-config.ts'
-import { type PrepareItchInput, prepareItch } from './prepare-itch.ts'
+import { defineShipConfig, type ShipConfig } from '#src/config/ship-config.ts'
+import { type PrepareItchInput, prepareItch } from '#src/targets/itch/prepare-itch.ts'
 
 const config: ShipConfig = defineShipConfig({
   game: { id: 'emberwick', title: 'Emberwick', version: '1.2.0', entry: 'index.html', sdk: '^0.0.0' },

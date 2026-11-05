@@ -2,8 +2,8 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { inputsProblems } from '../targets/ruken/check-inputs.ts'
-import { declaredInputsIn, findInputsProblems, keysBindingsIn } from './input-bindings.ts'
+import { declaredInputsIn, findInputsProblems, keysBindingsIn } from '#src/prepare/input-bindings.ts'
+import { inputsProblems } from '#src/targets/ruken/check-inputs.ts'
 
 // The inputs check (M4.1 follow-up): `runtime.inputs` against the game's input map, read from the `keys()` calls in
 // its sources because the map cannot be loaded under plain Node. `inputsProblems` stays the one owner of the rule;

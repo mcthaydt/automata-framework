@@ -3,7 +3,7 @@ import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const shipDir = join(root, 'packages/ship')
 
 // workflows.test.ts reads files outside this package (the workflows, every workspace package.json, the root
@@ -50,7 +50,7 @@ describe.each(TASKS)("turbo's cache key for ship's %s", (task) => {
     const files = hashed.get(task)
     expect(files).toEqual(
       expect.arrayContaining([
-        'packages/ship/src/workflows.test.ts',
+        'packages/ship/tests/unit/workflows.test.ts',
         '.github/workflows/ci.yml',
         'package.json',
         'pnpm-workspace.yaml',

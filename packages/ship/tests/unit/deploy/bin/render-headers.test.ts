@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { renderHeaders } from './render-headers.ts'
+import { renderHeaders } from '../../../../deploy/bin/render-headers.ts'
 
 const headers = {
   'Content-Security-Policy': "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'",

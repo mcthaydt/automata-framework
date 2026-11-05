@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig, type ShipConfig } from '../../config/ship-config.ts'
-import { CRATE_PINS, tauriProjectFiles } from './tauri-project.ts'
+import { defineShipConfig, type ShipConfig } from '#src/config/ship-config.ts'
+import { CRATE_PINS, tauriProjectFiles } from '#src/targets/tauri/tauri-project.ts'
 
 const config: ShipConfig = defineShipConfig({
   game: { id: 'cinder', title: 'Cinder', version: '1.2.0', entry: 'index.html' },

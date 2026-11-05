@@ -4,9 +4,13 @@ import { join } from 'node:path'
 import type { RunResult } from '@mcthaydt/automata-node'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig, type ShipConfig } from '../../config/ship-config.ts'
-import { fakeProcessRunner } from '../../testing/fake-process-runner.ts'
-import { ITCH_FIRST_PUSH_CHECKLIST, type PublishItchInput, publishToItch } from './publish-to-itch.ts'
+import { defineShipConfig, type ShipConfig } from '#src/config/ship-config.ts'
+import {
+  ITCH_FIRST_PUSH_CHECKLIST,
+  type PublishItchInput,
+  publishToItch,
+} from '#src/targets/itch/publish-to-itch.ts'
+import { fakeProcessRunner } from '#src/testing/fake-process-runner.ts'
 
 const config: ShipConfig = defineShipConfig({
   game: { id: 'emberwick', title: 'Emberwick', version: '1.2.0', entry: 'index.html', sdk: '^0.0.0' },

@@ -5,8 +5,8 @@ import { FilesLive } from '@mcthaydt/automata-node'
 import { parseManifest } from '@ruken/manifest'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig, type ShipConfig } from '../../config/ship-config.ts'
-import { checkBuild, type PrepareInput, prepareBuild } from '../prepare-build.ts'
+import { defineShipConfig, type ShipConfig } from '#src/config/ship-config.ts'
+import { checkBuild, type PrepareInput, prepareBuild } from '#src/prepare/prepare-build.ts'
 
 const prepare = (input: PrepareInput) => Effect.provide(prepareBuild(input), FilesLive)
 const check = (input: PrepareInput) => Effect.provide(checkBuild(input), FilesLive)

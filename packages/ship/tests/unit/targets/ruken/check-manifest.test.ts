@@ -1,8 +1,8 @@
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig } from '../../config/ship-config.ts'
-import { checkManifest } from './check-manifest.ts'
-import { rukenToml } from './ruken-toml.ts'
+import { defineShipConfig } from '#src/config/ship-config.ts'
+import { checkManifest } from '#src/targets/ruken/check-manifest.ts'
+import { rukenToml } from '#src/targets/ruken/ruken-toml.ts'
 
 const config = defineShipConfig({
   game: { id: 'placeholder', title: 'Placeholder', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },

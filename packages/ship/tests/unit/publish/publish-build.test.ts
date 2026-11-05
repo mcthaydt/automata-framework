@@ -4,9 +4,9 @@ import { join } from 'node:path'
 import { FilesLive } from '@mcthaydt/automata-node'
 import { Effect, Either, Layer } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { defineShipConfig } from '../config/ship-config.ts'
-import { fakeProcessRunner } from '../testing/fake-process-runner.ts'
-import { isLocalStack, type PublishBuildInput, publishBuild } from './publish-build.ts'
+import { defineShipConfig } from '#src/config/ship-config.ts'
+import { isLocalStack, type PublishBuildInput, publishBuild } from '#src/publish/publish-build.ts'
+import { fakeProcessRunner } from '#src/testing/fake-process-runner.ts'
 
 const config = defineShipConfig({
   game: { id: 'base-3d', title: 'Base 3D', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },

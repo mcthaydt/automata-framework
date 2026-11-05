@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { Readable } from 'node:stream'
 import { describe, expect, it } from 'vitest'
-import { buildFiles } from '../../prepare/build-files.ts'
-import { writeDeterministicZip } from './itch-zip.ts'
+import { buildFiles } from '#src/prepare/build-files.ts'
+import { writeDeterministicZip } from '#src/targets/itch/itch-zip.ts'
 
 function build(files: Record<string, string | Uint8Array>): string {
   const distDir = mkdtempSync(join(tmpdir(), 'ship-itch-zip-'))

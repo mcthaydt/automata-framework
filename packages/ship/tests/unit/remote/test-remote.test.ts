@@ -1,8 +1,8 @@
 import type { RunResult } from '@mcthaydt/automata-node'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { fakeProcessRunner, type RecordedRun } from '../testing/fake-process-runner.ts'
-import { testRemote } from './test-remote.ts'
+import { testRemote } from '#src/remote/test-remote.ts'
+import { fakeProcessRunner, type RecordedRun } from '#src/testing/fake-process-runner.ts'
 
 const ok = (stdout = ''): RunResult => ({ exitCode: 0, stdout, stderr: '' })
 const SINCE = '2026-10-11T08:00:00Z'

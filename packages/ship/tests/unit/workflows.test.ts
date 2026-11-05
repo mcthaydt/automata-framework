@@ -9,7 +9,7 @@ import { parse } from 'yaml'
 // The workflows are part of the ship lane's contract (ship spec §3.7): what runs on every push, what runs
 // only nightly or on request, and how a game's repository reuses them. These tests pin that shape.
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const workflowText = (name: string): string => readFileSync(join(root, '.github/workflows', name), 'utf8')
 
 interface Step {

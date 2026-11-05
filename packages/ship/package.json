@@ -16,6 +16,9 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "bin": {
     "automata-ship": "./src/cli.ts"
   },
@@ -48,6 +51,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",

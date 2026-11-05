@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { prepareMode } from './prepare-mode.ts'
+import { prepareMode } from '#src/prepare/prepare-mode.ts'
 
 // How each command prepares a build (M3 spec §4.8): who it is for, and whether ruken.toml is written.
 describe('prepareMode', () => {
