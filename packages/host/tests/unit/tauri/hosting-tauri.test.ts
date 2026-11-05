@@ -1,10 +1,10 @@
 import { Context, Duration, Effect, Either, Exit, Fiber, Layer, Scope, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { HOST_EXIT_CAP, Hosting, type HostingOptions } from '../contract/hosting'
-import { describeHostingContract } from '../contract-suite'
-import { runScoped } from '../testing'
-import { type FakeWebPage, fakeWebPage } from '../testing/fake-web-page'
-import { type DesktopPort, makeTauriHosting, type StoreLike } from './hosting-tauri'
+import { HOST_EXIT_CAP, Hosting, type HostingOptions } from '#src/contract/hosting.ts'
+import { describeHostingContract } from '#src/contract-suite.ts'
+import { type DesktopPort, makeTauriHosting, type StoreLike } from '#src/tauri/hosting-tauri.ts'
+import { type FakeWebPage, fakeWebPage } from '#src/testing/fake-web-page.ts'
+import { runScoped } from '#src/testing/index.ts'
 
 // The `tauri` adapter (DIST spec §4.3, §6.1): the web adapter's page, plus saves in the app's store, Quit, and the
 // window's close request. Tests run it over a fake page and a fake desktop port.

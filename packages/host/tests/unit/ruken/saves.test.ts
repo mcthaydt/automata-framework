@@ -2,8 +2,8 @@ import type { SdkEnv, StorageLike } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
 import { Chunk, Effect, Either, Fiber, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Hosting } from '../contract/hosting'
-import { FakeHostHandle, HostingTest, manualClock, runScoped } from '../testing'
+import { Hosting } from '#src/contract/hosting.ts'
+import { FakeHostHandle, HostingTest, manualClock, runScoped } from '#src/testing/index.ts'
 
 const settled: Effect.Effect<void> = Effect.promise(() => settle())
 

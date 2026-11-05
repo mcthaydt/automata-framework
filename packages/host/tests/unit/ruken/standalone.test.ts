@@ -1,8 +1,8 @@
 import type { SdkEnv, StorageLike } from '@ruken/sdk'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Hosting } from '../contract/hosting'
-import { FakeHostHandle, HostingTest, runScoped } from '../testing'
+import { Hosting } from '#src/contract/hosting.ts'
+import { FakeHostHandle, HostingTest, runScoped } from '#src/testing/index.ts'
 
 /** A top-level page: the SDK returns its standalone session at once (shared contracts §1.1). */
 const topLevel =

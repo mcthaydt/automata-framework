@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import * as host from '../index'
+import * as host from '#src/index.ts'
 
 // DIST spec §4.1: AF's host contract, defined in this package. The names are Ruken's where they fit;
 // `ruken/conformance.test.ts` holds them to the vendored SDK.

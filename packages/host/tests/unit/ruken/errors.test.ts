@@ -1,7 +1,7 @@
 import { RukenError } from '@ruken/sdk'
 import { describe, expect, it } from 'vitest'
-import { HostError, HostHandshakeFailed } from '../contract/errors'
-import { toHostError } from './errors-ruken'
+import { HostError, HostHandshakeFailed } from '#src/contract/errors.ts'
+import { toHostError } from '#src/ruken/errors-ruken.ts'
 
 describe('toHostError (shared contracts §1.2)', () => {
   it("keeps Ruken's code and retryable flag, and names the operation", () => {

@@ -1,12 +1,12 @@
 import { fileURLToPath } from 'node:url'
 import { build, defaultClientConditions, type Rolldown } from 'vite'
 import { describe, expect, it } from 'vitest'
-import { findRukenSdkMarkers, findTauriMarkers, RUKEN_SDK_MARKERS, TAURI_MARKERS } from './sdk-markers'
-import { WEB_STORAGE_PROBE_KEY } from './web/hosting-web'
+import { findRukenSdkMarkers, findTauriMarkers, RUKEN_SDK_MARKERS, TAURI_MARKERS } from '#src/sdk-markers.ts'
+import { WEB_STORAGE_PROBE_KEY } from '#src/web/hosting-web.ts'
 
 // PUB spec §3 and §7 (build row): `./target` puts exactly one adapter in a bundle. The entry imports the host as
 // the runtime's boot does; Vite builds it the way PUB.2's `--target` will, from the workspace sources.
-const fixture = fileURLToPath(new URL('./testing/fixtures/target-bundle/', import.meta.url))
+const fixture = fileURLToPath(new URL('../../src/testing/fixtures/target-bundle/', import.meta.url))
 
 /**
  * All the JavaScript of a production build of the fixture: with the target's AF condition, or with none

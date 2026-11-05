@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import * as host from './index'
-import * as testing from './testing'
+import * as host from '#src/index.ts'
+import * as testing from '#src/testing/index.ts'
 
 describe('public entry points', () => {
   it('export the target-neutral contract, and no adapter (DIST spec §4, §5.3)', () => {

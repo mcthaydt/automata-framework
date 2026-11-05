@@ -1,8 +1,8 @@
 import type { SdkEnv } from '@ruken/sdk'
 import { Context, Effect, Either, Exit, Layer, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { Hosting } from '../contract/hosting'
-import { FakeHostHandle, HostingTest, type HostingTestOptions, runScoped } from '../testing'
+import { Hosting } from '#src/contract/hosting.ts'
+import { FakeHostHandle, HostingTest, type HostingTestOptions, runScoped } from '#src/testing/index.ts'
 
 // The host's leaderboard call (PRODUCT spec §2 F1, §3 "Leaderboards"): Ruken's `LeaderboardsApi` relayed
 // through `Hosting`. Without the grant, standalone or offline it fails with the SDK's code; it never falls

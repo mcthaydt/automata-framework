@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { guardRounds } from './rounds'
+import { guardRounds } from '#src/rounds.ts'
 
 // FloorFifty tests/client/ruken/hosting.test.ts, "sends one round start per round, and an end only for an open round".
 describe('guardRounds', () => {

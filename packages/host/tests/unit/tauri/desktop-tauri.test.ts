@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { clearMocks, mockIPC, mockWindows } from '@tauri-apps/api/mocks'
 import { afterEach, describe, expect, it } from 'vitest'
-import { tauriDesktop } from './desktop-tauri'
+import { tauriDesktop } from '#src/tauri/desktop-tauri.ts'
 
 // The real desktop port (DIST spec §6.1) over Tauri's IPC, mocked: each call reaches the plugin command it should.
 // The adapter's behavior is tested over a fake port in `hosting-tauri.test.ts`.

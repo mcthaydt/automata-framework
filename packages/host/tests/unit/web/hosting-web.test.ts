@@ -13,11 +13,11 @@ import {
   TestContext,
 } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Hosting, type HostingOptions } from '../contract/hosting'
-import { describeHostingContract } from '../contract-suite'
-import { runScoped } from '../testing'
-import { type FakeWebPage, type FakeWebPageOptions, fakeWebPage } from '../testing/fake-web-page'
-import { buildTarget, makeWebHosting, WEB_STORAGE_PROBE_KEY, type WebTarget } from './hosting-web'
+import { Hosting, type HostingOptions } from '#src/contract/hosting.ts'
+import { describeHostingContract } from '#src/contract-suite.ts'
+import { type FakeWebPage, type FakeWebPageOptions, fakeWebPage } from '#src/testing/fake-web-page.ts'
+import { runScoped } from '#src/testing/index.ts'
+import { buildTarget, makeWebHosting, WEB_STORAGE_PROBE_KEY, type WebTarget } from '#src/web/hosting-web.ts'
 
 const OPTIONS: HostingOptions = { gameId: 'blank-game', wants: ['saves'], pauseBehavior: 'pause' }
 

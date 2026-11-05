@@ -1,6 +1,6 @@
 import type * as Ruken from '@ruken/sdk'
 import { describe, expectTypeOf, it } from 'vitest'
-import type * as Af from '../contract/index'
+import type * as Af from '#src/contract/index.ts'
 
 // DIST spec §4.1: AF owns the host contract and keeps Ruken's names where they fit. These checks hold AF's
 // contract to the vendored SDK, so a re-vendor that changes a Ruken name or payload fails here (in `tsc`, which
