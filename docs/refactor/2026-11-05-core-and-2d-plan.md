@@ -962,3 +962,12 @@ the features it lacks are journeyed on the one-file examples that show them:
   scaffold uses the built `dist/bin.js` because the source bin cannot load `editor-suite`'s extensionless imports under plain
   Node. It runs in `e2e-2d` and `pnpm ci:local`. Passes here in Chromium (1 of 1). Not run: WebKit and Firefox (their
   downloads are refused here, so the golden `421c5a1bf522299e` is still Chromium-only), hosted CI.
+- **Task 5.4, part 1, fifth session, 2026-11-05 (PR `claude/refactor-2d-no-effect-2`, stacked on #398).** Three leaf features
+  are plain TypeScript, each test rewritten first and seen failing: `display` (`createDisplayPolicy` returns `{ dispose }`),
+  `locale` (`createLocale` resolves once the saved choice is read; a refused save goes to `warn`) and `settings`
+  (`createSettings` returns the service at once; `storeOf(settings, def)` replaces the lookup). Deviation 69: while boot and
+  the default screens still read an Effect context, the `Locale` and `Settings` tags and `settingsStore` live in
+  `app/boot/effect-tags.ts`, and `effect-bridge.ts` gains `plainSaves`, the Effect `Hosting.saves` seen as the plain calls;
+  both go when `app/` is converted. The public names are unchanged (the API report shows the two tags as type aliases of the
+  same services). Verified: automata unit 1,830, `pnpm test:unit` 31 of 31, repo typecheck, boundaries, style, lint, knip,
+  `api-report`; Emberwick journeys 28 of 28 in Chromium (phone, compact, iPad). Next: `audio`, then `saves` (session break).

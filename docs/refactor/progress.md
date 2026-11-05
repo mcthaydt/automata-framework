@@ -30,10 +30,11 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 ### Where to resume (2026-11-05, fifth session)
 
 The PRs are stacked and draft: #393 (4.3, 4.4) ← #394 (5.2, 5.3) ← #395 (6.1 to 6.4) ← #396 (7.1, 7.2 steps 1 and 2) ← #397
-(8.1, 8.2 part) ← #398 (7.2 step 3, 8.2 rest, 8.3). Next, in order:
+(8.1, 8.2 part) ← #398 (7.2 step 3, 8.2 rest, 8.3) ← #399 (5.4 part 1). Next, in order:
 
-1. **5.4:** take Effect out of the runtime feature by feature (order in the plan), then delete
-   `shared/host/effect-bridge.ts`, `hosting.ts`, `errors.ts`; then the bundle report "after D2". Its own PR on top of #398.
+1. **5.4:** display, locale and settings are done (#399, on top of #398). Next `audio`, then `saves`, `loading`, `input`,
+   `flow`, `extension`, `render`, `screens`, `app/`, `testing/`, Emberwick's screens; then delete
+   `shared/host/effect-bridge.ts`, `hosting.ts`, `errors.ts` and `app/boot/effect-tags.ts`; then the bundle report "after D2".
 2. **8.1 rest:** the Settings sections' long strings, the CLI messages and the READMEs' first screens are still unchecked in
    `copy.md`. Found by the create-game journey: the pause menu's close button and its Resume button share the name "Resume".
 3. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
@@ -63,7 +64,7 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 5.1 Bundle report, before | 5 | Done locally, 2026-11-05 (CI run pending): `tooling/bundle-report`, run on Emberwick (below) | PR to open |
 | 5.2 Plain-TypeScript helpers | 5 | Done locally, 2026-11-05 (CI run pending): `Clock`/`fakeClock`, `Disposables`, `Result`, `Subscribable`/`emitter`; 22 unit tests | PR to open |
 | 5.3 Host contract and targets | 5 | Done locally, 2026-11-05 (CI run pending): plain host contract, web, Ruken and Tauri adapters, contract suite and fake host take a `Clock` and `AbortSignal`; ADR 0003 amended. A temporary bridge keeps the Effect runtime working; deleting it moved to 5.4 (deviation 55) | PR to open |
-| 5.4 Runtime features and the app | 5 | Deferred behind phases 6 to 8 (deviation 55) | |
+| 5.4 Runtime features and the app | 5 | In progress: display, locale and settings plain (3 of 14 steps); Emberwick journeys pass | #399 |
 | 6.1 Emberwick is Emberwick | 6 | Done locally, 2026-11-05 (CI run pending): renamed everywhere; `GOLDEN_HASH` re-recorded once (`94285fae634fdba9` → `421c5a1bf522299e`), Chromium agrees; WebKit and Firefox left to CI | PR to open |
 | 6.2 Emberwick imports one package | 6 | Done locally, 2026-11-05: only `@mcthaydt/automata`, `-sim`, `-tools` and `-content` remain | PR to open |
 | 6.3 Emberwick by feature | 6 | Done locally, 2026-11-05 (CI run pending): `app/`, `features/{player,goal,room,scene,screens}`, `shared/`, `entries/`, `testing/`; `--features games/emberwick` and the sim rule pass (deviations 56 to 58) | PR to open |
