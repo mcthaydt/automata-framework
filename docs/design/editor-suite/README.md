@@ -18,7 +18,7 @@ are signed of tell them", recorded as `SIGNED_OFF`), so the gallery shows that l
 - Figma file: [Automata Editors](https://www.figma.com/design/8H4vY5xZj7xIedrvDdwg2d), pages `Suite · Shell`,
   `Suite · Sequence`, `Suite · Tuner`, `Suite · FloorFifty`, `Suite · Writer`, `Suite · Studio`, `Suite · Schematic`,
   `Suite · Audio`, `Suite · Feel`, `Suite · States` and `Suite · Portrait`.
-- Source: [The Last Light editor suite spec](https://github.com/mcthaydt/PixiJS3D_Experiment_001/blob/main/docs/superpowers/specs/2026-10-16-editor-suite-design.md)
+- Source: [The Last Light editor suite spec](https://github.com/mcthaydt/PixiJS3D_Experiment_001/blob/main/docs/archive/superpowers/specs/2026-10-16-editor-suite-design.md)
   and the code under `editor/src/client` and `src` in that repository (`main` at `92e6704`, 2026-10-22); its
   `editor.manifest.json` gives each file's editor and gates. FloorFifty (`SNEKPRTY/FloorFifty` at `ee5d44e`) gives the
   second game's `content/tuning.toml`.

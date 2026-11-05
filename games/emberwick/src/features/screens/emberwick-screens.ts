@@ -1,4 +1,4 @@
-// Emberwick's screens on the runtime (DX.3 decision E-2): splash, menu, room, paused and end, as plain DOM in
+// Emberwick's screens on the runtime: splash, menu, room, paused and end, as plain DOM in
 // the screen layer the runtime's flow opens for each (EMBERWICK_FLOW says which follows which). The runtime
 // does the rest: the Ruken handshake, nothing drawn before ready, the fixed-step loop, pausing on the host's
 // background or menu (through the room's `openMenu`) and the boot failure panel.

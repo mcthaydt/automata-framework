@@ -1,4 +1,5 @@
-// Usage: node tooling/check-style/src/cli.ts <package-src>... [--role-layout <game-src>...]
+// Usage: node tooling/check-style/src/cli.ts [--plan-comments] <package-src>... [--role-layout <game-src>...]
+// --plan-comments also flags comments that cite a milestone, task id or spec section (opt-in, for the roots passed).
 // Checks every production .ts and .svelte file. Tests are exempt by folder: anything under a tests/ folder (where
 // every moved package keeps them) or a testing/ folder (published test helpers). The *.test.ts and *.test.svelte
 // suffixes stay exempt only until the 3D and editor packages move their tests (core and 2D refactor, phase 3). Svelte files get the QB.2 rules (no {@html}, no platform chrome); .ts files the naming rules. Roots after
@@ -18,12 +19,13 @@ function collect(dir: string, out: string[]): void {
   }
 }
 
-const args = process.argv.slice(2)
+const planComments = process.argv.includes('--plan-comments')
+const args = process.argv.slice(2).filter((arg) => arg !== '--plan-comments')
 const gameFlag = args.indexOf('--role-layout')
 const packageRoots = gameFlag === -1 ? args : args.slice(0, gameFlag)
 const gameRoots = gameFlag === -1 ? [] : args.slice(gameFlag + 1)
 if (packageRoots.length + gameRoots.length === 0) {
-  console.error('usage: check-style <package-src>... [--role-layout <game-src>...]')
+  console.error('usage: check-style [--plan-comments] <package-src>... [--role-layout <game-src>...]')
   process.exit(2)
 }
 
@@ -43,7 +45,10 @@ const findings: StyleFinding[] = [
   ...files.flatMap(({ path, gameRoot }) =>
     path.endsWith('.svelte')
       ? checkSvelte(path, readFileSync(path, 'utf8'))
-      : checkFile(path, readFileSync(path, 'utf8'), gameRoot === undefined ? {} : { gameRoot }),
+      : checkFile(path, readFileSync(path, 'utf8'), {
+          ...(gameRoot === undefined ? {} : { gameRoot }),
+          planComments,
+        }),
   ),
 ]
 for (const f of findings) {

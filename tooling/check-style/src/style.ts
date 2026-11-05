@@ -17,6 +17,7 @@ export type StyleRule =
   | 'no-html'
   | 'platform-chrome'
   | 'file-length'
+  | 'plan-comment'
 
 export interface StyleFinding {
   readonly file: string
@@ -150,10 +151,32 @@ function exportedFactories(program: Node): string[] {
 export interface CheckOptions {
   /** A game's `src/`: paths under it may group the sim by role (GL spec §5.1). Package roots omit it. */
   readonly gameRoot?: string
+  /** Flag comments that cite the plan that asked for the code (refactor spec §8). Off until a package's comments are rewritten. */
+  readonly planComments?: boolean
+}
+
+/** A milestone or task id (`M5.2`, `DX.2d`, `PRODUCT.2`, `GAME-3D`) or a section sign: which plan, not why. */
+const PLAN_REFERENCE =
+  /\b(?:M\d{1,2}(?:\.\d+[a-z]?)?(?![\w-])|(?:DX|EX|QB|PUB|DIST|PRODUCT|APP|GAME|GL|CI|ED2D|ED3D)[.-][\w.-]+)|§\s?\d/
+const PLAN_COMMENT_MESSAGE =
+  'A comment should say why, not which plan asked for it. Explain the reason in plain words.'
+
+/** One finding per comment line that cites a plan. Only comments are read (the parser lists them), never strings. */
+function planCommentFindings(file: string, code: string): StyleFinding[] {
+  const out: StyleFinding[] = []
+  for (const comment of parseSync(file, code).comments) {
+    const firstLine = code.slice(0, comment.start).split('\n').length
+    comment.value.split('\n').forEach((text, offset) => {
+      if (PLAN_REFERENCE.test(text))
+        out.push({ file, rule: 'plan-comment', message: PLAN_COMMENT_MESSAGE, line: firstLine + offset })
+    })
+  }
+  return out
 }
 
 export function checkFile(file: string, code: string, options: CheckOptions = {}): StyleFinding[] {
-  return [...lengthFindings(file, code), ...namingFindings(file, code, options)]
+  const plan = options.planComments === true ? planCommentFindings(file, code) : []
+  return [...lengthFindings(file, code), ...namingFindings(file, code, options), ...plan]
 }
 
 // A game root names its sim files for the role they hold (GL spec §4.1): the plural of the five sim roles, plus

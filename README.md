@@ -2,14 +2,13 @@
 
 AutomataFramework (AF) is a TypeScript framework for small, deterministic web games that run inside
 [Ruken](https://github.com/mcthaydt/RukenApp). The simulation runs on Koota and is checked bit for bit in Node,
-Chromium, WebKit and Firefox. Everything outside the simulation runs on Effect, and PixiJS draws the game.
-[`docs/00-overview.md`](docs/00-overview.md) explains the design and links the specs.
+Chromium, WebKit and Firefox. PixiJS draws the game. [`docs/README.md`](docs/README.md) explains the design and
+[`docs/status.md`](docs/status.md) says what works today.
 
 ## Run Emberwick from a fresh clone
 
 Emberwick is AF's 2D reference game: Wick, a hooded lantern-bearer, walks and jumps through one room of mossy
 ruins to an ember. It is the workspace package `@af-games/emberwick`, in [`games/emberwick`](games/emberwick/)
-(EX.2 moved the folder there and kept the package name, so the `--filter` line below is unchanged).
 
 You need Git, and Node 24.21.0 (the version in `.nvmrc`). Corepack then runs the pinned pnpm.
 
@@ -44,13 +43,13 @@ pnpm build && node tooling/consumer-smoke/src/run.ts --from packs
 
 | Path | What it holds |
 |---|---|
-| `packages/` | The core packages, published as `@mcthaydt/automata-*` |
-| `examples/` | Emberwick and the feature demos ([`examples/README.md`](examples/README.md)) |
+| `packages/` | The packages, published as `@mcthaydt/automata-*` |
+| `games/` | Emberwick (2D) and the 3D game |
+| `examples/` | One file per feature ([`examples/README.md`](examples/README.md)) |
 | `tooling/` | Repository checks: boundaries, style, versions, release, consumer smoke and repo hygiene |
-| `docs/` | The plan ([02](docs/02-master-delivery-plan.md)), the status page ([03](docs/03-continuation-prompt.md)), specs, ADRs and the [runbook](docs/runbook.md) |
+| `docs/` | The [status](docs/status.md), the refactor [progress](docs/refactor/progress.md), ADRs, guides and the [runbook](docs/runbook.md); old specs and plans are in `docs/archive/` |
 
-Contributors and agents start with [`AGENTS.md`](AGENTS.md) and
-[`docs/04-how-we-build.md`](docs/04-how-we-build.md). Every change is a pull request, written test first.
+Contributors and agents start with [`AGENTS.md`](AGENTS.md). Every change is a pull request, written test first.
 
 ## Security and licence
 

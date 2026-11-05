@@ -1,6 +1,6 @@
 // Endesga 64 by Endesga (lospec.com/palette-list/endesga-64), the Owner's palette for AF (docs/art/README.md).
 // The same 64 colors in the same order as docs/art/palettes/endesga-64.txt; art.test.ts checks it against the file.
-// Stand-in until the palette is content (M1.3) and theme tokens (M1.6).
+// A stand-in until the palette is content and the colors are theme tokens.
 
 export const ENDESGA_64: readonly string[] = [
   '#ff0040',

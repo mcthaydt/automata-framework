@@ -492,7 +492,7 @@ describe('ci.yml (AF)', () => {
     )
   })
 
-  // af-linux is one shared PC runner. A draft runs parity in a cloud container instead (docs/cloud-parity.md);
+  // af-linux is one shared PC runner. A draft runs parity in a cloud container instead (docs/archive/cloud-parity.md);
   // the runner takes it once the PR is ready for review, and on every push to main.
   it('skips cross-engine parity on draft pull requests and runs it when one is marked ready', () => {
     expect(ci.on.pull_request?.types).toEqual(['opened', 'synchronize', 'reopened', 'ready_for_review'])
@@ -1305,7 +1305,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
 
     it('is docs-only when the pull request changes only docs/ and Markdown files', () => {
       expect(
-        classify(['docs/superpowers/specs/new.md', 'docs/design/editor-3d/views.mjs', 'CHANGELOG.md']),
+        classify(['docs/archive/superpowers/specs/new.md', 'docs/design/editor-3d/views.mjs', 'CHANGELOG.md']),
       ).toBe('docs_only=true')
       expect(classify(['packages/a/README.md'])).toBe('docs_only=true')
     })

@@ -578,29 +578,29 @@ Then:
 
 ### Task 7.1: Docs and AGENTS.md
 
-- [ ] **Step 1:** `git mv` to `docs/archive/`: `01-decomposition.md`, `02-master-delivery-plan.md`,
+- [x] **Step 1:** `git mv` to `docs/archive/`: `01-decomposition.md`, `02-master-delivery-plan.md`,
   `03-continuation-prompt.md`, `04-how-we-build.md`, `superpowers/`, `history/`, `research/`, `spikes/`,
   `cloud-parity.md`. Keep in place (tools or rules read them): `versions.md` and `stack.md` (`tooling/versions`),
   `cheatsheet.md` (`pnpm cheatsheet`), `provenance/` (`AGENTS.md`), `runbook.md`, `art/` and `design/` (spec
   section 7). Keep `00-overview.md` as `docs/README.md`, rewritten to one page. Fix every link into a moved file
   (`grep -rn "docs/0[0-4]-\|docs/superpowers" --include=*.md --include=*.ts`), and update `.vscode/settings.json`'s
   `docs/history` entry to `docs/archive`.
-- [ ] **Step 2:** Write `docs/status.md`: what works today, what is next (the 3D phase), how to run it, links to
+- [x] **Step 2:** Write `docs/status.md`: what works today, what is next (the 3D phase), how to run it, links to
   `progress.md`. Under 80 lines.
-- [ ] **Step 3:** Rewrite `AGENTS.md` under 150 lines: read order (README, status, progress, this spec), the seven
+- [x] **Step 3:** Rewrite `AGENTS.md` under 150 lines: read order (README, status, progress, this spec), the seven
   laws, the package and feature rules (spec section 3), the test layout, the gates, the drunk grandma test, branch
   rules (no backup or handoff branches; a draft PR or tag instead). The direction paragraph moves to
   `docs/archive/direction-log.md` unchanged.
-- [ ] **Step 4:** `docs/evidence/` PNGs: `git rm -r docs/evidence` and add `docs/evidence/` to `.gitignore`; CI
+- [x] **Step 4:** `docs/evidence/` PNGs: `git rm -r docs/evidence` and add `docs/evidence/` to `.gitignore`; CI
   already uploads evidence as artifacts. Fix links that pointed there (`grep -rn "docs/evidence" --include=*.md`).
-- [ ] **Step 5:** `examples/README.md` lists the examples that exist, one line each. Commit.
+- [x] **Step 5:** `examples/README.md` lists the examples that exist, one line each. Commit.
 
 ### Task 7.2: Comments that cite plans
 
-- [ ] **Step 1: Failing test** in `check-style`: a comment `// M5.2 owns this` fails with `A comment should say
+- [x] **Step 1: Failing test** in `check-style`: a comment `// M5.2 owns this` fails with `A comment should say
   why, not which plan asked for it. Explain the reason in plain words.`; `// The Pixi default is 1, too blurry on
   an iPad` passes.
-- [ ] **Step 2:** Implement (comments only, via the AST's comment list; strings and URLs are not checked). Pass.
+- [x] **Step 2:** Implement (comments only, via the AST's comment list; strings and URLs are not checked). Pass.
 - [ ] **Step 3:** Run it on core and 2D; rewrite each hit to the reason or delete it (audit: 1,385 hits). This is
   the long step: work file by file, commit per package, with a session break after each package or every 300 hits,
   whichever comes first. 3D and editors are exempt until their phase
@@ -915,3 +915,13 @@ the features it lacks are journeyed on the one-file examples that show them:
   tests (`from-render-pixi`, `from-runtime`, `from-ui`; 92 tests) are deleted: the API report pins the surface now.
   `AudioLive` and `audioLayer` had no user and are deleted. Repo-wide typecheck, `knip`, `api-report` (0 breaks, 0 undeclared),
   automata unit tests (1,830) pass. Export counts (API reports): automata 600 → 274; the ten reports 2,109 → 1,783.
+- **Tasks 7.1 and 7.2 (steps 1 and 2), fourth session, 2026-11-05 (PR `claude/refactor-2d-docs`, stacked on #395).** 7.1: the four
+  numbered documents, `cloud-parity.md`, `superpowers/`, `history/`, `research/` and `spikes/` are in `docs/archive/`
+  (git mv); `00-overview.md` is `docs/README.md`, one page; `docs/status.md` is 47 lines; `AGENTS.md` is 88 lines (the direction
+  paragraph is in `docs/archive/direction-log.md` unchanged); `docs/evidence/` is out of git and ignored; `examples/README.md` is one
+  line per example. References outside the archive were rewritten by sed (28 files; the examples runner still reads the delivery
+  plan, now at its archive path). Links inside archived files keep their old relative paths (history; deviation 61). 7.2: the rule
+  is in `check-style` behind `--plan-comments` (deviation 62: opt-in per root, because turning it on for core would fail
+  `pnpm style` with 400 hits in `automata` and Emberwick alone); Emberwick's 7 hits are rewritten and its root is checked.
+  **Open:** step 3 for `automata`, `sim`, `content`, `tools` and the rest (about 400 hits in `automata` + Emberwick before this
+  PR; commit per package), then add each root to the `style` script.

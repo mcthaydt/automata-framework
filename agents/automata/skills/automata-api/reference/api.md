@@ -1485,7 +1485,7 @@ interface HostingOptions {
     readonly gameId: string;
     /** The capabilities the game asks the host for (`wants` in the hello). */
     readonly wants: readonly Capability[];
-    /** Fixed for the game's whole life (Ruken's answer 7 in docs/spikes/s6-ruken-stub.md). */
+    /** Fixed for the game's whole life (Ruken's answer 7 in docs/archive/spikes/s6-ruken-stub.md). */
     readonly pauseBehavior: PauseBehavior;
     /**
      * The game config's `analytics.custom_events`. When given, `track` drops every

@@ -10,7 +10,7 @@
 //   6. The item's hold, on its arm only while no clip owns that arm.
 //   7. Secondary: the hems hang again from legs a clip or a pin moved; the hair swings in step 1.
 //
-// The plan's decisions 1 to 12 (docs/superpowers/plans/2026-10-30-m3-6d-evaluate.md) say what each step reads.
+// The plan's decisions 1 to 12 (docs/archive/superpowers/plans/2026-10-30-m3-6d-evaluate.md) say what each step reads.
 
 import type { FigureClipDef, MaskGroup } from '../clip/clip.schema'
 import { retime } from '../clip/clip-time'

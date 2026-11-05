@@ -59,7 +59,7 @@ async function openMenu(page: Page) {
 /**
  * How long one step of a journey may take once the room plays. The room draws every frame, and the headless shell
  * draws WebGL in software: a median of 167 to 233 ms a frame on a quiet machine, up to 3.8 s on a loaded one
- * (measured for CI.N2, docs/superpowers/plans/2026-10-30-ci-n2-touch-journey-ready.md). The loop asks for the next
+ * (measured for CI.N2, docs/archive/superpowers/plans/2026-10-30-ci-n2-touch-journey-ready.md). The loop asks for the next
  * frame as soon as one is drawn, so every Playwright call in the room waits two or three frames for the page (a
  * bounding box about eight; 16 s under that load), and Playwright's 5 s for an assertion is less than two loaded
  * frames. This is ten of the slowest frames measured. It caps any single step in the room; a journey's own test
