@@ -2,13 +2,13 @@ import { existsSync } from 'node:fs'
 import { join, posix } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { type WorkspacePackage, workspacePackages } from '../../release/src/publishable-packages.ts'
+import { type WorkspacePackage, workspacePackages } from '../../../release/src/publishable-packages.ts'
 
 // A package script that reaches out of its own folder (`check ../../games/emberwick`) breaks without a sound when
 // the folder it names moves, and a script nothing calls stays broken: the cli's `check:example` named
 // `examples/base-2d` for two weeks after EX.2 moved it (DX.6c). This test holds every such path to one that exists.
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 
 interface ScriptsManifest {
   readonly scripts?: Readonly<Record<string, string>>

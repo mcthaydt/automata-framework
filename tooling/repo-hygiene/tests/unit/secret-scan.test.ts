@@ -4,14 +4,14 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { ensureRepoGitleaks, historyScanArgs } from './gitleaks.ts'
+import { ensureRepoGitleaks, historyScanArgs } from '#src/gitleaks.ts'
 
 // The history scan reads what the checkout's HEAD reaches, never every ref (2026-10-30): CI's full-history
 // checkout also fetches every branch on origin, so one lane's unmerged branch with a finding (a false positive in
 // a test, at the time) failed every other lane's pull request.
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const config = join(root, '.gitleaks.toml')
-const plantedKey = fileURLToPath(new URL('../fixtures/secrets/planted.env', import.meta.url))
+const plantedKey = fileURLToPath(new URL('../../fixtures/secrets/planted.env', import.meta.url))
 
 let binary = ''
 // On a cold cache (every CI checkout starts with none) this downloads the pinned gitleaks release, which can take

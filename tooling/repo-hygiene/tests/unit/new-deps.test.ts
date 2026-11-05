@@ -6,7 +6,7 @@ import {
   type NewDependency,
   newDependencies,
   registryFor,
-} from './new-deps.ts'
+} from '#src/new-deps.ts'
 
 // The new-dependency report on pull requests (QB spec §4.1, QB.1): every package a PR adds that main never
 // used, with its registry, publisher and weekly downloads, so a reviewer can confirm an agent-added package

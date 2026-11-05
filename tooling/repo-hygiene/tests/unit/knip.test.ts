@@ -6,8 +6,8 @@ import { expect, it } from 'vitest'
 // knip (QB spec §4.1, QB.1) runs in `pnpm check` over the whole workspace. This proves it fails on dead code:
 // fixtures/knip is a two-file project whose `unusedHelper` export nothing imports.
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
-const fixture = fileURLToPath(new URL('../fixtures/knip', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
+const fixture = fileURLToPath(new URL('../../fixtures/knip', import.meta.url))
 
 // 90 s matches main's budget floor (#54) for the shared af-linux runner.
 it('fails on an unused export and names it', { timeout: 90_000 }, () => {

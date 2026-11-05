@@ -7,7 +7,7 @@ import { expect, it } from 'vitest'
 // as `compile-messages` and `examples.parity` take longer than vitest's 5 s default, so the hook blocked a commit
 // while `pnpm check` passed. The hook has to pass the budget the root `test:unit` script does.
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const read = (path: string): string => readFileSync(join(root, path), 'utf8')
 
 it("the pre-commit unit tests get the root test:unit script's timeout, after `--` so it reaches vitest", () => {

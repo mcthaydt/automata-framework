@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { findSourceNames, SOURCE_NAMES } from './source-names.ts'
+import { findSourceNames, SOURCE_NAMES } from '#src/source-names.ts'
 
 // FR.4: AF is standalone, so the text it publishes (the changelogs and package READMEs the website mirrors, the root README, the agent
 // skills) never names the projects its code was first proven in; where code came from is recorded only in docs/provenance/sources.md.
@@ -64,7 +64,7 @@ describe('findSourceNames', () => {
 
 describe('the repository', () => {
   it('names no source project in its changelogs, package READMEs, root README or agent skills', () => {
-    const root = fileURLToPath(new URL('../../..', import.meta.url))
+    const root = fileURLToPath(new URL('../../../..', import.meta.url))
     expect(findSourceNames(root)).toEqual([])
   })
 })

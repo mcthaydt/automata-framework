@@ -11,7 +11,7 @@ import {
   type GitleaksAsset,
   gitleaksAsset,
   verifiedDownload,
-} from './gitleaks.ts'
+} from '#src/gitleaks.ts'
 
 // The secret scan runs a pinned gitleaks release binary, checked against the SHA-256 published with that
 // release, the same way locally and in CI (QB.1). No network here: every download goes through an injected fetch.
@@ -146,7 +146,7 @@ describe('ensureGitleaks', () => {
   it('gives each of several installs at once, in separate processes, a whole binary that runs', async () => {
     const release = fakeRelease(8_000_000)
     const cacheDir = scratch('gitleaks-cache-')
-    const moduleUrl = new URL('./gitleaks.ts', import.meta.url).href
+    const moduleUrl = new URL('../../src/gitleaks.ts', import.meta.url).href
     const startAt = Date.now() + 1000
     const results = await Promise.all(
       [0, 1, 2, 3].map((index) =>

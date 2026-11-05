@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { auditVerdict } from './audit.ts'
+import { auditVerdict } from '#src/audit.ts'
 
 // `pnpm audit` exits non-zero both for an advisory and for a registry it could not reach. The audit gate must
 // tell them apart (AGENTS.md: diagnose product failures separately from transport failures).

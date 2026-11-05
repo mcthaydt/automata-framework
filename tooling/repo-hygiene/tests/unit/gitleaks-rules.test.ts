@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { KEY_RULES } from '../../../packages/ship/src/prepare/secret-scan.ts'
-import { ensureRepoGitleaks, GITLEAKS_VERSION } from './gitleaks.ts'
+import { ensureRepoGitleaks, GITLEAKS_VERSION } from '#src/gitleaks.ts'
+import { KEY_RULES } from '../../../../packages/ship/src/prepare/secret-scan.ts'
 
 // One secret rule list (QB.2c). ship's bundle scan reports each known key format under a gitleaks rule ID
 // (`KEY_RULES`), and `pnpm secrets` runs the pinned gitleaks release with .gitleaks.toml, which extends gitleaks'
@@ -12,7 +12,7 @@ import { ensureRepoGitleaks, GITLEAKS_VERSION } from './gitleaks.ts'
 // `--enable-rule <id>` runs only that rule, and gitleaks exits 1 with "Requested rule <id> not found in rules" when
 // the loaded rule set has no rule by that name. There is no copy of gitleaks' rule list to keep in step with
 // GITLEAKS_VERSION, and no network beyond ensureGitleaks' own cached, SHA-256-verified download.
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const config = join(root, '.gitleaks.toml')
 
 let binary = ''
@@ -52,7 +52,7 @@ describe(`the bundle scan's rule IDs are gitleaks ${GITLEAKS_VERSION}'s`, () => 
 // The test reads two files outside this workspace. Unless both are inputs of its turbo task, a change to
 // KEY_RULES or .gitleaks.toml would replay the cached pass instead of running it again.
 it("the test task's cache key covers KEY_RULES and .gitleaks.toml", () => {
-  const turbo = JSON.parse(readFileSync(new URL('../turbo.json', import.meta.url), 'utf8')) as {
+  const turbo = JSON.parse(readFileSync(new URL('../../turbo.json', import.meta.url), 'utf8')) as {
     tasks: Record<string, { inputs?: string[] }>
   }
   for (const task of ['test', 'test:unit']) {

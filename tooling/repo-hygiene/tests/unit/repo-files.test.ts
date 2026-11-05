@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 // The repository's own trust files (QB spec §3 F-7, §4.1, QB.1): a security contact with a response window,
 // code owners, and a runbook for lost credentials and a rebuild from Git, each linked from the README.
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const read = (path: string): string => readFileSync(join(root, path), 'utf8')
 
 describe('SECURITY.md', () => {
