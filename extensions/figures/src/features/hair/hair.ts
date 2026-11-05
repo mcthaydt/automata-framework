@@ -217,13 +217,13 @@ const FINISH: Record<'coil' | 'braid', { tones: [number, number, number]; matte:
   braid: { tones: [0.9, 0.2, -0.8], matte: true },
 };
 /** A finish's light (FINISH). */
-type Light = { tones: [number, number, number]; matte: boolean };
+export type HairFinish = { tones: [number, number, number]; matte: boolean };
 /** The finishes a fork registers (registerFinish), by name. Empty in base. */
-const FINISHES = new Map<string, Light>();
+const FINISHES = new Map<string, HairFinish>();
 /** Registers a hair finish (H4) under `name`, which a style's `finish` then names: how far the key reaches down its form
  * (`tones`, as FINISH's) and whether it is matte. A matte finish never takes the sheen band (finish()). Throws on a name
  * base or an earlier registration has taken. */
-export function registerFinish(name: string, light: Light): void {
+export function registerFinish(name: string, light: HairFinish): void {
   if (name in FINISH || FINISHES.has(name)) throw new Error(`hair finish ${name} is registered already`);
   FINISHES.set(name, light);
 }
@@ -294,7 +294,7 @@ export interface HairLook { parts: Part[]; decals: Decal[]; materials: Record<st
  * (the ground between cornrows, lighter than the rows). */
 function finish(i: HairInput, f: Finish, tone: Tone, made: Record<string, Material>, matte = false): string {
   if (!['hair', 'lit', 'crest', 'fade1', 'fade2', 'scalp', 'parting'].includes(tone)) return tone;
-  const light = (FINISH as Record<string, Light | undefined>)[f] ?? FINISHES.get(f); if (!light) throw new Error(`no finish ${f}`);
+  const light = (FINISH as Record<string, HairFinish | undefined>)[f] ?? FINISHES.get(f); if (!light) throw new Error(`no finish ${f}`);
   const dull = matte || light.matte, name = `${i.hair}@${tone}:${f}${dull ? '~matte' : ''}`;
   if (made[name]) return name;
   const sw = i.swatch(i.hair), skin = i.swatch(i.skin);

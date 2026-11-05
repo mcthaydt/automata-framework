@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   ACTIONS, actionOf, applyHold, BASE, envelopeOf, evaluate, Figure, GAITS, itemOf, lengthOf, hero, lightFigure, member, registerFinish,
   registerGarment, registerHairPiece, registerOutfitHooks, ScriptedActor, SEATS, seated, standing, TIMES, view, walking, J,
+  type Regions, type BaseGarment, type GarmentKinds, type Dressed, type Part, type Decal, type Print, type Mesh, type Superquadric,
+  type Measure, type Skeleton, type Anchor, type Hold, type ItemDef, type HairInput, type HairStyle, type HairFinish, type Piece,
+  type Skull, type Tone, type Tie,
 } from '../src';
 
 /** The public surface (src/index.ts) on its own: the base pair drawn as sheets, lit, and played by an actor, imported
@@ -31,6 +34,14 @@ describe('the public surface', () => {
     expect(ACTIONS.wave).toBeDefined();
     expect(env.action[1]).toBe(lengthOf(def));
     expect(env.recovery[1]).toBe(lengthOf(def) + def.recovery);
+  });
+  it('names the types the hook signatures use (tsc guards the imports)', () => {
+    const finish: HairFinish = { tones: [0, 1, 2], matte: false };
+    const _types: unknown[] = [finish];
+    type Named = [Regions, BaseGarment, GarmentKinds, Dressed, Part, Decal, Print, Mesh, Superquadric, Measure, Skeleton, Anchor, Hold,
+      ItemDef, HairInput, HairStyle, Piece, Skull, Tone, Tie];
+    const n: Named | undefined = undefined;
+    expect([_types.length, n]).toEqual([1, undefined]);
   });
   it('offers a fork its seats, hooks and builders', () => {
     expect(Object.keys(SEATS)).toContain('typing');
