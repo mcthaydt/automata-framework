@@ -44,6 +44,8 @@
     },
     // Run by hand on one package at a time (core and 2D refactor, task 3.2): `node tooling/codemods/src/cli.ts <package>`.
     "tooling/codemods": { "entry": ["src/cli.ts", "src/move-modules-cli.ts"] },
+    // Run by hand on a build made with `vite build --sourcemap` (core and 2D refactor, task 5.1).
+    "tooling/bundle-report": { "entry": ["src/cli.ts"] },
     // EDK.1: src/fonts.css imports the IBM Plex families with CSS @import, which knip does not follow.
     "packages/editor-kit": {
       "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]
