@@ -1,8 +1,8 @@
 import { content, simContent } from 'virtual:automata/content'
 import { describe, expect, it } from 'vitest'
-import { ROOM as HAND_WRITTEN } from '../../fixtures/hand-written-room.ts'
-import { HAND_WRITTEN_TUNING } from '../../fixtures/hand-written-tuning.ts'
-import { roomSourceOfLevel } from './level-room.ts'
+import { roomSourceOfLevel } from '#src/content/level-room.ts'
+import { ROOM as HAND_WRITTEN } from '../../../fixtures/hand-written-room.ts'
+import { HAND_WRITTEN_TUNING } from '../../../fixtures/hand-written-tuning.ts'
 
 // The room the 2D editor authored, as compiled content, is the room that was written by hand (GAME-2D.ED): the same
 // tiles, the same start and ember, and the same tunables.

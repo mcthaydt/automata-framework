@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import type { DefinedGame } from '@mcthaydt/automata-game'
 import {
   type GameRenderer,
@@ -10,8 +11,8 @@ import type { StepResult } from '@mcthaydt/automata-sim'
 import { type FakeHostControl, fakeHosting } from '@mcthaydt/automata-testing/host'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { emberwick } from '../game.ts'
-import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '../golden.ts'
+import { emberwick } from '#src/game.ts'
+import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '#src/golden.ts'
 
 // Emberwick's five screens on the real runtime (DX.3 step 5) in jsdom: AF's fake host (DIST spec §7), manual frames,
 // and a renderer that keeps each step (Pixi needs WebGL, which jsdom lacks).

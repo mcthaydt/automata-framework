@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
 // Everything else the game reaches is plumbing. Files under `src/` the game never reaches are kept for the
 // demos (decision E-3) and reported on their own line.
 
-const GAME_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const GAME_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const PLUMBING_LIMIT = 400
 
 type LineClass = 'sim' | 'art' | 'content' | 'drawing' | 'plumbing'

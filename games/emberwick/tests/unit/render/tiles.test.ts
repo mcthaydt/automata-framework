@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { ROOM } from '../../fixtures/hand-written-room.ts'
-import { parseRoom, type RoomSource } from '../content/room.ts'
-import { planTiles } from './tiles.ts'
+import { parseRoom, type RoomSource } from '#src/content/room.ts'
+import { planTiles } from '#src/render/tiles.ts'
+import { ROOM } from '../../../fixtures/hand-written-room.ts'
 
 const room = (rows: string[]): RoomSource => ({ id: 'test', tileSize: 8, rows })
 const BOX = parseRoom(room(['......', '......', '.P..G.', '.####.', '......']))

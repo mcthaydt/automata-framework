@@ -1,8 +1,8 @@
 import { expect, type Page, test } from '@playwright/test'
-import { ROOM } from '../fixtures/hand-written-room.ts'
-import { HAND_WRITTEN_TUNING } from '../fixtures/hand-written-tuning.ts'
-import { createBaseSim, moveCommand, readPlayer } from '../src/base-sim.ts'
-import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '../src/golden.ts'
+import { createBaseSim, moveCommand, readPlayer } from '#src/base-sim.ts'
+import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '#src/golden.ts'
+import { ROOM } from '../../fixtures/hand-written-room.ts'
+import { HAND_WRITTEN_TUNING } from '../../fixtures/hand-written-tuning.ts'
 import { gameUrl, hostOrigin } from './origins.ts'
 
 // base-2d in a real browser, served from /b/<buildId>/ with the headers Ruken would serve it with

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lightLevel } from './light-levels.ts'
+import { lightLevel } from '#src/render/light-levels.ts'
 
 describe('a pixel light', () => {
   it('is full at the centre and dark outside its radius', () => {

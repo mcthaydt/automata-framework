@@ -1,6 +1,6 @@
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { describe, expect, it } from 'vitest'
-import { EMBERWICK_FLOW } from './flow.ts'
+import { EMBERWICK_FLOW } from '#src/flow.ts'
 
 // Emberwick's flow as the runtime reads it (DX.3, decision E-2): the screens and transitions of the base's
 // old table, with background and the host's menu handled by the runtime through the room's `openMenu`.

@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import { resolveConfig } from 'vite'
 import { describe, expect, it } from 'vitest'
 
-const root = join(import.meta.dirname, '..')
+const root = join(import.meta.dirname, '../..')
 
 describe('vite.config.ts', () => {
   // Vite would inline an asset under 4 kB as a `data:` URL, which Pixi's loader fetches and Ruken's CSP

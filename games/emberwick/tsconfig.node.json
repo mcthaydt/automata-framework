@@ -8,12 +8,12 @@
     "vite.config.ts",
     "vitest.config.ts",
     "playwright.config.ts",
-    "src/ship-config.test.ts",
-    "src/vite-config.test.ts",
-    "src/art/art.test.ts",
-    "src/plumbing.test.ts",
+    "tests/unit/ship-config.test.ts",
+    "tests/unit/vite-config.test.ts",
+    "tests/unit/art/art.test.ts",
+    "tests/unit/plumbing.test.ts",
     "content/generated/content.d.ts",
-    "e2e/**/*.ts"
+    "tests/e2e/**/*.ts"
   ],
   "exclude": []
 }

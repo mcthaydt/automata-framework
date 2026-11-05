@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { ENDESGA_64, endesga } from './palette.ts'
-import { ALL_SPRITES } from './sprites.ts'
+import { ENDESGA_64, endesga } from '#src/art/palette.ts'
+import { ALL_SPRITES } from '#src/art/sprites.ts'
 
 // The palette gate the pipelines will run in M3, in miniature: every color the base draws is an Endesga 64
 // color, checked against the palette file exactly as the Owner supplied it (docs/art/palettes/endesga-64.txt).
 const paletteFile = readFileSync(
-  new URL('../../../../docs/art/palettes/endesga-64.txt', import.meta.url),
+  new URL('../../../../../docs/art/palettes/endesga-64.txt', import.meta.url),
   'utf8',
 )
 const fromFile = paletteFile

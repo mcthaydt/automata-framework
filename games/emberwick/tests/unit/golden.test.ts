@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
-import { moveCommand } from './base-sim.ts'
-import { GOLDEN_GOAL_TICK, GOLDEN_HASH } from './golden.ts'
-import { runGolden } from './golden-run.ts'
+import { moveCommand } from '#src/base-sim.ts'
+import { GOLDEN_GOAL_TICK, GOLDEN_HASH } from '#src/golden.ts'
+import { runGolden } from '#src/golden-run.ts'
 
 // The golden route replayed through the game `startGame` runs (game.ts): its sim spec and its input map, fed
 // the route as key presses. The hash is the one recorded before Emberwick moved onto `startGame` (DX.3).

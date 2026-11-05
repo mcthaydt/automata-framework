@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { ROOM as HAND_WRITTEN_ROOM } from '../fixtures/hand-written-room.ts'
-import { HAND_WRITTEN_TUNING } from '../fixtures/hand-written-tuning.ts'
-import { createBaseSim, moveCommand, readPlayer } from './base-sim.ts'
-import { ROOM, SIM_CONTENT } from './content/emberwick-content.ts'
-import { GOLDEN_GOAL_TICK, GOLDEN_HASH, routeInputs } from './golden.ts'
+import { createBaseSim, moveCommand, readPlayer } from '#src/base-sim.ts'
+import { ROOM, SIM_CONTENT } from '#src/content/emberwick-content.ts'
+import { GOLDEN_GOAL_TICK, GOLDEN_HASH, routeInputs } from '#src/golden.ts'
+import { ROOM as HAND_WRITTEN_ROOM } from '../../fixtures/hand-written-room.ts'
+import { HAND_WRITTEN_TUNING } from '../../fixtures/hand-written-tuning.ts'
 
 // GAME-2D.ED moved the room and the tunables out of code: the room is exported by the 2D editor and both are compiled
 // content, so the sim's content changed and the golden hash moved with it (the content hash is part of the state hash,

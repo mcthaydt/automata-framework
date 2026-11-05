@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ROOM } from '../../fixtures/hand-written-room.ts'
-import { isSolid, parseRoom, type RoomSource } from './room.ts'
+import { isSolid, parseRoom, type RoomSource } from '#src/content/room.ts'
+import { ROOM } from '../../../fixtures/hand-written-room.ts'
 
 const tiny = (rows: string[]): RoomSource => ({ id: 'tiny', tileSize: 8, rows })
 

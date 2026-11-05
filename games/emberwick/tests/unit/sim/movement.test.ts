@@ -1,11 +1,11 @@
 import type { Sim, SimEvent } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
-import { ROOM } from '../../fixtures/hand-written-room.ts'
-import { HAND_WRITTEN_TUNING, JUMP_SPEED, MAX_FALL, MAX_RUN } from '../../fixtures/hand-written-tuning.ts'
-import { createBaseSim, moveCommand, readPlayer } from '../base-sim.ts'
-import { parseRoom, type RoomSource } from '../content/room.ts'
-import { type MoveInput, Player, Progress } from './index.ts'
-import { HITBOX_H, HITBOX_W, SUB } from './tuning.ts'
+import { createBaseSim, moveCommand, readPlayer } from '#src/base-sim.ts'
+import { parseRoom, type RoomSource } from '#src/content/room.ts'
+import { type MoveInput, Player, Progress } from '#src/sim/index.ts'
+import { HITBOX_H, HITBOX_W, SUB } from '#src/sim/tuning.ts'
+import { ROOM } from '../../../fixtures/hand-written-room.ts'
+import { HAND_WRITTEN_TUNING, JUMP_SPEED, MAX_FALL, MAX_RUN } from '../../../fixtures/hand-written-tuning.ts'
 
 // Rooms small enough to read. `P` stands on the tile below it.
 const room = (rows: string[]): RoomSource => ({ id: 'test', tileSize: 8, rows })

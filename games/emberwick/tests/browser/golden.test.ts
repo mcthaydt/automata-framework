@@ -1,7 +1,7 @@
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { expect, it } from 'vitest'
-import { GOLDEN_GOAL_TICK, GOLDEN_HASH } from './golden.ts'
-import { runGolden } from './golden-run.ts'
+import { GOLDEN_GOAL_TICK, GOLDEN_HASH } from '#src/golden.ts'
+import { runGolden } from '#src/golden-run.ts'
 
 // The same run as golden.test.ts, in Chromium, WebKit and Firefox: the hash must match Node's bit for bit. The node
 // project runs this file too, so it records the evidence file's hash for all four engines (DX.9).
