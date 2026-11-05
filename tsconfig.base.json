@@ -12,6 +12,7 @@
     "isolatedDeclarations": true,
     "declaration": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
     "noEmit": true
   }
 }

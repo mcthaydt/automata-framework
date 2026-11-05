@@ -203,22 +203,20 @@ function relativeSpecifiers(file: string, code: string): Span[] {
 }
 
 /**
- * The file a specifier names (an absolute path), and how it wrote the name: `omitted` is the part it left out (`''`
- * when it wrote the whole name, `.ts` when it left off the extension, `/index.ts` when it named a folder), and
- * `jsStyle` is true for `./x.js` naming `x.ts`. Null when nothing on disk matches. A rewritten specifier is written
- * the same way, so a package that imports without extensions keeps doing so.
+ * The file a specifier names (an absolute path): the specifier may leave off the extension, name a folder (its
+ * `index.ts`) or write `./x.js` for `x.ts`. Null when nothing matches. The rewritten specifier always names the file in
+ * full, so the one `#src/*` alias is unambiguous.
  */
 function resolveTarget(
   from: string,
   specifier: string,
   exists: (path: string) => boolean,
-): { target: string; omitted: string; jsStyle: boolean } | null {
+): { target: string } | null {
   const [path = ''] = specifier.split('?')
   const base = join(dirname(from), path)
   for (const omitted of ['', '.ts', '/index.ts'])
-    if (exists(`${base}${omitted}`)) return { target: `${base}${omitted}`, omitted, jsStyle: false }
-  if (base.endsWith('.js') && exists(`${base.slice(0, -3)}.ts`))
-    return { target: `${base.slice(0, -3)}.ts`, omitted: '', jsStyle: true }
+    if (exists(`${base}${omitted}`)) return { target: `${base}${omitted}` }
+  if (base.endsWith('.js') && exists(`${base.slice(0, -3)}.ts`)) return { target: `${base.slice(0, -3)}.ts` }
   return null
 }
 
@@ -321,19 +319,12 @@ export function planMoves(
         const resolved = resolveTarget(move.from, span.value, exists)
         if (!resolved) return null
         const landed = moves.get(resolved.target)?.to ?? resolved.target
-        // A moved test keeps its extension; a source file's specifier leaves out the extension it left out before. A
-        // folder import keeps `/index`, because the `#src/*` alias maps to a file and cannot name a folder.
-        let landedAt = landed
-        if (resolved.omitted !== '' && landedAt.endsWith('.ts')) landedAt = landedAt.slice(0, -'.ts'.length)
-        if (resolved.jsStyle) landedAt = `${landedAt.slice(0, -'.ts'.length)}.js`
         // Code under src/ is reached through the package's alias; anything else (a moved test, a Svelte file, JSON)
         // relatively.
         const isCode =
           ALIAS_EXTENSIONS.some((extension) => landed.endsWith(extension)) && !landed.endsWith('.test.ts')
         const next =
-          isCode && landed.startsWith(`${src}/`)
-            ? `#src/${slash(relative(src, landedAt))}`
-            : toRelative(landedAt)
+          isCode && landed.startsWith(`${src}/`) ? `#src/${slash(relative(src, landed))}` : toRelative(landed)
         return { ...span, next: `${next}${query}` }
       })
       .filter((edit) => edit !== null)
@@ -350,18 +341,11 @@ export function planMoves(
 // --- applying -----------------------------------------------------------------------------------------------------
 
 /**
- * The alias tests import src through. One pattern for each kind of file a test imports from src (the longer patterns win), and a last one that adds `.ts`
- * to a specifier written without an extension (`#src/a/b`). TypeScript, Vite and Node all resolve
- * an `imports` target exactly, so each pattern names the file.
+ * The alias tests import src through: one pattern, and every specifier names its file in full (`#src/a/b.ts`,
+ * `#src/a/Comp.svelte`). Several patterns that differ only in their suffix are ambiguous to Vite's resolver, which
+ * sent `#src/a/fonts` to the `.ts` pattern. The base tsconfig allows `.ts` in imports for this.
  */
-const SRC_ALIAS = {
-  '#src/*.ts': './src/*.ts',
-  '#src/*.js': './src/*.ts',
-  '#src/*.svelte': './src/*.svelte',
-  '#src/*.json': './src/*.json',
-  '#src/*.css': './src/*.css',
-  '#src/*': './src/*.ts',
-} as const
+const SRC_ALIAS = { '#src/*': './src/*' } as const
 
 /** The kinds of file under src the alias reaches. Anything else (an image, a font, a folder) is imported relatively. */
 const ALIAS_EXTENSIONS: readonly string[] = ['.ts', '.svelte', '.json', '.css']

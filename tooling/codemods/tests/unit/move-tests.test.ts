@@ -113,15 +113,15 @@ describe('imports', () => {
     expect(text).toContain("from '#src/testing/helper.ts'")
   })
 
-  it('leaves out the extension a specifier left out, and names the index of a folder import', () => {
+  it('names the file in full when the specifier left off the extension or named a folder', () => {
     const text = textOf('tests/unit/a/j.test.ts')
-    expect(text).toContain("from '#src/a/b'")
-    expect(text).toContain("from '#src/a/sub/index'")
+    expect(text).toContain("from '#src/a/b.ts'")
+    expect(text).toContain("from '#src/a/sub/index.ts'")
   })
 
-  it('keeps .js specifiers, aliases json, and moves a new URL path to wherever it points now', () => {
+  it('maps .js to .ts, aliases json, and moves a new URL path to wherever it points now', () => {
     const text = textOf('tests/unit/a/k.test.ts')
-    expect(text).toContain("from '#src/a/b.js'")
+    expect(text).toContain("from '#src/a/b.ts'")
     expect(text).toContain("from '#src/a/data.json'")
     // src/a/ reached the package root with ../.. ; tests/unit/a/ needs one more level.
     expect(text).toContain("new URL('../../..', import.meta.url)")
@@ -168,10 +168,7 @@ describe('applyPlan', () => {
     expect(after).not.toContain('src/a/b.test.ts')
     expect(after).toContain('src/a/Published.test.svelte')
     expect(readFileSync(where('tests/unit/a/b.test.ts'), 'utf8')).toContain("from '#src/a/b.ts'")
-    expect(JSON.parse(readFileSync(where('package.json'), 'utf8')).imports).toMatchObject({
-      '#src/*.ts': './src/*.ts',
-      '#src/*': './src/*.ts',
-    })
+    expect(JSON.parse(readFileSync(where('package.json'), 'utf8')).imports).toEqual({ '#src/*': './src/*' })
   })
 
   it('is a no-op the second time', () => {
