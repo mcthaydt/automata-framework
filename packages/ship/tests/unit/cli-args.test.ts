@@ -50,12 +50,12 @@ describe('parseCliArgs', () => {
     expect(
       parseCliArgs([
         'test-remote',
-        'games/emberwick/e2e/base-2d.e2e.ts',
+        'games/emberwick/tests/e2e/base-2d.test.ts',
         '--project=emberwick-phone-chromium',
       ]),
     ).toEqual({
       command: 'test-remote',
-      args: ['games/emberwick/e2e/base-2d.e2e.ts', '--project=emberwick-phone-chromium'],
+      args: ['games/emberwick/tests/e2e/base-2d.test.ts', '--project=emberwick-phone-chromium'],
     })
   })
 

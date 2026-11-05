@@ -24,7 +24,7 @@ describe('the examples ports', () => {
 
   it('keep Emberwick’s game off 5000, where macOS’s AirPlay Receiver listens (the nightly found it taken)', async () => {
     vi.stubEnv('GITHUB_ACTIONS', 'true')
-    const emberwick = await import('../../../games/emberwick/e2e/origins.ts')
+    const emberwick = await import('../../../games/emberwick/tests/e2e/origins.ts')
     expect(emberwick.gamePort).toBe(5001)
   })
 })

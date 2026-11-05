@@ -37,9 +37,10 @@ export function e2eWorkers(env: Env): number | undefined {
 export function defineJourneys(config: PlaywrightTestConfig, env: Env = process.env): PlaywrightTestConfig {
   const workers = e2eWorkers(env)
   return defineConfig({
-    // Journeys end in `.e2e.ts` until phase 3 renames them to `*.test.ts` under `tests/e2e/` (task 3.3).
-    // Playwright fails a run that matches nothing, so this line and the file names change in one commit.
-    testMatch: '**/*.e2e.ts',
+    // Journeys end in `.e2e.ts` in an area that has not moved yet and are `*.test.ts` under `tests/e2e/` in one that has
+    // (core and 2D refactor, task 3.3). Playwright fails a run that matches nothing. When the last area has moved this
+    // is `**/*.test.ts` alone.
+    testMatch: ['**/*.e2e.ts', '**/*.test.ts'],
     forbidOnly: env.CI !== undefined,
     fullyParallel: true,
     retries: env.CI ? 1 : 0,

@@ -26,7 +26,12 @@
     // DX.7: the example imports @mcthaydt/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
     "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
-    "games/emberwick": { "ignoreDependencies": ["@mcthaydt/automata-cli"] },
+    "games/emberwick": {
+      "ignoreDependencies": ["@mcthaydt/automata-cli"],
+      // The journeys sit in tests/e2e (refactor task 3.3); the config names its directory, which knip does not follow.
+      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"],
+      "playwright": false
+    },
     // Each game or example set has its own playwright.config.ts (core-and-2D refactor, task 1.1). They are entries,
     // listed with the journeys they run, because a config's projects name test folders in other workspaces.
     "examples": { "entry": ["playwright.config.ts", "e2e/*.e2e.ts"], "playwright": false },

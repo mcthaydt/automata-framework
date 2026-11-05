@@ -35,7 +35,7 @@ describe('e2eWorkers: the journeys’ worker count', () => {
 describe('defineJourneys: the settings every config shares', () => {
   it('matches `.e2e.ts` files, runs files in parallel and keeps the trace of a failure', () => {
     const config = defineJourneys({}, {})
-    expect(config.testMatch).toBe('**/*.e2e.ts')
+    expect(config.testMatch).toEqual(['**/*.e2e.ts', '**/*.test.ts'])
     expect(config.fullyParallel).toBe(true)
     expect(config.use?.trace).toBe('retain-on-failure')
   })
