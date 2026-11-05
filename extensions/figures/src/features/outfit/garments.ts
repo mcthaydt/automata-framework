@@ -28,13 +28,13 @@ export const SWATCHES = swatchLibrary as unknown as Record<string, Material>;
 // ─── Garments ───
 export type Garment =
   /** A top painted on the torso, and as much of the arms as its sleeves cover (the base pair's: none). */
-  | { top: string; sleeves?: 'none' | 'short' | 'long' }
+  | { top: string; sleeves?: 'none' | 'short' | 'long'; cuffs?: string; collar?: string }
   /** Shorts painted on the body (the hips and thighs), with no cloth of their own: a base figure's modest block. */
   | { shorts: string }
   /** `tie`: the band a pony or a bun is tied with (a swatch); left out, a band of the hair's own. */
   | { hair: string; style: string | HairStyle; tie?: string }
   /** The eyes, the marks face's lids and brows, and the drawn face's (paint.ts) whites and lips. */
-  | { eyes: string; lids?: string; brows?: string; white?: string; lips?: string };
+  | { eyes: string; stubble?: string; lids?: string; brows?: string; white?: string; lips?: string };
 const named = <T>(library: Record<string, T>, kind: string, style: string | T): T => {
   if (typeof style !== 'string') return style;
   const found = library[style]; if (!found) throw new Error(`no ${kind} ${style}`); return found;
@@ -54,6 +54,7 @@ export interface FaceLook { shape: HeadShape; eyes?: string; white?: string; bro
  */
 export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[], swatches: Record<string, Material> = SWATCHES, ppm?: number): Look {
   const swatch = (name: string): Material => { const found = swatches[name]; if (!found) throw new Error(`no swatch ${name}`); return found; };
+  const g = s.genes, k = m.k, t = m.thick, hw = g.head * g.headWidth / 2, hd = g.head * g.headDepth / 2, h = g.head;
   const r: Regions = { skin, chest: skin, waist: skin, pelvis: skin, shoulder: skin, upper: skin, fore: skin, hand: skin, thigh: skin, knee: skin, shin: skin, shoe: skin, sole: skin, neck: skin };
   const parts: Part[] = [], decals: Decal[] = [], made: Record<string, Material> = {};
   let thighs = true, faceLook: FaceLook = { shape: m.face };
@@ -64,6 +65,10 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
       if (item.sleeves !== 'none') r.shoulder = item.top;
       if (item.sleeves !== 'none') r.upper = item.top;
       if (item.sleeves === 'long') r.fore = item.top;
+      if (item.cuffs) for (const [side] of sides) parts.push(item.sleeves === 'long'
+        ? box(J[`foreArm.${side}`], item.cuffs, armGroup(side), { at: [0, -s.foreArm * 0.9, 0], r: [0.048 * k * t * m.arm, 0.022 * k, 0.05 * k * t * m.arm], e: [0.45, 0.6] })
+        : box(J[`upperArm.${side}`], item.cuffs, armGroup(side), { at: [0, -s.upperArm * 0.86, 0], r: [0.056 * k * t * m.arm, 0.02 * k, 0.058 * k * t * m.arm], e: [0.45, 0.6] }));
+      if (item.collar) for (const [, x] of sides) parts.push(box(J.chest, item.collar, GROUP.torso, { at: [x * 0.04 * k, 0.172 * k, 0.045 * k], r: [0.04 * k, 0.018 * k, 0.04 * k], turn: axisAngle([0, 1, 0], x * 0.5), e: [0.35, 0.5] }));
     } else if ('shorts' in item) { r.pelvis = r.thigh = item.shorts; }
     // The hair: the generators' pieces (hair.ts), one surface, so the painter draws no line between them.
     else if ('hair' in item) {
@@ -77,6 +82,7 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
     } else if ('eyes' in item) {
       decals.push(...face(s, item.eyes, item.lids ?? 'lid', item.brows ?? 'brow'));
       faceLook = { shape: m.face, eyes: item.eyes, white: item.white, brows: item.brows, lips: item.lips };
+      if (item.stubble) parts.push(box(J.head, item.stubble, GROUP.head, { at: [0, h * 0.12, hd * 0.52], r: [hw * 0.72, h * 0.12, hd * 0.5], e: [0.6, 0.65], taper: [0.7, 1] }, { seam: FACE_SEAM }));
     }
   }
   Object.assign(made, earSkins(skin, swatch(skin)));
