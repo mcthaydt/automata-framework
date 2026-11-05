@@ -18,6 +18,9 @@ import { headAt, headForm, headNormal, insideHead, type HeadForm } from '../body
  * - rows: ropes laid on the scalp from the hairline to a point: braids gathered up into a pony, cornrows to the nape.
  * - tail: a ponytail's ropes, rising from the crown and falling down the back, clear of the body, to below the shoulders.
  *
+ * A fork adds pieces of its own (registerHairPiece, built from HairCtx's helpers) and finishes (registerFinish); base
+ * registers none.
+ *
  * Every piece is one surface (seam 2000) unless it is ropes whose gaps must show: each rope is then its own part, so
  * the painter's crevice falls where one passes over another and the ground between them, and the beads along a rope
  * (the plait) are its own form, lit on top and dark under, so they alternate light and dark at any density.
@@ -196,19 +199,34 @@ export interface Rows { count: number; at?: number; span: number; from: Line; to
 export interface Tail { at: V3; count: number; rope: Rope; rise: number; length: number; spread: [number, number]; tie?: Tie; cuffs?: string; matte?: boolean }
 /** A tie: `true` the wearer's (HairInput.tie: the outfit's own metal, else a band of the hair's own), or a swatch. */
 export type Tie = boolean | string;
-export type Piece = { scalp: Scalp } | { rows: Rows } | { tail: Tail };
+/** One of the three generators' pieces. */
+type OwnPiece = { scalp: Scalp } | { rows: Rows } | { tail: Tail };
+/** A piece of a style: one of the three generators', or a registered piece (H3, registerHairPiece) keyed by its kind's
+ * name, its value what that kind's builder takes. */
+export type Piece = OwnPiece | { [kind: string]: unknown };
 /** A style's finish, whatever colour it is worn in (a hair swatch gives only its hue ramp): tight coils (a fade's
- * stubble) or braids. */
-export type Finish = 'coil' | 'braid';
+ * stubble) or braids here, and any finish a fork registers (H4, registerFinish) by name. */
+export type Finish = string;
 /** Each finish's light: how far the key reaches down its form (paint.ts thresholds: the light on its crests, a shadow
  * side), and whether it is matte (no glint, and its lit tone a step up in the shadow too, so a plait's beads, a loc's
  * edge, a coil's specks read on the dark side as well). */
-const FINISH: Record<Finish, { tones: [number, number, number]; matte: boolean }> = {
+const FINISH: Record<'coil' | 'braid', { tones: [number, number, number]; matte: boolean }> = {
   // Tight coils: mostly mid, the light on the crests.
   coil: { tones: [0.8, 0.3, -0.4], matte: true },
   // Braids: the light a rare crest and a deep shadow side, so the beads and the ropes carry the form.
   braid: { tones: [0.9, 0.2, -0.8], matte: true },
 };
+/** A finish's light (FINISH). */
+type Light = { tones: [number, number, number]; matte: boolean };
+/** The finishes a fork registers (registerFinish), by name. Empty in base. */
+const FINISHES = new Map<string, Light>();
+/** Registers a hair finish (H4) under `name`, which a style's `finish` then names: how far the key reaches down its form
+ * (`tones`, as FINISH's) and whether it is matte. A matte finish never takes the sheen band (finish()). Throws on a name
+ * base or an earlier registration has taken. */
+export function registerFinish(name: string, light: Light): void {
+  if (name in FINISH || FINISHES.has(name)) throw new Error(`hair finish ${name} is registered already`);
+  FINISHES.set(name, light);
+}
 /** `finish`: its texture's light; the colour it is worn in gives only the hue. */
 export interface HairStyle { about: string; pieces: Piece[]; finish: Finish }
 /** The hair styles a character names (library/hair.json): the generators' pieces and the finish they are painted with. */
@@ -276,7 +294,8 @@ export interface HairLook { parts: Part[]; decals: Decal[]; materials: Record<st
  * (the ground between cornrows, lighter than the rows). */
 function finish(i: HairInput, f: Finish, tone: Tone, made: Record<string, Material>, matte = false): string {
   if (!['hair', 'lit', 'crest', 'fade1', 'fade2', 'scalp', 'parting'].includes(tone)) return tone;
-  const light = FINISH[f], dull = matte || light.matte, name = `${i.hair}@${tone}:${f}${dull ? '~matte' : ''}`;
+  const light = (FINISH as Record<string, Light | undefined>)[f] ?? FINISHES.get(f); if (!light) throw new Error(`no finish ${f}`);
+  const dull = matte || light.matte, name = `${i.hair}@${tone}:${f}${dull ? '~matte' : ''}`;
   if (made[name]) return name;
   const sw = i.swatch(i.hair), skin = i.swatch(i.skin);
   const p = sw.paint ?? tonesOf(sw).map(hexOf), hair: Material = { ramp: sw.ramp, base: sw.base, paint: p, tones: light.tones, ...(dull ? {} : { sheen: true }) };
@@ -307,6 +326,37 @@ function raise(hex: string) {
   for (const row of RAMPS) { const i = row.indexOf(c); if (i >= 0) return hexOf(row[Math.min(7, i + 1)]); }
   return hex;
 }
+/**
+ * What a registered hair piece (H3, registerHairPiece) is given: the style's input, its skull, head form, head pivot,
+ * half-width and density, the parts and marks the style is making (a piece pushes onto them), the helpers the three
+ * generators draw with (`rigid` a piece rigid on the head, `hung` one skinned to the hair's joints, `tone` a tone's
+ * material in the style's finish, `tieOf` a tie's swatch), and `seam`, the one counter of own surfaces every piece of a
+ * style shares, so seams number as they always have whatever the mix of pieces.
+ */
+export interface HairCtx {
+  i: HairInput; k: Skull; form: HeadForm; head: V3; hw: number; ppm: number;
+  parts: Part[]; decals: Decal[];
+  rigid(mesh: Mesh, t: Tone, own?: number, lit?: Mesh, matte?: boolean): void;
+  hung(mesh: Mesh, ts: number[], to: Tone, swing: (t: number) => [number, number][], own: number, lit?: Mesh, matte?: boolean): void;
+  tone(t: Tone, matte?: boolean): string;
+  tieOf(t: Tie | undefined): string | null;
+  /** The next own surface: the counter every piece of a style shares. */
+  seam(): number;
+}
+/** A hair piece a fork registers (H3): how one entry of a style's `pieces` is built. */
+export interface HairPiece<T = any> {
+  build(c: HairCtx, piece: T): void;
+  /** Its parts take the CROWN tag, like the scalp's and the rows': what is worn up on the head lies on them. */
+  crown?: boolean;
+}
+/** The hair pieces a fork registers (registerHairPiece), by kind. Empty in base. */
+const PIECES = new Map<string, HairPiece>();
+/** Registers a hair piece under `kind`, the key a style's piece carries ({ bun: {…} }). Throws on a name taken, the
+ * generators' (scalp, rows, tail) included. */
+export function registerHairPiece(kind: string, p: HairPiece): void {
+  if (['scalp', 'rows', 'tail'].includes(kind) || PIECES.has(kind)) throw new Error(`hair piece ${kind} is registered already`);
+  PIECES.set(kind, p);
+}
 /** A style's parts on the head and its swinging joints, fitted to the skeleton's head and the body under it. */
 export function hairParts(i: HairInput, style: HairStyle): HairLook {
   const { s, m } = i, k = skull(s), form = headForm(m, s), head = s.rest[J.head], hw = k.r[0], parts: Part[] = [], decals: Decal[] = [], made: Record<string, Material> = {};
@@ -328,10 +378,14 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       parts.push({ mesh: placed, material: tone(t, matte), group: 1, seam: own, skin: ts.map(swing) });
     }
   };
+  /** What a registered piece (a fork's, registerHairPiece) is given: the same helpers and the one seam counter. */
+  const ctx: HairCtx = { i, k, form, head, hw, ppm, parts, decals, rigid, hung, tone, tieOf, seam: () => seam++ };
   for (const piece of style.pieces) {
     const first = parts.length;
-    if ('scalp' in piece) {
-      const o = piece.scalp;
+    // The generators' own pieces are told apart by their key; any other is a registered piece, handled last.
+    const own = piece as OwnPiece;
+    if ('scalp' in own) {
+      const o = own.scalp;
       // A fade: the head's own surface graded up the band in tiers, the skin at its foot (its material, so it shades on
       // unbroken from the neck and the ear), then the hair's tones mixed toward the skin's, then the stubble (the hair's,
       // matte), each tier one solid tone, so it grades with no speckle and no line where it meets the top.
@@ -342,10 +396,10 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
           if (mesh.indices.length) parts.push({ bone: J.head, mesh, material: n < 0 ? i.skin : tone(grade[n][1], true), group: 1, seam: FACE_SEAM });
         }
       } else { const sh = shell(k, o, form); rigid(sh.mesh, o.tone ?? 'hair', HAIR_SEAM, sh.lit); }
-    } else if ('rows' in piece) {
+    } else if ('rows' in own) {
       // Rows from the hairline, gathered to one point, or each straight back over the top to the nape, keeping its
       // place across the head (in the skull's units) so the rows run parallel and the scalp shows evenly between them.
-      const o = piece.rows;
+      const o = own.rows;
       for (let r = 0; r < o.count; r++) {
         const a = (o.at ?? 0) + (o.count === 1 ? 0 : -o.span + 2 * o.span * r / (o.count - 1)), start = sub(onHead(form, k, a, along(o.from, a)), k.c);
         const path: V3[] = [];
@@ -366,10 +420,15 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
         const { mesh, lit } = sweep(path, { tip: 'blunt', ...o.rope, ...slant }, hw, p => sub(p, k.c));
         rigid(mesh, o.tone ?? 'hair', o.apart === false ? HAIR_SEAM : seam++, lit, o.matte);
       }
-    } else if ('tail' in piece) tail(piece.tail);
+    } else if ('tail' in own) tail(own.tail);
+    else {
+      const name = Object.keys(piece)[0], p = PIECES.get(name);
+      if (!p) throw new Error(`no hair piece ${name}`);
+      p.build(ctx, (piece as Record<string, unknown>)[name]);
+    }
     // The hair's top over the crown (its shells and rows; never a tail, a fade): what is worn up lies on it, not on
     // whatever stands furthest out.
-    if ('rows' in piece || ('scalp' in piece && piece.scalp.tone !== 'fade')) for (let n = first; n < parts.length; n++) parts[n].tag = CROWN;
+    if ('rows' in own || ('scalp' in own && own.scalp.tone !== 'fade') || PIECES.get(Object.keys(piece)[0])?.crown) for (let n = first; n < parts.length; n++) parts[n].tag = CROWN;
   }
   /**
    * A high ponytail: tied on the crown, its ropes gathered in a ring at the tie, rising out of it, arcing back over the
