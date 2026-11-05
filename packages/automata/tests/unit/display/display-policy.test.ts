@@ -1,7 +1,7 @@
 import { Effect, Exit, Scope } from 'effect'
 import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { displayPolicy } from '#src/features/display/display-policy.svelte.ts'
+import { createDisplayPolicy } from '#src/features/display/display-policy.svelte.ts'
 import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { makeTime } from '#src/shared/runtime/time/time.manager.ts'
 import type { FormFactor } from '../../../src/shared/ui/geometry/form-factor.ts'
@@ -93,7 +93,7 @@ const withPolicy = (
       const geometry = fakeGeometry(options.formFactor ?? 'phone-landscape')
       const window = fakeWindow(options)
       const root = layer()
-      yield* displayPolicy({
+      const policy = createDisplayPolicy({
         orientation: options.orientation ?? 'any',
         hosted: options.hosted ?? false,
         win: window.win,
@@ -102,6 +102,7 @@ const withPolicy = (
         time,
         ...(options.rotateHint === undefined ? {} : { rotateHint: options.rotateHint }),
       })
+      yield* Effect.addFinalizer(() => Effect.sync(() => policy.dispose()))
       flushSync()
       yield* Effect.promise(() => body({ root, time, geometry, window }))
     }),
@@ -214,28 +215,28 @@ describe('the rotate hint as a toast', () => {
 })
 
 describe('closing', () => {
-  it('unmounts both covers and stops listening when its scope closes', async () => {
+  it('unmounts both covers and stops listening when disposed', async () => {
     const scope = Effect.runSync(Scope.make())
     const time = makeTime(Effect.runSync(makePresentationBus().pipe(Scope.extend(scope))))
     const geometry = fakeGeometry('phone-landscape')
     const window = fakeWindow()
     const root = layer()
-    Effect.runSync(
-      displayPolicy({
-        orientation: 'portrait',
-        hosted: false,
-        win: window.win,
-        geometry: geometry.owner,
-        layer: root,
-        time,
-      }).pipe(Scope.extend(scope)),
-    )
+    const policy = createDisplayPolicy({
+      orientation: 'portrait',
+      hosted: false,
+      win: window.win,
+      geometry: geometry.owner,
+      layer: root,
+      time,
+    })
     flushSync()
     expect(gate(root)).not.toBeNull()
-    await Effect.runPromise(Scope.close(scope, Exit.void))
+    policy.dispose()
+    flushSync()
     expect(root.children.length).toBe(0)
     expect(geometry.listeners.size).toBe(0)
     expect(window.changes.size).toBe(0)
     expect(time.paused).toBe(false)
+    await Effect.runPromise(Scope.close(scope, Exit.void))
   })
 })

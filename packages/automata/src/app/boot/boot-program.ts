@@ -5,7 +5,7 @@ import { Context, Duration, Effect, ExecutionStrategy, Layer, Scope, Stream } fr
 import { Audio, makeAudio } from '../../features/audio/audio.manager.js'
 import { AudioBuses } from '../../features/audio/audio-buses.js'
 import { playEventSounds } from '../../features/audio/event-sounds.js'
-import { displayPolicy } from '../../features/display/display-policy.svelte.js'
+import { createDisplayPolicy } from '../../features/display/display-policy.svelte.js'
 import { resolveExtensions } from '../../features/extension/resolve-extensions.js'
 import { browserHaptics, Haptics } from '../../features/input/haptics/haptics.manager.js'
 import { submitEventScores } from '../../features/leaderboards/event-scores.js'
@@ -419,7 +419,7 @@ export function bootProgram<S>(
     yield* flowHandle.start()
 
     // The landscape gate (standalone) and the rotate hint, over every screen for the session.
-    yield* displayPolicy({
+    const display = createDisplayPolicy({
       orientation: game.orientation ?? 'any',
       rotateHint: game.rotateHint ?? 'block',
       hosted: hosting.kind !== 'standalone',
@@ -428,6 +428,7 @@ export function bootProgram<S>(
       layer: layers.overlay,
       time,
     })
+    yield* Effect.addFinalizer(() => Effect.sync(() => display.dispose()))
   })
 
   return program.pipe(
