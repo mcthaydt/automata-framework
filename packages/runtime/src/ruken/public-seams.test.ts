@@ -11,7 +11,6 @@ import {
   audioBusGainsSchema,
   type InputProfile,
   inputProfileSchema,
-  NetworkPort,
   PresentationBus,
   type SettingsDef,
   settingsStore,
@@ -73,24 +72,17 @@ describe('core seams through the public entries', () => {
     }).pipe(Effect.provide(RuntimeTest()), Effect.scoped, Effect.runPromise)
   })
 
-  it('an extension is declared with defineExtension, and the ports are tags it can be given', () => {
-    const net = defineExtension({ name: 'net' })
-    expect(net.name).toBe('net')
+  it('an extension is declared with defineExtension, and the audio buses are a tag it can be given', () => {
+    const extension = defineExtension({ name: 'chime' })
+    expect(extension.name).toBe('chime')
     expect(AUDIO_BUS_NAMES).toContain('music')
     const context = Context.empty().pipe(
-      Context.add(NetworkPort, {
-        onRemoteCommand: () => () => undefined,
-        sendCommand: () => undefined,
-        publishSnapshot: () => undefined,
-        onSnapshot: () => () => undefined,
-      }),
       Context.add(AudioBuses, {
         input: () => ({}) as AudioNode,
         gain: () => 1,
         setGain: () => undefined,
       }),
     )
-    expect(Context.getOption(context, NetworkPort)._tag).toBe('Some')
     expect(Context.getOption(context, AudioBuses)._tag).toBe('Some')
   })
 })

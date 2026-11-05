@@ -6014,19 +6014,6 @@ A missing field takes its default; a bad record reads as the defaults, as every 
 const audioSettingsSchema: z.ZodType<AudioSettings, unknown>;
 ```
 
-#### `AuthoritativeSnapshot` (interface)
-
-One authoritative state: the authority sim's `snapshot()` bytes at `tick`, with its `hash()`. A receiver
-`restore`s the bytes and may compare its own hash to `hash` to detect divergence.
-
-```ts
-interface AuthoritativeSnapshot {
-  readonly tick: number;
-  readonly bytes: Uint8Array;
-  readonly hash: string;
-}
-```
-
 #### `AutosavePolicy` (interface)
 
 When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval`
@@ -7117,35 +7104,6 @@ Each step that names a language the game lacks falls through to the next.
 
 ```ts
 function negotiateLocale(candidates: LocaleCandidates): string;
-```
-
-#### `NetworkPort` (interface)
-
-The networking seam (PRODUCT spec §2 F1): remote commands in, authoritative snapshots out. The sim already
-takes `Command`s and restores snapshot bytes, so the port carries exactly those; the wire format, rooms,
-prediction and reconciliation belong to whatever implements it (Plus `net`, M7) or to the game.
-
-An authority listens with `onRemoteCommand` and answers with `publishSnapshot`; a client sends with
-`sendCommand` and listens with `onSnapshot`. One implementation may serve either role.
-
-Commands cross the port every tick, so its members are plain callbacks rather than Effects (ADR 0003: no
-Effect allocation per frame). Sends never throw: a transport failure is the implementation's to report
-(for example as a presentation-bus fact), never a silent switch to another path. Each `on*` returns its
-unsubscribe; a listener removed, or registered after the port's scope closed, receives nothing.
-The `NetworkPort` service tag. Core provides no implementation; an extension or the game provides one.
-
-```ts
-interface NetworkPort {
-  /** Each command a remote peer sent, in arrival order, as the sim's own `Command`. */
-  onRemoteCommand(listener: (command: Command) => void): () => void;
-  /** Sends one local command to the authority. */
-  sendCommand(command: Command): void;
-  /** The authority publishes its state after a step. */
-  publishSnapshot(snapshot: AuthoritativeSnapshot): void;
-  /** Each authoritative snapshot received, in arrival order. */
-  onSnapshot(listener: (snapshot: AuthoritativeSnapshot) => void): () => void;
-}
-const NetworkPort: Context.Tag<NetworkPort, NetworkPort>;
 ```
 
 #### `PadInfo` (interface)
@@ -9515,7 +9473,7 @@ class TestRemoteFailed extends TestRemoteFailedBase {}
 #### `TestRemoteInput` (interface)
 
 What `testRemote` runs and how long it waits. The timing fields are for tests: the defaults suit a real
-run. `args` are the words after `test-remote`: nothing for the hosted checks, Playwright arguments for one
+run. `args` are the words after `test-remote`: nothing for the hosted checks, a folder and Playwright arguments for one
 focused run, or `--nightly`.
 
 ```ts

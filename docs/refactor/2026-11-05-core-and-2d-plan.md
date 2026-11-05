@@ -212,12 +212,12 @@ task.
 
 ### Task 2.1: Land the two open core fixes, then tag the starting point
 
-- [ ] **Step 1:** #379 (no double-tap zoom or long-press selection) and #383 (browser-safe content entries
+- [ ] **Step 1 (not done, see the log):** #379 (no double-tap zoom or long-press selection) and #383 (browser-safe content entries
   `./schema` and `./palette`; base-3d's dev server boots) are small fixes from the Owner's iPad tests, open as
   drafts since 2026-11-01. Rebase each on `main`, rerun its own listed gates, mark it ready, and merge once every
   check, parity included, is green on its head (`AGENTS.md` allows the agent to merge its own PRs then). If either
   cannot go green in this session, leave it open and record why; the refactor then carries it in task 4.3.
-- [ ] **Step 2:** `git tag pre-refactor-2d origin/main && git push origin pre-refactor-2d`. A tag is not a branch
+- [ ] **Step 2 (not done, see the log):** `git tag pre-refactor-2d origin/main && git push origin pre-refactor-2d`. A tag is not a branch
   and deletes nothing. Record the commit in the execution log.
 
 ### Task 2.2: Emberwick's stand-ins (PR `claude/refactor-2d-unused`)
@@ -253,7 +253,7 @@ task.
 Delete each feature in the spec's section 5 table marked **delete** (the networking port),
 plus leaderboards if step 0 says so, one commit each.
 
-- [ ] **Step 0: Check what `defineGame` wires in.** Emberwick passes its own `screens` (plain DOM: splash, menu,
+- [x] **Step 0: Check what `defineGame` wires in.** Emberwick passes its own `screens` (plain DOM: splash, menu,
   room, paused, end), so it shows none of the default screens; `games/base-3d` uses the default Title, Pause and
   Settings screens with `CORE_SETTINGS`. So the check runs on both games: run each one's journeys with a trace and
   list every screen and section it shows (Title, Pause, Settings: Audio, Controls, Touch, Vibration, Language,
@@ -263,17 +263,17 @@ plus leaderboards if step 0 says so, one commit each.
 
 For each feature:
 
-- [ ] **Step 1:** List every file that names it: `grep -rliE '<pattern>' packages games examples tooling --include=*.ts
+- [x] **Step 1:** List every file that names it: `grep -rliE '<pattern>' packages games examples tooling --include=*.ts
   --include=*.svelte` (patterns: `\bnet\b|NetPort`, and `leaderboard` if step 0 cleared it). Add `agents` to the search paths. Paste the list in the commit body. Known users that are not games, which go
   with the feature (spec section 5): `core-leaderboard` and its journey,
   `examples-runner`'s fake Ruken host and `examples/ui/primitives` (leaderboards, if deleted).
-- [ ] **Step 2:** Delete the files and the exports; remove the host capability from the contract schema, the
+- [x] **Step 2:** Delete the files and the exports; remove the host capability from the contract schema, the
   settings section from the settings screen, the example and its journey and replay golden, and the `ship` target.
-- [ ] **Step 3:** `pnpm check`, `pnpm test:parity` (core and 2D), Emberwick's journeys and the 3D/editors workflow
+- [x] **Step 3:** `pnpm check`, `pnpm test:parity` (core and 2D), Emberwick's journeys and the 3D/editors workflow
   locally (`pnpm --filter @af-games/base-3d test:unit`) all pass.
-- [ ] **Step 4:** `pnpm api-report --update` and `pnpm agent-skills --write`; add one `patch` changeset per
+- [x] **Step 4:** `pnpm api-report --update` and `pnpm agent-skills --write`; add one `patch` changeset per
   published package touched, whose text says which exports are removed. Commit `feat!(<pkg>): remove <feature>, which no game uses`.
-- [ ] **Step 5:** Open the PR, green, merge. (ADR 0006 is unchanged: Tauri stays a core target, spec section 5.)
+- [x] **Step 5:** Open the PR, green, merge. (ADR 0006 is unchanged: Tauri stays a core target, spec section 5.)
 
 ---
 
@@ -717,3 +717,16 @@ the features it lacks are journeyed on the one-file examples that show them:
   swept in the placeholder deletion by mistake (the index already held it), so a second commit on #388 restores
   it and the net change on #388 is the three tests only. Deviation (11): `packages/ship/turbo.json` no longer hashes
   `games/placeholder/e2e/**`, since no ship test reads a game's journeys.
+- 2026-11-05 (stage 4, phase 2, task 2.1): the tag `pre-refactor-2d` exists locally on `origin/main` (da765837) but
+  `git push origin refs/tags/pre-refactor-2d` fails with HTTP 403 from this environment (tag pushes are refused by the
+  git proxy), so the Owner pushes it: `git tag pre-refactor-2d da765837 && git push origin pre-refactor-2d`. #379 and
+  #383 are not landed: both are drafts with a stale base, branches this thread did not open, and the self-hosted
+  runners were still working through phase 1's jobs, so a green head was not reachable in this session. The refactor
+  carries both in task 4.3, as the plan allows.
+- 2026-11-05 (stage 4, phase 2, task 2.4): step 0 result is in spec section 5: leaderboards **kept**. Networking
+  port deleted: `packages/runtime/src/net`, its export, the seam entries in `tooling/api-report/src/seams.ts`, the
+  `public-seams.test.ts` case that gave it to an extension (the test now gives the audio buses), the generated API
+  report, `api.md` and cheatsheet. One `patch` changeset with the `BREAKING:` line `check-api-report` requires before
+  1.0. Ran: `pnpm check`, `pnpm api-report` (2 breaks, 0 undeclared), `check-changesets`, `docs:stack`. Not run
+  locally: `test:parity:core` (WebKit and Firefox are not installable here), left to the PR's CI. Deviation (12): the
+  `stack-cards.ts` note about the planned `net` extension said "a `NetworkPort`"; it now says "a network seam".

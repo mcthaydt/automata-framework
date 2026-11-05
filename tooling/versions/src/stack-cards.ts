@@ -102,7 +102,7 @@ export const STACK: StackSource = {
       planned: { packages: ['colyseus'], task: 'M7 (`net` and `server`)' },
       does: 'Rooms and transport for the `net` and `server` extensions (master spec §4).',
       why: "FloorFifty's multiplayer already runs on Colyseus: its network manager, room store and server rooms are the extraction source (extraction map).",
-      adds: 'Planned in M7: a `NetworkPort` behind the client, a room-mirroring store, server rooms running the same sim, an input queue and tick scheduler, prediction and reconciliation.',
+      adds: 'Planned in M7: a network seam behind the client, a room-mirroring store, server rooms running the same sim, an input queue and tick scheduler, prediction and reconciliation.',
     },
   ],
   notes: [

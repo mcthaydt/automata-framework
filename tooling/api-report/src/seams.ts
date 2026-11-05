@@ -26,14 +26,6 @@ export const SEAMS: readonly Seam[] = [
   { seam: 'input profiles', package: runtime, entryPoint: '.', name: 'actionsForKey' },
   { seam: 'input profiles', package: runtime, entryPoint: '.', name: 'actionsForPadButton' },
   {
-    seam: 'NetworkPort',
-    package: runtime,
-    entryPoint: '.',
-    name: 'NetworkPort',
-    members: ['onRemoteCommand', 'sendCommand', 'publishSnapshot', 'onSnapshot'],
-  },
-  { seam: 'NetworkPort', package: runtime, entryPoint: '.', name: 'AuthoritativeSnapshot' },
-  {
     seam: 'audio buses',
     package: runtime,
     entryPoint: '.',

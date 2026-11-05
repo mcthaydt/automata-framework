@@ -27,7 +27,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 20% (6 of 30 tasks)
+### Build: 23% (7 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -37,10 +37,10 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 1.2 The pull request gate | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
 | 1.3 Frame budget skips on a software renderer | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
 | 1.4 `.vscode` | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
-| 2.1 Tag the starting point | 2 | Not started | |
+| 2.1 Tag the starting point | 2 | Partly: the tag push is refused (HTTP 403) from here, so the Owner pushes it; #379 and #383 are carried in task 4.3 | |
 | 2.2 Emberwick's stand-ins | 2 | Done, 2026-11-05 (CI run pending) | PR to open |
 | 2.3 The placeholder game | 2 | Done, 2026-11-05 (CI run pending) | PR to open |
-| 2.4 Features no game uses | 2 | Not started | |
+| 2.4 Features no game uses | 2 | Done, 2026-11-05 (CI run pending); leaderboards kept | [#390](https://github.com/mcthaydt/automata-framework/pull/390) |
 | 3.1 The Vitest preset | 3 | Not started | |
 | 3.2 The test move codemod | 3 | Not started | |
 | 3.3 Move tests, package by package | 3 | Not started | |

@@ -212,16 +212,6 @@ interface AudioSettings {
 const audioSettingsSchema: z.ZodType<AudioSettings, unknown>;
 ```
 
-### `AuthoritativeSnapshot` (interface)
-
-```ts
-interface AuthoritativeSnapshot {
-    readonly tick: number;
-    readonly bytes: Uint8Array;
-    readonly hash: string;
-}
-```
-
 ### `AutosavePolicy` (interface)
 
 ```ts
@@ -995,18 +985,6 @@ interface MusicOptions {
 
 ```ts
 function negotiateLocale(candidates: LocaleCandidates): string;
-```
-
-### `NetworkPort` (interface)
-
-```ts
-interface NetworkPort {
-    onRemoteCommand(listener: (command: Command) => void): () => void;
-    sendCommand(command: Command): void;
-    publishSnapshot(snapshot: AuthoritativeSnapshot): void;
-    onSnapshot(listener: (snapshot: AuthoritativeSnapshot) => void): () => void;
-}
-const NetworkPort: Context.Tag<NetworkPort, NetworkPort>;
 ```
 
 ### `PadInfo` (interface)
