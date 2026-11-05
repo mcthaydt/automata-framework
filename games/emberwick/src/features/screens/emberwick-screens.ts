@@ -179,6 +179,16 @@ export function emberwickScreens(game: ScreensGame): ScreenDef[] {
           pause()
         })
 
+        // Leaving the page (another tab, another app, a locked phone) pauses the round, so the player comes back to
+        // the pause menu instead of to a game that kept running.
+        const pauseWhenHidden = (): void => {
+          if (target.document.hidden) pause()
+        }
+        yield* Effect.acquireRelease(
+          Effect.sync(() => target.document.addEventListener('visibilitychange', pauseWhenHidden)),
+          () => Effect.sync(() => target.document.removeEventListener('visibilitychange', pauseWhenHidden)),
+        )
+
         // The sim's goal event ends the round; the end screen shows how long it took.
         const unsubscribe = bus.subscribe('sim.events', (events) => {
           if (!events.some((event) => event.type === 'goal.reached')) return

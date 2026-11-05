@@ -58,8 +58,8 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 6.4 The surface | 6 | Done locally, 2026-11-05 (CI run pending): `@mcthaydt/automata` root 600 → 274 names; the ten API reports 2,109 → 1,783 exports (audit's 1,042 was counted differently); changeset `trim-the-root-entry` | PR to open |
 | 7.1 Docs and AGENTS.md | 7 | Done locally, 2026-11-05: `docs/archive/`, `docs/README.md`, `docs/status.md` (47 lines), `AGENTS.md` (88 lines), `examples/README.md` | PR to open |
 | 7.2 Comments that cite plans | 7 | Steps 1 and 2 done locally (rule behind `--plan-comments`); Emberwick rewritten and checked. **Open:** step 3 for the other core and 2D packages (about 400 hits in `automata`) | PR to open |
-| 8.1 The copy table | 8 | Not started | |
-| 8.2 New Emberwick journeys | 8 | Not started | |
+| 8.1 The copy table | 8 | Step 1 and 2 done locally for core screens, boot failure and Emberwick (`copy.md`); CLI messages, READMEs and Settings sections still to check | PR to open |
+| 8.2 New Emberwick journeys | 8 | Partly: pause on hide (new behaviour) and the end screen done; boot failure blocked on a refusal switch in Ruken's fake host (deviation 64); the example journeys not started | PR to open |
 | 8.3 The `create-game` journey | 8 | Not started | |
 | 9.1 Prepare the branch clean-up | 9 | Done: `branches.md` and `pnpm branches:prune` (dry run only; nothing deleted) | |
 | 9.2 Run it (the Owner's go) | 9 | Not started | |

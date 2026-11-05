@@ -138,6 +138,27 @@ test('menu → room → pause → resume → pause → quit, by keyboard and but
   expect(errors).toEqual([])
 })
 
+// Switching to another tab or app must not cost the player their place: the round pauses on its own, and coming
+// back shows the pause menu, not a game that kept running unseen.
+test('hiding the page pauses the round; coming back offers Resume', async ({ page }) => {
+  const errors = await collectErrors(page)
+  await openMenu(page)
+  await page.keyboard.press('Enter')
+  await roomLive(page)
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+  await expect(game(page)).toHaveAttribute('data-screen', 'paused')
+  await page.getByRole('button', { name: 'Resume' }).click()
+  await expect(game(page)).toHaveAttribute('data-screen', 'room')
+  expect(errors).toEqual([])
+})
+
 test('the character walks and jumps with the keyboard', async ({ page }) => {
   const errors = await collectErrors(page)
   await openMenu(page)
@@ -218,6 +239,13 @@ test('playing the golden route with the keyboard reaches the ember and the end s
   await expect(game(page)).toHaveAttribute('data-screen', 'end')
   await expect(page.getByRole('button', { name: 'Play again' })).toBeFocused()
   await expect(page.locator('[data-slot="time"]')).toHaveText('5.70 s')
+  // Play again starts a fresh round; from its pause screen Back to menu returns to the title.
+  await page.getByRole('button', { name: 'Play again' }).click()
+  await expect(game(page)).toHaveAttribute('data-screen', 'room')
+  await page.keyboard.press('Escape')
+  await expect(game(page)).toHaveAttribute('data-screen', 'paused')
+  await page.getByRole('button', { name: 'Back to menu' }).click()
+  await expect(game(page)).toHaveAttribute('data-screen', 'menu')
   expect(errors).toEqual([])
 })
 

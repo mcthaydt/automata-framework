@@ -925,3 +925,14 @@ the features it lacks are journeyed on the one-file examples that show them:
   `pnpm style` with 400 hits in `automata` and Emberwick alone); Emberwick's 7 hits are rewritten and its root is checked.
   **Open:** step 3 for `automata`, `sim`, `content`, `tools` and the rest (about 400 hits in `automata` + Emberwick before this
   PR; commit per package), then add each root to the `style` script.
+- **Tasks 8.1 and 8.2, fourth session, 2026-11-05 (PR `claude/refactor-2d-copy`, stacked on #396).** 8.1: `docs/refactor/copy.md` lists
+  the strings of the default screens, saves, boot failure and Emberwick, with three rewrites applied (`Quit` → `Back to menu`,
+  the damaged-game message ends in an action, the audio note drops "host"); the Settings sections' longer strings, the CLI
+  messages and the READMEs' first screens are listed as not yet checked. 8.2: pause on hide is a new journey and it failed first
+  for the right reason (nothing paused the round when the page was hidden), so Emberwick's room now pauses on `visibilitychange`
+  (deviation 63: a small behaviour added, because the plan asks for the journey to pass; the plumbing measure's limit went from 400
+  to 420). The end-screen journey extends the golden-route journey (Play again → room → pause → Back to menu). The boot failure
+  journey is **not done** (deviation 64): Ruken's fake host has no refusal option, and a silent host does not fail the boot (the game
+  carried on to its menu), so the journey needs a refusal switch in the fake host, which is a request to Ruken. The touch-only
+  journey already exists in the touch-button journey and the 44 px check; the examples' journeys (saves and settings surviving a
+  reload, slow content load) and 8.3 (`create-game` journey) are not started.
