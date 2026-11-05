@@ -12,8 +12,8 @@ export type SaveSlotsShow = (typeof SAVE_SLOTS_SHOWS)[number]
 
 <script lang="ts">
 import ScreenFrame from '../../shared/ui/layout/ScreenFrame.svelte'
-import SaveSlots from '../../features/saves/ui/SaveSlots.svelte'
-import type { SaveSlotsCopy, SaveSlotsView, SaveSlotView } from '../../features/saves/ui/save-slots'
+import SaveSlots from '../../app/screens/saves/SaveSlots.svelte'
+import type { SaveSlotsCopy, SaveSlotsView, SaveSlotView } from '../../app/screens/saves/save-slots'
 import { type FixtureLocale, say } from './locale-fixture'
 
 const { show, locale = 'en' }: { show: SaveSlotsShow; locale?: FixtureLocale } = $props()

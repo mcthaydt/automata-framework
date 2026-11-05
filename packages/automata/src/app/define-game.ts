@@ -14,8 +14,6 @@ import { LOCALE_SAVE_KEY } from '../features/locale/locale.manager.ts'
 import type { EntityViewFactory } from '../features/render/delta/render-delta-consumer.ts'
 import { createPixiRenderer, type PixiRendererOptions, type PixiStage } from '../features/render/renderer.ts'
 import type { SaveDef } from '../features/saves/save.schema.ts'
-import { defaultScreens } from '../features/screens/default-screens.ts'
-import type { ScreensCopyInput } from '../features/screens/screens-copy.ts'
 import { CORE_SETTINGS } from '../features/settings/core-settings.ts'
 import type { SettingsDef } from '../features/settings/migrate-settings.ts'
 import type { HostingOptions } from '../shared/host/hosting.ts'
@@ -24,6 +22,8 @@ import type { CompiledContentData, GameDefinition, RuntimeSeams } from './boot/g
 import { defaultContent } from './default-content.ts'
 import { createDrawLayer, type DrawContext, type DrawLayer, mergeStageHooks } from './draw/draw-layer.ts'
 import type { RendererFactory } from './render/renderer.ts'
+import { defaultScreens } from './screens/default-screens.ts'
+import type { ScreensCopyInput } from './screens/screens-copy.ts'
 
 /**
  * What a game saves, and how the default screens read it from the sim and put it back (M5.2). The title lists the

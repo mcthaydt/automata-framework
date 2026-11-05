@@ -12,6 +12,15 @@ export {
 } from '../app/define-game.ts'
 export type { DrawContext, DrawTextOptions } from '../app/draw/draw-layer.ts'
 export type { DrawEntity, DrawSim } from '../app/draw/read-sim.ts'
+export { defaultScreens, type ScreensGame } from '../app/screens/default-screens.ts'
+export type { ChangedElsewhereCopy } from '../app/screens/saves/saves-copy.ts'
+// The default screens' words (DX.2d): a game passes its own in `copy.screens`, over the English defaults.
+export type {
+  ScreensCopy,
+  ScreensCopyInput,
+  ScreensCopyOverrides,
+  SettingsScreenCopy,
+} from '../app/screens/screens-copy.ts'
 export { startGame } from '../app/start-game.ts'
 export { inputs } from '../features/input/inputs.ts'
 export {
@@ -24,15 +33,6 @@ export {
   keys,
   type TouchButton,
 } from '../features/input/keys.ts'
-export type { ChangedElsewhereCopy } from '../features/saves/ui/saves-copy.ts'
-export { defaultScreens, type ScreensGame } from '../features/screens/default-screens.ts'
-// The default screens' words (DX.2d): a game passes its own in `copy.screens`, over the English defaults.
-export type {
-  ScreensCopy,
-  ScreensCopyInput,
-  ScreensCopyOverrides,
-  SettingsScreenCopy,
-} from '../features/screens/screens-copy.ts'
 export {
   type Camera2d,
   type Camera2dOptions,

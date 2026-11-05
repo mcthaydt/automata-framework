@@ -10,15 +10,15 @@ export type SettingsShow = (typeof SETTINGS_SHOWS)[number]
 
 <script lang="ts">
 import type { PromptCopy } from '../../shared/ui/prompts/prompt-label'
-import ControlsSection from '../../features/settings/ui/ControlsSection.svelte'
-import type { ControlsCopy, ControlsRow } from '../../features/settings/ui/controls-section'
-import AudioSection from '../../features/settings/ui/AudioSection.svelte'
-import DisplaySection from '../../features/settings/ui/DisplaySection.svelte'
-import LanguageSection from '../../features/settings/ui/LanguageSection.svelte'
-import VibrationSection from '../../features/settings/ui/VibrationSection.svelte'
-import TouchSection from '../../features/settings/ui/TouchSection.svelte'
-import type { DisplayCopy } from '../../features/settings/ui/display-section'
-import SettingsScreen from '../../features/settings/ui/SettingsScreen.svelte'
+import ControlsSection from '../../app/screens/settings/ControlsSection.svelte'
+import type { ControlsCopy, ControlsRow } from '../../app/screens/settings/controls-section'
+import AudioSection from '../../app/screens/settings/AudioSection.svelte'
+import DisplaySection from '../../app/screens/settings/DisplaySection.svelte'
+import LanguageSection from '../../app/screens/settings/LanguageSection.svelte'
+import VibrationSection from '../../app/screens/settings/VibrationSection.svelte'
+import TouchSection from '../../app/screens/settings/TouchSection.svelte'
+import type { DisplayCopy } from '../../app/screens/settings/display-section'
+import SettingsScreen from '../../app/screens/settings/SettingsScreen.svelte'
 import { type FixtureLocale, say } from './locale-fixture'
 
 const { show, locale = 'en' }: { show: SettingsShow; locale?: FixtureLocale } = $props()

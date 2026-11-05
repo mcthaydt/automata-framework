@@ -1,4 +1,4 @@
-export { default as SaveSlots } from '../features/saves/ui/SaveSlots.svelte'
+export { default as SaveSlots } from '../app/screens/saves/SaveSlots.svelte'
 export {
   defaultSlot,
   type SaveSlotActivity,
@@ -6,16 +6,16 @@ export {
   type SaveSlotsView,
   type SaveSlotView,
   slotActionsOf,
-} from '../features/saves/ui/save-slots'
-export { default as AudioSection } from '../features/settings/ui/AudioSection.svelte'
+} from '../app/screens/saves/save-slots'
+export { default as AudioSection } from '../app/screens/settings/AudioSection.svelte'
 export {
   AUDIO_BUSES,
   type AudioBus,
   type AudioCopy,
   type AudioSectionChange,
   type AudioValue,
-} from '../features/settings/ui/audio-section'
-export { default as ControlsSection } from '../features/settings/ui/ControlsSection.svelte'
+} from '../app/screens/settings/audio-section'
+export { default as ControlsSection } from '../app/screens/settings/ControlsSection.svelte'
 export {
   type ControlsCopy,
   type ControlsRow,
@@ -23,21 +23,21 @@ export {
   type ControlsTouchMode,
   controlsMessage,
   type RebindDevice,
-} from '../features/settings/ui/controls-section'
-export { default as DisplaySection } from '../features/settings/ui/DisplaySection.svelte'
+} from '../app/screens/settings/controls-section'
+export { default as DisplaySection } from '../app/screens/settings/DisplaySection.svelte'
 export {
   DISPLAY_QUALITIES,
   type DisplayCopy,
   type DisplayQuality,
-} from '../features/settings/ui/display-section'
-export { default as LanguageSection } from '../features/settings/ui/LanguageSection.svelte'
-export { endonymOf, type LanguageCopy } from '../features/settings/ui/language-section'
-export { default as SettingsScreen } from '../features/settings/ui/SettingsScreen.svelte'
-export type { SettingsSection, SettingsTab } from '../features/settings/ui/settings-screen'
-export { default as TouchSection } from '../features/settings/ui/TouchSection.svelte'
-export type { TouchCopy } from '../features/settings/ui/touch-section'
-export { default as VibrationSection } from '../features/settings/ui/VibrationSection.svelte'
-export type { VibrationCopy } from '../features/settings/ui/vibration-section'
+} from '../app/screens/settings/display-section'
+export { default as LanguageSection } from '../app/screens/settings/LanguageSection.svelte'
+export { endonymOf, type LanguageCopy } from '../app/screens/settings/language-section'
+export { default as SettingsScreen } from '../app/screens/settings/SettingsScreen.svelte'
+export type { SettingsSection, SettingsTab } from '../app/screens/settings/settings-screen'
+export { default as TouchSection } from '../app/screens/settings/TouchSection.svelte'
+export type { TouchCopy } from '../app/screens/settings/touch-section'
+export { default as VibrationSection } from '../app/screens/settings/VibrationSection.svelte'
+export type { VibrationCopy } from '../app/screens/settings/vibration-section'
 export { bootDeviceClass, classifyDevice, type DeviceClass } from '../shared/ui/browser/device-class'
 export {
   enterFullscreen,
