@@ -26,6 +26,7 @@ export {
 export { Input } from '../features/input/input.manager.js'
 export {
   actionsForKey,
+  actionsForPadButton,
   type InputProfile,
   inputProfileSchema,
 } from '../features/input/input-profile.schema.js'
@@ -48,6 +49,7 @@ export { AppLoop } from '../shared/runtime/loop/app-loop.manager.js'
 export { type FrameInfo } from '../shared/runtime/loop/frames.js'
 export {
   PresentationBus,
+  type RuntimeFacts,
   typedBus,
 } from '../shared/runtime/presentation/presentation-bus.manager.js'
 export {

@@ -9,6 +9,7 @@
 - `ActionBar` (const): One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty `ui/layout/ActionBar.svelte` at 122a220).
 - `ActionKind` (type): The action bar's model (M1.6 spec §3.4; from FloorFifty `ui/layout/action-bar.ts` at 122a220).
 - `actionsForKey(profile, code)`: Every action `code` (a `KeyboardEvent.code`) drives in `profile`; none when it is unbound.
+- `actionsForPadButton(profile, index)`: Every action the standard-mapping pad button `index` drives in `profile`; none when it is unbound.
 - `AnalogOptions` (interface): The `analog` option of `keys()`.
 - `AnalogReading` (interface): The analog input at one fixed step, read once after `Input.poll()`.
 - `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans.
@@ -73,6 +74,7 @@
 - `ErrorCode` (type): One error code.
 - `ErrorCodeSchema` (const): Checks an error code.
 - `EventDef` (interface): An event a system emits: an id and the Zod schema its payload must match.
+- `filterPrograms(name, fragmentGlsl, fragmentWgsl)`: Builds a filter's programs from its GLSL and WGSL fragment stages on the shared vertex stages, so WebGL2 stays at parity with WebGPU (AGENTS.md).
 - `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
 - `findTauriMarkers(code)`: The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code.
 - `Flow` (interface): The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu` for the current screen's menu, and `settled` once no transition is pending.
@@ -160,6 +162,7 @@
 - `RoundOutcomeSchema` (const): Checks a round outcome.
 - `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at b30d31b).
 - `runGame(game)`: Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
+- `RuntimeFacts` (interface): Every fact the runtime publishes on the presentation bus, by name.
 - `RuntimeHandle` (interface): Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11).
 - `RuntimeSeams` (interface): Test seams injected into the runtime boot program (spec §3.3, planning note 10).
 - `Save` (interface): A game's save (M5 spec §4.3): its slots' states, load, write and remove, and the progress `touch` keeps for the autosave triggers to write.

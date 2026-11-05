@@ -22,6 +22,12 @@ type ActionKind = 'primary' | 'secondary' | 'utility';
 function actionsForKey(profile: InputProfile, code: string): string[];
 ```
 
+### `actionsForPadButton` (function)
+
+```ts
+function actionsForPadButton(profile: InputProfile, index: number): string[];
+```
+
 ### `AnalogOptions` (interface)
 
 ```ts
@@ -613,6 +619,12 @@ interface EventDef<Z extends z.ZodType = z.ZodType> {
     readonly id: string;
     readonly schema: Z;
 }
+```
+
+### `filterPrograms` (function)
+
+```ts
+function filterPrograms(name: string, fragmentGlsl: string, fragmentWgsl: string): FilterProgramsResult;
 ```
 
 ### `findRukenSdkMarkers` (function)
@@ -1471,6 +1483,76 @@ const RUKEN_SDK_MARKERS: readonly string[];
 
 ```ts
 function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
+```
+
+### `RuntimeFacts` (interface)
+
+```ts
+interface RuntimeFacts {
+    readonly 'sim.events': readonly SimEvent[];
+    readonly 'sim.step': {
+        readonly tick: number;
+        readonly events: readonly SimEvent[];
+    };
+    readonly 'screen.entered': {
+        readonly screen: string;
+        readonly from: string | undefined;
+    };
+    readonly 'time.changed': {
+        readonly paused: boolean;
+    };
+    readonly 'locale.changed': {
+        readonly locale: string;
+        readonly previous: string;
+    };
+    readonly 'input.device.changed': {
+        readonly device: InputDevice;
+        readonly glyphs: GlyphFamily;
+        readonly previous: InputDevice;
+    };
+    readonly 'audio.unlocked': Readonly<Record<never, never>>;
+    readonly 'audio.unavailable': {
+        readonly reason: string;
+    };
+    readonly 'audio.decode.failed': {
+        readonly alias: string;
+        readonly reason: string;
+    };
+    readonly 'input.pad.connected': PadInfo;
+    readonly 'input.pad.disconnected': PadInfo & {
+        readonly wasActive: boolean;
+    };
+    readonly 'input.bindings.changed': {
+        readonly action?: string;
+    };
+    readonly 'render.filter.dropped': {
+        readonly id: string;
+        readonly reason: string;
+    };
+    readonly 'render.context.lost': Readonly<Record<never, never>>;
+    readonly 'render.context.restored': Readonly<Record<never, never>>;
+    readonly 'save.written': {
+        readonly key: string;
+        readonly slot: number;
+    };
+    readonly 'save.failed': {
+        readonly key: string;
+        readonly slot: number;
+        readonly code: ErrorCode;
+    };
+    readonly 'save.loaded': {
+        readonly key: string;
+        readonly slot: number;
+    };
+    readonly 'save.changedElsewhere': {
+        readonly key: string;
+        readonly slot: number;
+    };
+    readonly 'leaderboard.submitted': {
+        readonly board: string;
+        readonly state: BoardState;
+    };
+}
 ```
 
 ### `RuntimeHandle` (interface)
