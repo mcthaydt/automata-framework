@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 8% (2 of 24 stages done).**
+**Overall: 13% (3 of 24 stages done).**
 
 The Owner's order (2026-11-05): finish one area completely before starting the next, in this order:
 core and 2D, then 3D, then the editors, then the website. Each stage runs in its own session.
@@ -16,13 +16,13 @@ Every area goes through the same six stages:
 
 Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happening and how to use it?
 
-## Core and 2D: 33% (2 of 6)
+## Core and 2D: 50% (3 of 6)
 
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
-| 3. Plan audit | Not started | |
+| 3. Plan audit | Done, 2026-11-05: 30 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
 | 4. Build | Not started | |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
