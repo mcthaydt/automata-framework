@@ -1,4 +1,4 @@
-// Registering a game's content kinds (A0+A1 spec §5; `ContentSchemaDef` in the M1 shared contracts §2).
+// Registering a game's content kinds (`ContentSchemaDef`).
 //
 // FloorFifty declared its twelve kinds and the joins between them by hand (packages/content/src/parse.ts,
 // validate/references.ts at 122a220). Here a game registers each kind once with a Zod schema, and marks
@@ -18,7 +18,7 @@ export interface ContentSchemaDef<K extends string = string, S extends z.ZodType
   readonly schema: S
   readonly place: ContentSchemaPlace
   /**
-   * Whether the sim receives this kind (M2.2 spec §3.1). Default true: content is gameplay unless the game
+   * Whether the sim receives this kind. Default true: content is gameplay unless the game
    * says otherwise, so a forgotten flag can only refuse a snapshot, never let a gameplay change through.
    */
   readonly sim: boolean

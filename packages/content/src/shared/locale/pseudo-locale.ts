@@ -1,4 +1,4 @@
-// The `xx-long` pseudo-locale (PRODUCT spec §4 item 7): English with every letter swapped for an accented
+// The `xx-long` pseudo-locale: English with every letter swapped for an accented
 // look-alike, 40% longer, between ⟦ ⟧ brackets. A game makes its `xx-long` catalog from its source catalog with
 // `pseudoMessages`, for test builds only; ui's layout contracts run every primitive in it. Two things come out:
 //

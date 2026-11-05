@@ -1,4 +1,4 @@
-// The compiler (M1.3 spec §3.2). Extracted from FloorFifty packages/content/src/compiler.ts (122a220).
+// The compiler. Extracted from FloorFifty packages/content/src/compiler.ts (122a220).
 //
 // Reads, parses, checks and assembles, and writes nothing. Every check runs on every file even when an
 // earlier one failed, so one save reports every independent problem rather than the first file the
@@ -60,7 +60,7 @@ export interface ContentOptions {
   readonly generators?: readonly ContentGenerator[] | undefined
   /** Relative to `root`. Default `content/generated`. */
   readonly outDir?: string | undefined
-  /** Compile the catalogs with Paraglide on each build (PRODUCT.L2). Absent: no Paraglide output. */
+  /** Compile the catalogs with Paraglide on each build. Absent: no Paraglide output. */
   readonly paraglide?: ParaglideOptions | undefined
 }
 
@@ -72,7 +72,7 @@ export interface CompiledContent {
   readonly data: ContentData
   /** Over all of `data`: the boot check and evidence identity. Never compared with `sim.hash`. */
   readonly hash: string
-  /** What the sim receives, and the hash that gates snapshots and replays (M2.2 spec §3.2). */
+  /** What the sim receives, and the hash that gates snapshots and replays. */
   readonly sim: SimPartition
   /** Each output path, relative to the output folder, to its exact text. Build and verify use the same bytes. */
   readonly files: ReadonlyMap<string, string>
@@ -87,7 +87,7 @@ export interface CompiledContent {
   readonly catalogs: ReadonlyMap<string, MessageCatalog>
   /**
    * Where each language's messages are written, in `languages` order: a source message at its text in the
-   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these (M5.5).
+   * TOML, a translated one at its key in `messages/<lang>.json`. The glyph gate names a message by these.
    */
   readonly messageLocations: ReadonlyMap<string, ReadonlyMap<string, MessageLocation>>
 }

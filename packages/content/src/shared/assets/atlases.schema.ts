@@ -1,4 +1,4 @@
-// `content/atlases.toml` (M5 spec §4.7): each atlas by name, and the folder of PNG frames it packs.
+// `content/atlases.toml`: each atlas by name, and the folder of PNG frames it packs.
 //
 //   [atlas.wick]
 //   frames = "art/wick"   # relative to the project root

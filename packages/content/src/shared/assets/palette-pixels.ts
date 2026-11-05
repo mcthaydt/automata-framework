@@ -1,7 +1,7 @@
-// The palette check on art (M5 spec §4.7, §6). From FloorFifty `packages/asset-contract/src/validate-assets.ts`
+// The palette check on art. From FloorFifty `packages/asset-contract/src/validate-assets.ts`
 // `offPalettePixels` at `ac72660`: a pixel with alpha 0 carries no colour a player can see, so its channels are
 // whatever the exporter left and are not checked; every other pixel must be a palette colour. AF names the first
-// stray pixel's position and colour, which §6 asks for, with the count.
+// stray pixel's position and colour, with the count, so an artist can find it.
 import type { Palette } from '../palette/palette'
 import type { Rgba } from './atlas-image'
 

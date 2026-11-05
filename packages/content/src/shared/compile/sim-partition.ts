@@ -1,4 +1,4 @@
-// The sim partition (M2.2 spec §3.1–§3.2): the part of the compiled content the sim receives, and whose hash
+// The sim partition: the part of the compiled content the sim receives, and whose hash
 // gates snapshots and replays.
 //
 // FloorFifty kept two revisions: `rulesetRevision` moved only with what the simulation reads, and

@@ -1,4 +1,4 @@
-// Atlas pages as pixels and files (M5 spec §4.7). PNGs are read and written with `pngjs` (FloorFifty's dependency),
+// Atlas pages as pixels and files. PNGs are read and written with `pngjs` (FloorFifty's dependency),
 // always as 8-bit RGBA with fixed encoder options, so the same pixels always give the same bytes (G-c).
 import { PNG } from 'pngjs'
 import { ATLAS_EXTRUDE, type Placement } from './atlas-pack'

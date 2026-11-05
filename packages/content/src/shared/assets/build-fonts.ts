@@ -1,16 +1,16 @@
-// The font build (M5 spec §4.7 Fonts, M5-D7). Reads `content/fonts.toml`, checks each committed source against
+// The font build. Reads `content/fonts.toml`, checks each committed source against
 // its recorded sha256, and cuts it to each language it serves: the language's characters plus the ranges a
-// typed name most likely needs (`localeCharacters`, PRODUCT.L2). From FloorFifty
+// typed name most likely needs (`localeCharacters`). From FloorFifty
 // packages/asset-contract/tools/subset-fonts.ts and the coverage test tests/client/i18n/fonts.test.ts (ac72660).
 // Like the atlas build, it returns the outputs and the CLI writes them.
 //
-// The glyph gate (G-b, PRODUCT.L's L-e): every character of every message in a language must be in one of that
+// The glyph gate: every character of every message in a language must be in one of that
 // language's subsets. A game may stack faces (a Latin face, then a CJK one, as FloorFifty does), so a language
 // is covered by all its fonts together. A failure names the message where it is written, from the compile's
 // `messageLocations`, and each missing code point. Control characters (a newline) draw nothing and are skipped.
 // A language no font serves is not checked: it draws in whatever face the game's CSS names.
 //
-// The language picker's names (M5.5F). The picker lists every content language by its own name (`endonymOf`, the
+// The language picker's names. The picker lists every content language by its own name (`endonymOf`, the
 // same function ui's `LanguageSection` shows), whichever language the game is showing, so every subset is also cut
 // to every content language's name, and the gate holds each language's subsets to the names of the languages the
 // fonts serve: a Latin face for `en` beside a Japanese face for `ja` fails until a face serving `en` holds 日本語. A
@@ -94,7 +94,7 @@ export const buildFonts = (
     const broken = new Set<string>()
     const served = new Set<string>()
     // Every content language's name, as the language picker shows it, goes into every subset: the picker lists
-    // them all whichever language the game is showing (M5.5F).
+    // them all whichever language the game is showing.
     const names = new Map(content.languages.map((language) => [language, endonymOf(language)]))
     const nameCharacters = [...names.values()].join('')
 

@@ -1,7 +1,7 @@
 // Facts about the game that only the game knows (`content/game.toml`), and the files each screen waits for
 // (`content/assets.toml`). The compiler turns them into the game config's `content` and `analytics` sections
 // (`ruken-fields.json`, which the Ruken target writes into `ruken.toml`) and, after a build, the preload list.
-// Content never writes `ruken.toml`. The ratings are AF's game config's (DIST spec §4.4), held to Ruken's by
+// Content never writes `ruken.toml`. The ratings are AF's game config's, held to Ruken's by
 // `ruken/conformance.test.ts`; what else Ruken checks, Ruken's own parser checks (`ruken/ruken-check.ts`).
 
 import { z } from 'zod'
@@ -35,7 +35,7 @@ export const gameSchema: z.ZodType<GameSource, unknown> = z.strictObject({
 /**
  * What `content/assets.toml` says: for each screen, the files it waits for (`dir/*` names every file in a
  * folder), and the atlases and fonts of the asset build it uses, by their names in `atlases.toml` and
- * `fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list (M5.6F.2).
+ * `fonts.toml`. A preloaded screen's atlas pages and font subsets join the preload list.
  */
 export interface AssetsSource {
   readonly screens: Readonly<

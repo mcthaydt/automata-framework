@@ -1,4 +1,4 @@
-// The generator hook (A0+A1 spec §5): a generator turns compiled content into extra files beside the
+// The generator hook: a generator turns compiled content into extra files beside the
 // artifact. The built-in outputs (types, messages, tuning metadata, flow graph, Ruken fields) are generators
 // too, so a game's own generator gets exactly what they get. Generators are pure: data in, files and
 // diagnostics out. Writing is the compiler's job.
@@ -19,7 +19,7 @@ export type ContentData = Readonly<Record<string, unknown>>
 export interface GeneratorInput {
   readonly data: ContentData
   readonly hash: string
-  /** The sim partition and its hash (M2.2), so a generator never re-derives it from `schemas`. */
+  /** The sim partition and its hash, so a generator never re-derives it from `schemas`. */
   readonly sim: SimPartition
   readonly schemas: readonly ContentSchemaDef[]
   readonly messages: MessageCatalog
