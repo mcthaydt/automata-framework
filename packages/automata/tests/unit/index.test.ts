@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import * as game from '@mcthaydt/automata-game'
 import * as sim from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import * as automata from './index.ts'
+import * as automata from '#src/index.ts'
 
 // `@mcthaydt/automata`, the one import (PRODUCT spec §7, plan U-2): the game package and the sim's define verbs,
 // each the very same value as its owner's. The list is pinned, so a new verb is added on purpose (`defineSave`, M5.2:
@@ -54,11 +54,11 @@ describe('@mcthaydt/automata', () => {
   })
 
   it('has a no-eval entry that loads', async () => {
-    await expect(import('./no-eval.ts')).resolves.toBeDefined()
+    await expect(import('#src/no-eval.ts')).resolves.toBeDefined()
   })
 
   it('depends on core only, never on a Plus extension (plan U-4)', () => {
-    const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '..', 'package.json'), 'utf8')) as {
+    const manifest = JSON.parse(readFileSync(join(import.meta.dirname, '../..', 'package.json'), 'utf8')) as {
       dependencies: Record<string, string>
     }
     expect(Object.keys(manifest.dependencies).sort()).toEqual([
