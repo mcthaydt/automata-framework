@@ -1,7 +1,7 @@
 import { HOST_EXIT_CAP, Hosting, type HostingOptions } from '@mcthaydt/automata-host'
 import { Duration, Effect, Either, Exit, Fiber, Layer, Scope, Stream, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { FakeHostControl, FakeHosting, type FakeHostingOptions } from './index'
+import { FakeHostControl, FakeHosting, type FakeHostingOptions } from '#src/host/index.ts'
 
 const GAME: HostingOptions = { gameId: 'fake-game', wants: ['saves'], pauseBehavior: 'pause' }
 

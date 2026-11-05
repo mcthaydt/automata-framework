@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest'
-import { fakeViewportWindow, hostDisplay } from './viewport-window'
+import { fakeViewportWindow, hostDisplay } from '#src/fixtures/viewport-window.ts'
 
 describe('fakeViewportWindow', () => {
   test('starts at its size with a visual viewport that matches the layout', () => {

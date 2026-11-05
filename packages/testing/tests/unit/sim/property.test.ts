@@ -1,9 +1,10 @@
+// @vitest-environment node
 import { definePlugin, defineResource, defineSystem, type PluginState } from '@mcthaydt/automata-sim'
 import { expect, test } from 'vitest'
 import { z } from 'zod'
-import { bouncePlugin } from './fixtures/bounce.plugin'
-import { bounceScript, bounceSetup } from './fixtures/bounce-script'
-import { snapshotRoundTripProperty } from './property'
+import { bouncePlugin } from '#src/sim/fixtures/bounce.plugin.ts'
+import { bounceScript, bounceSetup } from '#src/sim/fixtures/bounce-script.ts'
+import { snapshotRoundTripProperty } from '#src/sim/property.ts'
 
 test('exit 4: 200 cases of snapshot, restore and continue on the bounce fixture equal the straight run', async () => {
   const started = performance.now()

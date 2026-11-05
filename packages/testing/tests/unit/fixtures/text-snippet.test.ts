@@ -1,7 +1,7 @@
 import { flushSync, mount, unmount } from 'svelte'
 import { expect, test } from 'vitest'
-import SnippetHost from './SnippetHost.test.svelte'
-import { textSnippet } from './text-snippet'
+import { textSnippet } from '#src/fixtures/text-snippet.ts'
+import SnippetHost from '../../fixtures/fixtures/SnippetHost.test.svelte'
 
 test('renders text in a tag, escaped by default', () => {
   const target = document.createElement('div')

@@ -1,3 +1,4 @@
+// @vitest-environment node
 // Exit 7 (M2.3 spec §7): a golden checked against a twin that diverges at one tick says which tick and which field.
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -5,13 +6,13 @@ import { join } from 'node:path'
 import { createSim } from '@mcthaydt/automata-sim'
 import { createRecorder, packReplay } from '@mcthaydt/automata-sim/replay'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { nodeCompression } from './compression'
-import { bouncePlugin } from './fixtures/bounce.plugin'
-import { BOUNCE_DIVERGE_SID, bounceDivergedPlugin } from './fixtures/bounce-diverged.plugin'
-import { BOUNCE_SEED, bounceDrive, bounceSetup } from './fixtures/bounce-script'
-import { writeGoldenFile } from './golden-files'
-import { replayGolden } from './replay-golden'
-import { formatGoldenReport } from './report'
+import { nodeCompression } from '#src/sim/compression.ts'
+import { bouncePlugin } from '#src/sim/fixtures/bounce.plugin.ts'
+import { BOUNCE_DIVERGE_SID, bounceDivergedPlugin } from '#src/sim/fixtures/bounce-diverged.plugin.ts'
+import { BOUNCE_SEED, bounceDrive, bounceSetup } from '#src/sim/fixtures/bounce-script.ts'
+import { writeGoldenFile } from '#src/sim/golden-files.ts'
+import { replayGolden } from '#src/sim/replay-golden.ts'
+import { formatGoldenReport } from '#src/sim/report.ts'
 
 let dir: string
 beforeEach(async () => {
@@ -24,7 +25,7 @@ afterEach(async () => {
 
 test('the committed bounce golden, checked with the diverged twin, names tick 137 and the ball’s vx', async () => {
   const report = await replayGolden({
-    file: './fixtures/__goldens__/bounce.replay',
+    file: '../../fixtures/sim/__goldens__/bounce.replay',
     plugins: [bounceDivergedPlugin],
   })
   expect(report).toMatchObject({ kind: 'diverged', firstTick: 137, lastGoodTick: 120, exact: true })

@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest'
-import { installFakeResizeObserver } from './resize-observer'
+import { installFakeResizeObserver } from '#src/fixtures/resize-observer.ts'
 
 let restore: (() => void) | undefined
 afterEach(() => restore?.())

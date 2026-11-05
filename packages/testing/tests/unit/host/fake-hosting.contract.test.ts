@@ -1,6 +1,6 @@
 import { describeHostingContract } from '@mcthaydt/automata-host/contract-suite'
 import { Effect } from 'effect'
-import { FakeHosting } from './index'
+import { FakeHosting } from '#src/host/index.ts'
 
 // DIST-c: the cases every adapter passes, on `FakeHosting` for each target, so the fake cannot drift from the real
 // adapters (DIST spec §7).

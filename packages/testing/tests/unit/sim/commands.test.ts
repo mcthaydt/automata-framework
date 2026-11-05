@@ -1,9 +1,10 @@
+// @vitest-environment node
 import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, expect, test } from 'vitest'
 import type { BrowserCommandContext } from 'vitest/node'
-import { goldenCommands } from './commands'
+import { goldenCommands } from '#src/sim/commands.ts'
 
 let base: string
 let root: string

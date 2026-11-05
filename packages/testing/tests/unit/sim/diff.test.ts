@@ -1,7 +1,8 @@
+// @vitest-environment node
 import type { SnapshotView } from '@mcthaydt/automata-sim'
 import { expect, test } from 'vitest'
-import { type Difference, diffSnapshotViews } from './diff'
-import { formatGoldenReport } from './report'
+import { type Difference, diffSnapshotViews } from '#src/sim/diff.ts'
+import { formatGoldenReport } from '#src/sim/report.ts'
 
 function view(over: Partial<SnapshotView> = {}): SnapshotView {
   return {

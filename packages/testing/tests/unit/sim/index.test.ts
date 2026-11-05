@@ -1,5 +1,6 @@
+// @vitest-environment node
 import { expect, test } from 'vitest'
-import * as sim from './index'
+import * as sim from '#src/sim/index.ts'
 
 test('the ./sim API is exactly this list', () => {
   expect(Object.getOwnPropertyNames(sim).sort()).toEqual([

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { INPUT_MATRIX } from './input-matrix'
+import { INPUT_MATRIX } from '#src/e2e/input-matrix.ts'
 
 // M4 spec §9.1: the input × form-factor matrix as data, so the matrix spec and a game's own journeys share it.
 describe('INPUT_MATRIX', () => {

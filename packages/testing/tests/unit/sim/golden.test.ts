@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -5,13 +6,13 @@ import { defineComponent, definePlugin, defineResource, defineSystem } from '@mc
 import { ReplayRecordError } from '@mcthaydt/automata-sim/replay'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { z } from 'zod'
-import { Ball } from './fixtures/bounce.component'
-import { bouncePlugin } from './fixtures/bounce.plugin'
-import { bounceDivergedPlugin } from './fixtures/bounce-diverged.plugin'
-import { BOUNCE_SEED, bounceDrive, bounceScript, bounceSetup } from './fixtures/bounce-script'
-import { writeGoldenFile } from './golden-files'
-import { replayGolden } from './replay-golden'
-import { simGolden } from './sim-golden'
+import { Ball } from '#src/sim/fixtures/bounce.component.ts'
+import { bouncePlugin } from '#src/sim/fixtures/bounce.plugin.ts'
+import { bounceDivergedPlugin } from '#src/sim/fixtures/bounce-diverged.plugin.ts'
+import { BOUNCE_SEED, bounceDrive, bounceScript, bounceSetup } from '#src/sim/fixtures/bounce-script.ts'
+import { writeGoldenFile } from '#src/sim/golden-files.ts'
+import { replayGolden } from '#src/sim/replay-golden.ts'
+import { simGolden } from '#src/sim/sim-golden.ts'
 
 let dir: string
 beforeEach(async () => {

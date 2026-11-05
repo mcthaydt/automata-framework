@@ -21,6 +21,9 @@
     "./host": "./src/host/index.ts",
     "./e2e": "./src/e2e/index.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "exports": {
@@ -57,9 +60,9 @@
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project unit --project sim",
-    "test:layout": "vitest run --project layout",
-    "test:browser": "vitest run --project layout --project sim-browsers",
-    "test:evidence": "vitest run --project sim --project sim-browsers src/sim/bounce.golden.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "test:layout": "vitest run --project browser",
+    "test:browser": "vitest run --project browser",
+    "test:evidence": "vitest run --project sim --project browser src/sim/bounce.golden.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p .",
     "build": "tsdown"
   },
@@ -76,6 +79,7 @@
   },
   "devDependencies": {
     "@mcthaydt/evidence": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

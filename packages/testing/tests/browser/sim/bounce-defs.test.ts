@@ -1,15 +1,16 @@
+// @vitest-environment node
 // DX spec §3.2's contract test: the bounce plugin written as one flat `defs` list is the same plugin. It must pass
 // the committed bounce.golden.json (same schema hash, same hash every tick) in Node and in the three browsers.
 import { createSim, definePlugin } from '@mcthaydt/automata-sim'
 import { expect, test } from 'vitest'
-import { Kick } from './fixtures/bounce.command'
-import { Ball } from './fixtures/bounce.component'
-import { bouncePlugin } from './fixtures/bounce.plugin'
-import { BounceStats } from './fixtures/bounce.resource'
-import { BounceKick, BounceMove, BounceSpawn } from './fixtures/bounce.system'
-import { BOUNCE_SEED, BOUNCE_TICKS, bounceScript, bounceSetup } from './fixtures/bounce-script'
-import { expectGolden } from './report'
-import { simGolden } from './sim-golden'
+import { Kick } from '#src/sim/fixtures/bounce.command.ts'
+import { Ball } from '#src/sim/fixtures/bounce.component.ts'
+import { bouncePlugin } from '#src/sim/fixtures/bounce.plugin.ts'
+import { BounceStats } from '#src/sim/fixtures/bounce.resource.ts'
+import { BounceKick, BounceMove, BounceSpawn } from '#src/sim/fixtures/bounce.system.ts'
+import { BOUNCE_SEED, BOUNCE_TICKS, bounceScript, bounceSetup } from '#src/sim/fixtures/bounce-script.ts'
+import { expectGolden } from '#src/sim/report.ts'
+import { simGolden } from '#src/sim/sim-golden.ts'
 
 const bounceFromDefs = definePlugin({
   name: 'bounce',
@@ -29,7 +30,7 @@ test('the bounce plugin as a defs list has the keyed plugin’s schema hash', as
 test('the bounce plugin as a defs list passes bounce.golden.json', async () => {
   const report = await simGolden({
     name: 'bounce',
-    dir: './fixtures',
+    dir: '../../fixtures/sim',
     plugins: [bounceFromDefs],
     seed: BOUNCE_SEED,
     setup: bounceSetup,

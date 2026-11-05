@@ -1,8 +1,9 @@
+// @vitest-environment node
 import { createRng, createSim, deriveSeed } from '@mcthaydt/automata-sim'
 import { expect, test } from 'vitest'
-import { bouncePlugin } from './bounce.plugin'
-import { BOUNCE_DIVERGE_TICK, bounceDivergedPlugin } from './bounce-diverged.plugin'
-import { BOUNCE_SEED, bounceScript, bounceSetup } from './bounce-script'
+import { bouncePlugin } from '#src/sim/fixtures/bounce.plugin.ts'
+import { BOUNCE_DIVERGE_TICK, bounceDivergedPlugin } from '#src/sim/fixtures/bounce-diverged.plugin.ts'
+import { BOUNCE_SEED, bounceScript, bounceSetup } from '#src/sim/fixtures/bounce-script.ts'
 
 async function run(plugin: typeof bouncePlugin, ticks: number): Promise<string[]> {
   const sim = await createSim({ seed: BOUNCE_SEED, plugins: [plugin] })

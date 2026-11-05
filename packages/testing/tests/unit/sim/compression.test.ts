@@ -1,6 +1,7 @@
+// @vitest-environment node
 import { packReplay, type Replay, ReplayFormatError, unpackReplay } from '@mcthaydt/automata-sim/replay'
 import { expect, test } from 'vitest'
-import { nodeCompression, streamCompression } from './compression'
+import { nodeCompression, streamCompression } from '#src/sim/compression.ts'
 
 // Node has CompressionStream too, so both adapters run here; the browsers run streamCompression in sim-browsers.
 const adapters = { node: nodeCompression, stream: streamCompression } as const

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { REFERENCE_SIZES, TIGHT_SIZES, VARIANTS } from './reference-sizes'
+import { REFERENCE_SIZES, TIGHT_SIZES, VARIANTS } from '#src/layout/reference-sizes.ts'
 
 const has = (width: number, height: number): boolean =>
   REFERENCE_SIZES.some((size) => size.width === width && size.height === height)

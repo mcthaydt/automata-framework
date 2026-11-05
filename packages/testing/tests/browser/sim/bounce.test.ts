@@ -1,21 +1,28 @@
+// @vitest-environment node
 // The bounce goldens (exit 3): checked in Node (sim project) and in Chromium, WebKit and Firefox (sim-browsers).
 
 import { createSim } from '@mcthaydt/automata-sim'
 import { createRecorder, encodeReplay, type Replay, unpackReplay } from '@mcthaydt/automata-sim/replay'
 import { recordGoldenEvidence } from '@mcthaydt/evidence/golden'
 import { expect, test } from 'vitest'
-import { nodeCompression, streamCompression } from './compression'
-import { bouncePlugin } from './fixtures/bounce.plugin'
-import { BOUNCE_SEED, BOUNCE_TICKS, bounceDrive, bounceScript, bounceSetup } from './fixtures/bounce-script'
-import { inNode, readGoldenFile, resolveGoldenPath } from './golden-files'
-import { replayGolden } from './replay-golden'
-import { expectGolden } from './report'
-import { simGolden } from './sim-golden'
+import { nodeCompression, streamCompression } from '#src/sim/compression.ts'
+import { bouncePlugin } from '#src/sim/fixtures/bounce.plugin.ts'
+import {
+  BOUNCE_SEED,
+  BOUNCE_TICKS,
+  bounceDrive,
+  bounceScript,
+  bounceSetup,
+} from '#src/sim/fixtures/bounce-script.ts'
+import { inNode, readGoldenFile, resolveGoldenPath } from '#src/sim/golden-files.ts'
+import { replayGolden } from '#src/sim/replay-golden.ts'
+import { expectGolden } from '#src/sim/report.ts'
+import { simGolden } from '#src/sim/sim-golden.ts'
 
 test('bounce.golden.json: a hash every tick of the bounce run', async () => {
   const report = await simGolden({
     name: 'bounce',
-    dir: './fixtures',
+    dir: '../../fixtures/sim',
     plugins: [bouncePlugin],
     seed: BOUNCE_SEED,
     setup: bounceSetup,
@@ -28,7 +35,7 @@ test('bounce.golden.json: a hash every tick of the bounce run', async () => {
 
 test('bounce.replay: the bounce run as a replay with a reference snapshot every tick', async () => {
   const report = await replayGolden({
-    file: './fixtures/__goldens__/bounce.replay',
+    file: '../../fixtures/sim/__goldens__/bounce.replay',
     plugins: [bouncePlugin],
     record: { seed: BOUNCE_SEED, setup: bounceSetup, drive: bounceDrive },
   })
@@ -37,7 +44,7 @@ test('bounce.replay: the bounce run as a replay with a reference snapshot every 
 
 test('bounce.replay and bounce.golden.json pin the same run', async () => {
   const replay = await committedReplay()
-  const text = await readGoldenFile(resolveGoldenPath('./fixtures/__goldens__/bounce.golden.json'))
+  const text = await readGoldenFile(resolveGoldenPath('../../fixtures/sim/__goldens__/bounce.golden.json'))
   if (!text) throw new Error('bounce.golden.json is missing')
   const golden = JSON.parse(new TextDecoder().decode(text)) as {
     hashes: Array<{ tick: number; hash: string }>
@@ -51,7 +58,7 @@ const comparable = (replay: Replay): Uint8Array =>
   encodeReplay({ ...replay, header: { ...replay.header, framework: '', meta: {} } })
 
 async function committedReplay(): Promise<Replay> {
-  const bytes = await readGoldenFile(resolveGoldenPath('./fixtures/__goldens__/bounce.replay'))
+  const bytes = await readGoldenFile(resolveGoldenPath('../../fixtures/sim/__goldens__/bounce.replay'))
   if (!bytes) throw new Error('bounce.replay is missing')
   return unpackReplay(bytes, inNode() ? nodeCompression : streamCompression)
 }

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { mountFixture } from './mount'
-import SnippetHost from './SnippetHost.test.svelte'
-import { textSnippet } from './text-snippet'
+import { mountFixture } from '#src/fixtures/mount.ts'
+import { textSnippet } from '#src/fixtures/text-snippet.ts'
+import SnippetHost from '../../fixtures/fixtures/SnippetHost.test.svelte'
 
 describe('mountFixture', () => {
   test('mounts a component with its props into a fresh target in the body, and removes both', async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fakeGamepads } from './fake-gamepads'
+import { fakeGamepads } from '#src/input/fake-gamepads.ts'
 
 // The unit-test fake gamepad (M4 spec §4.14): `navigator.getGamepads` as a game's unit tests drive it.
 describe('fakeGamepads', () => {

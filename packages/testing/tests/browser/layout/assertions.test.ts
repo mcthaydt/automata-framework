@@ -10,7 +10,7 @@ import {
   findUnreachable,
   pressedPart,
   visibleControls,
-} from './assertions'
+} from '#src/layout/assertions.ts'
 
 // Each finder against a planted problem, and against a clean page (M1.6 spec §3.10). Real browsers:
 // jsdom has no layout, so a box there is always 0x0.
