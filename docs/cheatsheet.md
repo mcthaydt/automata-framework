@@ -551,7 +551,7 @@
 - `byTestId(id)`: The element a test id names; throws when the fixture has none, so a missing part fails loudly.
 - `checkLayout(conditions, essentials)`: The checks every screen shares: the document never scrolls; every control is at least the target (primaries the primary target) at this scale, on screen unless in a declared scroll region, never under a reserved area or a touch button and never over the corner row; the corner row's controls and any `data-way-out` stay reachable (but under a modal dialog or an ErrorPanel that had to rise); no ActionBar wraps (level 3); no row (`[data-row]`) clips what it holds; no control is cut at the side of the scroll region it scrolls in (`findCutAtSide`: a region declared `data-scroll-region="both"` scrolls sideways too), and no control's words run past its edge; and each of `essentials` is reachable without scrolling.
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
-- `describeHostingContract(name, layer, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
+- `describeHostingContract(name, create, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.
 - `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7).
 - `FakeAudioContext` (interface): A recording stand-in for an `AudioContext`: what was started, stopped and automated, with a clock tests move by hand.
@@ -564,7 +564,7 @@
 - `fakeGamepads(options?)`: `target` hears `gamepadconnected` and `gamepaddisconnected`, as `window` does in a browser.
 - `FakeGamepads` (interface): Four gamepad slots a unit test plugs pads into and presses; `getGamepads` reads them as the browser's would.
 - `FakeHostControl` (interface): What a test does to, and reads from, the fake host.
-- `FakeHosting(options?, hosting?)`: The fake host as a layer: `Hosting` for the game (built from `hosting`, default a game that wants saves) and `FakeHostControl` for the test.
+- `FakeHosting(options?, hosting?)`: The fake host as an Effect layer, for the runtime's tests until task 5.4 converts them: `Hosting` for the game (built from `hosting`, default a game that wants saves) and `FakeHostControl` for the test.
 - `fakeHosting(options?)`: A fake host and the control handle that drives it.
 - `FakeHostingOptions` (interface): How the fake host starts.
 - `FakeResizeObserver` (interface): Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every observer, then restore the original.
@@ -581,7 +581,7 @@
 - `findSmallTargets(root, min, minPrimary)`: Every visible control is at least `min` square, and a primary (`data-kind="primary"`) at least `minPrimary` tall.
 - `findUnreachable(elements)`: Each element is fully inside the viewport, and the whole of it is in view: a tap at its centre and at the middle of each edge lands on it or inside it, so nothing covers or clips any part.
 - `hostDisplay(options?)`: Ruken's display metrics for a hosted game.
-- `HostingLayer` (type): An adapter under test: a fresh layer per case, with `saves` granted.
+- `HostingFactory` (type): An adapter under test: a fresh `Hosting` per case, with `saves` granted.
 - `installFakeResizeObserver()`: Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components measured under jsdom, which has no layout.
 - `LayoutRect` (interface): Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
 - `ManualFrames` (interface): A frame source a test drives: `advance` moves time on and runs the frame asked for, if any.
@@ -599,7 +599,7 @@
 - `ReferenceSize` (interface): One viewport every primitive and screen is checked at: a name, its size, and the form factor and height tier it must classify as.
 - `RuntimeTest(options?)`: Test harness providing `RuntimeServices | FakeHostHandle` for screen and integration tests (spec §3.1, §8.1).
 - `RuntimeTestOptions` (interface): What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer, fetch and locale it uses.
-- `Settle` (type): Lets the fake Ruken host answer over its in-memory ports, and forked stream readers subscribe.
+- `Settle` (type): Lets the fake Ruken host answer over its in-memory ports (for example one macrotask).
 - `settleLayout()`: Waits until a freshly mounted fixture has finished laying out: fonts loaded, then two frames, so ResizeObserver callbacks (ActionBar's collapse, ScrollList's measure) and the re-layout they cause have run.
 - `Submission` (interface): One leaderboard submission the host received.
 - `textSnippet(text, tag?, trusted?)`: A Svelte 5 snippet rendering `<tag>text</tag>`, so a test can pass `children`, `body` or an icon to a component without writing a wrapper component (Ruken `packages/ui/src/test-snippets.ts`).
