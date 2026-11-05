@@ -3,10 +3,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { runApiIndex } from './run.ts'
+import { runApiIndex } from '#src/run.ts'
 
-const repo = fileURLToPath(new URL('../fixtures/repo', import.meta.url))
-const unbuilt = fileURLToPath(new URL('../fixtures/unbuilt', import.meta.url))
+const repo = fileURLToPath(new URL('../../fixtures/repo', import.meta.url))
+const unbuilt = fileURLToPath(new URL('../../fixtures/unbuilt', import.meta.url))
 const corpus = ['docs/guide.md']
 const scratch: string[] = []
 

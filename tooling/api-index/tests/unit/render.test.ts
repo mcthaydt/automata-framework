@@ -2,13 +2,13 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { CORPUS, CorpusFileMissingError } from './corpus.ts'
-import { entryPoints } from './entry-points.ts'
-import { apiJson, apiReference, llmsFullText } from './render.ts'
-import { indexRows } from './rows.ts'
+import { CORPUS, CorpusFileMissingError } from '#src/corpus.ts'
+import { entryPoints } from '#src/entry-points.ts'
+import { apiJson, apiReference, llmsFullText } from '#src/render.ts'
+import { indexRows } from '#src/rows.ts'
 
-const repo = fileURLToPath(new URL('../fixtures/repo', import.meta.url))
-const afRoot = fileURLToPath(new URL('../../..', import.meta.url))
+const repo = fileURLToPath(new URL('../../fixtures/repo', import.meta.url))
+const afRoot = fileURLToPath(new URL('../../../..', import.meta.url))
 const exports = indexRows(entryPoints(repo))
 
 describe('api.json', () => {

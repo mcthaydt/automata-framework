@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { checkDocs, exportId } from './baseline.ts'
-import type { ApiExport } from './rows.ts'
+import { checkDocs, exportId } from '#src/baseline.ts'
+import type { ApiExport } from '#src/rows.ts'
 
 const row = (entryPoint: string, name: string, doc: string): ApiExport => ({
   package: '@fixture/alpha',

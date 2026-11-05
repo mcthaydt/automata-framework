@@ -1,10 +1,10 @@
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { cheatsheet } from './cheatsheet.ts'
-import { entryPoints } from './entry-points.ts'
-import { indexRows } from './rows.ts'
+import { cheatsheet } from '#src/cheatsheet.ts'
+import { entryPoints } from '#src/entry-points.ts'
+import { indexRows } from '#src/rows.ts'
 
-const repo = fileURLToPath(new URL('../fixtures/repo', import.meta.url))
+const repo = fileURLToPath(new URL('../../fixtures/repo', import.meta.url))
 const exports = indexRows(entryPoints(repo))
 const page = cheatsheet(exports)
 const lines = page.split('\n')

@@ -1,9 +1,9 @@
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { entryPoints, MissingTypesError } from './entry-points.ts'
+import { entryPoints, MissingTypesError } from '#src/entry-points.ts'
 
-const repo = fileURLToPath(new URL('../fixtures/repo', import.meta.url))
-const unbuilt = fileURLToPath(new URL('../fixtures/unbuilt', import.meta.url))
+const repo = fileURLToPath(new URL('../../fixtures/repo', import.meta.url))
+const unbuilt = fileURLToPath(new URL('../../fixtures/unbuilt', import.meta.url))
 
 describe('entryPoints', () => {
   it("lists each published package's typed entry points, skipping private packages, bins and untyped keys", () => {

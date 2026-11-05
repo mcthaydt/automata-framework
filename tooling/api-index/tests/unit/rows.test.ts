@@ -1,9 +1,9 @@
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { entryPoints } from './entry-points.ts'
-import { type ApiExport, indexRows } from './rows.ts'
+import { entryPoints } from '#src/entry-points.ts'
+import { type ApiExport, indexRows } from '#src/rows.ts'
 
-const repo = fileURLToPath(new URL('../fixtures/repo', import.meta.url))
+const repo = fileURLToPath(new URL('../../fixtures/repo', import.meta.url))
 const exports = indexRows(entryPoints(repo))
 const find = (name: string): ApiExport | undefined => exports.find((each) => each.name === name)
 
