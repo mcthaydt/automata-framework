@@ -1299,6 +1299,9 @@ importers:
 
   tooling/api-index:
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
@@ -1333,6 +1336,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
@@ -1349,6 +1355,9 @@ importers:
         specifier: 5.57.1
         version: 5.57.1
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
@@ -1573,6 +1582,9 @@ importers:
 
   tooling/repo-hygiene:
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
