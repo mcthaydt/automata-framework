@@ -1186,19 +1186,11 @@ type LifecycleReason = 'hidden' | 'blurred' | 'host-overlay' | 'ad' | 'offline-g
 component from '../shared/ui/status/LoaderOverlay.svelte'
 ```
 
-### `Locale` (interface)
+### `Locale` (type)
 
 ```ts
-interface Locale {
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-    readonly current: string;
-    readonly choice: string | null;
-    readonly direction: 'ltr' | 'rtl';
-    subscribe(listener: (locale: string) => void): () => void;
-    set(choice: string | null): void;
-}
-const Locale: Context.Tag<Locale, Locale>;
+type Locale = LocaleService;
+const Locale: Context.Tag<LocaleService, LocaleService>;
 ```
 
 ### `MAX_TURN_UNITS_PER_STEP` (const)
@@ -1773,14 +1765,11 @@ interface ScreensGame {
 component from '../shared/ui/layout/ScrollList.svelte'
 ```
 
-### `Settings` (interface)
+### `Settings` (type)
 
 ```ts
-interface Settings {
-    readonly key: string | undefined;
-    readonly store: SettingsStore<unknown> | undefined;
-}
-const Settings: Context.Tag<Settings, Settings>;
+type Settings = SettingsService;
+const Settings: Context.Tag<SettingsService, SettingsService>;
 ```
 
 ### `SettingsDef` (interface)
@@ -1812,7 +1801,7 @@ interface SettingsScreenCopy {
 ### `settingsStore` (function)
 
 ```ts
-function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
+function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, SettingsService>;
 ```
 
 ### `Sheet` (svelte)
