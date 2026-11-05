@@ -1,4 +1,4 @@
-// The core settings (M4 spec §4.5, §4.8, M4-D8): what a game that declares no `settings` saves, so the Settings
+// The core settings: what a game that declares no `settings` saves, so the Settings
 // screen's Controls and Display sections always have a place for the player's choices. A game with settings of its
 // own keeps them only when its schema has the same fields: `input: inputSettingsSchema`,
 // `display: displaySettingsSchema` and, for a camera the player turns, `camera: cameraSettingsSchema`.
@@ -29,11 +29,11 @@ import type { SettingsDef } from '../shared/runtime/settings/migrate-settings.js
 export interface CoreSettings {
   readonly input: InputSettings
   readonly display: DisplaySettings
-  /** The Audio group's choices (M5.4); a record saved before it reads them as the defaults. */
+  /** The Audio group's choices; a record saved before it reads them as the defaults. */
   readonly audio: AudioSettings
   /** The Vibration group's toggle (Owner, 2026-10-18); a record saved before it reads it as on. */
   readonly haptics: HapticsSettings
-  /** "Camera turn speed" and "Invert camera" (M4.12); a record saved before them reads them as the defaults. */
+  /** "Camera turn speed" and "Invert camera"; a record saved before them reads them as the defaults. */
   readonly camera: CameraSettings
 }
 
@@ -73,6 +73,6 @@ export const CORE_SETTINGS: SettingsDef<CoreSettings> = {
   version: 1,
   schema: coreSettingsSchema,
   defaults: DEFAULTS,
-  // The sound belongs to the device, not the player's account (M5 spec §4.5): muting a Mac must not mute the iPad.
+  // The sound belongs to the device, not the player's account: muting a Mac must not mute the iPad.
   deviceFields: ['audio'],
 }

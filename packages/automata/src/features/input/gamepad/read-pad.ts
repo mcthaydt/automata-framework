@@ -1,4 +1,4 @@
-// One pad's state (M4 spec §4.3), from FloorFifty `apps/client/src/managers/gamepad-source.ts` at `ac72660`
+// One pad's state, from FloorFifty `apps/client/src/managers/gamepad-source.ts` at `ac72660`
 // (`readPad`, lines 31–96): a radial deadzone, triggers pressed from half travel, and menu directions from the
 // D-pad or the left stick along its stronger axis. FloorFifty's race intents (fast-fall, reset, hops) stay there.
 import type { StickDirection } from '../input-profile.schema.js'
@@ -77,7 +77,7 @@ export function readPad(pad: PadLike): PadReading {
 
 /**
  * A stick's directions past the radial deadzone, eight-way: an axis counts when it carries at least `AXIS_SHARE` of
- * the push. The pad's sticks and the touch stick (M4.12) share it, so the same push holds the same actions.
+ * the push. The pad's sticks and the touch stick share it, so the same push holds the same actions.
  */
 export function stickDirections(side: 'left' | 'right', x: number, y: number): StickDirection[] {
   const radius = Math.hypot(x, y)

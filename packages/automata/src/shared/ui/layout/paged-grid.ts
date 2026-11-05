@@ -1,5 +1,5 @@
 /**
- * PagedGrid's page arithmetic (M4 spec §4.8; from FloorFifty `ui/tile-pages.ts` at `ac72660`, the arithmetic only).
+ * PagedGrid's page arithmetic.
  *
  * A grid never scrolls: its items sit on pages of a fixed shape, one group per page, so no screen grows with its
  * catalog. The shape is the most the game allows, cut down to what the measured box holds at the smallest tile a

@@ -1,4 +1,4 @@
-// The player's saved bindings (M4 spec §4.5): `input` in the game's settings record. Only what the player changed is
+// The player's saved bindings: `input` in the game's settings record. Only what the player changed is
 // kept, per action and field, over the game's profile, so a game update that adds an action keeps the player's
 // other bindings. `profile` is the id of the profile the overrides were made against: overrides for another profile
 // are not applied (`applyOverrides`).
@@ -18,7 +18,7 @@ export interface BindingOverride {
 export interface InputSettings {
   readonly profile: string
   readonly overrides: Readonly<Record<string, BindingOverride>>
-  /** How touch drives play, when the player chose (M4 spec §4.4). Unset: the game's default. */
+  /** How touch drives play, when the player chose. Unset: the game's default. */
   readonly touchMode?: TouchMode | undefined
 }
 

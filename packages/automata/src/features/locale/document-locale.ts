@@ -1,7 +1,7 @@
-// The document follows the locale (PRODUCT spec §4 item 4).
+// The document follows the locale.
 // Extracted from FloorFifty apps/client/src/i18n/document.svelte.ts (ac72660), which set `lang` in a Svelte
 // effect; here the `Locale` service calls this on boot and on every change, and `dir` is set too, so a
-// right-to-left language lays out mirrored (with ui's logical properties, PRODUCT.L3).
+// right-to-left language lays out mirrored (with ui's logical properties).
 
 /** ISO 15924 scripts written right to left (the ones CLDR's likely subtags produce, plus their peers). */
 const RIGHT_TO_LEFT_SCRIPTS: ReadonlySet<string> = new Set([

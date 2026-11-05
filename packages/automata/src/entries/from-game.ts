@@ -1,4 +1,4 @@
-// @mcthaydt/automata-game: one call to start a game (DX spec §3.1). The only package that composes runtime,
+// @mcthaydt/automata-game: one call to start a game. The only package that composes runtime,
 // render-pixi, host, ui and sim; every default it fills in is an existing core contract with its options set.
 
 export { defaultContent } from '../app/default-content.ts'
@@ -14,7 +14,7 @@ export type { DrawContext, DrawTextOptions } from '../app/draw/draw-layer.ts'
 export type { DrawEntity, DrawSim } from '../app/draw/read-sim.ts'
 export { defaultScreens, type ScreensGame } from '../app/screens/default-screens.ts'
 export type { ChangedElsewhereCopy } from '../app/screens/saves/saves-copy.ts'
-// The default screens' words (DX.2d): a game passes its own in `copy.screens`, over the English defaults.
+// The default screens' words: a game passes its own in `copy.screens`, over the English defaults.
 export type {
   ScreensCopy,
   ScreensCopyInput,
@@ -47,7 +47,7 @@ export {
   type SpriteViewOptions,
   sprite,
 } from './from-render-pixi.ts'
-// A save is declared with the runtime's `defineSave` and handed to `defineGame({ saves })` (M5.2); a game imports
+// A save is declared with the runtime's `defineSave` and handed to `defineGame({ saves })`; a game imports
 // only the umbrella (or this package), never the runtime, so the declaration comes through here.
 export {
   type AutosavePolicy,

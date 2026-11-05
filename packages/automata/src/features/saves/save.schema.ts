@@ -1,4 +1,4 @@
-// What a game saves, and how a stored save is read (M5 spec §4.2, §6). From FloorFifty `common/progress.ts` at
+// What a game saves, and how a stored save is read. From FloorFifty `common/progress.ts` at
 // `ac72660`, with the stricter save policy:
 // - a save from a newer build is never migrated or written over ("opening an older build must not erase it");
 // - a field this build does not know rides through, so a write by an older build of the same version keeps it;
@@ -11,7 +11,7 @@ import type { z } from 'zod'
 /** One migration step of a save: version `n` data in, version `n + 1` data out (`SaveDef.migrations`). */
 export type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>
 
-/** What can make the loaded slot write itself (M5 spec §4.4). */
+/** What can make the loaded slot write itself. */
 export type AutosaveTrigger = 'screen-exit' | 'round-end' | 'background' | 'interval'
 
 /**
@@ -45,7 +45,7 @@ export interface SaveDef<S> {
 export interface SaveEnvelope {
   readonly format: 1
   readonly version: number
-  /** The sim content hash at save time (M2.2). */
+  /** The sim content hash at save time. */
   readonly contentHash: string
   /** Effect `Clock` epoch ms, for the slot list; outside the sim. */
   readonly savedAt: number
@@ -65,7 +65,7 @@ export interface SlotMeta {
   readonly snapshot: boolean
 }
 
-/** What a slot holds, as the slot list shows it (M5 spec §4.3, §6). */
+/** What a slot holds, as the slot list shows it. */
 export type SlotState =
   | { readonly kind: 'empty'; readonly slot: number }
   | { readonly kind: 'ready'; readonly slot: number; readonly meta: SlotMeta }
@@ -167,7 +167,7 @@ export function metaOf(envelope: SaveEnvelope): SlotMeta {
   return envelope.label === undefined ? meta : { ...meta, label: envelope.label }
 }
 
-/** Classifies a stored value from its header, without migrating it (M5 spec §5, boot step 1). */
+/** Classifies a stored value from its header, without migrating it. */
 export function slotState(
   def: SaveDef<unknown>,
   slot: number,

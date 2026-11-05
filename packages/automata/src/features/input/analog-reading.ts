@@ -1,4 +1,4 @@
-// What a game's analog mapping reads each tick (M4 spec §17.1): the sticks, the camera drag and the camera settings.
+// What a game's analog mapping reads each tick: the sticks, the camera drag and the camera settings.
 
 import type { z } from 'zod'
 import type { CameraSettings } from './analog/camera-settings.schema.ts'
@@ -22,7 +22,7 @@ export interface AnalogOptions<Z extends z.ZodType> {
    * refuses the merge (a `NaN`, a float in an integer field), the held payload is sent alone.
    */
   read(reading: AnalogReading, held: z.output<Z>): Partial<z.input<Z>>
-  /** Bind the `camera-drag` gesture: the play screen mounts the drag surface (M4 spec §16.3.1). */
+  /** Bind the `camera-drag` gesture: the play screen mounts the drag surface. */
   readonly drag?: boolean
   /** Show the touch stick; its vector is `stick('left')`. */
   readonly touchStick?: boolean

@@ -1,4 +1,4 @@
-// Which of the game's locales a player sees (PRODUCT spec §4 item 2).
+// Which of the game's locales a player sees.
 // Extracted from FloorFifty apps/client/src/i18n/detect.ts and strategy.ts (ac72660): there the six
 // languages and their primary-subtag map were fixed; here the game's own locales are matched, exact tag first.
 
@@ -31,9 +31,9 @@ export function matchLocale(requested: string, locales: readonly string[]): stri
 }
 
 /**
- * The order is the player's saved choice, Ruken's session locale, the browser's languages, the default
- * (PRODUCT spec §4 item 2, as decided 2026-10-16: a choice made in the game's own picker outranks the
- * platform's, as in FloorFifty, where detection runs only "when the player has not chosen one").
+ * The order is the player's saved choice, Ruken's session locale, the browser's languages, the default.
+ * A choice made in the game's own picker outranks the platform's: detection runs only when the player has not
+ * chosen.
  * Each step that names a language the game lacks falls through to the next.
  */
 export function negotiateLocale(candidates: LocaleCandidates): string {

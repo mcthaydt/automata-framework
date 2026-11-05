@@ -1,4 +1,4 @@
-// The content a game gets when it has no `content/` folder (DX spec §3.1): the default screens' flow and the
+// The content a game gets when it has no `content/` folder: the default screens' flow and the
 // facts Ruken needs, hashed with the content compiler's formula so the runtime's boot check passes unchanged.
 
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
@@ -35,7 +35,7 @@ const DATA: CompiledContentData = {
 
 let content: GameContent | undefined
 
-/** The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash. */
+/** The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings`, and its hash. */
 export function defaultContent(): GameContent {
   content ??= { data: DATA, hash: hex64(xxhash64(utf8(canonicalJson(DATA)))) }
   return content

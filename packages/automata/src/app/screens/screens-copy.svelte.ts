@@ -1,6 +1,6 @@
-// The default screens' words, live (DX.2d): resolved in the player's locale, and again on each change, for as long as
+// The default screens' words, live: resolved in the player's locale, and again on each change, for as long as
 // the screen that asked is open. A screen reads `copy.current` in its markup, so a change re-renders the words in
-// place: no remount, focus kept (PRODUCT spec §4, L-c).
+// place: no remount, focus kept.
 import { Effect, type Scope } from 'effect'
 import { resolveScreensCopy, type ScreensCopy, type ScreensCopyInput } from './screens-copy.ts'
 

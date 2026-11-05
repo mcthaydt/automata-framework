@@ -1,4 +1,4 @@
-// The Input service (M4 spec §4.2): keyboard, standard-pad buttons and touch, each kept apart, sampled as one union
+// The Input service: keyboard, standard-pad buttons and touch, each kept apart, sampled as one union
 // once per fixed step. From FloorFifty `apps/client/src/managers/input.ts` at `ac72660` (lines 42–60): one shared
 // set let a keyup on the keyboard release a direction the controller still held, so each device keeps its own
 // sources and an action is held while any source on any device drives it. Edges ("pressed") never reach the sim:
@@ -41,7 +41,7 @@ import {
 import { isMenuActionLive, MENU_BINDINGS, type MenuAction } from './menu-actions.js'
 
 /**
- * The input service (M4 spec §4.2): held actions from keys, pads, touch buttons and gestures under the game's
+ * The input service: held actions from keys, pads, touch buttons and gestures under the game's
  * profile and the player's overrides, menu edges, the active device and pads, and rebinding.
  */
 export interface Input {
@@ -60,13 +60,13 @@ export interface Input {
   hold(action: string): void
   release(action: string): void
   /**
-   * Gestures from a `SwipeTracker` (M4.3), as touch: a held gesture holds its actions until released, and a pulse
+   * Gestures from a `SwipeTracker`, as touch: a held gesture holds its actions until released, and a pulse
    * (a flick or a tap) holds them for exactly one sample.
    */
   readonly gesture: GestureSink
-  /** The overlay's move stick (M4.12): while held it is `stick('left')` and drives the `left-*` directions. */
+  /** The overlay's move stick: while held it is `stick('left')` and drives the `left-*` directions. */
   readonly touchStick: TouchStickSink
-  /** Where a `CameraDragTracker` sends its pixels (M4.12). */
+  /** Where a `CameraDragTracker` sends its pixels. */
   readonly drag: DragSink
   /** CSS px dragged to the right between the previous two `poll()`s; 0 unless a live action binds `camera-drag`. */
   cameraDrag(): number
@@ -77,7 +77,7 @@ export interface Input {
   /** The pads connected since this Input started, in connection order. */
   readonly pads: SubscriptionRef.SubscriptionRef<readonly PadInfo[]>
   /**
-   * Binds the captured key or pad button to `action` on `device` (M4 spec §4.5, M4-D4), saved in the settings'
+   * Binds the captured key or pad button to `action` on `device`, saved in the settings'
    * `input` when the Input has settings; refused, with nothing changed, by `RebindError`.
    */
   rebind(action: string, device: 'keyboard' | 'gamepad', capture: Capture): Effect.Effect<void, RebindError>
@@ -91,7 +91,7 @@ export interface Input {
   capture(device: 'keyboard' | 'gamepad'): Effect.Effect<Capture, RebindCancelled | RebindTimedOut>
 }
 
-/** How long `capture` waits for a press (M4 spec §4.2, §6). */
+/** How long `capture` waits for a press. */
 export const REBIND_TIMEOUT_MS = 10_000
 /** Pad B, which backs out of a menu, cancels a capture. */
 const CANCEL_BUTTON = 1
@@ -181,7 +181,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
     }
     const use = (next: InputDevice): void => become(next)
 
-    // The host's input mode is a source of the active device too (M4 spec §4.2, §5 step 3): it sets the device the
+    // The host's input mode is a source of the active device too: it sets the device the
     // session starts on, and a pad it reports later becomes active, with the layout's glyphs (Ruken names only
     // `xbox` and `other`, R-1). The last real input still wins.
     const HOST_DEVICE = { touch: 'touch', 'keyboard-mouse': 'keyboard', gamepad: 'gamepad' } as const
@@ -507,7 +507,7 @@ export function makeInput(options: InputOptions): Effect.Effect<Input, never, Sc
         let nav = NO_DIRECTIONS
         let activeSeen = false
         for (const pad of target.navigator.getGamepads?.() ?? []) {
-          // Only the standard mapping is bound (DX spec §3.3).
+          // Only the standard mapping is bound.
           if (pad === null || !pad.connected || pad.mapping !== 'standard') continue
           const reading = readOnePad(pad)
           if (pad.index === activeIndex) {

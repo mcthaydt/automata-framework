@@ -18,7 +18,7 @@ export interface SettingsViewState {
   touchModes: readonly ControlsTouchMode[]
   touchMode: ControlsTouchMode
   quality: DisplayQuality
-  /** The Audio group (M5.4): the player's choices, whether sound could start, and whether the host's volume is down. */
+  /** The Audio group: the player's choices, whether sound could start, and whether the host's volume is down. */
   audio: AudioValue
   /** The Language group (redo step 9): the game's locales and the player's pick, null for Automatic. */
   locales: readonly string[]

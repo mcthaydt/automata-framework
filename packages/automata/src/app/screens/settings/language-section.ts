@@ -1,7 +1,7 @@
 // The Language group's words and names (Owner, 2026-10-18; FloorFifty `i18n/locales.ts` at a28dc44, generalised): each
 // language is named in its own language, so a player finds theirs whatever the game is showing now.
 //
-// `endonymOf` is content's (`@mcthaydt/automata-content/locale`, M5.5F): the font build cuts the same names into
+// `endonymOf` is content's (`@mcthaydt/automata-content/locale`): the font build cuts the same names into
 // every subset, so there is one function for both, and ui re-exports it unchanged.
 
 export { endonymOf } from '@mcthaydt/automata-content/locale'

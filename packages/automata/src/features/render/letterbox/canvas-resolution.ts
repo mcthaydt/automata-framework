@@ -6,7 +6,7 @@ import type { FormFactor } from '../../../shared/ui/geometry/form-factor.ts'
  */
 export const MAX_RESOLUTION = 2
 
-/** The canvas resolution each quality tier allows at most (M4 spec §4.11). */
+/** The canvas resolution each quality tier allows at most. */
 export const RESOLUTION_CAPS: Readonly<Record<QualityTier, number>> = {
   low: 1,
   medium: 1.5,

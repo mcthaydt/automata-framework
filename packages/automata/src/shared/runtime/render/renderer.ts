@@ -17,7 +17,7 @@ export interface RenderTarget {
   readonly bus?: PresentationBus | undefined
   /**
    * Shows the "picture stopped" panel with Try again, for a renderer whose graphics context is lost and will not
-   * come back by itself (M3 spec §5): Try again closes the panel and calls `retry`, which rebuilds the renderer from
+   * come back by itself: Try again closes the panel and calls `retry`, which rebuilds the renderer from
    * the sim's current state. Returns a function that closes the panel. Optional for tests and tools.
    */
   readonly reportLost?: ((retry: () => void) => () => void) | undefined
@@ -34,7 +34,7 @@ export interface GameRenderer {
 
 /**
  * Builds the game's renderer for a target. It fails with `RendererUnavailable` when no backend it accepts starts,
- * and with `ModelInvalid` when a 3D renderer cannot read a model file it was given (M3 spec §6).
+ * and with `ModelInvalid` when a 3D renderer cannot read a model file it was given.
  */
 export type RendererFactory = (
   target: RenderTarget,

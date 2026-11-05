@@ -12,7 +12,7 @@ export interface SettingsDef<S> {
   readonly migrations?: Readonly<Record<number, (record: Record<string, unknown>) => Record<string, unknown>>>
   /**
    * Fields that belong to one device: kept in its `DeviceStorage`, never in the player's saves, and the saves'
-   * copy is never read (M5 spec §4.5). The rest of the record is the player's, as for any settings. Names, not
+   * copy is never read. The rest of the record is the player's, as for any settings. Names, not
    * `keyof S`, so a `SettingsDef<S>` stays assignable where `SettingsDef<unknown>` is wanted; `makeSettings`
    * refuses a name the defaults do not have.
    */

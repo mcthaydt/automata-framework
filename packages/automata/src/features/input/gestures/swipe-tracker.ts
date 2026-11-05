@@ -1,4 +1,4 @@
-// Swipe steering, flicks and taps over pointer samples, with no DOM in it (M4 spec §4.4). From FloorFifty
+// Swipe steering, flicks and taps over pointer samples, with no DOM in it. From FloorFifty
 // `apps/client/src/systems/gameplay/swipe-tracker.ts` at `ac72660`, generalised from its race's left/right/fast-fall
 // to the profile's gesture names and given a vertical axis and a tap.
 //
@@ -27,7 +27,7 @@ export interface GestureTuning {
 export const GESTURE_TUNING: GestureTuning = { deadZonePx: 12, saturationPx: 48, flickPx: 40, flickMs: 180 }
 
 /**
- * Where gestures go: held while a finger steers, pulsed for a flick or a tap. The camera drag is analog (M4.12) and
+ * Where gestures go: held while a finger steers, pulsed for a flick or a tap. The camera drag is analog and
  * goes to `Input.drag` instead, so it is not one of these.
  */
 export interface GestureSink {
@@ -60,7 +60,7 @@ const STEER = {
 } as const satisfies Record<'x' | 'y', Record<-1 | 1, GestureName>>
 
 /**
- * Turns pointer samples into held swipes, flicks and taps for a `GestureSink` (M4 spec §4.4); it reads no
+ * Turns pointer samples into held swipes, flicks and taps for a `GestureSink`; it reads no
  * clock and touches no DOM.
  */
 export class SwipeTracker {

@@ -30,7 +30,7 @@ export interface MakeAppLoopOptions {
 }
 
 /**
- * Creates the runtime AppLoop (spec §3.5).
+ * Creates the runtime AppLoop.
  * The frame loop runs without Effect allocations per frame.
  * A throw from step stops the loop, calls onFault once and requests no further frames.
  * Closing the scope cancels any pending frame and prevents further runs.

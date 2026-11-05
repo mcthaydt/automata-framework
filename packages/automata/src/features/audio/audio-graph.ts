@@ -1,6 +1,6 @@
-// The Web Audio graph (M5 spec §4.6). Ported from FloorFifty `apps/client/src/managers/audio/graph.ts` at `ac72660`,
+// The Web Audio graph. Ported from FloorFifty `apps/client/src/managers/audio/graph.ts` at `ac72660`,
 // without its hall, tape echo, vintage stage and analyser, which stay in the game or go to `feel` and
-// `audio-synth` (M6):
+// `audio-synth`:
 //
 //   source → bus (the player's level) → duck (its own gain) → master → speakers
 //

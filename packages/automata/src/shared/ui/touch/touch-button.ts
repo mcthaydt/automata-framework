@@ -1,4 +1,4 @@
-/** One on-screen touch button (M4 spec §4.4): the action it holds and what it shows. */
+/** One on-screen touch button: the action it holds and what it shows. */
 export interface TouchButtonSpec {
   /** The profile's action id; also the button's `data-testid`. */
   readonly action: string
@@ -8,11 +8,11 @@ export interface TouchButtonSpec {
   readonly ariaLabel?: string | undefined
   /** Which lower corner's group it sits in. Default `start`. */
   readonly side?: 'start' | 'end' | undefined
-  /** The game cannot be played without it: where the buttons do not all fit, only these show (M4.7). */
+  /** The game cannot be played without it: where the buttons do not all fit, only these show. */
   readonly required?: boolean | undefined
 }
 
-/** The overlay's move stick (M4.12). */
+/** The overlay's move stick. */
 export interface TouchStickSpec {
   /** Its name for assistive technology ("Move"). */
   readonly label: string
@@ -28,7 +28,7 @@ export interface TouchControlsProps {
   /** False hides the controls without remounting them (the player put touch down). Default true. */
   shown?: boolean | undefined
   /**
-   * A floating move stick at the overlay's start (M4.12): its accessible name. None draws no stick, as in 2D. The
+   * A floating move stick at the overlay's start: its accessible name. None draws no stick, as in 2D. The
    * stick is always shown: the reduced set never drops it.
    */
   stick?: TouchStickSpec | undefined

@@ -23,7 +23,7 @@ export interface PageLayers {
 
 /**
  * Creates the three-layer runtime DOM structure (stage, screens, overlay)
- * and manages mount/unmount of status overlays (spec §4 step 1, §6).
+ * and manages mount/unmount of status overlays.
  */
 export function createPageLayers(root: HTMLElement, doc: Document = document): PageLayers {
   const stage = doc.createElement('div')

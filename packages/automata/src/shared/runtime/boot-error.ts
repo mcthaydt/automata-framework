@@ -50,7 +50,7 @@ export interface ModelInvalidFields {
 const ModelInvalidBase: TaggedErrorClass<'ModelInvalid', ModelInvalidFields> =
   Data.TaggedError('ModelInvalid')
 /**
- * A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin,
+ * A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin,
  * which is not supported yet (M3R-D1). Boot shows the panel naming the file, with Try again.
  */
 export class ModelInvalid extends ModelInvalidBase {}
@@ -75,7 +75,7 @@ const BootDefectBase: TaggedErrorClass<'BootDefect', BootDefectFields> = Data.Ta
  */
 export class BootDefect extends BootDefectBase {}
 
-/** Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4). */
+/** Every way boot can fail; each draws on the runtime's boot failure panel. */
 export type BootError =
   | HostError
   | ContentHashMismatch
@@ -85,7 +85,7 @@ export type BootError =
   | ModelInvalid
   | BootDefect
 
-// Shared contracts §4: BootError must be structurally assignable to BootFailure.
+// BootError must be structurally assignable to BootFailure.
 type Drawable<T extends BootFailure> = T
 /** @public Compile-time check only; nothing imports it. */
 export type BootErrorIsDrawable = Drawable<BootError>

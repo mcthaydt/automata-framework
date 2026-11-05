@@ -1,4 +1,4 @@
-// The game's sounds for sim events (M5 spec §4.6): sim events reach audio as presentation-bus facts, never the
+// The game's sounds for sim events: sim events reach audio as presentation-bus facts, never the
 // other way round, so audio can never change what the sim does.
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { Audio, SoundOptions } from './audio.manager.js'

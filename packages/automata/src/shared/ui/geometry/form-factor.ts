@@ -1,5 +1,5 @@
 /**
- * The four form factors (M1.6 spec §3.1; from FloorFifty `ui/form-factor.ts` at 122a220).
+ * The four form factors.
  *
  * Decided from the layout viewport's size alone. Whether the pointer is coarse is a different
  * question: it decides which controls mount, not how a screen is laid out. So a tablet with a

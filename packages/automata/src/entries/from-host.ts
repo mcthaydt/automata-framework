@@ -1,7 +1,7 @@
-// The host contract (DIST spec §4), target-neutral: no adapter is exported here. A build's adapter comes from
-// `@mcthaydt/automata-host/target`, chosen by the build's condition (DIST spec §5.3).
+// The host contract, target-neutral: no adapter is exported here. A build's adapter comes from
+// `@mcthaydt/automata-host/target`, chosen by the build's condition.
 
-// The Ruken adapter's test seam, a type only, until DIST.4 replaces the runtime's `sdkEnv` seam with `FakeHosting`.
+// The Ruken adapter's test seam, a type only, kept while the runtime's `sdkEnv` seam exists (`FakeHosting` is to replace it).
 export type { HostingSeams } from '../features/targets/ruken/hosting-ruken'
 export {
   findRukenSdkMarkers,

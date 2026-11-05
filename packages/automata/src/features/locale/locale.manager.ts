@@ -1,4 +1,4 @@
-// The player's language, as a runtime service (PRODUCT spec §4 items 2 and 4).
+// The player's language, as a runtime service.
 // Extracted from FloorFifty apps/client/src/i18n/strategy.ts (`applyLocale`) at ac72660, where the choice
 // lived in the settings store. Here it is its own save key, read and written through `Hosting.saves`, so a
 // host that refuses the write keeps the change in memory only and nothing moves to device storage
@@ -27,7 +27,7 @@ export interface LocaleDef {
 }
 
 /**
- * The locale service (PRODUCT spec §4): the game's locales, the one text is drawn in now, the player's choice
+ * The locale service: the game's locales, the one text is drawn in now, the player's choice
  * and the text direction.
  */
 export interface Locale {

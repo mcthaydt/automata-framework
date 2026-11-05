@@ -1,4 +1,4 @@
-// The display policy (M4 spec §4.9, §5, §6, M4-D5): two covers the runtime keeps over every screen for the session.
+// The display policy: two covers the runtime keeps over every screen for the session.
 //
 // - The landscape gate (FloorFifty `LandscapeGate.svelte` at `ac72660`, classified by ui's `landscapeGate`):
 //   standalone only. Under Ruken the host frames the game and fullscreen is the host's, so the gate never shows. Its
@@ -48,7 +48,7 @@ export interface DisplayCopy {
 /** How a game locked to one orientation says so (Owner amendment, 2026-10-18): a blocking cover, or a toast. */
 export type RotateHintMode = 'block' | 'toast'
 
-/** English, as the runtime's other words are, until PRODUCT.L localizes them. */
+/** English, as the runtime's other words are, until they are localized. */
 export const DISPLAY_COPY_EN: DisplayCopy = {
   gate: {
     title: 'Play fullscreen',

@@ -1,5 +1,5 @@
 /**
- * What a CameraDragSurface drives (M4 spec §16.3.7): runtime's `CameraDragTracker` satisfies it, so ui need not
+ * What a CameraDragSurface drives: runtime's `CameraDragTracker` satisfies it, so ui need not
  * import runtime. `down` answers whether the pointer now drives the drag (a finger's primary contact, the mouse's
  * secondary button, none already dragging).
  */

@@ -1,5 +1,5 @@
 /**
- * The geometry every screen lays out against (M1.6 spec §3.1, §3.2).
+ * The geometry every screen lays out against.
  *
  * `measureGeometry` is pure: it turns what the browser and the host report into one answer.
  * `applyGeometry` publishes that answer on the document root, where CSS reads it. The owner
@@ -29,7 +29,7 @@ export interface Rect {
 
 /**
  * What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
- * The host contract's type (`@mcthaydt/automata-host`, DIST spec §4), never copied.
+ * The host contract's type (`@mcthaydt/automata-host`), never copied.
  * `scale` is 1.333 on Ruken's TV mode: a hint to enlarge text and targets, never CSS zoom.
  */
 export type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'scale'>
@@ -114,7 +114,7 @@ export function measureGeometry(input: GeometryInput): Geometry {
   }
   // Whatever covers the layout viewport's foot. The keyboard shrinks the visual viewport and,
   // on iOS, scrolls it (offsetTop); what is left below it is covered.
-  // A hidden bar is reported by nothing the page can read, so it is added on top (spec §3.9).
+  // A hidden bar is reported by nothing the page can read, so it is added on top.
   const keyboard = visual === undefined ? 0 : Math.max(0, layout.height - visual.height - visual.offsetTop)
   const hiddenBarBottom = Math.max(0, Math.round(input.hiddenBarBottom ?? 0))
   const visualInsetBottom = Math.round(keyboard) + hiddenBarBottom
@@ -137,7 +137,7 @@ export function measureGeometry(input: GeometryInput): Geometry {
   }
 }
 
-/** Writes the geometry where CSS reads it (spec §3.2). Only the geometry owner calls this. */
+/** Writes the geometry where CSS reads it. Only the geometry owner calls this. */
 export function applyGeometry(root: HTMLElement, geometry: Geometry): void {
   root.dataset.formFactor = geometry.formFactor
   if (geometry.heightTier === undefined) delete root.dataset.height
@@ -160,7 +160,7 @@ export function applyGeometry(root: HTMLElement, geometry: Geometry): void {
 
 /**
  * Reads back the visible region `applyGeometry` published on `root`, for a component that must keep something it
- * draws inside it (the touch stick's floating ring, M4.12b). The same region as `Geometry.visible`: the layout less
+ * draws inside it (the touch stick's floating ring). The same region as `Geometry.visible`: the layout less
  * the insets, and above whatever covers the page's foot. Where nothing was published, the whole layout.
  */
 export function publishedVisibleRect(

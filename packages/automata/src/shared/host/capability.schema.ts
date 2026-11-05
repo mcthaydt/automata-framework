@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 /**
- * What a game may ask its host for (DIST spec §4.1). The names are Ruken's (`@ruken/protocol` `CAPABILITIES`),
- * kept where they fit; `ruken/conformance.test.ts` holds them to the vendored SDK. Which target grants which is in
- * the DIST spec §4.3.
+ * What a game may ask its host for. The names are Ruken's (`@ruken/protocol` `CAPABILITIES`),
+ * kept where they fit; `ruken/conformance.test.ts` holds them to the vendored SDK. Each target's adapter says
+ * which it grants.
  */
 export const CAPABILITIES = [
   'lifecycle',

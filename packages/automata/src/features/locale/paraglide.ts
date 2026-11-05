@@ -1,4 +1,4 @@
-// Paraglide's compiled messages, answering in the `Locale` service's locale (PRODUCT spec §4 item 1).
+// Paraglide's compiled messages, answering in the `Locale` service's locale.
 // Extracted from FloorFifty apps/client/src/i18n/strategy.ts (ac72660), which defined a custom client
 // strategy reading the settings store. Here the generated runtime's `getLocale` and `setLocale` are replaced
 // outright: Paraglide's own strategies (cookie, localStorage, URL, reload) never run, so the locale comes only

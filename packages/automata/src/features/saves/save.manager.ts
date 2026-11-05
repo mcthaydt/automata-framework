@@ -1,4 +1,4 @@
-// The `Save` service: a game's save slots over `Hosting.saves` (M5 spec §4.3, §5 "Load a slot", §6).
+// The `Save` service: a game's save slots over `Hosting.saves`.
 //
 // Each slot is one Ruken key holding a canonical envelope, so a host conflict on a slot never splits it from its
 // header, and the slot list is derived from `Hosting.saves.keys` with no index key (M5-D2). AF refuses only what
@@ -43,7 +43,7 @@ export interface SaveWriteOptions {
 }
 
 /**
- * A game's save (M5 spec §4.3): its slots' states, load, write and remove, and the progress `touch` keeps for
+ * A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for
  * the autosave triggers to write.
  */
 export interface Save<S> {
@@ -114,7 +114,7 @@ const fromBase64 = (text: string): Uint8Array => Uint8Array.from(atob(text), (ch
 
 /**
  * Whether the host keeps saves this session: when it grants `saves`, or when Ruken fell back to standalone, whose
- * SDK keeps them on the device without a grant (shared contracts §1.2), as the paused screen reads it.
+ * SDK keeps them on the device without a grant, as the paused screen reads it.
  */
 export const savesKept = (hosting: Hosting): boolean =>
   hosting.kind === 'standalone' || hosting.granted.has('saves')
@@ -131,7 +131,7 @@ export function saveService<S>(
     const { contentHash } = options
     const count = def.slots?.count ?? 1
 
-    // Boot (spec §5 step 1): the keys, then each slot's header. Nothing is migrated yet.
+    // Boot: the keys, then each slot's header. Nothing is migrated yet.
     const states: SlotState[] = Array.from({ length: count }, (_, slot) => ({ kind: 'empty', slot }))
     // Per slot, the identity of what the host holds as far as this service knows: what it read or last wrote.
     const lastKnown: (string | undefined)[] = Array.from({ length: count }, () => undefined)
@@ -141,7 +141,7 @@ export function saveService<S>(
     }
     // A target that does not grant saves (a web page with storage blocked) is asked for nothing: every slot lists and
     // loads empty and a write sends nothing. Each call would fail DENIED and stop a game that can run, which says on
-    // its paused screen that progress won't be kept (DIST spec §8 flow 5). Never the device's storage instead.
+    // its paused screen that progress won't be kept. Never the device's storage instead.
     const granted = savesKept(hosting)
     const listed = granted ? yield* hosting.saves.keys : []
     for (const key of listed) {
@@ -326,7 +326,7 @@ export function saveService<S>(
       Effect.runSync(SubscriptionRef.set(changedElsewhereRef, false))
     }
 
-    // Another device wrote a slot (spec §5, M5-D6): the list and what this service believes the host holds follow
+    // Another device wrote a slot: the list and what this service believes the host holds follow
     // the host's value, at the slot's turn so a write in flight lands first. The slot being played is not reloaded:
     // the flag goes up and the game decides. The echo of this game's own write is not news.
     const changedOnHost = (slot: number) =>
@@ -355,7 +355,7 @@ export function saveService<S>(
       Effect.forkScoped,
     )
 
-    // The triggers, each wired to its source for as long as the scope is open (spec §4.4). A trigger that comes
+    // The triggers, each wired to its source for as long as the scope is open. A trigger that comes
     // from outside Effect (the bus) starts its flush on this service's runtime, so it sees the same Clock.
     const runFork = Runtime.runFork(yield* Effect.runtime<never>())
     if (policy.on.has('screen-exit')) {
@@ -395,7 +395,7 @@ export function saveService<S>(
         Effect.forkScoped,
       )
     }
-    // Leaving through the host, or closing this scope, must not lose progress (spec §5, "Restart and dispose"). The
+    // Leaving through the host, or closing this scope, must not lose progress. The
     // finalizer is added last, so it runs first, while the triggers above can still be told apart from a late one.
     yield* hosting.onExiting(flushPending)
     yield* Effect.addFinalizer(() => flushPending)

@@ -1,4 +1,4 @@
-// The sim as the draw layer sees it (PRODUCT spec §7, PRODUCT.2 plan D-3): reads only. Law 1 says only the sim
+// The sim as the draw layer sees it: reads only. Law 1 says only the sim
 // changes gameplay state, so this view has no write method at all, and every value it hands out is a frozen copy:
 // a HUD that assigns to one throws instead of reaching the sim. The copies are made per call, which suits a HUD,
 // a debug overlay or a prototype; hot drawing stays in entity views.

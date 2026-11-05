@@ -51,7 +51,7 @@ export function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsSto
  * Captures Effect.runtime() so update (a plain function) can fork saves.set without blocking.
  * Refused saves log a warning; no fallback to localStorage or device storage (AGENTS.md, Honor host authority).
  *
- * The fields `def.deviceFields` names live in `device` instead (M5 spec §4.5): read from it, written to it, and never
+ * The fields `def.deviceFields` names live in `device` instead: read from it, written to it, and never
  * sent to the saves, whose copy is not read either. `device` is undefined, or throws, where the site's storage is
  * blocked; those fields then hold for the visit only. That is a choice per field, not a fallback for a denied grant.
  */

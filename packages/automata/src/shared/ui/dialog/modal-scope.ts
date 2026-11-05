@@ -1,6 +1,5 @@
 /**
- * How a modal holds the page (M1.6 spec §3.4, moved out of Dialog for M4.6 so Dialog, Modal and
- * Sheet share one set of rules): the page behind is inert, only the topmost modal answers Escape
+ * How a modal holds the page (its own module so Dialog, Modal and Sheet share one set of rules): the page behind is inert, only the topmost modal answers Escape
  * and holds focus, Tab wraps inside it, focus starts on the safe control and goes back to the
  * opener when the modal goes away.
  */
@@ -75,7 +74,7 @@ export function focusInitial(panel: HTMLElement): void {
 
 /**
  * Where focus goes when a modal closes and its opener is gone: where a screen puts it on entry
- * (runtime's flow, M4 spec §4.7), the `data-autofocus` control, else the first primary one. A cover
+ * (runtime's flow), the `data-autofocus` control, else the first primary one. A cover
  * held from boot needs this: the screen behind it mounted inert, so its own focus call did nothing.
  */
 function focusPageDefault(): void {

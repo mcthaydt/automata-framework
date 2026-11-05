@@ -1,6 +1,6 @@
-// The read-only `draw(ctx)` layer (PRODUCT spec §7): immediate-mode shapes and text for a HUD, a debug overlay or
+// The read-only `draw(ctx)` layer: immediate-mode shapes and text for a HUD, a debug overlay or
 // a prototype, drawn each display frame over the entity views. It reads the sim through `readSim` and never
-// writes it (law 1). It is built on the renderer's stage hooks (DX.3 decision E-1), so render-pixi is unchanged.
+// writes it (law 1). It is built on the renderer's stage hooks, so render-pixi is unchanged.
 //
 // Immediate mode on a retained scene graph (plan D-6): one Graphics is cleared and redrawn each frame, and Text
 // objects are pooled by call order (the nth `text` call reuses the nth Text, unused ones are hidden), so a steady

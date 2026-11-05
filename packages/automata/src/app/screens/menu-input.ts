@@ -3,7 +3,7 @@ import type { Input } from '../../features/input/input.manager.ts'
 import type { MenuAction } from '../../features/input/menu-actions.ts'
 import { FocusNavigator, type NavDirection } from '../../shared/ui/focus/focus-nav.ts'
 
-/** Drives a menu screen's focus from the Input service (M4 spec §4.7). */
+/** Drives a menu screen's focus from the Input service. */
 export interface MenuInput {
   /** Reads the pads and keeps focus on the screen; call it each frame while the menu is open. */
   poll(nowMs: number): void

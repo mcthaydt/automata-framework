@@ -12,7 +12,7 @@ const SaveUnreadableBase: TaggedErrorClass<'SaveUnreadable', SaveUnreadableField
   Data.TaggedError('SaveUnreadable')
 /**
  * A slot's save cannot be read: a damaged envelope, a missing or throwing migration step, or data its schema refuses
- * (M5 spec §6). The slot is kept untouched; only an explicit write replaces it.
+ *. The slot is kept untouched; only an explicit write replaces it.
  */
 export class SaveUnreadable extends SaveUnreadableBase {}
 
@@ -36,5 +36,5 @@ export interface SaveRefusedFields {
   readonly reason: 'newer'
 }
 const SaveRefusedBase: TaggedErrorClass<'SaveRefused', SaveRefusedFields> = Data.TaggedError('SaveRefused')
-/** A write AF refuses on its own: over a save from a newer build (M5 spec §4.3). */
+/** A write AF refuses on its own: over a save from a newer build. */
 export class SaveRefused extends SaveRefusedBase {}

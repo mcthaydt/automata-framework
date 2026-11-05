@@ -4,7 +4,7 @@
  * Menus and tutorials teach the controls in the player's hand, and neither
  * lives inside the sim, so this is not the game's input. A mouse moves
  * nothing: it says nothing about which controls to teach. Which buttons a
- * controller carries (its glyph family) belongs to M4 input.
+ * controller carries (its glyph family) belongs to the input feature.
  */
 
 import { padKeyEvents } from '../focus/focus-nav'

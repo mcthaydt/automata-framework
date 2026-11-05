@@ -4,7 +4,7 @@ import type { AudioBusName } from './audio-buses.schema.js'
 export type { AudioBusName } from './audio-buses.schema.js'
 
 /**
- * The audio-bus seam (PRODUCT spec §2 F1). M5's core audio implements it over Web Audio (a gain node per bus
+ * The audio-bus seam. Core audio implements it over Web Audio (a gain node per bus
  * into `master`, combined there with `Hosting.audio`'s volume and focus); an extension such as Plus
  * `audio-stream`, or the game, connects its sources to `input(bus)` and never to the destination directly,
  * so the player's gains and the host's ducking always apply.
@@ -18,7 +18,7 @@ export interface AudioBuses {
   setGain(bus: AudioBusName, gain: number): void
 }
 
-/** The `AudioBuses` service tag. Core provides no implementation until M5. */
+/** The `AudioBuses` service tag. The Audio service implements it. */
 export const AudioBuses: Context.Tag<AudioBuses, AudioBuses> = Context.GenericTag<AudioBuses>(
   '@mcthaydt/automata-runtime/AudioBuses',
 )

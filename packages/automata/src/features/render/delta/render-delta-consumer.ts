@@ -3,7 +3,7 @@ import type { Container } from 'pixi.js'
 
 /**
  * What the consumer needs of a scene node: Pixi's `Container`, or another scene graph's node with the same meaning
- * (`@pixi/3d`'s `Container3D`, which is not a Pixi `Container`; M3 spec S7-Q5).
+ * (`@pixi/3d`'s `Container3D`, which is not a Pixi `Container`).
  */
 export interface SceneNode {
   readonly parent: unknown

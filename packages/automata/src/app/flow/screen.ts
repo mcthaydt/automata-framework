@@ -20,7 +20,7 @@ export interface ScreenContext {
   readonly layer: HTMLElement
   readonly from: string | undefined
   /**
-   * The scope of what a game keeps across screens, such as the sim the default screens share (DX.2c). Every screen
+   * The scope of what a game keeps across screens, such as the sim the default screens share. Every screen
    * of a run gets the same one. It is a child of the runtime scope, not the runtime scope itself. It stays open
    * through every transition and closes once, when the runtime shuts down or a failed boot is tried again: after the
    * current screen's scope and the save's last flush, which may still read what it holds, and before the renderer is
@@ -53,7 +53,7 @@ export type RuntimeServices =
 export interface ScreenDef<R = never> {
   readonly id: string
   readonly pausesSim?: boolean
-  /** `gameplay` lets the cursor policy hide an idle pointer; a `menu` (the default) never does (M4 spec §4.7). */
+  /** `gameplay` lets the cursor policy hide an idle pointer; a `menu` (the default) never does. */
   readonly kind?: 'menu' | 'gameplay'
   readonly fonts?: readonly string[]
   enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>

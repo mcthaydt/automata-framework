@@ -7,15 +7,15 @@ import type { UiComponent, UiSlotName } from '../../shared/ui/slots/ui-slot.ts'
 // Type-only imports throughout: `./extension` is loaded in Node by a game's vite.config.ts, so it must
 // not reach the DOM-bound ui package, Svelte, or content's Node-only compiler at run time.
 
-/** The parts of the game config an extension may read (content's `GameConfig`, DIST spec §4.4). */
+/** The parts of the game config an extension may read (content's `GameConfig`). */
 export type GameConfig = Pick<FullGameConfig, 'game' | 'runtime' | 'content'>
 
-/** What an extension may add to ruken.toml in M1: preload files. `wants` is not a manifest field (Q7). */
+/** What an extension may add to ruken.toml: preload files. `wants` is not a manifest field. */
 export type RukenManifestContribution = {
   readonly loading?: { readonly preload?: readonly string[] }
 }
 
-/** One opt-in feature of a game (M1 shared contracts §2). Build it with `defineExtension`. */
+/** One opt-in feature of a game. Build it with `defineExtension`. */
 export interface ExtensionDef<Name extends string = string> {
   /** Kebab-case and unique. */
   readonly name: Name

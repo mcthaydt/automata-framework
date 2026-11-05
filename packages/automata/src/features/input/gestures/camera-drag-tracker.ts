@@ -1,4 +1,4 @@
-// The camera drag (M4 spec §16.3.2, M3 spec §4.2 and §7): the player turns the camera freely, per pixel. One pointer
+// The camera drag: the player turns the camera freely, per pixel. One pointer
 // drags at a time: a finger or pen on its primary contact, or a mouse with its secondary button, so a primary click
 // on the scene is never a turn. Each move sends its horizontal pixels at once, with no dead zone and no smoothing,
 // because the picture tracks the finger one to one. Which contacts may land here at all (never in the host's strip,

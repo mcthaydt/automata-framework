@@ -9,7 +9,7 @@ import type { GameDefinition, RuntimeHandle } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
 /**
- * Formats a boot error into a descriptive message for logging (spec §4).
+ * Formats a boot error into a descriptive message for logging.
  * The match is exhaustive and ends in never.
  */
 export function describeBootError(error: BootError): string {
@@ -36,7 +36,7 @@ export function describeBootError(error: BootError): string {
 }
 
 /**
- * Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
+ * Boots and runs the game in a runtime Scope: a failure draws the boot failure panel, and shutdown closes the scope.
  *
  * Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
  * the attempt scope open so Back to {host} can access its Hosting service. Try again

@@ -1,4 +1,4 @@
-/** One way forward from a failure (M1.6 spec §3.4). */
+/** One way forward from a failure. */
 export interface ErrorAction {
   readonly id: string
   readonly label: string

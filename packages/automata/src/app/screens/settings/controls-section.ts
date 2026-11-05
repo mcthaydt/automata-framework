@@ -1,4 +1,4 @@
-// The Controls section's data (M4 spec §4.5, §7): a row per game action, the devices that can be rebound, and
+// The Controls section's data: a row per game action, the devices that can be rebound, and
 // the section's state through a rebind. Every word is the game's (`ControlsCopy`); the section is told the action
 // labels, so its messages name actions as the player reads them.
 import type { PromptBinding } from '../../../shared/ui/prompts/prompt-label'

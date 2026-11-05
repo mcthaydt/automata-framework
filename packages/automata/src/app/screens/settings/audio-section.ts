@@ -1,4 +1,4 @@
-// The Audio group's data (M5 spec §7, M5.4): the player's audio choices and the words that name them. The buses are
+// The Audio group's data: the player's audio choices and the words that name them. The buses are
 // runtime's `AUDIO_BUS_NAMES`, in their order; ui does not import runtime, so their names are repeated here.
 
 /** An audio bus (runtime's `AudioBusName`). */

@@ -1,4 +1,4 @@
-// camera2d: a presentation-only 2D camera (M4 spec §4.10). It writes the transform of the container it is given
+// camera2d: a presentation-only 2D camera. It writes the transform of the container it is given
 // and never a coordinate the sim produced: children keep their own positions, so what a player sees and what
 // the sim resolves never disagree. The follow's approach (`damp`) comes from FloorFifty
 // `apps/client/src/systems/gameplay/camera.ts` at `ac72660`; FloorFifty's race-specific zoom stays in the game.

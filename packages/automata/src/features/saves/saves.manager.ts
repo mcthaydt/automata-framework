@@ -1,4 +1,4 @@
-// The game's save as a runtime service (M5 spec §4.3, §5), the way `Settings` is one for settings: boot builds it from
+// The game's save as a runtime service, the way `Settings` is one for settings: boot builds it from
 // `GameDefinition.saves`, and a screen asks for it by the same definition.
 
 import { Context, Effect, type Scope } from 'effect'
@@ -10,7 +10,7 @@ import { saveService } from './save.manager.js'
 import type { SaveDef } from './save.schema.js'
 
 /**
- * The booted game's save as a runtime service (M5 spec §4.3), as `Settings` is for settings: its key and the
+ * The booted game's save as a runtime service, as `Settings` is for settings: its key and the
  * `Save`, both undefined for a game without saves.
  */
 export interface Saves {

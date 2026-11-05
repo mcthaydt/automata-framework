@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 /**
- * Graphics quality (M4 spec §4.11). A lower tier caps the canvas resolution and leaves out the post-filter owners
+ * Graphics quality. A lower tier caps the canvas resolution and leaves out the post-filter owners
  * registered for a higher one; it never drops the art direction. The one owner of the tier: render-pixi and the
  * Settings screen's Display section read it from here.
  */
@@ -9,7 +9,7 @@ export const QUALITY_TIERS = ['high', 'medium', 'low'] as const
 /** A graphics quality tier: `high`, `medium` or `low`. */
 export type QualityTier = (typeof QUALITY_TIERS)[number]
 
-/** `high` until PRODUCT.7 has measured the phone profiles (M4-D6); no device auto-detection. */
+/** `high` until the phone profiles are measured; no device auto-detection. */
 export const DEFAULT_QUALITY: QualityTier = 'high'
 
 /** A tier; an unknown saved value reads as the default, as every settings field falls back. */

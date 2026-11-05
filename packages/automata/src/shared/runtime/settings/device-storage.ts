@@ -1,5 +1,5 @@
 /**
- * Where a settings field that belongs to one device is kept (M5 spec §4.5, M5-D4). Any method may throw, as a
+ * Where a settings field that belongs to one device is kept. Any method may throw, as a
  * blocked or full `localStorage` does; the settings store copes with that and never falls back to the saves.
  */
 export interface DeviceStorage {

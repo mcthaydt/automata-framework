@@ -1,4 +1,4 @@
-// The Display section's words (M4 spec §4.8, §7). The tiers are runtime's `QUALITY_TIERS`, best first.
+// The Display section's words. The tiers are runtime's `QUALITY_TIERS`, best first.
 
 /** A graphics quality tier (runtime's `QualityTier`). */
 export type DisplayQuality = 'high' | 'medium' | 'low'

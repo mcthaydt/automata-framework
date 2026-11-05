@@ -2,7 +2,7 @@ import { Container, Rectangle, RenderTexture, Sprite } from 'pixi.js'
 import type { LetterboxFrame } from './letterbox.js'
 
 /**
- * The fixed-resolution composite (M4 spec §4.11).
+ * The fixed-resolution composite.
  *
  * The world and the UI draw here first, at resolution 1 and exactly the play field's logical size, and the result is
  * nearest-upscaled into the letterbox. Two reasons, and the second is the durable one. Filters cost per pixel, and a

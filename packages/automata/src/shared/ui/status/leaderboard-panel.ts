@@ -1,4 +1,4 @@
-// The LeaderboardPanel's contract (M5 spec §7). The view is the runtime's `BoardView` with `loading` added, typed here
+// The LeaderboardPanel's contract. The view is the runtime's `BoardView` with `loading` added, typed here
 // because ui does not depend on the runtime; the runtime's value fits it as it is.
 
 /** One row of a board, as the host gives it; `isMe` marks the player. */

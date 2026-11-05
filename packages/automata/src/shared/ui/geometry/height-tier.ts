@@ -1,5 +1,5 @@
 /**
- * The height tiers (M1.6 spec §3.1; from FloorFifty `ui/height-tier.ts` at 122a220).
+ * The height tiers.
  *
  * The form factor says what shape a screen is; the tier says how much height it has to spend.
  * Two screens of the same form factor can need different answers: a 1280 x 720 desktop and a

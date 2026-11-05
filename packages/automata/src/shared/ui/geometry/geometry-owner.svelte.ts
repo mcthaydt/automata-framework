@@ -1,6 +1,5 @@
 /**
- * The one geometry owner per document (M1.6 spec §3.1, §4; from FloorFifty
- * `viewport-tracking.svelte.ts` `trackViewport` at 122a220).
+ * The one geometry owner per document.
  *
  * It decides when to measure: at once, on every resize of the window or the visual viewport, and
  * again as the browser's bars and keyboard finish animating. Each measure is published on the root
@@ -141,7 +140,7 @@ export function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwne
   let host = options.host
   let settling: unknown[] = []
   let disposed = false
-  // Only DuckDuckGo for Android forgets its bar (spec §3.9); every other browser skips the check.
+  // Only DuckDuckGo for Android forgets its bar; every other browser skips the check.
   const hiddenBar = win.navigator != null && isDuckDuckGo(win.navigator) ? new HiddenBrowserBar() : undefined
   let lastHeight: number | undefined
   // The layout viewport when no keyboard had shrunk it (see `GeometryInput.restingLayout`).

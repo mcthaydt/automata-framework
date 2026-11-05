@@ -1,4 +1,4 @@
-// The game's scores for sim events (M5 spec §4.8): sim events reach the leaderboards as presentation-bus facts,
+// The game's scores for sim events: sim events reach the leaderboards as presentation-bus facts,
 // never the other way round, so a board can never change what the sim does. The score is the game's function of
 // the event's payload, so it comes from sim state and is never typed by anyone (FloorFifty `scores.ts`, R-80).
 import { Effect } from 'effect'

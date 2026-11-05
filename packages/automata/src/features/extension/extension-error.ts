@@ -2,7 +2,7 @@ import { Data } from 'effect'
 import type { YieldableError } from 'effect/Cause'
 
 /*
- * The one failure of `resolveExtensions` (M1.5 spec §3.2).
+ * The one failure of `resolveExtensions`.
  *
  * The repo builds with `isolatedDeclarations`, which forbids `class X extends Data.TaggedError(…)`
  * directly, so the base constructor gets an explicit type first (the same pattern as `HostError`).

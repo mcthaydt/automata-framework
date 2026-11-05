@@ -1,4 +1,4 @@
-// Camera turn units (M4 spec §16.3.5, M3 spec §4.2): the sim keeps the camera's heading as an integer, 65,536 units
+// Camera turn units: the sim keeps the camera's heading as an integer, 65,536 units
 // to a full turn, and takes at most ±8,192 (45°) a step, so a replay stores integers only and matches in every
 // engine. The input layer turns a drag's pixels into units here, outside the sim; the sim never calls this.
 
