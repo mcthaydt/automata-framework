@@ -21,7 +21,7 @@ import {
   type RunAddOptions,
   runAdd,
 } from '#src/features/add/run-add.ts'
-import type { CheckReport } from '#src/features/check/check-report.ts'
+import type { CheckReport } from '#src/shared/check/check-report.ts'
 
 const REPO = 'https://github.com/mcthaydt/automata-plus.git'
 

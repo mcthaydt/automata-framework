@@ -1,11 +1,11 @@
 // Records a run as a Replay while stepping it (M2.3 spec §3.4 and §4). Nothing else may step the sim while it
 // records; the recorder notices when something did and refuses to continue, since the replay would be wrong.
 
+import { canonicalJson } from '../../shared/hash/canonical'
+import { hex64, xxhash64 } from '../../shared/hash/xxhash64'
 import { sortedKeys } from '../../shared/util/sorted'
 import { SIM_VERSION } from '../../shared/version'
-import { canonicalJson } from '../hash/canonical'
-import { hex64, xxhash64 } from '../hash/xxhash64'
-import type { Command, Sim, StepResult } from '../world/sim'
+import type { Command, Sim, StepResult } from '../../shared/world/sim'
 import { ReplayRecordError } from './errors'
 import { DEFAULT_CHECK_EVERY, type Replay, type ReplayCommand } from './replay'
 

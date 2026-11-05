@@ -6,9 +6,9 @@ import { ALIAS_NOTICE, runShipAlias } from '#src/app/ship-alias.ts'
 import { PLUS_REPOSITORY } from '#src/features/add/add-args.ts'
 import { AddError, type AddResult, type RunAddOptions } from '#src/features/add/run-add.ts'
 import type { BuildResult } from '#src/features/build/run-build.ts'
-import type { CheckReport } from '#src/features/check/check-report.ts'
-import { CheckToolError } from '#src/features/check/csp-probe.ts'
-import type { RunCheckOptions } from '#src/features/check/run-check.ts'
+import type { CheckReport } from '#src/shared/check/check-report.ts'
+import { CheckToolError } from '#src/shared/check/csp-probe.ts'
+import type { RunCheckOptions } from '#src/shared/check/run-check.ts'
 
 describe('bin cli', () => {
   const testDir = join(process.cwd(), 'scratch-cli-test-game')

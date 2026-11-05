@@ -10,7 +10,7 @@ import { build } from 'vite'
 import { afterAll, describe, expect, it } from 'vitest'
 // Read from the tools package's source, not through its package entry: tools builds the editor suite, which builds this
 // package, so a dependency here would be a build cycle.
-import { findPixi3d, PIXI3D_EXTRAS_MARKERS } from '../../../tools/src/features/ship/prepare/pixi3d-markers.ts'
+import { findPixi3d, PIXI3D_EXTRAS_MARKERS } from '../../../tools/src/shared/ship/prepare/pixi3d-markers.ts'
 
 const packageRoot = join(import.meta.dirname, '../..')
 const built: string[] = []

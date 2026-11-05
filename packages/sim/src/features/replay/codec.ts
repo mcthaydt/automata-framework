@@ -10,7 +10,7 @@
 //              | per snapshot: delta varint (as checks) | length u32 | bytes
 // Payloads are canonical JSON, so the same run encodes to the same bytes in every engine.
 import { z } from 'zod'
-import { canonicalJson, decodeUtf8Strict, utf8 } from '../hash/canonical'
+import { canonicalJson, decodeUtf8Strict, utf8 } from '../../shared/hash/canonical'
 import { ReplayFormatError } from './errors'
 import { REPLAY_FORMAT, REPLAY_MAX_TICKS, type Replay, type ReplayCommand, type ReplayHeader } from './replay'
 import { readVarint, writeVarint } from './varint'

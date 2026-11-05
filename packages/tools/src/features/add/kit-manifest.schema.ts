@@ -1,6 +1,6 @@
 import { validRange } from 'semver'
 import { z } from 'zod'
-import { ID_REGEX } from '../create-game/create-game.ts'
+import { ID_REGEX } from '../../shared/create-game/create-game.ts'
 
 // `kit.json`, one in each kit folder of the Automata Plus repository (PRODUCT.5 plan 5d). A kit is untrusted input:
 // every path is checked here, before `automata add` reads or writes any file it names.

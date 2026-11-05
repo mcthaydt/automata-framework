@@ -1,7 +1,7 @@
 // @mcthaydt/automata-sim: the deterministic simulation core (A0+A1 spec §4). Deterministic math is the
 // separate `./math` export. Game code never imports Koota directly.
 
-export type { CommandRecord, EntityRef, SimContext, SpawnPart } from '../features/define/context'
+export type { CommandRecord, EntityRef, SimContext, SpawnPart } from '../shared/define/context'
 export {
   type CommandDef,
   type ComponentDef,
@@ -22,12 +22,14 @@ export {
   type ResourceDef,
   type SystemDef,
   type SystemSpec,
-} from '../features/define/definitions'
-export type { FieldSchema, FieldType, FieldValue, FieldValues } from '../features/define/fields'
-export { CanonicalJsonError, canonicalJson } from '../features/hash/canonical'
-export { hex64, xxhash64 } from '../features/hash/xxhash64'
-export { createRng, deriveSeed, type Rng, type RngState } from '../features/rng/rng'
-export type { FieldRecord, RenderDelta, RenderRow } from '../features/world/entity-store'
+} from '../shared/define/definitions'
+export type { FieldSchema, FieldType, FieldValue, FieldValues } from '../shared/define/fields'
+export { CanonicalJsonError, canonicalJson } from '../shared/hash/canonical'
+export { hex64, xxhash64 } from '../shared/hash/xxhash64'
+export { createRng, deriveSeed, type Rng, type RngState } from '../shared/rng/rng'
+export { sortedEntries, sortedKeys } from '../shared/util/sorted'
+export { SIM_VERSION } from '../shared/version'
+export type { FieldRecord, RenderDelta, RenderRow } from '../shared/world/entity-store'
 export {
   type Command,
   createSim,
@@ -40,12 +42,10 @@ export {
   SimFaultedError,
   type SimOptions,
   type StepResult,
-} from '../features/world/sim'
+} from '../shared/world/sim'
 export {
   SNAPSHOT_VERSION,
   SnapshotFormatError,
   SnapshotMismatchError,
   type SnapshotView,
-} from '../features/world/snapshot'
-export { sortedEntries, sortedKeys } from '../shared/util/sorted'
-export { SIM_VERSION } from '../shared/version'
+} from '../shared/world/snapshot'

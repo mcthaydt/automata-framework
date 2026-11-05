@@ -1,8 +1,8 @@
 import { Effect } from 'effect'
+import { findBin, TOOLS } from '../../shared/check/check-steps.ts'
+import { CheckToolError } from '../../shared/check/csp-probe.ts'
 import type { Files } from '../../shared/node/files.ts'
 import { ProcessRunner } from '../../shared/node/process-runner.ts'
-import { findBin, TOOLS } from '../check/check-steps.ts'
-import { CheckToolError } from '../check/csp-probe.ts'
 
 // `automata build` (FR.3): the game's own `vite build`, found as `automata check` finds its tools. `--debug` sets `AUTOMATA_DEBUG=1` for
 // it, which `@mcthaydt/automata-content/vite` turns into the `__AUTOMATA_DEBUG__` constant (true), so a game's dev-only tools are in the

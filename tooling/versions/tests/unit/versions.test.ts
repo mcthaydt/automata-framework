@@ -63,9 +63,7 @@ describe('docs/versions.md', () => {
   it('has no row for a version nothing uses', () => {
     // What create-game writes into every new game counts as used (its own test holds each pin to a row).
     const scaffold = ['create-game.ts', 'create-game-targets.ts'].flatMap((file) =>
-      pinsFromScaffoldSource(
-        readFileSync(join(root, 'packages/tools/src/features/create-game', file), 'utf8'),
-      ),
+      pinsFromScaffoldSource(readFileSync(join(root, 'packages/tools/src/shared/create-game', file), 'utf8')),
     )
     const usedKeys = new Set([...used, ...scaffold].map(key))
     expect(recorded.map(key).filter((pin) => !usedKeys.has(pin))).toEqual([])

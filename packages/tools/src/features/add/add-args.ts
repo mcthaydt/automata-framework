@@ -1,4 +1,4 @@
-import { ID_REGEX } from '../create-game/create-game.ts'
+import { ID_REGEX } from '../../shared/create-game/create-game.ts'
 
 // `automata add <kit> [--dir <game>] [--repo <url>] [--force]` (PRODUCT spec §9, PRODUCT.5 plan 5d).
 

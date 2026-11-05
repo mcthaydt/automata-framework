@@ -6,7 +6,7 @@ import { Effect, Either, Layer } from 'effect'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { KitSourceLive } from '#src/features/add/kit-source.ts'
 import { type AddError, type AddResult, runAdd } from '#src/features/add/run-add.ts'
-import type { CheckReport } from '#src/features/check/check-report.ts'
+import type { CheckReport } from '#src/shared/check/check-report.ts'
 import { ProcessRunnerLive } from '../../../src/shared/node/process-runner.ts'
 
 // Test 9 of the PRODUCT.5 plan's 5d: the live git port against a real repository with two core tags, read

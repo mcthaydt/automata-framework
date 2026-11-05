@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { hex64, xxhash64 } from '#src/features/hash/xxhash64.ts'
+import { hex64, xxhash64 } from '#src/shared/hash/xxhash64.ts'
 
 const bytes = (n: number, f: (i: number) => number) => Uint8Array.from({ length: n }, (_, i) => f(i))
 

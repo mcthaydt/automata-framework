@@ -17,7 +17,7 @@ function checkRuleIds(): string[] {
     /export type Rule =([\s\S]*?)\n\n/.exec(read('tooling/check-boundaries/src/check.ts'))?.[1] ?? ''
   for (const match of union.matchAll(/'([a-z-]+)'/g)) if (match[1] !== undefined) ids.add(match[1])
   // automata check's own steps: `rule: '…'` (also both arms of a conditional) and `report(node, '…'`.
-  const dir = join(REPO, 'packages/tools/src/features/check')
+  const dir = join(REPO, 'packages/tools/src/shared/check')
   for (const file of readdirSync(dir).filter((name) => name.endsWith('.ts') && !name.includes('.test.'))) {
     const source = readFileSync(join(dir, file), 'utf8')
     const forms = [/\brule: (?:[^?,\n]*\? )?'([a-z-]+)'(?: : '([a-z-]+)')?/g, /\breport\(node, '([a-z-]+)'/g]

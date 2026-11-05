@@ -1,9 +1,9 @@
 // Re-simulates a Replay through the one simulation there is (M2.3 spec §3.4): a fresh sim restored from the
 // replay's start snapshot, fed the recorded commands tick by tick, its hash compared at every check.
-import type { PluginDef } from '../define/definitions'
-import { hex64 } from '../hash/xxhash64'
-import { type Command, createSim, type Sim, type StepResult } from '../world/sim'
-import { decodeSnapshotHeader } from '../world/snapshot'
+import type { PluginDef } from '../../shared/define/definitions'
+import { hex64 } from '../../shared/hash/xxhash64'
+import { type Command, createSim, type Sim, type StepResult } from '../../shared/world/sim'
+import { decodeSnapshotHeader } from '../../shared/world/snapshot'
 import { ReplayFormatError } from './errors'
 import type { Replay, ReplayCommand } from './replay'
 

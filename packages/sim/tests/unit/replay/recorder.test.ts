@@ -1,12 +1,12 @@
 import { afterEach, expect, test } from 'vitest'
 import { z } from 'zod'
-import { defineCommand, definePlugin, defineSystem } from '#src/features/define/definitions.ts'
-import { hex64, xxhash64 } from '#src/features/hash/xxhash64.ts'
 import { decodeReplay, encodeReplay } from '#src/features/replay/codec.ts'
 import { ReplayRecordError } from '#src/features/replay/errors.ts'
 import { createRecorder } from '#src/features/replay/recorder.ts'
-import { createSim, type Sim } from '#src/features/world/sim.ts'
+import { defineCommand, definePlugin, defineSystem } from '#src/shared/define/definitions.ts'
+import { hex64, xxhash64 } from '#src/shared/hash/xxhash64.ts'
 import { SIM_VERSION } from '#src/shared/version.ts'
+import { createSim, type Sim } from '#src/shared/world/sim.ts'
 import { Body, fixturePlugin } from '#src/testing/fixture-world.ts'
 
 const sims: Sim[] = []

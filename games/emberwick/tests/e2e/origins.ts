@@ -1,5 +1,5 @@
-import { browserSafePort } from '../../../../packages/tools/src/features/ship/ports/browser-safe-port.ts'
-import { portsFor } from '../../../../packages/tools/src/features/ship/ports/ports-for.ts'
+import { browserSafePort } from '../../../../packages/tools/src/shared/ship/ports/browser-safe-port.ts'
+import { portsFor } from '../../../../packages/tools/src/shared/ship/ports/ports-for.ts'
 
 // The game and the fake host on different origins, as Ruken serves them (host and game ports from the checkout's pair).
 // The ui demo sits 100 above the preview port; base-2d's sit 300 above the pair (host 4900–4999, game 5000–5099), so one `pnpm test:e2e` runs every

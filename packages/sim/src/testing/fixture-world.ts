@@ -11,7 +11,7 @@ import {
   defineSystem,
   type PluginDef,
   type ResourceDef,
-} from '../features/define/definitions'
+} from '../shared/define/definitions'
 
 const bodyFields = { x: 'f32', y: 'f32', vx: 'f64', vy: 'f64' } as const
 const tagFields = { name: 'string', alive: 'bool', team: 'u32', hp: 'i32', target: 'entity' } as const
