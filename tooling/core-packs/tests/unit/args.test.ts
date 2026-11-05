@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseArgs, resolveSourceCommit } from './args.ts'
+import { parseArgs, resolveSourceCommit } from '#src/args.ts'
 
 const SHA = 'b'.repeat(40)
 

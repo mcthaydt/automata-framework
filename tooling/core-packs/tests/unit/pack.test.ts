@@ -3,8 +3,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { publishablePackages } from '../../release/src/publishable-packages.ts'
-import { type PackManifest, packWorkspace } from './pack.ts'
+import { type PackManifest, packWorkspace } from '#src/pack.ts'
+import { publishablePackages } from '../../../release/src/publishable-packages.ts'
 
 // PRODUCT.5b: pack the workspace for a project outside it (the consumer smoke, and automata-plus while core has
 // no registry, P5-D1). Everything here runs against a temporary workspace with an injected `pack`, so no test
@@ -250,7 +250,7 @@ describe('packWorkspace', () => {
   })
 })
 
-const realRoot = join(import.meta.dirname, '../../..')
+const realRoot = join(import.meta.dirname, '../../../..')
 const published = publishablePackages(realRoot)
 const built = published.every((pkg) => existsSync(join(realRoot, pkg.dir, 'dist')))
 describe.skipIf(!built)('the real workspace with pnpm pack (needs pnpm build)', () => {
