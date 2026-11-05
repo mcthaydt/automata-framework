@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BASE, Figure, hero, lightFigure, member, ScriptedActor, standing, TIMES, view, walking } from '../src/index';
+import { BASE, Figure, hero, lightFigure, member, ScriptedActor, standing, TIMES, view, walking } from '../src';
 
 /** The public surface (src/index.ts) on its own: the base pair drawn as sheets, lit, and played by an actor, imported
  * from the entry point only, as a fork's code would. */

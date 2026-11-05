@@ -5,14 +5,14 @@
  * tint), its lamps (warm and cool, a flicker, a spot) and a bounce off the floor. Recorded through the scene's
  * composite before the scene was cut; drawn now by the lighting feature (src/features/lighting/light.ts lightFigure), which
  * matched it.
- * Shared by the recorder (scripts/golden.ts) and the test (tests/lit-golden.test.ts).
+ * Shared by the recorder (scripts/golden.ts) and the test (tests/golden/lit.test.ts).
  */
 import { createHash } from 'node:crypto';
-import { Figure } from '../src/features/figure/figure';
-import { member, view } from '../src/features/figure/frames';
-import { BASE } from '../base/base';
-import { lightFigure, type Bounce } from '../src/features/lighting/light';
-import type { Lamp, TimeOfDay } from '../src/features/lighting/lamps';
+import { Figure } from '../../src/features/figure/figure';
+import { member, view } from '../../src/features/figure/frames';
+import { BASE } from '../../base/base';
+import { lightFigure, type Bounce } from '../../src/features/lighting/light';
+import type { Lamp, TimeOfDay } from '../../src/features/lighting/lamps';
 
 /** A lighting setup: a time, its lamps (metres from the figure's feet: x to the screen's right, y up, z toward the
  * camera), the moment it is lit at (for a flicker), whether it stands in shade, a bounce, and its densities. */

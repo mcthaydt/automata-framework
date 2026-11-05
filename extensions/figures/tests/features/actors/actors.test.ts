@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
-import { BASE } from '../base/base';
-import { hero, member, standing, walking } from '../src/features/figure/frames';
-import { ScriptedActor, Troupe, scriptOf, type ActorScript } from '../src/features/actors/actor';
-import { ACTIONS, actionOf, lengthOf, specAt, weightAt } from '../src/features/actors/actions';
-import { lowest } from '../src/features/actors/pose-spec';
-import { fk } from '../src/features/body/rig';
-import golden from './fixtures/sprites.json';
+import { BASE } from '../../../base/base';
+import { hero, member, standing, walking } from '../../../src/features/figure/frames';
+import { ScriptedActor, Troupe, scriptOf, type ActorScript } from '../../../src/features/actors/actor';
+import { ACTIONS, actionOf, lengthOf, specAt, weightAt } from '../../../src/features/actors/actions';
+import { lowest } from '../../../src/features/actors/pose-spec';
+import { fk } from '../../../src/features/body/rig';
+import golden from '../../golden/sprites.json';
 
 const view = { azimuth: 0, pitch: 18 * Math.PI / 180 };
 const md5 = (px: Uint8ClampedArray) => createHash('md5').update(px).digest('hex');
 
 describe('sprites stay pixel-identical with no new feature used', () => {
   // Every channel of every pixel (an md5 of each frame's RGBA): the hero, the 8 views standing and the walk's 8 poses,
-  // as drawn before the actors came (tests/fixtures/sprites.json).
+  // as drawn before the actors came (tests/golden/sprites.json).
   const sets: [string, ReturnType<typeof member>, string | undefined][] = [];
   for (const D of [1, 2]) for (const c of BASE) sets.push([`${c.def.id}-D${D}`, member(c.def, D), c.pose]);
   for (const [name, cast, pose] of sets) it(name, () => {

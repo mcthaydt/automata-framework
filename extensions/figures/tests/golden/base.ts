@@ -1,10 +1,10 @@
 /**
  * The base pair's golden frames: what `npm run render` draws for each member (scripts/render.ts), flattened per sheet
  * into one RGBA buffer, named `<id>-<turn|walk|hero>-d<density>`. Shared by the recorder (scripts/golden.ts) and the
- * test (tests/golden.test.ts), so both draw exactly the same frames.
+ * test (tests/golden/base.test.ts), so both draw exactly the same frames.
  */
-import { hero, member, standing, walking, type Frame } from '../src/features/figure/frames';
-import { BASE } from '../base/base';
+import { hero, member, standing, walking, type Frame } from '../../src/features/figure/frames';
+import { BASE } from '../../base/base';
 
 /** The densities the goldens are kept at: the kit's own and the sprites' ×2. */
 export const GOLDEN_DENSITIES = [1, 2] as const;

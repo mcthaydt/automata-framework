@@ -9,7 +9,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createCanvas, type Canvas } from '@napi-rs/canvas';
-import { ACTIONS, actionOf, lengthOf, Troupe, view as sheetView, type ActionCue, type ActorScript } from '../src/index';
+import { ACTIONS, actionOf, lengthOf, Troupe, view as sheetView, type ActionCue, type ActorScript } from '../src';
 
 const out = resolve(process.argv[2] ?? 'out/actors');
 mkdirSync(out, { recursive: true });

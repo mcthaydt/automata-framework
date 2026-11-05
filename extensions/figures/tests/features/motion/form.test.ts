@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { fromDef, type CharacterDef } from '../src/features/figure/cast';
-import { GAITS, POSES } from '../src/features/motion/presets';
-import { evaluate, standHolds, type AnchorKind } from '../src/features/motion/motion';
-import { J, fk, skeleton } from '../src/features/body/rig';
-import { apply, invertRigid, position, sub } from '../src/lib/math';
-import { GROUP, reach } from '../src/features/body/parts';
-import { BASE } from '../base/base';
+import { fromDef, type CharacterDef } from '../../../src/features/figure/cast';
+import { GAITS, POSES } from '../../../src/features/motion/presets';
+import { evaluate, standHolds, type AnchorKind } from '../../../src/features/motion/motion';
+import { J, fk, skeleton } from '../../../src/features/body/rig';
+import { apply, invertRigid, position, sub } from '../../../src/lib/math';
+import { GROUP, reach } from '../../../src/features/body/parts';
+import { BASE } from '../../../base/base';
 
 // The base pair: the generator's poses and walks under test. Every stand in the library is held by both; one that
 // names an opening the bare body lacks (a pocket, a hem) falls through to the hip or hangs (motion.ts CHAIN).

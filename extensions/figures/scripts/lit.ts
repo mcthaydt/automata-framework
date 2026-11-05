@@ -8,7 +8,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createCanvas } from '@napi-rs/canvas';
-import { BASE, Figure, lightFigure, member, TIMES, view, type Lighting } from '../src/index';
+import { BASE, Figure, lightFigure, member, TIMES, view, type Lighting } from '../src';
 
 const out = resolve(process.argv[2] ?? 'out/lit');
 mkdirSync(out, { recursive: true });

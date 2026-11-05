@@ -10,7 +10,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createCanvas } from '@napi-rs/canvas';
-import { BASE, hero, member, standing, walking, type Frame } from '../src/index';
+import { BASE, hero, member, standing, walking, type Frame } from '../src';
 
 const out = resolve(process.argv[2] ?? resolve(import.meta.dirname, '../out'));
 const pitch = Number(process.argv[3] ?? 18) * Math.PI / 180;

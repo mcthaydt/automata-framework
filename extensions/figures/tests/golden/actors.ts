@@ -6,13 +6,13 @@
  * and one long script (a path with a run, a wait, a strafe and a march, face keys, look-at targets, a talking
  * expression, a held torch, a wave, a point and a sit) sampled every half second, at D1 and D2.
  *
- * The recorder (scripts/golden.ts) and the test (tests/actors-golden.test.ts) both draw from here, so they draw exactly
+ * The recorder (scripts/golden.ts) and the test (tests/golden/actors.test.ts) both draw from here, so they draw exactly
  * the same frames. The set is frozen: it is not the demo's contact sheet (scripts/actors-demo.ts), which may change.
  */
 import { createHash } from 'node:crypto';
-import { Troupe, type ActionCue, type ActorScript } from '../src/features/actors/actor';
-import { ACTIONS, actionOf, lengthOf } from '../src/features/actors/actions';
-import { view } from '../src/features/figure/frames';
+import { Troupe, type ActionCue, type ActorScript } from '../../src/features/actors/actor';
+import { ACTIONS, actionOf, lengthOf } from '../../src/features/actors/actions';
+import { view } from '../../src/features/figure/frames';
 
 /** The characters the actors are recorded on: the base pair, by id. */
 export const ACTOR_WHO = ['base-m', 'base-f'] as const;
