@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { locateJsonKeys } from '#src/parse/locate-json-keys.ts'
-import { positionOf } from '#src/parse/locate-keys.ts'
+import { locateJsonKeys } from '#src/features/parse/locate-json-keys.ts'
+import { positionOf } from '#src/features/parse/locate-keys.ts'
 
 describe('locateJsonKeys', () => {
   it('finds each top-level key of an object', () => {

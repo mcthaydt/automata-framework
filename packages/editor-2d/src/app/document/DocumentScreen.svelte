@@ -7,6 +7,7 @@
   one. Everything it does goes through the document controller; nothing here names a profile.
 -->
 <script lang="ts">
+import type { GeometryState } from '@mcthaydt/automata'
 import {
   ConflictDialog,
   RecoveryDialog,
@@ -15,7 +16,6 @@ import {
   ToastRegion,
 } from '@mcthaydt/automata-editor-kit'
 import type { ToastStore, Workspace } from '@mcthaydt/automata-editor-kit/core'
-import type { GeometryState } from '@mcthaydt/automata-ui'
 import type { Component } from 'svelte'
 import type { IdSource } from '../../model/ids'
 import type { LevelCanvasProps, ObjectUrls, ViewServices, WorldCanvasProps } from '../views/view-props'

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { composePage, decodePng, encodePng, type Rgba, spritesheetJson } from '#src/assets/atlas-image.ts'
-import { packFrames } from '#src/assets/atlas-pack.ts'
+import {
+  composePage,
+  decodePng,
+  encodePng,
+  type Rgba,
+  spritesheetJson,
+} from '#src/features/assets/atlas-image.ts'
+import { packFrames } from '#src/features/assets/atlas-pack.ts'
 
 // Atlas pages as pixels and files (M5 spec §4.7): frames drawn at their placements with their edge pixels
 // repeated into the extrusion, PNG bytes that are the same for the same pixels (G-c), and Pixi's Spritesheet JSON.

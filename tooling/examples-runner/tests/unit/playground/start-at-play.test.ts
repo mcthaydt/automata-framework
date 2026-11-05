@@ -1,5 +1,4 @@
-import { defaultContent } from '@mcthaydt/automata'
-import { contentHashOf } from '@mcthaydt/automata-runtime'
+import { contentHashOf, defaultContent } from '@mcthaydt/automata'
 import { describe, expect, it } from 'vitest'
 import { startAtPlay } from '#src/playground/start-at-play.ts'
 

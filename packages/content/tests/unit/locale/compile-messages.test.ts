@@ -4,9 +4,9 @@ import { pathToFileURL } from 'node:url'
 import { Effect, Either } from 'effect'
 import { runnerImport } from 'vite'
 import { describe, expect, it } from 'vitest'
-import type { ContentOptions } from '#src/compile/compile-content.ts'
-import { compileContent } from '#src/compile/compile-content.ts'
-import { buildContent } from '#src/compile/write-outputs.ts'
+import type { ContentOptions } from '#src/features/compile/compile-content.ts'
+import { compileContent } from '#src/features/compile/compile-content.ts'
+import { buildContent } from '#src/features/compile/write-outputs.ts'
 import { copyFixture, fixtureOptions } from '#src/testing/fixture-game.ts'
 
 type Message = (inputs?: object, options?: { locale?: string }) => string
@@ -59,8 +59,8 @@ describe('the Paraglide compile of the content catalogs', () => {
   // when the content compiles later ("Vite module runner has been closed").
   it('compiles when this package was loaded through a Vite module runner that has since closed', async () => {
     const root = copyFixture('valid')
-    const { module } = await runnerImport<typeof import('#src/compile/write-outputs.ts')>(
-      join(import.meta.dirname, '../../../src/compile/write-outputs.ts'),
+    const { module } = await runnerImport<typeof import('#src/features/compile/write-outputs.ts')>(
+      join(import.meta.dirname, '../../../src/features/compile/write-outputs.ts'),
       { configFile: false, logLevel: 'silent' },
     )
     const result = await Effect.runPromise(

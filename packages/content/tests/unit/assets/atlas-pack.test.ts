@@ -5,7 +5,7 @@ import {
   ATLAS_PAGE_MAX,
   AtlasFrameTooLarge,
   packFrames,
-} from '#src/assets/atlas-pack.ts'
+} from '#src/features/assets/atlas-pack.ts'
 
 // The deterministic atlas packer (M5 spec §4.7, M5-D8): frames in code-unit order, on shelves, each with 1 px of
 // edge extrusion and 1 px of padding, on the smallest square power-of-two page up to 2048, then more pages.

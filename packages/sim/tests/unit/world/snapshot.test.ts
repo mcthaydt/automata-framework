@@ -1,15 +1,15 @@
 import { afterEach, describe, expect, test } from 'vitest'
 import { z } from 'zod'
-import { definePlugin, defineResource } from '#src/define/definitions.ts'
-import { Body, fixturePlugin, Hidden, Stats, Tag } from '#src/testing/fixture-world.ts'
-import { createSim, type Sim } from '#src/world/sim.ts'
+import { definePlugin, defineResource } from '#src/features/define/definitions.ts'
+import { createSim, type Sim } from '#src/features/world/sim.ts'
 import {
   decodeSnapshot,
   encodeSnapshot,
   type SnapshotData,
   SnapshotFormatError,
   SnapshotMismatchError,
-} from '#src/world/snapshot.ts'
+} from '#src/features/world/snapshot.ts'
+import { Body, fixturePlugin, Hidden, Stats, Tag } from '#src/testing/fixture-world.ts'
 
 const sims: Sim[] = []
 async function make(opts: Partial<Parameters<typeof createSim>[0]> = {}) {

@@ -1,3 +1,5 @@
+import { createGeometryOwner } from '@mcthaydt/automata'
+import { settleLayout } from '@mcthaydt/automata/testing'
 import {
   createDownloadStore,
   createMemoryStore,
@@ -8,8 +10,6 @@ import {
   type Workspace,
 } from '@mcthaydt/automata-editor-kit/core'
 import { arrived, type IpadProfile } from '@mcthaydt/automata-editor-kit/testing'
-import { createGeometryOwner } from '@mcthaydt/automata-ui'
-import { settleLayout } from '@mcthaydt/automata-ui/testing'
 import { mount, unmount } from 'svelte'
 import { page } from 'vitest/browser'
 import DocumentScreen from '../app/document/DocumentScreen.svelte'

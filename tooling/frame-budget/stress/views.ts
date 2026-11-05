@@ -1,4 +1,4 @@
-import type { EntityView } from '@mcthaydt/automata-render-pixi'
+import type { EntityView } from '@mcthaydt/automata'
 import type { FieldRecord } from '@mcthaydt/automata-sim'
 import { Sprite, Texture } from 'pixi.js'
 

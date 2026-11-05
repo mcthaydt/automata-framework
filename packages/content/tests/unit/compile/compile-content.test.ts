@@ -4,12 +4,16 @@ import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { type CompiledContent, type ContentOptions, compileContent } from '#src/compile/compile-content.ts'
-import { formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
-import { defineContentGenerator } from '#src/generate/content-generator.ts'
-import { canonicalFile } from '#src/hash/canonical-file.ts'
-import { contentHash } from '#src/hash/content-hash.ts'
-import { defineContentSchema, localized } from '#src/schema/content-schema.ts'
+import {
+  type CompiledContent,
+  type ContentOptions,
+  compileContent,
+} from '#src/features/compile/compile-content.ts'
+import { defineContentGenerator } from '#src/features/generate/content-generator.ts'
+import { formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
+import { canonicalFile } from '#src/shared/hash/canonical-file.ts'
+import { contentHash } from '#src/shared/hash/content-hash.ts'
+import { defineContentSchema, localized } from '#src/shared/schema/content-schema.ts'
 import { CHARACTER, copyFixture, fixtureOptions, SONG, TUNABLE_DEFAULTS } from '#src/testing/fixture-game.ts'
 
 const compile = (options: ContentOptions) => Effect.runPromise(Effect.either(compileContent(options)))

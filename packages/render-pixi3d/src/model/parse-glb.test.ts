@@ -1,7 +1,7 @@
 // The Last Light's parse cases (tests/props.test.ts at 92e6704, "GLB reader" and "packed models"), ported onto one
 // of its props, plus the static-only rule AF adds: a skinned or malformed file is ModelInvalid naming the file.
 import { readFileSync } from 'node:fs'
-import { ModelInvalid } from '@mcthaydt/automata-runtime'
+import { ModelInvalid } from '@mcthaydt/automata'
 import { describe, expect, it } from 'vitest'
 import { parseGlb, parsePack } from './parse-glb.js'
 import { encodeGlb, encodePack, fixtureBox } from './testing/model-fixtures.js'

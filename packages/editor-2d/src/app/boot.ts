@@ -1,3 +1,4 @@
+import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata'
 import {
   createToasts,
   type DownloadEnv,
@@ -7,7 +8,6 @@ import {
   type Workspace,
   type WorkspaceEnv,
 } from '@mcthaydt/automata-editor-kit/core'
-import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata-ui'
 import { type Component, mount, unmount } from 'svelte'
 import type { LevelThumbnails } from '../canvas/level-thumbnails'
 import { randomIds } from '../model/ids'

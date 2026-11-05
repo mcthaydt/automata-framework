@@ -2,11 +2,11 @@ import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync 
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { compileContent } from '#src/compile/compile-content.ts'
-import { buildContent, verifyContent } from '#src/compile/write-outputs.ts'
-import { formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
-import { defineContentGenerator } from '#src/generate/content-generator.ts'
-import { canonicalFile } from '#src/hash/canonical-file.ts'
+import { compileContent } from '#src/features/compile/compile-content.ts'
+import { buildContent, verifyContent } from '#src/features/compile/write-outputs.ts'
+import { defineContentGenerator } from '#src/features/generate/content-generator.ts'
+import { formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
+import { canonicalFile } from '#src/shared/hash/canonical-file.ts'
 import { copyFixture, fixtureOptions, simRoomsOptions } from '#src/testing/fixture-game.ts'
 
 const run = <A, E>(effect: Effect.Effect<A, E>) => Effect.runPromise(Effect.either(effect))

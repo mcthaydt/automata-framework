@@ -2,8 +2,8 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { readSources } from '#src/compile/read-sources.ts'
-import { formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
+import { readSources } from '#src/features/compile/read-sources.ts'
+import { formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
 import { CATALOG, CHARACTER, copyFixture, SONG, STAGE } from '#src/testing/fixture-game.ts'
 
 const schemas = [CHARACTER, SONG, STAGE, CATALOG]

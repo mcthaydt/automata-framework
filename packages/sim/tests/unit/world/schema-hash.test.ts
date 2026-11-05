@@ -7,9 +7,9 @@ import {
   definePlugin,
   defineResource,
   defineSystem,
-} from '#src/define/definitions.ts'
-import { createSim } from '#src/world/sim.ts'
-import { SnapshotFormatError, SnapshotMismatchError } from '#src/world/snapshot.ts'
+} from '#src/features/define/definitions.ts'
+import { createSim } from '#src/features/world/sim.ts'
+import { SnapshotFormatError, SnapshotMismatchError } from '#src/features/world/snapshot.ts'
 
 // M2.1 spec §10.4: a build whose resource, command or event schemas changed must not accept the old snapshot.
 const snapshotWith = async (plugin: ReturnType<typeof definePlugin>) =>

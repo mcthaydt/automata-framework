@@ -1,13 +1,16 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { fontCoverage, subsetWoff2 } from '#src/assets/font-subset.ts'
+import { fontCoverage, subsetWoff2 } from '#src/features/assets/font-subset.ts'
 
 // Subsetting (M5 spec §4.7 Fonts): a subset is cut to the characters asked for, with fixed options, so the same
 // source and characters give the same bytes (G-a). Coverage reads the subset back, as the glyph gate does.
 
 const source = new Uint8Array(
   readFileSync(
-    new URL('../../../src/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2', import.meta.url),
+    new URL(
+      '../../../src/features/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2',
+      import.meta.url,
+    ),
   ),
 )
 

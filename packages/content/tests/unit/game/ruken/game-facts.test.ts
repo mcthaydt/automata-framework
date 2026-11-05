@@ -9,7 +9,7 @@ import {
   gameSchema,
   languagesOf,
   rukenFields,
-} from '#src/game/game-facts.ts'
+} from '#src/features/game/game-facts.ts'
 
 const game: GameSource = gameSchema.parse({
   rating: 'everyone',

@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
-import { checkFlow, type FlowSource, flowSchema } from '#src/flow/check-flow.ts'
-import { flowMermaid } from '#src/flow/flow-mermaid.ts'
+import { checkFlow, type FlowSource, flowSchema } from '#src/features/flow/check-flow.ts'
+import { flowMermaid } from '#src/features/flow/flow-mermaid.ts'
 import { FIXTURES, FLOW } from '#src/testing/fixture-game.ts'
 
 const shipped = (): FlowSource =>

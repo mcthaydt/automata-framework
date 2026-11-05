@@ -18,8 +18,7 @@
  * the reference sizes and Ruken's display-metrics fixture.
  */
 
-import '@mcthaydt/automata-ui/theme.css'
-import { hostDisplay, REFERENCE_SIZES, VARIANTS, type Variant } from '@mcthaydt/automata-testing'
+import '@mcthaydt/automata/theme.css'
 import {
   classifyFormFactor,
   classifyHeightTier,
@@ -27,7 +26,8 @@ import {
   installGlobalErrorHandlers,
   suppressPageGestures,
   type ViewportWindow,
-} from '@mcthaydt/automata-ui'
+} from '@mcthaydt/automata'
+import { hostDisplay, REFERENCE_SIZES, VARIANTS, type Variant } from '@mcthaydt/automata/testing'
 import { mount, unmount } from 'svelte'
 import Frame from './src/Frame.svelte'
 import Gallery from './src/Gallery.svelte'

@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { portsFor } from '../../../packages/ship/src/ports/ports-for.ts'
+import { portsFor } from '../../../packages/tools/src/features/ship/ports/ports-for.ts'
 
 // Where the stress example is served for the probe, and where the probe writes its results. The probe runs alone
 // (its Playwright config selects nothing else), but its port still sits clear of the journeys' offsets (the ui demo

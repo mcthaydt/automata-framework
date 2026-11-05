@@ -12,11 +12,11 @@ import * as hostTarget from '@mcthaydt/automata-host/target'
 import * as hostTesting from '@mcthaydt/automata-host/testing'
 import * as node from '@mcthaydt/automata-node'
 import * as runtimeExtension from '@mcthaydt/automata-runtime/extension'
-import * as ship from '@mcthaydt/automata-ship'
 import { createSim, defineComponent, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import * as hash from '@mcthaydt/automata-sim/hash'
 import * as math from '@mcthaydt/automata-sim/math'
 import * as testing from '@mcthaydt/automata-testing'
+import * as ship from '@mcthaydt/automata-tools'
 import * as uiTesting from '@mcthaydt/automata-ui/testing'
 
 const entries = {

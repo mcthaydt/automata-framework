@@ -19,7 +19,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@mcthaydt/automata-testing": "workspace:*",
+    "@mcthaydt/automata-tools": "workspace:*",
     "@mcthaydt/examples-runner": "workspace:*",
     "@mcthaydt/playwright-preset": "workspace:*",
     "@playwright/test": "1.63.0",

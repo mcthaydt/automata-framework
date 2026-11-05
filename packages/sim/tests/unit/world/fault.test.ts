@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
-import { definePlugin, defineSystem } from '#src/define/definitions.ts'
+import { definePlugin, defineSystem } from '#src/features/define/definitions.ts'
+import { createSim, SimFaultedError } from '#src/features/world/sim.ts'
 import { Body, fixturePlugin } from '#src/testing/fixture-world.ts'
-import { createSim, SimFaultedError } from '#src/world/sim.ts'
 
 // A system that throws at a chosen tick, after the fixture's systems have already changed state that tick.
 function boomAt(tick: { at: number }) {

@@ -1,4 +1,4 @@
-import type { FormFactor, HeightTier } from '@mcthaydt/automata-ui'
+import type { FormFactor, HeightTier } from '@mcthaydt/automata'
 
 /** How the shell lays out its regions (kit spec §4.2). Decided from the form factor and nothing else. */
 export type ShellMode = 'wide' | 'medium' | 'compact'

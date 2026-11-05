@@ -1,7 +1,12 @@
 // Extracted from Ruken packages/localization/src/pseudo.test.ts (d0fa2fe), at the PRODUCT spec's 40% and `xx-long`.
 import { describe, expect, it } from 'vitest'
-import * as locale from '#src/locale/index.ts'
-import { hasRawText, PSEUDO_LOCALE, pseudoLocalize, pseudoMessages } from '#src/locale/pseudo-locale.ts'
+import * as locale from '#src/features/locale/index.ts'
+import {
+  hasRawText,
+  PSEUDO_LOCALE,
+  pseudoLocalize,
+  pseudoMessages,
+} from '#src/features/locale/pseudo-locale.ts'
 
 describe('pseudoLocalize', () => {
   it('replaces every ASCII letter with an accented look-alike and marks the ends', () => {

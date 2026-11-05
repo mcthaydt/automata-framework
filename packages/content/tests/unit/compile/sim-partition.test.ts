@@ -3,10 +3,14 @@ import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { type CompiledContent, type ContentOptions, compileContent } from '#src/compile/compile-content.ts'
-import { formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
-import { contentHash } from '#src/hash/content-hash.ts'
-import { contentRef, defineContentSchema, localized } from '#src/schema/content-schema.ts'
+import {
+  type CompiledContent,
+  type ContentOptions,
+  compileContent,
+} from '#src/features/compile/compile-content.ts'
+import { formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
+import { contentHash } from '#src/shared/hash/content-hash.ts'
+import { contentRef, defineContentSchema, localized } from '#src/shared/schema/content-schema.ts'
 import { copyFixture, FIXTURES, ROOM_KIND, SOUND_KIND, simRoomsOptions } from '#src/testing/fixture-game.ts'
 import { SIM_ROOMS_HASH } from '#src/testing/sim-rooms-hash.ts'
 

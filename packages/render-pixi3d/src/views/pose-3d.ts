@@ -1,4 +1,4 @@
-import { lerp, lerpAngle } from '@mcthaydt/automata-render-pixi'
+import { lerp, lerpAngle } from '@mcthaydt/automata'
 import type { FieldRecord } from '@mcthaydt/automata-sim'
 import type { Container3D } from '@pixi/3d'
 

@@ -4,12 +4,12 @@ import { dirname, join } from 'node:path'
 import { parseManifest } from '@ruken/manifest'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { encodePng } from '#src/assets/atlas-image.ts'
-import { buildAtlases } from '#src/assets/build-atlases.ts'
-import { buildFonts } from '#src/assets/build-fonts.ts'
-import { fontFilesSchema } from '#src/assets/fonts.schema.ts'
-import { type Diagnostic, formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
-import { preloadList } from '#src/preload/preload-list.ts'
+import { encodePng } from '#src/features/assets/atlas-image.ts'
+import { buildAtlases } from '#src/features/assets/build-atlases.ts'
+import { buildFonts } from '#src/features/assets/build-fonts.ts'
+import { fontFilesSchema } from '#src/features/assets/fonts.schema.ts'
+import { preloadList } from '#src/features/preload/preload-list.ts'
+import { type Diagnostic, formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
 import { copyFixture, fixtureOptions } from '#src/testing/fixture-game.ts'
 
 /** A built game folder holding `files` (a path ending in `/` is a folder). */
@@ -264,7 +264,7 @@ describe('preloadList with the asset build', () => {
     const pixel = new Uint8Array(
       readFileSync(
         new URL(
-          '../../../../src/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2',
+          '../../../../src/features/assets/fixtures/fonts/pixelify-sans-latin-400-normal.woff2',
           import.meta.url,
         ),
       ),

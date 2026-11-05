@@ -1,10 +1,10 @@
 import { afterEach, expect, test } from 'vitest'
-import { definePlugin, defineSystem, type PluginState } from '#src/define/definitions.ts'
-import { canonicalJson, utf8 } from '#src/hash/canonical.ts'
-import { hex64, xxhash64 } from '#src/hash/xxhash64.ts'
+import { definePlugin, defineSystem, type PluginState } from '#src/features/define/definitions.ts'
+import { canonicalJson, utf8 } from '#src/features/hash/canonical.ts'
+import { hex64, xxhash64 } from '#src/features/hash/xxhash64.ts'
+import { createSim, type Sim, SimDisposedError, SimFaultedError } from '#src/features/world/sim.ts'
+import { SNAPSHOT_VERSION, SnapshotFormatError, SnapshotMismatchError } from '#src/features/world/snapshot.ts'
 import { Body, fixturePlugin, Hidden, Stats, Tag } from '#src/testing/fixture-world.ts'
-import { createSim, type Sim, SimDisposedError, SimFaultedError } from '#src/world/sim.ts'
-import { SNAPSHOT_VERSION, SnapshotFormatError, SnapshotMismatchError } from '#src/world/snapshot.ts'
 
 const sims: Sim[] = []
 async function make(plugins = [fixturePlugin], content: unknown = { level: 'a' }) {

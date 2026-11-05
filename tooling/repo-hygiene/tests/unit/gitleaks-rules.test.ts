@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { ensureRepoGitleaks, GITLEAKS_VERSION } from '#src/gitleaks.ts'
-import { KEY_RULES } from '../../../../packages/ship/src/prepare/secret-scan.ts'
+import { KEY_RULES } from '../../../../packages/tools/src/features/ship/prepare/secret-scan.ts'
 
 // One secret rule list (QB.2c). ship's bundle scan reports each known key format under a gitleaks rule ID
 // (`KEY_RULES`), and `pnpm secrets` runs the pinned gitleaks release with .gitleaks.toml, which extends gitleaks'

@@ -3,7 +3,7 @@ import {
   defineContentGenerator,
   type GeneratorInput,
   runGenerators,
-} from '#src/generate/content-generator.ts'
+} from '#src/features/generate/content-generator.ts'
 
 const input: GeneratorInput = {
   data: { song: { dawn: {} } },

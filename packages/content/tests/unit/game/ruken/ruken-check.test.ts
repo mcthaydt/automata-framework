@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { AssetsSource, RukenFields } from '#src/game/game-facts.ts'
-import { checkWithRuken } from '#src/game/ruken/ruken-check.ts'
+import type { AssetsSource, RukenFields } from '#src/features/game/game-facts.ts'
+import { checkWithRuken } from '#src/features/game/ruken/ruken-check.ts'
 
 const fields: RukenFields = {
   content: { languages: ['en', 'fr'], rating: 'everyone', descriptors: [], estimated_hours: 1.5 },

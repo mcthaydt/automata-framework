@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ALWAYS_CHARACTERS, catalogCharacters, localeCharacters } from '#src/locale/glyphs.ts'
+import { ALWAYS_CHARACTERS, catalogCharacters, localeCharacters } from '#src/features/locale/glyphs.ts'
 
 describe('glyph sets per locale (PRODUCT spec §4 item 6)', () => {
   it('holds every character of every message, and never the $schema', () => {

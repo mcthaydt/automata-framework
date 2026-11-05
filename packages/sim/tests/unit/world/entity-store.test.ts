@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from 'vitest'
-import { defineComponent } from '#src/define/definitions.ts'
-import { EntityStore } from '#src/world/entity-store.ts'
+import { defineComponent } from '#src/features/define/definitions.ts'
+import { EntityStore } from '#src/features/world/entity-store.ts'
 
 const Position = defineComponent('position', { x: 'f32', y: 'f32' })
 const Health = defineComponent('health', { hp: 'i32' })

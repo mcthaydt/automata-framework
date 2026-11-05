@@ -31,12 +31,8 @@
   },
   "dependencies": {
     "@mcthaydt/automata": "workspace:*",
-    "@mcthaydt/automata-game": "workspace:*",
-    "@mcthaydt/automata-render-pixi": "workspace:*",
-    "@mcthaydt/automata-runtime": "workspace:*",
-    "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/automata-sim": "workspace:*",
-    "@mcthaydt/automata-testing": "workspace:*",
+    "@mcthaydt/automata-tools": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "effect": "3.22.2",

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
-import { createContentText } from '#src/locale/content-text.ts'
+import { createContentText } from '#src/features/locale/content-text.ts'
 
 // PRODUCT spec §4 item 5, after FloorFifty apps/client/src/i18n/content.ts (ac72660): authored TOML text is
 // looked up at run time by its message key, in the active locale.
@@ -50,7 +50,7 @@ describe('@mcthaydt/automata-content/locale', () => {
         if (specifier?.startsWith('.')) visit(`${resolve(dirname(file), specifier)}.ts`)
       }
     }
-    visit(join(here, '../../../src/locale/index.ts'))
+    visit(join(here, '../../../src/features/locale/index.ts'))
     expect(seen.size).toBeGreaterThan(1)
   })
 
@@ -58,7 +58,7 @@ describe('@mcthaydt/automata-content/locale', () => {
     const manifest = JSON.parse(
       readFileSync(fileURLToPath(new URL('../../../package.json', import.meta.url)), 'utf8'),
     ) as { exports: Record<string, string>; publishConfig: { exports: Record<string, { import: string }> } }
-    expect(manifest.exports['./locale']).toBe('./src/locale/index.ts')
+    expect(manifest.exports['./locale']).toBe('./src/entries/locale.ts')
     expect(manifest.publishConfig.exports['./locale']?.import).toBe('./dist/locale.js')
   })
 })

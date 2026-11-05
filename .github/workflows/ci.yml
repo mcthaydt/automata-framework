@@ -3,7 +3,7 @@ name: ci
 # AF's own CI (ship spec §3.7). Checks run on every push and pull request; cross-engine parity and the 2D journeys
 # (Emberwick in Chromium and WebKit, the one-file examples) run on every push to main and on pull requests that are
 # not drafts (a draft runs parity in a cloud container, docs/cloud-parity.md). One focused browser run can be asked
-# for with `automata-ship test-remote <folder> <playwright args>`.
+# for with `automata ship test-remote <folder> <playwright args>`.
 #
 # What a pull request runs (CI backlog, 2026-10-23): one runner serves every pull request, so the checks job
 # always runs and decides whether the pull request is documentation only (`scope`). Parity, the 2D journeys and
@@ -251,7 +251,7 @@ jobs:
 
   e2e-focused:
     name: one focused browser run (on request)
-    # `automata-ship test-remote <folder> <playwright args>`: the folder is a game or example set with its own
+    # `automata ship test-remote <folder> <playwright args>`: the folder is a game or example set with its own
     # Playwright config, e.g. `games/emberwick --project=emberwick-ipad-webkit`.
     if: github.event_name == 'workflow_dispatch' && inputs.spec != ''
     runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}

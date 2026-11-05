@@ -32,7 +32,7 @@ hand.
 | Render | `src/render/` | Sprites, cameras, particles, interpolation | Reading each step's render delta and events |
 | UI | `src/screens/` | Title, pause and result screens, focus, layout | Reading sim state; sending commands |
 | Content | content files and `src/content/` | Levels, tuning, strings, compiled and hashed | Passed to `createSim` as content |
-| Host | `Hosting` (`@mcthaydt/automata-host`) | Saves, identity, lifecycle | Never directly; the runtime wires it |
+| Host | `Hosting` (`@mcthaydt/automata`) | Saves, identity, lifecycle | Never directly; the runtime wires it |
 
 Inside the sim, use only `@mcthaydt/automata-sim` (and `/math`, `/hash`), `zod`, `koota` through the sim's API, and
 relative imports. Use `Math` only for `sqrt`, `fround`, `round`, `floor`, `ceil`, `trunc`, `abs`, `min`, `max`,

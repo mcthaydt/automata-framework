@@ -5,6 +5,6 @@
 // Packages: @mcthaydt/automata-render-pixi
 // Difficulty: ★☆☆☆
 // Tier: core
-import { rect } from '@mcthaydt/automata-render-pixi'
+import { rect } from '@mcthaydt/automata'
 
 export default { id: 'core-private', view: rect }

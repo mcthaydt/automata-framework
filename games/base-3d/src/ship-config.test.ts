@@ -1,5 +1,5 @@
-import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from '@mcthaydt/automata-ship'
 import { createSim } from '@mcthaydt/automata-sim'
+import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from '@mcthaydt/automata-tools'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import packageJson from '../package.json' with { type: 'json' }

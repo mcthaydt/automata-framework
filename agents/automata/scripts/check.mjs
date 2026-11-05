@@ -82,8 +82,8 @@ function runCheck(args) {
     // Not an Automata game (the plugin was installed for every project): nothing to check.
     if (!isAutomataGame()) process.exit(0)
     process.stderr.write(
-      `${command} could not run: this game has no automata bin. Add @mcthaydt/automata-cli as a dev dependency ` +
-        '(pnpm add -D @mcthaydt/automata-cli), install, and try again.\n',
+      `${command} could not run: this game has no automata bin. Add @mcthaydt/automata-tools as a dev dependency ` +
+        '(pnpm add -D @mcthaydt/automata-tools), install, and try again.\n',
     )
     process.exit(BLOCK)
   }

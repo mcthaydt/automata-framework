@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, expect, it } from 'vitest'
 import { z } from 'zod'
-import { defineCommand, defineComponent, definePlugin, defineSystem } from '#src/define/definitions.ts'
-import { createSim } from '#src/world/sim.ts'
+import {
+  defineCommand,
+  defineComponent,
+  definePlugin,
+  defineSystem,
+} from '#src/features/define/definitions.ts'
+import { createSim } from '#src/features/world/sim.ts'
 
 // Ruken serves games under a CSP with no 'unsafe-eval' (script-src 'self' 'wasm-unsafe-eval'), so nothing the
 // sim does may build code from strings. Koota generates accessors with `new Function` for schema-object

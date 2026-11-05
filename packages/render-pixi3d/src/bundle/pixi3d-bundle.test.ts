@@ -5,7 +5,7 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { findPixi3d, PIXI3D_EXTRAS_MARKERS } from '@mcthaydt/automata-ship'
+import { findPixi3d, PIXI3D_EXTRAS_MARKERS } from '@mcthaydt/automata-tools'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { build } from 'vite'
 import { afterAll, describe, expect, it } from 'vitest'

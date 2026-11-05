@@ -9,15 +9,31 @@
   },
   "type": "module",
   "sideEffects": [
-    "./src/no-eval.ts",
-    "./dist/no-eval.js"
+    "*.css",
+    "*.svelte",
+    "./src/entries/no-eval.ts",
+    "./dist/entries/no-eval.js"
   ],
   "files": [
-    "dist"
+    "dist",
+    "VENDORED.md"
   ],
   "exports": {
-    ".": "./src/index.ts",
-    "./no-eval": "./src/no-eval.ts"
+    ".": {
+      "svelte": "./src/entries/index.ts",
+      "default": "./src/entries/index.ts"
+    },
+    "./no-eval": "./src/entries/no-eval.ts",
+    "./target": {
+      "automata-ruken": "./src/entries/target/ruken.ts",
+      "automata-tauri": "./src/entries/target/tauri.ts",
+      "automata-web": "./src/entries/target/web.ts",
+      "default": "./src/entries/target/web.ts"
+    },
+    "./extension": "./src/entries/extension.ts",
+    "./testing": "./src/entries/testing.ts",
+    "./theme.css": "./src/shared/ui/theme.css",
+    "./tooling": "./src/entries/tooling.ts"
   },
   "imports": {
     "#src/*": "./src/*"
@@ -26,34 +42,104 @@
     "registry": "https://npm.pkg.github.com",
     "exports": {
       ".": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.js"
+        "types": "./dist/entries/index.d.ts",
+        "svelte": "./dist/entries/index.js",
+        "import": "./dist/entries/index.js"
       },
       "./no-eval": {
-        "types": "./dist/no-eval.d.ts",
-        "import": "./dist/no-eval.js"
+        "types": "./dist/entries/no-eval.d.ts",
+        "import": "./dist/entries/no-eval.js"
+      },
+      "./target": {
+        "automata-ruken": {
+          "types": "./dist/entries/target/ruken.d.ts",
+          "import": "./dist/entries/target/ruken.js"
+        },
+        "automata-tauri": {
+          "types": "./dist/entries/target/tauri.d.ts",
+          "import": "./dist/entries/target/tauri.js"
+        },
+        "automata-web": {
+          "types": "./dist/entries/target/web.d.ts",
+          "import": "./dist/entries/target/web.js"
+        },
+        "default": {
+          "types": "./dist/entries/target/web.d.ts",
+          "import": "./dist/entries/target/web.js"
+        }
+      },
+      "./extension": {
+        "types": "./dist/entries/extension.d.ts",
+        "import": "./dist/entries/extension.js"
+      },
+      "./testing": {
+        "types": "./dist/entries/testing.d.ts",
+        "import": "./dist/entries/testing.js"
+      },
+      "./theme.css": "./dist/shared/ui/theme.css",
+      "./tooling": {
+        "types": "./dist/entries/tooling.d.ts",
+        "import": "./dist/entries/tooling.js"
       }
     }
   },
   "scripts": {
-    "test": "vitest run",
-    "test:unit": "vitest run",
+    "test": "vitest run --project unit",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "test:layout": "vitest run --project browser",
+    "bench": "vitest run --project bench",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
-    "build": "tsdown"
+    "build": "svelte-package -i src -o dist --tsconfig tsconfig.package.json && tsdown && tsdown -c tsdown.dts.config.ts && node build/finish-dist.ts"
   },
   "dependencies": {
-    "@mcthaydt/automata-game": "workspace:*",
-    "@mcthaydt/automata-sim": "workspace:*"
+    "@mcthaydt/automata-content": "workspace:*",
+    "@mcthaydt/automata-sim": "workspace:*",
+    "effect": "3.22.2",
+    "zod": "4.6.6"
   },
   "peerDependencies": {
+    "@tauri-apps/api": "^2.12.4",
+    "@tauri-apps/plugin-process": "^2.4.0",
+    "@tauri-apps/plugin-store": "^2.5.0",
     "pixi.js": "^8.22.0",
-    "svelte": "^5.57.1"
+    "svelte": "^5.57.1",
+    "vitest": "^5.0.3"
+  },
+  "peerDependenciesMeta": {
+    "@tauri-apps/api": {
+      "optional": true
+    },
+    "@tauri-apps/plugin-process": {
+      "optional": true
+    },
+    "@tauri-apps/plugin-store": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "2.25.4",
+    "@inlang/plugin-message-format": "4.4.4",
     "@mcthaydt/vitest-preset": "workspace:*",
+    "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
+    "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
+    "@sveltejs/package": "3.0.0",
+    "@sveltejs/vite-plugin-svelte": "7.3.1",
+    "@tauri-apps/api": "2.12.4",
+    "@tauri-apps/plugin-process": "2.4.0",
+    "@tauri-apps/plugin-store": "2.5.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/svelte": "5.4.2",
+    "@testing-library/user-event": "14.6.7",
     "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
     "jsdom": "30.1.1",
     "pixi.js": "8.22.0",
+    "playwright": "1.63.0",
     "svelte": "5.57.1",
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",

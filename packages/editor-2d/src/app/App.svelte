@@ -6,13 +6,13 @@
   journal first. Nothing here names a profile.
 -->
 <script lang="ts">
+import type { GeometryState } from '@mcthaydt/automata'
 import type {
   LifecycleDocument,
   LifecycleWindow,
   ToastStore,
   Workspace,
 } from '@mcthaydt/automata-editor-kit/core'
-import type { GeometryState } from '@mcthaydt/automata-ui'
 import { type Component, onDestroy } from 'svelte'
 import type { LevelThumbnails } from '../canvas/level-thumbnails'
 import type { IdSource } from '../model/ids'

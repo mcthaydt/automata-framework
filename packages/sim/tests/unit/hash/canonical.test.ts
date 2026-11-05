@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { CanonicalJsonError, canonicalJson, decodeUtf8Strict, utf8 } from '#src/hash/canonical.ts'
+import { CanonicalJsonError, canonicalJson, decodeUtf8Strict, utf8 } from '#src/features/hash/canonical.ts'
 
 test('object keys are sorted at every depth; arrays keep their order', () => {
   expect(canonicalJson({ b: 1, a: { d: [3, 1], c: true } })).toBe('{"a":{"c":true,"d":[3,1]},"b":1}')

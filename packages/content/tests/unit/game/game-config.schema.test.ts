@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { GAME_ID_PATTERN, type GameConfig, gameConfigSchema } from '#src/game/game-config.schema.ts'
+import { GAME_ID_PATTERN, type GameConfig, gameConfigSchema } from '#src/features/game/game-config.schema.ts'
 
 // DIST spec §4.4: the keys of a game's `ship.config.ts` that every target reads, owned by AF. The names are Ruken's
 // manifest keys, kept as they are; `ruken/conformance.test.ts` holds AF's lists to Ruken's.

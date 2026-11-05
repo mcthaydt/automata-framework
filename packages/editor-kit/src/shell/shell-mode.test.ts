@@ -1,4 +1,4 @@
-import { classifyFormFactor, classifyHeightTier } from '@mcthaydt/automata-ui'
+import { classifyFormFactor, classifyHeightTier } from '@mcthaydt/automata'
 import { describe, expect, test } from 'vitest'
 import {
   DETENTS,

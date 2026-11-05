@@ -1,4 +1,4 @@
-import type { PixiRendererOptions } from '@mcthaydt/automata-render-pixi'
+import type { PixiRendererOptions } from '@mcthaydt/automata'
 import { endesga } from '../art/palette.ts'
 import type { Room } from '../content/room.ts'
 import { createScene } from './scene.ts'

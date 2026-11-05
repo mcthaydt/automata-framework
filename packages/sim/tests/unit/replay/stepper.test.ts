@@ -1,15 +1,20 @@
 import { afterEach, expect, test } from 'vitest'
 import { z } from 'zod'
-import { defineCommand, defineComponent, definePlugin, defineSystem } from '#src/define/definitions.ts'
-import { decodeReplay, encodeReplay } from '#src/replay/codec.ts'
-import { ReplayFormatError } from '#src/replay/errors.ts'
-import { createRecorder } from '#src/replay/recorder.ts'
-import type { Replay } from '#src/replay/replay.ts'
-import { createReplayStepper, type ReplayStepper } from '#src/replay/stepper.ts'
-import { createRng } from '#src/rng/rng.ts'
+import {
+  defineCommand,
+  defineComponent,
+  definePlugin,
+  defineSystem,
+} from '#src/features/define/definitions.ts'
+import { decodeReplay, encodeReplay } from '#src/features/replay/codec.ts'
+import { ReplayFormatError } from '#src/features/replay/errors.ts'
+import { createRecorder } from '#src/features/replay/recorder.ts'
+import type { Replay } from '#src/features/replay/replay.ts'
+import { createReplayStepper, type ReplayStepper } from '#src/features/replay/stepper.ts'
+import { createRng } from '#src/features/rng/rng.ts'
+import { type Command, createSim, type Sim } from '#src/features/world/sim.ts'
+import { SnapshotMismatchError } from '#src/features/world/snapshot.ts'
 import { Body, fixturePlugin, Tag } from '#src/testing/fixture-world.ts'
-import { type Command, createSim, type Sim } from '#src/world/sim.ts'
-import { SnapshotMismatchError } from '#src/world/snapshot.ts'
 
 const open: Array<Sim | ReplayStepper> = []
 afterEach(() => {

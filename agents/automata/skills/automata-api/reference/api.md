@@ -8344,9 +8344,9 @@ interface RuntimeTestOptions {
 }
 ```
 
-## `@mcthaydt/automata-ship`
+## `@mcthaydt/automata-tools`
 
-### `import { … } from '@mcthaydt/automata-ship'`
+### `import { … } from '@mcthaydt/automata-tools'`
 
 #### `BoardName` (interface)
 
@@ -9260,7 +9260,7 @@ class RootAbsoluteReference extends RootAbsoluteReferenceBase {
 
 #### `rukenCliPath` (function)
 
-The `ruken` bin of the vendored `@ruken/cli` package. The published `@mcthaydt/automata-ship` carries a copy of
+The `ruken` bin of the vendored `@ruken/cli` package. The published `@mcthaydt/automata-tools` carries a copy of
 Ruken's built CLI in `dist/vendor/ruken-cli/` (D-8, M2.4 spec §3.4); every built module sits directly in
 `dist/`, so the copy is `./vendor/ruken-cli/cli.js` next to it. Running from `src` in the workspace there is
 no copy, and the workspace's `@ruken/cli` dev dependency is used instead (`dist/cli.js`, next to its
@@ -9340,7 +9340,7 @@ class SecretInBuild extends SecretInBuildBase {
 The name this package is published under.
 
 ```ts
-const SHIP_PACKAGE = "@mcthaydt/automata-ship";
+const SHIP_PACKAGE = "@mcthaydt/automata-tools";
 ```
 
 #### `ShipConfig` (interface)
@@ -9353,18 +9353,18 @@ always false); `prepare --target ruken` checks the whole of it with Ruken's own 
 ```ts
 interface ShipConfig extends GameConfig {
   /**
-   * Where `automata-ship publish --target itch` pushes (PUB spec §4). Not a Ruken field: it is never written to
+   * Where `automata ship publish --target itch` pushes (PUB spec §4). Not a Ruken field: it is never written to
    * `ruken.toml`, and a Ruken build ignores it.
    */
   readonly itch?: ItchConfig | undefined;
   /**
-   * The desktop build's settings (`automata-ship prepare --target tauri`, DIST spec §6.3). Not a Ruken field: it is
+   * The desktop build's settings (`automata ship prepare --target tauri`, DIST spec §6.3). Not a Ruken field: it is
    * never written to `ruken.toml`.
    */
   readonly tauri?: TauriConfig | undefined;
   /**
    * Who the game's builds are for. `private` is a game that carries `@pixi/3d`, a closed beta (D-1), until Pixi 3D's
-   * public release: `automata-ship prepare` then checks the build as private and writes no `ruken.toml`, and only
+   * public release: `automata ship prepare` then checks the build as private and writes no `ruken.toml`, and only
    * `deploy-dev` and `publish --private` ship it (M3 spec §4.8). Not a Ruken field. Left out, a game is `public`.
    */
   readonly audience?: "public" | "private" | undefined;

@@ -1,5 +1,5 @@
+import type { GeometryState } from '@mcthaydt/automata'
 import type { Workspace } from '@mcthaydt/automata-editor-kit/core'
-import type { GeometryState } from '@mcthaydt/automata-ui'
 import type { Component, Snippet } from 'svelte'
 import type { DrawView } from '../../canvas/draw/draw-list-types'
 import type { Camera } from '../../canvas/level-view'

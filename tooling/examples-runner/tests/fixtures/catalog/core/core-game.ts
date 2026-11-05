@@ -5,6 +5,6 @@
 // Packages: @mcthaydt/automata-game
 // Difficulty: ★☆☆☆
 // Tier: core
-import { defineGame } from '@mcthaydt/automata-game'
+import { defineGame } from '@mcthaydt/automata'
 
 export default { id: 'core-game', define: defineGame }

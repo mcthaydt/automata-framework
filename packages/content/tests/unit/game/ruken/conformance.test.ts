@@ -8,7 +8,7 @@ import {
   ORIENTATIONS,
   RATINGS,
   RENDERERS,
-} from '#src/game/game-config.schema.ts'
+} from '#src/features/game/game-config.schema.ts'
 
 // DIST spec §4.4: AF owns the game config and keeps Ruken's names; these hold it to the vendored `@ruken/manifest`, so
 // a re-vendor that changes one of Ruken's lists fails here instead of drifting.

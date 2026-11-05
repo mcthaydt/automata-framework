@@ -1,6 +1,8 @@
 // The 3D editor's boot (plan ED3D.5c step 9): everything it touches comes in through `env`, so a test hands it a window,
 // a document, a clock and a workspace and gets the real app, and `main.ts` is the only file that reaches for the
 // globals.
+
+import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata'
 import {
   createToasts,
   type DownloadEnv,
@@ -10,7 +12,6 @@ import {
   type Workspace,
   type WorkspaceEnv,
 } from '@mcthaydt/automata-editor-kit/core'
-import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata-ui'
 import { mount, unmount } from 'svelte'
 import { createEditorApp } from '../app/editor-app'
 import App from './App.svelte'

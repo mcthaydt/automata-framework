@@ -22,17 +22,16 @@ const PLATFORMS: readonly Platform[] = [
     prefix: '@ruken/',
     folder: 'ruken',
     replacements: {
-      '@ruken/sdk':
-        '@mcthaydt/automata-host (the host contract: Hosting, Capability, ErrorCode and the payloads)',
-      '@ruken/sdk-host': '@mcthaydt/automata-testing/host (FakeHosting)',
+      '@ruken/sdk': '@mcthaydt/automata (the host contract: Hosting, Capability, ErrorCode and the payloads)',
+      '@ruken/sdk-host': '@mcthaydt/automata/testing (FakeHosting)',
       '@ruken/manifest': '@mcthaydt/automata-content/game-config (the game config)',
-      '@ruken/cli': 'automata-ship publish --target ruken',
+      '@ruken/cli': 'automata ship publish --target ruken',
     },
   },
   {
     prefix: '@tauri-apps/',
     folder: 'tauri',
-    replacements: { '@tauri-apps/': "@mcthaydt/automata-host/target under the 'tauri' build" },
+    replacements: { '@tauri-apps/': "@mcthaydt/automata/target under the 'tauri' build" },
   },
 ]
 

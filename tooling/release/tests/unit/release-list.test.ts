@@ -20,7 +20,7 @@ const EXPECTED: readonly string[] = [
   '@mcthaydt/automata-node',
   '@mcthaydt/automata-render-pixi',
   '@mcthaydt/automata-runtime',
-  '@mcthaydt/automata-ship',
+  '@mcthaydt/automata-tools',
   '@mcthaydt/automata-sim',
   '@mcthaydt/automata-testing',
   '@mcthaydt/automata-ui',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { locateKeys, positionOf } from '#src/parse/locate-keys.ts'
+import { locateKeys, positionOf } from '#src/features/parse/locate-keys.ts'
 
 const text = [
   '# Screen flow', // 1

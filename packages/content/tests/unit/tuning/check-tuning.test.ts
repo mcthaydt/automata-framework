@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
+import { checkTuning, checkTuningLayer } from '#src/features/tuning/check-tuning.ts'
 import { FIXTURES, INVARIANTS, TUNABLE_DEFAULTS, TUNABLES } from '#src/testing/fixture-game.ts'
-import { checkTuning, checkTuningLayer } from '#src/tuning/check-tuning.ts'
 
 const declared = { tunables: TUNABLES, invariants: INVARIANTS }
 const shippedTuning = parse(readFileSync(join(FIXTURES, 'valid/content/tuning.toml'), 'utf8'))

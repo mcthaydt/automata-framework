@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { coerceField, defaultField } from '#src/define/fields.ts'
+import { coerceField, defaultField } from '#src/features/define/fields.ts'
 
 test('f32 rounds through Math.fround; f64 keeps full precision', () => {
   expect(coerceField('f32', 0.1)).toBe(Math.fround(0.1))

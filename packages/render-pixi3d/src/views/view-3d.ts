@@ -1,4 +1,4 @@
-import type { EntityView } from '@mcthaydt/automata-render-pixi'
+import type { EntityView } from '@mcthaydt/automata'
 import type { RenderRow } from '@mcthaydt/automata-sim'
 import type { Container3D } from '@pixi/3d'
 import type { SceneLight } from '../light/scene-light.js'

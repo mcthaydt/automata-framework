@@ -2,7 +2,7 @@
 // tells the parent what happened. No-eval comes first, so nothing in the runtime reaches for eval under the policy.
 import '@mcthaydt/automata/no-eval'
 import type { DefinedGame } from '@mcthaydt/automata'
-import { isDefinedGame } from '@mcthaydt/automata-game/tooling'
+import { isDefinedGame } from '@mcthaydt/automata/tooling'
 import type { HostSettings } from '../header.ts'
 import { createLoopGuard, LoopGuardError } from './loop-guard.ts'
 import {

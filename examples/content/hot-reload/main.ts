@@ -19,7 +19,7 @@ import { content, contentHash } from 'virtual:automata/content'
 import { makeEmberwick } from '@af-examples/base-2d/make-game'
 import { parseRoom } from '@af-examples/base-2d/room'
 import { tuning } from '@af-examples/base-2d/sim'
-import { startGame } from '@mcthaydt/automata-game'
+import { startGame } from '@mcthaydt/automata'
 
 /** Must equal `[game] id` in ship.config.ts; the host checks it. */
 const GAME_ID = 'demo-content-hot-reload'

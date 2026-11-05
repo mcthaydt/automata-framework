@@ -1,4 +1,4 @@
-import { AppLoop, PresentationBus, type ScreenDef, Time } from '@mcthaydt/automata-runtime'
+import { AppLoop, PresentationBus, type ScreenDef, Time } from '@mcthaydt/automata'
 import { type Command, createSim } from '@mcthaydt/automata-sim'
 import { Effect } from 'effect'
 import { mount, unmount } from 'svelte'

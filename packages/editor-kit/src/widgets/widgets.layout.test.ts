@@ -1,7 +1,6 @@
 import '../tokens.css'
 import '../fonts.css'
-import { type MountedFixture, mountFixture } from '@mcthaydt/automata-testing'
-import { settleLayout } from '@mcthaydt/automata-ui/testing'
+import { type MountedFixture, mountFixture, settleLayout } from '@mcthaydt/automata/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import WidgetGallery from '../testing/WidgetGallery.svelte'

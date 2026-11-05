@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { formatDiagnostic } from '#src/diagnostics/diagnostic.ts'
-import { contentHash } from '#src/hash/content-hash.ts'
-import { parseDocument } from '#src/parse/parse-document.ts'
+import { parseDocument } from '#src/features/parse/parse-document.ts'
+import { formatDiagnostic } from '#src/shared/diagnostics/diagnostic.ts'
+import { contentHash } from '#src/shared/hash/content-hash.ts'
 
 // Ported from FloorFifty tests/content/parse.test.ts (122a220): unknown keys, TOML syntax errors and the
 // missing-versus-wrong distinction, now with positions.

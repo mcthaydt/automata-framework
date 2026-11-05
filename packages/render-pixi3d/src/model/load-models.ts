@@ -1,4 +1,4 @@
-import { ModelInvalid, type RenderTarget } from '@mcthaydt/automata-runtime'
+import { ModelInvalid, type RenderTarget } from '@mcthaydt/automata'
 import { type Geometry3D, PhongMaterial } from '@pixi/3d'
 import { Effect } from 'effect'
 import { Texture } from 'pixi.js'

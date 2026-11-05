@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest'
-import { definePlugin, defineSystem, type PluginState } from '#src/define/definitions.ts'
+import { definePlugin, defineSystem, type PluginState } from '#src/features/define/definitions.ts'
+import { createSim } from '#src/features/world/sim.ts'
+import { SnapshotFormatError, SnapshotMismatchError } from '#src/features/world/snapshot.ts'
 import { Body, fixturePlugin, Tag } from '#src/testing/fixture-world.ts'
-import { createSim } from '#src/world/sim.ts'
-import { SnapshotFormatError, SnapshotMismatchError } from '#src/world/snapshot.ts'
 
 /** A plugin whose engine state is one counter, stepped by its own system: a stand-in for a Rapier world. */
 function counterPlugin(name = 'counter', log: string[] = []) {

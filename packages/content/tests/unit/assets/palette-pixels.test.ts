@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import type { Rgba } from '#src/assets/atlas-image.ts'
-import { offPalettePixels } from '#src/assets/palette-pixels.ts'
-import type { Palette } from '#src/palette/palette.ts'
+import type { Rgba } from '#src/features/assets/atlas-image.ts'
+import { offPalettePixels } from '#src/features/assets/palette-pixels.ts'
+import type { Palette } from '#src/features/palette/palette.ts'
 
 // The palette check on atlas frames (M5 spec §4.7, §6; G-d). FloorFifty `validate-assets.ts` `offPalettePixels` at
 // `ac72660`: a pixel with alpha 0 carries no colour a player sees, so only drawn pixels are held to the palette.

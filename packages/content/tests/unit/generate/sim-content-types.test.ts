@@ -8,7 +8,7 @@ import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect } from 'effect'
 import { expect, it } from 'vitest'
-import { buildContent } from '#src/compile/write-outputs.ts'
+import { buildContent } from '#src/features/compile/write-outputs.ts'
 import { copyFixture, simRoomsOptions } from '#src/testing/fixture-game.ts'
 
 const SRC = join(import.meta.dirname, '../../../src')
@@ -31,8 +31,8 @@ it('types sim content through one cast, without touching other code in the progr
         types: ['node'],
         typeRoots: [join(SRC, '../node_modules/@types')],
         paths: {
-          '@mcthaydt/automata-content': [join(SRC, 'index.ts')],
-          '@mcthaydt/automata-sim': [join(REPO, 'packages/sim/src/index.ts')],
+          '@mcthaydt/automata-content': [join(SRC, 'entries/index.ts')],
+          '@mcthaydt/automata-sim': [join(REPO, 'packages/sim/src/entries/index.ts')],
         },
       },
       include: ['*.ts', 'content/generated/content.d.ts'],

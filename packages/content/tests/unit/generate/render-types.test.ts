@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { renderTypes } from '#src/generate/render-types.ts'
-import { contentRef, defineContentSchema, localized } from '#src/schema/content-schema.ts'
+import { renderTypes } from '#src/features/generate/render-types.ts'
+import { contentRef, defineContentSchema, localized } from '#src/shared/schema/content-schema.ts'
 
 const song = defineContentSchema(
   'song',
@@ -106,7 +106,9 @@ describe('renderTypes', () => {
           // The package's source uses Node types (its file access), so the consumer needs them too.
           types: ['node'],
           typeRoots: [join(import.meta.dirname, '../../../node_modules/@types')],
-          paths: { '@mcthaydt/automata-content': [join(import.meta.dirname, '../../../src/index.ts')] },
+          paths: {
+            '@mcthaydt/automata-content': [join(import.meta.dirname, '../../../src/entries/index.ts')],
+          },
         },
         include: ['*.ts'],
       }),

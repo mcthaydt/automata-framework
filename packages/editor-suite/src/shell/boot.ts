@@ -1,8 +1,9 @@
 // Starting the suite (editor suite spec §5 flows 1 and 2): read the game's editor list through the workspace port,
 // list the files of each editor it names, and mount the suite with the kit's geometry owner. `main.ts` is the only
 // caller with the page's globals; tests hand in the window and memory ports.
+
+import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata'
 import type { SuitePorts, WorkspaceFile } from '@mcthaydt/automata-editor-kit/ports'
-import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata-ui'
 import { mount, unmount } from 'svelte'
 import { EDITOR_LIST_PATH, loadEditorList } from '../core'
 import type { Suite } from './create-suite'

@@ -15,8 +15,7 @@
     "test:browser": "vitest run --project browser"
   },
   "dependencies": {
-    "@mcthaydt/automata-testing": "workspace:*",
-    "@mcthaydt/automata-ui": "workspace:*",
+    "@mcthaydt/automata": "workspace:*",
     "svelte": "5.57.1"
   },
   "devDependencies": {

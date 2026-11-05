@@ -1,6 +1,6 @@
 <!-- The kit's Home with stand-ins for an editor's import controls, inspector and what goes below the list. -->
 <script lang="ts" generics="E extends { readonly path: string; readonly title: string }">
-import type { GeometryState } from '@mcthaydt/automata-ui'
+import type { GeometryState } from '@mcthaydt/automata'
 import HomeScreen from '../home/HomeScreen.svelte'
 import type { HomeCard } from '../home/project-browse'
 import type { ProjectListSource } from '../home/project-browser'
