@@ -30,7 +30,7 @@ package that is deleted gets no changeset; it simply stops being released.
 the gated jobs (`parity`, `e2e-2d`, the game jobs), which skip drafts, run on its head before it merges.
 
 **Reviewed:** stage 3 (the [plan audit](2026-11-05-core-and-2d-plan-audit.md)) checked this plan against the
-codebase on 2026-11-05; its fixes (P1 to P30) are applied below.
+codebase on 2026-11-05; its fixes (P1 to P31) are applied below.
 
 ---
 
@@ -250,7 +250,7 @@ task.
 
 ### Task 2.4: Features no game uses (PR `claude/refactor-2d-d4`)
 
-Delete each feature in the spec's section 5 table marked **delete** (the networking port and the Tauri target),
+Delete each feature in the spec's section 5 table marked **delete** (the networking port),
 plus leaderboards if step 0 says so, one commit each.
 
 - [ ] **Step 0: Check what `defineGame` wires in.** Emberwick passes its own `screens` (plain DOM: splash, menu,
@@ -264,9 +264,8 @@ plus leaderboards if step 0 says so, one commit each.
 For each feature:
 
 - [ ] **Step 1:** List every file that names it: `grep -rliE '<pattern>' packages games examples tooling --include=*.ts
-  --include=*.svelte` (patterns: `\bnet\b|NetPort`, `tauri`, and `leaderboard` if step 0 cleared it). Add `agents` to the search paths. Paste the list in the commit body. Known users that are not games, which go
-  with the feature (spec section 5): `docs/guides/publish-to-desktop.md`, the `automata-tauri` condition and
-  `check-boundaries`' and `tooling/versions`' Tauri entries (Tauri); `core-leaderboard` and its journey,
+  --include=*.svelte` (patterns: `\bnet\b|NetPort`, and `leaderboard` if step 0 cleared it). Add `agents` to the search paths. Paste the list in the commit body. Known users that are not games, which go
+  with the feature (spec section 5): `core-leaderboard` and its journey,
   `examples-runner`'s fake Ruken host and `examples/ui/primitives` (leaderboards, if deleted).
 - [ ] **Step 2:** Delete the files and the exports; remove the host capability from the contract schema, the
   settings section from the settings screen, the example and its journey and replay golden, and the `ship` target.
@@ -274,8 +273,7 @@ For each feature:
   locally (`pnpm --filter @af-games/base-3d test:unit`) all pass.
 - [ ] **Step 4:** `pnpm api-report --update` and `pnpm agent-skills --write`; add one `patch` changeset per
   published package touched, whose text says which exports are removed. Commit `feat!(<pkg>): remove <feature>, which no game uses`.
-- [ ] **Step 5:** After the last one: amend ADR 0006 (Tauri is no longer a core target; it comes back as a target
-  package when a game ships to desktop). Open the PR, green, merge.
+- [ ] **Step 5:** Open the PR, green, merge. (ADR 0006 is unchanged: Tauri stays a core target, spec section 5.)
 
 ---
 
@@ -379,10 +377,10 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
   | From | To (`packages/automata/src/…` unless noted) |
   |---|---|
   | `host/src/contract/` | `shared/host/` |
-  | `host/src/{web,ruken}/`, `host/src/menu.ts`, `exit-handlers.ts`, `rounds.ts`, `sdk-markers.ts` | `features/targets/{web,ruken}/`, `features/targets/` |
+  | `host/src/{web,ruken,tauri}/`, `host/src/menu.ts`, `exit-handlers.ts`, `rounds.ts`, `sdk-markers.ts` | `features/targets/{web,ruken,tauri}/`, `features/targets/` |
   | `host/src/subscribable.ts` | `shared/lib/subscribable.ts` |
   | `host/src/contract-suite.ts`, `host/src/testing/` | `testing/host/` |
-  | `host/src/{web,ruken}/target.ts` (the `./target` conditional entry) | `entries/target/{web,ruken}.ts` |
+  | `host/src/{web,ruken,tauri}/target.ts` (the `./target` conditional entry) | `entries/target/{web,ruken,tauri}.ts` |
   | `host/src/index.ts`, `runtime/src/index.ts`, `ui/src/index.ts`, `game/src/index.ts`, `render-pixi/src/index.ts` | folded into `entries/index.ts` |
   | `runtime/src/{audio,display,extension,flow,loading,locale,settings}/` | `features/<same>/` |
   | `runtime/src/save/` | `features/saves/` |
@@ -495,7 +493,7 @@ in step 2.
 
 ### Task 5.3: Host contract and targets (same PR)
 
-- [ ] Convert `shared/host/` and `features/targets/` (today's 10 Effect files in `host`). For each file: rewrite its
+- [ ] Convert `shared/host/` and `features/targets/` (today's 13 Effect files in `host`, Tauri included). For each file: rewrite its
   test to plain promises and `Result` first (failing), then the code. The contract suite (`testing/host`) runs
   against every target and passes. `pnpm boundaries --browser packages/automata` shows the host files gone from its
   list. Commit per target. Amend ADR 0003 in this PR. Open the PR, green, merge.
@@ -687,5 +685,5 @@ the features it lacks are journeyed on the one-file examples that show them:
 
 - 2026-11-05: plan and spec written (stage 2) on `claude/refactor-2d-plan`.
 - 2026-11-05: the Owner asked why rebinding was cut ("I see that used"). It is used: `defineGame`'s default Settings screen wires it into every game. The D4 table now counts what `defineGame` wires in; rebinding, glyphs, swipe and haptics stay; leaderboards are checked in task 2.4 step 0.
-- 2026-11-05: plan audit (stage 3): 30 findings, all fixed in the spec and plan; see
+- 2026-11-05: plan audit (stage 3): 31 findings, all fixed in the spec and plan; see
   [2026-11-05-core-and-2d-plan-audit.md](2026-11-05-core-and-2d-plan-audit.md).

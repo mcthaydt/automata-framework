@@ -77,7 +77,7 @@ Each package publishes as few entries as its users need. Every entry is a file i
 | `automata-tools` | `.` (`defineShipConfig` and the ship API), `./e2e` (Playwright helpers); one bin, `automata` |
 
 `./target` keeps today's build-time target choice (ADR 0006): a conditional export with the conditions
-`automata-web` (also the default) and `automata-ruken`, which `ship` sets when it builds for a target. Inside the
+`automata-web` (also the default), `automata-ruken` and `automata-tauri`, which `ship` sets when it builds for a target. Inside the
 package, `app/boot` imports it by its public name (`@mcthaydt/automata/target`), as `runtime` does today.
 
 `sim/src/testing/` is test-helper code: it imports `vitest` (an optional peer dependency of `automata-sim`) and
@@ -261,7 +261,7 @@ go with it.
 | Leaderboards (if deleted, also `core-leaderboard` and its journey, and the leaderboard parts of `examples-runner`'s fake Ruken host and `examples/ui/primitives`) | `defineGame` and the default Pause screen wire them; no game declares a leaderboard | **check, then decide** (task 2.4, step 0): delete only if Emberwick's screens never show leaderboard UI and the boot path is unchanged without it |
 | Networking port (`runtime/src/net`) | nobody, not even through `defineGame` | **delete** |
 | Analog input and camera turn | `base-3d`, `render-pixi3d` | keep, in `features/input/analog` |
-| Tauri target (`host/src/tauri`, `ship/src/targets/tauri`, the `automata-tauri` condition, `docs/guides/publish-to-desktop.md`) | nobody (no game, no editor; `boot/failure-host.ts` only names it in copy) | **delete**; `web`, `itch` and `ruken` stay. Recorded as a veto default because the Owner named Tauri export on 2026-10-31 |
+| Tauri target (`host/src/tauri`, `ship/src/targets/tauri`, the `automata-tauri` condition) | every new game: `create-game` writes all four targets by default; itch.io's desktop downloads are the Tauri bundles (`publish --target itch --from tauri`); `game-release.yml` builds them | **keep**, in `features/targets/tauri` and `tools`' `features/ship`; a peer of `web`, `itch` and `ruken` (ADR 0006). The first draft deleted it; the Owner asked why on 2026-11-05 and the plan audit found these default users |
 | Six-language font subsetting | build step, Emberwick ships `en` | keep (Node only, costs the player nothing) |
 
 "Delete" removes the code, its tests, its examples and journeys, its settings copy and its API entries. Git keeps
@@ -371,7 +371,7 @@ plan.
    builds and tests on its own and turbo can cache it.
 2. The browser package takes the umbrella's name, `@mcthaydt/automata`; the tools package is
    `@mcthaydt/automata-tools`.
-3. The Tauri target leaves core (section 5).
+3. ~~The Tauri target leaves core.~~ Withdrawn on 2026-11-05: Tauri stays (section 5), pending the Owner's answer.
 4. Games move from role files to features (section 3.3), retiring the GL spec for games.
 5. The game id becomes `emberwick`; old saves are not migrated.
 6. Evidence PNGs leave git going forward (history keeps the old ones).

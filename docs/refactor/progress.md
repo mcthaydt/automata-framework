@@ -22,7 +22,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 |---|---|---|
 | 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
-| 3. Plan audit | Done, 2026-11-05: 30 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
+| 3. Plan audit | Done, 2026-11-05: 31 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
 | 4. Build | Not started | |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
