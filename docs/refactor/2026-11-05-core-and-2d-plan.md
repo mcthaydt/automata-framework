@@ -231,12 +231,12 @@ task.
   `examples/content/hot-reload/*` (boot through `startGame`; it also imports `./no-eval`, `./style.css`, `./sim` and
   `./room`, which stay), `games/emberwick/src/index.ts`, `games/emberwick/src/exports.test.ts`
 
-- [ ] **Step 1:** Confirm nothing on the game's path uses them: `pnpm knip` with the `./play` export removed lists
+- [x] **Step 1:** Confirm nothing on the game's path uses them: `pnpm knip` with the `./play` export removed lists
   exactly these files as unused (plus their tests). If it lists more or fewer, stop and record why.
-- [ ] **Step 2: The hot-reload demo first (TDD).** Its journey (`examples/content/hot-reload/e2e/*.e2e.ts`) passes
+- [x] **Step 2: The hot-reload demo first (TDD).** Its journey (`examples/content/hot-reload/e2e/*.e2e.ts`) passes
   today; change the demo to `startGame(emberwick)` with the content Vite plugin's hot update, and keep the journey
   green.
-- [ ] **Step 3:** Delete the files. `pnpm check` and Emberwick's journeys pass. Commit `refactor(emberwick):
+- [x] **Step 3:** Delete the files. `pnpm check` and Emberwick's journeys pass. Commit `refactor(emberwick):
   remove the pre-core stand-ins`.
 
 ### Task 2.3: The placeholder game (same PR)
@@ -699,3 +699,13 @@ the features it lacks are journeyed on the one-file examples that show them:
   `playwright.config.ts` at the examples root and its screenshots go to the root `evidence/` folder; (5) knip lists
   each area's journeys and config as entries; (6) the editor-suite git test disables commit signing in its scratch
   repository (it failed on an unreachable signing server); (7) pre-commit's affected unit tests run on every commit.
+- 2026-11-05 (stage 4, phase 2, task 2.2): the hot-reload demo now plays Emberwick itself. New
+  `games/emberwick/src/make-game.ts` (`makeEmberwick(content, { id })`) builds the game from a room and tuning handed
+  in; `game.ts` is `makeEmberwick(SIM_CONTENT)`; the `./play` export became `./make-game`. The demo needed the Svelte
+  plugin and `assetsInlineLimit: 0` in its Vite config (it now loads the game package's screens). Its journey presses a
+  key and clicks Play before reading `data-tick`, because the whole game, splash and menu included, is what runs.
+  Deviations: (8) `GAME_ID` moved to `src/game-id.ts` (the e2e host page and `ship-config.test.ts` read it; the deleted
+  `ruken/boot.ts` held it); (9) the plumbing test's 400-line limit counted `make-game.ts`, so its comments were
+  trimmed, not the limit raised; (10) knip showed no stand-in file as unused any more because the files were deleted
+  before the run; it listed only `@ruken/sdk` (dropped from the game's dependencies). Chromium: hot-reload 2 passed,
+  Emberwick 24 passed (WebKit projects are not installed here).

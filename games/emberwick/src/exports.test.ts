@@ -6,11 +6,10 @@ import { describe, expect, it } from 'vitest'
 // Each test imports a whole entry cold, which took 5.6 s on a loaded runner (past vitest's 5 s default) and
 // 30.5 s while Ruken's CI shared the runner (2026-10-16), so the block gets the root script's 90 s default.
 describe('@af-examples/base-2d entries', { timeout: 90_000 }, () => {
-  it('the root has the sim setup, the room, bootPage and the boot failures, but not the game', async () => {
+  it('the root has the sim setup, the room and the game id, but not the game', async () => {
     const root = await import('@af-examples/base-2d')
     expect(typeof root.createBaseSim).toBe('function')
-    expect(typeof root.bootPage).toBe('function')
-    expect(typeof root.SimFailed).toBe('function')
+    expect(root.GAME_ID).toBe('base-2d')
     expect('startGame' in root).toBe(false)
   })
 
