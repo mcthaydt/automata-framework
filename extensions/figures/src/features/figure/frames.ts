@@ -1,17 +1,18 @@
 /**
- * The review frames every script and golden draws, in Node: a character at the sheets' scale, its 8 views standing, its
- * walk's poses, and its lookbook hero in a library stand (library/poses.json), each as an RGBA cell.
+ * The library's review sheets, which the scripts, the goldens and forks draw: a character at the sheets' scale, its 8
+ * views standing, its walk's poses, and its lookbook hero in a library stand (motion/library/poses.json), each as an
+ * RGBA cell.
  */
-import { Figure } from '../src/features/figure/figure';
-import { memberOf, standOf, type CastMember, type CharacterDef } from '../src/features/figure/cast';
-import { evaluate } from '../src/features/motion/motion';
+import { Figure } from './figure';
+import { memberOf, standOf, type CastMember, type CharacterDef } from './cast';
+import { evaluate } from '../motion/motion';
 
 export type Frame = Uint8ClampedArray;
 /** The camera: the sheets' 18° pitch, from the front. */
 export const view = (pitch = 18 * Math.PI / 180) => ({ azimuth: 0, pitch });
-/** One frame for every figure (the builder's tall cell at `density` cells per texel of the brand kit), so a line-up
- * stands at one scale and nothing clips. */
-export const member = (def: CharacterDef, density = Number(process.env.DENSITY ?? 1)): CastMember => memberOf(def, density);
+/** One frame for every figure (cast.ts memberOf: the builder's tall cell at `density` texels per texel of the brand
+ * kit), so a line-up stands at one scale and nothing clips. */
+export const member = (def: CharacterDef, density = 1): CastMember => memberOf(def, density);
 /** Standing in view d of the 8 (0 front, counter-clockwise by 45°). */
 export function standing(cast: CastMember, d: number, pitch?: number): Frame {
   const f = new Figure(cast);

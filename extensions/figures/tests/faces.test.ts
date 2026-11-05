@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { BASE } from '../base/base';
 import { Figure, type FigureInput } from '../src/features/figure/figure';
 import { EXPRESSIONS, type Expression } from '../src/features/outfit/garments';
-import { member, view } from '../scripts/frames';
+import { member, view } from '../src/features/figure/frames';
 
 /**
  * The face marks (garments.ts face): a figure whose face is not the painter's drawn one wears marks, the eyes, lids,

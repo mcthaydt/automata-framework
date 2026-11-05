@@ -12,7 +12,7 @@
 import { createHash } from 'node:crypto';
 import { Troupe, type ActionCue, type ActorScript } from '../src/features/actors/actor';
 import { ACTIONS, actionOf, lengthOf } from '../src/features/actors/actions';
-import { view } from '../scripts/frames';
+import { view } from '../src/features/figure/frames';
 
 /** The characters the actors are recorded on: the base pair, by id. */
 export const ACTOR_WHO = ['base-m', 'base-f'] as const;

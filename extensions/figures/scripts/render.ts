@@ -10,8 +10,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createCanvas } from '@napi-rs/canvas';
-import { hero, member, standing, walking, type Frame } from './frames';
-import { BASE } from '../base/base';
+import { BASE, hero, member, standing, walking, type Frame } from '../src/index';
 
 const out = resolve(process.argv[2] ?? resolve(import.meta.dirname, '../out'));
 const pitch = Number(process.argv[3] ?? 18) * Math.PI / 180;
@@ -28,7 +27,7 @@ function strip(frames: Frame[], w: number, h: number, file: string) {
 }
 
 for (const c of BASE) {
-  const cast = member(c.def), [w, h] = cast.cell;
+  const cast = member(c.def, Number(process.env.DENSITY ?? 1)), [w, h] = cast.cell;
   strip([0, 1, 2, 3, 4, 5, 6, 7].map(d => standing(cast, d, pitch)), w, h, `${c.def.id}-turn`);
   strip([hero(cast, c.pose, Math.PI / 4, pitch)], w, h, `${c.def.id}-hero`);
   strip(walking(cast, pitch), w, h, `${c.def.id}-walk`);

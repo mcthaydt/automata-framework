@@ -9,7 +9,7 @@
  */
 import { createHash } from 'node:crypto';
 import { Figure } from '../src/features/figure/figure';
-import { member, view } from '../scripts/frames';
+import { member, view } from '../src/features/figure/frames';
 import { BASE } from '../base/base';
 import { lightFigure, type Bounce } from '../src/features/lighting/light';
 import type { Lamp, TimeOfDay } from '../src/features/lighting/lamps';

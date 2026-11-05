@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BASE } from '../base/base';
 import { DEFAULT_HEAD, DEFAULT_SLIDERS, type HeadShape, type Sliders } from '../src/features/body/genes';
 import type { CharacterDef } from '../src/features/figure/cast';
-import { member, standing, walking } from '../scripts/frames';
+import { member, standing, walking } from '../src/features/figure/frames';
 
 /**
  * The generator's reach over bodies, standing in for a random cast that once proved any character file renders: each
