@@ -24,6 +24,7 @@ const config = (extra: Partial<MoveConfig> = {}): MoveConfig => ({
   root,
   environment: 'node',
   keepQualifier: ['src/a/i.analog.test.ts'],
+  extraRoots: ['deploy'],
   ...extra,
 })
 const plan = (extra: Partial<MoveConfig> = {}) => planMoves(config(extra), listFiles(root))
@@ -52,6 +53,15 @@ describe('where each test goes', () => {
       'e2e/play.e2e.ts': 'tests/e2e/play.test.ts',
       'e2e/origins.ts': 'tests/e2e/origins.ts',
     })
+  })
+
+  it('moves the tests of another root, keeping its folder name, and imports its code relatively', () => {
+    expect(plan().moves.find((move) => move.from === where('deploy/bin/render.test.ts'))?.to).toBe(
+      where('tests/unit/deploy/bin/render.test.ts'),
+    )
+    const text = textOf('tests/unit/deploy/bin/render.test.ts')
+    expect(text).toContain("from '../../../../deploy/bin/render.ts'")
+    expect(text).toContain("from '#src/a/b.ts'")
   })
 
   it('leaves a published helper and the test host it imports where they are', () => {

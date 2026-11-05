@@ -14,6 +14,8 @@ export type Environment = 'node' | 'jsdom'
 export interface MoveConfig {
   /** Absolute path of the package root (the folder with `package.json`, `src/` and `e2e/`). */
   readonly root: string
+  /** Folders besides `src` that hold tests (ship's `deploy`). Their tests keep the folder name under `tests/`. */
+  readonly extraRoots?: readonly string[]
   /** What the package's `tests/unit` project runs in (the preset's `environment` option). */
   readonly environment: Environment
   /** Unit tests under these folders (from the root) run in the other environment. */
@@ -221,7 +223,8 @@ export function planMoves(
   for (const file of files) {
     const rel = underRoot(file)
     const base = posix.basename(rel)
-    if (rel.startsWith('src/') && /\.test\.(?:ts|svelte)$/.test(base)) {
+    const root1 = ['src', ...(config.extraRoots ?? [])].find((name) => rel.startsWith(`${name}/`))
+    if (root1 && /\.test\.(?:ts|svelte)$/.test(base)) {
       const placement = place(base, keep.has(file))
       const wanted =
         placement.environment ??
@@ -233,7 +236,14 @@ export function planMoves(
       const needsDirective = placement.kind === 'unit' && wanted !== config.environment
       moves.set(file, {
         from: file,
-        to: join(root, 'tests', placement.kind, posix.relative('src', dirname(rel)), placement.name),
+        // Code under src loses the `src` from its path; another root (ship's `deploy`) keeps its name.
+        to: join(
+          root,
+          'tests',
+          placement.kind,
+          root1 === 'src' ? posix.relative('src', dirname(rel)) : dirname(rel),
+          placement.name,
+        ),
         kind: placement.kind,
         ...(needsDirective ? { directive: `// @vitest-environment ${wanted}` } : {}),
       })
