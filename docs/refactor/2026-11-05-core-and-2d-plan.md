@@ -861,11 +861,17 @@ the features it lacks are journeyed on the one-file examples that show them:
   restored. (49) `packages/sim`'s `test:evidence` runs the bounce golden too (`testing`'s did). (50) Tests that read
   source paths relative to the test file (`import.meta.dirname/../../src/...`) were fixed with a script that resolves the old
   path through the move map (about 15 files across four packages).
-  **Not done, and why the checkboxes stay open:** 4.3 step 2 and 4.4 step 3: `pnpm exec automata-check-boundaries --features`
-  finds **207** cross-feature imports (automata 120, content 48, sim 25, tools 14) and `--browser packages/content:game-config,locale,assets`
-  finds 21 (the `assets` entry reaches `read-sources.ts`, which imports `node:path` and `effect`; the spec lists `assets` as
-  browser-safe, the build comment says Node-only: decide). The pattern for automata: `features/screens` composes nearly every other feature, so it
-  is `app/` code; `features/settings/ui` and `features/saves/ui` are screens too; `app/{time,loop,presentation,render}` hold services
-  that features import (move them to `shared/`); `settings/core-settings.ts` wires every feature's setting schema (it is `app/`).
-  Not run here: the browser projects, Emberwick's journeys, the 3D and editor suites (unit tests of the 3D and editor packages
-  ran in the turbo pass; see progress.md), WebKit and Firefox, `test:dist`. Hosted CI has no runners.
+  (51) Step 2 done for `automata`: `--features packages/automata` finds 0 (was 120). `screens`, `flow`, `core-settings.ts` and the
+  boot code are `app/`; the time, loop, presentation, render, settings and loading services and the shared vocabulary types are
+  `shared/runtime/`; `audio-settings.schema` moved into `features/audio`. Done by three codemod passes with ad-hoc move maps.
+  (52) Step 3 part done: `sim` has `shared/{hash,rng,define,schedule,world}` and `features/replay`; `tools` has
+  `shared/{ship,check,create-game}` and `features/{add,build,editor}`; `SHIP_PACKAGE` moved to `shared/package-name.ts` so
+  `entries/` only re-exports. The root `boundaries` script now runs `--features` on the three packages. Tests that read paths
+  beside the moved tests gained a `..` (`tools` workflows, turbo-inputs, deploy and create-game tests).
+  **Not done, and why the checkboxes stay open:** 4.4 step 3 for `content`: `--features` finds **48** cross-feature imports and
+  `--browser packages/content:game-config,locale,assets` finds 21 (the `assets` entry reaches `read-sources.ts`, which imports
+  `node:path` and `effect`; the spec lists `assets` as browser-safe, the build comment says Node-only: decide). `generate`,
+  `compile` and `locale` import each other, so a plain move is not enough: split `compile` into the pipeline (`app/`) and the
+  pieces the others share (`shared/`: errors, parse, palette). Not run here: the browser projects, Emberwick's journeys, the 3D and
+  editor suites (unit tests of the 3D and editor packages ran in the turbo pass; see progress.md), WebKit and Firefox,
+  `test:dist`. Hosted CI has no runners.
