@@ -23,9 +23,22 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
 | 3. Plan audit | Done, 2026-11-05: 31 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
-| 4. Build | In progress: phase 1 done locally, PR #388 | [plan](2026-11-05-core-and-2d-plan.md) |
+| 4. Build | In progress: phases 1 to 4 and 6 done locally, 5 half done, 7 and 8 partly; PRs #393 to #397 (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
+
+### Where to resume (2026-11-05, end of the fourth session)
+
+The PRs are stacked and draft: #393 (4.3, 4.4) ← #394 (5.2, 5.3) ← #395 (6.1 to 6.4) ← #396 (7.1, 7.2 steps 1 and 2) ← #397 (8.1, 8.2 part).
+Hosted CI runs the lint, typecheck, boundaries, style and unit job; watch each PR's head. Next, in order:
+
+1. **7.2 step 3:** rewrite the comments that cite plans in `automata` (about 400), then `sim`, `content`, `tools`, `tooling`;
+   one commit per package, add each root to the `style` script's `--plan-comments` list.
+2. **8.2 rest and 8.3:** example journeys (saves and settings survive a reload, slow content load) and the `create-game`
+   journey. The boot-failure journey needs a refusal switch in Ruken's fake host.
+3. **5.4:** take Effect out of the runtime feature by feature (order in the plan), then delete
+   `shared/host/effect-bridge.ts`, `hosting.ts`, `errors.ts`; then the bundle report "after D2".
+4. **9.2** waits for the Owner's go.
 
 ### Build: 63% (19 of 30 tasks)
 
