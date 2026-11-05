@@ -23,24 +23,23 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
 | 3. Plan audit | Done, 2026-11-05: 31 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
-| 4. Build | In progress: phases 1 to 4 and 6 done locally, 5 half done, 7 and 8 partly; PRs #393 to #397 (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
+| 4. Build | In progress: phases 1 to 4 and 6 to 8 done locally (8.2's boot-failure journey blocked on Ruken), 5 half done; PRs #393 to #397 and #398 (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Where to resume (2026-11-05, end of the fourth session)
+### Where to resume (2026-11-05, fifth session)
 
-The PRs are stacked and draft: #393 (4.3, 4.4) ← #394 (5.2, 5.3) ← #395 (6.1 to 6.4) ← #396 (7.1, 7.2 steps 1 and 2) ← #397 (8.1, 8.2 part).
-Hosted CI runs the lint, typecheck, boundaries, style and unit job; watch each PR's head. Next, in order:
+The PRs are stacked and draft: #393 (4.3, 4.4) ← #394 (5.2, 5.3) ← #395 (6.1 to 6.4) ← #396 (7.1, 7.2 steps 1 and 2) ← #397
+(8.1, 8.2 part) ← #398 (7.2 step 3, 8.2 rest, 8.3). Next, in order:
 
-1. **7.2 step 3:** rewrite the comments that cite plans in `automata` (about 400), then `sim`, `content`, `tools`, `tooling`;
-   one commit per package, add each root to the `style` script's `--plan-comments` list.
-2. **8.2 rest and 8.3:** example journeys (saves and settings survive a reload, slow content load) and the `create-game`
-   journey. The boot-failure journey needs a refusal switch in Ruken's fake host.
-3. **5.4:** take Effect out of the runtime feature by feature (order in the plan), then delete
-   `shared/host/effect-bridge.ts`, `hosting.ts`, `errors.ts`; then the bundle report "after D2".
+1. **5.4:** take Effect out of the runtime feature by feature (order in the plan), then delete
+   `shared/host/effect-bridge.ts`, `hosting.ts`, `errors.ts`; then the bundle report "after D2". Its own PR on top of #398.
+2. **8.1 rest:** the Settings sections' long strings, the CLI messages and the READMEs' first screens are still unchecked in
+   `copy.md`. Found by the create-game journey: the pause menu's close button and its Resume button share the name "Resume".
+3. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
 4. **9.2** waits for the Owner's go.
 
-### Build: 63% (19 of 30 tasks)
+### Build: 70% (21 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -70,10 +69,10 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 6.3 Emberwick by feature | 6 | Done locally, 2026-11-05 (CI run pending): `app/`, `features/{player,goal,room,scene,screens}`, `shared/`, `entries/`, `testing/`; `--features games/emberwick` and the sim rule pass (deviations 56 to 58) | PR to open |
 | 6.4 The surface | 6 | Done locally, 2026-11-05 (CI run pending): `@mcthaydt/automata` root 600 → 274 names; the ten API reports 2,109 → 1,783 exports (audit's 1,042 was counted differently); changeset `trim-the-root-entry` | PR to open |
 | 7.1 Docs and AGENTS.md | 7 | Done locally, 2026-11-05: `docs/archive/`, `docs/README.md`, `docs/status.md` (47 lines), `AGENTS.md` (88 lines), `examples/README.md` | PR to open |
-| 7.2 Comments that cite plans | 7 | Steps 1 and 2 done locally (rule behind `--plan-comments`); Emberwick rewritten and checked. **Open:** step 3 for the other core and 2D packages (about 400 hits in `automata`) | PR to open |
+| 7.2 Comments that cite plans | 7 | Done locally, 2026-11-05: 762 hits rewritten (automata 399, sim 39, content 69, tools 113, tooling 142); `pnpm style` checks every core, 2D and tooling root | #398 |
 | 8.1 The copy table | 8 | Step 1 and 2 done locally for core screens, boot failure and Emberwick (`copy.md`); CLI messages, READMEs and Settings sections still to check | PR to open |
-| 8.2 New Emberwick journeys | 8 | Partly: pause on hide (new behaviour) and the end screen done; boot failure blocked on a refusal switch in Ruken's fake host (deviation 64); the example journeys not started | PR to open |
-| 8.3 The `create-game` journey | 8 | Not started | |
+| 8.2 New Emberwick journeys | 8 | Done locally except boot failure: pause on hide and the end screen added; touch-only and the examples' reload journeys already existed; slow load dropped (deviation 67); boot failure blocked on a refusal switch in Ruken's fake host (deviation 64) | #397, #398 |
+| 8.3 The `create-game` journey | 8 | Done locally, 2026-11-05 (Chromium, 1 of 1): it found that the template never booted a game; the template now runs on the default screens (deviation 68) | #398 |
 | 9.1 Prepare the branch clean-up | 9 | Done: `branches.md` and `pnpm branches:prune` (dry run only; nothing deleted) | |
 | 9.2 Run it (the Owner's go) | 9 | Not started | |
 
