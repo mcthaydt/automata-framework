@@ -40,7 +40,7 @@ const named = <T>(library: Record<string, T>, kind: string, style: string | T): 
   const found = library[style]; if (!found) throw new Error(`no ${kind} ${style}`); return found;
 };
 /** Materials of the body's regions; garments repaint them. */
-interface Regions { skin: string; chest: string; waist: string; pelvis: string; shoulder: string; upper: string; fore: string; hand: string; thigh: string; knee: string; shin: string; neck: string }
+export interface Regions { skin: string; chest: string; waist: string; pelvis: string; shoulder: string; upper: string; fore: string; hand: string; thigh: string; knee: string; shin: string; shoe: string; sole: string; neck: string }
 /** A dressed body: its parts and marks, any materials the outfit makes for itself, its face, and the openings a hand can
  * reach (motion.ts Anchor). Base's garments publish none, so a hand finds the body's own hip (motion.ts openings); a
  * fork's wardrobe publishes its pockets and hems here. */
@@ -54,7 +54,7 @@ export interface FaceLook { shape: HeadShape; eyes?: string; white?: string; bro
  */
 export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[], swatches: Record<string, Material> = SWATCHES, ppm?: number): Look {
   const swatch = (name: string): Material => { const found = swatches[name]; if (!found) throw new Error(`no swatch ${name}`); return found; };
-  const r: Regions = { skin, chest: skin, waist: skin, pelvis: skin, shoulder: skin, upper: skin, fore: skin, hand: skin, thigh: skin, knee: skin, shin: skin, neck: skin };
+  const r: Regions = { skin, chest: skin, waist: skin, pelvis: skin, shoulder: skin, upper: skin, fore: skin, hand: skin, thigh: skin, knee: skin, shin: skin, shoe: skin, sole: skin, neck: skin };
   const parts: Part[] = [], decals: Decal[] = [], made: Record<string, Material> = {};
   let thighs = true, faceLook: FaceLook = { shape: m.face };
   for (const item of garments) {
@@ -208,8 +208,8 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     const above = knee + 0.06 * k, below = knee - 0.06 * k;
     if (thighs) parts.push(stretch(r.thigh, lg, leg, Infinity, above, legSkin));
     parts.push(stretch(r.knee, lg, leg, thighs ? above : knee + 0.03 * k, below, legSkin), stretch(r.shin, lg, leg, below, -Infinity, legSkin));
-    // ─── Foot: bare, from the heel's round over the instep to the toes ───
-    parts.push(...bareFoot(J[`foot.${side}`], r.skin, lg, k, fw, foot, ankle));
+    // ─── Foot: a shoe from the heel's round over the instep to the toe, on its sole ───
+    parts.push(...(r.shoe === r.skin ? bareFoot(J[`foot.${side}`], r.skin, lg, k, fw, foot, ankle) : shoe(J[`foot.${side}`], r.shoe, r.sole, lg, k, fw, foot, ankle)));
   }
   return surfaces(parts);
 }
@@ -284,8 +284,8 @@ function hands(bone: number, material: string, group: number, x: number, u: numb
     box(bone, material, group, { at: [-x * 0.35 * wx, -0.045 * u, B + 0.2 * wz], r: [0.55 * wx, 0.03 * u, 0.5 * wz], e: [0.8, 0.8], seg: 8, rings: 5, turn: axisAngle([1, 0, 0], -0.35) }, { seam: THUMB[x > 0 ? 'L' : 'R'] }),
   ].map(p => ({ ...p, mesh: placed(p.mesh, [0, 0, 0], turn) }));
 }
-/** A bare foot on the foot bone: from a round heel over a low instep to the toes, flat on the floor with no sole, in the
- * skin (one surface with the leg). */
+/** A bare foot on the foot bone, where no shoe is worn: lower and narrower than a shoe, from a round heel over a low
+ * instep to the toes, flat on the floor with no sole, in the skin (one surface with the leg). */
 function bareFoot(bone: number, skin: string, group: number, k: number, fw: number, foot: number, ankle: number): Part[] {
   const floor = -ankle, base = floor + 0.004 * k;
   const key = (z: number, high: number, wide: number) => ({ y: z * foot * 0.92, rx: wide * k * fw, rz: high * k * fw, dz: -(base + high * k * fw) });
@@ -293,6 +293,20 @@ function bareFoot(bone: number, skin: string, group: number, k: number, fw: numb
     key(0.66, 0.012, 0.03), key(0.5, 0.016, 0.034), key(0.26, 0.026, 0.031), key(0.02, 0.036, 0.026), key(-0.14, 0.03, 0.024),
   ] });
   return [{ bone, material: skin, group, mesh: placed(mesh, [0, 0, 0], axisAngle([1, 0, 0], Math.PI / 2)) }];
+}
+/** A shoe on the foot bone: one profile from the heel along to the toe (heights off the floor `ankle` below the joint),
+ * and its sole. `fw` the build's foot factor, `foot` its length. */
+function shoe(bone: number, upper: string, sole: string, group: number, k: number, fw: number, foot: number, ankle: number): Part[] {
+  const floor = -ankle, base = floor + 0.016 * k * fw;
+  // Authored along y (heel to toe) with z as minus the height, then turned so y runs forward and z up.
+  const key = (z: number, high: number, wide: number) => ({ y: z * foot, rx: wide * k * fw, rz: high * k * fw, dz: -(base + high * k * fw) });
+  const mesh = limb({ seg: 12, caps: [0.05 * foot, 0.035 * foot], e: 0.85, rings: [
+    key(0.72, 0.022, 0.04), key(0.56, 0.027, 0.047), key(0.3, 0.042, 0.046), key(0.02, 0.058, 0.04), key(-0.17, 0.044, 0.034),
+  ] });
+  return [
+    { bone, material: upper, group, mesh: placed(mesh, [0, 0, 0], axisAngle([1, 0, 0], Math.PI / 2)) },
+    box(bone, sole, group, { at: [0, floor + 0.008 * k * fw, foot * 0.27], r: [0.05 * k * fw, 0.009 * k * fw, foot * 0.52], e: [0.3, 0.45], taper: [1, 0.96] }),
+  ];
 }
 /**
  * The face as a pixel artist draws it at this size: a texel per eye (two tall when afraid or surprised, a lid when
