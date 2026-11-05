@@ -40,13 +40,13 @@ export interface GBuffer {
 export function gbuffer(w: number, h: number): GBuffer {
   return { w, h, depth: new Float32Array(w * h), material: new Int16Array(w * h), group: new Int16Array(w * h), part: new Int16Array(w * h), normal: new Float32Array(w * h * 3), place: new Float32Array(w * h * 3) };
 }
-/** Cloth that hangs over the legs (the trunk's: +1) and the legs (−1): see `rasterize`'s `over`. */
+/** Cloth that hangs over the legs (the trunk's and a skirt's: +1) and the legs (−1): see `rasterize`'s `over`. */
 const LAYER = new Int8Array(16);
-LAYER[GROUP.torso] = 1; LAYER[GROUP.legL] = LAYER[GROUP.legR] = -1;
+LAYER[GROUP.torso] = LAYER[GROUP.skirt] = 1; LAYER[GROUP.legL] = LAYER[GROUP.legR] = -1;
 /**
  * Z-buffered, point-sampled at sample centres. Larger depth is nearer. Edge functions step incrementally along each row.
  * Cloth over the legs wins a tie with a leg of another material within `over` (m), the most a stride's thigh runs ahead
- * of a hem that follows it late, so the leg never shows through a top's hem.
+ * of a hem that follows it late, so the leg never shows through a top's or a skirt's hem.
  */
 export function rasterize(soup: Soup, g: GBuffer, over = 0.1) {
   const { w, h, depth, material, group, part, normal, place } = g, v = soup.verts;
@@ -210,7 +210,10 @@ export function smoothContour(g: GBuffer) {
  * A decal in view space: texel position, depth, normal z (how much it faces the camera), material, size in texels, and
  * the surface group it lies on (parts.ts boneGroups), when known.
  */
-export interface ViewDecal { x: number; y: number; z: number; facing: number; material: number; w: number; h: number; group?: number }
+export interface ViewDecal { x: number; y: number; z: number; facing: number; material: number; w: number; h: number; group?: number; print?: ViewPrint }
+/** A print in view space (parts.ts Print): its bitmap, a bitmap texel's step across and down (cell texels x, y and depth
+ * in metres), its surface's seams (none: it lies over anything), and its texels' materials by character. */
+export interface ViewPrint { rows: string[]; du: [number, number, number]; dv: [number, number, number]; seams?: number[]; inks: Record<string, number> }
 /**
  * Marks (eyes, buttons) on the surface: only where they face the camera and the surface there is theirs: its own group
  * (so a hand resting on a pocket hides the pocket's stitch) or one lying `over` any (jewellery, which bears its own
@@ -234,6 +237,43 @@ export function stamp(decals: ViewDecal[], g: GBuffer, texel = 0.027, over: numb
     if (2 * ks.length < d.w * d.h) continue;
     for (const k of ks) { g.material[k] = d.material; g.part[k] = -2; }
   }
+}
+/**
+ * A print stamped flat in the cell, as a pixel artist letters a garment: the bitmap texel for texel on the integer
+ * grid from its projected anchor (its top's centre), never resampled, so no letter drops or doubles a column; as the
+ * cloth leans, each line of it shifts by whole texels (a line's letters stay together). As the cloth turns from the
+ * camera, gaps between its letters wider than a texel (',') close toward the width the cloth shows, never to nothing;
+ * past where it stays legible (the cloth turned under `turn` across, or facing under `facing`) it is not drawn at all.
+ * Printed on a surface (`seams`), its texels land only on that surface's visible texels, so an arm, a hood or hair in
+ * front hides it as it does the cloth, and where it would run off the cloth's silhouette it is not drawn; with none (a
+ * pendant hanging on the chest), it lies over whatever is behind it, hidden only by what passes in front.
+ */
+export function stampPrint(d: ViewDecal, g: GBuffer, facing = 0.42, turn = 0.6) {
+  const p = d.print!; if (d.facing < facing) return;
+  const su = Math.hypot(p.du[0], p.du[1]), sv = Math.hypot(p.dv[0], p.dv[1]); if (su < turn || sv < turn) return;
+  const W = Math.max(...p.rows.map(r => r.length)), dir = Math.sign(p.du[0]) || 1, shear = p.dv[0] / sv, close = Math.max(0, Math.round(W * (1 - su)));
+  const x0 = Math.floor(d.x), y0 = Math.floor(d.y), put: [number, number][] = [], inked = (c?: string) => !!c && c !== '.' && c !== ',';
+  let off = 0, ink = 0, line = 0;
+  p.rows.forEach((row, j) => {
+    if (![...(p.rows[j - 1] ?? '')].some(inked)) line = j;
+    // A gap's columns past its first may close, those nearest the row's middle first, so the line keeps its centre.
+    const gaps = [...row].map((c, i) => (c === ',' && row[i - 1] === ',' ? i : -1)).filter(i => i >= 0).sort((a, b) => Math.abs(a - (W - 1) / 2) - Math.abs(b - (W - 1) / 2)).slice(0, close);
+    const kept = [...row].map((c, i) => [c, i] as const).filter(([, i]) => !gaps.includes(i)), mid = Math.floor((kept.length - 1) / 2);
+    kept.forEach(([c, i], col) => {
+      const material = p.inks[c]; if (!inked(c) || material === undefined) return;
+      const x = x0 + dir * (col - mid) + Math.round(line * shear), y = y0 + j;
+      ink++;
+      if (x < 0 || y < 0 || x >= g.w || y >= g.h) { off++; return; }
+      const k = y * g.w + x, z = d.z + p.du[2] * (i - (W - 1) / 2) + p.dv[2] * j;
+      if (!p.seams) { if (g.material[k] >= 0 && g.depth[k] < z + 0.02) put.push([k, material]); return; }
+      // Off the cloth: nothing there, or only what lies well behind it (the far arm, the legs).
+      const on = p.seams.includes(g.part[k]);
+      if (g.material[k] < 0 || (!on && g.depth[k] < z - 0.05)) { off++; return; }
+      if (on) put.push([k, material]);
+    });
+  });
+  if (p.seams && off > 0.05 * ink) return;
+  for (const [k, m] of put) { g.material[k] = m; g.part[k] = -2; }
 }
 /** Smooth 3D value noise in [0, 1), deterministic. */
 const lattice = (x: number, y: number, z: number) => { let n = Math.imul(x, 0x27d4eb2d) ^ Math.imul(y, 0x165667b1) ^ Math.imul(z, 0x9e3779b1); n = Math.imul(n ^ (n >>> 15), 0x85ebca6b); n ^= n >>> 13; return (n >>> 0) / 4294967296; };

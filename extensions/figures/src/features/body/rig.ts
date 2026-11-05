@@ -12,6 +12,9 @@ export const JOINTS = [
   'socket.L', 'socket.R',
   // Secondary motion: the hair's swinging chunks hang from these, driven by a spring (figure.ts), never by the body.
   'hair.back', 'hair.L', 'hair.R',
+  // A wide trouser leg's hem hangs from these, not from the shin: motion.ts places each between its ankle and the plumb
+  // under its hip, on the floor while the foot is planted, with the foot as it lifts (parts.ts hemSkin binds a hem's rings).
+  'hemL', 'hemR',
 ] as const;
 export type Joint = typeof JOINTS[number];
 export type Side = 'L' | 'R';
@@ -23,6 +26,8 @@ const PARENT: Record<Joint, Joint | null> = {
   'thigh.L': 'pelvis', 'shin.L': 'thigh.L', 'foot.L': 'shin.L', 'thigh.R': 'pelvis', 'shin.R': 'thigh.R', 'foot.R': 'shin.R',
   'socket.L': 'hand.L', 'socket.R': 'hand.R',
   'hair.back': 'head', 'hair.L': 'head', 'hair.R': 'head',
+  // On the shin, so a pose that never places them (one made outside motion.ts) hangs the hem with the shin.
+  hemL: 'shin.L', hemR: 'shin.R',
 };
 const PARENTS: number[] = JOINTS.map(name => (PARENT[name] ? J[PARENT[name]!] : -1));
 
@@ -82,6 +87,8 @@ export function skeleton(g: Genes): Skeleton {
     set(`thigh.${s}`, [x * g.hips, hipY, 0]);
     set(`shin.${s}`, [x * g.hips, hipY - thigh, 0]);
     set(`foot.${s}`, [x * g.hips, g.ankle, 0]);
+    // The hem's pivot at rest: on the floor under the hip, at the ankle.
+    set(`hem${s}`, [x * g.hips, g.ankle, 0]);
   }
   // The hair's pivots: high at the back of the head and above each ear.
   const head = rest[J.head], hw = g.head * g.headWidth / 2, hd = g.head * g.headDepth / 2;

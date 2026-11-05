@@ -15,8 +15,11 @@ import { headAt, headForm, headNormal, insideHead, type HeadForm } from '../body
  *
  * - scalp: a shell on the skull from a hairline up to the crown, or a band between two lines (a fade), lifted off it,
  *   fuller at the crown and ridged the way the hair is combed, so its sheen breaks into bands along the strands.
- * - rows: ropes laid on the scalp from the hairline to a point: braids gathered up into a pony.
+ * - rows: ropes laid on the scalp from the hairline to a point: braids gathered up into a pony, cornrows to the nape.
  * - tail: a ponytail's ropes, rising from the crown and falling down the back, clear of the body, to below the shoulders.
+ *
+ * A fork adds pieces of its own (registerHairPiece, built from HairCtx's helpers) and finishes (registerFinish); base
+ * registers none.
  *
  * Every piece is one surface (seam 2000) unless it is ropes whose gaps must show: each rope is then its own part, so
  * the painter's crevice falls where one passes over another and the ground between them, and the beads along a rope
@@ -24,7 +27,7 @@ import { headAt, headForm, headNormal, insideHead, type HeadForm } from '../body
  */
 export const HAIR_SEAM = 2000;
 /** The tag on the hair's top surface over the crown: where anything worn up on the head lies. */
-const CROWN = 'crown';
+export const CROWN = 'crown';
 /**
  * The skull's frame: a rounded box round the lofted head (garments.ts head), its centre, radii, roundness and taper.
  * A style's head units (heights, angles round it, sizes of its half-width) are about it; what fits the head (a scalp, a
@@ -38,7 +41,7 @@ export function skull(s: Skeleton): Skull {
 }
 const sp = (v: number, e: number) => Math.sign(v) * Math.abs(v) ** e;
 /** A point on the skull at angle `a` and height `y`, `lift` of its radius off it. */
-function onSkull(k: Skull, a: number, y: number, lift = 0): V3 {
+export function onSkull(k: Skull, a: number, y: number, lift = 0): V3 {
   const yy = clamp(y, -1, 1), u = Math.asin(sp(yy, 1 / k.e[0])), v = Math.PI / 2 - a, cu = sp(Math.cos(u), k.e[0]);
   const tk = lerp(k.taper[0], k.taper[1], (yy + 1) / 2), f = 1 + lift;
   return [k.c[0] + cu * sp(Math.cos(v), k.e[1]) * k.r[0] * tk * f, k.c[1] + yy * k.r[1] * f, k.c[2] + cu * sp(Math.sin(v), k.e[1]) * k.r[2] * tk * f];
@@ -68,7 +71,7 @@ export function along(line: Line, a: number) {
 
 // ─── Meshes ───
 /** A grid of points into a mesh: normals from its neighbours, turned away from `inner` (a point, per row, inside it). */
-function grid(rows: number, cols: number, at: (i: number, j: number) => V3, wrap: boolean, inner: (i: number) => V3, skip?: (i: number, j: number) => boolean): Mesh {
+export function grid(rows: number, cols: number, at: (i: number, j: number) => V3, wrap: boolean, inner: (i: number) => V3, skip?: (i: number, j: number) => boolean): Mesh {
   const P: V3[][] = [];
   for (let i = 0; i <= rows; i++) { const row: V3[] = []; for (let j = 0; j < cols; j++) row.push(at(i, j)); P.push(row); }
   const positions: number[] = [], normals: number[] = [], indices: number[] = [];
@@ -90,7 +93,7 @@ function grid(rows: number, cols: number, at: (i: number, j: number) => V3, wrap
   return { positions, normals, indices };
 }
 /** A smooth path through control points (Catmull-Rom), resampled to `n + 1` points evenly along its length. */
-function spline(points: V3[], n: number): V3[] {
+export function spline(points: V3[], n: number): V3[] {
   const pts = [points[0], ...points, points[points.length - 1]], dense: V3[] = [];
   for (let s = 1; s < pts.length - 2; s++) for (let i = 0; i < 24; i++) {
     const t = i / 24, [p0, p1, p2, p3] = [pts[s - 1], pts[s], pts[s + 1], pts[s + 2]], t2 = t * t, t3 = t2 * t;
@@ -136,7 +139,7 @@ export interface Rope {
 export function sweep(path: V3[], rope: Rope, unit: number, out: (p: V3, t: number) => V3, rings = 0): { mesh: Mesh; lit?: Mesh; t: number[] } {
   const total = path.reduce((l, p, i) => (i ? l + Math.hypot(...sub(p, path[i - 1])) : 0), 0);
   const a0 = rope.r * unit, b0 = a0 * (rope.flat ?? 1), e = rope.e ?? 1, depth = rope.depth ?? 0.25;
-  const beads = rope.pitch ? Math.max(2, Math.round(total / (rope.pitch * unit))) : 0;
+  const beads = rope.pitch ? Math.max(2, Math.round(total / (rope.pitch * unit))) : rope.beads ?? 0;
   const n = rings || Math.max(8, Math.ceil(total / (a0 * 0.5)), beads * 6), seg = rope.seg ?? 10, P = spline(path, n);
   const T = P.map((_, i) => normalize(sub(P[Math.min(n, i + 1)], P[Math.max(0, i - 1)])));
   const root = rope.root ?? 0.06, tip = rope.tip ?? 'round', taper = rope.taper ?? 1;
@@ -182,47 +185,62 @@ export function sweep(path: V3[], rope: Rope, unit: number, out: (p: V3, t: numb
 /** A piece's colour: the hair, its lit tone (a plait's, a streak's, a coil's speck), the crest (a flat top in the light), the hair faded toward the skin (`fade1` most of the way to the hair, `fade2` mostly
  * skin), the scalp (the skin's own tone in shadow: the ground between cornrows), the parting (the hair's deep step: a
  * shadow between braids), a fade (the skin graded up to the stubble: Scalp.grade), or a swatch. */
-type Tone = 'hair' | 'lit' | 'crest' | 'fade1' | 'fade2' | 'scalp' | 'parting' | 'fade' | string;
+export type Tone = 'hair' | 'lit' | 'crest' | 'fade1' | 'fade2' | 'scalp' | 'parting' | 'fade' | string;
 /** A shell; its `sheen`: `count` streaks round the comb in the lit tone (the first at `at` round it), between heights `from` and `to` (each streak's
  * ends jittered by `ragged`), each a spindle up to `width` of its share either side: the glossy band along the strands,
  * broken into strands' shines. */
 export interface Scalp { from: Line; to?: Line; lift: number; crown?: number; edge?: number; ridges?: [number, number]; comb?: V3 | 'back'; tone?: Tone; sheen?: { count: number; from: number; to: number; width?: number; ragged?: number; at?: number }; /** A fade's grade up the band (0 its foot, 1 its top): from each height up, a tone (the skin below the first). */ grade?: [number, Tone][]; /** Only this far round either side of the front (a line-up at the temples). */ span?: number }
 /** Rows from the hairline round `at` (the front by default), `span` either side of it, to one point (a direction from
- * the skull's centre, in head units). */
-export interface Rows { count: number; at?: number; span: number; from: Line; to: V3; lift: number; rope: Rope; apart?: boolean; matte?: boolean; tone?: Tone }
+ * the skull's centre, in head units) or each straight back to the nape. */
+export interface Rows { count: number; at?: number; span: number; from: Line; to: V3 | 'nape'; nape?: Line; lift: number; rope: Rope; apart?: boolean; matte?: boolean; tone?: Tone }
 /** A ponytail tied at a direction from the skull's centre (head units); its ropes rise `rise` of the head's height and
  * fall `length` of it below the shoulders, spread across `spread` of the half-width at the tie and at the ends, clear of
  * the dressed trunk. */
 export interface Tail { at: V3; count: number; rope: Rope; rise: number; length: number; spread: [number, number]; tie?: Tie; cuffs?: string; matte?: boolean }
 /** A tie: `true` the wearer's (HairInput.tie: the outfit's own metal, else a band of the hair's own), or a swatch. */
-type Tie = boolean | string;
-export type Piece = { scalp: Scalp } | { rows: Rows } | { tail: Tail };
+export type Tie = boolean | string;
+/** One of the three generators' pieces. */
+type OwnPiece = { scalp: Scalp } | { rows: Rows } | { tail: Tail };
+/** A piece of a style: one of the three generators', or a registered piece (H3, registerHairPiece) keyed by its kind's
+ * name, its value what that kind's builder takes. */
+export type Piece = OwnPiece | { [kind: string]: unknown };
 /** A style's finish, whatever colour it is worn in (a hair swatch gives only its hue ramp): tight coils (a fade's
- * stubble) or braids. */
-export type Finish = 'coil' | 'braid';
+ * stubble) or braids here, and any finish a fork registers (H4, registerFinish) by name. */
+export type Finish = string;
 /** Each finish's light: how far the key reaches down its form (paint.ts thresholds: the light on its crests, a shadow
  * side), and whether it is matte (no glint, and its lit tone a step up in the shadow too, so a plait's beads, a loc's
  * edge, a coil's specks read on the dark side as well). */
-const FINISH: Record<Finish, { tones: [number, number, number]; matte: boolean }> = {
+const FINISH: Record<'coil' | 'braid', { tones: [number, number, number]; matte: boolean }> = {
   // Tight coils: mostly mid, the light on the crests.
   coil: { tones: [0.8, 0.3, -0.4], matte: true },
   // Braids: the light a rare crest and a deep shadow side, so the beads and the ropes carry the form.
   braid: { tones: [0.9, 0.2, -0.8], matte: true },
 };
+/** A finish's light (FINISH). */
+type Light = { tones: [number, number, number]; matte: boolean };
+/** The finishes a fork registers (registerFinish), by name. Empty in base. */
+const FINISHES = new Map<string, Light>();
+/** Registers a hair finish (H4) under `name`, which a style's `finish` then names: how far the key reaches down its form
+ * (`tones`, as FINISH's) and whether it is matte. A matte finish never takes the sheen band (finish()). Throws on a name
+ * base or an earlier registration has taken. */
+export function registerFinish(name: string, light: Light): void {
+  if (name in FINISH || FINISHES.has(name)) throw new Error(`hair finish ${name} is registered already`);
+  FINISHES.set(name, light);
+}
 /** `finish`: its texture's light; the colour it is worn in gives only the hue. */
 export interface HairStyle { about: string; pieces: Piece[]; finish: Finish }
 /** The hair styles a character names (library/hair.json): the generators' pieces and the finish they are painted with. */
 export const HAIR_STYLES = hairLibrary as unknown as Record<string, HairStyle>;
 /** The turn that takes +y onto `dir`. */
-const alignY = (dir: V3) => { const d = normalize(dir), axis = cross([0, 1, 0], d); return Math.hypot(...axis) < 1e-6 ? axisAngle([1, 0, 0], d[1] > 0 ? 0 : Math.PI) : axisAngle(axis, Math.acos(clamp(d[1], -1, 1))); };
+export const alignY = (dir: V3) => { const d = normalize(dir), axis = cross([0, 1, 0], d); return Math.hypot(...axis) < 1e-6 ? axisAngle([1, 0, 0], d[1] > 0 ? 0 : Math.PI) : axisAngle(axis, Math.acos(clamp(d[1], -1, 1))); };
 /** A point on the head's own form (head.ts headAt) at a skull angle and height, `lift` of the skull's half-width out. */
-function onHead(f: HeadForm, k: Skull, a: number, y: number, lift = 0): V3 {
+export function onHead(f: HeadForm, k: Skull, a: number, y: number, lift = 0): V3 {
   const t = (clamp(y, -1, 1) + 1) / 2, v = Math.PI / 2 - a;
   return add(headAt(f, t, v), scale(headNormal(f, t, v), lift * k.r[0]));
 }
 /** A shell between two lines round the head (`to` the crown when left out), `lift` of the skull's half-width off its form
  * `f` along its normal, with a hole `cut` in it (a gap a fork's headwear may leave). `keep` picks its cells by row (a fade's tiers). */
-function shell(k: Skull, o: Scalp, f: HeadForm, keep?: (i: number) => boolean): { mesh: Mesh; lit?: Mesh } {
+export function shell(k: Skull, o: Scalp, f: HeadForm, keep?: (i: number) => boolean): { mesh: Mesh; lit?: Mesh } {
   const cols = 56, rows = 18, lift = (t: number, a: number, y: number) => {
     const comb = o.ridges ? 1 + o.ridges[1] * Math.cos(o.ridges[0] * combPhase(k, o.comb ?? [0, 1, 0], a, y)) * smooth(t * 3) : 1;
     // Thinner at the hairline (`edge`, of the lift), fuller toward the crown.
@@ -248,7 +266,7 @@ function shell(k: Skull, o: Scalp, f: HeadForm, keep?: (i: number) => boolean): 
   return { mesh, lit: o.sheen ? grid(rows, cols, point, true, () => k.c, (i, j) => cut(i, j) || !streak(i, j)) : undefined };
 }
 /** The angle round the way the hair is combed: round the axis it is combed toward, or across the head (combed back). */
-function combPhase(k: Skull, comb: V3 | 'back', a: number, y: number) {
+export function combPhase(k: Skull, comb: V3 | 'back', a: number, y: number) {
   const p = sub(onSkull(k, a, y), k.c), d: V3 = [p[0] / k.r[0], p[1] / k.r[1], p[2] / k.r[2]];
   if (comb === 'back') return Math.asin(clamp(d[0] / (Math.hypot(...d) || 1), -1, 1));
   const ax = normalize(comb), u = normalize(cross(ax, Math.abs(ax[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0])), w = cross(ax, u);
@@ -262,6 +280,8 @@ export interface HairInput {
   tie?: string;
   /** The dressed trunk (its tops and the body's torso, rest figure space): what a tail falls clear of. */
   trunk?: Part[];
+  /** Under a cap or other headwear (outfit/garments.ts dress): the hair is drawn for it, as a registered piece (H3) may need to know. */
+  capped?: boolean;
 }
 /** The texels a metre at twice the brand kit's density (paint.ts densityOf): the size the figures are judged at. */
 export const PPM = 73.8;
@@ -274,21 +294,23 @@ export interface HairLook { parts: Part[]; decals: Decal[]; materials: Record<st
  * (the ground between cornrows, lighter than the rows). */
 function finish(i: HairInput, f: Finish, tone: Tone, made: Record<string, Material>, matte = false): string {
   if (!['hair', 'lit', 'crest', 'fade1', 'fade2', 'scalp', 'parting'].includes(tone)) return tone;
-  const light = FINISH[f], dull = matte || light.matte, name = `${i.hair}@${tone}:${f}${dull ? '~matte' : ''}`;
+  const light = (FINISH as Record<string, Light | undefined>)[f] ?? FINISHES.get(f); if (!light) throw new Error(`no finish ${f}`);
+  const dull = matte || light.matte, name = `${i.hair}@${tone}:${f}${dull ? '~matte' : ''}`;
   if (made[name]) return name;
   const sw = i.swatch(i.hair), skin = i.swatch(i.skin);
-  const p = sw.paint ?? tonesOf(sw).map(hexOf), hair: Material = { ramp: sw.ramp, base: sw.base, paint: p, tones: light.tones };
+  const p = sw.paint ?? tonesOf(sw).map(hexOf), hair: Material = { ramp: sw.ramp, base: sw.base, paint: p, tones: light.tones, ...(dull ? {} : { sheen: true }) };
   if (tone === 'hair') { made[name] = hair; return name; }
   // The lit tone: the hair's light and mid each a step up (the light raised along its DUEL row, so the sheen keeps its
   // hue), its shadow and deep the hair's own, so a streak shows where the light is and the shadow stays quiet; matte,
   // its shadow a step up too (the next lighter of the hair's own: black's two darks are one), so a plait, a loc's edge,
   // a coil's specks read down the dark side.
   const up = (q: number) => p.slice(0, q).reverse().find(c => c !== p[q]) ?? raise(p[q]);
-  if (tone === 'lit') { made[name] = { ...hair, paint: dull ? [raise(p[0]), up(1), up(2), p[3]] : [raise(p[0]), p[0], p[2], p[3]] }; return name; }
+  // The designed tones (a lit streak, a crest, a parting) are the style's own light: no sheen band laid over them.
+  if (tone === 'lit') { made[name] = { ...hair, sheen: undefined, paint: dull ? [raise(p[0]), up(1), up(2), p[3]] : [raise(p[0]), p[0], p[2], p[3]] }; return name; }
   // The crest: the lit tone with the light reaching further down the form, so a plane facing up (a high-top's flat top)
   // takes the light whole, one crisp tone against the coils of its sides.
-  if (tone === 'crest') { made[name] = { ...hair, tones: [0.45, 0.05, -0.5], paint: [raise(p[0]), p[0], p[1], p[2]] }; return name; }
-  if (tone === 'parting') { made[name] = { ...hair, paint: [p[3], p[3], p[3], p[3]] }; return name; }
+  if (tone === 'crest') { made[name] = { ...hair, sheen: undefined, tones: [0.45, 0.05, -0.5], paint: [raise(p[0]), p[0], p[1], p[2]] }; return name; }
+  if (tone === 'parting') { made[name] = { ...hair, sheen: undefined, paint: [p[3], p[3], p[3], p[3]] }; return name; }
   if (tone === 'scalp') { const t = tonesOf(skin); made[name] = { ...skin, gloss: undefined, paint: [t[1], t[2], t[3], t[3]].map(hexOf) }; return name; }
   // A fade's tier names its two ends, the hair's tones and the skin's a step darker, for the painter to mix (paint.ts
   // mixTones: tone by tone, in OKLab, in the skin's hue), so the run is never a grey or a mauve between them and stays in
@@ -303,6 +325,37 @@ function raise(hex: string) {
   const c = parseInt(hex.slice(1), 16);
   for (const row of RAMPS) { const i = row.indexOf(c); if (i >= 0) return hexOf(row[Math.min(7, i + 1)]); }
   return hex;
+}
+/**
+ * What a registered hair piece (H3, registerHairPiece) is given: the style's input, its skull, head form, head pivot,
+ * half-width and density, the parts and marks the style is making (a piece pushes onto them), the helpers the three
+ * generators draw with (`rigid` a piece rigid on the head, `hung` one skinned to the hair's joints, `tone` a tone's
+ * material in the style's finish, `tieOf` a tie's swatch), and `seam`, the one counter of own surfaces every piece of a
+ * style shares, so seams number as they always have whatever the mix of pieces.
+ */
+export interface HairCtx {
+  i: HairInput; k: Skull; form: HeadForm; head: V3; hw: number; ppm: number;
+  parts: Part[]; decals: Decal[];
+  rigid(mesh: Mesh, t: Tone, own?: number, lit?: Mesh, matte?: boolean): void;
+  hung(mesh: Mesh, ts: number[], to: Tone, swing: (t: number) => [number, number][], own: number, lit?: Mesh, matte?: boolean): void;
+  tone(t: Tone, matte?: boolean): string;
+  tieOf(t: Tie | undefined): string | null;
+  /** The next own surface: the counter every piece of a style shares. */
+  seam(): number;
+}
+/** A hair piece a fork registers (H3): how one entry of a style's `pieces` is built. */
+export interface HairPiece<T = any> {
+  build(c: HairCtx, piece: T): void;
+  /** Its parts take the CROWN tag, like the scalp's and the rows': what is worn up on the head lies on them. */
+  crown?: boolean;
+}
+/** The hair pieces a fork registers (registerHairPiece), by kind. Empty in base. */
+const PIECES = new Map<string, HairPiece>();
+/** Registers a hair piece under `kind`, the key a style's piece carries ({ bun: {…} }). Throws on a name taken, the
+ * generators' (scalp, rows, tail) included. */
+export function registerHairPiece(kind: string, p: HairPiece): void {
+  if (['scalp', 'rows', 'tail'].includes(kind) || PIECES.has(kind)) throw new Error(`hair piece ${kind} is registered already`);
+  PIECES.set(kind, p);
 }
 /** A style's parts on the head and its swinging joints, fitted to the skeleton's head and the body under it. */
 export function hairParts(i: HairInput, style: HairStyle): HairLook {
@@ -325,10 +378,14 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       parts.push({ mesh: placed, material: tone(t, matte), group: 1, seam: own, skin: ts.map(swing) });
     }
   };
+  /** What a registered piece (a fork's, registerHairPiece) is given: the same helpers and the one seam counter. */
+  const ctx: HairCtx = { i, k, form, head, hw, ppm, parts, decals, rigid, hung, tone, tieOf, seam: () => seam++ };
   for (const piece of style.pieces) {
     const first = parts.length;
-    if ('scalp' in piece) {
-      const o = piece.scalp;
+    // The generators' own pieces are told apart by their key; any other is a registered piece, handled last.
+    const own = piece as OwnPiece;
+    if ('scalp' in own) {
+      const o = own.scalp;
       // A fade: the head's own surface graded up the band in tiers, the skin at its foot (its material, so it shades on
       // unbroken from the neck and the ear), then the hair's tones mixed toward the skin's, then the stubble (the hair's,
       // matte), each tier one solid tone, so it grades with no speckle and no line where it meets the top.
@@ -339,24 +396,39 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
           if (mesh.indices.length) parts.push({ bone: J.head, mesh, material: n < 0 ? i.skin : tone(grade[n][1], true), group: 1, seam: FACE_SEAM });
         }
       } else { const sh = shell(k, o, form); rigid(sh.mesh, o.tone ?? 'hair', HAIR_SEAM, sh.lit); }
-    } else if ('rows' in piece) {
-      // Rows from the hairline gathered to one point, keeping its
+    } else if ('rows' in own) {
+      // Rows from the hairline, gathered to one point, or each straight back over the top to the nape, keeping its
       // place across the head (in the skull's units) so the rows run parallel and the scalp shows evenly between them.
-      const o = piece.rows;
+      const o = own.rows;
       for (let r = 0; r < o.count; r++) {
         const a = (o.at ?? 0) + (o.count === 1 ? 0 : -o.span + 2 * o.span * r / (o.count - 1)), start = sub(onHead(form, k, a, along(o.from, a)), k.c);
         const path: V3[] = [];
-        const to = scale(normalize(o.to), Math.hypot(...start));
-        for (let q = 0; q <= 8; q++) path.push(toHead(form, k, add(scale(normalize(start), 1 - q / 8), scale(normalize(to), q / 8)), o.lift));
+        if (o.to === 'nape') {
+          const end = sub(onHead(form, k, Math.PI - a, along(o.nape ?? [[0, -0.5]], Math.PI - a)), k.c);
+          const u = (d: V3) => normalize([d[0] / k.r[0], d[1] / k.r[1], d[2] / k.r[2]]), us = u(start), ue = u(end);
+          const f0 = Math.atan2(us[1], us[2]), f1 = Math.atan2(ue[1], ue[2]) + (Math.atan2(ue[1], ue[2]) < f0 ? 2 * Math.PI : 0);
+          for (let q = 0; q <= 16; q++) {
+            const t = q / 16, x = lerp(us[0], ue[0], t), f = lerp(f0, f1, t), c = Math.sqrt(1 - x * x);
+            path.push(toHead(form, k, [x * k.r[0], c * Math.sin(f) * k.r[1], c * Math.cos(f) * k.r[2]], o.lift));
+          }
+        } else {
+          const to = scale(normalize(o.to), Math.hypot(...start));
+          for (let q = 0; q <= 8; q++) path.push(toHead(form, k, add(scale(normalize(start), 1 - q / 8), scale(normalize(to), q / 8)), o.lift));
+        }
         // A slanted plait turns against the next row's, half a bead on, so rows side by side read as a herringbone.
         const slant = o.rope.slant ? { phase: (r % 2) * 0.5, slant: (r % 2 ? 1 : -1) * o.rope.slant } : {};
         const { mesh, lit } = sweep(path, { tip: 'blunt', ...o.rope, ...slant }, hw, p => sub(p, k.c));
         rigid(mesh, o.tone ?? 'hair', o.apart === false ? HAIR_SEAM : seam++, lit, o.matte);
       }
-    } else if ('tail' in piece) tail(piece.tail);
+    } else if ('tail' in own) tail(own.tail);
+    else {
+      const name = Object.keys(piece)[0], p = PIECES.get(name);
+      if (!p) throw new Error(`no hair piece ${name}`);
+      p.build(ctx, (piece as Record<string, unknown>)[name]);
+    }
     // The hair's top over the crown (its shells and rows; never a tail, a fade): what is worn up lies on it, not on
     // whatever stands furthest out.
-    if ('rows' in piece || ('scalp' in piece && piece.scalp.tone !== 'fade')) for (let n = first; n < parts.length; n++) parts[n].tag = CROWN;
+    if ('rows' in own || ('scalp' in own && own.scalp.tone !== 'fade') || PIECES.get(Object.keys(piece)[0])?.crown) for (let n = first; n < parts.length; n++) parts[n].tag = CROWN;
   }
   /**
    * A high ponytail: tied on the crown, its ropes gathered in a ring at the tie, rising out of it, arcing back over the

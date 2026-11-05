@@ -1,5 +1,5 @@
 import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from '../body/rig';
-import type { Evaluated } from '../motion/motion';
+import { placeHems, type Evaluated } from '../motion/motion';
 import { add, apply, applyDir, euler, lerp, normalize, position, qmat, qmul, scale, sub, type M, type Q, type V3 } from '../../lib/math';
 /**
  * The pose spec: a small set of numbers that says what a body does, turned into a Pose on any skeleton by IK. The
@@ -142,6 +142,7 @@ export function specPose(s: Skeleton, spec: Filled, side: Side, aims: Aims = {},
     twoBoneIK(s, pose, world, J[`upperArm.${sd}`], J[`foreArm.${sd}`], J[`hand.${sd}`], handAt(s, sh, a, rootM, aims), applyDir(rootM, normalize(a.pole)), -1);
     world = fk(s, pose);
   }
+  placeHems(s, pose, world);
   return pose;
 }
 /** The shoulders raised (motion.ts raises them with a hunch the same way, by the clavicle's roll). */
@@ -176,6 +177,8 @@ export function layer(s: Skeleton, base: Evaluated, spec: Filled, side: Side, w:
   let world = fk(s, pose);
   if (hips) {
     for (const l of legs) twoBoneIK(s, pose, world, J[`thigh.${l.sd}`], J[`shin.${l.sd}`], J[`foot.${l.sd}`], l.ankle, l.knee, 1, l.turn);
+    world = fk(s, pose);
+    placeHems(s, pose, world);
     world = fk(s, pose);
   }
   const rootM = world[J.root];

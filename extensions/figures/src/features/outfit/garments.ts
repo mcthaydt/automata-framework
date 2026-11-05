@@ -16,8 +16,11 @@ import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from '../h
  * (parts.ts), each one surface, with a head (head form, ears, nose), hands and bare feet. Colours are named DUEL
  * swatches (library/swatches.json). A fork adds its wardrobe beside this, in its own feature folder.
  */
-const armGroup = (side: Side) => (side === 'L' ? GROUP.armL : GROUP.armR), legGroup = (side: Side) => (side === 'L' ? GROUP.legL : GROUP.legR);
-const sides = [['L', 1], ['R', -1]] as const;
+/** The group (parts.ts GROUP) of a side's arm and of its leg: the parts a garment adds to a limb carry it, so the limb's
+ * surface rules (the body's seams, the painter's layers) treat them as that limb's. */
+export const armGroup = (side: Side) => (side === 'L' ? GROUP.armL : GROUP.armR), legGroup = (side: Side) => (side === 'L' ? GROUP.legL : GROUP.legR);
+/** Both sides with the sign of their x: the left is +x, the right −x. */
+export const sides = [['L', 1], ['R', -1]] as const;
 /** A rounded box: the kit's one primitive. */
 export const box = (bone: number, material: string, group: number, o: Superquadric, extra: Partial<Part> = {}): Part => ({ bone, material, group, mesh: superquadric({ e: [0.5, 0.55], seg: 10, rings: 6, ...o }), ...extra });
 
@@ -26,61 +29,158 @@ export const box = (bone: number, material: string, group: number, o: Superquadr
 export const SWATCHES = swatchLibrary as unknown as Record<string, Material>;
 
 // ─── Garments ───
-export type Garment =
+/** The garments the base pair wears (the union a fork widens through GarmentKinds, below). */
+export type BaseGarment =
   /** A top painted on the torso, and as much of the arms as its sleeves cover (the base pair's: none). */
-  | { top: string; sleeves?: 'none' | 'short' | 'long' }
+  | { top: string; sleeves?: 'none' | 'short' | 'long'; cuffs?: string; collar?: string }
   /** Shorts painted on the body (the hips and thighs), with no cloth of their own: a base figure's modest block. */
   | { shorts: string }
   /** `tie`: the band a pony or a bun is tied with (a swatch); left out, a band of the hair's own. */
   | { hair: string; style: string | HairStyle; tie?: string }
   /** The eyes, the marks face's lids and brows, and the drawn face's (paint.ts) whites and lips. */
-  | { eyes: string; lids?: string; brows?: string; white?: string; lips?: string };
-const named = <T>(library: Record<string, T>, kind: string, style: string | T): T => {
+  | { eyes: string; stubble?: string; lids?: string; brows?: string; white?: string; lips?: string };
+/** A library entry by name, or the entry itself where one is given in place of a name; throws on a name the library lacks. */
+export const named = <T>(library: Record<string, T>, kind: string, style: string | T): T => {
   if (typeof style !== 'string') return style;
   const found = library[style]; if (!found) throw new Error(`no ${kind} ${style}`); return found;
 };
 /** Materials of the body's regions; garments repaint them. */
-interface Regions { skin: string; chest: string; waist: string; pelvis: string; shoulder: string; upper: string; fore: string; hand: string; thigh: string; knee: string; shin: string; neck: string }
+export interface Regions { skin: string; chest: string; waist: string; pelvis: string; shoulder: string; upper: string; fore: string; hand: string; thigh: string; knee: string; shin: string; shoe: string; sole: string; neck: string }
 /** A dressed body: its parts and marks, any materials the outfit makes for itself, its face, and the openings a hand can
  * reach (motion.ts Anchor). Base's garments publish none, so a hand finds the body's own hip (motion.ts openings); a
  * fork's wardrobe publishes its pockets and hems here. */
 export interface Look { parts: Part[]; decals: Decal[]; materials?: Record<string, Material>; face?: FaceLook; anchors?: Anchor[] }
 /** What the painter's drawn face takes from the outfit (paint.ts): the head's structure, and its colours as swatch names. */
 export interface FaceLook { shape: HeadShape; eyes?: string; white?: string; brows?: string; lips?: string }
+
+// ─── Hooks: how a fork adds garments and tunes the outfit, with nothing registered in base ───
+/**
+ * What a registered garment kind's builder is given (H1, `registerGarment`): the body, the whole outfit, the swatches,
+ * the density, the parts worn so far (not the body's own: `worn` is the very array dress() fills, so a kind built last
+ * sees every part worn by then), and a scratch record the outfit's kinds share for the length of one dress() (an apron
+ * reads there what a coat published, so it clears it).
+ */
+export interface Wearing {
+  m: Measure; s: Skeleton; garments: Garment[];
+  swatch: (name: string) => Material; swatches: Record<string, Material>;
+  ppm?: number; worn: Part[]; state: Record<string, unknown>;
+}
+/** What a garment kind makes (H1), applied by dress() in this order: its parts, its marks, its materials, the body
+ * regions it repaints (`paint`), and the openings a hand can reach (`anchors`, motion.ts Anchor). */
+export interface Fit {
+  parts: Part[]; decals?: Decal[]; materials?: Record<string, Material>;
+  paint?: Partial<Regions>; anchors?: Anchor[];
+  /** false: the body draws no thighs under it (a long skirt or coat). And-ed across the outfit. */
+  thighs?: boolean;
+}
+/** A garment kind a fork registers (H1): how its items are built, and when in the outfit they are worn. */
+export interface GarmentKind<T = any> {
+  /** The item's fit, built in garment order with the outfit's other kinds. */
+  build(c: Wearing, item: T): Fit;
+  /** Built after the rest of the outfit, on what is worn by then (a belt over the coat, shades pushed up). */
+  last?: boolean;
+  /** Built after the `last` kinds, in garment order (boots' shafts, over the shins the rest has drawn). */
+  after?(c: Wearing, item: T): Fit;
+  /** Headwear: the hair is drawn under it (HairInput `capped`). `press`, if it returns one, fits the hair's parts inside
+   * the headwear's dome. */
+  coversHair?(c: Wearing, item: T): { press?: (hair: Part[]) => Part[] };
+}
+/**
+ * The garment kinds a fork adds to the union of Garment, by augmentation: a fork declares
+ * `declare module '…/outfit/garments' { interface GarmentKinds { tee: Tee } }` for each kind it registers
+ * (`registerGarment`), and its items then typecheck as garments. Empty in base.
+ */
+export interface GarmentKinds {}
+/** Any garment: the base pair's, or one of the kinds a fork registers (GarmentKinds). */
+export type Garment = BaseGarment | GarmentKinds[keyof GarmentKinds];
+/**
+ * What a fork tunes in dress() without editing it (H2, `registerOutfitHooks`). Both are callbacks base never sets.
+ */
+export interface OutfitHooks {
+  /** The hair's tie when its entry names none (the wardrobe: the outfit's first metal swatch). */
+  tie?(garments: Garment[], swatches: Record<string, Material>): string | undefined;
+  /** The openings a hand can reach, from the anchors the kinds published (each with the garment that made it) and every
+   * part dressed (the body's included), in place of the kinds' anchors as they stand (the wardrobe: those a hand can
+   * reach, and a pendant's where no chain publishes one). */
+  anchors?(c: Wearing, worn: { anchor: Anchor; from: Garment }[], parts: Part[]): Anchor[];
+}
+/** The garment kinds a fork registers (registerGarment), by name, in registration order. Empty in base. */
+const KINDS = new Map<string, GarmentKind>();
+/** Registers a garment kind under `kind`, the key its items carry ({ tee: 'iceTee', … }). Throws on a name taken. */
+export function registerGarment(kind: string, entry: GarmentKind): void {
+  if (KINDS.has(kind)) throw new Error(`garment kind ${kind} is registered already`);
+  KINDS.set(kind, entry);
+}
+/** The registered kind an item is, if any: the first, in registration order, whose name is one of its keys. */
+const kindOf = (item: object): GarmentKind | undefined => { for (const [k, e] of KINDS) if (k in item) return e; return undefined; };
+/** The outfit hooks a fork installs (registerOutfitHooks). None in base. */
+let hooks: OutfitHooks = {};
+let hooked = false;
+/** Installs the outfit hooks (H2), once: a second registration throws. */
+export function registerOutfitHooks(h: OutfitHooks): void {
+  if (hooked) throw new Error('outfit hooks are registered already');
+  hooks = h; hooked = true;
+}
 /**
  * Dresses a body: the garments in order repaint regions and add parts, then the body is built under them. Returns
  * the parts and decals, every one sized from the measure; `ppm` the texels a metre it is drawn at (the cell's), so the
- * small features (a hair tie, an ear's rim) land on whole texels at any density.
+ * small features (a hair tie, an ear's rim) land on whole texels at any density. A fork's registered kinds (H1) are worn
+ * at their place in the garment order, those built `last` and then their `after` once the rest is on; the outfit hooks
+ * (H2) set the hair's tie where the entry names none and pick the anchors. With none registered, none of that runs.
  */
 export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[], swatches: Record<string, Material> = SWATCHES, ppm?: number): Look {
   const swatch = (name: string): Material => { const found = swatches[name]; if (!found) throw new Error(`no swatch ${name}`); return found; };
-  const r: Regions = { skin, chest: skin, waist: skin, pelvis: skin, shoulder: skin, upper: skin, fore: skin, hand: skin, thigh: skin, knee: skin, shin: skin, neck: skin };
+  const g = s.genes, k = m.k, t = m.thick, hw = g.head * g.headWidth / 2, hd = g.head * g.headDepth / 2, h = g.head;
+  const r: Regions = { skin, chest: skin, waist: skin, pelvis: skin, shoulder: skin, upper: skin, fore: skin, hand: skin, thigh: skin, knee: skin, shin: skin, shoe: skin, sole: skin, neck: skin };
   const parts: Part[] = [], decals: Decal[] = [], made: Record<string, Material> = {};
   let thighs = true, faceLook: FaceLook = { shape: m.face };
+  // What the registered kinds are given, and the anchors they publish, each with the garment that made it.
+  const state: Record<string, unknown> = {}, anchors: { anchor: Anchor; from: Garment }[] = [];
+  const c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state };
+  /** A kind's fit, applied in order: its parts, marks, materials, the regions it repaints, its openings. */
+  const wear = (f: Fit, from: Garment) => {
+    parts.push(...f.parts); decals.push(...f.decals ?? []); Object.assign(made, f.materials); Object.assign(r, f.paint);
+    for (const anchor of f.anchors ?? []) anchors.push({ anchor, from });
+    if (f.thighs === false) thighs = false;
+  };
   for (const item of garments) {
+    // A registered kind (a fork's wardrobe); one worn last waits for the rest of the outfit.
+    const kind = kindOf(item);
+    if (kind) { if (!kind.last) wear(kind.build(c, item), item); continue; }
     if ('top' in item) {
       r.chest = r.waist = item.top;
       // A sleeveless top leaves the shoulder's round bare: the arm one surface of skin from the shoulder to the hand.
       if (item.sleeves !== 'none') r.shoulder = item.top;
       if (item.sleeves !== 'none') r.upper = item.top;
       if (item.sleeves === 'long') r.fore = item.top;
+      if (item.cuffs) for (const [side] of sides) parts.push(item.sleeves === 'long'
+        ? box(J[`foreArm.${side}`], item.cuffs, armGroup(side), { at: [0, -s.foreArm * 0.9, 0], r: [0.048 * k * t * m.arm, 0.022 * k, 0.05 * k * t * m.arm], e: [0.45, 0.6] })
+        : box(J[`upperArm.${side}`], item.cuffs, armGroup(side), { at: [0, -s.upperArm * 0.86, 0], r: [0.056 * k * t * m.arm, 0.02 * k, 0.058 * k * t * m.arm], e: [0.45, 0.6] }));
+      if (item.collar) for (const [, x] of sides) parts.push(box(J.chest, item.collar, GROUP.torso, { at: [x * 0.04 * k, 0.172 * k, 0.045 * k], r: [0.04 * k, 0.018 * k, 0.04 * k], turn: axisAngle([0, 1, 0], x * 0.5), e: [0.35, 0.5] }));
     } else if ('shorts' in item) { r.pelvis = r.thigh = item.shorts; }
     // The hair: the generators' pieces (hair.ts), one surface, so the painter draws no line between them.
     else if ('hair' in item) {
       const style = typeof item.style === 'string' ? named(HAIR_STYLES, 'hair style', item.style) : item.style;
       // The tie in the wearer's own palette: the one it names, else a band of the hair's own. The trunk the hair falls
       // clear of: the tops worn by now over the body's own torso.
-      const tie = item.tie;
+      const tie = item.tie ?? hooks.tie?.(garments, swatches);
       const trunk = [...parts, ...body(m, s, r, thighs)].filter(p => p.group === GROUP.torso);
-      const hair = hairParts({ m, s, hair: item.hair, skin, swatch, ppm, tie, trunk }, style);
-      parts.push(...hair.parts); decals.push(...hair.decals); Object.assign(made, hair.materials);
+      // Headwear in the outfit: the hair is drawn under it, and pressed inside it where the headwear says how.
+      const hat = garments.find(g => kindOf(g)?.coversHair), cover = hat && kindOf(hat)!.coversHair!(c, hat);
+      const hair = hairParts({ m, s, hair: item.hair, skin, swatch, capped: !!hat, ppm, tie, trunk }, style);
+      parts.push(...(cover?.press ? cover.press(hair.parts) : hair.parts)); decals.push(...hair.decals); Object.assign(made, hair.materials);
     } else if ('eyes' in item) {
       decals.push(...face(s, item.eyes, item.lids ?? 'lid', item.brows ?? 'brow'));
       faceLook = { shape: m.face, eyes: item.eyes, white: item.white, brows: item.brows, lips: item.lips };
+      if (item.stubble) parts.push(box(J.head, item.stubble, GROUP.head, { at: [0, h * 0.12, hd * 0.52], r: [hw * 0.72, h * 0.12, hd * 0.5], e: [0.6, 0.65], taper: [0.7, 1] }, { seam: FACE_SEAM }));
     }
   }
+  // The kinds worn last, then each kind's `after`, both in garment order.
+  for (const item of garments) { const kind = kindOf(item); if (kind?.last) wear(kind.build(c, item), item); }
+  for (const item of garments) { const kind = kindOf(item); if (kind?.after) wear(kind.after(c, item), item); }
   Object.assign(made, earSkins(skin, swatch(skin)));
-  return { parts: [...body(m, s, r, thighs, ppm), ...parts], decals, materials: made, face: faceLook, anchors: [] };
+  const all = [...body(m, s, r, thighs, ppm), ...parts];
+  return { parts: all, decals, materials: made, face: faceLook, anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
 }
 /** The body's surfaces: the torso, each arm (shoulder to hand) and each leg (thigh to foot) one surface apiece, so the
  * painter draws no crevice or line at a waist, an elbow or a knee (paint.ts); garments keep their own edges. */
@@ -91,7 +191,7 @@ function surfaces(parts: Part[]): Part[] {
   return parts.map(p => (p.seam === undefined && SURFACE[p.group] !== undefined ? { ...p, seam: SURFACE[p.group] } : p));
 }
 /** The trapezius's slope (rad): the body's shoulder line runs up it to the neck. */
-const TRAPEZIUS = 0.6;
+export const TRAPEZIUS = 0.6;
 /** One stretch of a skinned limb in rest figure space: the profile cut to [hi, lo], painted `material`. */
 function stretch(material: string, group: number, o: Limb, hi: number, lo: number, skin: (x: number, y: number, z: number) => [number, number][]): Part {
   const mesh = limb({ ...o, span: [hi, lo] });
@@ -208,8 +308,8 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     const above = knee + 0.06 * k, below = knee - 0.06 * k;
     if (thighs) parts.push(stretch(r.thigh, lg, leg, Infinity, above, legSkin));
     parts.push(stretch(r.knee, lg, leg, thighs ? above : knee + 0.03 * k, below, legSkin), stretch(r.shin, lg, leg, below, -Infinity, legSkin));
-    // ─── Foot: bare, from the heel's round over the instep to the toes ───
-    parts.push(...bareFoot(J[`foot.${side}`], r.skin, lg, k, fw, foot, ankle));
+    // ─── Foot: a shoe from the heel's round over the instep to the toe, on its sole ───
+    parts.push(...(r.shoe === r.skin ? bareFoot(J[`foot.${side}`], r.skin, lg, k, fw, foot, ankle) : shoe(J[`foot.${side}`], r.shoe, r.sole, lg, k, fw, foot, ankle)));
   }
   return surfaces(parts);
 }
@@ -284,8 +384,8 @@ function hands(bone: number, material: string, group: number, x: number, u: numb
     box(bone, material, group, { at: [-x * 0.35 * wx, -0.045 * u, B + 0.2 * wz], r: [0.55 * wx, 0.03 * u, 0.5 * wz], e: [0.8, 0.8], seg: 8, rings: 5, turn: axisAngle([1, 0, 0], -0.35) }, { seam: THUMB[x > 0 ? 'L' : 'R'] }),
   ].map(p => ({ ...p, mesh: placed(p.mesh, [0, 0, 0], turn) }));
 }
-/** A bare foot on the foot bone: from a round heel over a low instep to the toes, flat on the floor with no sole, in the
- * skin (one surface with the leg). */
+/** A bare foot on the foot bone, where no shoe is worn: lower and narrower than a shoe, from a round heel over a low
+ * instep to the toes, flat on the floor with no sole, in the skin (one surface with the leg). */
 function bareFoot(bone: number, skin: string, group: number, k: number, fw: number, foot: number, ankle: number): Part[] {
   const floor = -ankle, base = floor + 0.004 * k;
   const key = (z: number, high: number, wide: number) => ({ y: z * foot * 0.92, rx: wide * k * fw, rz: high * k * fw, dz: -(base + high * k * fw) });
@@ -294,11 +394,25 @@ function bareFoot(bone: number, skin: string, group: number, k: number, fw: numb
   ] });
   return [{ bone, material: skin, group, mesh: placed(mesh, [0, 0, 0], axisAngle([1, 0, 0], Math.PI / 2)) }];
 }
+/** A shoe on the foot bone: one profile from the heel along to the toe (heights off the floor `ankle` below the joint),
+ * and its sole. `fw` the build's foot factor, `foot` its length. */
+function shoe(bone: number, upper: string, sole: string, group: number, k: number, fw: number, foot: number, ankle: number): Part[] {
+  const floor = -ankle, base = floor + 0.016 * k * fw;
+  // Authored along y (heel to toe) with z as minus the height, then turned so y runs forward and z up.
+  const key = (z: number, high: number, wide: number) => ({ y: z * foot, rx: wide * k * fw, rz: high * k * fw, dz: -(base + high * k * fw) });
+  const mesh = limb({ seg: 12, caps: [0.05 * foot, 0.035 * foot], e: 0.85, rings: [
+    key(0.72, 0.022, 0.04), key(0.56, 0.027, 0.047), key(0.3, 0.042, 0.046), key(0.02, 0.058, 0.04), key(-0.17, 0.044, 0.034),
+  ] });
+  return [
+    { bone, material: upper, group, mesh: placed(mesh, [0, 0, 0], axisAngle([1, 0, 0], Math.PI / 2)) },
+    box(bone, sole, group, { at: [0, floor + 0.008 * k * fw, foot * 0.27], r: [0.05 * k * fw, 0.009 * k * fw, foot * 0.52], e: [0.3, 0.45], taper: [1, 0.96] }),
+  ];
+}
 /**
  * The face as a pixel artist draws it at this size: a texel per eye (two tall when afraid or surprised, a lid when
  * blinking), brows a texel above that slant with the mood, and a mouth that shows only when it means something.
  */
-export const EXPRESSIONS = ['neutral', 'fear', 'surprised', 'sad', 'angry', 'talk'] as const;
+export const EXPRESSIONS = ['neutral', 'fear', 'surprised', 'sad', 'angry', 'talk', 'smile', 'dead'] as const;
 export type Expression = typeof EXPRESSIONS[number];
 function face(s: Skeleton, eyes: string, lid: string, brow: string): Decal[] {
   const g = s.genes, hw = g.head * g.headWidth / 2, hd = g.head * g.headDepth / 2, h = g.head, front = hd * (1 + g.faceAhead) + 0.006;

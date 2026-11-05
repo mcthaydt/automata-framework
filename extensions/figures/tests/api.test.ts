@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { ACTIONS, actionOf, BASE, envelopeOf, Figure, lengthOf, hero, lightFigure, member, ScriptedActor, standing, TIMES, view, walking } from '../src';
+import {
+  ACTIONS, actionOf, applyHold, BASE, envelopeOf, evaluate, Figure, GAITS, itemOf, lengthOf, hero, lightFigure, member, registerFinish,
+  registerGarment, registerHairPiece, registerOutfitHooks, ScriptedActor, SEATS, seated, standing, TIMES, view, walking, J,
+} from '../src';
 
 /** The public surface (src/index.ts) on its own: the base pair drawn as sheets, lit, and played by an actor, imported
  * from the entry point only, as a fork's code would. */
@@ -28,5 +31,11 @@ describe('the public surface', () => {
     expect(ACTIONS.wave).toBeDefined();
     expect(env.action[1]).toBe(lengthOf(def));
     expect(env.recovery[1]).toBe(lengthOf(def) + def.recovery);
+  });
+  it('offers a fork its seats, hooks and builders', () => {
+    expect(Object.keys(SEATS)).toContain('typing');
+    for (const f of [registerGarment, registerOutfitHooks, registerHairPiece, registerFinish, itemOf, applyHold, evaluate, seated]) expect(f).toBeTypeOf('function');
+    expect(GAITS[def.gait]).toBeDefined();
+    expect(J.hemL).toBeGreaterThan(J.root);
   });
 });

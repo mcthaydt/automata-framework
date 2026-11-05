@@ -3,7 +3,7 @@ import { evaluate, type ActionId, type MotionState } from '../motion/motion';
 import { apply, applyDir, wrapAngle, type M, type V3 } from '../../lib/math';
 import type { CastMember } from './cast';
 import { ITEMS } from '../outfit/items';
-import { blendJoins, cleanup, gbuffer, rasterize, resolve, smoothContour, stamp, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from '../paint/raster';
+import { blendJoins, cleanup, gbuffer, rasterize, resolve, smoothContour, stamp, stampPrint, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from '../paint/raster';
 import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body/parts';
 import type { Expression, FaceLook } from '../outfit/garments';
 import { DEFAULT_HEAD } from '../body/genes';
@@ -70,7 +70,7 @@ export function build(member: CastMember, s: Skeleton, outfit: string, item: str
   // A drawn face replaces the face's marks (garments.ts face).
   const parts = [...look.parts], decals = look.decals.filter(d => !member.drawnFace || d.tag !== 'face');
   if (item) parts.push(...ITEMS[item].parts(J[`socket.${member.hand}`]));
-  const names = [...new Set([...parts.map(p => p.material), ...decals.map(d => d.material)])];
+  const names = [...new Set([...parts.map(p => p.material), ...decals.flatMap(d => [d.material, ...Object.values(d.print?.inks ?? {})])])];
   const own = { ...member.materials, ...look.materials };
   const materials = names.map(n => { const m = own[n]; if (!m) throw new Error(`${member.id}: no material ${n}`); return m; });
   const materialIndex = new Map(names.map((n, i) => [n, i]));
@@ -143,7 +143,10 @@ function soupOf(built: Built, s: Skeleton, world: M[], pitch: number, cell: [num
   const decals: ViewDecal[] = built.decals.filter(shown).map(d => {
     const p = apply(world[d.bone], d.at), n = applyDir(world[d.bone], d.normal), nl = Math.hypot(...n) || 1;
     const y = p[1] * cp - p[2] * sp, z = p[1] * sp + p[2] * cp;
-    return { x: (cx + p[0] * ppm) / scale, y: (cy - y * ppm) / scale, z, facing: (n[1] * sp + n[2] * cp) / nl, material: built.materialIndex.get(d.material)!, w: d.size?.[0] ?? 1, h: d.size?.[1] ?? 1, group: built.groups.get(d.bone) };
+    // A print's across and down steps (a bitmap texel each), in cell texels and depth (raster.ts stampPrint).
+    const step = (q: V3): [number, number, number] => { const e = applyDir(world[d.bone], q), t = d.print!.texel; return [e[0] * t * ppm / scale, -(e[1] * cp - e[2] * sp) * t * ppm / scale, (e[1] * sp + e[2] * cp) * t]; };
+    const print = d.print && { rows: d.print.rows, du: step(d.print.u), dv: step(d.print.v), seams: d.print.seams, inks: Object.fromEntries(Object.entries({ '#': d.material, ...d.print.inks }).map(([c, n]) => [c, built.materialIndex.get(n)!])) };
+    return { x: (cx + p[0] * ppm) / scale, y: (cy - y * ppm) / scale, z, facing: (n[1] * sp + n[2] * cp) / nl, material: built.materialIndex.get(d.material)!, w: d.size?.[0] ?? 1, h: d.size?.[1] ?? 1, group: built.groups.get(d.bone), print };
   });
   return { soup: { verts, count: vi, tris, triCount: ti }, decals };
 }
@@ -155,6 +158,9 @@ export interface FigureInput {
   action?: { id: ActionId; t: number } | null;
   /** The face (garments.ts EXPRESSIONS): 'talk' opens and shuts the mouth. */
   expression?: Expression;
+  /** More of the face's marks with it (the painter's, paint.ts stampFace): 'talk' with another expression (angry and
+   * talking), 'lookL' / 'lookR' the eyes to one side, 'beside' them just off the camera. */
+  mood?: string[];
   /**
    * A pose made outside the figure's own motion (the actors' made poses, actor.ts): local to the figure (facing +z, root at
    * its feet), its `yaw` added to the facing. `key` names it for the cell cache, so the same key must mean the same
@@ -232,7 +238,7 @@ export class Figure {
     const lead = Math.max(-gait.headLead, Math.min(gait.headLead, Math.round(wrapAngle(input.facing - shownYaw) / HEAD_STEP) * HEAD_STEP + toCamera));
     const turning = Math.abs(wrapAngle(input.facing - shownYaw)) > 1e-3;
     return {
-      t: steppedT, moving: input.moving, lookUp: this.member.faceCamera * input.view.pitch, pitch: input.view.pitch, phase, yaw: 0, headYaw: lead, shuffle: turning && !input.moving ? (Math.floor(beat * gait.poseRate) % 4) / 4 : 0,
+      t: steppedT, moving: input.moving, lookUp: this.member.faceCamera * input.view.pitch, pitch: input.view.pitch, phase, yaw: 0, headYaw: lead, shuffle: turning && !input.moving && gait.shuffle !== false ? (Math.floor(beat * gait.poseRate) % 4) / 4 : 0,
       action: input.action ? { id: input.action.id, t: input.action.t, side: this.member.hand === 'R' ? 'L' : 'R' } : null,
       hold: this.item ? ITEMS[this.item].hold(this.skeleton, this.member.hand) : null,
       hair: { pitch: this.hairPose.pitch, roll: this.hairPose.roll }, clear: this.built.clear,
@@ -253,8 +259,10 @@ export class Figure {
       this.step = step;
     }
     this.swingHair(dt, input);
-    // The pose clock. An idle of breath alone loops at the breath, so its poses repeat and come from the cell cache; the
-    // blink keeps the true time.
+    // The pose clock. Idle loops (the gait's idleLoop, or the breath alone), so idle poses repeat and come from the cell
+    // cache; the blink keeps the true time.
+    // An idle with `idlePoses` holds that many poses across its loop, as a pixel artist's idle is a few frames, not twelve
+    // a second; so an idle is a short, fixed set of cells.
     const { steppedT, faceT } = this.clockAt(this.time);
     const phase = Math.floor(this.phase * gait.walkPoses) / gait.walkPoses;
     const { rel, pitch } = this.snap(this.shown, input.view);
@@ -295,13 +303,13 @@ export class Figure {
     }
     return true;
   }
-  /** The idle's stepped time at clock `time` (looped at the breath when the weight never shifts, so its poses repeat
-   * and come from the cell cache), and the face's (stepped, unlooped). */
+  /** The idle's stepped time at clock `time` (looped, held to its few poses), and the face's (stepped, unlooped). */
   clockAt(time: number): { steppedT: number; faceT: number } {
     const gait = this.member.gait;
-    const loopS = gait.shift === 0 ? gait.breathPeriod : 0;
+    const loopS = gait.idleLoop ?? (gait.shift === 0 && !gait.twitch ? gait.breathPeriod : 0);
     const stepIndex = Math.floor(time * gait.poseRate), loop = Math.round(loopS * gait.poseRate), faceT = stepIndex / gait.poseRate;
-    const steppedT = (loop > 0 ? stepIndex % loop : stepIndex) / gait.poseRate;
+    const held = loopS > 0 && gait.idlePoses ? loopS / gait.idlePoses : 0;
+    const steppedT = held ? (Math.floor(time / held) % gait.idlePoses!) * held : (loop > 0 ? stepIndex % loop : stepIndex) / gait.poseRate;
     return { steppedT, faceT };
   }
   /**
@@ -331,8 +339,12 @@ export class Figure {
     this.soup = soup;
     rasterize(soup, this.hi); resolve(this.hi, this.g, S, this.style);
     if (this.style.cleanup) { cleanup(this.g); blendJoins(this.g); smoothContour(this.g); }
-    stamp(decals, this.g, this.metres / this.cell[1], [GROUP.item]);
-    this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink) : null;
+    // A print on a surface before the marks (they find its surface by its part), one hung over it (a pendant) after,
+    // over every mark on the cloth behind it.
+    for (const d of decals) if (d.print?.seams) stampPrint(d, this.g);
+    stamp(decals.filter(d => !d.print), this.g, this.metres / this.cell[1], [GROUP.item]);
+    for (const d of decals) if (d.print && !d.print.seams) stampPrint(d, this.g);
+    this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink, faceState.tags) : null;
     this.handStamps = this.handsAt(pitch);
     paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends());
   }
@@ -362,15 +374,15 @@ export class Figure {
     const expression = input.expression ?? 'neutral', every = this.member.blink, rate = this.member.gait.poseRate;
     // Half a period in, so a figure does not open on a blink.
     const blink = every > 0 && ((t + every / 2) % every) < 1.5 / rate;
-    const tags = new Set<string>([expression]);
-    if (expression === 'talk' && Math.floor(t * 6) % 2 === 0) tags.add('mouthOpen');
+    const tags = new Set<string>([expression, ...(input.mood ?? [])]);
+    if (tags.has('talk') && Math.floor(t * 6) % 2 === 0) tags.add('mouthOpen');
     return { tags, blink };
   }
   /**
    * Where the drawn face goes this pose: the eye row's centre on the face, projected into the cell, and which template
    * the head's yaw toward the camera picks (0 front … ±2 profile; past that the face is turned away).
    */
-  private faceAt(pitch: number, blink: boolean): FaceStamp | null {
+  private faceAt(pitch: number, blink: boolean, mood: Set<string> = new Set()): FaceStamp | null {
     const skin = this.built.materialIndex.get(this.member.skin);
     if (skin === undefined) return null;
     const g = this.skeleton.genes, m = this.world[J.head], [w, h] = this.cell, ppm = h / this.metres, cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -388,7 +400,7 @@ export class Figure {
       view: Math.round(yaw / (Math.PI / 4)), size: hw * ppm, eye: Math.max(1, Math.round(EYE * ppm)),
       centre: at([0, H * 0.45, z(1)]), eyes, nose: at([0, H * 0.23, z(1.06)]), mouth: at([0, H * 0.17, z(1)]),
       frame: { o: [w / 2 + m[9] * ppm, h - this.feet - (m[10] * cp - m[11] * sp) * ppm, m[10] * sp + m[11] * cp], ppm, R, head: [hw, H, hd, g.faceAhead] },
-      skin, ...this.built.face, blink,
+      skin, ...this.built.face, blink, mood,
     };
   }
   /**

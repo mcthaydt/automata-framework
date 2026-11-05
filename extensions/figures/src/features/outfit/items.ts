@@ -11,16 +11,18 @@ export interface Item {
   /** The arm pose that holds it, for a skeleton and a hand. */
   hold: (s: Skeleton, side: Side) => Hold;
 }
-/** An item as data: its parts in socket space (metres, +z up when held upright), and the
- * hold: the hand's place in the chest's space as sums of the figure's measures (k, shoulders, arms), mirrored in x for
- * the left hand, the hand's turn and the elbow's pole. */
-interface ItemDef {
-  parts: { material: string; at: V3; r: V3; e?: [number, number]; seg?: number; rings?: number; pitch?: number }[];
+/** An item as data: its parts in socket space (metres, +z up when held upright; `taper` scales a part's width from its
+ * bottom to its top, parts.ts Superquadric, so a cup or a glass narrows to its foot), and the hold: the hand's place in
+ * the chest's space as sums of the figure's measures (k, shoulders, arms), mirrored in x for the left hand, the hand's
+ * turn and the elbow's pole. */
+export interface ItemDef {
+  parts: { material: string; at: V3; r: V3; e?: [number, number]; seg?: number; rings?: number; pitch?: number; taper?: [number, number] }[];
   hold: { hand: { k?: number; shoulders?: number; arms?: number }[]; turn: [number, number, number]; pole: V3 };
 }
-function item(def: ItemDef): Item {
+/** An item built from its data: what the library's entries become, and what a fork builds its own with, into ITEMS. */
+export function itemOf(def: ItemDef): Item {
   return {
-    parts: socket => def.parts.map(p => box(socket, p.material, GROUP.item, { at: p.at, r: p.r, ...(p.e ? { e: p.e } : {}), ...(p.seg ? { seg: p.seg } : {}), ...(p.rings ? { rings: p.rings } : {}), ...(p.pitch !== undefined ? { turn: axisAngle([1, 0, 0], p.pitch) } : {}) })),
+    parts: socket => def.parts.map(p => box(socket, p.material, GROUP.item, { at: p.at, r: p.r, ...(p.e ? { e: p.e } : {}), ...(p.seg ? { seg: p.seg } : {}), ...(p.rings ? { rings: p.rings } : {}), ...(p.taper ? { taper: p.taper } : {}), ...(p.pitch !== undefined ? { turn: axisAngle([1, 0, 0], p.pitch) } : {}) })),
     hold: (s, side) => {
       const x = side === 'L' ? 1 : -1, k = s.genes.height / 1.62;
       const at = def.hold.hand.map(t => (t.shoulders ?? 0) * s.genes.shoulders + (t.arms ?? 0) * s.genes.arms + (t.k ?? 0) * k);
@@ -29,4 +31,4 @@ function item(def: ItemDef): Item {
   };
 }
 /** Every item, by id (library/items.json). */
-export const ITEMS: Record<string, Item> = Object.fromEntries(Object.entries(itemLibrary as unknown as Record<string, ItemDef>).map(([id, d]) => [id, item(d)]));
+export const ITEMS: Record<string, Item> = Object.fromEntries(Object.entries(itemLibrary as unknown as Record<string, ItemDef>).map(([id, d]) => [id, itemOf(d)]));

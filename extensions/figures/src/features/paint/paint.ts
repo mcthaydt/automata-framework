@@ -29,6 +29,8 @@ export interface PaintStyle {
   line: number; crevice: number;
   /** Normal smoothing radius (texels), within a part. */
   smooth: number;
+  /** How far hair's strand clumps move it along its ramp. */
+  strands: number;
   /** Depth (m) within which the smoothing runs on across a join between parts of one region and cloth. */
   blend: number;
   /** Cast shadow: how far (texels at density 1) a nearer part toward the key throws its shadow (the chin on the neck,
@@ -54,7 +56,7 @@ export interface PaintStyle {
    * squared past it) from which it counts as large. */
   surface: [number, number, number];
 }
-export const PAINT: PaintStyle = { tones: [0.62, 0.05, -0.45], line: 0.03, crevice: 0.012, smooth: 1, blend: 0.03, shadow: 2, shadowDepth: 0.025, selout: true, bounce: true, cluster: 3, cool: 0.02, folds: 0.15, face: [0.78, 0.22, -0.4], model: [0.06, 0.1, 0.02, 0.08], surface: [0.25, 0.3, 24] };
+export const PAINT: PaintStyle = { tones: [0.62, 0.05, -0.45], line: 0.03, crevice: 0.012, smooth: 1, strands: 0.9, blend: 0.03, shadow: 2, shadowDepth: 0.025, selout: true, bounce: true, cluster: 3, cool: 0.02, folds: 0.15, face: [0.78, 0.22, -0.4], model: [0.06, 0.1, 0.02, 0.08], surface: [0.25, 0.3, 24] };
 
 // ─── DUEL snapping (OKLab nearest, as scripts/duel-lut.py bakes the lookup) ───
 const lin = (c: number) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
@@ -149,6 +151,13 @@ export interface FaceStamp {
   skin: number; iris: number; lash: number; white: number; brow: number; lips: [number, number, number];
   shape: HeadShape;
   blink: boolean;
+  /**
+   * The mood's marks (figure.ts face tags): 'angry' the brows' inner ends down and the mouth's corners turned down;
+   * 'smile' its corners up; 'dead' the lids heavy over flat eyes (the whites under the lid), the brows level; 'surprised'
+   * the brows up; 'mouthOpen' (talking, a shout) the lips parted on the mouth's dark; 'lookL' / 'lookR' the irises to
+   * the viewer's left or right, 'beside' a little off the camera.
+   */
+  mood?: Set<string>;
 }
 /**
  * The face's planes, as a pixel artist models a head (not a sphere the key splits down the middle): a texel's normal on
@@ -200,15 +209,25 @@ function onForm(pl: readonly number[], n: readonly number[], wf: number) {
   const X = wf * pl[0] + (1 - wf) * n[0], Y = wf * pl[1] + (1 - wf) * n[1], Z = wf * pl[2] + (1 - wf) * n[2], m = Math.hypot(X, Y, Z) || 1;
   return [X / m, Y / m, Z / m];
 }
-function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedArray, tone: Int8Array, kept: Uint8Array) {
+function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedArray, tone: Int8Array, through: Map<number, number[]>, kept: Uint8Array) {
   const { w, h, material, part, group } = g, view = Math.abs(f.view), d = f.view < 0 ? -1 : 1, F = f.shape, s = f.size;
   if (view >= 3) return;
+  const has = (t: string) => !!f.mood?.has(t), angry = has('angry'), smile = has('smile'), dead = has('dead'), open = has('mouthOpen');
+  const gaze = has('lookL') ? -1 : has('lookR') || has('beside') ? 1 : 0;
   // Detail by size: from 3 texels an eye has its white and lid, the lips two tones, the nose a lit bridge.
   const big = f.eye >= 3, ew = f.eye, whiteFar = f.white;
   const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h;
   const own = (x: number, y: number) => inside(x, y) && part[y * w + x] === FACE_SEAM && material[y * w + x] === f.skin && tone[y * w + x] !== 9;
   const set = (k: number, c: number) => { out[k * 4] = (c >> 16) & 255; out[k * 4 + 1] = (c >> 8) & 255; out[k * 4 + 2] = c & 255; };
   const put = (x: number, y: number, c: number) => { if (own(x, y)) { set(y * w + x, c); kept[y * w + x] = 1; } };
+  /** An eye's mark: on the skin, or through a tinted lens (`through`) in its tint, the white faint, the lash dark; an
+   * eye behind a lens draws on the lens alone (never half of it on the cheek under it). */
+  let behind = false;
+  const mark = (x: number, y: number, c: number) => {
+    const t = inside(x, y) ? through.get(y * w + x) : undefined;
+    if (t) { set(y * w + x, c === f.white || c === whiteFar || (c === f.iris && !big) ? t[2] : t[1]); kept[y * w + x] = 1; }
+    else if (!behind) put(x, y, c);
+  };
   /** A step along the skin's ramp from the painted tone (+1 a tone darker, −1 lighter). */
   const shade = (x: number, y: number, by: number) => { if (own(x, y)) set(y * w + x, tones[Math.max(0, Math.min(3, tone[y * w + x] + by))]); };
   /** The lid's crease: a step darker, never past the skin's shadow; on deep skin the lit lid a step lighter, so under
@@ -220,14 +239,18 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
   /** The face's last skin texel from `x` toward `d` on row `y`: its front edge, inside the outline. */
   const edge = (x: number, y: number) => { while (own(x + d, y)) x += d; return x; };
   /** Shades over columns a..b: a part worn on the head that is neither its skin nor its hair (nor a mark), from the
-   * brow's row down past the eye's. An eye there is behind them, whatever skin shows round the lens. */
+   * brow's row down past the eye's. An eye there is behind them, whatever skin shows round the lens; behind a tinted
+   * lens (`through`) it shows, on the lens (`behind`). */
   const shaded = (a: number, b: number) => {
+    let worn = false, lens = false;
     for (let y = I - 2; y <= I + 1; y++) for (let x = Math.min(a, b); x <= Math.max(a, b); x++) {
       if (!inside(x, y)) continue;
       const k = y * w + x, p = part[k];
-      if (material[k] >= 0 && group[k] === GROUP.head && material[k] !== f.skin && p >= 0 && p !== FACE_SEAM && !(p >= HAIR_SEAMS[0] && p < HAIR_SEAMS[1])) return true;
+      if (through.has(k)) lens = true;
+      else if (material[k] >= 0 && group[k] === GROUP.head && material[k] !== f.skin && p >= 0 && p !== FACE_SEAM && !(p >= HAIR_SEAMS[0] && p < HAIR_SEAMS[1])) worn = true;
     }
-    return false;
+    behind = lens;
+    return worn && !lens;
   };
   /**
    * An eye: `x0` its left column, `n` texels wide, its outer corner to the `outer` side, the iris's first column `iris`
@@ -236,12 +259,13 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
    * iris under it where the iris leaves room.
    */
   const eye = (x0: number, n: number, outer: number, iris: number) => {
+    iris = Math.max(0, Math.min(n - 1, iris + gaze));
     const xo = outer < 0 ? x0 : x0 + n - 1, xin = xo - outer * (n - 1);
     if (shaded(x0 - 1, x0 + n)) return false;
     // Small: the lid line over the eye's width, the iris under it (a closed eye, the line alone, a row down).
-    if (!big) { for (let i = 0; i < n; i++) put(x0 + i, f.blink ? I : I - 1, f.lash); if (!f.blink) put(x0 + iris, I, f.iris); return true; }
+    if (!big) { for (let i = 0; i < n; i++) mark(x0 + i, f.blink ? I : I - 1, f.lash); if (!f.blink && !(dead && n < 2)) mark(x0 + iris, I, f.iris); return !behind; }
     // The lid line: a hooded lid's shadow under the brow, or a crease short of the inner corner; a smooth lid has none.
-    if (F.hood >= 0.6) for (let i = -1; i <= n; i++) lid(x0 + i, I - 2);
+    if (behind) {} else if (F.hood >= 0.6 || dead) for (let i = -1; i <= n; i++) lid(x0 + i, I - 2);
     else if (F.crease >= 0.4) for (let i = 0; i < n; i++) if (n < 3 || x0 + i !== xin) lid(x0 + i, I - 2);
     // The iris, as a sprite artist draws an eye this size: two texels tall, its pupil dark under the lash and its colour
     // below, two wide in an eye of four; the white beside it on the upper row only, the lower lid the skin. Never
@@ -249,16 +273,18 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     const iw = n >= 4 ? 2 : 1, at = Math.max(0, Math.min(n - iw, iris));
     for (let i = 0; i < n; i++) {
       const x = x0 + i, inIris = i >= at && i < at + iw;
-      if (f.blink) { put(x, I, f.lash); continue; }
-      if (n < 3 || x !== xin || n >= 4) put(x, I - 1, f.lash);
-      put(x, I, inIris ? f.lash : x < x0 + at ? f.white : whiteFar);
-      if (inIris) put(x, I + 1, f.iris);
+      if (f.blink) { mark(x, I, f.lash); continue; }
+      if (n < 3 || x !== xin || n >= 4) mark(x, I - 1, f.lash);
+      // Dead eyes: the lid drawn down over the whites, the iris alone staring out under it.
+      if (dead && !inIris) { lid(x, I); continue; }
+      mark(x, I, inIris ? f.lash : x < x0 + at ? f.white : whiteFar);
+      if (inIris) mark(x, I + 1, f.iris);
     }
     // The lash's flick: a texel past the outer corner, a row down (the upper lid's line turning down at its end); with
     // liner, on the lash's own row.
-    if (!f.blink) put(xo + outer, F.liner >= 0.5 ? I - 1 : I, f.lash);
-    else if (F.liner >= 0.5) put(xo + outer, I, f.lash);
-    return true;
+    if (!f.blink) mark(xo + outer, F.liner >= 0.5 ? I - 1 : I, f.lash);
+    else if (F.liner >= 0.5) mark(xo + outer, I, f.lash);
+    return !behind;
   };
   /**
    * A brow from its inner end `xi`, `n` texels toward `outer`, at rest (no mood), a clean shape for its gene: straight; a
@@ -269,10 +295,12 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
    * only where a texel of skin parts it from the frame, or it reads as an eye.
    */
   const brow = (xi: number, n: number, outer: number, seen = true) => {
-    const B = I - 3 - (big && F.browHeight > 0.4 ? 1 : 0), peak = Math.round((n - 1) * 0.67);
-    const lift = (t: number) => (!big || t === 0 ? 0 : F.browArch >= 0.7 ? +(t >= peak) : F.browArch >= 0.3 ? +(t >= peak && n >= 6) : 0);
+    const B = I - 3 - (big && F.browHeight > 0.4 ? 1 : 0) - (has('surprised') ? 1 : 0), peak = Math.round((n - 1) * 0.67);
+    const lift = (t: number) => (!big || t === 0 || dead || angry ? 0 : F.browArch >= 0.7 ? +(t >= peak) : F.browArch >= 0.3 ? +(t >= peak && n >= 6) : 0);
+    // Angry: the inner end pulled down toward the nose a row (two at the brand kit's double), the outer end up a row.
+    const knit = (t: number) => (!angry ? 0 : t < Math.max(1, Math.round(n * 0.4)) ? 1 : t >= n - 1 && big ? -1 : 0);
     for (let t = 0; t < n; t++) {
-      const x = xi + outer * t, y = B - lift(t);
+      const x = xi + outer * t, y = B - lift(t) + knit(t);
       if (!seen && !own(x, y + 1)) continue;
       const thin = t === n - 1 && (F.browWeight < 0.4 || F.browArch >= 0.3);
       put(x, y, thin ? tones[3] : f.brow);
@@ -292,7 +320,24 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
    * goatee): the lower lip only with two rows of chin under the lips' line, the hollow only with three.
    */
   const lips = (a: number, b: number, cm: number) => {
-    if (!big) { for (let x = a; x <= b; x++) put(x, M, f.lips[0]); return; }
+    // The mood at the corners: up a row in a smile, down a row in anger (and closed).
+    const corners = (y: number, dark = small || y < M) => { for (const x of [a - 1, b + 1]) if (dark) put(x, y, f.lips[0]); else shade(x, y, 2); };
+    const small = !big;
+    if (!big) {
+      for (let x = a; x <= b; x++) put(x, M, f.lips[0]);
+      if (open) for (let x = Math.min(a + 1, cm), e = Math.max(b - 1, cm); x <= e; x++) put(x, M + 1, f.lash);
+      else if (smile) corners(M - 1); else if (angry) corners(M + 1);
+      return;
+    }
+    if (open && chin(cm) >= 3) {
+      // Parted: the upper lip, the mouth's dark under it between the corners, the lower lip lit under that.
+      for (let x = a; x <= b; x++) if (x === a || x === b) shade(x, M, 2); else put(x, M, f.lips[0]);
+      for (let x = a + 1; x < b; x++) put(x, M + 1, f.lash);
+      shade(a, M + 1, 2); shade(b, M + 1, 2);
+      for (let x = a + 1; x < b; x++) put(x, M + 2, f.lips[1]);
+      return;
+    }
+    if (smile) corners(M - 1); else if (angry) corners(M + 1);
     const below = chin(cm);
     for (let x = a; x <= b; x++) if (x === a || x === b) shade(x, M, 2); else put(x, M, f.lips[0]);
     if (below >= 2) for (let x = a + 1; x < b; x++) put(x, M + 1, x === b - 1 && b - a > 3 ? f.lips[0] : f.lips[1]);
@@ -349,24 +394,26 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     // flick down past the outer corner. So a profile keeps an eye that reads, not a fleck by the hairline.
     const xf = edge(Math.floor(f.centre[0]) - 2 * d, I) - (big ? 2 : 1) * d, seen = !shaded(xf - 3 * d, xf + d);
     if (seen && big) {
-      if (F.hood >= 0.6) for (let i = 0; i < 3; i++) lid(xf - i * d, I - 2); else if (F.crease >= 0.4) { lid(xf - d, I - 2); lid(xf - 2 * d, I - 2); }
-      if (f.blink) { put(xf, I, f.lash); put(xf - d, I, f.lash); put(xf - 2 * d, I, f.lash); }
+      if (behind) {} else if (F.hood >= 0.6) for (let i = 0; i < 3; i++) lid(xf - i * d, I - 2); else if (F.crease >= 0.4) { lid(xf - d, I - 2); lid(xf - 2 * d, I - 2); }
+      if (f.blink) { mark(xf, I, f.lash); mark(xf - d, I, f.lash); mark(xf - 2 * d, I, f.lash); }
       else {
-        for (let i = 0; i < 3; i++) put(xf - i * d, I - 1, f.lash);
-        put(xf, I, f.lash); put(xf, I + 1, f.iris); put(xf - d, I, f.white);
-        put(xf - 3 * d, F.liner >= 0.5 ? I - 1 : I, f.lash);
+        for (let i = 0; i < 3; i++) mark(xf - i * d, I - 1, f.lash);
+        mark(xf, I, f.lash); mark(xf, I + 1, f.iris); mark(xf - d, I, f.white);
+        mark(xf - 3 * d, F.liner >= 0.5 ? I - 1 : I, f.lash);
       }
     } else if (seen) {
       // Small: the iris and a white behind it on the eye's row, the lash a texel over the iris alone, so under a low
       // hairline it reads as an eye, not one more row of hair.
-      if (f.blink) { put(xf, I, f.lash); put(xf - d, I, f.lash); } else { put(xf, I - 1, f.lash); put(xf, I, f.iris); put(xf - d, I, f.white); }
+      if (f.blink) { mark(xf, I, f.lash); mark(xf - d, I, f.lash); } else { mark(xf, I - 1, f.lash); mark(xf, I, f.iris); mark(xf - d, I, f.white); }
     }
-    brow(xf + d, big ? 4 : 2, -d, seen);
+    brow(xf + d, big ? 4 : 2, -d, seen && !behind);
     // The nostril's wing behind the tip, which stands off the face.
     shade(Math.floor(f.nose[0]) - (big ? 2 : 1) * d, N, big ? 2 : 1);
     // The lips at the face's front on their rows: the upper dark with the mouth's corner behind it, the lower lit.
     const xm = edge(Math.floor(f.mouth[0]), M); put(xm, M, f.lips[0]);
-    if (big) { shade(xm - d, M, 2); const xl = edge(Math.floor(f.mouth[0]), M + 1); if (chin(xl) >= 2) put(xl, M + 1, f.lips[1]); }
+    if (open) { put(xm, M + 1, f.lash); put(xm - d, M + 1, f.lash); if (big && chin(xm) >= 3) put(edge(Math.floor(f.mouth[0]), M + 2), M + 2, f.lips[1]); }
+    else if (smile) shade(xm - 2 * d, M - 1, 2);
+    else if (big) { shade(xm - d, M, 2); const xl = edge(Math.floor(f.mouth[0]), M + 1); if (chin(xl) >= 2) put(xl, M + 1, f.lips[1]); }
   }
 }
 
@@ -518,7 +565,7 @@ const PALETTE = 24, MERGE = 0.035, MINOR = [0.075, 0.1, 12] as const;
  * The colour budget, as a pixel artist keeps one: a colour on fewer than 2·D² texels of a larger surface (a fleck of a
  * fourth shadow) takes the nearest colour round it on that surface that has its place, and while the figure has more
  * than `PALETTE` colours the closest pair painted on one material (ΔE under `MERGE`) merge, the rarer into the
- * commoner. The face's own marks (eyes, brows, lips) and a gloss's shine (`kept`) are its accents,
+ * commoner. The face's own marks (eyes, brows, lips), a gloss's shine and a hologram's ramp (`kept`) are its accents,
  * and stay.
  */
 function budget(out: Uint8ClampedArray, w: number, h: number, D: number, kept: Uint8Array, mat: (k: number) => number) {
@@ -748,6 +795,20 @@ const K2 = (() => { const x = KEY[0], y = -KEY[1], l = Math.hypot(x, y); return 
 const RISE = KEY[2] / Math.hypot(KEY[0], KEY[1]);
 /** An outline texel's tone: ink, or (on the key's side of its shape) the shape's own line tone; and a dark ramp's rim. */
 const OUTLINE = 9, LINE = 10, RIM = 11;
+/** The hair's sheen band: the window of its surface's rise (the normal's y in view space) the band lies in. */
+const SHEEN = [0.64, 0.8] as const;
+/** A mirror lens's tint (holo `'mirror'`): its body a dark of its ramp's hue, lit and dark, and what shows through it
+ * (`see`): an eye's white a muted step of that hue, its iris and lash the tint's dark. The tint's steps sit at MIRROR. */
+const MIRROR = 4, MIRROR_SKY = 0.4;
+const tints = new Map<string, number[]>();
+function tint(ramp: number[]) {
+  const key = ramp.join(); let t = tints.get(key);
+  if (!t) {
+    const [, A, B] = oklab(ramp[3]), c = Math.hypot(A, B) || 1, dark = coolRamp(ramp) ? DARK_COOL : DARK_NEUTRAL;
+    tints.set(key, t = [duelLab(0.34, (A / c) * 0.055, (B / c) * 0.055), dark, duelLab(0.45, (A / c) * 0.07, (B / c) * 0.07), dark]);
+  }
+  return t;
+}
 /**
  * Paints the cell: `albedo` (RGBA) and `normals` (RGBA, red right, green down, blue toward the camera). `skin` is the
  * skin's material (it takes no cloth folds), −1 for none.
@@ -769,8 +830,9 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   // Black cloth (a dark ramp, not skin, hair or a flat mark) has its own darks and form (extraTones, the rim below).
   const hairy = (p: number) => p >= HAIR_SEAMS[0] && p < HAIR_SEAMS[1], onHair = new Uint8Array(materials.length);
   for (let k = 0; k < n; k++) if (g.material[k] >= 0 && hairy(g.part[k])) onHair[g.material[k]] = 1;
-  const darkRamp = materials.map((m, i) => !m.flat && !skinny[i] && !onHair[i] && oklab(tones[i][1])[0] < DARK_MID);
+  const darkRamp = materials.map((m, i) => !m.strands && !m.flat && !skinny[i] && !onHair[i] && oklab(tones[i][1])[0] < DARK_MID);
   const extra = tones.map((t, i) => extraTones(t, materials[i].ramp, skinny[i], darkRamp[i]));
+  const stains = materials.map(m => (m.stain ? fillTones(m.stain.paint.map(c => duel(hex(c))), 0) : null));
   // The painter's own copy of the G-buffer's surfaces (the raster's stays as drawn, for the re-shade).
   const material = g.material.slice(), part = g.part.slice(), group = g.group.slice(), depth = g.depth.slice(), normal = g.normal.slice(), place = g.place.slice();
   // The hands, designed (drawHands): their texels' tones are theirs.
@@ -872,8 +934,9 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
       }
     }
   }
-  // The key light on each texel, on its smoothed normal. Cloth's fine folds: noise
-  // stretched down the surface, fixed to it. Cloth hangs in folds, not pipes: a noise on its own surface, long down it and on a slant, moves the terminator
+  // The key light on each texel, on its smoothed normal. Hair in clumps along its strands, as the atlas paints it: noise
+  // stretched down the hair, fixed to its surface; cloth's fine folds, the same noise (the Nurse's uniform hangs in
+  // them). Cloth hangs in folds, not pipes: a noise on its own surface, long down it and on a slant, moves the terminator
   // a texel or two along a sleeve or a leg, so its tone bands run out in tapering wedges and change width as cloth's do
   // (skin and hair keep their form; small parts barely change).
   const lit = new Float32Array(n), grains = new Float32Array(n), P = place;
@@ -897,17 +960,17 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   };
   for (let k = 0; k < n; k++) {
     const mi = material[k]; if (mi < 0) continue;
-    const m = materials[mi], q3 = k * 3, streaks = m.streaks ?? 0;
+    const m = materials[mi], q3 = k * 3, streaks = m.strands ? style.strands : m.streaks ?? 0;
     let f = isFace(k) ? faceLit[k] : lightOf(k);
     if (streaks) { grains[k] = (noise3(P[q3] * 34, P[q3 + 1] * 9, P[q3 + 2] * 34) - 0.5) * streaks; f += grains[k]; }
     const span = alongBone(mi) ? limbSpan.get(part[k]) : undefined;
     if (span && span[1] - span[0] > 0.01) f += (skinny[mi] ? 0.14 : 0.3) * Math.cos(Math.PI * (downBone(k, span) - 0.3));
-    if (style.folds && mi !== skin && part[k] !== FACE_SEAM) f += (darkRamp[mi] ? 0.5 : 1) * (noise3((P[q3] + P[q3 + 1] * 0.6) * 12, P[q3 + 1] * 2.5, (P[q3 + 2] - P[q3 + 1] * 0.4) * 12) - 0.5) * style.folds;
+    if (style.folds && mi !== skin && !m.strands && part[k] !== FACE_SEAM) f += (darkRamp[mi] ? 0.5 : 1) * (noise3((P[q3] + P[q3 + 1] * 0.6) * 12, P[q3 + 1] * 2.5, (P[q3 + 2] - P[q3 + 1] * 0.4) * 12) - 0.5) * style.folds;
     lit[k] = f;
   }
   /** A surface the painter models as a whole: a garment's or the body's part, in one material (not the face, the hair,
    * a mark or a flat material). */
-  const modelled = (k: number) => material[k] >= 0 && part[k] >= 0 && part[k] !== FACE_SEAM && !hairy(part[k]) && !materials[material[k]].flat;
+  const modelled = (k: number) => material[k] >= 0 && part[k] >= 0 && part[k] !== FACE_SEAM && !hairy(part[k]) && !materials[material[k]].flat && !materials[material[k]].strands;
   const surfaceOf = (k: number) => part[k] * 4096 + material[k];
   // Large surfaces model whichever way they turn, as the face does: a garment or a limb of `surface[2]` texels or more
   // (times the density squared) keeps at least `surface[0]` of itself in shadow, its terminator the form's own (its
@@ -972,7 +1035,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   }
   /** A dark, hard gloss (leather, patent, a black frame): its body stays dark, its light only a thin rim on the key's side
    * of its silhouette, its highlight streaks a texel wide along the crest of its form. */
-  const hard = materials.map((m, i) => m.gloss !== undefined && i !== skin && oklab(tones[i][1])[0] < 0.4);
+  const hard = materials.map((m, i) => m.gloss !== undefined && !m.strands && i !== skin && oklab(tones[i][1])[0] < 0.4);
   // Tones: 0 light … 3 deep, −1 a gloss's shine, −2 empty, OUTLINE and LINE. `owner` is the shape an outline texel
   // belongs to (the nearer one): its line tone and its normal.
   const tone = new Int8Array(n).fill(-2), owner = new Int32Array(n).fill(-1), under = new Int8Array(n).fill(2);
@@ -1032,7 +1095,7 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
       if (neck && part[q] === FACE_SEAM && !underJaw(x, y) || stitch(q)) continue;
       if (depth[q] - depth[k] > style.shadowDepth + RISE * d / ppm) { t = Math.max(t, 2); break; }
     }
-    // A gloss mirrors the key where the surface faces halfway between it and the eye : a
+    // A gloss mirrors the key where the surface faces halfway between it and the eye (the strands break it on hair): a
     // tight spot, tighter the glossier. A hard one: its shine only on the ridge of that mirror (the texel facing it best
     // across the form, along x or y), so a sleeve's is a streak a texel wide down its crest that holds its place from
     // frame to frame.
@@ -1050,6 +1113,20 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     if (skinny[mi] && mi !== skin && t !== OUTLINE) t = Math.max(1, Math.min(t, 2));
     // A line texel keeps the tone it would have had (`under`), should its line turn out a stray fleck.
     if (line >= 0) { tone[k] = OUTLINE; owner[k] = line; under[k] = Math.max(t, 2); } else tone[k] = handTone[k] >= 0 ? handTone[k] : t;
+  }
+  // The hair's sheen band, as a sprite artist paints glossy hair: a ring of the hair's shine round the crown where its
+  // surface turns from the top to the side (its normal's rise in a narrow window), broken where the strands part it, on
+  // the key's side brighter (its shine) and on the far side its light; never on locks hanging down (a tail, a fringe's
+  // fall), which do not rise. Glossy hair alone (a straight or sleek finish, or strands): coils, braids and locs are matte.
+  for (let k = 0; k < n; k++) {
+    const mi = material[k];
+    if (mi < 0 || !hairy(part[k]) || !(materials[mi].sheen || materials[mi].strands) || tone[k] < 0 || tone[k] > 2) continue;
+    const nx = sm[k * 3], ny = sm[k * 3 + 1], nz = sm[k * 3 + 2];
+    if (nz < 0.05 || ny < SHEEN[0]) continue;
+    // Over the band the crown sits a tone down, in the mid, so the ring reads as a ring and not as the top lit whole.
+    if (ny > SHEEN[1]) { tone[k] = Math.max(tone[k], 1); continue; }
+    if (grains[k] < -0.18) continue;
+    tone[k] = nx * K2[0] >= -0.2 ? -1 : 0;
   }
   // The face's tones as a pixel artist cleans them: a texel standing out of its plane (five of its eight neighbours one
   // other tone: a spur, a fleck, a notch in an edge) takes that tone, so its planes meet in clean edges and its shapes
@@ -1236,21 +1313,101 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
       for (const q of [K2[0] < 0 ? k - 1 : k + 1, K2[1] < 0 ? k - w : k + w]) if (material[q] >= 0 && darkRamp[material[q]] && tone[q] >= 0 && tone[q] <= 3) tone[q] = Math.max(0, tone[q] - 2);
     }
   }
+  // A stain on fitted cloth (trousers) is a wash, as denim wears: a soft fade on the thighs' fronts and the knees (never
+  // the seat, where it would pillow each cheek), an ellipse centred a little below the stain's start and gone by its
+  // end, the wash's ramp at the cloth's own tone (no darker ring at its edge), so it fades and never drips; whiskers,
+  // short level strokes a texel thick a texel apart, across the hip crease (slanting down and out from the crotch) and
+  // the back of the knee, a tone lighter than the cloth around them. 0 none, 1 the edge, 2 the core, 3 a whisker.
+  const centre = new Map<number, number>();
+  if (stains.some(Boolean)) {
+    const sum = new Map<number, [number, number]>();
+    for (let k = 0; k < n; k++) if (material[k] >= 0 && stains[material[k]]) { const a = sum.get(part[k]) ?? [0, 0]; a[0] += P[k * 3]; a[1]++; sum.set(part[k], a); }
+    for (const [p, [sx, c]] of sum) centre.set(p, sx / c);
+  }
+  const wash = (k: number, up: number, stain: NonNullable<Material['stain']>) => {
+    const q = k * 3, leg = isLeg(group[k]), z = P[q + 2], run = stain.hem - stain.below;
+    const facing = smooth(((leg ? z : -z) - 0.015) / 0.05), side = group[k] === GROUP.legL ? 1 : -1;
+    // `along` runs outward from the leg's middle; on the seat, from the middle of either side of it.
+    const dx = P[q] - (centre.get(part[k]) ?? P[q]), along = leg ? dx * side : Math.abs(dx) - 0.085;
+    // The fade's oval: longer below its middle than above, narrowing away from the cloth's middle line.
+    const v = smooth(1 - (up < 0.7 ? (0.7 - up) / 0.4 : (up - 0.7) / 0.75)) * smooth(1 - Math.abs(along) / 0.11);
+    if (leg) {
+      // Whiskers: their rows across the stroke (one every three texels), each a few texels long where the noise lets it;
+      // at the hip from the crotch side of the thigh's front.
+      const stroke = (c: number, zone: boolean, salt: number, odds: number) => {
+        if (!zone) return false;
+        const at = c * ppm / 3 + 0.5, row = Math.floor(at);
+        return at - row < 0.34 && noise3(row * 1.7 + salt, along * ppm / 7, part[k] * 0.37) > odds;
+      };
+      if (stroke(P[q + 1] - stain.hem + 0.35 * along, up > 0.22 && up < 0.6 && facing > 0.3 && along < 0.03, 0, 0.47)) return 3;
+      const knee = stain.below - 0.26 * run;
+      if (stroke(P[q + 1] - knee, Math.abs(P[q + 1] - knee) < 0.04 && smooth(-z / 0.04) > 0.5, 11, 0.56)) return 3;
+    }
+    const s = v * facing + (noise3(P[q] * 9, P[q + 1] * 6, P[q + 2] * 9) - 0.5) * 0.4;
+    // The seat only ever half fades: worn, never a spotlight.
+    return s > 0.6 && leg ? 2 : s > 0.4 ? 1 : 0;
+  };
+  // Iridescence: a holo surface (a part, or a material's marks together) ranks its texels by their light and their turn
+  // across the view, and lays its ramp over them in that order, a quarter each: the most turned to the key and the
+  // eye its first (cyan) step, the least its last (violet); its shadow never brighter than its third step.
+  const hue = new Int8Array(n).fill(-1), through = new Map<number, number[]>();
+  if (materials.some(m => m.holo)) {
+    const by = new Map<number, number[]>();
+    for (let k = 0; k < n; k++) {
+      const mi = material[k]; if (mi < 0 || !materials[mi].holo || tone[k] < 0 || tone[k] >= OUTLINE) continue;
+      const key = part[k] >= 0 ? part[k] * 4096 + mi : -1 - mi; let a = by.get(key); if (!a) by.set(key, a = []); a.push(k);
+    }
+    const phase = (k: number) => lit[k] + 0.6 * sm[k * 3] - 0.3 * sm[k * 3 + 1];
+    for (const ks of by.values()) {
+      ks.sort((a, b) => phase(b) - phase(a));
+      if (materials[material[ks[0]]].holo !== 'mirror') { ks.forEach((k, i) => { hue[k] = Math.max(Math.min(3, Math.floor((i / ks.length) * 4)), tone[k] >= 2 ? 2 : 0); }); continue; }
+      // A mirror: each lens (a connected run of it) is its tint, lit on the key's side of its middle (MIRROR + 0) and
+      // dark past it (+ 1); its top row reflects the sky on the key's side alone, its ramp laid along it from the key's
+      // end (at most `MIRROR_SKY` of the row and D + 1 texels: an edge, never a visor across it); its glint, a texel of its
+      // first step under that edge's key end where the lens has the rows.
+      const mine = new Set(ks), lensSeen = new Set<number>(), toKey = K2[0] < 0 ? -1 : 1;
+      for (const k0 of ks) {
+        if (lensSeen.has(k0)) continue;
+        const lens: number[] = [k0]; lensSeen.add(k0);
+        for (let i = 0; i < lens.length; i++) for (const q of [lens[i] - 1, lens[i] + 1, lens[i] - w, lens[i] + w]) if (mine.has(q) && !lensSeen.has(q)) { lensSeen.add(q); lens.push(q); }
+        const xs = lens.map(k => k % w), mid = (Math.min(...xs) + Math.max(...xs)) / 2;
+        for (const k of lens) hue[k] = MIRROR + +((k % w - mid) * toKey < 0);
+        const top = lens.filter(k => !mine.has(k - w)).sort((a, b) => (b % w - a % w) * toKey);
+        const sky = Math.min(Math.ceil(top.length * MIRROR_SKY), D + 1);
+        top.slice(0, sky).forEach((k, i) => { hue[k] = Math.min(3, Math.floor((i / sky) * 3)); });
+        const glint = top[0] + w;
+        if (top.length && mine.has(glint) && lens.length >= 6 * D) hue[glint] = 0;
+      }
+    }
+  }
   for (let k = 0; k < n; k++) {
     const o = k * 4, t = tone[k];
     if (t === -2) { albedo[o + 3] = 0; normals[o] = 128; normals[o + 1] = 128; normals[o + 2] = 255; normals[o + 3] = 0; continue; }
     // A line inside the figure is the far surface's own (its fold, its normal); one outside, its shape's.
     const at = t >= OUTLINE && material[k] < 0 ? owner[k] : k, mi = material[at];
-    const ramp = tones[mi];
-    const c = t === OUTLINE ? (at === k ? extra[mi].fold : ink) : t === LINE ? extra[mi].line : t === RIM ? extra[mi].rim : t === -1 ? extra[mi].shine : ramp[Math.min(t, ramp.length - 1)];
+    let ramp = tones[mi];
+    const stain = materials[mi].stain;
+    let tt: number = t;
+    if (stain && t < OUTLINE) {
+      const q = k * 3, up = (P[q + 1] - stain.hem) / (stain.below - stain.hem), gr = group[k];
+      if (isLeg(gr) || gr === GROUP.torso) {
+        const worn = isLeg(gr) ? wash(k, up, stain) : 0;
+        if (worn) { ramp = stains[mi]!; tt = worn === 3 ? Math.max(Math.min(t, 3) - 1, 0) : t; }
+      // On hanging cloth (a skirt's hem): surely at the hem, ever less often up to its top, in runs that climb (noise
+      // tall in y, fine across), on the cloth's own surface so it never swims.
+      } else if (up < 1 && noise3(P[q] * 34, P[q + 1] * 5, P[q + 2] * 34) > Math.max(0, up) ** 0.7 * 0.85) ramp = stains[mi]!;
+    }
+    if (hue[k] >= MIRROR) { ramp = tint(ramp); tt = hue[k] - MIRROR; } else if (hue[k] >= 0) tt = hue[k];
+    if (materials[mi].see && t < OUTLINE && (hue[k] >= MIRROR || materials[mi].holo !== 'mirror')) through.set(k, tint(tones[mi]));
+    const c = t === OUTLINE ? (at === k ? extra[mi].fold : ink) : t === LINE ? extra[mi].line : t === RIM ? extra[mi].rim : t === -1 ? extra[mi].shine : ramp[Math.min(tt, ramp.length - 1)];
     albedo[o] = (c >> 16) & 255; albedo[o + 1] = (c >> 8) & 255; albedo[o + 2] = c & 255; albedo[o + 3] = 255;
     normals[o] = Math.round((sm[at * 3] + 1) * 127.5); normals[o + 1] = Math.round((1 - sm[at * 3 + 1]) * 127.5); normals[o + 2] = Math.round((sm[at * 3 + 2] + 1) * 127.5); normals[o + 3] = 255;
   }
   // The face reads the tones: an outline texel (9) is never the face's.
   const fixed = tone.map(v => (v >= OUTLINE ? 9 : v));
   const kept = new Uint8Array(n);
-  for (let k = 0; k < n; k++) if (tone[k] === -1) kept[k] = 1;
-  if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, kept);
+  for (let k = 0; k < n; k++) if (tone[k] === -1 || hue[k] >= 0) kept[k] = 1;
+  if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, through, kept);
   budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k]);
   return { albedo, normals };
 }

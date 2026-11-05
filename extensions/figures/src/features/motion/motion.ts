@@ -1,11 +1,11 @@
 import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from '../body/rig';
-import { add, apply, applyDir, basis, cross, dot, euler, invertRigid, lerp3, matq, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from '../../lib/math';
+import { add, apply, applyDir, basis, compose, cross, dot, euler, hash, IDENTITY_Q, invertRigid, lerp, lerp3, matq, mmul, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from '../../lib/math';
 import { reach, type Part } from '../body/parts';
 /**
  * Procedural motion: every layer is a pure function of the figure's parameters and the (stepped) time,
  * so a frame is reproducible and the hold can replace one arm without touching anything else.
  *
- * Layers, in order: pelvis and torso (walk or stand, lean, breath, sway), head (stabilise, tilt, turn lead), legs
+ * Layers, in order: pelvis and torso (walk or stand, lean, breath, sway), head (stabilise, tilt, turn lead, twitch), legs
  * (foot paths, or a stand's feet → IK), arms (swing, a hang, or an action's IK), then the stand's hand places and the
  * hold, last.
  */
@@ -28,8 +28,19 @@ export interface Gait {
   poseRate: number; walkPoses: number;
   /** Turn speed (rad per pose step) and how far the head leads the body (rad). */
   turnRate: number; headLead: number;
+  /** A head twitch: its size (rad) and how often (s); 0 for none. */
+  twitch?: number; twitchEvery?: number;
   /** Idle: breath (rad), weight shift (m), and their periods (s). */
   breath: number; breathPeriod: number; shift: number; shiftPeriod: number;
+  /** Idle loops at this many seconds (its breath, shift and twitches tile it), so idle poses repeat and come from the
+   * figure's cell cache; left out, an idle of breath alone loops at the breath. */
+  idleLoop?: number;
+  /** How many poses the idle holds across its loop (a pixel artist's few idle frames); left out, one a pose step. */
+  idlePoses?: number;
+  /** Whether the feet shuffle through a turn on the spot (false: a pivot, the Nurse's). */
+  shuffle?: boolean;
+  /** How much of the torso's forward bend the arms take back so they hang plumb (0.75 for the Porter: the elbow bend carries the hands on forward); 0 by default. */
+  plumb?: number;
   /** Seconds a reach takes, out and back. */
   reach: number;
   /** Standing: weight on one leg (hip shift, m), that foot's lead (m), the arms' forward hang and extra elbow bend over
@@ -415,6 +426,12 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   const toward = Math.max(0, Math.cos(st.view ?? st.yaw));
   const headPitch = g.headPitch - (lean + g.posture) * 0.6 - ((st.lookUp ?? 0) + (gait.chin ?? 0)) * toward + 0.32 * flinch + (walking ? NOD : 0) + (stand?.head?.[2] ?? 0);
   const headYaw = st.headYaw + 0.3 * flinch + (stand?.head?.[0] ?? 0);
+  // A twitch: for one pose step in each `twitchEvery` seconds the head rolls to a side the slot picks, so a nervous
+  // gait ticks.
+  if (gait.twitch) {
+    const slot = Math.floor(st.t / gait.twitchEvery!), within = st.t - slot * gait.twitchEvery!;
+    if (within < 1 / gait.poseRate + 1e-9) headRoll += gait.twitch * (hash(slot) < 0.5 ? -1 : 1);
+  }
   // A hunch sinks the head forward on the neck; the head turns back up by as much, so the face still looks ahead.
   pose.rot[J.neck] = euler(headPitch * 0.4 + 0.55 * g.hunch, counter + headYaw * 0.4, headRoll * 0.4);
   pose.rot[J.head] = euler(headPitch * 0.6 - 0.55 * g.hunch, headYaw * 0.6, headRoll * 0.6);
@@ -447,8 +464,9 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
     const bend = walking
       ? Math.min(gait.elbow + gait.elbowSwing * forward / Math.max(1e-6, amp), Math.max(gait.elbow, FORE - forward))
       : hung ? hung.bend : gait.standElbow !== undefined ? gait.standElbow * (side === 'L' ? 1 : 0.75) : gait.elbow + gait.idleElbow * (side === 'L' ? 1 : 0.7);
-    // The chest's roll taken back at the shoulder, so the arms hang plumb from shoulders that tilt.
-    pose.rot[J[`upperArm.${side}`]] = euler(swing + idleSway * 0.5 - hang, 0, x * out - chestRoll);
+    // `plumb` of the torso's bend taken back at the shoulder, so a stooped figure's arms hang down rather than swing back
+    // with the chest; the chest's roll taken back too, so the arms hang plumb from shoulders that tilt.
+    pose.rot[J[`upperArm.${side}`]] = euler(swing + idleSway * 0.5 - hang - (gait.plumb ?? 0) * (lean + g.posture), 0, x * out - chestRoll);
     pose.rot[J[`foreArm.${side}`]] = euler(-(bend + Math.abs(idleSway)), 0, 0);
     // The hand hangs from the wrist, back toward plumb by a share of the forearm's angle forward of it.
     pose.rot[J[`hand.${side}`]] = euler(WRIST * (bend - swing - idleSway * 0.5 + hang), 0, 0);
@@ -546,7 +564,27 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
     pose.shift[J.neck][1] -= x * Math.sin(st.view ?? st.yaw) * Math.tan(st.pitch);
     world = fk(s, pose);
   }
+  placeHems(s, pose, world);
   return { pose, world: fk(s, pose) };
+}
+/** A planted foot ahead of its hip has its hem hang PLANT of the way from the plumb under the hip to the ankle, fore and
+ * aft (across, it keeps to the ankle), so the toe steps out from under the cloth; a foot BEHIND (m at k 1) its hip, or
+ * lifted LIFT off the floor, has it follow the ankle all the way, so the heel peels up inside the hem. */
+const PLANT = 0.5, LIFT = 0.03, BEHIND = 0.06;
+/**
+ * The hems (rig.ts J.hemL, J.hemR): each upright on the floor between its ankle and the plumb under its hip while the
+ * foot is planted, riding up with the ankle as the heel peels off and following it through the swing, so a wide hem
+ * always covers its shoe's collar and never tips with the shin. Written as each joint's turn and shift on its shin.
+ */
+export function placeHems(s: Skeleton, pose: Pose, world: M[], seated = false) {
+  const g = s.genes, k = g.height / 1.62, rootM = world[J.root], toRoot = invertRigid(rootM);
+  for (const side of ['L', 'R'] as const) {
+    const hem = J[`hem${side}`], ankle = apply(toRoot, position(world[J[`foot.${side}`]])), hip = apply(toRoot, position(world[J[`thigh.${side}`]]));
+    // Seated, the hem rides the ankle: the knee is forward and up, nowhere near plumb over it.
+    const lift = Math.max(0, ankle[1] - g.ankle), follow = seated ? 1 : lerp(PLANT, 1, Math.max(smooth(lift / (LIFT * k)), smooth((hip[2] - ankle[2]) / (BEHIND * k))));
+    const local = mmul(invertRigid(world[J[`shin.${side}`]]), mmul(rootM, compose(IDENTITY_Q, [ankle[0], g.ankle + lift, lerp(hip[2], ankle[2], follow)])));
+    pose.rot[hem] = matq(local.slice(0, 9)); pose.shift[hem] = sub(position(local), s.offset[hem]);
+  }
 }
 /** The hand's world turn for a hold in a joint's space `space`: its euler turn, or its aim (fingers along the hand's −y,
  * the palm on its inner side: −x for the left hand, +x for the right). */
@@ -559,14 +597,92 @@ function handTurn(space: M, hold: Hold): number[] {
   for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) o[i * 3 + j] = r[i * 3] * b[j] + r[i * 3 + 1] * b[3 + j] + r[i * 3 + 2] * b[6 + j];
   return o;
 }
-/** A hold: rewrites only its side's upper arm, forearm and hand the hand in its joint's space (the chest's). */
-function applyHold(s: Skeleton, evaluated: Evaluated, hold: Hold): Evaluated {
+/** A hold: rewrites only its side's upper arm, forearm and hand the hand in its joint's space (the chest's). Exported so
+ * a scene can lay a hold over any evaluated pose, a seat's included (`seated` places its hands this way). */
+export function applyHold(s: Skeleton, evaluated: Evaluated, hold: Hold): Evaluated {
   const pose = clonePose(evaluated.pose);
   const space = evaluated.world[hold.in ?? J.chest];
   const target = apply(space, hold.hand);
   twoBoneIK(s, pose, evaluated.world, J[`upperArm.${hold.side}`], J[`foreArm.${hold.side}`], J[`hand.${hold.side}`], target, applyDir(space, hold.pole), -1, handTurn(space, hold));
   // A full FK again: the other joints come out equal because nothing upstream of them changed (the test checks it).
   return { pose, world: fk(s, pose) };
+}
+// ─── Seated: a chair, a desk, a sofa ───
+/**
+ * A seated stand (library/seats.json): the hips on a seat `height` off the floor (m), the thighs forward over it, the
+ * knees `knees` apart past the hips and the feet planted `feet` forward of under the knees (m at k 1; back tucks them
+ * under the seat). The back leans `lean` forward from the hips (rad) or `slump`s (0–1: the pelvis rolls back and slides
+ * forward on the seat, the spine rounds, the chest sinks), turned and rolled; the head on it (as a Stand's), its chin
+ * kept level to whatever the chest leans, so the eyes stay on what is ahead. Each hand: in the lap (on the near thigh, by
+ * the knee), on a desk at `to` (root space: x out from the middle, y up, z forward, m), hanging, or tapping (`type`, its
+ * bob in m) as a typist's do.
+ */
+export interface Seat {
+  about?: string;
+  height: number; knees?: number; feet?: number;
+  lean?: number; slump?: number; turn?: number; roll?: number;
+  head?: [yaw: number, roll: number, pitch: number];
+  hands?: Partial<Record<Side, SeatHand>>;
+  /** Typing: each hand on its desk point bobs this far (m), the two out of step. */
+  type?: number;
+}
+export type SeatHand = 'lap' | 'hang' | { to: V3; aim?: [fingers: V3, palm: V3] };
+/** The thigh's flesh under the hip joint on a seat (m at k 1): the hip rides this far over the seat. */
+const SIT = 0.07;
+/**
+ * A seated pose at time t (s): breath, and the typing hands' bob. `lookUp` the sprite cheat's tip toward the camera (as
+ * MotionState's), `view` the camera's bearing on the figure. The hems ride the ankles (placeHems).
+ */
+export function seated(s: Skeleton, gait: Gait, seat: Seat, t = 0, o: { lookUp?: number; view?: number } = {}): Evaluated {
+  const g = s.genes, pose = restPose(), k = g.height / 1.62, slump = seat.slump ?? 0, lean = seat.lean ?? 0;
+  const breath = gait.breath * Math.sin(TAU * t / gait.breathPeriod);
+  // The hips: down onto the seat, rolled back and slid forward by the slump.
+  pose.shift[J.pelvis] = [0, seat.height + SIT * k - s.hipY - 0.03 * k * slump, 0.09 * k * slump];
+  pose.rot[J.pelvis] = euler(-0.35 * slump, (seat.turn ?? 0) * 0.3, (seat.roll ?? 0) * 0.3);
+  // The back: forward from the hips by the lean, the slump rounding it (the pelvis's roll back taken up by the spine
+  // only in part, so the chest sinks behind the hips).
+  pose.rot[J.spine] = euler(lean * 0.45 + 0.2 * slump + g.posture * 0.3, (seat.turn ?? 0) * 0.35, (seat.roll ?? 0) * 0.35);
+  pose.rot[J.chest] = euler(lean * 0.55 + 0.3 * slump + g.posture * 0.7 - breath, (seat.turn ?? 0) * 0.35, (seat.roll ?? 0) * 0.35);
+  // The head: the chest's pitch taken back so the face looks ahead, then the seat's own nod and turn.
+  const toward = Math.max(0, Math.cos(o.view ?? 0)), [hy, hr, hp] = seat.head ?? [0, 0, 0];
+  const pitch = g.headPitch - (lean + 0.15 * slump + g.posture) * 0.9 - (o.lookUp ?? 0) * toward + hp;
+  pose.rot[J.neck] = euler(pitch * 0.4 + 0.55 * g.hunch, -(seat.turn ?? 0) * 0.5 + hy * 0.4, (g.headTilt + hr) * 0.4);
+  pose.rot[J.head] = euler(pitch * 0.6 - 0.55 * g.hunch, hy * 0.6, (g.headTilt + hr) * 0.6);
+  // The arms hang until placed; the clavicles breathe.
+  for (const side of ['L', 'R'] as const) {
+    const x = sideSign(side);
+    pose.rot[J[`clavicle.${side}`]] = euler(0, -x * 0.12 * g.hunch, x * (breath * 0.6 + 0.3 * g.hunch));
+    pose.rot[J[`upperArm.${side}`]] = euler(-0.1, 0, x * (gait.armOut + 0.05));
+    pose.rot[J[`foreArm.${side}`]] = euler(-(gait.elbow + 0.15), 0, 0);
+  }
+  let world = fk(s, pose);
+  // The legs: each foot planted forward of under its knee, the knee bent forward over it.
+  const rootM = world[J.root], toRoot = invertRigid(rootM), forward = applyDir(rootM, [0, 0, 1]);
+  for (const side of ['L', 'R'] as const) {
+    const x = sideSign(side), hip = apply(toRoot, position(world[J[`thigh.${side}`]]));
+    const ankle = apply(rootM, [x * (g.hips + (seat.knees ?? 0.02) * k), g.ankle, hip[2] + s.thigh * 0.92 + (seat.feet ?? 0) * k]);
+    twoBoneIK(s, pose, world, J[`thigh.${side}`], J[`shin.${side}`], J[`foot.${side}`], ankle, add(forward, applyDir(rootM, [0, 0.6, 0])), 1, qmat(euler(0, x * 0.12, 0)));
+    world = fk(s, pose);
+  }
+  // The hands, as holds in the root's space: on the lap by the knee, or on the desk (tapping).
+  let out: Evaluated = { pose, world };
+  for (const side of ['L', 'R'] as const) {
+    const h = seat.hands?.[side] ?? 'lap', x = sideSign(side);
+    if (h === 'hang') continue;
+    let hand: V3, aim: [V3, V3];
+    if (h === 'lap') {
+      const hip = apply(toRoot, position(world[J[`thigh.${side}`]])), knee = apply(toRoot, position(world[J[`shin.${side}`]]));
+      hand = add(lerp3(hip, knee, 0.72), [-x * 0.015 * k, 0.085 * k, 0]);
+      aim = [[x * -0.2, -0.25, 1], [0, -1, 0]];
+    } else {
+      const bob = seat.type ? seat.type * Math.max(0, Math.sin(TAU * 3.5 * t + (side === 'L' ? 0 : 2.2))) : 0;
+      hand = [x * h.to[0], h.to[1] + bob, h.to[2]];
+      aim = h.aim ? [[x * h.aim[0][0], h.aim[0][1], h.aim[0][2]], [x * h.aim[1][0], h.aim[1][1], h.aim[1][2]]] : [[-x * 0.25, -0.35, 1], [0, -1, 0.1]];
+    }
+    out = applyHold(s, out, { side, hand, turn: [0, 0, 0], pole: [x * 0.7, -0.5, -0.6], in: J.root, aim });
+  }
+  placeHems(s, out.pose, out.world, true);
+  return { pose: out.pose, world: fk(s, out.pose) };
 }
 /** The pose: the base, then a stand's placed hands (on the body's own surface unless placed already), then the item's hold. */
 export function evaluate(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
