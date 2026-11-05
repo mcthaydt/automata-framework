@@ -335,6 +335,9 @@ importers:
         specifier: workspace:*
         version: link:../sim
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
@@ -390,6 +393,9 @@ importers:
       '@mcthaydt/automata-editor-suite':
         specifier: workspace:*
         version: link:../editor-suite
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -436,6 +442,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -799,6 +808,9 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
@@ -857,6 +869,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@ruken/sdk':
         specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
@@ -888,6 +903,9 @@ importers:
         specifier: 3.22.2
         version: 3.22.2
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
@@ -916,6 +934,9 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
@@ -1041,6 +1062,9 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@ruken/sdk-host':
         specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
         version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
@@ -1112,6 +1136,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@ruken/cli':
         specifier: file:../../vendor/ruken/ruken-cli-0.0.0.tgz
         version: file:vendor/ruken/ruken-cli-0.0.0.tgz
@@ -1171,6 +1198,9 @@ importers:
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -1211,6 +1241,9 @@ importers:
       '@mcthaydt/automata-testing':
         specifier: workspace:*
         version: link:../testing
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-preset
       '@sveltejs/package':
         specifier: 3.0.0
         version: 3.0.0(svelte@5.57.1)(typescript@6.0.3)
