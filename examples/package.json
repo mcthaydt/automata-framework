@@ -7,7 +7,8 @@
     "dev": "automata-examples dev",
     "build": "vite build",
     "typecheck": "automata-examples typecheck",
-    "e2e:examples": "vite build && vite preview --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT"
+    "e2e:examples": "vite build && vite preview --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mcthaydt/automata": "workspace:*",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
     "@mcthaydt/examples-runner": "workspace:*",
+    "@mcthaydt/playwright-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

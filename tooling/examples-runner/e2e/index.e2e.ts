@@ -12,6 +12,8 @@ const fixture = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 const root = fixture('../src/fixtures/examples/')
 const entries = readCatalog(root, { deliveryPlan: fixture('../src/fixtures/catalog/delivery-plan.md') })
 const origin = `http://localhost:${runnerFixturesPort}`
+// The repository's (ignored) evidence/ folder, whichever folder the run started in.
+const evidencePath = (name: string) => fixture(`../../../evidence/examples-index/${name}`)
 
 const box = async (locator: Locator) => {
   const found = await locator.boundingBox()
@@ -33,7 +35,7 @@ test('the index lists every example under its module, pending ones as pending', 
       await expect(item.getByRole('link', { name: 'View' }), entry.id).toHaveCount(0)
     }
   }
-  await page.screenshot({ path: `evidence/examples-index/index-${info.project.name}.png`, fullPage: true })
+  await page.screenshot({ path: evidencePath(`index-${info.project.name}.png`), fullPage: true })
   expect(errors).toEqual([])
 })
 
@@ -74,6 +76,6 @@ test('View shows the running example in the fake host’s frame, with its source
   if (viewport.width > viewport.height) expect(source.x).toBeGreaterThanOrEqual(game.x + game.width)
   else expect(source.y).toBeGreaterThanOrEqual(game.y + game.height)
 
-  await page.screenshot({ path: `evidence/examples-index/view-${info.project.name}.png` })
+  await page.screenshot({ path: evidencePath(`view-${info.project.name}.png`) })
   expect(errors).toEqual([])
 })

@@ -162,7 +162,9 @@ test('the character walks and jumps with the keyboard', async ({ page }) => {
 // real key presses tick for tick. Frames come every 16 ms and steps every 16.67 ms, so a frame runs at most one
 // step: the test moves the clock one frame at a time, reads the sim tick the page shows, and changes keys right
 // after the frame that ran a segment's last step.
-test('playing the golden route with the keyboard reaches the ember and the end screen', async ({ page }) => {
+test('playing the golden route with the keyboard reaches the ember and the end screen', {
+  tag: '@slow',
+}, async ({ page }) => {
   // 342 frames, each drawn by render-pixi at the device's resolution (capped at 2) in the full letterbox. In the
   // headless software renderer that is ~160 ms a frame on the phone project (measured, DX.3 decision E-7), so
   // the route needs more than the default 30 s (1.8 min with four workers). The route and its assertions are

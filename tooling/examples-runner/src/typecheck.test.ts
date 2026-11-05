@@ -10,5 +10,5 @@ it('typechecks every example except the pending ones (EX spec §7), on top of th
   const config = typecheckConfig(root, readCatalog(root, { deliveryPlan }))
   expect(config.extends).toBe(`${root}tsconfig.json`)
   expect(config.files).toEqual([`${root}core/core-stub.ts`])
-  expect(config.include).toEqual([`${root}vite.config.ts`, `${root}e2e/*.ts`])
+  expect(config.include).toEqual([`${root}vite.config.ts`, `${root}playwright.config.ts`, `${root}e2e/*.ts`])
 })

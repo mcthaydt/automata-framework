@@ -63,6 +63,9 @@ importers:
       '@mcthaydt/examples-runner':
         specifier: workspace:*
         version: link:../tooling/examples-runner
+      '@mcthaydt/playwright-preset':
+        specifier: workspace:*
+        version: link:../tooling/playwright-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -207,6 +210,12 @@ importers:
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
+      '@mcthaydt/examples-runner':
+        specifier: workspace:*
+        version: link:../../tooling/examples-runner
+      '@mcthaydt/playwright-preset':
+        specifier: workspace:*
+        version: link:../../tooling/playwright-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -289,6 +298,9 @@ importers:
       '@mcthaydt/evidence':
         specifier: workspace:*
         version: link:../../tooling/evidence
+      '@mcthaydt/playwright-preset':
+        specifier: workspace:*
+        version: link:../../tooling/playwright-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -1424,6 +1436,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@mcthaydt/playwright-preset':
+        specifier: workspace:*
+        version: link:../playwright-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -1482,6 +1497,9 @@ importers:
       '@mcthaydt/examples-runner':
         specifier: workspace:*
         version: link:../examples-runner
+      '@mcthaydt/playwright-preset':
+        specifier: workspace:*
+        version: link:../playwright-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -1500,6 +1518,22 @@ importers:
       vite:
         specifier: 8.3.3
         version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+
+  tooling/playwright-preset:
+    dependencies:
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
+    devDependencies:
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))

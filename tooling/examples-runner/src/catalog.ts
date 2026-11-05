@@ -61,7 +61,7 @@ const repoRoot = fileURLToPath(new URL('../../../', import.meta.url))
 const EXAMPLE_PATH = /^([a-z0-9]+)\/\1-([a-z0-9]+(?:-[a-z0-9]+)*)\.ts$/
 // Folders under the examples folder that never hold examples.
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist', 'e2e', 'resources', '__goldens__'])
-const ROOT_FILES: ReadonlySet<string> = new Set(['vite.config.ts'])
+const ROOT_FILES: ReadonlySet<string> = new Set(['vite.config.ts', 'playwright.config.ts'])
 // The core umbrella (PRODUCT.2): every core verb an example uses comes through it (EX spec §2, EX.6).
 const UMBRELLA = '@mcthaydt/automata'
 // Zod is AF's only schema language: every command takes a Zod schema, and no core package re-exports `z`. It stays

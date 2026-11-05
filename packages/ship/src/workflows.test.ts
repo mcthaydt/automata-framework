@@ -523,18 +523,21 @@ describe('ci.yml (AF)', () => {
     expect(upload?.with?.name).toBe('frame-budget-results')
     expect(upload?.with?.path).toBe('frame-budget-results/')
     const rootPackage = packageJson('.')
-    expect(rootPackage.scripts['test:frame-budget']).toBe('AF_FRAME_BUDGET=1 playwright test')
+    expect(rootPackage.scripts['test:frame-budget']).toBe(
+      'pnpm --filter @mcthaydt/frame-budget exec playwright test',
+    )
     expect(rootPackage.scripts['budget:frame']).toBe('node tooling/frame-budget/src/check-cli.ts')
   })
 
-  it('runs the journeys with Playwright from the root, with the spec passed straight through', () => {
+  it('runs the journeys through turbo from the root; each game or example set has its own Playwright config and test:e2e', () => {
     const rootPackage = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
-    expect(rootPackage.scripts['test:e2e']).toBe('playwright test')
-    expect(rootPackage.devDependencies['@playwright/test']).toBeDefined()
-    const scripts = (ci.jobs.e2e?.steps ?? []).map((step) => step.run ?? '').join('\n')
-    // No `--`: Playwright takes everything after one as files and stops filtering, so the run would select
-    // every journey instead of the one asked for.
-    expect(scripts).toContain('pnpm test:e2e $SPEC')
+    expect(rootPackage.scripts['test:e2e']).toBe('turbo run test:e2e')
+    for (const path of ['games/emberwick', 'games/base-3d', 'examples', 'tooling/examples-runner']) {
+      expect(packageJson(path).scripts['test:e2e'], path).toBe('playwright test')
+      expect(existsSync(join(root, path, 'playwright.config.ts')), path).toBe(true)
+    }
+    // The root has no config of its own: a run for one area never starts another area's servers.
+    expect(existsSync(join(root, 'playwright.config.ts'))).toBe(false)
   })
 
   it('installs all three engines for the journeys: the input matrix runs cells in WebKit and Firefox (M4.10)', () => {
@@ -543,14 +546,6 @@ describe('ci.yml (AF)', () => {
       .filter((run) => run.includes('playwright install'))
     expect(installs.length).toBeGreaterThan(0)
     for (const install of installs) expect(install).toMatch(/chromium webkit firefox$/)
-  })
-
-  it('has a journey for the placeholder, so a nightly run cannot pass with nothing to run', () => {
-    const config = readFileSync(join(root, 'playwright.config.ts'), 'utf8')
-    expect(config).toContain("testDir: 'games/placeholder/e2e'")
-    expect(readdirSync(join(root, 'games/placeholder/e2e')).some((name) => name.endsWith('.e2e.ts'))).toBe(
-      true,
-    )
   })
 
   it('builds the placeholder through the reusable game workflow', () => {
@@ -1250,7 +1245,6 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
         'pnpm-workspace.yaml',
         'turbo.json',
         'knip.jsonc',
-        'playwright.config.ts',
         '.github/workflows/ci.yml',
         'vendor/ruken/ruken-sdk-0.0.0.tgz',
       ]) {

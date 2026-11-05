@@ -7,6 +7,7 @@
     "ship.config.ts",
     "vite.config.ts",
     "vitest.config.ts",
+    "playwright.config.ts",
     "src/ship-config.test.ts",
     "src/vite-config.test.ts",
     "src/art/art.test.ts",

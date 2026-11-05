@@ -16,6 +16,10 @@ const entry = (path: string): CatalogEntry => {
 const CORE_PACKAGE = 'is a core package; core is imported through "@mcthaydt/automata"'
 
 describe('readCatalog', () => {
+  it('skips the root config files, vite.config.ts and playwright.config.ts, which are tooling', () => {
+    expect(catalog.map((candidate) => candidate.path)).not.toContain('playwright.config.ts')
+  })
+
   it('finds every example file, skipping old demo packages', () => {
     expect(catalog.map((candidate) => candidate.path)).toEqual([
       'core/core-both-done.ts',

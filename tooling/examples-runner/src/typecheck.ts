@@ -15,7 +15,7 @@ export interface TypecheckConfig {
 export function typecheckConfig(root: string, entries: readonly CatalogEntry[]): TypecheckConfig {
   return {
     extends: join(root, 'tsconfig.json'),
-    include: [join(root, 'vite.config.ts'), join(root, 'e2e/*.ts')],
+    include: [join(root, 'vite.config.ts'), join(root, 'playwright.config.ts'), join(root, 'e2e/*.ts')],
     files: entries.filter((entry) => entry.header?.pending === undefined).map((entry) => entry.file),
   }
 }
