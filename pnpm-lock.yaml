@@ -1469,6 +1469,9 @@ importers:
       '@mcthaydt/playwright-preset':
         specifier: workspace:*
         version: link:../playwright-preset
+      '@mcthaydt/vitest-preset':
+        specifier: workspace:*
+        version: link:../vitest-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0

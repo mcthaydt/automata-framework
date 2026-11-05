@@ -5,7 +5,7 @@ import {
   MAX_CODE_CHARS,
   MAX_FAILURE_CHARS,
   runMessage,
-} from './playground-protocol.ts'
+} from '#src/playground/playground-protocol.ts'
 
 const COMMIT = 'a'.repeat(40)
 

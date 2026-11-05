@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { exampleLocation } from './stack-location.ts'
+import { exampleLocation } from '#src/playground/stack-location.ts'
 
 const FILE = 'examples/shapes/shapes-rects.ts'
 const BLOB = 'blob:http://127.0.0.1:5800/6f1c2a90-1b7e-4d4e-9d1f-3a2b1c0d9e8f'

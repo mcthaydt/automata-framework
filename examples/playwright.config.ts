@@ -51,8 +51,8 @@ export default defineJourneys({
     { name: 'examples', testDir: 'e2e', testIgnore: [MATRIX_SPEC, ...THREE_D], use: phone },
     { name: 'examples-compact', testDir: 'e2e', testIgnore: [MATRIX_SPEC, ...THREE_D], use: compact },
     // The runner's own stub example under the same fake host, and its index page (tooling/examples-runner).
-    { name: 'runner', testDir: '../tooling/examples-runner/e2e', use: phone },
-    { name: 'runner-compact', testDir: '../tooling/examples-runner/e2e', use: compact },
+    { name: 'runner', testDir: '../tooling/examples-runner/tests/e2e', use: phone },
+    { name: 'runner-compact', testDir: '../tooling/examples-runner/tests/e2e', use: compact },
     // The feature demos on Emberwick, each under the shared fake host (tooling/examples-runner/host).
     { name: 'demos', testDir: 'content', testMatch: '*/e2e/*.e2e.ts', use: devices['Pixel 7'] },
     { name: 'ui-primitives', testDir: 'ui/primitives/e2e', use: devices['Pixel 7'] },

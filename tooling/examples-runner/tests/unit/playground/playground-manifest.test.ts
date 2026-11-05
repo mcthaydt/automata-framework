@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { playgroundManifest } from './playground-manifest.ts'
+import { playgroundManifest } from '#src/playground/playground-manifest.ts'
 
 const COMMIT = 'b'.repeat(40)
 const bytes = (text: string) => new TextEncoder().encode(text)

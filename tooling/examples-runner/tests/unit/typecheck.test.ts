@@ -1,10 +1,10 @@
 import { fileURLToPath } from 'node:url'
 import { expect, it } from 'vitest'
-import { readCatalog } from './catalog.ts'
-import { typecheckConfig } from './typecheck.ts'
+import { readCatalog } from '#src/catalog.ts'
+import { typecheckConfig } from '#src/typecheck.ts'
 
-const root = fileURLToPath(new URL('./fixtures/examples/', import.meta.url))
-const deliveryPlan = fileURLToPath(new URL('./fixtures/catalog/delivery-plan.md', import.meta.url))
+const root = fileURLToPath(new URL('../fixtures/examples/', import.meta.url))
+const deliveryPlan = fileURLToPath(new URL('../fixtures/catalog/delivery-plan.md', import.meta.url))
 
 it('typechecks every example except the pending ones (EX spec §7), on top of the package’s own tsconfig', () => {
   const config = typecheckConfig(root, readCatalog(root, { deliveryPlan }))

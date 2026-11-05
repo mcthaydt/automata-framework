@@ -39,7 +39,7 @@
     "examples/ui/primitives": { "entry": ["e2e/*.e2e.ts"], "playwright": false },
     "tooling/examples-runner": {
       "ignore": ["playground/static/**"],
-      "entry": ["playwright.config.ts", "e2e/*.e2e.ts", "playground/e2e/*.e2e.ts"],
+      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "playground/e2e/*.e2e.ts"],
       "playwright": false
     },
     // Run by hand on one package at a time (core and 2D refactor, task 3.2): `node tooling/codemods/src/cli.ts <package>`.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fakeHostOptions } from './fake-host-options.ts'
+import { fakeHostOptions } from '#src/playground/ruken/fake-host-options.ts'
 
 describe('fakeHostOptions', () => {
   it("keeps the fake host's defaults when the example has no Host header", () => {

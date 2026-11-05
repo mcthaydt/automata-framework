@@ -3,7 +3,7 @@ import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const runnerDir = join(root, 'tooling/examples-runner')
 
 // The catalog test reads docs/02 (which tasks are ticked), every file under examples/ and each package's `exports`;

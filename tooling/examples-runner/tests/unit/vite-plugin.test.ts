@@ -2,16 +2,16 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { createServer, resolveConfig, type ViteDevServer } from 'vite'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import type { CatalogEntry } from './catalog.ts'
-import { examplePage, indexPage } from './page-template.ts'
-import { examplesRunner } from './vite-plugin.ts'
+import type { CatalogEntry } from '#src/catalog.ts'
+import { examplePage, indexPage } from '#src/page-template.ts'
+import { examplesRunner } from '#src/vite-plugin.ts'
 
-const root = fileURLToPath(new URL('./fixtures/examples/', import.meta.url))
-const stubStart = fileURLToPath(new URL('./fixtures/stub-start-game.ts', import.meta.url))
+const root = fileURLToPath(new URL('../fixtures/examples/', import.meta.url))
+const stubStart = fileURLToPath(new URL('../fixtures/stub-start-game.ts', import.meta.url))
 const options = {
   root,
   start: stubStart,
-  catalog: { deliveryPlan: fileURLToPath(new URL('./fixtures/catalog/delivery-plan.md', import.meta.url)) },
+  catalog: { deliveryPlan: fileURLToPath(new URL('../fixtures/catalog/delivery-plan.md', import.meta.url)) },
 }
 
 describe('examplePage', () => {

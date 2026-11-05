@@ -3,7 +3,7 @@
 // fixture config (fixtures.vite.config.ts): it runs the example's sim for a few ticks, shows the tick and the
 // state hash, and marks the page ready.
 import { createSim } from '@mcthaydt/automata-sim'
-import type { GoldenExample } from '../parity.ts'
+import type { GoldenExample } from '../../src/parity.ts'
 
 export async function startGame(example: GoldenExample): Promise<void> {
   const sim = await createSim({ seed: example.sim.seed, plugins: example.sim.plugins })

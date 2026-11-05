@@ -1,6 +1,6 @@
 import { gzipSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
-import { checkRuntimeSize, RUNTIME_GZIP_BUDGET } from './runtime-size.ts'
+import { checkRuntimeSize, RUNTIME_GZIP_BUDGET } from '#src/playground/runtime-size.ts'
 
 describe('checkRuntimeSize', () => {
   const text = (length: number) => new TextEncoder().encode('x'.repeat(length))

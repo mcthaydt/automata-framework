@@ -11,13 +11,16 @@
     "./host/preview-headers": "./host/preview-headers.ts",
     "./host/testing": "./host/testing.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "bin": {
     "automata-examples": "./src/cli.ts"
   },
   "scripts": {
     "test": "vitest run",
-    "test:unit": "vitest run --project node",
-    "test:browser": "vitest run --project browsers",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
     "typecheck": "tsc -p .",
     "e2e:host": "vite build -c host/vite.config.ts && vite preview -c host/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_DEMO_HOST_PORT",
     "e2e:fixtures": "vite build -c fixtures.vite.config.ts && vite preview -c fixtures.vite.config.ts --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT",
@@ -42,6 +45,7 @@
   },
   "devDependencies": {
     "@mcthaydt/playwright-preset": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

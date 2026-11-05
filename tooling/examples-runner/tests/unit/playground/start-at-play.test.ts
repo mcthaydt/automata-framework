@@ -1,7 +1,7 @@
 import { defaultContent } from '@mcthaydt/automata'
 import { contentHashOf } from '@mcthaydt/automata-runtime'
 import { describe, expect, it } from 'vitest'
-import { startAtPlay } from './start-at-play.ts'
+import { startAtPlay } from '#src/playground/start-at-play.ts'
 
 describe('startAtPlay', () => {
   it('moves the default flow to start at play, with the hash the runtime checks recomputed', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { CatalogEntry } from '../catalog.ts'
-import { publicResource } from './playground-resources.ts'
+import type { CatalogEntry } from '#src/catalog.ts'
+import { publicResource } from '#src/playground/playground-resources.ts'
 
 const entry = (id: string, imports: readonly string[]): CatalogEntry =>
   ({ id, imports, problems: [], file: `/repo/examples/${id}.ts` }) as unknown as CatalogEntry

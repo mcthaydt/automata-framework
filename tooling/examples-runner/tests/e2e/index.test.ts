@@ -1,16 +1,16 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, type Frame, type Locator, test } from '@playwright/test'
-import { demoHostOrigin, runnerFixturesPort } from '../host/ports.ts'
-import { collectErrors } from '../host/testing.ts'
-import { readCatalog } from '../src/catalog.ts'
+import { readCatalog } from '#src/catalog.ts'
+import { demoHostOrigin, runnerFixturesPort } from '../../host/ports.ts'
+import { collectErrors } from '../../host/testing.ts'
 
 // The index page and its viewer (EX spec §5, EX.5) over the runner's fixtures: `core-stub` runs and
 // `core-later` is pending. Runs at Pixel 7 (`examples`) and 780 × 270 (`examples-compact`). Screenshots go to
 // evidence/examples-index/ for the Owner; they are never promoted automatically.
 const fixture = (path: string) => fileURLToPath(new URL(path, import.meta.url))
-const root = fixture('../src/fixtures/examples/')
-const entries = readCatalog(root, { deliveryPlan: fixture('../src/fixtures/catalog/delivery-plan.md') })
+const root = fixture('../fixtures/examples/')
+const entries = readCatalog(root, { deliveryPlan: fixture('../fixtures/catalog/delivery-plan.md') })
 const origin = `http://localhost:${runnerFixturesPort}`
 // The repository's (ignored) evidence/ folder, whichever folder the run started in.
 const evidencePath = (name: string) => fixture(`../../../evidence/examples-index/${name}`)

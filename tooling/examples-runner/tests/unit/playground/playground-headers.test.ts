@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { playgroundHeaders } from './playground-headers.ts'
+import { playgroundHeaders } from '#src/playground/playground-headers.ts'
 
 describe('playgroundHeaders', () => {
   it('lets an opaque-origin frame load the content-hashed runtime and caches it for good', () => {

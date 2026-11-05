@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type Header, type HeaderError, parseHeader } from './header.ts'
+import { type Header, type HeaderError, parseHeader } from '#src/header.ts'
 
 const full = `// core-input-keys: move a square with the keyboard
 //

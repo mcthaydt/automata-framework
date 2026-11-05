@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { browserSafePort } from '../../../packages/ship/src/ports/browser-safe-port.ts'
+import { browserSafePort } from '../../../../packages/ship/src/ports/browser-safe-port.ts'
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -10,7 +10,7 @@ describe('the examples ports', () => {
   it('are all ports a browser loads under CI’s fixed pair (the fixtures sat on 6000, X11)', async () => {
     vi.stubEnv('GITHUB_ACTIONS', 'true')
     vi.stubEnv('AF_E2E_DEMO_HOST_PORT', undefined)
-    const ports = await import('../host/ports.ts')
+    const ports = await import('../../host/ports.ts')
     const derived = [
       ports.demoHostPort,
       ports.examplesPort,
@@ -24,7 +24,7 @@ describe('the examples ports', () => {
 
   it('keep Emberwick’s game off 5000, where macOS’s AirPlay Receiver listens (the nightly found it taken)', async () => {
     vi.stubEnv('GITHUB_ACTIONS', 'true')
-    const emberwick = await import('../../../games/emberwick/tests/e2e/origins.ts')
+    const emberwick = await import('../../../../games/emberwick/tests/e2e/origins.ts')
     expect(emberwick.gamePort).toBe(5001)
   })
 })

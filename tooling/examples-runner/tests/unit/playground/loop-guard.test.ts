@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createLoopGuard, LOOP_GUARD_SAMPLE, LoopGuardError } from './loop-guard.ts'
+import { createLoopGuard, LOOP_GUARD_SAMPLE, LoopGuardError } from '#src/playground/loop-guard.ts'
 
 function fixture(limitMs = 1000) {
   const clock = { ms: 0, reads: 0 }

@@ -1,11 +1,11 @@
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { type CatalogEntry, readCatalog } from './catalog.ts'
+import { type CatalogEntry, readCatalog } from '#src/catalog.ts'
 
-const fixtures = fileURLToPath(new URL('./fixtures/catalog/', import.meta.url))
+const fixtures = fileURLToPath(new URL('../fixtures/catalog/', import.meta.url))
 // Stub manifests: the catalog's package rules do not depend on which packages the framework holds today (physics, the
 // one extension these fixtures name, is Automata Plus since PRODUCT.5g).
-const packagesDir = fileURLToPath(new URL('./fixtures/packages/', import.meta.url))
+const packagesDir = fileURLToPath(new URL('../fixtures/packages/', import.meta.url))
 const catalog = readCatalog(fixtures, { deliveryPlan: `${fixtures}delivery-plan.md`, packagesDir })
 const entry = (path: string): CatalogEntry => {
   const found = catalog.find((candidate) => candidate.path === path)
@@ -145,7 +145,7 @@ describe('readCatalog', () => {
 
 describe('the real examples', () => {
   it('pass the catalog', () => {
-    const examples = fileURLToPath(new URL('../../../examples/', import.meta.url))
+    const examples = fileURLToPath(new URL('../../../../examples/', import.meta.url))
     const problems = readCatalog(examples).flatMap((example) =>
       example.problems.map((problem) => `${example.path}: ${problem}`),
     )

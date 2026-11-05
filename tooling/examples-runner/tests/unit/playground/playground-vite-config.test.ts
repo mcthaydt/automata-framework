@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { resolveConfig } from 'vite'
 import { describe, expect, it } from 'vitest'
 
-const configFile = fileURLToPath(new URL('../../playground/vite.config.ts', import.meta.url))
+const configFile = fileURLToPath(new URL('../../../playground/vite.config.ts', import.meta.url))
 
 describe('the playground runtime build (playground/vite.config.ts)', () => {
   // The frame runs each example over Ruken's in-memory fake host (`ruken/harness.ts`), so the build takes the Ruken

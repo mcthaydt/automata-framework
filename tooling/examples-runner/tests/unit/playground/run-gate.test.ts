@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createRunGate } from './run-gate.ts'
+import { createRunGate } from '#src/playground/run-gate.ts'
 
 const SITE = 'https://automata.example'
 const parentWindow = {}

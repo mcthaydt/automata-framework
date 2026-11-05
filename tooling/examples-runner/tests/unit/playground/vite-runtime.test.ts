@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PLAYGROUND_ENTRIES, runtimeFromViteManifest } from './vite-runtime.ts'
+import { PLAYGROUND_ENTRIES, runtimeFromViteManifest } from '#src/playground/vite-runtime.ts'
 
 const manifest = {
   [PLAYGROUND_ENTRIES.automata]: {

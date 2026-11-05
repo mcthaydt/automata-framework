@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { CatalogEntry } from '../catalog.ts'
-import { playgroundCatalog } from './playground-catalog.ts'
+import type { CatalogEntry } from '#src/catalog.ts'
+import { playgroundCatalog } from '#src/playground/playground-catalog.ts'
 
 const header = {
   name: 'shapes-rects',

@@ -1,6 +1,6 @@
 import { expectGolden, replayGolden } from '@mcthaydt/automata-testing/sim'
 import { expect, it } from 'vitest'
-import { goldenExamples } from './parity.ts'
+import { goldenExamples } from '#src/parity.ts'
 
 // Every example that declares `Golden: <ticks>` replays its sim headless from `__goldens__/<id>.replay`, in Node
 // (the node project) and in Chromium, WebKit and Firefox (the browsers project): the hashes must match bit for bit
@@ -9,21 +9,25 @@ import { goldenExamples } from './parity.ts'
 // The globs are relative to this file, so they work in Node and in a browser alike (no file system there).
 const examples = goldenExamples(
   {
-    sources: import.meta.glob('../../../examples/*/*.ts', { query: '?raw', import: 'default', eager: true }),
-  },
-  { modules: import.meta.glob('../../../examples/*/*.ts', { import: 'default' }) },
-  '../../../examples/__goldens__',
-)
-const fixtures = goldenExamples(
-  {
-    sources: import.meta.glob('./fixtures/examples/*/*.ts', {
+    sources: import.meta.glob('../../../../examples/*/*.ts', {
       query: '?raw',
       import: 'default',
       eager: true,
     }),
   },
-  { modules: import.meta.glob('./fixtures/examples/*/*.ts', { import: 'default' }) },
-  './fixtures/examples/__goldens__',
+  { modules: import.meta.glob('../../../../examples/*/*.ts', { import: 'default' }) },
+  '../../../../examples/__goldens__',
+)
+const fixtures = goldenExamples(
+  {
+    sources: import.meta.glob('../fixtures/examples/*/*.ts', {
+      query: '?raw',
+      import: 'default',
+      eager: true,
+    }),
+  },
+  { modules: import.meta.glob('../fixtures/examples/*/*.ts', { import: 'default' }) },
+  '../fixtures/examples/__goldens__',
 )
 
 it('finds the stub example’s golden, so this suite never runs empty, and lists the pending one', () => {
