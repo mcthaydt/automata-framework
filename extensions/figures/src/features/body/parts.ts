@@ -11,6 +11,10 @@ export interface Material {
   ramp: number; base: number; lift?: number; flat?: boolean;
   /** Glossy (hair, shoes, buckles): a glint two steps up where the surface faces the form light past this (0–1). */
   gloss?: number;
+  /** Grain drawn as strands along the part (hair). */
+  strands?: boolean;
+  /** Glossy hair (a straight or sleek finish): the painter lays its sheen band round the crown (paint.ts SHEEN). */
+  sheen?: boolean;
   /** Fine vertical folds in the painter (paint.ts): how far the strand noise moves cloth along its ramp, 0 for none. */
   streaks?: number;
   /** The painter's hand-picked ramp (paint.ts), light → mid → shadow → deep, as hex; else four steps of the DUEL row. */
@@ -20,9 +24,19 @@ export interface Material {
   /** A blend of two ramps, the painter's to mix (paint.ts tonesOf), in place of `paint`: `at` of the way from each of
    * `from`'s tones to `to`'s (a fade's tier: the hair's toward the skin's). */
   mix?: { from: string[]; to: string[]; at: number };
+  /** A stain (paint.ts): from `hem` up to `below` (m, in the surface's rest space) a texel takes this ramp, surely at the
+   * hem and ever less often up to `below`, in runs that climb like drips (the Nurse's hem); on trousers and a seat, a
+   * wash instead (a fade on the thighs' fronts, whiskers at the hip and behind the knee). */
+  stain?: { paint: string[]; hem: number; below: number };
+  /** Iridescent (paint.ts): its tone runs along its paint ramp (cyan → violet, light → deep) by how each texel turns
+   * to the key and the eye, not by the light alone, so the colour slides across it as the figure turns. `'mirror'`, a
+   * mirrored lens: a dark tint, the ramp only on its top edge where it faces the key, and one glint. */
+  holo?: boolean | 'mirror';
+  /** A tinted lens (paint.ts): the eyes under it show through, faintly, in its dark. */
+  see?: boolean;
 }
 /** The figure's part groups: what moves and outlines as one (the trunk, the head and hair, each limb, a held item). */
-export const GROUP = { torso: 0, head: 1, hair: 1, armL: 3, armR: 4, legL: 5, legR: 6, item: 7 } as const;
+export const GROUP = { torso: 0, head: 1, hair: 1, armL: 3, armR: 4, legL: 5, legR: 6, item: 7, skirt: 8, cape: 9 } as const;
 export interface Part {
   mesh: Mesh;
   material: string;
@@ -47,7 +61,16 @@ export interface Decal {
   /** Only at these cell densities (paint.ts densityOf), lowest and highest: detail that needs the texels, or the bolder
    * mark that stands in for it below. */
   density?: [number, number];
+  /** A print (a brand mark) stamped flat in the cell at this point, its top's centre (raster.ts stampPrint). */
+  print?: Print;
 }
+/** A print laid flat in the cell rather than texel by texel on the cloth (raster.ts stampPrint): its bitmap (each
+ * character a material from `inks`, '#' the decal's own by default; ',' a gap between letters, which closes as the
+ * cloth turns from the camera; '.' none), its across (as the viewer reads it) and down directions on the cloth in the
+ * bone's space, a bitmap texel's size (m), and the surface it is printed on (its seams): it shows on that surface's
+ * visible texels only, or, with none, over whatever lies behind it (a pendant). */
+export interface Print { rows: string[]; u: V3; v: V3; texel: number; seams?: number[]; inks?: Record<string, string> }
+
 const sgnPow = (v: number, e: number) => Math.sign(v) * Math.abs(v) ** e;
 export interface Superquadric {
   /** Centre and radii in the part's space (before `turn`), roundness (1 a sphere, ~0.3 a rounded box) along latitude and longitude. */

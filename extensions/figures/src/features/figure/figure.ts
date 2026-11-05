@@ -3,7 +3,7 @@ import { evaluate, type ActionId, type MotionState } from '../motion/motion';
 import { apply, applyDir, wrapAngle, type M, type V3 } from '../../lib/math';
 import type { CastMember } from './cast';
 import { ITEMS } from '../outfit/items';
-import { blendJoins, cleanup, gbuffer, rasterize, resolve, smoothContour, stamp, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from '../paint/raster';
+import { blendJoins, cleanup, gbuffer, rasterize, resolve, smoothContour, stamp, stampPrint, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from '../paint/raster';
 import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body/parts';
 import type { Expression, FaceLook } from '../outfit/garments';
 import { DEFAULT_HEAD } from '../body/genes';
@@ -70,7 +70,7 @@ export function build(member: CastMember, s: Skeleton, outfit: string, item: str
   // A drawn face replaces the face's marks (garments.ts face).
   const parts = [...look.parts], decals = look.decals.filter(d => !member.drawnFace || d.tag !== 'face');
   if (item) parts.push(...ITEMS[item].parts(J[`socket.${member.hand}`]));
-  const names = [...new Set([...parts.map(p => p.material), ...decals.map(d => d.material)])];
+  const names = [...new Set([...parts.map(p => p.material), ...decals.flatMap(d => [d.material, ...Object.values(d.print?.inks ?? {})])])];
   const own = { ...member.materials, ...look.materials };
   const materials = names.map(n => { const m = own[n]; if (!m) throw new Error(`${member.id}: no material ${n}`); return m; });
   const materialIndex = new Map(names.map((n, i) => [n, i]));
@@ -143,7 +143,10 @@ function soupOf(built: Built, s: Skeleton, world: M[], pitch: number, cell: [num
   const decals: ViewDecal[] = built.decals.filter(shown).map(d => {
     const p = apply(world[d.bone], d.at), n = applyDir(world[d.bone], d.normal), nl = Math.hypot(...n) || 1;
     const y = p[1] * cp - p[2] * sp, z = p[1] * sp + p[2] * cp;
-    return { x: (cx + p[0] * ppm) / scale, y: (cy - y * ppm) / scale, z, facing: (n[1] * sp + n[2] * cp) / nl, material: built.materialIndex.get(d.material)!, w: d.size?.[0] ?? 1, h: d.size?.[1] ?? 1, group: built.groups.get(d.bone) };
+    // A print's across and down steps (a bitmap texel each), in cell texels and depth (raster.ts stampPrint).
+    const step = (q: V3): [number, number, number] => { const e = applyDir(world[d.bone], q), t = d.print!.texel; return [e[0] * t * ppm / scale, -(e[1] * cp - e[2] * sp) * t * ppm / scale, (e[1] * sp + e[2] * cp) * t]; };
+    const print = d.print && { rows: d.print.rows, du: step(d.print.u), dv: step(d.print.v), seams: d.print.seams, inks: Object.fromEntries(Object.entries({ '#': d.material, ...d.print.inks }).map(([c, n]) => [c, built.materialIndex.get(n)!])) };
+    return { x: (cx + p[0] * ppm) / scale, y: (cy - y * ppm) / scale, z, facing: (n[1] * sp + n[2] * cp) / nl, material: built.materialIndex.get(d.material)!, w: d.size?.[0] ?? 1, h: d.size?.[1] ?? 1, group: built.groups.get(d.bone), print };
   });
   return { soup: { verts, count: vi, tris, triCount: ti }, decals };
 }
@@ -331,7 +334,11 @@ export class Figure {
     this.soup = soup;
     rasterize(soup, this.hi); resolve(this.hi, this.g, S, this.style);
     if (this.style.cleanup) { cleanup(this.g); blendJoins(this.g); smoothContour(this.g); }
-    stamp(decals, this.g, this.metres / this.cell[1], [GROUP.item]);
+    // A print on a surface before the marks (they find its surface by its part), one hung over it (a pendant) after,
+    // over every mark on the cloth behind it.
+    for (const d of decals) if (d.print?.seams) stampPrint(d, this.g);
+    stamp(decals.filter(d => !d.print), this.g, this.metres / this.cell[1], [GROUP.item]);
+    for (const d of decals) if (d.print && !d.print.seams) stampPrint(d, this.g);
     this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink) : null;
     this.handStamps = this.handsAt(pitch);
     paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends());
