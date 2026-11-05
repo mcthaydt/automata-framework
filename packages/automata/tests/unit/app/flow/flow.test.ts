@@ -4,8 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { type Flow, makeFlow } from '#src/app/flow/flow.manager.ts'
 import type { RuntimeServices, ScreenDef } from '#src/app/flow/screen.ts'
 import { makeVeil } from '#src/app/flow/veil.ts'
-import { makeAssets } from '#src/shared/runtime/assets.manager.ts'
-import { makeLoadMeter } from '#src/shared/runtime/load-meter.ts'
+import { systemClock } from '#src/shared/lib/clock.ts'
+import { createAssets } from '#src/shared/runtime/assets.manager.ts'
+import { createLoadMeter } from '#src/shared/runtime/load-meter.ts'
 import { createPageLayers, type PageLayers } from '#src/shared/runtime/page-layers.svelte.ts'
 import {
   makePresentationBus,
@@ -46,9 +47,9 @@ describe('Flow and screens (spec §3.6)', () => {
     Effect.gen(function* () {
       bus = yield* makePresentationBus()
       time = makeTime(bus)
-      const meter = yield* makeLoadMeter
+      const meter = createLoadMeter(systemClock)
       const fetchResult = fakeFetch(options.routes ?? {})
-      const assets = yield* makeAssets({
+      const assets = createAssets({
         assets: options.assetsSource,
         fonts: {},
         fetch: fetchResult.fetch,

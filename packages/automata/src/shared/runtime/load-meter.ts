@@ -1,4 +1,4 @@
-import { Duration, Effect } from 'effect'
+import type { Clock } from '../lib/clock.ts'
 import { LoadStalled } from './boot-error.js'
 
 /** A download that makes no progress for this long, in ms, fails `LoadStalled`. */
@@ -13,76 +13,84 @@ export interface GuardInfo {
 }
 
 /**
- * Watches downloads: `guard` fails a wait with `LoadStalled` after `STALL_MS` without progress, and calls its
- * `onSlow` after `SLOW_MS`.
+ * Watches downloads: `guard` rejects a wait with `LoadStalled` after `STALL_MS` without progress (any guarded wait's
+ * `progress()` counts), and calls its `onSlow` after `SLOW_MS`.
  */
 export interface LoadMeter {
   progress(): void
-  guard<A, E, R>(wait: Effect.Effect<A, E, R>, info: GuardInfo): Effect.Effect<A, E | LoadStalled, R>
+  /**
+   * Runs `wait` under the stall rule. The wait gets a signal that aborts when it stalls or when the caller's `signal`
+   * aborts; the guard then rejects (with `LoadStalled`, or with the caller's abort reason). A wait's own rejection
+   * passes through unchanged. Every timer is cleared when the guard settles.
+   */
+  guard<A>(wait: (signal: AbortSignal) => Promise<A>, info: GuardInfo, signal?: AbortSignal): Promise<A>
 }
 
-/**
- * Creates a load meter that enforces stall and slow timeouts on asset downloads.
- * Extracted from FloorFifty's load-meter.ts.
- *
- * Uses Effect.raceFirst rather than a plain race so that whichever branch settles
- * first (the wait completing or the watcher timing out) interrupts the other immediately.
- */
-export const makeLoadMeter: Effect.Effect<LoadMeter> = Effect.gen(function* () {
-  const clock = yield* Effect.clock
-  let lastReport = clock.unsafeCurrentTimeMillis()
+/** Creates a load meter that enforces stall and slow timeouts on asset downloads, timed by `clock`. */
+export function createLoadMeter(clock: Clock): LoadMeter {
+  let lastReport = clock.now()
   let activeGuards = 0
 
   const progress = () => {
-    lastReport = clock.unsafeCurrentTimeMillis()
+    lastReport = clock.now()
   }
 
-  const guard = <A, E, R>(
-    wait: Effect.Effect<A, E, R>,
+  const guard = <A>(
+    wait: (signal: AbortSignal) => Promise<A>,
     info: GuardInfo,
-  ): Effect.Effect<A, E | LoadStalled, R> => {
-    return Effect.scoped(
-      Effect.gen(function* () {
-        if (activeGuards === 0) {
-          lastReport = clock.unsafeCurrentTimeMillis()
+    signal?: AbortSignal,
+  ): Promise<A> => {
+    // Silence before the first wait starts is not a stall: the clock starts when there is something to wait for.
+    if (activeGuards === 0) lastReport = clock.now()
+    activeGuards++
+
+    const inner = new AbortController()
+    const timers: unknown[] = []
+    let stopCaller: (() => void) | undefined
+
+    const finished = new Promise<A>((resolve, reject) => {
+      if (info.onSlow !== undefined) timers.push(clock.setTimeout(info.onSlow, SLOW_MS))
+
+      // The stall check sleeps until the earliest moment the wait could have stalled, then looks again: progress
+      // reported meanwhile moves `lastReport`, so it sleeps once more for what is left.
+      const watch = () => {
+        const elapsed = clock.now() - lastReport
+        if (elapsed >= STALL_MS) {
+          const stalled = new LoadStalled({
+            url: info.url,
+            bytesSoFar: info.bytesSoFar ? info.bytesSoFar() : 0,
+            stalledMs: STALL_MS,
+          })
+          inner.abort(stalled)
+          reject(stalled)
+          return
         }
-        activeGuards++
+        timers.push(clock.setTimeout(watch, STALL_MS - elapsed))
+      }
+      watch()
 
-        if (info.onSlow) {
-          yield* Effect.forkScoped(
-            Effect.sleep(Duration.millis(SLOW_MS)).pipe(Effect.andThen(Effect.sync(info.onSlow))),
-          )
+      if (signal !== undefined) {
+        const onAbort = () => {
+          inner.abort(signal.reason)
+          reject(signal.reason)
         }
+        if (signal.aborted) onAbort()
+        else {
+          signal.addEventListener('abort', onAbort, { once: true })
+          stopCaller = () => signal.removeEventListener('abort', onAbort)
+        }
+      }
 
-        const watcher: Effect.Effect<never, LoadStalled> = Effect.gen(function* () {
-          while (true) {
-            const now = clock.unsafeCurrentTimeMillis()
-            const elapsed = now - lastReport
-            if (elapsed >= STALL_MS) {
-              return yield* Effect.fail(
-                new LoadStalled({
-                  url: info.url,
-                  bytesSoFar: info.bytesSoFar ? info.bytesSoFar() : 0,
-                  stalledMs: STALL_MS,
-                }),
-              )
-            }
-            yield* Effect.sleep(Duration.millis(STALL_MS - elapsed))
-          }
-        })
+      if (!inner.signal.aborted) wait(inner.signal).then(resolve, reject)
+    })
 
-        const result = yield* Effect.raceFirst(wait, watcher)
-        lastReport = clock.unsafeCurrentTimeMillis()
-        return result
-      }).pipe(
-        Effect.ensuring(
-          Effect.sync(() => {
-            activeGuards--
-          }),
-        ),
-      ),
-    )
+    return finished.finally(() => {
+      for (const timer of timers) clock.clearTimeout(timer)
+      stopCaller?.()
+      activeGuards--
+      lastReport = clock.now()
+    })
   }
 
   return { progress, guard }
-})
+}

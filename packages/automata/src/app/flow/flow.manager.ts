@@ -149,13 +149,11 @@ export function makeFlow<R = never>(
             label: options.copy?.loading ?? 'Loading…',
             slowLabel: options.copy?.slow ?? 'Taking a while…',
           })
-          const loadResult = yield* Effect.exit(
-            options.assets.load(targetScreen.id, (fraction) => loader.setProgress(fraction)),
-          )
-          loader.close()
-          if (Exit.isFailure(loadResult)) {
-            const errorOpt = Cause.failureOption(loadResult.cause)
-            const isStalled = Option.isSome(errorOpt) && errorOpt.value._tag === 'LoadStalled'
+          const loadResult = yield* Effect.promise((signal) =>
+            options.assets.load(targetScreen.id, (fraction) => loader.setProgress(fraction), signal),
+          ).pipe(Effect.ensuring(Effect.sync(() => loader.close())))
+          if (!loadResult.ok) {
+            const isStalled = loadResult.reason._tag === 'LoadStalled'
             const code = isStalled ? 'download-stalled' : 'download'
             const message = isStalled
               ? (options.copy?.['download-stalled'] ?? BOOT_FAILURE_COPY_EN['download-stalled'])
@@ -176,7 +174,7 @@ export function makeFlow<R = never>(
               ],
             })
             queue.length = 0
-            options.onFailure?.(Option.isSome(errorOpt) ? errorOpt.value : Cause.squash(loadResult.cause))
+            options.onFailure?.(loadResult.reason)
             return
           }
         }

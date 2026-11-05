@@ -14,11 +14,11 @@ import { createHaptics } from '../../../features/input/haptics/haptics.manager.j
 import { makeLeaderboards } from '../../../features/leaderboards/leaderboards.manager.js'
 import { createLocale, type LocaleDef, singleLocale } from '../../../features/locale/locale.manager.js'
 import type { SaveDef } from '../../../features/saves/save.schema.js'
-import { plainAudioHosting, plainSaves } from '../../../shared/host/effect-bridge.ts'
+import { effectClock, plainAudioHosting, plainSaves } from '../../../shared/host/effect-bridge.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
-import { makeAssets } from '../../../shared/runtime/assets.manager.js'
+import { createAssets } from '../../../shared/runtime/assets.manager.js'
 import type { BootError } from '../../../shared/runtime/boot-error.js'
-import { makeLoadMeter } from '../../../shared/runtime/load-meter.js'
+import { createLoadMeter } from '../../../shared/runtime/load-meter.js'
 import { makeAppLoop } from '../../../shared/runtime/loop/app-loop.manager.js'
 import type { FrameSource } from '../../../shared/runtime/loop/frames.js'
 import { createPageLayers, type PageLayers } from '../../../shared/runtime/page-layers.svelte.js'
@@ -150,7 +150,7 @@ export function RuntimeTest(
 
       const frames = options.frames ?? manualFrames()
 
-      const meter = yield* makeLoadMeter
+      const meter = createLoadMeter(effectClock(yield* Effect.runtime<never>()))
       const screens = options.screens ?? []
       const screenFonts: Record<string, readonly string[]> = {}
       for (const screen of screens) {
@@ -176,7 +176,7 @@ export function RuntimeTest(
       }
 
       const fontFaces = doc?.fonts
-      const assets = yield* makeAssets({
+      const assets = createAssets({
         assets: content.assets,
         fonts: screenFonts,
         fetch: options.fetch ?? fakeFetch({}).fetch,

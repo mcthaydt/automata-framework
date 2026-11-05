@@ -12,23 +12,44 @@ export interface LoadStalledFields {
   readonly bytesSoFar: number
   readonly stalledMs: number
 }
-const LoadStalledBase: TaggedErrorClass<'LoadStalled', LoadStalledFields> = Data.TaggedError('LoadStalled')
 /**
  * A resource download had no progress reported for STALL_MS (30 s).
  * Triggers the "Taking a while" screen with a Try again button.
  */
-export class LoadStalled extends LoadStalledBase {}
+export class LoadStalled extends Error {
+  readonly _tag = 'LoadStalled' as const
+  readonly url: string
+  readonly bytesSoFar: number
+  readonly stalledMs: number
+
+  constructor(fields: LoadStalledFields) {
+    super(`'${fields.url}' made no progress for ${fields.stalledMs} ms (${fields.bytesSoFar} bytes so far)`)
+    this.name = 'LoadStalled'
+    this.url = fields.url
+    this.bytesSoFar = fields.bytesSoFar
+    this.stalledMs = fields.stalledMs
+  }
+}
 
 export interface AssetLoadFailedFields {
   readonly url: string
   readonly status: number
 }
-const AssetLoadFailedBase: TaggedErrorClass<'AssetLoadFailed', AssetLoadFailedFields> =
-  Data.TaggedError('AssetLoadFailed')
 /**
  * An asset download failed with a non-OK HTTP status or network error (status 0).
  */
-export class AssetLoadFailed extends AssetLoadFailedBase {}
+export class AssetLoadFailed extends Error {
+  readonly _tag = 'AssetLoadFailed' as const
+  readonly url: string
+  readonly status: number
+
+  constructor(fields: AssetLoadFailedFields) {
+    super(`'${fields.url}' failed to download (status ${fields.status})`)
+    this.name = 'AssetLoadFailed'
+    this.url = fields.url
+    this.status = fields.status
+  }
+}
 
 export interface RendererUnavailableFields {
   readonly tried: readonly ('webgl2' | 'webgpu')[]

@@ -9,6 +9,7 @@ import { createSaves, type Saves as SavesService } from '../../features/saves/sa
 import { effectClock, toPlainHosting } from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
 import type { Hosting } from '../../shared/host/hosting.ts'
+import type { Assets as AssetsService } from '../../shared/runtime/assets.manager.ts'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import {
   type SettingsDef,
@@ -16,6 +17,12 @@ import {
   type SettingsStore,
   storeOf,
 } from '../../shared/runtime/settings/settings.manager.ts'
+
+/** The asset loader as a runtime service: a screen's files and fonts, loaded under the stall rule. */
+export type Assets = AssetsService
+export const Assets: Context.Tag<AssetsService, AssetsService> = Context.GenericTag<AssetsService>(
+  '@mcthaydt/automata-runtime/Assets',
+)
 
 /** The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction. */
 export type Locale = LocaleService

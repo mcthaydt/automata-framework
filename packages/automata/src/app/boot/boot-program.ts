@@ -12,12 +12,18 @@ import { Leaderboards, makeLeaderboards } from '../../features/leaderboards/lead
 import { browserLanguages, createLocale, singleLocale } from '../../features/locale/locale.manager.js'
 import { savesKept } from '../../features/saves/save.manager.js'
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
-import { plainAudioHosting, plainSaves } from '../../shared/host/effect-bridge.ts'
+import { effectClock, plainAudioHosting, plainReady, plainSaves } from '../../shared/host/effect-bridge.ts'
 import { HostError } from '../../shared/host/errors.ts'
 import { Hosting, type HostingOptions } from '../../shared/host/hosting.ts'
-import { Assets, makeAssets } from '../../shared/runtime/assets.manager.js'
-import { BootDefect, type BootError, ContentHashMismatch } from '../../shared/runtime/boot-error.js'
-import { makeLoadMeter, SLOW_MS } from '../../shared/runtime/load-meter.js'
+import { refuse } from '../../shared/host/plain-errors.ts'
+import { createAssets } from '../../shared/runtime/assets.manager.js'
+import {
+  BootDefect,
+  type BootError,
+  ContentHashMismatch,
+  LoadStalled,
+} from '../../shared/runtime/boot-error.js'
+import { createLoadMeter, SLOW_MS } from '../../shared/runtime/load-meter.js'
 import { AppLoop, makeAppLoop } from '../../shared/runtime/loop/app-loop.manager.js'
 import { liveFrames } from '../../shared/runtime/loop/frames.js'
 import type { LoaderControls, PageLayers } from '../../shared/runtime/page-layers.svelte.js'
@@ -38,7 +44,7 @@ import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.sve
 import { Flow, makeFlow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { makeVeil } from '../flow/veil.js'
-import { Audio, AudioBuses, Locale, openSaves, Saves, Settings } from './effect-tags.ts'
+import { Assets, Audio, AudioBuses, Locale, openSaves, Saves, Settings } from './effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
 
@@ -224,7 +230,8 @@ export function bootProgram<S>(
     }
 
     // Step 5: load assets and fonts under the stall rule
-    const meter = yield* makeLoadMeter
+    // Timed on the runtime's Effect clock until boot is plain, so a `TestClock` still moves the stall rule.
+    const meter = createLoadMeter(effectClock(yield* Effect.runtime<never>()))
     yield* Effect.forkScoped(
       Effect.sleep(Duration.millis(SLOW_MS)).pipe(
         Effect.andThen(Effect.sync(() => loaderHandle.setSlow(true))),
@@ -243,7 +250,7 @@ export function bootProgram<S>(
         ? game.content.data.game.preload_screens
         : [game.content.data.flow.entry]
 
-    const assets = yield* makeAssets({
+    const assets = createAssets({
       assets: withPreload(game.content.data.assets, preloadScreens[0], game.preload),
       fonts: screenFonts,
       ...(game.seams?.fetch !== undefined ? { fetch: game.seams.fetch } : {}),
@@ -252,7 +259,10 @@ export function bootProgram<S>(
     })
 
     for (const screenId of preloadScreens) {
-      yield* assets.load(screenId, (fraction) => loaderHandle.setProgress(fraction))
+      const loaded = yield* Effect.promise((signal) =>
+        assets.load(screenId, (fraction) => loaderHandle.setProgress(fraction), signal),
+      )
+      if (!loaded.ok) return yield* Effect.fail(loaded.reason)
     }
 
     // Step 6: renderer factory. The bus exists first so the renderer can publish render facts.
@@ -284,16 +294,20 @@ export function bootProgram<S>(
     const renderer = yield* game.renderer(renderTarget)
 
     // Step 7: ready guarded by stall rule, runtime services, extensions and flow start
-    yield* meter
-      .guard(hosting.ready, {
-        url: 'session.ready',
-        onSlow: () => loaderHandle.setSlow(true),
-      })
-      .pipe(
-        Effect.catchTag('LoadStalled', () =>
-          Effect.fail(new HostError({ code: 'TIMEOUT', retryable: true, operation: 'ready' })),
-        ),
-      )
+    // A ready that stalls is the host timing out: the panel offers Try again, as for any retryable refusal.
+    const ready = yield* Effect.promise((signal) =>
+      meter
+        .guard(
+          () => plainReady(hosting.ready),
+          { url: 'session.ready', onSlow: () => loaderHandle.setSlow(true) },
+          signal,
+        )
+        .catch((error: unknown) => {
+          if (error instanceof LoadStalled) return refuse('TIMEOUT', true, 'ready')
+          throw error
+        }),
+    )
+    if (!ready.ok) return yield* Effect.fail(new HostError(ready.reason))
 
     // Ready resolved: close loader overlay and set state ready
     loaderHandle.close()
