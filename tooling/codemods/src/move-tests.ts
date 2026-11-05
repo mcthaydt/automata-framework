@@ -129,12 +129,13 @@ function place(base: string, keepQualifier: boolean): Placement {
 const slash = (path: string): string => path.split('\\').join('/')
 
 /** Import specifiers in a TypeScript file: static, re-exported and dynamic, with their text spans. */
-function specifierSpans(file: string, code: string): { start: number; end: number; value: string }[] {
+function specifierSpans(file: string, code: string): Span[] {
   const { module } = parseSync(file, code)
-  const spans: { start: number; end: number; value: string }[] = []
+  const spans: Span[] = []
   const add = (request: { value: string; start: number; end: number } | undefined): void => {
     // The span includes the quotes; the edit keeps them.
-    if (request) spans.push({ start: request.start + 1, end: request.end - 1, value: request.value })
+    if (request)
+      spans.push({ start: request.start + 1, end: request.end - 1, value: request.value, kind: 'module' })
   }
   for (const entry of module.staticImports) add(entry.moduleRequest)
   for (const exported of module.staticExports)
@@ -146,14 +147,18 @@ function specifierSpans(file: string, code: string): { start: number; end: numbe
         start: dynamic.moduleRequest.start + 1,
         end: dynamic.moduleRequest.end - 1,
         value: quoted[2],
+        kind: 'module',
       })
   }
   return spans
 }
 
 /** Specifiers that parsing does not report: mocks, `new URL(..., import.meta.url)`, and Svelte `<script>` imports. */
-const EXTRA_SPECIFIERS: readonly RegExp[] = [
+const MOCK_SPECIFIERS: readonly RegExp[] = [
   /\bvi\.(?:mock|doMock|unmock|doUnmock|importActual|importMock)\(\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1/g,
+]
+/** A path, not a module: it may name a folder or a file that is not code, and it is kept relative. */
+const PATH_SPECIFIERS: readonly RegExp[] = [
   /\bnew URL\(\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1\s*,\s*import\.meta\.url/g,
 ]
 const SVELTE_SPECIFIERS: readonly RegExp[] = [
@@ -161,27 +166,36 @@ const SVELTE_SPECIFIERS: readonly RegExp[] = [
   /\bimport\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1/g,
 ]
 
-function extraSpans(
-  code: string,
-  patterns: readonly RegExp[],
-): { start: number; end: number; value: string }[] {
-  const spans: { start: number; end: number; value: string }[] = []
+interface Span {
+  start: number
+  end: number
+  value: string
+  /** `path` for `new URL(..., import.meta.url)`: a place on disk, not a module. */
+  kind: 'module' | 'path'
+}
+
+function extraSpans(code: string, patterns: readonly RegExp[], kind: Span['kind'] = 'module'): Span[] {
+  const spans: Span[] = []
   for (const pattern of patterns)
     for (const match of code.matchAll(pattern)) {
       const value = match.groups?.value
       if (value === undefined) continue
       // The value sits right after its opening quote, which is the last quote before it in the match.
       const start = match.index + match[0].lastIndexOf(value, match[0].length - 1)
-      spans.push({ start, end: start + value.length, value })
+      spans.push({ start, end: start + value.length, value, kind })
     }
   return spans
 }
 
 /** The relative specifiers of a file, each with the span of its text. */
-function relativeSpecifiers(file: string, code: string): { start: number; end: number; value: string }[] {
+function relativeSpecifiers(file: string, code: string): Span[] {
   const all = file.endsWith('.svelte')
     ? extraSpans(code, SVELTE_SPECIFIERS)
-    : [...specifierSpans(file, code), ...extraSpans(code, EXTRA_SPECIFIERS)]
+    : [
+        ...specifierSpans(file, code),
+        ...extraSpans(code, MOCK_SPECIFIERS),
+        ...extraSpans(code, PATH_SPECIFIERS, 'path'),
+      ]
   const seen = new Set<number>()
   return all
     .filter((span) => span.value.startsWith('./') || span.value.startsWith('../'))
@@ -189,20 +203,22 @@ function relativeSpecifiers(file: string, code: string): { start: number; end: n
 }
 
 /**
- * The file a specifier names (an absolute path), and the part of its name the specifier left out: `''` when it
- * wrote the whole name, `.ts` when it left off the extension, `/index.ts` when it named a folder. Null when nothing
- * on disk matches. A rewritten specifier leaves out the same part, so a package that imports without extensions
- * keeps doing so.
+ * The file a specifier names (an absolute path), and how it wrote the name: `omitted` is the part it left out (`''`
+ * when it wrote the whole name, `.ts` when it left off the extension, `/index.ts` when it named a folder), and
+ * `jsStyle` is true for `./x.js` naming `x.ts`. Null when nothing on disk matches. A rewritten specifier is written
+ * the same way, so a package that imports without extensions keeps doing so.
  */
 function resolveTarget(
   from: string,
   specifier: string,
   exists: (path: string) => boolean,
-): { target: string; omitted: string } | null {
+): { target: string; omitted: string; jsStyle: boolean } | null {
   const [path = ''] = specifier.split('?')
   const base = join(dirname(from), path)
   for (const omitted of ['', '.ts', '/index.ts'])
-    if (exists(`${base}${omitted}`)) return { target: `${base}${omitted}`, omitted }
+    if (exists(`${base}${omitted}`)) return { target: `${base}${omitted}`, omitted, jsStyle: false }
+  if (base.endsWith('.js') && exists(`${base.slice(0, -3)}.ts`))
+    return { target: `${base.slice(0, -3)}.ts`, omitted: '', jsStyle: true }
   return null
 }
 
@@ -293,21 +309,31 @@ export function planMoves(
     let code = read(move.from)
     const edits = relativeSpecifiers(move.from, code)
       .map((span) => {
+        const query = span.value.includes('?') ? `?${span.value.split('?').slice(1).join('?')}` : ''
+        const toRelative = (path: string): string =>
+          slash(relative(dirname(move.to), path)).replace(/^(?!\.)/, './')
+        if (span.kind === 'path') {
+          // A place on disk (it may be a folder, or a file that is not code): wherever it is now, relative to the test.
+          const place = join(dirname(move.from), span.value.split('?')[0] ?? '')
+          const keepsSlash = span.value.endsWith('/') ? '/' : ''
+          return { ...span, next: `${toRelative(moves.get(place)?.to ?? place)}${keepsSlash}${query}` }
+        }
         const resolved = resolveTarget(move.from, span.value, exists)
         if (!resolved) return null
-        const query = span.value.includes('?') ? `?${span.value.split('?').slice(1).join('?')}` : ''
         const landed = moves.get(resolved.target)?.to ?? resolved.target
         // A moved test keeps its extension; a source file's specifier leaves out the extension it left out before. A
         // folder import keeps `/index`, because the `#src/*` alias maps to a file and cannot name a folder.
-        const omittedExtension = resolved.omitted === '' ? '' : '.ts'
-        const landedAt =
-          omittedExtension && landed.endsWith(omittedExtension)
-            ? landed.slice(0, -omittedExtension.length)
-            : landed
-        // Code under src/ is reached through the package's alias; a moved test or any other file, relatively.
-        const next = landedAt.startsWith(`${src}/`)
-          ? `#src/${slash(relative(src, landedAt))}`
-          : slash(relative(dirname(move.to), landedAt)).replace(/^(?!\.)/, './')
+        let landedAt = landed
+        if (resolved.omitted !== '' && landedAt.endsWith('.ts')) landedAt = landedAt.slice(0, -'.ts'.length)
+        if (resolved.jsStyle) landedAt = `${landedAt.slice(0, -'.ts'.length)}.js`
+        // Code under src/ is reached through the package's alias; anything else (a moved test, a Svelte file, JSON)
+        // relatively.
+        const isCode =
+          ALIAS_EXTENSIONS.some((extension) => landed.endsWith(extension)) && !landed.endsWith('.test.ts')
+        const next =
+          isCode && landed.startsWith(`${src}/`)
+            ? `#src/${slash(relative(src, landedAt))}`
+            : toRelative(landedAt)
         return { ...span, next: `${next}${query}` }
       })
       .filter((edit) => edit !== null)
@@ -324,11 +350,21 @@ export function planMoves(
 // --- applying -----------------------------------------------------------------------------------------------------
 
 /**
- * The alias tests import src through. Two patterns, because a package writes its imports either way: `#src/a/b.ts` (the
- * first, longer pattern wins) or `#src/a/b` (the second adds the extension). TypeScript, Vite and Node all resolve
+ * The alias tests import src through. One pattern for each kind of file a test imports from src (the longer patterns win), and a last one that adds `.ts`
+ * to a specifier written without an extension (`#src/a/b`). TypeScript, Vite and Node all resolve
  * an `imports` target exactly, so each pattern names the file.
  */
-const SRC_ALIAS = { '#src/*.ts': './src/*.ts', '#src/*': './src/*.ts' } as const
+const SRC_ALIAS = {
+  '#src/*.ts': './src/*.ts',
+  '#src/*.js': './src/*.ts',
+  '#src/*.svelte': './src/*.svelte',
+  '#src/*.json': './src/*.json',
+  '#src/*.css': './src/*.css',
+  '#src/*': './src/*.ts',
+} as const
+
+/** The kinds of file under src the alias reaches. Anything else (an image, a font, a folder) is imported relatively. */
+const ALIAS_EXTENSIONS: readonly string[] = ['.ts', '.svelte', '.json', '.css']
 
 /** Add the `#src` alias to the package's package.json, keeping its other keys in order. */
 function withImportsAlias(text: string): string {

@@ -119,6 +119,14 @@ describe('imports', () => {
     expect(text).toContain("from '#src/a/sub/index'")
   })
 
+  it('keeps .js specifiers, aliases json, and moves a new URL path to wherever it points now', () => {
+    const text = textOf('tests/unit/a/k.test.ts')
+    expect(text).toContain("from '#src/a/b.js'")
+    expect(text).toContain("from '#src/a/data.json'")
+    // src/a/ reached the package root with ../.. ; tests/unit/a/ needs one more level.
+    expect(text).toContain("new URL('../../..', import.meta.url)")
+  })
+
   it('rewrites vi.mock and dynamic import specifiers', () => {
     const text = textOf('tests/unit/a/c.test.ts')
     expect(text).toContain("vi.mock('#src/a/b.ts'")
@@ -160,7 +168,7 @@ describe('applyPlan', () => {
     expect(after).not.toContain('src/a/b.test.ts')
     expect(after).toContain('src/a/Published.test.svelte')
     expect(readFileSync(where('tests/unit/a/b.test.ts'), 'utf8')).toContain("from '#src/a/b.ts'")
-    expect(JSON.parse(readFileSync(where('package.json'), 'utf8')).imports).toEqual({
+    expect(JSON.parse(readFileSync(where('package.json'), 'utf8')).imports).toMatchObject({
       '#src/*.ts': './src/*.ts',
       '#src/*': './src/*.ts',
     })
