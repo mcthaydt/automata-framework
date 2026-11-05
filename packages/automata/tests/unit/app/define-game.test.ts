@@ -1,5 +1,4 @@
 import { defineComponent, defineEvent, definePlugin } from '@mcthaydt/automata-sim'
-import { Effect } from 'effect'
 import { Container } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
@@ -13,6 +12,7 @@ import { defineExtension } from '../../../src/features/extension/define-extensio
 import { LOCALE_SAVE_KEY } from '../../../src/features/locale/locale.manager.ts'
 import { defineSave } from '../../../src/features/saves/save.schema.ts'
 import { BootDefect } from '../../../src/shared/runtime/boot-error.ts'
+import type { RendererFactory } from '../../../src/shared/runtime/render/renderer.ts'
 import type { SettingsDef } from '../../../src/shared/runtime/settings/migrate-settings.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
@@ -99,7 +99,7 @@ describe('defineGame defaults (DX spec §3.1)', () => {
   })
 
   it('makes the renderer with createRenderer when given one, from the Pixi options it built (M3.4a)', () => {
-    const factory = () => Effect.die('unused')
+    const factory: RendererFactory = () => Promise.reject(new Error('unused'))
     const createRenderer = vi.fn(() => factory)
     const game = defineGame({ ...spec, renderer: { backgroundColor: 7 }, createRenderer })
     expect(game.renderer).toBe(factory)

@@ -4,8 +4,8 @@
 // Audio is presentation: it never feeds the sim, and `sound` is a plain call that allocates nothing, so a game
 // can call it from a presentation-bus listener every frame.
 
+import type { Hosting } from '../../shared/host/hosting.ts'
 import type { AudioChange, LifecyclePayload } from '../../shared/host/index.ts'
-import type { Hosting } from '../../shared/host/plain-hosting.ts'
 import type { Result } from '../../shared/lib/result.ts'
 import { ok, refused } from '../../shared/lib/result.ts'
 import { type Listenable, type Subscribable, state } from '../../shared/lib/subscribable.ts'

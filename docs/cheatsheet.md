@@ -13,10 +13,10 @@
 - `AnalogOptions` (interface): The `analog` option of `keys()`.
 - `AnalogReading` (interface): The analog input at one fixed step, read once after `Input.poll()`.
 - `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans.
-- `AppLoop` (type): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
-- `Audio` (type): The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
+- `AppLoop` (interface): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
+- `Audio` (interface): The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
 - `AUDIO_BUS_NAMES` (const): The core audio buses: `master` carries the other four, `voice` is announcers and dialogue.
-- `AudioBuses` (type): The audio-bus seam.
+- `AudioBuses` (interface): The audio-bus seam.
 - `audioBusGainsSchema` (const): Validates saved bus gains; a bus left out is at full gain.
 - `AudioChange` (interface): The host's audio state: focus (an ad or overlay may duck or mute the game), the master volume, and the gain.
 - `AudioChangeSchema` (const): Checks an audio change.
@@ -94,14 +94,15 @@
 - `Geometry` (interface): The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the usable and visible regions, what covers the page's foot, and the host's scale hint.
 - `GeometryState` (interface): The current geometry as rune state: reading `current` in a component or `$derived` tracks it.
 - `HeightTier` (type): The height tiers.
-- `HOST_EXIT_CAP` (const): How long the game may hold the host's close (a 1 s cap).
-- `HostError` (class): Any failure after the handshake.
-- `HostHandshakeFailed` (class): The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session.
-- `Hosting` (interface): Everything a game may ask of, or hear from, its host: the `Hosting` contract, which each target's adapter implements.
-- `HostingLeaderboards` (interface): The host's leaderboards (Ruken's `LeaderboardsApi`).
+- `HOST_EXIT_CAP_MS` (const): How long the game may hold the host's close, in milliseconds (Ruken's own grace is 1.5 s, so we answer first).
+- `HostHandshakeFailed` (interface): The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session.
+- `Hosting` (interface): Everything a game may ask of, or hear from, its host.
+- `HostingLeaderboards` (interface): The host's leaderboards.
 - `HostingOptions` (interface): What the game asks of its host.
 - `HostingSaves` (interface): The player's saves.
 - `HostingSeams` (interface): Test seams.
+- `HostRefusal` (interface): Why the host said no to a call: its contract code, whether a retry may succeed, and the call it refused.
+- `HostResult` (type): What a host call answers: the value, or the host's refusal.
 - `IconButton` (const): A button whose face is an icon (M4 spec §4.12).
 - `Input` (interface): The input service: held actions from keys, pads, touch buttons and gestures under the game's profile and the player's overrides, menu edges, the active device and pads, and rebinding.
 - `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick.
@@ -132,12 +133,13 @@
 - `LifecyclePayloadSchema` (const): Checks a lifecycle change.
 - `LifecycleReason` (type): Why the game is in the background.
 - `LoaderOverlay` (const): The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty `ui/components/LoaderOverlay.svelte` at 122a220).
-- `Locale` (type): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
+- `Locale` (interface): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `measureGeometry(input)`: Turns what the browser and the host report into one `Geometry`.
 - `Modal` (const): A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty `ui/components/Modal.svelte` at ac72660).
-- `ModelInvalid` (class): A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet (M3R-D1).
+- `ModelInvalid` (class): A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet.
 - `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
+- `OwnedRenderer` (interface): A renderer the runtime owns: `dispose` destroys it (the canvas, its listeners, its GPU resources).
 - `PagedGrid` (const): A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts` at `ac72660`).
 - `PagerDots` (const): Where a paged view is (M4 spec §4.8; from FloorFifty `ui/layout/PagerDots.svelte` at `ac72660`): one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
 - `PauseBehavior` (type): Whether the game pauses when it goes to the background; fixed for the game's whole life.
@@ -164,14 +166,14 @@
 - `RoundOutcome` (type): How a round ended.
 - `RoundOutcomeSchema` (const): Checks a round outcome.
 - `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification: the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at b30d31b).
-- `runGame(game)`: Boots and runs the game in a runtime Scope: a failure draws the boot failure panel, and shutdown closes the scope.
+- `runGame(game)`: Boots and runs the game: a failure draws the boot failure panel, and `shutdown` closes everything the runtime opened.
 - `RuntimeFacts` (interface): Every fact the runtime publishes on the presentation bus, by name.
-- `RuntimeHandle` (interface): Controls the running game: shutdown closes the runtime scope.
+- `RuntimeHandle` (interface): Controls the running game: `shutdown` closes everything the runtime opened, last opened first.
 - `RuntimeSeams` (interface): Test seams injected into the runtime boot program.
 - `RuntimeServices` (interface): The runtime services a screen may use, as one plain object: boot builds them in order and hands them over.
 - `Save` (interface): A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for the autosave triggers to write.
 - `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
-- `Saves` (type): The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
+- `Saves` (interface): The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
 - `SavesChangedPayload` (interface): Another device's write, or the host's conflict choice, reached this session.
 - `SavesChangedPayloadSchema` (const): Checks a saves change.
 - `SavesFlushRes` (interface): Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`, `itch` and `tauri` targets).
@@ -186,10 +188,10 @@
 - `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
 - `ScrollList` (const): A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
-- `Settings` (type): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
+- `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
 - `SettingsScreenCopy` (interface): The Settings screen's own words: its title, Back, the tabs and the overflow count.
-- `settingsStore(def)`: Returns the booted settings store when `def.key` matches; dies with a defect when it does not.
+- `settingsStore(settings, def)`: The booted store for `def`.
 - `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
 - `SimContext` (interface): What a system's `run` receives each tick.
@@ -205,7 +207,7 @@
 - `suppressPageGestures(doc)`: Turns off the browser's document gestures over the game.
 - `SystemDef` (interface): A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and its `run`, called once per tick.
 - `TAURI_MARKERS` (const): String literals only Tauri's IPC code contains, which survive minification: the global the webview injects (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`).
-- `Time` (type): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
+- `Time` (interface): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
 - `Toast` (const): A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
 - `Toggle` (const): An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
 - `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.
@@ -243,7 +245,6 @@
 - `fakeGamepads(options?)`: `target` hears `gamepadconnected` and `gamepaddisconnected`, as `window` does in a browser.
 - `FakeGamepads` (interface): Four gamepad slots a unit test plugs pads into and presses; `getGamepads` reads them as the browser's would.
 - `FakeHostControl` (interface): What a test does to, and reads from, the fake host.
-- `FakeHosting(options?, hosting?)`: The fake host as an Effect layer, for the runtime's tests until task 5.4 converts them: `Hosting` for the game (built from `hosting`, default a game that wants saves) and `FakeHostControl` for the test.
 - `fakeHosting(options?)`: A fake host and the control handle that drives it.
 - `FakeHostingOptions` (interface): How the fake host starts.
 - `FakeResizeObserver` (interface): Controls the fake `ResizeObserver` `installFakeResizeObserver` put in place: report a width to every observer, then restore the original.
@@ -270,14 +271,15 @@
 - `nullRenderer(log?, options?)`: A renderer that draws nothing and records each call in `log`, for runtime tests without a GPU.
 - `NullRendererEntry` (type): One call `nullRenderer` recorded.
 - `NullRendererOptions` (interface): Options for `nullRenderer`: `fail` makes it fail `RendererUnavailable`.
+- `openRuntimeTest(options?)`: Boots the runtime for screen and integration tests, as `runGame` does but without the loader or failure panel: `openHostingTest` behind the scenes, page layers and geometry, the settings, the save, the services, and the flow started when there are screens.
 - `pressedPart(control)`: What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a press anywhere on it toggles the input), else the control itself.
 - `publishConditions(root, size, variant)`: Measures and publishes the geometry for `size` under `variant`, as the owner would.
 - `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.
 - `ReferenceFormFactor` (type): `@mcthaydt/automata-ui`'s `FormFactor`.
 - `ReferenceHeightTier` (type): `@mcthaydt/automata-ui`'s `HeightTier`.
 - `ReferenceSize` (interface): One viewport every primitive and screen is checked at: a name, its size, and the form factor and height tier it must classify as.
-- `RuntimeTest(options?)`: Test harness providing `RuntimeServices | FakeHostHandle` for screen and integration tests (spec §3.1, §8.1).
 - `RuntimeTestOptions` (interface): What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer, fetch and locale it uses.
+- `RuntimeTestSession` (interface): A booted runtime over the fake Ruken host: every service a screen reads, the host's handle and the page layers.
 - `Settle` (type): Lets the fake Ruken host answer over its in-memory ports (for example one macrotask).
 - `settleLayout()`: Waits until a freshly mounted fixture has finished laying out: fonts loaded, then two frames, so ResizeObserver callbacks (ActionBar's collapse, ScrollList's measure) and the re-layout they cause have run.
 - `Submission` (interface): One leaderboard submission the host received.
@@ -287,6 +289,7 @@
 - `Variant` (interface): A condition layered over a reference size.
 - `VARIANTS` (const): The conditions each size is also checked under: at rest, with the on-screen keyboard open, with Ruken's reserved strip on the right or the left, and at its TV scale.
 - `visibleControls(root)`: Controls a player could see and reach: laid out, not hidden, not in an inert subtree.
+- `withRuntimeTest(program, options?)`: Runs `program` on an open runtime and always closes it.
 
 ### `import { … } from '@mcthaydt/automata/tooling'`
 

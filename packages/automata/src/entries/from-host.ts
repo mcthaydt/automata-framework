@@ -9,11 +9,11 @@ export {
   RUKEN_SDK_MARKERS,
   TAURI_MARKERS,
 } from '../features/targets/sdk-markers'
-export { HostError, HostHandshakeFailed } from '../shared/host/errors'
+export type { HostHandshakeFailed, HostRefusal, HostResult } from '../shared/host/errors'
 export {
   type AnalyticsProps,
-  HOST_EXIT_CAP,
-  Hosting,
+  HOST_EXIT_CAP_MS,
+  type Hosting,
   type HostingLeaderboards,
   type HostingOptions,
   type HostingSaves,

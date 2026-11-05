@@ -7,12 +7,12 @@ import {
   type StepResult,
 } from '@mcthaydt/automata-sim'
 import { createFakeHost, type FakeHostOptions, settle } from '@ruken/sdk-host/testing'
-import { Effect } from 'effect'
 import { flushSync } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { type DefinedGame, defineGame, type GameSaves, type GameSpec } from '#src/app/define-game.ts'
 import { keys } from '#src/features/input/keys.ts'
+import { ok } from '#src/shared/lib/result.ts'
 import type { RuntimeHandle } from '../../../../../src/app/boot/game-definition.ts'
 import { runGame } from '../../../../../src/app/boot/run-game.ts'
 import { defineSave } from '../../../../../src/features/saves/save.schema.ts'
@@ -65,7 +65,7 @@ async function until(check: () => boolean, what: string): Promise<void> {
 
 function recordingRenderer(results: StepResult[]): RendererFactory {
   const renderer: GameRenderer = { apply: (result) => results.push(result), draw: () => {}, reset: () => {} }
-  return () => Effect.succeed(renderer)
+  return async () => ok({ ...renderer, dispose: () => {} })
 }
 
 /** What the fake host's server holds for a slot's key, parsed, or undefined. */

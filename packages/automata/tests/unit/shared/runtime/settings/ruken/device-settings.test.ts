@@ -1,14 +1,10 @@
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { plainSaves } from '#src/shared/host/effect-bridge.ts'
 import { type DeviceStorage, liveDeviceStorage } from '#src/shared/runtime/settings/device-storage.ts'
 import { type SettingsDef, writeSettings } from '#src/shared/runtime/settings/migrate-settings.ts'
 import { createSettings, type Settings } from '#src/shared/runtime/settings/settings.manager.ts'
-import { Hosting } from '../../../../../../src/shared/host/hosting.ts'
-import { FakeHostHandle, HostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
-import { runScoped } from '../../../../../../src/testing/host/page/run.ts'
+import { withHostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
 
 // Settings fields a game keeps on the device instead of in the player's saves (M5 spec §4.5, M5-D4). The cases come
 // from FloorFifty `tests/client/ruken/settings-hosted.test.ts`, "sound stays on the device inside Ruken"
@@ -65,8 +61,6 @@ const blockedDevice: DeviceStorage = {
   },
 }
 
-const settled: Effect.Effect<void> = Effect.promise(() => settle())
-
 /** The store's value, typed: `Settings` holds every game's store as `unknown`. */
 const current = (settings: Settings): Mixed => settings.store?.get() as Mixed
 
@@ -77,42 +71,36 @@ const writtenTo = (sent: unknown[]): { key: string; value: Record<string, unknow
 describe('settings fields kept on the device', () => {
   it("keeps a change in the device's storage and out of the player's saves", async () => {
     const device = memoryDevice()
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { sentByGame } = yield* FakeHostHandle
-        const settings = createSettings(mixed, null, plainSaves(hosting.saves), device)
-        settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: true, music: 0.25 } }))
-        yield* settled
-        expect(JSON.parse(device.held.get(DEVICE_KEY) ?? 'null')).toEqual({
-          version: 1,
-          audio: { muted: true, music: 0.25 },
-        })
-        for (const write of sentByGame('saves.set') as { value: string }[])
-          expect(write.value).not.toMatch(/muted|music/)
-      }).pipe(Effect.provide(HostingTest())),
-    )
+    await withHostingTest(async ({ hosting, handle }) => {
+      const { sentByGame } = handle
+      const settings = createSettings(mixed, null, hosting.saves, device)
+      settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: true, music: 0.25 } }))
+      await settle()
+      expect(JSON.parse(device.held.get(DEVICE_KEY) ?? 'null')).toEqual({
+        version: 1,
+        audio: { muted: true, music: 0.25 },
+      })
+      for (const write of sentByGame('saves.set') as { value: string }[])
+        expect(write.value).not.toMatch(/muted|music/)
+    })
   })
 
   it('still sends every other field to the saves, in the same shape, without the device fields', async () => {
     const device = memoryDevice()
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { sentByGame } = yield* FakeHostHandle
-        const settings = createSettings(mixed, null, plainSaves(hosting.saves), device)
-        settings.store?.update((value) => ({
-          ...(value as Mixed),
-          audio: { muted: true, music: 1 },
-          name: 'Kite',
-          locale: 'ja',
-        }))
-        yield* settled
-        expect(writtenTo(sentByGame('saves.set'))).toEqual([
-          { key: 'mixed', value: { version: 1, name: 'Kite', locale: 'ja' } },
-        ])
-      }).pipe(Effect.provide(HostingTest())),
-    )
+    await withHostingTest(async ({ hosting, handle }) => {
+      const { sentByGame } = handle
+      const settings = createSettings(mixed, null, hosting.saves, device)
+      settings.store?.update((value) => ({
+        ...(value as Mixed),
+        audio: { muted: true, music: 1 },
+        name: 'Kite',
+        locale: 'ja',
+      }))
+      await settle()
+      expect(writtenTo(sentByGame('saves.set'))).toEqual([
+        { key: 'mixed', value: { version: 1, name: 'Kite', locale: 'ja' } },
+      ])
+    })
   })
 
   it("reads both back on the next launch: the device's fields from the device, the rest from the saves", async () => {
@@ -120,156 +108,124 @@ describe('settings fields kept on the device', () => {
       [DEVICE_KEY]: JSON.stringify({ version: 1, audio: { muted: true, music: 0.5 } }),
     })
     const account = JSON.stringify({ version: 1, name: 'Kite', locale: 'ja' })
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const settings = createSettings(mixed, account, plainSaves(hosting.saves), device)
-        expect(settings.store?.get()).toEqual({
-          name: 'Kite',
-          locale: 'ja',
-          audio: { muted: true, music: 0.5 },
-        })
-      }).pipe(Effect.provide(HostingTest())),
-    )
+    await withHostingTest(async ({ hosting }) => {
+      const settings = createSettings(mixed, account, hosting.saves, device)
+      expect(settings.store?.get()).toEqual({
+        name: 'Kite',
+        locale: 'ja',
+        audio: { muted: true, music: 0.5 },
+      })
+    })
   })
 
   it('does not carry a device field to a second device, though the rest follows', async () => {
     const account = JSON.stringify({ version: 1, name: 'Kite', locale: 'ja' })
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const settings = createSettings(mixed, account, plainSaves(hosting.saves), memoryDevice())
-        expect(settings.store?.get()).toEqual({ name: 'Kite', locale: 'ja', audio: AUDIO_DEFAULT })
-      }).pipe(Effect.provide(HostingTest())),
-    )
+    await withHostingTest(async ({ hosting }) => {
+      const settings = createSettings(mixed, account, hosting.saves, memoryDevice())
+      expect(settings.store?.get()).toEqual({ name: 'Kite', locale: 'ja', audio: AUDIO_DEFAULT })
+    })
   })
 
   it("never reads the account's copy of a device field, and the next account write leaves it out", async () => {
     const old = writeSettings(mixed, { name: 'Kite', locale: 'ja', audio: { muted: true, music: 0.1 } })
     const device = memoryDevice()
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { sentByGame } = yield* FakeHostHandle
-        const settings = createSettings(mixed, old, plainSaves(hosting.saves), device)
-        expect(settings.store?.get()).toEqual({ name: 'Kite', locale: 'ja', audio: AUDIO_DEFAULT })
+    await withHostingTest(async ({ hosting, handle }) => {
+      const { sentByGame } = handle
+      const settings = createSettings(mixed, old, hosting.saves, device)
+      expect(settings.store?.get()).toEqual({ name: 'Kite', locale: 'ja', audio: AUDIO_DEFAULT })
 
-        settings.store?.update((value) => ({ ...(value as Mixed), name: 'Wren' }))
-        yield* settled
-        expect(writtenTo(sentByGame('saves.set'))).toEqual([
-          { key: 'mixed', value: { version: 1, name: 'Wren', locale: 'ja' } },
-        ])
-        // And this device now holds its own record: the defaults.
-        expect(JSON.parse(device.held.get(DEVICE_KEY) ?? 'null')).toEqual({
-          version: 1,
-          audio: AUDIO_DEFAULT,
-        })
-      }).pipe(Effect.provide(HostingTest())),
-    )
+      settings.store?.update((value) => ({ ...(value as Mixed), name: 'Wren' }))
+      await settle()
+      expect(writtenTo(sentByGame('saves.set'))).toEqual([
+        { key: 'mixed', value: { version: 1, name: 'Wren', locale: 'ja' } },
+      ])
+      // And this device now holds its own record: the defaults.
+      expect(JSON.parse(device.held.get(DEVICE_KEY) ?? 'null')).toEqual({
+        version: 1,
+        audio: AUDIO_DEFAULT,
+      })
+    })
   })
 
   it('reads the device record through the same per-field fallbacks as any settings record', async () => {
     const device = memoryDevice({
       [DEVICE_KEY]: JSON.stringify({ version: 1, audio: { muted: 'yes', music: 0.3 } }),
     })
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const settings = createSettings(mixed, null, plainSaves(hosting.saves), device)
-        expect(current(settings).audio).toEqual({ muted: false, music: 0.3 })
-      }).pipe(Effect.provide(HostingTest())),
-    )
+    await withHostingTest(async ({ hosting }) => {
+      const settings = createSettings(mixed, null, hosting.saves, device)
+      expect(current(settings).audio).toEqual({ muted: false, music: 0.3 })
+    })
   })
 
   it('reads a damaged device record as the defaults, and an account record with a bad field one field at a time', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const account = JSON.stringify({ version: 1, name: 7, locale: 'ja' })
-        const settings = createSettings(
-          mixed,
-          account,
-          plainSaves(hosting.saves),
-          memoryDevice({ [DEVICE_KEY]: '{oops' }),
-        )
-        expect(settings.store?.get()).toEqual({ name: 'Player', locale: 'ja', audio: AUDIO_DEFAULT })
-      }).pipe(Effect.provide(HostingTest())),
-    )
+    await withHostingTest(async ({ hosting }) => {
+      const account = JSON.stringify({ version: 1, name: 7, locale: 'ja' })
+      const settings = createSettings(mixed, account, hosting.saves, memoryDevice({ [DEVICE_KEY]: '{oops' }))
+      expect(settings.store?.get()).toEqual({ name: 'Player', locale: 'ja', audio: AUDIO_DEFAULT })
+    })
   })
 
   it('does not write the account again for a change only the device keeps, once it has written it', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { sentByGame } = yield* FakeHostHandle
-        const settings = createSettings(mixed, null, plainSaves(hosting.saves), memoryDevice())
-        for (const music of [0.9, 0.8, 0.7, 0.6])
-          settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: false, music } }))
-        yield* settled
-        // The first update writes the account (it has never been written this visit); the slider drags after it do not.
-        expect(sentByGame('saves.set')).toHaveLength(1)
-        settings.store?.update((value) => ({ ...(value as Mixed), locale: 'ja' }))
-        yield* settled
-        expect(sentByGame('saves.set')).toHaveLength(2)
-      }).pipe(Effect.provide(HostingTest())),
-    )
+    await withHostingTest(async ({ hosting, handle }) => {
+      const { sentByGame } = handle
+      const settings = createSettings(mixed, null, hosting.saves, memoryDevice())
+      for (const music of [0.9, 0.8, 0.7, 0.6])
+        settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: false, music } }))
+      await settle()
+      // The first update writes the account (it has never been written this visit); the slider drags after it do not.
+      expect(sentByGame('saves.set')).toHaveLength(1)
+      settings.store?.update((value) => ({ ...(value as Mixed), locale: 'ja' }))
+      await settle()
+      expect(sentByGame('saves.set')).toHaveLength(2)
+    })
   })
 
   it('plays on with a device whose storage cannot be touched: the change holds for the visit and is never saved instead (S-g)', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { host } = yield* FakeHostHandle
-        const settings = createSettings(mixed, null, plainSaves(hosting.saves), blockedDevice)
-        expect(current(settings).audio).toEqual(AUDIO_DEFAULT)
+    await withHostingTest(async ({ hosting, handle }) => {
+      const { host } = handle
+      const settings = createSettings(mixed, null, hosting.saves, blockedDevice)
+      expect(current(settings).audio).toEqual(AUDIO_DEFAULT)
 
-        expect(() =>
-          settings.store?.update((value) => ({
-            ...(value as Mixed),
-            audio: { muted: true, music: 0.4 },
-            name: 'Kite',
-          })),
-        ).not.toThrow()
-        expect(current(settings).audio).toEqual({ muted: true, music: 0.4 })
-        yield* hosting.saves.flush
-        yield* settled
-
-        for (const slot of host.fakes.server.slots.values()) expect(slot.value).not.toMatch(/muted|music/)
-        expect(JSON.parse(host.fakes.server.slots.get('mixed')?.value ?? 'null')).toEqual({
-          version: 1,
+      expect(() =>
+        settings.store?.update((value) => ({
+          ...(value as Mixed),
+          audio: { muted: true, music: 0.4 },
           name: 'Kite',
-          locale: 'en',
-        })
-      }).pipe(Effect.provide(HostingTest())),
-    )
+        })),
+      ).not.toThrow()
+      expect(current(settings).audio).toEqual({ muted: true, music: 0.4 })
+      await hosting.saves.flush()
+      await settle()
+
+      for (const slot of host.fakes.server.slots.values()) expect(slot.value).not.toMatch(/muted|music/)
+      expect(JSON.parse(host.fakes.server.slots.get('mixed')?.value ?? 'null')).toEqual({
+        version: 1,
+        name: 'Kite',
+        locale: 'en',
+      })
+    })
   })
 
   it('refuses a device field the settings do not have, which would silently stay in the saves', async () => {
     const typo = { ...mixed, deviceFields: ['audio', 'sound'] }
     await expect(
-      runScoped(
-        Effect.gen(function* () {
-          const hosting = yield* Hosting
-          createSettings(typo, null, plainSaves(hosting.saves), memoryDevice())
-        }).pipe(Effect.provide(HostingTest())),
-      ),
+      withHostingTest(async ({ hosting }) => {
+        createSettings(typo, null, hosting.saves, memoryDevice())
+      }),
     ).rejects.toThrow(/'sound'/)
   })
 
   it('writes every field to the saves for a definition that declares no device fields, as before', async () => {
     const { deviceFields: _declared, ...plain } = mixed
-    await runScoped(
-      Effect.gen(function* () {
-        const hosting = yield* Hosting
-        const { sentByGame } = yield* FakeHostHandle
-        const device = memoryDevice()
-        const settings = createSettings(plain, null, plainSaves(hosting.saves), device)
-        settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: true, music: 1 } }))
-        yield* settled
-        expect(writtenTo(sentByGame('saves.set'))[0]?.value).toMatchObject({ audio: { muted: true } })
-        expect(device.held.size).toBe(0)
-      }).pipe(Effect.provide(HostingTest())),
-    )
+    await withHostingTest(async ({ hosting, handle }) => {
+      const { sentByGame } = handle
+      const device = memoryDevice()
+      const settings = createSettings(plain, null, hosting.saves, device)
+      settings.store?.update((value) => ({ ...(value as Mixed), audio: { muted: true, music: 1 } }))
+      await settle()
+      expect(writtenTo(sentByGame('saves.set'))[0]?.value).toMatchObject({ audio: { muted: true } })
+      expect(device.held.size).toBe(0)
+    })
   })
 })
 

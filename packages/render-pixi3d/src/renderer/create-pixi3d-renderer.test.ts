@@ -1,5 +1,4 @@
 import '../no-eval.js'
-import { Effect, Exit, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { encodeGlb, fixtureBox } from '../model/testing/model-fixtures.js'
 import { testTarget } from '../testing/test-target.js'
@@ -18,11 +17,14 @@ const recordingHost = () => {
   }
 }
 
+/** Builds the renderer, disposes it if it started, and answers why it did not (or `undefined`). */
 const run = async (factory: ReturnType<typeof createPixi3dRenderer>, host: HTMLElement, files = {}) => {
-  const scope = Effect.runSync(Scope.make())
-  const exit = await Effect.runPromiseExit(Scope.extend(factory(testTarget(host, files)), scope))
-  await Effect.runPromise(Scope.close(scope, Exit.void))
-  return exit
+  const built = await factory(testTarget(host, files))
+  if (built.ok) {
+    built.value.dispose()
+    return undefined
+  }
+  return built.reason
 }
 
 describe('createPixi3dRenderer before any Pixi app exists', () => {
@@ -31,23 +33,27 @@ describe('createPixi3dRenderer before any Pixi app exists', () => {
     const factory = createPixi3dRenderer({
       views: { prop: mesh('models/hero.glb'), crate: box({ width: 1, height: 1, depth: 1 }, { color: 1 }) },
     })
-    const exit = await run(factory, host, { 'models/hero.glb': encodeGlb(fixtureBox(), { skinned: true }) })
-    expect(Exit.isFailure(exit) && JSON.stringify(exit.cause.toJSON())).toContain('"reason":"skinned"')
+    const refused = await run(factory, host, {
+      'models/hero.glb': encodeGlb(fixtureBox(), { skinned: true }),
+    })
+    expect(refused).toMatchObject({ _tag: 'ModelInvalid', reason: 'skinned' })
     expect(host.children).toEqual([])
   })
 
   it('fails with ModelInvalid for a model file the game did not preload', async () => {
-    const exit = await run(
+    const refused = await run(
       createPixi3dRenderer({ views: { prop: mesh('models/desk.glb') } }),
       recordingHost(),
     )
-    expect(Exit.isFailure(exit) && JSON.stringify(exit.cause.toJSON())).toContain('"reason":"not loaded"')
+    expect(refused).toMatchObject({ _tag: 'ModelInvalid', reason: 'not loaded' })
   })
   it("loads the scene's own model files with the views' (M3.7b part 3a): a skinned one fails boot the same way", async () => {
     const host = recordingHost()
     const factory = createPixi3dRenderer({ views: {}, models: ['models/bench.glb'] })
-    const exit = await run(factory, host, { 'models/bench.glb': encodeGlb(fixtureBox(), { skinned: true }) })
-    expect(Exit.isFailure(exit) && JSON.stringify(exit.cause.toJSON())).toContain('"reason":"skinned"')
+    const refused = await run(factory, host, {
+      'models/bench.glb': encodeGlb(fixtureBox(), { skinned: true }),
+    })
+    expect(refused).toMatchObject({ _tag: 'ModelInvalid', reason: 'skinned' })
     expect(host.children).toEqual([])
   })
 })

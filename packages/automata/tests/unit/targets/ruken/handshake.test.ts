@@ -1,7 +1,7 @@
 import type { SdkEnv } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { Hosting } from '#src/shared/host/plain-hosting.ts'
+import type { Hosting } from '#src/shared/host/hosting.ts'
 import {
   type HostingTestOptions,
   type ManualClock,

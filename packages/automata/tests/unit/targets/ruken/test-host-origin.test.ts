@@ -1,6 +1,6 @@
 import { settle } from '@ruken/sdk-host/testing'
 import { describe, expect, it } from 'vitest'
-import type { Hosting } from '#src/shared/host/plain-hosting.ts'
+import type { Hosting } from '#src/shared/host/hosting.ts'
 import { manualClock, openHostingTest } from '#src/testing/host/page/index.ts'
 
 /** The address a phone test serves Ruken from (FloorFifty tests/client/ruken/test-host-origin.test.ts). */

@@ -1,4 +1,4 @@
-import type { HostResult } from '../shared/host/plain-errors'
+import type { HostResult } from '../shared/host/errors'
 
 /** The value of a host call that must have succeeded; a refusal fails the test with its code. */
 export function unwrap<T>(result: HostResult<T>): T {

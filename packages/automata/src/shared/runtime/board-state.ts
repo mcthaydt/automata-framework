@@ -1,8 +1,8 @@
 // What a leaderboard call ended as, for a screen to show. Every host answer maps to one named
 // state; none of them keeps a local board instead (host authority).
 
+import type { HostRefusal } from '../host/errors.ts'
 import type { LeaderboardSubmitRes } from '../host/leaderboards.schema.ts'
-import type { HostRefusal } from '../host/plain-errors.ts'
 
 /** The host's answer to a submit (Ruken's `LeaderboardSubmitRes`), as `Hosting.leaderboards` relays it. */
 export type SubmitAnswer = LeaderboardSubmitRes

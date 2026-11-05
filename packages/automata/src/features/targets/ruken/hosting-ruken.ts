@@ -7,9 +7,9 @@ import {
   type SavesChangedPayload,
   type SdkEnv,
 } from '@ruken/sdk'
+import { type HostResult, refuse } from '../../../shared/host/errors'
 import type { HostingOptions } from '../../../shared/host/hosting'
-import { type HostResult, refuse } from '../../../shared/host/plain-errors'
-import { HOST_EXIT_CAP_MS, type Hosting } from '../../../shared/host/plain-hosting'
+import { HOST_EXIT_CAP_MS, type Hosting } from '../../../shared/host/hosting'
 import { type Clock, systemClock } from '../../../shared/lib/clock'
 import { disposables } from '../../../shared/lib/disposables'
 import { ok, refused } from '../../../shared/lib/result'

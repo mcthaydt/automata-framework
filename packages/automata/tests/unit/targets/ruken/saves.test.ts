@@ -1,7 +1,7 @@
 import type { SdkEnv, StorageLike } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
 import { describe, expect, it } from 'vitest'
-import type { HostResult } from '#src/shared/host/plain-errors.ts'
+import type { HostResult } from '#src/shared/host/errors.ts'
 import { manualClock, withHostingTest } from '#src/testing/host/page/index.ts'
 import { unwrap } from '#src/testing/unwrap.ts'
 

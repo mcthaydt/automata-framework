@@ -5,8 +5,8 @@
 // as `@mcthaydt/automata-host/contract-suite` so `FakeHosting` in `@mcthaydt/automata-testing` runs the same cases
 // (DIST spec §7); it needs Vitest.
 import { describe, expect, it } from 'vitest'
-import type { HostResult } from '../../shared/host/plain-errors'
-import type { Hosting } from '../../shared/host/plain-hosting'
+import type { HostResult } from '../../shared/host/errors'
+import type { Hosting } from '../../shared/host/hosting'
 import { unwrap } from '../unwrap'
 
 /** An adapter under test: a fresh `Hosting` per case, with `saves` granted. */

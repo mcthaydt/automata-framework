@@ -4,11 +4,11 @@ import {
   BootDefect,
   type BootError,
   ContentHashMismatch,
+  HostError,
   LoadStalled,
   ModelInvalid,
   RendererUnavailable,
 } from '#src/shared/runtime/boot-error.ts'
-import { HostError } from '../../../../src/shared/host/errors.ts'
 import { type BootFailure, bootFailureView } from '../../../../src/shared/ui/status/boot-failure.ts'
 
 describe('BootError', () => {

@@ -1,12 +1,12 @@
-import { Cause, Effect, Exit, Fiber, Option, Scope } from 'effect'
 import type { Hosting } from '../../shared/host/hosting.ts'
-import { BootDefect, type BootError } from '../../shared/runtime/boot-error.js'
+import type { BootError } from '../../shared/runtime/boot-error.js'
 import type { LoaderControls, PageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import { createPageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import { bootProgram } from './boot-program.js'
 import { failureHost } from './failure-host.js'
 import type { GameDefinition, RuntimeHandle } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
+import { type Teardown, teardown } from './teardown.ts'
 
 /**
  * Formats a boot error into a descriptive message for logging.
@@ -36,160 +36,100 @@ export function describeBootError(error: BootError): string {
 }
 
 /**
- * Boots and runs the game in a runtime Scope: a failure draws the boot failure panel, and shutdown closes the scope.
+ * Boots and runs the game: a failure draws the boot failure panel, and `shutdown` closes everything the runtime opened.
  *
- * Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
- * the attempt scope open so Back to {host} can access its Hosting service. Try again
- * and Continue without loading close the failed attempt scope and re-run bootProgram
- * in a fresh Scope on the same root without reloading the page. Inside a Ruken session,
- * Try again reloads the game's frame instead: `@ruken/sdk-host` answers one hello per
- * frame load, so a second session in this load would never be welcomed (RT.BOOT1).
+ * Each attempt opens into a fresh `Teardown`. On failure it mounts the boot failure panel and keeps the attempt open,
+ * so Back to {host} can still reach its `Hosting`. Try again and Continue without loading close the failed attempt and
+ * boot again on the same root without reloading the page. Inside a Ruken session, Try again reloads the game's frame
+ * instead: the host answers one hello per frame load, so a second session in this load would never be welcomed.
  *
- * RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIFO order.
+ * `shutdown()` stops a boot under way and closes the current attempt, last opened first.
  */
 export function runGame<S>(game: GameDefinition<S>): RuntimeHandle {
-  let currentScope: Scope.CloseableScope | null = null
-  let capturedHosting: Hosting | null = null
+  let current: { readonly owned: Teardown; readonly abort: AbortController } | null = null
   let unmountFailure: (() => void) | null = null
-  let isShuttingDown = false
-  let isShutdown = false
-  let currentFiber: Fiber.RuntimeFiber<void, unknown> | null = null
+  let stopping = false
 
-  function runAttempt(skipSettingsRead: boolean) {
-    if (isShuttingDown || isShutdown) return
+  /** Closes the current attempt (stopping its boot first) and forgets it. */
+  async function closeAttempt(): Promise<void> {
+    const attempt = current
+    current = null
+    if (attempt === null) return
+    attempt.abort.abort()
+    await attempt.owned.close()
+  }
 
-    const program = Effect.gen(function* () {
-      const scope = yield* Scope.make()
-      currentScope = scope
+  async function runAttempt(skipSettingsRead: boolean): Promise<void> {
+    if (stopping) return
+    const owned = teardown()
+    const abort = new AbortController()
+    current = { owned, abort }
+    let layers: PageLayers | null = null
+    let loader: LoaderControls | null = null
+    let hosting: Hosting | null = null
 
-      const layersRef: { current: PageLayers | null } = { current: null }
-      const loaderRef: { current: LoaderControls | null } = { current: null }
-      const hostingRef: { current: Hosting | null } = { current: null }
-
-      const exit = yield* Effect.exit(
-        Effect.provideService(
-          bootProgram(game, {
-            skipSettingsRead,
-            onHosting: (h) => {
-              hostingRef.current = h
-              capturedHosting = h
-            },
-            onLayers: (l) => {
-              layersRef.current = l
-            },
-            onLoader: (loader) => {
-              loaderRef.current = loader
-            },
-          }),
-          Scope.Scope,
-          scope,
-        ),
-      )
-
-      if (Exit.isFailure(exit)) {
-        if (isShuttingDown || isShutdown) {
-          yield* Scope.close(scope, Exit.void)
-          currentScope = null
-          return
-        }
-
-        const cause = exit.cause
-        if (Cause.isInterruptedOnly(cause)) {
-          return
-        }
-
-        const failureOpt = Cause.failureOption(cause)
-        const error: BootError = Option.isSome(failureOpt)
-          ? failureOpt.value
-          : new BootDefect({ cause: Cause.squash(cause) })
-
-        // Log error through describeBootError (exhaustive switch)
-        yield* Effect.logError(describeBootError(error))
-
-        // Close loader if still mounted
-        loaderRef.current?.close()
-
-        // Ensure layers exist and set state to failed
-        const doc = game.seams?.document ?? game.root.ownerDocument ?? document
-        const layers = layersRef.current ?? createPageLayers(game.root, doc)
-        layers.setState('failed')
-
-        // Mount BootFailurePanel; attempt scope is kept open so Back to {host} has Hosting
-        const closeFailure = layers.showBootFailure({
-          failure: error,
-          ...failureHost(hostingRef.current),
-          copy: game.copy,
-          onRetry: () => {
-            if (hostingRef.current?.kind === 'ruken') {
-              const reload = game.seams?.reload ?? (() => doc.defaultView?.location.reload())
-              reload()
-              return
-            }
-            closeFailure()
-            unmountFailure = null
-            void Effect.runPromise(
-              Effect.gen(function* () {
-                yield* Scope.close(scope, Exit.void)
-                currentScope = null
-                capturedHosting = null
-                runAttempt(false)
-              }),
-            )
-          },
-          onContinue: () => {
-            closeFailure()
-            unmountFailure = null
-            void Effect.runPromise(
-              Effect.gen(function* () {
-                yield* Scope.close(scope, Exit.void)
-                currentScope = null
-                capturedHosting = null
-                runAttempt(true)
-              }),
-            )
-          },
-          onExit: () => {
-            if (capturedHosting) {
-              void Effect.runPromise(capturedHosting.exit('player'))
-            }
-          },
-        })
-        notifyFailure(game.seams, error)
-
-        unmountFailure = closeFailure
-      }
+    const booted = await bootProgram(game, owned, {
+      skipSettingsRead,
+      signal: abort.signal,
+      onHosting: (opened) => {
+        hosting = opened
+      },
+      onLayers: (opened) => {
+        layers = opened
+      },
+      onLoader: (opened) => {
+        loader = opened
+      },
     })
+    if (booted.ok || abort.signal.aborted || stopping) return
 
-    currentFiber = Effect.runFork(program)
+    const error = booted.reason
+    console.error(describeBootError(error))
+    ;(loader as LoaderControls | null)?.close()
+
+    const doc = game.seams?.document ?? game.root.ownerDocument ?? document
+    const failedLayers = (layers as PageLayers | null) ?? createPageLayers(game.root, doc)
+    failedLayers.setState('failed')
+
+    const failedHosting = hosting as Hosting | null
+    const retry = (skip: boolean) => {
+      closeFailure()
+      unmountFailure = null
+      void closeAttempt().then(() => runAttempt(skip))
+    }
+    // The attempt stays open so Back to {host} still has its Hosting.
+    const closeFailure = failedLayers.showBootFailure({
+      failure: error,
+      ...failureHost(failedHosting),
+      copy: game.copy,
+      onRetry: () => {
+        if (failedHosting?.kind === 'ruken') {
+          const reload = game.seams?.reload ?? (() => doc.defaultView?.location.reload())
+          reload()
+          return
+        }
+        retry(false)
+      },
+      onContinue: () => retry(true),
+      onExit: () => {
+        if (failedHosting !== null) void failedHosting.exit('player')
+      },
+    })
+    notifyFailure(game.seams, error)
+    unmountFailure = closeFailure
   }
 
   // Start the first boot attempt
-  runAttempt(false)
+  void runAttempt(false)
 
   return {
     async shutdown() {
-      if (isShutdown) return
-      if (isShuttingDown) return
-      isShuttingDown = true
-
-      if (unmountFailure) {
-        unmountFailure()
-        unmountFailure = null
-      }
-
-      if (currentFiber) {
-        await Effect.runPromise(Fiber.interrupt(currentFiber))
-        currentFiber = null
-      }
-
-      if (currentScope) {
-        const scopeToClose = currentScope
-        currentScope = null
-        capturedHosting = null
-        await Effect.runPromise(Scope.close(scopeToClose, Exit.void))
-      }
-
-      isShutdown = true
+      if (stopping) return
+      stopping = true
+      unmountFailure?.()
+      unmountFailure = null
+      // A boot under way gives up at its next step; anything it opens after this closes at once (`Teardown.add`).
+      await closeAttempt()
     },
   }
 }

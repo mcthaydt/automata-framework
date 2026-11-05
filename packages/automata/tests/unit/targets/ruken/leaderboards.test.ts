@@ -1,6 +1,6 @@
 import type { SdkEnv } from '@ruken/sdk'
 import { describe, expect, it } from 'vitest'
-import type { HostResult } from '#src/shared/host/plain-errors.ts'
+import type { HostResult } from '#src/shared/host/errors.ts'
 import { type HostingTestOptions, openHostingTest, withHostingTest } from '#src/testing/host/page/index.ts'
 import { unwrap } from '#src/testing/unwrap.ts'
 

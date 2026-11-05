@@ -1,12 +1,33 @@
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { Effect, Exit, Scope } from 'effect'
 import { Application, type ApplicationOptions, Container, type Filter } from 'pixi.js'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { postFilter } from '#src/features/render/filter/post-filter.ts'
-import { createPixiRenderer } from '#src/features/render/renderer.ts'
+import { createPixiRenderer, type PixiRenderer } from '#src/features/render/renderer.ts'
 import type { RendererUnavailable } from '../../../src/shared/runtime/boot-error.ts'
 import type { FrameInfo } from '../../../src/shared/runtime/loop/frames.ts'
 import type { Geometry } from '../../../src/shared/ui/geometry/geometry.ts'
+
+/** Every renderer a test built, disposed when its `scoped` block ends (what closing the Effect scope did). */
+let opened: PixiRenderer[] = []
+
+/** The renderer a factory built; a refusal fails the test. */
+async function built(
+  made: Promise<Awaited<ReturnType<ReturnType<typeof createPixiRenderer>>>>,
+): Promise<PixiRenderer> {
+  const result = await made
+  if (!result.ok) throw result.reason
+  opened.push(result.value)
+  return result.value
+}
+
+/** Runs `body`, then disposes the renderers it built, last first, as a closed scope would. */
+async function scoped<A>(body: () => Promise<A>): Promise<A> {
+  try {
+    return await body()
+  } finally {
+    for (const renderer of opened.splice(0).reverse()) renderer.dispose()
+  }
+}
 
 describe('createPixiRenderer', () => {
   let mockInitBehavior: (this: Application, opts?: Partial<ApplicationOptions>) => Promise<void> | void
@@ -91,42 +112,38 @@ describe('createPixiRenderer', () => {
     const target = createFakeTarget()
     const factory = createPixiRenderer({ logicalWidth: 960, logicalHeight: 540 })
 
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const renderer = yield* factory(target)
-        expect(renderer).toBeDefined()
-        expect(initSpy).toHaveBeenCalledTimes(1)
-        expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgl')
+    const program = scoped(async () => {
+      const renderer = await built(factory(target))
+      expect(renderer).toBeDefined()
+      expect(initSpy).toHaveBeenCalledTimes(1)
+      expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgl')
 
-        const canvas = target.host.querySelector('canvas')
-        expect(canvas).not.toBeNull()
-        expect(canvas?.dataset.renderer).toBe('webgl')
-        expect(canvas?.classList.contains('af-stage')).toBe(true)
+      const canvas = target.host.querySelector('canvas')
+      expect(canvas).not.toBeNull()
+      expect(canvas?.dataset.renderer).toBe('webgl')
+      expect(canvas?.classList.contains('af-stage')).toBe(true)
 
-        expect(renderer.stage.frame).toBeDefined()
-        expect(renderer.stage.world).toBeDefined()
-        expect(renderer.stage.ui).toBeDefined()
-        expect(renderer.stage.backdrop).toBeDefined()
-      }),
-    )
+      expect(renderer.stage.frame).toBeDefined()
+      expect(renderer.stage.world).toBeDefined()
+      expect(renderer.stage.ui).toBeDefined()
+      expect(renderer.stage.backdrop).toBeDefined()
+    })
 
-    await Effect.runPromise(program)
+    await program
   })
 
   it('respects preference: webgpu', async () => {
     const target = createFakeTarget()
     const factory = createPixiRenderer({ preference: 'webgpu' })
 
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const renderer = yield* factory(target)
-        expect(initSpy).toHaveBeenCalledTimes(1)
-        expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgpu')
-        expect(renderer.stage.app.canvas.dataset.renderer).toBe('webgpu')
-      }),
-    )
+    const program = scoped(async () => {
+      const renderer = await built(factory(target))
+      expect(initSpy).toHaveBeenCalledTimes(1)
+      expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgpu')
+      expect(renderer.stage.app.canvas.dataset.renderer).toBe('webgpu')
+    })
 
-    await Effect.runPromise(program)
+    await program
   })
 
   it('falls back to webgl when webgpu fails and cleans up partial app', async () => {
@@ -154,22 +171,20 @@ describe('createPixiRenderer', () => {
     const destroySpy = vi.spyOn(Application.prototype, 'destroy')
     const factory = createPixiRenderer({ preference: 'webgpu' })
 
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const renderer = yield* factory(target)
-        expect(attempts).toBe(2)
-        expect(destroySpy).toHaveBeenCalledWith(true, { children: true })
-        expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgpu')
-        expect(initSpy.mock.calls[1]?.[0]?.preference).toBe('webgl')
-        expect(renderer.stage.app.canvas.dataset.renderer).toBe('webgl')
-      }),
-    )
+    const program = scoped(async () => {
+      const renderer = await built(factory(target))
+      expect(attempts).toBe(2)
+      expect(destroySpy).toHaveBeenCalledWith(true, { children: true })
+      expect(initSpy.mock.calls[0]?.[0]?.preference).toBe('webgpu')
+      expect(initSpy.mock.calls[1]?.[0]?.preference).toBe('webgl')
+      expect(renderer.stage.app.canvas.dataset.renderer).toBe('webgl')
+    })
 
-    await Effect.runPromise(program)
+    await program
     destroySpy.mockRestore()
   })
 
-  it('fails with RendererUnavailable when all backends fail', async () => {
+  it('answers RendererUnavailable when all backends fail', async () => {
     const target = createFakeTarget()
     mockInitBehavior = () => {
       throw new Error('WebGL creation failed')
@@ -177,12 +192,11 @@ describe('createPixiRenderer', () => {
 
     const factory = createPixiRenderer({ preference: 'webgpu' })
 
-    const program = Effect.scoped(factory(target))
-    const result = await Effect.runPromise(Effect.either(program))
+    const result = await factory(target)
 
-    expect(result._tag).toBe('Left')
-    if (result._tag === 'Left') {
-      const err = result.left as RendererUnavailable
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      const err: RendererUnavailable = result.reason
       expect(err._tag).toBe('RendererUnavailable')
       expect(err.tried).toEqual(['webgpu', 'webgl2'])
     }
@@ -192,30 +206,28 @@ describe('createPixiRenderer', () => {
     const target = createFakeTarget({ width: 800, height: 600 })
     const factory = createPixiRenderer({ logicalWidth: 960, logicalHeight: 540 })
 
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const renderer = yield* factory(target)
-        const frame = renderer.stage.frame
-        expect(frame).toBeDefined()
-        if (!frame) return
-        const layoutSpy = vi.spyOn(frame, 'layout')
+    const program = scoped(async () => {
+      const renderer = await built(factory(target))
+      const frame = renderer.stage.frame
+      expect(frame).toBeDefined()
+      if (!frame) return
+      const layoutSpy = vi.spyOn(frame, 'layout')
 
-        target.triggerResize({ width: 1024, height: 768 })
+      target.triggerResize({ width: 1024, height: 768 })
 
-        expect(renderer.stage.app.renderer.resize).toHaveBeenCalledWith(1024, 768)
-        expect(layoutSpy).toHaveBeenCalledWith(1024, 768)
-      }),
-    )
+      expect(renderer.stage.app.renderer.resize).toHaveBeenCalledWith(1024, 768)
+      expect(layoutSpy).toHaveBeenCalledWith(1024, 768)
+    })
 
-    await Effect.runPromise(program)
+    await program
   })
 
-  it('scope finalizer cleans up app, views, frame, and removes canvas from DOM', async () => {
+  it('dispose cleans up app, views, frame, and removes canvas from DOM', async () => {
     const target = createFakeTarget()
     const factory = createPixiRenderer({ logicalWidth: 960, logicalHeight: 540 })
 
-    const scope = Effect.runSync(Scope.make())
-    const renderer = await Effect.runPromise(Scope.extend(factory(target), scope))
+    const renderer = await built(factory(target))
+    opened = []
 
     const destroySpy = vi.spyOn(renderer.stage.app, 'destroy')
     const frame = renderer.stage.frame
@@ -225,7 +237,7 @@ describe('createPixiRenderer', () => {
 
     expect(target.host.children.length).toBe(1)
 
-    await Effect.runPromise(Scope.close(scope, Exit.void))
+    renderer.dispose()
 
     expect(destroySpy).toHaveBeenCalled()
     expect(frameDestroySpy).toHaveBeenCalled()
@@ -234,58 +246,54 @@ describe('createPixiRenderer', () => {
 
   it('closes cleanly after a real destroy, which leaves the app without a renderer (and so without a canvas)', async () => {
     const target = createFakeTarget()
-    const scope = Effect.runSync(Scope.make())
-    const renderer = await Effect.runPromise(Scope.extend(createPixiRenderer()(target), scope))
+    const renderer = await built(createPixiRenderer()(target))
+    opened = []
     const app = renderer.stage.app as unknown as { renderer: unknown; destroy: () => void }
     // Pixi's Application.destroy drops its renderer; its `canvas` getter then throws.
     vi.spyOn(renderer.stage.app, 'destroy').mockImplementation(() => {
       app.renderer = null
     })
 
-    const exit = await Effect.runPromiseExit(Scope.close(scope, Exit.void))
-
-    expect(Exit.isSuccess(exit)).toBe(true)
+    expect(() => renderer.dispose()).not.toThrow()
     expect(target.host.children.length).toBe(0)
   })
 
-  it('forwards delta in apply and executes synchronous draw without Effect allocation', async () => {
+  it('forwards delta in apply and executes synchronous draw without allocating', async () => {
     const target = createFakeTarget()
     const factory = createPixiRenderer()
 
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const renderer = yield* factory(target)
-        const consumerSpy = vi.spyOn(renderer.stage.consumer, 'apply')
-        const interpolateSpy = vi.spyOn(renderer.stage.consumer, 'interpolate')
-        const renderSpy = vi.spyOn(renderer.stage.app, 'render')
+    const program = scoped(async () => {
+      const renderer = await built(factory(target))
+      const consumerSpy = vi.spyOn(renderer.stage.consumer, 'apply')
+      const interpolateSpy = vi.spyOn(renderer.stage.consumer, 'interpolate')
+      const renderSpy = vi.spyOn(renderer.stage.app, 'render')
 
-        const stepResult: StepResult = {
-          tick: 0,
-          render: {
-            resync: false,
-            added: [],
-            changed: [],
-            removed: [],
-          },
-          events: [],
-          rejected: [],
-        }
+      const stepResult: StepResult = {
+        tick: 0,
+        render: {
+          resync: false,
+          added: [],
+          changed: [],
+          removed: [],
+        },
+        events: [],
+        rejected: [],
+      }
 
-        renderer.apply(stepResult)
-        expect(consumerSpy).toHaveBeenCalledWith(stepResult.render)
+      renderer.apply(stepResult)
+      expect(consumerSpy).toHaveBeenCalledWith(stepResult.render)
 
-        const frameInfo: FrameInfo = {
-          alpha: 0.75,
-          frameMs: 16,
-          paused: false,
-        }
-        renderer.draw(frameInfo)
-        expect(interpolateSpy).toHaveBeenCalledWith(0.75)
-        expect(renderSpy).toHaveBeenCalled()
-      }),
-    )
+      const frameInfo: FrameInfo = {
+        alpha: 0.75,
+        frameMs: 16,
+        paused: false,
+      }
+      renderer.draw(frameInfo)
+      expect(interpolateSpy).toHaveBeenCalledWith(0.75)
+      expect(renderSpy).toHaveBeenCalled()
+    })
 
-    await Effect.runPromise(program)
+    await program
   })
   it('runs the hooks a setup returns: apply after the consumer, draw before app.render, reset after the consumer', async () => {
     const target = createFakeTarget()
@@ -298,32 +306,30 @@ describe('createPixiRenderer', () => {
       }),
     })
 
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const renderer = yield* factory(target)
-        const { consumer, app } = renderer.stage
-        const applyConsumer = consumer.apply.bind(consumer)
-        vi.spyOn(consumer, 'apply').mockImplementation((delta) => {
-          calls.push('consumer.apply')
-          applyConsumer(delta)
-        })
-        vi.spyOn(consumer, 'reset').mockImplementation(() => void calls.push('consumer.reset'))
-        vi.spyOn(app, 'render').mockImplementation(() => void calls.push('app.render'))
+    const program = scoped(async () => {
+      const renderer = await built(factory(target))
+      const { consumer, app } = renderer.stage
+      const applyConsumer = consumer.apply.bind(consumer)
+      vi.spyOn(consumer, 'apply').mockImplementation((delta) => {
+        calls.push('consumer.apply')
+        applyConsumer(delta)
+      })
+      vi.spyOn(consumer, 'reset').mockImplementation(() => void calls.push('consumer.reset'))
+      vi.spyOn(app, 'render').mockImplementation(() => void calls.push('app.render'))
 
-        renderer.apply({
-          tick: 7,
-          render: { resync: false, added: [], changed: [], removed: [] },
-          events: [],
-          rejected: [],
-        })
-        renderer.draw({ alpha: 0.5, frameMs: 16, paused: false })
-        renderer.reset()
-        // Read before the scope closes: closing destroys the consumer, which resets it once more.
-        return [...calls]
-      }),
-    )
+      renderer.apply({
+        tick: 7,
+        render: { resync: false, added: [], changed: [], removed: [] },
+        events: [],
+        rejected: [],
+      })
+      renderer.draw({ alpha: 0.5, frameMs: 16, paused: false })
+      renderer.reset()
+      // Read before `scoped` ends: disposing destroys the consumer, which resets it once more.
+      return [...calls]
+    })
 
-    expect(await Effect.runPromise(program)).toEqual([
+    expect(await program).toEqual([
       'consumer.apply',
       'hook.apply:7',
       'hook.draw:0.5',
@@ -348,19 +354,17 @@ describe('createPixiRenderer', () => {
       },
     })
 
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const renderer = yield* factory(target)
-        expect(hud.parent).toBe(renderer.stage.ui)
-        expect(renderer.stage.frame?.scene.filters).toEqual([flash, crt])
-        expect(renderer.stage.filters).toEqual([flash, crt])
-        renderer.stage.postFilters.remove('retro')
-        renderer.stage.postFilters.remove('game')
-        expect(renderer.stage.filters).toBeNull()
-      }),
-    )
+    const program = scoped(async () => {
+      const renderer = await built(factory(target))
+      expect(hud.parent).toBe(renderer.stage.ui)
+      expect(renderer.stage.frame?.scene.filters).toEqual([flash, crt])
+      expect(renderer.stage.filters).toEqual([flash, crt])
+      renderer.stage.postFilters.remove('retro')
+      renderer.stage.postFilters.remove('game')
+      expect(renderer.stage.filters).toBeNull()
+    })
 
-    await Effect.runPromise(program)
+    await program
   })
 
   it('drops a filter that cannot be built: tryFilter returns undefined, warns once, publishes the fact, and the frame draws (Q-b)', async () => {
@@ -371,21 +375,21 @@ describe('createPixiRenderer', () => {
       subscribe: () => () => {},
     }
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const program = Effect.scoped(
-      Effect.gen(function* () {
-        const renderer = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })({
+    const program = scoped(async () => {
+      const renderer = await built(
+        createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })({
           ...target,
           bus,
-        })
-        const filter = renderer.stage.tryFilter('bad', () => {
-          throw new Error('no such uniform')
-        })
-        expect(filter).toBeUndefined()
-        renderer.draw({ alpha: 1, frameMs: 16, paused: false })
-        expect(renderer.stage.app.render).toHaveBeenCalled()
-      }),
-    )
-    await Effect.runPromise(program)
+        }),
+      )
+      const filter = renderer.stage.tryFilter('bad', () => {
+        throw new Error('no such uniform')
+      })
+      expect(filter).toBeUndefined()
+      renderer.draw({ alpha: 1, frameMs: 16, paused: false })
+      expect(renderer.stage.app.render).toHaveBeenCalled()
+    })
+    await program
     expect(warn).toHaveBeenCalledTimes(1)
     expect(published).toEqual([['render.filter.dropped', { id: 'bad', reason: 'no such uniform' }]])
     warn.mockRestore()
@@ -417,15 +421,13 @@ void main() { finalColor = texture(uTexture, vTextureCoord); }`
           stage.postFilters.set('game', [flash])
         },
       })
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const { stage } = yield* factory(target)
-          expect(stage.postFilters.ids).toEqual(['game', 'tint'])
-          expect(stage.filters?.[0]).toBe(flash)
-          expect(fragments(stage.filters)[1]).toContain('texture(uTexture, vTextureCoord)')
-        }),
-      )
-      await Effect.runPromise(program)
+      const program = scoped(async () => {
+        const { stage } = await built(factory(target))
+        expect(stage.postFilters.ids).toEqual(['game', 'tint'])
+        expect(stage.filters?.[0]).toBe(flash)
+        expect(fragments(stage.filters)[1]).toContain('texture(uTexture, vTextureCoord)')
+      })
+      await program
     })
 
     it('leaves out a minTier medium filter at low until setQuality raises the tier', async () => {
@@ -436,16 +438,14 @@ void main() { finalColor = texture(uTexture, vTextureCoord); }`
         quality: 'low',
         postFilters: [postFilter('bloom', { glsl, wgsl, minTier: 'medium' })],
       })
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const { stage } = yield* factory(target)
-          expect(stage.postFilters.ids).toEqual([])
-          expect(stage.filters).toBeNull()
-          stage.setQuality('high')
-          expect(stage.postFilters.ids).toEqual(['bloom'])
-        }),
-      )
-      await Effect.runPromise(program)
+      const program = scoped(async () => {
+        const { stage } = await built(factory(target))
+        expect(stage.postFilters.ids).toEqual([])
+        expect(stage.filters).toBeNull()
+        stage.setQuality('high')
+        expect(stage.postFilters.ids).toEqual(['bloom'])
+      })
+      await program
     })
 
     it('drops a filter whose GLSL does not link, publishes it, and still applies the others (M4 spec §6)', async () => {
@@ -484,13 +484,11 @@ void main() { finalColor = texture(uTexture, vTextureCoord); }`
         composite: false,
         postFilters: [postFilter('broken', { glsl: 'not glsl', wgsl }), postFilter('tint', { glsl, wgsl })],
       })
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const { stage } = yield* factory({ ...createFakeTarget(), bus })
-          expect(stage.postFilters.ids).toEqual(['tint'])
-        }),
-      )
-      await Effect.runPromise(program)
+      const program = scoped(async () => {
+        const { stage } = await built(factory({ ...createFakeTarget(), bus }))
+        expect(stage.postFilters.ids).toEqual(['tint'])
+      })
+      await program
       expect(published).toEqual([
         ['render.filter.dropped', { id: 'broken', reason: expect.stringContaining('syntax error') }],
       ])
@@ -510,103 +508,96 @@ void main() { finalColor = texture(uTexture, vTextureCoord); }`
     it('is on for a letterboxed pixel-art stage: draw renders the world and UI into it before app.render', async () => {
       const target = createFakeTarget()
       const calls: string[] = []
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const renderer = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(target)
-          const { composite, app, world, ui, frame } = renderer.stage
-          expect(composite).toBeDefined()
-          if (!composite || !frame) return
-          expect(world.parent).toBe(composite.stage)
-          expect(ui.parent).toBe(composite.stage)
-          expect(composite.sprite.parent).toBe(frame.root)
-          vi.mocked(app.renderer.render).mockImplementation(((options: {
-            container: Container
-            target: unknown
-          }) => {
-            calls.push(
-              options.container === composite.stage && options.target === composite.texture
-                ? 'composite'
-                : 'other',
-            )
-          }) as never)
-          vi.spyOn(app, 'render').mockImplementation(() => void calls.push('app.render'))
-          renderer.draw({ alpha: 1, frameMs: 16, paused: false })
-          return [...calls]
-        }),
-      )
-      expect(await Effect.runPromise(program)).toEqual(['composite', 'app.render'])
+      const program = scoped(async () => {
+        const renderer = await built(createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(target))
+        const { composite, app, world, ui, frame } = renderer.stage
+        expect(composite).toBeDefined()
+        if (!composite || !frame) return
+        expect(world.parent).toBe(composite.stage)
+        expect(ui.parent).toBe(composite.stage)
+        expect(composite.sprite.parent).toBe(frame.root)
+        vi.mocked(app.renderer.render).mockImplementation(((options: {
+          container: Container
+          target: unknown
+        }) => {
+          calls.push(
+            options.container === composite.stage && options.target === composite.texture
+              ? 'composite'
+              : 'other',
+          )
+        }) as never)
+        vi.spyOn(app, 'render').mockImplementation(() => void calls.push('app.render'))
+        renderer.draw({ alpha: 1, frameMs: 16, paused: false })
+        return [...calls]
+      })
+      expect(await program).toEqual(['composite', 'app.render'])
     })
 
     it("resizes to the frame's field height when the geometry changes", async () => {
       const target = createFakeTarget()
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const renderer = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(target)
-          const { composite, frame } = renderer.stage
-          if (!composite || !frame) throw new Error('no composite')
-          vi.spyOn(frame, 'layout').mockReturnValue({ ...frame.layout(800, 600), fieldHeight: 240 })
-          target.triggerResize({ width: 390, height: 844 })
-          return composite.texture.height
-        }),
-      )
-      expect(await Effect.runPromise(program)).toBe(240)
+      const program = scoped(async () => {
+        const renderer = await built(createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(target))
+        const { composite, frame } = renderer.stage
+        if (!composite || !frame) throw new Error('no composite')
+        vi.spyOn(frame, 'layout').mockReturnValue({ ...frame.layout(800, 600), fieldHeight: 240 })
+        target.triggerResize({ width: 390, height: 844 })
+        return composite.texture.height
+      })
+      expect(await program).toBe(240)
     })
 
     it("puts the post-filter slot's filters on the composite stage, not the scene", async () => {
       const target = createFakeTarget()
       const crt = { name: 'crt' } as unknown as Filter
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const renderer = yield* createPixiRenderer({
+      const program = scoped(async () => {
+        const renderer = await built(
+          createPixiRenderer({
             logicalWidth: 320,
             logicalHeight: 180,
             setup: (stage) => void stage.postFilters.set('retro', [crt]),
-          })(target)
-          expect(renderer.stage.composite?.stage.filters).toEqual([crt])
-          expect(renderer.stage.frame?.scene.filters ?? null).toBeNull()
-          expect(renderer.stage.filters).toEqual([crt])
-        }),
-      )
-      await Effect.runPromise(program)
+          })(target),
+        )
+        expect(renderer.stage.composite?.stage.filters).toEqual([crt])
+        expect(renderer.stage.frame?.scene.filters ?? null).toBeNull()
+        expect(renderer.stage.filters).toEqual([crt])
+      })
+      await program
     })
 
     it('is off with composite: false, with pixelArt: false, and without a letterbox', async () => {
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const off = yield* createPixiRenderer({ logicalWidth: 320, logicalHeight: 180, composite: false })(
-            createFakeTarget(),
-          )
-          const smooth = yield* createPixiRenderer({
+      const program = scoped(async () => {
+        const off = await built(
+          createPixiRenderer({ logicalWidth: 320, logicalHeight: 180, composite: false })(createFakeTarget()),
+        )
+        const smooth = await built(
+          createPixiRenderer({
             logicalWidth: 320,
             logicalHeight: 180,
             pixelArt: false,
-          })(createFakeTarget())
-          const bare = yield* createPixiRenderer()(createFakeTarget())
-          return [off, smooth, bare].map((r) => [
-            r.stage.composite,
-            r.stage.world.parent === r.stage.frame?.root,
-          ])
-        }),
-      )
-      expect(await Effect.runPromise(program)).toEqual([
+          })(createFakeTarget()),
+        )
+        const bare = await built(createPixiRenderer()(createFakeTarget()))
+        return [off, smooth, bare].map((r) => [
+          r.stage.composite,
+          r.stage.world.parent === r.stage.frame?.root,
+        ])
+      })
+      expect(await program).toEqual([
         [undefined, true],
         [undefined, true],
         [undefined, false],
       ])
     })
 
-    it('is destroyed by the finalizer', async () => {
-      const scope = Effect.runSync(Scope.make())
-      const renderer = await Effect.runPromise(
-        Scope.extend(
-          createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(createFakeTarget()),
-          scope,
-        ),
+    it('is destroyed by dispose', async () => {
+      const renderer = await built(
+        createPixiRenderer({ logicalWidth: 320, logicalHeight: 180 })(createFakeTarget()),
       )
+      opened = []
       const composite = renderer.stage.composite
       if (!composite) throw new Error('no composite')
       const destroy = vi.spyOn(composite, 'destroy')
-      await Effect.runPromise(Scope.close(scope, Exit.void))
+      renderer.dispose()
       expect(destroy).toHaveBeenCalledTimes(1)
     })
   })
@@ -636,36 +627,32 @@ void main() { finalColor = texture(uTexture, vTextureCoord); }`
         },
       })
 
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const renderer = yield* factory(target)
-          expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ resolution: 1 }))
-          expect(renderer.stage.quality).toBe('low')
-          expect(renderer.stage.filters).toEqual([lock])
+      const program = scoped(async () => {
+        const renderer = await built(factory(target))
+        expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ resolution: 1 }))
+        expect(renderer.stage.quality).toBe('low')
+        expect(renderer.stage.filters).toEqual([lock])
 
-          renderer.stage.setQuality('high')
-          expect(renderer.stage.app.renderer.resolution).toBe(2)
-          expect(renderer.stage.filters).toEqual([bloom, lock])
+        renderer.stage.setQuality('high')
+        expect(renderer.stage.app.renderer.resolution).toBe(2)
+        expect(renderer.stage.filters).toEqual([bloom, lock])
 
-          renderer.stage.setQuality('medium')
-          target.triggerResize({ width: 1024, height: 768 })
-          expect(renderer.stage.app.renderer.resolution).toBe(1.5)
-        }),
-      )
+        renderer.stage.setQuality('medium')
+        target.triggerResize({ width: 1024, height: 768 })
+        expect(renderer.stage.app.renderer.resolution).toBe(1.5)
+      })
 
-      await Effect.runPromise(program)
+      await program
     })
 
     it('starts at high', async () => {
       const target = createFakeTarget()
-      const program = Effect.scoped(
-        Effect.gen(function* () {
-          const renderer = yield* createPixiRenderer({ logicalWidth: 960, logicalHeight: 540 })(target)
-          expect(renderer.stage.quality).toBe('high')
-          expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ resolution: 2 }))
-        }),
-      )
-      await Effect.runPromise(program)
+      const program = scoped(async () => {
+        const renderer = await built(createPixiRenderer({ logicalWidth: 960, logicalHeight: 540 })(target))
+        expect(renderer.stage.quality).toBe('high')
+        expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ resolution: 2 }))
+      })
+      await program
     })
   })
 })

@@ -14,10 +14,7 @@ describe('public entry points', () => {
         'EntitlementsPayloadSchema',
         'ErrorCodeSchema',
         'FullscreenResSchema',
-        'HOST_EXIT_CAP',
-        'HostError',
-        'HostHandshakeFailed',
-        'Hosting',
+        'HOST_EXIT_CAP_MS',
         'InputModePayloadSchema',
         'LeaderboardGetResSchema',
         'LeaderboardQuerySchema',
@@ -37,18 +34,9 @@ describe('public entry points', () => {
     )
   })
 
-  it('export the fake-host test layer and its clocks from ./testing', () => {
+  it('export the Ruken fake-host session and its clocks from ./testing', () => {
     expect(Object.keys(testing).sort()).toEqual(
-      [
-        'FakeHostHandle',
-        'HostingTest',
-        'TEST_GAME_ORIGIN',
-        'manualClock',
-        'openHostingTest',
-        'realClock',
-        'runScoped',
-        'withHostingTest',
-      ].sort(),
+      ['TEST_GAME_ORIGIN', 'manualClock', 'openHostingTest', 'realClock', 'withHostingTest'].sort(),
     )
   })
 })

@@ -1,8 +1,8 @@
 import type { SdkEnv, SdkMessagePort } from '@ruken/sdk'
 import { settle } from '@ruken/sdk-host/testing'
 import { describe, expect, it, vi } from 'vitest'
-import type { HostResult } from '#src/shared/host/plain-errors.ts'
-import { HOST_EXIT_CAP_MS, type Hosting } from '#src/shared/host/plain-hosting.ts'
+import type { HostResult } from '#src/shared/host/errors.ts'
+import { HOST_EXIT_CAP_MS, type Hosting } from '#src/shared/host/hosting.ts'
 import { fakeClock } from '#src/testing/fake-clock.ts'
 import {
   type FakeHostHandle,

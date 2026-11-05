@@ -1,4 +1,4 @@
-import type { HostingSaves } from '../../host/plain-hosting.ts'
+import type { HostingSaves } from '../../host/hosting.ts'
 import type { DeviceStorage } from './device-storage.js'
 import {
   readSettings,
@@ -29,7 +29,7 @@ export interface Settings {
  * The booted store for `def`. Throws when `def` is not the game's settings: asking for another key is the game's
  * mistake, and a store made up on the spot would save under a key nothing reads.
  */
-export function storeOf<S>(settings: Settings, def: SettingsDef<S>): SettingsStore<S> {
+export function settingsStore<S>(settings: Settings, def: SettingsDef<S>): SettingsStore<S> {
   if (settings.key !== def.key || settings.store === undefined) {
     throw new Error(
       `settingsStore: requested settings key '${def.key}' does not match booted settings key '${settings.key}'`,

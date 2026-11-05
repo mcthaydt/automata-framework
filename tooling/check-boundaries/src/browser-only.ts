@@ -64,7 +64,8 @@ export function browserOnlyFindings(
       if (typeOnly) continue
       if (specifier.startsWith('.')) {
         const target = resolveRelative(next, specifier)
-        if (target === undefined || reached.has(target)) continue
+        // A stylesheet has no imports to follow and no code that could need Node.
+        if (target === undefined || reached.has(target) || target.endsWith('.css')) continue
         reached.set(target, reached.get(next) as string)
         queue.push(target)
         continue

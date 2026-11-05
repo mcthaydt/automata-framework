@@ -9,13 +9,13 @@ import {
   type StepResult,
 } from '@mcthaydt/automata-sim'
 import { createFakeHost } from '@ruken/sdk-host/testing'
-import { Effect } from 'effect'
 import { flushSync } from 'svelte'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { type DefinedGame, defineGame, type GameSpec } from '#src/app/define-game.ts'
 import { defaultScreens } from '#src/app/screens/default-screens.ts'
 import { keys } from '#src/features/input/keys.ts'
+import { ok } from '#src/shared/lib/result.ts'
 import type { RuntimeHandle } from '../../../../../src/app/boot/game-definition.ts'
 import { runGame } from '../../../../../src/app/boot/run-game.ts'
 import {
@@ -76,7 +76,7 @@ function recordingRenderer(results: StepResult[], resets: { count: number }): Re
       resets.count++
     },
   }
-  return () => Effect.succeed(renderer)
+  return async () => ok({ ...renderer, dispose: () => {} })
 }
 
 describe('default screens', () => {

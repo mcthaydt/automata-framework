@@ -1,6 +1,5 @@
 export {
-  FakeHostControl,
-  FakeHosting,
+  type FakeHostControl,
   type FakeHostingOptions,
   fakeHosting,
   type Submission,

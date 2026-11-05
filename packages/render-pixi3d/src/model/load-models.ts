@@ -49,11 +49,11 @@ function loadModel(
 ): Effect.Effect<LoadedModel, ModelInvalid> {
   return Effect.gen(function* () {
     const parse = parserFor(file)
-    if (parse === undefined) return yield* new ModelInvalid({ file, reason: 'unsupported type' })
+    if (parse === undefined) return yield* Effect.fail(new ModelInvalid({ file, reason: 'unsupported type' }))
     // The runtime fetched the file with byte progress under the 30 s stall rule (M1.5) because the game listed it
     // in its preload; a file it did not fetch is a game bug, named here.
     const blob = assets.get(file)
-    if (blob === undefined) return yield* new ModelInvalid({ file, reason: 'not loaded' })
+    if (blob === undefined) return yield* Effect.fail(new ModelInvalid({ file, reason: 'not loaded' }))
     const buffer = yield* Effect.tryPromise({
       try: () => blob.arrayBuffer(),
       catch: () => new ModelInvalid({ file, reason: 'malformed: unreadable bytes' }),

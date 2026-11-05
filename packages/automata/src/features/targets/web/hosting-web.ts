@@ -1,4 +1,6 @@
-import type { HostingOptions } from '../../../shared/host/hosting'
+import type { HostRefusal, HostResult } from '../../../shared/host/errors'
+import { refuse } from '../../../shared/host/errors'
+import type { Hosting, HostingOptions } from '../../../shared/host/hosting'
 import type {
   AudioChange,
   Capability,
@@ -11,9 +13,6 @@ import type {
   LifecycleReason,
   RoundOutcome,
 } from '../../../shared/host/index'
-import type { HostRefusal, HostResult } from '../../../shared/host/plain-errors'
-import { refuse } from '../../../shared/host/plain-errors'
-import type { Hosting } from '../../../shared/host/plain-hosting'
 import { disposables } from '../../../shared/lib/disposables'
 import { ok } from '../../../shared/lib/result'
 import { emitter, type Subscribable, subscribable } from '../../../shared/lib/subscribable'
