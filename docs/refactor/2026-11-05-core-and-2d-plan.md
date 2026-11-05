@@ -351,13 +351,13 @@ For `sim`, `content`, `host`, `ui`, `runtime`, `render-pixi`, `game`, `automata`
   `tests/fixtures/features/`
 - Modify: `tooling/check-boundaries/src/cli.ts`, `src/check.ts` (find sim files by role suffix)
 
-- [ ] **Step 1: Failing tests** for each rule in spec section 3.3 (one fixture per rule: a feature importing a
+- [x] **Step 1: Failing tests** for each rule in spec section 3.3 (one fixture per rule: a feature importing a
   feature, shared importing a feature, a feature importing `app/`, logic in `entries/`, product code importing
   `testing/`), each expecting the exact message in spec section 3.5. And for `--browser`: a file reachable from
   `src/entries/index.ts` that imports `effect` fails with `"<file>" runs in the browser and imports "effect". Effect
   is for Node tooling only (ADR 0003).`; the same import in a file not reachable from an entry passes.
-- [ ] **Step 2:** Implement over the existing AST reader (`ast.ts`). Tests pass.
-- [ ] **Step 3: Sim files by suffix and by import:** failing tests that
+- [x] **Step 2:** Implement over the existing AST reader (`ast.ts`). Tests pass.
+- [x] **Step 3: Sim files by suffix and by import:** failing tests that
   `games/x/src/features/player/player-move.system.ts` is checked as a sim file, that `tuning.ts`, which it imports
   by relative path, is checked too, and that `games/x/src/features/player/hud.ts`, which no sim file imports, is
   not; that an `import type` from `effect` passes `--browser`; and that `#src/x` in a `src/` file fails. Implement;
@@ -774,3 +774,18 @@ the features it lacks are journeyed on the one-file examples that show them:
   and `games/base-3d`'s Playwright configs, the 3D workflow's path filter and `knip.jsonc` follow the journeys to
   `tests/e2e/*.test.ts`. `pnpm check` passes (30 unit tasks, 0 cached). **Not run here:** WebKit and Firefox parity,
   every Playwright journey (the GPU/CI runner), `pnpm build` and the CI-only gates (left to the pull request's CI).
+- **Task 4.1 (2026-11-05, second session).** `tooling/check-boundaries` has `--features <root>...`, `--browser
+  <root>[:<entry>,…]...` and, in `--game`, the sim by role suffix and by import (files `features.ts`, `browser-only.ts`,
+  `sim-by-suffix.ts`, and `imports.ts`, the one import reader the platform check now shares). 144 tests (109 before). Deviations:
+  (28) The failing tests built their trees in temporary folders instead of under `tests/fixtures/features/`: each rule needs
+  a four-line tree, and the test then reads next to its tree. (29) A multi-line message (spec section 3.5) prints under
+  `file:line:col`, indented; single-line findings print as before. (30) `--browser` takes `root:entry,entry` for a package
+  with Node entries too (content), because section 3.2 makes only some of its entries browser-safe; it also refuses
+  `fontkit`, `pngjs`, `subset-font` and any Node built-in, as section 3.3 says for content. (31) `--game` takes the union of the
+  role files (`base-3d` still has them) and the suffix set, and exits 2 only when both are empty. (32) **The file-list
+  comparison (step 3) does not hold on today's tree, so `package.json`'s `boundaries` line is unchanged.** Today's line
+  checks 12 files under `games/emberwick/src/sim`; the suffix rule finds 10. `sim/index.ts` (a barrel) and `place-wick.ts`
+  are imported by `base-sim.ts` and `make-game.ts`, which are not sim files, and import sim files themselves, so no sim
+  file reaches them (the spec's claim that `place-wick.ts` is reached by import is wrong). Task 6.3 must close it when
+  Emberwick moves: rename `place-wick.ts` to `place-wick.command.ts`, drop the barrel, and switch the line to
+  `--game games/*/src` in the same commit; `base-3d` (12 role files, 0 by suffix) keeps its role layout until the 3D area.

@@ -103,9 +103,79 @@ describe('--game: a game laid out by role (GL spec §4.5, §5.2, acceptance B1�
     expect(result.status).toBe(0)
   })
 
+  it('a game laid out by feature: a role-suffixed file and the helper it imports are sim, a HUD no sim file imports is not', () => {
+    const files = {
+      'features/player/player-move.system.ts':
+        "import { SPEED } from './tuning.ts'\nexport const move = SPEED\n",
+      'features/player/tuning.ts': 'export const SPEED = Math.random()\n',
+      'features/player/hud.ts': 'export const hud = document.title\n',
+    }
+    const result = game(files)
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain('src/features/player/tuning.ts:1:')
+    expect(result.stdout).not.toContain('hud.ts')
+    expect(result.stdout).toContain('check-boundaries: 2 files, 1 findings')
+  })
+
   it('B5: a game root with no sim files exits 2', () => {
     const result = game({ 'views.ts': 'export const v = 1\n' })
     expect(result.status).toBe(2)
     expect(result.stderr).toContain('no sim files in src (constants.ts, components.ts')
+  })
+})
+
+describe('--features and --browser (core and 2D refactor spec §3.5)', () => {
+  function pkg(files: Record<string, string>, args: (root: string) => string[]) {
+    const root = mkdtempSync(join(tmpdir(), 'af-boundaries-features-'))
+    try {
+      for (const [name, code] of Object.entries(files)) {
+        mkdirSync(join(root, 'src', name, '..'), { recursive: true })
+        writeFileSync(join(root, 'src', name), code)
+      }
+      const result = spawnSync(process.execPath, [cli, ...args(root)], { cwd: root, encoding: 'utf8' })
+      return { status: result.status, stdout: result.stdout, stderr: result.stderr }
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  }
+
+  it('--features prints a break under its location, indented, and exits 1', () => {
+    const result = pkg(
+      {
+        'features/saves/a.ts': "import { b } from '../settings/b.ts'\nexport const a = b\n",
+        'features/settings/b.ts': 'export const b = 1\n',
+      },
+      () => ['--features', '.'],
+    )
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain(
+      'src/features/saves/a.ts:1:1\n  "saves" imports "settings" (features/settings/b.ts).',
+    )
+    expect(result.stdout).toContain('check-boundaries: 2 files, 1 findings')
+  })
+
+  it('--features passes a clean package with exit 0', () => {
+    const result = pkg({ 'features/saves/a.ts': 'export const a = 1\n' }, () => ['--features', '.'])
+    expect(result).toMatchObject({ status: 0 })
+  })
+
+  it('--browser names the entries after a colon, and exits 1 on Effect in a reachable file', () => {
+    const files = {
+      'entries/index.ts': "export { run } from '../app/run.ts'\n",
+      'entries/locale.ts': "export { t } from '../app/t.ts'\n",
+      'app/run.ts': "import { Effect } from 'effect'\nexport const run = Effect.void\n",
+      'app/t.ts': 'export const t = 1\n',
+    }
+    expect(pkg(files, () => ['--browser', '.:locale'])).toMatchObject({ status: 0 })
+    const all = pkg(files, () => ['--browser', '.'])
+    expect(all.status).toBe(1)
+    expect(all.stdout).toContain(
+      'runs in the browser and imports "effect". Effect is for Node tooling only (ADR 0003).',
+    )
+  })
+
+  it('--features and --browser need a package root', () => {
+    expect(pkg({}, () => ['--features'])).toMatchObject({ status: 2 })
+    expect(pkg({}, () => ['--browser'])).toMatchObject({ status: 2 })
   })
 })

@@ -8,6 +8,11 @@ const SKIPPED = /\.(?:test|spec)\.[cm]?[jt]sx?$|\.d\.[cm]?ts$/
 // Installed packages and build output are never sources (a folder walk in inline mode starts at examples/).
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist'])
 
+/** True for a file the checker reads: a module of any kind, but not a test or a type declaration. */
+export function isSourceFile(name: string): boolean {
+  return SOURCE.test(name) && !SKIPPED.test(name)
+}
+
 /** All checkable source files under `dir`, sorted, skipping tests and type declarations. */
 export function collectSources(dir: string): string[] {
   const out: string[] = []
@@ -15,7 +20,7 @@ export function collectSources(dir: string): string[] {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) {
       if (!SKIPPED_DIRS.has(name)) out.push(...collectSources(path))
-    } else if (SOURCE.test(name) && !SKIPPED.test(name)) out.push(path)
+    } else if (isSourceFile(name)) out.push(path)
   }
   return out
 }
