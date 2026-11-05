@@ -1,11 +1,22 @@
-import { Effect, Exit, SubscriptionRef } from 'effect'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { RebindConflict } from '#src/features/input/bindings/rebind.ts'
-import { makeInput } from '#src/features/input/input.manager.ts'
+import { createInput } from '#src/features/input/input.manager.ts'
 import { type InputProfile, inputProfileSchema } from '#src/features/input/input-profile.schema.ts'
-import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import { disposables } from '#src/shared/lib/disposables.ts'
+import { refused } from '#src/shared/lib/result.ts'
+import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import type { SettingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
-import { runScoped } from '../../../src/testing/host/page/run.ts'
+
+// Each test's Inputs and buses, taken down after it.
+let owned = disposables()
+afterEach(() => {
+  owned.dispose()
+  owned = disposables()
+})
+const own = <T extends { dispose(): unknown }>(thing: T): T => {
+  owned.add(() => void thing.dispose())
+  return thing
+}
 
 // The Input's bindings follow the player's (M4 spec §4.5, §5 "Rebind"): the game's profile with the saved
 // overrides from the settings' `input` field, rebound through `rebind` and `resetBindings`, which write the settings
@@ -47,108 +58,88 @@ const lift = (code: string) => window.dispatchEvent(new KeyboardEvent('keyup', {
 const held = (input: { held(): ReadonlySet<string> }) => [...input.held()]
 
 describe('Input bindings from the settings', () => {
-  it('applies the saved overrides over the game’s profile', () =>
-    runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const settings = memoryStore({
-          input: { profile: 'jumper', overrides: { jump: { keys: ['KeyK'] } } },
-        })
-        const input = yield* makeInput({ target: window, profile, bus, settings })
-        press('Space')
-        expect(held(input)).toEqual([])
-        lift('Space')
-        press('KeyK')
-        expect(held(input)).toEqual(['jump'])
-        lift('KeyK')
-        expect((yield* SubscriptionRef.get(input.profile)).bindings.jump?.keys).toEqual(['KeyK'])
-      }),
-    ))
+  it('applies the saved overrides over the game’s profile', () => {
+    const bus = own(createPresentationBus())
+    const settings = memoryStore({
+      input: { profile: 'jumper', overrides: { jump: { keys: ['KeyK'] } } },
+    })
+    const input = own(createInput({ target: window, profile, bus, settings }))
+    press('Space')
+    expect(held(input)).toEqual([])
+    lift('Space')
+    press('KeyK')
+    expect(held(input)).toEqual(['jump'])
+    lift('KeyK')
+    expect(input.profile.get().bindings.jump?.keys).toEqual(['KeyK'])
+  })
 
-  it('rebinds into the settings, publishes the change and updates the profile', () =>
-    runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const facts: unknown[] = []
-        bus.subscribe('input.bindings.changed', (fact) => facts.push(fact))
-        const settings = memoryStore({ display: { quality: 'low' } })
-        const input = yield* makeInput({ target: window, profile, bus, settings })
-        yield* input.rebind('jump', 'keyboard', { code: 'KeyK' })
-        expect(settings.get()).toEqual({
-          display: { quality: 'low' },
-          input: { profile: 'jumper', overrides: { jump: { keys: ['KeyK'] } } },
-        })
-        expect(facts).toEqual([{ action: 'jump' }])
-        expect((yield* SubscriptionRef.get(input.profile)).bindings.jump?.keys).toEqual(['KeyK'])
-        press('KeyK')
-        expect(held(input)).toEqual(['jump'])
-        lift('KeyK')
-      }),
-    ))
+  it('rebinds into the settings, publishes the change and updates the profile', () => {
+    const bus = own(createPresentationBus())
+    const facts: unknown[] = []
+    bus.subscribe('input.bindings.changed', (fact) => facts.push(fact))
+    const settings = memoryStore({ display: { quality: 'low' } })
+    const input = own(createInput({ target: window, profile, bus, settings }))
+    input.rebind('jump', 'keyboard', { code: 'KeyK' })
+    expect(settings.get()).toEqual({
+      display: { quality: 'low' },
+      input: { profile: 'jumper', overrides: { jump: { keys: ['KeyK'] } } },
+    })
+    expect(facts).toEqual([{ action: 'jump' }])
+    expect(input.profile.get().bindings.jump?.keys).toEqual(['KeyK'])
+    press('KeyK')
+    expect(held(input)).toEqual(['jump'])
+    lift('KeyK')
+  })
 
-  it('is followed by every Input on the same settings', () =>
-    runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const settings = memoryStore()
-        const menu = yield* makeInput({ target: window, profile, bus, settings })
-        const play = yield* makeInput({ target: window, profile, bus, settings })
-        yield* menu.rebind('jump', 'keyboard', { code: 'KeyK' })
-        press('KeyK')
-        expect(held(play)).toEqual(['jump'])
-        lift('KeyK')
-      }),
-    ))
+  it('is followed by every Input on the same settings', () => {
+    const bus = own(createPresentationBus())
+    const settings = memoryStore()
+    const menu = own(createInput({ target: window, profile, bus, settings }))
+    const play = own(createInput({ target: window, profile, bus, settings }))
+    menu.rebind('jump', 'keyboard', { code: 'KeyK' })
+    press('KeyK')
+    expect(held(play)).toEqual(['jump'])
+    lift('KeyK')
+  })
 
-  it('resets every binding to the game’s profile', () =>
-    runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const settings = memoryStore({
-          input: { profile: 'jumper', overrides: { jump: { keys: ['KeyK'] } } },
-        })
-        const input = yield* makeInput({ target: window, profile, bus, settings })
-        yield* input.resetBindings
-        expect(settings.get()).toEqual({ input: { profile: 'jumper', overrides: {} } })
-        expect(yield* SubscriptionRef.get(input.profile)).toEqual(profile)
-      }),
-    ))
+  it('resets every binding to the game’s profile', () => {
+    const bus = own(createPresentationBus())
+    const settings = memoryStore({
+      input: { profile: 'jumper', overrides: { jump: { keys: ['KeyK'] } } },
+    })
+    const input = own(createInput({ target: window, profile, bus, settings }))
+    input.resetBindings()
+    expect(settings.get()).toEqual({ input: { profile: 'jumper', overrides: {} } })
+    expect(input.profile.get()).toEqual(profile)
+  })
 
-  it('releases what was held when the bindings change', () =>
-    runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const input = yield* makeInput({ target: window, profile, bus, settings: memoryStore() })
-        press('Space')
-        expect(held(input)).toEqual(['jump'])
-        yield* input.rebind('jump', 'keyboard', { code: 'KeyK' })
-        expect(held(input)).toEqual([])
-        lift('Space')
-      }),
-    ))
+  it('releases what was held when the bindings change', () => {
+    const bus = own(createPresentationBus())
+    const input = own(createInput({ target: window, profile, bus, settings: memoryStore() }))
+    press('Space')
+    expect(held(input)).toEqual(['jump'])
+    input.rebind('jump', 'keyboard', { code: 'KeyK' })
+    expect(held(input)).toEqual([])
+    lift('Space')
+  })
 
-  it('refuses a rebind that would leave a required action unbound, and changes nothing (I-l)', () =>
-    runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const settings = memoryStore()
-        const input = yield* makeInput({ target: window, profile, bus, settings })
-        const exit = yield* Effect.exit(input.rebind('jump', 'keyboard', { code: 'KeyF' }))
-        expect(exit).toEqual(Exit.fail(new RebindConflict({ action: 'jump', with: 'fire' })))
-        expect(settings.writes).toEqual([])
-        expect(yield* SubscriptionRef.get(input.profile)).toEqual(profile)
-      }),
-    ))
+  it('refuses a rebind that would leave a required action unbound, and changes nothing (I-l)', () => {
+    const bus = own(createPresentationBus())
+    const settings = memoryStore()
+    const input = own(createInput({ target: window, profile, bus, settings }))
+    expect(input.rebind('jump', 'keyboard', { code: 'KeyF' })).toEqual(
+      refused(new RebindConflict({ action: 'jump', with: 'fire' })),
+    )
+    expect(settings.writes).toEqual([])
+    expect(input.profile.get()).toEqual(profile)
+  })
 
-  it('keeps a rebind for this Input alone without settings', () =>
-    runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const input = yield* makeInput({ target: window, profile, bus })
-        yield* input.rebind('jump', 'keyboard', { code: 'KeyK' })
-        press('KeyK')
-        expect(held(input)).toEqual(['jump'])
-        lift('KeyK')
-      }),
-    ))
+  it('keeps a rebind for this Input alone without settings', () => {
+    const bus = own(createPresentationBus())
+    const input = own(createInput({ target: window, profile, bus }))
+    input.rebind('jump', 'keyboard', { code: 'KeyK' })
+    press('KeyK')
+    expect(held(input)).toEqual(['jump'])
+    lift('KeyK')
+  })
 })

@@ -1,11 +1,22 @@
-import { Effect, Exit, Scope, SubscriptionRef } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { PadLike } from '#src/features/input/gamepad/read-pad.ts'
 import { fakePad } from '#src/features/input/gamepad/testing/fake-pad.ts'
-import { type HostInputMode, makeInput } from '#src/features/input/input.manager.ts'
+import { createInput, type HostInputMode } from '#src/features/input/input.manager.ts'
 import { type InputProfile, inputProfileSchema } from '#src/features/input/input-profile.schema.ts'
-import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { runScoped } from '../../../src/testing/host/page/run.ts'
+import { disposables } from '#src/shared/lib/disposables.ts'
+import { state } from '#src/shared/lib/subscribable.ts'
+import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+
+// Each test's Inputs and buses, taken down after it.
+let owned = disposables()
+afterEach(() => {
+  owned.dispose()
+  owned = disposables()
+})
+const own = <T extends { dispose(): unknown }>(thing: T): T => {
+  owned.add(() => void thing.dispose())
+  return thing
+}
 
 // The Input service (M4 spec §4.2): per-device held sets whose union is sampled once per fixed step. The
 // bookkeeping comes from FloorFifty `apps/client/src/managers/input.ts` at `ac72660` (lines 42–60) and its
@@ -56,16 +67,13 @@ afterEach(() => {
 
 /** Runs `body` with an Input over `window` in a fresh scope. */
 const withInput = (
-  body: (input: Effect.Effect.Success<ReturnType<typeof makeInput>>) => void,
+  body: (input: ReturnType<typeof createInput>) => void,
   withProfile: InputProfile = profile,
-) =>
-  runScoped(
-    Effect.gen(function* () {
-      const bus = yield* makePresentationBus()
-      const input = yield* makeInput({ target: window, profile: withProfile, bus })
-      body(input)
-    }),
-  )
+) => {
+  const bus = own(createPresentationBus())
+  const input = own(createInput({ target: window, profile: withProfile, bus }))
+  body(input)
+}
 
 describe('Input held actions (I-b)', () => {
   it('keeps an action held while another device still holds it', () =>
@@ -157,7 +165,7 @@ describe('Input held actions (I-b)', () => {
 
 describe('Input gestures (M4.3)', () => {
   /** One fixed step's sample, as the app loop takes it: poll, then read what is held. */
-  const sample = (input: Effect.Effect.Success<ReturnType<typeof makeInput>>): string[] => {
+  const sample = (input: ReturnType<typeof createInput>): string[] => {
     input.poll()
     return [...input.held()]
   }
@@ -167,7 +175,7 @@ describe('Input gestures (M4.3)', () => {
       input.gesture.hold('swipe-left')
       expect(sample(input)).toEqual(['left'])
       expect(sample(input)).toEqual(['left'])
-      expect(Effect.runSync(SubscriptionRef.get(input.device))).toEqual({
+      expect(input.device.get()).toEqual({
         device: 'touch',
         glyphs: 'generic',
       })
@@ -286,73 +294,62 @@ describe('Input context and menu actions', () => {
 
 describe('Input active device and profile', () => {
   it('follows the last real input and publishes input.device.changed once per change', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const facts: unknown[] = []
-        bus.subscribe('input.device.changed', (fact) => facts.push(fact))
-        const input = yield* makeInput({ target: window, profile, bus })
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'keyboard', glyphs: 'generic' })
-        buttons[0] = true
-        input.poll()
-        input.poll()
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'generic' })
-        input.hold('left')
-        press('Space')
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'keyboard', glyphs: 'generic' })
-        expect(facts).toEqual([
-          { device: 'gamepad', glyphs: 'generic', previous: 'keyboard' },
-          { device: 'touch', glyphs: 'generic', previous: 'gamepad' },
-          { device: 'keyboard', glyphs: 'generic', previous: 'touch' },
-        ])
-        expect(yield* SubscriptionRef.get(input.profile)).toBe(profile)
-      }),
-    )
+    {
+      const bus = own(createPresentationBus())
+      const facts: unknown[] = []
+      bus.subscribe('input.device.changed', (fact) => facts.push(fact))
+      const input = own(createInput({ target: window, profile, bus }))
+      expect(input.device.get()).toEqual({ device: 'keyboard', glyphs: 'generic' })
+      buttons[0] = true
+      input.poll()
+      input.poll()
+      expect(input.device.get()).toEqual({ device: 'gamepad', glyphs: 'generic' })
+      input.hold('left')
+      press('Space')
+      expect(input.device.get()).toEqual({ device: 'keyboard', glyphs: 'generic' })
+      expect(facts).toEqual([
+        { device: 'gamepad', glyphs: 'generic', previous: 'keyboard' },
+        { device: 'touch', glyphs: 'generic', previous: 'gamepad' },
+        { device: 'keyboard', glyphs: 'generic', previous: 'touch' },
+      ])
+      expect(input.profile.get()).toBe(profile)
+    }
   })
 })
 
-/** Lets forked fibers (the host-mode watcher) run. */
-const turns = Effect.forEach(Array.from({ length: 10 }), () => Effect.yieldNow(), { discard: true })
-
 describe('Input under a host (M4 spec §4.2, §5 step 3)', () => {
   it('starts from the host’s input mode and follows it when it reports a pad, with the pad layout’s glyphs', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const hostInput = yield* SubscriptionRef.make<HostInputMode>({ mode: 'touch' })
-        const input = yield* makeInput({ target: window, profile, bus, hostInput })
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'touch', glyphs: 'generic' })
+    {
+      const bus = own(createPresentationBus())
+      const hostInput = state<HostInputMode>({ mode: 'touch' })
+      const input = own(createInput({ target: window, profile, bus, hostInput }))
+      expect(input.device.get()).toEqual({ device: 'touch', glyphs: 'generic' })
 
-        yield* SubscriptionRef.set(hostInput, {
-          mode: 'gamepad',
-          gamepad: { layout: 'xbox', connected: true },
-        })
-        yield* turns
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'xbox' })
+      hostInput.set({
+        mode: 'gamepad',
+        gamepad: { layout: 'xbox', connected: true },
+      })
+      expect(input.device.get()).toEqual({ device: 'gamepad', glyphs: 'xbox' })
 
-        yield* SubscriptionRef.set(hostInput, {
-          mode: 'gamepad',
-          gamepad: { layout: 'other', connected: true },
-        })
-        yield* turns
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'generic' })
+      hostInput.set({
+        mode: 'gamepad',
+        gamepad: { layout: 'other', connected: true },
+      })
+      expect(input.device.get()).toEqual({ device: 'gamepad', glyphs: 'generic' })
 
-        // The last real input still wins.
-        press('Space')
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'keyboard', glyphs: 'generic' })
-      }),
-    )
+      // The last real input still wins.
+      press('Space')
+      expect(input.device.get()).toEqual({ device: 'keyboard', glyphs: 'generic' })
+    }
   })
 
   it('starts on the keyboard when the host says keyboard and mouse', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const hostInput = yield* SubscriptionRef.make<HostInputMode>({ mode: 'keyboard-mouse' })
-        const input = yield* makeInput({ target: window, profile, bus, hostInput })
-        expect((yield* SubscriptionRef.get(input.device)).device).toBe('keyboard')
-      }),
-    )
+    {
+      const bus = own(createPresentationBus())
+      const hostInput = state<HostInputMode>({ mode: 'keyboard-mouse' })
+      const input = own(createInput({ target: window, profile, bus, hostInput }))
+      expect(input.device.get().device).toBe('keyboard')
+    }
   })
 })
 
@@ -363,68 +360,62 @@ const plug = (type: 'gamepadconnected' | 'gamepaddisconnected', gamepad: PadLike
 
 describe('Input hot-plug and the active pad (M4.2, I-e)', () => {
   it('lists connected pads and publishes input.pad.connected, saying when a pad is not standard', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const facts: unknown[] = []
-        bus.subscribe('input.pad.connected', (fact) => facts.push(fact))
-        const input = yield* makeInput({ target: window, profile: padProfile, bus })
-        plug('gamepadconnected', fakePad({ id: XBOX }))
-        plug('gamepadconnected', fakePad({ id: 'Odd pad', index: 1, mapping: '' }))
-        expect(yield* SubscriptionRef.get(input.pads)).toEqual([
-          { index: 0, id: XBOX, standard: true },
-          { index: 1, id: 'Odd pad', standard: false },
-        ])
-        expect(facts).toEqual([
-          { index: 0, id: XBOX, standard: true },
-          { index: 1, id: 'Odd pad', standard: false },
-        ])
-      }),
-    )
+    {
+      const bus = own(createPresentationBus())
+      const facts: unknown[] = []
+      bus.subscribe('input.pad.connected', (fact) => facts.push(fact))
+      const input = own(createInput({ target: window, profile: padProfile, bus }))
+      plug('gamepadconnected', fakePad({ id: XBOX }))
+      plug('gamepadconnected', fakePad({ id: 'Odd pad', index: 1, mapping: '' }))
+      expect(input.pads.get()).toEqual([
+        { index: 0, id: XBOX, standard: true },
+        { index: 1, id: 'Odd pad', standard: false },
+      ])
+      expect(facts).toEqual([
+        { index: 0, id: XBOX, standard: true },
+        { index: 1, id: 'Odd pad', standard: false },
+      ])
+    }
   })
 
   it('makes a second pad active on its first press, with its glyph family', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const input = yield* makeInput({ target: window, profile: padProfile, bus })
-        pads = [fakePad({ id: XBOX }).press(14), fakePad({ id: DUALSENSE, index: 1 })]
-        input.poll(0)
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'xbox' })
-        pads = [
-          fakePad({ id: XBOX }).press(14),
-          fakePad({ id: DUALSENSE, index: 1 }).stick(0, 0, 'left').press(0),
-        ]
-        input.poll(16)
-        expect(yield* SubscriptionRef.get(input.device)).toEqual({ device: 'gamepad', glyphs: 'playstation' })
-        expect([...input.held()]).toEqual(['left', 'jump'])
-      }),
-    )
+    {
+      const bus = own(createPresentationBus())
+      const input = own(createInput({ target: window, profile: padProfile, bus }))
+      pads = [fakePad({ id: XBOX }).press(14), fakePad({ id: DUALSENSE, index: 1 })]
+      input.poll(0)
+      expect(input.device.get()).toEqual({ device: 'gamepad', glyphs: 'xbox' })
+      pads = [
+        fakePad({ id: XBOX }).press(14),
+        fakePad({ id: DUALSENSE, index: 1 }).stick(0, 0, 'left').press(0),
+      ]
+      input.poll(16)
+      expect(input.device.get()).toEqual({ device: 'gamepad', glyphs: 'playstation' })
+      expect([...input.held()]).toEqual(['left', 'jump'])
+    }
   })
 
   it('releases what an unplugged pad held, drops it from pads and publishes input.pad.disconnected', async () => {
-    await runScoped(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        const facts: unknown[] = []
-        bus.subscribe('input.pad.disconnected', (fact) => facts.push(fact))
-        const input = yield* makeInput({ target: window, profile: padProfile, bus })
-        const xbox = fakePad({ id: XBOX })
-        plug('gamepadconnected', xbox)
-        pads = [xbox.press(14).stick(-0.9, 0)]
-        input.poll(0)
-        expect([...input.held()]).toEqual(['left'])
-        pads = [null]
-        plug('gamepaddisconnected', xbox)
-        expect([...input.held()]).toEqual([])
-        expect(input.stick('left')).toEqual({ x: 0, y: 0 })
-        expect(yield* SubscriptionRef.get(input.pads)).toEqual([])
-        expect(facts).toEqual([{ index: 0, id: XBOX, standard: true, wasActive: true }])
-        plug('gamepadconnected', fakePad({ id: DUALSENSE, index: 1 }))
-        plug('gamepaddisconnected', fakePad({ id: DUALSENSE, index: 1 }))
-        expect(facts.at(-1)).toEqual({ index: 1, id: DUALSENSE, standard: true, wasActive: false })
-      }),
-    )
+    {
+      const bus = own(createPresentationBus())
+      const facts: unknown[] = []
+      bus.subscribe('input.pad.disconnected', (fact) => facts.push(fact))
+      const input = own(createInput({ target: window, profile: padProfile, bus }))
+      const xbox = fakePad({ id: XBOX })
+      plug('gamepadconnected', xbox)
+      pads = [xbox.press(14).stick(-0.9, 0)]
+      input.poll(0)
+      expect([...input.held()]).toEqual(['left'])
+      pads = [null]
+      plug('gamepaddisconnected', xbox)
+      expect([...input.held()]).toEqual([])
+      expect(input.stick('left')).toEqual({ x: 0, y: 0 })
+      expect(input.pads.get()).toEqual([])
+      expect(facts).toEqual([{ index: 0, id: XBOX, standard: true, wasActive: true }])
+      plug('gamepadconnected', fakePad({ id: DUALSENSE, index: 1 }))
+      plug('gamepaddisconnected', fakePad({ id: DUALSENSE, index: 1 }))
+      expect(facts.at(-1)).toEqual({ index: 1, id: DUALSENSE, standard: true, wasActive: false })
+    }
   })
 
   it('never lets a non-standard pad drive bindings', () =>
@@ -435,16 +426,10 @@ describe('Input hot-plug and the active pad (M4.2, I-e)', () => {
     }, padProfile))
 })
 
-describe('Input scope', () => {
-  it('stops listening when its scope closes', async () => {
-    const scope = Effect.runSync(Scope.make())
-    const input = Effect.runSync(
-      Effect.gen(function* () {
-        const bus = yield* makePresentationBus()
-        return yield* makeInput({ target: window, profile, bus })
-      }).pipe(Scope.extend(scope)),
-    )
-    Effect.runSync(Scope.close(scope, Exit.void))
+describe('Input disposal', () => {
+  it('stops listening once disposed', async () => {
+    const input = createInput({ target: window, profile, bus: own(createPresentationBus()) })
+    input.dispose()
     press('Space')
     expect([...input.held()]).toEqual([])
   })

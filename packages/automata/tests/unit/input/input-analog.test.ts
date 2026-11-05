@@ -1,11 +1,21 @@
-import { Effect, SubscriptionRef } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { PadLike } from '#src/features/input/gamepad/read-pad.ts'
 import { fakePad } from '#src/features/input/gamepad/testing/fake-pad.ts'
-import { type Input, makeInput } from '#src/features/input/input.manager.ts'
+import { createInput, type Input } from '#src/features/input/input.manager.ts'
 import { type InputProfile, inputProfileSchema } from '#src/features/input/input-profile.schema.ts'
-import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { runScoped } from '../../../src/testing/host/page/run.ts'
+import { disposables } from '#src/shared/lib/disposables.ts'
+import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+
+// Each test's Inputs and buses, taken down after it.
+let owned = disposables()
+afterEach(() => {
+  owned.dispose()
+  owned = disposables()
+})
+const own = <T extends { dispose(): unknown }>(thing: T): T => {
+  owned.add(() => void thing.dispose())
+  return thing
+}
 
 // Analog play input for 3D (M4 spec §16.3.4): the touch move stick as the left stick, and the camera drag's pixels
 // sampled once per step. Nothing here reaches the sim but integers: the stick is quantized (M4-D2) and the game turns
@@ -30,13 +40,10 @@ afterEach(() => {
   Reflect.deleteProperty(document, 'visibilityState')
 })
 
-const withInput = (body: (input: Input) => void, profile: InputProfile = thirdPerson) =>
-  runScoped(
-    Effect.gen(function* () {
-      const bus = yield* makePresentationBus()
-      body(yield* makeInput({ target: window, profile, bus }))
-    }),
-  )
+const withInput = (body: (input: Input) => void, profile: InputProfile = thirdPerson) => {
+  const bus = own(createPresentationBus())
+  body(own(createInput({ target: window, profile, bus })))
+}
 
 describe('Input camera drag (M4.12)', () => {
   it('reads the pixels dragged since the previous poll, once (A-d)', () =>
@@ -57,9 +64,9 @@ describe('Input camera drag (M4.12)', () => {
   it('follows the device that dragged: a finger is touch, the mouse is keyboard and mouse', () =>
     withInput((input) => {
       input.drag.drag(3, 'touch')
-      expect(Effect.runSync(SubscriptionRef.get(input.device)).device).toBe('touch')
+      expect(input.device.get().device).toBe('touch')
       input.drag.drag(3, 'mouse')
-      expect(Effect.runSync(SubscriptionRef.get(input.device)).device).toBe('keyboard')
+      expect(input.device.get().device).toBe('keyboard')
     }))
 
   it('is 0 when no action binds camera-drag (A-h)', () =>
@@ -119,7 +126,7 @@ describe('Input touch move stick (M4.12)', () => {
       input.touchStick.set(0, -1)
       expect(input.stick('left')).toEqual({ x: 0, y: -127 })
       expect([...input.held()]).toEqual(['forward'])
-      expect(Effect.runSync(SubscriptionRef.get(input.device)).device).toBe('touch')
+      expect(input.device.get().device).toBe('touch')
       input.touchStick.set(0.5, 0)
       expect(input.stick('left')).toEqual({ x: 64, y: 0 })
       expect([...input.held()]).toEqual([])

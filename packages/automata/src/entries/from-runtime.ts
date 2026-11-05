@@ -22,7 +22,7 @@ export {
   MAX_TURN_UNITS_PER_STEP,
   turnUnitsFromPixels,
 } from '../features/input/analog/camera-turn.js'
-export { Input } from '../features/input/input.manager.js'
+export type { Input } from '../features/input/input.manager.js'
 export {
   actionsForKey,
   actionsForPadButton,

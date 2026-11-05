@@ -2,10 +2,10 @@ import { settle } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { fakePad } from '#src/features/input/gamepad/testing/fake-pad.ts'
-import { makeInput } from '#src/features/input/input.manager.ts'
+import { createInput } from '#src/features/input/input.manager.ts'
 import { RESERVED_PAD_BUTTONS } from '#src/features/input/input-profile.schema.ts'
 import { MENU_BINDINGS, type MenuAction } from '#src/features/input/menu-actions.ts'
-import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { FakeHostHandle, HostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
 import { runScoped } from '../../../../src/testing/host/page/run.ts'
 
@@ -65,8 +65,9 @@ describe('the reserved pad button, as the Ruken SDK behaves', () => {
         expect(handle.sentByGame('host.summon')).toHaveLength(1)
         expect(RESERVED_PAD_BUTTONS).toContain(summoned?.button)
 
-        const bus = yield* makePresentationBus()
-        const input = yield* makeInput({ target: window, profile: { id: 'none', bindings: {} }, bus })
+        const bus = createPresentationBus()
+        const input = createInput({ target: window, profile: { id: 'none', bindings: {} }, bus })
+        yield* Effect.addFinalizer(() => Effect.sync(() => input.dispose()))
         const fired: string[] = []
         for (const action of Object.keys(MENU_BINDINGS) as MenuAction[])
           input.onPress(action, () => fired.push(action))

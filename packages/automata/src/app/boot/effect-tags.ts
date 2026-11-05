@@ -3,6 +3,7 @@
 import { Context, Effect, type Scope } from 'effect'
 import type { Audio as AudioService } from '../../features/audio/audio.manager.ts'
 import type { AudioBuses as AudioBusesService } from '../../features/audio/audio-buses.ts'
+import type { Haptics as HapticsService } from '../../features/input/haptics/haptics.manager.ts'
 import type { Locale as LocaleService } from '../../features/locale/locale.manager.ts'
 import type { SaveDef } from '../../features/saves/save.schema.ts'
 import { createSaves, type Saves as SavesService } from '../../features/saves/saves.manager.ts'
@@ -22,6 +23,12 @@ import {
 export type Assets = AssetsService
 export const Assets: Context.Tag<AssetsService, AssetsService> = Context.GenericTag<AssetsService>(
   '@mcthaydt/automata-runtime/Assets',
+)
+
+/** The haptics service as a runtime service: rumble and buzz, off when the player's Vibration setting is. */
+export type Haptics = HapticsService
+export const Haptics: Context.Tag<HapticsService, HapticsService> = Context.GenericTag<HapticsService>(
+  '@mcthaydt/automata-runtime/Haptics',
 )
 
 /** The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction. */

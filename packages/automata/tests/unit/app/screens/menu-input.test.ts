@@ -1,10 +1,20 @@
-import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { menuInput } from '#src/app/screens/menu-input.ts'
-import { type Input, makeInput } from '../../../../src/features/input/input.manager.ts'
+import { disposables } from '#src/shared/lib/disposables.ts'
+import { createInput, type Input } from '../../../../src/features/input/input.manager.ts'
 import type { PresentationBus } from '../../../../src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { FocusNavigator } from '../../../../src/shared/ui/focus/focus-nav.ts'
-import { runScoped } from '../../../../src/testing/host/page/run.ts'
+
+// Each test's Inputs and buses, taken down after it.
+let owned = disposables()
+afterEach(() => {
+  owned.dispose()
+  owned = disposables()
+})
+const own = <T extends { dispose(): unknown }>(thing: T): T => {
+  owned.add(() => void thing.dispose())
+  return thing
+}
 
 // The title and paused screens drive the ui FocusNavigator through the M4.1 Input service's menu edges (M4 spec
 // §4.7), over a real Input and a fake standard pad: A confirms, B backs out, the D-pad steers with I-d's repeat.
@@ -45,19 +55,16 @@ describe('menuInput', () => {
   afterEach(() => root.remove())
 
   /** Runs `body` with a menu over a real Input in a fresh scope. */
-  const withMenu = (body: (menu: ReturnType<typeof menuInput>, input: Input) => void) =>
-    runScoped(
-      Effect.gen(function* () {
-        const input = yield* makeInput({ target: window, profile: NO_BINDINGS, bus })
-        input.setContext('menu')
-        const menu = menuInput(input, new FocusNavigator())
-        try {
-          body(menu, input)
-        } finally {
-          menu.stop()
-        }
-      }),
-    )
+  const withMenu = (body: (menu: ReturnType<typeof menuInput>, input: Input) => void) => {
+    const input = own(createInput({ target: window, profile: NO_BINDINGS, bus }))
+    input.setContext('menu')
+    const menu = menuInput(input, new FocusNavigator())
+    try {
+      body(menu, input)
+    } finally {
+      menu.stop()
+    }
+  }
 
   it('a pad A held when the menu starts clicks nothing; a fresh press clicks once (F-a, pad half)', () =>
     withMenu((menu) => {

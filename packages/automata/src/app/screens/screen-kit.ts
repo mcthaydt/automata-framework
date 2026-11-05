@@ -3,9 +3,16 @@
 
 import { Duration, Effect, Runtime, type Scope } from 'effect'
 import { type Component, flushSync, mount, unmount } from 'svelte'
-import { type Input, makeInput } from '../../features/input/input.manager.ts'
+import {
+  createInput,
+  type HostInputMode,
+  type Input,
+  type InputOptions,
+} from '../../features/input/input.manager.ts'
 import type { InputProfile } from '../../features/input/input-profile.schema.ts'
+import { effectClock, plainObserved } from '../../shared/host/effect-bridge.ts'
 import { Hosting } from '../../shared/host/hosting.ts'
+import type { Subscribable } from '../../shared/lib/subscribable.ts'
 import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { interceptBackGesture } from '../../shared/ui/focus/back-gesture.ts'
 import { FocusNavigator } from '../../shared/ui/focus/focus-nav.ts'
@@ -56,7 +63,7 @@ export function driveMenu(
 ): Effect.Effect<void, never, Scope.Scope | PresentationBus> {
   return Effect.gen(function* () {
     const bus = yield* PresentationBus
-    const input = own ?? (yield* makeInput({ target, profile: NO_BINDINGS, bus }))
+    const input = own ?? (yield* ownInput({ target, profile: NO_BINDINGS, bus }))
     input.setContext('menu')
     const navigator = new FocusNavigator()
     const menu = menuInput(input, navigator)
@@ -108,10 +115,24 @@ export const plain = (event: KeyboardEvent): boolean =>
   !event.repeat && !event.altKey && !event.ctrlKey && !event.metaKey
 
 /** The host's input mode for the screens' Input: under Ruken only; standalone the page decides. */
-export const hostInput: Effect.Effect<Hosting['input'] | undefined, never, Hosting> = Effect.map(
+export const hostInput: Effect.Effect<Subscribable<HostInputMode> | undefined, never, Hosting> = Effect.map(
   Hosting,
-  (hosting) => (hosting.kind === 'standalone' ? undefined : hosting.input),
+  (hosting) => (hosting.kind === 'standalone' ? undefined : plainObserved(hosting.input)),
 )
+
+/**
+ * A plain Input for as long as the screen's scope is open, timed on the runtime's Effect clock (so a `TestClock`
+ * still times a capture out). Goes when the screens are plain.
+ */
+export function ownInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope> {
+  return Effect.gen(function* () {
+    const clock = effectClock(yield* Effect.runtime<never>())
+    return yield* Effect.acquireRelease(
+      Effect.sync(() => createInput({ ...options, clock })),
+      (input) => Effect.sync(() => input.dispose()),
+    )
+  })
+}
 
 /** How long a passing message stays on a screen. */
 const TOAST_FOR = Duration.seconds(4)

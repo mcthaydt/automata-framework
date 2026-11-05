@@ -1,4 +1,3 @@
-import { Effect, SubscriptionRef } from 'effect'
 import type { Input } from '../../features/input/input.manager.ts'
 import type { MenuAction } from '../../features/input/menu-actions.ts'
 import { FocusNavigator, type NavDirection } from '../../shared/ui/focus/focus-nav.ts'
@@ -32,7 +31,7 @@ export function menuInput(
   navigator: FocusNavigator = new FocusNavigator(),
 ): MenuInput {
   let recording = false
-  const fromPad = (): boolean => Effect.runSync(SubscriptionRef.get(input.device)).device === 'gamepad'
+  const fromPad = (): boolean => input.device.get().device === 'gamepad'
   const on = (action: MenuAction, run: () => void, padOnly = false) =>
     input.onPress(action, () => {
       if (recording || (padOnly && !fromPad())) return

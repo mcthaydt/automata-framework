@@ -3,24 +3,24 @@
 // `Hosting.saves`) and the next play session's Input reads it. The view's state is a `$state` object the screen
 // changes in place: a rebind, a pad connecting, a device switch or a capture's countdown never remount it.
 
-import { Effect, Either, Fiber, Runtime, Schedule, Stream, SubscriptionRef } from 'effect'
+import { Effect, Fiber, Runtime, Schedule, Stream } from 'effect'
 import { resolveExtensions } from '../../../features/extension/resolve-extensions.ts'
 import { inputSettingsSchema } from '../../../features/input/bindings/input-settings.schema.ts'
-import { Haptics } from '../../../features/input/haptics/haptics.manager.ts'
-import { makeInput, REBIND_TIMEOUT_MS } from '../../../features/input/input.manager.ts'
+import { REBIND_TIMEOUT_MS } from '../../../features/input/input.manager.ts'
 import {
   type InputProfile,
   type TouchMode,
   touchModesFor,
 } from '../../../features/input/input-profile.schema.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
+import type { Result } from '../../../shared/lib/result.ts'
 import { displaySettingsSchema } from '../../../shared/runtime/display-settings.schema.ts'
 import { PresentationBus } from '../../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { InputMethodTracker } from '../../../shared/ui/browser/input-method.svelte.ts'
 import { reducedMotion } from '../../../shared/ui/browser/reduced-motion.ts'
 import { sendBack } from '../../../shared/ui/focus/back-gesture.ts'
 import { readKeyboardLayout } from '../../../shared/ui/prompts/prompt-label.ts'
-import { Audio, AudioBuses, Locale, Settings } from '../../boot/effect-tags.ts'
+import { Audio, AudioBuses, Haptics, Locale, Settings } from '../../boot/effect-tags.ts'
 import { Flow } from '../../flow/flow.manager.ts'
 import type { ScreenDef } from '../../flow/screen.ts'
 import type { ScreensGame } from '../default-screens.ts'
@@ -30,6 +30,7 @@ import {
   hostInput,
   NO_BINDINGS,
   noticeUnsupportedPads,
+  ownInput,
   show,
   windowOf,
 } from '../screen-kit.ts'
@@ -80,7 +81,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         const target = windowOf(layer)
         const map = game.input
 
-        const input = yield* makeInput({
+        const input = yield* ownInput({
           target,
           profile: map?.profile ?? NO_BINDINGS,
           bus,
@@ -95,13 +96,10 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
             .parse(asRecord(store?.get()).display).quality
 
         const view: SettingsViewState = $state({
-          rows:
-            map === undefined
-              ? undefined
-              : rowsOf(Effect.runSync(SubscriptionRef.get(input.profile)), map.labels),
+          rows: map === undefined ? undefined : rowsOf(input.profile.get(), map.labels),
           devices: padConnected(target) ? ['keyboard', 'gamepad'] : ['keyboard'],
           coarse: target.matchMedia?.('(pointer: coarse)').matches === true,
-          glyphs: Effect.runSync(SubscriptionRef.get(input.device)).glyphs,
+          glyphs: input.device.get().glyphs,
           controls: { kind: 'list' },
           layout: undefined,
           touchModes: map === undefined ? [] : touchModesFor(map.profile),
@@ -126,8 +124,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         })
         const stops = [
           bus.subscribe('input.bindings.changed', () => {
-            if (map !== undefined)
-              view.rows = rowsOf(Effect.runSync(SubscriptionRef.get(input.profile)), map.labels)
+            if (map !== undefined) view.rows = rowsOf(input.profile.get(), map.labels)
           }),
           bus.subscribe('input.pad.connected', (pad) => {
             if (pad.standard && !view.devices.includes('gamepad')) view.devices = ['keyboard', 'gamepad']
@@ -169,10 +166,10 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
         yield* Effect.addFinalizer(() => (running === undefined ? Effect.void : Fiber.interrupt(running)))
         const settle = (
           action: string,
-          result: Either.Either<unknown, { readonly _tag: string }>,
+          result: Result<unknown, { readonly _tag: string }>,
         ): ControlsState => {
-          if (Either.isRight(result)) return { kind: 'saved', action }
-          const error = result.left as { readonly _tag: string; readonly with?: string }
+          if (result.ok) return { kind: 'saved', action }
+          const error = result.reason as { readonly _tag: string; readonly with?: string }
           switch (error._tag) {
             case 'RebindConflict':
               return { kind: 'conflict', action, with: error.with ?? '' }
@@ -196,11 +193,10 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           running = Runtime.runFork(runtime)(
             Effect.gen(function* () {
               const ticking = yield* Effect.fork(countdown)
-              const result = yield* Effect.either(
-                input
-                  .capture(device)
-                  .pipe(Effect.flatMap((capture) => input.rebind(action, device, capture))),
-              )
+              const result = yield* Effect.promise(async (signal) => {
+                const caught = await input.capture(device, signal)
+                return caught.ok ? input.rebind(action, device, caught.value) : caught
+              })
               yield* Fiber.interrupt(ticking)
               view.controls = settle(action, result)
               running = undefined
@@ -216,7 +212,7 @@ export function settingsScreen(game: ScreensGame, toldPads: Set<string> = new Se
           extensions: resolveExtensions(game.extensions ?? []).slots('settings.sections'),
           onrebind,
           onreset: () => {
-            Effect.runSync(input.resetBindings)
+            input.resetBindings()
             view.controls = { kind: 'list' }
           },
           ontouchmode: (mode: TouchMode) => {

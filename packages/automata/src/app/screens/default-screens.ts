@@ -1,7 +1,7 @@
 import '../../shared/ui/theme.css'
 import './screens.css'
 import { createSim, type PluginDef, type Sim } from '@mcthaydt/automata-sim'
-import { Effect, Scope, SubscriptionRef } from 'effect'
+import { Effect, Scope } from 'effect'
 import type { ExtensionDef } from '../../features/extension/define-extension.ts'
 import { resolveExtensions } from '../../features/extension/resolve-extensions.ts'
 import {
@@ -12,8 +12,6 @@ import { analogReading } from '../../features/input/analog-reading.ts'
 import { inputSettingsSchema } from '../../features/input/bindings/input-settings.schema.ts'
 import { CameraDragTracker } from '../../features/input/gestures/camera-drag-tracker.ts'
 import { SwipeTracker } from '../../features/input/gestures/swipe-tracker.ts'
-import { Haptics } from '../../features/input/haptics/haptics.manager.ts'
-import { makeInput } from '../../features/input/input.manager.ts'
 import type { InputMap } from '../../features/input/keys.ts'
 import { Leaderboards } from '../../features/leaderboards/leaderboards.manager.ts'
 import { saveOf } from '../../features/saves/saves.manager.ts'
@@ -24,7 +22,7 @@ import { Time } from '../../shared/runtime/time/time.manager.ts'
 import { InputMethodTracker } from '../../shared/ui/browser/input-method.svelte.ts'
 import { sendBack } from '../../shared/ui/focus/back-gesture.ts'
 import { CursorRunner } from '../../shared/ui/focus/cursor-policy.ts'
-import { Audio, AudioBuses, Locale, Saves, Settings } from '../boot/effect-tags.ts'
+import { Audio, AudioBuses, Haptics, Locale, Saves, Settings } from '../boot/effect-tags.ts'
 import type { GameSaves } from '../define-game.ts'
 import { Flow } from '../flow/flow.manager.ts'
 import type { ScreenDef } from '../flow/screen.ts'
@@ -41,6 +39,7 @@ import {
   NO_BINDINGS,
   noticeChangedElsewhere,
   noticeUnsupportedPads,
+  ownInput,
   plain,
   show,
   windowOf,
@@ -219,7 +218,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         const bus = yield* PresentationBus
         // The player's bindings and touch mode, from the settings.
         const { store } = yield* Settings
-        const input = yield* makeInput({
+        const input = yield* ownInput({
           target,
           profile: map?.profile ?? NO_BINDINGS,
           bus,
@@ -265,8 +264,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
         yield* Effect.acquireRelease(
           Effect.sync(() =>
             bus.subscribe('input.pad.disconnected', (pad) => {
-              if (!pad.wasActive || Effect.runSync(SubscriptionRef.get(input.device)).device !== 'gamepad')
-                return
+              if (!pad.wasActive || input.device.get().device !== 'gamepad') return
               reconnect = true
               time.pause('input')
               pause()
