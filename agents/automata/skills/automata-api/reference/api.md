@@ -392,6 +392,19 @@ The height tier of a layout height in CSS px: `compact` below 340, `short` up to
 function classifyHeightTier(height: number): HeightTier;
 ```
 
+#### `Clock` (interface)
+
+_No doc comment._
+
+```ts
+interface Clock {
+    /** Milliseconds; only differences between two calls mean anything. */
+    now(): number;
+    setTimeout(callback: () => void, ms: number): TimeoutHandle;
+    clearTimeout(handle: TimeoutHandle): void;
+}
+```
+
 #### `Command` (interface)
 
 Input to the sim, the only way gameplay state changes from outside. `source` is a player slot (u8), `seq` a per-source counter (u32).
@@ -814,6 +827,31 @@ Checks display metrics.
 const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
 ```
 
+#### `Disposables` (interface)
+
+_No doc comment._
+
+```ts
+interface Disposables {
+    /**
+     * Runs `undo` at disposal. Added after disposal it runs at once, so a late arrival is never leaked. Returns a
+     * function that takes `undo` back out (a listener that was stopped by hand has nothing left to undo).
+     */
+    add(undo: () => void): () => void;
+    /** Runs what was added, last added first, once. Later calls do nothing. */
+    dispose(): void;
+    readonly disposed: boolean;
+}
+```
+
+#### `disposables` (function)
+
+_No doc comment._
+
+```ts
+function disposables(): Disposables;
+```
+
 #### `DrawContext` (interface)
 
 What `draw` receives each frame. Coordinates are logical playfield pixels (plan D-2).
@@ -987,16 +1025,16 @@ function findTauriMarkers(code: string): string[];
 #### `Flow` (interface)
 
 The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu`
-for the current screen's menu, and `settled` once no transition is pending.
+for the current screen's menu, and `settled()` once no transition is pending.
 
 ```ts
 interface Flow {
     readonly current: string | undefined;
     dispatch(event: string): boolean;
     openMenu(): boolean;
-    readonly settled: Effect.Effect<void>;
+    /** Resolves once no transition is queued or running (at once when the flow is idle). */
+    settled(): Promise<void>;
 }
-const Flow: Context.Tag<Flow, Flow>;
 ```
 
 #### `FormFactor` (type)
@@ -2529,6 +2567,31 @@ interface RuntimeSeams {
 }
 ```
 
+#### `RuntimeServices` (interface)
+
+The runtime services a screen may use, as one plain object: boot builds them in order and hands them over.
+
+```ts
+interface RuntimeServices {
+    readonly hosting: Hosting;
+    readonly bus: PresentationBus;
+    /** The runtime's clock: what a screen waits on (a toast's four seconds, a rebind's countdown). */
+    readonly clock: Clock;
+    readonly time: Time;
+    readonly flow: Flow;
+    readonly settings: Settings;
+    readonly saves: Saves;
+    readonly appLoop: AppLoop;
+    readonly assets: Assets;
+    readonly renderer: GameRenderer;
+    readonly locale: Locale;
+    /** Sounds and music, and the audio buses' gains (one service). */
+    readonly audio: Audio & AudioBuses;
+    readonly leaderboards: Leaderboards;
+    readonly haptics: Haptics;
+}
+```
+
 #### `Save` (interface)
 
 A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for
@@ -2668,19 +2731,45 @@ Checks a saves status.
 const SavesStatusSchema: z.ZodType<SavesStatus>;
 ```
 
-#### `ScreenDef` (interface)
+#### `ScreenContext` (interface)
 
-One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it
-in its scope (closing the scope leaves the screen).
+What a screen's `enter` is given: where to mount, where it came from, what to undo, and the runtime's services.
 
 ```ts
-interface ScreenDef<R = never> {
+interface ScreenContext {
+    /** The screen's own element in the screen layer. */
+    readonly layer: HTMLElement;
+    readonly from: string | undefined;
+    /**
+     * What the screen undoes when it is left: add a function for each listener, mount or timer it starts. The flow
+     * disposes it once, last added first, before the next screen enters (and when a failed `enter` is cleaned up).
+     */
+    readonly screen: Disposables;
+    /**
+     * What a game keeps across screens, such as the sim the default screens share. Every screen of a run gets the same
+     * one. It is disposed once, when the runtime shuts down or a failed boot is tried again: after the current screen
+     * and the save's last flush, which may still read what it holds, and before the renderer is destroyed and Hosting
+     * closes.
+     */
+    readonly runtime: Disposables;
+    readonly services: RuntimeServices;
+}
+```
+
+#### `ScreenDef` (interface)
+
+One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it.
+Everything `enter` starts goes in `context.screen`, which the flow disposes when the screen is left.
+
+```ts
+interface ScreenDef {
     readonly id: string;
     readonly pausesSim?: boolean;
     /** `gameplay` lets the cursor policy hide an idle pointer; a `menu` (the default) never does. */
     readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
-    enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
+    /** A throw, or a rejected promise, is the screen's failure: the flow shows the error panel with Try again. */
+    enter(context: ScreenContext): void | Promise<void>;
     openMenu?(): boolean;
 }
 ```
@@ -3988,7 +4077,7 @@ Uses `HostingTest` behind the scenes, hooks DOM layers and geometry, starts the 
 and yields all runtime services plus `FakeHostHandle`.
 
 ```ts
-function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeServices | FakeHostHandle, BootError>;
+function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeTags | FakeHostHandle, BootError>;
 ```
 
 #### `RuntimeTestOptions` (interface)
@@ -3999,7 +4088,7 @@ fetch and locale it uses.
 ```ts
 interface RuntimeTestOptions {
     readonly hosting?: HostingTestOptions | Partial<Omit<FakeHostOptions, 'gameOrigin' | 'gameId'>>;
-    readonly screens?: readonly ScreenDef<any>[];
+    readonly screens?: readonly ScreenDef[];
     readonly content?: CompiledContentData;
     readonly settings?: SettingsDef<unknown>;
     /** The game's save, opened as boot opens it: its triggers and exit flush run, and `saveOf(def)` finds it. */

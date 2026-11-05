@@ -259,6 +259,16 @@ function classifyFormFactor(width: number, height: number): FormFactor;
 function classifyHeightTier(height: number): HeightTier;
 ```
 
+### `Clock` (interface)
+
+```ts
+interface Clock {
+    now(): number;
+    setTimeout(callback: () => void, ms: number): TimeoutHandle;
+    clearTimeout(handle: TimeoutHandle): void;
+}
+```
+
 ### `Command` (interface)
 
 ```ts
@@ -491,6 +501,22 @@ interface DisplayMetricsPayload {
 const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
 ```
 
+### `Disposables` (interface)
+
+```ts
+interface Disposables {
+    add(undo: () => void): () => void;
+    dispose(): void;
+    readonly disposed: boolean;
+}
+```
+
+### `disposables` (function)
+
+```ts
+function disposables(): Disposables;
+```
+
 ### `DrawContext` (interface)
 
 ```ts
@@ -629,9 +655,8 @@ interface Flow {
     readonly current: string | undefined;
     dispatch(event: string): boolean;
     openMenu(): boolean;
-    readonly settled: Effect.Effect<void>;
+    settled(): Promise<void>;
 }
-const Flow: Context.Tag<Flow, Flow>;
 ```
 
 ### `FormFactor` (type)
@@ -1556,6 +1581,27 @@ interface RuntimeSeams {
 }
 ```
 
+### `RuntimeServices` (interface)
+
+```ts
+interface RuntimeServices {
+    readonly hosting: Hosting;
+    readonly bus: PresentationBus;
+    readonly clock: Clock;
+    readonly time: Time;
+    readonly flow: Flow;
+    readonly settings: Settings;
+    readonly saves: Saves;
+    readonly appLoop: AppLoop;
+    readonly assets: Assets;
+    readonly renderer: GameRenderer;
+    readonly locale: Locale;
+    readonly audio: Audio & AudioBuses;
+    readonly leaderboards: Leaderboards;
+    readonly haptics: Haptics;
+}
+```
+
 ### `Save` (interface)
 
 ```ts
@@ -1639,15 +1685,27 @@ type SavesStatus = 'checking' | 'syncing' | 'saved' | 'offline-queued' | 'retry'
 const SavesStatusSchema: z.ZodType<SavesStatus>;
 ```
 
+### `ScreenContext` (interface)
+
+```ts
+interface ScreenContext {
+    readonly layer: HTMLElement;
+    readonly from: string | undefined;
+    readonly screen: Disposables;
+    readonly runtime: Disposables;
+    readonly services: RuntimeServices;
+}
+```
+
 ### `ScreenDef` (interface)
 
 ```ts
-interface ScreenDef<R = never> {
+interface ScreenDef {
     readonly id: string;
     readonly pausesSim?: boolean;
     readonly kind?: 'menu' | 'gameplay';
     readonly fonts?: readonly string[];
-    enter(context: ScreenContext): Effect.Effect<void, unknown, Scope.Scope | RuntimeServices | R>;
+    enter(context: ScreenContext): void | Promise<void>;
     openMenu?(): boolean;
 }
 ```
@@ -2563,7 +2621,7 @@ interface ReferenceSize {
 ### `RuntimeTest` (function)
 
 ```ts
-function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeServices | FakeHostHandle, BootError>;
+function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeTags | FakeHostHandle, BootError>;
 ```
 
 ### `RuntimeTestOptions` (interface)
@@ -2571,7 +2629,7 @@ function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeServices 
 ```ts
 interface RuntimeTestOptions {
     readonly hosting?: HostingTestOptions | Partial<Omit<FakeHostOptions, 'gameOrigin' | 'gameId'>>;
-    readonly screens?: readonly ScreenDef<any>[];
+    readonly screens?: readonly ScreenDef[];
     readonly content?: CompiledContentData;
     readonly settings?: SettingsDef<unknown>;
     readonly saves?: SaveDef<unknown>;
