@@ -178,12 +178,41 @@ interface Span {
   kind: 'module' | 'path'
 }
 
-function extraSpans(code: string, patterns: readonly RegExp[], kind: Span['kind'] = 'module'): Span[] {
+/** The text ranges of string literals and template text in a file: code written there is data, not code. */
+function stringRanges(file: string, code: string): [number, number][] {
+  const ranges: [number, number][] = []
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      for (const item of node) visit(item)
+      return
+    }
+    if (node === null || typeof node !== 'object') return
+    const { type, start, end } = node as { type?: string; start?: number; end?: number }
+    if (typeof start === 'number' && typeof end === 'number') {
+      const isString =
+        type === 'TemplateElement' ||
+        (type === 'Literal' && typeof (node as { value?: unknown }).value === 'string')
+      if (isString) ranges.push([start, end])
+    }
+    for (const child of Object.values(node)) visit(child)
+  }
+  visit(parseSync(file, code).program)
+  return ranges
+}
+
+function extraSpans(
+  code: string,
+  patterns: readonly RegExp[],
+  kind: Span['kind'] = 'module',
+  inStrings: readonly [number, number][] = [],
+): Span[] {
   const spans: Span[] = []
   for (const pattern of patterns)
     for (const match of code.matchAll(pattern)) {
       const value = match.groups?.value
       if (value === undefined) continue
+      // A match that starts inside a string is sample text (a generated page that contains `new URL(...)`), not a call.
+      if (inStrings.some(([from, to]) => match.index >= from && match.index < to)) continue
       // The value sits right after its opening quote, which is the last quote before it in the match.
       const start = match.index + match[0].lastIndexOf(value, match[0].length - 1)
       spans.push({ start, end: start + value.length, value, kind })
@@ -195,11 +224,14 @@ function extraSpans(code: string, patterns: readonly RegExp[], kind: Span['kind'
 function relativeSpecifiers(file: string, code: string): Span[] {
   const all = file.endsWith('.svelte')
     ? extraSpans(code, SVELTE_SPECIFIERS)
-    : [
-        ...specifierSpans(file, code),
-        ...extraSpans(code, MOCK_SPECIFIERS),
-        ...extraSpans(code, PATH_SPECIFIERS, 'path'),
-      ]
+    : (() => {
+        const strings = stringRanges(file, code)
+        return [
+          ...specifierSpans(file, code),
+          ...extraSpans(code, MOCK_SPECIFIERS, 'module', strings),
+          ...extraSpans(code, PATH_SPECIFIERS, 'path', strings),
+        ]
+      })()
   const seen = new Set<number>()
   return all
     .filter((span) => /^\.\.?(?:\/|$)/.test(span.value))

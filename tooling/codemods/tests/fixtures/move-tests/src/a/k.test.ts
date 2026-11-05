@@ -13,3 +13,5 @@ void dataFile
 const here = join(import.meta.dirname, '.')
 const moduleType: typeof import('./b') | undefined = undefined
 void [here, moduleType]
+const page = "new URL('./b.ts', import.meta.url)"
+void page

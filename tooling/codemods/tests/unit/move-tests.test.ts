@@ -119,6 +119,10 @@ describe('imports', () => {
     expect(text).toContain("from '#src/a/sub/index.ts'")
   })
 
+  it('leaves a new URL(...) call written inside a string alone', () => {
+    expect(textOf('tests/unit/a/k.test.ts')).toContain('const page = "new URL(\'./b.ts\', import.meta.url)"')
+  })
+
   it('maps .js to .ts, aliases json, and moves a new URL path to wherever it points now', () => {
     const text = textOf('tests/unit/a/k.test.ts')
     expect(text).toContain("from '#src/a/b.ts'")
