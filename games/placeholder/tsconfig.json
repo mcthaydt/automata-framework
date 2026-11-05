@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "types": [], "allowImportingTsExtensions": true, "isolatedDeclarations": false },
+  "include": ["src/**/*.ts"],
+  // These read ship.config.ts (which brings in ship's Node code) or the files on disk; tsconfig.node.json checks them.
+  "exclude": ["src/ship-config.test.ts", "src/vite-config.test.ts", "src/layout.test.ts"]
+}

@@ -1,0 +1,15 @@
+{
+  // The files that run in Node (Vite, Playwright, the S8 script, ship.config.ts) or reach ship's Node code.
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["node"] },
+  "include": [
+    "ship.config.ts",
+    "vite.config.ts",
+    "src/ship-config.test.ts",
+    "src/vite-config.test.ts",
+    "src/layout.test.ts",
+    "e2e/**/*.ts",
+    "ruken/s8/*.ts"
+  ],
+  "exclude": []
+}
