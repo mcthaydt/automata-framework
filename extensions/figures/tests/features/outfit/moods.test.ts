@@ -10,7 +10,7 @@ import { differs } from '../draw';
  * parted in 'talk', and the eyes to one side or just off the camera, which a character takes as `expression` or as
  * `mood` tags beside it. The base pair draw their faces but only in the stock expressions, so each mood is drawn here
  * against the neutral face, from the front at density 2 (the face is big enough there to carry every one), and drawn
- * twice to the same texels. (The actors golden does not sample talk's open mouth, so this test is its guard.)
+ * twice to the same texels. (The actors golden samples talk's open mouth in its `script` case; this test is the guard for every other mood.)
  */
 /** The base man's face from the front, at a clock where `talk`'s mouth is open (floor(t · 6) even), with the given mood. */
 function face(expression: Expression, mood?: string[]): Uint8ClampedArray {

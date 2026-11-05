@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BASE } from '../../../base/base';
 import { J, skeleton } from '../../../src/features/body/rig';
 import { measure } from '../../../src/features/body/genes';
-import { apply, invertRigid, position } from '../../../src/lib/math';
+import { apply, applyDir, invertRigid, position } from '../../../src/lib/math';
 import { evaluate } from '../../../src/features/motion/motion';
 import { GAITS } from '../../../src/features/motion/presets';
 import { registerGarment, type Garment } from '../../../src/features/outfit/garments';
@@ -34,6 +34,14 @@ describe('the hems', () => {
   it('stands on the floor while the foot is planted and rises with it through the swing', () => {
     expect(Math.min(...heights)).toBeCloseTo(0, 3);
     expect(Math.max(...heights)).toBeGreaterThan(0.02);
+  });
+  it('stands upright on the floor whatever the shin\'s tilt (placeHems turns it; on the shin alone it would tip)', () => {
+    /** A joint's up axis (its +y in the world), y component: 1 when upright. */
+    const up = (phase: number, joint: number) =>
+      applyDir(evaluate(s, gait, { t: 0, moving: true, phase, yaw: 0, headYaw: 0, shuffle: 0 }).world[joint], [0, 1, 0])[1];
+    const phases = [...Array(24).keys()].map(i => i / 24);
+    expect(Math.min(...phases.map(p => up(p, J['shin.L'])))).toBeLessThan(0.98);   // the control: the shin does tip
+    expect(Math.min(...phases.map(p => up(p, J.hemL)))).toBeGreaterThan(0.999);
   });
   it('is placed the same every time', () => {
     expect(hemAt(0.3, 'L')).toBe(hemAt(0.3, 'L'));

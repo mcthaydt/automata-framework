@@ -4,6 +4,7 @@ import { measure } from '../../../src/features/body/genes';
 import { J, skeleton } from '../../../src/features/body/rig';
 import { GROUP, type Part } from '../../../src/features/body/parts';
 import type { Anchor } from '../../../src/features/motion/motion';
+import { registerHairPiece, type HairStyle } from '../../../src/features/hair/hair';
 import {
   box, dress, registerGarment, registerOutfitHooks, type Garment, type Look,
 } from '../../../src/features/outfit/garments';
@@ -40,11 +41,20 @@ registerOutfitHooks({ tie, anchors });
 
 const def = BASE[0].def, m = measure(def.sliders), s = skeleton(m.genes);
 const wear = (...garments: Garment[]): Look => dress(m, s, def.skin, garments);
+/** What a registered hair piece was told about headwear, each time it was built. */
+const capped: boolean[] = [];
+registerHairPiece('probe', { build: c => { capped.push(!!c.i.capped); } });
+const PROBE_HAIR: Garment = { hair: 'hairBlack', style: { about: 'probe', finish: 'coil', pieces: [{ probe: {} }] } as HairStyle };
 const HAIR: Garment = { hair: 'hairBlack', style: 'shortFade' };
 /** The parts a look has beyond the body's own, which come first. */
 const beyondBody = (look: Look) => look.parts.slice(wear().parts.length);
 
 describe('garment kinds (H1)', () => {
+  it('headwear tells the hair pieces they are under it (HairInput.capped)', () => {
+    capped.length = 0;
+    wear(PROBE_HAIR); wear(PROBE_HAIR, { helm: 'x' });
+    expect(capped).toEqual([false, true]);
+  });
   it('wear in order: the outfit, then the kinds built last, then each kind\'s after', () => {
     const look = wear({ finale: 'x' }, { late: 'x' }, { sash: 'x' });
     expect(beyondBody(look).map(p => p.material)).toEqual(['charcoal', 'flatGrey', 'wood']);
@@ -58,6 +68,7 @@ describe('garment kinds (H1)', () => {
   });
   it('registering a name twice throws', () => {
     expect(() => registerGarment('sash', { build: () => ({ parts: [] }) })).toThrow('registered already');
+    expect(() => registerGarment('collar', { build: () => ({ parts: [] }) })).toThrow('registered already');
   });
   it('headwear presses the hair it covers', () => {
     const bareHair = beyondBody(wear(HAIR)).length;

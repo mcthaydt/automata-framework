@@ -106,9 +106,14 @@ export interface OutfitHooks {
 }
 /** The garment kinds a fork registers (registerGarment), by name, in registration order. Empty in base. */
 const KINDS = new Map<string, GarmentKind>();
-/** Registers a garment kind under `kind`, the key its items carry ({ tee: 'iceTee', … }). Throws on a name taken. */
+/** The keys the base pair's garments carry (BaseGarment): a kind named after one would take those items from dress()'s
+ * own branches, so none may be registered. A fork adds garments; it does not override the base ones. */
+const BASE_KEYS = ['top', 'sleeves', 'cuffs', 'collar', 'shorts', 'hair', 'style', 'tie', 'eyes', 'stubble', 'lids', 'brows', 'white', 'lips'];
+/** Registers a garment kind under `kind`, the key its items carry ({ tee: 'iceTee', … }). Throws on a name taken, the
+ * base garments' keys included. A kind's name should not be a field of another kind's items: the first registered match
+ * wins. */
 export function registerGarment(kind: string, entry: GarmentKind): void {
-  if (KINDS.has(kind)) throw new Error(`garment kind ${kind} is registered already`);
+  if (BASE_KEYS.includes(kind) || KINDS.has(kind)) throw new Error(`garment kind ${kind} is registered already`);
   KINDS.set(kind, entry);
 }
 /** The registered kind an item is, if any: the first, in registration order, whose name is one of its keys. */
