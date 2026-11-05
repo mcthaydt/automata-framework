@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// The index is built from emitted .d.ts, so it runs after `pnpm build`, in CI and in the local gate alike.
+// The index is built from emitted .d.ts, so it runs after `pnpm build`, in the release checks (refactor task 1.2).
 const root = fileURLToPath(new URL('../../..', import.meta.url))
 const scripts = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts as Record<string, string>
 
@@ -16,17 +16,10 @@ describe('pnpm api-index in the gates', () => {
     expect(scripts.cheatsheet).toBe('node tooling/api-index/src/cli.ts --write-cheatsheet')
   })
 
-  it('runs after pnpm build in ci:local', () => {
-    const steps = (scripts['ci:local'] ?? '').split(' && ')
-    expect(steps.indexOf('pnpm api-index')).toBeGreaterThan(steps.indexOf('pnpm build'))
-    expect(steps.indexOf('pnpm build')).toBeGreaterThan(-1)
-  })
-
-  it("runs after pnpm build in ci.yml's checks job", () => {
-    const ci = readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8')
-    const checks = ci.slice(ci.indexOf('\n  checks:'), ci.indexOf('\n  parity:'))
-    const build = checks.indexOf('\n      - run: pnpm build\n')
+  it("runs after pnpm build in release-checks.yml's job", () => {
+    const releaseChecks = readFileSync(join(root, '.github/workflows/release-checks.yml'), 'utf8')
+    const build = releaseChecks.indexOf('\n      - run: pnpm build\n')
     expect(build).toBeGreaterThan(-1)
-    expect(checks.indexOf('\n      - run: pnpm api-index\n')).toBeGreaterThan(build)
+    expect(releaseChecks.indexOf('\n      - run: pnpm api-index\n')).toBeGreaterThan(build)
   })
 })
