@@ -518,7 +518,7 @@ const PALETTE = 24, MERGE = 0.035, MINOR = [0.075, 0.1, 12] as const;
  * The colour budget, as a pixel artist keeps one: a colour on fewer than 2·D² texels of a larger surface (a fleck of a
  * fourth shadow) takes the nearest colour round it on that surface that has its place, and while the figure has more
  * than `PALETTE` colours the closest pair painted on one material (ΔE under `MERGE`) merge, the rarer into the
- * commoner. The face's own marks (eyes, brows, lips), a gloss's shine and a hologram's ramp (`kept`) are its accents,
+ * commoner. The face's own marks (eyes, brows, lips) and a gloss's shine (`kept`) are its accents,
  * and stay.
  */
 function budget(out: Uint8ClampedArray, w: number, h: number, D: number, kept: Uint8Array, mat: (k: number) => number) {

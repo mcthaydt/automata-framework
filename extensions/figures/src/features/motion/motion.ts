@@ -447,8 +447,7 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
     const bend = walking
       ? Math.min(gait.elbow + gait.elbowSwing * forward / Math.max(1e-6, amp), Math.max(gait.elbow, FORE - forward))
       : hung ? hung.bend : gait.standElbow !== undefined ? gait.standElbow * (side === 'L' ? 1 : 0.75) : gait.elbow + gait.idleElbow * (side === 'L' ? 1 : 0.7);
-    // `plumb` of the torso's bend taken back at the shoulder, so a stooped figure's arms hang down rather than swing back
-    // with the chest; the chest's roll taken back too, so the arms hang plumb from shoulders that tilt.
+    // The chest's roll taken back at the shoulder, so the arms hang plumb from shoulders that tilt.
     pose.rot[J[`upperArm.${side}`]] = euler(swing + idleSway * 0.5 - hang, 0, x * out - chestRoll);
     pose.rot[J[`foreArm.${side}`]] = euler(-(bend + Math.abs(idleSway)), 0, 0);
     // The hand hangs from the wrist, back toward plumb by a share of the forearm's angle forward of it.
@@ -576,4 +575,3 @@ export function evaluate(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   for (const hold of standing ? st.holds ?? (st.stand ? standHolds(s, st.stand) : []) : []) out = applyHold(s, out, hold);
   return st.hold ? applyHold(s, out, st.hold) : out;
 }
-export type { Q };

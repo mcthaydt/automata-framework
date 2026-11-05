@@ -17,9 +17,9 @@ import { BASE } from '../../../base/base';
  * Everything an actor shows at time t is a pure function of t: where it is, which way it faces, its walk's phase (from
  * the distance it has walked), its actions' envelopes, its blink. There is no clock inside, so a cut, a second shot or a
  * test can sample any moment in any order and get the same frame. It draws through a Figure (figure.ts), as a pose made
- * outside the figure's own motion (`update({ pose, clock })`), in any view: first person, the diorama, top-down, or alone.
+ * outside the figure's own motion (`update({ pose, clock })`), at any density, in any of the 8 views.
  *
- * Coordinates: the floor's x and z (a map's x and y), facing in radians with 0 toward +z and π/2 toward +x
+ * Coordinates: the floor's x and z, facing in radians with 0 toward +z and π/2 toward +x
  * (0 faces the camera); a script's facings are in degrees.
  */
 /** A place on the floor (x, z), or a point in the world (x, y, z), or another actor by name. */

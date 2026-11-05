@@ -108,7 +108,7 @@ export function holdsFor(s: Skeleton, look: Look, stand: Stand): Hold[] {
 }
 /** A library stand on a dressed figure: the named one (POSES), or the first of its fallbacks that the outfit suits
  * (`fits`), with its holds; null where none suits (the gait's relaxed stand). `name` is the one used. The hero
- * (scripts/frames.ts) and the actors (actor.ts standFor) both place stands with this. */
+ * (frames.ts) and the actors (actor.ts standFor) both place stands with this. */
 export function standOf(s: Skeleton, look: Look, name: string): { stand: Stand; holds: Hold[]; name: string } | null {
   const named = POSES[name];
   if (!named) throw new Error(`no pose ${name}`);

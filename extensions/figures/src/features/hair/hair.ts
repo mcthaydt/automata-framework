@@ -15,7 +15,7 @@ import { headAt, headForm, headNormal, insideHead, type HeadForm } from '../body
  *
  * - scalp: a shell on the skull from a hairline up to the crown, or a band between two lines (a fade), lifted off it,
  *   fuller at the crown and ridged the way the hair is combed, so its sheen breaks into bands along the strands.
- * - rows: ropes laid on the scalp from the hairline to a point: braids gathered up into a pony, cornrows to the nape.
+ * - rows: ropes laid on the scalp from the hairline to a point: braids gathered up into a pony.
  * - tail: a ponytail's ropes, rising from the crown and falling down the back, clear of the body, to below the shoulders.
  *
  * Every piece is one surface (seam 2000) unless it is ropes whose gaps must show: each rope is then its own part, so
@@ -26,10 +26,10 @@ export const HAIR_SEAM = 2000;
 /** The tag on the hair's top surface over the crown: where anything worn up on the head lies. */
 const CROWN = 'crown';
 /**
- * The skull's frame: a rounded box round the lofted head (garments.ts head()), its centre, radii, roundness and taper.
+ * The skull's frame: a rounded box round the lofted head (garments.ts head), its centre, radii, roundness and taper.
  * A style's head units (heights, angles round it, sizes of its half-width) are about it; what fits the head (a scalp, a
- * row's line, a fall's root, a cap's dome) fits the head's own form (garments.ts headForm: onHead, toHead), so a style
- * and a cap hug the round cranium, never a box round it.
+ * row's line, a fall's root) fits the head's own form (head.ts headForm; here onHead, toHead), so a style
+ * hugs the round cranium, never a box round it.
  */
 export interface Skull { c: V3; r: V3; e: [number, number]; taper: [number, number] }
 export function skull(s: Skeleton): Skull {
@@ -44,7 +44,7 @@ function onSkull(k: Skull, a: number, y: number, lift = 0): V3 {
   return [k.c[0] + cu * sp(Math.cos(v), k.e[1]) * k.r[0] * tk * f, k.c[1] + yy * k.r[1] * f, k.c[2] + cu * sp(Math.sin(v), k.e[1]) * k.r[2] * tk * f];
 }
 /** Where the ray from the skull's centre along `d` leaves the head's own form, `lift` of the skull's half-width beyond
- * (bisection on its inside test): a row's path, a bun's or a tail's root, how far a cap presses the hair. */
+ * (bisection on its inside test): a row's path, a bun's or a tail's root. */
 export function toHead(f: HeadForm, k: Skull, d: V3, lift = 0): V3 {
   const n = normalize(d);
   let lo = 0, hi = 2 * f.h;
@@ -109,7 +109,7 @@ function spline(points: V3[], n: number): V3[] {
   return out;
 }
 /** A rope's make: its radius (of the skull's half-width), how flat it is (its depth over its width), how square, and
- * its texture: `beads` along it (a plait, `depth` deep, `twist` strands turning round it; 0 straight beads), `ridges`
+ * its texture: `beads` along it (a plait, `depth` deep), `ridges`
  * along it (strands), its ends. */
 export interface Rope {
   r: number; flat?: number; e?: number;
@@ -117,7 +117,7 @@ export interface Rope {
    * length. `plait`: the upper half of each bead in the lit tone, its edge a V dipping this much of a bead down the
    * rope's middle (the strands crossing in from either side), so a braid reads as a plait down its axis; false keeps
    * one tone (locs). */
-  beads?: number; pitch?: number; depth?: number; twist?: number; ridges?: [number, number]; plait?: number | false;
+  beads?: number; pitch?: number; depth?: number; ridges?: [number, number]; plait?: number | false;
   /** Where along it its beads start (of a bead), and how far they slant across it (of a bead, edge to edge): a plait's
    * strands cross it on a diagonal, so the light on each bead is a slanted stroke, and ropes laid side by side with
    * their phases apart and their slants turned against each other read as a herringbone, never as rungs. */
@@ -136,7 +136,7 @@ export interface Rope {
 export function sweep(path: V3[], rope: Rope, unit: number, out: (p: V3, t: number) => V3, rings = 0): { mesh: Mesh; lit?: Mesh; t: number[] } {
   const total = path.reduce((l, p, i) => (i ? l + Math.hypot(...sub(p, path[i - 1])) : 0), 0);
   const a0 = rope.r * unit, b0 = a0 * (rope.flat ?? 1), e = rope.e ?? 1, depth = rope.depth ?? 0.25;
-  const beads = rope.pitch ? Math.max(2, Math.round(total / (rope.pitch * unit))) : rope.beads ?? 0;
+  const beads = rope.pitch ? Math.max(2, Math.round(total / (rope.pitch * unit))) : 0;
   const n = rings || Math.max(8, Math.ceil(total / (a0 * 0.5)), beads * 6), seg = rope.seg ?? 10, P = spline(path, n);
   const T = P.map((_, i) => normalize(sub(P[Math.min(n, i + 1)], P[Math.max(0, i - 1)])));
   const root = rope.root ?? 0.06, tip = rope.tip ?? 'round', taper = rope.taper ?? 1;
@@ -156,7 +156,7 @@ export function sweep(path: V3[], rope: Rope, unit: number, out: (p: V3, t: numb
   const at = (i: number, j: number): V3 => {
     const t = i / n, th = 2 * Math.PI * j / seg, f = profile(t);
     let m = 1;
-    if (beads) m += depth * (rope.twist ? Math.cos(2 * Math.PI * beads * t - rope.twist * th) : 2 * Math.abs(Math.sin(Math.PI * bead(t, th))) ** 0.7 - 1);
+    if (beads) m += depth * (2 * Math.abs(Math.sin(Math.PI * bead(t, th))) ** 0.7 - 1);
     if (rope.ridges) m += rope.ridges[1] * Math.cos(rope.ridges[0] * th);
     const c = sp(Math.cos(th), e) * a0 * f * m, s = sp(Math.sin(th), e) * b0 * f * m, { N, B } = F[i];
     return add(P[i], add(scale(B, c), scale(N, s)));
@@ -186,14 +186,14 @@ type Tone = 'hair' | 'lit' | 'crest' | 'fade1' | 'fade2' | 'scalp' | 'parting' |
 /** A shell; its `sheen`: `count` streaks round the comb in the lit tone (the first at `at` round it), between heights `from` and `to` (each streak's
  * ends jittered by `ragged`), each a spindle up to `width` of its share either side: the glossy band along the strands,
  * broken into strands' shines. */
-export interface Scalp { from: Line; to?: Line; lift: number; crown?: number; edge?: number; ridges?: [number, number]; comb?: V3 | 'back'; tone?: Tone; cut?: { at: number; width: number; height: number }; sheen?: { count: number; from: number; to: number; width?: number; ragged?: number; at?: number }; /** A fade's grade up the band (0 its foot, 1 its top): from each height up, a tone (the skin below the first). */ grade?: [number, Tone][]; /** Only this far round either side of the front (a line-up at the temples). */ span?: number }
+export interface Scalp { from: Line; to?: Line; lift: number; crown?: number; edge?: number; ridges?: [number, number]; comb?: V3 | 'back'; tone?: Tone; sheen?: { count: number; from: number; to: number; width?: number; ragged?: number; at?: number }; /** A fade's grade up the band (0 its foot, 1 its top): from each height up, a tone (the skin below the first). */ grade?: [number, Tone][]; /** Only this far round either side of the front (a line-up at the temples). */ span?: number }
 /** Rows from the hairline round `at` (the front by default), `span` either side of it, to one point (a direction from
- * the skull's centre, in head units) or each straight back to the nape. */
-export interface Rows { count: number; at?: number; span: number; from: Line; to: V3 | 'nape'; nape?: Line; lift: number; rope: Rope; apart?: boolean; matte?: boolean; tone?: Tone }
+ * the skull's centre, in head units). */
+export interface Rows { count: number; at?: number; span: number; from: Line; to: V3; lift: number; rope: Rope; apart?: boolean; matte?: boolean; tone?: Tone }
 /** A ponytail tied at a direction from the skull's centre (head units); its ropes rise `rise` of the head's height and
  * fall `length` of it below the shoulders, spread across `spread` of the half-width at the tie and at the ends, clear of
  * the dressed trunk. */
-export interface Tail { at: V3; count: number; rope: Rope; rise: number; length: number; spread: [number, number]; tie?: Tie; cuffs?: string; swing?: number; matte?: boolean; /** How far its fall stands off the back of the head at the nape (of the skull's half-depth; 0.25). */ off?: number }
+export interface Tail { at: V3; count: number; rope: Rope; rise: number; length: number; spread: [number, number]; tie?: Tie; cuffs?: string; matte?: boolean }
 /** A tie: `true` the wearer's (HairInput.tie: the outfit's own metal, else a band of the hair's own), or a swatch. */
 type Tie = boolean | string;
 export type Piece = { scalp: Scalp } | { rows: Rows } | { tail: Tail };
@@ -215,13 +215,13 @@ export interface HairStyle { about: string; pieces: Piece[]; finish: Finish }
 export const HAIR_STYLES = hairLibrary as unknown as Record<string, HairStyle>;
 /** The turn that takes +y onto `dir`. */
 const alignY = (dir: V3) => { const d = normalize(dir), axis = cross([0, 1, 0], d); return Math.hypot(...axis) < 1e-6 ? axisAngle([1, 0, 0], d[1] > 0 ? 0 : Math.PI) : axisAngle(axis, Math.acos(clamp(d[1], -1, 1))); };
-/** A point on the head's own form (garments.ts headAt) at a skull angle and height, `lift` of the skull's half-width out. */
+/** A point on the head's own form (head.ts headAt) at a skull angle and height, `lift` of the skull's half-width out. */
 function onHead(f: HeadForm, k: Skull, a: number, y: number, lift = 0): V3 {
   const t = (clamp(y, -1, 1) + 1) / 2, v = Math.PI / 2 - a;
   return add(headAt(f, t, v), scale(headNormal(f, t, v), lift * k.r[0]));
 }
 /** A shell between two lines round the head (`to` the crown when left out), `lift` of the skull's half-width off its form
- * `f` along its normal, with a hole `cut` in it (a cap's gap). `keep` picks its cells by row (a fade's tiers). */
+ * `f` along its normal, with a hole `cut` in it (a gap a fork's headwear may leave). `keep` picks its cells by row (a fade's tiers). */
 function shell(k: Skull, o: Scalp, f: HeadForm, keep?: (i: number) => boolean): { mesh: Mesh; lit?: Mesh } {
   const cols = 56, rows = 18, lift = (t: number, a: number, y: number) => {
     const comb = o.ridges ? 1 + o.ridges[1] * Math.cos(o.ridges[0] * combPhase(k, o.comb ?? [0, 1, 0], a, y)) * smooth(t * 3) : 1;
@@ -236,9 +236,7 @@ function shell(k: Skull, o: Scalp, f: HeadForm, keep?: (i: number) => boolean): 
   const cut = (i: number, j: number) => {
     if (keep && !keep(i)) return true;
     if (o.span !== undefined && Math.abs(mid(i, j).a) > o.span) return true;
-    if (!o.cut) return false;
-    const { a, y0, y } = mid(i, j), d = Math.abs(((a - o.cut.at + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI) / o.cut.width, up = (y - y0) / o.cut.height;
-    return d * d + up * up < 1;
+    return false;
   };
   const streak = (i: number, j: number) => {
     if (!o.sheen) return false;
@@ -342,24 +340,14 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
         }
       } else { const sh = shell(k, o, form); rigid(sh.mesh, o.tone ?? 'hair', HAIR_SEAM, sh.lit); }
     } else if ('rows' in piece) {
-      // Rows from the hairline, gathered to one point, or each straight back over the top to the nape, keeping its
+      // Rows from the hairline gathered to one point, keeping its
       // place across the head (in the skull's units) so the rows run parallel and the scalp shows evenly between them.
       const o = piece.rows;
       for (let r = 0; r < o.count; r++) {
         const a = (o.at ?? 0) + (o.count === 1 ? 0 : -o.span + 2 * o.span * r / (o.count - 1)), start = sub(onHead(form, k, a, along(o.from, a)), k.c);
         const path: V3[] = [];
-        if (o.to === 'nape') {
-          const end = sub(onHead(form, k, Math.PI - a, along(o.nape ?? [[0, -0.5]], Math.PI - a)), k.c);
-          const u = (d: V3) => normalize([d[0] / k.r[0], d[1] / k.r[1], d[2] / k.r[2]]), us = u(start), ue = u(end);
-          const f0 = Math.atan2(us[1], us[2]), f1 = Math.atan2(ue[1], ue[2]) + (Math.atan2(ue[1], ue[2]) < f0 ? 2 * Math.PI : 0);
-          for (let q = 0; q <= 16; q++) {
-            const t = q / 16, x = lerp(us[0], ue[0], t), f = lerp(f0, f1, t), c = Math.sqrt(1 - x * x);
-            path.push(toHead(form, k, [x * k.r[0], c * Math.sin(f) * k.r[1], c * Math.cos(f) * k.r[2]], o.lift));
-          }
-        } else {
-          const to = scale(normalize(o.to), Math.hypot(...start));
-          for (let q = 0; q <= 8; q++) path.push(toHead(form, k, add(scale(normalize(start), 1 - q / 8), scale(normalize(to), q / 8)), o.lift));
-        }
+        const to = scale(normalize(o.to), Math.hypot(...start));
+        for (let q = 0; q <= 8; q++) path.push(toHead(form, k, add(scale(normalize(start), 1 - q / 8), scale(normalize(to), q / 8)), o.lift));
         // A slanted plait turns against the next row's, half a bead on, so rows side by side read as a herringbone.
         const slant = o.rope.slant ? { phase: (r % 2) * 0.5, slant: (r % 2 ? 1 : -1) * o.rope.slant } : {};
         const { mesh, lit } = sweep(path, { tip: 'blunt', ...o.rope, ...slant }, hw, p => sub(p, k.c));
@@ -388,7 +376,7 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
     const hang = Math.min(headBack(k.c[1] - 0.6 * k.r[1]), ...[0, 0.2, 0.4, 0.6, 0.8, 1].map(q => trunkBack(lerp(shoulder + 0.03 * kk, end, q)))) - clear;
     // Its fall stands off the back of the head as it comes down from the crown (the nape shows under it in profile, and
     // in three-quarter the tail shows past the head), and hangs from the shoulder blades.
-    const nape = k.c[1] - 0.55 * k.r[1], off = o.off ?? 0.25, napeZ = Math.min(headBack(nape) - off * k.r[2], trunkBack(nape)) - clear;
+    const nape = k.c[1] - 0.55 * k.r[1], off = 0.25, napeZ = Math.min(headBack(nape) - off * k.r[2], trunkBack(nape)) - clear;
     for (let r = 0; r < o.count; r++) {
       const u = o.count === 1 ? 0 : r / (o.count - 1) * 2 - 1, ring = 2 * Math.PI * (r + 0.5) / o.count, jit = hash(r * 7 + 3) - 0.5;
       // A layer out from the back (−z) for the ropes on top, so those under lie nearer the body, between them.
@@ -409,7 +397,7 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       const { mesh, lit, t } = sweep(path, rope, hw, (p, tt) => (tt < 0.2 ? fore : [0, 0, -1]));
       // The top rides the head, the length swings from the back pivot and settles toward the neck as it falls (never the
       // chest: a heavy tail skinned to it would ride the torso's turn and lean).
-      const swing = o.swing ?? 0.5, swingOf = (tt: number): [number, number][] => { const w = smooth((tt - 0.08) / 0.4), lay = smooth((tt - 0.45) / 0.55) * (1 - swing); return [[J.head, 1 - w], [J['hair.back'], w * (1 - lay)], [J.neck, w * lay]]; };
+      const swing = 0.5, swingOf = (tt: number): [number, number][] => { const w = smooth((tt - 0.08) / 0.4), lay = smooth((tt - 0.45) / 0.55) * (1 - swing); return [[J.head, 1 - w], [J['hair.back'], w * (1 - lay)], [J.neck, w * lay]]; };
       hung(mesh, t, top ? 'hair' : 'parting', swingOf, seam++, lit, o.matte);
       // A cuff on every other braid near its end, staggered, only where it can be two texels tall (from three times the
       // brand kit's density): below that a cuff is a speck.

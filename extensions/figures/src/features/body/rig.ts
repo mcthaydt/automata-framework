@@ -44,8 +44,8 @@ export interface Genes {
   build: number;
   /** Chest pitch forward (a stoop), the head's roll and its forward pitch, in radians. */
   posture: number; headTilt: number; headPitch: number;
-  /** How far the face sits ahead of the head's middle, of the head's half-depth: the face forward of the cranium. Hair
-   * and headwear locks follow a share of it (garments.ts). */
+  /** How far the face sits ahead of the head's middle, of the head's half-depth: the face forward of the cranium. The
+   * hair's skull follows it (hair.ts Skull). */
   faceAhead: number;
   /** A hunch (0–1): the shoulders raised and rounded forward, the head sunk forward between them (motion.ts). */
   hunch: number;
@@ -135,4 +135,3 @@ export function twoBoneIK(s: Skeleton, pose: Pose, world: M[], a: number, b: num
   pose.rot[b] = matq(mul3(transpose3(upper), lower));
   if (end) pose.rot[c] = matq(mul3(transpose3(lower), end));
 }
-export { position, applyDir };

@@ -230,4 +230,3 @@ export function placed(mesh: Mesh, at: V3, turn: Q = IDENTITY_Q): Mesh {
   }
   return { positions, normals, indices: mesh.indices.slice() };
 }
-export { add };

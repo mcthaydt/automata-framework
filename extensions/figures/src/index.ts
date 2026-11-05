@@ -27,4 +27,4 @@ export { lightFigure, type Lighting, type Bounce } from './features/lighting/lig
 export { TIMES, FIGURE_KEY, type Lamp, type TimeOfDay } from './features/lighting/lamps';
 // ─── Actors: the scripting layer (docs/actors.md) ───
 export { ScriptedActor, Troupe, characterOf, scriptOf, type ActorScript, type ActorOptions, type ActionCue, type Waypoint, type Placement } from './features/actors/actor';
-export { ACTIONS, actionOf, lengthOf } from './features/actors/actions';
+export { ACTIONS, actionOf, lengthOf, envelopeOf } from './features/actors/actions';

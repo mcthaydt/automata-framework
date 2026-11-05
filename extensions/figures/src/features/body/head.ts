@@ -34,7 +34,7 @@ export function headAt(f: HeadForm, t: number, v: number): V3 {
   const fr = f.front(t), b = f.back(t), c = Math.cos(v), sn = Math.sin(v), e = sn > 0 ? faceRound(t) : 1;
   return [Math.max(0, f.width(t)) * pow(c, e), t * f.h, (fr + b) / 2 + (fr - b) / 2 * pow(sn, e)];
 }
-/** Whether a point (the head's space) lies inside its form: what hair and a cap are fitted round (hair.ts toHead). */
+/** Whether a point (the head's space) lies inside its form: what the hair is fitted round (hair.ts toHead). */
 export function insideHead(f: HeadForm, p: V3): boolean {
   const t = p[1] / f.h;
   if (t <= 0 || t >= 1) return false;

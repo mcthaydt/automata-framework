@@ -11,7 +11,7 @@ import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Ben
 /**
  * A procedural figure at run time: the stepped pose clock, the snap to 8 directions, the hair's spring, the triangle
  * soup, the G-buffer and the painter's cell with its normal map (which the lighting feature lights), each pose's cell
- * kept in a cache. Drawn by the review frames (scripts/frames.ts) and by the scriptable actors (actor.ts), whose made
+ * kept in a cache. Drawn by the review frames (frames.ts) and by the scriptable actors (actor.ts), whose made
  * poses it draws through `update({ pose })`.
  */
 export interface View {
@@ -162,7 +162,7 @@ export interface FigureInput {
    */
   pose?: { key: string; pose: Pose } | null;
   /**
-   * The figure's clock (s), set from outside (a scripted actor's timeline, figure/actor.ts): its idle, blink and talk
+   * The figure's clock (s), set from outside (a scripted actor's timeline, actors/actor.ts): its idle, blink and talk
    * are then a pure function of this time, not of the steps it was updated by. Left out, its own clock runs by `dt`.
    */
   clock?: number;

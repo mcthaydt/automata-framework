@@ -25,7 +25,7 @@ function figureColour(rgb: number, n: V3, p: V3, L: FigureLight) {
 /** Bounce light on a figure: the floor's colour (under its feet) on its undersides and lowest rows, and a glowing thing's
  * colour on its silhouette's edge on that thing's side (`side` −1 left, +1 right). */
 export interface Bounce { floor: number; glow?: number; side?: number }
-/** A figure texel with its bounce light (post.ts toward and stepBy: stepped, snapped). */
+/** A figure texel with its bounce light (grade.ts toward and stepBy: stepped, snapped). */
 function bounced(col: number, b: Bounce, under: boolean, rim: boolean) {
   if (under) col = toward(col, b.floor, 0.35);
   if (rim && b.glow !== undefined) col = stepBy(toward(col, b.glow, 0.4), 1);

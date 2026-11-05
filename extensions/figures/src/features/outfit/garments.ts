@@ -50,7 +50,7 @@ export interface FaceLook { shape: HeadShape; eyes?: string; white?: string; bro
 /**
  * Dresses a body: the garments in order repaint regions and add parts, then the body is built under them. Returns
  * the parts and decals, every one sized from the measure; `ppm` the texels a metre it is drawn at (the cell's), so the
- * small features (a tie, an ear's rim, a cap's seam) land on whole texels at any density.
+ * small features (a hair tie, an ear's rim) land on whole texels at any density.
  */
 export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[], swatches: Record<string, Material> = SWATCHES, ppm?: number): Look {
   const swatch = (name: string): Material => { const found = swatches[name]; if (!found) throw new Error(`no swatch ${name}`); return found; };
@@ -322,4 +322,3 @@ function face(s: Skeleton, eyes: string, lid: string, brow: string): Decal[] {
   // Tagged, so a figure whose face the painter draws leaves them all out (figure.ts).
   return out.map(d => ({ ...d, tag: 'face' }));
 }
-export type { V3 };

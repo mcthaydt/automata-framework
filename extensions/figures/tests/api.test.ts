@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BASE, Figure, hero, lightFigure, member, ScriptedActor, standing, TIMES, view, walking } from '../src';
+import { ACTIONS, actionOf, BASE, envelopeOf, Figure, lengthOf, hero, lightFigure, member, ScriptedActor, standing, TIMES, view, walking } from '../src';
 
 /** The public surface (src/index.ts) on its own: the base pair drawn as sheets, lit, and played by an actor, imported
  * from the entry point only, as a fork's code would. */
@@ -21,5 +21,12 @@ describe('the public surface', () => {
   it('plays it as an actor', () => {
     const actor = new ScriptedActor({ who: def, at: [0, 0], actions: [{ t: 0.2, action: 'wave' }] }, { density: 2 });
     expect(actor.draw(0.6, view()).painted.some(v => v > 0)).toBe(true);
+  });
+  it('reads an action\'s envelope', () => {
+    const { def } = actionOf('wave', false, false);
+    const env = envelopeOf(def);
+    expect(ACTIONS.wave).toBeDefined();
+    expect(env.action[1]).toBe(lengthOf(def));
+    expect(env.recovery[1]).toBe(lengthOf(def) + def.recovery);
   });
 });
