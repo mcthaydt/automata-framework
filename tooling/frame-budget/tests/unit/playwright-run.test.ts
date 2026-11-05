@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { stressPort } from './origin.ts'
-import { frameBudgetRun } from './playwright-run.ts'
+import { stressPort } from '#src/origin.ts'
+import { frameBudgetRun } from '#src/playwright-run.ts'
 
 const shared = { testMatch: '**/*.e2e.ts', retries: 0 }
 
@@ -14,7 +14,7 @@ describe('frameBudgetRun: the frame-budget probe alone', () => {
       'frame-budget-desktop',
     ])
     for (const project of run.projects ?? []) {
-      expect(project.testDir).toBe('e2e')
+      expect(project.testDir).toBe('tests/e2e')
       // Full Chromium in new headless keeps the GPU; Playwright's default headless shell draws WebGL through
       // SwiftShader (FloorFifty ac72660 playwright.config.ts, `gpuChromium`).
       expect(project.use?.channel).toBe('chromium')

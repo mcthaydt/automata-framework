@@ -1,7 +1,7 @@
 import { createSim, type Sim } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Body, Pulse, WORLD } from './stress.component.ts'
-import { spawnStress, stressPlugin } from './stress.plugin.ts'
+import { Body, Pulse, WORLD } from '../../../../stress/sim/stress.component.ts'
+import { spawnStress, stressPlugin } from '../../../../stress/sim/stress.plugin.ts'
 
 const sims: Sim[] = []
 async function stressSim(entities: number, systems: number, seed = 7): Promise<Sim> {

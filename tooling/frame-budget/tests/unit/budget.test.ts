@@ -3,15 +3,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-import { BudgetFile, checkFiles, checkFrameBudget, FrameBudgetResult, isSoftwareGpu } from './budget.ts'
+import { BudgetFile, checkFiles, checkFrameBudget, FrameBudgetResult, isSoftwareGpu } from '#src/budget.ts'
 
 const read = (path: string): unknown => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
-const repoBudget = read('../budget.json')
+const repoBudget = read('../../budget.json')
 const unsetBudget = { status: 'unset', note: 'No frame budget yet.' }
-const setBudget = read('./fixtures/budget-set.json')
-const within = read('./fixtures/result-within.json') as Record<string, unknown>
-const overBudget = read('./fixtures/result-over-budget.json')
-const swiftshader = read('./fixtures/result-swiftshader.json')
+const setBudget = read('../fixtures/budget-set.json')
+const within = read('../fixtures/result-within.json') as Record<string, unknown>
+const overBudget = read('../fixtures/result-over-budget.json')
+const swiftshader = read('../fixtures/result-swiftshader.json')
 
 const withEnvironment = (changes: Record<string, unknown>): unknown => ({
   ...within,
@@ -126,7 +126,7 @@ describe("the repository's recorded budget", () => {
   function recorded() {
     const budget = BudgetFile.parse(repoBudget)
     if (budget.status !== 'set') throw new Error('tooling/frame-budget/budget.json is not set')
-    const evidenceDir = fileURLToPath(new URL(`../../../${budget.evidence.result}`, import.meta.url))
+    const evidenceDir = fileURLToPath(new URL(`../../../../${budget.evidence.result}`, import.meta.url))
     const evidence = readdirSync(evidenceDir)
       .filter((name) => name.endsWith('.json'))
       .sort()

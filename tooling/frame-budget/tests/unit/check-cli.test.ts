@@ -7,8 +7,8 @@ import { afterAll, describe, expect, it } from 'vitest'
 
 // `pnpm budget:frame`, as the nightly job runs it. That job takes whatever runner it gets: a software renderer must
 // not turn it red, but nothing else may pass quietly.
-const cli = fileURLToPath(new URL('./check-cli.ts', import.meta.url))
-const fixture = (name: string) => fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url))
+const cli = fileURLToPath(new URL('../../src/check-cli.ts', import.meta.url))
+const fixture = (name: string) => fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url))
 const made: string[] = []
 afterAll(() => {
   for (const dir of made) rmSync(dir, { recursive: true, force: true })

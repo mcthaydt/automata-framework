@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { summarize } from './stats.ts'
+import { summarize } from '#src/stats.ts'
 
 describe('summarize (ms per frame)', () => {
   it('reports nearest-rank percentiles, the mean and the max', () => {

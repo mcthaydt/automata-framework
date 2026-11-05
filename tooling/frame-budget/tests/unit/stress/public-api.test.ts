@@ -7,7 +7,8 @@ import { describe, expect, it } from 'vitest'
 // core game is built with. A deep `src/` import, Koota, or an extension would make its numbers about something
 // other than core.
 
-const here = import.meta.dirname
+// The example's source stays in stress/, beside the package's src/; its tests are in tests/unit/stress/.
+const here = join(import.meta.dirname, '../../../stress')
 const repoRoot = join(here, '../../..')
 const LIBRARIES = new Set(['pixi.js', 'effect', 'svelte', 'zod'])
 

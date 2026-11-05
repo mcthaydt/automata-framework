@@ -17,9 +17,9 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { cpus, release, type } from 'node:os'
 import { join } from 'node:path'
 import { expect, test } from '@playwright/test'
-import { FrameBudgetResult } from '../src/budget.ts'
-import { resultsDir, stressUrl } from '../src/origin.ts'
-import { summarize } from '../src/stats.ts'
+import { FrameBudgetResult } from '#src/budget.ts'
+import { resultsDir, stressUrl } from '#src/origin.ts'
+import { summarize } from '#src/stats.ts'
 
 const setting = (name: string, fallback: number): number => Number(process.env[name] ?? fallback)
 const ENTITIES = setting('AF_FRAME_BUDGET_ENTITIES', 2000)

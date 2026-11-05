@@ -3,8 +3,8 @@ import { runGame } from '@mcthaydt/automata-runtime'
 import { manualFrames, nullRenderer } from '@mcthaydt/automata-runtime/testing'
 import { canonicalJson, hex64, xxhash64 } from '@mcthaydt/automata-sim'
 import { afterEach, describe, expect, it } from 'vitest'
-import { stressParams } from './params.ts'
-import { STRESS_CONTENT, STRESS_CONTENT_HASH, stressGame } from './stress-game.ts'
+import { stressParams } from '../../../stress/params.ts'
+import { STRESS_CONTENT, STRESS_CONTENT_HASH, stressGame } from '../../../stress/stress-game.ts'
 
 const until = async (condition: () => boolean): Promise<void> => {
   for (let attempt = 0; attempt < 400 && !condition(); attempt += 1) {
