@@ -7,21 +7,21 @@
 ### `import { … } from '@mcthaydt/automata'`
 
 - `ActionBar` (const): One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty `ui/layout/ActionBar.svelte` at 122a220).
-- `ActionKind` (type): The action bar's model (M1.6 spec §3.4; from FloorFifty `ui/layout/action-bar.ts` at 122a220).
+- `ActionKind` (type): The action bar's model.
 - `actionsForKey(profile, code)`: Every action `code` (a `KeyboardEvent.code`) drives in `profile`; none when it is unbound.
 - `actionsForPadButton(profile, index)`: Every action the standard-mapping pad button `index` drives in `profile`; none when it is unbound.
 - `AnalogOptions` (interface): The `analog` option of `keys()`.
 - `AnalogReading` (interface): The analog input at one fixed step, read once after `Input.poll()`.
 - `AnalyticsProps` (type): The properties of one analytics event: flat names to strings, numbers or booleans.
 - `AppLoop` (interface): The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each tick, and the renderer draws every frame.
-- `Audio` (interface): The audio service (M5 spec §4.6): one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
-- `AUDIO_BUS_NAMES` (const): The core audio buses (PRODUCT spec §2 F1): `master` carries the other four; M5-D3 added `voice` (announcers, dialogue).
-- `AudioBuses` (interface): The audio-bus seam (PRODUCT spec §2 F1).
+- `Audio` (interface): The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after `session.ready`; the game runs silent when no audio context can be built.
+- `AUDIO_BUS_NAMES` (const): The core audio buses: `master` carries the other four, `voice` is announcers and dialogue.
+- `AudioBuses` (interface): The audio-bus seam.
 - `audioBusGainsSchema` (const): Validates saved bus gains; a bus left out is at full gain.
 - `AudioChange` (interface): The host's audio state: focus (an ad or overlay may duck or mute the game), the master volume, and the gain.
 - `AudioChangeSchema` (const): Checks an audio change.
 - `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
-- `AutosaveTrigger` (type): What can make the loaded slot write itself (M5 spec §4.4).
+- `AutosaveTrigger` (type): What can make the loaded slot write itself.
 - `BarAction` (interface): One action in an `ActionBar`: an id, a label and a kind (`primary`, `secondary` or `utility`), what it does when selected, and optionally a short label, an icon, a disabled state and a pressed state.
 - `BootFailurePanel` (const): The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the failure's copy and its ways forward.
 - `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.
@@ -29,16 +29,16 @@
 - `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
 - `CameraDragSurface` (const): The camera drag surface (M4 spec §16.3.7, M3 spec §4.2 and §7): the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button.
 - `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
-- `CAPABILITIES` (const): What a game may ask its host for (DIST spec §4.1).
+- `CAPABILITIES` (const): What a game may ask its host for.
 - `Capability` (type): One capability a game may ask for.
 - `CapabilitySchema` (const): Checks a capability name.
 - `ChangedElsewhereCopy` (interface): The words of the choice paused offers once another device has changed the slot being played (M5-D6).
 - `Chip` (const): A short status label (M4 spec §4.12).
 - `classifyFormFactor(width, height)`: The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise `desktop`.
 - `classifyHeightTier(height)`: The height tier of a layout height in CSS px: `compact` below 340, `short` up to 600, otherwise `undefined`.
-- `Command` (interface): Input to the sim (spec §4.4 rule 4).
+- `Command` (interface): Input to the sim, the only way gameplay state changes from outside.
 - `CommandDef` (interface): A command the sim accepts as input: an id and the Zod schema its payload must match.
-- `CompiledContentData` (interface): The compiled JSON content read by the runtime (spec §3.3).
+- `CompiledContentData` (interface): The compiled JSON content read by the runtime.
 - `ComponentDef` (interface): A component: a stable id and a flat record of typed fields.
 - `contentHashOf(data)`: The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
 - `CORE_SETTINGS` (const): The `settings` save, version 1: the player's bindings (`input`), graphics quality (`display`), audio (`audio`), vibration (`haptics`) and camera turn (`camera`).
@@ -48,8 +48,8 @@
 - `createPixiRenderer(options?)`: The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render target, entity views from each step's render delta, interpolated each frame.
 - `createPostFilterSlot(target)`: A post-filter slot writing its composed filters to `target`'s `filters`.
 - `createT(messages)`: `t` over a messages module (`import * as m from './paraglide/messages.js'`).
-- `defaultContent()`: The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash.
-- `defaultScreens(game)`: The title, play, paused and settings screens (DX spec §7, M4.4) over the default content's flow (`title → play ⇄ paused → title`, `paused ⇄ settings`).
+- `defaultContent()`: The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings`, and its hash.
+- `defaultScreens(game)`: The title, play, paused and settings screens over the default content's flow (`title → play ⇄ paused → title`, `paused ⇄ settings`).
 - `defineCommand(id, schema)`: Defines a command by id and payload schema.
 - `defineComponent(id, fields, opts?)`: Defines a component from an id (lower-case words separated by dots or dashes) and its fields by name and type.
 - `DefinedGame` (interface): The runtime's `GameDefinition`, plus what the screens and the golden replay read from the spec.
@@ -70,7 +70,7 @@
 - `EntitlementsPayloadSchema` (const): Checks entitlements.
 - `EntityRef` (interface): A live entity, addressed by its StableId.
 - `EntityView` (interface): What an entity view factory returns: the container drawn for one entity, updated with its current and previous component values and the interpolation alpha, and destroyed when the entity goes.
-- `ERROR_CODES` (const): Why a host call failed (DIST spec §4.1).
+- `ERROR_CODES` (const): Why a host call failed.
 - `ErrorCode` (type): One error code.
 - `ErrorCodeSchema` (const): Checks an error code.
 - `EventDef` (interface): An event a system emits: an id and the Zod schema its payload must match.
@@ -78,34 +78,34 @@
 - `findRukenSdkMarkers(code)`: The markers found in `code` (built JavaScript), each named once; empty means no Ruken SDK code.
 - `findTauriMarkers(code)`: The Tauri markers found in `code` (built JavaScript), each named once; empty means no Tauri IPC code.
 - `Flow` (interface): The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu` for the current screen's menu, and `settled` once no transition is pending.
-- `FormFactor` (type): The four form factors (M1.6 spec §3.1; from FloorFifty `ui/form-factor.ts` at 122a220).
+- `FormFactor` (type): The four form factors.
 - `FrameInfo` (interface): One display frame: the interpolation alpha between the last two ticks, the frame's length in ms, and whether time is paused.
 - `FullscreenRes` (interface): The answer to a fullscreen request: the new state, and how this device can go fullscreen at all.
 - `FullscreenResSchema` (const): Checks a fullscreen answer.
-- `GameCopy` (type): A game's words: the runtime's boot and failure copy, and the default screens' words (DX.2d).
-- `GameDefinition` (interface): Everything a game provides to the runtime to boot (spec §3.3).
+- `GameCopy` (type): A game's words: the runtime's boot and failure copy, and the default screens' words.
+- `GameDefinition` (interface): Everything a game provides to the runtime to boot.
 - `GameRenderer` (interface): What the runtime asks of a renderer: apply each step's result, draw each frame, and reset for a new sim.
-- `GameSaves` (interface): What a game saves, and how the default screens read it from the sim and put it back (M5.2).
-- `GameSpec` (interface): A game in one object (DX spec §3.1): its id, size and sim, and optionally its title, input, views, sounds, scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
+- `GameSaves` (interface): What a game saves, and how the default screens read it from the sim and put it back.
+- `GameSpec` (interface): A game in one object: its id, size and sim, and optionally its title, input, views, sounds, scores, saves, content, screens, settings, extensions, draw layer and host and renderer options.
 - `GameSpecError` (class): Every invalid field of a spec, by path: `size.width: …`.
 - `Geometry` (interface): The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the usable and visible regions, what covers the page's foot, and the host's scale hint.
 - `GeometryState` (interface): The current geometry as rune state: reading `current` in a component or `$derived` tracks it.
-- `HeightTier` (type): The height tiers (M1.6 spec §3.1; from FloorFifty `ui/height-tier.ts` at 122a220).
-- `HOST_EXIT_CAP` (const): How long the game may hold the host's close (Ruken P6 §4 "1 s cap").
+- `HeightTier` (type): The height tiers.
+- `HOST_EXIT_CAP` (const): How long the game may hold the host's close (a 1 s cap).
 - `HostError` (class): Any failure after the handshake.
 - `HostHandshakeFailed` (class): The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session.
-- `Hosting` (interface): Everything a game may ask of, or hear from, its host: the `Hosting` contract of the M1 shared contracts spec §1, implemented by the host lane.
-- `HostingLeaderboards` (interface): The host's leaderboards (Ruken's `LeaderboardsApi`, PRODUCT spec §2 F1).
+- `Hosting` (interface): Everything a game may ask of, or hear from, its host: the `Hosting` contract, which each target's adapter implements.
+- `HostingLeaderboards` (interface): The host's leaderboards (Ruken's `LeaderboardsApi`).
 - `HostingOptions` (interface): What the game asks of its host.
-- `HostingSaves` (interface): The player's saves (shared contracts §1.1).
+- `HostingSaves` (interface): The player's saves.
 - `HostingSeams` (interface): Test seams.
 - `IconButton` (const): A button whose face is an icon (M4 spec §4.12).
-- `Input` (interface): The input service (M4 spec §4.2): held actions from keys, pads, touch buttons and gestures under the game's profile and the player's overrides, menu edges, the active device and pads, and rebinding.
-- `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
+- `Input` (interface): The input service: held actions from keys, pads, touch buttons and gestures under the game's profile and the player's overrides, menu edges, the active device and pads, and rebinding.
+- `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick.
 - `InputMode` (type): How the player is playing right now.
 - `InputModePayload` (interface): The current input mode, and the gamepad when one is in use.
 - `InputModePayloadSchema` (const): Checks an input mode change.
-- `InputProfile` (interface): A named set of bindings, one per game action (PRODUCT spec §2 F1).
+- `InputProfile` (interface): A named set of bindings, one per game action.
 - `inputProfileSchema` (const): Validates an input profile, filling left-out binding fields with "unbound".
 - `inputs(...maps)`: One input map from `maps`, each sending its own command every tick in map order.
 - `InputSource` (interface): The input map attached to a window for one play session.
@@ -129,11 +129,11 @@
 - `LifecyclePayloadSchema` (const): Checks a lifecycle change.
 - `LifecycleReason` (type): Why the game is in the background.
 - `LoaderOverlay` (const): The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty `ui/components/LoaderOverlay.svelte` at 122a220).
-- `Locale` (interface): The locale service (PRODUCT spec §4): the game's locales, the one text is drawn in now, the player's choice and the text direction.
+- `Locale` (interface): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `measureGeometry(input)`: Turns what the browser and the host report into one `Geometry`.
 - `Modal` (const): A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty `ui/components/Modal.svelte` at ac72660).
-- `ModelInvalid` (class): A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet (M3R-D1).
+- `ModelInvalid` (class): A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet (M3R-D1).
 - `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `PagedGrid` (const): A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts` at `ac72660`).
 - `PagerDots` (const): Where a paged view is (M4 spec §4.8; from FloorFifty `ui/layout/PagerDots.svelte` at `ac72660`): one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
@@ -142,7 +142,7 @@
 - `PixiRenderer` (interface): The runtime's `GameRenderer`, built on PixiJS, with its stage.
 - `PixiRendererOptions` (interface): Options for `createPixiRenderer`; every field has a default.
 - `PixiStage` (interface): The Pixi scene the renderer draws, as a game's `setup` sees it: the app, the letterbox's layers, the entity views, the post-filter slot and the quality tier.
-- `PixiStageHooks` (interface): What a `setup` may return to hear every step, frame and reset (DX spec §3.4, DX.3 decision E-1).
+- `PixiStageHooks` (interface): What a `setup` may return to hear every step, frame and reset.
 - `PluginDef` (interface): A bundle of definitions the sim registers together: components, commands, events, resources and systems, the plugins it depends on, and optionally per-sim engine state and `config`.
 - `Pose` (interface): Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`).
 - `postFilter(name, spec)`: Declares a screen-space filter over the whole picture: `renderer: { postFilters: [postFilter('vignette', { glsl, wgsl })] }`.
@@ -160,23 +160,23 @@
 - `ResourceDef` (interface): A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting value.
 - `RoundOutcome` (type): How a round ended.
 - `RoundOutcomeSchema` (const): Checks a round outcome.
-- `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification (PUB spec §3): the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at b30d31b).
-- `runGame(game)`: Boots and runs the game in a runtime Scope (spec §4 Failure and Shutdown).
+- `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification: the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at b30d31b).
+- `runGame(game)`: Boots and runs the game in a runtime Scope: a failure draws the boot failure panel, and shutdown closes the scope.
 - `RuntimeFacts` (interface): Every fact the runtime publishes on the presentation bus, by name.
-- `RuntimeHandle` (interface): Controls the running game: shutdown closes the runtime scope (spec §3.3, planning note 11).
-- `RuntimeSeams` (interface): Test seams injected into the runtime boot program (spec §3.3, planning note 10).
-- `Save` (interface): A game's save (M5 spec §4.3): its slots' states, load, write and remove, and the progress `touch` keeps for the autosave triggers to write.
+- `RuntimeHandle` (interface): Controls the running game: shutdown closes the runtime scope.
+- `RuntimeSeams` (interface): Test seams injected into the runtime boot program.
+- `Save` (interface): A game's save: its slots' states, load, write and remove, and the progress `touch` keeps for the autosave triggers to write.
 - `SaveDef` (interface): A game's save: one record, or a fixed number of slots, each one Ruken key.
-- `Saves` (interface): The booted game's save as a runtime service (M5 spec §4.3), as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
+- `Saves` (interface): The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined for a game without saves.
 - `SavesChangedPayload` (interface): Another device's write, or the host's conflict choice, reached this session.
 - `SavesChangedPayloadSchema` (const): Checks a saves change.
-- `SavesFlushRes` (interface): Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`, `itch` and `tauri` targets; DIST-D3).
+- `SavesFlushRes` (interface): Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`, `itch` and `tauri` targets).
 - `SavesFlushResSchema` (const): Checks a flush answer.
 - `SavesStatus` (type): Where the player's saves stand with the host.
 - `SavesStatusSchema` (const): Checks a saves status.
 - `ScreenDef` (interface): One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it in its scope (closing the scope leaves the screen).
 - `ScreenFrame` (const): Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
-- `ScreensCopy` (interface): Every word the default title, play, paused and settings screens show (DX spec §7, M4 spec §4.8, M5 spec §4.8).
+- `ScreensCopy` (interface): Every word the default title, play, paused and settings screens show.
 - `ScreensCopyInput` (type): A game's words for the default screens: a part of the record, or a function of the player's locale returning one.
 - `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
@@ -187,13 +187,13 @@
 - `settingsStore(def)`: Returns the booted settings store when def.key matches.
 - `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
-- `SimContext` (interface): What a system's `run` receives each tick (spec §4.1).
+- `SimContext` (interface): What a system's `run` receives each tick.
 - `Slider` (const): A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser gives the arrow keys and the focus navigator's `adjust` steps it.
 - `Split` (const): Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty `ui/layout/Split.svelte` at `ac72660`).
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
 - `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
 - `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
-- `startGame(game)`: Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
+- `startGame(game)`: Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
 - `StepResult` (interface): What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were rejected.
 - `STICKY_MARGIN_PX` (const): How far outside a button a thumb still counts for it, in CSS pixels.
 - `SubscriptionEntitlement` (interface): One subscription the player holds.
@@ -213,12 +213,12 @@
 ### `import { … } from '@mcthaydt/automata/extension'`
 
 - `defineExtension(def)`: Returns its argument.
-- `ExtensionDef` (interface): One opt-in feature of a game (M1 shared contracts §2).
+- `ExtensionDef` (interface): One opt-in feature of a game.
 - `ExtensionError` (class): A bad extension list.
-- `GameConfig` (type): The parts of the game config an extension may read (content's `GameConfig`, DIST spec §4.4).
+- `GameConfig` (type): The parts of the game config an extension may read (content's `GameConfig`).
 - `ResolvedExtensions` (interface): Everything the runtime and the build tools need from a game's extension list, in one fixed order.
 - `resolveExtensions(defs)`: Checks the list and puts it in a fixed order.
-- `RukenManifestContribution` (type): What an extension may add to ruken.toml in M1: preload files.
+- `RukenManifestContribution` (type): What an extension may add to ruken.toml: preload files.
 
 ### `import { … } from '@mcthaydt/automata/testing'`
 
@@ -417,13 +417,13 @@
 
 - `canonicalJson(value)`: Canonical JSON: object keys sorted at every depth, no whitespace.
 - `CanonicalJsonError` (class): A value canonical JSON cannot represent exactly; hashing it anyway would let different values collide.
-- `Command` (interface): Input to the sim (spec §4.4 rule 4).
+- `Command` (interface): Input to the sim, the only way gameplay state changes from outside.
 - `CommandDef` (interface): A command the sim accepts as input: an id and the Zod schema its payload must match.
 - `CommandRecord` (interface): A command as a system reads it this tick: the player slot that sent it (`source`), its per-source `seq` and its parsed `payload`.
 - `ComponentDef` (interface): A component: a stable id and a flat record of typed fields.
 - `createRng(seed)`: A generator seeded from `seed` (through splitmix32): the same seed gives the same sequence in every engine.
 - `createSim(opts)`: Creates a sim from its plugins, seed and content; async, because a plugin may create engine state (a Rapier world).
-- `Def` (type): Anything `definePlugin`'s flat `defs` list takes (DX spec §3.2).
+- `Def` (type): Anything `definePlugin`'s flat `defs` list takes.
 - `defineCommand(id, schema)`: Defines a command by id and payload schema.
 - `defineComponent(id, fields, opts?)`: Defines a component from an id (lower-case words separated by dots or dashes) and its fields by name and type.
 - `defineEvent(id, schema)`: Defines an event by id and payload schema, to emit from a system with `ctx.emit`.
@@ -440,22 +440,22 @@
 - `FieldValues` (type): The writable record of values a `FieldSchema` describes.
 - `hex64(value)`: 16 lowercase hex digits.
 - `Phase` (type): One of the six phases a tick runs through, in `PHASES` order.
-- `PHASES` (const): Fixed phase order (spec §4.3).
+- `PHASES` (const): Fixed phase order.
 - `PluginDef` (interface): A bundle of definitions the sim registers together: components, commands, events, resources and systems, the plugins it depends on, and optionally per-sim engine state and `config`.
-- `PluginState` (interface): Engine state a plugin keeps outside the ECS, such as a Rapier world (M2.1 spec §3.1).
+- `PluginState` (interface): Engine state a plugin keeps outside the ECS, such as a Rapier world.
 - `PluginStateSetup` (interface): What a plugin's state may know when it is created.
 - `PreparedRestore` (interface): A plugin's parsed restore, held until the sim knows whether the whole snapshot is valid.
 - `RejectedCommand` (interface): A command `step` dropped, with the reason.
 - `RejectReason` (type): Why `step` dropped a command: `bad-header` (a field is missing or out of range), `unknown-command` (no plugin defines its type), `wrong-tick` (not the sim's current tick), `duplicate-seq` (the same source and seq twice in one step) or `invalid-payload` (it fails the command's schema).
-- `RenderDelta` (interface): What changed for the renderer since the last delta (spec §4.7).
+- `RenderDelta` (interface): What changed for the renderer since the last delta.
 - `RenderRow` (interface): One entity's render-flagged components (component id -> field values).
 - `ResourceDef` (interface): A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting value.
 - `Rng` (interface): A deterministic generator (xoshiro128**, 32-bit integer math only, so it is bit-exact in every engine).
 - `RngState` (type): The four 32-bit words of a generator's state, as `Rng.state()` copies them and snapshots store them.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
-- `SIM_VERSION` (const): The sim package's version, written into replay headers for information only (M2.3 spec §3.2).
+- `SIM_VERSION` (const): The sim package's version, written into replay headers for information only.
 - `SimCapacityError` (class): More sims are alive than Koota allows worlds (16 per process).
-- `SimContext` (interface): What a system's `run` receives each tick (spec §4.1).
+- `SimContext` (interface): What a system's `run` receives each tick.
 - `SimDisposedError` (class): The sim was disposed; it holds no world any more, so every call that reads or changes state refuses.
 - `SimEvent` (interface): An event a system emitted during a step: the event's id as `type`, and its parsed `payload`.
 - `SimFaultedError` (class): A system threw during `step`.
@@ -463,7 +463,7 @@
 - `SNAPSHOT_VERSION` (const): The snapshot format version this build reads and writes; a snapshot of another version fails with `SnapshotFormatError`.
 - `SnapshotFormatError` (class): Snapshot bytes that are not a valid snapshot of this format version: bad magic, an unsupported version, truncated or malformed sections.
 - `SnapshotMismatchError` (class): A valid snapshot that belongs to another sim: `field` names the header value that differs (`schemaHash`, `contentHash` or `tickHz`), with this sim's `expected` value and the snapshot's `actual` one.
-- `SnapshotView` (interface): A readable copy of a snapshot, for diffs and reports (M2.3 spec §3.1).
+- `SnapshotView` (interface): A readable copy of a snapshot, for diffs and reports.
 - `sortedEntries(obj)`: Own enumerable [key, value] pairs, sorted by key.
 - `sortedKeys(obj)`: Own enumerable string keys, sorted by UTF-16 code unit.
 - `SpawnPart` (type): A component to spawn with: the definition alone (defaults) or [definition, initial values].
@@ -508,7 +508,7 @@
 - `ReplayCheck` (interface): A hash check at a tick: the hash the replay recorded (`expected`) and the hash the re-simulated sim has (`actual`).
 - `ReplayCommand` (interface): A command as a replay stores it: the sim's `Command` without its tick, which the replay's `ticks` entry carries.
 - `ReplayCompression` (interface): The deflate and inflate a `.replay` file needs.
-- `ReplayFormatError` (class): Bytes that are not a valid `.replay` (M2.3 spec §5).
+- `ReplayFormatError` (class): Bytes that are not a valid `.replay`.
 - `ReplayHeader` (interface): The facts a replay needs before it plays: tick rate, seed, the schema and content hashes it was recorded against, where it starts and how often it checks.
 - `ReplayRecordError` (class): A recording that cannot be exact: the sim stepped outside the recorder, a payload that is not JSON, and so on.
 - `ReplayStepper` (interface): A replay playing back one tick at a time on its own sim.
@@ -585,43 +585,43 @@
 - `isInputsSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
 - `isLocalStack(api)`: Whether `api` is Ruken's local stack: `localhost`, a `.localhost` name, or a loopback address.
 - `isOrientationSource` (const): Whether `file` is one of the game's sources the check reads: not a test, whose fixture games are not shipped.
-- `ITCH_FIRST_PUSH_CHECKLIST` (const): The one-time page settings butler cannot make (PUB spec §6), printed after a channel's first push.
+- `ITCH_FIRST_PUSH_CHECKLIST` (const): The one-time page settings butler cannot make, printed after a channel's first push.
 - `ITCH_LIMITS` (const): itch.io's documented limits for an HTML5 upload; "MB" is read as 10^6 bytes.
 - `ITCH_LIMITS_SOURCE` (const): Where itch.io's limits were read, and when.
 - `ItchBuildInvalid` (class): The build breaks one of itch.io's rules; each problem names the file and the limit.
-- `ItchCheck` (type): The `prepare --target itch` check that failed, in the order they run (PUB spec §4).
+- `ItchCheck` (type): The `prepare --target itch` check that failed, in the order they run.
 - `ItchConfig` (interface): What a game writes in `ship.config.ts`.
 - `itchConfigSchema` (const): Checks a game's `itch` section: `project` is `user/game` in lower case, and `channel` defaults to `html5`.
 - `ItchDownloadsMissing` (class): `publish --target itch --from tauri` found no desktop bundle of this version; found before any push.
 - `ItchSettingMissing` (class): `publish --target itch` lacks the config section, the key or butler; found before anything runs.
 - `ItchSettings` (interface): The checked settings, with the channel filled in.
 - `keysBindingsIn(file, code)`: What the `keys()` calls in one source file bind, one `<file>:<line>:<col> keys` entry per call (and `pad` and `gestures` entries where it binds them); empty when the file has no call; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could name a device that is not there).
-- `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings (M4 spec §4.13, I-g).
+- `ManifestInputsMismatch` (class): `runtime.inputs` disagrees with the game's input bindings.
 - `ManifestInvalid` (class): Ruken's parser refused the generated `ruken.toml`.
-- `OrientationMismatch` (class): The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken (M4.7 follow-up).
+- `OrientationMismatch` (class): The game plays in an orientation its ship config's `runtime.orientation` does not send Ruken.
 - `OrientationMismatchFound` (interface): A game that plays in an orientation its ship config does not declare.
 - `parseEnvFile(file, text)`: The variables of one `.env` file: `KEY=value` lines, with `export`, quotes and `#` comments allowed.
 - `PIXI3D_EXTRAS_MARKERS` (const): Strings only
 - `PIXI3D_MARKERS` (const): Strings only
-- `Pixi3dExtrasInBuild` (class): A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load (M3 spec S7-g).
+- `Pixi3dExtrasInBuild` (class): A build contains `@pixi/3d/extras`, whose particle code probes `new Function` at load, which a no-eval CSP refuses.
 - `Pixi3dFound` (interface): One script that carries a marker.
-- `Pixi3dInPublicBuild` (class): A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta (M3 spec §4.8, X-b).
+- `Pixi3dInPublicBuild` (class): A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta.
 - `PlayedOrientation` (interface): An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
 - `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
-- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host (ship spec §3.3): checks the tag, the entry page, root-absolute paths, secrets (QB-b), `@pixi/3d` (X-b, S7-g), the leaderboards the game names (M5.7) and the orientation it plays in (M4.7) and the devices its `keys()` calls bind (M4.1), then writes `ruken.toml` once Ruken's parser accepts it.
+- `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host: checks the tag, the entry page, root-absolute paths, secrets, `@pixi/3d`, the leaderboards the game names and the orientation it plays in and the devices its `keys()` calls bind, then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
-- `prepareItch(input)`: Makes a built folder ready for itch.io (PUB spec §4): the tag, root-absolute paths, secrets (QB.2: a page on itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d` (X-b, S7-g), `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.
+- `prepareItch(input)`: Makes a built folder ready for itch.io: the tag, root-absolute paths, secrets (a page on itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d`, `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.
 - `PrepareItchInput` (interface): What `prepareItch` checks and zips: the built folder, the ship config and the release tag.
-- `prepareTauri(input)`: Builds the desktop bundles for this OS (DIST spec §6.2).
+- `prepareTauri(input)`: Builds the desktop bundles for this OS.
 - `PrepareTauriError` (type): Every way `prepareTauri` can fail, each before or instead of writing bundles.
 - `PrepareTauriInput` (interface): What `prepareTauri` builds: the web build, the game's folder, its config, and the release tag.
-- `PrivatePublishNotLocal` (class): `publish --private` named a Ruken that is not the local stack (M3 spec §4.8): a private build stays local.
+- `PrivatePublishNotLocal` (class): `publish --private` named a Ruken that is not the local stack: a private build stays local.
 - `ProcessError` (class): A program could not be started (not found, not executable).
 - `ProcessRunner` (interface): The service's tag; see `Files` for why it is not a `Context.Tag` class.
 - `ProcessRunnerLive` (const): `ProcessRunner` on `node:child_process`: the real programs, with the parent's environment plus `RunOptions.env`.
 - `ProcessRunnerService` (interface): Runs a program with arguments and no shell.
 - `PublishAuth` (class): Exit 3: the token was missing, wrong or lacks the rights.
-- `publishBuild(input)`: `ship publish` for Ruken (ship spec §3.4): prepare the build, then hand it to Ruken's own CLI.
+- `publishBuild(input)`: `ship publish` for Ruken: prepare the build, then hand it to Ruken's own CLI.
 - `PublishBuildInput` (interface): What `publishBuild` needs: `publishToRuken`'s input, the game's ship config, the release tag and the audience.
 - `PublishDownloadsError` (type): Every way `publishDownloadsToItch` can fail, each stopping the pushes.
 - `PublishDownloadsInput` (interface): What `publishDownloadsToItch` needs: the game's folder, its config, the key and where butler is.
@@ -637,16 +637,16 @@
 - `readEnvValues(gameDir)`: The variables of every top-level `.env*` file in the game folder; none when the folder does not exist.
 - `RootAbsoluteReference` (class): The build names its own files from the origin's root, which 404s under `/b/<buildId>/`.
 - `rukenCliPath(moduleUrl?, exists?)`: The `ruken` bin of the vendored `@ruken/cli` package.
-- `rukenHeaders(config, target)`: The headers Ruken serves a game's build with (Ruken's CSP, which allows no eval), from the game's config, for a game's `vite preview` or a dev host (DIST spec §5.1: the game imports no `@ruken/*` itself).
+- `rukenHeaders(config, target)`: The headers Ruken serves a game's build with (Ruken's CSP, which allows no eval), from the game's config, for a game's `vite preview` or a dev host (the game imports no `@ruken/*` itself).
 - `RukenHeaderTarget` (type): Where the headers are for: Ruken's production site, or a page on the given origins that frames the game.
 - `rukenToml(config)`: The text of `ruken.toml` (Ruken manifest schema 1) for a ship config.
 - `RunOptions` (interface): How a program is started: its working folder, extra environment, stdin, and whether its output is also echoed.
 - `RunResult` (interface): What a finished program left: its exit code (128 when a signal killed it) and everything it wrote to stdout and stderr, decoded as UTF-8.
 - `scanTextForSecrets(file, text, envValues)`: Every secret in one file's text.
 - `SecretFound` (interface): A secret the bundle scan found in a built file, located without repeating the secret.
-- `SecretInBuild` (class): The build holds a key, an `.env` value or a high-entropy string (QB-b).
+- `SecretInBuild` (class): The build holds a key, an `.env` value or a high-entropy string.
 - `SHIP_PACKAGE` (const): The name this package is published under.
-- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s `GameConfig`, DIST spec §4.4) and each target's own section.
+- `ShipConfig` (interface): What a game tells ship about itself: the game config every target reads (`@mcthaydt/automata-content`'s `GameConfig`) and each target's own section.
 - `ShipInputBindings` (interface): What ship reads of a game's input profile. ship is published and the profile's owner (`runtime`) is private, so this is the read-only subset ship consumes, not a copy of the contract: a profile's `bindings` is assignable to it.
 - `TaggedErrorClass` (type): The class `Data.TaggedError(tag)` returns, written out. isolatedDeclarations cannot infer the type of a call in an `extends` clause, so each error extends a constant annotated with this type instead (the pattern of `content`'s compile errors and `host`'s errors).
 - `TAURI_CLI` (const): The `@tauri-apps/cli` a desktop game installs as a dev dependency, named when it is missing: released 2026-10-14, at least 14 days before it was chosen (2.12.4 was not), and the release the adapter's `@tauri-apps/api` pairs with.
@@ -659,7 +659,7 @@
 - `TestRemoteFailed` (class): `test-remote` stopped without a green run; `reason` says why and `message` says what to do.
 - `TestRemoteInput` (interface): What `testRemote` runs and how long it waits.
 - `TestRemoteReason` (type): Why `test-remote` stopped without a green run.
-- `UndeclaredBoard` (class): The game names a leaderboard its ship config's `leaderboards` does not declare (M5 spec §4.8, L-b).
+- `UndeclaredBoard` (class): The game names a leaderboard its ship config's `leaderboards` does not declare.
 - `UndeclaredBoardFound` (interface): A board the game's sources name that its ship config does not declare, at the call site.
 - `VersionMismatch` (class): A release tag that is not `v<version>`.
 
@@ -669,12 +669,12 @@
 - `Engine` (type): The browser engine a matrix cell runs in.
 - `FakePad` (class): One standard controller in a real browser, driven through the Gamepad API the game itself reads.
 - `FakePadOptions` (interface): How the fake pad reports itself: its mapping and its id (the id picks the prompts' glyphs).
-- `flick(scope, from, dy, ms)`: A quick vertical swipe of `dy` pixels within `ms` milliseconds from `from` (M4 spec I-f: 40 px in 180 ms).
+- `flick(scope, from, dy, ms)`: A quick vertical swipe of `dy` pixels within `ms` milliseconds from `from` (the gesture tests use 40 px in 180 ms).
 - `hold(target, until)`: A finger down on `target`'s centre until `until` resolves true (checked once a frame), then up.
-- `INPUT_MATRIX` (const): M4 spec §9.1's cells, in table order: 17 cells, 22 journeys (the desktop cells run under both hosts).
+- `INPUT_MATRIX` (const): The matrix's cells, in table order: 17 cells, 22 journeys (the desktop cells run under both hosts).
 - `InputDevice` (type): The device a matrix cell plays with.
 - `MatrixCell` (interface): One cell of the input × form-factor matrix: a form factor, a device and an engine, and the hosts it runs under.
-- `MatrixFormFactor` (type): A matrix cell's form factor, each with one viewport (M4 spec §9.1).
+- `MatrixFormFactor` (type): A matrix cell's form factor, each with one viewport.
 - `MatrixHost` (type): Where a journey runs: under the fake Ruken host, or standalone.
 - `PAD_BUTTONS` (const): The standard mapping's buttons by name: south (A on an Xbox pad) is 0, Start is 9, the D-pad 12 to 15.
 - `PadButton` (type): A standard-mapping button by name.
