@@ -1,0 +1,18 @@
+{
+  "upright": {"about": "Sat up in a chair, the back straight and a touch forward, the knees together, the hands loose in the lap: an interview, a waiting room.",
+    "height": 0.46, "lean": 0.06, "knees": 0.0, "feet": 0.02, "hands": {"L": "lap", "R": "lap"}},
+  "slump": {"about": "Dead inside: slid forward on the seat, the back rounded, the chest sunk, the chin down, the hands dropped in the lap, the knees apart.",
+    "height": 0.46, "slump": 0.7, "knees": 0.05, "feet": 0.08, "head": [0, 0.06, 0.18], "hands": {"L": "lap", "R": "lap"}},
+  "typing": {"about": "At a desk, the back easy and a little forward, both hands on the keys.",
+    "height": 0.46, "lean": 0.12, "knees": 0.02, "head": [0, 0, 0.05], "hands": {"L": {"to": [0.13, 0.76, 0.36]}, "R": {"to": [0.13, 0.76, 0.36]}}, "type": 0.006},
+  "leanIn": {"about": "Locked in: the back bent hard toward the screen, the face close to it, the elbows up and out, both hands hammering the keys.",
+    "height": 0.46, "lean": 0.55, "knees": 0.04, "feet": -0.06, "head": [0, 0, -0.1], "hands": {"L": {"to": [0.15, 0.78, 0.42]}, "R": {"to": [0.15, 0.78, 0.42]}}, "type": 0.018},
+  "mouse": {"about": "At a desk, one hand on the keys and the near one out on the mouse, the shoulder turned a little to it.",
+    "height": 0.46, "lean": 0.18, "turn": -0.08, "knees": 0.02, "hands": {"L": {"to": [0.12, 0.76, 0.36]}, "R": {"to": [0.3, 0.76, 0.4], "aim": [[0, -0.3, 1], [0, -1, 0]]}}},
+  "reachClick": {"about": "Reaching forward across the desk to press something on the screen or the keyboard with the near hand, deliberately, the body leaning after it; the other hand on the desk's edge.",
+    "height": 0.46, "lean": 0.28, "turn": -0.1, "knees": 0.02, "head": [0, 0, 0.12], "hands": {"L": {"to": [0.14, 0.76, 0.3]}, "R": {"to": [0.08, 0.84, 0.56], "aim": [[0, -0.5, 1], [0, -0.6, 0.3]]}}},
+  "toMouth": {"about": "At a desk, the near hand raised to the mouth holding something to it (a mug to drink from, or bite), the elbow down and in, the other hand on the desk; the back easy.",
+    "height": 0.46, "lean": 0.1, "knees": 0.02, "head": [0, 0, 0.04], "hands": {"L": {"to": [0.13, 0.76, 0.34]}, "R": {"to": [0.05, 1.12, 0.2], "aim": [[-0.9, 0.3, 0.3], [0, 0, -1]]}}},
+  "triumph": {"about": "At a desk, the near hand thrust straight up holding something high in triumph, the far hand down on the desk; the chest up, the chin up.",
+    "height": 0.46, "lean": -0.05, "knees": 0.03, "head": [0, 0, -0.12], "hands": {"L": {"to": [0.15, 0.78, 0.36]}, "R": {"to": [0.16, 1.62, 0.12], "aim": [[0, 1, 0.1], [-1, 0, 0]]}}}
+}
