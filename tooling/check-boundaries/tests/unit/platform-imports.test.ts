@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { collectPlatformSources, platformImportFindings } from './platform-imports'
+import { collectPlatformSources, platformImportFindings } from '#src/platform-imports.ts'
 
 // DIST spec §5.1 (DIST-b): a platform's packages are imported only from files under a folder named for its target,
 // tests included; strings and comments that merely name a package are not imports.
@@ -81,7 +81,7 @@ describe('collectPlatformSources', () => {
 })
 
 describe('the --platform-imports run', () => {
-  const cli = join(import.meta.dirname, 'cli.ts')
+  const cli = join(import.meta.dirname, '../../src/cli.ts')
 
   it('exits 1 with each finding, and 0 on a clean tree', () => {
     const root = mkdtempSync(join(tmpdir(), 'af-platform-cli-'))

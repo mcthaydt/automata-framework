@@ -2,11 +2,11 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, test } from 'vitest'
-import { checkSource } from './check'
-import { collectSources } from './files'
+import { checkSource } from '#src/check.ts'
+import { collectSources } from '#src/files.ts'
 
 const fixture = (name: string) => {
-  const path = join(import.meta.dirname, '../fixtures', name)
+  const path = join(import.meta.dirname, '../../fixtures', name)
   return checkSource(path, readFileSync(path, 'utf8'))
 }
 
@@ -62,7 +62,7 @@ test('a relative import that leaves the source root is reported; one inside it i
 })
 
 test('collectSources finds every TS and JS module kind, skipping tests, declarations and other files', () => {
-  const dir = join(import.meta.dirname, '../fixtures/tree')
+  const dir = join(import.meta.dirname, '../../fixtures/tree')
   const names = collectSources(dir).map((f) => f.slice(dir.length + 1).replaceAll('\\', '/'))
   expect(names).toEqual(['a.ts', 'b.mts', 'c.cts', 'nested/d.js'])
 })
@@ -205,7 +205,7 @@ describe('koota-soa: a koota trait or relation store must be a factory or a tag'
 
 describe('inline mode (EX spec §4): only the sim inside a browser file is checked', () => {
   const inline = (name: string) => {
-    const path = join(import.meta.dirname, '../fixtures/inline', name)
+    const path = join(import.meta.dirname, '../../fixtures/inline', name)
     return checkSource(path, readFileSync(path, 'utf8'), { inline: true }).map((f) => [f.rule, f.line, f.col])
   }
 

@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { simEntryVerdict } from './sim-entries.ts'
+import { simEntryVerdict } from '#src/sim-entries.ts'
 
 // P5-D2: an extension declares which of its entries a game's sim may import, in its own package.json
 // (`"automata": { "simEntries": ["./2d"] }`). The checker finds the package the way Node does, by walking up
