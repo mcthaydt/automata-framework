@@ -68,15 +68,21 @@ export const BudgetFile = z.discriminatedUnion('status', [
 ])
 export type BudgetFile = z.infer<typeof BudgetFile>
 
-export type Verdict = 'pass' | 'over' | 'unset' | 'not-comparable' | 'invalid'
+/**
+ * `skipped` is not a failure: every result was drawn by a software renderer (a runner with no GPU), so no frame
+ * time was measured that a budget could judge. It is the only verdict besides `pass` that exits 0.
+ */
+export type Verdict = 'pass' | 'skipped' | 'over' | 'unset' | 'not-comparable' | 'invalid'
 
 export interface CheckOutcome {
   readonly verdict: Verdict
   readonly lines: readonly string[]
 }
 
-// Worst first: the outcome is the worst verdict any line produced.
-const SEVERITY: readonly Verdict[] = ['invalid', 'not-comparable', 'unset', 'over', 'pass']
+// Worst first: the outcome is the worst verdict any line produced. `skipped` sits below `unset` and `invalid`, so a
+// missing budget or a broken result still fails on a runner with no GPU; only a clean run that could not measure
+// anything is skipped.
+const SEVERITY: readonly Verdict[] = ['invalid', 'not-comparable', 'unset', 'over', 'skipped', 'pass']
 
 const SOFTWARE_GPU = /swiftshader|llvmpipe|softpipe|software|basic render/i
 
@@ -106,12 +112,22 @@ export function checkFrameBudget(budgetInput: unknown, resultInputs: readonly un
     else add('invalid', `INVALID result ${index + 1}: ${z.prettifyError(parsed.error)}`)
   }
 
-  for (const result of results) {
-    if (isSoftwareGpu(result.environment.gpu)) {
-      add(
-        'not-comparable',
-        `NOT COMPARABLE ${result.project}: drawn by a software renderer (${result.environment.gpu}); a local smoke, never a budget`,
-      )
+  // Every result drawn in software: the runner has no GPU, so there is nothing to compare. That is not a failure.
+  const allSoftware = results.length > 0 && results.every((result) => isSoftwareGpu(result.environment.gpu))
+  if (allSoftware) {
+    const renderers = [...new Set(results.map((result) => result.environment.gpu))].join(', ')
+    add(
+      'skipped',
+      `skipped: drawn by a software renderer (${renderers}), so the frame budget cannot be measured here`,
+    )
+  } else {
+    for (const result of results) {
+      if (isSoftwareGpu(result.environment.gpu)) {
+        add(
+          'not-comparable',
+          `NOT COMPARABLE ${result.project}: drawn by a software renderer (${result.environment.gpu}); a local smoke, never a budget`,
+        )
+      }
     }
   }
 
