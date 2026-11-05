@@ -1,4 +1,4 @@
-// Component field types (spec §4.2). Every write goes through coerceField so stored values are canonical.
+// Component field types. Every write goes through coerceField so stored values are canonical.
 
 export const FIELD_TYPES = ['f32', 'f64', 'i32', 'u32', 'bool', 'entity', 'string'] as const
 /**

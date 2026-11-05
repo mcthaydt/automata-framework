@@ -1,4 +1,4 @@
-/** Bytes that are not a valid `.replay` (M2.3 spec §5). `offset` is the byte where reading failed, when known. */
+/** Bytes that are not a valid `.replay`. `offset` is the byte where reading failed, when known. */
 export class ReplayFormatError extends Error {
   readonly offset: number | undefined
   constructor(message: string, offset?: number, options?: ErrorOptions) {

@@ -1,4 +1,4 @@
-// Re-simulates a Replay through the one simulation there is (M2.3 spec §3.4): a fresh sim restored from the
+// Re-simulates a Replay through the one simulation there is: a fresh sim restored from the
 // replay's start snapshot, fed the recorded commands tick by tick, its hash compared at every check.
 import type { PluginDef } from '../../shared/define/definitions'
 import { hex64 } from '../../shared/hash/xxhash64'

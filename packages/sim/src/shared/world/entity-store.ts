@@ -14,7 +14,7 @@ export interface RenderRow {
 }
 
 /**
- * What changed for the renderer since the last delta (spec §4.7). `changed` rows carry the entity's full
+ * What changed for the renderer since the last delta. `changed` rows carry the entity's full
  * render state, so a removed component shows up as its absence. `resync` deltas list every live render
  * entity as added; the renderer drops everything it had first.
  */

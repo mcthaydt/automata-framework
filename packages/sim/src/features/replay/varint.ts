@@ -1,4 +1,4 @@
-// Unsigned LEB128 of at most five bytes, for values 0..2^32-1 (M2.3 spec §3.3). Arithmetic rather than shifts
+// Unsigned LEB128 of at most five bytes, for values 0..2^32-1. Arithmetic rather than shifts
 // past bit 30, since JS bit operators work on signed 32-bit integers.
 import { ReplayFormatError } from './errors'
 

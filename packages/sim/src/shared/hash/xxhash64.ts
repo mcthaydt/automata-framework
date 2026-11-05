@@ -2,7 +2,7 @@
 // Reference: https://github.com/Cyan4973/xxHash/blob/dev/doc/xxhash_spec.md
 //
 // Each 64-bit value is held as two u32 halves (hi, lo), and the arithmetic is done with 32-bit integer
-// operations, because BigInt arithmetic allocates per operation and is several times slower (M2.1 spec §10.5).
+// operations, because BigInt arithmetic allocates per operation and is several times slower.
 // The helpers below return their result in the module-level registers `H()` / `L()` instead of allocating a
 // pair. `testing/xxhash64-reference.ts` is the plain BigInt version this must agree with on every input.
 

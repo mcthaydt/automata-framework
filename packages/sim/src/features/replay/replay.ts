@@ -1,4 +1,4 @@
-// The `.replay` value (M2.3 spec §3.2). Tick numbering: a command's `tick` is the sim's tick before its step;
+// The `.replay` value. Tick numbering: a command's `tick` is the sim's tick before its step;
 // every other tick here (checks, reference hashes, finalTick) is the sim's tick after a step.
 
 /** The `.replay` format version this build reads and writes. */

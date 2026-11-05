@@ -1,5 +1,5 @@
 // @mcthaydt/automata-sim/replay: record a run, store it as a `.replay`, and play it back bit-identically
-// (M2.3 spec §3).
+//.
 export { decodeReplay, encodeReplay } from '../features/replay/codec'
 export { ReplayFormatError, ReplayRecordError } from '../features/replay/errors'
 export {

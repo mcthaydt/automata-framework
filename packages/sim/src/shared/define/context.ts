@@ -26,7 +26,7 @@ export interface CommandRecord<P> {
   readonly payload: P
 }
 
-/** What a system's `run` receives each tick (spec §4.1). */
+/** What a system's `run` receives each tick. */
 export interface SimContext {
   readonly tick: number
   /** Fixed step, 1 / tickHz. */

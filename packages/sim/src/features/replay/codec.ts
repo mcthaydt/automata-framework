@@ -1,4 +1,4 @@
-// `.replay` bytes before deflate (M2.3 spec §3.3), little-endian through DataView:
+// `.replay` bytes before deflate, little-endian through DataView:
 //   "AFRP" | format u16 | headerLength u32 | header: canonical JSON (ReplayHeader + commandTypes) UTF-8
 //   start      length u32 | snapshot bytes
 //   ticks      count varint | per tick: delta varint (first from startTick, then from the previous tick, >= 1)
