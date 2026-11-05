@@ -41,7 +41,8 @@ import {
   type InputProfile,
   type StickDirection,
 } from './input-profile.schema.js'
-import { isMenuActionLive, MENU_BINDINGS, type MenuAction } from './menu-actions.js'
+import { tablesFor } from './input-tables.ts'
+import { isMenuActionLive, MENU_BINDINGS, type MenuAction, menuActionsFor } from './menu-actions.js'
 
 /**
  * The input service: held actions from keys, pads, touch buttons and gestures under the game's
@@ -134,7 +135,6 @@ const NAV: Readonly<Record<PadDirection, MenuAction>> = {
   left: 'nav-left',
   right: 'nav-right',
 }
-const isNav = (action: MenuAction): boolean => action.startsWith('nav-')
 
 /** Builds the Input over `target`; `dispose()` removes every listener and lets go of what is held. */
 export function createInput(options: InputOptions): Input & { dispose(): void } {
@@ -175,8 +175,6 @@ export function createInput(options: InputOptions): Input & { dispose(): void } 
     const where = profile.bindings[action]?.context ?? 'play'
     return where === 'any' || where === context
   }
-  const menuActionsFor = (matches: (binding: (typeof MENU_BINDINGS)[MenuAction]) => boolean): MenuAction[] =>
-    (Object.keys(MENU_BINDINGS) as MenuAction[]).filter((action) => matches(MENU_BINDINGS[action]))
 
   let current: ActiveDevice = device.get()
   const become = (next: InputDevice, glyphs: GlyphFamily = current.glyphs): void => {
@@ -304,27 +302,6 @@ export function createInput(options: InputOptions): Input & { dispose(): void } 
 
   // The buttons worth reading for the profile, the game's and the menu's, and what each drives. Rebuilt when the
   // bindings change (`setProfile`).
-  const tablesFor = (bound: InputProfile) => {
-    const watched = [
-      ...new Set([
-        ...Object.values(bound.bindings).flatMap((binding) => binding.pad),
-        ...Object.values(MENU_BINDINGS).flatMap((binding) => binding.pad),
-      ]),
-    ].sort((a, b) => a - b)
-    const padActions = new Map(watched.map((button) => [button, actionsForPadButton(bound, button)]))
-    // Menu directions from a pad come through the repeat below, from the D-pad and the left stick alike.
-    const padMenu = new Map(
-      watched.map((button) => [
-        button,
-        menuActionsFor((binding) => binding.pad.includes(button)).filter((action) => !isNav(action)),
-      ]),
-    )
-    const stickActions = new Map<StickDirection, string[]>()
-    for (const [action, binding] of Object.entries(bound.bindings))
-      for (const direction of binding.stick ?? [])
-        stickActions.set(direction, [...(stickActions.get(direction) ?? []), action])
-    return { watched, padActions, padMenu, stickActions }
-  }
   let tables = tablesFor(profile)
 
   // Per pad: what it read last (for the handover), its mask, and whether it was in use. The active pad is the
