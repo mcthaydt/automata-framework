@@ -988,4 +988,30 @@ the features it lacks are journeyed on the one-file examples that show them:
   automata unit 1,831, repo typecheck 33 of 33, lint, boundaries, style, knip, `api-report` tests 65 of 65; browser (Chromium)
   `tests/browser/audio` 2 of 2 and `tests/browser/app` 842 of 842; Emberwick journeys 28 of 28 and the create-game journey 1
   of 1 in Chromium. Not run: WebKit and Firefox (downloads refused here), hosted CI. Next: `loading`.
+- **Task 5.4, part 3, seventh session, 2026-11-05 (PR `claude/refactor-2d-no-effect-2`).** `loading`, `input` and
+  `extension` are plain TypeScript, each test rewritten first and seen failing. Loading: `createLoadMeter(clock)` guards a
+  promise-returning wait with timeouts on the `Clock` and rejects `LoadStalled` (aborting the wait's signal);
+  `createAssets` answers `load(screen, onProgress?, signal?)` with a `Result`, keeps single-flight downloads (the fetch
+  stops when its last waiter aborts) and stops a screen's other downloads on its first failure. `LoadStalled` and
+  `AssetLoadFailed` are plain `Error`s with their `_tag`. Input: `createInput` returns the Input with `dispose()`; `device`,
+  `profile` and `pads` are plain `Subscribable`s, `rebind` answers a `Result`, `resetBindings()` is a method, `capture`
+  resolves a `Result` and times out on the Input's `Clock`; the rebind errors are plain, `rebindProfile` answers a `Result`;
+  the `Input` tag, which nothing provided, leaves the runtime entry; `tablesFor` moves to `input-tables.ts` to keep the file
+  under 600 lines. Until the screens are plain, `screen-kit`'s `ownInput` opens the Input for a screen's scope on the Effect
+  clock, and boot and `RuntimeTest` time the meter on it (`effectClock`), so a `TestClock` still drives both; the `Assets`
+  and `Haptics` tags join `app/boot/effect-tags.ts`. A new `testing/settle.ts` drains promise chains without the Ruken
+  testing package (which the platform-import rule keeps under `ruken/` folders). Deviation 72: `flow` is not converted on
+  its own. Its whole job is running screens, and a screen's `enter` is an Effect program over the runtime's services, so a
+  plain flow would need an Effect runner inside it for one step only. `flow`, `screens` and `app/` convert together, on this
+  contract: `ScreenDef.enter(context)` returns `void | Promise<void>`; `context` holds `layer`, `from`, `screen` (a
+  `Disposables` the flow disposes when the screen is left), `runtime` (the `Disposables` kept across screens, disposed after
+  the save's last flush) and `services` (the plain runtime services: hosting, bus, time, flow, settings, saves, appLoop,
+  assets, renderer, locale, audio, leaderboards, haptics). A throw or rejection is the screen's failure (`ScreenFailed`).
+  `Flow.settled()` becomes a method returning a promise. Deviation 73: the extension's `layers` field and
+  `ResolvedExtensions.layer` are removed, not converted: no game, example or 3D package declared one, and boot built the
+  layer and threw its services away. Also found: `features/leaderboards` still imports Effect and is missing from the
+  plan's list; it goes after `render`. Verified: automata unit 1,831 (one layers test became the "no layers" test), repo
+  typecheck 33 of 33, lint, boundaries, style, knip, `api-report` tests 65 of 65 (the seam check included), changeset
+  check; Emberwick journeys 28 of 28 in Chromium (phone, compact, iPad) at the input commit and again after the extension
+  commit. Not run: WebKit and Firefox (downloads refused here), hosted CI. Next: flow, screens and app/ together.
 
