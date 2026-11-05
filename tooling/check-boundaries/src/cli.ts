@@ -4,16 +4,16 @@
 // every non-test source file under it, and that relative imports stay inside it; exits 1 on any finding.
 // `--allow-import` adds an import specifier, by exact name, that every root in this run may use (see CheckOptions).
 // `--skip-dir <name>` leaves out every folder of that name under the roots (the sim package's `testing`).
-// `--inline` checks one-file examples instead (EX spec §4): each root is a file or a folder of browser files, and
+// `--inline` checks one-file examples instead: each root is a file or a folder of browser files, and
 // only the arguments of their `defineSystem` and `definePlugin` calls are checked.
-// Roots after `--game` are a game's src/ laid out by role (GL spec §4.5): only its sim set is checked, and a value
+// Roots after `--game` are a game's src/ laid out by role: only its sim set is checked, and a value
 // import from a sim file must stay inside that set. A game laid out by feature has its sim by role suffix and by
 // import (`player-move.system.ts` and the files it imports). A game root with no sim files exits 2.
-// `--platform-imports <root>...` runs only the platform check (DIST spec §5.1): every source under each root, tests
+// `--platform-imports <root>...` runs only the platform check: every source under each root, tests
 // included, imports a target's platform packages (`@ruken/*`, `@tauri-apps/*`) only under that target's folder.
-// `--features <package-root>...` runs only the feature-layout check (refactor spec §3.3, §3.5): app/, features/<x>/,
+// `--features <package-root>...` runs only the feature-layout check: app/, features/<x>/,
 // shared/, entries/ and testing/ of each package's src/ import one way.
-// `--browser <package-root>[:<entry>,<entry>]...` runs only the browser-only check (refactor spec §3.5): nothing a
+// `--browser <package-root>[:<entry>,<entry>]...` runs only the browser-only check: nothing a
 // browser entry reaches imports Effect, a Node built-in or a Node-only library. The entries after `:` name files in
 // src/entries/ (`packages/content:locale,assets`); with none, every file there is a browser entry.
 import { readFileSync, statSync } from 'node:fs'
@@ -116,11 +116,11 @@ for (const root of dirs) {
   }
 }
 for (const root of gameRoots) {
-  // A game's sim is its role files (a game laid out by role, GL spec §4.5) and its role-suffixed files with what they
-  // import (a game laid out by feature, refactor spec §3.3); a game may have either, and both are checked as sim.
+  // A game's sim is its role files (a game laid out by role) and its role-suffixed files with what they
+  // import (a game laid out by feature); a game may have either, and both are checked as sim.
   const simFiles = [...new Set([...collectGameSimSet(root), ...collectSimBySuffix(root)])].sort()
   if (simFiles.length === 0) {
-    // An empty sim set is a misplaced root, not a clean sim (GL spec §5.2).
+    // An empty sim set is a misplaced root, not a clean sim.
     const expected = [...GAME_SIM_ROLES, 'sim'].map((name) => `${name}.ts`).join(', ')
     console.error(
       `check-boundaries: no sim files in ${root} (${expected}, or files ending ${SIM_SUFFIXES.join(', ')})`,

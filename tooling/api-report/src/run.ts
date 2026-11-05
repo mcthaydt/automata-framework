@@ -1,4 +1,4 @@
-// One API report run (PRODUCT spec §2 F6): generate every core package's report from source, then either
+// One API report run: generate every core package's report from source, then either
 // write them (`update`) or check them: each committed report must equal the generated one, and every break
 // against the base branch's report in a published package must be declared by a changeset. The CLI supplies git and the files.
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'

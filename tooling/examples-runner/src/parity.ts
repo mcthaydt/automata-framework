@@ -1,5 +1,5 @@
-// What the parity test and the runner's stub read from an example's default export (EX spec §4). DX.2's
-// `defineGame` settles the real shape; until then this is the part the golden replay needs.
+// What the parity test and the runner's stub read from an example's default export. Only
+// the part the golden replay needs, not `defineGame`'s whole shape.
 import type { PluginDef, Sim } from '@mcthaydt/automata-sim'
 import { parseHeader } from './header.ts'
 

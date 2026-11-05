@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 
-// The playground build's manifest (website playground spec §5.5): which framework commit and site origin it was built
+// The playground build's manifest: which framework commit and site origin it was built
 // for, every file it wrote with its size and sha256, and every package the runtime bundles with the version and
 // licence read from its installed package.json. The site's sync checks the copy against it and shows the licences
 // from it; nobody types a licence by hand.

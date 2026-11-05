@@ -2,7 +2,7 @@ import { existsSync, statSync } from 'node:fs'
 import { basename, join, relative, sep } from 'node:path'
 import { parseSync } from 'oxc-parser'
 
-// Naming discipline (A0+A1 spec §3.3): kebab-case file names, and role suffixes that match what the file
+// Naming discipline: kebab-case file names, and role suffixes that match what the file
 // exports, in both directions. Replaces automata-template's S_/C_/M_ prefixes.
 // Note: namespace-qualified (ns.defineSystem) and aliased (import { defineSystem as ds }) factories are not recognized.
 // Call define* directly.
@@ -28,7 +28,7 @@ export interface StyleFinding {
 }
 
 /**
- * The longest a non-test source file may be (QB spec §4.1: "huge files"). Past it, split the file by
+ * The longest a non-test source file may be (a huge file is hard to review). Past it, split the file by
  * responsibility. Counted as text lines, so a trailing newline does not add one.
  */
 export const MAX_SOURCE_LINES = 600
@@ -149,13 +149,13 @@ function exportedFactories(program: Node): string[] {
 }
 
 export interface CheckOptions {
-  /** A game's `src/`: paths under it may group the sim by role (GL spec §5.1). Package roots omit it. */
+  /** A game's `src/`: paths under it may group the sim by role. Package roots omit it. */
   readonly gameRoot?: string
-  /** Flag comments that cite the plan that asked for the code (refactor spec §8). Off until a package's comments are rewritten. */
+  /** Flag comments that cite the plan that asked for the code. Off until a package's comments are rewritten. */
   readonly planComments?: boolean
 }
 
-/** A milestone or task id (`M5.2`, `DX.2d`, `PRODUCT.2`, `GAME-3D`) or a section sign: which plan, not why. */
+/** A milestone or task id (an `M` and its number, or a plan code with a dot or dash) or a section sign: which plan, not why. */
 const PLAN_REFERENCE =
   /\b(?:M\d{1,2}(?:\.\d+[a-z]?)?(?![\w-])|(?:DX|EX|QB|PUB|DIST|PRODUCT|APP|GAME|GL|CI|ED2D|ED3D)[.-][\w.-]+)|§\s?\d/
 const PLAN_COMMENT_MESSAGE =
@@ -179,7 +179,7 @@ export function checkFile(file: string, code: string, options: CheckOptions = {}
   return [...lengthFindings(file, code), ...namingFindings(file, code, options), ...plan]
 }
 
-// A game root names its sim files for the role they hold (GL spec §4.1): the plural of the five sim roles, plus
+// A game root names its sim files for the role they hold: the plural of the five sim roles, plus
 // `state` for the plugin. Derived from DEFINE_ROLE so the roles stay listed once.
 const GAME_ROLE_FACTORY: ReadonlyMap<string, string> = new Map([
   ...['component', 'command', 'event', 'resource', 'system'].map(
@@ -187,7 +187,7 @@ const GAME_ROLE_FACTORY: ReadonlyMap<string, string> = new Map([
   ),
   ['state', 'definePlugin'],
 ])
-/** Role paths that hold no define* result; `main` is a file only (GL spec §4.6), the others may grow into folders. */
+/** Role paths that hold no define* result; `main` is a file only, the others may grow into folders. */
 const GAME_PLAIN_ROLES: ReadonlySet<string> = new Set(['constants', 'views', 'main'])
 const GAME_PLAIN_FOLDERS: ReadonlySet<string> = new Set(['constants', 'views'])
 /** The role path a factory's results belong in, for messages: defineSystem -> systems. */
@@ -195,7 +195,7 @@ const GAME_PATH_FOR: ReadonlyMap<string, string> = new Map(
   [...GAME_ROLE_FACTORY].map(([path, factory]) => [factory, path]),
 )
 
-/** `role-split`: a role is a file or a folder, never both (GL spec §4.3). Checked once per game root. */
+/** `role-split`: a role is a file or a folder, never both. Checked once per game root. */
 export function checkGameRoot(dir: string): StyleFinding[] {
   const findings: StyleFinding[] = []
   for (const role of [...GAME_ROLE_FACTORY.keys(), ...GAME_PLAIN_FOLDERS]) {
@@ -284,7 +284,7 @@ function gameSuffixMessage(factory: string): string {
 type GameFinding = Omit<StyleFinding, 'file'>
 
 /**
- * The game-root rules (GL spec §5.1) for a role path: a flat role file (`systems.ts`) or a file in a role folder
+ * The game-root rules for a role path: a flat role file (`systems.ts`) or a file in a role folder
  * (`systems/goal.ts`). Returns undefined for any other path, which keeps today's suffix rules.
  */
 function gameRoleFindings(

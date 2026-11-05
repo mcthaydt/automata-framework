@@ -1,4 +1,4 @@
-// The smoke's boot step (DX.2a): opens the minimal game's web build in Chromium, as a player would, and waits on
+// The smoke's boot step: opens the minimal game's web build in Chromium, as a player would, and waits on
 // the game's own readiness, never on a timer: the runtime marks `<html data-state="ready">` once boot finishes,
 // the title screen's Play starts play, and the game then runs some of its own animation frames. Any console
 // error, uncaught error or CSP violation on the way fails the step.

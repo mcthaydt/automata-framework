@@ -1,13 +1,13 @@
 import { parse } from 'svelte/compiler'
 import type { StyleFinding } from './style.ts'
 
-// Svelte rules (QB.2; QB spec §4.1 and §4.3; `ui` spec §3.11). Read from Svelte's own parse, so comments are never
+// Svelte rules. Read from Svelte's own parse, so comments are never
 // read and markup text, attribute values and script strings are all seen.
 // - no-html: `{@html}` renders a string as markup, with no escaping. `ui` renders text through Svelte's escaping only.
 // - platform-chrome: a game draws only inside its frame. The host (Ruken) draws its own chrome, sign-in and
 //   payment UI around it, so a kit that draws any of them could pass for the platform:
 //   - a password field, or an `autocomplete` that asks the browser for a credential or a card;
-//   - the host's name written into the kit. A "Back to …" label takes `hostName` from the host (PUB.4);
+//   - the host's name written into the kit. A "Back to …" label takes `hostName` from the host;
 //   - sign-in or payment wording.
 
 type Node = { type: string; start: number; [key: string]: unknown }

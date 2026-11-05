@@ -29,7 +29,7 @@ export function collectSources(dir: string, skipDirs: readonly string[] = []): s
 }
 
 /**
- * The roles whose files are the sim in a game laid out by role (GL spec §4.5). The `automata check` step
+ * The roles whose files are the sim in a game laid out by role. The `automata check` step
  * (packages/cli) and the plugin hook (agents/automata/scripts/check.mjs) keep copies of this list, because this
  * package is a bin with no library entry; their tests pin the same names.
  */
@@ -47,7 +47,7 @@ export const GAME_SIM_ROLES: readonly string[] = [
 export const GAME_SIM_SET_NAMES: string = `${GAME_SIM_ROLES.join(', ')}, sim.ts`
 
 /**
- * A game's sim set (GL spec §4.5): each role as `<role>.ts` or every source under `<role>/`, plus `sim.ts`. Closed
+ * A game's sim set: each role as `<role>.ts` or every source under `<role>/`, plus `sim.ts`. Closed
  * on purpose: a sim helper lives in the role file that uses it, so the boundary shows in the file names.
  */
 export function collectGameSimSet(src: string): string[] {

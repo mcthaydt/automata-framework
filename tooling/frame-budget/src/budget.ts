@@ -1,4 +1,4 @@
-// The frame-budget check (PRODUCT spec §2 F5): compares the probe's results with the budget recorded in
+// The frame-budget check: compares the probe's results with the budget recorded in
 // tooling/frame-budget/budget.json. It fails closed: only a well-formed, hardware-rendered result for every
 // budgeted project, measured on the budget's own GPU and within it, passes. Like S8's `overBudget`, a number
 // that was not measured is a failure, never a pass.

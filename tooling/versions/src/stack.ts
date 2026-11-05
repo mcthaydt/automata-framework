@@ -1,4 +1,4 @@
-// PRODUCT.4: `docs/stack.md`, the "what's inside" page (PRODUCT spec §8). The prose lives in stack-cards.ts;
+// `docs/stack.md`, the "what's inside" page. The prose lives in stack-cards.ts;
 // versions and licenses are facts read from the pins and the installed packages, never typed by hand.
 
 import { readdirSync, readFileSync } from 'node:fs'
@@ -13,7 +13,7 @@ export interface StackCard {
   /** A library AF has chosen but not installed yet: its npm packages and the task that installs them. */
   readonly planned?: { readonly packages: readonly string[]; readonly task: string }
   /**
-   * A library installed in another repository rather than here (physics in automata-plus since PRODUCT.5g): its
+   * A library installed in another repository rather than here (physics, in automata-plus): its
    * npm packages and that repository, which pins them. The page shows no version or license for it.
    */
   readonly elsewhere?: { readonly packages: readonly string[]; readonly repository: string }

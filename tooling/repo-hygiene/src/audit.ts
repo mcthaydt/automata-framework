@@ -1,4 +1,4 @@
-// Dependency audit (QB spec §4.1, QB.1): `pnpm audit --prod --audit-level=high` on the workspace. pnpm exits
+// Dependency audit: `pnpm audit --prod --audit-level=high` on the workspace. pnpm exits
 // non-zero for an advisory at or above the level and also when the registry's audit endpoint fails, so the
 // verdict reads the output to tell the two apart.
 

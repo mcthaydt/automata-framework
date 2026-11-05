@@ -1,7 +1,7 @@
 // Usage: node tooling/release/src/sync-versions.ts   (run by `pnpm release:version` after `changeset version`)
 // `changeset version` bumps every package.json; the sim also states its version in source, as `SIM_VERSION` in
-// `packages/sim/src/version.ts` (M2.3), which replay headers carry. This rewrites that constant to the new
-// version so the sim's version test stays true (M2.4 spec §3.2). Until M2.3 adds the file there is nothing to do.
+// `packages/sim/src/version.ts`, which replay headers carry. This rewrites that constant to the new
+// version so the sim's version test stays true. Without the file there is nothing to do.
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'

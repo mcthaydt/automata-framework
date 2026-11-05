@@ -1,4 +1,4 @@
-// The pinned gitleaks binary for the secret scan (QB spec §4.1, QB.1). The same release binary runs locally
+// The pinned gitleaks binary for the secret scan. The same release binary runs locally
 // and in CI, downloaded once into a cache and checked against the SHA-256 that gitleaks published with the
 // release (gitleaks_8.30.1_checksums.txt), so a tampered or truncated download never runs.
 import { execFileSync } from 'node:child_process'

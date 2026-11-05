@@ -1,6 +1,6 @@
-// The F1 seams (PRODUCT spec §2): what a paid extension plugs into, and user code can use too. Each must be
+// The F1 seams: what a paid extension plugs into, and user code can use too. Each must be
 // an export of a public `exports` entry of its owning package; `seams.test.ts` checks the committed reports.
-// A Plus package may import only these entries (the boundary test inside automata-plus, PRODUCT.1b).
+// A Plus package may import only these entries (the boundary test inside automata-plus).
 
 export interface Seam {
   readonly seam: string

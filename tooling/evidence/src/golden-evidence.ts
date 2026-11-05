@@ -1,4 +1,4 @@
-// What a golden test calls after its run, in every engine it runs in (DX.9): it puts the hash this engine computed,
+// What a golden test calls after its run, in every engine it runs in: it puts the hash this engine computed,
 // with the run's seed and ticks, in the test's Vitest meta, and Vitest's JSON reporter carries it out of the
 // browser to cli.ts. Nothing is imported, so the module loads unchanged in Node and in a browser page.
 //

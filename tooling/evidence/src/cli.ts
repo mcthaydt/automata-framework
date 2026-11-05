@@ -1,5 +1,5 @@
 // Usage: pnpm evidence (runs every golden package's test:evidence, then this), or node tooling/evidence/src/cli.ts
-// after them. Writes evidence.json and evidence.schema.json at the repository root (DX spec §3.10).
+// after them. Writes evidence.json and evidence.schema.json at the repository root.
 //
 // Every value is read here from what the runs and the checkout left behind, never typed in:
 // - the goldens' per-engine hashes from each package's `.evidence/goldens.json` (Vitest's JSON reporter);

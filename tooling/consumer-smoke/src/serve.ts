@@ -1,4 +1,4 @@
-// A static file server for the game build the smoke boots (DX.2a): the build folder on a free loopback port, with
+// A static file server for the game build the smoke boots: the build folder on a free loopback port, with
 // the headers Ruken would serve the game with, so the boot runs under Ruken's CSP. Plain `node:http`: the smoke
 // project has Vite, but its preview server cannot be told to stop from here without owning its process.
 import { readFile } from 'node:fs/promises'

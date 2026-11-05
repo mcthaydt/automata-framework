@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { collectSources, isSourceFile } from './files.ts'
 import { readImports, resolveRelative } from './imports.ts'
 
-// A game laid out by feature (core and 2D refactor spec §3.3) has no `systems.ts` to point at: its sim is every file
+// A game laid out by feature has no `systems.ts` to point at: its sim is every file
 // whose name ends in a role suffix, wherever it sits, and every file such a file imports by relative path. A helper
 // that a system imports (a tuning table, a tile map) is sim code even though its name says nothing, and a file no sim
 // file imports (a HUD view) is not.

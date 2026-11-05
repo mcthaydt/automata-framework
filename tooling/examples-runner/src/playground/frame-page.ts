@@ -2,7 +2,7 @@ import type { HostSettings } from '../header.ts'
 import { escapeHtml, PAGE_STYLE, pendingPage } from '../page-template.ts'
 import { framePolicy } from './ruken/frame-policy.ts'
 
-/** The site paths of one playground runtime build (website playground spec §5.5). */
+/** The site paths of one playground runtime build. */
 export interface PlaygroundRuntime {
   readonly automata: string
   readonly zod: string
@@ -13,7 +13,7 @@ export interface PlaygroundRuntime {
 }
 
 /**
- * The page a playground frame loads for one example (website playground spec §5.3), served from `siteOrigin`. Its
+ * The page a playground frame loads for one example, served from `siteOrigin`. Its
  * one inline script is the import map that points the examples' two bare imports at the runtime; the policy carries
  * that map's hash. The frame script imports no-eval first, then waits for its parent's `run`. The body says which
  * file the example is (stack frames name it through the compile step's sourceURL) and its `Host:` settings, as data

@@ -1,6 +1,6 @@
 import { gzipSync } from 'node:zlib'
 
-/** The playground runtime's JavaScript, gzip level 9, at most (website playground spec §10.1). */
+/** The playground runtime's JavaScript, gzip level 9, at most. */
 export const RUNTIME_GZIP_BUDGET = 460_000
 
 /** The gzip bytes of every JavaScript file under `runtime/`, one by one as a server sends them, against `budget`. */

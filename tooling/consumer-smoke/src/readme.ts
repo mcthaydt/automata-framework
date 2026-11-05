@@ -1,4 +1,4 @@
-// The root README's commands (QB spec §4.1, QB.1): every line of its `sh` blocks must name a root script, a
+// The root README's commands: every line of its `sh` blocks must name a root script, a
 // workspace package's script or a file that exists, so the README cannot drift from the repository. The
 // readme test and consumer smoke both run this check.
 import { existsSync, readFileSync } from 'node:fs'

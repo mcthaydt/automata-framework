@@ -1,4 +1,4 @@
-// Renovate and Ruken-matched pins (QB.1). A row of docs/versions.md whose reason says "Same as Ruken" moves
+// Renovate and Ruken-matched pins. A row of docs/versions.md whose reason says "Same as Ruken" moves
 // only when Ruken's docs/versions.md moves, so renovate.json must turn Renovate off for it.
 
 /** The parts of renovate.json this check reads. */

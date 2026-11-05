@@ -1,5 +1,5 @@
-// The API index's rows (DX spec §3.8): every export of every published entry point, read from the emitted .d.ts
-// by the one extractor, tooling/api-report/src/extract.ts (PRODUCT.1b3), which `pnpm api-report` reads source
+// The API index's rows: every export of every published entry point, read from the emitted.d.ts
+// by the one extractor, tooling/api-report/src/extract.ts, which `pnpm api-report` reads source
 // with. This file only shapes and orders the rows of `api.json`.
 import { type ApiKind, declarationExports } from '../../api-report/src/extract.ts'
 import type { EntryPoint } from './entry-points.ts'

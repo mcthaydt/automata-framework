@@ -1,5 +1,5 @@
 // The workspace packages Changesets would publish: every package.json under the workspace folders whose
-// `private` is not `true` (M2.4 spec §5). `release-list.test.ts` and `verify-published.ts` both read this list,
+// `private` is not `true`. `release-list.test.ts` and `verify-published.ts` both read this list,
 // so the test that pins what is published and the check after a release can never disagree.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'

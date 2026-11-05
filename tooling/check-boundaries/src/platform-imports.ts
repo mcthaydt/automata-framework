@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import type { Finding } from './check.ts'
 import { readImports } from './imports.ts'
 
-// The `platform-imports` check (DIST spec §5.1, ADR 0006): a distribution target's platform packages are imported
+// The `platform-imports` check (ADR 0006): a distribution target's platform packages are imported
 // only from files under a folder named for that target, tests included, so AF's core stays target-neutral. Only
 // real imports count (`import`, `export … from`, `import()`), read from the AST: a package named in a string, a
 // comment or a template is not an import.

@@ -1,4 +1,4 @@
-// The smoke test every example gets (EX spec §5, §7), parametric over the catalog so adding an example adds no
+// The smoke test every example gets, parametric over the catalog so adding an example adds no
 // test file: it boots under the fake host with the header's `Host:` settings, reaches the semantic ready, and
 // logs no console error or CSP violation. A pending example is reported as skipped with its task, never as passed.
 import { expect, type Frame, test } from '@playwright/test'
@@ -28,7 +28,7 @@ function defineSmokeTests(entries: readonly CatalogEntry[], origin: string): voi
       test.skip(pending !== undefined, `pending: ${pending}`)
       const errors = await collectErrors(page)
       // Each example says hello under its own id (`defineGame` makes it the hosting game id), and the fake host
-      // refuses a hello from any other game (DX.2 plan G-6). The shared manifest (vite-plugin.ts) only sets the
+      // refuses a hello from any other game. The shared manifest (vite-plugin.ts) only sets the
       // pages' headers.
       const frame = await openHosted(page, `${origin}${entry.url}`, entry.id, entry.header?.host ?? {})
       await playAndRun(frame)

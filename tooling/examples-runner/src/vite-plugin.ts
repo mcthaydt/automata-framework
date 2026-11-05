@@ -1,4 +1,4 @@
-// The examples runner (EX spec §5): one Vite plugin serves and builds every `<module>/<module>-<name>.ts` under
+// The examples runner: one Vite plugin serves and builds every `<module>/<module>-<name>.ts` under
 // the examples folder at `/<module>/<name>/`, from one generated page, with Ruken's headers in dev and preview so an
 // example that breaks under Ruken's CSP fails its smoke test. Pending examples are listed, never built.
 import { readFileSync } from 'node:fs'
@@ -14,7 +14,7 @@ import { examplePage, indexPage, type PageModules, pendingPage, sourcePage } fro
 export interface ExamplesRunnerOptions {
   /** The examples folder. */
   readonly root: string
-  /** The module exporting `startGame` (default `@mcthaydt/automata`, DX.2 and PRODUCT.2). */
+  /** The module exporting `startGame` (default `@mcthaydt/automata`). */
   readonly start?: string
   /** The side-effect import every page runs first (default `@mcthaydt/automata/no-eval`). */
   readonly noEval?: string
@@ -32,7 +32,7 @@ export function examplesRunner(options: ExamplesRunnerOptions): Plugin {
   const catalog = () => readCatalog(options.root, options.catalog)
   const indexFile = join(options.root, 'index.html')
   const pageFile = (entry: CatalogEntry) => join(options.root, entry.module, entry.name, 'index.html')
-  // Every example, pending ones too, has a source page beside its own: `/<module>/<name>/source/` (EX.5).
+  // Every example, pending ones too, has a source page beside its own: `/<module>/<name>/source/`.
   const sourceFile = (entry: CatalogEntry) =>
     join(options.root, entry.module, entry.name, 'source', 'index.html')
 
@@ -62,7 +62,7 @@ export function examplesRunner(options: ExamplesRunnerOptions): Plugin {
         root: options.root,
         base: './',
         appType: 'mpa',
-        // The examples run in the fake Ruken host's frame: the Ruken adapter (DIST spec §5.3), then Svelte's client build.
+        // The examples run in the fake Ruken host's frame: the Ruken adapter, then Svelte's client build.
         resolve: { conditions: ['automata-ruken', 'browser'] },
         // `assetsInlineLimit: 0`: Vite would inline an asset under 4 kB as a `data:` URL, which Pixi's loader fetches
         // and Ruken's CSP (`connect-src 'self'`) refuses; a same-origin file is what the CSP allows.

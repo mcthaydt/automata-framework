@@ -1,9 +1,9 @@
-// The API break check (PRODUCT spec §2 F6). A break is an entry point or export that is gone, or an export
+// The API break check. A break is an entry point or export that is gone, or an export
 // whose declaration changed: any change counts, since adding a member to an interface breaks the code that
 // implements it. Additions are not breaks, and neither is a function that only gains optional trailing
 // parameters: no caller can have implemented a function. A break must be declared by a changeset for its package:
-// before 1.0 every AF changeset is a patch (04, M2.4 spec §2; `check-changesets.ts`), so a patch with a
-// `BREAKING:` line declares it; from 1.0 only a `major` does. The M8 spec adds the codemod requirement.
+// before 1.0 every AF changeset is a patch (`check-changesets.ts`), so a patch with a
+// `BREAKING:` line declares it; from 1.0 only a `major` does, with a codemod.
 import ts from 'typescript'
 import { readChangeset } from '../../release/src/check-changesets.ts'
 import type { ApiEntry, ApiExport } from './extract.ts'

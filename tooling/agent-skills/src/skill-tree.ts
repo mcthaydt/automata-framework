@@ -2,9 +2,9 @@ import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-// Skill-copy identity (DX spec §3.7, §12 failure case): the skills ship three ways (the plugin, the public mirror,
+// Skill-copy identity: the skills ship three ways (the plugin, the public mirror,
 // generated games) from the one source, `agents/automata/skills/`. A copy is correct only when it is the same
-// bytes, so the comparison is by content hash, file by file. DX.5 and DX.11 call `diffSkillTrees` on their copies.
+// bytes, so the comparison is by content hash, file by file. `create-game` and the mirror call `diffSkillTrees` on their copies.
 
 /** Every file under `dir` as `<slash path relative to dir>` → sha256 hex, sorted by path (code-unit order). */
 export function listSkillTree(dir: string): Map<string, string> {

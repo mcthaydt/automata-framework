@@ -1,4 +1,4 @@
-// The new-dependency report on pull requests (QB spec §4.1, QB.1). It lists every package a branch adds that
+// The new-dependency report on pull requests. It lists every package a branch adds that
 // no manifest on the base used, with its registry, and for npmjs.org packages the publisher of that version and
 // the weekly downloads, so a reviewer can confirm an agent-added package exists and is the intended one. A
 // package or version its registry does not have is "missing", and the CLI fails on it.

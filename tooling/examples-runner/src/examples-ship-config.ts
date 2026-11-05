@@ -2,7 +2,7 @@ import { defineShipConfig } from '@mcthaydt/automata-tools'
 import { EXAMPLES_GAME_ID } from './page-template.ts'
 
 /**
- * The manifest every example is served under: examples have no `ruken.toml` of their own (EX spec §5), so they all
+ * The manifest every example is served under: examples have no `ruken.toml` of their own, so they all
  * share Ruken's headers for one 2D game, framable by the fake host. The playground's frame policy starts from it too.
  */
 export const EXAMPLES_SHIP_CONFIG = defineShipConfig({

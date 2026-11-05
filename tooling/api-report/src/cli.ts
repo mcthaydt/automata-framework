@@ -1,6 +1,6 @@
 // Usage: pnpm api-report [--update] [--since <ref>]
 // Checks every core package's committed API report against source, and fails on an API break against the
-// reports at <ref> (default: where HEAD left origin/main, base-ref.ts) that no changeset declares (PRODUCT spec §2 F6). --update rewrites
+// reports at <ref> (default: where HEAD left origin/main, base-ref.ts) that no changeset declares. --update rewrites
 // the reports. Exit 0 clean, 1 findings, 2 tool error (the base ref is missing: fetch it).
 import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'

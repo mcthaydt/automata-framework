@@ -1,4 +1,4 @@
-// Where in the reader's code an error was thrown (website playground spec §7.2): the first stack frame in the
+// Where in the reader's code an error was thrown: the first stack frame in the
 // example's module. V8 names a frame `at f (url:line:col)` or `at url:line:col`; JavaScriptCore and Gecko name it
 // `f@url:line:col`. The module is a Blob URL, and V8 names it by the `//# sourceURL` the compile step appends, so a
 // frame counts when its URL is that file or a `blob:` URL (the frame runs no other Blob module).

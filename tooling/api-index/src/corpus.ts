@@ -1,5 +1,5 @@
-// The defined corpus of `llms-full.txt` (DX spec §2.3: "generated from a defined corpus (docs and the API
-// index)"). This list is the one place it is defined; the API reference is appended after these files.
+// The defined corpus of `llms-full.txt`: the docs, then the API
+// index. This list is the one place it is defined; the API reference is appended after these files.
 // It holds what a game developer or agent needs to use AF: what AF is and its laws, the decisions in force, the
 // shared contracts between packages, and the pinned versions. Planning and status documents stay out.
 import { existsSync, readFileSync } from 'node:fs'

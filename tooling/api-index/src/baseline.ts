@@ -1,5 +1,5 @@
-// "A test fails if an export has no doc comment, so new exports arrive documented" (DX spec §3.8). Exports that
-// were undocumented when DX.4 landed are listed in undocumented-baseline.json. The list can only shrink: an export
+// "A test fails if an export has no doc comment, so new exports arrive documented". Exports that
+// were undocumented when the index arrived are listed in undocumented-baseline.json. The list can only shrink: an export
 // missing from it must be documented, and an entry that is documented or gone must be deleted from it.
 import type { ApiExport } from './rows.ts'
 

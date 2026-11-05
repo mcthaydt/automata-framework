@@ -1,4 +1,4 @@
-// Typechecking the examples (EX spec §7): a pending example names verbs that have not landed, so it is left out of
+// Typechecking the examples: a pending example names verbs that have not landed, so it is left out of
 // `tsc` until its task is ticked. The examples package's own tsconfig.json covers its config and e2e files; this
 // adds every non-pending example by name.
 import { spawnSync } from 'node:child_process'

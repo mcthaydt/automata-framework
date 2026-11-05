@@ -1,6 +1,6 @@
 // Usage: node tooling/repo-hygiene/src/secrets.ts   (the root `pnpm secrets`)
 //
-// The secret scan over the full Git history (QB spec §4.1, QB.1), with the pinned gitleaks release binary.
+// The secret scan over the full Git history, with the pinned gitleaks release binary.
 // 1. Self-test: commit fixtures/secrets/ into a scratch repository and require gitleaks to report the planted
 //    key. A scanner that misses it cannot vouch for anything below.
 // 2. Scan every commit HEAD reaches with .gitleaks.toml (which allowlists that fixture folder and one known false

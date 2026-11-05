@@ -2,7 +2,7 @@ import { type CatalogEntry, isUnpublishedExtension } from '../catalog.ts'
 import type { HostSettings } from '../header.ts'
 import { exampleModulePath } from './playground-protocol.ts'
 
-/** One example as the site shows it (website playground spec §5.5, `catalog.json`). */
+/** One example as the site shows it (`catalog.json`). */
 export interface PlaygroundExample {
   readonly id: string
   readonly module: string

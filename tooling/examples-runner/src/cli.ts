@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Usage, from the examples package: `automata-examples dev [name]` serves the index and the fake host its View links
 // open, or opens one example by its id (`core-input-keys`); `automata-examples typecheck` typechecks every
-// non-pending example (EX spec §5, §7).
+// non-pending example.
 import { fileURLToPath } from 'node:url'
 import { createServer } from 'vite'
 import { demoHostPort } from '../host/ports.ts'
@@ -24,7 +24,7 @@ if (name !== undefined && entry === undefined) {
   )
   process.exit(2)
 }
-// The fake host the index's View links open (EX.5), on the port they name.
+// The fake host the index's View links open, on the port they name.
 const host = await createServer({
   configFile: fileURLToPath(new URL('../host/vite.config.ts', import.meta.url)),
   server: { port: demoHostPort, strictPort: true, host: '127.0.0.1' },

@@ -6,7 +6,7 @@ import type { Finding, Rule } from './check.ts'
 import { collectSources } from './files.ts'
 import { readImports } from './imports.ts'
 
-// The `--features` check (core and 2D refactor spec §3.3 and §3.5). A package's src/ is app/, features/<x>/, shared/,
+// The `--features` check. A package's src/ is app/, features/<x>/, shared/,
 // entries/ and testing/, and the imports between them go one way:
 //   1. features/<x>/ imports only itself, shared/, and other packages. Never another feature, app/ or entries/.
 //   2. shared/ imports only shared/ and other packages.

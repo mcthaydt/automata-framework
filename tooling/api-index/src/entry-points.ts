@@ -1,5 +1,5 @@
 // The entry points the API index covers: every `exports` key with a `types` target, of every package Changesets
-// publishes (DX spec §3.8). The published list is tooling/release's, imported so the two can never disagree.
+// publishes. The published list is tooling/release's, imported so the two can never disagree.
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { publishablePackages } from '../../release/src/publishable-packages.ts'
@@ -30,7 +30,7 @@ function typesTarget(entry: unknown): string | undefined {
 export function entryPoints(root: string): EntryPoint[] {
   const found: EntryPoint[] = []
   for (const { dir, manifest } of publishablePackages(root)) {
-    // What consumers install is publishConfig's map when there is one (M2.4 spec §3.2).
+    // What consumers install is publishConfig's map when there is one.
     const exportsMap = manifest.publishConfig?.exports ?? manifest.exports ?? {}
     for (const [entryPoint, entry] of Object.entries(exportsMap)) {
       const types = typesTarget(entry)
