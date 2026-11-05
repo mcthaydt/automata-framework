@@ -4,7 +4,7 @@ import { euler, qmul, smooth, wrapAngle, type V3 } from '../../lib/math';
 import { memberOf, standOf, type CastMember, type CharacterDef } from '../figure/cast';
 import { GAITS } from '../motion/presets';
 import type { Expression } from '../outfit/garments';
-import { Figure, type View } from '../figure/figure';
+import { Figure, type FigureLight, type View } from '../figure/figure';
 import { actionOf, lengthOf, modeGait, specAt, weightAt, type ActionDef } from './actions';
 import { aim, blend, eyesOf, layer, lift, lowest, specPose, type Aims } from './pose-spec';
 import { BASE } from '../../../base/base';
@@ -369,9 +369,10 @@ export class ScriptedActor {
     }
     return pose;
   }
-  /** Brings its figure at `density` to time t under `view`, and returns it (its painted cell, normals, G-buffer). */
-  draw(t: number, view: View, density = this.density): Figure {
+  /** Brings its figure at `density` to time t under `view`, and returns it (its painted cell, normals, G-buffer). A `light` sets the figure's outside light first (figure.ts). */
+  draw(t: number, view: View, density = this.density, light: FigureLight | null = null): Figure {
     const f = this.figure(density), st = this.state(t), pose = this.poseAt(t, f, view, st);
+    f.light = light;
     f.update(0, { facing: st.facing, moving: st.moving, view, pose: { key: keyOf(pose), pose }, expression: this.expressionAt(t), clock: t });
     // The painter leaves an empty texel's colour as the last raster had it (only its alpha cleared): cleared here, so a
     // frame is the same in every channel whatever was drawn before it.
