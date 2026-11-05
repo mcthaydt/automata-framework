@@ -1,9 +1,9 @@
 import { expect, test } from 'vitest'
 import { z } from 'zod'
-import { definePlugin, defineResource, defineSystem, type PluginState } from '#src/define/definitions'
-import { Body, fixturePlugin } from '#src/testing/fixture-world'
-import { createSim, SimDisposedError } from '#src/world/sim'
-import { SnapshotFormatError } from '#src/world/snapshot'
+import { definePlugin, defineResource, defineSystem, type PluginState } from '#src/define/definitions.ts'
+import { Body, fixturePlugin } from '#src/testing/fixture-world.ts'
+import { createSim, SimDisposedError } from '#src/world/sim.ts'
+import { SnapshotFormatError } from '#src/world/snapshot.ts'
 
 // Lifecycle (M2.1 spec §3.1, §10.6): a failed createSim, dispose and a failed restore release everything they
 // took, so Koota's 16 worlds and a plugin's engine (a Rapier world) never leak.

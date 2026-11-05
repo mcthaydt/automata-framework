@@ -8,7 +8,7 @@ import {
   defineResource,
   defineSystem,
   PHASES,
-} from '#src/define/definitions'
+} from '#src/define/definitions.ts'
 
 test('defineComponent keeps id, fields and the render flag (default true)', () => {
   const Health = defineComponent('health', { current: 'f32', max: 'f32' })

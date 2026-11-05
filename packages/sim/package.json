@@ -19,8 +19,7 @@
     "./replay": "./src/replay/index.ts"
   },
   "imports": {
-    "#src/*.ts": "./src/*.ts",
-    "#src/*": "./src/*.ts"
+    "#src/*": "./src/*"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",

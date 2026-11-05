@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { ownKeyCount, sortedEntries, sortedKeys } from '#src/util/sorted'
+import { ownKeyCount, sortedEntries, sortedKeys } from '#src/util/sorted.ts'
 
 test('sortedKeys returns own enumerable keys in code-unit order, independent of insertion order', () => {
   expect(sortedKeys({ b: 1, a: 2, B: 3, aa: 4 })).toEqual(['B', 'a', 'aa', 'b'])

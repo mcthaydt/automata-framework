@@ -2,7 +2,7 @@
 // without importing the sim (master spec §9). Imported by package name to prove the export resolves.
 import { canonicalJson, hex64, utf8, xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { expect, test } from 'vitest'
-import { canonicalJson as rootCanonicalJson, xxhash64 as rootXxhash64 } from '#src/index'
+import { canonicalJson as rootCanonicalJson, xxhash64 as rootXxhash64 } from '#src/index.ts'
 
 test('the ./hash subpath exports the same functions as the package root', () => {
   expect(canonicalJson).toBe(rootCanonicalJson)

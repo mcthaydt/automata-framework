@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import { xxhash64 } from '#src/hash/xxhash64'
-import { xxhash64Reference } from '#src/testing/xxhash64-reference'
+import { xxhash64 } from '#src/hash/xxhash64.ts'
+import { xxhash64Reference } from '#src/testing/xxhash64-reference.ts'
 
 // A timing, so it runs in the bench project (`pnpm bench`), not the gate: under parallel load the ratio
 // dropped to 1.70x. Correctness against the reference is gated in xxhash64-equivalence.test.ts.

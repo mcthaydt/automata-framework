@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { atan2, cos, exp, hypot, log, pow, sin, tan } from '#src/math/dmath'
+import { atan2, cos, exp, hypot, log, pow, sin, tan } from '#src/math/dmath.ts'
 
 const FNS: Record<string, (...args: number[]) => number> = { sin, cos, tan, atan2, exp, log, pow, hypot }
 

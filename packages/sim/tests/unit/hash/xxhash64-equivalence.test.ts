@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import { xxhash64 } from '#src/hash/xxhash64'
-import { xxhash64Reference } from '#src/testing/xxhash64-reference'
+import { xxhash64 } from '#src/hash/xxhash64.ts'
+import { xxhash64Reference } from '#src/testing/xxhash64-reference.ts'
 
 // A fixed xorshift stream, so the inputs are the same on every run.
 function bytes(n: number, seed: number): Uint8Array {

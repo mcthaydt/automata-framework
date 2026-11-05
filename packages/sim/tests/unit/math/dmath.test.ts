@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { atan, atan2, cos, exp, log, pow, sin, tan } from '#src/math/dmath'
+import { atan, atan2, cos, exp, log, pow, sin, tan } from '#src/math/dmath.ts'
 
 // Deterministic PRNG for sampling (mulberry32: 32-bit integer ops only).
 function sampler(seed: number): () => number {

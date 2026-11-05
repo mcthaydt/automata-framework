@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
-import * as sim from '#src/index'
-import * as math from '#src/math/dmath'
-import * as replay from '#src/replay/index'
+import * as sim from '#src/index.ts'
+import * as math from '#src/math/dmath.ts'
+import * as replay from '#src/replay/index.ts'
 
 test('the public runtime API is exactly this list (changing it is a deliberate, semver-visible act)', () => {
   expect(Object.getOwnPropertyNames(sim).sort()).toEqual([

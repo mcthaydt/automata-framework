@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest'
-import { canonicalJson, utf8 } from '#src/hash/canonical'
-import { decodeReplay, encodeReplay } from '#src/replay/codec'
-import { ReplayFormatError } from '#src/replay/errors'
-import { REPLAY_MAX_TICKS, type Replay } from '#src/replay/replay'
+import { canonicalJson, utf8 } from '#src/hash/canonical.ts'
+import { decodeReplay, encodeReplay } from '#src/replay/codec.ts'
+import { ReplayFormatError } from '#src/replay/errors.ts'
+import { REPLAY_MAX_TICKS, type Replay } from '#src/replay/replay.ts'
 
 const H = (n: number): string => n.toString(16).padStart(16, '0')
 

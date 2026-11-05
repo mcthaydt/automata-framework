@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { createRng, deriveSeed, rngFromState } from '#src/rng/rng'
+import { createRng, deriveSeed, rngFromState } from '#src/rng/rng.ts'
 
 test('xoshiro128** from state [1,2,3,4] matches the C reference sequence', () => {
   const r = rngFromState([1, 2, 3, 4])

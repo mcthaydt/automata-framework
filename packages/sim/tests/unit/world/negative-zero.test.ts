@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { z } from 'zod'
-import { definePlugin, defineResource, defineSystem } from '#src/define/definitions'
-import { createSim } from '#src/world/sim'
+import { definePlugin, defineResource, defineSystem } from '#src/define/definitions.ts'
+import { createSim } from '#src/world/sim.ts'
 
 // A resource holding -0 must restore as -0: 1 / -0 is -Infinity, so the two runs would otherwise diverge.
 const Sign = defineResource('sign', z.object({ v: z.number(), log: z.array(z.number()) }), () => ({

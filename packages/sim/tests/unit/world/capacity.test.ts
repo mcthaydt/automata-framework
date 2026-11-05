@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from 'vitest'
-import { Body, fixturePlugin } from '#src/testing/fixture-world'
-import { createSim, type Sim, SimCapacityError } from '#src/world/sim'
-import { SnapshotFormatError } from '#src/world/snapshot'
+import { Body, fixturePlugin } from '#src/testing/fixture-world.ts'
+import { createSim, type Sim, SimCapacityError } from '#src/world/sim.ts'
+import { SnapshotFormatError } from '#src/world/snapshot.ts'
 
 // Koota allows 16 worlds per process and each sim holds one (M2.1 spec §10.3).
 const alive: Sim[] = []

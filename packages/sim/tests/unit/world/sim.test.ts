@@ -7,9 +7,9 @@ import {
   definePlugin,
   defineResource,
   defineSystem,
-} from '#src/define/definitions'
-import { canonicalJson, hex64, utf8, xxhash64 } from '#src/hash/hash'
-import { type Command, createSim, type Sim } from '#src/world/sim'
+} from '#src/define/definitions.ts'
+import { canonicalJson, hex64, utf8, xxhash64 } from '#src/hash/hash.ts'
+import { type Command, createSim, type Sim } from '#src/world/sim.ts'
 
 const Position = defineComponent('position', { x: 'f32', y: 'f32' })
 const Velocity = defineComponent('velocity', { x: 'f32', y: 'f32' }, { render: false })

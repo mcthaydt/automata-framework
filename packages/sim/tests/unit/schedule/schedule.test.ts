@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import { definePlugin, defineSystem, type Phase } from '#src/define/definitions'
-import { orderPlugins, orderSystems } from '#src/schedule/schedule'
+import { definePlugin, defineSystem, type Phase } from '#src/define/definitions.ts'
+import { orderPlugins, orderSystems } from '#src/schedule/schedule.ts'
 
 const sys = (name: string, phase: Phase, rel: { before?: string[]; after?: string[] } = {}) =>
   defineSystem({ name, phase, ...rel, run: () => {} })
