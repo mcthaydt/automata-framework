@@ -2,7 +2,7 @@ import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, expect, it } from 'vitest'
-import { diffSkillTrees, listSkillTree } from './skill-tree.ts'
+import { diffSkillTrees, listSkillTree } from '#src/skill-tree.ts'
 
 const temps: string[] = []
 afterEach(() => {

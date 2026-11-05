@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 // The skills state facts about code; these tests read the facts from the code, so a new rule or a renamed example
 // file fails here instead of leaving the skill wrong.
 
-const REPO = resolve(import.meta.dirname, '../../..')
+const REPO = resolve(import.meta.dirname, '../../../..')
 const SKILLS = join(REPO, 'agents/automata/skills')
 const read = (path: string) => readFileSync(join(REPO, path), 'utf8')
 

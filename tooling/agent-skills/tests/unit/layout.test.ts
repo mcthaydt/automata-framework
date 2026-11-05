@@ -2,9 +2,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { PLUGIN_ROOT, readAgentPackage } from './layout.ts'
+import { PLUGIN_ROOT, readAgentPackage } from '#src/layout.ts'
 
-const REPO = resolve(import.meta.dirname, '../../..')
+const REPO = resolve(import.meta.dirname, '../../../..')
 
 const temps: string[] = []
 afterEach(() => {

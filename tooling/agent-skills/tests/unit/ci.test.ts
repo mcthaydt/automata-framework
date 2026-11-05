@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 
 // The API reference is compared with DX.4's output, so `pnpm agent-skills` runs after `pnpm api-index`; the
 // manifests are validated by Claude Code itself (`pnpm plugin:validate`). Both run in the release checks.
-const root = fileURLToPath(new URL('../../..', import.meta.url))
+const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const scripts = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).scripts as Record<string, string>
 
 describe('the agent package in the gates', () => {

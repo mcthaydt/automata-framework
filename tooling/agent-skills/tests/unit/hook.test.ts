@@ -17,7 +17,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 // The plugin's hook script, run as Claude Code runs it: the event JSON on stdin, CLAUDE_PROJECT_DIR set, and the
 // project's own `automata` bin replaced by a fake that logs how it was called and replies with a canned report.
 
-const SCRIPT = resolve(import.meta.dirname, '../../../agents/automata/scripts/check.mjs')
+const SCRIPT = resolve(import.meta.dirname, '../../../../agents/automata/scripts/check.mjs')
 
 const FAKE_AUTOMATA = `#!/usr/bin/env node
 import { appendFileSync } from 'node:fs'

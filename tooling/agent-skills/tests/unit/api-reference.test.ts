@@ -2,8 +2,8 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { checkApiReference } from './api-reference.ts'
-import { runAgentSkills } from './cli.ts'
+import { checkApiReference } from '#src/api-reference.ts'
+import { runAgentSkills } from '#src/cli.ts'
 
 const GENERATED = 'tooling/api-index/dist/api.md'
 const COMMITTED = 'agents/automata/skills/automata-api/reference/api.md'
