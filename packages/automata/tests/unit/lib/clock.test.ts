@@ -34,10 +34,11 @@ describe('fakeClock', () => {
   it('fires a timeout that a firing timeout set, when it falls inside the same advance', () => {
     const clock = fakeClock()
     const fired: string[] = []
+    const outerDelay = 10
     clock.setTimeout(() => {
       fired.push('outer')
       clock.setTimeout(() => fired.push('inner'), 5)
-    }, 10)
+    }, outerDelay)
     clock.advance(20)
     expect(fired).toEqual(['outer', 'inner'])
   })
@@ -45,9 +46,10 @@ describe('fakeClock', () => {
   it('does not fire a cleared timeout', () => {
     const clock = fakeClock()
     let fired = false
+    const delay = 10
     const handle = clock.setTimeout(() => {
       fired = true
-    }, 10)
+    }, delay)
     clock.clearTimeout(handle)
     clock.advance(100)
     expect(fired).toBe(false)
