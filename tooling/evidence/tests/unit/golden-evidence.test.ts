@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
-import { GoldenEvidenceSchema } from './evidence.schema.ts'
-import { recordGoldenEvidence } from './golden-evidence.ts'
+import { GoldenEvidenceSchema } from '#src/evidence.schema.ts'
+import { recordGoldenEvidence } from '#src/golden-evidence.ts'
 
 it("records one engine's golden run in the test's meta, with Node's own version", () => {
   const task = { meta: {} as Record<string, unknown> }

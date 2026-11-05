@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EvidenceSchema, GoldenEvidenceSchema } from './evidence.schema.ts'
+import { EvidenceSchema, GoldenEvidenceSchema } from '#src/evidence.schema.ts'
 
 const hash = '539176c83c864b31'
 const engines = ['node', 'chromium', 'firefox', 'webkit'] as const

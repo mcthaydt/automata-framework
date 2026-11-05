@@ -8,13 +8,13 @@ import {
   packagesFromManifests,
   runFromEnv,
   type VitestJsonReport,
-} from './collect.ts'
-import { EvidenceSchema } from './evidence.schema.ts'
+} from '#src/collect.ts'
+import { EvidenceSchema } from '#src/evidence.schema.ts'
 
 // Vitest's JSON reporter format, with the user agents Chromium, WebKit and Firefox reported on a real run
 // (Playwright 1.63). The root is /repo.
 const fixture = (): VitestJsonReport =>
-  JSON.parse(readFileSync(new URL('./fixtures/goldens.report.json', import.meta.url), 'utf8'))
+  JSON.parse(readFileSync(new URL('../../src/fixtures/goldens.report.json', import.meta.url), 'utf8'))
 
 /** The fixture with one assertion changed: `edit` gets each assertion that recorded evidence. */
 function edited(
