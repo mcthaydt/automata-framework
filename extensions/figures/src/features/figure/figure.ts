@@ -14,6 +14,10 @@ import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Ben
  * kept in a cache. Drawn by the review frames (frames.ts) and by the scriptable actors (actor.ts), whose made
  * poses it draws through `update({ pose })`.
  */
+/** An outside light for the figure (EnvironmentBuilder's scene light): RGB (1 is full, may exceed it) at a vertex's
+ * place and normal in the figure's own frame (metres, origin on the root, x right, y up, z toward the camera, before
+ * the pitch). With one set, the painter drops its key bands and lights each texel by the light interpolated there. */
+export type FigureLight = (place: V3, normal: V3) => V3;
 export interface View {
   /** The camera's azimuth around the figure (rad; 0 when it stands on +z of the figure), and its pitch down (rad). The
    * figure is drawn at the nearest of the 8 directions to it, and the pitch to the nearest 2°. */
@@ -91,7 +95,7 @@ function drawnFace(member: CastMember, look?: FaceLook): DrawnFace {
   };
 }
 /** Projects the posed parts into the cell: orthographic along the camera's pitch, the root on the feet texel. */
-function soupOf(built: Built, s: Skeleton, world: M[], pitch: number, cell: [number, number], metres: number, feet: number, soup?: Soup, scale = 1, face?: FaceState): { soup: Soup; decals: ViewDecal[] } {
+function soupOf(built: Built, s: Skeleton, world: M[], pitch: number, cell: [number, number], metres: number, feet: number, soup?: Soup, scale = 1, face?: FaceState, light?: FigureLight, lightOut?: Float32Array): { soup: Soup; decals: ViewDecal[] } {
   // `scale`: the supersampling factor; decals still come back in cell texels.
   const [w, h] = cell, ppm = h / metres * scale, cx = w / 2 * scale, cy = (h - feet) * scale;
   const cp = Math.cos(pitch), sp = Math.sin(pitch);
@@ -105,6 +109,7 @@ function soupOf(built: Built, s: Skeleton, world: M[], pitch: number, cell: [num
   const put = (px: number, py: number, pz: number, nx: number, ny: number, nz: number) => {
     const o = vi * VERT, l = Math.hypot(nx, ny, nz) || 1;
     verts[o + 6] = sx; verts[o + 7] = sy; verts[o + 8] = sz;
+    if (light) lightOut!.set(light([px, py, pz], [nx / l, ny / l, nz / l]), vi * 3);
     verts[o] = cx + px * ppm; verts[o + 1] = cy - (py * cp - pz * sp) * ppm; verts[o + 2] = py * sp + pz * cp;
     verts[o + 3] = nx / l; verts[o + 4] = (ny * cp - nz * sp) / l; verts[o + 5] = (ny * sp + nz * cp) / l;
     return vi++;
@@ -188,8 +193,13 @@ export class Figure {
   private time = 0; private phase = 0;
   /** The facing shown (it turns toward the wanted one a step at a time) and the last pose step. */
   private shown: number | null = null; private step = -1;
-  private built: Built; private soup?: Soup;
+  private built: Built; private soup?: Soup; private lightOut = new Float32Array(0);
   readonly g: GBuffer;
+  /** The outside light (see FigureLight); null draws the painter's own key. It changes as the figure moves, so a lit
+   * figure never reads or writes the cell cache. */
+  light: FigureLight | null = null;
+  /** With a light: the G-buffer rasterised with each vertex's light in its place slots, and its supersampled pass. */
+  private gL: GBuffer; private hiL: GBuffer;
   /** The supersampled G-buffer the raster draws into, resolved into `g`. */
   private hi: GBuffer;
   /** The painter's output (paint.ts): the cell's colours and normal map; and its style. */
@@ -216,6 +226,7 @@ export class Figure {
     this.built = build(this.member, this.skeleton, this.outfit, null);
     this.g = gbuffer(this.cell[0], this.cell[1]);
     this.hi = gbuffer(this.cell[0] * this.style.supersample, this.cell[1] * this.style.supersample);
+    this.gL = gbuffer(this.cell[0], this.cell[1]); this.hiL = gbuffer(this.hi.w, this.hi.h);
     this.painted = new Uint8ClampedArray(this.cell[0] * this.cell[1] * 4); this.normals = new Uint8ClampedArray(this.painted.length);
   }
   /** Swaps the outfit or the held item (rebuilds the part list once). */
@@ -278,9 +289,9 @@ export class Figure {
     }
     const st = this.motion(input, idleT, phase, this.shown, rel, faceT);
     const key = [shownKey, st.headYaw.toFixed(3), st.shuffle, this.hairPose.pitch, this.hairPose.roll].join('|');
-    if (key === this.key) return false;
+    if (key === this.key && !this.light) return false;
     this.key = key; this.relativeYaw = rel; this.pitch = pitch;
-    const hit = this.cache ? this.cells.get(key) : undefined;
+    const hit = this.cache && !this.light ? this.cells.get(key) : undefined;
     if (hit) {
       // A cell drawn before: its colours, normal map, joints (the flame's socket) and face, with no raster.
       const o = hit.y0 * this.cell[0] * 4;
@@ -292,7 +303,7 @@ export class Figure {
     st.yaw = rel;
     this.world = input.pose ? fk(this.skeleton, { ...input.pose.pose, yaw: rel + input.pose.pose.yaw }) : evaluate(this.skeleton, gait, st).world;
     this.raster(pitch, faceState);
-    if (this.cache) {
+    if (this.cache && !this.light) {
       const row = this.cell[0] * 4;
       let y0 = 0, y1 = this.cell[1];
       const empty = (y: number) => { for (let i = y * row + 3; i < (y + 1) * row; i += 4) if (this.painted[i]) return false; return true; };
@@ -335,10 +346,20 @@ export class Figure {
   private raster(pitch: number, faceState: FaceState) {
     const S = this.style.supersample;
     if (this.hi.w !== this.cell[0] * S) this.hi = gbuffer(this.cell[0] * S, this.cell[1] * S);
-    const { soup, decals } = soupOf(this.built, this.skeleton, this.world, pitch, this.cell, this.metres, this.feet, this.soup, S, faceState);
+    const light = this.light ?? undefined;
+    if (light && this.lightOut.length < this.built.vertexCount * 3) this.lightOut = new Float32Array(this.built.vertexCount * 3);
+    const { soup, decals } = soupOf(this.built, this.skeleton, this.world, pitch, this.cell, this.metres, this.feet, this.soup, S, faceState, light, this.lightOut);
     this.soup = soup;
-    rasterize(soup, this.hi); resolve(this.hi, this.g, S, this.style);
-    if (this.style.cleanup) { cleanup(this.g); blendJoins(this.g); smoothContour(this.g); }
+    const cleaned = (g: GBuffer) => { if (this.style.cleanup) { cleanup(g); blendJoins(g); smoothContour(g); } };
+    rasterize(soup, this.hi); resolve(this.hi, this.g, S, this.style); cleaned(this.g);
+    if (light) {
+      // A second raster of the same triangles with the light in the place slots (6–8): the resolve averages it like a
+      // place. The cleanup reads only part, group, material and depth, so gL follows g texel for texel.
+      if (this.hiL.w !== this.hi.w) this.hiL = gbuffer(this.hi.w, this.hi.h);
+      const verts = soup.verts.slice(0, soup.count * VERT);
+      for (let v = 0; v < soup.count; v++) for (let i = 0; i < 3; i++) verts[v * VERT + 6 + i] = this.lightOut[v * 3 + i];
+      rasterize({ ...soup, verts }, this.hiL); resolve(this.hiL, this.gL, S, this.style); cleaned(this.gL);
+    }
     // A print on a surface before the marks (they find its surface by its part), one hung over it (a pendant) after,
     // over every mark on the cloth behind it.
     for (const d of decals) if (d.print?.seams) stampPrint(d, this.g);
@@ -346,7 +367,7 @@ export class Figure {
     for (const d of decals) if (d.print && !d.print.seams) stampPrint(d, this.g);
     this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink, faceState.tags) : null;
     this.handStamps = this.handsAt(pitch);
-    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends());
+    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place);
   }
   /**
    * The hair's spring (secondary motion; the character file's `hair`): it trails behind as the figure walks, bounces with

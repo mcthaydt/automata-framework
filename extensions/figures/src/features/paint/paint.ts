@@ -58,6 +58,34 @@ export interface PaintStyle {
 }
 export const PAINT: PaintStyle = { tones: [0.62, 0.05, -0.45], line: 0.03, crevice: 0.012, smooth: 1, strands: 0.9, blend: 0.03, shadow: 2, shadowDepth: 0.025, selout: true, bounce: true, cluster: 3, cool: 0.02, folds: 0.15, face: [0.78, 0.22, -0.4], model: [0.06, 0.1, 0.02, 0.08], surface: [0.25, 0.3, 24] };
 
+/**
+ * The outside light: each coloured texel's albedo times the light there, snapped to DUEL. A texel the painter filled (no
+ * material in g: the neck under the jaw, a designed hand) takes the mean light of the filled texels within 2·D, else the
+ * whole figure's. Outline and ink stay as they are.
+ */
+function lightTexels(light: Float32Array, g: GBuffer, albedo: Uint8ClampedArray, D: number) {
+  const { w, h, material } = g, mean = [0, 0, 0];
+  let total = 0;
+  for (let k = 0; k < w * h; k++) if (material[k] >= 0) { for (let i = 0; i < 3; i++) mean[i] += light[k * 3 + i]; total++; }
+  for (let i = 0; i < 3; i++) mean[i] /= total || 1;
+  const near = (x: number, y: number) => {
+    const sum = [0, 0, 0]; let n = 0;
+    for (let yy = Math.max(0, y - 2 * D); yy <= Math.min(h - 1, y + 2 * D); yy++) for (let xx = Math.max(0, x - 2 * D); xx <= Math.min(w - 1, x + 2 * D); xx++) {
+      const q = yy * w + xx;
+      if (material[q] >= 0) { for (let i = 0; i < 3; i++) sum[i] += light[q * 3 + i]; n++; }
+    }
+    return n ? sum.map(v => v / n) : mean;
+  };
+  const byte = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  for (let k = 0; k < w * h; k++) {
+    const o = k * 4, c = (albedo[o] << 16) | (albedo[o + 1] << 8) | albedo[o + 2];
+    if (!albedo[o + 3] || c === 0 || c === INK_RGB || c === RAMP_OUTLINE) continue;
+    const L = material[k] >= 0 ? [light[k * 3], light[k * 3 + 1], light[k * 3 + 2]] : near(k % w, (k / w) | 0);
+    const lit = duel((byte(albedo[o] * L[0]) << 16) | (byte(albedo[o + 1] * L[1]) << 8) | byte(albedo[o + 2] * L[2]));
+    albedo[o] = (lit >> 16) & 255; albedo[o + 1] = (lit >> 8) & 255; albedo[o + 2] = lit & 255;
+  }
+}
+
 // ─── DUEL snapping (OKLab nearest, as scripts/duel-lut.py bakes the lookup) ───
 const lin = (c: number) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
 export function oklab(rgb: number): [number, number, number] {
@@ -822,7 +850,7 @@ function tint(ramp: number[]) {
  * - Form: a crevice tone where a nearer part sits beside, a cast shadow where one stands between the surface and the key,
  *   reflected light on the shadow side's edge, and a glossy material's shine where it mirrors the key.
  */
-export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}) {
+export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array) {
   const { w, h } = g, n = w * h, ink = INK_RGB;
   const tones = materials.map(m => fillTones(tonesOf(m), m.flat ? 0 : style.cool)), D = densityOf(w), ppm = 36.9 * D;
   // The skin's family: the skin, and any surface painted in its tones alone (an ear's rim and bowl), which takes its line.
@@ -1398,6 +1426,8 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
       } else if (up < 1 && noise3(P[q] * 34, P[q + 1] * 5, P[q + 2] * 34) > Math.max(0, up) ** 0.7 * 0.85) ramp = stains[mi]!;
     }
     if (hue[k] >= MIRROR) { ramp = tint(ramp); tt = hue[k] - MIRROR; } else if (hue[k] >= 0) tt = hue[k];
+    // Lit from outside: the key's bands are gone, so a light or dark key tone reads mid (3 deep stays).
+    else if (light && t >= 0 && t <= 2) tt = 1;
     if (materials[mi].see && t < OUTLINE && (hue[k] >= MIRROR || materials[mi].holo !== 'mirror')) through.set(k, tint(tones[mi]));
     const c = t === OUTLINE ? (at === k ? extra[mi].fold : ink) : t === LINE ? extra[mi].line : t === RIM ? extra[mi].rim : t === -1 ? extra[mi].shine : ramp[Math.min(tt, ramp.length - 1)];
     albedo[o] = (c >> 16) & 255; albedo[o + 1] = (c >> 8) & 255; albedo[o + 2] = c & 255; albedo[o + 3] = 255;
@@ -1409,5 +1439,6 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
   for (let k = 0; k < n; k++) if (tone[k] === -1 || hue[k] >= 0) kept[k] = 1;
   if (face) stampFace(face, { ...g, material, part, group, depth }, tones[face.skin], albedo, fixed, through, kept);
   budget(albedo, w, h, D, kept, (k: number) => material[tone[k] >= OUTLINE && material[k] < 0 ? owner[k] : k]);
+  if (light) lightTexels(light, g, albedo, D);
   return { albedo, normals };
 }

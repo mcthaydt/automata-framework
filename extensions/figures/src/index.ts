@@ -24,7 +24,7 @@ export { seated, applyHold, evaluate, type Gait, type Stand, type Seat, type Sea
 export type { V3 } from './lib/math';
 export { J, JOINTS, type Joint, type Side, type Pose } from './features/body/rig';
 // ─── Drawing ───
-export { Figure, type View, type FigureInput } from './features/figure/figure';
+export { Figure, type View, type FigureInput, type FigureLight } from './features/figure/figure';
 export { member, view, standing, walking, hero, type Frame } from './features/figure/frames';
 export { RAMPS, RAMP_OUTLINE } from './features/paint/duel-ramps';
 // ─── Lighting ───
