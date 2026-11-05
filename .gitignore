@@ -1,6 +1,5 @@
 node_modules/
 dist/
-dist-s8/
 dist-playground/
 dist-playground.building/
 dist-e2e-host/

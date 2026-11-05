@@ -58,11 +58,9 @@ describe.each(TASKS)("turbo's cache key for ship's %s", (task) => {
         'examples/playwright.config.ts',
         'packages/sim/package.json',
         'packages/sim/vitest.config.ts',
-        'games/placeholder/package.json',
         'games/emberwick/package.json',
         'games/emberwick/vitest.config.ts',
         'examples/ui/primitives/package.json',
-        'games/placeholder/e2e/boot.e2e.ts',
       ]),
     )
   })

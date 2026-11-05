@@ -223,11 +223,11 @@ const workspacePackages = [
 
 describe('parity across packages', () => {
   const ci = workflow('ci.yml')
-  // EX-D1: games (Emberwick, the placeholder) live apart from the one-file examples.
+  // EX-D1: games (Emberwick) live apart from the one-file examples.
   it('lists the games folder in the workspace', () => {
     const globs = readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8')
     expect(globs).toMatch(/^\s*- games\/\*$/m)
-    expect(workspacePackages).toEqual(expect.arrayContaining(['games/emberwick', 'games/placeholder']))
+    expect(workspacePackages).toEqual(expect.arrayContaining(['games/emberwick', 'games/base-3d']))
   })
 
   it("runs every package's parity suite through the root test:parity script", () => {

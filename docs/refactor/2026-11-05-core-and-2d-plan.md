@@ -241,7 +241,7 @@ task.
 
 ### Task 2.3: The placeholder game (same PR)
 
-- [ ] Delete `games/placeholder`, its `ci.yml` job (already gone in 1.2), `ci:local` steps, the
+- [x] Delete `games/placeholder`, its `ci.yml` job (already gone in 1.2), `ci:local` steps, the
   `budget:size`/`budget:boot` scripts that hang off it, the knip/boundaries entries, and the placeholder lines of
   the root `ci:local` and `packages/ship/src/workflows.test.ts`. The S8 bundle budget's last numbers go in
   `progress.md`, where the bundle report (task 5.1) picks them up; until then no bundle budget runs. #379 also
@@ -709,3 +709,11 @@ the features it lacks are journeyed on the one-file examples that show them:
   trimmed, not the limit raised; (10) knip showed no stand-in file as unused any more because the files were deleted
   before the run; it listed only `@ruken/sdk` (dropped from the game's dependencies). Chromium: hot-reload 2 passed,
   Emberwick 24 passed (WebKit projects are not installed here).
+- 2026-11-05 (stage 4, phase 2, task 2.3): `games/placeholder` deleted with its `knip.jsonc` entry, the `dist-s8`
+  ignore line and every test line that named it. `ci.yml`'s job and the `budget:*` scripts were already gone in 1.2.
+  The S8 numbers it last printed are in `progress.md`. Three tests (agent-skills, api-report, api-index) still looked
+  for the release gates in `ci.yml` and `ci:local`, where phase 1 had removed them; they now read
+  `release-checks.yml`. That fix belongs to phase 1 (PR #388) and went there as its own commit; the first attempt
+  swept in the placeholder deletion by mistake (the index already held it), so a second commit on #388 restores
+  it and the net change on #388 is the three tests only. Deviation (11): `packages/ship/turbo.json` no longer hashes
+  `games/placeholder/e2e/**`, since no ship test reads a game's journeys.

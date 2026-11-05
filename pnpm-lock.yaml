@@ -326,40 +326,6 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
 
-  games/placeholder:
-    dependencies:
-      '@ruken/sdk':
-        specifier: file:../../vendor/ruken/ruken-sdk-0.0.0.tgz
-        version: file:vendor/ruken/ruken-sdk-0.0.0.tgz
-      effect:
-        specifier: 3.22.2
-        version: 3.22.2
-    devDependencies:
-      '@mcthaydt/automata-ship':
-        specifier: workspace:*
-        version: link:../../packages/ship
-      '@playwright/test':
-        specifier: 1.63.0
-        version: 1.63.0
-      '@ruken/manifest':
-        specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
-        version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
-      '@ruken/sdk-host':
-        specifier: file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz
-        version: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
-      playwright:
-        specifier: 1.63.0
-        version: 1.63.0
-      vite:
-        specifier: 8.3.3
-        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-
   packages/automata:
     dependencies:
       '@mcthaydt/automata-game':
