@@ -10,3 +10,6 @@ it('k reaches the package root and a json file', () => expect([b, data, packageR
 
 const dataFile = join(import.meta.dirname, './data.json')
 void dataFile
+const here = join(import.meta.dirname, '.')
+const moduleType: typeof import('./b') | undefined = undefined
+void [here, moduleType]

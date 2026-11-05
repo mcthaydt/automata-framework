@@ -156,6 +156,8 @@ function specifierSpans(file: string, code: string): Span[] {
 /** Specifiers that parsing does not report: mocks, `new URL(..., import.meta.url)`, and Svelte `<script>` imports. */
 const MOCK_SPECIFIERS: readonly RegExp[] = [
   /\bvi\.(?:mock|doMock|unmock|doUnmock|importActual|importMock)\(\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1/g,
+  // `typeof import('./x')` in a type position, which the parser reports as a type, not an import.
+  /\btypeof import\(\s*(['"])(?<value>\.{1,2}\/[^'"]*)\1/g,
 ]
 /** A path, not a module: it may name a folder or a file that is not code, and it is kept relative. */
 const PATH_SPECIFIERS: readonly RegExp[] = [
@@ -200,7 +202,7 @@ function relativeSpecifiers(file: string, code: string): Span[] {
       ]
   const seen = new Set<number>()
   return all
-    .filter((span) => span.value.startsWith('./') || span.value.startsWith('../'))
+    .filter((span) => /^\.\.?(?:\/|$)/.test(span.value))
     .filter((span) => (seen.has(span.start) ? false : (seen.add(span.start), true)))
 }
 
