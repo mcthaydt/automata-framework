@@ -202,23 +202,26 @@ task.
 
 ### Task 2.4: Features no game uses (PR `claude/refactor-2d-d4`)
 
-Delete each feature in the spec's section 5 table marked **delete**, one commit each, in this order (leaf first, so
-each commit builds): leaderboards, net, haptics and vibration, swipe gestures, gamepad glyph families, rebinding and
-input profiles, the Tauri target.
+Delete each feature in the spec's section 5 table marked **delete** (the networking port and the Tauri target),
+plus leaderboards if step 0 says so, one commit each.
+
+- [ ] **Step 0: Check what `defineGame` wires in.** Before deleting anything, run Emberwick's journeys with a
+  trace and list every screen section it shows (Title, Pause, Settings: Audio, Controls, Touch, Vibration,
+  Language, Display). A feature behind any section Emberwick shows is used, whatever a grep says. For leaderboards:
+  delete only if no Emberwick screen shows leaderboard UI; record the finding either way in the execution log and
+  in the spec's section 5 table.
 
 For each feature:
 
 - [ ] **Step 1:** List every file that names it: `grep -rliE '<pattern>' packages games examples tooling --include=*.ts
-  --include=*.svelte` (patterns: `leaderboard`, `\bnet\b|NetPort`, `haptic|vibrat`, `swipe`, `glyph-family|GlyphFamily`,
-  `rebind|input-profile|InputProfile|ControlsSection`, `tauri`). Paste the list in the commit body.
+  --include=*.svelte` (patterns: `\bnet\b|NetPort`, `tauri`, and `leaderboard` if step 0 cleared it). Paste the list in the commit body.
 - [ ] **Step 2:** Delete the files and the exports; remove the host capability from the contract schema, the
   settings section from the settings screen, the example and its journey and replay golden, and the `ship` target.
 - [ ] **Step 3:** `pnpm check`, `pnpm test:parity` (core and 2D), Emberwick's journeys and the 3D/editors workflow
-  locally (`pnpm --filter @af-games/base-3d test:unit`) all pass. For haptics, `games/base-3d/src/screens/settings.ts`
-  loses its vibration line in the same commit.
+  locally (`pnpm --filter @af-games/base-3d test:unit`) all pass.
 - [ ] **Step 4:** `pnpm api-report --update` and `pnpm agent-skills --write`; add one changeset per published
   package touched (`major`: removed exports). Commit `feat!(<pkg>): remove <feature>, which no game uses`.
-- [ ] **Step 5:** After the seven: amend ADR 0006 (Tauri is no longer a core target; it comes back as a target
+- [ ] **Step 5:** After the last one: amend ADR 0006 (Tauri is no longer a core target; it comes back as a target
   package when a game ships to desktop). Open the PR, green, merge.
 
 ---
@@ -556,3 +559,4 @@ old), then make it pass:
 ## Execution log
 
 - 2026-11-05: plan and spec written (stage 2) on `claude/refactor-2d-plan`.
+- 2026-11-05: the Owner asked why rebinding was cut ("I see that used"). It is used: `defineGame`'s default Settings screen wires it into every game. The D4 table now counts what `defineGame` wires in; rebinding, glyphs, swipe and haptics stay; leaderboards are checked in task 2.4 step 0.

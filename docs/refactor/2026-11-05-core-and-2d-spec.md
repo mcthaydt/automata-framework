@@ -221,18 +221,20 @@ in `progress.md`. It replaces the placeholder's `budget:size`.
 ## 5. What leaves core (D4)
 
 A feature stays when Emberwick, `games/base-3d` or an editor uses it, or when every distribution target needs it.
-Measured on 2026-11-05 (`grep` over each consumer's `src`, tests left out):
+"Uses" counts what `defineGame` wires in for a game by default (the default Settings, Pause and Title screens),
+not only what a game's own `src/` names: a grep of game source alone misses those (the first draft of this table
+made that mistake and listed rebinding as unused; the Owner caught it on 2026-11-05).
 
 | Feature | Used by | Decision |
 |---|---|---|
-| Leaderboards (host contract, runtime, ui, examples `core-leaderboard`) | nobody | **delete** |
-| Haptics and the vibration setting | `base-3d` mentions it in settings copy only | **delete**; base-3d's settings line goes with it |
-| Networking port (`runtime/src/net`) | nobody | **delete** |
-| Rebinding and input profiles (`input/bindings`, `ControlsSection`, example `core-input-rebind`) | nobody | **delete** |
-| Gamepad glyph families | nobody | **delete** (basic gamepad reading stays: Emberwick uses it) |
-| Swipe gestures | nobody | **delete** (the camera drag tracker stays: base-3d uses it) |
+| Rebinding and input profiles (`input/bindings`, `ControlsSection`) | every game: `keys()` builds the profile, and the default Settings screen's Controls section rebinds it | **keep**, in `features/input` and `features/settings/ui`. The `core-input-rebind` example and journey stay |
+| Gamepad glyph families | the Controls section and button prompts in the default screens | **keep** |
+| Swipe gestures | `keys()` and the Touch section of the default Settings screen | **keep** |
+| Haptics and the vibration setting | the default Settings screen's Vibration section; `base-3d` settings | **keep** |
+| Leaderboards | `defineGame` and the default Pause screen wire them; no game declares a leaderboard | **check, then decide** (task 2.4, step 0): delete only if Emberwick's screens never show leaderboard UI and the boot path is unchanged without it |
+| Networking port (`runtime/src/net`) | nobody, not even through `defineGame` | **delete** |
 | Analog input and camera turn | `base-3d`, `render-pixi3d` | keep, in `features/input/analog` |
-| Tauri target | nobody (no game, no editor) | **delete**; `web`, `itch` and `ruken` stay. Recorded as a veto default because the Owner named Tauri export on 2026-10-31 |
+| Tauri target | nobody (no game, no editor; `boot/failure-host.ts` only names it in copy) | **delete**; `web`, `itch` and `ruken` stay. Recorded as a veto default because the Owner named Tauri export on 2026-10-31 |
 | Six-language font subsetting | build step, Emberwick ships `en` | keep (Node only, costs the player nothing) |
 
 "Delete" removes the code, its tests, its examples and journeys, its settings copy and its API entries. Git keeps
