@@ -99,11 +99,9 @@ describe('createGame', () => {
       expect(existsSync(join(testDir, 'tsconfig.json'))).toBe(true)
       expect(existsSync(join(testDir, 'index.html'))).toBe(true)
       expect(existsSync(join(testDir, 'style.css'))).toBe(true)
-      expect(existsSync(join(testDir, 'src/main.ts'))).toBe(true)
-      expect(existsSync(join(testDir, 'src/boot.ts'))).toBe(true)
-      expect(existsSync(join(testDir, 'src/game.ts'))).toBe(true)
-      expect(existsSync(join(testDir, 'src/sim/sim.ts'))).toBe(true)
-      expect(existsSync(join(testDir, 'src/sim/index.ts'))).toBe(true)
+      // Laid out by role, the sim's files first: `automata check` reads constants.ts to state.ts as the sim.
+      for (const role of ['constants', 'components', 'commands', 'systems', 'state', 'views', 'main'])
+        expect(existsSync(join(testDir, `src/${role}.ts`))).toBe(true)
 
       // Verify template substitutions
       const pkgJson = JSON.parse(readFileSync(join(testDir, 'package.json'), 'utf8'))
@@ -115,6 +113,13 @@ describe('createGame', () => {
 
       const indexHtml = readFileSync(join(testDir, 'index.html'), 'utf8')
       expect(indexHtml).toContain('<title>Stellar Odyssey</title>')
+
+      // The game boots on the default screens, with the no-eval guard first, and its sim is named after it.
+      const main = readFileSync(join(testDir, 'src/main.ts'), 'utf8')
+      expect(main.indexOf("import '@mcthaydt/automata/no-eval'")).toBeLessThan(main.indexOf('startGame'))
+      expect(main).toContain("title: 'Stellar Odyssey'")
+      expect(main).toContain('startGame(game)')
+      expect(readFileSync(join(testDir, 'src/state.ts'), 'utf8')).toContain("name: 'stellar-odyssey'")
 
       // Every asset ships as a file: an inlined `data:` URL is refused by Ruken's CSP when fetched (DX.5a).
       const viteConfig = readFileSync(join(testDir, 'vite.config.ts'), 'utf8')
@@ -212,7 +217,7 @@ describe('createGame', () => {
       expect(read('.gitignore')).toContain('*-itch.zip\n')
     })
 
-    it("picks each build's host adapter from its mode, the web adapter otherwise, and boots through it", async () => {
+    it("picks each build's host adapter from its mode, the web adapter otherwise, and compiles the screens", async () => {
       const { read } = await generate(['itch', 'tauri'])
       const viteConfig = read('vite.config.ts')
       expect(viteConfig).toContain("web: 'automata-web'")
@@ -221,7 +226,7 @@ describe('createGame', () => {
       expect(viteConfig).not.toContain('automata-ruken')
       expect(viteConfig).toContain("ADAPTER_CONDITIONS[mode] ?? 'automata-web'")
       expect(viteConfig).toContain('...defaultClientConditions')
-      expect(read('src/boot.ts')).toContain("from '@mcthaydt/automata/target'")
+      expect(viteConfig).toContain('plugins: [svelte()]')
     })
 
     it("lists the chosen targets' commands in the README", async () => {

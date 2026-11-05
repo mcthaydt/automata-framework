@@ -82,13 +82,14 @@ const TEMPLATE_FILES: readonly TemplateFile[] = [
           dependencies: {
             '@mcthaydt/automata': 'workspace:*',
             '@mcthaydt/automata-sim': 'workspace:*',
-            effect: '3.22.2',
             'pixi.js': '8.22.0',
+            svelte: '5.57.1',
             zod: '4.6.6',
             ...targetDependencies(targetsOf(options)).dependencies,
           },
           devDependencies: {
             '@mcthaydt/automata-tools': 'workspace:*',
+            '@sveltejs/vite-plugin-svelte': '7.3.1',
             '@types/node': '24.19.1',
             typescript: '7.0.2',
             vite: '8.3.3',
@@ -124,7 +125,8 @@ export default defineShipConfig({
   },
   {
     path: 'vite.config.ts',
-    content: (options) => `import { defaultClientConditions, defineConfig } from 'vite'
+    content: (options) => `import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { defaultClientConditions, defineConfig } from 'vite'
 
 // Each build holds one target's host adapter (\`vite build --mode <target>\`), picked through the package condition;
 // any other mode (plain \`vite\` while developing) gets the web adapter, the default.
@@ -135,6 +137,8 @@ ${adapterConditions(targetsOf(options))}
 export default defineConfig(({ mode }) => ({
   base: './',
   resolve: { conditions: [ADAPTER_CONDITIONS[mode] ?? 'automata-web', ...defaultClientConditions] },
+  // The framework's screens are Svelte components, compiled with the game.
+  plugins: [svelte()],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -209,76 +213,116 @@ body {
 `,
   },
   {
-    path: 'src/main.ts',
-    content: (options) => `// ${options.title} - Main Entry Point
-import { boot } from './boot.ts'
+    path: 'src/constants.ts',
+    content: () => `// The numbers the game is built from.
 
-const root = document.querySelector<HTMLElement>('#game')
-if (!root) throw new Error('#game element not found')
+/** The game's own pixels; the renderer scales them to the screen. */
+export const SIZE = { width: 320, height: 180 }
 
-boot(root).catch((err) => {
-  console.error('Failed to boot game', err)
+/** How far the square moves each tick, in the game's pixels. */
+export const SPEED = 2
+`,
+  },
+  {
+    path: 'src/components.ts',
+    content: () => `import { defineComponent } from '@mcthaydt/automata-sim'
+
+/** Where the square is, in the game's pixels. */
+export const Square = defineComponent('square', { x: 'f32', y: 'f32' })
+`,
+  },
+  {
+    path: 'src/commands.ts',
+    content: () => `import { defineCommand } from '@mcthaydt/automata-sim'
+import { z } from 'zod'
+
+const axis = z.number().int().min(-1).max(1).default(0)
+
+/** What the player holds this tick: -1, 0 or 1 on each axis. */
+export const Move = defineCommand('move', z.object({ x: axis, y: axis }))
+`,
+  },
+  {
+    path: 'src/systems.ts',
+    content: () => `import { defineSystem } from '@mcthaydt/automata-sim'
+import { Move } from './commands.ts'
+import { Square } from './components.ts'
+import { SPEED } from './constants.ts'
+
+/** Moves the square by what the player holds. Only the sim changes the game, so a replay ends where play did. */
+export const move = defineSystem('move', (ctx) => {
+  for (const { payload } of ctx.commands.of(Move))
+    for (const square of ctx.query(Square)) {
+      const { x, y } = square.get(Square)
+      square.set(Square, { x: x + payload.x * SPEED, y: y + payload.y * SPEED })
+    }
 })
 `,
   },
   {
-    path: 'src/boot.ts',
-    content: (options) => `import { makeHosting } from '@mcthaydt/automata/target'
-import { Effect, Exit, Scope } from 'effect'
-import { createGameApp } from './game.ts'
+    path: 'src/state.ts',
+    content: (options) => `import { definePlugin } from '@mcthaydt/automata-sim'
+import { Move } from './commands.ts'
+import { Square } from './components.ts'
+import { move } from './systems.ts'
 
-// The host session lives as long as the page. Which host answers is the build's choice: \`vite build --mode <target>\`
-// bundles that target's adapter (web, itch.io, Ruken or the desktop) and no other.
-export async function boot(container: HTMLElement): Promise<void> {
-  const session = Effect.runSync(Scope.make())
-  const hosting = await Effect.runPromise(
-    Scope.extend(makeHosting({ gameId: '${options.id}', wants: [], pauseBehavior: 'pause' }), session),
-  )
-  await Effect.runPromise(hosting.ready)
-  const app = createGameApp(container, hosting.hostName)
-  await app.start()
-  window.addEventListener('pagehide', () => {
-    void app.stop().then(() => Effect.runPromise(Scope.close(session, Exit.void)))
-  })
-}
+/** The game's sim: what it holds, what it hears and what runs each tick. */
+export const plugin = definePlugin({ name: '${options.id}', defs: [Square, Move, move] })
 `,
   },
   {
-    path: 'src/game.ts',
-    content: (options) => `import { createGameSim } from './sim/index.ts'
+    path: 'src/views.ts',
+    content: () => `import { rect } from '@mcthaydt/automata'
+import { Square } from './components.ts'
 
-export interface GameApp {
-  start(): Promise<void>
-  stop(): Promise<void>
-}
+/** How each thing in the sim is drawn. */
+export const views = { [Square.id]: rect({ w: 8, h: 8, color: 0xffc825 }) }
+`,
+  },
+  {
+    path: 'src/main.ts',
+    content: (
+      options,
+    ) => `// ${options.title}: a square the player moves, on the default title, play and pause screens.
+// \`no-eval\` comes first: the web targets allow no eval.
+import '@mcthaydt/automata/no-eval'
+import { defineGame, keys, startGame } from '@mcthaydt/automata'
+import { Move } from './commands.ts'
+import { Square } from './components.ts'
+import { SIZE } from './constants.ts'
+import { plugin } from './state.ts'
+import { views } from './views.ts'
 
-export function createGameApp(container: HTMLElement, hostName: string): GameApp {
-  const _sim = createGameSim()
-  return {
-    async start() {
-      container.textContent = \`${options.title} running on \${hostName}\`
+export const game = defineGame({
+  id: '${options.id}',
+  title: '${options.title}',
+  size: SIZE,
+  sim: {
+    plugins: [plugin],
+    seed: 1,
+    setup: (sim) => {
+      sim.spawn([[Square, { x: SIZE.width / 2, y: SIZE.height / 2 }]])
     },
-    async stop() {
-      container.textContent = ''
+  },
+  // Arrows or WASD, or the pad's D-pad; on a touch screen, buttons.
+  input: keys(
+    Move,
+    {
+      ArrowLeft: { x: -1 },
+      KeyA: { x: -1 },
+      ArrowRight: { x: 1 },
+      KeyD: { x: 1 },
+      ArrowUp: { y: -1 },
+      KeyW: { y: -1 },
+      ArrowDown: { y: 1 },
+      KeyS: { y: 1 },
     },
-  }
-}
-`,
-  },
-  {
-    path: 'src/sim/sim.ts',
-    content: () => `import { createSim } from '@mcthaydt/automata-sim'
+    { pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } } },
+  ),
+  views,
+})
 
-export function createGameSim() {
-  return createSim({
-    plugins: [],
-  })
-}
-`,
-  },
-  {
-    path: 'src/sim/index.ts',
-    content: () => `export { createGameSim } from './sim.ts'
+startGame(game)
 `,
   },
 ]

@@ -47,7 +47,8 @@
     "test:slow": "vitest run --config vitest.slow.config.ts",
     "typecheck": "tsc -p .",
     "build": "tsdown",
-    "check:example": "node src/app/bin.ts check ../../games/emberwick --csp"
+    "check:example": "node src/app/bin.ts check ../../games/emberwick --csp",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mcthaydt/automata-content": "workspace:*",
@@ -69,6 +70,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-editor-suite": "workspace:*",
+    "@mcthaydt/playwright-preset": "workspace:*",
     "@mcthaydt/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@ruken/cli": "file:../../vendor/ruken/ruken-cli-0.0.0.tgz",
