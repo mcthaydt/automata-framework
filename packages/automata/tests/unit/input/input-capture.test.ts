@@ -1,9 +1,9 @@
 import { Duration, Effect, Exit, Fiber, SubscriptionRef, TestClock, TestContext } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { makePresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
 import { RebindCancelled, RebindTimedOut } from '#src/features/input/bindings/rebind.ts'
 import { makeInput, REBIND_TIMEOUT_MS } from '#src/features/input/input.manager.ts'
 import { type InputProfile, inputProfileSchema } from '#src/features/input/input-profile.schema.ts'
+import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 
 // Capture (M4 spec §4.5, §6, I-k): the next key or pad button the player presses. Escape or pad B cancels it; nothing
 // for `REBIND_TIMEOUT_MS` (10 s, on Effect's Clock) times it out; neither changes a binding. While it waits, the

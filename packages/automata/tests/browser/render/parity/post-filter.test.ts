@@ -3,7 +3,7 @@ import { Graphics } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
 import { postFilter } from '#src/features/render/filter/post-filter.ts'
 import { createPixiRenderer } from '#src/features/render/renderer.ts'
-import type { RenderTarget } from '../../../../src/app/render/renderer.ts'
+import type { RenderTarget } from '../../../../src/shared/runtime/render/renderer.ts'
 
 // A declared `postFilter` on a real renderer (PRODUCT spec §2 F1, M4 spec §6): it builds, it is in the slot, and the
 // picture shows it; one that cannot compile is left out and the others still draw.

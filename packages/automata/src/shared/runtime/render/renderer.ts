@@ -1,8 +1,8 @@
 import type { StepResult } from '@mcthaydt/automata-sim'
 import { Context, type Effect, type Scope } from 'effect'
-import type { Assets } from '../../features/loading/assets.manager.js'
-import type { GeometryOwner } from '../../shared/ui/geometry/geometry-owner.svelte.ts'
-import type { ModelInvalid, RendererUnavailable } from '../boot/boot-error.js'
+import type { Assets } from '../../../features/loading/assets.manager.js'
+import type { GeometryOwner } from '../../ui/geometry/geometry-owner.svelte.ts'
+import type { ModelInvalid, RendererUnavailable } from '../boot-error.js'
 import type { FrameInfo } from '../loop/frames.js'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 

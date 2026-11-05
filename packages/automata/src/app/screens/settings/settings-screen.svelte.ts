@@ -21,11 +21,11 @@ import { Locale } from '../../../features/locale/locale.manager.ts'
 import { displaySettingsSchema } from '../../../features/settings/display-settings.schema.ts'
 import { Settings } from '../../../features/settings/settings.manager.ts'
 import { Hosting } from '../../../shared/host/hosting.ts'
+import { PresentationBus } from '../../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { InputMethodTracker } from '../../../shared/ui/browser/input-method.svelte.ts'
 import { reducedMotion } from '../../../shared/ui/browser/reduced-motion.ts'
 import { sendBack } from '../../../shared/ui/focus/back-gesture.ts'
 import { readKeyboardLayout } from '../../../shared/ui/prompts/prompt-label.ts'
-import { PresentationBus } from '../../presentation/presentation-bus.manager.ts'
 import type { ScreensGame } from '../default-screens.ts'
 import {
   backGesture,

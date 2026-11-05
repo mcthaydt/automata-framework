@@ -1,11 +1,11 @@
 import { Effect, type Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { type Leaderboards, makeLeaderboards } from '#src/features/leaderboards/leaderboards.manager.ts'
 import {
   makePresentationBus,
   PresentationBus,
   type RuntimeFacts,
-} from '#src/app/presentation/presentation-bus.manager.ts'
-import { type Leaderboards, makeLeaderboards } from '#src/features/leaderboards/leaderboards.manager.ts'
+} from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import type { Hosting } from '../../../src/shared/host/hosting.ts'
 import {
   FakeHostHandle,

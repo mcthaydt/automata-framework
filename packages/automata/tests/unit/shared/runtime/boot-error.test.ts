@@ -7,7 +7,7 @@ import {
   LoadStalled,
   ModelInvalid,
   RendererUnavailable,
-} from '#src/app/boot/boot-error.ts'
+} from '#src/shared/runtime/boot-error.ts'
 import { HostError } from '../../../../src/shared/host/errors.ts'
 import { type BootFailure, bootFailureView } from '../../../../src/shared/ui/status/boot-failure.ts'
 

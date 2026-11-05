@@ -1,9 +1,9 @@
 import type { SimEvent } from '@mcthaydt/automata-sim'
 import { Context, Effect, type Scope } from 'effect'
-import type { GlyphFamily } from '../../features/input/gamepad/glyph-family.js'
-import type { InputDevice, PadInfo } from '../../features/input/input-device.js'
-import type { BoardState } from '../../features/leaderboards/board-state.js'
-import type { ErrorCode } from '../../shared/host/error-code.schema.ts'
+import type { GlyphFamily } from '../../../features/input/gamepad/glyph-family.js'
+import type { InputDevice, PadInfo } from '../../../features/input/input-device.js'
+import type { BoardState } from '../../../features/leaderboards/board-state.js'
+import type { ErrorCode } from '../../host/error-code.schema.ts'
 
 /** Every fact the runtime publishes on the presentation bus, by name. */
 export interface RuntimeFacts {

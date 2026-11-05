@@ -1,12 +1,15 @@
 import { Effect, Logger, type Scope, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { makePresentationBus, type RuntimeFacts } from '#src/app/presentation/presentation-bus.manager.ts'
 import {
   LOCALE_SAVE_KEY,
   type Locale,
   type LocaleDef,
   makeLocale,
 } from '#src/features/locale/locale.manager.ts'
+import {
+  makePresentationBus,
+  type RuntimeFacts,
+} from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { HostError } from '../../../src/shared/host/errors.ts'
 import type { HostingSaves } from '../../../src/shared/host/hosting.ts'
 

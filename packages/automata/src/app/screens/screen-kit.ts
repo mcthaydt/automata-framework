@@ -6,10 +6,10 @@ import { type Component, flushSync, mount, unmount } from 'svelte'
 import { type Input, makeInput } from '../../features/input/input.manager.ts'
 import type { InputProfile } from '../../features/input/input-profile.schema.ts'
 import { Hosting } from '../../shared/host/hosting.ts'
+import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { interceptBackGesture } from '../../shared/ui/focus/back-gesture.ts'
 import { FocusNavigator } from '../../shared/ui/focus/focus-nav.ts'
 import Toast from '../../shared/ui/status/Toast.svelte'
-import { PresentationBus } from '../presentation/presentation-bus.manager.ts'
 import { menuInput } from './menu-input.ts'
 
 /** A game without an input map still pauses with Escape and the pad's Start: the menu actions need no profile. */

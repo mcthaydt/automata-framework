@@ -1,7 +1,7 @@
 import { type ComponentProps, mount, unmount } from 'svelte'
-import BootFailurePanel from '../../shared/ui/status/BootFailurePanel.svelte'
-import ErrorPanel from '../../shared/ui/status/ErrorPanel.svelte'
-import LoaderOverlay from '../../shared/ui/status/LoaderOverlay.svelte'
+import BootFailurePanel from '../ui/status/BootFailurePanel.svelte'
+import ErrorPanel from '../ui/status/ErrorPanel.svelte'
+import LoaderOverlay from '../ui/status/LoaderOverlay.svelte'
 
 export interface LoaderControls {
   setProgress(fraction: number | undefined): void

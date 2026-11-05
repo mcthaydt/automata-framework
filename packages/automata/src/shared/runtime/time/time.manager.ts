@@ -1,5 +1,5 @@
 import { Context, Effect, type Scope, Stream } from 'effect'
-import type { Hosting, HostingOptions } from '../../shared/host/hosting.ts'
+import type { Hosting, HostingOptions } from '../../host/hosting.ts'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 
 export type PauseBehavior = HostingOptions['pauseBehavior']

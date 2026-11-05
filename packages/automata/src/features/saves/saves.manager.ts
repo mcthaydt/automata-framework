@@ -2,9 +2,9 @@
 // `GameDefinition.saves`, and a screen asks for it by the same definition.
 
 import { Context, Effect, type Scope } from 'effect'
-import type { PresentationBus } from '../../app/presentation/presentation-bus.manager.js'
 import type { HostError } from '../../shared/host/errors.ts'
 import type { Hosting } from '../../shared/host/hosting.ts'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { Save } from './save.manager.js'
 import { saveService } from './save.manager.js'
 import type { SaveDef } from './save.schema.js'

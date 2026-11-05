@@ -5,8 +5,8 @@
 // `onPress` serves menus and the pause screen, and gameplay compares this tick's command with the last one's.
 
 import { Context, Duration, Effect, Either, type Scope, Stream, SubscriptionRef } from 'effect'
-import type { PresentationBus } from '../../app/presentation/presentation-bus.manager.js'
 import type { Hosting } from '../../shared/host/hosting.ts'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { SettingsStore } from '../settings/settings.manager.js'
 import { makeAnalogInput, type TouchStickSink } from './analog/analog-input.js'
 import { type InputSettings, inputSettingsSchema } from './bindings/input-settings.schema.js'

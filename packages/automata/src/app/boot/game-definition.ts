@@ -14,9 +14,9 @@ import type { SettingsDef } from '../../features/settings/settings.manager.js'
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
 import type { HostError } from '../../shared/host/errors.ts'
 import type { Hosting, HostingOptions } from '../../shared/host/hosting.ts'
+import type { FrameSource } from '../../shared/runtime/loop/frames.js'
+import type { RendererFactory } from '../../shared/runtime/render/renderer.js'
 import type { BootFailureCopy } from '../../shared/ui/status/boot-failure.ts'
-import type { FrameSource } from '../loop/frames.js'
-import type { RendererFactory } from '../render/renderer.js'
 
 /** The compiled JSON content read by the runtime (spec §3.3). */
 export interface CompiledContentData {

@@ -1,9 +1,9 @@
 import type { AssetsSource } from '@mcthaydt/automata-content'
 import { Duration, Effect, Fiber, TestClock, TestContext, type TestServices } from 'effect'
 import { describe, expect, it, vi } from 'vitest'
-import { AssetLoadFailed, type LoadStalled } from '#src/app/boot/boot-error.ts'
 import { makeAssets } from '#src/features/loading/assets.manager.ts'
 import { makeLoadMeter } from '#src/features/loading/load-meter.ts'
+import { AssetLoadFailed, type LoadStalled } from '#src/shared/runtime/boot-error.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 
 const runTest = <A, E>(effect: Effect.Effect<A, E, TestServices.TestServices>): Promise<A> =>

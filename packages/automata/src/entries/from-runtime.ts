@@ -1,12 +1,3 @@
-export {
-  AssetLoadFailed,
-  BootDefect,
-  type BootError,
-  ContentHashMismatch,
-  LoadStalled,
-  ModelInvalid,
-  RendererUnavailable,
-} from '../app/boot/boot-error.js'
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
 export { contentHashOf } from '../app/boot/boot-program.js'
 export type {
@@ -16,23 +7,6 @@ export type {
   RuntimeSeams,
 } from '../app/boot/game-definition.js'
 export { runGame } from '../app/boot/run-game.js'
-export { AppLoop } from '../app/loop/app-loop.manager.js'
-export { type FrameInfo, MAX_FRAME_MS } from '../app/loop/frames.js'
-export {
-  PresentationBus,
-  type RuntimeFacts,
-  typedBus,
-} from '../app/presentation/presentation-bus.manager.js'
-export {
-  type GameRenderer,
-  Renderer,
-  type RendererFactory,
-  type RenderTarget,
-} from '../app/render/renderer.js'
-export {
-  type PauseReason,
-  Time,
-} from '../app/time/time.manager.js'
 export {
   Audio,
   AudioLive,
@@ -223,3 +197,29 @@ export {
   type SettingsStore,
   settingsStore,
 } from '../features/settings/settings.manager.js'
+export {
+  AssetLoadFailed,
+  BootDefect,
+  type BootError,
+  ContentHashMismatch,
+  LoadStalled,
+  ModelInvalid,
+  RendererUnavailable,
+} from '../shared/runtime/boot-error.js'
+export { AppLoop } from '../shared/runtime/loop/app-loop.manager.js'
+export { type FrameInfo, MAX_FRAME_MS } from '../shared/runtime/loop/frames.js'
+export {
+  PresentationBus,
+  type RuntimeFacts,
+  typedBus,
+} from '../shared/runtime/presentation/presentation-bus.manager.js'
+export {
+  type GameRenderer,
+  Renderer,
+  type RendererFactory,
+  type RenderTarget,
+} from '../shared/runtime/render/renderer.js'
+export {
+  type PauseReason,
+  Time,
+} from '../shared/runtime/time/time.manager.js'

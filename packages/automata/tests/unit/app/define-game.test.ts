@@ -7,13 +7,13 @@ import { defaultContent } from '#src/app/default-content.ts'
 import { defineGame, type GameSpec, pixiOptions } from '#src/app/define-game.ts'
 import { createDrawLayer } from '#src/app/draw/draw-layer.ts'
 import { rect } from '#src/entries/from-game.ts'
-import { BootDefect } from '../../../src/app/boot/boot-error.ts'
 import { defineExtension } from '../../../src/features/extension/define-extension.ts'
 import type { ScreenDef } from '../../../src/features/flow/screen.ts'
 import { LOCALE_SAVE_KEY } from '../../../src/features/locale/locale.manager.ts'
 import { defineSave } from '../../../src/features/saves/save.schema.ts'
 import { CORE_SETTINGS } from '../../../src/features/settings/core-settings.ts'
 import type { SettingsDef } from '../../../src/features/settings/migrate-settings.ts'
+import { BootDefect } from '../../../src/shared/runtime/boot-error.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const Hidden = defineComponent('hidden', { n: 'i32' }, { render: false })

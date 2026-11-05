@@ -1,12 +1,12 @@
 import { Cause, Effect, Exit, Fiber, Option, Scope } from 'effect'
 import type { Hosting } from '../../shared/host/hosting.ts'
-import { BootDefect, type BootError } from './boot-error.js'
+import { BootDefect, type BootError } from '../../shared/runtime/boot-error.js'
+import type { LoaderControls, PageLayers } from '../../shared/runtime/page-layers.svelte.js'
+import { createPageLayers } from '../../shared/runtime/page-layers.svelte.js'
 import { bootProgram } from './boot-program.js'
 import { failureHost } from './failure-host.js'
 import type { GameDefinition, RuntimeHandle } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
-import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
-import { createPageLayers } from './page-layers.svelte.js'
 
 /**
  * Formats a boot error into a descriptive message for logging (spec §4).

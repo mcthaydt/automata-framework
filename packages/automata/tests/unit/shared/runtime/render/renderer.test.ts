@@ -1,11 +1,11 @@
 import type { StepResult } from '@mcthaydt/automata-sim'
 import { Context, Effect, Either, Exit, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { RendererUnavailable } from '#src/app/boot/boot-error.ts'
-import type { FrameInfo } from '#src/app/loop/frames.ts'
-import { Renderer, type RenderTarget } from '#src/app/render/renderer.ts'
+import { RendererUnavailable } from '#src/shared/runtime/boot-error.ts'
+import type { FrameInfo } from '#src/shared/runtime/loop/frames.ts'
+import { Renderer, type RenderTarget } from '#src/shared/runtime/render/renderer.ts'
 import { type NullRendererEntry, nullRenderer } from '#src/testing/runtime/null-renderer.ts'
-import type { GeometryOwner } from '../../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
+import type { GeometryOwner } from '../../../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
 
 describe('renderer interface and nullRenderer', () => {
   const dummyTarget: RenderTarget = {

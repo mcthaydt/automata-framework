@@ -1,7 +1,7 @@
 // Rebinding (M4 spec §4.5, M4-D3, M4-D4), as pure functions over the game's profile and the player's overrides.
 // FloorFifty has no rebinding; these rules are the spec's.
 import { Data, Either } from 'effect'
-import type { TaggedErrorClass } from '../../../app/boot/boot-error.js'
+import type { TaggedErrorClass } from '../../../shared/runtime/boot-error.js'
 import {
   type InputBinding,
   type InputContext,

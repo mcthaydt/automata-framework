@@ -1,8 +1,8 @@
 import type { Command, Sim, SimEvent, StepResult } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import { stepOnce } from '#src/app/loop/frame-loop.ts'
-import type { PresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
-import type { GameRenderer } from '#src/app/render/renderer.ts'
+import { stepOnce } from '#src/shared/runtime/loop/frame-loop.ts'
+import type { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import type { GameRenderer } from '#src/shared/runtime/render/renderer.ts'
 
 // FR.2 (Plus FE-D1): a listener that needs the tick an event happened on (feel's `hear(tick, events)`) gets it from the `sim.step`
 // fact, published with `sim.events`. `sim.events` is unchanged, so no existing listener breaks.

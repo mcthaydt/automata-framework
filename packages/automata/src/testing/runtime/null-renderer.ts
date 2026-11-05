@@ -1,8 +1,8 @@
 import type { StepResult } from '@mcthaydt/automata-sim'
 import { Effect, type Scope } from 'effect'
-import { RendererUnavailable } from '../../app/boot/boot-error.js'
-import type { FrameInfo } from '../../app/loop/frames.js'
-import type { GameRenderer, RendererFactory, RenderTarget } from '../../app/render/renderer.js'
+import { RendererUnavailable } from '../../shared/runtime/boot-error.js'
+import type { FrameInfo } from '../../shared/runtime/loop/frames.js'
+import type { GameRenderer, RendererFactory, RenderTarget } from '../../shared/runtime/render/renderer.js'
 
 /** One call `nullRenderer` recorded. */
 export type NullRendererEntry =

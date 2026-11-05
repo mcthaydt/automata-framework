@@ -1,8 +1,6 @@
 import { settle } from '@ruken/sdk-host/testing'
 import { Deferred, Effect, Exit, Scope, SubscriptionRef } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { AssetLoadFailed } from '#src/app/boot/boot-error.ts'
-import { makePresentationBus, type RuntimeFacts } from '#src/app/presentation/presentation-bus.manager.ts'
 import { type AudioServices, makeAudio } from '#src/features/audio/audio.manager.ts'
 import { AudioDecodeFailed } from '#src/features/audio/audio-error.ts'
 import type { AudioContextLike } from '#src/features/audio/audio-graph.ts'
@@ -11,6 +9,11 @@ import {
   type FakeGainNode,
   fakeAudioContext,
 } from '#src/features/audio/testing/fake-audio-context.ts'
+import { AssetLoadFailed } from '#src/shared/runtime/boot-error.ts'
+import {
+  makePresentationBus,
+  type RuntimeFacts,
+} from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { Hosting } from '../../../../src/shared/host/hosting.ts'
 import { FakeHostHandle, HostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
 import { runScoped } from '../../../../src/testing/host/page/run.ts'

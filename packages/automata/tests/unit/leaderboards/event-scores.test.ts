@@ -1,8 +1,8 @@
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { makePresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
 import type { BoardState } from '#src/features/leaderboards/board-state.ts'
 import { submitEventScores } from '#src/features/leaderboards/event-scores.ts'
+import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 
 // The game's scores for sim events (M5 spec §4.8): the sim emits an event, and the runtime submits the score the
 // game computes from its payload. The score is never typed by anyone (FloorFifty `scores.ts`, R-80).

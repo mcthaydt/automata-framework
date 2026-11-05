@@ -2,7 +2,7 @@
 // never the other way round, so a board can never change what the sim does. The score is the game's function of
 // the event's payload, so it comes from sim state and is never typed by anyone (FloorFifty `scores.ts`, R-80).
 import { Effect } from 'effect'
-import type { PresentationBus } from '../../app/presentation/presentation-bus.manager.js'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { Leaderboards } from './leaderboards.manager.js'
 
 /** A sim event's type (its `defineEvent` id) → the board it scores on and the score its payload gives. */

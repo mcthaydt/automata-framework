@@ -1,5 +1,5 @@
 import { Data } from 'effect'
-import type { TaggedErrorClass } from '../../app/boot/boot-error.js'
+import type { TaggedErrorClass } from '../../shared/runtime/boot-error.js'
 
 /** The fields of `SaveUnreadable`. */
 export interface SaveUnreadableFields {

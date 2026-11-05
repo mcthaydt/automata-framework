@@ -4,7 +4,7 @@
 
 import type { Command } from '@mcthaydt/automata-sim'
 import { Effect, Exit, Scope } from 'effect'
-import type { PresentationBus } from '../../app/presentation/presentation-bus.manager.ts'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { CAMERA_SETTINGS_DEFAULT } from './analog/camera-settings.schema.ts'
 import { type AnalogReading, analogReading } from './analog-reading.ts'
 import { makeInput } from './input.manager.ts'

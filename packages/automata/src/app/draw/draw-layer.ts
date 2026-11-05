@@ -9,7 +9,7 @@
 import type { Sim, StepResult } from '@mcthaydt/automata-sim'
 import { Container, Graphics, Text } from 'pixi.js'
 import type { PixiStage, PixiStageHooks } from '../../features/render/renderer.ts'
-import type { FrameInfo } from '../loop/frames.ts'
+import type { FrameInfo } from '../../shared/runtime/loop/frames.ts'
 import { type DrawSim, readSim } from './read-sim.ts'
 
 /** Options for `DrawContext.text`: colour and font size. */

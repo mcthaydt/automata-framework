@@ -4,8 +4,8 @@
 // number), as FloorFifty's `scores-hosted` tests expect.
 
 import { Context, Effect } from 'effect'
-import { PresentationBus } from '../../app/presentation/presentation-bus.manager.js'
 import { Hosting, type HostingLeaderboards } from '../../shared/host/hosting.ts'
+import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import { type BoardState, boardStateFromError, boardStateFromSubmit } from './board-state.js'
 
 /** What `readBoard` asks for: Ruken's `get` options (`scope` `top` or `around-me`, `limit`). */

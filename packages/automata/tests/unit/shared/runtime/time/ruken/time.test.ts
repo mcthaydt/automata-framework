@@ -1,11 +1,11 @@
 import { settle } from '@ruken/sdk-host/testing'
 import { Effect, Exit, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { makePresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
-import { makeTime, watchLifecycle } from '#src/app/time/time.manager.ts'
-import { Hosting } from '../../../../../src/shared/host/hosting.ts'
-import { FakeHostHandle, HostingTest } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
-import { runScoped } from '../../../../../src/testing/host/page/run.ts'
+import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import { makeTime, watchLifecycle } from '#src/shared/runtime/time/time.manager.ts'
+import { Hosting } from '../../../../../../src/shared/host/hosting.ts'
+import { FakeHostHandle, HostingTest } from '../../../../../../src/testing/host/page/ruken/hosting-test.ts'
+import { runScoped } from '../../../../../../src/testing/host/page/run.ts'
 
 const drive = (step: () => unknown): Effect.Effect<void> =>
   Effect.promise(async () => {

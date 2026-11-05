@@ -1,6 +1,6 @@
 import type { AssetsSource } from '@mcthaydt/automata-content'
 import { Context, Deferred, Effect, Fiber } from 'effect'
-import { AssetLoadFailed, type LoadStalled } from '../../app/boot/boot-error.js'
+import { AssetLoadFailed, type LoadStalled } from '../../shared/runtime/boot-error.js'
 import { readBlob } from './fetch-progress.js'
 import type { LoadMeter } from './load-meter.js'
 

@@ -1,7 +1,7 @@
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { makePresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
 import { playEventSounds } from '#src/features/audio/event-sounds.ts'
+import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { runScoped } from '../../../src/testing/host/page/run.ts'
 
 // The game's sounds for sim events (M5 spec §4.6: "sim events reach it as presentation-bus facts"): a map from a

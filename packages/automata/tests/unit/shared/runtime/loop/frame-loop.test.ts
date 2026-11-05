@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createFrameLoop } from '#src/app/loop/frame-loop.ts'
-import { type FrameInfo, MAX_FRAME_MS } from '#src/app/loop/frames.ts'
+import { createFrameLoop } from '#src/shared/runtime/loop/frame-loop.ts'
+import { type FrameInfo, MAX_FRAME_MS } from '#src/shared/runtime/loop/frames.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 
 describe('createFrameLoop', () => {

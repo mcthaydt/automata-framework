@@ -2,13 +2,13 @@ import { settle } from '@ruken/sdk-host/testing'
 import { Deferred, Effect, Either, Exit, Fiber, PubSub, Scope, Stream, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
+import { type Save, saveService } from '#src/features/saves/save.manager.ts'
+import { defineSave, encodeEnvelope, type SaveEnvelope } from '#src/features/saves/save.schema.ts'
 import {
   makePresentationBus,
   PresentationBus,
   type RuntimeFacts,
-} from '#src/app/presentation/presentation-bus.manager.ts'
-import { type Save, saveService } from '#src/features/saves/save.manager.ts'
-import { defineSave, encodeEnvelope, type SaveEnvelope } from '#src/features/saves/save.schema.ts'
+} from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { Hosting, type HostingSaves } from '../../../../src/shared/host/hosting.ts'
 import { FakeHostControl, FakeHosting } from '../../../../src/testing/host/fake-hosting.ts'
 import { manualClock } from '../../../../src/testing/host/page/clocks.ts'

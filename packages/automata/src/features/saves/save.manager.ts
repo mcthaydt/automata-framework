@@ -7,9 +7,9 @@
 
 import { canonicalJson } from '@mcthaydt/automata-sim/hash'
 import { Clock, Duration, Effect, Runtime, type Scope, Stream, Subscribable, SubscriptionRef } from 'effect'
-import { PresentationBus } from '../../app/presentation/presentation-bus.manager.js'
 import type { HostError } from '../../shared/host/errors.ts'
 import { Hosting } from '../../shared/host/hosting.ts'
+import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import {
   type AutosaveTrigger,
   autosaveOf,

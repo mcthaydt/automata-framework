@@ -9,9 +9,9 @@ import {
 import { Context, Effect, Exit, Scope } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { AppLoop, makeAppLoop } from '#src/app/loop/app-loop.manager.ts'
-import { makePresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
-import { makeTime } from '#src/app/time/time.manager.ts'
+import { AppLoop, makeAppLoop } from '#src/shared/runtime/loop/app-loop.manager.ts'
+import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import { makeTime } from '#src/shared/runtime/time/time.manager.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { type NullRendererEntry, nullRenderer } from '#src/testing/runtime/null-renderer.ts'
 

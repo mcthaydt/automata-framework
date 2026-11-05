@@ -11,9 +11,9 @@ import {
   Queue,
   Scope,
 } from 'effect'
-import type { PageLayers } from '../../app/boot/page-layers.svelte.js'
-import type { PresentationBus } from '../../app/presentation/presentation-bus.manager.js'
-import type { Time } from '../../app/time/time.manager.js'
+import type { PageLayers } from '../../shared/runtime/page-layers.svelte.js'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
+import type { Time } from '../../shared/runtime/time/time.manager.js'
 import { tabbables } from '../../shared/ui/focus/focus-nav.ts'
 import type { GeometryOwner } from '../../shared/ui/geometry/geometry-owner.svelte.ts'
 import { BOOT_FAILURE_COPY_EN, type BootFailureCopy } from '../../shared/ui/status/boot-failure.ts'

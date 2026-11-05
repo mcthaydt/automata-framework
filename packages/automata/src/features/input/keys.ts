@@ -7,7 +7,7 @@
 import type { Command, CommandDef } from '@mcthaydt/automata-sim'
 import { Effect, Exit, Scope } from 'effect'
 import type { z } from 'zod'
-import type { PresentationBus } from '../../app/presentation/presentation-bus.manager.ts'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.ts'
 import { CAMERA_SETTINGS_DEFAULT } from './analog/camera-settings.schema.ts'
 import { type AnalogOptions, type AnalogReading, analogReading } from './analog-reading.ts'
 import type { GestureSink } from './gestures/swipe-tracker.ts'

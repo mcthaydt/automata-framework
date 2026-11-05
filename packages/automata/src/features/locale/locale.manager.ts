@@ -6,8 +6,8 @@
 // sim never hears of it, so a language switch keeps the screen, its focus and the sim hash (L-c).
 
 import { Context, Effect, Runtime } from 'effect'
-import type { PresentationBus } from '../../app/presentation/presentation-bus.manager.js'
 import type { Hosting } from '../../shared/host/hosting.ts'
+import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import { applyDocumentLocale, textDirection } from './document-locale.js'
 import { negotiateLocale } from './negotiate-locale.js'
 import { bindParaglide, type ParaglideRuntime } from './paraglide.js'

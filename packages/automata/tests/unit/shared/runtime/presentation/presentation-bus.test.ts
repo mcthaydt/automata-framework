@@ -4,7 +4,7 @@ import {
   makePresentationBus,
   type PresentationBus,
   typedBus,
-} from '#src/app/presentation/presentation-bus.manager.ts'
+} from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 
 describe('PresentationBus', () => {
   it('delivers facts published from inside a listener after all listeners of the current fact', async () => {

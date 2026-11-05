@@ -4,18 +4,8 @@ import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
 import { Effect, Exit, Fiber, Scope, TestClock, TestContext } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import {
-  AssetLoadFailed,
-  BootDefect,
-  ContentHashMismatch,
-  LoadStalled,
-  RendererUnavailable,
-} from '#src/app/boot/boot-error.ts'
 import { bootProgram, contentHashOf } from '#src/app/boot/boot-program.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
-import { PresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
-import type { RenderTarget } from '#src/app/render/renderer.ts'
-import { Time } from '#src/app/time/time.manager.ts'
 import { Audio } from '#src/features/audio/audio.manager.ts'
 import { AudioBuses } from '#src/features/audio/audio-buses.ts'
 import { type FakeAudioContext, fakeAudioContext } from '#src/features/audio/testing/fake-audio-context.ts'
@@ -27,6 +17,16 @@ import { defineSave } from '#src/features/saves/save.schema.ts'
 import { saveOf } from '#src/features/saves/saves.manager.ts'
 import { CORE_SETTINGS, type CoreSettings } from '#src/features/settings/core-settings.ts'
 import { type SettingsStore, settingsStore } from '#src/features/settings/settings.manager.ts'
+import {
+  AssetLoadFailed,
+  BootDefect,
+  ContentHashMismatch,
+  LoadStalled,
+  RendererUnavailable,
+} from '#src/shared/runtime/boot-error.ts'
+import { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import type { RenderTarget } from '#src/shared/runtime/render/renderer.ts'
+import { Time } from '#src/shared/runtime/time/time.manager.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'

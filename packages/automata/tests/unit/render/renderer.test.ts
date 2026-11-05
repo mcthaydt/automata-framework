@@ -4,8 +4,8 @@ import { Application, type ApplicationOptions, Container, type Filter } from 'pi
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { postFilter } from '#src/features/render/filter/post-filter.ts'
 import { createPixiRenderer } from '#src/features/render/renderer.ts'
-import type { RendererUnavailable } from '../../../src/app/boot/boot-error.ts'
-import type { FrameInfo } from '../../../src/app/loop/frames.ts'
+import type { RendererUnavailable } from '../../../src/shared/runtime/boot-error.ts'
+import type { FrameInfo } from '../../../src/shared/runtime/loop/frames.ts'
 import type { Geometry } from '../../../src/shared/ui/geometry/geometry.ts'
 
 describe('createPixiRenderer', () => {

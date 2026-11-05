@@ -1,8 +1,8 @@
 import type { Command, Sim, StepResult } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import { createFrameLoop, stepOnce } from '#src/app/loop/frame-loop.ts'
-import type { PresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
-import type { GameRenderer } from '#src/app/render/renderer.ts'
+import { createFrameLoop, stepOnce } from '#src/shared/runtime/loop/frame-loop.ts'
+import type { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
+import type { GameRenderer } from '#src/shared/runtime/render/renderer.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 
 // M1.5 spec §9 / Task 20:

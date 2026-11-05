@@ -1,8 +1,8 @@
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { menuInput } from '#src/app/screens/menu-input.ts'
-import type { PresentationBus } from '../../../../src/app/presentation/presentation-bus.manager.ts'
 import { type Input, makeInput } from '../../../../src/features/input/input.manager.ts'
+import type { PresentationBus } from '../../../../src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { FocusNavigator } from '../../../../src/shared/ui/focus/focus-nav.ts'
 import { runScoped } from '../../../../src/testing/host/page/run.ts'
 

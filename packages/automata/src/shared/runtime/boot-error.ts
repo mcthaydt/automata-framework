@@ -1,7 +1,7 @@
 import { Data } from 'effect'
 import type { YieldableError } from 'effect/Cause'
-import type { HostError } from '../../shared/host/errors.ts'
-import type { BootFailure } from '../../shared/ui/status/boot-failure.ts'
+import type { HostError } from '../host/errors.ts'
+import type { BootFailure } from '../ui/status/boot-failure.ts'
 
 export type TaggedErrorClass<Tag extends string, Fields> = new (
   fields: Fields,

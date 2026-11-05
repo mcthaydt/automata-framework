@@ -1,10 +1,10 @@
 import { Effect, SubscriptionRef } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { makePresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
 import type { PadLike } from '#src/features/input/gamepad/read-pad.ts'
 import { fakePad } from '#src/features/input/gamepad/testing/fake-pad.ts'
 import { type Input, makeInput } from '#src/features/input/input.manager.ts'
 import { type InputProfile, inputProfileSchema } from '#src/features/input/input-profile.schema.ts'
+import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { runScoped } from '../../../src/testing/host/page/run.ts'
 
 // Analog play input for 3D (M4 spec §16.3.4): the touch move stick as the left stick, and the camera drag's pixels

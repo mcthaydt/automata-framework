@@ -1,4 +1,4 @@
-import type { FrameSource } from '../../app/loop/frames.js'
+import type { FrameSource } from '../../shared/runtime/loop/frames.js'
 
 /** A frame source a test drives: `advance` moves time on and runs the frame asked for, if any. */
 export interface ManualFrames extends FrameSource {

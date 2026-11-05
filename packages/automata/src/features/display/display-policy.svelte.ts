@@ -13,7 +13,7 @@
 
 import { Effect, type Scope } from 'effect'
 import { mount, unmount } from 'svelte'
-import type { Time } from '../../app/time/time.manager.js'
+import type { Time } from '../../shared/runtime/time/time.manager.js'
 import {
   enterFullscreen,
   fullscreenSupport,

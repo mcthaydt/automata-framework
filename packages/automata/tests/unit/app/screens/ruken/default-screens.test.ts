@@ -18,7 +18,6 @@ import { defaultScreens } from '#src/app/screens/default-screens.ts'
 import { keys } from '#src/features/input/keys.ts'
 import type { RuntimeHandle } from '../../../../../src/app/boot/game-definition.ts'
 import { runGame } from '../../../../../src/app/boot/run-game.ts'
-import type { GameRenderer, RendererFactory } from '../../../../../src/app/render/renderer.ts'
 import {
   type FakeAudioContext,
   type FakeGainNode,
@@ -26,6 +25,7 @@ import {
 } from '../../../../../src/features/audio/testing/fake-audio-context.ts'
 import { defineExtension } from '../../../../../src/features/extension/define-extension.ts'
 import { createHaptics } from '../../../../../src/features/input/haptics/haptics.manager.ts'
+import type { GameRenderer, RendererFactory } from '../../../../../src/shared/runtime/render/renderer.ts'
 import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
 import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
 import { fakeGamepads } from '../../../../../src/testing/input/fake-gamepads.ts'

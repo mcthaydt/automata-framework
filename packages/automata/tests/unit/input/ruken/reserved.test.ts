@@ -1,11 +1,11 @@
 import { settle } from '@ruken/sdk-host/testing'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { makePresentationBus } from '#src/app/presentation/presentation-bus.manager.ts'
 import { fakePad } from '#src/features/input/gamepad/testing/fake-pad.ts'
 import { makeInput } from '#src/features/input/input.manager.ts'
 import { RESERVED_PAD_BUTTONS } from '#src/features/input/input-profile.schema.ts'
 import { MENU_BINDINGS, type MenuAction } from '#src/features/input/menu-actions.ts'
+import { makePresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { FakeHostHandle, HostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
 import { runScoped } from '../../../../src/testing/host/page/run.ts'
 

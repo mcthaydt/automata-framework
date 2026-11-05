@@ -23,21 +23,24 @@ import { makeSettings, Settings } from '../../features/settings/settings.manager
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
 import { HostError } from '../../shared/host/errors.ts'
 import { Hosting, type HostingOptions } from '../../shared/host/hosting.ts'
+import { BootDefect, type BootError, ContentHashMismatch } from '../../shared/runtime/boot-error.js'
+import { AppLoop, makeAppLoop } from '../../shared/runtime/loop/app-loop.manager.js'
+import { liveFrames } from '../../shared/runtime/loop/frames.js'
+import type { LoaderControls, PageLayers } from '../../shared/runtime/page-layers.svelte.js'
+import { createPageLayers } from '../../shared/runtime/page-layers.svelte.js'
+import {
+  makePresentationBus,
+  PresentationBus,
+} from '../../shared/runtime/presentation/presentation-bus.manager.js'
+import { type GameRenderer, Renderer, type RenderTarget } from '../../shared/runtime/render/renderer.js'
+import { makeTime, Time, watchLifecycle } from '../../shared/runtime/time/time.manager.js'
 import { installGlobalErrorHandlers } from '../../shared/ui/browser/global-errors.ts'
 import { lockOverscroll } from '../../shared/ui/browser/lock-overscroll.ts'
 import { reducedMotion } from '../../shared/ui/browser/reduced-motion.ts'
 import { suppressPageGestures } from '../../shared/ui/browser/suppress-page-gestures.ts'
 import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.svelte.ts'
-import { AppLoop, makeAppLoop } from '../loop/app-loop.manager.js'
-import { liveFrames } from '../loop/frames.js'
-import { makePresentationBus, PresentationBus } from '../presentation/presentation-bus.manager.js'
-import { type GameRenderer, Renderer, type RenderTarget } from '../render/renderer.js'
-import { makeTime, Time, watchLifecycle } from '../time/time.manager.js'
-import { BootDefect, type BootError, ContentHashMismatch } from './boot-error.js'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
 import { notifyFailure } from './notify-failure.js'
-import type { LoaderControls, PageLayers } from './page-layers.svelte.js'
-import { createPageLayers } from './page-layers.svelte.js'
 
 /**
  * The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).

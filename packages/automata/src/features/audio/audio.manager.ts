@@ -6,9 +6,9 @@
 // can call it from a presentation-bus listener every frame.
 
 import { Context, Effect, Layer, type Scope, Stream, type Subscribable, SubscriptionRef } from 'effect'
-import { AssetLoadFailed } from '../../app/boot/boot-error.js'
-import { PresentationBus } from '../../app/presentation/presentation-bus.manager.js'
 import { Hosting } from '../../shared/host/hosting.ts'
+import { AssetLoadFailed } from '../../shared/runtime/boot-error.js'
+import { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import { Assets } from '../loading/assets.manager.js'
 import { AudioBuses, type AudioBusName } from './audio-buses.js'
 import { AudioDecodeFailed } from './audio-error.js'
