@@ -20,8 +20,8 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 
 | Stage | Status | Record |
 |---|---|---|
-| 1. Audit | Done, 2026-11-05 | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
-| 2. Plan and spec | Not started | |
+| 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
+| 2. Plan and spec | Next | |
 | 3. Plan audit | Not started | |
 | 4. Build | Not started | |
 | 5. Build audit | Not started | |

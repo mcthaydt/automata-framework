@@ -4,8 +4,8 @@
 - **Date:** 2026-11-05, on `main` at `da765837` (the last merge, 2026-11-01).
 - **What it covers:** everything "up to and including 2D": the core packages, the 2D game, the 2D examples, the
   tooling and CI that serve them, the branches, and the editor setup.
-- **What it does not do:** change code, delete branches or decide the new structure. It lists the facts and the
-  choices the plan stage has to make.
+- **What it does not do:** change code, delete branches or design the new structure. It lists the facts and the
+  choices the plan stage builds on (decided by the Owner on 2026-11-05, section 7).
 
 Every number below was measured on this checkout or read from GitHub on 2026-11-05. The commands are in the
 appendix, so anyone can check them.
@@ -420,20 +420,21 @@ matches `pnpm format`.
 
 ## 7. For the plan stage
 
-### Decisions the Owner should make first
+### Decisions (made by the Owner, 2026-11-05)
 
-- **D1. Package shape:** option A, B or C from section 4. Recommended: **B** (a pure `sim`, the Node content
-  compiler, one browser package grouped by feature, one tools package). It fixes S1 to S4 and C4 while keeping the
-  sim boundary easy to enforce.
-- **D2. Effect in the browser runtime:** keep it, or keep it only in Node tooling (`ship`, `cli`, `content`'s
-  compiler) and write the browser side (`host`, `runtime`, `game`) in plain TypeScript. Recommended: **Node
-  tooling only**. It removes the 28 to 86 kB gzip and the extra boot time, and it is the single biggest cut in
-  concepts a new reader has to learn. It reverses ADR 0003 for the browser, so it is the Owner's call.
-- **D3. 3D and editors during the 2D refactor:** update their imports in the same pull requests so `main` stays
-  green, or freeze them (out of CI) until their phase. Recommended: **update imports with a codemod, and move
-  their browser suites out of the core pull request gate** (C1).
-- **D4. What leaves core:** features no game uses yet (O6). Recommended: move them out or delete them, and bring
-  each back when a game needs it.
+The Owner took all four recommendations: "go with your recs". The plan stage builds on them.
+
+- **D1. Package shape: option B.** A pure `sim`, the Node content compiler, one browser package grouped by feature,
+  and one tools package. It fixes S1 to S4 and C4 while keeping the sim boundary easy to enforce. (A and C from
+  section 4 were the alternatives.)
+- **D2. Effect only in Node tooling.** `ship`, `cli` and `content`'s compiler keep Effect; the browser side
+  (`host`, `runtime`, `game`) moves to plain TypeScript. It removes the 28 to 86 kB gzip and the extra boot time,
+  and it is the single biggest cut in concepts a new reader has to learn. This reverses ADR 0003 for the browser;
+  the plan stage records that in the ADR.
+- **D3. 3D and editors follow core by codemod.** Their imports are updated in the same pull requests so `main`
+  stays green, and their browser suites move out of the core pull request gate (C1).
+- **D4. Features no game uses leave core** (O6). They move out or are deleted, and each comes back when a game
+  needs it.
 
 ### Work the plan should cover, in order
 
