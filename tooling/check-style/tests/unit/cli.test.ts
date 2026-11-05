@@ -37,6 +37,18 @@ it('passes clean Svelte files and skips *.test.svelte and testing/ folders', () 
   expect(result.status).toBe(0)
 })
 
+it('skips a tests/ folder, whatever its files are called (tests are exempt by folder)', () => {
+  const result = run(
+    src({
+      'layout/Frame.svelte': '<div>{title}</div>\n',
+      'tests/unit/Weird_Name.ts': 'export const x = 1\n',
+      'tests/fixtures/Planted.svelte': '<p>{@html text}</p>\n',
+    }),
+  )
+  expect(result.stdout).toContain('check-style: 1 files, 0 findings')
+  expect(result.status).toBe(0)
+})
+
 it('applies the game-root rules to roots after --game, and role-split', () => {
   const pkg = src({
     'components.ts': "import { defineComponent } from 'x'\nexport const A = defineComponent('a', {})\n",

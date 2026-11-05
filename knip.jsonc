@@ -34,9 +34,9 @@
     },
     // Each game or example set has its own playwright.config.ts (core-and-2D refactor, task 1.1). They are entries,
     // listed with the journeys they run, because a config's projects name test folders in other workspaces.
-    "examples": { "entry": ["playwright.config.ts", "e2e/*.e2e.ts"], "playwright": false },
-    "examples/content/hot-reload": { "entry": ["e2e/*.e2e.ts"], "playwright": false },
-    "examples/ui/primitives": { "entry": ["e2e/*.e2e.ts"], "playwright": false },
+    "examples": { "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"], "playwright": false },
+    "examples/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
+    "examples/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "tooling/examples-runner": {
       "ignore": ["playground/static/**"],
       "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "playground/e2e/*.e2e.ts"],

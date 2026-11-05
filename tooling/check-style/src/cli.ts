@@ -1,6 +1,7 @@
 // Usage: node tooling/check-style/src/cli.ts <package-src>... [--game <game-src>...]
-// Checks every production .ts and .svelte file (not *.test.ts, *.test.svelte, *.d.ts, or anything under a testing/
-// folder). Svelte files get the QB.2 rules (no {@html}, no platform chrome); .ts files the naming rules. Roots after
+// Checks every production .ts and .svelte file. Tests are exempt by folder: anything under a tests/ folder (where
+// every moved package keeps them) or a testing/ folder (published test helpers). The *.test.ts and *.test.svelte
+// suffixes stay exempt only until the 3D and editor packages move their tests (core and 2D refactor, phase 3). Svelte files get the QB.2 rules (no {@html}, no platform chrome); .ts files the naming rules. Roots after
 // --game are a game's src/, where the sim may be grouped by role (GL spec §5.1).
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
@@ -11,7 +12,7 @@ function collect(dir: string, out: string[]): void {
   for (const name of readdirSync(dir).sort()) {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) {
-      if (name !== 'testing') collect(path, out)
+      if (name !== 'testing' && name !== 'tests') collect(path, out)
     } else if (name.endsWith('.ts') && !name.endsWith('.test.ts') && !name.endsWith('.d.ts')) out.push(path)
     else if (name.endsWith('.svelte') && !name.endsWith('.test.svelte')) out.push(path)
   }
