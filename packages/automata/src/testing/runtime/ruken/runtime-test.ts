@@ -38,7 +38,7 @@ import { type ManualFrames, manualFrames } from '../manual-frames.js'
 import { nullRenderer } from '../null-renderer.js'
 
 /**
- * What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer,
+ * What `openRuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer,
  * fetch and locale it uses.
  */
 export interface RuntimeTestOptions {

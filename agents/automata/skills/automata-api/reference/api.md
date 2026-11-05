@@ -1522,7 +1522,7 @@ interface HostingSaves {
 
 #### `HostingSeams` (interface)
 
-Test seams. Games pass nothing; `HostingTest` passes the fake host's in-memory window pair.
+Test seams. Games pass nothing; `openHostingTest` passes the fake host's in-memory window pair.
 
 ```ts
 interface HostingSeams {
@@ -4146,7 +4146,7 @@ interface ReferenceSize {
 
 #### `RuntimeTestOptions` (interface)
 
-What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer,
+What `openRuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer,
 fetch and locale it uses.
 
 ```ts

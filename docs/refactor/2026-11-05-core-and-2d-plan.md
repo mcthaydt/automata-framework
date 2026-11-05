@@ -518,10 +518,10 @@ For each:
 
 Then:
 
-- [ ] **Step 4:** `pnpm boundaries --browser packages/automata` passes with no exceptions; `effect` leaves
+- [x] **Step 4:** `pnpm boundaries --browser packages/automata` passes with no exceptions; `effect` leaves
   `packages/automata/package.json` and `games/emberwick/package.json`; `grep -rl "from 'effect" games/emberwick/src
   examples` lists nothing; `pnpm knip` is clean.
-- [ ] **Step 5:** Bundle report again, as "Bundle after D2", beside the "before" table, with the difference in kB
+- [x] **Step 5:** Bundle report again, as "Bundle after D2", beside the "before" table, with the difference in kB
   gzip. Emberwick boot time in the `@slow` journey's trace, before and after, in the execution log.
 - [ ] **Step 6:** 3D and editors pass (they use `runtime/extension` and `ui`; the codemod's entry map covers the
   names; any that used an Effect type get the plain one). Open the PR, green, merge.
@@ -1047,4 +1047,40 @@ the features it lacks are journeyed on the one-file examples that show them:
   `5c4c0169`. Next: boot and `run-game` plain (the boot tests are the large part: 1,316 and 1,176 lines of Effect
   programs), with `render` (the `RendererFactory` is still an Effect; `nullRenderer` gained a plain `nullGameRenderer`
   for the loop's tests) and `RuntimeTest`, then delete the bridge.
+
+- **2026-11-05, task 5.4 finished (ninth session, branch `claude/project-thread-eo8dhs`, stacked on #399).** Boot,
+  `run-game`, the renderer contract and the test harness are plain, and the bridge is gone. `bootProgram(game, owned,
+  options)` is an async function answering `Result<void, BootError>`; everything it opens goes into `owned`, a
+  `Teardown` (deviation 76: a new `app/boot/teardown.ts`, because the flow's and the save's disposal are async and
+  `Disposables` is not; it awaits each undo, last added first, reports a throwing one and runs the rest, and runs an undo
+  added after `close` at once). An abort signal stops a boot under way at its next step. `runGame` keeps a failed
+  attempt open for the panel and closes it before Try again; `shutdown` aborts and closes at once instead of waiting
+  for the boot (deviation 80: what the boot opens later closes on arrival, which is what interrupting the fiber did).
+  `RendererFactory` answers `Promise<Result<OwnedRenderer, RendererUnavailable | ModelInvalid>>` and the renderer owns
+  `dispose`; `RendererUnavailable`, `ModelInvalid`, `ContentHashMismatch`, `BootDefect` and a boot-side `HostError` (made
+  from a `HostRefusal`) are plain `Error`s with a `_tag`. The runtime clock is `seams.clock` (default `systemClock`) and
+  saves are stamped by `seams.now` (default `Date.now`); `seams.hosting` takes `(options, { clock, signal })`. Deleted:
+  `shared/host/effect-bridge.ts`, the Effect `hosting.ts` and `errors.ts` (the plain files took their names),
+  `app/boot/effect-tags.ts`, `testing/host/page/run.ts`, the `Renderer` and `PresentationBus` tags, the `FakeHosting`
+  layer. `AudioBuses` is the interface again (the seam test reads its members). Testing: `openRuntimeTest` and
+  `withRuntimeTest` replace the `RuntimeTest` layer; `openHostingTest` and `withHostingTest` stay, the `HostingTest`
+  layer goes (deviation 81: these are public renames under `./testing`, in the changeset). `effect` leaves
+  `packages/automata`; in Emberwick it moves to `devDependencies` (deviation 78: `vite.config.ts` and
+  `ship-config.test.ts` call `tools`' Effect API in Node, which D2 allows). `render-pixi3d` keeps Effect inside until
+  the 3D area: `createPixi3dRenderer` opens its scope itself and `dispose` closes it, with a `runPromiseExit` seam so
+  the lost-context test still runs on a `TestClock` (deviation 77). `pnpm boundaries` now runs the browser rule over
+  `packages/automata`; the rule skips stylesheets, which have nothing to follow (deviation 79, with a test). Not
+  test-first (recorded as before): the boot, run-game, renderer, RuntimeTest, settings and seam tests were rewritten
+  after the code by a mechanical rewrite and then by hand, because the contract change breaks every fixture at once;
+  the `Teardown` and the stylesheet tests were also written after the code (the stylesheet one seen failing before the
+  fix). Two run-game tests on fake timers now fake `performance` too, because the runtime's clock reads it. Verified:
+  automata unit 1,836 (plus 3 Teardown); `pnpm check`; `pnpm test:unit` 31 of 31 tasks; repo typecheck 33 of 33;
+  automata browser suite in Chromium 2,116 of 2,116; render-pixi3d browser suite in Chromium 17 passed, 2 skipped
+  (no-WebGL2 and WebGPU cases); Emberwick journeys 28 of 28, the examples and runner journeys 44 passed and 1 skipped,
+  the create-game journey 1 of 1 (all Chromium); `api-report` tests 65 of 65 after `--update`; `check-changesets` 0
+  problems. Bundle after D2 in `progress.md`: no Effect module, 359.79 → 303.41 kB gzip (−56.38 kB). Boot time
+  (`navigation` to `data-state="ready"`, 4× CPU slowdown, phone viewport, median of 7, Chromium, built pages served
+  statically; the `@slow` journey's trace has no boot mark, so a small script measured it the same way for both):
+  953 ms before (the #398 head, Effect runtime) and 850 ms after. Not run: WebKit and Firefox (downloads refused
+  here), the editors' browser suites, hosted CI. Step 6's merge waits for CI.
 

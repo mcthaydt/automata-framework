@@ -278,7 +278,7 @@
 - `ReferenceFormFactor` (type): `@mcthaydt/automata-ui`'s `FormFactor`.
 - `ReferenceHeightTier` (type): `@mcthaydt/automata-ui`'s `HeightTier`.
 - `ReferenceSize` (interface): One viewport every primitive and screen is checked at: a name, its size, and the form factor and height tier it must classify as.
-- `RuntimeTestOptions` (interface): What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer, fetch and locale it uses.
+- `RuntimeTestOptions` (interface): What `openRuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer, fetch and locale it uses.
 - `RuntimeTestSession` (interface): A booted runtime over the fake Ruken host: every service a screen reads, the host's handle and the page layers.
 - `Settle` (type): Lets the fake Ruken host answer over its in-memory ports (for example one macrotask).
 - `settleLayout()`: Waits until a freshly mounted fixture has finished laying out: fonts loaded, then two frames, so ResizeObserver callbacks (ActionBar's collapse, ScrollList's measure) and the re-layout they cause have run.

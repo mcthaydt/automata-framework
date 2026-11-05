@@ -47,7 +47,7 @@ export interface SaveEnvelope {
   readonly version: number
   /** The sim content hash at save time. */
   readonly contentHash: string
-  /** Effect `Clock` epoch ms, for the slot list; outside the sim. */
+  /** Wall-clock epoch ms (`seams.now`, default `Date.now`), for the slot list; outside the sim. */
   readonly savedAt: number
   readonly label?: string
   readonly data: Record<string, unknown>

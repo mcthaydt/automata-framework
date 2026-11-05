@@ -19,7 +19,7 @@ import { makeMenuHandlers } from '../menu'
 import { guardRounds } from '../rounds'
 import { toRefusal } from './errors-ruken'
 
-/** Test seams. Games pass nothing; `HostingTest` passes the fake host's in-memory window pair. */
+/** Test seams. Games pass nothing; `openHostingTest` passes the fake host's in-memory window pair. */
 export interface HostingSeams {
   readonly env?: SdkEnv
   /** The clock AF's own timing (the exit cap) runs on; a test passes `fakeClock()`. */

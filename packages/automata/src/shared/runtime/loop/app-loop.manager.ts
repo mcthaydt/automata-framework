@@ -26,7 +26,7 @@ export interface AppLoopOptions {
 
 /**
  * Creates the runtime AppLoop.
- * The frame loop runs without Effect allocations per frame.
+ * The frame loop runs without allocating per frame.
  * A throw from step stops the loop, calls onFault once and requests no further frames.
  * `dispose()` cancels any pending frame and prevents further runs.
  */

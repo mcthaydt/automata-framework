@@ -23,30 +23,24 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
 | 3. Plan audit | Done, 2026-11-05: 31 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
-| 4. Build | In progress: phases 1 to 4 and 6 to 8 done locally (8.2's boot-failure journey blocked on Ruken), 5 half done (5.4 at 11 of 14 steps); PRs #393 to #399 (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
+| 4. Build | In progress: phases 1 to 7 done locally; 8.1's Settings, CLI and README copy left; 8.2's boot-failure journey blocked on Ruken; 9.2 waits for the Owner; PRs #393 to #399 and the 5.4 finish (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Where to resume (2026-11-05, eighth session)
+### Where to resume (2026-11-05, ninth session)
 
 The PRs are stacked and draft: #393 (4.3, 4.4) ← #394 (5.2, 5.3) ← #395 (6.1 to 6.4) ← #396 (7.1, 7.2 steps 1 and 2) ← #397
 (8.1, 8.2 part) ← #398 (7.2 step 3, 8.2 rest, 8.3) ← #399 (5.4 so far). Next, in order:
 
-1. **5.4:** display, locale, settings, audio, saves, loading, input, extension, leaderboards, time, the frame loop, the
-   veil, the flow and every screen (the default screens, Emberwick's, base-3d's, the stress tool's) are plain (#399). A
-   screen's `enter(context)` gets `context.screen` and `context.runtime` (`Disposables`) and `context.services` (one
-   plain object, `clock` included). Next: **boot and `run-game`** (they still run as Effect programs that build the plain
-   services; their tests are the large part), with **`render`** (`RendererFactory` is still an Effect) and
-   **`RuntimeTest`** (still an Effect layer that provides the tags via `runtimeContext` in `app/boot/effect-tags.ts`);
-   then delete `shared/host/effect-bridge.ts`, `hosting.ts`, `errors.ts` and `app/boot/effect-tags.ts`, give
-   `AudioBuses` back its interface, take `effect` out of `packages/automata` and `games/emberwick`, and run the bundle
-   report "after D2".
+1. **5.4 is done** (branch `claude/project-thread-eo8dhs`, stacked on #399): boot, `run-game`, the renderer and the
+   test harness are plain, the bridge and the Effect tags are gone, `effect` left `packages/automata`, and the
+   Emberwick bundle has no Effect in it (below). The plan's execution log has the detail (deviations 76 to 81).
 2. **8.1 rest:** the Settings sections' long strings, the CLI messages and the READMEs' first screens are still unchecked in
    `copy.md`. Found by the create-game journey: the pause menu's close button and its Resume button share the name "Resume".
 3. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
 4. **9.2** waits for the Owner's go.
 
-### Build: 70% (21 of 30 tasks)
+### Build: 73% (22 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -70,7 +64,7 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 5.1 Bundle report, before | 5 | Done locally, 2026-11-05 (CI run pending): `tooling/bundle-report`, run on Emberwick (below) | PR to open |
 | 5.2 Plain-TypeScript helpers | 5 | Done locally, 2026-11-05 (CI run pending): `Clock`/`fakeClock`, `Disposables`, `Result`, `Subscribable`/`emitter`; 22 unit tests | PR to open |
 | 5.3 Host contract and targets | 5 | Done locally, 2026-11-05 (CI run pending): plain host contract, web, Ruken and Tauri adapters, contract suite and fake host take a `Clock` and `AbortSignal`; ADR 0003 amended. A temporary bridge keeps the Effect runtime working; deleting it moved to 5.4 (deviation 55) | PR to open |
-| 5.4 Runtime features and the app | 5 | In progress: display, locale, settings, audio, saves, loading, input, extension, leaderboards, flow and screens plain, and in `app/` time, the frame loop and the bus (11 of 14 steps; boot, run-game, render and `testing/` left); Emberwick journeys pass (28 of 28, Chromium) | [#399](https://github.com/mcthaydt/automata-framework/pull/399) |
+| 5.4 Runtime features and the app | 5 | Done locally, 2026-11-05 (CI run pending): every feature, the app, boot, run-game, the renderer and `testing/` plain; the bridge and tags deleted; `pnpm check`, Chromium browser suites and journeys pass (Emberwick 28 of 28, examples 44, create-game 1); bundle has no Effect | [#399](https://github.com/mcthaydt/automata-framework/pull/399) and the PR for `claude/project-thread-eo8dhs` |
 | 6.1 Emberwick is Emberwick | 6 | Done locally, 2026-11-05 (CI run pending): renamed everywhere; `GOLDEN_HASH` re-recorded once (`94285fae634fdba9` → `421c5a1bf522299e`), Chromium agrees; WebKit and Firefox left to CI | PR to open |
 | 6.2 Emberwick imports one package | 6 | Done locally, 2026-11-05: only `@mcthaydt/automata`, `-sim`, `-tools` and `-content` remain | PR to open |
 | 6.3 Emberwick by feature | 6 | Done locally, 2026-11-05 (CI run pending): `app/`, `features/{player,goal,room,scene,screens}`, `shared/`, `entries/`, `testing/`; `--features games/emberwick` and the sim rule pass (deviations 56 to 58) | PR to open |
@@ -112,6 +106,32 @@ size shared out by each package's generated bytes, so it is an estimate for comp
 | parse-svg-path | 0.50 | 0.15 | 0.0% |
 | clsx | 0.36 | 0.11 | 0.0% |
 | **Total** | 1183.19 | 359.79 | 100.0% |
+
+**Bundle after D2 (Emberwick, same command, measured 2026-11-05 on `claude/project-thread-eo8dhs`).** No Effect
+module is left. Total gzip 359.79 → 303.41 kB (−56.38 kB, −15.7%); the AF code is one package now (`@mcthaydt/automata`,
+54.79 kB gzip, against 53.91 kB for the five packages it replaced). Boot to `data-state="ready"` at 4× CPU slowdown
+(median of 7, Chromium): 953 ms before, 850 ms after.
+
+| Package | Raw (kB) | Gzip (kB) | Share of gzip |
+|---|---|---|---|
+| pixi.js | 514.68 | 154.61 | 51.0% |
+| @mcthaydt/automata | 176.99 | 54.79 | 18.1% |
+| zod | 92.69 | 28.70 | 9.5% |
+| svelte | 40.47 | 12.53 | 4.1% |
+| koota | 35.96 | 11.13 | 3.7% |
+| (unmapped) | 34.12 | 10.05 | 3.3% |
+| @ruken/sdk | 26.77 | 8.29 | 2.7% |
+| @mcthaydt/automata-sim | 26.57 | 8.23 | 2.7% |
+| (the game) | 23.91 | 7.40 | 2.4% |
+| @pixi/colord | 9.18 | 2.78 | 0.9% |
+| earcut | 7.39 | 2.29 | 0.8% |
+| eventemitter3 | 2.76 | 0.84 | 0.3% |
+| tiny-lru | 2.38 | 0.74 | 0.2% |
+| ismobilejs | 1.65 | 0.43 | 0.1% |
+| @mcthaydt/automata-content | 1.13 | 0.35 | 0.1% |
+| parse-svg-path | 0.49 | 0.15 | 0.1% |
+| clsx | 0.36 | 0.11 | 0.0% |
+| **Total** | 997.51 | 303.41 | 100.0% |
 
 **Last bundle numbers (S8, from the placeholder game, measured 2026-11-05 just before it was deleted):** the page
 with Effect is 143.85 kB raw and 46.87 kB gzip; the same page without Effect is 54.55 kB raw and 18.60 kB gzip, so
