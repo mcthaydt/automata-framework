@@ -37,39 +37,12 @@ Level 3 is a fallback: the layout contracts fail any reference size where a bar 
 type ActionKind = 'primary' | 'secondary' | 'utility';
 ```
 
-#### `actionsForGesture` (function)
-
-Every action `gesture` drives in `profile` (M4.3); none when it is unbound.
-
-```ts
-function actionsForGesture(profile: InputProfile, gesture: GestureName): string[];
-```
-
 #### `actionsForKey` (function)
 
 Every action `code` (a `KeyboardEvent.code`) drives in `profile`; none when it is unbound.
 
 ```ts
 function actionsForKey(profile: InputProfile, code: string): string[];
-```
-
-#### `actionsForPadButton` (function)
-
-Every action the standard-mapping pad button `index` drives in `profile`; none when it is unbound.
-
-```ts
-function actionsForPadButton(profile: InputProfile, index: number): string[];
-```
-
-#### `ActiveDevice` (interface)
-
-The device of the last real input, and the button labels of the active pad (`generic` before any pad).
-
-```ts
-interface ActiveDevice {
-    readonly device: InputDevice;
-    readonly glyphs: GlyphFamily;
-}
 ```
 
 #### `AnalogOptions` (interface)
@@ -134,69 +107,6 @@ interface AppLoop {
 const AppLoop: Context.Tag<AppLoop, AppLoop>;
 ```
 
-#### `applyDocumentLocale` (function)
-
-`<html lang dir>`: the browser picks glyph forms and line breaking from `lang`, and the layout direction from `dir`.
-
-```ts
-function applyDocumentLocale(element: HTMLElement, locale: string): void;
-```
-
-#### `applyGeometry` (function)
-
-Writes the geometry where CSS reads it (spec §3.2). Only the geometry owner calls this.
-
-```ts
-function applyGeometry(root: HTMLElement, geometry: Geometry): void;
-```
-
-#### `applyOverrides` (function)
-
-The game's profile with the player's overrides applied (M4 spec §6): an override for an unknown action, one that
-binds a reserved input, or one with a pad button out of range is dropped and named in `dropped` (sorted), and the
-defaults stand for it. Overrides saved against another profile are all dropped.
-
-```ts
-function applyOverrides(defaults: InputProfile, saved: InputSettings): {
-    readonly profile: InputProfile;
-    readonly dropped: readonly string[];
-};
-```
-
-#### `arrowKeyNav` (function)
-
-The menu direction an arrow key walks, as a d-pad would, or undefined when the key is not a bare
-arrow or its target keeps that arrow. Up and Down always walk off an input, so no slider, radio
-group or text field can hold focus; Left and Right stay with a slider or radio group, and with a
-text field until its caret meets the end the arrow points at. Multi-line text keeps every arrow.
-
-```ts
-function arrowKeyNav(event: KeyboardEvent): NavDirection | undefined;
-```
-
-#### `AssetLoadFailed` (class)
-
-An asset download failed with a non-OK HTTP status or network error (status 0).
-
-```ts
-class AssetLoadFailed extends AssetLoadFailedBase {
-}
-```
-
-#### `Assets` (interface)
-
-The asset loader service: `load` fetches a screen's assets and fonts with progress, failing
-`AssetLoadFailed` or `LoadStalled`; `get` returns a loaded file by path.
-
-```ts
-interface Assets {
-    load(screen: string, onProgress?: (fraction: number | undefined) => void): Effect.Effect<void, AssetLoadFailed | LoadStalled>;
-    get(path: string): Blob | undefined;
-    isLoaded(screen: string): boolean;
-}
-const Assets: Context.Tag<Assets, Assets>;
-```
-
 #### `Audio` (interface)
 
 The audio service (M5 spec §4.6): one-shot sounds and looping music on the audio buses, unlocked by the
@@ -238,30 +148,6 @@ dialogue). Every change to the set is an API change (PRODUCT spec §2 F6).
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
-#### `AUDIO_BUSES` (const)
-
-The buses the Audio group offers, in the order it shows them.
-
-```ts
-const AUDIO_BUSES: readonly AudioBus[];
-```
-
-#### `AUDIO_SETTINGS_DEFAULT` (const)
-
-Not muted, every bus at full.
-
-```ts
-const AUDIO_SETTINGS_DEFAULT: AudioSettings;
-```
-
-#### `AudioBus` (type)
-
-An audio bus (runtime's `AudioBusName`).
-
-```ts
-type AudioBus = 'master' | 'music' | 'sfx' | 'ui' | 'voice';
-```
-
 #### `AudioBuses` (interface)
 
 The audio-bus seam (PRODUCT spec §2 F1). M5's core audio implements it over Web Audio (a gain node per bus
@@ -282,14 +168,6 @@ interface AudioBuses {
 const AudioBuses: Context.Tag<AudioBuses, AudioBuses>;
 ```
 
-#### `AudioBusGains` (type)
-
-The player's gain per bus, 0 (silent) to 1 (full), as a game's settings store it.
-
-```ts
-type AudioBusGains = Readonly<Record<AudioBusName, number>>;
-```
-
 #### `audioBusGainsSchema` (const)
 
 Validates saved bus gains; a bus left out is at full gain. A gain outside 0..1 fails the parse rather than
@@ -297,14 +175,6 @@ being clamped, so `SettingsDef`'s fallback to defaults (runtime `readSettings`) 
 
 ```ts
 const audioBusGainsSchema: z.ZodType<AudioBusGains, Partial<Record<AudioBusName, number | undefined>>>;
-```
-
-#### `AudioBusName` (type)
-
-One of `AUDIO_BUS_NAMES`.
-
-```ts
-type AudioBusName = (typeof AUDIO_BUS_NAMES)[number];
 ```
 
 #### `AudioChange` (interface)
@@ -332,175 +202,6 @@ Checks an audio change.
 
 ```ts
 const AudioChangeSchema: z.ZodType<AudioChange>;
-```
-
-#### `AudioContextLike` (type)
-
-The part of `AudioContext` the graph uses. `interrupted` is Safari's state for a call or Siri.
-
-```ts
-type AudioContextLike = Pick<AudioContext, 'currentTime' | 'destination' | 'createGain' | 'createBufferSource' | 'createBuffer' | 'sampleRate' | 'decodeAudioData' | 'resume' | 'suspend' | 'close'> & {
-    readonly state: AudioContextState | 'interrupted';
-};
-```
-
-#### `AudioCopy` (interface)
-
-Every word the Audio group shows, in the game's language.
-
-```ts
-interface AudioCopy {
-    readonly title: string;
-    readonly mute: string;
-    /** FloorFifty's "Mute in background": silent while another window has focus. */
-    readonly muteUnfocused: string;
-    /** A toggle's state words. */
-    readonly on: string;
-    readonly off: string;
-    readonly buses: Readonly<Record<AudioBus, string>>;
-    /** A gain as the player reads it: "50%". */
-    percent(value: number): string;
-    /** When sound could not start (A-e). */
-    readonly unavailable: string;
-    /** While the host's own volume is below full. */
-    readonly hostVolume: string;
-}
-```
-
-#### `AudioDecodeFailed` (class)
-
-The browser could not decode a sound's bytes (M5 spec §6): that sound is silent and nothing else stops. The
-`audio.decode.failed` fact carries the same alias.
-
-```ts
-class AudioDecodeFailed extends AudioDecodeFailedBase {
-}
-```
-
-#### `AudioDecodeFailedFields` (interface)
-
-The fields of `AudioDecodeFailed`.
-
-```ts
-interface AudioDecodeFailedFields {
-    /** The asset path the sound or music was asked for by. */
-    readonly alias: string;
-    readonly cause: unknown;
-}
-```
-
-#### `audioLayer` (const)
-
-`makeAudio` with its defaults, reading `Hosting`, `Assets` and `PresentationBus` from the runtime.
-
-```ts
-const audioLayer: (options?: AudioOptions) => Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus>;
-```
-
-#### `AudioLive` (const)
-
-The Audio service with its defaults: the browser's `AudioContext`, `window`, `document` and `fetch`.
-
-```ts
-const AudioLive: Layer.Layer<Audio | AudioBuses, never, Hosting | Assets | PresentationBus>;
-```
-
-#### `AudioOptions` (interface)
-
-Options for the audio service; each has a browser default, replaced in tests.
-
-```ts
-interface AudioOptions {
-    /** Builds the context on the unlock. Defaults to `new AudioContext()`. */
-    readonly createContext?: () => AudioContextLike;
-    /** Where gestures, `blur` and `focus` land. Defaults to `window`. */
-    readonly window?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'>;
-    /** Whose `visibilitychange` sleeps and wakes the graph. Defaults to `document`. */
-    readonly document?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'> & {
-        readonly visibilityState: DocumentVisibilityState;
-    };
-    /** Silences the master while another window has focus (FloorFifty's setting); the graph keeps running. */
-    readonly muteUnfocused?: boolean;
-    /** Loads a file no screen preloaded. Defaults to `fetch`. */
-    readonly fetch?: typeof fetch;
-}
-```
-
-#### `AudioSection` (const)
-
-The Audio group of the Settings tab (M5 spec §7, M5.4), laid out as FloorFifty's (`SettingsPanel.svelte` at
-a28dc44): Mute, Mute in the background, then a slider per bus with its percentage. Every change is reported at
-once (`onchange`); the game applies and saves it, so there is no Apply. When sound could not start
-(`available` false, A-e) the group says so and its controls stay shown but disabled. While the host's own volume is
-below full, a note says it also applies, so a quiet game is not taken for a broken slider.
-
-```ts
-const AudioSection: import("svelte").Component<Props, {}, "">;
-type AudioSection = ReturnType<typeof AudioSection>;
-```
-
-#### `AudioSectionChange` (type)
-
-One change in the Audio group: a toggle's new state, or a bus's new gain.
-
-```ts
-type AudioSectionChange = {
-    readonly kind: 'muted';
-    readonly value: boolean;
-} | {
-    readonly kind: 'muteUnfocused';
-    readonly value: boolean;
-} | {
-    readonly kind: 'gain';
-    readonly bus: AudioBus;
-    readonly value: number;
-};
-```
-
-#### `AudioServices` (interface)
-
-What the service reads from the runtime.
-
-```ts
-interface AudioServices {
-    readonly hosting: Pick<Hosting, 'ready' | 'lifecycle' | 'audio'>;
-    readonly assets: Pick<Assets, 'get'>;
-    readonly bus: PresentationBus;
-}
-```
-
-#### `AudioSettings` (interface)
-
-The player's audio choices (M5 spec §7, M5.4), as FloorFifty's `audio` settings: the mute, the mute while another
-window has focus, and a gain per bus. The one owner of their shape: the Settings screen's Audio group and the
-`Audio` service read it from here. Kept on the device, not in the player's saves (§4.5): `CORE_SETTINGS.deviceFields`.
-
-```ts
-interface AudioSettings {
-    readonly muted: boolean;
-    readonly muteUnfocused: boolean;
-    readonly gains: AudioBusGains;
-}
-```
-
-#### `audioSettingsSchema` (const)
-
-A missing field takes its default; a bad record reads as the defaults, as every settings field falls back.
-
-```ts
-const audioSettingsSchema: z.ZodType<AudioSettings, unknown>;
-```
-
-#### `AudioValue` (interface)
-
-The player's audio choices (runtime's `AudioSettings`): the mutes, and a gain per bus from 0 to 1.
-
-```ts
-interface AudioValue {
-    readonly muted: boolean;
-    readonly muteUnfocused: boolean;
-    readonly gains: Readonly<Record<AudioBus, number>>;
-}
 ```
 
 #### `AutosavePolicy` (interface)
@@ -548,185 +249,6 @@ interface BarAction {
 }
 ```
 
-#### `BarSample` (type)
-
-One reading of the viewport, as `HiddenBrowserBar.measure` needs it.
-
-```ts
-type BarSample = {
-    /** `screen.height`, in CSS pixels, for the current orientation. */
-    screenHeight: number;
-    innerHeight: number;
-    portrait: boolean;
-    /** A text field has focus. This browser shrinks the whole page for its keyboard. */
-    editing: boolean;
-    /** The page is fullscreen, where it legitimately reaches the screen edge. */
-    fullscreen: boolean;
-    /** The size has stopped moving since the last reading. */
-    settled: boolean;
-};
-```
-
-#### `BindingOverride` (interface)
-
-What the player changed about one action: its keys, its pad buttons, or both.
-
-```ts
-interface BindingOverride {
-    readonly keys?: readonly string[] | undefined;
-    readonly pad?: readonly number[] | undefined;
-}
-```
-
-#### `BoardEntry` (type)
-
-One row of a board, as Ruken gives it; `isMe` marks the player.
-
-```ts
-type BoardEntry = Effect.Effect.Success<ReturnType<HostingLeaderboards['get']>>['entries'][number];
-```
-
-#### `BoardQuery` (type)
-
-What `readBoard` asks for: Ruken's `get` options (`scope` `top` or `around-me`, `limit`).
-
-```ts
-type BoardQuery = NonNullable<Parameters<HostingLeaderboards['get']>[1]>;
-```
-
-#### `BoardState` (type)
-
-The state of a board after the game's last submit to it.
-
-```ts
-type BoardState = {
-    readonly state: 'idle';
-} | {
-    readonly state: 'submitting';
-} | {
-    readonly state: 'accepted';
-    readonly personalBest: number;
-    readonly rank?: number;
-}
-/** The host did not take the score: `accepted: false`, or a score it rejects (`INVALID_PAYLOAD`). */
- | {
-    readonly state: 'refused';
-}
-/** No `leaderboards` grant, standalone, or any host failure that is not the network. */
- | {
-    readonly state: 'unavailable';
-} | {
-    readonly state: 'offline';
-};
-```
-
-#### `BoardView` (type)
-
-A board read for a screen: its rows, or why there are none.
-
-```ts
-type BoardView = {
-    readonly state: 'entries';
-    readonly entries: readonly BoardEntry[];
-} | {
-    readonly state: 'empty';
-} | {
-    readonly state: 'unavailable';
-} | {
-    readonly state: 'offline';
-};
-```
-
-#### `BOOT_FAILURE_COPY_EN` (const)
-
-English defaults in Ruken's tone (quiet, human, no blame); replaced by Paraglide keys in M5. `{host}` is filled
-with the host's name (`Hosting.hostName`: 'Ruken', 'itch.io' …) by `withHostName`.
-
-```ts
-const BOOT_FAILURE_COPY_EN: BootFailureCopy;
-```
-
-#### `BootDefect` (class)
-
-An unexpected defect during boot.
-
-```ts
-class BootDefect extends BootDefectBase {
-}
-```
-
-#### `bootDeviceClass` (function)
-
-The device class at boot, read from the window's pointer and screen; `desktop` when the window cannot
-answer.
-
-```ts
-function bootDeviceClass(win?: Window): DeviceClass;
-```
-
-#### `BootError` (type)
-
-Every way boot can fail; each draws on the runtime's boot failure panel (shared contracts §4).
-
-```ts
-type BootError = HostError | ContentHashMismatch | AssetLoadFailed | LoadStalled | RendererUnavailable | ModelInvalid | BootDefect;
-```
-
-#### `BootFailure` (type)
-
-The structural view of the runtime's boot error that the UI draws: one of six tagged cases, so ui never
-imports the runtime.
-
-```ts
-type BootFailure = {
-    readonly _tag: 'HostError';
-    readonly code: ErrorCode;
-    readonly retryable: boolean;
-    readonly operation: string;
-} | {
-    readonly _tag: 'ContentHashMismatch';
-    readonly expected: string;
-    readonly actual: string;
-} | {
-    readonly _tag: 'AssetLoadFailed';
-    readonly url: string;
-    readonly status: number;
-} | {
-    readonly _tag: 'LoadStalled';
-    readonly url: string;
-    readonly bytesSoFar: number;
-    readonly stalledMs: number;
-} | {
-    readonly _tag: 'RendererUnavailable';
-    readonly tried: readonly ('webgl2' | 'webgpu')[];
-} | {
-    readonly _tag: 'BootDefect';
-}
-/** A 3D model file that could not be read (M3 spec §6): `file` is its url, `reason` why. */
- | {
-    readonly _tag: 'ModelInvalid';
-    readonly file: string;
-    readonly reason: string;
-};
-```
-
-#### `BootFailureAction` (type)
-
-Try again, Continue without loading, Back to {host}.
-
-```ts
-type BootFailureAction = 'retry' | 'continue' | 'exit';
-```
-
-#### `BootFailureCopy` (type)
-
-The words for every boot failure state and action, by name. `BOOT_FAILURE_COPY_EN` holds the English
-defaults.
-
-```ts
-type BootFailureCopy = Readonly<Record<BootFailureState | BootFailureAction | 'quit', string>>;
-```
-
 #### `BootFailurePanel` (const)
 
 The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the
@@ -738,57 +260,6 @@ const BootFailurePanel: import("svelte").Component<Props, {}, "">;
 type BootFailurePanel = ReturnType<typeof BootFailurePanel>;
 ```
 
-#### `BootFailureState` (type)
-
-What a boot failure draws: `start`, `connect`, `progress`, `damaged`, `download`, `download-stalled`,
-`unsupported` or `model-invalid`.
-
-```ts
-type BootFailureState = 'start' | 'connect' | 'progress' | 'damaged' | 'download' | 'download-stalled' | 'unsupported' | 'model-invalid';
-```
-
-#### `bootFailureView` (function)
-
-Which state a failure draws and which ways forward it offers. `canExit` is whether the host granted `exit`;
-without it "Back to …" is never offered (PUB spec §3.1).
-
-- Host start (`init`): `Ruken.init` threw. Try again when Ruken says a retry can succeed;
-  otherwise it is a build or config fault (a bad `gameId` or `wants`) the player cannot fix, so
-  the panel is final. A failed in-frame handshake is not an error: the SDK falls back to standalone.
-- Storage (`saves.*`): Try again when Ruken says a retry can succeed. Otherwise a standalone page
-  may go on without the saved progress; inside Ruken the way forward is Back to Ruken, because
-  playing on without the player's saves would silently fork their progress.
-- Renderer: nothing on this device can fix it. Inside Ruken the player goes back; a standalone
-  page has nowhere to go, so its panel is final.
-- Model: a 3D model file did not parse (M3 spec §6). Try again fetches it again in a fresh boot; when the file
-  stays damaged, the host's way out is offered beside it.
-- Everything else: Try again, which re-runs the boot program in a fresh scope (never a page reload
-  inside a Ruken frame).
-
-```ts
-function bootFailureView(failure: BootFailure, hostKind: HostKind, canExit: boolean): BootFailureViewModel;
-```
-
-#### `BootFailureViewModel` (interface)
-
-What `bootFailureView` decides for a failure: the state to draw and the ways forward, in order. No actions
-means the panel is final.
-
-```ts
-interface BootFailureViewModel {
-    readonly state: BootFailureState;
-    readonly actions: BootFailureAction[];
-}
-```
-
-#### `browserHaptics` (function)
-
-The browser's haptics: its pads, its `vibrate`, and whether its pointer is a finger.
-
-```ts
-function browserHaptics(target: Window): Haptics;
-```
-
 #### `Button` (const)
 
 The framework's button (M4 spec §4.12): an `.af-control` of one kind. A primary carries
@@ -798,28 +269,6 @@ to hold it to that size. The words are the caller's, in the game's language.
 ```ts
 const Button: import("svelte").Component<Props, {}, "">;
 type Button = ReturnType<typeof Button>;
-```
-
-#### `CAMERA_SETTINGS_DEFAULT` (const)
-
-The camera choices a new player starts with: the default turn speed, not inverted.
-
-```ts
-const CAMERA_SETTINGS_DEFAULT: CameraSettings;
-```
-
-#### `CAMERA_TURN_SPEED` (const)
-
-The range of "Camera turn speed" in degrees per dragged pixel (M4 spec §16.3.6, M3 spec §4.2): 0.25° by default,
-so a 1,440 px sweep is one full turn. A Settings slider steps through it.
-
-```ts
-const CAMERA_TURN_SPEED: {
-    readonly min: 0.05;
-    readonly max: 1;
-    readonly step: 0.05;
-    readonly default: 0.25;
-};
 ```
 
 #### `Camera2d` (interface)
@@ -887,45 +336,6 @@ const CameraDragSurface: import("svelte").Component<CameraDragSurfaceProps, {}, 
 type CameraDragSurface = ReturnType<typeof CameraDragSurface>;
 ```
 
-#### `CameraDragSurfaceProps` (interface)
-
-CameraDragSurface's props.
-
-```ts
-interface CameraDragSurfaceProps {
-    tracker: DragTracker;
-    testId?: string | undefined;
-}
-```
-
-#### `CameraDragTracker` (class)
-
-Turns pointer samples into camera drags for one `DragSink`: one pointer at a time, its horizontal CSS px per move,
-from a touch or pen's primary contact or the mouse's secondary button.
-
-```ts
-class CameraDragTracker {
-    private readonly sink;
-    private pointerId;
-    private lastX;
-    private pointer;
-    constructor(sink: DragSink);
-    /** A pointer drives the drag now. */
-    get dragging(): boolean;
-    /**
-     * A pointer went down. It starts a drag only when none is in progress (or it is the dragging pointer again) and it
-     * is a finger or pen on its primary contact or a mouse on its secondary button. True when it now drives the drag.
-     */
-    down(id: number, x: number, start: DragStart): boolean;
-    /** A pointer moved: the dragging one sends how far it went to the right. Others are ignored. */
-    move(id: number, x: number): void;
-    /** A pointer lifted: the drag ends if it was the dragging one. A finger still down never takes over. */
-    up(id: number): void;
-    /** The browser took the pointers (pointercancel, lost capture): the drag ends; what it sent stands. */
-    cancel(): void;
-}
-```
-
 #### `CameraRect` (interface)
 
 A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
@@ -937,39 +347,6 @@ interface CameraRect {
     readonly width: number;
     readonly height: number;
 }
-```
-
-#### `CameraSettings` (interface)
-
-The player's camera choices, `camera` in the core settings: how far a dragged pixel turns the camera, and whether
-the turn is inverted. The one owner of their shape: the game's Settings rows (GAME-3D) and its command mapping
-(`turnUnitsFromPixels`) read them from here.
-
-```ts
-interface CameraSettings {
-    readonly degPerPixel: number;
-    readonly invert: boolean;
-}
-```
-
-#### `cameraSettingsSchema` (const)
-
-A missing, malformed or out-of-range field reads as its default, keeping the other; a record that is not an
-object reads as the defaults, as every settings field falls back.
-
-```ts
-const cameraSettingsSchema: z.ZodType<CameraSettings, unknown>;
-```
-
-#### `canvasResolutionFor` (function)
-
-Calculates device pixels per CSS pixel for the canvas.
-
-Capped at 2 on phones and desktop, and lower at a lower quality tier. A tablet held upright draws at 1x
-because its large CSS area would exceed the mobile fragment fill budget at 2x.
-
-```ts
-function canvasResolutionFor(formFactor: FormFactor, devicePixelRatio: number, tier?: QualityTier): number;
 ```
 
 #### `CAPABILITIES` (const)
@@ -998,18 +375,6 @@ Checks a capability name.
 const CapabilitySchema: z.ZodType<Capability>;
 ```
 
-#### `Capture` (type)
-
-The input a capture caught: a key by its `KeyboardEvent.code`, or a standard-mapping pad button.
-
-```ts
-type Capture = {
-    readonly code: string;
-} | {
-    readonly button: number;
-};
-```
-
 #### `ChangedElsewhereCopy` (interface)
 
 The words of the choice paused offers once another device has changed the slot being played (M5-D6).
@@ -1036,19 +401,6 @@ const Chip: import("svelte").Component<Props, {}, "">;
 type Chip = ReturnType<typeof Chip>;
 ```
 
-#### `classifyDevice` (function)
-
-A fine primary pointer is a `desktop`; a coarse one is a `phone` when the screen's shorter side is under
-600 px, otherwise a `tablet`.
-
-```ts
-function classifyDevice(input: {
-    coarse: boolean;
-    screenWidth: number;
-    screenHeight: number;
-}): DeviceClass;
-```
-
 #### `classifyFormFactor` (function)
 
 The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other
@@ -1066,23 +418,6 @@ The height tier of a layout height in CSS px: `compact` below 340, `short` up to
 
 ```ts
 function classifyHeightTier(height: number): HeightTier;
-```
-
-#### `CollapseLevel` (type)
-
-How far an action bar has collapsed: 0 every label in full, 1 utilities as icons, 2 secondaries on their
-short labels, 3 wrapped with the primary on its own row.
-
-```ts
-type CollapseLevel = 0 | 1 | 2 | 3;
-```
-
-#### `collapseLevel` (function)
-
-The first level whose one-row width fits. `widths` are the bar's unwrapped widths at levels 0, 1 and 2.
-
-```ts
-function collapseLevel(available: number, widths: readonly [number, number, number]): CollapseLevel;
 ```
 
 #### `Command` (interface)
@@ -1110,15 +445,6 @@ interface CommandDef<Z extends z.ZodType = z.ZodType> {
   readonly id: string
   readonly schema: Z
 }
-```
-
-#### `COMPACT_MAX_HEIGHT` (const)
-
-Below this, compact: what a browser leaves a sideways phone (780 x 270 Chrome on a Galaxy,
-667 x 320 Safari on an SE). 844 x 340, Safari on an iPhone 14, sits exactly on it and stays short.
-
-```ts
-const COMPACT_MAX_HEIGHT = 340;
 ```
 
 #### `CompiledContentData` (interface)
@@ -1153,54 +479,6 @@ interface ComponentDef<S extends FieldSchema = FieldSchema> {
 }
 ```
 
-#### `CompositeTarget` (class)
-
-The fixed-resolution composite (M4 spec §4.11).
-
-The world and the UI draw here first, at resolution 1 and exactly the play field's logical size, and the result is
-nearest-upscaled into the letterbox. Two reasons, and the second is the durable one. Filters cost per pixel, and a
-device-resolution frame on a phone is several times the work; bounding the chain to the logical size makes the
-cost the same everywhere. More importantly, pixel art sampled at a fractional device scale is pixel art with torn
-edges, so compositing at 1:1 and upscaling by whole pixels is correct whatever the cost.
-
-From FloorFifty `apps/client/src/systems/render/render-target.ts` at `ac72660`; FloorFifty's fixed 960 × 540 is
-the game's logical size here.
-
-```ts
-class CompositeTarget {
-    /** What the world and the UI draw into. Not the backdrop: see `adopt`. */
-    readonly stage: Container;
-    /** What the letterbox displays. */
-    readonly sprite: Sprite;
-    /** The texture the stage renders into each frame. */
-    readonly texture: RenderTexture;
-    private readonly width;
-    constructor(size: {
-        readonly width: number;
-        readonly height: number;
-    });
-    /**
-     * Moves a frame's world and UI into the target, and puts the target's sprite where they were.
-     *
-     * The backdrop is deliberately left where it is: it is the one layer that is not clipped, and a target of the
-     * play field's size would bound it to exactly the rectangle it exists to escape. It keeps device resolution.
-     */
-    adopt(frame: LetterboxFrame): void;
-    /** Resizes the target to a field `height` logical units tall; a no-op when the height has not changed. */
-    resize(height: number): void;
-    destroy(): void;
-}
-```
-
-#### `ContentHashMismatch` (class)
-
-Content hash does not match expected hash.
-
-```ts
-class ContentHashMismatch extends ContentHashMismatchBase {
-}
-```
-
 #### `contentHashOf` (function)
 
 The content hash formula: hex64(xxhash64(utf8(canonicalJson(data)))).
@@ -1209,104 +487,6 @@ Matches
 
 ```ts
 function contentHashOf(data: unknown): string;
-```
-
-#### `ControlsCopy` (interface)
-
-Every word the Controls section shows, in the game's language.
-
-```ts
-interface ControlsCopy {
-    readonly title: string;
-    /** Each device section's heading. */
-    readonly keyboard: string;
-    readonly gamepad: string;
-    readonly touch: string;
-    /** The mark on the section of the device in the player's hand. */
-    readonly inUse: string;
-    readonly reset: string;
-    /** On the button that waits for a press. */
-    readonly press: string;
-    /** A rebind button's name for assistive technology: "Change Jump on Keyboard". */
-    rebind(action: string, device: string): string;
-    capturing(action: string, device: string, secondsLeft: number): string;
-    conflict(action: string, other: string): string;
-    reserved(action: string): string;
-    timedOut(action: string): string;
-    saved(action: string): string;
-}
-```
-
-#### `controlsMessage` (function)
-
-The section's status line for `state`, with actions by their labels; empty in the list.
-
-```ts
-function controlsMessage(state: ControlsState, copy: ControlsCopy, labelOf: (action: string) => string): string;
-```
-
-#### `ControlsRow` (interface)
-
-One game action in the Controls section: its id, its name and its bindings now.
-
-```ts
-interface ControlsRow {
-    /** The action's id, as `onrebind` reports it. */
-    readonly id: string;
-    readonly label: string;
-    readonly binding: PromptBinding;
-}
-```
-
-#### `ControlsSection` (const)
-
-The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
-a28dc44): one section per device the player can use, the one in their hand first and marked. Keyboard and
-Controller list each action with one rebind button showing that device's prompt; the Controller appears once a pad
-has connected (`devices`). Touch, when shown, says what the on-screen buttons do; they are the game's, so there is
-nothing to rebind (§4.5). A status line says each step of a rebind (`state`), and Reset puts every binding back.
-Every row is a 44 px target; long labels wrap, and the targets never shrink.
-
-```ts
-const ControlsSection: import("svelte").Component<Props, {}, "">;
-type ControlsSection = ReturnType<typeof ControlsSection>;
-```
-
-#### `ControlsState` (type)
-
-Where a rebind is: the list; waiting for a press (with the seconds left); refused because it would leave `with`
-unbound; refused as reserved; timed out; or saved.
-
-```ts
-type ControlsState = {
-    readonly kind: 'list';
-} | {
-    readonly kind: 'capturing';
-    readonly action: string;
-    readonly device: RebindDevice;
-    readonly secondsLeft: number;
-} | {
-    readonly kind: 'conflict';
-    readonly action: string;
-    readonly with: string;
-} | {
-    readonly kind: 'reserved';
-    readonly action: string;
-} | {
-    readonly kind: 'timed-out';
-    readonly action: string;
-} | {
-    readonly kind: 'saved';
-    readonly action: string;
-};
-```
-
-#### `ControlsTouchMode` (type)
-
-How touch drives play (runtime's `TouchMode`).
-
-```ts
-type ControlsTouchMode = 'buttons' | 'swipe';
 ```
 
 #### `CORE_SETTINGS` (const)
@@ -1335,18 +515,6 @@ interface CoreSettings {
 }
 ```
 
-#### `CornerControls` (const)
-
-Back at the start, the game's own corner controls (Mute, a language flag) at the end, in the
-same row on every screen (M1.6 spec §3.4; from FloorFifty `ui/layout/CornerControls.svelte` at
-122a220). A screen does not render its own. `header` sits between them in the same row, on the
-screen's centre line, so a short screen spends no row of its own on it.
-
-```ts
-const CornerControls: import("svelte").Component<Props, {}, "">;
-type CornerControls = ReturnType<typeof CornerControls>;
-```
-
 #### `createCamera2d` (function)
 
 A camera writing `stage`'s transform (usually `PixiStage.world`). `seed` fixes the shake's random sequence,
@@ -1364,14 +532,6 @@ the keyboard settle, and publishes each measure on the root.
 
 ```ts
 function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
-```
-
-#### `createHaptics` (function)
-
-The haptics service over these sources; it starts enabled.
-
-```ts
-function createHaptics(options: HapticsOptions): Haptics;
 ```
 
 #### `createPixiRenderer` (function)
@@ -1402,90 +562,6 @@ An unknown key throws, naming it: the types already forbid it, so it means the c
 function createT<Messages extends Record<string, unknown>>(messages: Messages): Translate<Messages>;
 ```
 
-#### `CURSOR_IDLE_MS` (const)
-
-How long the pointer must be still before it hides on a gameplay screen.
-
-```ts
-const CURSOR_IDLE_MS = 2000;
-```
-
-#### `cursorHidden` (function)
-
-Whether the pointer is hidden now: on a gameplay screen, not paused, and the pointer unused or idle.
-
-```ts
-function cursorHidden(state: {
-    kind: ScreenKind | undefined;
-    paused: boolean;
-    lastInput: CursorInput;
-    msSincePointerMove: number;
-}): boolean;
-```
-
-#### `CursorInput` (type)
-
-The device the player used last, as the cursor policy sees it.
-
-```ts
-type CursorInput = 'pointer' | 'keyboard' | 'gamepad' | 'touch';
-```
-
-#### `CursorRunner` (class)
-
-Applies `cursorHidden` to a target element: `attach` follows pointer moves and key presses, and each `tick` sets the
-element's `cursor` style. Detaching shows the pointer again.
-
-```ts
-class CursorRunner {
-    private readonly target;
-    private readonly options;
-    private lastInput;
-    private movedAt;
-    private readonly now;
-    constructor(target: HTMLElement, options?: {
-        now?: () => number;
-        kind?: () => ScreenKind | undefined;
-        paused?: () => boolean;
-    });
-    noteInput(input: CursorInput): void;
-    attach(events?: EventTarget): () => void;
-    tick(): void;
-}
-```
-
-#### `DEFAULT_BAR_COLOR` (const)
-
-The letterbox bars' default colour (FloorFifty's plum black).
-
-```ts
-const DEFAULT_BAR_COLOR = 3023407;
-```
-
-#### `DEFAULT_BAR_FRACTION` (const)
-
-How much of the playfield's height each letterbox bar crops in a landscape view, by default (5%).
-
-```ts
-const DEFAULT_BAR_FRACTION = 0.05;
-```
-
-#### `DEFAULT_FIELD_COLOR` (const)
-
-The default colour behind the playfield, under the world.
-
-```ts
-const DEFAULT_FIELD_COLOR = 0;
-```
-
-#### `DEFAULT_QUALITY` (const)
-
-`high` until PRODUCT.7 has measured the phone profiles (M4-D6); no device auto-detection.
-
-```ts
-const DEFAULT_QUALITY: QualityTier;
-```
-
 #### `defaultContent` (function)
 
 The default flow `title → play ⇄ paused → title`, with `paused ⇄ settings` (M4.4), and its hash.
@@ -1507,14 +583,6 @@ play restores the sim's own snapshot, which makes the next step a resync.
 
 ```ts
 function defaultScreens(game: ScreensGame): ScreenDef[];
-```
-
-#### `defaultSlot` (function)
-
-The newest slot that can be continued; else the first slot; else none.
-
-```ts
-function defaultSlot(slots: readonly SaveSlotView[]): number | undefined;
 ```
 
 #### `defineCommand` (function)
@@ -1711,27 +779,6 @@ function defineSystem(
 }
 ```
 
-#### `DeviceClass` (type)
-
-The kind of device the player holds: `phone`, `tablet` or `desktop`, decided once at boot.
-
-```ts
-type DeviceClass = 'phone' | 'tablet' | 'desktop';
-```
-
-#### `DeviceStorage` (interface)
-
-Where a settings field that belongs to one device is kept (M5 spec §4.5, M5-D4). Any method may throw, as a
-blocked or full `localStorage` does; the settings store copes with that and never falls back to the saves.
-
-```ts
-interface DeviceStorage {
-    get(key: string): string | null;
-    set(key: string, value: string): void;
-    remove(key: string): void;
-}
-```
-
 #### `Dialog` (const)
 
 A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken
@@ -1757,27 +804,6 @@ stay reachable however long the text is.
 ```ts
 const Dialog: import("svelte").Component<Props, {}, "">;
 type Dialog = ReturnType<typeof Dialog>;
-```
-
-#### `DISPLAY_QUALITIES` (const)
-
-The tiers the Display section offers, best first.
-
-```ts
-const DISPLAY_QUALITIES: readonly DisplayQuality[];
-```
-
-#### `DisplayCopy` (interface)
-
-The words of the display policy: the landscape gate, the rotate hint for each orientation and the rotate
-toast.
-
-```ts
-interface DisplayCopy {
-    readonly gate: LandscapeGateCopy;
-    readonly rotate: Readonly<Record<'portrait' | 'landscape', RotateHintCopy>>;
-    readonly toast: RotateToastCopy;
-}
 ```
 
 #### `DisplayMetricsPayload` (interface)
@@ -1814,94 +840,6 @@ Checks display metrics.
 
 ```ts
 const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
-```
-
-#### `DisplayQuality` (type)
-
-A graphics quality tier (runtime's `QualityTier`).
-
-```ts
-type DisplayQuality = 'high' | 'medium' | 'low';
-```
-
-#### `DisplaySection` (const)
-
-The Display section of Settings (M4 spec §4.8, §7): the graphics quality tier as an option group (a pad's `adjust`
-cycles it), and reduced motion as the browser reports it. Reduced motion is the player's system setting, so it is
-shown and never changed here.
-
-```ts
-const DisplaySection: import("svelte").Component<Props, {}, "">;
-type DisplaySection = ReturnType<typeof DisplaySection>;
-```
-
-#### `DisplaySettings` (interface)
-
-The core display settings a game's settings carry as `display`: `{ display: displaySettingsSchema }`.
-
-```ts
-interface DisplaySettings {
-    readonly quality: QualityTier;
-}
-```
-
-#### `displaySettingsSchema` (const)
-
-The schema of `DisplaySettings`: an unknown or missing quality reads as `DEFAULT_QUALITY`.
-
-```ts
-const displaySettingsSchema: z.ZodType<DisplaySettings, {
-    quality?: unknown;
-}>;
-```
-
-#### `DragPointer` (type)
-
-What drove a drag: a finger or pen (`touch`), or the mouse.
-
-```ts
-type DragPointer = 'touch' | 'mouse';
-```
-
-#### `DragSink` (interface)
-
-Where drags go (`Input.drag`): CSS px moved to the right since the previous move, negative to the left.
-
-```ts
-interface DragSink {
-    drag(dxPx: number, pointer: DragPointer): void;
-}
-```
-
-#### `DragStart` (interface)
-
-The parts of a `pointerdown` that decide whether it may drag.
-
-```ts
-interface DragStart {
-    /** `PointerEvent.pointerType`: `touch`, `pen` or `mouse`. */
-    readonly pointerType: string;
-    /** `PointerEvent.button`: 0 primary, 2 secondary. */
-    readonly button: number;
-}
-```
-
-#### `DragTracker` (interface)
-
-What a CameraDragSurface drives (M4 spec §16.3.7): runtime's `CameraDragTracker` satisfies it, so ui need not
-import runtime. `down` answers whether the pointer now drives the drag (a finger's primary contact, the mouse's
-secondary button, none already dragging).
-
-```ts
-interface DragTracker {
-    down(id: number, x: number, start: {
-        readonly pointerType: string;
-        readonly button: number;
-    }): boolean;
-    move(id: number, x: number): void;
-    up(id: number): void;
-    cancel(): void;
-}
 ```
 
 #### `DrawContext` (interface)
@@ -1963,33 +901,6 @@ interface DrawTextOptions {
 }
 ```
 
-#### `endonymOf` (function)
-
-A language's name in its own language ("日本語" for `ja`), from the browser's `Intl.DisplayNames`. An engine without
-it, or a tag it cannot name, gives the tag back, so the picker never shows nothing.
-
-```ts
-function endonymOf(tag: string): string {
-  try {
-    const name = new Intl.DisplayNames([tag], { type: 'language' }).of(tag)
-    if (name === undefined || name === tag) return tag
-    // Some engines start a name in lower case ("español"); a picker shows it as a name.
-    return name.charAt(0).toLocaleUpperCase(tag) + name.slice(1)
-  } catch {
-    return tag
-  }
-}
-```
-
-#### `enterFullscreen` (function)
-
-Enters element fullscreen, then asks for a landscape lock, which most phones refuse outside an installed app. A
-refusal of either changes nothing: the game plays in the window (M4 spec §6).
-
-```ts
-function enterFullscreen(doc: Document, screen?: Screen): Promise<void>;
-```
-
 #### `EntitlementsPayload` (interface)
 
 What the player owns: whether ads show, permanent items and subscriptions, and whether this is a dev build.
@@ -2039,25 +950,6 @@ interface EntityView<C extends SceneNode = Container> {
 }
 ```
 
-#### `EntityViewFactory` (type)
-
-Builds the view for one entity, or `undefined` to draw nothing. A record resolver passes the component id
-the factory was registered under, so a view such as `rect()` knows which component holds its pose; a bare
-function resolver passes no id.
-
-```ts
-type EntityViewFactory<C extends SceneNode = Container> = (row: RenderRow, componentId?: string) => EntityView<C> | undefined;
-```
-
-#### `EntityViewResolver` (type)
-
-Which view an entity gets: one factory for every entity, or factories by component id (the first id, in the
-record's own key order, whose component the entity has wins).
-
-```ts
-type EntityViewResolver<C extends SceneNode = Container> = EntityViewFactory<C> | Readonly<Record<string, EntityViewFactory<C>>>;
-```
-
 #### `ERROR_CODES` (const)
 
 Why a host call failed (DIST spec §4.1). The codes are Ruken's (`@ruken/protocol` `ERROR_CODES`), kept where they
@@ -2065,19 +957,6 @@ fit; `ruken/conformance.test.ts` holds them to the vendored SDK.
 
 ```ts
 const ERROR_CODES: readonly ["UNSUPPORTED", "NOT_READY", "TIMEOUT", "RATE_LIMITED", "QUOTA_EXCEEDED", "INVALID_PAYLOAD", "DENIED", "OFFLINE", "CANCELLED", "INTERNAL"];
-```
-
-#### `ErrorAction` (interface)
-
-One way forward from a failure (M1.6 spec §3.4).
-
-```ts
-interface ErrorAction {
-    readonly id: string;
-    readonly label: string;
-    readonly kind: 'primary' | 'secondary';
-    readonly onSelect: () => void;
-}
 ```
 
 #### `ErrorCode` (type)
@@ -2096,28 +975,6 @@ Checks an error code.
 const ErrorCodeSchema: z.ZodType<ErrorCode>;
 ```
 
-#### `ErrorPanel` (const)
-
-A failure, and what the player can do about it (M1.6 spec §3.4; from FloorFifty
-`ui/components/ErrorPanel.svelte` at 122a220).
-
-`role="alert"` rather than `role="status"`, because this interrupts: the player usually just
-pressed something and needs to know it did not work. The panel is opaque, because a failure is
-often the thing that means the artwork did not arrive. It sits at the top of the visible region,
-under the corner row, so it never covers the way out of the screen it reports on, and its layer
-passes taps through everywhere but the panel.
-
-Where the room is short (a long message, a keyboard), the panel gives up space in this order:
-first the message, which scrolls, down to one visible line; only then the gap that keeps it under
-the corner row, so it rises over Back only when its actions cannot fit any other way. A final
-panel has no actions and is the screen's last word, so it never rises: Back is its way out. The
-actions sit outside the scrolling part and never shrink (framework audit of #7).
-
-```ts
-const ErrorPanel: import("svelte").Component<Props, {}, "">;
-type ErrorPanel = ReturnType<typeof ErrorPanel>;
-```
-
 #### `EventDef` (interface)
 
 An event a system emits: an id and the Zod schema its payload must match. Create one with `defineEvent`.
@@ -2127,58 +984,6 @@ interface EventDef<Z extends z.ZodType = z.ZodType> {
   readonly kind: 'event'
   readonly id: string
   readonly schema: Z
-}
-```
-
-#### `EventScores` (type)
-
-A sim event's type (its `defineEvent` id) → the board it scores on and the score its payload gives.
-
-```ts
-type EventScores = Readonly<Record<string, {
-    readonly board: string;
-    readonly score: (payload: unknown) => number;
-}>>;
-```
-
-#### `EventSounds` (type)
-
-A sim event's type (its `defineEvent` id) → the asset path it plays, or the path with its bus and gain.
-
-```ts
-type EventSounds = Readonly<Record<string, string | {
-    readonly alias: string;
-    readonly bus?: AudioBusName;
-    readonly gain?: number;
-}>>;
-```
-
-#### `FILTER_VERTEX` (const)
-
-The GLSL vertex stage every AF filter shares: it passes the texture coordinate and the pixel position
-(`vPixelCoord`) to the fragment stage.
-
-```ts
-const FILTER_VERTEX = "\nin vec2 aPosition;\nout vec2 vTextureCoord;\nout vec2 vPixelCoord;\n\nuniform vec4 uInputSize;\nuniform vec4 uOutputFrame;\nuniform vec4 uOutputTexture;\n\nvec4 filterVertexPosition(void) {\n    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0 * uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;\n    return vec4(position, 0.0, 1.0);\n}\n\nvec2 filterTextureCoord(void) {\n    return aPosition * (uOutputFrame.zw * uInputSize.zw);\n}\n\nvoid main(void) {\n    gl_Position = filterVertexPosition();\n    vTextureCoord = filterTextureCoord();\n    vPixelCoord = aPosition * uOutputFrame.zw + uOutputFrame.xy;\n}\n";
-```
-
-#### `filterPrograms` (function)
-
-Builds a filter's programs from its GLSL and WGSL fragment stages on the shared vertex stages, so WebGL2
-stays at parity with WebGPU (AGENTS.md).
-
-```ts
-function filterPrograms(name: string, fragmentGlsl: string, fragmentWgsl: string): FilterProgramsResult;
-```
-
-#### `FilterProgramsResult` (interface)
-
-A filter's WebGL2 and WebGPU programs, for a Pixi `Filter`'s `glProgram` and `gpuProgram`.
-
-```ts
-interface FilterProgramsResult {
-    readonly glProgram: GlProgram;
-    readonly gpuProgram: GpuProgram;
 }
 ```
 
@@ -2198,22 +1003,6 @@ The Tauri markers found in `code` (built JavaScript), each named once; empty mea
 function findTauriMarkers(code: string): string[];
 ```
 
-#### `fitColumns` (function)
-
-The shape cut to the columns the largest group fills, at its rows. Run after `trimRows`.
-
-```ts
-function fitColumns<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
-```
-
-#### `fitShape` (function)
-
-The most tiles of `minTile` px the box holds, never more than `most`, never below one by one.
-
-```ts
-function fitShape(most: GridShape, box: GridBox, minTile: number, gap: number): GridShape;
-```
-
 #### `Flow` (interface)
 
 The screen flow service: the current screen, `dispatch` to follow an event's transition from it, `openMenu`
@@ -2227,113 +1016,6 @@ interface Flow {
     readonly settled: Effect.Effect<void>;
 }
 const Flow: Context.Tag<Flow, Flow>;
-```
-
-#### `FlowFailure` (type)
-
-Why entering a screen failed: an asset load, a stalled download, or the screen's own failure.
-
-```ts
-type FlowFailure = AssetLoadFailed | LoadStalled | {
-    readonly _tag: 'ScreenFailed';
-    readonly screen: string;
-    readonly cause: unknown;
-};
-```
-
-#### `FocusNavigator` (class)
-
-Moves focus the way a d-pad would: `move` walks Tab order, `steer` walks a `[data-focus-grid]` spatially,
-`page` offers a page turn, and `recover` puts focus back on the first control when a screen change dropped
-it. `attach` listens for the player's own pointer and keys, so the navigator steps back from them.
-
-```ts
-class FocusNavigator {
-    /**
-     * Whether the navigator is the one moving focus: set by any navigator action, cleared by a
-     * pointer or real key press. Only then does `recover` step in, so a mouse or keyboard player's
-     * focus is never moved for them.
-     */
-    private engaged;
-    private paused;
-    /** Armed by `guard()` on a screen change; a confirm key held from the last screen is cancelled until it comes up. */
-    private guarded;
-    private readonly root;
-    constructor(root?: () => ParentNode);
-    /** Stops `recover` once the player presses anything that is not the navigator. */
-    attach(target?: EventTarget): () => void;
-    /**
-     * Arms the pad guard (M4 spec §4.7, F-a): called on a screen change, it cancels repeating Enter and Space
-     * keydowns until the key comes up or is pressed afresh. A pad's own confirm is an edge from `Input`, which
-     * cannot repeat, so only the keyboard needs this; `attach` must be listening.
-     */
-    guard(): void;
-    /** Paused while a screen transition covers the screen. */
-    setPaused(paused: boolean): void;
-    /**
-     * Puts focus back on the first control, in Tab's order, when it has fallen to the page (the
-     * screen it stood on was replaced) or out of an open dialog. Called each frame while the
-     * navigator is in use; a controller player otherwise saw nothing selected after every screen change.
-     */
-    recover(): void;
-    move(direction: 'next' | 'previous'): void;
-    /**
-     * One step in `direction` (M4 spec §4.7). Inside a `[data-focus-grid]` the move is spatial: the nearest control
-     * whose centre lies that way, scored by distance along the direction plus twice the sideways offset, so a
-     * straight line wins over a diagonal. Elsewhere it is DOM order: down and right go next, up and left previous.
-     * Returns false when nothing lies that way in the grid, so the caller can page or stay put.
-     */
-    steer(direction: NavDirection): boolean;
-    /**
-     * Offers a page turn (PageUp/PageDown, the shoulder buttons, a page swipe) to the focused control. A
-     * `[data-pager]` region above it takes the cancelable `af-page` event; returns whether one did.
-     */
-    page(delta: -1 | 1): boolean;
-    /**
-     * Changes the focused slider or option group by one step without leaving it (from FloorFifty's `adjust`, plus
-     * radio groups for OptionGroup). Fires the event a pointer or arrow key would (`input` on a range, `change` on a
-     * radio). Returns false when nothing adjustable has focus, so the caller steers instead.
-     */
-    adjust(delta: -1 | 1): boolean;
-    confirm(): void;
-    /** Sends Escape to the focused element, marked as the navigator's, so dialogs close through one path. */
-    back(): void;
-}
-```
-
-#### `formatDateTime` (const)
-
-A moment as a date and a short time in the reader's convention, in the reader's zone unless `options.timeZone`
-names one (a test names UTC). A save's time on the slot list is this.
-
-```ts
-const formatDateTime: (locale: string, epochMs: number, options?: Intl.DateTimeFormatOptions) => string;
-```
-
-#### `formatDuration` (function)
-
-A clock-style duration from milliseconds, whole seconds: `01:15`, or `1:02:05` once there are hours.
-Each part is a locale number (Arabic-Indic digits in `ar-EG`); the separator is a colon. NumberFormat, not
-Intl.DurationFormat, so it needs no ES2025 lib in a game's tsconfig and runs on engines without it.
-
-```ts
-function formatDuration(locale: string, milliseconds: number): string;
-```
-
-#### `formatNumber` (const)
-
-A number in `locale`'s convention (Intl.NumberFormat with `options`).
-
-```ts
-const formatNumber: (locale: string, value: number, options?: Intl.NumberFormatOptions) => string;
-```
-
-#### `formatPercent` (const)
-
-A whole percentage of a fraction: 0.5 → `50%` (`50 %` in French).
-
-```ts
-const formatPercent: (locale: string, fraction: number) => string;
 ```
 
 #### `FormFactor` (type)
@@ -2381,22 +1063,6 @@ Checks a fullscreen answer.
 
 ```ts
 const FullscreenResSchema: z.ZodType<FullscreenRes>;
-```
-
-#### `fullscreenSupport` (function)
-
-Which fullscreen, if any, this browser can give a standalone page.
-
-```ts
-function fullscreenSupport(doc: Document, nav: Navigator): FullscreenSupport;
-```
-
-#### `FullscreenSupport` (type)
-
-The host's answer to whether this browser can go fullscreen, and how.
-
-```ts
-type FullscreenSupport = FullscreenRes['support'];
 ```
 
 #### `GameCopy` (type)
@@ -2462,14 +1128,6 @@ interface GameDefinition<S = never> {
     };
     readonly seams?: RuntimeSeams;
 }
-```
-
-#### `GameOrientation` (type)
-
-The orientation a game plays in; the ship config writes the same value as `runtime.orientation`.
-
-```ts
-type GameOrientation = 'portrait' | 'landscape' | 'any';
 ```
 
 #### `GameRenderer` (interface)
@@ -2617,23 +1275,6 @@ class GameSpecError extends Error {
 }
 ```
 
-#### `GateInputs` (type)
-
-What `landscapeGate` decides from: the form factor, whether the pointer is coarse, the browser's fullscreen
-support and state, and whether the page is installed as an app.
-
-```ts
-type GateInputs = {
-    formFactor: FormFactor;
-    /** `(pointer: coarse)`: the primary pointer is a finger. */
-    coarse: boolean;
-    support: FullscreenSupport;
-    fullscreen: boolean;
-    /** Installed and opened as an app (`display-mode` standalone or fullscreen): no browser bar. */
-    installed: boolean;
-};
-```
-
 #### `Geometry` (interface)
 
 The geometry every screen lays out against: the layout size, form factor and height tier, the insets, the
@@ -2667,76 +1308,6 @@ interface Geometry {
 }
 ```
 
-#### `GeometryInput` (interface)
-
-What `measureGeometry` reads: the layout viewport, the visual viewport, the safe-area insets, the host's
-display metrics, a hidden bar's height and the layout before a keyboard shrank it.
-
-```ts
-interface GeometryInput {
-    /** The layout viewport, `innerWidth x innerHeight`. Form factor and tier come from this alone. */
-    readonly layout: {
-        readonly width: number;
-        readonly height: number;
-    };
-    /** The visual viewport, when the browser has one. The keyboard shrinks this, not the layout. */
-    readonly visual?: {
-        readonly height: number;
-        readonly offsetTop: number;
-    } | undefined;
-    /** `env(safe-area-inset-*)`, read by a probe element. */
-    readonly envSafeArea: Insets;
-    /** Absent standalone. */
-    readonly host?: HostDisplay | undefined;
-    /** A bar the browser draws over the page without reporting it (`browser/hidden-browser-bar.ts`). */
-    readonly hiddenBarBottom?: number | undefined;
-    /**
-     * The layout viewport before a keyboard shrank it, when one did. Browsers that ignore
-     * `interactive-widget=resizes-visual` shrink the page itself for the keyboard; classifying the
-     * shrunken page would remount the screen mid-typing, so the class comes from this instead.
-     * The owner passes it only while a text field has focus and the width has not changed.
-     */
-    readonly restingLayout?: {
-        readonly width: number;
-        readonly height: number;
-    } | undefined;
-}
-```
-
-#### `GeometryOwner` (interface)
-
-The one geometry owner of a document: `geometry.current` for components, `onChange` for script,
-`setHostDisplay`, `remeasure` and `dispose`.
-
-```ts
-interface GeometryOwner {
-    readonly geometry: GeometryState;
-    /** Hears every measure; returns the unsubscribe. For consumers outside Svelte. */
-    onChange(listener: (geometry: Geometry) => void): () => void;
-    /** The host's display metrics changed (Ruken `display.metrics`), or `undefined` for standalone. */
-    setHostDisplay(display: HostDisplay | undefined): void;
-    /** For a screen that just mounted: a WebView's bars can settle with no event at all. */
-    remeasure(): void;
-    dispose(): void;
-}
-```
-
-#### `GeometryOwnerOptions` (interface)
-
-What `createGeometryOwner` needs: the window to read and the root to publish on, and optionally the host's
-display, timers and a safe-area reader.
-
-```ts
-interface GeometryOwnerOptions {
-    readonly window: ViewportWindow;
-    /** Where the geometry is published: normally `document.documentElement`. */
-    readonly root: HTMLElement;
-    readonly host?: HostDisplay | undefined;
-    readonly timers?: Timers | undefined;
-    readonly readEnvSafeArea?: (() => Insets) | undefined;
-}
-```
-
 #### `GeometryState` (interface)
 
 The current geometry as rune state: reading `current` in a component or `$derived` tracks it.
@@ -2745,159 +1316,6 @@ The current geometry as rune state: reading `current` in a component or `$derive
 interface GeometryState {
     readonly current: Geometry;
 }
-```
-
-#### `GESTURE_TUNING` (const)
-
-FloorFifty's gesture tuning, the defaults.
-
-```ts
-const GESTURE_TUNING: GestureTuning;
-```
-
-#### `GestureName` (type)
-
-A touch gesture (M4.3 recognises the swipes, flick and tap; M4.12 the camera drag).
-
-```ts
-type GestureName = (typeof GESTURE_NAMES)[number];
-```
-
-#### `GestureSink` (interface)
-
-Where gestures go: held while a finger steers, pulsed for a flick or a tap. The camera drag is analog (M4.12) and
-goes to `Input.drag` instead, so it is not one of these.
-
-```ts
-interface GestureSink {
-    hold(gesture: Exclude<GestureName, 'camera-drag'>): void;
-    release(gesture: Exclude<GestureName, 'camera-drag'>): void;
-    pulse(gesture: Exclude<GestureName, 'camera-drag'>): void;
-}
-```
-
-#### `GestureTuning` (interface)
-
-Content tuning, in CSS px and ms; FloorFifty's values are the defaults.
-
-```ts
-interface GestureTuning {
-    /** How far the thumb must be from the anchor, on an axis, to steer on it. Also how still a tap must be. */
-    readonly deadZonePx: number;
-    /** How far the anchor lets the thumb get ahead of it. */
-    readonly saturationPx: number;
-    /** How far down, within `flickMs`, makes a flick. */
-    readonly flickPx: number;
-    /** A flick's window; also the longest tap. */
-    readonly flickMs: number;
-}
-```
-
-#### `GlyphFamily` (type)
-
-Which labels a pad's buttons carry, read from its id.
-
-```ts
-type GlyphFamily = 'xbox' | 'playstation' | 'generic';
-```
-
-#### `GridBox` (interface)
-
-The measured box a page is fitted into, in CSS px.
-
-```ts
-interface GridBox {
-    readonly width: number;
-    readonly height: number;
-}
-```
-
-#### `GridPage` (interface)
-
-One page: a group's items, padded with `undefined` to the page's capacity.
-
-```ts
-interface GridPage<T> {
-    readonly key: string;
-    readonly groupId: string;
-    readonly title: string;
-    readonly slots: readonly (T | undefined)[];
-}
-```
-
-#### `GridShape` (interface)
-
-A page's columns and rows.
-
-```ts
-interface GridShape {
-    readonly columns: number;
-    readonly rows: number;
-}
-```
-
-#### `HapticPulse` (interface)
-
-One pulse: a pad's dual-rumble (milliseconds, each motor 0..1), and a phone's buzz in `navigator.vibrate`'s terms.
-
-```ts
-interface HapticPulse {
-    readonly duration: number;
-    readonly strong: number;
-    readonly weak: number;
-    /** None: a phone stays still for this pulse. */
-    readonly phone?: number | readonly number[] | undefined;
-}
-```
-
-#### `Haptics` (interface)
-
-The haptics service: a pad's rumble or a phone's buzz, when the device can and the player's Vibration
-setting allows.
-
-```ts
-interface Haptics {
-    /** Rumbles or buzzes, as above. Never throws: feel is never worth an error, and this may run inside a frame. */
-    pulse(pulse: HapticPulse): void;
-    /** Whether this device can do either now: a pad that can rumble, or a touch screen that can buzz. */
-    readonly supported: boolean;
-    /** The player's Vibration setting. */
-    setEnabled(enabled: boolean): void;
-}
-const Haptics: Context.Tag<Haptics, Haptics>;
-```
-
-#### `HapticsOptions` (interface)
-
-Where the haptics service finds pads, the vibrate call and whether this is a touch screen; replaced in
-tests.
-
-```ts
-interface HapticsOptions {
-    readonly getGamepads?: () => readonly (PadLike | null)[];
-    /** `navigator.vibrate`, where the browser has it. */
-    readonly vibrate?: (pattern: number | number[]) => boolean;
-    /** Whether this is a touch screen, which a phone's buzz is for. */
-    readonly touch: () => boolean;
-}
-```
-
-#### `HapticsSettings` (interface)
-
-The player's Vibration setting: whether `Haptics` pulses at all.
-
-```ts
-interface HapticsSettings {
-    readonly enabled: boolean;
-}
-```
-
-#### `hapticsSettingsSchema` (const)
-
-On unless saved off; a bad record reads as on, as every settings field falls back.
-
-```ts
-const hapticsSettingsSchema: z.ZodType<HapticsSettings, unknown>;
 ```
 
 #### `HeightTier` (type)
@@ -2915,33 +1333,6 @@ primitive tightens at once. Targets never shrink with the tier; gutters and deco
 type HeightTier = 'short' | 'compact' | undefined;
 ```
 
-#### `HiddenBrowserBar` (class)
-
-Recognises a browser bar the browser has stopped reporting (DuckDuckGo for Android's bottom bar) and
-measures how much of the page's foot it covers. It keeps state: it learns the largest settled
-screen-to-page gap for each orientation.
-
-```ts
-class HiddenBrowserBar {
-    /** The bottom address bar's height when the gap cannot say (measured: 64). */
-    static readonly FALLBACK_HEIGHT = 64;
-    /**
-     * The smallest honest portrait gap: a 24 px status bar and a 56 px address
-     * bar, with no navigation bar at all. Below it, no bar is being accounted for.
-     */
-    static readonly MIN_PORTRAIT_GAP = 80;
-    /** A change in the gap smaller than this is the system, not a bar. */
-    static readonly MIN_HEIGHT = 40;
-    /** Larger than this, and the page changed for some other reason. */
-    static readonly MAX_HEIGHT = 120;
-    /** A gap larger than this is a keyboard, and is never learned. */
-    static readonly MAX_LEARNED_GAP = 200;
-    private readonly honestGap;
-    /** How much of the page's foot the browser's bar covers, in CSS pixels. */
-    measure(sample: BarSample): number;
-}
-```
-
 #### `HOST_EXIT_CAP` (const)
 
 How long the game may hold the host's close (Ruken P6 §4 "1 s cap"). Ruken's own grace is 1.5 s
@@ -2950,16 +1341,6 @@ every adapter cuts the `onExiting` handlers and the flush off at this cap.
 
 ```ts
 const HOST_EXIT_CAP: Duration.Duration;
-```
-
-#### `HostDisplay` (type)
-
-What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
-The host contract's type (`@mcthaydt/automata-host`, DIST spec §4), never copied.
-`scale` is 1.333 on Ruken's TV mode: a hint to enlarge text and targets, never CSS zoom.
-
-```ts
-type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'scale'>;
 ```
 
 #### `HostError` (class)
@@ -3139,26 +1520,6 @@ interface HostingSeams {
 }
 ```
 
-#### `HostKind` (type)
-
-`Hosting['kind']` (shared contracts §1.1), written out because ui never imports host. A `web` session (PUB
-spec §3) draws as `standalone`: it has no host to go back to.
-
-```ts
-type HostKind = 'ruken' | 'standalone' | 'tauri';
-```
-
-#### `hostReservedInsets` (function)
-
-Ruken reserves a strip on one edge; its width is the rect's, never negative (FloorFifty `reservedOf`).
-
-```ts
-function hostReservedInsets(host: HostDisplay | undefined): {
-    left: number;
-    right: number;
-};
-```
-
 #### `IconButton` (const)
 
 A button whose face is an icon (M4 spec §4.12). Its accessible name is `label`, which it cannot
@@ -3228,56 +1589,6 @@ interface Input {
 const Input: Context.Tag<Input, Input>;
 ```
 
-#### `INPUT_SETTINGS_DEFAULT` (const)
-
-Nothing changed: the game's profile as it ships.
-
-```ts
-const INPUT_SETTINGS_DEFAULT: InputSettings;
-```
-
-#### `InputBinding` (interface)
-
-What drives one action: keys by `KeyboardEvent.code` (layout independent), pad buttons, an on-screen button.
-
-```ts
-interface InputBinding {
-    readonly keys: readonly string[];
-    readonly pad: readonly number[];
-    readonly touch: boolean;
-    readonly stick?: readonly StickDirection[] | undefined;
-    readonly gesture?: readonly GestureName[] | undefined;
-    /** Rebinding may never leave it unbound on a device it had (M4.4). */
-    readonly required?: boolean | undefined;
-    /** Default `'play'`. */
-    readonly context?: InputContext | undefined;
-}
-```
-
-#### `InputContext` (type)
-
-Where an action is live: during play, in menus, or both.
-
-```ts
-type InputContext = 'play' | 'menu' | 'any';
-```
-
-#### `InputContextNow` (type)
-
-What input drives now: `play` (the game's bindings) or `menu` (the menu actions).
-
-```ts
-type InputContextNow = 'play' | 'menu';
-```
-
-#### `InputDevice` (type)
-
-A kind of input device.
-
-```ts
-type InputDevice = 'keyboard' | 'gamepad' | 'touch';
-```
-
 #### `InputMap` (interface)
 
 Held keys, touch buttons and gamepad buttons, turned into one command per tick (DX spec §3.3).
@@ -3305,35 +1616,6 @@ interface InputMap {
      */
     toCommand(held: Iterable<string>, tick: number, reading?: AnalogReading): readonly Command[];
     attach(target: Window): InputSource;
-}
-```
-
-#### `InputMethod` (type)
-
-The input method the player last used, app-wide.
-
-Menus and tutorials teach the controls in the player's hand, and neither
-lives inside the sim, so this is not the game's input. A mouse moves
-nothing: it says nothing about which controls to teach. Which buttons a
-controller carries (its glyph family) belongs to M4 input.
-
-```ts
-type InputMethod = 'keyboard' | 'gamepad' | 'touch';
-```
-
-#### `InputMethodTracker` (class)
-
-Tracks the input method the player used last (`keyboard`, `gamepad` or `touch`) as rune state in `method`.
-`attach` listens for key presses and touch or pen presses, counting a controller's Back (which arrives as
-Escape) as the controller; `note` records one by hand.
-
-```ts
-class InputMethodTracker {
-    /** A coarse pointer starts as touch, anything else as keyboard. */
-    method: InputMethod;
-    note(method: InputMethod): void;
-    /** Listens in the capture phase, so a control that stops propagation still counts. */
-    attach(target?: EventTarget): () => void;
 }
 ```
 
@@ -3367,27 +1649,6 @@ Checks an input mode change.
 const InputModePayloadSchema: z.ZodType<InputModePayload>;
 ```
 
-#### `InputOptions` (interface)
-
-What the input service listens to: the window, the game's profile, the bus, and optionally the settings and
-the host's input mode.
-
-```ts
-interface InputOptions {
-    readonly target: Window;
-    /** The game's bindings, before the player's overrides. */
-    readonly profile: InputProfile;
-    readonly bus: PresentationBus;
-    /**
-     * The game's settings, whose `input` field (`inputSettingsSchema`) holds the player's overrides: they apply at
-     * once and on every change, and `rebind` writes them. Without settings a rebind lasts for this Input only.
-     */
-    readonly settings?: SettingsStore<unknown> | undefined;
-    /** Under a host, its input mode (`Hosting.input`): where the active device starts, and a pad it reports. */
-    readonly hostInput?: Hosting['input'] | undefined;
-}
-```
-
 #### `InputProfile` (interface)
 
 A named set of bindings, one per game action (PRODUCT spec §2 F1). It is data: a settings screen rebinds a
@@ -3397,25 +1658,6 @@ copy and saves it in the game's `SettingsDef`; M4's input service reads it. Acti
 interface InputProfile {
     readonly id: string;
     readonly bindings: Readonly<Record<string, InputBinding>>;
-}
-```
-
-#### `InputProfileInput` (interface)
-
-What `inputProfileSchema` accepts: every binding field may be left out.
-
-```ts
-interface InputProfileInput {
-    readonly id: string;
-    readonly bindings: Readonly<Record<string, {
-        readonly keys?: readonly string[] | undefined;
-        readonly pad?: readonly number[] | undefined;
-        readonly touch?: boolean | undefined;
-        readonly stick?: readonly StickDirection[] | undefined;
-        readonly gesture?: readonly GestureName[] | undefined;
-        readonly required?: boolean | undefined;
-        readonly context?: InputContext | undefined;
-    }>>;
 }
 ```
 
@@ -3439,30 +1681,6 @@ a pad button two maps share.
 function inputs(...maps: readonly InputMap[]): InputMap;
 ```
 
-#### `InputSettings` (interface)
-
-The player's input settings, kept in the game's settings as `input`: the profile, the per-action overrides
-and the touch mode.
-
-```ts
-interface InputSettings {
-    readonly profile: string;
-    readonly overrides: Readonly<Record<string, BindingOverride>>;
-    /** How touch drives play, when the player chose (M4 spec §4.4). Unset: the game's default. */
-    readonly touchMode?: TouchMode | undefined;
-}
-```
-
-#### `inputSettingsSchema` (const)
-
-The `input` field of a game's settings schema: `{ input: inputSettingsSchema }`. A record that does not read is
-the default, as every settings field falls back (`readSettings`); a single bad override is `applyOverrides`'s to
-drop, so the player's other bindings survive it.
-
-```ts
-const inputSettingsSchema: z.ZodType<InputSettings, unknown>;
-```
-
 #### `InputSource` (interface)
 
 The input map attached to a window for one play session.
@@ -3480,19 +1698,6 @@ interface InputSource {
 }
 ```
 
-#### `Insets` (interface)
-
-CSS px on each side, all >= 0.
-
-```ts
-interface Insets {
-    readonly top: number;
-    readonly right: number;
-    readonly bottom: number;
-    readonly left: number;
-}
-```
-
 #### `installGlobalErrorHandlers` (function)
 
 Installs once per window; a second call is a no-op. Returns the uninstall.
@@ -3506,63 +1711,12 @@ function installGlobalErrorHandlers(win: Window, onFatal: (errorClass: string) =
 onRejection?: (errorClass: string) => void): () => void;
 ```
 
-#### `interceptBackGesture` (function)
-
-Holds the game's history entry and turns a back step off it into `onBack`.
-`onBack` answers whether the game went back; `false` lets the step leave.
-
-```ts
-function interceptBackGesture(win: Window, onBack: () => boolean): () => void;
-```
-
-#### `interpolatePose` (function)
-
-The pose between the previous tick (`alpha = 0`) and the current one (`alpha = 1`). With no previous tick
-(just added, or after a resync) it is the current pose. A missing `angle`, or a non-numeric `x`/`y`, is 0.
-
-```ts
-function interpolatePose(curr: Readonly<FieldRecord>, prev: Readonly<FieldRecord> | undefined, alpha: number): Pose;
-```
-
-#### `isDuckDuckGo` (function)
-
-DuckDuckGo names itself only in the client-hint brands, not the user agent.
-
-```ts
-function isDuckDuckGo(nav: object): boolean;
-```
-
-#### `isFullscreen` (function)
-
-Whether the page is fullscreen now.
-
-```ts
-function isFullscreen(doc: Document): boolean;
-```
-
-#### `isTap` (function)
-
-Whether a press that moved `dx`, `dy` px is a tap rather than a swipe.
-
-```ts
-function isTap(dx: number, dy: number): boolean;
-```
-
 #### `KeyBindings` (type)
 
 By `KeyboardEvent.code`, so the keys sit in the same place on every keyboard layout.
 
 ```ts
 type KeyBindings<Z extends z.ZodType> = Readonly<Record<string, Payload<Z>>>;
-```
-
-#### `keyLabel` (function)
-
-A key's label: the keyboard layout's own (`navigator.keyboard.getLayoutMap()`, a letter in capitals) when there
-is one, else its `code` without the `Key` and `Digit` prefixes, an arrow as its arrow.
-
-```ts
-function keyLabel(code: string, layout?: ReadonlyMap<string, string>): string;
 ```
 
 #### `keys` (function)
@@ -3610,95 +1764,6 @@ interface KeysOptions<Z extends z.ZodType> {
 }
 ```
 
-#### `landscapeGate` (function)
-
-What a phone held sideways must do: `none`, `fullscreen` (one tap to go fullscreen) or `rotate-or-install`
-(turn upright or add to the Home Screen). Only a coarse-pointer phone in landscape that is not installed is
-ever gated.
-
-```ts
-function landscapeGate(inputs: GateInputs): LandscapeGateState;
-```
-
-#### `LandscapeGate` (const)
-
-The landscape gate's cover (M4 spec §4.9, §7; FloorFifty `ui/components/LandscapeGate.svelte` at `ac72660`): over
-every screen and every dialog, empty whenever the gate is open (`state` none). Where the browser can hide its bar,
-one tap on the focused button does it; where it cannot, the cover says how to play. The runtime decides the state
-(`landscapeGate`) and only standalone (M4-D5): under Ruken the host frames the game.
-
-```ts
-const LandscapeGate: import("svelte").Component<Props, {}, "">;
-type LandscapeGate = ReturnType<typeof LandscapeGate>;
-```
-
-#### `LandscapeGateCopy` (interface)
-
-The landscape gate's words: one tap to fullscreen, or how to play where a browser cannot hide its bar.
-
-```ts
-interface LandscapeGateCopy {
-    readonly title: string;
-    readonly body: string;
-    /** The button that goes fullscreen. */
-    readonly go: string;
-    readonly uprightTitle: string;
-    readonly uprightBody: string;
-}
-```
-
-#### `LandscapeGateState` (type)
-
-Nothing; a tap to go fullscreen; or turn upright / add to the Home Screen.
-
-```ts
-type LandscapeGateState = 'none' | 'fullscreen' | 'rotate-or-install';
-```
-
-#### `LanguageCopy` (interface)
-
-Every word the Language group shows besides the languages' own names, in the game's language.
-
-```ts
-interface LanguageCopy {
-    readonly title: string;
-    /** The choice that follows the host and the browser (`Locale.set(null)`). */
-    readonly automatic: string;
-}
-```
-
-#### `LanguageSection` (const)
-
-The Language group of the Settings tab (Owner, 2026-10-18), laid out as FloorFifty's (`LanguagePicker.svelte` at
-a28dc44): Automatic, then each of the game's languages by its endonym, each in its own `lang` so a screen reader
-says it in that language. A pick is reported at once (`Locale.set`); nothing remounts, so focus stays on it.
-FloorFifty's flags are its own art; a game names its languages here, and may give its own names (`names`).
-
-```ts
-const LanguageSection: import("svelte").Component<Props, {}, "">;
-type LanguageSection = ReturnType<typeof LanguageSection>;
-```
-
-#### `LeaderboardCopy` (interface)
-
-Every word the panel shows, in the game's language.
-
-```ts
-interface LeaderboardCopy {
-    readonly title: string;
-    readonly loading: string;
-    readonly empty: string;
-    /** `UNSUPPORTED`: no grant, or standalone ("Scores aren't available here"). */
-    readonly unavailable: string;
-    /** `OFFLINE` ("You're offline"). */
-    readonly offline: string;
-    /** Said beside the player's own row. */
-    readonly you: string;
-    /** "+N more", for the rows below the fold. */
-    readonly more: (count: number) => string;
-}
-```
-
 #### `LeaderboardEntry` (interface)
 
 One row of a board.
@@ -3709,19 +1774,6 @@ interface LeaderboardEntry {
     displayName: string;
     score: number;
     isMe: boolean;
-}
-```
-
-#### `LeaderboardEntryView` (interface)
-
-One row of a board, as the host gives it; `isMe` marks the player.
-
-```ts
-interface LeaderboardEntryView {
-    readonly rank: number;
-    readonly displayName: string;
-    readonly score: number;
-    readonly isMe: boolean;
 }
 ```
 
@@ -3776,22 +1828,6 @@ Checks a board query.
 const LeaderboardQuerySchema: z.ZodType<LeaderboardQuery>;
 ```
 
-#### `Leaderboards` (interface)
-
-`Board` is the game's board ids (its ship config's `leaderboards` keys); `string` until a game narrows it.
-
-```ts
-interface Leaderboards<Board extends string = string> {
-    /** Sends `score` to `board`. Never fails: the result, also published as `leaderboard.submitted`, is the state. */
-    submitScore(board: Board, score: number): Effect.Effect<BoardState>;
-    /** Reads `board` from the host. Never fails, and never answers from a copy kept here. */
-    readBoard(board: Board, query?: BoardQuery): Effect.Effect<BoardView>;
-    /** The state of the last submit to `board` (`idle` before one). */
-    state(board: Board): BoardState;
-}
-const Leaderboards: Context.Tag<Leaderboards, Leaderboards>;
-```
-
 #### `LeaderboardSubmitMeta` (type)
 
 Extra facts sent with a score, passed to the host as they are.
@@ -3828,25 +1864,6 @@ Checks a submit answer.
 const LeaderboardSubmitResSchema: z.ZodType<LeaderboardSubmitRes>;
 ```
 
-#### `LeaderboardView` (type)
-
-What the panel shows: the rows, or why there are none.
-
-```ts
-type LeaderboardView = {
-    readonly state: 'loading';
-} | {
-    readonly state: 'entries';
-    readonly entries: readonly LeaderboardEntryView[];
-} | {
-    readonly state: 'empty';
-} | {
-    readonly state: 'unavailable';
-} | {
-    readonly state: 'offline';
-};
-```
-
 #### `lerp` (function)
 
 Linear blend; `t = 1` returns `b` exactly, because `a + (b - a)` can round away from it.
@@ -3863,79 +1880,6 @@ view at rest shows the sim's own value rather than an equivalent angle 2π away.
 
 ```ts
 function lerpAngle(a: number, b: number, t: number): number;
-```
-
-#### `LetterboxFrame` (class)
-
-The containers a letterboxed scene is built from (backdrop, world, ui, mask and bars), laid out for a view
-size by `layout`.
-
-```ts
-class LetterboxFrame {
-    readonly scene: Container;
-    readonly backdrop: Container;
-    readonly root: Container;
-    readonly world: Container;
-    readonly ui: Container;
-    readonly field: Graphics;
-    readonly mask: Graphics;
-    readonly bars: Container;
-    readonly topBar: Graphics;
-    readonly bottomBar: Graphics;
-    private readonly logicalWidth;
-    private readonly logicalHeight;
-    private readonly barFraction;
-    private readonly barColor;
-    private readonly fieldColor;
-    constructor(options: LetterboxOptions);
-    layout(viewWidth: number, viewHeight: number): LetterboxGeometry;
-    setBarBlack(amount: number): void;
-    destroy(): void;
-}
-```
-
-#### `LetterboxGeometry` (interface)
-
-Where `LetterboxFrame.layout` put the playfield in the view, in screen px: its scale and rect, the gameplay
-and scenery areas, and whether the view is portrait.
-
-```ts
-interface LetterboxGeometry {
-    scale: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    gameplay: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    };
-    scenery: {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    };
-    portrait: boolean;
-    fieldHeight: number;
-}
-```
-
-#### `LetterboxOptions` (interface)
-
-A letterbox's logical playfield size and its bar and field colours (defaults `DEFAULT_BAR_FRACTION`,
-`DEFAULT_BAR_COLOR`, `DEFAULT_FIELD_COLOR`).
-
-```ts
-interface LetterboxOptions {
-    readonly logicalWidth: number;
-    readonly logicalHeight: number;
-    readonly barFraction?: number | undefined;
-    readonly barColor?: number | undefined;
-    readonly fieldColor?: number | undefined;
-}
 ```
 
 #### `LifecyclePayload` (interface)
@@ -3965,34 +1909,6 @@ Why the game is in the background.
 type LifecycleReason = 'hidden' | 'blurred' | 'host-overlay' | 'ad' | 'offline-grace';
 ```
 
-#### `liveDeviceStorage` (function)
-
-The game frame's own `localStorage` as a device, with `prefix:` before every key so two games on one origin do
-not meet. Undefined where merely reaching `window.localStorage` throws (blocked site data, a sandbox): the
-settings store then holds device fields for the visit only.
-
-This is the declared stand-in for a host-owned device scope (Ruken request R-6), and a choice per settings field,
-not a fallback for a denied `saves` grant.
-
-```ts
-function liveDeviceStorage(win: Pick<Window, 'localStorage'>, prefix: string): DeviceStorage | undefined;
-```
-
-#### `Loaded` (interface)
-
-A slot loaded for play.
-
-```ts
-interface Loaded<S> {
-    readonly slot: number;
-    readonly data: S;
-    /** Undefined for an empty slot. */
-    readonly meta: SlotMeta | undefined;
-    /** The sim snapshot, only when it was taken with this build's content (M5-D5). */
-    readonly snapshot?: Uint8Array;
-}
-```
-
 #### `LoaderOverlay` (const)
 
 The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty
@@ -4004,28 +1920,6 @@ its height, so nothing shifts when it appears.
 ```ts
 const LoaderOverlay: import("svelte").Component<Props, {}, "">;
 type LoaderOverlay = ReturnType<typeof LoaderOverlay>;
-```
-
-#### `LoadMeter` (interface)
-
-Watches downloads: `guard` fails a wait with `LoadStalled` after `STALL_MS` without progress, and calls its
-`onSlow` after `SLOW_MS`.
-
-```ts
-interface LoadMeter {
-    progress(): void;
-    guard<A, E, R>(wait: Effect.Effect<A, E, R>, info: GuardInfo): Effect.Effect<A, E | LoadStalled, R>;
-}
-```
-
-#### `LoadStalled` (class)
-
-A resource download had no progress reported for STALL_MS (30 s).
-Triggers the "Taking a while" screen with a Try again button.
-
-```ts
-class LoadStalled extends LoadStalledBase {
-}
 ```
 
 #### `Locale` (interface)
@@ -4054,119 +1948,6 @@ interface Locale {
 const Locale: Context.Tag<Locale, Locale>;
 ```
 
-#### `LOCALE_SAVE_KEY` (const)
-
-The save key of the player's language choice; absent means Automatic (negotiated).
-
-```ts
-const LOCALE_SAVE_KEY = "automata.locale";
-```
-
-#### `LocaleCandidates` (interface)
-
-The candidates, best first; each is used only when the game has a matching locale.
-
-```ts
-interface LocaleCandidates {
-    /** Ruken's `session.locale`, when the session is hosted. Standalone, the SDK's value is the browser's, so it is left out. */
-    readonly hosted: string | undefined;
-    /** The player's own choice, saved by the language picker. */
-    readonly saved: string | undefined;
-    /** The browser's languages, best first (`navigator.languages`). */
-    readonly browser: readonly string[];
-    /** The locales the game ships, in the game's spelling. */
-    readonly locales: readonly string[];
-    /** The game's default; one of `locales`. */
-    readonly baseLocale: string;
-}
-```
-
-#### `LocaleDef` (interface)
-
-The game's languages. A Paraglide-generated `runtime.js` satisfies it as is
-(`import * as runtime from './paraglide/runtime.js'`), and then its messages answer in this locale.
-
-```ts
-interface LocaleDef {
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-    overwriteGetLocale?(fn: () => string): void;
-    overwriteSetLocale?(fn: (locale: string) => void): void;
-}
-```
-
-#### `lockOverscroll` (function)
-
-A Svelte action: `<div use:lockOverscroll>`.
-
-```ts
-function lockOverscroll(node: HTMLElement): {
-    destroy(): void;
-};
-```
-
-#### `makeAudio` (const)
-
-Builds the Audio service, which is also the `AudioBuses` seam. Nothing is built until the first gesture after
-the session is ready; closing the scope stops every sound, closes the context and removes every listener.
-
-```ts
-const makeAudio: (options: AudioServices & AudioOptions) => Effect.Effect<Audio & AudioBuses, never, Scope.Scope>;
-```
-
-#### `makeInput` (function)
-
-Builds the Input over `target` for the scope's life: closing the scope removes every listener.
-
-```ts
-function makeInput(options: InputOptions): Effect.Effect<Input, never, Scope.Scope>;
-```
-
-#### `makeLeaderboards` (const)
-
-Builds the leaderboards service over `Hosting`; each submit's state is published as
-`leaderboard.submitted`.
-
-```ts
-const makeLeaderboards: Effect.Effect<Leaderboards, never, Hosting | PresentationBus>;
-```
-
-#### `makeSaves` (function)
-
-Opens the game's save for boot, with its triggers and its exit flush, for as long as the scope is open. A game
-without `saves` gets a `Saves` that holds nothing, and nothing is read from the host.
-
-```ts
-function makeSaves(def: SaveDef<unknown> | undefined, options: {
-    readonly contentHash: string;
-}): Effect.Effect<Saves, HostError, Hosting | PresentationBus | Scope.Scope>;
-```
-
-#### `matchLocale` (function)
-
-The game's locale for a requested tag: the same tag (ignoring case), else the first locale with the same
-primary language subtag. `fr-CA` finds `fr`; `pt` finds `pt-BR`. Undefined when the game lacks the language.
-
-```ts
-function matchLocale(requested: string, locales: readonly string[]): string | undefined;
-```
-
-#### `MAX_FRAME_MS` (const)
-
-The Last Light clock.ts 0.1 s clamp: at most 6 steps at 60 Hz, the rest is dropped
-
-```ts
-const MAX_FRAME_MS = 100;
-```
-
-#### `MAX_RESOLUTION` (const)
-
-The highest canvas resolution (device pixels per CSS pixel) the renderer uses, at the `high` quality tier.
-
-```ts
-const MAX_RESOLUTION = 2;
-```
-
 #### `MAX_TURN_UNITS_PER_STEP` (const)
 
 The most one step's `camera-turn` may carry either way: 45°.
@@ -4183,30 +1964,6 @@ usable one less whatever covers the page's foot.
 
 ```ts
 function measureGeometry(input: GeometryInput): Geometry;
-```
-
-#### `meetsTier` (function)
-
-Whether `tier` is `min` or higher: a pass registered for `medium` runs at `medium` and `high`.
-
-```ts
-function meetsTier(tier: QualityTier, min: QualityTier): boolean;
-```
-
-#### `MenuAction` (type)
-
-A fixed menu action: it drives menus and the pause screen, never the sim.
-
-```ts
-type MenuAction = 'nav-up' | 'nav-down' | 'nav-left' | 'nav-right' | 'confirm' | 'back' | 'page-prev' | 'page-next' | 'adjust-dec' | 'adjust-inc' | 'pause';
-```
-
-#### `MessageFunction` (type)
-
-One compiled message: Paraglide passes its inputs as one object.
-
-```ts
-type MessageFunction = (inputs?: any) => string;
 ```
 
 #### `Modal` (const)
@@ -4227,31 +1984,6 @@ const Modal: import("svelte").Component<$$ComponentProps, {}, "">;
 type Modal = ReturnType<typeof Modal>;
 ```
 
-#### `ModalProps` (interface)
-
-The props Modal and Sheet share.
-
-```ts
-interface ModalProps {
-    title: string;
-    /** The Close button's name, in the game's language. */
-    closeLabel: string;
-    onclose: () => void;
-    /** A tap on the dimmed page around the panel; absent, such a tap does nothing. */
-    onbackdrop?: (() => void) | undefined;
-    children?: Snippet | undefined;
-    /** What sits with the title (Settings' tabs): beside it where the dialog is 480 px wide, under it where not. */
-    head?: Snippet | undefined;
-    /** A long body (Settings) that widens on a short, wide band to set its groups two across; others keep their width. */
-    wide?: boolean | undefined;
-    /** A dialog that fills a phone's band, its body taking the rest and its actions at the bottom (Settings). */
-    fill?: boolean | undefined;
-    /** The buttons, in reading order. Mark the safe one with `data-initial-focus`. */
-    actions?: Snippet | undefined;
-    testId?: string | undefined;
-}
-```
-
 #### `ModelInvalid` (class)
 
 A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin,
@@ -4260,58 +1992,6 @@ which is not supported yet (M3R-D1). Boot shows the panel naming the file, with 
 ```ts
 class ModelInvalid extends ModelInvalidBase {
 }
-```
-
-#### `MusicOptions` (interface)
-
-Options for `Audio.music`: where to begin and which region loops.
-
-```ts
-interface MusicOptions {
-    /** Where in the track to begin, in seconds. */
-    readonly fromSeconds?: number;
-    /** The region that loops, in seconds; the whole track without it. */
-    readonly loop?: {
-        readonly start: number;
-        readonly end: number;
-    };
-}
-```
-
-#### `NavDirection` (type)
-
-A direction a d-pad or an arrow key walks a menu.
-
-```ts
-type NavDirection = 'up' | 'down' | 'left' | 'right';
-```
-
-#### `nearestTarget` (function)
-
-The button a point is on, or else the nearest within the margin, or nothing. Distance is to the button's edge,
-so any point inside is 0.
-
-```ts
-function nearestTarget(x: number, y: number, targets: readonly TouchTarget[], margin?: number): string | undefined;
-```
-
-#### `negotiateLocale` (function)
-
-The order is the player's saved choice, Ruken's session locale, the browser's languages, the default
-(PRODUCT spec §4 item 2, as decided 2026-10-16: a choice made in the game's own picker outranks the
-platform's, as in FloorFifty, where detection runs only "when the player has not chosen one").
-Each step that names a language the game lacks falls through to the next.
-
-```ts
-function negotiateLocale(candidates: LocaleCandidates): string;
-```
-
-#### `onFullscreenChange` (function)
-
-Hears fullscreen being entered or left, by the page or the player. Returns the unsubscribe.
-
-```ts
-function onFullscreenChange(doc: Document, listener: () => void): () => void;
 ```
 
 #### `OptionGroup` (const)
@@ -4328,70 +2008,6 @@ not take is undone, so what is checked is always the owner's value.
 ```ts
 const OptionGroup: import("svelte").Component<Props, {}, "">;
 type OptionGroup = ReturnType<typeof OptionGroup>;
-```
-
-#### `PAD_FOCUS` (const)
-
-How the navigator focuses: with a ring, and without scrolling the page. `focusVisible` because a
-browser draws no ring for script focus after a click or tap; `preventScroll` because the game owns
-the viewport. (`focusVisible` is not yet in TypeScript's DOM types; Chromium, Firefox and Safari
-take it.)
-
-```ts
-const PAD_FOCUS: FocusOptions;
-```
-
-#### `PadInfo` (interface)
-
-A connected pad. Only `standard` pads drive bindings (DX spec §3.3).
-
-```ts
-interface PadInfo {
-    readonly index: number;
-    readonly id: string;
-    readonly standard: boolean;
-}
-```
-
-#### `padKeyEvents` (const)
-
-Keydown events the navigator sent itself. Back reaches the page as Escape so every dialog
-handles it once, but it is not a keyboard: an input-method tracker skips these, or one press of
-a controller's B would teach keyboard controls to a controller player.
-
-```ts
-const padKeyEvents: WeakSet<Event>;
-```
-
-#### `padLabel` (function)
-
-A standard-mapping pad button's label on a pad of `glyphs`.
-
-```ts
-function padLabel(button: number, glyphs: PromptGlyphs, copy: PromptCopy): string;
-```
-
-#### `PadWord` (type)
-
-The pad buttons known by a word, for a pad whose labels are not known.
-
-```ts
-type PadWord = 'bottom' | 'right' | 'left' | 'top' | 'leftBumper' | 'rightBumper' | 'leftTrigger' | 'rightTrigger' | 'select' | 'start' | 'leftStick' | 'rightStick' | 'home';
-```
-
-#### `PAGE_SWIPE` (const)
-
-Swipe is the pagination on a paged region, on every form factor: a finger, a mouse drag, a trackpad's two-finger
-sideways swipe. From FloorFifty `apps/client/src/ui/page-swipe.ts` at `ac72660`, unchanged but for a doc comment.
-A press that moves less than 8 px is a tap, so swiping never picks by accident; a quick flick turns one page
-whatever the distance; a slow drag snaps to the nearest page.
-
-```ts
-const PAGE_SWIPE: {
-    readonly tapSlopPx: 8;
-    readonly flickPxPerMs: 0.4;
-    readonly wheelStepPx: 40;
-};
 ```
 
 #### `PagedGrid` (const)
@@ -4411,53 +2027,6 @@ type PagedGrid<T extends {
 }> = InstanceType<typeof PagedGrid<T>>;
 ```
 
-#### `PagedGridProps` (interface)
-
-PagedGrid's props: groups of items, the most columns and rows a page has, and the page its owner shows.
-
-```ts
-interface PagedGridProps<T> {
-    /** The grid's name for assistive technology, also the pager's. */
-    label: string;
-    groups: readonly PageGroup<T>[];
-    /** The most columns and rows a page has. */
-    most: GridShape;
-    /** The current page, from 0; wrapped into range. */
-    page: number;
-    onpage: (page: number) => void;
-    item: Snippet<[T]>;
-    /** The smallest tile side, in px, before the shape drops a row or column. */
-    minTile?: number | undefined;
-    gap?: number | undefined;
-    /** How a group's later pages are titled. */
-    continued?: ((title: string, part: number) => string) | undefined;
-    dotLabel?: ((position: number, total: number) => string) | undefined;
-    testId?: string | undefined;
-}
-```
-
-#### `PageGroup` (interface)
-
-A titled run of items; each group starts its own page.
-
-```ts
-interface PageGroup<T> {
-    readonly id: string;
-    readonly title: string;
-    readonly items: readonly T[];
-}
-```
-
-#### `pageOf` (function)
-
-The page holding the item with `id`, or -1 when no page does.
-
-```ts
-function pageOf<T extends {
-    readonly id: string;
-}>(pages: readonly GridPage<T>[], id: string): number;
-```
-
 #### `PagerDots` (const)
 
 Where a paged view is (M4 spec §4.8; from FloorFifty `ui/layout/PagerDots.svelte` at `ac72660`): one row of
@@ -4466,49 +2035,6 @@ dots, each a whole touch target, or "3 / 11" once the dots would not fit on one 
 ```ts
 const PagerDots: import("svelte").Component<Props, {}, "">;
 type PagerDots = ReturnType<typeof PagerDots>;
-```
-
-#### `pagerMode` (function)
-
-PagerDots' choice (M4 spec §4.8; from FloorFifty `ui/layout/pager.ts` at `ac72660`): dots while they fit on one
-row, a counter ("3 / 11") once they would not. Dots never wrap.
-
-```ts
-function pagerMode(count: number, max?: number, available?: number, dotSize?: number): 'dots' | 'counter';
-```
-
-#### `paginate` (function)
-
-One group per page; a group longer than a page continues under `continued(title, part)`, "Title (2)" by default.
-An empty group has no page.
-
-```ts
-function paginate<T>(groups: readonly PageGroup<T>[], capacity: number, continued?: (title: string, part: number) => string): GridPage<T>[];
-```
-
-#### `ParaglideRuntime` (interface)
-
-The parts of a Paraglide-generated `runtime.js` the runtime uses. Method syntax, so a narrower `Locale` union fits.
-
-```ts
-interface ParaglideRuntime {
-    readonly locales: readonly string[];
-    readonly baseLocale: string;
-    overwriteGetLocale(fn: () => string): void;
-    overwriteSetLocale(fn: (locale: string) => void): void;
-}
-```
-
-#### `pastEdge` (function)
-
-Whether a drag of `dy` (positive = finger moving down) would pass an edge.
-
-```ts
-function pastEdge(scroller: {
-    scrollTop: number;
-    scrollHeight: number;
-    clientHeight: number;
-}, dy: number): boolean;
 ```
 
 #### `PauseBehavior` (type)
@@ -4525,32 +2051,6 @@ Checks a pause behavior.
 
 ```ts
 const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
-```
-
-#### `PauseReason` (type)
-
-`input`: the active pad was unplugged during play (M4-D9); Resume on the pause screen clears it. `display`: a phone
-is held the other way from the game's orientation (M4.7); turning it back clears it.
-
-```ts
-type PauseReason = 'lifecycle' | 'menu' | 'input' | 'display';
-```
-
-#### `PHONE_LANDSCAPE_MAX_HEIGHT` (const)
-
-A landscape viewport shorter than this is a phone, or a desktop window short enough to need
-the phone's compact layout. 500 keeps the 932 x 430 class of phone inside it with room to spare.
-
-```ts
-const PHONE_LANDSCAPE_MAX_HEIGHT = 500;
-```
-
-#### `PHONE_PORTRAIT_MAX_WIDTH` (const)
-
-A portrait viewport narrower than this is a phone; at or above it, a tablet.
-
-```ts
-const PHONE_PORTRAIT_MAX_WIDTH = 600;
 ```
 
 #### `PixiRenderer` (interface)
@@ -4685,71 +2185,6 @@ interface PluginDef {
 }
 ```
 
-#### `pluralCategory` (const)
-
-The CLDR plural (or, with 'ordinal', ordinal) category of a count: one, two, few, many, zero or other.
-
-```ts
-const pluralCategory: (locale: string, count: number, type?: Intl.PluralRuleType) => Intl.LDMLPluralRule;
-```
-
-#### `PointerLatch` (class)
-
-Which fingers are down on which action. Reports only real changes: a second finger landing on a button already
-held produces nothing, and lifting it produces nothing either. The action ends when its last finger lifts.
-
-```ts
-class PointerLatch {
-    private readonly onInput;
-    private readonly active;
-    constructor(onInput: (action: string, active: boolean) => void);
-    /** True while any finger holds the action; what the pressed style reads. */
-    isHeld(action: string): boolean;
-    press(action: string, pointerId: number): void;
-    release(action: string, pointerId: number): void;
-    /** Releases everything still held, reporting each action exactly once. */
-    releaseAll(): void;
-}
-```
-
-#### `PointerTracker` (interface)
-
-What a SwipeSurface drives: runtime's `SwipeTracker` satisfies it, so ui need not import runtime. Times are
-`PointerEvent.timeStamp`.
-
-```ts
-interface PointerTracker {
-    readonly tuning: {
-        readonly saturationPx: number;
-    };
-    readonly indicator: SwipeIndicatorView | undefined;
-    down(id: number, x: number, y: number, t: number, options?: {
-        readonly steers?: boolean;
-    }): void;
-    move(id: number, x: number, y: number, t: number): void;
-    up(id: number, x: number, y: number, t: number): void;
-    cancel(): void;
-}
-```
-
-#### `PORTRAIT_FIELD_TOP` (const)
-
-The most room above the playfield in a portrait view, in screen px (the HUD's top margin, M1 render-pixi spec):
-the field sits this far down, or centred when centring leaves less room above it.
-
-```ts
-const PORTRAIT_FIELD_TOP = 60;
-```
-
-#### `portraitFieldHeight` (function)
-
-The playfield's logical height in a portrait view: what fits below `PORTRAIT_FIELD_TOP` and above the
-`band` of on-screen controls at `scale`, and never less than `baseHeight`.
-
-```ts
-function portraitFieldHeight(viewHeight: number, scale: number, band: number, baseHeight?: number): number;
-```
-
 #### `Pose` (interface)
 
 Where an entity view draws: position in world pixels and rotation in radians (Pixi `rotation`).
@@ -4760,15 +2195,6 @@ interface Pose {
     readonly y: number;
     readonly angle: number;
 }
-```
-
-#### `poseComponent` (function)
-
-The component a view reads its pose from: the one it was registered under, or (for a bare function
-resolver, which has no id) the first component in row order with numeric `x` and `y`.
-
-```ts
-function poseComponent(components: Components, componentId?: string | undefined): Readonly<FieldRecord> | undefined;
 ```
 
 #### `postFilter` (function)
@@ -4796,43 +2222,6 @@ interface PostFilterDef {
 }
 ```
 
-#### `PostFilterOptions` (interface)
-
-Options for `PostFilterSlot.set`.
-
-```ts
-interface PostFilterOptions {
-    /** The lowest quality tier these filters run at; omitted, they run at every tier. */
-    readonly minTier?: QualityTier | undefined;
-}
-```
-
-#### `PostFilterSlot` (interface)
-
-The post-filter slot (PRODUCT spec §2 F1): each owner (an extension, quality tiers, the game) keeps its own
-filters under its id, and the slot writes all of them to the target, ordered by `order` (lower first), then
-by id. Once a slot is in use it owns the target's `filters`; assigning them directly is overwritten on the
-next change. Filters stay GLSL + WGSL pairs (`filterPrograms`), so WebGL2 keeps parity with WebGPU.
-
-Quality tiers (M4 spec §4.11): an owner may declare the lowest tier it runs at. Below it, its filters are left
-out of the composed list but kept, so raising the tier brings them back in their place. An owner without a
-`minTier` (the art direction, such as a palette lock) runs at every tier.
-
-```ts
-interface PostFilterSlot {
-    /** Sets (or replaces) `id`'s filters. Returns a remover that only removes this setting, once. */
-    set(id: string, filters: readonly Filter[], order?: number, options?: PostFilterOptions): () => void;
-    /** Removes `id`'s filters; nothing happens when it has none. */
-    remove(id: string): void;
-    /** The owners whose filters run now, in the order they run. */
-    readonly ids: readonly string[];
-    /** The quality tier the slot composes for; `high` until `setTier`. */
-    readonly tier: QualityTier;
-    /** Recomposes for `tier`, leaving out owners registered for a higher one. */
-    setTier(tier: QualityTier): void;
-}
-```
-
 #### `PostFilterSpec` (interface)
 
 What a screen-space filter is made of: the same effect written twice, for WebGL2 (`glsl`) and WebGPU (`wgsl`),
@@ -4852,16 +2241,6 @@ interface PostFilterSpec {
 }
 ```
 
-#### `PostFilterTarget` (interface)
-
-Where the composed filters go: `PixiStage` (its scene's `filters`), or any Pixi container.
-
-```ts
-interface PostFilterTarget {
-    filters: Filter[] | null;
-}
-```
-
 #### `PresentationBus` (interface)
 
 The presentation bus: typed facts the runtime publishes for screens, audio and tests to hear. Facts
@@ -4875,228 +2254,12 @@ interface PresentationBus<Facts = RuntimeFacts> {
 const PresentationBus: Context.Tag<PresentationBus, PresentationBus>;
 ```
 
-#### `probeEnvSafeArea` (function)
-
-Reads `env(safe-area-inset-*)` through a hidden probe, since script cannot read `env()` directly.
-An engine that does not compute `env()` (jsdom) yields 0 on every side.
-
-```ts
-function probeEnvSafeArea(root: HTMLElement): Insets;
-```
-
-#### `Prompt` (const)
-
-A device prompt (M4 spec §4.6): the label of an action's input on the device in the player's hand, a key, a pad
-button or the touch label, or "Unbound". It follows its props in place, so a rebind or a device switch never
-remounts it, and it is never in the focus order. `data-prompt` is the kind.
-
-```ts
-const Prompt: import("svelte").Component<Props, {}, "">;
-type Prompt = ReturnType<typeof Prompt>;
-```
-
-#### `PromptBinding` (interface)
-
-What drives one action (runtime's `InputBinding`, the fields a prompt reads).
-
-```ts
-interface PromptBinding {
-    readonly keys: readonly string[];
-    readonly pad: readonly number[];
-    readonly touch: boolean;
-}
-```
-
-#### `PromptCopy` (interface)
-
-Every word a prompt shows, in the game's language.
-
-```ts
-interface PromptCopy {
-    /** An action with nothing on the active device. */
-    readonly unbound: string;
-    /** An action with an on-screen button, on touch. */
-    readonly touch: string;
-    readonly pad: Readonly<Record<PadWord, string>>;
-}
-```
-
-#### `PromptDevice` (type)
-
-The device a prompt is for (runtime's `InputDevice`).
-
-```ts
-type PromptDevice = 'keyboard' | 'gamepad' | 'touch';
-```
-
-#### `PromptGlyphs` (type)
-
-The labels a pad's buttons carry (runtime's `GlyphFamily`).
-
-```ts
-type PromptGlyphs = 'xbox' | 'playstation' | 'generic';
-```
-
-#### `PromptView` (type)
-
-What a prompt shows: its kind (`data-prompt`) and its label.
-
-```ts
-type PromptView = {
-    readonly kind: 'key' | 'pad' | 'touch' | 'unbound';
-    readonly label: string;
-};
-```
-
-#### `promptView` (function)
-
-What a prompt shows for `binding` on `device`: its first input there, or Unbound.
-
-```ts
-function promptView(binding: PromptBinding, device: PromptDevice, glyphs: PromptGlyphs, copy: PromptCopy, layout?: ReadonlyMap<string, string>): PromptView;
-```
-
-#### `QUALITY_TIERS` (const)
-
-Graphics quality (M4 spec §4.11). A lower tier caps the canvas resolution and leaves out the post-filter owners
-registered for a higher one; it never drops the art direction. The one owner of the tier: render-pixi and the
-Settings screen's Display section read it from here.
-
-```ts
-const QUALITY_TIERS: readonly ["high", "medium", "low"];
-```
-
-#### `QualityBuild` (interface)
-
-What `rebuildOnQuality` keeps mounted.
-
-```ts
-interface QualityBuild<T> {
-    /** The build for the tier now. */
-    current(): T;
-    /** Stops following the setting and destroys the build. */
-    dispose(): void;
-}
-```
-
 #### `QualityTier` (type)
 
 A graphics quality tier: `high`, `medium` or `low`.
 
 ```ts
 type QualityTier = (typeof QUALITY_TIERS)[number];
-```
-
-#### `qualityTierSchema` (const)
-
-A tier; an unknown saved value reads as the default, as every settings field falls back.
-
-```ts
-const qualityTierSchema: z.ZodType<QualityTier, unknown>;
-```
-
-#### `readKeyboardLayout` (function)
-
-The keyboard's layout map where the browser has one (`navigator.keyboard`, Chromium), or undefined: where the
-browser has none or refuses (a cross-origin frame may), prompts name keys by their `code` (M4 spec §6).
-
-```ts
-function readKeyboardLayout(nav: Navigator): Promise<ReadonlyMap<string, string> | undefined>;
-```
-
-#### `REBIND_TIMEOUT_MS` (const)
-
-How long `capture` waits for a press (M4 spec §4.2, §6).
-
-```ts
-const REBIND_TIMEOUT_MS = 10000;
-```
-
-#### `RebindCancelled` (class)
-
-The player pressed Escape or pad B while a capture waited: nothing changes.
-
-```ts
-class RebindCancelled extends RebindCancelledBase {
-}
-```
-
-#### `RebindConflict` (class)
-
-Refused: the input would leave `with`, a required action, with nothing on that device (M4-D4).
-
-```ts
-class RebindConflict extends RebindConflictBase {
-}
-```
-
-#### `RebindDevice` (type)
-
-A device a player can rebind (touch buttons and gestures are the game's).
-
-```ts
-type RebindDevice = 'keyboard' | 'gamepad';
-```
-
-#### `RebindError` (type)
-
-Why a rebind was refused, with nothing changed.
-
-```ts
-type RebindError = RebindConflict | RebindReserved | RebindUnknown;
-```
-
-#### `rebindProfile` (function)
-
-Binds `capture` to `action` on `device` (M4 spec §4.5, M4-D4): it becomes the action's only input there and
-leaves every other action live in an overlapping context. Refused, with nothing changed, when the input is
-reserved or when it would leave a `required` action with nothing on that device. The result is the overrides
-over `defaults` for the whole profile, ready to save.
-
-```ts
-function rebindProfile(defaults: InputProfile, current: InputProfile, action: string, device: 'keyboard' | 'gamepad', capture: Capture): Either.Either<Record<string, BindingOverride>, RebindError>;
-```
-
-#### `RebindReserved` (class)
-
-Refused: Escape, Tab, pad 8 or pad 16 (M4-D3), or a pad button the standard mapping does not have.
-
-```ts
-class RebindReserved extends RebindReservedBase {
-}
-```
-
-#### `RebindTimedOut` (class)
-
-Nothing was pressed for `REBIND_TIMEOUT_MS`: nothing changes.
-
-```ts
-class RebindTimedOut extends RebindTimedOutBase {
-}
-```
-
-#### `RebindUnknown` (class)
-
-Refused: the profile has no such action.
-
-```ts
-class RebindUnknown extends RebindUnknownBase {
-}
-```
-
-#### `rebuildOnQuality` (function)
-
-Keeps something built for the player's quality tier (M4 spec §4.11), rebuilding it when the tier changes.
-
-Quality decides which passes a build makes at all, so a change is a rebuild, not a toggle. The old build is
-destroyed before the new one is made: two live builds would both hold their GPU resources. From FloorFifty
-`apps/client/src/systems/render/quality-rebuild.ts` at `ac72660`, over runtime's `SettingsStore` with `read`
-picking the tier out of the game's settings.
-
-```ts
-function rebuildOnQuality<S, T extends {
-    destroy(): void;
-}>(settings: SettingsStore<S>, read: (settings: S) => QualityTier, build: (tier: QualityTier) => T, onBuilt?: (built: T) => void): QualityBuild<T>;
 ```
 
 #### `rect` (function)
@@ -5106,19 +2269,6 @@ A filled rectangle that follows its component's `x`, `y` and `angle`, interpolat
 
 ```ts
 function rect(options: RectViewOptions): EntityViewFactory;
-```
-
-#### `Rect` (interface)
-
-A rectangle in CSS px: its top-left corner and its size.
-
-```ts
-interface Rect {
-    readonly x: number;
-    readonly y: number;
-    readonly width: number;
-    readonly height: number;
-}
 ```
 
 #### `RectViewOptions` (interface)
@@ -5150,14 +2300,6 @@ that moves things itself.
 function reducedMotion(win?: Pick<Window, 'matchMedia'>): boolean;
 ```
 
-#### `releaseStep` (function)
-
-Pages to turn when a drag of `dx` px over `dtMs` is released: a swipe left is +1 (next).
-
-```ts
-function releaseStep(dx: number, dtMs: number, pageWidth: number): -1 | 0 | 1;
-```
-
 #### `RenderDeltaConsumer` (class)
 
 Keeps one entity view per sim entity in the world from each step's render delta, and interpolates them between
@@ -5179,14 +2321,6 @@ class RenderDeltaConsumer<C extends SceneNode = Container> {
 }
 ```
 
-#### `Renderer` (const)
-
-The game's renderer as a runtime service.
-
-```ts
-const Renderer: Context.Tag<GameRenderer, GameRenderer>;
-```
-
 #### `RendererFactory` (type)
 
 Builds the game's renderer for a target. It fails with `RendererUnavailable` when no backend it accepts starts,
@@ -5194,14 +2328,6 @@ and with `ModelInvalid` when a 3D renderer cannot read a model file it was given
 
 ```ts
 type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
-```
-
-#### `RendererPreference` (type)
-
-The renderer backend: `webgl` (WebGL2, the default) or `webgpu` (opt-in).
-
-```ts
-type RendererPreference = 'webgl' | 'webgpu';
 ```
 
 #### `RendererUnavailable` (class)
@@ -5234,31 +2360,6 @@ interface RenderTarget {
 }
 ```
 
-#### `RESERVED_KEYS` (const)
-
-Keys never bindable in a game's profile: Escape (the one back path) and Tab (focus).
-
-```ts
-const RESERVED_KEYS: readonly string[];
-```
-
-#### `RESERVED_PAD_BUTTONS` (const)
-
-Never bindable in a game's profile (M4-D3): Ruken's SDK summons the host on pad 8 (View), 16 is Home, Escape is the
-one back path and Tab moves focus.
-
-```ts
-const RESERVED_PAD_BUTTONS: readonly number[];
-```
-
-#### `RESOLUTION_CAPS` (const)
-
-The canvas resolution each quality tier allows at most (M4 spec §4.11).
-
-```ts
-const RESOLUTION_CAPS: Readonly<Record<QualityTier, number>>;
-```
-
 #### `ResourceDef` (interface)
 
 A value the sim keeps once, not on any entity: an id, a Zod schema and the `init` that gives its starting
@@ -5270,88 +2371,6 @@ interface ResourceDef<Z extends z.ZodType = z.ZodType> {
   readonly id: string
   readonly schema: Z
   readonly init: () => z.input<Z>
-}
-```
-
-#### `RETRY_DELAYS_MS` (const)
-
-The wait before each retry; when they are spent, the image has failed.
-
-```ts
-const RETRY_DELAYS_MS: readonly number[];
-```
-
-#### `RetryTimers` (type)
-
-The timers `watchImage` waits with; tests pass fakes.
-
-```ts
-type RetryTimers = {
-    setTimeout(run: () => void, ms: number): ReturnType<typeof setTimeout>;
-    clearTimeout(handle: ReturnType<typeof setTimeout> | undefined): void;
-};
-```
-
-#### `retryUrl` (function)
-
-The URL a retry asks for; attempt 0 is the first request, as given.
-
-```ts
-function retryUrl(src: string, attempt: number): string;
-```
-
-#### `RotateHint` (const)
-
-The rotate hint (M4 spec §4.9, §7): over a game locked to one orientation (`GameSpec.orientation`) on a phone held
-the other way. The runtime pauses the game while it shows (`Time.pause('display')`). Not interactive: turning the
-phone is the only way past it, so nothing in it takes focus. The words follow FloorFifty `RotateHint.svelte` at
-`ac72660`, which offers the same advice as a toast.
-
-```ts
-const RotateHint: import("svelte").Component<Props, {}, "">;
-type RotateHint = ReturnType<typeof RotateHint>;
-```
-
-#### `RotateHintCopy` (interface)
-
-The rotate hint's words.
-
-```ts
-interface RotateHintCopy {
-    readonly title: string;
-    readonly body: string;
-}
-```
-
-#### `RotateHintMode` (type)
-
-How a game locked to one orientation says so (Owner amendment, 2026-10-18): a blocking cover, or a toast.
-
-```ts
-type RotateHintMode = 'block' | 'toast';
-```
-
-#### `RotateToast` (const)
-
-The rotate toast (Owner amendment to M4 spec §4.9, 2026-10-18; FloorFifty `RotateHint.svelte` at a28dc44): for a
-game with `rotateHint: 'toast'`, a small message at the top on a phone held the other way, "Turn your phone for a
-bigger view", with an OK. It covers nothing and pauses nothing; the only part a thumb can hit is the OK, at 44 px.
-
-```ts
-const RotateToast: import("svelte").Component<Props, {}, "">;
-type RotateToast = ReturnType<typeof RotateToast>;
-```
-
-#### `RotateToastCopy` (interface)
-
-The rotate toast's words (`rotateHint: 'toast'`, FloorFifty's): the advice, and its OK.
-
-```ts
-interface RotateToastCopy {
-    readonly text: string;
-    readonly ok: string;
-    /** The OK's name for assistive technology: what it dismisses. */
-    readonly dismiss: string;
 }
 ```
 
@@ -5399,104 +2418,6 @@ RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIF
 
 ```ts
 function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
-```
-
-#### `RuntimeFacts` (interface)
-
-Every fact the runtime publishes on the presentation bus, by name.
-
-```ts
-interface RuntimeFacts {
-    readonly 'sim.events': readonly SimEvent[];
-    /**
-     * The same events with the tick of the step that emitted them (`StepResult.tick`, the tick the sim is at after the step), for
-     * a listener that needs to know when an event happened. Published with `sim.events`, only when the step emitted events.
-     */
-    readonly 'sim.step': {
-        readonly tick: number;
-        readonly events: readonly SimEvent[];
-    };
-    readonly 'screen.entered': {
-        readonly screen: string;
-        readonly from: string | undefined;
-    };
-    readonly 'time.changed': {
-        readonly paused: boolean;
-    };
-    /** The player's language changed (PRODUCT spec §4 item 2). Screens redraw their text; nothing remounts. */
-    readonly 'locale.changed': {
-        readonly locale: string;
-        readonly previous: string;
-    };
-    /** The player's last real input came from another device (M4 spec §4.2). Prompts and touch controls follow it. */
-    readonly 'input.device.changed': {
-        readonly device: InputDevice;
-        readonly glyphs: GlyphFamily;
-        readonly previous: InputDevice;
-    };
-    /** The first gesture after `session.ready` built and resumed the audio graph (M5 spec §4.6). */
-    readonly 'audio.unlocked': Readonly<Record<never, never>>;
-    /** No audio context could be built or resumed; the game runs silent (M5 spec §6). */
-    readonly 'audio.unavailable': {
-        readonly reason: string;
-    };
-    /** A sound or a track could not be loaded or decoded; it is silent and nothing else stops (M5 spec §6). */
-    readonly 'audio.decode.failed': {
-        readonly alias: string;
-        readonly reason: string;
-    };
-    /** A pad was plugged in (M4 spec §5). `standard: false` means it cannot drive bindings (§6). */
-    readonly 'input.pad.connected': PadInfo;
-    /** A pad was unplugged; what it held is released (M4 spec §5). `wasActive`: it was the pad in use. */
-    readonly 'input.pad.disconnected': PadInfo & {
-        readonly wasActive: boolean;
-    };
-    /** The player's bindings changed (M4 spec §4.5): `action` when one was rebound, none on a reset or a follow. */
-    readonly 'input.bindings.changed': {
-        readonly action?: string;
-    };
-    /** A post filter could not be built or compiled and was left out; the frame draws without it (M4 spec §6). */
-    readonly 'render.filter.dropped': {
-        readonly id: string;
-        readonly reason: string;
-    };
-    /** The WebGL context was lost; the renderer draws nothing until it is restored (M3 spec §5). */
-    readonly 'render.context.lost': Readonly<Record<never, never>>;
-    /**
-     * The WebGL context came back (M3 spec §5): Pixi re-uploads its GPU resources and the renderer draws again; the
-     * views and the sim are untouched.
-     */
-    readonly 'render.context.restored': Readonly<Record<never, never>>;
-    /** A slot's save reached the host (M5 spec §4.3). `key` is the save's prefix (`SaveDef.key`). */
-    readonly 'save.written': {
-        readonly key: string;
-        readonly slot: number;
-    };
-    /** The host refused a slot's write; the slot keeps its previous value (M5 spec §4.3, §6). */
-    readonly 'save.failed': {
-        readonly key: string;
-        readonly slot: number;
-        readonly code: ErrorCode;
-    };
-    /** A slot was loaded for play (M5 spec §5, "Load a slot"). */
-    readonly 'save.loaded': {
-        readonly key: string;
-        readonly slot: number;
-    };
-    /**
-     * Another device changed the slot being played (M5 spec §5, M5-D6). Nothing was reloaded; the game offers Load
-     * newer or Keep playing.
-     */
-    readonly 'save.changedElsewhere': {
-        readonly key: string;
-        readonly slot: number;
-    };
-    /** A submit to `board` changed state: `submitting`, then how the host answered (M5 spec §4.8). */
-    readonly 'leaderboard.submitted': {
-        readonly board: string;
-        readonly state: BoardState;
-    };
-}
 ```
 
 #### `RuntimeHandle` (interface)
@@ -5549,14 +2470,6 @@ interface RuntimeSeams {
 }
 ```
 
-#### `RuntimeServices` (type)
-
-The runtime services a screen's `enter` may use.
-
-```ts
-type RuntimeServices = Hosting | PresentationBus | Time | Flow | Settings | Saves | AppLoop | Assets | GameRenderer | Locale | Audio | AudioBuses | Leaderboards | Haptics;
-```
-
 #### `Save` (interface)
 
 A game's save (M5 spec §4.3): its slots' states, load, write and remove, and the progress `touch` keeps for
@@ -5607,16 +2520,6 @@ interface Save<S> {
 }
 ```
 
-#### `SAVE_STATUS_TONES` (const)
-
-`conflict` points the player at the host's own question (M5 spec §5), so it is a warning, not an error.
-
-```ts
-const SAVE_STATUS_TONES: {
-    readonly [State in SaveStatusState]: SaveStatusTone;
-};
-```
-
 #### `SaveDef` (interface)
 
 A game's save: one record, or a fixed number of slots, each one Ruken key.
@@ -5638,87 +2541,6 @@ interface SaveDef<S> {
     };
     /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer (M5-D10). `{ on: [] }` turns it off. */
     readonly autosave?: AutosavePolicy;
-}
-```
-
-#### `SaveEnvelope` (interface)
-
-What is stored: a self-describing envelope, one Ruken key per slot.
-
-```ts
-interface SaveEnvelope {
-    readonly format: 1;
-    readonly version: number;
-    /** The sim content hash at save time (M2.2). */
-    readonly contentHash: string;
-    /** Effect `Clock` epoch ms, for the slot list; outside the sim. */
-    readonly savedAt: number;
-    readonly label?: string;
-    readonly data: Record<string, unknown>;
-    /** An optional sim snapshot, base64 (M5-D5). */
-    readonly snapshot?: string;
-}
-```
-
-#### `SaveFromNewerBuild` (class)
-
-A slot was saved by a newer build. It is read-only here: nothing migrates, writes or autosaves over it.
-
-```ts
-class SaveFromNewerBuild extends SaveFromNewerBuildBase {
-}
-```
-
-#### `SaveFromNewerBuildFields` (interface)
-
-The fields of `SaveFromNewerBuild`.
-
-```ts
-interface SaveFromNewerBuildFields {
-    readonly key: string;
-    readonly slot: number;
-    /** The version the newer build stored. */
-    readonly version: number;
-}
-```
-
-#### `SaveMigration` (type)
-
-One migration step of a save: version `n` data in, version `n + 1` data out (`SaveDef.migrations`).
-
-```ts
-type SaveMigration = (record: Record<string, unknown>) => Record<string, unknown>;
-```
-
-#### `saveOf` (function)
-
-Returns the booted save when `def.key` matches.
-Dies with a defect if the game booted a different save, or none: asking for a save the game never declared is
-the game's mistake (as `settingsStore` does for settings).
-
-```ts
-function saveOf<S>(def: SaveDef<S>): Effect.Effect<Save<S>, never, Saves>;
-```
-
-#### `SaveRefused` (class)
-
-A write AF refuses on its own: over a save from a newer build (M5 spec §4.3).
-
-```ts
-class SaveRefused extends SaveRefusedBase {
-}
-```
-
-#### `SaveRefusedFields` (interface)
-
-The fields of `SaveRefused`.
-
-```ts
-interface SaveRefusedFields {
-    readonly key: string;
-    readonly slot: number;
-    /** Why AF refused before asking the host. Everything else is the host's to refuse, relayed as a `HostError`. */
-    readonly reason: 'newer';
 }
 ```
 
@@ -5756,25 +2578,6 @@ Checks a saves change.
 const SavesChangedPayloadSchema: z.ZodType<SavesChangedPayload>;
 ```
 
-#### `saveService` (function)
-
-Opens a game's save slots: reads the slot list from the host, then loads, writes and removes slots.
-
-```ts
-function saveService<S>(def: SaveDef<S>, options: SaveServiceOptions): Effect.Effect<Save<S>, HostError, Hosting | PresentationBus | Scope.Scope>;
-```
-
-#### `SaveServiceOptions` (interface)
-
-What the save service stamps on every write and checks on every load.
-
-```ts
-interface SaveServiceOptions {
-    /** The build's sim content hash (`GameDefinition.content.hash`), stamped on each write and compared on load. */
-    readonly contentHash: string;
-}
-```
-
 #### `SavesFlushRes` (interface)
 
 Where a flush left the saves: the host's outbox, its server, or the device's own storage (`'device'`, the `web`,
@@ -5794,109 +2597,6 @@ Checks a flush answer.
 const SavesFlushResSchema: z.ZodType<SavesFlushRes>;
 ```
 
-#### `SaveSlotActivity` (type)
-
-A write the caller has started and not finished, or one that failed.
-
-```ts
-type SaveSlotActivity = 'writing' | 'failed';
-```
-
-#### `SaveSlots` (const)
-
-The save slots (M5 spec §6, §7): a row for each slot, and the few things a player does with one. Rows are chosen,
-not acted on: the chosen row (the newest slot that can be continued, to begin with) decides the actions in the bar
-under the list. Continue for a slot that can be opened, New game for an empty one, and Delete… for any that holds
-something. A save that cannot be opened, or that a newer build made, offers nothing but Delete…, so writing over
-it takes two steps. Delete… asks first, in a dialog whose safe button has focus; the question says so when a newer
-build made the save.
-The rows are in a ScrollList, a declared scroll region, so on a short screen they scroll and the bar stays. A label
-and a time wrap to two lines and are then cut, with the whole text left in the row for assistive technology.
-Nothing here reads a store: the runtime's slots arrive as `view` and the player's choices leave as callbacks.
-
-```ts
-const SaveSlots: import("svelte").Component<Props, {}, "">;
-type SaveSlots = ReturnType<typeof SaveSlots>;
-```
-
-#### `SaveSlotsCopy` (interface)
-
-Every word the list shows, in the game's language (each a PRODUCT.L message key).
-
-```ts
-interface SaveSlotsCopy {
-    /** The list's accessible name. */
-    readonly title: string;
-    readonly loading: string;
-    /** "Slot 3": a slot with no label of its own. */
-    readonly slot: (slot: number) => string;
-    readonly empty: string;
-    /** `unreadable`: "This save can't be opened". */
-    readonly unreadable: string;
-    /** `newer`: "Saved by a newer version of the game". */
-    readonly newer: string;
-    /** `other-content`: saved with other game content; its progress loads, its snapshot does not (M5-D5). */
-    readonly otherContent: string;
-    readonly writing: string;
-    readonly failed: string;
-    /** Continue the chosen slot. */
-    readonly load: string;
-    readonly newGame: string;
-    /** The action that opens the question, with its ellipsis. */
-    readonly delete: string;
-    readonly deleteTitle: string;
-    /** The question's text; `name` is the slot's label or its "Slot N". */
-    readonly deleteBody: (name: string) => string;
-    /** The question's text for a slot a newer build made. */
-    readonly deleteNewerBody: string;
-    /** The confirming button. */
-    readonly deleteConfirm: string;
-    /** The safe button, which takes focus. */
-    readonly cancel: string;
-    /** "+N more", for the rows below the fold. */
-    readonly more: (count: number) => string;
-}
-```
-
-#### `SaveSlotsView` (type)
-
-What the list shows: a moment of loading, or the slots.
-
-```ts
-type SaveSlotsView = {
-    readonly state: 'loading';
-} | {
-    readonly state: 'slots';
-    readonly slots: readonly SaveSlotView[];
-};
-```
-
-#### `SaveSlotView` (type)
-
-One slot, as the list shows it. `savedAt` is a time in milliseconds, kept as the header says.
-
-```ts
-type SaveSlotView = {
-    readonly kind: 'empty';
-    readonly slot: number;
-    readonly activity?: SaveSlotActivity;
-} | {
-    readonly kind: 'ready' | 'other-content';
-    readonly slot: number;
-    readonly savedAt: number;
-    readonly label?: string;
-    readonly activity?: SaveSlotActivity;
-} | {
-    readonly kind: 'unreadable';
-    readonly slot: number;
-    readonly activity?: SaveSlotActivity;
-} | {
-    readonly kind: 'newer';
-    readonly slot: number;
-    readonly activity?: SaveSlotActivity;
-};
-```
-
 #### `SavesStatus` (type)
 
 Where the player's saves stand with the host.
@@ -5911,121 +2611,6 @@ Checks a saves status.
 
 ```ts
 const SavesStatusSchema: z.ZodType<SavesStatus>;
-```
-
-#### `SaveStatus` (const)
-
-The host's save state in words (M5 spec §7): checking, syncing, saved, offline-queued, retry, conflict, recovered, and
-"no grant" for a game that was not given the saves grant ("Progress won't be kept"). It is not focusable. The line is
-a polite live region that stays mounted while the state changes, so a screen reader hears each change.
-With no `status` (the standalone session, where nothing syncs) it renders nothing at all.
-A state that asks for notice (good news or a problem) shows a glyph beside its words, hidden from assistive
-technology, which has the words, so the tone never rests on colour alone.
-
-```ts
-const SaveStatus: import("svelte").Component<Props, {}, "">;
-type SaveStatus = ReturnType<typeof SaveStatus>;
-```
-
-#### `SaveStatusCopy` (type)
-
-One line per state, in the game's language (each a PRODUCT.L message key).
-
-```ts
-type SaveStatusCopy = {
-    readonly [State in SaveStatusState]: string;
-};
-```
-
-#### `SaveStatusState` (type)
-
-What the host says about the player's saves, or that there is no grant.
-
-```ts
-type SaveStatusState = 'checking' | 'syncing' | 'saved' | 'offline-queued' | 'retry' | 'conflict' | 'recovered' | 'no-grant';
-```
-
-#### `SaveStatusTone` (type)
-
-How much a state asks of the player's notice. `info` states are working; the others carry a glyph beside the words.
-
-```ts
-type SaveStatusTone = 'info' | 'success' | 'warning';
-```
-
-#### `SaveUnreadable` (class)
-
-A slot's save cannot be read: a damaged envelope, a missing or throwing migration step, or data its schema refuses
-(M5 spec §6). The slot is kept untouched; only an explicit write replaces it.
-
-```ts
-class SaveUnreadable extends SaveUnreadableBase {
-}
-```
-
-#### `SaveUnreadableFields` (interface)
-
-The fields of `SaveUnreadable`.
-
-```ts
-interface SaveUnreadableFields {
-    /** The save's key prefix (`SaveDef.key`). */
-    readonly key: string;
-    readonly slot: number;
-    readonly reason: string;
-}
-```
-
-#### `SaveWriteOptions` (interface)
-
-Options for `Save.write`: the slot's label on the list, and a sim snapshot to keep with the data.
-
-```ts
-interface SaveWriteOptions {
-    readonly label?: string;
-    readonly snapshot?: Uint8Array;
-}
-```
-
-#### `SceneNode` (interface)
-
-What the consumer needs of a scene node: Pixi's `Container`, or another scene graph's node with the same meaning
-(`@pixi/3d`'s `Container3D`, which is not a Pixi `Container`; M3 spec S7-Q5).
-
-```ts
-interface SceneNode {
-    readonly parent: unknown;
-    removeFromParent(): void;
-}
-```
-
-#### `SceneParent` (interface)
-
-A scene node that holds other nodes: the world the consumer mounts views into.
-
-```ts
-interface SceneParent<C extends SceneNode> {
-    addChild(child: C): unknown;
-}
-```
-
-#### `ScreenContext` (interface)
-
-What a screen's `enter` is given: the layer to mount into, and the screen it came from.
-
-```ts
-interface ScreenContext {
-    readonly layer: HTMLElement;
-    readonly from: string | undefined;
-    /**
-     * The scope of what a game keeps across screens, such as the sim the default screens share (DX.2c). Every screen
-     * of a run gets the same one. It is a child of the runtime scope, not the runtime scope itself. It stays open
-     * through every transition and closes once, when the runtime shuts down or a failed boot is tried again: after the
-     * current screen's scope and the save's last flush, which may still read what it holds, and before the renderer is
-     * destroyed and Hosting closes.
-     */
-    readonly runtime: Scope.Scope;
-}
 ```
 
 #### `ScreenDef` (interface)
@@ -6063,14 +2648,6 @@ frame branches on either. The body is the `af-screen` size container its content
 ```ts
 const ScreenFrame: import("svelte").Component<Props, {}, "">;
 type ScreenFrame = ReturnType<typeof ScreenFrame>;
-```
-
-#### `ScreenKind` (type)
-
-A screen's kind (`ScreenDef.kind`): only `gameplay` may hide the pointer.
-
-```ts
-type ScreenKind = 'menu' | 'gameplay';
 ```
 
 #### `ScreensCopy` (interface)
@@ -6191,35 +2768,6 @@ const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
 ```
 
-#### `scrollWithin` (function)
-
-Brings `element` into view by scrolling its nearest scroll box, never the document.
-
-```ts
-function scrollWithin(element: HTMLElement): void;
-```
-
-#### `selectPlural` (function)
-
-The form for a count. A category the caller did not give falls back to `other`, which is required.
-
-```ts
-function selectPlural(locale: string, count: number, forms: Partial<Record<Intl.LDMLPluralRule, string>> & {
-    readonly other: string;
-}): string;
-```
-
-#### `sendBack` (function)
-
-Sends Back as an Escape to wherever a dialog would hear it, and reports
-whether anything took it. A tap on a dialog's backdrop leaves focus on the
-body, where the dialog's own Escape listener never hears a key, so an open
-dialog is sent it directly.
-
-```ts
-function sendBack(doc: Document): boolean;
-```
-
 #### `Settings` (interface)
 
 The booted game's settings as a runtime service: its key and store, both undefined for a game without
@@ -6255,22 +2803,6 @@ interface SettingsDef<S> {
 }
 ```
 
-#### `SettingsScreen` (const)
-
-The core Settings screen (M4 spec §4.8, M4-D8), laid out and behaving as FloorFifty's settings
-(`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and
-function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as
-one dialog changing its view. Tabs stay put and the chosen tab's sections scroll under them in one list that counts
-what is below; Back sits under the dialog, and Escape and the dialog's Close go back too. Where the dialog is 560 px
-wide (it widens on a short band) the sections go two across. The default screens give it Display and Controls;
-extensions add theirs to the Settings tab through the `settings.sections` slot. A kit's styled screen replaces it
-by flow (PRODUCT.6).
-
-```ts
-const SettingsScreen: import("svelte").Component<Props, {}, "">;
-type SettingsScreen = ReturnType<typeof SettingsScreen>;
-```
-
 #### `SettingsScreenCopy` (interface)
 
 The Settings screen's own words: its title, Back, the tabs and the overflow count.
@@ -6286,30 +2818,6 @@ interface SettingsScreenCopy {
 }
 ```
 
-#### `SettingsSection` (type)
-
-A section of the Settings screen: the screen's own snippet, or an extension's slot component.
-
-```ts
-type SettingsSection = {
-    readonly snippet: Snippet;
-} | {
-    readonly component: UiComponent;
-};
-```
-
-#### `SettingsStore` (interface)
-
-A game's settings value: read it, subscribe to changes, and update it (each update is saved).
-
-```ts
-interface SettingsStore<S> {
-    get(): S;
-    subscribe(listener: (value: S) => void): () => void;
-    update(change: (value: S) => S): void;
-}
-```
-
 #### `settingsStore` (function)
 
 Returns the booted settings store when def.key matches.
@@ -6317,45 +2825,6 @@ Dies with a defect if requested key does not match booted key (planning note 7).
 
 ```ts
 function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, Settings>;
-```
-
-#### `SettingsTab` (interface)
-
-A tab of the Settings screen (FloorFifty's Settings and Controls): its label and its sections, in order.
-
-```ts
-interface SettingsTab {
-    readonly id: string;
-    readonly label: string;
-    readonly sections: readonly SettingsSection[];
-}
-```
-
-#### `SETTLE_DELAYS_MS` (const)
-
-When to measure again after a viewport event, in ms. A browser's bars and keyboard animate,
-and the event can fire before the sizes stop moving: on an Android emulator the keyboard closed,
-the last event fired mid-animation, and the inset was left at the keyboard's height with no
-further event to correct it (FloorFifty). Each re-measure is only a read and a style write.
-
-```ts
-const SETTLE_DELAYS_MS: readonly number[];
-```
-
-#### `SHAKE_DECAY` (const)
-
-Trauma lost per second: a full shake (1) is gone in 2/3 s.
-
-```ts
-const SHAKE_DECAY = 1.5;
-```
-
-#### `SHAKE_MAX_OFFSET` (const)
-
-The largest shake offset per axis, in logical px, at trauma 1.
-
-```ts
-const SHAKE_MAX_OFFSET = 8;
 ```
 
 #### `Sheet` (const)
@@ -6366,14 +2835,6 @@ scroll region, where a thumb reaches the actions. Settings' sub-pages and a "mor
 ```ts
 const Sheet: import("svelte").Component<ModalProps, {}, "">;
 type Sheet = ReturnType<typeof Sheet>;
-```
-
-#### `SHORT_MAX_HEIGHT` (const)
-
-At or below this many CSS px of layout height, a screen is short.
-
-```ts
-const SHORT_MAX_HEIGHT = 600;
 ```
 
 #### `Sim` (interface)
@@ -6441,46 +2902,6 @@ interface SimContext {
 }
 ```
 
-#### `Sleeper` (type)
-
-Puts the game's sound to sleep while nobody can see it.
-
-Locking a phone left a game's music playing. A hidden page is the signal
-every browser gives for that, a backgrounded tab and a switched-away app
-alike; `pagehide` and `freeze` cover the browsers that pause a page without
-reporting it hidden first. The render loop needs nothing here: browsers
-already stop animation frames for a hidden page.
-
-A window that only loses focus stays awake. The page is still in view --
-a second monitor, a chat app over the corner -- and an online game goes on
-whether the player is clicked into it or not, so its sound does too.
-
-Waking and sleeping on Ruken's `lifecycle` belongs to the runtime, over
-`Hosting` (M1.5); this module is the browser half only.
-
-Every gesture also asks the sound to come back from an interruption the
-page was never told about: a call or Siri on a phone suspends the graph
-while the page stays visible, and only a gesture may resume it.
-
-```ts
-type Sleeper = {
-    sleep(): Promise<void>;
-    wake(): Promise<void>;
-    /** Resumes a graph the system suspended; for example an `AudioContext` the system suspended. */
-    resumeOnGesture?(): Promise<void>;
-};
-```
-
-#### `sleepWhenHidden` (function)
-
-Puts a game's sound to sleep while its page is hidden and wakes it when the page shows again; a pointer,
-touch or key gesture also asks sound the system suspended to resume. A window that only loses focus stays
-awake. Returns a function that removes the listeners.
-
-```ts
-function sleepWhenHidden(doc: Document, sleeper: Sleeper, win?: Window): () => void;
-```
-
 #### `Slider` (const)
 
 A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser
@@ -6493,84 +2914,6 @@ const Slider: import("svelte").Component<Props, {}, "">;
 type Slider = ReturnType<typeof Slider>;
 ```
 
-#### `slotActionsOf` (function)
-
-What a player may do with a slot (M5 spec §6). A slot that cannot be opened, or that a newer build made, can only be
-deleted: writing over it is two steps, delete then New game, so it is never one tap.
-
-```ts
-function slotActionsOf(slot: SaveSlotView): {
-    readonly load: boolean;
-    readonly newGame: boolean;
-    readonly remove: boolean;
-};
-```
-
-#### `SlotMeta` (interface)
-
-A slot's header, read without migrating it.
-
-```ts
-interface SlotMeta {
-    readonly version: number;
-    readonly contentHash: string;
-    readonly savedAt: number;
-    readonly label?: string;
-    /** Whether the save carries a sim snapshot. */
-    readonly snapshot: boolean;
-}
-```
-
-#### `SlotState` (type)
-
-What a slot holds, as the slot list shows it (M5 spec §4.3, §6).
-
-```ts
-type SlotState = {
-    readonly kind: 'empty';
-    readonly slot: number;
-} | {
-    readonly kind: 'ready';
-    readonly slot: number;
-    readonly meta: SlotMeta;
-} | {
-    readonly kind: 'unreadable';
-    readonly slot: number;
-    readonly reason: string;
-} | {
-    readonly kind: 'newer';
-    readonly slot: number;
-    readonly version: number;
-}
-/** A snapshot taken with other content: only its data loads (M5-D5). */
- | {
-    readonly kind: 'other-content';
-    readonly slot: number;
-    readonly meta: SlotMeta;
-};
-```
-
-#### `SLOW_MS` (const)
-
-After this long, in ms, a download still running is reported slow (the loader says so).
-
-```ts
-const SLOW_MS = 8000;
-```
-
-#### `SoundOptions` (interface)
-
-Options for `Audio.sound`: the bus (default `sfx`), a gain and a playback rate.
-
-```ts
-interface SoundOptions {
-    /** `sfx` by default. */
-    readonly bus?: AudioBusName;
-    readonly gain?: number;
-    readonly rate?: number;
-}
-```
-
 #### `Split` (const)
 
 Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty
@@ -6580,15 +2923,6 @@ until the first measurement, so a pane never starts squeezed.
 ```ts
 const Split: import("svelte").Component<Props, {}, "">;
 type Split = ReturnType<typeof Split>;
-```
-
-#### `splitMode` (function)
-
-Split's choice (M4 spec §4.8; from FloorFifty `ui/layout/split.ts` at `ac72660`): side by side when both
-columns and the gap between them fit at their minimum, stacked otherwise.
-
-```ts
-function splitMode(available: number, min: number, gap: number): 'row' | 'stack';
 ```
 
 #### `sprite` (function)
@@ -6636,23 +2970,6 @@ interface SpriteViewOptions {
 }
 ```
 
-#### `STALL_MS` (const)
-
-A download that makes no progress for this long, in ms, fails `LoadStalled`.
-
-```ts
-const STALL_MS = 30000;
-```
-
-#### `STANDARD_PAD_BUTTON_MAX` (const)
-
-The highest button index of the W3C Gamepad standard mapping (0 = bottom face button … 16 = home). Only the
-standard mapping is bound (DX spec §3.3); a pad without it is the device layer's to normalize.
-
-```ts
-const STANDARD_PAD_BUTTON_MAX = 16;
-```
-
 #### `startGame` (function)
 
 Boots a game (DX spec §3.1): `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting
@@ -6680,38 +2997,12 @@ interface StepResult {
 }
 ```
 
-#### `StickDirection` (type)
-
-A stick pushed past its dead zone in one direction (M4.2 reads them).
-
-```ts
-type StickDirection = (typeof STICK_DIRECTIONS)[number];
-```
-
 #### `STICKY_MARGIN_PX` (const)
 
 How far outside a button a thumb still counts for it, in CSS pixels.
 
 ```ts
 const STICKY_MARGIN_PX = 24;
-```
-
-#### `StickyPointers` (class)
-
-Which button each finger is on, over the latch. A finger owns one button at a time: moving onto another releases
-the first and presses the second; moving onto nothing keeps what it owns.
-
-```ts
-class StickyPointers {
-    private readonly latch;
-    private readonly owned;
-    constructor(latch: PointerLatch);
-    /** A finger landed on `action` (or on nothing); true when it pressed a button. */
-    down(pointerId: number, action: string | undefined): boolean;
-    move(pointerId: number, action: string | undefined): void;
-    up(pointerId: number): void;
-    releaseAll(): void;
-}
 ```
 
 #### `SubscriptionEntitlement` (interface)
@@ -6745,104 +3036,6 @@ text can be pasted from a message.
 function suppressPageGestures(doc: Document): () => void;
 ```
 
-#### `SwipeIndicator` (interface)
-
-What a swipe indicator draws: the anchor, the thumb, and whether the thumb is steering.
-
-```ts
-interface SwipeIndicator {
-    readonly anchor: {
-        readonly x: number;
-        readonly y: number;
-    };
-    readonly thumb: {
-        readonly x: number;
-        readonly y: number;
-    };
-    /** Outside the dead zone on either axis. */
-    readonly steering: boolean;
-}
-```
-
-#### `SwipeIndicatorView` (interface)
-
-What a SwipeSurface draws: the thumb, the anchor it trails and whether it is past the dead zone.
-
-```ts
-interface SwipeIndicatorView {
-    readonly anchor: {
-        readonly x: number;
-        readonly y: number;
-    };
-    readonly thumb: {
-        readonly x: number;
-        readonly y: number;
-    };
-    readonly steering: boolean;
-}
-```
-
-#### `SwipeSurface` (const)
-
-The whole visible screen as one swipe surface (M4 spec §4.4), from FloorFifty `ui/components/SwipeSurface.svelte`
-at `ac72660`.
-
-All bookkeeping is the tracker's (runtime `SwipeTracker`); this forwards pointer events, each with its own
-`timeStamp`, and draws a thin thumb-to-anchor line so the player can see the dead zone. Which fingers may steer
-is the game's rule (`steers`); any finger may flick or tap. Controls a screen draws above this surface keep their
-taps. Pointer only, never in the focus order.
-
-```ts
-const SwipeSurface: import("svelte").Component<SwipeSurfaceProps, {}, "">;
-type SwipeSurface = ReturnType<typeof SwipeSurface>;
-```
-
-#### `SwipeSurfaceProps` (interface)
-
-SwipeSurface's props.
-
-```ts
-interface SwipeSurfaceProps {
-    tracker: PointerTracker;
-    /** Whether a finger landing at (x, y) may steer; any finger may flick or tap. Default: every finger. */
-    steers?: ((x: number, y: number) => boolean) | undefined;
-    testId?: string | undefined;
-}
-```
-
-#### `SwipeTracker` (class)
-
-Turns pointer samples into held swipes, flicks and taps for a `GestureSink` (M4 spec §4.4); it reads no
-clock and touches no DOM.
-
-```ts
-class SwipeTracker {
-    private readonly sink;
-    readonly tuning: GestureTuning;
-    private readonly fingers;
-    private steerer;
-    private readonly anchor;
-    private readonly thumb;
-    private readonly direction;
-    constructor(sink: GestureSink, tuning?: Partial<GestureTuning>);
-    /** Where the thumb indicator draws, or undefined while no finger steers. */
-    get indicator(): SwipeIndicator | undefined;
-    /** A finger landed. The first one that may steer steers; every one may flick or tap. */
-    down(id: number, x: number, y: number, t: number, options?: {
-        readonly steers?: boolean;
-    }): void;
-    /** A finger moved: look for a downward flick, and steer if it is the steerer. */
-    move(id: number, x: number, y: number, t: number): void;
-    /** A finger lifted: a tap if it was quick and still; stop steering if it steered. */
-    up(id: number, _x: number, _y: number, t: number): void;
-    /** The browser took the pointers (pointercancel, lost capture of every finger): release everything. */
-    cancel(): void;
-    private steer;
-    private stopSteering;
-    private setDirection;
-}
-```
-
 #### `SystemDef` (interface)
 
 A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and
@@ -6859,14 +3052,6 @@ interface SystemDef {
 }
 ```
 
-#### `tabbables` (function)
-
-Everything Tab can reach under `root`, in DOM order: not disabled, inert or hidden.
-
-```ts
-function tabbables(root: ParentNode): HTMLElement[];
-```
-
 #### `TAURI_MARKERS` (const)
 
 String literals only Tauri's IPC code contains, which survive minification: the global the webview injects
@@ -6876,31 +3061,6 @@ both; a `web`, `itch` or `ruken` build holds neither (DIST spec §5.3). Re-check
 
 ```ts
 const TAURI_MARKERS: readonly string[];
-```
-
-#### `textDirection` (function)
-
-Text direction from the locale's script: the explicit script subtag, else the likely one CLDR adds
-(`ar` → `Arab`). Read from `Intl.Locale#maximize`, not `getTextInfo`, which not every engine has, so
-every engine gives the same answer.
-
-```ts
-function textDirection(locale: string): 'ltr' | 'rtl';
-```
-
-#### `tileSide` (function)
-
-A square tile's side for the space a grid is given: the width shared by the columns and the `peek` (a fraction
-of a tile) of the next page showing at the edge, and the height only when the box has one. A grid laid in a
-content-sized panel passes an infinite height, because a height measured from its own tiles would only ever
-confirm the smallest tile. Clamped to `min`..`max`.
-
-```ts
-function tileSide(shape: GridShape, box: GridBox, gap: number, limits: {
-    readonly peek: number;
-    readonly min: number;
-    readonly max: number;
-}): number;
 ```
 
 #### `Time` (interface)
@@ -6915,17 +3075,6 @@ interface Time {
     resume(reason: PauseReason): void;
 }
 const Time: Context.Tag<Time, Time>;
-```
-
-#### `Timers` (interface)
-
-Injected so tests drive the settle delays with fake timers.
-
-```ts
-interface Timers {
-    set(callback: () => void, ms: number): unknown;
-    clear(handle: unknown): void;
-}
 ```
 
 #### `Toast` (const)
@@ -6976,25 +3125,6 @@ interface TouchButton {
 }
 ```
 
-#### `TouchButtonSpec` (interface)
-
-One on-screen touch button (M4 spec §4.4): the action it holds and what it shows.
-
-```ts
-interface TouchButtonSpec {
-    /** The profile's action id; also the button's `data-testid`. */
-    readonly action: string;
-    /** The button's face. */
-    readonly label: string;
-    /** Its name for assistive technology, where the face is a symbol. Default: the label. */
-    readonly ariaLabel?: string | undefined;
-    /** Which lower corner's group it sits in. Default `start`. */
-    readonly side?: 'start' | 'end' | undefined;
-    /** The game cannot be played without it: where the buttons do not all fit, only these show (M4.7). */
-    readonly required?: boolean | undefined;
-}
-```
-
 #### `TouchControls` (const)
 
 The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
@@ -7013,132 +3143,12 @@ const TouchControls: import("svelte").Component<TouchControlsProps, {}, "">;
 type TouchControls = ReturnType<typeof TouchControls>;
 ```
 
-#### `TouchControlsProps` (interface)
-
-TouchControls' props.
-
-```ts
-interface TouchControlsProps {
-    buttons: readonly TouchButtonSpec[];
-    /** An action's first finger landed. */
-    onhold: (action: string) => void;
-    /** An action's last finger lifted, or the controls hid or came down while it was held. */
-    onrelease: (action: string) => void;
-    /** False hides the controls without remounting them (the player put touch down). Default true. */
-    shown?: boolean | undefined;
-    /**
-     * A floating move stick at the overlay's start (M4.12): its accessible name. None draws no stick, as in 2D. The
-     * stick is always shown: the reduced set never drops it.
-     */
-    stick?: TouchStickSpec | undefined;
-    /** The stick's vector as the thumb moves, clamped to length 1, `y` positive down (runtime's `Input.touchStick.set`). */
-    onstick?: ((x: number, y: number) => void) | undefined;
-    /** The stick let go: a lift, a cancel, the controls hiding or coming down (`Input.touchStick.release`). */
-    onstickend?: (() => void) | undefined;
-    testId?: string | undefined;
-}
-```
-
-#### `TouchCopy` (interface)
-
-Every word the Touch controls group shows, in the game's language.
-
-```ts
-interface TouchCopy {
-    readonly title: string;
-    /** The mode choice's name. */
-    readonly mode: string;
-    readonly modes: Readonly<Record<ControlsTouchMode, string>>;
-}
-```
-
-#### `TouchMode` (type)
-
-How touch drives play: the on-screen buttons, or swipes and flicks over the whole screen (M4 spec §4.4).
-
-```ts
-type TouchMode = 'buttons' | 'swipe';
-```
-
-#### `touchModesFor` (function)
-
-The touch modes a profile offers: `buttons` when an action binds `touch`, `swipe` when one binds a swipe, flick or
-tap. The camera drag works beside the buttons, so it offers no mode of its own.
-
-```ts
-function touchModesFor(profile: InputProfile): TouchMode[];
-```
-
-#### `TouchSection` (const)
-
-The Touch controls group of the Settings tab (FloorFifty `SettingsPanel.svelte` at a28dc44): how touch drives play,
-on-screen buttons or swipes, as an option group. The game shows it on a coarse pointer when it offers both modes.
-
-```ts
-const TouchSection: import("svelte").Component<Props, {}, "">;
-type TouchSection = ReturnType<typeof TouchSection>;
-```
-
-#### `TouchStickSink` (interface)
-
-Where the overlay's move stick goes: a vector clamped to length 1, y positive down, as a pad's axes.
-
-```ts
-interface TouchStickSink {
-    set(x: number, y: number): void;
-    release(): void;
-}
-```
-
-#### `TouchStickSpec` (interface)
-
-The overlay's move stick (M4.12).
-
-```ts
-interface TouchStickSpec {
-    /** Its name for assistive technology ("Move"). */
-    readonly label: string;
-}
-```
-
-#### `TouchTarget` (interface)
-
-A button's action and where it is drawn, for `nearestTarget`.
-
-```ts
-interface TouchTarget {
-    readonly action: string;
-    readonly rect: {
-        readonly left: number;
-        readonly top: number;
-        readonly right: number;
-        readonly bottom: number;
-    };
-}
-```
-
 #### `Translate` (type)
 
 The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 
 ```ts
 type Translate<Messages> = <K extends keyof Messages & string>(key: K, ...inputs: InputsOf<Messages[K]>) => string;
-```
-
-#### `trimRows` (function)
-
-The shape cut to the rows the largest group fills, so no page carries a row of empty slots.
-
-```ts
-function trimRows<T>(shape: GridShape, groups: readonly PageGroup<T>[]): GridShape;
-```
-
-#### `TURN_UNITS_PER_TURN` (const)
-
-Turn units in a full turn: the heading wraps here.
-
-```ts
-const TURN_UNITS_PER_TURN = 65536;
 ```
 
 #### `turnUnitsFromPixels` (function)
@@ -7159,69 +3169,6 @@ Safe because PresentationBus stores facts dynamically by string key.
 
 ```ts
 function typedBus<GameFacts>(bus: PresentationBus<object>): PresentationBus<GameFacts>;
-```
-
-#### `UI_SLOT_NAMES` (const)
-
-The named places an extension may add UI (M1 shared contracts §2; M1.6 spec §3.7).
-
-Closed: an extension cannot add a slot. The screens that render each slot arrive with those
-screens (title and pause in M1.5, settings and HUD in M4, the debug overlay in M6).
-
-```ts
-const UI_SLOT_NAMES: readonly ["title.actions", "pause.actions", "settings.sections", "hud.overlay", "debug.panels"];
-```
-
-#### `UiComponent` (type)
-
-What an extension puts in a slot: a Svelte component that takes no props.
-
-```ts
-type UiComponent = Component<Record<string, never>>;
-```
-
-#### `UiSlotName` (type)
-
-The name of a place an extension may add UI: one of `UI_SLOT_NAMES`.
-
-```ts
-type UiSlotName = (typeof UI_SLOT_NAMES)[number];
-```
-
-#### `VibrationCopy` (interface)
-
-Every word the Vibration group shows, in the game's language.
-
-```ts
-interface VibrationCopy {
-    readonly title: string;
-    /** The toggle's name: a pad's rumble and a phone's buzz together. */
-    readonly toggle: string;
-    readonly on: string;
-    readonly off: string;
-}
-```
-
-#### `VibrationSection` (const)
-
-The Vibration group of the Settings tab (Owner, 2026-10-18; FloorFifty's rumble row in `SettingsPanel.svelte` at
-a28dc44): one toggle for a pad's rumble and a phone's buzz (`Haptics`). The game shows it only where the device can
-do either (`Haptics.supported`), so it never offers a switch that does nothing.
-
-```ts
-const VibrationSection: import("svelte").Component<Props, {}, "">;
-type VibrationSection = ReturnType<typeof VibrationSection>;
-```
-
-#### `ViewAnchor` (type)
-
-Where the view's own box sits on its position: 0 = left/top, 0.5 = centre, 1 = right/bottom.
-
-```ts
-type ViewAnchor = number | {
-    readonly x: number;
-    readonly y: number;
-};
 ```
 
 #### `ViewportWindow` (interface)
@@ -7247,53 +3194,6 @@ interface ViewportWindow {
     addEventListener: Listen;
     removeEventListener: Listen;
 }
-```
-
-#### `watchImage` (function)
-
-Probes `src` and, while it fails, hands `onRetry` each retry's URL to draw
-instead. Returns the stop.
-
-```ts
-function watchImage(src: string, onRetry: (url: string) => void, timers?: RetryTimers): () => void;
-```
-
-#### `WGSL_FILTER_HEADER` (const)
-
-The WGSL counterpart of `FILTER_VERTEX`: the filter uniforms and bindings and the vertex stage, which
-passes the pixel position to the fragment stage.
-
-```ts
-const WGSL_FILTER_HEADER = "\nstruct GlobalFilterUniforms {\n    uInputSize: vec4<f32>,\n    uInputPixel: vec4<f32>,\n    uInputClamp: vec4<f32>,\n    uOutputFrame: vec4<f32>,\n    uGlobalFrame: vec4<f32>,\n    uOutputTexture: vec4<f32>,\n};\n\n@group(0) @binding(0) var<uniform> gfu: GlobalFilterUniforms;\n@group(0) @binding(1) var uTexture: texture_2d<f32>;\n@group(0) @binding(2) var uSampler: sampler;\n\nstruct VSOutput {\n    @builtin(position) position: vec4<f32>,\n    @location(0) uv: vec2<f32>,\n    @location(1) pixelCoord: vec2<f32>,\n};\n\nfn filterVertexPosition(aPosition: vec2<f32>, gfu: GlobalFilterUniforms) -> vec4<f32> {\n    var position = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n    position.x = position.x * (2.0 / gfu.uOutputTexture.x) - 1.0;\n    position.y = position.y * (2.0 * gfu.uOutputTexture.z / gfu.uOutputTexture.y) - gfu.uOutputTexture.z;\n    return vec4(position, 0.0, 1.0);\n}\n\nfn filterTextureCoord(aPosition: vec2<f32>, gfu: GlobalFilterUniforms) -> vec2<f32> {\n    return aPosition * (gfu.uOutputFrame.zw * gfu.uInputSize.zw);\n}\n\n@vertex\nfn mainVertex(@location(0) aPosition: vec2<f32>, @builtin(instance_index) instanceIndex: u32) -> VSOutput {\n    var output: VSOutput;\n    output.position = filterVertexPosition(aPosition, gfu);\n    output.uv = filterTextureCoord(aPosition, gfu);\n    output.pixelCoord = aPosition * gfu.uOutputFrame.zw + gfu.uOutputFrame.xy;\n    return output;\n}\n";
-```
-
-#### `WheelPager` (class)
-
-A trackpad's horizontal wheel deltas, one page per gesture; `reset` when the gesture goes quiet.
-
-```ts
-class WheelPager {
-    private travel;
-    private spent;
-    push(deltaX: number, deltaY: number): -1 | 0 | 1;
-    reset(): void;
-}
-```
-
-#### `withHostName` (function)
-
-Fills the `{host}` slot of a copy string with the host's name. Copy without the slot is returned as is.
-
-```ts
-function withHostName(text: string, hostName: string): string;
-```
-
-#### `wrapPage` (function)
-
-`index` wrapped into `0..count - 1`, so paging past either end comes round.
-
-```ts
-function wrapPage(index: number, count: number): number;
 ```
 
 ### `import { … } from '@mcthaydt/automata/extension'`

@@ -565,10 +565,10 @@ Then:
 
 ### Task 6.4: The surface
 
-- [ ] **Step 1:** Run the codemod's surface report over Emberwick, the examples, 3D and the editors. Every export
+- [x] **Step 1:** Run the codemod's surface report over Emberwick, the examples, 3D and the editors. Every export
   of `@mcthaydt/automata` that none of them imports is removed (or made internal), unless it is part of a documented
   API in `docs/guides/` (list those, then decide each in the execution log).
-- [ ] **Step 2:** API report, changeset (`patch`, listing what left). Record the export count before and after in
+- [x] **Step 2:** API report, changeset (`patch`, listing what left). Record the export count before and after in
   `progress.md`
   (audit: 1,042 across twelve packages). Open the PR, green, merge.
 
@@ -905,3 +905,13 @@ the features it lacks are journeyed on the one-file examples that show them:
   Emberwick is a plain package root; `ci.yml`'s `emberwick` job has no `sim-roots` (the step is skipped inside this repository
   and `pnpm boundaries` covers the sim by suffix and import). Tests pass: Emberwick 109 unit, tools 669, check-style 72,
   check-boundaries 145; `pnpm boundaries`, `style`, `knip`, typecheck pass.
+- **Task 6.4, fourth session, 2026-11-05.** The codemod's surface report reads old entries, which are gone, so the report was
+  rebuilt as a script over the API report and every `import … from '@mcthaydt/automata[/entry]'` outside the package
+  (scratch script, not kept): of the 600 root names, 480 were imported by nothing. Deviations: (59) Only the root entry was cut
+  (600 → 271); `/testing`, `/extension` and `/target` keep their lists (their consumers are tests and the Plus repository,
+  which this repository cannot see). Kept besides the imported names: the define verbs and the `defineGame` types (the
+  "one import"), the host contract (`export *`, the vocabulary every target shares), the seams `public-seams.test.ts` pins, the
+  names `entries/*` tests import, and `Translate` (a retained export's declared type). (60) The per-old-package export-list
+  tests (`from-render-pixi`, `from-runtime`, `from-ui`; 92 tests) are deleted: the API report pins the surface now.
+  `AudioLive` and `audioLayer` had no user and are deleted. Repo-wide typecheck, `knip`, `api-report` (0 breaks, 0 undeclared),
+  automata unit tests (1,830) pass. Export counts (API reports): automata 600 → 271; the ten reports 2,109 → 1,780.

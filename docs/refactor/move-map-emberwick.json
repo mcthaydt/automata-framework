@@ -1,216 +1,214 @@
 {
- "sources": [
-  "games/emberwick"
- ],
- "moves": [
-  {
-   "from": "games/emberwick/src/game.ts",
-   "to": "games/emberwick/src/app/game.ts"
-  },
-  {
-   "from": "games/emberwick/src/make-game.ts",
-   "to": "games/emberwick/src/app/make-game.ts"
-  },
-  {
-   "from": "games/emberwick/src/base-sim.ts",
-   "to": "games/emberwick/src/app/base-sim.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/emberwick.plugin.ts",
-   "to": "games/emberwick/src/app/emberwick.plugin.ts"
-  },
-  {
-   "from": "games/emberwick/src/game-entry.ts",
-   "to": "games/emberwick/src/entries/game.ts"
-  },
-  {
-   "from": "games/emberwick/src/no-eval.ts",
-   "to": "games/emberwick/src/entries/no-eval.ts"
-  },
-  {
-   "from": "games/emberwick/src/index.ts",
-   "to": "games/emberwick/src/entries/index.ts"
-  },
-  {
-   "from": "games/emberwick/src/render/index.ts",
-   "to": "games/emberwick/src/entries/render.ts"
-  },
-  {
-   "from": "games/emberwick/src/game-id.ts",
-   "to": "games/emberwick/src/shared/game-id.ts"
-  },
-  {
-   "from": "games/emberwick/src/assets.d.ts",
-   "to": "games/emberwick/src/shared/assets.d.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/tuning.ts",
-   "to": "games/emberwick/src/shared/tuning.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/tiles.ts",
-   "to": "games/emberwick/src/shared/tiles.ts"
-  },
-  {
-   "from": "games/emberwick/src/content/room.ts",
-   "to": "games/emberwick/src/shared/room.ts"
-  },
-  {
-   "from": "games/emberwick/src/content/kinds.ts",
-   "to": "games/emberwick/src/shared/kinds.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/player.component.ts",
-   "to": "games/emberwick/src/shared/player.component.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/player.event.ts",
-   "to": "games/emberwick/src/shared/player.event.ts"
-  },
-  {
-   "from": "games/emberwick/src/art",
-   "to": "games/emberwick/src/shared/art"
-  },
-  {
-   "from": "games/emberwick/src/render/pixels.ts",
-   "to": "games/emberwick/src/shared/pixels.ts"
-  },
-  {
-   "from": "games/emberwick/src/render/light-levels.ts",
-   "to": "games/emberwick/src/shared/light-levels.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/player-input.system.ts",
-   "to": "games/emberwick/src/features/player/player-input.system.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/player-move.system.ts",
-   "to": "games/emberwick/src/features/player/player-move.system.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/move.command.ts",
-   "to": "games/emberwick/src/features/player/move.command.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/place-wick.ts",
-   "to": "games/emberwick/src/features/player/place-wick.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/goal.system.ts",
-   "to": "games/emberwick/src/features/goal/goal.system.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/progress.resource.ts",
-   "to": "games/emberwick/src/features/goal/progress.resource.ts"
-  },
-  {
-   "from": "games/emberwick/src/content/emberwick-content.ts",
-   "to": "games/emberwick/src/features/room/emberwick-content.ts"
-  },
-  {
-   "from": "games/emberwick/src/content/level-room.ts",
-   "to": "games/emberwick/src/features/room/level-room.ts"
-  },
-  {
-   "from": "games/emberwick/src/render/scene-renderer.ts",
-   "to": "games/emberwick/src/features/scene/scene-renderer.ts"
-  },
-  {
-   "from": "games/emberwick/src/render/scene.ts",
-   "to": "games/emberwick/src/features/scene/scene.ts"
-  },
-  {
-   "from": "games/emberwick/src/render/backdrop.ts",
-   "to": "games/emberwick/src/features/scene/backdrop.ts"
-  },
-  {
-   "from": "games/emberwick/src/render/particles.ts",
-   "to": "games/emberwick/src/features/scene/particles.ts"
-  },
-  {
-   "from": "games/emberwick/src/render/tiles.ts",
-   "to": "games/emberwick/src/features/scene/tiles.ts"
-  },
-  {
-   "from": "games/emberwick/src/screens/emberwick-screens.ts",
-   "to": "games/emberwick/src/features/screens/emberwick-screens.ts"
-  },
-  {
-   "from": "games/emberwick/src/flow.ts",
-   "to": "games/emberwick/src/features/screens/flow.ts"
-  },
-  {
-   "from": "games/emberwick/src/golden.ts",
-   "to": "games/emberwick/src/testing/golden.ts"
-  },
-  {
-   "from": "games/emberwick/src/golden-run.ts",
-   "to": "games/emberwick/src/testing/golden-run.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/art/art.test.ts",
-   "to": "games/emberwick/tests/unit/shared/art/art.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/content/level-room.test.ts",
-   "to": "games/emberwick/tests/unit/room/level-room.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/content/room.test.ts",
-   "to": "games/emberwick/tests/unit/shared/room.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/flow.test.ts",
-   "to": "games/emberwick/tests/unit/screens/flow.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/golden.test.ts",
-   "to": "games/emberwick/tests/unit/golden/golden.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/golden-equivalence.test.ts",
-   "to": "games/emberwick/tests/unit/golden/golden-equivalence.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/render/light-levels.test.ts",
-   "to": "games/emberwick/tests/unit/shared/light-levels.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/render/tiles.test.ts",
-   "to": "games/emberwick/tests/unit/scene/tiles.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/screens/screens.test.ts",
-   "to": "games/emberwick/tests/unit/screens/screens.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/sim/movement.test.ts",
-   "to": "games/emberwick/tests/unit/player/movement.test.ts"
-  },
-  {
-   "from": "games/emberwick/src/sim/index.ts",
-   "to": "games/emberwick/src/entries/sim.ts"
-  },
-  {
-   "from": "games/emberwick/tests/e2e",
-   "to": "games/emberwick/tests/e2e"
-  },
-  {
-   "from": "games/emberwick/tests/unit/exports.test.ts",
-   "to": "games/emberwick/tests/unit/exports.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/plumbing.test.ts",
-   "to": "games/emberwick/tests/unit/plumbing.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/ship-config.test.ts",
-   "to": "games/emberwick/tests/unit/ship-config.test.ts"
-  },
-  {
-   "from": "games/emberwick/tests/unit/vite-config.test.ts",
-   "to": "games/emberwick/tests/unit/vite-config.test.ts"
-  }
- ],
- "entries": {}
+  "sources": ["games/emberwick"],
+  "moves": [
+    {
+      "from": "games/emberwick/src/game.ts",
+      "to": "games/emberwick/src/app/game.ts"
+    },
+    {
+      "from": "games/emberwick/src/make-game.ts",
+      "to": "games/emberwick/src/app/make-game.ts"
+    },
+    {
+      "from": "games/emberwick/src/base-sim.ts",
+      "to": "games/emberwick/src/app/base-sim.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/emberwick.plugin.ts",
+      "to": "games/emberwick/src/app/emberwick.plugin.ts"
+    },
+    {
+      "from": "games/emberwick/src/game-entry.ts",
+      "to": "games/emberwick/src/entries/game.ts"
+    },
+    {
+      "from": "games/emberwick/src/no-eval.ts",
+      "to": "games/emberwick/src/entries/no-eval.ts"
+    },
+    {
+      "from": "games/emberwick/src/index.ts",
+      "to": "games/emberwick/src/entries/index.ts"
+    },
+    {
+      "from": "games/emberwick/src/render/index.ts",
+      "to": "games/emberwick/src/entries/render.ts"
+    },
+    {
+      "from": "games/emberwick/src/game-id.ts",
+      "to": "games/emberwick/src/shared/game-id.ts"
+    },
+    {
+      "from": "games/emberwick/src/assets.d.ts",
+      "to": "games/emberwick/src/shared/assets.d.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/tuning.ts",
+      "to": "games/emberwick/src/shared/tuning.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/tiles.ts",
+      "to": "games/emberwick/src/shared/tiles.ts"
+    },
+    {
+      "from": "games/emberwick/src/content/room.ts",
+      "to": "games/emberwick/src/shared/room.ts"
+    },
+    {
+      "from": "games/emberwick/src/content/kinds.ts",
+      "to": "games/emberwick/src/shared/kinds.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/player.component.ts",
+      "to": "games/emberwick/src/shared/player.component.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/player.event.ts",
+      "to": "games/emberwick/src/shared/player.event.ts"
+    },
+    {
+      "from": "games/emberwick/src/art",
+      "to": "games/emberwick/src/shared/art"
+    },
+    {
+      "from": "games/emberwick/src/render/pixels.ts",
+      "to": "games/emberwick/src/shared/pixels.ts"
+    },
+    {
+      "from": "games/emberwick/src/render/light-levels.ts",
+      "to": "games/emberwick/src/shared/light-levels.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/player-input.system.ts",
+      "to": "games/emberwick/src/features/player/player-input.system.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/player-move.system.ts",
+      "to": "games/emberwick/src/features/player/player-move.system.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/move.command.ts",
+      "to": "games/emberwick/src/features/player/move.command.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/place-wick.ts",
+      "to": "games/emberwick/src/features/player/place-wick.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/goal.system.ts",
+      "to": "games/emberwick/src/features/goal/goal.system.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/progress.resource.ts",
+      "to": "games/emberwick/src/features/goal/progress.resource.ts"
+    },
+    {
+      "from": "games/emberwick/src/content/emberwick-content.ts",
+      "to": "games/emberwick/src/features/room/emberwick-content.ts"
+    },
+    {
+      "from": "games/emberwick/src/content/level-room.ts",
+      "to": "games/emberwick/src/features/room/level-room.ts"
+    },
+    {
+      "from": "games/emberwick/src/render/scene-renderer.ts",
+      "to": "games/emberwick/src/features/scene/scene-renderer.ts"
+    },
+    {
+      "from": "games/emberwick/src/render/scene.ts",
+      "to": "games/emberwick/src/features/scene/scene.ts"
+    },
+    {
+      "from": "games/emberwick/src/render/backdrop.ts",
+      "to": "games/emberwick/src/features/scene/backdrop.ts"
+    },
+    {
+      "from": "games/emberwick/src/render/particles.ts",
+      "to": "games/emberwick/src/features/scene/particles.ts"
+    },
+    {
+      "from": "games/emberwick/src/render/tiles.ts",
+      "to": "games/emberwick/src/features/scene/tiles.ts"
+    },
+    {
+      "from": "games/emberwick/src/screens/emberwick-screens.ts",
+      "to": "games/emberwick/src/features/screens/emberwick-screens.ts"
+    },
+    {
+      "from": "games/emberwick/src/flow.ts",
+      "to": "games/emberwick/src/features/screens/flow.ts"
+    },
+    {
+      "from": "games/emberwick/src/golden.ts",
+      "to": "games/emberwick/src/testing/golden.ts"
+    },
+    {
+      "from": "games/emberwick/src/golden-run.ts",
+      "to": "games/emberwick/src/testing/golden-run.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/art/art.test.ts",
+      "to": "games/emberwick/tests/unit/shared/art/art.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/content/level-room.test.ts",
+      "to": "games/emberwick/tests/unit/room/level-room.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/content/room.test.ts",
+      "to": "games/emberwick/tests/unit/shared/room.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/flow.test.ts",
+      "to": "games/emberwick/tests/unit/screens/flow.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/golden.test.ts",
+      "to": "games/emberwick/tests/unit/golden/golden.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/golden-equivalence.test.ts",
+      "to": "games/emberwick/tests/unit/golden/golden-equivalence.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/render/light-levels.test.ts",
+      "to": "games/emberwick/tests/unit/shared/light-levels.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/render/tiles.test.ts",
+      "to": "games/emberwick/tests/unit/scene/tiles.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/screens/screens.test.ts",
+      "to": "games/emberwick/tests/unit/screens/screens.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/sim/movement.test.ts",
+      "to": "games/emberwick/tests/unit/player/movement.test.ts"
+    },
+    {
+      "from": "games/emberwick/src/sim/index.ts",
+      "to": "games/emberwick/src/entries/sim.ts"
+    },
+    {
+      "from": "games/emberwick/tests/e2e",
+      "to": "games/emberwick/tests/e2e"
+    },
+    {
+      "from": "games/emberwick/tests/unit/exports.test.ts",
+      "to": "games/emberwick/tests/unit/exports.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/plumbing.test.ts",
+      "to": "games/emberwick/tests/unit/plumbing.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/ship-config.test.ts",
+      "to": "games/emberwick/tests/unit/ship-config.test.ts"
+    },
+    {
+      "from": "games/emberwick/tests/unit/vite-config.test.ts",
+      "to": "games/emberwick/tests/unit/vite-config.test.ts"
+    }
+  ],
+  "entries": {}
 }
