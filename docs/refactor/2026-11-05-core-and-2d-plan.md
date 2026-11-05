@@ -803,10 +803,15 @@ the features it lacks are journeyed on the one-file examples that show them:
   its relative imports already right; task 4.3 step 1 writes the real `entries/index.ts` from them. (36) The map decides what
   the spec left open: `haptics` goes to `features/input/haptics`, `leaderboards` stays a feature (`features/leaderboards`),
   `host/src/testing` to `testing/host/page` (beside `testing/src/host`, which becomes `testing/host`), `ship`'s `cli.ts` to
-  `app/ship-cli.ts` and `cli`'s `bin.ts` to `app/cli.ts` (task 4.4 merges them into the one bin). (37) **Not done in the codemod,
-  left to task 4.3 step 1:** a moved file that imports an old package of the same merge (230 imports today: `host` 45+24, `ui`
-  37, `node` 35, `runtime` 33, `testing` 23, …) keeps the bare specifier. The codemod lists them (`intra`); step 1 resolves each
-  imported name through the old entry file to the module that defines it and writes a relative import, which then shows every
-  cross-feature import to `--features`. The 197 imports from other workspace files (3D, editors, tooling, examples, agents) are
-  rewritten by the entry map; the entries a name must be sent to individually (`names`) are empty, so a name that is not in
-  its new entry is found by the typecheck in 4.3.
+  `app/ship-cli.ts` and `cli`'s `bin.ts` to `app/cli.ts` (task 4.4 merges them into the one bin). (37) A moved file that imports an old package of the same merge gets a relative import
+  of the file that defines each name: the codemod reads the old package's `exports`, follows the entry file's re-exports
+  (`export { a } from`, `export *`, `export { default as A } from`) to the defining module, and writes one import per module
+  (`import type` kept). That took the 230 such imports to **10 left for task 4.3 step 1 by hand**: the two old barrels
+  (`game/src/index.ts`, `automata/src/index.ts`, which are re-exports and become the real `entries/index.ts`), `ship`'s
+  re-export of `node`, four Svelte screens that `import * ` from `ui`, and one test; `--dry-run` lists them. A build-time
+  entry (`host/target`) stays a package specifier. (38) The other workspace packages' `package.json` swap each old package they
+  import for the new one they now import (`ui` → `automata`, `testing/sim` → `automata-sim`), in the section the old one was
+  in; 14 are rewritten. The merged package's own `package.json` (the union of the dependencies of `host`, `runtime`,
+  `render-pixi`, `ui`, `game`, and the exports map) is written by hand in task 4.3 step 1. The 197 imports from other
+  workspace files are rewritten by the entry map; the `names` overrides are empty, so a name that is not in its new entry is
+  found by the typecheck in 4.3.

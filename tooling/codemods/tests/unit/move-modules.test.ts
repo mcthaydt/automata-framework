@@ -280,6 +280,136 @@ describe('rewriting imports', () => {
   })
 })
 
+describe('imports of an old package inside the package it merges into', () => {
+  // runtime and ui both become packages/automata; a runtime file that imports ui by name must import the file that
+  // defines the name, relatively, once there is no ui package.
+  const withUi: MoveMap = {
+    ...MAP,
+    moves: [
+      ...MAP.moves,
+      { from: 'packages/ui/src/theme.css', to: 'packages/automata/src/shared/ui/theme.css' },
+      { from: 'packages/ui/src/testing', to: 'packages/automata/src/testing/ui' },
+    ],
+    entries: { ...MAP.entries, '@mcthaydt/automata-ui/theme.css': '@mcthaydt/automata/theme.css' },
+  }
+  const files = {
+    'packages/ui/package.json': JSON.stringify({
+      name: '@mcthaydt/automata-ui',
+      exports: {
+        '.': './src/index.ts',
+        './theme.css': './src/theme.css',
+        './testing': './src/testing/index.ts',
+      },
+    }),
+    'packages/ui/src/index.ts':
+      "export { Button, type ButtonProps } from './controls/button.ts'\nexport * from './controls/dialog.ts'\nexport { default as Frame } from './controls/Frame.svelte'\n",
+    'packages/ui/src/controls/button.ts': 'export const Button = 1\nexport type ButtonProps = {}\n',
+    'packages/ui/src/controls/dialog.ts': 'export const openDialog = 2\n',
+    'packages/ui/src/controls/Frame.svelte': '<p>frame</p>\n',
+    'packages/ui/src/theme.css': ':root {}\n',
+    'packages/ui/src/testing/index.ts': 'export const settle = 3\n',
+    'packages/runtime/src/audio/a.ts':
+      "import { Button, type ButtonProps, openDialog as open } from '@mcthaydt/automata-ui'\nimport Frame from '@mcthaydt/automata-ui'\nimport '@mcthaydt/automata-ui/theme.css'\nimport { settle } from '@mcthaydt/automata-ui/testing'\nexport const a = [Button, open, Frame, settle]\nexport type P = ButtonProps\n",
+  }
+
+  it('turns each name into an import of the file that defines it, through re-exports and export *', () => {
+    const { text, plan } = run(
+      {
+        ...files,
+        'packages/runtime/src/audio/a.ts': files['packages/runtime/src/audio/a.ts'].replace(
+          "import Frame from '@mcthaydt/automata-ui'\n",
+          '',
+        ),
+      },
+      withUi,
+    )
+    expect(text('packages/runtime/src/audio/a.ts')).toBe(
+      [
+        "import { Button, type ButtonProps } from '../../shared/ui/controls/button.ts'",
+        "import { openDialog as open } from '../../shared/ui/controls/dialog.ts'",
+        "import '../../shared/ui/theme.css'",
+        "import { settle } from '../../testing/ui/index.ts'",
+        'export const a = [Button, open, Frame, settle]',
+        'export type P = ButtonProps',
+        '',
+      ].join('\n'),
+    )
+    expect(plan.intra).toEqual([])
+  })
+
+  it('imports a default re-export as a default import of the file that holds it', () => {
+    const { text } = run(
+      {
+        ...files,
+        'packages/runtime/src/audio/a.ts':
+          "import { Frame } from '@mcthaydt/automata-ui'\nexport const a = Frame\n",
+      },
+      withUi,
+    )
+    expect(text('packages/runtime/src/audio/a.ts')).toBe(
+      "import Frame from '../../shared/ui/controls/Frame.svelte'\nexport const a = Frame\n",
+    )
+  })
+
+  it('leaves an import it cannot resolve, and lists it', () => {
+    const { plan, text } = run(
+      {
+        ...files,
+        'packages/runtime/src/audio/a.ts':
+          "import { Missing } from '@mcthaydt/automata-ui'\nexport const a = Missing\n",
+      },
+      withUi,
+    )
+    expect(text('packages/runtime/src/audio/a.ts')).toContain("from '@mcthaydt/automata-ui'")
+    expect(plan.intra).toEqual([
+      { file: 'packages/runtime/src/audio/a.ts', from: '@mcthaydt/automata-ui', names: ['Missing'] },
+    ])
+  })
+})
+
+describe("a consumer's package.json", () => {
+  const manifest = (extra: object) =>
+    JSON.stringify({ name: '@x/consumer', version: '0.0.0', ...extra }, null, 2) + '\n'
+
+  it('swaps the old packages it imports for the new ones it now imports, in the section the old ones were in', () => {
+    const { text } = run(
+      {
+        'packages/editor-kit/package.json': manifest({
+          dependencies: { '@mcthaydt/automata-ui': 'workspace:*', zod: '4.6.6' },
+          devDependencies: { '@mcthaydt/automata-testing': 'workspace:*', vitest: '5.0.3' },
+        }),
+        'packages/editor-kit/src/a.ts':
+          "import { Slot } from '@mcthaydt/automata-ui'\nimport { settle } from '@mcthaydt/automata-ui/testing'\n",
+        'packages/editor-kit/tests/unit/a.test.ts': "import { x } from '@mcthaydt/automata-testing/sim'\n",
+      },
+      {
+        ...MAP,
+        entries: { ...MAP.entries, '@mcthaydt/automata-testing/sim': '@mcthaydt/automata-sim/testing' },
+      },
+    )
+    expect(JSON.parse(text('packages/editor-kit/package.json'))).toEqual({
+      name: '@x/consumer',
+      version: '0.0.0',
+      dependencies: { '@mcthaydt/automata': 'workspace:*', zod: '4.6.6' },
+      devDependencies: { '@mcthaydt/automata-sim': 'workspace:*', vitest: '5.0.3' },
+    })
+  })
+
+  it('leaves a package.json that names no old package, and the package being merged', () => {
+    const { plan } = run(
+      {
+        'packages/editor-kit/package.json': manifest({ dependencies: { zod: '4.6.6' } }),
+        'packages/runtime/package.json': manifest({
+          dependencies: { '@mcthaydt/automata-ui': 'workspace:*' },
+        }),
+        'packages/runtime/src/audio/a.ts': 'export {}\n',
+      },
+      MAP,
+    )
+    expect([...plan.rewrites.keys()].filter((path) => path.endsWith('package.json'))).toEqual([])
+  })
+})
+
 describe('the reports', () => {
   it('lists the names each consumer imports from an old entry (the surface report)', () => {
     const { plan } = run(

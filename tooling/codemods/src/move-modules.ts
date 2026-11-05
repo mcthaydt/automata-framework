@@ -7,7 +7,7 @@
 // its names now come from two entries. `planModules` decides everything and touches nothing; `applyModulePlan` does
 // the file work, so a dry run prints the plan a real run carries out.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { basename, dirname, join, relative } from 'node:path'
 import { parseSync } from 'oxc-parser'
 import { extraSpans, MOCK_SPECIFIERS, resolveTarget, specifierSpans, stringRanges } from '#src/move-tests.ts'
 
@@ -226,6 +226,9 @@ export function planModules(
   const known = new Set(files)
   const exists = (path: string): boolean => known.has(path)
   const rewrites = new Map<string, string>()
+  // New packages each other workspace package now imports, with the old ones they replace (for its package.json).
+  const manifestDirs = new Set(files.filter((file) => file.endsWith('/package.json')).map(dirname))
+  const usage = new Map<string, Map<string, Set<string>>>()
   const surface: ModulePlan['surface'][number][] = []
   const intra: ModulePlan['intra'][number][] = []
   for (const file of files) {
@@ -260,11 +263,18 @@ export function planModules(
         const names = namesFrom(file, code, span.value)
         const movesInto = folderOfSpecifier(to)
         if (inSources(file) && movesInto && within(rel(newFile), movesInto)) {
-          // An old package's import inside the package it is merged into: the build step makes it relative.
-          intra.push({ file: rel(file), from: span.value, names })
+          // An old package's import inside the package it is merged into: relative, to the file that defines each name.
+          const relative = resolveIntra({ root, file, newFile, code, span, entry, read, exists, moves })
+          if (relative === undefined) intra.push({ file: rel(file), from: span.value, names })
+          else edits.push(relative)
           continue
         }
-        if (!inSources(file)) surface.push({ consumer: rel(file), from: span.value, names })
+        if (!inSources(file)) {
+          surface.push({ consumer: rel(file), from: span.value, names })
+          // A package that is being merged away gets no package.json of its own.
+          if (!sources.some((source) => within(file, source)))
+            noteUsage(usage, manifestDirs, file, span.value, entry, names)
+        }
         const split = typeof entry === 'string' ? undefined : splitEdit(file, code, span.value, entry)
         if (split) {
           edits.push(...split)
@@ -281,6 +291,8 @@ export function planModules(
     if (text !== code) rewrites.set(newFile, text)
   }
 
+  for (const [path, text] of manifestRewrites(usage, map, read)) rewrites.set(path, text)
+
   return {
     moves: [...moves].map(([from, to]) => ({ from, to })).filter((move) => move.from !== move.to),
     removed,
@@ -290,6 +302,248 @@ export function planModules(
     surface: surface.sort((a, b) => a.consumer.localeCompare(b.consumer) || a.from.localeCompare(b.from)),
     intra,
   }
+}
+
+// --- package.json of the other workspace packages --------------------------------------------------------------------
+
+const DEPENDENCY_SECTIONS = [
+  'dependencies',
+  'peerDependencies',
+  'optionalDependencies',
+  'devDependencies',
+] as const
+/** `@mcthaydt/automata-ui/testing` → `@mcthaydt/automata-ui`. */
+const packageNameOf = (specifier: string): string => specifier.split('/').slice(0, 2).join('/')
+
+/** Remember that the package owning `file` now imports the entry `entry` in place of the old specifier `from`. */
+function noteUsage(
+  usage: Map<string, Map<string, Set<string>>>,
+  manifestDirs: ReadonlySet<string>,
+  file: string,
+  from: string,
+  entry: EntryTarget,
+  names: readonly string[],
+): void {
+  let dir = dirname(file)
+  while (!manifestDirs.has(dir) && dir !== dirname(dir)) dir = dirname(dir)
+  if (!manifestDirs.has(dir)) return
+  const targets =
+    typeof entry === 'string'
+      ? [entry]
+      : [
+          ...new Set([
+            entry.to,
+            ...names.map((name) => entry.names?.[name]).filter((to): to is string => to !== undefined),
+          ]),
+        ]
+  const perPackage = usage.get(dir) ?? new Map<string, Set<string>>()
+  for (const target of targets)
+    perPackage.set(
+      packageNameOf(target),
+      (perPackage.get(packageNameOf(target)) ?? new Set()).add(packageNameOf(from)),
+    )
+  usage.set(dir, perPackage)
+}
+
+/**
+ * The package.json text of each package that imported an old package: the old names out, the new ones it now
+ * imports in, each in the section (`dependencies` before `devDependencies`) the old package it replaces was in.
+ */
+function manifestRewrites(
+  usage: ReadonlyMap<string, ReadonlyMap<string, ReadonlySet<string>>>,
+  map: MoveMap,
+  read: (path: string) => string,
+): Map<string, string> {
+  // A name that is also a destination (`@mcthaydt/automata`) is not an old package, whatever entry it had.
+  const newNames = new Set(
+    Object.values(map.entries).map((entry) => packageNameOf(typeof entry === 'string' ? entry : entry.to)),
+  )
+  const oldNames = new Set(
+    Object.keys(map.entries)
+      .map(packageNameOf)
+      .filter((name) => !newNames.has(name)),
+  )
+  const out = new Map<string, string>()
+  for (const [dir, used] of usage) {
+    const path = join(dir, 'package.json')
+    const manifest = JSON.parse(read(path)) as Record<string, unknown>
+    const sections = DEPENDENCY_SECTIONS.filter((name) => manifest[name] !== undefined)
+    const sectionOf = (name: string): (typeof DEPENDENCY_SECTIONS)[number] | undefined =>
+      sections.find((section) => (manifest[section] as Record<string, string>)[name] !== undefined)
+    const added = new Map<string, { section: (typeof DEPENDENCY_SECTIONS)[number]; range: string }>()
+    for (const [name, replaced] of used) {
+      for (const old of replaced) {
+        const section = sectionOf(old)
+        if (!section) continue
+        const range = (manifest[section] as Record<string, string>)[old] as string
+        const kept = added.get(name)
+        if (!kept || DEPENDENCY_SECTIONS.indexOf(section) < DEPENDENCY_SECTIONS.indexOf(kept.section))
+          added.set(name, { section, range })
+      }
+    }
+    let changed = false
+    for (const section of sections) {
+      const deps = { ...(manifest[section] as Record<string, string>) }
+      for (const name of Object.keys(deps)) {
+        if (oldNames.has(name) && !used.has(name)) {
+          delete deps[name]
+          changed = true
+        }
+      }
+      for (const [name, where] of added) {
+        if (where.section === section && deps[name] === undefined) {
+          deps[name] = where.range
+          changed = true
+        }
+      }
+      manifest[section] = Object.fromEntries(Object.entries(deps).sort(([a], [b]) => a.localeCompare(b)))
+    }
+    if (changed) out.set(path, `${JSON.stringify(manifest, null, 2)}\n`)
+  }
+  return out
+}
+
+/** The file an old public entry (`@mcthaydt/automata-ui/testing`) was served from, or 'conditional' for a target choice. */
+function oldEntryFile(
+  root: string,
+  specifier: string,
+  read: (path: string) => string,
+): string | 'conditional' | undefined {
+  const match = /^(@mcthaydt\/automata(?:-[a-z0-9-]+)?)(\/.*)?$/.exec(specifier)
+  const folder = folderOfSpecifier(specifier)
+  if (!match || !folder) return undefined
+  try {
+    const exportsField = (
+      JSON.parse(read(join(root, folder, 'package.json'))) as { exports?: Record<string, unknown> }
+    ).exports
+    const entry = exportsField?.[match[2] ? `.${match[2]}` : '.']
+    if (typeof entry === 'string') return join(root, folder, entry)
+    if (entry && typeof entry === 'object') {
+      // A build-time choice between targets (the `automata-ruken` condition) stays a package entry.
+      if (Object.keys(entry).some((key) => key.startsWith('automata-'))) return 'conditional'
+      const plain = (entry as Record<string, unknown>).default ?? (entry as Record<string, unknown>).import
+      if (typeof plain === 'string') return join(root, folder, plain)
+    }
+  } catch {
+    // No package.json to read: nothing to resolve.
+  }
+  return undefined
+}
+
+/**
+ * The module that defines `name`, found by following `entryFile`'s re-exports (`export { a } from`, `export *`,
+ * `export { default as A } from`, and an exported name imported from elsewhere in the file). `imported` is the name
+ * as that module exports it. Undefined when the trail leaves the repository's files or cannot be followed.
+ */
+function resolveExport(
+  file: string,
+  name: string,
+  read: (path: string) => string,
+  exists: (path: string) => boolean,
+  seen: Set<string> = new Set(),
+): { file: string; imported: string } | undefined {
+  const key = `${file}\0${name}`
+  if (seen.has(key) || !/\.ts$/.test(file)) return undefined
+  seen.add(key)
+  const { module } = parseSync(file, read(file))
+  const follow = (request: string, imported: string): { file: string; imported: string } | undefined => {
+    const target = request.startsWith('.') ? resolveTarget(file, request, exists)?.target : undefined
+    if (!target) return undefined
+    return imported === 'default' || imported === '*'
+      ? { file: target, imported }
+      : resolveExport(target, imported, read, exists, seen)
+  }
+  for (const exported of module.staticExports)
+    for (const entry of exported.entries) {
+      if (entry.exportName.kind === 'None' || (entry.exportName.name ?? 'default') !== name) continue
+      // `export { default as A } from` reports the name `default`; `export * as ns from` reports kind All.
+      const importName = entry.importName.kind === 'All' ? '*' : (entry.importName.name as string | undefined)
+      if (entry.moduleRequest)
+        return importName === undefined ? undefined : follow(entry.moduleRequest.value, importName)
+      // `export { a }` of a name imported in this file: follow the import. Otherwise this file declares it.
+      const local = entry.localName.name ?? name
+      for (const statement of module.staticImports)
+        for (const imported of statement.entries)
+          if (imported.localName.value === local) {
+            const original =
+              imported.importName.kind === 'Default'
+                ? 'default'
+                : imported.importName.kind === 'NamespaceObject'
+                  ? '*'
+                  : (imported.importName.name as string)
+            return follow(statement.moduleRequest.value, original)
+          }
+      return { file, imported: local }
+    }
+  for (const exported of module.staticExports)
+    for (const entry of exported.entries)
+      if (entry.exportName.kind === 'None' && entry.moduleRequest) {
+        const found = follow(entry.moduleRequest.value, name)
+        if (found) return found
+      }
+  return undefined
+}
+
+interface IntraContext {
+  readonly root: string
+  readonly file: string
+  readonly newFile: string
+  readonly code: string
+  readonly span: Occurrence
+  readonly entry: EntryTarget
+  readonly read: (path: string) => string
+  readonly exists: (path: string) => boolean
+  readonly moves: ReadonlyMap<string, string>
+}
+
+/** One edit that replaces an old-package import by relative imports of the files that define its names. */
+function resolveIntra(context: IntraContext): { start: number; end: number; text: string } | undefined {
+  const { root, file, newFile, code, span, read, exists, moves } = context
+  const entryFile = oldEntryFile(root, span.value, read)
+  if (entryFile === 'conditional') {
+    // A public entry that stays a public entry (`./target`): the new specifier, not a relative path.
+    return {
+      start: span.start,
+      end: span.end,
+      text: typeof context.entry === 'string' ? context.entry : context.entry.to,
+    }
+  }
+  if (entryFile === undefined) return undefined
+  const statement = importedNames(file, code, span.value).find(
+    (found) => found.statement.start <= span.start && span.start < found.statement.end,
+  )
+  if (!statement) return undefined
+  const to = (target: string): string =>
+    relativeSpecifier(newFile, moves.get(target) ?? target, `./${basename(target)}`, target)
+  const { start, end, isType } = statement.statement
+  if (statement.entries.length === 0) return { start, end, text: `import '${to(entryFile)}'` }
+  const groups = new Map<string, { imported: string; local: string; isType: boolean }[]>()
+  for (const named of statement.entries) {
+    const found = named.imported === '*' ? undefined : resolveExport(entryFile, named.imported, read, exists)
+    if (!found) return undefined
+    const target = to(found.file)
+    groups.set(target, [
+      ...(groups.get(target) ?? []),
+      { imported: found.imported, local: named.local, isType: named.isType },
+    ])
+  }
+  const kind = isType ? 'import type' : 'import'
+  const lines: string[] = []
+  for (const [target, names] of groups) {
+    const named = names.filter((n) => n.imported !== 'default')
+    for (const n of names.filter((entry) => entry.imported === 'default'))
+      lines.push(`${kind} ${n.local} from '${target}'`)
+    if (named.length > 0) {
+      const list = named
+        .map(
+          (n) =>
+            `${n.isType && !isType ? 'type ' : ''}${n.imported === n.local ? n.local : `${n.imported} as ${n.local}`}`,
+        )
+        .join(', ')
+      lines.push(`${kind} { ${list} } from '${target}'`)
+    }
+  }
+  return { start, end, text: lines.join('\n') }
 }
 
 /** The specifier from `importer` to `target`, written in the style of the old one (extension, folder import). */
