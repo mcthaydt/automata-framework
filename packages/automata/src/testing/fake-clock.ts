@@ -1,5 +1,5 @@
 // Replaces Effect's `TestClock`: time stands still until a test calls `advance`.
-import type { Clock, TimeoutHandle } from '#src/shared/lib/clock.ts'
+import type { Clock, TimeoutHandle } from '../shared/lib/clock'
 
 export interface FakeClock extends Clock {
   /** Moves time forward by `ms`, firing every timeout that falls due on the way, earliest first. */

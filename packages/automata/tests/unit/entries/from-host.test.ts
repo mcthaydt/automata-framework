@@ -39,7 +39,16 @@ describe('public entry points', () => {
 
   it('export the fake-host test layer and its clocks from ./testing', () => {
     expect(Object.keys(testing).sort()).toEqual(
-      ['FakeHostHandle', 'HostingTest', 'TEST_GAME_ORIGIN', 'manualClock', 'realClock', 'runScoped'].sort(),
+      [
+        'FakeHostHandle',
+        'HostingTest',
+        'TEST_GAME_ORIGIN',
+        'manualClock',
+        'openHostingTest',
+        'realClock',
+        'runScoped',
+        'withHostingTest',
+      ].sort(),
     )
   })
 })

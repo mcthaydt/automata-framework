@@ -1,13 +1,10 @@
-import { Effect, Runtime, type Scope } from 'effect'
-import { HostError } from '../../../shared/host/errors'
-import {
-  HOST_EXIT_CAP,
-  type Hosting,
-  type HostingOptions,
-  type HostingSaves,
-} from '../../../shared/host/hosting'
+import type { HostingOptions } from '../../../shared/host/hosting'
+import { type HostResult, refuse } from '../../../shared/host/plain-errors'
+import { HOST_EXIT_CAP_MS, type Hosting, type HostingSaves } from '../../../shared/host/plain-hosting'
+import { type Clock, systemClock } from '../../../shared/lib/clock'
+import { ok, refused } from '../../../shared/lib/result'
 import { makeExitHandlers } from '../exit-handlers'
-import { makeWebHosting, type WebPage } from '../web/hosting-web'
+import { createWebHosting, type WebPage } from '../web/hosting-web'
 
 /*
  * The `tauri` adapter (DIST spec §4.3, §6.1): `Hosting` for a desktop build. The game runs in Tauri's webview, so the
@@ -39,91 +36,90 @@ export interface DesktopPort {
 
 /**
  * Builds the desktop `Hosting` over `page` (the webview's window) and `desktop`. `title` is the host's name for UI,
- * the game's title. When the scope closes, later calls fail `CANCELLED` and the close-request listener is removed.
+ * the game's title. `dispose()` makes later calls refused `CANCELLED` and removes the close-request listener.
  */
-export function makeTauriHosting(
+export async function createTauriHosting(
   options: HostingOptions,
   page: WebPage,
   desktop: DesktopPort,
   title: string,
-): Effect.Effect<Hosting, never, Scope.Scope> {
-  return Effect.gen(function* () {
-    const web = yield* makeWebHosting(options, page, 'web')
-    let open = true
-    yield* Effect.addFinalizer(() =>
-      Effect.sync(() => {
-        open = false
-      }),
-    )
-    // A store that cannot be read leaves saves ungranted (DIST-d): no fallback to the page's storage or to memory.
-    const store = yield* Effect.promise(() =>
-      desktop.loadStore().then(
-        (loaded): StoreLike | null => loaded,
-        () => null,
-      ),
-    )
+  clock: Clock = systemClock,
+): Promise<Hosting> {
+  const web = createWebHosting(options, page, 'web')
+  let open = true
+  // A store that cannot be read leaves saves ungranted (DIST-d): no fallback to the page's storage or to memory.
+  const store = await desktop.loadStore().then(
+    (loaded): StoreLike | null => loaded,
+    () => null,
+  )
 
-    const fail = (operation: string, code: 'CANCELLED' | 'DENIED') =>
-      Effect.fail(new HostError({ code, retryable: false, operation }))
-    /** One store call: `CANCELLED` once shut down, `DENIED` without a store, `INTERNAL` (retryable) when it rejects. */
-    const onStore = <A>(operation: string, use: (store: StoreLike) => Promise<A>) =>
-      Effect.suspend((): Effect.Effect<A, HostError> => {
-        if (!open) return fail(operation, 'CANCELLED')
-        if (store === null) return fail(operation, 'DENIED')
-        return Effect.tryPromise({
-          try: () => use(store),
-          catch: (cause) => new HostError({ code: 'INTERNAL', retryable: true, operation, cause }),
-        })
-      })
+  /** One store call: `CANCELLED` once disposed, `DENIED` without a store, `INTERNAL` (retryable) when it rejects. */
+  const onStore = async <A>(
+    operation: string,
+    use: (store: StoreLike) => Promise<A>,
+  ): Promise<HostResult<A>> => {
+    if (!open) return refuse('CANCELLED', false, operation)
+    if (store === null) return refuse('DENIED', false, operation)
+    try {
+      return ok(await use(store))
+    } catch (cause) {
+      return refused({ code: 'INTERNAL', retryable: true, operation, cause })
+    }
+  }
 
-    const saves: HostingSaves = {
-      get: (key) => onStore('saves.get', async (s) => (await s.get(key)) ?? null),
-      set: (key, value) => onStore('saves.set', (s) => s.set(key, value)),
-      remove: (key) => onStore('saves.remove', async (s) => void (await s.delete(key))),
-      flush: onStore('saves.flush', async (s) => {
+  const saves: HostingSaves = {
+    get: (key) => onStore('saves.get', async (s) => (await s.get(key)) ?? null),
+    set: (key, value) => onStore('saves.set', (s) => s.set(key, value)),
+    remove: (key) => onStore('saves.remove', async (s) => void (await s.delete(key))),
+    flush: () =>
+      onStore('saves.flush', async (s) => {
         await s.save()
         return { persisted: 'device' as const }
       }),
-      // Code-unit order, as every adapter sorts (M5 spec §4.1).
-      keys: onStore('saves.keys', async (s) => [...(await s.keys())].sort()),
-      // One app, one writer: nothing else changes the store while the game runs.
-      changed: web.saves.changed,
-    }
+    // Code-unit order, as every adapter sorts (M5 spec §4.1).
+    keys: () => onStore('saves.keys', async (s) => [...(await s.keys())].sort()),
+    // One app, one writer: nothing else changes the store while the game runs.
+    changed: web.saves.changed,
+  }
 
-    // The handlers in registration order, then the flush, all within the cap; then the app quits.
-    const exits = makeExitHandlers(HOST_EXIT_CAP)
-    let quitting = false
-    const quit = Effect.suspend(() => {
-      if (quitting) return Effect.void
-      quitting = true
-      return exits
-        .run(Effect.ignore(saves.flush))
-        .pipe(Effect.zipRight(Effect.promise(() => desktop.exitApp().catch(() => undefined))))
-    })
+  // The handlers in registration order, then the flush, all within the cap; then the app quits.
+  const exits = makeExitHandlers(HOST_EXIT_CAP_MS, clock)
+  let quitting: Promise<void> | undefined
+  const quit = (): Promise<void> => {
+    quitting ??= (async () => {
+      await exits.run(async () => void (await saves.flush()))
+      await desktop.exitApp().catch(() => undefined)
+    })()
+    return quitting
+  }
 
-    const runtime = yield* Effect.runtime<never>()
-    const stopListening = yield* Effect.promise(() =>
-      desktop.onCloseRequested((event) => {
-        // Hold the close: the app quits itself once the handlers and the flush are done.
-        event.preventDefault()
-        Runtime.runFork(runtime)(quit)
-      }),
-    )
-    yield* Effect.addFinalizer(() => Effect.sync(stopListening))
-
-    const granted = new Set(web.granted)
-    granted.delete('saves')
-    if (store !== null) granted.add('saves')
-    granted.add('exit')
-
-    return {
-      ...web,
-      kind: 'tauri',
-      hostName: title,
-      granted,
-      saves,
-      exit: () => (open ? quit : fail('session.exit', 'CANCELLED')),
-      onExiting: (handler) => exits.register(handler),
-    } satisfies Hosting
+  const stopListening = await desktop.onCloseRequested((event) => {
+    // Hold the close: the app quits itself once the handlers and the flush are done.
+    event.preventDefault()
+    void quit()
   })
+
+  const granted = new Set(web.granted)
+  granted.delete('saves')
+  if (store !== null) granted.add('saves')
+  granted.add('exit')
+
+  return {
+    ...web,
+    kind: 'tauri',
+    hostName: title,
+    granted,
+    saves,
+    exit: async () => {
+      if (!open) return refuse('CANCELLED', false, 'session.exit')
+      await quit()
+      return ok(undefined)
+    },
+    onExiting: exits.register,
+    dispose: () => {
+      open = false
+      stopListening()
+      web.dispose()
+    },
+  } satisfies Hosting
 }

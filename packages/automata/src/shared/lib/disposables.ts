@@ -2,8 +2,11 @@
 // Every factory in the package that opens a listener, a timer or a child returns `{ dispose }` built on this.
 
 export interface Disposables {
-  /** Runs `undo` at disposal. Added after disposal it runs at once, so a late arrival is never leaked. */
-  add(undo: () => void): void
+  /**
+   * Runs `undo` at disposal. Added after disposal it runs at once, so a late arrival is never leaked. Returns a
+   * function that takes `undo` back out (a listener that was stopped by hand has nothing left to undo).
+   */
+  add(undo: () => void): () => void
   /** Runs what was added, last added first, once. Later calls do nothing. */
   dispose(): void
   readonly disposed: boolean
@@ -17,8 +20,15 @@ export function disposables(): Disposables {
       return disposed
     },
     add(undo) {
-      if (disposed) undo()
-      else pending.push(undo)
+      if (disposed) {
+        undo()
+        return () => undefined
+      }
+      pending.push(undo)
+      return () => {
+        const index = pending.indexOf(undo)
+        if (index >= 0) pending.splice(index, 1)
+      }
     },
     dispose() {
       if (disposed) return
@@ -26,7 +36,8 @@ export function disposables(): Disposables {
       // One failing undo must not leave the rest running forever: run them all, then report the first failure.
       let failed = false
       let firstError: unknown
-      for (const undo of pending.reverse()) {
+      // Taken out of the bag first: an undo may call the remover `add` gave it, which would shift a live array.
+      for (const undo of pending.splice(0).reverse()) {
         try {
           undo()
         } catch (error) {
@@ -36,7 +47,6 @@ export function disposables(): Disposables {
           }
         }
       }
-      pending.length = 0
       if (failed) throw firstError
     },
   }

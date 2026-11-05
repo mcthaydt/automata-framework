@@ -1,9 +1,13 @@
 import type { SdkEnv } from '@ruken/sdk'
 import { createFakeHost, type FakeHost, type FakeHostOptions } from '@ruken/sdk-host/testing'
 import { Context, Effect, Layer } from 'effect'
-import { makeHosting } from '../../../../features/targets/ruken/hosting-ruken'
+import { createRukenHosting } from '../../../../features/targets/ruken/hosting-ruken'
+import { makeHosting } from '../../../../features/targets/ruken/target-ruken'
 import type { HostError } from '../../../../shared/host/errors'
 import { Hosting, type HostingOptions } from '../../../../shared/host/hosting'
+import type { HostResult } from '../../../../shared/host/plain-errors'
+import type { Hosting as PlainHosting } from '../../../../shared/host/plain-hosting'
+import type { Clock } from '../../../../shared/lib/clock'
 import { realClock } from '../clocks'
 
 /** The fake host behind `HostingTest`, for tests that drive the host side. */
@@ -75,4 +79,77 @@ export function HostingTest(
       return Context.make(Hosting, hosting).pipe(Context.add(FakeHostHandle, handle))
     }),
   )
+}
+
+/** The same fake host without Effect: `Hosting` (plain) over `@ruken/sdk-host`'s fake host, and the handle. */
+export interface HostingTestSession {
+  readonly hosting: PlainHosting
+  readonly handle: FakeHostHandle
+  /** Disposes `Hosting`, then the fake host. */
+  dispose(): void
+}
+
+/**
+ * Opens `Hosting` (plain) over the fake host, with the real SDK in between. `seams` reach the adapter: pass
+ * `fakeClock()` as `clock` to move the exit cap by hand, or an `AbortSignal` to give up the handshake.
+ */
+export async function openHostingTest(
+  options: HostingTestOptions = {},
+  seams: { readonly clock?: Clock; readonly signal?: AbortSignal } = {},
+): Promise<HostResult<HostingTestSession>> {
+  const gameOptions: HostingOptions = {
+    gameId: 'blank-game',
+    wants: ['saves'],
+    pauseBehavior: 'pause',
+    ...options.hosting,
+  }
+  const host = createFakeHost({
+    gameOrigin: options.gameOrigin ?? TEST_GAME_ORIGIN,
+    gameId: gameOptions.gameId,
+    clock: realClock,
+    ...options.host,
+  })
+  if (host.gameEnv === null) {
+    host.dispose()
+    throw new Error('openHostingTest needs the in-memory fake host')
+  }
+  const env = options.env === undefined ? host.gameEnv : options.env(host.gameEnv)
+  const made = await createRukenHosting(gameOptions, { env, ...seams })
+  if (!made.ok) {
+    host.dispose()
+    return made
+  }
+  const handle: FakeHostHandle = {
+    host,
+    sentByGame: (type) =>
+      host.messages
+        .filter((entry) => entry.dir === 'in' && entry.msg.type === type)
+        .map((entry) => entry.msg.payload),
+  }
+  return {
+    ok: true,
+    value: {
+      hosting: made.value,
+      handle,
+      dispose: () => {
+        made.value.dispose()
+        host.dispose()
+      },
+    },
+  }
+}
+
+/** Runs `program` on an open session and always disposes it. A construction refusal throws, so a test fails loudly. */
+export async function withHostingTest<A>(
+  program: (session: HostingTestSession) => Promise<A> | A,
+  options: HostingTestOptions = {},
+  seams: { readonly clock?: Clock; readonly signal?: AbortSignal } = {},
+): Promise<A> {
+  const opened = await openHostingTest(options, seams)
+  if (!opened.ok) throw new Error(`Hosting was refused: ${opened.reason.code} on ${opened.reason.operation}`)
+  try {
+    return await program(opened.value)
+  } finally {
+    opened.value.dispose()
+  }
 }

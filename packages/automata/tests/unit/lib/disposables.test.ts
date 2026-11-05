@@ -38,4 +38,28 @@ describe('disposables', () => {
     expect(ran).toBe(1)
     expect(bag.disposed).toBe(true)
   })
+
+  it('lets a function leave the bag before disposal, so a stopped listener is not kept', () => {
+    const bag = disposables()
+    let ran = 0
+    const remove = bag.add(() => {
+      ran += 1
+    })
+    remove()
+    bag.dispose()
+    expect(ran).toBe(0)
+  })
+
+  it('runs every undo even when each one removes itself from the bag as it runs', () => {
+    const bag = disposables()
+    const order: number[] = []
+    for (const n of [1, 2, 3]) {
+      const remove = bag.add(() => {
+        order.push(n)
+        remove()
+      })
+    }
+    bag.dispose()
+    expect(order).toEqual([3, 2, 1])
+  })
 })
