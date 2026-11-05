@@ -5,14 +5,21 @@ import { describe, expect, it } from 'vitest'
 
 // The DX spec's measuring script (§10, §12; DX.3 decision E-4). It replaces §1's hand count (1,939 lines of
 // plumbing) with one taken from the game itself: walk the relative imports from `main.ts`, count the lines of
-// every TypeScript file the game reaches, and class each by folder. `src/sim/` is the sim, `src/art/` the art,
-// `src/content/` the content, `src/render/` the drawing Emberwick does (room, light map, particles, backdrop),
-// except `scene-renderer.ts`, which only wires that drawing into render-pixi and so counts as plumbing.
+// every TypeScript file the game reaches, and class each by where it sits. The sim is every file with a sim role
+// suffix plus `tiles.ts`, `tuning.ts` and `place-wick.ts`; `shared/art/` is the art; `features/room/`, `room.ts` and
+// `kinds.ts` are the content; `features/scene/`, `pixels.ts` and `light-levels.ts` are the drawing Emberwick does
+// (room, light map, particles, backdrop), except `scene-renderer.ts`, which only wires that drawing into the
+// renderer and so counts as plumbing.
 // Everything else the game reaches is plumbing. Files under `src/` the game never reaches are kept for the
 // demos (decision E-3) and reported on their own line.
 
 const GAME_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const PLUMBING_LIMIT = 400
+
+const SIM_ROLE = /\.(?:component|system|command|event|resource|plugin)\.ts$/
+const SIM_BY_IMPORT = ['src/shared/tiles.ts', 'src/shared/tuning.ts', 'src/features/player/place-wick.ts']
+const CONTENT = ['src/shared/room.ts', 'src/shared/kinds.ts']
+const DRAWING = ['src/shared/pixels.ts', 'src/shared/light-levels.ts']
 
 type LineClass = 'sim' | 'art' | 'content' | 'drawing' | 'plumbing'
 
@@ -51,10 +58,11 @@ function reachableFiles(entry: string): string[] {
 
 function classOf(root: string, file: string): LineClass {
   const path = relative(root, file)
-  if (path.startsWith('src/sim/')) return 'sim'
-  if (path.startsWith('src/art/')) return 'art'
-  if (path.startsWith('src/content/')) return 'content'
-  if (path.startsWith('src/render/') && path !== 'src/render/scene-renderer.ts') return 'drawing'
+  if (SIM_ROLE.test(path) || SIM_BY_IMPORT.includes(path)) return 'sim'
+  if (path.startsWith('src/shared/art/')) return 'art'
+  if (path.startsWith('src/features/room/') || CONTENT.includes(path)) return 'content'
+  if (path === 'src/features/scene/scene-renderer.ts') return 'plumbing'
+  if (path.startsWith('src/features/scene/') || DRAWING.includes(path)) return 'drawing'
   return 'plumbing'
 }
 
@@ -113,14 +121,14 @@ describe("Emberwick's plumbing, measured from main.ts", () => {
     const paths = result.files.map((file) => file.path)
     for (const path of [
       'main.ts',
-      'src/game.ts',
-      'src/flow.ts',
-      'src/screens/emberwick-screens.ts',
-      'src/sim/emberwick.plugin.ts',
-      'src/render/scene.ts',
-      'src/render/scene-renderer.ts',
-      'src/content/room.ts',
-      'src/art/sprites.ts',
+      'src/app/game.ts',
+      'src/features/screens/flow.ts',
+      'src/features/screens/emberwick-screens.ts',
+      'src/app/emberwick.plugin.ts',
+      'src/features/scene/scene.ts',
+      'src/features/scene/scene-renderer.ts',
+      'src/shared/room.ts',
+      'src/shared/art/sprites.ts',
     ]) {
       expect(paths).toContain(path)
     }

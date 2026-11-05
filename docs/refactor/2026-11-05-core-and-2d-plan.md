@@ -547,13 +547,13 @@ Then:
 
 ### Task 6.2: Emberwick imports one package
 
-- [ ] Rewrite Emberwick's imports to `@mcthaydt/automata` (and `@mcthaydt/automata-tools` in config and tests).
+- [x] Rewrite Emberwick's imports to `@mcthaydt/automata` (and `@mcthaydt/automata-tools` in config and tests).
   Any name it needs that the root entry lacks is added to `entries/index.ts` with a doc comment. Journeys pass.
   Commit.
 
 ### Task 6.3: Emberwick by feature
 
-- [ ] Move `games/emberwick/src` to the layout in spec section 3.3 with the module codemod (a small map in
+- [x] Move `games/emberwick/src` to the layout in spec section 3.3 with the module codemod (a small map in
   `docs/refactor/move-map.json` under `"emberwick"`). Its package exports (`./sim`, `./room`, `./render`, `./game`,
   `./no-eval`) follow the files, and the hot-reload demo's imports with them; `ci.yml`'s `emberwick` job passes the
   new sim roots to `game-ci` (or none, if the in-repository check covers it, as base-3d's comment explains).
@@ -892,3 +892,16 @@ the features it lacks are journeyed on the one-file examples that show them:
   `makePresentationBus` as an Effect), so it runs after phases 6 to 8 in its own PR. ADR 0003 is amended
   (Effect leaves the browser). Unit tests: automata 1,922; one tools test (`workflows.test.ts`, a regex that read `}, 10)` as a
   test timeout) failed on new tests and the tests were reshaped.
+- **Tasks 6.1 to 6.3, fourth session, 2026-11-05 (PR `claude/refactor-2d-emberwick`, stacked on #394).** 6.1: package
+  `@af-games/emberwick`, id, title and plugin are `emberwick`; the golden test failed first on the hash only (the route and
+  goal tick unchanged), `GOLDEN_HASH` went `94285fae634fdba9` → `421c5a1bf522299e`, and Chromium agrees (WebKit and Firefox
+  are not installable here: their run is left to CI). 6.2 was already true after 4.3 (only stale comments named old packages).
+  6.3 ran the module codemod with `docs/refactor/move-map-emberwick.json` (49 files, 42 rewritten). Deviations: (56) the strict
+  feature rule (no feature imports another) forced a different split than the spec's sketch: `player` and `goal` share
+  the player component and events, so those live in `shared/`; `art` is `shared/art/` because the scene and `pixels.ts` both draw
+  from it; the draw code is the `scene` feature; `golden.ts` and `golden-run.ts` are `testing/`. (57) The `./sim` package
+  entry is `entries/sim.ts` (a re-export file, like `game-entry.ts` was); inside the game nothing imports it. (58)
+  `automata check` accepts a `src/features` folder and runs `--game src`; `check-style` takes `--role-layout` (base-3d only) and
+  Emberwick is a plain package root; `ci.yml`'s `emberwick` job has no `sim-roots` (the step is skipped inside this repository
+  and `pnpm boundaries` covers the sim by suffix and import). Tests pass: Emberwick 109 unit, tools 669, check-style 72,
+  check-boundaries 145; `pnpm boundaries`, `style`, `knip`, typecheck pass.

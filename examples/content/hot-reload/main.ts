@@ -9,7 +9,7 @@
 // Controls: arrows or A/D to move, Space, Z, W or Up to jump; on-screen buttons on touch.
 // Base: emberwick (`@af-games/emberwick`: its whole game, built here over this demo's room by `makeEmberwick`).
 // Packages: @mcthaydt/automata-content (its Vite plugin and `virtual:automata/content`),
-// @mcthaydt/automata-game (`startGame`), and the base's own.
+// @mcthaydt/automata (`startGame`), and the base's own.
 import '@af-games/emberwick/no-eval'
 import '@fontsource/pixelify-sans/latin-400.css'
 import '@fontsource/pixelify-sans/latin-700.css'

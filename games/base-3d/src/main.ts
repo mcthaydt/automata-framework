@@ -4,7 +4,7 @@
 //
 // Controls: WASD, the arrows, the left stick or the touch stick to walk; Q and E, the right stick or a drag to turn the
 // camera; Space, K, A or the Roll button to roll; Escape to pause.
-// Packages: @mcthaydt/automata-game, @mcthaydt/automata-sim, @mcthaydt/automata-figures,
+// Packages: @mcthaydt/automata, @mcthaydt/automata-sim, @mcthaydt/automata-figures,
 // @mcthaydt/automata-render-pixi3d; @mcthaydt/automata-content (its Vite plugin) and @mcthaydt/automata-tools.
 import '@mcthaydt/automata-render-pixi3d/no-eval'
 import { content } from 'virtual:automata/content'

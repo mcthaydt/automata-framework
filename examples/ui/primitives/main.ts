@@ -14,8 +14,8 @@
  * card, Tab and the arrow keys move focus as a player's keyboard or controller would. Open a card
  * on its own (its link) to see it full-window, and resize the window to watch the owner re-measure.
  *
- * Base: none (renderer-free). Packages: `@mcthaydt/automata-ui`; `@mcthaydt/automata-testing` for
- * the reference sizes and Ruken's display-metrics fixture.
+ * Base: none (renderer-free). Packages: `@mcthaydt/automata` (`/testing` for
+ * the reference sizes and Ruken's display-metrics fixture).
  */
 
 import '@mcthaydt/automata/theme.css'

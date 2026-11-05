@@ -1,8 +1,8 @@
-// The tunables as they were written by hand in `src/sim/tuning.ts` before `content/tuning.toml` held them. Celeste's
+// The tunables as they were written by hand in `src/shared/tuning.ts` before `content/tuning.toml` held them. Celeste's
 // published constants in the sim's units (subpixels per tick at 60 ticks a second). The equivalence test replays the
 // golden route with these and with the compiled content.
 
-import type { Tuning } from '../src/sim/tuning.ts'
+import type { Tuning } from '../src/shared/tuning.ts'
 
 /** 90 px/s. */
 export const MAX_RUN = 384

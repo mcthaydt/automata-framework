@@ -17,7 +17,7 @@
   "exclude": [
     "tests/unit/ship-config.test.ts",
     "tests/unit/vite-config.test.ts",
-    "tests/unit/art/art.test.ts",
+    "tests/unit/shared/art/art.test.ts",
     "tests/unit/plumbing.test.ts"
   ]
 }

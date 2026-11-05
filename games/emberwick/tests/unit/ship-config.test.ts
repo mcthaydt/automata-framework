@@ -1,8 +1,8 @@
 import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from '@mcthaydt/automata-tools'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
-import { input } from '#src/game.ts'
-import { GAME_ID } from '#src/game-id.ts'
+import { input } from '#src/app/game.ts'
+import { GAME_ID } from '#src/shared/game-id.ts'
 import packageJson from '../../package.json' with { type: 'json' }
 import config from '../../ship.config.ts'
 

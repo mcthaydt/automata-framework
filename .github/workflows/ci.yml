@@ -344,6 +344,5 @@ jobs:
     uses: ./.github/workflows/game-ci.yml
     with:
       working-directory: games/emberwick
-      sim-roots: src/sim
       artifact-name: emberwick-dist
       runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}

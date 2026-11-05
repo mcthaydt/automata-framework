@@ -1,4 +1,4 @@
-/* Colors are Endesga 64 (src/art/palette.ts). Contrast: --text on --panel is about 13:1, --ink on --accent
+/* Colors are Endesga 64 (src/shared/art/palette.ts). Contrast: --text on --panel is about 13:1, --ink on --accent
    about 14:1, and the --focus ring on --panel about 12:1. The type is Pixelify Sans (OFL, bundled), drawn
    with hard offset shadows and no blur, so the interface reads as part of the pixel art. */
 :root {

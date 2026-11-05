@@ -600,7 +600,8 @@ describe('ci.yml (AF)', () => {
   it('builds emberwick through the reusable game workflow, with the determinism check on its sim', () => {
     expect(ci.jobs['emberwick']?.uses).toBe('./.github/workflows/game-ci.yml')
     expect(ci.jobs['emberwick']?.with?.['working-directory']).toBe('games/emberwick')
-    expect(ci.jobs['emberwick']?.with?.['sim-roots']).toBe('src/sim')
+    // Inside this repository `pnpm boundaries` checks Emberwick's sim, by role suffix and by import.
+    expect(ci.jobs['emberwick']?.with?.['sim-roots']).toBeUndefined()
     expect(ci.jobs['emberwick']?.with?.runner).toBe(
       "${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}",
     )
@@ -1335,7 +1336,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
           [
             'tooling/x/src/run.ts',
             'examples/core/core-basic-window.ts',
-            'games/emberwick/src/game.ts',
+            'games/emberwick/src/app/game.ts',
             'docs/a.md',
           ],
           'parity_full',
