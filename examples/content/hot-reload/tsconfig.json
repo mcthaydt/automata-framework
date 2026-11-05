@@ -6,5 +6,5 @@
     "isolatedDeclarations": false
   },
   // content.d.ts types `virtual:automata/content`; automata-content writes it on every compile.
-  "include": ["main.ts", "env.d.ts", "content/generated/content.d.ts"]
+  "include": ["main.ts", "env.d.ts", "content/generated/content.d.ts", "tests/unit/**/*.ts"]
 }

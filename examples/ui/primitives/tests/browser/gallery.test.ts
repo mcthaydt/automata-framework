@@ -1,7 +1,7 @@
 import { REFERENCE_SIZES } from '@mcthaydt/automata-testing'
 import { afterEach, describe, expect, test, vi } from 'vitest'
-import page from '../index.html?raw'
-import { PRIMITIVES, start } from '../main'
+import page from '../../index.html?raw'
+import { PRIMITIVES, start } from '../../main.ts'
 
 // Examples convention: the demo boots, says it is ready, and logs no console errors.
 let stop: (() => Promise<void>) | undefined

@@ -7,6 +7,6 @@ import { smokeExamples } from '@mcthaydt/examples-runner/smoke'
 // `examples-compact`), from the catalog: adding an example adds no test (EX spec §5).
 smokeExamples(
   'examples',
-  readCatalog(fileURLToPath(new URL('..', import.meta.url))),
+  readCatalog(fileURLToPath(new URL('../..', import.meta.url))),
   `http://localhost:${examplesPort}`,
 )

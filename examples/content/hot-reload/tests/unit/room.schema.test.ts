@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { roomSchema } from './room.schema.ts'
+import { roomSchema } from '../../room.schema.ts'
 
 // A small valid room: walls round 40 × 8 tiles, Wick on the floor (P) and the ember (G) in the air.
 const WALL = '#'.repeat(40)

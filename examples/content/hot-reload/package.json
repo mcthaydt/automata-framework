@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "scripts": {
     "dev": "vite --configLoader runner",
     "build": "vite build --configLoader runner",
@@ -17,9 +20,10 @@
     "@mcthaydt/automata-game": "workspace:*"
   },
   "devDependencies": {
-    "@mcthaydt/examples-runner": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
+    "@mcthaydt/examples-runner": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

@@ -20,8 +20,8 @@ on:
       - "games/base-3d/**"
       - "examples/render3d/**"
       - "examples/figures/**"
-      - "examples/e2e/render3d-*"
-      - "examples/e2e/figures-*"
+      - "examples/tests/e2e/render3d-*"
+      - "examples/tests/e2e/figures-*"
       - "agents/**"
       # Every package: the 3D and editor packages, and the core ones they build on.
       - "packages/**"

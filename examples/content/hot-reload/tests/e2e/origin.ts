@@ -9,4 +9,4 @@ export const url = `http://localhost:${port}/`
 export const devPort: number = demoPort(2)
 export const devUrl = `http://localhost:${devPort}/`
 export const GAME_ID = 'demo-content-hot-reload'
-export const e2eRoomFile: string = fileURLToPath(new URL('../.e2e/content/room.toml', import.meta.url))
+export const e2eRoomFile: string = fileURLToPath(new URL('../../.e2e/content/room.toml', import.meta.url))
