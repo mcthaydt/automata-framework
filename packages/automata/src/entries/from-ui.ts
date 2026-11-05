@@ -26,9 +26,9 @@ export {
   type HeightTier,
 } from '../shared/ui/geometry/height-tier'
 export { default as ActionBar } from '../shared/ui/layout/ActionBar.svelte'
-export {
-  type ActionKind,
-  type BarAction,
+export type {
+  ActionKind,
+  BarAction,
 } from '../shared/ui/layout/action-bar'
 export { default as OptionGroup } from '../shared/ui/layout/OptionGroup.svelte'
 export { default as PagedGrid } from '../shared/ui/layout/PagedGrid.svelte'
