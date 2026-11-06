@@ -202,14 +202,14 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 30% (19 of 63 tasks)
+### Build: 37% (23 of 63 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 5, task 4.6 done):** branch `claude/project-thread-vmgqwv`, one stacked draft PR
-on #414 for the session; each phase is its own labelled commit group. Next is phase 6 (Save writes the game),
-task 6.1. Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The plan's execution
+**Where to resume (2026-11-06, session 5, phase 6 done):** branch `claude/project-thread-vmgqwv`, one stacked draft PR
+on #414 for the session; each phase is its own labelled commit group. Next is phase 7 (the editor ships inside
+`-tools`), task 7.1. Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The plan's execution
 log has the counts, deviations and gates of every task so far.
 
 | Task | Phase | Status | PR |
@@ -233,10 +233,10 @@ log has the counts, deviations and gates of every task so far.
 | 4.6 The code refactor of the editor package | 4 | Done, 2026-11-06 (Chromium only; `pnpm check` green; editor unit 3,275 (3,270 + five `unique-name` tests), typecheck clean; every file under 300 lines; the longest closures left whole on purpose, the two JSON scanners kept with a header saying why; 35 source-project phrases reworded; editor Chromium browser projects and WebKit, Firefox, hosted CI not run) | |
 | 5.1 The level-2d entry | 5 | Done, 2026-11-06 (Chromium only; `pnpm check` green; content unit tests 52 moved, 12 new; `pnpm boundaries` scans `read-level.ts` with the sim rule; API report, agent reference, cheatsheet regenerated; hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
 | 5.2 The editor and Emberwick import it | 5 | Done, 2026-11-06 (`pnpm check` green; the golden did not move: `sim-content.json` byte-identical, hash `5fd77abd159d6a5e`; Emberwick unit 109; Chromium journeys: see the log; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
-| 6.1 exports in the editor list and the policy | 6 | Not started | |
-| 6.2 Save writes the game files, then the project | 6 | Not started | |
-| 6.3 The drift check | 6 | Not started | |
-| 6.4 The narrow fallback | 6 | Not started | |
+| 6.1 exports in the editor list and the policy | 6 | Done, 2026-11-06 (`pnpm check` green; Chromium parity, layout and storage 452 pass, canvas and journeys 75 pass and 6 skipped; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
+| 6.2 Save writes the game files, then the project | 6 | Done, 2026-11-06 (`pnpm check` green; Chromium parity, layout and storage 452 pass, canvas and journeys 75 pass and 6 skipped; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
+| 6.3 The drift check | 6 | Done, 2026-11-06 (`pnpm check` green; Chromium parity, layout and storage 452 pass, canvas and journeys 75 pass and 6 skipped; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
+| 6.4 The narrow fallback | 6 | Done, 2026-11-06 (`pnpm check` green; Chromium parity, layout and storage 452 pass, canvas and journeys 75 pass and 6 skipped; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
 | 7.1 --app 2d by default, and it runs from source | 7 | Not started | |
 | 7.2 The build inside -tools, and the closed-beta scan | 7 | Not started | |
 | 7.3 create-game makes a level | 7 | Not started | |

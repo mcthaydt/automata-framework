@@ -521,13 +521,13 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   `packages/tools/src/features/editor/editor-policy.ts`, `games/emberwick/content/editors.toml`
 - Test: `packages/editor/tests/unit/editor-list/exports.test.ts`, `packages/tools/tests/unit/editor/editor-policy.test.ts`
 
-- [ ] **Step 1: Failing tests.** (a) A row with `exports = "content"` loads; `fileAccess(list, 'content/project.toml')`,
+- [x] **Step 1: Failing tests.** (a) A row with `exports = "content"` loads; `fileAccess(list, 'content/project.toml')`,
   `'content/world.toml'`, `'content/levels/room-1.toml'` are writable; `'content/tuning.toml'` is not (unless its own
   row says so); `'content/levels/x.json'` is not. (b) Two rows whose projects share an `exports` folder fail to load
   with spec section 6.1's message. (c) The server policy agrees with (a).
-- [ ] **Step 2:** Implement in `editor-list` (one function, `exportPaths(row)`, used by `fileAccess`). The policy
+- [x] **Step 2:** Implement in `editor-list` (one function, `exportPaths(row)`, used by `fileAccess`). The policy
   needs no change beyond using `fileAccess`. Add `exports = "content"` to Emberwick's row.
-- [ ] **Step 3: Commit.** `feat(editor-list): a level row names the folder its game files go into`
+- [x] **Step 3: Commit.** `feat(editor-list): a level row names the folder its game files go into`
 
 ### Task 6.2: Save writes the game files, then the project
 
@@ -541,7 +541,7 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Test: `packages/editor/tests/unit/level-2d/save-to-game.test.ts`, `.../document/document-controller.test.ts`,
   `.../share/export-model.test.ts`, `.../home/project-browse.test.ts`
 
-- [ ] **Step 1: Failing tests** on a memory store (`src/testing/memory-workspace.ts`) with Emberwick's list:
+- [x] **Step 1: Failing tests** on a memory store (`src/testing/memory-workspace.ts`) with Emberwick's list:
   - Save writes `content/project.toml`, `content/world.toml`, `content/levels/room-1.toml` and then the project, in that
     order (the store records the order), with bytes equal to `exportContent(project)`.
   - A game file changed on disk since it was read → nothing is written, the result is `{ conflict: path }`, the
@@ -551,10 +551,10 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   - No `exports` row (browser storage) → only the project is written, as today.
   - The export model on a checkout with `exports` offers no "Write to folder" and never says "Open a game folder to
     write into it."; the home storage line says "Saved in your game folder".
-- [ ] **Step 2:** `save-to-game.ts` composes `exportContent` and `writeToFolder(store, files, seen, 'guarded')`
+- [x] **Step 2:** `save-to-game.ts` composes `exportContent` and `writeToFolder(store, files, seen, 'guarded')`
   (reused, not copied) and writes the project last. `app/editor-2d` passes it in; the document feature does not
   import `share` (spec 3.3).
-- [ ] **Step 3:** Run the editor's unit and Chromium browser tests → pass. Copy rows in `copy.md`. Commit.
+- [x] **Step 3:** Run the editor's unit and Chromium browser tests → pass. Copy rows in `copy.md`. Commit.
   `feat(editor): Save writes the game files the game reads`
 
 ### Task 6.3: The drift check
@@ -566,14 +566,14 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   `packages/tools/tsdown.config.ts`
 - Test: `packages/tools/tests/unit/shared/check/levels-step.test.ts` (fixtures: a temp copy of Emberwick's `content/`)
 
-- [ ] **Step 1: Failing tests.** In sync → pass; a hand edit to `levels/room-1.toml` → fails with spec 6.3's two lines;
+- [x] **Step 1: Failing tests.** In sync → pass; a hand edit to `levels/room-1.toml` → fails with spec 6.3's two lines;
   a project that does not open → fails with its first problem and the same last line; no `editors.toml` or no
   `exports` row → the step is skipped with "No level files to check."; and the real `games/emberwick` is in sync (this
   is what keeps Emberwick's room and its game files together in `pnpm check`: `-tools`' `check:example` script runs in
   no gate).
-- [ ] **Step 2:** Implement with `@mcthaydt/automata-editor/level-export` (Effect, as the other steps are: `-tools`
+- [x] **Step 2:** Implement with `@mcthaydt/automata-editor/level-export` (Effect, as the other steps are: `-tools`
   is Node tooling). Bundled by tsdown like the editor list.
-- [ ] **Step 3:** `node packages/tools/src/app/bin.ts check games/emberwick --only levels` → passes (from source:
+- [x] **Step 3:** `node packages/tools/src/app/bin.ts check games/emberwick --only levels` → passes (from source:
   confirms the entry loads in Node). `pnpm check` passes. Commit. `feat(check): catch a level and its game files
   disagreeing`
 
@@ -584,11 +584,11 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   (usage text)
 - Test: `packages/tools/tests/unit/editor/editor-policy.test.ts`
 
-- [ ] **Step 1: Failing test:** with no list, `package.json`, `tsconfig.json` and `content/data.json` are neither readable
+- [x] **Step 1: Failing test:** with no list, `package.json`, `tsconfig.json` and `content/data.json` are neither readable
   nor writable; `levels/a.af2d.json` is both.
-- [ ] **Step 2:** The fallback matches `**/*.af2d.json` outside tool folders. Usage text: "Without
+- [x] **Step 2:** The fallback matches `**/*.af2d.json` outside tool folders. Usage text: "Without
   content/editors.toml, it opens only level files (*.af2d.json)."
-- [ ] **Step 3:** `pnpm check`. Commit, mark the PR ready. `fix(editor): without an editor list, only level files are reachable`
+- [x] **Step 3:** `pnpm check`. Commit, mark the PR ready. `fix(editor): without an editor list, only level files are reachable`
 
 ---
 
@@ -1574,3 +1574,37 @@ Tasks 5.1 and 5.2, one commit group on PR #415.
 - **Gates:** `pnpm check` exit 0 (editor unit 3,275 less the 3 tests that moved to `-content`, plus none lost);
   `pnpm build`; API reports, agent reference and cheatsheet regenerated; changeset `level-2d-contract` (patch).
 
+### 2026-11-06, session 5 (continued): phase 6, Save writes the game
+
+Tasks 6.1 to 6.4, one commit group on PR #415.
+
+- **6.1 `exports`.** `FileRow.exports` (optional, so the format stays `af-editors/1`); `exportPathsMatch(exports, path)`
+  in `workspace-policy.ts` is the one function `fileAccess` uses, so the suite and the server agree; two rows with the
+  same folder fail to load with "Two level projects would write content/project.toml. Give each its own exports
+  folder." Emberwick's row names `exports = "content"`. The server's policy needed no change (it calls `fileAccess`);
+  `editor-policy.test.ts` pins it.
+- **6.2 Save.** `createGameSave` (`shared/level-2d/documents/save-to-game.ts`) exports through the same
+  `exportContent` the Export view uses, writes the game files with the guarded write and the project last, and
+  refreshes the mtimes it expects for the files it reached. `DocumentSession` gained `beforeSave(mode)`: a stop with a
+  conflict opens the conflict dialog with nothing written; a failure part-way keeps what was written, leaves the
+  document in `error` with the store's message, and the next Save writes everything. **Deviation 83:** the plan put
+  `save-to-game.ts` under `profiles/level-project/`; it is in `documents/` beside `editor-app.ts`, which composes it,
+  and `OpenDocument.gameFolder` tells the Share view and Home. Browser storage and a row without `exports` write the
+  project only. The Share view offers no "Write to folder" where Save writes the game; Home says "Saved in your game
+  folder" (rows in `copy.md`).
+- **6.3 The drift check.** `levels` step (`shared/check/levels-step.ts`): for each row that names `exports`, open each
+  matching project, export it and compare bytes with the files on disk; a project that does not open is reported with
+  its first problem; the last line of every finding is "Open the level in the editor and press Save." `StepName` became
+  `STEP_NAMES`, and `--only <step>` runs one step (`--only levels` is the plan's check). **Deviation 84:** the editor
+  package is loaded with `import()` only when a game has an editor list: Node cannot load its source, and `bin.ts`
+  from source must still start for every other game (phase 7.1 makes the editor run from source). Run from source,
+  `--only levels` therefore waits for 7.1; the unit tests over a copy of Emberwick's `content/` and over the real
+  `games/emberwick` run in `pnpm check` and pass. The help's step label `tests` became `test`, the name `--only` takes.
+- **6.4 The narrow fallback.** With no editor list, only `**/*.af2d.json` outside tool folders is readable and
+  writable. Tests in `checkout.test.ts` and `serve-editor.test.ts` use `.af2d.json` names now.
+- **Skill.** `automata-verify` documents the `levels` rule and `--only`; the API reports, agent reference and cheatsheet
+  were regenerated.
+- **Counts.** Editor unit 3,242 in 271 files, all pass (3,275 after task 4.6; phase 5 moved the field-rule tests to
+  `-content`, and phase 6 added the save, exports and export-model tests); `-tools` unit 835 (809 after task 3.5).
+  Chromium: parity, layout and storage 452 pass; canvas and journeys 75 pass, 6 skipped. `pnpm check` exit 0.
+  WebKit, Firefox and hosted CI not run.

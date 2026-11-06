@@ -2,6 +2,10 @@
 // it, copying, importing and removing documents, and keeping an open one saved. Each answers with an outcome the views
 // turn into screens. Plain TypeScript with no Svelte, so the views and the tests use the same object. Nothing here names
 // a profile: the registry says which ones exist, and the first export of each is its working file.
+
+import { loadEditorList } from '../../editor-list/editor-list'
+import { EDITOR_LIST_PATH } from '../../editor-list/editors.schema'
+import { fileAccess } from '../../editor-list/workspace-policy'
 import { createHistory, type History } from '../../kit/history/history.ts'
 import { type StorageClock, systemClock } from '../../kit/storage/clock.ts'
 import {
@@ -22,6 +26,7 @@ import type { IdSource } from '../model/ids'
 import type { ParseError, Profile, ProfileRegistry, Result } from '../profiles/profile'
 import { listProjects, type ProjectEntry } from './project-list'
 import { readDocument } from './read-document'
+import { createGameSave, type GameSave } from './save-to-game'
 import { splitName, uniqueName } from './unique-name'
 
 /** One open document: the profile, its history and its save flow. The value type is the profile's; the view that knows it narrows it. */
@@ -35,6 +40,8 @@ export interface OpenDocument {
   overwrite(): Promise<SaveOutcome>
   /** Save as copy: the first unused `name copy.ext`; the document keeps its own path. */
   saveCopy(): Promise<SaveOutcome>
+  /** The folder Save also writes the game's files into (a checkout whose editor list says so); `undefined` otherwise. */
+  readonly gameFolder: string | undefined
   /** The text the document was loaded or last saved as, which a profile's export targets patch. */
   base(): string
   /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
@@ -143,6 +150,34 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
   const { workspace, registry, ids } = options
   const clock = options.clock ?? systemClock
 
+  /**
+   * On a served game checkout, the game save of a document whose editor-list row names an `exports` folder and whose
+   * profile says which of its exports a game reads. Anything else (browser storage, no list, a list that does not
+   * load, a document no row exports) saves the document alone.
+   */
+  async function gameSaveFor(
+    path: string,
+    profile: Profile<unknown>,
+    value: unknown,
+    loaded: string,
+  ): Promise<GameSave | undefined> {
+    const target = profile.exports.find((candidate) => candidate.id === profile.gameTarget)
+    if (workspace.served !== true || target === undefined) return undefined
+    let listText: string | undefined
+    try {
+      const bytes = await workspace.store.read(EDITOR_LIST_PATH)
+      listText = bytes === undefined ? undefined : new TextDecoder().decode(bytes)
+    } catch {
+      return undefined
+    }
+    const loadedList = loadEditorList(listText)
+    if (!loadedList.ok) return undefined
+    const access = fileAccess(loadedList.list, path)
+    const folder = access.row?.exports
+    if (!access.writable || folder === undefined) return undefined
+    return createGameSave(workspace.store, target, folder, { value, base: loaded })
+  }
+
   /** Opens a stored file. `readStored` stats first, so a file that changes after it can only make the next save a conflict, never overwrite silently. */
   async function open(path: string, as?: string): Promise<OpenOutcome> {
     const stored = await readStored(workspace.store, path)
@@ -157,7 +192,8 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     } catch (error) {
       recoveryError = classifyStorageError(error).message
     }
-    const document = openDocument(path, mtime, read.profile, read.value, read.text)
+    const game = await gameSaveFor(path, read.profile, read.value, read.text)
+    const document = openDocument(path, mtime, read.profile, read.value, read.text, game)
     return recoveryError === undefined
       ? { status: 'opened', document, recovery }
       : { status: 'opened', document, recovery, recoveryError }
@@ -169,6 +205,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     profile: Profile<unknown>,
     value: unknown,
     loaded: string,
+    game: GameSave | undefined,
   ): OpenDocument {
     // The text a codec may patch: as last read or written (decision 5).
     let base = loaded
@@ -187,6 +224,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
         return printed
       },
       snapshot: (state) => profile.print(base, state),
+      ...(game === undefined ? {} : { beforeSave: (mode) => game.write(history.state, () => base, mode) }),
     })
 
     // Saves run one at a time, so `printed` (set while the save serialises, which a saved outcome always did) is the text of the save that just finished.
@@ -206,6 +244,7 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
       path,
       history,
       session,
+      gameFolder: game?.folder,
       save: () => writing(() => session.save(), true),
       overwrite: () => writing(() => session.overwrite(), true),
       saveCopy: () => writing(() => session.saveCopy(), false),

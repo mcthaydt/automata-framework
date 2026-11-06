@@ -28,6 +28,9 @@ export type SaveOutcome =
   | { readonly status: 'conflict' }
   | { readonly status: 'failed'; readonly reason: StorageFailure; readonly message: string }
 
+/** Why files written before the document stopped its save. */
+export type BeforeSaveStop = Extract<SaveOutcome, { status: 'conflict' | 'failed' }>
+
 export interface DocumentSessionOptions<S> {
   readonly store: ProjectStore
   readonly journal: ProjectStore
@@ -37,6 +40,12 @@ export interface DocumentSessionOptions<S> {
   serializeFile(state: S): Uint8Array | string
   /** The editor's own string for the document's model, kept by the autosave journal. */
   snapshot(state: S): string
+  /**
+   * Files that must be written before the document's own, such as a game's files (`mode` is `overwrite` for Keep
+   * mine). Answers `undefined` when they are written; a conflict or failure stops the save before the document is
+   * touched.
+   */
+  beforeSave?(mode: 'guarded' | 'overwrite'): Promise<BeforeSaveStop | undefined>
   /** The file's `mtime` when it was opened; `undefined` for a document with no file yet. */
   readonly mtime?: number | undefined
   /** `Workspace.persistent === false`: nothing is kept on this device, so the status stays `device`. */
@@ -191,6 +200,9 @@ export function createDocumentSession<S>(options: DocumentSessionOptions<S>): Do
   const saveOwnFile = (guarded: boolean): Promise<SaveOutcome> =>
     tracked(async () => {
       const revision = history.revision
+      const stop = await options.beforeSave?.(guarded ? 'guarded' : 'overwrite')
+      if (stop?.status === 'failed') return failed(stop.reason, stop.message)
+      if (stop !== undefined) return stop
       const guard = !guarded ? undefined : knownMtime === undefined ? 'new' : { mtime: knownMtime }
       const { outcome, mtime, hash } = await writeDocument(path, guard)
       if (outcome.status === 'saved' && mtime !== undefined) {

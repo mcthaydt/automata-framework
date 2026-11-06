@@ -313,6 +313,7 @@ interface DocumentSessionOptions<S> {
     readonly history: History<S>;
     serializeFile(state: S): Uint8Array | string;
     snapshot(state: S): string;
+    beforeSave?(mode: 'guarded' | 'overwrite'): Promise<BeforeSaveStop | undefined>;
     readonly mtime?: number | undefined;
     readonly deviceOnly?: boolean;
     readonly clock?: StorageClock;
@@ -2014,6 +2015,7 @@ interface DocumentSessionOptions<S> {
     readonly history: History<S>;
     serializeFile(state: S): Uint8Array | string;
     snapshot(state: S): string;
+    beforeSave?(mode: 'guarded' | 'overwrite'): Promise<BeforeSaveStop | undefined>;
     readonly mtime?: number | undefined;
     readonly deviceOnly?: boolean;
     readonly clock?: StorageClock;
@@ -4651,6 +4653,7 @@ interface FileRow {
     readonly modes: readonly EditMode[];
     readonly gates: readonly string[];
     readonly checks: readonly string[];
+    readonly exports?: string | undefined;
 }
 ```
 

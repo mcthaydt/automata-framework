@@ -154,9 +154,7 @@ export function storageNotes(workspace: Workspace): readonly StorageNote[] {
       { tone: 'ok', text: 'Autosave on' },
       {
         tone: 'ok',
-        text: workspace.served
-          ? 'Kept in your game’s checkout, on the computer running automata editor'
-          : 'Kept in this browser’s private storage',
+        text: workspace.served ? 'Saved in your game folder' : 'Kept in this browser’s private storage',
       },
       { tone: 'info', text: 'Edits are autosaved beside your projects, so a crash does not lose them.' },
     ]

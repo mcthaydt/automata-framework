@@ -48,6 +48,14 @@ function insideRoot(path: string): boolean {
   return path.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..')
 }
 
+/** The game files a level project writes into its `exports` folder: the project, the world and one file per level. */
+export function exportPathsMatch(exports: string, path: string): boolean {
+  if (!path.startsWith(`${exports}/`)) return false
+  const rest = path.slice(exports.length + 1)
+  if (rest === 'project.toml' || rest === 'world.toml') return true
+  return rest.startsWith('levels/') && rest.endsWith('.toml') && !rest.slice('levels/'.length).includes('/')
+}
+
 /** The first row whose glob matches `path`, with the scene its `{scene}` matched. */
 function firstRow(list: EditorList, path: string): { row: FileRow; scene?: string } | undefined {
   for (const row of list.file) {
@@ -55,7 +63,9 @@ function firstRow(list: EditorList, path: string): { row: FileRow; scene?: strin
     if (match === undefined) continue
     return match.scene === undefined ? { row } : { row, scene: match.scene }
   }
-  return undefined
+  // No row lists the file: it may still be a game file some level project exports.
+  const exporter = list.file.find((row) => row.exports !== undefined && exportPathsMatch(row.exports, path))
+  return exporter === undefined ? undefined : { row: exporter }
 }
 
 const readOnly = (

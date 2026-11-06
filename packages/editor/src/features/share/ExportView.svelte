@@ -32,6 +32,7 @@ const current = $derived(
   exportState(targets, chosen, errors, {
     kind: workspace?.store.kind ?? 'memory',
     persistent: workspace?.persistent ?? true,
+    savesGame: opened.gameFolder !== undefined,
   }),
 )
 const working = $derived(opened.profile.exports[0]?.id)
@@ -182,15 +183,19 @@ const write = (mode: 'guarded' | 'overwrite') =>
             onclick={share}>Share</Button
           >
           <Button disabled={busy || current.single === undefined || workspace === undefined} onclick={copy}>Copy</Button>
-          <Button disabled={busy || !current.write.ok || seen === undefined} onclick={() => write('guarded')}>
-            Write to folder
-          </Button>
+          {#if current.offersWrite}
+            <Button disabled={busy || !current.write.ok || seen === undefined} onclick={() => write('guarded')}>
+              Write to folder
+            </Button>
+          {/if}
         </div>
         {#if current.files.length > 1}
           <p class="note">Share and Copy take one file; Download takes them all.</p>
         {/if}
-        {#if !current.write.ok}
+        {#if current.offersWrite && !current.write.ok}
           <p class="note">{current.write.why}</p>
+        {:else if !current.offersWrite}
+          <p class="note">Save already writes your game’s files into {opened.gameFolder}.</p>
         {/if}
         {#if message !== undefined}
           <p class="message" role="status">{message}</p>

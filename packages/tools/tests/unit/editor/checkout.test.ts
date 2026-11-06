@@ -20,7 +20,9 @@ describe('the editor checkout', () => {
   const checkout = () => openCheckout(root, editorPolicy(undefined))
 
   it('finds a path inside the checkout, even one that does not exist yet', async () => {
-    expect(await checkout().locate('content/levels/a.json')).toBe(join(root, 'content/levels/a.json'))
+    expect(await checkout().locate('content/levels/a.af2d.json')).toBe(
+      join(root, 'content/levels/a.af2d.json'),
+    )
   })
 
   it('refuses a path that a symlink leads out of the checkout', async () => {
@@ -29,23 +31,23 @@ describe('the editor checkout', () => {
   })
 
   it('writes a new file and reports its modified time', async () => {
-    const full = join(root, 'content/a.json')
-    const outcome = await checkout().write(full, 'content/a.json', Buffer.from('{}'), 'absent')
+    const full = join(root, 'content/a.af2d.json')
+    const outcome = await checkout().write(full, 'content/a.af2d.json', Buffer.from('{}'), 'absent')
     expect(outcome).toEqual({ mtime: expect.any(Number) })
     expect(existsSync(full)).toBe(true)
   })
 
   it('refuses to create a file that is there already', async () => {
-    const full = join(root, 'a.json')
+    const full = join(root, 'a.af2d.json')
     writeFileSync(full, 'first')
-    const outcome = await checkout().write(full, 'a.json', Buffer.from('second'), 'absent')
-    expect(outcome).toEqual({ conflict: 'a.json is there already' })
+    const outcome = await checkout().write(full, 'a.af2d.json', Buffer.from('second'), 'absent')
+    expect(outcome).toEqual({ conflict: 'a.af2d.json is there already' })
   })
 
   it('refuses a write over a file that changed since it was read, and makes no folder for it', async () => {
-    const full = join(root, 'deep/new/a.json')
-    const outcome = await checkout().write(full, 'deep/new/a.json', Buffer.from('x'), '123')
-    expect(outcome).toEqual({ conflict: 'deep/new/a.json changed on disk since the editor read it' })
+    const full = join(root, 'deep/new/a.af2d.json')
+    const outcome = await checkout().write(full, 'deep/new/a.af2d.json', Buffer.from('x'), '123')
+    expect(outcome).toEqual({ conflict: 'deep/new/a.af2d.json changed on disk since the editor read it' })
     expect(existsSync(join(root, 'deep'))).toBe(false)
   })
 
@@ -53,9 +55,12 @@ describe('the editor checkout', () => {
     mkdirSync(join(root, 'node_modules/x'), { recursive: true })
     writeFileSync(join(root, 'node_modules/x/ignored.json'), '{}')
     mkdirSync(join(root, 'content/levels'), { recursive: true })
-    writeFileSync(join(root, 'content/levels/b.json'), '{}')
-    writeFileSync(join(root, 'content/levels/a.json'), '{}')
+    writeFileSync(join(root, 'content/levels/b.af2d.json'), '{}')
+    writeFileSync(join(root, 'content/levels/a.af2d.json'), '{}')
     const listed = await checkout().list('content/')
-    expect(listed.map((file) => file.path)).toEqual(['content/levels/a.json', 'content/levels/b.json'])
+    expect(listed.map((file) => file.path)).toEqual([
+      'content/levels/a.af2d.json',
+      'content/levels/b.af2d.json',
+    ])
   })
 })

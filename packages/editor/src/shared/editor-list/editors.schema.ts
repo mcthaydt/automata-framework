@@ -28,6 +28,11 @@ export interface FileRow {
   readonly gates: readonly string[]
   /** Check ids: `content` (built in) or a `[[check]]` id. */
   readonly checks: readonly string[]
+  /**
+   * For a level project: the folder its game files go into. The editor then also writes `<exports>/project.toml`,
+   * `<exports>/world.toml` and `<exports>/levels/<id>.toml`, and nothing else in that folder.
+   */
+  readonly exports?: string | undefined
 }
 
 /** One `[[check]]`: a game command, run as argv in the game checkout with no shell (the ports' `CheckDef`). */
@@ -100,12 +105,19 @@ const modesSchema = z
   .min(1)
   .refine((modes) => new Set(modes).size === modes.length, { message: 'each mode is listed once' })
 
+/** A folder under the game root, written without a trailing slash or a placeholder. */
+const exportsSchema = z.string().refine((folder) => insideRoot(folder) && placeholders(folder).length === 0, {
+  message:
+    'exports is a folder inside the game root (no leading or doubled /, no . or .. segment, no backslash)',
+})
+
 const fileRowSchema: z.ZodType<FileRow> = z.strictObject({
   glob: globSchema,
   editor: idSchema,
   modes: modesSchema,
   gates: z.array(idSchema),
   checks: z.array(idSchema),
+  exports: exportsSchema.optional(),
 })
 
 const checkRowSchema: z.ZodType<CheckRow> = z.strictObject({

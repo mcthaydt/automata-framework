@@ -5350,7 +5350,7 @@ function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | und
 
 #### `ContentEntityDef` (type)
 
-_No doc comment._
+An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it.
 
 ```ts
 type ContentEntityDef = EntityDef & {
@@ -5375,7 +5375,7 @@ type ContentEntityDef = EntityDef & {
 
 #### `ContentEntityItem` (interface)
 
-_No doc comment._
+One placed entity in a level: its definition, its position (and size when resizable) and its field values.
 
 ```ts
 interface ContentEntityItem {
@@ -5391,7 +5391,7 @@ interface ContentEntityItem {
 
 #### `ContentLevel` (interface)
 
-_No doc comment._
+A level as `levels/<id>.toml` holds it, after parsing the TOML.
 
 ```ts
 interface ContentLevel {
@@ -5412,7 +5412,7 @@ interface ContentLevel {
 
 #### `ContentLevelLayer` (type)
 
-_No doc comment._
+One layer of a level, by kind: tile rows, IntGrid rows, auto-tile stacks, entities or objects.
 
 ```ts
 type ContentLevelLayer = {
@@ -5454,7 +5454,7 @@ interface ContentNeighbours {
 
 #### `ContentObjectItem` (interface)
 
-_No doc comment._
+One placed tile object in an objects layer.
 
 ```ts
 interface ContentObjectItem {
@@ -5469,7 +5469,7 @@ interface ContentObjectItem {
 
 #### `ContentProject` (interface)
 
-_No doc comment._
+The project as `project.toml` holds it: the layer, tileset and entity definitions every level uses.
 
 ```ts
 interface ContentProject {
@@ -5486,7 +5486,7 @@ interface ContentProject {
 
 #### `ContentProjectLayer` (type)
 
-_No doc comment._
+A layer definition in `project.toml`, by kind.
 
 ```ts
 type ContentProjectLayer = {
@@ -5523,7 +5523,7 @@ type ContentProjectLayer = {
 
 #### `ContentRows` (interface)
 
-_No doc comment._
+One stack entry of an auto layer: run-length row strings.
 
 ```ts
 interface ContentRows {
@@ -5533,7 +5533,7 @@ interface ContentRows {
 
 #### `ContentSize` (interface)
 
-_No doc comment._
+A width and height in pixels.
 
 ```ts
 interface ContentSize {
@@ -5544,7 +5544,7 @@ interface ContentSize {
 
 #### `ContentTileset` (interface)
 
-_No doc comment._
+A tileset in `project.toml`: its tile size, grid, optional image and tags.
 
 ```ts
 interface ContentTileset {
@@ -5565,7 +5565,7 @@ interface ContentTileset {
 
 #### `ContentWorld` (interface)
 
-_No doc comment._
+The worlds as `world.toml` holds them: layout, level placements and, for a grid world, each level's neighbours.
 
 ```ts
 interface ContentWorld {
@@ -5615,7 +5615,7 @@ const ENTITY_ID: RegExp;
 
 #### `EntityDef` (interface)
 
-_No doc comment._
+A thing a game places: an id, a label and the typed fields its instances carry.
 
 ```ts
 interface EntityDef {
@@ -5631,7 +5631,7 @@ interface EntityDef {
 
 #### `EntityDefCode` (type)
 
-_No doc comment._
+The reasons `checkEntityDef` can refuse an entity definition.
 
 ```ts
 type EntityDefCode = FieldDefCode | "badEntityId" | "badEntityColor" | "duplicateFieldId";
@@ -5639,7 +5639,7 @@ type EntityDefCode = FieldDefCode | "badEntityId" | "badEntityColor" | "duplicat
 
 #### `EntityDefIssue` (interface)
 
-_No doc comment._
+One problem found in a parsed entity definition, with the path of the field at fault.
 
 ```ts
 interface EntityDefIssue {
@@ -5671,7 +5671,7 @@ interface EntityDefProblem extends FieldProblem<EntityDefCode> {
 
 #### `entityDefSchema` (const)
 
-_No doc comment._
+The schema of an entity definition: strict shape, then the rules `checkEntityDef` applies.
 
 ```ts
 const entityDefSchema: z.ZodType<EntityDef>;
@@ -5702,7 +5702,7 @@ const FIELD_ID: RegExp;
 
 #### `FIELD_TYPES` (const)
 
-_No doc comment._
+Every field type, in the order a picker lists them.
 
 ```ts
 const FIELD_TYPES: readonly FieldType[];
@@ -5710,7 +5710,7 @@ const FIELD_TYPES: readonly FieldType[];
 
 #### `FieldDef` (interface)
 
-_No doc comment._
+The definition of one typed field: its id, type and the bounds, options or target its type needs.
 
 ```ts
 interface FieldDef {
@@ -5738,7 +5738,7 @@ interface FieldDef {
 
 #### `FieldDefCode` (type)
 
-_No doc comment._
+The reasons `checkFieldDef` can refuse a field definition.
 
 ```ts
 type FieldDefCode = "badId" | "badBounds" | "badStep" | "noOptions" | "duplicateOption" | "badDefault" | "wrongTypeProperty";
@@ -5746,7 +5746,7 @@ type FieldDefCode = "badId" | "badBounds" | "badStep" | "noOptions" | "duplicate
 
 #### `fieldDefSchema` (const)
 
-_No doc comment._
+The schema of a field definition: strict shape, then the rules `checkFieldDef` applies.
 
 ```ts
 const fieldDefSchema: z.ZodType<FieldDef>;
@@ -5754,7 +5754,7 @@ const fieldDefSchema: z.ZodType<FieldDef>;
 
 #### `FieldProblem` (interface)
 
-_No doc comment._
+A problem with a field, with a stable `code` and a sentence to show.
 
 ```ts
 interface FieldProblem<Code extends string = string> {
@@ -5765,7 +5765,7 @@ interface FieldProblem<Code extends string = string> {
 
 #### `FieldType` (type)
 
-_No doc comment._
+The kind of value a field holds: int, float, bool, text, enum, color, angle, ref or point.
 
 ```ts
 type FieldType = "int" | "float" | "bool" | "text" | "enum" | "color" | "angle" | "ref" | "point";
@@ -5773,7 +5773,7 @@ type FieldType = "int" | "float" | "bool" | "text" | "enum" | "color" | "angle" 
 
 #### `FieldValue` (type)
 
-_No doc comment._
+A value a field can hold: a number, boolean, string, point, reference or a list of those.
 
 ```ts
 type FieldValue = number | boolean | string | Point | RefValue | readonly FieldValue[];
@@ -5781,7 +5781,7 @@ type FieldValue = number | boolean | string | Point | RefValue | readonly FieldV
 
 #### `FieldValueCode` (type)
 
-_No doc comment._
+The reasons `checkFieldValue` can refuse a value.
 
 ```ts
 type FieldValueCode = "wrongType" | "notInteger" | "belowMin" | "aboveMax" | "notAnOption" | "badColor" | "badRef" | "badPoint" | "badListItem";
@@ -5800,7 +5800,7 @@ interface FieldValueProblem extends FieldProblem<FieldValueCode> {
 
 #### `FieldValues` (type)
 
-_No doc comment._
+The values an instance holds, by field id.
 
 ```ts
 type FieldValues = Readonly<Record<string, FieldValue>>;
@@ -5816,7 +5816,7 @@ const fieldValueSchema: z.ZodType<FieldValue>;
 
 #### `fieldValuesSchema` (const)
 
-_No doc comment._
+The schema of the values an instance holds, by field id.
 
 ```ts
 const fieldValuesSchema: z.ZodType<FieldValues>;
@@ -5832,7 +5832,7 @@ const HEX_COLOR: RegExp;
 
 #### `InstanceCode` (type)
 
-_No doc comment._
+The reasons an instance's values can disagree with its definition.
 
 ```ts
 type InstanceCode = FieldValueCode | "fieldMissing" | "unknownField";
@@ -5868,7 +5868,7 @@ function level2dKinds(options?: Level2dKindsOptions): ContentSchemaDef[];
 
 #### `Level2dKindsOptions` (interface)
 
-_No doc comment._
+Options for `level2dKinds`.
 
 ```ts
 interface Level2dKindsOptions {
@@ -5879,7 +5879,7 @@ interface Level2dKindsOptions {
 
 #### `levelContentSchema` (const)
 
-_No doc comment._
+The strict schema of `levels/<id>.toml`.
 
 ```ts
 const levelContentSchema: z.ZodType<ContentLevel>;
@@ -5887,7 +5887,7 @@ const levelContentSchema: z.ZodType<ContentLevel>;
 
 #### `Point` (interface)
 
-_No doc comment._
+A position with `x` and `y`.
 
 ```ts
 interface Point {
@@ -5898,7 +5898,7 @@ interface Point {
 
 #### `projectContentSchema` (const)
 
-_No doc comment._
+The strict schema of `project.toml`.
 
 ```ts
 const projectContentSchema: z.ZodType<ContentProject>;
@@ -5918,7 +5918,7 @@ interface RefValue {
 
 #### `worldContentSchema` (const)
 
-_No doc comment._
+The strict schema of `world.toml`.
 
 ```ts
 const worldContentSchema: z.ZodType<ContentWorld>;

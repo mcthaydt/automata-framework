@@ -1,12 +1,12 @@
 ---
 name: automata-verify
-description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, orientation, inputs, no-eval, data URLs, CSP). Use when automata check or the Automata hook reports findings.
+description: How to run automata check, read its --json report, and fix each rule it reports (boundaries, typecheck, tests, boards, orientation, inputs, levels, no-eval, data URLs, CSP). Use when automata check or the Automata hook reports findings.
 ---
 
 # Running and reading `automata check`
 
 `automata check` runs the game's own tools in order and reports every problem in one shape. Run it from the game
-folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast]`.
+folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp] [--fail-fast] [--only <step>]`.
 
 | Step | Runs | Skipped when |
 |---|---|---|
@@ -16,11 +16,13 @@ folder (or pass the folder): `automata check [dir] [--json] [--sim-only] [--csp]
 | `boards` | the leaderboards the sources name, against `ship.config.ts`'s `leaderboards` | `--sim-only` |
 | `orientation` | the `orientation` each `defineGame` plays in, against `ship.config.ts`'s `runtime.orientation` | `--sim-only` |
 | `inputs` | the devices the sources' `keys()` calls bind, against `ship.config.ts`'s `runtime.inputs` | `--sim-only` |
+| `levels` | each level project the editor list's `exports` rows name, exported again and compared with the game files on disk | `--sim-only`, or a game with no such row |
 | `no-eval` | `vite build`, then a scan of `dist/**/*.js` | `--sim-only` |
 | `data-urls` | a scan of the `dist/**/*.js` that `no-eval` built for assets Vite inlined as `data:` URLs | `--sim-only` |
 | `csp` | serves `dist/` with Ruken's Content-Security-Policy and loads it in Chromium until the game is ready | unless `--csp` |
 
-Every step runs even after one fails, so one run shows everything; `--fail-fast` stops at the first failing step.
+Every step runs even after one fails, so one run shows everything; `--fail-fast` stops at the first failing step, and
+`--only <step>` runs just the one named.
 
 ## Reading `--json`
 
@@ -95,6 +97,12 @@ Findings use the compiler's code as the rule (`TS2322`, `TS2304`, …) with its 
 | Rule | Means | Fix |
 |---|---|---|
 | `inputs-mismatch` | `runtime.inputs` has no `gamepad` but a `keys()` call binds pad buttons, or declares `touch` while no `keys()` call makes a touch button or a gesture. The finding points at the `inputs` array and its message names the call | Add the device to `runtime.inputs`, or take the binding out. Only literals in a `keys(command, bindings, options)` call are read; a binding built elsewhere is left to the game's own test |
+
+### `levels` (a level project and its game files must agree)
+
+| Rule | Means | Fix |
+|---|---|---|
+| `levels` | A game file under a row's `exports` folder (`project.toml`, `world.toml`, `levels/<id>.toml`) is not what its level project exports, or is missing, or the project does not open | Open the level in the editor and press Save: it writes the project and every game file together. Never edit the generated TOML by hand |
 
 ### `no-eval` (Ruken's CSP has no `unsafe-eval`)
 

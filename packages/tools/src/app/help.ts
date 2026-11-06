@@ -21,16 +21,17 @@ Makes a new game in <folder>. Run it in your browser with pnpm dev.
   --targets <list>  Where the game will be published, separated by commas (default: web,itch; also tauri, ruken).
 `
 
-export const CHECK_HELP = `Usage: automata check [folder] [--sim-only] [--fail-fast] [--csp] [--json]
+export const CHECK_HELP = `Usage: automata check [folder] [--sim-only] [--fail-fast] [--csp] [--json] [--only <step>]
 
 Checks a game one step after another and says what to fix. <folder> is the game (default: this folder).
 
   boundaries    the game's code is in the right places, and its simulation is repeatable
   typecheck     the code has no type errors
-  tests         the game's own tests pass
+  test          the game's own tests pass
   boards        every leaderboard the code uses is listed in ship.config.ts
   orientation   the way the game turns on a phone matches ship.config.ts
   inputs        the controls the code reads match ship.config.ts
+  levels        a level and the game files saved from it match (for a game whose editor list sets exports)
   no-eval       the build runs without eval (it builds the game to find out)
   secrets       no key or password ended up in the build
   data-urls     no picture or sound was folded into the code as a data: link
@@ -39,6 +40,7 @@ Checks a game one step after another and says what to fix. <folder> is the game 
   --fail-fast   Stop at the first step that finds a problem.
   --csp         Also open the build in a browser under strict security rules.
   --json        Print the report as JSON, for other tools.
+  --only <step> Run just that step, named as in the list above.
 
 Exit status: 0 everything passed, 1 something needs fixing, 2 a tool could not run.
 `

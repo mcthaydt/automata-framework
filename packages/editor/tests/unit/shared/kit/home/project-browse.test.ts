@@ -186,9 +186,7 @@ describe('storage notes', () => {
 
   it('says a served checkout is the game’s files, not browser storage', () => {
     const served = workspace({ served: true })
-    expect(storageNotes(served)[1]?.text).toBe(
-      'Kept in your game’s checkout, on the computer running automata editor',
-    )
+    expect(storageNotes(served)[1]?.text).toBe('Saved in your game folder')
     expect(workspaceSubtitle(served, 2)).toBe('2 projects · game checkout')
   })
 

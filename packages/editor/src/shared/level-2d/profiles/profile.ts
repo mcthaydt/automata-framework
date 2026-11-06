@@ -121,6 +121,11 @@ export interface Profile<V> {
   readonly templates: readonly TemplateDef<V>[]
   readonly views: readonly ViewDef[]
   readonly exports: readonly ExportTarget<V>[]
+  /**
+   * The id of the export target whose files a game reads. On a game checkout whose editor list names an `exports`
+   * folder for the document, Save writes these files there before it writes the document.
+   */
+  readonly gameTarget?: string | undefined
 }
 
 export interface ProfileRegistry {

@@ -1,17 +1,22 @@
 // The result of `automata check` and its two printed forms. The JSON is what the plugin hooks
 // feed back to the agent, so its shape is exact: `{ ok, steps: [{ name, ok, ms, findings }] }` and nothing else.
 
-export type StepName =
-  | 'boundaries'
-  | 'typecheck'
-  | 'test'
-  | 'boards'
-  | 'orientation'
-  | 'inputs'
-  | 'no-eval'
-  | 'secrets'
-  | 'data-urls'
-  | 'csp'
+/** Every step of `automata check`, in the order a full run takes them. */
+export const STEP_NAMES = [
+  'boundaries',
+  'typecheck',
+  'test',
+  'boards',
+  'orientation',
+  'inputs',
+  'levels',
+  'no-eval',
+  'secrets',
+  'data-urls',
+  'csp',
+] as const
+
+export type StepName = (typeof STEP_NAMES)[number]
 
 export interface CheckFinding {
   /** Relative to the game folder; empty when a finding has no file (a tool error, a build failure). */

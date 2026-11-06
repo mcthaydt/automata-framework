@@ -27,12 +27,16 @@ export interface ExportState {
   /** The one chosen file, for Share and Copy, which take a single file. */
   readonly single: ExportFileView | undefined
   readonly write: { readonly ok: true } | { readonly ok: false; readonly why: string }
+  /** Whether the Write to folder button (and the reason it is off) shows at all. */
+  readonly offersWrite: boolean
 }
 
 /** Where the document lives: a folder store is the only one Write to folder writes into. */
 export interface ExportStore {
   readonly kind: ProjectStore['kind']
   readonly persistent: boolean
+  /** Save already writes the game's files into the checkout, so Write to folder would only repeat it. */
+  readonly savesGame?: boolean
 }
 
 const encoder = new TextEncoder()
@@ -79,5 +83,6 @@ export function exportState(
     download: files.length > 0,
     single: files.length === 1 ? files[0] : undefined,
     write,
+    offersWrite: store.savesGame !== true,
   }
 }

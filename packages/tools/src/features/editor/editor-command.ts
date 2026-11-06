@@ -32,8 +32,8 @@ const USAGE = `Usage: automata editor [folder] [--app 2d|3d|suite] [--app-dir <b
 Opens an editor on the game in <folder> (default: this folder) until you press Ctrl+C.
 Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
 (one is made for you if you give none). Open the address it prints, with the token in it.
-The editor saves to the files listed in content/editors.toml (or the .json files, if there is none), and it will not
-overwrite a file that changed while you were editing.
+The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
+you were editing. Without content/editors.toml, it opens only level files (*.af2d.json).
 `
 
 /** Where each editor's build is, from the repository root, and the package that builds it. */
