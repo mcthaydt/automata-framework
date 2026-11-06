@@ -193,7 +193,7 @@ repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone.
 | Stage | Status | Record |
 |---|---|---|
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md) |
-| 2. Plan and spec | Not started | |
+| 2. Plan and spec | In progress, 2026-11-06: spec and plan drafted on all eight recommendations (15 phases, 42 tasks), with the editor redesign in the website's look the Owner asked for the same day; not final until the wider 2D-ship audit's findings are folded in (spec section 16) | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Not started | |
 | 4. Build | Not started | |
 | 5. Build audit | Not started | |
