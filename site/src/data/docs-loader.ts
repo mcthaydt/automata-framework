@@ -1,40 +1,27 @@
-import docsJson from './docs.json'
+import guides from 'virtual:framework/guides'
+import { buildDocs, type DocSection } from './site-docs'
 
-export interface TocItem {
-  id: string
-  text: string
-  level: number
-}
-
-export interface DocSection {
-  id: string
-  slug: string
-  title: string
-  category: string
-  badge?: string
-  description: string
-  content: string
-  toc: TocItem[]
-}
+export type { DocSection } from './site-docs'
 
 export interface DocCategory {
   name: string
   items: DocSection[]
 }
 
-export const STATIC_DOCS: DocSection[] = docsJson as DocSection[]
+// The site's pages and the framework's guides, read when the site is built (src/shared/framework/guides.ts).
+const DOCS: DocSection[] = buildDocs(guides)
 
 export function getDocSections(): DocSection[] {
-  return STATIC_DOCS
+  return DOCS
 }
 
 export function getDocBySlug(slug: string): DocSection | undefined {
-  return STATIC_DOCS.find((s) => s.slug === slug || s.id === slug)
+  return DOCS.find((s) => s.slug === slug || s.id === slug)
 }
 
 export function getDocCategories(): DocCategory[] {
   const map = new Map<string, DocSection[]>()
-  for (const doc of STATIC_DOCS) {
+  for (const doc of DOCS) {
     const list = map.get(doc.category) || []
     list.push(doc)
     map.set(doc.category, list)

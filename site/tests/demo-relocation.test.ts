@@ -1,5 +1,6 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { relocateDemoAssets } from '../scripts/sync-demos'
+import { relocateDemoAssets } from '../scripts/build-demos.ts'
 
 describe('Nested demo hosting', () => {
   it('relocates bundled asset URLs under the specific demo without changing external URLs', () => {

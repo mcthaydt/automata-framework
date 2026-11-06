@@ -12,7 +12,7 @@
   let status = $state<'loading' | 'ready' | 'failed'>('loading')
   let fullscreenMessage = $state('')
   let fullscreenPending = $state(false)
-  let allowed = $derived(src === '/demos/first-change/index.html' || getDemosCatalog().some(d => d.bundleUrl === src))
+  let allowed = $derived(getDemosCatalog().some(d => d.bundleUrl === src))
   // Prerendered /examples has no query selection. Create resource URLs only after hydration,
   // otherwise Svelte preserves the server's default iframe src for a different selected demo.
   onMount(() => { if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) active = false; mounted = true })

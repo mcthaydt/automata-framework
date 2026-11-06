@@ -14,9 +14,9 @@ export function previewSrcset(jpeg: string): string {
   return `${base}-640.webp 640w, ${base}.webp ${width}w`
 }
 
-/** The preview image each gallery demo has, by demo slug; `ui-primitives` has none yet. */
+/** The preview image each demo has, by demo slug; `primitives` has none yet. */
 const DEMO_PREVIEWS: Record<string, string> = {
-  'base-2d': 'emberwick', 'hot-reload': 'hot-reload',
+  emberwick: 'emberwick', 'hot-reload': 'hot-reload',
 }
 
 /** The JPEG path of a demo's preview image (the poster shown before Play), or undefined when it has none. */

@@ -1,12 +1,11 @@
-// Copied from automata-framework f8023a907725cccd84277372c0d4f1b73d2da90c:tooling/examples-runner/src/playground/playground-protocol.ts by scripts/sync-playground.ts. Do not edit; run pnpm sync.
 import { z } from 'zod'
 
-// The messages between a playground frame and the page around it (website playground spec §5.1). The framework owns
+// The messages between a playground frame and the page around it. The framework owns
 // this file; the site's sync copies it verbatim to src/lib/playground/protocol.ts and a site test fails when the copy
 // differs. Both sides parse every message they receive and drop what does not parse, so every object is strict.
 
 export const PROTOCOL_VERSION = 1
-/** The function the compile step calls at the top of every loop body, and the frame defines (§7.3). */
+/** The function the compile step calls at the top of every loop body, and the frame defines. */
 export const LOOP_GUARD_NAME = '__afLoop'
 /** The longest compiled module the frame accepts. */
 export const MAX_CODE_CHARS = 262_144

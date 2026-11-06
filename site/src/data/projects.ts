@@ -1,4 +1,4 @@
-import inventory from './projects.json'
+import inventory from 'virtual:framework/sources'
 import type { ExampleProject, ExampleSources, SourceFile } from './project-types'
 export type { SourceFile } from './project-types'
 /** A file whose content was left out of the page's data, to be fetched from `/sources/<slug>.json` when it is shown. */

@@ -11,5 +11,5 @@ export const load: PageLoad = ({ params }) => {
   const reference = getApiReference(params.version)
   const pkg = reference?.packages.find((p) => p.slug === params.pkg)
   if (!reference || !pkg) error(404, 'That package is not in this version of the reference')
-  return { version: reference.version, commit: reference.commit, pkg }
+  return { version: reference.version, pkg }
 }

@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { Plugin } from 'vite'
-import { playgroundHeaders } from '../src/lib/playground/headers'
-import { framePageForOrigin, isFramePage } from './playground-origin'
+import { playgroundHeaders } from '../src/lib/playground/headers.ts'
+import { framePageForOrigin, isFramePage } from './playground-origin.ts'
 
 /**
  * The dev server's /playground/ CORS and CORP headers (spec §11.3), the rule the static server and the production host

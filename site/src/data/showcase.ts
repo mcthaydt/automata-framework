@@ -2,7 +2,7 @@ export interface ShowcaseGame {
   id: string; title: string; tagline: string; description: string; relationship: string; bundleUrl?: string
 }
 export const SHOWCASE_GAMES: ShowcaseGame[] = [
-  { id: 'emberwick', title: 'Emberwick', tagline: 'The playable 2D starter.', relationship: 'Automata starter', bundleUrl: '/demos/base-2d/index.html', description: 'A lantern-bearer in a single mossy room. Explore movement, jumping, pixel rendering and the splash-to-game lifecycle in the bundled starter.' },
+  { id: 'emberwick', title: 'Emberwick', tagline: 'The playable 2D starter.', relationship: 'Automata starter', bundleUrl: '/demos/emberwick/index.html', description: 'A lantern-bearer in a single mossy room. Explore movement, jumping, pixel rendering and the splash-to-game lifecycle in the bundled starter.' },
 ]
 
 

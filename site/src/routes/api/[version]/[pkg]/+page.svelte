@@ -16,7 +16,7 @@
 <div class="page-shell api-page">
   <p class="small"><a href="/api">Complete API reference</a></p>
   <h1>{data.pkg.name}</h1>
-  <p class="lead">Version {data.version}, generated from the published declarations at framework commit <code>{data.commit.slice(0, 7)}</code>.</p>
+  <p class="lead">Version {data.version}, generated from the published declarations.</p>
   {#if others.length}<p class="small">Other versions: {#each others as v}<a href={'/api/' + v + '/' + data.pkg.slug}>{v}</a> {/each}</p>{/if}
   <label for="pkg-search">Filter this package</label>
   <input id="pkg-search" type="search" bind:value={query} placeholder="Filter by name or description" />

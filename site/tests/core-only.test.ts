@@ -4,8 +4,8 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // Framework 233c9da (PRODUCT.5g): AF is core only; physics and its bodies-2d demo left for Automata Plus. The site
-// must not offer either. The synced evidence and stack files are the framework's own words, not the site's offer.
-const OFFER = ['src/routes', 'src/lib', 'src/data/cheatsheet.ts', 'src/data/creative-starts.ts', 'src/data/demos.json', 'src/data/docs.json', 'scripts/sync-docs.ts', 'static/llms.txt']
+// must not offer either.
+const OFFER = ['src', 'scripts', 'playground/src']
 
 function files(path: string): string[] {
   try {

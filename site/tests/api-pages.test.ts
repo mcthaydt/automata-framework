@@ -1,4 +1,4 @@
-import type { ApiPackage } from '../scripts/api-reference'
+import type { ApiPackage } from '../src/shared/framework/api.ts'
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
 import { apiVersions, getApiReference, latestApiVersion } from '../src/lib/api-reference'
@@ -23,7 +23,7 @@ describe('/api', () => {
 
   it('a package page shows every export with its signature, filters by word, and 404s an unknown package', async () => {
     const version = latestApiVersion()
-    const data = load({ params: { version, pkg: 'automata-runtime' } } as never) as unknown as { version: string; commit: string; pkg: ApiPackage }
+    const data = load({ params: { version, pkg: 'automata-sim' } } as never) as unknown as { version: string; pkg: ApiPackage }
     const view = render(Package, { data } as never)
     const total = data.pkg.entryPoints.reduce((n, e) => n + e.entries.length, 0)
     expect(view.container.querySelectorAll('.api-entry')).toHaveLength(total)
@@ -33,6 +33,6 @@ describe('/api', () => {
       try { load({ params } as never) } catch (thrown) { return (thrown as { status: number }).status }
     }
     expect(statusOf({ version, pkg: 'nope' })).toBe(404)
-    expect(statusOf({ version: '9.9.9', pkg: 'automata-runtime' })).toBe(404)
+    expect(statusOf({ version: '9.9.9', pkg: 'automata-sim' })).toBe(404)
   })
 })

@@ -19,7 +19,6 @@ describe('Docs Canonical Slug Routing', () => {
     expect(slugNames).toContain('mobile-ui')
     expect(slugNames).toContain('ai-rules')
     expect(slugNames).toContain('capabilities')
-    expect(slugNames).toContain('boot-errors')
     for (const slug of ['service-model', 'saves', 'plus']) expect(slugNames).toContain(slug)
   })
 

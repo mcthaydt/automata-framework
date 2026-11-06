@@ -5,7 +5,7 @@
   import { CHEATSHEET_MODULES, cheatsheetSearchText } from '../../data/cheatsheet'
   import { AI_TASKS } from '../../data/ai-guidance'
   import { latestApiVersion, loadApiSearch, searchApi } from '$lib/api-reference'
-  import type { ApiSearchRow } from '../../../scripts/api-reference'
+  import type { ApiSearchRow } from '../../shared/framework/api'
   let { isOpen = false, onClose = () => {} }: { isOpen?: boolean; onClose?: () => void } = $props()
   let dialog: HTMLDialogElement
   let input: HTMLInputElement

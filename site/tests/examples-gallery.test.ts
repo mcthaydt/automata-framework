@@ -12,9 +12,9 @@ const root = resolve(import.meta.dirname, '..')
 
 describe('demoPoster', () => {
   it('names the preview a demo has, and nothing for a demo without one', () => {
-    expect(demoPoster('base-2d')).toBe('/previews/emberwick.jpg')
+    expect(demoPoster('emberwick')).toBe('/previews/emberwick.jpg')
     expect(demoPoster('hot-reload')).toBe('/previews/hot-reload.jpg')
-    expect(demoPoster('ui-primitives')).toBeUndefined()
+    expect(demoPoster('primitives')).toBeUndefined()
     expect(demoPoster('no-such-demo')).toBeUndefined()
   })
 

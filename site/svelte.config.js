@@ -16,6 +16,8 @@ const config = {
     prerender: {
       origin: SITE_ORIGIN,
       handleHttpError: 'fail',
+      // The agents' text files are linked from one another, not from a page, so the crawl names them here.
+      entries: ['*', '/llms.txt', '/llms-guides.txt', '/llms-full.txt', '/llms-api.txt'],
     },
   },
 }

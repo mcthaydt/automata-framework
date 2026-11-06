@@ -757,11 +757,11 @@ export and its 2D build) and the reverse would be a dependency cycle.
 - [x] **Step 1: Failing tests.** The guides loader lists `docs/guides/editor.md` and the four publish guides (W7);
   the API loader lists the four published packages, not twelve (W4); the demos list comes from the examples' own
   manifest and has no `bodies-2d` (WS3).
-- [ ] **Step 2:** Implement the loaders; delete the sync scripts and every copy; `build-demos.ts` builds the examples
+- [x] **Step 2:** Implement the loaders; delete the sync scripts and every copy; `build-demos.ts` builds the examples
   and Emberwick into `site/.generated/demos/` and Vite serves it as static.
-- [ ] **Step 3:** `pnpm --filter @mcthaydt/automata-site test` → no failing file (the six broken ones are deleted with
+- [x] **Step 3:** `pnpm --filter @mcthaydt/automata-site test` → no failing file (the six broken ones are deleted with
   what they covered, or now read the real files); `pnpm --filter @mcthaydt/automata-site build` → exits 0 (W3).
-- [ ] **Step 4: Commit.** `refactor(site): read the framework at build time; no sync scripts, pins or committed builds`
+- [x] **Step 4: Commit.** `refactor(site): read the framework at build time; no sync scripts, pins or committed builds`
 
 ### Task 10.3: The site's tooling matches the repository's
 
@@ -771,7 +771,7 @@ export and its 2D build) and the reverse would be a dependency cycle.
   both ask for TypeScript 6 as a peer), `site/svelte.config.js`, `site/vite.config.ts`, `site/tsconfig.json`; root `package.json`
   (`lint` covers `site`), every site file Biome reformats
 
-- [ ] **Step 1:** Upgrade; `pnpm --filter @mcthaydt/automata-site check test build` pass.
+- [x] **Step 1:** Upgrade; `pnpm --filter @mcthaydt/automata-site check test build` pass. (Done in 10.2, deviation 95.)
 - [ ] **Step 2:** `pnpm format`; `pnpm lint` passes over `site/`. Its existing end-to-end gates (`site/tests/e2e`) pass
   in Chromium.
 - [ ] **Step 3:** `site`'s unit tests join `test:unit:2d`, its e2e joins `ci.yml`'s `e2e-2d` job. `pnpm check` passes.
@@ -1778,3 +1778,62 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   browser suite and Lighthouse serve the build with it). Site tests: 75 files, 9 fail (the sibling-checkout and
   synced-copy ones from 10.1's record), 389 pass.
 - **Gates.** The 7 tests pass; `pnpm check` exit 0. The rest of step 2 onward is the next session's.
+
+### 2026-11-06, session 8: task 10.2, steps 2 to 4
+
+- **Versions first (deviation 95).** Task 10.3's version step ran here: `site` is on Vite 8.3.3, SvelteKit 2.70.4,
+  `@sveltejs/vite-plugin-svelte` 7.3.1, Zod 4.6.6 and `@types/node` 24.19.1, because the playground's runtime build
+  (Rolldown options, the Svelte plugin 7) moves into the site in this task and does not run on Vite 6. The site's 75
+  test files gave the same result before and after the upgrade (9 failing, all the sibling-checkout ones). 10.3 keeps
+  Biome over `site/`, the dropped `tsx`, and the gates' move into `test:unit:2d` and `e2e-2d`.
+- **Deleted:** every `sync-*.ts`, `framework-source.ts`, `build-workshop.mjs`, `record-workshop-proof.mjs`,
+  `api-reference.ts` (its parser moved), `framework.ref`, `workshop/`, `static/{demos,playground}/`, the four committed
+  `llms*.txt`, and from `src/data/`: `restorations.ts`, `evidence*`, `first-change-proof.json`, `releases*`, `stack*`,
+  `projects.json`, `demos.json`, `docs.json`, `examples.json`, `api-index.json`, `boot-errors.json`, `api-reference/`,
+  `api-search/`, `publication.ts` (unused), plus `src/lib/{evidence,stack}.ts` and `ProofReport.svelte`. Tests that
+  covered only those went with them (23 files).
+- **Deviation 96: four pages left now, not in 18.1.** `/community`, `/proof`, `/releases` and `/inside` read only
+  synced data that this task deletes (restorations, evidence, release list, `stack.md`), so their routes went with it;
+  18.1 still writes their redirects and deletes the other four. Start lost its worked double-jump demo, its workshop
+  sources and their recorded test run (the workshop is gone); its links and the site's `/start#worked-change` links now
+  point at `#first-task`. Home lost the cross-engine claim that linked `/proof`. 18.2 rewrites both pages.
+- **Deviation 97: no boot-errors page.** The `BootError` union it was generated from no longer exists after the core
+  refactor (boot answers a typed result), so the page and its test went; the service-model page says so in one line.
+- **The loaders, as one Vite plugin.** `site/src/shared/framework/vite-plugin.ts` (`frameworkData()`) serves
+  `virtual:framework/{guides,examples,demos,packages,sources,api,api-search,llms}`, each computed by a loader in the
+  same folder when Vite first asks for it: `guides.ts`, `examples.ts` (`playgroundExamples`: the playground catalog
+  over `examples/2d`; it replaced step 1's `exampleList`, the test now checks the source and frame page), `demos.ts`
+  (Emberwick and the feature demos with their `main.ts` headers, both comment styles), `sources.ts` (the source
+  explorer's files; it now follows `@af-games/` dependencies too), `api.ts` (the API index in
+  `tooling/api-index/dist`). `src/data/{docs-loader,demos,examples,projects}.ts` and `src/lib/api-reference.ts` read
+  them; the site's own docs moved from the sync script to `src/data/site-docs.ts` (`buildDocs(guides)`), the agents'
+  text files to `src/data/llms.ts`, served by four prerendered `+server.ts` routes (`/llms.txt`, `/llms-guides.txt`,
+  and `/llms-full.txt`, `/llms-api.txt` byte for byte from the index: `cmp` equal). The API pages show the workspace's
+  one version (0.0.5) and no commit.
+- **The playground's move (deviation 98: `site/playground/`, not `site/src/lib/playground/`).** The runtime build is
+  not SvelteKit code, so it sits beside `src/`: `site/playground/{build.ts,vite.config.ts,runtime/,static/,
+  feasibility-server.ts,frame-server.ts,static-files.ts,playwright.config.ts}` and `site/playground/src/` (the frame,
+  the Ruken harness and the build helpers). `playground-protocol.ts` and `playground-headers.ts` replaced the site's
+  synced copies at `src/lib/playground/{protocol,headers}.ts`. Tests: `site/tests/playground/runtime/` (50 unit
+  tests, Node environment) and `site/tests/playground/e2e/` (Playwright, `pnpm --filter @mcthaydt/automata-site
+  test:e2e:playground`; Vitest excludes the folder). `examples-runner` exports `header`, `page-template` and
+  `examples-ship-config` for it, lost its playground scripts, its Playwright config and three unused dependencies; its
+  unit tests are 64 and 1 skipped (115 before: the 50 moved). `release-checks.yml` and its pinning test name the
+  site's script.
+- **`build-demos.ts`** builds the published packages and the three demos in one turbo run, writes the API index,
+  copies each demo's `dist` into `static/demos/<slug>/` (assets relocated under it) and the playground into
+  `static/playground/` with every example precompiled; `site/.gitignore` ignores both. The site's `build` is
+  `node scripts/build-demos.ts && vite build && write-seo-files`. Demos are served at `/demos/emberwick/`,
+  `/demos/hot-reload/` and `/demos/primitives/`. The prerender names the four text files as entries.
+- **knip** covers `site` now (`ignoreWorkspaces` removed; entries for the compile worker, the scripts, the playground
+  build and both Playwright configs); `@testing-library/{dom,jest-dom}` and `publication.ts` were unused.
+- **Gates.** Site unit tests: 69 files, 353 tests pass (75 files, 9 failing before); `svelte-check` 0 errors; `vite
+  build` exits 0 (57 pages); knip clean. `api-contract.test.ts` was deleted rather than repointed: it holds the
+  cheatsheet to packages the core refactor merged (runtime, render-pixi, ui, host, ship), and 18.1 deletes the
+  cheatsheet. `license-claim`'s `it.fails` became `it` (the framework is MIT now). Site e2e gates in Chromium: 483
+  pass (the demo-runner failure journey now uses Home's Emberwick runner, since Start's demo left; its first attempt
+  failed on the missing runner); playground journeys in Chromium: 37 pass. `pnpm check` exit 0 (its YAML-pinning test
+  names the site's playground script; `examples-runner` no longer has journeys of its own). WebKit, Firefox and hosted
+  CI not run.
+- **Handoff.** Next is task 10.3 steps 2 and 3 (Biome over `site/`, no `tsx`, the gates into `test:unit:2d` and
+  `e2e-2d`), then phase 11. 14.1 waits for the Owner.

@@ -147,11 +147,11 @@ test.describe('desktop 1280×800', () => {
     let fail = () => {}
     const failed = new Promise<void>(release => { fail = release })
     // Hold the bundle until the loading state is asserted, then answer as a bundle whose boot failed.
-    await page.route('**/demos/first-change/index.html', async route => {
+    await page.route('**/demos/emberwick/index.html', async route => {
       await failed
       await route.fulfill({ contentType: 'text/html', body: '<!doctype html><html data-state="failed"><body>boot failed</body></html>' })
     })
-    await open(page, '/start')
+    await open(page, '/')
     const runner = page.getByTestId('demo-runner-container')
     await runner.getByRole('button', { name: 'Play demo' }).click()
     await expect(runner.getByRole('status')).toHaveText('Starting the demo…')

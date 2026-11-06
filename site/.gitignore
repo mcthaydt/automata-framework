@@ -9,3 +9,7 @@ test-results
 playwright-report
 .lighthouseci
 release-manifest.json
+# Written by scripts/build-demos.ts at build time.
+/static/demos/
+/static/playground/
+/playground/dist/

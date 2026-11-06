@@ -26,12 +26,12 @@ describe('Demo readiness', () => {
     expect(demoStatus(doc)).toBe('ready')
   })
   it('unloads the iframe when stopped and restarts a fresh session', async () => {
-    const view = render(DemoRunner, { props: { src: '/demos/base-2d/index.html', title: 'Starter' } })
+    const view = render(DemoRunner, { props: { src: '/demos/emberwick/index.html', title: 'Starter' } })
     expect(view.container.querySelector('iframe')).toBeTruthy()
     await fireEvent.click(view.getByRole('button', { name: 'Stop demo' }))
     expect(view.container.querySelector('iframe')).toBeNull()
     await fireEvent.click(view.getAllByRole('button', { name: 'Play demo' })[0])
-    expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/base-2d/index.html')
+    expect(view.container.querySelector('iframe')?.getAttribute('src')).toBe('/demos/emberwick/index.html')
   })
   it('identifies editable targets so slash does not steal their input', () => {
     const input = document.createElement('input')

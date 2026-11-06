@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { PLUS_DOC, SAVES_DOC, SERVICE_MODEL_DOC } from '../src/data/deep-docs'
 import { getDocBySlug } from '../src/data/docs-loader'
@@ -28,8 +29,8 @@ describe('deep docs', () => {
     expect(text).toMatch(/does not write to the device instead/)
   })
 
-  it('every SaveDef field it names exists in the synced API reference', () => {
-    const api = readFileSync('static/llms-api.txt', 'utf8')
+  it('every SaveDef field it names exists in the API reference', () => {
+    const api = readFileSync(resolve(import.meta.dirname, '../../tooling/api-index/dist/llms-api.txt'), 'utf8')
     for (const field of ['SaveDef', 'migrations', 'empty']) expect(api, field).toContain(field)
   })
 

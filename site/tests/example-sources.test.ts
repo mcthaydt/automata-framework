@@ -1,18 +1,12 @@
+// @vitest-environment node
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, posix, resolve } from 'node:path'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
-import { collectExampleSources, demoBundleDirectory, RAW_DEMOS } from '../scripts/sync-demos'
+import { collectExampleSources, projectSources } from '../src/shared/framework/sources.ts'
 
-describe('Demo bundle folders', () => {
-  it('follow the public bundle URL, so Emberwick stays at /demos/base-2d after moving to games/', () => {
-    const folders = Object.fromEntries(RAW_DEMOS.map(demo => [demo.slug, demoBundleDirectory(demo)]))
-    expect(folders['base-2d']).toBe('base-2d')
-    expect(folders['hot-reload']).toBe('content/hot-reload')
-    for (const demo of RAW_DEMOS) expect(demo.bundleUrl).toBe(`/demos/${demoBundleDirectory(demo)}/index.html`)
-  })
-})
+const repo = resolve(import.meta.dirname, '../..')
 
 describe('Example source inventory', () => {
   it('includes project files, shared starter dependencies and root configuration without publishing build output or secrets', () => {
@@ -44,15 +38,15 @@ describe('Example source inventory', () => {
   })
 
   it('keeps every example’s actual runtime sources and resolves shared example dependencies', () => {
-    const result = collectExampleSources(resolve('../automata-framework'), [{ slug: 'hot-reload', path: 'examples/content/hot-reload' }, { slug: 'base-2d', path: 'games/emberwick' }])
+    const result = collectExampleSources(repo, [{ slug: 'hot-reload', path: 'examples/2d/content/hot-reload' }, { slug: 'emberwick', path: 'games/emberwick' }])
     const hotReload = result.projects[0]
-    expect(hotReload.files).toContain('games/emberwick/src/render/renderer.ts')
-    expect(hotReload.files).toContain('examples/content/hot-reload/room.schema.ts')
-    expect(result.files.filter(f => f.path === 'games/emberwick/src/render/renderer.ts')).toHaveLength(1)
+    expect(hotReload.files).toContain('games/emberwick/src/features/scene/scene-renderer.ts')
+    expect(hotReload.files).toContain('examples/2d/content/hot-reload/room.schema.ts')
+    expect(result.files.filter(f => f.path === 'games/emberwick/src/features/scene/scene-renderer.ts')).toHaveLength(1)
   })
 
   it('publishes the targets of every relative TypeScript import used by the examples', () => {
-    const sources = collectExampleSources(resolve('../automata-framework'), RAW_DEMOS)
+    const sources = projectSources(repo)
     for (const project of sources.projects) {
       const paths = new Set(project.files)
       for (const file of sources.files.filter(file => paths.has(file.path) && file.path.endsWith('.ts'))) {

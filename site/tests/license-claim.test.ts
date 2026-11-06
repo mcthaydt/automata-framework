@@ -4,8 +4,8 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // The site says the framework code is MIT licensed (Footer, home page, terms, FAQ). This test holds that claim to the
-// framework's own published metadata, read from the sibling checkout like tests/api-contract.test.ts does.
-const framework = resolve('../automata-framework')
+// framework's own published metadata, read from the repository.
+const framework = resolve(import.meta.dirname, '../..')
 
 function publishedLicenses(): Record<string, string> {
   const licenses: Record<string, string> = {}
@@ -24,11 +24,8 @@ describe('the MIT claim on the site', () => {
     expect(Object.keys(publishedLicenses()).length).toBeGreaterThan(0)
   })
 
-  // EXPECTED RED UNTIL DX.11 (quality-bar spec F-1). Today every framework package says "UNLICENSED" and there is no
-  // LICENSE file, so the claim is false and this assertion fails. `it.fails` records that: the suite stays green while
-  // the assertion fails, and turns red the moment the framework becomes MIT, which forces whoever lands DX.11 to
-  // delete `.fails` here and make this a normal, hard-failing test. Do not delete the test or the site's MIT copy.
-  it.fails('every published framework package declares MIT and the framework ships the MIT text (expected red until DX.11)', () => {
+  // DX.11 made the framework MIT; this holds the site's claim to it.
+  it('every published framework package declares MIT and the framework ships the MIT text', () => {
     const licenses = publishedLicenses()
     expect(licenses).toEqual(Object.fromEntries(Object.keys(licenses).map(name => [name, 'MIT'])))
     const licenseFile = join(framework, 'LICENSE')

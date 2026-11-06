@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest'
 import { compileExample, sucraseDiagnostic } from '../../src/lib/playground/compile'
 
 // The playground's compile step (spec §5.2): the reader's TypeScript in, a module the frame can import out, or the
-// diagnostics at their lines. The example sources come from the framework checkout at framework.ref.
-const RECTS = readFileSync(resolve('../automata-framework/examples/shapes/shapes-rects.ts'), 'utf8')
+// diagnostics at their lines. The example sources come from examples/2d.
+const RECTS = readFileSync(resolve(import.meta.dirname, '../../../examples/2d/shapes/shapes-rects.ts'), 'utf8')
 const EXAMPLE = { id: 'shapes-rects', moduleUrl: 'https://automata.example/playground/examples/shapes/shapes-rects.ts' }
 
 const compiled = (source: string): string => {

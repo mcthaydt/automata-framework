@@ -1,5 +1,4 @@
-// Copied from automata-framework f8023a907725cccd84277372c0d4f1b73d2da90c:tooling/examples-runner/src/playground/playground-headers.ts by scripts/sync-playground.ts. Do not edit; run pnpm sync.
-// The response headers for the playground's files (website playground spec §11.3). A playground frame has an opaque
+// The response headers for the playground's files. A playground frame has an opaque
 // origin, so every module, stylesheet, texture, sound and golden it loads is a cross-origin request with
 // `Origin: null`: it needs CORS, and a cross-origin resource policy so a site-wide `same-origin` one cannot block it.
 // The runtime's file names are content hashed, so they are cached for good; everything else revalidates.

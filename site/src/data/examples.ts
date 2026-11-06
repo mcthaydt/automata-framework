@@ -1,27 +1,10 @@
-import examplesJson from './examples.json'
+import examples from 'virtual:framework/examples'
+import type { PlaygroundExample } from '../../playground/src/playground-catalog.ts'
 
-// The framework's one-file example catalog, as the sync writes it (scripts/sync-playground.ts; never edited by hand).
+// The framework's one-file example catalog, read from examples/2d when the site is built
+// (src/shared/framework/examples.ts).
 
-export interface Example {
-  readonly id: string
-  readonly module: string
-  readonly name: string
-  readonly title: string
-  readonly shows: string
-  readonly controls: string
-  readonly packages: readonly string[]
-  /** 1 to 4. */
-  readonly difficulty: number
-  readonly tier: string
-  readonly golden?: { readonly ticks: number; readonly replay: string }
-  /** Under the framework's examples/. */
-  readonly path: string
-  readonly source: string
-  readonly codeLines: number
-  /** The example's frame page under /playground/. */
-  readonly framePage: string
-  readonly moduleUrl: string
-}
+export type Example = PlaygroundExample
 
 /** What the index and the example list need: no source. */
 export type ExampleSummary = Pick<Example, 'id' | 'title' | 'shows' | 'difficulty'>
@@ -30,7 +13,7 @@ export interface ExampleGroup { readonly module: string; readonly examples: read
 /** The order a reader meets the modules in: the sim and input first, drawing next, sound last. */
 const MODULE_ORDER = ['core', 'shapes', 'textures', 'render', 'audio']
 
-const EXAMPLES: readonly Example[] = examplesJson as Example[]
+const EXAMPLES: readonly Example[] = examples
 
 export function getExamples(): readonly Example[] {
   return EXAMPLES

@@ -8,9 +8,6 @@
   // Spikes (spikes/*) are standalone packages outside the pnpm workspace, installed with --ignore-workspace.
   "ignore": ["**/fixtures/**", "spikes/**", "games/base-3d/src/paraglide/**"],
   // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
-  // The website moved in as it was (task 10.1): it still reads a sibling checkout and syncs copies, which task 10.2
-  // deletes. It joins knip there.
-  "ignoreWorkspaces": ["site"],
   "ignoreIssues": { "packages/automata/src/app/boot/boot-error.ts": ["types"] },
   "workspaces": {
     // DX.7: the plugin's hooks run agents/automata/scripts/check.mjs by path (hooks.json). The automata-feature skill's
@@ -21,8 +18,6 @@
       "entry": ["agents/automata/scripts/check.mjs"],
       "ignore": ["agents/automata/skills/*/example/**", "docs/design/**", "docs/archive/design/**"]
     },
-    // WEB.PLAY.1: the playground feasibility server serves these browser scripts as files; nothing imports them
-    // (tooling/examples-runner, below).
     // DX.7: the example imports @mcthaydt/automata-sim, which tooling/agent-skills' vitest config aliases to the source.
     "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
@@ -44,11 +39,23 @@
     },
     "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "examples/2d/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
-    "tooling/examples-runner": {
+    // The site: the compile worker starts from `new URL(...)`, which knip does not follow; the scripts and the playground
+    // build run by path (package.json, playwright configs, by hand); the playground's test servers serve
+    // playground/static as files.
+    "site": {
+      "entry": [
+        "src/lib/playground/compile.worker.ts",
+        "scripts/*.ts",
+        "playground/*.ts",
+        "playwright.config.ts",
+        "tests/e2e/*.ts",
+        "tests/playground/e2e/*.test.ts"
+      ],
       "ignore": ["playground/static/**"],
-      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"],
       "playwright": false
     },
+    // The runner's journeys run from examples/2d's config, which names this folder.
+    "tooling/examples-runner": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     // Run by hand on one package at a time: `node tooling/codemods/src/cli.ts <package>`.
     "tooling/codemods": { "entry": ["src/cli.ts", "src/move-modules-cli.ts"] },
     // Run by hand on a build made with `vite build --sourcemap`.

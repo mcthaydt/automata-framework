@@ -9,19 +9,19 @@ import { load as loadHome } from '../src/routes/+page.server'
 import { entries, GET } from '../src/routes/sources/[slug].json/+server'
 
 // The home page's Lighthouse blocking time sat near its 200 ms budget on the Mac: its load ran again in the browser at
-// hydration and imported the 260 KB example-sources chunk to show base-2d (196 KB of it). Now the server load sends the
+// hydration and imported the 260 KB example-sources chunk to show the starter (196 KB of it). Now the server load sends the
 // file list and the one file shown first; the explorer fetches the project's prerendered sources the first time another
 // file is chosen.
 
 const root = resolve(import.meta.dirname, '..')
-const base2d = getExampleProject('base-2d')!
+const emberwick = getExampleProject('emberwick')!
 
 describe('the home page’s starter project', () => {
   it('lists every file, carries only the first file’s content, and marks the rest deferred', async () => {
     const { starterProject } = (await loadHome()) as { starterProject: ProjectSource }
-    expect(starterProject.files.map(file => file.path)).toEqual(base2d.files.map(file => file.path))
+    expect(starterProject.files.map(file => file.path)).toEqual(emberwick.files.map(file => file.path))
     for (const file of starterProject.files) {
-      const full = base2d.files.find(other => other.path === file.path)!
+      const full = emberwick.files.find(other => other.path === file.path)!
       if (file.path === STARTER_FILE) expect(file).toEqual(full)
       else if (full.content === undefined) expect(file).toEqual(full)
       else expect(file).toEqual({ path: full.path, language: full.language, deferred: true })
@@ -38,9 +38,9 @@ describe('the home page’s starter project', () => {
 
 describe('/sources/<slug>.json', () => {
   it('is prerendered for every project and holds each file as published', async () => {
-    expect(entries()).toContainEqual({ slug: 'base-2d' })
-    const response = await GET({ params: { slug: 'base-2d' } } as never)
-    expect(await response.json()).toEqual(base2d.files)
+    expect(entries()).toContainEqual({ slug: 'emberwick' })
+    const response = await GET({ params: { slug: 'emberwick' } } as never)
+    expect(await response.json()).toEqual(emberwick.files)
   })
 })
 
