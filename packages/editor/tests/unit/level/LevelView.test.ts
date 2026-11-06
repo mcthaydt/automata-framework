@@ -78,11 +78,18 @@ describe('Level view: layers', () => {
       'Collision',
     ])
     expect(rows.map((row) => row.querySelector('.kind')?.textContent)).toEqual([
-      'Things',
+      'Characters and items',
       'Tiles',
-      'Auto tiles',
-      'Grid values',
+      'Tiles that place themselves',
+      'Walls and floors',
     ])
+    // Each row has its colour and two icon toggles named for what a press does.
+    expect(rows.every((row) => row.querySelector('.swatch') !== null)).toBe(true)
+    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Hide Entities' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(within(rows[0] as HTMLElement).getByRole('button', { name: 'Lock Entities' })).toBeInTheDocument()
     expect(rows[0]).toHaveAttribute('aria-selected', 'true')
     expect(canvas()).toHaveAttribute('data-layer', 'entities')
   })

@@ -1,9 +1,11 @@
 <!--
-  The layer list: the level's layers front to
-  back, each with its kind in plain words, a Show or Hide button and a Lock or Unlock button. Choosing a row makes it the
-  layer the tools draw on. The list is a `listbox` with one tab stop; arrows move the choice. Every button is 44 px.
+  The layer list: the level's layers front to back, each a row with its colour, its name over what it holds in plain
+  words ("Characters and items", "Walls and floors"), and two icon toggles, the eye (Hide or Show) and the lock (Lock
+  or Unlock), each named for what a press does. Choosing a row makes it the layer the tools draw on. The list is a
+  `listbox` with one tab stop; arrows move the choice. Every button is 44 px.
 -->
 <script lang="ts">
+import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { LayerDef } from '../../shared/level-2d/model/project-types'
 
 interface Props {
@@ -18,12 +20,22 @@ interface Props {
 
 const { layers, current, hidden, locked, onselect, onhidden, onlocked }: Props = $props()
 
+/** What a layer holds, in a player's words (spec 11.5). */
 const KIND_WORDS: Readonly<Record<LayerDef['kind'], string>> = {
   tiles: 'Tiles',
-  intgrid: 'Grid values',
-  auto: 'Auto tiles',
-  entities: 'Things',
-  objects: 'Objects',
+  intgrid: 'Walls and floors',
+  auto: 'Tiles that place themselves',
+  entities: 'Characters and items',
+  objects: 'Shapes',
+}
+
+/** Each kind's colour, the same token the canvas draws that layer's outlines in. */
+const KIND_COLOUR: Readonly<Record<LayerDef['kind'], string>> = {
+  tiles: 'var(--color-layer-tiles)',
+  intgrid: 'var(--color-layer-intgrid)',
+  auto: 'var(--color-layer-sky)',
+  entities: 'var(--color-layer-entities)',
+  objects: 'var(--color-layer-city)',
 }
 
 function step(event: KeyboardEvent): void {
@@ -56,25 +68,28 @@ function step(event: KeyboardEvent): void {
         class:hidden={isHidden}
       >
         <button type="button" class="name" tabindex="-1" onclick={() => onselect(layer.id)}>
+          <span class="swatch" style:background={KIND_COLOUR[layer.kind]} aria-hidden="true"></span>
           <span class="label">{layer.label}</span>
           <span class="kind">{KIND_WORDS[layer.kind]}</span>
         </button>
-        <button
-          type="button"
-          class="toggle"
-          tabindex="-1"
-          aria-pressed={isHidden}
-          aria-label={`${isHidden ? 'Show' : 'Hide'} ${layer.label}`}
-          onclick={() => onhidden(layer.id, !isHidden)}>{isHidden ? 'Show' : 'Hide'}</button
-        >
-        <button
-          type="button"
-          class="toggle"
-          tabindex="-1"
-          aria-pressed={isLocked}
-          aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${layer.label}`}
-          onclick={() => onlocked(layer.id, !isLocked)}>{isLocked ? 'Unlock' : 'Lock'}</button
-        >
+        <span class="toggle">
+          <IconButton
+            icon={isHidden ? 'eye-off' : 'eye'}
+            label={`${isHidden ? 'Show' : 'Hide'} ${layer.label}`}
+            pressed={isHidden}
+            tabindex={-1}
+            onclick={() => onhidden(layer.id, !isHidden)}
+          />
+        </span>
+        <span class="toggle">
+          <IconButton
+            icon={isLocked ? 'lock' : 'unlock'}
+            label={`${isLocked ? 'Unlock' : 'Lock'} ${layer.label}`}
+            pressed={isLocked}
+            tabindex={-1}
+            onclick={() => onlocked(layer.id, !isLocked)}
+          />
+        </span>
       </li>
     {/each}
   </ul>
@@ -127,10 +142,19 @@ function step(event: KeyboardEvent): void {
   }
   .name {
     display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    column-gap: var(--space-2);
+    align-items: center;
     flex: 1 1 auto;
     min-width: 0;
     padding: 0 var(--space-2);
     text-align: start;
+  }
+  .swatch {
+    grid-row: span 2;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--edge);
   }
   .label,
   .kind {
@@ -143,10 +167,6 @@ function step(event: KeyboardEvent): void {
     font: var(--text-label-12);
   }
   .toggle {
-    flex: 0 0 auto;
-    min-width: 56px;
-    padding: 0 var(--space-2);
-    background: var(--color-bg-raised);
-    font: var(--text-label-12);
+    display: contents;
   }
 </style>
