@@ -4,21 +4,23 @@
 // are: inline when the sibling it copies is on one line, one member per line (or several, when the sibling packs
 // them) when it isn't, with the sibling's indentation and brace spacing. Each result is checked with JSON.parse:
 // the edited path must read the intended value.
-import { indentAt, type Layout, lineStart, PACK_WIDTH, readLayout, sameLine } from './layout'
-import { type JsonNode, type JsonPath, JsonScanError, type Scan, scan } from './locate'
-import { BLOCKOUT_NUMBERS, formatJsonScalar, type NumberStyle } from './print'
+import { indentAt, lineStart, PACK_WIDTH, sameLine } from './layout'
+import type { JsonNode, JsonPath } from './locate'
+import { BLOCKOUT_NUMBERS, type NumberStyle } from './print'
+import { render } from './render-like'
+import {
+  child,
+  itemEnd,
+  itemStart,
+  JsonShapeError,
+  type JsonValue,
+  memberName,
+  nodeAt,
+  read,
+  type Source,
+} from './shape'
 
-export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
-
-/** The edit cannot be made: a path that is not there, a container of the wrong kind, a duplicate member. */
-export class JsonShapeError extends Error {
-  readonly path: JsonPath
-
-  constructor(message: string, path: JsonPath = []) {
-    super(message)
-    this.path = path
-  }
-}
+export { JsonShapeError, type JsonValue }
 
 export interface MemberPlacement {
   /** Insert before the first existing member named here (in that order of preference). */
@@ -28,45 +30,6 @@ export interface MemberPlacement {
   /** A member elsewhere whose value is the layout template (otherwise a sibling's value of the same kind). */
   readonly like?: JsonPath
 }
-
-interface Source {
-  readonly text: string
-  readonly scanned: Scan
-  readonly layout: Layout
-  readonly numbers: NumberStyle
-}
-
-function read(text: string, numbers: NumberStyle): Source {
-  try {
-    return { text, scanned: scan(text), layout: readLayout(text), numbers }
-  } catch (error) {
-    if (error instanceof JsonScanError) throw new JsonShapeError(`not valid JSON: ${error.message}`)
-    throw error
-  }
-}
-
-/** The node at `path`, or the shortest prefix of it that does not exist. */
-function nodeAt(source: Source, path: JsonPath): JsonNode {
-  for (let length = 0; length <= path.length; length++) {
-    if (!source.scanned.node(path.slice(0, length))) {
-      throw new JsonShapeError(`${JSON.stringify(path.slice(0, length))} does not exist`, path)
-    }
-  }
-  return source.scanned.node(path) as JsonNode
-}
-
-const child = (node: JsonNode, index: number): JsonNode => {
-  const found = node.children[index]
-  if (!found) throw new JsonShapeError(`${JSON.stringify([...node.path, index])} does not exist`, node.path)
-  return found
-}
-
-/** A member runs from its key; an element is just its value. */
-const itemStart = (node: JsonNode): number => node.keySpan?.start ?? node.span.start
-const itemEnd = (node: JsonNode): number => node.span.end
-const memberName = (node: JsonNode): string => String(node.path[node.path.length - 1])
-const isMultiline = (source: Source, node: JsonNode): boolean =>
-  source.text.slice(node.span.start, node.span.end).includes('\n')
 
 const valueAt = (model: unknown, path: JsonPath): unknown =>
   path.reduce<unknown>(
@@ -101,102 +64,6 @@ function check(out: string, path: JsonPath, want: unknown, what: string): string
 
 const splice = (text: string, start: number, end: number, insert: string) =>
   text.slice(0, start) + insert + text.slice(end)
-
-// ── Writing a value like its neighbours ──
-
-function inline(value: JsonValue, bracesSpaced: boolean, numbers: NumberStyle): string {
-  if (Array.isArray(value)) return `[${value.map((item) => inline(item, bracesSpaced, numbers)).join(', ')}]`
-  if (value !== null && typeof value === 'object') {
-    const body = Object.entries(value)
-      .map(([key, item]) => `${JSON.stringify(key)}: ${inline(item, bracesSpaced, numbers)}`)
-      .join(', ')
-    if (!body) return '{}'
-    return bracesSpaced ? `{ ${body} }` : `{${body}}`
-  }
-  return formatJsonScalar(value, numbers)
-}
-
-function expanded(value: JsonValue, indent: string, unit: string, numbers: NumberStyle): string {
-  const inner = indent + unit
-  if (Array.isArray(value)) {
-    if (!value.length) return '[]'
-    return `[\n${value.map((item) => inner + expanded(item, inner, unit, numbers)).join(',\n')}\n${indent}]`
-  }
-  if (value !== null && typeof value === 'object') {
-    const entries = Object.entries(value)
-    if (!entries.length) return '{}'
-    const lines = entries.map(
-      ([key, item]) => `${inner}${JSON.stringify(key)}: ${expanded(item, inner, unit, numbers)}`,
-    )
-    return `{\n${lines.join(',\n')}\n${indent}}`
-  }
-  return formatJsonScalar(value, numbers)
-}
-
-/** Lines of items: each multi-line item alone; single-line ones packed up to PACK_WIDTH when `packed`, else one per line. */
-function lines(items: string[], indent: string, packed: boolean): string {
-  const out: string[] = []
-  let current = ''
-  for (const item of items) {
-    if (!packed || item.includes('\n')) {
-      if (current) out.push(current)
-      current = ''
-      out.push(indent + item)
-      continue
-    }
-    if (current && current.length + 2 + item.length > PACK_WIDTH) {
-      out.push(current)
-      current = ''
-    }
-    current = current ? `${current}, ${item}` : indent + item
-  }
-  if (current) out.push(current)
-  return out.join(',\n')
-}
-
-/**
- * `value` written like `template` (a node of the file of the same kind): inline if the template is one line, else laid
- * out member by member the way the template is, each member like the template's member of the same name (an array
- * element like the template's element at that index, or its last). With no template, the file's default.
- */
-function render(source: Source, value: JsonValue, template: JsonNode | undefined, indent: string): string {
-  const { text, layout, numbers } = source
-  const isObject = value !== null && typeof value === 'object' && !Array.isArray(value)
-  const isArray = Array.isArray(value)
-  if (!isObject && !isArray) return formatJsonScalar(value, numbers)
-  if (!template || template.kind !== (isObject ? 'object' : 'array')) {
-    return layout.expandsEverything
-      ? expanded(value, indent, layout.unit, numbers)
-      : inline(value, layout.bracesSpaced, numbers)
-  }
-  if (!isMultiline(source, template)) {
-    const written = text.slice(template.span.start, template.span.end)
-    const spaced = /\{ "/.test(written) ? true : /\{"/.test(written) ? false : layout.bracesSpaced
-    return inline(value, spaced, numbers)
-  }
-  const closeIndent = indentAt(text, template.span.end - 1)
-  const members = template.children
-  const first = members[0]
-  const inner = first ? indentAt(text, itemStart(first)) : closeIndent + layout.unit
-  const packed = members.some(
-    (member, i) => i > 0 && sameLine(text, itemEnd(child(template, i - 1)), itemStart(member)),
-  )
-  if (isObject) {
-    const byName = new Map(members.map((member) => [memberName(member), member]))
-    const entries = Object.entries(value as Record<string, JsonValue>)
-    if (!entries.length) return '{}'
-    const items = entries.map(
-      ([key, item]) => `${JSON.stringify(key)}: ${render(source, item, byName.get(key), inner)}`,
-    )
-    return `{\n${lines(items, inner, packed)}\n${indent}}`
-  }
-  const elements = value as JsonValue[]
-  if (!elements.length) return '[]'
-  const items = elements.map((item, i) =>
-    render(source, item, members[Math.min(i, members.length - 1)], inner),
-  )
-  return `[\n${lines(items, inner, packed)}\n${indent}]`
-}
 
 // ── Where a new item goes ──
 
