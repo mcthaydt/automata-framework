@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import * as sim from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
-import * as automata from '#src/entries/from-automata.ts'
-import * as game from '#src/entries/from-game.ts'
+import * as game from '#src/entries/game.ts'
+import * as automata from '#src/entries/game-and-sim.ts'
 
 // `@mcthaydt/automata`, the one import (PRODUCT spec §7, plan U-2): the game package and the sim's define verbs,
 // each the very same value as its owner's. The list is pinned, so a new verb is added on purpose (`defineSave`, M5.2:
@@ -51,10 +51,6 @@ describe('@mcthaydt/automata', () => {
 
   it.each(FROM_SIM)('%s is the sim’s own', (name) => {
     expect(umbrella.get(name)).toBe(simExports.get(name))
-  })
-
-  it('has a no-eval entry that loads', async () => {
-    await expect(import('#src/entries/from-automata-no-eval.ts')).resolves.toBeDefined()
   })
 
   it('depends on core only, never on a Plus extension (plan U-4)', () => {

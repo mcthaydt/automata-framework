@@ -1,5 +1,5 @@
-// @mcthaydt/automata-game: one call to start a game. The only package that composes runtime,
-// render-pixi, host, ui and sim; every default it fills in is an existing core contract with its options set.
+// One call to start a game (`defineGame`, `startGame`). The one file that composes the runtime, renderer, host,
+// ui and sim; every default it fills in is an existing core contract with its options set.
 
 export { defaultContent } from '../app/default-content.ts'
 export {
@@ -46,7 +46,7 @@ export {
   type SpriteFrames,
   type SpriteViewOptions,
   sprite,
-} from './from-render-pixi.ts'
+} from './render.ts'
 // A save is declared with the runtime's `defineSave` and handed to `defineGame({ saves })`; a game imports
 // only the umbrella (or this package), never the runtime, so the declaration comes through here.
 export {
@@ -54,4 +54,4 @@ export {
   type AutosaveTrigger,
   defineSave,
   type SaveDef,
-} from './from-runtime.ts'
+} from './runtime.ts'

@@ -11,7 +11,7 @@ import {
   type SettingsDef,
   settingsStore,
   typedBus,
-} from '#src/entries/from-runtime.ts'
+} from '#src/entries/runtime.ts'
 import { defineExtension } from '#src/features/extension/index.ts'
 import { withRuntimeTest } from '#src/testing/runtime/index.ts'
 

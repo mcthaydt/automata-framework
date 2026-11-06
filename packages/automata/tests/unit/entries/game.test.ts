@@ -10,7 +10,7 @@ import {
   rect,
   sprite,
   startGame,
-} from '#src/entries/from-game.ts'
+} from '#src/entries/game.ts'
 
 // What a game imports from `@mcthaydt/automata-game` (DX spec §3.1, §3.3): one call to start a game, its pure half,
 // the input map, the entity views, the camera and the screen-space filter verb (re-exported from render-pixi, DX.2b,

@@ -1,3 +1,4 @@
+// The ui kit a game can reach for: screens, controls, focus and browser hygiene, and the geometry owner.
 export { installGlobalErrorHandlers } from '../shared/ui/browser/global-errors'
 export { reducedMotion } from '../shared/ui/browser/reduced-motion'
 export { suppressPageGestures } from '../shared/ui/browser/suppress-page-gestures'

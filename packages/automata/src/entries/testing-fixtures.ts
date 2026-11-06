@@ -1,3 +1,4 @@
+// The viewport, layout and mounting fixtures, re-exported by `testing.ts`.
 export { type MountedFixture, mountFixture } from '../testing/fixtures/mount'
 export { type FakeResizeObserver, installFakeResizeObserver } from '../testing/fixtures/resize-observer'
 export { textSnippet } from '../testing/fixtures/text-snippet'

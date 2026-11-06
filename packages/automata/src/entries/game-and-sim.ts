@@ -1,8 +1,6 @@
-// @mcthaydt/automata: the one import, raylib's `raylib.h` for AF core. It re-exports the game
-// package and the sim's define verbs unchanged; each is a thin layer over a public package a game can always drop
-// down to (`@mcthaydt/automata-sim`, `-runtime`, `-render-pixi`, `-host`, `-ui`). Plus extensions are separate
-// imports and never come through here. `createCamera2d` comes through the game package; verbs core does not
-// have yet (`sound`, `music`, `t`, `tween`) join this list when their owning packages ship them.
+// The game call and the sim's define verbs, unchanged: each is a thin layer over a part a game can always drop down
+// to (`@mcthaydt/automata-sim` for the verbs). `createCamera2d` comes through `game.ts`; verbs core does not have
+// yet (`sound`, `music`, `t`, `tween`) join this list when they ship.
 
 export {
   type Command,
@@ -23,4 +21,4 @@ export {
   type StepResult,
   type SystemDef,
 } from '@mcthaydt/automata-sim'
-export * from './from-game.ts'
+export * from './game.ts'
