@@ -1,5 +1,5 @@
-// Which files the suite may write, from the game's editor list. Modelled on The Last
-// Light's editor/src/server/policy.ts `canWrite`, in its order: outside the root, then never, then
+// Which files the suite may write, from the game's editor list. Modelled on the adventure
+// source's `canWrite`, in its order: outside the root, then never, then
 // generated, then the first editable row. The Node workspace puts every write through this; it is pure, so
 // the browser shows the same reasons before anything is sent.
 
