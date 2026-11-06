@@ -1430,4 +1430,7 @@ listed as left with the reason.
   already; no edit. `pnpm lint`, typecheck, boundaries, style and knip pass.
 - Deviations: (1) the persistent-profile project is named `storage`, not part of `layout`; (2) `journeys` runs WebKit and
   Chromium, as the plan says, so the iPad flows can run where WebKit is missing.
+- Handoff (session 3 ends here, at a clean point): next is task 4.4. Start with `--forbid` in
+  `packages/tools/src/features/boundaries/` (the fixture test first), then the shared-island rule, then run both on
+  `packages/editor` and fix each finding by passing the function in from `app/editor-2d/` or `app/suite/`.
 

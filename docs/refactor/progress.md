@@ -207,6 +207,12 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
+**Where to resume (2026-11-06, session 3 ended after task 4.3):** branch `claude/project-thread-pbmc59`, [PR #412](https://github.com/mcthaydt/automata-framework/pull/412)
+(stacked on #411). Next is task 4.4 (`--forbid` and the shared-island rule in `-tools`' boundaries, then the findings in
+`packages/editor/src`), then 4.5 (plan-ID comments, neutral fixture names, the mock-ups archived) and 4.6 (the editor's
+logic refactor). Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The plan's execution log has the
+counts, deviations and gates of every task so far.
+
 | Task | Phase | Status | PR |
 |---|---|---|---|
 | 1.1 The editors in the 2D gate | 1 | Done, 2026-11-06 (Chromium; unit: editor-kit 1,373, editor-2d 1,552; browser: editor-2d 259 pass and 6 skipped, editor-kit layout 129; the journeys need WebKit: the Owner's `ci:local`; hosted CI not run) | |
