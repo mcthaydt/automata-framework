@@ -1045,6 +1045,13 @@ the rest of 12.3, before 12.4.
   each dialog has one primary action and the copy of `copy.md`.
 - [ ] **Step 2:** Implement, one view per commit. **Session break** between views if needed.
 - [ ] **Step 3:** Screenshots, copy rows. Commit per view.
+- **12.4, the mockup's look (session 18).** Tiles and Characters draw pages, not canvases, so their stage takes the
+  light field (`--bg`): their names and notes were dark text on the near-black cabinet since 12.3 Step 3. Their
+  panels' headings are small-capital section labels ("Your tiles", "Characters" for "Tilesets", "Definitions"); the
+  Map panel has "Arrange levels" and "Levels" labels and quiet level rows. **Left:** the words this screen still shows
+  that Step G names ("spacing 0 · padding 0", "IntGrid", "rule 1", "Settings for every level"), and the inspectors'
+  label-left layout. Gates: editor unit (map, tiles, characters, document) 267, Chromium layout with a mouse and with
+  touch 144, svelte-check clean.
 - [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 5.2):** the Tiles, Map and Characters rows of the audit's table: no IntGrid, rule, pivot, id, shape or field-count words on the first screen ("No tiles yet. Add a picture of your tiles to paint with them.", "Arrange levels: Anywhere, In a grid, In a row, In a column", "Ember (one per level)", "Box, Circle, Dot, Picture"); the anchor point and the name in code live under More.
 
 ### Task 12.6: The Tuner, audited and redesigned (PR `claude/refactor-ed-redesign-3`; added 2026-11-06)
@@ -1068,6 +1075,10 @@ editor". The Tuner (`features/suite/tuner/`) is a non-3D editor the plan had lef
 - [ ] **Step 2:** Implement with the kit's components only. Layout test: no horizontal scroll, 44 / 48 px targets.
 - [ ] **Step 3:** Screenshots before and after (phone, iPad, desktop), copy rows. Commit.
   `feat(editor): the Tuner audited and redesigned`
+- **12.6, the look (session 18).** The settings and the search were dark on the cabinet: their colours named tokens
+  that do not exist and fell back to the old dark theme's hex values. They read the kit's tokens now: white cards on
+  the light field, paper fields, the accent edge on the chosen setting; only the game keeps the cabinet. Gates: editor
+  unit (suite) 294, Chromium layout (suite) with a mouse and with touch 121 each. **Left:** the unit a player can feel.
 - [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.2):** each tunable has a label and a one-line "what you'll feel" carried by the game's `tuning.toml` (or the Tuner's schema), with a unit a player can feel; no constant names, no other game's numbers on screen (they stay in the TOML comments); Lock becomes Keep with its tooltip; the empty panel says "Tap a setting to see more."; the split view (step 1) is how she tries it, so no separate "Play to try it" button.
 
 ### Task 12.7: The 2D suite page, audited and redesigned (same PR; added 2026-11-06)
