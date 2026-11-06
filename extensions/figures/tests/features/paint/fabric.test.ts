@@ -8,6 +8,8 @@ import { fabricOf, labelAt, registerFabric } from '../../../src/features/paint/f
 import { duel, tonesOf } from '../../../src/features/paint/paint';
 import { registerGarment, box } from '../../../src/features/outfit/garments';
 import { J } from '../../../src/features/body/rig';
+import { lightFigure } from '../../../src/features/lighting/light';
+import { TIMES } from '../../../src/features/lighting/lamps';
 import { dressed, differs, turned } from '../draw';
 import { FIXTURES, registerFixtures } from './fabric-fixtures';
 
@@ -27,6 +29,16 @@ describe('the fabric registry (H5)', () => {
   it('accepts a pattern from -2 to +1, and returns it', () => {
     registerFabric('photo', { w: 8, h: 1, labels: [-2, -1, 0, 1, 0, 0, 0, 0] });
     expect(fabricOf('photo')!.labels).toEqual([-2, -1, 0, 1, 0, 0, 0, 0]);
+  });
+  it('rejects a motif with a +1 and a 4×4 at -2, and accepts a 5×4 at -2', () => {
+    expect(() => registerFabric('edge-plus', { w: 2, h: 2, labels: [0, 1, 0, 0] })).toThrow(/motif/);
+    expect(() => registerFabric('edge-44', { w: 4, h: 4, labels: [-2, ...new Array(15).fill(0)] })).toThrow(/motif/);
+    registerFabric('edge-54', { w: 5, h: 4, labels: [-2, ...new Array(19).fill(0)] });
+    expect(fabricOf('edge-54')!.labels[0]).toBe(-2);
+  });
+  it('rejects a tile of no metres and a tile of no width', () => {
+    expect(() => registerFabric('edge-m0', { w: 2, h: 1, labels: [0, -1], metres: 0 })).toThrow(/metres/);
+    expect(() => registerFabric('edge-w0', { w: 0, h: 1, labels: [] })).toThrow(/whole numbers/);
   });
   it('rejects a taken name', () => {
     expect(() => registerFabric('photo', { w: 1, h: 1, labels: [0] })).toThrow(/registered/);
@@ -141,6 +153,20 @@ describe('fabrics drawn', () => {
     const tiled = lit(dressed(outfit('fxrib'), SWATCHES_FX));
     expect(differs(tiled, lit(dressed(outfit('plain'), { plain: PLAIN })))).toBe(true);
     expect(differs(tiled, lit(dressed(outfit('fxrib'), SWATCHES_FX)))).toBe(false);
+  });
+  it('lit by a time of day and a lamp, the tiled top\'s texels use only colours the untiled top uses lit (N11)', () => {
+    const lighting = { time: TIMES.dusk, lamps: [{ at: [-1.2, 1.5, 0.8] as [number, number, number], color: '#ffbc4e', steps: 3, radius: 3.2, tint: 0.4 }], t: 0 };
+    const litTop = (swatch: string, sw: Record<string, object>) => {
+      const f = new Figure(member(dressed(outfit(swatch), sw as never), 2));
+      f.cache = false;
+      for (let i = 0; i < 3; i++) f.update(1 / 60, input);
+      const out = lightFigure(f, lighting), top = f['built'].materialIndex.get(swatch)!, set = new Set<number>();
+      for (let k = 0; k < f.g.material.length; k++) if (f.g.material[k] === top && out[k * 4 + 3]) set.add(colourAt(out, k * 4));
+      return set;
+    };
+    const tiled = litTop('fxrib', SWATCHES_FX), plain = litTop('plain', { plain: PLAIN });
+    expect(tiled.size).toBeGreaterThan(1);
+    expect([...tiled].filter(c => !plain.has(c)).map(c => c.toString(16))).toEqual([]);
   });
   it('a texel-size tile keeps its texel period at every density', () => {
     for (const D of [1, 2, 4]) {

@@ -102,6 +102,18 @@ describe('cloth coordinates (the mapping)', () => {
     for (let i = 0; i < 8; i++) fig.update(1 / 12, { facing: Math.PI / 4, moving: true, view: { azimuth: 0, pitch: 0.3 } });
     expect(fig['built'].cloth).toEqual(before);
   });
+  it('u is the same at every height for one angle: no shear (N10)', () => {
+    const { f, s } = rig(), torso = f.get(GROUP.torso)!, lo = s.hipY + 0.09, hi = s.chestY - 0.07;
+    for (const t of [-2.6, -1.1, 0.3, 1.4, 2.9]) {
+      const us: number[] = [];
+      for (let i = 0; i < 10; i++) {
+        const y = lo + (hi - lo) * i / 9, R = torso.ring(y);
+        const [c, sn] = slotAt(torso, (R.dx ?? 0) + R.rx * Math.sin(t), y, (R.dz ?? 0) + R.rz * Math.cos(t));
+        us.push(clothU(f, GROUP.torso, c, sn)!);
+      }
+      for (const u of us) expect(Math.abs(u - us[0]), `angle ${t}`).toBeLessThan(1e-9);
+    }
+  });
   it('every slot is finite at every slider end', () => {
     const swatches = { fxCloth };
     for (const key of ['fat', ...BODY] as (keyof Sliders)[]) for (const v of key === 'fat' ? [0, 1.2] : endsOf(key)) {
@@ -119,6 +131,9 @@ describe('cloth coordinates (the mapping)', () => {
   it('no fabric, no slots', () => {
     const fig = new Figure(member(BASE[0].def, 1));
     expect(fig['built'].cloth).toBeNull(); expect(fig['built'].frame).toBeNull();
+    // And no third raster runs: its two buffers are never allocated.
+    fig.cache = false; fig.update(0, { facing: 0, moving: false, view: { azimuth: 0, pitch: 0.3 } });
+    expect(fig['gC']).toBeNull(); expect(fig['hiC']).toBeNull();
   });
   it('clothSlots keeps part order, with zeros for an untiled group', () => {
     const { m, s, f } = rig(), look = dress(m, s, BASE[0].def.skin, []);
