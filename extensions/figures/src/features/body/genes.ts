@@ -34,6 +34,11 @@ export interface Sliders {
    * rolled against the spine by up to 6°) and the head set level over it, as a body compensates (a scoliosis or a short leg
    * gives such a range). The stand and the gait carry it from motion.ts; a diversity control. */
   bodyAsymmetry: number;
+  /** 0.5 today's chest, for any frame: the chest's ring over a real range of depths (0 flatter … 1 fuller, 0.92–1.15 of today's),
+   * its underside keeping its turn, so in profile it is a form, not a deeper tube. Under the painted blocks. */
+  bust: number;
+  /** 0.5 today's seat: the hips' rings deeper behind (0.93–1.12) and a little wider (0.94–1.06), seen in profile and from behind. */
+  seat: number;
   /** The head's own structure (HeadShape); left out, an average head. */
   face?: Partial<HeadShape>;
 }
@@ -73,7 +78,7 @@ export const DEFAULT_HEAD: HeadShape = {
 };
 export const DEFAULT_SLIDERS: Sliders = {
   frame: 0.5, height: 170, muscle: 0.5, fat: 0.4, shoulders: 0.5, hips: 0.5, legs: 0.5, arms: 0.5, head: 0.6,
-  neck: 0.5, neckLength: 0.4, hands: 0.5, feet: 0.5, posture: 0.5, age: 0.3, headTilt: 0, chunk: 1, faceForward: 0.7, hunch: 0, bodyAsymmetry: 0,
+  neck: 0.5, neckLength: 0.4, hands: 0.5, feet: 0.5, posture: 0.5, age: 0.3, headTilt: 0, chunk: 1, faceForward: 0.7, hunch: 0, bodyAsymmetry: 0, bust: 0.5, seat: 0.5,
 };
 /** Everything the body and the garments need, in metres. */
 export interface Measure {
@@ -94,7 +99,13 @@ export interface Measure {
    * the wrists and ankles by a tenth at most, so they still read; the neck; and the jaw's underside. Past 1 the growth
    * keeps its proportion. */
   fat: { swell: number; joint: number; hipTop: number; end: number; neck: number; chin: number };
+  /** The chest's depth factor and forward offset (m at k 1), exactly 1 and 0 at bust 0.5; and the seat's depth and width
+   * factors and backward offset (m at k 1), exactly 1, 1 and 0 at seat 0.5. A fork's garment follows the body with these. */
+  bust: { rz: number; dz: number };
+  seat: { rz: number; dz: number; rx: number };
 }
+/** A range widened about its middle: `lo` at 0, exactly 1 at 0.5, `hi` at 1 (two lerps meeting at 1; one lerp(lo, hi, v) would not be 1). */
+const about = (v: number, lo: number, hi: number) => (v < 0.5 ? lerp(lo, 1, v / 0.5) : lerp(1, hi, (v - 0.5) / 0.5));
 export function measure(input: Partial<Sliders>): Measure {
   const s = { ...DEFAULT_SLIDERS, ...input }, H = s.height / 100, f = s.frame, k = H / 1.62, c = s.chunk;
   const genes: Genes = {
@@ -123,6 +134,8 @@ export function measure(input: Partial<Sliders>): Measure {
     // The pixel build thickens limbs only as far as a wrist and an ankle still read at 64 texels; their shape is the body's.
     arm: lerp(1, 1.3, c), leg: lerp(1, 1.2, c), foot: lerp(1, 1.25, c),
     face: { ...DEFAULT_HEAD, ...s.face },
+    bust: { rz: about(s.bust, 0.92, 1.15), dz: 0.01 * (s.bust - 0.5) * 2 },
+    seat: { rz: about(s.seat, 0.93, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.94, 1.06) },
     fat: { swell: 1 + 0.35 * s.fat, joint: 1 + 0.5 * s.fat, hipTop: 1 + 0.2 * s.fat, end: 1 + 0.08 * s.fat, neck: 1 + 0.2 * s.fat, chin: 1 + 0.25 * s.fat },
   };
 }

@@ -235,12 +235,12 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     { y: lerp(trapY, shoulderY - 0.016 * k, 0.55), rx: lerp(trap, sh * 0.84, 0.55) * 1.02, rz: 0.064 * D, dz: -0.006 * k },
     { y: shoulderY - 0.016 * k, rx: sh * 0.84, rz: 0.07 * D, dz: -0.004 * k },
     { y: shoulderY - 0.05 * k, rx: sh * 0.9 * C, rz: 0.088 * D, dz: 0.004 * k },
-    { y: chestY + 0.03 * k, rx: sh * lerp(0.9, 0.84, f) * C, rz: 0.096 * D * lerp(1, 1.06, f), dz: 0.012 * k },
-    { y: chestY - 0.07 * k, rx: sh * lerp(0.8, 0.74, f) * C, rz: 0.088 * D, dz: 0.008 * k },
+    { y: chestY + 0.03 * k, rx: sh * lerp(0.9, 0.84, f) * C, rz: 0.096 * D * lerp(1, 1.06, f) * m.bust.rz, dz: 0.012 * k + m.bust.dz * k },
+    { y: chestY - 0.07 * k, rx: sh * lerp(0.8, 0.74, f) * C, rz: 0.088 * D * (1 + (m.bust.rz - 1) / 2), dz: 0.008 * k },
     { y: waistY + 0.02 * k, rx: 0.11 * k * t * m.waist * lerp(1, 0.98, f), rz: 0.076 * D, dz: 0.002 * k },
-    { y: hipY + 0.08 * k, rx: g.hips + 0.05 * k * t * lerp(0.95, 1.06, f), rz: 0.084 * D, dz: -0.002 * k },
-    { y: hipY - 0.02 * k, rx: g.hips + 0.062 * k * t * lerp(0.95, 1.06, f), rz: 0.088 * D, dz: -0.006 * k },
-    { y: hipY - 0.075 * k, rx: g.hips * 1.02, rz: 0.074 * D, dz: -0.006 * k },
+    { y: hipY + 0.08 * k, rx: (g.hips + 0.05 * k * t * lerp(0.95, 1.06, f)) * m.seat.rx, rz: 0.084 * D * m.seat.rz, dz: -0.002 * k + m.seat.dz * k },
+    { y: hipY - 0.02 * k, rx: (g.hips + 0.062 * k * t * lerp(0.95, 1.06, f)) * m.seat.rx, rz: 0.088 * D * m.seat.rz, dz: -0.006 * k + m.seat.dz * k },
+    { y: hipY - 0.075 * k, rx: g.hips * 1.02 * m.seat.rx, rz: 0.074 * D * m.seat.rz, dz: -0.006 * k + m.seat.dz * k },
   ] };
   // The trunk bends at the spine: the hips ride the pelvis, the ribs the chest, the waist between them.
   const trunk = (_x: number, y: number): [number, number][] => {
