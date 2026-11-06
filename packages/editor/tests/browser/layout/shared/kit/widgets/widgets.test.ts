@@ -73,6 +73,24 @@ describe.each(SIZES)('widgets at $name ($width x $height)', (size) => {
     expect(tooSmall(controls)).toEqual([])
   })
 
+  test('tabs are quiet words on a hairline, the chosen one ink with a 2 px ink underline, as the top bar draws its views', async () => {
+    await open(size)
+    const list = document.querySelector<HTMLElement>('[data-widget="tabs"] [role="tablist"]')
+    if (list === null) throw new Error('no tabs in the gallery')
+    const listStyle = getComputedStyle(list)
+    expect(listStyle.borderTopWidth).toBe('0px')
+    expect(listStyle.borderBottomWidth).toBe('1px')
+    const chosen = list.querySelector<HTMLElement>('[aria-selected="true"]')
+    if (chosen === null) throw new Error('no chosen tab')
+    const ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()
+    const probe = document.body.appendChild(document.createElement('span'))
+    probe.style.color = ink
+    const inkRgb = getComputedStyle(probe).color
+    probe.remove()
+    expect(getComputedStyle(chosen).boxShadow).toBe(`${inkRgb} 0px -2px 0px 0px inset`)
+    expect(getComputedStyle(chosen).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+  })
+
   test('nothing makes the page scroll sideways', async () => {
     await open(size)
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(document.documentElement.clientWidth)

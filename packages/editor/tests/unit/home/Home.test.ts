@@ -166,6 +166,8 @@ describe('Home', () => {
       await waitFor(() => expect(screen.getByText('No levels yet')).toBeInTheDocument())
       expect(screen.queryByRole('searchbox')).toBeNull()
       const empty = screen.getByText('No levels yet').parentElement as HTMLElement
+      // One lime button a screen: the top bar's New level is the primary, the empty list's a plain one.
+      expect(within(empty).getByRole('button', { name: 'New level' })).toHaveAttribute('data-kind', 'plain')
       await userEvent.click(within(empty).getByRole('button', { name: 'New level' }))
       expect(screen.getByRole('dialog', { name: 'New level' })).toBeInTheDocument()
     })

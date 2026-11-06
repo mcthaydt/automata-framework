@@ -85,7 +85,8 @@ function tileChoice(current: EntityDef2D, id: string): void {
     label="Inspector"
     tabs={[
       ...(def === undefined ? [] : [{ id: 'definition', label: 'Character' }]),
-      { id: 'fields', label: `Settings ${selection.fields.length}` },
+      // A count only when there is something to count: "Settings 0" read as a setting named 0.
+      { id: 'fields', label: selection.fields.length === 0 ? 'Settings' : `Settings (${selection.fields.length})` },
     ]}
     value={tab}
     onselect={(id) => (chosenTab = id)}
@@ -189,7 +190,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
       {:else}
         <div class="fields">
           <div class="head">
-            <h2 id="field-list-heading">{def === undefined ? 'Settings for every level' : `Fields of ${def.label ?? def.id}`}</h2>
+            <h2 id="field-list-heading">{def === undefined ? 'Settings for every level' : `Settings of ${def.label ?? def.id}`}</h2>
             <Button onclick={() => show(session.addField())}>Add field</Button>
           </div>
           <div class="choices" role="radiogroup" aria-labelledby="field-list-heading">
@@ -232,7 +233,12 @@ function tileChoice(current: EntityDef2D, id: string): void {
 {/if}
 
 <style>
+  /* Label-left, the Level view's inspector's column: the kit's Stepper, ColorField and FieldEditor read these. */
   .inspector {
+    --label-width: 5.5rem;
+    --label-flex: 0 0 var(--label-width);
+    --label-columns: var(--label-width) minmax(0, 1fr);
+    --label-control-column: 2;
     display: grid;
     align-content: start;
     min-width: 0;
@@ -270,6 +276,8 @@ function tileChoice(current: EntityDef2D, id: string): void {
   }
   .text {
     display: grid;
+    grid-template-columns: var(--label-columns);
+    align-items: center;
     gap: var(--space-1);
   }
   .label {
