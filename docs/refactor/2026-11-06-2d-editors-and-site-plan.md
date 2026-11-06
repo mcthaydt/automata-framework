@@ -927,13 +927,15 @@ editor". The Tuner (`features/suite/tuner/`) is a non-3D editor the plan had lef
 
 - [ ] **Step 0: The audit.** Spec 17.3's read over the Tuner (size, header, logic in markup, unused code) and the
   four questions over every string it shows; findings and the Tuner's actions (from its DOM tests) in the execution log.
-- [ ] **Step 1: Failing tests.** The frame of spec 11.4 (a list sheet, an item sheet, the kit's fields); every value
-  row names the setting in plain words with its unit; no format word or path on screen; nothing reachable before is
+- [ ] **Step 1: Failing tests.** A split view (the Owner, 2026-11-06: "I feel like the tuner should be a split view
+  where it shows the effect of the change"): the settings on one side, the game running live on the other, and a
+  change to a value shows in the running game without a reload (side by side from iPad landscape up; stacked, game
+  on top, on a phone); every value row names the setting in plain words with its unit; no format word or path on screen; nothing reachable before is
   lost.
 - [ ] **Step 2:** Implement with the kit's components only. Layout test: no horizontal scroll, 44 / 48 px targets.
 - [ ] **Step 3:** Screenshots before and after (phone, iPad, desktop), copy rows. Commit.
   `feat(editor): the Tuner audited and redesigned`
-- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.2):** each tunable has a label and a one-line "what you'll feel" carried by the game's `tuning.toml` (or the Tuner's schema), with a unit a player can feel; no constant names, no other game's numbers on screen (they stay in the TOML comments); Lock becomes Keep with its tooltip; the empty panel says "Tap a setting to see more."; a "Play to try it" button opens the game with the new values.
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.2):** each tunable has a label and a one-line "what you'll feel" carried by the game's `tuning.toml` (or the Tuner's schema), with a unit a player can feel; no constant names, no other game's numbers on screen (they stay in the TOML comments); Lock becomes Keep with its tooltip; the empty panel says "Tap a setting to see more."; the split view (step 1) is how she tries it, so no separate "Play to try it" button.
 
 ### Task 12.7: The 2D suite page, audited and redesigned (same PR; added 2026-11-06)
 
@@ -1161,6 +1163,25 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
 
 ## Phase 18: The lean site (one PR, `claude/refactor-site-lean`)
 
+### Task 18.0: The shared layout, fixed first (PR `claude/refactor-site-shared`; added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md))
+
+Every page phase 18 rebuilds inherits the header, the footer, the code blocks and the menu, so their faults are fixed
+before it. The footer's contact address stays as it is until the Owner decides (D8).
+
+**Files:**
+- Modify: `site/src/app.css`, `site/src/lib/components/{Header,Footer,CommandMenu}.svelte`, the code block and copy
+  button components, the docs "On this page" list, the demo toolbar
+- Test: `site/tests/e2e/site.e2e.ts` (a rule over every page at the six sizes of the audit)
+
+- [ ] **Step 1: Failing tests.** At every size of the audit (390 × 844, 844 × 390, 820 × 1180, 1180 × 820,
+  1080 × 1920, 1440 × 900; phone and tablet as touch): every link and button is at least 44 px tall (48 px for a
+  primary), stand-alone text links and the logo included (M1); no code block breaks inside a word, and every block
+  scrolls sideways the same way with its Copy button in one place (M2); the open phone menu is opaque, nothing shows
+  through it (M4); on a touch device the Search button shows no `⌘K` and the search dialog no keyboard hint (L1).
+- [ ] **Step 2:** Fix each in the shared CSS or component, never per page.
+- [ ] **Step 3:** Rerun the audit's scripts (`docs/refactor/2026-11-06-site-visual-audit/scripts/`, `vite preview` on
+  4417); M1, M2, M4 and L1 read 0. Commit. `fix(site): tap targets, code blocks, the phone menu and touch hints`
+
 ### Task 18.1: Features, the page cut and redirects
 
 **Files:**
@@ -1191,6 +1212,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   and "Using a coding agent" (the AI page's setup). Copy rows. Commit. `feat(site): Home and Start describe the
   framework as it is`
 - [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 2, 5, 6, 18):** the Emberwick embed starts upright on an upright phone (the game's orientation check or the embed's aspect ratio); no promise of a remix or a demo that is not there; every Emberwick link lands on Emberwick; the demo's controls show only while it plays.
+- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H5, M3, M6, L2, L3, L4, L7):** the first example shows something (a title, a coloured field, a line of text), not a black box; at 844 × 390 the Emberwick demo and an example's preview start above the fold (the facts table folds); the footer's two API links become one ("Reference"); the double-jump picture is re-shot or removed; Home's desktop gutter label, lone card and uneven cards go; the hero's two actions stay side by side or stack aligned; the comments in Emberwick's code shown on Home read plainly.
 
 ### Task 18.3: The editor page and "Try the editor"
 
@@ -1203,6 +1225,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   it opens `/editor/app/`, which starts on browser storage with no console error under the site's CSP.
 - [ ] **Step 2:** Implement. If Pixi needs `eval` there, the editor's `main.ts` imports `@mcthaydt/automata/no-eval`
   first (spec risks). Copy rows. Commit. `feat(site): try the 2D editor on the site`
+- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) L8):** Privacy says that the try-it editor keeps levels in this browser's storage and nowhere else.
 
 ### Task 18.4: Docs and API
 
@@ -1218,6 +1241,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   package with the current names.
 - [ ] **Step 2:** Implement; write `how-it-works.md` (drunk grandma test applies). Commit.
   `feat(site): docs from the framework's guides, API generated`
+- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) H4):** no API page is longer than about ten phone screens: a package's page is an index of its export groups, each group collapsed or on a page of its own, with a jump list at the top.
 
 ### Task 18.5: The code refactor of the site (same PR)
 
@@ -1242,6 +1266,7 @@ Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan c
   make a platformer level, paint, reload, still there). Run in Chromium → pass. WebKit: the Owner's.
 - [ ] **Step 2: Commit.** `test(site): a visitor's journey from the home page to their first level`
 - [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 2):** the visitor's journey runs at a phone size too and plays the Emberwick embed upright.
+- [ ] **Step V (added 2026-11-06, [site visual audit](2026-11-06-site-visual-audit.md) section 4):** rerun the visual audit's scripts on the rebuilt site; every finding it measures reads 0 or is explained in the PR; rerun them on the editor's screens after phase 12.
 
 ### Task 19.2: Links, privacy and the closed beta
 
@@ -1963,3 +1988,11 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   reopens it (the row in `progress.md` says so).
 - **Handoff (session 9).** Phase 11 is in draft PR #419 with the 8.2 step G fix and the plan changes. Next is task 12.1
   (Home) with its Step G, on a new branch stacked on #419. The design board is the place to check each redesigned screen.
+- **The site visual audit (2026-11-06,** [site visual audit](2026-11-06-site-visual-audit.md)**, copied into `docs/refactor/`).** New task 18.0 fixes the shared
+  layout before phase 18 (tap targets M1, code wrapping M2, the see-through phone menu M4, keyboard hints on touch
+  L1); "Step V" on 18.2 (the first example that shows nothing H5, landscape fold M3, footer labels M6, L2 to L4, L7),
+  18.3 (Privacy and browser storage L8), 18.4 (the 185,000 px API page H4) and 19.1 (rerun the audit). H3, the
+  footer's contact address, stays until the Owner decides (D8). The slice now has 66 tasks.
+- **The Tuner is a split view** (the Owner, 2026-11-06, relayed: "I feel like the tuner should be a split view where it
+  shows the effect of the change"): task 12.6 step 1 now asks for the settings beside the live game, each change shown
+  without a reload; it replaces the audit's separate "Play to try it" button.

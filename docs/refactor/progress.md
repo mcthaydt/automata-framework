@@ -185,7 +185,7 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 2D editors and website: 50% (3 of 6; the build stays open until 65 of 65)
+## 2D editors and website: 50% (3 of 6; the build stays open until 66 of 66)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
 repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
@@ -198,11 +198,11 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 35 of 65 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 35 of 66 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 54% (35 of 65 tasks)
+### Build: 53% (35 of 66 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
@@ -210,7 +210,7 @@ organisation the same day ("automata", so the scope is `@automata`); it is for t
 **Where to resume (2026-11-06, session 9):** branch `claude/project-thread-9tfov0`, draft PR [#419](https://github.com/mcthaydt/automata-framework/pull/419) stacked on #418
 (phase 11, tasks 11.1 to 11.3). Next is phase 12, task 12.1 (Home), on a new branch stacked on it. Phase 12 now also
 holds 12.6 (the Tuner) and 12.7 (the suite's 2D page), added on the Owner's word that every editor that is not 3D is
-audited and redesigned; 12.5 runs last. Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The
+audited and redesigned; 12.5 runs last; the Tuner (12.6) is a split view with the live game. Task 18.0 (the site's shared layout, from the site visual audit) comes before the rest of phase 18. Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The
 plan's execution log has the counts, deviations (up to 102) and gates of every task so far. The design board:
 `pnpm --filter @mcthaydt/automata-editor design:board`.
 
@@ -256,7 +256,7 @@ plan's execution log has the counts, deviations (up to 102) and gates of every t
 | 12.3 The Level view | 12 | Not started | |
 | 12.4 Map, Tiles, Characters and the dialogs | 12 | Not started | |
 | 12.5 The copy table and the guide (runs after 12.6 and 12.7) | 12 | Not started | |
-| 12.6 The Tuner, audited and redesigned (added 2026-11-06) | 12 | Not started | |
+| 12.6 The Tuner, audited and redesigned as a split view beside the live game (added 2026-11-06) | 12 | Not started | |
 | 12.7 The 2D suite page, audited and redesigned (added 2026-11-06) | 12 | Not started | |
 | 13.1 The harness | 13 | Not started | |
 | 13.2 Save, drift and conflict journeys | 13 | Not started | |
@@ -271,6 +271,7 @@ plan's execution log has the counts, deviations (up to 102) and gates of every t
 | 17.1 The workflow invariants replace the YAML-pinning tests | 17 | Not started | |
 | 17.2 The packages that lost their reason | 17 | Not started | |
 | 17.3 The code refactor of the tooling that stays | 17 | Not started | |
+| 18.0 The shared layout, fixed first (added 2026-11-06) | 18 | Not started | |
 | 18.1 Features, the page cut and redirects | 18 | Not started | |
 | 18.2 Home and Start on the current code | 18 | Not started | |
 | 18.3 The editor page and "Try the editor" | 18 | Not started | |
