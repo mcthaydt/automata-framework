@@ -35,7 +35,8 @@ export interface Material {
   /** A tinted lens (paint.ts): the eyes under it show through, faintly, in its dark. */
   see?: boolean;
   /** A fabric (H5, paint/fabric.ts `registerFabric`): a tiled weave or pattern laid on the cloth as tone offsets within
-   * this material's own ramp. Ignored on the head group and on held items. Building a figure with an unregistered name throws. */
+   * this material's own ramp. Ignored on the head group and on held items. Building a figure with an unregistered name throws. Don't share a `seam` number
+   * across groups on a fabric: the resolve averages the cloth coordinates per seam, so two groups' cylinders would mix where they meet. */
   fabric?: string;
 }
 /** The figure's part groups: what moves and outlines as one (the trunk, the head and hair, each limb, a held item). */
