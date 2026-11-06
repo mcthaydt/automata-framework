@@ -87,3 +87,13 @@ jobs:
     expect(problems).toEqual(['fixture.yml parity: runs on draft pull requests'])
   })
 })
+
+// The 3D suites are paused until the 3D slice starts (Owner, 2026-11-06: "We don't really need to run 3D since we
+// haven't overhauled that"). They held the one Mac runner for hours on pull requests that never touched 3D. Turning
+// them back on is the commented block in 3d.yml; then delete this test.
+describe('the paused 3D workflow', () => {
+  it('runs only by hand', () => {
+    const workflow = parse(readFileSync(join(WORKFLOWS, '3d.yml'), 'utf8')) as { on: Record<string, unknown> }
+    expect(Object.keys(workflow.on)).toEqual(['workflow_dispatch'])
+  })
+})
