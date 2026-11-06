@@ -43,6 +43,8 @@ export function subscribable<A>(
         stopListening()
       }
       release = owner?.add(stop) ?? release
+      // An owner already disposed stopped this at once: the listener hears nothing.
+      if (!active) return stop
       listener(current())
       return stop
     },

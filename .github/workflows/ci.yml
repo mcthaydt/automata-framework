@@ -1,8 +1,8 @@
 name: ci
 
-# AF's own CI (ship spec §3.7). Checks run on every push and pull request; cross-engine parity and the 2D journeys
+# AF's own CI. Checks run on every push and pull request; cross-engine parity and the 2D journeys
 # (Emberwick in Chromium and WebKit, the one-file examples) run on every push to main and on pull requests that are
-# not drafts (a draft runs parity in a cloud container, docs/archive/cloud-parity.md). One focused browser run can be asked
+# not drafts (a draft runs no parity here: run `pnpm ci:local`, see docs/runbook.md). One focused browser run can be asked
 # for with `automata ship test-remote <folder> <playwright args>`.
 #
 # What a pull request runs (CI backlog, 2026-10-23): one runner serves every pull request, so the checks job
@@ -123,7 +123,7 @@ jobs:
 
   parity:
     name: parity (chromium, webkit, firefox)
-    # A draft PR runs parity in a cloud container instead (docs/archive/cloud-parity.md). Pushes to main have no
+    # A draft PR runs no parity here (`pnpm ci:local` runs it by hand, docs/runbook.md). Pushes to main have no
     # pull_request and always run it. `!cancelled()` keeps a red checks job from hiding parity on a push or the
     # nightly run; a pull request needs green checks first, so a red one does not also queue the heavy jobs.
     needs: checks
@@ -185,9 +185,8 @@ jobs:
         env:
           TURBO_SCM_BASE: HEAD^1
           TURBO_SCM_HEAD: HEAD
-      # The evidence file (DX spec §3.10), on every push to main: each golden's hash as Node, Chromium, WebKit and
-      # Firefox computed it, the revision, this run, and the package versions. The website reads the artifact; the
-      # automata check results stay "pending" until create-game (DX.5) and automata check (DX.6) land.
+      # The evidence file, on every push to main: each golden's hash as Node, Chromium, WebKit and Firefox computed
+      # it, the revision, this run, and the package versions. The website reads the artifact.
       - run: pnpm evidence
         if: github.event_name == 'push'
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
