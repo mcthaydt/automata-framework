@@ -2236,3 +2236,9 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
 - **12.4, part (session 12): Details everywhere.** The drawer button that opens the inspector below `wide` says
   "Details" in Map, Tiles and Characters too (was "Inspector"), as in the Level view. Gates: editor unit (map, tiles,
   characters) 126, Chromium layout (the three views) 64, 2D journeys 26.
+- **12.3, part (session 12): the pill at the top from an iPad up.** The design thread's revised mockup (after the
+  Owner's "Audit it", 2026-11-06) puts the tools at the top centre, which is also spec 11.4's rule, so **deviation 109
+  is withdrawn**: the pill floats at the canvas's top from `medium` up and at its foot on a phone (`toolsAt`); with it
+  at the top, Fit, Details and the layer message move to the canvas's foot. The suite's Levels 2D keeps the foot until
+  12.7. Gates: Chromium layout (level, suite) 171, canvas and journeys 75 pass and 6 skipped, editor unit (level, app)
+  303.

@@ -176,7 +176,7 @@ describe.each(SIZES)('Level view inspector, tools and levels at $name ($width x 
     await page.screenshot({ path: `.vitest/shots/level-picker-${size.name}.png` })
   })
 
-  test('the tool pill floats wholly inside the canvas and the window (G5)', async () => {
+  test('the tool pill floats wholly inside the canvas and the window, top or foot by size (G5)', async () => {
     await start(size)
     const pill = byTestId('level-toolbar')
     expectInside(pill, size)
@@ -185,8 +185,9 @@ describe.each(SIZES)('Level view inspector, tools and levels at $name ($width x 
     expect(box.left).toBeGreaterThanOrEqual(surface.left - 0.5)
     expect(box.right).toBeLessThanOrEqual(surface.right + 0.5)
     expect(box.bottom).toBeLessThanOrEqual(surface.bottom + 0.5)
-    // At the canvas's foot, centred.
-    expect(surface.bottom - box.bottom).toBeLessThan(24)
+    // Centred, at the canvas's foot on a phone and at its top from an iPad up (the revised mockup).
+    if (size.mode === 'compact') expect(surface.bottom - box.bottom).toBeLessThan(24)
+    else expect(box.top - surface.top).toBeLessThan(24)
     expect(Math.abs((box.left + box.right) / 2 - (surface.left + surface.right) / 2)).toBeLessThan(1)
   })
 

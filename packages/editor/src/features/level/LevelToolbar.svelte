@@ -1,6 +1,6 @@
 <!--
-  The Level view's tools: one pill floating over the canvas (spec 11.4), at its foot on every size, so it sits under
-  the thumb on a phone and never runs off the edge (G5). It holds, below `wide`, Layers (which opens the layers and
+  The Level view's tools: one pill floating over the canvas (spec 11.4), centred at its top from an iPad up and at its
+  foot on a phone, under the thumb (`at`), never running off the edge (G5). It holds, below `wide`, Layers (which opens the layers and
   the palette as a drawer or a sheet), then the six tools as icons, each named in plain words (its tooltip and its
   accessible name: Select, Brush, Rectangle, Fill, Eraser, Copy a tile), and while a brush or the eraser is out the
   brush size, a 44 px button showing the number that opens a popover with the stepper. Fit and Details are the
@@ -28,9 +28,20 @@ interface Props {
   ontool: (tool: LevelTool) => void
   onbrushsize: (size: number) => void
   onlayers: () => void
+  /** Where the pill floats: the canvas's top, or its foot (a phone). */
+  at?: 'top' | 'bottom'
 }
 
-const { tool, brushSize, showLayers, layersOpen, ontool, onbrushsize, onlayers }: Props = $props()
+const {
+  tool,
+  brushSize,
+  showLayers,
+  layersOpen,
+  ontool,
+  onbrushsize,
+  onlayers,
+  at = 'bottom',
+}: Props = $props()
 
 const TOOLS: readonly { id: LevelTool; label: string; icon: IconName }[] = [
   { id: 'select', label: 'Select', icon: 'select' },
@@ -53,6 +64,7 @@ let sizeButton = $state<HTMLElement>()
   role="toolbar"
   aria-label="Tools"
   data-floating="true"
+  data-at={at}
   data-testid="level-toolbar"
   data-scroll-region="both"
 >
@@ -113,6 +125,10 @@ let sizeButton = $state<HTMLElement>()
     border: 1px solid var(--color-border-default);
     border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
+  }
+  .pill[data-at='top'] {
+    top: var(--space-3);
+    bottom: auto;
   }
   .pill::-webkit-scrollbar {
     display: none;

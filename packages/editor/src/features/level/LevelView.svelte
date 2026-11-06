@@ -38,7 +38,8 @@ const history = opened.history
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
 
-const wide = $derived(shellModeOf(geometry.current.formFactor) === 'wide')
+const mode = $derived(shellModeOf(geometry.current.formFactor))
+const wide = $derived(mode === 'wide')
 
 // Selecting something opens the inspector on it, so below `wide` (where the inspector is a drawer or a sheet) the
 // thing just placed or tapped shows its fields without a second tap. Only a new selection opens it: closing the
@@ -88,6 +89,7 @@ onDestroy(() => {
         canvas={services.canvas}
         onundo={services.onundo}
         onredo={services.onredo}
+        toolsAt={mode === 'compact' ? 'bottom' : 'top'}
         showLayers={!wide}
         layersOpen={panelOpen}
         onlayers={() => (panelOpen = !panelOpen)}

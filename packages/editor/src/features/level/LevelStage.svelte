@@ -1,9 +1,10 @@
 <!--
   The Level view's canvas region, canvas first (spec 11.4): the Pixi level canvas fills the region edge to edge, with
   the kit's gesture recogniser on it feeding the session through the gesture map, and the keyboard shortcuts. Over it
-  float the tool pill at the foot (`LevelToolbar`) and, in the top right corner, Fit (the whole level in view) and,
-  below `wide`, Details (the inspector). Both float as siblings of the canvas's box, not inside it, so a press on them
-  never reaches the gestures. A locked or hidden layer says so in the top left corner instead of ignoring the pen
+  float the tool pill (`LevelToolbar`) and, in a corner, Fit (the whole level in view) and, below `wide`, Details (the
+  inspector): the pill at the foot with the corner at the top right on a phone, the pill at the top with the corner at
+  the bottom right from an iPad up (the design thread's revised mockup). Both float as siblings of the canvas's box, not inside it, so a press on them
+  never reaches the gestures. A locked or hidden layer says so in the left corner across from Fit instead of ignoring the pen
   without a word. The toggles for the panel and the inspector are the host shell's, so they come in as props.
 -->
 <script lang="ts">
@@ -37,6 +38,8 @@ interface Props {
   showInspector?: boolean
   inspectorOpen?: boolean
   oninspector?: () => void
+  /** Where the tool pill floats; with it at the top, Fit, Details and the layer message move to the foot. */
+  toolsAt?: 'top' | 'bottom'
 }
 
 const {
@@ -53,6 +56,7 @@ const {
   showInspector = false,
   inspectorOpen = false,
   oninspector = () => {},
+  toolsAt = 'bottom',
 }: Props = $props()
 
 // svelte-ignore state_referenced_locally
@@ -119,7 +123,7 @@ $effect(() => {
 })
 </script>
 
-<div class="stage">
+<div class="stage" data-tools={toolsAt}>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex: the canvas takes focus so arrows nudge the selection -->
   <div
     class="surface"
@@ -148,6 +152,7 @@ $effect(() => {
     ontool={(tool) => session.editor.setTool(tool)}
     onbrushsize={(size) => session.editor.setBrushSize(size)}
     {onlayers}
+    at={toolsAt}
   />
 </div>
 
@@ -178,6 +183,15 @@ $effect(() => {
     border: 1px solid var(--color-border-default);
     border-radius: var(--edge-md);
     background: var(--color-bg-surface);
+  }
+  /* With the pill at the top, the corner controls and the message take the foot instead. */
+  .stage[data-tools='top'] .corner {
+    top: auto;
+    bottom: var(--space-3);
+  }
+  .stage[data-tools='top'] .blocked {
+    top: auto;
+    bottom: var(--space-3);
   }
   /* Top left, leaving the corner controls their room (two 44 px buttons and the margins). */
   .blocked {
