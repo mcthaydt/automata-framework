@@ -66,7 +66,7 @@ onDestroy(() => {
     display: grid;
     place-items: center;
     min-height: 0;
-    background: var(--color-surface-base);
+    background: var(--charcoal);
   }
   iframe {
     width: 100%;

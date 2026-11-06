@@ -181,13 +181,18 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
     padding: var(--space-3);
     color: var(--color-text-primary);
     font: var(--text-body-13);
+    /* The settings are a page of words beside the game, not a canvas: the tool chrome's light field, so their names
+       read in the chrome's ink (they were dark on the near-black cabinet). Only the game keeps the cabinet. */
+    background: var(--bg);
   }
   .row {
     display: grid;
     gap: var(--space-2);
     padding: var(--space-2);
-    border: 1px solid var(--color-border-default, #3a3f48);
-    border-radius: var(--edge-sm);
+    border: 1px solid var(--line);
+    border-radius: var(--edge-md);
+    /* A white card on the light field, as the mockup's panels. */
+    background: var(--paper);
   }
   .head {
     display: flex;
@@ -196,7 +201,7 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
     justify-content: space-between;
   }
   .row.chosen {
-    border-color: var(--color-accent, #d9a441);
+    border-color: var(--color-accent-default);
   }
   .row.locked {
     opacity: 0.8;
@@ -247,9 +252,9 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
     box-sizing: border-box;
     min-height: var(--size-hit);
     padding: 0 var(--space-2);
-    border: 1px solid var(--color-border-default, #3a3f48);
+    border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--color-surface-base, #14161a);
+    background: var(--paper);
     color: inherit;
     font: inherit;
   }
@@ -262,7 +267,7 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
   .problem,
   .refusal {
     margin: 0;
-    color: var(--color-state-error, #e5534b);
+    color: var(--color-state-bad);
   }
   .state {
     display: grid;
