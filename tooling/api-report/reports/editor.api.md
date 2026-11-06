@@ -816,10 +816,10 @@ interface HistoryOptions {
 interface HomeCard {
     readonly path: string;
     readonly title: string;
-    readonly badge: {
+    readonly badge?: {
         readonly tone: Tone;
         readonly text: string;
-    };
+    } | undefined;
     readonly kind: string;
     readonly accent: string | undefined;
     readonly size: number;
@@ -2176,10 +2176,10 @@ interface HistoryOptions {
 interface HomeCard {
     readonly path: string;
     readonly title: string;
-    readonly badge: {
+    readonly badge?: {
         readonly tone: Tone;
         readonly text: string;
-    };
+    } | undefined;
     readonly kind: string;
     readonly accent: string | undefined;
     readonly size: number;
