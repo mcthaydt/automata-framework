@@ -20,7 +20,7 @@ const lineText = (text: string): string => text.replace(/\r?\n$/, '')
     padding: var(--space-2) var(--space-2) 16px;
     overflow-x: auto;
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge);
     font: var(--text-mono-12);
   }
   [data-kind='removed'] {

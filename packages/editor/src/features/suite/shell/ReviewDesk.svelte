@@ -105,7 +105,7 @@ const count = (value: number): string => value.toLocaleString('en-US')
     margin-top: var(--space-4);
     padding: var(--space-4);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge);
   }
   .meta,
   .note {
@@ -149,7 +149,7 @@ const count = (value: number): string => value.toLocaleString('en-US')
     min-height: var(--size-hit);
     padding: 0 var(--space-4);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     color: var(--color-accent-default);
     font: var(--text-body-13-medium);
     text-decoration: none;

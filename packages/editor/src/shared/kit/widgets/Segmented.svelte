@@ -101,9 +101,9 @@ function onKey(event: KeyboardEvent, index: number): void {
     max-width: 100%;
     padding: 3px;
     gap: 2px;
-    border: 1px solid var(--line);
-    border-radius: var(--pill);
-    background: var(--glass);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--edge);
+    background: var(--surface);
   }
   .option {
     flex: 1 1 auto;
@@ -111,7 +111,7 @@ function onKey(event: KeyboardEvent, index: number): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 0;
-    border-radius: var(--pill);
+    border-radius: var(--edge);
     background: transparent;
     color: var(--muted);
     font: var(--text-body-13-medium);
@@ -120,9 +120,11 @@ function onKey(event: KeyboardEvent, index: number): void {
   .option:hover:not([aria-checked='true']) {
     color: var(--ink);
   }
+  /* The chosen option is a paper tile with an ink hairline on the grey track: clear without a block of colour. */
   .option[aria-checked='true'] {
-    background: var(--cobalt);
-    color: var(--stage-ink);
+    background: var(--paper);
+    box-shadow: inset 0 0 0 1px var(--ink);
+    color: var(--ink);
   }
   .option[aria-disabled='true'] {
     opacity: 0.45;

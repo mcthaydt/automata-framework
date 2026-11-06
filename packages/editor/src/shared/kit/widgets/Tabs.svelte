@@ -120,8 +120,8 @@ function onKey(event: KeyboardEvent, index: number): void {
     padding: 3px;
     overflow-x: auto;
     border: 1px solid var(--line);
-    border-radius: var(--pill);
-    background: var(--glass);
+    border-radius: var(--edge);
+    background: var(--paper);
   }
   .tab {
     flex: 0 0 auto;
@@ -129,7 +129,7 @@ function onKey(event: KeyboardEvent, index: number): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-4);
     border: 0;
-    border-radius: var(--pill);
+    border-radius: var(--edge);
     background: transparent;
     color: var(--muted);
     font: var(--text-body-13-medium);
@@ -138,7 +138,7 @@ function onKey(event: KeyboardEvent, index: number): void {
   .tab:hover:not([aria-selected='true']) {
     color: var(--ink);
   }
-  /* The chosen tab is paper with ink, and a cobalt underline drawn inside the pill. */
+  /* The chosen tab is paper with ink, and a cobalt underline drawn inside the tab. */
   .tab[aria-selected='true'] {
     background: var(--paper);
     box-shadow:

@@ -62,7 +62,7 @@ let { open = $bindable(), title, action, uses, onconfirm }: Props = $props()
     display: grid;
     padding: var(--space-1) var(--space-2);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
   }
   .where {
     font: var(--text-body-13-medium);

@@ -98,7 +98,7 @@ async function copy(text: string): Promise<void> {
     gap: var(--space-1);
     padding: var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     background: var(--color-bg-surface);
     color: var(--color-text-dim);
   }

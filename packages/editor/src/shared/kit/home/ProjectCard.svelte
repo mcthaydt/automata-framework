@@ -62,7 +62,7 @@ const path = $derived(splitPath(card.path))
     min-width: 0;
     padding: var(--space-3);
     border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
+    border-radius: var(--edge);
     background: var(--paper);
     cursor: pointer;
     user-select: none;

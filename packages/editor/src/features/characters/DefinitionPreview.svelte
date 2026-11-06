@@ -76,14 +76,14 @@ const sprite = $derived.by(() => {
   .swatch {
     width: 28px;
     height: 28px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge);
     background: color-mix(in srgb, var(--swatch) 30%, transparent);
     box-shadow: inset 0 0 0 2px var(--swatch);
   }
   .pill {
     padding: 2px var(--space-2);
     border: 1px solid var(--color-border-default);
-    border-radius: 999px;
+    border-radius: var(--edge);
     color: var(--color-text-dim);
     font: var(--text-mono-11);
   }
@@ -93,7 +93,7 @@ const sprite = $derived.by(() => {
     min-height: 320px;
     padding: var(--space-5) var(--space-6, 48px);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     background-color: var(--color-bg-canvas);
     background-image:
       linear-gradient(var(--color-border-default) 1px, transparent 1px),

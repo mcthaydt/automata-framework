@@ -62,7 +62,7 @@ const facts = $derived(recovery === undefined ? [] : recoveryFacts(path, recover
     margin: 0;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--line);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     background: var(--paper);
   }
   .fact {

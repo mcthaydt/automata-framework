@@ -85,7 +85,7 @@ function step(event: KeyboardEvent): void {
     min-height: 44px;
     padding: 0 2px;
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     background: transparent;
     color: var(--color-text-dim);
     /* The eyebrow size fits "Tilesets" and "Entities" whole in the 56 px rail. */

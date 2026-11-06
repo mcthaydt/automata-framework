@@ -47,8 +47,8 @@
   --warn: #8a5300;
   --danger-wash: rgb(180 35 24 / 0.08);
   --scrim: rgb(17 21 28 / 0.32);
-  --shadow: 0 1px 2px rgb(17 21 28 / 0.06), 0 8px 24px rgb(17 21 28 / 0.08);
-  --shadow-sheet: 0 -1px 0 rgb(17 21 28 / 0.06), 0 24px 64px rgb(17 21 28 / 0.18);
+  --shadow: 0 1px 2px rgb(17 21 28 / 0.06);
+  --shadow-sheet: 0 0 0 1px rgb(17 21 28 / 0.1), 0 12px 32px rgb(17 21 28 / 0.12);
   --color-layer-sky: #6aa8e8;
   --color-layer-city: #a58be0;
   --color-layer-tiles: #6fbf9a;
@@ -84,9 +84,13 @@
   --text-mono-12-tracking: 0px;
   --text-mono-11: 400 11px / 14px var(--font-mono);
   --text-mono-11-tracking: 0px;
+  --edge: 0px;
+  --primary: var(--ink);
+  --primary-ink: var(--paper);
+  --primary-hover: #2b313b;
   --color-bg-app: var(--bg);
   --color-bg-surface: var(--paper);
-  --color-bg-raised: var(--glass);
+  --color-bg-raised: var(--paper);
   --color-bg-field: var(--paper);
   --color-bg-canvas: var(--charcoal);
   --color-border-default: var(--line);

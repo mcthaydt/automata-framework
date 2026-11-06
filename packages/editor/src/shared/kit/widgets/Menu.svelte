@@ -188,8 +188,8 @@ function onItemKey(event: KeyboardEvent, position: number): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-4);
     border: 1px solid var(--line-strong);
-    border-radius: var(--pill);
-    background: var(--glass);
+    border-radius: var(--edge);
+    background: var(--paper);
     color: var(--ink);
     font: var(--text-body-13-medium);
     cursor: pointer;
@@ -219,7 +219,7 @@ function onItemKey(event: KeyboardEvent, position: number): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 0;
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge);
     background: transparent;
     color: var(--ink);
     font: var(--text-body-13);
