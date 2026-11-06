@@ -203,7 +203,6 @@ function layout(next: string): void {
   {geometry}
   topbar={frame.topbar}
   rail={frame.rail}
-  status={frame.status}
   sheets={frame.sheets}
   bind:panelOpen
   bind:inspectorOpen

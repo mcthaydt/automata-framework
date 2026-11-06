@@ -52,7 +52,6 @@ onDestroy(() => session?.dispose())
   {geometry}
   topbar={frame.topbar}
   rail={frame.rail}
-  status={frame.status}
   sheets={frame.sheets}
   bind:panelOpen
   bind:inspectorOpen

@@ -127,7 +127,7 @@ describe('startEditor', () => {
     await userEvent.click(within(templates).getAllByRole('button')[0] as HTMLElement)
 
     const bar = await screen.findByTestId('document-bar')
-    const path = bar.querySelector('.file')?.textContent ?? ''
+    const path = bar.getAttribute('data-path') ?? ''
     expect(path).toMatch(/\.af2d\.json$/)
     expect(await workspace.store.read(path)).toBeDefined()
     expect(screen.queryByRole('list', { name: 'Levels' })).toBeNull()

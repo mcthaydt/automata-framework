@@ -1,7 +1,7 @@
 <!--
   An open document (it keeps what the older frame did: the top bar, the dialogs and the toasts). The profile's views are the rail; the chosen one fills the shell with its panel,
   canvas and inspector, and this screen hands it what every view shares: the top bar (Back, the title, Undo, Redo, Save),
-  the rail, the status line, the Restore, conflict and leave dialogs and the toasts. Back with unsaved changes asks first. Switching views remounts the view only;
+  the rail (no status bar: Save says where the level stands, and problems are toasts), the Restore, conflict and leave dialogs and the toasts. Back with unsaved changes asks first. Switching views remounts the view only;
   the document, its history and its save state stay. A document replaced by Take theirs remounts the view on the new
   one. Everything it does goes through the document controller; nothing here names a profile.
 -->
@@ -11,9 +11,7 @@ import type { Component } from 'svelte'
 import { componentOf } from '../../app/editor-2d/views'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
-import { shellModeOf } from '../../shared/kit/shell/shell-mode'
 import type { Workspace } from '../../shared/kit/storage/workspace'
-import StatusLine from '../../shared/kit/widgets/StatusLine.svelte'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
@@ -96,8 +94,6 @@ async function leaveWithoutSaving(): Promise<void> {
   onback()
 }
 
-const compact = $derived(shellModeOf(geometry.current.formFactor) === 'compact')
-
 // svelte-ignore state_referenced_locally
 let shown = $state.raw<DocumentState>(snapshot(controller))
 $effect(() => controller.state.subscribe((next) => (shown = next)))
@@ -134,13 +130,12 @@ const services = $derived<ViewServices>({
 {#snippet topbar()}
   <DocumentBar
     heading={shown.heading}
-    profileLabel={shown.document.profile.label}
+    save={shown.save}
     canUndo={shown.canUndo}
     canRedo={shown.canRedo}
     undoLabel={shown.undoLabel}
     redoLabel={shown.redoLabel}
     busy={shown.busy !== undefined}
-    {compact}
     autofocus={!arrived}
     onfocused={() => (arrived = true)}
     onback={back}
@@ -162,10 +157,6 @@ const services = $derived<ViewServices>({
       focus = undefined
     }}
   />
-{/snippet}
-
-{#snippet status()}
-  <StatusLine save={shown.save} />
 {/snippet}
 
 {#snippet sheets()}
@@ -204,7 +195,7 @@ const services = $derived<ViewServices>({
       {geometry}
       document={shown.document}
       label={route?.label ?? shown.document.profile.label}
-      frame={{ topbar, rail, status, sheets }}
+      frame={{ topbar, rail, sheets }}
       {services}
       {focus}
     />

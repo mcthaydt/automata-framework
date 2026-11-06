@@ -2091,3 +2091,13 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   "Your game has no levels to edit yet." `newFilePath` stays as the app's guard for a create on a checkout. **Standing
   rule for every editor task left (12.2 to 12.7):** essential features only; anything that is not is cut, and the cut
   is named in this log.
+- **12.2, part (session 10): the top bar, essentials only.** `DocumentBar` holds Back, the level's name, Undo and
+  Redo as the kit's `IconButton`s (named with their step, "Undo Paint") and Save, now the one primary button, whose
+  words say where the level stands: "Save", "Saving…", "Saved" (`data-save` carries the state). **Cut, by the
+  Owner's essential-only rule:** the file path under the name (it is in Home's Details; the bar keeps it as
+  `data-path`), the profile's pill, and the status bar: `StatusLine` is gone from the document (`ViewFrame.status`
+  removed and the seven views no longer place it), since Save says the state, a failed save or autosave is a toast
+  with its way on, and "Not saved on this device" is Home's storage line. The kit's `StatusLine` stays for editor-3d
+  and the board. Gates: editor unit 3,292; DocumentBar 8; DocumentScreen and App tests read Save's state, not the
+  status bar. Left for 12.2: rename on tap, the four-view switcher, the problems sheet, the Share menu, the rail's
+  icons, the restore dialog's words.

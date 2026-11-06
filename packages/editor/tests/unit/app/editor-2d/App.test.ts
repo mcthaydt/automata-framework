@@ -131,8 +131,8 @@ describe('App', () => {
     await userEvent.click(await screen.findByRole('button', { name: /^(harbour\.note)/ }))
     await screen.findByRole('dialog', { name: 'Open harbour.note as' })
     await userEvent.click(screen.getByRole('button', { name: 'Rival note' }))
+    // The top bar no longer names the profile; the document opening at all is the choice taken.
     expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument()
-    expect(screen.getByText('Rival note')).toBeInTheDocument()
   })
 
   it('opening a file waits until the document left on Back has written its journal', async () => {

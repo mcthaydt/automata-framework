@@ -60,7 +60,6 @@ function choose(choice: TargetChoice): void {
   {geometry}
   topbar={frame.topbar}
   rail={frame.rail}
-  status={frame.status}
   sheets={frame.sheets}
   testId="checks-view"
 >
