@@ -66,10 +66,11 @@ export type PrepareError =
   | FileError
 
 /**
- * Makes a built folder ready for `ruken publish`: checks the tag, the
- * entry page, root-absolute paths, secrets, `@pixi/3d`, the leaderboards the game names and the orientation it plays in and the devices its `keys()` calls bind, then writes `ruken.toml` once Ruken's parser accepts it. Every check
- * runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
- * (archive, size, file types) happen inside `ruken publish`, not here.
+ * Makes a built folder ready for `ruken publish`. It checks the tag, the entry page, root-absolute paths, secrets,
+ * `@pixi/3d`, the leaderboards the game names, the orientation it plays in and the devices its `keys()` calls bind,
+ * then writes `ruken.toml` once Ruken's parser accepts it. Every check runs before the write, so a failed prepare
+ * leaves the folder as it was. Zipping and Ruken's build checks (archive, size, file types) happen inside
+ * `ruken publish`, not here.
  */
 export function prepareBuild(
   input: PrepareInput,
@@ -85,40 +86,22 @@ export function prepareBuild(
 
 /**
  * Every check `prepareBuild` makes, Ruken's parser included, writing nothing: the `ruken.toml` it would write.
- * CI's `prepare` of a private game uses it alone, so a raw `ruken publish` of the folder has no manifest to upload
- *.
+ * CI's `prepare` of a private game uses it alone, so a raw `ruken publish` of the folder has no manifest to upload.
  */
 export function checkBuild(input: PrepareInput): Effect.Effect<{ toml: string }, PrepareError, Files> {
   return Effect.gen(function* () {
-    const { distDir, config, tag } = input
+    const { distDir, config, tag, gameDir } = input
     const files = yield* Files
     yield* checkTag(config.game.version, tag)
 
-    // The caller's bindings are the real input map; without them the game's keys() calls are read from its sources.
-    const gameDir = input.gameDir
-    const inputProblems =
-      input.inputBindings !== undefined
-        ? inputsProblems(config.runtime.inputs, input.inputBindings)
-        : gameDir === undefined
-          ? []
-          : yield* tryFile(gameDir, () => findInputsProblems(gameDir, config.runtime.inputs))
+    const inputProblems = yield* inputBindingProblems(input)
     if (inputProblems.length > 0) return yield* new ManifestInputsMismatch({ problems: inputProblems })
 
     const references = yield* tryFile(distDir, () => findRootAbsoluteReferences(distDir))
     if (references.length > 0) return yield* new RootAbsoluteReference({ references })
 
-    yield* scanBuild({ distDir, gameDir: input.gameDir, audience: input.audience })
-
-    if (gameDir !== undefined) {
-      const boards = yield* tryFile(gameDir, () =>
-        findUndeclaredBoards(gameDir, Object.keys(config.leaderboards ?? {})),
-      )
-      if (boards.length > 0) return yield* new UndeclaredBoard({ found: boards })
-      const orientations = yield* tryFile(gameDir, () =>
-        findOrientationMismatches(gameDir, config.runtime.orientation),
-      )
-      if (orientations.length > 0) return yield* new OrientationMismatch({ found: orientations })
-    }
+    yield* scanBuild({ distDir, gameDir, audience: input.audience })
+    if (gameDir !== undefined) yield* checkGameSources(gameDir, config)
 
     if (!(yield* files.exists(join(distDir, config.game.entry)))) {
       return yield* new EntryMissing({ entry: config.game.entry, distDir })
@@ -127,5 +110,35 @@ export function checkBuild(input: PrepareInput): Effect.Effect<{ toml: string },
     const toml = rukenToml(config)
     yield* checkManifest(toml)
     return { toml }
+  })
+}
+
+/**
+ * Where the game's input bindings disagree with `runtime.inputs`. The caller's bindings are the real input map;
+ * without them the game's `keys()` calls are read from its sources, and with no game folder nothing is checked.
+ */
+function inputBindingProblems(input: PrepareInput): Effect.Effect<string[], FileError> {
+  const { gameDir, config } = input
+  if (input.inputBindings !== undefined) {
+    return Effect.succeed(inputsProblems(config.runtime.inputs, input.inputBindings))
+  }
+  if (gameDir === undefined) return Effect.succeed([])
+  return tryFile(gameDir, () => findInputsProblems(gameDir, config.runtime.inputs))
+}
+
+/** What the game's sources say that its ship config must agree with: the leaderboards it names, the orientation it plays in. */
+function checkGameSources(
+  gameDir: string,
+  config: ShipConfig,
+): Effect.Effect<void, UndeclaredBoard | OrientationMismatch | FileError> {
+  return Effect.gen(function* () {
+    const boards = yield* tryFile(gameDir, () =>
+      findUndeclaredBoards(gameDir, Object.keys(config.leaderboards ?? {})),
+    )
+    if (boards.length > 0) return yield* new UndeclaredBoard({ found: boards })
+    const orientations = yield* tryFile(gameDir, () =>
+      findOrientationMismatches(gameDir, config.runtime.orientation),
+    )
+    if (orientations.length > 0) return yield* new OrientationMismatch({ found: orientations })
   })
 }
