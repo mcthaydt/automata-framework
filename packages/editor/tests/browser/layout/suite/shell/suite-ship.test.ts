@@ -149,15 +149,15 @@ describe.each(SIZES)('Ship, Review and Import at $name ($width x $height)', (siz
 
   test('the Ship dialog: the description and Ship reachable at 48 px', async () => {
     await open(size)
-    button('Ship').click()
+    button('Publish').click()
     await expect.poll(() => document.querySelector('[role="dialog"] textarea')).not.toBeNull()
     await expect
       .poll(() => document.querySelector<HTMLTextAreaElement>('[role="dialog"] textarea')?.value)
       .toContain(TUNING)
     await settleLayout()
-    const dialog = dialogNamed('Ship this change')
+    const dialog = dialogNamed('Publish your changes')
     if (dialog === null) throw new Error('no dialog')
-    reachable('Ship', dialog, size)
+    reachable('Publish', dialog, size)
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/ship-dialog-${size.name}.png` })
   })

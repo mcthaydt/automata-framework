@@ -897,6 +897,22 @@ logic that is not markup lives in the view's `*-model.ts`.
   palette under the chosen layer; layer subtitles per spec 11.5; the inspector opens on selection and docks from iPad
   landscape up; the level strip is a level picker in the top bar.
 - [ ] **Step 2:** Implement. **Session break** after the tool pill and layers if needed (log what is left).
+- **12.7, the rest of Step 1 and 2 (session 15).** *The split:* `Suite.svelte` 437 → 339 lines by responsibility:
+  `SuiteTopBar.svelte` (the game's name, where edits are saved, the pills, Undo, Redo, Ask, Publish and the editor's
+  tools; it shows only what has something to say), `SuiteHome.svelte` (the sample's note, Export and Import, the
+  cards), `SuiteAsk.svelte` (Ask's session state on its dialog and the rule that a step in the editor's history drops
+  a proposal) and `core/write-messages.ts` (what a refused write and a check finding say, pure, with a unit test).
+  `Suite.svelte` keeps the editor mounting, the history and the dialogs' state; it is over 300 lines by 39, all
+  wiring that shares the mounted editor's state, so splitting it further would only pass that state around: listed
+  for the build audit. *Publish:* the top bar's Ship is Publish and its dialog says "Publish your changes",
+  "Publishing…", "Publishing still opens a draft for review." and, with nothing open, "Nothing new to publish yet."
+  It stays hidden with no change sets (a game folder writes its files directly), so no button does nothing (E6).
+  *Home:* the title asks "What do you want to change?"; each file is named in words (`fileTitle`: `room-1.af2d.json`
+  is "Room 1", `tuning.toml` is "Tuning"), no path on Home; empty pages say "This game has nothing to edit yet." and
+  "Nothing to edit in Tuner yet." Not done: a level's own name ("Emberwick room") lives inside its file, so Home
+  would read every file to show it; the file's name in words is the essential part, and the level menu (12.3) shows
+  the levels' own names. Gates: editor unit (suite) 286 → 294 (with the new `write-messages` and `fileTitle` tests),
+  Chromium layout (suite) 121, svelte-check clean.
 - [ ] **Step 3:** The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
 - [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`

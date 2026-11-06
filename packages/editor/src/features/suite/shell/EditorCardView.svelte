@@ -1,10 +1,10 @@
 <!--
-  One editor the game's list names: what it edits, file by file. An installed
+  One editor the game's list names: what it edits, file by file, each named in words (`fileTitle`), never by its path. An installed
   editor's files open it; an editor this build does not have says so in plain words and opens its files read only.
 -->
 <script lang="ts">
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
-import type { EditorCard } from './home-model'
+import { type EditorCard, fileTitle } from './home-model'
 
 interface Props {
   card: EditorCard
@@ -32,7 +32,7 @@ const headingId = $derived(`card-${card.editor}`)
       {#each card.files as file (file.path)}
         <li>
           <button type="button" onclick={() => (card.installed ? onopen(card) : onread(file))}>
-            <span class="path">{file.path}</span>
+            <span class="name">{fileTitle(file.path)}</span>
             {#if !file.writable}<span class="why">Read only{file.why ? `: ${file.why}` : ''}</span>{/if}
           </button>
         </li>
@@ -100,10 +100,10 @@ const headingId = $derived(`card-${card.editor}`)
     outline: 2px solid var(--color-accent-default);
     outline-offset: -2px;
   }
-  .path {
+  .name {
     max-width: 100%;
     overflow: hidden;
-    font: var(--text-mono-12);
+    font: var(--text-body-13);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
