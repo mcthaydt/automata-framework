@@ -2495,3 +2495,38 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   game's folder to edit it." Gates: editor unit (suite) 286, Chromium layout (suite) 121. **Left for 12.7:** the split
   of `Suite.svelte`; Ship becomes Publish with its dialog's words (the dialog is the 3D slice's change-set flow, E6, so
   the rename covers both together); Home's levels by name; Step 1's dialog checks.
+- **12.7, the look (session 19).** The suite page takes the approved mockup's tool chrome, as the document's bar did
+  in 12.3. *Top bar:* Home is an icon button (a house, named `Home`, `aria-current` on Home), the game's name in the
+  title's weight, `Saved in your game folder` a quiet status with a tick, Undo and Redo icon buttons named with their
+  step, Panel and Details icon buttons below `wide`. Publish is the lime primary only when an open change set has
+  something to publish; otherwise it is a plain button and its dialog says "Nothing new to publish yet." (the
+  grandma audit's "disabled" read as a dead button on touch, where a disabled control cannot say why; a quiet button
+  that explains is the same honesty with a reachable reason). *Rail:* each tab is an icon over its name (the name
+  stays: an icon alone makes a person guess); `suiteEntries` gives each entry an icon (Tuner sliders, the level
+  editors a grid, Review a checked file, any other editor a list). Four Lucide drawings added (`home`, `sliders`,
+  `grid`, `review`; 28 → 32, provenance updated). In the column the chosen tab is ink on the hover wash; along the foot
+  it is ink with a line on its top edge. *Home:* the sample's note is one quiet line with a warning mark; Export and
+  Import sit in the question's row (they floated alone above it), cards are paper on the field with quiet file rows,
+  and the page is at most 960 px wide with `auto-fit` columns so the actions line up with the cards' edge.
+  *Dialogs:* Export's format is the kit's `Segmented` (it was two native radios), its text is "Your game as text", and
+  it gains its one primary, Copy ("Copied. Paste it anywhere to keep it." or "Couldn't copy. Select the text and copy
+  it."). Import says "Paste the text to import", and has one primary at a time: "See changes" (was Plan) until there is
+  a plan, then "Import" (was Apply); a moved file says "Tuning changed since you looked. See the changes again." and
+  offers "See changes again". Each change names its file in words (`fileTitle`), never its path; the "No gates" and
+  "Checks: …" lines are gone (no person's words), and a change that reopens reviews says "Needs review again: …".
+  Publish, Ask and the title prompt already had one primary and plain words (12.4, 12.7 Step G). *Cut, essential
+  only:* nothing new was added beyond Copy, which is the Export dialog's reason to exist. Gates: editor unit 3,367
+  (suite 301: new tests for the icons, the rail's icon tabs, the top bar's icon buttons and status, Home's heading
+  row, Publish quiet with nothing to publish, Copy, one primary at a time in Import), typecheck 0, Chromium layout
+  (suite, mouse and touch) 242 of 242. Screenshots at 1440, 1024 and 390 px in the shared folder
+  `refactor/2026-11-06-12-7-suite-screens/` (Home, the Tuner open, Export, Import), each opened. **Left for 12.7:**
+  nothing in this slice; Review's desk is the 3D slice's change-set flow (E6). Step 3's copy rows are in `copy.md`.
+- **12.4, the inspectors' look (session 19).** The kit's `Tabs` (the Tiles rule inspector's Rule and Group, the
+  Characters inspector's Character and Settings, and the 3D editor's two sheets) is drawn as the top bar's views:
+  quiet grey words along a hairline, the chosen tab ink with a 2 px ink underline, no box and no cobalt (a browser
+  layout test reads the computed border and underline). The Characters inspector reads label-left like the Level
+  view's (the same `--label-*` column; Label, Colour, Width and Height line up), and its tab is `Settings`, or
+  `Settings (2)` with a count, never `Settings 0`; its list heading is `Settings of Coin` (was `Fields of`). Left for
+  12.5's copy scan: `Add field` and the field types' format words (`int`) in the Settings tab. The 2D editor's Home
+  with no levels showed two lime New level buttons (the top bar's and the empty list's); the empty list's is plain
+  now, so the screen has one primary. Gates: editor unit 3,369, Chromium journeys 26, Home layout 82, editor-3d unit and DOM 2,932, Chromium layout (mouse and touch) 892, `pnpm check`.

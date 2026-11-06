@@ -198,18 +198,22 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 42 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 43 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 62% (42 of 68 tasks)
+### Build: 63% (43 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 18):** branch `claude/project-thread-yzmefp`, PR
-[#430](https://github.com/mcthaydt/automata-framework/pull/430) stacked on #429 (`claude/project-thread-dbgz98`),
-itself on #428, #427, #426, #424, #423 and #421. Session 18: **12.3 is done** with the three layouts by size
+**Where to resume (2026-11-06, session 19):** branch `claude/project-thread-maubs8`, a PR stacked on #430
+(`claude/project-thread-yzmefp`), itself on #429, #428, #427, #426, #424, #423 and #421. Session 19: **12.7 is done**:
+the suite page has the mockup's look (Home a house icon, the game's name, `Saved in your game folder` with a tick, Undo
+and Redo icon buttons, Publish the lime primary only when there is something to publish; the rail's tabs are an icon
+over the name, four Lucide icons added; Home's Export and Import sit in the question's row) and its dialogs have one
+primary each (Export gains Copy; Import says See changes, then Import, and names files in words). Session 18 (kept
+for its detail): **12.3 is done** with the three layouts by size
 (`shellModeAt`: wide from 1180 px, compact at 760 px and narrower or 520 px high and less, medium between; medium keeps
 the panel beside the canvas and floats the inspector as a card; compact docks the tools across the stage's foot and
 sheets rise above the dock), and **12.3b Add tiles is done** (one dialog: choose a picture, the tile size, the grid
@@ -218,9 +222,9 @@ get `services.files`). The same look began on the other views: Tiles, Characters
 text on the near-black cabinet since session 17 (the Tuner's colours named tokens that do not exist); their pages now
 take the light field, panels have small-capital section labels, the Map's level rows are quiet. The 3D editor's
 document frame reads `shellModeAt` too (it shares the kit shell); its unit and DOM tests pass, its browser tests were
-not run (3D CI is off by the Owner's choice). **Next, in order:** the rest of the look (the suite page's top bar and
-rail, the dialogs; the inspectors' tabs and label-left
-layout on Tiles, Map and Characters; Tiles' and Characters' numbers are in words since session 18), then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3; phase 18 takes
+not run (3D CI is off by the Owner's choice). Session 19 also drew the kit's `Tabs` as quiet tabs (Tiles' and Characters' inspectors, and the 3D editor's sheets)
+and made the Characters inspector label-left; the 2D editor's empty Home has one lime New level (the top bar's). **Next, in order:** 12.6's feelable unit, then 12.5 (its scan should
+also catch `Add field` and `int` in the Characters Settings tab), then 17.3; phase 18 takes
 `site-home.html`. Every editor keeps only essential features (name each cut in the plan's log). Task 14.1 waits for
 the Owner to confirm the `automata` npm organisation. This file holds a stale second copy of this section (session
 12, below the core tables): the 12.x and 17.3 rows live only there; untangle it in the build audit. Node 24 may
@@ -378,11 +382,11 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 42 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 43 of 68 tasks (12.3b added 2026-11-06) (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 62% (42 of 68 tasks)
+### Build: 63% (43 of 68 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
@@ -445,7 +449,7 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 12.4 Map, Tiles, Characters and the dialogs | 12 | Done, 2026-11-06 (sessions 12 and 13): Step G words; the Level view's floating pill on all three views (the kit's `StagePill`); tabs Selected, Level, Problems and Character, Settings; the conflict and restore dialogs in plain words with one primary each; editor unit 3,307, editor-3d 2,932, Chromium layout and journeys pass; WebKit, Firefox and hosted CI not run | this session's PR |
 | 12.5 The copy table and the guide (runs after 12.6 and 12.7) | 12 | Not started | |
 | 12.6 The Tuner, audited and redesigned as a split view beside the live game (added 2026-11-06) | 12 | In progress (sessions 13 to 15): session 15 made a restart land on the screen the person was on (Emberwick: the room; `startGame(game, { at })`, dev journey). Earlier: Step 0 audit and Step G done (labels and feels, Keep, plain words); the split view built: a content save sends a real HMR update, Emberwick and new games restart on it in place (dev journey), `automata editor --game-url`, the game beside the settings (Chromium layout at eight sizes). Left: the unit a player can feel | #424, #426, #427 |
-| 12.7 The 2D suite page, audited and redesigned (added 2026-11-06) | 12 | In progress (sessions 14 and 15): session 15 split `Suite.svelte` (437 to 339 lines: `SuiteTopBar`, `SuiteHome`, `SuiteAsk`, `write-messages`), Ship is Publish, Home asks "What do you want to change?" and names files in words. Left: Step 3 (screenshots, copy rows), the look. Earlier: Step 0's size check (`Suite.svelte` 420 lines, to split); the top bar's words (the game's name, `Saved in your game folder`, quiet pills hidden, Undo and Redo named, the sample's banner). | #426, #427 |
+| 12.7 The 2D suite page, audited and redesigned (added 2026-11-06) | 12 | Done, 2026-11-06 (sessions 14, 15 and 19): session 19 gave it the mockup's look (Home a house icon, the saved status with a tick, Undo and Redo icon buttons, Publish the primary only when there is something to publish; the rail's tabs an icon over the name; Home's Export and Import in the question's row) and the dialogs one primary each (Export's Copy; Import's See changes, then Import; files named in words); editor unit 3,367, Chromium layout (suite) 242; screenshots in `refactor/2026-11-06-12-7-suite-screens/`; WebKit, Firefox and hosted CI not run. Earlier: the split of `Suite.svelte`, Ship is Publish, Home's words, the top bar's words | #426, #427, this session's PR |
 | 13.1 The harness | 13 | Not started | |
 | 13.2 Save, drift and conflict journeys | 13 | Not started | |
 | 13.3 A new game, and the suite | 13 | Not started | |
