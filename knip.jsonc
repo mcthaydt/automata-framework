@@ -8,6 +8,9 @@
   // Spikes (spikes/*) are standalone packages outside the pnpm workspace, installed with --ignore-workspace.
   "ignore": ["**/fixtures/**", "spikes/**", "games/base-3d/src/paraglide/**"],
   // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
+  // The website moved in as it was (task 10.1): it still reads a sibling checkout and syncs copies, which task 10.2
+  // deletes. It joins knip there.
+  "ignoreWorkspaces": ["site"],
   "ignoreIssues": { "packages/automata/src/app/boot/boot-error.ts": ["types"] },
   "workspaces": {
     // DX.7: the plugin's hooks run agents/automata/scripts/check.mjs by path (hooks.json). The automata-feature skill's

@@ -726,14 +726,14 @@ export and its 2D build) and the reverse would be a dependency cycle.
   `site/.nvmrc`, `site/.superpowers/`, `site/.taste-skill/` (agent scratch folders) and `site/docs/` (the site's own
   plans: moved to `docs/archive/site/`)
 
-- [ ] **Step 1:** `git fetch https://github.com/mcthaydt/automata-website main` (unshallow it first if the session's
+- [x] **Step 1:** `git fetch https://github.com/mcthaydt/automata-website main` (unshallow it first if the session's
   clone is shallow), `git subtree add --prefix site FETCH_HEAD`. If the proxy refuses the pack, use `--squash` and
   record the website's last commit (`4a514eb3` or later) in the commit message.
 
   **Session break here** if needed.
-- [ ] **Step 2:** `pnpm install`. `pnpm --filter @mcthaydt/automata-site test` → record which files fail (the audit:
+- [x] **Step 2:** `pnpm install`. `pnpm --filter @mcthaydt/automata-site test` → record which files fail (the audit:
   6 of 78, `double-jump`, `first-change`, `workshop-controls`, `api-contract`, `example-sources`, `license-claim`).
-- [ ] **Step 3: Commit.** `chore(site): move the website into the repository with its history`
+- [x] **Step 3: Commit.** `chore(site): move the website into the repository with its history`
 
 ### Task 10.2: Imports, not copies
 
@@ -1739,3 +1739,22 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   (examples, compact, runner, demos, ui-primitives) 88 pass and 2 skipped; the 3D journeys 9 pass in Chromium;
   `findPixi3d` finds 0 in `examples/2d/dist` and 2 in `examples/3d/dist`. WebKit, Firefox, the input matrix's
   WebKit and Firefox cells and hosted CI not run.
+
+### 2026-11-06, session 7 (continued): phase 10, task 10.1
+
+- **The subtree.** The session's clone is shallow, but `git fetch` of the website's `main` brought its whole history
+  (229 commits), so `git subtree add --prefix site FETCH_HEAD` ran without `--squash`; the website's last commit is
+  `4a514eb3`. Deleted after it: `site/pnpm-lock.yaml`, `site/LICENSE`, `site/.nvmrc`, `site/.superpowers/`,
+  `site/.taste-skill/`; `site/docs/` moved to `docs/archive/site/`. `site/package.json` is `@mcthaydt/automata-site`
+  (its `license` field went with its LICENSE file) and the scaffold test says so. The workspace lists `site`.
+- **Deviation 93:** Biome (`"!site"`) and knip (`ignoreWorkspaces`) leave `site` out for now: as it arrived it imports
+  the framework from a sibling checkout (12 unresolved imports) and carries synced copies and generated builds, which
+  task 10.2 deletes; 10.3 brings it under `pnpm lint` and 10.2 under knip. `turbo.json` needs nothing yet: the root
+  `build` filters `./packages/*` and the site has no `typecheck` or `test:unit` script; 10.2 adds `site#build`'s
+  dependencies.
+- **Step 2's record.** `pnpm --filter @mcthaydt/automata-site test`: 10 of 78 files fail (the audit counted 6):
+  `api-contract`, `double-jump`, `first-change`, `workshop-controls`, `playground/compile` (they import
+  `../../automata-framework/...`), `example-sources` and `license-claim` (they read that checkout's examples and
+  packages), `playground-sync` and `stack-page` (they compare synced copies at `framework.ref`), and `scaffold` (the
+  new name, fixed here). 491 tests pass.
+- **Gates.** `pnpm check` exit 0.
