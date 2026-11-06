@@ -5,8 +5,8 @@ import { Effect } from 'effect'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createGame } from '#src/shared/create-game/create-game.ts'
 
-// What a new game is made of: one feature (a square that moves), the app that wires it, shared numbers, a test and the
-// scripts that run it. A stranger's first look at the code is this layout, so it is pinned (the guide describes it).
+// What a new game is made of: two features (a square that moves, and the level it moves in), the app that wires them,
+// shared numbers, the level the 2D editor opens, tests and the scripts that run them. A stranger's first look at the code is this layout, so it is pinned (the guide describes it).
 
 let dir: string
 let files: string[]
@@ -27,9 +27,14 @@ beforeAll(async () => {
 afterAll(() => rmSync(join(dir, '..'), { recursive: true, force: true }))
 
 describe('the new game’s files', () => {
-  it('keeps its code in one feature, with the app and the shared numbers beside it', () => {
+  it('keeps its code in two features, with the app and the shared numbers beside them', () => {
     expect(files.filter((file) => file.startsWith('src/') || file.startsWith('tests/'))).toEqual([
       'src/app/game.ts',
+      'src/features/level/compiled-content.d.ts',
+      'src/features/level/level.ts',
+      'src/features/level/level.view.ts',
+      'src/features/level/read-level.ts',
+      'src/features/level/walls.ts',
       'src/features/square/move.command.ts',
       'src/features/square/move.system.ts',
       'src/features/square/square.component.ts',
@@ -37,8 +42,29 @@ describe('the new game’s files', () => {
       'src/features/square/square.view.ts',
       'src/main.ts',
       'src/shared/constants.ts',
+      'tests/unit/level/read-level.test.ts',
       'tests/unit/square/square-move.test.ts',
     ])
+  })
+
+  it('has a level the 2D editor opens, and the game files its Save writes', () => {
+    expect(files.filter((file) => file.startsWith('content/'))).toEqual([
+      'content/editors.toml',
+      'content/levels/start.af2d.json',
+      'content/levels/start.toml',
+      'content/project.toml',
+      'content/world.toml',
+    ])
+    const list = read('content/editors.toml')
+    expect(list).toContain('glob = "content/levels/*.af2d.json"')
+    expect(list).toContain('editor = "levels-2d"')
+    expect(list).toContain('exports = "content"')
+  })
+
+  it('compiles the level into the game with the content plugin', () => {
+    const config = read('vite.config.ts')
+    expect(config).toContain('automataContent({ schemas: level2dKinds() })')
+    expect(read('.gitignore').split('\n')).toContain('content/generated/')
   })
 
   it('has no src/sim folder and no files laid out by role', () => {
@@ -57,8 +83,8 @@ describe('the new game’s files', () => {
     expect(main).toContain('startGame(game)')
   })
 
-  it('keeps the sim plugin free of the renderer, so its test needs no browser', () => {
-    for (const file of files.filter((each) => /^src\/features\/square\/(?!square\.view)/.test(each))) {
+  it('keeps the sim free of the renderer, so its tests need no browser', () => {
+    for (const file of files.filter((each) => /^src\/features\/(square|level)\/(?!\w+\.view)/.test(each))) {
       expect(read(file), file).not.toMatch(/from '@mcthaydt\/automata'|pixi/)
     }
   })
@@ -68,7 +94,13 @@ describe('the new game’s README', () => {
   it('starts with how to run it, says where the code is, and points at the site, not the repository', () => {
     const readme = read('README.md')
     expect(readme).toContain('pnpm dev')
-    for (const where of ['src/features/square/', 'src/shared/constants.ts', 'src/app/game.ts'])
+    for (const where of [
+      'src/features/square/',
+      'src/shared/constants.ts',
+      'src/app/game.ts',
+      'content/levels/start.af2d.json',
+      'automata editor',
+    ])
       expect(readme, where).toContain(where)
     expect(readme).toContain('pnpm test')
     expect(readme).toContain('pnpm check')
@@ -89,6 +121,7 @@ describe('the new game’s scripts and config', () => {
   const manifest = () =>
     JSON.parse(read('package.json')) as {
       scripts: Record<string, string>
+      dependencies: Record<string, string>
       devDependencies: Record<string, string>
     }
 
@@ -96,6 +129,10 @@ describe('the new game’s scripts and config', () => {
     expect(manifest().scripts.test).toBe('vitest run')
     expect(manifest().scripts.check).toBe('automata check')
     expect(manifest().devDependencies.vitest).toBeDefined()
+  })
+
+  it('depends on the content package, which compiles and reads the level', () => {
+    expect(manifest().dependencies['@mcthaydt/automata-content']).toBeDefined()
   })
 
   it('declares the pad in ship.config.ts, because keys() binds it', () => {
@@ -106,9 +143,10 @@ describe('the new game’s scripts and config', () => {
     expect(JSON.parse(read('tsconfig.json')).include).toContain('tests/**/*.ts')
   })
 
-  it('has a first test: a move command moves the square one step, and the hash is the same each run', () => {
+  it('has a first test: a move command moves the square one step, a wall stops it, and the hash is the same each run', () => {
     const test = read('tests/unit/square/square-move.test.ts')
     expect(test).toContain('SPEED')
+    expect(test).toContain('stops at the floor')
     expect(test).toContain('hash()')
   })
 })

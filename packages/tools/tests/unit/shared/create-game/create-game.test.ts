@@ -98,6 +98,15 @@ describe('createGame', () => {
       expect(existsSync(join(testDir, 'ship.config.ts'))).toBe(true)
       expect(existsSync(join(testDir, 'vite.config.ts'))).toBe(true)
       expect(existsSync(join(testDir, 'tsconfig.json'))).toBe(true)
+      // The level the editor opens, its editor list and the game files Save writes from it.
+      for (const file of [
+        'content/editors.toml',
+        'content/levels/start.af2d.json',
+        'content/levels/start.toml',
+        'content/project.toml',
+        'content/world.toml',
+      ])
+        expect(result.createdFiles, file).toContain(file)
       expect(existsSync(join(testDir, 'index.html'))).toBe(true)
       expect(existsSync(join(testDir, 'style.css'))).toBe(true)
       // A double tap must not zoom and a hold must not select the screen like text.
@@ -242,7 +251,7 @@ describe('createGame', () => {
       expect(shipConfig).not.toContain('tauri:')
       expect(shipConfig).not.toContain('itch:')
       expect(shipConfig).not.toContain('sdk:')
-      expect(read('.gitignore').split('\n')).toEqual(['node_modules/', 'dist/', ''])
+      expect(read('.gitignore').split('\n')).toEqual(['node_modules/', 'dist/', 'content/generated/', ''])
     })
 
     it('gives the desktop target an identifier ship accepts, and ignores its generated project and bundles', async () => {
@@ -270,7 +279,7 @@ describe('createGame', () => {
       expect(viteConfig).not.toContain('automata-ruken')
       expect(viteConfig).toContain("ADAPTER_CONDITIONS[mode] ?? 'automata-web'")
       expect(viteConfig).toContain('...defaultClientConditions')
-      expect(viteConfig).toContain('plugins: [svelte()]')
+      expect(viteConfig).toContain('plugins: [svelte(), automataContent({ schemas: level2dKinds() })]')
     })
 
     it("lists the chosen targets' commands in the README", async () => {

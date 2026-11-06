@@ -1,27 +1,17 @@
 import type { TemplateFile } from './template-file.ts'
+import { LEVEL_FILES } from './template-level.ts'
 
-// The game itself: one square the player moves, to show the shape every game has: the sim in `src/features/<name>/`,
-// the code both the sim and the screen read in `src/shared/`, the wiring in `src/app/`, and a test of the sim.
+// The game itself: a square the player moves around a level, to show the shape every game has: the sim in
+// `src/features/<name>/`, the code both the sim and the screen read in `src/shared/`, the wiring in `src/app/`, and tests
+// of the sim. The level feature is in template-level.ts; the level itself is in `content/` (template-content.ts).
 
-/** The game's code and its test. */
-export const GAME_FILES: readonly TemplateFile[] = [
-  {
-    path: 'src/shared/constants.ts',
-    content:
-      () => `// The numbers the game is built from. Both the sim and the screen read them, so they live here.
-
-/** The game's own pixels; the renderer scales them to the screen. */
-export const SIZE = { width: 320, height: 180 }
-
-/** How far the square moves each tick, in the game's pixels. */
-export const SPEED = 2
-`,
-  },
+/** The square feature: what it holds, what the player sends it, how it moves and how it looks. */
+const SQUARE_FILES: readonly TemplateFile[] = [
   {
     path: 'src/features/square/square.component.ts',
     content: () => `import { defineComponent } from '@mcthaydt/automata-sim'
 
-/** Where the square is, in the game's pixels. */
+/** Where the square's centre is, in the game's pixels. */
 export const Square = defineComponent('square', { x: 'f32', y: 'f32' })
 `,
   },
@@ -39,16 +29,27 @@ export const Move = defineCommand('move', z.object({ x: axis, y: axis }))
   {
     path: 'src/features/square/move.system.ts',
     content: () => `import { defineSystem } from '@mcthaydt/automata-sim'
-import { SPEED } from '../../shared/constants.ts'
+import { SPEED, SQUARE_SIZE } from '../../shared/constants.ts'
+import { levelIn } from '../level/read-level.ts'
+import { hitsWall } from '../level/walls.ts'
 import { Move } from './move.command.ts'
 import { Square } from './square.component.ts'
 
-/** Moves the square by what the player holds. Only the sim changes the game, so a replay ends where play did. */
+/**
+ * Moves the square by what the player holds, unless a wall is in the way. Only the sim changes the game, so a replay
+ * ends where play did.
+ */
 export const move = defineSystem('move', (ctx) => {
+  const level = levelIn(ctx.content)
   for (const { payload } of ctx.commands.of(Move))
     for (const square of ctx.query(Square)) {
       const { x, y } = square.get(Square)
-      square.set(Square, { x: x + payload.x * SPEED, y: y + payload.y * SPEED })
+      // One axis at a time, so a square pushed into a wall at an angle slides along it instead of stopping.
+      const nextX = x + payload.x * SPEED
+      const movedX = hitsWall(level, nextX, y, SQUARE_SIZE) ? x : nextX
+      const nextY = y + payload.y * SPEED
+      const movedY = hitsWall(level, movedX, nextY, SQUARE_SIZE) ? y : nextY
+      square.set(Square, { x: movedX, y: movedY })
     }
 })
 `,
@@ -67,33 +68,58 @@ export const squarePlugin = definePlugin({ name: '${options.id}', defs: [Square,
   {
     path: 'src/features/square/square.view.ts',
     content: () => `import { rect } from '@mcthaydt/automata'
+import { SQUARE_SIZE } from '../../shared/constants.ts'
 import { Square } from './square.component.ts'
 
-/** How the square is drawn: a yellow box, 8 pixels across. */
-export const squareView = { [Square.id]: rect({ w: 8, h: 8, color: 0xffc825 }) }
+/** How the square is drawn: a yellow box. */
+export const squareView = { [Square.id]: rect({ w: SQUARE_SIZE, h: SQUARE_SIZE, color: 0xffc825 }) }
 `,
   },
+]
+
+/** The game's code and its tests. */
+export const GAME_FILES: readonly TemplateFile[] = [
+  {
+    path: 'src/shared/constants.ts',
+    content:
+      () => `// The numbers the game is built from. Both the sim and the screen read them, so they live here. The game's size is
+// its level's (content/levels/start.af2d.json, made in the 2D editor).
+
+/** How far the square moves each tick, in the game's pixels. */
+export const SPEED = 2
+
+/** The square's side, in the game's pixels. */
+export const SQUARE_SIZE = 8
+`,
+  },
+  ...LEVEL_FILES,
+  ...SQUARE_FILES,
   {
     path: 'src/app/game.ts',
-    content: (options) => `import { defineGame, keys } from '@mcthaydt/automata'
-import { SIZE } from '../shared/constants.ts'
+    content: (options) => `import { defaultContent, defineGame, keys } from '@mcthaydt/automata'
+import { LEVEL } from '../features/level/level.ts'
+import { drawLevel } from '../features/level/level.view.ts'
 import { Move } from '../features/square/move.command.ts'
 import { Square } from '../features/square/square.component.ts'
 import { squarePlugin } from '../features/square/square.plugin.ts'
 import { squareView } from '../features/square/square.view.ts'
+import { SQUARE_SIZE } from '../shared/constants.ts'
 
-/** ${options.title}: a square the player moves, on the default title, play and pause screens. */
+/** ${options.title}: a square the player moves around the level, on the default title, play and pause screens. */
 export const game = defineGame({
   id: '${options.id}',
   title: '${options.title}',
-  size: SIZE,
+  size: { width: LEVEL.width, height: LEVEL.height },
   sim: {
     plugins: [squarePlugin],
     seed: 1,
+    // The square stands on the level's player start: its bottom edge there, so its centre half a square higher.
     setup: (sim) => {
-      sim.spawn([[Square, { x: SIZE.width / 2, y: SIZE.height / 2 }]])
+      sim.spawn([[Square, { x: LEVEL.start.x, y: LEVEL.start.y - SQUARE_SIZE / 2 }]])
     },
   },
+  // The default screens' flow, and the level as the sim's content (what its systems read as \`ctx.content\`).
+  content: { ...defaultContent(), sim: LEVEL },
   // Arrows or WASD, or the pad's D-pad; on a touch screen, buttons.
   input: keys(
     Move,
@@ -110,6 +136,7 @@ export const game = defineGame({
     { pad: { 14: { x: -1 }, 15: { x: 1 }, 12: { y: -1 }, 13: { y: 1 } } },
   ),
   views: squareView,
+  draw: drawLevel(LEVEL),
 })
 `,
   },
@@ -125,18 +152,67 @@ startGame(game)
 `,
   },
   {
+    path: 'tests/unit/level/read-level.test.ts',
+    content: () => `import { levelContentSchema } from '@mcthaydt/automata-content/level-2d'
+import { describe, expect, it } from 'vitest'
+import { LEVEL } from '../../../src/features/level/level.ts'
+import { levelOf, SOLID } from '../../../src/features/level/read-level.ts'
+
+// A level as the editor exports it, cut down: 4 cells wide on a 16 px grid, a floor, and the player start on it.
+const small = (items: { id: string; def: string; x: number; y: number }[]) =>
+  levelContentSchema.parse({
+    format: 'af2d-content',
+    version: 1,
+    id: 'small',
+    name: 'Small',
+    size: { w: 64, h: 32 },
+    background: { color: '#000000', mode: 'fit' },
+    fields: {},
+    layers: [
+      { def: 'entities', kind: 'entities', items: items.map((item) => ({ ...item, fields: {} })) },
+      { def: 'collision', kind: 'intgrid', rows: ['.*4', '1*4'] },
+    ],
+  })
+
+describe('reading a level', () => {
+  it('reads its size, walls and player start', () => {
+    const level = levelOf(small([{ id: '1', def: 'player-start', x: 24, y: 16 }]))
+    expect(level).toMatchObject({ width: 64, height: 32, tile: 16, start: { x: 24, y: 16 } })
+    expect(level.cells).toEqual([
+      [0, 0, 0, 0],
+      [SOLID, SOLID, SOLID, SOLID],
+    ])
+  })
+
+  it('needs exactly one player start', () => {
+    expect(() => levelOf(small([]))).toThrow('needs one player start')
+  })
+
+  it("reads the game's own level, with the start inside it", () => {
+    expect(LEVEL.start.x).toBeGreaterThan(0)
+    expect(LEVEL.start.x).toBeLessThan(LEVEL.width)
+    expect(LEVEL.start.y).toBeLessThanOrEqual(LEVEL.height)
+  })
+})
+`,
+  },
+  {
     path: 'tests/unit/square/square-move.test.ts',
     content: (options) => `import { createSim } from '@mcthaydt/automata-sim'
 import { describe, expect, it } from 'vitest'
+import { LEVEL } from '../../../src/features/level/level.ts'
 import { Move } from '../../../src/features/square/move.command.ts'
 import { Square } from '../../../src/features/square/square.component.ts'
 import { squarePlugin } from '../../../src/features/square/square.plugin.ts'
-import { SPEED } from '../../../src/shared/constants.ts'
+import { SPEED, SQUARE_SIZE } from '../../../src/shared/constants.ts'
 
-// The sim is plain code, so its test needs no browser: make a sim, send it commands, read what it holds.
-async function squareAfter(moves: readonly { x?: number; y?: number }[]) {
-  const sim = await createSim({ seed: 1, tickHz: 60, plugins: [squarePlugin] })
-  sim.spawn([[Square, { x: 100, y: 50 }]])
+// The sim is plain code, so its test needs no browser: make a sim on the level, send it commands, read what it holds.
+const OPEN = { x: 100, y: 50 }
+const ON_THE_START = { x: LEVEL.start.x, y: LEVEL.start.y - SQUARE_SIZE / 2 }
+
+async function squareAfter(moves: readonly { x?: number; y?: number }[], from = OPEN) {
+  const sim = await createSim({ seed: 1, tickHz: 60, plugins: [squarePlugin], content: LEVEL })
+  sim.spawn([[Square, from]])
   for (const payload of moves)
     sim.step([{ tick: sim.tick, source: 0, seq: sim.tick, type: Move.id, payload: { x: 0, y: 0, ...payload } }])
   const [square] = sim.query(Square)
@@ -148,12 +224,17 @@ async function squareAfter(moves: readonly { x?: number; y?: number }[]) {
 describe('${options.title}: the square', () => {
   it('moves one step in the direction the player holds', async () => {
     const { position } = await squareAfter([{ x: 1 }])
-    expect(position).toEqual({ x: 100 + SPEED, y: 50 })
+    expect(position).toEqual({ x: OPEN.x + SPEED, y: OPEN.y })
   })
 
   it('stays put when the player holds nothing', async () => {
     const { position } = await squareAfter([{}])
-    expect(position).toEqual({ x: 100, y: 50 })
+    expect(position).toEqual(OPEN)
+  })
+
+  it('stops at the floor', async () => {
+    const { position } = await squareAfter([{ y: 1 }, { y: 1 }], ON_THE_START)
+    expect(position).toEqual(ON_THE_START)
   })
 
   it('ends in the same state every time the same moves are played', async () => {

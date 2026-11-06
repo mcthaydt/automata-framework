@@ -29,8 +29,8 @@ async function step(name: string, run: () => void | Promise<void>): Promise<void
   })
 }
 
-/** The x of the yellow square's centre on the stage canvas, or null while it is not on the screen yet. */
-async function squareX(page: Page): Promise<number | null> {
+/** The yellow square's centre on the stage canvas, in screen pixels, or null while it is not on the screen yet. */
+async function squareAt(page: Page): Promise<{ x: number; y: number } | null> {
   const png = await page.locator('[data-layer="stage"] canvas').screenshot()
   return page.evaluate(
     async (bytes) => {
@@ -40,19 +40,28 @@ async function squareX(page: Page): Promise<number | null> {
       if (context === null) return null
       context.drawImage(bitmap, 0, 0)
       const { data } = context.getImageData(0, 0, bitmap.width, bitmap.height)
-      let sum = 0
+      let sumX = 0
+      let sumY = 0
       let count = 0
       for (let i = 0; i < data.length; i += 4) {
-        // The square is 0xffc825: strong red and green, little blue.
+        // The square is 0xffc825: strong red and green, little blue. The level's walls are slate, so they never count.
         if ((data[i] ?? 0) > 200 && (data[i + 1] ?? 0) > 160 && (data[i + 2] ?? 255) < 90) {
-          sum += (i / 4) % bitmap.width
+          sumX += (i / 4) % bitmap.width
+          sumY += Math.floor(i / 4 / bitmap.width)
           count += 1
         }
       }
-      return count === 0 ? null : sum / count
+      return count === 0 ? null : { x: sumX / count, y: sumY / count }
     },
     [...png],
   )
+}
+
+/** Holds `key` for a moment and lets go. */
+async function hold(page: Page, key: string, ms: number): Promise<void> {
+  await page.keyboard.down(key)
+  await page.waitForTimeout(ms)
+  await page.keyboard.up(key)
 }
 
 test('a stranger makes a game, checks it, plays it and makes the itch.io zip', async ({ page }) => {
@@ -125,15 +134,22 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         await expect(page.getByTestId('title-screen')).toBeVisible()
         await page.getByRole('button', { name: 'Play' }).click()
         await expect(page.getByTestId('play-screen')).toBeVisible()
-        await expect.poll(() => squareX(page), { timeout: 20_000 }).not.toBeNull()
-        const before = (await squareX(page)) as number
-        // Hold the key for a moment: the square moves 2 pixels a tick, so a long hold would carry it off the screen.
-        await page.keyboard.down('ArrowRight')
-        await page.waitForTimeout(150)
-        await page.keyboard.up('ArrowRight')
+        await expect.poll(() => squareAt(page), { timeout: 20_000 }).not.toBeNull()
+        const start = (await squareAt(page)) as { x: number; y: number }
+        // Hold the key for a moment: the square moves 2 pixels a tick, so a long hold would carry it to the far wall.
+        await hold(page, 'ArrowRight', 150)
         await expect
-          .poll(async () => ((await squareX(page)) ?? before) - before, { timeout: 10_000 })
+          .poll(async () => ((await squareAt(page))?.x ?? start.x) - start.x, { timeout: 10_000 })
           .toBeGreaterThan(4)
+        // The square starts on the level's floor, so holding down moves it nowhere: the wall the editor drew stops it.
+        // Holding right after it, and waiting for that move, makes sure the frames after the down key are on the screen.
+        const moved = (await squareAt(page)) as { x: number; y: number }
+        await hold(page, 'ArrowDown', 300)
+        await hold(page, 'ArrowRight', 150)
+        await expect
+          .poll(async () => ((await squareAt(page))?.x ?? moved.x) - moved.x, { timeout: 10_000 })
+          .toBeGreaterThan(4)
+        expect(((await squareAt(page)) as { x: number; y: number }).y).toBeCloseTo(moved.y, 0)
         // Escape pauses, and the Resume button is where the focus lands.
         await page.keyboard.press('Escape')
         await expect(page.getByTestId('paused-screen')).toBeVisible()

@@ -645,14 +645,14 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   `packages/tools/tests/unit/shared/create-game/create-game.test.ts`, the template's own
   `tests/unit/level/read-level.test.ts`, the stranger's journey
 
-- [ ] **Step 1: Failing tests.** (a) `write-template-content.ts --check` regenerates the four game files from
+- [x] **Step 1: Failing tests.** (a) `write-template-content.ts --check` regenerates the four game files from
   `start.af2d.json` with `@mcthaydt/automata-editor/level-export` and they equal the checked-in ones. (b)
   `createGame` writes `content/editors.toml` and the five content files. (c) The existing `create-game` journey sees a
   wall where the level has one (read through the template's test hook) and still boots.
-- [ ] **Step 2:** Make the starter level in the editor's platformer template (one level, a floor, two platforms, a
+- [x] **Step 2:** Make the starter level in the editor's platformer template (one level, a floor, two platforms, a
   player start), write its game files with the script, and the template's sim reading them through `intGridRows`
   and `entitiesOf`.
-- [ ] **Step 3:** The stranger's journey and `pnpm --filter @mcthaydt/automata-tools test:e2e` (Chromium) pass, and
+- [x] **Step 3:** The stranger's journey and `pnpm --filter @mcthaydt/automata-tools test:e2e` (Chromium) pass, and
   `automata check` on the untouched game runs the `levels` step and passes. Changeset `patch`:
   "`create-game` starts every game with a level you can open in the editor." Commit, mark the PR ready.
   `feat(create-game): a new game has a level and an editor list`
@@ -1647,3 +1647,30 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   project's `content` folder, and the packed tarball is under a 3 MB budget (it measured 773 kB). The smoke passes from
   packs: 17 steps, including the stranger's game booting in Chromium under Ruken's CSP.
 - Changeset `editor-in-tools`.
+
+### 2026-11-06, session 6: phase 7, task 7.3
+
+- **The starter level.** `packages/tools/src/shared/create-game/template-content/` holds `editors.toml` (one
+  `levels-2d` row, `exports = "content"`), `levels/start.af2d.json` (the editor's platformer template: one 512 × 288
+  level on a 16 px grid, the template's two-row floor, two six-cell platforms and the player start) and the game files
+  the editor's Save writes from it (`project.toml`, `world.toml`, `levels/start.toml`). `scripts/write-template-content.ts`
+  makes those three with `@mcthaydt/automata-editor/level-export` (`--check` lists any that differ); the plan said "four
+  game files", the export writes three and `editors.toml` is written by hand. `template-content.ts` reads the folder
+  next to itself; the build copies it to `dist/template-content/` (tsdown `copy`), next to the bundle.
+- **The template game.** A new `src/features/level/` (`read-level.ts` reads the walls and start through `intGridRows` and
+  `entitiesOf`; `walls.ts` is the sim's wall test, the level's edge counting as a wall; `level.ts` reads the compiled
+  level from `virtual:automata/content`; `level.view.ts` draws the walls with the draw layer; `compiled-content.d.ts`
+  types the virtual module so a fresh game type-checks before its first build). The square starts on the player start,
+  moves one axis at a time and stops at walls; the sim gets the level as `content.sim` beside `defaultContent()`. The
+  game's size is the level's. `vite.config.ts` adds `automataContent({ schemas: level2dKinds() })`, `package.json`
+  depends on `-content`, `.gitignore` ignores `content/generated/`, the README says where the level is and how to open
+  it. **Deviation 88:** the level feature's files went to `template-level.ts`, so `template-game.ts` stays under 300 lines.
+- **Tests.** `template-content.test.ts` (the export does not drift; the level is a floor, two platforms and one start on
+  the floor; a new game passes `levelsStep` as made); `template.test.ts` and `create-game.test.ts` updated (the file
+  list, the content files, the plugin, the dependency, the gitignore). The template's own tests: `read-level.test.ts`
+  and a "stops at the floor" case in `square-move.test.ts`. The stranger's journey holds Down on the start and checks
+  the square did not move, after a move right that proves the frames were drawn.
+- **Gates.** `-tools` unit 851 (835 before); `pnpm check` exit 0; the stranger's journey passes in Chromium (49 s:
+  install, `pnpm check` with the `levels` step, `pnpm test`, play, itch.io zip). Changeset `create-game-level`.
+  WebKit, Firefox and hosted CI not run.
+
