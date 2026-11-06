@@ -209,15 +209,25 @@ function reachEnvelope(t: number, duration: number) {
   if (k <= 0 || k >= 1) return 0;
   return k < 0.35 ? smooth(k / 0.35) : k < 0.72 ? 1 : smooth((1 - k) / 0.28);
 }
-/** The idle's stand from the gait: the weight a little over the right leg, the left foot leading, the arms hanging. */
+/** The idle's stand from the gait: the weight a little over the right leg, the left foot beside it, the arms hanging. */
 export const relaxed = (gait: Gait): Stand => ({
-  // A clear contrapposto, as a figure drawn standing at ease: the hip well out over the weight leg and rolled up, the
-  // shoulder over it dropped against it, the free foot as the gait sets it, a little forward with its heel up.
+  // A plain, relaxed stand: a trace of contrapposto (the hip a little out over the weight leg and rolled up, the shoulder
+  // over it dropped a sixteenth as far against it), the free foot a quarter as far ahead as the gait sets it, turned out a
+  // touch and flat, its heel down.
   weight: 'R', shift: gait.stance * RELAX, roll: gait.stance * 1.4 * RELAX, under: 0.25,
-  free: [gait.stanceLead, gait.stance ? 0.01 : 0, gait.stance ? 0.22 : 0, gait.stance ? 0.08 : 0], chest: [gait.stance * 1.2 * RELAX, 0, 0],
+  free: [gait.stanceLead * 0.25, gait.stance ? 0.01 : 0, gait.stance ? 0.11 : 0, 0], chest: [gait.stance * 0.3 * RELAX, 0, 0],
 });
-/** How much more the relaxed stand leans into its weight leg than the gait's stance alone. */
-const RELAX = 1.6;
+/** How much of the gait's stance the relaxed stand leans into its weight leg: a quarter of what a posed contrapposto does. */
+const RELAX = 0.4;
+/**
+ * How far the neck slides back (m, × the figure's `k`) in any stand, carrying the head with it: over the shoulders, as the
+ * plumb line through the ear and the shoulder's tip has it. A slide, not a rotation: the neck is a rigid part whose bottom
+ * ring sits below its joint, so rotating it back swings that ring forward through the collar; a slide swings nothing and
+ * keeps the face's angle.
+ */
+const STAND_SLIDE = 0.03;
+/** How much the chest lifts (rad) in any stand, standing the back up; the head takes it back so the face stays level. */
+const STAND_LIFT = 0.02;
 /**
  * The openings any body offers a hand, on `surface` (the dressed figure's outermost; with none, the body's own reach):
  * each found from a point inside the body looking out along a direction to the surface there. The hip above its crest
@@ -382,6 +392,7 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   const bob = Math.max(gait.bob, BOB), headLevel = Math.min(gait.headLevel, 1 - BOB / bob);
   // ─── Pelvis and torso ───
   let pelvisY = 0, pelvisX = 0, hipYaw = 0, hipRoll = 0, lean = 0, chestRoll = 0, chestYaw = 0, chestPitch = 0;
+  const chestLift = stand ? STAND_LIFT : 0;
   if (walking) {
     // The bob: lowest at each heel strike, highest over the stance; `spring` sharpens it into a bounce off the strike.
     pelvisY = -gait.crouch - bob * (1 - Math.abs(Math.sin(TAU * phase)) ** (2 * (1 - Math.min(0.9, gait.spring ?? 0))));
@@ -408,7 +419,7 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   pose.rot[J.pelvis] = euler(0, hipYaw, hipRoll);
   // The waist takes the hips' turn and roll back; the chest adds its own.
   pose.rot[J.spine] = euler(lean * 0.5 + g.posture * 0.3, -hipYaw, -hipRoll);
-  pose.rot[J.chest] = euler(lean * 0.5 + g.posture * 0.7 - breath + chestPitch, -hipYaw * gait.chestCounter + chestYaw, chestRoll);
+  pose.rot[J.chest] = euler(lean * 0.5 + g.posture * 0.7 - breath + chestPitch - chestLift, -hipYaw * gait.chestCounter + chestYaw, chestRoll);
   // Reach: the torso leans in a little toward the hand.
   const reaching = st.action?.id === 'reach' ? reachEnvelope(st.action.t, gait.reach) : 0;
   if (reaching) pose.rot[J.chest] = qmul(pose.rot[J.chest], euler(0.12 * reaching, sideSign(st.action!.side) * -0.12 * reaching, 0));
@@ -424,7 +435,7 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   // back and the gait's chin lift take only that share, so no profile or back is tipped chin-up. Walking, the head sits
   // level with the chin a touch down (NOD), the eyes on the way ahead.
   const toward = Math.max(0, Math.cos(st.view ?? st.yaw));
-  const headPitch = g.headPitch - (lean + g.posture) * 0.6 - ((st.lookUp ?? 0) + (gait.chin ?? 0)) * toward + 0.32 * flinch + (walking ? NOD : 0) + (stand?.head?.[2] ?? 0);
+  const headPitch = g.headPitch - (lean + g.posture - chestLift) * 0.6 - ((st.lookUp ?? 0) + (gait.chin ?? 0)) * toward + 0.32 * flinch + (walking ? NOD : 0) + (stand?.head?.[2] ?? 0);
   const headYaw = st.headYaw + 0.3 * flinch + (stand?.head?.[0] ?? 0);
   // A twitch: for one pose step in each `twitchEvery` seconds the head rolls to a side the slot picks, so a nervous
   // gait ticks.
@@ -436,7 +447,7 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   pose.rot[J.neck] = euler(headPitch * 0.4 + 0.55 * g.hunch, counter + headYaw * 0.4, headRoll * 0.4);
   pose.rot[J.head] = euler(headPitch * 0.6 - 0.55 * g.hunch, headYaw * 0.6, headRoll * 0.6);
   // A head that rides level: the neck takes up the pelvis bob, all but the least that reads.
-  pose.shift[J.neck] = [0, -pelvisY * (walking ? headLevel : gait.headLevel), 0];
+  pose.shift[J.neck] = [0, -pelvisY * (walking ? headLevel : gait.headLevel), stand ? -STAND_SLIDE * k : 0];
   // The hair hangs from its pivots, swung by its spring; the sides swing less and splay with the roll.
   if (st.hair) {
     pose.rot[J['hair.back']] = euler(st.hair.pitch, 0, st.hair.roll);
@@ -478,7 +489,7 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   if (stand) {
     // The weight leg runs straight from its hip to its foot, drawn in under the body: the hips sink as far as that needs.
     const hipW = position(world[J[`thigh.${stand.weight}`]]), foot = apply(rootM, [w * g.hips * (1 - (stand.under ?? 0.25)), g.ankle, 0]);
-    const L = (s.thigh + s.shin) * 0.996, dx = hipW[0] - foot[0], dz = hipW[2] - foot[2];
+    const L = (s.thigh + s.shin) * 0.9995, dx = hipW[0] - foot[0], dz = hipW[2] - foot[2];
     pose.shift[J.pelvis][1] -= hipW[1] - foot[1] - Math.sqrt(Math.max(0, L * L - dx * dx - dz * dz));
     world = fk(s, pose);
   }

@@ -197,6 +197,9 @@ function surfaces(parts: Part[]): Part[] {
 }
 /** The trapezius's slope (rad): the body's shoulder line runs up it to the neck. */
 export const TRAPEZIUS = 0.6;
+/** The tag on the body's neck part: the raster's neckline rule (paint/raster.ts `neckline`) finds it by this, so a texel
+ * of neck poking down into a top's collar joins the top. A tag changes no pixel and no part order. */
+export const NECK = 'neck';
 /** One stretch of a skinned limb in rest figure space: the profile cut to [hi, lo], painted `material`. */
 function stretch(material: string, group: number, o: Limb, hi: number, lo: number, skin: (x: number, y: number, z: number) => [number, number][]): Part {
   const mesh = limb({ ...o, span: [hi, lo] });
@@ -250,7 +253,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     // texel), running up behind the ear, then flaring into the trapezius at its root, so it tapers from the head to the
     // collar rather than standing as a column the jaw's width. Its top is closed (seen from above and behind, past the
     // nape, it shows no hole).
-    { bone: J.neck, material: r.neck, group: GROUP.head, mesh: limb({ seg: 12, caps: [0.02 * k, 0.02 * k], rings: [
+    { bone: J.neck, material: r.neck, group: GROUP.head, tag: NECK, mesh: limb({ seg: 12, caps: [0.02 * k, 0.02 * k], rings: [
       { y: g.neck + 0.04 * k, rx: 0.042 * k * neck, rz: 0.048 * k * neck, dz: 0.012 * k },
       { y: g.neck * 0.6, rx: 0.044 * k * neck, rz: 0.049 * k * neck, dz: 0.006 * k },
       { y: g.neck * 0.1, rx: 0.051 * k * neck, rz: 0.051 * k * neck, dz: -0.002 * k },
