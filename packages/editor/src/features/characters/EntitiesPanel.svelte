@@ -25,7 +25,7 @@ const levelFields = $derived(levelFieldRows(project))
   <section aria-labelledby="definitions-heading">
     <div class="head">
       <h2 id="definitions-heading">Characters</h2>
-      <Button aria-label="Add entity" onclick={() => session.addDefinition()}>+</Button>
+      <Button aria-label="Add character" onclick={() => session.addDefinition()}>+</Button>
     </div>
     <div class="choices" role="radiogroup" aria-labelledby="definitions-heading">
       {#each definitionRows(project) as row (row.id)}
@@ -43,7 +43,7 @@ const levelFields = $derived(levelFieldRows(project))
           </span>
         </button>
       {:else}
-        <p class="empty">No entity definitions yet.</p>
+        <p class="empty">No characters yet. Add one to place it in your levels.</p>
       {/each}
     </div>
   </section>
@@ -52,7 +52,7 @@ const levelFields = $derived(levelFieldRows(project))
     <div class="head">
       <h2 id="level-fields-heading">Settings for every level</h2>
       <Button
-        aria-label="Add level field"
+        aria-label="Add a level setting"
         onclick={() => {
           session.select({ owner: 'level' })
           session.addField()
@@ -66,9 +66,10 @@ const levelFields = $derived(levelFieldRows(project))
       onclick={() => session.select({ owner: 'level' })}
     >
       <span class="text">
-        <span class="name">Settings for every level</span>
+        <!-- The settings by their names, as the inspector shows them; the name in code only where there is none. -->
+        <span class="name">Every level</span>
         <span class="sub">
-          {levelFields.length === 0 ? 'none yet' : levelFields.map((row) => row.id).join(' · ')}
+          {levelFields.length === 0 ? 'None yet' : levelFields.map((row) => row.label ?? row.id).join(', ')}
         </span>
       </span>
     </button>

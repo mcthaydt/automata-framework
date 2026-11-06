@@ -76,6 +76,7 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Tiles, the live preview and the rule's place | `IntGrid · Collision · Solid` · `Result · Ground` · `Ground · seed 1` · `rule 1` | `Where you paint Solid on Collision` · `The tiles Ground places` · `Ground` · `No. 1 in this group` | 4 (IntGrid, seed) |
 | Characters, how many are placed | `no instances` · `3 instances · 1 level` | `Not in any level yet` · `3 placed in 1 level` | 4 (instance) |
 | Tiles and Characters, the panels' headings | `Tilesets` · `Definitions` | `Your tiles` · `Characters` | 4 |
+| Characters panel (session 18) | `Add entity` (and its undo step) · `No entity definitions yet.` · `Add level field` · `Settings for every level` / `music · …` (the row) | `Add character` · `No characters yet. Add one to place it in your levels.` · `Add a level setting` · `Every level` / the settings' names, with commas | 4 (entity, definition, field) and 1 (the row repeated its heading) |
 
 ## Kept, with the reason
 

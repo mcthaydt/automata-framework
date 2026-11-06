@@ -120,7 +120,7 @@ describe('Entities view: the panel and the preview', () => {
       'true',
     )
     expect(within(panel()).getByRole('radio', { name: 'Slime' })).toBeInTheDocument()
-    expect(within(panel()).getByRole('button', { name: /^Settings for every level/ })).toBeInTheDocument()
+    expect(within(panel()).getByRole('button', { name: /^Every level/ })).toBeInTheDocument()
     expect(preview()).toHaveTextContent('Player start')
     expect(preview()).toHaveTextContent('Box, 16 × 24 px')
     expect(preview()).toHaveTextContent('Shown 8 times bigger')
@@ -142,7 +142,7 @@ describe('Entities view: the panel and the preview', () => {
 
   it('adds a definition and selects it', async () => {
     const { project } = await mount()
-    await userEvent.click(within(panel()).getByRole('button', { name: 'Add entity' }))
+    await userEvent.click(within(panel()).getByRole('button', { name: 'Add character' }))
     expect(project().defs.entities).toHaveLength(7)
     const def = project().defs.entities[6]
     const added = def?.label ?? def?.id ?? ''
@@ -180,7 +180,7 @@ describe('Entities view: the field editor', () => {
 
   it('lists the levels a type change would break, and "Change anyway" is one undo step (G-f)', async () => {
     const { history, project } = await mount()
-    await userEvent.click(within(panel()).getByRole('button', { name: /^Settings for every level/ }))
+    await userEvent.click(within(panel()).getByRole('button', { name: /^Every level/ }))
     const before = history.revision
     await userEvent.click(within(inspector()).getByRole('radio', { name: 'int' }))
     const dialog = screen.getByRole('dialog', { name: 'Change music?' })
