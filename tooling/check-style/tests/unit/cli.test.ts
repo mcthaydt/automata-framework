@@ -77,3 +77,20 @@ it('passes a clean game root', () => {
   expect(result.stdout).toContain('check-style: 2 files, 0 findings')
   expect(result.status).toBe(0)
 })
+
+const runWith = (dir: string, ...args: string[]) =>
+  spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', cwd: dir })
+
+it('reads only the comments under --comments-only: a config file is not named by role, a CSS comment is read', () => {
+  const dir = src({
+    'tool/vitest.config.ts': '// Chosen in M5-D6\nexport default {}\n',
+    'tool/page.css': '/* task 6.4 cut this */\n',
+    'tool/node_modules/dep/index.ts': '// M5-D6\n',
+  })
+  const result = runWith(dir, '--plan-comments', '--comments-only', dir)
+  expect(result.stdout).toContain('tool/vitest.config.ts:1  plan-comment')
+  expect(result.stdout).toContain('tool/page.css:1  plan-comment')
+  expect(result.stdout).not.toContain('file-name')
+  expect(result.stdout).not.toContain('node_modules')
+  expect(result.status).toBe(1)
+})

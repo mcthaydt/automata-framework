@@ -1,6 +1,7 @@
 import { existsSync, statSync } from 'node:fs'
 import { basename, join, relative, sep } from 'node:path'
 import { parseSync } from 'oxc-parser'
+import { planCommentFindings } from './plan-comments.ts'
 
 // Naming discipline: kebab-case file names, and role suffixes that match what the file
 // exports, in both directions. Replaces automata-template's S_/C_/M_ prefixes.
@@ -153,25 +154,6 @@ export interface CheckOptions {
   readonly gameRoot?: string
   /** Flag comments that cite the plan that asked for the code. Off until a package's comments are rewritten. */
   readonly planComments?: boolean
-}
-
-/** A milestone or task id (an `M` and its number, or a plan code with a dot or dash) or a section sign: which plan, not why. */
-const PLAN_REFERENCE =
-  /\b(?:M\d{1,2}(?:\.\d+[a-z]?)?(?![\w-])|(?:DX|EX|QB|PUB|DIST|PRODUCT|APP|GAME|GL|CI|ED2D|ED3D)[.-][\w.-]+)|§\s?\d/
-const PLAN_COMMENT_MESSAGE =
-  'A comment should say why, not which plan asked for it. Explain the reason in plain words.'
-
-/** One finding per comment line that cites a plan. Only comments are read (the parser lists them), never strings. */
-function planCommentFindings(file: string, code: string): StyleFinding[] {
-  const out: StyleFinding[] = []
-  for (const comment of parseSync(file, code).comments) {
-    const firstLine = code.slice(0, comment.start).split('\n').length
-    comment.value.split('\n').forEach((text, offset) => {
-      if (PLAN_REFERENCE.test(text))
-        out.push({ file, rule: 'plan-comment', message: PLAN_COMMENT_MESSAGE, line: firstLine + offset })
-    })
-  }
-  return out
 }
 
 export function checkFile(file: string, code: string, options: CheckOptions = {}): StyleFinding[] {
