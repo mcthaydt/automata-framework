@@ -66,11 +66,14 @@ describe('editorCommand', () => {
     expect(out.join('')).toContain('?token=mine')
   })
 
-  it('says the 3D editor is not in this release when run outside the repository, and starts nothing', async () => {
-    for (const app of ['3d', 'suite']) {
+  it('says the 3D editor and the suite are not in this release when run outside the repository, and starts nothing', async () => {
+    for (const [app, says] of [
+      ['3d', 'The 3D editor is not in this release yet.'],
+      ['suite', 'The editor suite is not in this release yet. Run automata editor to open the level editor.'],
+    ] as const) {
       const { deps, io, err, served } = setup({ inRepository: false })
       expect(await editorCommand(['--app', app], io, deps)).toBe(2)
-      expect(err.join('')).toContain('The 3D editor is not in this release yet.')
+      expect(err.join('')).toContain(says)
       expect(served).toEqual([])
     }
   })
@@ -119,7 +122,8 @@ describe('liveEditorDeps', () => {
     // From source there is no copy next to the bin, so the 2D editor is the repository's build.
     expect(builtApp('2d')).toMatch(/packages\/editor\/dist\/2d$/)
     expect(builtApp('3d')).toMatch(/packages\/editor-3d\/dist$/)
-    expect(builtApp('suite')).toMatch(/packages\/editor-3d\/dist\/suite$/)
+    // The suite is the 2D-only page; the full one, with the 3D editors, is served with --app-dir.
+    expect(builtApp('suite')).toMatch(/packages\/editor\/dist\/suite$/)
   })
 
   it('knows it runs inside the repository from source', () => {

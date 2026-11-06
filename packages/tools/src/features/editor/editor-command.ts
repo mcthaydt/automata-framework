@@ -42,7 +42,9 @@ you were editing. Without content/editors.toml, it opens only level files (*.af2
 const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
   '2d': { folder: 'packages/editor/dist/2d', pkg: '@mcthaydt/automata-editor' },
   '3d': { folder: 'packages/editor-3d/dist', pkg: '@mcthaydt/automata-editor-3d' },
-  suite: { folder: 'packages/editor-3d/dist/suite', pkg: '@mcthaydt/automata-editor-3d' },
+  // The suite's 2D page: the level editor and the Tuner. The full suite, with the 3D editors, is editor-3d's
+  // `dist/suite`, served with --app-dir.
+  suite: { folder: 'packages/editor/dist/suite', pkg: '@mcthaydt/automata-editor' },
 }
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -69,9 +71,14 @@ export async function editorCommand(
     return 2
   }
   const { dir, app, appDir, port, lan, token } = parsed.options
-  // The 3D editors are built in the repository only; a published copy of the tools has just the 2D one.
+  // The 3D editor and the suite are built in the repository only; a published copy of the tools has just the level
+  // editor.
   if (app !== '2d' && appDir === undefined && !deps.inRepository) {
-    io.stderr('Error: The 3D editor is not in this release yet.\n')
+    io.stderr(
+      app === 'suite'
+        ? 'Error: The editor suite is not in this release yet. Run automata editor to open the level editor.\n'
+        : 'Error: The 3D editor is not in this release yet.\n',
+    )
     return 2
   }
   const root = resolve(deps.cwd, dir)
