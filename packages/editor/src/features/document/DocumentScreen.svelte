@@ -1,7 +1,7 @@
 <!--
   An open document (it keeps what the older frame did: the top bar, the dialogs and the toasts). The profile's views are the rail; the chosen one fills the shell with its panel,
   canvas and inspector, and this screen hands it what every view shares: the top bar (Back, the title, Undo, Redo, Save),
-  the rail, the status line, the Restore and conflict dialogs and the toasts. Switching views remounts the view only;
+  the rail, the status line, the Restore, conflict and leave dialogs and the toasts. Back with unsaved changes asks first. Switching views remounts the view only;
   the document, its history and its save state stay. A document replaced by Take theirs remounts the view on the new
   one. Everything it does goes through the document controller; nothing here names a profile.
 -->
@@ -19,6 +19,7 @@ import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import DocumentBar from './DocumentBar.svelte'
 import type { DocumentController, DocumentState } from './document-controller'
+import LeaveDialog from './LeaveDialog.svelte'
 import ViewRail from './ViewRail.svelte'
 import type { LevelCanvasProps, ObjectUrls, ViewServices, WorldCanvasProps } from './view-props'
 import { routeOf, viewsOf } from './view-router'
@@ -79,6 +80,22 @@ function redo(): void {
   if (label !== undefined) heard = { text: `Redid ${label}`, count: heard.count + 1 }
 }
 
+/** Back with changes not yet saved asks first (`LeaveDialog`); with none it leaves at once. */
+let leaving = $state(false)
+function back(): void {
+  if (shown.save === 'dirty' || shown.save === 'error') leaving = true
+  else onback()
+}
+async function saveAndLeave(): Promise<void> {
+  await controller.save()
+  // A save that conflicted or failed has its own dialog or toast: stay, so she sees it.
+  if (shown.save === 'saved') onback()
+}
+async function leaveWithoutSaving(): Promise<void> {
+  await controller.closeWithoutSaving()
+  onback()
+}
+
 const compact = $derived(shellModeOf(geometry.current.formFactor) === 'compact')
 
 // svelte-ignore state_referenced_locally
@@ -126,7 +143,7 @@ const services = $derived<ViewServices>({
     {compact}
     autofocus={!arrived}
     onfocused={() => (arrived = true)}
-    {onback}
+    onback={back}
     onundo={undo}
     onredo={redo}
     onsave={() => controller.save()}
@@ -168,6 +185,12 @@ const services = $derived<ViewServices>({
     ontake={() => controller.takeTheirs()}
     oncopy={() => controller.saveCopy()}
     oncancel={() => controller.dismissConflict()}
+  />
+  <LeaveDialog
+    bind:open={leaving}
+    name={shown.heading.title}
+    onsave={() => void saveAndLeave()}
+    ondiscard={() => void leaveWithoutSaving()}
   />
   <ToastRegion {toasts} />
   {#key heard.count}

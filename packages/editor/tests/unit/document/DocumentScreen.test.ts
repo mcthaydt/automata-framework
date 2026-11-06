@@ -88,6 +88,46 @@ describe('DocumentScreen', () => {
     expect(onback).toHaveBeenCalledOnce()
   })
 
+  describe('Back with unsaved changes', () => {
+    const edited = async () => {
+      const mounted = await mount()
+      mounted.opened.document.history.apply('Type', () => ({ text: 'unsaved' }))
+      flushSync()
+      await userEvent.click(screen.getByRole('button', { name: 'Back' }))
+      return { ...mounted, dialog: screen.getByRole('dialog', { name: 'Save your changes to a.note?' }) }
+    }
+
+    it('asks first, with Save, Don’t save and Cancel, Save the primary one', async () => {
+      const { dialog, onback } = await edited()
+      expect(onback).not.toHaveBeenCalled()
+      expect(within(dialog).getByRole('button', { name: 'Save' })).toHaveAttribute('data-kind', 'primary')
+      expect(within(dialog).getByRole('button', { name: 'Don’t save' })).toBeInTheDocument()
+      expect(within(dialog).getByRole('button', { name: 'Cancel' })).toBeInTheDocument()
+    })
+
+    it('Save writes the file, then goes back', async () => {
+      const { dialog, onback, workspace } = await edited()
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+      await vi.waitFor(() => expect(onback).toHaveBeenCalledOnce())
+      expect(textOf(await workspace.store.read('notes/a.note'))).toBe(noteText('unsaved', 1))
+    })
+
+    it('Don’t save goes back and leaves the file as it was', async () => {
+      const { dialog, onback, workspace } = await edited()
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Don’t save' }))
+      await vi.waitFor(() => expect(onback).toHaveBeenCalledOnce())
+      expect(textOf(await workspace.store.read('notes/a.note'))).toBe(noteText('hello'))
+    })
+
+    it('Cancel stays on the level with the edits', async () => {
+      const { dialog, onback, opened } = await edited()
+      await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(onback).not.toHaveBeenCalled()
+      expect(opened.document.history.state).toEqual({ text: 'unsaved' })
+    })
+  })
+
   it('follows the save state, and Undo and Redo follow the history', async () => {
     const { opened } = await mount()
     expect(status()).toHaveTextContent('Saved')
