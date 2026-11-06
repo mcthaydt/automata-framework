@@ -86,14 +86,17 @@ const REGION = (p: Profiles, region: Region, side: Side): Limb => (region === 't
 /** The body's ring at rest height `y` (the profile's own curves; clamped past its end keys). The side is ignored for the
  * torso and the neck. */
 export const ringAt = (p: Profiles, region: Region, side: Side, y: number): Ring => profileAt(REGION(p, region, side), y);
-/** The widest the body is over `[y1, y0]` (half-widths across and front to back, sampled every 4 mm with both ends
- * included), and its centre at the middle. */
+/** The widest the body is over `[y1, y0]` as a box round it, and that box's centre: the rings sampled every 4 mm (both ends
+ * included), `dx`/`dz` the middle of the extremes `dx ± rx` and `dz ± rz` over the span, `rx`/`rz` half their spread. So an
+ * ellipse of `rx`/`rz` at `dx`/`dz` holds the body at every height of the span, even where the profile's own centre drifts. */
 export function girth(p: Profiles, region: Region, side: Side, y0: number, y1: number): Ring {
   const hi = Math.max(y0, y1), lo = Math.min(y0, y1), n = Math.max(1, Math.ceil((hi - lo) / 0.004)), o = REGION(p, region, side);
-  let rx = 0, rz = 0;
-  for (let i = 0; i <= n; i++) { const r = profileAt(o, lo + (hi - lo) * i / n); rx = Math.max(rx, r.rx); rz = Math.max(rz, r.rz); }
-  const mid = profileAt(o, (hi + lo) / 2);
-  return { y: (hi + lo) / 2, rx, rz, dx: mid.dx, dz: mid.dz };
+  let xHi = -Infinity, xLo = Infinity, zHi = -Infinity, zLo = Infinity;
+  for (let i = 0; i <= n; i++) {
+    const r = profileAt(o, lo + (hi - lo) * i / n), dx = r.dx ?? 0, dz = r.dz ?? 0;
+    xHi = Math.max(xHi, dx + r.rx); xLo = Math.min(xLo, dx - r.rx); zHi = Math.max(zHi, dz + r.rz); zLo = Math.min(zLo, dz - r.rz);
+  }
+  return { y: (hi + lo) / 2, rx: (xHi - xLo) / 2, rz: (zHi - zLo) / 2, dx: (xHi + xLo) / 2, dz: (zHi + zLo) / 2 };
 }
 /** The clearance a garment keeps from the body: one texel at the cell's density (`ppm`, default the sheets'), never
  * under 4 mm at scale `k`. */

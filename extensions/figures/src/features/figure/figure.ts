@@ -86,7 +86,7 @@ export function build(member: CastMember, s: Skeleton, outfit: string, item: str
   let frame: ClothFrame | null = null, cloth: Float32Array | null = null;
   if (materials.some(m => m.fabric)) {
     if (!look.profiles) throw new Error(`${member.id}: a fabric needs the look's profiles`);
-    frame = clothFrame(look.profiles, s); cloth = clothSlots(parts, s, frame);
+    frame = clothFrame(look.profiles); cloth = clothSlots(parts, s, frame);
   }
   const materialIndex = new Map(names.map((n, i) => [n, i]));
   const vertexCount = parts.reduce((n, p) => n + p.mesh.positions.length / 3, 0), triangleCount = parts.reduce((n, p) => n + p.mesh.indices.length / 3, 0);
@@ -365,6 +365,15 @@ export class Figure {
     const u = clothU(this.built.frame!, this.g.group[k], this.gC.place[k * 3], this.gC.place[k * 3 + 1]);
     return u === null ? null : [u, this.gC.place[k * 3 + 2]];
   }
+  /** One scratch copy of the soup's vertices, shared by the light pass and the cloth pass (each is rasterised before the next
+   * is filled), grown when a figure needs more. */
+  private scratch = new Float32Array(0);
+  private scratchOf(soup: Soup): Float32Array {
+    const n = soup.count * VERT;
+    if (this.scratch.length < n) this.scratch = new Float32Array(n);
+    this.scratch.set(soup.verts.subarray(0, n));
+    return this.scratch;
+  }
   /** Draws the current pose: the triangle soup, the G-buffer and its cleanup, the marks, and the painter's cell. */
   private raster(pitch: number, faceState: FaceState) {
     const S = this.style.supersample;
@@ -382,7 +391,7 @@ export class Figure {
       // A second raster of the same triangles with the light in the place slots (6–8): the resolve averages it like a
       // place. The cleanup reads only part, group, material and depth, so gL follows g texel for texel.
       if (this.hiL.w !== this.hi.w) this.hiL = gbuffer(this.hi.w, this.hi.h);
-      const verts = soup.verts.slice(0, soup.count * VERT);
+      const verts = this.scratchOf(soup);
       for (let v = 0; v < soup.count; v++) for (let i = 0; i < 3; i++) verts[v * VERT + 6 + i] = this.lightOut[v * 3 + i];
       rasterize({ ...soup, verts }, this.hiL); resolve(this.hiL, this.gL, S, this.style); cleaned(this.gL);
     }
@@ -393,7 +402,7 @@ export class Figure {
       // Allocated on first use: a figure with no fabric never holds the two buffers.
       this.gC ??= gbuffer(this.cell[0], this.cell[1]);
       if (!this.hiC || this.hiC.w !== this.hi.w) this.hiC = gbuffer(this.hi.w, this.hi.h);
-      const verts = soup.verts.slice(0, soup.count * VERT);
+      const verts = this.scratchOf(soup);
       for (let v = 0; v < soup.count; v++) for (let i = 0; i < 3; i++) verts[v * VERT + 6 + i] = cloth[v * 3 + i];
       rasterize({ ...soup, verts }, this.hiC); resolve(this.hiC, this.gC, S, this.style); cleaned(this.gC);
     }

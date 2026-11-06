@@ -35,7 +35,8 @@ export interface Material {
   /** A tinted lens (paint.ts): the eyes under it show through, faintly, in its dark. */
   see?: boolean;
   /** A fabric (H5, paint/fabric.ts `registerFabric`): a tiled weave or pattern laid on the cloth as tone offsets within
-   * this material's own ramp. Ignored on the head group and on held items. Building a figure with an unregistered name throws. */
+   * this material's own ramp. Ignored on the head group and on held items. Building a figure with an unregistered name throws. Don't share a `seam` number
+   * across groups on a fabric: the resolve averages the cloth coordinates per seam, so two groups' cylinders would mix where they meet. */
   fabric?: string;
 }
 /** The figure's part groups: what moves and outlines as one (the trunk, the head and hair, each limb, a held item). */
@@ -164,9 +165,13 @@ function curves(keys: Ring[]) {
   const ys = keys.map(r => r.y);
   return { RX: curve(ys, keys.map(r => r.rx)), RZ: curve(ys, keys.map(r => r.rz)), DX: curve(ys, keys.map(r => r.dx ?? 0)), DZ: curve(ys, keys.map(r => r.dz ?? 0)) };
 }
-/** A limb's profile at height `y` on its axis: the very curves `limb()` sweeps, clamped to the keys' range. */
+const curveCache = new WeakMap<Limb, { rings: Ring[]; n: number; c: ReturnType<typeof curves> }>();
+/** A limb's profile at height `y` on its axis: the very curves `limb()` sweeps, clamped to the keys' range. The curves are
+ * built once per limb (its rings are never edited in place), so a query per vertex stays cheap. */
 export function profileAt(o: Limb, y: number): Ring {
-  const { RX, RZ, DX, DZ } = curves([...o.rings].sort((a, b) => a.y - b.y));
+  let hit = curveCache.get(o);
+  if (!hit || hit.rings !== o.rings || hit.n !== o.rings.length) { hit = { rings: o.rings, n: o.rings.length, c: curves([...o.rings].sort((a, b) => a.y - b.y)) }; curveCache.set(o, hit); }
+  const { RX, RZ, DX, DZ } = hit.c;
   return { y, rx: RX(y), rz: RZ(y), dx: DX(y), dz: DZ(y) };
 }
 /**

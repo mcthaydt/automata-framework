@@ -7,6 +7,7 @@ import { labelAt } from '../../../src/features/paint/fabric';
 import { FIXTURES } from '../paint/fabric-fixtures';
 import { arcOf, clothFrame, clothSlots, clothU, slotAt } from '../../../src/features/figure/cloth';
 import { Figure } from '../../../src/features/figure/figure';
+import { VERT } from '../../../src/features/paint/raster';
 import { member } from '../../../src/features/figure/frames';
 import { dress, type Garment } from '../../../src/features/outfit/garments';
 import { profiles } from '../../../src/features/outfit/fit';
@@ -20,7 +21,7 @@ beforeAll(registerFixtures);
 const fxCloth = { ramp: 10, base: 3, fabric: 'fx-rib' };
 const rig = (sliders: Partial<Sliders> = BASE[0].def.sliders) => {
   const m = measure(sliders), s = skeleton({ ...m.genes });
-  return { m, s, p: profiles(m, s), f: clothFrame(profiles(m, s), s) };
+  return { m, s, p: profiles(m, s), f: clothFrame(profiles(m, s)) };
 };
 const perimeter = (A: number, B: number) => Math.PI * (3 * (A + B) - Math.sqrt((3 * A + B) * (A + 3 * B)));
 
@@ -31,9 +32,24 @@ describe('cloth coordinates (the mapping)', () => {
     const a = clothU(f, GROUP.torso, Math.cos(0.999 * Math.PI), Math.sin(0.999 * Math.PI))!;
     const b = clothU(f, GROUP.torso, Math.cos(-0.999 * Math.PI), Math.sin(-0.999 * Math.PI))!;
     expect(a).toBeCloseTo(half, 2); expect(b).toBeCloseTo(-half, 2);
-    // Centre front is zero; the skirt and the cape share the trunk's cylinder.
+    // Centre front is zero; the skirt shares the trunk's cylinder (a skirt's centre-back seam is tailoring).
     expect(clothU(f, GROUP.torso, 1, 0)).toBeCloseTo(0, 9);
-    expect(f.get(GROUP.skirt)).toBe(c); expect(f.get(GROUP.cape)).toBe(c);
+    expect(f.get(GROUP.skirt)).toBe(c);
+  });
+  it('a cape has its own cylinder, the trunk\'s shape with the wrap at centre front (audit S5)', () => {
+    const { f } = rig(), cape = f.get(GROUP.cape)!, trunk = f.get(GROUP.torso)!, y = 1.2, R = cape.ring(y), half = perimeter(cape.A, cape.B) / 2;
+    expect(cape).not.toBe(trunk);
+    expect([cape.A, cape.B]).toEqual([trunk.A, trunk.B]);
+    // A vertex at centre back: the angle is near 0, u near 0.
+    const back = slotAt(cape, R.dx ?? 0, y, (R.dz ?? 0) - R.rz);
+    expect(Math.atan2(back[1], back[0])).toBeCloseTo(0, 6);
+    expect(clothU(f, GROUP.cape, back[0], back[1])).toBeCloseTo(0, 6);
+    // No jump in u across centre back: points 5 mm either side of it differ by about 10 mm of arc, not by the perimeter.
+    const uAt = (dxm: number) => { const [c, sn] = slotAt(cape, (R.dx ?? 0) + dxm, y, (R.dz ?? 0) - R.rz * Math.sqrt(1 - (dxm / R.rx) ** 2)); return clothU(f, GROUP.cape, c, sn)!; };
+    expect(Math.abs(uAt(0.005) - uAt(-0.005))).toBeLessThan(0.02);
+    // The wrap is at centre front: u is a half perimeter either way there.
+    const front = (sx: number) => { const [c, sn] = slotAt(cape, (R.dx ?? 0) + sx, y, (R.dz ?? 0) + R.rz * Math.sqrt(1 - (sx / R.rx) ** 2)); return clothU(f, GROUP.cape, c, sn)!; };
+    expect(front(0.002)).toBeLessThan(-half * 0.98); expect(front(-0.002)).toBeGreaterThan(half * 0.98);
   });
   it('the wrap lies on the inside of each limb', () => {
     const { f, s } = rig();
@@ -79,12 +95,24 @@ describe('cloth coordinates (the mapping)', () => {
     const us = [...widest.values()].map(([x, y, z]) => { const [c, sn] = slotAt(f.get(GROUP.torso)!, x, y, z); return clothU(f, GROUP.torso, c, sn)!; });
     expect(Math.max(...us) - Math.min(...us)).toBeLessThan(0.5 / 73.8);
   });
-  it('the slots are the same in every pose', () => {
+  it('the slots are built once, and no pose rewrites them', () => {
     const fig = new Figure(member(dressed([{ top: 'fxCloth', sleeves: 'long' }], { fxCloth }), 2));
     const before = fig['built'].cloth!.slice();
     expect(before.length).toBe(fig['built'].vertexCount * 3);
     for (let i = 0; i < 8; i++) fig.update(1 / 12, { facing: Math.PI / 4, moving: true, view: { azimuth: 0, pitch: 0.3 } });
     expect(fig['built'].cloth).toEqual(before);
+  });
+  it('u is the same at every height for one angle: no shear (N10)', () => {
+    const { f, s } = rig(), torso = f.get(GROUP.torso)!, lo = s.hipY + 0.09, hi = s.chestY - 0.07;
+    for (const t of [-2.6, -1.1, 0.3, 1.4, 2.9]) {
+      const us: number[] = [];
+      for (let i = 0; i < 10; i++) {
+        const y = lo + (hi - lo) * i / 9, R = torso.ring(y);
+        const [c, sn] = slotAt(torso, (R.dx ?? 0) + R.rx * Math.sin(t), y, (R.dz ?? 0) + R.rz * Math.cos(t));
+        us.push(clothU(f, GROUP.torso, c, sn)!);
+      }
+      for (const u of us) expect(Math.abs(u - us[0]), `angle ${t}`).toBeLessThan(1e-9);
+    }
   });
   it('every slot is finite at every slider end', () => {
     const swatches = { fxCloth };
@@ -103,6 +131,9 @@ describe('cloth coordinates (the mapping)', () => {
   it('no fabric, no slots', () => {
     const fig = new Figure(member(BASE[0].def, 1));
     expect(fig['built'].cloth).toBeNull(); expect(fig['built'].frame).toBeNull();
+    // And no third raster runs: its two buffers are never allocated.
+    fig.cache = false; fig.update(0, { facing: 0, moving: false, view: { azimuth: 0, pitch: 0.3 } });
+    expect(fig['gC']).toBeNull(); expect(fig['hiC']).toBeNull();
   });
   it('clothSlots keeps part order, with zeros for an untiled group', () => {
     const { m, s, f } = rig(), look = dress(m, s, BASE[0].def.skin, []);
@@ -154,16 +185,35 @@ describe('cloth on the figure (the mapping drawn)', () => {
       expect(match / columns, `boundary ${yb}`).toBeGreaterThanOrEqual(0.9);
     }
   });
-  it('holds still on the body through the walk', () => {
-    const share = (f: Figure) => { const l = [...labelsOf(f, 'rib').values()]; return l.filter(v => v === -1).length / l.length; };
-    const stood = share(drawn('fxrib', 1));
+  it('holds still on the body through the walk (each vertex tracks its own cloth coordinates)', () => {
+    // Per vertex, not per share (audit S1): the texel a camera-facing torso vertex lands on reads the cloth coordinates that
+    // vertex was given at build, in every pose of the walk. A pattern that swims (slots fed from the posed soup, or rotated
+    // per frame) fails this; the share of rib texels at one label does not tell, it is about a half for any u field.
     const f = new Figure({ ...member(dressed([{ top: 'fxrib', sleeves: 'long' }], { fxrib: { ramp: 10, base: 3, fabric: 'fx-rib' } }), 2), blink: 0 });
     f.cache = false;
-    const shares: number[] = [];
-    for (let i = 0; i < Math.round(f.member.gait.cycle * 4 * 60); i++) {
-      if (f.update(1 / 60, { facing: Math.PI / 4, moving: true, view: { azimuth: 0, pitch: 0 } })) shares.push(share(f));
+    const built = f['built'], cloth = built.cloth!, frame = built.frame!, S = f.style.supersample, texel = 1 / 73.8;
+    const ranges: [number, number][] = []; let at = 0;
+    for (const p of built.parts) { const n = p.mesh.positions.length / 3; if (p.group === GROUP.torso) ranges.push([at, at + n]); at += n; }
+    let frames = 0;
+    for (let i = 0; i < Math.round(f.member.gait.cycle * 4 * 60) && frames < 8; i++) {
+      if (!f.update(1 / 60, { facing: Math.PI / 4, moving: true, view: { azimuth: 0, pitch: 0 } })) continue;
+      frames++;
+      const verts = f['soup']!.verts;
+      let tested = 0, near = 0;
+      for (const [lo, hi] of ranges) for (let v = lo; v < hi; v++) {
+        if (verts[v * VERT + 5] <= 0.5) continue;
+        const x = Math.floor(verts[v * VERT] / S), y = Math.floor(verts[v * VERT + 1] / S);
+        if (x < 0 || y < 0 || x >= f.g.w || y >= f.g.h) continue;
+        const k = y * f.g.w + x;
+        if (f.g.group[k] !== GROUP.torso || Math.abs(f.g.depth[k] - verts[v * VERT + 2]) >= 0.01) continue;
+        const at2 = f.clothAt(k), own = clothU(frame, GROUP.torso, cloth[v * 3], cloth[v * 3 + 1]);
+        if (!at2 || own === null) continue;
+        tested++;
+        if (Math.abs(at2[0] - own) <= texel && Math.abs(at2[1] - cloth[v * 3 + 2]) <= texel) near++;
+      }
+      expect(tested, `frame ${frames}`).toBeGreaterThanOrEqual(50);
+      expect(near / tested, `frame ${frames}`).toBeGreaterThanOrEqual(0.9);
     }
-    expect(shares.length).toBeGreaterThanOrEqual(8);
-    for (const v of shares) expect(Math.abs(v - stood)).toBeLessThanOrEqual(0.1);
+    expect(frames).toBe(8);
   });
 });

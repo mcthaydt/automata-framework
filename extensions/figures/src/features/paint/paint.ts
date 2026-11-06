@@ -1,7 +1,7 @@
 import { RAMPS, RAMP_OUTLINE } from './duel-ramps';
 import { noise3, type GBuffer } from './raster';
 import { smooth } from '../../lib/math';
-import { fabricOf, labelAt } from './fabric';
+import { fabricOf, labelAt, type Fabric } from './fabric';
 import { GROUP, type Material } from '../body/parts';
 import type { HeadShape } from '../body/genes';
 /**
@@ -929,11 +929,13 @@ function tint(ramp: number[]) {
 /** The cloth channel (figure/cloth.ts), for a fabric (fabric.ts): each texel's `(cos t, sin t, v)` as the figure's third raster
  * drew it, and `u(group, cos, sin)`, the metres round the group's cylinder (null for an untiled group). */
 export interface Cloth { place: Float32Array; u(group: number, c: number, s: number): number | null }
+/** The fabrics of a paint with no cloth channel: none (an index reads undefined), with no array built per call. */
+const NO_FABRICS: readonly (Fabric | null)[] = [];
 export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array, cloth?: Cloth) {
   const { w, h } = g, n = w * h, ink = INK_RGB;
   const tones = materials.map(m => fillTones(tonesOf(m), m.flat ? 0 : style.cool)), D = densityOf(w), ppm = 36.9 * D;
   // The fabrics (H5) of the materials; with no cloth channel, none is read.
-  const fabrics = materials.map(m => (cloth && m.fabric ? fabricOf(m.fabric) ?? null : null));
+  const fabrics = cloth ? materials.map(m => (m.fabric ? fabricOf(m.fabric) ?? null : null)) : NO_FABRICS;
   // The skin's family: the skin, and any surface painted in its tones alone (an ear's rim and bowl), which takes its line.
   const skinSet = new Set(skin >= 0 ? tones[skin] : []), skinny = tones.map((t, i) => i === skin || (skin >= 0 && t.every(c => skinSet.has(c))));
   // Black cloth (a dark ramp, not skin, hair or a flat mark) has its own darks and form (extraTones, the rim below).
