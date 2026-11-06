@@ -88,7 +88,7 @@ function teeth(g: GBuffer, neck: Set<number>): number {
 const necksOf = (f: Figure) => new Set<number>((f as any).built.parts.flatMap((p: { tag?: string; seam?: number }, i: number) => (p.tag === NECK ? [p.seam ?? i] : [])));
 
 describe('the base pair has no neck tooth in its top', () => {
-  for (const D of [1, 2]) for (const { def } of BASE) it(`${def.id} at density ${D}: standing in 8 views, and through the walk`, () => {
+  for (const D of [1, 2, 4]) for (const { def } of BASE) it(`${def.id} at density ${D}: standing in 8 views${D < 4 ? ', and through the walk' : ''}`, () => {
     const cast = member(def, D);
     const f = new Figure(cast), necks = necksOf(f);
     expect(necks.size, 'the body tags a neck').toBeGreaterThan(0);
@@ -96,6 +96,7 @@ describe('the base pair has no neck tooth in its top', () => {
       for (let i = 0; i < 3; i++) f.update(1 / 60, { facing: d * Math.PI / 4, moving: false, view: view() });
       expect(teeth(f.g, necks), `view ${d}`).toBe(0);
     }
+    if (D > 2) return;                                                                // D4: the 8 standing views only (the walk's run time)
     const w = new Figure({ ...cast, blink: 0 });
     for (let i = 0; i < Math.round(cast.gait.cycle * 4 * 60); i++) {
       w.update(1 / 60, { facing: Math.PI / 4, moving: true, view: view() });
