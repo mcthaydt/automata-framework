@@ -1,5 +1,5 @@
 // `automata editor [dir] [--app 2d|3d|suite] [--app-dir <dir>] [--port <n>] [--lan] [--token <t>]`: serve
-// an editor against a game checkout. One command for every editor (the next editor reuses it).
+// an editor against a game checkout; the 2D editor unless told otherwise. One command for every editor.
 
 export type EditorApp = '2d' | '3d' | 'suite'
 
@@ -7,7 +7,7 @@ export interface EditorOptions {
   /** The game checkout, relative to the working folder. */
   readonly dir: string
   readonly app: EditorApp
-  /** A built editor to serve instead of the repository's own build of `app`. */
+  /** A built editor to serve instead of the build that comes with the tools (the 2D editor) or the repository's (3D). */
   readonly appDir: string | undefined
   /** 0 picks a free port. */
   readonly port: number
@@ -25,7 +25,7 @@ const isApp = (value: string): value is EditorApp => (APPS as readonly string[])
 
 export function parseEditorArgs(args: readonly string[]): EditorArgs {
   let dir: string | undefined
-  let app: EditorApp = '3d'
+  let app: EditorApp = '2d'
   let appDir: string | undefined
   let port = 0
   let lan = false

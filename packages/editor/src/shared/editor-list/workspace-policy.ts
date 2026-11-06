@@ -4,8 +4,8 @@
 // the browser shows the same reasons before anything is sent.
 
 import type { UnlistedFile, WorkspaceFile } from '../kit/ports/suite-ports.ts'
-import { EDITOR_LIST_PATH, type EditorList, type FileRow } from './editors.schema'
-import { globMatch } from './glob'
+import { EDITOR_LIST_PATH, type EditorList, type FileRow } from './editors.schema.ts'
+import { globMatch } from './glob.ts'
 
 /**
  * Never written, whatever the list says: the list itself (the suite cannot widen its own allowlist, and an Ask diff

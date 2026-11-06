@@ -1,4 +1,4 @@
-import type { ContentEntityItem, ContentLevel, ContentLevelLayer } from './content.schema'
+import type { ContentEntityItem, ContentLevel, ContentLevelLayer } from './content.schema.ts'
 
 // Reading an exported level in a game. Sim-safe on purpose (no Node, no clock, no randomness, no key enumeration): a
 // game's sim may import this file, so its levels are read one way in every engine. A level that passed

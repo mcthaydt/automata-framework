@@ -1,6 +1,6 @@
 import type { EntityDef, FieldDef, FieldValues } from '@mcthaydt/automata-content/level-2d'
-import type { RuleGroup } from '../tiles/autotile/rule.schema'
-import type { Grid } from './grid'
+import type { RuleGroup } from '../tiles/autotile/rule.schema.ts'
+import type { Grid } from './grid.ts'
 
 // The project model. One model, two shapes: `Project` holds grids as
 // `Grid`, and `ProjectFile` is the same tree with each grid as its row strings, which is what `*.af2d.json` stores and

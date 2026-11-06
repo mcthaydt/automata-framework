@@ -1,6 +1,6 @@
 // What a project file must satisfy beyond its shape: ids that repeat, and references to definitions that are not there.
 // Each problem is an `OpenIssue` with its path in the file. Nothing here throws or stops at the first problem.
-import type { Definitions, LayerDef, ProjectFile } from './project-types'
+import type { Definitions, LayerDef, ProjectFile } from './project-types.ts'
 
 /** One thing wrong with a file: a stable `code`, the `path` in the file (`levels[moss-steps].layers[collision].rows[3]`) and a sentence. */
 export interface OpenIssue {

@@ -97,16 +97,21 @@ const REGISTRIES: unique symbol = Symbol.for('@mcthaydt/automata-content/registr
 /** A parsed reference to another content item, before it is checked. */
 export class ContentRefMarker {
   readonly automataContentMarker: 'ref' = 'ref'
-  constructor(
-    readonly kind: string,
-    readonly id: string,
-  ) {}
+  readonly kind: string
+  readonly id: string
+  constructor(kind: string, id: string) {
+    this.kind = kind
+    this.id = id
+  }
 }
 
 /** A parsed player-facing text, before it gets its message key. */
 export class LocalizedMarker {
   readonly automataContentMarker: 'localized' = 'localized'
-  constructor(readonly text: string) {}
+  readonly text: string
+  constructor(text: string) {
+    this.text = text
+  }
 }
 
 const brandOf = (value: unknown): unknown =>

@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { checkEntityDef, checkFieldDef } from './check-field-def'
-import type { EntityDef, FieldDef, FieldValue, FieldValues } from './field-types'
+import { checkEntityDef, checkFieldDef } from './check-field-def.ts'
+import type { EntityDef, FieldDef, FieldValue, FieldValues } from './field-types.ts'
 
 // Zod is the one schema language (ADR 0003). The shapes are structural and strict, so a typo in a project file is a
 // parse error at load; what a definition means (bounds, options, ids) is `checkFieldDef` and `checkEntityDef`, run

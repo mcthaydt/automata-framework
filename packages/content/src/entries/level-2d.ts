@@ -5,8 +5,8 @@ export {
   checkEntityDef,
   checkFieldDef,
   defaultFieldValue,
-} from '../shared/level-2d/check-field-def'
-export { checkFieldValue } from '../shared/level-2d/check-field-value'
+} from '../shared/level-2d/check-field-def.ts'
+export { checkFieldValue } from '../shared/level-2d/check-field-value.ts'
 export {
   type ContentEntityDef,
   type ContentEntityItem,
@@ -23,7 +23,7 @@ export {
   levelContentSchema,
   projectContentSchema,
   worldContentSchema,
-} from '../shared/level-2d/content.schema'
+} from '../shared/level-2d/content.schema.ts'
 export {
   ENTITY_ID,
   type EntityDef,
@@ -44,7 +44,7 @@ export {
   type InstanceProblem,
   type Point,
   type RefValue,
-} from '../shared/level-2d/field-types'
+} from '../shared/level-2d/field-types.ts'
 export {
   type EntityDefIssue,
   entityDefIssues,
@@ -53,6 +53,6 @@ export {
   fieldDefSchema,
   fieldValueSchema,
   fieldValuesSchema,
-} from '../shared/level-2d/fields.schema'
-export { type Level2dKindsOptions, level2dKinds } from '../shared/level-2d/level-2d-kinds'
-export { entitiesOf, intGridRows } from '../shared/level-2d/read-level'
+} from '../shared/level-2d/fields.schema.ts'
+export { type Level2dKindsOptions, level2dKinds } from '../shared/level-2d/level-2d-kinds.ts'
+export { entitiesOf, intGridRows } from '../shared/level-2d/read-level.ts'

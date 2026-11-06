@@ -1,6 +1,6 @@
-import type { ContentSchemaDef } from '../schema/content-schema'
-import { defineContentSchema } from '../schema/content-schema'
-import { levelContentSchema, projectContentSchema, worldContentSchema } from './content.schema'
+import type { ContentSchemaDef } from '../schema/content-schema.ts'
+import { defineContentSchema } from '../schema/content-schema.ts'
+import { levelContentSchema, projectContentSchema, worldContentSchema } from './content.schema.ts'
 
 // The three content kinds a game registers to read what the 2D editor exports: `levels/<id>.toml`, `project.toml` and
 // `world.toml`. The levels are gameplay, so the sim receives them; the project's definitions and the world's

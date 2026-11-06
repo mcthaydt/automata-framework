@@ -9,10 +9,10 @@ import {
   HEX_COLOR,
 } from '@mcthaydt/automata-content/level-2d'
 import { z } from 'zod'
-import { ruleGroupSchema } from '../tiles/autotile/rule.schema'
-import { DEF_ID, ITEM_ID } from './ids'
-import { FILE_VERSION } from './migrations/migration'
-import type { EntityDef2D, LayerDef, ProjectFile, TilesetDef } from './project-types'
+import { ruleGroupSchema } from '../tiles/autotile/rule.schema.ts'
+import { DEF_ID, ITEM_ID } from './ids.ts'
+import { FILE_VERSION } from './migrations/migration.ts'
+import type { EntityDef2D, LayerDef, ProjectFile, TilesetDef } from './project-types.ts'
 
 // The strict file schema over the project model's shapes. Strict means an unknown key at any depth is
 // an `unrecognized_keys` issue at its parent, which `openProject` turns into a read-only open (G-p). Keys are listed in

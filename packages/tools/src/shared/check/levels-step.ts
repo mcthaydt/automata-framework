@@ -1,4 +1,6 @@
 import { join } from 'node:path'
+import { EDITOR_LIST_PATH, globMatch, loadEditorList } from '@mcthaydt/automata-editor/editor-list'
+import { exportContent, openProject } from '@mcthaydt/automata-editor/level-export'
 import { Effect } from 'effect'
 import { Files } from '../node/files.ts'
 import type { CheckFinding } from './check-report.ts'
@@ -8,12 +10,6 @@ import { CheckToolError } from './csp-probe.ts'
 // Save writes both, so they only disagree when someone edited one by hand or Save stopped part-way. For each row of
 // the editor list that names `exports`, every matching project is opened, exported, and the bytes compared with the
 // files on disk. A game with no editor list, or no such row, has nothing to check.
-//
-// The editor package is loaded only when there is a list to read: Node cannot load its source (the published build
-// bundles it), so a game without a list must not pay for it, and `automata check` from source still runs for one.
-
-/** Where the editor list is, relative to the game folder (the same as the editor package's `EDITOR_LIST_PATH`). */
-const EDITOR_LIST_PATH = 'content/editors.toml'
 
 const LAST_LINE = 'Open the level in the editor and press Save.'
 
@@ -44,14 +40,6 @@ export const levelsStep = (gameDir: string): Effect.Effect<readonly CheckFinding
       Effect.mapError(files.readText(join(gameDir, path)), (error) => toolError(error.message))
 
     if (!(yield* files.exists(join(gameDir, EDITOR_LIST_PATH)))) return []
-    const editor = yield* Effect.tryPromise({
-      try: async () => ({
-        ...(await import('@mcthaydt/automata-editor/editor-list')),
-        ...(await import('@mcthaydt/automata-editor/level-export')),
-      }),
-      catch: (error) => toolError(error instanceof Error ? error.message : String(error)),
-    })
-    const { globMatch, loadEditorList, exportContent, openProject } = editor
     const loaded = loadEditorList(yield* read(EDITOR_LIST_PATH))
     // A list that does not load is the editor's problem to show; this step cannot tell which projects it names.
     if (!loaded.ok) return []

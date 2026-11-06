@@ -8,8 +8,8 @@ import type {
   ContentWorld,
 } from '@mcthaydt/automata-content/level-2d'
 import { stringify } from 'smol-toml'
-import { encodeRows, packTile } from '../../model/cells-codec'
-import { Grid } from '../../model/grid'
+import { encodeRows, packTile } from '../../model/cells-codec.ts'
+import { Grid } from '../../model/grid.ts'
 import type {
   AutoLayerInstance,
   EntitiesLayerInstance,
@@ -18,11 +18,11 @@ import type {
   Level,
   ObjectsLayerInstance,
   Project,
-} from '../../model/project-types'
-import { tilesetTiles } from '../../model/tileset-grid'
-import { worldNeighbours } from '../../model/world/world-neighbours'
-import { applyOverrides, autoTiles } from '../../tiles/autotile/auto-tiles'
-import { compileRules } from '../../tiles/autotile/match'
+} from '../../model/project-types.ts'
+import { tilesetTiles } from '../../model/tileset-grid.ts'
+import { worldNeighbours } from '../../model/world/world-neighbours.ts'
+import { applyOverrides, autoTiles } from '../../tiles/autotile/auto-tiles.ts'
+import { compileRules } from '../../tiles/autotile/match.ts'
 
 // The AF content export: `project.toml` (the definitions a game needs), one `levels/<id>.toml`
 // per level and `world.toml`. Generated, write-only and deterministic: the same project always prints the same bytes,

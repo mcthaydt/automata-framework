@@ -19,10 +19,12 @@ export interface JsonError {
 const MAX_DEPTH = 512
 
 class Stop {
-  constructor(
-    readonly message: string,
-    readonly offset: number,
-  ) {}
+  readonly message: string
+  readonly offset: number
+  constructor(message: string, offset: number) {
+    this.message = message
+    this.offset = offset
+  }
 }
 
 const isDigit = (ch: string | undefined): boolean => ch !== undefined && ch >= '0' && ch <= '9'

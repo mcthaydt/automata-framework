@@ -5,7 +5,7 @@
 //
 // A missing optional port is the feature off, never an error: no `changeSet` and edits save to the workspace with Ship
 // hidden; no `gates` and the gate pill says "Gates not readable"; no `ask` and there is no Ask button.
-import type { WriteExpectation, WriteResult } from '../storage/project-store'
+import type { WriteExpectation, WriteResult } from '../storage/project-store.ts'
 
 export interface SuitePorts {
   readonly workspace: SuiteWorkspace

@@ -1,5 +1,5 @@
 import type { ContentNeighbours } from '@mcthaydt/automata-content/level-2d'
-import type { Project, World } from '../project-types'
+import type { Project, World } from '../project-types.ts'
 
 // Neighbours for room-scrolling games: in a `grid` world, the levels whose edge touches
 // a level's edge. A touch needs a span of positive length, so two levels that meet only at a corner are not neighbours.

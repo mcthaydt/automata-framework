@@ -1,4 +1,4 @@
-import type { TilesetDef } from './project-types'
+import type { TilesetDef } from './project-types.ts'
 
 // How many tiles a tileset holds: columns and rows derive from the image size, the tile size, the
 // spacing between tiles and the padding around the image. A tileset without an image is a placeholder, and its

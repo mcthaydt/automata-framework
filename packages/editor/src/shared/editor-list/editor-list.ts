@@ -7,7 +7,7 @@ import {
   EDITOR_LIST_PATH,
   type EditorList,
   editorListSchema,
-} from './editors.schema'
+} from './editors.schema.ts'
 
 export interface EditorListProblem {
   /** `missing`: no file; `syntax`: not TOML; `invalid`: not `af-editors/1`; `newer-format`: a later major. */

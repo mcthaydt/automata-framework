@@ -601,13 +601,13 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Test: `packages/tools/tests/unit/editor/{editor-args.test.ts,editor-command.test.ts}`,
   `packages/tools/tests/unit/app/editor-from-source.test.ts` (create; spawns the source bin)
 
-- [ ] **Step 1: Failing tests.** `parseEditorArgs([])` → `app: '2d'`. The command resolves `2d` to
+- [x] **Step 1: Failing tests.** `parseEditorArgs([])` → `app: '2d'`. The command resolves `2d` to
   `<bin dir>/editors/2d` when it exists and to the checkout's `packages/editor/dist/2d` otherwise; `3d` and `suite`
   outside a checkout print "The 3D editor is not in this release yet." and exit 2. The spawned source bin
   (`node packages/tools/src/app/bin.ts editor games/emberwick --port 0`) prints its address within 20 s and serves
   `/api/ping` (then is stopped).
-- [ ] **Step 2:** Implement. The usage and messages per spec 7.1 (copy rows).
-- [ ] **Step 3: Commit.** `feat(editor): automata editor opens the 2D editor and runs from source`
+- [x] **Step 2:** Implement. The usage and messages per spec 7.1 (copy rows).
+- [x] **Step 3: Commit.** `feat(editor): automata editor opens the 2D editor and runs from source`
 
 ### Task 7.2: The build inside `-tools`, and the closed-beta scan
 
@@ -1608,3 +1608,26 @@ Tasks 6.1 to 6.4, one commit group on PR #415.
   `-content`, and phase 6 added the save, exports and export-model tests); `-tools` unit 835 (809 after task 3.5).
   Chromium: parity, layout and storage 452 pass; canvas and journeys 75 pass, 6 skipped. `pnpm check` exit 0.
   WebKit, Firefox and hosted CI not run.
+
+### 2026-11-06, session 5 (continued): phase 7, task 7.1
+
+Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
+
+- **Runs from source.** The editor's two headless entries (`editor-list`, `level-export`) and the files they reach
+  (27 in `packages/editor/src`, 9 in `packages/content/src`) now import with `.ts` extensions (50 and 18 specifiers),
+  and the three classes that used constructor parameter properties (`Stop` in `json-syntax.ts`, `ContentRefMarker`
+  and `LocalizedMarker` in `content-schema.ts`) assign their fields, because Node strips types but does not compile
+  them. **Deviation 85:** the spec said the extensionless imports "are rewritten in the package merge"; they were
+  not, so this task rewrote only the files the Node-run entries reach, not the whole editor package. `automata check
+  --only levels` and `automata editor` both run from source now; `levels-step.ts` imports the editor statically again
+  (the lazy `import()` of deviation 84 is gone).
+- **The command.** `--app` defaults to `2d`. The 2D build is the copy next to the running bin
+  (`dist/editors/2d`) when there is one, else the repository's `packages/editor/dist/2d`. `3d` and `suite` outside the
+  repository, with no `--app-dir`, print "The 3D editor is not in this release yet." and exit 2. Usage: "Opens the
+  level editor on the game in <folder>".
+- **Tests.** `editor-args` and `editor-command` tests updated and extended; `tests/unit/app/editor-from-source.test.ts`
+  spawns `node packages/tools/src/app/bin.ts editor games/emberwick --app-dir <stand-in> --port 0`, reads the address
+  within 20 s and fetches `/api/ping`. **Deviation 86:** it serves a stand-in `index.html` through `--app-dir` instead
+  of the real build, so the unit gate does not depend on the editor having been built.
+- **Gates.** `pnpm check` exit 0; the editor, content and tools builds succeed; the built bin
+  (`packages/tools/dist/bin.js check games/emberwick --only levels`) passes.

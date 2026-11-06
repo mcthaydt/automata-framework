@@ -36,6 +36,8 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Editor Home, the storage line on a checkout | `Kept in your game’s checkout, on the computer running automata editor` | `Saved in your game folder` | 3 (long) and 4 ("checkout") |
 | Editor Share, on a checkout whose Save writes the game files | `Open a game folder to write into it.` | Nothing: the button is not offered; `Save already writes your game’s files into content.` | 2 (a folder to open was never needed) |
 | `automata check --help`, the drift step | (new) | `levels  a level and the game files saved from it match (for a game whose editor list sets exports)`; and a finding says `content/levels/room-1.toml does not match content/rooms/room-1.af2d.json. Open the level in the editor and press Save.` | 2 (it names the file and the button) |
+| `automata editor --help`, first line | `Opens an editor on the game in <folder>` | `Opens the level editor on the game in <folder>` | 1 (which editor?) |
+| `automata editor --app 3d`, in a published copy | (a missing-build error about pnpm) | `The 3D editor is not in this release yet.` | 2 (the pnpm line is for the repository's developers) |
 | `automata editor --help`, with no editor list | `(or the .json files, if there is none)` | `Without content/editors.toml, it opens only level files (*.af2d.json).` | 1 (which .json files?) |
 
 ## Kept, with the reason

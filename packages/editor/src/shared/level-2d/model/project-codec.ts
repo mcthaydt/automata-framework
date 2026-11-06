@@ -1,10 +1,10 @@
 // Reads and writes a level project file. Reading checks the file against the schema and the project's own rules and
 // reports each problem with its path in the file; it never throws on a bad file.
-import { type CellKind, decodeRows, encodeRows } from './cells-codec'
-import type { Grid } from './grid'
-import { layerCells } from './level-layers'
-import { projectFileSchema } from './project.schema'
-import { checkDefinitionRefs, checkIds, type OpenIssue } from './project-checks'
+import { type CellKind, decodeRows, encodeRows } from './cells-codec.ts'
+import type { Grid } from './grid.ts'
+import { layerCells } from './level-layers.ts'
+import { projectFileSchema } from './project.schema.ts'
+import { checkDefinitionRefs, checkIds, type OpenIssue } from './project-checks.ts'
 import type {
   LayerDef,
   LayerInstance,
@@ -13,7 +13,7 @@ import type {
   Project,
   ProjectFile,
   Size,
-} from './project-types'
+} from './project-types.ts'
 
 // Between the file shape and the model. `decodeProject` turns a file
 // the schema accepted into a `Project`, and refuses what decoding and every later lookup depend on. Values that fit

@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import type { EntityDef, FieldDef, FieldValues } from './field-types'
-import { fieldDefSchema, fieldValuesSchema } from './fields.schema'
+import type { EntityDef, FieldDef, FieldValues } from './field-types.ts'
+import { fieldDefSchema, fieldValuesSchema } from './fields.schema.ts'
 
 // The shape of the AF content export: what `project.toml`, `levels/<id>.toml` and `world.toml`
 // hold once a reader has parsed the TOML. Strict, so a reader cannot come to depend on a key the editor does not

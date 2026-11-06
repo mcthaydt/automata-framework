@@ -16,8 +16,10 @@ export interface EditorCommandIo {
 
 export interface EditorCommandDeps {
   readonly serve: (options: EditorServerOptions) => Promise<RunningEditor>
-  /** The repository's build folder of an editor. */
+  /** The build folder of an editor: the 2D editor that came with the tools when there is one, else the repository's. */
   readonly builtApp: (app: EditorApp) => string
+  /** Whether this runs from a checkout of the AutomataFramework repository, where the 3D editors are built. */
+  readonly inRepository: boolean
   readonly exists: (path: string) => boolean
   /** The machine's IPv4 addresses on the network, for the tablet's address. */
   readonly lanAddresses: () => readonly string[]
@@ -29,7 +31,7 @@ export interface EditorCommandDeps {
 
 const USAGE = `Usage: automata editor [folder] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
 
-Opens an editor on the game in <folder> (default: this folder) until you press Ctrl+C.
+Opens the level editor on the game in <folder> (default: this folder) until you press Ctrl+C.
 Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
 (one is made for you if you give none). Open the address it prints, with the token in it.
 The editor saves to the files listed in content/editors.toml, and it will not overwrite a file that changed while
@@ -67,6 +69,11 @@ export async function editorCommand(
     return 2
   }
   const { dir, app, appDir, port, lan, token } = parsed.options
+  // The 3D editors are built in the repository only; a published copy of the tools has just the 2D one.
+  if (app !== '2d' && appDir === undefined && !deps.inRepository) {
+    io.stderr('Error: The 3D editor is not in this release yet.\n')
+    return 2
+  }
   const root = resolve(deps.cwd, dir)
   const build = appDir === undefined ? deps.builtApp(app) : resolve(deps.cwd, appDir)
   if (!deps.exists(resolve(build, 'index.html'))) {
@@ -98,11 +105,21 @@ export async function editorCommand(
   return 0
 }
 
-/** The real dependencies: the repository's build of each editor, this machine's network and Ctrl+C. */
+/** The 2D editor packed next to the running bin (`dist/editors/2d` in the published tools), if this is a published copy. */
+const packedEditor = (): string | undefined => {
+  const folder = resolve(here, 'editors/2d')
+  return existsSync(resolve(folder, 'index.html')) ? folder : undefined
+}
+
+const isRepository = (): boolean => existsSync(resolve(repositoryRoot(), 'pnpm-workspace.yaml'))
+
+/** The real dependencies: the editors' builds, this machine's network and Ctrl+C. */
 export function liveEditorDeps(): EditorCommandDeps {
   return {
     serve: serveEditor,
-    builtApp: (app) => resolve(repositoryRoot(), BUILDS[app].folder),
+    builtApp: (app) =>
+      (app === '2d' ? packedEditor() : undefined) ?? resolve(repositoryRoot(), BUILDS[app].folder),
+    inRepository: isRepository(),
     exists: existsSync,
     lanAddresses: () =>
       Object.values(networkInterfaces())

@@ -1,10 +1,10 @@
 import type { z } from 'zod'
-import { findJsonError } from './json-syntax'
-import { FILE_VERSION, MIGRATIONS, type Migration, migrate, type RawFile } from './migrations/migration'
-import { projectFileSchema } from './project.schema'
-import type { OpenIssue } from './project-checks'
-import { decodeProject } from './project-codec'
-import type { Project } from './project-types'
+import { findJsonError } from './json-syntax.ts'
+import { FILE_VERSION, MIGRATIONS, type Migration, migrate, type RawFile } from './migrations/migration.ts'
+import { projectFileSchema } from './project.schema.ts'
+import type { OpenIssue } from './project-checks.ts'
+import { decodeProject } from './project-codec.ts'
+import type { Project } from './project-types.ts'
 
 // Opening a working file. There are three outcomes and no fourth: the file opens, or it
 // opens read-only because writing it back could lose something, or it fails with a reason the error panel can show.

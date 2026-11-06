@@ -5,7 +5,7 @@
 // `.*5 7h*3 2.*24`. The printer is canonical (maximal runs, one spelling), so equal grids print byte-equal and a
 // git diff shows only the rows that changed.
 
-import { Grid } from './grid'
+import { Grid } from './grid.ts'
 
 export type CellKind = 'tile' | 'int'
 

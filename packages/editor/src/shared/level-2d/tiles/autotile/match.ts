@@ -1,6 +1,6 @@
-import type { Grid } from '../../model/grid'
-import { hashCell, hashText, SALT } from '../hash'
-import type { PatternCell, Rule, RuleGroup } from './rule.schema'
+import type { Grid } from '../../model/grid.ts'
+import { hashCell, hashText, SALT } from '../hash.ts'
+import type { PatternCell, Rule, RuleGroup } from './rule.schema.ts'
 
 // Evaluating auto-tile rules for one cell. The rules are compiled once into flat lists of the
 // cells each rule really reads, so deciding a cell is a few comparisons and the 'any' cells of a pattern cost nothing.
