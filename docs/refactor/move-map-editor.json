@@ -1,9 +1,5 @@
 {
-  "sources": [
-    "packages/editor-kit",
-    "packages/editor-2d",
-    "packages/editor-suite"
-  ],
+  "sources": ["packages/editor-kit", "packages/editor-2d", "packages/editor-suite"],
   "moves": [
     {
       "from": "packages/editor-kit/src/commands",

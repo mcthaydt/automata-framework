@@ -3,7 +3,7 @@
 // still be picked; of two the nearest, and of two at one distance the later in the level's order, which is drawn on top.
 // The reach is in screen pixels, as for walls. A thing whose sub-layer, or the whole Things layer, is hidden or locked is
 // not hit; a thing whose definition the level does not have is not drawn and not hit.
-import type { Point as ScreenPoint, Viewport2D } from '@mcthaydt/automata-editor-kit/core'
+import type { Point as ScreenPoint, Viewport2D } from '@mcthaydt/automata-editor/kit/core'
 import { entitySelection } from '../../checks/check'
 import type { ThingDef } from '../../entities/thing-def.schema'
 import type { EntityKit, Thing } from '../../entities/things'

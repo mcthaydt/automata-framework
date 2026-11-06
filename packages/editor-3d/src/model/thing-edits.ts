@@ -8,7 +8,7 @@ import {
   type FieldDef,
   type FieldValue,
   type FieldValues,
-} from '@mcthaydt/automata-editor-kit/fields'
+} from '@mcthaydt/automata-editor/kit/fields'
 import { entitySelection, place } from '../checks/check'
 import type { ThingDef } from '../entities/thing-def.schema'
 import type { Thing } from '../entities/things'

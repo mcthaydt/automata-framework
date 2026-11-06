@@ -11,7 +11,7 @@ import type {
   LifecycleWindow,
   ToastStore,
   Workspace,
-} from '@mcthaydt/automata-editor-kit/core'
+} from '@mcthaydt/automata-editor/kit/core'
 import { onDestroy } from 'svelte'
 import type { Scheduler } from '../app/checks-panel-controller'
 import { createDocumentController, type DocumentController } from '../app/document/document-controller'

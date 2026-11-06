@@ -1,2 +1,2 @@
-// The `kit-ports` entry: filled by the package merge.
-export {}
+// The shapes a suite editor and its ports share (`@mcthaydt/automata-editor/kit/ports`).
+export * from '../shared/kit/ports/index'

@@ -2,7 +2,7 @@
 // on (the crosshair is the pick, so a tap anywhere is the same pick); a finger or the mouse dragging looks; the Pencil never
 // moves the camera, so a hand steadied on the glass with a Pencil in the other cannot turn the view; a two-finger tap
 // undoes and a three-finger tap redoes. A plain function of the controller, so the mapping is a unit test.
-import type { GestureHandlers } from '@mcthaydt/automata-editor-kit'
+import type { GestureHandlers } from '@mcthaydt/automata-editor/kit'
 import type { WalkController } from '../../app/walk-session'
 
 /** Radians a pixel of drag turns the view: a drag across a 600 px view turns it about a half turn. */

@@ -36,6 +36,13 @@ The editor saves to the files listed in content/editors.toml (or the .json files
 overwrite a file that changed while you were editing.
 `
 
+/** Where each editor's build is, from the repository root, and the package that builds it. */
+const BUILDS: Readonly<Record<EditorApp, { readonly folder: string; readonly pkg: string }>> = {
+  '2d': { folder: 'packages/editor/dist/2d', pkg: '@mcthaydt/automata-editor' },
+  '3d': { folder: 'packages/editor-3d/dist', pkg: '@mcthaydt/automata-editor-3d' },
+  suite: { folder: 'packages/editor-3d/dist/suite', pkg: '@mcthaydt/automata-editor-3d' },
+}
+
 const here = dirname(fileURLToPath(import.meta.url))
 
 /** The repository's root: the nearest folder above this file with a `pnpm-workspace.yaml` (source and build sit at different depths). */
@@ -63,9 +70,7 @@ export async function editorCommand(
   const root = resolve(deps.cwd, dir)
   const build = appDir === undefined ? deps.builtApp(app) : resolve(deps.cwd, appDir)
   if (!deps.exists(resolve(build, 'index.html'))) {
-    io.stderr(
-      `Error: no editor build at ${build}. Build it first: pnpm --filter @mcthaydt/automata-editor-${app} build\n`,
-    )
+    io.stderr(`Error: no editor build at ${build}. Build it first: pnpm --filter ${BUILDS[app].pkg} build\n`)
     return 2
   }
   const secret = lan ? (token ?? deps.makeToken()) : token
@@ -93,11 +98,11 @@ export async function editorCommand(
   return 0
 }
 
-/** The real dependencies: the repository's `packages/editor-<app>/dist`, this machine's network and Ctrl+C. */
+/** The real dependencies: the repository's build of each editor, this machine's network and Ctrl+C. */
 export function liveEditorDeps(): EditorCommandDeps {
   return {
     serve: serveEditor,
-    builtApp: (app) => resolve(repositoryRoot(), `packages/editor-${app}`, 'dist'),
+    builtApp: (app) => resolve(repositoryRoot(), BUILDS[app].folder),
     exists: existsSync,
     lanAddresses: () =>
       Object.values(networkInterfaces())

@@ -54,7 +54,6 @@ const VITEST_CAP = 'VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}}'
 // figures, the sector format, the base 3D game and the 3D editors run in 3d.yml.
 const THREE_D_PACKAGES = [
   './packages/editor-3d',
-  './packages/editor-suite',
   '@af-games/base-3d',
   './packages/render-pixi3d',
   './packages/figures',
@@ -350,11 +349,10 @@ describe('the iPad journeys (CI.JRN1)', () => {
   })
 
   it('gives every package with a journeys vitest project a test:journeys script, which the root script runs', () => {
-    expect(withJourneys).toContain('packages/editor-kit')
-    // The 2D editors' journeys and canvas tests run in the 2D gate's parity job (their `test:browser`), not only here.
-    for (const path of ['packages/editor-kit', 'packages/editor-2d'])
-      expect(packageJson(path).scripts['test:browser'], path).toContain('--project journeys')
-    expect(packageJson('packages/editor-2d').scripts['test:browser']).toContain('--project canvas')
+    expect(withJourneys).toContain('packages/editor')
+    // The 2D editor's journeys and canvas tests run in the 2D gate's parity job (its `test:browser`), not only here.
+    expect(packageJson('packages/editor').scripts['test:browser']).toContain('--project journeys')
+    expect(packageJson('packages/editor').scripts['test:browser']).toContain('--project canvas')
     for (const path of withJourneys)
       expect(packageJson(path).scripts['test:journeys']).toMatch(/^vitest run --project journeys/)
     expect(packageJson('.').scripts['test:journeys']).toBe(`${VITEST_CAP} turbo run test:journeys`)

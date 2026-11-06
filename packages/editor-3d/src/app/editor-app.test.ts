@@ -1,6 +1,6 @@
 // Opening a level from the workspace (ED3D.5b step 5; ED3D spec §5.3 flow 1, §8, §11): stat, read, the registry's
 // profile, the checks run once, the autosave offered; and, beside a Last Light level, its facility file.
-import { type ProjectStore, StorageError } from '@mcthaydt/automata-editor-kit/core'
+import { type ProjectStore, StorageError } from '@mcthaydt/automata-editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import { moveWing } from '../model/facility-edits'
 import { afSectorProfile } from '../profile/af-sector-profile'

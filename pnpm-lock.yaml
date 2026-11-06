@@ -442,14 +442,20 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
 
-  packages/editor-2d:
+  packages/editor:
     dependencies:
+      '@decimalturn/toml-patch':
+        specifier: 3.3.1
+        version: 3.3.1
+      '@fontsource/ibm-plex-mono':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/ibm-plex-sans':
+        specifier: 5.3.0
+        version: 5.3.0
       '@mcthaydt/automata':
         specifier: workspace:*
         version: link:../automata
-      '@mcthaydt/automata-editor-kit':
-        specifier: workspace:*
-        version: link:../editor-kit
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
@@ -511,152 +517,24 @@ importers:
       '@mcthaydt/automata':
         specifier: workspace:*
         version: link:../automata
-      '@mcthaydt/automata-editor-kit':
+      '@mcthaydt/automata-editor':
         specifier: workspace:*
-        version: link:../editor-kit
-      '@mcthaydt/automata-render-pixi3d':
-        specifier: workspace:*
-        version: link:../render-pixi3d
-      '@mcthaydt/automata-sector-format':
-        specifier: workspace:*
-        version: link:../sector-format
-      fflate:
-        specifier: 0.8.3
-        version: 0.8.3
-      pixi.js:
-        specifier: 8.22.0
-        version: 8.22.0
-      svelte:
-        specifier: 5.57.1
-        version: 5.57.1
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@sveltejs/vite-plugin-svelte':
-        specifier: 7.3.1
-        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-      '@testing-library/dom':
-        specifier: 10.4.2
-        version: 10.4.2
-      '@testing-library/jest-dom':
-        specifier: 7.0.1
-        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.3)
-      '@testing-library/svelte':
-        specifier: 5.4.2
-        version: 5.4.2(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
-      '@testing-library/user-event':
-        specifier: 14.6.7
-        version: 14.6.7(@testing-library/dom@10.4.2)
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
-      '@vitest/browser-playwright':
-        specifier: 5.0.3
-        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
-      jsdom:
-        specifier: 30.1.1
-        version: 30.1.1
-      playwright:
-        specifier: 1.63.0
-        version: 1.63.0
-      svelte-check:
-        specifier: 4.7.6
-        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vite:
-        specifier: 8.3.3
-        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-
-  packages/editor-kit:
-    dependencies:
-      '@decimalturn/toml-patch':
-        specifier: 3.3.1
-        version: 3.3.1
-      '@fontsource/ibm-plex-mono':
-        specifier: 5.3.0
-        version: 5.3.0
-      '@fontsource/ibm-plex-sans':
-        specifier: 5.3.0
-        version: 5.3.0
-      '@mcthaydt/automata':
-        specifier: workspace:*
-        version: link:../automata
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@sveltejs/vite-plugin-svelte':
-        specifier: 7.3.1
-        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-      '@testing-library/dom':
-        specifier: 10.4.2
-        version: 10.4.2
-      '@testing-library/jest-dom':
-        specifier: 7.0.1
-        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.3)
-      '@testing-library/svelte':
-        specifier: 5.4.2
-        version: 5.4.2(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
-      '@testing-library/user-event':
-        specifier: 14.6.7
-        version: 14.6.7(@testing-library/dom@10.4.2)
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
-      '@vitest/browser-playwright':
-        specifier: 5.0.3
-        version: 5.0.3(playwright@1.63.0)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))(vitest@5.0.3)
-      jsdom:
-        specifier: 30.1.1
-        version: 30.1.1
-      playwright:
-        specifier: 1.63.0
-        version: 1.63.0
-      svelte:
-        specifier: 5.57.1
-        version: 5.57.1
-      svelte-check:
-        specifier: 4.7.6
-        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vite:
-        specifier: 8.3.3
-        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-
-  packages/editor-suite:
-    dependencies:
-      '@mcthaydt/automata':
-        specifier: workspace:*
-        version: link:../automata
-      '@mcthaydt/automata-editor-2d':
-        specifier: workspace:*
-        version: link:../editor-2d
-      '@mcthaydt/automata-editor-3d':
-        specifier: workspace:*
-        version: link:../editor-3d
-      '@mcthaydt/automata-editor-kit':
-        specifier: workspace:*
-        version: link:../editor-kit
+        version: link:../editor
       '@mcthaydt/automata-figures':
         specifier: workspace:*
         version: link:../figures
       '@mcthaydt/automata-render-pixi3d':
         specifier: workspace:*
         version: link:../render-pixi3d
+      '@mcthaydt/automata-sector-format':
+        specifier: workspace:*
+        version: link:../sector-format
       '@pixi/3d':
         specifier: file:../../vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz
         version: file:vendor/pixi-3d/pixi-3d-0.1.0-beta.2.tgz(pixi.js@8.22.0)
+      fflate:
+        specifier: 0.8.3
+        version: 0.8.3
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
@@ -673,6 +551,9 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@testing-library/dom':
+        specifier: 10.4.2
+        version: 10.4.2
       '@testing-library/jest-dom':
         specifier: 7.0.1
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.3)
@@ -861,9 +742,9 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@mcthaydt/automata-editor-suite':
+      '@mcthaydt/automata-editor':
         specifier: workspace:*
-        version: link:../editor-suite
+        version: link:../editor
       '@mcthaydt/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset
@@ -946,25 +827,6 @@ importers:
       typescript:
         specifier: 6.0.3
         version: 6.0.3
-      vitest:
-        specifier: 5.0.3
-        version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
-
-  tooling/check-boundaries:
-    dependencies:
-      oxc-parser:
-        specifier: 0.152.0
-        version: 0.152.0
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@mcthaydt/vitest-preset':
-        specifier: workspace:*
-        version: link:../vitest-preset
-      '@types/node':
-        specifier: 24.19.1
-        version: 24.19.1
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))

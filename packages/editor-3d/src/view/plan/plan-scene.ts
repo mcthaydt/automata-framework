@@ -2,7 +2,7 @@
 // above, walls are one segment for each physical line classified by what is in them, and each carries the selection id
 // the app selects it by. It reads the geometry layers alone (ED3D spec §4.3), so the plan can never disagree with the
 // meshes or the checks; the painting, with its colours, strokes and labels, is the app's.
-import type { Rect } from '@mcthaydt/automata-editor-kit/core'
+import type { Rect } from '@mcthaydt/automata-editor/kit/core'
 import type { Point } from '../../format/sector.schema'
 import type { Edge, Sector } from '../../geometry/sectors'
 import type { GeometryLayer } from '../../profile/level-profile'

@@ -16,8 +16,8 @@ import {
   StatusLine,
   shellModeOf,
   ToastRegion,
-} from '@mcthaydt/automata-editor-kit'
-import { createCommandRegistry, createKeymap, type ToastStore } from '@mcthaydt/automata-editor-kit/core'
+} from '@mcthaydt/automata-editor/kit'
+import { createCommandRegistry, createKeymap, type ToastStore } from '@mcthaydt/automata-editor/kit/core'
 import { onDestroy } from 'svelte'
 import { createChecksPanel, type Scheduler } from '../../app/checks-panel-controller'
 import type { DocumentController, DocumentState } from '../../app/document/document-controller'

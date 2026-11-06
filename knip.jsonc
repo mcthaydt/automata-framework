@@ -48,6 +48,8 @@
       "entry": ["src/entries/*.ts", "src/app/*/main.ts", "scripts/*.ts"],
       "ignoreDependencies": ["@fontsource/ibm-plex-mono", "@fontsource/ibm-plex-sans"]
     },
+    // `suite.html` starts the full suite page (`vite build --mode suite`), which knip does not read from the HTML.
+    "packages/editor-3d": { "entry": ["src/suite-main.ts"] },
     // M3.5b: the FigureBuilder goldens' generator is run by hand with node (its header says how).
     "packages/figures": {
       "entry": [

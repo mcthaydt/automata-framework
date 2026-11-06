@@ -1,8 +1,8 @@
 // The Ask controller (ED3D.10a steps 4 and 5, spec §5.3 flow 8 and ED3-j): a prompt goes to the provider with the
 // selection and a budget, the proposal is read into a copy of the level and shown as a ghost with its check results,
 // and Accept applies it as one step unless the copy has errors. The provider is a script the test settles itself.
-import type { Proposal } from '@mcthaydt/automata-editor-kit/ports'
-import { createScriptedAsk } from '@mcthaydt/automata-editor-kit/ports/testing'
+import type { Proposal } from '@mcthaydt/automata-editor/kit/ports'
+import { createScriptedAsk } from '@mcthaydt/automata-editor/kit/ports/testing'
 import { describe, expect, it, vi } from 'vitest'
 import type { CheckResult } from '../checks/check'
 import type { AfSector } from '../format/af-sector.schema'

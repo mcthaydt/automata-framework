@@ -4,7 +4,7 @@
 // x 4.06, z 1.5 to 2.5, the spawn at (1, 1), the hotspot far at (6, 3), the first zone a looking at (3.5, 2)) with its
 // nav written by hand: p (1.5, 2.5) and t (2.5, 2.5) in room a, s (5.5, 2.5) in room b, and no edge. The canvas is 800
 // by 400 px with the camera at (7, 3), zoom 1 (32 px to a metre); the grid is half a metre.
-import type { PointerKind } from '@mcthaydt/automata-editor-kit/core'
+import type { PointerKind } from '@mcthaydt/automata-editor/kit/core'
 import { describe, expect, it } from 'vitest'
 import type { PlanPointer } from '../app/plan-controller'
 import type { AfSector } from '../format/af-sector.schema'

@@ -3,7 +3,7 @@ import type {
   SuitePorts,
   SuiteUndo,
   WorkspaceFile,
-} from '@mcthaydt/automata-editor-kit/ports'
+} from '@mcthaydt/automata-editor/kit/ports'
 import { ok } from '../model/edit'
 import { createLevelEditor, type LevelEditor } from '../model/level-editor'
 import type { ParseIssue } from '../profile/file-codec'

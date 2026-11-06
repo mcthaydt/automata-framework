@@ -27,16 +27,23 @@
     "./tokens.css": "./src/shared/kit/tokens.css",
     "./fonts.css": "./src/shared/kit/fonts.css",
     "./suite": "./src/entries/suite.ts",
+    "./suite/testing": "./src/entries/suite-testing.ts",
+    "./suite/testing/layout": "./src/entries/suite-layout-testing.ts",
     "./editor-list": "./src/entries/editor-list.ts",
-    "./level-export": "./src/entries/level-export.ts"
+    "./level-export": "./src/entries/level-export.ts",
+    "./suite.css": "./src/app/suite/main.css"
   },
   "scripts": {
+    "build": "vite build && vite build --mode suite",
     "dev": "vite",
-    "build": "vite build",
     "test": "vitest run",
-    "test:unit": "vitest run --project unit",
-    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
-    "tokens": "node scripts/generate-tokens.ts"
+    "test:browser": "vitest run --project browsers --project layout --project layout-kit --project canvas --project journeys",
+    "test:canvas": "vitest run --project canvas",
+    "test:journeys": "vitest run --project journeys --passWithNoTests",
+    "test:layout": "vitest run --project layout --project layout-kit",
+    "test:unit": "vitest run --project kit --project unit --project dom",
+    "tokens": "node scripts/generate-tokens.ts",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
   "dependencies": {
     "@decimalturn/toml-patch": "3.3.1",
@@ -49,7 +56,6 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@mcthaydt/vitest-preset": "workspace:*",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",

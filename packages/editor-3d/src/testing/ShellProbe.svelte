@@ -4,7 +4,7 @@
 -->
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata'
-import { EditorShell } from '@mcthaydt/automata-editor-kit'
+import { EditorShell } from '@mcthaydt/automata-editor/kit'
 
 let { geometry }: { geometry: GeometryState } = $props()
 </script>

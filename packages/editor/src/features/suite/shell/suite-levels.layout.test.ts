@@ -1,0 +1,87 @@
+import '../../../shared/kit/tokens.css'
+import '../../../shared/kit/fonts.css'
+import '../../../app/suite/main.css'
+import { checkLayout, settleLayout } from '@mcthaydt/automata/testing'
+import { afterEach, describe, expect, test } from 'vitest'
+import { page } from 'vitest/browser'
+import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
+import { SIZES } from '../../../testing/kit/layout-sizes.ts'
+import { fixtureEditor } from '../../../testing/suite/fixture-editor'
+import platformer from '../../../testing/suite/fixtures/platformer.af2d.json?raw'
+import StandInLevelCanvas from '../../../testing/suite/StandInLevelCanvas.svelte'
+import {
+  dockToggle,
+  editorList,
+  inShell,
+  inView,
+  noPageScroll,
+  type OpenedSuite,
+  openSuite,
+  tab,
+} from '../../../testing/suite/suite-layout'
+import { EDITOR_LIST_PATH } from '../core'
+import { createLevels2d } from '../levels-2d/levels-2d-suite-editor.ts'
+
+// The 2D level editor in the suite's one shell with the production CSS in real browsers at the sizes of spec §10: its
+// regions sit inside the shell under one top bar, every target is at least 44 px, the page never scrolls, and a
+// rotation keeps the session. The canvas is a stand-in that shows what it is handed; pixels are the editor's own canvas
+// project. The 3D editor's twin of this test is in editor-3d.
+
+const FILES = {
+  [EDITOR_LIST_PATH]: editorList('content/levels/*.af2d.json', 'levels-2d'),
+  'content/tuning.toml': '[player]\nspeed = 6\n',
+  'content/levels/world.af2d.json': platformer,
+}
+
+let next = 0
+const editors = (): SuiteEditor<unknown>[] => [
+  fixtureEditor as SuiteEditor<unknown>,
+  createLevels2d({
+    ids: {
+      next: () => {
+        next += 1
+        return `thing-${next}`
+      },
+    },
+    canvas: StandInLevelCanvas,
+  }) as SuiteEditor<unknown>,
+]
+
+let opened: OpenedSuite | undefined
+afterEach(async () => {
+  await opened?.close()
+  opened = undefined
+})
+
+const READY = '[data-testid="level-canvas"]'
+
+describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
+  test('fills the one shell: the stage has room, every target 44 px, a Dock toggle below wide', async () => {
+    opened = await openSuite(size, editors(), FILES, READY)
+    const { conditions } = opened
+    const surface = inShell('[data-testid="level-surface"]')
+    inView(surface, size)
+    expect(checkLayout(conditions, [tab('Levels'), ...dockToggle()])).toEqual([])
+    if (size.mode !== 'wide') expect(dockToggle()).toHaveLength(1)
+    const [toggle] = dockToggle()
+    if (toggle?.getAttribute('aria-expanded') === 'true') {
+      // A medium dock starts open as a strip over the canvas's foot; the toggle takes it away.
+      toggle.click()
+      await expect.poll(() => toggle.getAttribute('aria-expanded')).toBe('false')
+      await settleLayout()
+      expect(checkLayout(conditions, [surface, toggle])).toEqual([])
+    }
+    noPageScroll()
+    await page.screenshot({ path: `.vitest/shots/suite-levels-2d-${size.name}.png` })
+  })
+
+  test('a rotation keeps the session: the chosen tool is still chosen', async () => {
+    opened = await openSuite(size, editors(), FILES, READY)
+    await page.getByRole('radio', { name: 'Eraser' }).click()
+    await expect.poll(() => document.querySelector(READY)?.getAttribute('data-tool')).toBe('eraser')
+    await page.viewport(size.height, size.width)
+    await settleLayout()
+    expect(document.querySelector(READY)?.getAttribute('data-tool')).toBe('eraser')
+    noPageScroll()
+  })
+})

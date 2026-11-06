@@ -1,7 +1,7 @@
 // New level (ED3D.13b; ED3D spec §4.6, ED3-q): a level's name becomes a folder and the one `af-sector/1` file in it, named
 // like the folder, which Home then opens like any other level. A folder the workspace already has is never overwritten:
 // the next free `name-2`, `name-3` is used.
-import { type ProjectStore, storePathProblem } from '@mcthaydt/automata-editor-kit/core'
+import { type ProjectStore, storePathProblem } from '@mcthaydt/automata-editor/kit/core'
 import { newAfSectorLevel } from '../../profile/af-sector/af-template'
 import { freeRoot } from '../import-files'
 
