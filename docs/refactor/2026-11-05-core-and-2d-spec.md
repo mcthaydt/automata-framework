@@ -18,8 +18,9 @@ The refactor is finished when all of these are true, each checked by a command o
 2. **The Owner plays Emberwick on the iPad** from a build the agent hands over (the `game-ci` build artifact served
    on the local network, or the dev host deploy). (J1; the Owner's step)
 3. **Core is four packages**, each grouped by feature: `sim`, `content`, `automata`, `tools` (section 3). (D1, S1 to S3)
-4. **Effect is gone from everything that runs in the browser.** `pnpm boundaries` fails if a browser file imports
-   `effect`. (D2, O2)
+4. **Effect is gone from core and Emberwick, everything that runs in the browser for this area.** `pnpm boundaries`
+   fails if a browser file of core imports `effect`. The 3D renderer keeps Effect inside until the 3D phase (D3);
+   its audit carries the rest. (D2, O2)
 5. **Every test lives in a `tests/` folder**, in one of three kinds (`unit`, `browser`, `e2e`), named `*.test.ts`
    (`*.svelte.test.ts` when it uses Svelte runes). (T7, O4)
 6. **A feature never imports another feature**, and lint says so. (section 3.3)
@@ -95,16 +96,34 @@ Every package's `src/` follows the reference layout (`WebDevSimplified/parity-de
 
 ```
 packages/automata/src/
-  app/            the composition root: defineGame, startGame, runGame, boot. Wires features together.
+  app/            the composition root, and everything that is the composition of features:
+                  define-game, start-game, boot, draw, flow, and the screens (title, play, paused, Settings, Saves)
   features/       one folder per feature, everything about it in one place
-    audio/  display/  extension/  flow/  input/  loading/  locale/  render/  saves/  screens/  settings/  targets/
+    audio/  display/  extension/  input/  leaderboards/  locale/  render/  saves/  targets/
   shared/         code more than one feature needs, owned by no feature
     host/         the host contract (the port every target implements)
+    runtime/      the clock, loop, presentation, render surface, settings storage and loading
     ui/           the widget kit: controls, dialog, focus, geometry, layout, slots, status, touch, theme
-    lib/          small helpers: subscribable, clock, disposables, errors
-  entries/        the published entry files; each re-exports from app/, features/ or shared/
+    lib/          small helpers: subscribable, clock, disposables, results
+  entries/        the published entry files, named by what they hold; each re-exports from app/, features/ or shared/
   testing/        the published test helpers (the `./testing` entry), product code, not tests
 ```
+
+**Why `app/` and `shared/` hold more than the first draft of this section said.** The rule "a feature never imports
+another feature" was kept by moving the code that crossed features out of `features/`:
+
+- The screens are the composition of every feature (Settings shows audio, input, display, locale and vibration; Saves
+  shows saves and the host), so they live in `app/screens/`, and flow with them.
+- The runtime's time, loop, presentation, render surface and loading services are used by several features, so they
+  sit in `shared/runtime/`.
+- `content`'s compiler is a pipeline in which parse, validate, generate, locale, assets and tuning call each other in
+  a cycle, so all of it is `shared/`; only `preload` and `vite`, which sit at the edges, are features.
+- `sim`'s define, hash, rng, schedule and world are the engine's one core; only `replay` stands alone as a feature.
+- `tools`' ship, check and create-game are called by the commands in `app/`, so they are `shared/`; `add`, `build` and
+  `editor` are features.
+
+A later area copies this shape: put a folder in `features/` only when nothing else imports it, and put the rest in
+`shared/` or `app/` by who uses it.
 
 The rules, enforced by `pnpm boundaries` (section 3.5):
 
@@ -120,13 +139,13 @@ or function into A. Features stay testable alone, and the place where features m
 
 The same layout applies, sized down, to the other packages:
 
-- `sim`: `src/features/{world,schedule,define,rng,replay,hash}`, `src/shared/{math,util,version}`, `src/entries/`,
+- `sim`: `src/features/replay`, `src/shared/{define,hash,math,rng,schedule,util,world}`, `src/entries/`,
   `src/testing/`. All of it except `src/testing/` stays under the sim purity rule.
-- `content`: `src/features/{compile,parse,assets,locale,flow,game,tuning,palette,preload,generate,vite}`,
-  `src/shared/{diagnostics,files,hash,schema}`, `src/app/cli/`, `src/entries/`, `src/testing/`. The browser-safe entries may not
-  import (directly or not) `effect`, `node:*`, `fontkit`, `pngjs` or `subset-font`.
-- `tools`: `src/features/{ship,create-game,add,check,editor,build}`, `src/shared/{node,errors,config}`,
-  `src/app/cli.ts`, `src/entries/`, `src/e2e/`.
+- `content`: `src/features/{preload,vite}`, `src/shared/{assets,compile,diagnostics,files,flow,game,generate,hash,locale,palette,parse,schema,tuning}`,
+  `src/app/cli/`, `src/entries/`, `src/testing/`. The browser-safe entries (`game-config`, `locale`, `schema`,
+  `palette`) may not import (directly or not) `effect`, `node:*`, `fontkit`, `pngjs` or `subset-font`.
+- `tools`: `src/features/{add,build,editor}`, `src/shared/{check,create-game,node,ship}`, `src/app/` (the `automata`
+  bin and the `ship` command), `src/entries/`, `src/e2e/`.
 
 **Games use features too.** The game-layout-by-role rule (GL spec, "constants.ts, components.ts, systems.ts")
 is retired for games; a game's `src/` is `features/<x>/` plus `app/` like a package, and `main.ts` at the game
@@ -143,14 +162,15 @@ games/emberwick/
   main.ts  index.html  ship.config.ts  package.json  vite.config.ts  playwright.config.ts
   content/                     authored content, unchanged
   src/
-    app/game.ts                defineGame({...}): wires the features
+    app/                       game.ts (defineGame), the plugin and the no-eval import: wires the features
     features/
-      player/                  player.component.ts, player-input.system.ts, player-move.system.ts, move.command.ts, place-wick.ts
-      room/                    room content loader, level-room, tiles, backdrop, light levels
-      goal/                    goal.system.ts, the ember
-      art/                     palette, sprites, PROVENANCE.md
-      screens/                 Emberwick's menu copy and screens
-    shared/                    what two Emberwick features both need (kinds, pixels)
+      player/                  move.command.ts, player-input.system.ts, player-move.system.ts, place-wick.ts
+      goal/                    goal.system.ts, the progress resource
+      room/                    the room content loader, level-room
+      scene/                   backdrop, particles, tiles and the scene renderer
+      screens/                 Emberwick's own screens and copy
+    shared/                    what two features both need (kinds, tiles, tuning, art, pixels, the player component)
+    entries/  testing/
   tests/
     unit/  browser/  e2e/  fixtures/
 ```

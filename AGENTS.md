@@ -21,8 +21,8 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 2. Each piece of state has one owner. Presentation observes; it never decides.
 3. The same seed, content and inputs give the same hash, in every engine. Never accept a hash mismatch as flaky.
 4. The host is a port. No distribution target is the reference ([ADR 0006](docs/adr/0006-distribution-targets.md)).
-5. Effect is for Node tooling. The sim never imports it, and it is leaving the browser package (task 5.4 finishes it;
-   [ADR 0003](docs/adr/0003-effect-outside-the-sim.md) as amended).
+5. Effect is for Node tooling. The sim never imports it, and the browser package `@mcthaydt/automata` is plain
+   TypeScript ([ADR 0003](docs/adr/0003-effect-outside-the-sim.md) as amended). The 3D renderer keeps Effect until the 3D phase.
 6. PixiJS only for rendering ([ADR 0002](docs/adr/0002-pixi-for-2d-and-3d.md)). Every game imports the no-eval entry first.
 7. Zod is the only schema language.
 
@@ -35,7 +35,10 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 - A game's `src/` has the same shape. Sim files are found by role suffix (`.component.ts`, `.system.ts`,
   `.command.ts`, `.event.ts`, `.resource.ts`, `.plugin.ts`) and by what they import. `games/base-3d` keeps its
   role files until the 3D phase.
-- Tests live in `tests/` beside `src/`: `unit/<feature>/`, `browser/`, `e2e/`, `fixtures/`. One suffix, `.test.ts`.
+- Tests live in `tests/` beside `src/`: `unit/<feature>/`, `browser/`, `e2e/`, `fixtures/`, and where a package needs
+  them `bench/` (timings), `slow/` (needs a real browser or the network, run by hand) and `install/` (installs a packed
+  package outside the workspace). One suffix, `.test.ts`. A test imports the code it tests as `#src/…`, never by a
+  relative chain into `src/`; `pnpm style` fails on one.
 - Names: kebab-case files with a role suffix where one applies. A source file has at most 600 lines.
 - Comments say why. They do not say which plan asked for the code.
 
@@ -71,9 +74,11 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 ## Gates
 
 - `pnpm format` before committing; Conventional Commits.
-- `pnpm check` runs lint, typecheck, `boundaries`, `style`, `knip` and the unit tests.
-- After `pnpm build`, CI also runs `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills`, `changeset status`
-  and `check-changesets`. After changing a published package's exports or doc comments, run
+- `pnpm check` runs lint, typecheck, `boundaries`, `style`, `knip`, the unit tests, `changeset status` and
+  `check-changesets`.
+- Pull requests run `pnpm check` plus parity and the 2D journeys. `release-checks.yml` (before every publish, nightly
+  and by hand, not on pull requests) runs `pnpm build`, `pnpm api-report`, `pnpm api-index`, `pnpm agent-skills` and the
+  packed-install smoke. After changing a published package's exports or doc comments, run `pnpm build`, then
   `pnpm api-report --update`, `pnpm agent-skills --write` and `pnpm cheatsheet`, and commit what they write.
 - Only published packages get a changeset, and it is `patch`. Private ones (the editors, figures) need none.
 - Browser, visual and journey suites run on the GPU runner, and cross-engine parity runs in Chromium, WebKit and
