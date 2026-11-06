@@ -3,10 +3,12 @@ import { BASE } from '../../../base/base';
 import { GROUP } from '../../../src/features/body/parts';
 import { measure } from '../../../src/features/body/genes';
 import { J, skeleton } from '../../../src/features/body/rig';
+import { labelAt } from '../../../src/features/paint/fabric';
+import { FIXTURES } from '../paint/fabric-fixtures';
 import { arcOf, clothFrame, clothSlots, clothU, slotAt } from '../../../src/features/figure/cloth';
 import { Figure } from '../../../src/features/figure/figure';
 import { member } from '../../../src/features/figure/frames';
-import { dress } from '../../../src/features/outfit/garments';
+import { dress, type Garment } from '../../../src/features/outfit/garments';
 import { profiles } from '../../../src/features/outfit/fit';
 import type { Sliders } from '../../../src/features/body/genes';
 import { BODY, endsOf } from '../body/ends';
@@ -113,5 +115,55 @@ describe('cloth coordinates (the mapping)', () => {
       if (p.group === GROUP.head) for (let i = 0; i < count * 3; i++) expect(slots[at * 3 + i]).toBe(0);
       at += count;
     }
+  });
+});
+
+/** A figure at pitch 0 (audit B1: at the sheets' 18° a ring projects as an ellipse), its cloth channel read as labels. */
+const drawn = (swatch: string, view: number, garments: Garment[] = [{ top: swatch, sleeves: 'long' }], base = BASE[0].def) => {
+  const sw = { fxrib: { ramp: 10, base: 3, fabric: 'fx-rib' }, fxacross: { ramp: 10, base: 3, fabric: 'fx-across' } };
+  const f = new Figure(member(dressed(garments, sw, base), 2));
+  f.cache = false;
+  for (let i = 0; i < 3; i++) f.update(1 / 60, { facing: view * Math.PI / 4, moving: false, view: { azimuth: 0, pitch: 0 } });
+  return f;
+};
+const labelsOf = (f: Figure, fab: keyof typeof FIXTURES, group: number = GROUP.torso) => {
+  const out = new Map<number, number>();
+  for (let k = 0; k < f.g.w * f.g.h; k++) { const at = f.clothAt(k); if (at && f.g.group[k] === group) out.set(k, labelAt(FIXTURES[fab], at[0], at[1], 73.8)); }
+  return out;
+};
+describe('cloth on the figure (the mapping drawn)', () => {
+  it('has no shear: stripes across are level on the flanks', () => {
+    for (const base of [BASE[0].def, BASE[1].def]) for (const view of [0, 1, 2, 4]) {
+      const f = drawn('fxacross', view, [{ top: 'fxacross', sleeves: 'long' }], base), labels = labelsOf(f, 'across'), rows = new Map<number, Set<number>>(), count = new Map<number, number>();
+      for (const [k, l] of labels) { const y = Math.floor(k / f.g.w); (rows.get(y) ?? rows.set(y, new Set()).get(y)!).add(l); count.set(y, (count.get(y) ?? 0) + 1); }
+      const wide = [...rows].filter(([y]) => count.get(y)! >= 4);
+      expect(wide.length, `${base.id} view ${view}`).toBeGreaterThan(20);
+      expect(wide.filter(([, set]) => set.size === 1).length / wide.length, `${base.id} view ${view}`).toBeGreaterThanOrEqual(0.9);
+    }
+  });
+  it('is continuous across the chest, waist and pelvis', () => {
+    const f = drawn('fxrib', 0, [{ top: 'fxrib', sleeves: 'long' }, { shorts: 'fxrib' }]), s = f.skeleton, k = f.member.genes.height / 1.62;
+    for (const yb of [s.chestY - 0.07 * k, s.hipY + 0.09 * k]) {
+      let columns = 0, match = 0;
+      for (let x = 0; x < f.g.w; x++) for (let y = 0; y < f.g.h - 1; y++) {
+        const a = f.clothAt(y * f.g.w + x), b = f.clothAt((y + 1) * f.g.w + x);
+        if (!a || !b || f.g.group[y * f.g.w + x] !== GROUP.torso || f.g.group[(y + 1) * f.g.w + x] !== GROUP.torso) continue;
+        if (a[1] < -yb && b[1] >= -yb) { columns++; if (labelAt(FIXTURES.rib, a[0], a[1], 73.8) === labelAt(FIXTURES.rib, b[0], b[1], 73.8)) match++; break; }
+      }
+      expect(columns, `boundary ${yb}`).toBeGreaterThan(10);
+      expect(match / columns, `boundary ${yb}`).toBeGreaterThanOrEqual(0.9);
+    }
+  });
+  it('holds still on the body through the walk', () => {
+    const share = (f: Figure) => { const l = [...labelsOf(f, 'rib').values()]; return l.filter(v => v === -1).length / l.length; };
+    const stood = share(drawn('fxrib', 1));
+    const f = new Figure({ ...member(dressed([{ top: 'fxrib', sleeves: 'long' }], { fxrib: { ramp: 10, base: 3, fabric: 'fx-rib' } }), 2), blink: 0 });
+    f.cache = false;
+    const shares: number[] = [];
+    for (let i = 0; i < Math.round(f.member.gait.cycle * 4 * 60); i++) {
+      if (f.update(1 / 60, { facing: Math.PI / 4, moving: true, view: { azimuth: 0, pitch: 0 } })) shares.push(share(f));
+    }
+    expect(shares.length).toBeGreaterThanOrEqual(8);
+    for (const v of shares) expect(Math.abs(v - stood)).toBeLessThanOrEqual(0.1);
   });
 });

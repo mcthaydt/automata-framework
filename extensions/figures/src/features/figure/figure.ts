@@ -8,7 +8,7 @@ import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body
 import { NECK, type Expression, type FaceLook } from '../outfit/garments';
 import { DEFAULT_HEAD } from '../body/genes';
 import { fabricOf } from '../paint/fabric';
-import { clothFrame, clothSlots, type ClothFrame } from './cloth';
+import { clothFrame, clothSlots, clothU, type ClothFrame } from './cloth';
 import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Bends, type FaceStamp, type HandStamp, type PaintStyle } from '../paint/paint';
 /**
  * A procedural figure at run time: the stepped pose clock, the snap to 8 directions, the hair's spring, the triangle
@@ -211,6 +211,8 @@ export class Figure {
   light: FigureLight | null = null;
   /** With a light: the G-buffer rasterised with each vertex's light in its place slots, and its supersampled pass. */
   private gL: GBuffer; private hiL: GBuffer;
+  /** With a fabric in use (H5): the G-buffer rasterised with each vertex's cloth slots in its place slots, and its supersampled pass. */
+  private gC: GBuffer; private hiC: GBuffer;
   /** The supersampled G-buffer the raster draws into, resolved into `g`. */
   private hi: GBuffer;
   /** The painter's output (paint.ts): the cell's colours and normal map; and its style. */
@@ -238,6 +240,7 @@ export class Figure {
     this.g = gbuffer(this.cell[0], this.cell[1]);
     this.hi = gbuffer(this.cell[0] * this.style.supersample, this.cell[1] * this.style.supersample);
     this.gL = gbuffer(this.cell[0], this.cell[1]); this.hiL = gbuffer(this.hi.w, this.hi.h);
+    this.gC = gbuffer(this.cell[0], this.cell[1]); this.hiC = gbuffer(this.hi.w, this.hi.h);
     this.painted = new Uint8ClampedArray(this.cell[0] * this.cell[1] * 4); this.normals = new Uint8ClampedArray(this.painted.length);
   }
   /** Swaps the outfit or the held item (rebuilds the part list once). */
@@ -353,6 +356,16 @@ export class Figure {
     }
     return b;
   }
+  /**
+   * The last raster's cloth coordinates (metres) at cell texel `k`: `u` round the texel's group and `v` down the body. Null
+   * when no fabric is in use, where nothing is drawn, or on an untiled group (the head, a held item). The cell cache skips
+   * the raster, so read this with `cache = false`. A fork's checks and the mapping tests read labels from it.
+   */
+  clothAt(k: number): [u: number, v: number] | null {
+    if (!this.built.cloth || this.g.part[k] < 0) return null;
+    const u = clothU(this.built.frame!, this.g.group[k], this.gC.place[k * 3], this.gC.place[k * 3 + 1]);
+    return u === null ? null : [u, this.gC.place[k * 3 + 2]];
+  }
   /** Draws the current pose: the triangle soup, the G-buffer and its cleanup, the marks, and the painter's cell. */
   private raster(pitch: number, faceState: FaceState) {
     const S = this.style.supersample;
@@ -374,6 +387,15 @@ export class Figure {
       for (let v = 0; v < soup.count; v++) for (let i = 0; i < 3; i++) verts[v * VERT + 6 + i] = this.lightOut[v * 3 + i];
       rasterize({ ...soup, verts }, this.hiL); resolve(this.hiL, this.gL, S, this.style); cleaned(this.gL);
     }
+    // With a fabric in use (H5): a third raster of the same triangles with each vertex's cloth slots in the place slots,
+    // resolved and cleaned as gL is, so gC follows g texel for texel.
+    const cloth = this.built.cloth;
+    if (cloth) {
+      if (this.hiC.w !== this.hi.w) this.hiC = gbuffer(this.hi.w, this.hi.h);
+      const verts = soup.verts.slice(0, soup.count * VERT);
+      for (let v = 0; v < soup.count; v++) for (let i = 0; i < 3; i++) verts[v * VERT + 6 + i] = cloth[v * 3 + i];
+      rasterize({ ...soup, verts }, this.hiC); resolve(this.hiC, this.gC, S, this.style); cleaned(this.gC);
+    }
     // A print on a surface before the marks (they find its surface by its part), one hung over it (a pendant) after,
     // over every mark on the cloth behind it.
     for (const d of decals) if (d.print?.seams) stampPrint(d, this.g);
@@ -381,7 +403,7 @@ export class Figure {
     for (const d of decals) if (d.print && !d.print.seams) stampPrint(d, this.g);
     this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink, faceState.tags) : null;
     this.handStamps = this.handsAt(pitch);
-    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place);
+    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place, cloth ? { place: this.gC.place, u: (g, c, sn) => clothU(this.built.frame!, g, c, sn) } : undefined);
   }
   /**
    * The hair's spring (secondary motion; the character file's `hair`): it trails behind as the figure walks, bounces with

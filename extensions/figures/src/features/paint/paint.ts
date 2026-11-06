@@ -1,6 +1,7 @@
 import { RAMPS, RAMP_OUTLINE } from './duel-ramps';
 import { noise3, type GBuffer } from './raster';
 import { smooth } from '../../lib/math';
+import { fabricOf, labelAt } from './fabric';
 import { GROUP, type Material } from '../body/parts';
 import type { HeadShape } from '../body/genes';
 /**
@@ -925,9 +926,14 @@ function tint(ramp: number[]) {
  * - Form: a crevice tone where a nearer part sits beside, a cast shadow where one stands between the surface and the key,
  *   reflected light on the shadow side's edge, and a glossy material's shine where it mirrors the key.
  */
-export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array) {
+/** The cloth channel (figure/cloth.ts), for a fabric (fabric.ts): each texel's `(cos t, sin t, v)` as the figure's third raster
+ * drew it, and `u(group, cos, sin)`, the metres round the group's cylinder (null for an untiled group). */
+export interface Cloth { place: Float32Array; u(group: number, c: number, s: number): number | null }
+export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArray, normals: Uint8ClampedArray, face: FaceStamp | null, style: PaintStyle = PAINT, skin = face?.skin ?? -1, hands: HandStamp[] = [], bends: Bends = {}, light?: Float32Array, cloth?: Cloth) {
   const { w, h } = g, n = w * h, ink = INK_RGB;
   const tones = materials.map(m => fillTones(tonesOf(m), m.flat ? 0 : style.cool)), D = densityOf(w), ppm = 36.9 * D;
+  // The fabrics (H5) of the materials; with no cloth channel, none is read.
+  const fabrics = materials.map(m => (cloth && m.fabric ? fabricOf(m.fabric) ?? null : null));
   // The skin's family: the skin, and any surface painted in its tones alone (an ear's rim and bowl), which takes its line.
   const skinSet = new Set(skin >= 0 ? tones[skin] : []), skinny = tones.map((t, i) => i === skin || (skin >= 0 && t.every(c => skinSet.has(c))));
   // Black cloth (a dark ramp, not skin, hair or a flat mark) has its own darks and form (extraTones, the rim below).
@@ -1503,6 +1509,14 @@ export function paint(g: GBuffer, materials: Material[], albedo: Uint8ClampedArr
     if (hue[k] >= MIRROR) { ramp = tint(ramp); tt = hue[k] - MIRROR; } else if (hue[k] >= 0) tt = hue[k];
     // Lit from outside: the key's bands are gone, so a light or dark key tone reads mid (3 deep stays).
     else if (light && t >= 0 && t <= 2) tt = 1;
+    // A fabric's tile (H5): a step along the material's own ramp by the tile's label, on cloth's own surface only. Not shine,
+    // a line, the rim or the outline; not a holo hue, a mark or a print, a hand, or a texel the painter refilled (the
+    // cloth channel follows the raster's surface, not the painter's copy). The head and held items have no cylinder.
+    const fab = fabrics[mi];
+    if (fab && t >= 0 && t <= 3 && hue[k] < 0 && at === k && part[k] >= 0 && part[k] === g.part[k] && material[k] === g.material[k] && handTone[k] < 0) {
+      const u = cloth!.u(group[k], cloth!.place[k * 3], cloth!.place[k * 3 + 1]);
+      if (u !== null) tt = Math.max(0, Math.min(ramp.length - 1, tt - labelAt(fab, u, cloth!.place[k * 3 + 2], ppm)));
+    }
     if (materials[mi].see && t < OUTLINE && (hue[k] >= MIRROR || materials[mi].holo !== 'mirror')) through.set(k, tint(tones[mi]));
     const c = t === OUTLINE ? (at === k ? extra[mi].fold : ink) : t === LINE ? extra[mi].line : t === RIM ? extra[mi].rim : t === -1 ? extra[mi].shine : ramp[Math.min(tt, ramp.length - 1)];
     albedo[o] = (c >> 16) & 255; albedo[o + 1] = (c >> 8) & 255; albedo[o + 2] = c & 255; albedo[o + 3] = 255;
