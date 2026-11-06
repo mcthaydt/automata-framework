@@ -10,47 +10,58 @@
   ready to ship with 2D alone, then we do the same for 3D".
 - **Decisions it builds on:** the Owner took all eight of the audit's recommendations on 2026-11-06 ("Go with all
   recommendations"): D1 to D8 option A each (section 7 of the audit). D8's inputs are still the Owner's to supply.
+- **Added by the Owner (2026-11-06):** a code refactor of this slice's code to the core slice's standard: "minimal,
+  well-documented, non-overengineeered code", "elegant" (section 17).
 - **Added by the Owner (2026-11-06):** "We also need to completely redesign the editors for ux, copy, and ui - it looks
   amatuerish; it should have the design aesthetic of the website". Section 11 is that redesign.
-- **Status:** drafted, and not final. On 2026-11-06 the Owner widened the slice ("we need to audit the other automata
-  things too then; basically everything but 3D and editors (non-2D, we're addressing that already)"). A separate audit
-  of the rest of AF for a 2D ship is running; its findings are folded in here (section 16) and in the plan before stage
-  3 reviews them. Nothing here is built.
+- **Widened by the Owner (2026-11-06):** "we need to audit the other automata things too then; basically everything but
+  3D and editors (non-2D, we're addressing that already)". The [rest-of-AF audit](2026-11-06-2d-ship-rest-audit.md)
+  (PR #407) is folded in as section 16. The Owner took its nine recommendations (D9 to D17) on 2026-11-06 ("Go with all
+  recommendations"); D17's actions are the Owner's.
+- **Status:** drafted; stage 3 (the plan audit) is next. Nothing here is built.
 
 ## 1. What done looks like
 
 The slice is finished when all of these are true, each checked by a command or by the Owner:
 
-1. **A person who has never seen the repository can make a 2D game and edit its level.** In a fresh folder:
-   `npx @mcthaydt/automata-tools create-game my-game`, `pnpm install`, `pnpm exec automata editor` opens the 2D editor
-   on the new game's starter level, Save changes the game, and `pnpm dev` shows the change. A Playwright journey runs
-   these steps against packed tarballs on every pull request (section 9). (E2, E3, E4)
-2. **Save in the editor changes the game.** On a checkout, Save writes the level project and the game files the game
+1. **A stranger can make, check, play and publish a 2D game.** In an empty folder outside the repository, from packed
+   tarballs: `create-game my-game`, `pnpm install`, `pnpm check` and `pnpm test` pass on the untouched game, the web
+   build boots, and `automata ship prepare --target itch` makes the zip. The stranger's journey runs this on every pull
+   request that touches the packages (section 16.1). (N1 to N7, Q5)
+2. **The same stranger edits the level.** `pnpm exec automata editor` opens the 2D editor on the new game's starter
+   level, Save changes the game, and `pnpm dev` shows the change (section 9). (E2, E3, E4)
+3. **Save in the editor changes the game.** On a checkout, Save writes the level project and the game files the game
    reads, together. `automata check` fails when they disagree. (E1, K1, T5, G1)
-3. **The editors are one private package, `packages/editor`, grouped by feature, with tests in `tests/`.**
+4. **The editors are one private package, `packages/editor`, grouped by feature, with tests in `tests/`.**
    `editor-3d` stays its own package and plugs in. (D6, S1, S4, T4)
-4. **A 2D build of anything holds no `@pixi/3d`.** The editor build inside `-tools`, the suite's default build and the
+5. **A 2D build of anything holds no `@pixi/3d`.** The editor build inside `-tools`, the suite's default build and the
    site build are scanned, and the scan fails the build. (E7, seam 5)
-5. **The 2D gate runs every 2D editor test.** `pnpm check` runs the editor's unit tests; the pull request gate runs its
+6. **The 2D gate runs every 2D editor test.** `pnpm check` runs the editor's unit tests; the pull request gate runs its
    browser tests (Chromium, WebKit, Firefox for layout) and its journeys (Chromium and WebKit). A red 3D suite cannot
    hide a red 2D editor. (T3)
-6. **The website lives in this repository as `site/`**, builds from the framework's current code at build time, and
+7. **The website lives in this repository as `site/`**, builds from the framework's current code at build time, and
    breaks in the same pull request as the code it describes. No sync script, pin, deploy key or committed demo build
    is left. (D1, W3, W4, W7, WS1, WS3)
-7. **The site has the lean page set** (section 10) and every page describes the code as it is: Start begins with
+8. **The site has the lean page set** (section 10) and every page describes the code as it is: Start begins with
    `create-game`, the home page walks through files that exist, the editor page lets a visitor try the editor. (D7,
    W1, W2, W8, WS4, WG2)
-8. **No page or file a visitor can open links to the private repository.** A test fails the site build on a
+9. **No page or file a visitor can open links to the private repository.** A test fails the site build on a
    `github.com/mcthaydt/automata-framework` link while the repository is private. (W6, D2)
-9. **The packages are ready to publish on npmjs.org.** `pnpm pack` of each published package installs and runs in the
-   consumer smoke from a plain npm registry layout; the first real publish is the Owner's (D2, D8).
-10. **The 2D editor is redesigned in the website's look** (section 11): one token source for the site and the editor,
+10. **The packages are ready to publish on npmjs.org** as 0.1.0 under the project scope (section 16.3): four published
+   packages, the registry and access set, the stranger's journey passing against a local registry. The first real
+   publish is the Owner's (D2, D8, D17).
+11. **The published command holds what a game author needs**, `-tools` exports `defineShipConfig` and its types, and
+   `automata --help` is four lines (section 16.2).
+12. **The agent package and the docs describe today's framework**, with one game layout taught everywhere (section
+   16.5).
+13. **The 2D editor is redesigned in the website's look** (section 11): one token source for the site and the editor,
     every screen rebuilt to the new layouts, and its copy rewritten. The Owner sees the before and after screenshots of
     every screen at phone, iPad and desktop sizes in the redesign pull requests.
-11. **Everything a person sees in the editor and on the site passes the drunk grandma test** (section 11.5).
-12. **The site is deployed at the Owner's domain** (the Owner's inputs, D8). This is the only criterion that waits on
+14. **Everything a person sees in the editor and on the site passes the drunk grandma test** (section 11.5).
+15. **The site is deployed at the Owner's domain** (the Owner's inputs, D8). This and the npm publish are the criteria that wait on
     the Owner; every other one is done without them.
-13. **`docs/refactor/progress.md` says 100% for this slice.**
+16. **The slice's code meets section 17's standard**, each area's findings list is closed, and the build audit agrees.
+17. **`docs/refactor/progress.md` says 100% for this slice.**
 
 What does *not* change: the editor kit's iPad gestures and its document model (autosave, recovery, history,
 conflicts), the 2D editor's file format
@@ -60,6 +71,10 @@ scroll, console errors, third-party requests, axe, focus rings) and its playgrou
 to keep (T1, section 7 of the audit, WG4).
 
 ## 2. Scope
+
+**In (section 16 adds):** `create-game` and the rest of the published `automata` command, the release to npmjs.org,
+the reusable game workflows, the agent package, the current docs, the `tooling/` packages, the 2D examples as shipped,
+and repository hygiene in every Automata repository (the Owner's actions only).
 
 **In:** `packages/editor-kit`, `packages/editor-2d`, `packages/editor-suite` (the shell, Levels 2D, the Tuner, the
 Node adapters, the sample mode), `automata editor` and `create-game` in `packages/tools`, the editor list format,
@@ -73,7 +88,7 @@ still run, in the 3D workflow. Its refactor is the 3D slice.
 **Out:** the 3D slice (`editor-3d`'s inside, the Studio's inside, `render-pixi3d`, `figures`, `sector-format`,
 `games/base-3d`, `vendor/pixi-3d`, 3D pages); shipping the suite (D3: it waits for 3D, when there are two level
 editors to hold); wiring the suite's Ship, Ask, checks and gates (E6: they move with the suite and stay unwired);
-making the repository public (D2); new editor features beyond Save writing the game and what the redesign needs;
+making the repository public (D2); porting Automata Plus (D12); new editor features beyond Save writing the game and what the redesign needs;
 redesigning `editor-3d`'s screens (it picks up the new tokens, section 11.6, and is redesigned in the 3D slice); Plus;
 the paid editor apps.
 
@@ -114,7 +129,7 @@ reports them if they stay unused after the 3D slice.
 ### 3.3 Inside the package: features
 
 The core packages' layout (core-and-2D spec, section 3.3), with editor names. The feature folders take the redesign's
-names (section 11.4) when they are made, so nothing is renamed twice; the views' labels on screen change in phase 9:
+names (section 11.4) when they are made, so nothing is renamed twice; the views' labels on screen change in phase 12:
 
 ```
 packages/editor/
@@ -209,7 +224,7 @@ WebKit), because the editor's canvas tests need WebGL2 and its journeys need the
 |---|---|---|
 | `pnpm check` | lint, typecheck, boundaries, style, knip, every core and 2D `unit` project **including `packages/editor`**, changesets | every PR |
 | `pnpm test:browser:2d` (was `:core`) | core and 2D browser projects, **including the editor's layout, canvas and journeys** | every PR touching core, 2D or the editor |
-| `pnpm test:e2e` | Emberwick's and the examples' journeys, `create-game`'s journey, **the editor's journeys (section 9)** and **the site's (section 10.4)** | every PR |
+| `pnpm test:e2e` | Emberwick's and the examples' journeys, **the stranger's journey (section 16.1)**, **the editor's journeys (section 9)** and **the site's (section 10.4)** | every PR |
 | 3D workflow (`3d.yml`, was `3d-and-editors.yml`) | `editor-3d`, `render-pixi3d`, `figures`, `sector-format`, `base-3d`, the 3D examples | PRs touching 3D files or what they import; not required |
 
 `test:unit:core` becomes `test:unit:2d` and its filter drops `./packages/editor-*` for `./packages/editor-3d`. The
@@ -308,7 +323,7 @@ fails to open is reported with its first problem and the same last line.
 
 ### 6.4 A new game has a level (E3)
 
-`create-game` writes, besides the role files:
+`create-game` writes, in the feature layout of section 16.1:
 
 - `content/editors.toml` with one `levels-2d` row (`exports = "content"`);
 - `content/levels/start.af2d.json`, a platformer-template project with one level, a collision layer with a floor and
@@ -353,6 +368,8 @@ scanned in CI.
 
 ## 8. Publishing on npmjs.org (D2)
 
+Section 16.3 supersedes this list where they differ (the scope, the first version, the workflows).
+
 - Every published package's `publishConfig.registry` becomes `https://registry.npmjs.org`, with `access: public`
   (`.changeset/config.json` `"access": "public"`). `release-packages.yml` sends `NPM_TOKEN` to npmjs.org and drops the
   GitHub Packages `.npmrc` step. The consumer smoke's `--from registry` mode reads the registry from an environment
@@ -374,7 +391,7 @@ copy of a game, never the checkout itself, and starts the real command:
 | Save reaches the game | copy Emberwick to a temp folder; start the built `automata editor` on it; open the room; paint a solid cell on the collision layer with real pointer events; Save; read `content/levels/room-1.toml` on disk and see the cell; run `automata check --only levels` and see it pass; start Emberwick's dev server on the copy and read the room through its test hook | E1, G1, T5 |
 | Drift is caught | in the copy, edit `content/levels/room-1.toml` by hand; `automata check --only levels` fails with section 6.3's message | T5 |
 | A conflict stops the save | open the room; change the project on disk; paint and Save; the conflict dialog shows; Keep mine writes both files | section 6.2 |
-| A new game opens in the editor | `create-game` from the packed `-tools` tarball into a temp folder; install; `automata editor` (no flags) opens the 2D editor on `start`; paint, Save; the game's dev server shows the wall | criterion 1, E2 to E4 |
+| A new game opens in the editor | `create-game` from the packed `-tools` tarball into a temp folder; install; `automata editor` (no flags) opens the 2D editor on `start`; paint, Save; the game's dev server shows the wall | criterion 2, E2 to E4 |
 | The suite opens the checkout | `automata editor --app suite` on the copy (from the repository build); the page says "Emberwick", Levels 2D lists the room, no "Sample game" | E5 |
 
 The suite journey runs in Chromium only and is not in the iPad set. The editor's Vitest browser journeys (today's ten
@@ -603,43 +620,59 @@ the audit and the redesign:
 ## 12. Order and pull requests
 
 Each phase is one pull request, stacked on the one before while the core stack is unmerged, then based on `main`.
-Moves come before behaviour, as in the core slice: the package merge (phase 2) is behaviour-preserving, so the save
-loop, shipping and the redesign happen once, in the new layout. The site moves in (phase 7) before the redesign, so
-the shared token source is shared from its first commit. Journeys (phase 10) come after the redesign, so they are
-written once against the final names. Sessions are refreshed after 90 minutes; tasks 2.2, 2.3, 7.1 and 9.2 to 9.4 name
-their session breaks.
+The stranger's journey is written first and fixed at once (phase 2), because it is the launch's front door and
+everything after builds on a `create-game` that works. Moves come before behaviour, as in the core slice: the editor
+package merge (phase 4) is behaviour-preserving, so the save loop, shipping and the redesign happen once, in the new
+layout. The examples split (phase 9) comes before the site's move, so the site never builds the 3D examples. The site
+moves in (phase 10) before the redesign, so the token source is shared from its first commit. The editor journeys
+(phase 13) come after the redesign, so they are written once against the final names. Sessions are refreshed after 90
+minutes; the plan names each task's session breaks.
 
 | # | Phase | Findings | PRs |
 |---|---|---|---|
 | 1 | The 2D gate sees the 2D editors; one workflow per dimension | T3 | 1 |
-| 2 | One editor package, by feature, tests in `tests/`; the Studio and Levels 3D move to `editor-3d` | D6, S1, S3 to S6, T4 | 2 (merge and move; features and tidy) |
-| 3 | The 2D level contract in `-content` | D5, K1 | 1 |
-| 4 | Save writes the game; the drift check; the narrow fallback | E1, E3, T5 | 1 |
-| 5 | The editor ships inside `-tools`; `create-game` makes a level | D4, E2 to E4 | 1 |
-| 6 | The suite without 3D, opening the checkout | E5, E7, S2 | 1 |
-| 7 | The website moves in | D1, W3, WS1 to WS3, WS6 | 1 |
-| 8 | One design system: shared tokens, Geist, icons, the kit's components, the design board | S7, section 11.2, 11.3 | 1 |
-| 9 | The 2D editor redesigned: Home, the document frame, Level, Map, Tiles, Characters, problems, dialogs, copy | G1 to G5, section 11.4, 11.5 | 2 (Home and the frame; the views) |
-| 10 | Real journeys | T2 | 1 |
-| 11 | npmjs.org | D2 | 1 |
-| 12 | The lean site, by feature, on the shared tokens | D7, W1, W2, W4, W6 to W8, WS4, WS5, WG2, WG3 | 1 |
-| 13 | The site's journeys and link checks | WT1, WT2 | 1 |
-| 14 | The site's and the CLI's copy pass | WG1 to WG3, section 11.5 | 1 |
-| 15 | Launch: deploy wired; the Owner's inputs | W5, W9, D8 | 1, then the Owner's steps |
+| 2 | A stranger can make a game: the stranger's journey, then `create-game` fixed, in the feature layout | Q5, N1 to N7, D11, D13 | 1 |
+| 3 | The published command: what leaves, `--target` required, a small root entry, `check-boundaries` folded in, help text; the code refactor | D14, U1 to U7, Y1, Y2, section 17 | 1 |
+| 4 | One editor package, by feature, tests in `tests/`; the Studio moves to `editor-3d`; the code refactor | D6, S1, S3 to S6, T4, section 17 | 3 (merge and move; features and tidy; the code refactor) |
+| 5 | The 2D level contract in `-content` | D5, K1 | 1 |
+| 6 | Save writes the game; the drift check; the narrow fallback | E1, E3, T5 | 1 |
+| 7 | The editor ships inside `-tools`; `create-game` makes a level | D4, E2 to E4 | 1 |
+| 8 | The suite without 3D, opening the checkout | E5, E7, S2 | 1 |
+| 9 | Examples by dimension | Q4 | 1 |
+| 10 | The website moves in | D1, W3, WS1 to WS3, WS6 | 1 |
+| 11 | One design system: shared tokens, Geist, icons, the kit's components, the design board | S7, sections 11.2, 11.3 | 1 |
+| 12 | The 2D editor redesigned: Home, the document frame, Level, Map, Tiles, Characters, problems, dialogs, copy | G1 to G5, sections 11.4, 11.5 | 2 (Home and the frame; the views) |
+| 13 | The editor's journeys | T2 | 1 |
+| 14 | Release to npmjs.org: the scope, the registry, 0.1.0 | D2, D9, D10, R1 to R4, R6, R7 | 2 (the scope codemod, once the Owner names it; the registry and version) |
+| 15 | CI for games | D15, R5 | 1 |
+| 16 | The agent package and the docs | D16, A1 to A7 | 1 |
+| 17 | Tooling diet and the code refactor of what stays | Q1, Q2, D12, section 17 | 1 |
+| 18 | The lean site, by feature, on the shared tokens; the code refactor | D7, W1, W2, W4, W6 to W8, WS4, WS5, WG2, WG3, section 17 | 1 |
+| 19 | The site's journeys and link checks | WT1, WT2 | 1 |
+| 20 | The site's and the CLI's copy pass | WG1 to WG3, Y3, section 11.5 | 1 |
+| 21 | Launch: deploy wired; the Owner's inputs and actions | W5, W9, D8, D17, P5 to P7 | 1, then the Owner's steps |
 
-## 13. If the Owner changes a decision later
+## 13. If the Owner chooses differently
 
-All eight were taken as recommended; this table says what a later change would move.
+D1 to D17 were all taken as recommended on 2026-11-06. This table says what a later change would move.
 
 | Decision | What changes |
 |---|---|
-| D1 B (site separate) | Phase 7 becomes: the site consumes published packages and a data bundle from `release-checks.yml`; section 10.1's "imports, not copies", 10.3's boundaries rule and 11.2's one-import token sharing go (the site would copy the published `tokens.css`) |
-| D2 B or C | Phase 11 changes or waits; section 10.4's private-link switch is set to public (B) or the launch waits (C) |
-| D3 B or C | Phase 6 grows into shipping the suite: the 2D views inside it, its redesign and copy (G2), wiring E6; section 7 serves `suite` by default |
+| D1 B (site separate) | Phase 10 becomes: the site consumes published packages and a data bundle from `release-checks.yml`; section 10.1's "imports, not copies", 10.3's boundaries rule and 11.2's one-import token sharing go (the site would copy the published `tokens.css`) |
+| D2 B or C | Phase 14 changes or waits; section 10.4's private-link switch is set to public (B) or the launch waits (C) |
+| D3 B or C | Phase 8 grows into shipping the suite: the 2D views inside it, its redesign and copy (G2), wiring E6; section 7 serves `suite` by default |
 | D4 B or C | Section 7.2: a separate `@mcthaydt/automata-editor` package (B) or no CLI editor (C) |
 | D5 B or C | Sections 5 and 6: the compiler reads `.af2d.json` (B), or Save stays as it is and only the check is added (C) |
-| D6 B | Phase 2 keeps three packages, each moved to feature folders and `tests/` |
-| D7 B | Phase 12 updates all 17 pages instead of cutting |
+| D6 B | Phase 4 keeps three packages, each moved to feature folders and `tests/` |
+| D7 B | Phase 18 updates all 17 pages instead of cutting |
+| D9 B (keep `@mcthaydt`) | Phase 14's scope codemod is dropped |
+| D10 B (0.0.6) | Phase 14 keeps the pending changesets and drops the `check-changesets` exception |
+| D11 B (four default targets) | Section 16.1 keeps all four targets by default; only the `@ruken/sdk` line goes |
+| D12 B or C (port Plus) | A new phase after phase 17 ports Plus's 73 files to the refactored core, as published extensions (B) or as `extensions/` here (C); `automata add` stays (B) |
+| D13 B (role files) | Section 16.1's template keeps role files; Emberwick moves back to them in phase 2; `AGENTS.md` and the skills teach role files |
+| D14 B (keep every command) | Phase 3 only rewrites the help text and the root entry stays as it is |
+| D15 B or C | Phase 15 keeps the reusable workflows (B) or is dropped (C) |
+| D16 B | Phase 16 deletes `automata-skills` instead of mirroring to it (the Owner's action) |
 
 ## 14. Risks
 
@@ -648,14 +681,16 @@ All eight were taken as recommended; this table says what a later change would m
 | The package merge changes behaviour | Phase 2 is moves only; the 3,348 unit and DOM tests and the 252 Chromium browser tests pass with the same counts before and after; `editor-3d`'s suites pass in the 3D workflow on the same PR |
 | Moving the field schema breaks the kit's field editors | The kit re-exports from `-content`; its field tests run unchanged |
 | Save writes three files without a transaction | The project goes last and the check catches a half-written save (section 6.2); the journey of section 9 covers the conflict path |
-| Emberwick's golden hash moves with the level contract | It must not: the sim gets the same values. A change is investigated in phase 3 before anything else lands |
+| Emberwick's golden hash moves with the level contract | It must not: the sim gets the same values. A change is investigated in phase 5 before anything else lands |
 | The editor build makes `-tools` heavy | Section 7.2's 3 MB budget; the editor's Pixi chunks load lazily |
 | WebKit journeys cannot run in a cloud session | Chromium runs here; WebKit runs on the Owner's Mac (`pnpm ci:local`) or hosted CI, as for the core slice. The plan's steps say which engine each check ran in |
 | The site's history is large | `git subtree add` without `--squash` keeps it; if the pack is too big for the proxy, `--squash` and a tag on the archived repository's last commit |
 | The redesign drops an action to make a screen fit | Section 11.4's "what stays" list; the DOM tests that reach every action by role stay and are only renamed; layout tests assert every action is visible or one tap away |
 | The new look breaks `editor-3d`'s tests | They run in the 3D workflow on the same pull request; changes are explained, not hidden (section 11.6) |
 | Pixi in the editor needs `eval` under the site's CSP | The try-it page runs under the site's CSP in the visitor journey; if Pixi needs it, the editor imports `@mcthaydt/automata/no-eval` first, as games do |
-| `create-game`'s template still uses the role layout | Out of scope here (the template's layout is the core slice's call); the template only gains its content folder and the level read |
+| The stranger's journey is slow or flaky on a runner | It installs from local packs with pnpm's store cached between runs, waits on readiness, and runs once per pull request in Chromium only; its first-attempt result is kept even when a retry passes |
+| The scope rename lands after something is published | Phase 14's first PR is the codemod; the publish is the Owner's and comes after it. Until the Owner names the scope, nothing is published |
+| Removing commands breaks the Owner's own workflow | `test-remote` stays available as a repository script; `deploy-dev`'s dev host is the Owner's to keep running from the archive tag if wanted |
 
 ## 15. Veto defaults (decided here; the plan audit or the Owner may change them)
 
@@ -671,20 +706,228 @@ All eight were taken as recommended; this table says what a later change would m
 8. Old site routes redirect rather than 404.
 9. Light theme only for this slice; a dark theme waits until it is asked for.
 10. Icons are inline SVG components drawn from Lucide (ISC), not a runtime dependency.
-11. The redesign's view names are Level, Map, Tiles and Characters; Checks becomes a problem count and Export a Share
+11. The stranger's journey uses `npx --package <tools.tgz>` and a `pnpm.overrides` block for the packs, the closest a
+    local test gets to `pnpm dlx` from a registry; phase 14 runs it once against Verdaccio too.
+12. `@mcthaydt/automata-check-boundaries` stops publishing; `-tools` keeps its bin for this repository.
+13. The redesign's view names are Level, Map, Tiles and Characters; Checks becomes a problem count and Export a Share
     menu (section 11.4).
 
-## 16. Findings from the wider 2D-ship audit (to be folded in)
+## 16. The rest of AF for a 2D ship
 
-The Owner widened the slice on 2026-11-06 to everything in AF except 3D and the non-2D editors. A separate audit covers
-what this one did not (the core packages, Emberwick, the examples, tooling, CI and docs, judged for a 2D ship). When it
-reports, each of its findings is placed here:
+The Owner widened the slice on 2026-11-06: "we need to audit the other automata things too then; basically everything
+but 3D and editors (non-2D, we're addressing that already)". The [rest-of-AF audit](2026-11-06-2d-ship-rest-audit.md)
+(PR #407) found what a stranger hits outside the editors and the site. Its finding IDs (N1 to N7, U1 to U7, R1 to R7,
+P1 to P7, A1 to A7, Q1 to Q5, Y1 to Y4) point at it. The Owner took its decisions D9 to D17 as recommended on 2026-11-06
+("Go with all recommendations"); this section builds on them.
 
-- into an existing phase, when it touches the same files (for example a `create-game` finding into phase 5, a docs
-  finding into phase 12);
-- into new phases after phase 6 and before the site's move, when it is core or Emberwick work the editor and site
-  phases build on;
-- or into section 2's "Out", with the reason, when it belongs to the 3D slice or is not needed to ship 2D.
+### 16.1 A stranger can make a game (N1 to N7, Q5, D11, D13)
 
-Section 1's criteria and section 12's table are updated in the same change, and the plan's task count and percentages
-with them.
+**The stranger's journey comes first.** `tooling/consumer-smoke` gains a `stranger` mode, run as a Playwright journey on
+every pull request that touches `packages/` or `tooling/consumer-smoke` (in `ci.yml`'s `e2e-2d` job):
+
+1. pack the published packages (`pnpm pack`, as the smoke does today);
+2. in an empty temp folder **outside the workspace**, run `create-game my-game` from the packed `-tools`
+   (`npx --package <tools.tgz> automata create-game my-game`, the closest a pack gets to `pnpm dlx`);
+3. point the new game's dependencies at the packs (a `pnpm.overrides` block the journey writes, nothing else changed),
+   and `pnpm install`;
+4. `pnpm check` (the game's own script: `automata check`), then `pnpm test`;
+5. `pnpm build:web`, serve `dist/`, boot it in Chromium, press a key, see the square move (through the template's test
+   hook);
+6. `automata ship prepare --target itch` and see the zip.
+
+It fails today at step 3 (N1). It replaces the `create-game` journey that links the workspace by hand (N6), and the
+smoke's hand-written manifest stays only for what the stranger's path does not reach.
+
+**`create-game` writes a game that installs and passes its own check:**
+
+- AF's packages as `^<version>` of the running `-tools` (all published packages share one version through the
+  changesets `fixed` group), never `workspace:*` (N1). Inside this repository, the repository's own tests pass
+  `--link-workspace` to get `workspace:*` (the only use).
+- Default targets `web` and `itch` (D11 A); `--targets` adds `tauri` and `ruken`. No game depends on `@ruken/sdk` for any
+  target: the adapter is bundled in `@mcthaydt/automata`'s `ruken` entry (N2). The Ruken guide drops the line.
+- The template's input bindings match its declared inputs (N3): `inputs: ['touch', 'keyboard', 'gamepad']` in
+  `ship.config.ts`, since `keys()` binds the pad.
+- `vitest` as a devDependency, a first test (`tests/unit/square/square-move.test.ts`: a command moves the square by one
+  step and the hash is stable), and `test` and `check` scripts (N4). `automata check`'s boundaries step runs from
+  `-tools` itself (section 16.2), so nothing else needs installing.
+- **The feature layout** (D13 A): `src/app/game.ts`, `src/features/square/` (`square.component.ts`,
+  `move.command.ts`, `move.system.ts`, `square.plugin.ts`), `src/shared/`, `main.ts`; the same shape as Emberwick and
+  `AGENTS.md`. `automata check` accepts only that shape (and `games/base-3d`'s role files, by name, until its slice).
+  The GL role-file layout retires; section 6.4's level files are written into it.
+- The README links the site's guides, not the repository (N7), and starts with the one command (N5):
+  `pnpm dlx <scope>/automata-tools create-game my-game`.
+
+### 16.2 The published `automata` command (D14 A, U1 to U7, Y1, Y2)
+
+| Command | After |
+|---|---|
+| `create-game` | as section 16.1 |
+| `check` | as today, plus the `levels` step (section 6.3); the boundaries step runs the checker bundled in `-tools` |
+| `build` | as today |
+| `editor` | the 2D editor (section 7) |
+| `ship prepare --target <web\|itch\|tauri\|ruken>` | the target is always named; no default (U5). `web` is new: the build plus the scans every public target runs (secrets, data URLs, `@pixi/3d`, no-eval), writing `dist/` |
+| `ship publish --target <itch\|ruken>` | as today, target required. `--private` reads "Upload a build that is not public (Ruken's local test server only)." |
+| `ship test-remote`, `ship deploy-dev`, `add`, the `automata-ship` alias | removed from the package (U2 to U4, U7), with `packages/tools/deploy/` and `game-release.yml`'s `dev-host` job. `test-remote` moves to `tooling/repo-scripts` as `pnpm ci:remote` if the Owner still wants it |
+
+- `-tools`' root entry exports `defineShipConfig` and its types only (U1). What the repository's own tooling imports
+  moves to a private `./internal` entry that is not in `publishConfig.exports`.
+- `@mcthaydt/automata-check-boundaries` folds into `-tools` (U6): its source moves to
+  `packages/tools/src/features/boundaries/`, `-tools` keeps an `automata-check-boundaries` bin for this repository's own
+  `pnpm boundaries`, and the separate package stops publishing. Four published packages: `-sim`, `-content`, `automata`,
+  `-tools`.
+- `automata --help` is four lines (make a game, run it, check it, publish it) and "Run automata <command> --help for
+  more." Each command's help passes section 11.5's questions; no plan IDs, `D-1`, `__AUTOMATA_DEBUG__` or exit-code
+  paragraphs on the first screen (Y1, Y2).
+
+### 16.3 Releasing the packages (D2, D9 A, D10 A, R1 to R4, R6, R7)
+
+This replaces section 8's list:
+
+- **The scope** (D9 A): one codemod pull request renames `@mcthaydt/automata*` to the npm organisation the Owner creates
+  (the audit's example: `@automata-framework`), in packages, games, examples, tooling, the site, docs, the agent package
+  and the editors. It waits only on the name; until the Owner gives it, every other task uses the current name.
+- **The registry:** npmjs.org, `access: public` (R1, R2). The sixteen files the audit lists move together: the
+  `publishConfig.registry` fields, the root `.npmrc`, `release-packages.yml` (`NPM_TOKEN`), `game-ci.yml` and
+  `game-release.yml` (no `AF_READ_TOKEN`: public packages need no read token), the smoke's `--from registry`, the
+  runbook, the tests that pin it, `AGENTS.md`.
+- **The first public version** (D10 A): 0.1.0, with one written changelog entry ("The first public release: 2D games,
+  the 2D level editor, four publish targets") in place of the fourteen pending refactor changesets, which are deleted.
+  `check-changesets` allows a `minor` once, when the current version is below 0.1.0, and patches again after; 1.0 stays
+  the 3D launch.
+- **No provenance** while the repository is private (R6); `release-packages.yml` says so in one comment, and the 3D
+  slice turns it on when the repository opens.
+- `vendor/ruken/README.md` names the two packages that bundle Ruken's code today (R7).
+- The `repository`, `homepage` and `bugs` fields point at the site; READMEs link to the site's docs.
+- The first publish, its release approval and the organisation are the Owner's (D17). Everything up to `changeset
+  publish` against a local Verdaccio, with the stranger's journey run against it, is done in this slice. No deprecation
+  of the old GitHub Packages names is needed beyond one `npm deprecate` line in the runbook (U7: nobody outside used
+  them).
+
+### 16.4 CI for a game made with AF (D15 A, R5)
+
+`create-game` writes `.github/workflows/release.yml` into the new game: on a tag, install, `pnpm check`, `pnpm build:web`,
+`automata ship publish --target itch` when `BUTLER_API_KEY` exists, on `ubuntu-latest`. A unit test runs `actionlint` on
+the template when Docker is available and parses it otherwise. `game-ci.yml` and `game-release.yml` shrink to the jobs
+Emberwick runs here; their reusable `workflow_call` interface, the `af-linux`/`af-mac` defaults for others and the
+FloorFifty `dev-target` example go. The publish guides show the template's workflow.
+
+### 16.5 The agent package and the docs (D16 A, A1 to A7)
+
+- **Skills rewritten** for the refactored framework (A1): the seven laws as `AGENTS.md` states them (no reference
+  target, no networked truth), the feature layout of section 16.1 (A2), `pnpm test` in place of `vitest run src/sim/...`,
+  and the editor skill opening `automata editor` (2D, no build step). The worked example becomes a `create-game` output
+  with one added feature, checked by `pnpm boundaries` and `plugin:validate` as today.
+- **One generated reference** (A3): the agent package's `reference/api.md` and `docs/cheatsheet.md` come from one
+  generator run (`pnpm api-index --write`), and the API reports stay as the review artifact. The site's API pages read
+  the same index (section 10.1).
+- **Public home** (D16 A): `release-packages.yml` copies `agents/automata` into `mcthaydt/automata-skills` after a
+  publish, with a token the Owner supplies (D17); until then the step prints "No skills token yet." and passes.
+- **Docs that contradict the direction** (A4): ADR 0005 marked "Superseded by ADR 0006", ADR 0004's "superseded in part"
+  and both "review pending" lines resolved; `docs/stack.md` and `stack-cards.ts` lose the Plus, Effect-in-core and
+  Colyseus rows; `docs/versions.md` and `renovate.json` stop following Ruken's versions file (AF owns its pins, ADR
+  0006); `docs/status.md` and the README describe the launch, not a contributor's clone.
+- **Plan IDs in YAML and Markdown** (A5): `pnpm style --plan-comments` learns `.yml` comments and Markdown outside
+  `docs/archive/`, `docs/refactor/` and `docs/provenance/`; the 100-odd lines it finds are rewritten.
+- **Links** (A6): a `pnpm style --links` rule resolves every relative Markdown link outside `docs/archive/`; the nine
+  broken ones are fixed.
+- **Source names** (A7): `source-names.ts` runs in `pnpm check` over the published READMEs, changelogs, the generated
+  references and `docs/` outside `archive/` and `provenance/`; what it finds is rewritten (PR #404 handles code comments).
+
+### 16.6 Tooling and examples (Q1, Q2, Q4)
+
+| Package or file | After |
+|---|---|
+| `tooling/core-packs` | its Plus half goes (D12); the smoke packs with `pnpm pack` and the package is deleted if nothing else needs it |
+| `tooling/api-report/src/seams.ts` | goes with Plus (D12) |
+| `tooling/codemods` | kept until the 3D slice's moves, then deleted |
+| `tooling/bundle-report` | a step in `release-checks.yml` with a budget per game, or deleted if the budget adds nothing over the smoke's size check |
+| `tooling/examples-runner` | its playground half moves into `site/src/features/playground/` (section 10.3); the examples index stays |
+| `tooling/evidence` | the Proof page's half goes with the page (D7); golden evidence stays |
+| `tooling/versions` | the stack page's Plus and Effect rows go (16.5) |
+| `tooling/frame-budget` | unchanged (it already skips on a software renderer) |
+| `packages/tools/tests/unit/shared/ship/workflows.test.ts` and the config-pinning tests (1,447 lines) | replaced by `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`: tokens reach only the jobs that need them, gated jobs skip drafts, pull request jobs never run on a fork's code with secrets. `-tools` stops testing the repository's CI (Q2) |
+
+**Examples by dimension** (Q4): `examples/` splits into `examples/2d` (`@af-examples/examples-2d`, no 3D dependency) and
+`examples/3d` (the `render3d` and `figures` examples, with `render-pixi3d` and `figures`). The site's demos and
+playground build only `examples/2d`, and its build's closed-beta scan (section 7.3) proves it. The 3D package runs in
+the 3D workflow.
+
+### 16.7 Plus and the other repositories (D12 A, D17, P1 to P7)
+
+Plus does not ship with 2D (D12 A). In this repository: `automata add` goes (16.2), `core-packs`' Plus half and the API
+seams list go (16.6), the stack page's Plus rows go (16.5), and the editor suite's gate reader stops expecting Plus's
+pipelines (it moves with the suite and stays unwired, E6). An extension that a game here needs later comes back ported,
+as `extensions/<name>`, on the current core.
+
+The rest are the Owner's actions (D17), listed in the plan's last phase: archive `automata-plus` and the nine older
+repositories (or say which to keep), run the branch prune in Plus and the website, update the repository descriptions
+(P7), create the npm organisation, supply the skills token, and say whether outside authors can publish to Ruken (D11).
+Two open pull requests (#379, #383) were ported in #403 and are closed by the agent with a pointer to #403 (closing a
+pull request is reversible; deleting their branches is the Owner's).
+
+## 17. The code refactor: minimal, elegant, well documented
+
+The Owner, 2026-11-06, on whether the audits included a refactor: "I'd like to do that if we need to; minimal,
+well-documented, non-overengineeered code", then "elegant". The core slice got that treatment; this slice's code gets it
+too, area by area, after the moves that change where the code lives.
+
+### 17.1 What the audits measured, and what they did not
+
+The two audits measured sprawl from the outside: package and file counts, entries nobody imports, duplicated shells,
+paperwork, plan-ID comments, committed builds, tests beside the code, packages that lost their reason (S1 to S6, WS1 to
+WS6, U1 to U7, Q1, Q2). The plan's moves and deletions fix those. **Neither audit read the code inside the editor kit,
+the 2D editor, the suite, the site's playground and helpers, `-tools`' ship, check and create-game code, or the tooling
+packages that stay, for over-engineering or clarity.** Those are the gaps. A first count, for scale (non-test `.ts` and
+`.svelte` files over 300 lines): editor kit 8, 2D editor 8, suite 3, `-tools` 2, the site 2, `tooling/` 4; and 24
+`-tools` source files use Effect (which stays: Effect is for Node tooling, AGENTS.md law 5).
+
+So each area's refactor task starts with its own measured read (17.3) and records what it found before it changes
+anything, the way the core slice's audit did. The build audit (stage 5) checks the result against this section.
+
+### 17.2 The standard
+
+Code in this slice is done when a reader new to it can follow it, and nothing in it is there "in case":
+
+1. **Minimal.** No option, parameter, branch, export or file that nothing uses (knip, plus a read for options never
+   passed). No interface or factory with one implementation, unless it is a seam a test or a target swaps (the host,
+   the store, the clock, the renderer). No wrapper that only forwards. No generic helper with one caller.
+2. **Elegant.** One way to do each thing: one store, one dialog, one toast region, one copy of each helper (the two
+   `memory-workspace.ts` become one). Names say what a thing is in the game maker's words. Data flows one way, from
+   `app/` into features. A function does one thing and reads top to bottom. A file stays under 300 lines where it can
+   (600 is the hard rule) and is split by responsibility, not by line count.
+3. **Well documented.** Every file starts with a comment that says what it is for and why it exists; a non-obvious
+   invariant, algorithm or failure policy is explained beside the code; comments say why, never which plan asked for
+   it. Each package and the site have a short README: what it is, how to run it, where things are.
+4. **Not over-engineered.** No abstraction for a second case that does not exist yet (3D gets its seams in section 3.4
+   and section 6 of the audit, not before). No configuration where a constant would do. No layer that exists only to
+   be tested: test through the public behaviour.
+5. **Behaviour stays.** A refactor commit changes no behaviour: the unit, DOM, layout and journey counts stay equal
+   (or fall only by deleted dead code, listed), and the goldens do not move.
+
+### 17.3 The read, per area
+
+Each refactor task's first step writes a short findings list into the plan's execution log, from these checks:
+
+| Check | How |
+|---|---|
+| Unused code | `pnpm knip` over the area; options and parameters never passed (read the call sites) |
+| Single-implementation abstractions | interfaces, `create*` factories and classes with one implementation and no test or target seam |
+| Forwarding layers | functions and modules that only re-export or pass through |
+| Duplicates | helpers, components or types defined twice (`git grep` by name and by shape) |
+| Long files and functions | files over 300 lines, functions over 60 |
+| Missing explanations | files without a header comment; non-obvious code without a why |
+| Tests that test the implementation | tests that reach into internals or mock what they could run for real |
+
+Then it fixes what it found, one concern per commit, and the build audit reads the area again.
+
+### 17.4 Where it happens
+
+| Area | Task | After |
+|---|---|---|
+| The editor package (kit, 2D, suite shell): the model, storage, documents, history, commands, canvas, export, the editor list and the suite's logic | 4.6 | the merge and the feature folders (4.1 to 4.5). The view components are rewritten by the redesign (phases 11 and 12) and meet the standard there, so 4.6 does not polish what phase 12 replaces |
+| `-tools` (create-game, check, ship, editor command) | 3.5 | the command's trim (3.1 to 3.4) |
+| The tooling packages that stay | 17.3 | the diet (17.1, 17.2) |
+| The site | 18.5 | the page cut and feature folders (18.1 to 18.4) |
+
+The level contract (phase 5), the save loop (phase 6) and the redesign (phases 11 and 12) are new or rewritten code and
+meet the standard as they are written; their tasks' reviews check it.

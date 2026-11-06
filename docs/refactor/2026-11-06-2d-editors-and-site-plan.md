@@ -6,21 +6,23 @@
 > check has passed, in the same session, and update [progress.md](progress.md) at the end of every task (section
 > "Tracking"). No subagents: the Owner allows none.
 
-**Goal:** carry out the [spec](2026-11-06-2d-editors-and-site-spec.md): AF ready to ship with 2D alone. A newcomer
-finds the site, makes a 2D game with `create-game`, opens its level in a redesigned editor that looks like the site,
-saves, plays the change, and publishes; the editors are one feature-grouped package with real journeys; the website
-lives in this repository and builds from the current code.
+**Goal:** carry out the [spec](2026-11-06-2d-editors-and-site-spec.md): AF ready to ship with 2D alone. A stranger
+finds the site, makes a 2D game with one command, installs it, checks and tests it, opens its level in a redesigned
+editor that looks like the site, saves, plays the change, and publishes it, from packages on npmjs.org; the editors are
+one feature-grouped package with real journeys; the website lives in this repository and builds from the current code;
+the published command, the agent package and the docs describe today's framework.
 
-**Architecture:** the gate first (phase 1), then behaviour-preserving moves (phase 2), then the level contract and
-the save loop (phases 3 and 4), shipping (5, 6), the site's move (7), the design system and the redesign (8, 9), the
-journeys written once against the final screens (10), npmjs.org (11), the site's rebuild (12 to 14) and the launch
-(15).
+**Architecture:** the gate (phase 1); the stranger's journey, written failing and then fixed (2); the published
+command trimmed (3); behaviour-preserving editor moves (4); the level contract and the save loop (5, 6); shipping the
+editor and a 2D-only suite (7, 8); the examples split (9); the site's move (10); the design system and the redesign
+(11, 12); the editor journeys written once against the final screens (13); npmjs.org (14); CI for games, the agent
+package and docs, the tooling diet (15 to 17); the site's rebuild (18 to 20) and the launch (21).
 
 **Tech stack:** as the core slice: pnpm 10 + turbo 2.11, Node 24.21, TypeScript (root 7.0.2), Vitest 5 with browser
 mode, Playwright 1.63, Svelte 5.57, PixiJS 8.22, Zod 4.6.6, Biome. The site: SvelteKit 2 with the static adapter.
 
-**Sessions:** a session is refreshed after 90 minutes (the Owner's rule). Tasks 2.2, 2.3, 7.1, 9.3 and 9.4 do not fit
-one session and name their breaks. A session ends by ticking its steps, updating `progress.md`, pushing, and writing a
+**Sessions:** a session is refreshed after 90 minutes (the Owner's rule). Tasks 4.2, 4.3, 10.1, 12.3 and 12.4 do not
+fit one session and name their breaks. A session ends by ticking its steps, updating `progress.md`, pushing, and writing a
 two-line handoff in this file's execution log.
 
 **Browsers in a cloud session:** only Chromium installs. A step that needs WebKit or Firefox says so; it is ticked
@@ -29,15 +31,20 @@ ran. Playwright from a cloud session:
 `NODE_PATH=$(/opt/node22/bin/npm root -g) /opt/node22/bin/node script.cjs` for throwaway scripts; the repository's
 own Playwright for its configs.
 
-**Changesets:** `patch` only before 1.0 (`check-changesets` fails `minor` and `major`). Only published packages get one
-(`-content`, `-tools`, `automata`); the private `editor`, `editor-3d` and `site` get none.
+**Changesets:** `patch` only before 1.0 (`check-changesets` fails `minor` and `major`), except the one `minor` of task
+14.2 that makes the first public version 0.1.0. Only published packages get one (`-sim`, `-content`, `-tools`,
+`automata`); the private `editor`, `editor-3d` and `site` get none.
 
 **Pull requests:** each phase is a draft PR stacked on the one before (the first on this plan's branch), marked ready
 once its checks pass locally, so the gated jobs that skip drafts run on its head. The agent may merge its own PR once
 every check, parity included, is green on the head (AGENTS.md, Owner 2026-10-30).
 
-**Not final:** the wider 2D-ship audit (spec section 16) adds tasks. Its tasks are numbered into the phases they
-join, or into new phases between 6 and 7 (renumbering the later phases), and the task count below changes with them.
+**Code standard:** every task's code meets spec section 17 (minimal, elegant, well documented, not over-engineered);
+tasks 3.5, 4.6, 17.3 and 18.5 are the measured refactor passes for the code the moves do not rewrite.
+
+**Decisions:** D1 to D8 (the editors and website audit) and D9 to D17 (the [rest-of-AF audit](2026-11-06-2d-ship-rest-audit.md))
+were all taken as recommended by the Owner on 2026-11-06 ("Go with all recommendations", twice). D8's and D17's actions
+are the Owner's and sit in phase 21; task 14.1 waits only on the npm organisation's name.
 
 **Copy:** every user-facing string a task changes goes in `docs/refactor/copy.md` (sections "Editor" and "Site") in
 the same commit, old and new, and passes the four questions of the core spec's section 8.
@@ -47,10 +54,10 @@ the same commit, old and new, and passes the four questions of the core spec's s
 ## Tracking
 
 `docs/refactor/progress.md` holds the stage table for each slice. During stage 4 (build) it also holds this table, one
-row per task, and the build's percentage is `done tasks / 42`:
+row per task, and the build's percentage is `done tasks / 63`:
 
 ```markdown
-### Build: 0% (0 of 42 tasks)
+### Build: 0% (0 of 63 tasks)
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -59,7 +66,7 @@ row per task, and the build's percentage is `done tasks / 42`:
 ```
 
 At the end of each task: set its row to "Done, <date>" with the engines that ran, recompute the build percentage and
-the overall percentage (`stages done / 18`, counting the build as done only at 42 of 42), and commit the change with
+the overall percentage (`stages done / 18`, counting the build as done only at 63 of 63), and commit the change with
 the task.
 
 ---
@@ -77,7 +84,7 @@ the task.
 
 - [ ] **Step 1: Write the failing test.** It reads the root `package.json` and asserts: `test:unit:2d` has no filter
   that excludes `editor-kit` or `editor-2d`, excludes `./packages/editor-3d` and `./packages/editor-suite` (it holds 3D
-  until phase 6), and `check` calls `test:unit:2d`. Run `pnpm --filter @mcthaydt/repo-hygiene exec vitest run
+  until phase 8), and `check` calls `test:unit:2d`. Run `pnpm --filter @mcthaydt/repo-hygiene exec vitest run
   tests/unit/gate-scripts.test.ts` → fails on the old script name.
 - [ ] **Step 2: Rename and re-filter the scripts.** `--filter='!./packages/editor-3d' --filter='!./packages/editor-suite'`
   in place of `--filter='!./packages/editor-*'`; the `:3d` scripts filter `./packages/editor-3d` and
@@ -103,13 +110,156 @@ the task.
 
 ---
 
-## Phase 2: One editor package (two PRs)
+## Phase 2: A stranger can make a game (one PR, `claude/refactor-new-game`)
 
-### Task 2.1: The move map and the package skeleton (PR `claude/refactor-ed-package`)
+The journey is written first and fails; the tasks after it make it pass; the PR merges only when it does (spec 16.1).
+
+### Task 2.1: The stranger's journey
+
+**Files:**
+- Create: `tooling/consumer-smoke/src/stranger.ts` (the steps), `tooling/consumer-smoke/tests/e2e/stranger.test.ts`
+  (the journey), `tooling/consumer-smoke/playwright.config.ts` (`defineJourneys`, one Chromium project)
+- Modify: `tooling/consumer-smoke/package.json` (`test:e2e`), `.github/workflows/ci.yml` (`e2e-2d` runs it when
+  `packages/**` or `tooling/consumer-smoke/**` change), `turbo.json` (`test:e2e` depends on the published packages' builds)
+- Test: `tooling/consumer-smoke/tests/unit/stranger.test.ts` (the overrides block it writes, the temp folder is outside
+  the workspace: no `pnpm-workspace.yaml` above it)
+
+- [ ] **Step 1: Unit tests first** for the two pieces of logic: `packOverrides(packs)` returns a `pnpm.overrides`
+  object naming each pack by absolute `file:` path; `strangerFolder()` makes a folder under `os.tmpdir()` and refuses one
+  inside a workspace. Run → fail (no file). Implement → pass.
+- [ ] **Step 2: The journey.** The six steps of spec 16.1, each a `test.step` with a plain name ("make a game", "install
+  it", "check it", "test it", "play it in a browser", "make the itch.io zip"), each command's output attached on
+  failure.
+- [ ] **Step 3: See it fail for the right reason.** Run in Chromium → fails at "install it" with "Failed to resolve
+  @mcthaydt/automata-tools@workspace:*" (N1). Record the first-attempt output in the execution log.
+- [ ] **Step 4: Commit** (the PR stays red until 2.4). `test(create-game): a stranger's journey from an empty folder to an itch.io zip`
+
+### Task 2.2: A new game installs
+
+**Files:**
+- Modify: `packages/tools/src/shared/create-game/{create-game.ts,create-game-targets.ts}`,
+  `packages/tools/src/app/cli.ts` (`--link-workspace`), `packages/tools/tests/e2e/serve-new-game.ts` (uses
+  `--link-workspace`, no hand-made links), `docs/guides/publish-to-ruken.md` (no `@ruken/sdk` line)
+- Test: `packages/tools/tests/unit/shared/create-game/{create-game.test.ts,create-game-targets.test.ts}`
+
+- [ ] **Step 1: Failing tests.** The written `package.json` asks for `^<running -tools version>` for each AF package;
+  `--link-workspace` writes `workspace:*`; no target adds `@ruken/sdk`; with no `--targets` the game's targets are `web`
+  and `itch`; `--targets web,itch,tauri,ruken` still works.
+- [ ] **Step 2:** Implement. The version comes from `-tools`' own `package.json` (read once at start).
+- [ ] **Step 3:** The journey passes "install it" and fails at "check it" (N3). Commit.
+  `fix(create-game): a new game installs outside the repository, with web and itch by default`
+
+### Task 2.3: A new game passes its own check, in the feature layout
+
+**Files:**
+- Modify: `packages/tools/src/shared/create-game/create-game.ts` (the template files),
+  `packages/tools/src/shared/check/check-steps.ts` (layouts: feature only, plus `games/base-3d` by name; the boundaries
+  step resolves the checker from `-tools` itself, phase 3 folds it in; until then `-tools` depends on
+  `@mcthaydt/automata-check-boundaries`), `packages/tools/package.json`
+- Test: `packages/tools/tests/unit/shared/create-game/template.test.ts`, `packages/tools/tests/unit/shared/check/check-steps.test.ts`
+
+- [ ] **Step 1: Failing tests.** The template writes `src/app/game.ts`, `src/features/square/{square.component.ts,
+  move.command.ts,move.system.ts,square.plugin.ts}`, `src/shared/`, `main.ts`, `tests/unit/square/square-move.test.ts`,
+  `vitest` in devDependencies and `test` and `check` scripts; `ship.config.ts` declares `gamepad` with the pad bindings;
+  `automata check` refuses a `src/sim/` layout with "Put game code in src/features/<name>/ (see the guide)." and accepts
+  role files only under `games/base-3d`.
+- [ ] **Step 2:** Implement. The template's test runs in the repository too (`pnpm --filter` on a generated fixture in
+  `tests/fixtures/new-game/`, regenerated by a script and compared, so it cannot drift).
+- [ ] **Step 3:** The journey passes "check it" and "test it". Commit.
+  `feat(create-game): a new game has a test, passes its check and uses the feature layout`
+
+### Task 2.4: The rest of the path
+
+**Files:**
+- Modify: `packages/tools/src/shared/create-game/create-game.ts` (README: the site's guides, the one command),
+  `packages/tools/README.md` (`pnpm dlx … create-game` first)
+- Test: the template test (no link into the repository; the README's first command)
+
+- [ ] **Step 1:** Failing test, then the change (N5, N7). Copy rows in `copy.md`.
+- [ ] **Step 2:** The whole journey passes in Chromium: play, then the itch.io zip. `pnpm check` passes. The old
+  `create-game` journey's hand-made links are gone (N6). Changeset `patch` for `-tools`. Mark the PR ready.
+  `docs(create-game): one command to start, guides on the site`
+
+---
+
+## Phase 3: The published command (one PR, `claude/refactor-tools-surface`)
+
+### Task 3.1: What leaves
+
+**Files:**
+- Delete: `packages/tools/src/shared/ship/remote/` (`test-remote`), `packages/tools/src/shared/ship/deploy-dev*`,
+  `packages/tools/deploy/`, `packages/tools/src/features/add/`, `packages/tools/src/app/ship-alias-bin.ts`, their tests,
+  `game-release.yml`'s `dev-host` job
+- Create (only if the Owner wants it, else skip): `tooling/repo-scripts/src/ci-remote.ts` (`pnpm ci:remote`)
+- Modify: `packages/tools/src/app/cli.ts`, `packages/tools/package.json` (`bin`), `packages/tools/tsdown.config.ts`,
+  `packages/tools/README.md`
+
+- [ ] **Step 1: Failing test:** `automata --help`'s commands are `create-game`, `check`, `build`, `editor`, `ship`;
+  `automata add` and `automata ship test-remote` and `deploy-dev` print "Unknown command" and the help.
+- [ ] **Step 2:** Delete; `pnpm knip` finds nothing left behind. Tag the last commit with the deleted code in the
+  execution log (git keeps it; the Owner pushes tags). Commit. `refactor(tools): the command holds what a game author needs`
+
+### Task 3.2: The target is always named
+
+**Files:**
+- Modify: `packages/tools/src/shared/ship/{ship-args.ts,prepare.ts,publish/publish-build.ts}`, create
+  `packages/tools/src/shared/ship/targets/web/prepare-web.ts`
+- Test: `packages/tools/tests/unit/shared/ship/{ship-args.test.ts,targets/prepare-web.test.ts}`
+
+- [ ] **Step 1: Failing tests.** `ship prepare` with no `--target` exits 2 with "Choose a target: --target web, itch,
+  tauri or ruken."; `--target web` builds and runs the public scans (secrets, data URLs, `findClosedBeta`, no-eval) and
+  writes `dist/`; `--private`'s help text is spec 16.2's.
+- [ ] **Step 2:** Implement. Commit. `feat(ship): name the target every time; web has a prepare step`
+
+### Task 3.3: A small root entry, and `check-boundaries` folded in
+
+**Files:**
+- Modify: `packages/tools/src/entries/index.ts` (only `defineShipConfig` and its types), create
+  `packages/tools/src/entries/internal.ts` (what the repository's tooling imports; in `exports`, not in
+  `publishConfig.exports`); every importer of a removed name (`grep -rn "@mcthaydt/automata-tools'" tooling games examples`)
+- Move: `tooling/check-boundaries/src` → `packages/tools/src/features/boundaries/`, its tests to `packages/tools/tests/unit/boundaries/`
+- Modify: `packages/tools/package.json` (`bin.automata-check-boundaries`), root `package.json` (`boundaries` calls it),
+  `.changeset/config.json`, `tooling/release/src/*` (four published packages), `tooling/consumer-smoke`, API reports
+- Delete: `tooling/check-boundaries`
+
+- [ ] **Step 1: Failing test:** the API report for `-tools` lists `defineShipConfig` and its types only; the boundaries
+  step of `automata check` runs with no `@mcthaydt/automata-check-boundaries` installed (the journey proves it).
+- [ ] **Step 2:** Move and trim. `pnpm build`, `pnpm api-report --update`, `pnpm agent-skills --write`, `pnpm cheatsheet`.
+  Changeset `patch` for `-tools`. `pnpm check` passes. Commit. `refactor(tools): export the ship config only; boundaries inside tools`
+
+### Task 3.4: Help text
+
+**Files:**
+- Modify: `packages/tools/src/app/cli.ts` (`USAGE`), every command's usage text
+- Test: `packages/tools/tests/unit/app/help.test.ts`
+
+- [ ] **Step 1: Failing test:** `automata --help` is at most eight lines and names the four steps; no help text holds
+  `D-1`, `M<n>`, `__AUTOMATA_DEBUG__`, "exit 0", `ruken.toml` on the first screen or a package name.
+- [ ] **Step 2:** Rewrite (Y1, Y2); copy rows. The stranger's journey still passes. Commit.
+  `docs(tools): help a first-time author can read`
+
+### Task 3.5: The code refactor of `-tools` (same PR)
+
+**Files:** `packages/tools/src/**` (create-game, check, ship, the editor command), their tests, `packages/tools/README.md`
+
+- [ ] **Step 1: The read.** Run spec 17.3's checks over `packages/tools/src`; write the findings list in the execution
+  log (each with file and line), before changing anything. Record unit test counts.
+- [ ] **Step 2: Fix, one concern per commit:** remove what is unused, fold single-implementation layers and forwarding
+  modules, merge duplicates, split files over 300 lines by responsibility, add header comments and the missing whys.
+  Effect stays where it runs a step or a process (law 5); a function that wraps a pure computation in Effect only to
+  call it from Effect becomes plain.
+- [ ] **Step 3:** Counts equal (or lower only by listed dead code); the stranger's journey passes; `pnpm check`.
+  Mark the PR ready. `refactor(tools): minimal, documented internals`
+
+---
+
+## Phase 4: One editor package (three PRs)
+
+### Task 4.1: The move map and the package skeleton (PR `claude/refactor-ed-package`)
 
 **Files:**
 - Create: `docs/refactor/move-map-editor.json`, `packages/editor/{package.json,tsconfig.json,vite.config.ts,vitest.config.ts,README.md}`,
-  `packages/editor/src/entries/*.ts` (empty re-exports, filled in 2.2)
+  `packages/editor/src/entries/*.ts` (empty re-exports, filled in 4.2)
 - Modify: `tooling/codemods/src/move-modules.ts` (only if the map needs a feature it lacks), `knip.json`
 
 - [ ] **Step 1: Write the map.** One JSON object, old path → new path, for every file in `packages/editor-kit/src`,
@@ -132,16 +282,16 @@ the task.
   | `*/src/testing/` | `editor/src/testing/` (names deduplicated: `memory-workspace.ts` exists in two) |
   | `editor-kit/scripts/generate-tokens.ts`, `docs/design/editor-kit/tokens.json` | `editor/scripts/generate-tokens.ts`, `editor/src/shared/kit/tokens/tokens.json` |
 
-  Tests are mapped in task 2.3, not here.
+  Tests are mapped in task 4.3, not here.
 - [ ] **Step 2: Dry run.** `node tooling/codemods/src/cli.ts move --map docs/refactor/move-map-editor.json --dry-run`
   → expected: every source file mapped, none unmapped, no two files to one path. Fix the map until it is clean.
 - [ ] **Step 3: The skeleton.** `package.json` (`@mcthaydt/automata-editor`, private, `imports: {"#src/*": "./src/*"}`,
   the entries of spec section 3.2, the union of the three packages' dependencies less `@pixi/3d`, `figures`,
-  `render-pixi3d`, `editor-3d`), one `vitest.config.ts` calling `defineTests` (filled in 2.3), `tsconfig.json` including
+  `render-pixi3d`, `editor-3d`), one `vitest.config.ts` calling `defineTests` (filled in 4.3), `tsconfig.json` including
   `src`, `tests` and configs, the root TypeScript.
 - [ ] **Step 4: Commit.** `refactor(editor): the move map and the editor package skeleton`
 
-### Task 2.2: Merge the three packages (same PR)
+### Task 4.2: Merge the three packages (same PR)
 
 **Files:**
 - Move: everything in the map
@@ -171,14 +321,14 @@ the task.
   @mcthaydt/automata-editor-3d typecheck build`, `pnpm --filter @mcthaydt/automata-tools build`. If `svelte-check`
   refuses TypeScript 7, pin 6.0.3 in this package and write why in the execution log.
 
-  **Session break here** if 90 minutes have passed: push, log the handoff ("2.2 step 5 done: builds; tests not yet
+  **Session break here** if 90 minutes have passed: push, log the handoff ("4.2 step 5 done: builds; tests not yet
   moved").
 - [ ] **Step 6: Count after.** Run the old tests where they now sit (still beside the code; 2.3 moves them): the
   editor's unit and DOM total equals the three packages' sum minus the Studio's tests, which now count in `editor-3d`
   (its count rises by the same number). Any other difference is a bug: find it before going on.
 - [ ] **Step 7: Commit.** `refactor(editor): merge editor-kit, editor-2d and editor-suite into one editor package`
 
-### Task 2.3: Tests into `tests/` (same PR)
+### Task 4.3: Tests into `tests/` (same PR)
 
 **Files:**
 - Modify: `tooling/codemods/src/move-tests.ts` (the editor's suffix table), `tooling/codemods/tests/unit/move-tests.test.ts`,
@@ -200,18 +350,18 @@ the task.
 - [ ] **Step 3: Run it.** `node tooling/codemods/src/cli.ts move-tests packages/editor --dry-run`, check, apply. Imports
   of the code under test become `#src/...`.
 
-  **Session break here** if needed (log: "2.3 step 3 applied; configs not yet switched").
+  **Session break here** if needed (log: "4.3 step 3 applied; configs not yet switched").
 - [ ] **Step 4: Switch the config.** `vitest.config.ts` is one `defineTests` call (`environment: 'node'`, `svelte: true`,
   `setupFiles`, `css: true`, the three browser projects). Scripts: `test:unit` (`--project unit`), `test:browser`
   (the three browser projects).
-- [ ] **Step 5: Counts equal.** `pnpm --filter @mcthaydt/automata-editor test:unit` → the same count as 2.2 step 6.
+- [ ] **Step 5: Counts equal.** `pnpm --filter @mcthaydt/automata-editor test:unit` → the same count as 4.2 step 6.
   Chromium browser projects → 252 pass, 6 skipped (plus the kit's layout tests, which the audit could not run: record
   the number). `pnpm style --test-imports packages/editor` → 0 findings.
 - [ ] **Step 6: Gate lines.** Root `package.json`: `test:unit:2d` and `test:browser:2d` filter `./packages/editor`
   in and `./packages/editor-3d` out. `pnpm check` passes.
 - [ ] **Step 7: Commit, mark the PR ready.** `refactor(editor): tests in tests/, one suffix, the preset's browser projects`
 
-### Task 2.4: Feature folders and the boundaries rules (PR `claude/refactor-ed-features`)
+### Task 4.4: Feature folders and the boundaries rules (PR `claude/refactor-ed-features`)
 
 **Files:**
 - Modify: `tooling/check-boundaries/src/{cli.ts,features.ts}`, create `tooling/check-boundaries/src/forbid.ts`,
@@ -230,14 +380,14 @@ the task.
   fix. Re-run until 0.
 - [ ] **Step 5: Commit.** `refactor(editor): features import only themselves and shared; no 3D in the editor package`
 
-### Task 2.5: Comments, fixtures, unused code and the mock-ups (same PR)
+### Task 4.5: Comments, fixtures, unused code and the mock-ups (same PR)
 
 **Files:**
 - Modify: comments across `packages/editor/src` and `tests/`; fixtures (`floorfifty.editors.toml`,
   `last-light-bay.editors.toml`, `FLOORFIFTY_SAMPLE`, ...); root `package.json` (`style` roots); `knip.json`
 - Move: `docs/design/editor-kit`, `editor-2d`, `editor-suite` → `docs/archive/design/` (`tokens.json` already moved in
   2.1); `docs/design/editor-3d` stays for the 3D slice
-- Modify: `docs/guides/editor.md` (first step builds nothing; `automata editor` opens the 2D editor; full rewrite in 9.5)
+- Modify: `docs/guides/editor.md` (first step builds nothing; `automata editor` opens the 2D editor; full rewrite in 12.5)
 
 - [ ] **Step 1:** Add `packages/editor` to `style`'s `--plan-comments`, `--comments-only` and `--test-imports`. Run
   → expected about 943 plan-ID findings (audit S5). Rewrite each comment to say why in plain words, or remove it
@@ -252,11 +402,29 @@ the task.
 - [ ] **Step 5:** `pnpm check` passes. Commit, mark ready.
   `refactor(editor): plain comments, neutral fixtures, no unused entries, mock-ups archived`
 
+### Task 4.6: The code refactor of the editor package (PR `claude/refactor-ed-quality`)
+
+**Files:** `packages/editor/src/shared/**`, `packages/editor/src/features/*/` logic files (`*-model.ts`,
+`*-controller.ts`, `*-session.ts`, commands), `packages/editor/src/app/**`, their tests, `packages/editor/README.md`.
+The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4).
+
+- [ ] **Step 1: The read.** Spec 17.3's checks over the package, area by area (kit core and storage, documents and
+  history, commands and selection, the 2D model and codecs, the canvas, tiles and auto-tile, the profile and export, the
+  editor list, the suite's logic). Findings list in the execution log before any change. Record the unit and Chromium
+  browser counts.
+- [ ] **Step 2: Fix, one area per commit** (session breaks between areas as needed; log what is left): unused options and
+  exports out; single-implementation interfaces folded, keeping the seams tests and targets swap (store, clock,
+  renderer); duplicates merged (one memory workspace, one toast model, one id helper); files over 300 lines split by
+  responsibility; header comments and whys added.
+- [ ] **Step 3:** Counts equal (or lower only by listed dead code); the auto-tile goldens unchanged in Node and
+  Chromium; `editor-3d`'s tests pass in the 3D workflow; `pnpm check`. Mark ready.
+  `refactor(editor): minimal, documented internals`
+
 ---
 
-## Phase 3: The 2D level contract in `-content` (one PR, `claude/refactor-ed-level-contract`)
+## Phase 5: The 2D level contract in `-content` (one PR, `claude/refactor-ed-level-contract`)
 
-### Task 3.1: The `level-2d` entry
+### Task 5.1: The `level-2d` entry
 
 **Files:**
 - Create: `packages/content/src/shared/level-2d/{content.schema.ts,fields.schema.ts,field-types.ts,check-field-def.ts,check-field-value.ts,level-2d-kinds.ts,read-level.ts}`,
@@ -282,7 +450,7 @@ the task.
   the 2D level format the editor writes and games read."
 - [ ] **Step 6: Commit.** `feat(content): the 2D level format has one owner`
 
-### Task 3.2: The editor and Emberwick import it (same PR)
+### Task 5.2: The editor and Emberwick import it (same PR)
 
 **Files:**
 - Modify: `packages/editor/src/shared/kit/fields/index.ts` (re-exports), the editor's export code and tests,
@@ -301,9 +469,9 @@ the task.
 
 ---
 
-## Phase 4: Save writes the game (one PR, `claude/refactor-ed-save`)
+## Phase 6: Save writes the game (one PR, `claude/refactor-ed-save`)
 
-### Task 4.1: `exports` in the editor list and the policy
+### Task 6.1: `exports` in the editor list and the policy
 
 **Files:**
 - Modify: `packages/editor/src/shared/editor-list/{editors.schema.ts,editor-list.ts,write-path.ts}`,
@@ -318,7 +486,7 @@ the task.
   needs no change beyond using `fileAccess`. Add `exports = "content"` to Emberwick's row.
 - [ ] **Step 3: Commit.** `feat(editor-list): a level row names the folder its game files go into`
 
-### Task 4.2: Save writes the game files, then the project
+### Task 6.2: Save writes the game files, then the project
 
 **Files:**
 - Create: `packages/editor/src/features/document/save-to-game.ts`
@@ -345,7 +513,7 @@ the task.
 - [ ] **Step 3:** Run the editor's unit and Chromium browser tests → pass. Copy rows in `copy.md`. Commit.
   `feat(editor): Save writes the game files the game reads`
 
-### Task 4.3: The drift check
+### Task 6.3: The drift check
 
 **Files:**
 - Create: `packages/tools/src/shared/check/levels-step.ts`
@@ -363,7 +531,7 @@ the task.
   confirms the entry loads in Node). `pnpm check` passes. Commit. `feat(check): catch a level and its game files
   disagreeing`
 
-### Task 4.4: The narrow fallback
+### Task 6.4: The narrow fallback
 
 **Files:**
 - Modify: `packages/tools/src/features/editor/editor-policy.ts`, `packages/tools/src/features/editor/editor-command.ts`
@@ -378,9 +546,9 @@ the task.
 
 ---
 
-## Phase 5: The editor ships inside `-tools` (one PR, `claude/refactor-ed-ship`)
+## Phase 7: The editor ships inside `-tools` (one PR, `claude/refactor-ed-ship`)
 
-### Task 5.1: `--app 2d` by default, and it runs from source
+### Task 7.1: `--app 2d` by default, and it runs from source
 
 **Files:**
 - Modify: `packages/tools/src/features/editor/{editor-args.ts,editor-command.ts}`
@@ -395,7 +563,7 @@ the task.
 - [ ] **Step 2:** Implement. The usage and messages per spec 7.1 (copy rows).
 - [ ] **Step 3: Commit.** `feat(editor): automata editor opens the 2D editor and runs from source`
 
-### Task 5.2: The build inside `-tools`, and the closed-beta scan
+### Task 7.2: The build inside `-tools`, and the closed-beta scan
 
 **Files:**
 - Create: `packages/tools/src/shared/ship/closed-beta.ts` (`findClosedBeta`), `packages/tools/scripts/copy-editor.ts`
@@ -415,16 +583,19 @@ the task.
 - [ ] **Step 4:** Changeset `patch`: "`automata editor` now includes the 2D editor." Commit.
   `feat(tools): ship the 2D editor inside the tools package`
 
-### Task 5.3: `create-game` makes a level
+### Task 7.3: `create-game` makes a level
 
 **Files:**
 - Create: `packages/tools/src/shared/create-game/template-content/` (`editors.toml`, `levels/start.af2d.json`,
   `project.toml`, `world.toml`, `levels/start.toml`), `packages/tools/scripts/write-template-content.ts`
-- Modify: `packages/tools/src/shared/create-game/create-game.ts` (writes `content/`; the template's `src/state.ts`
-  and `src/systems.ts` read the level; `vite.config.ts` uses the content plugin with `level2dKinds()`),
+- Modify: `packages/tools/src/shared/create-game/create-game.ts` (writes `content/`; the template's
+  `src/features/level/` reads the level and `src/features/square/move.system.ts` stops at its walls; `vite.config.ts`
+  uses the content plugin with `level2dKinds()`), `tooling/consumer-smoke/tests/e2e/stranger.test.ts` (the square stops
+  at a wall),
   `packages/tools/package.json` (`@mcthaydt/automata-content` already a dependency)
 - Test: `packages/tools/tests/unit/shared/create-game/template-content.test.ts`,
-  `packages/tools/tests/unit/shared/create-game/create-game.test.ts`, `packages/tools/tests/e2e/create-game.test.ts`
+  `packages/tools/tests/unit/shared/create-game/create-game.test.ts`, the template's own
+  `tests/unit/level/read-level.test.ts`, the stranger's journey
 
 - [ ] **Step 1: Failing tests.** (a) `write-template-content.ts --check` regenerates the four game files from
   `start.af2d.json` with `@mcthaydt/automata-editor/level-export` and they equal the checked-in ones. (b)
@@ -433,15 +604,16 @@ the task.
 - [ ] **Step 2:** Make the starter level in the editor's platformer template (one level, a floor, two platforms, a
   player start), write its game files with the script, and the template's sim reading them through `intGridRows`
   and `entitiesOf`.
-- [ ] **Step 3:** `pnpm --filter @mcthaydt/automata-tools test:e2e` (Chromium) passes. Changeset `patch`:
+- [ ] **Step 3:** The stranger's journey and `pnpm --filter @mcthaydt/automata-tools test:e2e` (Chromium) pass, and
+  `automata check` on the untouched game runs the `levels` step and passes. Changeset `patch`:
   "`create-game` starts every game with a level you can open in the editor." Commit, mark the PR ready.
   `feat(create-game): a new game has a level and an editor list`
 
 ---
 
-## Phase 6: The suite without 3D (one PR, `claude/refactor-ed-suite`)
+## Phase 8: The suite without 3D (one PR, `claude/refactor-ed-suite`)
 
-### Task 6.1: The 2D-only suite page
+### Task 8.1: The 2D-only suite page
 
 **Files:**
 - Modify: `packages/editor/src/app/suite/main.ts` (Levels 2D and the Tuner only), `packages/editor/vite.config.ts`
@@ -456,7 +628,7 @@ the task.
   (it is not shipped; the comment says so).
 - [ ] **Step 3: Commit.** `refactor(suite): the editor package's suite page holds no 3D`
 
-### Task 6.2: The suite opens the checkout; the rail lists what is there
+### Task 8.2: The suite opens the checkout; the rail lists what is there
 
 **Files:**
 - Modify: `packages/editor/src/app/suite/main.ts` (ping, then HTTP ports or the sample),
@@ -472,9 +644,29 @@ the task.
 
 ---
 
-## Phase 7: The website moves in (one PR, `claude/refactor-site-move`)
+## Phase 9: Examples by dimension (one PR, `claude/refactor-examples-2d`)
 
-### Task 7.1: `site/` with its history
+### Task 9.1: Split the examples package
+
+**Files:**
+- Move: `examples/render3d/`, `examples/figures/` and their journeys (`examples/tests/e2e/render3d-*`, `figures-*`) →
+  `examples/3d/`; the rest → `examples/2d/`
+- Modify: `pnpm-workspace.yaml`, `examples/2d/package.json` (`@af-examples/examples-2d`, no `render-pixi3d`, `figures`
+  or `@pixi/3d`), `examples/3d/package.json`, `examples/playwright.config.ts` (one per package),
+  `tooling/examples-runner` (catalog per package), `.github/workflows/{ci.yml,3d.yml}`, root `package.json` scripts
+- Test: `tooling/examples-runner/tests/unit/catalog.test.ts` (the 2D catalog has no private entry)
+
+- [ ] **Step 1: Failing test:** the 2D catalog holds no `render3d` or `figures` entry; `examples/2d/package.json`'s
+  dependency tree (`pnpm --filter @af-examples/examples-2d list --depth Infinity`) has no `@pixi/3d`.
+- [ ] **Step 2:** Move (`git mv`); fix imports. `pnpm --filter @af-examples/examples-2d build` and the closed-beta scan
+  of its output pass; the 2D examples' journeys pass in Chromium; the 3D ones run in `3d.yml`.
+- [ ] **Step 3:** `pnpm check`. Commit, mark ready. `refactor(examples): 2D and 3D examples are separate packages`
+
+---
+
+## Phase 10: The website moves in (one PR, `claude/refactor-site-move`)
+
+### Task 10.1: `site/` with its history
 
 **Files:**
 - Create (by subtree): `site/**`
@@ -490,7 +682,7 @@ the task.
   6 of 78, `double-jump`, `first-change`, `workshop-controls`, `api-contract`, `example-sources`, `license-claim`).
 - [ ] **Step 3: Commit.** `chore(site): move the website into the repository with its history`
 
-### Task 7.2: Imports, not copies
+### Task 10.2: Imports, not copies
 
 **Files:**
 - Delete: `site/scripts/{sync-*.ts,framework-source.ts,release.ts,rehearse-rollback.ts,check-deployed.ts,check-uptime.ts,record-lighthouse-baseline.ts,record-workshop-proof.mjs,build-workshop.mjs}`,
@@ -514,7 +706,7 @@ the task.
   what they covered, or now read the real files); `pnpm --filter @mcthaydt/automata-site build` → exits 0 (W3).
 - [ ] **Step 4: Commit.** `refactor(site): read the framework at build time; no sync scripts, pins or committed builds`
 
-### Task 7.3: The site's tooling matches the repository's
+### Task 10.3: The site's tooling matches the repository's
 
 **Files:**
 - Modify: `site/package.json` (Vite 8, SvelteKit's latest 2.x on Vite 8, `@sveltejs/vite-plugin-svelte` 7, Zod 4.6.6,
@@ -529,9 +721,9 @@ the task.
 
 ---
 
-## Phase 8: One design system (one PR, `claude/refactor-ed-design-system`)
+## Phase 11: One design system (one PR, `claude/refactor-ed-design-system`)
 
-### Task 8.1: One token source
+### Task 11.1: One token source
 
 **Files:**
 - Modify: `packages/editor/src/shared/kit/tokens/tokens.json` (the site's values, spec 11.2), `packages/editor/scripts/generate-tokens.ts`,
@@ -548,7 +740,7 @@ the task.
   Chromium; screenshots of Home before and after are identical by eye, since the values are the same).
 - [ ] **Step 3: Commit.** `feat(design): one token source for the editor and the site`
 
-### Task 8.2: Geist and the icons
+### Task 11.2: Geist and the icons
 
 **Files:**
 - Modify: `packages/editor/src/shared/kit/fonts.css`, `packages/editor/package.json` (`@fontsource-variable/geist`,
@@ -563,7 +755,7 @@ the task.
   third-party gate covers the try-it page later).
 - [ ] **Step 3: Commit.** `feat(design): Geist and an icon set in the editor kit`
 
-### Task 8.3: The kit's components and the design board
+### Task 11.3: The kit's components and the design board
 
 **Files:**
 - Modify: every component in `packages/editor/src/shared/kit/{widgets,dialogs,shell}` (styles; props only where spec
@@ -586,14 +778,14 @@ the task.
 
 ---
 
-## Phase 9: The 2D editor redesigned (two PRs)
+## Phase 12: The 2D editor redesigned (two PRs)
 
 Every task here: before-and-after screenshots at phone, iPad (both orientations) and desktop attached to the PR; every
 changed string in `copy.md`; DOM tests updated only for names and places; nothing a view could do before becomes
 unreachable (spec 11.4, "what stays"): before each task, list the view's actions from its current DOM tests in the
 execution log, and tick each off when the redesigned view's tests reach it.
 
-### Task 9.1: Home (PR `claude/refactor-ed-redesign-1`)
+### Task 12.1: Home (PR `claude/refactor-ed-redesign-1`)
 
 **Files:**
 - Modify: `packages/editor/src/features/home/{Home.svelte,ProjectSummary.svelte,TemplateRow.svelte,DeleteDialog.svelte,home-model.ts,home-controller.ts}`,
@@ -608,7 +800,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
   viewport.
 - [ ] **Step 3:** Screenshots, copy rows. Commit. `feat(editor): Home redesigned`
 
-### Task 9.2: The document frame (same PR)
+### Task 12.2: The document frame (same PR)
 
 **Files:**
 - Modify: `packages/editor/src/features/document/{DocumentBar.svelte,ViewRail.svelte,DocumentScreen.svelte,view-router.ts}`,
@@ -624,7 +816,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - [ ] **Step 2:** Implement. Layout test: Save is visible and never covered by a sheet, at every size.
 - [ ] **Step 3:** Screenshots, copy rows. Commit, mark the PR ready. `feat(editor): the document frame redesigned`
 
-### Task 9.3: The Level view (PR `claude/refactor-ed-redesign-2`)
+### Task 12.3: The Level view (PR `claude/refactor-ed-redesign-2`)
 
 **Files:**
 - Modify: `packages/editor/src/features/level/{LevelView.svelte,LevelToolbar.svelte,LayersPanel.svelte,LevelPanel.svelte,Inspector.svelte,LevelInspector.svelte,LevelDock.svelte,LevelCards.svelte,Palette.svelte,LevelStage.svelte,dock-model.ts}`,
@@ -643,7 +835,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
 - [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`
 
-### Task 9.4: Map, Tiles, Characters and the dialogs (same PR)
+### Task 12.4: Map, Tiles, Characters and the dialogs (same PR)
 
 **Files:**
 - Modify: `packages/editor/src/features/{map,tiles,characters}/**/*.svelte`, `packages/editor/src/shared/kit/dialogs/{ConflictDialog,RecoveryDialog}.svelte`,
@@ -655,10 +847,10 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - [ ] **Step 2:** Implement, one view per commit. **Session break** between views if needed.
 - [ ] **Step 3:** Screenshots, copy rows. Commit per view.
 
-### Task 9.5: The copy table and the guide (same PR)
+### Task 12.5: The copy table and the guide (same PR)
 
 **Files:**
-- Modify: `docs/refactor/copy.md` ("Editor": every string phases 4 to 9 changed, checked against the four questions),
+- Modify: `docs/refactor/copy.md` ("Editor": every string phases 6 to 12 changed, checked against the four questions),
   `docs/guides/editor.md` (rewritten: open, draw, save, play; screenshots from the design board),
   `packages/editor/README.md`
 
@@ -670,9 +862,9 @@ execution log, and tick each off when the redesigned view's tests reach it.
 
 ---
 
-## Phase 10: Real journeys (one PR, `claude/refactor-ed-journeys`)
+## Phase 13: Real journeys (one PR, `claude/refactor-ed-journeys`)
 
-### Task 10.1: The harness
+### Task 13.1: The harness
 
 **Files:**
 - Create: `packages/editor/playwright.config.ts` (`defineJourneys` from `tooling/playwright-preset`; projects
@@ -688,7 +880,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - [ ] **Step 2:** A smoke journey (open the editor, see "Emberwick room") passes in Chromium.
 - [ ] **Step 3: Commit.** `test(editor): a Playwright harness that runs the real automata editor on a temp game`
 
-### Task 10.2: Save, drift and conflict journeys
+### Task 13.2: Save, drift and conflict journeys
 
 **Files:**
 - Create: `packages/editor/tests/e2e/{save-reaches-the-game.test.ts,drift-is-caught.test.ts,conflict-stops-the-save.test.ts}`
@@ -698,42 +890,162 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - [ ] **Step 2:** Run in Chromium (iPad and phone projects) → pass. Record first-attempt results. WebKit: the Owner's.
 - [ ] **Step 3: Commit.** `test(editor): journeys prove Save reaches the game and the check catches drift`
 
-### Task 10.3: A new game, and the suite
+### Task 13.3: A new game, and the suite
 
 **Files:**
 - Create: `packages/editor/tests/e2e/{new-game-opens.test.ts,suite-opens-the-checkout.test.ts}`
 
-- [ ] **Step 1:** The new-game journey packs `-tools`, `automata`, `-content` and `-sim` (the consumer smoke's packing
-  helper), runs `create-game` from the tarball into a temp folder, installs from the tarballs, starts `automata editor`
-  with no flags, paints a wall into the starter level, saves, and sees it in the game.
+- [ ] **Step 1:** The new-game journey reuses the stranger's journey's steps (`tooling/consumer-smoke/src/stranger.ts`:
+  pack, `create-game` outside the workspace, install from the packs), then starts `automata editor` with no flags,
+  paints a wall into the starter level, saves, and sees it in the game.
 - [ ] **Step 2:** The suite journey (Chromium only) per spec section 9.
 - [ ] **Step 3:** Both pass in Chromium. `pnpm check`. Commit, mark ready. `test(editor): a new game opens in the editor; the suite opens the game`
 
 ---
 
-## Phase 11: npmjs.org (one PR, `claude/refactor-npm`)
+## Phase 14: Release to npmjs.org (two PRs)
 
-### Task 11.1: The registry switch and a Verdaccio dry run
+### Task 14.1: The scope (PR `claude/refactor-scope`; waits only on the Owner's organisation name, D9)
 
 **Files:**
-- Modify: every published `packages/*/package.json` (`publishConfig.registry`, `repository`/`homepage`/`bugs` per spec 8),
-  `.changeset/config.json` (`"access": "public"`), `.github/workflows/release-packages.yml` (npmjs.org,
-  `NPM_TOKEN`), `tooling/consumer-smoke/src/run.ts` (`--from registry` reads `AF_REGISTRY`), `docs/runbook.md`,
-  packages' READMEs (links to the site), `.changeset/npmjs.md`
-- Test: `tooling/release/tests/unit/publish-config.test.ts` (create)
+- Modify: every `package.json`, import, doc, guide, README, skill, template and test naming `@mcthaydt/automata`
+  (`git grep -l "@mcthaydt/automata"`), through a specifier codemod table (`tooling/codemods`)
+- Test: `tooling/release/tests/unit/scope.test.ts`
 
-- [ ] **Step 1: Failing test:** every published package's `publishConfig.registry` is `https://registry.npmjs.org`,
-  none links to `github.com/mcthaydt/automata-framework`, the changesets access is `public`.
-- [ ] **Step 2:** Implement. Start Verdaccio locally (`pnpm dlx verdaccio@<pinned>`), `changeset publish` against it
-  with a throwaway token, run the consumer smoke `--from registry` with `AF_REGISTRY` pointing at it → 15 of 15 steps.
-- [ ] **Step 3:** `docs/runbook.md` says what the Owner does for the first publish (add `NPM_TOKEN`, approve the
-  release environment, deprecate the GitHub Packages names). Commit, mark ready. `build(release): publish to npmjs.org`
+- [ ] **Step 1: Failing test:** no tracked file outside `docs/archive/`, `docs/refactor/` and the changelogs names
+  `@mcthaydt/automata`.
+- [ ] **Step 2:** Run the codemod with the Owner's scope; `pnpm install`, `pnpm check`, the stranger's journey,
+  Emberwick's Chromium journeys. API reports, agent skills and cheatsheet regenerated. One changeset `patch` per package
+  saying the name changed. Mark ready. `refactor: publish under the project's npm scope`
+
+### Task 14.2: The registry and the first public version (PR `claude/refactor-npm`)
+
+**Files:**
+- Modify: the published `package.json`s (`publishConfig.registry`, `repository`/`homepage`/`bugs`), root `.npmrc`,
+  `.changeset/config.json` (`"access": "public"`), `.github/workflows/{release-packages.yml,game-ci.yml,game-release.yml}`,
+  `tooling/consumer-smoke/src/run.ts` (`AF_REGISTRY`), `tooling/release/src/check-changesets.ts` (the one-time `minor`
+  below 0.1.0), `vendor/ruken/README.md` (R7), `docs/runbook.md`, `AGENTS.md` (the publish line), READMEs
+- Delete: the fourteen pending refactor changesets; Create: `.changeset/first-public-release.md` (`minor`, one entry)
+- Test: `tooling/release/tests/unit/{publish-config.test.ts,check-changesets.test.ts}`, and the five tests that pin
+  GitHub Packages, updated
+
+- [ ] **Step 1: Failing tests:** every published package's registry is `https://registry.npmjs.org` and none links to
+  the private repository; access is `public`; `check-changesets` accepts one `minor` while the version is below 0.1.0
+  and refuses one at or above it; no workflow reads `AF_READ_TOKEN`.
+- [ ] **Step 2:** Implement. `release-packages.yml`: `NPM_TOKEN`, no provenance with a one-line reason (R6).
+- [ ] **Step 3: Dry run.** Verdaccio locally (`pnpm dlx verdaccio@<exact>`), `changeset version` (→ 0.1.0),
+  `changeset publish` to it, the stranger's journey with `AF_REGISTRY` pointing at it (installing by version, not packs)
+  → passes. Undo the version commit; it is the release's job.
+- [ ] **Step 4:** `docs/runbook.md`: the Owner's first-publish steps (organisation, `NPM_TOKEN`, approve the release
+  environment). Mark ready. `build(release): publish 0.1.0 to npmjs.org`
 
 ---
 
-## Phase 12: The lean site (one PR, `claude/refactor-site-lean`)
+## Phase 15: CI for games (one PR, `claude/refactor-game-ci`)
 
-### Task 12.1: Features, the page cut and redirects
+### Task 15.1: The game's own workflow
+
+**Files:**
+- Create: `packages/tools/src/shared/create-game/template-ci/release.yml`
+- Modify: `create-game.ts` (writes `.github/workflows/release.yml`), `.github/workflows/{game-ci.yml,game-release.yml}`
+  (Emberwick's jobs only; no `workflow_call` inputs for others, no `af-linux`/`af-mac` defaults for others, no
+  `dev-target` example), `docs/guides/publish-to-*.md` (show the template's workflow)
+- Test: `packages/tools/tests/unit/shared/create-game/template-ci.test.ts`
+
+- [ ] **Step 1: Failing test:** a new game has `.github/workflows/release.yml` that runs on a tag, on `ubuntu-latest`,
+  with `pnpm check`, `pnpm build:web` and an itch.io publish guarded by `BUTLER_API_KEY`; it parses as YAML and passes
+  `actionlint` when Docker is present.
+- [ ] **Step 2:** Implement; the stranger's journey checks the file exists. Mark ready.
+  `feat(create-game): a new game has its own release workflow`
+
+---
+
+## Phase 16: The agent package and the docs (one PR, `claude/refactor-agents-docs`)
+
+### Task 16.1: The skills, for today's framework
+
+**Files:**
+- Modify: `agents/automata/skills/*/SKILL.md`, `agents/automata/skills/automata-feature/example/` (regenerated from
+  `create-game` plus one feature), root `package.json` (`boundaries` root for the example), `.claude-plugin/marketplace.json`
+- Test: `pnpm plugin:validate`; `tooling/agent-skills/tests/unit/skills-text.test.ts` (no `src/sim/`, "reference host",
+  "networked truth" or `vitest run src/`)
+
+- [ ] **Step 1:** Failing text test, then rewrite (A1, A2). `pnpm boundaries` passes on the new example. Commit.
+  `docs(agents): the skills teach the refactored framework`
+
+### Task 16.2: One generated reference
+
+**Files:**
+- Modify: `tooling/api-index/src/cli.ts` (writes the cheatsheet and the agent `reference/api.md` in one run),
+  `tooling/agent-skills/src/*` (reads the index instead of generating its own), root `package.json`
+  (`release:version`), `AGENTS.md` (one command after an export change)
+- Test: `tooling/api-index/tests/unit/outputs.test.ts`
+
+- [ ] **Step 1:** Failing test: one `pnpm api-index --write` writes both files from one index; `pnpm agent-skills
+  --write` no longer writes `api.md`. Implement (A3). Commit. `build(docs): one generator for the API reference`
+
+### Task 16.3: The docs agree with the direction
+
+**Files:**
+- Modify: `docs/adr/0002*.md`, `0004*.md`, `0005*.md`, `docs/stack.md`, `tooling/versions/src/stack-cards.ts`,
+  `docs/versions.md`, `renovate.json`, `docs/status.md`, `README.md`, `tooling/check-style/src/{plan-comments.ts,cli.ts}`
+  (YAML and Markdown; a `--links` rule), `tooling/repo-hygiene/src/source-names.ts` (wired into `pnpm check`), the
+  files those rules flag
+- Test: `tooling/check-style/tests/unit/{plan-comments-yaml-md.test.ts,links.test.ts}`,
+  `tooling/repo-hygiene/tests/unit/source-names-wired.test.ts`
+
+- [ ] **Step 1: Failing tests** for the YAML/Markdown plan-ID rule, the links rule and source names in `pnpm check`.
+- [ ] **Step 2:** Implement; run; rewrite every finding (about 100 plan-ID lines, 9 links, the source names outside
+  comments). ADRs, stack, versions and Renovate per spec 16.5. `pnpm check` passes. Commit.
+  `docs: the docs, ADRs and pins follow the current direction`
+
+### Task 16.4: The skills' public home
+
+**Files:**
+- Modify: `.github/workflows/release-packages.yml` (after publish: copy `agents/automata` to `mcthaydt/automata-skills`
+  with `SKILLS_TOKEN`; without it, print "No skills token yet." and pass)
+
+- [ ] **Step 1:** The job parses; with no secret it passes on the PR's head (`workflow_dispatch` dry run, or the
+  invariant test of 17.1 checks the guard). Mark the PR ready. `ci(release): mirror the agent package to its public home`
+
+---
+
+## Phase 17: Tooling diet (one PR, `claude/refactor-tooling-diet`)
+
+### Task 17.1: The workflow invariants replace the YAML-pinning tests
+
+**Files:**
+- Create: `tooling/repo-hygiene/tests/unit/workflow-invariants.test.ts`
+- Delete: `packages/tools/tests/unit/shared/ship/workflows.test.ts` and the config-pinning tests the audit lists (Q2)
+
+- [ ] **Step 1:** Write the invariants (spec 16.6) and see each fail on a fixture workflow that breaks it.
+- [ ] **Step 2:** Delete the pinning tests. Record the test counts before and after. Commit.
+  `test(ci): a few workflow invariants instead of tests that pin the YAML`
+
+### Task 17.2: The packages that lost their reason
+
+**Files:**
+- Delete or modify per spec 16.6's table: `tooling/core-packs` (Plus half; the package if nothing else needs it),
+  `tooling/api-report/src/seams.ts`, `tooling/bundle-report` (into `release-checks.yml` with a per-game budget, or
+  deleted), `tooling/evidence` (the Proof half), `tooling/versions` (stack rows)
+
+- [ ] **Step 1:** For each, `grep` its importers and scripts; decide per the table; write the decision and the line
+  counts in the execution log.
+- [ ] **Step 2:** `pnpm check`, `pnpm knip` clean. Commit. `chore(tooling): drop what Plus and the old site needed`
+
+### Task 17.3: The code refactor of the tooling that stays (same PR)
+
+**Files:** the `tooling/*/src` packages left after 17.2, their tests and READMEs
+
+- [ ] **Step 1: The read.** Spec 17.3's checks per package; findings in the execution log first.
+- [ ] **Step 2:** Fix, one package per commit. Counts equal or lower only by listed dead code; `pnpm check`. Mark ready.
+  `refactor(tooling): minimal, documented internals`
+
+---
+
+## Phase 18: The lean site (one PR, `claude/refactor-site-lean`)
+
+### Task 18.1: Features, the page cut and redirects
 
 **Files:**
 - Move: `site/src/lib/components/*` → `site/src/shared/components/`; `site/src/lib/playground/` → `site/src/features/playground/`;
@@ -749,7 +1061,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - [ ] **Step 2:** Move and delete. `pnpm boundaries` passes with `--features site`. Unit and e2e gates pass in
   Chromium. Commit. `refactor(site): seven pages, grouped by feature`
 
-### Task 12.2: Home and Start on the current code
+### Task 18.2: Home and Start on the current code
 
 **Files:**
 - Modify: `site/src/features/home/**`, `site/src/features/start/**`, `site/src/shared/framework/starter-files.ts`
@@ -763,7 +1075,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
   and "Using a coding agent" (the AI page's setup). Copy rows. Commit. `feat(site): Home and Start describe the
   framework as it is`
 
-### Task 12.3: The editor page and "Try the editor"
+### Task 18.3: The editor page and "Try the editor"
 
 **Files:**
 - Modify: `site/src/features/editor/**`, `site/scripts/build-demos.ts` (copies `packages/editor/dist/2d` to
@@ -775,7 +1087,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - [ ] **Step 2:** Implement. If Pixi needs `eval` there, the editor's `main.ts` imports `@mcthaydt/automata/no-eval`
   first (spec risks). Copy rows. Commit. `feat(site): try the 2D editor on the site`
 
-### Task 12.4: Docs and API
+### Task 18.4: Docs and API
 
 **Files:**
 - Modify: `site/src/features/docs/**` (the guides from `docs/guides/` and "How it works"), `site/src/features/api/**`,
@@ -787,14 +1099,23 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - [ ] **Step 1: Failing tests:** the docs nav is the guides plus How it works, in the order of a `docs/guides/index.md`
   list; no doc says "Effect Runtime" or "planned" for the desktop build (W4, W7); the API has one page per published
   package with the current names.
-- [ ] **Step 2:** Implement; write `how-it-works.md` (drunk grandma test applies). Commit, mark ready.
+- [ ] **Step 2:** Implement; write `how-it-works.md` (drunk grandma test applies). Commit.
   `feat(site): docs from the framework's guides, API generated`
+
+### Task 18.5: The code refactor of the site (same PR)
+
+**Files:** `site/src/**`, `site/scripts/**`, their tests, `site/README.md`
+
+- [ ] **Step 1: The read.** Spec 17.3's checks over the site (the playground's compile, orchestrator and live code,
+  the shared components, the loaders, the build scripts); findings in the execution log first.
+- [ ] **Step 2:** Fix, one concern per commit. The site's unit and Chromium e2e counts equal or lower only by listed
+  dead code; `pnpm --filter @mcthaydt/automata-site build` passes. Mark ready. `refactor(site): minimal, documented code`
 
 ---
 
-## Phase 13: The site's journeys and link checks (one PR, `claude/refactor-site-tests`)
+## Phase 19: The site's journeys and link checks (one PR, `claude/refactor-site-tests`)
 
-### Task 13.1: The visitor's journey
+### Task 19.1: The visitor's journey
 
 **Files:**
 - Create: `site/tests/e2e/visitor.test.ts`
@@ -804,7 +1125,7 @@ execution log, and tick each off when the redesigned view's tests reach it.
   make a platformer level, paint, reload, still there). Run in Chromium → pass. WebKit: the Owner's.
 - [ ] **Step 2: Commit.** `test(site): a visitor's journey from the home page to their first level`
 
-### Task 13.2: Links, privacy and the closed beta
+### Task 19.2: Links, privacy and the closed beta
 
 **Files:**
 - Create: `site/tests/e2e/links.test.ts`, `site/src/shared/config.ts` (`repositoryPublic: false`, `origin`)
@@ -819,9 +1140,9 @@ execution log, and tick each off when the redesigned view's tests reach it.
 
 ---
 
-## Phase 14: The site's and the CLI's copy (one PR, `claude/refactor-site-copy`)
+## Phase 20: The site's and the CLI's copy (one PR, `claude/refactor-site-copy`)
 
-### Task 14.1: The copy table
+### Task 20.1: The copy table
 
 **Files:**
 - Modify: `docs/refactor/copy.md` ("Site", plus the CLI's editor and check messages), every site page and CLI message
@@ -835,15 +1156,15 @@ execution log, and tick each off when the redesigned view's tests reach it.
 
 ---
 
-## Phase 15: Launch (one PR, `claude/refactor-site-launch`, then the Owner's steps)
+## Phase 21: Launch (one PR, `claude/refactor-site-launch`, then the Owner's steps)
 
-### Task 15.1: The deploy, ready
+### Task 21.1: The deploy, ready
 
 **Files:**
 - Create: `.github/workflows/site.yml` (build on PRs inside the `e2e-2d` job's needs; deploy on `main` when the host
   secret exists, else print "No host configured yet." and pass)
 - Modify: `site/src/shared/config.ts` (origin from one constant), `site/static/.well-known/security.txt`,
-  `site/src/features/legal/**` (the contact address placeholder `CONTACT_ADDRESS`, filled in 15.2), `docs/runbook.md`
+  `site/src/features/legal/**` (the contact address placeholder `CONTACT_ADDRESS`, filled in 21.2), `docs/runbook.md`
   (the Owner's launch steps)
 - Test: `site/tests/unit/legal.test.ts` (no personal mailbox in any page or `security.txt`; W9)
 
@@ -851,14 +1172,22 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - [ ] **Step 2:** The deploy job runs on this PR's head and prints "No host configured yet." Commit, mark ready, merge
   when green.
 
-### Task 15.2: The Owner's inputs and go (the Owner)
+### Task 21.2: The Owner's inputs and go (the Owner)
 
 - [ ] The Owner supplies the domain, the host and its deploy secret, the project contact address and `NPM_TOKEN`
   (D8). The agent fills `config.ts`, the contact address and DNS notes in one PR, merges it when green, and the deploy
   runs.
 - [ ] The Owner approves the first npmjs.org release; the agent runs the consumer smoke against the real registry and
   records it.
-- [ ] The Owner archives `mcthaydt/automata-website` and deprecates the GitHub Packages names.
+- [ ] The Owner creates the npm organisation (the name task 14.1 needs, if not given earlier) and the `SKILLS_TOKEN`
+  for `automata-skills` (D16, D17).
+- [ ] The Owner archives `mcthaydt/automata-website`, `mcthaydt/automata-plus` and the nine older Automata repositories
+  (or says which to keep), lets the branch prune run in Plus and the website, and updates the repository descriptions
+  (D12, D17, P5 to P7). The agent prepares the list and the `gh` one-liners; repository writes are refused from a cloud
+  session.
+- [ ] The Owner says whether outside authors can publish to Ruken (D11); the Ruken guide says the answer.
+- [ ] The agent closes #379 and #383 with a pointer to #403 (ported there); deleting their branches is the Owner's.
+- [ ] The Owner deprecates the GitHub Packages names with the runbook's one line.
 - [ ] The Owner opens the site and the editor on the iPad (a real-device test is the Owner's).
 
 ---
