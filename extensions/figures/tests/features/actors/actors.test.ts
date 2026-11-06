@@ -7,18 +7,16 @@ import { ACTIONS, actionOf, lengthOf, specAt, weightAt } from '../../../src/feat
 import { lowest } from '../../../src/features/actors/pose-spec';
 import { fk } from '../../../src/features/body/rig';
 import golden from '../../golden/sprites.json';
+import { SPRITE_SETS, spriteSet } from '../../golden/sprites';
 
 const view = { azimuth: 0, pitch: 18 * Math.PI / 180 };
 const md5 = (px: Uint8ClampedArray) => createHash('md5').update(px).digest('hex');
 
 describe('sprites stay pixel-identical with no new feature used', () => {
   // Every channel of every pixel (an md5 of each frame's RGBA): the hero, the 8 views standing and the walk's 8 poses,
-  // as drawn before the actors came (tests/golden/sprites.json).
-  const sets: [string, ReturnType<typeof member>, string | undefined][] = [];
-  for (const D of [1, 2]) for (const c of BASE) sets.push([`${c.def.id}-D${D}`, member(c.def, D), c.pose]);
-  for (const [name, cast, pose] of sets) it(name, () => {
-    const frames = [hero(cast, pose), ...[0, 1, 2, 3, 4, 5, 6, 7].map(d => standing(cast, d)), ...walking(cast)];
-    expect(frames.map(md5)).toEqual((golden as Record<string, string[]>)[name]);
+  // as drawn before the actors came (tests/golden/sprites.json, recorded by `npm run golden -- sprites`).
+  for (const [id, D] of SPRITE_SETS) it(`${id}-D${D}`, () => {
+    expect(spriteSet(id, D)).toEqual((golden as Record<string, string[]>)[`${id}-D${D}`]);
   });
 });
 

@@ -6,9 +6,11 @@
  *   the 18° pitch), at DENSITY 1 and 2, as raw RGBA, gzipped, into tests/golden/base/ (tests/golden/base.test.ts);
  * - lit: the md5 of every lit frame tests/golden/lit.ts draws, into tests/golden/lit.json (tests/golden/lit.test.ts);
  * - actors: the md5 of every frame tests/golden/actors.ts draws, into tests/golden/actors.json
- *   (tests/golden/actors.test.ts).
+ *   (tests/golden/actors.test.ts);
+ * - sprites: the md5 of every frame tests/golden/sprites.ts draws, into tests/golden/sprites.json
+ *   (tests/features/actors/actors.test.ts).
  *
- *   npm run golden [-- base|lit|actors]
+ *   npm run golden [-- base|lit|actors|sprites]
  *
  * With no argument it records them all. Run it only to accept a deliberate visual change, and say so in the commit.
  * The base goldens were recorded at f04063b; the others before the base-pair cut
@@ -22,8 +24,9 @@ import { gzipSync } from 'node:zlib';
 import { goldenFrames, GOLDEN_DENSITIES } from '../tests/golden/base';
 import { litFrames } from '../tests/golden/lit';
 import { ACTOR_WHO, actorFrames } from '../tests/golden/actors';
+import { spriteFrames } from '../tests/golden/sprites';
 
-const which = process.argv[2] ?? 'all', KINDS = ['all', 'base', 'lit', 'actors'];
+const which = process.argv[2] ?? 'all', KINDS = ['all', 'base', 'lit', 'actors', 'sprites'];
 if (!KINDS.includes(which)) throw new Error(`golden: record ${KINDS.join(', ')}; not ${which}`);
 const tests = resolve(import.meta.dirname, '../tests'), wants = (kind: string) => which === 'all' || which === kind;
 /** Writes each sheet's RGBA, gzipped, into `dir`. */
@@ -32,10 +35,11 @@ function sheets(dir: string, frames: { name: string; bytes: Uint8Array }[]) {
   for (const { name, bytes } of frames) { writeFileSync(resolve(dir, `${name}.rgba.gz`), gzipSync(bytes, { level: 9 })); console.log(name, bytes.length); }
 }
 /** Writes a frame-name → md5 map as JSON. */
-function hashes(file: string, frames: Record<string, string>) {
+function hashes(file: string, frames: Record<string, unknown>) {
   writeFileSync(resolve(tests, file), `${JSON.stringify(frames, null, 1)}\n`);
   console.log(file, Object.keys(frames).length, 'frames');
 }
 if (wants('base')) for (const d of GOLDEN_DENSITIES) sheets(resolve(tests, 'golden/base'), goldenFrames(d));
 if (wants('lit')) hashes('golden/lit.json', litFrames());
 if (wants('actors')) hashes('golden/actors.json', Object.assign({}, ...ACTOR_WHO.map(actorFrames)));
+if (wants('sprites')) hashes('golden/sprites.json', spriteFrames());
