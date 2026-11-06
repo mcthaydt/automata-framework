@@ -6,7 +6,7 @@ import { member, view } from '../../../src/features/figure/frames';
 import { gbuffer, neckline, type GBuffer } from '../../../src/features/paint/raster';
 
 /**
- * The neckline rule (raster.ts neckline): where the neck meets a top, a run of one or two texels (2·D at density D) of the
+ * The neckline rule (raster.ts neckline): where the neck meets a top, a run of one or two texels (2·D at density D, at most 4) of the
  * neck part hanging below the collar line, with the top on both sides and under it, joins the top; as a pixel artist
  * removes a skin tooth from a shirt. It keys on the neck's parts only: a finger, a run too wide, a run with the
  * background beside it are left alone.
@@ -60,6 +60,12 @@ describe('neckline, on a hand-made G-buffer', () => {
     neckline(g, new Set([1]));
     expect(at(g, 5, 4)).toEqual(NECKP);
   });
+  it('at density 4 the run is capped at 4: a run of 4 joins and a run of 5 (the neck U\'s round bottom) does not', () => {
+    const g = shirt(256); neckRun(g, 4, 10, 13); neckRun(g, 4, 30, 34); neckRun(g, 4, 50, 57);
+    neckline(g, new Set([1]));
+    for (let x = 10; x <= 13; x++) expect(at(g, x, 4)).toEqual(TOP);
+    for (const [a, b] of [[30, 34], [50, 57]]) for (let x = a; x <= b; x++) expect(at(g, x, 4), `${x}`).toEqual(NECKP);
+  });
   it('at density 2 a run of 4 joins and a run of 5 does not', () => {
     const g = shirt(128); neckRun(g, 4, 10, 13); neckRun(g, 4, 30, 34);
     neckline(g, new Set([1]));
@@ -68,14 +74,14 @@ describe('neckline, on a hand-made G-buffer', () => {
   });
 });
 
-/** Neck runs of at most 2·D texels with one non-neck material on both sides and under every texel: the teeth. */
+/** Neck runs of at most min(2·D, 4) texels with one non-neck material on both sides and under every texel: the teeth. */
 function teeth(g: GBuffer, neck: Set<number>): number {
   const D = Math.max(1, Math.round(g.w / 64)), isNeck = (k: number) => neck.has(g.part[k]);
   let found = 0;
   for (let y = 0; y < g.h - 1; y++) for (let x = 1; x < g.w - 1; x++) {
     const k = y * g.w + x; if (!isNeck(k) || isNeck(k - 1)) continue;
     let n = 0; while (x + n < g.w && isNeck(k + n)) n++;
-    if (x + n >= g.w || n > 2 * D) { x += n - 1; continue; }
+    if (x + n >= g.w || n > Math.min(2 * D, 4)) { x += n - 1; continue; }
     const m = g.material[k - 1], top = (q: number) => g.part[q] >= 0 && !neck.has(g.part[q]) && g.material[q] === m;
     let ok = top(k - 1) && top(k + n);
     for (let i = 0; ok && i < n; i++) ok = top(k + i + g.w);
