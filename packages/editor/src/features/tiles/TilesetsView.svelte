@@ -93,7 +93,7 @@ onDestroy(() => {
           <div class="drawers">
             <button type="button" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Rules</button>
             <button type="button" aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}
-              >Inspector</button
+              >Details</button
             >
           </div>
         {/if}

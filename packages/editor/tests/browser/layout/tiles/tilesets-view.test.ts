@@ -84,7 +84,7 @@ const region = (name: string): HTMLElement => {
 }
 
 /** Below wide, presses the canvas's drawer button until its region says it is open. */
-async function openDrawer(size: EditorSize, name: 'Rules' | 'Inspector', regionName: string): Promise<void> {
+async function openDrawer(size: EditorSize, name: 'Rules' | 'Details', regionName: string): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open === 'true') return
   buttonNamed(byTestId('tilesets-view'), name).click()
   await arrived()
@@ -111,7 +111,7 @@ describe.each(SIZES)('Tilesets view at $name ($width x $height)', (size) => {
 
   test('the pattern cells are 44 px and Duplicate and Delete are reachable', async () => {
     const { conditions } = await start(size)
-    await openDrawer(size, 'Inspector', 'inspector')
+    await openDrawer(size, 'Details', 'inspector')
     const cells = [...byTestId('pattern-editor').querySelectorAll<HTMLElement>('button')]
     expect(cells.length).toBeGreaterThan(0)
     for (const cell of cells) {

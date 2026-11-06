@@ -249,7 +249,7 @@ function layout(next: string): void {
         <div class="drawers">
           <button type="button" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Levels</button>
           <button type="button" aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}
-            >Inspector</button
+            >Details</button
           >
           <Button onclick={() => worldCamera.fit(rects, openArea())}>Fit</Button>
         </div>

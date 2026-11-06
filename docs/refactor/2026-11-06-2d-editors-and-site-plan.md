@@ -2233,3 +2233,6 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   cabinet, a list sheet and an item sheet: their "Rules" / "Definitions" / "Inspector" drawer buttons become the
   Level view's corner and pill controls) and the dialogs' one primary action, then the inspector tab names
   ("Definition", "Fields 3"), which still read as engine words.
+- **12.4, part (session 12): Details everywhere.** The drawer button that opens the inspector below `wide` says
+  "Details" in Map, Tiles and Characters too (was "Inspector"), as in the Level view. Gates: editor unit (map, tiles,
+  characters) 126, Chromium layout (the three views) 64, 2D journeys 26.
