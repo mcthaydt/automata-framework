@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { checkEntityDef, checkFieldDef, defaultFieldValue } from '#src/shared/kit/fields/check-field-def.ts'
-import type { EntityDef, FieldDef } from '#src/shared/kit/fields/field-types.ts'
+import { checkEntityDef, checkFieldDef, defaultFieldValue } from '#src/shared/level-2d/check-field-def.ts'
+import type { EntityDef, FieldDef } from '#src/shared/level-2d/field-types.ts'
 
 const codes = (def: FieldDef): string[] => checkFieldDef(def).map((problem) => problem.code)
 

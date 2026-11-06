@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValue } from '../../kit/fields/field-types.ts'
+import type { FieldDef, FieldValue } from '@mcthaydt/automata-content/level-2d'
 import { setEntityField } from './commands/entity-edits'
 import { findLayer } from './commands/layer-target'
 import type { EditHistory } from './edit-history'

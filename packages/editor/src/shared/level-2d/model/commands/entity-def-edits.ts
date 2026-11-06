@@ -1,5 +1,4 @@
-import { checkEntityDef } from '../../../kit/fields/check-field-def.ts'
-import { ENTITY_ID, type FieldDef } from '../../../kit/fields/field-types.ts'
+import { checkEntityDef, ENTITY_ID, type FieldDef } from '@mcthaydt/automata-content/level-2d'
 import { entityDef2DSchema } from '../project.schema'
 import type { EntityDef2D, Project } from '../project-types'
 import { tilesetTiles } from '../tileset-grid'

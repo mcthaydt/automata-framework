@@ -1,6 +1,6 @@
+import type { FieldDef } from '@mcthaydt/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
 import { fieldRow } from '#src/shared/kit/fields/field-row.ts'
-import type { FieldDef } from '#src/shared/kit/fields/field-types.ts'
 
 // The field-to-widget map both editors' field forms use (kit spec §4.8; moved from editor-2d's Level inspector, plan
 // "field form and journeys" A1): which kit control edits a field, with its bounds and options.

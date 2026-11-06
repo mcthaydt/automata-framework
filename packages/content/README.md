@@ -17,7 +17,21 @@ export default defineConfig({ plugins: [automataContent()] })
 ```
 
 Run `automata-content build` to compile without Vite. A game's own pages import the browser-safe entries
-(`@mcthaydt/automata-content/schema`, `/palette`, `/locale`, `/game-config`); the root is the compiler and
+(`@mcthaydt/automata-content/schema`, `/palette`, `/locale`, `/game-config`, `/level-2d`); the root is the compiler and
 needs Node.
+
+## Levels from the 2D editor
+
+`@mcthaydt/automata-content/level-2d` is the format the 2D editor writes. Register its three kinds, then read a level
+in your game:
+
+```ts
+import { entitiesOf, intGridRows, level2dKinds } from '@mcthaydt/automata-content/level-2d'
+
+// vite.config.ts: automataContent({ root, schemas: level2dKinds() })
+// in the game: rows of numbers (0 is empty) and the entities of a layer
+const walls = intGridRows(level, 'collision')
+const things = entitiesOf(level, 'entities')
+```
 
 More: [the docs](https://github.com/mcthaydt/automata-framework/tree/main/docs) and [the examples](https://github.com/mcthaydt/automata-framework/tree/main/examples).

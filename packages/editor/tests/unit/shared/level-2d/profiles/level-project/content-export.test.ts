@@ -1,13 +1,13 @@
+import {
+  levelContentSchema,
+  projectContentSchema,
+  worldContentSchema,
+} from '@mcthaydt/automata-content/level-2d'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { decodeRows } from '#src/shared/level-2d/model/cells-codec.ts'
 import { decodeProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
-import {
-  contentLevelSchema,
-  contentProjectSchema,
-  contentWorldSchema,
-} from '#src/shared/level-2d/profiles/level-project/content.schema.ts'
 import { exportContent } from '#src/shared/level-2d/profiles/level-project/content-export.ts'
 import { richProjectFile } from '#src/testing/level-2d/projects.ts'
 
@@ -55,7 +55,7 @@ describe('exportContent', () => {
   })
 
   describe('project.toml', () => {
-    const parsed = contentProjectSchema.parse(parse(fileOf(rich(), 'project.toml')))
+    const parsed = projectContentSchema.parse(parse(fileOf(rich(), 'project.toml')))
 
     it('names the project and the format', () => {
       expect([parsed.format, parsed.version, parsed.name, parsed.template]).toEqual([
@@ -104,7 +104,7 @@ describe('exportContent', () => {
           tilesets: rich().defs.tilesets.map((set) => ({ ...set, image: 'assets/terrain.png' })),
         },
       }
-      const imported = contentProjectSchema.parse(parse(fileOf(withImage, 'project.toml')))
+      const imported = projectContentSchema.parse(parse(fileOf(withImage, 'project.toml')))
       expect(imported.tilesets[0]).toEqual(
         expect.objectContaining({ image: 'assets/terrain.png', placeholder: false }),
       )
@@ -135,7 +135,7 @@ describe('exportContent', () => {
 
   describe('levels/<id>.toml', () => {
     const project = rich()
-    const level = contentLevelSchema.parse(parse(fileOf(project, 'levels/start.toml')))
+    const level = levelContentSchema.parse(parse(fileOf(project, 'levels/start.toml')))
 
     it('carries the level facts', () => {
       expect([level.id, level.name, level.size, level.fields]).toEqual([
@@ -145,7 +145,7 @@ describe('exportContent', () => {
         { music: 'calm' },
       ])
       expect(level.background).toEqual({ color: '#1b1b2f', mode: 'fit' })
-      const cellar = contentLevelSchema.parse(parse(fileOf(project, 'levels/cellar.toml')))
+      const cellar = levelContentSchema.parse(parse(fileOf(project, 'levels/cellar.toml')))
       expect(cellar.background).toEqual({ color: '#000000', image: 'art/cellar.png', mode: 'repeat-x' })
     })
 
@@ -212,7 +212,7 @@ describe('exportContent', () => {
 
   describe('world.toml', () => {
     it('lists the worlds with their placements', () => {
-      const world = contentWorldSchema.parse(parse(fileOf(rich(), 'world.toml')))
+      const world = worldContentSchema.parse(parse(fileOf(rich(), 'world.toml')))
       expect(world.worlds).toEqual([
         {
           id: 'main',
@@ -228,7 +228,7 @@ describe('exportContent', () => {
 
   it('refuses a file with a key the schema does not know, so a reader cannot depend on one by accident', () => {
     const level = parse(fileOf(rich(), 'levels/start.toml'))
-    expect(contentLevelSchema.safeParse({ ...level, extra: 1 }).success).toBe(false)
-    expect(contentLevelSchema.safeParse({ ...level, format: 'other' }).success).toBe(false)
+    expect(levelContentSchema.safeParse({ ...level, extra: 1 }).success).toBe(false)
+    expect(levelContentSchema.safeParse({ ...level, format: 'other' }).success).toBe(false)
   })
 })

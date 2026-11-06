@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValues } from '../../../../kit/fields/field-types.ts'
+import type { FieldDef, FieldValues } from '@mcthaydt/automata-content/level-2d'
 import type { Project } from '../../../model/project-types'
 import { isRefValue, type RefIndex, refIndex, resolveRef } from '../../../model/refs/ref-resolve'
 import type { Diagnostic } from '../../profile'

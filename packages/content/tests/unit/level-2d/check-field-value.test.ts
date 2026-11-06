@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { checkFieldValue } from '#src/shared/kit/fields/check-field-value.ts'
-import type { FieldDef } from '#src/shared/kit/fields/field-types.ts'
+import { checkFieldValue } from '#src/shared/level-2d/check-field-value.ts'
+import type { FieldDef } from '#src/shared/level-2d/field-types.ts'
 
 const hp: FieldDef = { id: 'hp', type: 'int', min: 0, max: 9 }
 

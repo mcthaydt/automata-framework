@@ -1,11 +1,11 @@
 import { fileURLToPath } from 'node:url'
+import { level2dKinds } from '@mcthaydt/automata-content/level-2d'
 import { automataContent } from '@mcthaydt/automata-content/vite'
 import { rukenHeaders } from '@mcthaydt/automata-tools/internal'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { Effect } from 'effect'
 import { defaultClientConditions, defineConfig } from 'vite'
 import config from './ship.config.ts'
-import { EMBERWICK_KINDS } from './src/shared/kinds.ts'
 
 // `vite preview` serves the build with the headers Ruken would serve it with (`rukenHeaders` on this game's
 // manifest: Ruken's CSP with no eval), so the browser journeys catch a build that breaks under Ruken. The page
@@ -24,7 +24,7 @@ function previewHeaders(): Record<string, string> {
 export function contentPlugin(): ReturnType<typeof automataContent> {
   return automataContent({
     root: fileURLToPath(new URL('.', import.meta.url)),
-    schemas: EMBERWICK_KINDS,
+    schemas: level2dKinds(),
   })
 }
 

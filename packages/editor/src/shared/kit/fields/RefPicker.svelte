@@ -5,10 +5,10 @@
   Choices are 44 px buttons in a scroll region.
 -->
 <script lang="ts">
+import type { RefValue } from '@mcthaydt/automata-content/level-2d'
 import Button from '../widgets/Button.svelte'
 import Dialog from '../widgets/Dialog.svelte'
 import type { RefTargetGroup } from './field-row'
-import type { RefValue } from './field-types'
 
 interface Props {
   open: boolean

@@ -478,20 +478,20 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Delete (moved): `packages/editor/src/shared/level-2d/profiles/level-project/content.schema.ts`; the four kit field
   files become re-exports of `-content/level-2d`
 
-- [ ] **Step 1: Move the tests first.** `content-export.test.ts`'s schema assertions and the kit's `field.schema` and
+- [x] **Step 1: Move the tests first.** `content-export.test.ts`'s schema assertions and the kit's `field.schema` and
   `check-field-*` tests move to `packages/content/tests/unit/level-2d/` importing `#src/shared/level-2d/...` → they
   fail (no files yet).
-- [ ] **Step 2: Move the files** (`git mv`, then fix imports). Run → they pass with the same counts.
-- [ ] **Step 3: `level2dKinds`, test first.** A test compiles a temporary content folder holding Emberwick's three
+- [x] **Step 2: Move the files** (`git mv`, then fix imports). Run → they pass with the same counts.
+- [x] **Step 3: `level2dKinds`, test first.** A test compiles a temporary content folder holding Emberwick's three
   exported files with `level2dKinds()` and expects `levels` in the sim's content and `project`, `world` outside it; a
   level with an unknown key fails with the schema's path in the message.
-- [ ] **Step 4: `intGridRows` and `entitiesOf`, test first.** Emberwick's `room-1.toml` collision layer decodes to the
+- [x] **Step 4: `intGridRows` and `entitiesOf`, test first.** Emberwick's `room-1.toml` collision layer decodes to the
   same rows `level-room.ts`'s `decodeRow` produces today (copy its current test's expectations); a row with a bad token
   throws `Level room-1, layer collision, row 3: "x*2" is not a number.` The file passes `pnpm boundaries`' sim rule.
-- [ ] **Step 5: The entry, the API report, the agent skills.** `pnpm --filter @mcthaydt/automata-content build`,
+- [x] **Step 5: The entry, the API report, the agent skills.** `pnpm --filter @mcthaydt/automata-content build`,
   `pnpm api-report --update`, `pnpm agent-skills --write`; changeset `patch`: "New `@mcthaydt/automata-content/level-2d`:
   the 2D level format the editor writes and games read."
-- [ ] **Step 6: Commit.** `feat(content): the 2D level format has one owner`
+- [x] **Step 6: Commit.** `feat(content): the 2D level format has one owner`
 
 ### Task 5.2: The editor and Emberwick import it (same PR)
 
@@ -501,13 +501,13 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   wherever `EMBERWICK_KINDS` is passed), `games/emberwick/tests/unit/room/*.test.ts`
 - Delete: `games/emberwick/src/shared/kinds.ts`
 
-- [ ] **Step 1:** Emberwick's tests that read the room keep their expectations; switch the code to `level2dKinds()`,
+- [x] **Step 1:** Emberwick's tests that read the room keep their expectations; switch the code to `level2dKinds()`,
   `intGridRows` and `entitiesOf`, deleting `LevelLike`, `decodeRow` and `kinds.ts`.
-- [ ] **Step 2: The golden must not move.** `pnpm --filter @af-games/emberwick test:unit` → `GOLDEN_HASH` still
+- [x] **Step 2: The golden must not move.** `pnpm --filter @af-games/emberwick test:unit` → `GOLDEN_HASH` still
   `421c5a1bf522299e`. If it moved, stop and find out why (the sim must get the same values); never re-record it.
-- [ ] **Step 3:** The editor imports its schemas from `@mcthaydt/automata-content/level-2d`. Editor unit count equal
+- [x] **Step 3:** The editor imports its schemas from `@mcthaydt/automata-content/level-2d`. Editor unit count equal
   to before less the tests that moved to `-content`.
-- [ ] **Step 4:** `pnpm check`, Emberwick's Chromium journeys (`pnpm --filter @af-games/emberwick test:e2e
+- [x] **Step 4:** `pnpm check`, Emberwick's Chromium journeys (`pnpm --filter @af-games/emberwick test:e2e
   --project='*-chromium'`) pass. Commit, mark ready. `refactor(emberwick): read the room through the shared level format`
 
 ---
@@ -1544,4 +1544,33 @@ Left over from session 4, all closed:
   `docs/provenance/sources.md`.
 - **Counts.** Editor unit 3,275 (3,270 + the five new `unique-name` tests), 272 files, all pass; typecheck 0 errors, 0
   warnings; biome clean of errors. Chromium browser projects: see the task's row.
+
+### 2026-11-06, session 5 (continued): phase 5, the 2D level contract in `-content`
+
+Tasks 5.1 and 5.2, one commit group on PR #415.
+
+- **Moved with `git mv`:** `content.schema.ts`, `field-types.ts`, `field.schema.ts` (now `fields.schema.ts`),
+  `check-field-def.ts` and `check-field-value.ts` into `packages/content/src/shared/level-2d/`; the three tests of the
+  field rules into `packages/content/tests/unit/level-2d/` (52 tests, same counts). The schemas are now
+  `levelContentSchema`, `projectContentSchema` and `worldContentSchema` (spec section 5). `ContentNeighbours` is
+  written out in `-content`; the editor's `LevelNeighbours` is an alias of it.
+- **Deviation 82 (re-exports):** the plan said the four kit field files "become re-exports". They were deleted instead
+  and the editor's 47 importing files now import `@mcthaydt/automata-content/level-2d` directly (a codemod over the
+  specifiers; biome sorted the imports), so there is one copy and no forwarding file. `kit/fields/index.ts` stays the
+  kit's public entry and re-exports from `-content`. The editor's `pure-imports` architecture rule and the fields entry
+  test now allow `@mcthaydt/automata-content/level-2d` (it imports only zod; a `-content` test pins that).
+- **New in `-content`:** `entries/level-2d.ts`, `level2dKinds({ folder })`, `intGridRows`, `entitiesOf`
+  (sim-safe: `pnpm boundaries` scans `read-level.ts` with the sim rule; `./level-2d` is in `simEntries` and in the
+  browser-entry list). Tests first: `level-2d-kinds.test.ts` (compiles a copy of the base game's three exported files;
+  a stray key fails with the file and the key), `read-level.test.ts` (the room's 24 collision rows, the bad-token
+  sentence `Level room-1, layer collision, row 3: "x*2" is not a number.`), and the browser-entry test.
+- **Emberwick:** `shared/kinds.ts`, `LevelLike` and `decodeRow` deleted; `vite.config.ts` registers
+  `level2dKinds()`; `level-room.ts` reads through `intGridRows` and `entitiesOf`. The compiled `levels` type is a
+  looser shape than `ContentLevel` (the content generator cannot write the field-value union), so
+  `emberwick-content.ts` parses the compiled level once with `levelContentSchema` to get the typed level.
+- **The golden did not move.** With the strict schemas, `content/generated/sim-content.json` and `content.json` are
+  byte-identical to before, `sim-content.hash` is still `5fd77abd159d6a5e`, and the golden-equivalence test passes
+  (`GOLDEN_HASH` unchanged); only `content.d.ts` changed (more precise types). Emberwick unit 109 pass.
+- **Gates:** `pnpm check` exit 0 (editor unit 3,275 less the 3 tests that moved to `-content`, plus none lost);
+  `pnpm build`; API reports, agent reference and cheatsheet regenerated; changeset `level-2d-contract` (patch).
 

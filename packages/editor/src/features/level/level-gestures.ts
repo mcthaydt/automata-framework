@@ -1,4 +1,4 @@
-import type { Point } from '../../shared/kit/fields/field-types.ts'
+import type { Point } from '@mcthaydt/automata-content/level-2d'
 import type { GestureHandlers } from '../../shared/kit/gestures/gesture-events.ts'
 import type { PointerKind } from '../../shared/kit/gestures/pointer-sample.ts'
 import type { LevelEditor } from './level-editor-api'

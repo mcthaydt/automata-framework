@@ -1,3 +1,4 @@
+import type { FieldDef } from '@mcthaydt/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
 import {
   definitionPreview,
@@ -9,7 +10,6 @@ import {
   useLabel,
   withType,
 } from '#src/features/characters/entities-model.ts'
-import type { FieldDef } from '#src/shared/kit/fields/field-types.ts'
 import { deleteDefinition } from '#src/shared/level-2d/model/commands/definition-uses.ts'
 import { placeEntity } from '#src/shared/level-2d/model/commands/entity-edits.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'

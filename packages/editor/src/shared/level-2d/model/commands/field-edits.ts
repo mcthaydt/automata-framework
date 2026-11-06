@@ -1,5 +1,5 @@
-import { checkFieldDef } from '../../../kit/fields/check-field-def.ts'
-import type { FieldDef, FieldValues } from '../../../kit/fields/field-types.ts'
+import type { FieldDef, FieldValues } from '@mcthaydt/automata-content/level-2d'
+import { checkFieldDef } from '@mcthaydt/automata-content/level-2d'
 import { renameFieldValues, valuesWithDefaults } from '../../../kit/fields/field-values.ts'
 import { checkRetype, renameField as renameKitField } from '../../../kit/fields/retype.ts'
 import type { Project } from '../project-types'

@@ -4,29 +4,191 @@ declare module 'virtual:automata/content' {
 
   export type LevelsId = 'room-1'
   export type Levels = {
+    readonly background: {
+      readonly color: string
+      readonly image?: string
+      readonly mode: 'fit' | 'cover' | 'repeat' | 'repeat-x'
+    }
+    readonly fields: Readonly<Record<string, unknown /* levels.fields has no JSON form */>>
+    readonly format: 'af2d-content'
     readonly id: string
     readonly layers: readonly ({
       readonly def: string
-      readonly items?: readonly ({
+      readonly kind: 'tiles'
+      readonly rows: readonly string[]
+    } | {
+      readonly def: string
+      readonly kind: 'intgrid'
+      readonly rows: readonly string[]
+    } | {
+      readonly def: string
+      readonly kind: 'auto'
+      readonly stack: readonly ({
+        readonly rows: readonly string[]
+      })[]
+    } | {
+      readonly def: string
+      readonly items: readonly ({
         readonly def: string
+        readonly fields: Readonly<Record<string, unknown /* levels.layers.items.fields has no JSON form */>>
+        readonly h?: number
+        readonly id: string
+        readonly w?: number
         readonly x: number
         readonly y: number
       })[]
-      readonly kind: string
-      readonly rows?: readonly string[]
+      readonly kind: 'entities'
+    } | {
+      readonly def: string
+      readonly items: readonly ({
+        readonly flipX: boolean
+        readonly flipY: boolean
+        readonly id: string
+        readonly tile: number
+        readonly x: number
+        readonly y: number
+      })[]
+      readonly kind: 'objects'
     })[]
+    readonly name: string
     readonly size: {
       readonly h: number
       readonly w: number
     }
+    readonly version: 1
   }
 
   export type Project = {
-
+    readonly entities: readonly ({
+      readonly color?: string
+      readonly fields: readonly ({
+        readonly default?: unknown /* project.entities.fields.default has no JSON form */
+        readonly id: string
+        readonly label?: string
+        readonly list?: boolean
+        readonly max?: number
+        readonly min?: number
+        readonly multiline?: boolean
+        readonly options?: readonly string[]
+        readonly required?: boolean
+        readonly step?: number
+        readonly to?: readonly string[]
+        readonly type: 'int' | 'float' | 'bool' | 'text' | 'enum' | 'color' | 'angle' | 'ref' | 'point'
+      })[]
+      readonly id: string
+      readonly label?: string
+      readonly min?: {
+        readonly count: number
+        readonly per: 'level' | 'project'
+      }
+      readonly pivot: {
+        readonly x: number
+        readonly y: number
+      }
+      readonly resizable: 'none' | 'x' | 'y' | 'xy'
+      readonly shape: 'rect' | 'ellipse' | 'point' | 'tile'
+      readonly single?: boolean
+      readonly size: {
+        readonly h: number
+        readonly w: number
+      }
+      readonly tags: readonly string[]
+      readonly tile?: {
+        readonly index: number
+        readonly tileset: string
+      }
+    })[]
+    readonly format: 'af2d-content'
+    readonly layers: readonly ({
+      readonly grid: number
+      readonly id: string
+      readonly kind: 'tiles'
+      readonly tileset: string
+    } | {
+      readonly grid: number
+      readonly id: string
+      readonly kind: 'intgrid'
+      readonly values: readonly ({
+        readonly id: string
+        readonly value: number
+      })[]
+    } | {
+      readonly grid: number
+      readonly id: string
+      readonly kind: 'auto'
+      readonly source: string
+      readonly tileset: string
+    } | {
+      readonly grid: number
+      readonly id: string
+      readonly kind: 'entities'
+      readonly snap: boolean
+    } | {
+      readonly id: string
+      readonly kind: 'objects'
+      readonly snap: number
+      readonly tileset: string
+    })[]
+    readonly levelFields: readonly ({
+      readonly default?: unknown /* project.levelFields.default has no JSON form */
+      readonly id: string
+      readonly label?: string
+      readonly list?: boolean
+      readonly max?: number
+      readonly min?: number
+      readonly multiline?: boolean
+      readonly options?: readonly string[]
+      readonly required?: boolean
+      readonly step?: number
+      readonly to?: readonly string[]
+      readonly type: 'int' | 'float' | 'bool' | 'text' | 'enum' | 'color' | 'angle' | 'ref' | 'point'
+    })[]
+    readonly name: string
+    readonly template: string
+    readonly tilesets: readonly ({
+      readonly columns: number
+      readonly id: string
+      readonly image?: string
+      readonly padding: number
+      readonly placeholder: boolean
+      readonly rows: number
+      readonly spacing: number
+      readonly tags: readonly ({
+        readonly tag: string
+        readonly tiles: readonly number[]
+      })[]
+      readonly tile: {
+        readonly h: number
+        readonly w: number
+      }
+    })[]
+    readonly version: 1
   }
 
   export type World = {
-
+    readonly format: 'af2d-content'
+    readonly version: 1
+    readonly worlds: readonly ({
+      readonly grid?: {
+        readonly h: number
+        readonly w: number
+      }
+      readonly id: string
+      readonly layout: 'free' | 'grid' | 'horizontal' | 'vertical'
+      readonly neighbours?: readonly ({
+        readonly east: readonly string[]
+        readonly level: string
+        readonly north: readonly string[]
+        readonly south: readonly string[]
+        readonly west: readonly string[]
+      })[]
+      readonly placements: readonly ({
+        readonly depth: number
+        readonly level: string
+        readonly x: number
+        readonly y: number
+      })[]
+    })[]
   }
 
   export type ScreenId = never

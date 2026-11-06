@@ -14,8 +14,10 @@ export const fieldValueSchema: z.ZodType<FieldValue> = z.lazy(() =>
   z.union([z.number(), z.boolean(), z.string(), pointSchema, refSchema, z.array(fieldValueSchema)]),
 )
 
+/** The schema of the values an instance holds, by field id. */
 export const fieldValuesSchema: z.ZodType<FieldValues> = z.record(z.string(), fieldValueSchema)
 
+/** The schema of a field definition: strict shape, then the rules `checkFieldDef` applies. */
 export const fieldDefSchema: z.ZodType<FieldDef> = z
   .strictObject({
     id: z.string(),
@@ -55,6 +57,7 @@ export const entityDefShape: {
   fields: z.array(fieldDefSchema),
 }
 
+/** One problem found in a parsed entity definition, with the path of the field at fault. */
 export interface EntityDefIssue {
   readonly message: string
   /** Mutable, so it can be handed to `ctx.addIssue` as it is. */
@@ -77,6 +80,7 @@ export function entityDefIssues(def: EntityDef): readonly EntityDefIssue[] {
   return issues
 }
 
+/** The schema of an entity definition: strict shape, then the rules `checkEntityDef` applies. */
 export const entityDefSchema: z.ZodType<EntityDef> = z
   .strictObject(entityDefShape)
   .superRefine((def, ctx) => {

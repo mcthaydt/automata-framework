@@ -6,15 +6,15 @@
   it breaks; `guard` shows a message or opens the refusal dialog.
 -->
 <script lang="ts">
-import { defaultFieldValue } from '../../shared/kit/fields/check-field-def'
-import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'
-import { fieldRow } from '../../shared/kit/fields/field-row'
 import {
+  defaultFieldValue,
   FIELD_TYPES,
   type FieldDef,
   type FieldType,
   type FieldValue,
-} from '../../shared/kit/fields/field-types'
+} from '@mcthaydt/automata-content/level-2d'
+import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'
+import { fieldRow } from '../../shared/kit/fields/field-row'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import type { EditEvent } from '../../shared/kit/widgets/edit-event'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'

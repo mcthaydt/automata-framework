@@ -1,4 +1,4 @@
-import type { FieldDef, FieldValues } from '../../../kit/fields/field-types.ts'
+import type { FieldDef, FieldValues } from '@mcthaydt/automata-content/level-2d'
 import type { EntityDef2D, Level, Project } from '../project-types'
 
 // Who carries a set of typed fields: an entity definition, whose instances hold the

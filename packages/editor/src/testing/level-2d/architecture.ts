@@ -39,8 +39,11 @@ const PURE_SHARED_PREFIXES: readonly string[] = ['shared/kit/fields/']
 const isPure = (file: string): boolean => PURE_PREFIXES.some((prefix) => file.startsWith(prefix))
 const isPureOrShared = (file: string): boolean =>
   isPure(file) || PURE_SHARED_PREFIXES.some((prefix) => file.startsWith(prefix))
-/** The only package the core may import: the schema language. The kit's field rules are reached by path (above). */
-const PURE_PACKAGES: ReadonlySet<string> = new Set(['zod'])
+/**
+ * The packages the core may import: the schema language and the 2D level format, which imports only zod itself. The
+ * kit's field rules are reached by path (above).
+ */
+const PURE_PACKAGES: ReadonlySet<string> = new Set(['zod', '@mcthaydt/automata-content/level-2d'])
 /** Where nothing may name a profile or a template: each of these works for every profile (G-s). */
 const GENERIC_PREFIXES: readonly string[] = ['app/editor-2d/', `${CORE_ROOT}tiles/`, `${CORE_ROOT}canvas/`]
 const PROFILE_AND_TEMPLATE_IDS: ReadonlySet<string> = new Set([

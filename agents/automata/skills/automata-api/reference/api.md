@@ -5320,6 +5320,610 @@ The renderers a game may ask for.
 const RENDERERS: readonly ["webgl2", "webgl", "canvas2d", "wasm-webgl2"];
 ```
 
+### `import { … } from '@mcthaydt/automata-content/level-2d'`
+
+#### `checkEntityDef` (function)
+
+Problems with an entity definition: its id and color, then each field's problems tagged with the field's id and
+index, with a repeated field id reported at its later occurrence.
+
+```ts
+function checkEntityDef(def: EntityDef): readonly EntityDefProblem[];
+```
+
+#### `checkFieldDef` (function)
+
+Problems with one field definition, in a stable order: id, misplaced properties, bounds, step, options, default.
+
+```ts
+function checkFieldDef(def: FieldDef): readonly FieldProblem<FieldDefCode>[];
+```
+
+#### `checkFieldValue` (function)
+
+Whether `value` fits the field: `undefined` when it does, else the first problem. It checks the value's shape
+and the field's own rules; whether a reference resolves is the editor's check.
+
+```ts
+function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined;
+```
+
+#### `ContentEntityDef` (type)
+
+_No doc comment._
+
+```ts
+type ContentEntityDef = EntityDef & {
+  readonly shape: "rect" | "ellipse" | "point" | "tile";
+  readonly size: ContentSize;
+  readonly pivot: {
+    readonly x: number;
+    readonly y: number;
+  };
+  readonly resizable: "none" | "x" | "y" | "xy";
+  readonly tile?: {
+    readonly tileset: string;
+    readonly index: number;
+  } | undefined;
+  readonly tags: readonly string[];
+  readonly min?: {
+    readonly per: "level" | "project";
+    readonly count: number;
+  } | undefined;
+};
+```
+
+#### `ContentEntityItem` (interface)
+
+_No doc comment._
+
+```ts
+interface ContentEntityItem {
+  readonly id: string;
+  readonly def: string;
+  readonly x: number;
+  readonly y: number;
+  readonly w?: number | undefined;
+  readonly h?: number | undefined;
+  readonly fields: FieldValues;
+}
+```
+
+#### `ContentLevel` (interface)
+
+_No doc comment._
+
+```ts
+interface ContentLevel {
+  readonly format: "af2d-content";
+  readonly version: 1;
+  readonly id: string;
+  readonly name: string;
+  readonly size: ContentSize;
+  readonly background: {
+    readonly color: string;
+    readonly image?: string | undefined;
+    readonly mode: "fit" | "cover" | "repeat" | "repeat-x";
+  };
+  readonly fields: FieldValues;
+  readonly layers: readonly ContentLevelLayer[];
+}
+```
+
+#### `ContentLevelLayer` (type)
+
+_No doc comment._
+
+```ts
+type ContentLevelLayer = {
+  readonly def: string;
+  readonly kind: "tiles";
+  readonly rows: readonly string[];
+} | {
+  readonly def: string;
+  readonly kind: "intgrid";
+  readonly rows: readonly string[];
+} | {
+  readonly def: string;
+  readonly kind: "auto";
+  readonly stack: readonly ContentRows[];
+} | {
+  readonly def: string;
+  readonly kind: "entities";
+  readonly items: readonly ContentEntityItem[];
+} | {
+  readonly def: string;
+  readonly kind: "objects";
+  readonly items: readonly ContentObjectItem[];
+};
+```
+
+#### `ContentNeighbours` (interface)
+
+One level's neighbours in `world.toml`, each side ordered by position and then id. The editor computes them.
+
+```ts
+interface ContentNeighbours {
+  readonly level: string;
+  readonly north: readonly string[];
+  readonly east: readonly string[];
+  readonly south: readonly string[];
+  readonly west: readonly string[];
+}
+```
+
+#### `ContentObjectItem` (interface)
+
+_No doc comment._
+
+```ts
+interface ContentObjectItem {
+  readonly id: string;
+  readonly tile: number;
+  readonly x: number;
+  readonly y: number;
+  readonly flipX: boolean;
+  readonly flipY: boolean;
+}
+```
+
+#### `ContentProject` (interface)
+
+_No doc comment._
+
+```ts
+interface ContentProject {
+  readonly format: "af2d-content";
+  readonly version: 1;
+  readonly name: string;
+  readonly template: string;
+  readonly layers: readonly ContentProjectLayer[];
+  readonly tilesets: readonly ContentTileset[];
+  readonly entities: readonly ContentEntityDef[];
+  readonly levelFields: readonly FieldDef[];
+}
+```
+
+#### `ContentProjectLayer` (type)
+
+_No doc comment._
+
+```ts
+type ContentProjectLayer = {
+  readonly id: string;
+  readonly kind: "tiles";
+  readonly grid: number;
+  readonly tileset: string;
+} | {
+  readonly id: string;
+  readonly kind: "intgrid";
+  readonly grid: number;
+  readonly values: readonly {
+    readonly value: number;
+    readonly id: string;
+  }[];
+} | {
+  readonly id: string;
+  readonly kind: "auto";
+  readonly grid: number;
+  readonly source: string;
+  readonly tileset: string;
+} | {
+  readonly id: string;
+  readonly kind: "entities";
+  readonly grid: number;
+  readonly snap: boolean;
+} | {
+  readonly id: string;
+  readonly kind: "objects";
+  readonly tileset: string;
+  readonly snap: number;
+};
+```
+
+#### `ContentRows` (interface)
+
+_No doc comment._
+
+```ts
+interface ContentRows {
+  readonly rows: readonly string[];
+}
+```
+
+#### `ContentSize` (interface)
+
+_No doc comment._
+
+```ts
+interface ContentSize {
+  readonly w: number;
+  readonly h: number;
+}
+```
+
+#### `ContentTileset` (interface)
+
+_No doc comment._
+
+```ts
+interface ContentTileset {
+  readonly id: string;
+  readonly tile: ContentSize;
+  readonly columns: number;
+  readonly rows: number;
+  readonly spacing: number;
+  readonly padding: number;
+  readonly image?: string | undefined;
+  readonly placeholder: boolean;
+  readonly tags: readonly {
+    readonly tag: string;
+    readonly tiles: readonly number[];
+  }[];
+}
+```
+
+#### `ContentWorld` (interface)
+
+_No doc comment._
+
+```ts
+interface ContentWorld {
+  readonly format: "af2d-content";
+  readonly version: 1;
+  readonly worlds: readonly {
+    readonly id: string;
+    readonly layout: "free" | "grid" | "horizontal" | "vertical";
+    readonly grid?: ContentSize | undefined;
+    readonly placements: readonly {
+      readonly level: string;
+      readonly x: number;
+      readonly y: number;
+      readonly depth: number;
+    }[];
+    /** Only in a `grid` world: for each level, the levels whose edge touches its own along a span of positive length. */
+    readonly neighbours?: readonly ContentNeighbours[] | undefined;
+  }[];
+}
+```
+
+#### `defaultFieldValue` (function)
+
+The value an instance gets when it has none: the field's `default`, else the type's zero (moved into a number's
+bounds), else `[]` for a list. `undefined` for a required field, which has no stand-in, and for a ref until one
+is picked.
+
+```ts
+function defaultFieldValue(def: FieldDef): FieldValue | undefined;
+```
+
+#### `entitiesOf` (function)
+
+The items of an entities layer, in file order. Throws for a missing or other layer.
+
+```ts
+function entitiesOf(level: ContentLevel, layer: string): readonly ContentEntityItem[];
+```
+
+#### `ENTITY_ID` (const)
+
+An entity definition id.
+
+```ts
+const ENTITY_ID: RegExp;
+```
+
+#### `EntityDef` (interface)
+
+_No doc comment._
+
+```ts
+interface EntityDef {
+  readonly id: string;
+  readonly label?: string | undefined;
+  /** A token name or `#rrggbb`. */
+  readonly color?: string | undefined;
+  /** At most one instance per scope the editor names (2D: per level; 3D: per map). */
+  readonly single?: boolean | undefined;
+  readonly fields: readonly FieldDef[];
+}
+```
+
+#### `EntityDefCode` (type)
+
+_No doc comment._
+
+```ts
+type EntityDefCode = FieldDefCode | "badEntityId" | "badEntityColor" | "duplicateFieldId";
+```
+
+#### `EntityDefIssue` (interface)
+
+_No doc comment._
+
+```ts
+interface EntityDefIssue {
+  readonly message: string;
+  /** Mutable, so it can be handed to `ctx.addIssue` as it is. */
+  readonly path: (string | number)[];
+}
+```
+
+#### `entityDefIssues` (function)
+
+The entity-level problems of a definition, for `superRefine`: its id and color, and a repeated field id at the later
+field's path. A field's own problems are reported by `fieldDefSchema` at the field's path, so they are not repeated.
+
+```ts
+function entityDefIssues(def: EntityDef): readonly EntityDefIssue[];
+```
+
+#### `EntityDefProblem` (interface)
+
+A problem with a definition; `fieldId` and `fieldIndex` (its place in `fields`) say which field when the problem is in one.
+
+```ts
+interface EntityDefProblem extends FieldProblem<EntityDefCode> {
+  readonly fieldId?: string;
+  readonly fieldIndex?: number;
+}
+```
+
+#### `entityDefSchema` (const)
+
+_No doc comment._
+
+```ts
+const entityDefSchema: z.ZodType<EntityDef>;
+```
+
+#### `entityDefShape` (const)
+
+The keys of an entity definition, for an editor to extend (`z.strictObject({ ...entityDefShape, shape: … })`) so
+its own entity schema never copies the kit's keys (`EntityDef2D = EntityDef & { shape, size, … }`).
+
+```ts
+const entityDefShape: {
+  id: z.ZodString;
+  label: z.ZodOptional<z.ZodString>;
+  color: z.ZodOptional<z.ZodString>;
+  single: z.ZodOptional<z.ZodBoolean>;
+  fields: z.ZodArray<z.ZodType<FieldDef>>;
+};
+```
+
+#### `FIELD_ID` (const)
+
+A field id as an inspector shows it and a file stores it.
+
+```ts
+const FIELD_ID: RegExp;
+```
+
+#### `FIELD_TYPES` (const)
+
+_No doc comment._
+
+```ts
+const FIELD_TYPES: readonly FieldType[];
+```
+
+#### `FieldDef` (interface)
+
+_No doc comment._
+
+```ts
+interface FieldDef {
+  readonly id: string;
+  readonly type: FieldType;
+  readonly label?: string | undefined;
+  /** An ordered array of this type (a patrol path is a list of points). */
+  readonly list?: boolean | undefined;
+  /** No default stands in: an instance without a value is a `fieldMissing` problem. */
+  readonly required?: boolean | undefined;
+  readonly default?: FieldValue | undefined;
+  /** `int` and `float`: inclusive bounds. */
+  readonly min?: number | undefined;
+  readonly max?: number | undefined;
+  /** `int` and `float`: the stepper's increment (1 for an `int` without one). */
+  readonly step?: number | undefined;
+  /** `enum`: non-empty and unique. */
+  readonly options?: readonly string[] | undefined;
+  /** `text`: an editor shows a multi-line box. */
+  readonly multiline?: boolean | undefined;
+  /** `ref`: what it may point at, as names the editor defines (entity definition ids, `$level`, `$sector`); empty or absent means any. */
+  readonly to?: readonly string[] | undefined;
+}
+```
+
+#### `FieldDefCode` (type)
+
+_No doc comment._
+
+```ts
+type FieldDefCode = "badId" | "badBounds" | "badStep" | "noOptions" | "duplicateOption" | "badDefault" | "wrongTypeProperty";
+```
+
+#### `fieldDefSchema` (const)
+
+_No doc comment._
+
+```ts
+const fieldDefSchema: z.ZodType<FieldDef>;
+```
+
+#### `FieldProblem` (interface)
+
+_No doc comment._
+
+```ts
+interface FieldProblem<Code extends string = string> {
+  readonly code: Code;
+  readonly message: string;
+}
+```
+
+#### `FieldType` (type)
+
+_No doc comment._
+
+```ts
+type FieldType = "int" | "float" | "bool" | "text" | "enum" | "color" | "angle" | "ref" | "point";
+```
+
+#### `FieldValue` (type)
+
+_No doc comment._
+
+```ts
+type FieldValue = number | boolean | string | Point | RefValue | readonly FieldValue[];
+```
+
+#### `FieldValueCode` (type)
+
+_No doc comment._
+
+```ts
+type FieldValueCode = "wrongType" | "notInteger" | "belowMin" | "aboveMax" | "notAnOption" | "badColor" | "badRef" | "badPoint" | "badListItem";
+```
+
+#### `FieldValueProblem` (interface)
+
+`badListItem` carries the index of the first bad item and that item's own problem as `cause`.
+
+```ts
+interface FieldValueProblem extends FieldProblem<FieldValueCode> {
+  readonly index?: number;
+  readonly cause?: FieldValueProblem;
+}
+```
+
+#### `FieldValues` (type)
+
+_No doc comment._
+
+```ts
+type FieldValues = Readonly<Record<string, FieldValue>>;
+```
+
+#### `fieldValueSchema` (const)
+
+Any well-formed value shape. Whether it fits a definition is `checkValues`, which knows the definition.
+
+```ts
+const fieldValueSchema: z.ZodType<FieldValue>;
+```
+
+#### `fieldValuesSchema` (const)
+
+_No doc comment._
+
+```ts
+const fieldValuesSchema: z.ZodType<FieldValues>;
+```
+
+#### `HEX_COLOR` (const)
+
+A field's color value: `#rrggbb`, either case.
+
+```ts
+const HEX_COLOR: RegExp;
+```
+
+#### `InstanceCode` (type)
+
+_No doc comment._
+
+```ts
+type InstanceCode = FieldValueCode | "fieldMissing" | "unknownField";
+```
+
+#### `InstanceProblem` (interface)
+
+A problem with one value of an instance, found by `checkValues`.
+
+```ts
+interface InstanceProblem extends FieldProblem<InstanceCode> {
+  readonly fieldId: string;
+  readonly index?: number;
+  readonly cause?: FieldValueProblem;
+}
+```
+
+#### `intGridRows` (function)
+
+The cells of an IntGrid layer, one array of numbers per row (0 is empty). Throws for a missing or other layer.
+
+```ts
+function intGridRows(level: ContentLevel, layer: string): readonly (readonly number[])[];
+```
+
+#### `level2dKinds` (function)
+
+The kinds `levels` (in the sim's content), `project` and `world` (outside it).
+
+```ts
+function level2dKinds(options?: Level2dKindsOptions): ContentSchemaDef[];
+```
+
+#### `Level2dKindsOptions` (interface)
+
+_No doc comment._
+
+```ts
+interface Level2dKindsOptions {
+  /** Where the exported levels are, under `content/`. Default `levels`. */
+  readonly folder?: string | undefined;
+}
+```
+
+#### `levelContentSchema` (const)
+
+_No doc comment._
+
+```ts
+const levelContentSchema: z.ZodType<ContentLevel>;
+```
+
+#### `Point` (interface)
+
+_No doc comment._
+
+```ts
+interface Point {
+  readonly x: number;
+  readonly y: number;
+}
+```
+
+#### `projectContentSchema` (const)
+
+_No doc comment._
+
+```ts
+const projectContentSchema: z.ZodType<ContentProject>;
+```
+
+#### `RefValue` (interface)
+
+`target` and `container` are opaque to the kit: whether they resolve is the editor's check.
+
+```ts
+interface RefValue {
+  readonly target: string;
+  /** The level or sector that holds the target. */
+  readonly container?: string | undefined;
+}
+```
+
+#### `worldContentSchema` (const)
+
+_No doc comment._
+
+```ts
+const worldContentSchema: z.ZodType<ContentWorld>;
+```
+
 ### `import { … } from '@mcthaydt/automata-content/locale'`
 
 #### `ALWAYS_CHARACTERS` (const)

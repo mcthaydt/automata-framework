@@ -7,6 +7,7 @@
   one in `RefPicker`.
 -->
 <script lang="ts">
+import type { FieldValue, Point, RefValue } from '@mcthaydt/automata-content/level-2d'
 import Button from '../widgets/Button.svelte'
 import ColorField from '../widgets/ColorField.svelte'
 import type { EditEvent } from '../widgets/edit-event'
@@ -14,7 +15,6 @@ import Picker from '../widgets/Picker.svelte'
 import Segmented from '../widgets/Segmented.svelte'
 import Stepper from '../widgets/Stepper.svelte'
 import type { FieldCommit, FieldRow } from './field-row'
-import type { FieldValue, Point, RefValue } from './field-types'
 import RefPicker from './RefPicker.svelte'
 
 interface Props {

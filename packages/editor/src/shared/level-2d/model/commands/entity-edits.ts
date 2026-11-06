@@ -1,7 +1,8 @@
 // Commands that place, move, resize, duplicate and delete entity instances on an entities layer, and set their
 // fields.
-import { checkFieldValue } from '../../../kit/fields/check-field-value.ts'
-import type { FieldValue } from '../../../kit/fields/field-types.ts'
+
+import type { FieldValue } from '@mcthaydt/automata-content/level-2d'
+import { checkFieldValue } from '@mcthaydt/automata-content/level-2d'
 import { valuesWithDefaults } from '../../../kit/fields/field-values.ts'
 import type { Point } from '../../tiles/footprint'
 import type {

@@ -1,13 +1,14 @@
 // The level project's file format as a Zod schema, with the limits a file may not exceed (level size, number of
 // levels and layers).
-import { z } from 'zod'
+
 import {
   entityDefIssues,
   entityDefShape,
   fieldDefSchema,
   fieldValuesSchema,
-} from '../../kit/fields/field.schema.ts'
-import { HEX_COLOR } from '../../kit/fields/field-types.ts'
+  HEX_COLOR,
+} from '@mcthaydt/automata-content/level-2d'
+import { z } from 'zod'
 import { ruleGroupSchema } from '../tiles/autotile/rule.schema'
 import { DEF_ID, ITEM_ID } from './ids'
 import { FILE_VERSION } from './migrations/migration'

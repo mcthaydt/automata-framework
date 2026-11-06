@@ -1,7 +1,6 @@
 import { z } from 'zod'
-import { fieldDefSchema, fieldValuesSchema } from '../../../kit/fields/field.schema.ts'
-import type { EntityDef, FieldDef, FieldValues } from '../../../kit/fields/field-types.ts'
-import type { LevelNeighbours } from '../../model/world/world-neighbours'
+import type { EntityDef, FieldDef, FieldValues } from './field-types'
+import { fieldDefSchema, fieldValuesSchema } from './fields.schema'
 
 // The shape of the AF content export: what `project.toml`, `levels/<id>.toml` and `world.toml`
 // hold once a reader has parsed the TOML. Strict, so a reader cannot come to depend on a key the editor does not
@@ -12,11 +11,13 @@ import type { LevelNeighbours } from '../../model/world/world-neighbours'
 // Written out, not inferred, so the package's declarations need no schema internals (`isolatedDeclarations`).
 // Optional properties accept an explicit `undefined`, as the schemas' output types say.
 
+/** A width and height in pixels. */
 export interface ContentSize {
   readonly w: number
   readonly h: number
 }
 
+/** A layer definition in `project.toml`, by kind. */
 export type ContentProjectLayer =
   | { readonly id: string; readonly kind: 'tiles'; readonly grid: number; readonly tileset: string }
   | {
@@ -35,6 +36,7 @@ export type ContentProjectLayer =
   | { readonly id: string; readonly kind: 'entities'; readonly grid: number; readonly snap: boolean }
   | { readonly id: string; readonly kind: 'objects'; readonly tileset: string; readonly snap: number }
 
+/** A tileset in `project.toml`: its tile size, grid, optional image and tags. */
 export interface ContentTileset {
   readonly id: string
   readonly tile: ContentSize
@@ -47,6 +49,7 @@ export interface ContentTileset {
   readonly tags: readonly { readonly tag: string; readonly tiles: readonly number[] }[]
 }
 
+/** An entity definition in `project.toml`: a typed-field definition plus how the editor draws and places it. */
 export type ContentEntityDef = EntityDef & {
   readonly shape: 'rect' | 'ellipse' | 'point' | 'tile'
   readonly size: ContentSize
@@ -57,6 +60,7 @@ export type ContentEntityDef = EntityDef & {
   readonly min?: { readonly per: 'level' | 'project'; readonly count: number } | undefined
 }
 
+/** The project as `project.toml` holds it: the layer, tileset and entity definitions every level uses. */
 export interface ContentProject {
   readonly format: 'af2d-content'
   readonly version: 1
@@ -68,10 +72,12 @@ export interface ContentProject {
   readonly levelFields: readonly FieldDef[]
 }
 
+/** One stack entry of an auto layer: run-length row strings. */
 export interface ContentRows {
   readonly rows: readonly string[]
 }
 
+/** One placed entity in a level: its definition, its position (and size when resizable) and its field values. */
 export interface ContentEntityItem {
   readonly id: string
   readonly def: string
@@ -82,6 +88,7 @@ export interface ContentEntityItem {
   readonly fields: FieldValues
 }
 
+/** One placed tile object in an objects layer. */
 export interface ContentObjectItem {
   readonly id: string
   readonly tile: number
@@ -91,6 +98,7 @@ export interface ContentObjectItem {
   readonly flipY: boolean
 }
 
+/** One layer of a level, by kind: tile rows, IntGrid rows, auto-tile stacks, entities or objects. */
 export type ContentLevelLayer =
   | { readonly def: string; readonly kind: 'tiles'; readonly rows: readonly string[] }
   | { readonly def: string; readonly kind: 'intgrid'; readonly rows: readonly string[] }
@@ -98,6 +106,7 @@ export type ContentLevelLayer =
   | { readonly def: string; readonly kind: 'entities'; readonly items: readonly ContentEntityItem[] }
   | { readonly def: string; readonly kind: 'objects'; readonly items: readonly ContentObjectItem[] }
 
+/** A level as `levels/<id>.toml` holds it, after parsing the TOML. */
 export interface ContentLevel {
   readonly format: 'af2d-content'
   readonly version: 1
@@ -113,9 +122,16 @@ export interface ContentLevel {
   readonly layers: readonly ContentLevelLayer[]
 }
 
-/** One level's neighbours in `world.toml`: the model's shape (`worldNeighbours` computes them), not a copy of it. */
-export type ContentNeighbours = LevelNeighbours
+/** One level's neighbours in `world.toml`, each side ordered by position and then id. The editor computes them. */
+export interface ContentNeighbours {
+  readonly level: string
+  readonly north: readonly string[]
+  readonly east: readonly string[]
+  readonly south: readonly string[]
+  readonly west: readonly string[]
+}
 
+/** The worlds as `world.toml` holds them: layout, level placements and, for a grid world, each level's neighbours. */
 export interface ContentWorld {
   readonly format: 'af2d-content'
   readonly version: 1
@@ -281,6 +297,9 @@ const worldContent = z.strictObject({
   ),
 })
 
-export const contentProjectSchema: z.ZodType<ContentProject> = projectContent
-export const contentLevelSchema: z.ZodType<ContentLevel> = levelContent
-export const contentWorldSchema: z.ZodType<ContentWorld> = worldContent
+/** The strict schema of `project.toml`. */
+export const projectContentSchema: z.ZodType<ContentProject> = projectContent
+/** The strict schema of `levels/<id>.toml`. */
+export const levelContentSchema: z.ZodType<ContentLevel> = levelContent
+/** The strict schema of `world.toml`. */
+export const worldContentSchema: z.ZodType<ContentWorld> = worldContent

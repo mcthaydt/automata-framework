@@ -1,5 +1,5 @@
+import type { FieldDef } from '@mcthaydt/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
-import type { FieldDef } from '#src/shared/kit/fields/field-types.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { projectLinks, refName, refTargets } from '#src/shared/level-2d/model/refs/ref-links.ts'
 import { linkedMaps } from '#src/testing/level-2d/linked-maps.ts'

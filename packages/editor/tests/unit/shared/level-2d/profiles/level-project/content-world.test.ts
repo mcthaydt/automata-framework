@@ -1,15 +1,15 @@
+import { worldContentSchema } from '@mcthaydt/automata-content/level-2d'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
-import { contentWorldSchema } from '#src/shared/level-2d/profiles/level-project/content.schema.ts'
 import { exportContent } from '#src/shared/level-2d/profiles/level-project/content-export.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 import { withLevel, withNewLevel, withWorld } from '#src/testing/level-2d/project-edit.ts'
 
 const neighboursOf = (project: Project): Record<string, Record<string, readonly string[]>> | undefined => {
   const file = exportContent(project).find((f) => f.path === 'world.toml')
-  const world = contentWorldSchema.parse(parse(file?.contents ?? ''))
+  const world = worldContentSchema.parse(parse(file?.contents ?? ''))
   const found = world.worlds[0]?.neighbours
   return found
     ? Object.fromEntries(

@@ -456,6 +456,9 @@ importers:
       '@mcthaydt/automata':
         specifier: workspace:*
         version: link:../automata
+      '@mcthaydt/automata-content':
+        specifier: workspace:*
+        version: link:../content
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0

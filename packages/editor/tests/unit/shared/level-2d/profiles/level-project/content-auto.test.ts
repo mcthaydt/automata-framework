@@ -1,10 +1,10 @@
+import { levelContentSchema } from '@mcthaydt/automata-content/level-2d'
 import { parse } from 'smol-toml'
 import { describe, expect, it } from 'vitest'
 import { decodeRows, packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { Grid } from '#src/shared/level-2d/model/grid.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
-import { contentLevelSchema } from '#src/shared/level-2d/profiles/level-project/content.schema.ts'
 import { exportContent } from '#src/shared/level-2d/profiles/level-project/content-export.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 import { engineStack } from '#src/testing/level-2d/content-roundtrip.ts'
@@ -23,7 +23,7 @@ function hill(): Project {
 
 function exportedStack(project: Project): Grid[] {
   const file = exportContent(project).find((f) => f.path === 'levels/level-1.toml')
-  const level = contentLevelSchema.parse(parse(file?.contents ?? ''))
+  const level = levelContentSchema.parse(parse(file?.contents ?? ''))
   const layer = level.layers.find((l) => l.def === 'ground')
   if (layer?.kind !== 'auto') throw new Error('no auto layer')
   return layer.stack.map((depth) => {

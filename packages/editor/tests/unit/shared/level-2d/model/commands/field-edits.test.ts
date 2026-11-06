@@ -1,5 +1,5 @@
+import type { FieldDef } from '@mcthaydt/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
-import type { FieldDef } from '#src/shared/kit/fields/field-types.ts'
 import { addField, renameField, retypeField } from '#src/shared/level-2d/model/commands/field-edits.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { EntityInstance, Project } from '#src/shared/level-2d/model/project-types.ts'

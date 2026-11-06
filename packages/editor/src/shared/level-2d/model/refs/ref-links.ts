@@ -1,5 +1,5 @@
+import type { FieldDef, FieldValue, FieldValues, RefValue } from '@mcthaydt/automata-content/level-2d'
 import type { RefChoice, RefTargetGroup } from '../../../kit/fields/field-row.ts'
-import type { FieldDef, FieldValue, FieldValues, RefValue } from '../../../kit/fields/field-types.ts'
 import type { Project } from '../project-types'
 import { isRefValue, type RefIndex, refIndex, resolveRef } from './ref-resolve'
 
