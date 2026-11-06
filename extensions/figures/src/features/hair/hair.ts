@@ -196,7 +196,12 @@ export interface Rows { count: number; at?: number; span: number; from: Line; to
 /** A ponytail tied at a direction from the skull's centre (head units); its ropes rise `rise` of the head's height and
  * fall `length` of it below the shoulders, spread across `spread` of the half-width at the tie and at the ends, clear of
  * the dressed trunk. */
-export interface Tail { at: V3; count: number; rope: Rope; rise: number; length: number; spread: [number, number]; tie?: Tie; cuffs?: string; matte?: boolean }
+export interface Tail {
+  at: V3; count: number; rope: Rope; rise: number; length: number; spread: [number, number]; tie?: Tie; cuffs?: string; matte?: boolean;
+  /** 'down': a low pony, tied where `at` says (the nape) and falling straight down the back from the tie: no rise and no
+   * arc over the crown, the ropes gathered in a ring across the fall and fanning below the shoulders, clear of the trunk. */
+  hang?: 'down';
+}
 /** A tie: `true` the wearer's (HairInput.tie: the outfit's own metal, else a band of the hair's own), or a swatch. */
 export type Tie = boolean | string;
 /** One of the three generators' pieces. */
@@ -210,11 +215,15 @@ export type Finish = string;
 /** Each finish's light: how far the key reaches down its form (paint.ts thresholds: the light on its crests, a shadow
  * side), and whether it is matte (no glint, and its lit tone a step up in the shadow too, so a plait's beads, a loc's
  * edge, a coil's specks read on the dark side as well). */
-const FINISH: Record<'coil' | 'braid', { tones: [number, number, number]; matte: boolean }> = {
+const FINISH: Record<'coil' | 'braid' | 'smooth' | 'curl', { tones: [number, number, number]; matte: boolean }> = {
   // Tight coils: mostly mid, the light on the crests.
   coil: { tones: [0.8, 0.3, -0.4], matte: true },
   // Braids: the light a rare crest and a deep shadow side, so the beads and the ropes carry the form.
   braid: { tones: [0.9, 0.2, -0.8], matte: true },
+  // Straight hair (a low pony, a fall): the key's gloss reaching well down the form, the sheen band on.
+  smooth: { tones: [0.6, 0.15, -0.55], matte: false },
+  // Curls: the light on each clump's crest, matte.
+  curl: { tones: [0.85, 0.25, -0.5], matte: true },
 };
 /** A finish's light (FINISH). */
 export type HairFinish = { tones: [number, number, number]; matte: boolean };
@@ -440,7 +449,9 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
    * running down in a herringbone, never as rungs across it.
    */
   function tail(o: Tail) {
-    const base = toHead(form, k, o.at, 0.05), g = s.genes, kk = m.k, up = normalize(sub(base, k.c)), side = normalize(cross(up, [0, 0, 1])), fore = cross(side, up);
+    const base = toHead(form, k, o.at, 0.05), g = s.genes, kk = m.k;
+    // A low pony's ropes gather in a ring across the fall (horizontal), its axis straight up; a high one's axis is out of the crown.
+    const up: V3 = o.hang ? [0, 1, 0] : normalize(sub(base, k.c)), side: V3 = o.hang ? [1, 0, 0] : normalize(cross(up, [0, 0, 1])), fore: V3 = o.hang ? [0, 0, 1] : cross(side, up);
     const texel = 1 / ppm, ar = o.rope.r * hw, shoulder = s.shoulderY - head[1], end = shoulder - o.length * g.head;
     const rise = o.rise * g.head, tie = add(base, scale(up, rise * 0.45)), bundle = o.spread[0] * hw, x1 = o.spread[1] * hw, clear = ar * 1.2 + texel;
     // The back of the head at a height (head space), and the dressed trunk's furthest back down the tail's length.
@@ -455,12 +466,16 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       // A layer out from the back (−z) for the ropes on top, so those under lie nearer the body, between them.
       const top = r % 2 === 0, layer = 0, x = (w: number) => u * lerp(bundle, x1, w);
       const at = (p: V3, w: number) => add(p, add(scale(side, Math.cos(ring) * bundle * w), scale(fore, Math.sin(ring) * bundle * w)));
+      // A low pony runs from its tie straight down the back of the head to the nape: no rise, no arc.
+      const down = (y: number) => [x(0.15), y, Math.min(headBack(y) - off * 0.6 * k.r[2], base[2]) - clear - layer] as V3;
       const path: V3[] = [
         at(base, 0.8), at(tie, 1),
-        // Up out of the tie, over the top still gathered, and down onto the back of the head.
-        add(at(tie, 1.05), add(scale(up, rise * 0.45), [0, 0, -0.25 * k.r[2]])),
-        add(at(tie, 1.15), [0, rise * 0.3, -0.62 * k.r[2] - layer]),
-        [x(0.15), k.c[1] + 0.5 * k.r[1], headBack(k.c[1] + 0.5 * k.r[1]) - off * 0.6 * k.r[2] - clear - layer],
+        ...(o.hang ? [down((base[1] + nape) / 2)] : [
+          // Up out of the tie, over the top still gathered, and down onto the back of the head.
+          add(at(tie, 1.05), add(scale(up, rise * 0.45), [0, 0, -0.25 * k.r[2]])),
+          add(at(tie, 1.15), [0, rise * 0.3, -0.62 * k.r[2] - layer]),
+          [x(0.15), k.c[1] + 0.5 * k.r[1], headBack(k.c[1] + 0.5 * k.r[1]) - off * 0.6 * k.r[2] - clear - layer] as V3,
+        ]),
         [x(0.4), nape, napeZ - layer],
         [x(0.85), shoulder, Math.min(napeZ, hang) - layer],
         [x(1), end + jit * 0.1 * g.head, hang - layer - 0.01 * kk],
