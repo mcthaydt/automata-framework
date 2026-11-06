@@ -286,7 +286,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
       // The wrist's notch, the hand flaring from it.
       { y: wrist + 0.08 * F, rx: 0.018 * a, rz: 0.024 * a, dx: ax },
       { y: wrist, rx: 0.017 * a, rz: 0.022 * a, dx: ax },
-    ], [fat.swell, fat.swell, fat.swell, fat.swell, fat.joint, fat.swell, fat.swell, fat.end, fat.end]) };
+    ], [fat.hipTop, fat.hipTop, fat.hipTop, fat.swell, fat.joint, fat.swell, fat.swell, fat.end, fat.end]) };
     const bend = across(J[`upperArm.${side}`], J[`foreArm.${side}`], elbow, 0.05 * k);
     // The shoulder's top rides the chest a little, so a swinging arm rolls under its cap rather than lifting it.
     const shoulder = (_x: number, y: number): [number, number][] => { const c = 0.45 * smooth((y - (ay - 0.03 * k)) / (0.07 * k)); return [[J.chest, c], [J[`upperArm.${side}`], 1 - c]]; };
@@ -311,7 +311,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
       { y: knee - 0.65 * S, rx: 0.034 * l, rz: 0.036 * l, dx: hx, dz: -0.004 * k },
       { y: ankle + 0.035 * k, rx: 0.024 * l, rz: 0.028 * l, dx: hx },
       { y: ankle, rx: 0.027 * l, rz: 0.03 * l, dx: hx },
-    ], [fat.hipTop, fat.swell, fat.swell, fat.swell, fat.joint, fat.swell, fat.swell, fat.end, fat.end]) };
+    ], [fat.hipTop, fat.hipTop, fat.swell, fat.swell, fat.joint, fat.joint, fat.swell, fat.end, fat.end]) };
     const kneeBend = across(J[`thigh.${side}`], J[`shin.${side}`], knee, 0.05 * k);
     // The top of the thigh rides the pelvis in part: the hip creases as the leg swings, it does not lift out.
     const hip = (y: number): [number, number][] => { const p = 0.55 * smooth((y - (hipY - 0.07 * k)) / (0.12 * k)); return [[J.pelvis, p], [J[`thigh.${side}`], 1 - p]]; };

@@ -348,13 +348,13 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
   const nh = Math.max(1, Math.round(s * (0.2 + 0.35 * (F.nose - 0.5)))), mh = Math.max(1, Math.round(s * (0.2 + 0.06 * F.lips)));
   /**
    * The cheek's stroke: on the row under the cheekbone, from the face's edge on the shadow side (the key light comes from
-   * the screen's left in every view, so screen +x) inward, a step darker along the skin's ramp: its row the cheekbone's
-   * height (`cheekHeight`), its length the cheekbones' width (`cheekWidth`), none under 0.3, never on the nose's columns
-   * (`past` the last of them). Where `big` only.
+   * the screen's left in every view, so screen +x) inward, two texels a step darker along the skin's ramp: its row the
+   * cheekbone's height (`cheekHeight`), never on the nose's columns (`past` the last of them). The cheekbones' width shows
+   * by the outline (head.ts), not here. Where `big` only.
    */
   const cheek = (past: number) => {
-    const len = Math.round((F.cheekWidth - 0.3) / 0.7 * s * 0.5);
-    if (!big || len <= 0) return;
+    const len = 2;
+    if (!big) return;
     const y = Math.round(N - (N - I) * (0.4 + 0.5 * F.cheekHeight)) + 1;
     let x = Math.floor(f.centre[0]);
     if (!own(x, y)) return;

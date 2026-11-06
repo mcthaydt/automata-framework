@@ -74,9 +74,9 @@ export function headForm(m: Measure, s: Skeleton): HeadForm {
   // Depths in half-depths: `z` from the face's set (genes.faceAhead; the face's front at 1), `back` from the cranium's.
   const z = (u: number) => hd * (g.faceAhead + u), back = (u: number) => hd * (g.faceAhead * 0.5 + u);
   const chin = spread(F.chin, 0.16, lerp(0.22, 0.34, 0.5), 0.40), jaw = spread(F.jaw, 0.5, lerp(0.6, 0.84, 0.5), 0.94);
-  // The cheeks and the lips show by the face's marks alone (paint.ts stampFace), not by the outline too: the width at the
-  // cheekbone and the lips' front are held at their middle whatever the sliders say.
-  const cheek = lerp(0.88, 1, 0.5), cheekT = lerp(0.34, 0.44, 0.5), lipsOut = 0.04 * 0.5;
+  // One way to show per slider (spec decision 5): cheekWidth by this outline (the width at the cheekbone), so the cheekbone's
+  // height and the lips' front (stampFace's marks) are held at their middle whatever those sliders say.
+  const cheek = lerp(0.88, 1, F.cheekWidth), cheekT = lerp(0.34, 0.44, 0.5), lipsOut = 0.04 * 0.5;
   // Fat fills the jaw's underside (genes.ts Measure.fat.chin): the width under the chin grows, and the front a little
   // forward of the chin's point (which stays), so a heavy chin meets the neck in a curve, not a corner.
   const full = m.fat.chin;

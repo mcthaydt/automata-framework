@@ -76,7 +76,8 @@ export interface Measure {
   /** The head's structure. */
   face: HeadShape;
   /** How fat fills the body (multipliers, exactly 1 at fat 0): the limbs' swells most of all and the joints (elbow,
-   * knee) more, so the notch between them closes and the contour goes soft; the thigh's top less (no ball at the hip);
+   * knee, the calf) more, so the notch between them closes and the contour goes soft; the thigh's top and the deltoid's cap less
+   * (no ball at the hip, no muscle's cap);
    * the wrists and ankles by a tenth at most, so they still read; the neck; and the jaw's underside. Past 1 the growth
    * keeps its proportion. */
   fat: { swell: number; joint: number; hipTop: number; end: number; neck: number; chin: number };
@@ -109,6 +110,6 @@ export function measure(input: Partial<Sliders>): Measure {
     // The pixel build thickens limbs only as far as a wrist and an ankle still read at 64 texels; their shape is the body's.
     arm: lerp(1, 1.3, c), leg: lerp(1, 1.2, c), foot: lerp(1, 1.25, c),
     face: { ...DEFAULT_HEAD, ...s.face },
-    fat: { swell: 1 + 0.35 * s.fat, joint: 1 + 0.45 * s.fat, hipTop: 1 + 0.2 * s.fat, end: 1 + 0.08 * s.fat, neck: 1 + 0.2 * s.fat, chin: 1 + 0.25 * s.fat },
+    fat: { swell: 1 + 0.35 * s.fat, joint: 1 + 0.5 * s.fat, hipTop: 1 + 0.2 * s.fat, end: 1 + 0.08 * s.fat, neck: 1 + 0.2 * s.fat, chin: 1 + 0.25 * s.fat },
   };
 }

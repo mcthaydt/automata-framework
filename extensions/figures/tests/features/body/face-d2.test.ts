@@ -54,14 +54,14 @@ describe('a face at 0.5 is today\'s face', () => {
 });
 
 /** The texels each mark slider moved (any texel), on the tree after the outline change and before the marks, recorded
- * with faceReads(def, key). The marks must beat them by two. The cheeks' are recorded with their outline held and no
- * stroke yet (head.ts holds the width at the cheekbone): what main moved by the outline (cheekWidth 38 / 44 texels,
- * cheekHeight 17 / 5) is the drawing the stroke replaces, so it is no bar for it. */
+ * with faceReads(def, key). The marks must beat them by two. cheekHeight's is recorded with its outline held and no stroke
+ * yet (head.ts holds the cheekbone's height): what main moved by the outline (17 / 5 texels) is the drawing the stroke
+ * replaces, so it is no bar for it. cheekWidth is not here: it shows by the outline (below). */
 const BEFORE_MARKS: Record<string, Record<string, number>> = {
-  'base-m': { cheekHeight: 2, cheekWidth: 0, bridge: 2, nose: 6, crease: 6, hood: 6, lips: 2 },
-  'base-f': { cheekHeight: 0, cheekWidth: 0, bridge: 0, nose: 4, crease: 6, hood: 6, lips: 0 },
+  'base-m': { cheekHeight: 2, bridge: 2, nose: 6, crease: 6, hood: 6, lips: 2 },
+  'base-f': { cheekHeight: 0, bridge: 0, nose: 4, crease: 6, hood: 6, lips: 0 },
 };
-const MARKS = ['cheekHeight', 'cheekWidth', 'bridge', 'nose', 'crease', 'hood', 'lips'] as const;
+const MARKS = ['cheekHeight', 'bridge', 'nose', 'crease', 'hood', 'lips'] as const;
 describe('the mark sliders read at density 2, by the mark alone', () => {
   for (const c of BASE) {
     for (const key of MARKS) {
@@ -72,6 +72,8 @@ describe('the mark sliders read at density 2, by the mark alone', () => {
         expect(faceReads(c.def, key, true)).toBe(0);
       });
     }
+    // cheekWidth shows by the outline (head.ts), as main already does: a texel more of silhouette than nothing, about as many as main moved (11 and 12 on main; the cheekbone's height is held now).
+    it(`${c.def.id} cheekWidth: reads by the outline`, () => { expect(faceReads(c.def, 'cheekWidth', true)).toBeGreaterThanOrEqual(8); });
     for (const key of ['browArch', 'browWeight', 'browHeight'] as const) {
       it(`${c.def.id} ${key} still reads`, () => { expect(faceReads(c.def, key)).toBeGreaterThanOrEqual(2); });
     }
