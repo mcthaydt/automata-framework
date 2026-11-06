@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { changeSetPill, checksPill, gatesPill } from '#src/features/suite/core/pills-model.ts'
+import { changeSetPill, checksPill, gatesPill, pillsToShow } from '#src/features/suite/core/pills-model.ts'
 import { changedPaths, reopenedGates } from '#src/features/suite/core/reopened-gates.ts'
 import type { ChangeSetCheck, GateState, WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
@@ -115,6 +115,13 @@ describe('the gates pill', () => {
     })
   })
 
+  test('without the port and with nothing reopened, there is nothing to read: "No gates"', () => {
+    expect(gatesPill({ reopened: [], states: undefined })).toMatchObject({
+      tone: 'neutral',
+      label: 'No gates',
+    })
+  })
+
   test('nothing reopened reads "No gates" (EDS-b)', () => {
     expect(gatesPill({ reopened: [], states: [] })).toMatchObject({
       tone: 'neutral',
@@ -155,5 +162,28 @@ describe('the gates pill', () => {
     const pill = gatesPill({ reopened: ['g-new'], states: [] })
     expect(pill).toMatchObject({ label: '1 gate reopened' })
     expect(pill.items[0]).toMatchObject({ id: 'g-new', label: 'g-new', detail: 'state unknown' })
+  })
+})
+
+describe('the pills the top bar shows', () => {
+  // The grandma audit (6.1): a pill that has nothing to say ("No change set", "No checks run", "No gates") is clutter
+  // a person cannot act on, so it stays hidden until it means something.
+  test('only the pills with something to say', () => {
+    const quiet = [
+      changeSetPill({ port: false }),
+      checksPill({ running: false, checks: [] }),
+      gatesPill({ reopened: [], states: undefined }),
+    ]
+    expect(pillsToShow(quiet)).toEqual([])
+    const busy = [
+      changeSetPill({ port: true, open: { title: 'Faster Wick', files: ['content/tuning.toml'] } }),
+      checksPill({ running: true, checks: [] }),
+      gatesPill({ reopened: ['g-feel'], states: undefined }),
+    ]
+    expect(pillsToShow(busy).map((pill) => pill.label)).toEqual([
+      'Faster Wick',
+      'Checks running',
+      'Gates not readable',
+    ])
   })
 })

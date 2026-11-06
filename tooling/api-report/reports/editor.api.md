@@ -4441,6 +4441,7 @@ interface SuiteEnv {
     readonly ports: SuitePorts;
     readonly suite: Suite;
     readonly sample?: boolean;
+    readonly game?: string | undefined;
 }
 ```
 

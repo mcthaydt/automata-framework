@@ -15,6 +15,8 @@ export interface OpenedSuitePorts {
   readonly sample: boolean
   /** The game's dev page, from the server's ping; none for the sample game. */
   readonly gameUrl: string | undefined
+  /** The game's name in words, from the server's ping; none for the sample game. */
+  readonly game: string | undefined
 }
 
 const decoder = new TextDecoder()
@@ -23,8 +25,9 @@ export async function openSuitePorts(
   env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>,
 ): Promise<OpenedSuitePorts> {
   const served = await openServedStore(env)
-  if (served === undefined) return { ports: await samplePorts(SAMPLE_GAME), sample: true, gameUrl: undefined }
-  const { store, gameUrl } = served
+  if (served === undefined)
+    return { ports: await samplePorts(SAMPLE_GAME), sample: true, gameUrl: undefined, game: undefined }
+  const { store, gameUrl, game } = served
   const bytes = await store.read(EDITOR_LIST_PATH)
   const load = loadEditorList(bytes === undefined ? undefined : decoder.decode(bytes))
   const { ports } = await createMemoryPorts({
@@ -35,5 +38,5 @@ export async function openSuitePorts(
         : { path, writable: false, why: 'The editor list has a problem.' },
     changeSet: false,
   })
-  return { ports, sample: false, gameUrl }
+  return { ports, sample: false, gameUrl, game }
 }

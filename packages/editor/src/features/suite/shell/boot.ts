@@ -19,6 +19,8 @@ export interface SuiteEnv {
   readonly suite: Suite
   /** Marks the top bar when the workspace is the built-in sample rather than a game's checkout. */
   readonly sample?: boolean
+  /** The game's name in words, from the server's ping: the top bar's title. */
+  readonly game?: string | undefined
 }
 
 export interface SuiteHandle {
@@ -41,6 +43,7 @@ export async function startSuite(target: HTMLElement, env: SuiteEnv): Promise<Su
       suite: env.suite,
       ports: env.ports,
       sample: env.sample ?? false,
+      game: env.game,
     },
   })
   return {

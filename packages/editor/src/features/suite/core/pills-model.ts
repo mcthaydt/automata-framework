@@ -96,6 +96,9 @@ export function gatesPill(input: {
   readonly states: readonly GateState[] | { readonly error: string } | undefined
 }): Pill {
   const base = { icon: 'gates', count: input.reopened.length } as const
+  // No gate records and nothing reopened: nothing to read, which is not a problem.
+  if (input.states === undefined && input.reopened.length === 0)
+    return { ...base, tone: 'neutral', label: 'No gates', items: [] }
   if (input.states === undefined || 'error' in input.states)
     return {
       ...base,
@@ -119,4 +122,12 @@ export function gatesPill(input: {
   })
   const label = `${items.length} ${items.length === 1 ? 'gate' : 'gates'} reopened`
   return { ...base, tone: 'warn', label, items }
+}
+
+/**
+ * The pills worth a place in the top bar: each with something to say (a count, or a tone other than neutral). "No
+ * change set", "No checks run" and "No gates" are hidden, so a person sees a pill only when it means something.
+ */
+export function pillsToShow(pills: readonly Pill[]): readonly Pill[] {
+  return pills.filter((pill) => pill.count > 0 || pill.tone !== 'neutral')
 }
