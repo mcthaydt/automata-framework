@@ -21,7 +21,7 @@ beforeAll(registerFixtures);
 const fxCloth = { ramp: 10, base: 3, fabric: 'fx-rib' };
 const rig = (sliders: Partial<Sliders> = BASE[0].def.sliders) => {
   const m = measure(sliders), s = skeleton({ ...m.genes });
-  return { m, s, p: profiles(m, s), f: clothFrame(profiles(m, s), s) };
+  return { m, s, p: profiles(m, s), f: clothFrame(profiles(m, s)) };
 };
 const perimeter = (A: number, B: number) => Math.PI * (3 * (A + B) - Math.sqrt((3 * A + B) * (A + 3 * B)));
 
@@ -32,9 +32,24 @@ describe('cloth coordinates (the mapping)', () => {
     const a = clothU(f, GROUP.torso, Math.cos(0.999 * Math.PI), Math.sin(0.999 * Math.PI))!;
     const b = clothU(f, GROUP.torso, Math.cos(-0.999 * Math.PI), Math.sin(-0.999 * Math.PI))!;
     expect(a).toBeCloseTo(half, 2); expect(b).toBeCloseTo(-half, 2);
-    // Centre front is zero; the skirt and the cape share the trunk's cylinder.
+    // Centre front is zero; the skirt shares the trunk's cylinder (a skirt's centre-back seam is tailoring).
     expect(clothU(f, GROUP.torso, 1, 0)).toBeCloseTo(0, 9);
-    expect(f.get(GROUP.skirt)).toBe(c); expect(f.get(GROUP.cape)).toBe(c);
+    expect(f.get(GROUP.skirt)).toBe(c);
+  });
+  it('a cape has its own cylinder, the trunk\'s shape with the wrap at centre front (audit S5)', () => {
+    const { f } = rig(), cape = f.get(GROUP.cape)!, trunk = f.get(GROUP.torso)!, y = 1.2, R = cape.ring(y), half = perimeter(cape.A, cape.B) / 2;
+    expect(cape).not.toBe(trunk);
+    expect([cape.A, cape.B]).toEqual([trunk.A, trunk.B]);
+    // A vertex at centre back: the angle is near 0, u near 0.
+    const back = slotAt(cape, R.dx ?? 0, y, (R.dz ?? 0) - R.rz);
+    expect(Math.atan2(back[1], back[0])).toBeCloseTo(0, 6);
+    expect(clothU(f, GROUP.cape, back[0], back[1])).toBeCloseTo(0, 6);
+    // No jump in u across centre back: points 5 mm either side of it differ by about 10 mm of arc, not by the perimeter.
+    const uAt = (dxm: number) => { const [c, sn] = slotAt(cape, (R.dx ?? 0) + dxm, y, (R.dz ?? 0) - R.rz * Math.sqrt(1 - (dxm / R.rx) ** 2)); return clothU(f, GROUP.cape, c, sn)!; };
+    expect(Math.abs(uAt(0.005) - uAt(-0.005))).toBeLessThan(0.02);
+    // The wrap is at centre front: u is a half perimeter either way there.
+    const front = (sx: number) => { const [c, sn] = slotAt(cape, (R.dx ?? 0) + sx, y, (R.dz ?? 0) + R.rz * Math.sqrt(1 - (sx / R.rx) ** 2)); return clothU(f, GROUP.cape, c, sn)!; };
+    expect(front(0.002)).toBeLessThan(-half * 0.98); expect(front(-0.002)).toBeGreaterThan(half * 0.98);
   });
   it('the wrap lies on the inside of each limb', () => {
     const { f, s } = rig();

@@ -86,7 +86,7 @@ export function build(member: CastMember, s: Skeleton, outfit: string, item: str
   let frame: ClothFrame | null = null, cloth: Float32Array | null = null;
   if (materials.some(m => m.fabric)) {
     if (!look.profiles) throw new Error(`${member.id}: a fabric needs the look's profiles`);
-    frame = clothFrame(look.profiles, s); cloth = clothSlots(parts, s, frame);
+    frame = clothFrame(look.profiles); cloth = clothSlots(parts, s, frame);
   }
   const materialIndex = new Map(names.map((n, i) => [n, i]));
   const vertexCount = parts.reduce((n, p) => n + p.mesh.positions.length / 3, 0), triangleCount = parts.reduce((n, p) => n + p.mesh.indices.length / 3, 0);
