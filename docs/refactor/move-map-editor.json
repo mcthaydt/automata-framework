@@ -1,0 +1,325 @@
+{
+  "sources": [
+    "packages/editor-kit",
+    "packages/editor-2d",
+    "packages/editor-suite"
+  ],
+  "moves": [
+    {
+      "from": "packages/editor-kit/src/commands",
+      "to": "packages/editor/src/shared/kit/commands"
+    },
+    {
+      "from": "packages/editor-kit/src/core",
+      "to": "packages/editor/src/shared/kit/core"
+    },
+    {
+      "from": "packages/editor-kit/src/documents",
+      "to": "packages/editor/src/shared/kit/documents"
+    },
+    {
+      "from": "packages/editor-kit/src/fields",
+      "to": "packages/editor/src/shared/kit/fields"
+    },
+    {
+      "from": "packages/editor-kit/src/gestures",
+      "to": "packages/editor/src/shared/kit/gestures"
+    },
+    {
+      "from": "packages/editor-kit/src/history",
+      "to": "packages/editor/src/shared/kit/history"
+    },
+    {
+      "from": "packages/editor-kit/src/keymap",
+      "to": "packages/editor/src/shared/kit/keymap"
+    },
+    {
+      "from": "packages/editor-kit/src/ports",
+      "to": "packages/editor/src/shared/kit/ports"
+    },
+    {
+      "from": "packages/editor-kit/src/selection",
+      "to": "packages/editor/src/shared/kit/selection"
+    },
+    {
+      "from": "packages/editor-kit/src/shell",
+      "to": "packages/editor/src/shared/kit/shell"
+    },
+    {
+      "from": "packages/editor-kit/src/storage",
+      "to": "packages/editor/src/shared/kit/storage"
+    },
+    {
+      "from": "packages/editor-kit/src/tokens",
+      "to": "packages/editor/src/shared/kit/tokens"
+    },
+    {
+      "from": "packages/editor-kit/src/widgets",
+      "to": "packages/editor/src/shared/kit/widgets"
+    },
+    {
+      "from": "packages/editor-kit/src/dialogs",
+      "to": "packages/editor/src/shared/kit/dialogs"
+    },
+    {
+      "from": "packages/editor-kit/src/home",
+      "to": "packages/editor/src/shared/kit/home"
+    },
+    {
+      "from": "packages/editor-kit/src/tokens.css",
+      "to": "packages/editor/src/shared/kit/tokens.css"
+    },
+    {
+      "from": "packages/editor-kit/src/fonts.css",
+      "to": "packages/editor/src/shared/kit/fonts.css"
+    },
+    {
+      "from": "packages/editor-kit/src/journeys",
+      "to": "packages/editor/tests/browser/journeys/kit"
+    },
+    {
+      "from": "packages/editor-kit/src/index.ts",
+      "to": "packages/editor/src/entries/kit.ts"
+    },
+    {
+      "from": "packages/editor-kit/src/index.test.ts",
+      "to": "packages/editor/src/entries/kit.test.ts"
+    },
+    {
+      "from": "packages/editor-kit/src/vitest-setup.ts",
+      "to": "packages/editor/tests/fixtures/setup.ts"
+    },
+    {
+      "from": "packages/editor-2d/src/vitest-setup.ts",
+      "to": "packages/editor/tests/fixtures/setup.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/vitest-setup.ts",
+      "to": "packages/editor/tests/fixtures/setup.ts"
+    },
+    {
+      "from": "packages/editor-kit/src/testing",
+      "to": "packages/editor/src/testing/kit"
+    },
+    {
+      "from": "packages/editor-kit/src/ports/testing",
+      "to": "packages/editor/src/testing/ports"
+    },
+    {
+      "from": "packages/editor-2d/src/model",
+      "to": "packages/editor/src/shared/level-2d/model"
+    },
+    {
+      "from": "packages/editor-2d/src/canvas",
+      "to": "packages/editor/src/shared/level-2d/canvas"
+    },
+    {
+      "from": "packages/editor-2d/src/tiles",
+      "to": "packages/editor/src/shared/level-2d/tiles"
+    },
+    {
+      "from": "packages/editor-2d/src/profiles",
+      "to": "packages/editor/src/shared/level-2d/profiles"
+    },
+    {
+      "from": "packages/editor-2d/src/architecture.test.ts",
+      "to": "packages/editor/src/shared/level-2d/architecture.test.ts"
+    },
+    {
+      "from": "packages/editor-2d/src/journeys",
+      "to": "packages/editor/tests/browser/journeys/2d"
+    },
+    {
+      "from": "packages/editor-2d/src/testing",
+      "to": "packages/editor/src/testing/level-2d"
+    },
+    {
+      "from": "packages/editor-2d/src/app",
+      "to": "packages/editor/src/app/editor-2d"
+    },
+    {
+      "from": "packages/editor-2d/src/main.ts",
+      "to": "packages/editor/src/app/editor-2d/main.ts"
+    },
+    {
+      "from": "packages/editor-2d/src/main.css",
+      "to": "packages/editor/src/app/editor-2d/main.css"
+    },
+    {
+      "from": "packages/editor-2d/src/app/export/write-folder.ts",
+      "to": "packages/editor/src/shared/kit/storage/write-folder.ts"
+    },
+    {
+      "from": "packages/editor-2d/src/app/export/write-folder.test.ts",
+      "to": "packages/editor/src/shared/kit/storage/write-folder.test.ts"
+    },
+    {
+      "from": "packages/editor-2d/src/app/home",
+      "to": "packages/editor/src/features/home"
+    },
+    {
+      "from": "packages/editor-2d/src/app/document",
+      "to": "packages/editor/src/features/document"
+    },
+    {
+      "from": "packages/editor-2d/src/app/views",
+      "to": "packages/editor/src/features/document"
+    },
+    {
+      "from": "packages/editor-2d/src/app/level",
+      "to": "packages/editor/src/features/level"
+    },
+    {
+      "from": "packages/editor-2d/src/app/canvas",
+      "to": "packages/editor/src/features/level"
+    },
+    {
+      "from": "packages/editor-2d/src/app/world",
+      "to": "packages/editor/src/features/map"
+    },
+    {
+      "from": "packages/editor-2d/src/app/tilesets",
+      "to": "packages/editor/src/features/tiles"
+    },
+    {
+      "from": "packages/editor-2d/src/app/entities",
+      "to": "packages/editor/src/features/characters"
+    },
+    {
+      "from": "packages/editor-2d/src/app/checks",
+      "to": "packages/editor/src/features/problems"
+    },
+    {
+      "from": "packages/editor-2d/src/app/export",
+      "to": "packages/editor/src/features/share"
+    },
+    {
+      "from": "packages/editor-2d/src/suite",
+      "to": "packages/editor/src/features/suite/levels-2d"
+    },
+    {
+      "from": "packages/editor-suite/src/shell",
+      "to": "packages/editor/src/features/suite/shell"
+    },
+    {
+      "from": "packages/editor-suite/src/node",
+      "to": "packages/editor/src/features/suite/node"
+    },
+    {
+      "from": "packages/editor-suite/src/shims",
+      "to": "packages/editor/src/features/suite/shims"
+    },
+    {
+      "from": "packages/editor-suite/src/editors/tuner",
+      "to": "packages/editor/src/features/suite/tuner"
+    },
+    {
+      "from": "packages/editor-suite/src/editors/studio",
+      "to": "packages/editor-3d/src/ui/suite/studio"
+    },
+    {
+      "from": "packages/editor-suite/src/shell/Suite.studio.dom.test.ts",
+      "to": "packages/editor-3d/src/ui/suite/studio/Suite.studio.dom.test.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core",
+      "to": "packages/editor/src/features/suite/core"
+    },
+    {
+      "from": "packages/editor-suite/src/core/editors.schema.ts",
+      "to": "packages/editor/src/shared/editor-list/editors.schema.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/editors.schema.test.ts",
+      "to": "packages/editor/src/shared/editor-list/editors.schema.test.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/editor-list.ts",
+      "to": "packages/editor/src/shared/editor-list/editor-list.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/editor-list.test.ts",
+      "to": "packages/editor/src/shared/editor-list/editor-list.test.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/glob.ts",
+      "to": "packages/editor/src/shared/editor-list/glob.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/glob.test.ts",
+      "to": "packages/editor/src/shared/editor-list/glob.test.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/write-path.ts",
+      "to": "packages/editor/src/shared/editor-list/write-path.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/write-path.test.ts",
+      "to": "packages/editor/src/shared/editor-list/write-path.test.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/workspace-policy.ts",
+      "to": "packages/editor/src/shared/editor-list/workspace-policy.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/core/workspace-policy.test.ts",
+      "to": "packages/editor/src/shared/editor-list/workspace-policy.test.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/main.ts",
+      "to": "packages/editor/src/app/suite/main.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/main.css",
+      "to": "packages/editor/src/app/suite/main.css"
+    },
+    {
+      "from": "packages/editor-suite/src/testing",
+      "to": "packages/editor/src/testing/suite"
+    },
+    {
+      "from": "packages/editor-suite/src/testing/studio-fixtures.ts",
+      "to": "packages/editor-3d/src/ui/suite/studio/testing/studio-fixtures.ts"
+    },
+    {
+      "from": "packages/editor-suite/src/testing/fixtures/studio",
+      "to": "packages/editor-3d/src/ui/suite/studio/testing/fixtures"
+    }
+  ],
+  "entries": {
+    "@mcthaydt/automata-editor-kit": "@mcthaydt/automata-editor/kit",
+    "@mcthaydt/automata-editor-kit/core": "@mcthaydt/automata-editor/kit/core",
+    "@mcthaydt/automata-editor-kit/documents": "@mcthaydt/automata-editor/kit/documents",
+    "@mcthaydt/automata-editor-kit/fields": "@mcthaydt/automata-editor/kit/fields",
+    "@mcthaydt/automata-editor-kit/ports": "@mcthaydt/automata-editor/kit/ports",
+    "@mcthaydt/automata-editor-kit/ports/testing": "@mcthaydt/automata-editor/kit/ports/testing",
+    "@mcthaydt/automata-editor-kit/testing": "@mcthaydt/automata-editor/kit/testing",
+    "@mcthaydt/automata-editor-kit/journey-project": "@mcthaydt/automata-editor/kit/journey-project",
+    "@mcthaydt/automata-editor-kit/tokens.css": "@mcthaydt/automata-editor/tokens.css",
+    "@mcthaydt/automata-editor-kit/fonts.css": "@mcthaydt/automata-editor/fonts.css",
+    "@mcthaydt/automata-editor-2d/suite": "@mcthaydt/automata-editor/suite",
+    "@mcthaydt/automata-editor-suite/core": {
+      "to": "@mcthaydt/automata-editor/suite",
+      "names": {
+        "EDITOR_LIST_FORMAT": "@mcthaydt/automata-editor/editor-list",
+        "EDITOR_LIST_PATH": "@mcthaydt/automata-editor/editor-list",
+        "editorListSchema": "@mcthaydt/automata-editor/editor-list",
+        "EditorList": "@mcthaydt/automata-editor/editor-list",
+        "EditorListLoad": "@mcthaydt/automata-editor/editor-list",
+        "EditorListProblem": "@mcthaydt/automata-editor/editor-list",
+        "loadEditorList": "@mcthaydt/automata-editor/editor-list",
+        "globMatch": "@mcthaydt/automata-editor/editor-list",
+        "ALWAYS_NEVER": "@mcthaydt/automata-editor/editor-list",
+        "FileAccess": "@mcthaydt/automata-editor/editor-list",
+        "fileAccess": "@mcthaydt/automata-editor/editor-list",
+        "workspaceFile": "@mcthaydt/automata-editor/editor-list",
+        "CheckRow": "@mcthaydt/automata-editor/editor-list",
+        "CONTENT_CHECK": "@mcthaydt/automata-editor/editor-list",
+        "EditMode": "@mcthaydt/automata-editor/editor-list",
+        "FileRow": "@mcthaydt/automata-editor/editor-list",
+        "GateRow": "@mcthaydt/automata-editor/editor-list"
+      }
+    },
+    "@mcthaydt/automata-editor-suite/node": "@mcthaydt/automata-editor/suite"
+  }
+}
