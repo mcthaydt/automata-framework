@@ -45,7 +45,7 @@ describe('the tool chrome', () => {
     }
   })
 
-  test('the level sits in the mockup\'s near-black cabinet, darker than any panel line', () => {
+  test("the level sits in the mockup's near-black cabinet, darker than any panel line", () => {
     expect(hex('tool-stage')).toBe('#0e1014')
     expect(contrast('tool-panel', 'tool-stage')).toBeGreaterThan(15)
   })

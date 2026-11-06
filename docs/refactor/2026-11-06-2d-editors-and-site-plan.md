@@ -954,7 +954,30 @@ logic that is not markup lives in the view's `*-model.ts`.
   CI not run. **Left for 12.3:** the save state as a status with one lime primary (Save on a game folder, Share in
   browser storage), Problems in the top bar instead of an inspector tab, the label-left inspector showing the level
   with nothing chosen, the three container layouts with a tool dock on compact, and Step 3.
-- [ ] **Step 3:** The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
+- **12.3, the save status, Problems, the inspector and the cabinet (session 17).** *Save:* the top bar shows where the
+  level stands as a quiet status beside Save ("Saved" with a tick, "Not saved" with an amber dot, "Saving…",
+  "Couldn't save" and "Not kept on this device" in the warning colour; `data-testid="save-state"`, `data-save`), and
+  Save is the one lime primary, which always says Save. Only trouble is a live region. **Deviation:** the mockup makes
+  Share the primary in browser storage because it assumes browser storage saves by itself; it does not (the autosave
+  is a recovery journal, not the file), so Save stays the primary there too and Share stays a quiet button beside
+  Problems. Saving browser storage by itself would change the save contract: listed for the build audit. *Problems:*
+  only in the top bar; the inspector's Problems tab, `ChecksTab` and `levelChecks` are deleted (the suite's Levels 2D
+  page loses its inspector Problems tab too; its own checks pill is 12.7's). *Inspector:* no tabs; it shows what is
+  chosen (a heading with the thing's name, its fields) and, with nothing chosen, the level (its name, size and
+  fields; "This level has no settings." per spec 11). Label-left: the inspector sets `--label-flex`,
+  `--label-columns` and `--label-control-column`, which Stepper, ColorField and FieldEditor read, so names line up
+  in a 5.5 rem column; elsewhere they stay stacked. Toggles and choice rows now show their name (they had only
+  Off/On). *Step 3:* `--tool-stage` (#0e1014) under `--charcoal` in `tool-chrome.css` (editor pages only); no canvas
+  pixel expectation read the cabinet, so the Chromium canvas suite passes unchanged (49, 6 skipped) and nothing was
+  rebaselined. Gates: editor unit 3,332, svelte-check clean, Chromium layout with a mouse and with touch (level,
+  document, problems 98 each; the full editor layout run 870 of 870 across both), canvas 49; WebKit, Firefox and hosted CI not run.
+  **Left for 12.3:** the three container layouts (wide 1180 px and up and 521 px high; compact 760 px and down or
+  under 520 px high; medium between) with the layers inline left in medium, the inspector floating over the level
+  when something is chosen, and the tools in a dock at the thumb on compact. Design: `shellModeOf` takes the layout
+  size (`geometry.current.layout`) instead of the form factor; `SIZES` in `src/testing/kit/layout-sizes.ts` changes
+  modes for `ipad-mini-landscape` and `window-900x600` (to medium) and `ipad-mini-portrait` (to compact), so the
+  layout tests' expectations move with it; HomeScreen also calls `shellModeOf`.
+- [x] **Step 3:** (done in session 17: no expectation read the cabinet) The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
 - [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`
 
