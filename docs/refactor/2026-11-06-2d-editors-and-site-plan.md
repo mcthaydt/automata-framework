@@ -455,11 +455,11 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
   history, commands and selection, the 2D model and codecs, the canvas, tiles and auto-tile, the profile and export, the
   editor list, the suite's logic). Findings list in the execution log before any change. Record the unit and Chromium
   browser counts.
-- [ ] **Step 2: Fix, one area per commit** (session breaks between areas as needed; log what is left): unused options and
+- [x] **Step 2: Fix, one area per commit** (session breaks between areas as needed; log what is left): unused options and
   exports out; single-implementation interfaces folded, keeping the seams tests and targets swap (store, clock,
   renderer); duplicates merged (one memory workspace, one toast model, one id helper); files over 300 lines split by
   responsibility; header comments and whys added.
-- [ ] **Step 3:** Counts equal (or lower only by listed dead code); the auto-tile goldens unchanged in Node and
+- [x] **Step 3:** Counts equal (or lower only by listed dead code); the auto-tile goldens unchanged in Node and
   Chromium; `editor-3d`'s tests pass in the 3D workflow; `pnpm check`. Mark ready.
   `refactor(editor): minimal, documented internals`
 
@@ -1516,3 +1516,32 @@ Left: the files still over 300 lines (`write-path.ts` 336, `recognizer.ts` 330, 
 311, `content-document.ts` 308, `level-editor.ts` 343), the longest functions (`createLevelEditor` 250, `createRecognizer`
 256, `createWritePath` 240), the tests read for implementation coupling, and the JSON scanner question. The next session
 continues here.
+
+### 2026-11-06, session 5: task 4.6 finished
+
+Left over from session 4, all closed:
+
+- **Files over 300 lines, all under now.** `write-path.ts` 336 → 284 (`write-history.ts` holds the undo and redo stacks per
+  owner, `write-journal.ts` the change set's title prompt, baseline measures and journal entries); `recognizer.ts` 330 →
+  294 (`sample-gestures.ts` builds the drag, hover and wheel events from a sample); `project-codec.ts` 313 → 218
+  (`project-checks.ts` holds the id and reference checks and `OpenIssue`); `editor-app.ts` 313 → 294 (`unique-name.ts`
+  holds the name arithmetic that `firstFree` and `duplicate` each had a loop for; five new unit tests, written with it);
+  `content-document.ts` 308 → 271 (`edit-ranges.ts` holds the range arithmetic); `level-editor.ts` 343 → 283
+  (`level-editor-api.ts` holds the interface, `level-editor-support.ts` the id lookups and the view-change test).
+- **Longest functions: left as they are, on purpose.** `createLevelEditor` (about 230 lines), `createRecognizer` (about
+  230), `createWritePath` (about 210) are closures over one piece of state, made of named inner functions of under 40
+  lines each. Splitting them would pass that state through parameters to no gain; the extractions above took out every
+  part that held no state.
+- **Tests read for implementation coupling.** Three files use `vi.mock`, all to inject a fault so a guard's refusal can
+  be reached (`patch-codec-bug`, `patch-toml-codec-bug`, `patch-toml-guards`); none reaches into a private name. The
+  43 files that assert calls do so on callbacks the views pass, which are the contract. No change.
+- **The two JSON scanners stay two.** `locate.ts` builds the tree of values with spans; `json-syntax.ts` only words the
+  first error for the error panel after `JSON.parse` threw, and its messages are pinned by that panel's tests. Each
+  header now says why the other exists.
+- **Source-project phrases.** The earlier scrub left 35 lines that said "the adventure source" or "the arcade source"
+  and cited file paths of another project, some with broken grammar. All rewritten to say what the code does; only
+  `SOURCE.json` (the fixtures' provenance record) keeps the two keys, as provenance belongs to
+  `docs/provenance/sources.md`.
+- **Counts.** Editor unit 3,275 (3,270 + the five new `unique-name` tests), 272 files, all pass; typecheck 0 errors, 0
+  warnings; biome clean of errors. Chromium browser projects: see the task's row.
+

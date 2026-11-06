@@ -9,9 +9,7 @@ import { deleteEntity, moveEntity, placeEntity } from '../../shared/level-2d/mod
 import { entityAt } from '../../shared/level-2d/model/commands/entity-geometry'
 import type { LayerTarget } from '../../shared/level-2d/model/commands/layer-target'
 import { placeObject } from '../../shared/level-2d/model/commands/object-edits'
-import type { EditHistory } from '../../shared/level-2d/model/edit-history'
-import type { LevelEditorView, LevelTool } from '../../shared/level-2d/model/editor-view'
-import type { IdSource } from '../../shared/level-2d/model/ids'
+import type { LevelEditorView } from '../../shared/level-2d/model/editor-view'
 import type {
   EntitiesLayerDef,
   LayerDef,
@@ -19,13 +17,15 @@ import type {
   Project,
 } from '../../shared/level-2d/model/project-types'
 import { brushCells, lineCells, type Point } from '../../shared/level-2d/tiles/footprint'
+import type { LevelEditor, LevelEditorOptions } from './level-editor-api'
 import {
+  aliveIds,
   cellAt,
+  changesView,
   defaultWord,
+  existingSingle,
   type Gesture,
   layerDef,
-  sameList,
-  samePoint,
   snapped,
   type Transaction,
   toggled,
@@ -35,39 +35,6 @@ import {
 // does to the project through the edit commands, one `History` step per gesture. No Svelte, DOM or Pixi in here: the
 // view reads `view`, calls the setters and forwards pointer events in level pixels. The project itself stays in the
 // history, which the controller reads at every event, so undo and redo need nothing from it.
-
-export interface LevelEditor {
-  readonly view: LevelEditorView
-  /** Called after `view` changes; returns a way to stop. */
-  subscribe(run: () => void): () => void
-  setLevel(id: string): void
-  setLayer(def: string): void
-  setTool(tool: LevelTool): void
-  setBrushSize(size: number): void
-  setWord(word: number): void
-  setEntityDef(def: string): void
-  setLocked(layer: string, locked: boolean): void
-  setHidden(layer: string, hidden: boolean): void
-  /** Level pixels. Follows the pointer and feeds an open gesture. */
-  pointerMove(at: Point): void
-  pointerDown(at: Point): void
-  pointerUp(): void
-  /** The pointer was cancelled (a palm, a system gesture): ends a gesture with no step. */
-  cancel(): void
-  pointerLeave(): void
-  /** Replaces the selection with the ids the open level has (a Checks row, the copies a duplicate made). */
-  select(ids: readonly string[]): void
-  /** Drops selected ids the project no longer has; the app calls it when the history changes. */
-  refresh(): void
-}
-
-export interface LevelEditorOptions {
-  readonly history: EditHistory
-  readonly ids: IdSource
-  readonly level: string
-  /** Default: the first layer of the project's definitions. */
-  readonly layer?: string
-}
 
 const MIN_BRUSH = 1
 const MAX_BRUSH = 8
@@ -104,25 +71,9 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
     rectangle: undefined,
   }
 
-  /** The instance ids of the open level's entities layers. */
-  function aliveIds(): ReadonlySet<string> {
-    const level = project().levels.find((candidate) => candidate.id === view.level)
-    return new Set(
-      level?.layers.flatMap((layer) => (layer.kind === 'entities' ? layer.items.map((item) => item.id) : [])),
-    )
-  }
-
   function update(patch: Partial<LevelEditorView>): void {
-    const next = { ...view, ...patch }
-    const changed = (Object.keys(patch) as (keyof LevelEditorView)[]).some((key) => {
-      const a = view[key]
-      const b = next[key]
-      if (key === 'selected') return !sameList(view.selected, next.selected)
-      if (key === 'hover') return !samePoint(view.hover, next.hover)
-      return a !== b
-    })
-    if (!changed) return
-    view = next
+    if (!changesView(view, patch)) return
+    view = { ...view, ...patch }
     for (const run of [...listeners]) run()
   }
 
@@ -183,19 +134,6 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
     live(drag.tx, () => paintLayerRect(drag.base, drag.target, drag.anchor, cell, drag.word))
   }
 
-  /** The id of the instance of a `single` definition the level already has, wherever it is: `placeEntity` moves that one. */
-  function existingSingle(defId: string): string | undefined {
-    const definition = project().defs.entities.find((candidate) => candidate.id === defId)
-    if (definition?.single !== true) return undefined
-    const level = project().levels.find((candidate) => candidate.id === view.level)
-    for (const layer of level?.layers ?? [])
-      if (layer.kind === 'entities') {
-        const found = layer.items.find((item) => item.def === defId)
-        if (found !== undefined) return found.id
-      }
-    return undefined
-  }
-
   function downOnEntities(def: EntitiesLayerDef, at: Point): void {
     const where = target()
     const step = def.snap ? def.grid : 1
@@ -204,7 +142,7 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
       if (defId === undefined) return
       const x = snapped(at.x, step)
       const y = snapped(at.y, step)
-      const id = existingSingle(defId) ?? ids.next()
+      const id = existingSingle(project(), view.level, defId) ?? ids.next()
       history.apply('Place entity', (p) => placeEntity(p, where, { id, def: defId, x, y }))
       update({ selected: [id] })
       return
@@ -331,11 +269,11 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
       update({ hover: undefined })
     },
     select(ids) {
-      const alive = aliveIds()
+      const alive = aliveIds(project(), view.level)
       update({ selected: ids.filter((id) => alive.has(id)) })
     },
     refresh() {
-      const alive = aliveIds()
+      const alive = aliveIds(project(), view.level)
       update({ selected: view.selected.filter((id) => alive.has(id)) })
     },
   }

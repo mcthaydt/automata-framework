@@ -1,7 +1,7 @@
 import type { Point } from '../../shared/kit/fields/field-types.ts'
 import type { GestureHandlers } from '../../shared/kit/gestures/gesture-events.ts'
 import type { PointerKind } from '../../shared/kit/gestures/pointer-sample.ts'
-import type { LevelEditor } from './level-editor'
+import type { LevelEditor } from './level-editor-api'
 import type { LevelSession } from './level-session'
 
 // What each gesture of the kit's recogniser does on the level canvas. One finger, the pen and the mouse's main button drive the tools through the level editor in level

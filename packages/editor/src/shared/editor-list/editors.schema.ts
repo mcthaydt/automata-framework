@@ -1,5 +1,5 @@
 // The game's editor list, `content/editors.toml`, format `af-editors/1`. The model
-// is the adventure source's `editor.manifest.json` as TOML: file rows (glob, editor, modes, gates, checks), the
+// is a manifest as TOML: file rows (glob, editor, modes, gates, checks), the
 // game's checks and gates, and the generated and never globs. The game owner writes it; the suite only reads it and
 // can never write it (workspace-policy.ts), so it cannot widen its own allowlist.
 //

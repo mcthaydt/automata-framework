@@ -2,7 +2,8 @@ import type { z } from 'zod'
 import { findJsonError } from './json-syntax'
 import { FILE_VERSION, MIGRATIONS, type Migration, migrate, type RawFile } from './migrations/migration'
 import { projectFileSchema } from './project.schema'
-import { decodeProject, type OpenIssue } from './project-codec'
+import type { OpenIssue } from './project-checks'
+import { decodeProject } from './project-codec'
 import type { Project } from './project-types'
 
 // Opening a working file. There are three outcomes and no fourth: the file opens, or it

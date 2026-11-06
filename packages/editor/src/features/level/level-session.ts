@@ -4,7 +4,8 @@ import type { History } from '../../shared/kit/history/history.ts'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
 import { projectHistory } from '../../shared/level-2d/model/edit-history'
 import type { IdSource } from '../../shared/level-2d/model/ids'
-import { createLevelEditor, type LevelEditor } from './level-editor'
+import { createLevelEditor } from './level-editor'
+import type { LevelEditor } from './level-editor-api'
 import type { LevelFocus } from './level-focus'
 
 // One Level view's state over an open document: the

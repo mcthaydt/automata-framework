@@ -1,6 +1,7 @@
-// The editor's app logic without a view: listing, creating, opening, copying, importing and removing documents, each
-// answering with an outcome the views turn into screens.
-
+// The editor's app logic without a view: listing, creating from a template, opening a file with the profile that claims
+// it, copying, importing and removing documents, and keeping an open one saved. Each answers with an outcome the views
+// turn into screens. Plain TypeScript with no Svelte, so the views and the tests use the same object. Nothing here names
+// a profile: the registry says which ones exist, and the first export of each is its working file.
 import { createHistory, type History } from '../../kit/history/history.ts'
 import { type StorageClock, systemClock } from '../../kit/storage/clock.ts'
 import {
@@ -21,11 +22,7 @@ import type { IdSource } from '../model/ids'
 import type { ParseError, Profile, ProfileRegistry, Result } from '../profiles/profile'
 import { listProjects, type ProjectEntry } from './project-list'
 import { readDocument } from './read-document'
-
-// The editor's session over a workspace: creating a document from a
-// template, opening a file with the profile that claims it, and keeping it saved. Plain TypeScript with no Svelte, so
-// the views and the tests use the same object. Nothing here names a profile: the registry says which
-// ones exist, and the first export of each is its working file.
+import { splitName, uniqueName } from './unique-name'
 
 /** One open document: the profile, its history and its save flow. The value type is the profile's; the view that knows it narrows it. */
 export interface OpenDocument {
@@ -38,9 +35,9 @@ export interface OpenDocument {
   overwrite(): Promise<SaveOutcome>
   /** Save as copy: the first unused `name copy.ext`; the document keeps its own path. */
   saveCopy(): Promise<SaveOutcome>
-  /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
   /** The text the document was loaded or last saved as, which a profile's export targets patch. */
   base(): string
+  /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
   restore(recovery: Recovery): Result<true, readonly ParseError[]>
   discardRecovery(): Promise<void>
   dispose(): void
@@ -142,13 +139,6 @@ const failureOf = (written: {
   message: written.message,
 })
 
-/** The stem and the extension of `path`; the extension starts at the first dot of the file name, so `a.af2d.json` keeps both parts, and a name that starts with a dot has none. */
-function splitName(path: string): { stem: string; extension: string } {
-  const name = path.lastIndexOf('/') + 1
-  const dot = path.indexOf('.', name + 1)
-  return dot === -1 ? { stem: path, extension: '' } : { stem: path.slice(0, dot), extension: path.slice(dot) }
-}
-
 export function createEditorApp(options: EditorAppOptions): EditorApp {
   const { workspace, registry, ids } = options
   const clock = options.clock ?? systemClock
@@ -234,11 +224,8 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
 
   /** `path` itself, or the first of `name 2.ext`, `name 3.ext` that the workspace does not have. */
   async function firstFree(path: string): Promise<string> {
-    const { stem, extension } = splitName(path)
-    const taken = new Set((await workspace.store.list(stem)).map((entry) => entry.path))
-    let free = path
-    for (let n = 2; taken.has(free); n += 1) free = `${stem} ${n}${extension}`
-    return free
+    const taken = await workspace.store.list(splitName(path).stem)
+    return uniqueName(path, new Set(taken.map((entry) => entry.path)))
   }
 
   async function create(profileId: string, templateId: string): Promise<OpenOutcome> {
@@ -264,10 +251,8 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     try {
       const bytes = await workspace.store.read(path)
       if (bytes === undefined) return { status: 'missing', path }
-      const { stem, extension } = splitName(path)
-      const taken = new Set((await workspace.store.list(`${stem} copy`)).map((entry) => entry.path))
-      let copy = `${stem} copy${extension}`
-      for (let n = 2; taken.has(copy); n += 1) copy = `${stem} copy ${n}${extension}`
+      const taken = await workspace.store.list(`${splitName(path).stem} copy`)
+      const copy = uniqueName(path, new Set(taken.map((entry) => entry.path)), ' copy')
       const written = await workspace.store.write(copy, bytes)
       return written.ok ? { status: 'copied', path: copy } : { status: 'failed', path, ...failureOf(written) }
     } catch (error) {

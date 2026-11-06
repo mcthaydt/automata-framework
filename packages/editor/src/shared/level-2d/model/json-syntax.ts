@@ -1,7 +1,9 @@
 // Where a text stops being JSON. `JSON.parse` names a position only in some engines (V8 and Firefox do, Safari does
 // not), and the error panel needs a line and a column in all of them, so this reads RFC 8259
 // itself. It is only consulted after `JSON.parse` has thrown, to locate the first error; a property test keeps it in
-// agreement with `JSON.parse` about which texts are valid.
+// agreement with `JSON.parse` about which texts are valid. (`kit/documents/json/locate.ts` is the other scanner on
+// purpose: it builds the tree of values with their spans and fails with its own error, while this one only words the
+// first problem.)
 
 export interface JsonError {
   readonly message: string

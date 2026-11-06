@@ -1,7 +1,6 @@
 // The diff: turns "this text, and the model it parses to, is now that model" into the edits the
 // change needs and nothing more, applied through the structure edits so every unchanged byte stays where it is.
-// The adventure source has no equivalent: its editor edits spans live, one command at a time, while this one diffs
-// whole models because the kit's History keeps snapshots. The layout rules for what an insert looks like are in
+// It diffs whole models rather than applying one command at a time, because the kit's History keeps snapshots. The layout rules for what an insert looks like are in
 // structure.ts.
 import { type JsonPath, JsonScanError, scan } from './locate'
 import {

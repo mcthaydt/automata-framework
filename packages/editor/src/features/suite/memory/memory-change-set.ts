@@ -1,7 +1,7 @@
 // The in-memory change set. It owns its journal, as every `ChangeSet` adapter does: the
 // files recorded and created, each write's text, the latest run per check and the tokens spent. The workspace notes what it creates here; tokens come only through
-// `spend`, and the cap moves only through `raiseCap`; `list()` reads it all. Branch names, the refusals and Ship follow the adventure source's `ChangeSets`
-// `editor/src/server/changeset.ts`): `edit/<slug>`, one open at a time, Ship checkpoints and keeps it open.
+// `spend`, and the cap moves only through `raiseCap`; `list()` reads it all. Branch names, the refusals and Ship match the git change set:
+// `edit/<slug>`, one open at a time, Ship checkpoints and keeps it open.
 import type {
   ChangeSet,
   ChangeSetCheck,
@@ -12,7 +12,7 @@ import type {
 export interface MemoryChangeSetOptions {
   /** The branch a change set starts from (default `main`). */
   readonly base?: string | undefined
-  /** The assistant's tokens one change set may use (default 200 000, the adventure source's). */
+  /** The assistant's tokens one change set may use (default 200 000). */
   readonly tokenCap?: number | undefined
   /** The repository's web address, for the compare link (default `https://github.com/example/game`). */
   readonly remote?: string | undefined
@@ -140,7 +140,7 @@ export function createMemoryChangeSet(options: MemoryChangeSetOptions = {}): Mem
     },
     async close() {
       if (open === undefined) return
-      // As the adventure source's close refuses uncommitted changes: a recorded file no checkpoint holds would be lost.
+      // Close refuses uncommitted changes: a recorded file no checkpoint holds would be lost.
       if (open.pending)
         throw new Error('recorded files have changes no checkpoint holds; checkpoint them first')
       open = undefined

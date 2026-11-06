@@ -1,6 +1,5 @@
 // @vitest-environment node
-// The `listJsonLiterals` case of the adventure source editor/tests/json-edit.test.ts, run on the scanner that
-// replaces TypeScript's JSON parser, and four independent checks that the scanner reads spans the way it should.
+// The number spans of five shipped files, checked against a recording made with TypeScript's JSON parser, and four independent checks that the scanner reads spans the way it should.
 import { describe, expect, it } from 'vitest'
 import { type JsonPath, JsonScanError, scan } from '#src/shared/kit/documents/json/locate.ts'
 import { FIXTURE_NAMES, loadFixture, loadGolden } from '#src/shared/kit/documents/testing/fixtures.ts'
@@ -67,12 +66,12 @@ describe('scan', () => {
     expect(literal?.value).toBe('a"bé')
   })
 
-  describe('against the adventure source, on the five shipped files', () => {
+  describe('against the recorded spans, on the five shipped files', () => {
     const golden = JSON.parse(loadGolden('literals')) as Record<string, [JsonPath, number, number][]>
     for (const name of FIXTURE_NAMES) {
       const text = loadFixture(name)
 
-      it(`${name}: its number spans are the ones the adventure source's TypeScript-based scanner reported`, () => {
+      it(`${name}: its number spans are the ones the TypeScript-based scanner recorded`, () => {
         const numbers = scan(text).literals.filter((literal) => literal.kind === 'number')
         expect(numbers.map((literal) => [literal.path, literal.span.start, literal.span.end])).toEqual(
           golden[name],
