@@ -19,7 +19,7 @@ on:
         default: af-linux
   workflow_dispatch:
   schedule:
-    # After the nightly frame budget and 3D runs in ci.yml and 3d-and-editors.yml, which start at 09:00.
+    # After the nightly frame budget and 3D runs in ci.yml and 3d.yml, which start at 09:00.
     - cron: "30 9 * * *"
 
 permissions:

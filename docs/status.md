@@ -16,7 +16,8 @@ the task-by-task record; this page is the short version.
   loads Node modules.
 - **Tools.** One `automata` command: create-game, add, check, build, editor, ship. `automata --help` works.
 - **Examples.** 27 single-file examples and the content hot-reload demo.
-- **Editors.** The 2D level editor and the 3D editor build and pass their unit tests.
+- **Editors.** The 2D level editor's tests (unit, layout, canvas, journeys) run in the 2D gate; the 3D editor and the
+  suite run in `.github/workflows/3d.yml`.
 - **Touch.** No double-tap zoom or long-press selection in games and editors (`touch-action: manipulation`).
 
 ## Where the refactor is

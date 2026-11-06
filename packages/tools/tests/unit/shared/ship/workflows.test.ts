@@ -51,9 +51,10 @@ const packageJson = (path: string) => JSON.parse(readFileSync(join(root, path, '
 const VITEST_CAP = 'VITEST_MAX_WORKERS=${VITEST_MAX_WORKERS:-${CI:+2}}'
 
 // The packages that leave the core and 2D gate (core-and-2D refactor spec section 3.4): the 3D renderer, its
-// figures, the sector format, the base 3D game and the editors run in 3d-and-editors.yml.
+// figures, the sector format, the base 3D game and the 3D editors run in 3d.yml.
 const THREE_D_PACKAGES = [
-  './packages/editor-*',
+  './packages/editor-3d',
+  './packages/editor-suite',
   '@af-games/base-3d',
   './packages/render-pixi3d',
   './packages/figures',
@@ -68,7 +69,7 @@ const ALL = [
   'game-release.yml',
   'release-packages.yml',
   'release-checks.yml',
-  '3d-and-editors.yml',
+  '3d.yml',
   'consumer-smoke.yml',
 ]
 
@@ -156,7 +157,7 @@ describe("runners (D-5: the Owner's self-hosted runners; hosted jobs get no runn
     // right, so root's HOME is set for the later steps on Linux only, before parity and evidence.
     const home = steps.findIndex((step) => step.run === 'echo "HOME=/root" >> "$GITHUB_ENV"')
     expect(steps[home]?.if).toBe("runner.os == 'Linux'")
-    expect(home).toBeLessThan(steps.findIndex((step) => step.run === 'pnpm test:browser:core'))
+    expect(home).toBeLessThan(steps.findIndex((step) => step.run === 'pnpm test:browser:2d'))
     for (const step of steps) expect(step.env?.HOME).toBeUndefined()
   })
 
@@ -241,17 +242,15 @@ describe('parity across packages', () => {
     expect(packageJson('.').scripts['test:browser']).toBe(
       `${VITEST_CAP} turbo run test:browser --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
-    // The pull request gate runs the core and 2D suites; the 3D and editor suites run in 3d-and-editors.yml.
-    expect(packageJson('.').scripts['test:browser:core']).toBe(
+    // The pull request gate runs the core and 2D suites; the 3D suites run in 3d.yml.
+    expect(packageJson('.').scripts['test:browser:2d']).toBe(
       `${VITEST_CAP} turbo run test:browser ${CORE_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
     expect(packageJson('.').scripts['test:browser:3d']).toBe(
       `${VITEST_CAP} turbo run test:browser ${THREE_D_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
     )
-    expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:browser:core')
-    expect(JSON.stringify(workflow('3d-and-editors.yml').jobs['parity-3d']?.steps)).toContain(
-      'pnpm test:browser:3d',
-    )
+    expect(JSON.stringify(ci.jobs.parity?.steps)).toContain('pnpm test:browser:2d')
+    expect(JSON.stringify(workflow('3d.yml').jobs['parity-3d']?.steps)).toContain('pnpm test:browser:3d')
     // The pull request variant runs the same suites, only those of the affected packages (turbo --affected).
     expect(packageJson('.').scripts['test:browser:affected']).toBe(
       `${VITEST_CAP} turbo run test:browser --affected ${CORE_FILTERS} --concurrency=3 -- --browser.connectTimeout=240000 --testTimeout=90000`,
@@ -267,8 +266,8 @@ describe('parity across packages', () => {
     expect(packageJson('.').scripts['test:unit']).toBe(
       `${VITEST_CAP} turbo run test:unit -- --testTimeout=90000`,
     )
-    // The pull request gate runs the core and 2D suites; the 3D and editor suites have their own script.
-    expect(packageJson('.').scripts['test:unit:core']).toBe(
+    // The pull request gate runs the core and 2D suites; the 3D suites have their own script.
+    expect(packageJson('.').scripts['test:unit:2d']).toBe(
       `${VITEST_CAP} turbo run test:unit ${CORE_FILTERS} -- --testTimeout=90000`,
     )
     expect(packageJson('.').scripts['test:unit:3d']).toBe(
@@ -335,7 +334,8 @@ describe('parity across packages', () => {
 })
 
 // CI.JRN1: the editors' iPad journeys (EDK.6b's harness, WebKit with touch and a 2x screen) gate every pull request
-// that touches the editors or core, in 3d-and-editors.yml. They take seconds, so they run in full rather than through
+// that touches the editors or core: the 2D editors' through their `test:browser` in ci.yml's parity job, the 3D
+// editor's and the suite's through `test:journeys:3d` in 3d.yml. They take seconds, so they run in full rather than through
 // turbo --affected.
 describe('the iPad journeys (CI.JRN1)', () => {
   const withJourneys = workspacePackages.filter((path) => {
@@ -351,6 +351,10 @@ describe('the iPad journeys (CI.JRN1)', () => {
 
   it('gives every package with a journeys vitest project a test:journeys script, which the root script runs', () => {
     expect(withJourneys).toContain('packages/editor-kit')
+    // The 2D editors' journeys and canvas tests run in the 2D gate's parity job (their `test:browser`), not only here.
+    for (const path of ['packages/editor-kit', 'packages/editor-2d'])
+      expect(packageJson(path).scripts['test:browser'], path).toContain('--project journeys')
+    expect(packageJson('packages/editor-2d').scripts['test:browser']).toContain('--project canvas')
     for (const path of withJourneys)
       expect(packageJson(path).scripts['test:journeys']).toMatch(/^vitest run --project journeys/)
     expect(packageJson('.').scripts['test:journeys']).toBe(`${VITEST_CAP} turbo run test:journeys`)
@@ -361,10 +365,10 @@ describe('the iPad journeys (CI.JRN1)', () => {
     })
   })
 
-  it('runs them in the 3D and editors workflow after installing WebKit, on a hosted runner with its system libraries', () => {
-    const steps = workflow('3d-and-editors.yml').jobs['unit-and-journeys']?.steps ?? []
+  it('runs the 3D editor journeys in the 3D workflow after installing WebKit, on a hosted runner with its system libraries', () => {
+    const steps = workflow('3d.yml').jobs['unit-and-journeys']?.steps ?? []
     const runs = steps.map((step) => step.run ?? '')
-    const journeys = runs.indexOf('pnpm test:journeys')
+    const journeys = runs.indexOf('pnpm test:journeys:3d')
     expect(journeys).toBeGreaterThan(-1)
     const installs = steps
       .slice(0, journeys)
@@ -439,7 +443,7 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
     expect(localSteps).toEqual([
       'pnpm install --frozen-lockfile',
       'pnpm check',
-      'pnpm test:browser:core',
+      'pnpm test:browser:2d',
       'pnpm exec turbo run build --filter @mcthaydt/automata-tools',
       'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools',
     ])
@@ -458,7 +462,7 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
       'pnpm boundaries',
       'pnpm style',
       'pnpm knip',
-      'pnpm test:unit:core',
+      'pnpm test:unit:2d',
       'pnpm check:changesets',
     ])
     expect(inCi).toEqual(inCheck.filter((run) => run !== 'pnpm check:changesets'))
@@ -494,7 +498,7 @@ describe('ci.yml (AF)', () => {
         'pnpm boundaries',
         'pnpm style',
         'pnpm knip',
-        'pnpm test:unit:core',
+        'pnpm test:unit:2d',
       ]),
     )
   })
@@ -527,6 +531,7 @@ describe('ci.yml (AF)', () => {
       'pnpm plugin:validate',
       'pnpm test:unit',
       'pnpm test:journeys',
+      'pnpm test:journeys:3d',
     ])
       expect(runs, releaseOnly).not.toContain(releaseOnly)
     expect(runs.some((run) => run.includes('test:dist'))).toBe(false)
@@ -618,9 +623,9 @@ describe('ci.yml (AF)', () => {
   })
 
   // M3.7a: base-3d's sim is flat in src/ (DESIGN.md §3.1), so the whole folder is its sim root. Its game CI runs in
-  // the 3D and editors workflow, not in the core and 2D gate.
-  it('builds base-3d through the reusable game workflow in 3d-and-editors.yml, with the determinism check on its sim', () => {
-    const job = workflow('3d-and-editors.yml').jobs['base-3d']
+  // the 3D workflow, not in the 2D gate.
+  it('builds base-3d through the reusable game workflow in 3d.yml, with the determinism check on its sim', () => {
+    const job = workflow('3d.yml').jobs['base-3d']
     expect(ci.jobs['base-3d']).toBeUndefined()
     expect(job?.uses).toBe('./.github/workflows/game-ci.yml')
     expect(job?.with?.['working-directory']).toBe('games/base-3d')
@@ -629,7 +634,7 @@ describe('ci.yml (AF)', () => {
   })
 
   it('gives each game-ci caller its own artifact name, since one run cannot upload two artifacts of the same name', () => {
-    for (const name of ['ci.yml', '3d-and-editors.yml']) {
+    for (const name of ['ci.yml', '3d.yml']) {
       const names = Object.values(workflow(name).jobs)
         .filter((job) => job.uses === './.github/workflows/game-ci.yml')
         .map((job) => job.with?.['artifact-name'] ?? 'game-dist')
@@ -764,8 +769,8 @@ describe('release-checks.yml (core-and-2D refactor spec section 3.4)', () => {
   })
 })
 
-describe('3d-and-editors.yml (core-and-2D refactor spec section 3.4)', () => {
-  const threeD = workflow('3d-and-editors.yml')
+describe('3d.yml (core-and-2D refactor spec section 3.4)', () => {
+  const threeD = workflow('3d.yml')
 
   it('runs on pull requests that touch their files or any package, on pushes to main and nightly', () => {
     expect(Object.keys(threeD.on).sort()).toEqual(['pull_request', 'push', 'schedule', 'workflow_dispatch'])
@@ -780,11 +785,11 @@ describe('3d-and-editors.yml (core-and-2D refactor spec section 3.4)', () => {
     )
   })
 
-  it('runs the 3D and editor unit, parity and journey suites and base-3d, and skips drafts', () => {
+  it('runs the 3D unit, parity and journey suites and base-3d, and skips drafts', () => {
     expect(Object.keys(threeD.jobs)).toEqual(['unit-and-journeys', 'e2e-3d', 'parity-3d', 'base-3d'])
     const runs = (threeD.jobs['unit-and-journeys']?.steps ?? []).map((step) => step.run ?? '')
     expect(runs).toContain('pnpm test:unit:3d')
-    expect(runs).toContain('pnpm test:journeys')
+    expect(runs).toContain('pnpm test:journeys:3d')
     const e2e = (threeD.jobs['e2e-3d']?.steps ?? []).map((step) => step.run ?? '')
     expect(e2e).toContain('pnpm --filter @af-games/base-3d test:e2e')
     for (const job of Object.values(threeD.jobs))
@@ -1377,7 +1382,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
   it('hands the parity scope to the parity job, which runs affected suites only on a pull request that allows it', () => {
     expect(ci.jobs.checks?.outputs?.parity_full).toBe('${{ steps.scope.outputs.parity_full }}')
     const steps = ci.jobs.parity?.steps ?? []
-    const full = steps.find((step) => step.run === 'pnpm test:browser:core')
+    const full = steps.find((step) => step.run === 'pnpm test:browser:2d')
     const affected = steps.find((step) => step.run === 'pnpm test:browser:affected')
     expect(full?.if).toBe("github.event_name != 'pull_request' || needs.checks.outputs.parity_full == 'true'")
     expect(affected?.if).toBe(
