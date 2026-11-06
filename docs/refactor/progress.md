@@ -217,8 +217,9 @@ and the count in words; Add tiles writes the picture under `assets/` and adds th
 get `services.files`). The same look began on the other views: Tiles, Characters and the Tuner's settings were dark
 text on the near-black cabinet since session 17 (the Tuner's colours named tokens that do not exist); their pages now
 take the light field, panels have small-capital section labels, the Map's level rows are quiet. The 3D editor's
-document frame reads `shellModeAt` too (it shares the kit shell); its unit and DOM tests pass, its browser tests were
-not run (3D CI is off by the Owner's choice). **Next, in order:** the rest of the look (the suite page's top bar and
+document frame reads `shellModeAt` too (it shares the kit shell); its unit and DOM tests (2,932) and Chromium layout tests
+(181) pass after the Pencil journey learnt to tap grid points read off the rulers (the medium Plan is closer zoomed);
+its WebKit and Firefox runs wait for the 3D CI the Owner switched off. **Next, in order:** the rest of the look (the suite page's top bar and
 rail, the dialogs; the inspectors' tabs and label-left
 layout on Tiles, Map and Characters; Tiles' and Characters' numbers are in words since session 18), then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3; phase 18 takes
 `site-home.html`. Every editor keeps only essential features (name each cut in the plan's log). Task 14.1 waits for
