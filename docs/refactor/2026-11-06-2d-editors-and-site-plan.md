@@ -1304,3 +1304,25 @@ from this plan with their reason, and a two-line handoff.)
   names the Docs on the site without a URL, because the domain is task 21.2.
 - Not run: WebKit, Firefox, hosted CI.
 - Handoff: next is phase 3, task 3.1 (what leaves from `-tools`).
+
+### 2026-11-06, session 1 continued: phase 3, task 3.5 step 1 (the read of `packages/tools/src`)
+
+Counts before: `-tools` unit tests 794 (the 148 boundaries tests came in with 3.3). `pnpm knip` clean. No subagents; the
+checks below were run with `wc`, a function-length scan over the syntax tree (oxc) and `git grep`.
+
+| Check | Finding |
+|---|---|
+| Unused code | `SHIP_PACKAGE` (`shared/package-name.ts`) is exported and imported nowhere: delete. `shared/ship/testing/fake-process-runner.ts` is a test helper in a feature path; only tests import it: move to `src/testing/`. |
+| Single-implementation abstractions | None to remove. `Files`, `ProcessRunner` and `CspProbe` are the seams tests swap; `errors-ruken.ts` and `errors-tauri.ts` are per-target error files that `errors.ts` re-exports, and they keep `errors.ts` under 300 lines. |
+| Forwarding layers | None found. `entries/node-services.ts` is an entry re-export, which entries are for. |
+| Duplicates | (1) The secrets, then closed-beta (`@pixi/3d`) scan is written out four times: `prepare-build.ts` (`checkBuild`), `prepare-itch.ts`, `prepare-web.ts`, `prepare-tauri.ts`; (2) the release-tag check (`checkVersion` then `VersionMismatch`) four times; (3) `attempt(path, run)` (a `try` that becomes a `FileError`) five times: `files.ts`, `prepare-web.ts`, `prepare-itch.ts`, `prepare-tauri.ts`, `publish-downloads-to-itch.ts`. |
+| Long files (over 300 lines) | `shared/check/check-steps.ts` 399, `features/boundaries/check.ts` 380, `shared/create-game/template.ts` 367. |
+| Long functions (over 60 lines) | `serveEditor` 168 (`features/editor/serve-editor.ts`), `checkSource` 209 with its `visit` 107 (`features/boundaries/check.ts`), `prepareTauri` 98, `program` 93 (`app/ship-cli.ts`), `createGame` 71, `tauriProjectFiles` 67 (a table of generated files: left), `checkBuild` 62. |
+| Missing explanations | No file-level comment: `app/cli.ts`, `shared/create-game/create-game.ts`, `shared/ship/errors.ts`, `shared/ship/testing/fake-process-runner.ts`. |
+| Tests that test the implementation | Not found in the ship, check and create-game tests read so far (they run the real function over a temp folder or a fake `ProcessRunner`). The boundaries tests run the real CLI as a process. |
+
+Fixes, one concern per commit: unused code; the three duplicates; long functions (`prepareTauri`, `program`,
+`createGame`, `checkBuild`); long files (`check-steps.ts`, `template.ts`, `check.ts`); headers. `serveEditor` and
+`checkSource` are one closure over shared state each: split only if it can be done without a behaviour change, else
+listed as left with the reason.
+
