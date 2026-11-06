@@ -241,6 +241,15 @@ describe('Home', () => {
       expect(within(sheet).getAllByText('Planted note')).toHaveLength(2)
     })
 
+    it('on a game folder, offers no New level and no templates: those are the try-it page’s', async () => {
+      await setup({ game: 'Emberwick' })
+      expect(screen.queryByTestId('new-level')).toBeNull()
+      cleanup()
+      await setup({ game: 'Emberwick', seed: false })
+      await waitFor(() => expect(screen.getByText('No levels yet')).toBeInTheDocument())
+      expect(screen.queryByRole('button', { name: 'New level' })).toBeNull()
+    })
+
     it('a template closes the sheet, makes the level and opens it', async () => {
       const { opened } = await setup({ seed: false })
       await userEvent.click(screen.getByTestId('new-level'))

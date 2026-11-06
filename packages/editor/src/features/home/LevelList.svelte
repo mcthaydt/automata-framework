@@ -27,7 +27,8 @@ interface Props {
   onselect: (path: string) => void
   onstep: (key: StepKey) => void
   onaction: (path: string, action: CardAction) => void
-  onnew: () => void
+  /** Makes a level; absent on a game folder, where Home makes none (the try-it page has the templates). */
+  onnew?: (() => void) | undefined
   onclear: () => void
 }
 
@@ -85,8 +86,12 @@ async function onkeydown(event: KeyboardEvent): Promise<void> {
 {:else if total === 0}
   <div class="empty">
     <p class="headline">No levels yet</p>
-    <p>Make your first one to start drawing.</p>
-    <Button variant="primary" disabled={busy} onclick={onnew}>New level</Button>
+    {#if onnew}
+      <p>Make your first one to start drawing.</p>
+      <Button variant="primary" disabled={busy} onclick={onnew}>New level</Button>
+    {:else}
+      <p>Your game has no levels to edit yet.</p>
+    {/if}
   </div>
 {:else if visible.length === 0}
   <div class="empty">

@@ -72,6 +72,12 @@ const menu = $derived(shellModeOf(geometry.current.formFactor) === 'compact' ? '
 const selected = $derived(view.visible.find((entry) => entry.path === view.selected))
 const cards = $derived(view.visible.map((entry: ProjectEntry) => homeCard(entry, registry, thumbnails)))
 const templates = $derived(templateCards(registry))
+/**
+ * Whether Home offers New level and its templates. The Owner (2026-11-06): templates belong to the try-it page, and
+ * the editors keep only what is essential. A game already has its level file (create-game makes it), and a second one
+ * would write over the same game files, so on a game folder there is no New level; levels are added inside the file.
+ */
+const canMakeLevel = $derived(workspace.served !== true)
 // "Changed …" is told against the time of the last change to the list, so it is fresh whenever the list is.
 const now = $derived.by(() => {
   void view
@@ -110,9 +116,11 @@ function onSearchKeydown(event: KeyboardEvent): void {
   {#snippet topbar()}
     <span class="brand">Automata</span>
     <span class="spacer"></span>
-    <Button variant="primary" disabled={busy} onclick={() => (creating = true)} data-testid="new-level">
-      New level
-    </Button>
+    {#if canMakeLevel}
+      <Button variant="primary" disabled={busy} onclick={() => (creating = true)} data-testid="new-level">
+        New level
+      </Button>
+    {/if}
   {/snippet}
 
   {#snippet canvas()}
@@ -170,7 +178,7 @@ function onSearchKeydown(event: KeyboardEvent): void {
             onselect={(path) => controller.select(path)}
             onstep={(key) => controller.step(key)}
             onaction={act}
-            onnew={() => (creating = true)}
+            onnew={canMakeLevel ? () => (creating = true) : undefined}
             onclear={() => controller.search('')}
           />
         {/if}

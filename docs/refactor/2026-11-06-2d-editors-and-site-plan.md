@@ -2084,3 +2084,10 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   22 (four new), app tests 211. Left for 12.2: the top bar (rename on tap, the view switcher with Level, Map, Tiles,
   Characters, icon Undo and Redo, Save as the one primary button with "Saving…" and "Saved"), no status bar, the
   problems sheet, the Share menu, the rail's icons, and the restore dialog's words.
+- **The Owner, 2026-11-06 (relayed): "Yeah those should be in try it page; the editors should have only essential
+  features and nothing more".** Templates are the try-it page's: on a game folder Home offers no New level and no
+  templates (a game has its level file from `create-game`, and a second file would write over the same game files);
+  in browser storage, which is what the try-it page runs on, New level and its sheet stay. An empty game folder says
+  "Your game has no levels to edit yet." `newFilePath` stays as the app's guard for a create on a checkout. **Standing
+  rule for every editor task left (12.2 to 12.7):** essential features only; anything that is not is cut, and the cut
+  is named in this log.
