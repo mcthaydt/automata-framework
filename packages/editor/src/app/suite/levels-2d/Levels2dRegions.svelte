@@ -5,11 +5,11 @@
   Panel and Details toggles, so the stage leaves those to it.
 -->
 <script module lang="ts">
+import LevelCards from '../../../features/level/LevelCards.svelte'
+import LevelInspector from '../../../features/level/LevelInspector.svelte'
+import LevelPanel from '../../../features/level/LevelPanel.svelte'
+import LevelStage from '../../../features/level/LevelStage.svelte'
 import type { Project } from '../../../shared/level-2d/model/project-types'
-import LevelCards from '../../level/LevelCards.svelte'
-import LevelInspector from '../../level/LevelInspector.svelte'
-import LevelPanel from '../../level/LevelPanel.svelte'
-import LevelStage from '../../level/LevelStage.svelte'
 import Levels2dStatus from './Levels2dStatus.svelte'
 import type { Levels2dSession } from './levels-2d-session'
 

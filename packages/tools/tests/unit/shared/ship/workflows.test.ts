@@ -322,11 +322,11 @@ describe('parity across packages', () => {
     expect(withBrowsers).toContain('packages/sim')
     expect(withBrowsers).toContain('games/emberwick')
     expect(withBrowsers).toContain('games/base-3d')
-    // A package may load its config through Vite's module runner (base-3d: its config imports workspace sources,
-    // M3.7b part 3), and may add more browser projects to the same run.
+    // A package may load its config through Vite's module runner (base-3d: its config imports workspace sources),
+    // and names one or more browser projects (the editor has one per folder of tests/browser).
     for (const path of withBrowsers) {
       expect(packageJson(path).scripts['test:browser']).toMatch(
-        /^vitest run( --configLoader runner)? --project browsers?( --project [\w-]+)*$/,
+        /^vitest run( --configLoader runner)?( --project [\w-]+)+$/,
       )
     }
   })

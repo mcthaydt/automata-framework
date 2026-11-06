@@ -1,6 +1,16 @@
-import type { EditHistory } from '../../app/editor-2d/level-editor'
-import type { History } from '../../shared/kit/history/history.ts'
-import type { Project } from '../../shared/level-2d/model/project-types'
+import type { History } from '../../kit/history/history.ts'
+import type { Project } from './project-types'
+
+/** What the controller needs of the kit's `History<Project>`, which satisfies it. */
+export interface EditHistory {
+  readonly state: Project
+  apply(label: string, update: (project: Project) => Project): void
+  begin(label: string): {
+    update(fn: (project: Project) => Project): void
+    commit(): void
+    cancel(): void
+  }
+}
 
 // The open document's history seen as the Level view's (plan ED2D.4c4a decision 2). The app holds every document as a
 // `History<unknown>`, since it names no profile; the Level view is offered only by a profile whose value is a

@@ -2,8 +2,8 @@
 import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import type { ChoiceOutcome } from '#src/features/document/open-flow-model.ts'
 import ProfileChoice from '#src/features/document/ProfileChoice.svelte'
+import type { ChoiceOutcome } from '#src/shared/level-2d/documents/open-flow-model.ts'
 import type { Profile } from '#src/shared/level-2d/profiles/profile.ts'
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 

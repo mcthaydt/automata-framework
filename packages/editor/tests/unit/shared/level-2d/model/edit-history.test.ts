@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { projectHistory } from '#src/features/level/edit-history.ts'
 import { createHistory } from '#src/shared/kit/history/history.ts'
+import { projectHistory } from '#src/shared/level-2d/model/edit-history.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'

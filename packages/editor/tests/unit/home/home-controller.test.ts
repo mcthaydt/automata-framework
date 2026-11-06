@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createEditorApp, type EditorApp, type OpenOutcome } from '#src/app/editor-2d/editor-app.ts'
 import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
-import type { ProjectEntry } from '#src/app/editor-2d/project-list.ts'
-import type { ChoiceOutcome, PanelOutcome } from '#src/features/document/open-flow-model.ts'
 import { createHomeController, type HomeState, type LastOpened } from '#src/features/home/home-controller.ts'
 import { createToasts, type ToastStore } from '#src/shared/kit/widgets/toasts.ts'
+import {
+  createEditorApp,
+  type EditorApp,
+  type OpenOutcome,
+} from '#src/shared/level-2d/documents/editor-app.ts'
+import type { ChoiceOutcome, PanelOutcome } from '#src/shared/level-2d/documents/open-flow-model.ts'
+import type { ProjectEntry } from '#src/shared/level-2d/documents/project-list.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'

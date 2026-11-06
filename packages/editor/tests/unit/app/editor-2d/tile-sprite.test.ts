@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { spriteStyle } from '#src/app/editor-2d/tile-sprite.ts'
+import { spriteStyle } from '#src/shared/level-2d/tiles/tile-sprite.ts'
 
 describe('a tile as a CSS sprite', () => {
   const image = { path: 'assets/terrain.png', size: { w: 128, h: 64 }, frame: { x: 32, y: 16, w: 16, h: 16 } }

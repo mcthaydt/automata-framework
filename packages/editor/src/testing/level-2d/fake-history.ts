@@ -1,4 +1,4 @@
-import type { EditHistory } from '../../app/editor-2d/level-editor'
+import type { EditHistory } from '../../shared/level-2d/model/edit-history'
 import type { Project } from '../../shared/level-2d/model/project-types'
 
 // An `EditHistory` with the kit's `History` semantics for the controller's tests (the kit's own tests cover the real

@@ -7,9 +7,9 @@
 <script lang="ts">
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
+import { commitEdit } from '../../shared/level-2d/model/field-commit'
 import type { Diagnostic, TargetChoice } from '../../shared/level-2d/profiles/profile'
 import type { ViewProps } from '../document/view-props'
-import { commitEdit } from '../level/field-commit'
 import { checkGroups, fixLabel, objectLabel } from './checks-model'
 import TargetDialog from './TargetDialog.svelte'
 

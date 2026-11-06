@@ -7,12 +7,12 @@ import {
   interchangeSchema,
   planImport,
 } from '#src/features/suite/core/interchange.ts'
+import floorfiftyList from '#src/features/suite/memory/floorfifty.editors.toml?raw'
+import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import { loadEditorList } from '#src/shared/editor-list/editor-list.ts'
 import { EDITOR_LIST_PATH } from '#src/shared/editor-list/editors.schema.ts'
 import { workspaceFile } from '#src/shared/editor-list/workspace-policy.ts'
 import { createWritePath } from '#src/shared/editor-list/write-path.ts'
-import { createMemoryPorts } from '#src/testing/ports/memory-ports.ts'
-import floorfiftyList from '#src/testing/suite/fixtures/floorfifty.editors.toml?raw'
 import lastLightList from '#src/testing/suite/fixtures/last-light-bay.editors.toml?raw'
 
 // An excerpt of FloorFifty's content/tuning.toml (SNEKPRTY/FloorFifty 677d456, the kit's documents fixture).

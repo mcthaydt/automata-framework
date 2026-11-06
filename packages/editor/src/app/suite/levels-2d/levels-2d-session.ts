@@ -1,13 +1,13 @@
 import type { Component } from 'svelte'
-import { createAppProfiles } from '../../../app/editor-2d/profiles'
-import { readDocument } from '../../../app/editor-2d/read-document'
+import type { LevelCanvasProps } from '../../../features/document/view-props'
+import { createLevelSession, type LevelSession } from '../../../features/level/level-session'
 import { createHistory, type History } from '../../../shared/kit/history/history.ts'
 import type { SuiteUndo } from '../../../shared/kit/ports/suite-editor.ts'
 import type { SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
+import { readDocument } from '../../../shared/level-2d/documents/read-document'
 import type { IdSource } from '../../../shared/level-2d/model/ids'
 import type { ParseError, Profile } from '../../../shared/level-2d/profiles/profile'
-import type { LevelCanvasProps } from '../../document/view-props'
-import { createLevelSession, type LevelSession } from '../../level/level-session'
+import { createAppProfiles } from '../../editor-2d/profiles'
 
 // The Levels 2D session (plan EDS.2d; editor suite spec §4.1, §4.7, EDS-D12): what the suite keeps for the 2D level
 // editor while the person is elsewhere. It holds the document's kit history and the Level view's session (the level,

@@ -3,10 +3,14 @@ import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from '#src/app/editor-2d/App.svelte'
-import { createEditorApp, type EditorApp, type OpenDocument } from '#src/app/editor-2d/editor-app.ts'
 import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
 import type { History } from '#src/shared/kit/history/history.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
+import {
+  createEditorApp,
+  type EditorApp,
+  type OpenDocument,
+} from '#src/shared/level-2d/documents/editor-app.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'

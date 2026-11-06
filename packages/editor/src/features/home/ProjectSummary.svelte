@@ -6,10 +6,10 @@
   sheet on a phone shows them without scrolling. They stay in place and are disabled while another one runs.
 -->
 <script lang="ts">
-import type { ProjectEntry } from '../../app/editor-2d/project-list'
 import { modifiedLabel, sizeLabel } from '../../shared/kit/home/project-browse'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Pill from '../../shared/kit/widgets/Pill.svelte'
+import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
 import { cardTitle, entryBadge } from './home-model'
 
 interface Props {

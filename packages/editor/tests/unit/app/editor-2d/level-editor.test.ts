@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createLevelEditor } from '#src/app/editor-2d/level-editor.ts'
+import { createLevelEditor } from '#src/features/level/level-editor.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { cellWord } from '#src/shared/level-2d/model/commands/cell-edits.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'

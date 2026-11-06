@@ -8,9 +8,9 @@ import type { LifecycleWindow } from '../../shared/kit/storage/page-lifecycle.ts
 import { openWorkspace, type Workspace, type WorkspaceEnv } from '../../shared/kit/storage/workspace.ts'
 import { createToasts } from '../../shared/kit/widgets/toasts.ts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
+import { createEditorApp } from '../../shared/level-2d/documents/editor-app'
 import { randomIds } from '../../shared/level-2d/model/ids'
 import App from './App.svelte'
-import { createEditorApp } from './editor-app'
 import { createAppProfiles } from './profiles'
 
 // The editor's boot (plan ED2D.4c2a, decision 9): everything it touches comes in through `env`, so a test hands it a

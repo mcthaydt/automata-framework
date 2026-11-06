@@ -1,13 +1,13 @@
 import '../../shared/kit/tokens.css'
 import '../../shared/kit/fonts.css'
 import './main.css'
-import { createLevels2d } from '../../features/suite/levels-2d/levels-2d-suite-editor.ts'
+import { FLOORFIFTY_SAMPLE, samplePorts } from '../../features/suite/memory/sample-ports.ts'
 import { startSuite } from '../../features/suite/shell/boot.ts'
 import { createSuite } from '../../features/suite/shell/create-suite.ts'
 import { createTuner } from '../../features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
 import { randomIds } from '../../shared/level-2d/model/ids.ts'
-import { FLOORFIFTY_SAMPLE, samplePorts } from '../../testing/suite/sample-ports.ts'
+import { createLevels2d } from './levels-2d/levels-2d-suite-editor.ts'
 
 // The suite's page for this package: the editors it has (the Tuner and Levels 2D) and nothing from 3D, so its build
 // carries no `@pixi/3d`. The only file that reaches for the page's globals. When no checkout answers, the page opens a

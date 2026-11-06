@@ -5,13 +5,13 @@
   outputs and what the tag buttons tag. A refusal ("Select the tiles to tag first.") shows under the tags.
 -->
 <script lang="ts">
-import { spriteStyle } from '../../app/editor-2d/tile-sprite'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Pill from '../../shared/kit/widgets/Pill.svelte'
+import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { TilesetDef } from '../../shared/level-2d/model/project-types'
 import { tilesetTiles } from '../../shared/level-2d/model/tileset-grid'
-import type { FieldCommit } from '../level/field-commit'
-import { tileItems } from '../level/palette-model'
+import { tileItems } from '../../shared/level-2d/tiles/palette-model'
+import { spriteStyle } from '../../shared/level-2d/tiles/tile-sprite'
 import { type ResolvedSelection, tagRows } from './tilesets-model'
 import type { TilesetsSession } from './tilesets-session'
 

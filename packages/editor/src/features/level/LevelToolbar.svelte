@@ -5,10 +5,10 @@
   the canvas that scrolls sideways on a narrow screen rather than shrinking a control under 44 px.
 -->
 <script lang="ts">
-import type { LevelTool } from '../../app/editor-2d/level-editor'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
+import type { LevelTool } from '../../shared/level-2d/model/editor-view'
 
 interface Props {
   tool: LevelTool

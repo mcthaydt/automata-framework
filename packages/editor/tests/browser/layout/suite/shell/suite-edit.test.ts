@@ -5,11 +5,11 @@ import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
+import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
-import { createMemoryPorts } from '#src/testing/ports/memory-ports.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
 // The pills and the Ask diff dialog with the production CSS in real browsers at the sizes of spec §10: the pills stay

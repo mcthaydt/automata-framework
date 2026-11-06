@@ -1,7 +1,7 @@
-import { classifyStorageError } from '../../shared/kit/storage/project-store.ts'
-import type { Workspace } from '../../shared/kit/storage/workspace.ts'
-import { levelImages } from '../../shared/level-2d/canvas/draw/level-images'
-import type { LevelPreview, ProfileRegistry, ProfileSummary } from '../../shared/level-2d/profiles/profile'
+import { classifyStorageError } from '../../kit/storage/project-store.ts'
+import type { Workspace } from '../../kit/storage/workspace.ts'
+import { levelImages } from '../canvas/draw/level-images'
+import type { LevelPreview, ProfileRegistry, ProfileSummary } from '../profiles/profile'
 import { readDocument } from './read-document'
 
 // The projects Home shows (2D editor spec §8): one entry for each file in the workspace that a profile claims, and

@@ -9,6 +9,7 @@
 <script lang="ts">
 import type { GeometryState } from '@mcthaydt/automata'
 import type { Component } from 'svelte'
+import { componentOf } from '../../app/editor-2d/views'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
 import { shellModeOf } from '../../shared/kit/shell/shell-mode'
@@ -22,7 +23,6 @@ import type { DocumentController, DocumentState } from './document-controller'
 import ViewRail from './ViewRail.svelte'
 import type { LevelCanvasProps, ObjectUrls, ViewServices, WorldCanvasProps } from './view-props'
 import { routeOf, viewsOf } from './view-router'
-import { componentOf } from './views'
 
 interface Props {
   geometry: GeometryState

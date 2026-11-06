@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createWorldCamera } from '#src/features/map/world-camera.ts'
-import type { WorldRect } from '#src/features/map/world-model.ts'
+import type { WorldRect } from '#src/shared/level-2d/model/world/world-model.ts'
 
 const rect = (id: string, x: number): WorldRect => ({
   id,

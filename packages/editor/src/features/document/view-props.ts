@@ -1,13 +1,13 @@
 import type { GeometryState } from '@mcthaydt/automata'
 import type { Component, Snippet } from 'svelte'
-import type { OpenDocument } from '../../app/editor-2d/editor-app'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import type { DrawView } from '../../shared/level-2d/canvas/draw/draw-list-types'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
+import type { OpenDocument } from '../../shared/level-2d/documents/editor-app'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { Project } from '../../shared/level-2d/model/project-types'
-import type { WorldLink } from '../map/world-links'
-import type { WorldRect } from '../map/world-model'
+import type { WorldLink } from '../../shared/level-2d/model/world/world-links'
+import type { WorldRect } from '../../shared/level-2d/model/world/world-model'
 
 // What every rail destination is given (plan ED2D.4c4a decision 1). The document screen draws the parts every view
 // shares (the top bar, the rail, the status line, the dialogs and toasts) as snippets, and the view places them in its

@@ -2,10 +2,10 @@
 // EDS.1d classes a checkout; with no loadable list every file is read only. The DOM and layout tests use it, and
 // `main.ts` serves FloorFifty's list through it until `automata editor` serves a real checkout (EDS.1d).
 
-import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../../features/suite/core'
-import type { SuitePorts } from '../../shared/kit/ports/suite-ports.ts'
-import { createMemoryPorts } from '../ports/memory-ports.ts'
-import floorfiftyList from './fixtures/floorfifty.editors.toml?raw'
+import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
+import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '../core'
+import floorfiftyList from './floorfifty.editors.toml?raw'
+import { createMemoryPorts } from './memory-ports.ts'
 
 export async function samplePorts(files: Readonly<Record<string, string>>): Promise<SuitePorts> {
   const load = loadEditorList(files[EDITOR_LIST_PATH])

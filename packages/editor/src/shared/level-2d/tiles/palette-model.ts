@@ -1,8 +1,8 @@
-import type { LevelEditorView } from '../../app/editor-2d/level-editor'
-import { tileDraw } from '../../shared/level-2d/canvas/draw/tile-draw'
-import { packTile } from '../../shared/level-2d/model/cells-codec'
-import type { Project, Size, TilesetDef } from '../../shared/level-2d/model/project-types'
-import { tilesetTiles } from '../../shared/level-2d/model/tileset-grid'
+import { tileDraw } from '../canvas/draw/tile-draw'
+import { packTile } from '../model/cells-codec'
+import type { LevelEditorView } from '../model/editor-view'
+import type { Project, Size, TilesetDef } from '../model/project-types'
+import { tilesetTiles } from '../model/tileset-grid'
 
 // What the palette offers for the selected layer (plan ED2D.4c4a decision 5; 2D editor spec §5.9, §8): a tiles, auto or
 // objects layer paints its tileset's tiles (on an auto layer the brush stamps an override), an IntGrid layer its

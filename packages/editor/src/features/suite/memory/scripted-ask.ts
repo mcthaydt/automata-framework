@@ -2,7 +2,7 @@
 // returns, a promise the test settles itself included; a script that throws is an assistant that failed. The script
 // is the assistant's client: it is given the request and the output limit the provider sets, which is the budget.
 // With a change set, each proposal's tokens are spent through `ChangeSet.spend` while one is open, as the suite does.
-import type { AskProvider, AskRequest, ChangeSet, Proposal } from '../../shared/kit/ports/suite-ports'
+import type { AskProvider, AskRequest, ChangeSet, Proposal } from '../../../shared/kit/ports/suite-ports'
 
 /** What the provider tells the assistant's client besides the request: at most this many output tokens. */
 export interface AskClientLimits {

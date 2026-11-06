@@ -9,12 +9,11 @@ import type {
   SuitePorts,
   UnlistedFile,
   WorkspaceFile,
-} from '../../shared/kit/ports/suite-ports'
-import type { ProjectStore } from '../../shared/kit/storage/project-store'
-import type { GateRecords } from './gates-contract'
+} from '../../../shared/kit/ports/suite-ports'
+import type { ProjectStore } from '../../../shared/kit/storage/project-store'
 import { createMemoryChangeSet, type MemoryChangeSet, type MemoryChangeSetOptions } from './memory-change-set'
 import { createMemoryChecks, type MemoryCheck } from './memory-checks'
-import { createMemoryGates } from './memory-gates'
+import { createMemoryGates, type GateRecords } from './memory-gates'
 import { createMemoryWorkspace } from './memory-workspace'
 import { type AskClientLimits, createScriptedAsk, type ScriptedAsk } from './scripted-ask'
 

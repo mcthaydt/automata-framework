@@ -174,8 +174,33 @@ describe('--features and --browser (core and 2D refactor spec §3.5)', () => {
     )
   })
 
+  it('--features --shared-island fails the island importing the rest of shared/', () => {
+    const files = {
+      'shared/kit/a.ts': "import { b } from '../level/b.ts'\nexport const a = b\n",
+      'shared/level/b.ts': 'export const b = 1\n',
+    }
+    expect(pkg(files, () => ['--features', '.'])).toMatchObject({ status: 0 })
+    const island = pkg(files, () => ['--features', '.', '--shared-island', 'kit'])
+    expect(island.status).toBe(1)
+    expect(island.stdout).toContain('"shared/kit" imports "shared/level" (shared/level/b.ts).')
+    expect(pkg(files, () => ['--features', '.', '--shared-island'])).toMatchObject({ status: 2 })
+    expect(pkg(files, () => ['--browser', '.', '--shared-island', 'kit'])).toMatchObject({ status: 2 })
+  })
+
+  it('--forbid names the packages after a colon, and fails an import of one', () => {
+    const files = { 'a.ts': "import '@pixi/3d'\n", 'src/b.ts': "import 'zod'\n" }
+    const result = pkg(files, (root) => ['--forbid', `${root}:@pixi/3d,other`])
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain('imports "@pixi/3d", which')
+    expect(pkg({ 'src/b.ts': "import 'zod'\n" }, (root) => ['--forbid', `${root}:@pixi/3d`])).toMatchObject({
+      status: 0,
+    })
+    expect(pkg(files, (root) => ['--forbid', root])).toMatchObject({ status: 2 })
+  })
+
   it('--features and --browser need a package root', () => {
     expect(pkg({}, () => ['--features'])).toMatchObject({ status: 2 })
     expect(pkg({}, () => ['--browser'])).toMatchObject({ status: 2 })
+    expect(pkg({}, () => ['--forbid'])).toMatchObject({ status: 2 })
   })
 })

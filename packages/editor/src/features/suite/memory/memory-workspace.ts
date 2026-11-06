@@ -4,10 +4,10 @@
 // path no row matches is refused, a read-only file is refused with its reason, a path outside the root reads as
 // nothing, and `remove` takes only a file the open change set created.
 
-import type { SuiteWorkspace, UnlistedFile, WorkspaceFile } from '../../shared/kit/ports/suite-ports'
-import { createMemoryStore } from '../../shared/kit/storage/memory-store'
-import { type ProjectStore, statPath, type WriteResult } from '../../shared/kit/storage/project-store'
-import { assertStorePath } from '../../shared/kit/storage/store-path'
+import type { SuiteWorkspace, UnlistedFile, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
+import { createMemoryStore } from '../../../shared/kit/storage/memory-store'
+import { type ProjectStore, statPath, type WriteResult } from '../../../shared/kit/storage/project-store'
+import { assertStorePath } from '../../../shared/kit/storage/store-path'
 import type { MemoryChangeSet } from './memory-change-set'
 
 export interface MemoryWorkspaceOptions {

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { counterIds } from '#src/shared/level-2d/model/ids.ts'
+import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import {
   copyLevelInput,
   dragPosition,
@@ -9,9 +11,7 @@ import {
   toWorld,
   uncoveredArea,
   worldRects,
-} from '#src/features/map/world-model.ts'
-import { counterIds } from '#src/shared/level-2d/model/ids.ts'
-import type { Project } from '#src/shared/level-2d/model/project-types.ts'
+} from '#src/shared/level-2d/model/world/world-model.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 import { linkedMaps } from '#src/testing/level-2d/linked-maps.ts'
 import { entity, withEntities, withNewLevel } from '#src/testing/level-2d/project-edit.ts'

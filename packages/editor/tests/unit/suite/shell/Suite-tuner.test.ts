@@ -3,11 +3,11 @@ import { screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
+import { samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
-import { samplePorts } from '#src/testing/suite/sample-ports.ts'
 import { TUNING_FIXTURE, tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
 // The Tuner in the suite shell (EDS.4a; editor suite spec §6.1): the editor list's `tuner` row opens it (Home no longer says

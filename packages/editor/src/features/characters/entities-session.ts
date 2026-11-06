@@ -9,10 +9,10 @@ import {
   renameEntityDef,
 } from '../../shared/level-2d/model/commands/entity-def-edits'
 import { addField, renameField, retypeField } from '../../shared/level-2d/model/commands/field-edits'
+import { projectHistory } from '../../shared/level-2d/model/edit-history'
+import { commitEdit, type FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
-import { projectHistory } from '../level/edit-history'
-import { commitEdit, type FieldCommit } from '../level/field-commit'
 import {
   type EntitiesSelection,
   type ResolvedEntitiesSelection,

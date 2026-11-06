@@ -3,12 +3,16 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import userEvent from '@testing-library/user-event'
 import { flushSync } from 'svelte'
 import { describe, expect, it } from 'vitest'
-import { createEditorApp, type EditorApp, type OpenOutcome } from '#src/app/editor-2d/editor-app.ts'
 import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
 import Home from '#src/features/home/Home.svelte'
 import { createHomeController } from '#src/features/home/home-controller.ts'
 import { templateCards } from '#src/features/home/home-model.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
+import {
+  createEditorApp,
+  type EditorApp,
+  type OpenOutcome,
+} from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'

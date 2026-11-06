@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
 import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { createEditorApp } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'

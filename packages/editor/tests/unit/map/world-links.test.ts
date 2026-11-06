@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { levelLinks, worldLinks } from '#src/features/map/world-links.ts'
-import { worldRects } from '#src/features/map/world-model.ts'
+import { levelLinks, worldLinks } from '#src/shared/level-2d/model/world/world-links.ts'
+import { worldRects } from '#src/shared/level-2d/model/world/world-model.ts'
 import { linkedMaps } from '#src/testing/level-2d/linked-maps.ts'
 import { entity, withDefs, withEntities, withLevel } from '#src/testing/level-2d/project-edit.ts'
 

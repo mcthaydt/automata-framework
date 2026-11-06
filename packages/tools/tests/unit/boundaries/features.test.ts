@@ -159,4 +159,29 @@ describe('featureFindings', () => {
     })
     expect(featureFindings(root).findings).toMatchObject([{ rule: 'feature-import' }])
   })
+
+  describe('a shared island', () => {
+    const files = {
+      'shared/kit/clock.ts': "import { tile } from '../level-2d/tile.ts'\nexport const clock = tile\n",
+      'shared/kit/text.ts': "import { clock } from './clock.ts'\nexport const text = clock\n",
+      'shared/level-2d/tile.ts': "import { text } from '../kit/text.ts'\nexport const tile = text\n",
+    }
+
+    it('lets shared/ folders import each other when no island is named', () => {
+      expect(featureFindings(pkg(files)).findings).toEqual([])
+    })
+
+    it('fails the island importing another shared/ folder, and lets the others import the island', () => {
+      const root = pkg(files)
+      expect(featureFindings(root, 'kit').findings).toMatchObject([
+        {
+          file: join(root, 'src/shared/kit/clock.ts'),
+          rule: 'shared-import',
+          message:
+            '"shared/kit" imports "shared/level-2d" (shared/level-2d/tile.ts).\n' +
+            'shared/kit/ is the reusable part: it may only use itself and other packages. Pass what it needs in, or move this file out of shared/kit/.',
+        },
+      ])
+    })
+  })
 })

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
+import { componentOf } from '#src/app/editor-2d/views.ts'
 import EntitiesView from '#src/features/characters/EntitiesView.svelte'
 import PendingView from '#src/features/document/PendingView.svelte'
-import { componentOf } from '#src/features/document/views.ts'
 import LevelView from '#src/features/level/LevelView.svelte'
 import WorldView from '#src/features/map/WorldView.svelte'
 import ChecksView from '#src/features/problems/ChecksView.svelte'

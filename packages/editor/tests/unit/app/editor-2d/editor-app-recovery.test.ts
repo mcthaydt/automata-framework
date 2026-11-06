@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createEditorApp, type OpenDocument } from '#src/app/editor-2d/editor-app.ts'
 import type { Recovery } from '#src/shared/kit/storage/recovery.ts'
+import { createEditorApp, type OpenDocument } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'

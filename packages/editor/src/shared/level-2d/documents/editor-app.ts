@@ -1,24 +1,20 @@
-import { createHistory, type History } from '../../shared/kit/history/history.ts'
-import type { StorageClock } from '../../shared/kit/storage/clock.ts'
+import { createHistory, type History } from '../../kit/history/history.ts'
+import type { StorageClock } from '../../kit/storage/clock.ts'
 import {
   createDocumentSession,
   type DocumentSession,
   type SaveOutcome,
-} from '../../shared/kit/storage/document-session.ts'
+} from '../../kit/storage/document-session.ts'
 import {
   classifyStorageError,
   type StorageFailure,
   type WriteFailure,
-} from '../../shared/kit/storage/project-store.ts'
-import { readStored } from '../../shared/kit/storage/read-stored.ts'
-import {
-  findRecovery,
-  type Recovery,
-  discardRecovery as removeJournal,
-} from '../../shared/kit/storage/recovery.ts'
-import type { Workspace } from '../../shared/kit/storage/workspace.ts'
-import type { IdSource } from '../../shared/level-2d/model/ids'
-import type { ParseError, Profile, ProfileRegistry, Result } from '../../shared/level-2d/profiles/profile'
+} from '../../kit/storage/project-store.ts'
+import { readStored } from '../../kit/storage/read-stored.ts'
+import { findRecovery, type Recovery, discardRecovery as removeJournal } from '../../kit/storage/recovery.ts'
+import type { Workspace } from '../../kit/storage/workspace.ts'
+import type { IdSource } from '../model/ids'
+import type { ParseError, Profile, ProfileRegistry, Result } from '../profiles/profile'
 import { listProjects, type ProjectEntry } from './project-list'
 import { readDocument } from './read-document'
 

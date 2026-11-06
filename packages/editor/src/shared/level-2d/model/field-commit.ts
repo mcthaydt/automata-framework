@@ -1,9 +1,9 @@
-import type { EditHistory } from '../../app/editor-2d/level-editor'
-import type { FieldDef, FieldValue } from '../../shared/kit/fields/field-types.ts'
-import { setEntityField } from '../../shared/level-2d/model/commands/entity-edits'
-import { findLayer } from '../../shared/level-2d/model/commands/layer-target'
-import type { Project } from '../../shared/level-2d/model/project-types'
-import { setLevelField } from '../../shared/level-2d/model/world/level-edits'
+import type { FieldDef, FieldValue } from '../../kit/fields/field-types.ts'
+import { setEntityField } from './commands/entity-edits'
+import { findLayer } from './commands/layer-target'
+import type { EditHistory } from './edit-history'
+import type { Project } from './project-types'
+import { setLevelField } from './world/level-edits'
 
 // One inspector field committed as one undo step (plan ED2D.4c4b decision 1, G-e). The commands refuse a value the
 // field's rules reject with a `RangeError` carrying the kit's `checkFieldValue` message; here that refusal becomes a
@@ -16,7 +16,7 @@ export type FieldTarget =
   | { readonly kind: 'level'; readonly level: string }
 
 // The kit owns the result type the field form takes (plan "field form and journeys" A2).
-import type { FieldCommit } from '../../shared/kit/fields/field-row.ts'
+import type { FieldCommit } from '../../kit/fields/field-row.ts'
 
 export type { FieldCommit }
 

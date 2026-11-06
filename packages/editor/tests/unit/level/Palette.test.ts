@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import Palette from '#src/features/level/Palette.svelte'
-import type { PaletteItem } from '#src/features/level/palette-model.ts'
+import type { PaletteItem } from '#src/shared/level-2d/tiles/palette-model.ts'
 
 // The palette's tile pictures (plan ED2D.4c4a decision 5): a tile is a 44 px CSS sprite of its tileset image once the
 // image has a URL, and its number on the placeholder colour until then.

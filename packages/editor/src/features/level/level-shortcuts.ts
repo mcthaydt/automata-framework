@@ -1,4 +1,4 @@
-import type { LevelTool } from '../../app/editor-2d/level-editor'
+import type { LevelTool } from '../../shared/level-2d/model/editor-view'
 import type { Point } from '../../shared/level-2d/tiles/footprint'
 
 // The Level view's keyboard shortcuts (2D editor spec §12; plan ED2D.4c4b decision 3). Each one is also a visible

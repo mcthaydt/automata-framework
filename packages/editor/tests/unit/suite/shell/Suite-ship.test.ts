@@ -3,10 +3,10 @@ import { screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
+import { createMemoryPorts, type MemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
-import { createMemoryPorts, type MemoryPorts } from '#src/testing/ports/memory-ports.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
 // Ship, the Review desk, Export and Import inside the suite (editor suite spec §5 flows 9 to 11, EDS-j, EDS-o), with the

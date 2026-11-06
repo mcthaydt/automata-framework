@@ -14,7 +14,6 @@ import {
   type DocumentController,
 } from '../../features/document/document-controller'
 import ErrorPanel from '../../features/document/ErrorPanel.svelte'
-import type { ChoiceOutcome, PanelOutcome } from '../../features/document/open-flow-model'
 import ProfileChoice from '../../features/document/ProfileChoice.svelte'
 import type { LevelCanvasProps, ObjectUrls } from '../../features/document/view-props'
 import Home from '../../features/home/Home.svelte'
@@ -23,9 +22,10 @@ import type { LifecycleDocument, LifecycleWindow } from '../../shared/kit/storag
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
+import type { EditorApp } from '../../shared/level-2d/documents/editor-app'
+import type { ChoiceOutcome, PanelOutcome } from '../../shared/level-2d/documents/open-flow-model'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
-import type { EditorApp } from './editor-app'
 
 interface Props {
   geometry: GeometryState

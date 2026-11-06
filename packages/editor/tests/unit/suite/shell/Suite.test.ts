@@ -4,10 +4,10 @@ import userEvent from '@testing-library/user-event'
 import { createRawSnippet } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
+import { FLOORFIFTY_SAMPLE, samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
-import { FLOORFIFTY_SAMPLE, samplePorts } from '#src/testing/suite/sample-ports.ts'
 
 // The suite started the way `main.ts` starts it, over memory ports (editor suite spec §5 flows 1 and 2, §9, §11).
 let started: SuiteHandle | undefined

@@ -1,11 +1,6 @@
-import type { Project } from '../../shared/level-2d/model/project-types'
-import {
-  type LinkEnd,
-  linkName,
-  type ProjectLink,
-  projectLinks,
-} from '../../shared/level-2d/model/refs/ref-links'
-import type { Point } from '../../shared/level-2d/tiles/footprint'
+import type { Point } from '../../tiles/footprint'
+import type { Project } from '../project-types'
+import { type LinkEnd, linkName, type ProjectLink, projectLinks } from '../refs/ref-links'
 import type { WorldRect } from './world-model'
 
 // The links on the world map (plan ED2D.6c decision 5; 2D editor spec §5.7): one curve per resolved link between two

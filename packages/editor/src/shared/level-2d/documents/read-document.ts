@@ -1,5 +1,5 @@
-import { MAX_FILE_CHARS } from '../../shared/level-2d/model/open-project'
-import type { ParseError, Profile, ProfileRegistry } from '../../shared/level-2d/profiles/profile'
+import { MAX_FILE_CHARS } from '../model/open-project'
+import type { ParseError, Profile, ProfileRegistry } from '../profiles/profile'
 
 // Reading a file (2D editor spec §13). Opening a file is the one step where anything can be wrong with it, so the
 // result is a value the views can show, never a throw: either the file opens with a profile, or the person is told

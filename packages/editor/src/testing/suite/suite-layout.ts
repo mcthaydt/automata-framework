@@ -4,11 +4,11 @@
 import { publishConditions, settleLayout } from '@mcthaydt/automata/testing'
 import { expect } from 'vitest'
 import { page } from 'vitest/browser'
+import { samplePorts } from '../../features/suite/memory/sample-ports'
 import { type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
 import { createSuite } from '../../features/suite/shell/create-suite'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST } from '../kit/layout-sizes.ts'
-import { samplePorts } from './sample-ports'
 
 /** One `[[file]]` row of an editor list. */
 const row = (glob: string, editor: string): string =>

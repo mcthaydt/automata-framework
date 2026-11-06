@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import type { GateState, Gates } from '../../shared/kit/ports/suite-ports'
+import type { GateRecords } from '../../features/suite/memory/memory-gates'
+import type { Gates } from '../../shared/kit/ports/suite-ports'
 
-/** The recorded decisions an adapter under the gates contract reads (the Node adapter writes them as gate records). */
-export type GateRecords = Readonly<Record<string, Omit<GateState, 'id'>>>
+export type { GateRecords }
 
 export const GATES_SCENARIO: GateRecords = {
   'P-G1': {

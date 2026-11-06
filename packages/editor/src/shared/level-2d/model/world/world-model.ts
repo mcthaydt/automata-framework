@@ -1,9 +1,9 @@
-import type { Camera } from '../../shared/level-2d/canvas/level-view'
-import type { Project, Size } from '../../shared/level-2d/model/project-types'
-import { projectLinks } from '../../shared/level-2d/model/refs/ref-links'
-import { findLevel, type NewLevel } from '../../shared/level-2d/model/world/level-edits'
-import { findWorld } from '../../shared/level-2d/model/world/world-layout'
-import type { Point } from '../../shared/level-2d/tiles/footprint'
+import type { Camera } from '../../canvas/level-view'
+import type { Point } from '../../tiles/footprint'
+import type { Project, Size } from '../project-types'
+import { projectLinks } from '../refs/ref-links'
+import { findLevel, type NewLevel } from './level-edits'
+import { findWorld } from './world-layout'
 
 // The World view's map (plan ED2D.6b step 3; 2D editor spec §8, the World row): each placed level as a rectangle in
 // world pixels, the camera that fits them all in the canvas, which level a point falls on, and where a drag puts a

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
+import floorfiftyList from '#src/features/suite/memory/floorfifty.editors.toml?raw'
+import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import { createSuiteSession } from '#src/features/suite/shell/suite-session.ts'
-import { createMemoryPorts } from '#src/testing/ports/memory-ports.ts'
-import floorfiftyList from '#src/testing/suite/fixtures/floorfifty.editors.toml?raw'
 
 const TUNING = 'content/tuning.toml'
 const FILES = {

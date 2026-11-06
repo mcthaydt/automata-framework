@@ -5,9 +5,13 @@ import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import { homeOf, keyPathText } from '#src/features/suite/shell/home-model.ts'
 import type { WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
+/** The sample game's list sits beside the in-memory ports the suite page uses; the others are test fixtures. */
 const fixture = (name: string): string =>
   readFileSync(
-    new URL(`../../../../src/testing/suite/fixtures/${name}.editors.toml`, import.meta.url),
+    new URL(
+      `../../../../src/${name === 'floorfifty' ? 'features/suite/memory' : 'testing/suite/fixtures'}/${name}.editors.toml`,
+      import.meta.url,
+    ),
     'utf8',
   )
 

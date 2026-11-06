@@ -7,7 +7,7 @@ import type {
   ChangeSetCheck,
   ChangeSetSummary,
   ChangeSetWrite,
-} from '../../shared/kit/ports/suite-ports'
+} from '../../../shared/kit/ports/suite-ports'
 
 export interface MemoryChangeSetOptions {
   /** The branch a change set starts from (default `main`). */

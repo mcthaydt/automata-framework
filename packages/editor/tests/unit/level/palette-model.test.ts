@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { isChosen, paletteOf } from '#src/features/level/palette-model.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 import { topdownRpgTemplate } from '#src/shared/level-2d/profiles/level-project/templates/topdown-rpg.ts'
+import { isChosen, paletteOf } from '#src/shared/level-2d/tiles/palette-model.ts'
 
 const platformer = (): Project => platformerTemplate.create(counterIds())
 

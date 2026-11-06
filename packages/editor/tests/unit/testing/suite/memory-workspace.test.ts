@@ -8,8 +8,8 @@ import {
   loadEditorList,
   workspaceFile,
 } from '#src/features/suite/core/index.ts'
-import { createMemoryChangeSet } from '#src/testing/ports/memory-change-set.ts'
-import { createMemoryWorkspace } from '#src/testing/ports/memory-workspace.ts'
+import { createMemoryChangeSet } from '#src/features/suite/memory/memory-change-set.ts'
+import { createMemoryWorkspace } from '#src/features/suite/memory/memory-workspace.ts'
 import { describeSuiteWorkspace } from '#src/testing/ports/workspace-contract.ts'
 
 describeSuiteWorkspace('memory, with the af-editors/1 policy', async (scenario) => {

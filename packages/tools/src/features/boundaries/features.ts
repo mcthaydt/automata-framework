@@ -13,6 +13,8 @@ import { readImports } from './imports.ts'
 //   3. Only entries/ and testing/ import app/ (app/ imports features and shared).
 //   4. entries/ re-exports and holds no logic.
 //   5. Product code never imports testing/; entries/ re-exports it.
+// An optional shared island (`--shared-island kit`) makes one shared/ folder self-contained: shared/kit/ imports
+// only itself and other packages, so it stays reusable. The other shared/ folders may import it.
 // Relative imports are judged by the folder they land in; type-only imports count too, because a type still ties
 // one feature to another. An import is judged where it points, so the target file need not exist yet.
 
@@ -93,8 +95,22 @@ function entryLogic(file: string, code: string): Finding[] {
   return findings
 }
 
-/** The files checked and the findings, for one package folder (`packages/automata`): its `src/` is read. */
-export function featureFindings(packageRoot: string): { files: string[]; findings: Finding[] } {
+/** The shared/ folder `island` may import nothing from the rest of shared/; the finding, or undefined. */
+function islandBreak(from: Place, to: Place, island: string | undefined): string | undefined {
+  if (island === undefined || from.layer !== 'shared' || to.layer !== 'shared') return undefined
+  const folder = (place: Place) => place.path.split('/').slice(0, 2).join('/')
+  if (folder(from) !== `shared/${island}` || folder(to) === folder(from)) return undefined
+  return `"${folder(from)}" imports "${folder(to)}" (${to.path}).\nshared/${island}/ is the reusable part: it may only use itself and other packages. Pass what it needs in, or move this file out of shared/${island}/.`
+}
+
+/**
+ * The files checked and the findings, for one package folder (`packages/automata`): its `src/` is read.
+ * `sharedIsland` names a shared/ folder that may not import the rest of shared/.
+ */
+export function featureFindings(
+  packageRoot: string,
+  sharedIsland?: string,
+): { files: string[]; findings: Finding[] } {
   const files = collectSources(join(packageRoot, 'src'))
   const src = resolve(packageRoot, 'src')
   const findings: Finding[] = []
@@ -119,6 +135,11 @@ export function featureFindings(packageRoot: string): { files: string[]; finding
       if (here === undefined || !specifier.startsWith('.')) continue
       const to = placeOf(src, resolve(absolute, '..', specifier))
       if (to === undefined) continue
+      const island = islandBreak(here, to, sharedIsland)
+      if (island !== undefined) {
+        findings.push({ file, line, col, rule: 'shared-import', message: island })
+        continue
+      }
       const verdict = judge(here, to)
       if (verdict === undefined) continue
       findings.push({

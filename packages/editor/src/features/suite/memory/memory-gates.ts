@@ -1,7 +1,9 @@
 // The in-memory gate records (editor suite spec §4.3, §7): read only, so there is no way here to record a decision.
 // `'unreadable'` stands for records that cannot be read, which the gate pill shows as "Gates not readable".
-import type { GateState, Gates } from '../../shared/kit/ports/suite-ports'
-import type { GateRecords } from './gates-contract'
+import type { GateState, Gates } from '../../../shared/kit/ports/suite-ports'
+
+/** The recorded decisions the gates read (the Node adapter writes them as gate records). */
+export type GateRecords = Readonly<Record<string, Omit<GateState, 'id'>>>
 
 export function createMemoryGates(records: GateRecords | 'unreadable'): Gates {
   return {

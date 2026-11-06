@@ -6,9 +6,13 @@ import { loadEditorList } from '#src/shared/editor-list/editor-list.ts'
 import type { EditorList } from '#src/shared/editor-list/editors.schema.ts'
 import { fileAccess } from '#src/shared/editor-list/workspace-policy.ts'
 
+/** The sample game's list sits beside the in-memory ports the suite page uses; the others are test fixtures. */
 const fixture = (name: string): string =>
   readFileSync(
-    new URL(`../../../../src/testing/suite/fixtures/${name}.editors.toml`, import.meta.url),
+    new URL(
+      `../../../../src/${name === 'floorfifty' ? 'features/suite/memory' : 'testing/suite/fixtures'}/${name}.editors.toml`,
+      import.meta.url,
+    ),
     'utf8',
   )
 

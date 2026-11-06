@@ -2,7 +2,6 @@ import { createGeometryOwner } from '@mcthaydt/automata'
 import { settleLayout } from '@mcthaydt/automata/testing'
 import { mount, unmount } from 'svelte'
 import { page } from 'vitest/browser'
-import { createEditorApp, type EditorApp, type OpenDocument } from '../../app/editor-2d/editor-app'
 import { createAppProfiles } from '../../app/editor-2d/profiles'
 import DocumentScreen from '../../features/document/DocumentScreen.svelte'
 import { createDocumentController } from '../../features/document/document-controller'
@@ -11,6 +10,11 @@ import { createMemoryStore } from '../../shared/kit/storage/memory-store.ts'
 import type { LifecycleDocument, LifecycleWindow } from '../../shared/kit/storage/page-lifecycle.ts'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import { createToasts } from '../../shared/kit/widgets/toasts.ts'
+import {
+  createEditorApp,
+  type EditorApp,
+  type OpenDocument,
+} from '../../shared/level-2d/documents/editor-app'
 import { counterIds } from '../../shared/level-2d/model/ids'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { IpadProfile } from '../kit/ipad-profiles.ts'

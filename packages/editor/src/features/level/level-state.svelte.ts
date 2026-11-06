@@ -1,9 +1,10 @@
 import { onDestroy } from 'svelte'
-import type { EditHistory, LevelEditorView } from '../../app/editor-2d/level-editor'
 import type { History } from '../../shared/kit/history/history.ts'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
+import type { EditHistory } from '../../shared/level-2d/model/edit-history'
+import { projectHistory } from '../../shared/level-2d/model/edit-history'
+import type { LevelEditorView } from '../../shared/level-2d/model/editor-view'
 import type { Project } from '../../shared/level-2d/model/project-types'
-import { projectHistory } from './edit-history'
 import type { LevelSession } from './level-session'
 
 // What a Level region draws from (plan EDS.2d step 2): the session's view and camera and the document, as Svelte state

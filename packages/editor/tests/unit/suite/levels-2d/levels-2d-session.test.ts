@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { levels2dUndo, openLevels2d } from '#src/features/suite/levels-2d/levels-2d-session.ts'
+import { levels2dUndo, openLevels2d } from '#src/app/suite/levels-2d/levels-2d-session.ts'
+import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
 import type { WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { levelProject } from '#src/shared/level-2d/profiles/level-project/level-project.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
-import { createMemoryPorts } from '#src/testing/ports/memory-ports.ts'
 
 // The Levels 2D session in Node (plan EDS.2d step 1; editor suite spec §4.1, §4.7, EDS-D12): it is opened over the
 // suite's ports, holds the document's history and the Level view's session, and writes every new step through the

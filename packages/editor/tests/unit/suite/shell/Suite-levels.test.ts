@@ -2,15 +2,15 @@
 import { screen, waitFor, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createLevels2d } from '#src/app/suite/levels-2d/levels-2d-suite-editor.ts'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
-import { createLevels2d } from '#src/features/suite/levels-2d/levels-2d-suite-editor.ts'
+import { samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 import platformer from '#src/testing/suite/fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from '#src/testing/suite/StandInLevelCanvas.svelte'
-import { samplePorts } from '#src/testing/suite/sample-ports.ts'
 
 // The 2D level editor mounted in the suite (editor suite spec §4.7, EDS-D12, §13 EDS-k): the suite's one shell holds its
 // regions, and a switch to the Tuner and back keeps the level's selection and its own Undo. `platformer.af2d.json` is the

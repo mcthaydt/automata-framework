@@ -1,8 +1,8 @@
-import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../../app/editor-2d/editor-app'
-import type { ProjectEntry } from '../../app/editor-2d/project-list'
 import type { HomeCard, Tone } from '../../shared/kit/home/project-browse.ts'
 import type { ToastKind } from '../../shared/kit/widgets/toasts.ts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
+import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../../shared/level-2d/documents/editor-app'
+import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
 
 // What the 2D editor's Home decides before anything is drawn (plan ED2D.4c2a, decisions 3 to 8): how an entry reads on
@@ -116,39 +116,6 @@ export function templateCards(registry: ProfileRegistry): readonly TemplateCard[
 }
 
 // --- how an action ended ----------------------------------------------------------------------------------------
-
-const MEGABYTE = 1024 * 1024
-
-/** One line for every way an open or create can end without a document: what a toast says. */
-export function openProblem(outcome: Exclude<OpenOutcome, { readonly status: 'opened' }>): string {
-  const name = baseName(outcome.path)
-  switch (outcome.status) {
-    case 'unrecognised':
-      return `${name} is not a project this editor opens.`
-    case 'notText':
-      return `${name} is not a text file.`
-    case 'missing':
-      return `${name} is no longer in this workspace.`
-    case 'tooLarge':
-      return `${name} is ${Math.round(outcome.bytes / MEGABYTE)} MB; the limit is 16 MB.`
-    case 'invalid': {
-      const first = outcome.errors[0]
-      if (first === undefined) return `${name} does not open.`
-      const where =
-        first.line === undefined
-          ? ''
-          : ` (line ${first.line}${first.column === undefined ? '' : `, column ${first.column}`})`
-      return `${name} does not open: ${first.message.replace(/\.$/, '')}${where}.`
-    }
-    case 'choose': {
-      // A choice is only ever offered between two or more profiles.
-      const labels = outcome.candidates.map((candidate) => `a ${candidate.label}`)
-      return `${name} could be ${labels.slice(0, -1).join(', ')} or ${labels.at(-1)}.`
-    }
-    case 'storageFailed':
-      return `${name}: ${outcome.message}`
-  }
-}
 
 export interface Notice {
   readonly kind: ToastKind

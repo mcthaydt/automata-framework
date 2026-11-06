@@ -1,6 +1,6 @@
-import type { EditHistory } from '../../app/editor-2d/level-editor'
+import type { EditHistory } from '../../shared/level-2d/model/edit-history'
+import { commitEdit } from '../../shared/level-2d/model/field-commit'
 import type { IdSource } from '../../shared/level-2d/model/ids'
-import { commitEdit } from './field-commit'
 import type { LevelSession } from './level-session'
 import type { LevelShortcut } from './level-shortcuts'
 import { deleteSelected, duplicateSelected, nudgeSelected } from './selection-edits'

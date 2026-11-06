@@ -5,8 +5,8 @@
   a drawer in `medium`, a sheet in `compact`.
 -->
 <script lang="ts">
-import type { EditHistory } from '../../app/editor-2d/level-editor'
 import Tabs from '../../shared/kit/widgets/Tabs.svelte'
+import type { EditHistory } from '../../shared/level-2d/model/edit-history'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { Diagnostic } from '../../shared/level-2d/profiles/profile'
 import ChecksTab from './ChecksTab.svelte'

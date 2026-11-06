@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import type { OpenOutcome } from '#src/app/editor-2d/editor-app.ts'
 import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import type { OpenOutcome } from '#src/shared/level-2d/documents/editor-app.ts'
 import {
   documentHeading,
   errorPanel,
   needsPanel,
+  openProblem,
   type PanelOutcome,
   restoreRefused,
   textWindow,
-} from '#src/features/document/open-flow-model.ts'
+} from '#src/shared/level-2d/documents/open-flow-model.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { ParseError, Profile } from '#src/shared/level-2d/profiles/profile.ts'
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
@@ -174,5 +175,74 @@ describe('messages', () => {
     expect(restoreRefused([])).toBe(
       'The autosave no longer opens. Discard it to go on with the file as it was last saved.',
     )
+  })
+})
+
+describe('openProblem', () => {
+  const problem = (outcome: Exclude<OpenOutcome, { status: 'opened' }>): string => openProblem(outcome)
+
+  it('names the file by its last path segment and says what went wrong', () => {
+    expect(problem({ status: 'unrecognised', path: 'dir/readme.txt', text: 'hi' })).toBe(
+      'readme.txt is not a project this editor opens.',
+    )
+    expect(problem({ status: 'notText', path: 'dir/pic.png' })).toBe('pic.png is not a text file.')
+    expect(problem({ status: 'missing', path: 'gone.af2d.json' })).toBe(
+      'gone.af2d.json is no longer in this workspace.',
+    )
+    expect(problem({ status: 'tooLarge', path: 'huge.af2d.json', bytes: 20 * 1024 * 1024 })).toBe(
+      'huge.af2d.json is 20 MB; the limit is 16 MB.',
+    )
+  })
+
+  it('gives the first reason a file does not open, with its position when it has one', () => {
+    const profile = createAppProfiles().list()[0]
+    if (profile === undefined) throw new Error('no profile')
+    expect(
+      problem({
+        status: 'invalid',
+        path: 'a.af2d.json',
+        profile,
+        text: '{',
+        errors: [
+          { code: 'notJson', message: 'Unexpected end', line: 3, column: 7 },
+          { code: 'x', message: 'y' },
+        ],
+      }),
+    ).toBe('a.af2d.json does not open: Unexpected end (line 3, column 7).')
+    expect(
+      problem({
+        status: 'invalid',
+        path: 'a.af2d.json',
+        profile,
+        text: '{',
+        errors: [{ code: 'newerVersion', message: 'Made by a newer editor.' }],
+      }),
+    ).toBe('a.af2d.json does not open: Made by a newer editor.')
+    expect(problem({ status: 'invalid', path: 'a.af2d.json', profile, text: '', errors: [] })).toBe(
+      'a.af2d.json does not open.',
+    )
+  })
+
+  it('lists the kinds that claim a file that more than one profile claims', () => {
+    const registry = createAppProfiles()
+    registry.register(plantedProfile())
+    expect(problem({ status: 'choose', path: 'x.dat', text: '', candidates: registry.list() })).toBe(
+      'x.dat could be a Level project or a Planted note.',
+    )
+  })
+
+  it('lists three candidates with commas and a last or', () => {
+    const registry = createAppProfiles()
+    registry.register(plantedProfile())
+    registry.register(plantedProfile({ id: 'third', label: 'Third' }))
+    expect(problem({ status: 'choose', path: 'x.dat', text: '', candidates: registry.list() })).toBe(
+      'x.dat could be a Level project, a Planted note or a Third.',
+    )
+  })
+
+  it('passes on what the store said', () => {
+    expect(
+      problem({ status: 'storageFailed', path: 'a.note', reason: 'denied', message: 'Not allowed' }),
+    ).toBe('a.note: Not allowed')
   })
 })

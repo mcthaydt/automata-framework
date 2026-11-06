@@ -1,4 +1,3 @@
-import type { EditorApp, OpenDocument, OpenOutcome } from '../../app/editor-2d/editor-app'
 import {
   autosaveProblem,
   recoveryUnreadable,
@@ -17,8 +16,8 @@ import { classifyStorageError } from '../../shared/kit/storage/project-store.ts'
 import type { Recovery } from '../../shared/kit/storage/recovery.ts'
 import type { SaveState } from '../../shared/kit/storage/save-state.ts'
 import type { ToastStore } from '../../shared/kit/widgets/toasts.ts'
-import { openProblem } from '../home/home-model'
-import { documentHeading, restoreRefused } from './open-flow-model'
+import type { EditorApp, OpenDocument, OpenOutcome } from '../../shared/level-2d/documents/editor-app'
+import { documentHeading, openProblem, restoreRefused } from '../../shared/level-2d/documents/open-flow-model'
 
 // One open document's flows (plan ED2D.4c2b, decisions 5 to 9; kit spec §5 flows 3 and 4, §6), in plain TypeScript so
 // Node tests drive them: the top bar's undo, redo and Save, what each save outcome does (a conflict opens the Keep mine

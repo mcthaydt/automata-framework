@@ -1,8 +1,8 @@
-import type { EditHistory } from '../../app/editor-2d/level-editor'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
+import type { EditHistory } from '../../shared/level-2d/model/edit-history'
 import { moveLevelInWorld } from '../../shared/level-2d/model/world/level-placement'
+import { dragPosition, levelAt, toWorld, worldRects } from '../../shared/level-2d/model/world/world-model'
 import type { Point } from '../../shared/level-2d/tiles/footprint'
-import { dragPosition, levelAt, toWorld, worldRects } from './world-model'
 
 // A press and drag on the World view's map (plan ED2D.6b step 5; spec §8 flow 7). A press picks the topmost level
 // under the pointer and selects it (or clears the selection on empty space); moving drags it live inside one

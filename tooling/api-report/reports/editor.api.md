@@ -4291,6 +4291,21 @@ interface JourneyContextOptions {
 }
 ```
 
+### `JourneyInstance` (interface)
+
+```ts
+interface JourneyInstance<P> {
+    readonly browser: 'webkit' | 'chromium' | 'firefox';
+    readonly provider: P;
+}
+```
+
+### `journeyInstance` (function)
+
+```ts
+function journeyInstance<P>(provider: ProviderFactory<P>): (browser: JourneyInstance<P>['browser']) => JourneyInstance<P>;
+```
+
 ### `JourneyProject` (interface)
 
 ```ts
