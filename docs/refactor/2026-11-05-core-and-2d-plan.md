@@ -687,3 +687,15 @@ the features it lacks are journeyed on the one-file examples that show them:
 - 2026-11-05: the Owner asked why rebinding was cut ("I see that used"). It is used: `defineGame`'s default Settings screen wires it into every game. The D4 table now counts what `defineGame` wires in; rebinding, glyphs, swipe and haptics stay; leaderboards are checked in task 2.4 step 0.
 - 2026-11-05: plan audit (stage 3): 31 findings, all fixed in the spec and plan; see
   [2026-11-05-core-and-2d-plan-audit.md](2026-11-05-core-and-2d-plan-audit.md).
+- 2026-11-05 (stage 4, phase 1, PR #388): built tasks 1.1 to 1.4 on `claude/project-thread-k497wo`, stacked on #387.
+  Environment: Node 24.21 comes from pnpm; the container has Chromium only (WebKit and Firefox cannot be downloaded
+  here), so WebKit and Firefox projects, parity in three engines and `pnpm lint:actions` (no Docker daemon) are left to
+  the PR's CI. First-attempt local results, Chromium: Emberwick 25 passed (phone, compact, iPad; golden route 49 s),
+  examples 60 passed plus the Chromium matrix cell and `examples-compact` 47 passed, base-3d 7 passed.
+  Deviations: (1) `test-remote` kept working: dispatch `spec` is now `<folder> <playwright args>` and runs in an
+  `e2e-focused` job, since no root Playwright config exists; (2) the playground journeys (`tooling/examples-runner`)
+  run in `release-checks.yml`, so removing the nightly `e2e` job does not drop them; (3) `e2e-2d` installs Firefox
+  too (the input matrix has Firefox cells) and has a 30-minute limit; (4) the examples runner skips
+  `playwright.config.ts` at the examples root and its screenshots go to the root `evidence/` folder; (5) knip lists
+  each area's journeys and config as entries; (6) the editor-suite git test disables commit signing in its scratch
+  repository (it failed on an unreachable signing server); (7) pre-commit's affected unit tests run on every commit.

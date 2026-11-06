@@ -6,6 +6,7 @@
     "ship.config.ts",
     "vite.config.ts",
     "vitest.config.ts",
+    "playwright.config.ts",
     "src/ship-config.test.ts",
     "src/content/generated/content.d.ts",
     "e2e/**/*.ts"

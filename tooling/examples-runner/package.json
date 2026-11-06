@@ -23,7 +23,8 @@
     "e2e:fixtures": "vite build -c fixtures.vite.config.ts && vite preview -c fixtures.vite.config.ts --strictPort --host localhost --port $AF_E2E_EXAMPLES_PORT",
     "e2e:playground": "node playground/feasibility-server.ts",
     "e2e:playground-frame": "vite build -c playground/vite.config.ts && node playground/frame-server.ts",
-    "build:playground": "node playground/build-playground.ts"
+    "build:playground": "node playground/build-playground.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mcthaydt/automata": "workspace:*",
@@ -40,6 +41,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@mcthaydt/playwright-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

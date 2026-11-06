@@ -1,5 +1,5 @@
 // The frame-budget probe (PRODUCT spec §2 F5): ms/frame of the core stress example's production build, written as
-// one JSON result per project for `pnpm budget:frame`. Runs only under `AF_FRAME_BUDGET=1` (`pnpm
+// one JSON result per project for `pnpm budget:frame`. Runs from this package's own Playwright config (`pnpm
 // test:frame-budget`), alone, on the GPU runner. It asserts that the page ran cleanly and that frames were
 // measured; the budget itself is compared by the check, so the first GPU-runner run records numbers even while
 // no budget exists.

@@ -1,0 +1,157 @@
+name: 3d-and-editors
+
+# The 3D and editor suites (core-and-2D refactor spec section 3.4, C1): the editors, the 3D renderer, figures, the
+# sector format, the base 3D game and the 3D examples. A core or 2D pull request is not blocked by them in ci.yml;
+# this workflow runs them on any pull request that touches their files or a core package (so a codemod's changes to
+# their imports are checked), on every push to main, nightly, and by hand.
+#
+# It is not a required check in branch protection: a required check that a path filter skips never reports, and the
+# pull request could never merge. Read it before merging a pull request that changes core.
+#
+# Runners are the same as ci.yml's (D-5). A draft skips the heavy jobs, as it does there; marking it ready starts them.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      # Their own files.
+      - "games/base-3d/**"
+      - "examples/render3d/**"
+      - "examples/figures/**"
+      - "examples/e2e/render3d-*"
+      - "examples/e2e/figures-*"
+      - "agents/**"
+      # Every package: the 3D and editor packages, and the core ones they build on.
+      - "packages/**"
+      - pnpm-lock.yaml
+      - .github/workflows/3d-and-editors.yml
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 3d-and-editors-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  unit-and-journeys:
+    name: 3D and editors - unit and iPad journeys
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
+    runs-on: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:unit:3d
+      # The editors' iPad journeys (CI.JRN1; EDK.6b's harness: WebKit with touch and a 2x screen). They take seconds,
+      # so they run in full. A self-hosted runner has WebKit's system libraries installed once.
+      - run: pnpm exec playwright install --with-deps webkit
+        if: runner.environment == 'github-hosted'
+      - run: pnpm exec playwright install webkit
+        if: runner.environment == 'self-hosted'
+      - run: pnpm test:journeys
+
+  e2e-3d:
+    name: 3D journeys (base-3d and the 3D examples)
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
+    runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium webkit
+        if: runner.environment == 'github-hosted'
+      - run: pnpm exec playwright install chromium webkit
+        if: runner.environment == 'self-hosted'
+      - run: pnpm --filter @af-games/base-3d test:e2e
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: e2e-3d-report
+          path: "**/playwright-report/"
+          retention-days: 7
+
+  parity-3d:
+    name: 3D and editors - parity (chromium, webkit, firefox)
+    # A draft pull request skips it, as ci.yml's parity does.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
+    # The Owner's Mac (2026-10-17), so parity no longer queues behind Ruken on the shared af-linux PC.
+    # vars.AF_PARITY_RUNNER moves it to another label.
+    runs-on: ${{ vars.AF_PARITY_RUNNER || 'af-mac' }}
+    timeout-minutes: 20
+    # macOS runners cannot run containers, so on af-mac the job runs on the host and fetches the browsers into the
+    # runner's cache (the steps below). Any other runner uses the pinned Playwright image, whose browsers and OS
+    # deps come preinstalled; installing them per run there blew the 10-minute budget. An empty image runs the job
+    # on the host. Keep the tag in step with the `playwright` devDependency (docs/versions.md, Container images).
+    container:
+      image: ${{ (vars.AF_PARITY_RUNNER || 'af-mac') != 'af-mac' && 'mcr.microsoft.com/playwright:v1.63.0-noble' || '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      # The container runs as root but the checkout belongs to the runner user; without this, git (and so the
+      # `prepare` hook install and `pnpm evidence`) refuses the repo as "dubious ownership". The system config,
+      # not the global one: the parity and evidence steps set HOME to /root, where a global setting is not read.
+      - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
+        if: runner.os == 'Linux'
+      - run: pnpm install --frozen-lockfile
+      # On the Mac host: a no-op once the pinned browsers are in the runner's cache.
+      - run: pnpm exec playwright install chromium-headless-shell webkit firefox
+        if: runner.os == 'macOS'
+      # In the container Actions sets HOME to /github/home (not root's), where Firefox refuses to run as root; this
+      # holds for every later step (parity and evidence). On the Mac host the runner's own HOME is right.
+      - run: echo "HOME=/root" >> "$GITHUB_ENV"
+        if: runner.os == 'Linux'
+      # Every 3D and editor package with a browsers vitest project runs its parity suite.
+      - run: pnpm test:parity:3d
+      # The container runs as root in the runner's shared work folder (/__w is _work, /__t the tool cache). Hand
+      # everything back to the runner user, the owner of /__w, or the next job's checkout cannot delete the
+      # root-owned node_modules ("Permission denied"). always() runs on failure and on cancel too.
+      - name: Give the work folder back to the runner user
+        if: always() && runner.os == 'Linux'
+        run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
+
+  # base-3d's sim is its role files in src/ since #279 (the GL spec), which `pnpm boundaries --game` checks in the
+  # checks job of ci.yml; game-ci skips its own sim-roots check inside this repository, so `src` here only matters to a
+  # copy of this job outside it.
+  base-3d:
+    name: base-3d through game-ci
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft != true
+    uses: ./.github/workflows/game-ci.yml
+    with:
+      working-directory: games/base-3d
+      sim-roots: src
+      artifact-name: base-3d-dist
+      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}

@@ -6,7 +6,8 @@ import { TestRemoteFailed } from '../errors.ts'
 // remote runners and waits, so a developer's machine runs no heavy suite itself.
 //
 //   test-remote                         the hosted checks for this commit
-//   test-remote <playwright args>       one focused browser run, e.g. games/placeholder/e2e/boot.e2e.ts --project=placeholder
+//   test-remote <folder> <args>         one focused browser run: a game or example set that has its own Playwright
+//                                       config, then Playwright's arguments, e.g. games/emberwick --project=emberwick-ipad-webkit
 //   test-remote --nightly               the nightly set now (every viewport, the GPU lanes)
 //
 // The runner tests what is pushed, so uncommitted changes are refused instead of silently left out.
@@ -25,7 +26,7 @@ import { TestRemoteFailed } from '../errors.ts'
 
 /**
  * What `testRemote` runs and how long it waits. The timing fields are for tests: the defaults suit a real
- * run. `args` are the words after `test-remote`: nothing for the hosted checks, Playwright arguments for one
+ * run. `args` are the words after `test-remote`: nothing for the hosted checks, a folder and Playwright arguments for one
  * focused run, or `--nightly`.
  */
 export interface TestRemoteInput {

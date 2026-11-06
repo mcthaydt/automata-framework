@@ -3,8 +3,8 @@ name: consumer smoke
 # Installs AF's packed packages into a project outside the workspace and uses them as a game would: imports,
 # TypeScript 7 and 6, the bins, and a Vite bundle with one Ruken SDK and no eval (M2.4 spec §3.6). It takes
 # minutes, so it runs only on pull requests that touch how packages are built or published (spec §4), and
-# nightly in ci.yml's e2e job. Drafts skip it, as they skip parity and e2e on af-linux; run it locally with
-# `pnpm build && node tooling/consumer-smoke/src/run.ts --from packs` before marking a pull request ready.
+# nightly and before every publish in release-checks.yml. Drafts skip it, as they skip parity and e2e on af-linux;
+# run it locally with `pnpm build && node tooling/consumer-smoke/src/run.ts --from packs` before marking a pull request ready.
 
 on:
   pull_request:

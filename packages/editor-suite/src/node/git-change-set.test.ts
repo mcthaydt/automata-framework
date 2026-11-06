@@ -27,6 +27,8 @@ async function project(options: Omit<GitChangeSetOptions, 'root'> = {}) {
   await git(dir, 'clone', '-q', remote, root)
   await git(root, 'config', 'user.name', 'Editor Test')
   await git(root, 'config', 'user.email', 'editor@example.com')
+  // The developer's own signing setup (a hardware key, a signing server) is not under test and can be unreachable.
+  await git(root, 'config', 'commit.gpgsign', 'false')
   await git(root, 'switch', '-q', '-c', 'main')
   await mkdir(join(root, 'content'), { recursive: true })
   await writeFile(join(root, 'content/tuning.toml'), 'MAX_MOVE_SPEED = 6.0\n')

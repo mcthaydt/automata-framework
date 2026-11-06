@@ -1,14 +1,18 @@
 name: ci
 
-# AF's own CI (ship spec §3.7). Checks run on every push and pull request; cross-engine parity runs on every push
-# to main and on pull requests that are not drafts (a draft runs it in a cloud container, docs/cloud-parity.md).
-# Browser journeys run only nightly and on request (`automata-ship test-remote <spec>`).
+# AF's own CI (ship spec §3.7). Checks run on every push and pull request; cross-engine parity and the 2D journeys
+# (Emberwick in Chromium and WebKit, the one-file examples) run on every push to main and on pull requests that are
+# not drafts (a draft runs parity in a cloud container, docs/cloud-parity.md). One focused browser run can be asked
+# for with `automata-ship test-remote <folder> <playwright args>`.
 #
 # What a pull request runs (CI backlog, 2026-10-23): one runner serves every pull request, so the checks job
-# always runs and decides whether the pull request is documentation only (`scope`). Parity and the games' CI
-# (placeholder, base-2d, base-3d) run for a pull request only when it is ready for review and changes more than
-# docs/ and Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are
-# unchanged.
+# always runs and decides whether the pull request is documentation only (`scope`). Parity, the 2D journeys and
+# Emberwick's game CI run for a pull request only when it is ready for review and changes more than docs/ and
+# Markdown files; marking a draft ready starts them. Pushes to main, the nightly run and manual runs are unchanged.
+#
+# What it leaves to other workflows (core-and-2D refactor, spec section 3.4): the 3D and editor suites run in
+# 3d-and-editors.yml, and the release-only checks (build, API report, API index, agent skills, plugin validation,
+# consumer smoke) in release-checks.yml, which release-packages.yml calls before it publishes.
 #
 # Runners (D-5, reuse the Owner's runners): hosted jobs get no runner on this account (2026-10-11; they fail in
 # about 2 s with runner_id 0), so every job runs on a self-hosted runner registered to this repository with the
@@ -30,11 +34,11 @@ on:
   workflow_dispatch:
     inputs:
       spec:
-        description: Playwright arguments for one focused browser run (test-remote), e.g. "games/placeholder/e2e/boot.e2e.ts --project=placeholder". Empty runs the checks.
+        description: One focused browser run (test-remote) - a folder, then Playwright arguments, e.g. "games/emberwick --project=emberwick-ipad-webkit". Empty runs the checks.
         type: string
         default: ""
       nightly:
-        description: Run the nightly set now.
+        description: Run the nightly frame-budget probe now.
         type: boolean
         default: false
 
@@ -100,14 +104,7 @@ jobs:
       - run: pnpm style
       # QB.1 (QB spec §4.1): unused files, exports and dependencies (knip.jsonc).
       - run: pnpm knip
-      - run: pnpm test:unit
-      # The editors' iPad journeys (CI.JRN1; EDK.6b's harness: WebKit with touch and a 2x screen). They take seconds,
-      # so every pull request runs them in full. A self-hosted runner has WebKit's system libraries installed once.
-      - run: pnpm exec playwright install --with-deps webkit
-        if: runner.environment == 'github-hosted'
-      - run: pnpm exec playwright install webkit
-        if: runner.environment == 'self-hosted'
-      - run: pnpm test:journeys
+      - run: pnpm test:unit:core
       # QB.1: each of these first proves it fails on its planted fixture, then checks the repository. The audit is
       # `pnpm audit --prod --audit-level=high`; the secret scan runs the pinned gitleaks over the full history
       # (fetch-depth 0 above).
@@ -117,28 +114,12 @@ jobs:
       # downloads, in the job summary. Fails when a package or version is not on its registry.
       - run: pnpm deps:new --base origin/main
         if: github.event_name == 'pull_request'
-      # Every one-file example builds through the runner (EX spec §5); their smoke runs with the journeys.
-      - run: pnpm build:examples
-      # Every old feature demo builds (examples/README.md) until EX.4 ports and deletes them.
-      - run: pnpm build:demos
-      # S8 budgets E1 and E3 (docs/spikes/s8-effect.md): Effect's share and the page's gzip size.
-      - run: pnpm --filter @af-examples/placeholder budget:size
-      # Releases (M2.4 spec §3.5): a pull request that changes a published package carries a changeset, every
-      # changeset is a patch before 1.0, and every published package builds with nothing of Ruken's imported.
+      # Releases (M2.4 spec §3.5): a pull request that changes a published package carries a changeset, and every
+      # changeset is a patch before 1.0. Each takes seconds, so a missing changeset shows here, not at publish. The
+      # build, API report and the other release-only checks run in release-checks.yml.
       - run: pnpm changeset status --since=origin/main
         if: github.event_name == 'pull_request'
       - run: node tooling/release/src/check-changesets.ts
-      # PRODUCT.1 (PRODUCT spec §2 F6): each core package's API report matches its source, and every API break
-      # against origin/main's reports is declared by a changeset.
-      - run: pnpm api-report
-      - run: pnpm build
-      - run: pnpm --filter @mcthaydt/release test:dist
-      # DX.4: the API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
-      - run: pnpm api-index
-      # DX.7: the automata-api skill carries that api.md and the plugin its version; then Claude Code validates the
-      # plugin and the marketplace (--strict).
-      - run: pnpm agent-skills
-      - run: pnpm plugin:validate
 
   parity:
     name: parity (chromium, webkit, firefox)
@@ -192,9 +173,10 @@ jobs:
       # holds for every later step (parity and evidence). On the Mac host the runner's own HOME is right.
       - run: echo "HOME=/root" >> "$GITHUB_ENV"
         if: runner.os == 'Linux'
-      # Every package with a browsers vitest project (sim, content, physics, ui, ...) runs its parity suite: on
+      # Every core and 2D package with a browsers vitest project (sim, content, ui, ...) runs its parity suite (the 3D
+      # and editor packages run theirs in 3d-and-editors.yml): on
       # pushes to main, the nightly, and a pull request that changes something outside the workspace packages.
-      - run: pnpm test:parity
+      - run: pnpm test:parity:core
         if: github.event_name != 'pull_request' || needs.checks.outputs.parity_full == 'true'
       # Any other pull request runs only the suites of the packages it affects, dependents included (turbo
       # --affected). The checkout is GitHub's merge commit, whose first parent is the base tip.
@@ -224,12 +206,20 @@ jobs:
         if: always() && runner.os == 'Linux'
         run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
 
-  e2e:
-    name: browser journeys (nightly and on request)
+  e2e-2d:
+    name: 2D journeys (Emberwick in Chromium and WebKit, the examples)
+    # Emberwick's journeys at a phone, the compact height and an iPad in Chromium and WebKit (iOS Safari is WebKit),
+    # and the one-file examples' journeys, each under the fake host. The input matrix inside them also runs cells in
+    # WebKit and Firefox (M4.10), so all three engines are installed. Each area has its own Playwright config, so
+    # this job starts only these two areas' servers. A draft skips it, like parity.
+    needs: checks
     if: >-
-      github.event_name == 'schedule' ||
-      (github.event_name == 'workflow_dispatch' && (inputs.spec != '' || inputs.nightly))
-    runs-on: ${{ vars.AF_GPU_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
+      !cancelled() &&
+      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
+      (github.event_name != 'pull_request' ||
+      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
+      needs.checks.outputs.docs_only != 'true'))
+    runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -250,24 +240,50 @@ jobs:
       # into its cache here (a no-op when it is already there).
       - run: pnpm exec playwright install chromium webkit firefox
         if: runner.environment == 'self-hosted'
+      - name: 2D journeys
+        run: pnpm test:e2e --filter @af-examples/base-2d --filter @af-examples/examples
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: e2e-report
+          path: "**/playwright-report/"
+          retention-days: 7
+
+  e2e-focused:
+    name: one focused browser run (on request)
+    # `automata-ship test-remote <folder> <playwright args>`: the folder is a game or example set with its own
+    # Playwright config, e.g. `games/emberwick --project=emberwick-ipad-webkit`.
+    if: github.event_name == 'workflow_dispatch' && inputs.spec != ''
+    runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium webkit firefox
+        if: runner.environment == 'github-hosted'
+      - run: pnpm exec playwright install chromium webkit firefox
+        if: runner.environment == 'self-hosted'
       - name: Browser journeys
         env:
           SPEC: ${{ inputs.spec }}
         run: |
-          # SPEC is split on whitespace on purpose (test-remote passes Playwright arguments through). No `--`:
-          # after one Playwright stops filtering. A SPEC that matches nothing fails ("No tests found").
+          # SPEC is the folder, then Playwright's arguments, split on whitespace on purpose (test-remote passes
+          # them through). A SPEC that matches nothing fails ("No tests found").
+          folder="${SPEC%% *}"
+          args="${SPEC#"$folder"}"
+          cd "$folder"
           # shellcheck disable=SC2086
-          pnpm test:e2e $SPEC
-      # S8 budgets E2, E4 and E5 (boot at 4x CPU under Ruken's CSP) on the nightly run, not on a focused one.
-      - name: S8 boot budgets
-        if: inputs.spec == ''
-        run: pnpm --filter @af-examples/placeholder budget:boot
-      # The packed packages installed outside the workspace (M2.4 spec §3.6), nightly; pull requests that touch
-      # build config run it in consumer-smoke.yml.
-      - run: pnpm build
-        if: inputs.spec == ''
-      - run: node tooling/consumer-smoke/src/run.ts --from packs
-        if: inputs.spec == ''
+          pnpm exec playwright test $args
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
@@ -278,10 +294,8 @@ jobs:
   frame-budget:
     name: frame budget (nightly, GPU runner)
     # PRODUCT.7 (PRODUCT spec §2 F5): ms/frame of the core stress example's production build. A performance probe
-    # needs the GPU to itself (AGENTS.md), so it runs after the journeys (`needs`, whatever their result) and one
-    # at a time (`concurrency`). `pnpm budget:frame` fails closed until tooling/frame-budget/budget.json is set
+    # needs the GPU to itself (AGENTS.md), so it runs one at a time (`concurrency`) and never beside a journey run. `pnpm budget:frame` fails closed until tooling/frame-budget/budget.json is set
     # from the first run on this runner (Owner acceptance), and on any software-rendered result.
-    needs: e2e
     if: >-
       !cancelled() &&
       (github.event_name == 'schedule' ||
@@ -318,21 +332,6 @@ jobs:
           path: frame-budget-results/
           retention-days: 30
 
-  placeholder:
-    name: placeholder through game-ci
-    needs: checks
-    if: >-
-      !cancelled() &&
-      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
-      (github.event_name != 'pull_request' ||
-      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
-      needs.checks.outputs.docs_only != 'true'))
-    uses: ./.github/workflows/game-ci.yml
-    with:
-      working-directory: games/placeholder
-      sim-roots: ""
-      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
-
   base-2d:
     name: base-2d through game-ci
     needs: checks
@@ -347,23 +346,4 @@ jobs:
       working-directory: games/emberwick
       sim-roots: src/sim
       artifact-name: base-2d-dist
-      runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
-
-  # base-3d's sim is its role files in src/ since #279 (the GL spec), which `pnpm boundaries --game` checks in the
-  # checks job; game-ci skips its own sim-roots check inside this repository, so `src` here only matters to a copy
-  # of this job outside it.
-  base-3d:
-    name: base-3d through game-ci
-    needs: checks
-    if: >-
-      !cancelled() &&
-      (github.event_name != 'workflow_dispatch' || inputs.spec == '') &&
-      (github.event_name != 'pull_request' ||
-      (needs.checks.result == 'success' && github.event.pull_request.draft != true &&
-      needs.checks.outputs.docs_only != 'true'))
-    uses: ./.github/workflows/game-ci.yml
-    with:
-      working-directory: games/base-3d
-      sim-roots: src
-      artifact-name: base-3d-dist
       runner: ${{ vars.AF_GAME_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}

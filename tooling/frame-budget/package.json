@@ -22,8 +22,9 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@mcthaydt/examples-runner": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
+    "@mcthaydt/examples-runner": "workspace:*",
+    "@mcthaydt/playwright-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

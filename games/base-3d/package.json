@@ -14,7 +14,8 @@
     "test:parity": "vitest run --configLoader runner --project browsers --project layout",
     "test:evidence": "vitest run --configLoader runner --project node --project browsers src/game.test.ts src/enemies.test.ts src/boss.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
-    "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT"
+    "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mcthaydt/automata-figures": "workspace:*",
@@ -37,6 +38,8 @@
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/automata-testing": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
+    "@mcthaydt/examples-runner": "workspace:*",
+    "@mcthaydt/playwright-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",

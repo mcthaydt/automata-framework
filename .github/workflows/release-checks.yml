@@ -1,0 +1,83 @@
+name: release checks
+
+# The checks only a release needs (core-and-2D refactor spec section 3.4, O5): they take minutes, and a pull request
+# gains nothing from them that its own checks, parity and journeys do not already give. They run before every publish
+# (release-packages.yml calls this workflow and its publish job waits for it), nightly, and by hand.
+#
+# What they cover: every example and old demo builds; each core package's API report matches its source and every
+# API break is declared by a changeset (PRODUCT.1); the packages build, and the built files hold up (dist test); the
+# API index and llms-full.txt come from the built .d.ts (DX.4); the automata-api skill and the plugin are in step
+# and Claude Code validates them (DX.7); the packed packages install and work outside the workspace (M2.4 spec
+# §3.6); and the playground's browser journeys pass in every engine the site supports.
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: The runner label for the job (the caller passes the same one it uses for its own checks).
+        type: string
+        default: af-linux
+  workflow_dispatch:
+  schedule:
+    # After the nightly frame budget and 3D runs in ci.yml and 3d-and-editors.yml, which start at 09:00.
+    - cron: "30 9 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-checks-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  release-checks:
+    name: build, API report, API index, agent skills, plugin, consumer smoke, playground
+    runs-on: ${{ inputs.runner || vars.AF_LINUX_RUNNER || 'af-linux' }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # Full history, so the API report can compare with origin/main's reports.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md).
+          dest: ${{ runner.temp }}/setup-pnpm
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: ${{ runner.environment == 'github-hosted' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile
+      # The consumer smoke boots Chromium (DX.2a) and the playground journeys run in all three engines.
+      - run: pnpm exec playwright install --with-deps chromium webkit firefox
+        if: runner.environment == 'github-hosted'
+      # A self-hosted runner has the system libraries installed once and no sudo; the browsers themselves are
+      # fetched into its cache here (a no-op when they are already there).
+      - run: pnpm exec playwright install chromium webkit firefox
+        if: runner.environment == 'self-hosted'
+      # Every one-file example builds through the runner (EX spec §5).
+      - run: pnpm build:examples
+      # Every old feature demo builds (examples/README.md) until EX.4 ports and deletes them.
+      - run: pnpm build:demos
+      # PRODUCT.1 (PRODUCT spec §2 F6): each core package's API report matches its source, and every API break
+      # against origin/main's reports is declared by a changeset.
+      - run: pnpm api-report
+      - run: pnpm build
+      - run: pnpm --filter @mcthaydt/release test:dist
+      # DX.4: the API index and llms-full.txt from the built .d.ts; fails on a new export with no doc comment.
+      - run: pnpm api-index
+      # DX.7: the automata-api skill carries that api.md and the plugin its version; then Claude Code validates the
+      # plugin and the marketplace (--strict).
+      - run: pnpm agent-skills
+      - run: pnpm plugin:validate
+      # The packed packages installed outside the workspace (M2.4 spec §3.6).
+      - run: node tooling/consumer-smoke/src/run.ts --from packs
+      # The playground's feasibility and frame journeys (the website's embedded player), in every engine.
+      - run: pnpm --filter @mcthaydt/examples-runner test:e2e
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: release-checks-report
+          path: "**/playwright-report/"
+          retention-days: 7

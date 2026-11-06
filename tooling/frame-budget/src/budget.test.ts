@@ -42,11 +42,27 @@ describe('checkFrameBudget', () => {
     ])
   })
 
-  it('never compares a software-rendered result (SwiftShader, llvmpipe), with or without a budget', () => {
-    expect(checkFrameBudget(setBudget, [swiftshader]).verdict).toBe('not-comparable')
+  it('never compares a software-rendered result (SwiftShader, llvmpipe): when all are software, it is skipped', () => {
     const llvmpipe = withEnvironment({ gpu: 'llvmpipe (LLVM 17.0.6, 256 bits)' })
-    expect(checkFrameBudget(setBudget, [llvmpipe]).verdict).toBe('not-comparable')
-    expect(checkFrameBudget(unsetBudget, [swiftshader]).lines.join('\n')).toContain('software renderer')
+    const skipped = checkFrameBudget(setBudget, [llvmpipe])
+    expect(skipped.verdict).toBe('skipped')
+    expect(skipped.lines).toEqual([
+      'skipped: drawn by a software renderer (llvmpipe (LLVM 17.0.6, 256 bits)), so the frame budget cannot be measured here',
+    ])
+    expect(checkFrameBudget(setBudget, [swiftshader]).verdict).toBe('skipped')
+  })
+
+  it('does not let a software renderer hide a budget that is unset or a result that is broken', () => {
+    const unset = checkFrameBudget(unsetBudget, [swiftshader])
+    expect(unset.verdict).toBe('unset')
+    expect(unset.lines.join('\n')).toContain('software renderer')
+    expect(checkFrameBudget({ status: 'broken' }, [swiftshader]).verdict).toBe('invalid')
+    expect(checkFrameBudget(setBudget, [swiftshader, { nonsense: true }]).verdict).toBe('invalid')
+  })
+
+  it('still calls a software result next to a hardware one not comparable, since only an all-software run is skipped', () => {
+    const mixed = checkFrameBudget(setBudget, [swiftshader, within])
+    expect(mixed.verdict).toBe('not-comparable')
   })
 
   it('refuses a budget recorded on a software renderer', () => {

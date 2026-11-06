@@ -5,10 +5,12 @@ name: release packages
 # changed @mcthaydt/automata-* package at one shared 0.0.x version to GitHub Packages. Nothing is published on
 # any other push.
 #
-# Three jobs (QB.1b): `plan` asks whether the pushed commit carries changesets, which is the question
+# Four jobs (QB.1b): `plan` asks whether the pushed commit carries changesets, which is the question
 # changesets/action asks to choose between its two modes. `version` runs when it does and can only open or update
-# the pull request. `publish` runs when it does not, and it alone waits for the Owner's approval in the `release`
-# environment (QB.1), so a push that only versions never waits.
+# the pull request. `release-checks` runs when it does not, and runs the release-only checks (release-checks.yml:
+# build, API report, API index, agent skills, plugin, consumer smoke) that pull requests no longer run. `publish`
+# runs after them, and it alone waits for the Owner's approval in the `release` environment (QB.1), so a push that
+# only versions never waits.
 #
 # Runner: the Owner's Mac (Owner, 2026-10-30: "Publish from my Mac"); vars.AF_RELEASE_RUNNER moves it. Hosted jobs
 # are refused on this account (a billing block since 2026-10-24: "recent account payments have failed or your
@@ -107,9 +109,17 @@ jobs:
           # changesets/action writes an .npmrc into $HOME; keep it out of the shared runner home (header).
           HOME: ${{ runner.temp }}/release-home
 
+  release-checks:
+    name: release checks
+    needs: plan
+    if: needs.plan.outputs.pending == 'false'
+    uses: ./.github/workflows/release-checks.yml
+    with:
+      runner: ${{ vars.AF_LINUX_RUNNER || 'af-linux' }}
+
   publish:
     name: publish
-    needs: plan
+    needs: [plan, release-checks]
     if: needs.plan.outputs.pending == 'false'
     runs-on: ${{ vars.AF_RELEASE_RUNNER || 'af-mac' }}
     timeout-minutes: 20
