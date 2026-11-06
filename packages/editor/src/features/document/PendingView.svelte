@@ -1,6 +1,6 @@
 <!--
-  A rail destination whose view is not built yet. It says so in plain words and that the
-  project is safe, inside the same shell, so the top bar, the rail and the status line stay where they are.
+  A view is not built yet. It says so in plain words and that the
+  project is safe, inside the same shell, so the top bar stays where it is.
 -->
 <script lang="ts">
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
@@ -12,7 +12,6 @@ const { geometry, label, frame }: ViewProps = $props()
 <EditorShell
   {geometry}
   topbar={frame.topbar}
-  rail={frame.rail}
   sheets={frame.sheets}
   testId="pending-view"
 >

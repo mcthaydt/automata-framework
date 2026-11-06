@@ -318,7 +318,8 @@ function sheetStyle(name: ShellRegion): string | undefined {
   .sheets {
     display: contents;
   }
-  /* Sizes from the mockups (docs/design/editor-2d). Targets never shrink with the window; only gutters do. */
+  /* Sizes from the mockups (docs/design/editor-2d). Targets never shrink with the window; only gutters do. The top bar
+     is at least --shell-topbar tall and grows when its content wraps (the document's bar takes two rows on a phone). */
   .shell {
     --shell-topbar: 52px;
     --shell-rail: 56px;
@@ -347,7 +348,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
 
   .shell[data-mode='wide'] {
     grid-template-columns: var(--shell-rail) var(--shell-panel) minmax(0, 1fr) var(--shell-inspector);
-    grid-template-rows: var(--shell-topbar) minmax(0, 1fr) auto auto;
+    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto auto;
     grid-template-areas:
       'topbar topbar topbar topbar'
       'rail panel canvas inspector'
@@ -367,7 +368,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   .shell[data-mode='medium'],
   .shell[data-mode='compact'] {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: var(--shell-topbar) minmax(0, 1fr) auto var(--shell-tabbar);
+    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto var(--shell-tabbar);
     grid-template-areas:
       'topbar'
       'canvas'
@@ -405,7 +406,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
 
   .shell[data-mode='medium'][data-rail='none'],
   .shell[data-mode='compact'][data-rail='none'] {
-    grid-template-rows: var(--shell-topbar) minmax(0, 1fr) auto;
+    grid-template-rows: minmax(var(--shell-topbar), auto) minmax(0, 1fr) auto;
     grid-template-areas:
       'topbar'
       'canvas'

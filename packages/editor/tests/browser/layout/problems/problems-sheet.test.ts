@@ -13,9 +13,9 @@ import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { entity, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 
-// The Checks view with the production CSS in a real browser, at the eight
-// window sizes, in Chromium, WebKit and Firefox: the rail and every row's buttons at least 44 px and never clipped, the
-// page never scrolling (the list scrolls in its own region), and the target dialog's choices full-size. The Mossgate
+// The Problems sheet with the production CSS in a real browser, at the eight window sizes, in Chromium, WebKit and
+// Firefox: the top bar's count and Save at least 44 px and in view, every row's buttons at least 44 px and never
+// clipped, the page never scrolling (the list scrolls in its own region), and the target dialog's choices full-size. The Mossgate
 // sample is seeded with a stray tile, a slime outside its level and a door pointing at an instance that is gone.
 
 const PROJECT = 'mossgate.af2d.json'
@@ -70,13 +70,17 @@ async function start(size: EditorSize) {
   if (card === null) throw new Error('no level card')
   card.click()
   await expect.poll(() => document.querySelector('[data-testid="level-view"]')).not.toBeNull()
-  const checks = [
-    ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-  ].find((tab) => tab.textContent?.trim() === 'Checks')
-  checks?.click()
-  await expect.poll(() => document.querySelector('[data-testid="checks-view"]')).not.toBeNull()
   await arrived()
   return { conditions }
+}
+
+/** Opens the sheet from the top bar's count and answers the sheet. */
+async function openSheet(): Promise<HTMLElement> {
+  byTestId('problems').click()
+  await arrived()
+  const sheet = document.querySelector<HTMLElement>('[role="dialog"]')
+  if (sheet === null) throw new Error('no Problems sheet')
+  return sheet
 }
 
 const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
@@ -87,34 +91,32 @@ const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
   return found
 }
 
-describe.each(SIZES)('Checks view at $name ($width x $height)', (size) => {
-  test('the rail and every row button are sized and unclipped; the page never scrolls', async () => {
+describe.each(SIZES)('Problems at $name ($width x $height)', (size) => {
+  test('the count, Save and every row button are sized and unclipped; the page never scrolls', async () => {
     const { conditions } = await start(size)
-    const view = byTestId('checks-view')
-    const tabs = [
-      ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-    ]
+    expect(checkLayout(conditions, [byTestId('problems'), byTestId('save')])).toEqual([])
+    const view = await openSheet()
     const firstRow = view.querySelector('li')
     if (firstRow === null) throw new Error('no finding rows')
     const buttons = [...firstRow.querySelectorAll<HTMLElement>('button')]
-    expect(buttons.map((button) => button.textContent?.trim())).toContain('Locate')
-    expect(checkLayout(conditions, [...tabs, ...buttons])).toEqual([])
+    expect(buttons.map((button) => button.textContent?.trim())).toContain('Show')
+    expect(checkLayout(conditions, buttons)).toEqual([])
     for (const button of view.querySelectorAll('li button'))
       expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
-    await page.screenshot({ path: `.vitest/shots/checks-view-${size.name}.png` })
+    await page.screenshot({ path: `.vitest/shots/problems-sheet-${size.name}.png` })
   })
 
   test('the target dialog lists its choices as full-size buttons', async () => {
     const { conditions } = await start(size)
-    buttonNamed(byTestId('checks-view'), 'Choose target').click()
+    buttonNamed(await openSheet(), 'Choose target').click()
     await arrived()
-    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')
-    if (dialog === null) throw new Error('no target dialog')
+    const dialog = [...document.querySelectorAll<HTMLElement>('[role="dialog"]')].at(-1)
+    if (dialog === undefined) throw new Error('no target dialog')
     const choices = [...dialog.querySelectorAll<HTMLElement>('li button')]
     expect(choices.length).toBeGreaterThan(0)
     expect(checkLayout(conditions, [...choices, buttonNamed(dialog, 'Cancel')])).toEqual([])
-    await page.screenshot({ path: `.vitest/shots/checks-target-${size.name}.png` })
+    await page.screenshot({ path: `.vitest/shots/problems-target-${size.name}.png` })
   })
 })

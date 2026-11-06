@@ -51,7 +51,6 @@ onDestroy(() => session?.dispose())
 <EditorShell
   {geometry}
   topbar={frame.topbar}
-  rail={frame.rail}
   sheets={frame.sheets}
   bind:panelOpen
   bind:inspectorOpen

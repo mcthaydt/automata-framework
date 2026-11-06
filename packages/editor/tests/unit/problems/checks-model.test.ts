@@ -16,7 +16,7 @@ const finding = (
 })
 
 describe('checkGroups', () => {
-  it('groups the findings into Errors, Warnings and Info with counts, keeping the profile order inside each', () => {
+  it('groups the findings into Needs fixing, Worth a look and Notes with counts, keeping the profile order inside each', () => {
     const found = [
       finding('error', 'a'),
       finding('warning', 'b'),
@@ -26,9 +26,9 @@ describe('checkGroups', () => {
     expect(
       checkGroups(found).map(({ severity, label, rows }) => [severity, label, rows.map((row) => row.code)]),
     ).toEqual([
-      ['error', 'Errors (2)', ['a', 'c']],
-      ['warning', 'Warnings (1)', ['b']],
-      ['info', 'Info (1)', ['d']],
+      ['error', 'Needs fixing (2)', ['a', 'c']],
+      ['warning', 'Worth a look (1)', ['b']],
+      ['info', 'Notes (1)', ['d']],
     ])
   })
 

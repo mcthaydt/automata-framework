@@ -116,6 +116,8 @@ export interface Profile<V> {
   choose?(value: V, diagnostic: Diagnostic, choice: TargetChoice): V
   /** Optional: a profile without it lists on Home by file name, with its check counts. */
   summary?(value: V): ProfileSummary
+  /** Optional: the value with its name changed (the top bar's name, tapped). A profile without it has no rename. */
+  rename?(value: V, name: string): V
   /** Optional: the level Home's card draws; a profile without it, or a document with no level, keeps the initial. */
   preview?(value: V): LevelPreview | undefined
   readonly templates: readonly TemplateDef<V>[]

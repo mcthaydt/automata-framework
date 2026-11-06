@@ -202,7 +202,6 @@ function layout(next: string): void {
 <EditorShell
   {geometry}
   topbar={frame.topbar}
-  rail={frame.rail}
   sheets={frame.sheets}
   bind:panelOpen
   bind:inspectorOpen

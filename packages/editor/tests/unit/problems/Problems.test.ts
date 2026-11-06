@@ -16,9 +16,9 @@ import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
-import { entity, withDefs, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
+import { entity, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
 
-// The Checks view in jsdom, mounted the way the app mounts it and reached from the rail.
+// Problems in jsdom, mounted the way the app mounts it: the top bar's count opens the sheet.
 
 const quietPage = (): { document: LifecycleDocument; window: LifecycleWindow } => ({
   document: { visibilityState: 'visible', addEventListener: () => {}, removeEventListener: () => {} },
@@ -45,9 +45,8 @@ async function mount(profile: string, template: string, seed: (value: never) => 
     canvas: FakeLevelCanvas,
     onback: () => {},
   })
-  await userEvent.click(
-    within(screen.getByRole('tablist', { name: 'Views' })).getByRole('tab', { name: 'Checks' }),
-  )
+  const count = screen.queryByTestId('problems')
+  if (count !== null) await userEvent.click(count)
   return { history }
 }
 
@@ -68,11 +67,13 @@ const row = (text: RegExp): HTMLElement => {
   return found
 }
 
-describe('Checks view: level-project', () => {
-  it('groups the findings with counts and names the object each is about', async () => {
+describe('Problems: level-project', () => {
+  it('counts the problems in the top bar, groups them in plain words and names the object each is about', async () => {
     await mount('level-project', 'platformer', seeded)
-    expect(within(group(/^Errors \(2\)/)).getByText('Layer decor in level-1')).toBeTruthy()
-    expect(within(group(/^Warnings \(1\)/)).getByText('slime-z in level-1')).toBeTruthy()
+    expect(screen.getByTestId('problems')).toHaveAccessibleName('3 problems')
+    expect(screen.getByRole('dialog', { name: 'Problems' })).toBeInTheDocument()
+    expect(within(group(/^Needs fixing \(2\)/)).getByText('Layer decor in level-1')).toBeTruthy()
+    expect(within(group(/^Worth a look \(1\)/)).getByText('slime-z in level-1')).toBeTruthy()
     expect(within(row(/beyond the/)).getByRole('button', { name: 'Remove 1 stray tile' })).toBeTruthy()
   })
 
@@ -103,21 +104,17 @@ describe('Checks view: level-project', () => {
     expect(screen.queryByText('door-z in level-1')).toBeNull()
   })
 
-  it('locates a finding: the Level view opens with the instance selected', async () => {
+  it('shows a finding: the sheet closes and the Level view opens with the instance selected', async () => {
     await mount('level-project', 'platformer', seeded)
-    await userEvent.click(within(row(/slime-z/)).getByRole('button', { name: 'Locate' }))
+    await userEvent.click(within(row(/slime-z/)).getByRole('button', { name: 'Show' }))
+    expect(screen.queryByRole('dialog', { name: 'Problems' })).toBeNull()
     expect(screen.getByTestId('level-view')).toBeTruthy()
     expect(screen.getByTestId('entity-tab').textContent).toContain('Slime')
   })
 
-  it('says so when there are no problems', async () => {
-    // The platformer's only finding is the definitions nothing uses yet; keep just the player start.
-    await mount('level-project', 'platformer', (project: Project) =>
-      withDefs(project, (defs) => ({
-        ...defs,
-        entities: defs.entities.filter((each) => each.id === 'player-start'),
-      })),
-    )
-    expect(screen.getByText('No problems')).toBeTruthy()
+  it('shows nothing about problems when there are none: notes (definitions nothing uses yet) do not count', async () => {
+    await mount('level-project', 'platformer', (project: Project) => project)
+    expect(screen.queryByTestId('problems')).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

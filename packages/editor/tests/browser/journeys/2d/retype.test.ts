@@ -38,7 +38,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       await arrived()
       expect(open.document.history.undoLabel).toMatch(/music/i)
 
-      await press('tab', 'Entities')
+      await press('radio', 'Characters')
       const levelFields = [
         ...document.querySelectorAll<HTMLElement>('[data-testid="entities-panel"] button'),
       ].find((button) => button.textContent?.trim().startsWith('Level fields'))

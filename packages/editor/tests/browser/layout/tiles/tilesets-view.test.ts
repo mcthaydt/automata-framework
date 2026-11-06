@@ -10,6 +10,7 @@ import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-s
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
+import { openView, switcherControls } from '#src/testing/level-2d/view-switcher.ts'
 
 // The Tilesets view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never
@@ -54,11 +55,7 @@ async function start(size: EditorSize) {
   if (card === null) throw new Error('no level card')
   card.click()
   await expect.poll(() => document.querySelector('[data-testid="level-view"]')).not.toBeNull()
-  const tab = [
-    ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-  ].find((candidate) => candidate.textContent?.trim() === 'Tilesets')
-  if (tab === undefined) throw new Error('no Tilesets tab')
-  tab.click()
+  await openView('Tiles')
   await expect.poll(() => document.querySelector('[data-testid="tilesets-view"]')).not.toBeNull()
   await arrived()
   return { conditions }
@@ -103,9 +100,7 @@ async function reach(element: HTMLElement): Promise<void> {
 describe.each(SIZES)('Tilesets view at $name ($width x $height)', (size) => {
   test('every control is sized and unclipped, and the page never scrolls', async () => {
     const { conditions } = await start(size)
-    const tabs = [
-      ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-    ]
+    const tabs = switcherControls()
     const essentials = [...['undo', 'redo', 'save'].map(byTestId), ...tabs]
     if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('tilesets-view'), 'Rules'))
     expect(checkLayout(conditions, essentials)).toEqual([])

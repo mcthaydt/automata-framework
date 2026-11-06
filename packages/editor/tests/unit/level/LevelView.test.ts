@@ -305,14 +305,14 @@ describe('Level view: accessibility', () => {
     expect(screen.getByTestId('level-surface')).toHaveAccessibleName('Level canvas')
   })
 
-  it('reaches the bar, the rail, the canvas and the inspector in that order with the keyboard', async () => {
+  it('reaches the bar (with its view switcher), the canvas and the inspector in that order with the keyboard', async () => {
     await mount()
     const regions = [
       screen.getByTestId('document-bar'),
-      document.querySelector<HTMLElement>('[role="tablist"][aria-label="Views"]') as HTMLElement,
       canvas(),
       inspectorTab('Entity').closest('[role="tablist"]') as HTMLElement,
     ]
+    expect(within(screen.getByTestId('document-bar')).getByRole('radiogroup', { name: 'Views' })).toBeTruthy()
     for (const [before, after] of regions.slice(1).map((region, at) => [regions[at], region] as const))
       expect(
         (before as HTMLElement).compareDocumentPosition(after as HTMLElement) &

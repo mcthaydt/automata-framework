@@ -2110,3 +2110,33 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   the view switcher with the four views and their new names, "2 problems" opening a sheet in place of the Checks
   view, the Share menu (browser storage only) in place of the Export view, the rail's icons, and the essential-only
   cut over each (rename on tap is listed by the spec; keep it only if it passes the Owner's essential-only rule).
+- **12.2, the rest (session 11): the view switcher, Problems, Share and rename.** The 56 px rail is gone: `ViewRail`
+  became `ViewSwitcher` in the top bar, the kit's `Segmented` ("Views", a radio group) from iPad up and the kit's
+  `Menu` named after the open view on a phone. The level project lists four views with the spec's names: Level, Map,
+  Tiles, Characters (ids `level`, `world`, `tilesets`, `entities` kept). `ViewFrame.rail` and `ViewServices.locate`
+  and `.workspace` are removed; the five views no longer place a rail. `DocumentBar` takes `switcher` and `tools`
+  snippets and is two rows on a phone (Back, the name, Save; then the switcher, Problems, Share, Undo, Redo), so no
+  target shrinks; the kit shell's top bar row is now `minmax(52px, auto)` so it can grow. **Problems** (`Problems.svelte`)
+  replaces `ChecksView`: "2 problems" in the top bar opens a sheet (Needs fixing, Worth a look; Show, the repair, Done);
+  Show closes it and reopens the Level view on the finding (a counter re-keys the view, so a Show while the Level
+  view is open still selects it). **Share** (`ShareMenu.svelte`, `share-model.ts`) replaces `ExportView`: shown only
+  where Save does not write the game (no `gameFolder`), it holds Download, Share (off with a reason where the device
+  cannot share) and Copy of the level's file, each answered with a toast; on a device that keeps nothing a file that
+  left marks the level clean, as Export did. **Rename on tap** kept (a level had no other way to be renamed): a new
+  optional `Profile.rename`, the name is a button opening `RenameDialog`, one undo step named "Rename".
+  **Cut, by the Owner's essential-only rule:** notes (info findings: an empty level, a definition nothing uses) are
+  not counted or listed (a fresh template showed "problems"); Export's target cards, file sizes and per-target choice;
+  "Download game files" (in browser storage there is no game to put them in; a game folder's Save writes them);
+  "Write to folder" (only reachable on a checkout without an `exports` row, where the answer is to add the row so Save
+  writes the game); the rail's icons (the rail is gone; the switcher's words are enough). **Deviation 106:** the
+  switcher is a radio group, not tabs, because it is the kit's `Segmented`; tests read `radio` and `aria-checked`.
+  **Deviation 107:** the restore dialog's new words (grandma Step G) move to 12.4, which owns `RecoveryDialog`.
+  Gates: editor unit 3,284 (ChecksView, ExportView and export-model tests replaced by Problems 10, share-model 3,
+  DocumentScreen 25); editor typecheck clean; Chromium layout (level, problems, map, tiles, characters) 130 of 130;
+  Chromium 2D journeys 8 of 8. WebKit, Firefox and hosted CI not run. Rounded buttons: none added; the kit's look
+  changes with the design thread (the Owner, 2026-11-06: "I HATE rounded buttons").
+- **The Owner, 2026-11-06 (relayed), the site's order: "Let's do that".** The design thread's site mockups come
+  first and the Owner picks a direction; phase 18 (18.0 included) then applies that direction and the
+  [site visual audit](2026-11-06-site-visual-audit.md)'s fixes in one pass, and the visual audit is rerun after.
+  Phase 18 does not start until the Owner has picked. The editors' look follows the same design thread's token and
+  component changes when it sends them.

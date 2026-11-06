@@ -10,6 +10,7 @@ import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-s
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
+import { openView, switcherControls } from '#src/testing/level-2d/view-switcher.ts'
 
 // The Entities view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never
@@ -55,11 +56,7 @@ async function start(size: EditorSize) {
   if (card === null) throw new Error('no level card')
   card.click()
   await expect.poll(() => document.querySelector('[data-testid="level-view"]')).not.toBeNull()
-  const tab = [
-    ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-  ].find((candidate) => candidate.textContent?.trim() === 'Entities')
-  if (tab === undefined) throw new Error('no Entities tab')
-  tab.click()
+  await openView('Characters')
   await expect.poll(() => document.querySelector('[data-testid="entities-view"]')).not.toBeNull()
   await arrived()
   return { conditions }
@@ -130,9 +127,7 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
   test('every control is sized and unclipped, and the page never scrolls', async () => {
     const { conditions } = await start(size)
     await chooseSlime(size)
-    const tabs = [
-      ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),
-    ]
+    const tabs = switcherControls()
     const essentials = [...['undo', 'redo', 'save'].map(byTestId), ...tabs]
     if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('entities-view'), 'Definitions'))
     expect(checkLayout(conditions, essentials)).toEqual([])

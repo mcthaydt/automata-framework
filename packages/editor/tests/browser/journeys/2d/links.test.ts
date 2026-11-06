@@ -17,7 +17,7 @@ import {
   pressButton,
 } from '#src/testing/level-2d/journey-editor.ts'
 
-// ED2D.8 journey: two RPG maps linked in the editor on an iPad: add the Inn on the World
+// ED2D.8 journey: two RPG maps linked in the editor on an iPad: add the Inn on the
 // map, place a door in each map with the Pencil, point each at the other through the picker, add a warp, have no
 // errors, see the links on the world map, save, and reopen equal.
 
@@ -27,7 +27,8 @@ afterEach(async () => {
   editor = undefined
 })
 
-const rail = (name: string): Promise<void> => press('tab', name)
+/** Opens a view from the top bar's switcher. */
+const rail = (name: string): Promise<void> => press('radio', name)
 
 /** Opens a level from the Levels dock. */
 async function openLevel(name: RegExp): Promise<void> {
@@ -66,7 +67,7 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
       const open = editor
       const pen = (): ReturnType<typeof createPointers> => createPointers(open.surface())
 
-      await rail('World')
+      await rail('Map')
       await pressButton('Add level')
       const field = document.querySelector<HTMLInputElement>(
         '[data-testid="world-inspector"] label.name input',
@@ -113,11 +114,10 @@ describe.each(IPAD_PROFILES.filter((profile) => profile.name === 'ipad-pro-11-la
         'warp',
       ])
 
-      await rail('Checks')
-      const view = document.querySelector<HTMLElement>('[data-testid="checks-view"]')
-      expect(view?.textContent).not.toMatch(/Errors|Warnings/)
+      // No problems: the top bar shows no count at all.
+      expect(document.querySelector('[data-testid="problems"]')).toBeNull()
 
-      await rail('World')
+      await rail('Map')
       const saved = open.document.history.state as Project
       expect((await open.document.save()).status).toBe('saved')
       const again = await open.app.open(open.document.path)
