@@ -27,7 +27,8 @@ function page(files: Record<string, string> | undefined) {
     const url = new URL(String(input))
     asked.push(url.pathname)
     if (files === undefined) throw new TypeError('Failed to fetch')
-    if (url.pathname === '/api/ping') return json({ automata: 'editor', token: false })
+    if (url.pathname === '/api/ping')
+      return json({ automata: 'editor', token: false, gameUrl: 'http://localhost:5173/' })
     if (url.pathname === '/api/list')
       return json(Object.keys(files).map((path) => ({ path, mtime: 1, size: files[path]?.length ?? 0 })))
     const text = files[url.searchParams.get('path') ?? '']
@@ -47,11 +48,14 @@ describe('openSuitePorts', () => {
     expect((await opened.ports.workspace.read(EDITOR_LIST_PATH))?.text).toBe(LIST)
     expect(opened.ports.changeSet).toBeUndefined()
     expect(asked[0]).toBe('/api/ping')
+    // The Tuner shows the game's dev page beside its settings.
+    expect(opened.gameUrl).toBe('http://localhost:5173/')
   })
 
   it('opens the sample game only when no editor server answers', async () => {
     const opened = await openSuitePorts(page(undefined).env)
     expect(opened.sample).toBe(true)
+    expect(opened.gameUrl).toBeUndefined()
     expect((await opened.ports.workspace.read(EDITOR_LIST_PATH))?.text).toBe(SAMPLE_GAME[EDITOR_LIST_PATH])
   })
 })

@@ -52,6 +52,13 @@ describe('editorCommand', () => {
     expect(served[0]).toMatchObject({ root: '/game', appDir: '/repo/builds/suite' })
   })
 
+  it("passes the game's dev page on to the server: Vite's own port unless told", async () => {
+    const { deps, io, served } = setup()
+    await editorCommand(['--app', 'suite'], io, deps)
+    await editorCommand(['--app', 'suite', '--game-url', 'http://localhost:5180'], io, deps)
+    expect(served.map((each) => each.gameUrl)).toEqual(['http://localhost:5173/', 'http://localhost:5180/'])
+  })
+
   it('--lan listens on every address, makes a token, and prints the address a tablet opens with the token in it', async () => {
     const { deps, io, out, served } = setup()
     await editorCommand(['--lan', '--port', '4173'], io, deps)

@@ -18,18 +18,21 @@ import { createLevels2d } from './levels-2d/levels-2d-suite-editor.ts'
 const target = document.getElementById('app')
 if (target === null) throw new Error('suite.html has no #app element')
 
-const editors = [createTuner(), createLevels2d({ ids: randomIds((bytes) => crypto.getRandomValues(bytes)) })]
-
 openSuitePorts({ origin: location.origin, search: location.search, sessionStorage })
-  .then(({ ports, sample }) =>
-    startSuite(target, {
+  .then(({ ports, sample, gameUrl }) => {
+    // The Tuner shows the game's dev page beside its settings, so it is made once the server has named it.
+    const editors = [
+      createTuner({ gameUrl }),
+      createLevels2d({ ids: randomIds((bytes) => crypto.getRandomValues(bytes)) }),
+    ]
+    return startSuite(target, {
       window,
       document,
       ports,
       suite: createSuite({ editors: editors as SuiteEditor<unknown>[] }),
       sample,
-    }),
-  )
+    })
+  })
   .catch((error: unknown) => {
     target.textContent = `The editors could not start: ${error instanceof Error ? error.message : String(error)}`
   })

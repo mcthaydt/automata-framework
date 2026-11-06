@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
-import { openServedWorkspace } from '#src/shared/kit/storage/workspace.ts'
+import { openServedStore, openServedWorkspace } from '#src/shared/kit/storage/workspace.ts'
 
 // Opening the editor from `automata editor`: the page asks the server it came from whether it is one, and
 // takes the checkout as its workspace; otherwise it is a plain page and the editor opens its own storage as before.
@@ -48,6 +48,15 @@ describe('openServedWorkspace', () => {
     const named = page('', () => json({ automata: 'editor', token: false, game: 'Emberwick' }))
     expect((await openServedWorkspace(named.env))?.game).toBe('Emberwick')
     expect((await openServedWorkspace(page().env))?.game).toBeUndefined()
+  })
+
+  it("carries the game's dev page from the ping, and none for one that is not a web address", async () => {
+    const served = page('', () =>
+      json({ automata: 'editor', token: false, gameUrl: 'http://localhost:5173/' }),
+    )
+    expect((await openServedStore(served.env))?.gameUrl).toBe('http://localhost:5173/')
+    const odd = page('', () => json({ automata: 'editor', token: false, gameUrl: 'not an address' }))
+    expect((await openServedStore(odd.env))?.gameUrl).toBeUndefined()
   })
 
   it('is nothing when the origin is not an editor server (a plain page)', async () => {

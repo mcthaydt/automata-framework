@@ -28,6 +28,9 @@ afterEach(async () => {
   target = undefined
 })
 
+/** A page that answers in place of the game's dev server: the pane frames it as it would `pnpm dev`. */
+const GAME_PAGE = 'data:text/html,<body style="margin:0;background:%23243">game</body>'
+
 async function open(size: EditorSize) {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST)
@@ -37,7 +40,7 @@ async function open(size: EditorSize) {
     window,
     document,
     ports: await samplePorts({ ...tunerFixtureFiles(), [EDITOR_LIST_PATH]: LIST }),
-    suite: createSuite({ editors: [createTuner() as SuiteEditor<unknown>] }),
+    suite: createSuite({ editors: [createTuner({ gameUrl: GAME_PAGE }) as SuiteEditor<unknown>] }),
   })
   await settleLayout()
   tab('Tuner').click()
@@ -101,6 +104,31 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
     }
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/tuner-rows-${size.name}.png` })
+  })
+
+  test('the game runs beside the settings: side by side in a canvas 480 px wide and up, the game on top below that', async () => {
+    await open(size)
+    await expect.poll(() => document.querySelector('iframe[title="Your game"]')).not.toBeNull()
+    const game = document.querySelector('[data-testid="tuner-game"]') as HTMLElement
+    const rows = document.querySelector('[data-testid="tuner-rows"]') as HTMLElement
+    const gameBox = game.getBoundingClientRect()
+    const rowsBox = rows.getBoundingClientRect()
+    const split = (
+      document.querySelector('[data-testid="tuner-split"]') as HTMLElement
+    ).getBoundingClientRect()
+    // Every iPad and a phone held sideways have room side by side; a phone upright and a small window stack.
+    expect(split.width >= 480).toBe(!['phone-portrait', 'window-900x600'].includes(size.name))
+    if (split.width >= 480) {
+      expect(gameBox.right).toBeLessThanOrEqual(rowsBox.left + 0.5)
+      expect(Math.abs(gameBox.top - rowsBox.top)).toBeLessThan(1)
+    } else {
+      expect(gameBox.bottom).toBeLessThanOrEqual(rowsBox.top + 0.5)
+    }
+    // Big enough to play in, and the settings keep room to scroll.
+    expect(gameBox.height).toBeGreaterThanOrEqual(150)
+    expect(rowsBox.height).toBeGreaterThanOrEqual(120)
+    noPageScroll()
+    await page.screenshot({ path: `.vitest/shots/tuner-split-${size.name}.png` })
   })
 
   test('a rotation keeps the search and the chosen tunable (EDS-x)', async () => {
