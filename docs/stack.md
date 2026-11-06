@@ -140,7 +140,7 @@ Not yet installed; planned for M7 (`net` and `server`). Package: `colyseus`.
 - **Tier:** Plus
 - **What it does in AF:** Rooms and transport for the `net` and `server` extensions (master spec §4).
 - **Why it was chosen:** FloorFifty's multiplayer already runs on Colyseus: its network manager, room store and server rooms are the extraction source (extraction map).
-- **What AF adds on top:** Planned in M7: a `NetworkPort` behind the client, a room-mirroring store, server rooms running the same sim, an input queue and tick scheduler, prediction and reconciliation.
+- **What AF adds on top:** Planned in M7: a network seam behind the client, a room-mirroring store, server rooms running the same sim, an input queue and tick scheduler, prediction and reconciliation.
 
 ## Why FloorFifty's Planck becomes Rapier
 

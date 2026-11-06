@@ -31,7 +31,6 @@ const ROOT_EXPORTS: string[] = [
   'MAX_FRAME_MS',
   'MAX_TURN_UNITS_PER_STEP',
   'ModelInvalid',
-  'NetworkPort',
   'PresentationBus',
   'QUALITY_TIERS',
   'REBIND_TIMEOUT_MS',

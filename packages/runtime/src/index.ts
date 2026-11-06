@@ -147,7 +147,6 @@ export { type LocaleCandidates, matchLocale, negotiateLocale } from './locale/ne
 export { createT, type MessageFunction, type ParaglideRuntime, type Translate } from './locale/paraglide.js'
 export { AppLoop } from './loop/app-loop.manager.js'
 export { type FrameInfo, MAX_FRAME_MS } from './loop/frames.js'
-export { type AuthoritativeSnapshot, NetworkPort } from './net/network-port.js'
 export {
   PresentationBus,
   type RuntimeFacts,

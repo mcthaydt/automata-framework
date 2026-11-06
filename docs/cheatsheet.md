@@ -426,7 +426,6 @@
 - `AudioServices` (interface): What the service reads from the runtime.
 - `AudioSettings` (interface): The player's audio choices (M5 spec §7, M5.4), as FloorFifty's `audio` settings: the mute, the mute while another window has focus, and a gain per bus.
 - `audioSettingsSchema` (const): A missing field takes its default; a bad record reads as the defaults, as every settings field falls back.
-- `AuthoritativeSnapshot` (interface): One authoritative state: the authority sim's `snapshot()` bytes at `tick`, with its `hash()`.
 - `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
 - `AutosaveTrigger` (type): What can make the loaded slot write itself (M5 spec §4.4).
 - `BindingOverride` (interface): What the player changed about one action: its keys, its pad buttons, or both.
@@ -514,7 +513,6 @@
 - `ModelInvalid` (class): A 3D model file could not be read (M3 spec §6): malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet (M3R-D1).
 - `MusicOptions` (interface): Options for `Audio.music`: where to begin and which region loops.
 - `negotiateLocale(candidates)`: The order is the player's saved choice, Ruken's session locale, the browser's languages, the default (PRODUCT spec §4 item 2, as decided 2026-10-16: a choice made in the game's own picker outranks the platform's, as in FloorFifty, where detection runs only "when the player has not chosen one").
-- `NetworkPort` (interface): The networking seam (PRODUCT spec §2 F1): remote commands in, authoritative snapshots out.
 - `PadInfo` (interface): A connected pad.
 - `ParaglideRuntime` (interface): The parts of a Paraglide-generated `runtime.js` the runtime uses.
 - `PauseReason` (type): `input`: the active pad was unplugged during play (M4-D9); Resume on the pause screen clears it.
