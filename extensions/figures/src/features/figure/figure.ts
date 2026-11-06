@@ -3,9 +3,9 @@ import { evaluate, type ActionId, type MotionState } from '../motion/motion';
 import { apply, applyDir, wrapAngle, type M, type V3 } from '../../lib/math';
 import type { CastMember } from './cast';
 import { ITEMS } from '../outfit/items';
-import { blendJoins, cleanup, gbuffer, rasterize, resolve, smoothContour, stamp, stampPrint, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from '../paint/raster';
+import { blendJoins, cleanup, gbuffer, neckline, rasterize, resolve, smoothContour, stamp, stampPrint, STYLE, TRI, VERT, type GBuffer, type Soup, type Style, type ViewDecal } from '../paint/raster';
 import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body/parts';
-import type { Expression, FaceLook } from '../outfit/garments';
+import { NECK, type Expression, type FaceLook } from '../outfit/garments';
 import { DEFAULT_HEAD } from '../body/genes';
 import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Bends, type FaceStamp, type HandStamp, type PaintStyle } from '../paint/paint';
 /**
@@ -350,7 +350,10 @@ export class Figure {
     if (light && this.lightOut.length < this.built.vertexCount * 3) this.lightOut = new Float32Array(this.built.vertexCount * 3);
     const { soup, decals } = soupOf(this.built, this.skeleton, this.world, pitch, this.cell, this.metres, this.feet, this.soup, S, faceState, light, this.lightOut);
     this.soup = soup;
-    const cleaned = (g: GBuffer) => { if (this.style.cleanup) { cleanup(g); blendJoins(g); smoothContour(g); } };
+    // The neck's ids in the G-buffer (`seam ?? index`, as soupOf writes them), for the neckline rule: from the built parts
+    // each raster, so a new outfit's rebuild never leaves them stale.
+    const necks = new Set<number>(this.built.parts.flatMap((p, i) => (p.tag === NECK ? [p.seam ?? i] : [])));
+    const cleaned = (g: GBuffer) => { if (this.style.cleanup) { cleanup(g); blendJoins(g); smoothContour(g); neckline(g, necks); } };
     rasterize(soup, this.hi); resolve(this.hi, this.g, S, this.style); cleaned(this.g);
     if (light) {
       // A second raster of the same triangles with the light in the place slots (6–8): the resolve averages it like a

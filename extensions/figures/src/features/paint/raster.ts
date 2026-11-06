@@ -153,6 +153,27 @@ export function cleanup(g: GBuffer) {
   for (let i = 0; i < join.length; i += 2) copyTexel(g, join[i], join[i + 1]);
 }
 /**
+ * The neckline, as a pixel artist cleans a collar: where the neck meets a top, a run of the neck's texels in a row, at most
+ * `2D` long (D the cell's density), with one non-neck material on its left, its right and under every texel of it, is a
+ * skin tooth in the cloth; it joins that material, each texel taking its nearer side's neighbour (the left half the left's,
+ * the right half the right's). The bottom row first, so a peg two rows tall goes too. `neck` holds the G-buffer's part ids
+ * of the neck (the parts tagged NECK); nothing else is touched: not a hand, not a finger, not the hair.
+ */
+export function neckline(g: GBuffer, neck: Set<number>) {
+  const { w, h, part, material } = g, D = Math.max(1, Math.round(w / 64)), isNeck = (k: number) => neck.has(part[k]);
+  for (let y = h - 2; y >= 1; y--) for (let x = 1; x < w - 1; x++) {
+    const k = y * w + x;
+    if (!isNeck(k) || isNeck(k - 1)) continue;
+    let n = 0; while (x + n < w - 1 && isNeck(k + n)) n++;
+    const l = k - 1, r = k + n, m = material[l];
+    const cloth = (q: number) => part[q] >= 0 && !neck.has(part[q]) && material[q] === m;
+    let tooth = n <= 2 * D && cloth(l) && cloth(r);
+    for (let i = 0; tooth && i < n; i++) tooth = cloth(k + i + w);
+    if (tooth) for (let i = 0; i < n; i++) copyTexel(g, k + i, i < n / 2 ? l : r);
+    x += n - 1;
+  }
+}
+/**
  * Joins, as a smooth union would make them (screen-space): an empty texel pinched between two texels of one group (left
  * and right, or above and below) at nearly the same depth is the notch where two rounded parts meet; it takes the nearer
  * side. Two groups (the legs, an arm against the body) never join.
