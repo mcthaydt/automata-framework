@@ -223,7 +223,7 @@ function layout(next: string): void {
       {/if}
       {#if world !== undefined}
         <div class="arrange">
-          <h2 aria-hidden="true">Arrange levels</h2>
+          <h2>Arrange levels</h2>
           <Segmented
             label="Arrange levels"
             options={LAYOUTS}
@@ -232,7 +232,7 @@ function layout(next: string): void {
           />
         </div>
       {/if}
-      <h2 aria-hidden="true">Levels</h2>
+      <h2>Levels</h2>
       <ul class="levels" aria-label="Levels">
         {#each levels as level (level.id)}
           <li>
@@ -328,7 +328,7 @@ function layout(next: string): void {
     list-style: none;
   }
   /* A section label in small capitals, as the approved mockup draws it (the Level view's Layers). The list and the
-     switch keep their own accessible names, so the label is only seen. */
+     switch keep their own accessible names as well. */
   h2 {
     margin: 0;
     padding: 0 var(--space-2);
