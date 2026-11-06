@@ -223,6 +223,7 @@ function layout(next: string): void {
       {/if}
       {#if world !== undefined}
         <div class="arrange">
+          <h2 aria-hidden="true">Arrange levels</h2>
           <Segmented
             label="Arrange levels"
             options={LAYOUTS}
@@ -231,6 +232,7 @@ function layout(next: string): void {
           />
         </div>
       {/if}
+      <h2 aria-hidden="true">Levels</h2>
       <ul class="levels" aria-label="Levels">
         {#each levels as level (level.id)}
           <li>
@@ -325,21 +327,44 @@ function layout(next: string): void {
     padding: 0;
     list-style: none;
   }
+  /* A section label in small capitals, as the approved mockup draws it (the Level view's Layers). The list and the
+     switch keep their own accessible names, so the label is only seen. */
+  h2 {
+    margin: 0;
+    padding: 0 var(--space-2);
+    color: var(--muted);
+    font: var(--text-eyebrow-11);
+    letter-spacing: var(--text-eyebrow-11-tracking);
+    text-transform: uppercase;
+  }
+  .arrange {
+    display: grid;
+    gap: var(--space-2);
+  }
+  /* Quiet rows, as the Level view's layers: no box, a wash under the pointer and on the chosen level. */
   .levels button {
     box-sizing: border-box;
     width: 100%;
     min-height: var(--size-hit);
-    padding: 0 var(--space-3);
-    border: 1px solid var(--color-border-default);
+    padding: 0 var(--space-2);
+    border: 0;
     border-radius: var(--edge-sm);
-    background: var(--color-bg-field);
+    background: transparent;
     color: var(--color-text-primary);
     font: var(--text-body-13);
     text-align: left;
     cursor: pointer;
   }
+  .levels button:hover {
+    background: var(--tool-hover, var(--color-bg-raised));
+  }
   .levels button[aria-pressed='true'] {
-    border-color: var(--color-accent-default);
+    background: var(--color-accent-soft);
+    font-weight: 500;
+  }
+  .levels button:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
   }
   /* The map fills the stage; the controls float over it in the kit's pill, as the Level view's tools do. */
   .stage {

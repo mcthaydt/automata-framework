@@ -24,7 +24,7 @@ const levelFields = $derived(levelFieldRows(project))
 <div class="panel" data-testid="entities-panel">
   <section aria-labelledby="definitions-heading">
     <div class="head">
-      <h2 id="definitions-heading">Definitions</h2>
+      <h2 id="definitions-heading">Characters</h2>
       <Button aria-label="Add entity" onclick={() => session.addDefinition()}>+</Button>
     </div>
     <div class="choices" role="radiogroup" aria-labelledby="definitions-heading">
@@ -93,11 +93,14 @@ const levelFields = $derived(levelFieldRows(project))
     justify-content: space-between;
     gap: var(--space-2);
   }
+  /* A section label in small capitals, as the approved mockup draws it (the Level view's Layers). */
   h2 {
     margin: 0;
     padding: var(--space-2) var(--space-2) 0;
-    color: var(--color-text-dim);
-    font: var(--text-label-12);
+    color: var(--muted);
+    font: var(--text-eyebrow-11);
+    letter-spacing: var(--text-eyebrow-11-tracking);
+    text-transform: uppercase;
   }
   .empty {
     margin: 0;

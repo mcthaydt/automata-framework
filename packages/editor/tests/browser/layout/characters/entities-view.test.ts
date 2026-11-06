@@ -20,7 +20,7 @@ const targets = editorTargets()
 // The Entities view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never
 // scrolling, the definition form's Duplicate and Delete reachable, the field editor's type chips full-size targets,
-// and the refusal dialog's list and actions inside the window (below wide, from the Definitions and Inspector
+// and the refusal dialog's list and actions inside the window (below wide, from the Characters and Inspector
 // drawers). The editor starts as `main.ts` starts it, over a memory workspace with the Mossgate sample (three slimes),
 // and the rail opens Entities.
 
