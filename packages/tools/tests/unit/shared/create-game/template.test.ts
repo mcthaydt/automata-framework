@@ -89,6 +89,8 @@ describe('the new game’s files', () => {
     const main = read('src/main.ts')
     expect(main).toContain("import.meta.hot.accept('./app/game.ts'")
     expect(main).toContain('await running.shutdown()')
+    // Back on the screen the person was on, so a tuning change is felt without pressing Play again.
+    expect(main).toContain('startGame(fresh.game, { at })')
   })
 
   it('keeps the sim free of the renderer, so its tests need no browser', () => {

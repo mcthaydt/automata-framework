@@ -1527,7 +1527,7 @@ const RUKEN_SDK_MARKERS: readonly string[];
 ### `runGame` (function)
 
 ```ts
-function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
+function runGame<S>(game: GameDefinition<S>, start?: StartOptions): RuntimeHandle;
 ```
 
 ### `RuntimeFacts` (interface)
@@ -1604,6 +1604,7 @@ interface RuntimeFacts {
 
 ```ts
 interface RuntimeHandle {
+    readonly screen: string | undefined;
     shutdown(): Promise<void>;
 }
 ```
@@ -1986,7 +1987,15 @@ interface SpriteViewOptions {
 ### `startGame` (function)
 
 ```ts
-function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>): RuntimeHandle;
+function startGame<S = never>(game: GameSpec<S> | DefinedGame<S>, start?: StartOptions): RuntimeHandle;
+```
+
+### `StartOptions` (interface)
+
+```ts
+interface StartOptions {
+    readonly at?: string | undefined;
+}
 ```
 
 ### `StepResult` (interface)

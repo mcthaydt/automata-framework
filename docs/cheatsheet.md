@@ -166,7 +166,7 @@
 - `RoundOutcome` (type): How a round ended.
 - `RoundOutcomeSchema` (const): Checks a round outcome.
 - `RUKEN_SDK_MARKERS` (const): String literals only the Ruken SDK contains, which survive minification: the SDK's storage probe key (`env-browser.ts`) and its standalone refusal message (`standalone.ts`), at RukenApp d0fa2fe (as at b30d31b).
-- `runGame(game)`: Boots and runs the game: a failure draws the boot failure panel, and `shutdown` closes everything the runtime opened.
+- `runGame(game, start?)`: Boots and runs the game: a failure draws the boot failure panel, and `shutdown` closes everything the runtime opened.
 - `RuntimeFacts` (interface): Every fact the runtime publishes on the presentation bus, by name.
 - `RuntimeHandle` (interface): Controls the running game: `shutdown` closes everything the runtime opened, last opened first.
 - `RuntimeSeams` (interface): Test seams injected into the runtime boot program.
@@ -200,7 +200,8 @@
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
 - `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
 - `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
-- `startGame(game)`: Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
+- `startGame(game, start?)`: Boots a game: `defineGame`'s defaults over the runtime, the Pixi renderer, Ruken hosting and the default screens, then the runtime's boot on the game's root.
+- `StartOptions` (interface): How a game starts.
 - `StepResult` (interface): What one `step` produced: the new tick, the events emitted, the renderer's delta and the commands that were rejected.
 - `STICKY_MARGIN_PX` (const): How far outside a button a thumb still counts for it, in CSS pixels.
 - `SubscriptionEntitlement` (interface): One subscription the player holds.

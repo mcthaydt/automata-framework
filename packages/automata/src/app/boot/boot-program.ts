@@ -38,7 +38,7 @@ import { lockOverscroll } from '../../shared/ui/browser/lock-overscroll.ts'
 import { reducedMotion } from '../../shared/ui/browser/reduced-motion.ts'
 import { suppressPageGestures } from '../../shared/ui/browser/suppress-page-gestures.ts'
 import { createGeometryOwner } from '../../shared/ui/geometry/geometry-owner.svelte.ts'
-import { createFlow } from '../flow/flow.manager.js'
+import { createFlow, type Flow } from '../flow/flow.manager.js'
 import type { RuntimeServices } from '../flow/screen.js'
 import { createVeil } from '../flow/veil.js'
 import type { CompiledContentData, GameDefinition } from './game-definition.js'
@@ -84,6 +84,10 @@ export interface BootProgramOptions {
   readonly onHosting?: (hosting: Hosting) => void
   readonly onLayers?: (layers: PageLayers) => void
   readonly onLoader?: (loader: LoaderControls) => void
+  /** Hears the flow once it exists, so the runtime's handle can say which screen shows. */
+  readonly onFlow?: (flow: Flow) => void
+  /** The screen the flow starts on instead of its entry (`StartOptions.at`). */
+  readonly startAt?: string | undefined
   /**
    * Stops the boot: the step under way gives up (the handshake, a download, the frame wait) and boot returns at the
    * next step without starting the flow. What it opened is in the caller's `Teardown`, so the caller closes it.
@@ -418,7 +422,8 @@ async function boot<S>(
     haptics: game.seams?.haptics ?? browserHaptics(win),
   }
 
-  await flowHandle.start()
+  options.onFlow?.(flowHandle.flow)
+  await flowHandle.start(options.startAt)
   if (signal.aborted) return ok(undefined)
 
   // The landscape gate (standalone) and the rotate hint, over every screen for the session.

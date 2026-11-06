@@ -2324,6 +2324,22 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   so a person tuning presses Play after each change; going back to the screen they were on needs a runtime option to
   start at a screen, and the room's assets load with the splash (`preload_screens`), so it is not a one-line change:
   the next session designs it. The unit a player can feel (px/s) is still to do. The pane's colours wait for the look.
+- **12.6, the restart lands where the person was (session 15).** *Design:* the flow already loads a screen's assets
+  as it enters (`flow.manager` asks `assets.isLoaded` before each enter), so starting on another screen needs no change
+  to the preload: `preload_screens` (and `game.preload`, attached to the first of them) still load at boot, and the
+  start screen's own files load as it enters, the same as after any transition. So the runtime gains two small things,
+  no more: `startGame(game, { at })` (`StartOptions`, through `runGame` and `bootProgram`'s `startAt` to
+  `FlowHandle.start(at)`), which starts on `at` when the flow has that screen and at the entry otherwise (a save can
+  rename a screen), and `RuntimeHandle.screen`, the screen showing now (`undefined` before the flow starts and after
+  shutdown). The sim is untouched (law 1): a restart is still a new game on new content. *The games:* the create-game
+  template's `main.ts` restarts `startGame(fresh.game, { at })` with `at = running.screen`, read before the shutdown;
+  Emberwick maps the screens that hold a round (`room`, `paused`, `end`) to `room`, since the round lived in the old
+  sim, so a person tuning lands in a fresh round at once and feels the change without pressing Play. Not done, on
+  purpose: carrying Wick's position across (a new sim on new tuning is the honest test of the feel, and a carried
+  state would need a snapshot across content, which the sim does not allow). Gates: the flow's tests 21 → 22, run-game
+  23 → 24 (start at a screen, `screen` before, during and after), create-game's template test, Emberwick's dev
+  journey changed to play into the room and expect the room after a save (failed first on `splash`/`menu`, passes
+  now); a changeset for `@mcthaydt/automata` and `-tools`, the API report, the agent skill's API and the cheatsheet.
 - **12.7, part (session 14): the top bar in plain words (Step G).** Step 0's size check: `Suite.svelte` is 420 lines,
   over the 300 the task allows, and is the one file to split (by responsibility: the editing, Ask and Ship wiring
   leave the markup); every other shell file is under 300. Done: the title is the game's name from the ping (`Your
