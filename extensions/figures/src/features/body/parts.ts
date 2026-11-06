@@ -165,9 +165,13 @@ function curves(keys: Ring[]) {
   const ys = keys.map(r => r.y);
   return { RX: curve(ys, keys.map(r => r.rx)), RZ: curve(ys, keys.map(r => r.rz)), DX: curve(ys, keys.map(r => r.dx ?? 0)), DZ: curve(ys, keys.map(r => r.dz ?? 0)) };
 }
-/** A limb's profile at height `y` on its axis: the very curves `limb()` sweeps, clamped to the keys' range. */
+const curveCache = new WeakMap<Limb, { rings: Ring[]; n: number; c: ReturnType<typeof curves> }>();
+/** A limb's profile at height `y` on its axis: the very curves `limb()` sweeps, clamped to the keys' range. The curves are
+ * built once per limb (its rings are never edited in place), so a query per vertex stays cheap. */
 export function profileAt(o: Limb, y: number): Ring {
-  const { RX, RZ, DX, DZ } = curves([...o.rings].sort((a, b) => a.y - b.y));
+  let hit = curveCache.get(o);
+  if (!hit || hit.rings !== o.rings || hit.n !== o.rings.length) { hit = { rings: o.rings, n: o.rings.length, c: curves([...o.rings].sort((a, b) => a.y - b.y)) }; curveCache.set(o, hit); }
+  const { RX, RZ, DX, DZ } = hit.c;
   return { y, rx: RX(y), rz: RZ(y), dx: DX(y), dz: DZ(y) };
 }
 /**

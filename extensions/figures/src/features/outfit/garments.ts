@@ -175,7 +175,7 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
       // The tie in the wearer's own palette: the one it names, else a band of the hair's own. The trunk the hair falls
       // clear of: the tops worn by now over the body's own torso.
       const tie = item.tie ?? hooks.tie?.(garments, swatches);
-      const trunk = [...parts, ...body(m, s, r, thighs)].filter(p => p.group === GROUP.torso);
+      const trunk = [...parts, ...body(m, s, r, thighs, undefined, fit.profiles)].filter(p => p.group === GROUP.torso);
       // Headwear in the outfit: the hair is drawn under it, and pressed inside it where the headwear says how.
       const hat = garments.find(g => kindOf(g)?.coversHair), cover = hat && kindOf(hat)!.coversHair!(c, hat);
       const hair = hairParts({ m, s, hair: item.hair, skin, swatch, capped: !!hat, ppm, tie, trunk }, style);
@@ -190,8 +190,8 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   for (const item of garments) { const kind = kindOf(item); if (kind?.last) wear(kind.build(c, item), item); }
   for (const item of garments) { const kind = kindOf(item); if (kind?.after) wear(kind.after(c, item), item); }
   Object.assign(made, earSkins(skin, swatch(skin)));
-  const all = [...body(m, s, r, thighs, ppm), ...parts];
-  return { parts: all, decals, materials: made, face: faceLook, profiles: profiles(m, s), anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
+  const all = [...body(m, s, r, thighs, ppm, fit.profiles), ...parts];
+  return { parts: all, decals, materials: made, face: faceLook, profiles: fit.profiles, anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
 }
 /**
  * A top's cuff on a side: a box round the forearm (`long` sleeves, at 0.9 of its length) or the upper arm (short, at 0.86).
@@ -242,12 +242,11 @@ const across = (upper: number, lower: number, y: number, soft: number) => (py: n
  * repaint (chest, waist, pelvis; shoulder, upper arm, forearm; thigh, knee, shin) is its own stretch of the one profile,
  * cut ring to ring, so a sleeve's end is a material's edge on an unbroken form.
  */
-function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number): Part[] {
+function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm: number | undefined, P: Profiles): Part[] {
   const g = s.genes, k = m.k, t = m.thick, fw = m.foot, foot = g.foot, hand = m.hand, fat = m.fat;
   const f = m.sliders.frame, mu = lerp(0.92, 1.1, m.sliders.muscle), D = k * t * m.depth;
   const a = k * t * m.arm * mu * lerp(1.04, 0.94, f), l = k * t * m.leg * lerp(0.96, 1.04, f), sh = g.shoulders, C = m.chest;
   const hipY = s.hipY, waistY = hipY + 0.155 * k, chestY = s.chestY, shoulderY = s.shoulderY, pelvisY = s.rest[J.pelvis][1];
-  const P = profiles(m, s);
   // ─── Torso: seat, hips, waist, ribs, chest, the shoulders up the trapezius to the neck ───
   const torso = P.torso;
   // The trunk bends at the spine: the hips ride the pelvis, the ribs the chest, the waist between them.
