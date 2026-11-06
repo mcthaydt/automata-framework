@@ -754,7 +754,7 @@ export and its 2D build) and the reverse would be a dependency cycle.
   exports the protocol, so this is a move, not a re-export
 - Test: `site/tests/unit/framework/*.test.ts`
 
-- [ ] **Step 1: Failing tests.** The guides loader lists `docs/guides/editor.md` and the four publish guides (W7);
+- [x] **Step 1: Failing tests.** The guides loader lists `docs/guides/editor.md` and the four publish guides (W7);
   the API loader lists the four published packages, not twelve (W4); the demos list comes from the examples' own
   manifest and has no `bodies-2d` (WS3).
 - [ ] **Step 2:** Implement the loaders; delete the sync scripts and every copy; `build-demos.ts` builds the examples
@@ -1758,3 +1758,18 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   packages), `playground-sync` and `stack-page` (they compare synced copies at `framework.ref`), and `scaffold` (the
   new name, fixed here). 491 tests pass.
 - **Gates.** `pnpm check` exit 0.
+
+### 2026-11-06, session 7 (continued): task 10.2, step 1 and the loaders
+
+- **Step 1.** `site/tests/unit/framework/{guides,packages,examples}.test.ts` (7 tests, Node environment) failed on the
+  missing modules, then pass against `site/src/shared/framework/`: `root.ts` (the repository root, four folders up),
+  `guides.ts` (`readGuides`: every `docs/guides/*.md`, title from its `# ` heading, description from the first
+  paragraph, `./x.md` links to `/docs/x`; a guide with no heading stops the build), `packages.ts`
+  (`publishedPackages`: the `packages/*` that are not private, the four a game author installs) and `examples.ts`
+  (`exampleList` from the examples runner's catalog over `examples/2d`, `featureDemos` from the demos' own
+  `package.json`: `hot-reload` and `primitives`, no `bodies-2d`). The site depends on `@mcthaydt/examples-runner`
+  (workspace) for the catalog.
+- **Deviation 94:** the guides carry no front matter (the website's old loader required `title` and `description`
+  fields from a `docs/guide/` folder that never existed under that name), so the title and description come from the
+  Markdown itself, and a guide's page is `/docs/<file>` rather than `/docs/guide-<file>`.
+- **Gates.** The 7 tests pass; `pnpm check` exit 0. Step 2 onward is the next session's.

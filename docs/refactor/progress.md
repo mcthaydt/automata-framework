@@ -207,10 +207,13 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 6, phase 8 done):** branch `claude/project-thread-8amzxc`, draft PR
-[#416](https://github.com/mcthaydt/automata-framework/pull/416) stacked on #415. Next is phase 9, task 9.1 (split the
-examples package). Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The plan's execution log
-has the counts, deviations and gates of every task so far.
+**Where to resume (2026-11-06, session 7):** branch `claude/project-thread-lwdsz9`, draft PR
+[#417](https://github.com/mcthaydt/automata-framework/pull/417) stacked on #416 (tasks 9.1, 10.1 and part of 10.2).
+Next is task 10.2 step 2: delete the site's sync scripts and synced copies, write `site/scripts/build-demos.ts`, move
+the playground half of `tooling/examples-runner` into the site, switch the docs, API and examples pages to
+`site/src/shared/framework/`, then bring `site` under knip (remove `ignoreWorkspaces`). Task 14.1 waits for the Owner
+to confirm the `automata` npm organisation. The plan's execution log has the counts, deviations and gates of every
+task so far.
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -244,7 +247,7 @@ has the counts, deviations and gates of every task so far.
 | 8.2 The suite opens the checkout; the rail lists what is there | 8 | Done, 2026-11-06 (`pnpm check` green; editor unit 3,245; editor Chromium browser projects 527 pass, 6 skipped; served on Emberwick it shows its two editors and no sample; WebKit, Firefox and hosted CI not run) | [#416](https://github.com/mcthaydt/automata-framework/pull/416) |
 | 9.1 Split the examples package | 9 | Done, 2026-11-06 (`pnpm check` green; the 2D build scans clean of the 3D beta, the 3D build holds it; 2D journeys 88 pass and 2 skipped in Chromium, the 3D ones 9 of 9 in Chromium; the goldens replay in Chromium; WebKit, Firefox and hosted CI not run) | PR to open |
 | 10.1 site/ with its history | 10 | Done, 2026-11-06 (`git subtree add` of the website's `main` at `4a514eb3`, 229 commits, unsquashed; `pnpm check` green with `site` left out of Biome and knip until 10.2 and 10.3; site tests: 10 of 78 files fail, all reading the old sibling checkout or the synced copies) | PR to open |
-| 10.2 Imports, not copies | 10 | Not started | |
+| 10.2 Imports, not copies | 10 | In progress, 2026-11-06: step 1's three failing tests written and the loaders that pass them (`site/src/shared/framework/`: guides, published packages, examples and feature demos; 7 tests). Left: step 2's deletions (sync scripts, `framework.ref`, synced copies and builds, `site/.github/`), `build-demos.ts`, the playground's move from `examples-runner`, and the pages switched to the loaders; then steps 3 and 4 | PR to open |
 | 10.3 The site's tooling matches the repository's | 10 | Not started | |
 | 11.1 One token source | 11 | Not started | |
 | 11.2 Geist and the icons | 11 | Not started | |
