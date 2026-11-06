@@ -86,14 +86,46 @@
             "cut": "north-east"
           }
         ],
-        [2, -0.875, "north-east"],
-        [4.875, -0.875, "east"],
-        [4.875, 6.875, "south"],
-        [-4.875, 6.875, "west"],
-        [-4.875, 3.5, "west"],
-        [-5.225, 3.5, "west"],
-        [-5.225, 2.5, "west"],
-        [-4.875, 2.5, "west"],
+        [
+          2,
+          -0.875,
+          "north-east"
+        ],
+        [
+          4.875,
+          -0.875,
+          "east"
+        ],
+        [
+          4.875,
+          6.875,
+          "south"
+        ],
+        [
+          -4.875,
+          6.875,
+          "west"
+        ],
+        [
+          -4.875,
+          3.5,
+          "west"
+        ],
+        [
+          -5.225,
+          3.5,
+          "west"
+        ],
+        [
+          -5.225,
+          2.5,
+          "west"
+        ],
+        [
+          -4.875,
+          2.5,
+          "west"
+        ],
         [
           -4.875,
           -0.875,
@@ -254,7 +286,11 @@
             "next": "hall"
           }
         ],
-        [-4.875, -0.875, "west"]
+        [
+          -4.875,
+          -0.875,
+          "west"
+        ]
       ]
     },
     {
@@ -271,11 +307,17 @@
           {
             "next": "corridor",
             "cut": "bulkhead",
-            "hideFrom": ["hall"],
+            "hideFrom": [
+              "hall"
+            ],
             "frame": false
           }
         ],
-        [1.475, -1.4, "corridor-east"],
+        [
+          1.475,
+          -1.4,
+          "corridor-east"
+        ],
         [
           1.475,
           -0.875,
@@ -316,8 +358,16 @@
             }
           }
         ],
-        [-0.75, -6.875, "end"],
-        [0.75, -6.875, "end"],
+        [
+          -0.75,
+          -6.875,
+          "end"
+        ],
+        [
+          0.75,
+          -6.875,
+          "end"
+        ],
         [
           1.475,
           -6.875,
@@ -418,10 +468,26 @@
       "open": true,
       "floorTexture": "floorDim",
       "corners": [
-        [1.725, -6.375, "closet-north"],
-        [4.475, -6.375, "closet-east"],
-        [4.475, -2.625, "closet-south"],
-        [1.725, -2.625, "corridor-east"],
+        [
+          1.725,
+          -6.375,
+          "closet-north"
+        ],
+        [
+          4.475,
+          -6.375,
+          "closet-east"
+        ],
+        [
+          4.475,
+          -2.625,
+          "closet-south"
+        ],
+        [
+          1.725,
+          -2.625,
+          "corridor-east"
+        ],
         [
           1.725,
           -3.5,
@@ -430,7 +496,11 @@
             "cut": "corridor-east"
           }
         ],
-        [1.725, -4.5, "corridor-east-north"]
+        [
+          1.725,
+          -4.5,
+          "corridor-east-north"
+        ]
       ]
     },
     {
@@ -468,8 +538,16 @@
             }
           }
         ],
-        [5.25, -7.0, "yard-south"],
-        [-1.475, -7.0, "yard-west"]
+        [
+          5.25,
+          -7.0,
+          "yard-south"
+        ],
+        [
+          -1.475,
+          -7.0,
+          "yard-west"
+        ]
       ]
     }
   ],
@@ -478,7 +556,10 @@
       "id": "exitWay",
       "from": "corridor",
       "to": "yard",
-      "span": [-0.75, 0.75],
+      "span": [
+        -0.75,
+        0.75
+      ],
       "zone": "corridor",
       "ceiling": 2.1,
       "light": 1
@@ -527,7 +608,9 @@
       ],
       "top": 4.9,
       "faces": {
-        "edges": [1],
+        "edges": [
+          1
+        ],
         "from": 3.2
       }
     },
@@ -1043,7 +1126,11 @@
       "z": 1.15,
       "range": 5,
       "radius": 1.7,
-      "color": [1, 0.72, 0.4]
+      "color": [
+        1,
+        0.72,
+        0.4
+      ]
     },
     {
       "id": "monitorGlow",
@@ -1053,7 +1140,11 @@
       "z": -3.05,
       "range": 2.6,
       "radius": 0,
-      "color": [0.45, 0.85, 0.55]
+      "color": [
+        0.45,
+        0.85,
+        0.55
+      ]
     },
     {
       "id": "hallLamp",
@@ -1063,7 +1154,11 @@
       "z": 2.6,
       "range": 7.5,
       "radius": 3.4,
-      "color": [1, 0.84, 0.6]
+      "color": [
+        1,
+        0.84,
+        0.6
+      ]
     },
     {
       "id": "wardLamp",
@@ -1073,7 +1168,11 @@
       "z": 3.4,
       "range": 6,
       "radius": 2.6,
-      "color": [1, 0.86, 0.62]
+      "color": [
+        1,
+        0.86,
+        0.62
+      ]
     },
     {
       "id": "corridorLamp",
@@ -1083,7 +1182,11 @@
       "z": -3.2,
       "range": 5.5,
       "radius": 2.6,
-      "color": [1, 0.8, 0.52]
+      "color": [
+        1,
+        0.8,
+        0.52
+      ]
     },
     {
       "id": "exitLamp",
@@ -1093,7 +1196,11 @@
       "z": -5.8,
       "range": 5.5,
       "radius": 1.8,
-      "color": [1, 0.78, 0.5]
+      "color": [
+        1,
+        0.78,
+        0.5
+      ]
     },
     {
       "id": "closetLamp",
@@ -1103,7 +1210,11 @@
       "z": -4.5,
       "range": 4.5,
       "radius": 2.2,
-      "color": [0.9, 0.9, 0.75]
+      "color": [
+        0.9,
+        0.9,
+        0.75
+      ]
     },
     {
       "id": "curtainWest",
@@ -1113,7 +1224,11 @@
       "z": -0.5,
       "range": 6,
       "radius": 3.2,
-      "color": [1, 0.6, 0.25]
+      "color": [
+        1,
+        0.6,
+        0.25
+      ]
     },
     {
       "id": "curtainEast",
@@ -1123,7 +1238,11 @@
       "z": 1.4,
       "range": 6,
       "radius": 3.2,
-      "color": [1, 0.6, 0.25]
+      "color": [
+        1,
+        0.6,
+        0.25
+      ]
     },
     {
       "id": "spark",
@@ -1133,7 +1252,11 @@
       "z": -4.1,
       "range": 4,
       "radius": 0,
-      "color": [0.6, 0.75, 1]
+      "color": [
+        0.6,
+        0.75,
+        1
+      ]
     },
     {
       "id": "moon",
@@ -1143,7 +1266,11 @@
       "z": 0.2,
       "range": 4.2,
       "radius": 0,
-      "color": [0.55, 0.68, 0.95]
+      "color": [
+        0.55,
+        0.68,
+        0.95
+      ]
     },
     {
       "id": "moonCorridor",
@@ -1153,7 +1280,11 @@
       "z": -4.9,
       "range": 3.2,
       "radius": 0,
-      "color": [0.55, 0.68, 0.95]
+      "color": [
+        0.55,
+        0.68,
+        0.95
+      ]
     },
     {
       "id": "wardFill",
@@ -1163,7 +1294,11 @@
       "z": 3.7,
       "range": 4.8,
       "radius": 0,
-      "color": [0.5, 0.66, 0.78]
+      "color": [
+        0.5,
+        0.66,
+        0.78
+      ]
     },
     {
       "id": "bayFill",
@@ -1173,7 +1308,11 @@
       "z": -0.8,
       "range": 4.4,
       "radius": 0,
-      "color": [0.6, 0.74, 0.76]
+      "color": [
+        0.6,
+        0.74,
+        0.76
+      ]
     },
     {
       "id": "sconce",
@@ -1183,7 +1322,11 @@
       "z": -0.3,
       "range": 3.6,
       "radius": 0,
-      "color": [1, 0.78, 0.5]
+      "color": [
+        1,
+        0.78,
+        0.5
+      ]
     },
     {
       "id": "dawnExit",
@@ -1193,7 +1336,11 @@
       "z": -6.3,
       "range": 4,
       "radius": 1.4,
-      "color": [0.82, 0.81, 0.84]
+      "color": [
+        0.82,
+        0.81,
+        0.84
+      ]
     },
     {
       "id": "dawnAlcove",
@@ -1203,7 +1350,11 @@
       "z": -2.5,
       "range": 5,
       "radius": 1.9,
-      "color": [0.82, 0.81, 0.84]
+      "color": [
+        0.82,
+        0.81,
+        0.84
+      ]
     },
     {
       "id": "dawnWard",
@@ -1213,7 +1364,11 @@
       "z": 2.0,
       "range": 6.5,
       "radius": 2.9,
-      "color": [0.82, 0.81, 0.84]
+      "color": [
+        0.82,
+        0.81,
+        0.84
+      ]
     },
     {
       "id": "dawnCorridor",
@@ -1223,7 +1378,11 @@
       "z": -3.6,
       "range": 5.5,
       "radius": 2.6,
-      "color": [0.82, 0.81, 0.84]
+      "color": [
+        0.82,
+        0.81,
+        0.84
+      ]
     },
     {
       "id": "dawnCloset",
@@ -1233,7 +1392,11 @@
       "z": -4.5,
       "range": 4.5,
       "radius": 2.1,
-      "color": [0.82, 0.81, 0.84]
+      "color": [
+        0.82,
+        0.81,
+        0.84
+      ]
     },
     {
       "id": "dawnHall",
@@ -1243,7 +1406,11 @@
       "z": 3.4,
       "range": 7.5,
       "radius": 3.6,
-      "color": [0.82, 0.81, 0.84]
+      "color": [
+        0.82,
+        0.81,
+        0.84
+      ]
     },
     {
       "id": "dawnReception",
@@ -1253,7 +1420,11 @@
       "z": 1.9,
       "range": 5,
       "radius": 2.0,
-      "color": [0.82, 0.81, 0.84]
+      "color": [
+        0.82,
+        0.81,
+        0.84
+      ]
     },
     {
       "id": "dawnYard",
@@ -1263,10 +1434,35 @@
       "z": -8.6,
       "range": 5,
       "radius": 1.3,
-      "color": [0.82, 0.81, 0.84]
+      "color": [
+        0.82,
+        0.81,
+        0.84
+      ]
     }
   ],
-  "bounce": [[3.05, 1.3, 1.15], [0, 1.3, -6], [-3.2, 1.3, 2.4], [0, 1.3, 3.2]],
+  "bounce": [
+    [
+      3.05,
+      1.3,
+      1.15
+    ],
+    [
+      0,
+      1.3,
+      -6
+    ],
+    [
+      -3.2,
+      1.3,
+      2.4
+    ],
+    [
+      0,
+      1.3,
+      3.2
+    ]
+  ],
   "nav": {
     "derive": false,
     "nodes": {
@@ -1348,36 +1544,121 @@
       }
     },
     "edges": [
-      ["end", "cmid"],
-      ["cmid", "closet", "closetDoor"],
-      ["closet", "closetN"],
-      ["cmid", "mouth"],
-      ["mouth", "hallN"],
-      ["hallN", "ward"],
-      ["hallN", "recep"],
-      ["hallN", "hallS"],
-      ["hallN", "recepN"],
-      ["ward", "bench"],
-      ["wardSouth", "hallS"],
-      ["ward", "hallS"],
-      ["ward", "bedside"],
-      ["bedside", "alcoveMouth"],
-      ["alcoveMouth", "alcove"],
-      ["bedside", "sinkSide"],
-      ["bench", "hallS"],
-      ["recep", "recepSW"],
-      ["recepSW", "recepS"],
-      ["recepSW", "hallS"],
-      ["recepS", "hallS"],
-      ["recep", "recepN"],
-      ["recepS", "recepIn", "receptionDoor"]
+      [
+        "end",
+        "cmid"
+      ],
+      [
+        "cmid",
+        "closet",
+        "closetDoor"
+      ],
+      [
+        "closet",
+        "closetN"
+      ],
+      [
+        "cmid",
+        "mouth"
+      ],
+      [
+        "mouth",
+        "hallN"
+      ],
+      [
+        "hallN",
+        "ward"
+      ],
+      [
+        "hallN",
+        "recep"
+      ],
+      [
+        "hallN",
+        "hallS"
+      ],
+      [
+        "hallN",
+        "recepN"
+      ],
+      [
+        "ward",
+        "bench"
+      ],
+      [
+        "wardSouth",
+        "hallS"
+      ],
+      [
+        "ward",
+        "hallS"
+      ],
+      [
+        "ward",
+        "bedside"
+      ],
+      [
+        "bedside",
+        "alcoveMouth"
+      ],
+      [
+        "alcoveMouth",
+        "alcove"
+      ],
+      [
+        "bedside",
+        "sinkSide"
+      ],
+      [
+        "bench",
+        "hallS"
+      ],
+      [
+        "recep",
+        "recepSW"
+      ],
+      [
+        "recepSW",
+        "recepS"
+      ],
+      [
+        "recepSW",
+        "hallS"
+      ],
+      [
+        "recepS",
+        "hallS"
+      ],
+      [
+        "recep",
+        "recepN"
+      ],
+      [
+        "recepS",
+        "recepIn",
+        "receptionDoor"
+      ]
     ],
-    "patrol": ["recepN", "hallN", "ward", "bedside", "ward", "hallS", "recepSW", "recep", "recepN"]
+    "patrol": [
+      "recepN",
+      "hallN",
+      "ward",
+      "bedside",
+      "ward",
+      "hallS",
+      "recepSW",
+      "recep",
+      "recepN"
+    ]
   },
   "zones": [
     {
       "id": "hall",
-      "look": [0, 1.1, 0.75],
+      "look": [
+        0,
+        1.1,
+        0.75
+      ],
       "distance": 16.6,
       "follow": 0.12,
       "depthFollow": {
@@ -1396,11 +1677,18 @@
     },
     {
       "id": "corridor",
-      "look": [0, 0.6, -4],
+      "look": [
+        0,
+        0.6,
+        -4
+      ],
       "distance": 16,
       "follow": 1,
       "area": {
-        "z": [null, -1.25]
+        "z": [
+          null,
+          -1.25
+        ]
       },
       "enter": {
         "shift": {
@@ -1414,13 +1702,23 @@
     },
     {
       "id": "closet",
-      "look": [2.8, 0.6, -4.4],
+      "look": [
+        2.8,
+        0.6,
+        -4.4
+      ],
       "distance": 15,
       "x": 2.2,
       "follow": 1,
       "area": {
-        "x": [1.7, null],
-        "z": [null, -1.25]
+        "x": [
+          1.7,
+          null
+        ],
+        "z": [
+          null,
+          -1.25
+        ]
       }
     }
   ],
@@ -1438,6 +1736,9 @@
   "exports": {
     "FUSE_BOX": "anchors.fuseBox",
     "LEAK": "anchors.leak",
-    "CURTAINS": ["curtainWest", "curtainEast"]
+    "CURTAINS": [
+      "curtainWest",
+      "curtainEast"
+    ]
   }
 }
