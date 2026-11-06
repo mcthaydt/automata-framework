@@ -121,8 +121,8 @@ describe.each(SIZES)('Tuner at $name ($width x $height)', (size) => {
     const split = (
       document.querySelector('[data-testid="tuner-split"]') as HTMLElement
     ).getBoundingClientRect()
-    // Every iPad and a phone held sideways have room side by side; a phone upright and a small window stack.
-    expect(split.width >= 480).toBe(!['phone-portrait', 'window-900x600'].includes(size.name))
+    // Every iPad, a small window and a phone held sideways have room side by side; a phone upright stacks.
+    expect(split.width >= 480).toBe(size.name !== 'phone-portrait')
     if (split.width >= 480) {
       expect(gameBox.right).toBeLessThanOrEqual(rowsBox.left + 0.5)
       expect(Math.abs(gameBox.top - rowsBox.top)).toBeLessThan(1)

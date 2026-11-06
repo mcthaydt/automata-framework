@@ -100,6 +100,7 @@ export {
   nextDetent,
   type ShellMode,
   type ShellRegion,
+  shellModeAt,
   shellModeOf,
 } from '../shared/kit/shell/shell-mode'
 export { type OpenState, reconcileOpen } from '../shared/kit/shell/shell-open'

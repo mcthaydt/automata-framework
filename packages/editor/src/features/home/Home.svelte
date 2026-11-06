@@ -15,7 +15,7 @@ import { onMount, tick } from 'svelte'
 import FilePick from '../../shared/kit/home/FilePick.svelte'
 import UnavailableNotice from '../../shared/kit/home/UnavailableNotice.svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
-import { shellModeOf } from '../../shared/kit/shell/shell-mode'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
@@ -68,7 +68,7 @@ let details = $state(false)
 let list = $state<{ focusSelected(): void }>()
 
 const busy = $derived(view.busy !== undefined)
-const menu = $derived(shellModeOf(geometry.current.formFactor) === 'compact' ? 'sheet' : 'popover')
+const menu = $derived(shellModeAt(geometry.current) === 'compact' ? 'sheet' : 'popover')
 const selected = $derived(view.visible.find((entry) => entry.path === view.selected))
 const cards = $derived(view.visible.map((entry: ProjectEntry) => homeCard(entry, registry, thumbnails)))
 const templates = $derived(templateCards(registry))

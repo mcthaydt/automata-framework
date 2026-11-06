@@ -13,6 +13,7 @@ import type { Component, Snippet } from 'svelte'
 import { componentOf } from '../../app/editor-2d/views'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
@@ -110,8 +111,8 @@ let arrived = $state(false)
 let fromSwitcher = $state(false)
 /** The path Problems' Show asked for, handed to the view it opens; choosing from the switcher drops it. */
 let focus = $state<string | undefined>(undefined)
-/** A phone: the switcher is a menu. */
-const compact = $derived(geometry.current.formFactor.startsWith('phone'))
+/** The compact layout (a phone, or a window 760 px across and narrower): the switcher is a menu. */
+const compact = $derived(shellModeAt(geometry.current) === 'compact')
 /**
  * A phone or an iPad held upright: the top bar takes two rows, so the name and the Level view's level picker keep
  * their words beside Back and Save (one row at 744 px cut the picker to its first letter).

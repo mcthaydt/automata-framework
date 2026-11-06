@@ -116,7 +116,7 @@ async function chooseSlime(size: EditorSize): Promise<void> {
   if (row === undefined) throw new Error('no slime row')
   row.click()
   await arrived()
-  if (size.mode !== 'wide' && region('panel').dataset.open === 'true') {
+  if (size.mode === 'compact' && region('panel').dataset.open === 'true') {
     buttonNamed(byTestId('entities-view'), 'All characters').click()
     await arrived()
   }
@@ -134,7 +134,7 @@ describe.each(SIZES)('Entities view at $name ($width x $height)', (size) => {
     await chooseSlime(size)
     const tabs = switcherControls()
     const essentials = [...['undo', 'redo', 'save'].map(byTestId), ...tabs]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('entities-view'), 'All characters'))
+    if (size.mode === 'compact') essentials.push(buttonNamed(byTestId('entities-view'), 'All characters'))
     expect(checkLayout(conditions, essentials)).toEqual([])
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)

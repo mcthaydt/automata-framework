@@ -83,9 +83,9 @@ function expectInside(element: Element, size: EditorSize): void {
   expect(box.bottom).toBeLessThanOrEqual(size.height + 0.5)
 }
 
-/** Opens the layer panel below wide, where it is a drawer or a sheet. */
+/** Opens the layer panel in the compact layout, where it is a sheet (it is always in view otherwise). */
 async function showLayers(size: EditorSize): Promise<void> {
-  if (size.mode === 'wide') return
+  if (size.mode !== 'compact') return
   buttonNamed(byTestId('level-toolbar'), 'Layers').click()
   await arrived()
 }
@@ -100,7 +100,7 @@ describe.each(SIZES)('Level view at $name ($width x $height)', (size) => {
       size.mode === 'compact' ? ['Level'] : ['Level', 'Map', 'Tiles', 'Characters'],
     )
     const essentials = [buttonNamed(bar, 'Back'), ...['undo', 'redo', 'save'].map(byTestId), ...tabs]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('level-toolbar'), 'Layers'))
+    if (size.mode === 'compact') essentials.push(buttonNamed(byTestId('level-toolbar'), 'Layers'))
     expect(checkLayout(conditions, essentials)).toEqual([])
     for (const tab of tabs) expectInside(tab, size)
     await page.screenshot({ path: `.vitest/shots/level-view-${size.name}.png` })
@@ -208,7 +208,7 @@ describe.each(SIZES)('Level view inspector, tools and levels at $name ($width x 
     const tools = [...toolbar.querySelectorAll<HTMLElement>('[role="radiogroup"] [role="radio"]')]
     expect(tools.length).toBe(6)
     const essentials = [tools[0] as HTMLElement, byTestId('undo'), byTestId('save'), ...switcherControls()]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(toolbar, 'Layers'))
+    if (size.mode === 'compact') essentials.push(buttonNamed(toolbar, 'Layers'))
     for (const control of essentials) expectInside(control, size)
     // The pill is a declared sideways scroll region (it scrolls rather than squeeze a label), so a canvas too narrow
     // for it reaches the later tools by scrolling it: each one comes fully into view without the page moving.

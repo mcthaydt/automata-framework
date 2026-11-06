@@ -40,10 +40,10 @@ const at = (
 const SIZES: readonly EditorSize[] = [
   at('ipad-pro-11-landscape', 1194, 834, 'wide', 'desktop'),
   at('ipad-pro-13-landscape', 1366, 1024, 'wide', 'desktop'),
-  at('ipad-mini-landscape', 1133, 744, 'wide', 'desktop'),
-  at('window-900x600', 900, 600, 'wide', 'desktop', 'short'),
+  at('ipad-mini-landscape', 1133, 744, 'medium', 'desktop'),
+  at('window-900x600', 900, 600, 'medium', 'desktop', 'short'),
   at('ipad-pro-11-portrait', 834, 1194, 'medium', 'tablet-portrait'),
-  at('ipad-mini-portrait', 744, 1133, 'medium', 'tablet-portrait'),
+  at('ipad-mini-portrait', 744, 1133, 'compact', 'tablet-portrait'),
   at('phone-portrait', 390, 844, 'compact', 'phone-portrait'),
   at('phone-landscape', 844, 390, 'compact', 'phone-landscape', 'short'),
 ]
@@ -96,7 +96,7 @@ describe.each(SIZES)('shell layout at $name ($width x $height)', (size) => {
     await settleLayout()
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
     // With the keyboard up the shell ends above it and `checkLayout` checks nothing sits under it; reaching
-    // a control may then take a scroll, so none is required to be in view. Open drawers cover the canvas.
+    // a control may then take a scroll, so none is required to be in view. An open inspector or sheet covers the canvas.
     const nothingOpen = Object.keys(props).length === 0
     const essentials = variant.keyboard === undefined ? [...CHROME, ...(nothingOpen ? CANVAS : [])] : []
     expect(checkLayout(conditions, essentials.map(byTestId))).toEqual([])
@@ -154,23 +154,17 @@ describe('wide: rail, panel, canvas, inspector, dock beneath, status at the foot
     near(dock.bottom, status.top)
   })
 
-  test('a 900 x 600 window keeps the dock closed behind its handle and gives the canvas the room', async () => {
-    await open(size('window-900x600'))
+  test('a 1280 x 560 window keeps the dock closed behind its handle and gives the canvas the room', async () => {
+    await open(at('window-1280x560', 1280, 560, 'wide', 'desktop', 'short'))
     expect(region('dock')).toHaveAttribute('data-presentation', 'sheet')
     expect(getComputedStyle(region('dock')).visibility).toBe('hidden')
     near(rect('canvas').bottom, rect('status').top)
-  })
-
-  test('an iPad mini in landscape (1133 x 744) keeps the dock inline', async () => {
-    await open(size('ipad-mini-landscape'))
-    expect(region('dock')).toHaveAttribute('data-presentation', 'inline')
-    near(rect('dock').height, 148)
   })
 })
 
 describe('a screen with no panel gives its column to the canvas', () => {
   test('wide: the canvas starts where the rail ends', async () => {
-    await open(size('window-900x600'), { panel: false })
+    await open(size('ipad-pro-11-landscape'), { panel: false })
     near(rect('canvas').left, rect('rail').right)
     expect(document.querySelector('[data-region="panel"]')).toBeNull()
   })
@@ -178,9 +172,9 @@ describe('a screen with no panel gives its column to the canvas', () => {
 
 describe('a screen with no inspector gives its column to the canvas', () => {
   test('wide: the canvas runs to the right edge', async () => {
-    await open(size('window-900x600'), { inspector: false })
+    await open(size('ipad-pro-11-landscape'), { inspector: false })
     near(rect('canvas').left, rect('panel').right)
-    near(rect('canvas').right, 900)
+    near(rect('canvas').right, 1194)
     expect(document.querySelector('[data-region="inspector"]')).toBeNull()
   })
 })
@@ -199,7 +193,7 @@ describe('a screen with no rail gives its column and its tab bar to the canvas',
   })
 
   test.each([
-    ['ipad-pro-11-portrait', 834, 1194],
+    ['ipad-pro-11-portrait', 834 - 264, 1194],
     ['phone-portrait', 390, 844],
     ['phone-landscape', 844, 390],
   ])('%s: the status line is the foot of the window', async (name, width, height) => {
@@ -244,21 +238,55 @@ describe('a toast in the sheets clears the foot (the tab bar and the status line
 })
 
 describe('a screen with no dock does not leave room for one', () => {
-  test('medium: open drawers run to the foot of the canvas, not to where a dock sheet would begin', async () => {
-    await open(size('ipad-pro-11-portrait'), {
-      rail: false,
-      dock: false,
-      panelOpen: true,
-      inspectorOpen: true,
-    })
-    near(rect('panel').bottom, rect('canvas').bottom)
-    near(rect('inspector').bottom, rect('canvas').bottom)
+  test('medium: the open inspector keeps to the foot of the canvas, not above where a dock sheet would begin', async () => {
+    await open(size('ipad-pro-11-portrait'), { rail: false, dock: false, inspectorOpen: true })
+    near(rect('inspector').bottom, rect('canvas').bottom - 12)
   })
 })
 
-describe('medium and compact: the canvas takes the width, the rail is a tab bar', () => {
+describe('medium: the panel beside the canvas, the inspector floating over it, the rail a tab bar', () => {
+  test('ipad-pro-11-portrait', async () => {
+    await open(size('ipad-pro-11-portrait'))
+    near(rect('panel').left, 0)
+    near(rect('panel').width, 264)
+    near(rect('canvas').left, rect('panel').right)
+    near(rect('canvas').right, 834)
+    near(rect('panel').top, rect('topbar').bottom)
+    near(rect('panel').bottom, rect('canvas').bottom)
+    near(rect('rail').height, 64)
+    near(rect('rail').bottom, 1194)
+    near(rect('rail').width, 834)
+    near(rect('canvas').bottom, rect('status').top)
+    near(rect('status').bottom, rect('rail').top)
+  })
+
+  test('the closed inspector is out of sight, inert and still laid out', async () => {
+    await open(size('ipad-pro-11-portrait'))
+    expect(region('inspector')).toHaveAttribute('inert')
+    expect(getComputedStyle(region('inspector')).visibility).toBe('hidden')
+    expect(rect('inspector').height).toBeGreaterThan(0)
+  })
+
+  test('the open inspector is a live card over the canvas’s lower right, as wide as the wide inspector', async () => {
+    await open(size('ipad-pro-11-portrait'), { rail: false, dock: false, inspectorOpen: true })
+    expect(region('inspector')).not.toHaveAttribute('inert')
+    expect(getComputedStyle(region('inspector')).visibility).toBe('visible')
+    near(rect('inspector').width, 320)
+    near(rect('inspector').right, rect('canvas').right - 12)
+    // Clear of the row a stage pill floats in: 12 px margins either side of a target, its padding and its edges.
+    expect(rect('inspector').top).toBeGreaterThanOrEqual(rect('canvas').top + 24 + targets.hit + 8 + 2 - 1)
+  })
+
+  test('the inspector sits above an open dock sheet instead of under it', async () => {
+    await open(size('ipad-pro-11-portrait'), { inspectorOpen: true, dockOpen: true })
+    const dock = rect('dock')
+    expect(rect('inspector').bottom).toBeLessThanOrEqual(dock.top + 1)
+    near(dock.bottom, rect('canvas').bottom)
+  })
+})
+
+describe('compact: the canvas takes the width, the rail is a tab bar', () => {
   test.each([
-    ['ipad-pro-11-portrait', 834, 1194],
     ['phone-portrait', 390, 844],
     ['phone-landscape', 844, 390],
   ])('%s', async (name, width, height) => {
@@ -272,33 +300,6 @@ describe('medium and compact: the canvas takes the width, the rail is a tab bar'
     near(rect('canvas').top, rect('topbar').bottom)
     near(rect('canvas').bottom, rect('status').top)
     near(rect('status').bottom, rect('rail').top)
-  })
-
-  test('the drawers of medium are out of sight, inert and still laid out while closed', async () => {
-    await open(size('ipad-pro-11-portrait'))
-    for (const name of ['panel', 'inspector']) {
-      expect(region(name)).toHaveAttribute('inert')
-      expect(getComputedStyle(region(name)).visibility).toBe('hidden')
-      expect(rect(name).height).toBeGreaterThan(0)
-    }
-  })
-
-  test('an open drawer is live, as wide as the mockup, and sits against its edge', async () => {
-    await open(size('ipad-pro-11-portrait'), { panelOpen: true, inspectorOpen: true })
-    expect(region('panel')).not.toHaveAttribute('inert')
-    expect(getComputedStyle(region('panel')).visibility).toBe('visible')
-    near(rect('panel').width, 320)
-    near(rect('panel').left, 0)
-    near(rect('inspector').width, 320)
-    near(rect('inspector').right, 834)
-  })
-
-  test('drawers end above an open dock sheet instead of running under it', async () => {
-    await open(size('ipad-pro-11-portrait'), { panelOpen: true, inspectorOpen: true, dockOpen: true })
-    const dock = rect('dock')
-    expect(rect('panel').bottom).toBeLessThanOrEqual(dock.top + 1)
-    expect(rect('inspector').bottom).toBeLessThanOrEqual(dock.top + 1)
-    near(dock.bottom, rect('canvas').bottom)
   })
 })
 
@@ -384,12 +385,12 @@ describe('when the window turns or the keyboard comes up', () => {
     expect(byTestId('canvas-field')).toBe(field)
     expect(document.activeElement).toBe(field)
     expect(field.value).toBe('Rooftops')
-    near(rect('canvas').width, portrait.width)
+    near(rect('canvas').width, portrait.width - 264)
   })
 
-  test('the panel keeps its scroll position when it turns into a closed drawer and back', async () => {
+  test('the panel keeps its scroll position when it turns into a closed sheet and back', async () => {
     const landscape = size('ipad-pro-11-landscape')
-    const portrait = size('ipad-pro-11-portrait')
+    const portrait = size('phone-portrait')
     await page.viewport(landscape.width, landscape.height)
     publishConditions(document.documentElement, landscape, REST, targets)
     const geometry = stubGeometry(landscape.width, landscape.height)

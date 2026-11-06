@@ -1,6 +1,7 @@
 <!--
-  The pill that floats over an editor's stage (spec 11.4): one row of controls, centred at the stage's top from an
-  iPad up and at its foot on a phone, under the thumb (`at`). The Level view's tools live in one; Map, Tiles and
+  The pill that floats over an editor's stage (spec 11.4): one row of controls, centred at the stage's top or foot
+  (`at`), or, in the compact layout, a dock: a plain bar across the stage's foot, under the thumb (the approved
+  mockup's tool dock). The Level view's tools live in one; Map, Tiles and
   Characters put the buttons that open their list and their details in one, so every view has the same frame.
 
   It is a sibling of the stage's surface, never inside it, so a press on it never reaches the stage's gestures; the
@@ -15,8 +16,8 @@ import type { Snippet } from 'svelte'
 interface Props {
   /** The toolbar's accessible name ("Tools", "Map controls"). */
   label: string
-  /** Where the pill floats: the stage's top, or its foot (a phone). */
-  at?: 'top' | 'bottom'
+  /** Where the pill floats: the stage's top or foot, or docked across the foot (the compact layout). */
+  at?: 'top' | 'bottom' | 'dock'
   testId?: string | undefined
   children: Snippet
 }
@@ -59,25 +60,30 @@ const { label, at = 'bottom', testId, children }: Props = $props()
     top: var(--space-3);
     bottom: auto;
   }
-  /* The pill stays in the part of the stage that an open drawer or sheet leaves, so the button that closes it (and
-     the Map's Fit) is never under it. On an iPad a drawer covers one edge of the stage, `--shell-drawer` wide: the pill
-     centres in what is left. On a phone a sheet rises from the foot: the pill moves to the top while one is open. */
-  :global(.shell[data-mode='medium']:has([data-region='inspector'][data-open='true'])) .stage-pill {
-    left: calc((100% - var(--shell-drawer)) / 2);
+  /* The dock: a bar across the stage's foot with square corners, its controls spread so each thumb reaches one. */
+  .stage-pill[data-at='dock'] {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+    max-width: none;
+    justify-content: space-around;
+    border-width: 1px 0 0;
+    border-radius: 0;
   }
-  :global(.shell[data-mode='medium']:has([data-region='panel'][data-open='true'])) .stage-pill {
-    left: calc(var(--shell-drawer) + (100% - var(--shell-drawer)) / 2);
+  .stage-pill[data-at='dock'] :global(.segmented) {
+    flex: 1 1 auto;
+    justify-content: space-around;
   }
-  :global(
-      .shell[data-mode='medium']:has([data-region='panel'][data-open='true']):has(
-          [data-region='inspector'][data-open='true']
-        )
-    )
-    .stage-pill {
-    left: 50%;
+  /* A sheet rises from above the dock, never over it, so the button that opened it (Layers, Details) still closes it and
+     the Map's Fit stays in reach. The dock's height: a target, its padding and its top edge. */
+  :global(.shell[data-mode='compact']:has(.stage-pill[data-at='dock']) [data-presentation='sheet']) {
+    margin-bottom: calc(var(--size-hit) + 2 * var(--space-1) + 1px);
+    max-height: calc(100% - var(--size-hit) - 2 * var(--space-1) - 1px);
   }
+  /* On a phone a sheet rises from the foot: a floating pill moves to the top while one is open. */
   :global(.shell[data-mode='compact']:has(:is([data-region='panel'], [data-region='inspector'])[data-open='true']))
-    .stage-pill {
+    .stage-pill[data-at='bottom'] {
     top: var(--space-3);
     bottom: auto;
   }

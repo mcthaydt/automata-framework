@@ -13,7 +13,7 @@ import type { WriteOutcome } from '../../../shared/editor-list/write-path'
 import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor'
 import type { CheckFinding, SuitePorts, WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import EditorShell from '../../../shared/kit/shell/EditorShell.svelte'
-import { defaultDockOpen, dockPlacementOf, shellModeOf } from '../../../shared/kit/shell/shell-mode'
+import { defaultDockOpen, dockPlacementOf, shellModeAt } from '../../../shared/kit/shell/shell-mode'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import ToastRegion from '../../../shared/kit/widgets/ToastRegion.svelte'
 import { createToasts } from '../../../shared/kit/widgets/toasts'
@@ -57,7 +57,7 @@ let dockOpen = $state<boolean | undefined>()
 const sessions = new SvelteMap<string, unknown>()
 const opening = new Set<string>()
 
-const mode = $derived(shellModeOf(geometry.current.formFactor))
+const mode = $derived(shellModeAt(geometry.current))
 // Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
 const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
 const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))

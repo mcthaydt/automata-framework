@@ -2,8 +2,9 @@
   The Level view's canvas region, canvas first (spec 11.4): the Pixi level canvas fills the region edge to edge, with
   the kit's gesture recogniser on it feeding the session through the gesture map, and the keyboard shortcuts. Over it
   float the tool pill (`LevelToolbar`) and, in a corner, Fit (the whole level in view) and, below `wide`, Details (the
-  inspector): the pill at the foot with the corner at the top right on a phone, the pill at the top with the corner at
-  the bottom right from an iPad up (the design thread's revised mockup). Both float as siblings of the canvas's box, not inside it, so a press on them
+  inspector): on a phone the tools are a dock across the foot and the corner sits at the top right; from an iPad up the
+  pill floats at the top and the corner at the bottom right, or at the bottom left in the medium layout, where the
+  floating inspector takes the lower right (the approved mockup). Both float as siblings of the canvas's box, not inside it, so a press on them
   never reaches the gestures. A locked or hidden layer says so in the left corner across from Fit instead of ignoring the pen
   without a word. The toggles for the panel and the inspector are the host shell's, so they come in as props.
 -->
@@ -38,8 +39,8 @@ interface Props {
   showInspector?: boolean
   inspectorOpen?: boolean
   oninspector?: () => void
-  /** Where the tool pill floats; with it at the top, Fit, Details and the layer message move to the foot. */
-  toolsAt?: 'top' | 'bottom'
+  /** Where the tool pill floats, or a dock at the foot; with it at the top, Fit, Details and the layer message move down. */
+  toolsAt?: 'top' | 'bottom' | 'dock'
 }
 
 const {
@@ -123,7 +124,8 @@ $effect(() => {
 })
 </script>
 
-<div class="stage" data-tools={toolsAt}>
+<!-- The corner leaves the lower right to the floating inspector when the tools are at the top and Details opens one. -->
+<div class="stage" data-tools={toolsAt} data-corner={showInspector && toolsAt === 'top' ? 'start' : 'end'}>
   <!-- svelte-ignore a11y_no_noninteractive_tabindex: the canvas takes focus so arrows nudge the selection -->
   <div
     class="surface"
@@ -192,6 +194,15 @@ $effect(() => {
   .stage[data-tools='top'] .blocked {
     top: auto;
     bottom: var(--space-3);
+  }
+  /* Medium: the corner moves to the lower left, and the message sits under the pill's row, clear of both. */
+  .stage[data-corner='start'] .corner {
+    right: auto;
+    left: var(--space-3);
+  }
+  .stage[data-tools='top'][data-corner='start'] .blocked {
+    top: calc(2 * var(--space-3) + var(--size-hit) + 2 * var(--space-1) + 2px);
+    bottom: auto;
   }
   /* Top left, leaving the corner controls their room (two 44 px buttons and the margins). */
   .blocked {

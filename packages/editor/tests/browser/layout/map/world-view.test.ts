@@ -84,7 +84,7 @@ const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
   return found
 }
 
-/** Below wide, presses the map's drawer button until its region says it is open. */
+/** Below wide, presses the button that opens the list or the details until its region says it is open. */
 async function openDrawer(
   size: EditorSize,
   name: 'All levels' | 'Details',
@@ -101,7 +101,9 @@ async function closeDrawer(
   name: 'All levels' | 'Details',
   regionName: string,
 ): Promise<void> {
-  if (size.mode === 'wide' || region(regionName).dataset.open !== 'true') return
+  // In medium the list is always beside the map: there is nothing to close.
+  if (size.mode === 'wide' || (size.mode === 'medium' && regionName === 'panel')) return
+  if (region(regionName).dataset.open !== 'true') return
   buttonNamed(view(), name).click()
   await arrived()
 }
@@ -128,8 +130,8 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
   test('the map fills the canvas; the panel and inspector controls are full-size; the page never scrolls', async () => {
     const { conditions } = await start(size)
     const tabs = switcherControls()
-    const drawers =
-      size.mode === 'wide' ? [] : ['All levels', 'Details'].map((name) => buttonNamed(view(), name))
+    const opens = size.mode === 'wide' ? [] : size.mode === 'medium' ? ['Details'] : ['All levels', 'Details']
+    const drawers = opens.map((name) => buttonNamed(view(), name))
     expect(checkLayout(conditions, [...tabs, ...drawers])).toEqual([])
     // The map fills the canvas below any drawer buttons, and the levels sit in the middle of it: the camera is fitted
     // to the box the map really has (review of #310: in wide the map took only its content's height).

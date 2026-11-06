@@ -1,7 +1,7 @@
 <!--
   The Level view's tools: one pill floating over the canvas (spec 11.4), centred at its top from an iPad up and at its
-  foot on a phone, under the thumb (`at`), never running off the edge (G5). It holds, below `wide`, Layers (which opens the layers and
-  the palette as a drawer or a sheet), then the six tools as icons, each named in plain words (its tooltip and its
+  foot on a phone as a dock under the thumb (`at`), never running off the edge (G5). It holds, in the compact layout,
+  Layers (which opens the layers and the palette as a sheet), then the six tools as icons, each named in plain words (its tooltip and its
   accessible name: Select, Brush, Rectangle, Fill, Eraser, Copy a tile), and while a brush or the eraser is out the
   brush size, a 44 px button showing the number that opens a popover with the stepper. Fit and Details are the
   canvas's own corner controls (`LevelStage`), so the pill stays one row on a 390 px phone. The pill itself (where it
@@ -21,14 +21,14 @@ import type { LevelTool } from '../../shared/level-2d/model/editor-view'
 interface Props {
   tool: LevelTool
   brushSize: number
-  /** Below `wide` the panel is a drawer or a sheet, opened from here. */
+  /** In the compact layout the panel is a sheet, opened from here. */
   showLayers: boolean
   layersOpen: boolean
   ontool: (tool: LevelTool) => void
   onbrushsize: (size: number) => void
   onlayers: () => void
-  /** Where the pill floats: the canvas's top, or its foot (a phone). */
-  at?: 'top' | 'bottom'
+  /** Where the pill floats: the canvas's top or foot, or a dock across the foot (the compact layout). */
+  at?: 'top' | 'bottom' | 'dock'
 }
 
 const {

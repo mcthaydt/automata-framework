@@ -9,7 +9,7 @@
 import { onDestroy } from 'svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import StagePill from '../../shared/kit/shell/StagePill.svelte'
-import { shellModeOf } from '../../shared/kit/shell/shell-mode'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { ViewProps } from '../document/view-props'
@@ -38,10 +38,10 @@ const stop = session?.subscribe(() => {
   selection = session.selection
 })
 
-const mode = $derived(shellModeOf(geometry.current.formFactor))
+const mode = $derived(shellModeAt(geometry.current))
 const wide = $derived(mode === 'wide')
 /** Where the pill with the list and Details floats below `wide`: at the stage's foot on a phone, its top on an iPad. */
-const pillAt = $derived(mode === 'compact' ? 'bottom' : 'top')
+const pillAt = $derived(mode === 'compact' ? 'dock' : 'top')
 const images = $derived(new Set(urls.keys()))
 const tileset = $derived(project?.defs.tilesets.find((set) => set.id === selection?.tileset))
 const preview = $derived(
@@ -106,13 +106,15 @@ onDestroy(() => {
       </div>
       {#if !wide}
         <StagePill label="Tiles controls" at={pillAt}>
-          <IconButton
-            icon="list"
-            label="All tiles"
-            showLabel
-            aria-expanded={panelOpen}
-            onclick={() => (panelOpen = !panelOpen)}
-          />
+          {#if mode === 'compact'}
+            <IconButton
+              icon="list"
+              label="All tiles"
+              showLabel
+              aria-expanded={panelOpen}
+              onclick={() => (panelOpen = !panelOpen)}
+            />
+          {/if}
           <IconButton
             icon="inspector"
             label="Details"
@@ -154,7 +156,8 @@ onDestroy(() => {
   .stage[data-pill='top'] {
     padding-top: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
   }
-  .stage[data-pill='bottom'] {
+  .stage[data-pill='bottom'],
+  .stage[data-pill='dock'] {
     padding-bottom: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
   }
   .none,

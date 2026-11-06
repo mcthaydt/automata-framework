@@ -10,7 +10,7 @@
 <script lang="ts">
 import { onDestroy } from 'svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
-import { shellModeOf } from '../../shared/kit/shell/shell-mode'
+import { shellModeAt } from '../../shared/kit/shell/shell-mode'
 import { projectHistory } from '../../shared/level-2d/model/edit-history'
 import type { ViewProps } from '../document/view-props'
 import LevelInspector from './LevelInspector.svelte'
@@ -37,10 +37,10 @@ const history = opened.history
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
 
-const mode = $derived(shellModeOf(geometry.current.formFactor))
+const mode = $derived(shellModeAt(geometry.current))
 const wide = $derived(mode === 'wide')
 
-// Selecting something opens the inspector on it, so below `wide` (where the inspector is a drawer or a sheet) the
+// Selecting something opens the inspector on it, so below `wide` (where the inspector floats or is a sheet) the
 // thing just placed or tapped shows its fields without a second tap. Only a new selection opens it: closing the
 // sheet with the same thing still selected keeps it closed.
 let selectedBefore = session?.editor.view.selected.join() ?? ''
@@ -88,8 +88,8 @@ onDestroy(() => {
         canvas={services.canvas}
         onundo={services.onundo}
         onredo={services.onredo}
-        toolsAt={mode === 'compact' ? 'bottom' : 'top'}
-        showLayers={!wide}
+        toolsAt={mode === 'compact' ? 'dock' : 'top'}
+        showLayers={mode === 'compact'}
         layersOpen={panelOpen}
         onlayers={() => (panelOpen = !panelOpen)}
         showInspector={!wide}

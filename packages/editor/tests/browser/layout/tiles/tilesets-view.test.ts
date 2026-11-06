@@ -111,7 +111,7 @@ describe.each(SIZES)('Tilesets view at $name ($width x $height)', (size) => {
     const { conditions } = await start(size)
     const tabs = switcherControls()
     const essentials = [...['undo', 'redo', 'save'].map(byTestId), ...tabs]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('tilesets-view'), 'All tiles'))
+    if (size.mode === 'compact') essentials.push(buttonNamed(byTestId('tilesets-view'), 'All tiles'))
     expect(checkLayout(conditions, essentials)).toEqual([])
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
