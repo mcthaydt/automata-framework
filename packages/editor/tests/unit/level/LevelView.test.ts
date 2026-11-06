@@ -216,6 +216,21 @@ const inspectorTab = (name: string): HTMLElement =>
 const stepper = (name: string): string | null =>
   screen.getByRole('spinbutton', { name }).getAttribute('aria-valuenow')
 
+describe('Level view: the inspector opens on selection', () => {
+  const inspectorRegion = (): HTMLElement =>
+    document.querySelector('[data-region="inspector"]') as HTMLElement
+
+  it('on a phone, placing a thing opens the inspector sheet on it', async () => {
+    measuredAt(390, 600)
+    await mount([390, 844])
+    await userEvent.click(screen.getByRole('button', { name: 'Layers' }))
+    expect(inspectorRegion()).toHaveAttribute('data-open', 'false')
+    await placeSlime()
+    expect(inspectorRegion()).toHaveAttribute('data-open', 'true')
+    expect(inspectorTab('Entity')).toHaveAttribute('aria-selected', 'true')
+  })
+})
+
 describe('Level view: inspector journey (flow 3, G-e)', () => {
   it('places a thing, edits its fields, refuses a bad value and undoes', async () => {
     await mount()
