@@ -69,8 +69,36 @@ Before/after pairs (left "Now", right "Proposed"), in the project's shared folde
 Checks on the branch: editor unit (all), `layout (chromium)` (all), `svelte-check`. WebKit and Firefox layout runs are
 not runnable in cloud sessions and are pending on the Owner's machine.
 
+## Site options (mockups, to pick one)
+
+The Owner, 2026-11-06, approving the plan: "Let's do that": the site mockups decide the direction, then phase 18 builds
+it together with the site visual audit's fixes (`refactor/2026-11-06-site-visual-audit.md`).
+
+Every option shares the same base: square corners, no frosted glass, no glow, no fluted textures, the lime logo mark
+and the live LED kept as the one accent, and the audit's shared-layout fixes:
+
+- **M1** footer, "On this page", Copy, Restart / Fullscreen / Open demo, the hero's text link and the logo are 44 px.
+- **M2** code never breaks inside a word; every block scrolls sideways the same way.
+- **M4** the phone menu is solid paper, so the heading no longer shows through.
+- **L1** no `⌘K` on touch screens.
+- **L3** the floating vertical "EMBERWICK" label is gone.
+
+M3 (phone landscape), H4 (API page length), H5 (first example), the header links (M6) and all copy are page structure,
+not look; they stay in phase 18 and 20 as the audit says.
+
+| Option | Primary action | On a dark stage | Reads as |
+| --- | --- | --- | --- |
+| **A. Ink** (recommended) | ink panel, paper text | paper panel, ink text | the editors' own look: one system, sober, professional |
+| **B. Cobalt** | cobalt panel, light text | paper panel, cobalt text | more brand colour; cobalt also marks selection, so the two compete |
+| **C. Lime, flat** | chartreuse panel with an ink edge | same | closest to today, still playful; needs the ink edge to stay crisp |
+
+Pictures: shared folder `refactor/2026-11-06-visual-direction/site-options/`, each a row of Now, A, B and C:
+`home`, `start`, `docs_quick-start`, `examples`, `editors`, `showcase` at `--desktop` and `--phone`, plus
+`menu-open--phone` and `code--phone`. The CSS of each option is beside them (`opt-a-ink.css` and so on); it is
+injected into the running site for the screenshot only.
+
 ## For the site, later
 
-If the Owner likes the mockups, the site change is the override turned into real edits of `site/src/app.css` and the
+Once an option is picked, the site change is that option's CSS turned into real edits of `site/src/app.css` and the
 shared tokens (`--radius*` and `--pill` to 0, the primary to ink), which also updates
 `packages/editor/tests/fixtures/tokens/site-root.css`. It belongs to the site's phase 18.0 (the shared layout).
