@@ -183,7 +183,7 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
     gap: var(--space-2);
     padding: var(--space-2);
     border: 1px solid var(--color-border-default, #3a3f48);
-    border-radius: 8px;
+    border-radius: var(--edge);
   }
   .head {
     display: flex;
@@ -244,7 +244,7 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
     min-height: 44px;
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-default, #3a3f48);
-    border-radius: 8px;
+    border-radius: var(--edge);
     background: var(--color-surface-base, #14161a);
     color: inherit;
     font: inherit;

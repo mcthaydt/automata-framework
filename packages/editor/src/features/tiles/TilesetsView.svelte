@@ -135,7 +135,7 @@ onDestroy(() => {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13-medium);

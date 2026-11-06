@@ -125,7 +125,7 @@ function onKeydown(event: KeyboardEvent): void {
     max-width: 14rem;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: 999px;
+    border-radius: var(--edge);
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     font: var(--text-label-12);
@@ -158,7 +158,7 @@ function onKeydown(event: KeyboardEvent): void {
     overflow: auto;
     padding: var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     background: var(--color-bg-surface);
     color: var(--color-text-primary);
     font: var(--text-body-13);
@@ -195,7 +195,7 @@ function onKeydown(event: KeyboardEvent): void {
     min-width: 44px;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
   }

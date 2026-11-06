@@ -556,7 +556,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
     justify-self: stretch;
     height: var(--sheet-height);
     border-top: 1px solid var(--line-strong);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-radius: var(--edge);
     box-shadow: var(--shadow-sheet);
     transform: translateY(100%);
   }
@@ -603,13 +603,13 @@ function sheetStyle(name: ShellRegion): string | undefined {
   .handle:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: -4px;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
   }
 
   .grip {
     width: 36px;
     height: 4px;
-    border-radius: 2px;
+    border-radius: var(--edge);
     background: var(--line-strong);
   }
 

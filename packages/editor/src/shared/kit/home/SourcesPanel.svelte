@@ -75,7 +75,7 @@ const uid = $props.id()
     min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
     border: 1px solid color-mix(in srgb, var(--cobalt) 60%, transparent);
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     background: color-mix(in srgb, var(--cobalt) 12%, transparent);
   }
   .name {

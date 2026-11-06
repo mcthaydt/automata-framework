@@ -93,7 +93,7 @@ const keyOf = (item: PaletteItem): string =>
   }
   button {
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--edge);
     color: var(--color-text-primary);
     font: var(--text-body-13);
     cursor: pointer;
@@ -133,7 +133,7 @@ const keyOf = (item: PaletteItem): string =>
     flex: 0 0 auto;
     width: 20px;
     height: 20px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge);
   }
   .name {
     min-width: 0;

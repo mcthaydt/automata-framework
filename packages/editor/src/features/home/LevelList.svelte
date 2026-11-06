@@ -128,7 +128,7 @@ async function onkeydown(event: KeyboardEvent): Promise<void> {
   .placeholder {
     height: 6rem;
     border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
+    border-radius: var(--edge);
     background: var(--paper);
     opacity: 0.6;
   }
@@ -139,7 +139,7 @@ async function onkeydown(event: KeyboardEvent): Promise<void> {
     gap: var(--space-3);
     padding: var(--space-6) var(--space-5);
     border: 1px dashed var(--line-strong);
-    border-radius: var(--radius-lg);
+    border-radius: var(--edge);
     color: var(--muted);
     font: var(--text-body-13);
   }

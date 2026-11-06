@@ -83,23 +83,25 @@ onMount(() => {
       {heading.title}
     {/if}
   </h1>
-  <span class="switch">{@render switcher?.()}</span>
-  <span class="tools">
-    {@render tools?.()}
-    <IconButton
-    icon="undo"
-    label={undoLabel === undefined ? 'Undo' : `Undo ${undoLabel}`}
-    disabled={!canUndo}
-    data-testid="undo"
-    onclick={onundo}
-  />
-  <IconButton
-    icon="redo"
-    label={redoLabel === undefined ? 'Redo' : `Redo ${redoLabel}`}
-    disabled={!canRedo}
-    data-testid="redo"
-    onclick={onredo}
-  />
+  <span class="lower">
+    <span class="switch">{@render switcher?.()}</span>
+    <span class="tools">
+      {@render tools?.()}
+      <IconButton
+        icon="undo"
+        label={undoLabel === undefined ? 'Undo' : `Undo ${undoLabel}`}
+        disabled={!canUndo}
+        data-testid="undo"
+        onclick={onundo}
+      />
+      <IconButton
+        icon="redo"
+        label={redoLabel === undefined ? 'Redo' : `Redo ${redoLabel}`}
+        disabled={!canRedo}
+        data-testid="redo"
+        onclick={onredo}
+      />
+    </span>
   </span>
   <span class="save">
     <Button variant="primary" disabled={busy} data-testid="save" data-save={save} onclick={onsave}>{saveLabel}</Button>
@@ -121,11 +123,24 @@ onMount(() => {
     grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
       'back title save'
-      'switch switch tools';
+      'lower lower lower';
     padding: var(--space-1) 0;
   }
   .back {
     grid-area: back;
+  }
+  /* The switcher and the tools: grid cells of their own on one row, their own row of the bar on a phone, so a wide
+     tools group never squeezes the name. */
+  .lower {
+    display: contents;
+  }
+  .bar[data-compact='true'] .lower {
+    grid-area: lower;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    min-width: 0;
   }
   .switch {
     grid-area: switch;

@@ -163,7 +163,7 @@ $effect(() => {
   .placeholder {
     min-height: 6.5rem;
     border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
+    border-radius: var(--edge);
     background: var(--paper);
     opacity: 0.6;
   }
@@ -174,7 +174,7 @@ $effect(() => {
     gap: var(--space-2);
     padding: var(--space-5) var(--space-4);
     border: 1px dashed var(--line-strong);
-    border-radius: var(--radius-lg);
+    border-radius: var(--edge);
     color: var(--muted);
     font: var(--text-body-13);
   }

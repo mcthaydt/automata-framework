@@ -60,7 +60,7 @@ function rename(close: () => void): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
+    border-radius: var(--edge);
     background: var(--surface);
     color: var(--ink);
     font: var(--text-body-13);
