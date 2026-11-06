@@ -2242,3 +2242,24 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   at the top, Fit, Details and the layer message move to the canvas's foot. The suite's Levels 2D keeps the foot until
   12.7. Gates: Chromium layout (level, suite) 171, canvas and journeys 75 pass and 6 skipped, editor unit (level, app)
   303.
+- **12.4 done (session 13): the frame and the dialogs.** Map, Tiles and Characters take the Level view's frame (spec
+  11.4): the row of drawer buttons above each stage is gone; one pill floats over the stage (the kit's new
+  `shell/StagePill.svelte`, which the Level view's tools now use too) with `All levels` / `All tiles` / `All
+  characters` and `Details` below `wide`, and on the Map `Fit the map in view` at every size. It sits at the stage's top
+  from an iPad up and at its foot on a phone, and moves clear of an open drawer (centred in what the drawer leaves)
+  or sheet (to the top), so Fit and the button that closes it stay in view; Tiles and Characters keep room for it in
+  their scrolling stage. One Lucide icon added (`list`; 28 now, provenance row updated). The inspector's tabs say
+  `Selected`, `Level`, `Problems` (were Entity, Level, Checks) and `Character`, `Settings 3` (were Definition, Fields
+  3). The save conflict and the restore offer follow `copy.md` with one primary each: `Mossgate was changed somewhere
+  else` with `Cancel`, `Use theirs`, `Use mine`, `Keep both` (primary); `Keep your changes from last time?` with one
+  sentence naming the level and when (the File / Last autosave / File on disk list is gone, `recoveryFacts` is
+  `recoveryWords` and leaves the kit's exports), `Throw away`, `Keep my changes`; the undo step is `Keep changes from
+  last time`. The dialogs take the document's name, not its path; the 3D editor, which shares them, passes its file's
+  name without the extension. **Deviation 113:** one commit for the three views' frame, not one per view, since the
+  frame is one shared component. **Deviation 114:** the list buttons say `All levels` / `All tiles` / `All characters`,
+  not the view's own name, which the phone's view menu already uses (two buttons named "Tiles"). The delete and
+  new-level dialogs were done in 12.1; the refusal dialog already had one (danger) action and plain words. Gates:
+  editor unit 3,296 → 3,307 (eight frame tests, one tab-name test, recovery words three for two), editor-3d unit and
+  dom 2,932, Chromium layout (map, tiles, characters, level, document) 146 and 3D open flows 32, canvas and journeys 75
+  pass and 6 skipped; WebKit, Firefox and hosted CI not run. Screenshots: the design board run is left for 12.5's
+  guide.
