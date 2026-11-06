@@ -61,8 +61,10 @@ delete or skip a test, loosen a rule or re-record a golden to get past it.
 | `entries-import` | A feature, `shared/` or `app/` file imports `entries/`, the published surface; run with `--features` | Import the module the entry re-exports |
 | `entries-logic` | A file in `entries/` holds code instead of only re-exporting; run with `--features` | Move the code into `app/`, `features/` or `shared/` and re-export it |
 | `testing-import` | Product code imports `testing/`, the published test helpers; run with `--features` | Only `entries/` re-exports `testing/`; keep test helpers out of product code |
+| `shared-island` | A folder of `shared/` named with `--shared-island` (the editor's `kit`) imports a sibling folder of `shared/`; run with `--features` | Pass what it needs in as an argument, or move the file it imports into the island |
 | `alias-in-src` | A `#src/…` import in `src/`, where only tests use the alias; run with `--features` | Import by relative path |
 | `browser-import` | A file a browser entry reaches imports `effect`, a Node built-in or a Node-only library; run with `--browser` | Effect and Node's modules belong to the Node tooling package (ADR 0003); keep them out of browser code |
+| `forbidden-import` | A source, test or Svelte file under a package imports a package it may not use (`--forbid <package-root>:<package>,…`; the editor package refuses 3D) | Take the import out, or pass the value in from a package that may use it |
 | `parse-error` | The file could not be parsed | Fix the syntax error at the location |
 
 ### `typecheck`
