@@ -1,8 +1,7 @@
-/* The editor's two families, Latin subset only. Import once, beside tokens.css. */
-@import "@fontsource/ibm-plex-sans/latin-400.css";
-@import "@fontsource/ibm-plex-sans/latin-500.css";
-@import "@fontsource/ibm-plex-sans/latin-600.css";
-@import "@fontsource/ibm-plex-sans/latin-700.css";
-@import "@fontsource/ibm-plex-mono/latin-400.css";
-@import "@fontsource/ibm-plex-mono/latin-500.css";
-@import "@fontsource/ibm-plex-mono/latin-600.css";
+/*
+ * The editor's two faces, the website's: Geist for everything, Geist Mono for paths and numbers only.
+ * Self-hosted from the packages (no request to another origin). Each file covers all weights; the
+ * browser fetches only the subsets the page's text needs. Import once, beside tokens.css.
+ */
+@import "@fontsource-variable/geist/wght.css";
+@import "@fontsource-variable/geist-mono/wght.css";

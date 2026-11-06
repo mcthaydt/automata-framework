@@ -125,19 +125,3 @@ describe('token contrast', () => {
     }
   })
 })
-
-describe('fonts.css', () => {
-  const fonts = read('src/shared/kit/fonts.css')
-
-  test('loads the Latin subset of IBM Plex Sans at 400, 500, 600 and 700', () => {
-    for (const weight of [400, 500, 600, 700]) {
-      expect(fonts).toContain(`@import "@fontsource/ibm-plex-sans/latin-${weight}.css";`)
-    }
-  })
-
-  test('loads the Latin subset of IBM Plex Mono at 400, 500 and 600', () => {
-    for (const weight of [400, 500, 600]) {
-      expect(fonts).toContain(`@import "@fontsource/ibm-plex-mono/latin-${weight}.css";`)
-    }
-  })
-})
