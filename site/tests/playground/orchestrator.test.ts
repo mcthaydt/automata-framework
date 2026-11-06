@@ -93,7 +93,7 @@ describe('the orchestrator', () => {
   it('drops a message whose origin is not null', () => {
     const { frames, orchestrator, say } = setup()
     orchestrator.run('code')
-    say(frames[0]!, { v: 1, type: 'booted', framework: FRAMEWORK }, 'https://automata.ruken.com')
+    say(frames[0]!, { v: 1, type: 'booted', framework: FRAMEWORK }, 'https://automataframework.com')
     expect(frames[0]!.posted).toEqual([])
   })
 

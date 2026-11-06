@@ -10,21 +10,21 @@ import { SITE_ORIGIN } from '../../src/lib/site.js'
 // texture or sound the example asks for (and the e2e third-party gate fails).
 
 describe('atOrigin', () => {
-  const code = `// see https://automata.ruken.com/playground/ for more\nconst chime = new URL('../resources/sounds/chime.wav', "https://automata.ruken.com/playground/examples/audio/audio-sound.ts").href\nconst other = "https://example.com/playground/x"`
+  const code = `// see https://automataframework.com/playground/ for more\nconst chime = new URL('../resources/sounds/chime.wav', "https://automataframework.com/playground/examples/audio/audio-sound.ts").href\nconst other = "https://example.com/playground/x"`
 
   it('moves the quoted playground literal to the other origin and leaves everything else', () => {
-    const moved = atOrigin(code, 'https://automata.ruken.com', 'http://127.0.0.1:4650')
+    const moved = atOrigin(code, 'https://automataframework.com', 'http://127.0.0.1:4650')
     expect(moved).toBe(
       code.replace(
-        '"https://automata.ruken.com/playground/examples',
+        '"https://automataframework.com/playground/examples',
         '"http://127.0.0.1:4650/playground/examples',
       ),
     )
   })
 
   it('is the identity at the same origin, and refuses what is not an origin', () => {
-    expect(atOrigin(code, 'https://automata.ruken.com', 'https://automata.ruken.com')).toBe(code)
-    expect(() => atOrigin(code, 'https://automata.ruken.com', 'http://127.0.0.1:4650/path')).toThrow(
+    expect(atOrigin(code, 'https://automataframework.com', 'https://automataframework.com')).toBe(code)
+    expect(() => atOrigin(code, 'https://automataframework.com', 'http://127.0.0.1:4650/path')).toThrow(
       /not an origin/,
     )
   })

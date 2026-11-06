@@ -1304,6 +1304,21 @@ before it. The footer's contact address stays as it is until the Owner decides (
 
 ## Phase 21: Launch (one PR, `claude/refactor-site-launch`, then the Owner's steps)
 
+### Task 21.0: The site's own domain (added 2026-11-06)
+
+The Owner, 2026-11-06 (relayed): "Let's also use automataframework.com for the site as well; we can't couple this
+tightly to ruken". This answers D8's domain.
+
+- [x] **Step 1:** Every site URL moves to `https://automataframework.com`: `SITE_ORIGIN` (`site/src/lib/site.js`, which
+  the canonical and Open Graph links, the sitemap, `robots.txt` and the playground's origin read), the docs links
+  check in `site/src/lib/utils/markdown.ts`, `site/static/.well-known/security.txt`, and the site's tests. Done
+  2026-11-06 (session 9): the demos and the playground rebuilt with the new origin; site unit 353 pass. The only
+  `ruken.com` left in a built page is the Ruken target's host check inside the game bundle, which is about Ruken's
+  own origin and stays.
+- [ ] **Step 2 (the Owner's):** register `automataframework.com` (if it is not already), point its DNS at the host
+  chosen in 21.2 (an apex record, or `ALIAS`/`ANAME`/flattened `CNAME`, plus `www` redirecting to the apex), and turn on
+  HTTPS at the host. The contact address and the host stay D8's.
+
 ### Task 21.1: The deploy, ready
 
 **Files:**
@@ -1320,7 +1335,7 @@ before it. The footer's contact address stays as it is until the Owner decides (
 
 ### Task 21.2: The Owner's inputs and go (the Owner)
 
-- [ ] The Owner supplies the domain, the host and its deploy secret, the project contact address and `NPM_TOKEN`
+- [ ] The Owner supplies the host (the domain is `automataframework.com`, task 21.0) and its deploy secret, the project contact address and `NPM_TOKEN`
   (D8). The agent fills `config.ts`, the contact address and DNS notes in one PR, merges it when green, and the deploy
   runs.
 - [ ] The Owner approves the first npmjs.org release; the agent runs the consumer smoke against the real registry and
@@ -1996,3 +2011,25 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
 - **The Tuner is a split view** (the Owner, 2026-11-06, relayed: "I feel like the tuner should be a split view where it
   shows the effect of the change"): task 12.6 step 1 now asks for the settings beside the live game, each change shown
   without a reload; it replaces the audit's separate "Play to try it" button.
+- **The domain (2026-11-06).** The Owner: "Let's also use automataframework.com for the site as well; we can't couple
+  this tightly to ruken". New task 21.0; its step 1 (every site URL on the new origin) is done in this session, its
+  DNS step is the Owner's. The slice now has 67 tasks.
+- **12.1, part: Home's words.** Step 0's action list (from Home's DOM tests, to tick off when the redesigned Home
+  reaches each): list newest first with the first selected; ages told against the given clock; the sources panel;
+  a card per template; re-read on return; loading skeleton; empty workspace invites a template; device-only storage
+  said once; click selects; arrow keys, Home and End move; Enter, double click and Open each open; open the card it
+  came on; search narrows with an honest count; nothing matches plus Clear; Escape clears the search; a template
+  makes and opens a level; Duplicate adds, selects and says so; Delete asks with Cancel focused; Delete confirmed
+  removes, says so and focuses the list; the Delete key asks; Import keeps what a profile claims and names the rest;
+  actions wait while one runs; a listing failure says why and Retry recovers; drawers and sheets open and close by
+  button and Escape; rotation keeps the search, the selection and the scroll. Done this session (TDD): the badge is
+  "N problems" or none (no "Valid"); the templates read "Platformer: jump between platforms", "Top-down: walk around
+  a map", "Blank: start from nothing"; Delete asks "Delete Mossgate?" with "This level is deleted for good. You can't
+  undo this." and "Delete level"; the delete toast names the level. The kit's `HomeCard.badge` became optional
+  (editor-3d's summary shows it only when present). Gates: editor unit 3,284; Home's Chromium layout tests 41 pass;
+  editor and editor-3d typecheck clean. Left for 12.1: the one-column card list with the More menu, the New level
+  sheet, "Open from" as a two-option control, the one storage line, Step G (templates on a game folder, "Your game:
+  Emberwick", "Changed 7 minutes ago"), the layout test at four sizes, and the screenshots.
+- **Handoff (session 9, 14:30 UTC).** Branch `claude/project-thread-9tfov0`, PR #419. The plan named separate
+  branches per phase; this session may push only to its own branch, so 12.1's start is on #419 too. Next session: the
+  rest of 12.1, on a new branch stacked on #419.

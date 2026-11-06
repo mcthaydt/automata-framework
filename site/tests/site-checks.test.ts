@@ -22,7 +22,7 @@ import {
 import { writeSeoFiles } from '../scripts/write-seo-files'
 import { withContentSecurityPolicy } from '../src/lib/csp'
 
-const ORIGIN = 'https://automata.ruken.com'
+const ORIGIN = 'https://automataframework.com'
 const roots: string[] = []
 
 const FOOTER =
