@@ -98,3 +98,19 @@ export function girth(p: Profiles, region: Region, side: Side, y0: number, y1: n
 /** The clearance a garment keeps from the body: one texel at the cell's density (`ppm`, default the sheets'), never
  * under 4 mm at scale `k`. */
 export const clearance = (k: number, ppm?: number): number => Math.max(0.004 * k, 1 / (ppm ?? PPM));
+/**
+ * What a garment kind is given to size itself from the body (`Wearing.body`, H1): the profiles, the body's ring at a
+ * height, its girth over a span, and the clearance to leave (one texel at the cell's density). A sleeve end, a cuff or a
+ * trouser-leg hem takes `girth(...)` plus `clear` and so clears any body the sliders make.
+ */
+export interface Body {
+  profiles: Profiles;
+  at(region: Region, side: Side, y: number): Ring;
+  girth(region: Region, side: Side, y0: number, y1: number): Ring;
+  clear: number;
+}
+/** The body query of a measure on a rig, with the clearance at `ppm` texels a metre (default the sheets'). */
+export function bodyOf(m: Measure, s: Skeleton, ppm?: number): Body {
+  const p = profiles(m, s);
+  return { profiles: p, at: (region, side, y) => ringAt(p, region, side, y), girth: (region, side, y0, y1) => girth(p, region, side, y0, y1), clear: clearance(m.k, ppm) };
+}

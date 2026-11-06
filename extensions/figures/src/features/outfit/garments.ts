@@ -1,13 +1,13 @@
 import { J, type Side, type Skeleton } from '../body/rig';
 import { apply, axisAngle, compose, lerp, smooth, sub, type V3 } from '../../lib/math';
-import { GROUP, limb, placed, superquadric, weights, type Decal, type Limb, type Material, type Part, type Ring, type Superquadric } from '../body/parts';
+import { GROUP, limb, profileAt, placed, superquadric, weights, type Decal, type Limb, type Material, type Part, type Ring, type Superquadric } from '../body/parts';
 import type { HeadShape, Measure } from '../body/genes';
 import { FACE_SEAM, tonesOf } from '../paint/paint';
 import swatchLibrary from './library/swatches.json';
 import type { Anchor } from '../motion/motion';
 import { ear, headForm, headMesh } from '../body/head';
 import { hexOf } from '../../lib/colour';
-import { profiles, type Profiles } from './fit';
+import { bodyOf, girth, profiles, type Body, type Profiles } from './fit';
 import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from '../hair/hair';
 /**
  * The body and what the base pair wears. A character is sliders (genes.ts) plus a list of garments, each fitted to the
@@ -67,6 +67,9 @@ export interface Wearing {
   m: Measure; s: Skeleton; garments: Garment[];
   swatch: (name: string) => Material; swatches: Record<string, Material>;
   ppm?: number; worn: Part[]; state: Record<string, unknown>;
+  /** The body's real measures (fit.ts): its ring at a height, its girth over a span and the clearance to leave, so a sleeve
+   * end or a hem sizes from the body (fat, bust, seat, limb girth) and clears any body the sliders make. */
+  body: Body;
 }
 /** What a garment kind makes (H1), applied by dress() in this order: its parts, its marks, its materials, the body
  * regions it repaints (`paint`), and the openings a hand can reach (`anchors`, motion.ts Anchor). */
@@ -144,7 +147,7 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   let thighs = true, faceLook: FaceLook = { shape: m.face };
   // What the registered kinds are given, and the anchors they publish, each with the garment that made it.
   const state: Record<string, unknown> = {}, anchors: { anchor: Anchor; from: Garment }[] = [];
-  const c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state };
+  const fit = bodyOf(m, s, ppm), c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state, body: fit };
   /** A kind's fit, applied in order: its parts, marks, materials, the regions it repaints, its openings. */
   const wear = (f: Fit, from: Garment) => {
     parts.push(...f.parts); decals.push(...f.decals ?? []); Object.assign(made, f.materials); Object.assign(r, f.paint);
@@ -161,10 +164,10 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
       if (item.sleeves !== 'none') r.shoulder = item.top;
       if (item.sleeves !== 'none') r.upper = item.top;
       if (item.sleeves === 'long') r.fore = item.top;
-      if (item.cuffs) for (const [side] of sides) parts.push(item.sleeves === 'long'
-        ? box(J[`foreArm.${side}`], item.cuffs, armGroup(side), { at: [0, -s.foreArm * 0.9, 0], r: [0.048 * k * t * m.arm, 0.022 * k, 0.05 * k * t * m.arm], e: [0.45, 0.6] })
-        : box(J[`upperArm.${side}`], item.cuffs, armGroup(side), { at: [0, -s.upperArm * 0.86, 0], r: [0.056 * k * t * m.arm, 0.02 * k, 0.058 * k * t * m.arm], e: [0.45, 0.6] }));
-      if (item.collar) for (const [, x] of sides) parts.push(box(J.chest, item.collar, GROUP.torso, { at: [x * 0.04 * k, 0.172 * k, 0.045 * k], r: [0.04 * k, 0.018 * k, 0.04 * k], turn: axisAngle([0, 1, 0], x * 0.5), e: [0.35, 0.5] }));
+      // The cuffs and the collar are sized from the body (fit.ts): today's size is the floor, grown to the body's girth and a
+      // texel's clearance where the body needs it (a fat arm, a thick neck).
+      if (item.cuffs) for (const [side] of sides) parts.push(cuff(side, item.cuffs, item.sleeves === 'long', m, s, fit));
+      if (item.collar) for (const [, x] of sides) parts.push(collarPiece(x, item.collar, m, s, fit));
     } else if ('shorts' in item) { r.pelvis = r.thigh = item.shorts; }
     // The hair: the generators' pieces (hair.ts), one surface, so the painter draws no line between them.
     else if ('hair' in item) {
@@ -189,6 +192,27 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   Object.assign(made, earSkins(skin, swatch(skin)));
   const all = [...body(m, s, r, thighs, ppm), ...parts];
   return { parts: all, decals, materials: made, face: faceLook, profiles: profiles(m, s), anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
+}
+/**
+ * A top's cuff on a side: a box round the forearm (`long` sleeves, at 0.9 of its length) or the upper arm (short, at 0.86).
+ * Each radius is today's (`k · t · arm`, a flare) or the arm's widest over the cuff's span plus the clearance, whichever is
+ * more, centred on the arm's own profile there, so it clears any arm.
+ */
+function cuff(side: Side, material: string, long: boolean, m: Measure, s: Skeleton, body: Body): Part {
+  const k = m.k, t = m.thick, bone = long ? J[`foreArm.${side}`] : J[`upperArm.${side}`], rest = s.rest[bone];
+  const y = rest[1] - (long ? 0.9 * s.foreArm : 0.86 * s.upperArm), hh = (long ? 0.022 : 0.02) * k, flare = long ? [0.048, 0.05] : [0.056, 0.058];
+  const G = body.girth('arm', side, y + hh, y - hh), c = body.clear;
+  return box(bone, material, armGroup(side), { at: [(G.dx ?? 0) - rest[0], y - rest[1], (G.dz ?? 0) - rest[2]], r: [Math.max(flare[0] * k * t * m.arm, G.rx + c), hh, Math.max(flare[1] * k * t * m.arm, G.rz + c)], e: [0.45, 0.6] });
+}
+/**
+ * One side of a top's collar. It sits at 0.172 k above the chest bone, on the neck (past the trunk's top cap), so it is
+ * sized from the neck's profile there, in the chest bone's space: today's centres are the floor, and the pieces stand out
+ * only as far as their outer faces clear the neck's side and front by the clearance (a thick neck pushes it out).
+ */
+function collarPiece(x: 1 | -1, material: string, m: Measure, s: Skeleton, body: Body): Part {
+  const k = m.k, yc = 0.172 * k, N = profileAt(body.profiles.neck, s.rest[J.chest][1] + yc - s.rest[J.neck][1]), nz = s.rest[J.neck][2] - s.rest[J.chest][2] + (N.dz ?? 0);
+  const cx = Math.max(0.04 * k, N.rx + body.clear - 0.04 * k), cz = Math.max(0.045 * k, nz + N.rz + body.clear - 0.04 * k);
+  return box(J.chest, material, GROUP.torso, { at: [x * cx, yc, cz], r: [0.04 * k, 0.018 * k, 0.04 * k], turn: axisAngle([0, 1, 0], x * 0.5), e: [0.35, 0.5] });
 }
 /** The body's surfaces: the torso, each arm (shoulder to hand) and each leg (thigh to foot) one surface apiece, so the
  * painter draws no crevice or line at a waist, an elbow or a knee (paint.ts); garments keep their own edges. */

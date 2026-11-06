@@ -21,6 +21,7 @@ export type { Skeleton } from './features/body/rig';
 export { registerFabric, type Fabric } from './features/paint/fabric';
 export { registerGarment, registerOutfitHooks, type GarmentKind, type Wearing, type Fit, type OutfitHooks,
   type Regions, type BaseGarment, type GarmentKinds, type Look as Dressed } from './features/outfit/garments';
+export type { Body, Profiles, Region } from './features/outfit/fit';
 export type { ItemDef } from './features/outfit/items';
 export { registerHairPiece, registerFinish, type HairPiece, type HairCtx,
   type HairInput, type HairStyle, type HairFinish, type Piece, type Skull, type Tone, type Tie } from './features/hair/hair';
