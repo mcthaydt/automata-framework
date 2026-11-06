@@ -15,7 +15,7 @@ const SRC = join(import.meta.dirname, '../../../../src')
 const REPO = join(import.meta.dirname, '../../../../../..')
 
 // 90 s budget: a whole tsc program, slow on the shared af-linux runner under load (render-types' took 70.7 s on
-// 2026-10-16). The root test:unit default is the same 90 s; packages/ship's workflows test pins both.
+// 2026-10-16). The root test:unit default is the same 90 s.
 it('types sim content through one cast, without touching other code in the program', async () => {
   const root = copyFixture('sim-rooms')
   await Effect.runPromise(buildContent(simRoomsOptions(root)))

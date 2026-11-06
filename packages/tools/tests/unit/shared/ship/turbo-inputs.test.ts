@@ -6,9 +6,9 @@ import { beforeAll, describe, expect, it } from 'vitest'
 const root = fileURLToPath(new URL('../../../../../..', import.meta.url))
 const shipDir = join(root, 'packages/tools')
 
-// workflows.test.ts reads files outside this package (the workflows, every workspace package.json, the root
-// scripts). Turbo only hashes a package's own files by default, so a change to one of those replayed a cached
-// pass instead of running the test (audit of #10: a new examples/*/package.json hid a real failure). Ask turbo
+// -tools' tests read files outside this package (every workspace package.json and config, the root scripts). Turbo
+// only hashes a package's own files by default, so a change to one of those replayed a cached pass instead of
+// running the test (audit of #10: a new examples/*/package.json hid a real failure). Ask turbo
 // itself which files it hashes, so the check follows turbo's own glob rules.
 //
 // One dry run plans both tasks. It spawns pnpm and turbo, which hashes the workspace: well under a second on an
@@ -46,12 +46,10 @@ beforeAll(() => {
 }, DRY_RUN_BUDGET_MS)
 
 describe.each(TASKS)("turbo's cache key for ship's %s", (task) => {
-  it('covers the repository files the workflow tests read', () => {
+  it('covers the repository files the tests read', () => {
     const files = hashed.get(task)
     expect(files).toEqual(
       expect.arrayContaining([
-        'packages/tools/tests/unit/shared/ship/workflows.test.ts',
-        '.github/workflows/ci.yml',
         'package.json',
         'pnpm-workspace.yaml',
         'games/emberwick/playwright.config.ts',

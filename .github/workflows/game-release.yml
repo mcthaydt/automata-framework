@@ -163,7 +163,8 @@ jobs:
   ruken:
     name: ruken publish
     needs: build
-    if: inputs.ruken-api != ''
+    # Never for a pull request, like the itch and desktop jobs: it holds RUKEN_TOKEN.
+    if: inputs.ruken-api != '' && github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 30
     steps:
