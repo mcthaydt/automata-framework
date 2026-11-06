@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from 'vitest'
 import RecoveryDialog from '#src/shared/kit/dialogs/RecoveryDialog.svelte'
 import type { Recovery } from '#src/shared/kit/storage/recovery.ts'
 
-// Restore or Discard: asked before the document
-// is worked on, and not dismissible, because either answer changes what is open.
+// Keep my changes or Throw away: asked before the document is worked on, and not dismissible, because either answer
+// changes what is open.
 
 const now = 1_700_000_000_000
 const recovery: Recovery = { payload: 'x', savedAt: now - 2 * 60_000, baseChanged: false }
@@ -15,7 +15,7 @@ function mount(props: { recovery?: Recovery | undefined; busy?: boolean } = {}) 
   const onrestore = vi.fn()
   const ondiscard = vi.fn()
   render(RecoveryDialog, {
-    path: 'levels/mossgate.af2d.json',
+    name: 'Mossgate',
     recovery: 'recovery' in props ? props.recovery : recovery,
     now,
     busy: props.busy ?? false,
@@ -31,32 +31,33 @@ describe('RecoveryDialog', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('asks, and tells which file, when the autosave was made and that the file is unchanged', () => {
+  it('asks in plain words, naming the level and when it was changed', () => {
     mount()
-    const dialog = screen.getByRole('dialog', { name: 'Restore your unsaved work?' })
-    expect(dialog).toHaveTextContent('mossgate.af2d.json')
-    expect(dialog).toHaveTextContent('2 min ago')
-    expect(dialog).toHaveTextContent('Unchanged since the autosave began')
+    const dialog = screen.getByRole('dialog', { name: 'Keep your changes from last time?' })
+    expect(dialog).toHaveTextContent(
+      'You changed Mossgate 2 min ago and didn’t save. Your changes were kept.',
+    )
+    expect(dialog).not.toHaveTextContent(/autosave|on disk|\.json/)
     expect(within(dialog).queryByRole('alert')).toBeNull()
   })
 
   it('warns when the file changed too, since restoring replaces that change', () => {
     mount({ recovery: { ...recovery, baseChanged: true } })
-    expect(screen.getByRole('alert')).toHaveTextContent(/replaces that change/)
+    expect(screen.getByRole('alert')).toHaveTextContent(/replaces that/)
   })
 
-  it('Restore edits is the primary action and has focus', () => {
+  it('Keep my changes is the primary action and has focus', () => {
     mount()
-    const restore = screen.getByRole('button', { name: 'Restore edits' })
+    const restore = screen.getByRole('button', { name: 'Keep my changes' })
     expect(restore).toHaveFocus()
     expect(restore).toHaveAttribute('data-kind', 'primary')
   })
 
-  it('Restore edits and Discard each report once', async () => {
+  it('Keep my changes and Throw away each report once', async () => {
     const { onrestore, ondiscard } = mount()
-    await userEvent.click(screen.getByRole('button', { name: 'Restore edits' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Keep my changes' }))
     expect(onrestore).toHaveBeenCalledOnce()
-    await userEvent.click(screen.getByRole('button', { name: 'Discard' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Throw away' }))
     expect(ondiscard).toHaveBeenCalledOnce()
   })
 
@@ -70,7 +71,7 @@ describe('RecoveryDialog', () => {
 
   it('is disabled while busy', () => {
     mount({ busy: true })
-    expect(screen.getByRole('button', { name: 'Restore edits' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Discard' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Keep my changes' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Throw away' })).toBeDisabled()
   })
 })

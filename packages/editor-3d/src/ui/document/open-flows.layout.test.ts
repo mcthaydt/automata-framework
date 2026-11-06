@@ -130,8 +130,8 @@ describe.each(SIZES)('3D open flows at $name ($width x $height)', (size) => {
     await openFromHome(DEPOT)
     const recover = dialog()
     expectInside(recover, size)
-    const restore = button(recover, 'Restore edits')
-    expect(checkLayout(conditions, [button(recover, 'Discard'), restore])).toEqual([])
+    const restore = button(recover, 'Keep my changes')
+    expect(checkLayout(conditions, [button(recover, 'Throw away'), restore])).toEqual([])
     expect(restore.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
     await page.screenshot({ path: `.vitest/shots/ed3d-recover-${size.name}.png` })
 
@@ -153,17 +153,15 @@ describe.each(SIZES)('3D open flows at $name ($width x $height)', (size) => {
   test('the conflict dialog (ED3-k): inside the screen with its four choices reachable', async () => {
     const { conditions, workspace } = await start(size, 0.5)
     await openFromHome(DEPOT)
-    button(dialog(), 'Restore edits').click()
+    button(dialog(), 'Keep my changes').click()
     await arrived()
     await workspace.store.write(DEPOT, depotText.replace('"light": 1,', '"light": 0.25,'))
     byTestId('save').click()
     const conflict = await nextDialog()
     expectInside(conflict, size)
-    const choices = ['Cancel', 'Take theirs', 'Keep mine', 'Save as copy'].map((name) =>
-      button(conflict, name),
-    )
+    const choices = ['Cancel', 'Use theirs', 'Use mine', 'Keep both'].map((name) => button(conflict, name))
     expect(checkLayout(conditions, choices)).toEqual([])
-    expect(button(conflict, 'Save as copy').getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    expect(button(conflict, 'Keep both').getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
     await page.screenshot({ path: `.vitest/shots/ed3d-conflict-${size.name}.png` })
   })
 })

@@ -1,25 +1,32 @@
 import { describe, expect, it } from 'vitest'
-import { recoveryFacts } from '#src/shared/kit/dialogs/recovery-facts.ts'
+import { recoveryWords } from '#src/shared/kit/dialogs/recovery-facts.ts'
 
-// What the Restore dialog says about an autosave (moved from editor-2d's `open-flow-model.test.ts` in ED3D.5c).
+// What the restore dialog says about the changes kept from last time, in plain words (the grandma audit, section
+// 5.2): the level's name and when it was changed, never a file name, "autosave" or "on disk".
 
-describe('recoveryFacts', () => {
+describe('recoveryWords', () => {
   const now = 1_700_000_000_000
-  it('names the file, when the autosave was made and that the file is as it was', () => {
+  it('names the level and when it was changed', () => {
     expect(
-      recoveryFacts(
-        'levels/mossgate.af2d.json',
-        { payload: '', savedAt: now - 5 * 60_000, baseChanged: false },
-        now,
-      ),
-    ).toEqual([
-      { label: 'File', value: 'mossgate.af2d.json' },
-      { label: 'Last autosave', value: '5 min ago' },
-      { label: 'File on disk', value: 'Unchanged since the autosave began' },
-    ])
+      recoveryWords('Mossgate', { payload: '', savedAt: now - 5 * 60_000, baseChanged: false }, now),
+    ).toEqual({
+      kept: 'You changed Mossgate 5 min ago and didn’t save. Your changes were kept.',
+      warning: undefined,
+    })
   })
-  it('says when the file changed too, since restoring replaces that change', () => {
-    const facts = recoveryFacts('a.af2d.json', { payload: '', savedAt: now, baseChanged: true }, now)
-    expect(facts[2]).toEqual({ label: 'File on disk', value: 'Changed since the autosave began' })
+  it('says “on” before a date', () => {
+    const words = recoveryWords(
+      'Mossgate',
+      { payload: '', savedAt: now - 5 * 86_400_000, baseChanged: false },
+      now,
+      'UTC',
+    )
+    expect(words.kept).toBe('You changed Mossgate on Nov 9 and didn’t save. Your changes were kept.')
+  })
+  it('warns when it changed somewhere else too, since keeping replaces that change', () => {
+    const words = recoveryWords('Mossgate', { payload: '', savedAt: now, baseChanged: true }, now)
+    expect(words.warning).toBe(
+      'Mossgate was also changed somewhere else since then. Keeping your changes replaces that.',
+    )
   })
 })

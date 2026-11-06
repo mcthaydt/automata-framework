@@ -114,11 +114,11 @@ describe('recovery (G-l)', () => {
       return found
     })
     await userEvent.click(card)
-    const offer = await screen.findByRole('dialog', { name: 'Restore your unsaved work?' })
-    await userEvent.click(within(offer).getByRole('button', { name: 'Restore edits' }))
+    const offer = await screen.findByRole('dialog', { name: 'Keep your changes from last time?' })
+    await userEvent.click(within(offer).getByRole('button', { name: 'Keep my changes' }))
     const [reopened] = second.documents
     if (reopened === undefined) throw new Error('no document reopened')
     await vi.waitFor(() => expect(printProject(reopened.history.state as Project)).toBe(before))
-    expect(screen.getByRole('button', { name: 'Undo Restore autosave' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Undo Keep changes from last time' })).toBeEnabled()
   })
 })

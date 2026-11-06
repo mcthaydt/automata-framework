@@ -392,7 +392,7 @@ describe('document session: the journal', () => {
     const found = await findRecovery(store, journal, PATH)
     expect(found).toMatchObject({ payload: '{"n":3}', baseChanged: false })
     const reopened = createHistory<State>({ n: 0 })
-    reopened.apply('Restore autosave', () => JSON.parse(found?.payload ?? '{}') as State)
+    reopened.apply('Keep changes from last time', () => JSON.parse(found?.payload ?? '{}') as State)
     expect(reopened.state).toEqual({ n: 3 })
     expect(reopened.revision).not.toBe(reopened.cleanRevision)
     await discardRecovery(journal, PATH)

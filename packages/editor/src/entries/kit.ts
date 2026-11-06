@@ -15,7 +15,6 @@ export {
   saveFailure,
 } from '../shared/kit/dialogs/document-messages'
 export { default as RecoveryDialog } from '../shared/kit/dialogs/RecoveryDialog.svelte'
-export { recoveryFacts } from '../shared/kit/dialogs/recovery-facts'
 export { retryAction } from '../shared/kit/dialogs/retry-action'
 export { default as FieldEditor } from '../shared/kit/fields/FieldEditor.svelte'
 export * from '../shared/kit/fields/index'

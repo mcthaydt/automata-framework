@@ -10,12 +10,12 @@
 -->
 <script lang="ts">
 import type { IconName } from '../../shared/kit/icons/paths'
+import StagePill from '../../shared/kit/shell/StagePill.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import Popup from '../../shared/kit/widgets/Popup.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
-import StagePill from '../../shared/kit/shell/StagePill.svelte'
 import type { LevelTool } from '../../shared/level-2d/model/editor-view'
 
 interface Props {

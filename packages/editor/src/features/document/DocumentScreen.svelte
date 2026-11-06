@@ -199,7 +199,7 @@ function show(path: string): void {
 
 {#snippet sheets()}
   <RecoveryDialog
-    path={shown.document.path}
+    name={shown.heading.title}
     recovery={shown.recovery}
     now={clock.now()}
     busy={shown.busy !== undefined}
@@ -208,7 +208,7 @@ function show(path: string): void {
   />
   <ConflictDialog
     open={shown.conflict}
-    path={shown.document.path}
+    name={shown.heading.title}
     busy={shown.busy !== undefined}
     onkeep={() => controller.keepMine()}
     ontake={() => controller.takeTheirs()}

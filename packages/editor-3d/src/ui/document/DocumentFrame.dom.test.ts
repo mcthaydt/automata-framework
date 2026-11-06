@@ -287,18 +287,20 @@ describe('DocumentFrame', () => {
     clock.advance(1000)
     await workspace.store.write(PATH, DEPOT.replace('"light": 1,', '"light": 0.25,'))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
-    const conflict = await screen.findByRole('dialog', { name: 'depot.json changed since you opened it' })
+    const conflict = await screen.findByRole('dialog', { name: 'depot was changed somewhere else' })
     expect(await file()).toContain('"light": 0.25,')
-    await userEvent.click(within(conflict).getByRole('button', { name: 'Keep mine' }))
+    await userEvent.click(within(conflict).getByRole('button', { name: 'Use mine' }))
     await waitFor(async () => expect(await file()).toContain('"light": 0.5,'))
   })
 
-  it('offers an autosave newer than the file first, and Restore edits applies it as one step', async () => {
+  it('offers an autosave newer than the file first, and Keep my changes applies it as one step', async () => {
     await setup({ journal: true })
-    const restore = await screen.findByRole('dialog', { name: 'Restore your unsaved work?' })
-    expect(restore).toHaveTextContent('depot.json')
-    await userEvent.click(within(restore).getByRole('button', { name: 'Restore edits' }))
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Undo Restore autosave' })).toBeEnabled())
+    const restore = await screen.findByRole('dialog', { name: 'Keep your changes from last time?' })
+    expect(restore).toHaveTextContent('You changed depot')
+    await userEvent.click(within(restore).getByRole('button', { name: 'Keep my changes' }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Undo Keep changes from last time' })).toBeEnabled(),
+    )
   })
 
   it('leaves the profile out of the bar on a phone', async () => {
