@@ -291,6 +291,30 @@ function sheetStyle(name: ShellRegion): string | undefined {
 <div class="sheets" style:--shell-foot={footLift}>{@render sheets?.()}</div>
 
 <style>
+  /* A touch must not behave like a web page's (the Owner, on a real iPad: a double tap zoomed, and a hold selected the
+     screen like text). The page takes taps and drags without double-tap zoom (`manipulation`; a canvas says `none` for
+     itself below, and pinch stays the page's own), and the chrome is not selectable and shows no long-press callout.
+     Fields a person types in and the text they read as code (`data-selectable`) select. The one owner for every editor. */
+  :global(html),
+  :global(body) {
+    touch-action: manipulation;
+  }
+  /* Every element says it itself (a computed `auto` is not `none`), at zero specificity so the rule below wins. */
+  :global(:where(html, body, body *)) {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  :global(input),
+  :global(textarea),
+  :global([contenteditable='true']),
+  :global([data-selectable]),
+  :global([data-selectable] *) {
+    user-select: text;
+    -webkit-user-select: text;
+    -webkit-touch-callout: default;
+  }
+
   .sheets {
     display: contents;
   }

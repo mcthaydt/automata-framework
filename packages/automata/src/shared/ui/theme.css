@@ -1,5 +1,5 @@
 /*
- * AF's default theme tokens (M1.6 spec §3.3). Every primitive reads these; a game overrides the
+ * AF's default theme tokens. Every primitive reads these; a game overrides the
  * colours and type in its own stylesheet, loaded after this one, and never lowers the targets.
  *
  * Colours come from the Endesga 64 palette, with Bubble Bobble mixed with Celeste as the visual
@@ -64,6 +64,12 @@ body {
   font-size: var(--af-text-body);
 }
 
+/* A double tap must not zoom the page (a canvas that wants every gesture says `touch-action: none` on itself). */
+html,
+body {
+  touch-action: manipulation;
+}
+
 /* A drawn screen is not a page: no text selection or long-press callout, except where a player types. */
 html {
   user-select: none;
@@ -96,7 +102,7 @@ textarea {
   touch-action: manipulation;
 }
 
-/* One marker sizes a primary, and the layout check reads the same one (M1.6 spec §3.10). */
+/* One marker sizes a primary, and the layout check reads the same one. */
 .af-control[data-kind="primary"] {
   min-height: var(--af-target-primary);
 }

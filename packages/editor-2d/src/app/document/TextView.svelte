@@ -29,7 +29,7 @@ function revealFirstMark(node: HTMLElement): void {
 }
 </script>
 
-<div class="text-view" data-testid="text-view">
+<div class="text-view" data-testid="text-view" data-selectable>
   <div class="head">
     <span class="eyebrow">Read only</span>
     {#if view.total > view.lines.length}
