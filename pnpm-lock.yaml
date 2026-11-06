@@ -839,6 +839,9 @@ importers:
       '@mcthaydt/automata':
         specifier: workspace:*
         version: link:../packages/automata
+      '@mcthaydt/automata-editor':
+        specifier: workspace:*
+        version: link:../packages/editor
       '@mcthaydt/automata-sim':
         specifier: workspace:*
         version: link:../packages/sim

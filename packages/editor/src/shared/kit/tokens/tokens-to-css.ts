@@ -1,44 +1,32 @@
-import type { EditorTokens, RampEntry } from './editor-tokens'
-
-// CSS is written the way Biome formats CSS (double quotes, spaces around the slash of `font`), so the
-// generated file is already formatted and `pnpm format` leaves it alone.
-const SANS_FALLBACK = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
-const MONO_FALLBACK = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace'
-
-/** Groups this renderer knows. `$comment` is a note in the JSON, not a token. */
-const KNOWN_GROUPS = new Set(['$comment', 'color', 'space', 'radius', 'size', 'font'])
+import type { EditorTokens } from './editor-tokens'
 
 const HEADER =
   '/* Generated from src/shared/kit/tokens/tokens.json by scripts/generate-tokens.ts. Do not edit. */'
 
-const px = (n: number): string => `${n}px`
+/** A plain custom property name: lowercase words and digits joined by hyphens. */
+const NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
-function rampDeclarations(ramp: Readonly<Record<string, RampEntry>>): string[] {
-  const lines: string[] = []
-  for (const [name, r] of Object.entries(ramp)) {
-    lines.push(`--text-${name}: ${r.weight} ${px(r.size)} / ${px(r.line)} var(--font-${r.family});`)
-    lines.push(`--text-${name}-tracking: ${px(r.tracking)};`)
-  }
-  return lines
+function checkName(name: string): void {
+  if (!NAME.test(name)) throw new Error(`bad token name "${name}"`)
 }
 
 /**
- * Renders the editor tokens as a do-not-edit header and one `:root` block of custom properties. Pure and deterministic: the same tokens
- * give the same text, so `tokens.css` can be checked against it byte for byte.
+ * Renders the tokens as a do-not-edit header and one `:root` block: the color scheme, every token, then every
+ * alias as `var()` of its token. Pure and deterministic, so `tokens.css` can be checked against it byte for byte.
+ * It refuses a name that is not a plain custom property name, an alias to a missing token and a name defined twice,
+ * because each would be a silent `unset` in the browser.
  */
-export function tokensToCss(tokens: EditorTokens): string {
-  for (const group of Object.keys(tokens)) {
-    if (!KNOWN_GROUPS.has(group)) throw new Error(`unknown token group "${group}"`)
+export function tokensToCss({ colorScheme, tokens, aliases }: EditorTokens): string {
+  const lines = [`color-scheme: ${colorScheme};`]
+  for (const [name, value] of Object.entries(tokens)) {
+    checkName(name)
+    lines.push(`--${name}: ${value};`)
   }
-  const lines: string[] = ['color-scheme: dark;']
-  for (const [group, entries] of Object.entries(tokens.color)) {
-    for (const [name, value] of Object.entries(entries)) lines.push(`--color-${group}-${name}: ${value};`)
+  for (const [name, target] of Object.entries(aliases)) {
+    checkName(name)
+    if (name in tokens) throw new Error(`"${name}" is both a token and an alias`)
+    if (!(target in tokens)) throw new Error(`alias "${name}" points at "${target}", which is not a token`)
+    lines.push(`--${name}: var(--${target});`)
   }
-  for (const [name, value] of Object.entries(tokens.space)) lines.push(`--space-${name}: ${px(value)};`)
-  for (const [name, value] of Object.entries(tokens.radius)) lines.push(`--radius-${name}: ${px(value)};`)
-  for (const [name, value] of Object.entries(tokens.size)) lines.push(`--size-${name}: ${px(value)};`)
-  lines.push(`--font-sans: "${tokens.font.sans}", ${SANS_FALLBACK};`)
-  lines.push(`--font-mono: "${tokens.font.mono}", ${MONO_FALLBACK};`)
-  lines.push(...rampDeclarations(tokens.font.ramp))
-  return `${HEADER}\n:root {\n${lines.map((l) => `  ${l}`).join('\n')}\n}\n`
+  return `${HEADER}\n:root {\n${lines.map((line) => `  ${line}`).join('\n')}\n}\n`
 }

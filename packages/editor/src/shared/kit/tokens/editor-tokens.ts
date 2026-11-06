@@ -1,24 +1,12 @@
-/** One entry of the type ramp: which family, and the numbers behind a `font` shorthand. */
-export interface RampEntry {
-  readonly family: 'sans' | 'mono'
-  readonly weight: number
-  readonly size: number
-  readonly line: number
-  /** Letter spacing in px. */
-  readonly tracking: number
-}
-
-/** The shape of `tokens.json`, the source of truth for `tokens.css`. */
+/**
+ * The shape of `tokens.json`, the one source of the look the editor and the website share. `tokens.css` is
+ * generated from it (`tokensToCss`) and both import that file.
+ */
 export interface EditorTokens {
-  /** `color.<group>.<name>`: any CSS color, used verbatim. */
-  readonly color: Readonly<Record<string, Readonly<Record<string, string>>>>
-  /** px lengths. */
-  readonly space: Readonly<Record<string, number>>
-  readonly radius: Readonly<Record<string, number>>
-  readonly size: Readonly<Record<string, number>>
-  readonly font: {
-    readonly sans: string
-    readonly mono: string
-    readonly ramp: Readonly<Record<string, RampEntry>>
-  }
+  /** `color-scheme` of the page. The look is light only; a dark theme would be a second token set. */
+  readonly colorScheme: 'light' | 'dark'
+  /** Custom property name, without `--`, to its CSS value, used verbatim. Written in this order. */
+  readonly tokens: Readonly<Record<string, string>>
+  /** Old name, without `--`, to the token it now means: written as `--old: var(--token);` after the tokens. */
+  readonly aliases: Readonly<Record<string, string>>
 }
