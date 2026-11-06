@@ -1277,7 +1277,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
     // commit whose first parent is the base tip, so HEAD^1..HEAD is exactly the pull request's changes.
     const classify = (
       changedFiles: readonly string[] | 'not-a-merge',
-      key: 'docs_only' | 'parity_full' = 'docs_only',
+      key: 'docs_only' | 'parity_full' | 'stranger' = 'docs_only',
     ): string => {
       const dir = mkdtempSync(join(tmpdir(), 'af-scope-'))
       try {
@@ -1376,6 +1376,46 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
         expect(classify(['packages/a/src/index.ts', file], 'parity_full'), file).toBe('parity_full=true')
       }
       expect(classify('not-a-merge', 'parity_full')).toBe('parity_full=true')
+    })
+  })
+
+  describe("the stranger's journey scope", () => {
+    const strangerScope = (files: readonly string[]) => {
+      const run = ci.jobs.checks?.steps?.find((step) => step.id === 'scope')?.run ?? ''
+      // The same classification the other outputs use, applied to a list of changed files.
+      const line = run.split('\n').find((each) => each.includes('stranger=false'))
+      expect(line).toBeDefined()
+      const pattern = /grep -qE '([^']+)'/.exec(line ?? '')?.[1] ?? ''
+      const matches = (file: string) => new RegExp(pattern).test(file)
+      return files.some(matches)
+    }
+
+    it('runs when a package, the journey itself, a root file or a workflow changes', () => {
+      for (const file of [
+        'packages/tools/src/app/cli.ts',
+        'tooling/consumer-smoke/tests/e2e/stranger.test.ts',
+        'package.json',
+        '.github/workflows/ci.yml',
+      ])
+        expect(strangerScope([file]), file).toBe(true)
+    })
+
+    it('skips a game, an example, other tooling or docs', () => {
+      for (const file of [
+        'games/emberwick/src/app/game.ts',
+        'examples/2d/a.ts',
+        'tooling/frame-budget/src/a.ts',
+        'docs/a.md',
+      ])
+        expect(strangerScope([file]), file).toBe(false)
+    })
+
+    it('hands the scope to the e2e job, which runs the journey on a pull request that needs it', () => {
+      expect(ci.jobs.checks?.outputs?.stranger).toBe('${{ steps.scope.outputs.stranger }}')
+      const run = ci.jobs['e2e-2d']?.steps?.find(
+        (step) => step.run === 'pnpm test:e2e --filter @mcthaydt/consumer-smoke',
+      )
+      expect(run?.if).toBe("github.event_name != 'pull_request' || needs.checks.outputs.stranger == 'true'")
     })
   })
 

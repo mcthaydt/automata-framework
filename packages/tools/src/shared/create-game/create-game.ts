@@ -4,7 +4,7 @@ import { Data, Effect } from 'effect'
 import type { TaggedErrorClass } from '../node/errors.ts'
 import {
   adapterConditions,
-  DIST_TARGETS,
+  DEFAULT_TARGETS,
   type DistTarget,
   parseTargets,
   targetDependencies,
@@ -12,6 +12,7 @@ import {
   targetReadme,
   targetScripts,
 } from './create-game-targets.ts'
+import { toolsVersion } from './tools-version.ts'
 
 export interface CreateGameOptions {
   readonly targetDir: string
@@ -19,8 +20,13 @@ export interface CreateGameOptions {
   readonly title: string
   readonly description?: string | undefined
   readonly author?: string | undefined
-  /** The distribution targets to build for; default all four. */
+  /** The distribution targets to build for; default web and itch.io. */
   readonly targets?: readonly DistTarget[] | undefined
+  /**
+   * Ask for `workspace:*` instead of the published version. Only for a game made inside this repository's workspace
+   * (the repository's own tests); anywhere else the packages come from a registry.
+   */
+  readonly linkWorkspace?: boolean | undefined
 }
 
 export interface CreateGameResult {
@@ -43,7 +49,11 @@ export class CreateGameError extends CreateGameErrorBase {}
 /** A game id, and a kit name for `automata add`: lowercase letters, digits and single hyphens, so never a path. */
 export const ID_REGEX: RegExp = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
-const targetsOf = (options: CreateGameOptions): readonly DistTarget[] => options.targets ?? DIST_TARGETS
+const targetsOf = (options: CreateGameOptions): readonly DistTarget[] => options.targets ?? DEFAULT_TARGETS
+
+/** What the game asks for of each framework package: the version of the tools that made it (read once). */
+const frameworkSpec = (options: CreateGameOptions): string =>
+  options.linkWorkspace === true ? 'workspace:*' : `^${toolsVersion()}`
 
 interface TemplateFile {
   readonly path: string
@@ -80,15 +90,15 @@ const TEMPLATE_FILES: readonly TemplateFile[] = [
             typecheck: 'tsc -p .',
           },
           dependencies: {
-            '@mcthaydt/automata': 'workspace:*',
-            '@mcthaydt/automata-sim': 'workspace:*',
+            '@mcthaydt/automata': frameworkSpec(options),
+            '@mcthaydt/automata-sim': frameworkSpec(options),
             'pixi.js': '8.22.0',
             svelte: '5.57.1',
             zod: '4.6.6',
             ...targetDependencies(targetsOf(options)).dependencies,
           },
           devDependencies: {
-            '@mcthaydt/automata-tools': 'workspace:*',
+            '@mcthaydt/automata-tools': frameworkSpec(options),
             '@sveltejs/vite-plugin-svelte': '7.3.1',
             '@types/node': '24.19.1',
             typescript: '7.0.2',

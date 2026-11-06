@@ -36,7 +36,11 @@ const run = (command: string, args: readonly string[], cwd: string) =>
   execFileSync(command, args, { cwd, stdio: 'inherit' })
 
 // The built bin, the one a developer installs (`pnpm build` first).
-run(process.execPath, [join(toolsDir, 'dist/bin.js'), 'create-game', 'my-game', '--targets', 'web'], scratch)
+run(
+  process.execPath,
+  [join(toolsDir, 'dist/bin.js'), 'create-game', 'my-game', '--targets', 'web', '--link-workspace'],
+  scratch,
+)
 
 const manifest = JSON.parse(readFileSync(join(gameDir, 'package.json'), 'utf8')) as {
   dependencies: Record<string, string>

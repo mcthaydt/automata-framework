@@ -27,6 +27,8 @@ export interface ParsedArgs {
   readonly title?: string | undefined
   /** `--targets web,itch,…` as given; `create-game` checks it. */
   readonly targets?: string | undefined
+  /** `--link-workspace`: for a game made inside this repository's workspace (the repository's own tests). */
+  readonly linkWorkspace: boolean
   readonly help: boolean
 }
 
@@ -46,6 +48,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
   let title: string | undefined
   let targets: string | undefined
   let help = false
+  let linkWorkspace = false
 
   const tokens = [...args]
   if (tokens[0] === 'create-game') {
@@ -63,6 +66,8 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
       id = tokens[++i]
     } else if (token === '--title' && i + 1 < tokens.length) {
       title = tokens[++i]
+    } else if (token === '--link-workspace') {
+      linkWorkspace = true
     } else if (token === '--targets' && i + 1 < tokens.length) {
       targets = tokens[++i]
     } else if (!token.startsWith('-') && targetDir === undefined) {
@@ -70,7 +75,7 @@ export function parseArgs(args: readonly string[]): ParsedArgs {
     }
   }
 
-  return { targetDir, id, title, targets, help }
+  return { targetDir, id, title, targets, linkWorkspace, help }
 }
 
 const USAGE = `Usage: automata create-game <target-dir> [--id <id>] [--title <title>] [--targets <list>]
@@ -99,7 +104,7 @@ token for a tablet.
 Options:
   --id <id>        Unique game identifier (lowercase alphanumeric with hyphens)
   --title <title>  Display title of the game
-  --targets <list> create-game: the targets to build for, comma-separated (default: web,itch,ruken,tauri)
+  --targets <list> create-game: the targets to build for, comma-separated (default: web,itch; also tauri, ruken)
   --dir <game>     add: the game folder (default: the working folder)
   --repo <url>     add: the kit repository (default: the Automata Plus repository)
   --force          add: replace files the game already has
@@ -258,6 +263,7 @@ export async function runCli(
     id,
     title,
     targets: targets.targets,
+    linkWorkspace: parsed.linkWorkspace,
   })
 
   const exit = await Effect.runPromise(Effect.exit(program))
