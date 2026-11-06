@@ -209,7 +209,7 @@ organisation the same day ("automata", so the scope is `@automata`); it is for t
 
 **Where to resume (2026-11-06, session 11):** branch `claude/project-thread-r7jtb7`, a draft PR stacked on #420
 (task 12.2 done: the view switcher with Level, Map, Tiles and Characters in the top bar, "2 problems" opening the
-Problems sheet, the Share menu in browser storage only, rename on tap; the plan's log has the cuts). Tasks 17.1 and 17.2 are done on the same branch. Next is task 12.3
+Problems sheet, the Share menu in browser storage only, rename on tap; the plan's log has the cuts). Tasks 17.1 and 17.2 are done on the same branch. Task 12.3 is started (the tools are icons; the plan's log lists what is left). Next is the rest of 12.3
 (the Level view) on the shared look (#422, being updated to the Owner's pick: flat lime), then 17.3. Two Owner rules from 2026-11-06 hold for everything left: every
 editor keeps only essential features (cut the rest and name each cut in the plan's log), and the look is the design thread's (#422, merged into this stack; the Owner picked direction C, flat lime, with radii 4 / 6 / 8 px: adopt #422 again when it lands those tokens). **Phase 18
 waits** for those final tokens; then 18.0 and the rest apply the direction together
@@ -258,7 +258,7 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 11.3 The kit's components and the design board | 11 | Done, 2026-11-06 (no literal colour or old alias in the kit; IconButton; Dialog a phone sheet; board screenshotted at five sizes and every image opened; editor unit 3,284; editor Chromium browser projects 533 pass, 6 skipped; editor-3d unit, dom, layout and canvas in Chromium pass; `pnpm check` green; WebKit, Firefox and hosted CI not run) | [#419](https://github.com/mcthaydt/automata-framework/pull/419) |
 | 12.1 Home | 12 | Done, 2026-11-06 (session 10): one column of cards with a More menu, the New level sheet, Open from, one storage line; Step G (new levels in `content/rooms/`, "Your game: Emberwick", "Changed 7 minutes ago"); editor unit 3,286, Home layout 41 of 41 in Chromium at eight sizes; WebKit, Firefox and hosted CI not run; templates only in browser storage (the try-it), per the Owner | [#420](https://github.com/mcthaydt/automata-framework/pull/420) |
 | 12.2 The document frame | 12 | Done, 2026-11-06 (sessions 10 and 11): Back asks; essentials-only top bar with Save's three states; no status bar; the view switcher (Level, Map, Tiles, Characters; a menu on a phone, two-row bar); "2 problems" opens the Problems sheet; the Share menu in browser storage only; rename on tap; editor unit 3,284, Chromium layout 130 and 2D journeys 8 pass; WebKit, Firefox and hosted CI not run | [#420](https://github.com/mcthaydt/automata-framework/pull/420), this session's PR |
-| 12.3 The Level view | 12 | Not started | |
+| 12.3 The Level view | 12 | In progress (session 11): the tools are icons named in plain words ("Copy a tile"), the brush size behind a Size button; left: the floating pill, the charcoal cabinet, the Layers sheet, the inspector on selection, the level picker | this session's PR |
 | 12.4 Map, Tiles, Characters and the dialogs | 12 | Not started | |
 | 12.5 The copy table and the guide (runs after 12.6 and 12.7) | 12 | Not started | |
 | 12.6 The Tuner, audited and redesigned as a split view beside the live game (added 2026-11-06) | 12 | Not started | |

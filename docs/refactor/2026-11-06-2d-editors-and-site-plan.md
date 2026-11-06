@@ -2167,3 +2167,11 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   (Effect is Node tooling only now); `docs/stack.md` regenerated. `tooling/examples-runner`: confirmed, only the
   examples index is left (the playground is the site's). `tooling/evidence`: unchanged here; the Proof page's half goes
   with the page in 18.1 (the parity job's golden evidence stays).
+- **12.3, part (session 11): the tools as icons.** The kit's `Segmented` takes an optional `icon` per option (the
+  label stays the option's accessible name and tooltip); the Level toolbar's six tools are icons, the eyedropper
+  named "Copy a tile" (was "Pick"); the brush size is behind a "Size 2" button that opens a popover with the stepper,
+  so the size never widens the row. On a 390 px phone all six tools now fit beside Layers. Gates: editor unit (level
+  98), Chromium layout (level and shared) 161, Chromium 2D journeys 8. **Left for 12.3:** the floating pill over the
+  canvas (top from iPad up, bottom on a phone), the charcoal cabinet, Layers as a sheet with colour, name, eye and lock
+  per row and the palette under the chosen layer, the inspector opening on selection, and the level picker in the top
+  bar; then the canvas tests' colour expectations.

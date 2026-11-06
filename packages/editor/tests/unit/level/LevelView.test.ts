@@ -143,19 +143,28 @@ describe('Level view: palette', () => {
 })
 
 describe('Level view: toolbar and canvas', () => {
-  it('names the tools in plain words and hands the chosen one to the canvas', async () => {
+  it('shows the tools as icons named in plain words and hands the chosen one to the canvas', async () => {
     await mount()
     const tool = screen.getByRole('radiogroup', { name: 'Tool' })
-    expect(
-      within(tool)
-        .getAllByRole('radio')
-        .map((option) => option.textContent?.trim()),
-    ).toEqual(['Select', 'Brush', 'Rectangle', 'Fill', 'Eraser', 'Pick'])
+    const options = within(tool).getAllByRole('radio')
+    expect(options.map((option) => option.textContent?.trim())).toEqual([
+      'Select',
+      'Brush',
+      'Rectangle',
+      'Fill',
+      'Eraser',
+      'Copy a tile',
+    ])
+    // Each is an icon: its name is its tooltip too.
+    expect(options.map((option) => option.getAttribute('title'))).toContain('Copy a tile')
     await userEvent.click(within(tool).getByRole('radio', { name: 'Fill' }))
     expect(canvas()).toHaveAttribute('data-tool', 'fill')
-    expect(screen.queryAllByLabelText(/Brush size/)).toEqual([])
+    expect(screen.queryByRole('button', { name: /^Size/ })).toBeNull()
     await userEvent.click(within(tool).getByRole('radio', { name: 'Eraser' }))
-    expect(screen.getAllByLabelText(/Brush size/).length).toBeGreaterThan(0)
+    // The size is behind its own button, so it never widens the row.
+    expect(screen.queryByRole('spinbutton', { name: 'Brush size' })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Size 1' }))
+    expect(screen.getByRole('spinbutton', { name: 'Brush size' })).toBeInTheDocument()
   })
 
   it('fits the level in the canvas once it is measured', async () => {
@@ -245,7 +254,9 @@ describe('Level view: shortcuts (§12)', () => {
       await userEvent.keyboard(key)
       expect(canvas()).toHaveAttribute('data-tool', tool)
     }
-    const size = (): number => Number(stepper('Brush size'))
+    // The size button says the size; the stepper behind it is the same number.
+    const size = (): number =>
+      Number(/Size (\d+)/.exec(screen.getByRole('button', { name: /^Size/ }).textContent ?? '')?.[1])
     const before = size()
     await userEvent.keyboard(']')
     expect(size()).toBe(before + 1)
