@@ -79,13 +79,13 @@ describe('talk at density 1', () => {
     const hits = added.filter(k => (!set.has(k - 1) && dark(k - 1)) || (!set.has(k + 1) && dark(k + 1)));
     return { added, hits };
   }
-  // The profile (view 2) is left out: its chin's row is two texels wide with the outline on both sides, so no place for the
-  // dark avoids it; it keeps its one texel (the second test).
+  // The profile (view 2) is left out: its chin's row is a few texels wide with the outline on both sides, and the painter
+  // cannot tell the outline's texel from skin when it stamps, so its dark's far end still meets it (the second test).
   for (const d of [0, 1, 3, 4, 5, 6, 7]) it(`view ${d}: the mouth's dark row does not touch the jaw's outline`, () => {
     expect(touching(d).hits.map(k => [k % 64, Math.floor(k / 64)])).toEqual([]);
   });
-  it('the profile keeps its one dark texel (no place on a two-texel chin keeps off the outline)', () => {
-    expect(touching(2).added.length).toBe(1);
+  it('the profile shows two dark texels (c4: the fuller chin gives its row a second skin texel; the far end still meets the outline)', () => {
+    expect(touching(2).added.length).toBe(2);
   });
   it('the front view still shows an open mouth (at least one dark texel)', () => {
     expect(touching(0).added.length).toBeGreaterThanOrEqual(1);

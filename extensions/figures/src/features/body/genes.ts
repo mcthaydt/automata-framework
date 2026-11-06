@@ -30,12 +30,22 @@ export interface Sliders {
   faceForward: number;
   /** 0 square shoulders … 1 a hunch: the shoulders up and rounded forward, the head sunk forward between them. */
   hunch: number;
+  /** −1…1, 0 a level figure: one shoulder lower (the figure's left for +1, up to 3 cm), the trunk curved sideways (the chest
+   * rolled against the spine by up to 6°) and the head set level over it, as a body compensates (a scoliosis or a short leg
+   * gives such a range). The stand and the gait carry it from motion.ts; a diversity control. */
+  bodyAsymmetry: number;
+  /** 0.5 today's chest, for any frame: the chest's ring over a real range of depths (0 flatter … 1 fuller, 0.92–1.15 of today's),
+   * its underside keeping its turn, so in profile it is a form, not a deeper tube. Under the painted blocks. */
+  bust: number;
+  /** 0.5 today's seat: the hips' rings deeper behind (0.93–1.12) and a little wider (0.94–1.06), seen in profile and from behind. */
+  seat: number;
   /** The head's own structure (HeadShape); left out, an average head. */
   face?: Partial<HeadShape>;
 }
 /**
- * The head's structure, 0–1 each (0.5 the average): the bones and features that make four heads four people. Eyes are
- * never among them: every face's eyes are one size and drawn one way, differing only in the lid line.
+ * The head's structure, 0–1 each (0.5 the average): the bones and features that make four heads four people. The eyes
+ * differ in three ways (eyeSize, eyeSpacing, eyeTilt), each 0.5 the eye drawn without them, and in the lid line; they
+ * are drawn from density 2 up (at density 1 an eye is a lid line, and these change nothing there).
  */
 export interface HeadShape {
   /** The face's width under the cranium (0 narrow … 1 broad), and the jaw's at its angle (0 tapered … 1 square). */
@@ -53,14 +63,22 @@ export interface HeadShape {
   /** The upper lid: its crease (0 a smooth lid … 1 a deep crease), how heavy it sits (0 open … 1 hooded), and liner (0
    * none … 1 a flick past the outer corner). */
   crease: number; hood: number; liner: number;
+  /** The eyes: their width (0 a texel narrower … 1 a texel wider, two at density 4), how far apart they are set (0 a texel
+   * closer … 1 a texel further, more at density 4) and their tilt (0 the outer corner drooping a row … 1 lifted a row). */
+  eyeSize: number; eyeSpacing: number; eyeTilt: number;
+  /** An uneven face, −1…1 (0 the mirrored face; the sign picks the side, +1 the figure's left): one eye a row lower (from
+   * 0.5) and a texel narrower (from 0.8), the nose off the centre line toward it, the mouth's other corner a row higher,
+   * the jaw 12% wider on that side. A diversity control, not a lever for ugliness. */
+  asymmetry: number;
 }
 export const DEFAULT_HEAD: HeadShape = {
   width: 0.5, jaw: 0.5, chin: 0.5, cheekHeight: 0.5, cheekWidth: 0.5, bridge: 0.5, nose: 0.5, lips: 0.5,
   browArch: 0.4, browWeight: 0.5, browHeight: 0.5, crease: 0.5, hood: 0.3, liner: 0,
+  eyeSize: 0.5, eyeSpacing: 0.5, eyeTilt: 0.5, asymmetry: 0,
 };
 export const DEFAULT_SLIDERS: Sliders = {
   frame: 0.5, height: 170, muscle: 0.5, fat: 0.4, shoulders: 0.5, hips: 0.5, legs: 0.5, arms: 0.5, head: 0.6,
-  neck: 0.5, neckLength: 0.4, hands: 0.5, feet: 0.5, posture: 0.5, age: 0.3, headTilt: 0, chunk: 1, faceForward: 0.7, hunch: 0,
+  neck: 0.5, neckLength: 0.4, hands: 0.5, feet: 0.5, posture: 0.5, age: 0.3, headTilt: 0, chunk: 1, faceForward: 0.7, hunch: 0, bodyAsymmetry: 0, bust: 0.5, seat: 0.5,
 };
 /** Everything the body and the garments need, in metres. */
 export interface Measure {
@@ -75,7 +93,19 @@ export interface Measure {
   arm: number; leg: number; foot: number;
   /** The head's structure. */
   face: HeadShape;
+  /** How fat fills the body (multipliers, exactly 1 at fat 0): the limbs' swells most of all and the joints (elbow,
+   * knee, the calf) more, so the notch between them closes and the contour goes soft; the thigh's top and the deltoid's cap less
+   * (no ball at the hip, no muscle's cap);
+   * the wrists and ankles by a tenth at most, so they still read; the neck; and the jaw's underside. Past 1 the growth
+   * keeps its proportion. */
+  fat: { swell: number; joint: number; hipTop: number; end: number; neck: number; chin: number };
+  /** The chest's depth factor and forward offset (m at k 1), exactly 1 and 0 at bust 0.5; and the seat's depth and width
+   * factors and backward offset (m at k 1), exactly 1, 1 and 0 at seat 0.5. A fork's garment follows the body with these. */
+  bust: { rz: number; dz: number };
+  seat: { rz: number; dz: number; rx: number };
 }
+/** A range widened about its middle: `lo` at 0, exactly 1 at 0.5, `hi` at 1 (two lerps meeting at 1; one lerp(lo, hi, v) would not be 1). */
+const about = (v: number, lo: number, hi: number) => (v < 0.5 ? lerp(lo, 1, v / 0.5) : lerp(1, hi, (v - 0.5) / 0.5));
 export function measure(input: Partial<Sliders>): Measure {
   const s = { ...DEFAULT_SLIDERS, ...input }, H = s.height / 100, f = s.frame, k = H / 1.62, c = s.chunk;
   const genes: Genes = {
@@ -95,7 +125,7 @@ export function measure(input: Partial<Sliders>): Measure {
     headTilt: s.headTilt * Math.PI / 180,
     headPitch: lerp(0.15, -0.04, s.posture) + 0.08 * s.age,
     faceAhead: lerp(0, 0.5, s.faceForward),
-    hunch: s.hunch,
+    hunch: s.hunch, sideBend: s.bodyAsymmetry,
   };
   return {
     sliders: s, genes, k,
@@ -104,5 +134,8 @@ export function measure(input: Partial<Sliders>): Measure {
     // The pixel build thickens limbs only as far as a wrist and an ankle still read at 64 texels; their shape is the body's.
     arm: lerp(1, 1.3, c), leg: lerp(1, 1.2, c), foot: lerp(1, 1.25, c),
     face: { ...DEFAULT_HEAD, ...s.face },
+    bust: { rz: about(s.bust, 0.92, 1.15), dz: 0.01 * (s.bust - 0.5) * 2 },
+    seat: { rz: about(s.seat, 0.93, 1.12), dz: 0.012 * (0.5 - s.seat) * 2, rx: about(s.seat, 0.94, 1.06) },
+    fat: { swell: 1 + 0.35 * s.fat, joint: 1 + 0.5 * s.fat, hipTop: 1 + 0.2 * s.fat, end: 1 + 0.08 * s.fat, neck: 1 + 0.2 * s.fat, chin: 1 + 0.25 * s.fat },
   };
 }

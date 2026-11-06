@@ -413,15 +413,17 @@ export class Figure {
     const hw = g.head * g.headWidth / 2, hd = g.head * g.headDepth / 2, H = g.head, z = (u: number) => hd * (g.faceAhead + u);
     // Head space (garments.ts head) into the cell's texels.
     const at = (p: V3): [number, number] => { const q = apply(m, p); return [w / 2 + q[0] * ppm, h - this.feet - (q[1] * cp - q[2] * sp) * ppm]; };
-    const eyes = [at([hw * 0.42, H * 0.45, z(0.88)]), at([-hw * 0.42, H * 0.45, z(0.88)])].sort((a, b) => a[0] - b[0]) as [[number, number], [number, number]];
-    const yaw = Math.atan2(m[2], m[8]);
+    // The drawn eyes' set (eyeSpacing; exactly 0.42 at 0.5). The undrawn face's decals (garments.ts face) and the gaze keep 0.42.
+    const ex = hw * (0.42 + 0.08 * (this.built.face.shape.eyeSpacing - 0.5) * 2), D = Math.round(ppm / (96 / 2.6));
+    const eyes = [at([ex, H * 0.45, z(0.88)]), at([-ex, H * 0.45, z(0.88)])].sort((a, b) => a[0] - b[0]) as [[number, number], [number, number]];
+    const yaw = Math.atan2(m[2], m[8]), detail = eyeWidth(hw * ppm, ppm);
     // The head's frame in the cell: its origin (texels, and depth), and the turn from the view's axes (x right, y up,
     // toward the camera: in the figure's space (1,0,0), (0,cp,−sp), (0,sp,cp)) into the head's own.
     const view = [[1, 0, 0], [0, cp, -sp], [0, sp, cp]], R: number[] = [];
     for (let i = 0; i < 3; i++) for (let k = 0; k < 3; k++) R.push(m[i] * view[k][0] + m[3 + i] * view[k][1] + m[6 + i] * view[k][2]);
     return {
       // The eyes one size on every face, whatever the figure's height: the cell's density sizes them, capped by the face's width.
-      view: Math.round(yaw / (Math.PI / 4)), size: hw * ppm, eye: eyeWidth(hw * ppm, ppm),
+      view: Math.round(yaw / (Math.PI / 4)), size: hw * ppm, detail, eye: D >= 2 ? Math.max(2, detail + Math.round((this.built.face.shape.eyeSize - 0.5) * 2) * (D >= 4 ? 2 : 1)) : detail,
       centre: at([0, H * 0.45, z(1)]), eyes, nose: at([0, H * 0.23, z(1.06)]), mouth: at([0, H * 0.17, z(1)]),
       frame: { o: [w / 2 + m[9] * ppm, h - this.feet - (m[10] * cp - m[11] * sp) * ppm, m[10] * sp + m[11] * cp], ppm, R, head: [hw, H, hd, g.faceAhead] },
       skin, ...this.built.face, blink, mood,

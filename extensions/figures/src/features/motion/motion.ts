@@ -1,4 +1,4 @@
-import { J, clonePose, fk, restPose, twoBoneIK, type Pose, type Side, type Skeleton } from '../body/rig';
+import { J, clonePose, fk, restPose, twoBoneIK, type Genes, type Pose, type Side, type Skeleton } from '../body/rig';
 import { add, apply, applyDir, basis, compose, cross, dot, euler, hash, IDENTITY_Q, invertRigid, lerp, lerp3, matq, mmul, normalize, position, qmat, qmul, scale, smooth, sub, TAU, type M, type Q, type V3 } from '../../lib/math';
 import { reach, type Part } from '../body/parts';
 /**
@@ -415,11 +415,12 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
     pelvisY = -0.012 * k * (0.5 + 0.5 * cos2);
   }
   const breath = walking ? 0 : gait.breath * Math.sin(TAU * st.t / gait.breathPeriod);
+  const { world: sideRoll, local: sideLocal } = sideBend(g);
   pose.shift[J.pelvis] = [pelvisX, pelvisY, 0];
   pose.rot[J.pelvis] = euler(0, hipYaw, hipRoll);
   // The waist takes the hips' turn and roll back; the chest adds its own.
-  pose.rot[J.spine] = euler(lean * 0.5 + g.posture * 0.3, -hipYaw, -hipRoll);
-  pose.rot[J.chest] = euler(lean * 0.5 + g.posture * 0.7 - breath + chestPitch - chestLift, -hipYaw * gait.chestCounter + chestYaw, chestRoll);
+  pose.rot[J.spine] = euler(lean * 0.5 + g.posture * 0.3, -hipYaw, -hipRoll + sideRoll - sideLocal);
+  pose.rot[J.chest] = euler(lean * 0.5 + g.posture * 0.7 - breath + chestPitch - chestLift, -hipYaw * gait.chestCounter + chestYaw, chestRoll + sideLocal);
   // Reach: the torso leans in a little toward the hand.
   const reaching = st.action?.id === 'reach' ? reachEnvelope(st.action.t, gait.reach) : 0;
   if (reaching) pose.rot[J.chest] = qmul(pose.rot[J.chest], euler(0.12 * reaching, sideSign(st.action!.side) * -0.12 * reaching, 0));
@@ -430,7 +431,7 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
   // The neck takes back the chest's turn (walking, by the gait's stabilise; standing, all of it) and most of its roll,
   // so the head is set on the body, then turned by the stand.
   const counter = walking ? hipYaw * gait.chestCounter * gait.headStabilize : -chestYaw;
-  let headRoll = g.headTilt - chestRoll * 0.7 + (stand?.head?.[1] ?? 0);
+  let headRoll = g.headTilt - chestRoll * 0.7 - sideRoll + (stand?.head?.[1] ?? 0);
   // The face's turn to the camera (1 facing it, 0.7 in three-quarter, 0 in profile and from behind): the sprite cheat's tip
   // back and the gait's chin lift take only that share, so no profile or back is tipped chin-up. Walking, the head sits
   // level with the chin a touch down (NOD), the eyes on the way ahead.
@@ -477,7 +478,7 @@ export function base(s: Skeleton, gait: Gait, st: MotionState): Evaluated {
       : hung ? hung.bend : gait.standElbow !== undefined ? gait.standElbow * (side === 'L' ? 1 : 0.75) : gait.elbow + gait.idleElbow * (side === 'L' ? 1 : 0.7);
     // `plumb` of the torso's bend taken back at the shoulder, so a stooped figure's arms hang down rather than swing back
     // with the chest; the chest's roll taken back too, so the arms hang plumb from shoulders that tilt.
-    pose.rot[J[`upperArm.${side}`]] = euler(swing + idleSway * 0.5 - hang - (gait.plumb ?? 0) * (lean + g.posture), 0, x * out - chestRoll);
+    pose.rot[J[`upperArm.${side}`]] = euler(swing + idleSway * 0.5 - hang - (gait.plumb ?? 0) * (lean + g.posture), 0, x * out - chestRoll - sideRoll);
     pose.rot[J[`foreArm.${side}`]] = euler(-(bend + Math.abs(idleSway)), 0, 0);
     // The hand hangs from the wrist, back toward plumb by a share of the forearm's angle forward of it.
     pose.rot[J[`hand.${side}`]] = euler(WRIST * (bend - swing - idleSway * 0.5 + hang), 0, 0);
@@ -637,6 +638,17 @@ export interface Seat {
   /** Typing: each hand on its desk point bobs this far (m), the two out of step. */
   type?: number;
 }
+/**
+ * The body's sideways curve (genes.ts bodyAsymmetry) as rolls: the chest's roll in the world puts the two shoulders
+ * 3 cm apart in height at 1 (the left the lower for +1), and the chest is rolled 6° against the spine, so the trunk curves
+ * rather than leans. `world` is the chest's roll (and the spine's with it), `local` the chest's own share of it; each is
+ * exactly 0 (and the pose is today's) when there is none.
+ */
+function sideBend(g: Genes): { world: number; local: number } {
+  const b = g.sideBend;
+  if (!b) return { world: 0, local: 0 };
+  return { world: -Math.asin(Math.min(1, 0.03 * (g.height / 1.62) * Math.abs(b) / (2 * g.shoulders))) * Math.sign(b), local: -6 * Math.PI / 180 * b };
+}
 export type SeatHand = 'lap' | 'hang' | { to: V3; aim?: [fingers: V3, palm: V3] };
 /** The thigh's flesh under the hip joint on a seat (m at k 1): the hip rides this far over the seat. */
 export const SIT = 0.07;
@@ -646,24 +658,24 @@ export const SIT = 0.07;
  */
 export function seated(s: Skeleton, gait: Gait, seat: Seat, t = 0, o: { lookUp?: number; view?: number } = {}): Evaluated {
   const g = s.genes, pose = restPose(), k = g.height / 1.62, slump = seat.slump ?? 0, lean = seat.lean ?? 0;
-  const breath = gait.breath * Math.sin(TAU * t / gait.breathPeriod);
+  const breath = gait.breath * Math.sin(TAU * t / gait.breathPeriod), { world: sideRoll, local: sideLocal } = sideBend(g);
   // The hips: down onto the seat, rolled back and slid forward by the slump.
   pose.shift[J.pelvis] = [0, seat.height + SIT * k - s.hipY - 0.03 * k * slump, 0.09 * k * slump];
   pose.rot[J.pelvis] = euler(-0.35 * slump, (seat.turn ?? 0) * 0.3, (seat.roll ?? 0) * 0.3);
   // The back: forward from the hips by the lean, the slump rounding it (the pelvis's roll back taken up by the spine
   // only in part, so the chest sinks behind the hips).
-  pose.rot[J.spine] = euler(lean * 0.45 + 0.2 * slump + g.posture * 0.3, (seat.turn ?? 0) * 0.35, (seat.roll ?? 0) * 0.35);
-  pose.rot[J.chest] = euler(lean * 0.55 + 0.3 * slump + g.posture * 0.7 - breath, (seat.turn ?? 0) * 0.35, (seat.roll ?? 0) * 0.35);
+  pose.rot[J.spine] = euler(lean * 0.45 + 0.2 * slump + g.posture * 0.3, (seat.turn ?? 0) * 0.35, (seat.roll ?? 0) * 0.35 + sideRoll - sideLocal);
+  pose.rot[J.chest] = euler(lean * 0.55 + 0.3 * slump + g.posture * 0.7 - breath, (seat.turn ?? 0) * 0.35, (seat.roll ?? 0) * 0.35 + sideLocal);
   // The head: the chest's pitch taken back so the face looks ahead, then the seat's own nod and turn.
   const toward = Math.max(0, Math.cos(o.view ?? 0)), [hy, hr, hp] = seat.head ?? [0, 0, 0];
   const pitch = g.headPitch - (lean + 0.15 * slump + g.posture) * 0.9 - (o.lookUp ?? 0) * toward + hp;
-  pose.rot[J.neck] = euler(pitch * 0.4 + 0.55 * g.hunch, -(seat.turn ?? 0) * 0.5 + hy * 0.4, (g.headTilt + hr) * 0.4);
-  pose.rot[J.head] = euler(pitch * 0.6 - 0.55 * g.hunch, hy * 0.6, (g.headTilt + hr) * 0.6);
+  pose.rot[J.neck] = euler(pitch * 0.4 + 0.55 * g.hunch, -(seat.turn ?? 0) * 0.5 + hy * 0.4, (g.headTilt + hr - sideRoll) * 0.4);
+  pose.rot[J.head] = euler(pitch * 0.6 - 0.55 * g.hunch, hy * 0.6, (g.headTilt + hr - sideRoll) * 0.6);
   // The arms hang until placed; the clavicles breathe.
   for (const side of ['L', 'R'] as const) {
     const x = sideSign(side);
     pose.rot[J[`clavicle.${side}`]] = euler(0, -x * 0.12 * g.hunch, x * (breath * 0.6 + 0.3 * g.hunch));
-    pose.rot[J[`upperArm.${side}`]] = euler(-0.1, 0, x * (gait.armOut + 0.05));
+    pose.rot[J[`upperArm.${side}`]] = euler(-0.1, 0, x * (gait.armOut + 0.05) - sideRoll);
     pose.rot[J[`foreArm.${side}`]] = euler(-(gait.elbow + 0.15), 0, 0);
   }
   let world = fk(s, pose);
