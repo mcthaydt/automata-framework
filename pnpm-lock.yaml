@@ -2231,20 +2231,20 @@ packages:
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
   '@ruken/cli@file:vendor/ruken/ruken-cli-0.0.0.tgz':
-    resolution: {integrity: sha512-f6YcRwPdbysQYTSf79U2c6sgeYpyqHW1hURDPpuZcmuWc5BVEcfsvy7sA/Sac4CqoNUQyMKshQku6y7ajbA/0g==, tarball: file:vendor/ruken/ruken-cli-0.0.0.tgz}
+    resolution: {integrity: sha512-H5OzsmGZAwRWbRAwpJm/fQfAslw1qWUBXLoJ0eIcdClzXyWhGfAlVwXHGrS2NPbN+ZB35tO/9K2u563h2z1vbQ==, tarball: file:vendor/ruken/ruken-cli-0.0.0.tgz}
     version: 0.0.0
     hasBin: true
 
   '@ruken/manifest@file:vendor/ruken/ruken-manifest-0.0.0.tgz':
-    resolution: {integrity: sha512-FOC7JADrQq4Z3VQMhZzyFxnQchdgyTeTBabL8JT0NbX7u1LGjNVuzjBSxhGRyNqza0X+WIsjh+97qItpr+eRLQ==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
+    resolution: {integrity: sha512-di7/vPmocOlozLhM/+AQKytYmZfmTrAJ/Lz2jdSaRv4hQxGm/V2CL/14mKaeLLJRq04f6jAfrWwf9eMEjM7k+A==, tarball: file:vendor/ruken/ruken-manifest-0.0.0.tgz}
     version: 0.0.0
 
   '@ruken/sdk-host@file:vendor/ruken/ruken-sdk-host-0.0.0.tgz':
-    resolution: {integrity: sha512-6vVChqa1E8EH4iuCqdXdfoeacULnVOOtw+9XsaEQVx2qUqqPw1DKT95mUKgwh5QIO9DLL7gJOCjOp7Va/nHZvw==, tarball: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz}
+    resolution: {integrity: sha512-IKRf+Io0dI4HG+mRFWVFmkmW8siJ1/cFCE6MUIlWrMmIuJ41LE2q3xp823Zb006IP14zJc6esQnx/averafDfA==, tarball: file:vendor/ruken/ruken-sdk-host-0.0.0.tgz}
     version: 0.0.0
 
   '@ruken/sdk@file:vendor/ruken/ruken-sdk-0.0.0.tgz':
-    resolution: {integrity: sha512-OZobd4FPXC4ZXd+IeDOEkLgmhWbg6NyjJBvPBSc0C6ENMXBKxXEMJgyX+fTgtra2f+rH74VhhTpfu54SwW1klw==, tarball: file:vendor/ruken/ruken-sdk-0.0.0.tgz}
+    resolution: {integrity: sha512-gYq49IOmlTsy+evbFC/2tzCJCocRMmnZl0cK3ix/afFstfhUEPGcUkmkYHoPlf8JaXsRByBs3nJxgROnxtoEFw==, tarball: file:vendor/ruken/ruken-sdk-0.0.0.tgz}
     version: 0.0.0
 
   '@sinclair/typebox@0.31.30':

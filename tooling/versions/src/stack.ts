@@ -180,10 +180,13 @@ function mentions(manifest: Manifest, name: string): boolean {
   return installSpecifier(manifest, name) !== undefined || manifest.peerDependencies?.[name] !== undefined
 }
 
-/** The commit `vendor/ruken/README.md` records the tarballs as packed from. */
+/**
+ * The commit `vendor/ruken/README.md` records the tarballs as packed from: its `**Source:**` line, which names a
+ * RukenApp branch (`main`, or a PR branch until that merges). Earlier sources in the README's history are not it.
+ */
 function vendoredRukenCommit(root: string): string {
   const readme = readFileSync(join(root, 'vendor/ruken/README.md'), 'utf8')
-  const commit = /RukenApp `main` at `([0-9a-f]+)`/.exec(readme)?.[1]
+  const commit = /\*\*Source:\*\* RukenApp `[^`]+` at `([0-9a-f]+)`/.exec(readme)?.[1]
   if (commit === undefined) throw new Error('vendor/ruken/README.md does not record the RukenApp commit')
   return commit
 }

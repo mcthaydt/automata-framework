@@ -635,7 +635,7 @@ the features it lacks are journeyed on the one-file examples that show them:
 
 - [x] **Pause on hide:** while playing, the page is hidden (`page.evaluate` dispatches `visibilitychange` with
   `document.hidden` stubbed); on return the pause menu is showing and "Resume" continues.
-- [ ] **Boot failure:** the host refuses to start. The e2e host (`tests/e2e/ruken/host.ts`) gains a `?fail=boot`
+- [x] **Boot failure:** the host refuses to start. The e2e host (`tests/e2e/ruken/host.ts`) gains a `?fail=boot`
   switch for this; it is test fixture code, not a game feature. The panel shows one plain sentence and a "Try
   again" button that reloads.
 - [x] **Touch-only on the iPad:** the room can be finished with the on-screen buttons only, and every button is at
@@ -1112,3 +1112,14 @@ the features it lacks are journeyed on the one-file examples that show them:
   `pnpm check` (33 of 33 tasks, 0 style findings); `test:dist` 21 of 21; consumer smoke 14 of 14; automata browser suite in
   Chromium 2,116 of 2,116; Emberwick 28 of 28 (phone, compact, iPad; the no-WebGL journey now reads the alert by role); the
   base-3d dev-server journey; 3D and editor unit suites. Not run: WebKit, Firefox, `pnpm lint:actions` (Docker), hosted CI.
+- **Task 8.2, boot failure, 2026-11-05 (branch `claude/emberwick-boot-failure`, on top of the merged stack).** Deviation 82:
+  Ruken had no way for a host to refuse a session (`session.ready` never rejects; a silent host only stalls the boot for
+  30 s), so the refusal switch is a Ruken protocol addition, chosen by the Owner: `session.refused` (H→G,
+  `{ code, retryable }`, sent instead of `session.ready`), `ruken.ready` rejecting with that code, `bridge.refuse()` and
+  `createFakeHost({ refuse })` (RukenApp `feat/fake-host-refusal` at `24568ae`, PR #582, with an RFC). The four tarballs are
+  repacked from that commit (it sits on RukenApp `main` at `4548672`, so they also carry Ruken's audit fixes); the stack
+  page now reads the README's `**Source:**` line, which may name a branch. The e2e host's `?fail=boot` refuses with
+  `DENIED`; the journey reads the alert ("Couldn't connect to Ruken."), checks Try again is 48 px or more, that the
+  trace is hello, welcome, session.refused, that boot's one log line is the only console error, and that Try again
+  reloads the game's frame. Verified: the journey in all five Emberwick projects (Chromium and WebKit); `pnpm ci:local`
+  apart from one Firefox browser-session timeout in the `automata` browser suite (rerun below).

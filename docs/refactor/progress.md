@@ -23,7 +23,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
 | 3. Plan audit | Done, 2026-11-05: 31 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
-| 4. Build | In progress: 27 of 30 tasks done locally. Open: 2.1 (the tag push is the Owner's), 8.2 (the Ruken boot-failure journey needs a refusal switch in Ruken's fake host), 9.2 (the Owner's go). PRs #388 to #401 (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
+| 4. Build | In progress: 28 of 30 tasks done locally. Open: 2.1 (the tag push is the Owner's), 9.2 (the Owner's go). PRs #388 to #401 (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
 | 5. Build audit | Done, 2026-11-06: 4 broken (B1 to B4), 8 spec gaps (C1 to C8), 4 tracking (D1 to D4), 2 unverified (E1, E2), 5 copy (G1 to G5), 6 tidy (L1 to L6); `pnpm check`, `pnpm build` and Emberwick's 28 Chromium journeys pass | [build audit](2026-11-06-core-and-2d-build-audit.md) |
 | 6. Fixes | Done, 2026-11-06 (PR [#403](https://github.com/mcthaydt/automata-framework/pull/403)): every finding closed in the tree except what only the Owner or a runner can do (E1: WebKit, Firefox, `pnpm lint:actions`, hosted CI, merging the stack). Running E1 here found three more packaging bugs, fixed | [stage 6 record](#stage-6-record-2026-11-06) |
 
@@ -39,15 +39,16 @@ The PRs are stacked, in this order: #388 (phase 1, not a draft) ← #389 ← #39
 2. **Mark the PRs ready and merge them bottom up** (draft pull requests skip `e2e-2d` and `parity`). Squashing the stack into
    fewer pull requests is an option; it is the Owner's call.
 3. **2.1:** push the tag `pre-refactor-2d` (refused with HTTP 403 from a cloud session), then deprecate the old package names in the registry.
-4. **8.2:** ask Ruken for a refusal switch in its fake host, then add the boot-failure journey.
+4. **8.2:** done, 2026-11-05: Ruken's fake host can refuse a boot (RukenApp PR #582), and the
+   boot-failure journey passes. Merge the RukenApp pull request, then re-vendor its tarballs from RukenApp `main`.
 5. **9.2:** say go, and the branch clean-up runs.
 6. Play Emberwick on the iPad from the last build.
 
 Next area: 3D. It starts when the Owner has taken 1 to 3 and the stack is merged.
 
-### Build: 90% (27 of 30 tasks)
+### Build: 93% (28 of 30 tasks)
 
-Counted from the rows below: 27 are done, 2.1 and 8.2 are partly done and 9.2 has not started. "Done locally" means `pnpm check` and the Chromium suites passed on the branch; the plan's "green, merge" steps stay open until the Owner's runs ([plan](2026-11-05-core-and-2d-plan.md)).
+Counted from the rows below: 28 are done, 2.1 is partly done and 9.2 has not started. "Done locally" means `pnpm check` and the Chromium suites passed on the branch; the plan's "green, merge" steps stay open until the Owner's runs ([plan](2026-11-05-core-and-2d-plan.md)).
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -77,7 +78,7 @@ Counted from the rows below: 27 are done, 2.1 and 8.2 are partly done and 9.2 ha
 | 7.1 Docs and AGENTS.md | 7 | Done locally, 2026-11-05: `docs/archive/`, `docs/README.md`, `docs/status.md` (47 lines), `AGENTS.md` (88 lines), `examples/README.md` | [#396](https://github.com/mcthaydt/automata-framework/pull/396) |
 | 7.2 Comments that cite plans | 7 | Done locally, 2026-11-05: 762 hits rewritten (automata 399, sim 39, content 69, tools 113, tooling 142); `pnpm style` checks every core, 2D and tooling root. Stage 6 widened the check to `.svelte` and `.css` comments, config files, apps and the published `testing/` helpers, and rewrote the 228 more it found | #398 |
 | 8.1 The copy table | 8 | Done locally, 2026-11-06 (hosted CI not run): screens, Settings, saves, boot failure, Emberwick, the CLI and the READMEs' first screens (`copy.md`); the paused dialog's ✕ is `Close`, no longer a second "Resume" | #397, [#401](https://github.com/mcthaydt/automata-framework/pull/401) |
-| 8.2 New Emberwick journeys | 8 | Done locally except boot failure: pause on hide and the end screen added; touch-only and the examples' reload journeys already existed; slow load dropped (deviation 67); boot failure blocked on a refusal switch in Ruken's fake host (deviation 64) | #397, #398 |
+| 8.2 New Emberwick journeys | 8 | Done locally, 2026-11-05: pause on hide and the end screen added; touch-only and the examples' reload journeys already existed; slow load dropped (deviation 67); boot failure added once Ruken's fake host could refuse a boot (`session.refused`, RukenApp branch `feat/fake-host-refusal`, deviation 82) | #397, #398, `claude/emberwick-boot-failure` |
 | 8.3 The `create-game` journey | 8 | Done locally, 2026-11-05 (Chromium, 1 of 1): it found that the template never booted a game; the template now runs on the default screens (deviation 68) | #398 |
 | 9.1 Prepare the branch clean-up | 9 | Done: `branches.md` and `pnpm branches:prune` (dry run only; nothing deleted) | |
 | 9.2 Run it (the Owner's go) | 9 | Not started | |
@@ -99,7 +100,7 @@ Every finding of the [build audit](2026-11-06-core-and-2d-build-audit.md) is clo
 | C7 | `pnpm check` runs `changeset status` and `check-changesets` |
 | D1 to D3 | This page, the plan's checkboxes and `docs/status.md` rewritten from the tree. Boxes that need a runner stay open and say so |
 | E1 | See below |
-| E2 | The no-WebGL journey now reads the failure panel by role (one alert, no button). The Ruken boot-failure journey stays blocked on a refusal switch in Ruken's fake host (deviation 64) |
+| E2 | The no-WebGL journey now reads the failure panel by role (one alert, no button). The Ruken boot-failure journey was blocked on a refusal switch in Ruken's fake host (deviation 64); added 2026-11-05 (deviation 82) |
 | G1 to G5 | "Back to menu / Leave this game? Unsaved progress is lost. / Leave / Keep playing"; "Couldn't save your game. Try again."; a start failure that a retry cannot fix says "Close it and open it again." and gives a hosted player a way out (`start-final`); a README per package |
 | L1 to L6 | A disposed owner stays silent; `close()` returns one promise; the `_tag` on results is explained; the SDD ledgers moved to `docs/archive/`; `ci.yml` comments tell the truth; `index.ts` says extensions are separate imports |
 

@@ -12,7 +12,13 @@ FloorFifty's `vendor/ruken/` pattern (decision D-6, master spec §12).
 | `ruken-manifest-0.0.0.tgz` | `@ruken/manifest` | `packages/ship` (checks the generated `ruken.toml`, compiles CSP headers) |
 | `ruken-cli-0.0.0.tgz` | `@ruken/cli` (the `ruken` bin) | `packages/ship` (`ship publish` spawns `ruken publish`). Built with Ruken's own `tsdown` config, which bundles `@ruken/validation`, `@ruken/api-contract` and `@ruken/manifest` into `dist/`; runtime dependencies are `smol-toml` 1.9.0, `yauzl` 3.4.0, `yazl` 3.3.1 and `zod` 4.6.6, pinned as in Ruken. Checked: with only those four installed, `node dist/cli.js` prints the usage (exit 2). |
 
-**Source:** RukenApp `main` at `e376a2d` (`e376a2d7971b696f77f1d15f5174e80de70e65ef`, the merge of RukenApp PR #396,
+**Source:** RukenApp `feat/fake-host-refusal` at `24568ae` (`24568ae4`, RukenApp PR #582, not yet merged), packed
+2026-11-05 for the Ruken boot-failure journey. It adds `session.refused` (the host refuses to start a session and
+`ruken.ready` rejects) and the fake host's `refuse` option, on top of RukenApp `main` at `4548672`, so the tarballs also
+carry Ruken's code-audit fixes (#395), the plain-node protocol load (#413) and the copy audit (#409). Re-vendor from
+`main` once that pull request merges.
+
+**Before that:** RukenApp `main` at `e376a2d` (`e376a2d7971b696f77f1d15f5174e80de70e65ef`, the merge of RukenApp PR #396,
 2026-10-30), packed 2026-10-30 (PRODUCT.4r). Each package was built with its own `pnpm run build` (Ruken's
 `turbo run build` stops on `@ruken/db#db:generate` without a database, and these packages do not need it).
 `@ruken/sdk-host` and `@ruken/cli` declare `zod` 4.6.6 (the SDK only as a dev dependency; `@ruken/manifest` does not
@@ -50,10 +56,10 @@ fails until they are the hashes of the tarballs in this folder), and re-run the 
 SHA-256 of the tarballs as packed:
 
 ```
-a54837ad1c7a5a7d35d64a4afbce6753eb45ac67d6dee1dadc79993c50c25672  ruken-sdk-0.0.0.tgz
-ee68ba187823979bc933d239f329fd7f068e63c935ef9afd68109438154c5f7c  ruken-sdk-host-0.0.0.tgz
-7975fedbbd91613ddec7277d2e34d7642c238a7988f15eda5ca5223e4c0eab41  ruken-manifest-0.0.0.tgz
-ce13f46536258f382e40702d45ecae2209b977742da7b9c38cb734122a6b7087  ruken-cli-0.0.0.tgz
+346f6c901acc74e44a6f20efefaf207e96b5beb108c4c88d9c53225b06a75ff8  ruken-sdk-0.0.0.tgz
+06cced58d8ccdced5fd6b8d8491142e0fadc8a6a071e5530ad4bf5d3fa9f96cd  ruken-sdk-host-0.0.0.tgz
+63442fd3409017a37b76f9a8e266c8297fdb32adb015cfade87dc31552127dd2  ruken-manifest-0.0.0.tgz
+454fdffeda559ff85e49a464c697da0ebc7ad9fde90d5ea97dcab9103ecd24af  ruken-cli-0.0.0.tgz
 ```
 
 Re-vendor after Ruken's F1 contract freeze (`contracts-f1`, planned

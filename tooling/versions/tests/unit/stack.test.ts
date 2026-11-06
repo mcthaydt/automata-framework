@@ -200,6 +200,16 @@ describe('collectStackFacts', () => {
     })
   })
 
+  it('reads the commit of a tarball packed from a RukenApp branch, not a later commit in the history', () => {
+    write(
+      'vendor/ruken/README.md',
+      '**Source:** RukenApp `feat/x` at `24568ae`.\n\n**Before:** RukenApp `main` at `e376a2d`.',
+    )
+    expect(collectStackFacts(root, [card(['@ruken/sdk'])]).get('@ruken/sdk')?.source).toBe(
+      'vendored tarball, RukenApp `24568ae`',
+    )
+  })
+
   it('fails on a package nothing depends on', () => {
     expect(() => collectStackFacts(root, [card(['ghost'])])).toThrow('ghost: no package.json depends on it')
   })
