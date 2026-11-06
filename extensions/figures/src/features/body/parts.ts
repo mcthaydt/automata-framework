@@ -46,7 +46,7 @@ export interface Part {
   bone?: number;
   /** Skinned: per vertex, up to three [bone, weight] pairs; the mesh is in rest figure space. */
   skin?: [number, number][][];
-  /** A tag that marks a part for the generators (the hair's crown: hair.ts CROWN). */
+  /** A tag that marks a part for the generators (the hair's crown: hair.ts CROWN; the body's neck: outfit/garments.ts NECK, for the raster's neckline rule). */
   tag?: string;
   /** Parts sharing a seam number draw no crevice between them (one surface built from several pieces). */
   seam?: number;
