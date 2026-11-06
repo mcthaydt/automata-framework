@@ -188,7 +188,10 @@ with tests in their own folder, and `.vscode` hides what the Owner does not need
 ## 2D editors and website: 33% (2 of 6)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
-repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone.
+repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
+to audit the other automata things too then; basically everything but 3D and editors") to the rest of the path a new
+author takes: `create-game` and the published command, releases, game CI, the agent package, docs, tooling, and the other
+Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 
 | Stage | Status | Record |
 |---|---|---|
