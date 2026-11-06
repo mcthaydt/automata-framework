@@ -217,8 +217,8 @@ const plural = (count: number, noun: string): string => `${count} ${noun}${count
       {breaking === 0
         ? 'Nothing links here from another level.'
         : breaking === 1
-          ? '1 link leads here. It will show in Checks as broken.'
-          : `${breaking} links lead here. They will show in Checks as broken.`}
+          ? '1 link leads here. It will show in Problems as broken.'
+          : `${breaking} links lead here. They will show in Problems as broken.`}
     </p>
     {#snippet actions({ close })}
       <Button onclick={close}>Cancel</Button>

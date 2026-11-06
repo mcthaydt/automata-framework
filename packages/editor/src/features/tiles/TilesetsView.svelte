@@ -98,7 +98,7 @@ onDestroy(() => {
           </div>
         {/if}
         {#if tileset === undefined}
-          <p class="none" role="status">This project has no tileset yet.</p>
+          <p class="none" role="status">No tiles yet. Add a picture of your tiles to paint with them.</p>
         {:else}
           <TilesetSheet {tileset} {selection} {session} {images} {imageUrl} />
         {/if}

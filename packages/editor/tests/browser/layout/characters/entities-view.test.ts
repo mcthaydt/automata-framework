@@ -106,7 +106,7 @@ async function reach(element: HTMLElement): Promise<void> {
 async function chooseSlime(size: EditorSize): Promise<void> {
   await openDrawer(size, 'Definitions', 'panel')
   const row = [...byTestId('entities-panel').querySelectorAll<HTMLElement>('[role="radio"]')].find(
-    (candidate) => candidate.textContent?.trim().startsWith('slime'),
+    (candidate) => candidate.textContent?.trim().startsWith('Slime'),
   )
   if (row === undefined) throw new Error('no slime row')
   row.click()

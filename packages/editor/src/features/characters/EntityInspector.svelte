@@ -1,6 +1,7 @@
 <!--
   The Entities view's inspector: tabs Definition and Fields. Definition edits the
-  selected entity definition (id, label, colour, shape, size, pivot, single, tile) and offers Duplicate and Delete;
+  selected entity definition (label, colour, shape, size, one per level, tile, and under More its name in code and
+  anchor point) and offers Duplicate and Delete;
   Fields lists the owner's fields, adds one, and edits the selected one (`FieldDefEditor.svelte`). For the level fields
   only the Fields tab has content. A refused value shows its message; a delete or a field change in use opens the
   refusal dialog, whose "anyway" is one undo step (G-f).
@@ -15,7 +16,7 @@ import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import Tabs from '../../shared/kit/widgets/Tabs.svelte'
 import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
-import { fieldRows, type ResolvedEntitiesSelection } from './entities-model'
+import { fieldRows, type ResolvedEntitiesSelection, SHAPE_WORDS } from './entities-model'
 import type { EntitiesSession, GuardedCommit } from './entities-session'
 import FieldDefEditor from './FieldDefEditor.svelte'
 import RefusalDialog from './RefusalDialog.svelte'
@@ -94,10 +95,6 @@ function tileChoice(current: EntityDef2D, id: string): void {
         {#key def.id}
           <div class="fields">
             <label class="text">
-              <span class="label">Id</span>
-              <input value={def.id} onchange={(event) => show(session.renameDefinition(onText(event)))} />
-            </label>
-            <label class="text">
               <span class="label">Label</span>
               <input value={def.label ?? ''} onchange={(event) => edit({ label: onText(event) || undefined })} />
             </label>
@@ -109,7 +106,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
             />
             <Segmented
               label="Shape"
-              options={SHAPES.map((shape) => ({ id: shape, label: shape }))}
+              options={SHAPES.map((shape) => ({ id: shape, label: SHAPE_WORDS[shape] }))}
               value={def.shape}
               onedit={(event) => committed(event) && edit({ shape: event.value as EntityDef2D['shape'] })}
             />
@@ -127,27 +124,11 @@ function tileChoice(current: EntityDef2D, id: string): void {
                 integer
                 onedit={(event) => committed(event) && edit({ size: { ...def.size, h: event.value } })}
               />
-              <Stepper
-                label="Pivot x"
-                value={def.pivot.x}
-                min={0}
-                max={1}
-                step={0.5}
-                onedit={(event) => committed(event) && edit({ pivot: { ...def.pivot, x: event.value } })}
-              />
-              <Stepper
-                label="Pivot y"
-                value={def.pivot.y}
-                min={0}
-                max={1}
-                step={0.5}
-                onedit={(event) => committed(event) && edit({ pivot: { ...def.pivot, y: event.value } })}
-              />
             <button
               type="button"
               class="toggle"
               aria-pressed={def.single === true}
-              onclick={() => edit({ single: def.single !== true })}>Single per level</button
+              onclick={() => edit({ single: def.single !== true })}>Only one per level</button
             >
             <Picker
               label="Tile"
@@ -168,6 +149,30 @@ function tileChoice(current: EntityDef2D, id: string): void {
                 onedit={(event) => committed(event) && edit({ tile: { ...tile, index: event.value } })}
               />
             {/if}
+            <!-- What only a programmer needs: the name the game's code uses and where the thing is held from. -->
+            <details class="more">
+              <summary>More</summary>
+              <label class="text">
+                <span class="label">Name in code</span>
+                <input value={def.id} onchange={(event) => show(session.renameDefinition(onText(event)))} />
+              </label>
+              <Stepper
+                label="Anchor point across"
+                value={def.pivot.x}
+                min={0}
+                max={1}
+                step={0.5}
+                onedit={(event) => committed(event) && edit({ pivot: { ...def.pivot, x: event.value } })}
+              />
+              <Stepper
+                label="Anchor point down"
+                value={def.pivot.y}
+                min={0}
+                max={1}
+                step={0.5}
+                onedit={(event) => committed(event) && edit({ pivot: { ...def.pivot, y: event.value } })}
+              />
+            </details>
             {#if message !== undefined}<p class="message" role="alert">{message}</p>{/if}
           </div>
           <div class="footer">
@@ -184,7 +189,7 @@ function tileChoice(current: EntityDef2D, id: string): void {
       {:else}
         <div class="fields">
           <div class="head">
-            <h2 id="field-list-heading">{def === undefined ? 'Level fields' : `Fields of ${def.id}`}</h2>
+            <h2 id="field-list-heading">{def === undefined ? 'Settings for every level' : `Fields of ${def.label ?? def.id}`}</h2>
             <Button onclick={() => show(session.addField())}>Add field</Button>
           </div>
           <div class="choices" role="radiogroup" aria-labelledby="field-list-heading">
@@ -236,6 +241,21 @@ function tileChoice(current: EntityDef2D, id: string): void {
     display: grid;
     gap: var(--space-3);
     padding: var(--space-3);
+  }
+  /* More: closed by default; its summary is a full-size target, its fields keep the inspector's spacing. */
+  .more {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .more[open] {
+    padding-bottom: var(--space-2);
+  }
+  .more summary {
+    display: flex;
+    align-items: center;
+    min-height: var(--size-hit);
+    font: var(--text-body-13-medium);
+    cursor: pointer;
   }
   .head {
     display: flex;

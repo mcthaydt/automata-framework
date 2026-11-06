@@ -142,7 +142,12 @@ describe.each(SIZES)('World view at $name ($width x $height)', (size) => {
     await openDrawer(size, 'Levels', 'panel')
     const panel = region('panel')
     const layouts = [...panel.querySelectorAll<HTMLElement>('[role="radio"]')]
-    expect(layouts.map((radio) => radio.textContent?.trim())).toEqual(['Free', 'Grid', 'Row', 'Column'])
+    expect(layouts.map((radio) => radio.textContent?.trim())).toEqual([
+      'Anywhere',
+      'In a grid',
+      'In a row',
+      'In a column',
+    ])
     for (const radio of layouts) await expectTarget(radio, size)
     const rows = [...panel.querySelectorAll<HTMLElement>('ul[aria-label="Levels"] button')]
     expect(rows.length).toBeGreaterThan(1)

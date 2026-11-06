@@ -1,7 +1,8 @@
 <!--
   The selected definition drawn as it will stand in a level: a header with
-  its id, where it is used, its size and its pivot, then the shape at a whole-number scale on a grid of its own size,
-  the pivot marked and the sides labelled. A definition with a tile draws the tile's sprite in the shape's box.
+  its name, where it is used and its shape and size in plain words, then the shape at a whole-number scale on a grid of
+  its own size, the anchor point marked and the sides labelled (the anchor point's numbers are under More in the
+  inspector). A definition with a tile draws the tile's sprite in the shape's box.
 -->
 <script lang="ts">
 import type { Project } from '../../shared/level-2d/model/project-types'
@@ -35,10 +36,9 @@ const sprite = $derived.by(() => {
 <section class="preview" aria-label="Preview" data-testid="entity-preview">
   <header>
     <span class="swatch" style:--swatch={color} aria-hidden="true"></span>
-    <h2>{id}</h2>
+    <h2>{preview.name}</h2>
     <span class="pill">{preview.instances}</span>
     <span class="pill">{preview.sizeText}</span>
-    <span class="pill">{preview.pivotText}</span>
   </header>
   <div class="stage">
     <div
@@ -49,12 +49,12 @@ const sprite = $derived.by(() => {
       style:background-size={`${preview.scale}px ${preview.scale}px`}
     >
       {#if sprite !== undefined}<span class="sprite" style={sprite}></span>{/if}
-      <span class="pivot" style:left={`${preview.pivot.x}px`} style:top={`${preview.pivot.y}px`} title="pivot"></span>
+      <span class="pivot" style:left={`${preview.pivot.x}px`} style:top={`${preview.pivot.y}px`} title="Anchor point"></span>
       <span class="side w">{preview.box.w / preview.scale} px</span>
       <span class="side h">{preview.box.h / preview.scale} px</span>
     </div>
   </div>
-  <p class="caption">Placed with its pivot on the snapped cell · {preview.scale}× zoom</p>
+  <p class="caption">{preview.scale === 1 ? 'Shown at its real size' : `Shown ${preview.scale} times bigger`}</p>
 </section>
 
 <style>

@@ -38,8 +38,8 @@ const levelFields = $derived(levelFieldRows(project))
         >
           <span class="swatch" style:--swatch={row.color ?? 'var(--color-text-dim)'} aria-hidden="true"></span>
           <span class="text">
-            <span class="name">{row.id}</span>
-            <span class="sub">{row.summary}</span>
+            <span class="name">{row.label ?? row.id}</span>
+            {#if row.summary !== ''}<span class="sub">{row.summary}</span>{/if}
           </span>
         </button>
       {:else}
@@ -50,7 +50,7 @@ const levelFields = $derived(levelFieldRows(project))
 
   <section aria-labelledby="level-fields-heading">
     <div class="head">
-      <h2 id="level-fields-heading">Level fields <span class="note">every level</span></h2>
+      <h2 id="level-fields-heading">Settings for every level</h2>
       <Button
         aria-label="Add level field"
         onclick={() => {
@@ -66,7 +66,7 @@ const levelFields = $derived(levelFieldRows(project))
       onclick={() => session.select({ owner: 'level' })}
     >
       <span class="text">
-        <span class="name">Level fields</span>
+        <span class="name">Settings for every level</span>
         <span class="sub">
           {levelFields.length === 0 ? 'none yet' : levelFields.map((row) => row.id).join(' · ')}
         </span>
@@ -98,10 +98,6 @@ const levelFields = $derived(levelFieldRows(project))
     padding: var(--space-2) var(--space-2) 0;
     color: var(--color-text-dim);
     font: var(--text-label-12);
-  }
-  .note {
-    color: var(--color-text-faint);
-    font: var(--text-mono-11);
   }
   .empty {
     margin: 0;

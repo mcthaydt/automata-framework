@@ -38,11 +38,11 @@ const { geometry, document: opened, frame, services }: ViewProps = $props()
 const DEFAULT_BOX: Size = { w: 800, h: 600 }
 const MARGIN = 24
 const LAYOUTS: readonly { id: WorldLayout; label: string }[] = [
-  { id: 'free', label: 'Free' },
-  { id: 'grid', label: 'Grid' },
-  // A sequence in plain words (the APP spec's plain words for non-developers), short enough for the 264 px panel.
-  { id: 'horizontal', label: 'Row' },
-  { id: 'vertical', label: 'Column' },
+  // Plain words for each way the world arranges its levels (the grandma audit, section 5.2).
+  { id: 'free', label: 'Anywhere' },
+  { id: 'grid', label: 'In a grid' },
+  { id: 'horizontal', label: 'In a row' },
+  { id: 'vertical', label: 'In a column' },
 ]
 
 // The view is made for one document: the screen remounts it when the document is replaced.
@@ -217,12 +217,14 @@ function layout(next: string): void {
         />
       {/if}
       {#if world !== undefined}
-        <Segmented
-          label="Layout"
-          options={LAYOUTS}
-          value={world.layout}
-          onedit={(event) => layout(event.value)}
-        />
+        <div class="arrange">
+          <Segmented
+            label="Arrange levels"
+            options={LAYOUTS}
+            value={world.layout}
+            onedit={(event) => layout(event.value)}
+          />
+        </div>
       {/if}
       <ul class="levels" aria-label="Levels">
         {#each levels as level (level.id)}
@@ -283,12 +285,16 @@ function layout(next: string): void {
         onremoved={() => (selected = undefined)}
       />
     {:else}
-      <p class="empty">Choose a level on the map or in the list.</p>
+      <p class="empty">Tap a level to edit it.</p>
     {/if}
   {/snippet}
 </EditorShell>
 
 <style>
+  /* Four ways in plain words do not fit one row of the 264 px panel: they wrap to two, each keeping its words. */
+  .arrange :global(.segmented) {
+    flex-wrap: wrap;
+  }
   .panel {
     display: grid;
     grid-template-columns: minmax(0, 1fr);

@@ -97,9 +97,19 @@ describe('World view: the map and the panel', () => {
     expect(inspector().getByRole('textbox', { name: 'Name' })).toHaveValue('Second')
   })
 
-  it('switches the layout to Grid, snapping every level, as one undo step', async () => {
+  it('names the ways to arrange levels in plain words', async () => {
+    await mount()
+    const arrange = screen.getByRole('radiogroup', { name: 'Arrange levels' })
+    expect(
+      within(arrange)
+        .getAllByRole('radio')
+        .map((radio) => radio.textContent?.trim()),
+    ).toEqual(['Anywhere', 'In a grid', 'In a row', 'In a column'])
+  })
+
+  it('switches the layout to In a grid, snapping every level, as one undo step', async () => {
     const { history } = await mount((project) => withNewLevel(project, 'level-3', { x: 37, y: 900 }))
-    await userEvent.click(screen.getByRole('radio', { name: 'Grid' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'In a grid' }))
     expect(history.state.worlds[0]?.layout).toBe('grid')
     const grid = history.state.worlds[0]?.grid?.w ?? 0
     expect(grid).toBeGreaterThan(0)
@@ -136,7 +146,7 @@ describe('World view: the map and the panel', () => {
 
   it("reorders a horizontal world when a level is dragged past its neighbour, and the Level view's level picker follows (G-h)", async () => {
     const { history, first } = await mount()
-    await userEvent.click(screen.getByRole('radio', { name: 'Row' }))
+    await userEvent.click(screen.getByRole('radio', { name: 'In a row' }))
     const width = history.state.levels[0]?.size.w ?? 0
     const scale = fitWorld(worldRects(history.state, 'main', undefined), BOX, MARGIN).scale
     const at = onMap(history.state, 10, 10)
@@ -299,11 +309,11 @@ describe('World view: duplicate and remove (plan ED2D.8a decision 3)', () => {
     const steps = history.revision
     await userEvent.click(inspector().getByRole('button', { name: 'Remove' }))
     const dialog = within(await screen.findByRole('dialog', { name: 'Remove Second?' }))
-    expect(dialog.getByText('1 link leads here. It will show in Checks as broken.')).toBeInTheDocument()
+    expect(dialog.getByText('1 link leads here. It will show in Problems as broken.')).toBeInTheDocument()
     await userEvent.click(dialog.getByRole('button', { name: 'Remove' }))
     expect(history.revision).toBe(steps + 1)
     expect(history.state.levels.map((level) => level.id)).toEqual([first])
-    expect(screen.getByText('Choose a level on the map or in the list.')).toBeInTheDocument()
+    expect(screen.getByText('Tap a level to edit it.')).toBeInTheDocument()
     await userEvent.click(levelList().getAllByRole('button')[0] as HTMLElement)
     expect(inspector().getByRole('button', { name: 'Remove' })).toBeDisabled()
   })

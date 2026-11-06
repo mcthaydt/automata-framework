@@ -71,9 +71,10 @@ function thumb(tile: number | undefined): string {
   </section>
 
   <section aria-labelledby="auto-heading">
-    <h2 id="auto-heading">Auto layers</h2>
+    <!-- The auto layers in the Level view's words for them (spec 11.5). -->
+    <h2 id="auto-heading">Tiles that place themselves</h2>
     {#if layer === undefined}
-      <p class="empty">No auto layer reads an IntGrid yet.</p>
+      <p class="empty">None in this game yet.</p>
     {:else}
       <div class="choices" role="radiogroup" aria-labelledby="auto-heading">
         {#each autoLayerRows(project) as row (row.id)}

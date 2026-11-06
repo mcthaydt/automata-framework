@@ -2214,3 +2214,22 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   journeys, parity and storage 106 pass and 6 skipped, `pnpm check` green; WebKit, Firefox and hosted CI not run.
   **Left for 12.3:** the charcoal cabinet and the canvas tests' colour expectations (styling, from the mockup), and
   step 4's screenshots and copy rows.
+- **12.4 Step G (session 12): Map, Tiles and Characters in plain words.** Map: "Layout" (Free, Grid, Row, Column) is
+  "Arrange levels" (Anywhere, In a grid, In a row, In a column), wrapping to two rows in the 264 px panel; the empty
+  inspector says "Tap a level to edit it."; Remove's warning says links "will show in Problems as broken" (Checks is
+  no longer a view). Tiles: "Auto layers" is "Tiles that place themselves", empty "None in this game yet." (was "No
+  auto layer reads an IntGrid yet."); the rule groups and rules show only once there is such a layer, as before; the
+  stage with no tileset says "No tiles yet. Add a picture of your tiles to paint with them." **Deviation 112:** no
+  [Add tiles] button: the editor has no action that adds a tileset (every template comes with one), and adding a
+  picture is a new feature, not essential to editing a game that has its tiles; noted for the Owner. Characters: each
+  row shows the label (not the id) and "One per level" only where it applies (no field count, no shape); "Level
+  fields" is "Settings for every level"; the shapes are Box, Circle, Dot, Picture (the file keeps `rect`, `ellipse`,
+  `point`, `tile`); "Single per level" is "Only one per level"; the id ("Name in code") and the pivot ("Anchor point
+  across", "Anchor point down") moved under a closed More; the preview names the thing by its label, says "Box, 16 × 24
+  px" and "Shown 8 times bigger" (was "Placed with its pivot on the snapped cell · 8× zoom") and drops the pivot pill.
+  Gates: editor unit 3,293 → 3,296 (three new: arrange words, tiles words, the More section), typecheck clean,
+  Chromium layout (map, tiles, characters, level, document) and 2D journeys pass, `pnpm check` green; WebKit, Firefox
+  and hosted CI not run. **Left for 12.4:** steps 1 to 3, the frame of spec 11.4 for the three views (the stage in its
+  cabinet, a list sheet and an item sheet: their "Rules" / "Definitions" / "Inspector" drawer buttons become the
+  Level view's corner and pill controls) and the dialogs' one primary action, then the inspector tab names
+  ("Definition", "Fields 3"), which still read as engine words.

@@ -24,11 +24,11 @@ const quietPage = (): { document: LifecycleDocument; window: LifecycleWindow } =
   window: { addEventListener: () => {}, removeEventListener: () => {} },
 })
 
-async function mount() {
+async function mount(template = 'platformer') {
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   const app = createEditorApp({ workspace, registry: createAppProfiles(), ids: counterIds(), clock })
-  const opened = await app.create('level-project', 'platformer')
+  const opened = await app.create('level-project', template)
   if (opened.status !== 'opened') throw new Error(opened.status)
   const toasts = createToasts({ clock })
   const controller = createDocumentController({ app, opened, toasts, lifecycle: quietPage() })
@@ -96,6 +96,16 @@ describe('Tilesets view: the panel', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Add rule' }))
     const added = ground().groups[2]?.rules[0]?.id ?? ''
     expect(within(inspector()).getByRole('heading', { name: added })).toBeInTheDocument()
+  })
+})
+
+describe('Tilesets view: plain words (grandma audit 5.2)', () => {
+  it('names the auto layers as tiles that place themselves, and says so when there are none', async () => {
+    await mount('blank')
+    expect(screen.getByRole('heading', { name: 'Tiles that place themselves' })).toBeInTheDocument()
+    expect(screen.getByText('None in this game yet.')).toBeInTheDocument()
+    expect(screen.queryByText(/IntGrid/)).toBeNull()
+    expect(screen.queryByRole('heading', { name: /^Rule groups/ })).toBeNull()
   })
 })
 
