@@ -1,6 +1,6 @@
 import type { FieldDef } from '@mcthaydt/automata-content/level-2d'
 import { describe, expect, it } from 'vitest'
-import { entityInspector, levelChecks, levelInspector } from '#src/features/level/inspector-model.ts'
+import { entityInspector, levelInspector } from '#src/features/level/inspector-model.ts'
 import { fieldRow } from '#src/shared/kit/fields/field-row.ts'
 import { placeEntity, setEntityField } from '#src/shared/level-2d/model/commands/entity-edits.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
@@ -65,11 +65,8 @@ describe('fieldRow', () => {
 })
 
 describe('entityInspector', () => {
-  it('says why there is nothing to show when nothing is selected', () => {
-    expect(entityInspector(withSlime(), 'level-1', [])).toEqual({
-      kind: 'none',
-      reason: 'Select a thing on the canvas to see its fields',
-    })
+  it('has nothing to show when nothing is selected, so the inspector shows the level', () => {
+    expect(entityInspector(withSlime(), 'level-1', [])).toEqual({ kind: 'none' })
   })
 
   it('shows one selected instance with its fields, position and size', () => {
@@ -150,25 +147,5 @@ describe('levelInspector', () => {
       size: { w: expect.any(Number), h: expect.any(Number) },
       fields: [{ id: 'music', widget: 'text', value: '' }],
     })
-  })
-})
-
-describe('levelChecks', () => {
-  it("keeps this level's findings and names the instance a finding is about", () => {
-    const found = [
-      {
-        severity: 'error',
-        code: 'a',
-        path: 'levels[level-1].layers[entities].items[slime-a].fields.hp',
-        message: 'hp',
-      },
-      { severity: 'warning', code: 'b', path: 'levels[level-10]', message: 'other level' },
-      { severity: 'info', code: 'c', path: 'levels[level-1]', message: 'the level' },
-      { severity: 'error', code: 'd', path: 'defs.tilesets[terrain]', message: 'definitions' },
-    ] as const
-    expect(levelChecks(found, 'level-1')).toEqual([
-      { severity: 'error', message: 'hp', path: found[0].path, item: 'slime-a' },
-      { severity: 'info', message: 'the level', path: 'levels[level-1]', item: undefined },
-    ])
   })
 })

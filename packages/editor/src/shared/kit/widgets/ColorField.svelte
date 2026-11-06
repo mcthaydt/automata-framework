@@ -186,8 +186,9 @@ function onPanelKey(event: KeyboardEvent): void {
     color: var(--ink);
     font: var(--text-body-13);
   }
+  /* `--label-flex`: the label-left column of an inspector (see Stepper). */
   .label {
-    flex: 1 1 4rem;
+    flex: var(--label-flex, 1 1 4rem);
     color: var(--muted);
   }
   .trigger,

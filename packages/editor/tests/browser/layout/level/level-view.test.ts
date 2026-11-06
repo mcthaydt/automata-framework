@@ -155,12 +155,18 @@ describe.each(SIZES)('Level view inspector, tools and levels at $name ($width x 
       await arrived()
       expect(region('inspector').dataset.open).toBe('true')
     }
-    const tablist = region('inspector').querySelector<HTMLElement>('[role="tablist"][aria-label="Inspector"]')
-    if (tablist === null) throw new Error('no inspector tabs')
-    const tabs = [...tablist.querySelectorAll<HTMLElement>('[role="tab"]')]
-    expect(tabs.map((tab) => tab.textContent?.trim())).toEqual(['Selected', 'Level', 'Problems'])
-    for (const tab of tabs) expectInside(tab, size)
-    expect(checkLayout(conditions, tabs)).toEqual([])
+    // No tabs: with nothing chosen the inspector shows the level, label-left; every control can be scrolled into the
+    // screen inside the inspector's own scroll region (a phone held sideways is short).
+    const inspector = region('inspector').querySelector<HTMLElement>('[data-testid="level-inspector"]')
+    if (inspector === null) throw new Error('no inspector')
+    expect(inspector.querySelector('[role="tablist"]')).toBeNull()
+    expect(inspector.querySelector('h2')?.textContent?.trim()).toBeTruthy()
+    const controls = [...inspector.querySelectorAll<HTMLElement>('button, input, textarea')]
+    for (const control of controls) {
+      control.scrollIntoView({ block: 'nearest' })
+      expectInside(control, size)
+    }
+    expect(checkLayout(conditions, controls)).toEqual([])
     await page.screenshot({ path: `.vitest/shots/level-inspector-${size.name}.png` })
   })
 
