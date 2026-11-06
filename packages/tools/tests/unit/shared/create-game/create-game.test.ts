@@ -70,6 +70,7 @@ describe('createGame', () => {
           const err = exit.cause.error
           expect(err).toBeInstanceOf(CreateGameError)
           expect(err.reason).toBe('target-directory-exists')
+          expect(err.message).toBe(`${testDir} already has files in it. Pick a new folder.`)
         } else {
           expect.unreachable('expected Fail cause')
         }

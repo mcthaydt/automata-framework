@@ -11,7 +11,11 @@ describe('checkVersion', () => {
   })
 
   it('names both values when they differ', () => {
-    expect(checkVersion('1.2.3', 'v1.2.4')).toBe('the game is at version 1.2.3 but the tag is v1.2.4')
-    expect(checkVersion('1.2.3', '1.2.3')).toBe('the game is at version 1.2.3 but the tag is 1.2.3')
+    expect(checkVersion('1.2.3', 'v1.2.4')).toBe(
+      'the game is at version 1.2.3 but the tag is v1.2.4: tag it v1.2.3, or change the version to match',
+    )
+    expect(checkVersion('1.2.3', '1.2.3')).toBe(
+      'the game is at version 1.2.3 but the tag is 1.2.3: tag it v1.2.3, or change the version to match',
+    )
   })
 })

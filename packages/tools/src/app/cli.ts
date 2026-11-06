@@ -230,7 +230,7 @@ export async function runCli(
   }
 
   if (!parsed.targetDir) {
-    io.stderr(`Error: target directory is required.\n\n${USAGE}`)
+    io.stderr(`Error: name a folder for the game, like: automata create-game my-game\n\n${USAGE}`)
     return 1
   }
 
@@ -258,7 +258,9 @@ export async function runCli(
 
   const exit = await Effect.runPromise(Effect.exit(program))
   if (exit._tag === 'Success') {
-    io.stdout(`Created game "${exit.value.title}" (${exit.value.id}) at ${exit.value.targetDir}\n`)
+    // The folder as typed, so the next commands can be pasted as they are.
+    const dir = parsed.targetDir
+    io.stdout(`Created "${exit.value.title}" in ${dir}.\nNext: cd ${dir} && pnpm install && pnpm dev\n`)
     return 0
   }
 
