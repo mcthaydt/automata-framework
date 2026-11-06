@@ -16,6 +16,8 @@ const FILLED = 400;
 const filled = (px: Uint8ClampedArray) => { let n = 0; for (let i = 3; i < px.length; i += 4) if (px[i]) n++; return n; };
 const BODY = (Object.keys(DEFAULT_SLIDERS) as (keyof Sliders)[]).filter(k => typeof DEFAULT_SLIDERS[k] === 'number');
 const FACE = Object.keys(DEFAULT_HEAD) as (keyof HeadShape)[];
+/** The signed face sliders (the sign picks the side) run −1…1. */
+const FACE_ENDS: Partial<Record<keyof HeadShape, [number, number]>> = { asymmetry: [-1, 1] };
 
 describe('every slider at either end still builds and paints', () => {
   for (const c of BASE) {
@@ -27,7 +29,7 @@ describe('every slider at either end still builds and paints', () => {
       }
     });
     it(`${c.def.id} face`, () => {
-      for (const key of FACE) for (const v of [0, 1]) {
+      for (const key of FACE) for (const v of FACE_ENDS[key] ?? [0, 1]) {
         const cast = member({ ...c.def, sliders: { ...c.def.sliders, face: { ...c.def.sliders.face, [key]: v } } }, 1);
         expect(filled(standing(cast, 0)), `${key} ${v}`).toBeGreaterThan(FILLED);
       }

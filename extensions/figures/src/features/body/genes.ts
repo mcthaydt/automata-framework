@@ -57,11 +57,15 @@ export interface HeadShape {
   /** The eyes: their width (0 a texel narrower … 1 a texel wider, two at density 4), how far apart they are set (0 a texel
    * closer … 1 a texel further, more at density 4) and their tilt (0 the outer corner drooping a row … 1 lifted a row). */
   eyeSize: number; eyeSpacing: number; eyeTilt: number;
+  /** An uneven face, −1…1 (0 the mirrored face; the sign picks the side, +1 the figure's left): one eye a row lower (from
+   * 0.5) and a texel narrower (from 0.8), the nose off the centre line toward it, the mouth's other corner a row higher,
+   * the jaw 12% wider on that side. A diversity control, not a lever for ugliness. */
+  asymmetry: number;
 }
 export const DEFAULT_HEAD: HeadShape = {
   width: 0.5, jaw: 0.5, chin: 0.5, cheekHeight: 0.5, cheekWidth: 0.5, bridge: 0.5, nose: 0.5, lips: 0.5,
   browArch: 0.4, browWeight: 0.5, browHeight: 0.5, crease: 0.5, hood: 0.3, liner: 0,
-  eyeSize: 0.5, eyeSpacing: 0.5, eyeTilt: 0.5,
+  eyeSize: 0.5, eyeSpacing: 0.5, eyeTilt: 0.5, asymmetry: 0,
 };
 export const DEFAULT_SLIDERS: Sliders = {
   frame: 0.5, height: 170, muscle: 0.5, fat: 0.4, shoulders: 0.5, hips: 0.5, legs: 0.5, arms: 0.5, head: 0.6,

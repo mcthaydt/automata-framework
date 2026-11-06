@@ -26,7 +26,13 @@ const spread = (v: number, lo: number, mid: number, hi: number) => (v < 0.5 ? le
  * each section a superellipse, its front half a little squarer than its back (a face's planes before a round skull),
  * rounding again over the cranium. One form for the head's skin and for whatever hugs it (a fade, a sleek shell: hair.ts).
  */
-export interface HeadForm { h: number; width: (t: number) => number; front: (t: number) => number; back: (t: number) => number }
+export interface HeadForm {
+  h: number;
+  /** The half-width at t. With a side (+1 the figure's left, −1 its right) the jaw's width on that side below t 0.3 (the
+   * face's asymmetry); without one, the mirrored form. From t 0.3 up (the cranium, which the hair hugs) both sides are one. */
+  width: (t: number, side?: 1 | -1) => number;
+  front: (t: number) => number; back: (t: number) => number;
+}
 /** The front half's roundness at height t: under the eyes a rounded wedge, the cheeks falling back from the nose and the
  * mouth (so at three-quarters the nose breaks the far cheek's line); from the eyes up full, the brow running across to
  * the temples (so the far eye shows inside the contour); over the cranium round again. The back half is an ellipse. */
@@ -35,13 +41,13 @@ const faceRound = (t: number) => lerp(lerp(1.3, 0.88, smooth((t - 0.32) / 0.1)),
 export function headAt(f: HeadForm, t: number, v: number): V3 {
   const pow = (x: number, e: number) => Math.sign(x) * Math.abs(x) ** e;
   const fr = f.front(t), b = f.back(t), c = Math.cos(v), sn = Math.sin(v), e = sn > 0 ? faceRound(t) : 1;
-  return [Math.max(0, f.width(t)) * pow(c, e), t * f.h, (fr + b) / 2 + (fr - b) / 2 * pow(sn, e)];
+  return [Math.max(0, f.width(t, c < 0 ? -1 : 1)) * pow(c, e), t * f.h, (fr + b) / 2 + (fr - b) / 2 * pow(sn, e)];
 }
 /** Whether a point (the head's space) lies inside its form: what the hair is fitted round (hair.ts toHead). */
 export function insideHead(f: HeadForm, p: V3): boolean {
   const t = p[1] / f.h;
   if (t <= 0 || t >= 1) return false;
-  const W = f.width(t), fr = f.front(t), b = f.back(t), H = (fr - b) / 2, dz = p[2] - (fr + b) / 2, e = dz > 0 ? faceRound(t) : 1;
+  const W = f.width(t, p[0] < 0 ? -1 : 1), fr = f.front(t), b = f.back(t), H = (fr - b) / 2, dz = p[2] - (fr + b) / 2, e = dz > 0 ? faceRound(t) : 1;
   return W > 0 && H > 0 && Math.abs(p[0] / W) ** (2 / e) + Math.abs(dz / H) ** (2 / e) < 1;
 }
 /** The form's outward normal at (t, v), from its own derivatives. */
@@ -89,7 +95,10 @@ export function headForm(m: Measure, s: Skeleton): HeadForm {
     [0.24, z(0.97)], [0.32, z(0.99)], [0.42, z(0.97)], [0.48, z(0.92)], [0.56, z(0.98)], [0.68, z(0.94)], [0.8, z(0.8)], [0.9, z(0.55)], [0.97, z(0.22)], [1, crown]]);
   const backOf = curve([[0, point], [0.04, z(0.5)], [0.1, z(0.1)], [0.18, back(-0.3)], [0.26, back(-0.62)], [0.36, back(-0.86)], [0.5, back(-0.98)],
     [0.62, back(-1.04)], [0.74, back(-1.02)], [0.84, back(-0.9)], [0.92, back(-0.68)], [0.97, back(-0.42)], [1, crown]]);
-  return { h, width, front, back: backOf };
+  // The jaw's width per side below the cheekbones (the face's asymmetry): exactly 1 from t 0.3 up and at no asymmetry.
+  const a = F.asymmetry;
+  const sided = (t: number, side?: 1 | -1) => (a && side ? width(t) * (1 + 0.12 * a * side * (1 - smooth(t / 0.3))) : width(t));
+  return { h, width: sided, front, back: backOf };
 }
 /**
  * An ear (`x` the side, +1 the figure's left), in the head's space, from its height on the head (the brow's line to the
