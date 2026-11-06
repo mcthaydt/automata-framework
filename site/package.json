@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare": "svelte-kit sync",
     "dev": "vite dev",
     "build": "node scripts/build-demos.ts && vite build && node scripts/write-seo-files.ts build",
     "preview": "vite preview",
