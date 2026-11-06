@@ -49,7 +49,9 @@ export interface ScreensCopy {
   readonly paused: {
     readonly title: string
     readonly resume: string
-    /** The dialog's close button away from the menu (the quit confirm, the changed-elsewhere step). */
+    /** The dialog's ✕ on the menu: not Resume, so a screen reader hears one Resume button, not two. */
+    readonly close: string
+    /** The dialog's ✕ away from the menu (the quit confirm, the changed-elsewhere step). */
     readonly back: string
     readonly mute: string
     readonly unmute: string
@@ -116,6 +118,7 @@ export const DEFAULT_SCREENS_COPY: ScreensCopy = {
   paused: {
     title: 'Paused',
     resume: 'Resume',
+    close: 'Close',
     back: 'Back',
     mute: 'Mute',
     unmute: 'Unmute',

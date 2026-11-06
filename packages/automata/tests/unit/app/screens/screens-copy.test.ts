@@ -30,6 +30,7 @@ describe('DEFAULT_SCREENS_COPY', () => {
     expect(DEFAULT_SCREENS_COPY.paused).toEqual({
       title: 'Paused',
       resume: 'Resume',
+      close: 'Close',
       back: 'Back',
       mute: 'Mute',
       unmute: 'Unmute',

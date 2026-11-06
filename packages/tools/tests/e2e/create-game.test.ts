@@ -44,7 +44,6 @@ test('a new game opens on its title, plays, draws and pauses on Escape', async (
 
   await page.keyboard.press('Escape')
   await expect(page.getByTestId('paused-screen')).toBeVisible()
-  // The pause menu's close button is named Resume too, so the menu's own Resume is found by its test id.
-  await expect(page.getByTestId('resume')).toBeFocused()
+  await expect(page.getByRole('button', { name: 'Resume' })).toBeFocused()
   expect(errors).toEqual([])
 })
