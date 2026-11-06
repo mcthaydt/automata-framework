@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { getExample } from '../../src/data/examples'
+import { compileExample } from '../../src/lib/playground/compile'
 import { atOrigin } from '../../src/lib/playground/origin'
 import { SITE_ORIGIN } from '../../src/lib/site.js'
 
@@ -30,10 +30,16 @@ describe('atOrigin', () => {
   })
 
   it('moves the literal in a real precompiled original', () => {
-    const original = readFileSync(
-      resolve(import.meta.dirname, '../../static/playground/compiled/audio-sound.js'),
-      'utf8',
-    )
+    // Compiled here the way build-demos.ts precompiles it: a unit test never reads build output, which a fresh
+    // checkout does not have.
+    const example = getExample('audio-sound')
+    if (example === undefined) throw new Error('no audio-sound example')
+    const compiled = compileExample(example.source, {
+      id: example.id,
+      moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,
+    })
+    if (!compiled.ok) throw new Error('audio-sound does not compile')
+    const original = compiled.code
     const moved = atOrigin(original, SITE_ORIGIN, 'http://localhost:5173')
     expect(moved).toContain('"http://localhost:5173/playground/examples/audio/audio-sound.ts"')
     expect(moved).not.toContain(SITE_ORIGIN)
