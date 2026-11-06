@@ -13,9 +13,10 @@ import { describe, expect, it } from 'vitest'
 // demos (decision E-3) and reported on their own line.
 
 const GAME_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
-// 400 until the room learned to pause when the page is hidden (about ten lines of listener); 420 leaves room for the next small
-// piece of behaviour without hiding a real growth in plumbing.
-const PLUMBING_LIMIT = 420
+// 400 until the room learned to pause when the page is hidden (about ten lines of listener), 420 until main.ts learned to
+// restart the game on new content in dev (the Tuner's live game, about fifteen lines); 430 leaves room for the next
+// small piece of behaviour without hiding a real growth in plumbing.
+const PLUMBING_LIMIT = 430
 
 const SIM_ROLE = /\.(?:component|system|command|event|resource|plugin)\.ts$/
 const SIM_BY_IMPORT = ['src/shared/tiles.ts', 'src/shared/tuning.ts', 'src/features/player/place-wick.ts']

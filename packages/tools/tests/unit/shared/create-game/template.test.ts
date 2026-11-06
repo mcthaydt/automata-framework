@@ -83,6 +83,14 @@ describe('the new game’s files', () => {
     expect(main).toContain('startGame(game)')
   })
 
+  it('restarts the game in place when a saved level or setting changes the content in dev', () => {
+    // The content plugin sends an HMR update after each good save; main.ts accepts it through app/game.ts, shuts
+    // the running game down and starts the new one, so the page is not reloaded.
+    const main = read('src/main.ts')
+    expect(main).toContain("import.meta.hot.accept('./app/game.ts'")
+    expect(main).toContain('await running.shutdown()')
+  })
+
   it('keeps the sim free of the renderer, so its tests need no browser', () => {
     for (const file of files.filter((each) => /^src\/features\/(square|level)\/(?!\w+\.view)/.test(each))) {
       expect(read(file), file).not.toMatch(/from '@mcthaydt\/automata'|pixi/)
