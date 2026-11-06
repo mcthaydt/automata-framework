@@ -7,7 +7,7 @@
   of `editor-suite` that 2D touches, `automata editor` in `-tools`, the editor guide and mock-ups, and the whole website
   repository.
 - **What it does not do:** change code, or audit 3D (`editor-3d`, the Studio, `render-pixi3d`, `figures`,
-  `sector-format`, `games/base-3d`). Section 6 notes where 3D will plug in. Section 7 lists the decisions the Owner takes.
+  `sector-format`, `games/base-3d`). Section 6 notes where 3D will plug in. Section 7 lists the decisions the Owner took.
 
 Every number below was measured on these checkouts on 2026-11-06. The commands are in the appendix. WebKit and Firefox
 cannot be installed in a cloud session, so every browser run here is Chromium; hosted CI was not run.
@@ -362,9 +362,11 @@ release, then press again before landing." and the Privacy page.
 
 ## 7. For the plan stage
 
-### Decisions for the Owner (each with a recommended default)
+### Decisions (made by the Owner, 2026-11-06)
 
-The plan stage can start on the recommendations; a different choice changes the parts named.
+The Owner took all eight recommendations on 2026-11-06 ("Go with all recommendations", on the question "Go with all
+eight recommended defaults from the audit (D1 to D8)?"). The plan stage builds on the options marked recommended. D8's
+inputs (the domain, the host and its credential, the contact address, `NPM_TOKEN`) are still the Owner's to supply.
 
 - **D1. Where the website lives.**
   - **A (recommended):** move it into this repository as `site/`, a workspace package that reads the framework's code,
