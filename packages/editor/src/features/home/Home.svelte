@@ -11,7 +11,6 @@ import type { GeometryState } from '@mcthaydt/automata'
 import { tick } from 'svelte'
 import FilePick from '../../shared/kit/home/FilePick.svelte'
 import HomeScreen from '../../shared/kit/home/HomeScreen.svelte'
-import { splitPath } from '../../shared/kit/home/project-browse'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
@@ -19,7 +18,7 @@ import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
 import DeleteDialog from './DeleteDialog.svelte'
 import type { HomeController } from './home-controller'
-import { homeCard, templateCards } from './home-model'
+import { cardTitle, homeCard, templateCards } from './home-model'
 import ProjectSummary from './ProjectSummary.svelte'
 import TemplateRow from './TemplateRow.svelte'
 
@@ -84,7 +83,7 @@ async function confirmDelete(): Promise<void> {
   {#snippet sheets({ selected })}
     <DeleteDialog
       bind:open={deleteOpen}
-      name={selected === undefined ? '' : splitPath(selected.path).name}
+      name={selected === undefined ? '' : cardTitle(selected)}
       onconfirm={confirmDelete}
     />
   {/snippet}

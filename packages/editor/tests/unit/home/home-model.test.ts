@@ -78,18 +78,15 @@ describe("searchWords, as the kit's search reads them", () => {
 })
 
 describe('entryBadge', () => {
-  it('calls a project with no findings valid', () => {
-    expect(entryBadge(ok('a'))).toEqual({ tone: 'ok', text: 'Valid' })
+  it('shows no badge on a level with nothing wrong: every card is a level, so "Valid" says nothing', () => {
+    expect(entryBadge(ok('a'))).toBeUndefined()
   })
 
-  it('counts warnings, and errors first when there are both', () => {
-    expect(entryBadge(ok('a', { warnings: 1 }))).toEqual({ tone: 'warn', text: '1 warning' })
-    expect(entryBadge(ok('a', { warnings: 3 }))).toEqual({ tone: 'warn', text: '3 warnings' })
-    expect(entryBadge(ok('a', { errors: 1 }))).toEqual({ tone: 'bad', text: '1 error' })
-    expect(entryBadge(ok('a', { errors: 2, warnings: 1 }))).toEqual({
-      tone: 'bad',
-      text: '2 errors · 1 warning',
-    })
+  it('counts errors and warnings together as problems, red when any is an error', () => {
+    expect(entryBadge(ok('a', { warnings: 1 }))).toEqual({ tone: 'warn', text: '1 problem' })
+    expect(entryBadge(ok('a', { warnings: 3 }))).toEqual({ tone: 'warn', text: '3 problems' })
+    expect(entryBadge(ok('a', { errors: 1 }))).toEqual({ tone: 'bad', text: '1 problem' })
+    expect(entryBadge(ok('a', { errors: 2, warnings: 1 }))).toEqual({ tone: 'bad', text: '3 problems' })
   })
 
   it('says a broken file will not open and an ambiguous one needs a choice', () => {
@@ -127,9 +124,9 @@ describe('templateCards', () => {
   it('lists every template of every profile in registration order, with its hint', () => {
     const registry = createAppProfiles()
     expect(templateCards(registry).map((card) => [card.key, card.label, card.hint])).toEqual([
-      ['level-project/platformer', 'Platformer', 'side view'],
-      ['level-project/topdown-rpg', 'Top-down RPG', 'maps · NPCs'],
-      ['level-project/blank', 'Blank', 'own layers'],
+      ['level-project/platformer', 'Platformer', 'jump between platforms'],
+      ['level-project/topdown-rpg', 'Top-down', 'walk around a map'],
+      ['level-project/blank', 'Blank', 'start from nothing'],
     ])
   })
 
@@ -197,8 +194,8 @@ describe('duplicateMessage and importMessage', () => {
 })
 
 describe('removeMessage and importNotices', () => {
-  it('says which file was deleted, by its last path segment', () => {
-    expect(removeMessage('dir/old.note')).toEqual({ kind: 'info', text: 'Deleted old.note.' })
+  it('says which level was deleted, by the name its card showed', () => {
+    expect(removeMessage('Mossgate')).toEqual({ kind: 'info', text: 'Deleted Mossgate.' })
   })
 
   it('reports one imported file as itself and several as a count', () => {
@@ -260,7 +257,7 @@ describe('homeCard', () => {
     expect(homeCard(entry, registry)).toEqual({
       path: 'mossgate.af2d.json',
       title: 'Mossgate',
-      badge: { tone: 'warn', text: '1 warning' },
+      badge: { tone: 'warn', text: '1 problem' },
       kind: project.label,
       accent: kindTone(registry, project.id),
       size: 100,

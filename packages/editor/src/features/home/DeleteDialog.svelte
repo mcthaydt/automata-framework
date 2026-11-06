@@ -1,6 +1,6 @@
 <!--
-  Asks once before a project goes. Says what goes with the file and names the destructive
-  action. Cancel has focus first, so a stray Enter keeps the file; the kit's dialog returns focus to where it was.
+  Asks once before a level goes. Names the level as people know it (its title, never its file) and says it cannot
+  come back. Cancel has focus first, so a stray Enter keeps the level; the kit's dialog returns focus to where it was.
 -->
 <script lang="ts">
 import Button from '../../shared/kit/widgets/Button.svelte'
@@ -8,7 +8,7 @@ import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 
 interface Props {
   open: boolean
-  /** The file's name. */
+  /** The level's name, as its card shows it. */
   name: string
   onconfirm: () => void
 }
@@ -17,7 +17,7 @@ let { open = $bindable(), name, onconfirm }: Props = $props()
 </script>
 
 <Dialog bind:open title={`Delete ${name}?`}>
-  <p>The file and its autosave are removed from this workspace. This can’t be undone.</p>
+  <p>This level is deleted for good. You can’t undo this.</p>
   {#snippet actions({ close })}
     <Button data-autofocus onclick={close}>Cancel</Button>
     <Button
@@ -27,7 +27,7 @@ let { open = $bindable(), name, onconfirm }: Props = $props()
         onconfirm()
       }}
     >
-      Delete
+      Delete level
     </Button>
   {/snippet}
 </Dialog>
@@ -35,7 +35,7 @@ let { open = $bindable(), name, onconfirm }: Props = $props()
 <style>
   p {
     margin: 0;
-    color: var(--color-text-dim);
+    color: var(--muted);
     overflow-wrap: anywhere;
   }
 </style>

@@ -6,7 +6,7 @@ import DeleteDialog from '#src/features/home/DeleteDialog.svelte'
 
 function mount(props: { open?: boolean } = {}) {
   const onconfirm = vi.fn()
-  render(DeleteDialog, { open: true, name: 'mossgate.af2d.json', onconfirm, ...props })
+  render(DeleteDialog, { open: true, name: 'Mossgate', onconfirm, ...props })
   return { onconfirm }
 }
 
@@ -16,11 +16,11 @@ describe('DeleteDialog', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('names the file and says what goes with it', () => {
+  it('names the level by its name, not its file, and says it cannot come back', () => {
     mount()
-    const dialog = screen.getByRole('dialog', { name: 'Delete mossgate.af2d.json?' })
-    expect(dialog).toHaveTextContent('The file and its autosave')
-    expect(dialog).toHaveTextContent('can’t be undone')
+    const dialog = screen.getByRole('dialog', { name: 'Delete Mossgate?' })
+    expect(dialog).toHaveTextContent('This level is deleted for good. You can’t undo this.')
+    expect(dialog).not.toHaveTextContent(/workspace|\.json|autosave/)
   })
 
   it('puts focus on Cancel first, so a stray Enter keeps the file', () => {
@@ -44,13 +44,13 @@ describe('DeleteDialog', () => {
 
   it('marks Delete as the destructive action', () => {
     mount()
-    expect(screen.getByRole('button', { name: 'Delete' })).toHaveAttribute('data-kind', 'danger')
+    expect(screen.getByRole('button', { name: 'Delete level' })).toHaveAttribute('data-kind', 'danger')
     expect(screen.getByRole('button', { name: 'Cancel' })).toHaveAttribute('data-kind', 'plain')
   })
 
   it('Delete is named for what it does, confirms once and closes', async () => {
     const { onconfirm } = mount()
-    await userEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Delete level' }))
     expect(onconfirm).toHaveBeenCalledOnce()
     expect(screen.queryByRole('dialog')).toBeNull()
   })

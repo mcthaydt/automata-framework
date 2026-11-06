@@ -39,14 +39,14 @@ function factsOf(
 }
 </script>
 
-{#if entry === undefined || badge === undefined}
+{#if entry === undefined}
   <p class="nothing">Select a project</p>
 {:else}
   <div class="summary">
     <header>
       <h2>{cardTitle(entry)}</h2>
       <div class="pills">
-        <Pill tone={badge.tone}>{badge.text}</Pill>
+        {#if badge}<Pill tone={badge.tone}>{badge.text}</Pill>{/if}
         {#if entry.status !== 'ambiguous'}<Pill>{entry.profile.label}</Pill>{/if}
       </div>
     </header>

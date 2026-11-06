@@ -12,8 +12,8 @@ export interface HomeCard {
   readonly path: string
   /** The project's own name for itself, else its file's name. */
   readonly title: string
-  /** What its checks found, or why it cannot be opened plainly. */
-  readonly badge: { readonly tone: Tone; readonly text: string }
+  /** What its checks found, or why it cannot be opened plainly; none when there is nothing to say. */
+  readonly badge?: { readonly tone: Tone; readonly text: string } | undefined
   /** What kind of project it is, in words: the profile's label. */
   readonly kind: string
   /** The CSS variable of the kind's colour (`--color-layer-sky`); none for a project of no single kind. */

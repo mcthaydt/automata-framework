@@ -69,7 +69,7 @@ export interface ExportTarget<V> {
 export interface TemplateDef<V> {
   readonly id: string
   readonly label: string
-  /** A few words under the label on the template's card ("side view"). */
+  /** A few words under the label on the template's card ("jump between platforms"). */
   readonly hint?: string | undefined
   /** Ids of everything the template places come from `ids`, so tests are exact. */
   create(ids: IdSource): V

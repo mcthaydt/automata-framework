@@ -5,6 +5,7 @@ import {
   createProjectBrowser,
   type ProjectListSource,
 } from '../../shared/kit/home/project-browser.ts'
+import { baseName } from '../../shared/kit/storage/store-path.ts'
 import type { ToastKind, ToastStore } from '../../shared/kit/widgets/toasts.ts'
 import type { EditorApp, ImportOutcome, OpenOutcome } from '../../shared/level-2d/documents/editor-app'
 import {
@@ -14,7 +15,7 @@ import {
   type PanelOutcome,
 } from '../../shared/level-2d/documents/open-flow-model'
 import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
-import { duplicateMessage, importNotices, removeMessage, searchWords } from './home-model'
+import { cardTitle, duplicateMessage, importNotices, removeMessage, searchWords } from './home-model'
 
 // The 2D editor's Home: the kit's project browser (the list, the search, the selection and
 // one action at a time) with this editor's actions on top: open, create from a template, duplicate, delete and import.
@@ -120,9 +121,10 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
       const target = browser.current.selected
       if (target === undefined) return
       const at = browser.current.visible.findIndex((entry) => entry.path === target)
+      const entry = browser.current.visible[at]
       await browser.run('remove', async () => {
         await app.remove(target)
-        const notice = removeMessage(target)
+        const notice = removeMessage(entry === undefined ? baseName(target) : cardTitle(entry))
         say(notice.kind, notice.text)
         await browser.load((visible) => visible[Math.min(at, visible.length - 1)]?.path)
       })

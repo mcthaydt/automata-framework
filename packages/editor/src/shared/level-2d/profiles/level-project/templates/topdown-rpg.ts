@@ -148,8 +148,8 @@ const entities: EntityDef2D[] = [
 
 export const topdownRpgTemplate: TemplateDef<Project> = {
   id: 'topdown-rpg',
-  label: 'Top-down RPG',
-  hint: 'maps · NPCs',
+  label: 'Top-down',
+  hint: 'walk around a map',
   create: (ids) =>
     starterProject(
       'Untitled RPG',

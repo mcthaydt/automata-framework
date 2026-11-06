@@ -60,7 +60,7 @@ describe('ProjectSummary', () => {
       mount(withSummary)
       expect(screen.getByRole('heading', { name: 'The Keep' })).toBeInTheDocument()
       expect(screen.getByText('Dungeon crawl')).toBeInTheDocument()
-      expect(screen.getByText('1 warning')).toBeInTheDocument()
+      expect(screen.getByText('1 problem')).toBeInTheDocument()
       const facts = screen.getAllByRole('term').map((term) => term.textContent)
       expect(facts).toEqual(['Floors', 'Monsters'])
       expect(screen.getByText('5', { selector: 'dd' })).toBeInTheDocument()
@@ -76,7 +76,7 @@ describe('ProjectSummary', () => {
     it('counts errors and warnings when the profile gives no summary, and names the file', () => {
       mount(withoutSummary)
       expect(screen.getByRole('heading', { name: 'keep.dgn' })).toBeInTheDocument()
-      expect(screen.getByText('2 errors · 1 warning')).toBeInTheDocument()
+      expect(screen.getByText('3 problems')).toBeInTheDocument()
       expect(screen.getAllByRole('term').map((term) => term.textContent)).toEqual(['Errors', 'Warnings'])
       expect(screen.getAllByRole('definition').map((value) => value.textContent)).toEqual(['2', '1'])
     })

@@ -465,7 +465,7 @@ describe('remove', () => {
     expect(paths(state())).toEqual(['notes/harbour.note', 'mossgate.af2d.json'])
     expect(state().selected).toBe('mossgate.af2d.json')
     expect(await workspace.journal.list()).toEqual([])
-    expect(messages()).toEqual(['info: Deleted hollowmere.af2d.json.'])
+    expect(messages()).toEqual(['info: Deleted Hollowmere.'])
   })
 
   it('moves back to the previous project when the last one goes, and to nothing when none is left', async () => {

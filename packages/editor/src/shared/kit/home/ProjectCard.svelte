@@ -63,7 +63,7 @@ $effect(() => {
   <span class="text">
     <span class="head">
       <span class="title">{card.title}</span>
-      <Pill tone={card.badge.tone}>{card.badge.text}</Pill>
+      {#if card.badge}<Pill tone={card.badge.tone}>{card.badge.text}</Pill>{/if}
     </span>
     <span class="meta">
       <Pill accent={card.accent === undefined ? undefined : '--kind'}>{card.kind}</Pill>
