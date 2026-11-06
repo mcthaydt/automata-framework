@@ -142,7 +142,7 @@ function clearNoteOnLeave(event: FocusEvent): void {
     color: var(--muted);
     background: var(--paper);
     border: 1px solid var(--line);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     user-select: text;
     -webkit-user-select: text;
   }
@@ -163,7 +163,7 @@ function clearNoteOnLeave(event: FocusEvent): void {
     color: var(--ink);
     background: var(--paper);
     border: 1px solid var(--line-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     cursor: pointer;
   }
 

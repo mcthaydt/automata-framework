@@ -127,7 +127,7 @@ function onClick(event: MouseEvent): void {
     width: min(26rem, 100%);
     max-height: 100%;
     border: 1px solid var(--line);
-    border-radius: var(--edge);
+    border-radius: var(--edge-lg);
     background: var(--paper);
     box-shadow: var(--shadow-sheet);
     color: var(--ink);
@@ -183,7 +183,7 @@ function onClick(event: MouseEvent): void {
       width: 100%;
       max-height: calc(100% - var(--space-6));
       border-bottom: 0;
-      border-radius: var(--edge);
+      border-radius: var(--edge-lg) var(--edge-lg) 0 0;
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     .dialog::before {
@@ -192,7 +192,7 @@ function onClick(event: MouseEvent): void {
       width: 36px;
       height: 4px;
       margin-top: var(--space-2);
-      border-radius: var(--edge);
+      border-radius: var(--edge-sm);
       background: var(--line-strong);
     }
     .actions {

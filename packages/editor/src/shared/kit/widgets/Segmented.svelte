@@ -112,7 +112,7 @@ function onKey(event: KeyboardEvent, index: number): void {
     padding: 3px;
     gap: 2px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--surface);
   }
   .option {
@@ -121,7 +121,7 @@ function onKey(event: KeyboardEvent, index: number): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 0;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--muted);
     font: var(--text-body-13-medium);

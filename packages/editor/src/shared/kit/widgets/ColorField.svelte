@@ -197,7 +197,7 @@ function onPanelKey(event: KeyboardEvent): void {
     box-sizing: border-box;
     min-height: var(--size-hit);
     border: 1px solid var(--line-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     color: inherit;
     font: var(--text-mono-12);
@@ -212,7 +212,7 @@ function onPanelKey(event: KeyboardEvent): void {
   .chip {
     width: 24px;
     height: 24px;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     border: 1px solid var(--line-strong);
   }
   .panel {
@@ -223,7 +223,7 @@ function onPanelKey(event: KeyboardEvent): void {
     gap: var(--space-2);
     padding: var(--space-2);
     border: 1px solid var(--line);
-    border-radius: var(--edge);
+    border-radius: var(--edge-md);
     background: var(--paper);
     box-shadow: var(--shadow-sheet);
   }

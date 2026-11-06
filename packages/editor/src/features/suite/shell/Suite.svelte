@@ -380,7 +380,7 @@ function openCard(card: EditorCard): void {
   .sample {
     padding: 2px var(--space-2);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     color: var(--color-text-dim);
     font: var(--text-eyebrow-11);
   }

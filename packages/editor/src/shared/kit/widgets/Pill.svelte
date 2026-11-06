@@ -33,7 +33,7 @@ const { tone, accent, children }: Props = $props()
     min-height: 22px;
     padding: 0 var(--space-2);
     border: 1px solid color-mix(in srgb, var(--pill-color) 45%, transparent);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: color-mix(in srgb, var(--pill-color) 14%, transparent);
     color: var(--pill-color);
     font: var(--text-label-12);

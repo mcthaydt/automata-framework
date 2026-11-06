@@ -65,7 +65,7 @@ async function picked(event: Event & { currentTarget: HTMLInputElement }): Promi
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--line-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     font: var(--text-body-13-medium);
     cursor: pointer;

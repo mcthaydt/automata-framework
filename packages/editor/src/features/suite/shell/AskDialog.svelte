@@ -151,7 +151,7 @@ function ask(): void {
   }
   .chip {
     padding: var(--space-1) var(--space-2);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     font: var(--text-mono-12);
   }
@@ -164,14 +164,14 @@ function ask(): void {
   .meter {
     width: 6rem;
     height: 6px;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: linear-gradient(to right, var(--color-accent-default) var(--fill), var(--color-bg-field) var(--fill));
   }
   textarea {
     min-height: 44px;
     padding: var(--space-2);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13);
@@ -181,7 +181,7 @@ function ask(): void {
     max-height: 40vh;
     overflow: auto;
     border: 1px solid var(--color-border-default);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-app);
     font: var(--text-mono-12);
   }

@@ -48,7 +48,7 @@ const { cards, onopen }: Props = $props()
     min-height: 44px;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     text-align: start;

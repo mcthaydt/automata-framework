@@ -63,7 +63,7 @@ function revealFirstMark(node: HTMLElement): void {
     flex-direction: column;
     min-height: 0;
     border: 1px solid var(--color-border-default);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     overflow: hidden;
   }

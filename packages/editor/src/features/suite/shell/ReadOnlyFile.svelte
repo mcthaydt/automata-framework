@@ -61,7 +61,7 @@ const text = $derived(workspace.read(file.path))
   .badge {
     padding: 2px var(--space-2);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     color: var(--color-text-dim);
     font: var(--text-eyebrow-11);
   }
@@ -75,7 +75,7 @@ const text = $derived(workspace.read(file.path))
     margin: 0;
     padding: var(--space-3);
     overflow: auto;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     font: var(--text-mono-12);
     touch-action: pan-x pan-y;

@@ -44,7 +44,7 @@ const { icon, label, showLabel = false, pressed, ...rest }: Props = $props()
     height: var(--size-hit);
     padding: 0;
     border: 1px solid transparent;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--ink);
     font: var(--text-body-13-medium);

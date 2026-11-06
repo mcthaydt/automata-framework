@@ -84,10 +84,13 @@
   --text-mono-12-tracking: 0px;
   --text-mono-11: 400 11px / 14px var(--font-mono);
   --text-mono-11-tracking: 0px;
-  --edge: 0px;
-  --primary: var(--ink);
-  --primary-ink: var(--paper);
-  --primary-hover: #2b313b;
+  --edge-sm: 4px;
+  --edge-md: 6px;
+  --edge-lg: 8px;
+  --primary: var(--lime);
+  --primary-ink: var(--ink);
+  --primary-edge: var(--ink);
+  --primary-hover: color-mix(in oklab, var(--lime) 86%, var(--ink));
   --color-bg-app: var(--bg);
   --color-bg-surface: var(--paper);
   --color-bg-raised: var(--paper);

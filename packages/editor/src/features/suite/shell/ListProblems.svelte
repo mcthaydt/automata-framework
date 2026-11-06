@@ -46,7 +46,7 @@ function where(problem: EditorListProblem): string | undefined {
     gap: var(--space-3);
     padding: var(--space-4);
     border: 1px solid var(--color-state-bad);
-    border-radius: var(--edge);
+    border-radius: var(--edge-lg);
     background: var(--color-bg-surface);
   }
   h2 {

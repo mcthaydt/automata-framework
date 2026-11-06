@@ -177,7 +177,7 @@ function show(path: string): void {
     min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--line);
-    border-radius: var(--edge);
+    border-radius: var(--edge-md);
     background: var(--surface);
   }
   .text {

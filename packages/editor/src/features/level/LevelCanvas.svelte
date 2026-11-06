@@ -159,7 +159,7 @@ $effect(() => {
     margin: 0;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     font: var(--text-body-13);

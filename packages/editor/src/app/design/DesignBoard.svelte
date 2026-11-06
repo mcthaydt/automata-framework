@@ -200,7 +200,7 @@ toasts.push({ message: 'Layer deleted', action: { label: 'Undo', run: () => {} }
     gap: var(--space-4);
     padding: var(--space-5);
     border: 1px solid var(--line);
-    border-radius: var(--edge);
+    border-radius: var(--edge-md);
     background: var(--paper);
   }
   h2 {
