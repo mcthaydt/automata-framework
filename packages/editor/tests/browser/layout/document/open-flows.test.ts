@@ -106,9 +106,10 @@ const dialog = (): HTMLElement => {
   return found
 }
 
+/** A button by its accessible name: its `aria-label` (an icon button, such as Back) or else its words. */
 const button = (root: HTMLElement, name: string): HTMLElement => {
   const found = [...root.querySelectorAll<HTMLElement>('button')].find(
-    (candidate) => candidate.textContent?.trim() === name,
+    (candidate) => (candidate.getAttribute('aria-label') ?? candidate.textContent?.trim()) === name,
   )
   if (found === undefined) throw new Error(`no ${name} button`)
   return found

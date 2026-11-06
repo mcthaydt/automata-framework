@@ -207,27 +207,32 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 15):** branch `claude/project-thread-jfp084`, PR #427 stacked on #426
-(`claude/project-thread-emf20i`), itself on #424, #423 and #421. Session 15: a Tuner change restarts the game on the
-screen the person was on (`startGame(game, { at })`, `RuntimeHandle.screen`; Emberwick goes back to the room), and
-12.7's split, Publish and Home in words. **The Owner approved the redesign mockups on 2026-11-06** ("Approved", relayed
-by the coordinator): `refactor/2026-11-06-redesign-mockups/editor-level.html` and its `AUDIT.md` are the editors' look,
-for 12.3 and every non-3D editor view; `site-home.html` is phase 18's direction. Started: the mockup's neutral tool
-palette (`--tool-*` tokens, `src/shared/kit/tool-chrome.css` on the editor's pages). Next, in order: the mockup's
-density (32 px rows and controls on a mouse, 44 on touch; the layout tests that hold every control to 44 px need a
-pointer-aware rule first, and a primary stays 48 on touch), then 12.3's structure from the mockup (tools top centre,
-zoom bottom, level menu in the top bar with the four views as quiet tabs, label-left inspector, three layouts by
-container size: wide 1180+, medium, compact <=760 or <520 high), then the same look on Map, Tiles, Characters, the
-Tuner, the suite page and the dialogs; then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3. Adding a tileset ("Add
-tiles", deviation 112) is the Owner's question: do not build it unless they say yes. Every editor keeps only essential
-features (name each cut in the plan's log). **Phase 18** takes `site-home.html`; task 14.1 waits for the Owner to
-confirm the `automata` npm organisation. This file holds a stale second copy of this section (session 12, below the
-core tables): the 12.x and 17.3 rows live only there; untangle it in the build audit. Node 24 is not in a fresh
-session: unpack nodejs.org's latest 24 into `/opt/node24`, enable corepack, and put it first on `PATH` in every
+**Where to resume (2026-11-06, session 16):** branch `claude/project-thread-51y2u8`, its PR stacked on #427
+(`claude/project-thread-jfp084`), itself on #426, #424, #423 and #421. Session 16: **the mockup's density** (32 px
+rows and controls with a mouse, a primary too; 44 px and a 48 px primary once any coarse pointer is present, in
+`tool-chrome.css`; every hard-coded 44 px in the views reads `--size-hit`). The layout contract learned the pointer
+first: `publishConditions(root, size, variant, targets?)` (`Conditions.targets`, default `TOUCH_TARGETS`, changeset
+`layout-targets`), the editors' layout tests pass `editorTargets()` (`src/testing/kit/targets.ts`), and the layout
+project runs twice in Chromium, `layout (chromium)` with a mouse and `layout (chromium, touch)` with `hasTouch`, so
+both rules are proven. **12.3's structure from the mockup, begun:** the top bar is Back (an icon), the game's name
+then "/" and the level menu as a quiet path, the views as quiet tabs (the kit's `Segmented look="tabs"`), a gap,
+then the tools, Undo, Redo and Save; the layer rows put the lock before the eye and, with a mouse, show both only on
+hover, focus or when on; Layers and Paint with are small-capital section labels. **Next, in order:** the rest of
+12.3 from `editor-level.html` (the save state as a status with one lime primary, Save on a game folder and Share in
+browser storage; Problems as a top-bar button rather than an inspector tab; the inspector label-left showing the
+level with nothing chosen; zoom stays Fit only, an essential-features cut; three layouts by container, wide 1180+,
+medium, compact <=760 or <520 high, with the tools in a dock; the charcoal canvas colours and the canvas tests'
+pixel expectations, 12.3 Step 3), then the same look on Map, Tiles, Characters, the Tuner, the suite page and the
+dialogs; then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3; phase 18 takes `site-home.html`. Adding a tileset
+("Add tiles", deviation 112) is the Owner's question: do not build it unless they say yes. Every editor keeps only
+essential features (name each cut in the plan's log). Task 14.1 waits for the Owner to confirm the `automata` npm
+organisation. This file holds a stale second copy of this section (session 12, below the core tables): the 12.x and
+17.3 rows live only there; untangle it in the build audit. Node 24 is not in a fresh session: it may already be at
+`/opt/node24` (else unpack nodejs.org's latest 24 there), enable corepack, and put it first on `PATH` in every
 command (the hooks otherwise run on Node 22). A commit's lefthook runs the affected unit tests (about 5 minutes for a
 runtime change); `LEFTHOOK=0` only after running them yourself. In a fresh clone, run `node site/scripts/build-demos.ts`
-before `pnpm check`. Browser tests in a cloud session: `--project 'layout (chromium)'` (WebKit and Firefox are not
-installed). The design board: `pnpm --filter @mcthaydt/automata-editor design:board`.
+before `pnpm check`. Browser tests in a cloud session: `--project 'layout (chromium)' --project 'layout (chromium,
+touch)'` (WebKit and Firefox are not installed). The design board: `pnpm --filter @mcthaydt/automata-editor design:board`.
 
 | Task | Phase | Status | PR |
 |---|---|---|---|
@@ -437,7 +442,7 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 11.3 The kit's components and the design board | 11 | Done, 2026-11-06 (no literal colour or old alias in the kit; IconButton; Dialog a phone sheet; board screenshotted at five sizes and every image opened; editor unit 3,284; editor Chromium browser projects 533 pass, 6 skipped; editor-3d unit, dom, layout and canvas in Chromium pass; `pnpm check` green; WebKit, Firefox and hosted CI not run) | [#419](https://github.com/mcthaydt/automata-framework/pull/419) |
 | 12.1 Home | 12 | Done, 2026-11-06 (session 10): one column of cards with a More menu, the New level sheet, Open from, one storage line; Step G (new levels in `content/rooms/`, "Your game: Emberwick", "Changed 7 minutes ago"); editor unit 3,286, Home layout 41 of 41 in Chromium at eight sizes; WebKit, Firefox and hosted CI not run; templates only in browser storage (the try-it), per the Owner | [#420](https://github.com/mcthaydt/automata-framework/pull/420) |
 | 12.2 The document frame | 12 | Done, 2026-11-06 (sessions 10 and 11): Back asks; essentials-only top bar with Save's three states; no status bar; the view switcher (Level, Map, Tiles, Characters; a menu on a phone, two-row bar); "2 problems" opens the Problems sheet; the Share menu in browser storage only; rename on tap; editor unit 3,284, Chromium layout 130 and 2D journeys 8 pass; WebKit, Firefox and hosted CI not run | [#420](https://github.com/mcthaydt/automata-framework/pull/420), this session's PR |
-| 12.3 The Level view | 12 | In progress (sessions 11, 12 and 15): the mockup was approved 2026-11-06; session 15 put its neutral tool palette on every editor page (`tool-chrome.css`). Earlier: the tools are icons in one pill floating over the canvas, the brush size a 44 px number button; layer rows with colour, plain kind words, eye and lock; the inspector opens on selection, Details opens it below wide; the level picker with New level in the top bar replaces the strip of cards (the suite too). Left: the charcoal cabinet and the canvas colours, from the design thread's mockup once the Owner approves it | #421, this session's PR |
+| 12.3 The Level view | 12 | In progress (sessions 11, 12, 15 and 16): the mockup was approved 2026-11-06; session 15 put its neutral tool palette on every editor page (`tool-chrome.css`); session 16 its density (32 px with a mouse, the touch rule with a finger, both proven in Chromium layout runs), the top bar as a quiet path with view tabs, and lock-before-eye layer rows. Earlier: the tools are icons in one pill floating over the canvas, the brush size a 44 px number button; layer rows with colour, plain kind words, eye and lock; the inspector opens on selection, Details opens it below wide; the level picker with New level in the top bar replaces the strip of cards (the suite too). Left: the charcoal cabinet and the canvas colours, from the design thread's mockup once the Owner approves it | #421, this session's PR |
 | 12.4 Map, Tiles, Characters and the dialogs | 12 | Done, 2026-11-06 (sessions 12 and 13): Step G words; the Level view's floating pill on all three views (the kit's `StagePill`); tabs Selected, Level, Problems and Character, Settings; the conflict and restore dialogs in plain words with one primary each; editor unit 3,307, editor-3d 2,932, Chromium layout and journeys pass; WebKit, Firefox and hosted CI not run | this session's PR |
 | 12.5 The copy table and the guide (runs after 12.6 and 12.7) | 12 | Not started | |
 | 12.6 The Tuner, audited and redesigned as a split view beside the live game (added 2026-11-06) | 12 | In progress (sessions 13 to 15): session 15 made a restart land on the screen the person was on (Emberwick: the room; `startGame(game, { at })`, dev journey). Earlier: Step 0 audit and Step G done (labels and feels, Keep, plain words); the split view built: a content save sends a real HMR update, Emberwick and new games restart on it in place (dev journey), `automata editor --game-url`, the game beside the settings (Chromium layout at eight sizes). Left: the unit a player can feel | #424, #426, #427 |

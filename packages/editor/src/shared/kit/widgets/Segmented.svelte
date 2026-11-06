@@ -3,7 +3,10 @@
   wrap, Home and End go to the ends, and only the chosen option is in the tab order. A disabled option stays
   focusable by touch and mouse: pressing it calls `onblocked` with its reason, which is also its accessible
   description. Choosing is a `set` edit event. An option with an `icon` shows the icon alone: its label stays its
-  accessible name and its tooltip (a tool bar's tools, where six words would not fit a phone).
+  accessible name and its tooltip (a tool bar's tools, where six words would not fit a phone). `look` is how it is
+  drawn: `track` (a grey track with the chosen option a paper tile, for a setting) or `tabs` (quiet words with an ink
+  underline under the chosen one, for the views in a top bar, as the approved mockup draws them); either way it is
+  the same radio group.
 -->
 <script lang="ts">
 import { tick } from 'svelte'
@@ -26,9 +29,19 @@ interface Props extends BlockedProps {
   options: readonly Option[]
   value: string
   onedit?: ((event: EditEvent<string>) => void) | undefined
+  look?: 'track' | 'tabs'
 }
 
-let { label, options, value = $bindable(), onedit, disabled = false, reason, onblocked }: Props = $props()
+let {
+  label,
+  options,
+  value = $bindable(),
+  onedit,
+  look = 'track',
+  disabled = false,
+  reason,
+  onblocked,
+}: Props = $props()
 
 const uid = $props.id()
 let buttons = $state<HTMLElement[]>([])
@@ -77,7 +90,7 @@ function onKey(event: KeyboardEvent, index: number): void {
 }
 </script>
 
-<div class="segmented" role="radiogroup" aria-label={label} data-widget="segmented">
+<div class="segmented" role="radiogroup" aria-label={label} data-widget="segmented" data-look={look}>
   {#each options as option, index (option.id)}
     <button
       type="button"
@@ -141,6 +154,19 @@ function onKey(event: KeyboardEvent, index: number): void {
     background: var(--paper);
     box-shadow: inset 0 0 0 1px var(--ink);
     color: var(--ink);
+  }
+  /* Quiet tabs: no track and no tile; the chosen view is ink with a 2 px ink underline, the rest grey words. */
+  .segmented[data-look='tabs'] {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .segmented[data-look='tabs'] .option {
+    border-radius: 0;
+  }
+  .segmented[data-look='tabs'] .option[aria-checked='true'] {
+    background: none;
+    box-shadow: inset 0 -2px 0 var(--ink);
   }
   .option[aria-disabled='true'] {
     opacity: 0.45;

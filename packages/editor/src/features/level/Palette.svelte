@@ -71,10 +71,14 @@ const keyOf = (item: PaletteItem): string =>
     gap: var(--space-2);
     padding: var(--space-3);
   }
+  /* A section label in small capitals, as the approved mockup draws it (and the Layers label above). */
   h2 {
     margin: 0;
-    color: var(--color-text-dim);
-    font: var(--text-label-12);
+    padding: 0 var(--space-2);
+    color: var(--muted);
+    font: var(--text-eyebrow-11);
+    letter-spacing: var(--text-eyebrow-11-tracking);
+    text-transform: uppercase;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
