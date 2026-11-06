@@ -1,17 +1,17 @@
 import type { Project, Size } from '../../shared/level-2d/model/project-types'
 import { findLevel } from '../../shared/level-2d/model/world/level-edits'
 
-// The Level view's dock: one card per level the world
-// places, in the world's order, the open one marked. Tapping a card is the controller's `setLevel`.
+// The level picker's list (`LevelPicker.svelte`): one entry per level the world places, in the world's order, the
+// open one marked. Choosing one is the controller's `setLevel`.
 
-export interface LevelCard {
+export interface LevelChoice {
   readonly id: string
   readonly name: string
   readonly size: Size
   readonly current: boolean
 }
 
-export function levelCards(project: Project, world: string, current: string): readonly LevelCard[] {
+export function levelList(project: Project, world: string, current: string): readonly LevelChoice[] {
   const found = project.worlds.find((candidate) => candidate.id === world)
   if (found === undefined) throw new RangeError(`no world "${world}"`)
   return found.placements.map((placement) => {

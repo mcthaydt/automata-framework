@@ -56,21 +56,22 @@ afterEach(async () => {
 const READY = '[data-testid="level-canvas"]'
 
 describe.each(SIZES)('Suite Levels 2D at $name ($width x $height)', (size) => {
-  test('fills the one shell: the stage has room, every target 44 px, a Dock toggle below wide', async () => {
+  test('fills the one shell: the stage has room, every target 44 px, the level picker in the top bar', async () => {
     opened = await openSuite(size, editors(), FILES, READY, 'Levels 2D')
     const { conditions } = opened
     const surface = inShell('[data-testid="level-surface"]')
     inView(surface, size)
-    expect(checkLayout(conditions, [tab('Levels 2D'), ...dockToggle()])).toEqual([])
-    if (size.mode !== 'wide') expect(dockToggle()).toHaveLength(1)
-    const [toggle] = dockToggle()
-    if (toggle?.getAttribute('aria-expanded') === 'true') {
-      // A medium dock starts open as a strip over the canvas's foot; the toggle takes it away.
-      toggle.click()
-      await expect.poll(() => toggle.getAttribute('aria-expanded')).toBe('false')
-      await settleLayout()
-      expect(checkLayout(conditions, [surface, toggle])).toEqual([])
-    }
+    // The levels are a picker in the suite's top bar, so there is no dock and no Dock toggle.
+    const picker = [...document.querySelectorAll<HTMLElement>('button')].find((button) =>
+      button.getAttribute('aria-label')?.startsWith('Level: '),
+    )
+    if (picker === undefined) throw new Error('no level picker')
+    expect(dockToggle()).toHaveLength(0)
+    // The picker is among the editing tools, which scroll sideways when the bar is short of room (until 12.7 redoes the
+    // suite's bar): scrolled to, it is wholly in view and a full-size target.
+    picker.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    await settleLayout()
+    expect(checkLayout(conditions, [tab('Levels 2D'), picker])).toEqual([])
     noPageScroll()
     await page.screenshot({ path: `.vitest/shots/suite-levels-2d-${size.name}.png` })
   })

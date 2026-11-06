@@ -134,7 +134,7 @@ describe('World view: the map and the panel', () => {
     )
   })
 
-  it("reorders a horizontal world when a level is dragged past its neighbour, and the Level view's dock follows (G-h)", async () => {
+  it("reorders a horizontal world when a level is dragged past its neighbour, and the Level view's level picker follows (G-h)", async () => {
     const { history, first } = await mount()
     await userEvent.click(screen.getByRole('radio', { name: 'Row' }))
     const width = history.state.levels[0]?.size.w ?? 0
@@ -145,8 +145,8 @@ describe('World view: the map and the panel', () => {
     pointer('pointerup', at.x + width * 1.2 * scale, at.y)
     expect(history.state.worlds[0]?.placements.map((p) => p.level)).toEqual(['level-2', first])
     await rail('Level')
-    const dock = within(await screen.findByRole('navigation', { name: 'Levels' }))
-    expect(dock.getAllByRole('button')[0]).toHaveTextContent('Second')
+    await userEvent.click(await screen.findByRole('button', { name: /^Level: / }))
+    expect(screen.getAllByRole('menuitem')[0]).toHaveTextContent('Second')
   })
 })
 

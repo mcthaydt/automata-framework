@@ -1,5 +1,5 @@
 import { defineSuiteEditor, type SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
-import { canvas, dock, inspector, panel, status } from './Levels2dRegions.svelte'
+import { canvas, inspector, panel, status, tools } from './Levels2dRegions.svelte'
 import { type Levels2dOptions, type Levels2dSession, levels2dUndo, openLevels2d } from './levels-2d-session'
 
 // The 2D level editor as a suite editor: `levels-2d` in the editor list,
@@ -13,7 +13,7 @@ export function createLevels2d(options: Levels2dOptions): SuiteEditor<Levels2dSe
     icon: 'grid',
     hue: 'color/ed/levels',
     open: (files, ports) => openLevels2d(files, ports, options),
-    regions: { panel, canvas, inspector, dock, status },
+    regions: { panel, canvas, inspector, tools, status },
     undo: levels2dUndo,
   })
 }
