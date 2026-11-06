@@ -78,15 +78,15 @@ describe('TunerRows', () => {
     const controller = await open()
     render(TunerRows, { controller })
     const row = screen.getByTestId('tuner-row-MAX_RUN')
-    await user.click(within(row).getByRole('button', { name: /Lock MAX_RUN/ }))
+    await user.click(within(row).getByRole('button', { name: /^Keep MAX_RUN/ }))
     expect(controller.session.locked()).toEqual(['MAX_RUN'])
-    expect(within(row).getByRole('button', { name: /Unlock MAX_RUN/ })).toBeTruthy()
+    expect(within(row).getByRole('button', { name: /^Keep MAX_RUN/ })).toBeTruthy()
     expect(
       within(row)
         .getByRole('slider', { name: /MAX_RUN/ })
         .getAttribute('aria-disabled'),
     ).toBe('true')
-    await user.click(within(row).getByRole('button', { name: /Unlock MAX_RUN/ }))
+    await user.click(within(row).getByRole('button', { name: /^Keep MAX_RUN/ }))
     expect(controller.session.locked()).toEqual([])
   })
 
@@ -94,7 +94,7 @@ describe('TunerRows', () => {
     const user = userEvent.setup()
     const controller = await open({})
     render(TunerRows, { controller })
-    await user.click(screen.getByRole('button', { name: /Create tuning.toml/ }))
+    await user.click(screen.getByRole('button', { name: 'Make one' }))
     expect(controller.session.hasFile()).toBe(true)
   })
 
@@ -109,7 +109,7 @@ describe('TunerRows', () => {
     delete files['content/generated/tuning-meta.json']
     const controller = await open(files)
     render(TunerRows, { controller })
-    expect(screen.getByText(/Run checks to read bounds/)).toBeTruthy()
+    expect(screen.getByText(/Run the game.s checks once/)).toBeTruthy()
   })
 })
 
@@ -121,12 +121,63 @@ describe('TunerPanel', () => {
     expect(
       screen.getAllByRole('button', { name: /^(MAX_RUN|GRAVITY|SCALE|DEBUG|GREETING|CURVE)/ }),
     ).toHaveLength(6)
-    await user.type(screen.getByRole('searchbox', { name: /Search tunables/ }), 'grav')
+    await user.type(screen.getByRole('searchbox', { name: 'Search settings' }), 'grav')
     expect(screen.getAllByRole('button', { name: /^GRAVITY/ })).toHaveLength(1)
     expect(screen.queryByRole('button', { name: /^MAX_RUN/ })).toBeNull()
     await user.click(screen.getByRole('button', { name: /^GRAVITY/ }))
     render(TunerInspector, { controller })
     expect(within(screen.getByTestId('tuner-inspector')).getByText('GRAVITY')).toBeTruthy()
     expect(within(screen.getByTestId('tuner-inspector')).getByText(/16 to 192/)).toBeTruthy()
+  })
+})
+
+// The grandma audit, section 6.2: a setting is shown by its label and what a player feels, never by its constant name
+// or the other game's numbers in the comment; Lock is Keep.
+describe('the Tuner in plain words', () => {
+  const LABELLED = [
+    '# Celeste: 90 px/s.',
+    'MAX_RUN = { value = 384, min = 128, max = 768, step = 1, label = "Running speed", feel = "How fast Wick runs." }',
+    '',
+  ].join('\n')
+
+  it('shows a labelled setting by its label and its feel, never its name in code or the comment', async () => {
+    const controller = await open({ [PATH]: LABELLED })
+    render(TunerRows, { controller })
+    const row = screen.getByTestId('tuner-row-MAX_RUN')
+    expect(row).toHaveTextContent('Running speed')
+    expect(row).toHaveTextContent('How fast Wick runs.')
+    expect(row).not.toHaveTextContent(/MAX_RUN|Celeste/)
+    expect(within(row).getByRole('slider', { name: 'Running speed' })).toBeTruthy()
+  })
+
+  it('keeps a setting (was Lock), and says what keeping does', async () => {
+    const user = userEvent.setup()
+    const controller = await open({ [PATH]: LABELLED })
+    render(TunerRows, { controller })
+    const keep = within(screen.getByTestId('tuner-row-MAX_RUN')).getByRole('button', {
+      name: 'Keep Running speed',
+    })
+    expect(keep).toHaveAttribute('title', 'Keep this value: nothing changes it until you let it go.')
+    await user.click(keep)
+    expect(controller.session.locked()).toEqual(['MAX_RUN'])
+    expect(keep).toHaveTextContent('Kept')
+  })
+
+  it('lists the labels, searches settings, and asks for a tap when nothing is chosen', async () => {
+    const controller = await open({ [PATH]: LABELLED })
+    render(TunerPanel, { controller })
+    render(TunerInspector, { controller })
+    expect(screen.getByRole('searchbox', { name: 'Search settings' })).toBeTruthy()
+    expect(
+      within(screen.getByTestId('tuner-panel')).getByRole('button', { name: 'Running speed' }),
+    ).toBeTruthy()
+    expect(screen.getByTestId('tuner-inspector')).toHaveTextContent('Tap a setting to see more.')
+  })
+
+  it('offers to make the settings file without naming it', async () => {
+    const controller = await open({})
+    render(TunerRows, { controller })
+    expect(screen.getByTestId('tuner-rows')).toHaveTextContent('This game has no settings file yet.')
+    expect(screen.getByRole('button', { name: 'Make one' })).toBeTruthy()
   })
 })
