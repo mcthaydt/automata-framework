@@ -164,8 +164,8 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
       if (item.sleeves !== 'none') r.shoulder = item.top;
       if (item.sleeves !== 'none') r.upper = item.top;
       if (item.sleeves === 'long') r.fore = item.top;
-      // The cuffs and the collar are sized from the body (fit.ts): today's size is the floor, grown to the body's girth and a
-      // texel's clearance where the body needs it (a fat arm, a thick neck).
+      // The cuffs and the collar are sized from the body (fit.ts): a cuff hugs the arm (its girth and a texel's clearance); the
+      // collar is fitted to the neck, today's placement its floor.
       if (item.cuffs) for (const [side] of sides) parts.push(cuff(side, item.cuffs, item.sleeves === 'long', m, s, fit));
       if (item.collar) for (const [, x] of sides) parts.push(collarPiece(x, item.collar, m, s, fit));
     } else if ('shorts' in item) { r.pelvis = r.thigh = item.shorts; }
@@ -195,14 +195,14 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
 }
 /**
  * A top's cuff on a side: a box round the forearm (`long` sleeves, at 0.9 of its length) or the upper arm (short, at 0.86).
- * Each radius is today's (`k · t · arm`, a flare) or the arm's widest over the cuff's span plus the clearance, whichever is
- * more, centred on the arm's own profile there, so it clears any arm.
+ * It hugs the arm: each radius is the arm's widest over the cuff's span plus the clearance (a texel), centred on the arm's
+ * own profile there, so it clears any arm and follows fat, and a thin arm gets a slim cuff, not a flare.
  */
 function cuff(side: Side, material: string, long: boolean, m: Measure, s: Skeleton, body: Body): Part {
-  const k = m.k, t = m.thick, bone = long ? J[`foreArm.${side}`] : J[`upperArm.${side}`], rest = s.rest[bone];
-  const y = rest[1] - (long ? 0.9 * s.foreArm : 0.86 * s.upperArm), hh = (long ? 0.022 : 0.02) * k, flare = long ? [0.048, 0.05] : [0.056, 0.058];
+  const k = m.k, bone = long ? J[`foreArm.${side}`] : J[`upperArm.${side}`], rest = s.rest[bone];
+  const y = rest[1] - (long ? 0.9 * s.foreArm : 0.86 * s.upperArm), hh = (long ? 0.022 : 0.02) * k;
   const G = body.girth('arm', side, y + hh, y - hh), c = body.clear;
-  return box(bone, material, armGroup(side), { at: [(G.dx ?? 0) - rest[0], y - rest[1], (G.dz ?? 0) - rest[2]], r: [Math.max(flare[0] * k * t * m.arm, G.rx + c), hh, Math.max(flare[1] * k * t * m.arm, G.rz + c)], e: [0.45, 0.6] });
+  return box(bone, material, armGroup(side), { at: [(G.dx ?? 0) - rest[0], y - rest[1], (G.dz ?? 0) - rest[2]], r: [G.rx + c, hh, G.rz + c], e: [0.45, 0.6] });
 }
 /**
  * One side of a top's collar. It sits at 0.172 k above the chest bone, on the neck (past the trunk's top cap), so it is

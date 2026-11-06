@@ -61,19 +61,17 @@ const named = (look: { parts: Part[] }, material: string) => look.parts.filter(p
 const centre = (p: Part) => { const v = verts(p); return [0, 1, 2].map(a => v.reduce((n, q) => n + q[a], 0) / v.length); };
 
 describe('garments sized from the body (cuffs, collar)', () => {
-  /** Today's two box() calls, copied: the reference the base pair's and the default sliders must stay within 0.002 m of. */
-  const today = (m: ReturnType<typeof measure>, s: ReturnType<typeof skeleton>, sleeves: 'long' | 'short') => {
-    const k = m.k, t = m.thick, out: Part[] = [];
-    for (const [side] of [['L'], ['R']] as const) out.push(sleeves === 'long'
-      ? box(J[`foreArm.${side}`], 'cuffMat', side === 'L' ? GROUP.armL : GROUP.armR, { at: [0, -s.foreArm * 0.9, 0], r: [0.048 * k * t * m.arm, 0.022 * k, 0.05 * k * t * m.arm], e: [0.45, 0.6] })
-      : box(J[`upperArm.${side}`], 'cuffMat', side === 'L' ? GROUP.armL : GROUP.armR, { at: [0, -s.upperArm * 0.86, 0], r: [0.056 * k * t * m.arm, 0.02 * k, 0.058 * k * t * m.arm], e: [0.45, 0.6] }));
+  /** Today's collar box() call, copied: the reference the base pair's and the default sliders must stay within 0.002 m of. The
+   * cuffs are not pinned to today's: they hug the arm (gate B), so they are narrower than the old flare. */
+  const today = (m: ReturnType<typeof measure>) => {
+    const k = m.k, out: Part[] = [];
     for (const x of [1, -1]) out.push(box(J.chest, 'collarMat', GROUP.torso, { at: [x * 0.04 * k, 0.172 * k, 0.045 * k], r: [0.04 * k, 0.018 * k, 0.04 * k], turn: axisAngle([0, 1, 0], x * 0.5), e: [0.35, 0.5] }));
     return out;
   };
   for (const [name, sliders] of [['base-m', BASE[0].def.sliders], ['base-f', BASE[1].def.sliders], ['default', {}]] as const) for (const sleeves of ['long', 'short'] as const) {
-    it(`${name} ${sleeves}: the cuffs and collar are today's within 2 mm`, () => {
-      const { m, s, look } = worn(sliders, sleeves), ref = today(m, s, sleeves);
-      const mine = [...named(look, 'cuffMat'), ...named(look, 'collarMat')];
+    it(`${name} ${sleeves}: the collar is today's within 2 mm`, () => {
+      const { m, s, look } = worn(sliders, sleeves), ref = today(m);
+      const mine = named(look, 'collarMat');
       expect(mine).toHaveLength(ref.length);
       mine.forEach((p, i) => {
         const a = verts(p), b = verts(ref[i]);
@@ -138,6 +136,16 @@ describe('garments sized from the body (cuffs, collar)', () => {
     const lean = worn({ ...BASE[0].def.sliders }, 'long'), thick = worn({ ...BASE[0].def.sliders, neck: 1, fat: 1.2 }, 'long');
     const cz = (w: ReturnType<typeof worn>) => centre(named(w.look, 'collarMat')[0])[2] / w.m.k;
     expect(cz(thick)).toBeGreaterThan(cz(lean));
+  });
+  it('a cuff hugs the arm: its half-width is the girth over its span plus one texel, no more', () => {
+    for (const base of BASE) for (const sleeves of ['long', 'short'] as const) for (const ppm of [36.9, 73.8, 147.6]) {
+      const { m, s, look, p } = worn(base.def.sliders, sleeves, ppm), clear = clearance(m.k, ppm);
+      (['L', 'R'] as const).forEach((side, i) => {
+        const bone = sleeves === 'long' ? J[`foreArm.${side}`] : J[`upperArm.${side}`], y = s.rest[bone][1] - (sleeves === 'long' ? 0.9 * s.foreArm : 0.86 * s.upperArm), hh = (sleeves === 'long' ? 0.022 : 0.02) * m.k;
+        const G = girth(p, 'arm', side, y + hh, y - hh), v = verts(named(look, 'cuffMat')[i]);
+        expect((Math.max(...v.map(q => q[0])) - Math.min(...v.map(q => q[0]))) / 2, `${base.def.id} ${sleeves} ${side} ${ppm}`).toBeCloseTo(G.rx + clear, 9);
+      });
+    }
   });
   it('fat grows the cuff', () => {
     const width = (fat: number) => { const w = worn({ ...BASE[0].def.sliders, fat }, 'short'), v = verts(named(w.look, 'cuffMat')[0]); return Math.max(...v.map(q => q[0])) - Math.min(...v.map(q => q[0])); };
