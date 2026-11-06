@@ -219,8 +219,8 @@ text on the near-black cabinet since session 17 (the Tuner's colours named token
 take the light field, panels have small-capital section labels, the Map's level rows are quiet. The 3D editor's
 document frame reads `shellModeAt` too (it shares the kit shell); its unit and DOM tests pass, its browser tests were
 not run (3D CI is off by the Owner's choice). **Next, in order:** the rest of the look (the suite page's top bar and
-rail, the dialogs; Tiles' and the Map inspector's remaining jargon: "spacing 0 · padding 0", "IntGrid", "rule 1",
-"Settings for every level"), then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3; phase 18 takes
+rail, the dialogs; the Characters panel's "Settings for every level" and its mono subtitle, the inspectors' tabs and label-left
+layout on Tiles, Map and Characters; Tiles' and Characters' numbers are in words since session 18), then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3; phase 18 takes
 `site-home.html`. Every editor keeps only essential features (name each cut in the plan's log). Task 14.1 waits for
 the Owner to confirm the `automata` npm organisation. This file holds a stale second copy of this section (session
 12, below the core tables): the 12.x and 17.3 rows live only there; untangle it in the build audit. Node 24 may
