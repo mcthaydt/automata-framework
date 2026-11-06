@@ -40,7 +40,8 @@ $effect(() => toasts.subscribe((next) => (items = next)))
     /* Inside a shell's sheets, above its foot (the tab bar and the status line); elsewhere at the window's foot. */
     bottom: calc(max(var(--space-4), env(safe-area-inset-bottom, 0px)) + var(--shell-foot, 0px));
     left: max(var(--space-4), env(safe-area-inset-left, 0px));
-    z-index: 110;
+    /* Under a dialog and its scrim, so a toast never covers the action a dialog asks for. */
+    z-index: 90;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -53,22 +54,32 @@ $effect(() => toasts.subscribe((next) => (items = next)))
     gap: var(--space-1);
     max-width: min(32rem, 100%);
     padding-left: var(--space-4);
-    border: 1px solid var(--color-border-strong);
-    border-left: 3px solid var(--color-accent-default);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-raised);
-    color: var(--color-text-primary);
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    background: var(--paper);
+    box-shadow: var(--shadow-sheet);
+    color: var(--ink);
     font: var(--text-body-13);
     pointer-events: auto;
   }
+  /* A dot in the toast's colour says its kind; the words say what happened. */
+  .toast::before {
+    content: '';
+    flex: none;
+    width: 8px;
+    height: 8px;
+    margin-right: var(--space-2);
+    border-radius: var(--pill);
+    background: var(--toast-mark, var(--cobalt));
+  }
   .toast[data-kind='ok'] {
-    border-left-color: var(--color-state-ok);
+    --toast-mark: var(--ok);
   }
   .toast[data-kind='warn'] {
-    border-left-color: var(--color-state-warn);
+    --toast-mark: var(--warn);
   }
   .toast[data-kind='error'] {
-    border-left-color: var(--color-state-bad);
+    --toast-mark: var(--bad);
   }
   .message {
     min-width: 0;
@@ -85,16 +96,16 @@ $effect(() => toasts.subscribe((next) => (items = next)))
     cursor: pointer;
   }
   .action {
-    color: var(--color-accent-default);
+    color: var(--cobalt);
     font: var(--text-body-13-medium);
   }
   .dismiss {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font-size: 18px;
   }
   .action:focus-visible,
   .dismiss:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
 </style>

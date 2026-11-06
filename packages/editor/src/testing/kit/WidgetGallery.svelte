@@ -7,9 +7,11 @@
 <script lang="ts">
 import '../../shared/kit/tokens.css'
 import '../../shared/kit/fonts.css'
+import Button from '../../shared/kit/widgets/Button.svelte'
 import Chips from '../../shared/kit/widgets/Chips.svelte'
 import ColorField from '../../shared/kit/widgets/ColorField.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
+import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import Menu from '../../shared/kit/widgets/Menu.svelte'
 import Picker from '../../shared/kit/widgets/Picker.svelte'
 import ReorderList from '../../shared/kit/widgets/ReorderList.svelte'
@@ -111,6 +113,13 @@ toasts.push({ message: 'Layer deleted', action: { label: 'Undo', run: () => {} }
         { id: 'lava', label: 'Lava', group: 'Liquid' },
       ]}
     />
+  </div>
+  <div class="row">
+    <Button variant="primary">New level</Button>
+    <Button>Duplicate level</Button>
+    <Button variant="quiet">Cancel</Button>
+    <Button variant="danger">Delete level</Button>
+    <IconButton icon="undo" label="Undo last edit" />
   </div>
   <ReorderList label="Layers" items={layers} onreorder={(move) => {
     const next = [...layers]

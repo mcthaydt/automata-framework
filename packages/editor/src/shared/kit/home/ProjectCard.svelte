@@ -52,7 +52,7 @@ $effect(() => {
   class="card"
   role="option"
   aria-selected={selected}
-  style:--kind={`var(${card.accent ?? '--color-text-dim'})`}
+  style:--kind={`var(${card.accent ?? '--muted'})`}
   {onpointerdown}
   {onclick}
   {ondblclick}
@@ -82,9 +82,9 @@ $effect(() => {
     gap: var(--space-3);
     min-width: 0;
     padding: var(--space-3);
-    border: 1px solid var(--color-border-default);
+    border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    background: var(--color-bg-surface);
+    background: var(--paper);
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
@@ -92,12 +92,12 @@ $effect(() => {
   }
   @media (hover: hover) {
     .card:hover {
-      border-color: var(--color-border-strong);
+      border-color: var(--line-strong);
     }
   }
   .card[aria-selected='true'] {
-    border-color: var(--color-accent-default);
-    box-shadow: 0 0 0 1px var(--color-accent-default);
+    border-color: var(--cobalt);
+    box-shadow: 0 0 0 1px var(--cobalt);
   }
   .tile {
     flex: none;
@@ -107,7 +107,7 @@ $effect(() => {
     height: 48px;
     border: 1px solid color-mix(in srgb, var(--kind) 55%, transparent);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--kind) 16%, var(--color-bg-canvas));
+    background: color-mix(in srgb, var(--kind) 16%, var(--charcoal));
     color: var(--kind);
     font: var(--text-display-20);
     overflow: hidden;
@@ -143,13 +143,13 @@ $effect(() => {
     font: var(--text-title-15);
   }
   .stats {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-mono-11);
   }
   .path {
     display: flex;
     min-width: 0;
-    color: var(--color-text-faint);
+    color: var(--muted);
     font: var(--text-mono-11);
   }
   .dir {

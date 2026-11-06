@@ -334,8 +334,8 @@ function sheetStyle(name: ShellRegion): string | undefined {
     padding: var(--af-inset-top, env(safe-area-inset-top, 0px)) var(--af-inset-right, env(safe-area-inset-right, 0px))
       var(--af-inset-bottom, env(safe-area-inset-bottom, 0px)) var(--af-inset-left, env(safe-area-inset-left, 0px));
     display: grid;
-    background: var(--color-bg-app);
-    color: var(--color-text-primary);
+    background: var(--bg);
+    color: var(--ink);
     font: var(--text-body-13);
     overflow: hidden;
   }
@@ -424,31 +424,31 @@ function sheetStyle(name: ShellRegion): string | undefined {
     align-items: center;
     gap: var(--space-2);
     padding: 0 var(--space-2);
-    background: var(--color-bg-surface);
-    border-bottom: 1px solid var(--color-border-default);
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
   }
 
   [data-region='rail'] {
     grid-area: rail;
     display: flex;
-    background: var(--color-bg-surface);
+    background: var(--paper);
   }
 
   [data-region='rail'][data-presentation='rail'] {
     flex-direction: column;
-    border-right: 1px solid var(--color-border-default);
+    border-right: 1px solid var(--line);
   }
 
   [data-region='rail'][data-presentation='tabbar'] {
     flex-direction: row;
-    border-top: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--line);
   }
 
   [data-region='canvas'] {
     grid-area: canvas;
     position: relative;
     overflow: hidden;
-    background: var(--color-bg-canvas);
+    background: var(--charcoal);
     /* The canvas takes every gesture itself: it never scrolls or pulls the page. */
     touch-action: none;
     overscroll-behavior: none;
@@ -462,9 +462,9 @@ function sheetStyle(name: ShellRegion): string | undefined {
     padding: 0 var(--space-3);
     min-height: 28px;
     font: var(--text-mono-11);
-    color: var(--color-text-dim);
-    background: var(--color-bg-surface);
-    border-top: 1px solid var(--color-border-default);
+    color: var(--muted);
+    background: var(--paper);
+    border-top: 1px solid var(--line);
   }
 
   /* The kit's StatusLine is a bar of its own: it takes the whole region (the region's border stays the one border). */
@@ -481,7 +481,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   [data-region='dock'] {
     display: flex;
     flex-direction: column;
-    background: var(--color-bg-surface);
+    background: var(--paper);
   }
 
   .body {
@@ -499,18 +499,18 @@ function sheetStyle(name: ShellRegion): string | undefined {
 
   [data-region='panel'][data-presentation='inline'] {
     grid-area: panel;
-    border-right: 1px solid var(--color-border-default);
+    border-right: 1px solid var(--line);
   }
 
   [data-region='inspector'][data-presentation='inline'] {
     grid-area: inspector;
-    border-left: 1px solid var(--color-border-default);
+    border-left: 1px solid var(--line);
   }
 
   [data-region='dock'][data-presentation='inline'] {
     grid-area: dock;
     height: var(--shell-dock);
-    border-top: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--line);
   }
 
   [data-region='dock'][data-presentation='inline'][data-open='false'] {
@@ -531,18 +531,18 @@ function sheetStyle(name: ShellRegion): string | undefined {
     align-self: start;
     height: calc(100% - var(--dock-lift, 0px));
     width: min(var(--shell-drawer), 100%);
-    box-shadow: 0 0 24px rgb(0 0 0 / 0.4);
+    box-shadow: var(--shadow-sheet);
   }
 
   [data-region='panel'][data-presentation='drawer'] {
     justify-self: start;
-    border-right: 1px solid var(--color-border-default);
+    border-right: 1px solid var(--line);
     transform: translateX(-100%);
   }
 
   [data-region='inspector'][data-presentation='drawer'] {
     justify-self: end;
-    border-left: 1px solid var(--color-border-default);
+    border-left: 1px solid var(--line);
     transform: translateX(100%);
   }
 
@@ -554,9 +554,9 @@ function sheetStyle(name: ShellRegion): string | undefined {
     align-self: end;
     justify-self: stretch;
     height: var(--sheet-height);
-    border-top: 1px solid var(--color-border-strong);
+    border-top: 1px solid var(--line-strong);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    box-shadow: 0 -8px 24px rgb(0 0 0 / 0.4);
+    box-shadow: var(--shadow-sheet);
     transform: translateY(100%);
   }
 
@@ -600,7 +600,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
   }
 
   .handle:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -4px;
     border-radius: var(--radius-md);
   }
@@ -609,7 +609,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
     width: 36px;
     height: 4px;
     border-radius: 2px;
-    background: var(--color-border-strong);
+    background: var(--line-strong);
   }
 
   .scrim {
@@ -617,7 +617,7 @@ function sheetStyle(name: ShellRegion): string | undefined {
     z-index: 1;
     padding: 0;
     border: 0;
-    background: rgb(0 0 0 / 0.45);
+    background: var(--scrim);
     cursor: default;
   }
 </style>

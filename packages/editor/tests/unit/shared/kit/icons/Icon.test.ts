@@ -44,8 +44,11 @@ describe('Icon', () => {
     expect(svg).toHaveAttribute('aria-hidden', 'true')
     expect(svg).toHaveAttribute('viewBox', '0 0 24 24')
     expect(svg).toHaveAttribute('stroke', 'currentColor')
-    expect(svg?.innerHTML).toBe(ICONS[name])
-    expect(svg?.children.length).toBeGreaterThan(0)
+    const shapes = [...(svg?.children ?? [])]
+    expect(shapes.map((shape) => shape.tagName)).toEqual(ICONS[name].map(([tag]) => tag))
+    for (const shape of shapes) expect(shape.namespaceURI).toBe('http://www.w3.org/2000/svg')
+    const [, first] = ICONS[name][0] as (typeof ICONS)[typeof name][number]
+    for (const [key, value] of Object.entries(first)) expect(shapes[0]).toHaveAttribute(key, value)
   })
 
   it('takes a size in px', () => {

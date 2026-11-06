@@ -64,9 +64,9 @@ async function picked(event: Event & { currentTarget: HTMLInputElement }): Promi
     align-items: center;
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-md);
-    background: var(--color-bg-field);
+    background: var(--paper);
     font: var(--text-body-13-medium);
     cursor: pointer;
   }
@@ -75,7 +75,7 @@ async function picked(event: Event & { currentTarget: HTMLInputElement }): Promi
     cursor: default;
   }
   .pick:has(input:focus-visible) {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
   /* Transparent and over the whole label: pressing anywhere on it presses the input itself, which stays focusable,

@@ -86,6 +86,8 @@ export {
   type ProjectBrowserOptions,
   type ProjectListSource,
 } from '../shared/kit/home/project-browser'
+export { default as Icon } from '../shared/kit/icons/Icon.svelte'
+export type { IconName } from '../shared/kit/icons/paths'
 export { createKeymap, type KeyInput, type Keymap, type Platform } from '../shared/kit/keymap/keymap'
 export { createSelection, type Selection, type SelectionId } from '../shared/kit/selection/selection'
 export { default as EditorShell } from '../shared/kit/shell/EditorShell.svelte'
@@ -154,6 +156,7 @@ export { default as Chips } from '../shared/kit/widgets/Chips.svelte'
 export { default as ColorField } from '../shared/kit/widgets/ColorField.svelte'
 export { default as Dialog } from '../shared/kit/widgets/Dialog.svelte'
 export type { BlockedProps, EditEvent, EditPhase } from '../shared/kit/widgets/edit-event'
+export { default as IconButton } from '../shared/kit/widgets/IconButton.svelte'
 export { default as Menu } from '../shared/kit/widgets/Menu.svelte'
 export { default as Picker } from '../shared/kit/widgets/Picker.svelte'
 export { default as Pill } from '../shared/kit/widgets/Pill.svelte'

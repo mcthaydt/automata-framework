@@ -74,7 +74,7 @@ const count = (each: RefTargetGroup): string =>
 <style>
   .empty {
     margin: 0;
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13);
   }
   .head {
@@ -85,7 +85,7 @@ const count = (each: RefTargetGroup): string =>
   }
   h3 {
     margin: 0;
-    color: var(--color-text-primary);
+    color: var(--ink);
     font: var(--text-title-15);
   }
   .choices {
@@ -105,15 +105,15 @@ const count = (each: RefTargetGroup): string =>
     width: 100%;
     min-height: 44px;
     padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--color-border-default);
+    border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    background: var(--color-bg-raised);
-    color: var(--color-text-primary);
+    background: var(--glass);
+    color: var(--ink);
     font: var(--text-body-13);
     text-align: start;
     cursor: pointer;
   }
   .count {
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
 </style>

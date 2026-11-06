@@ -183,12 +183,12 @@ function onPanelKey(event: KeyboardEvent): void {
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-1) var(--space-2);
-    color: var(--color-text-primary);
+    color: var(--ink);
     font: var(--text-body-13);
   }
   .label {
     flex: 1 1 4rem;
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
   .trigger,
   .custom-toggle,
@@ -196,9 +196,9 @@ function onPanelKey(event: KeyboardEvent): void {
   .native {
     box-sizing: border-box;
     min-height: var(--size-hit);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-field);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
     color: inherit;
     font: var(--text-mono-12);
   }
@@ -213,7 +213,7 @@ function onPanelKey(event: KeyboardEvent): void {
     width: 24px;
     height: 24px;
     border-radius: var(--radius-sm);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line-strong);
   }
   .panel {
     flex: 1 1 100%;
@@ -222,9 +222,10 @@ function onPanelKey(event: KeyboardEvent): void {
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-2);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-lg);
-    background: var(--color-bg-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-sheet);
   }
   .palette {
     display: flex;
@@ -252,11 +253,11 @@ function onPanelKey(event: KeyboardEvent): void {
     cursor: pointer;
   }
   .hex-field[aria-invalid='true'] {
-    border-color: var(--color-state-bad);
+    border-color: var(--bad);
   }
   .message {
     flex: 1 1 100%;
-    color: var(--color-state-bad);
+    color: var(--bad);
     font: var(--text-label-12);
   }
   .color-field[data-state='disabled'] .trigger {
@@ -266,7 +267,7 @@ function onPanelKey(event: KeyboardEvent): void {
   .custom-toggle:focus-visible,
   .hex-field:focus-visible,
   .native:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 1px;
   }
   .reason {

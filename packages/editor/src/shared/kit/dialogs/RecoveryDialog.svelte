@@ -53,17 +53,17 @@ const facts = $derived(recovery === undefined ? [] : recoveryFacts(path, recover
   }
   p {
     margin: 0;
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
   .warn {
-    color: var(--color-state-warn);
+    color: var(--warn);
   }
   dl {
     margin: 0;
     padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--color-border-default);
+    border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    background: var(--color-bg-field);
+    background: var(--paper);
   }
   .fact {
     display: flex;
@@ -73,11 +73,11 @@ const facts = $derived(recovery === undefined ? [] : recoveryFacts(path, recover
     padding: var(--space-1) 0;
   }
   dt {
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
   dd {
     margin: 0;
     overflow-wrap: anywhere;
-    color: var(--color-text-primary);
+    color: var(--ink);
   }
 </style>

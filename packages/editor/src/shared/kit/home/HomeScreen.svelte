@@ -228,7 +228,7 @@ function onWindowKeydown(event: KeyboardEvent): void {
     overflow-y: auto;
     overscroll-behavior: contain;
     touch-action: pan-y;
-    background: var(--color-bg-app);
+    background: var(--bg);
   }
   header {
     display: flex;
@@ -247,7 +247,7 @@ function onWindowKeydown(event: KeyboardEvent): void {
     font: var(--text-display-20);
   }
   .count {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13);
   }
   input[type='search'] {
@@ -256,14 +256,14 @@ function onWindowKeydown(event: KeyboardEvent): void {
     max-width: 20rem;
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-md);
-    background: var(--color-bg-field);
-    color: var(--color-text-primary);
+    background: var(--paper);
+    color: var(--ink);
     font: var(--text-body-13);
   }
   input[type='search']:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
 </style>

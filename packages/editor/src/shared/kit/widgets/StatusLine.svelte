@@ -40,9 +40,9 @@ const LABELS: Readonly<Record<SaveState, string>> = {
     gap: var(--space-3);
     min-height: 28px;
     padding: 0 var(--space-3);
-    border-top: 1px solid var(--color-border-default);
-    background: var(--color-bg-surface);
-    color: var(--color-text-dim);
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--muted);
     font: var(--text-mono-11);
   }
   .message {
@@ -59,19 +59,19 @@ const LABELS: Readonly<Record<SaveState, string>> = {
     flex: 0 0 auto;
     padding: 2px var(--space-2);
     border-radius: var(--radius-sm);
-    background: var(--color-bg-field);
-    color: var(--color-text-dim);
+    background: var(--paper);
+    color: var(--muted);
   }
   .save[data-save='saved'] {
-    color: var(--color-state-ok);
+    color: var(--ok);
   }
   .save[data-save='dirty'] {
-    color: var(--color-state-warn);
+    color: var(--warn);
   }
   .save[data-save='error'] {
-    color: var(--color-state-bad);
+    color: var(--bad);
   }
   .save[data-save='device'] {
-    color: var(--color-state-warn);
+    color: var(--warn);
   }
 </style>

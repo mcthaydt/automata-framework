@@ -99,11 +99,11 @@ function onKey(event: KeyboardEvent, index: number): void {
   .segmented {
     display: inline-flex;
     max-width: 100%;
-    padding: 2px;
+    padding: 3px;
     gap: 2px;
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-field);
+    border: 1px solid var(--line);
+    border-radius: var(--pill);
+    background: var(--glass);
   }
   .option {
     flex: 1 1 auto;
@@ -111,21 +111,24 @@ function onKey(event: KeyboardEvent, index: number): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 0;
-    border-radius: calc(var(--radius-md) - 2px);
+    border-radius: var(--pill);
     background: transparent;
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13-medium);
     cursor: pointer;
   }
+  .option:hover:not([aria-checked='true']) {
+    color: var(--ink);
+  }
   .option[aria-checked='true'] {
-    background: var(--color-accent-soft);
-    color: var(--color-text-primary);
+    background: var(--cobalt);
+    color: var(--stage-ink);
   }
   .option[aria-disabled='true'] {
     opacity: 0.45;
   }
   .option:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
   .reason {

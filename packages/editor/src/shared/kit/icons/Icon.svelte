@@ -21,7 +21,9 @@ let { name, size = 20 }: { name: IconName; size?: number } = $props()
   stroke-linejoin="round"
   aria-hidden="true"
   focusable="false"
->{@html ICONS[name]}</svg>
+>
+  {#each ICONS[name] as [tag, attributes], index (index)}<svelte:element this={tag} {...attributes} />{/each}
+</svg>
 
 <style>
   .icon {

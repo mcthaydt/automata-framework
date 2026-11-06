@@ -45,6 +45,10 @@
   --ok: #1e6b34;
   --bad: #b42318;
   --warn: #8a5300;
+  --danger-wash: rgb(180 35 24 / 0.08);
+  --scrim: rgb(17 21 28 / 0.32);
+  --shadow: 0 1px 2px rgb(17 21 28 / 0.06), 0 8px 24px rgb(17 21 28 / 0.08);
+  --shadow-sheet: 0 -1px 0 rgb(17 21 28 / 0.06), 0 24px 64px rgb(17 21 28 / 0.18);
   --color-layer-sky: #6aa8e8;
   --color-layer-city: #a58be0;
   --color-layer-tiles: #6fbf9a;

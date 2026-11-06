@@ -236,13 +236,16 @@ function onKey(event: KeyboardEvent): void {
     gap: var(--space-3);
     min-width: var(--size-hit);
     min-height: var(--size-hit);
-    padding: 0 var(--space-3);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-field);
-    color: var(--color-text-primary);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--pill);
+    background: var(--glass);
+    color: var(--ink);
     font: var(--text-body-13);
     cursor: pointer;
+  }
+  .trigger:hover:not([aria-disabled='true']) {
+    background: var(--paper);
   }
   .trigger[aria-disabled='true'] {
     opacity: 0.45;
@@ -250,15 +253,15 @@ function onKey(event: KeyboardEvent): void {
   .trigger:focus-visible,
   .search:focus-visible,
   .list:focus-visible {
-    outline: 2px solid var(--color-accent-default);
+    outline: 2px solid var(--focus);
     outline-offset: -2px;
   }
   .name {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-label-12);
   }
   .value[data-placeholder] {
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
   .picker {
     display: flex;
@@ -269,10 +272,10 @@ function onKey(event: KeyboardEvent): void {
     min-height: var(--size-hit);
     margin: var(--space-1);
     padding: 0 var(--space-3);
-    border: 1px solid var(--color-border-default);
+    border: 1px solid var(--line);
     border-radius: var(--radius-sm);
-    background: var(--color-bg-field);
-    color: var(--color-text-primary);
+    background: var(--paper);
+    color: var(--ink);
     font: var(--text-body-13);
   }
   .list {
@@ -283,7 +286,7 @@ function onKey(event: KeyboardEvent): void {
   }
   .heading {
     padding: var(--space-2) var(--space-3) var(--space-1);
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-eyebrow-11);
     letter-spacing: var(--text-eyebrow-11-tracking);
     text-transform: uppercase;
@@ -300,23 +303,23 @@ function onKey(event: KeyboardEvent): void {
     cursor: pointer;
   }
   .option[data-active] {
-    background: var(--color-accent-soft);
+    background: var(--cobalt-soft);
   }
   .option[aria-selected='true'] .label {
-    color: var(--color-accent-default);
+    color: var(--cobalt);
     font: var(--text-body-13-medium);
   }
   .option[aria-disabled='true'] {
     opacity: 0.45;
   }
   .detail {
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-mono-12);
   }
   .empty {
     margin: 0;
     padding: var(--space-3) var(--space-4);
-    color: var(--color-text-dim);
+    color: var(--muted);
     font: var(--text-body-13);
   }
   .reason {
