@@ -56,3 +56,39 @@ describe('the drawn face\'s moods', () => {
     expect(differs(face('angry', ['talk']), face('angry'))).toBe(true);
   });
 });
+
+/**
+ * The small face's open mouth (density 1, paint.ts lips, `!big`): its dark row keeps a texel of the face's own skin between
+ * its ends and the jaw's outline (a mouth that runs into the outline reads as a wider mouth, a gash), but never shrinks
+ * below one texel, so talk still shows. Per view, the base man's face against the neutral one.
+ */
+describe('talk at density 1', () => {
+  /** The base man's face at D1, facing `d` eighths of a turn round, at a clock where `talk`'s mouth is open. */
+  const draw = (expression: Expression, d: number) => {
+    const cast = member(BASE[0].def, 1), f = new Figure(cast), input: FigureInput = { facing: d * Math.PI / 4, moving: false, view: view(), expression, clock: 0 };
+    for (let i = 0; i < 3; i++) f.update(1 / 60, input);
+    const lash: number = (f as unknown as { built: { face: Record<string, number> } }).built.face.lash;
+    return { px: f.painted.slice(), w: cast.cell[0], h: cast.cell[1], lash };
+  };
+  const rgb = (px: Uint8ClampedArray, k: number) => (px[k * 4] << 16) | (px[k * 4 + 1] << 8) | px[k * 4 + 2];
+  /** The texels the mouth's dark added to the neutral face, and the neutral texels left and right of each run of them that are not skin (the outline). */
+  function touching(d: number) {
+    const t = draw('talk', d), n = draw('neutral', d), added: number[] = [];
+    for (let k = 0; k < t.w * t.h; k++) if (rgb(t.px, k) === t.lash && rgb(n.px, k) !== t.lash) added.push(k);
+    const set = new Set(added), dark = (k: number) => n.px[k * 4 + 3] > 0 && n.px[k * 4] + n.px[k * 4 + 1] + n.px[k * 4 + 2] < 150;
+    const hits = added.filter(k => (!set.has(k - 1) && dark(k - 1)) || (!set.has(k + 1) && dark(k + 1)));
+    return { added, hits };
+  }
+  // The profile (view 2) is left out: its chin's row is two texels wide with the outline on both sides, so no place for the
+  // dark avoids it; it keeps its one texel (the second test).
+  for (const d of [0, 1, 3, 4, 5, 6, 7]) it(`view ${d}: the mouth's dark row does not touch the jaw's outline`, () => {
+    expect(touching(d).hits.map(k => [k % 64, Math.floor(k / 64)])).toEqual([]);
+  });
+  it('the profile keeps its one dark texel (no place on a two-texel chin keeps off the outline)', () => {
+    expect(touching(2).added.length).toBe(1);
+  });
+  it('the front view still shows an open mouth (at least one dark texel)', () => {
+    expect(touching(0).added.length).toBeGreaterThanOrEqual(1);
+    expect(differs(draw('talk', 0).px, draw('neutral', 0).px)).toBe(true);
+  });
+});
