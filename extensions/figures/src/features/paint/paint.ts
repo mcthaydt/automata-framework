@@ -345,7 +345,8 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
    * Lips from column a to b: the upper lip dark, its corners the skin two steps down (a lip colour of their own is a
    * fleck); the lower lip lit; the hollow under it at `cm`. A
    * row of the chin's own skin always stays between the lower lip and the jaw's shadow (lips on the jaw's edge read as a
-   * goatee): the lower lip only with two rows of chin under the lips' line, the hollow only with three.
+   * goatee): the lower lip only with two rows of chin under the lips' line, the hollow only with three. Parted on a
+   * two-row chin: the upper lip and the mouth's dark, no lower lip, so a row of chin stays under the dark.
    */
   const lips = (a: number, b: number, cm: number) => {
     // The mood at the corners: up a row in a smile, down a row in anger (and closed).
@@ -363,6 +364,12 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
       for (let x = a + 1; x < b; x++) put(x, M + 1, f.lash);
       shade(a, M + 1, 2); shade(b, M + 1, 2);
       for (let x = a + 1; x < b; x++) put(x, M + 2, f.lips[1]);
+      return;
+    }
+    if (open && chin(cm) === 2) {
+      for (let x = a; x <= b; x++) if (x === a || x === b) shade(x, M, 2); else put(x, M, f.lips[0]);
+      for (let x = a + 1; x < b; x++) put(x, M + 1, f.lash);
+      shade(a, M + 1, 2); shade(b, M + 1, 2);
       return;
     }
     if (smile) corners(M - 1); else if (angry) corners(M + 1);
