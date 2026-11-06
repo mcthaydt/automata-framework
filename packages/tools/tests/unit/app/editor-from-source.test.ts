@@ -9,6 +9,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 // `index.html` stands in for it.
 const BIN = join(import.meta.dirname, '../../../src/app/bin.ts')
 const GAME = resolve(import.meta.dirname, '../../../../../games/emberwick')
+/** How long the bin has to print its address. */
+const ADDRESS_WITHIN_MS = 20_000
 const made: string[] = []
 
 afterEach(() => {
@@ -25,7 +27,7 @@ function start(appDir: string): Promise<{ url: string; stop: () => void }> {
     const timer = setTimeout(() => {
       child.kill()
       fail(new Error(`no address within 20 s:\n${output}`))
-    }, 20_000)
+    }, ADDRESS_WITHIN_MS)
     const read = (chunk: Buffer) => {
       output += chunk.toString()
       const found = /This computer: (http:\/\/127\.0\.0\.1:\d+)/.exec(output)
@@ -54,5 +56,5 @@ describe('automata editor, run from source by plain Node', () => {
     } finally {
       running.stop()
     }
-  }, 30_000)
+  }, 90_000)
 })

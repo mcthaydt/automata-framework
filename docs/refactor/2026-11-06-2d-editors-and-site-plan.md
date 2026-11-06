@@ -621,14 +621,14 @@ The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4)
 - Test: `packages/tools/tests/unit/scripts/copy-editor.test.ts` (`findPixi3d` keeps its own tests in
   `tests/unit/shared/ship/prepare/pixi3d-markers.test.ts`)
 
-- [ ] **Step 1: Failing tests.** `copy-editor` scans `packages/editor/dist/2d` and `packages/editor/dist/suite` with the
+- [x] **Step 1: Failing tests.** `copy-editor` scans `packages/editor/dist/2d` and `packages/editor/dist/suite` with the
   existing `findPixi3d` (one scan, the one `ship prepare` already runs: nothing is moved or copied), fails with spec
   7.3's message naming the file when either holds the beta, and otherwise copies `dist/2d` to `dist/editors/2d`.
-- [ ] **Step 2:** Implement; `ship prepare`'s existing tests stay green (unchanged).
-- [ ] **Step 3: Verify the package.** `pnpm --filter @mcthaydt/automata-tools build && cd packages/tools && pnpm pack`
+- [x] **Step 2:** Implement; `ship prepare`'s existing tests stay green (unchanged).
+- [x] **Step 3: Verify the package.** `pnpm --filter @mcthaydt/automata-tools build && cd packages/tools && pnpm pack`
   → the tarball lists `dist/editors/2d/index.html`; size recorded. Run the consumer smoke (14 steps plus "the packed
   `automata editor` serves the editor": a new step that starts it on the fixture game and fetches `/`).
-- [ ] **Step 4:** Changeset `patch`: "`automata editor` now includes the 2D editor." Commit.
+- [x] **Step 4:** Changeset `patch`: "`automata editor` now includes the 2D editor." Commit.
   `feat(tools): ship the 2D editor inside the tools package`
 
 ### Task 7.3: `create-game` makes a level
@@ -1631,3 +1631,19 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   of the real build, so the unit gate does not depend on the editor having been built.
 - **Gates.** `pnpm check` exit 0; the editor, content and tools builds succeed; the built bin
   (`packages/tools/dist/bin.js check games/emberwick --only levels`) passes.
+
+### 2026-11-06, session 5 (continued): phase 7, task 7.2
+
+- **`scripts/copy-editor.ts`.** `copyEditor(editorDist, outDir)` reads `packages/editor/dist/2d` and `dist/suite` with
+  `findPixi3d` (the existing scan, nothing moved), throws "This build contains the private Pixi 3D beta (2d/<file>).
+  It cannot be published." naming the file, and otherwise replaces `dist/editors/2d` with a copy of the 2D build. With no
+  2D build it says to build the editor first. Six tests, one with a planted marker per build and per marker kind. The
+  real 2D and suite builds scan clean.
+- **Build.** `-tools`' `build` is `tsdown && node scripts/copy-editor.ts`. **Deviation 87:** the plan's `turbo.json`
+  change was not needed: `-tools` already has the editor as a devDependency, and turbo's `^build` orders a package after
+  its devDependencies. `internal.ts` already exports `findPixi3d` (task 19.2 uses it).
+- **Packed size.** `pnpm pack` of `-tools`: 791,076 bytes (about 773 kB), 34 files under `dist/editors/2d/`, including
+  `index.html`. The consumer smoke has two new steps: the packed `automata editor` serves the page on the smoke
+  project's `content` folder, and the packed tarball is under a 3 MB budget (it measured 773 kB). The smoke passes from
+  packs: 17 steps, including the stranger's game booting in Chromium under Ruken's CSP.
+- Changeset `editor-in-tools`.

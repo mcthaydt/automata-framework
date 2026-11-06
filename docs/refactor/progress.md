@@ -202,14 +202,14 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 38% (24 of 63 tasks)
+### Build: 40% (25 of 63 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
 **Where to resume (2026-11-06, session 5, phase 6 done):** branch `claude/project-thread-vmgqwv`, one stacked draft PR
-on #414 for the session; each phase is its own labelled commit group. Next is phase 7, task 7.2 (the build inside
-`-tools`, and the closed-beta scan); 7.1 is done. Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The plan's execution
+on #414 for the session; each phase is its own labelled commit group. Next is phase 7, task 7.3 (`create-game` makes a
+level); 7.1 and 7.2 are done. Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The plan's execution
 log has the counts, deviations and gates of every task so far.
 
 | Task | Phase | Status | PR |
@@ -238,7 +238,7 @@ log has the counts, deviations and gates of every task so far.
 | 6.3 The drift check | 6 | Done, 2026-11-06 (`pnpm check` green; Chromium parity, layout and storage 452 pass, canvas and journeys 75 pass and 6 skipped; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
 | 6.4 The narrow fallback | 6 | Done, 2026-11-06 (`pnpm check` green; Chromium parity, layout and storage 452 pass, canvas and journeys 75 pass and 6 skipped; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
 | 7.1 --app 2d by default, and it runs from source | 7 | Done, 2026-11-06 (`pnpm check` green; editor, content and tools build; the source bin serves `/api/ping` in a spawned-process test; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
-| 7.2 The build inside -tools, and the closed-beta scan | 7 | Not started | |
+| 7.2 The build inside -tools, and the closed-beta scan | 7 | Done, 2026-11-06 (`pnpm check` green; the packed `-tools` is 773 kB with the editor in it; the consumer smoke passes from packs with the new editor and size steps; WebKit, Firefox and hosted CI not run) | [#415](https://github.com/mcthaydt/automata-framework/pull/415) |
 | 7.3 create-game makes a level | 7 | Not started | |
 | 8.1 The 2D-only suite page | 8 | Not started | |
 | 8.2 The suite opens the checkout; the rail lists what is there | 8 | Not started | |
