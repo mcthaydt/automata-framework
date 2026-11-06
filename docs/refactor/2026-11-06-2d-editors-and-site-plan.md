@@ -2285,8 +2285,10 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   `content/tuning.toml` as it lands, and the content Vite plugin already rebuilds on a TOML change and sends
   `automata:content` to the page; nothing listens. (a) The runtime (`@mcthaydt/automata`, the owner of the sim's
   content contract) takes new content in development: on `import.meta.hot` `automata:content` it re-imports
-  `virtual:automata/content` and hands the sim the new `tuning` at the next tick boundary, never mid-tick and never in
-  a build (`import.meta.hot` is undefined there), with a unit test on the swap and a journey. (b) `automata editor`
+  `virtual:automata/content` and starts the game's sim again with it (`createSim` fixes a sim's content for its life,
+  and the sim must not grow a content swap for a dev convenience: law 1 and the sim spec), keeping the page, so the
+  player sees the room start over with the new feel; never in a build (`import.meta.hot` is undefined there); a unit
+  test on the restart and a journey. (b) `automata editor`
   learns the game's dev page (`--game-url`, default the game's Vite port) and the suite reads it from `/api/ping`. (c)
   The Tuner's canvas becomes two regions: the settings and a game pane (an `iframe` of that page, `title="Your game"`),
   side by side from iPad landscape up and stacked, game on top, on a phone; with no dev page answering, the pane says
