@@ -1,16 +1,16 @@
 # AutomataFramework
 
-AutomataFramework (AF) is a TypeScript framework for small, deterministic web games that run inside
-[Ruken](https://github.com/mcthaydt/RukenApp). The simulation runs on Koota and is checked bit for bit in Node,
-Chromium, WebKit and Firefox. PixiJS draws the game. [`docs/README.md`](docs/README.md) explains the design and
+AutomataFramework (AF) is a TypeScript framework for small 2D and 3D web games. You write a game once and ship it
+to the web, itch.io, Ruken or a desktop app. The game's rules give the same result, bit for bit, in Node, Chromium,
+WebKit and Firefox, and PixiJS draws it. [`docs/README.md`](docs/README.md) explains the design and
 [`docs/status.md`](docs/status.md) says what works today.
 
-## Run Emberwick from a fresh clone
+## Play Emberwick from a fresh clone
 
-Emberwick is AF's 2D reference game: Wick, a hooded lantern-bearer, walks and jumps through one room of mossy
-ruins to an ember. It is the workspace package `@af-games/emberwick`, in [`games/emberwick`](games/emberwick/)
+Emberwick is AF's 2D sample game: Wick, a hooded lantern-bearer, walks and jumps through a room of mossy ruins to
+reach an ember. It lives in [`games/emberwick`](games/emberwick/).
 
-You need Git, and Node 24.21.0 (the version in `.nvmrc`). Corepack then runs the pinned pnpm.
+You need Git and Node 24.21.0 (the version in `.nvmrc`). Corepack brings the right pnpm.
 
 ```sh
 git clone https://github.com/mcthaydt/automata-framework.git
@@ -20,7 +20,7 @@ pnpm install
 pnpm --filter @af-games/emberwick dev    # open the printed URL; arrows or A/D move, Space jumps
 ```
 
-Opened on its own, Emberwick runs standalone. Inside Ruken it completes the host handshake first.
+The same build runs on its own in a browser and inside Ruken.
 
 ## Check a change
 

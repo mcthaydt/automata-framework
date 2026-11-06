@@ -1,19 +1,21 @@
 # consumer-smoke
 
-Installs AF's published packages into a project outside the workspace and uses them as a game would (M2.4
-spec §3.6): every entry imports in Node (those that load Svelte components, rune modules or PixiJS, through Vite
-instead: ui's root, runtime's `.` and `./testing`, render-pixi, game and the umbrella) and a sim plugin runs,
-`automata-content` compiles a small content folder, `automata-ship` and `automata-check-boundaries` run,
-TypeScript 7.0.2 and 6.0.3 read every declaration (7.0.2 also under nodenext resolution), no published file uses
-`eval`, and a Vite bundle of the sim, the host and a ui component holds one copy of Ruken's SDK. A minimal game on
-the one import (`@mcthaydt/automata`, fixture `game/`, DX.2a) is built twice: for Ruken, whose bundle must hold one
-Ruken SDK, and for the web target, which is served with the headers Ruken would serve it with (its `ruken.toml`
-through `@ruken/manifest`'s `compileHeaders`, so no eval) and booted in Chromium with the workspace's Playwright.
-It must reach `data-state="ready"`, start from Play and run 30 frames with no console error, uncaught error or CSP
-violation; that step needs Playwright's Chromium (`pnpm exec playwright install chromium`, or
-`PLAYWRIGHT_BROWSERS_PATH`). The first step checks that every command in the root `README.md` still names a root
-script, a workspace package's script or a file that exists (`src/readme.ts`, QB.1); `src/readme.test.ts` runs the
-same check in `pnpm check`.
+Checks AF the way a game author meets it: it installs the published packages into a project outside this
+repository and builds a small game with them. If a package is missing a file, a type or an entry, this fails
+where the workspace would not notice.
+
+What it runs, in order:
+
+1. Every command in the root `README.md` still names a real script or file (`src/readme.ts`; `pnpm check` runs
+   the same check).
+2. Every package entry imports, in Node or through Vite for the ones that load Svelte or PixiJS, and a sim plugin
+   runs.
+3. The content compiler, `automata-ship` and `automata-check-boundaries` run; TypeScript 7.0.2 and 6.0.3 read every
+   type declaration (7.0.2 also under nodenext); no published file uses `eval`.
+4. A small game on `@mcthaydt/automata` is built for Ruken (one copy of Ruken's SDK in the bundle) and for the web.
+   The web build is served with the headers Ruken would send and opened in Chromium: it must reach
+   `data-state="ready"`, start from Play and run 30 frames with no error and no CSP violation. This step needs
+   Playwright's Chromium (`pnpm exec playwright install chromium`, or `PLAYWRIGHT_BROWSERS_PATH`).
 
 ```sh
 pnpm build && node tooling/consumer-smoke/src/run.ts --from packs          # the workspace's packed packages
