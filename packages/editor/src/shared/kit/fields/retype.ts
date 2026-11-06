@@ -23,7 +23,7 @@ export interface RetypeBreakage {
  * Before a definitions editor changes a field's type, bounds, options, list flag or `required`: the instances whose
  * value would stop validating, so the editor refuses with a list and never loses data silently. An instance that
  * already failed the old definition is not listed (`checkValues` reports it); the retype did not break it. The
- * value is read by `oldDef.id`, so a rename combined with a retype is one call. Spec §4.8, EK-j.
+ * value is read by `oldDef.id`, so a rename combined with a retype is one call.
  */
 export function checkRetype(
   oldDef: FieldDef,

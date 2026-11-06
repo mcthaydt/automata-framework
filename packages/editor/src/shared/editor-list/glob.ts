@@ -1,7 +1,7 @@
-// The editor list's globs. Extracted from The Last Light editor/src/shared/manifest.ts `globToRegExp` (92e6704), the
+// The editor list's globs. Extracted from the adventure source editor/src/shared/manifest.ts `globToRegExp`, the
 // rules its guard uses: `*` and `?` stay within one path segment, `**` crosses segments, and `**/` also matches no
 // folder at all. Added here: `{scene}` matches one non-empty segment and is captured as the file's scene, so one row
-// covers every scene (spec §4.2). Paths are root-relative POSIX paths; the caller rejects anything else first.
+// covers every scene. Paths are root-relative POSIX paths; the caller rejects anything else first.
 
 const SCENE = '{scene}'
 

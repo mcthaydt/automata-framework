@@ -4,7 +4,7 @@ import type { EntityDef2D, Project } from '../../../model/project-types'
 import type { Diagnostic } from '../../profile'
 import { diagnostic, itemPath, levelPath } from './diagnostics'
 
-// Checks of what entities say about themselves (2D editor spec §9, "Entities"): their typed fields, how many of a
+// Checks of what entities say about themselves: their typed fields, how many of a
 // definition a level may hold, and how many a level or the project must hold. Limits are data on the definition
 // (`single`, `min`), so a template's rules need no template code. What a `ref` field points at is `links.ts`.
 

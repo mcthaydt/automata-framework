@@ -1,4 +1,4 @@
-// Colours as the editors store them: `#rrggbb` (kit spec §4.8 `HEX_COLOR`). Pure; the kit's `./fields` entry holds the
+// Colours as the editors store them: `#rrggbb`. Pure; the kit's `./fields` entry holds the
 // same pattern for stored field values, and a widget keeps its own so it stays usable without that entry.
 
 const HEX = /^#[0-9a-fA-F]{6}$/

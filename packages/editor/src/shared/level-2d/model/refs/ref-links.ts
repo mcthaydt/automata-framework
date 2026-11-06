@@ -3,7 +3,7 @@ import type { FieldDef, FieldValue, FieldValues, RefValue } from '../../../kit/f
 import type { Project } from '../project-types'
 import { isRefValue, type RefIndex, refIndex, resolveRef } from './ref-resolve'
 
-// The links a project's `ref` fields make (plan ED2D.6c; 2D editor spec §5.7, §8 flow 4): every value that resolves,
+// The links a project's `ref` fields make: every value that resolves,
 // as the level canvas and the world map draw it; what the reference picker offers for a field; and the name a link is
 // shown by. A broken value is no link: the Checks report it and nothing draws it (G-g).
 
@@ -80,7 +80,7 @@ const defLabel = (project: Project, id: string): string =>
   project.defs.entities.find((def) => def.id === id)?.label ?? id
 
 /**
- * What a field may be pointed at, by level in project order (plan ED2D.6c decision 2): the level itself first when `to`
+ * What a field may be pointed at, by level in project order: the level itself first when `to`
  * allows a level (or is empty), then each instance of an allowed definition in layer order. `holder` (the instance the
  * field belongs to) is never a choice. A level with nothing to offer is left out.
  */

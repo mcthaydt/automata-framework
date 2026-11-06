@@ -1,5 +1,4 @@
-// The Ask session behind the `ask-diff` dialog (editor suite spec §5 flow 5, §9, §11; EDS-D9: a proposal is one whole
-// document). Rebuilt over text from ED3D.10a's headless controller (`editor-3d/src/app/ask-controller.ts`), keeping
+// The Ask session behind the `ask-diff` dialog. Rebuilt over text from editor-3d's headless Ask controller, keeping
 // its rule: a proposal is shown and accepted only over the document it was made for, so an edit, undo or redo while it
 // is in flight or on show drops it (`drop()`, or the document no longer reading what was sent).
 //
@@ -47,7 +46,7 @@ export interface AskSessionOptions {
   readonly writePath: WritePath
   /** The history on the write path an accepted proposal joins: the open editor's id (EDS-D19). */
   readonly owner?: string | undefined
-  /** The budget with no change set open (default 200 000, The Last Light's cap). */
+  /** The budget with no change set open (default 200 000, the adventure source's cap). */
   readonly cap?: number | undefined
 }
 

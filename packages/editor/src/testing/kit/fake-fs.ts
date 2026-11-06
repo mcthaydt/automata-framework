@@ -2,7 +2,7 @@ import type { DirectoryLike, FileHandleLike, WritableLike } from '../../shared/k
 
 /**
  * An in-memory directory tree that behaves like the origin private file system and like a picked folder, for the
- * renderer-free tests (kit spec §8, fixtures `FakeOpfs` and `FakeFolderHandle`). It keeps the browser's habits that
+ * renderer-free tests. It keeps the browser's habits that
  * matter to the adapters: a missing entry is a `NotFoundError`, a file where a directory is wanted is a
  * `TypeMismatchError`, a writable changes nothing until `close`, and `lastModified` is set on `close`.
  */

@@ -17,7 +17,7 @@ import {
   pressButton,
 } from '#src/testing/level-2d/journey-editor.ts'
 
-// ED2D.8 journey (2D editor spec §15 G-g, G-r): two RPG maps linked in the editor on an iPad: add the Inn on the World
+// ED2D.8 journey: two RPG maps linked in the editor on an iPad: add the Inn on the World
 // map, place a door in each map with the Pencil, point each at the other through the picker, add a warp, have no
 // errors, see the links on the world map, save, and reopen equal.
 

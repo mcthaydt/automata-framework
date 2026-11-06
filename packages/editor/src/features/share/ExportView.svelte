@@ -1,9 +1,9 @@
 <!--
-  The Export view (plan ED2D.7b step 5; 2D editor spec §8 flow 9, the Export row; mockup `export`): the profile's
+  The Export view: the profile's
   targets as checkable cards with their sizes, the files they make, the error count, and Download (primary), Share,
   Copy and Write to folder. Errors never stop a download, a share or a copy; only writing into a game folder waits until
-  Checks is clear (ED2D-D12). The list is recomputed from the history after every edit, so an export is always of the
-  latest state (§13). A folder write re-checks every file it listed first and, if one changed, asks before writing
+  Checks is clear. The list is recomputed from the history after every edit, so an export is always of the
+  latest state. A folder write re-checks every file it listed first and, if one changed, asks before writing
   anything (G-m). Where the device keeps no copy, exporting the working file is the save, so it marks the document
   clean (decision 3).
 -->
@@ -221,7 +221,7 @@ const write = (mode: 'guarded' | 'overwrite') =>
 </EditorShell>
 
 <style>
-  /* The files scroll in their own region; the actions stay in view at the foot at every height (spec §12). */
+  /* The files scroll in their own region; the actions stay in view at the foot at every height. */
   .export {
     box-sizing: border-box;
     display: grid;

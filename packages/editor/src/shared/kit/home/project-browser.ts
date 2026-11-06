@@ -1,8 +1,7 @@
 import { classifyStorageError } from '../storage/project-store'
 import { filterEntries, reconcileSelection, type StepKey, stepSelection } from './project-browse'
 
-// The state machine behind a Home's project list (moved from editor-2d's `home-controller.ts` in ED3D.5c; plan
-// ED2D.4c2a, decision 1): what the list shows, what is selected, which action is running. An editor's Home controller
+// The state machine behind a Home's project list: what the list shows, what is selected, which action is running. An editor's Home controller
 // adds its own actions on top, each through `run`, and reads the list again with `refresh`. It draws nothing and follows
 // the Svelte store contract (`state.subscribe`), so a component reads it as `$state` and a Node test reads it directly.
 

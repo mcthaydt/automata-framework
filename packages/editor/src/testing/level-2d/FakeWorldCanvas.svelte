@@ -1,5 +1,5 @@
 <!--
-  A stand-in for the Pixi world canvas in jsdom, which has no WebGL (plan ED2D.6b). It shows what it was handed, so a
+  A stand-in for the Pixi world canvas in jsdom, which has no WebGL. It shows what it was handed, so a
   DOM test can read the levels, the selection, the links and the camera the World view passed down.
 -->
 <script lang="ts">

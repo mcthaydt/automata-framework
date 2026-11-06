@@ -1,5 +1,5 @@
 <!--
-  A button that opens the system file picker (moved out of editor-2d's sources panel in ED3D.5c). It is a `<label>`
+  A button that opens the system file picker. It is a `<label>`
   around a file input that is transparent and covers the label, so it stays focusable and a screen reader finds it,
   and a tap opens the picker with no scripted click (iPad Safari allows only that). The input is cleared afterwards, so
   choosing the same file again still fires a change. `directory` picks a whole folder (each file carries its path from

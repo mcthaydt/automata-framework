@@ -1,5 +1,5 @@
 <!--
-  The read-only view of a file that does not open (plan ED2D.4c2b, decision 3; mockup `open-failed`). It draws a window
+  The read-only view of a file that does not open. It draws a window
   of at most 400 lines with their numbers, marks the lines an error points at (in colour, and in words for a screen reader) and scrolls the first of them into view.
   It is its own scroll region in both directions: long lines scroll rather than wrap, so a column number stays true,
   and the page never moves. Nothing in it can be edited.

@@ -16,7 +16,7 @@ export const GATES_SCENARIO: GateRecords = {
 }
 
 /**
- * What every `Gates` promises (editor suite spec §4.3, §7): read only. `make('unreadable')` gives gates whose records
+ * What every `Gates` promises: read only. `make('unreadable')` gives gates whose records
  * cannot be read.
  */
 export function describeGates(

@@ -1,7 +1,6 @@
 import type { Workspace } from '../storage/workspace'
 
-// The words and rules of a project list that every editor's Home shares (moved from editor-2d's `home-model.ts` in
-// ED3D.5c; plan ED2D.4c2a, decisions 3 to 8): searching, the selection and how it moves, the age and size on a card,
+// The words and rules of a project list that every editor's Home shares: searching, the selection and how it moves, the age and size on a card,
 // and the storage notes. An editor turns each of its entries into a `HomeCard`, so nothing here knows a file format.
 
 const plural = (count: number, one: string, many: string): string => `${count} ${count === 1 ? one : many}`
@@ -21,7 +20,7 @@ export interface HomeCard {
   readonly accent: string | undefined
   readonly size: number
   readonly mtime: number
-  /** A picture for the card's tile in place of the initial (ED2D.4c3b); none, the tile shows the initial. */
+  /** A picture for the card's tile in place of the initial; none, the tile shows the initial. */
   readonly preview?: TilePreview | undefined
 }
 

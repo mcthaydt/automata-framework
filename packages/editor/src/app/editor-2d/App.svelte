@@ -1,5 +1,5 @@
 <!--
-  The root of the editor (plans ED2D.4c2a decision 9, ED2D.4c2b decisions 1 and 9): Home, or the document that was
+  The root of the editor: Home, or the document that was
   opened from it. It owns the route and the Home controller, so the search, the selection and the list survive a visit
   to a document. A file that does not open gets the error panel over Home, and a file two profiles claim gets the
   profile choice. A document that is left (Back, or the editor closing) is closed by its controller, which writes its
@@ -36,7 +36,7 @@ interface Props {
   clock: { now(): number }
   /** The page whose hiding writes an open document's journal. */
   lifecycle: { readonly document: LifecycleDocument; readonly window: LifecycleWindow }
-  /** Draws the Home cards' preview levels (ED2D.4c3b). */
+  /** Draws the Home cards' preview levels. */
   thumbnails?: LevelThumbnails | undefined
   /** Where the ids of instances placed in the Level view come from (the app's own). */
   ids: IdSource

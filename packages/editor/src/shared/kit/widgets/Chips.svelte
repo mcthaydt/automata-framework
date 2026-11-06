@@ -1,5 +1,5 @@
 <!--
-  A row of toggles (kit spec §4.6): `multi` lets any number be on, `single` keeps exactly one chosen. A chip with
+  A row of toggles: `multi` lets any number be on, `single` keeps exactly one chosen. A chip with
   `removable` has its own 44 px remove button, which calls `onremove` and never changes the selection. A disabled
   chip stays focusable, announces its reason and calls `onblocked` when pressed. A change is a `set` edit event
   carrying the whole selection in the order of `items`.

@@ -1,6 +1,6 @@
 import type { Project } from '../../model/project-types'
 
-// The images a level may draw (ED2D.4c3b): every tileset's image (a project holds a few sets, and any layer or entity of
+// The images a level may draw: every tileset's image (a project holds a few sets, and any layer or entity of
 // the level may name one) and the level's background image. The canvas loads these before it builds the draw list, so
 // the list knows which tiles have art and which are placeholders.
 

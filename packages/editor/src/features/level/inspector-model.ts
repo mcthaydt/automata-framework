@@ -7,7 +7,7 @@ import { isRefValue } from '../../shared/level-2d/model/refs/ref-resolve'
 import { findLevel } from '../../shared/level-2d/model/world/level-edits'
 import type { Diagnostic, Severity } from '../../shared/level-2d/profiles/profile'
 
-// What the Level view's inspector shows (2D editor spec §8, the Level row; plan ED2D.4c4b step 2): one row per typed
+// What the Level view's inspector shows: one row per typed
 // field, naming the kit control that edits it, for the selected instance (Entity tab) and the level (Level tab). The
 // model holds no Svelte, so the field-to-widget map and the none/one/many rule are tested in Node.
 

@@ -15,7 +15,7 @@ import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Tilesets view in jsdom (plan ED2D.5b step 7), mounted the way the app mounts it and reached from the rail: the
+// The Tilesets view in jsdom, mounted the way the app mounts it and reached from the rail: the
 // panel, the sheet, the inspector and the preview, and that each edit is one undo step. Layout and hit sizes are
 // checked in real browsers (`tilesets-view.layout.test.ts`).
 

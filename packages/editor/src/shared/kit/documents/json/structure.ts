@@ -1,4 +1,4 @@
-// Extracted from The Last Light editor/src/server/json-structure.ts (92e6704), on the span scanner instead of
+// Extracted from the adventure source editor/src/server/json-structure.ts, on the span scanner instead of
 // TypeScript's JSON parser: insert or remove one array element or object member, or replace one value, by its exact
 // span, in a hand-formatted JSON file. Nothing else is re-printed. A new value is written the way its neighbours
 // are: inline when the sibling it copies is on one line, one member per line (or several, when the sibling packs

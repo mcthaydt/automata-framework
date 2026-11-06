@@ -4,7 +4,7 @@ import { blobRules, valueRule } from './blob-rules'
 import { placeholderTileset } from './placeholder-tileset'
 import { editCells, placeEntities, starterProject } from './starter'
 
-// The platformer start (2D editor spec §7): a 512 × 288 level on a 16 px grid. Collision is an IntGrid; the `ground`
+// The platformer start: a 512 × 288 level on a 16 px grid. Collision is an IntGrid; the `ground`
 // auto layer draws it with the 47-tile terrain set, so painting a floor is painting `solid` and the edges, corners and
 // inner corners follow. The placeholder tileset `terrain` is 8 × 8 tiles: 0 to 46 are the terrain set, then the hazard
 // and water tiles the other collision values draw, then decor.

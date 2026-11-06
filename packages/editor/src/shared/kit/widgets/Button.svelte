@@ -1,5 +1,5 @@
 <!--
-  The button of the editors' screens (plan ED2D.4c2a; moved into the kit in ED3D.5c). `plain` is a 44 px target, `primary` the 48 px action a screen
+  The button of the editors' screens. `plain` is a 44 px target, `primary` the 48 px action a screen
   is for (Open, New), `danger` marks what destroys. The kind is `data-kind`, the attribute the layout checks read to
   hold a primary action to 48 px. Whatever else a button needs (an accessible name, a title) passes
   through. It never submits a form, and a disabled one stays in the page and in the layout rather than vanishing.

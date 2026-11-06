@@ -1,5 +1,5 @@
 // Where a text stops being JSON. `JSON.parse` names a position only in some engines (V8 and Firefox do, Safari does
-// not), and the error panel of the 2D editor spec §13 needs a line and a column in all of them, so this reads RFC 8259
+// not), and the error panel needs a line and a column in all of them, so this reads RFC 8259
 // itself. It is only consulted after `JSON.parse` has thrown, to locate the first error; a property test keeps it in
 // agreement with `JSON.parse` about which texts are valid.
 

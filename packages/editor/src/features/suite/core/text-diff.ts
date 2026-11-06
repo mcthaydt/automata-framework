@@ -1,4 +1,4 @@
-// A line diff for the Ask dialog (editor suite spec §9 `ask-diff`, EDS-D9: a proposal is one whole document). Myers'
+// A line diff for the Ask dialog. Myers'
 // O(ND) shortest edit script over lines, grouped into unified hunks with three lines of context. A line keeps its end
 // (`\n`, `\r\n` or none on the last line), so a line-end change shows as a change rather than vanishing.
 

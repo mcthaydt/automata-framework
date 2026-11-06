@@ -1,5 +1,5 @@
 <!--
-  A row of tabs over one panel (kit spec §4.6). Arrows choose the next enabled tab and wrap, Home and End go to the
+  A row of tabs over one panel. Arrows choose the next enabled tab and wrap, Home and End go to the
   ends, and choosing activates, so the panel always follows focus. Only the chosen tab is in the tab order; the
   panel is the single `tabpanel`, named by its tab. A disabled tab stays focusable by touch and mouse: pressing it
   calls `onblocked` with its reason, which is also its accessible description.

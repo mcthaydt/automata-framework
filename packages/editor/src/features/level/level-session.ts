@@ -7,8 +7,8 @@ import type { IdSource } from '../../shared/level-2d/model/ids'
 import { createLevelEditor, type LevelEditor } from './level-editor'
 import type { LevelFocus } from './level-focus'
 
-// One Level view's state over an open document (plan ED2D.4c4a decision 2; 2D editor spec §5.9, §8; kit spec §4.5): the
-// ED2D.4b controller on the document's history, and the viewport that says where the level sits on the canvas. Plain
+// One Level view's state over an open document: the
+// level editor on the document's history, and the viewport that says where the level sits on the canvas. Plain
 // TypeScript, so the Node tests drive what the Svelte view only draws and forwards. The camera is the canvas's
 // (`LevelCanvas`); it is undefined until the canvas has been measured, and the first measure fits the level.
 

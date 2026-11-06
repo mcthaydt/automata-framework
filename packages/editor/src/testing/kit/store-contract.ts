@@ -6,7 +6,7 @@ const text = (bytes: Uint8Array | undefined): string | undefined =>
   bytes === undefined ? undefined : new TextDecoder().decode(bytes)
 
 /**
- * What every ProjectStore promises (kit spec §4.7), run against each adapter with a fresh, empty store per test.
+ * What every ProjectStore promises, run against each adapter with a fresh, empty store per test.
  * The memory store, the handle stores over fakes and the real OPFS in Chromium, WebKit and Firefox all pass the same cases, so a fake
  * cannot drift from the browser unnoticed.
  */

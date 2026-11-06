@@ -21,7 +21,7 @@ import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { withLayer } from '#src/testing/level-2d/project-edit.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// G-l end to end (plan ED2D.7b step 6; 2D editor spec §8 flow 10, §15): three edits, the tab killed before a save, the
+// G-l end to end: three edits, the tab killed before a save, the
 // editor opened again over the same device storage: Restore is offered first and brings back exactly the state the
 // edits had made.
 

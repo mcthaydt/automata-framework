@@ -14,7 +14,7 @@ import {
 import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
 import { duplicateMessage, importNotices, removeMessage, searchWords } from './home-model'
 
-// The 2D editor's Home (plan ED2D.4c2a, decision 1): the kit's project browser (the list, the search, the selection and
+// The 2D editor's Home: the kit's project browser (the list, the search, the selection and
 // one action at a time) with this editor's actions on top: open, create from a template, duplicate, delete and import.
 // It never navigates and draws nothing: when a document opens it tells its owner, and every outcome a person should
 // hear about goes to the toast store.
@@ -34,7 +34,7 @@ export interface HomeController extends ProjectListSource<ProjectEntry, Busy> {
   importFiles(files: readonly { readonly name: string; readonly bytes: Uint8Array }[]): Promise<void>
 }
 
-/** Where the project opened last is kept between visits: Home selects it again (ED2D.8). A store that cannot keep it is no store. */
+/** Where the project opened last is kept between visits: Home selects it again. A store that cannot keep it is no store. */
 export interface LastOpened {
   read(): string | undefined
   write(path: string): void
@@ -75,8 +75,7 @@ export function createHomeController(options: HomeControllerOptions): HomeContro
       path !== undefined && visible.some((entry) => entry.path === path) ? path : undefined
 
   /**
-   * A document opens and its owner takes over. A file to look at or to choose a profile for goes to the owner too (plan
-   * ED2D.4c2b, decision 1); a missing file or a store that refused is a toast. Either way the list is read again.
+   * A document opens and its owner takes over. A file to look at or to choose a profile for goes to the owner too; a missing file or a store that refused is a toast. Either way the list is read again.
    */
   async function settleOpen(outcome: OpenOutcome): Promise<void> {
     if (outcome.status === 'opened') {

@@ -1,9 +1,9 @@
-// The game's own checks, run as the editor list declares them (editor suite spec §4.2, §7): argv in the game checkout
+// The game's own checks, run as the editor list declares them: argv in the game checkout
 // with no shell, output capped (`runArgv`), `{path}` and `{scene}` the only substitutions. Every requested check runs
 // at once, one job per check id: a newer run of an id cancels that id in the older run. A `before` check reads the
 // candidate text from a fresh folder named by `AUTOMATA_CANDIDATES`, removed when the run ends.
 //
-// What a check's exit and output mean (EDS.1d-a plan, decision 1): exit 0 is a pass (`warn` with only warnings, `fail`
+// What a check's exit and output mean: exit 0 is a pass (`warn` with only warnings, `fail`
 // with an error finding); exit 1 with readable JSON is a fail; anything else is an `error` with its output.
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -23,7 +23,7 @@ export interface ArgvChecksOptions {
   readonly root: string
   /** The editor list's `[[check]]` rows. */
   readonly checks: readonly CheckDef[]
-  /** The scene of a path, from the editor list's row (EDS.1d-b); without it `{scene}` has no value. */
+  /** The scene of a path, from the editor list's row; without it `{scene}` has no value. */
   readonly sceneOf?: ((path: string) => string | undefined) | undefined
   /** How long one check may run (default five minutes). */
   readonly timeoutMs?: number | undefined

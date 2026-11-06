@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { IPAD_PROFILES } from '#src/testing/kit/ipad-profiles.ts'
 
-// The journeys' browser is WebKit dressed as an iPad (plan EDK.6b decision 1): a coarse pointer with no hover, touch
+// The journeys' browser is WebKit dressed as an iPad: a coarse pointer with no hover, touch
 // events, a 2× screen and Safari's iPad user agent, at each profile's window size. Playwright's WebKit on Linux reports
 // `navigator.maxTouchPoints` as 0 even with touch on, so nothing here relies on it (the one reader in `ui` also matches
 // an iPad by its user agent).

@@ -1,4 +1,4 @@
-// The Ship description (editor suite spec §5 flow 9, EDS-D10): drafted from the Review desk's model of the change
+// The Ship description: drafted from the Review desk's model of the change
 // set (its changed files, its checks and the gates it reopens), which the person edits before Ship. Nothing in it
 // comes from a clock, and it says what Ship cannot do: a gate still needs the owner's decision.
 import type { ReviewChangeSet } from './review-model'

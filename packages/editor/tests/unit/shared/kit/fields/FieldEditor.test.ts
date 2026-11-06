@@ -6,7 +6,7 @@ import FieldEditor from '#src/shared/kit/fields/FieldEditor.svelte'
 import { type FieldCommit, fieldRow } from '#src/shared/kit/fields/field-row.ts'
 import type { FieldDef, FieldValue } from '#src/shared/kit/fields/field-types.ts'
 
-// One inspector row per widget kind (plan ED2D.4c4b step 5, decision 1): a stepper, toggle, segmented control or picker
+// One inspector row per widget kind: a stepper, toggle, segmented control or picker
 // commits on change, text on blur or Enter; a refused value shows the message and the field shows the stored value.
 
 function mount(def: FieldDef, value: FieldValue | undefined, result: FieldCommit = { ok: true }) {

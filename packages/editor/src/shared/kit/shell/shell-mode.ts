@@ -1,6 +1,6 @@
 import type { FormFactor, HeightTier } from '@mcthaydt/automata'
 
-/** How the shell lays out its regions (kit spec §4.2). Decided from the form factor and nothing else. */
+/** How the shell lays out its regions. Decided from the form factor and nothing else. */
 export type ShellMode = 'wide' | 'medium' | 'compact'
 
 /** Whether the dock sits beneath the canvas or is a bottom sheet. */

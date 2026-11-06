@@ -1,5 +1,5 @@
 <!--
-  Draws a toast store (kit spec §4.6): a polite live region that is in the page before the first toast, so a screen
+  Draws a toast store: a polite live region that is in the page before the first toast, so a screen
   reader hears the ones that arrive. It never takes focus. Each toast has its message, an optional action and a
   dismiss button, both 44 px. It sits above the safe area at the foot of the screen, centred, and lets presses through
   everywhere but on a toast. In an `EditorShell`'s `sheets` it sits above the shell's foot (`--shell-foot`).

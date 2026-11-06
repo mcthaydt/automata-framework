@@ -1,5 +1,5 @@
 <!--
-  The suite (editor suite spec §4.1, §9, §10): one kit `EditorShell` around Home, the nine-entry switcher and the
+  The suite: one kit `EditorShell` around Home, the nine-entry switcher and the
   editor an entry opens. An entry that exactly one installed editor covers opens it: `open` runs once per entry for
   the app's life, so the editor's session (documents, history, selection, view state) outlives a switch (EDS-D12),
   and its regions fill the shell's. Any other entry shows its cards. The shell stays mounted through every switch and
@@ -96,7 +96,7 @@ let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
 let history = $state({ canUndo: false, canRedo: false, undoLabel: '', redoLabel: '' })
 let tokens = $state<{ readonly used: number; readonly cap: number }>()
-// Icons with counts in the `short` tier (spec §10) and on a phone, where full labels leave no room; never hidden.
+// Icons with counts in the `short` tier and on a phone, where full labels leave no room; never hidden.
 const compact = $derived(geometry.current.heightTier === 'short' || mode === 'compact')
 
 $effect(() => {

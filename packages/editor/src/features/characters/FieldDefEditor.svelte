@@ -1,5 +1,5 @@
 <!--
-  The selected field's definition (plan ED2D.5c decisions 3 and 4; mockup `entities`, the field editor): id, label,
+  The selected field's definition: id, label,
   type as one chip per kit type, list, required, the default (the Level inspector's `FieldEditor`, so a default is
   edited as an instance's value is), the bounds and step of a number, the options of an enum, multiline text and the
   targets of a ref. Every change but the id goes through the session's `changeField`, so the retype rule decides what

@@ -1,5 +1,5 @@
 <!--
-  The selected tileset as tiles (plan ED2D.5b; 2D editor spec §5.4, §8 the Tilesets row; mockup `tileset`): every tile
+  The selected tileset as tiles: every tile
   a 44 px cell cut from the image (numbered placeholders without it), a tap adds it to or takes it from the selection,
   and the tags as toggles that mark their tiles. The selected tiles are what "Add selected tiles" puts in a rule's
   outputs and what the tag buttons tag. A refusal ("Select the tiles to tag first.") shows under the tags.

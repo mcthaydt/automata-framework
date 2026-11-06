@@ -6,7 +6,7 @@ import { createLevelView, fitCamera, type LevelView } from '#src/shared/level-2d
 import { createTextureManager } from '#src/shared/level-2d/canvas/textures.manager.ts'
 import { cellsPng } from '#src/testing/level-2d/png.ts'
 
-// The editable canvas (ED2D.4c3b, plan decisions 2, 7 and 8; spec §13) in Chromium with WebGL2.
+// The editable canvas in Chromium with WebGL2.
 
 const colors = createColorResolver((name) => (name === '--color-bg-canvas' ? '#0a0b0d' : ''))
 const textures = createTextureManager({

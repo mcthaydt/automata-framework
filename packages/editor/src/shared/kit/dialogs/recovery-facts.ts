@@ -1,7 +1,7 @@
 import { modifiedLabel } from '../home/project-browse'
 import type { Recovery } from '../storage/recovery'
 
-// The words of the Restore dialog (kit spec §5 flow 4; moved from editor-2d's `open-flow-model.ts` in ED3D.5c).
+// The words of the Restore dialog.
 
 /** What the Restore dialog tells about an autosave (mockup `recover`). */
 export function recoveryFacts(

@@ -1,7 +1,7 @@
 import { classifyStorageError, type ProjectStore, toBytes, type WriteResult } from './project-store'
 import { assertStorePath, assertStorePrefix } from './store-path'
 
-// The write-only store (kit spec §4.7): where Export goes when nothing can be kept on the device. A write is a
+// The write-only store: where Export goes when nothing can be kept on the device. A write is a
 // browser download; on a tablet the share sheet is the way a file leaves, so that is a separate call; text can also
 // be copied. Nothing is ever read back.
 

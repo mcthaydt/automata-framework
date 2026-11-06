@@ -5,12 +5,12 @@ import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
-import { FLOORFIFTY_SAMPLE, samplePorts } from '#src/features/suite/memory/sample-ports.ts'
+import { SAMPLE_GAME, samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 
-// The suite with the production CSS in a real browser at the editors' window sizes (editor suite spec §10, §12):
+// The suite with the production CSS in a real browser at the editors' window sizes:
 // region boxes, the nine entries, the 64 px tab bar, 44 px targets, no page scroll and no remount on rotation. jsdom
 // has no layout, so only this file checks room. Started the way `main.ts` starts it, with the real window.
 
@@ -23,7 +23,7 @@ afterEach(async () => {
   target = undefined
 })
 
-async function open(size: EditorSize, files: Record<string, string> = FLOORFIFTY_SAMPLE) {
+async function open(size: EditorSize, files: Record<string, string> = SAMPLE_GAME) {
   await page.viewport(size.width, size.height)
   const conditions = publishConditions(document.documentElement, size, REST)
   target = document.body.appendChild(document.createElement('div'))

@@ -15,7 +15,7 @@ import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The open flows with the production CSS in a real browser (plan ED2D.4c2b step 7; 2D editor spec §12 and §13): the
+// The open flows with the production CSS in a real browser: the
 // error panel with a long file, the Restore and conflict dialogs, and the document's top bar, at the eight window sizes
 // of Home's layout test. jsdom has no layout, so room (inside the screen, target sizes, what covers what, which part
 // scrolls) is only checked here. The editor starts as `main.ts` starts it, over a memory workspace.

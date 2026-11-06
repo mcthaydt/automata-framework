@@ -3,7 +3,7 @@ import type { Project } from '../project-types'
 import { type LinkEnd, linkName, type ProjectLink, projectLinks } from '../refs/ref-links'
 import type { WorldRect } from './world-model'
 
-// The links on the world map (plan ED2D.6c decision 5; 2D editor spec §5.7): one curve per resolved link between two
+// The links on the world map: one curve per resolved link between two
 // placed levels, from the source's place on the map to the target's (a level's centre for the level itself), and the selected level's links as the inspector lists them. Pure; the Pixi map draws the curves and
 // jsdom tests read the inspector.
 

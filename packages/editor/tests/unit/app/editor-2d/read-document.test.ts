@@ -8,7 +8,7 @@ import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.
 import { minimalProjectFile } from '#src/testing/level-2d/projects.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 
-// Reading a file (2D editor spec §13): one of six outcomes, always a value. The level project is read through the app's
+// Reading a file: one of six outcomes, always a value. The level project is read through the app's
 // registry; the two-profile cases plant a second profile.
 
 const encode = (text: string): Uint8Array => new TextEncoder().encode(text)

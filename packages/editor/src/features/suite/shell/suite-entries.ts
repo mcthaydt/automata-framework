@@ -1,7 +1,7 @@
-// The suite rail's nine entries (editor suite spec §2, §10): the seven editors beside the level editors, one Levels
+// The suite rail's nine entries: the seven editors beside the level editors, one Levels
 // entry for both level editors, and Review, in rail order (Cmd 1 to 9 choose them in this order). `editors` are the ids
-// the game's editor list names (§4.2); `provider` is the package that brings an entry's editors, which Home names when
-// this build does not have one (§11, EDS-D3).
+// the game's editor list names; `provider` is the package that brings an entry's editors, which Home names when
+// this build does not have one.
 
 export interface SuiteEntry {
   readonly id: string

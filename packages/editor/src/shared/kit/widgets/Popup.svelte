@@ -1,5 +1,5 @@
 <!--
-  The surface under Menu and Picker (kit spec §4.6): one of two presentations the editor picks from the shell mode,
+  The surface under Menu and Picker: one of two presentations the editor picks from the shell mode,
   a popover under its trigger on `wide` and a bottom sheet on `medium` and `compact`. It owns what they share:
   placement, dismissal and focus.
 

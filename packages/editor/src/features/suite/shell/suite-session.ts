@@ -1,4 +1,4 @@
-// The suite's side of an editing session (editor suite spec §5 flows 3, 4, 6 to 8; EDS-D19), without Svelte: the
+// The suite's side of an editing session, without Svelte: the
 // write path, the ports an editor is opened with (the same ports, except that `workspace.write` takes the write path,
 // so every editor's edit is checked, written once and journalled), the three pills, and the title prompt the first
 // write waits on. The pills are read back from the change set's journal, so a reload shows what it held (EDS-z).
@@ -18,7 +18,7 @@ import { changedPaths, reopenedGates } from '../core/reopened-gates'
 import { type ReviewChangeSet, reviewModel } from '../core/review-model'
 import { draftShip } from '../core/ship-draft'
 
-/** What Ship gives back: the port's result, or the reason it failed (the commits stay local, §11). */
+/** What Ship gives back: the port's result, or the reason it failed (the commits stay local). */
 export type ShipOutcome = Awaited<ReturnType<ChangeSet['ship']>> | { readonly error: string }
 
 export interface SuiteSessionOptions {

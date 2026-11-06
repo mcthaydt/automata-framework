@@ -14,7 +14,7 @@ import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The editor's boot (plan ED2D.4c2a decision 9): a function of its environment, so a test hands it a window, a document, a
+// The editor's boot: a function of its environment, so a test hands it a window, a document, a
 // clock and a workspace and gets the real app. The journey: list, New, the document frame, Back.
 
 type Listener = () => void

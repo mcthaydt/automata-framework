@@ -1,5 +1,5 @@
 <!--
-  The document's top bar (plan ED2D.4c2b, decision 8; mockup `level-platformer`): Back, the document's title over its
+  The document's top bar: Back, the document's title over its
   path, the profile's label, then Undo, Redo and Save at the end. Undo and Redo are named with the step they act on and
   are disabled when there is none; Save and Back are disabled while a save or a conflict choice runs. On a narrow screen the title and the path
   truncate and the buttons keep their size; on a phone the profile's pill is left out. The heading takes focus when the bar appears: the page changed.

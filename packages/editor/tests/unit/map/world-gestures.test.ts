@@ -3,7 +3,7 @@ import { type WorldGestureTarget, worldGestures } from '#src/features/map/world-
 import type { DragEndGesture, DragStartGesture } from '#src/shared/kit/gestures/gesture-events.ts'
 import type { Modifiers, PointerKind } from '#src/shared/kit/gestures/pointer-sample.ts'
 
-// The map's gestures (plan ED2D.8a decision 1) against a fake target that records what they ask for. A level sits
+// The map's gestures against a fake target that records what they ask for. A level sits
 // under (100, 100); everywhere else is empty space.
 
 function fake() {

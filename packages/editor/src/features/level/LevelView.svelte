@@ -1,12 +1,9 @@
 <!--
-  The Level view (plan ED2D.4c4a; 2D editor spec §5.9, §8 flows 1 to 3, §12, §13; mockups `level-platformer`,
-  `level-portrait`). The panel holds the layers above the palette; the toolbar sits over the canvas; the canvas is the
-  ED2D.4c3b Pixi level canvas with the kit's gesture recogniser on it, feeding the ED2D.4b controller through the
+  The Level view. The panel holds the layers above the palette; the toolbar sits over the canvas; the canvas is the
+  Pixi level canvas with the kit's gesture recogniser on it, feeding the level editor through the
   session (`level-session.ts`) and the gesture map (`level-gestures.ts`). Everything that decides is plain TypeScript;
   this file draws and forwards. One stroke is one undo step; a cancelled pointer leaves nothing; a locked or hidden
-  layer says so over the canvas instead of ignoring the pen without a word. ED2D.4c4b adds the inspector (Entity, Level,
-  Checks), the dock of level cards and the §12 shortcuts, each also a visible control. EDS.2d splits the regions into
-  components that take the session (`LevelPanel`, `LevelStage`, `LevelInspector`, `LevelCards`), so the editor suite
+  layer says so over the canvas instead of ignoring the pen without a word. It also holds the inspector (Entity, Level, Checks), the dock of level cards and the keyboard shortcuts, each also a visible control. The regions are components that take the session (`LevelPanel`, `LevelStage`, `LevelInspector`, `LevelCards`), so the editor suite
   mounts the same regions over a session it keeps; this view makes its own session and places them in its own shell.
 -->
 <script lang="ts">

@@ -1,6 +1,5 @@
 {
-  "lastLight": {
-    "repository": "mcthaydt/PixiJS3D_Experiment_001",
+  "adventure": {
     "commit": "92e6704",
     "files": {
       "blockout-clinic.json": {
@@ -33,25 +32,26 @@
       "literals.golden.json": {
         "bytes": 93891,
         "sha256": "316d3e3cbf049044fcf99d1af95c44fe7de27a4a39e37d73c49b0f14713c9f07",
-        "recordedBy": "node --experimental-strip-types src/documents/testing/fixtures/record-literals.mjs <copy of Last Light scripts/pipeline/json-edit.ts at 92e6704, beside node_modules with typescript@5.9.3> src/documents/testing/fixtures/literals.golden.json"
+        "recordedBy": "node --experimental-strip-types src/documents/testing/fixtures/record-literals.mjs <copy of the adventure source scripts/pipeline/json-edit.ts, beside node_modules with typescript@5.9.3> src/documents/testing/fixtures/literals.golden.json"
       }
-    }
+    },
+    "source": "the adventure source (docs/provenance/sources.md)"
   },
-  "floorFifty": {
-    "repository": "mcthaydt/FloorFifty",
+  "arcade": {
     "commit": "677d456",
     "files": {
-      "floorfifty-tuning.toml": {
+      "platformer-tuning.toml": {
         "source": "content/tuning.toml",
         "bytes": 3160,
         "sha256": "1d5dc64b88e34bde46af3adb141b79acfdee83c0d09b1b1747787f2060af60ea"
       },
-      "floorfifty-juice.toml": {
+      "platformer-juice.toml": {
         "source": "content/juice.toml",
         "bytes": 3221,
         "sha256": "065a15fd61e2cfb8d963f6594f34f8fb4b5cab3ee18e871f04534cb0bcb6f411"
       }
-    }
+    },
+    "source": "the arcade source (docs/provenance/sources.md)"
   },
   "automata": {
     "repository": "mcthaydt/automata-framework",
@@ -80,7 +80,7 @@
       "af-messages-fr.json": {
         "source": "packages/content/src/testing/fixtures/valid/content/messages/fr.json",
         "bytes": 546,
-        "sha256": "5e3b45b550da701baf768e3714ca2976df2258b4ada1537ddb230e052199b79c"
+        "sha256": "59ad9c49e21a18125313c5e28872df1cc8030ad93845dec5f0423401c25c9fe1"
       }
     }
   }

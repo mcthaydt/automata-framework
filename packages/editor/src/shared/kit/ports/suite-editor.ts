@@ -1,4 +1,4 @@
-// A suite editor (editor suite spec §4.1): what an editor gives the suite so the one `EditorShell` can mount it. The
+// A suite editor: what an editor gives the suite so the one `EditorShell` can mount it. The
 // suite (a host) composes them with `createSuite`, which is the suite's own; this is only the shape and its helper.
 // Svelte appears as the `Snippet` type alone, so the headless layers load this file without the compiler.
 import type { Snippet } from 'svelte'
@@ -6,7 +6,7 @@ import type { SuitePorts, WorkspaceFile } from './suite-ports'
 
 /**
  * The points an editor offers other editors to add to (EDS-D5): a source of bounded tunables in the Tuner and a tab in
- * the Audio editor. Their contribution shapes land with their first consumers (EDS.4a and EDS.5a).
+ * the Audio editor. Their contribution shapes land with their first consumers.
  */
 export type ContributionPoint = 'tuner.source' | 'audio.panel'
 

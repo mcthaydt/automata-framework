@@ -5,7 +5,7 @@ import { seenFiles, writeToFolder } from '#src/shared/kit/storage/write-folder.t
 import { textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The folder write (plan ED2D.7b decision 4, G-m): every file is written with the version it had when the Export view
+// The folder write: every file is written with the version it had when the Export view
 // listed it, and if any changed since then nothing is written.
 function folder() {
   const clock = createTestClock()

@@ -1,4 +1,4 @@
-// The content documents every editor writes through (editor suite spec §4.4, EDS-D2; the shapes are that spec's).
+// The content documents every editor writes through.
 // Headless: no Svelte and no DOM, so it loads on Node, in a worker and in the browser alike.
 export {
   type ContentDocument,

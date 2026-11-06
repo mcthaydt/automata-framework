@@ -11,7 +11,7 @@ import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Level view with the production CSS in a real browser (plan ED2D.4c4a step 9; 2D editor spec §12), at the eight
+// The Level view with the production CSS in a real browser, at the eight
 // window sizes of Home's layout test, in Chromium, WebKit and Firefox: every control at least 44 px and never clipped,
 // the top bar, the rail and (below wide) the Layers button reachable without scrolling, the canvas given real room and
 // the page never scrolling, the layers reachable, and a rotation that keeps the chosen layer and tool. The editor
@@ -109,7 +109,7 @@ describe.each(SIZES)('Level view at $name ($width x $height)', (size) => {
     await start(size)
     const surface = byTestId('level-surface').getBoundingClientRect()
     // A third of the window, except a narrow `wide` window: there the rail, the 264 px panel and the 320 px inspector
-    // (§12's reference layout) leave 260 px at 900 x 600, which still draws and edits (ED2D.4c4b step 8 log).
+    // (§12's reference layout) leave 260 px at 900 x 600, which still draws and edits.
     expect(surface.width).toBeGreaterThan(size.mode === 'wide' && size.width < 1000 ? 240 : size.width / 3)
     expect(surface.height).toBeGreaterThan(size.mode === 'compact' && size.height < 500 ? 80 : 200)
     expect(document.documentElement.scrollLeft).toBe(0)

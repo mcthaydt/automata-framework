@@ -5,7 +5,7 @@ export interface TestClock extends GestureClock {
   advance(ms: number): void
 }
 
-/** A fake `now` and timer set for the renderer-free tests (kit spec §8, fixture `TestClock`). */
+/** A fake `now` and timer set for the renderer-free tests. */
 export function createTestClock(start = 0): TestClock {
   let time = start
   let next = 1

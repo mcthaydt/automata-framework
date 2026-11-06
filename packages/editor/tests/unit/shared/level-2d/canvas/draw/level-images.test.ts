@@ -3,7 +3,7 @@ import { levelImages } from '#src/shared/level-2d/canvas/draw/level-images.ts'
 import { richProject } from '#src/testing/level-2d/draw-fixtures.ts'
 import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 
-// The images a level may draw (ED2D.4c3b): what the texture manager loads before the draw list is built.
+// The images a level may draw: what the texture manager loads before the draw list is built.
 
 describe('levelImages', () => {
   it('lists the level’s background image', () => {

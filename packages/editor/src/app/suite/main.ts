@@ -1,7 +1,7 @@
 import '../../shared/kit/tokens.css'
 import '../../shared/kit/fonts.css'
 import './main.css'
-import { FLOORFIFTY_SAMPLE, samplePorts } from '../../features/suite/memory/sample-ports.ts'
+import { SAMPLE_GAME, samplePorts } from '../../features/suite/memory/sample-ports.ts'
 import { startSuite } from '../../features/suite/shell/boot.ts'
 import { createSuite } from '../../features/suite/shell/create-suite.ts'
 import { createTuner } from '../../features/suite/tuner/tuner-suite-editor.ts'
@@ -18,7 +18,7 @@ if (target === null) throw new Error('suite.html has no #app element')
 
 const editors = [createTuner(), createLevels2d({ ids: randomIds((bytes) => crypto.getRandomValues(bytes)) })]
 
-samplePorts(FLOORFIFTY_SAMPLE)
+samplePorts(SAMPLE_GAME)
   .then((ports) =>
     startSuite(target, {
       window,

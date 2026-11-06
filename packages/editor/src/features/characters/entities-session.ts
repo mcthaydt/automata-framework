@@ -20,7 +20,7 @@ import {
   withType,
 } from './entities-model'
 
-// One Entities view's state over an open document (plan ED2D.5c decisions 1 to 6; 2D editor spec §8 flow 5, G-f): what
+// One Entities view's state over an open document: what
 // is selected, and every edit the view offers as one undo step through `commitEdit`. A delete or a field change that
 // would break values comes back as the list of uses with nothing applied; the view asks, and calls the same action
 // again with `anyway`, which applies the change and the removals as one step. The selection is kept as the person made

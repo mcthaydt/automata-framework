@@ -4,7 +4,7 @@ import type { SuitePorts } from '../../../shared/kit/ports/suite-ports.ts'
 import { readTuning, TUNING_PATH, type TuningMeta, type TuningRead } from './tuner-content'
 import { checkValue, valueEdit } from './tuner-edits'
 
-// The Tuner's session (EDS.4a; editor suite spec §4.4, §6.1, EDS-D18): `content/tuning.toml` of one game, kept for the
+// The Tuner's session: `content/tuning.toml` of one game, kept for the
 // app's life. One kit `History` holds the file's text, so a value, a drag, an accepted Ask proposal and their Undo are
 // all steps of one list. An edit is a span-preserving change of one literal (the kit's content documents), held to the
 // tunable's kind and bounds before it is made, and written through the workspace port before it counts (the port's

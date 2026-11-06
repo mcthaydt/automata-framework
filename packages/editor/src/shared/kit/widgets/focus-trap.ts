@@ -1,4 +1,4 @@
-// Focus helpers for the dialog (kit spec §4.6): where focus goes when something opens, and keeping Tab inside it.
+// Focus helpers for the dialog: where focus goes when something opens, and keeping Tab inside it.
 // jsdom has no layout, so "focusable" here means the markup says so; a widget that is disabled with `aria-disabled`
 // stays in, because the kit keeps those focusable on purpose.
 

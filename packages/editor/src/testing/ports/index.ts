@@ -1,6 +1,5 @@
-// `@mcthaydt/automata-editor-kit/ports/testing` (editor suite spec §12): an in-memory fake of every suite port and the
-// contract suite each port's adapters must pass. The fakes pass them here; EDS.1d runs the same suites against the
-// Node adapters, so a fake cannot drift from the real thing unnoticed. CI runs the suite on the fakes.
+// `@mcthaydt/automata-editor-kit/ports/testing`: an in-memory fake of every suite port and the
+// contract suite each port's adapters must pass. The fakes pass them here; the Node adapters run the same suites, so a fake cannot drift from the real thing unnoticed. CI runs the suite on the fakes.
 
 export {
   createMemoryChangeSet,

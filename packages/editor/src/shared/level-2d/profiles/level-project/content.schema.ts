@@ -3,7 +3,7 @@ import { fieldDefSchema, fieldValuesSchema } from '../../../kit/fields/field.sch
 import type { EntityDef, FieldDef, FieldValues } from '../../../kit/fields/field-types.ts'
 import type { LevelNeighbours } from '../../model/world/world-neighbours'
 
-// The shape of the AF content export (2D editor spec §6.2): what `project.toml`, `levels/<id>.toml` and `world.toml`
+// The shape of the AF content export: what `project.toml`, `levels/<id>.toml` and `world.toml`
 // hold once a reader has parsed the TOML. Strict, so a reader cannot come to depend on a key the editor does not
 // promise; the export's test validates what it wrote against these. A game reads the files with any TOML parser and
 // these schemas; it needs nothing else from the editor.

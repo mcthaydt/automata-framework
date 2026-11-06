@@ -1,5 +1,5 @@
 <!--
-  The Tuner's panel (EDS.4a): a search box and the tunables as a list, a lock mark on each locked one. Choosing one is the
+  The Tuner's panel: a search box and the tunables as a list, a lock mark on each locked one. Choosing one is the
   controller's selection, which the inspector shows; the search keeps the rows whose name or note contains the text.
 -->
 <script lang="ts">

@@ -2,7 +2,7 @@ import type { Grid } from '../model/grid'
 import type { Point } from './footprint'
 import { hashCell, SALT } from './hash'
 
-// Painting cells (2D editor spec §5.9). A tool works on a cell **word**: a packed tile cell, an IntGrid value or an
+// Painting cells. A tool works on a cell **word**: a packed tile cell, an IntGrid value or an
 // override tile. It does not know the layer kind, so one set of operations serves all of them, and the eraser is
 // painting the word 0. Each operation returns a new `Grid` that shares every chunk it did not touch.
 

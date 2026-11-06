@@ -1,6 +1,6 @@
-// Which files the suite may write, from the game's editor list (editor suite spec §4.2, §11). Modelled on The Last
-// Light's editor/src/server/policy.ts `canWrite` (92e6704), in its order: outside the root, then never, then
-// generated, then the first editable row. The Node workspace (EDS.1d) puts every write through this; it is pure, so
+// Which files the suite may write, from the game's editor list. Modelled on The Last
+// Light's editor/src/server/policy.ts `canWrite`, in its order: outside the root, then never, then
+// generated, then the first editable row. The Node workspace puts every write through this; it is pure, so
 // the browser shows the same reasons before anything is sent.
 
 import type { UnlistedFile, WorkspaceFile } from '../kit/ports/suite-ports.ts'
@@ -10,11 +10,11 @@ import { globMatch } from './glob'
 /**
  * Never written, whatever the list says: the list itself (the suite cannot widen its own allowlist, and an Ask diff
  * cannot add a command to a check's `run`), git's internals and gate records (an editor never records a gate), and
- * what The Last Light's policy (editor/src/server/policy.ts `ALWAYS_NEVER`, 92e6704) always refused besides: agent and
+ * what the adventure source's policy always refused besides: agent and
  * CI configuration and env files. Each declared gate's `records` glob joins these. They match in any letter case, as a
  * case-insensitive disk (macOS, Windows) would open `Content/Editors.toml` as the list.
  *
- * This is a check of the path as written. The disk adapter (EDS.1d) must resolve the real path of the target first
+ * This is a check of the path as written. The disk adapter must resolve the real path of the target first
  * (symlinks, and Windows' trailing dots and spaces, which name the same file) and check that, inside the game root.
  */
 export const ALWAYS_NEVER: readonly string[] = [
@@ -83,9 +83,9 @@ export function fileAccess(list: EditorList, path: string): FileAccess {
 }
 
 /**
- * The workspace port's view of `path` (editor-kit `WorkspaceFile`, editor suite spec §4.3): the row's editor, scene,
+ * The workspace port's view of `path`: the row's editor, scene,
  * gates, checks and modes, and whether the suite may write it. A path no row matches (or outside the root) has no
- * editor, only the reason. The memory workspace and the disk adapter (EDS.1d) both class paths through this.
+ * editor, only the reason. The memory workspace and the disk adapter both class paths through this.
  */
 export function workspaceFile(list: EditorList, path: string): WorkspaceFile | UnlistedFile {
   const access = fileAccess(list, path)

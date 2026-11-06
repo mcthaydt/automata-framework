@@ -1,7 +1,7 @@
 import { MAX_FILE_CHARS } from '../model/open-project'
 import type { ParseError, Profile, ProfileRegistry } from '../profiles/profile'
 
-// Reading a file (2D editor spec §13). Opening a file is the one step where anything can be wrong with it, so the
+// Reading a file. Opening a file is the one step where anything can be wrong with it, so the
 // result is a value the views can show, never a throw: either the file opens with a profile, or the person is told
 // which of the other five things is the case. Nothing here knows a profile by name.
 
@@ -30,7 +30,7 @@ export type ReadOutcome =
  * Decodes `bytes` as UTF-8 and parses it with the profile that claims `fileName` and the text. `as` is the id of the
  * profile the person chose after a `choose`: only a profile of that id that also claims the file is used.
  *
- * The size limit is the model's (16 MB, spec §13). A character is at least a byte, so a file over the limit in bytes
+ * The size limit is the model's (16 MB). A character is at least a byte, so a file over the limit in bytes
  * is refused here, before it is decoded, and the profile's own check still judges a file that is over it in characters.
  */
 export function readDocument(

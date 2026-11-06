@@ -17,7 +17,7 @@ import { REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 import { createPointers } from '#src/testing/kit/pointers.ts'
 import ShellFixture from '#src/testing/kit/ShellFixture.svelte'
 
-// EK-c and EK-g (kit spec §9) in the iPad context.
+// EK-c and EK-g in the iPad context.
 
 let mounted: MountedFixture | undefined
 afterEach(async () => {

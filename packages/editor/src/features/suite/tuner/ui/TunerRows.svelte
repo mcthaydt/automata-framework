@@ -1,5 +1,5 @@
 <!--
-  The Tuner's canvas (EDS.4a; editor suite spec §6.1): one row per tunable, in the file's order. A number with bounds is a
+  The Tuner's canvas: one row per tunable, in the file's order. A number with bounds is a
   slider and a number box, a number without is the box alone, a toggle is On or Off, a string a text field, and a table
   or a list says "Ask only". A value outside the bounds is refused before the write, with the bound named; a lock makes a
   row refuse until it is unlocked. The states without rows: no file (an offer to create it), a file that does not parse

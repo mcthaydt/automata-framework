@@ -9,7 +9,7 @@ import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// Importing a file the person picked (plan ED2D.4c2a step 3): the files a profile claims are kept in the workspace, the
+// Importing a file the person picked: the files a profile claims are kept in the workspace, the
 // rest are refused with nothing written.
 
 function setup() {

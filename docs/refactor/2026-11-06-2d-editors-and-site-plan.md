@@ -420,7 +420,7 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 - [x] **Step 4: Fix each finding** by passing the function in from `app/editor-2d/` or `app/suite/` (spec section
   3.3), or moving a file that two features use to `shared/`. No behaviour change: unit counts stay equal after each
   fix. Re-run until 0.
-- [ ] **Step 5: Commit.** `refactor(editor): features import only themselves and shared; no 3D in the editor package`
+- [x] **Step 5: Commit.** `refactor(editor): features import only themselves and shared; no 3D in the editor package`
 
 ### Task 4.5: Comments, fixtures, unused code and the mock-ups (same PR)
 
@@ -431,18 +431,18 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   4.2); `docs/design/editor-3d` stays for the 3D slice
 - Modify: `docs/guides/editor.md` (first step builds nothing; `automata editor` opens the 2D editor; full rewrite in 12.5)
 
-- [ ] **Step 1:** Add `packages/editor` to `style`'s `--plan-comments`, `--comments-only` and `--test-imports`. Run
+- [x] **Step 1:** Add `packages/editor` to `style`'s `--plan-comments`, `--comments-only` and `--test-imports`. Run
   → expected about 943 plan-ID findings (audit S5). Rewrite each comment to say why in plain words, or remove it
   when the code says it. Re-run until 0. **Session breaks** by area (kit, level-2d, features, suite), logging the
   findings left.
-- [ ] **Step 2:** Rename the fixtures away from the source projects: `floorfifty.editors.toml` → `platformer.editors.toml`,
+- [x] **Step 2:** Rename the fixtures away from the source projects: `floorfifty.editors.toml` → `platformer.editors.toml`,
   `last-light-bay.editors.toml` → `bay.editors.toml`, `FLOORFIFTY_SAMPLE` → `SAMPLE_GAME`, and the strings inside.
   `grep -rniE "floorfifty|last light|last-light" packages/editor` → 0.
-- [ ] **Step 3:** `pnpm knip` → remove what it reports unused in `packages/editor` (the trimmed root entry's leftovers,
+- [x] **Step 3:** `pnpm knip` → remove what it reports unused in `packages/editor` (the trimmed root entry's leftovers,
   S3). The suite's Node adapters stay: they are imported inside `features/suite` (E6). Re-run tests: counts drop
   only by the deleted files' tests, listed in the execution log.
-- [ ] **Step 4:** Archive the mock-ups. `docs/README.md` points at `docs/archive/design/`.
-- [ ] **Step 5:** `pnpm check` passes. Commit, mark ready.
+- [x] **Step 4:** Archive the mock-ups. `docs/README.md` points at `docs/archive/design/`.
+- [x] **Step 5:** `pnpm check` passes. Commit, mark ready.
   `refactor(editor): plain comments, neutral fixtures, no unused entries, mock-ups archived`
 
 ### Task 4.6: The code refactor of the editor package (PR `claude/refactor-ed-quality`)
@@ -1460,3 +1460,23 @@ listed as left with the reason.
   game's `floorfifty.editors.toml` moved with the ports, so two tests read it from there (4.5 renames it).
 - Browser (Chromium, `--project '*chromium*'`): see the row in `progress.md`.
 - Handoff: next is task 4.5. Run `style` with the editor added and rewrite the plan-ID comments by area.
+
+### 2026-11-06, session 4 (continued): task 4.5
+
+- Step 1: the editor joined `style`'s `--plan-comments` and `--comments-only` (`--test-imports` already had it).
+  446 plan-citing comment lines in `src/` and the same kind in `tests/` were rewritten: a throwaway script removed the
+  parentheticals that held only a plan code, a decision, a step or a spec section (about 370), and 73 more were worded by
+  hand (what a moved file was, what a later task would add). Comments now say what the code does and why; none names a
+  plan. `pnpm style`: 0 findings in 2,041 files.
+- Step 2: fixtures `floorfifty.editors.toml` is `platformer.editors.toml`, `last-light-bay.editors.toml` is
+  `bay.editors.toml`, `floorfifty-tuning.toml` and `-juice.toml` are `platformer-*.toml`, `FLOORFIFTY_SAMPLE` is `SAMPLE_GAME`
+  (the package's suite entry and `editor-3d`'s suite page follow). The documents fixtures' `SOURCE.json` names its origins
+  `adventure` and `arcade` and points at `docs/provenance/sources.md`, and one fixture's French word was neutral-ised and
+  its byte count and sha repinned. `grep -rniE "floorfifty|last light|last-light" packages/editor` finds nothing.
+- Step 3: `pnpm knip` reports nothing unused in `packages/editor` (the earlier moves and the root entry trim had
+  already taken what was dead). Unit tests 3,270 → 3,268: the two tests that checked a fixture file names its source
+  commit are gone, since the commit now lives only in `SOURCE.json` and the provenance file.
+- Step 4: the 2D editor's, the suite's and the kit's mock-ups are in `docs/archive/design/` (`docs/design/editor-3d`
+  stays for the 3D slice); `docs/README.md` and `knip.jsonc` follow; `docs/guides/editor.md` names the 2D editor's build
+  and `--app 2d` (the default switches in 7.1, the full rewrite is 12.5).
+- Handoff: next is task 4.6 (the editor's logic refactor). Read area by area, log the findings first.

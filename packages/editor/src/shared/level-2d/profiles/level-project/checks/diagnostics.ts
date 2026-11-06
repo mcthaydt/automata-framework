@@ -1,6 +1,6 @@
 import type { Diagnostic, Severity } from '../../profile'
 
-// Builders the check groups share, so a path is spelled one way (the 2D editor spec §9: `levels[moss-steps].layers[…]`).
+// Builders the check groups share, so a path is spelled one way (`levels[moss-steps].layers[…]`).
 
 export const plural = (count: number, noun: string): string => `${count} ${noun}${count === 1 ? '' : 's'}`
 

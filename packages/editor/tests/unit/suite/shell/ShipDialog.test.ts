@@ -6,7 +6,7 @@ import type { ReviewChangeSet } from '#src/features/suite/core/review-model.ts'
 import ShipDialog from '#src/features/suite/shell/ShipDialog.svelte'
 import type { ShipOutcome } from '#src/features/suite/shell/suite-session.ts'
 
-// The `ship-dialog` frame (editor suite spec §9, §11): ready, a check failing, pushing, pushed with a PR, pushed with
+// The `ship-dialog` frame: ready, a check failing, pushing, pushed with a PR, pushed with
 // the compare link only, and a push that failed.
 const REVIEW: ReviewChangeSet = {
   title: 'Faster',

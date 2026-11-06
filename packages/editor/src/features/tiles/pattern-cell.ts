@@ -1,6 +1,6 @@
 import type { PatternCell } from '../../shared/level-2d/tiles/autotile/rule.schema'
 
-// How a pattern cell is drawn (plan ED2D.5b; mockup `tileset`'s legend): one kind name per cell, which the thumbnail
+// How a pattern cell is drawn: one kind name per cell, which the thumbnail
 // and the pattern editor style alike, so a rule row and its editor read the same.
 
 export type PatternKind = 'any' | 'empty' | 'filled' | 'is' | 'not'

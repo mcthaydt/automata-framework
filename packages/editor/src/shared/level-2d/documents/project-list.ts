@@ -4,7 +4,7 @@ import { levelImages } from '../canvas/draw/level-images'
 import type { LevelPreview, ProfileRegistry, ProfileSummary } from '../profiles/profile'
 import { readDocument } from './read-document'
 
-// The projects Home shows (2D editor spec §8): one entry for each file in the workspace that a profile claims, and
+// The projects Home shows: one entry for each file in the workspace that a profile claims, and
 // nothing for images, journals or anything else. Reading a whole workspace on each refresh is fine at the size a tablet
 // session has; if it ever is not, this is the one place to add a cache.
 

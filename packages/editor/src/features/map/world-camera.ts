@@ -4,7 +4,7 @@ import type { Camera } from '../../shared/level-2d/canvas/level-view'
 import type { Size } from '../../shared/level-2d/model/project-types'
 import type { WorldRect } from '../../shared/level-2d/model/world/world-model'
 
-// The World view's camera (plan ED2D.8a decision 2): a kit `Viewport2D`, as the Level view's. Until the person pans or
+// The World view's camera: a kit `Viewport2D`, as the Level view's. Until the person pans or
 // zooms, every measure fits the levels inside the margin (the first box a page reports is often not its last); after
 // that a new box keeps the world point at the centre, and `fit` hands the camera back to the box. A drag never refits,
 // so a level being dragged never moves under the pointer. An empty world shows the origin at 100 %.

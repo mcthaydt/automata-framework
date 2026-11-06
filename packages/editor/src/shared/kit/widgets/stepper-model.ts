@@ -1,6 +1,6 @@
 import { clamp, decimalsOf, roundTo } from './widget-math'
 
-// The Stepper's rules without its DOM (kit spec §4.6): what typed text means, and where a drag or a key press lands.
+// The Stepper's rules without its DOM: what typed text means, and where a drag or a key press lands.
 
 export interface NumberRules {
   readonly min?: number | undefined

@@ -1,8 +1,7 @@
 <!--
-  The inspector of Home (plan ED2D.4c2a): the selected project and the three things a person does with it. The facts are
+  The inspector of Home: the selected project and the three things a person does with it. The facts are
   the profile's own words (`ProfileSummary`); a profile that gives none still shows its error and warning counts. A file
-  that does not open gives its reason and still offers Open, because Open is where the error panel of ED2D.4c2b will
-  show it; a file two profiles claim lists them. The actions sit under the title, before the details, so a half-height
+  that does not open gives its reason and still offers Open, because Open is where the error panel shows it; a file two profiles claim lists them. The actions sit under the title, before the details, so a half-height
   sheet on a phone shows them without scrolling. They stay in place and are disabled while another one runs.
 -->
 <script lang="ts">

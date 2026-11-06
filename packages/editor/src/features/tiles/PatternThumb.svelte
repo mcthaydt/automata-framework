@@ -1,4 +1,4 @@
-<!-- A rule's pattern as a 30 px thumbnail for its row (plan ED2D.5b): one square per cell, styled by its kind. -->
+<!-- A rule's pattern as a 30 px thumbnail for its row: one square per cell, styled by its kind. -->
 <script lang="ts">
 import type { PatternCell } from '../../shared/level-2d/tiles/autotile/rule.schema'
 import { kindOf } from './pattern-cell'

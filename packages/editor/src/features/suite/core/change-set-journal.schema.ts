@@ -1,7 +1,7 @@
-// The change-set journal (editor suite spec §4.5): what the `ChangeSet` adapter keeps for each open change set, so
+// The change-set journal: what the `ChangeSet` adapter keeps for each open change set, so
 // `list()` gives the same files, writes, checks and tokens on every device that edits through one checkout. The Node
 // adapter writes it as JSON in the checkout's git directory, never in the work tree, and reads it back through this
-// schema, which also reads an `af-change-set/1` journal (EDS.1d's, before writes and checks) as one with neither.
+// schema, which also reads an `af-change-set/1` journal as one with neither.
 
 import { z } from 'zod'
 import type { ChangeSetCheck, ChangeSetWrite } from '../../../shared/kit/ports/suite-ports.ts'

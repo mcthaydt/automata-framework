@@ -1,8 +1,8 @@
-// Cell packing and the run-length row strings of the working file (2D editor spec §5.3).
+// Cell packing and the run-length row strings of the working file.
 //
 // A row prints as tokens separated by one space: `.` is an empty cell, an IntGrid cell is its value (1 to 255), a
 // tile cell is the tile index followed by `h`, `v` or `hv` for the flips, and `*n` repeats a token n times:
-// `.*5 7h*3 2 .*24`. The printer is canonical (maximal runs, one spelling), so equal grids print byte-equal and a
+// `.*5 7h*3 2.*24`. The printer is canonical (maximal runs, one spelling), so equal grids print byte-equal and a
 // git diff shows only the rows that changed.
 
 import { Grid } from './grid'

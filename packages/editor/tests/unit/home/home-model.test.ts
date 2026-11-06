@@ -20,7 +20,7 @@ import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 
-// What Home decides before anything is drawn (plan ED2D.4c2a step 4): pure functions of the list, the registry and the
+// What Home decides before anything is drawn: pure functions of the list, the registry and the
 // workspace. The components only show what these return.
 
 const ref = { id: 'level-project', label: 'Level project' }

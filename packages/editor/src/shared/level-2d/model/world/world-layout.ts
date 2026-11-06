@@ -2,7 +2,7 @@ import { wholePixels } from '../commands/pixels'
 import { MAX_LEVEL_SIDE } from '../project.schema'
 import type { Placement, Project, Size, World, WorldLayout } from '../project-types'
 
-// How a world's layout decides where its levels sit (2D editor spec §5.7). `free`: any whole pixel; `grid`: the
+// How a world's layout decides where its levels sit. `free`: any whole pixel; `grid`: the
 // nearest point of the world's snap grid; `horizontal` and `vertical`: a sequence whose positions are derived, the
 // placements' order being the sequence, laid end to end from the origin. Every world edit in this folder ends with
 // `arrangeWorld`, so a placement can never sit where its layout does not allow. Nothing here touches a level.

@@ -13,7 +13,7 @@ import { createLevelScene, type LevelScene } from '#src/shared/level-2d/canvas/l
 import { createTextureManager, type TextureManager } from '#src/shared/level-2d/canvas/textures.manager.ts'
 import { cellsPng } from '#src/testing/level-2d/png.ts'
 
-// The scene builder (ED2D.4c3b, plan decision 3) in Chromium with WebGL2: hand-made draw lists in, pixels read back.
+// The scene builder in Chromium with WebGL2: hand-made draw lists in, pixels read back.
 
 let renderer: Renderer
 let textures: TextureManager

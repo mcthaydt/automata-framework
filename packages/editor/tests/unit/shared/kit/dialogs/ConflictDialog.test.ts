@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import ConflictDialog from '#src/shared/kit/dialogs/ConflictDialog.svelte'
 
-// The conflict (plan ED2D.4c2b, decision 7; kit spec §5 flow 3; G-m, EK-e): the file changed since it was opened, so
+// The conflict: the file changed since it was opened, so
 // nothing was written; Keep mine, Take theirs or Save as copy.
 
 function mount(props: { open?: boolean; busy?: boolean } = {}) {

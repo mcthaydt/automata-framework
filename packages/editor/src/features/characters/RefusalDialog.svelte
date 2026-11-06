@@ -1,6 +1,5 @@
 <!--
-  The refusal of a delete or a field change that would remove or break values (plan ED2D.5c decisions 2 and 8; 2D
-  editor spec §8 flow 5, G-f): it lists each use by its instance and level, with the model's message, and offers the
+  The refusal of a delete or a field change that would remove or break values: it lists each use by its instance and level, with the model's message, and offers the
   change anyway, which the caller applies as one undo step. Cancel has focus first, so a stray Enter changes nothing.
 -->
 <script lang="ts">

@@ -8,7 +8,7 @@ import { hashText } from '#src/shared/level-2d/tiles/hash.ts'
 import { paintCells, paintRandom } from '#src/shared/level-2d/tiles/paint.ts'
 import { caveGrid, HILL, hillGrid, platformerRules } from '#src/testing/level-2d/autotile-fixtures.ts'
 
-// The auto-tile goldens (2D editor spec §14 and G-d). This file runs in Node with the unit tests and again in Chromium,
+// The auto-tile goldens. This file runs in Node with the unit tests and again in Chromium,
 // WebKit and Firefox (the `browsers` project), and the numbers below must be identical in all four: the rules, the
 // dice and the map generator use integer arithmetic only. A mismatch is investigated, never re-recorded per engine.
 // The numbers were recorded once from Node after the hand-worked hill in `platformer.test.ts` agreed with the engine.

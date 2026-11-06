@@ -5,7 +5,7 @@ import { tilesetTiles } from '../../../model/tileset-grid'
 import type { Diagnostic } from '../../profile'
 import { agree, diagnostic, itemPath, layerPath, levelPath, plural } from './diagnostics'
 
-// Checks of the levels and the worlds that place them (2D editor spec §9, "Levels" and "Editor-only"). Everything here
+// Checks of the levels and the worlds that place them. Everything here
 // concerns what is in a level; what its entities' fields say is `entities.ts`, and what they point at is `links.ts`.
 
 interface Cell {

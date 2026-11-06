@@ -1,4 +1,4 @@
-<!-- The Level view's dock (plan EDS.2d step 2): the level cards of the open level's world, from the session. -->
+<!-- The Level view's dock: the level cards of the open level's world, from the session. -->
 <script lang="ts">
 import type { History } from '../../shared/kit/history/history'
 import { levelCards } from './dock-model'

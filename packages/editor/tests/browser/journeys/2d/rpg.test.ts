@@ -14,7 +14,7 @@ import {
   press,
 } from '#src/testing/level-2d/journey-editor.ts'
 
-// ED2D.8 journey (2D editor spec §14): a top-down RPG map on an iPad: a Pencil stroke on the Ground tiles and one on the
+// ED2D.8 journey: a top-down RPG map on an iPad: a Pencil stroke on the Ground tiles and one on the
 // Walls (which the Wall art layer follows) are one undo step each, and a villager is placed with the Pencil.
 
 let editor: JourneyEditor | undefined

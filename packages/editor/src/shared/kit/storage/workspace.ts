@@ -28,7 +28,7 @@ export interface WorkspaceEnv {
 const PROBE = 'probe.txt'
 
 /**
- * Opens the editor's default storage (kit spec §4.7, §6): an OPFS workspace with a journal beside it. The browser
+ * Opens the editor's default storage: an OPFS workspace with a journal beside it. The browser
  * saying it has OPFS is not enough (an old Safari private window opens it and then refuses every write), so a probe
  * file is written, read back and removed first. Any failure, at any step, gives the fallback instead of an error:
  * memory stores, `persistent: false` and the reason, so the person sees "Not saved on this device" and Export is the
@@ -74,7 +74,7 @@ export interface ServedWorkspaceEnv {
 const TOKEN_KEY = 'automata-editor-token'
 
 /**
- * The workspace of an editor served by `automata editor` (ED3D.14): the checkout over HTTP. The page asks its own origin
+ * The workspace of an editor served by `automata editor`: the checkout over HTTP. The page asks its own origin
  * whether it is an editor server, and answers `undefined` when it is not (a static host, a dev server), so the caller
  * opens `openWorkspace()` as before. The autosave journal stays in this browser, beside the editor, never in the checkout.
  */

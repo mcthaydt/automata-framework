@@ -1,5 +1,5 @@
 <!--
-  The Level view's inspector (plan ED2D.4c4b step 6, decisions 2 and 3; 2D editor spec §8, the Level row): the kit
+  The Level view's inspector: the kit
   `Tabs` over Entity, Level and Checks. The default tab follows the selection (one or more selected: Entity; none:
   Level); a tab the person chose stays until the selection changes. The shell places it: a 320 px column in `wide`,
   a drawer in `medium`, a sheet in `compact`.

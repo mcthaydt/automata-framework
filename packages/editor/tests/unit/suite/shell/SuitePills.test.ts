@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { changeSetPill, checksPill, gatesPill } from '#src/features/suite/core/pills-model.ts'
 import SuitePills from '#src/features/suite/shell/SuitePills.svelte'
 
-// The top bar's pills (editor suite spec §9 `suite-home`, §10, §11): change set, checks and gates, each a button that
+// The top bar's pills: change set, checks and gates, each a button that
 // opens its list; in the `short` tier each is an icon with its count, never hidden.
 const finding = { path: 'content/tuning.toml', line: 2, severity: 'error' as const, message: 'too fast' }
 const PILLS = [

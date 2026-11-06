@@ -17,8 +17,7 @@ import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// An open document (plan ED2D.4c4a decision 1; the cases of the frame it replaced, plans ED2D.4c2a decision 10 and
-// ED2D.4c2b decisions 5 to 8): the top bar with Back, Undo, Redo and Save, the save state, the Restore and conflict
+// An open document: the top bar with Back, Undo, Redo and Save, the save state, the Restore and conflict
 // dialogs and the toasts, around the view the rail chose. The planted note lists one view that is not built; the level
 // project lists six, of which Level is.
 

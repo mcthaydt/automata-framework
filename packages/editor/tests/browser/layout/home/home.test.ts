@@ -11,8 +11,7 @@ import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// Home with the production CSS in a real browser, at the window sizes the 2D editor is designed for (plan ED2D.4c2a
-// step 7; 2D editor spec §12). jsdom has no layout, so everything about room (overflow, target sizes, what covers what,
+// Home with the production CSS in a real browser, at the window sizes the 2D editor is designed for. jsdom has no layout, so everything about room (overflow, target sizes, what covers what,
 // which region scrolls) is only checked here. The editor is started the way `main.ts` starts it, with the real window
 // and so the real geometry owner; only the workspace is a memory one, filled with projects.
 

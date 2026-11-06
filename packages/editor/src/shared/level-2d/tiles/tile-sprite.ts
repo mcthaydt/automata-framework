@@ -1,6 +1,6 @@
 import type { TileImage } from './palette-model'
 
-// One tile drawn as a CSS sprite (plan ED2D.5b decision 8): the tileset image scaled so the tile's frame fills a square
+// One tile drawn as a CSS sprite: the tileset image scaled so the tile's frame fills a square
 // cell and shifted to that frame. Without an image, or until it is read, the tile is the flat placeholder colour the
 // canvas draws, so the palette, the tileset sheet, the rule rows and the preview cut tiles one way.
 

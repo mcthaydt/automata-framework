@@ -12,7 +12,7 @@ import {
   pressButton,
 } from '#src/testing/level-2d/journey-editor.ts'
 
-// ED2D.8 journey (2D editor spec §15 G-f): retyping a level field somebody has filled in is refused with the levels it
+// ED2D.8 journey: retyping a level field somebody has filled in is refused with the levels it
 // would break, Cancel changes nothing, and "Change anyway" is one undo step that Undo takes back.
 
 let editor: JourneyEditor | undefined

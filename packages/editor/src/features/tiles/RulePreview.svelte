@@ -1,5 +1,5 @@
 <!--
-  The live preview (plan ED2D.5b decisions 4 and 5; 2D editor spec §8, the Tilesets row and flow 6; mockup `tileset`):
+  The live preview:
   the sample IntGrid painted with the chosen value beside what the auto layer's rules make of it, through the same
   engine and seed a level uses. The cells where the selected rule matches on its own are outlined. It redraws on every
   edit because it is derived from the project.

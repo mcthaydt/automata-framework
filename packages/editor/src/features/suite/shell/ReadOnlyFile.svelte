@@ -1,5 +1,5 @@
 <!--
-  A file shown read only (editor suite spec §11): the file of an editor this build does not have (EDS-l), or one the
+  A file shown read only: the file of an editor this build does not have (EDS-l), or one the
   list's rules never let an editor write. The text is a scroll region of its own; nothing in it can be typed into.
 -->
 <script lang="ts">

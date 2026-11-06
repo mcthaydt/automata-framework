@@ -1,5 +1,5 @@
 <!--
-  The error panel (plan ED2D.4c2b, decisions 1 to 3; spec §13; mockup `open-failed`): a file that does not open, over
+  The error panel: a file that does not open, over
   Home. It names the file and what is wrong with it, in the profile's own words with the line, column or key path each
   error gives, shows the text read only with those lines marked, and says that nothing was written. Copy text puts the
   text on the clipboard; Open another, which has focus, goes back to the list. It knows no profile and reads no code.

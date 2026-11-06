@@ -1,5 +1,5 @@
 <!--
-  The Tuner's inspector (EDS.4a): the chosen tunable's name, kind, value, bounds, unit and note, whether it is locked, and
+  The Tuner's inspector: the chosen tunable's name, kind, value, bounds, unit and note, whether it is locked, and
   why a table or a list is "Ask only". With nothing chosen it says how to choose.
 -->
 <script lang="ts">

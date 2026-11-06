@@ -12,11 +12,11 @@
   "workspaces": {
     // DX.7: the plugin's hooks run agents/automata/scripts/check.mjs by path (hooks.json). The automata-feature skill's
     // worked example is skill content that tooling/agent-skills tests (its vitest config lists it and aliases the sim).
-    // ED.0: docs/design holds the editor mockup tooling, plain .mjs files that are run by hand with node
-    // (docs/design/editor-kit/scene/README.md) and are not part of any package.
+    // docs/design (the 3D editor's mock-ups) and docs/archive/design (the 2D editor's, archived) hold mock-up tooling,
+    // plain .mjs files run by hand with node, and are not part of any package.
     ".": {
       "entry": ["agents/automata/scripts/check.mjs"],
-      "ignore": ["agents/automata/skills/*/example/**", "docs/design/**"]
+      "ignore": ["agents/automata/skills/*/example/**", "docs/design/**", "docs/archive/design/**"]
     },
     // WEB.PLAY.1: the playground feasibility server serves these browser scripts as files; nothing imports them
     // (tooling/examples-runner, below).

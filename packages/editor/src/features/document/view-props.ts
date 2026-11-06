@@ -9,7 +9,7 @@ import type { Project } from '../../shared/level-2d/model/project-types'
 import type { WorldLink } from '../../shared/level-2d/model/world/world-links'
 import type { WorldRect } from '../../shared/level-2d/model/world/world-model'
 
-// What every rail destination is given (plan ED2D.4c4a decision 1). The document screen draws the parts every view
+// What every rail destination is given. The document screen draws the parts every view
 // shares (the top bar, the rail, the status line, the dialogs and toasts) as snippets, and the view places them in its
 // own kit shell beside its panel, canvas and inspector.
 
@@ -41,7 +41,7 @@ export interface ViewServices {
    */
   readonly canvas?: Component<LevelCanvasProps> | undefined
   /**
-   * Opens the profile's first view on what a finding's path names (the Checks view's Locate, plan ED2D.7a decision 4).
+   * Opens the profile's first view on what a finding's path names (the Checks view's Locate).
    * Absent where nothing can be located.
    */
   readonly locate?: ((path: string) => void) | undefined
@@ -53,13 +53,13 @@ export interface ViewServices {
 
 /** What the World view hands its map (`WorldCanvas.svelte`'s props). */
 export interface WorldCanvasProps {
-  /** The project the levels' pictures are drawn from (ED2D.8b). */
+  /** The project the levels' pictures are drawn from. */
   readonly project: Project
   /** Reads a workspace file's bytes, for the pictures' images. */
   readonly read: (path: string) => Promise<Uint8Array | undefined>
   readonly rects: readonly WorldRect[]
   readonly camera: Camera
-  /** The links between the levels (ED2D.6c), drawn over them. */
+  /** The links between the levels, drawn over them. */
   readonly links: readonly WorldLink[]
 }
 

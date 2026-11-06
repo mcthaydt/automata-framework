@@ -4,7 +4,7 @@ import { type AutoTiles, autoTiles } from '../../shared/level-2d/tiles/autotile/
 import { compileRules } from '../../shared/level-2d/tiles/autotile/match'
 import { autoLayersOf } from './tilesets-model'
 
-// The Tilesets view's live preview (plan ED2D.5b decisions 4 and 5; 2D editor spec §8, the Tilesets row and flow 6): a
+// The Tilesets view's live preview: a
 // fixed sample IntGrid painted with the chosen value, what the auto layer's rules make of it through the same engine a
 // level uses, and the cells where the selected rule matches when it is evaluated alone. Cells beyond the sample read as
 // each rule's `outside`, as at a level's edge.

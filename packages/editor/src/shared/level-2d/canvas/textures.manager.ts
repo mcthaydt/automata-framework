@@ -2,11 +2,11 @@ import { CanvasSource, ImageSource, Rectangle, Texture } from 'pixi.js'
 import type { Bounds } from '../model/commands/entity-geometry'
 import type { Size } from '../model/project-types'
 
-// The level canvas's textures (ED2D.4c3b; 2D editor spec §4, §11, §13; plan decision 5). Tileset and background images
+// The level canvas's textures. Tileset and background images
 // are workspace files under `assets/`: the manager reads their bytes through `read` (the workspace store), decodes them
 // with `createImageBitmap` and keeps one texture per path, nearest-neighbour scaled for pixel art. An image that is
 // missing, cannot be read or does not decode is left out of `loaded`, so the draw list draws `missing` placeholders for
-// its tiles (ED2D-D11); a load never rejects. Numbered placeholders are textures too (plan decision 4), so a level of
+// its tiles; a load never rejects. Numbered placeholders are textures too (plan decision 4), so a level of
 // placeholders batches like one of art.
 
 export interface TextureStore {

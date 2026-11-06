@@ -1,5 +1,5 @@
 <!--
-  The targets a broken reference may point at (plan ED2D.7a decision 3): the profile's choices as 44 px buttons in a
+  The targets a broken reference may point at: the profile's choices as 44 px buttons in a
   scroll region; picking one closes the dialog and hands the choice back, which the view commits as one step.
 -->
 <script lang="ts">

@@ -14,7 +14,7 @@ import { noteText, plantedProfile, savedCount } from '#src/testing/level-2d/plan
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// Creating, opening and saving documents over the kit's workspace (plan ED2D.4c1 step 3). The level project is the real
+// Creating, opening and saving documents over the kit's workspace. The level project is the real
 // profile; the planted note stands in for a second one, and for a codec that patches the text it loaded.
 
 function setup(plant = false) {

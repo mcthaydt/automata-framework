@@ -10,7 +10,7 @@ import type { Background, LayerInstance, Level, Project, Size } from '../project
 import { placeLevel, setLevelDepth } from './level-placement'
 import { arrangeWorld } from './world-layout'
 
-// Adding, removing and copying levels, and their typed fields (2D editor spec §5.1, §5.8). A level always has an
+// Adding, removing and copying levels, and their typed fields. A level always has an
 // instance of every layer definition and is placed in a world as it is made, so a new level passes the Checks. A missing
 // level or world, an id a person typed that the model refuses, or a size past the guard rails throws `RangeError`.
 
@@ -41,7 +41,7 @@ function replaceLevel(project: Project, level: Level, next: Level): Project {
   return { ...project, levels: project.levels.map((candidate) => (candidate === level ? next : candidate)) }
 }
 
-/** The guard rails a level's size must stay inside (ED2D-D13): whole pixels, a side limit and a cell limit per layer. */
+/** The guard rails a level's size must stay inside: whole pixels, a side limit and a cell limit per layer. */
 export function checkLevelSize(project: Project, size: Size): void {
   const fits = (n: number): boolean => Number.isInteger(n) && n >= 1 && n <= MAX_LEVEL_SIDE
   if (!fits(size.w) || !fits(size.h))

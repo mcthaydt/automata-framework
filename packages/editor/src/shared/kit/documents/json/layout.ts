@@ -1,4 +1,4 @@
-// Extracted from The Last Light editor/src/server/json-structure.ts (92e6704), its "Layout" half: how a hand-formatted
+// Extracted from the adventure source editor/src/server/json-structure.ts, its "Layout" half: how a hand-formatted
 // JSON file writes its values, so that a value added to it looks like the ones already there.
 
 /** Lines of packed items are filled up to this many characters. */

@@ -17,7 +17,7 @@ export function minimalProjectFile(): ProjectFile {
 }
 
 /**
- * A platformer-and-RPG-shaped file that uses every shape of spec §5 once: all five layer kinds, a placeholder
+ * A platformer-and-RPG-shaped file that uses every shape of the project model once: all five layer kinds, a placeholder
  * tileset, entity definitions with typed fields (a ref, a point list, a bounded int, a single, a minimum), an auto
  * layer with a rule, two levels in a free world, flips, an object and a level background image.
  */

@@ -15,7 +15,7 @@ import { compileRules } from '../../tiles/autotile/match'
 import type { IntChunk, TileChunk, TileDraw } from './draw-list-types'
 import { tileDraw } from './tile-draw'
 
-// The cell layers drawn a 16 × 16-cell chunk at a time (2D editor spec §5.3, ED2D-D4). A `Grid` shares every chunk an
+// The cell layers drawn a 16 × 16-cell chunk at a time. A `Grid` shares every chunk an
 // edit did not touch, so the drawer keeps what it built for each grid chunk (by the chunk's token) and hands back that
 // very object while the chunk and what it is drawn with are unchanged: the renderer compares chunks with `===` and
 // rebuilds only those a stroke touched. The auto layer's output is derived from a whole IntGrid, so it is evaluated

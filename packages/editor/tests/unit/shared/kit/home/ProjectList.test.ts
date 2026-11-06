@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import ProjectList from '#src/shared/kit/home/ProjectList.svelte'
 import type { HomeCard } from '#src/shared/kit/home/project-browse.ts'
 
-// The listbox of projects (plan ED2D.4c2a, decision 3; moved from editor-2d in ED3D.5c). The cards are written by hand,
+// The listbox of projects. The cards are written by hand,
 // as an editor would make them from its entries, so each state is exact.
 
 const NOW = 1_700_000_000_000

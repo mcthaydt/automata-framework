@@ -1,4 +1,4 @@
-// What the shell's error panel shows and copies when a region's content throws (kit spec §6).
+// What the shell's error panel shows and copies when a region's content throws.
 
 /** The regions `EditorShell` renders from a snippet, each inside its own error boundary. */
 export type SnippetRegion = 'topbar' | 'rail' | 'panel' | 'canvas' | 'inspector' | 'dock' | 'status'

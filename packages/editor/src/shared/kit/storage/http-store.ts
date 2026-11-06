@@ -1,4 +1,4 @@
-// The store of a served game checkout (ED3D.14; `automata editor`): the kit's `ProjectStore` over HTTP to the server the
+// The store of a served game checkout: the kit's `ProjectStore` over HTTP to the server the
 // command starts, so the editor in a tablet's browser reads and writes the developer's own files. The server holds the
 // rules (the editor list's allowlist, a token off the loopback) and the mtime guard; this side sends the guard and sorts
 // the answers into the kit's reasons: 409 `conflict`, 403 `policy`, 401 `denied`, anything else `io`.

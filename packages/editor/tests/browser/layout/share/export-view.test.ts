@@ -13,7 +13,7 @@ import { entity, withEntities, withLayer } from '#src/testing/level-2d/project-e
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Export view with the production CSS in a real browser (plan ED2D.7b step 7; 2D editor spec §12), at the eight
+// The Export view with the production CSS in a real browser, at the eight
 // window sizes, in Chromium, WebKit and Firefox: Download 48 px, the other actions and the target cards 44 px, all in
 // view and never clipped (the files scroll in their own region, the actions stay at the foot), and the page never
 // scrolling. The Mossgate sample is seeded with the Checks view's findings, so the error callout shows.

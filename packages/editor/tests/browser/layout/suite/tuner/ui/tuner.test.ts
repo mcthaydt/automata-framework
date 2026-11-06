@@ -14,7 +14,7 @@ import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-s
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
 // The Tuner in the suite's one shell with the production CSS in Chromium, WebKit and Firefox at the eight window sizes
-// (EDS.4a; editor suite spec §6.1, §10): every control is a 44 px target in a declared scroll region (reached by scrolling
+//: every control is a 44 px target in a declared scroll region (reached by scrolling
 // it, never by shrinking it), the page never scrolls, and a rotation keeps the search and the chosen tunable (EDS-x).
 
 const LIST = `format = "af-editors/1"\n[[file]]\nglob = "content/tuning.toml"\neditor = "tuner"\nmodes = ["edit", "ask"]\ngates = []\nchecks = []\n`

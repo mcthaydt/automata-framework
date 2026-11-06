@@ -1,4 +1,4 @@
-// The one shape every value widget reports its changes in (kit spec §4.6, decision EDK-D5).
+// The one shape every value widget reports its changes in.
 //
 //   set     one discrete change: a typed value, a step button, an arrow key, a tap on an option
 //   start   a drag began; `value` is where it began
@@ -16,7 +16,7 @@ export interface EditEvent<T> {
   readonly phase: EditPhase
 }
 
-/** What every widget with a value or a choice shares for its disabled state (kit spec §4.6). */
+/** What every widget with a value or a choice shares for its disabled state. */
 export interface BlockedProps {
   /** The widget stays focusable and announces `reason`; it never reports an edit. */
   readonly disabled?: boolean | undefined

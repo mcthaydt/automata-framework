@@ -1,5 +1,5 @@
 <!--
-  The Entities view (plan ED2D.5c; 2D editor spec §5.5, §8 the Entities row and flow 5, §12, G-f; mockup `entities`).
+  The Entities view.
   The panel lists the entity definitions and the level fields; the canvas previews the selected definition; the
   inspector edits the definition and its typed fields. Everything that decides is plain TypeScript
   (`entities-model.ts`, `entities-session.ts`); this file draws and forwards. Every edit is one undo step.

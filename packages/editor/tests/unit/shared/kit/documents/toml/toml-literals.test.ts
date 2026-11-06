@@ -101,8 +101,8 @@ describe('readTomlLiterals', () => {
   })
 
   for (const name of [
-    'floorfifty-tuning.toml',
-    'floorfifty-juice.toml',
+    'platformer-tuning.toml',
+    'platformer-juice.toml',
     'af-game.toml',
     'af-flow.toml',
     'af-stage-dawn.toml',
@@ -118,15 +118,15 @@ describe('readTomlLiterals', () => {
     })
   }
 
-  it("floorfifty-tuning.toml and juice.toml: the Tuner's notes come from the comments", () => {
-    const tuning = readTomlLiterals(loadDocumentFixture('floorfifty-tuning.toml'))
+  it("platformer-tuning.toml and juice.toml: the Tuner's notes come from the comments", () => {
+    const tuning = readTomlLiterals(loadDocumentFixture('platformer-tuning.toml'))
     expect(tuning.comments(['COURSE_FLOOR_COUNT'])).toEqual({
       before: 'Floors in one ascent, including the fixed starting floor.',
     })
     expect(tuning.comments(['BOUNCE_VELOCITY']).before).toBe(
       'Applied on contact with any face of a floor, not only from above.',
     )
-    const juice = readTomlLiterals(loadDocumentFixture('floorfifty-juice.toml'))
+    const juice = readTomlLiterals(loadDocumentFixture('platformer-juice.toml'))
     expect(juice.comments(['lean', 'fullSpeed'])).toEqual({ trailing: "MAX_MOVE_SPEED's default" })
   })
 })

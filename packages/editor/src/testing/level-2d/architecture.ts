@@ -2,7 +2,7 @@ import { posix } from 'node:path'
 import { parseSync } from 'oxc-parser'
 import { parse as parseSvelte } from 'svelte/compiler'
 
-// The boundary rules of the 2D editor spec §4 over a map of path (relative to `src/`) to source. `pnpm boundaries`
+// The boundary rules of the 2D editor over a map of path (relative to `src/`) to source. `pnpm boundaries`
 // covers only the sim, whose rules are much stricter, so this package carries its own. It works on the AST, so a word in
 // a comment, a string, a property name or a type never counts. A Svelte component is read the same way: its scripts and
 // its markup are one tree (the compiler's), so an import in `<script>` and an id in an attribute are both seen.

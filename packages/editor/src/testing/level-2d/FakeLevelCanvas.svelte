@@ -1,5 +1,5 @@
 <!--
-  A stand-in for the Pixi level canvas in jsdom, which has no WebGL (plan ED2D.4c4a). It shows what it was handed, so a
+  A stand-in for the Pixi level canvas in jsdom, which has no WebGL. It shows what it was handed, so a
   DOM test can read the level, the layer, the tool and the camera the Level view passed down.
 -->
 <script lang="ts">

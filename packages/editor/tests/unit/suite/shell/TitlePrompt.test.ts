@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import TitlePrompt from '#src/features/suite/shell/TitlePrompt.svelte'
 
-// The first write's title (editor suite spec §5 flow 3): a change set needs one before anything is written.
+// The first write's title: a change set needs one before anything is written.
 describe('TitlePrompt', () => {
   it('starts the change set with the title typed', async () => {
     const onsubmit = vi.fn()

@@ -1,7 +1,7 @@
-// Ask over the developer's own Anthropic API key (editor suite spec §4.3, EDS-D9; 02's EDS.1d row). The provider only
+// Ask over the developer's own Anthropic API key. The provider only
 // proposes: the request goes out as JSON in one user message, the model must answer with one `propose` tool call
 // holding the whole document, and the budget is the call's output limit. Checking the proposal before it is written is
-// the suite's (EDS.2b). The model id has no default here: `automata editor` passes it (EDS.1d-b).
+// the suite's. The model id has no default here: `automata editor` passes it.
 import type { AskProvider, AskRequest, Proposal } from '../../../shared/kit/ports/suite-ports.ts'
 import { apiErrorSchema, askReplySchema, proposalInputSchema } from './ask-reply.schema'
 

@@ -21,7 +21,7 @@ import type { IpadProfile } from '../kit/ipad-profiles.ts'
 import { arrived } from '../kit/layout-sizes.ts'
 import { createTestClock } from './test-clock'
 
-// The editor on an iPad for the ED2D.8 journeys (the kit's EDK.6b harness: `IPAD_PROFILES`, `createPointers`, `turned`):
+// The editor on an iPad for the journeys (the kit's harness: `IPAD_PROFILES`, `createPointers`, `turned`):
 // the app's own screen with the real Pixi canvases and the real geometry owner over a memory workspace that keeps what
 // Export downloads, started from a template at the iPad's window size. A journey drives it with real pointer events and
 // reads the open document's history, the workspace and the page.

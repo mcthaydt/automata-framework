@@ -1,5 +1,5 @@
 <!--
-  The left of Home (plan ED2D.4c2a; moved into the kit in ED3D.5c): where projects come from and how they are kept. One
+  The left of Home: where projects come from and how they are kept. One
   source today, this workspace, with the editor's own ways to bring files in under it (the `importers` snippet: the 2D
   editor imports files, the 3D editor a folder or a zip); the folder source arrives with the kit's folder store.
 -->

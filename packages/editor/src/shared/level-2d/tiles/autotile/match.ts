@@ -2,7 +2,7 @@ import type { Grid } from '../../model/grid'
 import { hashCell, hashText, SALT } from '../hash'
 import type { PatternCell, Rule, RuleGroup } from './rule.schema'
 
-// Evaluating auto-tile rules for one cell (2D editor spec §5.6). The rules are compiled once into flat lists of the
+// Evaluating auto-tile rules for one cell. The rules are compiled once into flat lists of the
 // cells each rule really reads, so deciding a cell is a few comparisons and the 'any' cells of a pattern cost nothing.
 
 /** One tile drawn at a cell; a cell holds a stack of them in rule order. */

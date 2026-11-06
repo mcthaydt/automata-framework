@@ -1,4 +1,4 @@
-// Extracted from The Last Light scripts/pipeline/json-edit.ts (92e6704): how a value is written into one of these
+// Extracted from the adventure source scripts/pipeline/json-edit.ts: how a value is written into one of these
 // files. The blockout files are formatted by hand, so a number never prints with an exponent and never with float
 // noise (`0.1 + 0.2` is `0.3`); a value the file already has keeps its own text and is not printed at all.
 
@@ -28,9 +28,8 @@ export function formatJsonScalar(value: JsonScalar, numbers: NumberStyle = BLOCK
 }
 
 /**
- * How a writer spells and reads back numbers. The blockout style (the default of the JSON engine, ED3D-b) trims float
- * noise to four decimals and never writes an exponent; the exact style (the content documents, EDS.1a review
- * 2026-10-30) writes the shortest text that reads back as exactly the number, so nothing is lost.
+ * How a writer spells and reads back numbers. The blockout style (the default of the JSON engine) trims float
+ * noise to four decimals and never writes an exponent; the exact style (the content documents) writes the shortest text that reads back as exactly the number, so nothing is lost.
  */
 export interface NumberStyle {
   /** The number a value reads back as once written. */

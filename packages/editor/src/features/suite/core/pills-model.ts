@@ -1,4 +1,4 @@
-// The top bar's three pills (editor suite spec §5 flows 6 and 7, §9 `suite-home`, §10, §11): the change set, the
+// The top bar's three pills: the change set, the
 // checks and the reopened gates, as plain data the Svelte pills draw. Each pill has a tone, a label, a count (what its
 // icon form shows in the `short` tier, where the pills collapse to icons and are never hidden) and the items its
 // popover lists. The gates pill only shows decisions; nothing here records one.

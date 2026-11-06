@@ -5,7 +5,7 @@ import { richProject } from '#src/testing/level-2d/draw-fixtures.ts'
 import { cellsPng } from '#src/testing/level-2d/png.ts'
 import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 
-// Home's card thumbnails (ED2D.4c3b, plan decision 9) in Chromium.
+// Home's card thumbnails in Chromium.
 
 const colors = createColorResolver(() => '')
 let thumbnails: LevelThumbnails | undefined

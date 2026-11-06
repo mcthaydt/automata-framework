@@ -8,11 +8,11 @@ import { createLevelScene, type LevelScene } from './level-scene'
 import { type Camera, createWebGL2Renderer } from './level-view'
 import type { TextureManager } from './textures.manager'
 
-// The World view's map (plan ED2D.6b step 4; 2D editor spec §8, the World row): each level a rectangle at its world
+// The World view's map: each level a rectangle at its world
 // position, the selected one outlined in the accent, its name on a plate in the top-left corner at screen size; over them, each
-// link between two levels as a curve with an arrowhead and its holder's label (ED2D.6c decision 5). Under the outlines,
+// link between two levels as a curve with an arrowhead and its holder's label. Under the outlines,
 // each level's picture: the level canvas's own scene over a draw list with no overlays, kept per level so only what
-// changed is rebuilt (ED2D.8b decision 1). A world has a few
+// changed is rebuilt. A world has a few
 // dozen levels at most, so each render redraws everything. Like the level canvas it is WebGL2 only and says when its
 // context is lost; `paused` follows `webglcontextlost` and `webglcontextrestored`.
 
@@ -42,7 +42,7 @@ export interface WorldView {
 /** The outline in screen pixels, drawn inside the rectangle so neighbours touching it keep their own edge. */
 const OUTLINE = 2
 const LABEL_INSET = 6
-/** Screen pixels: the name plate's padding and corner radius (plan ED2D.8c). */
+/** Screen pixels: the name plate's padding and corner radius. */
 const PLATE_PAD = 4
 const PLATE_RADIUS = 4
 /** Screen pixels: the link's line width, its arrowhead's length and the gap between its label and the curve. */
@@ -136,7 +136,7 @@ export async function createWorldView(options: WorldViewOptions): Promise<WorldV
         text: rect.name,
         style: { fill: colors('text/primary'), fontFamily: 'sans-serif', fontSize: 12 },
       })
-      // On an opaque plate, so a busy picture under the name cannot swallow it (plan ED2D.8c).
+      // On an opaque plate, so a busy picture under the name cannot swallow it.
       plates
         .roundRect(
           x + LABEL_INSET,

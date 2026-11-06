@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import SuiteRail from '#src/features/suite/shell/SuiteRail.svelte'
 import { SUITE_ENTRIES } from '#src/features/suite/shell/suite-entries.ts'
 
-// The switcher (editor suite spec §10): nine tabs, one tab stop, arrows within it, Cmd or Ctrl 1 to 9 from anywhere.
+// The switcher: nine tabs, one tab stop, arrows within it, Cmd or Ctrl 1 to 9 from anywhere.
 const tabs = () => screen.getAllByRole('tab')
 
 describe('SuiteRail', () => {

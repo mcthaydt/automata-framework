@@ -2,7 +2,7 @@ import type { Grid } from '../model/grid'
 import type { Point } from './footprint'
 
 /**
- * The bucket (2D editor spec §5.9): replaces the 4-connected region of cells equal to the start cell's word, bounded by
+ * The bucket: replaces the 4-connected region of cells equal to the start cell's word, bounded by
  * the level. A flipped tile is a different word. It fills a run of a row at a time and walks the rows above and below
  * for new runs, so an empty level is one call per row and not one per cell, and it needs no recursion. The same grid
  * comes back when the start is outside or already holds the word.

@@ -1,4 +1,4 @@
-// The `journeys` Vitest project every editor package spreads into its config (plan EDK.6b decision 1), so the 2D, 3D
+// The `journeys` Vitest project every editor package spreads into its config, so the 2D, 3D
 // and suite lanes run their iPad journeys the same way: WebKit, in a context with touch, a 2× screen and Safari's iPad
 // user agent, over the package's `*.journey.test.ts` files. The config hands it `playwright` from
 // `@vitest/browser-playwright`, so this module never loads the provider itself and stays importable anywhere.

@@ -1,4 +1,4 @@
-// Reopened gates (editor suite spec §9, EDS-i): a gate an owner decided is reopened while the change set holds a
+// Reopened gates: a gate an owner decided is reopened while the change set holds a
 // written file whose editor-list row names it. "Written" means the file's text now differs from its text before the
 // change set first wrote it, so undoing every write to a file stops it reopening anything.
 import type { ChangeSetWrite, WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'

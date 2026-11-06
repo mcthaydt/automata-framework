@@ -7,7 +7,7 @@ export {
   type Levels2dSession,
   type Levels2dState,
 } from '../app/suite/levels-2d/index'
-export { FLOORFIFTY_SAMPLE, samplePorts } from '../features/suite/memory/sample-ports'
+export { SAMPLE_GAME, samplePorts } from '../features/suite/memory/sample-ports'
 export { type SuiteEnv, type SuiteHandle, startSuite } from '../features/suite/shell/boot'
 export { createSuite, type Suite } from '../features/suite/shell/create-suite'
 export { createTuner, type TunerSuiteSession } from '../features/suite/tuner/tuner-suite-editor'

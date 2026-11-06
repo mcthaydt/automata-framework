@@ -18,7 +18,7 @@ import ShellFixture from '#src/testing/kit/ShellFixture.svelte'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 
 // The shell with production CSS in a real browser, at the window sizes the 2D editor is designed for
-// (kit spec §7). `inert` and `visibility` are only real here; jsdom keeps neither.
+//. `inert` and `visibility` are only real here; jsdom keeps neither.
 interface EditorSize extends ReferenceSize {
   readonly mode: ShellMode
 }

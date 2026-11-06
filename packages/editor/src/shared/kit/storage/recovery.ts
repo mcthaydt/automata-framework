@@ -11,7 +11,7 @@ export interface Recovery {
 }
 
 /**
- * The autosave to offer when `path` is opened (kit spec §5 flow 4), if there is one worth offering: it parses, it
+ * The autosave to offer when `path` is opened, if there is one worth offering: it parses, it
  * names this document, and it is not older than the file (an older one was made before a save that has since
  * happened). Left in place when older; the next clean save removes it. Rejects with a `StorageError` when a store
  * cannot be read; the editor opens the document anyway and says so.

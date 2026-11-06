@@ -1,4 +1,4 @@
-// The write path every suite editor's edits take (editor suite spec §5 flows 3 and 4, EDS-D8, EDS-D19). One write:
+// The write path every suite editor's edits take. One write:
 // the policy (a `never`, generated or unlisted path is refused with why); the title prompt when there is a change set
 // port and nothing is open (cancelled: nothing written); the `before` checks on the candidate text (a failure refuses
 // the write with its findings, EDS-g); the mtime-guarded `SuiteWorkspace.write`; the change set's record of the path and
@@ -10,7 +10,7 @@
 //
 // Undo and redo are steps of whole-file text. Each is written back through the same path, so it is checked and
 // journalled like an edit; a step any of whose files no longer reads what this path wrote is refused with that path and kept
-// (§11). Each editor has its own history, named by its id (EDS-D19: the top bar's Undo acts on the active editor's
+//. Each editor has its own history, named by its id (EDS-D19: the top bar's Undo acts on the active editor's
 // document, so a switch to the Tuner and back still undoes the level's own step, EDS-k); the suite's own steps (an
 // import) are the unnamed owner `''`. Beginning a change set, and `clear()` (closing one), empty every history. Plain
 // TypeScript: no DOM, no clock.

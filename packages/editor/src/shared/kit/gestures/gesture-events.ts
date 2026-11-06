@@ -1,6 +1,6 @@
 import type { Modifiers, PointerKind } from './pointer-sample'
 
-// The events of the pointer pipeline (editor kit spec §4.5). Positions are in the element's coordinates.
+// The events of the pointer pipeline. Positions are in the element's coordinates.
 
 export interface TapGesture {
   readonly x: number

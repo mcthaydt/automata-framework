@@ -3,7 +3,7 @@ import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 
-// The registration list (2D editor spec §4): the one place that names a profile. These tests read the registry the way
+// The registration list: the one place that names a profile. These tests read the registry the way
 // the app does, so they hold for any profile that is added to the list.
 
 describe('createAppProfiles', () => {

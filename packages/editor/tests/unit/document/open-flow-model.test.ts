@@ -15,7 +15,7 @@ import type { ParseError, Profile } from '#src/shared/level-2d/profiles/profile.
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 
-// What the open flows decide before anything is drawn (plan ED2D.4c2b, decisions 1 to 3, 5 and 6): which outcome gets
+// What the open flows decide before anything is drawn: which outcome gets
 // the error panel, what it says, which lines of the file it shows, and the words of the recovery and save flows.
 
 const profile = plantedProfile() as Profile<unknown>

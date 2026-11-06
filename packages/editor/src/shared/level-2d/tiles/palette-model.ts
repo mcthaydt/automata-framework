@@ -4,7 +4,7 @@ import type { LevelEditorView } from '../model/editor-view'
 import type { Project, Size, TilesetDef } from '../model/project-types'
 import { tilesetTiles } from '../model/tileset-grid'
 
-// What the palette offers for the selected layer (plan ED2D.4c4a decision 5; 2D editor spec §5.9, §8): a tiles, auto or
+// What the palette offers for the selected layer: a tiles, auto or
 // objects layer paints its tileset's tiles (on an auto layer the brush stamps an override), an IntGrid layer its
 // values, an entities layer places its definitions. A tile is cut out of the tileset image once the image is loaded,
 // and is otherwise the numbered flat placeholder the canvas draws, so the two always agree.

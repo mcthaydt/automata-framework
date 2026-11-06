@@ -1,4 +1,4 @@
-// The storage contract of the editor kit (kit spec §4.7): what an editor can ask of wherever a project lives.
+// The storage contract of the editor kit: what an editor can ask of wherever a project lives.
 // Five adapters implement it (memory, OPFS, a user folder, download, and a served checkout over HTTP); the editors never see which one.
 
 export interface StoredEntry {

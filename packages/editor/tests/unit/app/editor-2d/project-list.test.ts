@@ -11,7 +11,7 @@ import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The project list Home shows (plan ED2D.4c1 step 5): projects, not files.
+// The project list Home shows: projects, not files.
 
 function setup() {
   const clock = createTestClock()

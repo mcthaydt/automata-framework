@@ -10,7 +10,7 @@ import { blankTemplate } from './templates/blank'
 import { platformerTemplate } from './templates/platformer'
 import { topdownRpgTemplate } from './templates/topdown-rpg'
 
-// The built-in profile (2D editor spec §7): the genre-general level project of §5, opened from `*.af2d.json`. It
+// The built-in profile: the genre-general level project, opened from `*.af2d.json`. It
 // plugs the model, its checks, its three templates and its two exports into the editor; it holds no logic of its own.
 
 /** How much of a file `sniff` reads: the format key sits at the top of a canonical file. */

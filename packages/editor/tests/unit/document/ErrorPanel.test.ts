@@ -10,7 +10,7 @@ import type { Profile } from '#src/shared/level-2d/profiles/profile.ts'
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The error panel (plan ED2D.4c2b, decisions 1 to 3; spec §13; G-n, G-o, G-p): what did not open and why, the file's
+// The error panel: what did not open and why, the file's
 // text read only, that nothing was written, Copy text and Open another.
 
 const profile = plantedProfile() as Profile<unknown>

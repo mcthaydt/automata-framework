@@ -8,7 +8,7 @@ import type { LayerDef, LayerInstance, Project } from '../project-types'
 import { tilesetTiles } from '../tileset-grid'
 import { findLayer, type LayerTarget, updateLayer } from './layer-target'
 
-// The cell tools' edits on a project (2D editor spec §5.8, §5.9). The operations on a `Grid` are in `tiles/` and know
+// The cell tools' edits on a project. The operations on a `Grid` are in `tiles/` and know
 // nothing of layers; these find the grid a layer keeps its cells in and check the word before it is written, so the
 // editor never produces a cell the Checks would flag (`cellValueUnknown`, `tileOutOfRange`).
 

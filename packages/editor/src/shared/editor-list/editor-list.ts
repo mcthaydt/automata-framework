@@ -1,4 +1,4 @@
-// Loading the game's editor list (editor suite spec §4.2, §11). The loader never throws: a missing, unreadable,
+// Loading the game's editor list. The loader never throws: a missing, unreadable,
 // invalid or newer list is a value Home shows with its key path, and while it stands every editor is read only.
 import { parse, TomlError } from 'smol-toml'
 import {

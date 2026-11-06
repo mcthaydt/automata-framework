@@ -1,4 +1,4 @@
-// Test images drawn in the browser (ED2D.4c3b): a PNG of solid cells, so a canvas test can read back exactly which frame
+// Test images drawn in the browser: a PNG of solid cells, so a canvas test can read back exactly which frame
 // of an image a sprite shows. Runs in the `canvas` project only (it needs `OffscreenCanvas`).
 
 /** A PNG `columns × rows` cells of `tile` px, each cell filled with `colors[row * columns + column]` (`#rrggbb`). */

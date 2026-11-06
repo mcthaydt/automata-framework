@@ -6,7 +6,7 @@ import {
   type PointerSample,
 } from '../../shared/kit/gestures/pointer-sample'
 
-// Fixtures for the gesture tests (kit spec §8, `FakePointer`): samples for each pointer kind and a handler set that
+// Fixtures for the gesture tests: samples for each pointer kind and a handler set that
 // records what the recognizer fired, in order.
 
 export interface SampleExtras {

@@ -1,10 +1,10 @@
 <!--
-  One inspector row (plan ED2D.4c4b step 5, decision 1; 2D editor spec §8 flow 3, G-e): the kit control a field's
+  One inspector row: the kit control a field's
   type maps to (`inspector-model.ts`). A stepper, toggle, segmented control or picker commits on change; text commits
   on blur or Enter, and Escape puts it back. `oncommit` is `commitField` bound to the field: when it refuses, the
   message shows under the field and the control is rebuilt from the stored value (`revision`), so what the field shows
   is always what the project holds. A `ref` shows its target's name and, where the row knows the project, picks a new
-  one in `RefPicker` (ED2D.6c).
+  one in `RefPicker`.
 -->
 <script lang="ts">
 import Button from '../widgets/Button.svelte'

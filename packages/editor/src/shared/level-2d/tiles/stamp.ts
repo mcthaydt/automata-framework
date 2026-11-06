@@ -3,7 +3,7 @@ import type { Grid } from '../model/grid'
 import type { Point } from './footprint'
 import { flipCell } from './tile-cell'
 
-// Multi-cell stamps (2D editor spec §5.9): copy a region, flip it, paste it. The marquee selection and the palette's
+// Multi-cell stamps: copy a region, flip it, paste it. The marquee selection and the palette's
 // multi-tile selection both produce one.
 
 /** A rectangle of cell words, row-major. */

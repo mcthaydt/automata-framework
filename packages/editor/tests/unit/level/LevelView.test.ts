@@ -14,7 +14,7 @@ import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Level view in jsdom (plan ED2D.4c4a step 7): the layer panel, the palette, the toolbar and what reaches the
+// The Level view in jsdom: the layer panel, the palette, the toolbar and what reaches the
 // canvas, mounted the way the app mounts it, with a stand-in canvas. The pointer itself is tested in Node (the session
 // and the gestures) and in real browsers (`level-view.canvas.test.ts`).
 
@@ -283,7 +283,7 @@ describe('Level view: shortcuts (§12)', () => {
   })
 })
 
-// The accessibility pass (ED2D.8; 2D editor spec §12: nothing is hover-only, every control is reachable and named).
+// The accessibility pass.
 describe('Level view: accessibility', () => {
   const NAMED =
     'button, [role="radio"], [role="tab"], [role="option"], [role="slider"], input, select, textarea'

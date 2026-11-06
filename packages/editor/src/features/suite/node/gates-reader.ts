@@ -1,5 +1,4 @@
-// The recorded gate decisions, read from the files each `[[gate]]` row's `records` glob names (editor suite spec
-// §4.3, §7). Read only: an editor shows a gate's state and never records one. A gate with no record is `unknown`; a
+// The recorded gate decisions, read from the files each `[[gate]]` row's `records` glob names. Read only: an editor shows a gate's state and never records one. A gate with no record is `unknown`; a
 // records file that cannot be read rejects the whole call, so the pill says "Gates not readable" rather than guess.
 import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'

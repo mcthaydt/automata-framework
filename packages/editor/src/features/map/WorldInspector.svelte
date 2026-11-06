@@ -1,10 +1,10 @@
 <!--
-  The World view's inspector (plan ED2D.6b step 6): the selected level's name, its place (X, Y, depth), its size with
+  The World view's inspector: the selected level's name, its place (X, Y, depth), its size with
   the side it grows or shrinks from, and its typed fields. Each change is one undo step through `commitEdit`; a refused
   value shows its message and the field shows what the project holds. Below the fields, the level's links and the levels
-  that link to it (ED2D.6c decision 5), then Duplicate and Remove (ED2D.8a decision 3): Remove asks first, saying how
+  that link to it, then Duplicate and Remove: Remove asks first, saying how
   many links from other levels will break, and is off on a project's last level. Resize applies at once when nothing is lost and
-  asks first, listing the cells per layer, when painted cells would fall outside (spec §13).
+  asks first, listing the cells per layer, when painted cells would fall outside.
 -->
 <script lang="ts">
 import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'

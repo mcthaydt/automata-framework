@@ -3,7 +3,7 @@ import type { TemplateDef } from '../../profile'
 import { placeholderTileset } from './placeholder-tileset'
 import { starterProject } from './starter'
 
-// The smallest start (2D editor spec §7): one tiles layer, one entities layer, one placeholder tileset and no entity
+// The smallest start: one tiles layer, one entities layer, one placeholder tileset and no entity
 // definitions. Everything else, a puzzle's pieces or a shooter's waves, is defined in the editor (acceptance G-t).
 
 export const blankTemplate: TemplateDef<Project> = {

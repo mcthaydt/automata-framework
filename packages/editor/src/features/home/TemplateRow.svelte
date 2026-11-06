@@ -1,5 +1,5 @@
 <!--
-  "Start a new project": one card for every template of every registered profile (plan ED2D.4c2a, decision 4). It
+  "Start a new project": one card for every template of every registered profile. It
   draws the cards it is given and knows no profile. While a project is being made the cards stay and are disabled, so
   the page does not jump. A card is a 48 px or taller primary action.
 -->

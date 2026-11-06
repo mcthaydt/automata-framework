@@ -1,5 +1,5 @@
 <!--
-  Two to five exclusive options in a row (kit spec §4.6), a radio group: arrows choose the next enabled option and
+  Two to five exclusive options in a row, a radio group: arrows choose the next enabled option and
   wrap, Home and End go to the ends, and only the chosen option is in the tab order. A disabled option stays
   focusable by touch and mouse: pressing it calls `onblocked` with its reason, which is also its accessible
   description. Choosing is a `set` edit event.

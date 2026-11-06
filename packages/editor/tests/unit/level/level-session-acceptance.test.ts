@@ -10,7 +10,7 @@ import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Level view's acceptance cases in Node (plan ED2D.4c4a step 5; 2D editor spec §15 G-a, G-c, G-j): the real profile,
+// The Level view's acceptance cases in Node: the real profile,
 // the kit's `History` and session, an in-memory workspace, and the session and gestures the Svelte view attaches. The
 // platformer's `level-1` is 512 × 288 on a 16 px grid; the canvas is measured at the level's size, so the camera is
 // 100 % with 24 px of padding.

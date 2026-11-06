@@ -1,5 +1,5 @@
 <!--
-  The suite's switcher (editor suite spec §10; the rail pattern of ED2D.4c4a's ViewRail): the nine entries as tabs, a
+  The suite's switcher (the same rail pattern as the document's view rail): the nine entries as tabs, a
   column beside the canvas in `wide` and the 64 px tab bar along the foot below it. One tab stop: arrow keys, Home and
   End move along it, and the focus follows the choice. Cmd or Ctrl with 1 to 9 chooses an entry in rail order from
   anywhere on the page; the chosen tab scrolls into view.

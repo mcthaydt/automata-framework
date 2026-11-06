@@ -5,7 +5,7 @@ import { ruleIssues } from '../../../tiles/autotile/rule-issues'
 import type { Diagnostic, ProjectContext } from '../../profile'
 import { diagnostic } from './diagnostics'
 
-// Checks of `defs` (2D editor spec §9, "Definitions"): tileset images, typed field definitions, auto-tile rules, and
+// Checks of `defs`: tileset images, typed field definitions, auto-tile rules, and
 // definitions nothing uses.
 
 const RULE_CODES = {

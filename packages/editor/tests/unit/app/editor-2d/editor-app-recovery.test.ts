@@ -7,7 +7,7 @@ import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.
 import { type Note, noteText, plantedProfile, savedCount } from '#src/testing/level-2d/planted-profile.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// Opening offers an autosave and restoring applies it (plan ED2D.4c1 step 4; kit spec §5 flow 4).
+// Opening offers an autosave and restoring applies it.
 
 function setup() {
   const clock = createTestClock()

@@ -3,12 +3,12 @@ import type { LevelEditorView } from '../../model/editor-view'
 import type { Background, EntityShape, Project, Size } from '../../model/project-types'
 import type { Point } from '../../tiles/footprint'
 
-// What the level canvas draws (ED2D.4c3a, 2D editor spec §8): plain data, positions in level pixels, colours as the
-// project holds them (`#rrggbb` or a kit token name, which the renderer resolves). The Pixi canvas of ED2D.4c3b turns
+// What the level canvas draws: plain data, positions in level pixels, colours as the
+// project holds them (`#rrggbb` or a kit token name, which the renderer resolves). The Pixi canvas turns
 // each item into a sprite or a rectangle and decides nothing else.
 
 /**
- * Why a tile is drawn as a numbered placeholder (spec §13, ED2D-D11): its set has no image yet, its image is not
+ * Why a tile is drawn as a numbered placeholder: its set has no image yet, its image is not
  * loaded (not imported, missing or corrupt), its index is beyond the set, or its layer names a tileset that is gone.
  */
 export type PlaceholderReason = 'placeholder' | 'missing' | 'outOfRange' | 'noTileset'
@@ -92,7 +92,7 @@ export interface Footprint extends Bounds {
   readonly erase: boolean
 }
 
-/** A link from an instance of the level (plan ED2D.6c decision 4): a chip naming the target at the source's anchor. */
+/** A link from an instance of the level: a chip naming the target at the source's anchor. */
 export interface LinkDraw {
   /** The source instance. */
   readonly id: string
@@ -119,7 +119,7 @@ export interface LevelDrawList {
   readonly links: readonly LinkDraw[]
 }
 
-/** What the canvas reads of the Level view controller's state (ED2D.4b owns it). */
+/** What the canvas reads of the Level view controller's state. */
 export type DrawView = Pick<
   LevelEditorView,
   'level' | 'layer' | 'tool' | 'brushSize' | 'hover' | 'rectangle' | 'selected' | 'hidden' | 'locked'

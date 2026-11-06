@@ -1,7 +1,7 @@
 import type { FieldDef, FieldValue, RefValue } from '../../../kit/fields/field-types.ts'
 import type { Project } from '../project-types'
 
-// What a `ref` value points at (2D editor spec §9 "Refs"; plan ED2D.6c decision 1). A field's `to` says what it may
+// What a `ref` value points at. A field's `to` says what it may
 // point at: `$level` is a level id and any other entry is an entity definition id, whose instances are found by their
 // id (ids are unique in a project). A value with a `container` must be in that level. The link checks, the reference
 // picker and both canvases read this one rule, so a link the Checks call broken is never drawn.

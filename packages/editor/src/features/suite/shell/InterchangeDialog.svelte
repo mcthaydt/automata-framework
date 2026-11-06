@@ -1,5 +1,5 @@
 <!--
-  Export and Import (editor suite spec §4.8, §9 `interchange` and `interchange-export`, §11). Export prints the
+  Export and Import. Export prints the
   listed files as one scene-interchange v2 document, TOML or JSON, in a read-only text to copy. Import takes a pasted
   or chosen document and shows its plan before anything is written: each change with its diff, the gates it reopens
   and the checks it runs, and each refusal with why. Apply is enabled only on an applicable plan and writes it as one

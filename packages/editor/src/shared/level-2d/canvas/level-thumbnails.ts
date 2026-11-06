@@ -8,7 +8,7 @@ import { createLevelScene } from './level-scene'
 import { createWebGL2Renderer } from './level-view'
 import { createTextureManager } from './textures.manager'
 
-// Home's card thumbnails (ED2D.4c3b, plan decision 9): a project's preview level drawn by the same scene builder as
+// Home's card thumbnails: a project's preview level drawn by the same scene builder as
 // the canvas, with no overlays, fitted into 96 × 96 px and handed back as a PNG data URL. One offscreen WebGL renderer,
 // made on the first request, draws one thumbnail at a time; each key (the card's file path, size and modification
 // time, and its images' modification times) is drawn once. Each draw reads its images into textures of its own and

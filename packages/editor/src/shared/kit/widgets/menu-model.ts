@@ -1,4 +1,4 @@
-// Type-ahead for menus (kit spec §4.6, the WAI-ARIA menu pattern): letters typed close together make a word and jump to
+// Type-ahead for menus: letters typed close together make a word and jump to
 // the next item that starts with it; the same letter pressed again cycles through the items that start with it.
 // Pure; the caller supplies the time.
 

@@ -1,7 +1,7 @@
 import type { FieldDef, FieldValues } from '../../../kit/fields/field-types.ts'
 import type { EntityDef2D, Level, Project } from '../project-types'
 
-// Who carries a set of typed fields (2D editor spec §5.1, §5.5): an entity definition, whose instances hold the
+// Who carries a set of typed fields: an entity definition, whose instances hold the
 // values, or the project's level fields, whose values every level holds. The field commands and the delete refusals
 // read and rewrite both the same way through here.
 

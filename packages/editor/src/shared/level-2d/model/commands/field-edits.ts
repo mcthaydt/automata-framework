@@ -6,7 +6,7 @@ import type { Project } from '../project-types'
 import type { GuardedEdit } from './def-lookup'
 import { type FieldOwner, fieldsOf, mapValues, valueHolders, withFields } from './field-owner'
 
-// Typed field edits on an entity definition or on the level fields (2D editor spec §5.5, §8 flow 5; kit §4.8, EK-j).
+// Typed field edits on an entity definition or on the level fields.
 // A field definition is checked with the kit's `checkFieldDef` and its id must be new to its owner; a problem throws
 // `RangeError` with the kit's message, so the field editor shows it and keeps the old definition. A retype that would
 // stop existing values validating refuses with the exact instances (`checkRetype`), unless told to go ahead anyway.

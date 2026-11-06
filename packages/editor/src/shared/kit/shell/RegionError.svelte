@@ -1,9 +1,9 @@
 <!--
-  What a shell region shows when its content throws (kit spec §6): a short message, the details as read-only text and a
+  What a shell region shows when its content throws: a short message, the details as read-only text and a
   Copy details action. `EditorShell` renders it from each region's error boundary, so only that region is replaced and
   the others stay usable.
 
-  Spec §6 names no fallback for Copy details, so the details are always on screen in a selectable box; when the
+  There is no fallback for Copy details, so the details are always on screen in a selectable box; when the
   clipboard is missing or refuses, the action selects that text for the system's own Copy and says so.
 
   `bar` is one row, for the top bar, the status bar and the tab bar; `block` fills a panel, inspector, dock or canvas,

@@ -11,7 +11,7 @@ import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { checkProject } from '#src/shared/level-2d/profiles/level-project/project-checks.ts'
 import { platformerTemplate } from '#src/shared/level-2d/profiles/level-project/templates/platformer.ts'
 
-// The inspector's tabs (plan ED2D.4c4b step 6, decision 2): the default tab follows the selection, the Entity tab
+// The inspector's tabs: the default tab follows the selection, the Entity tab
 // edits the one selected instance, several selected show their count with Delete and Duplicate, and the Checks tab
 // lists this level's findings, a tap selecting the object a finding is about.
 

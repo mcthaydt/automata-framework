@@ -75,7 +75,7 @@ function checkList(def: FieldDef, value: unknown): FieldValueProblem | undefined
 
 /**
  * Whether `value` fits the field: `undefined` when it does, else the first problem. It checks the value's shape
- * and the field's own rules; whether a reference resolves is the editor's check. Spec §4.8.
+ * and the field's own rules; whether a reference resolves is the editor's check.
  */
 export function checkFieldValue(def: FieldDef, value: unknown): FieldValueProblem | undefined {
   return def.list ? checkList(def, value) : checkScalar(def, value)

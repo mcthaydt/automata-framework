@@ -1,5 +1,5 @@
 <!--
-  A modal dialog over a scrim (kit spec §4.6). It is not a native `<dialog>`: it owns its focus, which is what the
+  A modal dialog over a scrim. It is not a native `<dialog>`: it owns its focus, which is what the
   editor needs on a tablet and what jsdom can test. Opening remembers the focused element and moves focus to the
   first `[data-autofocus]`, else the first tabbable element, else the dialog; Tab and Shift+Tab stay inside;
   Escape and a press on the scrim close it (unless `dismissible` is false), and closing, however it happens,

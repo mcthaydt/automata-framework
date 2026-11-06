@@ -1,5 +1,5 @@
 <!--
-  One colour as a 44 px target (kit spec §4.6); the visible chip is smaller than the box that takes the press. As a
+  One colour as a 44 px target; the visible chip is smaller than the box that takes the press. As a
   `toggle` it is a button that says whether it is on (`aria-pressed`); as an `option` it belongs to a listbox
   (`aria-selected`). `label` is what a screen reader hears, usually the hex.
 -->

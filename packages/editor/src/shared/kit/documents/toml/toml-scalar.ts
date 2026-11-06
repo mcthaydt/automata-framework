@@ -1,7 +1,7 @@
 import { formatExactNumber, JsonWriteError } from '../json/print'
 
-// How a new scalar is written into the span of the TOML literal it replaces (editor suite spec §4.4). A number is the
-// shortest text that reads back as exactly it (`formatExactNumber`; EDS.1a review, 2026-10-30), and the literal keeps
+// How a new scalar is written into the span of the TOML literal it replaces. A number is the
+// shortest text that reads back as exactly it (`formatExactNumber`), and the literal keeps
 // what it can of how it was written, so the type a schema reads does not flip and the file's quoting stays.
 
 export type TomlScalar = string | number | bigint | boolean

@@ -1,5 +1,5 @@
 <!--
-  The Tilesets view's panel (plan ED2D.5b decision 6; mockup `tileset`): the tilesets, the auto layers, the selected
+  The Tilesets view's panel: the tilesets, the auto layers, the selected
   layer's rule groups, and the selected group's rules as a strip the kit `ReorderList` reorders by its 44 px grip
   (Space lifts a row, the arrows move it, Space drops it; one drop is one undo step). Each rule row shows its pattern,
   its first output tile, its id and a summary.

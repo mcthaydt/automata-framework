@@ -1,5 +1,5 @@
 <!--
-  The Review desk (editor suite spec §5 flow 10, §9 `review-desk`): each open change set from the journal, with each
+  The Review desk: each open change set from the journal, with each
   changed file's diff from where the change set started, its checks with their findings and measures before and
   after, the gates it reopens with their recorded decisions and links, and the tokens it used. It records nothing:
   there is no button here, only links to where a decision is made. One vertical scroll region.

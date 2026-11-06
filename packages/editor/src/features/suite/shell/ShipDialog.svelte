@@ -1,5 +1,5 @@
 <!--
-  The Ship dialog (editor suite spec §5 flow 9, §9 `ship-dialog`, EDS-D10): the change set's title and a description
+  The Ship dialog: the change set's title and a description
   drafted from its changes, checks and gates, which the person edits first; the files, the checks and the gates;
   then Ship, which checkpoints, pushes the branch and opens a draft PR, or gives the compare link when `gh` is not
   there. A failing check warns and still allows Ship: the PR is a draft. A gate still needs the owner; nothing here

@@ -7,7 +7,7 @@ import { findRecovery } from '#src/shared/kit/storage/recovery.ts'
 import { openWorkspace } from '#src/shared/kit/storage/workspace.ts'
 import { describeProjectStore } from '#src/testing/kit/store-contract.ts'
 
-// What the fakes cannot prove (kit spec §4.7, §8): the storage code against the browser's real private file system
+// What the fakes cannot prove: the storage code against the browser's real private file system
 // and IndexedDB. Every test works in directories and databases of its own, removed afterwards, so a run leaves the
 // origin as it found it.
 

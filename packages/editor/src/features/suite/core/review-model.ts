@@ -1,4 +1,4 @@
-// The Review desk's model (editor suite spec §5 flow 10, §9 `review-desk`): one open change set as the desk shows it,
+// The Review desk's model: one open change set as the desk shows it,
 // read from the journal (`ChangeSet.list()`): each changed file's diff from its text before the change set first
 // wrote it to its latest, the checks with their measures before and after, the gates it reopens with their recorded
 // decisions and links, and the tokens. The desk records nothing; the Ship description is drafted from the same model.

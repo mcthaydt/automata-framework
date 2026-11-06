@@ -18,7 +18,7 @@ import {
   tilesetOf,
 } from './def-lookup'
 
-// Rule group and rule edits on an auto layer (2D editor spec §5.6, §8 flow 6). Group ids and rule ids are unique within
+// Rule group and rule edits on an auto layer. Group ids and rule ids are unique within
 // their layer (a rule's id keys its hash, so two rules with one id would roll the same dice), and a rule is addressed
 // by its id alone. A rule is checked against its layer when it changes: its outputs inside the tileset, every `is`,
 // `not` and numeric `outside` a value the source IntGrid layer defines, so the editor never writes a rule the Checks

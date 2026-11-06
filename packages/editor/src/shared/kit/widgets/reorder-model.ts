@@ -1,4 +1,4 @@
-// The arithmetic of a reorderable list (kit spec §4.6), without a DOM: which place a pointer is over, how locked
+// The arithmetic of a reorderable list, without a DOM: which place a pointer is over, how locked
 // rows constrain the answer, how the other rows shift to make room, and how fast to scroll near an edge.
 //
 // A "place" is an index in the list. Locked rows never change place: the unlocked rows permute among the unlocked

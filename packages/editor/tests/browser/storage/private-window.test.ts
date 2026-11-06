@@ -17,7 +17,7 @@ describe('the workspace in a private window (EK-f)', () => {
     expect(new TextDecoder().decode(await workspace.store.read('stage.toml'))).toBe('n = 1')
   })
 
-  // Known issue, not a product assertion (EDK.6a): Chromium 153 crashes the whole browser (SIGTRAP) when it reads
+  // Known issue, not a product assertion: Chromium 153 crashes the whole browser (SIGTRAP) when it reads
   // a directory handle back from IndexedDB in an ephemeral context, so the folder vault cannot be run in one; the
   // crash would end every other test in the run. Chromium 141 did not crash. It runs in the persistent profiles.
   test.skip('Chromium 153, ephemeral: reading a folder handle back from IndexedDB crashes the browser', () => {})

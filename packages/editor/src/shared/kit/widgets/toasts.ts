@@ -1,6 +1,6 @@
 import { type GestureClock, realClock } from '../gestures/gesture-clock'
 
-// The editor's toast queue (kit spec §4.6): a store, so the editor pushes from anywhere, with its timers taken from
+// The editor's toast queue: a store, so the editor pushes from anywhere, with its timers taken from
 // an injected clock so expiry is tested without waiting. It is a Svelte store (`subscribe` calls back at once with
 // the current list), so a component can read it as `$toasts`; `ToastRegion` draws it.
 

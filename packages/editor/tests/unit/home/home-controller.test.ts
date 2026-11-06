@@ -17,7 +17,7 @@ import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The state machine behind Home (plan ED2D.4c2a step 5), over a memory workspace, the real level project and a planted
+// The state machine behind Home, over a memory workspace, the real level project and a planted
 // second profile. The controller never navigates: it tells its owner when a document opened.
 
 type Opened = Extract<OpenOutcome, { status: 'opened' }>

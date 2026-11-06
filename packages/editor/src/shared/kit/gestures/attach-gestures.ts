@@ -23,7 +23,7 @@ const kindOf = (pointerType: string): PointerKind =>
   pointerType === 'touch' || pointerType === 'pen' ? pointerType : 'mouse'
 
 /**
- * Feeds an element's Pointer Events and wheel to a recognizer (editor kit spec §4.5). Sets `touch-action: none` and
+ * Feeds an element's Pointer Events and wheel to a recognizer. Sets `touch-action: none` and
  * stops text selection and the touch callout while attached; captures every pointer that presses so a drag that
  * leaves the element still arrives. Returns the teardown: it releases every captured pointer, removes the listeners
  * and restores the style, and nothing fires after it, not even a cancelled end.

@@ -1,7 +1,6 @@
 import type { Problem, SaveOutcome } from '../storage/document-session'
 
-// The toasts of the document session's flows (kit spec §5 flows 3 and 4; moved from editor-2d's `open-flow-model.ts`
-// in ED3D.5c): a failed save, a copy, an autosave that stopped or could not be read, a reload. Both editors say these.
+// The toasts of the document session's flows: a failed save, a copy, an autosave that stopped or could not be read, a reload. Both editors say these.
 
 const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 

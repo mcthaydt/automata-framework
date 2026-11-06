@@ -16,7 +16,7 @@ import { applyOverrides, autoTiles } from '../../tiles/autotile/auto-tiles'
 import { compileRules } from '../../tiles/autotile/match'
 import type { ContentLevel, ContentProject, ContentRows, ContentWorld } from './content.schema'
 
-// The AF content export (2D editor spec §6.2): `project.toml` (the definitions a game needs), one `levels/<id>.toml`
+// The AF content export: `project.toml` (the definitions a game needs), one `levels/<id>.toml`
 // per level and `world.toml`. Generated, write-only and deterministic: the same project always prints the same bytes,
 // and a header comment says the files are not to be edited. An auto layer is exported as its resolved tiles, so a game
 // needs no rule engine. The files are validated against `content.schema.ts` in the tests.

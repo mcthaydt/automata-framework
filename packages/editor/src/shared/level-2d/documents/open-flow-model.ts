@@ -1,7 +1,7 @@
 import type { ParseError, Profile } from '../profiles/profile'
 import type { OpenOutcome } from './editor-app'
 
-// What the open flows decide before anything is drawn (plan ED2D.4c2b, decisions 1 to 3, 5 and 6): which outcome of
+// What the open flows decide before anything is drawn: which outcome of
 // opening a file gets the error panel, what the panel says and which lines of the file it shows, and the words of the
 // recovery and save flows. The panel never reads an error's code: a newer file or unknown keys are worded by the
 // profile that refused them, so the app stays profile-blind (G-s).
@@ -15,7 +15,7 @@ export type PanelOutcome =
 export type ChoiceOutcome = Extract<OpenOutcome, { readonly status: 'choose' }>
 
 const MEGABYTE = 1024 * 1024
-/** The editor's file limit (spec §13), as the panel words it. */
+/** The editor's file limit, as the panel words it. */
 const LIMIT_MB = 16
 /** How many lines the text view draws at most: enough to read around an error, few enough for a tablet. */
 const WINDOW_LINES = 400

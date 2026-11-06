@@ -1,7 +1,7 @@
 import { Grid } from './grid'
 import type { LayerDef, LayerInstance, Size } from './project-types'
 
-// The empty layers of a new level (2D editor spec §5.1): a level holds one instance of every layer definition, in the
+// The empty layers of a new level: a level holds one instance of every layer definition, in the
 // definitions' order, so a template and `addLevel` both start from here.
 
 /** The seed a new auto layer starts at; "re-roll variation" replaces it. */

@@ -9,7 +9,7 @@ import { createSuite } from '#src/features/suite/shell/create-suite.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
-// Ship, the Review desk, Export and Import inside the suite (editor suite spec §5 flows 9 to 11, EDS-j, EDS-o), with the
+// Ship, the Review desk, Export and Import inside the suite, with the
 // fixture editor over memory ports.
 const TUNING = 'content/tuning.toml'
 const START = 'MAX_MOVE_SPEED = 7\n'

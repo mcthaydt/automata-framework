@@ -1,7 +1,7 @@
 import type { z } from 'zod'
 import type { AutoLayerDef, Definitions, LayerDef, Project, TilesetDef } from '../project-types'
 
-// What the definition commands share (2D editor spec §5.8): finding a definition by id, replacing one so that an edit
+// What the definition commands share: finding a definition by id, replacing one so that an edit
 // that changes nothing gives back the same project, checking a shape with the file schema's own rules, and moving one
 // item of a list. A missing id is a programmer error and throws `RangeError`, as in the level edits.
 

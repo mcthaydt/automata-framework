@@ -1,4 +1,4 @@
-// The picker's lists (kit spec §4.6): filtering by what was typed and grouping under headings. Pure.
+// The picker's lists: filtering by what was typed and grouping under headings. Pure.
 
 export interface PickerOption {
   readonly id: string

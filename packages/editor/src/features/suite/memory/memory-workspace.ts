@@ -1,6 +1,6 @@
-// The in-memory suite workspace (editor suite spec §4.3): a kit memory store behind the editor list's policy. The
+// The in-memory suite workspace: a kit memory store behind the editor list's policy. The
 // policy comes in as functions (editor-suite's `workspaceFile` bound to a loaded list, in the suite and in the
-// contract run), so the list's globs, `never` and `generated` have one owner (EDS.1c) and are never copied here: a
+// contract run), so the list's globs, `never` and `generated` have one owner and are never copied here: a
 // path no row matches is refused, a read-only file is refused with its reason, a path outside the root reads as
 // nothing, and `remove` takes only a file the open change set created.
 

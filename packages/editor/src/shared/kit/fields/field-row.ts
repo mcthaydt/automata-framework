@@ -1,4 +1,4 @@
-// What a field form shows for one typed field (kit spec §4.8): the kit control that edits it, with its bounds and its
+// What a field form shows for one typed field: the kit control that edits it, with its bounds and its
 // options. Both editors' forms use it (moved from editor-2d's Level inspector, plan "field form and journeys" A1); a `ref`
 // row also carries what the value is called and what it may point at, which the editor that knows its level fills in.
 import type { FieldDef, FieldType, FieldValue, RefValue } from './field-types'

@@ -2,9 +2,9 @@ import type { RefValue } from '../../kit/fields/field-types.ts'
 import type { IdSource } from '../model/ids'
 import type { Project } from '../model/project-types'
 
-// What a document type plugs into the editor (2D editor spec §7). The editor lists the documents of every registered
+// What a document type plugs into the editor. The editor lists the documents of every registered
 // profile on Home, opens one with the profile that `sniff`s it (and asks when two do), shows the profile's views on the
-// rail and runs its checks. `level-project` is built in (ED2D.3); a game can register more.
+// rail and runs its checks. `level-project` is built in; a game can register more.
 //
 // The members that take a value are declared as methods, which TypeScript checks bivariantly, so a `Profile<Stage>` is
 // a `Profile<unknown>` and registers without a cast. The registry never calls them: the app pairs a profile's own
@@ -84,7 +84,7 @@ export interface ProfileSummary {
 }
 
 /**
- * The level a Home card draws as the document's thumbnail (ED2D.4c3b): a level of a level project. It names the
+ * The level a Home card draws as the document's thumbnail: a level of a level project. It names the
  * level-project `Project` type because the card is drawn by the level canvas, which draws nothing else; a profile whose
  * documents are not level projects leaves `preview` out until it has a picture of its own.
  */
@@ -110,7 +110,7 @@ export interface Profile<V> {
    * the value it came from; absent when the profile offers no repair.
    */
   fix?(value: V, diagnostic: Diagnostic, context: ProjectContext): V
-  /** The targets a `choose-target` finding may point at, which `fix` cannot take (plan ED2D.7a decision 3). */
+  /** The targets a `choose-target` finding may point at, which `fix` cannot take. */
   choices?(value: V, diagnostic: Diagnostic): readonly TargetChoice[]
   /** Points the finding's reference at `choice` and returns the next value. */
   choose?(value: V, diagnostic: Diagnostic, choice: TargetChoice): V

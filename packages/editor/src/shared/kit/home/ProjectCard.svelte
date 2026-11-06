@@ -1,9 +1,9 @@
 <!--
-  One project in the list (plan ED2D.4c2a; moved into the kit in ED3D.5c): a tile with the project's initial in its
+  One project in the list: a tile with the project's initial in its
   kind's accent, the title with its badge, the kind and the file's size and age, and the path with the folder shortened
   before the file name. It draws a `HomeCard`, which each editor makes from its own list item. It is an option of the
   list's listbox, not a focusable control: the list owns the keys and the focus (`aria-activedescendant`).
-  When the card has a preview and it draws (ED2D.4c3b), the tile shows that image instead of the initial; the image is
+  When the card has a preview and it draws, the tile shows that image instead of the initial; the image is
   decorative, since the title names the project.
 -->
 <script lang="ts">

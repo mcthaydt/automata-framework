@@ -1,7 +1,7 @@
 import type { ProjectStore } from '../../shared/kit/storage/project-store.ts'
 import type { Profile } from '../../shared/level-2d/profiles/profile'
 
-// What the Export view shows and allows (plan ED2D.7b; 2D editor spec §8 flow 9, ED2D-D12). Pure: the profile's targets
+// What the Export view shows and allows. Pure: the profile's targets
 // with their files and sizes, the files of the chosen targets, and what each action may do. Errors never stop a
 // download, a share or a copy; only writing into a game folder waits until Checks has no errors.
 

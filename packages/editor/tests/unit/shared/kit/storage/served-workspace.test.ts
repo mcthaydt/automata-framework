@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { openServedWorkspace } from '#src/shared/kit/storage/workspace.ts'
 
-// Opening the editor from `automata editor` (ED3D.14): the page asks the server it came from whether it is one, and
+// Opening the editor from `automata editor`: the page asks the server it came from whether it is one, and
 // takes the checkout as its workspace; otherwise it is a plain page and the editor opens its own storage as before.
 
 const json = (body: unknown, status = 200): Response =>

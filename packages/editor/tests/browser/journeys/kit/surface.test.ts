@@ -8,7 +8,7 @@ import { IPAD_PROFILES } from '#src/testing/kit/ipad-profiles.ts'
 import JourneyFixture, { type JourneyState } from '#src/testing/kit/JourneyFixture.svelte'
 import { createPointers } from '#src/testing/kit/pointers.ts'
 
-// EK-b and EK-i (kit spec §9) on the fixture's gesture surface, on an iPad 11" in landscape.
+// EK-b and EK-i on the fixture's gesture surface, on an iPad 11" in landscape.
 
 let mounted: MountedFixture | undefined
 afterEach(async () => {

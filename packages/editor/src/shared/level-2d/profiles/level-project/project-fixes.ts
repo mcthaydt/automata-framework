@@ -7,7 +7,7 @@ import { tilesetTiles } from '../../model/tileset-grid'
 import { setLevelField } from '../../model/world/level-edits'
 import type { Diagnostic, TargetChoice } from '../profile'
 
-// The level-project profile's repairs (plan ED2D.7a decisions 1 to 3; 2D editor spec §7 `fix`, §9): the name a
+// The level-project profile's repairs: the name a
 // finding carries turned into one returned project, which the app applies as one undo step. `remove` clears what
 // `tileOutOfRange` and `cellValueUnknown` count, `move-inside` clamps an anchor into its level, `delete` removes an
 // instance whose definition is gone. `choose-target` needs a choice, so the Checks view handles it, not this. A

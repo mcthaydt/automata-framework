@@ -1,11 +1,9 @@
-# The Last Light's editor list for its Bay scene, converted AF-side (editor suite spec §8, decision 8: the game is
-# never edited). Source: mcthaydt/PixiJS3D_Experiment_001 editor.manifest.json at 92e6704, its gate records
-# (docs/**/gates.json, each gate's `stage`) and editor/src/server/checks.ts `checksFor` (the free pipe command each
-# manifest check maps to). Converted: TypeScript scene files become the AF content files of spec §2's table (as the
-# M6 converters write them), `literal`/`claude` modes become `edit`/`ask`, and each check becomes a declared argv.
-# The blockout stays The Last Light's own format, which the 3D level editor edits (ED3D §4.5). Q-FEEL and Q-AUD are
-# named by the manifest but have no record at 92e6704, so their `records` are where the pipelines would write them
-# and the gate pill reads their state as unknown.
+# A 3D game's editor list for its Bay scene, converted AF-side (the game is never edited): its gate records
+# (docs/**/gates.json, each gate's `stage`) and the free pipe command each manifest check maps to. Converted:
+# TypeScript scene files become the AF content files, `literal`/`claude` modes become `edit`/`ask`, and each check
+# becomes a declared argv. The blockout stays the game's own format, which the 3D level editor edits. Q-FEEL and Q-AUD
+# are named by the manifest but have no record, so their `records` are where the pipelines would write them and the gate
+# pill reads their state as unknown.
 format = "af-editors/1"
 scenes = "content/scenes/{scene}/"
 generated = [

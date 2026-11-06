@@ -41,7 +41,7 @@ export interface Autosave {
 }
 
 /**
- * Keeps a journal of the document beside the real file (kit spec §4.7): every committed history step restarts a
+ * Keeps a journal of the document beside the real file: every committed history step restarts a
  * debounce, and when it ends the document's snapshot is written. It follows `history.revision`, which only moves on
  * committed steps, so a drag writes nothing until it is committed. One write runs at a time, in order, so the last
  * state always wins and `clear` can never be overtaken by an older write.

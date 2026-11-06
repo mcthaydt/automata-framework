@@ -1,4 +1,4 @@
-// Colours for Pixi (ED2D.4c3b, plan decision 6). The project holds a colour as `#rrggbb` or as a kit token name
+// Colours for Pixi. The project holds a colour as `#rrggbb` or as a kit token name
 // (`layer/entities`); the token's value is the page's CSS custom property `--color-layer-entities`, read through
 // `readVar` (in the app, `getComputedStyle(element).getPropertyValue`). Anything that cannot be read draws in a neutral
 // grey rather than failing: the Checks report a bad colour, and the canvas only has to stay honest about it.

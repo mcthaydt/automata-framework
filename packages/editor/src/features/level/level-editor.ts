@@ -20,7 +20,7 @@ import type {
 } from '../../shared/level-2d/model/project-types'
 import { brushCells, lineCells, type Point } from '../../shared/level-2d/tiles/footprint'
 
-// The Level view's logic (2D editor spec §5.9, §8): what the toolbar and the palette have chosen, and what a pointer
+// The Level view's logic: what the toolbar and the palette have chosen, and what a pointer
 // does to the project through the edit commands, one `History` step per gesture. No Svelte, DOM or Pixi in here: the
 // view reads `view`, calls the setters and forwards pointer events in level pixels. The project itself stays in the
 // history, which the controller reads at every event, so undo and redo need nothing from it.
@@ -291,7 +291,7 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
     }
   }
 
-  /** Only the brush works on an objects layer so far: picking an object needs a hit test, which comes with ED2D.4d. */
+  /** Only the brush works on an objects layer so far: picking an object needs a hit test, which is not built yet. */
   function downOnObjects(def: ObjectsLayerDef, at: Point): void {
     if (view.tool !== 'brush') return
     const tile = unpackTile(view.word)

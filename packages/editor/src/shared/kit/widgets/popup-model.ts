@@ -1,4 +1,4 @@
-// Where a popover goes (kit spec §4.6): under its trigger if it fits, above it if that has clearly more room, never
+// Where a popover goes: under its trigger if it fits, above it if that has clearly more room, never
 // off the screen. Pure, so the rules are tested without a layout engine; the popup reads the rectangles.
 
 export interface Rect {

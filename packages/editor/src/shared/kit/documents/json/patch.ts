@@ -1,7 +1,7 @@
-// The diff of ED3D spec §4.5: turns "this text, and the model it parses to, is now that model" into the edits the
+// The diff: turns "this text, and the model it parses to, is now that model" into the edits the
 // change needs and nothing more, applied through the structure edits so every unchanged byte stays where it is.
-// Last Light has no equivalent: its editor edits spans live, one command at a time, while this one diffs whole models
-// because the kit's History keeps snapshots (ED3D-D4). The layout rules for what an insert looks like are Last
+// the adventure source has no equivalent: its editor edits spans live, one command at a time, while this one diffs whole models
+// because the kit's History keeps snapshots. The layout rules for what an insert looks like are Last
 // Light's (structure.ts).
 import { type JsonPath, JsonScanError, scan } from './locate'
 import { BLOCKOUT_NUMBERS, JsonWriteError, type NumberStyle } from './print'
@@ -330,8 +330,7 @@ export function verifyPatched(
  * Turns `text` into the text of `after`, given `before`, the model `text` parses to. Only what differs between the two
  * models is written; every other byte of the file stays. Numbers are written in `rules.numbers`' style: by default with
  * at most 4 decimals (`print.ts`), so the saved file can differ from `after` by less than 0.00005; with
- * `EXACT_NUMBERS`, exactly. A refusal carries a path and a reason and no text; what
- * each reason means is in spec §4.5.
+ * `EXACT_NUMBERS`, exactly. A refusal carries a path and a reason and no text; the reasons are the cases below.
  */
 export function patchJson(text: string, before: unknown, after: unknown, rules: PatchRules): PatchResult {
   try {

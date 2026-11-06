@@ -18,10 +18,10 @@ import type { ParseError, Profile, ProfileRegistry, Result } from '../profiles/p
 import { listProjects, type ProjectEntry } from './project-list'
 import { readDocument } from './read-document'
 
-// The editor's session over a workspace (2D editor spec §4, §8; kit spec §4.7 and §5): creating a document from a
+// The editor's session over a workspace: creating a document from a
 // template, opening a file with the profile that claims it, and keeping it saved. Plain TypeScript with no Svelte, so
-// the views of ED2D.4c2 to 4c4 and the tests use the same object. Nothing here names a profile: the registry says which
-// ones exist, and the first export of each is its working file (decision 2 of the ED2D.4c1 plan).
+// the views and the tests use the same object. Nothing here names a profile: the registry says which
+// ones exist, and the first export of each is its working file.
 
 /** One open document: the profile, its history and its save flow. The value type is the profile's; the view that knows it narrows it. */
 export interface OpenDocument {
@@ -35,7 +35,7 @@ export interface OpenDocument {
   /** Save as copy: the first unused `name copy.ext`; the document keeps its own path. */
   saveCopy(): Promise<SaveOutcome>
   /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
-  /** The text the document was loaded or last saved as, which a profile's export targets patch (plan ED2D.7b). */
+  /** The text the document was loaded or last saved as, which a profile's export targets patch. */
   base(): string
   restore(recovery: Recovery): Result<true, readonly ParseError[]>
   discardRecovery(): Promise<void>

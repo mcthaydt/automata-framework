@@ -1,5 +1,5 @@
-// The game's editor list, `content/editors.toml`, format `af-editors/1` (editor suite spec §4.2, EDS-D6). The model
-// is The Last Light's `editor.manifest.json` (92e6704) as TOML: file rows (glob, editor, modes, gates, checks), the
+// The game's editor list, `content/editors.toml`, format `af-editors/1`. The model
+// is the adventure source's `editor.manifest.json` as TOML: file rows (glob, editor, modes, gates, checks), the
 // game's checks and gates, and the generated and never globs. The game owner writes it; the suite only reads it and
 // can never write it (workspace-policy.ts), so it cannot widen its own allowlist.
 //
@@ -12,7 +12,7 @@ import type { CheckDef, EditMode } from '../kit/ports/suite-ports.ts'
 /** Where a game keeps its editor list, relative to the game root. */
 export const EDITOR_LIST_PATH = 'content/editors.toml'
 
-/** The one format this suite reads (spec §4.2). */
+/** The one format this suite reads. */
 export const EDITOR_LIST_FORMAT = 'af-editors/1'
 
 /** A row's modes and a `[[check]]` are the ports' own shapes (editor-kit `./ports`, one owner): the list maps onto them. */

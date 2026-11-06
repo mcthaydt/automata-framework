@@ -12,7 +12,7 @@ import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 import platformer from '#src/testing/suite/fixtures/platformer.af2d.json?raw'
 import StandInLevelCanvas from '#src/testing/suite/StandInLevelCanvas.svelte'
 
-// The 2D level editor mounted in the suite (editor suite spec §4.7, EDS-D12, §13 EDS-k): the suite's one shell holds its
+// The 2D level editor mounted in the suite: the suite's one shell holds its
 // regions, and a switch to the Tuner and back keeps the level's selection and its own Undo. `platformer.af2d.json` is the
 // platformer template as its canonical printer writes it (counter ids). The 3D editor's twin of this test is in
 // editor-3d, which owns that editor.

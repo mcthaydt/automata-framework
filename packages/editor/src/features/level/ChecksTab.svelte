@@ -1,7 +1,6 @@
 <!--
-  The inspector's Checks tab (plan ED2D.4c4b step 6; 2D editor spec §8, the Level row): the profile's findings about
-  this level, read only, in the profile's order. A finding about an instance is a 44 px button that selects it; fixes
-  come with ED2D.7a.
+  The inspector's Checks tab: the profile's findings about
+  this level, read only, in the profile's order. A finding about an instance is a 44 px button that selects it; fixes are not offered here yet.
 -->
 <script lang="ts">
 import type { CheckRow } from './inspector-model'

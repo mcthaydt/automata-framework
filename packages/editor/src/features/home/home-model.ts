@@ -5,10 +5,10 @@ import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../../shared/level
 import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
 
-// What the 2D editor's Home decides before anything is drawn (plan ED2D.4c2a, decisions 3 to 8): how an entry reads on
+// What the 2D editor's Home decides before anything is drawn: how an entry reads on
 // its card, the template cards and the message for each way an action can end. Plain functions of the list and the
 // registry, so the components only show what they return and Node tests cover all of it. The search, the selection,
-// the ages, sizes and storage notes are the kit's (`editor-kit/core`, moved there in ED3D.5c), shared with editor-3d.
+// the ages, sizes and storage notes are the kit's (`shared/kit/home`), shared with editor-3d.
 
 const plural = (count: number, one: string, many: string): string => `${count} ${count === 1 ? one : many}`
 const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
@@ -59,7 +59,7 @@ export function searchWords(entry: ProjectEntry): readonly string[] {
 
 /**
  * The kit's card for an entry. An undecided file has no kind yet, so no accent: its tile and pill are neutral. With
- * `thumbnails` (ED2D.4c3b), an entry whose profile names a level to preview draws it in the tile; the key changes with
+ * `thumbnails`, an entry whose profile names a level to preview draws it in the tile; the key changes with
  * the file (path, size, time) and with its images, so the tile redraws after either changes.
  */
 export function homeCard(

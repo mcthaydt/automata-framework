@@ -1,5 +1,5 @@
 <!--
-  The top bar's pills (editor suite spec §5 flows 6 and 7, §9 `suite-home`, §10, §11): the change set, the checks and
+  The top bar's pills: the change set, the checks and
   the reopened gates. Each is a 44 px button that opens its list below it; Escape closes the list. In the `short` tier
   (`compact`) each is an icon with its count, never hidden, and its label stays its accessible name. A check's first
   finding has Locate; a gate shows its recorded decision and link and nothing that records one.

@@ -11,7 +11,7 @@ import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Tilesets view with the production CSS in a real browser (plan ED2D.5b step 8; 2D editor spec §12), at the kit's
+// The Tilesets view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never
 // scrolling, the 44 px pattern cells and the inspector's Duplicate and Delete reachable, and the rule strip's rows
 // full-size targets inside the window (below wide, from the Rules and Inspector drawers). The editor starts as

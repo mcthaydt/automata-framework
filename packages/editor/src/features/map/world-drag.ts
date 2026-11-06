@@ -4,7 +4,7 @@ import { moveLevelInWorld } from '../../shared/level-2d/model/world/level-placem
 import { dragPosition, levelAt, toWorld, worldRects } from '../../shared/level-2d/model/world/world-model'
 import type { Point } from '../../shared/level-2d/tiles/footprint'
 
-// A press and drag on the World view's map (plan ED2D.6b step 5; spec §8 flow 7). A press picks the topmost level
+// A press and drag on the World view's map. A press picks the topmost level
 // under the pointer and selects it (or clears the selection on empty space); moving drags it live inside one
 // transaction, so the release is one undo step and a cancelled pointer puts it back. A press that never moves only
 // selects. The world's layout snaps or reorders through `moveLevelInWorld`.

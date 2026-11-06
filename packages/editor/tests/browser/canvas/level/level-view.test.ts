@@ -16,8 +16,7 @@ import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
 
-// The Level view with the real Pixi canvas and real pointer events (plan ED2D.4c4a step 10; 2D editor spec §5.9, §13,
-// §15 G-j), in Chromium and in WebKit, the iPad's engine, at the iPad 11" landscape size: the canvas draws, a pen
+// The Level view with the real Pixi canvas and real pointer events, in Chromium and in WebKit, the iPad's engine, at the iPad 11" landscape size: the canvas draws, a pen
 // stroke paints cells as one undo step, a touch stroke the system cancels leaves nothing, and a two-finger tap undoes.
 // Points are found from the drawn level's own box, so the test does not depend on the fitted zoom.
 

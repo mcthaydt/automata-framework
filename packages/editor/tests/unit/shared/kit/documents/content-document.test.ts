@@ -9,8 +9,8 @@ import {
 import type { KeyPath } from '#src/shared/kit/documents/key-path.ts'
 import { DOCUMENT_FIXTURES, loadDocumentFixture } from '#src/shared/kit/documents/testing/fixtures.ts'
 
-const TUNING = loadDocumentFixture('floorfifty-tuning.toml')
-const JUICE = loadDocumentFixture('floorfifty-juice.toml')
+const TUNING = loadDocumentFixture('platformer-tuning.toml')
+const JUICE = loadDocumentFixture('platformer-juice.toml')
 const FLOW = loadDocumentFixture('af-flow.toml')
 const MESSAGES = loadDocumentFixture('af-messages-fr.json')
 
@@ -87,7 +87,7 @@ describe('openDocument', () => {
     })
   }
 
-  it("EDS-a, EDS-b: FloorFifty's tuning.toml round-trips, and MAX_MOVE_SPEED's edit is that number's span", () => {
+  it("EDS-a, EDS-b: the arcade source's tuning.toml round-trips, and MAX_MOVE_SPEED's edit is that number's span", () => {
     const document = openDocument('content/tuning.toml', TUNING)
     expect(edited(document.edit([])).text).toBe(TUNING)
     const after = edited(document.edit([{ keyPath: ['MAX_MOVE_SPEED'], expected: 356, set: 400 }]))

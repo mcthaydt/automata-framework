@@ -1,5 +1,5 @@
 <!--
-  Shown in place of the project list when the workspace cannot be listed (plan ED2D.4c2a, failure table; moved into the kit in ED3D.5c). The sources
+  Shown in place of the project list when the workspace cannot be listed. The sources
   panel and whatever the editor shows beside it stay usable; Retry reads the workspace again.
 -->
 <script lang="ts">

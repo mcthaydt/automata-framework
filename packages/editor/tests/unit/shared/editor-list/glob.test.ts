@@ -54,8 +54,8 @@ describe('globMatch', () => {
     expect(globMatch('content/tuning.toml', 'content/tuning.toml')).toEqual({})
   })
 
-  // The Last Light's policy cases (editor/tests/policy.test.ts at 92e6704) on its manifest's globs.
-  it("matches The Last Light's manifest globs as its guard does", () => {
+  // the adventure source's policy cases (editor/tests/policy.test.ts) on its manifest's globs.
+  it("matches the adventure source's manifest globs as its guard does", () => {
     expect(matches('src/scenes/*/cutscenes.ts', 'src/scenes/bay/cutscenes.ts')).toBe(true)
     expect(matches('src/scenes/*/level.ts', 'src/scenes/bay/level.ts')).toBe(true)
     expect(matches('docs/narrative/*-script.md', 'docs/narrative/act-two-script.md')).toBe(true)

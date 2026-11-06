@@ -5,7 +5,7 @@ import type { ReviewChangeSet } from '#src/features/suite/core/review-model.ts'
 import { lineDiff } from '#src/features/suite/core/text-diff.ts'
 import ReviewDesk from '#src/features/suite/shell/ReviewDesk.svelte'
 
-// The `review-desk` frame (editor suite spec §5 flow 10, §9): the open change sets with each file's diff, the checks
+// The `review-desk` frame: the open change sets with each file's diff, the checks
 // and measures, the gates with their links and the tokens. It records nothing.
 const REVIEW: ReviewChangeSet = {
   title: 'Faster',

@@ -1,17 +1,17 @@
 import { describe, expect, test } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
-import floorfiftyList from '#src/features/suite/memory/floorfifty.editors.toml?raw'
 import { createMemoryPorts } from '#src/features/suite/memory/memory-ports.ts'
+import sampleList from '#src/features/suite/memory/platformer.editors.toml?raw'
 import { createSuiteSession } from '#src/features/suite/shell/suite-session.ts'
 
 const TUNING = 'content/tuning.toml'
 const FILES = {
-  [EDITOR_LIST_PATH]: floorfiftyList,
+  [EDITOR_LIST_PATH]: sampleList,
   [TUNING]: 'MAX_MOVE_SPEED = 356.0\n',
 }
 
 async function setup(options: { changeSet?: false; gh?: boolean } = {}) {
-  const load = loadEditorList(floorfiftyList)
+  const load = loadEditorList(sampleList)
   if (!load.ok) throw new Error('fixture list does not load')
   const memory = await createMemoryPorts({
     files: FILES,

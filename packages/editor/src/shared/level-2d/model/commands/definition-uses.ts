@@ -13,7 +13,7 @@ import {
   withFields,
 } from './field-owner'
 
-// Deleting a definition that is in use (2D editor spec §8 flow 5, §13; acceptance G-f). `definitionUses` lists what
+// Deleting a definition that is in use. `definitionUses` lists what
 // the delete would take with it, so the refusal dialog names the exact instances; `deleteDefinition` refuses with
 // that list, and with `anyway` ("Delete anyway") removes the definition and its uses in one returned project, which
 // the app applies as one `History` step. A definition nothing uses is deleted without asking.

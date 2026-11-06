@@ -1,7 +1,7 @@
 <!--
-  The Level view's toolbar (plan ED2D.4c4a decision 4; 2D editor spec §5.9, §8, §12): the tool in plain words, the
+  The Level view's toolbar: the tool in plain words, the
   brush size while a brush or the eraser is out, Fit (the whole level in view), below `wide` Layers and Inspector,
-  which open the panel and the inspector, and Levels where the dock is a sheet (ED2D.4c4b decision 4). One row over
+  which open the panel and the inspector, and Levels where the dock is a sheet. One row over
   the canvas that scrolls sideways on a narrow screen rather than shrinking a control under 44 px.
 -->
 <script lang="ts">

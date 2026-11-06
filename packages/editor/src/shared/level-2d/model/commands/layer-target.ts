@@ -1,6 +1,6 @@
 import type { LayerDef, LayerInstance, Level, Project } from '../project-types'
 
-// Where a level edit lands (2D editor spec §5.8): a level and one of its layers, by id. Every command in this folder
+// Where a level edit lands: a level and one of its layers, by id. Every command in this folder
 // goes through `updateLayer`, so there is one lookup, one error and one way to rebuild the path to the layer.
 
 export interface LayerTarget {
