@@ -71,11 +71,15 @@ export function headForm(m: Measure, s: Skeleton): HeadForm {
   // Depths in half-depths: `z` from the face's set (genes.faceAhead; the face's front at 1), `back` from the cranium's.
   const z = (u: number) => hd * (g.faceAhead + u), back = (u: number) => hd * (g.faceAhead * 0.5 + u);
   const chin = lerp(0.22, 0.34, F.chin), jaw = lerp(0.6, 0.84, F.jaw), cheek = lerp(0.88, 1, F.cheekWidth), cheekT = lerp(0.34, 0.44, F.cheekHeight);
-  const width = curve([[0, 0], [0.03, chin * 0.8], [0.08, chin], [0.14, lerp(chin, jaw, 0.6)], [0.21, jaw], [0.29, lerp(0.84, 0.94, F.width)],
+  // Fat fills the jaw's underside (genes.ts Measure.fat.chin): the width under the chin grows, and the front a little
+  // forward of the chin's point (which stays), so a heavy chin meets the neck in a curve, not a corner.
+  const full = m.fat.chin;
+  const width = curve([[0, 0], [0.03, chin * 0.8 * full], [0.08, chin * full], [0.14, lerp(chin, jaw, 0.6) * full], [0.21, jaw], [0.29, lerp(0.84, 0.94, F.width)],
     [cheekT, cheek], [0.5, 0.95], [0.62, 0.97], [0.72, 0.95], [0.82, 0.87], [0.9, 0.7], [0.96, 0.44], [1, 0]].map(([t, w]) => [t, w * hw]));
   const crown = (z(0.22) + back(-0.45)) / 2, point = z(0.7) - 0.04 * hd * F.chin;
   // The profile: the chin, the hollow under the lower lip, the lips, the philtrum, the eyes set in, the brow, the forehead.
-  const front = curve([[0, point], [0.03, z(0.9)], [0.07, z(0.95 + 0.04 * F.chin)], [0.11, z(0.93)], [0.15, z(0.98 + 0.04 * F.lips)], [0.19, z(0.99 + 0.04 * F.lips)],
+  const under = (v: number) => (full === 1 ? v : point + (v - point) * full);
+  const front = curve([[0, point], [0.03, under(z(0.9))], [0.07, under(z(0.95 + 0.04 * F.chin))], [0.11, z(0.93)], [0.15, z(0.98 + 0.04 * F.lips)], [0.19, z(0.99 + 0.04 * F.lips)],
     [0.24, z(0.97)], [0.32, z(0.99)], [0.42, z(0.97)], [0.48, z(0.92)], [0.56, z(0.98)], [0.68, z(0.94)], [0.8, z(0.8)], [0.9, z(0.55)], [0.97, z(0.22)], [1, crown]]);
   const backOf = curve([[0, point], [0.04, z(0.5)], [0.1, z(0.1)], [0.18, back(-0.3)], [0.26, back(-0.62)], [0.36, back(-0.86)], [0.5, back(-0.98)],
     [0.62, back(-1.04)], [0.74, back(-1.02)], [0.84, back(-0.9)], [0.92, back(-0.68)], [0.97, back(-0.42)], [1, crown]]);

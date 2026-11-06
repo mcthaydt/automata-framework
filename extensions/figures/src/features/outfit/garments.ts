@@ -1,6 +1,6 @@
 import { J, type Side, type Skeleton } from '../body/rig';
 import { apply, axisAngle, compose, lerp, smooth, sub, type V3 } from '../../lib/math';
-import { GROUP, limb, placed, superquadric, weights, type Decal, type Limb, type Material, type Part, type Superquadric } from '../body/parts';
+import { GROUP, limb, placed, superquadric, weights, type Decal, type Limb, type Material, type Part, type Ring, type Superquadric } from '../body/parts';
 import type { HeadShape, Measure } from '../body/genes';
 import { FACE_SEAM, tonesOf } from '../paint/paint';
 import swatchLibrary from './library/swatches.json';
@@ -200,6 +200,9 @@ export const TRAPEZIUS = 0.6;
 /** The tag on the body's neck part: the raster's neckline rule (paint/raster.ts `neckline`) finds it by this, so a texel
  * of neck poking down into a top's collar joins the top. A tag changes no pixel and no part order. */
 export const NECK = 'neck';
+/** Fat's fullness: each ring of a profile grown by its own class (genes.ts `Measure.fat`), its placement unchanged. A
+ * class of exactly 1 (fat 0) leaves the ring as it was. */
+const fatten = (rings: Ring[], by: number[]): Ring[] => rings.map((r, i) => ({ ...r, rx: r.rx * by[i], rz: r.rz * by[i] }));
 /** One stretch of a skinned limb in rest figure space: the profile cut to [hi, lo], painted `material`. */
 function stretch(material: string, group: number, o: Limb, hi: number, lo: number, skin: (x: number, y: number, z: number) => [number, number][]): Part {
   const mesh = limb({ ...o, span: [hi, lo] });
@@ -218,7 +221,7 @@ const across = (upper: number, lower: number, y: number, soft: number) => (py: n
  * cut ring to ring, so a sleeve's end is a material's edge on an unbroken form.
  */
 function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number): Part[] {
-  const g = s.genes, k = m.k, t = m.thick, fw = m.foot, foot = g.foot, hand = m.hand;
+  const g = s.genes, k = m.k, t = m.thick, fw = m.foot, foot = g.foot, hand = m.hand, fat = m.fat;
   const f = m.sliders.frame, mu = lerp(0.92, 1.1, m.sliders.muscle), D = k * t * m.depth;
   const a = k * t * m.arm * mu * lerp(1.04, 0.94, f), l = k * t * m.leg * lerp(0.96, 1.04, f), sh = g.shoulders, C = m.chest;
   const hipY = s.hipY, waistY = hipY + 0.155 * k, chestY = s.chestY, shoulderY = s.shoulderY, pelvisY = s.rest[J.pelvis][1];
@@ -253,12 +256,12 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     // texel), running up behind the ear, then flaring into the trapezius at its root, so it tapers from the head to the
     // collar rather than standing as a column the jaw's width. Its top is closed (seen from above and behind, past the
     // nape, it shows no hole).
-    { bone: J.neck, material: r.neck, group: GROUP.head, tag: NECK, mesh: limb({ seg: 12, caps: [0.02 * k, 0.02 * k], rings: [
+    { bone: J.neck, material: r.neck, group: GROUP.head, tag: NECK, mesh: limb({ seg: 12, caps: [0.02 * k, 0.02 * k], rings: fatten([
       { y: g.neck + 0.04 * k, rx: 0.042 * k * neck, rz: 0.048 * k * neck, dz: 0.012 * k },
       { y: g.neck * 0.6, rx: 0.044 * k * neck, rz: 0.049 * k * neck, dz: 0.006 * k },
       { y: g.neck * 0.1, rx: 0.051 * k * neck, rz: 0.051 * k * neck, dz: -0.002 * k },
       { y: -0.04 * k, rx: 0.068 * k * neck, rz: 0.056 * k * neck, dz: -0.01 * k },
-    ] }) },
+    ], [fat.neck, fat.neck, fat.neck, fat.neck]) }) },
     ...head(m, s, r.skin, ppm),
   ];
   for (const [side, x] of sides) {
@@ -268,7 +271,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     // each other (the deltoid out, the biceps forward, the elbow's point back, the forearm's swell out on its outer side
     // while its inner line runs straight), so the light turns over it rather than running down a ribbon.
     const ay = s.rest[J[`upperArm.${side}`]][1], ax = x * sh, U = s.upperArm, F = s.foreArm, elbow = ay - U, wrist = ay - g.arms;
-    const arm: Limb = { seg: 14, caps: [0.028 * k, 0.012 * k], rings: [
+    const arm: Limb = { seg: 14, caps: [0.028 * k, 0.012 * k], rings: fatten([
       { y: ay - 0.012 * k, rx: 0.044 * a, rz: 0.048 * a, dx: ax + x * 0.002 * k },
       { y: ay - 0.05 * k, rx: 0.045 * a, rz: 0.048 * a, dx: ax + x * 0.004 * k },
       // The deltoid's insertion: the cap breaks into the upper arm.
@@ -283,7 +286,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
       // The wrist's notch, the hand flaring from it.
       { y: wrist + 0.08 * F, rx: 0.018 * a, rz: 0.024 * a, dx: ax },
       { y: wrist, rx: 0.017 * a, rz: 0.022 * a, dx: ax },
-    ] };
+    ], [fat.swell, fat.swell, fat.swell, fat.swell, fat.joint, fat.swell, fat.swell, fat.end, fat.end]) };
     const bend = across(J[`upperArm.${side}`], J[`foreArm.${side}`], elbow, 0.05 * k);
     // The shoulder's top rides the chest a little, so a swinging arm rolls under its cap rather than lifting it.
     const shoulder = (_x: number, y: number): [number, number][] => { const c = 0.45 * smooth((y - (ay - 0.03 * k)) / (0.07 * k)); return [[J.chest, c], [J[`upperArm.${side}`], 1 - c]]; };
@@ -296,7 +299,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     );
     // ─── Leg: the hip, a thigh that narrows to the knee, the kneecap, a calf behind the shin, the ankle ───
     const hx = x * g.hips, T = s.thigh, S = s.shin, knee = hipY - T, ankle = g.ankle;
-    const leg: Limb = { seg: 14, caps: [0.03 * k, 0.018 * k], rings: [
+    const leg: Limb = { seg: 14, caps: [0.03 * k, 0.018 * k], rings: fatten([
       { y: hipY + 0.05 * k, rx: 0.075 * l, rz: 0.08 * l, dx: hx + x * 0.008 * k, dz: -0.008 * k },
       { y: hipY - 0.05 * k, rx: 0.078 * l, rz: 0.082 * l, dx: hx + x * 0.006 * k, dz: -0.002 * k },
       { y: hipY - 0.4 * T, rx: 0.066 * l, rz: 0.07 * l, dx: hx + x * 0.002 * k, dz: 0.004 * k },
@@ -308,7 +311,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
       { y: knee - 0.65 * S, rx: 0.034 * l, rz: 0.036 * l, dx: hx, dz: -0.004 * k },
       { y: ankle + 0.035 * k, rx: 0.024 * l, rz: 0.028 * l, dx: hx },
       { y: ankle, rx: 0.027 * l, rz: 0.03 * l, dx: hx },
-    ] };
+    ], [fat.hipTop, fat.swell, fat.swell, fat.swell, fat.joint, fat.swell, fat.swell, fat.end, fat.end]) };
     const kneeBend = across(J[`thigh.${side}`], J[`shin.${side}`], knee, 0.05 * k);
     // The top of the thigh rides the pelvis in part: the hip creases as the leg swings, it does not lift out.
     const hip = (y: number): [number, number][] => { const p = 0.55 * smooth((y - (hipY - 0.07 * k)) / (0.12 * k)); return [[J.pelvis, p], [J[`thigh.${side}`], 1 - p]]; };
