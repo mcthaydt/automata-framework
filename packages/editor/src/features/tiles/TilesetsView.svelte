@@ -10,9 +10,11 @@ import { onDestroy } from 'svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
 import StagePill from '../../shared/kit/shell/StagePill.svelte'
 import { shellModeAt } from '../../shared/kit/shell/shell-mode'
+import Button from '../../shared/kit/widgets/Button.svelte'
 import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { ViewProps } from '../document/view-props'
+import AddTilesDialog from './AddTilesDialog.svelte'
 import RuleInspector from './RuleInspector.svelte'
 import RulePreview from './RulePreview.svelte'
 import { rulePreview } from './rule-preview'
@@ -30,6 +32,9 @@ let project = $state.raw<Project | undefined>(session?.project)
 let selection = $state.raw(session?.selection)
 let panelOpen = $state(false)
 let inspectorOpen = $state(false)
+/** Add tiles is open. It needs somewhere to write the picture (`services.files`). */
+let adding = $state(false)
+const openAdd = $derived(services.files === undefined ? undefined : () => (adding = true))
 /** Object URLs of the tileset images, by workspace path. */
 let urls = $state.raw<ReadonlyMap<string, string>>(new Map())
 
@@ -75,14 +80,13 @@ onDestroy(() => {
 <EditorShell
   {geometry}
   topbar={frame.topbar}
-  sheets={frame.sheets}
   bind:panelOpen
   bind:inspectorOpen
   testId="tilesets-view"
 >
   {#snippet panel()}
     {#if session !== undefined && project !== undefined && selection !== undefined}
-      <TilesetsPanel {project} {selection} {session} {images} {imageUrl} />
+      <TilesetsPanel {project} {selection} {session} {images} {imageUrl} onaddtiles={openAdd} />
     {/if}
   {/snippet}
 
@@ -96,7 +100,10 @@ onDestroy(() => {
       <div class="frame">
       <div class="stage" data-scroll-region data-pill={wide ? undefined : pillAt}>
         {#if tileset === undefined}
-          <p class="none" role="status">No tiles yet. Add a picture of your tiles to paint with them.</p>
+          <div class="none">
+            <p role="status">No tiles yet. Add a picture of your tiles to paint with them.</p>
+            {#if openAdd !== undefined}<Button variant="primary" onclick={openAdd}>Add tiles</Button>{/if}
+          </div>
         {:else}
           <TilesetSheet {tileset} {selection} {session} {images} {imageUrl} />
         {/if}
@@ -133,6 +140,18 @@ onDestroy(() => {
       <RuleInspector {project} {selection} {session} {images} {imageUrl} />
     {/if}
   {/snippet}
+
+  {#snippet sheets()}
+    {@render frame.sheets()}
+    {#if session !== undefined && project !== undefined && services.files !== undefined}
+      <AddTilesDialog
+        bind:open={adding}
+        taken={project.defs.tilesets.map((set) => set.id)}
+        files={services.files}
+        onadd={(def) => session.addTileset(def)}
+      />
+    {/if}
+  {/snippet}
 </EditorShell>
 
 <style>
@@ -159,6 +178,15 @@ onDestroy(() => {
   .stage[data-pill='bottom'],
   .stage[data-pill='dock'] {
     padding-bottom: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
+  }
+  /* No tiles yet: the sentence, and Add tiles under it as the screen's one primary action. */
+  .none {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3);
+  }
+  .none p {
+    margin: 0;
   }
   .none,
   .refused {

@@ -71,6 +71,7 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Suite Home, the sample | a small `Sample game` chip | `This is a sample game, not yours. Run automata editor inside your game's folder to edit it.` | 3 (why can't I find my game?) |
 | Tuner, the game pane | (none) | `Your game` (the frame's name) · `Start your game with pnpm dev to see your changes here.` · `Your game shows here when you open the editors in your game's folder.` | new |
 | `automata editor --help` | (none) | `The Tuner shows your game beside its settings: start it with pnpm dev, and give --game-url if it is not on http://localhost:5173.` · `--game-url is a web address, like http://localhost:5173` | new |
+| Tiles, Add tiles (12.3b) | (none) | `Add tiles` (the panel's button, the empty screen's primary and the dialog's title and primary) · `Choose a picture` / `Choose another picture` · `How big is one tile?` · `Tile size` · `8 px` `16 px` `32 px` `48 px` · `This makes 64 tiles.` · `The picture is 100 px wide; 16 px tiles leave 4 px over. Try 10 or 20.` · `The picture is 32 px wide, smaller than one 48 px tile.` · `That file isn’t a picture we can read. Try a PNG, WebP or JPEG.` · `Couldn't add the picture: {why}` | new (no format word, path or "tileset" on screen; the picture's own name shows without its type) |
 
 ## Kept, with the reason
 

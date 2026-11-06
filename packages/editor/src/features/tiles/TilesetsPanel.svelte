@@ -27,9 +27,11 @@ interface Props {
   session: TilesetsSession
   images: ReadonlySet<string>
   imageUrl: (path: string) => string | undefined
+  /** Opens Add tiles; absent where nothing can be written, and then there is no button. */
+  onaddtiles?: (() => void) | undefined
 }
 
-const { project, selection, session, images, imageUrl }: Props = $props()
+const { project, selection, session, images, imageUrl, onaddtiles }: Props = $props()
 
 const THUMB = 30
 const layer = $derived(autoLayersOf(project).find((def) => def.id === selection.layer))
@@ -68,6 +70,7 @@ function thumb(tile: number | undefined): string {
         </button>
       {/each}
     </div>
+    {#if onaddtiles !== undefined}<Button onclick={onaddtiles}>Add tiles</Button>{/if}
   </section>
 
   <section aria-labelledby="auto-heading">

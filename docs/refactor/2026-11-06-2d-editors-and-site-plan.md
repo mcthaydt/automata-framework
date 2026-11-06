@@ -977,9 +977,25 @@ logic that is not markup lives in the view's `*-model.ts`.
   size (`geometry.current.layout`) instead of the form factor; `SIZES` in `src/testing/kit/layout-sizes.ts` changes
   modes for `ipad-mini-landscape` and `window-900x600` (to medium) and `ipad-mini-portrait` (to compact), so the
   layout tests' expectations move with it; HomeScreen also calls `shellModeOf`.
+- **12.3, the three layouts and the tool dock (session 18).** `shellModeOf({ width, height })` picks the layout by
+  size (compact at 760 px across and narrower or 520 px high and less, wide from 1180 px, medium between) and
+  `shellModeAt(geometry)` reads the size from before any keyboard shrank it (`layout.height + keyboardResize`), so
+  typing never changes the layout; every view and HomeScreen use it, and the document's view switcher is a menu in
+  compact. *Medium:* the panel is inline beside the canvas (`data-presentation="inline"`) and the inspector is a
+  `float`, a card at the canvas's lower right (the wide inspector's 320 px, so its fields lay out the same), above an
+  open dock sheet (`--dock-lift`) and clear of the stage pill's row; the drawers are gone. The Level view's Fit and
+  Details move to the lower left in medium (`data-corner="start"`) so the card never covers the button that closes it.
+  *Compact:* `StagePill` takes `at="dock"`, a square bar across the stage's foot with its controls spread; a compact
+  sheet rises above the dock (a `:has` rule in `StagePill`), so Layers, Details and the Map's Fit stay in reach. The
+  list buttons (Layers, All levels, All tiles, All characters) show only in compact. **Deviation:** the mockup lets a
+  sheet cover the dock behind a scrim; then the only way to close a sheet at peek is its handle, so the dock stays
+  above sheets instead. `SIZES` moved: iPad mini landscape and 900 × 600 are medium, iPad mini portrait compact; the
+  shell's short-wide case is now 1280 × 560. Gates: editor unit 3,335, svelte-check clean, Chromium layout with a
+  mouse and with touch 868 of 868; WebKit, Firefox and hosted CI not run. PR #430.
+- [x] **Step 1, Step 2:** done across sessions 11 to 18 (the logs above).
 - [x] **Step 3:** (done in session 17: no expectation read the cabinet) The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
-- [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`
+- [x] **Step 4:** Screenshots (the layout tests' `.vitest/shots`, session 18), copy rows left to 12.5's scan. Commit. `feat(editor): the Level view redesigned, canvas first`
 
 ### Task 12.3b: Add tiles, a simple tileset importer (same PR; added 2026-11-06)
 
@@ -995,7 +1011,18 @@ the rest of 12.3, before 12.4.
 - Test: `packages/editor/tests/unit/tiles/add-tiles.test.ts`, the dialog's DOM test, a layout test at phone, iPad and
   desktop sizes
 
-- [ ] **Step 1: Failing tests.** Tiles has one "Add tiles" button (also the empty state's action: "No tiles yet. Add
+- **12.3b, built (session 18).** `add-tiles.ts` (pure: `tileGrid` gives the count in words or the problem with up to
+  two sizes that divide both sides, nearest first; `pictureAsset` names the file under `assets/` in kebab-case and
+  never over a file that is there; `tilesetFromPicture` names the tileset after the file in words), the session's
+  `addTileset` (one undo step "Add tiles", then shows the new tiles with nothing picked), `AddTilesDialog.svelte`
+  (Choose a picture as a label over the file input, the stepper with 8/16/32/48 px as a segmented row, the picture with
+  hairlines one tile apart, Add tiles as the one primary). Views get `services.files` (the workspace store: the game
+  folder, or browser storage); without it there is no Add tiles. The kit `Dialog`'s body is now a declared scroll
+  region (it scrolled already; a phone held sideways needs it). **Deviation:** a refused write shows its sentence in
+  the dialog ("Couldn't add the picture: …", a live region) instead of a toast, so the person stays where they can try
+  again; nothing is added. Gates: unit `add-tiles` 10, `AddTilesDialog` 7, session 2, view 2 (editor unit 3,356),
+  Chromium layout "Add tiles" at eight sizes with a mouse and with touch 16, svelte-check clean.
+- [x] **Step 1: Failing tests.** Tiles has one "Add tiles" button (also the empty state's action: "No tiles yet. Add
   a picture of your tiles to paint with them."). It opens a dialog with three steps on one screen: "Choose a
   picture" (PNG, WebP or JPEG), "How big is one tile?" (a stepper in px, 16 to start, plus 8, 16, 32 and 48 as
   quick choices), and a preview of the picture with the tile grid drawn over it and "This makes 64 tiles" in words.
@@ -1003,9 +1030,9 @@ the rest of 12.3, before 12.4.
   leave 4 px over. Try 20 or 25.") and keeps the primary disabled. The one primary, "Add tiles", writes the picture
   into the game folder beside the level (in browser storage, into the workspace), adds the tileset as one undo step,
   closes the dialog and opens Tiles on it, ready to paint with. No format word, path or "tileset"/"IntGrid" on screen.
-- [ ] **Step 2:** Implement with the kit's components only (Dialog, Button, Stepper, Segmented); a refused write
-  toasts as a save failure does and adds no step.
-- [ ] **Step 3:** Screenshots, copy rows in `copy.md`. Commit. `feat(editor): Add tiles, a picture of tiles becomes a tileset`
+- [x] **Step 2:** Implement with the kit's components only (Dialog, Button, Stepper, Segmented); a refused write
+  toasts as a save failure does and adds no step (deviation above: said in the dialog).
+- [x] **Step 3:** Screenshots (`add-tiles-*.png` from the layout test), copy rows in `copy.md`. Commit. `feat(editor): Add tiles, a picture of tiles becomes a tileset`
 
 ### Task 12.4: Map, Tiles, Characters and the dialogs (same PR)
 

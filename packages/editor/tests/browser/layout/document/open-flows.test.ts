@@ -138,7 +138,8 @@ describe.each(SIZES)('open flows at $name ($width x $height)', (size) => {
     )
     if (size.width >= 700) expect(panel.getBoundingClientRect().width, 'the wide dialog').toBeGreaterThan(600)
 
-    const lines = panel.querySelector<HTMLElement>('[data-scroll-region]') as HTMLElement
+    // The innermost scroll region: the dialog's own body is one too, around it.
+    const lines = [...panel.querySelectorAll<HTMLElement>('[data-scroll-region]')].at(-1) as HTMLElement
     expect(getComputedStyle(lines).overflowX).toBe('auto')
     expect(getComputedStyle(lines).touchAction).toBe('pan-x pan-y')
     expect(lines.scrollHeight).toBeGreaterThan(lines.clientHeight)

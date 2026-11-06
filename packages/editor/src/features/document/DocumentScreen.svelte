@@ -14,6 +14,7 @@ import { componentOf } from '../../app/editor-2d/views'
 import ConflictDialog from '../../shared/kit/dialogs/ConflictDialog.svelte'
 import RecoveryDialog from '../../shared/kit/dialogs/RecoveryDialog.svelte'
 import { shellModeAt } from '../../shared/kit/shell/shell-mode'
+import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import type { Workspace } from '../../shared/kit/storage/workspace'
 import ToastRegion from '../../shared/kit/widgets/ToastRegion.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
@@ -36,6 +37,8 @@ interface Props {
   clock: { now(): number }
   /** Reads a workspace file's bytes, for the canvas and the palette. */
   read: (path: string) => Promise<Uint8Array | undefined>
+  /** Where a view adds a file of the person's (Add tiles' picture); without it, nothing that writes one is shown. */
+  files?: Pick<ProjectStore, 'list' | 'write'> | undefined
   ids: IdSource
   objectUrls?: ObjectUrls | undefined
   /** The level canvas; the DOM tests pass a stand-in. */
@@ -53,6 +56,7 @@ const {
   toasts,
   clock,
   read,
+  files,
   ids,
   objectUrls,
   canvas,
@@ -127,6 +131,7 @@ const View = $derived(componentOf(route?.component ?? ''))
 
 const services = $derived<ViewServices>({
   read: (path) => read(path),
+  files,
   ids,
   objectUrls,
   canvas,

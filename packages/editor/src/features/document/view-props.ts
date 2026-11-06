@@ -1,5 +1,6 @@
 import type { GeometryState } from '@mcthaydt/automata'
 import type { Component, Snippet } from 'svelte'
+import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import type { DrawView } from '../../shared/level-2d/canvas/draw/draw-list-types'
 import type { Camera } from '../../shared/level-2d/canvas/level-view'
 import type { OpenDocument } from '../../shared/level-2d/documents/editor-app'
@@ -27,6 +28,11 @@ export interface ObjectUrls {
 export interface ViewServices {
   /** Reads a workspace file's bytes (the workspace store's `read`). */
   readonly read: (path: string) => Promise<Uint8Array | undefined>
+  /**
+   * Where a view adds a file of the person's (Add tiles' picture): the game folder, or the workspace in browser
+   * storage. Absent where nothing can be written; a view then leaves out what would write.
+   */
+  readonly files?: Pick<ProjectStore, 'list' | 'write'> | undefined
   /** Where the ids of placed instances come from. */
   readonly ids: IdSource
   /** Absent where there are none (jsdom): the palette shows numbered tiles. */

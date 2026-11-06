@@ -16,11 +16,11 @@ import {
   resizeRule,
   setPatternCell,
 } from '../../shared/level-2d/model/commands/rule-edits'
-import { tagTiles, untagTiles } from '../../shared/level-2d/model/commands/tileset-edits'
+import { addTileset, tagTiles, untagTiles } from '../../shared/level-2d/model/commands/tileset-edits'
 import { projectHistory } from '../../shared/level-2d/model/edit-history'
 import { commitEdit, type FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { IdSource } from '../../shared/level-2d/model/ids'
-import type { AutoLayerDef, Project } from '../../shared/level-2d/model/project-types'
+import type { AutoLayerDef, Project, TilesetDef } from '../../shared/level-2d/model/project-types'
 import type { Rule, RuleGroup } from '../../shared/level-2d/tiles/autotile/rule.schema'
 import {
   autoLayersOf,
@@ -63,6 +63,8 @@ export interface TilesetsSession {
   tagSelected(): FieldCommit
   untagSelected(): FieldCommit
   newTag(name: string): FieldCommit
+  /** Add tiles: the picture's tileset, as one undo step, then shown on the sheet with nothing picked yet. */
+  addTileset(def: TilesetDef): FieldCommit
   dispose(): void
 }
 
@@ -264,6 +266,11 @@ export function createTilesetsSession(options: TilesetsSessionOptions): Tilesets
       if (tag === '') return refused('Give the tag a name.')
       const done = onTags('Tag tiles', tag, tagTiles)
       if (done.ok) choose({ tag })
+      return done
+    },
+    addTileset(def) {
+      const done = commitEdit(edits, 'Add tiles', (project) => addTileset(project, def))
+      if (done.ok) choose({ tileset: def.id, tiles: [], tag: undefined })
       return done
     },
     dispose() {

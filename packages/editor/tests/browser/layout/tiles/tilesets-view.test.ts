@@ -156,3 +156,54 @@ describe.each(SIZES)('Tilesets view at $name ($width x $height)', (size) => {
     await page.screenshot({ path: `.vitest/shots/tilesets-rules-${size.name}.png` })
   })
 })
+
+/** A real 64 x 32 picture, as a person's file: two colours, so the grid has something to lie over. */
+async function pictureFile(): Promise<File> {
+  const canvas = new OffscreenCanvas(64, 32)
+  const context = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D
+  context.fillStyle = '#3a7d44'
+  context.fillRect(0, 0, 64, 32)
+  context.fillStyle = '#8a5a2b'
+  context.fillRect(0, 16, 64, 16)
+  const blob = await canvas.convertToBlob({ type: 'image/png' })
+  return new File([blob], 'moss.png', { type: 'image/png' })
+}
+
+describe.each(SIZES)('Add tiles at $name ($width x $height)', (size) => {
+  test('the dialog, its preview and Add tiles fit the window as full-size targets', async () => {
+    const { conditions } = await start(size)
+    await openDrawer(size, 'All tiles', 'panel')
+    const opener = buttonNamed(byTestId('tilesets-panel'), 'Add tiles')
+    await reach(opener)
+    opener.click()
+    await arrived()
+    const dialog = document.querySelector<HTMLElement>(
+      '[role="dialog"][aria-label="Add tiles"], [role="dialog"]',
+    )
+    if (dialog === null) throw new Error('no dialog')
+    const input = dialog.querySelector<HTMLInputElement>('input[type="file"]') as HTMLInputElement
+    const files = new DataTransfer()
+    files.items.add(await pictureFile())
+    input.files = files.files
+    input.dispatchEvent(new Event('change', { bubbles: true }))
+    await expect.poll(() => dialog.textContent).toContain('This makes 8 tiles.')
+    await arrived()
+    const add = [...dialog.querySelectorAll<HTMLElement>('button')].find(
+      (button) => button.textContent?.trim() === 'Add tiles',
+    ) as HTMLElement
+    expect(add).not.toBeDisabled()
+    const controls = [
+      input.closest('label') as HTMLElement,
+      add,
+      ...dialog.querySelectorAll<HTMLElement>('[role="radio"]'),
+    ]
+    for (const control of controls) {
+      await reach(control)
+      expectInside(control, size)
+    }
+    await reach(byTestId('add-tiles-preview'))
+    expectInside(byTestId('add-tiles-preview'), size)
+    expect(checkLayout(conditions, [])).toEqual([])
+    await page.screenshot({ path: `.vitest/shots/add-tiles-${size.name}.png` })
+  })
+})
