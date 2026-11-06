@@ -2,8 +2,9 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 
 import { dirname, join, relative } from 'node:path'
 import { Effect } from 'effect'
 import { type FileError, type ProcessError, tryFile } from '../../../node/errors.ts'
-import { ProcessRunner } from '../../../node/process-runner.ts'
+import { ProcessRunner, type ProcessRunnerService } from '../../../node/process-runner.ts'
 import type { ShipConfig } from '../../config/ship-config.ts'
+import type { TauriConfig } from '../../config/tauri-config.schema.ts'
 import {
   type Pixi3dExtrasInBuild,
   type Pixi3dInPublicBuild,
@@ -83,6 +84,38 @@ export function prepareTauri(
     const platform = input.platform ?? process.platform
     const os = osOf(platform)
     yield* checkTag(config.game.version, tag)
+    const settings = yield* checkBuildForTauri(distDir, config)
+
+    // A desktop build is published, as an itch.io page is: the same scans.
+    yield* scanBuild({ distDir, gameDir })
+
+    const runner = yield* ProcessRunner
+    yield* checkToolchain(runner, os)
+    const tauri = yield* locateTauri(gameDir, platform, input.pathEnv)
+
+    const project = join(gameDir, '.automata/tauri')
+    const srcTauri = join(project, 'src-tauri')
+    yield* writeProject(srcTauri, relative(srcTauri, distDir), gameDir, config, settings)
+
+    const kinds = BUNDLES[os]
+    const build = yield* runner.run(tauri, ['build', '--bundles', kinds.map((each) => each.kind).join(',')], {
+      cwd: project,
+      echo: true,
+    })
+    if (build.exitCode !== 0)
+      return yield* new TauriBuildFailed({ exitCode: build.exitCode, stderr: build.stderr })
+
+    const bundles = yield* copyBundles(srcTauri, join(gameDir, 'dist-tauri'), config, os)
+    return { bundles }
+  })
+}
+
+/** The `tauri` section, a semver version, the entry page and a CSP without eval; every problem is reported at once. */
+function checkBuildForTauri(
+  distDir: string,
+  config: ShipConfig,
+): Effect.Effect<TauriConfig, TauriBuildInvalid | FileError> {
+  return Effect.gen(function* () {
     const { settings, problems: settingProblems } = tauriSettings(config)
     const files = yield* tryFile(distDir, () => buildFiles(distDir))
     const problems = [
@@ -92,11 +125,16 @@ export function prepareTauri(
       ...findEvalInCsp(tauriCsp(config)),
     ]
     if (problems.length > 0 || settings === undefined) return yield* new TauriBuildInvalid({ problems })
+    return settings
+  })
+}
 
-    // A desktop build is published, as an itch.io page is: the same scans.
-    yield* scanBuild({ distDir, gameDir })
-
-    const runner = yield* ProcessRunner
+/** Cargo, then on Linux the WebKitGTK headers: what `tauri build` needs and says unclearly when it is missing. */
+function checkToolchain(
+  runner: ProcessRunnerService,
+  os: keyof typeof BUNDLES,
+): Effect.Effect<void, TauriToolchainMissing | ProcessError> {
+  return Effect.gen(function* () {
     const cargo = yield* runner.run('cargo', ['--version'])
     if (cargo.exitCode !== 0) {
       return yield* new TauriToolchainMissing({
@@ -104,29 +142,45 @@ export function prepareTauri(
         message: 'cargo is not installed: install Rust from https://rustup.rs, then build again',
       })
     }
-    if (os === 'linux') {
-      const webkit = yield* runner.run('pkg-config', ['--exists', 'webkit2gtk-4.1'])
-      if (webkit.exitCode !== 0) {
-        return yield* new TauriToolchainMissing({
-          missing: 'webkit2gtk-4.1',
-          message:
-            'WebKitGTK 4.1 headers are not installed: on Debian or Ubuntu, apt install libwebkit2gtk-4.1-dev libsoup-3.0-dev (https://v2.tauri.app/start/prerequisites/)',
-        })
-      }
-    }
-    const installed = join(gameDir, 'node_modules/.bin', platform === 'win32' ? 'tauri.cmd' : 'tauri')
-    const tauri = existsSync(installed) ? installed : findExecutable('tauri', input.pathEnv, platform)
-    if (tauri === undefined) {
+    if (os !== 'linux') return
+    const webkit = yield* runner.run('pkg-config', ['--exists', 'webkit2gtk-4.1'])
+    if (webkit.exitCode !== 0) {
       return yield* new TauriToolchainMissing({
-        missing: 'tauri',
-        message: `the tauri CLI is not installed: add ${TAURI_CLI} to the game's devDependencies`,
+        missing: 'webkit2gtk-4.1',
+        message:
+          'WebKitGTK 4.1 headers are not installed: on Debian or Ubuntu, apt install libwebkit2gtk-4.1-dev libsoup-3.0-dev (https://v2.tauri.app/start/prerequisites/)',
       })
     }
+  })
+}
 
-    const project = join(gameDir, '.automata/tauri')
-    const srcTauri = join(project, 'src-tauri')
-    const generated = tauriProjectFiles(config, settings, relative(srcTauri, distDir))
-    for (const [path, text] of Object.entries(generated)) {
+/** The game's own `tauri` first, then one on the path. */
+function locateTauri(
+  gameDir: string,
+  platform: NodeJS.Platform,
+  pathEnv: string | undefined,
+): Effect.Effect<string, TauriToolchainMissing> {
+  const installed = join(gameDir, 'node_modules/.bin', platform === 'win32' ? 'tauri.cmd' : 'tauri')
+  const tauri = existsSync(installed) ? installed : findExecutable('tauri', pathEnv, platform)
+  if (tauri !== undefined) return Effect.succeed(tauri)
+  return Effect.fail(
+    new TauriToolchainMissing({
+      missing: 'tauri',
+      message: `the tauri CLI is not installed: add ${TAURI_CLI} to the game's devDependencies`,
+    }),
+  )
+}
+
+/** Writes the generated Tauri project's files, and the game's icon (or a plain one) beside them. */
+function writeProject(
+  srcTauri: string,
+  distFromProject: string,
+  gameDir: string,
+  config: ShipConfig,
+  settings: TauriConfig,
+): Effect.Effect<void, FileError> {
+  return Effect.gen(function* () {
+    for (const [path, text] of Object.entries(tauriProjectFiles(config, settings, distFromProject))) {
       yield* tryFile(join(srcTauri, path), () => {
         mkdirSync(dirname(join(srcTauri, path)), { recursive: true })
         writeFileSync(join(srcTauri, path), text)
@@ -138,19 +192,20 @@ export function prepareTauri(
       if (settings.icon === undefined) writeFileSync(icon, tauriIconPng(512))
       else copyFileSync(join(gameDir, settings.icon), icon)
     })
+  })
+}
 
-    const kinds = BUNDLES[os]
-    const build = yield* runner.run(tauri, ['build', '--bundles', kinds.map((each) => each.kind).join(',')], {
-      cwd: project,
-      echo: true,
-    })
-    if (build.exitCode !== 0)
-      return yield* new TauriBuildFailed({ exitCode: build.exitCode, stderr: build.stderr })
-
-    const out = join(gameDir, 'dist-tauri')
+/** Copies each bundle Tauri wrote to `out`, named for the game, its version, the OS and the kind; returns them sorted. */
+function copyBundles(
+  srcTauri: string,
+  out: string,
+  config: ShipConfig,
+  os: keyof typeof BUNDLES,
+): Effect.Effect<string[], FileError> {
+  return Effect.gen(function* () {
     const bundleRoot = join(srcTauri, 'target/release/bundle')
     const bundles: string[] = []
-    for (const { kind, ext } of kinds) {
+    for (const { kind, ext } of BUNDLES[os]) {
       const folder = join(bundleRoot, kind)
       const made = yield* tryFile(folder, () =>
         existsSync(folder) ? readdirSync(folder).filter((name) => name.endsWith(ext)) : [],
@@ -164,6 +219,6 @@ export function prepareTauri(
         bundles.push(target)
       }
     }
-    return { bundles: bundles.sort() }
+    return bundles.sort()
   })
 }
