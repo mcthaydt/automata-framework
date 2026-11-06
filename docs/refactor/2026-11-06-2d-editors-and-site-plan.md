@@ -2288,7 +2288,10 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   `virtual:automata/content` and starts the game's sim again with it (`createSim` fixes a sim's content for its life,
   and the sim must not grow a content swap for a dev convenience: law 1 and the sim spec), keeping the page, so the
   player sees the room start over with the new feel; never in a build (`import.meta.hot` is undefined there); a unit
-  test on the restart and a journey. (b) `automata editor`
+  test on the restart and a journey. Found while designing it: the plugin invalidates the module and sends a custom event, but the
+  page keeps the module it imported, so a re-import returns the old one; the plugin should send a real HMR update for
+  `virtual:automata/content` that the game accepts (`import.meta.hot.accept`), and `startGame`'s handle already has
+  `shutdown()` for the restart. Prove it in a real browser against the game's Vite dev server, not with a fake. (b) `automata editor`
   learns the game's dev page (`--game-url`, default the game's Vite port) and the suite reads it from `/api/ping`. (c)
   The Tuner's canvas becomes two regions: the settings and a game pane (an `iframe` of that page, `title="Your game"`),
   side by side from iPad landscape up and stacked, game on top, on a phone; with no dev page answering, the pane says
