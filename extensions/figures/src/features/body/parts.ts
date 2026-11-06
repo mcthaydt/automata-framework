@@ -159,6 +159,16 @@ function curve(xs: number[], ys: number[]) {
     return (2 * t3 - 3 * t2 + 1) * ys[i] + (t3 - 2 * t2 + t) * h * m[i] + (-2 * t3 + 3 * t2) * ys[i + 1] + (t3 - t2) * h * m[i + 1];
   };
 }
+/** The four monotone curves of a limb's sorted keys: half-widths across and front to back, and the centre's offsets. */
+function curves(keys: Ring[]) {
+  const ys = keys.map(r => r.y);
+  return { RX: curve(ys, keys.map(r => r.rx)), RZ: curve(ys, keys.map(r => r.rz)), DX: curve(ys, keys.map(r => r.dx ?? 0)), DZ: curve(ys, keys.map(r => r.dz ?? 0)) };
+}
+/** A limb's profile at height `y` on its axis: the very curves `limb()` sweeps, clamped to the keys' range. */
+export function profileAt(o: Limb, y: number): Ring {
+  const { RX, RZ, DX, DZ } = curves([...o.rings].sort((a, b) => a.y - b.y));
+  return { y, rx: RX(y), rz: RZ(y), dx: DX(y), dz: DZ(y) };
+}
 /**
  * A limb: a tube swept down its axis (y) whose cross-section follows a profile, with rounded ends. One profile from the
  * shoulder to the wrist (or the hip to the ankle) makes a deltoid, a biceps, an elbow, a forearm and a wrist as one form,
@@ -166,7 +176,7 @@ function curve(xs: number[], ys: number[]) {
  */
 export function limb(o: Limb): Mesh {
   const keys = [...o.rings].sort((a, b) => a.y - b.y), ys = keys.map(r => r.y), e = o.e ?? 1, seg = o.seg ?? 16, step = o.step ?? 0.012;
-  const RX = curve(ys, keys.map(r => r.rx)), RZ = curve(ys, keys.map(r => r.rz)), DX = curve(ys, keys.map(r => r.dx ?? 0)), DZ = curve(ys, keys.map(r => r.dz ?? 0));
+  const { RX, RZ, DX, DZ } = curves(keys);
   const yLo = ys[0], yHi = ys[ys.length - 1], [capHi, capLo] = o.caps ?? [0, 0], [roundHi, roundLo] = o.round ?? [1, 1];
   const capScale = (a: number, round: number) => lerp(1 - Math.sin(a), Math.cos(a) ** 0.8, round);
   const top = Math.min(yHi, o.span?.[0] ?? Infinity), bottom = Math.max(yLo, o.span?.[1] ?? -Infinity);

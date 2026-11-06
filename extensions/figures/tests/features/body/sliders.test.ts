@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BASE } from '../../../base/base';
-import { DEFAULT_HEAD, DEFAULT_SLIDERS, type HeadShape, type Sliders } from '../../../src/features/body/genes';
+import { DEFAULT_HEAD, type HeadShape, type Sliders } from '../../../src/features/body/genes';
+import { BODY, ENDS, FACE_ENDS } from './ends';
 import type { CharacterDef } from '../../../src/features/figure/cast';
 import { member, standing, walking } from '../../../src/features/figure/frames';
 
@@ -10,14 +11,10 @@ import { member, standing, walking } from '../../../src/features/figure/frames';
  * ±10°), one at a time, still builds and paints a figure. A body slider is drawn three-quarter and through its walk; a
  * face slider (the head's structure, genes.ts HeadShape) only changes the head, so it is drawn from the front.
  */
-const ENDS: Partial<Record<keyof Sliders, [number, number]>> = { height: [150, 200], headTilt: [-10, 10], bodyAsymmetry: [-1, 1] };
 /** A drawn figure covers at least this many texels of the D1 cell (render.test's floor). */
 const FILLED = 400;
 const filled = (px: Uint8ClampedArray) => { let n = 0; for (let i = 3; i < px.length; i += 4) if (px[i]) n++; return n; };
-const BODY = (Object.keys(DEFAULT_SLIDERS) as (keyof Sliders)[]).filter(k => typeof DEFAULT_SLIDERS[k] === 'number');
 const FACE = Object.keys(DEFAULT_HEAD) as (keyof HeadShape)[];
-/** The signed face sliders (the sign picks the side) run −1…1. */
-const FACE_ENDS: Partial<Record<keyof HeadShape, [number, number]>> = { asymmetry: [-1, 1] };
 
 describe('every slider at either end still builds and paints', () => {
   for (const c of BASE) {
