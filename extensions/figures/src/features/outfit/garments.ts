@@ -1,12 +1,13 @@
 import { J, type Side, type Skeleton } from '../body/rig';
 import { apply, axisAngle, compose, lerp, smooth, sub, type V3 } from '../../lib/math';
-import { GROUP, limb, placed, superquadric, weights, type Decal, type Limb, type Material, type Part, type Ring, type Superquadric } from '../body/parts';
+import { GROUP, limb, profileAt, placed, superquadric, weights, type Decal, type Limb, type Material, type Part, type Ring, type Superquadric } from '../body/parts';
 import type { HeadShape, Measure } from '../body/genes';
 import { FACE_SEAM, tonesOf } from '../paint/paint';
 import swatchLibrary from './library/swatches.json';
 import type { Anchor } from '../motion/motion';
 import { ear, headForm, headMesh } from '../body/head';
 import { hexOf } from '../../lib/colour';
+import { bodyOf, girth, profiles, type Body, type Profiles } from './fit';
 import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from '../hair/hair';
 /**
  * The body and what the base pair wears. A character is sliders (genes.ts) plus a list of garments, each fitted to the
@@ -49,7 +50,9 @@ export interface Regions { skin: string; chest: string; waist: string; pelvis: s
 /** A dressed body: its parts and marks, any materials the outfit makes for itself, its face, and the openings a hand can
  * reach (motion.ts Anchor). Base's garments publish none, so a hand finds the body's own hip (motion.ts openings); a
  * fork's wardrobe publishes its pockets and hems here. */
-export interface Look { parts: Part[]; decals: Decal[]; materials?: Record<string, Material>; face?: FaceLook; anchors?: Anchor[] }
+export interface Look { parts: Part[]; decals: Decal[]; materials?: Record<string, Material>; face?: FaceLook; anchors?: Anchor[];
+  /** The body's profiles (fit.ts), which dress() always fills: the cloth coordinates (figure/cloth.ts) are mapped round them. Optional, since a fork may build a Look by hand. */
+  profiles?: Profiles }
 /** What the painter's drawn face takes from the outfit (paint.ts): the head's structure, and its colours as swatch names. */
 export interface FaceLook { shape: HeadShape; eyes?: string; white?: string; brows?: string; lips?: string }
 
@@ -64,6 +67,9 @@ export interface Wearing {
   m: Measure; s: Skeleton; garments: Garment[];
   swatch: (name: string) => Material; swatches: Record<string, Material>;
   ppm?: number; worn: Part[]; state: Record<string, unknown>;
+  /** The body's real measures (fit.ts): its ring at a height, its girth over a span and the clearance to leave, so a sleeve
+   * end or a hem sizes from the body (fat, bust, seat, limb girth) and clears any body the sliders make. */
+  body: Body;
 }
 /** What a garment kind makes (H1), applied by dress() in this order: its parts, its marks, its materials, the body
  * regions it repaints (`paint`), and the openings a hand can reach (`anchors`, motion.ts Anchor). */
@@ -141,7 +147,7 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   let thighs = true, faceLook: FaceLook = { shape: m.face };
   // What the registered kinds are given, and the anchors they publish, each with the garment that made it.
   const state: Record<string, unknown> = {}, anchors: { anchor: Anchor; from: Garment }[] = [];
-  const c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state };
+  const fit = bodyOf(m, s, ppm), c: Wearing = { m, s, garments, swatch, swatches, ppm, worn: parts, state, body: fit };
   /** A kind's fit, applied in order: its parts, marks, materials, the regions it repaints, its openings. */
   const wear = (f: Fit, from: Garment) => {
     parts.push(...f.parts); decals.push(...f.decals ?? []); Object.assign(made, f.materials); Object.assign(r, f.paint);
@@ -158,10 +164,10 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
       if (item.sleeves !== 'none') r.shoulder = item.top;
       if (item.sleeves !== 'none') r.upper = item.top;
       if (item.sleeves === 'long') r.fore = item.top;
-      if (item.cuffs) for (const [side] of sides) parts.push(item.sleeves === 'long'
-        ? box(J[`foreArm.${side}`], item.cuffs, armGroup(side), { at: [0, -s.foreArm * 0.9, 0], r: [0.048 * k * t * m.arm, 0.022 * k, 0.05 * k * t * m.arm], e: [0.45, 0.6] })
-        : box(J[`upperArm.${side}`], item.cuffs, armGroup(side), { at: [0, -s.upperArm * 0.86, 0], r: [0.056 * k * t * m.arm, 0.02 * k, 0.058 * k * t * m.arm], e: [0.45, 0.6] }));
-      if (item.collar) for (const [, x] of sides) parts.push(box(J.chest, item.collar, GROUP.torso, { at: [x * 0.04 * k, 0.172 * k, 0.045 * k], r: [0.04 * k, 0.018 * k, 0.04 * k], turn: axisAngle([0, 1, 0], x * 0.5), e: [0.35, 0.5] }));
+      // The cuffs and the collar are sized from the body (fit.ts): a cuff hugs the arm (its girth and a texel's clearance); the
+      // collar is fitted to the neck, today's placement its floor.
+      if (item.cuffs) for (const [side] of sides) parts.push(cuff(side, item.cuffs, item.sleeves === 'long', m, s, fit));
+      if (item.collar) for (const [, x] of sides) parts.push(collarPiece(x, item.collar, m, s, fit));
     } else if ('shorts' in item) { r.pelvis = r.thigh = item.shorts; }
     // The hair: the generators' pieces (hair.ts), one surface, so the painter draws no line between them.
     else if ('hair' in item) {
@@ -185,7 +191,28 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   for (const item of garments) { const kind = kindOf(item); if (kind?.after) wear(kind.after(c, item), item); }
   Object.assign(made, earSkins(skin, swatch(skin)));
   const all = [...body(m, s, r, thighs, ppm), ...parts];
-  return { parts: all, decals, materials: made, face: faceLook, anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
+  return { parts: all, decals, materials: made, face: faceLook, profiles: profiles(m, s), anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
+}
+/**
+ * A top's cuff on a side: a box round the forearm (`long` sleeves, at 0.9 of its length) or the upper arm (short, at 0.86).
+ * It hugs the arm: each radius is the arm's widest over the cuff's span plus the clearance (a texel), centred on the arm's
+ * own profile there, so it clears any arm and follows fat, and a thin arm gets a slim cuff, not a flare.
+ */
+function cuff(side: Side, material: string, long: boolean, m: Measure, s: Skeleton, body: Body): Part {
+  const k = m.k, bone = long ? J[`foreArm.${side}`] : J[`upperArm.${side}`], rest = s.rest[bone];
+  const y = rest[1] - (long ? 0.9 * s.foreArm : 0.86 * s.upperArm), hh = (long ? 0.022 : 0.02) * k;
+  const G = body.girth('arm', side, y + hh, y - hh), c = body.clear;
+  return box(bone, material, armGroup(side), { at: [(G.dx ?? 0) - rest[0], y - rest[1], (G.dz ?? 0) - rest[2]], r: [G.rx + c, hh, G.rz + c], e: [0.45, 0.6] });
+}
+/**
+ * One side of a top's collar. It sits at 0.172 k above the chest bone, on the neck (past the trunk's top cap), so it is
+ * sized from the neck's profile there, in the chest bone's space: today's centres are the floor, and the pieces stand out
+ * only as far as their outer faces clear the neck's side and front by the clearance (a thick neck pushes it out).
+ */
+function collarPiece(x: 1 | -1, material: string, m: Measure, s: Skeleton, body: Body): Part {
+  const k = m.k, yc = 0.172 * k, N = profileAt(body.profiles.neck, s.rest[J.chest][1] + yc - s.rest[J.neck][1]), nz = s.rest[J.neck][2] - s.rest[J.chest][2] + (N.dz ?? 0);
+  const cx = Math.max(0.04 * k, N.rx + body.clear - 0.04 * k), cz = Math.max(0.045 * k, nz + N.rz + body.clear - 0.04 * k);
+  return box(J.chest, material, GROUP.torso, { at: [x * cx, yc, cz], r: [0.04 * k, 0.018 * k, 0.04 * k], turn: axisAngle([0, 1, 0], x * 0.5), e: [0.35, 0.5] });
 }
 /** The body's surfaces: the torso, each arm (shoulder to hand) and each leg (thigh to foot) one surface apiece, so the
  * painter draws no crevice or line at a waist, an elbow or a knee (paint.ts); garments keep their own edges. */
@@ -195,14 +222,9 @@ const THUMB = { L: 3005, R: 3006 } as const;
 function surfaces(parts: Part[]): Part[] {
   return parts.map(p => (p.seam === undefined && SURFACE[p.group] !== undefined ? { ...p, seam: SURFACE[p.group] } : p));
 }
-/** The trapezius's slope (rad): the body's shoulder line runs up it to the neck. */
-export const TRAPEZIUS = 0.6;
 /** The tag on the body's neck part: the raster's neckline rule (paint/raster.ts `neckline`) finds it by this, so a texel
  * of neck poking down into a top's collar joins the top. A tag changes no pixel and no part order. */
 export const NECK = 'neck';
-/** Fat's fullness: each ring of a profile grown by its own class (genes.ts `Measure.fat`), its placement unchanged. A
- * class of exactly 1 (fat 0) leaves the ring as it was. */
-const fatten = (rings: Ring[], by: number[]): Ring[] => rings.map((r, i) => ({ ...r, rx: r.rx * by[i], rz: r.rz * by[i] }));
 /** One stretch of a skinned limb in rest figure space: the profile cut to [hi, lo], painted `material`. */
 function stretch(material: string, group: number, o: Limb, hi: number, lo: number, skin: (x: number, y: number, z: number) => [number, number][]): Part {
   const mesh = limb({ ...o, span: [hi, lo] });
@@ -225,23 +247,9 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
   const f = m.sliders.frame, mu = lerp(0.92, 1.1, m.sliders.muscle), D = k * t * m.depth;
   const a = k * t * m.arm * mu * lerp(1.04, 0.94, f), l = k * t * m.leg * lerp(0.96, 1.04, f), sh = g.shoulders, C = m.chest;
   const hipY = s.hipY, waistY = hipY + 0.155 * k, chestY = s.chestY, shoulderY = s.shoulderY, pelvisY = s.rest[J.pelvis][1];
-  const neck = lerp(0.85, 1.15, m.sliders.neck) * lerp(1.05, 0.95, f);
+  const P = profiles(m, s);
   // ─── Torso: seat, hips, waist, ribs, chest, the shoulders up the trapezius to the neck ───
-  // The trapezius: from the shoulder's top ring a straight slope (TRAPEZIUS) in to the neck's root, standing either side
-  // of it, so the line from the neck to the shoulder point falls as a muscle does rather than squaring off.
-  const trap = sh * 0.42, trapY = shoulderY - 0.016 * k + Math.tan(TRAPEZIUS) * (sh * 0.84 - trap);
-  const torso: Limb = { e: 0.82, seg: 20, caps: [0.02 * k, 0.03 * k], round: [0.3, 1], rings: [
-    { y: trapY, rx: trap, rz: 0.058 * D, dz: -0.008 * k },
-    { y: lerp(trapY, shoulderY - 0.016 * k, 0.55), rx: lerp(trap, sh * 0.84, 0.55) * 1.02, rz: 0.064 * D, dz: -0.006 * k },
-    { y: shoulderY - 0.016 * k, rx: sh * 0.84, rz: 0.07 * D, dz: -0.004 * k },
-    { y: shoulderY - 0.05 * k, rx: sh * 0.9 * C, rz: 0.088 * D, dz: 0.004 * k },
-    { y: chestY + 0.03 * k, rx: sh * lerp(0.9, 0.84, f) * C, rz: 0.096 * D * lerp(1, 1.06, f) * m.bust.rz, dz: 0.012 * k + m.bust.dz * k },
-    { y: chestY - 0.07 * k, rx: sh * lerp(0.8, 0.74, f) * C, rz: 0.088 * D * (1 + (m.bust.rz - 1) / 2), dz: 0.008 * k },
-    { y: waistY + 0.02 * k, rx: 0.11 * k * t * m.waist * lerp(1, 0.98, f), rz: 0.076 * D, dz: 0.002 * k },
-    { y: hipY + 0.08 * k, rx: (g.hips + 0.05 * k * t * lerp(0.95, 1.06, f)) * m.seat.rx, rz: 0.084 * D * m.seat.rz, dz: -0.002 * k + m.seat.dz * k },
-    { y: hipY - 0.02 * k, rx: (g.hips + 0.062 * k * t * lerp(0.95, 1.06, f)) * m.seat.rx, rz: 0.088 * D * m.seat.rz, dz: -0.006 * k + m.seat.dz * k },
-    { y: hipY - 0.075 * k, rx: g.hips * 1.02 * m.seat.rx, rz: 0.074 * D * m.seat.rz, dz: -0.006 * k + m.seat.dz * k },
-  ] };
+  const torso = P.torso;
   // The trunk bends at the spine: the hips ride the pelvis, the ribs the chest, the waist between them.
   const trunk = (_x: number, y: number): [number, number][] => {
     const lo = smooth((y - (pelvisY + 0.02 * k)) / (s.rest[J.spine][1] - pelvisY)), hi = smooth((y - s.rest[J.spine][1]) / (chestY - s.rest[J.spine][1]));
@@ -256,12 +264,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     // texel), running up behind the ear, then flaring into the trapezius at its root, so it tapers from the head to the
     // collar rather than standing as a column the jaw's width. Its top is closed (seen from above and behind, past the
     // nape, it shows no hole).
-    { bone: J.neck, material: r.neck, group: GROUP.head, tag: NECK, mesh: limb({ seg: 12, caps: [0.02 * k, 0.02 * k], rings: fatten([
-      { y: g.neck + 0.04 * k, rx: 0.042 * k * neck, rz: 0.048 * k * neck, dz: 0.012 * k },
-      { y: g.neck * 0.6, rx: 0.044 * k * neck, rz: 0.049 * k * neck, dz: 0.006 * k },
-      { y: g.neck * 0.1, rx: 0.051 * k * neck, rz: 0.051 * k * neck, dz: -0.002 * k },
-      { y: -0.04 * k, rx: 0.068 * k * neck, rz: 0.056 * k * neck, dz: -0.01 * k },
-    ], [fat.neck, fat.neck, fat.neck, fat.neck]) }) },
+    { bone: J.neck, material: r.neck, group: GROUP.head, tag: NECK, mesh: limb(P.neck) },
     ...head(m, s, r.skin, ppm),
   ];
   for (const [side, x] of sides) {
@@ -271,22 +274,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     // each other (the deltoid out, the biceps forward, the elbow's point back, the forearm's swell out on its outer side
     // while its inner line runs straight), so the light turns over it rather than running down a ribbon.
     const ay = s.rest[J[`upperArm.${side}`]][1], ax = x * sh, U = s.upperArm, F = s.foreArm, elbow = ay - U, wrist = ay - g.arms;
-    const arm: Limb = { seg: 14, caps: [0.028 * k, 0.012 * k], rings: fatten([
-      { y: ay - 0.012 * k, rx: 0.044 * a, rz: 0.048 * a, dx: ax + x * 0.002 * k },
-      { y: ay - 0.05 * k, rx: 0.045 * a, rz: 0.048 * a, dx: ax + x * 0.004 * k },
-      // The deltoid's insertion: the cap breaks into the upper arm.
-      { y: ay - 0.4 * U, rx: 0.036 * a, rz: 0.04 * a, dx: ax + x * 0.001 * k },
-      // The biceps forward, the triceps behind it.
-      { y: ay - 0.64 * U, rx: 0.037 * a, rz: 0.044 * a, dx: ax, dz: 0.005 * k },
-      // The elbow, slim, its point behind.
-      { y: elbow + 0.04 * U, rx: 0.029 * a, rz: 0.032 * a, dx: ax, dz: -0.003 * k },
-      // The forearm's swell under the elbow, out on its outer side only.
-      { y: elbow - 0.22 * F, rx: 0.038 * a, rz: 0.035 * a, dx: ax + x * 0.008 * k, dz: 0.002 * k },
-      { y: elbow - 0.6 * F, rx: 0.028 * a, rz: 0.027 * a, dx: ax + x * 0.002 * k },
-      // The wrist's notch, the hand flaring from it.
-      { y: wrist + 0.08 * F, rx: 0.018 * a, rz: 0.024 * a, dx: ax },
-      { y: wrist, rx: 0.017 * a, rz: 0.022 * a, dx: ax },
-    ], [fat.hipTop, fat.hipTop, fat.hipTop, fat.swell, fat.joint, fat.swell, fat.swell, fat.end, fat.end]) };
+    const arm = P.arm[side];
     const bend = across(J[`upperArm.${side}`], J[`foreArm.${side}`], elbow, 0.05 * k);
     // The shoulder's top rides the chest a little, so a swinging arm rolls under its cap rather than lifting it.
     const shoulder = (_x: number, y: number): [number, number][] => { const c = 0.45 * smooth((y - (ay - 0.03 * k)) / (0.07 * k)); return [[J.chest, c], [J[`upperArm.${side}`], 1 - c]]; };
@@ -299,19 +287,7 @@ function body(m: Measure, s: Skeleton, r: Regions, thighs: boolean, ppm?: number
     );
     // ─── Leg: the hip, a thigh that narrows to the knee, the kneecap, a calf behind the shin, the ankle ───
     const hx = x * g.hips, T = s.thigh, S = s.shin, knee = hipY - T, ankle = g.ankle;
-    const leg: Limb = { seg: 14, caps: [0.03 * k, 0.018 * k], rings: fatten([
-      { y: hipY + 0.05 * k, rx: 0.075 * l, rz: 0.08 * l, dx: hx + x * 0.008 * k, dz: -0.008 * k },
-      { y: hipY - 0.05 * k, rx: 0.078 * l, rz: 0.082 * l, dx: hx + x * 0.006 * k, dz: -0.002 * k },
-      { y: hipY - 0.4 * T, rx: 0.066 * l, rz: 0.07 * l, dx: hx + x * 0.002 * k, dz: 0.004 * k },
-      // The knee a clear narrowing under the thigh, the calf swelling behind the shin a third of the way down (its outer
-      // head a touch higher and wider), the ankle slim above the foot: a leg, not a column, at sprite size.
-      { y: knee + 0.2 * T, rx: 0.05 * l, rz: 0.053 * l, dx: hx, dz: 0.003 * k },
-      { y: knee, rx: 0.042 * l, rz: 0.046 * l, dx: hx, dz: 0.006 * k },
-      { y: knee - 0.28 * S, rx: 0.052 * l, rz: 0.06 * l, dx: hx + x * 0.003 * k, dz: -0.012 * k },
-      { y: knee - 0.65 * S, rx: 0.034 * l, rz: 0.036 * l, dx: hx, dz: -0.004 * k },
-      { y: ankle + 0.035 * k, rx: 0.024 * l, rz: 0.028 * l, dx: hx },
-      { y: ankle, rx: 0.027 * l, rz: 0.03 * l, dx: hx },
-    ], [fat.hipTop, fat.hipTop, fat.swell, fat.swell, fat.joint, fat.joint, fat.swell, fat.end, fat.end]) };
+    const leg = P.leg[side];
     const kneeBend = across(J[`thigh.${side}`], J[`shin.${side}`], knee, 0.05 * k);
     // The top of the thigh rides the pelvis in part: the hip creases as the leg swings, it does not lift out.
     const hip = (y: number): [number, number][] => { const p = 0.55 * smooth((y - (hipY - 0.07 * k)) / (0.12 * k)); return [[J.pelvis, p], [J[`thigh.${side}`], 1 - p]]; };

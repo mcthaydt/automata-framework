@@ -17,9 +17,11 @@ export { HAIR_STYLES } from './features/hair/hair';
 export type { Material, Part, Decal, Print, Mesh, Superquadric } from './features/body/parts';
 export type { Measure } from './features/body/genes';
 export type { Skeleton } from './features/body/rig';
-// ─── What a fork registers: garment kinds (H1), outfit hooks (H2), hair pieces (H3), hair finishes (H4) ───
+// ─── What a fork registers: garment kinds (H1), outfit hooks (H2), hair pieces (H3), hair finishes (H4), fabrics (H5) ───
+export { registerFabric, type Fabric } from './features/paint/fabric';
 export { registerGarment, registerOutfitHooks, type GarmentKind, type Wearing, type Fit, type OutfitHooks,
   type Regions, type BaseGarment, type GarmentKinds, type Look as Dressed } from './features/outfit/garments';
+export type { Body, Profiles, Region } from './features/outfit/fit';
 export type { ItemDef } from './features/outfit/items';
 export { registerHairPiece, registerFinish, type HairPiece, type HairCtx,
   type HairInput, type HairStyle, type HairFinish, type Piece, type Skull, type Tone, type Tie } from './features/hair/hair';

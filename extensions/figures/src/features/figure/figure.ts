@@ -7,6 +7,8 @@ import { blendJoins, cleanup, gbuffer, neckline, rasterize, resolve, smoothConto
 import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body/parts';
 import { NECK, type Expression, type FaceLook } from '../outfit/garments';
 import { DEFAULT_HEAD } from '../body/genes';
+import { fabricOf } from '../paint/fabric';
+import { clothFrame, clothSlots, clothU, type ClothFrame } from './cloth';
 import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Bends, type FaceStamp, type HandStamp, type PaintStyle } from '../paint/paint';
 /**
  * A procedural figure at run time: the stepped pose clock, the snap to 8 directions, the hair's spring, the triangle
@@ -23,7 +25,9 @@ export interface View {
    * figure is drawn at the nearest of the 8 directions to it, and the pitch to the nearest 2°. */
   azimuth: number; pitch: number;
 }
-export interface Built { parts: Part[]; decals: Decal[]; materials: Material[]; materialIndex: Map<string, number>; vertexCount: number; triangleCount: number; face: DrawnFace; groups: Map<number, number>; clear?: [number, number]; hands: HandShape[] }
+export interface Built { parts: Part[]; decals: Decal[]; materials: Material[]; materialIndex: Map<string, number>; vertexCount: number; triangleCount: number; face: DrawnFace; groups: Map<number, number>; clear?: [number, number]; hands: HandShape[];
+  /** Cloth slots `(cos t, sin t, −y)` per vertex and the cylinders they come from (cloth.ts), or null when no built material names a fabric (H5). */
+  cloth: Float32Array | null; frame: ClothFrame | null }
 /**
  * A hand's measures in its own bone's space (x the figure's left, y up the bone, z forward), from the parts the hand
  * bone carries (garments.ts hands): so the hand stamp (paint.ts HandStamp) is sized from the hand the figure wears.
@@ -77,9 +81,16 @@ export function build(member: CastMember, s: Skeleton, outfit: string, item: str
   const names = [...new Set([...parts.map(p => p.material), ...decals.flatMap(d => [d.material, ...Object.values(d.print?.inks ?? {})])])];
   const own = { ...member.materials, ...look.materials };
   const materials = names.map(n => { const m = own[n]; if (!m) throw new Error(`${member.id}: no material ${n}`); return m; });
+  for (const m of materials) if (m.fabric && !fabricOf(m.fabric)) throw new Error(`${member.id}: no fabric ${m.fabric}`);
+  // Cloth coordinates, once per build, only when a built material names a fabric (H5): with none, nothing below runs.
+  let frame: ClothFrame | null = null, cloth: Float32Array | null = null;
+  if (materials.some(m => m.fabric)) {
+    if (!look.profiles) throw new Error(`${member.id}: a fabric needs the look's profiles`);
+    frame = clothFrame(look.profiles, s); cloth = clothSlots(parts, s, frame);
+  }
   const materialIndex = new Map(names.map((n, i) => [n, i]));
   const vertexCount = parts.reduce((n, p) => n + p.mesh.positions.length / 3, 0), triangleCount = parts.reduce((n, p) => n + p.mesh.indices.length / 3, 0);
-  return { parts, decals, materials, materialIndex, vertexCount, triangleCount, face: drawnFace(member, look.face), groups: boneGroups(parts, [GROUP.item]), clear: look.clear, hands: handShapes(parts) };
+  return { parts, decals, materials, materialIndex, vertexCount, triangleCount, face: drawnFace(member, look.face), groups: boneGroups(parts, [GROUP.item]), clear: look.clear, hands: handShapes(parts), cloth, frame };
 }
 /** The drawn face's structure and colours (paint.ts FaceStamp). */
 type DrawnFace = Pick<FaceStamp, 'shape' | 'iris' | 'lash' | 'white' | 'brow' | 'lips'>;
@@ -200,6 +211,8 @@ export class Figure {
   light: FigureLight | null = null;
   /** With a light: the G-buffer rasterised with each vertex's light in its place slots, and its supersampled pass. */
   private gL: GBuffer; private hiL: GBuffer;
+  /** With a fabric in use (H5): the G-buffer rasterised with each vertex's cloth slots in its place slots, and its supersampled pass. */
+  private gC: GBuffer | null = null; private hiC: GBuffer | null = null;
   /** The supersampled G-buffer the raster draws into, resolved into `g`. */
   private hi: GBuffer;
   /** The painter's output (paint.ts): the cell's colours and normal map; and its style. */
@@ -342,6 +355,16 @@ export class Figure {
     }
     return b;
   }
+  /**
+   * The last raster's cloth coordinates (metres) at cell texel `k`: `u` round the texel's group and `v` down the body. Null
+   * when no fabric is in use, where nothing is drawn, or on an untiled group (the head, a held item). The cell cache skips
+   * the raster, so read this with `cache = false`. A fork's checks and the mapping tests read labels from it.
+   */
+  clothAt(k: number): [u: number, v: number] | null {
+    if (!this.built.cloth || !this.gC || this.g.part[k] < 0) return null;
+    const u = clothU(this.built.frame!, this.g.group[k], this.gC.place[k * 3], this.gC.place[k * 3 + 1]);
+    return u === null ? null : [u, this.gC.place[k * 3 + 2]];
+  }
   /** Draws the current pose: the triangle soup, the G-buffer and its cleanup, the marks, and the painter's cell. */
   private raster(pitch: number, faceState: FaceState) {
     const S = this.style.supersample;
@@ -363,6 +386,17 @@ export class Figure {
       for (let v = 0; v < soup.count; v++) for (let i = 0; i < 3; i++) verts[v * VERT + 6 + i] = this.lightOut[v * 3 + i];
       rasterize({ ...soup, verts }, this.hiL); resolve(this.hiL, this.gL, S, this.style); cleaned(this.gL);
     }
+    // With a fabric in use (H5): a third raster of the same triangles with each vertex's cloth slots in the place slots,
+    // resolved and cleaned as gL is, so gC follows g texel for texel.
+    const cloth = this.built.cloth;
+    if (cloth) {
+      // Allocated on first use: a figure with no fabric never holds the two buffers.
+      this.gC ??= gbuffer(this.cell[0], this.cell[1]);
+      if (!this.hiC || this.hiC.w !== this.hi.w) this.hiC = gbuffer(this.hi.w, this.hi.h);
+      const verts = soup.verts.slice(0, soup.count * VERT);
+      for (let v = 0; v < soup.count; v++) for (let i = 0; i < 3; i++) verts[v * VERT + 6 + i] = cloth[v * 3 + i];
+      rasterize({ ...soup, verts }, this.hiC); resolve(this.hiC, this.gC, S, this.style); cleaned(this.gC);
+    }
     // A print on a surface before the marks (they find its surface by its part), one hung over it (a pendant) after,
     // over every mark on the cloth behind it.
     for (const d of decals) if (d.print?.seams) stampPrint(d, this.g);
@@ -370,7 +404,7 @@ export class Figure {
     for (const d of decals) if (d.print && !d.print.seams) stampPrint(d, this.g);
     this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink, faceState.tags) : null;
     this.handStamps = this.handsAt(pitch);
-    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place);
+    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place, cloth ? { place: this.gC!.place, u: (g, c, sn) => clothU(this.built.frame!, g, c, sn) } : undefined);
   }
   /**
    * The hair's spring (secondary motion; the character file's `hair`): it trails behind as the figure walks, bounces with
