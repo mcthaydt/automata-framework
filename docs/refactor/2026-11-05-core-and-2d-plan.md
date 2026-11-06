@@ -612,11 +612,11 @@ Then:
 
 ### Task 8.1: The copy table
 
-- [ ] **Step 1:** List every player-facing string in `features/screens/`, `features/saves/ui/`,
+- [x] **Step 1:** List every player-facing string in `features/screens/`, `features/saves/ui/`,
   `features/settings/ui/`, the boot failure panel and Emberwick's screens into `docs/refactor/copy.md`: a table of
   where, old text, new text, and which of the four questions (spec section 8) it failed. Also the CLI's messages
   (`automata create-game`, `ship prepare` errors) and the root and package READMEs' first screen.
-- [ ] **Step 2:** Apply the new text. The existing DOM tests that assert text change with it.
+- [x] **Step 2:** Apply the new text. The existing DOM tests that assert text change with it.
 
 ### Task 8.2: New journeys (Emberwick, `tests/e2e/`)
 
@@ -1083,4 +1083,15 @@ the features it lacks are journeyed on the one-file examples that show them:
   statically; the `@slow` journey's trace has no boot mark, so a small script measured it the same way for both):
   953 ms before (the #398 head, Effect runtime) and 850 ms after. Not run: WebKit and Firefox (downloads refused
   here), the editors' browser suites, hosted CI. Step 6's merge waits for CI.
-
+- **Task 8.1 finished, tenth session, 2026-11-06 (PR `claude/project-thread-ttb6rx`, stacked on #400).** The rest of the
+  copy table is checked and applied (`copy.md`). Each rewrite was pinned by a failing test first: the paused dialog's ✕
+  is named `Close` (a new `copy.screens.paused.close`; before, it and the menu's first button were both "Resume", which
+  the create-game journey found), and that journey now finds Resume by role and name; six Settings lines and one save
+  line (`screens-copy.test.ts` pins them); the create-game and `ship prepare` messages (`bin.test.ts`,
+  `create-game.test.ts`, `errors.test.ts`, `check-version.test.ts`, `prepare-build.test.ts`). The README first screens
+  (root, `examples/`, `tooling/consumer-smoke/`) are docs, so no test; the root README's commands still resolve (the
+  consumer-smoke README test). The rebind journey reads `Not set`. Changesets `plain-copy` (automata) and
+  `plain-cli-messages` (tools). Verified: `pnpm check` (23 of 23 tasks, automata unit 1,836, tools unit 669);
+  automata browser suite in Chromium 2,116 of 2,116; examples and runner journeys 80 of 80, Emberwick 28 of 28 and
+  create-game 1 of 1 (Chromium); `api-report --update` adds `close`; agent skill and cheatsheet regenerated. Not run:
+  WebKit and Firefox (downloads refused here), hosted CI.
