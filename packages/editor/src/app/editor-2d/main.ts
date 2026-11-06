@@ -3,6 +3,7 @@ import '../../shared/kit/fonts.css'
 import './main.css'
 import { lazyThumbnails } from '../../features/home/lazy-thumbnails'
 import { storedLastOpened } from '../../features/home/stored-last-opened'
+import { systemClock } from '../../shared/kit/storage/clock.ts'
 import { openServedWorkspace } from '../../shared/kit/storage/workspace.ts'
 import { createColorResolver } from '../../shared/level-2d/canvas/colors'
 import { startEditor } from './boot'
@@ -34,11 +35,7 @@ startEditor(target, {
   ...(served === undefined ? {} : { workspace: served }),
   window,
   document,
-  clock: {
-    now: () => Date.now(),
-    setTimer: (ms, run) => window.setTimeout(run, ms),
-    clearTimer: (handle) => window.clearTimeout(handle as number),
-  },
+  clock: systemClock,
   fillRandom: (bytes) => {
     crypto.getRandomValues(bytes)
   },

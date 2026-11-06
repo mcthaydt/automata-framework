@@ -1,7 +1,7 @@
 // The editor's app logic without a view: listing, creating, opening, copying, importing and removing documents, each
 // answering with an outcome the views turn into screens.
 import { createHistory, type History } from '../../kit/history/history.ts'
-import type { StorageClock } from '../../kit/storage/clock.ts'
+import { type StorageClock, systemClock } from '../../kit/storage/clock.ts'
 import {
   createDocumentSession,
   type DocumentSession,
@@ -129,12 +129,6 @@ export interface EditorAppOptions {
   readonly ids: IdSource
   /** Time for the autosave debounce and for coalescing history steps. */
   readonly clock?: StorageClock
-}
-
-const systemClock: StorageClock = {
-  now: () => Date.now(),
-  setTimer: (ms, run) => setTimeout(run, ms),
-  clearTimer: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
 }
 
 /** A refused write as the storage failure the views know: `conflict` only comes with an `expected` mtime, which a plain write never passes. */
