@@ -1,7 +1,7 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { getExample } from '../../src/data/examples'
+import { compileExample } from '../../src/lib/playground/compile'
 import { atOrigin } from '../../src/lib/playground/origin'
 import { SITE_ORIGIN } from '../../src/lib/site.js'
 
@@ -30,10 +30,15 @@ describe('atOrigin', () => {
   })
 
   it('moves the literal in a real precompiled original', () => {
-    const original = readFileSync(
-      resolve(import.meta.dirname, '../../static/playground/compiled/audio-sound.js'),
-      'utf8',
-    )
+    // Compiled as scripts/build-demos.ts compiles it, so the test needs no build output.
+    const example = getExample('audio-sound')
+    if (example === undefined) throw new Error('the catalog has no audio-sound')
+    const result = compileExample(example.source, {
+      id: example.id,
+      moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,
+    })
+    if (!result.ok) throw new Error('audio-sound does not compile')
+    const original = result.code
     const moved = atOrigin(original, SITE_ORIGIN, 'http://localhost:5173')
     expect(moved).toContain('"http://localhost:5173/playground/examples/audio/audio-sound.ts"')
     expect(moved).not.toContain(SITE_ORIGIN)
