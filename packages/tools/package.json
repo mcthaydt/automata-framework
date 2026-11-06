@@ -51,6 +51,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",

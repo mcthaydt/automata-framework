@@ -104,9 +104,8 @@ describe('createGame', () => {
       const style = readFileSync(join(testDir, 'style.css'), 'utf8')
       expect(style).toContain('touch-action: manipulation')
       expect(style).toContain('-webkit-user-select: none')
-      // Laid out by role, the sim's files first: `automata check` reads constants.ts to state.ts as the sim.
-      for (const role of ['constants', 'components', 'commands', 'systems', 'state', 'views', 'main'])
-        expect(existsSync(join(testDir, `src/${role}.ts`))).toBe(true)
+      // Laid out by feature (template.test.ts pins the whole list).
+      expect(existsSync(join(testDir, 'src/features/square/square.plugin.ts'))).toBe(true)
 
       // Verify template substitutions
       const pkgJson = JSON.parse(readFileSync(join(testDir, 'package.json'), 'utf8'))
@@ -122,9 +121,11 @@ describe('createGame', () => {
       // The game boots on the default screens, with the no-eval guard first, and its sim is named after it.
       const main = readFileSync(join(testDir, 'src/main.ts'), 'utf8')
       expect(main.indexOf("import '@mcthaydt/automata/no-eval'")).toBeLessThan(main.indexOf('startGame'))
-      expect(main).toContain("title: 'Stellar Odyssey'")
       expect(main).toContain('startGame(game)')
-      expect(readFileSync(join(testDir, 'src/state.ts'), 'utf8')).toContain("name: 'stellar-odyssey'")
+      expect(readFileSync(join(testDir, 'src/app/game.ts'), 'utf8')).toContain("title: 'Stellar Odyssey'")
+      expect(readFileSync(join(testDir, 'src/features/square/square.plugin.ts'), 'utf8')).toContain(
+        "name: 'stellar-odyssey'",
+      )
 
       // Every asset ships as a file: an inlined `data:` URL is refused by Ruken's CSP when fetched (DX.5a).
       const viteConfig = readFileSync(join(testDir, 'vite.config.ts'), 'utf8')

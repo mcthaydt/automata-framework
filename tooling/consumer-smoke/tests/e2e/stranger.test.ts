@@ -60,6 +60,7 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
   const toolsDir = join(folder, 'tools')
   const gameDir = join(folder, 'work', GAME)
   let overrides: Record<string, string> = {}
+  let finished = false
   try {
     await step('make a game', () => {
       // The packs: what `pnpm publish` would upload, from the packages turbo built before this test.
@@ -119,11 +120,13 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         await page.getByRole('button', { name: 'Play' }).click()
         await expect.poll(() => squareX(page), { timeout: 20_000 }).not.toBeNull()
         const before = (await squareX(page)) as number
+        // Hold the key for a moment: the square moves 2 pixels a tick, so a long hold would carry it off the screen.
         await page.keyboard.down('ArrowRight')
+        await page.waitForTimeout(150)
+        await page.keyboard.up('ArrowRight')
         await expect
           .poll(async () => ((await squareX(page)) ?? before) - before, { timeout: 10_000 })
           .toBeGreaterThan(4)
-        await page.keyboard.up('ArrowRight')
         expect(errors).toEqual([])
       } finally {
         await server.close()
@@ -135,9 +138,10 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
       sh(gameDir, 'pnpm', ['prepare:itch'])
       expect(existsSync(join(gameDir, `${GAME}-0.1.0-itch.zip`)), 'the zip is beside the build').toBe(true)
     })
+    finished = true
   } finally {
-    // A failed run keeps its folder for a look, in the report's output; a passing one leaves nothing behind.
-    if (!test.info().errors.length) rmSync(folder, { recursive: true, force: true })
-    else console.log(`the stranger's folder: ${folder}`)
+    // A failed run keeps its folder for a look (its path is attached to the report); a passing one leaves nothing behind.
+    if (finished) rmSync(folder, { recursive: true, force: true })
+    else await test.info().attach('the stranger folder', { body: folder, contentType: 'text/plain' })
   }
 })

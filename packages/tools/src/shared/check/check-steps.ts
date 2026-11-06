@@ -1,4 +1,6 @@
-import { dirname, join } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { basename, dirname, join } from 'node:path'
 import { Effect } from 'effect'
 import { Files } from '../node/files.ts'
 import { ProcessRunner, type RunResult } from '../node/process-runner.ts'
@@ -84,31 +86,53 @@ const findingsOrToolError = (tool: Tool, result: RunResult, findings: readonly C
         }),
       )
 
-// A game's sim is `src/sim/`, or laid out by feature (`src/features/`: its sim is found by role suffix and by import),
-// or laid out by role, these files in `src/`. A copy of
-// check-boundaries' GAME_SIM_ROLES: that package is a bin with no library entry; run-check.test.ts pins the names.
+/**
+ * The boundaries checker, as the path of the CLI that `node` runs. It is a dependency of this package, so a new game
+ * does not install it, and it is the same version as the tools that run it. (In the workspace the CLI is a `.ts` file;
+ * in a published install it is the built `.js`. Node 24 runs both.)
+ */
+export function boundariesCli(): string {
+  const manifestPath = createRequire(import.meta.url).resolve(
+    '@mcthaydt/automata-check-boundaries/package.json',
+  )
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { bin: Record<string, string> }
+  return join(dirname(manifestPath), manifest.bin[TOOLS.boundaries.bin] ?? '')
+}
+
+const WHERE_CODE_GOES = 'Put game code in src/features/<name>/ (see the guide).'
+
+// Every game keeps its code in `src/features/<name>/`, with `src/shared/` and `src/app/` beside it. The base 3D game
+// still keeps its sim in role files (`src/systems.ts`, `src/state.ts`, ...) until its own slice moves it; it is
+// allowed by name, and no other game is.
+const ROLE_LAYOUT_GAMES: readonly string[] = ['base-3d']
 const GAME_SIM_ROLES = ['constants', 'components', 'commands', 'events', 'resources', 'systems', 'state']
 
 export const boundariesStep = (gameDir: string): StepEffect =>
   Effect.gen(function* () {
     const files = yield* Files
     const src = join(gameDir, 'src')
-    const hasSimFolder = yield* files.exists(join(src, 'sim'))
-    let hasRoleLayout =
-      (yield* files.exists(join(src, 'sim.ts'))) || (yield* files.exists(join(src, 'features')))
-    for (const role of GAME_SIM_ROLES) {
-      if (hasRoleLayout) break
-      hasRoleLayout = (yield* files.exists(join(src, `${role}.ts`))) || (yield* files.exists(join(src, role)))
+    const toolError = (detail: string) =>
+      new CheckToolError({ kind: 'failed', tool: TOOLS.boundaries.bin, detail })
+    let laidOutByRole = false
+    if (ROLE_LAYOUT_GAMES.includes(basename(gameDir))) {
+      for (const role of GAME_SIM_ROLES)
+        laidOutByRole ||=
+          (yield* files.exists(join(src, `${role}.ts`))) || (yield* files.exists(join(src, role)))
     }
-    if (!hasSimFolder && !hasRoleLayout) {
-      return yield* new CheckToolError({
-        kind: 'failed',
-        tool: TOOLS.boundaries.bin,
-        detail: `no sim in ${gameDir}: expected a src/sim folder, a src/features folder, or sim files laid out by role (src/systems.ts, src/state.ts, …); automata check runs in a game folder`,
-      })
+    const laidOutByFeature = yield* files.exists(join(src, 'features'))
+    if ((!laidOutByFeature && !laidOutByRole) || (yield* files.exists(join(src, 'sim')))) {
+      return yield* toolError(WHERE_CODE_GOES)
     }
-    const roots = [...(hasSimFolder ? ['src/sim'] : []), ...(hasRoleLayout ? ['--game', 'src'] : [])]
-    const result = yield* runTool(gameDir, TOOLS.boundaries, roots)
+    const cli = yield* Effect.try({
+      try: boundariesCli,
+      catch: (cause) =>
+        new CheckToolError({ kind: 'missing', tool: TOOLS.boundaries.bin, detail: String(cause) }),
+    })
+    const runner = yield* ProcessRunner
+    const result = yield* Effect.mapError(
+      runner.run(process.execPath, [cli, '--game', 'src'], { cwd: gameDir }),
+      (error) => toolError(error.message),
+    )
     return yield* findingsOrToolError(TOOLS.boundaries, result, parseBoundaries(result.stdout))
   })
 
