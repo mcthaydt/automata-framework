@@ -10,7 +10,7 @@ import type { TouchCopy } from './touch-section.ts'
 import type { VibrationCopy } from './vibration-section.ts'
 
 export const PROMPT_COPY: PromptCopy = {
-  unbound: 'Unbound',
+  unbound: 'Not set',
   touch: 'Tap',
   pad: {
     bottom: 'Bottom button',
@@ -39,8 +39,8 @@ export const CONTROLS_COPY: ControlsCopy = {
   press: 'Press…',
   rebind: (action, device) => `Change ${action} on ${device}`,
   capturing: (action, device, seconds) =>
-    `Press a ${device.toLowerCase()} input for ${action} (${seconds} s). Escape cancels.`,
-  conflict: (action, other) => `${action} can't take that: ${other} needs it`,
+    `Press a new ${device.toLowerCase()} button for ${action}. ${seconds} seconds left. Escape cancels.`,
+  conflict: (action, other) => `${other} needs that one. Pick another for ${action}.`,
   reserved: (action) => `That one is kept for menus. Pick another for ${action}.`,
   timedOut: (action) => `Nothing was pressed. ${action} is unchanged.`,
   saved: (action) => `${action} saved`,
@@ -58,10 +58,10 @@ export const VIBRATION_COPY: VibrationCopy = {
 export const AUDIO_COPY: AudioCopy = {
   title: 'Audio',
   mute: 'Mute',
-  muteUnfocused: 'Mute in the background',
+  muteUnfocused: 'Mute when you switch away',
   on: 'On',
   off: 'Off',
-  buses: { master: 'Master', music: 'Music', sfx: 'Effects', ui: 'Menus', voice: 'Voices' },
+  buses: { master: 'All sound', music: 'Music', sfx: 'Effects', ui: 'Menus', voice: 'Voices' },
   percent: (value) => `${Math.round(value * 100)}%`,
   unavailable: 'Sound could not start on this device.',
   hostVolume: 'Your device’s own volume also applies.',
@@ -77,7 +77,7 @@ export const DISPLAY_COPY: DisplayCopy = {
   title: 'Display',
   quality: 'Graphics quality',
   qualities: { high: 'High', medium: 'Medium', low: 'Low' },
-  reducedMotion: (reduced) => `Reduced motion: ${reduced ? 'on' : 'off'} (from your device)`,
+  reducedMotion: (reduced) => `Reduced motion is ${reduced ? 'on' : 'off'} in your device’s settings.`,
 }
 
 export const SETTINGS_COPY = {

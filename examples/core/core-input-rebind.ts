@@ -2,7 +2,7 @@
 //
 // Shows: keys() names each action with labels, so the default Settings screen (pause, then the gear) lists them;
 //   rebinding one saves it through the host and play reads it at once; a key taken from another action leaves
-//   that one "Unbound"; Escape cancels a capture. A reload keeps the player's keys.
+//   that one "Not set"; Escape cancels a capture. A reload keeps the player's keys.
 // Controls: the arrows move, Space jumps, F fires; Escape or P to pause, then the gear for Settings
 // Packages: @mcthaydt/automata, zod
 // Difficulty: ★★☆☆

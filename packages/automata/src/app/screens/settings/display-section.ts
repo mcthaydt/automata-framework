@@ -11,6 +11,6 @@ export interface DisplayCopy {
   /** The quality choice's name. */
   readonly quality: string
   readonly qualities: Readonly<Record<DisplayQuality, string>>
-  /** Reduced motion as the browser reports it: "Reduced motion: on (from your device)". */
+  /** Reduced motion as the browser reports it: "Reduced motion is on in your device’s settings.". */
   reducedMotion(reduced: boolean): string
 }
