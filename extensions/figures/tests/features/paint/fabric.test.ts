@@ -94,15 +94,30 @@ describe('fabrics drawn', () => {
     expect(withFx['built'].cloth).not.toBeNull();
     expect(differs(withFx.painted, without.painted)).toBe(false);
   });
-  it('tiled texels stay on their ramp', () => {
-    const def = dressed(outfit('fxrib'), SWATCHES_FX), cast = member(def, 2);
-    const tiled = standing(cast, 0);
-    const allowed = new Set<number>(tonesOf(swatchOf('rib')).map(c => duel(c)));
+  it('tiled texels stay on their ramp: in every view, the cloth\'s texels use only colours the plain cloth uses there', () => {
+    // Audit S2. Per view, the allowed set is the plain drawing's colours at the cloth's own texels (its material), the swatch's own
+    // ramp (a tile can reach its deep tone where the plain view never does) and ink;
+    // a tile that picked another ramp (the skin's, a neighbour's at an outline) puts a colour in that is not in it.
+    const drawnAt = (def: ReturnType<typeof dressed>, d: number) => {
+      const f = new Figure(member(def, 2));
+      f.cache = false;
+      for (let i = 0; i < 3; i++) f.update(1 / 60, { ...input, facing: d * Math.PI / 4 });
+      return f;
+    };
+    const ink = duel(0x000000);
+    let tiledTexels = 0;
     for (let d = 0; d < 8; d++) {
-      const plain = standing(member(dressed(outfit('plain'), { plain: PLAIN }), 2), d);
-      for (let i = 0; i < plain.length; i += 4) if (plain[i + 3]) allowed.add(colourAt(plain, i));
+      const tiled = drawnAt(dressed(outfit('fxrib'), SWATCHES_FX), d), plain = drawnAt(dressed(outfit('plain'), { plain: PLAIN }), d);
+      const mt = tiled['built'].materialIndex.get('fxrib')!, mp = plain['built'].materialIndex.get('plain')!;
+      const allowed = new Set<number>([ink, ...tonesOf(PLAIN).map(c => duel(c))]);
+      for (let k = 0; k < plain.g.material.length; k++) if (plain.g.material[k] === mp && plain.painted[k * 4 + 3]) allowed.add(colourAt(plain.painted, k * 4));
+      for (let k = 0; k < tiled.g.material.length; k++) {
+        if (tiled.g.material[k] !== mt || !tiled.painted[k * 4 + 3]) continue;
+        tiledTexels++;
+        expect(allowed.has(colourAt(tiled.painted, k * 4)), `view ${d} texel ${k}`).toBe(true);
+      }
     }
-    for (let i = 0; i < tiled.length; i += 4) if (tiled[i + 3]) expect(allowed.has(colourAt(tiled, i)), `texel ${i / 4}`).toBe(true);
+    expect(tiledTexels).toBeGreaterThan(1000);
   });
   it('the rib survives the colour budget: a good share of the top changes', () => {
     const top = (sw: object | null) => standing(member(dressed([{ top: 'topSw', sleeves: 'long' }], sw ? { topSw: sw as never } : { topSw: PLAIN }), 2), 0);
