@@ -54,6 +54,10 @@ export interface Genes {
   faceAhead: number;
   /** A hunch (0–1): the shoulders raised and rounded forward, the head sunk forward between them (motion.ts). */
   hunch: number;
+  /** The body's sideways curve, −1…1 (0 level; +1 the figure's left shoulder lower): a pose roll of the spine and the chest
+   * against each other (motion.ts), not a rest offset, since rest rotations are the identity (this file's header) and the body
+   * is skinned at rest. */
+  sideBend: number;
 }
 export interface Skeleton {
   genes: Genes;

@@ -30,6 +30,10 @@ export interface Sliders {
   faceForward: number;
   /** 0 square shoulders … 1 a hunch: the shoulders up and rounded forward, the head sunk forward between them. */
   hunch: number;
+  /** −1…1, 0 a level figure: one shoulder lower (the figure's left for +1, up to 3 cm), the trunk curved sideways (the chest
+   * rolled against the spine by up to 6°) and the head set level over it, as a body compensates (a scoliosis or a short leg
+   * gives such a range). The stand and the gait carry it from motion.ts; a diversity control. */
+  bodyAsymmetry: number;
   /** The head's own structure (HeadShape); left out, an average head. */
   face?: Partial<HeadShape>;
 }
@@ -69,7 +73,7 @@ export const DEFAULT_HEAD: HeadShape = {
 };
 export const DEFAULT_SLIDERS: Sliders = {
   frame: 0.5, height: 170, muscle: 0.5, fat: 0.4, shoulders: 0.5, hips: 0.5, legs: 0.5, arms: 0.5, head: 0.6,
-  neck: 0.5, neckLength: 0.4, hands: 0.5, feet: 0.5, posture: 0.5, age: 0.3, headTilt: 0, chunk: 1, faceForward: 0.7, hunch: 0,
+  neck: 0.5, neckLength: 0.4, hands: 0.5, feet: 0.5, posture: 0.5, age: 0.3, headTilt: 0, chunk: 1, faceForward: 0.7, hunch: 0, bodyAsymmetry: 0,
 };
 /** Everything the body and the garments need, in metres. */
 export interface Measure {
@@ -110,7 +114,7 @@ export function measure(input: Partial<Sliders>): Measure {
     headTilt: s.headTilt * Math.PI / 180,
     headPitch: lerp(0.15, -0.04, s.posture) + 0.08 * s.age,
     faceAhead: lerp(0, 0.5, s.faceForward),
-    hunch: s.hunch,
+    hunch: s.hunch, sideBend: s.bodyAsymmetry,
   };
   return {
     sliders: s, genes, k,
