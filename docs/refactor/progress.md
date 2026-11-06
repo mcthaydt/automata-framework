@@ -113,8 +113,14 @@ plain type); the consumer smoke's fixtures still imported the six packages the m
 the `repo-hygiene` cache input and a comment named folders that no longer exist. Two tests that the copy change made stale were
 updated (base-3d's quit question, the `start-final` code in `run-game`).
 
-**Left for the Owner:** `pnpm ci:local` where WebKit and Firefox install; `pnpm lint:actions` (needs Docker); marking the PRs ready and
-merging bottom up. One more thing the audit did not list: about 200 comments in `packages/*/src` name FloorFifty, which AGENTS.md says
+**E1, run on the Owner's Mac (2026-11-05, Chromium, WebKit and Firefox):** `pnpm lint:actions` reports nothing. `pnpm ci:local`
+found two failures in the examples' journeys, both fixed: the examples config's `runner` projects picked up the playground
+journeys once this PR moved them to `tests/e2e` (74 failures, nothing serving the playground), so they now skip `playground-*`,
+which run from the runner's own config (109 passed in the three engines); and the gamepad matrix cell's pause tapped Start for
+one frame, which play reads once per sim step, so WebKit missed it about one run in three (fixed in #388, 24 of 24 after).
+Then: examples 139 passed, Emberwick 47, `create-game` 1.
+
+**Left for the Owner:** hosted CI; marking the PRs ready and merging bottom up. One more thing the audit did not list: about 200 comments in `packages/*/src` name FloorFifty, which AGENTS.md says
 published text never does (`docs/provenance/sources.md` is where it belongs). That is a rewrite of its own.
 
 **Bundle before D2 (Emberwick, `vite build --sourcemap`, measured 2026-11-05 on `claude/project-thread-f01qmj` with
