@@ -376,32 +376,32 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   `packages/editor/vitest.config.ts`, `packages/editor/package.json` (scripts)
 - Move: every `*.test.ts` and test host under `packages/editor/src`
 
-- [ ] **Step 1: The preset, test first.** A failing preset test: `defineTests({ browserProjects: [{ name: 'parity',
+- [x] **Step 1: The preset, test first.** A failing preset test: `defineTests({ browserProjects: [{ name: 'parity',
   folder: 'parity', engines: ['chromium','webkit','firefox'] }, { name: 'layout', folder: 'layout', engines:
   ['chromium','webkit','firefox'] }, { name: 'canvas', folder: 'canvas', engines: ['chromium','webkit'] }, { name:
   'journeys', folder: 'journeys', engines: ['webkit','chromium'], instance: journeyInstance }] })` returns `unit` plus
   four browser projects whose `include` is `tests/browser/<folder>/**/*.test.ts`. `parity` is today's `browsers` project
   (the auto-tile goldens, `*.parity.test.ts`), which also runs in Node through `alsoInNode: ['tests/browser/parity/**/*.test.ts']`.
   Without the option, the single `browser` project is unchanged (existing tests stay green). Then the change.
-- [ ] **Step 2: The suffix table, test first.** In `move-tests`, the editor's suffixes map to folders: `.dom` →
+- [x] **Step 2: The suffix table, test first.** In `move-tests`, the editor's suffixes map to folders: `.dom` →
   `tests/unit/<feature>/` with `// @vitest-environment jsdom` added as the first line; `.layout` →
   `tests/browser/layout/`; `.canvas` → `tests/browser/canvas/`; `.journey` → `tests/browser/journeys/`; `.parity` →
   `tests/browser/parity/` (the Node run comes from `alsoInNode`, step 1); the one-offs (`.codec-bug`, `.ship.dom`, `.refusal`,
   ...) → `tests/unit/<feature>/` with the suffix folded into the name (`codec-bug.test.ts`). `*.test.svelte` and the
   fake canvases → `tests/fixtures/`. A fixture test per rule.
-- [ ] **Step 3: Run it.** `node tooling/codemods/src/cli.ts packages/editor --environment node --dry-run`, check,
+- [x] **Step 3: Run it.** `node tooling/codemods/src/cli.ts packages/editor --environment node --dry-run`, check,
   apply (without `--dry-run`). Imports of the code under test become `#src/...`.
 
   **Session break here** if needed (log: "4.3 step 3 applied; configs not yet switched").
-- [ ] **Step 4: Switch the config.** `vitest.config.ts` is one `defineTests` call (`environment: 'node'`, `svelte: true`,
+- [x] **Step 4: Switch the config.** `vitest.config.ts` is one `defineTests` call (`environment: 'node'`, `svelte: true`,
   `plugins: [svelteTesting()]`, `setupFiles`, `css: true`, the four browser projects). Scripts: `test:unit`
   (`--project unit`), `test:browser` (the four browser projects).
-- [ ] **Step 5: Counts equal.** `pnpm --filter @mcthaydt/automata-editor test:unit` → the same count as 4.2 step 7.
+- [x] **Step 5: Counts equal.** `pnpm --filter @mcthaydt/automata-editor test:unit` → the same count as 4.2 step 7.
   Chromium browser projects → 252 pass, 6 skipped (plus the kit's layout tests, which the audit could not run: record
   the number). `pnpm style --test-imports packages/editor` → 0 findings.
-- [ ] **Step 6: Gate lines.** Root `package.json`: `test:unit:2d` and `test:browser:2d` filter `./packages/editor`
+- [x] **Step 6: Gate lines.** Root `package.json`: `test:unit:2d` and `test:browser:2d` filter `./packages/editor`
   in and `./packages/editor-3d` out. `pnpm check` passes.
-- [ ] **Step 7: Commit, mark the PR ready.** `refactor(editor): tests in tests/, one suffix, the preset's browser projects`
+- [x] **Step 7: Commit, mark the PR ready.** `refactor(editor): tests in tests/, one suffix, the preset's browser projects`
 
 ### Task 4.4: Feature folders and the boundaries rules (PR `claude/refactor-ed-features`)
 
@@ -1401,4 +1401,33 @@ listed as left with the reason.
   `vitest/browser`'s declaration shadows once one program holds jsdom and browser tests; 4.3 separates the two.
   `@mcthaydt/vitest-preset` is not yet a dependency (knip): 4.3 adds it.
 - Handoff: next is task 4.3 (the preset's named browser projects, the editor's suffix table, then the move).
+
+### 2026-11-06, session 3 (continued): task 4.3
+
+- Task 4.3 done: the editor's tests are in `packages/editor/tests/`. 295 files moved with `move-tests` (unit 268, browser 27),
+  plus the five 2D journeys and four kit journeys that 4.2 had already put under `tests/browser/journeys/` (renamed to
+  `.test.ts`), `scripts/remove-profiles.test.ts`, and the two storage layout tests (their own folder, below).
+- The preset: `defineTests({ browserProjects })` (tested first, five new tests): one project per folder of `tests/browser/`
+  with its own engines and an optional `instance(engine)` that may return several instances; two projects with one name
+  throw. `journeyInstance(playwright)(engine)` is the iPad context as an instance (two tests). `move-tests` gained
+  `browserFolders` (layout, canvas, parity and journey tests go to `tests/browser/<kind>/`), `featureFolders` (`features/`
+  is left out of a feature's test folder, as in the other packages) and a folded-qualifier table (`patch.refusal.test.ts` is
+  `patch-refusal.test.ts`), each with fixture tests (49 codemod tests, was 44).
+- The config is one `defineTests` call: `unit` (Node, Svelte compiled, Testing Library, jest-dom, CSS) and five browser
+  projects: `parity` (also run in Node), `layout`, `storage`, `canvas`, `journeys`. The storage tests (the two that need a
+  persistent profile in Chromium and WebKit, and the private-window one in an ephemeral WebKit) have their own project,
+  because with the persistent profile on, Vitest runs a project's files one at a time: the rest of the kit's layout tests,
+  which only ran that way because they shared a project, now run in parallel in the default context.
+  `vitest.global-teardown.ts` is gone; the config removes the profiles when the process exits, which was its second line of
+  defence.
+- Counts. Unit: 3,268 before, 3,270 after: the two `journeyInstance` tests; every other test is where it was. 29 kit
+  component tests had no `.dom` in their name and ran in jsdom because the old kit project did; each got the
+  `// @vitest-environment jsdom` first line. Chromium browser projects: 527 pass, 6 skipped, 0 fail (parity, layout,
+  storage, canvas, journeys), where 4.2 ran 452 + 49 pass and 6 skipped without the journeys: the 26 more are the nine
+  journey files, run here in Chromium with the iPad context because WebKit is not installed (WebKit and Firefox not run).
+  `pnpm style --test-imports packages/editor`: 0 findings (the root `style` script now lists the package).
+- Step 6: the root `test:unit:2d` and `test:browser:2d` filters exclude the 3D packages, so `packages/editor` is in both
+  already; no edit. `pnpm lint`, typecheck, boundaries, style and knip pass.
+- Deviations: (1) the persistent-profile project is named `storage`, not part of `layout`; (2) `journeys` runs WebKit and
+  Chromium, as the plan says, so the iPad flows can run where WebKit is missing.
 

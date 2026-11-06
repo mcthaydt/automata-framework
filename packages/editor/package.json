@@ -37,11 +37,11 @@
     "build": "vite build && vite build --mode suite",
     "dev": "vite",
     "test": "vitest run",
-    "test:browser": "vitest run --project browsers --project layout --project layout-kit --project canvas --project journeys",
+    "test:browser": "vitest run --project parity --project layout --project storage --project canvas --project journeys",
     "test:canvas": "vitest run --project canvas",
-    "test:journeys": "vitest run --project journeys --passWithNoTests",
-    "test:layout": "vitest run --project layout --project layout-kit",
-    "test:unit": "vitest run --project kit --project unit --project dom",
+    "test:journeys": "vitest run --project journeys",
+    "test:layout": "vitest run --project layout --project storage",
+    "test:unit": "vitest run --project unit",
     "tokens": "node scripts/generate-tokens.ts",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings"
   },
@@ -58,6 +58,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/svelte": "5.4.2",
     "@testing-library/user-event": "14.6.7",

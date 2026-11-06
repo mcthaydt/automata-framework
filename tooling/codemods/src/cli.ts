@@ -1,6 +1,7 @@
 // Run the test-move codemod on one package:
 //   node tooling/codemods/src/cli.ts packages/sim --environment node [--dry-run]
 //     [--extra-root deploy] [--other-environment src/sim] [--keep-qualifier src/input/keys.analog.test.ts]
+//     [--browser-folders] [--feature-folders]
 // A dry run prints the plan (move counts per kind, what stays, what needs a person's eyes) and changes nothing.
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
@@ -14,6 +15,8 @@ const { values, positionals } = parseArgs({
     'other-environment': { type: 'string', multiple: true, default: [] },
     'keep-qualifier': { type: 'string', multiple: true, default: [] },
     'extra-root': { type: 'string', multiple: true, default: [] },
+    'browser-folders': { type: 'boolean', default: false },
+    'feature-folders': { type: 'boolean', default: false },
     'dry-run': { type: 'boolean', default: false },
   },
 })
@@ -31,6 +34,8 @@ const config: MoveConfig = {
   otherEnvironment: values['other-environment'],
   keepQualifier: values['keep-qualifier'],
   extraRoots: values['extra-root'],
+  browserFolders: values['browser-folders'],
+  featureFolders: values['feature-folders'],
 }
 // `git ls-files` run inside the package prints paths relative to it, and lists only what git tracks (no build output).
 const files = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8', cwd: root })

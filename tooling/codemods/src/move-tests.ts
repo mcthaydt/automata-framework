@@ -25,6 +25,14 @@ export interface MoveConfig {
    * (`keys.analog.test.ts` beside `keys.test.ts`).
    */
   readonly keepQualifier?: readonly string[]
+  /**
+   * The package's browser tests live in named folders, one per kind (`tests/browser/layout/`, `.../canvas/`,
+   * `.../parity/`, `.../journeys/`), which its Vitest config runs as separate projects. Without this a browser test goes
+   * to `tests/browser/` whatever its kind.
+   */
+  readonly browserFolders?: boolean
+  /** The package's `src/features/<x>/` is tested in `tests/<kind>/<x>/`: the `features/` level is left out. */
+  readonly featureFolders?: boolean
 }
 
 export interface Move {
@@ -50,12 +58,17 @@ export interface Plan {
 // repository has a row, and an unknown one stops the run, so a new suffix cannot slip through unplaced.
 
 /** Where each qualifier sends a test. `jsdom` also puts the environment directive on it. */
-const QUALIFIER_KIND: Readonly<Record<string, { kind: Kind; environment?: Environment }>> = {
+const QUALIFIER_KIND: Readonly<
+  Record<string, { kind: Kind; environment?: Environment; browserFolder?: string }>
+> = {
   // A DOM test runs in jsdom.
   dom: { kind: 'unit', environment: 'jsdom' },
-  // These need a real browser engine (layout, a renderer, the same bytes in every engine).
-  layout: { kind: 'browser' },
-  parity: { kind: 'browser' },
+  // These need a real browser engine (layout, a renderer, the same bytes in every engine). A package with
+  // `browserFolders` sorts them into the folder of their kind.
+  layout: { kind: 'browser', browserFolder: 'layout' },
+  parity: { kind: 'browser', browserFolder: 'parity' },
+  canvas: { kind: 'browser', browserFolder: 'canvas' },
+  journey: { kind: 'browser', browserFolder: 'journeys' },
   browser: { kind: 'browser' },
   golden: { kind: 'browser' },
   // The one example whose smoke test boots the demo in Chromium.
@@ -89,13 +102,35 @@ const ROLE_QUALIFIERS: ReadonlySet<string> = new Set([
   'svelte',
 ])
 
+/**
+ * One-off qualifiers that say what the test is about (`patch.refusal.test.ts`, `Suite.ship.dom.test.ts`). A file keeps one
+ * suffix, `.test.ts`, so they become part of the name with a hyphen (`patch-refusal.test.ts`, `Suite-ship.test.ts`).
+ */
+const FOLDED_QUALIFIERS: ReadonlySet<string> = new Set([
+  'codec-bug',
+  'refusal',
+  'guards',
+  'ship',
+  'edit',
+  'levels',
+  'tuner',
+])
+
 const TEST_FILE = /^(?<name>.+?)(?<qualifiers>(?:\.[a-z][a-z-]*)*)\.test\.(?<ext>ts|svelte)$/
 
 interface Placement {
   kind: Kind
   environment: Environment | undefined
+  /** The folder of its kind under `tests/browser/`, for a package with `browserFolders`. */
+  browserFolder: string | undefined
   /** The file's base name in its new folder. */
   name: string
+}
+
+/** The folder of a file under `src/`, as its tests' folder names it; `features/` is left out when asked. */
+function underSrc(rel: string, leaveOutFeatures: boolean): string {
+  const dir = posix.relative('src', dirname(rel))
+  return leaveOutFeatures ? dir.replace(/^features(\/|$)/, '') : dir
 }
 
 /** Decide where one test file goes, from its name alone. */
@@ -103,16 +138,22 @@ function place(base: string, keepQualifier: boolean): Placement {
   const match = TEST_FILE.exec(base)
   if (!match?.groups) throw new Error(`move-tests: ${base} is not a test file name`)
   const { name = '', qualifiers = '', ext = '' } = match.groups
-  if (ext === 'svelte') return { kind: 'fixtures', environment: undefined, name: base }
+  if (ext === 'svelte')
+    return { kind: 'fixtures', environment: undefined, browserFolder: undefined, name: base }
   let kind: Kind = 'unit'
   let environment: Environment | undefined
+  let browserFolder: string | undefined
+  const folded: string[] = []
   const kept: string[] = []
   for (const qualifier of qualifiers.split('.').filter(Boolean)) {
     const row = QUALIFIER_KIND[qualifier]
     if (row) {
       if (row.kind !== 'unit') kind = row.kind
       environment = row.environment ?? environment
+      browserFolder = row.browserFolder ?? browserFolder
       if (keepQualifier) kept.push(qualifier)
+    } else if (FOLDED_QUALIFIERS.has(qualifier)) {
+      folded.push(qualifier)
     } else if (ROLE_QUALIFIERS.has(qualifier)) {
       kept.push(qualifier)
     } else {
@@ -121,7 +162,12 @@ function place(base: string, keepQualifier: boolean): Placement {
       )
     }
   }
-  return { kind, environment, name: `${[name, ...kept].join('.')}.test.${ext}` }
+  return {
+    kind,
+    environment,
+    browserFolder,
+    name: `${[[name, ...folded].join('-'), ...kept].join('.')}.test.${ext}`,
+  }
 }
 
 // --- planning -----------------------------------------------------------------------------------------------------
@@ -291,7 +337,11 @@ export function planMoves(
           root,
           'tests',
           placement.kind,
-          root1 === 'src' ? posix.relative('src', dirname(rel)) : dirname(rel),
+          // A browser test of a package with named folders sits in the folder of its kind first.
+          ...(config.browserFolders && placement.kind === 'browser' && placement.browserFolder
+            ? [placement.browserFolder]
+            : []),
+          root1 === 'src' ? underSrc(rel, config.featureFolders === true) : dirname(rel),
           placement.name,
         ),
         kind: placement.kind,

@@ -43,6 +43,22 @@ export interface JourneyProject<P> {
   }
 }
 
+/** A Vitest browser instance for the journeys: the engine, in the iPad context (what `defineTests`' `instance` takes). */
+export interface JourneyInstance<P> {
+  readonly browser: 'webkit' | 'chromium' | 'firefox'
+  readonly provider: P
+}
+
+/**
+ * The instance the journeys run as, from the config's `playwright`: `instance: journeyInstance(playwright)` on a
+ * `defineTests` browser project. WebKit is the engine the journeys exist for; another engine runs the same context.
+ */
+export function journeyInstance<P>(
+  provider: ProviderFactory<P>,
+): (browser: JourneyInstance<P>['browser']) => JourneyInstance<P> {
+  return (browser) => ({ browser, provider: provider({ contextOptions }) })
+}
+
 export function journeyProject<P>(
   provider: ProviderFactory<P>,
   options: JourneyProjectOptions = {},

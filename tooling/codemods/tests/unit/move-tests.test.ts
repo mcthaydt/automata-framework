@@ -97,6 +97,77 @@ describe('where each test goes', () => {
   })
 })
 
+describe('a package with named browser folders', () => {
+  // The files are only named, never read: `planMoves` decides the places from the names.
+  const named = (names: string[], extra: Partial<MoveConfig> = {}): Record<string, string> =>
+    Object.fromEntries(
+      planMoves(config({ browserFolders: true, ...extra }), names.map(where), () => '').moves.map((move) => [
+        relative(root, move.from),
+        relative(root, move.to),
+      ]),
+    )
+
+  it('sends layout, canvas, parity and journey tests to the folder of their kind, under the feature path', () => {
+    expect(
+      named([
+        'src/a/b.layout.test.ts',
+        'src/a/c.canvas.test.ts',
+        'src/a/d.parity.test.ts',
+        'src/a/e.journey.test.ts',
+      ]),
+    ).toEqual({
+      'src/a/b.layout.test.ts': 'tests/browser/layout/a/b.test.ts',
+      'src/a/c.canvas.test.ts': 'tests/browser/canvas/a/c.test.ts',
+      'src/a/d.parity.test.ts': 'tests/browser/parity/a/d.test.ts',
+      'src/a/e.journey.test.ts': 'tests/browser/journeys/a/e.test.ts',
+    })
+  })
+
+  it('leaves the folders out unless the package asks, so a package already moved reruns the same', () => {
+    expect(planMoves(config(), [where('src/a/b.canvas.test.ts')], () => '').moves[0]?.to).toBe(
+      where('tests/browser/a/b.test.ts'),
+    )
+  })
+
+  it("drops `features/` from the path of a feature's tests, as the other packages' tests/unit has it", () => {
+    expect(
+      named(
+        ['src/features/level/a.test.ts', 'src/shared/kit/b.layout.test.ts', 'src/app/editor-2d/c.test.ts'],
+        { featureFolders: true },
+      ),
+    ).toEqual({
+      'src/features/level/a.test.ts': 'tests/unit/level/a.test.ts',
+      'src/shared/kit/b.layout.test.ts': 'tests/browser/layout/shared/kit/b.test.ts',
+      'src/app/editor-2d/c.test.ts': 'tests/unit/app/editor-2d/c.test.ts',
+    })
+  })
+
+  it('folds a one-off qualifier into the name with a hyphen, and a DOM one still runs in jsdom', () => {
+    const result = planMoves(
+      config({ browserFolders: true }),
+      ['src/a/patch.refusal.test.ts', 'src/a/Suite.ship.dom.test.ts', 'src/a/codec.codec-bug.test.ts'].map(
+        where,
+      ),
+      () => '',
+    )
+    const to = Object.fromEntries(
+      result.moves.map((move) => [relative(root, move.from), relative(root, move.to)]),
+    )
+    expect(to).toEqual({
+      'src/a/patch.refusal.test.ts': 'tests/unit/a/patch-refusal.test.ts',
+      'src/a/Suite.ship.dom.test.ts': 'tests/unit/a/Suite-ship.test.ts',
+      'src/a/codec.codec-bug.test.ts': 'tests/unit/a/codec-codec-bug.test.ts',
+    })
+    expect(result.moves.find((move) => move.from === where('src/a/Suite.ship.dom.test.ts'))?.directive).toBe(
+      '// @vitest-environment jsdom',
+    )
+  })
+
+  it('stops when the folded names of two files are the same', () => {
+    expect(() => named(['src/a/p.refusal.test.ts', 'src/a/p-refusal.test.ts'])).toThrow(/both become/)
+  })
+})
+
 describe('the environment line', () => {
   it('adds `// @vitest-environment jsdom` to a .dom test in a Node package, and nothing to the others', () => {
     expect(textOf('tests/unit/a/c.test.ts').split('\n')[0]).toBe('// @vitest-environment jsdom')
