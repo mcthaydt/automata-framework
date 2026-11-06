@@ -685,11 +685,11 @@ export and its 2D build) and the reverse would be a dependency cycle.
   `packages/editor/src/features/suite/shell/{suite-entries.ts,SuiteRail.svelte,Home.svelte,home-model.ts}`
 - Test: `packages/editor/tests/unit/suite/{suite-entries.test.ts,home-model.test.ts,boot.test.ts}`
 
-- [ ] **Step 1: Failing tests.** With two registered editors the rail has two entries and Cmd 1 and 2; Cmd 3 does
+- [x] **Step 1: Failing tests.** With two registered editors the rail has two entries and Cmd 1 and 2; Cmd 3 does
   nothing. No card says "Plus" or a package name. The boot uses the HTTP ports when `/api/ping` answers and the sample
   only when it does not.
-- [ ] **Step 2:** Implement: `SUITE_ENTRIES` becomes the registered list's order. Delete the not-built card.
-- [ ] **Step 3:** `pnpm check`; the editor's Chromium browser tests pass. Commit, mark ready.
+- [x] **Step 2:** Implement: `SUITE_ENTRIES` becomes the registered list's order. Delete the not-built card.
+- [x] **Step 3:** `pnpm check`; the editor's Chromium browser tests pass. Commit, mark ready.
   `fix(suite): open the game it is served on and list only its editors`
 
 ---
@@ -1682,4 +1682,34 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   (`pnpm build`, both pages) holds the beta (2 findings in `dist/suite`) and is not scanned or shipped, which its
   `vite.config.ts` comment now says. The suite page's `main.ts` comment says why only these two editors.
   **Deviation 89:** no new test; the step-1 test existed (task 7.2).
+
+### 2026-11-06, session 6 (continued): phase 8, task 8.2
+
+- **The rail.** `SUITE_ENTRIES` and `PROVIDERS` are gone: `suiteEntries(editors, review)` makes one entry per editor the
+  page registers, in its order, each opening only itself, then Review when the ports have a change set. On the 2D page
+  served by `automata editor` the rail is `Tuner`, `Levels 2D`; Cmd 1 and 2 choose them and Cmd 3 does nothing (a
+  `SuiteRail` test). **Deviation 90:** the plan's "two registered editors, two entries" holds where there are no change
+  sets; with the sample game's change set Review stays as a third entry, because it is the only way to its desk, and
+  Review, Ship and the checks are wired in the 3D slice (spec 3.4, E6). The single `Levels` entry for both level editors
+  is gone with it: `editor-3d`'s suite page now has `Levels 2D` and `Levels 3D` tabs (its tests updated).
+- **Home.** No card or import message names a package or Plus: a card for an editor the build lacks says
+  "<Name> isn't in this build. Its files open read only." (copy table rows added). `EditorCard.provider` and the
+  `provider` options of the suite session and `planImport` are deleted; an installed editor's card takes its label and
+  its rail entry from the editor itself.
+- **Opening the checkout.** `openSuitePorts` (`features/suite/shell/open-suite-ports.ts`) asks the page's origin for
+  `/api/ping`; when an editor server answers, the ports are the memory ports over the kit's HTTP store (the list read
+  from the checkout, no change sets), otherwise the sample game. The ping and token code moved out of
+  `openServedWorkspace` into `openServedStore` in the kit's `workspace.ts`, which both the 2D editor and the suite use.
+- **Two bugs found by trying it on Emberwick** (`automata editor games/emberwick --app-dir packages/editor/dist/suite`):
+  (1) the suite builds of both packages wrote `suite.html` and no `index.html`, so no suite build could be served: the
+  `suite-page-is-index` plugin renamed a bundle key the bundler ignores. It now renames the written file
+  (`writeBundle`). (2) The server refused to read `content/editors.toml` (the list is `never` written, and the read rule
+  followed the write rule), so the served suite could not start. `editorPolicy` now always lets the list be read, also
+  when it does not load, so the suite can show its problem; two tests. After both, the page shows `Tuner` and
+  `Levels 2D`, no "Sample game", and Levels 2D lists `content/rooms/room-1.af2d.json`. **For the build audit:** that card
+  also lists the three exported game files, because the `exports` row matches them (task 6.1); opening them from the
+  card is the level editor's call to make.
+- **Gates.** `pnpm check` exit 0 (the editor's API report regenerated for `openSuite`'s new `entry`); editor unit 3,245; editor Chromium browser projects 527
+  pass, 6 skipped; `editor-3d` suite DOM and Chromium layout tests pass; `-tools` editor tests 48. WebKit, Firefox and
+  hosted CI not run.
 

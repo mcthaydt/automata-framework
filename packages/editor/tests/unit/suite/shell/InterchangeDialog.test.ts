@@ -100,13 +100,13 @@ describe('InterchangeDialog', () => {
     setup('import', {
       ...CLEAN,
       refused: [
-        { editor: 'sequence', reason: 'not-installed', why: 'editor not installed (editor-plus)' },
+        { editor: 'sequence', reason: 'not-installed', why: 'editor not installed' },
         { editor: 'tuner', path: 'package.json', reason: 'read-only', why: 'never written by an editor' },
       ],
       applicable: false,
     })
     await planned()
-    expect(screen.getByText('sequence: editor not installed (editor-plus)')).toBeInTheDocument()
+    expect(screen.getByText('sequence: editor not installed')).toBeInTheDocument()
     expect(screen.getByText('package.json: never written by an editor')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled()
   })

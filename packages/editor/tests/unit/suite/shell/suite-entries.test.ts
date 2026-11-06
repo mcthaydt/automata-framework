@@ -1,34 +1,28 @@
 import { describe, expect, it } from 'vitest'
-import { PROVIDERS, SUITE_ENTRIES } from '#src/features/suite/shell/suite-entries.ts'
+import { suiteEntries } from '#src/features/suite/shell/suite-entries.ts'
 
-describe('the rail entries (editor suite spec §2, §10)', () => {
-  it('are the seven editors, Levels and Review, in rail order', () => {
-    expect(SUITE_ENTRIES.map((entry) => entry.label)).toEqual([
-      'Tuner',
-      'Studio',
-      'Audio',
-      'Feel',
-      'Writer',
-      'Schematic',
-      'Sequence',
-      'Levels',
-      'Review',
+// The rail lists what the build has: one entry per registered editor, in the order the page registers them, and
+// Review only when there are change sets to review.
+const tuner = { id: 'tuner', label: 'Tuner' }
+const levels = { id: 'levels-2d', label: 'Levels 2D' }
+
+describe('the rail entries', () => {
+  it('are the registered editors, in the order the page registers them, each opening itself', () => {
+    expect(suiteEntries([tuner, levels], false)).toEqual([
+      { id: 'tuner', label: 'Tuner', editors: ['tuner'] },
+      { id: 'levels-2d', label: 'Levels 2D', editors: ['levels-2d'] },
     ])
   })
 
-  it('give Levels both level editors and Review none, and no editor to two entries', () => {
-    const levels = SUITE_ENTRIES.find((entry) => entry.id === 'levels')
-    expect(levels?.editors).toEqual(['levels-2d', 'levels-3d'])
-    expect(SUITE_ENTRIES.find((entry) => entry.id === 'review')?.editors).toEqual([])
-    const ids = SUITE_ENTRIES.flatMap((entry) => entry.editors)
-    expect(new Set(ids).size).toBe(ids.length)
+  it('end with Review, which edits nothing, when the suite has change sets', () => {
+    expect(suiteEntries([tuner, levels], true).map((entry) => [entry.id, entry.editors])).toEqual([
+      ['tuner', ['tuner']],
+      ['levels-2d', ['levels-2d']],
+      ['review', []],
+    ])
   })
 
-  it('name the package that provides each editor: the Plus four come with editor-plus', () => {
-    const provider = (id: string) => PROVIDERS[id]
-    expect(['feel', 'writer', 'schematic', 'sequence'].map(provider)).toEqual(Array(4).fill('editor-plus'))
-    expect(['tuner', 'studio', 'audio'].map(provider)).toEqual(Array(3).fill('editor-suite'))
-    expect([provider('levels-2d'), provider('levels-3d')]).toEqual(['editor-2d', 'editor-3d'])
-    expect(SUITE_ENTRIES.flatMap((entry) => entry.editors).sort()).toEqual(Object.keys(PROVIDERS).sort())
+  it('are empty for a build with no editors and no change sets', () => {
+    expect(suiteEntries([], false)).toEqual([])
   })
 })

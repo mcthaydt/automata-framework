@@ -1,7 +1,6 @@
 <!--
   One editor the game's list names: what it edits, file by file. An installed
-  editor's files open it; an editor this build does not have says so in plain words, names the package that brings it
- and opens its files read only.
+  editor's files open it; an editor this build does not have says so in plain words and opens its files read only.
 -->
 <script lang="ts">
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
@@ -15,13 +14,6 @@ interface Props {
 
 const { card, onopen, onread }: Props = $props()
 
-const provider = $derived(
-  card.provider === 'editor-plus'
-    ? 'the Plus editors (editor-plus)'
-    : card.provider === undefined
-      ? undefined
-      : `the ${card.provider} package`,
-)
 const headingId = $derived(`card-${card.editor}`)
 </script>
 
@@ -31,11 +23,7 @@ const headingId = $derived(`card-${card.editor}`)
     {#if !card.installed}<span class="badge">Not in this build</span>{/if}
   </header>
   {#if !card.installed}
-    <p class="note">
-      {card.label} isn't in this build.
-      {#if provider}It comes with {provider}.{:else}No package this suite knows brings it.{/if}
-      Its files open read only.
-    </p>
+    <p class="note">{card.label} isn't in this build. Its files open read only.</p>
   {/if}
   {#if card.files.length === 0}
     <p class="note">No files yet.</p>

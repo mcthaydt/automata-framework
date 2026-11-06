@@ -4,14 +4,18 @@ import '#src/app/suite/main.css'
 import { checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
 import { afterEach, describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import { createLevels2d } from '#src/app/suite/levels-2d/levels-2d-suite-editor.ts'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
 import { SAMPLE_GAME, samplePorts } from '#src/features/suite/memory/sample-ports.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
+import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
+import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
+import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
 
 // The suite with the production CSS in a real browser at the editors' window sizes:
-// region boxes, the nine entries, the 64 px tab bar, 44 px targets, no page scroll and no remount on rotation. jsdom
+// region boxes, the rail (the page's two editors and Review), the 64 px tab bar, 44 px targets, no page scroll and no remount on rotation. jsdom
 // has no layout, so only this file checks room. Started the way `main.ts` starts it, with the real window.
 
 let started: SuiteHandle | undefined
@@ -32,7 +36,10 @@ async function open(size: EditorSize, files: Record<string, string> = SAMPLE_GAM
     window,
     document,
     ports: await samplePorts(files),
-    suite: createSuite({ editors: [] }),
+    // The editors `main.ts` registers.
+    suite: createSuite({
+      editors: [createTuner(), createLevels2d({ ids: counterIds() })] as SuiteEditor<unknown>[],
+    }),
     sample: true,
   })
   await settleLayout()
@@ -47,28 +54,18 @@ const home = (): HTMLElement => {
 }
 
 describe.each(SIZES)('Suite at $name ($width x $height)', (size) => {
-  test('the shell mode, nine tabs of at least 44 px, Home reachable, nothing clipped, no page scroll', async () => {
+  test('the shell mode, a tab per editor and Review of at least 44 px, Home reachable, nothing clipped, no page scroll', async () => {
     const conditions = await open(size)
     expect(document.querySelector('[data-editor-shell]')).toHaveAttribute('data-mode', size.mode)
     const all = tabs()
-    expect(all.map((tab) => tab.textContent?.trim())).toEqual([
-      'Tuner',
-      'Studio',
-      'Audio',
-      'Feel',
-      'Writer',
-      'Schematic',
-      'Sequence',
-      'Levels',
-      'Review',
-    ])
+    expect(all.map((tab) => tab.textContent?.trim())).toEqual(['Tuner', 'Levels 2D', 'Review'])
     for (const tab of all) {
       const box = tab.getBoundingClientRect()
       expect(box.width).toBeGreaterThanOrEqual(44)
       expect(box.height).toBeGreaterThanOrEqual(44)
     }
     // Every tab is whole in wide; below it the tabs past the window's edge are reached by scrolling the bar sideways,
-    // which is a declared scroll region (nine 44 px tabs with their words need more than a phone's width).
+    // which is a declared scroll region (a phone's width holds only a few 44 px tabs with their words).
     const rail = all[0]?.parentElement
     // Half a pixel for WebKit's and Firefox's sub-pixel boxes.
     const whole = all.filter((tab) => tab.getBoundingClientRect().right <= size.width + 0.5)
@@ -129,15 +126,16 @@ describe('Suite rotation', () => {
   test('1194 x 834 to 834 x 1194 keeps Home and the chosen entry and remounts nothing', async () => {
     const [landscape, portrait] = [SIZES[0], SIZES[4]] as [EditorSize, EditorSize]
     await open(landscape)
-    const levels = tabs().find((tab) => tab.textContent?.trim() === 'Levels')
-    levels?.click()
+    const review = tabs().find((tab) => tab.textContent?.trim() === 'Review')
+    review?.click()
     await settleLayout()
     const shell = document.querySelector('[data-editor-shell]')
-    const page1 = document.querySelector('[data-testid="suite-home"]')
+    const page1 = document.querySelector('[data-testid="review-desk"]')
+    expect(page1).not.toBeNull()
     await page.viewport(portrait.width, portrait.height)
     await settleLayout()
     expect(document.querySelector('[data-editor-shell]')).toBe(shell)
-    expect(document.querySelector('[data-testid="suite-home"]')).toBe(page1)
-    expect(document.querySelector('[aria-selected="true"]')?.textContent?.trim()).toBe('Levels')
+    expect(document.querySelector('[data-testid="review-desk"]')).toBe(page1)
+    expect(document.querySelector('[aria-selected="true"]')?.textContent?.trim()).toBe('Review')
   })
 })

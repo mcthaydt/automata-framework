@@ -29,7 +29,7 @@ import ReviewDesk from './ReviewDesk.svelte'
 import ShipDialog from './ShipDialog.svelte'
 import SuitePills from './SuitePills.svelte'
 import SuiteRail from './SuiteRail.svelte'
-import { PROVIDERS, SUITE_ENTRIES } from './suite-entries'
+import { suiteEntries } from './suite-entries'
 import { createSuiteSession } from './suite-session'
 import TitlePrompt from './TitlePrompt.svelte'
 
@@ -56,7 +56,9 @@ const mode = $derived(shellModeOf(geometry.current.formFactor))
 // Where the dock is a sheet (below `wide`, or short), the top bar opens and closes it, as Panel and Details do theirs.
 const dockIsSheet = $derived(dockPlacementOf(mode, geometry.current.heightTier) !== 'inline')
 const dockShown = $derived(dockOpen ?? defaultDockOpen(mode, geometry.current.heightTier))
-const entry = $derived(SUITE_ENTRIES.find((candidate) => candidate.id === current))
+// The rail: the editors this page registered, then Review when there are change sets to review.
+const entries = $derived(suiteEntries(suite.editors, ports.changeSet !== undefined))
+const entry = $derived(entries.find((candidate) => candidate.id === current))
 
 // The installed editor the chosen entry opens: only when exactly one of its editors is both named and installed.
 const target = $derived.by((): { editor: SuiteEditor<unknown>; card: EditorCard } | undefined => {
@@ -85,12 +87,7 @@ $effect(() => {
 
 // Editing (flows 3 to 8): every editor is opened with ports whose writes take the suite's write path; the pills,
 // Undo and Ask follow it. The session lives as long as the suite; a reload reads the pills back from the journal.
-const editing = $derived(
-  createSuiteSession(ports, {
-    installed: suite.editors.map((editor) => editor.id),
-    provider: (id) => PROVIDERS[id],
-  }),
-)
+const editing = $derived(createSuiteSession(ports, { installed: suite.editors.map((editor) => editor.id) }))
 const toasts = createToasts()
 let pills = $state<readonly Pill[]>([])
 let titleOpen = $state(false)
@@ -304,7 +301,7 @@ function openCard(card: EditorCard): void {
   {/snippet}
 
   {#snippet rail({ orientation }: { orientation: 'vertical' | 'horizontal' })}
-    <SuiteRail entries={SUITE_ENTRIES} {current} {orientation} onselect={choose} />
+    <SuiteRail {entries} {current} {orientation} onselect={choose} />
   {/snippet}
 
   {#snippet canvas()}

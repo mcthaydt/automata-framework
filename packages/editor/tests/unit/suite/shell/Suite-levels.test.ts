@@ -79,7 +79,7 @@ const selected = (): string | null => screen.getByTestId('level-canvas').getAttr
 describe('Levels 2D in the suite', () => {
   it('fills the suite’s one shell with the layers, the palette and the canvas', async () => {
     await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
-    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels 2D' }))
     expect(await screen.findByRole('listbox', { name: 'Layers' })).toBeInTheDocument()
     expect(screen.getByTestId('level-canvas')).toHaveAttribute('data-level', 'level-1')
     expect(screen.getAllByTestId('suite-shell')).toHaveLength(1)
@@ -88,7 +88,7 @@ describe('Levels 2D in the suite', () => {
 
   it('EDS-k: a switch to the Tuner and back keeps the selection, and Undo undoes the level’s own step', async () => {
     await start([fixtureEditor as SuiteEditor<unknown>, levels2d()])
-    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels 2D' }))
     await userEvent.click(await screen.findByRole('radio', { name: 'Slime' }))
     const surface = screen.getByTestId('level-surface')
     press(surface, 'pointerdown', 40, 40)
@@ -105,7 +105,7 @@ describe('Levels 2D in the suite', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Raise speed' }))
     expect(await screen.findByRole('button', { name: 'Undo Raise speed' })).toBeEnabled()
 
-    await userEvent.click(screen.getByRole('tab', { name: 'Levels' }))
+    await userEvent.click(screen.getByRole('tab', { name: 'Levels 2D' }))
     expect(await screen.findByTestId('level-canvas')).toHaveAttribute('data-selected', placed)
     const undo = await screen.findByRole('button', { name: 'Undo Place entity' })
     await userEvent.click(undo)
@@ -119,7 +119,7 @@ describe('Levels 2D in the suite', () => {
 
   it('shows a file it cannot open as a state, with the file unchanged', async () => {
     await start([levels2d()], { ...FILES, 'content/levels/world.af2d.json': '{ "format": "af2d", ' })
-    await userEvent.click(await screen.findByRole('tab', { name: 'Levels' }))
+    await userEvent.click(await screen.findByRole('tab', { name: 'Levels 2D' }))
     const refused = await screen.findByTestId('levels-2d-refused')
     expect(within(refused).getByText(/can’t be opened as a level project/)).toBeInTheDocument()
     expect(within(refused).getByText('Your file is unchanged.')).toBeInTheDocument()

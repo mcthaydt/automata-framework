@@ -1,7 +1,7 @@
-// The suite rail's nine entries: the seven editors beside the level editors, one Levels
-// entry for both level editors, and Review, in rail order (Cmd 1 to 9 choose them in this order). `editors` are the ids
-// the game's editor list names; `provider` is the package that brings an entry's editors, which Home names when
-// this build does not have one.
+// The suite rail's entries: one per editor the page registers, in the order it registers them, then Review when the
+// suite has change sets to review. Cmd 1 to 9 choose them in this order, so the rail never offers an editor the build
+// does not have. Each entry opens its one editor; Review edits nothing.
+import type { SuiteEditor } from '../../../shared/kit/ports/suite-editor.ts'
 
 export interface SuiteEntry {
   readonly id: string
@@ -10,32 +10,13 @@ export interface SuiteEntry {
   readonly editors: readonly string[]
 }
 
-export const SUITE_ENTRIES: readonly SuiteEntry[] = [
-  { id: 'tuner', label: 'Tuner', editors: ['tuner'] },
-  { id: 'studio', label: 'Studio', editors: ['studio'] },
-  { id: 'audio', label: 'Audio', editors: ['audio'] },
-  { id: 'feel', label: 'Feel', editors: ['feel'] },
-  { id: 'writer', label: 'Writer', editors: ['writer'] },
-  { id: 'schematic', label: 'Schematic', editors: ['schematic'] },
-  { id: 'sequence', label: 'Sequence', editors: ['sequence'] },
-  { id: 'levels', label: 'Levels', editors: ['levels-2d', 'levels-3d'] },
-  { id: 'review', label: 'Review', editors: [] },
-]
+const REVIEW: SuiteEntry = { id: 'review', label: 'Review', editors: [] }
 
-/** The package that brings each editor id. */
-export const PROVIDERS: Readonly<Record<string, string>> = {
-  tuner: 'editor-suite',
-  studio: 'editor-suite',
-  audio: 'editor-suite',
-  feel: 'editor-plus',
-  writer: 'editor-plus',
-  schematic: 'editor-plus',
-  sequence: 'editor-plus',
-  'levels-2d': 'editor-2d',
-  'levels-3d': 'editor-3d',
-}
-
-/** The entry that opens an editor id, if any entry does. */
-export function entryOf(editor: string): SuiteEntry | undefined {
-  return SUITE_ENTRIES.find((entry) => entry.editors.includes(editor))
+/** The rail, from the registered editors; `review` adds Review at the end. */
+export function suiteEntries(
+  editors: readonly Pick<SuiteEditor<unknown>, 'id' | 'label'>[],
+  review: boolean,
+): SuiteEntry[] {
+  const entries = editors.map((editor) => ({ id: editor.id, label: editor.label, editors: [editor.id] }))
+  return review ? [...entries, REVIEW] : entries
 }

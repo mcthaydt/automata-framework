@@ -1,3 +1,5 @@
+import { renameSync } from 'node:fs'
+import { join } from 'node:path'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { defineConfig } from 'vite'
 
@@ -17,12 +19,12 @@ export default defineConfig(({ mode }) =>
         plugins: [
           svelte(),
           {
+            // Renamed on disk once written: the bundler keeps an HTML page under its input's name whatever
+            // `generateBundle` does to the bundle's keys, so the page would stay `suite.html`.
             name: 'suite-page-is-index',
-            generateBundle(_options, bundle) {
-              const page = bundle['suite.html']
-              if (page === undefined) return
-              bundle['index.html'] = { ...page, fileName: 'index.html' }
-              delete bundle['suite.html']
+            writeBundle(options) {
+              const dir = options.dir ?? 'dist/suite'
+              renameSync(join(dir, 'suite.html'), join(dir, 'index.html'))
             },
           },
         ],

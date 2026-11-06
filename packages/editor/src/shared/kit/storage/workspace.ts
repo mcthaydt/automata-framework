@@ -76,11 +76,13 @@ export interface ServedWorkspaceEnv {
 const TOKEN_KEY = 'automata-editor-token'
 
 /**
- * The workspace of an editor served by `automata editor`: the checkout over HTTP. The page asks its own origin
- * whether it is an editor server, and answers `undefined` when it is not (a static host, a dev server), so the caller
- * opens `openWorkspace()` as before. The autosave journal stays in this browser, beside the editor, never in the checkout.
+ * The checkout of an editor served by `automata editor`, over HTTP: the page asks its own origin whether it is an editor
+ * server, and answers `undefined` when it is not (a static host, a dev server). A token given in the address is kept
+ * for the tab's session, so a reload needs none. The 2D editor and the suite both open the checkout through this.
  */
-export async function openServedWorkspace(env: ServedWorkspaceEnv): Promise<Workspace | undefined> {
+export async function openServedStore(
+  env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>,
+): Promise<ProjectStore | undefined> {
   const fetchFn = env.fetch ?? ((...args: Parameters<typeof fetch>) => fetch(...args))
   try {
     const ping = await fetchFn(`${env.origin}/api/ping`)
@@ -93,12 +95,23 @@ export async function openServedWorkspace(env: ServedWorkspaceEnv): Promise<Work
   const given = new URLSearchParams(env.search).get('token') ?? undefined
   if (given !== undefined) env.sessionStorage?.setItem(TOKEN_KEY, given)
   const token = given ?? env.sessionStorage?.getItem(TOKEN_KEY) ?? undefined
+  return createHttpStore({ base: env.origin, token, fetch: fetchFn })
+}
+
+/**
+ * The workspace of an editor served by `automata editor`: the checkout over HTTP (`openServedStore`), or `undefined`
+ * when the page is not served by it, so the caller opens `openWorkspace()` as before. The autosave journal stays in
+ * this browser, beside the editor, never in the checkout.
+ */
+export async function openServedWorkspace(env: ServedWorkspaceEnv): Promise<Workspace | undefined> {
+  const store = await openServedStore(env)
+  if (store === undefined) return undefined
   const local = await openWorkspace({
     ...(env.storage === undefined ? {} : { storage: env.storage }),
     ...(env.download === undefined ? {} : { download: env.download }),
   })
   return {
-    store: createHttpStore({ base: env.origin, token, fetch: fetchFn }),
+    store,
     journal: local.journal,
     exports: local.exports,
     persistent: true,

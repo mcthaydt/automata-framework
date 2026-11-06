@@ -4,17 +4,14 @@
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports.ts'
 import type { EditorListLoad, EditorListProblem } from '../core'
 import type { Suite } from './create-suite'
-import { entryOf, PROVIDERS } from './suite-entries'
 
 export interface EditorCard {
   /** The id the list names. */
   readonly editor: string
   readonly label: string
-  /** The rail entry that opens it; `undefined` for an id no entry knows. */
+  /** The rail entry that opens it: its own id when the build has it, otherwise `undefined`. */
   readonly entry: string | undefined
   readonly installed: boolean
-  /** The package that brings the editor, named when it is not installed; `undefined` when unknown. */
-  readonly provider: string | undefined
   readonly files: readonly WorkspaceFile[]
 }
 
@@ -22,8 +19,19 @@ export type HomeState =
   | { readonly kind: 'problems'; readonly problems: readonly EditorListProblem[] }
   | { readonly kind: 'cards'; readonly cards: readonly EditorCard[] }
 
-// Levels is one rail entry, but Home tells the two level editors apart.
-const LABELS: Readonly<Record<string, string>> = { 'levels-2d': 'Levels 2D', 'levels-3d': 'Levels 3D' }
+// The names of the editors a list may name, for a card whose editor this build does not have (an installed editor
+// brings its own label).
+const LABELS: Readonly<Record<string, string>> = {
+  tuner: 'Tuner',
+  studio: 'Studio',
+  audio: 'Audio',
+  feel: 'Feel',
+  writer: 'Writer',
+  schematic: 'Schematic',
+  sequence: 'Sequence',
+  'levels-2d': 'Levels 2D',
+  'levels-3d': 'Levels 3D',
+}
 
 export function homeOf(
   load: EditorListLoad,
@@ -33,13 +41,12 @@ export function homeOf(
   if (!load.ok) return { kind: 'problems', problems: load.problems }
   const named = [...new Set(load.list.file.map((row) => row.editor))]
   const cards = named.map((editor): EditorCard => {
-    const entry = entryOf(editor)
+    const installed = suite.editor(editor)
     return {
       editor,
-      label: LABELS[editor] ?? entry?.label ?? editor,
-      entry: entry?.id,
-      installed: suite.editor(editor) !== undefined,
-      provider: PROVIDERS[editor],
+      label: installed?.label ?? LABELS[editor] ?? editor,
+      entry: installed?.id,
+      installed: installed !== undefined,
       files: files.get(editor) ?? [],
     }
   })

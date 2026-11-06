@@ -56,10 +56,10 @@ afterEach(async () => {
 
 describe.each(SIZES)('Suite Levels 3D at $name ($width x $height)', (size) => {
   test('fills the one shell: the plan in view, every target 44 px, no page scroll', async () => {
-    opened = await openSuite(size, editors(), FILES, '[data-testid="plan-canvas"]')
+    opened = await openSuite(size, editors(), FILES, '[data-testid="plan-canvas"]', 'Levels 3D')
     const plan = inShell('[data-testid="plan-canvas"]')
     inView(plan, size)
-    expect(checkLayout(opened.conditions, [plan, tab('Levels')])).toEqual([])
+    expect(checkLayout(opened.conditions, [plan, tab('Levels 3D')])).toEqual([])
     // Levels 3D has no dock, so there is nothing for the toggle to open.
     expect(dockToggle()).toHaveLength(0)
     noPageScroll()
