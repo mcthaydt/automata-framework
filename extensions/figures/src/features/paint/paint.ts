@@ -265,7 +265,8 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
   /** The lid's crease: a step darker, never past the skin's shadow; on deep skin the lit lid a step lighter, so under
    * the brow and over the lash it reads open, not as a fourth dark row. */
   const lightLid = oklab(tones[1])[0] < 0.5;
-  const lid = (x: number, y: number) => { if (own(x, y)) { const t = tone[y * w + x]; set(y * w + x, tones[lightLid ? Math.max(0, t - 1) : Math.max(t, Math.min(2, t + 1))]); } };
+  /** `soft` steps lighter along the ramp: the hood's line, which at the crease's strength read as a second brow. */
+  const lid = (x: number, y: number, soft = 0) => { if (own(x, y)) { const t = tone[y * w + x]; set(y * w + x, tones[lightLid ? Math.max(0, t - 1 - soft) : Math.max(t, Math.min(2 - soft, t + 1))]); } };
   // The eye row: the eye line's, or in profile the near eye's (it sits nearer the camera, so lower under the pitch).
   /** The eyes' tilt: −1 the outer corner a row up (lifted), +1 a row down (drooping), 0 level. */
   const tilt = F.eyeTilt >= 0.75 ? -1 : F.eyeTilt <= 0.25 ? 1 : 0;
@@ -302,10 +303,10 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     // One line on the row under the brow, its length the sliders': the hood's from a texel past the outer corner (the
     // whole lid and a texel either side at 1), the crease's from the outer corner, short of the inner one (at 1); the
     // longer of the two is drawn. A dead eye keeps the full hooded line.
-    if (behind) {} else if (dead) for (let i = -1; i <= n; i++) lid(x0 + i, I - 2);
+    if (behind) {} else if (dead) for (let i = -1; i <= n; i++) lid(x0 + i, I - 2, 1);
     else {
       const hood = Math.round((n + 2) * F.hood), crease = Math.round(n * F.crease);
-      if (hood >= crease) for (let i = 0; i < hood; i++) lid(xo + outer - outer * i, I - 2);
+      if (hood >= crease) for (let i = 0; i < hood; i++) lid(xo + outer - outer * i, I - 2, 1);
       else for (let i = 0; i < crease; i++) lid(xo - outer * i, I - 2);
     }
     // The iris, as a sprite artist draws an eye this size: two texels tall, its pupil dark under the lash and its colour
@@ -479,7 +480,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     // flick down past the outer corner. So a profile keeps an eye that reads, not a fleck by the hairline.
     const xf = edge(Math.floor(f.centre[0]) - 2 * d, I) - (big ? 2 : 1) * d, seen = !shaded(xf - 3 * d, xf + d);
     if (seen && big) {
-      if (!behind) for (let i = 0; i < Math.round(3 * Math.max(F.hood, F.crease)); i++) lid(xf - i * d, I - 2);
+      if (!behind) for (let i = 0; i < Math.round(3 * Math.max(F.hood, F.crease)); i++) lid(xf - i * d, I - 2, +(F.hood > F.crease));
       if (f.blink) { mark(xf, I, f.lash); mark(xf - d, I, f.lash); mark(xf - 2 * d, I, f.lash); }
       else {
         for (let i = 0; i < 3; i++) mark(xf - i * d, I - 1, f.lash);

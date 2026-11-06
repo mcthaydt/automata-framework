@@ -65,8 +65,12 @@ const MARKS = ['cheekHeight', 'bridge', 'nose', 'crease', 'hood', 'lips'] as con
 describe('the mark sliders read at density 2, by the mark alone', () => {
   for (const c of BASE) {
     for (const key of MARKS) {
-      it(`${c.def.id} ${key}: at least two texels more than before`, () => {
-        expect(faceReads(c.def, key)).toBeGreaterThanOrEqual(Math.max(2, BEFORE_MARKS[c.def.id][key] + 2));
+      // The hood's line, and the crease's where the hood's is the longer, are a step lighter on the skin's ramp (the owner, gate B:
+      // at the crease's strength it read as a second brow), so a texel of them is often the skin's own colour: their bar is
+      // the recorded count less two, not more.
+      const soft = key === 'hood' || key === 'crease';
+      it(`${c.def.id} ${key}: ${soft ? 'still reads (a lighter line)' : 'at least two texels more than before'}`, () => {
+        expect(faceReads(c.def, key)).toBeGreaterThanOrEqual(Math.max(2, BEFORE_MARKS[c.def.id][key] + (soft ? -2 : 2)));
       });
       it(`${c.def.id} ${key}: moves no silhouette texel (one way to show, spec decision 5)`, () => {
         expect(faceReads(c.def, key, true)).toBe(0);
