@@ -2175,3 +2175,9 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   canvas (top from iPad up, bottom on a phone), the charcoal cabinet, Layers as a sheet with colour, name, eye and lock
   per row and the palette under the chosen layer, the inspector opening on selection, and the level picker in the top
   bar; then the canvas tests' colour expectations.
+- **12.3, part (session 11): the layer rows.** Each row names its kind in plain words (spec 11.5: "Walls and floors",
+  "Tiles that place themselves", "Characters and items", "Shapes"), shows a square colour swatch from the layer colour
+  tokens, and hides or locks through icon buttons labelled "Hide Entities" or "Lock Entities" (eye and lock icons, the
+  pressed state spoken). Gates: editor unit 3288, Chromium layout (level) 50, Chromium 2D journeys 8. **Left for
+  12.3:** the floating pill, the charcoal cabinet, Layers as a sheet with the palette under the chosen layer, the
+  inspector on selection, the level picker in the top bar, the canvas colour expectations.
