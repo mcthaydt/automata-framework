@@ -52,3 +52,28 @@ describe('a face at 0.5 is today\'s face', () => {
     });
   });
 });
+
+/** The texels each mark slider moved (any texel), on the tree after the outline change and before the marks, recorded
+ * with faceReads(def, key). The marks must beat them by two. The cheeks' are recorded with their outline held and no
+ * stroke yet (head.ts holds the width at the cheekbone): what main moved by the outline (cheekWidth 38 / 44 texels,
+ * cheekHeight 17 / 5) is the drawing the stroke replaces, so it is no bar for it. */
+const BEFORE_MARKS: Record<string, Record<string, number>> = {
+  'base-m': { cheekHeight: 2, cheekWidth: 0, bridge: 2, nose: 6, crease: 6, hood: 6, lips: 2 },
+  'base-f': { cheekHeight: 0, cheekWidth: 0, bridge: 0, nose: 4, crease: 6, hood: 6, lips: 0 },
+};
+const MARKS = ['cheekHeight', 'cheekWidth', 'bridge', 'nose', 'crease', 'hood', 'lips'] as const;
+describe('the mark sliders read at density 2, by the mark alone', () => {
+  for (const c of BASE) {
+    for (const key of MARKS) {
+      it(`${c.def.id} ${key}: at least two texels more than before`, () => {
+        expect(faceReads(c.def, key)).toBeGreaterThanOrEqual(Math.max(2, BEFORE_MARKS[c.def.id][key] + 2));
+      });
+      it(`${c.def.id} ${key}: moves no silhouette texel (one way to show, spec decision 5)`, () => {
+        expect(faceReads(c.def, key, true)).toBe(0);
+      });
+    }
+    for (const key of ['browArch', 'browWeight', 'browHeight'] as const) {
+      it(`${c.def.id} ${key} still reads`, () => { expect(faceReads(c.def, key)).toBeGreaterThanOrEqual(2); });
+    }
+  }
+});

@@ -73,7 +73,10 @@ export function headForm(m: Measure, s: Skeleton): HeadForm {
   const g = s.genes, F = m.face, hw = g.head * g.headWidth / 2, hd = g.head * g.headDepth / 2, h = g.head;
   // Depths in half-depths: `z` from the face's set (genes.faceAhead; the face's front at 1), `back` from the cranium's.
   const z = (u: number) => hd * (g.faceAhead + u), back = (u: number) => hd * (g.faceAhead * 0.5 + u);
-  const chin = spread(F.chin, 0.16, lerp(0.22, 0.34, 0.5), 0.40), jaw = spread(F.jaw, 0.5, lerp(0.6, 0.84, 0.5), 0.94), cheek = lerp(0.88, 1, F.cheekWidth), cheekT = lerp(0.34, 0.44, F.cheekHeight);
+  const chin = spread(F.chin, 0.16, lerp(0.22, 0.34, 0.5), 0.40), jaw = spread(F.jaw, 0.5, lerp(0.6, 0.84, 0.5), 0.94);
+  // The cheeks and the lips show by the face's marks alone (paint.ts stampFace), not by the outline too: the width at the
+  // cheekbone and the lips' front are held at their middle whatever the sliders say.
+  const cheek = lerp(0.88, 1, 0.5), cheekT = lerp(0.34, 0.44, 0.5), lipsOut = 0.04 * 0.5;
   // Fat fills the jaw's underside (genes.ts Measure.fat.chin): the width under the chin grows, and the front a little
   // forward of the chin's point (which stays), so a heavy chin meets the neck in a curve, not a corner.
   const full = m.fat.chin;
@@ -82,7 +85,7 @@ export function headForm(m: Measure, s: Skeleton): HeadForm {
   const crown = (z(0.22) + back(-0.45)) / 2, point = z(0.7) - 0.04 * hd * F.chin;
   // The profile: the chin, the hollow under the lower lip, the lips, the philtrum, the eyes set in, the brow, the forehead.
   const under = (v: number) => (full === 1 ? v : point + (v - point) * full);
-  const front = curve([[0, point], [0.03, under(z(0.9))], [0.07, under(z(0.97 + 0.08 * (F.chin - 0.5)))], [0.11, z(0.93)], [0.15, z(0.98 + 0.04 * F.lips)], [0.19, z(0.99 + 0.04 * F.lips)],
+  const front = curve([[0, point], [0.03, under(z(0.9))], [0.07, under(z(0.97 + 0.08 * (F.chin - 0.5)))], [0.11, z(0.93)], [0.15, z(0.98 + lipsOut)], [0.19, z(0.99 + lipsOut)],
     [0.24, z(0.97)], [0.32, z(0.99)], [0.42, z(0.97)], [0.48, z(0.92)], [0.56, z(0.98)], [0.68, z(0.94)], [0.8, z(0.8)], [0.9, z(0.55)], [0.97, z(0.22)], [1, crown]]);
   const backOf = curve([[0, point], [0.04, z(0.5)], [0.1, z(0.1)], [0.18, back(-0.3)], [0.26, back(-0.62)], [0.36, back(-0.86)], [0.5, back(-0.98)],
     [0.62, back(-1.04)], [0.74, back(-1.02)], [0.84, back(-0.9)], [0.92, back(-0.68)], [0.97, back(-0.42)], [1, crown]]);

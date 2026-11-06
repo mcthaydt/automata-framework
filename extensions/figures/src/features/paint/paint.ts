@@ -293,8 +293,15 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     // Small: the lid line over the eye's width, the iris under it (a closed eye, the line alone, a row down).
     if (!big) { for (let i = 0; i < n; i++) mark(x0 + i, f.blink ? I : I - 1, f.lash); if (!f.blink && !(dead && n < 2)) mark(x0 + iris, I, f.iris); return !behind; }
     // The lid line: a hooded lid's shadow under the brow, or a crease short of the inner corner; a smooth lid has none.
-    if (behind) {} else if (F.hood >= 0.6 || dead) for (let i = -1; i <= n; i++) lid(x0 + i, I - 2);
-    else if (F.crease >= 0.4) for (let i = 0; i < n; i++) if (n < 3 || x0 + i !== xin) lid(x0 + i, I - 2);
+    // One line on the row under the brow, its length the sliders': the hood's from a texel past the outer corner (the
+    // whole lid and a texel either side at 1), the crease's from the outer corner, short of the inner one (at 1); the
+    // longer of the two is drawn. A dead eye keeps the full hooded line.
+    if (behind) {} else if (dead) for (let i = -1; i <= n; i++) lid(x0 + i, I - 2);
+    else {
+      const hood = Math.round((n + 2) * F.hood), crease = Math.round(n * F.crease);
+      if (hood >= crease) for (let i = 0; i < hood; i++) lid(xo + outer - outer * i, I - 2);
+      else for (let i = 0; i < crease; i++) lid(xo - outer * i, I - 2);
+    }
     // The iris, as a sprite artist draws an eye this size: two texels tall, its pupil dark under the lash and its colour
     // below, two wide in an eye of four; the white beside it on the upper row only, the lower lid the skin. Never
     // further out than the eye's own width.
@@ -338,7 +345,26 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
   // The nose's underside and the lips' line: the mouth where it projects, the nostrils kept two rows over it (a row of
   // philtrum), and below the eyes.
   const M = Math.max(Math.floor(f.mouth[1]), I + (big ? 6 : 3)), N = Math.max(I + (big ? 3 : 2), Math.min(Math.floor(f.nose[1]), M - (big ? 2 : 1)));
-  const nh = Math.max(1, Math.round(s * (0.15 + 0.1 * F.nose))), mh = Math.max(1, Math.round(s * (0.2 + 0.06 * F.lips)));
+  const nh = Math.max(1, Math.round(s * (0.2 + 0.35 * (F.nose - 0.5)))), mh = Math.max(1, Math.round(s * (0.2 + 0.06 * F.lips)));
+  /**
+   * The cheek's stroke: on the row under the cheekbone, from the face's edge on the shadow side (the key light comes from
+   * the screen's left in every view, so screen +x) inward, a step darker along the skin's ramp: its row the cheekbone's
+   * height (`cheekHeight`), its length the cheekbones' width (`cheekWidth`), none under 0.3, never on the nose's columns
+   * (`past` the last of them). Where `big` only.
+   */
+  const cheek = (past: number) => {
+    const len = Math.round((F.cheekWidth - 0.3) / 0.7 * s * 0.5);
+    if (!big || len <= 0) return;
+    const y = Math.round(N - (N - I) * (0.4 + 0.5 * F.cheekHeight)) + 1;
+    let x = Math.floor(f.centre[0]);
+    if (!own(x, y)) return;
+    while (own(x + 1, y)) x++;
+    for (let i = 0; i < len && x - i > past; i++) shade(x - i, y, 1);
+  };
+  /** The lit bridge's run down the nose, in rows up from the tip: none at bridge 0, brow to tip at 1. */
+  const run = Math.round(F.bridge * (N - 1 - (I + 1)));
+  /** The lower lip's rows by the lips slider: the upper lip's line alone under 0.25, two from 0.75, else one (today's). */
+  const lipRows = F.lips < 0.25 ? 0 : F.lips < 0.75 ? 1 : 2;
   /** The chin under the mouth at column `x`: its rows of skin below the lips' line. */
   const chin = (x: number) => { let n = 0; while (own(x, M + 1 + n) && n < 4) n++; return n; };
   /**
@@ -383,10 +409,14 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
       return;
     }
     if (smile) corners(M - 1); else if (angry) corners(M + 1);
-    const below = chin(cm);
+    const below = chin(cm), rows = lipRows;
     for (let x = a; x <= b; x++) if (x === a || x === b) shade(x, M, 2); else put(x, M, f.lips[0]);
-    if (below >= 2) for (let x = a + 1; x < b; x++) put(x, M + 1, x === b - 1 && b - a > 3 ? f.lips[0] : f.lips[1]);
-    if (below >= 3) for (let x = cm - 1; x <= cm; x++) shade(x, M + 2, 1);
+    // The lower lip's rows (0, 1 or 2 by the slider), each only with a row of the chin's own skin left under it; the
+    // hollow under the lip, a row further down the fuller it is.
+    // Full lips (the second row's slider end) also take the corners' columns: the lower lip as wide as the mouth.
+    if (rows >= 1 && below >= 2) for (let x = a + +(rows < 2); x <= b - +(rows < 2); x++) put(x, M + 1, x === b - 1 && b - a > 3 ? f.lips[0] : f.lips[1]);
+    if (rows >= 2 && below >= 3) for (let x = a + 1; x < b; x++) put(x, M + 2, f.lips[1]);
+    if (below >= rows + 2) for (let x = cm - 1; x <= cm; x++) shade(x, M + rows + 1, 1);
   };
   if (view === 0) {
     // Symmetric about the centre line, kept to the half texel.
@@ -408,10 +438,11 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     // under it and the nostrils darker at its wings (two steps, so they read on deep skin).
     const xr = Math.floor(c2 + 0.5), a = Math.floor(c2 - nh), b = mirror(a);
     if (big) {
-      for (let y = I + 1; y < N - 1; y++) { shade(xr - 1, y, -1); shade(xr, y, 1); }
+      for (let y = I + 1; y < N - 1; y++) { if (y >= N - 1 - run) shade(xr - 1, y, -1); shade(xr, y, 1); }
       shade(xr - 1, N - 1, -1);
       for (let x = a; x <= b; x++) shade(x, N, x === a || x === b ? 2 : 1);
     } else shade(xr, N, 1);
+    cheek(b);
     const ma = Math.floor(c2 - mh);
     lips(ma, mirror(ma), xr);
   } else if (view === 1) {
@@ -426,9 +457,10 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     // The nose: its ridge from between the eyes to the tip, lit, the shadow beside it; the nostril on the near side.
     const tip = Math.floor(f.nose[0]);
     if (big) {
-      for (let y = I + 1; y < N; y++) { const x = Math.floor(f.centre[0] + (f.nose[0] - f.centre[0]) * (y - I) / (N - I)); if (y < N - 1) shade(x, y, -1); shade(x + 1, y, 1); }
+      for (let y = I + 1; y < N; y++) { const x = Math.floor(f.centre[0] + (f.nose[0] - f.centre[0]) * (y - I) / (N - I)); if (y < N - 1 && y >= N - 1 - run) shade(x, y, -1); shade(x + 1, y, 1); }
       shade(tip - d, N, 2); shade(tip, N, 1);
     } else shade(tip - d, N, 1);
+    cheek(tip + 1);
     const cm = Math.floor(f.mouth[0]);
     // The mouth wider on the near side, its far corner foreshortened: two texels of lip between the corners at least.
     lips(cm - (d > 0 ? mh : Math.max(0, mh - 1)), cm + (d > 0 ? Math.max(0, mh - 1) : mh), cm);
@@ -439,7 +471,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     // flick down past the outer corner. So a profile keeps an eye that reads, not a fleck by the hairline.
     const xf = edge(Math.floor(f.centre[0]) - 2 * d, I) - (big ? 2 : 1) * d, seen = !shaded(xf - 3 * d, xf + d);
     if (seen && big) {
-      if (behind) {} else if (F.hood >= 0.6) for (let i = 0; i < 3; i++) lid(xf - i * d, I - 2); else if (F.crease >= 0.4) { lid(xf - d, I - 2); lid(xf - 2 * d, I - 2); }
+      if (!behind) for (let i = 0; i < Math.round(3 * Math.max(F.hood, F.crease)); i++) lid(xf - i * d, I - 2);
       if (f.blink) { mark(xf, I, f.lash); mark(xf - d, I, f.lash); mark(xf - 2 * d, I, f.lash); }
       else {
         for (let i = 0; i < 3; i++) mark(xf - i * d, I - 1, f.lash);
@@ -458,7 +490,11 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     const xm = edge(Math.floor(f.mouth[0]), M); put(xm, M, f.lips[0]);
     if (open) { put(xm, M + 1, f.lash); put(xm - d, M + 1, f.lash); if (big && chin(xm) >= 3) put(edge(Math.floor(f.mouth[0]), M + 2), M + 2, f.lips[1]); }
     else if (smile) shade(xm - 2 * d, M - 1, 2);
-    else if (big) { shade(xm - d, M, 2); const xl = edge(Math.floor(f.mouth[0]), M + 1); if (chin(xl) >= 2) put(xl, M + 1, f.lips[1]); }
+    else if (big) {
+      shade(xm - d, M, 2); const xl = edge(Math.floor(f.mouth[0]), M + 1);
+      if (lipRows >= 1 && chin(xl) >= 2) put(xl, M + 1, f.lips[1]);
+      if (lipRows >= 2 && chin(xl) >= 3) put(edge(Math.floor(f.mouth[0]), M + 2), M + 2, f.lips[1]);
+    }
   }
 }
 
