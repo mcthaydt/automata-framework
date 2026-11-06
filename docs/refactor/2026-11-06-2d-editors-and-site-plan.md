@@ -958,6 +958,32 @@ logic that is not markup lives in the view's `*-model.ts`.
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
 - [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`
 
+### Task 12.3b: Add tiles, a simple tileset importer (same PR; added 2026-11-06)
+
+The Owner, 2026-11-06, on deviation 112 ("Add tiles" left out as not essential): "How is that not essential?" Adding
+a picture of tiles is how a person paints with their own art, so it is essential and goes in, minimal. Runs after
+the rest of 12.3, before 12.4.
+
+**Files:**
+- Create: `packages/editor/src/features/tiles/AddTilesDialog.svelte`, `packages/editor/src/features/tiles/add-tiles.ts`
+  (pure: the picture's size and the tile size give the grid; the tileset definition and the file to write)
+- Modify: `packages/editor/src/features/tiles/{TilesetsPanel,TilesetsView}.svelte`, `tilesets-session.ts` (only to
+  add the tileset as one undo step)
+- Test: `packages/editor/tests/unit/tiles/add-tiles.test.ts`, the dialog's DOM test, a layout test at phone, iPad and
+  desktop sizes
+
+- [ ] **Step 1: Failing tests.** Tiles has one "Add tiles" button (also the empty state's action: "No tiles yet. Add
+  a picture of your tiles to paint with them."). It opens a dialog with three steps on one screen: "Choose a
+  picture" (PNG, WebP or JPEG), "How big is one tile?" (a stepper in px, 16 to start, plus 8, 16, 32 and 48 as
+  quick choices), and a preview of the picture with the tile grid drawn over it and "This makes 64 tiles" in words.
+  A tile size that does not divide the picture says so in plain words ("The picture is 100 px wide; 16 px tiles
+  leave 4 px over. Try 20 or 25.") and keeps the primary disabled. The one primary, "Add tiles", writes the picture
+  into the game folder beside the level (in browser storage, into the workspace), adds the tileset as one undo step,
+  closes the dialog and opens Tiles on it, ready to paint with. No format word, path or "tileset"/"IntGrid" on screen.
+- [ ] **Step 2:** Implement with the kit's components only (Dialog, Button, Stepper, Segmented); a refused write
+  toasts as a save failure does and adds no step.
+- [ ] **Step 3:** Screenshots, copy rows in `copy.md`. Commit. `feat(editor): Add tiles, a picture of tiles becomes a tileset`
+
 ### Task 12.4: Map, Tiles, Characters and the dialogs (same PR)
 
 **Files:**

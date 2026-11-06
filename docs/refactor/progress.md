@@ -224,7 +224,7 @@ level with nothing chosen; zoom stays Fit only, an essential-features cut; three
 medium, compact <=760 or <520 high, with the tools in a dock; the charcoal canvas colours and the canvas tests'
 pixel expectations, 12.3 Step 3), then the same look on Map, Tiles, Characters, the Tuner, the suite page and the
 dialogs; then 12.6's feelable unit, 12.7's Step 3, 12.5 and 17.3; phase 18 takes `site-home.html`. Adding a tileset
-("Add tiles", deviation 112) is the Owner's question: do not build it unless they say yes. Every editor keeps only
+("Add tiles") is in: the Owner said yes on 2026-11-06 ("How is that not essential?"); it is task 12.3b, after 12.3. Every editor keeps only
 essential features (name each cut in the plan's log). Task 14.1 waits for the Owner to confirm the `automata` npm
 organisation. This file holds a stale second copy of this section (session 12, below the core tables): the 12.x and
 17.3 rows live only there; untangle it in the build audit. Node 24 is not in a fresh session: it may already be at
