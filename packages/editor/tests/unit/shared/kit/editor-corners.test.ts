@@ -3,10 +3,10 @@ import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
 
-// The editors' look (the 2026-11-06 visual spec): square corners, flat fills, no glow. The website shares the tokens
-// and keeps its pills, so the editor draws its corners with its own token, `--edge` (0px), and never with the site's
-// `--radius*` or `--pill`. This reads the <style> of every editor component (kit, features, apps) and fails on a
-// corner that is not `var(--edge)`, on the site's frosted glass or chartreuse glow, and on a round shape that is not
+// The editors' look (the 2026-11-06 visual spec): slightly rounded corners on one scale, flat fills, no glow. The
+// website shares the tokens and keeps its own radii, so the editor draws its corners with its own scale (`--edge-sm`
+// 4px, `--edge-md` 6px, `--edge-lg` 8px) and never with the site's `--radius*` or `--pill`. This reads the <style> of every editor component (kit, features, apps) and fails on a
+// corner off that scale, on the site's frosted glass or chartreuse glow, and on a round shape that is not
 // one of the dots below.
 const SRC = fileURLToPath(new URL('../../../../src/', import.meta.url))
 const tokens = JSON.parse(readFileSync(join(SRC, 'shared/kit/tokens/tokens.json'), 'utf8')) as {
@@ -32,19 +32,26 @@ function styles(): Array<{ file: string; code: string }> {
 }
 
 describe('the editors` corners and fills', () => {
-  test('--edge, the editors` corner, is square', () => {
-    expect(tokens.tokens.edge).toBe('0px')
+  test('the editors` corners are slightly rounded: 4, 6 and 8 px, never a pill', () => {
+    expect([tokens.tokens['edge-sm'], tokens.tokens['edge-md'], tokens.tokens['edge-lg']]).toEqual([
+      '4px',
+      '6px',
+      '8px',
+    ])
   })
 
   test('find components to read', () => {
     expect(styles().length).toBeGreaterThan(40)
   })
 
-  test('every corner is var(--edge), or 50% on a listed dot', () => {
+  test('every corner is on the --edge scale (0 for a squared side), or 50% on a listed dot', () => {
     const found = styles().flatMap(({ file, code }) =>
       [...code.matchAll(/border(?:-[a-z]+)*-radius:\s*([^;]+);/g)]
         .map((match) => (match[1] as string).trim())
-        .filter((value) => !/^(var\(--edge\)\s*)+$/.test(value) && !(value === '50%' && DOTS.includes(file)))
+        .filter(
+          (value) =>
+            !/^((var\(--edge-(sm|md|lg)\)|0)\s*)+$/.test(value) && !(value === '50%' && DOTS.includes(file)),
+        )
         .map((value) => `${file}: ${value}`),
     )
     expect(found).toEqual([])

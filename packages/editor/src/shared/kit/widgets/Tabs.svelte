@@ -120,7 +120,7 @@ function onKey(event: KeyboardEvent, index: number): void {
     padding: 3px;
     overflow-x: auto;
     border: 1px solid var(--line);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--paper);
   }
   .tab {
@@ -129,7 +129,7 @@ function onKey(event: KeyboardEvent, index: number): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-4);
     border: 0;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--muted);
     font: var(--text-body-13-medium);

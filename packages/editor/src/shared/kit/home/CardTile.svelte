@@ -45,7 +45,7 @@ $effect(() => {
     width: var(--tile);
     height: var(--tile);
     border: 1px solid color-mix(in srgb, var(--kind, var(--muted)) 55%, transparent);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: color-mix(in srgb, var(--kind, var(--muted)) 16%, var(--charcoal));
     color: var(--kind, var(--muted));
     font: var(--text-display-20);

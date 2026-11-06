@@ -275,7 +275,7 @@ const write = (mode: 'guarded' | 'overwrite') =>
     min-height: 48px;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     cursor: pointer;
   }
@@ -308,7 +308,7 @@ const write = (mode: 'guarded' | 'overwrite') =>
     margin: 0;
     padding: var(--space-1) var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     list-style: none;
   }
@@ -329,7 +329,7 @@ const write = (mode: 'guarded' | 'overwrite') =>
     gap: var(--space-1);
     padding: var(--space-3);
     border: 1px solid var(--color-state-warn);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     color: var(--color-text-primary);
     font: var(--text-body-13);
   }

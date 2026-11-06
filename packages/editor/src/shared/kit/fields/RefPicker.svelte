@@ -106,7 +106,7 @@ const count = (each: RefTargetGroup): string =>
     min-height: 44px;
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--line);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--paper);
     color: var(--ink);
     font: var(--text-body-13);

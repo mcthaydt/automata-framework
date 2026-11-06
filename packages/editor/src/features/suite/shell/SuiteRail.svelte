@@ -117,7 +117,7 @@ function shortcut(event: KeyboardEvent): void {
     min-height: 44px;
     padding: 0;
     border: 0;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--color-text-dim);
     /* The eyebrow size, a step lighter and a hair tighter, fits "Schematic" whole in the 56 px rail. */

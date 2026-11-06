@@ -81,7 +81,7 @@ const ITEMS = [
     gap: var(--space-2);
     padding-right: var(--space-3);
     border: 1px solid var(--line);
-    border-radius: var(--edge);
+    border-radius: var(--edge-lg);
     background: var(--paper);
   }
   .card[data-selected='true'] {
@@ -101,7 +101,7 @@ const ITEMS = [
     min-height: var(--size-primary);
     padding: var(--space-3);
     border: 0;
-    border-radius: var(--edge);
+    border-radius: var(--edge-lg);
     background: none;
     color: var(--ink);
     text-align: left;

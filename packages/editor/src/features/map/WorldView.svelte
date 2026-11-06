@@ -312,7 +312,7 @@ function layout(next: string): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-default);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13);
@@ -344,7 +344,7 @@ function layout(next: string): void {
     min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13-medium);

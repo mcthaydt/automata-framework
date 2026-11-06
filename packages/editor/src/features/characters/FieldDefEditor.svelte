@@ -183,7 +183,7 @@ const toggleTarget = (target: string): readonly string[] => {
     gap: var(--space-3);
     padding: var(--space-3);
     border: 1px solid color-mix(in srgb, var(--color-accent-default) 50%, transparent);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
   }
   .text,
@@ -204,7 +204,7 @@ const toggleTarget = (target: string): readonly string[] => {
     min-height: 44px;
     padding: var(--space-2);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-surface, var(--color-bg-field));
     color: var(--color-text-primary);
     font: var(--text-body-13);
@@ -219,7 +219,7 @@ const toggleTarget = (target: string): readonly string[] => {
     min-height: 44px;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--color-text-dim);
     font: var(--text-label-12);

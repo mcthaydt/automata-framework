@@ -66,7 +66,7 @@ const rows = $derived.by(() => {
     min-height: 44px;
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-default, #3a3f48);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-surface-base, #14161a);
     color: inherit;
     font: inherit;
@@ -86,7 +86,7 @@ const rows = $derived.by(() => {
     min-height: 44px;
     padding: 0 var(--space-2);
     border: 1px solid transparent;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: none;
     color: inherit;
     font: inherit;

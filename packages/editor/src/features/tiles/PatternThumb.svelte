@@ -25,11 +25,11 @@ const { size, pattern }: Props = $props()
     width: 30px;
     height: 30px;
     padding: 1px;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-canvas);
   }
   .cell {
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
   }
   .cell[data-kind='any'] {
     background: transparent;

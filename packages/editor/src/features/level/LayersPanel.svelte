@@ -97,7 +97,7 @@ function step(event: KeyboardEvent): void {
     margin: 0;
     padding: 0;
     list-style: none;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
   }
   ul:focus-visible {
     outline: 2px solid var(--color-accent-default);
@@ -108,7 +108,7 @@ function step(event: KeyboardEvent): void {
     align-items: center;
     gap: var(--space-1);
     min-width: 0;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
   }
   li[aria-selected='true'] {
     background: var(--color-accent-soft);
@@ -119,7 +119,7 @@ function step(event: KeyboardEvent): void {
   button {
     min-height: 44px;
     border: 0;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--color-text-primary);
     font: var(--text-body-13);

@@ -290,7 +290,7 @@ function rename(event: Event): void {
     min-height: 44px;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: transparent;
     color: var(--color-text-dim);
     font: var(--text-label-12);
@@ -305,14 +305,14 @@ function rename(event: Event): void {
   .swatch {
     width: 12px;
     height: 12px;
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
   }
   .output {
     width: 44px;
     height: 44px;
     padding: 0;
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background-repeat: no-repeat;
     image-rendering: pixelated;
     color: var(--color-text-primary);
@@ -333,7 +333,7 @@ function rename(event: Event): void {
     min-height: 44px;
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge);
+    border-radius: var(--edge-sm);
     background: var(--color-bg-field);
     color: var(--color-text-primary);
     font: var(--text-body-13);

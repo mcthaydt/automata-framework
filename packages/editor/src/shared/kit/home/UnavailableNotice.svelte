@@ -28,7 +28,7 @@ const { message, onretry }: Props = $props()
     gap: var(--space-2);
     padding: var(--space-4);
     border: 1px solid var(--bad);
-    border-radius: var(--edge);
+    border-radius: var(--edge-lg);
     background: var(--paper);
   }
   h2 {
