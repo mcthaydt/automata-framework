@@ -2140,3 +2140,30 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   [site visual audit](2026-11-06-site-visual-audit.md)'s fixes in one pass, and the visual audit is rerun after.
   Phase 18 does not start until the Owner has picked. The editors' look follows the same design thread's token and
   component changes when it sends them.
+- **The design direction (session 11).** A design thread's draft PR #422 (square, flat editor look; spec
+  `docs/refactor/2026-11-06-editor-visual-direction.md`) is merged into this stack; the Problems sheet and the rename
+  field use `var(--edge)`, and the phone top bar's lower row became one flex row of its own (a wide "3 problems"
+  label had squeezed the name to 1 px; the Chromium layout test caught it). The Owner then picked site direction C
+  (flat lime; relayed 2026-11-06 16:01): editors and site share one system, flat lime primary buttons, radii 4 px
+  controls, 6 px panels, 8 px cards and dialogs. #422 is being updated to match and is adopted from there again; phase
+  18 starts once those final tokens land.
+- **17.1 (session 11): five workflow rules replace the YAML-pinning tests.** `tooling/repo-hygiene/src/workflow-invariants.ts`
+  checks every workflow for: top-level `permissions`; no `pull_request_target`; secrets only in a step's `env`; no
+  publishing secret (anything but `GITHUB_TOKEN` and the read-only `AF_READ_TOKEN`) in a job a pull request can start,
+  a reusable workflow counted as one a pull request can start; heavy jobs skip drafts (`checks` is the light gate).
+  Each rule has a fixture that breaks it. **They found a real gap:** `game-release.yml`'s `ruken` job held
+  `RUKEN_TOKEN` with no pull request guard; it now has the itch and desktop jobs' guard. Deleted:
+  `packages/tools/tests/unit/shared/ship/workflows.test.ts` (108 tests, 1,469 lines). `yaml` moved from -tools to
+  repo-hygiene (`docs/versions.md` row updated), `.github/workflows/**` moved from -tools' turbo inputs to
+  repo-hygiene's. **Deviation 108:** the two `turbo-inputs` tests stay (they guard the turbo cache, which once hid red
+  tests); -tools' one loses its two workflow entries. Counts: -tools unit 627 → 519 (108 gone), repo-hygiene 82 → 88.
+- **17.2 (session 11): the tooling that lost its reason.** `tooling/core-packs` (625 lines): deleted; the consumer
+  smoke's own `src/pack.ts` (80 lines, 8 tests) packs the published packages with `pnpm pack`; the extras, unpack,
+  source-commit and `packs.json` parts served Plus only; the root `pnpm packs` script goes. `tooling/api-report/src/seams.ts`
+  (83 lines): deleted with Plus; `seams.test.ts` becomes `committed-reports.test.ts`, keeping the committed-report and
+  planted-break tests. `tooling/bundle-report` (300 lines): deleted; it attributed bytes by package for task 5.1's
+  before and after (recorded) and held no budget, and a per-game budget would be a new check nobody asked for.
+  `tooling/versions`: the Plus cards (Rapier, Colyseus), the Planck note, the Plus sentence and the Effect card go
+  (Effect is Node tooling only now); `docs/stack.md` regenerated. `tooling/examples-runner`: confirmed, only the
+  examples index is left (the playground is the site's). `tooling/evidence`: unchanged here; the Proof page's half goes
+  with the page in 18.1 (the parity job's golden evidence stays).

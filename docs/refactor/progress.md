@@ -198,22 +198,21 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | In progress: 37 of 67 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
+| 4. Build | In progress: 39 of 67 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 55% (37 of 67 tasks)
+### Build: 58% (39 of 67 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
 **Where to resume (2026-11-06, session 11):** branch `claude/project-thread-r7jtb7`, a draft PR stacked on #420
 (task 12.2 done: the view switcher with Level, Map, Tiles and Characters in the top bar, "2 problems" opening the
-Problems sheet, the Share menu in browser storage only, rename on tap; the plan's log has the cuts). Next is task 12.3
-(the Level view), on a new branch stacked on this one. Two Owner rules from 2026-11-06 hold for everything left: every
-editor keeps only essential features (cut the rest and name each cut in the plan's log), and no new rounded buttons:
-a design thread ("Sharpen editor and site visual design") sends its token and component changes to adopt. **Phase 18
-waits** until the Owner picks a site direction from that thread's mockups; then 18.0 and the rest apply it together
+Problems sheet, the Share menu in browser storage only, rename on tap; the plan's log has the cuts). Tasks 17.1 and 17.2 are done on the same branch. Next is task 12.3
+(the Level view) on the shared look (#422, being updated to the Owner's pick: flat lime), then 17.3. Two Owner rules from 2026-11-06 hold for everything left: every
+editor keeps only essential features (cut the rest and name each cut in the plan's log), and the look is the design thread's (#422, merged into this stack; the Owner picked direction C, flat lime, with radii 4 / 6 / 8 px: adopt #422 again when it lands those tokens). **Phase 18
+waits** for those final tokens; then 18.0 and the rest apply the direction together
 with the site visual audit's fixes, and the visual audit is rerun. Phase 12 also holds 12.6 (the Tuner, a split view
 with the live game) and 12.7 (the suite's 2D page); 12.5 runs last. Task 14.1 waits for the Owner to confirm the
 `automata` npm organisation. The plan's execution log has the counts, deviations (up to 107) and gates of every task
@@ -274,8 +273,8 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 16.2 One generated reference | 16 | Not started | |
 | 16.3 The docs agree with the direction | 16 | Not started | |
 | 16.4 The skills' public home | 16 | Not started | |
-| 17.1 The workflow invariants replace the YAML-pinning tests | 17 | Not started | |
-| 17.2 The packages that lost their reason | 17 | Not started | |
+| 17.1 The workflow invariants replace the YAML-pinning tests | 17 | Done, 2026-11-06 (session 11): five rules over every workflow, each failing on a fixture; they found the Ruken publish job open to pull requests (fixed); 108 pinning tests deleted | this session's PR |
+| 17.2 The packages that lost their reason | 17 | Done, 2026-11-06 (session 11): core-packs, bundle-report and the API seams list deleted, the stack page's Plus and Effect cards gone; evidence's Proof half goes with the page in 18.1 | this session's PR |
 | 17.3 The code refactor of the tooling that stays | 17 | Not started | |
 | 18.0 The shared layout, fixed first (added 2026-11-06) | 18 | Not started; waits for the Owner to pick a site direction from the design thread's mockups (the Owner, 2026-11-06), then runs with the visual audit's fixes in one pass | |
 | 18.1 Features, the page cut and redirects | 18 | Not started | |

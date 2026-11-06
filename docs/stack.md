@@ -2,7 +2,7 @@
 
 # What's inside
 
-The libraries AF is built on, what each one does here and what AF adds on top. **Core** is the free foundation every game gets; **Plus** is the paid Automata Plus tier (PRODUCT spec §1, PD-1).
+The libraries AF is built on, what each one does here and what AF adds on top.
 
 Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken tarballs show their packed version and RukenApp commit). Licenses are read from each installed package's `package.json`. A library AF has chosen but not installed yet says so and names the task that installs it.
 
@@ -10,15 +10,12 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 |---|---|---|---|
 | [PixiJS 8](#pixijs-8) | Core | `pixi.js` 8.22.0 | MIT |
 | [Koota](#koota) | Core | `koota` 0.6.6 | ISC |
-| [Effect](#effect) | Core | `effect` 3.22.2 | MIT |
 | [Zod](#zod) | Core | `zod` 4.6.6 | MIT |
 | [Svelte 5](#svelte-5) | Core | `svelte` 5.57.1 | MIT |
 | [Paraglide](#paraglide) | Core | `@inlang/paraglide-js` 2.25.4 | MIT |
 | [smol-toml](#smol-toml) | Core | `smol-toml` 1.9.0 | BSD-3-Clause |
 | [Ruken SDK](#ruken-sdk) | Core | `@ruken/sdk` 0.0.0; `@ruken/sdk-host` 0.0.0; `@ruken/manifest` 0.0.0; `@ruken/cli` 0.0.0 | MIT |
 | [Vite, Vitest, Playwright](#vite-vitest-playwright) | Core | `vite` 8.3.3; `vitest` 5.0.3; `@playwright/test` 1.63.0 | MIT; Apache-2.0 |
-| [Rapier (deterministic-compat)](#rapier-deterministic-compat) | Plus | installed in mcthaydt/automata-plus, not in this repository | see there |
-| [Colyseus](#colyseus) | Plus | not yet installed; planned for M7 (`net` and `server`) | none yet |
 
 ## PixiJS 8
 
@@ -41,17 +38,6 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **What it does in AF:** The entity-component store inside the deterministic sim (ADR 0001).
 - **Why it was chosen:** Spike S1 found it deterministic across Node, Chromium, WebKit and Firefox, like Miniplex, and it adds relations with data, added/changed/removed tracking and struct-of-arrays storage at no determinism cost (ADR 0001).
 - **What AF adds on top:** `@mcthaydt/automata-sim` keeps Koota behind a facade: its own monotonic `StableId` (Koota recycles IDs), StableId-ordered iteration, snapshot and restore, render deltas, seeded RNG, deterministic math and hashing, and `.replay` recording. Game code never imports Koota directly.
-
-## Effect
-
-| Package | Version | License |
-|---|---|---|
-| `effect` | 3.22.2 | MIT |
-
-- **Tier:** Core
-- **What it does in AF:** Runs everything outside the sim: runtime services, the boot program, time, retries and resource disposal (ADR 0003).
-- **Why it was chosen:** The runtime needs ordered boot with failure states, retries and timeouts, disposal on screen exit and restart, an injectable clock and typed errors that each map to a UI state; FloorFifty and The Last Light do all of that by hand (ADR 0003).
-- **What AF adds on top:** Runtime managers are Effect services (`Context.Tag` + `Layer`), time comes from `Clock` and is tested with `TestClock`, and `Scope` replaces FloorFifty's `DisposeBag`. The sim never imports Effect (`check-boundaries` rejects it there) and the frame loop allocates no Effect per frame.
 
 ## Zod
 
@@ -123,25 +109,3 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 - **What it does in AF:** Vite builds every game and example; Vitest runs unit tests and the cross-engine parity suites; Playwright drives browser journeys and the parity browsers.
 - **Why it was chosen:** Ruken pins the same tools and versions, so a game and its host build and test the same way (versions.md).
 - **What AF adds on top:** `@mcthaydt/automata/testing`: sim and replay goldens that must match bit for bit in Node, Chromium, WebKit and Firefox, renderer-free screen fixtures and layout assertions (hit testing, target size, clipping); `automata-content`'s Vite plugin compiles content on build.
-
-## Rapier (deterministic-compat)
-
-Installed in mcthaydt/automata-plus, not in this repository; its versions are pinned there. Packages: `@dimforge/rapier2d-deterministic-compat`, `@dimforge/rapier3d-deterministic-compat`.
-
-- **Tier:** Plus
-- **What it does in AF:** 2D and 3D physics inside the sim (M2.1).
-- **Why it was chosen:** The deterministic build gives bit-identical results in Node, Chromium, WebKit and Firefox, and `-compat` inlines the wasm, so there is no loader to set up. Automata Plus pins it at 0.21.0, the release The Last Light uses.
-- **What AF adds on top:** `@mcthaydt/automata-physics`: a sim plugin that syncs bodies in, steps and syncs out each tick, adds its own snapshot section and raises collision events, with four-engine parity tests. It lives in `automata-plus` (PRODUCT.5f) and left this repository in PRODUCT.5g.
-
-## Colyseus
-
-Not yet installed; planned for M7 (`net` and `server`). Package: `colyseus`.
-
-- **Tier:** Plus
-- **What it does in AF:** Rooms and transport for the `net` and `server` extensions (master spec §4).
-- **Why it was chosen:** FloorFifty's multiplayer already runs on Colyseus: its network manager, room store and server rooms are the extraction source (extraction map).
-- **What AF adds on top:** Planned in M7: a network seam behind the client, a room-mirroring store, server rooms running the same sim, an input queue and tick scheduler, prediction and reconciliation.
-
-## Why FloorFifty's Planck becomes Rapier
-
-FloorFifty simulates its races with Planck. AF uses Rapier instead: Rapier's deterministic build is already proven across Node, Chromium, WebKit and Firefox (M2.1), and one physics engine means one parity suite (PRODUCT spec §8, PD-2).

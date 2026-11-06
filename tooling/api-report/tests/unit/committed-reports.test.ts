@@ -5,7 +5,6 @@ import { describe, expect, it } from 'vitest'
 import { apiBreaks, undeclaredBreaks } from '#src/breaks.ts'
 import { parseReport } from '#src/report.ts'
 import { REPORTS_DIR, runApiReport } from '#src/run.ts'
-import { SEAMS } from '#src/seams.ts'
 
 const ROOT = fileURLToPath(new URL('../../../..', import.meta.url))
 const reportsDir = join(ROOT, REPORTS_DIR)
@@ -41,23 +40,6 @@ describe('the committed API reports', () => {
         { package: report.package, entryPoint: entry.entryPoint, name: removed?.name, change: 'removed' },
       ])
       expect(undeclaredBreaks(breaks, {}, { [report.package]: '0.0.1' })).toEqual(breaks)
-    },
-  )
-})
-
-describe('PRODUCT spec §2 F1: every core seam is reachable through a public exports entry', () => {
-  const byPackage = new Map(committed.map(({ report }) => [report.package, report]))
-
-  it.each(SEAMS.map((seam) => [`${seam.package}${seam.entryPoint.slice(1)} ${seam.name}`, seam] as const))(
-    '%s',
-    (_label, seam) => {
-      const entry = byPackage
-        .get(seam.package)
-        ?.entries.find((candidate) => candidate.entryPoint === seam.entryPoint)
-      const exported = entry?.exports.find((candidate) => candidate.name === seam.name)
-      expect(exported, `${seam.name} is not exported from ${seam.package} ${seam.entryPoint}`).toBeDefined()
-      for (const member of seam.members ?? [])
-        expect(exported?.declaration).toMatch(new RegExp(`\\b${member}\\??[:(]`))
     },
   )
 })
