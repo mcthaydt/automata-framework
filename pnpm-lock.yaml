@@ -1021,9 +1021,15 @@ importers:
 
   tooling/consumer-smoke:
     devDependencies:
+      '@mcthaydt/playwright-preset':
+        specifier: workspace:*
+        version: link:../playwright-preset
       '@mcthaydt/vitest-preset':
         specifier: workspace:*
         version: link:../vitest-preset
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
       '@ruken/manifest':
         specifier: file:../../vendor/ruken/ruken-manifest-0.0.0.tgz
         version: file:vendor/ruken/ruken-manifest-0.0.0.tgz
@@ -4718,7 +4724,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.3(@types/node@24.19.1)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      vitest: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))
 
   '@vitest/utils@5.0.3':
     dependencies:

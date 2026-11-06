@@ -25,6 +25,17 @@
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/*/package.json"
       ]
+    },
+    "test:e2e": {
+      "cache": false,
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"],
+      "dependsOn": [
+        "@mcthaydt/automata#build",
+        "@mcthaydt/automata-sim#build",
+        "@mcthaydt/automata-content#build",
+        "@mcthaydt/automata-tools#build",
+        "@mcthaydt/automata-check-boundaries#build"
+      ]
     }
   }
 }

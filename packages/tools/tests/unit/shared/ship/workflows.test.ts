@@ -439,13 +439,13 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
   >
   const localSteps = (scripts['ci:local'] ?? '').split(' && ')
 
-  it('is three steps after a frozen install: the checks, the core and 2D parity suites and the 2D journeys', () => {
+  it("is three steps after a frozen install: the checks, the 2D parity suites and the 2D journeys, the stranger's included", () => {
     expect(localSteps).toEqual([
       'pnpm install --frozen-lockfile',
       'pnpm check',
       'pnpm test:browser:2d',
       'pnpm exec turbo run build --filter @mcthaydt/automata-tools',
-      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools',
+      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools --filter @mcthaydt/consumer-smoke',
     ])
   })
 
