@@ -7,6 +7,8 @@ import { blendJoins, cleanup, gbuffer, neckline, rasterize, resolve, smoothConto
 import { boneGroups, GROUP, type Decal, type Material, type Part } from '../body/parts';
 import { NECK, type Expression, type FaceLook } from '../outfit/garments';
 import { DEFAULT_HEAD } from '../body/genes';
+import { fabricOf } from '../paint/fabric';
+import { clothFrame, clothSlots, type ClothFrame } from './cloth';
 import { densityOf, paint, PAINT, duel, eyeWhite, familyTones, tonesOf, type Bends, type FaceStamp, type HandStamp, type PaintStyle } from '../paint/paint';
 /**
  * A procedural figure at run time: the stepped pose clock, the snap to 8 directions, the hair's spring, the triangle
@@ -23,7 +25,9 @@ export interface View {
    * figure is drawn at the nearest of the 8 directions to it, and the pitch to the nearest 2°. */
   azimuth: number; pitch: number;
 }
-export interface Built { parts: Part[]; decals: Decal[]; materials: Material[]; materialIndex: Map<string, number>; vertexCount: number; triangleCount: number; face: DrawnFace; groups: Map<number, number>; clear?: [number, number]; hands: HandShape[] }
+export interface Built { parts: Part[]; decals: Decal[]; materials: Material[]; materialIndex: Map<string, number>; vertexCount: number; triangleCount: number; face: DrawnFace; groups: Map<number, number>; clear?: [number, number]; hands: HandShape[];
+  /** Cloth slots `(cos t, sin t, −y)` per vertex and the cylinders they come from (cloth.ts), or null when no built material names a fabric (H5). */
+  cloth: Float32Array | null; frame: ClothFrame | null }
 /**
  * A hand's measures in its own bone's space (x the figure's left, y up the bone, z forward), from the parts the hand
  * bone carries (garments.ts hands): so the hand stamp (paint.ts HandStamp) is sized from the hand the figure wears.
@@ -77,9 +81,16 @@ export function build(member: CastMember, s: Skeleton, outfit: string, item: str
   const names = [...new Set([...parts.map(p => p.material), ...decals.flatMap(d => [d.material, ...Object.values(d.print?.inks ?? {})])])];
   const own = { ...member.materials, ...look.materials };
   const materials = names.map(n => { const m = own[n]; if (!m) throw new Error(`${member.id}: no material ${n}`); return m; });
+  for (const m of materials) if (m.fabric && !fabricOf(m.fabric)) throw new Error(`${member.id}: no fabric ${m.fabric}`);
+  // Cloth coordinates, once per build, only when a built material names a fabric (H5): with none, nothing below runs.
+  let frame: ClothFrame | null = null, cloth: Float32Array | null = null;
+  if (materials.some(m => m.fabric)) {
+    if (!look.profiles) throw new Error(`${member.id}: a fabric needs the look's profiles`);
+    frame = clothFrame(look.profiles, s); cloth = clothSlots(parts, s, frame);
+  }
   const materialIndex = new Map(names.map((n, i) => [n, i]));
   const vertexCount = parts.reduce((n, p) => n + p.mesh.positions.length / 3, 0), triangleCount = parts.reduce((n, p) => n + p.mesh.indices.length / 3, 0);
-  return { parts, decals, materials, materialIndex, vertexCount, triangleCount, face: drawnFace(member, look.face), groups: boneGroups(parts, [GROUP.item]), clear: look.clear, hands: handShapes(parts) };
+  return { parts, decals, materials, materialIndex, vertexCount, triangleCount, face: drawnFace(member, look.face), groups: boneGroups(parts, [GROUP.item]), clear: look.clear, hands: handShapes(parts), cloth, frame };
 }
 /** The drawn face's structure and colours (paint.ts FaceStamp). */
 type DrawnFace = Pick<FaceStamp, 'shape' | 'iris' | 'lash' | 'white' | 'brow' | 'lips'>;

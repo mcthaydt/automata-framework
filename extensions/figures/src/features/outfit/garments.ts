@@ -7,7 +7,7 @@ import swatchLibrary from './library/swatches.json';
 import type { Anchor } from '../motion/motion';
 import { ear, headForm, headMesh } from '../body/head';
 import { hexOf } from '../../lib/colour';
-import { profiles } from './fit';
+import { profiles, type Profiles } from './fit';
 import { hairParts, sweep, texels, HAIR_STYLES, PPM, type HairStyle } from '../hair/hair';
 /**
  * The body and what the base pair wears. A character is sliders (genes.ts) plus a list of garments, each fitted to the
@@ -50,7 +50,9 @@ export interface Regions { skin: string; chest: string; waist: string; pelvis: s
 /** A dressed body: its parts and marks, any materials the outfit makes for itself, its face, and the openings a hand can
  * reach (motion.ts Anchor). Base's garments publish none, so a hand finds the body's own hip (motion.ts openings); a
  * fork's wardrobe publishes its pockets and hems here. */
-export interface Look { parts: Part[]; decals: Decal[]; materials?: Record<string, Material>; face?: FaceLook; anchors?: Anchor[] }
+export interface Look { parts: Part[]; decals: Decal[]; materials?: Record<string, Material>; face?: FaceLook; anchors?: Anchor[];
+  /** The body's profiles (fit.ts), which dress() always fills: the cloth coordinates (figure/cloth.ts) are mapped round them. Optional, since a fork may build a Look by hand. */
+  profiles?: Profiles }
 /** What the painter's drawn face takes from the outfit (paint.ts): the head's structure, and its colours as swatch names. */
 export interface FaceLook { shape: HeadShape; eyes?: string; white?: string; brows?: string; lips?: string }
 
@@ -186,7 +188,7 @@ export function dress(m: Measure, s: Skeleton, skin: string, garments: Garment[]
   for (const item of garments) { const kind = kindOf(item); if (kind?.after) wear(kind.after(c, item), item); }
   Object.assign(made, earSkins(skin, swatch(skin)));
   const all = [...body(m, s, r, thighs, ppm), ...parts];
-  return { parts: all, decals, materials: made, face: faceLook, anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
+  return { parts: all, decals, materials: made, face: faceLook, profiles: profiles(m, s), anchors: hooks.anchors?.(c, anchors, all) ?? anchors.map(w => w.anchor) };
 }
 /** The body's surfaces: the torso, each arm (shoulder to hand) and each leg (thigh to foot) one surface apiece, so the
  * painter draws no crevice or line at a waist, an elbow or a knee (paint.ts); garments keep their own edges. */
