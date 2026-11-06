@@ -85,7 +85,7 @@ function rename(event: Event): void {
           <div class="fields">
             <div class="title">
               <h2>{rule.id}</h2>
-              <span class="place">rule {inspector.place}</span>
+              <span class="place">No. {inspector.place} in this group</span>
               <button
                 type="button"
                 class="toggle"

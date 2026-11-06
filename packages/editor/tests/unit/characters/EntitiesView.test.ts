@@ -113,7 +113,7 @@ describe('Entities view: the panel and the preview', () => {
     // Each row shows the name and, for one a level may hold only once, says so; no ids, shapes or field counts.
     expect(within(panel()).getAllByRole('radio')[0]).toHaveAccessibleName('Checkpoint')
     expect(within(panel()).getAllByRole('radio')[0]).toHaveAttribute('aria-checked', 'true')
-    expect(preview()).toHaveTextContent('no instances')
+    expect(preview()).toHaveTextContent('Not in any level yet')
     await choose('Player start')
     expect(within(panel()).getByRole('radio', { name: 'Player start One per level' })).toHaveAttribute(
       'aria-checked',
@@ -126,7 +126,7 @@ describe('Entities view: the panel and the preview', () => {
     expect(preview()).toHaveTextContent('Shown 8 times bigger')
     // The anchor point is under More in the inspector, not on the first screen.
     expect(preview()).not.toHaveTextContent(/pivot/i)
-    expect(preview()).toHaveTextContent('1 instance · 1 level')
+    expect(preview()).toHaveTextContent('1 placed in 1 level')
   })
 
   it('redraws the preview when the width changes, as one undo step', async () => {

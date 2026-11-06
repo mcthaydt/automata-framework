@@ -50,12 +50,12 @@ function addTag(event: SubmitEvent): void {
   <header>
     <h2 id="sheet-heading">{tileset.label}</h2>
     {#if tileset.image === undefined}
-      <Pill tone="warn">placeholder · generated</Pill>
+      <Pill tone="warn">Stand-in tiles</Pill>
     {/if}
   </header>
+  <!-- The size and the count in words; spacing and padding are said only when the picture has them. -->
   <p class="meta">
-    {tileset.tile.w} × {tileset.tile.h} px tiles · spacing {tileset.spacing} · padding {tileset.padding} ·
-    {grid.columns} × {grid.rows} tiles
+    {grid.columns * grid.rows} tiles, each {tileset.tile.w} × {tileset.tile.h} px{#if tileset.spacing > 0}, {tileset.spacing} px apart{/if}{#if tileset.padding > 0}, {tileset.padding} px from the edge{/if}
   </p>
 
   <div class="scroll" data-scroll-region="both">
