@@ -691,6 +691,7 @@ export and its 2D build) and the reverse would be a dependency cycle.
 - [x] **Step 2:** Implement: `SUITE_ENTRIES` becomes the registered list's order. Delete the not-built card.
 - [x] **Step 3:** `pnpm check`; the editor's Chromium browser tests pass. Commit, mark ready.
   `fix(suite): open the game it is served on and list only its editors`
+- [x] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 4):** `automata editor --app suite` serves the 2D suite (`packages/editor/dist/suite`) in the 2D release, not `editor-3d`'s (whose full suite stays reachable with `--app-dir`); a published copy says "The editor suite is not in this release yet. Run automata editor to open the level editor." Done 2026-11-06 (session 9; `editor-command` tests). The sample banner is in 12.7, where the suite's top bar is rebuilt.
 
 ---
 
@@ -862,6 +863,7 @@ logic that is not markup lives in the view's `*-model.ts`.
 - [ ] **Step 2:** Implement. Layout test at the four sizes: no horizontal scroll, every card's More button inside the
   viewport.
 - [ ] **Step 3:** Screenshots, copy rows. Commit. `feat(editor): Home redesigned`
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 3 and 16, section 5.2):** the New level templates on a game folder make the level where the game's editor list allows (`content/rooms/`), or the sheet says why not and what to do; never the toast that names the file twice. The Delete dialog names the level by its label ("Delete Emberwick room? It's removed from your game for good."). Home shows the game's name as the source ("Your game: Emberwick"), one storage line, and "Changed 7 minutes ago" on a card; file sizes and paths go under Details. One name per thing: the label people gave it, everywhere.
 
 ### Task 12.2: The document frame (same PR)
 
@@ -878,6 +880,7 @@ logic that is not markup lives in the view's `*-model.ts`.
   no Share menu; in browser storage the Share menu holds Download, Share, Copy; on a phone the view switcher is a menu.
 - [ ] **Step 2:** Implement. Layout test: Save is visible and never covered by a sheet, at every size.
 - [ ] **Step 3:** Screenshots, copy rows. Commit, mark the PR ready. `feat(editor): the document frame redesigned`
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 8):** Back with unsaved changes asks "Save your changes to Emberwick room?" (Save, Don't save, Cancel). One save story: Save writes the game; the autosave is a safety net out of sight (no "Autosave on"); a restore says "You have unsaved changes from last time. Keep them?" (Throw away, Keep my changes). The rail's views carry icons and labels.
 
 ### Task 12.3: The Level view (PR `claude/refactor-ed-redesign-2`)
 
@@ -909,6 +912,50 @@ logic that is not markup lives in the view's `*-model.ts`.
   each dialog has one primary action and the copy of `copy.md`.
 - [ ] **Step 2:** Implement, one view per commit. **Session break** between views if needed.
 - [ ] **Step 3:** Screenshots, copy rows. Commit per view.
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 5.2):** the Tiles, Map and Characters rows of the audit's table: no IntGrid, rule, pivot, id, shape or field-count words on the first screen ("No tiles yet. Add a picture of your tiles to paint with them.", "Arrange levels: Anywhere, In a grid, In a row, In a column", "Ember (one per level)", "Box, Circle, Dot, Picture"); the anchor point and the name in code live under More.
+
+### Task 12.6: The Tuner, audited and redesigned (PR `claude/refactor-ed-redesign-3`; added 2026-11-06)
+
+The Owner, 2026-11-06: "We should be redesigning and auditing all editors that aren't 3D, not just the 2D level
+editor". The Tuner (`features/suite/tuner/`) is a non-3D editor the plan had left to the 3D slice.
+
+**Files:**
+- Modify: `packages/editor/src/features/suite/tuner/ui/{TunerPanel,TunerRegions,TunerRows,TunerInspector}.svelte`,
+  `packages/editor/src/features/suite/tuner/{tuner-controller,tuner-session}.ts` (only where logic leaves markup)
+- Test: `packages/editor/tests/unit/suite/tuner/*.test.ts`, a layout test at the four sizes in
+  `packages/editor/tests/browser/layout/suite/`
+
+- [ ] **Step 0: The audit.** Spec 17.3's read over the Tuner (size, header, logic in markup, unused code) and the
+  four questions over every string it shows; findings and the Tuner's actions (from its DOM tests) in the execution log.
+- [ ] **Step 1: Failing tests.** The frame of spec 11.4 (a list sheet, an item sheet, the kit's fields); every value
+  row names the setting in plain words with its unit; no format word or path on screen; nothing reachable before is
+  lost.
+- [ ] **Step 2:** Implement with the kit's components only. Layout test: no horizontal scroll, 44 / 48 px targets.
+- [ ] **Step 3:** Screenshots before and after (phone, iPad, desktop), copy rows. Commit.
+  `feat(editor): the Tuner audited and redesigned`
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.2):** each tunable has a label and a one-line "what you'll feel" carried by the game's `tuning.toml` (or the Tuner's schema), with a unit a player can feel; no constant names, no other game's numbers on screen (they stay in the TOML comments); Lock becomes Keep with its tooltip; the empty panel says "Tap a setting to see more."; a "Play to try it" button opens the game with the new values.
+
+### Task 12.7: The 2D suite page, audited and redesigned (same PR; added 2026-11-06)
+
+The suite's 2D page (`app/suite/`, `features/suite/shell/`: Home, the rail, the pills, Review, Ask, Ship, Import and
+Export) is the other non-3D editor screen. It still does not ship (D3) and Ship and Ask stay unwired (E6); this task
+gives it the look, the layout and the words, and the 3D slice adds the Studio and Levels 3D to it.
+
+**Files:**
+- Modify: `packages/editor/src/features/suite/shell/*.svelte`, `packages/editor/src/app/suite/main.css`,
+  `packages/editor/src/features/suite/shell/home-model.ts` (only where logic leaves markup)
+- Test: `packages/editor/tests/unit/suite/shell/*.test.ts`, `packages/editor/tests/browser/layout/suite/`
+
+- [ ] **Step 0: The audit**, as 12.6 step 0, over every file in `features/suite/shell/` and `app/suite/`.
+- [ ] **Step 1: Failing tests.** The suite's top bar holds Back, the editor's name and one primary action; the rail is
+  the kit's view switcher; each dialog has one primary action and the copy of `copy.md`; a control that is not wired
+  says so in plain words, or is not shown (E6), never a button that does nothing.
+- [ ] **Step 2:** Implement with the kit's components only; no component over 300 lines (`Suite.svelte` and
+  `ReviewDesk.svelte` are split by responsibility if they are).
+- [ ] **Step 3:** Screenshots, copy rows. Commit, mark the PR ready. `feat(editor): the 2D suite page audited and redesigned`
+
+Task 12.5 (the copy table and the guide) runs after 12.6 and 12.7, so its scan covers them.
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) section 6.1):** the top bar's rewrites (the game's name as the title; "Saved in your game folder"; change-set, checks and gates pills hidden until they mean something; Ship becomes Publish, disabled with "Nothing new to publish yet"; Undo and Redo labelled); when the suite shows a sample instead of the game (no server), a full-width banner says "This is a sample game, not yours. Run automata editor inside your game's folder to edit it." in place of the small "Sample game" chip; Home lists levels by name ("What do you want to change? Levels: Emberwick room. Movement: how Wick runs and jumps") and hides the files Save writes.
 
 ### Task 12.5: The copy table and the guide (same PR)
 
@@ -924,6 +971,7 @@ logic that is not markup lives in the view's `*-model.ts`.
   rendered text of each screen fixture for `editor-`, `af2d`, `.json`, `checkout`, `Plus`.
 - [ ] **Step 2:** `pnpm check`; the editor's Chromium browser tests. Commit, mark the PR ready.
   `docs(editor): the copy table and the editor guide for the redesigned editor`
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 5.2 and 7):** every row of the audit's section 5.2 is in `copy.md`; its seven rules join `copy.md` beside the four questions; the rendered-text scan also fails on project, workspace, entity, IntGrid, tunable, change set, gate, pivot.
 
 ---
 
@@ -1142,6 +1190,7 @@ logic that is not markup lives in the view's `*-model.ts`.
 - [ ] **Step 2:** Rewrite both pages, on the shared tokens and the kit's look. Start has the four steps of spec 10.2
   and "Using a coding agent" (the AI page's setup). Copy rows. Commit. `feat(site): Home and Start describe the
   framework as it is`
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) findings 2, 5, 6, 18):** the Emberwick embed starts upright on an upright phone (the game's orientation check or the embed's aspect ratio); no promise of a remix or a demo that is not there; every Emberwick link lands on Emberwick; the demo's controls show only while it plays.
 
 ### Task 18.3: The editor page and "Try the editor"
 
@@ -1192,6 +1241,7 @@ logic that is not markup lives in the view's `*-model.ts`.
 - [ ] **Step 1:** Write spec 10.4's journey (land, play Emberwick inline, Start, copy the command, Editor, Try,
   make a platformer level, paint, reload, still there). Run in Chromium → pass. WebKit: the Owner's.
 - [ ] **Step 2: Commit.** `test(site): a visitor's journey from the home page to their first level`
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) finding 2):** the visitor's journey runs at a phone size too and plays the Emberwick embed upright.
 
 ### Task 19.2: Links, privacy and the closed beta
 
@@ -1223,6 +1273,7 @@ logic that is not markup lives in the view's `*-model.ts`.
   maker; How it works and API are where the engine words live. Keep the voice of WG4.
 - [ ] **Step 2:** The visitor journey asserts Home's headline, Start's steps and the Editor page's button by role and
   name. `pnpm check`, site e2e in Chromium. Commit, mark ready. `docs(site): plain words on every page`
+- [ ] **Step G (added 2026-11-06, [grandma audit](2026-11-06-grandma-ux-copy-audit.md) sections 3 and 4, finding 19):** every row of the audit's section 4; the guides (`docs/guides/*.md`) are in the string list (`editor.md` drops "build it first" and opens with run, open, draw, Save); the search placeholder and ranking, the playground's messages (the Determinism row behind "For developers"), the examples' titles as sentences, and the CLI's "Opened Emberwick in the level editor."
 
 ---
 
@@ -1855,3 +1906,60 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   @mcthaydt/automata-site` exits 0; site e2e gates in Chromium after the format: 483 pass. The evidence fixtures the deleted evidence test used went too. WebKit, Firefox and hosted
   CI not run.
 - **Handoff.** Next is phase 11 (task 11.1, one token source). 14.1 waits for the Owner.
+
+### 2026-11-06, session 9: phase 11 (one design system)
+
+- **11.1, one token source.** `tokens.json` changed shape: `colorScheme`, `tokens` (custom property name to its CSS
+  value, verbatim) and `aliases` (old name to the token it now means). The 40 custom properties of the site's `:root`
+  come first with the site's values (fixture `tests/fixtures/tokens/site-root.css`, copied before the change; the test
+  compares every one after collapsing whitespace), then the editor's own: `cobalt-soft`, `ok`, `bad`, `warn`,
+  `danger-wash`, `scrim`, `shadow`, `shadow-sheet`, the layer and phase colours (values kept; 12.3 retunes the layer
+  ones), spacing, `radius-md`, `radius-xl`, the targets and the fixed type ramp. **Deviation 100:** where the two sets
+  shared a name the site won, so `--radius-sm` is 12 px (was 6) and `--radius-lg` 26 px (was 12), and `--font-sans`/
+  `--font-mono` are Geist. The 16 old colour names are `var()` aliases. `tokensToCss` refuses a bad name, an alias to
+  nothing and a name defined twice; `generate-tokens.ts --check` exits 1 on a stale file (a test spawns it).
+  **Deviation 101:** `tokens.css` is out of Biome (`packages/editor/biome.json`): Biome wraps the long gradient
+  values, so a formatted file could never equal the generator's output. The site's `app.css` imports
+  `@mcthaydt/automata-editor/tokens.css` (a workspace dependency of the site; the editor depends on neither the site
+  nor `-tools`, so no cycle) and keeps only its non-token `:root` declarations. The screenshots "identical by eye" are
+  replaced by the stronger check: every value is the same. Gates: tokens tests; editor unit 3,250 and editor-3d unit
+  2,790 pass; site build exits 0; site e2e in Chromium 482 pass and 1 failed on the first run (the playground's
+  "a later frame that never starts" journey: `frames` was 1); it passed alone on the same build after a rebuild, and 3
+  of 3 times on both the old and the new `app.css`, so it is a timing race in that journey, not the tokens (recorded,
+  not fixed here).
+- **11.2, Geist and the icons.** `fonts.css` imports `@fontsource-variable/geist` and `geist-mono` (`wght.css`, as the
+  site does; the Plex packages left the editor). `icons/paths.ts` holds 24 Lucide drawings (lucide-static 0.460.0,
+  ISC; the notice is in the file's header and the row in `docs/provenance/sources.md`), `Icon.svelte` draws one,
+  decorative and unfocusable. Gates: icon tests (24 names, an unknown name is a type error under `svelte-check`).
+- **11.3, the kit's components.** New `IconButton` (44 px round, name and tooltip from `label`, `showLabel`,
+  `pressed`); Button gains `quiet` and the site's looks (frosted pill; primary the chartreuse panel with its glow;
+  danger ink on a pale red wash). Dialog is paper with the 26 px radius and, at a phone width (37.5 rem), a sheet from
+  the bottom with a grab handle and the actions stacked primary first, each 48 px. Segmented, Tabs and Chips are pills
+  on a glass track (Segmented chosen = cobalt fill; Tabs chosen = paper with a cobalt underline; Chips chosen = cobalt
+  wash). Popovers, sheets, toasts and the colour panel are paper with the sheet shadow; fields are paper with a hairline
+  and the 12 px radius; focus is `--focus` (cobalt) everywhere. Toasts sit under a dialog's scrim (z-index 90): the
+  board showed them covering a phone sheet's actions. Every kit `.svelte` moved off the old aliases (a unit test reads
+  each `<style>` and fails on a literal colour or an old name); the editor's views and `testing/` still read the
+  aliases until phase 12. The pages' `color-scheme` meta is light. **The board:** `design.html` (dev only, not a build
+  input) and `src/app/design/`; `pnpm --filter @mcthaydt/automata-editor design:board` (Playwright, Chromium, phone,
+  compact, iPad both ways, desktop, with and without the dialog) writes `tests/e2e/screens/` (git-ignored). Every image
+  was opened; fixed from them: the menu and picker triggers had lost their border, the stepper's label pushed `+` onto
+  its own line, the toast's coloured left edge fought its round corners (now a dot), toasts covered the dialog.
+  **Deviation 102:** the board mounts the kit's components only; the screens join it in phase 12 as each is redesigned.
+  Two existing layout tests caught real regressions and were fixed in the Dialog, not the tests: the error panel was
+  1 px off the top of a phone (`box-sizing`), and a stacked plain action was 44 px where the suite's Ask dialog needs
+  48. Gates: `pnpm check` green; editor unit 3,284; editor Chromium browser projects 533 pass, 6 skipped; editor-3d
+  unit 2,790, dom 142, layout and canvas in Chromium pass (none asserted an old colour, so none changed). PR #419.
+- **Scope, the Owner (2026-11-06, relayed):** "We should be redesigning and auditing all editors that aren't 3D, not
+  just the 2D level editor". The plan redesigned the kit and the 2D level editor and left the Tuner and the suite's 2D
+  page to the 3D slice. Added tasks 12.6 (the Tuner) and 12.7 (the suite's 2D page), each starting with its own audit;
+  12.5's copy scan runs after them. The slice now has 65 tasks; the spec's "Out" and `progress.md`'s 3D row say only
+  `editor-3d`, the Studio and Levels 3D are left to the 3D slice. The Owner also restated the standing rule the same
+  day ("are the editors aware that they should be so simple a drunk grandma can use and understand it"): it is in the
+  spec (11.5) and applies to every screen of phase 12; no plan task found short of it so far.
+- **The drunk grandma audit (2026-11-06,** [grandma audit](2026-11-06-grandma-ux-copy-audit.md)**, copied into `docs/refactor/`).** Its section 8 folded in as a
+  "Step G" on tasks 8.2 (the suite command serves the 2D suite; a sample shows a banner), 12.1, 12.2, 12.4, 12.5, 12.6,
+  12.7, 18.2, 19.1 and 20.1. No new task: each finding fits the task that owns that screen. 8.2 is done, so its Step G
+  reopens it (the row in `progress.md` says so).
+- **Handoff (session 9).** Phase 11 is in draft PR #419 with the 8.2 step G fix and the plan changes. Next is task 12.1
+  (Home) with its Step G, on a new branch stacked on #419. The design board is the place to check each redesigned screen.
