@@ -387,9 +387,13 @@ This adds to the editors audit's table (its section 5).
 
 ## 6. For the plan stage
 
-### Decisions (recommended defaults; the Owner decides)
+### Decisions (made by the Owner, 2026-11-06)
 
-They continue the editors audit's numbering (D1 to D8).
+They continue the editors audit's numbering (D1 to D8). The Owner took all nine recommendations on 2026-11-06 ("Go
+with all recommendations", on the question "Go with all nine recommended defaults from the audit (D9 to D17)?"). The
+plan stage builds on the options marked recommended. D17's actions (the npm organisation and token, the push token for
+`automata-skills`, archiving, the branch prune in Plus and the website, the descriptions, and whether outside authors
+can publish to Ruken) are still the Owner's to carry out.
 
 - **D9. The npm scope.**
   - **A (recommended):** a project scope (an npm organisation the Owner creates, such as `@automata-framework`),
