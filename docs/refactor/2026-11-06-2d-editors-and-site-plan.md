@@ -2181,3 +2181,13 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   pressed state spoken). Gates: editor unit 3288, Chromium layout (level) 50, Chromium 2D journeys 8. **Left for
   12.3:** the floating pill, the charcoal cabinet, Layers as a sheet with the palette under the chosen layer, the
   inspector on selection, the level picker in the top bar, the canvas colour expectations.
+- **12.3, part (session 11): the inspector opens on selection.** The Level view opens the inspector when the editor's
+  selection changes to a new, non-empty one, so below `wide` a thing just placed or tapped shows its fields; closing
+  the sheet with the same thing selected keeps it closed. Gates: editor unit 3289, Chromium layout (level) 50, 2D
+  journeys 8, `pnpm check`. #422's second commit (corners 4 / 6 / 8 px, the flat lime primary) is merged; this
+  stack's three corners moved onto the scale (swatch and rename field `--edge-sm`, Problems rows `--edge-md`).
+- **Site unit tests (session 11).** `examples-pages.test.ts` and `playground/origin.test.ts` read
+  `static/playground/compiled/`, build output a fresh checkout lacks, so hosted CI failed with ENOENT on #420 and
+  #422. They now compile the examples in place with `compileExample`, the way `build-demos.ts` does.
+- **Owner, 2026-11-06:** the editors' look is still not good. The design thread makes a Level screen mockup; the rest
+  of 12.3 keeps to structure and behaviour and takes its styling from that mockup.

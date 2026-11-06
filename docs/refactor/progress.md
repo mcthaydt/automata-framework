@@ -209,8 +209,7 @@ organisation the same day ("automata", so the scope is `@automata`); it is for t
 
 **Where to resume (2026-11-06, session 11):** branch `claude/project-thread-r7jtb7`, a draft PR stacked on #420
 (task 12.2 done: the view switcher with Level, Map, Tiles and Characters in the top bar, "2 problems" opening the
-Problems sheet, the Share menu in browser storage only, rename on tap; the plan's log has the cuts). Tasks 17.1 and 17.2 are done on the same branch. Task 12.3 is started (the tools are icons; the plan's log lists what is left). Next is the rest of 12.3
-(the Level view) on the shared look (#422, being updated to the Owner's pick: flat lime), then 17.3. Two Owner rules from 2026-11-06 hold for everything left: every
+Problems sheet, the Share menu in browser storage only, rename on tap; the plan's log has the cuts). Tasks 17.1 and 17.2 are done on the same branch. Task 12.3 is started (the tools are icons, the layer rows have colour, eye and lock, the inspector opens on a new selection; the plan's log lists what is left). #422's flat lime and 4 / 6 / 8 px corners are merged in. The Owner still finds the editors' look not good (2026-11-06): the design thread is making a Level screen mockup, so the rest of 12.3 does structure and behaviour only (the floating pill, Layers as a sheet with the palette, the level picker in the top bar) and takes its styling from that mockup; then 17.3. Two Owner rules from 2026-11-06 hold for everything left: every
 editor keeps only essential features (cut the rest and name each cut in the plan's log), and the look is the design thread's (#422, merged into this stack; the Owner picked direction C, flat lime, with radii 4 / 6 / 8 px: adopt #422 again when it lands those tokens). **Phase 18
 waits** for those final tokens; then 18.0 and the rest apply the direction together
 with the site visual audit's fixes, and the visual audit is rerun. Phase 12 also holds 12.6 (the Tuner, a split view
