@@ -34,7 +34,8 @@ const START = `<script>
 \t\t\t\t\t});
 \t\t\t\t}
 \t\t\t</script>`
-const page = (script: string) => `<!doctype html><html><head><title>x</title></head><body><div style="display: contents"><p>text</p>\n\t\t\t${script}\n\t\t</div></body></html>`
+const page = (script: string) =>
+  `<!doctype html><html><head><title>x</title></head><body><div style="display: contents"><p>text</p>\n\t\t\t${script}\n\t\t</div></body></html>`
 
 describe('hydrateAfterFirstPaint', () => {
   it('starts the hydration imports from a function that waits for the first paint, and nothing else changes', () => {
@@ -49,7 +50,9 @@ describe('hydrateAfterFirstPaint', () => {
 
   it('reads the element the script sits in at once, since document.currentScript is gone after the script has run', () => {
     const out = hydrateAfterFirstPaint(page(START))
-    expect(out.indexOf('const element = document.currentScript.parentElement;')).toBeLessThan(out.indexOf('afterFirstPaint(() =>'))
+    expect(out.indexOf('const element = document.currentScript.parentElement;')).toBeLessThan(
+      out.indexOf('afterFirstPaint(() =>'),
+    )
   })
 
   it('defines the helper before it is used, inside the same block', () => {
@@ -73,7 +76,9 @@ describe('hydrateAfterFirstPaint', () => {
     const other = page('<script>window.x = Promise.all([import("./a.js")]).then(() => {});</script>')
     expect(hydrateAfterFirstPaint(other)).toBe(other)
     // Another block script that happens to end like the start script does.
-    const sameEnding = page('<script>\n\t{\n\t\twindow.addEventListener("load", () => {\n\t\t});\n\t}\n</script>')
+    const sameEnding = page(
+      '<script>\n\t{\n\t\twindow.addEventListener("load", () => {\n\t\t});\n\t}\n</script>',
+    )
     expect(hydrateAfterFirstPaint(sameEnding)).toBe(sameEnding)
     const noScript = '<!doctype html><title>x</title><p>no script</p>'
     expect(hydrateAfterFirstPaint(noScript)).toBe(noScript)
@@ -101,19 +106,45 @@ describe('afterFirstPaint (the helper inside the page)', () => {
   function browser(options: { paint?: boolean } = {}) {
     const listeners: Record<string, () => void> = {}
     const listenerOptions: Record<string, unknown> = {}
-    const state: { callback?: (list: Entries, observer: { disconnect(): void }) => void; disconnected: number; observed?: unknown } = { disconnected: 0 }
+    const state: {
+      callback?: (list: Entries, observer: { disconnect(): void }) => void
+      disconnected: number
+      observed?: unknown
+    } = { disconnected: 0 }
     class FakeObserver {
       static supportedEntryTypes = options.paint === false ? ['resource'] : ['paint', 'resource']
-      constructor(callback: typeof state.callback) { state.callback = callback }
-      observe(init: unknown) { state.observed = init }
-      disconnect() { state.disconnected++ }
+      constructor(callback: typeof state.callback) {
+        state.callback = callback
+      }
+      observe(init: unknown) {
+        state.observed = init
+      }
+      disconnect() {
+        state.disconnected++
+      }
     }
-    const document = { addEventListener: (type: string, listener: () => void, options?: unknown) => { listeners[type] = listener; listenerOptions[type] = options } }
-    const setTimer = vi.fn((callback: () => void, delay: number) => { timers.push({ callback, delay }) })
+    const document = {
+      addEventListener: (type: string, listener: () => void, options?: unknown) => {
+        listeners[type] = listener
+        listenerOptions[type] = options
+      },
+    }
+    const setTimer = vi.fn((callback: () => void, delay: number) => {
+      timers.push({ callback, delay })
+    })
     const timers: { callback: () => void; delay: number }[] = []
-    const make = new Function('PerformanceObserver', 'document', 'setTimeout', `${AFTER_FIRST_PAINT}; return afterFirstPaint`)
+    const make = new Function(
+      'PerformanceObserver',
+      'document',
+      'setTimeout',
+      `${AFTER_FIRST_PAINT}; return afterFirstPaint`,
+    )
     const afterFirstPaint = make(FakeObserver, document, setTimer) as (start: () => void) => void
-    const paint = (name: string) => state.callback!({ getEntriesByName: n => (n === name ? [{}] : []) }, { disconnect: () => state.disconnected++ })
+    const paint = (name: string) =>
+      state.callback!(
+        { getEntriesByName: (n) => (n === name ? [{}] : []) },
+        { disconnect: () => state.disconnected++ },
+      )
     return { afterFirstPaint, state, listeners, listenerOptions, timers, paint }
   }
 
@@ -135,7 +166,9 @@ describe('afterFirstPaint (the helper inside the page)', () => {
     const { afterFirstPaint, listeners, listenerOptions } = browser()
     const start = vi.fn()
     afterFirstPaint(start)
-    expect(listenerOptions.visibilitychange, 'the listener removes itself after it has run').toEqual({ once: true })
+    expect(listenerOptions.visibilitychange, 'the listener removes itself after it has run').toEqual({
+      once: true,
+    })
     listeners.visibilitychange!()
     listeners.visibilitychange!()
     expect(start).toHaveBeenCalledTimes(1)
@@ -145,7 +178,7 @@ describe('afterFirstPaint (the helper inside the page)', () => {
     const { afterFirstPaint, timers, paint } = browser()
     const start = vi.fn()
     afterFirstPaint(start)
-    expect(timers.map(timer => timer.delay)).toEqual([FALLBACK_MS])
+    expect(timers.map((timer) => timer.delay)).toEqual([FALLBACK_MS])
     timers[0]!.callback()
     expect(start).toHaveBeenCalledTimes(1)
     paint('first-contentful-paint')
@@ -161,8 +194,15 @@ describe('afterFirstPaint (the helper inside the page)', () => {
   })
 
   it('starts at once in a browser with no PerformanceObserver at all', () => {
-    const make = new Function('PerformanceObserver', 'document', 'setTimeout', `${AFTER_FIRST_PAINT}; return afterFirstPaint`)
-    const afterFirstPaint = make(undefined, { addEventListener() {} }, () => {}) as (start: () => void) => void
+    const make = new Function(
+      'PerformanceObserver',
+      'document',
+      'setTimeout',
+      `${AFTER_FIRST_PAINT}; return afterFirstPaint`,
+    )
+    const afterFirstPaint = make(undefined, { addEventListener() {} }, () => {}) as (
+      start: () => void,
+    ) => void
     const start = vi.fn()
     afterFirstPaint(start)
     expect(start).toHaveBeenCalledTimes(1)

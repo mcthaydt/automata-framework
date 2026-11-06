@@ -22,9 +22,7 @@
       "seed": 7,
       "ticks": 300,
       "enginesAgree": true,
-      "sources": [
-        "packages/sample/src/agreeing.parity.test.ts"
-      ],
+      "sources": ["packages/sample/src/agreeing.parity.test.ts"],
       "hashes": [
         {
           "engine": "node",
@@ -53,9 +51,7 @@
       "seed": 8,
       "ticks": 60,
       "enginesAgree": false,
-      "sources": [
-        "packages/sample/src/disagreeing.parity.test.ts"
-      ],
+      "sources": ["packages/sample/src/disagreeing.parity.test.ts"],
       "hashes": [
         {
           "engine": "node",
@@ -94,10 +90,7 @@
   ],
   "automataCheck": {
     "status": "pending",
-    "waitingOn": [
-      "DX.5",
-      "DX.6"
-    ],
+    "waitingOn": ["DX.5", "DX.6"],
     "note": "Sample note."
   }
 }

@@ -1,6 +1,6 @@
 // WEB.PLAY.11 (spec §9, §8.2, F11, A-14, A-15, A-16): the playground's layouts, its controls' sizes, the Preview
 // toggle, Fullscreen and the 50-edit soak, in real browsers.
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 import { SITE_PORT } from '../../playwright.config'
 import { axeViolations, horizontalOverflow, watchPage } from './gates'
 
@@ -40,17 +40,24 @@ test('at phone width, changing only the viewport height leaves the preview as it
   await expect(page.locator('.playground iframe')).toHaveCount(1)
 })
 
-test('the Preview toggle hides the preview without resizing or reloading it, and shows it again', async ({ page }) => {
+test('the Preview toggle hides the preview without resizing or reloading it, and shows it again', async ({
+  page,
+}) => {
   await running(page, { width: 375, height: 667 })
   const toggle = page.getByRole('button', { name: 'Preview', exact: true })
   await expect(toggle).toHaveAttribute('aria-pressed', 'true')
-  const size = (await frame(page).evaluate(element => ({ width: element.clientWidth, height: element.clientHeight })))
+  const size = await frame(page).evaluate((element) => ({
+    width: element.clientWidth,
+    height: element.clientHeight,
+  }))
   await toggle.click()
   await expect(toggle).toHaveAttribute('aria-pressed', 'false')
   const wrapper = page.locator('.playground-preview')
   await expect(wrapper).toHaveAttribute('inert', '')
   expect((await wrapper.boundingBox())?.height ?? 0).toBe(0)
-  expect(await frame(page).evaluate(element => ({ width: element.clientWidth, height: element.clientHeight }))).toEqual(size)
+  expect(
+    await frame(page).evaluate((element) => ({ width: element.clientWidth, height: element.clientHeight })),
+  ).toEqual(size)
   await toggle.click()
   await expect(toggle).toHaveAttribute('aria-pressed', 'true')
   await expect(wrapper).not.toHaveAttribute('inert')
@@ -64,7 +71,9 @@ test('there is no Preview toggle when code and preview sit side by side', async 
 })
 
 for (const layout of LAYOUTS) {
-  test(`${layout.name} ${layout.width}×${layout.height}: the layout, no overflow, and every control at least 44 px`, async ({ page }) => {
+  test(`${layout.name} ${layout.width}×${layout.height}: the layout, no overflow, and every control at least 44 px`, async ({
+    page,
+  }) => {
     await running(page, layout)
     const code = (await page.locator('.playground-code').boundingBox())!
     const preview = (await page.locator('.playground-preview').boundingBox())!
@@ -73,43 +82,59 @@ for (const layout of LAYOUTS) {
     if (layout.height < 500) {
       // The panel fits below the site header, so the whole game is on screen at once.
       const header = (await page.locator('header').first().boundingBox())!
-      expect((await page.locator('.preview-panel').boundingBox())!.height).toBeLessThanOrEqual(layout.height - header.height)
+      expect((await page.locator('.preview-panel').boundingBox())!.height).toBeLessThanOrEqual(
+        layout.height - header.height,
+      )
     }
     if (layout.width >= 700) {
       // Sticky: scrolling the code leaves the preview on screen.
-      await page.locator('.playground-code').evaluate(element => element.scrollIntoView({ block: 'end' }))
+      await page.locator('.playground-code').evaluate((element) => element.scrollIntoView({ block: 'end' }))
       const after = (await page.locator('.preview-panel').boundingBox())!
       expect(after.y).toBeGreaterThanOrEqual(0)
       expect(after.y).toBeLessThan(layout.height)
     }
     await expect(page.getByRole('button', { name: 'Fullscreen' })).toBeVisible()
     expect(await horizontalOverflow(page)).toEqual([])
-    const small = await page.locator('.playground').evaluate(element => [...element.querySelectorAll('button, a')]
-      .filter(control => (control as HTMLElement).offsetParent !== null)
-      .map(control => ({ text: control.textContent!.trim(), ...control.getBoundingClientRect().toJSON() }))
-      .filter(control => control.width < 44 || control.height < 44)
-      .map(control => `${control.text}: ${Math.round(control.width)}×${Math.round(control.height)}`))
+    const small = await page.locator('.playground').evaluate((element) =>
+      [...element.querySelectorAll('button, a')]
+        .filter((control) => (control as HTMLElement).offsetParent !== null)
+        .map((control) => ({
+          text: control.textContent!.trim(),
+          ...control.getBoundingClientRect().toJSON(),
+        }))
+        .filter((control) => control.width < 44 || control.height < 44)
+        .map((control) => `${control.text}: ${Math.round(control.width)}×${Math.round(control.height)}`),
+    )
     expect(small).toEqual([])
   })
 }
 
-test('Fullscreen puts the preview panel in fullscreen and takes it out again', async ({ page, browserName }) => {
+test('Fullscreen puts the preview panel in fullscreen and takes it out again', async ({
+  page,
+  browserName,
+}) => {
   test.skip(browserName === 'webkit', 'headless WebKit does not grant element fullscreen')
   await running(page, { width: 1280, height: 800 })
   await page.getByRole('button', { name: 'Fullscreen' }).click()
-  await expect.poll(() => page.evaluate(() => document.fullscreenElement?.className ?? '')).toContain('preview-panel')
+  await expect
+    .poll(() => page.evaluate(() => document.fullscreenElement?.className ?? ''))
+    .toContain('preview-panel')
   await page.getByRole('button', { name: 'Fullscreen' }).click()
   await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull()
 })
 
 test('Fullscreen says so when the browser refuses', async ({ page }) => {
-  await page.addInitScript(() => { Element.prototype.requestFullscreen = () => Promise.reject(new TypeError('refused')) })
+  await page.addInitScript(() => {
+    Element.prototype.requestFullscreen = () => Promise.reject(new TypeError('refused'))
+  })
   await running(page, { width: 1280, height: 800 })
   await page.getByRole('button', { name: 'Fullscreen' }).click()
   await expect(page.locator('.preview-panel')).toContainText('Fullscreen is unavailable in this browser.')
 })
 
-test('fifty edits in a row never hold more than two frames and settle at one, with no console errors', async ({ page }) => {
+test('fifty edits in a row never hold more than two frames and settle at one, with no console errors', async ({
+  page,
+}) => {
   // Fifty edits at the quiet period's pace take about 12 s before the last run settles.
   test.setTimeout(90_000)
   const watch = watchPage(page, ORIGIN)
@@ -117,8 +142,13 @@ test('fifty edits in a row never hold more than two frames and settle at one, wi
   await page.evaluate(() => {
     const record = window as unknown as { maxFrames: number }
     record.maxFrames = 0
-    const count = () => { record.maxFrames = Math.max(record.maxFrames, document.querySelectorAll('.playground iframe').length) }
-    new MutationObserver(count).observe(document.querySelector('.playground')!, { childList: true, subtree: true })
+    const count = () => {
+      record.maxFrames = Math.max(record.maxFrames, document.querySelectorAll('.playground iframe').length)
+    }
+    new MutationObserver(count).observe(document.querySelector('.playground')!, {
+      childList: true,
+      subtree: true,
+    })
   })
   const first = page.locator('[data-testid="static-code"] .line').first()
   const target = (await first.boundingBox())!
@@ -131,9 +161,17 @@ test('fifty edits in a row never hold more than two frames and settle at one, wi
     await page.waitForTimeout(edit % 2 ? 350 : 120)
   }
   const settled = page.locator('.playground iframe')
-  await expect.poll(async () => `${await settled.count()} frames, run ${await root(page).getAttribute('data-run-id')}, ${await root(page).getAttribute('data-preview')}: ${await page.locator('.playground-status').textContent()}`, { timeout: 15_000 }).toMatch(/^1 frames/)
+  await expect
+    .poll(
+      async () =>
+        `${await settled.count()} frames, run ${await root(page).getAttribute('data-run-id')}, ${await root(page).getAttribute('data-preview')}: ${await page.locator('.playground-status').textContent()}`,
+      { timeout: 15_000 },
+    )
+    .toMatch(/^1 frames/)
   await expect(root(page)).toHaveAttribute('data-preview', 'running')
-  expect(await page.evaluate(() => (window as unknown as { maxFrames: number }).maxFrames)).toBeLessThanOrEqual(2)
+  expect(
+    await page.evaluate(() => (window as unknown as { maxFrames: number }).maxFrames),
+  ).toBeLessThanOrEqual(2)
   expect(Number(await root(page).getAttribute('data-run-id'))).toBeGreaterThan(10)
   expect(watch.problems).toEqual([])
 })

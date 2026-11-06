@@ -14,16 +14,26 @@ describe('atOrigin', () => {
 
   it('moves the quoted playground literal to the other origin and leaves everything else', () => {
     const moved = atOrigin(code, 'https://automata.ruken.com', 'http://127.0.0.1:4650')
-    expect(moved).toBe(code.replace('"https://automata.ruken.com/playground/examples', '"http://127.0.0.1:4650/playground/examples'))
+    expect(moved).toBe(
+      code.replace(
+        '"https://automata.ruken.com/playground/examples',
+        '"http://127.0.0.1:4650/playground/examples',
+      ),
+    )
   })
 
   it('is the identity at the same origin, and refuses what is not an origin', () => {
     expect(atOrigin(code, 'https://automata.ruken.com', 'https://automata.ruken.com')).toBe(code)
-    expect(() => atOrigin(code, 'https://automata.ruken.com', 'http://127.0.0.1:4650/path')).toThrow(/not an origin/)
+    expect(() => atOrigin(code, 'https://automata.ruken.com', 'http://127.0.0.1:4650/path')).toThrow(
+      /not an origin/,
+    )
   })
 
   it('moves the literal in a real precompiled original', () => {
-    const original = readFileSync(resolve(import.meta.dirname, '../../static/playground/compiled/audio-sound.js'), 'utf8')
+    const original = readFileSync(
+      resolve(import.meta.dirname, '../../static/playground/compiled/audio-sound.js'),
+      'utf8',
+    )
     const moved = atOrigin(original, SITE_ORIGIN, 'http://localhost:5173')
     expect(moved).toContain('"http://localhost:5173/playground/examples/audio/audio-sound.ts"')
     expect(moved).not.toContain(SITE_ORIGIN)

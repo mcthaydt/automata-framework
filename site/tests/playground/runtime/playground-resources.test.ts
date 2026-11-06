@@ -1,6 +1,7 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+
 import type { CatalogEntry } from '@mcthaydt/examples-runner/catalog'
+import { describe, expect, it } from 'vitest'
 import { publicResource } from '../../../playground/src/playground-resources.ts'
 
 const entry = (id: string, imports: readonly string[]): CatalogEntry =>

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import CreativeStarts from '$lib/components/CreativeStarts.svelte'
-  import { COMMUNITY_GAMES, SHOWCASE_GAMES, SHOWCASE_SUBMISSION_URL } from '../../data/showcase'
+import CreativeStarts from '$lib/components/CreativeStarts.svelte'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import { COMMUNITY_GAMES, SHOWCASE_GAMES, SHOWCASE_SUBMISSION_URL } from '../../data/showcase'
 </script>
 <PageMeta title="Made with Automata" description="Play and remix real Automata starters: a platformer and a double-jump change, and share your own game." />
 <div class="page-shell showcase-page">

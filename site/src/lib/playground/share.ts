@@ -20,12 +20,14 @@ function toBase64url(bytes: Uint8Array): string {
 function fromBase64url(text: string): Uint8Array<ArrayBuffer> {
   if (!/^[A-Za-z0-9_-]+$/.test(text) || text.length % 4 === 1) throw new ShareError('not base64url')
   const binary = atob(text.replaceAll('-', '+').replaceAll('_', '/'))
-  return Uint8Array.from(binary, char => char.charCodeAt(0))
+  return Uint8Array.from(binary, (char) => char.charCodeAt(0))
 }
 
 /** The fragment, without its `#`, that carries `source`. */
 export async function encodeShare(source: string): Promise<string> {
-  const stream = new Blob([new TextEncoder().encode(source)]).stream().pipeThrough(new CompressionStream('deflate-raw'))
+  const stream = new Blob([new TextEncoder().encode(source)])
+    .stream()
+    .pipeThrough(new CompressionStream('deflate-raw'))
   return PREFIX + toBase64url(new Uint8Array(await new Response(stream).arrayBuffer()))
 }
 
@@ -36,7 +38,10 @@ export async function decodeShare(hash: string): Promise<string | undefined> {
   if (fragment.length > MAX_FRAGMENT_CHARS) throw new ShareError('the fragment is too long')
   if (!fragment.startsWith(PREFIX)) throw new ShareError('an unknown format')
   const compressed = fromBase64url(fragment.slice(PREFIX.length))
-  const reader = new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader()
+  const reader = new Blob([compressed])
+    .stream()
+    .pipeThrough(new DecompressionStream('deflate-raw'))
+    .getReader()
   const chunks: Uint8Array[] = []
   let size = 0
   try {

@@ -15,7 +15,8 @@ export function siteSourceFiles(root: string): { path: string; text: string }[] 
     for (const name of readdirSync(dir)) {
       const full = join(dir, name)
       if (statSync(full).isDirectory()) walk(full)
-      else if (TEXT.test(name)) files.push({ path: relative(root, full).split(sep).join('/'), text: readFileSync(full, 'utf8') })
+      else if (TEXT.test(name))
+        files.push({ path: relative(root, full).split(sep).join('/'), text: readFileSync(full, 'utf8') })
     }
   }
   walk(join(root, 'src'))
@@ -24,6 +25,5 @@ export function siteSourceFiles(root: string): { path: string; text: string }[] 
 
 /** `path: hash` for every sim-hash-shaped token in a file that may not contain one. */
 export function findHardCodedHashes(files: { path: string; text: string }[]): string[] {
-  return files
-    .flatMap(file => (file.text.match(SIM_HASH) ?? []).map(hash => `${file.path}: ${hash}`))
+  return files.flatMap((file) => (file.text.match(SIM_HASH) ?? []).map((hash) => `${file.path}: ${hash}`))
 }

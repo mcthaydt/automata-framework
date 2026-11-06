@@ -1,6 +1,6 @@
-import { getDocSections } from '../src/data/docs-loader'
 import { render } from '@testing-library/svelte'
 import { describe, expect, it } from 'vitest'
+import { getDocSections } from '../src/data/docs-loader'
 import { entries, load } from '../src/routes/docs/[slug]/+page'
 import SlugPage from '../src/routes/docs/[slug]/+page.svelte'
 

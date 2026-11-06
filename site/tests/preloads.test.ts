@@ -8,7 +8,8 @@ const ENTRY = '<link rel="modulepreload" href="./_app/immutable/entry/start.BpVv
 const NODE = '<link rel="modulepreload" href="./_app/immutable/nodes/0.CzcxexpS.js">'
 const CHUNK = '<link rel="modulepreload" href="./_app/immutable/chunks/l39rUby5.js">'
 const STYLES = '<link href="./_app/immutable/assets/0.DBGLDOKE.css" rel="stylesheet">'
-const FONT = '<link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/_app/immutable/assets/geist-latin-wght-normal.BgDaEnEv.woff2"/>'
+const FONT =
+  '<link rel="preload" as="font" type="font/woff2" crossorigin="anonymous" href="/_app/immutable/assets/geist-latin-wght-normal.BgDaEnEv.woff2"/>'
 
 const head = (...links: string[]) => `<head>\n\t\t${links.join('\n\t\t')}\n  </head>`
 
@@ -20,7 +21,9 @@ describe('withoutChunkPreloads', () => {
 
   it('leaves the stylesheet, the font preload and every other tag alone', () => {
     const html = `<!doctype html><html><head><title>x</title>${STYLES}${FONT}${CHUNK}</head><body><p>${CHUNK}</p></body></html>`
-    expect(withoutChunkPreloads(html)).toBe(`<!doctype html><html><head><title>x</title>${STYLES}${FONT}</head><body><p></p></body></html>`)
+    expect(withoutChunkPreloads(html)).toBe(
+      `<!doctype html><html><head><title>x</title>${STYLES}${FONT}</head><body><p></p></body></html>`,
+    )
   })
 
   it('also removes the hints on nested pages, where the paths climb out of the folder', () => {

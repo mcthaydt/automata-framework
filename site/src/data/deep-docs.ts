@@ -16,7 +16,8 @@ export const SERVICE_MODEL_DOC: DeepDoc = {
   slug: 'service-model',
   title: 'Services and failure',
   category: 'Core',
-  description: 'What the simulation owns, what the runtime owns, and what is not undone when something fails.',
+  description:
+    'What the simulation owns, what the runtime owns, and what is not undone when something fails.',
   content: `# Services and failure
 
 ## Two sides

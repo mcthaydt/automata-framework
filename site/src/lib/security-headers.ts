@@ -36,7 +36,9 @@ export const DEMO_POLICY = [
 const PREVIEW_PAGE = /^\/(examples|playground\/examples)\/[^/]/
 
 export function securityHeaders(pathname: string): Record<string, string> {
-  const delegated = PREVIEW_PAGE.test(pathname) ? 'fullscreen=*, gamepad=*' : 'fullscreen=(self), gamepad=(self)'
+  const delegated = PREVIEW_PAGE.test(pathname)
+    ? 'fullscreen=*, gamepad=*'
+    : 'fullscreen=(self), gamepad=(self)'
   return {
     // One day while the host is new: a broken certificate then locks returning readers out for a day, not a year.
     // QB.4 raises it to a year once the live origin has passed `pnpm check:deployed` for a week.

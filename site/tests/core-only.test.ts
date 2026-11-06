@@ -9,7 +9,9 @@ const OFFER = ['src', 'scripts', 'playground/src']
 
 function files(path: string): string[] {
   try {
-    return readdirSync(path, { recursive: true, withFileTypes: true }).filter(e => e.isFile()).map(e => join(e.parentPath, e.name))
+    return readdirSync(path, { recursive: true, withFileTypes: true })
+      .filter((e) => e.isFile())
+      .map((e) => join(e.parentPath, e.name))
   } catch {
     return [path]
   }
@@ -20,7 +22,9 @@ describe('the site offers the core framework only', () => {
     it(`${path} offers no physics package or bodies-2d demo`, () => {
       for (const file of files(path)) {
         const text = readFileSync(file, 'utf8')
-        expect(text, file).not.toMatch(/automata-physics|bodies-2d|physics playground|room full of physics|Play with physics/i)
+        expect(text, file).not.toMatch(
+          /automata-physics|bodies-2d|physics playground|room full of physics|Play with physics/i,
+        )
       }
     })
   }

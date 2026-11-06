@@ -19,12 +19,15 @@ describe('demoPoster', () => {
   })
 
   it('only names previews that ship, with the WebP sizes the picture element asks for', () => {
-    const posters = getDemosCatalog().map(demo => demoPoster(demo.slug)).filter((poster): poster is string => poster !== undefined)
+    const posters = getDemosCatalog()
+      .map((demo) => demoPoster(demo.slug))
+      .filter((poster): poster is string => poster !== undefined)
     expect(posters.length).toBeGreaterThan(0)
     for (const poster of posters) {
       expect(() => previewSrcset(poster), poster).not.toThrow()
       const base = poster.replace(/\.jpg$/, '')
-      for (const file of [poster, base + '.webp', base + '-640.webp']) expect(existsSync(resolve(root, 'static' + file)), file).toBe(true)
+      for (const file of [poster, base + '.webp', base + '-640.webp'])
+        expect(existsSync(resolve(root, 'static' + file)), file).toBe(true)
     }
   })
 })

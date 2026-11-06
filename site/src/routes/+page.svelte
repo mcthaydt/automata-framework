@@ -1,25 +1,55 @@
 <script lang="ts">
-  import DemoRunner from '$lib/components/DemoRunner.svelte'
-  import SourceExplorer from '$lib/components/SourceExplorer.svelte'
-  import CreativeStarts from '$lib/components/CreativeStarts.svelte'
-  import LazyPicture from '$lib/components/LazyPicture.svelte'
-  import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from '../data/audience'
-  import { MIGRATION_GUIDES } from '../data/migrations'
-  import { DISTRIBUTION_TARGETS } from '../data/targets'
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import { STARTER_FILE } from '../data/home-sources'
-  import type { PageData } from './$types'
-  let { data }: { data: PageData } = $props()
-  const sourceGuides = [
-    { label: 'Edit the room', path: STARTER_FILE, description: 'Author the room as content: # is solid, . is empty, P is the player start and G is the goal. Keep one P and one G, equal row widths, and empty space above P.' },
-    { label: 'Simulation', path: 'games/emberwick/src/features/player/player-move.system.ts', description: 'The movement system reads control state, applies gravity and collision rules, and writes player state inside fixed simulation ticks.' },
-    { label: 'Presentation', path: 'games/emberwick/src/features/scene/scene-renderer.ts', description: 'The renderer draws the room, character and lighting from the current game state. Gameplay rules stay in the simulation.' },
-    { label: 'Wiring', path: 'games/emberwick/src/app/make-game.ts', description: 'One defineGame call connects the content, the simulation, the keys, the screens and the renderer.' },
-    { label: 'Boot', path: 'games/emberwick/main.ts', description: 'The page starts the game. The host handshake and readiness happen outside simulation code, and the same page runs the game standalone in a browser.' },
-  ]
-  const previews = [
-    { slug: 'hot-reload', title: 'Content', description: 'An authored room with content updates applied while the game runs.' },
-  ]
+import CreativeStarts from '$lib/components/CreativeStarts.svelte'
+import DemoRunner from '$lib/components/DemoRunner.svelte'
+import LazyPicture from '$lib/components/LazyPicture.svelte'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import SourceExplorer from '$lib/components/SourceExplorer.svelte'
+import { AUDIENCE_FIT, AUDIENCE_NOT_FIT, FAQ_ITEMS } from '../data/audience'
+import { STARTER_FILE } from '../data/home-sources'
+import { MIGRATION_GUIDES } from '../data/migrations'
+import { DISTRIBUTION_TARGETS } from '../data/targets'
+import type { PageData } from './$types'
+
+let { data }: { data: PageData } = $props()
+const sourceGuides = [
+  {
+    label: 'Edit the room',
+    path: STARTER_FILE,
+    description:
+      'Author the room as content: # is solid, . is empty, P is the player start and G is the goal. Keep one P and one G, equal row widths, and empty space above P.',
+  },
+  {
+    label: 'Simulation',
+    path: 'games/emberwick/src/features/player/player-move.system.ts',
+    description:
+      'The movement system reads control state, applies gravity and collision rules, and writes player state inside fixed simulation ticks.',
+  },
+  {
+    label: 'Presentation',
+    path: 'games/emberwick/src/features/scene/scene-renderer.ts',
+    description:
+      'The renderer draws the room, character and lighting from the current game state. Gameplay rules stay in the simulation.',
+  },
+  {
+    label: 'Wiring',
+    path: 'games/emberwick/src/app/make-game.ts',
+    description:
+      'One defineGame call connects the content, the simulation, the keys, the screens and the renderer.',
+  },
+  {
+    label: 'Boot',
+    path: 'games/emberwick/main.ts',
+    description:
+      'The page starts the game. The host handshake and readiness happen outside simulation code, and the same page runs the game standalone in a browser.',
+  },
+]
+const previews = [
+  {
+    slug: 'hot-reload',
+    title: 'Content',
+    description: 'An authored room with content updates applied while the game runs.',
+  },
+]
 </script>
 <PageMeta title="Make a game. Make it yours." description="Make browser games with your coding agent. Play a starter, try a double jump, copy a tested task, and make the next change your own." />
 <section class="hero chapter">

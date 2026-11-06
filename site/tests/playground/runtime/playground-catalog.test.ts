@@ -1,6 +1,7 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+
 import type { CatalogEntry } from '@mcthaydt/examples-runner/catalog'
+import { describe, expect, it } from 'vitest'
 import { playgroundCatalog } from '../../../playground/src/playground-catalog.ts'
 
 const header = {

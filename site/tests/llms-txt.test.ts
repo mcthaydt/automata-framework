@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
 import { AI_PROJECT_PROMPT, AI_TASKS } from '../src/data/ai-guidance'
-import { GET as llmsGuides } from '../src/routes/llms-guides.txt/+server'
+import { CHEATSHEET_MODULES } from '../src/data/cheatsheet'
 import { GET as llmsIndex } from '../src/routes/llms.txt/+server'
+import { GET as llmsGuides } from '../src/routes/llms-guides.txt/+server'
 
 describe('LLMs.txt & Docs Pipeline', () => {
   it('publishes the same API examples and task prompts that people read on the site', async () => {

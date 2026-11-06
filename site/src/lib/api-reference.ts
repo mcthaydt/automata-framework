@@ -22,7 +22,8 @@ export async function loadApiSearch(version: string): Promise<ApiSearchRow[]> {
 export function searchApi(rows: readonly ApiSearchRow[], query: string, limit = 50): ApiSearchRow[] {
   const words = query.toLowerCase().split(/\s+/).filter(Boolean)
   if (words.length === 0) return []
-  const rank = (row: ApiSearchRow): number => (row.name.toLowerCase().startsWith(words[0]) ? 0 : row.name.toLowerCase().includes(words[0]) ? 1 : 2)
+  const rank = (row: ApiSearchRow): number =>
+    row.name.toLowerCase().startsWith(words[0]) ? 0 : row.name.toLowerCase().includes(words[0]) ? 1 : 2
   return rows
     .filter((row) => words.every((w) => `${row.name} ${row.summary}`.toLowerCase().includes(w)))
     .sort((a, b) => rank(a) - rank(b) || a.name.length - b.name.length || a.name.localeCompare(b.name))

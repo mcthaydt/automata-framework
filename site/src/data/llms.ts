@@ -1,4 +1,11 @@
-import { AI_CONTEXT_FILES, AI_PROJECT_PROMPT, AI_REVIEW_CHECKS, AI_RULES, AI_TASKS, AI_VERIFY_COMMANDS } from './ai-guidance'
+import {
+  AI_CONTEXT_FILES,
+  AI_PROJECT_PROMPT,
+  AI_REVIEW_CHECKS,
+  AI_RULES,
+  AI_TASKS,
+  AI_VERIFY_COMMANDS,
+} from './ai-guidance'
 import { CHEATSHEET_MODULES } from './cheatsheet'
 import type { DocSection } from './site-docs'
 import { DISTRIBUTION_TARGETS } from './targets'
@@ -8,7 +15,8 @@ import { DISTRIBUTION_TARGETS } from './targets'
 
 /** `/llms.txt`: what the site has, one link per page. `version` is the API index's. */
 export function llmsIndex(docs: readonly DocSection[], version: string): string {
-  return `# Automata Framework
+  return (
+    `# Automata Framework
 
 > Automata is a deterministic 2D game framework for the web. ${DISTRIBUTION_TARGETS}
 
@@ -22,13 +30,15 @@ ${docs.map((d) => `- [${d.title}](/docs/${d.slug}): ${d.description}`).join('\n'
 - [Site guides](/llms-guides.txt): The guides, task prompts and selected API examples on this site.
 
 ## API Reference
-${CHEATSHEET_MODULES.map(module => `- [${module.title}](/cheatsheet#${module.id}): ${module.description}`).join('\n')}
+${CHEATSHEET_MODULES.map((module) => `- [${module.title}](/cheatsheet#${module.id}): ${module.description}`).join('\n')}
 `.trim() + '\n'
+  )
 }
 
 /** `/llms-guides.txt`: every docs page, the AI workflow and the selected API examples, in full. */
 export function llmsGuides(docs: readonly DocSection[]): string {
-  return `# Automata Framework — Site Guides for Coding Agents
+  return (
+    `# Automata Framework — Site Guides for Coding Agents
 
 > Automata is a deterministic 2D game framework for the web. ${DISTRIBUTION_TARGETS}
 > Strict Core Laws: Koota ECS determinism, Effect outside sim, Zero Eval CSP, PixiJS 2D sub-tick alpha interpolation.
@@ -50,7 +60,7 @@ ${docs
 URL: /docs/${d.slug}
 Description: ${d.description}
 
-${d.content}`
+${d.content}`,
   )
   .join('\n\n---\n\n')}
 
@@ -60,20 +70,20 @@ ${d.content}`
 URL: /ai
 
 ## Project context
-${AI_CONTEXT_FILES.map(file => `- ${file.path}: ${file.purpose}`).join('\n')}
+${AI_CONTEXT_FILES.map((file) => `- ${file.path}: ${file.purpose}`).join('\n')}
 
 ## Architectural boundaries
-${AI_RULES.map(rule => `### ${rule.title}\n\n${rule.detail}`).join('\n\n')}
+${AI_RULES.map((rule) => `### ${rule.title}\n\n${rule.detail}`).join('\n\n')}
 
 ## First task prompt
 \`\`\`text
 ${AI_PROJECT_PROMPT}
 \`\`\`
 
-${AI_TASKS.map(task => `## ${task.title}\n\n${task.description}\nAPI: ${task.apiHref}\n\n\`\`\`text\n${task.prompt}\n\`\`\``).join('\n\n')}
+${AI_TASKS.map((task) => `## ${task.title}\n\n${task.description}\nAPI: ${task.apiHref}\n\n\`\`\`text\n${task.prompt}\n\`\`\``).join('\n\n')}
 
 ## Review and verify
-${AI_REVIEW_CHECKS.map(check => `- ${check}`).join('\n')}
+${AI_REVIEW_CHECKS.map((check) => `- ${check}`).join('\n')}
 
 \`\`\`sh
 ${AI_VERIFY_COMMANDS}
@@ -86,6 +96,7 @@ URL: /cheatsheet
 These examples and abbreviated contracts describe selected APIs, not every export.
 The current checkout's instructions and TypeScript definitions take precedence.
 
-${CHEATSHEET_MODULES.map(module => `## ${module.title}\nImport: ${module.name}\nURL: /cheatsheet#${module.id}\nSource: https://github.com/mcthaydt/automata-framework/blob/main/${module.sourcePath}\n\n${module.description}\n\n\`\`\`ts\n${module.example}\n\`\`\`\n\n${module.entries.map(entry => `### ${entry.name}\n\n${entry.description}\n${entry.receiver ? `Instance method on ${entry.receiver}.\n` : ''}\n\`\`\`ts\n${entry.signature}\n\`\`\`\nReturns: ${entry.returnType}\n${(entry.parameters ?? []).map(parameter => `- ${parameter.name} (${parameter.type}): ${parameter.desc}`).join('\n')}\n${(entry.notes ?? []).map(note => `- ${note}`).join('\n')}`).join('\n\n')}`).join('\n\n---\n\n')}
+${CHEATSHEET_MODULES.map((module) => `## ${module.title}\nImport: ${module.name}\nURL: /cheatsheet#${module.id}\nSource: https://github.com/mcthaydt/automata-framework/blob/main/${module.sourcePath}\n\n${module.description}\n\n\`\`\`ts\n${module.example}\n\`\`\`\n\n${module.entries.map((entry) => `### ${entry.name}\n\n${entry.description}\n${entry.receiver ? `Instance method on ${entry.receiver}.\n` : ''}\n\`\`\`ts\n${entry.signature}\n\`\`\`\nReturns: ${entry.returnType}\n${(entry.parameters ?? []).map((parameter) => `- ${parameter.name} (${parameter.type}): ${parameter.desc}`).join('\n')}\n${(entry.notes ?? []).map((note) => `- ${note}`).join('\n')}`).join('\n\n')}`).join('\n\n---\n\n')}
 `.trim() + '\n'
+  )
 }

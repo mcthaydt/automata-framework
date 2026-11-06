@@ -8,10 +8,16 @@ import { finishPage } from '../src/lib/finish-page'
 // script is allowed by its own hash, computed from the final HTML, after QB.3j's hydration rewrite.
 
 const START = '<script>\n\t\t\t\t{ console.log("start") }\n\t\t\t</script>'
-const page = (head: string, body: string) => `<!doctype html><html lang="en"><head>\n\t\t<meta charset="utf-8" />${head}</head><body>${body}</body></html>`
+const page = (head: string, body: string) =>
+  `<!doctype html><html lang="en"><head>\n\t\t<meta charset="utf-8" />${head}</head><body>${body}</body></html>`
 const hash = (script: string) => `'sha256-${createHash('sha256').update(script, 'utf8').digest('base64')}'`
-const policyOf = (html: string) => /<meta http-equiv="Content-Security-Policy" content="([^"]*)">/.exec(html)?.[1] ?? ''
-const directive = (policy: string, name: string) => policy.split(';').map(part => part.trim()).find(part => part.startsWith(`${name} `)) ?? ''
+const policyOf = (html: string) =>
+  /<meta http-equiv="Content-Security-Policy" content="([^"]*)">/.exec(html)?.[1] ?? ''
+const directive = (policy: string, name: string) =>
+  policy
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${name} `)) ?? ''
 
 describe('withContentSecurityPolicy', () => {
   it('puts the policy first in <head>, before anything the browser could run or fetch', () => {
@@ -28,18 +34,24 @@ describe('withContentSecurityPolicy', () => {
   })
 
   it('hashes what the browser runs: CRLF read as LF, any letter case, a space before the closing >', () => {
-    const script = directive(policyOf(withContentSecurityPolicy(page('', '<SCRIPT>a()\r\nb()</script >'))), 'script-src')
+    const script = directive(
+      policyOf(withContentSecurityPolicy(page('', '<SCRIPT>a()\r\nb()</script >'))),
+      'script-src',
+    )
     expect(script).toBe(`script-src 'self' ${hash('a()\nb()')}`)
   })
 
   it('does not hash a script loaded from a file', () => {
-    const script = directive(policyOf(withContentSecurityPolicy(page('<script type="module" src="/a.js"></script>', ''))), 'script-src')
+    const script = directive(
+      policyOf(withContentSecurityPolicy(page('<script type="module" src="/a.js"></script>', ''))),
+      'script-src',
+    )
     expect(script).toBe("script-src 'self'")
   })
 
   it('keeps everything else to the site’s own origin', () => {
     const policy = policyOf(withContentSecurityPolicy(page('', START)))
-    expect(policy.split('; ').filter(part => !part.startsWith('script-src'))).toEqual([
+    expect(policy.split('; ').filter((part) => !part.startsWith('script-src'))).toEqual([
       "default-src 'self'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data:",

@@ -11,7 +11,8 @@ describe('securityHeaders', () => {
       'Strict-Transport-Security': 'max-age=86400; includeSubDomains',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self), gamepad=(self)',
+      'Permissions-Policy':
+        'camera=(), microphone=(), geolocation=(), payment=(), usb=(), fullscreen=(self), gamepad=(self)',
       'Content-Security-Policy': "frame-ancestors 'self'",
     })
   })

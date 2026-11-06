@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { stripTypeScriptTypes } from 'node:module'
-import { expect, type Page } from '@playwright/test'
 import { playgroundFrameOrigin } from '@mcthaydt/examples-runner/host/ports'
+import { expect, type Page } from '@playwright/test'
 
 // What the playground's browser cases share: the test-only compile and a parent that frames an example and logs what
 // its frame says. The site's compile step does not exist here, so the source's types are stripped with Node's own

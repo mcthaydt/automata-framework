@@ -10,7 +10,11 @@ describe('Homepage', () => {
     expect(view.getByRole('link', { name: 'Play the starter' }).getAttribute('href')).toBe('#play')
     expect(view.container.querySelector('iframe')).toBeNull()
     expect(view.getAllByRole('img', { name: 'Emberwick platforming gameplay' }).length).toBeGreaterThan(0)
-    expect(view.getAllByRole('link', { name: 'Try a double jump' }).every(link => link.getAttribute('href') === '/start#first-task')).toBe(true)
+    expect(
+      view
+        .getAllByRole('link', { name: 'Try a double jump' })
+        .every((link) => link.getAttribute('href') === '/start#first-task'),
+    ).toBe(true)
     expect(view.queryByText(/npx automata/)).toBeNull()
     expect(view.getByRole('region', { name: 'games/emberwick/src/shared/room.ts' })).toBeTruthy()
   })

@@ -1,5 +1,5 @@
-import type { createFakeHost } from '@ruken/sdk-host/testing'
 import type { HostSettings } from '@mcthaydt/examples-runner/header'
+import type { createFakeHost } from '@ruken/sdk-host/testing'
 
 type FakeHostCreateOptions = Parameters<typeof createFakeHost>[0]
 type Capability = NonNullable<FakeHostCreateOptions['grant']>[number]

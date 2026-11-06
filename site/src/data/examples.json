@@ -6,10 +6,7 @@
     "title": "a chime on a sim event",
     "shows": "`sounds` maps a sim event to a sound. The first tap or key unlocks audio (browsers allow sound only after a gesture); from then on each Chime event the sim emits plays chime.wav.",
     "controls": "tap or press any key to unlock sound",
-    "packages": [
-      "@mcthaydt/automata",
-      "zod"
-    ],
+    "packages": ["@mcthaydt/automata", "zod"],
     "difficulty": 1,
     "tier": "core",
     "golden": {
@@ -29,9 +26,7 @@
     "title": "open a game window",
     "shows": "defineGame() needs only an id, a size and a sim; startGame() fills in the rest: the host, the renderer, and the title, play and paused screens.",
     "controls": "none",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 1,
     "tier": "core",
     "path": "core/core-basic-window.ts",
@@ -47,10 +42,7 @@
     "title": "a camera that follows a square around a world bigger than the screen",
     "shows": "createCamera2d() follows a target with a dead zone, stays inside the world's bounds and shakes on a bump; it moves the world container only, so the sim's positions are untouched.",
     "controls": "arrows or WASD",
-    "packages": [
-      "@mcthaydt/automata",
-      "zod"
-    ],
+    "packages": ["@mcthaydt/automata", "zod"],
     "difficulty": 2,
     "tier": "core",
     "path": "core/core-camera-2d.ts",
@@ -66,9 +58,7 @@
     "title": "the sim stands still while the host has the game in the background",
     "shows": "the game package handles the host's lifecycle for a game, so nothing here mentions the host. The page draws nothing until the host says ready; when the host sends the game to the background (its drawer, an ad, a hidden tab) the runtime stops the sim and opens the pause screen, and Resume plays on from the same tick. The HUD counts the sim's ticks and says whether the frame is paused.",
     "controls": "none; switch to another tab (or open the host's drawer) and come back",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 1,
     "tier": "core",
     "path": "core/core-host-lifecycle.ts",
@@ -84,10 +74,7 @@
     "title": "move a square with a controller",
     "shows": "keys() binds a standard pad's left stick and D-pad to the same sim command as the arrow keys; the stick reads through a radial deadzone, eight ways; unplugging the pad in use pauses with \"Reconnect your controller\".",
     "controls": "the left stick or the D-pad (any standard-mapping controller), or the arrow keys",
-    "packages": [
-      "@mcthaydt/automata",
-      "zod"
-    ],
+    "packages": ["@mcthaydt/automata", "zod"],
     "difficulty": 1,
     "tier": "core",
     "golden": {
@@ -107,10 +94,7 @@
     "title": "move a square with the keyboard, a pad or touch",
     "shows": "keys() turns what is held on the keyboard, a standard pad's D-pad or the touch buttons into one sim command per tick, the same command from each device; rect() draws an entity, interpolated.",
     "controls": "arrows or WASD, the D-pad, or the touch buttons",
-    "packages": [
-      "@mcthaydt/automata",
-      "zod"
-    ],
+    "packages": ["@mcthaydt/automata", "zod"],
     "difficulty": 1,
     "tier": "core",
     "golden": {
@@ -130,10 +114,7 @@
     "title": "rebind a control in Settings, and keep it next time",
     "shows": "keys() names each action with labels, so the default Settings screen (pause, then the gear) lists them; rebinding one saves it through the host and play reads it at once; a key taken from another action leaves that one \"Unbound\"; Escape cancels a capture. A reload keeps the player's keys.",
     "controls": "the arrows move, Space jumps, F fires; Escape or P to pause, then the gear for Settings",
-    "packages": [
-      "@mcthaydt/automata",
-      "zod"
-    ],
+    "packages": ["@mcthaydt/automata", "zod"],
     "difficulty": 2,
     "tier": "core",
     "golden": {
@@ -153,10 +134,7 @@
     "title": "steer a square by swiping, and flick down to drop it",
     "shows": "keys() gestures: a swipe holds a direction while the finger steers past a 12 px dead zone, a flick down (40 px within 180 ms) lasts exactly one tick; with no touch buttons, the play screen takes touch as a swipe surface. The arrows drive the same command.",
     "controls": "on a touch screen, swipe left or right and flick down; or the arrows to steer",
-    "packages": [
-      "@mcthaydt/automata",
-      "zod"
-    ],
+    "packages": ["@mcthaydt/automata", "zod"],
     "difficulty": 2,
     "tier": "core",
     "path": "core/core-input-touch.ts",
@@ -172,10 +150,7 @@
     "title": "a run's score goes to the host's leaderboard, and paused shows the board",
     "shows": "`scores` maps a sim event to a board and a score: the score comes from the event's payload, so it is computed from sim state and never typed by anyone. The game asks the host for leaderboards; pause to see the board the host holds, with your row marked. Offline or standalone, paused says so and shows no board kept here.",
     "controls": "Escape or P to pause and see the board",
-    "packages": [
-      "@mcthaydt/automata",
-      "zod"
-    ],
+    "packages": ["@mcthaydt/automata", "zod"],
     "difficulty": 2,
     "tier": "core",
     "golden": {
@@ -195,10 +170,7 @@
     "title": "three save slots on the title, and progress kept while you play",
     "shows": "`saves` gives the game slots: the title lists them, New game writes the starting data to a slot, Continue loads one and `apply`s it, and the game keeps the slot saved as you walk (leaving play, going to the background, and when the host closes the game). Paused says what the host did with your progress, and offers Load newer or Keep playing if another device changed this slot. Standalone, there is nothing to sync and nothing is said.",
     "controls": "arrows or WASD to walk; Escape or P to pause",
-    "packages": [
-      "@mcthaydt/automata",
-      "zod"
-    ],
+    "packages": ["@mcthaydt/automata", "zod"],
     "difficulty": 3,
     "tier": "core",
     "golden": {
@@ -218,9 +190,7 @@
     "title": "two screen-space filters over the picture, and the quality tier that decides which run",
     "shows": "postFilter(name, { glsl, wgsl }) declares a filter over the whole picture, once for WebGL2 and once for WebGPU, so both renderers look the same. `dusk` warms the picture and darkens its corners at every tier. `scanlines` darkens every second row, runs after `dusk` (order) and only from the medium tier up (minTier), so the HUD, which lists the filters running now, loses it at low and gets it back at medium.",
     "controls": "1 low, 2 medium, 3 high",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 3,
     "tier": "core",
     "path": "render/render-filter.ts",
@@ -236,9 +206,7 @@
     "title": "a square drawn between sim ticks, beside a line where the sim says it is",
     "shows": "a view draws the blend of the last two ticks by the frame's alpha (0 is the previous tick, 1 the current one), so motion stays smooth when display frames and sim ticks do not line up. The pink line is the sim's own position, which only moves a whole tick at a time; the HUD prints the frame's alpha.",
     "controls": "I turns the blend on and off",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 2,
     "tier": "core",
     "path": "render/render-interpolation.ts",
@@ -254,9 +222,7 @@
     "title": "switch the graphics quality tier while squares drift across the field",
     "shows": "stage.setQuality() changes the tier at run time: it caps the canvas resolution (low 1, medium 1.5, high 2) and leaves out post filters registered with a higher minTier. The world and HUD draw through the fixed-resolution composite, so pixel art stays whole-pixel at every tier.",
     "controls": "1 low, 2 medium, 3 high",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 2,
     "tier": "core",
     "path": "render/render-quality.ts",
@@ -272,9 +238,7 @@
     "title": "a HUD and a mini-map drawn each frame over bouncing squares",
     "shows": "draw(ctx) paints rects, lines, circles and text over the entity views once a frame. It reads the sim through ctx.sim and never writes it, so the golden is the same with or without it.",
     "controls": "none",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 1,
     "tier": "core",
     "golden": {
@@ -294,9 +258,7 @@
     "title": "rectangles that move, slide and spin",
     "shows": "rect() draws one view per component id, interpolated between ticks: position, an anchor, and an angle that turns along the shorter arc.",
     "controls": "none",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 1,
     "tier": "core",
     "golden": {
@@ -316,9 +278,7 @@
     "title": "sprites drawn from a packed atlas",
     "shows": "sprite(url, { frame }) draws one named frame of a texture atlas that `automata-content assets` packed from a folder of PNG frames; each frame keeps its own name, so art can be repacked without touching code.",
     "controls": "none",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 2,
     "tier": "core",
     "golden": {
@@ -338,9 +298,7 @@
     "title": "an animated sprite from a sprite sheet",
     "shows": "sprite() draws a texture by url, interpolated like rect(); `frames` slices a sheet into equal frames and the component's `frame` field picks one each tick.",
     "controls": "none",
-    "packages": [
-      "@mcthaydt/automata"
-    ],
+    "packages": ["@mcthaydt/automata"],
     "difficulty": 2,
     "tier": "core",
     "golden": {

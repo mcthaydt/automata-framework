@@ -2,8 +2,8 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parseApiReference, readApiIndex } from '../src/shared/framework/api.ts'
 import { searchApi } from '../src/lib/api-reference'
+import { parseApiReference, readApiIndex } from '../src/shared/framework/api.ts'
 
 // M10.4: the complete generated reference as pages. Parsed from llms-api.txt, so the pages and the plain-text file
 // cannot disagree.
@@ -49,25 +49,38 @@ describe('parseApiReference', () => {
     expect(reference.packages).toHaveLength(1)
     const [pkg] = reference.packages
     expect(pkg).toMatchObject({ name: '@mcthaydt/automata-sim', slug: 'automata-sim' })
-    expect(pkg.entryPoints.map((e) => e.path)).toEqual(['@mcthaydt/automata-sim', '@mcthaydt/automata-sim/math'])
-    expect(pkg.entryPoints[0].entries.map((e) => [e.name, e.kind])).toEqual([['createSim', 'function'], ['Sim', 'interface']])
+    expect(pkg.entryPoints.map((e) => e.path)).toEqual([
+      '@mcthaydt/automata-sim',
+      '@mcthaydt/automata-sim/math',
+    ])
+    expect(pkg.entryPoints[0].entries.map((e) => [e.name, e.kind])).toEqual([
+      ['createSim', 'function'],
+      ['Sim', 'interface'],
+    ])
     expect(pkg.entryPoints[0].entries[0].doc).toBe('Creates a simulation.\nSecond line.')
-    expect(pkg.entryPoints[0].entries[0].signature).toBe('function createSim(options: SimOptions): Promise<Sim>')
+    expect(pkg.entryPoints[0].entries[0].signature).toBe(
+      'function createSim(options: SimOptions): Promise<Sim>',
+    )
     expect(pkg.entryPoints[1].entries[0]).toMatchObject({ name: 'clamp', doc: '' })
   })
 
   it('refuses a file with no version line or an export outside an entry point', () => {
     expect(() => parseApiReference('# Something else\n')).toThrow(/version/)
-    expect(() => parseApiReference('# Automata API reference, version 1.0.0\n\n#### `x` (function)\n')).toThrow(/entry point/)
+    expect(() =>
+      parseApiReference('# Automata API reference, version 1.0.0\n\n#### `x` (function)\n'),
+    ).toThrow(/entry point/)
   })
 
   it('parses the published reference: as many exports as api.json lists, each with a signature', () => {
     const { reference, search } = readApiIndex()
     const count = reference.packages.flatMap((p) => p.entryPoints).reduce((n, e) => n + e.entries.length, 0)
-    const api = JSON.parse(readFileSync(resolve(import.meta.dirname, '../../tooling/api-index/dist/api.json'), 'utf8')) as { exports: unknown[] }
+    const api = JSON.parse(
+      readFileSync(resolve(import.meta.dirname, '../../tooling/api-index/dist/api.json'), 'utf8'),
+    ) as { exports: unknown[] }
     expect(count).toBe(api.exports.length)
     expect(search).toHaveLength(count)
-    for (const pkg of reference.packages) for (const e of pkg.entryPoints.flatMap((x) => x.entries)) expect(e.signature, e.name).not.toBe('')
+    for (const pkg of reference.packages)
+      for (const e of pkg.entryPoints.flatMap((x) => x.entries)) expect(e.signature, e.name).not.toBe('')
   })
 
   it('gives each search row the first sentence of its doc comment', () => {

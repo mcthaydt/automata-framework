@@ -1,5 +1,10 @@
+import {
+  playgroundFrameOrigin,
+  playgroundFramePort,
+  playgroundOrigin,
+  playgroundPort,
+} from '@mcthaydt/examples-runner/host/ports'
 import { defineJourneys } from '@mcthaydt/playwright-preset'
-import { playgroundFrameOrigin, playgroundFramePort, playgroundOrigin, playgroundPort } from '@mcthaydt/examples-runner/host/ports'
 
 // The playground's journeys (the website's embedded player): `pnpm test:e2e:playground` in site/. The runner's own
 // smoke run over its fixtures belongs to the examples' config (examples/2d/playwright.config.ts).

@@ -6,6 +6,7 @@ import { compileExample } from '../src/lib/playground/compile.ts'
 import { SITE_ORIGIN } from '../src/lib/site.js'
 import { demoList } from '../src/shared/framework/demos.ts'
 import { repositoryRoot } from '../src/shared/framework/root.ts'
+import { writeApiIndex } from './write-api-index.ts'
 
 // `node scripts/build-demos.ts`: the built games the site serves, written into static/ (git ignores both folders),
 // where Vite and the static build pick them up:
@@ -24,25 +25,20 @@ export function relocateDemoAssets(html: string, base: string): string {
 }
 
 function packageName(path: string): string {
-  return (JSON.parse(readFileSync(join(repositoryRoot, path, 'package.json'), 'utf8')) as { name: string }).name
+  return (JSON.parse(readFileSync(join(repositoryRoot, path, 'package.json'), 'utf8')) as { name: string })
+    .name
 }
 
 /** The demos' builds and the published packages' builds (the API index reads their declarations), in one turbo run. */
 function buildPackages(): void {
-  const filters = ['./packages/*', ...demoList().map((demo) => packageName(demo.path))].flatMap((name) => ['--filter', name])
+  const filters = ['./packages/*', ...demoList().map((demo) => packageName(demo.path))].flatMap((name) => [
+    '--filter',
+    name,
+  ])
   execFileSync('pnpm', ['exec', 'turbo', 'run', 'build', ...filters, '--output-logs=errors-only'], {
     cwd: repositoryRoot,
     stdio: 'inherit',
   })
-}
-
-function writeApiIndex(): void {
-  try {
-    execFileSync(process.execPath, ['tooling/api-index/src/cli.ts'], { cwd: repositoryRoot, stdio: 'inherit' })
-  } catch (error) {
-    // 1 is doc findings, reported with the files written; 2 is a tool error with nothing written.
-    if ((error as { status?: number }).status !== 1) throw error
-  }
 }
 
 function copyDemos(): number {
@@ -51,7 +47,8 @@ function copyDemos(): number {
   rmSync(target, { recursive: true, force: true })
   for (const demo of demos) {
     const dist = join(repositoryRoot, demo.path, 'dist')
-    if (!existsSync(join(dist, 'index.html'))) throw new Error(`${demo.path}: its build wrote no dist/index.html`)
+    if (!existsSync(join(dist, 'index.html')))
+      throw new Error(`${demo.path}: its build wrote no dist/index.html`)
     const folder = join(target, demo.slug)
     cpSync(dist, folder, { recursive: true })
     const index = join(folder, 'index.html')
@@ -67,13 +64,22 @@ function buildPlayground(): number {
     cwd: siteRoot,
     stdio: ['ignore', 'inherit', 'inherit'],
   })
-  const catalog = JSON.parse(readFileSync(join(built, 'catalog.json'), 'utf8')) as { id: string; source: string; moduleUrl: string }[]
+  const catalog = JSON.parse(readFileSync(join(built, 'catalog.json'), 'utf8')) as {
+    id: string
+    source: string
+    moduleUrl: string
+  }[]
   mkdirSync(join(built, 'compiled'))
   for (const example of catalog) {
     // What `import.meta.url` becomes in an example: its module path under the site's origin.
-    const result = compileExample(example.source, { id: example.id, moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href })
+    const result = compileExample(example.source, {
+      id: example.id,
+      moduleUrl: new URL(example.moduleUrl, SITE_ORIGIN).href,
+    })
     if (!result.ok)
-      throw new Error(`${example.id} does not compile: ${result.diagnostics.map((d) => `${d.line}:${d.column} ${d.message}`).join('; ')}`)
+      throw new Error(
+        `${example.id} does not compile: ${result.diagnostics.map((d) => `${d.line}:${d.column} ${d.message}`).join('; ')}`,
+      )
     writeFileSync(join(built, 'compiled', `${example.id}.js`), result.code)
   }
   const target = join(staticDir, 'playground')

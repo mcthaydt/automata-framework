@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CONTACT_EMAIL } from '$lib/site.js'
+import { CONTACT_EMAIL } from '$lib/site.js'
 </script>
 <footer class="site-footer">
   <div class="footer-top">

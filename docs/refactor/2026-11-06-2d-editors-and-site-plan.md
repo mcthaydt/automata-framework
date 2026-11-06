@@ -772,9 +772,9 @@ export and its 2D build) and the reverse would be a dependency cycle.
   (`lint` covers `site`), every site file Biome reformats
 
 - [x] **Step 1:** Upgrade; `pnpm --filter @mcthaydt/automata-site check test build` pass. (Done in 10.2, deviation 95.)
-- [ ] **Step 2:** `pnpm format`; `pnpm lint` passes over `site/`. Its existing end-to-end gates (`site/tests/e2e`) pass
+- [x] **Step 2:** `pnpm format`; `pnpm lint` passes over `site/`. Its existing end-to-end gates (`site/tests/e2e`) pass
   in Chromium.
-- [ ] **Step 3:** `site`'s unit tests join `test:unit:2d`, its e2e joins `ci.yml`'s `e2e-2d` job. `pnpm check` passes.
+- [x] **Step 3:** `site`'s unit tests join `test:unit:2d`, its e2e joins `ci.yml`'s `e2e-2d` job. `pnpm check` passes.
   Commit, mark the PR ready. `chore(site): the repository's versions, Biome and gates`
 
 ---
@@ -1835,5 +1835,23 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   failed on the missing runner); playground journeys in Chromium: 37 pass. `pnpm check` exit 0 (its YAML-pinning test
   names the site's playground script; `examples-runner` no longer has journeys of its own). WebKit, Firefox and hosted
   CI not run.
-- **Handoff.** Next is task 10.3 steps 2 and 3 (Biome over `site/`, no `tsx`, the gates into `test:unit:2d` and
-  `e2e-2d`), then phase 11. 14.1 waits for the Owner.
+
+### 2026-11-06, session 8 (continued): task 10.3, steps 2 and 3
+
+- **Biome over `site/`.** `biome.json` drops `"!site"` and ignores only the site's generated folders (`build`,
+  `static/demos`, `static/playground`). `pnpm format` rewrote the site's files; four lint errors were fixed by hand:
+  a `forEach` callback that returned a value (`SourceExplorer.svelte`), an assignment inside a `return`
+  (`highlight.ts`), the favicon's missing `<title>`, and a fixture link that said only "A link" (`good.html`).
+- **No `tsx`.** Every script runs on Node's own TypeScript: `node scripts/...` in `package.json`, both Playwright
+  configs and `lighthouserc.json`; the scripts' relative imports name their `.ts` files; `serve-static.test.ts`
+  spawns the script without the loader. `tsx` left the site's dependencies.
+- **The gates.** The site has a `test:unit` script (`write-api-index.ts && vitest run`), so `test:unit:2d` and
+  `pnpm check` run its 353 tests. **Deviation 99:** they read the API index, which is generated from the packages'
+  built declarations, so `site/turbo.json` makes the site's `test:unit` (and `build`) wait for `^build`; the release
+  package's turbo test, which allowed only `build` to, now names this one exception and checks it. `site/turbo.json`
+  also makes `test:e2e` wait for the site's `build`, and `ci.yml`'s `e2e-2d` job runs `pnpm test:e2e --filter
+  @mcthaydt/automata-site` (Chromium and WebKit). `scripts/write-api-index.ts` is shared with `build-demos.ts`.
+- **Gates.** `pnpm check` exit 0, the site's 69 files and 353 tests in it; `turbo run build --filter
+  @mcthaydt/automata-site` exits 0; site e2e gates in Chromium after the format: see below. WebKit, Firefox and hosted
+  CI not run.
+- **Handoff.** Next is phase 11 (task 11.1, one token source). 14.1 waits for the Owner.

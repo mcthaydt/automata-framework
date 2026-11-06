@@ -1,51 +1,86 @@
 <script lang="ts">
-  import CodeBlock from './CodeBlock.svelte'
-  import type { DeferredFile, ProjectSource, SourceFile } from '../../data/projects'
+import type { DeferredFile, ProjectSource, SourceFile } from '../../data/projects'
+import CodeBlock from './CodeBlock.svelte'
 
-  type Guide = { label: string; path: string; description: string }
-  type Node = { name: string; file?: SourceFile | DeferredFile; children: Node[] }
-  let { project, initialFile, guides = [] }: { project: ProjectSource; initialFile?: string; guides?: Guide[] } = $props()
-  let choice = $state<{ slug: string; path: string } | undefined>()
-  const listed = $derived(project.files.find(file => file.path === (choice?.slug === project.slug ? choice.path : initialFile ?? project.root + '/main.ts')) ?? project.files[0])
-  // A page may leave files' content out of its data (the home page does, to keep the example sources off its first
-  // load); the first time one is shown, the project's prerendered sources are fetched once and the rest come from them.
-  let fetched = $state<{ slug: string; files?: SourceFile[]; failed?: boolean } | undefined>()
-  const selected = $derived(listed && 'deferred' in listed ? fetched?.slug === project.slug ? fetched.files?.find(file => file.path === listed.path) ?? listed : listed : listed)
-  $effect(() => {
-    if (!listed || !('deferred' in listed) || fetched?.slug === project.slug) return
-    const slug = project.slug
-    fetched = { slug }
-    fetch(`/sources/${slug}.json`)
-      .then(response => { if (!response.ok) throw new Error(String(response.status)); return response.json() as Promise<SourceFile[]> })
-      .then(files => { if (fetched?.slug === slug) fetched = { slug, files } })
-      .catch(() => { if (fetched?.slug === slug) fetched = { slug, failed: true } })
-  })
-  const guide = $derived(guides.find(item => item.path === selected?.path))
-  const sourceUrl = $derived('https://github.com/mcthaydt/automata-framework/blob/main/' + selected?.path.split('/').map(encodeURIComponent).join('/'))
-  const tree = $derived.by(() => {
-    const nodes: Node[] = []
-    for (const file of project.files) {
-      // Keep each project's own files at the top level; shared projects and root configuration
-      // retain their actual repository paths under the Workspace folder.
-      const displayPath = file.path.startsWith(project.root + '/') ? file.path.slice(project.root.length + 1) : 'Workspace/' + file.path
-      const parts = displayPath.split('/')
-      let siblings = nodes
-      parts.forEach((name, index) => {
-        let node = siblings.find(node => node.name === name)
-        if (!node) { node = { name, children: [] }; siblings.push(node) }
-        if (index === parts.length - 1) node.file = file
-        siblings = node.children
-      })
-    }
-    const sort = (nodes: Node[]) => {
-      nodes.sort((a, b) => Number(Boolean(a.file)) - Number(Boolean(b.file)) || a.name.localeCompare(b.name))
-      nodes.forEach(node => sort(node.children))
-    }
-    sort(nodes)
-    return nodes
-  })
-  function contains(nodes: Node[], path: string): boolean { return nodes.some(node => node.file?.path === path || contains(node.children, path)) }
-  function select(path: string) { choice = { slug: project.slug, path } }
+type Guide = { label: string; path: string; description: string }
+type Node = { name: string; file?: SourceFile | DeferredFile; children: Node[] }
+let {
+  project,
+  initialFile,
+  guides = [],
+}: { project: ProjectSource; initialFile?: string; guides?: Guide[] } = $props()
+let choice = $state<{ slug: string; path: string } | undefined>()
+const listed = $derived(
+  project.files.find(
+    (file) =>
+      file.path ===
+      (choice?.slug === project.slug ? choice.path : (initialFile ?? project.root + '/main.ts')),
+  ) ?? project.files[0],
+)
+// A page may leave files' content out of its data (the home page does, to keep the example sources off its first
+// load); the first time one is shown, the project's prerendered sources are fetched once and the rest come from them.
+let fetched = $state<{ slug: string; files?: SourceFile[]; failed?: boolean } | undefined>()
+const selected = $derived(
+  listed && 'deferred' in listed
+    ? fetched?.slug === project.slug
+      ? (fetched.files?.find((file) => file.path === listed.path) ?? listed)
+      : listed
+    : listed,
+)
+$effect(() => {
+  if (!listed || !('deferred' in listed) || fetched?.slug === project.slug) return
+  const slug = project.slug
+  fetched = { slug }
+  fetch(`/sources/${slug}.json`)
+    .then((response) => {
+      if (!response.ok) throw new Error(String(response.status))
+      return response.json() as Promise<SourceFile[]>
+    })
+    .then((files) => {
+      if (fetched?.slug === slug) fetched = { slug, files }
+    })
+    .catch(() => {
+      if (fetched?.slug === slug) fetched = { slug, failed: true }
+    })
+})
+const guide = $derived(guides.find((item) => item.path === selected?.path))
+const sourceUrl = $derived(
+  'https://github.com/mcthaydt/automata-framework/blob/main/' +
+    selected?.path.split('/').map(encodeURIComponent).join('/'),
+)
+const tree = $derived.by(() => {
+  const nodes: Node[] = []
+  for (const file of project.files) {
+    // Keep each project's own files at the top level; shared projects and root configuration
+    // retain their actual repository paths under the Workspace folder.
+    const displayPath = file.path.startsWith(project.root + '/')
+      ? file.path.slice(project.root.length + 1)
+      : 'Workspace/' + file.path
+    const parts = displayPath.split('/')
+    let siblings = nodes
+    parts.forEach((name, index) => {
+      let node = siblings.find((node) => node.name === name)
+      if (!node) {
+        node = { name, children: [] }
+        siblings.push(node)
+      }
+      if (index === parts.length - 1) node.file = file
+      siblings = node.children
+    })
+  }
+  const sort = (nodes: Node[]) => {
+    nodes.sort((a, b) => Number(Boolean(a.file)) - Number(Boolean(b.file)) || a.name.localeCompare(b.name))
+    for (const node of nodes) sort(node.children)
+  }
+  sort(nodes)
+  return nodes
+})
+function contains(nodes: Node[], path: string): boolean {
+  return nodes.some((node) => node.file?.path === path || contains(node.children, path))
+}
+function select(path: string) {
+  choice = { slug: project.slug, path }
+}
 </script>
 
 {#snippet branches(nodes: Node[])}

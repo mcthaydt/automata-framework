@@ -22,10 +22,7 @@
           "type": "boolean"
         }
       },
-      "required": [
-        "sha",
-        "dirty"
-      ],
+      "required": ["sha", "dirty"],
       "additionalProperties": false
     },
     "run": {
@@ -67,16 +64,7 @@
               "minLength": 1
             }
           },
-          "required": [
-            "kind",
-            "url",
-            "id",
-            "attempt",
-            "workflow",
-            "job",
-            "event",
-            "ref"
-          ],
+          "required": ["kind", "url", "id", "attempt", "workflow", "job", "event", "ref"],
           "additionalProperties": false
         },
         {
@@ -87,9 +75,7 @@
               "const": "local"
             }
           },
-          "required": [
-            "kind"
-          ],
+          "required": ["kind"],
           "additionalProperties": false
         }
       ]
@@ -138,12 +124,7 @@
               "properties": {
                 "engine": {
                   "type": "string",
-                  "enum": [
-                    "node",
-                    "chromium",
-                    "firefox",
-                    "webkit"
-                  ]
+                  "enum": ["node", "chromium", "firefox", "webkit"]
                 },
                 "version": {
                   "type": "string",
@@ -154,23 +135,12 @@
                   "pattern": "^[0-9a-f]{16}$"
                 }
               },
-              "required": [
-                "engine",
-                "version",
-                "hash"
-              ],
+              "required": ["engine", "version", "hash"],
               "additionalProperties": false
             }
           }
         },
-        "required": [
-          "scenario",
-          "seed",
-          "ticks",
-          "enginesAgree",
-          "sources",
-          "hashes"
-        ],
+        "required": ["scenario", "seed", "ticks", "enginesAgree", "sources", "hashes"],
         "additionalProperties": false
       }
     },
@@ -192,11 +162,7 @@
             "type": "boolean"
           }
         },
-        "required": [
-          "name",
-          "version",
-          "released"
-        ],
+        "required": ["name", "version", "released"],
         "additionalProperties": false
       }
     },
@@ -220,11 +186,7 @@
           "minLength": 1
         }
       },
-      "required": [
-        "status",
-        "waitingOn",
-        "note"
-      ],
+      "required": ["status", "waitingOn", "note"],
       "additionalProperties": false
     }
   },

@@ -1,5 +1,5 @@
-import { deferredProject } from '../data/projects'
 import { STARTER_FILE } from '../data/home-sources'
+import { deferredProject } from '../data/projects'
 import type { PageServerLoad } from './$types'
 
 // Decided at build time, so it never reaches the browser's bundle: the starter project. The example sources are

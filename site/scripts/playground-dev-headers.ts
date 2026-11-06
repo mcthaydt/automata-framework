@@ -16,7 +16,8 @@ export function playgroundDevHeaders(staticDir = 'static'): Plugin {
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const pathname = new URL(request.url ?? '/', 'http://localhost').pathname
-        for (const [name, value] of Object.entries(playgroundHeaders(pathname))) response.setHeader(name, value)
+        for (const [name, value] of Object.entries(playgroundHeaders(pathname)))
+          response.setHeader(name, value)
         const file = join(staticDir, pathname.endsWith('/') ? `${pathname}index.html` : pathname)
         if (isFramePage(pathname) && request.headers?.host && existsSync(file)) {
           response.setHeader('Content-Type', 'text/html; charset=utf-8')

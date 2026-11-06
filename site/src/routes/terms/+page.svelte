@@ -1,6 +1,6 @@
 <script lang="ts">
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import { CONTACT_EMAIL, SECURITY_EMAIL } from '$lib/site.js'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import { CONTACT_EMAIL, SECURITY_EMAIL } from '$lib/site.js'
 </script>
 <PageMeta title="Terms" description="The terms for this site and the Automata framework code: MIT-licensed framework code, separate terms for assets and dependencies, no warranty." />
 <div class="page-shell legal-page">

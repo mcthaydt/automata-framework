@@ -1,19 +1,38 @@
 <script lang="ts">
-  import CodeBlock from '$lib/components/CodeBlock.svelte'
-  import InlineText from '$lib/components/InlineText.svelte'
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import { parseMarkdown } from '$lib/utils/markdown'
-  import { isEditing } from '$lib/utils/keyboard'
-  import { getDocSections, getDocCategories } from '../../data/docs-loader'
-  let { slug }: { slug?: string } = $props()
-  const docs = getDocSections()
-  let query = $state('')
-  let input: HTMLInputElement
-  let active = $derived(docs.find(d => d.slug === slug) ?? docs[0])
-  let blocks = $derived(parseMarkdown(active.content))
-  let index = $derived(docs.indexOf(active))
-  let categories = $derived(getDocCategories().map(cat => ({ ...cat, items: cat.items.filter(d => query.trim().toLowerCase().split(/\s+/).every(q => (d.title + ' ' + d.description + ' ' + d.content).toLowerCase().includes(q))) })).filter(cat => cat.items.length))
-  function keydown(event: KeyboardEvent) { if (event.key === '/' && !isEditing(event)) { event.preventDefault(); input.focus() } }
+import CodeBlock from '$lib/components/CodeBlock.svelte'
+import InlineText from '$lib/components/InlineText.svelte'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import { isEditing } from '$lib/utils/keyboard'
+import { parseMarkdown } from '$lib/utils/markdown'
+import { getDocCategories, getDocSections } from '../../data/docs-loader'
+
+let { slug }: { slug?: string } = $props()
+const docs = getDocSections()
+let query = $state('')
+let input: HTMLInputElement
+let active = $derived(docs.find((d) => d.slug === slug) ?? docs[0])
+let blocks = $derived(parseMarkdown(active.content))
+let index = $derived(docs.indexOf(active))
+let categories = $derived(
+  getDocCategories()
+    .map((cat) => ({
+      ...cat,
+      items: cat.items.filter((d) =>
+        query
+          .trim()
+          .toLowerCase()
+          .split(/\s+/)
+          .every((q) => (d.title + ' ' + d.description + ' ' + d.content).toLowerCase().includes(q)),
+      ),
+    }))
+    .filter((cat) => cat.items.length),
+)
+function keydown(event: KeyboardEvent) {
+  if (event.key === '/' && !isEditing(event)) {
+    event.preventDefault()
+    input.focus()
+  }
+}
 </script>
 <svelte:window onkeydown={keydown} />
 <PageMeta title={active.title} description={active.description} />

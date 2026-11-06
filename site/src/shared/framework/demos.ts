@@ -49,7 +49,13 @@ function readDemo(root: string, slug: string, path: string): Demo {
   const lines = headerLines(readFileSync(join(root, path, 'main.ts'), 'utf8'))
   // The first line is `<path>: <title>`.
   const title = /^[^:]+: (.+)$/.exec(lines[0] ?? '')?.[1]?.trim() ?? slug
-  return { slug, path, title, shows: headerField(lines, /^(What it shows|Shows):/), bundleUrl: `/demos/${slug}/index.html` }
+  return {
+    slug,
+    path,
+    title,
+    shows: headerField(lines, /^(What it shows|Shows):/),
+    bundleUrl: `/demos/${slug}/index.html`,
+  }
 }
 
 /** Emberwick first, then the feature demos by path. */

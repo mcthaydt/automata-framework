@@ -8,7 +8,10 @@ export type Example = PlaygroundExample
 
 /** What the index and the example list need: no source. */
 export type ExampleSummary = Pick<Example, 'id' | 'title' | 'shows' | 'difficulty'>
-export interface ExampleGroup { readonly module: string; readonly examples: readonly ExampleSummary[] }
+export interface ExampleGroup {
+  readonly module: string
+  readonly examples: readonly ExampleSummary[]
+}
 
 /** The order a reader meets the modules in: the sim and input first, drawing next, sound last. */
 const MODULE_ORDER = ['core', 'shapes', 'textures', 'render', 'audio']
@@ -20,17 +23,20 @@ export function getExamples(): readonly Example[] {
 }
 
 export function getExample(id: string): Example | undefined {
-  return EXAMPLES.find(example => example.id === id)
+  return EXAMPLES.find((example) => example.id === id)
 }
 
 export function exampleIndex(): ExampleGroup[] {
-  const modules = [...new Set(EXAMPLES.map(example => example.module))]
-  const rank = (module: string) => MODULE_ORDER.includes(module) ? MODULE_ORDER.indexOf(module) : MODULE_ORDER.length
+  const modules = [...new Set(EXAMPLES.map((example) => example.module))]
+  const rank = (module: string) =>
+    MODULE_ORDER.includes(module) ? MODULE_ORDER.indexOf(module) : MODULE_ORDER.length
   return modules
     .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
-    .map(module => ({
+    .map((module) => ({
       module,
-      examples: EXAMPLES.filter(example => example.module === module).map(({ id, title, shows, difficulty }) => ({ id, title, shows, difficulty })),
+      examples: EXAMPLES.filter((example) => example.module === module).map(
+        ({ id, title, shows, difficulty }) => ({ id, title, shows, difficulty }),
+      ),
     }))
 }
 

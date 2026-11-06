@@ -1,5 +1,5 @@
-import { expect, type Page, test } from '@playwright/test'
 import { playgroundOrigin } from '@mcthaydt/examples-runner/host/ports'
+import { expect, type Page, test } from '@playwright/test'
 
 // Can the playground's design run at all? Each case frames the site's
 // frame page in `sandbox="allow-scripts"` (an opaque origin) under the frame policy and reads what the frame

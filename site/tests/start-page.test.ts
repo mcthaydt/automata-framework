@@ -7,10 +7,16 @@ import Start from '../src/routes/start/+page.svelte'
 describe('First-change onboarding', () => {
   it('connects setup and a bounded task to the next changes', () => {
     const view = render(Start)
-    expect(view.getByRole('region', { name: 'From your terminal' }).textContent).toContain('pnpm --filter @af-examples/base-2d dev')
-    expect(view.getByRole('region', { name: 'First task to copy' }).textContent).toContain('third jump is refused')
+    expect(view.getByRole('region', { name: 'From your terminal' }).textContent).toContain(
+      'pnpm --filter @af-examples/base-2d dev',
+    )
+    expect(view.getByRole('region', { name: 'First task to copy' }).textContent).toContain(
+      'third jump is refused',
+    )
     const task = view.getByRole('region', { name: 'First task to copy' }).closest('figure')!
     expect(task.querySelector('button')).toBeTruthy()
-    expect(view.getByRole('link', { name: 'Read the room tests' }).getAttribute('href')).toContain('room.test.ts')
+    expect(view.getByRole('link', { name: 'Read the room tests' }).getAttribute('href')).toContain(
+      'room.test.ts',
+    )
   })
 })

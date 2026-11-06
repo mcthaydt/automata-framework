@@ -3,7 +3,10 @@
 import { typescriptLanguage } from '@codemirror/lang-javascript'
 import { classHighlighter, highlightTree } from '@lezer/highlight'
 
-export interface HighlightedPiece { readonly text: string; readonly className: string }
+export interface HighlightedPiece {
+  readonly text: string
+  readonly className: string
+}
 /** One line's pieces; every line but the last ends with its newline, so the pieces join to the source. */
 export type HighlightedLine = HighlightedPiece[]
 
@@ -11,7 +14,10 @@ export function highlightLines(source: string): HighlightedLine[] {
   const lines: HighlightedLine[] = [[]]
   const put = (from: number, to: number, className: string) => {
     // A token that spans lines (a block comment, a template string) is cut at each newline.
-    for (const [index, part] of source.slice(from, to).split(/(?<=\n)/).entries()) {
+    for (const [index, part] of source
+      .slice(from, to)
+      .split(/(?<=\n)/)
+      .entries()) {
       if (index > 0 && lines.at(-1)!.length > 0) lines.push([])
       if (part) lines.at(-1)!.push({ text: part, className })
     }

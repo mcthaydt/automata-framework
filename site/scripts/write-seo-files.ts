@@ -9,13 +9,20 @@ import { builtPages } from './site-checks.ts'
  * prerendered page, read from the page itself, so it cannot drift from what the build actually contains.
  */
 export function writeSeoFiles(root: string): void {
-  const urls = builtPages(root).map(file => {
-    const canonical = /<link rel="canonical" href="([^"]+)"/.exec(readFileSync(join(root, file), 'utf8'))?.[1]
-    if (!canonical) throw new Error(file + ': no canonical link to list in sitemap.xml')
-    return canonical
-  }).sort()
-  const entries = urls.map(url => `  <url><loc>${url}</loc></url>`).join('\n')
-  writeFileSync(join(root, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`)
+  const urls = builtPages(root)
+    .map((file) => {
+      const canonical = /<link rel="canonical" href="([^"]+)"/.exec(
+        readFileSync(join(root, file), 'utf8'),
+      )?.[1]
+      if (!canonical) throw new Error(file + ': no canonical link to list in sitemap.xml')
+      return canonical
+    })
+    .sort()
+  const entries = urls.map((url) => `  <url><loc>${url}</loc></url>`).join('\n')
+  writeFileSync(
+    join(root, 'sitemap.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`,
+  )
   writeFileSync(join(root, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE_ORIGIN}/sitemap.xml\n`)
 }
 

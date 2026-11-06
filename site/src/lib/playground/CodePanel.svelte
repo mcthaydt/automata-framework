@@ -1,6 +1,6 @@
 <script lang="ts" module>
-  /** `static` until the first tap or focus on the code, `loading` while the editor chunk downloads (spec F2, §7.3). */
-  export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
+/** `static` until the first tap or focus on the code, `loading` while the editor chunk downloads (spec F2, §7.3). */
+export type CodeState = 'static' | 'loading' | 'ready' | 'failed'
 </script>
 <script lang="ts">
   import { onMount, tick } from 'svelte'

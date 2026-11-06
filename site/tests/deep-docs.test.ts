@@ -30,7 +30,10 @@ describe('deep docs', () => {
   })
 
   it('every SaveDef field it names exists in the API reference', () => {
-    const api = readFileSync(resolve(import.meta.dirname, '../../tooling/api-index/dist/llms-api.txt'), 'utf8')
+    const api = readFileSync(
+      resolve(import.meta.dirname, '../../tooling/api-index/dist/llms-api.txt'),
+      'utf8',
+    )
     for (const field of ['SaveDef', 'migrations', 'empty']) expect(api, field).toContain(field)
   })
 

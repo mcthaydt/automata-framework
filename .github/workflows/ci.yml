@@ -212,7 +212,7 @@ jobs:
         run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
 
   e2e-2d:
-    name: 2D journeys (Emberwick in Chromium and WebKit, the examples, a new game)
+    name: 2D journeys (Emberwick in Chromium and WebKit, the examples, the website, a new game)
     # Emberwick's journeys at a phone, the compact height and an iPad in Chromium and WebKit (iOS Safari is WebKit),
     # and the one-file examples' journeys, each under the fake host. The input matrix inside them also runs cells in
     # WebKit and Firefox, so all three engines are installed. Each area has its own Playwright config, so
@@ -249,6 +249,10 @@ jobs:
       - run: pnpm exec turbo run build --filter @mcthaydt/automata-tools
       - name: 2D journeys
         run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples-2d
+      # The website's gates (links, metadata, policy, layout, the playground's page) in Chromium and WebKit, on its static
+      # build; turbo builds it first (the demos, the API index and the playground with it).
+      - name: The website
+        run: pnpm test:e2e --filter @mcthaydt/automata-site
       # A stranger makes a game from the packed packages in an empty folder outside the repository, checks, plays and
       # packages it (tooling/consumer-smoke). Turbo builds the packages it packs first.
       - name: The stranger's journey

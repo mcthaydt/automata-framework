@@ -5,7 +5,9 @@ import type { EntryGenerator, PageLoad } from './$types'
 export const prerender = true
 
 export const entries: EntryGenerator = () =>
-  apiVersions().flatMap((version) => (getApiReference(version)?.packages ?? []).map((pkg) => ({ version, pkg: pkg.slug })))
+  apiVersions().flatMap((version) =>
+    (getApiReference(version)?.packages ?? []).map((pkg) => ({ version, pkg: pkg.slug })),
+  )
 
 export const load: PageLoad = ({ params }) => {
   const reference = getApiReference(params.version)

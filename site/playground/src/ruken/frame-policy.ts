@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto'
 import { checkManifest, rukenToml } from '@mcthaydt/automata-tools/internal'
+import { EXAMPLES_SHIP_CONFIG } from '@mcthaydt/examples-runner/examples-ship-config'
 import { compileHeaders } from '@ruken/manifest'
 import { Effect } from 'effect'
-import { EXAMPLES_SHIP_CONFIG } from '@mcthaydt/examples-runner/examples-ship-config'
 
 // The policy of a playground frame page. It starts from Ruken's own CSP for the
 // examples' manifest, read from `compileHeaders`, so a Ruken change reaches the playground without a copy here, and changes only what a frame page

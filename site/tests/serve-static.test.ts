@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { spawn, type ChildProcess } from 'node:child_process'
+import { type ChildProcess, spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
@@ -37,7 +37,7 @@ afterAll(() => {
 })
 
 async function freePort(): Promise<number> {
-  return new Promise(resolvePort => {
+  return new Promise((resolvePort) => {
     const probe = createServer().listen(0, '127.0.0.1', () => {
       const { port } = probe.address() as { port: number }
       probe.close(() => resolvePort(port))
@@ -47,11 +47,15 @@ async function freePort(): Promise<number> {
 
 async function serve(...flags: string[]): Promise<string> {
   const port = await freePort()
-  const server = spawn(process.execPath, ['--import', 'tsx', 'scripts/serve-static.ts', dir, String(port), ...flags], { cwd: root })
+  const server = spawn(process.execPath, ['scripts/serve-static.ts', dir, String(port), ...flags], {
+    cwd: root,
+  })
   servers.push(server)
   await new Promise<void>((done, fail) => {
-    server.stdout.on('data', chunk => { if (String(chunk).includes('Serving')) done() })
-    server.on('exit', code => fail(new Error(`serve-static exited with ${code}`)))
+    server.stdout.on('data', (chunk) => {
+      if (String(chunk).includes('Serving')) done()
+    })
+    server.on('exit', (code) => fail(new Error(`serve-static exited with ${code}`)))
   })
   return `http://127.0.0.1:${port}`
 }
@@ -96,7 +100,9 @@ describe('serve-static', () => {
   // with Origin: null (spec §11.3).
   it('serves /playground/ with CORS and cross-origin CORP, caching the hashed runtime for good', async () => {
     const origin = await serve()
-    const runtime = await fetch(`${origin}/playground/runtime/automata-1a2b.js`, { headers: { origin: 'null' } })
+    const runtime = await fetch(`${origin}/playground/runtime/automata-1a2b.js`, {
+      headers: { origin: 'null' },
+    })
     expect(runtime.headers.get('access-control-allow-origin')).toBe('*')
     expect(runtime.headers.get('cross-origin-resource-policy')).toBe('cross-origin')
     expect(runtime.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')

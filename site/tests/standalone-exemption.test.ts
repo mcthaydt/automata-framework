@@ -18,7 +18,12 @@ describe('the framework-copy exemption', () => {
       'llms-full.txt': llmsFull,
       'llms-api.txt': llmsApi,
     }
-    const naming = Object.entries(shown).filter(([, text]) => STANDALONE_NAMES.some((name) => name.pattern.test(text)))
-    expect(naming, 'no framework file names a reference project any more: remove the data-framework-copy exemption').not.toEqual([])
+    const naming = Object.entries(shown).filter(([, text]) =>
+      STANDALONE_NAMES.some((name) => name.pattern.test(text)),
+    )
+    expect(
+      naming,
+      'no framework file names a reference project any more: remove the data-framework-copy exemption',
+    ).not.toEqual([])
   })
 })

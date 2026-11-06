@@ -1,7 +1,7 @@
 <script lang="ts" module>
-  // Under reduced motion an example waits for Play; once the reader has pressed it on this visit, the next example
-  // they open starts on its own (spec F10).
-  let playedThisVisit = false
+// Under reduced motion an example waits for Play; once the reader has pressed it on this visit, the next example
+// they open starts on its own (spec F10).
+let playedThisVisit = false
 </script>
 <script lang="ts">
   import { onMount } from 'svelte'

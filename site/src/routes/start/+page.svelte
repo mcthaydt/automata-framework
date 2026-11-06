@@ -1,13 +1,14 @@
 <script lang="ts">
-  import AgentSetup from '$lib/components/AgentSetup.svelte'
-  import { AI_PROJECT_PROMPT } from '../../data/ai-guidance'
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import CodeBlock from '$lib/components/CodeBlock.svelte'
-  const setup = `git clone https://github.com/mcthaydt/automata-framework.git
+import AgentSetup from '$lib/components/AgentSetup.svelte'
+import CodeBlock from '$lib/components/CodeBlock.svelte'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import { AI_PROJECT_PROMPT } from '../../data/ai-guidance'
+
+const setup = `git clone https://github.com/mcthaydt/automata-framework.git
 cd automata-framework
 pnpm install --frozen-lockfile
 pnpm --filter @af-examples/base-2d dev`
-  const checks = `pnpm --filter @af-examples/base-2d test:unit
+const checks = `pnpm --filter @af-examples/base-2d test:unit
 pnpm --filter @af-examples/base-2d typecheck
 pnpm --filter @af-examples/base-2d build`
 </script>

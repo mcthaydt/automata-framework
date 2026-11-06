@@ -1,10 +1,10 @@
-import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { fireEvent, render, waitFor } from '@testing-library/svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import SourceExplorer from '../src/lib/components/SourceExplorer.svelte'
-import { getExampleProject, type ProjectSource } from '../src/data/projects'
 import { STARTER_FILE } from '../src/data/home-sources'
+import { getExampleProject, type ProjectSource } from '../src/data/projects'
+import SourceExplorer from '../src/lib/components/SourceExplorer.svelte'
 import { load as loadHome } from '../src/routes/+page.server'
 import { entries, GET } from '../src/routes/sources/[slug].json/+server'
 
@@ -19,9 +19,9 @@ const emberwick = getExampleProject('emberwick')!
 describe('the home page’s starter project', () => {
   it('lists every file, carries only the first file’s content, and marks the rest deferred', async () => {
     const { starterProject } = (await loadHome()) as { starterProject: ProjectSource }
-    expect(starterProject.files.map(file => file.path)).toEqual(emberwick.files.map(file => file.path))
+    expect(starterProject.files.map((file) => file.path)).toEqual(emberwick.files.map((file) => file.path))
     for (const file of starterProject.files) {
-      const full = emberwick.files.find(other => other.path === file.path)!
+      const full = emberwick.files.find((other) => other.path === file.path)!
       if (file.path === STARTER_FILE) expect(file).toEqual(full)
       else if (full.content === undefined) expect(file).toEqual(full)
       else expect(file).toEqual({ path: full.path, language: full.language, deferred: true })
@@ -47,7 +47,10 @@ describe('/sources/<slug>.json', () => {
 describe('the explorer with deferred files', () => {
   afterEach(() => vi.unstubAllGlobals())
   const deferred: ProjectSource = {
-    slug: 'base-2d', root: 'games/sample', name: 'Sample', command: 'pnpm sample dev',
+    slug: 'base-2d',
+    root: 'games/sample',
+    name: 'Sample',
+    command: 'pnpm sample dev',
     files: [
       { path: 'games/sample/main.ts', language: 'typescript', content: 'export const first = 1\n' },
       { path: 'games/sample/other.ts', language: 'typescript', deferred: true },
@@ -67,18 +70,27 @@ describe('the explorer with deferred files', () => {
     expect(view.getByRole('region', { name: 'games/sample/main.ts' }).textContent).toContain('first = 1')
     expect(fetchSources).not.toHaveBeenCalled()
     await fireEvent.click(view.getByRole('button', { name: 'Open games/sample/other.ts' }))
-    await waitFor(() => expect(view.getByRole('region', { name: 'games/sample/other.ts' }).textContent).toContain('other = 2'))
+    await waitFor(() =>
+      expect(view.getByRole('region', { name: 'games/sample/other.ts' }).textContent).toContain('other = 2'),
+    )
     await fireEvent.click(view.getByRole('button', { name: 'Open games/sample/more.ts' }))
-    await waitFor(() => expect(view.getByRole('region', { name: 'games/sample/more.ts' }).textContent).toContain('more = 3'))
+    await waitFor(() =>
+      expect(view.getByRole('region', { name: 'games/sample/more.ts' }).textContent).toContain('more = 3'),
+    )
     expect(fetchSources).toHaveBeenCalledTimes(1)
     expect(fetchSources).toHaveBeenCalledWith('/sources/base-2d.json')
   })
 
   it('says the file could not be loaded, with its GitHub link, when the fetch fails', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 500 })))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('', { status: 500 })),
+    )
     const view = render(SourceExplorer, { props: { project: deferred, initialFile: 'games/sample/main.ts' } })
     await fireEvent.click(view.getByRole('button', { name: 'Open games/sample/other.ts' }))
     await waitFor(() => expect(view.getByText(/could not be loaded/)).toBeTruthy())
-    expect(view.getByRole('link', { name: 'View file on GitHub' }).getAttribute('href')).toContain('games/sample/other.ts')
+    expect(view.getByRole('link', { name: 'View file on GitHub' }).getAttribute('href')).toContain(
+      'games/sample/other.ts',
+    )
   })
 })

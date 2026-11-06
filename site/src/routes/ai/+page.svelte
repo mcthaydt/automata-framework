@@ -1,8 +1,15 @@
 <script lang="ts">
-  import { AI_CONTEXT_FILES, AI_PROJECT_PROMPT, AI_RULES, AI_TASKS, AI_REVIEW_CHECKS, AI_VERIFY_COMMANDS } from '../../data/ai-guidance'
-  import AgentSetup from '$lib/components/AgentSetup.svelte'
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import CodeBlock from '$lib/components/CodeBlock.svelte'
+import AgentSetup from '$lib/components/AgentSetup.svelte'
+import CodeBlock from '$lib/components/CodeBlock.svelte'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import {
+  AI_CONTEXT_FILES,
+  AI_PROJECT_PROMPT,
+  AI_REVIEW_CHECKS,
+  AI_RULES,
+  AI_TASKS,
+  AI_VERIFY_COMMANDS,
+} from '../../data/ai-guidance'
 </script>
 <PageMeta title="Build with a coding agent" description="Give your coding agent Automata project context, architectural rules and verification steps. Use AI for code and tests while you direct the game and author its content." />
 <div class="page-shell ai-page">

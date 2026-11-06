@@ -2,7 +2,15 @@
 // that silently checks nothing would look exactly like a site with no problems.
 import { expect, test } from '@playwright/test'
 import { FIXTURE_PORT } from '../../playwright.config'
-import { axeViolations, cookieNames, deadButtons, horizontalOverflow, keyboardProblems, storageKeys, watchPage } from './gates'
+import {
+  axeViolations,
+  cookieNames,
+  deadButtons,
+  horizontalOverflow,
+  keyboardProblems,
+  storageKeys,
+  watchPage,
+} from './gates'
 
 const ORIGIN = `http://127.0.0.1:${FIXTURE_PORT}`
 const PHONE = { width: 375, height: 667 }
@@ -42,7 +50,9 @@ test.describe('browser gates catch their fixtures', () => {
   test('a third-party request', async ({ page }) => {
     const watch = watchPage(page, ORIGIN)
     await page.goto(ORIGIN + '/third-party.html')
-    await expect.poll(() => watch.problems.join('\n')).toContain('third-party request: http://third-party.invalid/pixel.png')
+    await expect
+      .poll(() => watch.problems.join('\n'))
+      .toContain('third-party request: http://third-party.invalid/pixel.png')
   })
 
   test('a cookie', async ({ page, context }) => {
@@ -83,7 +93,9 @@ test.describe('browser gates catch their fixtures', () => {
   // Restart on a demo replaces its frame, and the new same-origin frame's WebGL boot then holds the page's main thread
   // (run 41012189000 on the Mac: the frame was created 4 ms after the click, and the gate's in-page check could not run
   // for 2.9 s). The click did change the page; the gate must not report it dead because the page was busy afterwards.
-  test('a button that changes the page and then keeps the main thread busy past the window still counts as doing something', async ({ page }) => {
+  test('a button that changes the page and then keeps the main thread busy past the window still counts as doing something', async ({
+    page,
+  }) => {
     test.setTimeout(60_000)
     await page.goto(ORIGIN + '/busy-frame.html')
     expect(await deadButtons(page)).toEqual([])

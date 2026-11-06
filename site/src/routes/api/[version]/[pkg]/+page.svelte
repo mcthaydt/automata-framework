@@ -1,16 +1,22 @@
 <script lang="ts">
-  import PageMeta from '$lib/components/PageMeta.svelte'
-  import { apiVersions } from '$lib/api-reference'
-  import type { PageData } from './$types'
-  let { data }: { data: PageData } = $props()
-  let query = $state('')
-  const words = $derived(query.toLowerCase().split(/\s+/).filter(Boolean))
-  const points = $derived(
-    data.pkg.entryPoints
-      .map((point) => ({ ...point, entries: point.entries.filter((e) => words.every((w) => (e.name + ' ' + e.doc).toLowerCase().includes(w))) }))
-      .filter((point) => point.entries.length),
-  )
-  const others = $derived(apiVersions().filter((v) => v !== data.version))
+import { apiVersions } from '$lib/api-reference'
+import PageMeta from '$lib/components/PageMeta.svelte'
+import type { PageData } from './$types'
+
+let { data }: { data: PageData } = $props()
+let query = $state('')
+const words = $derived(query.toLowerCase().split(/\s+/).filter(Boolean))
+const points = $derived(
+  data.pkg.entryPoints
+    .map((point) => ({
+      ...point,
+      entries: point.entries.filter((e) =>
+        words.every((w) => (e.name + ' ' + e.doc).toLowerCase().includes(w)),
+      ),
+    }))
+    .filter((point) => point.entries.length),
+)
+const others = $derived(apiVersions().filter((v) => v !== data.version))
 </script>
 <PageMeta title={data.pkg.name + ' ' + data.version} description={'Every export of ' + data.pkg.name + ' version ' + data.version + ', with its signature and doc comment.'} />
 <div class="page-shell api-page">

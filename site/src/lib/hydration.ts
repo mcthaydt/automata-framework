@@ -31,7 +31,8 @@ export const AFTER_FIRST_PAINT = `const afterFirstPaint = start => {
 
 const SCRIPT = /(<script>)([\s\S]*?)(<\/script>)/g
 /** The statement that loads and starts the app, as SvelteKit writes it: both entry modules, then `.then(`. */
-const HYDRATION = /Promise\.all\(\[\s*import\("[^"]*\/entry\/start\.[^"]*"\),\s*import\("[^"]*\/entry\/app\.[^"]*"\)\s*\]\)\.then\(/
+const HYDRATION =
+  /Promise\.all\(\[\s*import\("[^"]*\/entry\/start\.[^"]*"\),\s*import\("[^"]*\/entry\/app\.[^"]*"\)\s*\]\)\.then\(/
 /**
  * The end of that statement: the script's last `});`, then the block's closing brace. Page data never ends a script. A
  * wrapped script ends `}));`, which this does not match, so a page is never wrapped twice.
@@ -43,7 +44,7 @@ export function hydrateAfterFirstPaint(html: string): string {
   return html.replace(SCRIPT, (whole, open: string, body: string, close: string) => {
     if (!HYDRATION.test(body) || !HYDRATION_END.test(body)) return whole
     const deferred = body
-      .replace(HYDRATION, call => `${AFTER_FIRST_PAINT}\n\n\t\t\t\t\tafterFirstPaint(() => ${call}`)
+      .replace(HYDRATION, (call) => `${AFTER_FIRST_PAINT}\n\n\t\t\t\t\tafterFirstPaint(() => ${call}`)
       .replace(HYDRATION_END, '}));$1')
     return open + deferred + close
   })
