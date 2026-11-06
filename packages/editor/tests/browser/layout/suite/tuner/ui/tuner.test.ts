@@ -7,10 +7,10 @@ import { page } from 'vitest/browser'
 import { EDITOR_LIST_PATH } from '#src/features/suite/core/index.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
+import { samplePorts } from '#src/features/suite/shell/sample-ports.ts'
 import { createTuner } from '#src/features/suite/tuner/tuner-suite-editor.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
-import { samplePorts } from '#src/testing/suite/sample-ports.ts'
 import { tunerFixtureFiles } from '#src/testing/suite/tuner-fixtures.ts'
 
 // The Tuner in the suite's one shell with the production CSS in Chromium, WebKit and Firefox at the eight window sizes

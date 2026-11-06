@@ -7,22 +7,22 @@
   asks first, listing the cells per layer, when painted cells would fall outside (spec §13).
 -->
 <script lang="ts">
-import type { EditHistory } from '../../app/editor-2d/level-editor'
 import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import type { EditEvent } from '../../shared/kit/widgets/edit-event'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
+import { commitEdit, commitField } from '../../shared/level-2d/editor/field-commit'
+import { levelInspector } from '../../shared/level-2d/editor/inspector-model'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { Project, Size } from '../../shared/level-2d/model/project-types'
 import { duplicateLevel, removeLevel, renameLevel } from '../../shared/level-2d/model/world/level-edits'
 import { moveLevelInWorld, setLevelDepth } from '../../shared/level-2d/model/world/level-placement'
 import { type AnchorSide, resizeLevel, resizeLevelLoss } from '../../shared/level-2d/model/world/level-resize'
-import { commitEdit, commitField } from '../level/field-commit'
-import { levelInspector } from '../level/inspector-model'
-import { levelLinks } from './world-links'
-import { copyLevelInput, linksInto } from './world-model'
+import { levelLinks } from '../../shared/level-2d/model/world/world-links'
+import { copyLevelInput, linksInto } from '../../shared/level-2d/model/world/world-model'
 
 interface Props {
   project: Project

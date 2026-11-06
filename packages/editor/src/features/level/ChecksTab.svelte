@@ -4,7 +4,7 @@
   come with ED2D.7a.
 -->
 <script lang="ts">
-import type { CheckRow } from './inspector-model'
+import type { CheckRow } from '../../shared/level-2d/editor/inspector-model'
 
 interface Props {
   /** The level's name, for the list's accessible name. */

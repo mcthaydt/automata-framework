@@ -1,6 +1,5 @@
 import { createGeometryOwner, type ViewportWindow } from '@mcthaydt/automata'
 import { type Component, mount, unmount } from 'svelte'
-import type { LevelCanvasProps, ObjectUrls } from '../../features/document/view-props'
 import type { LastOpened } from '../../features/home/home-controller'
 import type { StorageClock } from '../../shared/kit/storage/clock.ts'
 import type { DownloadEnv } from '../../shared/kit/storage/download-store.ts'
@@ -9,9 +8,10 @@ import { openWorkspace, type Workspace, type WorkspaceEnv } from '../../shared/k
 import { createToasts } from '../../shared/kit/widgets/toasts.ts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
 import { randomIds } from '../../shared/level-2d/model/ids'
+import { createAppProfiles } from '../../shared/level-2d/profiles/app-profiles'
+import type { LevelCanvasProps, ObjectUrls } from '../../shared/level-2d/session/view-props'
 import App from './App.svelte'
 import { createEditorApp } from './editor-app'
-import { createAppProfiles } from './profiles'
 
 // The editor's boot (plan ED2D.4c2a, decision 9): everything it touches comes in through `env`, so a test hands it a
 // window, a document, a clock and a workspace and gets the real app, and `main.ts` is the only file that reaches for

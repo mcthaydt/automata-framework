@@ -44,6 +44,21 @@ describe('featureFindings', () => {
     })
   })
 
+  it('reads the script of a Svelte component like any other source', () => {
+    const root = pkg({
+      'features/saves/Slots.svelte':
+        '<script lang="ts">\n  import { volume } from \'../settings/volume.ts\'\n</script>\n<p>{volume}</p>\n',
+      'features/settings/volume.ts': 'export const volume = 1\n',
+    })
+    const { findings } = featureFindings(root)
+    expect(findings).toHaveLength(1)
+    expect(findings[0]).toMatchObject({
+      file: join(root, 'src/features/saves/Slots.svelte'),
+      line: 2,
+      rule: 'feature-import',
+    })
+  })
+
   it('lets a feature import its own files and shared/', () => {
     const root = pkg({
       'features/saves/save-slots.ts':
@@ -158,5 +173,40 @@ describe('featureFindings', () => {
       'features/settings/volume.ts': 'export type Volume = number\n',
     })
     expect(featureFindings(root).findings).toMatchObject([{ rule: 'feature-import' }])
+  })
+
+  describe('shared islands', () => {
+    // An island is a folder of shared/ that stands alone: it imports itself and other packages, not its siblings.
+    const files = {
+      'shared/kit/store.ts': "import { cell } from '../level-2d/cell.ts'\nexport const s = cell\n",
+      'shared/level-2d/cell.ts': "import { base } from '../kit/base.ts'\nexport const cell = base\n",
+      'shared/kit/base.ts': 'export const base = 1\n',
+    }
+
+    it('fails an island importing a sibling folder of shared/, and only that island', () => {
+      const { findings } = featureFindings(pkg(files), { sharedIslands: ['kit'] })
+      expect(findings).toHaveLength(1)
+      expect(findings[0]).toMatchObject({
+        line: 1,
+        col: 1,
+        rule: 'shared-island',
+        message:
+          '"kit" imports "level-2d" (shared/level-2d/cell.ts).\n' +
+          'shared/kit/ stands alone: it may only use its own files and other packages. Pass what it needs in as an argument, or move the file it imports into shared/kit/.',
+      })
+    })
+
+    it('leaves siblings alone when no island is named', () => {
+      expect(featureFindings(pkg(files)).findings).toEqual([])
+    })
+
+    it('lets an island import its own files and lets other folders import the island', () => {
+      const root = pkg({
+        'shared/kit/store.ts': "import { base } from './base.ts'\nexport const s = base\n",
+        'shared/kit/base.ts': 'export const base = 1\n',
+        'shared/level-2d/cell.ts': "import { s } from '../kit/store.ts'\nexport const cell = s\n",
+      })
+      expect(featureFindings(root, { sharedIslands: ['kit'] }).findings).toEqual([])
+    })
   })
 })

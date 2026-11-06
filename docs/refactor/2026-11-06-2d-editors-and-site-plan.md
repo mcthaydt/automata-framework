@@ -410,17 +410,17 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
   create `packages/tools/src/features/boundaries/forbid.ts`, `packages/tools/tests/unit/boundaries/forbid.test.ts`; root
   `package.json` (`boundaries`, `style`), files under `packages/editor/src/features` and `src/app` that the rule flags
 
-- [ ] **Step 1: `--forbid`, test first.** A fixture package importing `@pixi/3d` (value and type import) fails with
+- [x] **Step 1: `--forbid`, test first.** A fixture package importing `@pixi/3d` (value and type import) fails with
   `packages/x/src/a.ts:1:1 imports "@pixi/3d", which packages/x may not use.`; a clean one passes. Then the rule.
-- [ ] **Step 2: A shared-kit rule, test first.** `--features` learns an optional `--shared-island kit` so
+- [x] **Step 2: A shared-kit rule, test first.** `--features` learns an optional `--shared-island kit` so
   `shared/kit/` may not import `shared/level-2d/` or `shared/editor-list/`. Fixture test, then the rule.
-- [ ] **Step 3: Run them.** Add to `boundaries`: `--features packages/editor --shared-island kit` and
+- [x] **Step 3: Run them.** Add to `boundaries`: `--features packages/editor --shared-island kit` and
   `--forbid packages/editor:@pixi/3d,@mcthaydt/automata-editor-3d,@mcthaydt/automata-render-pixi3d,@mcthaydt/automata-figures`.
   Record the findings count.
-- [ ] **Step 4: Fix each finding** by passing the function in from `app/editor-2d/` or `app/suite/` (spec section
+- [x] **Step 4: Fix each finding** by passing the function in from `app/editor-2d/` or `app/suite/` (spec section
   3.3), or moving a file that two features use to `shared/`. No behaviour change: unit counts stay equal after each
   fix. Re-run until 0.
-- [ ] **Step 5: Commit.** `refactor(editor): features import only themselves and shared; no 3D in the editor package`
+- [x] **Step 5: Commit.** `refactor(editor): features import only themselves and shared; no 3D in the editor package`
 
 ### Task 4.5: Comments, fixtures, unused code and the mock-ups (same PR)
 
@@ -1433,4 +1433,40 @@ listed as left with the reason.
 - Handoff (session 3 ends here, at a clean point): next is task 4.4. Start with `--forbid` in
   `packages/tools/src/features/boundaries/` (the fixture test first), then the shared-island rule, then run both on
   `packages/editor` and fix each finding by passing the function in from `app/editor-2d/` or `app/suite/`.
+
+### 2026-11-06, session 4: task 4.4
+
+- Task 4.4 done: `--forbid` and `--shared-island` are in `packages/tools/src/features/boundaries/` (`forbid.ts`,
+  `features.ts`), each with its fixture test first (five `forbid` tests, three island tests, one for Svelte, four CLI
+  tests; the boundaries tests are 159, were 149). Both run in the root `boundaries` script:
+  `--features packages/editor --shared-island kit` and `--forbid packages/editor:@pixi/3d,@mcthaydt/automata-editor-3d,
+  @mcthaydt/automata-render-pixi3d,@mcthaydt/automata-figures`.
+- Findings. First run: `--forbid` 0 and `--shared-island kit` 0, so the kit island and the 3D wall already held. `--features`
+  found 39 in `.ts` files. It did not read Svelte components, which carry most of the views' imports, so it now does
+  (`collectPlatformSources`, the other packages stay at 0): 77 in all. Fixed to 0, with no behaviour change (unit 3,270 =
+  3,270; Chromium 527 pass and 6 skipped, as in 4.3):
+  - Moved into `shared/level-2d/editor/`: `level-editor` (was `app/editor-2d/`), `edit-history`, `field-commit`,
+    `palette-model`, `inspector-model` (were in `features/level`), `tile-sprite` (was in the app). Level, map, tiles and
+    characters all used them.
+  - Moved into `shared/level-2d/model/world/`: `world-links`, `world-model` (map's, used by the canvas and the view props).
+  - Moved into `shared/level-2d/session/`: `open-flow-model`, `view-props` (document's), and two new files cut out of
+    `app/editor-2d/` and `home-model`: `editor-app-types.ts` (`EditorApp`, `OpenDocument` and the outcomes, `ProjectEntry`)
+    and `open-problem.ts`. The app implements the types; features depend only on them.
+  - Moved into `shared/level-2d/profiles/`: `read-document`, and `profiles.ts` as `app-profiles.ts` (the one file that
+    registers profiles; the 2D architecture test's `REGISTRATION_FILE` and its generic folders follow).
+  - `DocumentScreen` takes the view table as a `viewOf` prop; `app/editor-2d/views.ts` owns it (it names every feature).
+  - The Levels 2D suite editor (`levels-2d-session`, its two components, the entry) moved from `features/suite/` to
+    `app/suite/levels-2d/`: it composes the level and document features, which a feature may not.
+  - The in-memory suite ports (`memory-*`, `scripted-ask`) moved from `testing/ports/` to `shared/kit/ports/memory/`, and
+    the sample game (`sample-ports.ts`, its editor list as `sample-game.editors.toml`) to `features/suite/shell/`: the
+    suite page's sample mode is product code, and product code never imports `testing/`. `GateRecords` sits with
+    `memory-gates`; `testing/ports` re-exports it.
+  - Tests of moved files moved with them (mirrored folders). The API reports did not change.
+- Changeset: `.changeset/check-boundaries-forbid.md` (patch, `-tools`).
+- Gates run: `pnpm lint`, typecheck of `editor`, `editor-3d` and `-tools`, `pnpm boundaries`, `pnpm style`, `pnpm knip`,
+  `pnpm check:changesets`, the editor's unit tests and Chromium browser projects, `pnpm build`, `pnpm api-report`. Not run:
+  WebKit and Firefox (not installed here), `editor-3d`'s own unit and browser suites (the 3D workflow), hosted CI.
+- CI fixes on the way: `editor.api.md` was stale after 4.3 (`journeyInstance`), and the parity-across-packages check
+  expected a single `browsers` project; it now accepts any project names.
+- Handoff: next is task 4.5. Run the style roots on `packages/editor` (about 943 plan-ID comments), area by area.
 

@@ -3,10 +3,10 @@
   undo step. Renaming and resizing a level are the World view's (ED2D.6b), where a resize that loses cells is confirmed.
 -->
 <script lang="ts">
-import type { EditHistory } from '../../app/editor-2d/level-editor'
 import FieldEditor from '../../shared/kit/fields/FieldEditor.svelte'
-import { commitField } from './field-commit'
-import type { LevelInspector } from './inspector-model'
+import { commitField } from '../../shared/level-2d/editor/field-commit'
+import type { LevelInspector } from '../../shared/level-2d/editor/inspector-model'
+import type { EditHistory } from '../../shared/level-2d/editor/level-editor'
 
 interface Props {
   inspector: LevelInspector

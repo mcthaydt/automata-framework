@@ -4,12 +4,13 @@ import userEvent from '@testing-library/user-event'
 import { flushSync } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
 import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { componentOf } from '#src/app/editor-2d/views.ts'
 import DocumentScreen from '#src/features/document/DocumentScreen.svelte'
 import { createDocumentController } from '#src/features/document/document-controller.ts'
 import type { LifecycleDocument, LifecycleWindow } from '#src/shared/kit/storage/page-lifecycle.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
@@ -51,6 +52,7 @@ async function mount(options: { persistent?: boolean; autosave?: boolean; size?:
   render(DocumentScreen, {
     geometry: stubGeometry(...(options.size ?? [1194, 834])),
     controller,
+    viewOf: componentOf,
     toasts,
     clock,
     read: (path: string) => workspace.store.read(path),
@@ -196,6 +198,7 @@ async function mountLevel(size: [number, number] = [1194, 834]) {
   render(DocumentScreen, {
     geometry: stubGeometry(...size),
     controller,
+    viewOf: componentOf,
     toasts,
     clock,
     read: (path: string) => workspace.store.read(path),

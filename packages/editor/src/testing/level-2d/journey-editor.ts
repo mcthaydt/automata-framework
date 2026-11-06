@@ -2,8 +2,8 @@ import { createGeometryOwner } from '@mcthaydt/automata'
 import { settleLayout } from '@mcthaydt/automata/testing'
 import { mount, unmount } from 'svelte'
 import { page } from 'vitest/browser'
-import { createEditorApp, type EditorApp, type OpenDocument } from '../../app/editor-2d/editor-app'
-import { createAppProfiles } from '../../app/editor-2d/profiles'
+import { createEditorApp } from '../../app/editor-2d/editor-app'
+import { componentOf } from '../../app/editor-2d/views'
 import DocumentScreen from '../../features/document/DocumentScreen.svelte'
 import { createDocumentController } from '../../features/document/document-controller'
 import { createDownloadStore, type DownloadFile } from '../../shared/kit/storage/download-store.ts'
@@ -13,6 +13,8 @@ import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import { createToasts } from '../../shared/kit/widgets/toasts.ts'
 import { counterIds } from '../../shared/level-2d/model/ids'
 import type { Project } from '../../shared/level-2d/model/project-types'
+import { createAppProfiles } from '../../shared/level-2d/profiles/app-profiles'
+import type { EditorApp, OpenDocument } from '../../shared/level-2d/session/editor-app-types'
 import type { IpadProfile } from '../kit/ipad-profiles.ts'
 import { arrived } from '../kit/layout-sizes.ts'
 import { createTestClock } from './test-clock'
@@ -68,6 +70,7 @@ export async function openJourneyEditor(
     props: {
       geometry: owner.geometry,
       controller,
+      viewOf: componentOf,
       toasts,
       clock,
       read: (path: string) => workspace.store.read(path),

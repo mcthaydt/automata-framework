@@ -1,4 +1,6 @@
 import type { History } from '../../shared/kit/history/history.ts'
+import { projectHistory } from '../../shared/level-2d/editor/edit-history'
+import { commitEdit, type FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import {
   addRule,
   addRuleGroup,
@@ -18,8 +20,6 @@ import { tagTiles, untagTiles } from '../../shared/level-2d/model/commands/tiles
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { AutoLayerDef, Project } from '../../shared/level-2d/model/project-types'
 import type { Rule, RuleGroup } from '../../shared/level-2d/tiles/autotile/rule.schema'
-import { projectHistory } from '../level/edit-history'
-import { commitEdit, type FieldCommit } from '../level/field-commit'
 import {
   autoLayersOf,
   type ResolvedSelection,

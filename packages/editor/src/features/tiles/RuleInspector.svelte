@@ -6,14 +6,14 @@
   a refusal shows its message and changes nothing.
 -->
 <script lang="ts">
-import { spriteStyle } from '../../app/editor-2d/tile-sprite'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Picker from '../../shared/kit/widgets/Picker.svelte'
 import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import Tabs from '../../shared/kit/widgets/Tabs.svelte'
+import type { FieldCommit } from '../../shared/level-2d/editor/field-commit'
+import { spriteStyle } from '../../shared/level-2d/editor/tile-sprite'
 import type { Project } from '../../shared/level-2d/model/project-types'
-import type { FieldCommit } from '../level/field-commit'
 import PatternEditor from './PatternEditor.svelte'
 import { autoLayersOf, type ResolvedSelection, ruleInspector } from './tilesets-model'
 import type { TilesetsSession } from './tilesets-session'

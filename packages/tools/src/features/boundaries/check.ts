@@ -28,12 +28,14 @@ export type Rule =
   | 'platform-import'
   | 'feature-import'
   | 'shared-import'
+  | 'shared-island'
   | 'app-import'
   | 'entries-import'
   | 'entries-logic'
   | 'testing-import'
   | 'alias-in-src'
   | 'browser-import'
+  | 'forbidden-import'
   | 'parse-error'
 
 export interface Finding {

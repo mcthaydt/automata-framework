@@ -5,9 +5,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { EDITOR_LIST_PATH, loadEditorList, workspaceFile } from '#src/features/suite/core/index.ts'
 import { type SuiteHandle, startSuite } from '#src/features/suite/shell/boot.ts'
 import { createSuite } from '#src/features/suite/shell/create-suite.ts'
+import { createMemoryPorts, type MemoryPorts } from '#src/shared/kit/ports/memory/memory-ports.ts'
 import type { SuiteEditor } from '#src/shared/kit/ports/suite-editor.ts'
 import type { Proposal } from '#src/shared/kit/ports/suite-ports.ts'
-import { createMemoryPorts, type MemoryPorts } from '#src/testing/ports/memory-ports.ts'
 import { fixtureEditor } from '#src/testing/suite/fixture-editor.ts'
 
 // Editing inside the suite (editor suite spec §5 flows 3 to 8, §11, EDS-D19): the title prompt, the pills, Undo and

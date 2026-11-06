@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import type { WorldLink } from '#src/features/map/world-links.ts'
-import type { WorldRect } from '#src/features/map/world-model.ts'
 import { createColorResolver } from '#src/shared/level-2d/canvas/colors.ts'
 import type { LevelDrawList } from '#src/shared/level-2d/canvas/draw/draw-list-types.ts'
 import { createTextureManager } from '#src/shared/level-2d/canvas/textures.manager.ts'
 import { createWorldView, type WorldView } from '#src/shared/level-2d/canvas/world-view.ts'
+import type { WorldLink } from '#src/shared/level-2d/model/world/world-links.ts'
+import type { WorldRect } from '#src/shared/level-2d/model/world/world-model.ts'
 
 // The World view's map (plan ED2D.6b step 4) in Chromium with WebGL2: a rectangle per level on the canvas background,
 // the selected one outlined in the accent.

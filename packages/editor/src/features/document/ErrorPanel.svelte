@@ -9,7 +9,7 @@ import type { WriteResult } from '../../shared/kit/storage/project-store'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
 import type { ToastStore } from '../../shared/kit/widgets/toasts'
-import { errorPanel, type PanelOutcome } from './open-flow-model'
+import { errorPanel, type PanelOutcome } from '../../shared/level-2d/session/open-flow-model'
 import TextView from './TextView.svelte'
 
 interface Props {

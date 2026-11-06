@@ -19,110 +19,20 @@ import {
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { ParseError, Profile, ProfileRegistry, Result } from '../../shared/level-2d/profiles/profile'
-import { listProjects, type ProjectEntry } from './project-list'
-import { readDocument } from './read-document'
+import { readDocument } from '../../shared/level-2d/profiles/read-document'
+import type {
+  CopyOutcome,
+  EditorApp,
+  ImportOutcome,
+  OpenDocument,
+  OpenOutcome,
+} from '../../shared/level-2d/session/editor-app-types'
+import { listProjects } from './project-list'
 
 // The editor's session over a workspace (2D editor spec §4, §8; kit spec §4.7 and §5): creating a document from a
 // template, opening a file with the profile that claims it, and keeping it saved. Plain TypeScript with no Svelte, so
 // the views of ED2D.4c2 to 4c4 and the tests use the same object. Nothing here names a profile: the registry says which
 // ones exist, and the first export of each is its working file (decision 2 of the ED2D.4c1 plan).
-
-/** One open document: the profile, its history and its save flow. The value type is the profile's; the view that knows it narrows it. */
-export interface OpenDocument {
-  readonly profile: Profile<unknown>
-  readonly path: string
-  readonly history: History<unknown>
-  readonly session: DocumentSession
-  save(): Promise<SaveOutcome>
-  /** Keep mine: writes without checking that the file is still the one that was opened. */
-  overwrite(): Promise<SaveOutcome>
-  /** Save as copy: the first unused `name copy.ext`; the document keeps its own path. */
-  saveCopy(): Promise<SaveOutcome>
-  /** Applies an autosave as one undoable step, which leaves the document dirty. Refused, changing nothing, when the payload no longer parses. */
-  /** The text the document was loaded or last saved as, which a profile's export targets patch (plan ED2D.7b). */
-  base(): string
-  restore(recovery: Recovery): Result<true, readonly ParseError[]>
-  discardRecovery(): Promise<void>
-  dispose(): void
-}
-
-export type OpenOutcome =
-  | {
-      readonly status: 'opened'
-      readonly document: OpenDocument
-      /** An autosave newer than the file, for the dialog to offer. */
-      readonly recovery: Recovery | undefined
-      /** Set when the autosave could not be read: the document opened anyway. */
-      readonly recoveryError?: string | undefined
-    }
-  | {
-      readonly status: 'choose'
-      readonly path: string
-      readonly candidates: readonly Profile<unknown>[]
-      readonly text: string
-    }
-  | { readonly status: 'unrecognised'; readonly path: string; readonly text: string }
-  | {
-      readonly status: 'invalid'
-      readonly path: string
-      readonly profile: Profile<unknown>
-      readonly errors: readonly ParseError[]
-      readonly text: string
-    }
-  | { readonly status: 'notText' | 'missing'; readonly path: string }
-  | { readonly status: 'tooLarge'; readonly path: string; readonly bytes: number }
-  /** The store refused: a read that was denied, or a create that hit a full disk. */
-  | {
-      readonly status: 'storageFailed'
-      readonly path: string
-      readonly reason: StorageFailure
-      readonly message: string
-    }
-
-export type CopyOutcome =
-  | { readonly status: 'copied'; readonly path: string }
-  | { readonly status: 'missing'; readonly path: string }
-  | {
-      readonly status: 'failed'
-      readonly path: string
-      readonly reason: StorageFailure
-      readonly message: string
-    }
-
-export type ImportOutcome =
-  | { readonly status: 'imported'; readonly name: string; readonly path: string }
-  /** Nothing was written: no profile claims the file, it is not text, or it is over the size limit. */
-  | {
-      readonly status: 'refused'
-      readonly name: string
-      readonly reason: 'unrecognised' | 'notText' | 'tooLarge'
-    }
-  | {
-      readonly status: 'failed'
-      readonly name: string
-      readonly reason: StorageFailure
-      readonly message: string
-    }
-
-export interface EditorApp {
-  readonly registry: ProfileRegistry
-  readonly workspace: Workspace
-  /** The projects Home shows, newest first. Rejects when the workspace cannot be listed. */
-  list(): Promise<readonly ProjectEntry[]>
-  /** Writes the template's working file (a taken path gets ` 2`, ` 3`) and opens it the way an existing file opens. */
-  create(profileId: string, templateId: string): Promise<OpenOutcome>
-  /** `as` is the id of the profile the person chose after a `choose`. */
-  open(path: string, as?: string): Promise<OpenOutcome>
-  /** Copies the file's bytes to the first unused `name copy.ext`, `name copy 2.ext`; a file that does not open copies too. */
-  duplicate(path: string): Promise<CopyOutcome>
-  /** Deletes the file and its autosave. A path with no file is not an error. */
-  remove(path: string): Promise<void>
-  /**
-   * Keeps a file the person picked, under its own name (a taken name gets ` 2`, ` 3`). A file a profile claims is kept
-   * as it is, even when it does not open, so the error panel can show why; any other file is refused.
-   */
-  importFile(name: string, bytes: Uint8Array): Promise<ImportOutcome>
-}
 
 export interface EditorAppOptions {
   readonly workspace: Workspace

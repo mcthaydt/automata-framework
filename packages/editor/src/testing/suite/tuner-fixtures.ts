@@ -1,5 +1,5 @@
+import { createMemoryPorts } from '../../shared/kit/ports/memory/memory-ports.ts'
 import type { SuitePorts, WorkspaceFile } from '../../shared/kit/ports/suite-ports.ts'
-import { createMemoryPorts } from '../ports/memory-ports.ts'
 
 // A game's tuning for the Tuner's tests: authored bounds, a code-owned row (its bounds in the compiler's meta), a unit in a
 // comment, a toggle, a text row and a table the Tuner does not edit.

@@ -178,4 +178,34 @@ describe('--features and --browser (core and 2D refactor spec §3.5)', () => {
     expect(pkg({}, () => ['--features'])).toMatchObject({ status: 2 })
     expect(pkg({}, () => ['--browser'])).toMatchObject({ status: 2 })
   })
+
+  it('--features --shared-island kit fails shared/kit importing a sibling', () => {
+    const files = {
+      'shared/kit/a.ts': "import { b } from '../level-2d/b.ts'\nexport const a = b\n",
+      'shared/level-2d/b.ts': 'export const b = 1\n',
+    }
+    expect(pkg(files, () => ['--features', '.'])).toMatchObject({ status: 0 })
+    const result = pkg(files, () => ['--features', '.', '--shared-island', 'kit'])
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain('src/shared/kit/a.ts:1:1\n  "kit" imports "level-2d"')
+  })
+
+  it('--features --shared-island needs a folder name', () => {
+    expect(pkg({}, () => ['--features', '.', '--shared-island'])).toMatchObject({ status: 2 })
+  })
+
+  it('--forbid names the packages after a colon, and exits 1 on an import of one', () => {
+    const files = { 'src/a.ts': "import { Mesh } from '@pixi/3d'\nexport const a = Mesh\n" }
+    expect(pkg(files, () => ['--forbid', '.:pixi.js'])).toMatchObject({ status: 0 })
+    const result = pkg(files, () => ['--forbid', '.:@pixi/3d,pixi.js'])
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain(
+      'src/a.ts:1:1  forbidden-import  imports "@pixi/3d", which . may not use.',
+    )
+  })
+
+  it('--forbid needs a package root and at least one package', () => {
+    expect(pkg({}, () => ['--forbid'])).toMatchObject({ status: 2 })
+    expect(pkg({}, () => ['--forbid', '.'])).toMatchObject({ status: 2 })
+  })
 })

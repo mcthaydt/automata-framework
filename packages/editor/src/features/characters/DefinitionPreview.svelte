@@ -4,9 +4,9 @@
   the pivot marked and the sides labelled. A definition with a tile draws the tile's sprite in the shape's box.
 -->
 <script lang="ts">
-import { spriteStyle } from '../../app/editor-2d/tile-sprite'
+import { tileItems } from '../../shared/level-2d/editor/palette-model'
+import { spriteStyle } from '../../shared/level-2d/editor/tile-sprite'
 import type { Project } from '../../shared/level-2d/model/project-types'
-import { tileItems } from '../level/palette-model'
 import { definitionPreview } from './entities-model'
 
 interface Props {

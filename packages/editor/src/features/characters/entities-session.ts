@@ -1,5 +1,7 @@
 import type { FieldDef, FieldType } from '../../shared/kit/fields/field-types.ts'
 import type { History } from '../../shared/kit/history/history.ts'
+import { projectHistory } from '../../shared/level-2d/editor/edit-history'
+import { commitEdit, type FieldCommit } from '../../shared/level-2d/editor/field-commit'
 import type { DefinitionUse, GuardedEdit } from '../../shared/level-2d/model/commands/def-lookup'
 import { deleteDefinition } from '../../shared/level-2d/model/commands/definition-uses'
 import {
@@ -11,8 +13,6 @@ import {
 import { addField, renameField, retypeField } from '../../shared/level-2d/model/commands/field-edits'
 import type { IdSource } from '../../shared/level-2d/model/ids'
 import type { EntityDef2D, Project } from '../../shared/level-2d/model/project-types'
-import { projectHistory } from '../level/edit-history'
-import { commitEdit, type FieldCommit } from '../level/field-commit'
 import {
   type EntitiesSelection,
   type ResolvedEntitiesSelection,

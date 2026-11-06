@@ -1,7 +1,4 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { CopyOutcome, ImportOutcome, OpenOutcome } from '#src/app/editor-2d/editor-app.ts'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
-import type { ProjectEntry } from '#src/app/editor-2d/project-list.ts'
 import {
   cardTitle,
   duplicateMessage,
@@ -10,14 +7,21 @@ import {
   importMessage,
   importNotices,
   kindTone,
-  openProblem,
   removeMessage,
   searchWords,
   templateCards,
 } from '#src/features/home/home-model.ts'
 import { filterEntries } from '#src/shared/kit/home/project-browse.ts'
 import type { LevelThumbnails } from '#src/shared/level-2d/canvas/level-thumbnails.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
+import type {
+  CopyOutcome,
+  ImportOutcome,
+  OpenOutcome,
+  ProjectEntry,
+} from '#src/shared/level-2d/session/editor-app-types.ts'
+import { openProblem } from '#src/shared/level-2d/session/open-problem.ts'
 import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 

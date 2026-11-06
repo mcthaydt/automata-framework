@@ -7,7 +7,13 @@ import type { WorkspaceFile } from '#src/shared/kit/ports/suite-ports.ts'
 
 const fixture = (name: string): string =>
   readFileSync(
-    new URL(`../../../../src/testing/suite/fixtures/${name}.editors.toml`, import.meta.url),
+    new URL(
+      // The sample game's list ships with the suite page; the other game's list is a test fixture.
+      name === 'floorfifty'
+        ? '../../../../src/features/suite/shell/sample-game.editors.toml'
+        : `../../../../src/testing/suite/fixtures/${name}.editors.toml`,
+      import.meta.url,
+    ),
     'utf8',
   )
 

@@ -1,13 +1,22 @@
-import type { EditorApp, ImportOutcome, OpenOutcome } from '../../app/editor-2d/editor-app'
-import type { ProjectEntry } from '../../app/editor-2d/project-list'
 import {
   type BrowserState,
   createProjectBrowser,
   type ProjectListSource,
 } from '../../shared/kit/home/project-browser.ts'
 import type { ToastKind, ToastStore } from '../../shared/kit/widgets/toasts.ts'
-import { type ChoiceOutcome, needsPanel, type PanelOutcome } from '../document/open-flow-model'
-import { duplicateMessage, importNotices, openProblem, removeMessage, searchWords } from './home-model'
+import type {
+  EditorApp,
+  ImportOutcome,
+  OpenOutcome,
+  ProjectEntry,
+} from '../../shared/level-2d/session/editor-app-types'
+import {
+  type ChoiceOutcome,
+  needsPanel,
+  type PanelOutcome,
+} from '../../shared/level-2d/session/open-flow-model'
+import { openProblem } from '../../shared/level-2d/session/open-problem'
+import { duplicateMessage, importNotices, removeMessage, searchWords } from './home-model'
 
 // The 2D editor's Home (plan ED2D.4c2a, decision 1): the kit's project browser (the list, the search, the selection and
 // one action at a time) with this editor's actions on top: open, create from a template, duplicate, delete and import.

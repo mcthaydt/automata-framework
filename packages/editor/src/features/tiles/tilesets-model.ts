@@ -1,3 +1,4 @@
+import { type TileItem, tileItems } from '../../shared/level-2d/editor/palette-model'
 import type {
   AutoLayerDef,
   IntGridLayerDef,
@@ -7,7 +8,6 @@ import type {
 } from '../../shared/level-2d/model/project-types'
 import { tilesetTiles } from '../../shared/level-2d/model/tileset-grid'
 import type { PatternCell, Rule } from '../../shared/level-2d/tiles/autotile/rule.schema'
-import { type TileItem, tileItems } from '../level/palette-model'
 
 // What the Tilesets view shows (plan ED2D.5b decisions 1 to 3; 2D editor spec §5.4, §5.6, §8 the Tilesets row): the
 // panel's rows, what is selected once the project has had its say, and the selected rule as the inspector edits it.

@@ -1,7 +1,7 @@
-import type { LevelEditor } from '../../app/editor-2d/level-editor'
 import type { Point } from '../../shared/kit/fields/field-types.ts'
 import type { GestureHandlers } from '../../shared/kit/gestures/gesture-events.ts'
 import type { PointerKind } from '../../shared/kit/gestures/pointer-sample.ts'
+import type { LevelEditor } from '../../shared/level-2d/editor/level-editor'
 import type { LevelSession } from './level-session'
 
 // What each gesture of the kit's recogniser does on the level canvas (plan ED2D.4c4a decision 3; 2D editor spec §5.9;

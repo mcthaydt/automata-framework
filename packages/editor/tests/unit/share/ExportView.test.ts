@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { createEditorApp } from '#src/app/editor-2d/editor-app.ts'
-import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
+import { componentOf } from '#src/app/editor-2d/views.ts'
 import DocumentScreen from '#src/features/document/DocumentScreen.svelte'
 import { createDocumentController } from '#src/features/document/document-controller.ts'
 import type { History } from '#src/shared/kit/history/history.ts'
@@ -16,6 +16,7 @@ import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
+import { createAppProfiles } from '#src/shared/level-2d/profiles/app-profiles.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { textOf } from '#src/testing/level-2d/memory-workspace.ts'
@@ -69,6 +70,7 @@ async function mount(options: Options = {}) {
   render(DocumentScreen, {
     geometry: stubGeometry(1194, 834),
     controller,
+    viewOf: componentOf,
     toasts,
     clock,
     read: (path: string) => store.read(path),

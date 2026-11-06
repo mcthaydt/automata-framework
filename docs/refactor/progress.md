@@ -202,14 +202,13 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 22% (14 of 63 tasks)
+### Build: 24% (15 of 63 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 3 ended after task 4.3):** branch `claude/project-thread-pbmc59`, [PR #412](https://github.com/mcthaydt/automata-framework/pull/412)
-(stacked on #411). Next is task 4.4 (`--forbid` and the shared-island rule in `-tools`' boundaries, then the findings in
-`packages/editor/src`), then 4.5 (plan-ID comments, neutral fixture names, the mock-ups archived) and 4.6 (the editor's
+**Where to resume (2026-11-06, session 4 ended after task 4.4):** branch `claude/project-thread-pbmc59`, [PR #412](https://github.com/mcthaydt/automata-framework/pull/412)
+(stacked on #411). Next is task 4.5 (plan-ID comments, neutral fixture names, the mock-ups archived), then 4.6 (the editor's
 logic refactor). Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The plan's execution log has the
 counts, deviations and gates of every task so far.
 
@@ -229,7 +228,7 @@ counts, deviations and gates of every task so far.
 | 4.1 The move map and the package skeleton | 4 | Done, 2026-11-06 (764 files move by rename, none unmapped, none clashing; the skeleton typechecks and builds once they land in 4.2) | |
 | 4.2 Merge the three packages | 4 | Done, 2026-11-06 (Chromium only; typecheck, build, `pnpm lint`, boundaries, style and knip pass; the editor's unit and DOM tests 3,348 → 3,268 and editor-3d's 2,857 → 2,932, every difference named in the log; editor browser tests in Chromium: 452 pass in layout, kit layout and parity, canvas 49 pass and 6 skipped; WebKit, Firefox, the journeys and hosted CI not run) | |
 | 4.3 Tests into tests/ | 4 | Done, 2026-11-06 (Chromium only; unit 3,270 (3,268 + two tests of `journeyInstance`); browser projects parity, layout, storage, canvas and journeys 527 pass, 6 skipped, 0 fail; preset, codemod, lint, typecheck, boundaries, style and knip pass; WebKit, Firefox and hosted CI not run) | |
-| 4.4 Feature folders and the boundaries rules | 4 | Not started | |
+| 4.4 Feature folders and the boundaries rules | 4 | Done, 2026-11-06 (Chromium only; `--forbid` 0 findings, `--features` 77 → 0 after Svelte files were read, `--shared-island kit` 0; unit 3,270 = 3,270, Chromium 527 pass and 6 skipped = 4.3; lint, typecheck, boundaries, style, knip, changesets pass; WebKit, Firefox, editor-3d's suites and hosted CI not run) | [#412](https://github.com/mcthaydt/automata-framework/pull/412) |
 | 4.5 Comments, fixtures, unused code and the mock-ups | 4 | Not started | |
 | 4.6 The code refactor of the editor package | 4 | Not started | |
 | 5.1 The level-2d entry | 5 | Not started | |

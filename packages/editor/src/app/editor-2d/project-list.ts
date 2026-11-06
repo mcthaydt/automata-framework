@@ -2,47 +2,17 @@ import { classifyStorageError } from '../../shared/kit/storage/project-store.ts'
 import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import { levelImages } from '../../shared/level-2d/canvas/draw/level-images'
 import type { LevelPreview, ProfileRegistry, ProfileSummary } from '../../shared/level-2d/profiles/profile'
-import { readDocument } from './read-document'
+import { readDocument } from '../../shared/level-2d/profiles/read-document'
+import type {
+  CardPreview,
+  Listed,
+  ProfileRef,
+  ProjectEntry,
+} from '../../shared/level-2d/session/editor-app-types'
 
 // The projects Home shows (2D editor spec §8): one entry for each file in the workspace that a profile claims, and
 // nothing for images, journals or anything else. Reading a whole workspace on each refresh is fine at the size a tablet
 // session has; if it ever is not, this is the one place to add a cache.
-
-interface Listed {
-  readonly path: string
-  readonly size: number
-  readonly mtime: number
-}
-
-/** A card's preview level, stamped with what its thumbnail is drawn from besides the file itself. */
-export type CardPreview = LevelPreview & {
-  /**
-   * The level's image paths with their modification times (`assets/terrain.png@1700000000000`, or `@missing`), so a
-   * replaced or newly imported image gives the card a new thumbnail key.
-   */
-  readonly images: string
-}
-
-export interface ProfileRef {
-  readonly id: string
-  readonly label: string
-}
-
-export type ProjectEntry =
-  | (Listed & {
-      readonly status: 'ok'
-      readonly profile: ProfileRef
-      /** Findings of the profile's checks, by severity; info is not counted. */
-      readonly errors: number
-      readonly warnings: number
-      /** The profile's words for what the project holds; `undefined` when the profile gives none. */
-      readonly summary: ProfileSummary | undefined
-      /** The level the card draws as a thumbnail; `undefined` when the profile has none to show. */
-      readonly preview: CardPreview | undefined
-    })
-  /** A profile claims the file and it does not open: Home shows the reason and offers the text view. */
-  | (Listed & { readonly status: 'broken'; readonly profile: ProfileRef; readonly message: string })
-  | (Listed & { readonly status: 'ambiguous'; readonly candidates: readonly ProfileRef[] })
 
 const ref = (profile: ProfileRef): ProfileRef => ({ id: profile.id, label: profile.label })
 const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
