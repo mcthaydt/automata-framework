@@ -1,6 +1,6 @@
 # Refactor progress
 
-**Overall: 39% (7 of 18 stages done).**
+**Overall: 44% (8 of 18 stages done).**
 
 The Owner's order: finish one slice completely before starting the next. On 2026-11-05 it was core and 2D, then 3D, then
 the editors, then the website. On 2026-11-06 the Owner changed the later slices to vertical ones: "we do the editor
@@ -185,7 +185,7 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 2D editors and website: 33% (2 of 6)
+## 2D editors and website: 50% (3 of 6)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
 repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
@@ -197,7 +197,7 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 |---|---|---|
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
-| 3. Plan audit | Not started | |
+| 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
 | 4. Build | Not started | |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
@@ -210,3 +210,8 @@ request.
 
 Not started. Starts when the 2D editors and the website are done. It may split in two (3D core, then the 3D editors
 and site) at its audit.
+
+Owed to it by the 2D slice: the redesign of `editor-3d`, the Studio and the suite in the website's look (the Owner,
+2026-11-06: "completely redesign the editors for ux, copy, and ui"; the 2D slice redesigns the kit and the 2D editor),
+the suite's top bar copy and wiring (E6, G2), deleting the old token aliases `editor-3d` still uses, and the 3D
+examples' and editors' code refactor to the same standard (2D spec section 17).
