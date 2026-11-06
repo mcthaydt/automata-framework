@@ -38,6 +38,10 @@ table is checked end to end and the paused dialog's ✕ is `Close`. What is left
 1. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
 2. **9.2** waits for the Owner's go; **2.1**'s tag push is the Owner's (HTTP 403 from here).
 3. WebKit, Firefox and hosted CI runs for the whole stack.
+4. **Consumer smoke after the package merge** (found by the first CI run, 2026-11-06; [comment on #400](https://github.com/mcthaydt/automata-framework/pull/400#issuecomment-6678595019)):
+   setup is fixed; 6 steps still fail at #400: the Node fixture imports the old packages, the published Ruken `.d.ts` import
+   `@ruken/sdk`, `./testing` does not publish `openHostingTest`, the packed tools bin has an `eval`, and the
+   `automata-web` bundle fixture meets uncompiled `.svelte`. Needs its own task before the post-build audit.
 
 Next stage: the build audit (stage 5), over the stack from #388 to #401.
 
