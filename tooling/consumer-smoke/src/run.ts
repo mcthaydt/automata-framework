@@ -182,8 +182,7 @@ function steps(project: string): Step[] {
     [
       'ship: automata ship --help prints its commands',
       () => {
-        // The CLI answers --help with its usage and exit 2 (a usage answer), so check what it printed.
-        const usage = output(project, bin('automata-ship'), ['--help'])
+        const usage = output(project, bin('automata'), ['ship', '--help'])
         if (!usage.includes('prepare') || !usage.includes('publish')) throw new Error(`no usage:\n${usage}`)
         return 'usage printed'
       },
@@ -238,7 +237,7 @@ function steps(project: string): Step[] {
       },
     ],
     [
-      // An itch.io or web build resolves `@mcthaydt/automata-host/target` to the web adapter, so the
+      // An itch.io or web build resolves `@mcthaydt/automata/target` to the web adapter, so the
       // published `dist` must let it drop every byte of the Ruken SDK.
       'bundle: vite build with the automata-web condition, no Ruken SDK',
       () => {

@@ -9,14 +9,14 @@ const reuse = process.env.CI === undefined
 export default defineJourneys({
   testDir: 'playground/e2e',
   projects: [
-    // The feasibility proof (website playground spec, WEB.PLAY.1), in every engine the site supports and Firefox,
+    // The feasibility proof, in every engine the site supports and Firefox,
     // which the site's own suite does not run.
     ...engines.map((browserName) => ({
       name: `playground-${browserName}`,
       testMatch: 'feasibility.e2e.ts',
       use: { browserName },
     })),
-    // The playground frame (WEB.PLAY.2): the runtime build runs an example its parent sends, in every engine.
+    // The playground frame: the runtime build runs an example its parent sends, in every engine.
     ...engines.map((browserName) => ({
       name: `playground-frame-${browserName}`,
       testMatch: ['frame.e2e.ts', 'examples.e2e.ts'],

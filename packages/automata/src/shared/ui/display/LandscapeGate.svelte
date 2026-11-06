@@ -1,9 +1,9 @@
 <!--
   @component
-  The landscape gate's cover (M4 spec §4.9, §7; FloorFifty `ui/components/LandscapeGate.svelte` at `ac72660`): over
+  The landscape gate's cover: over
   every screen and every dialog, empty whenever the gate is open (`state` none). Where the browser can hide its bar,
   one tap on the focused button does it; where it cannot, the cover says how to play. The runtime decides the state
-  (`landscapeGate`) and only standalone (M4-D5): under Ruken the host frames the game.
+  (`landscapeGate`) and only standalone: under Ruken the host frames the game.
 -->
 <script lang="ts">
 import type { LandscapeGateState } from '../browser/landscape-gate'

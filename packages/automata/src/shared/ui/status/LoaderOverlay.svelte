@@ -1,7 +1,6 @@
 <!--
   @component
-  The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty
-  `ui/components/LoaderOverlay.svelte` at 122a220). It shows real progress when the runtime has it
+  The loader over a screen while its assets load. It shows real progress when the runtime has it
   and an indeterminate bar before the first byte, says what is loading in words, and after the
   runtime's slow threshold says quietly that it is slow, not failing. The slow line always holds
   its height, so nothing shifts when it appears.

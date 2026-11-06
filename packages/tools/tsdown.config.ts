@@ -1,6 +1,6 @@
 import { publishedBuild } from '../../tooling/release/src/tsdown-shared.ts'
 
-// The published build (M2.4 spec §3.1, §3.4): the ship API and the commands (`index`), the Playwright helpers
+// The published build: the ship API and the commands (`index`), the Playwright helpers
 // (`e2e`) and the two bins. `@ruken/manifest` (compileHeaders, for `automata check --csp`, and the manifest writer
 // of `automata ship`) is bundled; Ruken's built CLI is copied whole to `dist/vendor/ruken-cli/`, where `rukenCliPath`
 // finds it, and its runtime dependencies are declared. `automata editor` also reads the editor list through the

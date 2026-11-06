@@ -22,7 +22,7 @@ import { publicResource } from '../src/playground/playground-resources.ts'
 import { checkRuntimeSize, RUNTIME_GZIP_BUDGET } from '../src/playground/runtime-size.ts'
 import { runtimeFromViteManifest } from '../src/playground/vite-runtime.ts'
 
-// `build:playground --site-origin <origin> [--out <folder>]` (website playground spec §5.5): everything the site
+// `build:playground --site-origin <origin> [--out <folder>]`: everything the site
 // publishes under /playground/, for one site origin (each frame page's policy names it, R-2). The runtime is one Vite
 // build (vite.config.ts); the frame pages, the examples' public files and resources, the goldens, catalog.json and
 // manifest.json are written around it. The build fails when the runtime's JavaScript passes its gzip budget or a
@@ -84,7 +84,7 @@ for (const example of catalog) {
     )
 }
 // The shared resources, less what only an unpublished extension's examples use (The Last Light's models, which
-// render-pixi3d draws): the site is public, and those stay private while D-1 stands (M3 spec §4.8).
+// render-pixi3d draws): the site is public, and those stay private while D-1 stands.
 const resourcesRoot = join(examplesRoot, 'resources')
 const resourceFiles = readdirSync(resourcesRoot, { recursive: true, encoding: 'utf8' })
   .filter((name) => statSync(join(resourcesRoot, name)).isFile())

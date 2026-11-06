@@ -60,7 +60,7 @@ export interface ScreensCopy {
     readonly quitPrompt: string
     readonly quitConfirm: string
     readonly cancel: string
-    /** Why play paused when a controller in use was unplugged (M4-D9). */
+    /** Why play paused when a controller in use was unplugged. */
     readonly reconnect: string
   }
   readonly settings: {

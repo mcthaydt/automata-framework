@@ -1,6 +1,6 @@
 <!--
   @component
-  The host's save state in words (M5 spec §7): checking, syncing, saved, offline-queued, retry, conflict, recovered, and
+  The host's save state in words: checking, syncing, saved, offline-queued, retry, conflict, recovered, and
   "no grant" for a game that was not given the saves grant ("Progress won't be kept"). It is not focusable. The line is
   a polite live region that stays mounted while the state changes, so a screen reader hears each change.
   With no `status` (the standalone session, where nothing syncs) it renders nothing at all.

@@ -29,7 +29,7 @@ export interface Rect {
 
 /**
  * What the host says about the display: the parts of Ruken's `display.metrics` the geometry reads.
- * The host contract's type (`@mcthaydt/automata-host`), never copied.
+ * The host contract's type (`@mcthaydt/automata`), never copied.
  * `scale` is 1.333 on Ruken's TV mode: a hint to enlarge text and targets, never CSS zoom.
  */
 export type HostDisplay = Pick<DisplayMetricsPayload, 'safeArea' | 'hostReserved' | 'scale'>

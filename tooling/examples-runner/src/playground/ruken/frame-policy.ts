@@ -19,7 +19,7 @@ function rukenPolicy(): string {
 }
 
 // WebKit does not match 'self' to the site for a fetch from an opaque-origin document, though it does for scripts and
-// images (measured in WEB.PLAY.1, risk R-2), so `connect-src` names the site's origin beside 'self'.
+// images (measured by the feasibility test), so `connect-src` names the site's origin beside 'self'.
 function checkedOrigin(siteOrigin: string): string {
   let parsed: string | undefined
   try {

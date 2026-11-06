@@ -1,6 +1,6 @@
 <!--
   @component
-  An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives
+  An on/off setting: a native checkbox with the switch role, so the browser gives
   Space and the focus navigator's `adjust` flips it. The state shows in words (`onLabel`,
   `offLabel`) beside the track, never in colour alone.
 

@@ -1,6 +1,6 @@
 <!--
   @component
-  A short status label (M4 spec §4.12). Its tone is `data-tone` and an edge colour, and never only
+  A short status label. Its tone is `data-tone` and an edge colour, and never only
   that: every tone but `info` also shows a glyph a sighted player reads and says `toneLabel` to
   assistive technology, so the tone survives with every colour removed. A warning or danger chip
   without words throws while it mounts.

@@ -1,6 +1,6 @@
 import { defaultClientConditions, defineConfig } from 'vite'
 
-// An `itch`/`web` target build (PUB spec §3): `resolve.conditions` replaces Vite's defaults, so the condition
+// An `itch`/`web` target build: `resolve.conditions` replaces Vite's defaults, so the condition
 // goes in front of them.
 export default defineConfig({
   root: import.meta.dirname,

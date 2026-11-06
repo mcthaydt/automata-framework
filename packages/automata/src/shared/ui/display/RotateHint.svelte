@@ -1,6 +1,6 @@
 <!--
   @component
-  The rotate hint (M4 spec §4.9, §7): over a game locked to one orientation (`GameSpec.orientation`) on a phone held
+  The rotate hint: over a game locked to one orientation (`GameSpec.orientation`) on a phone held
   the other way. The runtime pauses the game while it shows (`Time.pause('display')`). Not interactive: turning the
   phone is the only way past it, so nothing in it takes focus. The words follow FloorFifty `RotateHint.svelte` at
   `ac72660`, which offers the same advice as a toast.

@@ -29,7 +29,7 @@ export function contentPlugin(): ReturnType<typeof automataContent> {
 }
 
 export default defineConfig({
-  // A Ruken build: the Ruken host adapter (DIST spec §5.3), in front of Vite's defaults, which `conditions` replaces.
+  // A Ruken build: the Ruken host adapter, in front of Vite's defaults, which `conditions` replaces.
   resolve: { conditions: ['automata-ruken', ...defaultClientConditions] },
   // Svelte compiles the ui panels the runtime shows (loader, boot failure) and the game package's screens.
   plugins: [svelte(), contentPlugin()],

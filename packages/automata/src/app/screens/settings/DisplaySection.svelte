@@ -1,6 +1,6 @@
 <!--
   @component
-  The Display section of Settings (M4 spec §4.8, §7): the graphics quality tier as an option group (a pad's `adjust`
+  The Display section of Settings: the graphics quality tier as an option group (a pad's `adjust`
   cycles it), and reduced motion as the browser reports it. Reduced motion is the player's system setting, so it is
   shown and never changed here.
 -->

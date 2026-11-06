@@ -1,4 +1,4 @@
-// Run by the package's build after `svelte-package` and tsdown's two passes (DX.2a): drops the tests and the
+// Run by the package's build after `svelte-package` and tsdown's two passes: drops the tests and the
 // test-only helpers from `dist/`, gives every relative import its file, and points the declarations' Ruken type
 // imports at the types `tsdown.dts.config.ts` inlined into `dist/vendor/` (D-8). The package vendors Ruken's code
 // only in `dist/entries/target/ruken.js`, which tsdown bundles (`tsdown.config.ts`).

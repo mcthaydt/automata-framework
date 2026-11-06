@@ -1,6 +1,6 @@
 <!--
   @component
-  A device prompt (M4 spec §4.6): the label of an action's input on the device in the player's hand, a key, a pad
+  A device prompt: the label of an action's input on the device in the player's hand, a key, a pad
   button or the touch label, or "Unbound". It follows its props in place, so a rebind or a device switch never
   remounts it, and it is never in the focus order. `data-prompt` is the kind.
 -->

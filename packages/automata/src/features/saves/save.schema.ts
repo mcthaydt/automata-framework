@@ -37,7 +37,7 @@ export interface SaveDef<S> {
   readonly migrations: Readonly<Record<number, SaveMigration>>
   /** Absent: one record, slot 0, stored at `key`. */
   readonly slots?: { readonly count: number }
-  /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer (M5-D10). `{ on: [] }` turns it off. */
+  /** Absent: save on `screen-exit`, `round-end` and `background`, with no timer. `{ on: [] }` turns it off. */
   readonly autosave?: AutosavePolicy
 }
 
@@ -51,7 +51,7 @@ export interface SaveEnvelope {
   readonly savedAt: number
   readonly label?: string
   readonly data: Record<string, unknown>
-  /** An optional sim snapshot, base64 (M5-D5). */
+  /** An optional sim snapshot, base64. */
   readonly snapshot?: string
 }
 
@@ -71,7 +71,7 @@ export type SlotState =
   | { readonly kind: 'ready'; readonly slot: number; readonly meta: SlotMeta }
   | { readonly kind: 'unreadable'; readonly slot: number; readonly reason: string }
   | { readonly kind: 'newer'; readonly slot: number; readonly version: number }
-  /** A snapshot taken with other content: only its data loads (M5-D5). */
+  /** A snapshot taken with other content: only its data loads. */
   | { readonly kind: 'other-content'; readonly slot: number; readonly meta: SlotMeta }
 
 /** A stored save read for this build. */

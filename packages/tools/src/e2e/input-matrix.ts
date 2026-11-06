@@ -24,7 +24,7 @@ export interface MatrixCell {
   readonly device: InputDevice
   readonly engine: Engine
   readonly hosts: readonly MatrixHost[]
-  /** M4-D11: the cells that run locally and in hosted CI; the rest belong to the GPU runner's nightly. */
+  /** The cells that run locally and in hosted CI; the rest belong to the GPU runner's nightly. */
   readonly local: boolean
 }
 

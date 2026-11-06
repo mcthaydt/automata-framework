@@ -1,7 +1,6 @@
 <!--
   @component
-  A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts`
-  at `ac72660`). Each group starts its own page; the shape is `most`, cut to what the measured box holds at
+  A grid of items in pages that never scrolls. Each group starts its own page; the shape is `most`, cut to what the measured box holds at
   `minTile` and to what the largest group fills. PagerDots show where it is.
 
   The page is controlled: it reports `onpage` and shows the `page` it is given. A `[data-focus-grid]`, so the

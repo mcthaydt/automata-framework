@@ -1,6 +1,6 @@
 <!--
   @component
-  The whole visible screen as one swipe surface (M4 spec §4.4), from FloorFifty `ui/components/SwipeSurface.svelte`
+  The whole visible screen as one swipe surface, from FloorFifty `ui/components/SwipeSurface.svelte`
   at `ac72660`.
 
   All bookkeeping is the tracker's (runtime `SwipeTracker`); this forwards pointer events, each with its own

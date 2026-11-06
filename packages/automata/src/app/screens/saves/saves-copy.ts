@@ -38,7 +38,7 @@ export const SAVE_STATUS_COPY: SaveStatusCopy = {
   'no-grant': "Progress won't be kept",
 }
 
-/** The words of the choice paused offers once another device has changed the slot being played (M5-D6). */
+/** The words of the choice paused offers once another device has changed the slot being played. */
 export interface ChangedElsewhereCopy {
   readonly message: string
   readonly loadNewer: string

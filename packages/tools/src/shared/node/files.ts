@@ -36,7 +36,7 @@ export interface Files {
   readonly _Files: unique symbol
 }
 export const Files: Context.Tag<Files, FilesService> = Context.GenericTag<Files, FilesService>(
-  '@mcthaydt/automata-node/Files',
+  '@mcthaydt/automata-tools/Files',
 )
 
 const attempt = <A>(path: string, run: () => A): Effect.Effect<A, FileError> =>

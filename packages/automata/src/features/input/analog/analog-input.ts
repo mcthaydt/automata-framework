@@ -2,7 +2,7 @@
 // `input.manager.ts`, which owns the held sets this reaches through `press` and `lift`.
 //
 // The touch stick is the left stick while a thumb holds it: its vector goes through the pad's dead zone and
-// quantization (`quantizeStick`, M4-D2, M4-D13), and its eight-way directions hold the actions bound to `left-*`
+// quantization (`quantizeStick`), and its eight-way directions hold the actions bound to `left-*`
 // as sources `touch:stick:<direction>`, so a blur's release of `touch:` sources lets them go too.
 //
 // The drag is a sum: deltas add up as they arrive, `sample()` (from `poll()`) moves the sum to what `cameraDrag()`
@@ -37,7 +37,7 @@ export interface AnalogInput {
   readonly touchStick: TouchStickSink
   readonly drag: DragSink
   /**
-   * A stick as integers in −127..127 per axis (M4-D2): the active pad's, from its `axes`, except that the touch
+   * A stick as integers in −127..127 per axis: the active pad's, from its `axes`, except that the touch
    * stick is the left one while it is held.
    */
   stick(side: 'left' | 'right', padAxes: readonly number[]): { readonly x: number; readonly y: number }

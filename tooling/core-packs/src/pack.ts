@@ -128,7 +128,7 @@ export function packWorkspace(options: PackOptions): PackManifest {
     (a, b) => a.manifest.name.localeCompare(b.manifest.name),
   )
   // A published package ships `dist`; an extra (a private tool) exports its source, unless it publishes built exports
-  // (`publishConfig.exports`, as the sector format does: FR.1), which `pnpm pack` applies, so its `dist` must exist too.
+  // (`publishConfig.exports`, as the sector format does), which `pnpm pack` applies, so its `dist` must exist too.
   const shipsDist = [
     ...published,
     ...extras.filter((pkg) => pkg.manifest.publishConfig?.exports !== undefined),

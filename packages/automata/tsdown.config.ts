@@ -1,6 +1,6 @@
 import { publishedBuild } from '../../tooling/release/src/tsdown-shared.ts'
 
-// The published build's tsdown pass (M2.4 spec §3.4, DIST spec §5.3). `svelte-package` has already turned `src/`
+// The published build's tsdown pass. `svelte-package` has already turned `src/`
 // into `dist/`, one file per module, leaving `.svelte` files as source; this pass overwrites the three build-target
 // files with bundles, because Ruken's SDK is not published and must be inlined (D-8):
 // - `entries/target/ruken.js` bundles `@ruken/sdk`;

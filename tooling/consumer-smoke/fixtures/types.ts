@@ -1,5 +1,5 @@
-// consumer-smoke's types step (M2.4 spec §3.6): the published declarations, read by TypeScript 7.0.2 and by
-// 6.0.3 (ship spec §3.1: TS 6 consumers can read AF's .d.ts). One use of each entry's main types.
+// consumer-smoke's types step: the published declarations, read by TypeScript 7.0.2 and by
+// 6.0.3 (a TS 6 consumer can read AF's .d.ts). One use of each entry's main types.
 
 import type { Hosting } from '@mcthaydt/automata'
 import { createHosting } from '@mcthaydt/automata/target'
@@ -45,7 +45,7 @@ import { checkLayout, manualFrames, withRuntimeTest } from '@mcthaydt/automata/t
 export const sizes: readonly ReferenceSize[] = REFERENCE_SIZES
 export const factor: FormFactor = classifyFormFactor(390, 844)
 export type Uses = [CompiledContent, ContentConfig, Diagnostic, Hosting, FilesService, ShipConfig, Geometry]
-// DX.2a: runtime, render-pixi, game and the umbrella, published.
+// The umbrella package, published: the runtime, renderer, game call and host contract.
 export type GameUses = [GameDefinition, RuntimeHandle, ExtensionDef, PixiRendererOptions, GameSpec]
 export const gameValues = [runGame, startGame, keys, createPixiRenderer, rect, manualFrames, withRuntimeTest]
 export const extension: ExtensionDef<'smoke'> = defineExtension({ name: 'smoke' })

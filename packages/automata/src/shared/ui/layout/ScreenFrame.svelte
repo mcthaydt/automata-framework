@@ -1,7 +1,6 @@
 <!--
   @component
-  Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from
-  FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
+  Every screen's frame: the visible region, a corner row, then a hero and a body.
 
   It fills the visible region: the layout viewport less the insets the geometry owner publishes
   (safe area and Ruken's reserved strip), ending above whatever the browser lays over the page's
@@ -34,7 +33,7 @@ const { arrangement, body, hero, actions, back, backLabel, header, end, testId }
 
 // The geometry owner marks the root with `data-visual-inset` while the browser lays something over
 // the page's foot (the keyboard). Only then is the frame shorter than what it holds, and only then
-// does it scroll and say so: `data-scroll-region` is what the layout check reads (spec §3.10). At
+// does it scroll and say so: `data-scroll-region` is what the layout check reads. At
 // rest it is not a scroll region, so everything in it has to fit.
 const root = typeof document === 'undefined' ? undefined : document.documentElement
 const covered = (): boolean => root?.hasAttribute('data-visual-inset') ?? false

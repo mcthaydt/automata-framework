@@ -1,4 +1,4 @@
-// The test-move codemod (core and 2D refactor plan, task 3.2; spec section 3.4).
+// The test-move codemod.
 //
 // It moves a package's tests from beside their sources (`src/a/b.parity.test.ts`) into the package's `tests/` folder,
 // where the folder says what kind a test is (`tests/browser/a/b.test.ts`), and rewrites the relative imports the move

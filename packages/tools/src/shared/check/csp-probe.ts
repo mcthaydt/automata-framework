@@ -36,10 +36,10 @@ export interface CspProbeService {
   run(input: CspProbeInput): Effect.Effect<CspProbeResult, CheckToolError>
 }
 
-/** The service's tag (the `Files` pattern in `@mcthaydt/automata-node`). */
+/** The service's tag (the `Files` pattern in `shared/node/files.ts`). */
 export interface CspProbe {
   readonly _CspProbe: unique symbol
 }
 export const CspProbe: Context.Tag<CspProbe, CspProbeService> = Context.GenericTag<CspProbe, CspProbeService>(
-  '@mcthaydt/automata-cli/CspProbe',
+  '@mcthaydt/automata-tools/CspProbe',
 )

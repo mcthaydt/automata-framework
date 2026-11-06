@@ -6,7 +6,7 @@ import type { Input } from './input.manager.ts'
 
 /** The analog input at one fixed step, read once after `Input.poll()`. */
 export interface AnalogReading {
-  /** The active pad's stick, or the touch stick, as integers −127..127 (M4-D2). */
+  /** The active pad's stick, or the touch stick, as integers −127..127. */
   stick(side: 'left' | 'right'): { readonly x: number; readonly y: number }
   /** CSS px dragged to the right since the previous tick; 0 unless the map binds the camera drag. */
   cameraDrag(): number

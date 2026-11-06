@@ -1,7 +1,7 @@
 <!--
-  The default title screen (DX spec §7): the game's title and one primary Play, on the ui frame.
+  The default title screen: the game's title and one primary Play, on the ui frame.
   The flow focuses Play on entry (runtime flow step 7).
-  A game with a save (M5.2) has no Play: the title lists the save's slots, and the chosen slot's primary action (New
+  A game with a save has no Play: the title lists the save's slots, and the chosen slot's primary action (New
   game, or Continue) takes Play's place, and its focus.
 -->
 <script lang="ts">
@@ -15,7 +15,7 @@ interface Props {
   title: string
   onPlay: () => void
   saves?: TitleSaves | undefined
-  /** The screens' words in the player's language (DX.2d). */
+  /** The screens' words in the player's language. */
   copy: LiveScreensCopy
 }
 

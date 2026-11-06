@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { expect, type Page, test } from '@playwright/test'
 import { compiled, examples, log, type Message, run, waitFor } from './frame-driver.ts'
 
-// WEB.PLAY.2 (website playground spec §5, §7.2): a playground frame runs the code its parent sends and says what
+// A playground frame runs the code its parent sends and says what
 // happened (frame-driver.ts frames it and compiles the code as the site's compile step will).
 
 test('shapes-rects posts running in its frame', async ({ page }) => {

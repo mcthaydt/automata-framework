@@ -64,7 +64,7 @@ export function createSlotsModel(): SlotsModel {
 export interface PausedSavesView {
   /** The host's state, or undefined where there is nothing to say (standalone). */
   status: SaveStatusState | undefined
-  /** Another device changed the slot being played (M5-D6): the choice is on offer. */
+  /** Another device changed the slot being played: the choice is on offer. */
   changedElsewhere: boolean
   /** Load newer was chosen and the other device's progress could not be used. */
   loadFailed: boolean

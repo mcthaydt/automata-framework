@@ -6,11 +6,11 @@ import { playgroundHeaders } from '../src/playground/playground-headers.ts'
 import { framePolicy } from '../src/playground/ruken/frame-policy.ts'
 import { fileUnder, sendFile } from './static-files.ts'
 
-// The site in miniature for WEB.PLAY.1 (website playground spec §17): a parent page on the site's origin, the frame
-// page it frames in `sandbox="allow-scripts"`, and modules under /playground/ with the §11.3 headers. /bare/ serves
+// The site in miniature for the playground feasibility test: a parent page on the site's origin, the frame
+// page it frames in `sandbox="allow-scripts"`, and modules under /playground/ with the frame policy's headers. /bare/ serves
 // the same modules without them, to show they are needed. Every request is logged, so a test can count what a
-// second frame fetched again (R-1). It serves zod's published ESM files as they are; WEB.PLAY.3's runtime build
-// replaces them.
+// second frame fetched again (R-1). It serves zod's published ESM files as they are; the playground's runtime
+// build replaces them.
 
 const STATIC = join(import.meta.dirname, 'static')
 const ZOD = dirname(createRequire(import.meta.url).resolve('zod/package.json'))

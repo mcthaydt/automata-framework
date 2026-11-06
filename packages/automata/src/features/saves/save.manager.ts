@@ -1,7 +1,7 @@
 // The `Save` service: a game's save slots over `Hosting.saves`.
 //
 // Each slot is one Ruken key holding a canonical envelope, so a host conflict on a slot never splits it from its
-// header, and the slot list is derived from `Hosting.saves.keys` with no index key (M5-D2). AF refuses only what
+// header, and the slot list is derived from `Hosting.saves.keys` with no index key. AF refuses only what
 // it can know (a write over a newer build's save); every other refusal is the host's, relayed as its `HostRefusal`.
 // Refusals are answers (`{ ok: false, reason }`), never throws; asking for a slot the save does not have is a bug and
 // throws. Nothing here falls back to device storage (AGENTS.md, "Honor host authority").
@@ -36,7 +36,7 @@ export interface Loaded<S> {
   readonly data: S
   /** Undefined for an empty slot. */
   readonly meta: SlotMeta | undefined
-  /** The sim snapshot, only when it was taken with this build's content (M5-D5). */
+  /** The sim snapshot, only when it was taken with this build's content. */
   readonly snapshot?: Uint8Array
 }
 
@@ -82,7 +82,7 @@ export interface Save<S> {
    */
   autosave(trigger: AutosaveTrigger): Promise<void>
   /**
-   * True while the loaded slot holds something another device wrote after it was loaded (M5-D6). Nothing is
+   * True while the loaded slot holds something another device wrote after it was loaded. Nothing is
    * reloaded, and no trigger writes that slot over the other device's until the player answers. Lowered by
    * `keepPlaying`, `loadNewer` or any load.
    */
@@ -252,7 +252,7 @@ export async function saveService<S>(
     setLoaded(slot)
     const { envelope } = read
     const result = { slot, data: read.data, meta: metaOf(envelope) }
-    // A snapshot taken with other content is dropped (M5-D5): only the data loads.
+    // A snapshot taken with other content is dropped: only the data loads.
     return ok(
       envelope.snapshot !== undefined && envelope.contentHash === contentHash
         ? { ...result, snapshot: fromBase64(envelope.snapshot) }

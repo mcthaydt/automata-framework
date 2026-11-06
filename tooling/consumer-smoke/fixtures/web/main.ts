@@ -1,4 +1,4 @@
-// consumer-smoke's bundle step (M2.4 spec §3.6): a page importing the sim, the host and one ui component, built
+// consumer-smoke's bundle step: a page importing the sim, the host and one ui component, built
 // by Vite as a game would. run.ts then checks the output has no eval from AF and one copy of Ruken's SDK.
 
 import { Dialog } from '@mcthaydt/automata'

@@ -1,13 +1,13 @@
 <!--
   @component
-  The core Settings screen (M4 spec §4.8, M4-D8), laid out and behaving as FloorFifty's settings
+  The core Settings screen, laid out and behaving as FloorFifty's settings
   (`ui/components/SettingsPanel.svelte` in `PauseOverlay.svelte` at a28dc44; Owner 2026-10-18: "match the layout and
   function, not the style"): a dialog over the dimmed game, the same frame as Paused, so going between them reads as
   one dialog changing its view. Tabs stay put and the chosen tab's sections scroll under them in one list that counts
   what is below; Back sits under the dialog, and Escape and the dialog's Close go back too. Where the dialog is 560 px
   wide (it widens on a short band) the sections go two across. The default screens give it Display and Controls;
   extensions add theirs to the Settings tab through the `settings.sections` slot. A kit's styled screen replaces it
-  by flow (PRODUCT.6).
+  by flow.
 -->
 <script lang="ts">
 import Modal from '../../../shared/ui/dialog/Modal.svelte'

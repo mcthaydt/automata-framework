@@ -1,6 +1,6 @@
 <!--
   @component
-  The rotate toast (Owner amendment to M4 spec §4.9, 2026-10-18; FloorFifty `RotateHint.svelte` at a28dc44): for a
+  The rotate toast (the Owner asked for a toast, not a gate): for a
   game with `rotateHint: 'toast'`, a small message at the top on a phone held the other way, "Turn your phone for a
   bigger view", with an OK. It covers nothing and pauses nothing; the only part a thumb can hit is the OK, at 44 px.
 -->

@@ -7,9 +7,9 @@
  * here, and ui's own test checks every size against its classifiers.
  */
 
-/** `@mcthaydt/automata-ui`'s `FormFactor`. */
+/** The geometry owner's `FormFactor`. */
 export type ReferenceFormFactor = 'phone-portrait' | 'phone-landscape' | 'tablet-portrait' | 'desktop'
-/** `@mcthaydt/automata-ui`'s `HeightTier`. */
+/** The geometry owner's `HeightTier`. */
 export type ReferenceHeightTier = 'short' | 'compact' | undefined
 
 /**

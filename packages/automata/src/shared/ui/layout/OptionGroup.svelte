@@ -1,6 +1,6 @@
 <!--
   @component
-  A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a
+  A choice of one: a
   segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 
   Native radios in a fieldset, where FloorFifty used `<button role="radio">`: the browser gives the arrow keys,

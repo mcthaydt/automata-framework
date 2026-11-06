@@ -17,7 +17,7 @@ export const STACK: StackSource = {
       packages: ['pixi.js'],
       does: 'Draws the game in 2D: WebGL2 by default, WebGPU opt-in per game (ADR 0002).',
       why: "Both reference games render with Pixi 8: FloorFifty in 2D and The Last Light in 3D. Ruken's manifest declares `webgl2` and no WebGPU value, so the WebGL2 path is the one that must stay solid (ADR 0002).",
-      adds: "`@mcthaydt/automata-render-pixi`: the `./no-eval` entry every game imports first (Ruken's CSP has no `eval`), renderer start-up with a WebGL2 default, a `RenderDelta` consumer that interpolates between sim ticks, the letterbox and canvas resolution, and GLSL + WGSL filter-program pairs.",
+      adds: "`@mcthaydt/automata`'s renderer: the `/no-eval` entry every game imports first (Ruken's CSP has no `eval`), renderer start-up with a WebGL2 default, a `RenderDelta` consumer that interpolates between sim ticks, the letterbox and canvas resolution, and GLSL + WGSL filter-program pairs.",
     },
     {
       library: 'Koota',
@@ -49,7 +49,7 @@ export const STACK: StackSource = {
       packages: ['svelte'],
       does: 'Menus, HUD and every screen outside the canvas, with rune stores for app state (master spec §3).',
       why: "FloorFifty's UI and Ruken's own `packages/ui` are Svelte, and Ruken requires a mobile layout under `display.metrics` on phones (master spec §4.1).",
-      adds: '`@mcthaydt/automata-ui`: mobile-first primitives (ScreenFrame, ActionBar, CornerControls, ScrollList, Dialog, LoaderOverlay, ErrorPanel), the single geometry owner (form factor, height tier, viewport tracking), focus navigation and browser hygiene, with layout-contract test helpers.',
+      adds: "`@mcthaydt/automata`'s ui kit: mobile-first primitives (ScreenFrame, ActionBar, CornerControls, ScrollList, Dialog, LoaderOverlay, ErrorPanel), the single geometry owner (form factor, height tier, viewport tracking), focus navigation and browser hygiene, with layout-contract test helpers.",
     },
     {
       library: 'Paraglide',
@@ -57,7 +57,7 @@ export const STACK: StackSource = {
       packages: ['@inlang/paraglide-js'],
       does: "Compiles the content compiler's locale keys into typed `t()` message functions (PRODUCT spec §4).",
       why: 'FloorFifty already ships its localization on Paraglide, and Ruken asks every game to localize from `session.locale` (PRODUCT spec §4).',
-      adds: "`@mcthaydt/automata-runtime` (PRODUCT.L1): language negotiation (the player's saved choice, then Ruken's `session.locale`, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`. Planned in PRODUCT.L2 to L4: per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.",
+      adds: "`@mcthaydt/automata`'s runtime (PRODUCT.L1): language negotiation (the player's saved choice, then Ruken's `session.locale`, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`. Planned in PRODUCT.L2 to L4: per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.",
     },
     {
       library: 'smol-toml',
@@ -73,7 +73,7 @@ export const STACK: StackSource = {
       packages: ['@ruken/sdk', '@ruken/sdk-host', '@ruken/manifest', '@ruken/cli'],
       does: "The host: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0004).",
       why: "Ruken is the reference host. FloorFifty already runs through these packages, so AF consumes them instead of re-deriving Ruken's contract (ADR 0004). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).",
-      adds: '`@mcthaydt/automata-host`: the `Hosting` Effect service with typed errors and a test layer on the fake host; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.',
+      adds: "`@mcthaydt/automata`'s host contract: the `Hosting` service with typed errors and a fake host to test against; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.",
     },
     {
       library: 'Vite, Vitest, Playwright',
@@ -81,7 +81,7 @@ export const STACK: StackSource = {
       packages: ['vite', 'vitest', '@playwright/test'],
       does: 'Vite builds every game and example; Vitest runs unit tests and the cross-engine parity suites; Playwright drives browser journeys and the parity browsers.',
       why: 'Ruken pins the same tools and versions, so a game and its host build and test the same way (versions.md).',
-      adds: "`@mcthaydt/automata-testing`: sim and replay goldens that must match bit for bit in Node, Chromium, WebKit and Firefox, renderer-free screen fixtures and layout assertions (hit testing, target size, clipping); `automata-content`'s Vite plugin compiles content on build.",
+      adds: "`@mcthaydt/automata/testing`: sim and replay goldens that must match bit for bit in Node, Chromium, WebKit and Firefox, renderer-free screen fixtures and layout assertions (hit testing, target size, clipping); `automata-content`'s Vite plugin compiles content on build.",
     },
     {
       library: 'Rapier (deterministic-compat)',

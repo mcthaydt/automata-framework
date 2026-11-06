@@ -1,9 +1,8 @@
 /**
- * Renderer-free stand-ins for the browser and the host (M1.6 spec §3.6), so the geometry owner
+ * Renderer-free stand-ins for the browser and the host so the geometry owner
  * and the screens built on it can be tested without a real viewport, keyboard or Ruken.
  *
- * The window is structural (what `@mcthaydt/automata-ui`'s owner reads), so this package does not
- * depend on ui. The host display is Ruken's own `DisplayMetricsPayload` from the vendored SDK.
+ * The window is structural (what the geometry owner reads), so the fixture needs no ui. The host display is Ruken's own `DisplayMetricsPayload` from the vendored SDK.
  */
 
 import type { DisplayMetricsPayload } from '../../shared/host/display.schema.ts'
