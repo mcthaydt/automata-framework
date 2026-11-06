@@ -212,7 +212,7 @@ export class Figure {
   /** With a light: the G-buffer rasterised with each vertex's light in its place slots, and its supersampled pass. */
   private gL: GBuffer; private hiL: GBuffer;
   /** With a fabric in use (H5): the G-buffer rasterised with each vertex's cloth slots in its place slots, and its supersampled pass. */
-  private gC: GBuffer; private hiC: GBuffer;
+  private gC: GBuffer | null = null; private hiC: GBuffer | null = null;
   /** The supersampled G-buffer the raster draws into, resolved into `g`. */
   private hi: GBuffer;
   /** The painter's output (paint.ts): the cell's colours and normal map; and its style. */
@@ -240,7 +240,6 @@ export class Figure {
     this.g = gbuffer(this.cell[0], this.cell[1]);
     this.hi = gbuffer(this.cell[0] * this.style.supersample, this.cell[1] * this.style.supersample);
     this.gL = gbuffer(this.cell[0], this.cell[1]); this.hiL = gbuffer(this.hi.w, this.hi.h);
-    this.gC = gbuffer(this.cell[0], this.cell[1]); this.hiC = gbuffer(this.hi.w, this.hi.h);
     this.painted = new Uint8ClampedArray(this.cell[0] * this.cell[1] * 4); this.normals = new Uint8ClampedArray(this.painted.length);
   }
   /** Swaps the outfit or the held item (rebuilds the part list once). */
@@ -362,7 +361,7 @@ export class Figure {
    * the raster, so read this with `cache = false`. A fork's checks and the mapping tests read labels from it.
    */
   clothAt(k: number): [u: number, v: number] | null {
-    if (!this.built.cloth || this.g.part[k] < 0) return null;
+    if (!this.built.cloth || !this.gC || this.g.part[k] < 0) return null;
     const u = clothU(this.built.frame!, this.g.group[k], this.gC.place[k * 3], this.gC.place[k * 3 + 1]);
     return u === null ? null : [u, this.gC.place[k * 3 + 2]];
   }
@@ -391,7 +390,9 @@ export class Figure {
     // resolved and cleaned as gL is, so gC follows g texel for texel.
     const cloth = this.built.cloth;
     if (cloth) {
-      if (this.hiC.w !== this.hi.w) this.hiC = gbuffer(this.hi.w, this.hi.h);
+      // Allocated on first use: a figure with no fabric never holds the two buffers.
+      this.gC ??= gbuffer(this.cell[0], this.cell[1]);
+      if (!this.hiC || this.hiC.w !== this.hi.w) this.hiC = gbuffer(this.hi.w, this.hi.h);
       const verts = soup.verts.slice(0, soup.count * VERT);
       for (let v = 0; v < soup.count; v++) for (let i = 0; i < 3; i++) verts[v * VERT + 6 + i] = cloth[v * 3 + i];
       rasterize({ ...soup, verts }, this.hiC); resolve(this.hiC, this.gC, S, this.style); cleaned(this.gC);
@@ -403,7 +404,7 @@ export class Figure {
     for (const d of decals) if (d.print && !d.print.seams) stampPrint(d, this.g);
     this.faceStamp = this.member.drawnFace ? this.faceAt(pitch, faceState.blink, faceState.tags) : null;
     this.handStamps = this.handsAt(pitch);
-    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place, cloth ? { place: this.gC.place, u: (g, c, sn) => clothU(this.built.frame!, g, c, sn) } : undefined);
+    paint(this.g, this.built.materials, this.painted, this.normals, this.faceStamp, this.paintStyle, this.built.materialIndex.get(this.member.skin) ?? -1, this.handStamps, this.bends(), light && this.gL.place, cloth ? { place: this.gC!.place, u: (g, c, sn) => clothU(this.built.frame!, g, c, sn) } : undefined);
   }
   /**
    * The hair's spring (secondary motion; the character file's `hair`): it trails behind as the figure walks, bounces with
