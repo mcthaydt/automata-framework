@@ -1,0 +1,45 @@
+{
+  "recordedAt": "2026-10-23",
+  "machine": "self-hosted af-mac-web (macOS ARM64), Playwright Chromium",
+  "browser": "HeadlessChrome/153.0.0.0",
+  "lighthouse": "12.6.1",
+  "runsPerPage": 3,
+  "pages": {
+    "/": {
+      "performance": 1,
+      "lcpMs": 1656.606,
+      "cls": 0,
+      "tbtMs": 31,
+      "fcpMs": 1357.514,
+      "speedIndexMs": 1357.514,
+      "transferBytes": 288441
+    },
+    "/start": {
+      "performance": 0.99,
+      "lcpMs": 1806.583,
+      "cls": 0,
+      "tbtMs": 0.5,
+      "fcpMs": 1356.583,
+      "speedIndexMs": 1356.583,
+      "transferBytes": 216754
+    },
+    "/examples": {
+      "performance": 1,
+      "lcpMs": 1504.259,
+      "cls": 0,
+      "tbtMs": 19.5,
+      "fcpMs": 1504.259,
+      "speedIndexMs": 1504.259,
+      "transferBytes": 238434
+    },
+    "/docs": {
+      "performance": 1,
+      "lcpMs": 1353.376,
+      "cls": 0,
+      "tbtMs": 0,
+      "fcpMs": 903.376,
+      "speedIndexMs": 903.376,
+      "transferBytes": 129546
+    }
+  }
+}

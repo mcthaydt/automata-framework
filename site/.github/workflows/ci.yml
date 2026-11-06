@@ -1,0 +1,209 @@
+name: ci
+
+# The website's CI (QB.3f; quality-bar spec §4.2). It mirrors the framework's own ci.yml where the two overlap.
+#
+# Runners: the Owner's Mac, label af-mac, for every job, as the framework's own CI runs (Owner, 2026-10-23 14:18Z: "we
+# aren't supposed to use cloud, we run it on device"). Nothing here names a GitHub-hosted runner, and a test pins that.
+# History: the first version of this file used the Owner's af-linux label, which no runner was registered for; the
+# coordinator then moved every job to GitHub-hosted ubuntu-24.04 (2026-10-23 03:01Z, to keep the shared self-hosted
+# runner free for Ruken); the hosted jobs stopped on 2026-10-23 at 10:50Z (the account's billing); the Owner's rule above
+# ended the hosted choice. The runner is a second instance of the Mac's runner, registered to this repository
+# (setup-request automata/outbox/2026-10-23-1425), so a job waits in the queue until it is online. A macOS runner cannot
+# run containers, so the browser jobs run on the host and fetch Playwright's browsers into the runner's cache, a no-op
+# once they are there (the framework's parity job does the same). The runners share one home folder, so each job gives
+# pnpm its own folder. Every job runs a pull request only when its head is in this repository (a fork's code must never
+# reach the Owner's machine); pushes to main and manual runs have no pull request and still run. No job holds a write,
+# publish or deploy token: `checks` reads the private framework with a read-only deploy key and nothing else. A job
+# that needs such a token (the deploy of QB.4/DX.12) is a separate decision, not a job to add here: it is deploy.yml.
+#
+# The framework: several tests, and the workshop the build verifies, read the framework's sources from a sibling
+# checkout (`../automata-framework`). The framework repository is private, so the checkout needs the repository
+# secret AF_FRAMEWORK_DEPLOY_KEY: the private half of a read-only deploy key of mcthaydt/automata-framework. A deploy
+# key reads that one repository, expires never and has no scope to get wrong; the personal access token this replaced
+# was a fine-grained one that GitHub answered 404 for the framework (it was not in the token's repository list).
+# It is checked out at the commit in framework.ref, never at a moving branch: the site's committed data
+# (src/data/projects.json, the workshop proof) was synced from that commit, so a framework change cannot turn this
+# CI red on its own. Moving the pin is a deliberate change: sync the site from the new commit, then edit framework.ref.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    # The website is checked out beside the framework (path: automata_website), as it is on a developer's machine.
+    working-directory: automata_website
+
+jobs:
+  checks:
+    name: svelte-check, build, check:site, unit
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: af-mac
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: automata_website
+          persist-credentials: false
+      - name: Read the framework pin
+        id: pin
+        run: echo "ref=$(tr -d '[:space:]' < framework.ref)" >> "$GITHUB_OUTPUT"
+      # A missing or wrong secret would otherwise show up as an ssh error in the middle of the checkout below.
+      # The key is only ever read from the environment; nothing here prints it.
+      - name: AF_FRAMEWORK_DEPLOY_KEY holds a private key
+        env:
+          AF_FRAMEWORK_DEPLOY_KEY: ${{ secrets.AF_FRAMEWORK_DEPLOY_KEY }}
+        run: |
+          if [[ -z "$AF_FRAMEWORK_DEPLOY_KEY" ]]; then
+            echo "::error::AF_FRAMEWORK_DEPLOY_KEY is missing. Add a read-only deploy key of mcthaydt/automata-framework, its private half, as a secret of this repository under that name."
+            exit 1
+          fi
+          case "$AF_FRAMEWORK_DEPLOY_KEY" in
+            '-----BEGIN OPENSSH PRIVATE KEY-----'*) ;;
+            *)
+              echo "::error::AF_FRAMEWORK_DEPLOY_KEY does not hold a private key (an OpenSSH private key starts with -----BEGIN OPENSSH PRIVATE KEY-----). Store the private half of the deploy key, not the public half or a token."
+              exit 1 ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: mcthaydt/automata-framework
+          ref: ${{ steps.pin.outputs.ref }}
+          path: automata-framework
+          ssh-key: ${{ secrets.AF_FRAMEWORK_DEPLOY_KEY }}
+          persist-credentials: false
+          # Full history: the stack page and the evidence file are pinned to framework commits other than framework.ref.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10.34.6
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md), and a runner's temp
+          # folder is one path for all its jobs, so the folder is named by run, attempt and job (CI.WEB1).
+          dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+      # The store gets a folder of its own too, by run, attempt and job (CI.WEB1): the runner's temp folder is the same for every job on it,
+      # so nothing a job needs may live at a fixed path in it.
+      - name: Give pnpm a store of its own
+        run: echo "npm_config_store_dir=$RUNNER_TEMP/pnpm-store-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$GITHUB_JOB" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: automata_website/.nvmrc
+      # The site's tests import the framework's sources, so its dependencies must resolve. Its install scripts
+      # (the git hooks) are not run: this job only reads the framework.
+      - run: bash "$GITHUB_WORKSPACE/automata_website/scripts/ci/pnpm-install.sh" --ignore-scripts
+        working-directory: automata-framework
+      - run: bash scripts/ci/pnpm-install.sh
+      - run: pnpm check
+      - run: pnpm build
+      - run: pnpm check:site
+      - run: pnpm test
+      # The browser and Lighthouse jobs test this exact build.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: site-build
+          path: automata_website/build
+          if-no-files-found: error
+          retention-days: 7
+
+  browsers:
+    name: browsers (chromium, webkit)
+    needs: checks
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: af-mac
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: automata_website
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10.34.6
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md), and a runner's temp
+          # folder is one path for all its jobs, so the folder is named by run, attempt and job (CI.WEB1).
+          dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+      # The store gets a folder of its own too, by run, attempt and job (CI.WEB1): the runner's temp folder is the same for every job on it,
+      # so nothing a job needs may live at a fixed path in it.
+      - name: Give pnpm a store of its own
+        run: echo "npm_config_store_dir=$RUNNER_TEMP/pnpm-store-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$GITHUB_JOB" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: automata_website/.nvmrc
+      - run: bash scripts/ci/pnpm-install.sh
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: site-build
+          path: automata_website/build
+      # The version is the one @playwright/test pins; a no-op once the runner's cache holds it.
+      - run: pnpm exec playwright install chromium webkit
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-report
+          path: automata_website/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+
+  lighthouse:
+    name: lighthouse budget
+    needs: checks
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: af-mac
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: automata_website
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10.34.6
+          # Own folder per job: the Owner's runners share one home folder (Ruken docs/self-hosted-runner.md), and a runner's temp
+          # folder is one path for all its jobs, so the folder is named by run, attempt and job (CI.WEB1).
+          dest: ${{ runner.temp }}/setup-pnpm-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
+      # The store gets a folder of its own too, by run, attempt and job (CI.WEB1): the runner's temp folder is the same for every job on it,
+      # so nothing a job needs may live at a fixed path in it.
+      - name: Give pnpm a store of its own
+        run: echo "npm_config_store_dir=$RUNNER_TEMP/pnpm-store-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$GITHUB_JOB" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: automata_website/.nvmrc
+      - run: bash scripts/ci/pnpm-install.sh
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: site-build
+          path: automata_website/build
+      # Lighthouse drives the Chromium that Playwright pins, fetched into the runner's cache (a no-op when it is there).
+      - run: pnpm exec playwright install chromium
+      - name: Locate Chromium
+        id: chromium
+        run: echo "path=$(node -e "import('@playwright/test').then(({ chromium }) => console.log(chromium.executablePath()))")" >> "$GITHUB_OUTPUT"
+      - run: pnpm lighthouse
+        env:
+          CHROME_PATH: ${{ steps.chromium.outputs.path }}
+      # The medians the budget judged, in the log and the run summary (the report artifact is a zip behind a blob host).
+      # The recorder writes lighthouse-baseline.json into this throwaway checkout; the committed file is replaced by hand
+      # from this output, never by CI.
+      - name: Print the Lighthouse medians
+        if: always()
+        run: |
+          node --import tsx scripts/record-lighthouse-baseline.ts "self-hosted $RUNNER_NAME ($RUNNER_OS $RUNNER_ARCH), Playwright Chromium"
+          cat lighthouse-baseline.json
+          { echo '### Lighthouse medians (this runner)'; echo '```json'; cat lighthouse-baseline.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: lighthouse-report
+          path: automata_website/.lighthouseci
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 14
