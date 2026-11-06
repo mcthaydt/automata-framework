@@ -1,5 +1,5 @@
 import { Effect } from 'effect'
-import { findBin, TOOLS } from '../../shared/check/check-steps.ts'
+import { findBin, TOOLS } from '../../shared/check/check-tool.ts'
 import { CheckToolError } from '../../shared/check/csp-probe.ts'
 import type { Files } from '../../shared/node/files.ts'
 import { ProcessRunner } from '../../shared/node/process-runner.ts'

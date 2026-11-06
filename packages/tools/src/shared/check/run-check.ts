@@ -2,14 +2,12 @@ import { Clock, Effect } from 'effect'
 import type { Files } from '../node/files.ts'
 import type { ProcessRunner } from '../node/process-runner.ts'
 import { type CheckReport, reportOf, type StepName, type StepResult } from './check-report.ts'
+import { boardsStep, inputsStep, orientationStep } from './check-source-steps.ts'
 import {
-  boardsStep,
   boundariesStep,
   cspStep,
   dataUrlsStep,
-  inputsStep,
   noEvalStep,
-  orientationStep,
   secretsStep,
   testStep,
   typecheckStep,
