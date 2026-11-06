@@ -1,6 +1,6 @@
 /**
  * The header set every response of the site carries (QB.4a; quality-bar spec QB.4). serve-static.ts sends it, so the
- * browser suite and Lighthouse run under it, and check-deployed.ts reads it back from an origin. When the host is known
+ * browser suite and Lighthouse run under it. When the host is known
  * (DX.12) its configuration is written from this and from the playground's own headers (src/lib/playground/headers.ts).
  *
  * A site page's policy is a <meta> in the page (csp.ts), because its script hashes are per page; the header adds what a

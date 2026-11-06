@@ -1772,4 +1772,9 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
 - **Deviation 94:** the guides carry no front matter (the website's old loader required `title` and `description`
   fields from a `docs/guide/` folder that never existed under that name), so the title and description come from the
   Markdown itself, and a guide's page is `/docs/<file>` rather than `/docs/guide-<file>`.
-- **Gates.** The 7 tests pass; `pnpm check` exit 0. Step 2 onward is the next session's.
+- **Step 2, first part: the deploy that never ran.** Deleted `site/.github/` (its CI and deploy workflows, and the
+  deploy key with them), `scripts/{release,rehearse-rollback,check-deployed,check-uptime,record-lighthouse-baseline}.ts`,
+  `lighthouse-baseline.json`, their six test files and the four `package.json` scripts. `serve-static.ts` stays (the
+  browser suite and Lighthouse serve the build with it). Site tests: 75 files, 9 fail (the sibling-checkout and
+  synced-copy ones from 10.1's record), 389 pass.
+- **Gates.** The 7 tests pass; `pnpm check` exit 0. The rest of step 2 onward is the next session's.
