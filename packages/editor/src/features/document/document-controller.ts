@@ -1,3 +1,5 @@
+// What an open document needs around it beyond editing: saving, the autosave journal, the conflict and recovery
+// prompts, and letting go cleanly when the page is hidden or closed.
 import {
   autosaveProblem,
   recoveryUnreadable,

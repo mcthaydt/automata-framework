@@ -1,3 +1,5 @@
+// The editor's app logic without a view: listing, creating, opening, copying, importing and removing documents, each
+// answering with an outcome the views turn into screens.
 import { createHistory, type History } from '../../kit/history/history.ts'
 import type { StorageClock } from '../../kit/storage/clock.ts'
 import {

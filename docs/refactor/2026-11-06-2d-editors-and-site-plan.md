@@ -451,7 +451,7 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 `*-controller.ts`, `*-session.ts`, commands), `packages/editor/src/app/**`, their tests, `packages/editor/README.md`.
 The `.svelte` view components wait for phase 12, which rewrites them (spec 17.4).
 
-- [ ] **Step 1: The read.** Spec 17.3's checks over the package, area by area (kit core and storage, documents and
+- [x] **Step 1: The read.** Spec 17.3's checks over the package, area by area (kit core and storage, documents and
   history, commands and selection, the 2D model and codecs, the canvas, tiles and auto-tile, the profile and export, the
   editor list, the suite's logic). Findings list in the execution log before any change. Record the unit and Chromium
   browser counts.
@@ -1480,3 +1480,26 @@ listed as left with the reason.
   stays for the 3D slice); `docs/README.md` and `knip.jsonc` follow; `docs/guides/editor.md` names the 2D editor's build
   and `--app 2d` (the default switches in 7.1, the full rewrite is 12.5).
 - Handoff: next is task 4.6 (the editor's logic refactor). Read area by area, log the findings first.
+
+### 2026-11-06, session 4 (continued): task 4.6, the read and the first fixes
+
+Step 1, the findings over `packages/editor/src` (288 `.ts` files, measured, not guessed). Counts before: unit 3,268;
+Chromium browser projects 527 pass, 6 skipped.
+
+| Check | Found |
+|---|---|
+| Unused code | `pnpm knip` clean (4.5 removed it). |
+| Single-implementation abstractions | 55 `create*` factories; the ones with one implementation are the sessions and controllers the views and tests drive, which are the seams 17.2 allows. None folded. |
+| Forwarding layers | `shared/kit/documents/index.ts` (a barrel, 8 of 17 lines re-export) and `app/suite/levels-2d/index.ts`; both stay, since `entries/` and the app import through them. |
+| Duplicates | Two `createTestClock` (merged, fixed below). Two `memory-workspace.ts` are not copies: the testing one is a plain in-memory `Workspace`, the suite one is the editor list's policy over a store. Two JSON scanners (`model/json-syntax.ts` finds the first syntax error; `kit/documents/json/locate.ts` locates literals) share a tokenizer shape; merging them would change the error panel's engine-independent messages, so left for a later task with its own tests. Two `text-diff.ts` and two `home-model.ts` are different things. |
+| Long files (over 300) | `kit/documents/json/structure.ts` 401, `level/level-editor.ts` 397, `kit/documents/json/patch.ts` 365, `editor-list/write-path.ts` 336, `kit/gestures/recognizer.ts` 330, `level-2d/documents/editor-app.ts` 313, `level-2d/model/project-codec.ts` 311, `kit/documents/content-document.ts` 308. |
+| Long functions (over 60) | 40 functions; the longest are `createLevelEditor` 285, `createRecognizer` 256, `createWritePath` 240, `createGitChangeSet` 199, `createTilesetsSession` 193. |
+| Missing explanations | 34 files had no header comment before their first code line. |
+| Tests that test the implementation | Not yet read. |
+
+Fixes done: one test clock for the storage and gesture tests (`testing/kit/test-clock.ts`; the second copy and its 32
+imports are gone; the storage tests pass with the shared default start); header comments for 33 of the 34 (the other, `handle-store.ts`, explains itself in a comment under its imports)
+none (checked against each file's exports).
+
+Left, with the files named above: splitting the eight long files and the longest functions by responsibility, the tests
+read, and the JSON scanner question. They are one area per commit; the next session continues here.

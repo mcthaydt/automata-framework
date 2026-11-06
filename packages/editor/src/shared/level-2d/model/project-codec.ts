@@ -1,3 +1,5 @@
+// Reads and writes a level project file. Reading checks the file against the schema and the project's own rules and
+// reports each problem with its path in the file; it never throws on a bad file.
 import { type CellKind, decodeRows, encodeRows } from './cells-codec'
 import type { Grid } from './grid'
 import { layerCells } from './level-layers'

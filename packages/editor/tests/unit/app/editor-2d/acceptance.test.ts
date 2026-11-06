@@ -5,10 +5,10 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { checkProject } from '#src/shared/level-2d/profiles/level-project/project-checks.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { contentMismatches } from '#src/testing/level-2d/content-roundtrip.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // ED2D.10 acceptance, headless half: the platformer and the RPG, built by the editor
 // and kept as the samples Mossgate and Hollowmere, go through the one app on one registry: imported, opened, checked

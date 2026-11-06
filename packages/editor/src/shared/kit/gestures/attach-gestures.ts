@@ -1,3 +1,5 @@
+// Wires the gesture recognizer to a DOM element: the element's pointer and wheel events go in, recognised gestures
+// come out, and the element's own touch scrolling is switched off while it is attached.
 import { type GestureClock, realClock } from './gesture-clock'
 import type { GestureHandlers } from './gesture-events'
 import type { Modifiers, PointerKind, PointerSample, WheelInput } from './pointer-sample'

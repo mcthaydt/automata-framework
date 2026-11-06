@@ -1,3 +1,5 @@
+// Commands that place, move, resize, duplicate and delete entity instances on an entities layer, and set their
+// fields.
 import { checkFieldValue } from '../../../kit/fields/check-field-value.ts'
 import type { FieldValue } from '../../../kit/fields/field-types.ts'
 import { valuesWithDefaults } from '../../../kit/fields/field-values.ts'

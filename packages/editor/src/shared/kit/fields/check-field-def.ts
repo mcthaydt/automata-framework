@@ -1,3 +1,5 @@
+// Checks a field definition on its own: its id, its type and the limits that type allows (a range, a colour, a token
+// name), so a bad definition is refused before any value is checked against it.
 import { checkFieldValue } from './check-field-value'
 import {
   ENTITY_ID,

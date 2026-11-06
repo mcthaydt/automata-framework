@@ -1,3 +1,5 @@
+// Commands that edit auto-tile rules: adding a rule, changing its pattern and output, and the pattern editor's tap
+// cycle.
 import {
   type PatternCell,
   type Rule,

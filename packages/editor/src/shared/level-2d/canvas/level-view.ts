@@ -1,3 +1,5 @@
+// The level canvas: the camera that places the level on screen, and the view that owns the Pixi application and draws
+// the scene into it.
 import {
   type AutoDetectOptions,
   autoDetectRenderer,

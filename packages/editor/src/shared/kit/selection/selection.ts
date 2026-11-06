@@ -1,3 +1,4 @@
+// The set of selected ids with a primary one. Every change gives a new object, so a view can compare by identity.
 export type SelectionId = string | number
 
 export interface Selection<Id extends SelectionId> {

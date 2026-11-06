@@ -1,3 +1,5 @@
+// The level project's file format as a Zod schema, with the limits a file may not exceed (level size, number of
+// levels and layers).
 import { z } from 'zod'
 import {
   entityDefIssues,

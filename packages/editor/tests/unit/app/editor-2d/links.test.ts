@@ -13,11 +13,11 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import FakeWorldCanvas from '#src/testing/level-2d/FakeWorldCanvas.svelte'
 import { linkedMaps } from '#src/testing/level-2d/linked-maps.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Linked levels in jsdom: the app's screen with stand-in
 // canvases, driven through the rail, the World view, the Level view's palette and inspector, and the Checks view.

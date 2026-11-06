@@ -3,9 +3,9 @@ import type { Recovery } from '#src/shared/kit/storage/recovery.ts'
 import { createEditorApp, type OpenDocument } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { type Note, noteText, plantedProfile, savedCount } from '#src/testing/level-2d/planted-profile.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Opening offers an autosave and restoring applies it.
 

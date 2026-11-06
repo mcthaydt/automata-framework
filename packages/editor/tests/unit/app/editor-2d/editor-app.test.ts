@@ -9,10 +9,10 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile, savedCount } from '#src/testing/level-2d/planted-profile.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Creating, opening and saving documents over the kit's workspace. The level project is the real
 // profile; the planted note stands in for a second one, and for a codec that patches the text it loaded.

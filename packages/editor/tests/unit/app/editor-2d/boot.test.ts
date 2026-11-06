@@ -9,10 +9,10 @@ import { createEditorApp } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The editor's boot: a function of its environment, so a test hands it a window, a document, a
 // clock and a workspace and gets the real app. The journey: list, New, the document frame, Back.

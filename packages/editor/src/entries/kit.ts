@@ -1,3 +1,4 @@
+// The editor kit's public surface: re-exports only, so what the games and the other editors may use is one list.
 export {
   type Command,
   type CommandRegistry,

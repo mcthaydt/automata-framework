@@ -1,3 +1,5 @@
+// One open document's saving: the Save button, the autosave beside it, and the single list of problems a failed save
+// or a stopped autosave leaves for the view to show.
 import type { History } from '../history/history'
 import { type AutosaveProblem, createAutosave } from './autosave'
 import { type StorageClock, systemClock } from './clock'

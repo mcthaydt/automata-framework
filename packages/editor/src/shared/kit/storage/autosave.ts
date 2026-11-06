@@ -1,3 +1,5 @@
+// Writes the open document to the journal shortly after it changes, never more often than the debounce, and stops
+// (rather than losing data) when storage is full.
 import type { History } from '../history/history'
 import type { StorageClock } from './clock'
 import { encodeJournalEntry, journalPath } from './journal-entry'

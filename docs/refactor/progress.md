@@ -207,8 +207,8 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
-**Where to resume (2026-11-06, session 4, after task 4.5):** branch `claude/project-thread-nw26wp`, stacked on #412's
-head (`claude/project-thread-pbmc59`). Next is task 4.6 (the editor's logic refactor). Task 14.1 waits for the Owner to confirm the `automata`
+**Where to resume (2026-11-06, session 4, inside task 4.6):** branch `claude/project-thread-nw26wp`, stacked on #412's
+head (`claude/project-thread-pbmc59`). Continue task 4.6 at step 2 (the plan's log lists what is left: long files, long functions, tests). Task 14.1 waits for the Owner to confirm the `automata`
 npm organisation. The plan's execution log has the counts, deviations and gates of every task so far.
 
 | Task | Phase | Status | PR |
@@ -229,7 +229,7 @@ npm organisation. The plan's execution log has the counts, deviations and gates 
 | 4.3 Tests into tests/ | 4 | Done, 2026-11-06 (Chromium only; unit 3,270 (3,268 + two tests of `journeyInstance`); browser projects parity, layout, storage, canvas and journeys 527 pass, 6 skipped, 0 fail; preset, codemod, lint, typecheck, boundaries, style and knip pass; WebKit, Firefox and hosted CI not run) | |
 | 4.4 Feature folders and the boundaries rules | 4 | Done, 2026-11-06 (Chromium only; `--forbid` and `--shared-island kit` added to `-tools` with tests, 39 findings fixed to 0; unit 3,270 before and after; Chromium browser projects 527 pass, 6 skipped; WebKit, Firefox, the journeys' WebKit half and hosted CI not run) | |
 | 4.5 Comments, fixtures, unused code and the mock-ups | 4 | Done, 2026-11-06 (Chromium only; `style` 0 findings with the editor in it; unit 3,268 (two source-commit tests deleted); knip clean; WebKit, Firefox and hosted CI not run) | |
-| 4.6 The code refactor of the editor package | 4 | Not started | |
+| 4.6 The code refactor of the editor package | 4 | In progress, 2026-11-06 (step 1 done: findings in the plan's log; one test clock; header comments on the 34 files that had none; unit 3,268 equal. Left: split the eight files over 300 lines and the longest functions, read the tests, the JSON scanner question) | |
 | 5.1 The level-2d entry | 5 | Not started | |
 | 5.2 The editor and Emberwick import it | 5 | Not started | |
 | 6.1 exports in the editor list and the policy | 6 | Not started | |

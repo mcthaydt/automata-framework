@@ -4,10 +4,10 @@ import { createEditorApp } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { MAX_FILE_CHARS } from '#src/shared/level-2d/model/open-project.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Importing a file the person picked: the files a profile claims are kept in the workspace, the
 // rest are refused with nothing written.

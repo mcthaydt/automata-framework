@@ -1,3 +1,5 @@
+// Checks one value against its field definition and says what is wrong in a stable code plus a sentence; a list
+// reports the item at fault.
 import { type FieldDef, type FieldValueProblem, HEX_COLOR } from './field-types'
 
 const problem = (

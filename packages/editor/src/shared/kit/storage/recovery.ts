@@ -1,3 +1,4 @@
+// Finds an autosave left by a closed tab and says whether restoring it would replace a newer file.
 import { contentHash } from './content-hash'
 import { type JournalEntry, journalPath, parseJournalEntry } from './journal-entry'
 import { type ProjectStore, statPath } from './project-store'

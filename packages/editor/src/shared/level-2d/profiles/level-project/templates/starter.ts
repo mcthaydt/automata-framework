@@ -1,3 +1,5 @@
+// The starting project for a new level: one level with the layers a template names, and helpers to fill a few cells
+// or entities in it.
 import type { GridEditor } from '../../../model/grid'
 import { emptyLayers } from '../../../model/level-layers'
 import type {

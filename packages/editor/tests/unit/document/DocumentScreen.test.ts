@@ -12,10 +12,10 @@ import { createEditorApp } from '#src/shared/level-2d/documents/editor-app.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // An open document: the top bar with Back, Undo, Redo and Save, the save state, the Restore and conflict
 // dialogs and the toasts, around the view the rail chose. The planted note lists one view that is not built; the level

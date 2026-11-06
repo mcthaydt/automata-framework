@@ -1,3 +1,4 @@
+// The Pixi scene for one level: a container per layer, kept between edits so only what changed is rebuilt.
 import { Container, Graphics } from 'pixi.js'
 import type { ColorResolver } from './colors'
 import type { LayerDraw, LevelDrawList } from './draw/draw-list-types'

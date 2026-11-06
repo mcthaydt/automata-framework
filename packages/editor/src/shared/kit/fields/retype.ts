@@ -1,3 +1,5 @@
+// Guards changing a field: which existing instances would stop validating if its type, bounds or id changed, so the
+// editor can refuse with a list instead of losing data.
 import {
   type EntityDef,
   FIELD_ID,

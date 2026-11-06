@@ -7,8 +7,8 @@ import type { WriteResult } from '#src/shared/kit/storage/project-store.ts'
 import { createToasts } from '#src/shared/kit/widgets/toasts.ts'
 import type { PanelOutcome } from '#src/shared/level-2d/documents/open-flow-model.ts'
 import type { Profile } from '#src/shared/level-2d/profiles/profile.ts'
-import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
+import { plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 
 // The error panel: what did not open and why, the file's
 // text read only, that nothing was written, Copy text and Open another.

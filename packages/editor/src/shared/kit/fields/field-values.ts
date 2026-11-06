@@ -1,3 +1,4 @@
+// Checks a whole instance (all of an entity's values) against its fields, for the editor and for a retype preview.
 import { defaultFieldValue } from './check-field-def'
 import { checkFieldValue } from './check-field-value'
 import type { FieldDef, FieldValue, FieldValues, InstanceProblem } from './field-types'

@@ -13,8 +13,8 @@ import { createEditorApp, type OpenDocument } from '#src/shared/level-2d/documen
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
-import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
+import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 
 // The Level view with the real Pixi canvas and real pointer events, in Chromium and in WebKit, the iPad's engine, at the iPad 11" landscape size: the canvas draws, a pen
 // stroke paints cells as one undo step, a touch stroke the system cancels leaves nothing, and a two-finger tap undoes.

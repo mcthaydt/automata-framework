@@ -5,11 +5,11 @@ import { listProjects } from '#src/shared/level-2d/documents/project-list.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { createProfileRegistry, type ProjectContext } from '#src/shared/level-2d/profiles/profile.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The project list Home shows: projects, not files.
 

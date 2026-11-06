@@ -1,3 +1,5 @@
+// The Level view's editing: tools, brush, selection and the pointer gestures that paint cells or move and resize
+// entities. A drag is one undoable step.
 import { packTile, unpackTile } from '../../shared/level-2d/model/cells-codec'
 import {
   cellWord,

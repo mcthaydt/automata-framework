@@ -1,3 +1,5 @@
+// The Characters view's editing: add, change and remove entity definitions and their fields. A change that would
+// break instances is refused with the list of uses, unless the person confirms it.
 import type { FieldDef, FieldType } from '../../shared/kit/fields/field-types.ts'
 import type { History } from '../../shared/kit/history/history.ts'
 import type { DefinitionUse, GuardedEdit } from '../../shared/level-2d/model/commands/def-lookup'
@@ -62,7 +64,7 @@ export interface EntitiesSessionOptions {
 
 const OK: FieldCommit = { ok: true }
 
-/** A new definition (decision 6): a 16 × 16 rect standing on its bottom centre, with no fields. */
+/** A new definition: a 16 × 16 rect standing on its bottom centre, with no fields. */
 const newDefinition = (id: string): EntityDef2D => ({
   id,
   color: '#94a3b8',

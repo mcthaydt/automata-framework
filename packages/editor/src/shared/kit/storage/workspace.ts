@@ -1,3 +1,5 @@
+// Where an editor keeps things: the document store, the journal for autosaves and the export sink, opened from OPFS
+// when the browser has it and from memory when it does not.
 import { createDownloadStore, type DownloadEnv, type DownloadStore } from './download-store'
 import { createOpfsStore, type DirectoryLike } from './handle-store'
 import { createHttpStore } from './http-store'

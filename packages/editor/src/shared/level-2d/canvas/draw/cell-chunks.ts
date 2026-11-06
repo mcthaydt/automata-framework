@@ -1,3 +1,5 @@
+// Draws a tile or IntGrid layer in chunks, and draws again only the chunks whose cells or look changed, so a brush
+// stroke on a big level does not redraw the whole layer.
 import { unpackTile } from '../../model/cells-codec'
 import type { Bounds } from '../../model/commands/entity-geometry'
 import { CHUNK, Grid, type GridChunk } from '../../model/grid'

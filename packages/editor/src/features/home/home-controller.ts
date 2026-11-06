@@ -1,3 +1,5 @@
+// Home's logic: the list of projects, and opening, creating, duplicating, removing and importing one. It reports what
+// happened and leaves showing it to the view.
 import {
   type BrowserState,
   createProjectBrowser,

@@ -15,11 +15,11 @@ import type { Placement, Project } from '#src/shared/level-2d/model/project-type
 import { renameLevel } from '#src/shared/level-2d/model/world/level-edits.ts'
 import { fitWorld, worldRects } from '#src/shared/level-2d/model/world/world-model.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import FakeWorldCanvas from '#src/testing/level-2d/FakeWorldCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { entity, withEntities, withLayer, withNewLevel } from '#src/testing/level-2d/project-edit.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The World view in jsdom, mounted the way the app mounts it and reached from the rail.
 // jsdom lays nothing out, so the map's box is the view's default (800 × 600) and a client point is a point on the map.

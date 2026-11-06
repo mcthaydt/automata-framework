@@ -8,9 +8,9 @@ import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { uncoveredArea } from '#src/shared/level-2d/model/world/world-model.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The World view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: the map fills the canvas and has drawn (or says why not), the

@@ -1,3 +1,5 @@
+// Builds the Pixi objects for one draw item (a tile, an entity, a background), with a numbered placeholder when an
+// image is not loaded.
 import { Container, Graphics, Sprite, Text, type Texture, TilingSprite } from 'pixi.js'
 import type { Background, Size } from '../model/project-types'
 import type { ColorResolver } from './colors'

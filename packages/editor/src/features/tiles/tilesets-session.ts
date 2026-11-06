@@ -1,3 +1,5 @@
+// The Tilesets view's editing: tilesets, tags, auto-tile groups and rules. Each edit is one undoable step; a refused
+// edit answers with a sentence for the person.
 import type { History } from '../../shared/kit/history/history.ts'
 import {
   addRule,

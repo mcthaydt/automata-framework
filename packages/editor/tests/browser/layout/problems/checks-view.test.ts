@@ -8,10 +8,10 @@ import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { entity, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The Checks view with the production CSS in a real browser, at the eight
 // window sizes, in Chromium, WebKit and Firefox: the rail and every row's buttons at least 44 px and never clipped, the

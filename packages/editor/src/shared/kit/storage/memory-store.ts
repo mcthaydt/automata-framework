@@ -1,3 +1,4 @@
+// A project store held in memory: the tests' store, and the fallback when OPFS is unavailable.
 import {
   expectationProblem,
   type ProjectStore,

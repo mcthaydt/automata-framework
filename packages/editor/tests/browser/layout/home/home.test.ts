@@ -7,9 +7,9 @@ import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Home with the production CSS in a real browser, at the window sizes the 2D editor is designed for. jsdom has no layout, so everything about room (overflow, target sizes, what covers what,
 // which region scrolls) is only checked here. The editor is started the way `main.ts` starts it, with the real window

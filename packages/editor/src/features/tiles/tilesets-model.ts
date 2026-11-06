@@ -1,3 +1,5 @@
+// What the Tilesets view shows: the rows for tilesets, auto layers, rule groups and rules, and the inspector for a
+// selected rule. It only reads the project.
 import type {
   AutoLayerDef,
   IntGridLayerDef,
