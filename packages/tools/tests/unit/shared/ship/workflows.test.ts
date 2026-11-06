@@ -1032,7 +1032,7 @@ describe('game-ci.yml (reusable)', () => {
   it("runs the determinism checker on the game's sim sources (shared contracts §2), then prepares the build", () => {
     const scripts = (gameCi.jobs.game?.steps ?? []).map((step) => step.run ?? '').join('\n')
     expect(scripts).toContain('pnpm exec automata-check-boundaries $SIM_ROOTS')
-    expect(scripts).toContain('pnpm exec automata ship prepare')
+    expect(scripts).toContain('pnpm exec automata ship prepare --target ruken')
     expect(scripts.indexOf('automata-check-boundaries')).toBeLessThan(
       scripts.indexOf('automata ship prepare'),
     )
@@ -1134,8 +1134,8 @@ describe('game-release.yml (reusable)', () => {
     const scripts = Object.values(release.jobs)
       .flatMap((job) => (job.steps ?? []).map((step) => step.run ?? ''))
       .join('\n')
-    expect(scripts).toContain('pnpm exec automata ship prepare --tag "$TAG"')
-    expect(scripts).toContain('pnpm exec automata ship publish --tag "$TAG" --game "$GAME"')
+    expect(scripts).toContain('pnpm exec automata ship prepare --target ruken --tag "$TAG"')
+    expect(scripts).toContain('pnpm exec automata ship publish --target ruken --tag "$TAG" --game "$GAME"')
     expect(release.on.workflow_call?.inputs?.runner).toMatchObject({ default: 'ubuntu-latest' })
   })
 
@@ -1193,7 +1193,7 @@ describe('game-release.yml itch job (PUB spec §5 flow 4)', () => {
   it('builds its own itch target from the tagged commit, never the Ruken release-dist', () => {
     expect(itch?.needs).toBeUndefined()
     expect(JSON.stringify(steps)).not.toContain('release-dist')
-    expect(scripts).not.toContain('automata ship prepare --tag')
+    expect(scripts).not.toContain('--target ruken')
     const build = steps.find((step) => step.name === 'Build for itch.io')
     expect(build?.run).toBe('$ITCH_BUILD_COMMAND')
     expect(build?.['working-directory']).toBe('${{ inputs.working-directory }}')

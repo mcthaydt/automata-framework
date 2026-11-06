@@ -16,6 +16,7 @@ import { prepareItch } from '../shared/ship/targets/itch/prepare-itch.ts'
 import { publishDownloadsToItch } from '../shared/ship/targets/itch/publish-downloads-to-itch.ts'
 import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from '../shared/ship/targets/itch/publish-to-itch.ts'
 import { prepareTauri } from '../shared/ship/targets/tauri/prepare-tauri.ts'
+import { prepareWeb } from '../shared/ship/targets/web/prepare-web.ts'
 
 const cwd = process.cwd()
 
@@ -55,6 +56,14 @@ async function program(
         result.bundles.map((bundle) => `wrote ${bundle}`).join('\n'),
       ),
       layers,
+    )
+  }
+
+  // The web: ship checks the given build for the rules every public host shares; there is nothing to pack.
+  if (command.command === 'prepare' && command.target === 'web') {
+    return Effect.map(
+      prepareWeb({ distDir, gameDir: cwd, config, tag: command.tag }),
+      (result) => `checked ${result.files} files in ${command.dist}; upload the folder to any static host`,
     )
   }
 

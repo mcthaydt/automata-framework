@@ -153,7 +153,7 @@ jobs:
         run: $BUILD_COMMAND
       - name: Prepare for Ruken (the version must match the tag)
         working-directory: ${{ inputs.working-directory }}
-        run: pnpm exec automata ship prepare --tag "$TAG"
+        run: pnpm exec automata ship prepare --target ruken --tag "$TAG"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-dist
@@ -211,9 +211,9 @@ jobs:
           if [[ -z "$RUKEN_TOKEN" ]]; then echo "::notice::RUKEN_TOKEN is not set; skipping ruken publish"; exit 0; fi
           # ruken publish registers a new game when it knows none: from a fresh CI checkout, every release would.
           if [[ -n "$GAME" ]]; then
-            pnpm exec automata ship publish --tag "$TAG" --game "$GAME"
+            pnpm exec automata ship publish --target ruken --tag "$TAG" --game "$GAME"
           elif [[ -f .ruken/project.json ]]; then
-            pnpm exec automata ship publish --tag "$TAG"
+            pnpm exec automata ship publish --target ruken --tag "$TAG"
           else
             echo "::error::set the game input (the Ruken public id) or commit .ruken/project.json; refusing to register a new Ruken game"
             exit 1

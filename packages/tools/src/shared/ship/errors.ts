@@ -206,6 +206,23 @@ export class PublishFailed extends PublishFailedBase {
   }
 }
 
+/** The scans of the bundle that `prepare --target web` makes. */
+export type WebCheck = 'no-eval' | 'data-urls'
+
+const WebBuildInvalidBase: TaggedErrorClass<
+  'WebBuildInvalid',
+  {
+    readonly check: WebCheck
+    readonly problems: readonly string[]
+  }
+> = Data.TaggedError('WebBuildInvalid')
+/** The bundle breaks a rule every public host shares; each problem is `file:line:column` and what is wrong. */
+export class WebBuildInvalid extends WebBuildInvalidBase {
+  override get message(): string {
+    return `the build is not ready for the web (${this.check}):\n${this.problems.join('\n')}`
+  }
+}
+
 /** The `prepare --target itch` check that failed, in the order they run. */
 export type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' | 'ruken-toml'
 

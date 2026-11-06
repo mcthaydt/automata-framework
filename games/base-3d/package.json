@@ -8,7 +8,7 @@
     "build": "vite build --configLoader runner",
     "sounds": "node scripts/make-sounds.ts",
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries --game src",
-    "prepare-ruken": "automata ship prepare",
+    "prepare-ruken": "automata ship prepare --target ruken",
     "test": "vitest run --configLoader runner",
     "test:unit": "vitest run --configLoader runner --project node --project dom",
     "test:browser": "vitest run --configLoader runner --project browsers --project layout",
