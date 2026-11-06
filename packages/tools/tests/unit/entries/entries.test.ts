@@ -30,14 +30,7 @@ describe('the published entry', () => {
 
 describe('the internal entry', () => {
   it('holds what the repository’s tooling imports', () => {
-    for (const name of [
-      'rukenHeaders',
-      'checkManifest',
-      'inputsProblems',
-      'rukenToml',
-      'findPixi3d',
-      'prepareBuild',
-    ]) {
+    for (const name of ['rukenHeaders', 'checkManifest', 'inputsProblems', 'rukenToml', 'findPixi3d']) {
       expect(internal, name).toHaveProperty(name)
     }
   })

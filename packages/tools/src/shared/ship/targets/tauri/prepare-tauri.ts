@@ -1,22 +1,20 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { Effect } from 'effect'
-import { FileError, type ProcessError } from '../../../node/errors.ts'
+import { type FileError, type ProcessError, tryFile } from '../../../node/errors.ts'
 import { ProcessRunner } from '../../../node/process-runner.ts'
 import type { ShipConfig } from '../../config/ship-config.ts'
 import {
-  Pixi3dExtrasInBuild,
-  Pixi3dInPublicBuild,
-  SecretInBuild,
+  type Pixi3dExtrasInBuild,
+  type Pixi3dInPublicBuild,
+  type SecretInBuild,
   TauriBuildFailed,
   TauriBuildInvalid,
   TauriToolchainMissing,
-  VersionMismatch,
+  type VersionMismatch,
 } from '../../errors.ts'
 import { buildFiles } from '../../prepare/build-files.ts'
-import { checkVersion } from '../../prepare/check-version.ts'
-import { findPixi3d } from '../../prepare/pixi3d-markers.ts'
-import { findSecretsInBuild, readEnvValues } from '../../prepare/secret-scan.ts'
+import { checkTag, scanBuild } from '../../prepare/build-scans.ts'
 import { findExecutable } from '../../publish/find-executable.ts'
 import { checkTauriEntry, checkTauriVersion, findEvalInCsp, tauriCsp, tauriSettings } from './tauri-checks.ts'
 import { tauriIconPng } from './tauri-icon.ts'
@@ -84,15 +82,9 @@ export function prepareTauri(
     const { distDir, gameDir, config, tag } = input
     const platform = input.platform ?? process.platform
     const os = osOf(platform)
-    const attempt = <A>(path: string, run: () => A) =>
-      Effect.try({ try: run, catch: (cause) => new FileError({ path, cause }) })
-
-    const mismatch = checkVersion(config.game.version, tag)
-    if (mismatch !== undefined && tag !== undefined) {
-      return yield* new VersionMismatch({ version: config.game.version, tag, message: mismatch })
-    }
+    yield* checkTag(config.game.version, tag)
     const { settings, problems: settingProblems } = tauriSettings(config)
-    const files = yield* attempt(distDir, () => buildFiles(distDir))
+    const files = yield* tryFile(distDir, () => buildFiles(distDir))
     const problems = [
       ...settingProblems,
       ...checkTauriVersion(config.game.version),
@@ -102,11 +94,7 @@ export function prepareTauri(
     if (problems.length > 0 || settings === undefined) return yield* new TauriBuildInvalid({ problems })
 
     // A desktop build is published, as an itch.io page is: the same scans.
-    const secrets = yield* attempt(distDir, () => findSecretsInBuild(distDir, readEnvValues(gameDir)))
-    if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
-    const pixi3d = yield* attempt(distDir, () => findPixi3d(distDir))
-    if (pixi3d.extras.length > 0) return yield* new Pixi3dExtrasInBuild({ found: pixi3d.extras })
-    if (pixi3d.core.length > 0) return yield* new Pixi3dInPublicBuild({ found: pixi3d.core })
+    yield* scanBuild({ distDir, gameDir })
 
     const runner = yield* ProcessRunner
     const cargo = yield* runner.run('cargo', ['--version'])
@@ -139,13 +127,13 @@ export function prepareTauri(
     const srcTauri = join(project, 'src-tauri')
     const generated = tauriProjectFiles(config, settings, relative(srcTauri, distDir))
     for (const [path, text] of Object.entries(generated)) {
-      yield* attempt(join(srcTauri, path), () => {
+      yield* tryFile(join(srcTauri, path), () => {
         mkdirSync(dirname(join(srcTauri, path)), { recursive: true })
         writeFileSync(join(srcTauri, path), text)
       })
     }
     const icon = join(srcTauri, 'icons/icon.png')
-    yield* attempt(icon, () => {
+    yield* tryFile(icon, () => {
       mkdirSync(dirname(icon), { recursive: true })
       if (settings.icon === undefined) writeFileSync(icon, tauriIconPng(512))
       else copyFileSync(join(gameDir, settings.icon), icon)
@@ -164,12 +152,12 @@ export function prepareTauri(
     const bundles: string[] = []
     for (const { kind, ext } of kinds) {
       const folder = join(bundleRoot, kind)
-      const made = yield* attempt(folder, () =>
+      const made = yield* tryFile(folder, () =>
         existsSync(folder) ? readdirSync(folder).filter((name) => name.endsWith(ext)) : [],
       )
       for (const name of made) {
         const target = join(out, `${config.game.id}-${config.game.version}-${os}-${kind}${ext}`)
-        yield* attempt(target, () => {
+        yield* tryFile(target, () => {
           mkdirSync(out, { recursive: true })
           copyFileSync(join(folder, name), target)
         })

@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { Effect } from 'effect'
-import { FileError, type ProcessError } from '../../../node/errors.ts'
+import { type FileError, type ProcessError, tryFile } from '../../../node/errors.ts'
 import { ProcessRunner } from '../../../node/process-runner.ts'
 import type { ShipConfig } from '../../config/ship-config.ts'
 import { ButlerFailed, ItchDownloadsMissing, type ItchSettingMissing } from '../../errors.ts'
@@ -49,9 +49,7 @@ export function publishDownloadsToItch(
     const { settings, butlerPath, apiKey } = yield* itchPushSettings(input)
     const { id, version } = input.config.game
     const bundlesDir = join(input.gameDir, 'dist-tauri')
-    const attempt = <A>(path: string, run: () => A) =>
-      Effect.try({ try: run, catch: (cause) => new FileError({ path, cause }) })
-    const present = yield* attempt(bundlesDir, () => (existsSync(bundlesDir) ? readdirSync(bundlesDir) : []))
+    const present = yield* tryFile(bundlesDir, () => (existsSync(bundlesDir) ? readdirSync(bundlesDir) : []))
     const found = PUBLISHED.flatMap((bundle) => {
       const file = `${id}-${version}-${bundle.os}-${bundle.kind}${bundle.ext}`
       return present.includes(file) ? [{ file, channel: settings.downloads[bundle.channel] }] : []
@@ -66,7 +64,7 @@ export function publishDownloadsToItch(
     const pushed: string[] = []
     for (const { file, channel } of found) {
       const staged = join(bundlesDir, '.itch', channel)
-      yield* attempt(staged, () => {
+      yield* tryFile(staged, () => {
         rmSync(staged, { recursive: true, force: true })
         mkdirSync(staged, { recursive: true })
         copyFileSync(join(bundlesDir, file), join(staged, file))

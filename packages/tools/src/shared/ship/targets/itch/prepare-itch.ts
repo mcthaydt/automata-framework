@@ -1,21 +1,19 @@
 import { dirname, join } from 'node:path'
 import { Effect } from 'effect'
-import { FileError } from '../../../node/errors.ts'
+import { type FileError, tryFile } from '../../../node/errors.ts'
 import type { ShipConfig } from '../../config/ship-config.ts'
 import {
   ItchBuildInvalid,
   type ItchCheck,
-  Pixi3dExtrasInBuild,
-  Pixi3dInPublicBuild,
+  type Pixi3dExtrasInBuild,
+  type Pixi3dInPublicBuild,
   RootAbsoluteReference,
-  SecretInBuild,
-  VersionMismatch,
+  type SecretInBuild,
+  type VersionMismatch,
 } from '../../errors.ts'
 import { buildFiles } from '../../prepare/build-files.ts'
-import { checkVersion } from '../../prepare/check-version.ts'
-import { findPixi3d } from '../../prepare/pixi3d-markers.ts'
+import { checkTag, scanBuild } from '../../prepare/build-scans.ts'
 import { findRootAbsoluteReferences } from '../../prepare/root-absolute.ts'
-import { findSecretsInBuild, readEnvValues } from '../../prepare/secret-scan.ts'
 import {
   checkFileCount,
   checkFileSizes,
@@ -59,28 +57,15 @@ export type PrepareItchError =
 export function prepareItch(input: PrepareItchInput): Effect.Effect<{ zipPath: string }, PrepareItchError> {
   return Effect.gen(function* () {
     const { distDir, config, tag, gameDir } = input
-    const mismatch = checkVersion(config.game.version, tag)
-    if (mismatch !== undefined && tag !== undefined) {
-      return yield* new VersionMismatch({ version: config.game.version, tag, message: mismatch })
-    }
+    yield* checkTag(config.game.version, tag)
 
-    const attempt = <A>(run: () => A) =>
-      Effect.try({ try: run, catch: (cause) => new FileError({ path: distDir, cause }) })
-
-    const references = yield* attempt(() => findRootAbsoluteReferences(distDir))
+    const references = yield* tryFile(distDir, () => findRootAbsoluteReferences(distDir))
     if (references.length > 0) return yield* new RootAbsoluteReference({ references })
 
-    const secrets = yield* attempt(() =>
-      findSecretsInBuild(distDir, gameDir === undefined ? [] : readEnvValues(gameDir)),
-    )
-    if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
+    // An itch.io page is public, so the build is scanned as Ruken's is: no secret, and not the closed beta (X-b).
+    yield* scanBuild({ distDir, gameDir })
 
-    // An itch.io page is public: the closed beta never goes there (X-b), nor its extras (S7-g).
-    const pixi3d = yield* attempt(() => findPixi3d(distDir))
-    if (pixi3d.extras.length > 0) return yield* new Pixi3dExtrasInBuild({ found: pixi3d.extras })
-    if (pixi3d.core.length > 0) return yield* new Pixi3dInPublicBuild({ found: pixi3d.core })
-
-    const files = yield* attempt(() => buildFiles(distDir))
+    const files = yield* tryFile(distDir, () => buildFiles(distDir))
     const checks: readonly [ItchCheck, () => string[]][] = [
       ['entry', () => checkItchEntry(files, config.game.entry)],
       ['file-count', () => checkFileCount(files)],
@@ -90,12 +75,12 @@ export function prepareItch(input: PrepareItchInput): Effect.Effect<{ zipPath: s
       ['ruken-toml', () => checkNoRukenToml(files)],
     ]
     for (const [check, run] of checks) {
-      const problems = yield* attempt(run)
+      const problems = yield* tryFile(distDir, run)
       if (problems.length > 0) return yield* new ItchBuildInvalid({ check, problems })
     }
 
     const zipPath = join(dirname(distDir), `${config.game.id}-${config.game.version}-itch.zip`)
-    yield* attempt(() => writeDeterministicZip(zipPath, distDir, files))
+    yield* tryFile(distDir, () => writeDeterministicZip(zipPath, distDir, files))
     return { zipPath }
   })
 }

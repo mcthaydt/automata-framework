@@ -5,7 +5,7 @@ import {
   publishToRuken,
   rukenCliPath,
 } from '#src/shared/ship/targets/ruken/publish-to-ruken.ts'
-import { fakeProcessRunner } from '#src/shared/ship/testing/fake-process-runner.ts'
+import { fakeProcessRunner } from '#src/testing/fake-process-runner.ts'
 
 const input: PublishInput = {
   distDir: '/game/dist',

@@ -1,5 +1,5 @@
 import { Effect, Layer } from 'effect'
-import { ProcessRunner, type RunOptions, type RunResult } from '../../node/process-runner.ts'
+import { ProcessRunner, type RunOptions, type RunResult } from '../shared/node/process-runner.ts'
 
 export interface RecordedRun {
   readonly command: string

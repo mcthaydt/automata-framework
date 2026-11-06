@@ -7,8 +7,6 @@
   // Fixtures are test inputs read as files, never imported.
   // Spikes (spikes/*) are standalone packages outside the pnpm workspace, installed with --ignore-workspace.
   "ignore": ["**/fixtures/**", "spikes/**", "games/base-3d/src/paraglide/**"],
-  // automata is packages/tools' own bin, which game repositories call through the reusable workflows;
-  "ignoreBinaries": ["automata"],
   // BootErrorIsDrawable is a compile-time assertion (shared contracts §4); exporting it keeps it checked.
   "ignoreIssues": { "packages/automata/src/app/boot/boot-error.ts": ["types"] },
   "workspaces": {

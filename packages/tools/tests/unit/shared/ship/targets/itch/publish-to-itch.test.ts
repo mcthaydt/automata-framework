@@ -10,7 +10,7 @@ import {
   type PublishItchInput,
   publishToItch,
 } from '#src/shared/ship/targets/itch/publish-to-itch.ts'
-import { fakeProcessRunner } from '#src/shared/ship/testing/fake-process-runner.ts'
+import { fakeProcessRunner } from '#src/testing/fake-process-runner.ts'
 
 const config: ShipConfig = defineShipConfig({
   game: { id: 'emberwick', title: 'Emberwick', version: '1.2.0', entry: 'index.html', sdk: '^0.0.0' },

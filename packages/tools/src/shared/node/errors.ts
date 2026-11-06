@@ -1,4 +1,4 @@
-import { type Cause, Data } from 'effect'
+import { type Cause, Data, Effect } from 'effect'
 
 /**
  * The class `Data.TaggedError(tag)` returns, written out. isolatedDeclarations cannot infer the type of a call in
@@ -20,6 +20,10 @@ export class FileError extends FileErrorBase {
     return `${this.path}: ${describe(this.cause)}`
   }
 }
+
+/** Runs a synchronous file operation, and fails with a `FileError` naming `path` when it throws. */
+export const tryFile = <A>(path: string, run: () => A): Effect.Effect<A, FileError> =>
+  Effect.try({ try: run, catch: (cause) => new FileError({ path, cause }) })
 
 const ProcessErrorBase: TaggedErrorClass<
   'ProcessError',

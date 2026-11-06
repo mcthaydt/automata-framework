@@ -3,23 +3,21 @@ import { join } from 'node:path'
 import { Effect } from 'effect'
 import { scanForDataUrls } from '../../../check/data-url-scan.ts'
 import { scanForEval } from '../../../check/no-eval-scan.ts'
-import { FileError } from '../../../node/errors.ts'
+import { type FileError, tryFile } from '../../../node/errors.ts'
 import type { ShipConfig } from '../../config/ship-config.ts'
 import {
   EntryMissing,
-  Pixi3dExtrasInBuild,
-  Pixi3dInPublicBuild,
+  type Pixi3dExtrasInBuild,
+  type Pixi3dInPublicBuild,
   RootAbsoluteReference,
-  SecretInBuild,
-  VersionMismatch,
+  type SecretInBuild,
+  type VersionMismatch,
   WebBuildInvalid,
   type WebCheck,
 } from '../../errors.ts'
 import { buildFiles } from '../../prepare/build-files.ts'
-import { checkVersion } from '../../prepare/check-version.ts'
-import { findPixi3d } from '../../prepare/pixi3d-markers.ts'
+import { checkTag, scanBuild } from '../../prepare/build-scans.ts'
 import { findRootAbsoluteReferences } from '../../prepare/root-absolute.ts'
-import { findSecretsInBuild, readEnvValues } from '../../prepare/secret-scan.ts'
 
 /** What `prepareWeb` checks: the built folder, the ship config and the release tag. */
 export interface PrepareWebInput {
@@ -51,31 +49,18 @@ export type PrepareWebError =
 export function prepareWeb(input: PrepareWebInput): Effect.Effect<{ files: number }, PrepareWebError> {
   return Effect.gen(function* () {
     const { distDir, config, tag, gameDir } = input
-    const mismatch = checkVersion(config.game.version, tag)
-    if (mismatch !== undefined && tag !== undefined) {
-      return yield* new VersionMismatch({ version: config.game.version, tag, message: mismatch })
-    }
+    yield* checkTag(config.game.version, tag)
 
-    const attempt = <A>(run: () => A) =>
-      Effect.try({ try: run, catch: (cause) => new FileError({ path: distDir, cause }) })
-
-    const files = yield* attempt(() => buildFiles(distDir))
+    const files = yield* tryFile(distDir, () => buildFiles(distDir))
     if (!files.includes(config.game.entry)) {
       return yield* new EntryMissing({ entry: config.game.entry, distDir })
     }
 
-    const references = yield* attempt(() => findRootAbsoluteReferences(distDir))
+    const references = yield* tryFile(distDir, () => findRootAbsoluteReferences(distDir))
     if (references.length > 0) return yield* new RootAbsoluteReference({ references })
 
-    const secrets = yield* attempt(() =>
-      findSecretsInBuild(distDir, gameDir === undefined ? [] : readEnvValues(gameDir)),
-    )
-    if (secrets.length > 0) return yield* new SecretInBuild({ found: secrets })
-
-    // A web page is public: the closed beta never goes there (X-b), nor its extras (S7-g).
-    const pixi3d = yield* attempt(() => findPixi3d(distDir))
-    if (pixi3d.extras.length > 0) return yield* new Pixi3dExtrasInBuild({ found: pixi3d.extras })
-    if (pixi3d.core.length > 0) return yield* new Pixi3dInPublicBuild({ found: pixi3d.core })
+    // A web page is public: secrets and the closed Pixi 3D beta never go there.
+    yield* scanBuild({ distDir, gameDir })
 
     const scripts = files.filter((name) => name.endsWith('.js'))
     const scans: readonly [
@@ -86,7 +71,7 @@ export function prepareWeb(input: PrepareWebInput): Effect.Effect<{ files: numbe
       ['data-urls', scanForDataUrls],
     ]
     for (const [check, scan] of scans) {
-      const problems = yield* attempt(() =>
+      const problems = yield* tryFile(distDir, () =>
         scripts.flatMap((name) =>
           scan(name, readFileSync(join(distDir, name), 'utf8')).map(
             (found) => `${found.file}:${found.line}:${found.col} ${found.message}`,
