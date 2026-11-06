@@ -1852,6 +1852,6 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   also makes `test:e2e` wait for the site's `build`, and `ci.yml`'s `e2e-2d` job runs `pnpm test:e2e --filter
   @mcthaydt/automata-site` (Chromium and WebKit). `scripts/write-api-index.ts` is shared with `build-demos.ts`.
 - **Gates.** `pnpm check` exit 0, the site's 69 files and 353 tests in it; `turbo run build --filter
-  @mcthaydt/automata-site` exits 0; site e2e gates in Chromium after the format: see below. WebKit, Firefox and hosted
+  @mcthaydt/automata-site` exits 0; site e2e gates in Chromium after the format: 483 pass. The evidence fixtures the deleted evidence test used went too. WebKit, Firefox and hosted
   CI not run.
 - **Handoff.** Next is phase 11 (task 11.1, one token source). 14.1 waits for the Owner.
