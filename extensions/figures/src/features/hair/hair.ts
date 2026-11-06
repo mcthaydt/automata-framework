@@ -209,10 +209,19 @@ export interface Tail {
  * round its root.
  */
 export interface Bun { at: V3; r: number; flat?: number; turns?: number; rope: Rope; tie?: Tie }
+/**
+ * Loose hair: `count` clumps (ropes) laid on the scalp round the head from the hairline `from` and falling past it, either
+ * side of the parting `part` (an angle from the front, 0 the centre), over the ears (outside the head's form), past the
+ * collar and behind the shoulders, to `length` (0 the jaw … 1 the shoulder blades, the chest joint's height; clamped there),
+ * clear of the dressed trunk. `curl` 0–1: 0 straight, rising to waves (each clump's path a sine), then spirals (a helix),
+ * the clumps fatter and shorter as it rises; `volume` 0–1: how far the mass stands off the skull, so curl 1 and volume 1 at
+ * a short length is a round afro. The clumps at the sides ride hair.L and hair.R, the rest hair.back, swinging as the tail does.
+ */
+export interface Fall { from: Line; part?: number; count: number; length: number; curl?: number; volume?: number; rope: Rope }
 /** A tie: `true` the wearer's (HairInput.tie: the outfit's own metal, else a band of the hair's own), or a swatch. */
 export type Tie = boolean | string;
 /** One of the three generators' pieces. */
-type OwnPiece = { scalp: Scalp } | { rows: Rows } | { tail: Tail } | { bun: Bun };
+type OwnPiece = { scalp: Scalp } | { rows: Rows } | { tail: Tail } | { bun: Bun } | { fall: Fall };
 /** A piece of a style: one of the three generators', or a registered piece (H3, registerHairPiece) keyed by its kind's
  * name, its value what that kind's builder takes. */
 export type Piece = OwnPiece | { [kind: string]: unknown };
@@ -371,7 +380,7 @@ const PIECES = new Map<string, HairPiece>();
 /** Registers a hair piece under `kind`, the key a style's piece carries ({ bun: {…} }). Throws on a name taken, the
  * generators' (scalp, rows, tail) included. */
 export function registerHairPiece(kind: string, p: HairPiece): void {
-  if (['scalp', 'rows', 'tail', 'bun'].includes(kind) || PIECES.has(kind)) throw new Error(`hair piece ${kind} is registered already`);
+  if (['scalp', 'rows', 'tail', 'bun', 'fall'].includes(kind) || PIECES.has(kind)) throw new Error(`hair piece ${kind} is registered already`);
   PIECES.set(kind, p);
 }
 /** A style's parts on the head and its swinging joints, fitted to the skeleton's head and the body under it. */
@@ -439,6 +448,7 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       }
     } else if ('tail' in own) tail(own.tail);
     else if ('bun' in own) bun(own.bun);
+    else if ('fall' in own) fall(own.fall);
     else {
       const name = Object.keys(piece)[0], p = PIECES.get(name);
       if (!p) throw new Error(`no hair piece ${name}`);
@@ -466,6 +476,54 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
     rigid(mesh, 'hair', seam++, lit);
     const band = tieOf(o.tie);
     if (band) parts.push({ bone: J.head, mesh: superquadric({ at: add(P, scale(dir, lift * 0.8)), r: [R * 0.45, texels(0.04 * s.genes.head, ppm) / 2, R * 0.45], e: [0.25, 1], seg: 14, rings: 4, turn: alignY(dir) }), material: band, group: 1, seam: seam++ });
+  }
+  /**
+   * Loose hair: each clump from the crown over the scalp to its hairline, past the ear and the jaw (always outside the head's
+   * form, `volume` standing it further off), then straight down, drifting behind the dressed trunk by the shoulders and clear
+   * of it (as the tail's `trunkBack` takes it) to the length; a wave or a spiral about that path by `curl`.
+   */
+  function fall(o: Fall) {
+    const curl = clamp(o.curl ?? 0, 0, 1), volume = clamp(o.volume ?? 0, 0, 1), kk = m.k, texel = 1 / ppm;
+    // Curls are fatter and shorter than straight hair.
+    const rope: Rope = { ...o.rope, r: o.rope.r * (1 + 0.5 * curl), root: 0.02 }, ra = rope.r * hw, clear = ra * 1.2 + texel;
+    const chin = s.chinY - head[1], shoulder = s.shoulderY - head[1], chest = s.chestY - head[1];
+    const yEnd = lerp(chin, chest, clamp(o.length, 0, 1) * (1 - 0.35 * curl));
+    const trunkBack = (y: number) => { const r = reach(i.trunk ?? [], s.rest, [0, y + head[1], 0], [0, 0, -1]); return r > 0 ? -r - head[2] - clear : Infinity; };
+    // Out of the head's form by the rope's own radius (and a little over), and further by the volume.
+    const lift = rope.r * 1.6 + 0.55 * volume, gap = 0.35, part = o.part ?? 0;
+    for (let j = 0; j < o.count; j++) {
+      const a0 = part + gap + (2 * Math.PI - 2 * gap) * (j + 0.5 + 0.2 * (hash(j * 3 + 1) - 0.5)) / o.count, a = ((a0 + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+      const y0 = along(o.from, a), yb = Math.max(-0.7, y0 + 0.1), sideRide = Math.abs(Math.sin(a)) > 0.55;
+      // Down the scalp to the hairline, then down the head's side to the jaw: a clump that starts in front of the ear sweeps
+      // round to it (past 1.75 rad from the front), so it frames the face and never lies across it.
+      const aEar = Math.sign(a) * Math.max(Math.abs(a), 1.75), path: V3[] = [];
+      for (let q = 0; q <= 4; q++) path.push(onHead(form, k, a, lerp(0.8, yb, q / 4), lift + 0.03 * q / 4));
+      for (let q = 1; q <= 5; q++) path.push(onHead(form, k, lerp(a, aEar, smooth(Math.min(1, q / 2.5))), lerp(yb, -0.76, q / 5), lift + 0.03 + 0.02 * q / 5));
+      const jaw = path[path.length - 1];
+      // Below the jaw: straight down, behind the trunk from the shoulders on (and by the shoulders already, drifting back).
+      const yJ = jaw[1], zBack = Math.min(jaw[2], trunkBack(Math.max(shoulder + 0.03 * kk, yEnd)));
+      const steps = yEnd < yJ - 1e-4 ? Math.max(2, Math.ceil((yJ - yEnd) / (0.05 * kk))) : 0;
+      for (let q = 1; q <= steps; q++) {
+        const y = lerp(yJ, yEnd, q / steps), w = smooth((yJ - y) / Math.max(1e-6, yJ - shoulder));
+        path.push([jaw[0] * (1 + 0.1 * q / steps), y, Math.min(lerp(jaw[2], zBack, w), trunkBack(y))]);
+      }
+      let P = spline(path, 40);
+      if (curl > 0 && steps) {
+        // A wave (curl under a half) or a spiral (from a half): about the path below the jaw, out and across it, fading in.
+        const radial = normalize([jaw[0], 0, jaw[2] - k.c[2]]), tangent: V3 = [-radial[2], 0, radial[0]], amp = ra * (1 + 3 * curl), cycles = 1.5 + 4 * curl, ph = hash(j * 5 + 2) * 2 * Math.PI;
+        P = P.map((p, n) => {
+          const q = n / (P.length - 1), f = smooth((yJ - p[1]) / Math.max(1e-6, (yJ - yEnd) * 0.25)) * (p[1] < yJ ? 1 : 0);
+          if (!f) return p;
+          const th = 2 * Math.PI * cycles * q + ph, c = curl < 0.5 ? Math.sin(th) : Math.cos(th), t = curl < 0.5 ? 0 : Math.sin(th);
+          const q2 = add(p, add(scale(radial, c * amp * f), scale(tangent, t * amp * f)));
+          return [q2[0], q2[1], Math.min(q2[2], trunkBack(q2[1]))] as V3;
+        });
+      }
+      const { mesh, lit, t } = sweep(P, rope, hw, p => normalize([p[0], 0, p[2] - k.c[2]]));
+      const bone = sideRide ? (Math.sin(a) > 0 ? 'hair.L' : 'hair.R') : 'hair.back';
+      const swing = 0.5, swingOf = (tt: number): [number, number][] => { const w = smooth((tt - 0.08) / 0.4), lay = smooth((tt - 0.45) / 0.55) * (1 - swing); return [[J.head, 1 - w], [J[bone], w * (1 - lay)], [J.neck, w * lay]]; };
+      hung(mesh, t, 'hair', swingOf, seam++, lit, curl >= 0.5 ? true : undefined);
+    }
   }
   /**
    * A high ponytail: tied on the crown, its ropes gathered in a ring at the tie, rising out of it, arcing back over the

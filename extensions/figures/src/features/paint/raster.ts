@@ -160,13 +160,14 @@ export function cleanup(g: GBuffer) {
  * of the neck (the parts tagged NECK); nothing else is touched: not a hand, not a finger, not the hair.
  */
 export function neckline(g: GBuffer, neck: Set<number>) {
-  const { w, h, part, material } = g, D = Math.max(1, Math.round(w / 64)), isNeck = (k: number) => neck.has(part[k]);
+  const { w, h, part, material, group } = g, D = Math.max(1, Math.round(w / 64)), isNeck = (k: number) => neck.has(part[k]);
   for (let y = h - 2; y >= 1; y--) for (let x = 1; x < w - 1; x++) {
     const k = y * w + x;
     if (!isNeck(k) || isNeck(k - 1)) continue;
     let n = 0; while (x + n < w - 1 && isNeck(k + n)) n++;
     const l = k - 1, r = k + n, m = material[l];
-    const cloth = (q: number) => part[q] >= 0 && !neck.has(part[q]) && material[q] === m;
+    // Cloth is not the head's group (the hair, which hangs past the collar, is never what a tooth joins).
+    const cloth = (q: number) => part[q] >= 0 && !neck.has(part[q]) && group[q] !== GROUP.head && material[q] === m;
     let tooth = n <= Math.min(2 * D, 4) && cloth(l) && cloth(r);
     for (let i = 0; tooth && i < n; i++) tooth = cloth(k + i + w);
     if (tooth) for (let i = 0; i < n; i++) copyTexel(g, k + i, i < n / 2 ? l : r);

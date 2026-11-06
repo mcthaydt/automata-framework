@@ -119,3 +119,53 @@ describe('the bun', () => {
     expect(() => registerHairPiece('bun', { build: () => undefined })).toThrow('registered already');
   });
 });
+
+/** A hairline: high on the brow, over the temples above the ears, down to the nape. */
+const HAIRLINE = [[0, 0.45], [0.7, 0.35], [1.5, 0.0], [2.3, -0.35], [3.1416, -0.5]];
+const fall = (extra: Record<string, unknown> = {}): Piece => ({ fall: { from: HAIRLINE, part: 0, count: 18, length: 1, curl: 0, volume: 0, rope: { r: 0.14 }, ...extra } }) as Piece;
+/** The rows of a drawn figure: its head's origin row (the chin), and the hair texels (part 2000–2999) per row. */
+function rowsOf(fig: Figure) {
+  const stamp = (fig as unknown as { faceStamp: { frame: { o: [number, number, number] } } }).faceStamp, g = fig.g;
+  const hair = new Array(g.h).fill(0), width = new Array(g.h).fill(0);
+  for (let k = 0; k < g.w * g.h; k++) { const y = Math.floor(k / g.w); if (HAIR(g.part[k])) hair[y]++; if (fig.painted[k * 4 + 3]) width[y]++; }
+  return { chin: Math.round(stamp.frame.o[1]), hair, width };
+}
+/** The lowest vertex (m, rest figure space) of the hung hair. */
+const lowest = (st: HairStyle) => Math.min(...look(st).parts.filter(p => p.skin).flatMap(p => p.mesh.positions.filter((_, i) => i % 3 === 1)));
+describe('loose hair (fall)', () => {
+  const straight = style('smooth', fall());
+  it('straight and long: hair texels below the chin\'s row in the back view, and no clump vertex inside the head', () => {
+    const { chin, hair } = rowsOf(stand(wearing(straight), 4, 2));
+    expect(hair.slice(chin + 3).reduce((a: number, b: number) => a + b, 0), 'hair below the chin').toBeGreaterThan(40);
+    const { parts, m, s } = look(straight), form = headForm(m, s), head = s.rest[J.head];
+    for (const p of parts.filter(q => q.skin)) for (let i = 0; i < p.mesh.positions.length; i += 3) {
+      const v: [number, number, number] = [p.mesh.positions[i] - head[0], p.mesh.positions[i + 1] - head[1], p.mesh.positions[i + 2] - head[2]];
+      expect(insideHead(form, v), `seam ${p.seam} vertex ${i / 3} at ${v.map(q => q.toFixed(3))} (head h ${form.h.toFixed(3)})`).toBe(false);
+    }
+  });
+  it('is clear of the trunk', () => clearOfTrunk(straight));
+  it('builds and paints in every view and the walk, and spares the neckline', () => { draws(straight); necklineSpares(straight); });
+  it('curl 0, 0.5 and 1 at one length are three frames, and the mass\'s lowest point rises with curl', () => {
+    const at = (curl: number) => style('curl', fall({ curl, length: 0.8 }));
+    const frames = [0, 0.5, 1].map(c => stand(wearing(at(c)), 4, 2).painted);
+    expect(Buffer.compare(Buffer.from(frames[0]), Buffer.from(frames[1]))).not.toBe(0);
+    expect(Buffer.compare(Buffer.from(frames[1]), Buffer.from(frames[2]))).not.toBe(0);
+    const low = [0, 0.5, 1].map(c => lowest(at(c)));
+    expect(low[0]).toBeLessThan(low[1]); expect(low[1]).toBeLessThan(low[2]);
+  });
+  it('an afro (curl 1, volume 1, no length) is at least 1.4 times as wide above the chin as the scalp alone, from the front', () => {
+    const afro = rowsOf(stand(wearing(style('curl', fall({ curl: 1, volume: 1, length: 0, count: 40, rope: { r: 0.2 } }))), 0, 2)), bare = rowsOf(stand(wearing(style('curl')), 0, 2));
+    const widest = (r: ReturnType<typeof rowsOf>) => Math.max(...r.width.slice(0, r.chin));
+    expect(widest(afro)).toBeGreaterThanOrEqual(1.4 * widest(bare));
+  });
+  it('the clumps at the sides ride hair.L and hair.R, the rest hair.back', () => {
+    const joints = new Set<number>();
+    for (const p of look(straight).parts.filter(q => q.skin)) for (const w of p.skin!) for (const [j, share] of w) if (share > 0) joints.add(j);
+    for (const name of ['hair.L', 'hair.R', 'hair.back'] as const) expect(joints.has(J[name]), name).toBe(true);
+  });
+  it('gives each clump its own seam, after the pieces before it', () => {
+    const before = look(style('smooth')).parts.length, seams = look(straight).parts.slice(before).map(p => p.seam!);
+    expect(new Set(seams).size).toBe(seams.length); expect(Math.min(...seams)).toBeGreaterThanOrEqual(2100);
+  });
+  it('is a base piece: a name a fork cannot take', () => { expect(() => registerHairPiece('fall', { build: () => undefined })).toThrow('registered already'); });
+});
