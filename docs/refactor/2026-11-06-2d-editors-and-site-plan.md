@@ -2101,3 +2101,12 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   and the board. Gates: editor unit 3,292; DocumentBar 8; DocumentScreen and App tests read Save's state, not the
   status bar. Left for 12.2: rename on tap, the four-view switcher, the problems sheet, the Share menu, the rail's
   icons, the restore dialog's words.
+- **Tried and backed out (session 10): the view names alone.** Renaming the rail's tabs to Map, Tiles and
+  Characters (spec 11.5) breaks the Chromium layout tests: "Characters" does not fit the 56 px rail ("button's words
+  run past its edge", every Characters-view layout test at every size). The names land with the view switcher that
+  replaces the rail (12.2 step 1: a segmented control in the top bar from iPad up, a menu on a phone), not before.
+- **Handoff (session 10, 15:25 UTC).** Branch `claude/project-thread-tfmb6k`, draft PR #420 (12.1 done; 12.2's
+  Back-asks, the essentials-only top bar and no status bar). Next: the rest of 12.2 on a new branch stacked on #420:
+  the view switcher with the four views and their new names, "2 problems" opening a sheet in place of the Checks
+  view, the Share menu (browser storage only) in place of the Export view, the rail's icons, and the essential-only
+  cut over each (rename on tap is listed by the spec; keep it only if it passes the Owner's essential-only rule).

@@ -208,7 +208,7 @@ Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on 
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
 **Where to resume (2026-11-06, session 10):** branch `claude/project-thread-tfmb6k`, draft PR [#420](https://github.com/mcthaydt/automata-framework/pull/420) stacked on #419
-(task 12.1 done; 12.2 started: Back with unsaved changes asks). Next is the rest of task 12.2 (the top bar, the view switcher with four views, Save's states, no status bar, the problems sheet, the Share menu), on a new branch stacked on #420.
+(task 12.1 done; 12.2 started: Back with unsaved changes asks, the top bar keeps only Back, the name, Undo, Redo and Save, which says Save, Saving… or Saved, and the status bar is gone). Next is the rest of task 12.2 (the view switcher with Level, Map, Tiles, Characters, which also brings the new names: they do not fit the old rail; the problems sheet; the Share menu), on a new branch stacked on #420.
 The Owner, 2026-11-06: templates are the try-it page's only, and **every editor keeps only essential features** (cut the rest and name each cut in the plan's log). Phase 12 also
 holds 12.6 (the Tuner, a split view with the live game) and 12.7 (the suite's 2D page); 12.5 runs last. Task 18.0 (the site's shared layout) comes before the rest of phase 18. Task 14.1 waits for the Owner to confirm the `automata` npm organisation. The
 plan's execution log has the counts, deviations (up to 105) and gates of every task so far. The design board:
@@ -252,7 +252,7 @@ plan's execution log has the counts, deviations (up to 105) and gates of every t
 | 11.2 Geist and the icons | 11 | Done, 2026-11-06 (24 Lucide icons, ISC recorded; Geist from the site's packages; icon and font tests; typecheck clean) | [#419](https://github.com/mcthaydt/automata-framework/pull/419) |
 | 11.3 The kit's components and the design board | 11 | Done, 2026-11-06 (no literal colour or old alias in the kit; IconButton; Dialog a phone sheet; board screenshotted at five sizes and every image opened; editor unit 3,284; editor Chromium browser projects 533 pass, 6 skipped; editor-3d unit, dom, layout and canvas in Chromium pass; `pnpm check` green; WebKit, Firefox and hosted CI not run) | [#419](https://github.com/mcthaydt/automata-framework/pull/419) |
 | 12.1 Home | 12 | Done, 2026-11-06 (session 10): one column of cards with a More menu, the New level sheet, Open from, one storage line; Step G (new levels in `content/rooms/`, "Your game: Emberwick", "Changed 7 minutes ago"); editor unit 3,286, Home layout 41 of 41 in Chromium at eight sizes; WebKit, Firefox and hosted CI not run; templates only in browser storage (the try-it), per the Owner | [#420](https://github.com/mcthaydt/automata-framework/pull/420) |
-| 12.2 The document frame | 12 | In progress: Back with unsaved changes asks (session 10, [#420](https://github.com/mcthaydt/automata-framework/pull/420)) | |
+| 12.2 The document frame | 12 | In progress (session 10, [#420](https://github.com/mcthaydt/automata-framework/pull/420)): Back with unsaved changes asks; the top bar is essentials only with Save's three states; no status bar. Left: the view switcher and names, the problems sheet, the Share menu | |
 | 12.3 The Level view | 12 | Not started | |
 | 12.4 Map, Tiles, Characters and the dialogs | 12 | Not started | |
 | 12.5 The copy table and the guide (runs after 12.6 and 12.7) | 12 | Not started | |
