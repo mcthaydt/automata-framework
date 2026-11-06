@@ -34,8 +34,9 @@ export interface Sliders {
   face?: Partial<HeadShape>;
 }
 /**
- * The head's structure, 0–1 each (0.5 the average): the bones and features that make four heads four people. Eyes are
- * never among them: every face's eyes are one size and drawn one way, differing only in the lid line.
+ * The head's structure, 0–1 each (0.5 the average): the bones and features that make four heads four people. The eyes
+ * differ in three ways (eyeSize, eyeSpacing, eyeTilt), each 0.5 the eye drawn without them, and in the lid line; they
+ * are drawn from density 2 up (at density 1 an eye is a lid line, and these change nothing there).
  */
 export interface HeadShape {
   /** The face's width under the cranium (0 narrow … 1 broad), and the jaw's at its angle (0 tapered … 1 square). */
@@ -53,10 +54,14 @@ export interface HeadShape {
   /** The upper lid: its crease (0 a smooth lid … 1 a deep crease), how heavy it sits (0 open … 1 hooded), and liner (0
    * none … 1 a flick past the outer corner). */
   crease: number; hood: number; liner: number;
+  /** The eyes: their width (0 a texel narrower … 1 a texel wider, two at density 4), how far apart they are set (0 a texel
+   * closer … 1 a texel further, more at density 4) and their tilt (0 the outer corner drooping a row … 1 lifted a row). */
+  eyeSize: number; eyeSpacing: number; eyeTilt: number;
 }
 export const DEFAULT_HEAD: HeadShape = {
   width: 0.5, jaw: 0.5, chin: 0.5, cheekHeight: 0.5, cheekWidth: 0.5, bridge: 0.5, nose: 0.5, lips: 0.5,
   browArch: 0.4, browWeight: 0.5, browHeight: 0.5, crease: 0.5, hood: 0.3, liner: 0,
+  eyeSize: 0.5, eyeSpacing: 0.5, eyeTilt: 0.5,
 };
 export const DEFAULT_SLIDERS: Sliders = {
   frame: 0.5, height: 170, muscle: 0.5, fat: 0.4, shoulders: 0.5, hips: 0.5, legs: 0.5, arms: 0.5, head: 0.6,

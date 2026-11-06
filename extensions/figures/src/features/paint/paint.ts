@@ -166,8 +166,12 @@ export interface FaceStamp {
   view: number;
   /** The face's half-width (texels): the nose's and the mouth's widths, which are the face's structure. */
   size: number;
-  /** An eye's width (texels), one size for every face at a density: from 3 each has its white, below that a lid line. */
+  /** An eye's width (texels), the density's size moved by the face's eyeSize (genes.ts): from 3 each has its white, below that
+   * a lid line. */
   eye: number;
+  /** The eye's width before eyeSize: the face's level of detail (from 3 the white, the lid, the lips' two tones, the nose's
+   * lit bridge, the marks), so a small head's narrow eye does not drop its whole face to the small drawing. */
+  detail: number;
   /** Projected (texels): the eye line's centre on the face, the eyes (screen-left first), the nose's underside and the
    * lips' line. (The ears are parts of their own: garments.ts ear.) */
   centre: P; eyes: [P, P]; nose: P; mouth: P;
@@ -243,7 +247,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
   const has = (t: string) => !!f.mood?.has(t), angry = has('angry'), smile = has('smile'), dead = has('dead'), open = has('mouthOpen');
   const gaze = has('lookL') ? -1 : has('lookR') || has('beside') ? 1 : 0;
   // Detail by size: from 3 texels an eye has its white and lid, the lips two tones, the nose a lit bridge.
-  const big = f.eye >= 3, ew = f.eye, whiteFar = f.white;
+  const big = f.detail >= 3, ew = f.eye, whiteFar = f.white;
   const inside = (x: number, y: number) => x >= 0 && y >= 0 && x < w && y < h;
   const own = (x: number, y: number) => inside(x, y) && part[y * w + x] === FACE_SEAM && material[y * w + x] === f.skin && tone[y * w + x] !== 9;
   const set = (k: number, c: number) => { out[k * 4] = (c >> 16) & 255; out[k * 4 + 1] = (c >> 8) & 255; out[k * 4 + 2] = c & 255; };
@@ -263,6 +267,8 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
   const lightLid = oklab(tones[1])[0] < 0.5;
   const lid = (x: number, y: number) => { if (own(x, y)) { const t = tone[y * w + x]; set(y * w + x, tones[lightLid ? Math.max(0, t - 1) : Math.max(t, Math.min(2, t + 1))]); } };
   // The eye row: the eye line's, or in profile the near eye's (it sits nearer the camera, so lower under the pitch).
+  /** The eyes' tilt: −1 the outer corner a row up (lifted), +1 a row down (drooping), 0 level. */
+  const tilt = F.eyeTilt >= 0.75 ? -1 : F.eyeTilt <= 0.25 ? 1 : 0;
   const near = d > 0 ? f.eyes[0] : f.eyes[1], I = Math.floor(view === 2 ? near[1] : f.centre[1]);
   /** The face's last skin texel from `x` toward `d` on row `y`: its front edge, inside the outline. */
   const edge = (x: number, y: number) => { while (own(x + d, y)) x += d; return x; };
@@ -309,7 +315,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     for (let i = 0; i < n; i++) {
       const x = x0 + i, inIris = i >= at && i < at + iw;
       if (f.blink) { mark(x, I, f.lash); continue; }
-      if (n < 3 || x !== xin || n >= 4) mark(x, I - 1, f.lash);
+      if ((n < 3 || x !== xin || n >= 4) && !(tilt && x === xo)) mark(x, I - 1, f.lash);
       // Dead eyes: the lid drawn down over the whites, the iris alone staring out under it (its colour, not the pupil row of a live eye).
       if (dead) { if (inIris) mark(x, I, f.iris); else lid(x, I); continue; }
       mark(x, I, inIris ? f.lash : x < x0 + at ? f.white : whiteFar);
@@ -317,7 +323,9 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     }
     // The lash's flick: a texel past the outer corner, a row down (the upper lid's line turning down at its end); with
     // liner, on the lash's own row.
-    if (!f.blink) mark(xo + outer, F.liner >= 0.5 ? I - 1 : I, f.lash);
+    // Tilt (eyeTilt): the outer corner's lash and the flick past it a row up when lifted, a row down when drooping.
+    if (tilt && !f.blink) mark(xo, I - 1 + tilt, f.lash);
+    if (!f.blink) mark(xo + outer, (F.liner >= 0.5 ? I - 1 : I) + tilt, f.lash);
     else if (F.liner >= 0.5) mark(xo + outer, I, f.lash);
     return !behind;
   };
@@ -476,7 +484,7 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
       else {
         for (let i = 0; i < 3; i++) mark(xf - i * d, I - 1, f.lash);
         mark(xf, I, f.lash); mark(xf, I + 1, f.iris); mark(xf - d, I, f.white);
-        mark(xf - 3 * d, F.liner >= 0.5 ? I - 1 : I, f.lash);
+        mark(xf - 3 * d, (F.liner >= 0.5 ? I - 1 : I) + tilt, f.lash);
       }
     } else if (seen) {
       // Small: the iris and a white behind it on the eye's row, the lash a texel over the iris alone, so under a low
