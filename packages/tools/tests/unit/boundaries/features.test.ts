@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { featureFindings } from '#src/features.ts'
+import { featureFindings } from '#src/features/boundaries/features.ts'
 
 // Core and 2D refactor spec §3.3 (rules 1 to 5) and §3.5 (the messages): a package's src/ is app/, features/<x>/,
 // shared/, entries/ and testing/, and the imports between them go one way.

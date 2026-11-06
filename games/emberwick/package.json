@@ -39,7 +39,6 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-tools": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",

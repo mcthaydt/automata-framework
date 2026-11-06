@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 // `automata check` runs `automata-check-boundaries src/sim` in a game folder, with no flags. A game that uses an
 // extension must pass that run when the extension declares its sim entries (P5-D2).
-const cli = join(import.meta.dirname, '../../src/cli.ts')
+const cli = join(import.meta.dirname, '../../../src/features/boundaries/cli.ts')
 
 function run(importSource: string): { status: number | null; stdout: string } {
   const game = mkdtempSync(join(tmpdir(), 'af-boundaries-cli-'))

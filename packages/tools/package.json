@@ -22,7 +22,8 @@
     "#src/*": "./src/*"
   },
   "bin": {
-    "automata": "./src/app/bin.ts"
+    "automata": "./src/app/bin.ts",
+    "automata-check-boundaries": "./src/features/boundaries/cli.ts"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
@@ -33,7 +34,8 @@
       }
     },
     "bin": {
-      "automata": "./dist/bin.js"
+      "automata": "./dist/bin.js",
+      "automata-check-boundaries": "./dist/boundaries-cli.js"
     }
   },
   "scripts": {
@@ -45,7 +47,6 @@
     "check:example": "node src/app/bin.ts check ../../games/emberwick --csp"
   },
   "dependencies": {
-    "@mcthaydt/automata-check-boundaries": "workspace:*",
     "@mcthaydt/automata-content": "workspace:*",
     "effect": "3.22.2",
     "oxc-parser": "0.152.0",

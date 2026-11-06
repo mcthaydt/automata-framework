@@ -14,7 +14,8 @@ function checkRuleIds(): string[] {
   const ids = new Set<string>()
   // check-boundaries: the `Rule` union.
   const union =
-    /export type Rule =([\s\S]*?)\n\n/.exec(read('tooling/check-boundaries/src/check.ts'))?.[1] ?? ''
+    /export type Rule =([\s\S]*?)\n\n/.exec(read('packages/tools/src/features/boundaries/check.ts'))?.[1] ??
+    ''
   for (const match of union.matchAll(/'([a-z-]+)'/g)) if (match[1] !== undefined) ids.add(match[1])
   // automata check's own steps: `rule: '…'` (also both arms of a conditional) and `report(node, '…'`.
   const dir = join(REPO, 'packages/tools/src/shared/check')

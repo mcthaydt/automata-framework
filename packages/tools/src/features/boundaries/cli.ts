@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Usage: node tooling/check-boundaries/src/cli.ts [--inline] [--allow-import <specifier>]... [--skip-dir <name>]... <root>... [--game <src>...]
+// Usage: automata-check-boundaries [--inline] [--allow-import <specifier>]... [--skip-dir <name>]... <root>... [--game <src>...]
 // Each root is a sim source folder (packages/sim/src, a sim-plugin package, a game's sim folder). Checks
 // every non-test source file under it, and that relative imports stay inside it; exits 1 on any finding.
 // `--allow-import` adds an import specifier, by exact name, that every root in this run may use (see CheckOptions).

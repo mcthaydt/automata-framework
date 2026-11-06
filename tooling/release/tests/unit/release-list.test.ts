@@ -10,10 +10,9 @@ import { publishablePackages, type WorkspacePackage, workspacePackages } from '#
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
 const published = publishablePackages(root)
 
-// Core and 2D refactor, D1: four packages (sim, content, automata, tools) and the boundaries checker.
+// Core and 2D refactor, D1 and U6: four packages (sim, content, automata, tools); the boundaries checker is in tools.
 const EXPECTED: readonly string[] = [
   '@mcthaydt/automata',
-  '@mcthaydt/automata-check-boundaries',
   '@mcthaydt/automata-content',
   '@mcthaydt/automata-sim',
   '@mcthaydt/automata-tools',
@@ -154,11 +153,17 @@ describe('the published packages', () => {
     }),
   )
 
+  // Entries only this repository's tooling and tests import (U1): in `exports`, not in `publishConfig.exports`.
+  const WORKSPACE_ONLY: Readonly<Record<string, readonly string[]>> = {
+    '@mcthaydt/automata-tools': ['./internal', './e2e'],
+  }
+
   it(
-    'publish the same export keys as the workspace, pointing into dist',
+    'publish the same export keys as the workspace, except its workspace-only entries, pointing into dist',
     each(({ manifest }) => {
+      const workspaceOnly = WORKSPACE_ONLY[manifest.name] ?? []
       expect(Object.keys(manifest.publishConfig?.exports ?? {}), manifest.name).toEqual(
-        Object.keys(manifest.exports ?? {}),
+        Object.keys(manifest.exports ?? {}).filter((key) => !workspaceOnly.includes(key)),
       )
       for (const target of Object.values(manifest.publishConfig?.exports ?? {}).flatMap(targets)) {
         expect(target, manifest.name).toMatch(/^\.\/dist\//)

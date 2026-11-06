@@ -17,9 +17,9 @@ describe('the published entry', () => {
     expect(Object.keys(published)).toEqual(['defineShipConfig'])
   })
 
-  it('publishes only the root entry, and the bin', () => {
+  it('publishes only the root entry, and the two bins', () => {
     expect(Object.keys(pkg.publishConfig.exports)).toEqual(['.'])
-    expect(Object.keys(pkg.publishConfig.bin)).toEqual(['automata'])
+    expect(Object.keys(pkg.publishConfig.bin)).toEqual(['automata', 'automata-check-boundaries'])
   })
 
   it('keeps ./internal and ./e2e for the workspace only', () => {

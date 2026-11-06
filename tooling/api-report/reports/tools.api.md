@@ -4,6 +4,61 @@
 
 ## `.`
 
+### `defineShipConfig` (function)
+
+```ts
+function defineShipConfig(config: ShipConfig): ShipConfig;
+```
+
+### `ItchConfig` (interface)
+
+```ts
+interface ItchConfig {
+    readonly project: string;
+    readonly channel?: string | undefined;
+    readonly downloads?: {
+        readonly linux?: string | undefined;
+        readonly mac?: string | undefined;
+        readonly windows?: string | undefined;
+    } | undefined;
+}
+```
+
+### `ItchSettings` (interface)
+
+```ts
+interface ItchSettings {
+    readonly project: string;
+    readonly channel: string;
+    readonly downloads: {
+        readonly linux: string;
+        readonly mac: string;
+        readonly windows: string;
+    };
+}
+```
+
+### `ShipConfig` (interface)
+
+```ts
+interface ShipConfig extends GameConfig {
+    readonly itch?: ItchConfig | undefined;
+    readonly tauri?: TauriConfig | undefined;
+    readonly audience?: 'public' | 'private' | undefined;
+}
+```
+
+### `TauriConfig` (interface)
+
+```ts
+interface TauriConfig {
+    readonly identifier: string;
+    readonly icon?: string | undefined;
+}
+```
+
+## `./internal`
+
 ### `BoardName` (interface)
 
 ```ts
@@ -18,21 +73,6 @@ interface BoardName {
 
 ```ts
 function boardNamesIn(file: string, code: string): BoardName[] | undefined;
-```
-
-### `BUILD_ID_PATTERN` (const)
-
-```ts
-const BUILD_ID_PATTERN: RegExp;
-```
-
-### `buildIdFor` (function)
-
-```ts
-function buildIdFor(commit: {
-    readonly time: Date;
-    readonly sha: string;
-}): string;
 ```
 
 ### `ButlerFailed` (class)
@@ -87,42 +127,6 @@ function declaredOrientationIn(code: string): string | undefined;
 
 ```ts
 function defineShipConfig(config: ShipConfig): ShipConfig;
-```
-
-### `deployDev` (function)
-
-```ts
-function deployDev(input: DeployDevInput): Effect.Effect<{
-    buildId: string;
-    url: string;
-}, DeployDevError, Files | ProcessRunner>;
-```
-
-### `DeployDevInput` (interface)
-
-```ts
-interface DeployDevInput {
-    readonly distDir: string;
-    readonly commit: {
-        readonly sha: string;
-        readonly time: Date;
-    };
-    readonly tag: string | undefined;
-    readonly branch: string | undefined;
-    readonly target: string;
-    readonly siteUrl: string;
-    readonly activate: boolean;
-    readonly sshKeyFile?: string | undefined;
-    readonly knownHostsFile?: string | undefined;
-}
-```
-
-### `DeployFailed` (class)
-
-```ts
-class DeployFailed extends DeployFailedBase {
-    get message(): string;
-}
 ```
 
 ### `EntryMissing` (class)
@@ -847,43 +851,6 @@ class TauriToolchainMissing extends TauriToolchainMissingBase {
 }
 ```
 
-### `testRemote` (function)
-
-```ts
-function testRemote(input: TestRemoteInput): Effect.Effect<{
-    runUrl: string;
-    jobs: readonly string[];
-}, TestRemoteFailed | ProcessError, ProcessRunner>;
-```
-
-### `TestRemoteFailed` (class)
-
-```ts
-class TestRemoteFailed extends TestRemoteFailedBase {
-}
-```
-
-### `TestRemoteInput` (interface)
-
-```ts
-interface TestRemoteInput {
-    readonly args: readonly string[];
-    readonly since: string;
-    readonly pollAttempts?: number;
-    readonly pollIntervalMs?: number;
-    readonly watchIntervalMs?: number;
-    readonly queuePolls?: number;
-    readonly runPolls?: number;
-    readonly viewRetries?: number;
-}
-```
-
-### `TestRemoteReason` (type)
-
-```ts
-type TestRemoteReason = 'usage' | 'detached' | 'uncommitted' | 'push' | 'dispatch' | 'no-run' | 'no-runner' | 'timeout' | 'gh-unavailable' | 'red';
-```
-
 ### `UndeclaredBoard` (class)
 
 ```ts
@@ -908,6 +875,20 @@ interface UndeclaredBoardFound {
 ```ts
 class VersionMismatch extends VersionMismatchBase {
 }
+```
+
+### `WebBuildInvalid` (class)
+
+```ts
+class WebBuildInvalid extends WebBuildInvalidBase {
+    get message(): string;
+}
+```
+
+### `WebCheck` (type)
+
+```ts
+type WebCheck = 'no-eval' | 'data-urls';
 ```
 
 ## `./e2e`

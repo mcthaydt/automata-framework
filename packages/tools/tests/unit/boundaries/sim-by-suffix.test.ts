@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, relative } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { collectSimBySuffix } from '#src/sim-by-suffix.ts'
+import { collectSimBySuffix } from '#src/features/boundaries/sim-by-suffix.ts'
 
 // Core and 2D refactor spec §3.3: in a game laid out by feature, a file whose name ends in a sim role suffix is a
 // sim file, wherever it sits, and so is every file a sim file imports by relative path.

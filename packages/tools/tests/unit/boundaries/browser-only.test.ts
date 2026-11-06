@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { browserOnlyFindings } from '#src/browser-only.ts'
+import { browserOnlyFindings } from '#src/features/boundaries/browser-only.ts'
 
 // Core and 2D refactor spec §3.5 and §4 (D2): nothing a browser entry reaches imports Effect, a Node built-in or a
 // Node-only library. Type-only imports bring no code and do not count.
