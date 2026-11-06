@@ -28,6 +28,19 @@ describe('SuiteRail', () => {
     expect(tabs().filter((tab) => tab.tabIndex === 0)).toEqual([screen.getByRole('tab', { name: 'Audio' })])
   })
 
+  it('draws each tab as its icon above its name, the name the tab is called by', () => {
+    render(SuiteRail, {
+      entries: SUITE_ENTRIES,
+      current: 'tuner',
+      orientation: 'vertical',
+      onselect: () => {},
+    })
+    for (const tab of tabs()) {
+      expect(tab.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+      expect(tab.querySelector('.label')?.textContent?.trim()).toBe(tab.textContent?.trim())
+    }
+  })
+
   it('on Home no tab is selected and the first is the tab stop', () => {
     render(SuiteRail, {
       entries: SUITE_ENTRIES,

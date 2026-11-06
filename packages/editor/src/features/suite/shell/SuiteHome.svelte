@@ -1,8 +1,10 @@
 <!--
-  The suite's Home: on the sample, the note that this is not the person's game; Export and Import; then a card for
-  each editor the game's list names, its files named in words. Split out of `Suite.svelte` (12.7).
+  The suite's Home: on the sample, the note that this is not the person's game; then the question, with Export and
+  Import beside it in the same row, and a card for each editor the game's list names, its files named in words. Split
+  out of `Suite.svelte` (12.7).
 -->
 <script lang="ts">
+import Icon from '../../../shared/kit/icons/Icon.svelte'
 import type { WorkspaceFile } from '../../../shared/kit/ports/suite-ports'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import Home from './Home.svelte'
@@ -21,18 +23,18 @@ const { home, sample, onopen, onread, oninterchange }: Props = $props()
 </script>
 
 <div class="home">
-  <div>
-    {#if sample}
-      <p class="banner" role="note">
-        This is a sample game, not yours. Run automata editor inside your game's folder to edit it.
-      </p>
-    {/if}
-    <div class="share">
+  {#if sample}
+    <p class="banner" role="note">
+      <Icon name="alert" size={16} />
+      <span>This is a sample game, not yours. Run automata editor inside your game's folder to edit it.</span>
+    </p>
+  {/if}
+  <Home title="What do you want to change?" {home} empty="This game has nothing to edit yet." {onopen} {onread}>
+    {#snippet actions()}
       <Button onclick={() => oninterchange('export')}>Export</Button>
       <Button onclick={() => oninterchange('import')}>Import</Button>
-    </div>
-  </div>
-  <Home title="What do you want to change?" {home} empty="This game has nothing to edit yet." {onopen} {onread} />
+    {/snippet}
+  </Home>
 </div>
 
 <style>
@@ -40,19 +42,21 @@ const { home, sample, onopen, onread, oninterchange }: Props = $props()
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
     height: 100%;
+    background: var(--bg);
   }
+  /* One quiet line across the page, in the warning colour's ink only for its mark: it informs, it is not an error. */
   .banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
     margin: 0;
     padding: var(--space-3) var(--space-5);
-    border-bottom: 1px solid var(--color-border-strong);
-    background: var(--color-bg-app);
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
     font: var(--text-body-13);
   }
-  .share {
-    display: flex;
-    gap: var(--space-2);
-    justify-content: flex-end;
-    padding: var(--space-3) var(--space-5) 0;
-    background: var(--color-bg-app);
+  .banner :global(svg) {
+    margin-top: 1px;
+    color: var(--color-state-warn);
   }
 </style>

@@ -1,16 +1,19 @@
 <!--
   Export and Import. Export prints the
-  listed files as one scene-interchange v2 document, TOML or JSON, in a read-only text to copy. Import takes a pasted
-  or chosen document and shows its plan before anything is written: each change with its diff, the gates it reopens
-  and the checks it runs, and each refusal with why. Apply is enabled only on an applicable plan and writes it as one
-  undo step; a file that moved on since the plan refuses the apply, and Plan again plans afresh.
+  listed files as one scene-interchange v2 document, TOML or JSON, in a read-only text; Copy, its one primary, puts it
+  on the clipboard. Import takes a pasted or chosen document and shows what it would change before anything is
+  written ("See changes"): each file by its name in words with its diff, the reviews it reopens, and each refusal with
+  why. Import is enabled only on an applicable plan and writes it as one undo step; a file that moved on since refuses
+  it, and "See changes again" plans afresh. One primary at a time: See changes until there is a plan, then Import.
 -->
 <script lang="ts">
 import type { WriteOutcome } from '../../../shared/editor-list/write-path'
 import Button from '../../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../../shared/kit/widgets/Dialog.svelte'
+import Segmented from '../../../shared/kit/widgets/Segmented.svelte'
 import type { ImportPlan } from '../core/interchange'
 import DiffView from './DiffView.svelte'
+import { fileTitle } from './home-model'
 
 type ApplyOutcome = WriteOutcome | { readonly refused: 'plan' }
 
@@ -32,16 +35,27 @@ let source = $state('')
 let plan = $state<ImportPlan>()
 let applied = $state<ApplyOutcome>()
 let busy = $state(false)
+let copied = $state<'yes' | 'no'>()
 
 $effect(() => {
   if (!open || mode !== 'export') return
   const chosen = format
+  copied = undefined
   void onexport(chosen).then(
     (text) => (exported = text),
     (error: unknown) =>
       (exported = `Export failed: ${error instanceof Error ? error.message : String(error)}`),
   )
 })
+
+async function copy(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(exported)
+    copied = 'yes'
+  } catch {
+    copied = 'no'
+  }
+}
 
 async function makePlan(): Promise<void> {
   busy = true
@@ -69,8 +83,9 @@ const canApply = $derived(
 )
 const refusal = (outcome: ApplyOutcome): string | undefined => {
   if ('written' in outcome || 'cancelled' in outcome) return undefined
-  if (outcome.refused === 'moved') return `${outcome.path} changed since the plan.`
-  if (outcome.refused === 'plan') return 'This plan cannot apply.'
+  if (outcome.refused === 'moved')
+    return `${fileTitle(outcome.path)} changed since you looked. See the changes again.`
+  if (outcome.refused === 'plan') return 'These changes can’t be imported.'
   if (outcome.refused === 'checks') return outcome.findings.map((finding) => finding.message).join('; ')
   if (outcome.refused === 'policy') return outcome.why
   return outcome.message
@@ -79,15 +94,24 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
 
 <Dialog {open} title={mode === 'export' ? 'Export' : 'Import'} width="wide" onclose={() => onclose()}>
   {#if mode === 'export'}
-    <fieldset class="formats">
-      <legend>Format</legend>
-      <label><input type="radio" bind:group={format} value="toml" /> TOML</label>
-      <label><input type="radio" bind:group={format} value="json" /> JSON</label>
-    </fieldset>
-    <label for={`${uid}-out`}>Exported document</label>
+    <Segmented
+      label="Format"
+      options={[
+        { id: 'toml', label: 'TOML' },
+        { id: 'json', label: 'JSON' },
+      ]}
+      value={format}
+      onedit={(event) => (format = event.value === 'json' ? 'json' : 'toml')}
+    />
+    <label for={`${uid}-out`}>Your game as text</label>
     <textarea id={`${uid}-out`} readonly rows="12" value={exported}></textarea>
+    {#if copied !== undefined}
+      <p class={copied === 'yes' ? 'note' : 'bad'} role="status">
+        {copied === 'yes' ? 'Copied. Paste it anywhere to keep it.' : 'Couldn’t copy. Select the text and copy it.'}
+      </p>
+    {/if}
   {:else}
-    <label for={`${uid}-in`}>Document to import</label>
+    <label for={`${uid}-in`}>Paste the text to import</label>
     <textarea id={`${uid}-in`} rows="6" bind:value={source} disabled={busy}></textarea>
     <!-- The browser's own file control is under 44 px and cannot be sized: a kit button opens it instead. -->
     <div class="file">
@@ -104,14 +128,13 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
       {/if}
       {#each plan.changes as change (change.path)}
         <figure>
-          <figcaption><code>{change.path}</code>{change.before === undefined ? ' (new)' : ''}</figcaption>
+          <figcaption>{fileTitle(change.path)}{change.before === undefined ? ' (new)' : ''}</figcaption>
           <DiffView hunks={change.hunks} />
-          <p class="note">{change.gates.length === 0 ? 'No gates' : `Reopens ${change.gates.join(', ')}`}</p>
-          <p class="note">{`Checks: ${change.checks.join(', ')}`}</p>
+          {#if change.gates.length > 0}<p class="note">{`Needs review again: ${change.gates.join(', ')}`}</p>{/if}
         </figure>
       {/each}
       {#if plan.refused.length > 0}
-        <h3>Refused</h3>
+        <h3>Can’t import</h3>
         <ul>
           {#each plan.refused as refused, index (index)}<li>{`${refused.path ?? refused.editor}: ${refused.why}`}</li>{/each}
         </ul>
@@ -121,7 +144,7 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
       {@const why = refusal(applied)}
       {#if why === undefined}
         <p class="note" role="status">
-          {'cancelled' in applied ? 'Nothing was imported: no change set was started.' : 'Imported as one step; Undo takes it back.'}
+          {'cancelled' in applied ? 'Nothing was imported.' : 'Imported. Undo takes it back.'}
         </p>
       {:else}
         <p class="bad" role="alert">{why}</p>
@@ -130,13 +153,22 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
   {/if}
   {#snippet actions()}
     <Button onclick={() => onclose()}>Close</Button>
-    {#if mode === 'import'}
+    {#if mode === 'export'}
+      <Button variant="primary" disabled={exported === ''} onclick={() => void copy()}>Copy</Button>
+    {:else}
+      <!-- The primary is the next step: See changes until there is a plan to import, then Import. -->
       {#if applied !== undefined && 'refused' in applied && applied.refused === 'moved'}
-        <Button onclick={() => void makePlan()}>Plan again</Button>
+        <Button variant="primary" onclick={() => void makePlan()}>See changes again</Button>
       {:else}
-        <Button disabled={busy || source.trim() === ''} onclick={() => void makePlan()}>Plan</Button>
+        <Button
+          variant={plan === undefined ? 'primary' : 'plain'}
+          disabled={busy || source.trim() === ''}
+          onclick={() => void makePlan()}>See changes</Button
+        >
       {/if}
-      <Button variant="primary" disabled={!canApply} onclick={() => void apply()}>Apply</Button>
+      {#if plan !== undefined}
+        <Button variant="primary" disabled={!canApply} onclick={() => void apply()}>Import</Button>
+      {/if}
     {/if}
   {/snippet}
 </Dialog>
@@ -144,35 +176,20 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
 <style>
   label {
     display: block;
-    margin-top: var(--space-2);
-  }
-  .formats {
-    display: flex;
-    gap: var(--space-4);
-    margin: 0;
-    padding: 0;
-    border: 0;
-  }
-  .formats label {
-    display: inline-flex;
-    gap: var(--space-2);
-    align-items: center;
-    min-height: var(--size-hit);
-    margin: 0;
-  }
-  .formats input {
-    width: 20px;
-    height: 20px;
+    margin-top: var(--space-3);
+    margin-bottom: var(--space-1);
+    color: var(--muted);
+    font: var(--text-label-12);
   }
   textarea {
     box-sizing: border-box;
     width: 100%;
     min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--line-strong);
     border-radius: var(--edge-sm);
-    background: var(--color-bg-field);
-    color: var(--color-text-primary);
+    background: var(--paper);
+    color: var(--ink);
     font: var(--text-mono-12);
     resize: vertical;
   }
@@ -194,8 +211,9 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
   figure {
     margin: var(--space-3) 0 0;
   }
-  code {
-    overflow-wrap: anywhere;
+  figcaption {
+    margin-bottom: var(--space-1);
+    font: var(--text-body-13-medium);
   }
   h3 {
     margin: var(--space-3) 0 0;
@@ -210,7 +228,7 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
     margin: var(--space-1) 0 0;
   }
   .note {
-    color: var(--color-text-dim);
+    color: var(--muted);
   }
   .bad {
     color: var(--color-state-bad);
