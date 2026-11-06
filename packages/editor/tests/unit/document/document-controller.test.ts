@@ -15,7 +15,7 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { type Note, noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // One open document's flows: undo and redo, Save
 // and what each of its outcomes does, the conflict choices, the Restore decision, and writing the journal before the

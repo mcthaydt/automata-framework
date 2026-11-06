@@ -9,7 +9,7 @@ import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The project list Home shows: projects, not files.
 

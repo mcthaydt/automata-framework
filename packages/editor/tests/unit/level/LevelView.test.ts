@@ -12,7 +12,7 @@ import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The Level view in jsdom: the layer panel, the palette, the toolbar and what reaches the
 // canvas, mounted the way the app mounts it, with a stand-in canvas. The pointer itself is tested in Node (the session

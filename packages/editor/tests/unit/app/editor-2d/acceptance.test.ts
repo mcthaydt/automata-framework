@@ -8,7 +8,7 @@ import { checkProject } from '#src/shared/level-2d/profiles/level-project/projec
 import { contentMismatches } from '#src/testing/level-2d/content-roundtrip.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // ED2D.10 acceptance, headless half: the platformer and the RPG, built by the editor
 // and kept as the samples Mossgate and Hollowmere, go through the one app on one registry: imported, opened, checked

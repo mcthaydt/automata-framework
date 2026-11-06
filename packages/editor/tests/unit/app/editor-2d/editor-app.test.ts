@@ -12,7 +12,7 @@ import { createProfileRegistry } from '#src/shared/level-2d/profiles/profile.ts'
 import { memoryWorkspace, textOf } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile, savedCount } from '#src/testing/level-2d/planted-profile.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Creating, opening and saving documents over the kit's workspace. The level project is the real
 // profile; the planted note stands in for a second one, and for a codec that patches the text it loaded.

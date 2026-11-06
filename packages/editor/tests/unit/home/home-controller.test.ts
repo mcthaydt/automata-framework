@@ -15,7 +15,7 @@ import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The state machine behind Home, over a memory workspace, the real level project and a planted
 // second profile. The controller never navigates: it tells its owner when a document opened.

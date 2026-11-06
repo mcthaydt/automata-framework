@@ -17,7 +17,7 @@ import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import FakeWorldCanvas from '#src/testing/level-2d/FakeWorldCanvas.svelte'
 import { linkedMaps } from '#src/testing/level-2d/linked-maps.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Linked levels in jsdom: the app's screen with stand-in
 // canvases, driven through the rail, the World view, the Level view's palette and inspector, and the Checks view.

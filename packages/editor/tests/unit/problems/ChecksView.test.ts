@@ -16,7 +16,7 @@ import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { entity, withDefs, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The Checks view in jsdom, mounted the way the app mounts it and reached from the rail.
 

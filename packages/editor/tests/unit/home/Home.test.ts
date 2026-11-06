@@ -19,7 +19,7 @@ import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Home as a person meets it: the real app over a memory workspace, the real level project and a
 // planted second profile, drawn inside the kit's shell with the geometry stand-in. The parts have their own tests; this

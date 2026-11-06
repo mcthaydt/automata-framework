@@ -14,7 +14,7 @@ import { setLevelField } from '#src/shared/level-2d/model/world/level-edits.ts'
 import { stubGeometry } from '#src/testing/kit/stub-geometry.svelte.ts'
 import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The Entities view in jsdom, mounted the way the app mounts it and reached from the rail: the
 // panel, the preview, the definition form and the field editor, the refusal dialog (G-f) and that each edit is one

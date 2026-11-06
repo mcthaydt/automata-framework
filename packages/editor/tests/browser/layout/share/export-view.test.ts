@@ -11,7 +11,7 @@ import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-s
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { entity, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The Export view with the production CSS in a real browser, at the eight
 // window sizes, in Chromium, WebKit and Firefox: Download 48 px, the other actions and the target cards 44 px, all in

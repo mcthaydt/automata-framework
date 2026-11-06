@@ -19,7 +19,7 @@ import { counterIds } from '../../shared/level-2d/model/ids'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { IpadProfile } from '../kit/ipad-profiles.ts'
 import { arrived } from '../kit/layout-sizes.ts'
-import { createTestClock } from './test-clock'
+import { createTestClock } from '../kit/test-clock'
 
 // The editor on an iPad for the journeys (the kit's harness: `IPAD_PROFILES`, `createPointers`, `turned`):
 // the app's own screen with the real Pixi canvases and the real geometry owner over a memory workspace that keeps what

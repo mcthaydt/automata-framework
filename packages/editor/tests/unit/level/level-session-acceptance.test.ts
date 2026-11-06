@@ -8,7 +8,7 @@ import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { counterIds } from '#src/shared/level-2d/model/ids.ts'
 import type { Project } from '#src/shared/level-2d/model/project-types.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // The Level view's acceptance cases in Node: the real profile,
 // the kit's `History` and session, an in-memory workspace, and the session and gestures the Svelte view attaches. The

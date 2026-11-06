@@ -17,7 +17,7 @@ import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { cellsPng } from '#src/testing/level-2d/png.ts'
 import { withDefs } from '#src/testing/level-2d/project-edit.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
-import { createTestClock } from '#src/testing/level-2d/test-clock.ts'
+import { createTestClock } from '#src/testing/kit/test-clock.ts'
 
 // Images of the canvas for review. Run
 // with `ED2D_VISUALS=1 pnpm test:canvas level-visuals` to write them to `docs/evidence/owner-visual/2026-10-30-ed2d-4c3b/`.
