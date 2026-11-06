@@ -10,7 +10,8 @@ import { randomIds } from '../../shared/level-2d/model/ids.ts'
 import { createLevels2d } from './levels-2d/levels-2d-suite-editor.ts'
 
 // The suite's page for this package: the editors it has (the Tuner and Levels 2D) and nothing from 3D, so its build
-// carries no `@pixi/3d`. The only file that reaches for the page's globals. When no checkout answers, the page opens a
+// carries no `@pixi/3d` (`-tools`' build scans it for the beta before it copies the 2D build). Only these two, because the
+// other suite editors are 3D (Levels 3D, the Studio, in `editor-3d`) or not built yet. The only file that reaches for the page's globals. When no checkout answers, the page opens a
 // sample game held in memory and says so in the top bar. `editor-3d`'s own suite page adds the 3D editors.
 
 const target = document.getElementById('app')

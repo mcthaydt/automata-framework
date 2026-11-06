@@ -672,11 +672,11 @@ The 2D-only page itself was written in task 4.2 step 4. The scan runs in `-tools
 editor's: the editor cannot run a `-tools` bin, because `-tools` depends on the editor (its editor list, its level
 export and its 2D build) and the reverse would be a dependency cycle.
 
-- [ ] **Step 1: Failing test:** `copy-editor` fails on a planted `dist/suite` chunk carrying a `PIXI3D_MARKERS` string.
-- [ ] **Step 2:** `pnpm --filter @mcthaydt/automata-tools build` (which builds the editor first) → both editor builds
+- [x] **Step 1: Failing test:** `copy-editor` fails on a planted `dist/suite` chunk carrying a `PIXI3D_MARKERS` string.
+- [x] **Step 2:** `pnpm --filter @mcthaydt/automata-tools build` (which builds the editor first) → both editor builds
   scanned clean. `pnpm --filter @mcthaydt/automata-editor-3d build` → its `suite/` holds the beta and is not scanned
   (it is not shipped; its Vite config's comment says so).
-- [ ] **Step 3: Commit.** `test(suite): the editor package's suite build is scanned for the closed beta`
+- [x] **Step 3: Commit.** `test(suite): the editor package's suite build is scanned for the closed beta`
 
 ### Task 8.2: The suite opens the checkout; the rail lists what is there
 
@@ -1673,4 +1673,13 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
 - **Gates.** `-tools` unit 851 (835 before); `pnpm check` exit 0; the stranger's journey passes in Chromium (49 s:
   install, `pnpm check` with the `levels` step, `pnpm test`, play, itch.io zip). Changeset `create-game-level`.
   WebKit, Firefox and hosted CI not run.
+
+### 2026-11-06, session 6 (continued): phase 8, task 8.1
+
+- Steps 1 and 2 were already in the tree: task 4.2 made the 2D-only `suite.html` and the `--mode suite` build, and
+  task 7.2's `copy-editor.test.ts` has the planted-marker case for `dist/suite` (6 tests pass). Verified here: the
+  `-tools` build scanned the editor's `2d` and `suite` builds clean (`findPixi3d`: 0 and 0); `editor-3d`'s build
+  (`pnpm build`, both pages) holds the beta (2 findings in `dist/suite`) and is not scanned or shipped, which its
+  `vite.config.ts` comment now says. The suite page's `main.ts` comment says why only these two editors.
+  **Deviation 89:** no new test; the step-1 test existed (task 7.2).
 
