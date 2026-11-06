@@ -185,7 +185,7 @@ Done means: Emberwick's journeys pass on every pull request in two browsers, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout
 with tests in their own folder, and `.vscode` hides what the Owner does not need to see.
 
-## 2D editors and website: 50% (3 of 6)
+## 2D editors and website: 50% (3 of 6; the build stays open until 63 of 63)
 
 Scope: `editor-kit`, `editor-2d`, the parts of `editor-suite` that 2D touches, `automata editor`, and the website
 repository (`mcthaydt/automata-website`), judged as if AF ships with 2D alone. Widened on 2026-11-06 (the Owner: "we need
@@ -198,9 +198,80 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 1. Audit | Done, 2026-11-06: 7 editor shipping gaps (E1 to E7), 7 sprawl (S1 to S7), 2 contracts (K1, K2), 5 tests (T1 to T5), 5 copy (G1 to G5); 9 website shipping gaps (W1 to W9), 6 sprawl (WS1 to WS6), 2 tests (WT1, WT2), 4 copy (WG1 to WG4); 8 decisions (D1 to D8); the Owner took all eight recommendations the same day. The widened scope's audit, the same day: 7 new-game gaps (N1 to N7), 7 published-tools (U1 to U7), 7 release (R1 to R7), 7 Plus and other repositories (P1 to P7), 7 agent package and docs (A1 to A7), 5 CI and tooling (Q1 to Q5), 4 copy (Y1 to Y4); 9 decisions (D9 to D17); the Owner took all nine recommendations the same day | [2026-11-06-2d-editors-and-site-audit.md](2026-11-06-2d-editors-and-site-audit.md), [2026-11-06-2d-ship-rest-audit.md](2026-11-06-2d-ship-rest-audit.md) |
 | 2. Plan and spec | Done, 2026-11-06 (draft PR [#406](https://github.com/mcthaydt/automata-framework/pull/406)): 21 phases, 63 tasks. Built on D1 to D17 as the Owner took them; adds the editor redesign in the website's look and the code refactor to the core slice's standard (minimal, elegant, documented), both asked for by the Owner the same day. Stage 3 reviews it | [spec](2026-11-06-2d-editors-and-site-spec.md), [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 3. Plan audit | Done, 2026-11-06 (draft PR, stacked on #406 and #407): 30 findings (12 that would have stopped the build, 18 that would have caused harm or rework), all fixed in the spec and plan; three veto defaults added (14 to 16); the Owner's calls are the npm organisation's name and D8/D17's inputs. Stage 4 starts at task 1.1 | [plan audit](2026-11-06-2d-editors-and-site-plan-audit.md) |
-| 4. Build | Not started | |
+| 4. Build | In progress: 2 of 63 tasks (see below) | [plan](2026-11-06-2d-editors-and-site-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
+
+### Build: 3% (2 of 63 tasks)
+
+Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
+organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
+
+| Task | Phase | Status | PR |
+|---|---|---|---|
+| 1.1 The editors in the 2D gate | 1 | Done, 2026-11-06 (Chromium; unit: editor-kit 1,373, editor-2d 1,552; browser: editor-2d 259 pass and 6 skipped, editor-kit layout 129; the journeys need WebKit: the Owner's `ci:local`; hosted CI not run) | |
+| 1.2 One workflow per dimension | 1 | Done, 2026-11-06 (workflow YAML parses; `actionlint` needs Docker: the Owner's; hosted CI not run) | |
+| 2.1 The stranger's journey | 2 | Not started | |
+| 2.2 A new game installs | 2 | Not started | |
+| 2.3 A new game passes its own check, in the feature layout | 2 | Not started | |
+| 2.4 The rest of the path | 2 | Not started | |
+| 3.1 What leaves | 3 | Not started | |
+| 3.2 The target is always named | 3 | Not started | |
+| 3.3 A small root entry, and check-boundaries folded in | 3 | Not started | |
+| 3.4 Help text | 3 | Not started | |
+| 3.5 The code refactor of -tools | 3 | Not started | |
+| 4.1 The move map and the package skeleton | 4 | Not started | |
+| 4.2 Merge the three packages | 4 | Not started | |
+| 4.3 Tests into tests/ | 4 | Not started | |
+| 4.4 Feature folders and the boundaries rules | 4 | Not started | |
+| 4.5 Comments, fixtures, unused code and the mock-ups | 4 | Not started | |
+| 4.6 The code refactor of the editor package | 4 | Not started | |
+| 5.1 The level-2d entry | 5 | Not started | |
+| 5.2 The editor and Emberwick import it | 5 | Not started | |
+| 6.1 exports in the editor list and the policy | 6 | Not started | |
+| 6.2 Save writes the game files, then the project | 6 | Not started | |
+| 6.3 The drift check | 6 | Not started | |
+| 6.4 The narrow fallback | 6 | Not started | |
+| 7.1 --app 2d by default, and it runs from source | 7 | Not started | |
+| 7.2 The build inside -tools, and the closed-beta scan | 7 | Not started | |
+| 7.3 create-game makes a level | 7 | Not started | |
+| 8.1 The 2D-only suite page | 8 | Not started | |
+| 8.2 The suite opens the checkout; the rail lists what is there | 8 | Not started | |
+| 9.1 Split the examples package | 9 | Not started | |
+| 10.1 site/ with its history | 10 | Not started | |
+| 10.2 Imports, not copies | 10 | Not started | |
+| 10.3 The site's tooling matches the repository's | 10 | Not started | |
+| 11.1 One token source | 11 | Not started | |
+| 11.2 Geist and the icons | 11 | Not started | |
+| 11.3 The kit's components and the design board | 11 | Not started | |
+| 12.1 Home | 12 | Not started | |
+| 12.2 The document frame | 12 | Not started | |
+| 12.3 The Level view | 12 | Not started | |
+| 12.4 Map, Tiles, Characters and the dialogs | 12 | Not started | |
+| 12.5 The copy table and the guide | 12 | Not started | |
+| 13.1 The harness | 13 | Not started | |
+| 13.2 Save, drift and conflict journeys | 13 | Not started | |
+| 13.3 A new game, and the suite | 13 | Not started | |
+| 14.1 The scope | 14 | Not started | |
+| 14.2 The registry and the first public version | 14 | Not started | |
+| 15.1 The game's own workflow | 15 | Not started | |
+| 16.1 The skills, for today's framework | 16 | Not started | |
+| 16.2 One generated reference | 16 | Not started | |
+| 16.3 The docs agree with the direction | 16 | Not started | |
+| 16.4 The skills' public home | 16 | Not started | |
+| 17.1 The workflow invariants replace the YAML-pinning tests | 17 | Not started | |
+| 17.2 The packages that lost their reason | 17 | Not started | |
+| 17.3 The code refactor of the tooling that stays | 17 | Not started | |
+| 18.1 Features, the page cut and redirects | 18 | Not started | |
+| 18.2 Home and Start on the current code | 18 | Not started | |
+| 18.3 The editor page and "Try the editor" | 18 | Not started | |
+| 18.4 Docs and API | 18 | Not started | |
+| 18.5 The code refactor of the site | 18 | Not started | |
+| 19.1 The visitor's journey | 19 | Not started | |
+| 19.2 Links, privacy and the closed beta | 19 | Not started | |
+| 20.1 The copy table | 20 | Not started | |
+| 21.1 The deploy, ready | 21 | Not started | |
+| 21.2 The Owner's inputs and go | 21 | Not started | |
 
 Done means: someone new finds the site, makes a 2D game with `create-game`, edits its level with `automata editor`, sees
 the change in the game and publishes it, with nothing from 3D in the way; and journeys prove each step on every pull
