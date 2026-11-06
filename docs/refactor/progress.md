@@ -23,16 +23,16 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 1. Audit | Done, 2026-11-05; the Owner took all four decisions (D1 to D4) the same day | [2026-11-05-core-and-2d-audit.md](2026-11-05-core-and-2d-audit.md) |
 | 2. Plan and spec | Done, 2026-11-05 | [spec](2026-11-05-core-and-2d-spec.md), [plan](2026-11-05-core-and-2d-plan.md) |
 | 3. Plan audit | Done, 2026-11-05: 31 findings, all fixed in the spec and plan; three calls left for the Owner | [plan audit](2026-11-05-core-and-2d-plan-audit.md) |
-| 4. Build | In progress: phases 1 to 7 done locally; 8.1's Settings, CLI and README copy left; 8.2's boot-failure journey blocked on Ruken; 9.2 waits for the Owner; PRs #393 to #399 and the 5.4 finish (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
+| 4. Build | In progress: phases 1 to 7 done locally; 8.1's Settings, CLI and README copy left; 8.2's boot-failure journey blocked on Ruken; 9.2 waits for the Owner; PRs #393 to #400 (stacked) | [plan](2026-11-05-core-and-2d-plan.md) |
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
 ### Where to resume (2026-11-05, ninth session)
 
 The PRs are stacked and draft: #393 (4.3, 4.4) ← #394 (5.2, 5.3) ← #395 (6.1 to 6.4) ← #396 (7.1, 7.2 steps 1 and 2) ← #397
-(8.1, 8.2 part) ← #398 (7.2 step 3, 8.2 rest, 8.3) ← #399 (5.4 so far). Next, in order:
+(8.1, 8.2 part) ← #398 (7.2 step 3, 8.2 rest, 8.3) ← #399 (5.4 so far) ← #400 (5.4 finish). Next, in order:
 
-1. **5.4 is done** (branch `claude/project-thread-eo8dhs`, stacked on #399): boot, `run-game`, the renderer and the
+1. **5.4 is done** (#400, branch `claude/project-thread-eo8dhs`, stacked on #399): boot, `run-game`, the renderer and the
    test harness are plain, the bridge and the Effect tags are gone, `effect` left `packages/automata`, and the
    Emberwick bundle has no Effect in it (below). The plan's execution log has the detail (deviations 76 to 81).
 2. **8.1 rest:** the Settings sections' long strings, the CLI messages and the READMEs' first screens are still unchecked in
@@ -64,7 +64,7 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 5.1 Bundle report, before | 5 | Done locally, 2026-11-05 (CI run pending): `tooling/bundle-report`, run on Emberwick (below) | PR to open |
 | 5.2 Plain-TypeScript helpers | 5 | Done locally, 2026-11-05 (CI run pending): `Clock`/`fakeClock`, `Disposables`, `Result`, `Subscribable`/`emitter`; 22 unit tests | PR to open |
 | 5.3 Host contract and targets | 5 | Done locally, 2026-11-05 (CI run pending): plain host contract, web, Ruken and Tauri adapters, contract suite and fake host take a `Clock` and `AbortSignal`; ADR 0003 amended. A temporary bridge keeps the Effect runtime working; deleting it moved to 5.4 (deviation 55) | PR to open |
-| 5.4 Runtime features and the app | 5 | Done locally, 2026-11-05 (CI run pending): every feature, the app, boot, run-game, the renderer and `testing/` plain; the bridge and tags deleted; `pnpm check`, Chromium browser suites and journeys pass (Emberwick 28 of 28, examples 44, create-game 1); bundle has no Effect | [#399](https://github.com/mcthaydt/automata-framework/pull/399) and the PR for `claude/project-thread-eo8dhs` |
+| 5.4 Runtime features and the app | 5 | Done locally, 2026-11-05 (CI run pending): every feature, the app, boot, run-game, the renderer and `testing/` plain; the bridge and tags deleted; `pnpm check`, Chromium browser suites and journeys pass (Emberwick 28 of 28, examples 44, create-game 1); bundle has no Effect | [#399](https://github.com/mcthaydt/automata-framework/pull/399) and [#400](https://github.com/mcthaydt/automata-framework/pull/400) |
 | 6.1 Emberwick is Emberwick | 6 | Done locally, 2026-11-05 (CI run pending): renamed everywhere; `GOLDEN_HASH` re-recorded once (`94285fae634fdba9` → `421c5a1bf522299e`), Chromium agrees; WebKit and Firefox left to CI | PR to open |
 | 6.2 Emberwick imports one package | 6 | Done locally, 2026-11-05: only `@mcthaydt/automata`, `-sim`, `-tools` and `-content` remain | PR to open |
 | 6.3 Emberwick by feature | 6 | Done locally, 2026-11-05 (CI run pending): `app/`, `features/{player,goal,room,scene,screens}`, `shared/`, `entries/`, `testing/`; `--features games/emberwick` and the sim rule pass (deviations 56 to 58) | PR to open |
