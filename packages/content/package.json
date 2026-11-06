@@ -20,6 +20,9 @@
     "./locale": "./src/locale/index.ts",
     "./vite": "./src/vite/index.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "bin": {
     "automata-content": "./src/cli/main.ts"
   },
@@ -53,8 +56,8 @@
   },
   "scripts": {
     "test": "vitest run",
-    "test:unit": "vitest run --project node",
-    "test:parity": "vitest run --project browsers",
+    "test:unit": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
     "typecheck": "tsc -p .",
     "build": "tsdown"
   },
@@ -73,6 +76,7 @@
     "vite": "^8.3.3"
   },
   "devDependencies": {
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/fontkit": "2.0.9",
     "@types/node": "24.19.1",

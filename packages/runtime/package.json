@@ -19,6 +19,9 @@
     "./extension": "./src/extension/index.ts",
     "./testing": "./src/testing/index.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "exports": {
@@ -40,8 +43,8 @@
   "scripts": {
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
-    "test:parity": "vitest run --project browsers",
-    "bench": "vitest run --project bench --project bench-chromium",
+    "test:browser": "vitest run --project browser",
+    "bench": "vitest run --project bench-chromium",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
     "build": "tsdown && tsdown -c tsdown.dts.config.ts && node build/finish-dist.ts"
   },
@@ -60,8 +63,8 @@
     "@inlang/paraglide-js": "2.25.4",
     "@inlang/plugin-message-format": "4.4.4",
     "@mcthaydt/automata-testing": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
-    "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@types/node": "24.19.1",
     "@vitest/browser-playwright": "5.0.3",
     "jsdom": "30.1.1",

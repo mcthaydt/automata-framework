@@ -176,11 +176,11 @@ jobs:
       # Every core and 2D package with a browsers vitest project (sim, content, ui, ...) runs its parity suite (the 3D
       # and editor packages run theirs in 3d-and-editors.yml): on
       # pushes to main, the nightly, and a pull request that changes something outside the workspace packages.
-      - run: pnpm test:parity:core
+      - run: pnpm test:browser:core
         if: github.event_name != 'pull_request' || needs.checks.outputs.parity_full == 'true'
       # Any other pull request runs only the suites of the packages it affects, dependents included (turbo
       # --affected). The checkout is GitHub's merge commit, whose first parent is the base tip.
-      - run: pnpm test:parity:affected
+      - run: pnpm test:browser:affected
         if: github.event_name == 'pull_request' && needs.checks.outputs.parity_full != 'true'
         env:
           TURBO_SCM_BASE: HEAD^1

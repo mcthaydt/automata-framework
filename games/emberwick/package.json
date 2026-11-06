@@ -13,19 +13,22 @@
     "./sim": "./src/sim/index.ts",
     "./style.css": "./style.css"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "scripts": {
     "dev": "vite --configLoader runner",
     "build": "vite build --configLoader runner",
     "check": "pnpm typecheck && pnpm test:unit && automata-check-boundaries src/sim",
     "prepare-ruken": "automata-ship prepare",
     "test": "vitest run --configLoader runner",
-    "test:unit": "vitest run --configLoader runner --project node --project dom",
-    "test:parity": "vitest run --configLoader runner --project browsers --project renderer",
-    "test:evidence": "vitest run --configLoader runner --project node --project browsers src/golden.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "test:unit": "vitest run --configLoader runner --project unit",
+    "test:browser": "vitest run --configLoader runner --project browser",
+    "test:evidence": "vitest run --configLoader runner --project unit --project browser tests/browser/golden.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "typecheck": "tsc -p . && tsc -p tsconfig.node.json",
     "test:e2e": "playwright test",
     "e2e:game": "vite build --configLoader runner && vite preview --configLoader runner --base $AF_E2E_GAME_PATH --strictPort --host localhost --port $AF_E2E_PREVIEW_PORT",
-    "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT VITE_GAME_PATH=$AF_E2E_GAME_PATH vite build --config e2e/ruken/vite.config.ts && vite preview --config e2e/ruken/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
+    "e2e:host": "VITE_GAME_ORIGIN=http://localhost:$AF_E2E_PREVIEW_PORT VITE_GAME_PATH=$AF_E2E_GAME_PATH vite build --config tests/e2e/ruken/vite.config.ts && vite preview --config tests/e2e/ruken/vite.config.ts --strictPort --host 127.0.0.1 --port $AF_E2E_SERVER_PORT"
   },
   "dependencies": {
     "@fontsource/pixelify-sans": "5.3.0",
@@ -41,12 +44,13 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-check-boundaries": "workspace:*",
-    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-cli": "workspace:*",
+    "@mcthaydt/automata-content": "workspace:*",
     "@mcthaydt/automata-ship": "workspace:*",
     "@mcthaydt/automata-testing": "workspace:*",
     "@mcthaydt/evidence": "workspace:*",
     "@mcthaydt/playwright-preset": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@playwright/test": "1.63.0",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@sveltejs/vite-plugin-svelte": "7.3.1",

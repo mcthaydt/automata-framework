@@ -20,6 +20,9 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "exports": {
@@ -48,6 +51,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-editor-suite": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
     "@types/semver": "7.8.0",

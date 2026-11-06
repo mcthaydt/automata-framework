@@ -27,7 +27,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 23% (7 of 30 tasks)
+### Build: 30% (9 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -41,9 +41,9 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 2.2 Emberwick's stand-ins | 2 | Done, 2026-11-05 (CI run pending) | PR to open |
 | 2.3 The placeholder game | 2 | Done, 2026-11-05 (CI run pending) | PR to open |
 | 2.4 Features no game uses | 2 | Done, 2026-11-05 (CI run pending); leaderboards kept | [#390](https://github.com/mcthaydt/automata-framework/pull/390) |
-| 3.1 The Vitest preset | 3 | Not started | |
-| 3.2 The test move codemod | 3 | Not started | |
-| 3.3 Move tests, package by package | 3 | Not started | |
+| 3.1 The Vitest preset | 3 | Done, 2026-11-05 (CI run pending) | PR to open |
+| 3.2 The test move codemod | 3 | Done, 2026-11-05 (CI run pending) | PR to open |
+| 3.3 Move tests, package by package | 3 | In progress: sim, content, host, node, ship, cli, ui, game, runtime, render-pixi, automata, testing, emberwick and 6 of 12 tooling packages moved (unit counts equal before and after). Left: tooling `api-index`, `check-boundaries`, `check-style`, `repo-hygiene`, `agent-skills`, `examples-runner`, `frame-budget`; the examples; plan step 4 | PR to open |
 | 4.1 The boundaries rules | 4 | Not started | |
 | 4.2 The move map and import codemod | 4 | Not started | |
 | 4.3 Build `packages/automata` | 4 | Not started | |

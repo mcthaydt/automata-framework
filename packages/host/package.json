@@ -24,6 +24,9 @@
     "./contract-suite": "./src/contract-suite.ts",
     "./testing": "./src/testing/index.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "exports": {
@@ -70,6 +73,7 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@ruken/sdk": "file:../../vendor/ruken/ruken-sdk-0.0.0.tgz",
     "@ruken/sdk-host": "file:../../vendor/ruken/ruken-sdk-host-0.0.0.tgz",
     "@tauri-apps/api": "2.12.4",

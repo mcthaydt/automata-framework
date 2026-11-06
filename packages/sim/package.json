@@ -18,6 +18,9 @@
     "./math": "./src/math/dmath.ts",
     "./replay": "./src/replay/index.ts"
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "exports": {
@@ -40,12 +43,12 @@
     }
   },
   "scripts": {
-    "test": "vitest run --project node --project browsers",
-    "bench": "vitest run --project bench",
-    "test:unit": "vitest run --project node",
+    "test": "vitest run",
+    "bench": "AF_BENCH=1 vitest run --project bench",
+    "test:unit": "vitest run --project unit",
     "typecheck": "tsc -p .",
-    "test:parity": "vitest run --project browsers",
-    "test:evidence": "vitest run --project node --project browsers src/world/snapshot.parity.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
+    "test:browser": "vitest run --project browser",
+    "test:evidence": "vitest run --project unit --project browser tests/browser/world/snapshot.test.ts --reporter=default --reporter=json --outputFile.json=.evidence/goldens.json",
     "build": "tsdown"
   },
   "dependencies": {
@@ -54,6 +57,7 @@
   },
   "devDependencies": {
     "@mcthaydt/evidence": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@vitest/browser-playwright": "5.0.3",
     "playwright": "1.63.0",
     "vitest": "5.0.3"

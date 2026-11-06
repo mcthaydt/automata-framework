@@ -1,6 +1,4 @@
-import { defineConfig } from 'vitest/config'
+import { defineTests } from '@mcthaydt/vitest-preset'
 
-// Every test runs on Node: the fake Ruken host talks to the real SDK over in-memory ports.
-export default defineConfig({
-  test: { environment: 'node', include: ['src/**/*.test.ts'] },
-})
+// Every test runs on Node, so there is no browser project.
+export default defineTests({ browsers: [] })

@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["vite/client", "@testing-library/jest-dom/vitest", "vitest/browser"]
   },
-  "include": ["src/**/*.ts", "src/**/*.svelte"]
+  "include": ["src/**/*.ts", "src/**/*.svelte", "tests/**/*.ts"]
 }

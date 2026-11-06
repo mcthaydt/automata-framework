@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "scripts": {
     "smoke": "node src/run.ts",
     "test": "vitest run",
@@ -10,6 +13,7 @@
     "typecheck": "tsc -p ."
   },
   "devDependencies": {
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@ruken/manifest": "file:../../vendor/ruken/ruken-manifest-0.0.0.tgz",
     "@types/node": "24.19.1",
     "playwright": "1.63.0",

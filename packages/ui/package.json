@@ -26,6 +26,9 @@
       "default": "./src/testing/index.ts"
     }
   },
+  "imports": {
+    "#src/*": "./src/*"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "exports": {
@@ -44,8 +47,8 @@
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run --project unit",
-    "test:layout": "vitest run --project layout",
-    "test:parity": "vitest run --project layout",
+    "test:layout": "vitest run --project browser",
+    "test:browser": "vitest run --project browser",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
     "build": "svelte-package -i src -o dist --tsconfig tsconfig.package.json && node build/finish-dist.ts"
   },
@@ -64,6 +67,7 @@
   },
   "devDependencies": {
     "@mcthaydt/automata-testing": "workspace:*",
+    "@mcthaydt/vitest-preset": "workspace:*",
     "@sveltejs/package": "3.0.0",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/dom": "10.4.2",

@@ -1,5 +1,5 @@
 import { defineJourneys, sizes } from '@mcthaydt/playwright-preset'
-import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './e2e/origins.ts'
+import { gameBuildPath, gamePort, gameUrl, hostOrigin, hostPort } from './tests/e2e/origins.ts'
 
 // Emberwick's browser journeys: `pnpm test:e2e` in this folder. The config starts only Emberwick's two servers
 // (the game's production build and the fake Ruken host around it), so a run never waits on another area's build.
@@ -17,7 +17,7 @@ const ports = {
 const quick = { grepInvert: /@slow/ }
 
 export default defineJourneys({
-  testDir: 'e2e',
+  testDir: 'tests/e2e',
   projects: [
     // Phone first (AGENTS.md, Responsive UI).
     { name: 'emberwick-phone-chromium', use: { ...sizes.phone, browserName: 'chromium' }, ...quick },

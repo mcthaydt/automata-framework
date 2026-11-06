@@ -18,7 +18,7 @@
     "bench": "vitest run --project bench",
     "test": "vitest run --project unit",
     "test:unit": "vitest run --project unit",
-    "test:parity": "vitest run --project browsers",
+    "test:browser": "vitest run --project browsers",
     "typecheck": "tsc -p ."
   },
   "dependencies": {

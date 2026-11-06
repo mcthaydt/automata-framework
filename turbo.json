@@ -12,7 +12,7 @@
     "typecheck": {},
     "test": {},
     "test:unit": {},
-    "test:parity": {
+    "test:browser": {
       "cache": false,
       "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH"]
     },
