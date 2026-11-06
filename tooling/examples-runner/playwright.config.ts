@@ -2,7 +2,7 @@ import { defineJourneys } from '@mcthaydt/playwright-preset'
 import { playgroundFrameOrigin, playgroundFramePort, playgroundOrigin, playgroundPort } from './host/ports.ts'
 
 // The playground's journeys (the website's embedded player): `pnpm test:e2e` in this folder. The runner's own
-// smoke run over its fixtures belongs to the examples' config (examples/playwright.config.ts).
+// smoke run over its fixtures belongs to the examples' config (examples/2d/playwright.config.ts).
 const engines = ['chromium', 'webkit', 'firefox'] as const
 const reuse = process.env.CI === undefined
 

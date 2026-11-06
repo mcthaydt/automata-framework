@@ -16,7 +16,7 @@ import { fileUnder, sendFile } from './static-files.ts'
 // the build the site syncs.
 
 const here = fileURLToPath(new URL('.', import.meta.url))
-const examples = fileURLToPath(new URL('../../../examples/', import.meta.url))
+const examples = fileURLToPath(new URL('../../../examples/2d/', import.meta.url))
 const RUNTIME = join(here, 'dist', 'runtime')
 const runtime = runtimeFromViteManifest(
   JSON.parse(readFileSync(join(RUNTIME, '.vite', 'manifest.json'), 'utf8')) as Parameters<

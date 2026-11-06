@@ -20,7 +20,7 @@ export interface Message {
   readonly ticks?: number
 }
 
-export const examples = new URL('../../../../examples/', import.meta.url)
+export const examples = new URL('../../../../examples/2d/', import.meta.url)
 
 export function compiled(module: string, name: string, source?: string): string {
   const file = `${module}/${module}-${name}.ts`

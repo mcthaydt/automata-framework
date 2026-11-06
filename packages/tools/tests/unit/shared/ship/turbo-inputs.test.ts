@@ -55,12 +55,12 @@ describe.each(TASKS)("turbo's cache key for ship's %s", (task) => {
         'package.json',
         'pnpm-workspace.yaml',
         'games/emberwick/playwright.config.ts',
-        'examples/playwright.config.ts',
+        'examples/2d/playwright.config.ts',
         'packages/sim/package.json',
         'packages/sim/vitest.config.ts',
         'games/emberwick/package.json',
         'games/emberwick/vitest.config.ts',
-        'examples/ui/primitives/package.json',
+        'examples/2d/ui/primitives/package.json',
       ]),
     )
   })

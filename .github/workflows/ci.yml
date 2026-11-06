@@ -248,7 +248,7 @@ jobs:
       # The packed `automata` bin is the one a developer installs: built here for the journeys that run it.
       - run: pnpm exec turbo run build --filter @mcthaydt/automata-tools
       - name: 2D journeys
-        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples
+        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples-2d
       # A stranger makes a game from the packed packages in an empty folder outside the repository, checks, plays and
       # packages it (tooling/consumer-smoke). Turbo builds the packages it packs first.
       - name: The stranger's journey

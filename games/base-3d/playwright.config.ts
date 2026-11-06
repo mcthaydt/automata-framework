@@ -1,15 +1,10 @@
-import {
-  base3dDevPort,
-  demoHostOrigin,
-  demoHostPort,
-  examplesPort,
-} from '@mcthaydt/examples-runner/host/ports'
+import { base3dDevPort, demoHostOrigin, demoHostPort } from '@mcthaydt/examples-runner/host/ports'
 import { defineJourneys } from '@mcthaydt/playwright-preset'
 import { devices } from '@playwright/test'
 import { gameBuildPath, gamePort, gameUrl } from './e2e/origin.ts'
 
-// The 3D journeys: `pnpm test:e2e` in this folder. The base 3D game and the 3D examples (render3d-*, figures-*)
-// run here, not in the 2D gate; the 3D workflow runs them (.github/workflows/3d.yml).
+// The base 3D game's journeys: `pnpm test:e2e` in this folder, not in the 2D gate; the 3D workflow runs them
+// (.github/workflows/3d.yml), with the 3D examples' own journeys (examples/3d).
 
 const reuse = process.env.CI === undefined
 
@@ -31,13 +26,6 @@ export default defineJourneys({
       name: 'base-3d-dev-webkit',
       testDir: 'tests/e2e-dev',
       use: { ...devices['iPad (gen 7) landscape'] },
-    },
-    // The 3D examples (render3d, and figures since M3.5d) in WebKit too (M3.4a): headless Firefox here has no WebGL.
-    {
-      name: 'examples-webkit',
-      testDir: '../../examples/tests/e2e',
-      testMatch: ['render3d-*.test.ts', 'figures-*.test.ts'],
-      use: { ...devices['iPhone 14 landscape'] },
     },
   ],
   webServer: [
@@ -61,12 +49,6 @@ export default defineJourneys({
       command: 'pnpm --filter @mcthaydt/examples-runner e2e:host',
       url: `${demoHostOrigin}/`,
       env: { AF_E2E_DEMO_HOST_PORT: String(demoHostPort) },
-      reuseExistingServer: reuse,
-    },
-    {
-      command: 'pnpm --filter @af-examples/examples e2e:examples',
-      url: `http://localhost:${examplesPort}/`,
-      env: { AF_E2E_EXAMPLES_PORT: String(examplesPort) },
       reuseExistingServer: reuse,
     },
   ],

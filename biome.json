@@ -12,7 +12,7 @@
       "!games/base-3d/src/content/generated",
       "!**/*.af2d.json",
       "!games/emberwick/content/generated",
-      "!examples/content/hot-reload/content/generated"
+      "!examples/2d/content/hot-reload/content/generated"
     ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 110 },

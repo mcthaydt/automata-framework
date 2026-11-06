@@ -48,7 +48,7 @@ test('readGolden refuses a symlink inside the project that points outside it', a
 })
 
 test('readGolden reads inside a wider root when one is given, and still refuses outside it', async () => {
-  // A package whose goldens sit beside it (the examples runner reads examples/__goldens__) names the folder
+  // A package whose goldens sit beside it (the examples runner reads examples/2d/__goldens__) names the folder
   // that holds both; the project root stays the package's own.
   const wider = (path: string) =>
     goldenCommands({ root: base }).readGolden?.(

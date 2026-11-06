@@ -30,9 +30,17 @@
     },
     // Each game or example set has its own playwright.config.ts. They are entries,
     // listed with the journeys they run, because a config's projects name test folders in other workspaces.
-    "examples": { "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"], "playwright": false },
-    "examples/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
-    "examples/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
+    // Each `<module>/<module>-<name>.ts` is a page the examples runner serves, so every one is an entry.
+    "examples/2d": {
+      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "*/*.ts"],
+      "playwright": false
+    },
+    "examples/3d": {
+      "entry": ["playwright.config.ts", "tests/e2e/*.test.ts", "*/*.ts"],
+      "playwright": false
+    },
+    "examples/2d/content/hot-reload": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
+    "examples/2d/ui/primitives": { "entry": ["tests/e2e/*.test.ts"], "playwright": false },
     "tooling/examples-runner": {
       "ignore": ["playground/static/**"],
       "entry": ["playwright.config.ts", "tests/e2e/*.test.ts"],

@@ -1,10 +1,10 @@
 // figures-aim under the fake host and Ruken's headers (compileHeaders' CSP), in Chromium (the `examples` projects)
 // and WebKit (`examples-webkit`). Headless Firefox in this container has no WebGL; the GPU runner covers it.
-import { examplesPort } from '@mcthaydt/examples-runner/host/ports'
+import { examples3dPort } from '@mcthaydt/examples-runner/host/ports'
 import { collectErrors, openHosted } from '@mcthaydt/examples-runner/host/testing'
 import { expect, type Frame, test } from '@playwright/test'
 
-const gameUrl = `http://localhost:${examplesPort}/figures/aim/`
+const gameUrl = `http://localhost:${examples3dPort}/figures/aim/`
 const ID = 'figures-aim'
 
 /**

@@ -36,17 +36,11 @@ importers:
         specifier: 7.0.2
         version: 7.0.2
 
-  examples:
+  examples/2d:
     dependencies:
       '@mcthaydt/automata':
         specifier: workspace:*
-        version: link:../packages/automata
-      '@mcthaydt/automata-figures':
-        specifier: workspace:*
-        version: link:../packages/figures
-      '@mcthaydt/automata-render-pixi3d':
-        specifier: workspace:*
-        version: link:../packages/render-pixi3d
+        version: link:../../packages/automata
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0
@@ -59,13 +53,13 @@ importers:
     devDependencies:
       '@mcthaydt/automata-tools':
         specifier: workspace:*
-        version: link:../packages/tools
+        version: link:../../packages/tools
       '@mcthaydt/examples-runner':
         specifier: workspace:*
-        version: link:../tooling/examples-runner
+        version: link:../../tooling/examples-runner
       '@mcthaydt/playwright-preset':
         specifier: workspace:*
-        version: link:../tooling/playwright-preset
+        version: link:../../tooling/playwright-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -79,30 +73,30 @@ importers:
         specifier: 8.3.3
         version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
 
-  examples/content/hot-reload:
+  examples/2d/content/hot-reload:
     dependencies:
       '@af-games/emberwick':
         specifier: workspace:*
-        version: link:../../../games/emberwick
+        version: link:../../../../games/emberwick
       '@fontsource/pixelify-sans':
         specifier: 5.3.0
         version: 5.3.0
       '@mcthaydt/automata':
         specifier: workspace:*
-        version: link:../../../packages/automata
+        version: link:../../../../packages/automata
     devDependencies:
       '@mcthaydt/automata-content':
         specifier: workspace:*
-        version: link:../../../packages/content
+        version: link:../../../../packages/content
       '@mcthaydt/automata-tools':
         specifier: workspace:*
-        version: link:../../../packages/tools
+        version: link:../../../../packages/tools
       '@mcthaydt/examples-runner':
         specifier: workspace:*
-        version: link:../../../tooling/examples-runner
+        version: link:../../../../tooling/examples-runner
       '@mcthaydt/vitest-preset':
         specifier: workspace:*
-        version: link:../../../tooling/vitest-preset
+        version: link:../../../../tooling/vitest-preset
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -122,18 +116,18 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
 
-  examples/ui/primitives:
+  examples/2d/ui/primitives:
     dependencies:
       '@mcthaydt/automata':
         specifier: workspace:*
-        version: link:../../../packages/automata
+        version: link:../../../../packages/automata
       svelte:
         specifier: 5.57.1
         version: 5.57.1
     devDependencies:
       '@mcthaydt/vitest-preset':
         specifier: workspace:*
-        version: link:../../../tooling/vitest-preset
+        version: link:../../../../tooling/vitest-preset
       '@sveltejs/vite-plugin-svelte':
         specifier: 7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))
@@ -155,6 +149,43 @@ importers:
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@26.6.4)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(jsdom@30.1.1)(vite@8.3.3(@types/node@26.6.4)(jiti@2.7.0)(yaml@2.9.1))
+
+  examples/3d:
+    dependencies:
+      '@mcthaydt/automata':
+        specifier: workspace:*
+        version: link:../../packages/automata
+      '@mcthaydt/automata-figures':
+        specifier: workspace:*
+        version: link:../../packages/figures
+      '@mcthaydt/automata-render-pixi3d':
+        specifier: workspace:*
+        version: link:../../packages/render-pixi3d
+      pixi.js:
+        specifier: 8.22.0
+        version: 8.22.0
+      svelte:
+        specifier: 5.57.1
+        version: 5.57.1
+    devDependencies:
+      '@mcthaydt/examples-runner':
+        specifier: workspace:*
+        version: link:../../tooling/examples-runner
+      '@mcthaydt/playwright-preset':
+        specifier: workspace:*
+        version: link:../../tooling/playwright-preset
+      '@playwright/test':
+        specifier: 1.63.0
+        version: 1.63.0
+      '@sveltejs/vite-plugin-svelte':
+        specifier: 7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1))
+      '@types/node':
+        specifier: 24.19.1
+        version: 24.19.1
+      vite:
+        specifier: 8.3.3
+        version: 8.3.3(@types/node@24.19.1)(jiti@2.7.0)(yaml@2.9.1)
 
   games/base-3d:
     dependencies:

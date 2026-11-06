@@ -706,11 +706,11 @@ export and its 2D build) and the reverse would be a dependency cycle.
   `tooling/examples-runner` (catalog per package), `.github/workflows/{ci.yml,3d.yml}`, root `package.json` scripts
 - Test: `tooling/examples-runner/tests/unit/catalog.test.ts` (the 2D catalog has no private entry)
 
-- [ ] **Step 1: Failing test:** the 2D catalog holds no `render3d` or `figures` entry; `examples/2d/package.json`'s
+- [x] **Step 1: Failing test:** the 2D catalog holds no `render3d` or `figures` entry; `examples/2d/package.json`'s
   dependency tree (`pnpm --filter @af-examples/examples-2d list --depth Infinity`) has no `@pixi/3d`.
-- [ ] **Step 2:** Move (`git mv`); fix imports. `pnpm --filter @af-examples/examples-2d build` and the closed-beta scan
+- [x] **Step 2:** Move (`git mv`); fix imports. `pnpm --filter @af-examples/examples-2d build` and the closed-beta scan
   of its output pass; the 2D examples' journeys pass in Chromium; the 3D ones run in `3d.yml`.
-- [ ] **Step 3:** `pnpm check`. Commit, mark ready. `refactor(examples): 2D and 3D examples are separate packages`
+- [x] **Step 3:** `pnpm check`. Commit, mark ready. `refactor(examples): 2D and 3D examples are separate packages`
 
 ---
 
@@ -1713,3 +1713,29 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   pass, 6 skipped; `editor-3d` suite DOM and Chromium layout tests pass; `-tools` editor tests 48. WebKit, Firefox and
   hosted CI not run.
 
+### 2026-11-06, session 7: phase 9, task 9.1
+
+- **The split.** `examples/2d` (`@af-examples/examples-2d`: core, shapes, textures, audio, render, content, ui, the
+  goldens, `public/`, `resources/` without the models, and every journey but the 3D ones) and `examples/3d`
+  (`@af-examples/examples-3d`: render3d, figures, `resources/models`, their eight journeys). The 2D package's
+  dependency tree has no `@pixi/3d`, `render-pixi3d` or `figures`. The workspace globs are `examples/2d`, `examples/3d`
+  and `examples/2d/*/*` (the two feature demos); `release`'s package walk follows them.
+- **Catalog per package.** `readCatalog` already reads one root, so the catalog code did not change; its test now
+  runs both real packages and fails if the 2D one holds a `render3d` or `figures` example or imports an unpublished
+  extension (the step-1 test, failing before the move with no `examples/2d`).
+- **3D journeys.** `examples/3d/playwright.config.ts` runs them in Chromium and WebKit (iPhone 14 landscape, as before)
+  on their own port, `examples3dPort` (slot 12), so a 2D and a 3D run never share a server; `base-3d`'s config no
+  longer serves the examples, and `3d.yml`'s `e2e-3d` job runs `pnpm --filter @af-examples/examples-3d test:e2e`.
+  **Deviation 91:** the plan kept the 3D examples' journeys in WebKit only; they gained a Chromium project because it
+  is the only engine a cloud session can run, and they pass there (9 of 9).
+- **Deviation 92:** the 2D config's `runner` projects ran every test under `tooling/examples-runner/tests/e2e`, the
+  playground journeys included, whose servers only the runner's own config starts (37 connection refusals when run
+  alone). They now ignore `playground-*.test.ts`; the playground moves to the site in task 10.2.
+- **Paths.** Root scripts (`examples` and `build:examples` on the 2D package, `examples:3d` new, `build:demos` and
+  `ci:local`), `ci.yml`'s 2D journeys, `3d.yml`'s paths (`examples/3d/**`), every `turbo.json` input glob, `knip.jsonc`
+  (each example file is an entry: the runner serves it), `biome.json`, `.vscode` (hides `examples/3d`), the playground's
+  examples root, the golden replay globs, `workflows.test.ts`'s YAML pins and comments that named the old paths.
+- **Gates.** `pnpm check` exit 0; examples-runner unit 115 and Chromium golden replays 12 pass; the 2D journeys
+  (examples, compact, runner, demos, ui-primitives) 88 pass and 2 skipped; the 3D journeys 9 pass in Chromium;
+  `findPixi3d` finds 0 in `examples/2d/dist` and 2 in `examples/3d/dist`. WebKit, Firefox, the input matrix's
+  WebKit and Firefox cells and hosted CI not run.

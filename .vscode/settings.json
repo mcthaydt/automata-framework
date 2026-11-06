@@ -52,8 +52,7 @@
     "packages/figures": true,
     "packages/sector-format": true,
     "games/base-3d": true,
-    "examples/render3d": true,
-    "examples/figures": true,
+    "examples/3d": true,
     "docs/design": true
   },
   "search.exclude": {
@@ -100,8 +99,7 @@
     "packages/figures": true,
     "packages/sector-format": true,
     "games/base-3d": true,
-    "examples/render3d": true,
-    "examples/figures": true,
+    "examples/3d": true,
     "docs/design": true
   },
 

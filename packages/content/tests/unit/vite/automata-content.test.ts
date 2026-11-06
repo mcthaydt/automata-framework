@@ -234,7 +234,7 @@ describe('vite dev', () => {
 
   it('serves the module under a query too, so a page can import the new content after a save', async () => {
     // The browser keeps every module it imported, so a page that hears `automata:content` imports the module
-    // again under a new URL (examples/content/hot-reload). The query must not change what is served.
+    // again under a new URL (examples/2d/content/hot-reload). The query must not change what is served.
     const root = copyFixture('valid')
     const { server, events } = await devServer(root)
     editFile(root, 'characters/cyan.toml', (text) => text.replace('"Cyan"', '"Cyan Two"'))

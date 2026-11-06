@@ -10,8 +10,8 @@ import { devices } from '@playwright/test'
 import * as contentDemo from './content/hot-reload/tests/e2e/origin.ts'
 import { demoPort, demoUrl } from './ui/primitives/tests/e2e/origin.ts'
 
-// The one-file examples' browser journeys (EX spec §5): `pnpm test:e2e` in this folder. The 3D examples' journeys
-// (render3d-*, figures-*) run from games/base-3d, with the 3D suites; this config skips them.
+// The 2D one-file examples' browser journeys (EX spec §5): `pnpm test:e2e` in this folder. The 3D examples are their
+// own package (examples/3d), with their own journeys.
 //
 // The journeys emulate the phone's CSS size at a device-pixel ratio of 1 (CI.E2E2). Headless Chromium composites in
 // software, so every frame of a rendering example blocks the page's main thread on a ReadPixels of the whole
@@ -27,7 +27,8 @@ const phone = { ...devices['Pixel 7'], ...PIXEL_RATIO }
 const compact = { ...sizes.compact, ...PIXEL_RATIO }
 
 const MATRIX_SPEC = 'input-matrix.test.ts'
-const THREE_D = ['**/render3d-*.test.ts', '**/figures-*.test.ts']
+const RUNNER_TESTS = '../../tooling/examples-runner/tests/e2e'
+const PLAYGROUND = 'playground-*.test.ts'
 
 // The input × form-factor matrix (M4.10, M4 spec §9.1): a project per cell, in the cell's engine and viewport, with a
 // touch screen for the touch cells. The spec reads its cell from the project's metadata.
@@ -48,11 +49,12 @@ const reuse = process.env.CI === undefined
 export default defineJourneys({
   projects: [
     // Phone first (AGENTS.md, Responsive UI), then the compact landscape height.
-    { name: 'examples', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC, ...THREE_D], use: phone },
-    { name: 'examples-compact', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC, ...THREE_D], use: compact },
-    // The runner's own stub example under the same fake host, and its index page (tooling/examples-runner).
-    { name: 'runner', testDir: '../tooling/examples-runner/tests/e2e', use: phone },
-    { name: 'runner-compact', testDir: '../tooling/examples-runner/tests/e2e', use: compact },
+    { name: 'examples', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC], use: phone },
+    { name: 'examples-compact', testDir: 'tests/e2e', testIgnore: [MATRIX_SPEC], use: compact },
+    // The runner's own stub example under the same fake host, and its index page (tooling/examples-runner). Its
+    // playground journeys need the playground's servers, so they run from the runner's own config.
+    { name: 'runner', testDir: RUNNER_TESTS, testIgnore: PLAYGROUND, use: phone },
+    { name: 'runner-compact', testDir: RUNNER_TESTS, testIgnore: PLAYGROUND, use: compact },
     // The feature demos on Emberwick, each under the shared fake host (tooling/examples-runner/host).
     { name: 'demos', testDir: 'content', testMatch: '*/tests/e2e/*.test.ts', use: devices['Pixel 7'] },
     { name: 'ui-primitives', testDir: 'ui/primitives/tests/e2e', use: devices['Pixel 7'] },

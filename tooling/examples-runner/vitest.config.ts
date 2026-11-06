@@ -12,7 +12,7 @@ export default defineTests({
   svelte: true,
   alsoInNode: ['tests/browser/**/*.test.ts'],
   // Goldens are read in a browser through this command (browsers read goldens, never write them), from anywhere in
-  // the repository: the examples' goldens sit in examples/__goldens__, outside this package.
+  // the repository: the examples' goldens sit in examples/2d/__goldens__, outside this package.
   browserCommands: goldenCommands({ root: repoRoot }),
   // The sim's dependencies, pre-bundled up front. No discovery: the dependency scan would follow the parity test's
   // globs into pending examples, whose imports do not resolve yet, give up, and reload the page mid-run.
