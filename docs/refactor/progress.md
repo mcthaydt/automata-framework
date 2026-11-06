@@ -37,8 +37,12 @@ The PRs are stacked and draft: #393 (4.3, 4.4) ← #394 (5.2, 5.3) ← #395 (6.1
    Emberwick bundle has no Effect in it (below). The plan's execution log has the detail (deviations 76 to 81).
 2. **8.1 rest:** the Settings sections' long strings, the CLI messages and the READMEs' first screens are still unchecked in
    `copy.md`. Found by the create-game journey: the pause menu's close button and its Resume button share the name "Resume".
-3. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
-4. **9.2** waits for the Owner's go.
+3. **Consumer smoke after the package merge** (found by the first CI run, 2026-11-06; [comment on #400](https://github.com/mcthaydt/automata-framework/pull/400#issuecomment-6678595019)):
+   setup is fixed; 6 steps still fail: the Node fixture imports the old packages, the published Ruken `.d.ts` import
+   `@ruken/sdk`, `./testing` does not publish `openHostingTest`, the packed tools bin has an `eval`, and the
+   `automata-web` bundle fixture meets uncompiled `.svelte`. Needs its own task before the post-build audit.
+4. **8.2 boot failure:** a request to Ruken for a refusal switch in the fake host (deviation 64).
+5. **9.2** waits for the Owner's go.
 
 ### Build: 73% (22 of 30 tasks)
 
