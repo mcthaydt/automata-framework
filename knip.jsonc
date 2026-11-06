@@ -59,10 +59,9 @@
     },
     // Runtime dependencies of the Ruken code that tsdown bundles (@ruken/cli, @ruken/manifest, @ruken/sdk-host).
     // automata check (DX.6) bundles @ruken/manifest, which imports smol-toml at runtime; yauzl and yazl are Ruken's.
+    // `automata check` finds the boundaries checker by name (createRequire().resolve), which knip does not follow.
     "packages/tools": {
-      // The create-game journey's web server is started by name from playwright.config.ts.
-      "entry": ["tests/e2e/serve-new-game.ts"],
-      "ignoreDependencies": ["smol-toml", "yauzl", "yazl"]
+      "ignoreDependencies": ["smol-toml", "yauzl", "yazl", "@mcthaydt/automata-check-boundaries"]
     },
     // PRODUCT.L2: compile-messages.ts loads Paraglide with a dynamic import of a constant and resolves the inlang
     // plugin by name (createRequire().resolve), neither of which knip follows.

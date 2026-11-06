@@ -445,7 +445,7 @@ describe('pnpm ci:local (the local gate while no runner serves AF)', () => {
       'pnpm check',
       'pnpm test:browser:2d',
       'pnpm exec turbo run build --filter @mcthaydt/automata-tools',
-      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools --filter @mcthaydt/consumer-smoke',
+      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/consumer-smoke',
     ])
   })
 
@@ -546,9 +546,7 @@ describe('ci.yml (AF)', () => {
     expect(job?.['timeout-minutes']).toBe(30)
     const runs = (job?.steps ?? []).map((step) => step.run ?? '')
     expect(runs).toContain('pnpm exec turbo run build --filter @mcthaydt/automata-tools')
-    expect(runs).toContain(
-      'pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools',
-    )
+    expect(runs).toContain('pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples')
     expect(JSON.stringify(job?.steps)).toContain('e2e-report')
   })
 

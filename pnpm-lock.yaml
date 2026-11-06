@@ -876,9 +876,6 @@ importers:
       '@mcthaydt/automata-editor-suite':
         specifier: workspace:*
         version: link:../editor-suite
-      '@mcthaydt/playwright-preset':
-        specifier: workspace:*
-        version: link:../../tooling/playwright-preset
       '@mcthaydt/vitest-preset':
         specifier: workspace:*
         version: link:../../tooling/vitest-preset

@@ -212,11 +212,11 @@ jobs:
         run: for dir in /__w /__t; do [ ! -d "$dir" ] || chown -R "$(stat -c %u:%g /__w)" "$dir"; done
 
   e2e-2d:
-    name: 2D journeys (Emberwick in Chromium and WebKit, the examples, create-game)
+    name: 2D journeys (Emberwick in Chromium and WebKit, the examples, a new game)
     # Emberwick's journeys at a phone, the compact height and an iPad in Chromium and WebKit (iOS Safari is WebKit),
     # and the one-file examples' journeys, each under the fake host. The input matrix inside them also runs cells in
     # WebKit and Firefox, so all three engines are installed. Each area has its own Playwright config, so
-    # this job starts only these three areas' servers (the third is the game `automata create-game` writes). A draft skips it, like parity.
+    # this job starts only these areas' servers. The stranger's journey (a new game made from the packed packages) has none. A draft skips it, like parity.
     needs: checks
     if: >-
       !cancelled() &&
@@ -245,10 +245,10 @@ jobs:
       # into its cache here (a no-op when it is already there).
       - run: pnpm exec playwright install chromium webkit firefox
         if: runner.environment == 'self-hosted'
-      # The create-game journey scaffolds with the built `automata` bin, the one a developer installs.
+      # The packed `automata` bin is the one a developer installs: built here for the journeys that run it.
       - run: pnpm exec turbo run build --filter @mcthaydt/automata-tools
       - name: 2D journeys
-        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples --filter @mcthaydt/automata-tools
+        run: pnpm test:e2e --filter @af-games/emberwick --filter @af-examples/examples
       # A stranger makes a game from the packed packages in an empty folder outside the repository, checks, plays and
       # packages it (tooling/consumer-smoke). Turbo builds the packages it packs first.
       - name: The stranger's journey

@@ -115,9 +115,14 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
       try {
         const errors: string[] = []
         page.on('pageerror', (error) => errors.push(String(error)))
+        page.on('console', (message) => {
+          if (message.type() === 'error') errors.push(message.text())
+        })
         await page.goto(`${server.url}/`)
         await expect(page.locator('html')).toHaveAttribute('data-state', 'ready')
+        await expect(page.getByTestId('title-screen')).toBeVisible()
         await page.getByRole('button', { name: 'Play' }).click()
+        await expect(page.getByTestId('play-screen')).toBeVisible()
         await expect.poll(() => squareX(page), { timeout: 20_000 }).not.toBeNull()
         const before = (await squareX(page)) as number
         // Hold the key for a moment: the square moves 2 pixels a tick, so a long hold would carry it off the screen.
@@ -127,6 +132,10 @@ test('a stranger makes a game, checks it, plays it and makes the itch.io zip', a
         await expect
           .poll(async () => ((await squareX(page)) ?? before) - before, { timeout: 10_000 })
           .toBeGreaterThan(4)
+        // Escape pauses, and the Resume button is where the focus lands.
+        await page.keyboard.press('Escape')
+        await expect(page.getByTestId('paused-screen')).toBeVisible()
+        await expect(page.getByRole('button', { name: 'Resume' })).toBeFocused()
         expect(errors).toEqual([])
       } finally {
         await server.close()

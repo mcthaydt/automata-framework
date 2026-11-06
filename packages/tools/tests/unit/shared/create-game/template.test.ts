@@ -64,6 +64,27 @@ describe('the new game’s files', () => {
   })
 })
 
+describe('the new game’s README', () => {
+  it('starts with how to run it, says where the code is, and points at the site, not the repository', () => {
+    const readme = read('README.md')
+    expect(readme).toContain('pnpm dev')
+    for (const where of ['src/features/square/', 'src/shared/constants.ts', 'src/app/game.ts'])
+      expect(readme, where).toContain(where)
+    expect(readme).toContain('pnpm test')
+    expect(readme).toContain('pnpm check')
+    expect(readme).not.toMatch(/docs\/guides|github\.com|workspace:|\.\.\/\.\.\//)
+  })
+})
+
+describe('the tools package’s README', () => {
+  it('starts with the one command that makes a game, with no install first', () => {
+    const readme = readFileSync(new URL('../../../../README.md', import.meta.url), 'utf8')
+    const firstCommand = /```sh\n([^\n]+)/.exec(readme)?.[1] ?? ''
+    expect(firstCommand).toMatch(/^pnpm dlx @mcthaydt\/automata-tools create-game my-game/)
+    expect(readme).not.toContain('github.com/mcthaydt/automata-framework')
+  })
+})
+
 describe('the new game’s scripts and config', () => {
   const manifest = () =>
     JSON.parse(read('package.json')) as {

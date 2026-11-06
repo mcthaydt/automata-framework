@@ -92,19 +92,26 @@ const TARGET_GUIDE: Record<DistTarget, { readonly name: string; readonly command
   tauri: { name: 'Desktop (Tauri)', commands: 'pnpm build:tauri && pnpm prepare:tauri' },
 }
 
-/** The README's list of the chosen targets and how to build each. */
+/** The README of a new game: how to run it, where its code is, how to build for each chosen target. */
 export function targetReadme(title: string, targets: readonly DistTarget[]): string {
   const rows = targets.map((target) => `- ${TARGET_GUIDE[target].name}: \`${TARGET_GUIDE[target].commands}\``)
   return `# ${title}
 
-\`pnpm dev\` runs the game in the browser.
+\`pnpm dev\` runs the game in your browser.
+
+## Where things are
+
+- \`src/features/square/\`: the square and how it moves. One folder for each thing in your game.
+- \`src/shared/constants.ts\`: numbers the game uses in more than one place.
+- \`src/app/game.ts\`: where the game is put together (the controls, the screen size).
+- \`tests/\`: tests. \`pnpm test\` runs them, and \`pnpm check\` runs every check a game has to pass before it is published.
 
 ## Building
 
-Each target builds on its own, with its own host adapter:
+Each target builds on its own:
 
 ${rows.join('\n')}
 
-Publishing to each target is described in the Automata Framework guides (\`docs/guides/publish-to-*.md\`).
+Step-by-step guides for publishing to each target are in the Docs on the Automata Framework site.
 `
 }
