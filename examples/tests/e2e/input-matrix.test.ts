@@ -294,7 +294,7 @@ async function journey(page: Page, cell: MatrixCell, host: MatrixHost): Promise<
   await driver.choose('[data-testid="settings"]')
   await expect(screen('settings')).toBeVisible()
   await expectLayout(frame, 'settings')
-  // The controls are on Settings' second tab (FloorFifty's Settings and Controls).
+  // The controls are on Settings' second tab (Settings and Controls).
   await driver.choose('[data-testid="settings-tab-controls"]')
   await expect(frame.locator('[data-settings-section="controls"]')).toBeVisible()
   await driver.rebindJump()

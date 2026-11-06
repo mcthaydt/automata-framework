@@ -1,4 +1,4 @@
-// The Vite plugin. The dev-server tests port FloorFifty's tests/content/watch.test.ts (122a220): the
+// The Vite plugin. The dev-server tests: the
 // behavior worth pinning is recovery. A bad save reports, keeps the last good bytes and module, and leaves
 // the watcher alive, so the fix is one more save rather than a restarted server.
 

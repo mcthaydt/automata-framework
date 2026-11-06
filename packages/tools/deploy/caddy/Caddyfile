@@ -1,13 +1,13 @@
-# The AF standalone dev host for one game (ship spec §3.5, decision D-4): a second site on the FloorFifty
+# The AF standalone dev host for one game (ship spec §3.5, decision D-4): a second site on the shared
 # staging VM's Caddy. Every build is served at /builds/<buildId>/ with the headers Ruken would serve it with
 # (its headers.caddy, written by deploy from @ruken/manifest's compileHeaders), and / redirects to the live
-# build (live.d/live.caddy, rewritten by `deploy --activate`). Adapted from FloorFifty deploy/caddy/Caddyfile.
+# build (live.d/live.caddy, rewritten by `deploy --activate`).
 #
-# {$AF_DEV_SITE} (e.g. af-dev.floorfifty.duckdns.org), {$SHIP_ROOT} (e.g. /srv/automata/placeholder) and
+# {$AF_DEV_SITE} (e.g. af-dev.example.com), {$SHIP_ROOT} (e.g. /srv/automata/placeholder) and
 # {$AF_ACME_EMAIL} come from the environment Caddy is started and reloaded with (see deploy/README.md).
 #
 # No player IP address is stored: no site has an access log, and the default logger deletes the address
-# fields from error entries (FloorFifty release readiness §7).
+# fields from error entries (release readiness §7).
 {
 	email {$AF_ACME_EMAIL}
 	log default {
@@ -28,7 +28,7 @@
 	# One snippet per installed build: its Ruken headers on its own path only.
 	import {$SHIP_ROOT}/builds/*/headers.caddy
 	# `redir / /builds/<id>/ 302` for the live build, or empty before the first --activate. A glob over a folder
-	# only deploy writes, so Caddy (and FloorFifty, which shares it) still starts before the first deploy and
+	# only deploy writes, so Caddy (and the VM's other site, which shares it) still starts before the first deploy and
 	# never imports a stray file.
 	import {$SHIP_ROOT}/live.d/*.caddy
 

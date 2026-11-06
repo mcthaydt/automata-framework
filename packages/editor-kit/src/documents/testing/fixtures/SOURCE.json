@@ -37,16 +37,16 @@
       }
     }
   },
-  "floorFifty": {
-    "repository": "mcthaydt/FloorFifty",
+  "arcade": {
+    "repository": "the arcade source (docs/provenance/sources.md)",
     "commit": "677d456",
     "files": {
-      "floorfifty-tuning.toml": {
+      "arcade-tuning.toml": {
         "source": "content/tuning.toml",
         "bytes": 3160,
         "sha256": "1d5dc64b88e34bde46af3adb141b79acfdee83c0d09b1b1747787f2060af60ea"
       },
-      "floorfifty-juice.toml": {
+      "arcade-juice.toml": {
         "source": "content/juice.toml",
         "bytes": 3221,
         "sha256": "065a15fd61e2cfb8d963f6594f34f8fb4b5cab3ee18e871f04534cb0bcb6f411"
@@ -79,8 +79,8 @@
       },
       "af-messages-fr.json": {
         "source": "packages/content/src/testing/fixtures/valid/content/messages/fr.json",
-        "bytes": 546,
-        "sha256": "5e3b45b550da701baf768e3714ca2976df2258b4ada1537ddb230e052199b79c"
+        "bytes": 547,
+        "sha256": "d92c75adefe1b0793e7970d337be1b9aa6c3c5ab78a59f38ac542ec87626ab66"
       }
     }
   }

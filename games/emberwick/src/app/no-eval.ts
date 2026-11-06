@@ -1,5 +1,5 @@
 // Ruken serves games under a CSP with no 'unsafe-eval', and so does the dev host. Two libraries would otherwise
-// generate code at runtime (FloorFifty `apps/client/src/no-eval.ts`, 45482fb):
+// generate code at runtime:
 //
 // - Pixi probes for `new Function` when its renderer is built and throws if the probe is blocked;
 //   `pixi.js/unsafe-eval` swaps its generated functions for static ones (despite the name, it is the no-eval

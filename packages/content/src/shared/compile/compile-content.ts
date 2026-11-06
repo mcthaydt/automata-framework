@@ -1,10 +1,10 @@
-// The compiler. Extracted from FloorFifty packages/content/src/compiler.ts (122a220).
+// The compiler.
 //
 // Reads, parses, checks and assembles, and writes nothing. Every check runs on every file even when an
 // earlier one failed, so one save reports every independent problem rather than the first file the
 // compiler happened to open. Writing is `buildContent`'s job (write-outputs.ts).
 //
-// Changed from FloorFifty: the kinds are the game's registered schemas, the hash is one XXH64 over the
+// The kinds are the game's registered schemas, the hash is one XXH64 over the
 // canonical data, and the result is an Effect that fails with a typed error.
 
 import { Effect } from 'effect'

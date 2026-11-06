@@ -8,7 +8,7 @@ import {
 } from '#src/shared/ui/prompts/prompt-label.ts'
 
 // Device prompts (M4 spec §4.6): the label for the active device. A key by the keyboard's own layout when the browser
-// tells it, else its `code`; a pad button by what is printed on the pad's family (FloorFifty ui/glyphs.ts), or a word
+// tells it, else its `code`; a pad button by what is printed on the pad's family, or a word
 // for a generic pad; the touch label on touch; "Unbound", never an empty box, for an action with nothing there.
 
 const copy: PromptCopy = {

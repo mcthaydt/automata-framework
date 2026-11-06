@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { guardRounds } from '#src/features/targets/rounds.ts'
 
-// FloorFifty tests/client/ruken/hosting.test.ts, "sends one round start per round, and an end only for an open round".
+// "sends one round start per round, and an end only for an open round".
 describe('guardRounds', () => {
   it('passes one start per round and an end only for an open round', () => {
     const sent: string[] = []

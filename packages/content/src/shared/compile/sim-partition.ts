@@ -1,9 +1,8 @@
 // The sim partition: the part of the compiled content the sim receives, and whose hash
 // gates snapshots and replays.
 //
-// FloorFifty kept two revisions: `rulesetRevision` moved only with what the simulation reads, and
-// `contentRevision` with everything (packages/content/src/revisions.ts, 122a220). AF keeps the same split, but
-// partitions by kind instead of by field: `tuning` and every kind registered with `sim: true` (the default)
+// There are two revisions: a ruleset revision moves only with what the simulation reads, and a content
+// revision with everything. The split is by kind, not by field: `tuning` and every kind registered with `sim: true` (the default)
 // go to the sim; `flow`, `palette`, `game`, `assets` and kinds registered `{ sim: false }` do not. So a store
 // listing, a colour or a preload change never refuses a save, and a room or a tuning change always does.
 

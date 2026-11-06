@@ -1,6 +1,6 @@
 // The Vite plugin: content compiles when Vite starts, and again on every save in dev.
-// The dev half is FloorFifty's watcher (packages/content/src/watch.ts, 122a220) on Vite's own file watcher
-// and HMR channel instead of chokidar.
+// The dev half runs on Vite's own file watcher
+// and HMR channel, with no watcher dependency of its own.
 //
 // It calls exactly the same build as `automata-content build`, so a save produces the bytes a commit
 // would. Two properties matter more than speed:
@@ -26,7 +26,7 @@ import { formatDiagnostic } from '../../shared/diagnostics/diagnostic'
 export const VIRTUAL_MODULE_ID = 'virtual:automata/content'
 const RESOLVED_ID = `\0${VIRTUAL_MODULE_ID}`
 
-/** Long enough to collapse an editor's write burst, short enough to feel live (FloorFifty). */
+/** Long enough to collapse an editor's write burst, short enough to feel live. */
 const DEBOUNCE_MS = 50
 
 /** The plugin's options: `ContentOptions`, with `root` defaulting to Vite's root. */

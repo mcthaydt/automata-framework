@@ -9,8 +9,7 @@ import {
   fakeBuffer,
 } from '#src/features/audio/testing/fake-audio-context.ts'
 
-// Decoded music (M5 spec §4.6, M5-D9: core plays short loops and menu beds; streaming is Plus) and ducking, from
-// FloorFifty `managers/audio/deck.ts` at `ac72660`: one track in the slot at a time, a duck a gain of its own per
+// Decoded music (M5 spec §4.6, M5-D9: core plays short loops and menu beds; streaming is Plus) and ducking: one track in the slot at a time, a duck a gain of its own per
 // bus so it never overwrites the player's level, and the deepest duck in force holds.
 
 async function running(): Promise<{ graph: AudioGraph; context: FakeAudioContext; music: MusicSlot }> {

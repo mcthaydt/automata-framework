@@ -49,7 +49,7 @@ describe('createPostFilterSlot', () => {
 })
 
 // Quality tiers (M4 spec §4.11): an owner declares the lowest tier it runs at; a weak device drops optional passes,
-// never the art direction (FloorFifty `quality.ts`: the palette lock stays at every tier).
+// never the art direction (the palette lock stays at every tier).
 describe('createPostFilterSlot at a quality tier', () => {
   it('leaves out an owner whose minTier is above the tier, and brings it back in its place', () => {
     const target: { filters: Filter[] | null } = { filters: null }

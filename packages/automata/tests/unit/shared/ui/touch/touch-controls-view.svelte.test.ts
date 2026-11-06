@@ -3,8 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import TouchControls from '#src/shared/ui/touch/TouchControls.svelte'
 import type { TouchButtonSpec } from '#src/shared/ui/touch/touch-button.ts'
 
-// The on-screen buttons (M4 spec §4.4, §6 `TouchControls` row), as behavior. The DOM cases of FloorFifty
-// `tests/client/systems/gameplay/touch-controls.test.ts` at `ac72660` (capture on the side, page gestures
+// The on-screen buttons (M4 spec §4.4, §6 `TouchControls` row), as behavior. The DOM cases (capture on the side, page gestures
 // cancelled, a near miss in the DOM, release on teardown), plus AF's: hidden without remounting, out of the focus
 // order.
 

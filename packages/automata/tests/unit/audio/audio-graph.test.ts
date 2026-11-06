@@ -6,7 +6,7 @@ import {
   fakeAudioContext,
 } from '#src/features/audio/testing/fake-audio-context.ts'
 
-// The Web Audio graph (M5 spec §4.6), ported from FloorFifty `managers/audio/graph.ts` at `ac72660` without its
+// The Web Audio graph (M5 spec §4.6), without a
 // hall, echo, vintage stage or analyser: one gain per bus, then a duck of its own, into master; master is the
 // player's master gain × the host's gain × mute × unfocused-mute (A-b's product).
 
@@ -81,7 +81,7 @@ describe('AudioGraph: build and gains', () => {
     expect(graph.gain('sfx')).toBe(1)
   })
 
-  it("changes only the bus it is given, gliding there rather than stepping (FloorFifty's level glide)", () => {
+  it('changes only the bus it is given, gliding there rather than stepping (the level glide)', () => {
     const { graph } = built()
     graph.setGain('sfx', 0.25)
     expect(node(graph, 'sfx').gain.value).toBe(0.25)

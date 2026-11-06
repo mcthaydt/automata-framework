@@ -1,6 +1,5 @@
 // Which of the game's locales a player sees.
-// Extracted from FloorFifty apps/client/src/i18n/detect.ts and strategy.ts (ac72660): there the six
-// languages and their primary-subtag map were fixed; here the game's own locales are matched, exact tag first.
+// The game's own locales are matched, exact tag first, then by primary subtag; no language list is fixed here.
 
 /** The candidates, best first; each is used only when the game has a matching locale. */
 export interface LocaleCandidates {

@@ -29,7 +29,10 @@ describe('the documents fixtures', () => {
       repository: 'mcthaydt/PixiJS3D_Experiment_001',
       commit: '92e6704',
     })
-    expect(SOURCE.floorFifty).toMatchObject({ repository: 'mcthaydt/FloorFifty', commit: '677d456' })
+    expect(SOURCE.arcade).toMatchObject({
+      repository: 'the arcade source (docs/provenance/sources.md)',
+      commit: '677d456',
+    })
     expect(SOURCE.automata).toMatchObject({ repository: 'mcthaydt/automata-framework', commit: '30e9606c' })
   })
 

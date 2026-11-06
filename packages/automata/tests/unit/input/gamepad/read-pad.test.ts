@@ -3,8 +3,8 @@ import { DEADZONE, quantizeStick, readPad } from '#src/features/input/gamepad/re
 import { fakePad } from '#src/features/input/gamepad/testing/fake-pad.ts'
 import { fakeGamepads } from '#src/testing/input/fake-gamepads.ts'
 
-// readPad (M4 spec §4.3), ported from FloorFifty `tests/client/managers/gamepad-source.test.ts` at `ac72660`
-// ("reading a pad", "stick drift and the deadzone", "d-pad and stick parity"). The race intents stay in FloorFifty.
+// readPad (M4 spec §4.3): reading a pad, stick drift and the deadzone, d-pad and stick parity.
+// A game's own intents (fast-fall, reset, hops) are its profile's, not read here.
 const ANGLES = [0, 45, 90, 135, 180, 225, 270, 315].map((degrees) => (degrees * Math.PI) / 180)
 
 describe('readPad', () => {

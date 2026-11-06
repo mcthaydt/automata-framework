@@ -20,9 +20,8 @@ const retarget = (from: string, event: string, to: string) =>
 const messages = (flow: FlowSource, capabilities = FLOW) =>
   checkFlow(flow, capabilities).problems.map((p) => p.message)
 
-// Ported from FloorFifty tests/content/validate/flow.test.ts (122a220), against FloorFifty's shipped
-// flow.toml and its FLOW_TARGETS.
-describe('checkFlow with FloorFifty capabilities', () => {
+// Against the arcade game's shipped flow.toml and its flow capabilities.
+describe('checkFlow with the arcade game’s capabilities', () => {
   it('accepts the shipped graph, cycles and all', () => {
     expect(checkFlow(shipped(), FLOW).problems).toEqual([])
   })

@@ -8,7 +8,7 @@ import { classifyFormFactor } from '../../../shared/ui/geometry/form-factor.ts'
 export const PORTRAIT_FIELD_TOP = 60
 /** How much of the playfield's height each letterbox bar crops in a landscape view, by default (5%). */
 export const DEFAULT_BAR_FRACTION = 0.05
-/** The letterbox bars' default colour (FloorFifty's plum black). */
+/** The letterbox bars' default colour (a plum black). */
 export const DEFAULT_BAR_COLOR = 0x2e222f
 /** The default colour behind the playfield, under the world. */
 export const DEFAULT_FIELD_COLOR = 0x000000

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import Modal from '#src/shared/ui/dialog/Modal.svelte'
 import Sheet from '#src/shared/ui/dialog/Sheet.svelte'
 
-// The cases of FloorFifty tests/client/ui/modal.test.ts at ac72660, on the scoping Dialog shares (modal-scope.ts).
+// The modal's cases, on the scoping Dialog shares (modal-scope.ts).
 let component: ReturnType<typeof mount> | undefined
 afterEach(() => {
   if (component !== undefined) unmount(component)

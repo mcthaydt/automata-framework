@@ -14,7 +14,7 @@ describe('portsFor', () => {
     expect(a).not.toEqual(b)
   })
 
-  it('keeps AF in 4600–4699 (server) and 4700–4799 (preview), clear of FloorFifty’s 4400 and 4500 ranges', () => {
+  it('keeps AF in 4600–4699 (server) and 4700–4799 (preview), clear of the 4400 and 4500 ranges other projects use', () => {
     for (const path of ['/a', '/b/c', '/Users/me/af', 'C:\\af\\checkout']) {
       const { server, preview } = portsFor(path, {})
       expect(server).toBeGreaterThanOrEqual(4600)

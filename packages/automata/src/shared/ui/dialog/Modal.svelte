@@ -99,7 +99,7 @@ function onScrimClick(event: MouseEvent): void {
   }
 
   /* Its content lays out by the dialog's width (`@container af-dialog`), not the window's: Settings sets its
-     groups two across from 560 px (FloorFifty `Modal.svelte`). */
+     groups two across from 560 px. */
   .af-modal {
     container: af-dialog / inline-size;
     box-sizing: border-box;
@@ -117,7 +117,7 @@ function onScrimClick(event: MouseEvent): void {
     font: var(--af-text-body) / 1.4 var(--af-font);
   }
 
-  /* On a phone a long body (Settings) is a sheet the band's height, as FloorFifty's: the list takes the rest and the
+  /* On a phone a long body (Settings) is a sheet the band's height: the list takes the rest and the
      actions sit at the bottom, rather than a small card that grows and shrinks with the tab. */
   :global(:is([data-form-factor="phone-portrait"], [data-form-factor="phone-landscape"])) .af-modal[data-fill] {
     height: 100%;
@@ -145,9 +145,8 @@ function onScrimClick(event: MouseEvent): void {
   }
 
   /* A long body (`wide`: Settings) widens wherever there is room, so its groups go two across: on a short band (a phone
-     held sideways, a 900 x 600 window) rather than one group above a "+N more" (FloorFifty's visual audit,
-     2026-10-05), and on a desktop rather than a narrow column (the Desk, 2026-10-18). Others, Pause among them, keep
-     their width, as FloorFifty's do; a sheet keeps its own. */
+     held sideways, a 900 x 600 window) rather than one group above a "+N more" (the visual audit of 2026-10-05), and on a desktop rather than a narrow column (the Desk, 2026-10-18). Others, Pause among them, keep
+     their width; a sheet keeps its own. */
   .af-modal-scrim:not([data-anchor="bottom"]) .af-modal[data-wide] {
     max-width: 44rem;
   }

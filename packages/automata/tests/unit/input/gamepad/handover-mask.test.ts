@@ -3,8 +3,7 @@ import { HandoverMask } from '#src/features/input/gamepad/handover-mask.ts'
 import { readPad } from '#src/features/input/gamepad/read-pad.ts'
 import { fakePad } from '#src/features/input/gamepad/testing/fake-pad.ts'
 
-// The handover mask (M4 spec §4.3), from FloorFifty `gamepad-source.ts` at `ac72660` (`HandoverMask`, line 104)
-// and its "a handover" tests: what the pad held when it changed hands reads as released until let go.
+// The handover mask (M4 spec §4.3), `HandoverMask`: what the pad held when it changed hands reads as released until let go.
 const buttonsOf = (mask: HandoverMask, pad: ReturnType<typeof fakePad>) => [
   ...readPad(mask.apply(pad)).buttons,
 ]

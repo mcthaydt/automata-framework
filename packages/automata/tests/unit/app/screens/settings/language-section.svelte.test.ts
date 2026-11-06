@@ -3,8 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import LanguageSection from '#src/app/screens/settings/LanguageSection.svelte'
 import { endonymOf, type LanguageCopy } from '#src/app/screens/settings/language-section.ts'
 
-// The Language group of the Settings tab (Owner, 2026-10-18), laid out as FloorFifty's (`LanguagePicker.svelte` at
-// a28dc44): Automatic, then each of the game's languages named in its own language (its endonym), each in its own
+// The Language group of the Settings tab (Owner, 2026-10-18), Automatic, then each of the game's languages named in its own language (its endonym), each in its own
 // `lang`. A pick applies at once.
 
 const copy: LanguageCopy = { title: 'Language', automatic: 'Automatic' }

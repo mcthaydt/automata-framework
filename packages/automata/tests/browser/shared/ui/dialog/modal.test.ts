@@ -7,7 +7,7 @@ import { byTestId, publishConditions } from '#src/testing/ui/layout-contract.ts'
 import ModalFixture from '#src/testing/ui/ModalFixture.svelte'
 import { settleLayout } from '#src/testing/ui/settle.ts'
 
-// The Modal frame Pause and Settings share (Settings and Pause redo, step 3; FloorFifty `Modal.svelte` at a28dc44):
+// The Modal frame Pause and Settings share (Settings and Pause redo, step 3):
 // on a short, wide band it widens so a long body can set its groups two across, and its content lays out by the
 // dialog's own width (container `af-dialog`), not the window's.
 const sizeNamed = (name: string) => {
@@ -49,14 +49,14 @@ describe('Modal frame', () => {
     expect(wide.columns).toBe('2')
   })
 
-  // FloorFifty's tabs sit under its title; on a short band that costs the list a row, so where the dialog has the
+  // Tabs sit under the title; on a short band that costs the list a row, so where the dialog has the
   // width they move up beside the title (a 270 px band keeps the first row of the list in view).
   test('sets its head (the tabs) beside the title on a wide dialog, and under it on a narrow one', async () => {
     expect((await measure('iphone-14-landscape')).headBesideTitle).toBe(true)
     expect((await measure('iphone-14')).headBesideTitle).toBe(false)
   })
 
-  // FloorFifty widens only the dialog whose body sets its groups two across (Settings); its Pause stays compact.
+  // Only the dialog whose body sets its groups two across (Settings) widens; Pause stays compact.
   test('widens only when asked: a dialog that is not wide keeps its width on a short band', async () => {
     expect((await measure('iphone-14-landscape', false)).width).toBeLessThanOrEqual(512)
   })

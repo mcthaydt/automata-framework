@@ -1,5 +1,4 @@
-// The held-direction repeat for menus, from FloorFifty `gamepad-source.ts` at `ac72660`
-// (lines 35–36 and `fireNav`): a held direction fires at once, again after a delay, then steadily, as a held key
+// The held-direction repeat for menus: a held direction fires at once, again after a delay, then steadily, as a held key
 // does. Buttons never repeat, so only directions come here.
 import type { PadDirection } from './read-pad.js'
 

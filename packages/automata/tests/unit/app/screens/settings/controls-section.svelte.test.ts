@@ -9,8 +9,7 @@ import type {
 } from '#src/app/screens/settings/controls-section.ts'
 import type { PromptCopy, PromptDevice } from '#src/shared/ui/prompts/prompt-label.ts'
 
-// The Controls tab's section (M4 spec §4.5, §7), laid out as FloorFifty's Controls tab (`SettingsPanel.svelte` at
-// a28dc44): one section per device the player can use, the one in use first and marked; Keyboard and Controller list
+// The Controls tab's section (M4 spec §4.5, §7), one section per device the player can use, the one in use first and marked; Keyboard and Controller list
 // each action with its rebind button showing its prompt, the Controller only once a pad has connected; Touch says
 // what the on-screen buttons do. A status line says each step of a rebind, and Reset ends the tab.
 

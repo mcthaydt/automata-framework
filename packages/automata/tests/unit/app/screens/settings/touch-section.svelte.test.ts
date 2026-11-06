@@ -4,7 +4,7 @@ import type { ControlsTouchMode } from '#src/app/screens/settings/controls-secti
 import TouchSection from '#src/app/screens/settings/TouchSection.svelte'
 import type { TouchCopy } from '#src/app/screens/settings/touch-section.ts'
 
-// The Touch controls group of the Settings tab (FloorFifty `SettingsPanel.svelte` at a28dc44, Owner 2026-10-18): how
+// The Touch controls group of the Settings tab (Owner, 2026-10-18): how
 // touch drives play, buttons or swipes, as an option group. The game shows it on a coarse pointer when it offers both.
 
 const copy: TouchCopy = {

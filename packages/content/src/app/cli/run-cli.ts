@@ -1,9 +1,8 @@
-// The `automata-content` command. Ports FloorFifty packages/content/bin/content.ts
-// (122a220): `check` compiles and writes nothing, `build` also writes the outputs, `docs` regenerates the
+// The `automata-content` command: `check` compiles and writes nothing, `build` also writes the outputs, `docs` regenerates the
 // tunable table in the authoring guide, and `check --verify-artifact` is the repository gate that proves the
 // committed outputs and the guide still describe the TOML.
 //
-// FloorFifty's `watch` is the Vite plugin's job here. Exit codes: 0 clean, 1 content problems (every one
+// Watching is the Vite plugin's job here. Exit codes: 0 clean, 1 content problems (every one
 // printed), 2 a usage, config or write error.
 //
 // `assets` builds the atlases named in `content/atlases.toml` into `<outDir>/atlases/` and the font

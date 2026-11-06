@@ -192,7 +192,7 @@ describe('createGeometryOwner (M1.6 spec §3.1, §4)', () => {
     root.remove()
   })
 
-  describe("DuckDuckGo's forgotten bottom bar (§3.9, FloorFifty viewport-tracking)", () => {
+  describe("DuckDuckGo's forgotten bottom bar (§3.9, viewport tracking)", () => {
     /** The emulator's DuckDuckGo: a 915 px screen, 802 px of page while the bar is counted. */
     const DUCKDUCKGO = { userAgentData: { brands: [{ brand: 'Chromium' }, { brand: 'DuckDuckGo' }] } }
     const SCREEN = { width: 412, height: 915 }

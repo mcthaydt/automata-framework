@@ -8,7 +8,7 @@ import { createStudio } from './editors/studio/studio-suite-editor'
 import { createTuner } from './editors/tuner/tuner-suite-editor'
 import { startSuite } from './shell/boot'
 import { createSuite } from './shell/create-suite'
-import { FLOORFIFTY_SAMPLE, samplePorts } from './testing/sample-ports'
+import { ARCADE_SAMPLE, samplePorts } from './testing/sample-ports'
 
 // The only file that reaches for the page's globals. Until `automata editor` serves a game's checkout (EDS.1d), the
 // page opens a sample game held in memory, and says so in the top bar. The free build registers the level editors
@@ -39,7 +39,7 @@ const editors = [
   }),
 ]
 
-samplePorts(FLOORFIFTY_SAMPLE)
+samplePorts(ARCADE_SAMPLE)
   .then((ports) =>
     startSuite(target, {
       window,

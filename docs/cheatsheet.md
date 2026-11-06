@@ -211,7 +211,7 @@
 - `Toast` (const): A passing message: "Pad connected", "Saved", "This controller is not supported".
 - `Toggle` (const): An on/off setting: a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
 - `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.
-- `TouchControls` (const): The on-screen touch buttons, from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+- `TouchControls` (const): The on-screen touch buttons.
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
@@ -263,7 +263,7 @@
 - `hostDisplay(options?)`: Ruken's display metrics for a hosted game.
 - `HostingFactory` (type): An adapter under test: a fresh `Hosting` per case, with `saves` granted.
 - `installFakeResizeObserver()`: Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components measured under jsdom, which has no layout.
-- `LayoutRect` (interface): Layout assertions as plain DOM functions, from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
+- `LayoutRect` (interface): Layout assertions as plain DOM functions (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
 - `ManualFrames` (interface): A frame source a test drives: `advance` moves time on and runs the frame asked for, if any.
 - `manualFrames(startMs?)`: A frame source that runs a frame only when a test advances it, starting at `startMs`.
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.
@@ -525,7 +525,7 @@
 - `RecorderOptions` (interface): What a recording takes: how often to store a check hash, whether to keep a reference hash and snapshots (goldens), and free-form `meta`.
 - `Replay` (interface): A recorded run: its header, the start snapshot, the accepted commands by tick, check hashes along the way and the final tick and hash.
 - `REPLAY_FORMAT` (const): The `.replay` format version this build reads and writes.
-- `REPLAY_INFLATE_MAX_BYTES` (const): Larger than FloorFifty's 1 MiB because goldens carry reference snapshots; player replays may pass less.
+- `REPLAY_INFLATE_MAX_BYTES` (const): Larger than the 1 MiB of a typical arcade game because goldens carry reference snapshots; player replays may pass less.
 - `REPLAY_MAX_TICKS` (const): The longest run a replay may hold: 2^24 ticks, over 77 hours at 60 Hz.
 - `ReplayCheck` (interface): A hash check at a tick: the hash the replay recorded (`expected`) and the hash the re-simulated sim has (`actual`).
 - `ReplayCommand` (interface): A command as a replay stores it: the sim's `Command` without its tick, which the replay's `ticks` entry carries.
@@ -575,11 +575,11 @@
 
 - `BoardName` (interface): A board a source file names, by its name and position (1-based, at the opening quote).
 - `boardNamesIn(file, code)`: The boards one source file names, in source order; `undefined` when it does not parse (its typecheck already fails, and a half-read tree could report a board that is not there).
-- `BUILD_ID_PATTERN` (const): A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example `202610111205-abcdef0` (FloorFifty `deploy/bin/build-tag`).
+- `BUILD_ID_PATTERN` (const): A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example `202610111205-abcdef0`.
 - `buildIdFor(commit)`: The build ID for a commit: its UTC time to the minute, a dash, then the first seven characters of its sha.
 - `ButlerFailed` (class): butler exited non-zero.
 - `checkManifest(toml)`: Checks `ruken.toml` text with Ruken's own parser, so AF accepts exactly what Ruken accepts.
-- `checkVersion(version, tag)`: A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
+- `checkVersion(version, tag)`: A release's version must be its tag's: the build Ruken shows as 0.10.2 is the one tagged v0.10.2.
 - `declaredBoardsIn(code)`: The board ids a `ship.config.ts` declares: the keys of its `leaderboards` object, read from the source as written (`automata check` reads files, it does not run them).
 - `DeclaredInputs` (interface): The `runtime.inputs` a `ship.config.ts` declares, with the position of its opening bracket.
 - `declaredInputsIn(code)`: The `runtime.inputs` a `ship.config.ts` declares, read from the source as written (`automata check` reads files, it does not run them).
@@ -629,7 +629,7 @@
 - `Pixi3dFound` (interface): One script that carries a marker.
 - `Pixi3dInPublicBuild` (class): A build for a public target (Ruken's store, itch.io) contains `@pixi/3d`, a closed beta.
 - `PlayedOrientation` (interface): An orientation a `defineGame` call plays in, at the literal's opening quote (or at the call, when it is left out).
-- `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
+- `portsFor(checkoutPath, env)`: The ports a checkout's test server and preview build listen on.
 - `prepareBuild(input)`: Makes a built folder ready for `ruken publish` and the dev host: checks the tag, the entry page, root-absolute paths, secrets, `@pixi/3d`, the leaderboards the game names and the orientation it plays in and the devices its `keys()` calls bind, then writes `ruken.toml` once Ruken's parser accepts it.
 - `PrepareInput` (interface): What `prepareBuild` checks and writes into: the built folder, the ship config, and the optional release tag, game folder and input bindings.
 - `prepareItch(input)`: Makes a built folder ready for itch.io: the tag, root-absolute paths, secrets (a page on itch.io is public, so the build is scanned as Ruken's is), `@pixi/3d`, `index.html`, itch.io's limits, reference case and a stray `ruken.toml` are checked in that order, and the first that fails stops prepare before anything is written.

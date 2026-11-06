@@ -67,8 +67,8 @@ for (const locale of FIXTURE_LOCALES) {
 }
 
 describe('Settings screen tabs', () => {
-  // Two sections across is for a tab with several groups (FloorFifty: Language beside Audio); a tab of one section,
-  // Controls, takes the dialog's width, its device sections one under another as FloorFifty's Controls tab.
+  // Two sections across is for a tab with several groups (Language beside Audio); a tab of one section,
+  // Controls, takes the dialog's width, its device sections one under another.
   test('a tab with one section spans the dialog on a short, wide band', async () => {
     const size = REFERENCE_SIZES.find((candidate) => candidate.name === 'iphone-14-landscape')
     if (size === undefined) throw new Error('no iphone-14-landscape')
@@ -144,7 +144,7 @@ describe('Settings screen tabs', () => {
     expect(box.right).toBeLessThanOrEqual(toggle.right + 0.5)
   })
 
-  // Two groups across where the dialog is 560 px wide: Language beside Audio, as FloorFifty's.
+  // Two groups across where the dialog is 560 px wide: Language beside Audio.
   test('sets Language beside Audio on a short, wide band, and Audio under Language on an upright phone', async () => {
     const place = async (name: string) => {
       const size = REFERENCE_SIZES.find((candidate) => candidate.name === name)
@@ -166,7 +166,7 @@ describe('Settings screen tabs', () => {
     expect((await place('iphone-14')).under).toBe(true)
   })
 
-  // FloorFifty's volume rows: the bus's name, its slider and its percentage on one 44 px row, not a label above a track.
+  // Volume rows: the bus's name, its slider and its percentage on one 44 px row, not a label above a track.
   test('sets each audio slider on one row: name, track and percentage', async () => {
     for (const name of ['iphone-14', 'iphone-14-landscape']) {
       const size = REFERENCE_SIZES.find((candidate) => candidate.name === name)
@@ -185,7 +185,7 @@ describe('Settings screen tabs', () => {
     }
   })
 
-  // The Desk, 2026-10-18: on a phone Settings fills the band's height as FloorFifty's does, the list taking the rest
+  // The Desk, 2026-10-18: on a phone Settings fills the band's height, the list taking the rest
   // and Back at the bottom, rather than a small card in the middle of the screen.
   test('fills the band’s height on a phone, upright and sideways; keeps to its content on a desktop', async () => {
     const measure = async (name: string) => {

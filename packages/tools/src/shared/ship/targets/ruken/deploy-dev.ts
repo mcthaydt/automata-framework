@@ -26,9 +26,9 @@ export interface DeployDevInput {
   readonly commit: { readonly sha: string; readonly time: Date }
   readonly tag: string | undefined
   readonly branch: string | undefined
-  /** The ssh destination, e.g. `deploy@af-dev.floorfifty.duckdns.org`. */
+  /** The ssh destination, e.g. `deploy@af-dev.example.com`. */
   readonly target: string
-  /** The dev host's URL, e.g. `https://af-dev.floorfifty.duckdns.org`. It is also the page allowed to frame the game. */
+  /** The dev host's URL, e.g. `https://af-dev.example.com`. It is also the page allowed to frame the game. */
   readonly siteUrl: string
   /** Also make this build the one `/` redirects to. */
   readonly activate: boolean

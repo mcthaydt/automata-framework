@@ -1,6 +1,6 @@
 /**
  * A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example
- * `202610111205-abcdef0` (FloorFifty `deploy/bin/build-tag`). Time first, so IDs sort as commits do.
+ * `202610111205-abcdef0`. Time first, so IDs sort as commits do.
  * The host's `deploy` script accepts only IDs matching BUILD_ID_PATTERN.
  */
 export const BUILD_ID_PATTERN: RegExp = /^[0-9]{12}-[0-9a-f]{7,40}$/

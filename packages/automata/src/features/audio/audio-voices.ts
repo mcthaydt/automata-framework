@@ -1,11 +1,10 @@
-// One-shot sounds. From FloorFifty `apps/client/src/managers/audio/voices.ts` and `model.ts` at
-// `ac72660`, without its event de-duplication, far paths, panning and variation, which are FloorFifty's own.
+// One-shot sounds, without event de-duplication, far paths, panning or variation: those are a game's own.
 import type { AudioGraph, SubBus } from './audio-graph.js'
 
-/** At most this many one-shots sound at once (FloorFifty `model.ts`): a burst can never exhaust the machine. */
+/** At most this many one-shots sound at once: a burst can never exhaust the machine. */
 export const MAX_VOICES = 16
 
-/** How long a cut voice fades before it stops, so it never clicks (FloorFifty `model.ts`). */
+/** How long a cut voice fades before it stops, so it never clicks. */
 export const CUT_SECONDS = 0.02
 
 export interface VoiceOptions {

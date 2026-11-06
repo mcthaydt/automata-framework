@@ -329,7 +329,7 @@ export function defaultScreens(game: ScreensGame): ScreenDef[] {
                 resume()
               },
             } satisfies SavesStart)
-      // Mute is the Audio group's setting, as FloorFifty's pause has it.
+      // Mute is the Audio group's setting; the pause menu toggles the same one.
       const { store } = services.settings
       const targets = { audio: services.audio, buses: services.audio }
       const copy = words(context)

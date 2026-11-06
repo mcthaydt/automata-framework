@@ -2,7 +2,7 @@
 # The forced command of the dev host's `deploy` key (ship spec §3.5). In ~deploy/.ssh/authorized_keys:
 #   command="/usr/local/lib/automata/bin/ssh-deploy",no-pty,no-port-forwarding,no-agent-forwarding,no-X11-forwarding ssh-ed25519 AAAA... ci
 # Whatever the client asks to run, the key can only install a build read from stdin, optionally making it
-# live. Adapted from FloorFifty's staging key (docs/release.md), which can only install a release.
+# live. Like the staging VM's release key, it can only install a release.
 set -euo pipefail
 
 deploy="${SHIP_DEPLOY:-/usr/local/lib/automata/bin/deploy}"

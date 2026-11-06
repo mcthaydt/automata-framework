@@ -8,9 +8,8 @@ import { FIXTURES, INVARIANTS, TUNABLE_DEFAULTS, TUNABLES } from '#src/testing/f
 const declared = { tunables: TUNABLES, invariants: INVARIANTS }
 const shippedTuning = parse(readFileSync(join(FIXTURES, 'valid/content/tuning.toml'), 'utf8'))
 
-// Ported from FloorFifty tests/content/validate/bounds.test.ts (122a220).
-describe('checkTuning with code-owned declarations (FloorFifty)', () => {
-  it("accepts FloorFifty's shipped tuning.toml and keeps its values", () => {
+describe('checkTuning with code-owned declarations', () => {
+  it("accepts the arcade game's shipped tuning.toml and keeps its values", () => {
     const result = checkTuning(shippedTuning, declared)
     expect(result.problems).toEqual([])
     expect(result.values['GRAVITY']).toBe(-275)
@@ -30,7 +29,7 @@ describe('checkTuning with code-owned declarations (FloorFifty)', () => {
     })
   })
 
-  it('refuses a value that is not a finite number (FloorFifty), for games that layer tuning themselves', () => {
+  it('refuses a value that is not a finite number, for games that layer tuning themselves', () => {
     const layer = (gravity: number) => checkTuningLayer({ GRAVITY: gravity }, declared, { complete: false })
     for (const gravity of [Number.NaN, Number.NEGATIVE_INFINITY]) {
       expect(layer(gravity)).toEqual([

@@ -5,8 +5,7 @@ import { firstDifference, firstUnwritable, isTable, keysOf, sameValue } from '..
 import { readTomlLiterals, TomlPositionError } from './toml-literals'
 import { type TomlScalar, writeTomlScalar } from './toml-scalar'
 
-// The TOML half of the content documents (editor suite spec §4.4), generalised from the FloorFifty stage codec
-// (EDFF.1a), which handed every value change to `@decimalturn/toml-patch`. Here a scalar whose literal is in the text
+// The TOML half of the content documents (editor suite spec §4.4), which replaces a codec that handed every value change to `@decimalturn/toml-patch`. Here a scalar whose literal is in the text
 // is written into that literal's span and nowhere else, as the shortest text that reads back as exactly it; only what is left (a key or array
 // item added or removed, a value changing kind) goes to toml-patch, which keeps comments, blank lines and line endings.
 // Every result is parsed again and compared with the value asked for, and one that does not read as it is refused.

@@ -28,7 +28,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** Draws the game in 2D: WebGL2 by default, WebGPU opt-in per game (ADR 0002).
-- **Why it was chosen:** Both reference games render with Pixi 8: FloorFifty in 2D and The Last Light in 3D. Ruken's manifest declares `webgl2` and no WebGPU value, so the WebGL2 path is the one that must stay solid (ADR 0002).
+- **Why it was chosen:** Both reference games render with Pixi 8, one in 2D and one in 3D. Ruken's manifest declares `webgl2` and no WebGPU value, so the WebGL2 path is the one that must stay solid (ADR 0002).
 - **What AF adds on top:** `@mcthaydt/automata`'s renderer: the `/no-eval` entry every game imports first (Ruken's CSP has no `eval`), renderer start-up with a WebGL2 default, a `RenderDelta` consumer that interpolates between sim ticks, the letterbox and canvas resolution, and GLSL + WGSL filter-program pairs.
 
 ## Koota
@@ -50,8 +50,8 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** Runs everything outside the sim: runtime services, the boot program, time, retries and resource disposal (ADR 0003).
-- **Why it was chosen:** The runtime needs ordered boot with failure states, retries and timeouts, disposal on screen exit and restart, an injectable clock and typed errors that each map to a UI state; FloorFifty and The Last Light do all of that by hand (ADR 0003).
-- **What AF adds on top:** Runtime managers are Effect services (`Context.Tag` + `Layer`), time comes from `Clock` and is tested with `TestClock`, and `Scope` replaces FloorFifty's `DisposeBag`. The sim never imports Effect (`check-boundaries` rejects it there) and the frame loop allocates no Effect per frame.
+- **Why it was chosen:** The runtime needs ordered boot with failure states, retries and timeouts, disposal on screen exit and restart, an injectable clock and typed errors that each map to a UI state; both reference games did all of that by hand (ADR 0003).
+- **What AF adds on top:** Runtime managers are Effect services (`Context.Tag` + `Layer`), time comes from `Clock` and is tested with `TestClock`, and `Scope` replaces a hand-written dispose bag. The sim never imports Effect (`check-boundaries` rejects it there) and the frame loop allocates no Effect per frame.
 
 ## Zod
 
@@ -72,7 +72,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** Menus, HUD and every screen outside the canvas, with rune stores for app state (master spec §3).
-- **Why it was chosen:** FloorFifty's UI and Ruken's own `packages/ui` are Svelte, and Ruken requires a mobile layout under `display.metrics` on phones (master spec §4.1).
+- **Why it was chosen:** The 2D reference game's UI and Ruken's own `packages/ui` are Svelte, and Ruken requires a mobile layout under `display.metrics` on phones (master spec §4.1).
 - **What AF adds on top:** `@mcthaydt/automata`'s ui kit: mobile-first primitives (ScreenFrame, ActionBar, CornerControls, ScrollList, Dialog, LoaderOverlay, ErrorPanel), the single geometry owner (form factor, height tier, viewport tracking), focus navigation and browser hygiene, with layout-contract test helpers.
 
 ## Paraglide
@@ -83,7 +83,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** Compiles the content compiler's locale keys into typed `t()` message functions (PRODUCT spec §4).
-- **Why it was chosen:** FloorFifty already ships its localization on Paraglide, and Ruken asks every game to localize from `session.locale` (PRODUCT spec §4).
+- **Why it was chosen:** The 2D reference game already ships its localization on Paraglide, and Ruken asks every game to localize from `session.locale` (PRODUCT spec §4).
 - **What AF adds on top:** `@mcthaydt/automata`'s runtime (PRODUCT.L1): language negotiation (the player's saved choice, then Ruken's `session.locale`, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`. Planned in PRODUCT.L2 to L4: per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.
 
 ## smol-toml
@@ -94,7 +94,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** Parses the TOML files under a game's `content/` (M1.3 content spec §8).
-- **Why it was chosen:** FloorFifty's content compiler and Ruken both use it at this version.
+- **Why it was chosen:** The 2D reference game's content compiler and Ruken both use it at this version.
 - **What AF adds on top:** `@mcthaydt/automata-content` validates the parsed TOML with Zod, reports `file:line:col` diagnostics, writes canonical JSON with a content hash, generates TypeScript types, the locale keys and Ruken manifest fields, and runs as a Vite plugin with watch mode.
 
 ## Ruken SDK
@@ -108,7 +108,7 @@ Versions are the exact pins in [versions.md](versions.md) (the vendored Ruken ta
 
 - **Tier:** Core
 - **What it does in AF:** The host: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0004).
-- **Why it was chosen:** Ruken is the reference host. FloorFifty already runs through these packages, so AF consumes them instead of re-deriving Ruken's contract (ADR 0004). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).
+- **Why it was chosen:** Ruken is the reference host. The 2D reference game already runs through these packages, so AF consumes them instead of re-deriving Ruken's contract (ADR 0004). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).
 - **What AF adds on top:** `@mcthaydt/automata`'s host contract: the `Hosting` service with typed errors and a fake host to test against; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.
 
 ## Vite, Vitest, Playwright
@@ -139,9 +139,9 @@ Not yet installed; planned for M7 (`net` and `server`). Package: `colyseus`.
 
 - **Tier:** Plus
 - **What it does in AF:** Rooms and transport for the `net` and `server` extensions (master spec §4).
-- **Why it was chosen:** FloorFifty's multiplayer already runs on Colyseus: its network manager, room store and server rooms are the extraction source (extraction map).
+- **Why it was chosen:** The 2D reference game's multiplayer already runs on Colyseus: its network manager, room store and server rooms are the extraction source (extraction map).
 - **What AF adds on top:** Planned in M7: a network seam behind the client, a room-mirroring store, server rooms running the same sim, an input queue and tick scheduler, prediction and reconciliation.
 
-## Why FloorFifty's Planck becomes Rapier
+## Why Planck becomes Rapier
 
-FloorFifty simulates its races with Planck. AF uses Rapier instead: Rapier's deterministic build is already proven across Node, Chromium, WebKit and Firefox (M2.1), and one physics engine means one parity suite (PRODUCT spec §8, PD-2).
+The 2D reference game simulates its races with Planck. AF uses Rapier instead: Rapier's deterministic build is already proven across Node, Chromium, WebKit and Firefox (M2.1), and one physics engine means one parity suite (PRODUCT spec §8, PD-2).

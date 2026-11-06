@@ -52,7 +52,7 @@ on:
         type: string
         default: ""
       dev-target:
-        description: The dev host's ssh destination, e.g. deploy@af-dev.floorfifty.duckdns.org. Empty skips the dev host job.
+        description: The dev host's ssh destination, e.g. deploy@af-dev.example.com. Empty skips the dev host job.
         type: string
         default: ""
       dev-url:

@@ -3,7 +3,7 @@
   A choice of one: a
   segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 
-  Native radios in a fieldset, where FloorFifty used `<button role="radio">`: the browser gives the arrow keys,
+  Native radios in a fieldset, rather than `<button role="radio">` buttons: the browser gives the arrow keys,
   and the focus navigator's `adjust` cycles a named radio group, so a pad changes it without leaving it.
 
   Controlled: it reports a choice through `onchange` and shows the `value` it is given. A choice the owner does

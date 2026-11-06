@@ -1,6 +1,6 @@
 // The game's scores for sim events: sim events reach the leaderboards as presentation-bus facts,
 // never the other way round, so a board can never change what the sim does. The score is the game's function of
-// the event's payload, so it comes from sim state and is never typed by anyone (FloorFifty `scores.ts`, R-80).
+// the event's payload, so it comes from sim state and is never typed by anyone (Ruken request R-80).
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import type { Leaderboards } from './leaderboards.manager.js'
 

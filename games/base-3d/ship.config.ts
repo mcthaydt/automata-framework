@@ -6,7 +6,7 @@ export default defineShipConfig({
   game: {
     id: 'base-3d',
     title: 'AF Base 3D',
-    // From package.json, so the manifest can never disagree with the package (FloorFifty ruken-pack.ts).
+    // From package.json, so the manifest can never disagree with the package.
     version: packageJson.version,
     entry: 'index.html',
     // The vendored SDK's version (vendor/ruken/README.md); Ruken reads it as a caret range.

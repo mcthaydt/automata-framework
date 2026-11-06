@@ -1,6 +1,5 @@
 /**
- * Layout assertions as plain DOM functions, from FloorFifty's
- * `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`,
+ * Layout assertions as plain DOM functions (`expectReachable`, `expectControlsFit`,
  * `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
  *
  * Each returns a list of human-readable problems; `[]` is a pass. They take no test framework, so
@@ -20,7 +19,7 @@ export interface LayoutRect {
 const CONTROLS =
   "button, input, select, textarea, summary, a[href], [role='button'], [role='link'], [role='tab'], [tabindex]:not([tabindex='-1'])"
 
-/** Half a pixel of rounding slack, as FloorFifty's checks allow. */
+/** Half a pixel of rounding slack, so a pixel-snapped box is not a failure. */
 const SLACK = 0.5
 
 /** A name a problem can be read by: the test id, else the start of the text, else the tag. */

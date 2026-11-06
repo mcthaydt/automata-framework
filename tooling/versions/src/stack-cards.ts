@@ -16,7 +16,7 @@ export const STACK: StackSource = {
       tier: 'Core',
       packages: ['pixi.js'],
       does: 'Draws the game in 2D: WebGL2 by default, WebGPU opt-in per game (ADR 0002).',
-      why: "Both reference games render with Pixi 8: FloorFifty in 2D and The Last Light in 3D. Ruken's manifest declares `webgl2` and no WebGPU value, so the WebGL2 path is the one that must stay solid (ADR 0002).",
+      why: "Both reference games render with Pixi 8, one in 2D and one in 3D. Ruken's manifest declares `webgl2` and no WebGPU value, so the WebGL2 path is the one that must stay solid (ADR 0002).",
       adds: "`@mcthaydt/automata`'s renderer: the `/no-eval` entry every game imports first (Ruken's CSP has no `eval`), renderer start-up with a WebGL2 default, a `RenderDelta` consumer that interpolates between sim ticks, the letterbox and canvas resolution, and GLSL + WGSL filter-program pairs.",
     },
     {
@@ -32,8 +32,8 @@ export const STACK: StackSource = {
       tier: 'Core',
       packages: ['effect'],
       does: 'Runs everything outside the sim: runtime services, the boot program, time, retries and resource disposal (ADR 0003).',
-      why: 'The runtime needs ordered boot with failure states, retries and timeouts, disposal on screen exit and restart, an injectable clock and typed errors that each map to a UI state; FloorFifty and The Last Light do all of that by hand (ADR 0003).',
-      adds: "Runtime managers are Effect services (`Context.Tag` + `Layer`), time comes from `Clock` and is tested with `TestClock`, and `Scope` replaces FloorFifty's `DisposeBag`. The sim never imports Effect (`check-boundaries` rejects it there) and the frame loop allocates no Effect per frame.",
+      why: 'The runtime needs ordered boot with failure states, retries and timeouts, disposal on screen exit and restart, an injectable clock and typed errors that each map to a UI state; both reference games did all of that by hand (ADR 0003).',
+      adds: 'Runtime managers are Effect services (`Context.Tag` + `Layer`), time comes from `Clock` and is tested with `TestClock`, and `Scope` replaces a hand-written dispose bag. The sim never imports Effect (`check-boundaries` rejects it there) and the frame loop allocates no Effect per frame.',
     },
     {
       library: 'Zod',
@@ -48,7 +48,7 @@ export const STACK: StackSource = {
       tier: 'Core',
       packages: ['svelte'],
       does: 'Menus, HUD and every screen outside the canvas, with rune stores for app state (master spec §3).',
-      why: "FloorFifty's UI and Ruken's own `packages/ui` are Svelte, and Ruken requires a mobile layout under `display.metrics` on phones (master spec §4.1).",
+      why: "The 2D reference game's UI and Ruken's own `packages/ui` are Svelte, and Ruken requires a mobile layout under `display.metrics` on phones (master spec §4.1).",
       adds: "`@mcthaydt/automata`'s ui kit: mobile-first primitives (ScreenFrame, ActionBar, CornerControls, ScrollList, Dialog, LoaderOverlay, ErrorPanel), the single geometry owner (form factor, height tier, viewport tracking), focus navigation and browser hygiene, with layout-contract test helpers.",
     },
     {
@@ -56,7 +56,7 @@ export const STACK: StackSource = {
       tier: 'Core',
       packages: ['@inlang/paraglide-js'],
       does: "Compiles the content compiler's locale keys into typed `t()` message functions (PRODUCT spec §4).",
-      why: 'FloorFifty already ships its localization on Paraglide, and Ruken asks every game to localize from `session.locale` (PRODUCT spec §4).',
+      why: 'The 2D reference game already ships its localization on Paraglide, and Ruken asks every game to localize from `session.locale` (PRODUCT spec §4).',
       adds: "`@mcthaydt/automata`'s runtime (PRODUCT.L1): language negotiation (the player's saved choice, then Ruken's `session.locale`, the browser, the default) before the first screen, a typed `t()` over Paraglide's runtime, `Intl` formatting and `<html lang dir>`. Planned in PRODUCT.L2 to L4: per-locale content, glyph coverage, the `xx-long` pseudo-locale in every layout contract and a language picker.",
     },
     {
@@ -64,7 +64,7 @@ export const STACK: StackSource = {
       tier: 'Core',
       packages: ['smol-toml'],
       does: "Parses the TOML files under a game's `content/` (M1.3 content spec §8).",
-      why: "FloorFifty's content compiler and Ruken both use it at this version.",
+      why: "The 2D reference game's content compiler and Ruken both use it at this version.",
       adds: '`@mcthaydt/automata-content` validates the parsed TOML with Zod, reports `file:line:col` diagnostics, writes canonical JSON with a content hash, generates TypeScript types, the locale keys and Ruken manifest fields, and runs as a Vite plugin with watch mode.',
     },
     {
@@ -72,7 +72,7 @@ export const STACK: StackSource = {
       tier: 'Core',
       packages: ['@ruken/sdk', '@ruken/sdk-host', '@ruken/manifest', '@ruken/cli'],
       does: "The host: the game side of Ruken's protocol, a fake host for tests, the manifest checks and CSP headers, and `ruken publish` (ADR 0004).",
-      why: "Ruken is the reference host. FloorFifty already runs through these packages, so AF consumes them instead of re-deriving Ruken's contract (ADR 0004). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).",
+      why: "Ruken is the reference host. The 2D reference game already runs through these packages, so AF consumes them instead of re-deriving Ruken's contract (ADR 0004). They are vendored as tarballs until Ruken publishes them (`vendor/ruken/README.md`).",
       adds: "`@mcthaydt/automata`'s host contract: the `Hosting` service with typed errors and a fake host to test against; `@mcthaydt/automata-tools` generates `ruken.toml`, checks it with `@ruken/manifest` and hands the build to `ruken publish`.",
     },
     {
@@ -101,14 +101,14 @@ export const STACK: StackSource = {
       packages: [],
       planned: { packages: ['colyseus'], task: 'M7 (`net` and `server`)' },
       does: 'Rooms and transport for the `net` and `server` extensions (master spec §4).',
-      why: "FloorFifty's multiplayer already runs on Colyseus: its network manager, room store and server rooms are the extraction source (extraction map).",
+      why: "The 2D reference game's multiplayer already runs on Colyseus: its network manager, room store and server rooms are the extraction source (extraction map).",
       adds: 'Planned in M7: a network seam behind the client, a room-mirroring store, server rooms running the same sim, an input queue and tick scheduler, prediction and reconciliation.',
     },
   ],
   notes: [
     {
-      title: "Why FloorFifty's Planck becomes Rapier",
-      body: "FloorFifty simulates its races with Planck. AF uses Rapier instead: Rapier's deterministic build is already proven across Node, Chromium, WebKit and Firefox (M2.1), and one physics engine means one parity suite (PRODUCT spec §8, PD-2).",
+      title: 'Why Planck becomes Rapier',
+      body: "The 2D reference game simulates its races with Planck. AF uses Rapier instead: Rapier's deterministic build is already proven across Node, Chromium, WebKit and Firefox (M2.1), and one physics engine means one parity suite (PRODUCT spec §8, PD-2).",
     },
   ],
 }

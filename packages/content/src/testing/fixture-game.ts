@@ -1,8 +1,6 @@
-// The fixture game: FloorFifty's own declarations (FloorFifty 122a220), registered through the AF API.
-// `TUNABLES` is copied from packages/shared/src/common/tuning.ts, `AUTHORING_INVARIANTS` from
-// packages/content/src/validate/bounds.ts, and the flow capability map from
-// packages/shared/src/content/presentation.ts (SCREEN_IDS, FLOW_TARGETS, TRANSITION_STYLES).
-// `fixtures/valid/content/flow.toml` and `tuning.toml` are FloorFifty's shipped files, byte for byte.
+// The fixture game: the declarations of a real arcade racing game (tunables, authoring invariants and a flow
+// capability map of screens, events and transition styles), registered through the AF API.
+// `fixtures/valid/content/flow.toml` and `tuning.toml` are that game's shipped files, byte for byte.
 
 import { cpSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -73,7 +71,7 @@ export const INVARIANTS: readonly string[] = [
   'RECONNECT_GRACE_TICKS',
 ]
 
-/** The values `resolveTuning()` gives in FloorFifty: every tunable at its default. */
+/** The values `resolveTuning()` gives: every tunable at its default. */
 export const TUNABLE_DEFAULTS: Readonly<Record<string, number>> = Object.fromEntries(
   Object.entries(TUNABLES).map(([name, declaration]) => [name, declaration.default]),
 )
@@ -103,7 +101,7 @@ export const FLOW: FlowCapabilities = {
   styles: ['cut', 'liquid'],
 }
 
-// FloorFifty's kinds, cut to what the framework's checks need: localized names, nested tables, arrays of
+// The arcade game's kinds, cut to what the framework's checks need: localized names, nested tables, arrays of
 // tables, and references between kinds. IDs come from file names, so no item repeats its own `id`.
 
 const aliases = z.record(z.string(), z.string())

@@ -1,10 +1,10 @@
 // The screen flow: which screen follows which, authored in `content/flow.toml`.
-// Extracted from FloorFifty packages/content/src/validate/flow.ts (122a220). Cycles are legal (racing again
+// Cycles are legal (racing again
 // returns through the menu on purpose); a graph a player can get stuck in is not, and neither is one that
 // re-enters the entry screen after the game has started.
 //
-// FloorFifty's screens, events and destinations were code-owned (`FLOW_TARGETS`). Here they are the game's
-// `FlowCapabilities`: with them every FloorFifty check applies; without them the graph checks still do.
+// A game's screens, events and destinations are its `FlowCapabilities`: with them every check applies; without
+// them the graph checks still do.
 
 import { z } from 'zod'
 import type { Problem } from '../diagnostics/diagnostic'
@@ -40,7 +40,7 @@ export interface FlowCapabilities {
   /** The only screen a session may begin on. */
   readonly entry?: string
   readonly screens: readonly string[]
-  /** For each screen and event, the destinations that screen is prepared to enter (FloorFifty `FLOW_TARGETS`). */
+  /** For each screen and event, the destinations that screen is prepared to enter. */
   readonly targets?: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>
   /** Transition styles the runtime draws. Default: only `cut`. */
   readonly styles?: readonly string[]
@@ -67,7 +67,7 @@ export interface FlowGraph {
   readonly screens: readonly string[]
   /** Sorted. */
   readonly terminal: readonly string[]
-  /** Sorted by from, event, then to (FloorFifty `byPair`): declaration order means nothing. */
+  /** Sorted by from, event, then to: declaration order means nothing. */
   readonly transitions: readonly FlowTransition[]
 }
 

@@ -1,6 +1,5 @@
 // The fixed menu actions: they drive menus and the pause screen, never the sim, and are not part of
-// a game's profile. Pad buttons follow FloorFifty `apps/client/src/managers/gamepad-source.ts` at `ac72660` (the
-// `B` table, line 39: south 0 confirms, east 1 backs out, start 9 pauses, the D-pad 12–15 navigates), plus the
+// a game's profile. Pad buttons follow the standard layout (south 0 confirms, east 1 backs out, start 9 pauses, the D-pad 12–15 navigates), plus the
 // shoulders for paging and the triggers for adjusting. The reserved keys (Escape) are allowed here: the reserved
 // list applies to a game's profile only. Only `pause` will be rebindable.
 

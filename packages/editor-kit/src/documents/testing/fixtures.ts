@@ -24,10 +24,10 @@ export function loadGolden(name: 'literals'): string {
   return readFileSync(new URL(`./fixtures/${name}.golden.json`, import.meta.url), 'utf8')
 }
 
-/** Every content file the documents are tested on, by file name: TOML of FloorFifty and AF, JSON of Last Light and AF. */
+/** Every content file the documents are tested on, by file name: TOML of the arcade game and AF, JSON of Last Light and AF. */
 export const DOCUMENT_FIXTURES = [
-  'floorfifty-tuning.toml',
-  'floorfifty-juice.toml',
+  'arcade-tuning.toml',
+  'arcade-juice.toml',
   'af-game.toml',
   'af-flow.toml',
   'af-stage-dawn.toml',

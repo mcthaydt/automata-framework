@@ -2,7 +2,7 @@
 // Usage: node builds-index.ts <root> <base-url> [limit]   → JSON on stdout.
 //
 // Lists the builds installed under <root>/builds, newest first, each with its link, so a page (or a person)
-// can find every build of the game: one URL per build (FloorFifty `deploy/bin/builds-index.mjs`, D-4).
+// can find every build of the game: one URL per build (D-4).
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'

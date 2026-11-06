@@ -266,8 +266,8 @@ export class FocusNavigator {
   }
 
   /**
-   * Changes the focused slider or option group by one step without leaving it (from FloorFifty's `adjust`, plus
-   * radio groups for OptionGroup). Fires the event a pointer or arrow key would (`input` on a range, `change` on a
+   * Changes the focused slider or option group by one step without leaving it (sliders, and radio groups
+   * for OptionGroup). Fires the event a pointer or arrow key would (`input` on a range, `change` on a
    * radio). Returns false when nothing adjustable has focus, so the caller steers instead.
    */
   adjust(delta: -1 | 1): boolean {

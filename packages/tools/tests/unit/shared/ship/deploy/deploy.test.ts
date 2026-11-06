@@ -368,7 +368,7 @@ describe("ssh-deploy (the deploy key's forced command)", () => {
   })
 })
 
-describe('Caddyfile (shared with FloorFifty on the VM)', () => {
+describe('Caddyfile (shared with the VM’s other site)', () => {
   const caddyfile = readFileSync(join(import.meta.dirname, '../../../../../deploy/caddy/Caddyfile'), 'utf8')
 
   it('imports only through globs, so a missing file before the first deploy cannot break the shared Caddy', () => {

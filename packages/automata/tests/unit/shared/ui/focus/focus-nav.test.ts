@@ -18,8 +18,7 @@ beforeEach(() => {
     <button id="f" tabindex="-1">F</button>`
 })
 
-// Ported from FloorFifty tests/client/ui/focus-nav.test.ts at 122a220, minus steer, page, adjust and the pad
-// guard (M4).
+// Focus moves by direction; steer, page, adjust and the pad guard have their own cases (M4).
 describe('focus navigation', () => {
   it('walks tabbable elements in DOM order, skipping disabled, inert and untabbable ones', () => {
     expect(tabbables(document).map((element) => element.id)).toEqual(['a', 'd', 'e'])

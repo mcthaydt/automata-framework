@@ -1,5 +1,5 @@
 // The Input service: keyboard, standard-pad buttons and touch, each kept apart, sampled as one union
-// once per fixed step. From FloorFifty `apps/client/src/managers/input.ts` at `ac72660` (lines 42–60): one shared
+// once per fixed step. One shared
 // set let a keyup on the keyboard release a direction the controller still held, so each device keeps its own
 // sources and an action is held while any source on any device drives it. Edges ("pressed") never reach the sim:
 // `onPress` serves menus and the pause screen, and gameplay compares this tick's command with the last one's.
@@ -165,7 +165,7 @@ export function createInput(options: InputOptions): Input & { dispose(): void } 
   const count = new Map<string, number>()
   const held = new Set<string>()
   const listeners = new Map<MenuAction, Set<() => void>>()
-  // The pulse latch (FloorFifty's InputManager latch): a pulse is pressed at once, seen by the next sample
+  // The pulse latch: a pulse is pressed at once, seen by the next sample
   // (`poll()` then `held()`), and lifted by the poll after that, so a pulse between two steps is never lost. A
   // pulse again before it is lifted keeps it one more sample.
   let pulsed = new Set<string>()
@@ -273,7 +273,7 @@ export function createInput(options: InputOptions): Input & { dispose(): void } 
   }
   const onKeyUp = (event: KeyboardEvent): void => lift(`key:${event.code}`)
   // A key let go while another window has focus never sends its keyup. The pad keeps what it physically holds,
-  // and its next poll re-asserts it (FloorFifty).
+  // and its next poll re-asserts it.
   const onBlur = (): void => {
     liftWhere('key:')
     liftWhere('touch:')
@@ -305,7 +305,7 @@ export function createInput(options: InputOptions): Input & { dispose(): void } 
   let tables = tablesFor(profile)
 
   // Per pad: what it read last (for the handover), its mask, and whether it was in use. The active pad is the
-  // newest to start being used (FloorFifty `activeIndex`); its sticks and menu directions are the ones read.
+  // newest to start being used; its sticks and menu directions are the ones read.
   const lastRead = new Map<number, PadLike>()
   const masks = new Map<number, HandoverMask>()
   const inUse = new Map<number, boolean>()

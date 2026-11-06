@@ -1,6 +1,6 @@
 <!--
-  The default paused screen, laid out and behaving as FloorFifty's pause overlay
-  (`ui/components/PauseOverlay.svelte` at a28dc44, Owner 2026-10-18: "match the layout and function, not the style"):
+  The default paused screen, laid out as a pause overlay
+  (Owner 2026-10-18: "match the layout and function, not the style"):
   a dialog over the dimmed game, titled Paused, with Resume (primary, focused), Mute, Settings and Quit to title, two
   across once the dialog is 340 px wide. Quit asks first, because the run is lost. Escape (the pad's B, the system
   back) steps back one level: from the confirm to the menu, on Quit; from the menu it resumes.
@@ -196,7 +196,7 @@ $effect(() => {
     overflow-wrap: anywhere;
   }
 
-  /* One column on a narrow dialog; two across from 340 px, Resume across both (FloorFifty's pause menu). */
+  /* One column on a narrow dialog; two across from 340 px, Resume across both. */
   .af-pause__menu {
     display: grid;
     gap: 8px;

@@ -3,8 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { CompositeTarget } from '#src/features/render/letterbox/composite-target.ts'
 import { LetterboxFrame } from '#src/features/render/letterbox/letterbox.ts'
 
-// From FloorFifty `tests/client/systems/render/render-target.test.ts` at `ac72660`; FloorFifty's fixed 960 × 540
-// is the game's logical size here.
+// The logical size is the game's to choose.
 const SIZE = { width: 320, height: 180 }
 
 describe('the composite target', () => {

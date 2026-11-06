@@ -1,5 +1,4 @@
-// Writing the outputs, and checking committed ones. Extracted from FloorFifty packages/content/src/build.ts
-// and compiler.ts `verifyArtifact` (122a220).
+// Writing the outputs, and checking committed ones (`verifyArtifact`).
 //
 // `buildContent` is the only code that replaces generated files, and it replaces each atomically, so a
 // reader never sees a half-written file. A failed compile writes nothing at all, which is what lets the dev

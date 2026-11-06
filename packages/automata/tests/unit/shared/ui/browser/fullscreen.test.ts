@@ -6,8 +6,8 @@ import {
   onFullscreenChange,
 } from '#src/shared/ui/browser/fullscreen.ts'
 
-// Standalone fullscreen (M4 spec §4.9, M4-D5), from FloorFifty apps/client/src/ui/fullscreen.ts at ac72660 without
-// its hosted branch: under Ruken the landscape gate is off and fullscreen is the host's, so this is only ever the
+// Standalone fullscreen (M4 spec §4.9, M4-D5), without a
+// hosted branch: under Ruken the landscape gate is off and fullscreen is the host's, so this is only ever the
 // standalone page asking its own browser.
 
 const IPHONE =

@@ -31,7 +31,7 @@ test('core-input-keys walks title, play, paused and back on the default screens'
 
   await frame.getByTestId('pause').click()
   await frame.getByTestId('quit').click()
-  // Quit asks first: the run is lost (FloorFifty's pause, Settings and Pause redo).
+  // Quit asks first: the run is lost (Settings and Pause redo).
   await frame.getByTestId('quit-confirm').click()
   await expect(screen('title')).toBeVisible()
   expect(errors).toEqual([])
@@ -65,7 +65,7 @@ test('shapes-draw-hud draws through play, pause and quit with no errors', async 
   await frame.getByTestId('pause').click()
   await expect(screen('paused')).toBeVisible()
   await frame.getByTestId('quit').click()
-  // Quit asks first: the run is lost (FloorFifty's pause, Settings and Pause redo).
+  // Quit asks first: the run is lost (Settings and Pause redo).
   await frame.getByTestId('quit-confirm').click()
   await expect(screen('title')).toBeVisible()
   expect(errors).toEqual([])

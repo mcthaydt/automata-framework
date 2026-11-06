@@ -1,7 +1,7 @@
 import { createMemoryPorts } from '@mcthaydt/automata-editor-kit/ports/testing'
 import { parse as parseToml } from 'smol-toml'
 import { describe, expect, test } from 'vitest'
-import floorfiftyList from '../testing/fixtures/floorfifty.editors.toml?raw'
+import arcadeList from '../testing/fixtures/arcade.editors.toml?raw'
 import lastLightList from '../testing/fixtures/last-light-bay.editors.toml?raw'
 import { loadEditorList } from './editor-list'
 import { EDITOR_LIST_PATH } from './editors.schema'
@@ -9,7 +9,7 @@ import { applyImport, exportInterchange, type ImportPlan, interchangeSchema, pla
 import { workspaceFile } from './workspace-policy'
 import { createWritePath } from './write-path'
 
-// An excerpt of FloorFifty's content/tuning.toml (SNEKPRTY/FloorFifty 677d456, the kit's documents fixture).
+// An excerpt of the arcade game's content/tuning.toml (the kit's documents fixture).
 const TUNING = 'content/tuning.toml'
 const TUNING_TEXT = `# Base gameplay tuning.
 
@@ -29,19 +29,19 @@ const loaded = (text: string) => {
   if (!load.ok) throw new Error('fixture list does not load')
   return load.list
 }
-const FLOORFIFTY = loaded(floorfiftyList)
+const ARCADE = loaded(arcadeList)
 const LAST_LIGHT = loaded(lastLightList)
 
-async function floorfifty(extra: Readonly<Record<string, string>> = {}) {
+async function arcade(extra: Readonly<Record<string, string>> = {}) {
   const memory = await createMemoryPorts({
-    files: { [EDITOR_LIST_PATH]: floorfiftyList, [TUNING]: TUNING_TEXT, [STAGE]: STAGE_TEXT, ...extra },
-    classify: (path) => workspaceFile(FLOORFIFTY, path),
+    files: { [EDITOR_LIST_PATH]: arcadeList, [TUNING]: TUNING_TEXT, [STAGE]: STAGE_TEXT, ...extra },
+    classify: (path) => workspaceFile(ARCADE, path),
   })
   const writePath = createWritePath({ ports: memory.ports, title: async () => 'Import' })
   const { workspace } = memory.ports
   const plan = (text: string, options: { installed?: readonly string[]; locked?: readonly string[] } = {}) =>
     planImport(text, {
-      list: FLOORFIFTY,
+      list: ARCADE,
       read: (path) => workspace.read(path),
       installed: options.installed ?? ['tuner', 'levels-2d'],
       locked: () => options.locked ?? [],
@@ -89,7 +89,7 @@ describe('scene-interchange v2 export (spec §4.8)', () => {
   })
 
   test('another format or version is refused with what was found', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await arcade()
     const v1 = JSON.stringify({ format: 'scene-interchange', version: 1, sections: {} })
     expect(await plan(v1)).toEqual({
       error: 'scene-interchange version 1 is not supported; this suite reads version 2',
@@ -101,7 +101,7 @@ describe('scene-interchange v2 export (spec §4.8)', () => {
 
 describe('the import plan (spec §4.8, §11)', () => {
   test('EDS-o: change MAX_MOVE_SPEED in a TOML export; the plan has that one change, no gates, its checks', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await arcade()
     const edited = exported('toml').replace('MAX_MOVE_SPEED = 356', 'MAX_MOVE_SPEED = 400')
     const result = changesOf(await plan(edited))
     expect(result.refused).toEqual([])
@@ -122,7 +122,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('EDS-p: an export imported unchanged is an empty plan that cannot apply', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await arcade()
     for (const format of ['toml', 'json'] as const) {
       const result = changesOf(await plan(exported(format)))
       expect(result).toEqual({ changes: [], refused: [], applicable: false })
@@ -130,7 +130,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('EDS-p2: a sequence section in the free build is refused as not installed; the rest still applies', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await arcade()
     const document = JSON.parse(exported('json'))
     document.sections.tuner[TUNING].MAX_MOVE_SPEED = 400
     document.sections.sequence = { 'content/cutscenes/intro.toml': { shots: 1 } }
@@ -143,7 +143,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('an unlisted path, a never path, a wrong editor and a locked key are refused and disable Apply', async () => {
-    const { plan } = await floorfifty({ 'package.json': '{}\n' })
+    const { plan } = await arcade({ 'package.json': '{}\n' })
     const document = JSON.parse(exported('json'))
     document.sections.tuner[TUNING].MAX_MOVE_SPEED = 400
     document.sections.tuner['src/main.ts'] = { a: 1 }
@@ -161,7 +161,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('a path that does not exist yet is planned as created, printed from its value', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await arcade()
     const document = JSON.parse(exportInterchange([], { format: 'json' }))
     document.sections['levels-2d'] = { 'content/stages/floor-02.toml': { id: 'floor-02' } }
     const result = changesOf(await plan(JSON.stringify(document)))
@@ -176,7 +176,7 @@ describe('the import plan (spec §4.8, §11)', () => {
   })
 
   test('a key added and a key dropped become an insert and a remove; comments survive', async () => {
-    const { plan } = await floorfifty()
+    const { plan } = await arcade()
     const document = JSON.parse(exported('json'))
     delete document.sections.tuner[TUNING].FAST_FALL_VELOCITY
     document.sections.tuner[TUNING].PLAYER_WIDTH = 59
@@ -208,7 +208,7 @@ describe('the import plan (spec §4.8, §11)', () => {
 
 describe('apply (one change-set undo step, EDS-D19)', () => {
   test('EDS-o: Apply writes the file once, journals it, and one Undo puts it back', async () => {
-    const { ports, plan, writePath, changeSet } = await floorfifty()
+    const { ports, plan, writePath, changeSet } = await arcade()
     const result = await plan(exported('toml').replace('MAX_MOVE_SPEED = 356', 'MAX_MOVE_SPEED = 400'))
     expect(await applyImport(result, writePath)).toMatchObject({ written: true })
     expect((await ports.workspace.read(TUNING))?.text).toContain('MAX_MOVE_SPEED = 400.0')
@@ -219,7 +219,7 @@ describe('apply (one change-set undo step, EDS-D19)', () => {
   })
 
   test('a file changed after the plan refuses the apply and writes nothing', async () => {
-    const { ports, plan, writePath } = await floorfifty()
+    const { ports, plan, writePath } = await arcade()
     const result = await plan(exported('toml').replace('MAX_MOVE_SPEED = 356', 'MAX_MOVE_SPEED = 400'))
     const current = await ports.workspace.read(TUNING)
     await ports.workspace.write(TUNING, `${TUNING_TEXT}# moved\n`, { mtime: current?.mtime ?? 0 })
@@ -229,7 +229,7 @@ describe('apply (one change-set undo step, EDS-D19)', () => {
   })
 
   test('a plan that cannot apply writes nothing', async () => {
-    const { plan, writePath } = await floorfifty()
+    const { plan, writePath } = await arcade()
     expect(await applyImport(await plan(exported('toml')), writePath)).toEqual({ refused: 'plan' })
     expect(writePath.canUndo()).toBe(false)
   })

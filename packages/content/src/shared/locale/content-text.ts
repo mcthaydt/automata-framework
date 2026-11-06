@@ -5,8 +5,8 @@
 // no message (an item added to TOML before the catalogs were compiled again) shows the authored text and is
 // reported once.
 //
-// Changed from FloorFifty: one lookup by kind, ID and field path instead of a helper per field, and the report
-// is the caller's callback rather than a development-only `console.warn`.
+// One lookup by kind, ID and field path (not a helper per field); the report is the caller's callback, not a
+// development-only `console.warn`.
 
 import type { DataPath } from '../diagnostics/diagnostic'
 import { messageKey } from './messages'

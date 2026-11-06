@@ -14,7 +14,7 @@ export interface ReplayCompression {
   inflate(bytes: Uint8Array, maxBytes: number): Promise<Uint8Array>
 }
 
-/** Larger than FloorFifty's 1 MiB because goldens carry reference snapshots; player replays may pass less. */
+/** Larger than the 1 MiB of a typical arcade game because goldens carry reference snapshots; player replays may pass less. */
 export const REPLAY_INFLATE_MAX_BYTES: number = 8 * 1024 * 1024
 
 /** Encodes a replay and deflates it into `.replay` file bytes. */

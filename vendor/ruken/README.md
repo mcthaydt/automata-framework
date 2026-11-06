@@ -3,7 +3,7 @@
 The `@ruken` npm organisation does not exist yet (Ruken master plan M0.3), so
 AF takes Ruken's packages from tarballs packed out of the Ruken repository
 (`mcthaydt/RukenApp`) and installs them with `file:` specifiers. This is
-FloorFifty's `vendor/ruken/` pattern (decision D-6, master spec §12).
+the vendoring pattern of decision D-6 (master spec §12).
 
 | Tarball | Package | Used by |
 |---|---|---|

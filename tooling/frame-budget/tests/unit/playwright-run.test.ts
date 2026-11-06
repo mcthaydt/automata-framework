@@ -16,7 +16,7 @@ describe('frameBudgetRun: the frame-budget probe alone', () => {
     for (const project of run.projects ?? []) {
       expect(project.testDir).toBe('tests/e2e')
       // Full Chromium in new headless keeps the GPU; Playwright's default headless shell draws WebGL through
-      // SwiftShader (FloorFifty ac72660 playwright.config.ts, `gpuChromium`).
+      // SwiftShader (`gpuChromium`).
       expect(project.use?.channel).toBe('chromium')
     }
     expect(run.workers).toBe(1)

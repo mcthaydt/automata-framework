@@ -89,8 +89,7 @@ describe('resolveMarkers', () => {
   })
 })
 
-// Ported from FloorFifty tests/content/validate/references.test.ts (122a220): unknown references and IDs of
-// the wrong kind.
+// Unknown references and IDs of the wrong kind.
 describe('checkReferences', () => {
   const ids = new Map([
     ['song', new Set(['dawn', 'dusk-run'])],

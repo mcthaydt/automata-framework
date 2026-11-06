@@ -1,4 +1,4 @@
-// The Language group's words and names (Owner, 2026-10-18; FloorFifty `i18n/locales.ts` at a28dc44, generalised): each
+// The Language group's words and names (Owner, 2026-10-18): each
 // language is named in its own language, so a player finds theirs whatever the game is showing now.
 //
 // `endonymOf` is content's (`@mcthaydt/automata-content/locale`): the font build cuts the same names into

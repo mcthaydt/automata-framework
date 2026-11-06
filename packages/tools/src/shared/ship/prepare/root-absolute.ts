@@ -1,5 +1,4 @@
-// Ported from FloorFifty `deploy/tools/root-absolute.ts` (SNEKPRTY/FloorFifty 122a220), then rewritten to read
-// each file's syntax instead of matching its text (audit round 2: a data URI in a srcset, prose in a page and a
+// Reads each file's syntax instead of matching its text (audit round 2: a data URI in a srcset, prose in a page and a
 // commented-out fetch were all reported).
 //
 // Finds the places a built client names one of its own files by a root-absolute path (`/fonts/x.woff2`,

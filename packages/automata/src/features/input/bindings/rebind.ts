@@ -1,5 +1,5 @@
 // Rebinding, as pure functions over the game's profile and the player's overrides.
-// FloorFifty has no rebinding; these rules are the spec's.
+// These rules are the spec's.
 import { ok, type Result, refused } from '../../../shared/lib/result.ts'
 import {
   type InputBinding,

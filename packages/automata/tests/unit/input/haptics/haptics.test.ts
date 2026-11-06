@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createHaptics, type HapticPulse } from '#src/features/input/haptics/haptics.manager.ts'
 
-// Haptics (Owner, 2026-10-18; FloorFifty `systems/haptics.ts` and `tests/client/systems/haptics.test.ts` at a28dc44,
-// generalised: a game says what a pulse is, rather than FloorFifty's race kinds). A pad with an actuator rumbles;
+// Haptics (Owner, 2026-10-18): a game says what a pulse is, with no kinds of its own. A pad with an actuator rumbles;
 // else a touch phone buzzes; else nothing, and nothing throws. The player's setting turns it all off, and `supported`
 // says whether this device can do either, so Settings shows the toggle only where it means something.
 

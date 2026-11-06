@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BUILD_ID_PATTERN, buildIdFor } from '#src/shared/ship/deploy/build-id.ts'
 
 describe('buildIdFor', () => {
-  it("is the commit's UTC time to the minute, then its short sha (FloorFifty build-tag)", () => {
+  it("is the commit's UTC time to the minute, then its short sha", () => {
     const id = buildIdFor({
       time: new Date('2026-10-11T07:05:59-05:00'),
       sha: 'abcdef0123456789abcdef0123456789abcdef01',

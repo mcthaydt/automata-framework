@@ -138,7 +138,7 @@ interface Audio {
     /** The player's mute: the master only, so unmuting restores the mix as it was. */
     setMuted(muted: boolean): void;
     /**
-     * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
+     * A short tone on `bus`, as the volume sliders play on release, so the player hears the level
      * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
      */
     sample(bus: AudioBusName): void;
@@ -1520,11 +1520,12 @@ interface HostingSaves {
 
 #### `HostingSeams` (interface)
 
-Test seams. Games pass nothing; `openHostingTest` passes the fake host's in-memory window pair.
+Test seams of a target's adapter. Games pass nothing. `env` is the host SDK's environment (Ruken's `SdkEnv`); the
+adapter that reads it gives it that type, so no SDK type reaches the declarations a game installs.
 
 ```ts
 interface HostingSeams {
-    readonly env?: SdkEnv;
+    readonly env?: object;
     /** The clock AF's own timing (the exit cap) runs on; a test passes `fakeClock()`. */
     readonly clock?: Clock;
     /**
@@ -2038,7 +2039,7 @@ class ModelInvalid extends Error {
 A choice of one: a
 segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 
-Native radios in a fieldset, where FloorFifty used `<button role="radio">`: the browser gives the arrow keys,
+Native radios in a fieldset, rather than `<button role="radio">` buttons: the browser gives the arrow keys,
 and the focus navigator's `adjust` cycles a named radio group, so a pad changes it without leaving it.
 
 Controlled: it reports a choice through `onchange` and shows the `value` it is given. A choice the owner does
@@ -2132,7 +2133,7 @@ interface PixiRendererOptions {
     readonly pixelArt?: boolean | undefined;
     /** Letterbox cropping fraction for top and bottom bars. Default is 0.05 (5%). */
     readonly barFraction?: number | undefined;
-    /** Bar color in hex. Default is 0x2e222f (FloorFifty plum black). */
+    /** Bar color in hex. Default is 0x2e222f (plum black). */
     readonly barColor?: number | undefined;
     /** The graphics quality tier to start at; `PixiStage.setQuality` changes it. Default `high`. */
     readonly quality?: QualityTier | undefined;
@@ -3329,7 +3330,7 @@ interface TouchButton {
 
 #### `TouchControls` (const)
 
-The on-screen touch buttons, from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+The on-screen touch buttons.
 
 This is the element that produces pointer events and nothing more; the multi-touch bookkeeping is
 `touch-controls.ts`. Each side's group takes the pointers, not the buttons, and reaches `STICKY_MARGIN_PX` past
@@ -3534,7 +3535,7 @@ interface Conditions {
 
 Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `create` builds a fresh
 `Hosting` for each case, with `saves` granted; `settled` lets the host answer (for example one macrotask). Every
-target's adapter and `FakeHosting` pass these cases (DIST spec §7). Each case disposes its `Hosting`.
+target's adapter and `FakeHosting` pass these cases. Each case disposes its `Hosting`.
 
 ```ts
 function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void;
@@ -3551,7 +3552,7 @@ function documentScrolls(doc: Document): string[];
 #### `errorPanelFloor` (function)
 
 The least height any of an ErrorPanel's layouts needs, measured here rather than read from the
-panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7). For each layout
+panel, so a panel that misjudges its room cannot excuse itself. For each layout
 (`row`, `stack`, `row-tight`) it lays the panel out, keeps the layout only where its message is
 readable there (20 characters or the whole panel, half that in `row-tight`, and clear of the
 actions), and takes the panel's chrome, one message line and the actions as laid out. The
@@ -3750,7 +3751,7 @@ How the fake host starts. Every field has a default, so `fakeHosting()` is a web
 
 ```ts
 interface FakeHostingOptions {
-    /** The target to stand in for: its `kind`, `hostName`, grants and error codes (DIST spec §4.3). Default `web`. */
+    /** The target to stand in for: its `kind`, `hostName`, grants and error codes. Default `web`. */
     readonly target?: FakeTarget;
     /** The capabilities granted, in place of the target's default ones. */
     readonly granted?: readonly Capability[];
@@ -3976,8 +3977,7 @@ function installFakeResizeObserver(): FakeResizeObserver;
 
 #### `LayoutRect` (interface)
 
-Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's
-`tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`,
+Layout assertions as plain DOM functions (`expectReachable`, `expectControlsFit`,
 `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
 
 Each returns a list of human-readable problems; `[]` is a pass. They take no test framework, so
@@ -4333,7 +4333,7 @@ const buildContent: (options: ContentOptions) => Effect.Effect<CompiledContent, 
 #### `checkTuningLayer` (function)
 
 Checks one layer of tuning against code-owned declarations. `complete` is true for the base layer, which
-must name every tunable; false for a partial override (FloorFifty's stage and mode layers).
+must name every tunable; false for a partial override (a stage or mode layer).
 
 Invariants are rejected before unknown names so the more specific answer wins, then non-numbers, then
 integer declarations, then the inclusive range.
@@ -4584,7 +4584,7 @@ interface FlowCapabilities {
   /** The only screen a session may begin on. */
   readonly entry?: string;
   readonly screens: readonly string[];
-  /** For each screen and event, the destinations that screen is prepared to enter (FloorFifty `FLOW_TARGETS`). */
+  /** For each screen and event, the destinations that screen is prepared to enter. */
   readonly targets?: Readonly<Record<string, Readonly<Record<string, readonly string[]>>>>;
   /** Transition styles the runtime draws. Default: only `cut`. */
   readonly styles?: readonly string[];
@@ -4603,7 +4603,7 @@ interface FlowGraph {
   readonly screens: readonly string[];
   /** Sorted. */
   readonly terminal: readonly string[];
-  /** Sorted by from, event, then to (FloorFifty `byPair`): declaration order means nothing. */
+  /** Sorted by from, event, then to: declaration order means nothing. */
   readonly transitions: readonly FlowTransition[];
 }
 ```
@@ -6543,7 +6543,7 @@ const REPLAY_FORMAT = 1;
 
 #### `REPLAY_INFLATE_MAX_BYTES` (const)
 
-Larger than FloorFifty's 1 MiB because goldens carry reference snapshots; player replays may pass less.
+Larger than the 1 MiB of a typical arcade game because goldens carry reference snapshots; player replays may pass less.
 
 ```ts
 const REPLAY_INFLATE_MAX_BYTES: number;
@@ -7049,7 +7049,7 @@ function boardNamesIn(file: string, code: string): BoardName[] | undefined;
 #### `BUILD_ID_PATTERN` (const)
 
 A build's ID on the dev host: the commit's UTC time to the minute, then its short sha, for example
-`202610111205-abcdef0` (FloorFifty `deploy/bin/build-tag`). Time first, so IDs sort as commits do.
+`202610111205-abcdef0`. Time first, so IDs sort as commits do.
 The host's `deploy` script accepts only IDs matching BUILD_ID_PATTERN.
 
 ```ts
@@ -7088,7 +7088,7 @@ function checkManifest(toml: string): Effect.Effect<Manifest, ManifestInvalid>;
 
 #### `checkVersion` (function)
 
-A release's version must be its tag's (FloorFifty `deploy/tools/ruken-pack.ts`): the build Ruken shows as
+A release's version must be its tag's: the build Ruken shows as
 0.10.2 is the one tagged v0.10.2. A branch build has no tag and passes. Returns what is wrong, or undefined.
 
 ```ts
@@ -7172,9 +7172,9 @@ interface DeployDevInput {
   };
   readonly tag: string | undefined;
   readonly branch: string | undefined;
-  /** The ssh destination, e.g. `deploy@af-dev.floorfifty.duckdns.org`. */
+  /** The ssh destination, e.g. `deploy@af-dev.example.com`. */
   readonly target: string;
-  /** The dev host's URL, e.g. `https://af-dev.floorfifty.duckdns.org`. It is also the page allowed to frame the game. */
+  /** The dev host's URL, e.g. `https://af-dev.example.com`. It is also the page allowed to frame the game. */
   readonly siteUrl: string;
   /** Also make this build the one `/` redirects to. */
   readonly activate: boolean;
@@ -7622,10 +7622,10 @@ interface PlayedOrientation {
 
 #### `portsFor` (function)
 
-The ports a checkout's test server and preview build listen on (FloorFifty `playwright.config.ts`).
+The ports a checkout's test server and preview build listen on.
 Several agents run at once, each in its own worktree; with fixed ports a second run either failed on a busy
 port or, reusing the first run's server, silently tested another worktree's code. So each checkout path
-hashes to its own slot. AF uses 4600–4799, clear of FloorFifty's 4400–4599 on the same machine; a second
+hashes to its own slot. AF uses 4600–4799, clear of the 4400–4599 range other projects on the same machine use; a second
 example in the same run adds a fixed offset (the ui demo +100 on the preview port, Emberwick (`games/emberwick`) +300).
 CI runs one job per machine and uses the fixed pair; AF_E2E_SERVER_PORT / AF_E2E_PREVIEW_PORT override.
 

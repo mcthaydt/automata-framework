@@ -3,7 +3,7 @@ import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import OptionGroup from '#src/shared/ui/layout/OptionGroup.svelte'
 
-// The cases of FloorFifty tests/client/ui/layout/option-group.test.ts at ac72660, on native radios (plan decision:
+// Native radios (plan decision:
 // M4.5's `adjust` cycles a named radio group, and the browser gives arrow keys).
 let component: ReturnType<typeof mount> | undefined
 afterEach(() => {

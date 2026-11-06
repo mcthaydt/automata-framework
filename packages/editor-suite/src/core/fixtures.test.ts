@@ -1,5 +1,5 @@
 // The two games' editor lists (editor suite spec §8, §12): The Last Light's Bay scene, converted AF-side at 92e6704,
-// and FloorFifty at 677d456, which has no gates and says so.
+// and the arcade game's, which has no gates and says so.
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { loadEditorList } from './editor-list'
@@ -26,14 +26,14 @@ const opened = (list: EditorList, path: string) => {
   }
 }
 
-describe("FloorFifty's editor list (677d456)", () => {
-  const list = load('floorfifty')
+describe("The arcade game's editor list (677d456)", () => {
+  const list = load('arcade')
 
   it('declares no gates, and every row says so with an empty list', () => {
     expect(list.gate).toEqual([])
     expect(list.file.length).toBeGreaterThan(0)
     for (const row of list.file) expect(row.gates, row.glob).toEqual([])
-    expect(fixture('floorfifty')).toMatch(/^gates = \[\]$/m)
+    expect(fixture('arcade')).toMatch(/^gates = \[\]$/m)
   })
 
   it('has no scenes', () => {
@@ -59,7 +59,7 @@ describe("FloorFifty's editor list (677d456)", () => {
   })
 
   it('names its source commit', () => {
-    expect(fixture('floorfifty')).toContain('677d456')
+    expect(fixture('arcade')).toContain('677d456')
   })
 })
 

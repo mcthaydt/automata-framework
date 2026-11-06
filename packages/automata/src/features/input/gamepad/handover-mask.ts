@@ -1,5 +1,5 @@
-// What a pad held when it changed hands, kept from acting until let go, from FloorFifty
-// `gamepad-source.ts` at `ac72660` (`HandoverMask`, line 104). Input moves between play and menus on Play, pause
+// What a pad held when it changed hands, kept from acting until let go
+// (`HandoverMask`). Input moves between play and menus on Play, pause
 // and Resume, and the press that caused the move is usually still down: a held confirm must not press the new
 // screen's first button. Each held button and stick direction is masked on its own, so a held A never blocks a
 // fresh lean of the stick.

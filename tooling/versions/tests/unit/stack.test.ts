@@ -27,7 +27,7 @@ const source: StackSource = {
       packages: [],
       planned: { packages: ['@inlang/paraglide-js'], task: 'PRODUCT.L' },
       does: 'Typed messages.',
-      why: "FloorFifty's setup.",
+      why: 'The reference setup.',
       adds: 'Negotiation from the session locale.',
     },
     {

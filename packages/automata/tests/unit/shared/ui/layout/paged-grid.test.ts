@@ -12,8 +12,7 @@ import {
   wrapPage,
 } from '#src/shared/ui/layout/paged-grid.ts'
 
-// The page arithmetic of FloorFifty tests/client/ui/tile-pages.test.ts at ac72660, generic over the item type.
-// FloorFifty's tile types and `stackedSide` stay in FloorFifty.
+// The page arithmetic, generic over the item type. A game's tile types and `stackedSide` stay in the game.
 interface Item {
   readonly id: string
 }

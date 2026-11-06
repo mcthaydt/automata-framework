@@ -49,7 +49,7 @@ export interface Audio {
   /** The player's mute: the master only, so unmuting restores the mix as it was. */
   setMuted(muted: boolean): void
   /**
-   * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
+   * A short tone on `bus`, as the volume sliders play on release, so the player hears the level
    * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
    */
   sample(bus: AudioBusName): void
@@ -67,7 +67,7 @@ export interface AudioOptions {
   readonly document?: Pick<EventTarget, 'addEventListener' | 'removeEventListener'> & {
     readonly visibilityState: DocumentVisibilityState
   }
-  /** Silences the master while another window has focus (FloorFifty's setting); the graph keeps running. */
+  /** Silences the master while another window has focus; the graph keeps running. */
   readonly muteUnfocused?: boolean
   /** Loads a file no screen preloaded. Defaults to `fetch`. */
   readonly fetch?: typeof fetch
@@ -89,7 +89,7 @@ const TONE_SECONDS = 0.12
 const TONE_HERTZ = 660
 
 /**
- * The volume sample (FloorFifty plays one on a slider's release): a sine that falls away to silence, so it ends without
+ * The volume sample (played when a slider is let go): a sine that falls away to silence, so it ends without
  * a click. Made in the graph's own context, so it needs no asset and no decode.
  */
 function makeTone(context: Pick<AudioContextLike, 'createBuffer' | 'sampleRate'>): AudioBuffer {
@@ -193,7 +193,7 @@ export function createAudio(options: AudioServices & AudioOptions): Audio & Audi
 
   /**
    * The first gesture after `ready` builds and resumes the graph; later ones resume a graph the system stopped.
-   * Both calls happen inside the browser's gesture, before any await (FloorFifty `engine.ts` `unlock`).
+   * Both calls happen inside the browser's gesture, before any await.
    */
   const onGesture = () => {
     if (!ready || unavailable || disposed) return
@@ -239,8 +239,8 @@ export function createAudio(options: AudioServices & AudioOptions): Audio & Audi
   })
   // The host's volume, focus and ads arrive already combined in `gain`: multiply the mix by it, add nothing.
   const stopGain = hosting.audio.subscribe((change) => graph.setHostGain(change.gain))
-  // Only a hidden page sleeps: a blurred window or the host's drawer keeps playing (FloorFifty
-  // `sleepOnHostLifecycle`); `muteUnfocused` covers a player who wants quiet then.
+  // Only a hidden page sleeps: a blurred window or the host's drawer keeps playing;
+  // `muteUnfocused` covers a player who wants quiet then.
   const stopLifecycle = hosting.lifecycle.subscribe((lifecycle) => {
     if (lifecycle.state === 'active') wake()
     else if (lifecycle.reasons.includes('hidden')) sleep()

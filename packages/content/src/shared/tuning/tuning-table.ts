@@ -1,6 +1,5 @@
 // The generated tunable table in a game's authoring guide.
-// Extracted from FloorFifty packages/content/src/author-guide.ts (122a220): a range that drifts between the
-// declarations and the documentation is how an author comes to write a value the compiler refuses for a
+// A range that drifts between the declarations and the documentation is how an author comes to write a value the compiler refuses for a
 // reason the guide denies, so the table is generated between markers and verified in CI. Pure functions:
 // the CLI reads and writes the guide.
 

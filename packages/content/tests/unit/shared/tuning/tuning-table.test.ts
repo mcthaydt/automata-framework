@@ -3,7 +3,7 @@ import { checkTuning } from '#src/shared/tuning/check-tuning.ts'
 import { renderTuningTable, withTuningTable } from '#src/shared/tuning/tuning-table.ts'
 import { TUNABLE_DEFAULTS, TUNABLES } from '#src/testing/fixture-game.ts'
 
-// Ported from FloorFifty tests/content/compiler.test.ts "the author guide" (122a220).
+// The author guide's generated table.
 const meta = checkTuning(TUNABLE_DEFAULTS, { tunables: TUNABLES }).meta
 
 describe('renderTuningTable', () => {

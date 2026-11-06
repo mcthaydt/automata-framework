@@ -3,11 +3,17 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { findSourceNames, SOURCE_NAMES } from '#src/source-names.ts'
+import { findSourceNames, SOURCE_NAMES, STAGING_VM_PATH } from '#src/source-names.ts'
+
+/** The first entry whose rewrite has landed, and one that has not (still allowed in code). */
+const CLEAN_EVERYWHERE = SOURCE_NAMES.findIndex((entry) => entry.scope === 'everywhere')
+const PUBLISHED_ONLY = SOURCE_NAMES.findIndex((entry) => entry.scope === 'published')
 
 // FR.4: AF is standalone, so the text it publishes (the changelogs and package READMEs the website mirrors, the root README, the agent
 // skills) never names the projects its code was first proven in; where code came from is recorded only in docs/provenance/sources.md.
-// The check reports file and line and which entry matched, never the name itself, so a failure does not print it into a log.
+// An entry whose rewrite has landed (`everywhere`) is also kept out of every code comment, test, fixture and script, so the name
+// cannot creep back. The check reports file and line and which entry matched, never the name itself, so a failure does not print it
+// into a log.
 
 const folders: string[] = []
 afterEach(() => {
@@ -50,8 +56,8 @@ describe('findSourceNames', () => {
     }
   })
 
-  it('leaves text that is not a published surface alone (provenance, plans, source comments)', () => {
-    const sample = SOURCE_NAMES[0]?.sample ?? ''
+  it('leaves text that is not a published surface alone while its entry is only published (provenance, plans, source comments)', () => {
+    const sample = SOURCE_NAMES[PUBLISHED_ONLY]?.sample ?? ''
     const root = tree({
       'docs/provenance/sources.md': `${sample}\n`,
       'docs/archive/superpowers/plans/x.md': `${sample}\n`,
@@ -62,8 +68,58 @@ describe('findSourceNames', () => {
   })
 })
 
+describe('findSourceNames in code', () => {
+  const sample = SOURCE_NAMES[CLEAN_EVERYWHERE]?.sample ?? ''
+
+  it('reports a name in a comment, a test, a fixture, a script and a game, by file, line and entry', () => {
+    const root = tree({
+      'packages/ui/src/a.ts': `// laid out as ${sample}'s\n`,
+      'packages/ui/tests/unit/a.test.ts': `it('matches ${sample}', () => {})\n`,
+      'packages/content/src/testing/fixtures/songs/x.toml': `displayName = "${sample} Tutorial"\n`,
+      'packages/tools/deploy/bin/deploy': `#!/usr/bin/env bash\n# adapted from ${sample}\n`,
+      'games/emberwick/ship.config.ts': `// ${sample} ruken-pack.ts\n`,
+      'packages/ui/src/clean.ts': '// nothing to see\n',
+    })
+    const entry = CLEAN_EVERYWHERE + 1
+    const findings = findSourceNames(root)
+    expect(findings).toEqual([
+      `games/emberwick/ship.config.ts:1: names a source project (entry ${entry})`,
+      `packages/content/src/testing/fixtures/songs/x.toml:1: names a source project (entry ${entry})`,
+      `packages/tools/deploy/bin/deploy:2: names a source project (entry ${entry})`,
+      `packages/ui/src/a.ts:1: names a source project (entry ${entry})`,
+      `packages/ui/tests/unit/a.test.ts:1: names a source project (entry ${entry})`,
+    ])
+    for (const finding of findings) expect(finding.toLowerCase()).not.toContain(sample.toLowerCase())
+  })
+
+  it('finds the name however it is cased or spaced', () => {
+    const root = tree({ 'packages/ui/src/a.ts': `// ${sample.toUpperCase()}\n// ${sample.toLowerCase()}\n` })
+    expect(findSourceNames(root)).toHaveLength(2)
+  })
+
+  it('leaves docs, installed packages, build output and binary files alone', () => {
+    const root = tree({
+      'docs/provenance/sources.md': `${sample}\n`,
+      'packages/ui/node_modules/dep/index.js': `// ${sample}\n`,
+      'packages/ui/dist/index.js': `// ${sample}\n`,
+      'vendor/ruken/pack.tgz': `\0\0${sample}\0`,
+    })
+    expect(findSourceNames(root)).toEqual([])
+  })
+
+  it("allows only the staging VM's real path, which the live host still uses", () => {
+    const root = tree({
+      'packages/tools/deploy/bin/deploy': `caddy_env="\${SHIP_CADDY_ENV:-${STAGING_VM_PATH}caddy.env}"\n`,
+      'packages/tools/deploy/README.md': `Run on ${STAGING_VM_PATH}caddy.env, then ${sample}.\n`,
+    })
+    expect(findSourceNames(root)).toEqual([
+      `packages/tools/deploy/README.md:1: names a source project (entry ${CLEAN_EVERYWHERE + 1})`,
+    ])
+  })
+})
+
 describe('the repository', () => {
-  it('names no source project in its changelogs, package READMEs, root README or agent skills', () => {
+  it('names no source project on a published surface, and no finished entry anywhere in its code', () => {
     const root = fileURLToPath(new URL('../../../..', import.meta.url))
     expect(findSourceNames(root)).toEqual([])
   })
