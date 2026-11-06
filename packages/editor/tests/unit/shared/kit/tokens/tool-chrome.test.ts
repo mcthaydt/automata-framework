@@ -39,9 +39,15 @@ describe('the tool chrome', () => {
       ['line-strong', 'tool-line-strong'],
       ['muted', 'tool-muted'],
       ['cobalt-soft', 'tool-selected'],
+      ['charcoal', 'tool-stage'],
     ]) {
       expect(chrome, name).toMatch(new RegExp(`--${name}:\\s*var\\(--${tool}\\);`))
     }
+  })
+
+  test('the level sits in the mockup\'s near-black cabinet, darker than any panel line', () => {
+    expect(hex('tool-stage')).toBe('#0e1014')
+    expect(contrast('tool-panel', 'tool-stage')).toBeGreaterThan(15)
   })
 
   test('is 32 px dense with a mouse and keeps the touch rule wherever a finger may point', () => {

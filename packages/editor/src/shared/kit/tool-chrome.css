@@ -1,7 +1,7 @@
 /*
  * The editors' tool chrome, from the redesign mockup the Owner approved on 2026-11-06: one neutral palette for every
  * editor screen. It puts the `--tool-*` tokens under the names the kit's components already read (the field, paper,
- * the hover surface, the hairlines, the grey and the selection wash), so every view takes the look without each one
+ * the hover surface, the hairlines, the grey, the selection wash and the level's cabinet), so every view takes the look without each one
  * changing. Editor pages import it once, after tokens.css; the website does not, so it keeps its own field.
  */
 :root {
@@ -12,6 +12,9 @@
   --line-strong: var(--tool-line-strong);
   --muted: var(--tool-muted);
   --cobalt-soft: var(--tool-selected);
+  /* The cabinet around the level (the stage and the home cards' wash): the mockup's near-black, a step darker than
+     the website's charcoal, so the level reads as the brightest thing on screen. */
+  --charcoal: var(--tool-stage);
 }
 
 /*
