@@ -202,10 +202,17 @@ export interface Tail {
    * arc over the crown, the ropes gathered in a ring across the fall and fanning below the shoulders, clear of the trunk. */
   hang?: 'down';
 }
+/**
+ * A bun: one rope coiled in a flattened spiral on the skull, in the direction `at` from its centre (head units: [0, −0.35,
+ * −1] the nape, [0, 0.95, −0.2] the crown), `r` of the skull's half-width across, `flat` (default 0.6) how flat it lies
+ * along `at` (of its width), `turns` (default 2.5) round. Rigid on the head, clear of its form; its tie, if any, a band
+ * round its root.
+ */
+export interface Bun { at: V3; r: number; flat?: number; turns?: number; rope: Rope; tie?: Tie }
 /** A tie: `true` the wearer's (HairInput.tie: the outfit's own metal, else a band of the hair's own), or a swatch. */
 export type Tie = boolean | string;
 /** One of the three generators' pieces. */
-type OwnPiece = { scalp: Scalp } | { rows: Rows } | { tail: Tail };
+type OwnPiece = { scalp: Scalp } | { rows: Rows } | { tail: Tail } | { bun: Bun };
 /** A piece of a style: one of the three generators', or a registered piece (H3, registerHairPiece) keyed by its kind's
  * name, its value what that kind's builder takes. */
 export type Piece = OwnPiece | { [kind: string]: unknown };
@@ -364,7 +371,7 @@ const PIECES = new Map<string, HairPiece>();
 /** Registers a hair piece under `kind`, the key a style's piece carries ({ bun: {…} }). Throws on a name taken, the
  * generators' (scalp, rows, tail) included. */
 export function registerHairPiece(kind: string, p: HairPiece): void {
-  if (['scalp', 'rows', 'tail'].includes(kind) || PIECES.has(kind)) throw new Error(`hair piece ${kind} is registered already`);
+  if (['scalp', 'rows', 'tail', 'bun'].includes(kind) || PIECES.has(kind)) throw new Error(`hair piece ${kind} is registered already`);
   PIECES.set(kind, p);
 }
 /** A style's parts on the head and its swinging joints, fitted to the skeleton's head and the body under it. */
@@ -431,6 +438,7 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
         rigid(mesh, o.tone ?? 'hair', o.apart === false ? HAIR_SEAM : seam++, lit, o.matte);
       }
     } else if ('tail' in own) tail(own.tail);
+    else if ('bun' in own) bun(own.bun);
     else {
       const name = Object.keys(piece)[0], p = PIECES.get(name);
       if (!p) throw new Error(`no hair piece ${name}`);
@@ -439,6 +447,25 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
     // The hair's top over the crown (its shells and rows; never a tail, a fade): what is worn up lies on it, not on
     // whatever stands furthest out.
     if ('rows' in own || ('scalp' in own && own.scalp.tone !== 'fade') || PIECES.get(Object.keys(piece)[0])?.crown) for (let n = first; n < parts.length; n++) parts[n].tag = CROWN;
+  }
+  /**
+   * A bun: one rope wound in a flattened spiral about the direction `at` (a disc standing off the skull, its coils fused into a
+   * mass by their own thickness), from its outer edge in to near its middle, rising along `at` as it goes in, so it
+   * domes. Its root rides the head's form (toHead) and the whole of it lies outside it, a rope's radius and a little over.
+   */
+  function bun(o: Bun) {
+    const dir = normalize(o.at), P = toHead(form, k, dir, 0), R = o.r * hw, ra = o.rope.r * hw, turns = o.turns ?? 2.5, flat = o.flat ?? 0.6;
+    const u = normalize(cross(dir, Math.abs(dir[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0])), w = cross(dir, u), lift = ra * 1.5, n = Math.max(24, Math.round(turns * 24));
+    // A disc `flat` of its width deep: the coils rise from `lift` at the rim to `flat * R` at the middle.
+    const at = (q: number): V3 => {
+      const th = 2 * Math.PI * turns * q, rho = R * (1 - 0.8 * q), h = lift + flat * R * smooth(q);
+      return add(P, add(scale(u, Math.cos(th) * rho), add(scale(w, Math.sin(th) * rho), scale(dir, h))));
+    };
+    const path = Array.from({ length: n + 1 }, (_, i) => at(i / n));
+    const { mesh, lit } = sweep(path, { tip: 'round', ...o.rope }, hw, () => dir);
+    rigid(mesh, 'hair', seam++, lit);
+    const band = tieOf(o.tie);
+    if (band) parts.push({ bone: J.head, mesh: superquadric({ at: add(P, scale(dir, lift * 0.8)), r: [R * 0.45, texels(0.04 * s.genes.head, ppm) / 2, R * 0.45], e: [0.25, 1], seg: 14, rings: 4, turn: alignY(dir) }), material: band, group: 1, seam: seam++ });
   }
   /**
    * A high ponytail: tied on the crown, its ropes gathered in a ring at the tie, rising out of it, arcing back over the

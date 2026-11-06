@@ -7,7 +7,8 @@ import { headForm } from '../../../src/features/body/head';
 import type { CharacterDef } from '../../../src/features/figure/cast';
 import { Figure } from '../../../src/features/figure/figure';
 import { member, view, walking } from '../../../src/features/figure/frames';
-import { HAIR_STYLES, hairParts, registerFinish, skull, toHead, type HairStyle, type Piece } from '../../../src/features/hair/hair';
+import { hairParts, registerFinish, registerHairPiece, skull, toHead, type HairStyle, type Piece } from '../../../src/features/hair/hair';
+import { insideHead } from '../../../src/features/body/head';
 import { NECK, SWATCHES } from '../../../src/features/outfit/garments';
 
 /**
@@ -92,5 +93,29 @@ describe('the low pony', () => {
   it('registers the smooth and curl finishes, so a fork cannot take the names', () => {
     expect(() => registerFinish('smooth', { tones: [0, 0, 0], matte: false })).toThrow('registered already');
     expect(() => registerFinish('curl', { tones: [0, 0, 0], matte: true })).toThrow('registered already');
+  });
+});
+
+const BUN_AT = { nape: [0, -0.35, -1], crown: [0, 0.95, -0.2] } as const;
+const bun = (at: readonly number[], extra = {}): Piece => ({ bun: { at, r: 0.5, rope: { r: 0.18 }, tie: true, ...extra } }) as Piece;
+describe('the bun', () => {
+  for (const [name, at] of Object.entries(BUN_AT)) {
+    const st = style('smooth', bun(at));
+    it(`${name}: rigid on the head only, wholly outside the head's form`, () => {
+      const { parts, m, s } = look(st), form = headForm(m, s), hairs = parts.slice(look(style('smooth')).parts.length);
+      expect(hairs.length, 'the bun adds parts').toBeGreaterThan(0);
+      for (const p of hairs) {
+        expect(p.bone, 'rigid on the head').toBe(J.head); expect(p.skin, 'not skinned').toBeUndefined();
+        for (let i = 0; i < p.mesh.positions.length; i += 3) expect(insideHead(form, [p.mesh.positions[i], p.mesh.positions[i + 1], p.mesh.positions[i + 2]]), `vertex ${i / 3}`).toBe(false);
+      }
+    });
+    it(`${name}: builds and paints in 8 views, the walk, and spares the neckline`, () => { draws(st); necklineSpares(st); });
+  }
+  it('takes the next seam after the pieces before it, and is no crown', () => {
+    const before = look(style('smooth')).parts, after = look(style('smooth', bun(BUN_AT.nape))).parts.slice(before.length);
+    expect(after.every(p => p.seam! >= 2100 && p.tag === undefined)).toBe(true);
+  });
+  it('is a base piece: a name a fork cannot take', () => {
+    expect(() => registerHairPiece('bun', { build: () => undefined })).toThrow('registered already');
   });
 });
