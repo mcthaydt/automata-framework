@@ -16,6 +16,7 @@ import type { Leaderboards } from '#src/features/leaderboards/leaderboards.manag
 import type { Save } from '#src/features/saves/save.manager.ts'
 import { defineSave } from '#src/features/saves/save.schema.ts'
 import { saveOf } from '#src/features/saves/saves.manager.ts'
+import type { Hosting } from '#src/shared/host/hosting.ts'
 import { ok, type Result } from '#src/shared/lib/result.ts'
 import {
   AssetLoadFailed,
@@ -31,12 +32,11 @@ import type { RenderTarget } from '#src/shared/runtime/render/renderer.ts'
 import { type SettingsStore, settingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
 import type { Time } from '#src/shared/runtime/time/time.manager.ts'
 import { fakeClock } from '#src/testing/fake-clock.ts'
+import { realClock } from '#src/testing/host/page/clocks.ts'
+import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullGameRenderer, nullRenderer } from '#src/testing/runtime/null-renderer.ts'
-import type { Hosting } from '#src/shared/host/hosting.ts'
-import { realClock } from '#src/testing/host/page/clocks.ts'
-import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
 
 const testFlow: FlowGraph = {
   entry: 'title',

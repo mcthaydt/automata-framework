@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { menuInput } from '#src/app/screens/menu-input.ts'
-import { disposables } from '#src/shared/lib/disposables.ts'
 import { createInput, type Input } from '#src/features/input/input.manager.ts'
+import { disposables } from '#src/shared/lib/disposables.ts'
 import type { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { FocusNavigator } from '#src/shared/ui/focus/focus-nav.ts'
 

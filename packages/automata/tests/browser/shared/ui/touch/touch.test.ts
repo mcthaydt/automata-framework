@@ -2,13 +2,13 @@ import '#src/shared/ui/theme.css'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
 import { STICKY_MARGIN_PX } from '#src/shared/ui/touch/touch-controls.ts'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
+import { REFERENCE_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 import CameraDragFixture from '#src/testing/ui/CameraDragFixture.svelte'
 import { byTestId, checkLayout, publishConditions } from '#src/testing/ui/layout-contract.ts'
 import { FIXTURE_LOCALES, findUntranslated } from '#src/testing/ui/locale-fixture.ts'
 import { settleLayout } from '#src/testing/ui/settle.ts'
 import TouchFixture from '#src/testing/ui/TouchFixture.svelte'
-import { mountFixture } from '#src/testing/fixtures/mount.ts'
-import { REFERENCE_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 
 // The touch buttons at every reference size and variant, with production CSS (M4 spec §6, §8): whole primary-size
 // targets, on screen and hit-testable. With the on-screen keyboard up the frame scrolls (and a game hides its

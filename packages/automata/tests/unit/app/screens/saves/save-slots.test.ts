@@ -22,7 +22,7 @@ const copy: SaveSlotsCopy = {
   newer: 'Saved by a newer version of the game',
   otherContent: 'Saved by another version of the game; your progress will load, the rest will not',
   writing: 'Saving…',
-  failed: "Couldn't save this slot",
+  failed: "Couldn't save your game. Try again.",
   load: 'Continue',
   newGame: 'New game',
   delete: 'Delete…',
@@ -148,7 +148,7 @@ describe('SaveSlots: the list', () => {
     })
     expect(row(1).textContent).toContain('Saving…')
     expect(row(1).dataset.activity).toBe('writing')
-    expect(row(2).textContent).toContain("Couldn't save this slot")
+    expect(row(2).textContent).toContain("Couldn't save your game. Try again.")
     expect(row(2).dataset.activity).toBe('failed')
   })
 

@@ -14,7 +14,7 @@ export const SAVE_SLOTS_COPY: SaveSlotsCopy = {
   newer: 'Saved by a newer version of the game',
   otherContent: 'From another version: it loads, but some things may reset',
   writing: 'Saving…',
-  failed: "Couldn't save this slot",
+  failed: "Couldn't save your game. Try again.",
   load: 'Continue',
   newGame: 'New game',
   delete: 'Delete…',

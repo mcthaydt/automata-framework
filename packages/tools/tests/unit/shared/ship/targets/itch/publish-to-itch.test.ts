@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
+import type { RunResult } from '#src/shared/node/process-runner.ts'
 import { defineShipConfig, type ShipConfig } from '#src/shared/ship/config/ship-config.ts'
 import {
   ITCH_FIRST_PUSH_CHECKLIST,
@@ -10,7 +11,6 @@ import {
   publishToItch,
 } from '#src/shared/ship/targets/itch/publish-to-itch.ts'
 import { fakeProcessRunner } from '#src/shared/ship/testing/fake-process-runner.ts'
-import type { RunResult } from '#src/shared/node/process-runner.ts'
 
 const config: ShipConfig = defineShipConfig({
   game: { id: 'emberwick', title: 'Emberwick', version: '1.2.0', entry: 'index.html', sdk: '^0.0.0' },

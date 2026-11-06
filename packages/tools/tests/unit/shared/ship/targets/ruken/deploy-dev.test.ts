@@ -3,11 +3,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Effect, Either, Layer } from 'effect'
 import { describe, expect, it } from 'vitest'
+import { FilesLive } from '#src/shared/node/files.ts'
 import { defineShipConfig } from '#src/shared/ship/config/ship-config.ts'
 import { type DeployDevInput, deployDev } from '#src/shared/ship/targets/ruken/deploy-dev.ts'
 import { rukenToml } from '#src/shared/ship/targets/ruken/ruken-toml.ts'
 import { fakeProcessRunner, type RecordedRun } from '#src/shared/ship/testing/fake-process-runner.ts'
-import { FilesLive } from '#src/shared/node/files.ts'
 
 const config = defineShipConfig({
   game: { id: 'placeholder', title: 'Placeholder', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },

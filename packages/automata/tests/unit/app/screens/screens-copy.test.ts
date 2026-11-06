@@ -24,6 +24,15 @@ import { disposables } from '#src/shared/lib/disposables.ts'
 // re-read in the player's language each time it changes (PRODUCT spec §4 items 1 and 2, L-c).
 
 describe('DEFAULT_SCREENS_COPY', () => {
+  // A game-maker's words ("title" screen, a "run", a "slot") mean nothing to a player; the leave question says what
+  // happens, and its button does not repeat the one she just pressed.
+  it('the leave question and the save failure use plain words', () => {
+    const { paused } = DEFAULT_SCREENS_COPY
+    const words = [paused.quit, paused.quitPrompt, paused.quitConfirm, paused.cancel, SAVE_SLOTS_COPY.failed]
+    for (const text of words) expect(text, text).not.toMatch(/\b(title|run|slot)\b/i)
+    expect(paused.quitConfirm).not.toBe(paused.quit)
+  })
+
   it('holds the words the screens showed before, unchanged', () => {
     expect(DEFAULT_SCREENS_COPY.title).toEqual({ play: 'Play' })
     expect(DEFAULT_SCREENS_COPY.play).toEqual({ pause: 'Pause', move: 'Move' })
@@ -35,10 +44,10 @@ describe('DEFAULT_SCREENS_COPY', () => {
       mute: 'Mute',
       unmute: 'Unmute',
       settings: 'Settings',
-      quit: 'Quit to title',
-      quitPrompt: 'Quit to title? This run is lost.',
-      quitConfirm: 'Quit to title',
-      cancel: 'Cancel',
+      quit: 'Back to menu',
+      quitPrompt: 'Leave this game? Unsaved progress is lost.',
+      quitConfirm: 'Leave',
+      cancel: 'Keep playing',
       reconnect: 'Reconnect your controller',
     })
     expect(DEFAULT_SCREENS_COPY.settings).toEqual({

@@ -36,9 +36,30 @@ describe('BootFailurePanel', () => {
     open(failure)
     const alert = screen.getByRole('alert')
     expect(alert.dataset.code).toMatch(
-      /^(start|connect|progress|damaged|download|download-stalled|unsupported|model-invalid)$/,
+      /^(start|start-final|connect|progress|damaged|download|download-stalled|unsupported|model-invalid)$/,
     )
     expect(alert.textContent?.trim().length).toBeGreaterThan(0)
+  })
+
+  const NO_RETRY: BootFailure = {
+    _tag: 'HostError',
+    code: 'INVALID_PAYLOAD',
+    retryable: false,
+    operation: 'init',
+  }
+
+  it('a start failure that a retry cannot fix gives a hosted player a way out', async () => {
+    const { onExit } = open(NO_RETRY)
+    expect(screen.getByRole('alert')).toHaveTextContent("Couldn't start the game.")
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Back to Ruken' }))
+    expect(onExit).toHaveBeenCalledOnce()
+  })
+
+  it('and tells a standalone player what to do, since there is no button to press', () => {
+    open(NO_RETRY, STANDALONE)
+    expect(screen.getByRole('alert')).toHaveTextContent('Close it and open it again.')
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('Try again calls onRetry', async () => {
@@ -153,13 +174,6 @@ describe('BootFailurePanel', () => {
   it('a standalone device that cannot run the game shows a final panel with no buttons', () => {
     open({ _tag: 'RendererUnavailable', tried: ['webgl2'] }, STANDALONE)
     expect(screen.getByRole('alert')).toHaveAttribute('data-code', 'unsupported')
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
-  })
-
-  it('a host that cannot start for a build or config fault shows a final panel with no buttons', () => {
-    open({ _tag: 'HostError', code: 'INVALID_PAYLOAD', retryable: false, operation: 'init' })
-    expect(screen.getByRole('alert')).toHaveAttribute('data-code', 'start')
-    expect(screen.getByRole('alert')).toHaveTextContent("Couldn't start the game.")
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 

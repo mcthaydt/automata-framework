@@ -1,11 +1,11 @@
 import '#src/shared/ui/theme.css'
 import { describe, expect, test } from 'vitest'
 import { page } from 'vitest/browser'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
+import { REFERENCE_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 import { byTestId, publishConditions } from '#src/testing/ui/layout-contract.ts'
 import ModalFixture from '#src/testing/ui/ModalFixture.svelte'
 import { settleLayout } from '#src/testing/ui/settle.ts'
-import { mountFixture } from '#src/testing/fixtures/mount.ts'
-import { REFERENCE_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 
 // The Modal frame Pause and Settings share (Settings and Pause redo, step 3; FloorFifty `Modal.svelte` at a28dc44):
 // on a short, wide band it widens so a long body can set its groups two across, and its content lays out by the

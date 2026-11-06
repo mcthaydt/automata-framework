@@ -7,9 +7,9 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { planCommentFindings } from './plan-comments.ts'
-import { testImportFindings } from './test-imports.ts'
 import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'
 import { checkSvelte } from './svelte.ts'
+import { testImportFindings } from './test-imports.ts'
 
 /** Test helpers and tests are exempt; the rest are build output and dependencies, which no one wrote by hand. */
 const SKIPPED_FOLDERS: ReadonlySet<string> = new Set(['testing', 'tests', 'node_modules', 'dist', '.turbo'])
