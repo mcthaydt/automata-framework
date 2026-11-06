@@ -264,13 +264,13 @@ The journey is written first and fails; the tasks after it make it pass; the PR 
 
 **Files:** `packages/tools/src/**` (create-game, check, ship, the editor command), their tests, `packages/tools/README.md`
 
-- [ ] **Step 1: The read.** Run spec 17.3's checks over `packages/tools/src`; write the findings list in the execution
+- [x] **Step 1: The read.** Run spec 17.3's checks over `packages/tools/src`; write the findings list in the execution
   log (each with file and line), before changing anything. Record unit test counts.
-- [ ] **Step 2: Fix, one concern per commit:** remove what is unused, fold single-implementation layers and forwarding
+- [x] **Step 2: Fix, one concern per commit:** remove what is unused, fold single-implementation layers and forwarding
   modules, merge duplicates, split files over 300 lines by responsibility, add header comments and the missing whys.
   Effect stays where it runs a step or a process (law 5); a function that wraps a pure computation in Effect only to
   call it from Effect becomes plain.
-- [ ] **Step 3:** Counts equal (or lower only by listed dead code); the stranger's journey passes; `pnpm check`.
+- [x] **Step 3 (Chromium; PR ready once the Owner's runs are in):** Counts equal (or lower only by listed dead code); the stranger's journey passes; `pnpm check`.
   Mark the PR ready. `refactor(tools): minimal, documented internals`
 
 ---
@@ -1346,4 +1346,30 @@ listed as left with the reason.
 - Left in 3.5: the long functions and files and the four headers (list above). Then mark the phase 3 PR ready.
 - Handoff: resume at task 3.5 step 2 ("long functions"), then phase 4. Task 14.1 (the scope rename) waits for the Owner to
   confirm the `automata` npm organisation exists.
+
+### 2026-11-06, session 2 (Sonnet, high): task 3.5 finished
+
+- Task 3.5 done on `claude/project-thread-pbmc59` (stacked on phase 3's branch). `-tools` unit tests: 803 before, 809
+  after (the six new ones test `checkout.ts`, which came out of `serve-editor.ts`; no test was removed). `pnpm check`
+  (24 tasks, 4 m 49 s), `pnpm build`, `pnpm api-report` (no change to a published export), `pnpm agent-skills`, the
+  consumer smoke from packs (7 of 7 steps shown) and the stranger's journey (Chromium, 31 s) pass. WebKit, Firefox and
+  hosted CI not run.
+- What was fixed, one concern per commit (the findings list above): `prepareTauri`, the ship command (`program` became
+  one function per target), `createGame` and `checkBuild` each read as their steps; `check-steps.ts` (399 lines) split
+  into the tools and what a step returns (`check-tool.ts`), the steps that run something (`check-steps.ts`) and the
+  steps that compare sources with `ship.config.ts` (`check-source-steps.ts`, with one `readSources` instead of three
+  copies of the same loop); `template.ts` (367) split into the options (`template-file.ts`), the project's files
+  (`template-project.ts`) and the game's (`template-game.ts`); `features/boundaries/check.ts` (380, one 209-line
+  function) split into the tables (`sim-rules.ts`), the import rule (`sim-imports.ts`), the shared tree helpers
+  (`ast.ts`: `childrenOf`, `lineLocator`) and one small function per rule, so `checkSource` is a parse and a walk;
+  `serve-editor.ts` (248, one 168-line function) split into the server, the routes and `checkout.ts` (the real-path
+  guard, the listing and the guarded write); headers on `app/cli.ts` and `fake-process-runner.ts` (the other two had
+  been added already). A write that loses its race no longer creates the folder it was going to write into.
+- Left, listed with the reason: `tauriProjectFiles` (67 lines) is a table of generated files; every other function
+  over 60 lines is gone. Every file under `packages/tools/src` is at most 300 lines.
+- Deviations: none from the plan. `TOOLS.boundaries` still names the retired `automata-check-boundaries` package in
+  the install hint nothing prints (the tests use it as the tool's name); left, since renaming it would touch the
+  report's tool names.
+- Handoff: phase 3 is done; mark its PR ready when the stack head's checks are the Owner's to run. Next: phase 4,
+  task 4.1 (the move map and the package skeleton).
 
