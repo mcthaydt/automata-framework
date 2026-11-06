@@ -29,7 +29,7 @@ export interface HostedOptions {
   readonly offline?: boolean
   /** When 'never', the fake host never says ready (autoReady: false) */
   readonly ready?: 'never'
-  /** A page showing the game's source, framed beside the game (the examples index's View, EX.5). */
+  /** A page showing the game's source, framed beside the game (the examples index's View). */
   readonly source?: string
 }
 
@@ -48,15 +48,17 @@ export function hostedQuery(gameUrl: string, gameId: string, options: HostedOpti
   return query
 }
 
-/** The examples package's preview build (EX spec §5), in the slot after the six feature demos. */
+/** The examples package's preview build, in the slot after the six feature demos. */
 export const examplesPort: number = demoPort(6)
 /** The runner's own fixture build (the stub example), in the next slot. */
 export const runnerFixturesPort: number = demoPort(7)
-/** The playground feasibility server (website playground spec, WEB.PLAY.1), in the slot after the fixtures. */
+/** The playground feasibility server, in the slot after the fixtures. */
 export const playgroundPort: number = demoPort(8)
 export const playgroundOrigin = `http://127.0.0.1:${playgroundPort}`
-/** The playground frame's test server (WEB.PLAY.2): the runtime build, the frame pages and the examples' files. */
+/** The playground frame's test server: the runtime build, the frame pages and the examples' files. */
 export const playgroundFramePort: number = demoPort(9)
 export const playgroundFrameOrigin = `http://127.0.0.1:${playgroundFramePort}`
-/** The base 3D game's preview build (games/base-3d/e2e, M3.7b part 4), framed by the same fake host. */
+/** The base 3D game's preview build (games/base-3d/e2e), framed by the same fake host. */
 export const base3dPort: number = demoPort(10)
+/** base-3d's Vite dev server (games/base-3d/tests/e2e-dev): the page as `pnpm dev` serves it, unbundled, in the next slot. */
+export const base3dDevPort: number = demoPort(11)

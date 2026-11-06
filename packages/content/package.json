@@ -18,6 +18,8 @@
     "./assets": "./src/entries/assets.ts",
     "./game-config": "./src/entries/game-config.ts",
     "./locale": "./src/entries/locale.ts",
+    "./palette": "./src/entries/palette.ts",
+    "./schema": "./src/entries/schema.ts",
     "./vite": "./src/entries/vite.ts"
   },
   "imports": {
@@ -44,6 +46,14 @@
       "./locale": {
         "types": "./dist/locale.d.ts",
         "import": "./dist/locale.js"
+      },
+      "./palette": {
+        "types": "./dist/palette.d.ts",
+        "import": "./dist/palette.js"
+      },
+      "./schema": {
+        "types": "./dist/schema.d.ts",
+        "import": "./dist/schema.js"
       },
       "./vite": {
         "types": "./dist/vite.d.ts",

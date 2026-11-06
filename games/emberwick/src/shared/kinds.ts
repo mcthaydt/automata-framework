@@ -1,4 +1,4 @@
-import { defineContentSchema } from '@mcthaydt/automata-content'
+import { defineContentSchema } from '@mcthaydt/automata-content/schema'
 import { z } from 'zod'
 
 // The content kinds Emberwick registers for its room, which the 2D editor authors (`content/rooms/room-1.af2d.json`) and

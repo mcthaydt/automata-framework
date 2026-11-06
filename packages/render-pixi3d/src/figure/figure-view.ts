@@ -7,7 +7,7 @@
 // tint. The view owns what lives between frames: the hair spring, the last evaluated time (`previous`, so a clip's
 // marker is not skipped) and the set of missing clips already warned about. Motion never feeds back into the sim
 // (law 1).
-import { DEFAULT_PALETTE } from '@mcthaydt/automata-content'
+import { DEFAULT_PALETTE } from '@mcthaydt/automata-content/palette'
 import {
   type AimTarget,
   type Built,

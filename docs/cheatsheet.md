@@ -6,7 +6,7 @@
 
 ### `import { … } from '@mcthaydt/automata'`
 
-- `ActionBar` (const): One row of actions that collapses as its container narrows (M1.6 spec §3.4; from FloorFifty `ui/layout/ActionBar.svelte` at 122a220).
+- `ActionBar` (const): One row of actions that collapses as its container narrows.
 - `ActionKind` (type): The action bar's model.
 - `actionsForKey(profile, code)`: Every action `code` (a `KeyboardEvent.code`) drives in `profile`; none when it is unbound.
 - `actionsForPadButton(profile, index)`: Every action the standard-mapping pad button `index` drives in `profile`; none when it is unbound.
@@ -23,17 +23,17 @@
 - `AutosavePolicy` (interface): When the loaded slot writes itself: on each listed trigger, with `intervalSeconds` for the `interval` timer.
 - `AutosaveTrigger` (type): What can make the loaded slot write itself.
 - `BarAction` (interface): One action in an `ActionBar`: an id, a label and a kind (`primary`, `secondary` or `utility`), what it does when selected, and optionally a short label, an icon, a disabled state and a pressed state.
-- `BootFailurePanel` (const): The state a boot failure draws (M1 shared contracts §3; M1.6 spec §3.6): an ErrorPanel with the failure's copy and its ways forward.
-- `Button` (const): The framework's button (M4 spec §4.12): an `.af-control` of one kind.
+- `BootFailurePanel` (const): The state a boot failure draws: an ErrorPanel with the failure's copy and its ways forward.
+- `Button` (const): The framework's button: an `.af-control` of one kind.
 - `Camera2d` (interface): A presentation-only 2D camera over one container: it follows a target, shakes, and writes only that container's transform, never a sim value.
 - `Camera2dOptions` (interface): How `createCamera2d` frames the world: the view's size, and optionally a follow, bounds and zoom.
-- `CameraDragSurface` (const): The camera drag surface (M4 spec §16.3.7, M3 spec §4.2 and §7): the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button.
+- `CameraDragSurface` (const): The camera drag surface: the player turns the camera by dragging the scene, a finger anywhere outside the controls or the mouse with its secondary button.
 - `CameraRect` (interface): A world-space rectangle, in logical px: `Camera2dOptions.bounds`.
 - `CAPABILITIES` (const): What a game may ask its host for.
 - `Capability` (type): One capability a game may ask for.
 - `CapabilitySchema` (const): Checks a capability name.
-- `ChangedElsewhereCopy` (interface): The words of the choice paused offers once another device has changed the slot being played (M5-D6).
-- `Chip` (const): A short status label (M4 spec §4.12).
+- `ChangedElsewhereCopy` (interface): The words of the choice paused offers once another device has changed the slot being played.
+- `Chip` (const): A short status label.
 - `classifyFormFactor(width, height)`: The form factor of a layout viewport: a portrait one narrower than 600 px is `phone-portrait`, any other portrait one `tablet-portrait`; a landscape one shorter than 500 px is `phone-landscape`, otherwise `desktop`.
 - `classifyHeightTier(height)`: The height tier of a layout height in CSS px: `compact` below 340, `short` up to 600, otherwise `undefined`.
 - `Clock` (interface): Time as the runtime reads it: `now()` and timeouts.
@@ -60,7 +60,7 @@
 - `defineResource(id, schema, init)`: Defines a resource by id, schema and starting value.
 - `defineSave(def)`: Declares a save.
 - `defineSystem(name, run)`, `defineSystem(name, phase, run)`, `defineSystem(spec)`, `defineSystem(nameOrSpec, phaseOrRun?, run?)`: A system: `defineSystem(name, run)` runs in `gameplay`, `defineSystem(name, phase, run)` in that phase, and the object form also takes `before`/`after`.
-- `Dialog` (const): A question that needs an answer before the screen goes on (M1.6 spec §3.4; from Ruken `packages/ui/src/Dialog.svelte` at b30d31b).
+- `Dialog` (const): A question that needs an answer before the screen goes on.
 - `DisplayMetricsPayload` (interface): The game's display: insets the game must keep clear, the area the host reserves for its own controls, and the UI scale hint (1.333 on a TV: enlarge text and targets, never CSS zoom).
 - `DisplayMetricsPayloadSchema` (const): Checks display metrics.
 - `Disposables` (interface): A list of "undo this" functions, run together once: what a screen, a run or a service holds open.
@@ -103,7 +103,7 @@
 - `HostingSeams` (interface): Test seams.
 - `HostRefusal` (interface): Why the host said no to a call: its contract code, whether a retry may succeed, and the call it refused.
 - `HostResult` (type): What a host call answers: the value, or the host's refusal.
-- `IconButton` (const): A button whose face is an icon (M4 spec §4.12).
+- `IconButton` (const): A button whose face is an icon.
 - `Input` (interface): The input service: held actions from keys, pads, touch buttons and gestures under the game's profile and the player's overrides, menu edges, the active device and pads, and rebinding.
 - `InputMap` (interface): Held keys, touch buttons and gamepad buttons, turned into one command per tick.
 - `InputMode` (type): How the player is playing right now.
@@ -120,7 +120,7 @@
 - `LeaderboardEntry` (interface): One row of a board.
 - `LeaderboardGetRes` (interface): The rows of a board.
 - `LeaderboardGetResSchema` (const): Checks a board's rows.
-- `LeaderboardPanel` (const): A board's rows, or why there are none (M5 spec §7): loading, entries (the player's row marked "you" in words, not only by colour), empty, unavailable and offline.
+- `LeaderboardPanel` (const): A board's rows, or why there are none: loading, entries (the player's row marked "you" in words, not only by colour), empty, unavailable and offline.
 - `LeaderboardQuery` (interface): Which entries to read from a board.
 - `LeaderboardQuerySchema` (const): Checks a board query.
 - `LeaderboardSubmitMeta` (type): Extra facts sent with a score, passed to the host as they are.
@@ -132,16 +132,16 @@
 - `LifecyclePayload` (interface): Whether the game is in front, and if not, why.
 - `LifecyclePayloadSchema` (const): Checks a lifecycle change.
 - `LifecycleReason` (type): Why the game is in the background.
-- `LoaderOverlay` (const): The loader over a screen while its assets load (M1.6 spec §3.4; from FloorFifty `ui/components/LoaderOverlay.svelte` at 122a220).
+- `LoaderOverlay` (const): The loader over a screen while its assets load.
 - `Locale` (interface): The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
 - `MAX_TURN_UNITS_PER_STEP` (const): The most one step's `camera-turn` may carry either way: 45°.
 - `measureGeometry(input)`: Turns what the browser and the host report into one `Geometry`.
-- `Modal` (const): A panel over the screen with a visible Close (M4 spec §4.12; the rules of FloorFifty `ui/components/Modal.svelte` at ac72660).
+- `Modal` (const): A panel over the screen with a visible Close.
 - `ModelInvalid` (class): A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin, which is not supported yet.
-- `OptionGroup` (const): A choice of one (M4 spec §4.8; the rules of FloorFifty `ui/layout/OptionGroup.svelte` at `ac72660`): a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
+- `OptionGroup` (const): A choice of one: a segmented row whose chosen option is filled and marked, never only underlined or only coloured.
 - `OwnedRenderer` (interface): A renderer the runtime owns: `dispose` destroys it (the canvas, its listeners, its GPU resources).
-- `PagedGrid` (const): A grid of items in pages that never scrolls (M4 spec §4.8; the page arithmetic of FloorFifty `ui/tile-pages.ts` at `ac72660`).
-- `PagerDots` (const): Where a paged view is (M4 spec §4.8; from FloorFifty `ui/layout/PagerDots.svelte` at `ac72660`): one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
+- `PagedGrid` (const): A grid of items in pages that never scrolls.
+- `PagerDots` (const): Where a paged view is: one row of dots, each a whole touch target, or "3 / 11" once the dots would not fit on one row.
 - `PauseBehavior` (type): Whether the game pauses when it goes to the background; fixed for the game's whole life.
 - `PauseBehaviorSchema` (const): Checks a pause behavior.
 - `PixiRenderer` (interface): The runtime's `GameRenderer`, built on PixiJS, with its stage.
@@ -182,21 +182,21 @@
 - `SavesStatusSchema` (const): Checks a saves status.
 - `ScreenContext` (interface): What a screen's `enter` is given: where to mount, where it came from, what to undo, and the runtime's services.
 - `ScreenDef` (interface): One screen of the flow: its id, whether it pauses the sim, its kind and fonts, and `enter`, which mounts it.
-- `ScreenFrame` (const): Every screen's frame: the visible region, a corner row, then a hero and a body (M1.6 spec §3.4; from FloorFifty `ui/layout/ScreenFrame.svelte` at 122a220).
+- `ScreenFrame` (const): Every screen's frame: the visible region, a corner row, then a hero and a body.
 - `ScreensCopy` (interface): Every word the default title, play, paused and settings screens show.
 - `ScreensCopyInput` (type): A game's words for the default screens: a part of the record, or a function of the player's locale returning one.
 - `ScreensCopyOverrides` (type): A part of `ScreensCopy` with every group optional, down to the words; a word or a function is replaced whole.
 - `ScreensGame` (interface): What the default screens need from the game.
-- `ScrollList` (const): A list that keeps its rows (M1.6 spec §3.4; from FloorFifty `ui/layout/ScrollList.svelte` at 122a220).
+- `ScrollList` (const): A list that keeps its rows.
 - `Settings` (interface): The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
 - `SettingsDef` (interface): A game's settings: the key it is saved under, its version, schema, defaults and migration steps, and which fields stay on one device.
 - `SettingsScreenCopy` (interface): The Settings screen's own words: its title, Back, the tabs and the overflow count.
 - `settingsStore(settings, def)`: The booted store for `def`.
-- `Sheet` (const): A Modal on the bottom edge at every form factor (M4 spec §4.12): the same scoping, Close and scroll region, where a thumb reaches the actions.
+- `Sheet` (const): A Modal on the bottom edge at every form factor: the same scoping, Close and scroll region, where a thumb reaches the actions.
 - `Sim` (interface): A running simulation, stepped with commands, that can snapshot, restore and hash its state.
 - `SimContext` (interface): What a system's `run` receives each tick.
-- `Slider` (const): A number in a range (M4 spec §4.12): a labelled native `<input type="range">`, so the browser gives the arrow keys and the focus navigator's `adjust` steps it.
-- `Split` (const): Two panes side by side where both fit at `min` px, stacked otherwise (M4 spec §4.8; from FloorFifty `ui/layout/Split.svelte` at `ac72660`).
+- `Slider` (const): A number in a range: a labelled native `<input type="range">`, so the browser gives the arrow keys and the focus navigator's `adjust` steps it.
+- `Split` (const): Two panes side by side where both fit at `min` px, stacked otherwise.
 - `sprite(source, options?)`: A sprite that follows its component's `x`, `y` and `angle`, interpolated between ticks.
 - `SpriteFrames` (interface): The texture is a sheet of equal frames, read left to right, top to bottom.
 - `SpriteViewOptions` (interface): A `sprite` view's anchor and either its sprite-sheet frames or one frame of a packed atlas.
@@ -208,14 +208,14 @@
 - `SystemDef` (interface): A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and its `run`, called once per tick.
 - `TAURI_MARKERS` (const): String literals only Tauri's IPC code contains, which survive minification: the global the webview injects (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`).
 - `Time` (interface): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
-- `Toast` (const): A passing message (M4 spec §4.12): "Pad connected", "Saved", "This controller is not supported".
-- `Toggle` (const): An on/off setting (M4 spec §4.12): a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
+- `Toast` (const): A passing message: "Pad connected", "Saved", "This controller is not supported".
+- `Toggle` (const): An on/off setting: a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
 - `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.
-- `TouchControls` (const): The on-screen touch buttons (M4 spec §4.4), from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
+- `TouchControls` (const): The on-screen touch buttons, from FloorFifty `ui/components/TouchControls.svelte` at `ac72660`.
 - `Translate` (type): The typed `t` verb: `t('hello', { name })`, checked against the game's compiled messages.
 - `turnUnitsFromPixels(dxPx, degPerPixel, invert)`: `dxPx` dragged at `degPerPixel` as whole turn units: positive for a drag to the right (which way that turns the heading is the game's convention), negated when `invert`, clamped to ±`MAX_TURN_UNITS_PER_STEP`.
 - `typedBus(bus)`: Cast a PresentationBus instance to a typed view with game-specific fact types.
-- `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata-testing` stands in for it in tests.
+- `ViewportWindow` (interface): The parts of `window` the owner reads; a fake from `@mcthaydt/automata/testing` stands in for it in tests.
 
 ### `import { … } from '@mcthaydt/automata/extension'`
 
@@ -275,8 +275,8 @@
 - `pressedPart(control)`: What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a press anywhere on it toggles the input), else the control itself.
 - `publishConditions(root, size, variant)`: Measures and publishes the geometry for `size` under `variant`, as the owner would.
 - `REFERENCE_SIZES` (const): The viewports a layout is checked at: phones in both orientations, tablets, desktops, both sides of every breakpoint and the tightest sizes, each with the classification it should get.
-- `ReferenceFormFactor` (type): `@mcthaydt/automata-ui`'s `FormFactor`.
-- `ReferenceHeightTier` (type): `@mcthaydt/automata-ui`'s `HeightTier`.
+- `ReferenceFormFactor` (type): The geometry owner's `FormFactor`.
+- `ReferenceHeightTier` (type): The geometry owner's `HeightTier`.
 - `ReferenceSize` (interface): One viewport every primitive and screen is checked at: a name, its size, and the form factor and height tier it must classify as.
 - `RuntimeTestOptions` (interface): What `openRuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer, fetch and locale it uses.
 - `RuntimeTestSession` (interface): A booted runtime over the fake Ruken host: every service a screen reads, the host's handle and the page layers.
@@ -412,6 +412,20 @@
 - `pseudoLocalize(message)`: The xx-long form of one message string.
 - `pseudoMessages(file)`: The xx-long form of a whole message file (the inlang message format): nested namespaces are walked, plural variants keep their `declarations` and `selectors` (they are code, not text) and only their `match` texts change.
 - `snakeKey(value)`: `snow-shrine` → `snow_shrine`, `fastFall` → `fast_fall`, `melee/sword` → `melee_sword`.
+
+### `import { … } from '@mcthaydt/automata-content/palette'`
+
+- `DEFAULT_PALETTE` (const): The palette a game gets when it has no `content/palette.toml`: Endesga 64.
+- `Palette` (interface): The game's palette: a name and its colors.
+
+### `import { … } from '@mcthaydt/automata-content/schema'`
+
+- `contentRef(kind)`: The ID of another content item of `kind`.
+- `ContentSchemaDef` (interface): A content kind a game registers: its name, the Zod schema each item must match, where its TOML files live, and whether the sim receives it.
+- `ContentSchemaOptions` (interface): Options for `defineContentSchema`; `sim: false` keeps the kind out of the sim's content and its hash.
+- `ContentSchemaPlace` (type): Where a kind's files are: every TOML file under a folder (a collection), or one file (a document).
+- `defineContentSchema(kind, schema, place, options?)`: Registers a content kind: a name, its Zod schema, and a folder (every TOML file in it is an item) or one file (a single document).
+- `localized()`: Text a player reads, written in the source language.
 
 ### `import { … } from '@mcthaydt/automata-content/vite'`
 
