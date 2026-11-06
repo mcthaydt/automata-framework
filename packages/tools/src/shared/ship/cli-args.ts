@@ -32,22 +32,22 @@ export const USAGE = `Usage: automata ship prepare --target web|itch|tauri|ruken
        automata ship publish --target ruken [--activate] [--game <publicId>] [--private]
        automata ship publish --target itch --from tauri [--dist <dir>] [--tag vX.Y.Z]
 
-Every command names its target.
+Every command names its target. --dist is the folder you built (default: dist). --tag is the release, like v1.2.0.
 
-prepare      checks the build you made, for one target; nothing is changed except where it says so
-             --target web: checks the build for the rules every public host shares (secrets, assets inlined as
-             data: URLs, code that needs eval, the private Pixi 3D beta, paths that start with /). The folder is
-             then ready to upload to any static host
-             --target ruken: writes ruken.toml into the build (from ship.config.ts) and checks it with Ruken's parser
-             --target itch: checks the build against itch.io's rules and writes <id>-<version>-itch.zip beside it
-             --target tauri: checks the build, writes the Tauri project to .automata/tauri/, runs tauri build for
-             this OS and copies the bundles to dist-tauri/. Needs cargo, @tauri-apps/cli and tauri in ship.config.ts
-publish      --target ruken: prepare, then ruken publish (packs, validates, uploads). Needs RUKEN_API and RUKEN_TOKEN.
-             --private: upload a build that is not public (Ruken's local test server only)
-             --target itch: prepare --target itch, then butler push. Needs BUTLER_API_KEY, butler on PATH and
-             itch.project in ship.config.ts.
-             --target itch --from tauri: push the desktop bundles in dist-tauri/ (prepare --target tauri) to
-             itch.io's Downloadable channels, one per OS (itch.downloads; default linux, mac, windows).`
+prepare checks the build for one place to publish it, and changes nothing unless it says so.
+  --target web     Checks for what no public site accepts: secrets, pictures or sounds folded into the code, code that
+                   needs eval, the private Pixi 3D beta and paths that start with "/". Then upload the folder to any
+                   static host.
+  --target itch    Checks itch.io's rules and writes <id>-<version>-itch.zip beside the build.
+  --target tauri   Builds the desktop app for this computer into dist-tauri/. Needs cargo, Tauri's command line tool
+                   and a tauri section in ship.config.ts.
+  --target ruken   Writes ruken.toml into the build, from ship.config.ts, and checks it.
+
+publish prepares the build, then uploads it.
+  --target itch    Pushes with butler. Needs BUTLER_API_KEY, butler, and itch.project in ship.config.ts.
+                   --from tauri pushes the desktop apps in dist-tauri/ instead (run prepare --target tauri first).
+  --target ruken   Needs RUKEN_API and RUKEN_TOKEN. --activate makes it live, --game picks the game, and --private
+                   uploads a build that is not public (Ruken's local test server only).`
 
 const common = { dist: { type: 'string', default: 'dist' }, tag: { type: 'string' } } as const
 const targeted = { ...common, target: { type: 'string' } } as const

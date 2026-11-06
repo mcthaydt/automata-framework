@@ -27,12 +27,13 @@ export interface EditorCommandDeps {
   readonly cwd: string
 }
 
-const USAGE = `Usage: automata editor [dir] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
+const USAGE = `Usage: automata editor [folder] [--app 2d|3d|suite] [--app-dir <build>] [--port <n>] [--lan] [--token <t>]
 
-Serves an editor against the game checkout in <dir> (default: the working folder) until Ctrl+C. It listens on the
-loopback only; --lan listens on the network so a tablet can open it, and then needs a token (made if you give none): open
-the address it prints, with the token in it. The editor reads and writes the files content/editors.toml lists (a
-checkout without one: its .json files), with a check that a file did not change on disk since the editor read it.
+Opens an editor on the game in <folder> (default: this folder) until you press Ctrl+C.
+Only this computer can open it, unless you add --lan: then a tablet on your network can too, and a token is needed
+(one is made for you if you give none). Open the address it prints, with the token in it.
+The editor saves to the files listed in content/editors.toml (or the .json files, if there is none), and it will not
+overwrite a file that changed while you were editing.
 `
 
 const here = dirname(fileURLToPath(import.meta.url))

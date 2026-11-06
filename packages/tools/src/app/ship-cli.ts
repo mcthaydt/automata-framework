@@ -17,6 +17,7 @@ import { publishDownloadsToItch } from '../shared/ship/targets/itch/publish-down
 import { ITCH_FIRST_PUSH_CHECKLIST, publishToItch } from '../shared/ship/targets/itch/publish-to-itch.ts'
 import { prepareTauri } from '../shared/ship/targets/tauri/prepare-tauri.ts'
 import { prepareWeb } from '../shared/ship/targets/web/prepare-web.ts'
+import { type CliIo, PROCESS_IO } from './cli-io.ts'
 
 const cwd = process.cwd()
 
@@ -137,26 +138,26 @@ async function program(
 }
 
 /** Runs one ship command (`args` are the words after `automata ship`) and returns the process exit code. */
-export async function runShip(args: readonly string[]): Promise<number> {
+export async function runShip(args: readonly string[], io: CliIo = PROCESS_IO): Promise<number> {
   const command = parseCliArgs([...args])
   if (command.command === 'help') {
-    process.stdout.write(`${USAGE}\n`)
+    io.stdout(`${USAGE}\n`)
     return 0
   }
   if (command.command === 'usage') {
-    process.stderr.write(`${command.problem}\n\n${USAGE}\n`)
+    io.stderr(`${command.problem}\n\n${USAGE}\n`)
     return 2
   }
   try {
     const result = await Effect.runPromise(Effect.either(await program(command)))
     if (result._tag === 'Right') {
-      process.stdout.write(`${result.right}\n`)
+      io.stdout(`${result.right}\n`)
       return 0
     }
-    process.stderr.write(`${result.left.message}\n`)
+    io.stderr(`${result.left.message}\n`)
     return exitCodeFor(result.left)
   } catch (error) {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`)
+    io.stderr(`${error instanceof Error ? error.message : String(error)}\n`)
     return error instanceof SettingMissing ? 2 : 1
   }
 }

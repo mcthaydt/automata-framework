@@ -50,6 +50,11 @@ Every player-facing string of core and Emberwick, checked against the four quest
 | Saves, failure | `Couldn't save your game. Try again.`, `This save can't be opened`, `Could not save yet; trying again` | Say what happened and, where it matters, that it retries. |
 | Boot failure | `Couldn't start the game.`, `Couldn't start the game. Close it and open it again.`, `Couldn't connect to Ruken.`, `Couldn't load your progress.`, `This device can't run the game.`, `Still waiting for the game to download.` and `Try again`, `Continue without loading`, `Back to {host}` | One sentence plus a button that fixes the usual cause. `connect` only shows when the host is Ruken. |
 | Scores | `Loading scores…`, `No scores yet`, `You're offline` | Plain words. |
+| `automata --help` | Thirty lines: exit codes, `D-1`, `__AUTOMATA_DEBUG__`, kit commands, every option of every command | Seven lines: one for each command, then `Run automata <command> --help for more.` | 3 (long) and 4 (codes, constants) |
+| `automata check --help` | `(exit 0 pass, 1 findings, 2 a tool could not run)` inside a paragraph, steps named but not explained | Each step in one plain line (`tests  the game's own tests pass`), the options, and `Exit status:` last | 1 and 4 |
+| `automata ship --help` | `prepare` wrote `ruken.toml` for a Ruken game without being asked; `(D-1)`; `@tauri-apps/cli` | `Every command names its target.`, one line per target, no package names | 2 and 4 |
+| `automata editor --help` | `It listens on the loopback only` | `Only this computer can open it, unless you add --lan` | 4 ("loopback") |
+| `automata build`, done with `--debug` | `built with the debug constant on` | `built with the developer tools in` | 4 ("constant") |
 | `automata ship prepare` or `publish`, no `--target` | Built for Ruken without being asked | `Choose a target: --target web, itch, tauri or ruken.` (`itch or ruken` for publish) | 2 (what to type) |
 | `automata ship publish --target web` | `publish has no web target` | `There is nothing to publish for web. After prepare --target web, upload the dist folder to any static host.` | 2 |
 | `automata ship prepare --target web`, done | (new) | `checked 12 files in dist; upload the folder to any static host` | 2 |

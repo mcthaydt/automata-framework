@@ -126,7 +126,7 @@ describe('bin cli', () => {
 
     it('documents --targets and its default in the usage', async () => {
       let stdout = ''
-      await runCli(['--help'], { stdout: (msg) => (stdout += msg), stderr: () => {} })
+      await runCli(['create-game', '--help'], { stdout: (msg) => (stdout += msg), stderr: () => {} })
       expect(stdout).toContain('--targets <list>')
       expect(stdout).toContain('default: web,itch; also tauri, ruken')
     })
@@ -198,7 +198,7 @@ describe('bin cli', () => {
     })
 
     it("the help names each of check's steps", async () => {
-      const { code, stdout, calls } = await runCheckCli(['--help'])
+      const { code, stdout, calls } = await runCheckCli(['check', '--help'])
       expect(code).toBe(0)
       expect(calls).toEqual([])
       const help = stdout.replace(/\s+/g, ' ')
@@ -276,7 +276,7 @@ describe('bin cli', () => {
       const { code, stderr, calls } = await runBuildCli(['build', '--target', 'web'])
       expect(code).toBe(2)
       expect(stderr).toContain('unknown option --target')
-      expect(stderr).toContain('automata build [dir] [--debug]')
+      expect(stderr).toContain('Usage: automata build')
       expect(calls).toEqual([])
     })
   })
@@ -312,9 +312,9 @@ describe('bin cli', () => {
       expect(code).toBe(2)
     })
 
-    it('the help names `automata ship`', async () => {
+    it('the first screen names `ship`', async () => {
       const { stdout } = await runShipCli(['--help'])
-      expect(stdout).toContain('automata ship <command>')
+      expect(stdout).toContain('ship <command>')
     })
 
     it('prints the usage on stdout and exits 0 for `ship --help`', async () => {

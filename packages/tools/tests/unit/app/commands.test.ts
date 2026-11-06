@@ -20,9 +20,9 @@ describe('the commands', () => {
     const { code, stdout } = await cli(['--help'])
     expect(code).toBe(0)
     for (const command of ['create-game', 'check', 'build', 'editor', 'ship']) {
-      expect(stdout).toContain(`automata ${command}`)
+      expect(stdout).toContain(`  ${command}`)
     }
-    expect(stdout).not.toMatch(/automata add|deploy-dev|test-remote/)
+    expect(stdout).not.toMatch(/\badd\b|deploy-dev|test-remote/)
   })
 
   it.each(['add', 'deploy-dev', 'test-remote', 'my-game'])(
@@ -31,7 +31,7 @@ describe('the commands', () => {
       const { code, stdout, stderr } = await cli([word, 'kit'])
       expect(code).toBe(2)
       expect(stderr).toContain(`Unknown command "${word}".`)
-      expect(stderr).toContain('Usage: automata create-game')
+      expect(stderr).toContain('Usage: automata <command>')
       expect(stdout).toBe('')
     },
   )
@@ -39,7 +39,7 @@ describe('the commands', () => {
   it('no command at all shows the help', async () => {
     const { code, stdout } = await cli([])
     expect(code).toBe(0)
-    expect(stdout).toContain('Usage: automata create-game')
+    expect(stdout).toContain('Usage: automata <command>')
   })
 
   it.each(['deploy-dev', 'test-remote'])('automata ship %s is an unknown ship command', (word) => {
