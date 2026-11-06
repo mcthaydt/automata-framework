@@ -202,7 +202,7 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 3% (2 of 63 tasks)
+### Build: 6% (6 of 63 tasks)
 
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
@@ -211,10 +211,10 @@ organisation the same day ("automata", so the scope is `@automata`); it is for t
 |---|---|---|---|
 | 1.1 The editors in the 2D gate | 1 | Done, 2026-11-06 (Chromium; unit: editor-kit 1,373, editor-2d 1,552; browser: editor-2d 259 pass and 6 skipped, editor-kit layout 129; the journeys need WebKit: the Owner's `ci:local`; hosted CI not run) | |
 | 1.2 One workflow per dimension | 1 | Done, 2026-11-06 (workflow YAML parses; `actionlint` needs Docker: the Owner's; hosted CI not run) | |
-| 2.1 The stranger's journey | 2 | Not started | |
-| 2.2 A new game installs | 2 | Not started | |
-| 2.3 A new game passes its own check, in the feature layout | 2 | Not started | |
-| 2.4 The rest of the path | 2 | Not started | |
+| 2.1 The stranger's journey | 2 | Done, 2026-11-06 (Chromium only; `pnpm check` green; the stranger's journey passes in about 26 s; WebKit and Firefox not run; hosted CI not run) | |
+| 2.2 A new game installs | 2 | Done, 2026-11-06 (Chromium only; `pnpm check` green; the stranger's journey passes in about 26 s; WebKit and Firefox not run; hosted CI not run) | |
+| 2.3 A new game passes its own check, in the feature layout | 2 | Done, 2026-11-06 (Chromium only; `pnpm check` green; the stranger's journey passes in about 26 s; WebKit and Firefox not run; hosted CI not run) | |
+| 2.4 The rest of the path | 2 | Done, 2026-11-06 (Chromium only; `pnpm check` green; the stranger's journey passes in about 26 s; WebKit and Firefox not run; hosted CI not run) | |
 | 3.1 What leaves | 3 | Not started | |
 | 3.2 The target is always named | 3 | Not started | |
 | 3.3 A small root entry, and check-boundaries folded in | 3 | Not started | |
