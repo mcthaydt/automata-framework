@@ -281,7 +281,7 @@ describe('World view: the camera (plan ED2D.8a)', () => {
       }),
     )
     await vi.waitFor(() => expect(Number(camera()?.split(',')[2])).toBeGreaterThan(fitted.scale))
-    await userEvent.click(screen.getByRole('button', { name: 'Fit' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Fit the map in view' }))
     expect(camera()).toBe(`${fitted.x},${fitted.y},${fitted.scale}`)
   })
 })

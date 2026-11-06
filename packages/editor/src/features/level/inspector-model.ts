@@ -8,7 +8,7 @@ import { findLevel } from '../../shared/level-2d/model/world/level-edits'
 import type { Diagnostic, Severity } from '../../shared/level-2d/profiles/profile'
 
 // What the Level view's inspector shows: one row per typed
-// field, naming the kit control that edits it, for the selected instance (Entity tab) and the level (Level tab). The
+// field, naming the kit control that edits it, for the selected instance (Selected tab) and the level (Level tab). The
 // model holds no Svelte, so the field-to-widget map and the none/one/many rule are tested in Node.
 
 /** The project's side of a `ref` row: what the value is called and what it may point at instead. */
@@ -49,7 +49,7 @@ export type EntityInspector =
 
 const NOTHING_SELECTED = 'Select a thing on the canvas to see its fields'
 
-/** The selected instances of `level` (ids it no longer has are skipped) as the Entity tab shows them. */
+/** The selected instances of `level` (ids it no longer has are skipped) as the Selected tab shows them. */
 export function entityInspector(
   project: Project,
   level: string,

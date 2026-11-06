@@ -1,6 +1,7 @@
 <!--
   The Level view's inspector: the kit
-  `Tabs` over Entity, Level and Checks. The default tab follows the selection (one or more selected: Entity; none:
+  `Tabs` over Selected, Level and Problems (plain words: the thing you tapped, the level, what is wrong with it;
+  were Entity and Checks). The default tab follows the selection (one or more selected: Selected; none:
   Level); a tab the person chose stays until the selection changes. The shell places it: a 320 px column in `wide`,
   a drawer in `medium`, a sheet in `compact`.
 -->
@@ -41,9 +42,9 @@ const palette = $derived([
 let chosen = $state.raw<{ readonly for: readonly string[]; readonly tab: string } | undefined>()
 const tab = $derived(chosen?.for === selected ? chosen.tab : entity.kind === 'none' ? 'level' : 'entity')
 const tabs = [
-  { id: 'entity', label: 'Entity' },
+  { id: 'entity', label: 'Selected' },
   { id: 'level', label: 'Level' },
-  { id: 'checks', label: 'Checks' },
+  { id: 'checks', label: 'Problems' },
 ]
 </script>
 

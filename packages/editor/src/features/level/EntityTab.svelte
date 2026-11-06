@@ -1,5 +1,5 @@
 <!--
-  The inspector's Entity tab: nothing selected says how to select; several show
+  The inspector's Selected tab (`entity`): nothing selected says how to select; several show
   their count with Delete and Duplicate only; one shows its definition, position, size (when resizable) and typed
   fields. Each change is one undo step through `commitEdit`; a refusal shows under the control that made it.
 -->

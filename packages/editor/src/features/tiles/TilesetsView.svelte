@@ -8,7 +8,9 @@
 <script lang="ts">
 import { onDestroy } from 'svelte'
 import EditorShell from '../../shared/kit/shell/EditorShell.svelte'
+import StagePill from '../../shared/kit/shell/StagePill.svelte'
 import { shellModeOf } from '../../shared/kit/shell/shell-mode'
+import IconButton from '../../shared/kit/widgets/IconButton.svelte'
 import type { Project } from '../../shared/level-2d/model/project-types'
 import type { ViewProps } from '../document/view-props'
 import RuleInspector from './RuleInspector.svelte'
@@ -36,7 +38,10 @@ const stop = session?.subscribe(() => {
   selection = session.selection
 })
 
-const wide = $derived(shellModeOf(geometry.current.formFactor) === 'wide')
+const mode = $derived(shellModeOf(geometry.current.formFactor))
+const wide = $derived(mode === 'wide')
+/** Where the pill with the list and Details floats below `wide`: at the stage's foot on a phone, its top on an iPad. */
+const pillAt = $derived(mode === 'compact' ? 'bottom' : 'top')
 const images = $derived(new Set(urls.keys()))
 const tileset = $derived(project?.defs.tilesets.find((set) => set.id === selection?.tileset))
 const preview = $derived(
@@ -84,19 +89,12 @@ onDestroy(() => {
   {#snippet canvas()}
     {#if session === undefined || project === undefined || selection === undefined}
       <div class="refused" role="status">
-        <h2>This document has no tilesets to show</h2>
+        <h2>This game has no tiles to show</h2>
         <p>Your file is unchanged.</p>
       </div>
     {:else}
-      <div class="stage" data-scroll-region>
-        {#if !wide}
-          <div class="drawers">
-            <button type="button" aria-expanded={panelOpen} onclick={() => (panelOpen = !panelOpen)}>Rules</button>
-            <button type="button" aria-expanded={inspectorOpen} onclick={() => (inspectorOpen = !inspectorOpen)}
-              >Details</button
-            >
-          </div>
-        {/if}
+      <div class="frame">
+      <div class="stage" data-scroll-region data-pill={wide ? undefined : pillAt}>
         {#if tileset === undefined}
           <p class="none" role="status">No tiles yet. Add a picture of your tiles to paint with them.</p>
         {:else}
@@ -105,6 +103,25 @@ onDestroy(() => {
         {#if preview !== undefined}
           <RulePreview {preview} {project} {selection} {images} {imageUrl} />
         {/if}
+      </div>
+      {#if !wide}
+        <StagePill label="Tiles controls" at={pillAt}>
+          <IconButton
+            icon="list"
+            label="All tiles"
+            showLabel
+            aria-expanded={panelOpen}
+            onclick={() => (panelOpen = !panelOpen)}
+          />
+          <IconButton
+            icon="inspector"
+            label="Details"
+            showLabel
+            aria-expanded={inspectorOpen}
+            onclick={() => (inspectorOpen = !inspectorOpen)}
+          />
+        </StagePill>
+      {/if}
       </div>
     {/if}
   {/snippet}
@@ -117,28 +134,28 @@ onDestroy(() => {
 </EditorShell>
 
 <style>
+  /* The stage scrolls inside the frame; the pill floats over the frame, so it stays put while the stage scrolls. */
+  .frame {
+    position: relative;
+    height: 100%;
+  }
   .stage {
+    position: absolute;
+    inset: 0;
     display: grid;
     align-content: start;
     gap: var(--space-4);
-    height: 100%;
     padding: var(--space-3) var(--space-4) var(--space-5);
     overflow: auto;
     overscroll-behavior: contain;
   }
-  .drawers {
-    display: flex;
-    gap: var(--space-2);
+  /* Room for the pill (a 44 px control, its padding, its edge and its margin), so it never covers the first or last
+     thing on the stage. */
+  .stage[data-pill='top'] {
+    padding-top: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
   }
-  .drawers button {
-    min-width: var(--size-hit);
-    min-height: var(--size-hit);
-    padding: 0 var(--space-3);
-    border: 1px solid var(--color-border-strong);
-    border-radius: var(--edge-sm);
-    background: var(--color-bg-field);
-    color: var(--color-text-primary);
-    font: var(--text-body-13-medium);
+  .stage[data-pill='bottom'] {
+    padding-bottom: calc(var(--size-hit) + 2 * var(--space-1) + 2px + 2 * var(--space-3));
   }
   .none,
   .refused {

@@ -62,8 +62,8 @@ async function start(size: EditorSize) {
 }
 
 const buttonNamed = (root: ParentNode, name: string): HTMLElement => {
-  const found = [...root.querySelectorAll<HTMLElement>('button')].find(
-    (candidate) => candidate.textContent?.trim() === name,
+  const found = [...root.querySelectorAll<HTMLElement>('button:not([role]):not([aria-haspopup])')].find(
+    (candidate) => candidate.textContent?.trim() === name || candidate.getAttribute('aria-label') === name,
   )
   if (found === undefined) throw new Error(`no ${name} button`)
   return found
@@ -84,7 +84,11 @@ const region = (name: string): HTMLElement => {
 }
 
 /** Below wide, presses the canvas's drawer button until its region says it is open. */
-async function openDrawer(size: EditorSize, name: 'Rules' | 'Details', regionName: string): Promise<void> {
+async function openDrawer(
+  size: EditorSize,
+  name: 'All tiles' | 'Details',
+  regionName: string,
+): Promise<void> {
   if (size.mode === 'wide' || region(regionName).dataset.open === 'true') return
   buttonNamed(byTestId('tilesets-view'), name).click()
   await arrived()
@@ -102,7 +106,7 @@ describe.each(SIZES)('Tilesets view at $name ($width x $height)', (size) => {
     const { conditions } = await start(size)
     const tabs = switcherControls()
     const essentials = [...['undo', 'redo', 'save'].map(byTestId), ...tabs]
-    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('tilesets-view'), 'Rules'))
+    if (size.mode !== 'wide') essentials.push(buttonNamed(byTestId('tilesets-view'), 'All tiles'))
     expect(checkLayout(conditions, essentials)).toEqual([])
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
@@ -131,7 +135,7 @@ describe.each(SIZES)('Tilesets view at $name ($width x $height)', (size) => {
 
   test('the rule strip’s rows and grips are full-size targets inside the window', async () => {
     const { conditions } = await start(size)
-    await openDrawer(size, 'Rules', 'panel')
+    await openDrawer(size, 'All tiles', 'panel')
     const strip = byTestId('tilesets-panel').querySelector<HTMLElement>('[aria-label="Rules"]')
     if (strip === null) throw new Error('no rule strip')
     const rows = [...strip.querySelectorAll<HTMLElement>('li')]
