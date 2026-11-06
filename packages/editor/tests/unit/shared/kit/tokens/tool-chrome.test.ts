@@ -1,0 +1,61 @@
+import { readFileSync } from 'node:fs'
+import { describe, expect, test } from 'vitest'
+import type { EditorTokens } from '#src/shared/kit/tokens/editor-tokens.ts'
+
+// The approved mockup's tool chrome (2026-11-06, `refactor/2026-11-06-redesign-mockups/editor-level.html`): one
+// neutral palette for every editor screen, white panels on a near-white field, hairline separators, greys that read
+// at 4.5:1 on white and on the chosen row's tint. `tool-chrome.css` puts it under the names the kit already reads,
+// on the editor's own pages only, so the website keeps its own field.
+const PACKAGE = new URL('../../../../../', import.meta.url)
+const read = (relative: string): string => readFileSync(new URL(relative, PACKAGE), 'utf8')
+const tokens = (JSON.parse(read('src/shared/kit/tokens/tokens.json')) as EditorTokens).tokens
+const chrome = read('src/shared/kit/tool-chrome.css').replace(/\/\*[\s\S]*?\*\//g, '')
+
+const hex = (name: string): string => {
+  const value = tokens[name]
+  if (value === undefined || !/^#[0-9a-f]{6}$/.test(value)) throw new Error(`no hex token ${name}`)
+  return value
+}
+const channel = (value: number): number => {
+  const s = value / 255
+  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+}
+const luminance = (color: string): number => {
+  const n = Number.parseInt(color.slice(1), 16)
+  return 0.2126 * channel((n >> 16) & 255) + 0.7152 * channel((n >> 8) & 255) + 0.0722 * channel(n & 255)
+}
+const contrast = (a: string, b: string): number => {
+  const [light, dark] = [luminance(hex(a)), luminance(hex(b))].sort((x, y) => y - x)
+  return ((light as number) + 0.05) / ((dark as number) + 0.05)
+}
+
+describe('the tool chrome', () => {
+  test('puts the neutral palette under the names the kit reads', () => {
+    for (const [name, tool] of [
+      ['bg', 'tool-bg'],
+      ['paper', 'tool-panel'],
+      ['surface', 'tool-hover'],
+      ['line', 'tool-line'],
+      ['line-strong', 'tool-line-strong'],
+      ['muted', 'tool-muted'],
+      ['cobalt-soft', 'tool-selected'],
+    ]) {
+      expect(chrome, name).toMatch(new RegExp(`--${name}:\\s*var\\(--${tool}\\);`))
+    }
+  })
+
+  test('every editor page loads it after the shared tokens', () => {
+    for (const app of ['editor-2d', 'suite', 'design']) {
+      const main = read(`src/app/${app}/main.ts`)
+      expect(main.indexOf('tool-chrome.css'), app).toBeGreaterThan(main.indexOf('tokens.css'))
+    }
+  })
+
+  test('its text reads: ink at 7:1 on the field, the greys at 4.5:1 on white and on the chosen row', () => {
+    expect(contrast('ink', 'tool-bg')).toBeGreaterThanOrEqual(7)
+    for (const grey of ['tool-muted', 'tool-faint']) {
+      expect(contrast(grey, 'tool-panel'), grey).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(grey, 'tool-selected'), grey).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+})

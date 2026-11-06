@@ -1,4 +1,5 @@
 import '../../shared/kit/tokens.css'
+import '../../shared/kit/tool-chrome.css'
 import '../../shared/kit/fonts.css'
 import './main.css'
 import { startSuite } from '../../features/suite/shell/boot.ts'

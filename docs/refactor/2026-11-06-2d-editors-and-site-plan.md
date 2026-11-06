@@ -913,6 +913,25 @@ logic that is not markup lives in the view's `*-model.ts`.
   would read every file to show it; the file's name in words is the essential part, and the level menu (12.3) shows
   the levels' own names. Gates: editor unit (suite) 286 → 294 (with the new `write-messages` and `fileTitle` tests),
   Chromium layout (suite) 121, svelte-check clean.
+- **12.3, the look begins (session 15).** The Owner approved the redesign mockups on 2026-11-06 ("Approved", relayed
+  by the coordinator): `editor-level.html` and `AUDIT.md` in the shared folder's `refactor/2026-11-06-redesign-mockups/`
+  are the look of 12.3 and every non-3D editor view. *Done:* the mockup's neutral tool palette as tokens (`--tool-bg`
+  #f7f7f8, `--tool-panel` white, `--tool-hover`, `--tool-selected`, `--tool-line`, `--tool-line-strong`, `--tool-muted`
+  and `--tool-faint`, which read at 4.5:1 on white and on the chosen row) and `src/shared/kit/tool-chrome.css`, which
+  the three editor pages import after `tokens.css` and which puts them under the names the kit already reads (`--bg`,
+  `--paper`, `--surface`, the hairlines, the grey, the selection wash), so every view takes the palette at once and
+  the website, which does not import it, keeps its field. A unit test holds the mapping, the import order and the
+  contrast. The design board shows it (neutral field, white cards, hairlines). The stage keeps `--charcoal`
+  (#16191e; the mockup's #0e1014 is close) so no canvas pixel expectation changes yet. *Next, designed:* (1) the
+  density, 32 px rows and controls on a fine pointer and 44 on touch (`--row`, `--ctl` under `(pointer: coarse)`); the
+  layout tests hold every control to 44 px in Chromium's fine pointer today, so they first learn the pointer (44 on
+  touch, 32 with a mouse), and a primary stays 48 on touch (the framework rule); (2) 12.3's structure from the mockup:
+  the top bar is Back, the level menu (the levels and New level; on compact it also switches the four views), the
+  views as quiet tabs, Undo, Redo, problems, the save state and one lime primary (Save on a game folder, Share in
+  browser storage); tools float top centre, zoom bottom; the inspector is label-left and shows the level with nothing
+  chosen; three layouts by the container (wide 1180 px and up, medium, compact at 760 px and down or under 520 px
+  high, with the tools in a dock and sheets); lock before eye on layer rows; (3) the same on Map, Tiles, Characters,
+  the Tuner, the suite page and the dialogs.
 - [ ] **Step 3:** The canvas tests' pixel expectations that read old colours: open expected, actual and diff for each;
   update with the reason in the commit. The iPad journeys (WebKit) are the Owner's run; Chromium here.
 - [ ] **Step 4:** Screenshots, copy rows. Commit. `feat(editor): the Level view redesigned, canvas first`
