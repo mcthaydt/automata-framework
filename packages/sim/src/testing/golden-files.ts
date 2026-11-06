@@ -1,4 +1,4 @@
-// Reading and writing golden files (M2.3 spec §2 and §3.8). Node reads and writes with node:fs; a browser can
+// Reading and writing golden files. Node reads and writes with node:fs; a browser can
 // only read, through the `readGolden` command that goldenCommands() registers. There is no browser write path,
 // so a browser can never rebaseline a golden (AGENTS.md: never rebaseline per engine).
 import { expect } from 'vitest'

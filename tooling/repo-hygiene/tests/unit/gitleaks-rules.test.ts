@@ -58,7 +58,7 @@ it("the test task's cache key covers KEY_RULES and .gitleaks.toml", () => {
   for (const task of ['test', 'test:unit']) {
     expect(turbo.tasks[task]?.inputs).toEqual(
       expect.arrayContaining([
-        '$TURBO_ROOT$/packages/ship/src/prepare/secret-scan.ts',
+        '$TURBO_ROOT$/packages/tools/src/shared/ship/prepare/secret-scan.ts',
         '$TURBO_ROOT$/.gitleaks.toml',
       ]),
     )

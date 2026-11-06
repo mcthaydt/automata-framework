@@ -26,7 +26,7 @@ const observedOf = (hosting: Hosting) => ({
 /**
  * Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`. `create` builds a fresh
  * `Hosting` for each case, with `saves` granted; `settled` lets the host answer (for example one macrotask). Every
- * target's adapter and `FakeHosting` pass these cases (DIST spec §7). Each case disposes its `Hosting`.
+ * target's adapter and `FakeHosting` pass these cases. Each case disposes its `Hosting`.
  */
 export function describeHostingContract(name: string, create: HostingFactory, settled: Settle): void {
   /** Runs `program` on a fresh `Hosting`, disposing it afterwards. */

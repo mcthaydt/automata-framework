@@ -218,12 +218,9 @@ describe("base-3d's flow", () => {
     key('keydown', 'Escape')
     await until(() => screen() === 'paused', 'paused')
     // Quit asks first (the default paused screen): the run is lost.
-    button('Quit to title')?.click()
-    await until(() => button('Cancel') !== undefined, 'the quit question')
-    const quits = [...root.querySelectorAll<HTMLButtonElement>('button')].filter(
-      (candidate) => candidate.textContent?.trim() === 'Quit to title',
-    )
-    quits.at(-1)?.click()
+    button('Back to menu')?.click()
+    await until(() => button('Keep playing') !== undefined, 'the quit question')
+    button('Leave')?.click()
     await until(() => screen() === 'title', 'the menu')
     expect(rounds()).toEqual([{ kind: 'start' }, { kind: 'end', outcome: 'quit' }])
     results.length = 0

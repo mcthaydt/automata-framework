@@ -30,7 +30,7 @@ export function collectSources(dir: string, skipDirs: readonly string[] = []): s
 
 /**
  * The roles whose files are the sim in a game laid out by role. The `automata check` step
- * (packages/cli) and the plugin hook (agents/automata/scripts/check.mjs) keep copies of this list, because this
+ * (packages/tools) and the plugin hook (agents/automata/scripts/check.mjs) keep copies of this list, because this
  * package is a bin with no library entry; their tests pin the same names.
  */
 export const GAME_SIM_ROLES: readonly string[] = [

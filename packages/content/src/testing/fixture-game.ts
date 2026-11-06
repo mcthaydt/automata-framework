@@ -181,7 +181,7 @@ export function copyFixture(name: string): string {
   return root
 }
 
-// The sim-rooms fixture (M2.2): a sim kind (rooms), a non-sim kind (sounds) that refers into it, and every
+// The sim-rooms fixture: a sim kind (rooms), a non-sim kind (sounds) that refers into it, and every
 // built-in document, so tests can show which edits move the sim hash and which do not.
 
 export const ROOM_KIND: ContentSchemaDef = defineContentSchema(

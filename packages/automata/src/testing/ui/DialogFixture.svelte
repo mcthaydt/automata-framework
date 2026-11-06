@@ -1,5 +1,5 @@
 <!--
-  A confirm dialog for the layout contracts (M1.6 plan Task 11): a title, a paragraph, two actions, said in the
+  A confirm dialog for the layout contracts: a title, a paragraph, two actions, said in the
   `locale` the contract runs in.
 -->
 <script lang="ts">

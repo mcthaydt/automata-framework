@@ -1,18 +1,28 @@
 // Usage: node tooling/check-style/src/cli.ts [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...] [--test-imports <root>...]
 // --plan-comments also flags comments that cite a milestone, task id or spec section (opt-in, for the roots passed).
 // Checks every production .ts and .svelte file (and, with --plan-comments, .css comments). Tests are exempt by folder: anything under a tests/ folder (where
-// every moved package keeps them) or a testing/ folder (published test helpers). The *.test.ts and *.test.svelte
+// every moved package keeps them). A testing/ folder (published test helpers) ships, so its comments are read under
+// --plan-comments, but it has no naming or markup rules. The *.test.ts and *.test.svelte
 // suffixes stay exempt only until the 3D and editor packages move their tests. Svelte files get the markup rules (no {@html}, no platform chrome);.ts files the naming rules. Roots after
 // --role-layout are a game's src/ laid out by role: only games/base-3d, until the 3D phase. A game laid out by feature is a package root.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join, relative, sep } from 'node:path'
 import { planCommentFindings } from './plan-comments.ts'
 import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'
 import { checkSvelte } from './svelte.ts'
 import { testImportFindings } from './test-imports.ts'
 
-/** Test helpers and tests are exempt; the rest are build output and dependencies, which no one wrote by hand. */
-const SKIPPED_FOLDERS: ReadonlySet<string> = new Set(['testing', 'tests', 'node_modules', 'dist', '.turbo'])
+/** Tests are exempt; the rest are build output and dependencies, which no one wrote by hand. */
+const SKIPPED_FOLDERS: ReadonlySet<string> = new Set([
+  'tests',
+  'node_modules',
+  'dist',
+  '.turbo',
+  '.svelte-kit',
+])
+
+/** Published test helpers: they ship, so their comments are read, but no other rule applies to them. */
+const isTestHelper = (path: string): boolean => path.split(sep).includes('testing')
 
 function collect(dir: string, out: string[]): void {
   for (const name of readdirSync(dir).sort()) {
@@ -62,7 +72,11 @@ function add(
       // A file a stricter root already reads is not read again by a comments-only root.
       if (seen.has(path)) continue
       seen.add(path)
-      files.push({ path, ...(own ? { gameRoot: root } : {}), ...extra })
+      files.push({
+        path,
+        ...(own ? { gameRoot: root } : {}),
+        ...(extra.commentsOnly || isTestHelper(relative(root, path)) ? { commentsOnly: true as const } : {}),
+      })
     }
   }
 }

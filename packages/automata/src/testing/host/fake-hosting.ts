@@ -28,14 +28,14 @@ import { emitter, type Subscribable, subscribable } from '../../shared/lib/subsc
 import { defaultGrants, type FakeTarget, hostNameOf, kindOf, ungrantedCode } from './target-grants'
 
 /*
- * `FakeHosting` (DIST spec §7): AF's host contract in process, for any target, with no window messages and no
+ * `FakeHosting`: AF's host contract in process, for any target, with no window messages and no
  * platform package. A test picks the target and drives the host through `FakeHostControl`. It runs the host
  * contract suite on every target (`fake-hosting.contract.test.ts`), so it answers as the real adapters do.
  */
 
 /** How the fake host starts. Every field has a default, so `fakeHosting()` is a web page with saves. */
 export interface FakeHostingOptions {
-  /** The target to stand in for: its `kind`, `hostName`, grants and error codes (DIST spec §4.3). Default `web`. */
+  /** The target to stand in for: its `kind`, `hostName`, grants and error codes. Default `web`. */
   readonly target?: FakeTarget
   /** The capabilities granted, in place of the target's default ones. */
   readonly granted?: readonly Capability[]
@@ -310,7 +310,7 @@ export function fakeHosting(options: FakeHostingOptions = {}): {
           request('saves.flush', 'saves', () => ({
             persisted: target === 'ruken' ? ('host-outbox' as const) : ('device' as const),
           })),
-        // Code-unit order, as every adapter sorts (M5 spec §4.1).
+        // Code-unit order, as every adapter sorts.
         keys: () => request('saves.keys', 'saves', () => [...saved.keys()].sort()),
         changed: changed.events,
       },

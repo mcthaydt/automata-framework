@@ -54,6 +54,12 @@ const withoutCommentLines = (code: string): string =>
     .filter((line) => !/^\s*(?:\*|\/\*|\/\/)/.test(line))
     .join('\n')
 
+/**
+ * `code` with the text of its template literals emptied, so the files `create-game` writes (a template holds
+ * `import … from './commands.ts'`, which belongs to the new game, not to this package) are not taken for imports.
+ */
+const withoutTemplateText = (code: string): string => code.replace(/`(?:\\[\s\S]|[^`\\])*`/g, '``')
+
 const each = (test: (pkg: WorkspacePackage) => void) => () => {
   for (const pkg of published) test(pkg)
 }
@@ -246,9 +252,9 @@ describe.skipIf(process.env.AF_CHECK_DIST !== '1')('the built packages', () => {
       const unresolved: string[] = []
       for (const file of filesBelow(join(root, dir, 'dist'))) {
         if (!/\.(js|d\.ts)$/.test(file) || file.includes('/dist/vendor/')) continue
-        for (const [, specifier] of withoutCommentLines(readFileSync(file, 'utf8')).matchAll(
-          RELATIVE_IMPORT,
-        )) {
+        for (const [, specifier] of withoutTemplateText(
+          withoutCommentLines(readFileSync(file, 'utf8')),
+        ).matchAll(RELATIVE_IMPORT)) {
           const target = join(dirname(file), specifier as string)
           // A `.js` import resolves to its `.d.ts` in a declaration file.
           const exists = existsSync(target) || existsSync(target.replace(/\.js$/, '.d.ts'))

@@ -1,4 +1,4 @@
-// I-a (M4 spec §13): one scripted 120-tick run, played three times, by the keyboard, a standard pad and touch
+// I-a: one scripted 120-tick run, played three times, by the keyboard, a standard pad and touch
 // buttons, through `keys().attach` (the Input service and `toCommand`) into a real sim. Shared by the Node test
 // and the browser parity test so both play exactly the same script.
 import {

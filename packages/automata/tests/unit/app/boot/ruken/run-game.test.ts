@@ -163,7 +163,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
   })
 
   describe('boot failure drawing: each tag mounts BootFailurePanel with correct data-code and data-state="failed"', () => {
-    it('HostError(init) -> data-code="start", hostKind is standalone before step 2 succeeds', async () => {
+    it('HostError(init) a retry cannot fix -> data-code="start-final"', async () => {
       const frames = manualFrames()
       const game: GameDefinition = {
         root,
@@ -188,7 +188,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
 
       const alert = root.querySelector('[role="alert"]')
       expect(alert).not.toBeNull()
-      expect(alert?.getAttribute('data-code')).toBe('start')
+      expect(alert?.getAttribute('data-code')).toBe('start-final')
       expect(document.documentElement.getAttribute('data-state')).toBe('failed')
 
       await handle.shutdown()

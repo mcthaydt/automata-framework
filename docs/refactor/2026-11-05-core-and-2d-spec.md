@@ -57,7 +57,7 @@ own refactor is the 3D and editor phases.
 | Package | Folder | Runs in | Made from | Effect | Published |
 |---|---|---|---|---|---|
 | `@mcthaydt/automata-sim` | `packages/sim` | anywhere (pure, except `src/testing/`, which runs under Vitest) | `sim`, plus the sim helpers of `testing` (`testing/sim`) | never | yes |
-| `@mcthaydt/automata-content` | `packages/content` | Node (compiler, Vite plugin); its `game-config` and `locale` entries also in the browser (`assets` is Node-only: it needs `fontkit`, `pngjs` and `node:crypto`) | `content` | compiler files only | yes |
+| `@mcthaydt/automata-content` | `packages/content` | Node (compiler, Vite plugin); its `game-config`, `locale`, `schema` and `palette` entries also in the browser (`assets` is Node-only: it needs `fontkit`, `pngjs` and `node:crypto`) | `content` | compiler files only | yes |
 | `@mcthaydt/automata` | `packages/automata` | browser | `host`, `runtime`, `render-pixi`, `ui`, `game`, the umbrella, and the browser helpers of `testing` | never | yes |
 | `@mcthaydt/automata-tools` | `packages/tools` | Node | `ship`, `cli`, `node`, and the Playwright helpers of `testing` (`testing/e2e`) | yes | yes |
 

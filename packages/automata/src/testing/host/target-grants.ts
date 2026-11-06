@@ -5,11 +5,11 @@ import type { Hosting } from '../../shared/host/hosting.ts'
 /** The four distribution targets a fake host can stand in for (ADR 0006). */
 export type FakeTarget = 'web' | 'itch' | 'ruken' | 'tauri'
 
-/** What every target grants a page: it can always observe these (DIST spec §4.3). */
+/** What every target grants a page: it can always observe these. */
 const OBSERVED: readonly Capability[] = ['lifecycle', 'input', 'display', 'audio']
 
 /**
- * What each target grants by default (DIST spec §4.3). The web targets add saves; the desktop also quits. Ruken grants
+ * What each target grants by default. The web targets add saves; the desktop also quits. Ruken grants
  * what the game asks for (`wants`), as its fake host does by default.
  */
 export function defaultGrants(target: FakeTarget, wants: readonly Capability[]): ReadonlySet<Capability> {
@@ -25,7 +25,7 @@ export function defaultGrants(target: FakeTarget, wants: readonly Capability[]):
 }
 
 /**
- * The code an ungranted call fails with (DIST spec §4.3, §8 flow 3): `DENIED` where the target offers the
+ * The code an ungranted call fails with: `DENIED` where the target offers the
  * capability but this session does not have it (saves on the web and desktop targets: blocked storage, an
  * unreadable store), `UNSUPPORTED` where the target does not offer it at all.
  */
@@ -38,7 +38,7 @@ export function kindOf(target: FakeTarget): Hosting['kind'] {
   return target === 'itch' ? 'web' : target
 }
 
-/** `Hosting.hostName` for each target; the desktop names the game (DIST spec §4.2). */
+/** `Hosting.hostName` for each target; the desktop names the game. */
 export function hostNameOf(target: FakeTarget, title: string): string {
   switch (target) {
     case 'web':

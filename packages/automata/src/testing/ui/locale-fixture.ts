@@ -1,5 +1,5 @@
 /**
- * The languages ui's layout contracts run every fixture in (PRODUCT spec §4 item 7): the fixtures' English
+ * The languages ui's layout contracts run every fixture in: the fixtures' English
  * stand-ins as written, and their `xx-long` form, about 40% longer, accented and bracketed, from the pseudo-locale
  * content owns. A fixture takes a `locale` prop and says each of its words with `say`.
  *
@@ -18,7 +18,7 @@ export function say(locale: FixtureLocale, text: string): string {
   return locale === PSEUDO_LOCALE ? pseudoLocalize(text) : text
 }
 
-/** A key or a pad button, labelled as the device prints it (M4 spec §4.6): the same in every language. */
+/** A key or a pad button, labelled as the device prints it: the same in every language. */
 const PRINTED_ON_DEVICE = '[data-prompt="key"], [data-prompt="pad"]'
 
 /**

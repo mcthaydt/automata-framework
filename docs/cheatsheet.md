@@ -100,7 +100,7 @@
 - `HostingLeaderboards` (interface): The host's leaderboards.
 - `HostingOptions` (interface): What the game asks of its host.
 - `HostingSaves` (interface): The player's saves.
-- `HostingSeams` (interface): Test seams.
+- `HostingSeams` (interface): Test seams of a target's adapter.
 - `HostRefusal` (interface): Why the host said no to a call: its contract code, whether a retry may succeed, and the call it refused.
 - `HostResult` (type): What a host call answers: the value, or the host's refusal.
 - `IconButton` (const): A button whose face is an icon.
@@ -234,7 +234,7 @@
 - `Conditions` (interface): The conditions a layout test runs under: the geometry published for a size and variant, and the regions that cover the page (the keyboard, Ruken's strip), which nothing may sit under.
 - `describeHostingContract(name, create, settled)`: Registers the `Hosting` contract's cases as a Vitest `describe` block named after `name`.
 - `documentScrolls(doc)`: The document itself never scrolls; screens scroll inside declared regions.
-- `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7).
+- `errorPanelFloor(panel)`: The least height any of an ErrorPanel's layouts needs, measured here rather than read from the panel, so a panel that misjudges its room cannot excuse itself.
 - `FakeAudioContext` (interface): A recording stand-in for an `AudioContext`: what was started, stopped and automated, with a clock tests move by hand.
 - `fakeAudioContext(decode?)`: `decode` turns the bytes `decodeAudioData` receives into a buffer, or throws as the browser does for bytes that are not audio; by default the bytes are the alias's UTF-8 text.
 - `fakeBuffer` (const): A decoded buffer that remembers the alias it came from, so `started` can name it.
@@ -263,7 +263,7 @@
 - `hostDisplay(options?)`: Ruken's display metrics for a hosted game.
 - `HostingFactory` (type): An adapter under test: a fresh `Hosting` per case, with `saves` granted.
 - `installFakeResizeObserver()`: Replaces the global `ResizeObserver` with a fake that reports only the widths you give it, for components measured under jsdom, which has no layout.
-- `LayoutRect` (interface): Layout assertions as plain DOM functions (M1.6 spec §3.10), from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
+- `LayoutRect` (interface): Layout assertions as plain DOM functions, from FloorFifty's `tests/e2e/support/layout.ts` at 122a220 (`expectReachable`, `expectControlsFit`, `expectRowsWhole`, `expectApart`, `expectNoDocumentScroll`).
 - `ManualFrames` (interface): A frame source a test drives: `advance` moves time on and runs the frame asked for, if any.
 - `manualFrames(startMs?)`: A frame source that runs a frame only when a test advances it, starting at `startMs`.
 - `MountedFixture` (interface): A mounted Svelte fixture: the element it was mounted into and a way to unmount it.

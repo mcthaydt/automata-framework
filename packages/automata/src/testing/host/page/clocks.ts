@@ -15,7 +15,7 @@ export const realClock: FakeHostClock = {
 /**
  * A clock that moves only when the test calls `advance`. It is both the fake
  * host's `BridgeClock` (`epochMs`) and the SDK's `SdkTimers` (`now`), so one
- * clock drives both sides (shared contracts §1.4).
+ * clock drives both sides.
  */
 export interface ManualClock extends FakeHostClock {
   now(): number
@@ -25,7 +25,7 @@ export interface ManualClock extends FakeHostClock {
 /**
  * SDK and fake-host timing (hello retries, the 10 s handshake give-up, request
  * timeouts) runs on this clock, so a test can step past them without waiting
- * (shared contracts §1.4). AF's own timing takes a `Clock` instead (`fakeClock()` in tests).
+ *. AF's own timing takes a `Clock` instead (`fakeClock()` in tests).
  * Timers fire in due order; a timer scheduled by another one fires in the same
  * `advance` if it falls due within it.
  */

@@ -1,6 +1,5 @@
 /**
- * The layout contract every primitive passes at every reference size and variant (M1.6 spec §7,
- * plan Task 11). A test sets the browser to the size, publishes the geometry a real owner would
+ * The layout contract every primitive passes at every reference size and variant. A test sets the browser to the size, publishes the geometry a real owner would
  * measure there, mounts its fixture with production CSS and calls `checkLayout`.
  */
 
@@ -58,7 +57,7 @@ export function publishConditions(root: HTMLElement, size: ReferenceSize, varian
   return { geometry, reserved }
 }
 
-/** An ActionBar that had to wrap, putting its primary on a row of its own (spec §3.4: never level 3). */
+/** An ActionBar that had to wrap, putting its primary on a row of its own (never level 3). */
 function findWrappedBars(root: ParentNode): string[] {
   return [...root.querySelectorAll('[data-action-bar][data-collapse="3"]')].map(
     (bar) => `${bar.getAttribute('data-testid') ?? 'action bar'} collapsed to level 3`,
@@ -66,7 +65,7 @@ function findWrappedBars(root: ParentNode): string[] {
 }
 
 /**
- * A control of the same screen drawn over its corner row (spec §3.4: the corner row never sits
+ * A control of the same screen drawn over its corner row (the corner row never sits
  * over content). Only the screen's own content counts: an overlay above the screen (an ErrorPanel,
  * a Dialog) interrupts the whole screen, corner row included.
  */
@@ -91,7 +90,7 @@ const nameOf = (element: Element): string =>
   element.getAttribute('data-testid') ?? element.tagName.toLowerCase()
 
 /**
- * A control whose words run past its edge (PRODUCT spec §4 item 7: clipping fails): a long language's word that does
+ * A control whose words run past its edge (clipping fails): a long language's word that does
  * not fit spills over what is beside it, or is cut where a box around it clips, as a Toggle's state word was. Only
  * the words as drawn count: what a box inside the control clips on purpose (a two-line clamp) is not drawn, and
  * neither is a visually hidden name (`clip-path`) or anything `visibility: hidden`.
@@ -170,7 +169,7 @@ const px = (value: string): number => Number.parseFloat(value) || 0
 
 /**
  * The least height any of an ErrorPanel's layouts needs, measured here rather than read from the
- * panel, so a panel that misjudges its room cannot excuse itself (spec §3.4, §7). For each layout
+ * panel, so a panel that misjudges its room cannot excuse itself. For each layout
  * (`row`, `stack`, `row-tight`) it lays the panel out, keeps the layout only where its message is
  * readable there (20 characters or the whole panel, half that in `row-tight`, and clear of the
  * actions), and takes the panel's chrome, one message line and the actions as laid out. The
@@ -210,7 +209,7 @@ export function errorPanelFloor(panel: HTMLElement): number {
 }
 
 /**
- * An ErrorPanel that had to rise over the corner row (spec §3.4), by its floor as measured here
+ * An ErrorPanel that had to rise over the corner row, by its floor as measured here
  * (`errorPanelFloor`). A panel that scrolls as a whole (`data-overflow`) had to when no layout
  * fits the room its layer normally leaves it (the layer's gutters taken off). Any other panel had
  * to rise when no layout fits under the corner row (the layer's `[data-corner-gap]` taken off too),
@@ -265,7 +264,7 @@ function findCoveredCorners(root: ParentNode): string[] {
 }
 
 /**
- * No control of the screen under a touch button (M4 spec §4.9): the overlay is an intruder like the keyboard or
+ * No control of the screen under a touch button: the overlay is an intruder like the keyboard or
  * Ruken's strip, so a thumb never presses a control it cannot see, and no control hides a button.
  */
 function findTouchIntrusions(root: ParentNode): string[] {

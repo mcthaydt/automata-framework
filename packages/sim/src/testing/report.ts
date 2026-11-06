@@ -1,4 +1,4 @@
-// What a golden check found (M2.3 spec §3.6), and how it prints: one screen that says why a golden broke.
+// What a golden check found, and how it prints: one screen that says why a golden broke.
 import type { Difference } from './diff'
 
 /**

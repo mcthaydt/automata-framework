@@ -1,4 +1,4 @@
-// A page for the web adapter's Node tests (PUB spec §7, unit row): real `EventTarget`s for the window, the
+// A page for the web adapter's Node tests: real `EventTarget`s for the window, the
 // document and the visual viewport, and a Map-backed `localStorage` that can be blocked or filled. Internal to the
 // host package's tests; not exported from `./testing`.
 import type { StorageLike, WebPage } from '../../../features/targets/web/hosting-web'

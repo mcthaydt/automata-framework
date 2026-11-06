@@ -3,7 +3,7 @@
 
 import type { Hosting } from '@mcthaydt/automata'
 import { createHosting } from '@mcthaydt/automata/target'
-import { openHostingTest, REFERENCE_SIZES, type ReferenceSize } from '@mcthaydt/automata/testing'
+import { fakeHosting, REFERENCE_SIZES, type ReferenceSize } from '@mcthaydt/automata/testing'
 import type { CompiledContent, ContentConfig, Diagnostic } from '@mcthaydt/automata-content'
 import { type ContentText, createContentText } from '@mcthaydt/automata-content/locale'
 import { automataContent } from '@mcthaydt/automata-content/vite'
@@ -55,7 +55,7 @@ export const game: DefinedGame = defineGame({
   sim: { plugins: [] },
 })
 export const hp = umbrellaComponent('hp', { value: 'f32' })
-export const values = [automataContent, createHosting, openHostingTest, ProcessRunner, prepareBuild]
+export const values = [automataContent, createHosting, fakeHosting, ProcessRunner, prepareBuild]
 export const component: typeof Dialog = Dialog
 export const layout: typeof checkLayout = checkLayout
 export const position = defineComponent('position', { x: 'f32', y: 'f32' })

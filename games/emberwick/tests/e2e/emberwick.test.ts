@@ -118,6 +118,10 @@ test('a device with no canvas context gets the device message, not a connection 
   await page.goto(gameUrl)
   await expect(page.locator('html')).toHaveAttribute('data-state', 'failed')
   await expect(game(page)).toContainText("This device can't run the game.")
+  // Read by role, as a player's screen reader would: one alert, and no button, since nothing on this page can fix it.
+  const alert = page.getByRole('alert')
+  await expect(alert).toContainText("This device can't run the game.")
+  await expect(alert.getByRole('button')).toHaveCount(0)
 })
 
 test('menu → room → pause → resume → pause → quit, by keyboard and buttons', async ({ page }) => {

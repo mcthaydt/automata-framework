@@ -1,4 +1,4 @@
-// The Vitest browser command that lets golden tests read golden files in a browser (M2.3 spec §3.8). It runs in
+// The Vitest browser command that lets golden tests read golden files in a browser. It runs in
 // Node, in the Vitest server; register it with `browser: { commands: goldenCommands() }`. There is deliberately
 // no write command.
 // Node modules load inside the command, so the ./sim entry stays importable in a browser page.

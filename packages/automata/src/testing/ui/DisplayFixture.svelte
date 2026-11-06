@@ -1,5 +1,5 @@
 <!--
-  The display covers for the layout contracts (M4 spec §4.9, §7, M4.7): the landscape gate in each of its states, and
+  The display covers for the layout contracts: the landscape gate in each of its states, and
   the rotate hint, each over a screen as a game would draw it. Words are English stand-ins of a typical length, said in the `locale`
   the contract runs in.
 -->

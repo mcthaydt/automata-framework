@@ -1,5 +1,5 @@
 <!--
-  The M4.6 primitives for the layout contracts (U-a, M4 spec §4.12), one per `show`, each in a screen
+  The primitives for the layout contracts, one per `show`, each in a screen
   with Back in its corner row as a game would draw it. The overlays (Modal, Sheet, Toast) sit over such
   a screen. Words are English stand-ins of a typical length, said in the `locale` the contract runs in (the
   player names too: the longer, the stricter).

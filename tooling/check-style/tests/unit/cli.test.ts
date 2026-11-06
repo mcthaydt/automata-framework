@@ -33,7 +33,7 @@ it('passes clean Svelte files and skips *.test.svelte and testing/ folders', () 
       'testing/Fixture.svelte': '<p>{@html text}</p>\n',
     }),
   )
-  expect(result.stdout).toContain('check-style: 1 files, 0 findings')
+  expect(result.stdout).toContain('check-style: 2 files, 0 findings')
   expect(result.status).toBe(0)
 })
 
@@ -80,6 +80,21 @@ it('passes a clean game root', () => {
 
 const runWith = (dir: string, ...args: string[]) =>
   spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', cwd: dir })
+
+it('reads the comments of a testing/ folder (published helpers) but applies no other rule there', () => {
+  const dir = src({
+    'layout/Frame.svelte': '<div>{title}</div>\n',
+    'testing/Fixture.svelte': '<!-- the M4 primitives -->\n<p>{@html text}</p>\n',
+    'testing/helper.ts': '// spec §4.9 asked for this\nexport const x = 1\n',
+    'testing/Weird_Name.ts': 'export const y = 1\n',
+  })
+  const result = runWith(dir, '--plan-comments', dir)
+  expect(result.stdout).toContain('testing/Fixture.svelte:1  plan-comment')
+  expect(result.stdout).toContain('testing/helper.ts:1  plan-comment')
+  expect(result.stdout).not.toContain('no-html')
+  expect(result.stdout).not.toContain('file-name')
+  expect(result.status).toBe(1)
+})
 
 it('reads only the comments under --comments-only: a config file is not named by role, a CSS comment is read', () => {
   const dir = src({

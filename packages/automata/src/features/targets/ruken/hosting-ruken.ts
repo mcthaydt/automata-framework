@@ -8,8 +8,12 @@ import {
   type SdkEnv,
 } from '@ruken/sdk'
 import { type HostResult, refuse } from '../../../shared/host/errors'
-import type { HostingOptions } from '../../../shared/host/hosting'
-import { HOST_EXIT_CAP_MS, type Hosting } from '../../../shared/host/hosting'
+import {
+  HOST_EXIT_CAP_MS,
+  type Hosting,
+  type HostingOptions,
+  type HostingSeams,
+} from '../../../shared/host/hosting'
 import { type Clock, systemClock } from '../../../shared/lib/clock'
 import { disposables } from '../../../shared/lib/disposables'
 import { ok, refused } from '../../../shared/lib/result'
@@ -18,18 +22,6 @@ import { makeExitHandlers } from '../exit-handlers'
 import { makeMenuHandlers } from '../menu'
 import { guardRounds } from '../rounds'
 import { toRefusal } from './errors-ruken'
-
-/** Test seams. Games pass nothing; `openHostingTest` passes the fake host's in-memory window pair. */
-export interface HostingSeams {
-  readonly env?: SdkEnv
-  /** The clock AF's own timing (the exit cap) runs on; a test passes `fakeClock()`. */
-  readonly clock?: Clock
-  /**
-   * Gives up waiting for the handshake. Inside a frame that is not Ruken's the SDK waits up to 10 s for a welcome;
-   * boot may stop sooner. A session that arrives after the abort is disposed at once instead of leaking.
-   */
-  readonly signal?: AbortSignal
-}
 
 /**
  * True when the page runs inside a frame. Only then does a standalone session
@@ -93,7 +85,7 @@ export async function createRukenHosting(
     testHostOrigins: options.testHostOrigins,
     onMenuRequest: () => menu.answer(),
   }
-  const opened = await initSession(initOptions, seams.env, seams.signal)
+  const opened = await initSession(initOptions, seams.env as SdkEnv | undefined, seams.signal)
   if (!opened.ok) return opened
   const session = opened.value
 
@@ -109,7 +101,8 @@ export async function createRukenHosting(
   // `ready` rejecting means the session is unusable anyway, so the menu simply stays refused.
   void session.ready.then(menu.markReady, () => undefined)
 
-  const fellBack = !session.hosted && isFramed(seams.env) ? ({ reason: 'no-welcome' } as const) : null
+  const fellBack =
+    !session.hosted && isFramed(seams.env as SdkEnv | undefined) ? ({ reason: 'no-welcome' } as const) : null
   if (fellBack !== null) {
     console.warn('Ruken handshake failed inside a frame; the game runs standalone', fellBack)
   }

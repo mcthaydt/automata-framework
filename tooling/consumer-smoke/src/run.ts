@@ -64,7 +64,7 @@ function rootPackageManager(): string {
 /** The same pins the workspace uses (docs/versions.md), so the smoke project never drifts from them. */
 function toolVersions(): ToolVersions {
   const rootManifest = manifestOf('.')
-  const ui = manifestOf('packages/ui')
+  const ui = manifestOf('packages/automata')
   const pin = (found: string | undefined, name: string): string => {
     if (found === undefined) throw new Error(`no workspace pin for ${name}`)
     return found
@@ -79,8 +79,8 @@ function toolVersions(): ToolVersions {
       '@sveltejs/vite-plugin-svelte',
     ),
     zod: pin(manifestOf('packages/sim').dependencies?.zod, 'zod'),
-    typesNode: pin(manifestOf('packages/node').devDependencies?.['@types/node'], '@types/node'),
-    pixi: pin(manifestOf('packages/render-pixi').devDependencies?.['pixi.js'], 'pixi.js'),
+    typesNode: pin(manifestOf('packages/tools').devDependencies?.['@types/node'], '@types/node'),
+    pixi: pin(manifestOf('packages/automata').devDependencies?.['pixi.js'], 'pixi.js'),
   }
 }
 
@@ -218,6 +218,7 @@ function steps(project: string): Step[] {
         const offenders = filesBelow(installed)
           .filter((file) => file.endsWith('.js') || file.endsWith('.svelte'))
           .filter((file) => !file.includes('/dist/vendor/')) // ship's copy of Ruken's Node CLI never runs in a game
+          .filter((file) => !file.includes('/@mcthaydt/automata-tools/')) // build tools run in Node; `automata check` names eval to flag it
           .filter((file) => EVAL.test(readFileSync(file, 'utf8')))
         if (offenders.length > 0) throw new Error(`eval in:\n${offenders.join('\n')}`)
         return 'none'
