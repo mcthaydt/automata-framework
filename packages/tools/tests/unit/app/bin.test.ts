@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -501,5 +502,14 @@ describe('bin cli', () => {
       expect(calls).toEqual([['publish', '--dist', 'dist']])
       expect(code).toBe(0)
     })
+  })
+
+  // Inside the workspace, `automata` is `src/app/bin.ts` run by Node itself (a game's CI runs `automata ship prepare`
+  // this way). Node resolves no extensionless import, so a command must not load the editor suite's sources until
+  // `automata editor` asks for them.
+  it('runs from source, as the workspace bin, without loading the editor suite', () => {
+    const run = spawnSync(process.execPath, ['src/app/bin.ts', '--help'], { encoding: 'utf8' })
+    expect(run.stderr).not.toContain('ERR_MODULE_NOT_FOUND')
+    expect(run.status).toBe(0)
   })
 })
