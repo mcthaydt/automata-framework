@@ -5,7 +5,7 @@
 
 import { loadEditorList } from '../../editor-list/editor-list'
 import { EDITOR_LIST_PATH } from '../../editor-list/editors.schema'
-import { fileAccess } from '../../editor-list/workspace-policy'
+import { fileAccess, newFilePath } from '../../editor-list/workspace-policy'
 import { createHistory, type History } from '../../kit/history/history.ts'
 import { type StorageClock, systemClock } from '../../kit/storage/clock.ts'
 import {
@@ -267,6 +267,27 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     return uniqueName(path, new Set(taken.map((entry) => entry.path)))
   }
 
+  /**
+   * Where a new file goes: on a served checkout, the folder its editor list lets the editor write a file of that name
+   * (a game keeps its levels in `content/rooms/`, not at its root, and the server refuses anything else); in browser
+   * storage, or a checkout without a list that loads, the name itself, as before.
+   */
+  async function placeNew(
+    name: string,
+  ): Promise<{ status: 'placed'; path: string } | { status: 'refused'; message: string }> {
+    if (workspace.served !== true) return { status: 'placed', path: name }
+    const bytes = await workspace.store.read(EDITOR_LIST_PATH)
+    const loaded = loadEditorList(bytes === undefined ? undefined : new TextDecoder().decode(bytes))
+    if (!loaded.ok) return { status: 'placed', path: name }
+    const path = newFilePath(loaded.list, name)
+    return path === undefined
+      ? {
+          status: 'refused',
+          message: `Your game has no folder for new levels yet. Add one to ${EDITOR_LIST_PATH}, then try again.`,
+        }
+      : { status: 'placed', path }
+  }
+
   async function create(profileId: string, templateId: string): Promise<OpenOutcome> {
     const profile = registry.get(profileId)
     if (profile === undefined) throw new RangeError(`no profile "${profileId}"`)
@@ -277,7 +298,10 @@ export function createEditorApp(options: EditorAppOptions): EditorApp {
     const file = working?.files(template.create(ids), '')[0]
     if (file === undefined) throw new RangeError(`profile "${profileId}" has no working file export`)
     try {
-      const path = await firstFree(file.path)
+      const placed = await placeNew(file.path)
+      if (placed.status === 'refused')
+        return { status: 'storageFailed', path: '', reason: 'io', message: placed.message }
+      const path = await firstFree(placed.path)
       const written = await workspace.store.write(path, file.contents)
       if (!written.ok) return { status: 'storageFailed', path, ...failureOf(written) }
       return open(path)

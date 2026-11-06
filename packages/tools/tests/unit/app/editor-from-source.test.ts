@@ -52,7 +52,7 @@ describe('automata editor, run from source by plain Node', () => {
     const running = await start(appDir)
     try {
       const ping = await fetch(`${running.url}/api/ping`)
-      expect(await ping.json()).toEqual({ automata: 'editor', token: false })
+      expect(await ping.json()).toMatchObject({ automata: 'editor', token: false })
     } finally {
       running.stop()
     }

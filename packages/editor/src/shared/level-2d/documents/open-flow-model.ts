@@ -47,8 +47,9 @@ export function openProblem(outcome: Exclude<OpenOutcome, { readonly status: 'op
       const labels = outcome.candidates.map((candidate) => `a ${candidate.label}`)
       return `${name} could be ${labels.slice(0, -1).join(', ')} or ${labels.at(-1)}.`
     }
+    // A refusal about no file yet (a new level with no folder to go in) has no path, so its message stands alone.
     case 'storageFailed':
-      return `${name}: ${outcome.message}`
+      return name === '' ? outcome.message : `${name}: ${outcome.message}`
   }
 }
 

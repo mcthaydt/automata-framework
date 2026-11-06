@@ -816,10 +816,10 @@ interface HistoryOptions {
 interface HomeCard {
     readonly path: string;
     readonly title: string;
-    readonly badge: {
+    readonly badge?: {
         readonly tone: Tone;
         readonly text: string;
-    };
+    } | undefined;
     readonly kind: string;
     readonly accent: string | undefined;
     readonly size: number;
@@ -1784,6 +1784,7 @@ interface Workspace {
     readonly persistent: boolean;
     readonly reason: string | undefined;
     readonly served?: boolean;
+    readonly game?: string | undefined;
 }
 ```
 
@@ -2176,10 +2177,10 @@ interface HistoryOptions {
 interface HomeCard {
     readonly path: string;
     readonly title: string;
-    readonly badge: {
+    readonly badge?: {
         readonly tone: Tone;
         readonly text: string;
-    };
+    } | undefined;
     readonly kind: string;
     readonly accent: string | undefined;
     readonly size: number;
@@ -2759,6 +2760,7 @@ interface Workspace {
     readonly persistent: boolean;
     readonly reason: string | undefined;
     readonly served?: boolean;
+    readonly game?: string | undefined;
 }
 ```
 

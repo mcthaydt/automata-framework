@@ -30,9 +30,9 @@ function mount(cards: readonly TemplateCard[], busy = false) {
 }
 
 describe('TemplateRow', () => {
-  it('has a heading and one button for each template, with its hint', () => {
+  it('is a list of templates with one button for each, with its hint', () => {
     mount([roguelike, blank])
-    expect(screen.getByRole('heading', { name: 'Start a new project' })).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Templates' })).toBeInTheDocument()
     const rogue = screen.getByRole('button', { name: /Roguelike/ })
     expect(rogue).toHaveTextContent('rooms · loot')
     expect(screen.getByRole('button', { name: /Blank/ })).toBeInTheDocument()

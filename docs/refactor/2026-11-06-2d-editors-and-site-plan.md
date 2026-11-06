@@ -2033,3 +2033,54 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
 - **Handoff (session 9, 14:30 UTC).** Branch `claude/project-thread-9tfov0`, PR #419. The plan named separate
   branches per phase; this session may push only to its own branch, so 12.1's start is on #419 too. Next session: the
   rest of 12.1, on a new branch stacked on #419.
+- **12.1 done (session 10): Home redesigned.** The 2D Home no longer uses the kit's three-column `HomeScreen`: it is
+  one column on the sage field (`features/home/Home.svelte`, under 300 lines like every file it touches), with "New
+  level" the top bar's one primary button, the game's name under the title on a game folder ("Your game: Emberwick"),
+  "Open from" as the kit's two-option `Segmented` ("This game" or "This browser", "Import files"), the search, one
+  column of cards and one storage line ("Saved in your game folder. Edits are kept if the page closes."). A card
+  (`ProjectCard.svelte`, new) is a button that opens the level, a 72 px tile, the name and "Changed 7 minutes ago";
+  its More menu holds Open, Duplicate, Details and Delete…; Details is a dialog with what `ProjectSummary` showed,
+  less its buttons, plus the file, size and date. "New level" opens `NewLevelSheet.svelte` (new) with the template
+  cards (`TemplateRow`, restyled). The list (`LevelList.svelte`, new: the plan named only the card and the sheet,
+  but the keys, focus and empty states needed a home of their own to keep `Home.svelte` small) has one tab stop, the
+  selected card; arrows, Home and End move it, Enter opens, Delete asks. The kit's `ProjectCard` tile moved to
+  `kit/home/CardTile.svelte`, which both cards use. **Step G:** a template on a game folder makes the level where the
+  editor list lets the editor write it (`newFilePath` in `workspace-policy.ts`: the folder of the first row whose glob
+  would take the name and that is not generated or never written; `content/rooms/` on Emberwick); with no such row
+  it says "Your game has no folder for new levels yet. Add one to content/editors.toml, then try again." (a refusal
+  with no path, so `openProblem` no longer prefixes a file name). `automata editor`'s ping now carries the game's name,
+  its folder's name in words (`emberwick` is "Emberwick"; a title lives in a target's own config, so the folder is
+  the one name every game has); `openServedStore` returns it beside the store and the workspace carries it as
+  `game`. Delete on a game folder says "It's removed from your game for good." **Deviation 103:** the browser's
+  technical reason for keeping nothing (OPFS) is the storage line's tooltip, not a second line. **Deviation 104:**
+  `editor-3d` still uses the kit's `HomeScreen`, `SourcesPanel` and `ProjectList` unchanged: the 3D slice redesigns
+  its Home (spec 11.6); the kit's components stay for it. **Left for later:** a duplicate keeps the level's own
+  name, so two cards read "Mossgate" (the toast names the copy's file); renaming the copy needs the profile, so it is
+  listed for 12.5's copy pass; the template tiles are letters, not illustrations; Home joins the design board with
+  12.2. Step 0's action list, ticked: list newest first with the first selected (yes); ages told against the clock
+  (yes, "Changed 5 minutes ago"); the sources panel (now the source line and "Open from"); a card per template (yes,
+  in the sheet); re-read on return (yes); loading placeholder (yes); empty invites a template (yes, with its own New
+  level button); device-only storage said once (yes, one line); click selects (a tap now opens, and focus selects);
+  arrows, Home and End move (yes, the focus with them); Enter, double click and Open open (Enter and a tap, and Open
+  in the menu); open the card it came on (yes); search narrows (yes; the count line is gone); nothing matches plus
+  Clear (yes); Escape clears (yes); a template makes and opens a level (yes); Duplicate adds, selects, says so (yes);
+  Delete asks with Cancel focused (yes); Delete confirmed removes, says so and focuses the list (the next card);
+  the Delete key asks (yes); Import keeps and names (yes, under Import files); actions wait while one runs (yes);
+  a listing failure says why and Retry recovers (yes); drawers and sheets by button and Escape (no drawers now; the
+  dialogs close by button and Escape); rotation keeps the search, the selection and the scroll (yes). Gates: editor
+  unit 3,286 (Home's DOM tests rewritten to 28; ProjectSummary 7, policy +3, save-to-game +2, served workspace +1,
+  home model +3; App, boot and recovery-journey tests moved to the new names); `-tools` serve-editor 14; editor
+  typecheck clean; Home's layout test in Chromium 41 of 41 at the eight sizes (one column, every More button inside
+  the viewport and 44 px, the New level sheet's templates reachable, one scroll region, rotation); every screenshot
+  opened. The layout tests that open a level from Home (level, characters, share, map, problems, tiles, open flows,
+  the thumbnails canvas test) now tap the card. WebKit, Firefox and hosted CI not run.
+- **12.2, part (session 10): Back with unsaved changes asks.** Step G's first line: Back on a level whose save state
+  is `dirty` or `error` opens `LeaveDialog.svelte` (new): "Save your changes to Mossgate?" with Save (primary, focused
+  first), Don't save and Cancel. Save writes and then leaves, and stays when the save conflicts or fails, so its own
+  dialog or toast is seen; Don't save calls the controller's new `closeWithoutSaving()`, which drops the autosave so
+  the next open offers nothing to restore; Cancel stays. **Deviation 105:** an undo moves the history's revision, so
+  a level painted and then undone still asks on Back (the boot journey now answers Don't save); comparing against the
+  saved revision is the session's rule and is left as it is. Gates: document-controller 30 (one new), DocumentScreen
+  22 (four new), app tests 211. Left for 12.2: the top bar (rename on tap, the view switcher with Level, Map, Tiles,
+  Characters, icon Undo and Redo, Save as the one primary button with "Saving…" and "Saved"), no status bar, the
+  problems sheet, the Share menu, the rail's icons, and the restore dialog's words.

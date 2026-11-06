@@ -13,6 +13,12 @@ import FakeLevelCanvas from '#src/testing/level-2d/FakeLevelCanvas.svelte'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { noteText, plantedProfile } from '#src/testing/level-2d/planted-profile.ts'
 
+/** Opens Home's New level sheet and answers its list of templates. */
+async function openNewLevel(): Promise<HTMLElement> {
+  await userEvent.click(await screen.findByTestId('new-level'))
+  return screen.getByRole('list', { name: 'Templates' })
+}
+
 // The root: Home or a document, and what happens to a document when the person leaves it.
 
 const quietPage = () => ({
@@ -71,7 +77,7 @@ async function mount(
 }
 
 async function newProject(): Promise<void> {
-  const templates = await screen.findByRole('region', { name: 'Start a new project' })
+  const templates = await openNewLevel()
   await userEvent.click(within(templates).getAllByRole('button')[0] as HTMLElement)
   await screen.findByRole('button', { name: 'Back' })
 }
@@ -79,17 +85,17 @@ async function newProject(): Promise<void> {
 describe('App', () => {
   it('starts on Home', async () => {
     await mount()
-    expect(await screen.findByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Your levels' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Back' })).toBeNull()
   })
 
   it('a project that opens takes the page; Back leaves it and lets the document go', async () => {
     const { disposed } = await mount()
     await newProject()
-    expect(screen.queryByRole('heading', { name: 'Projects' })).toBeNull()
+    expect(screen.queryByRole('heading', { name: 'Your levels' })).toBeNull()
     expect(disposed).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
-    expect(await screen.findByRole('heading', { level: 1, name: 'Projects' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Your levels' })).toBeInTheDocument()
     await waitFor(() => expect(disposed).toHaveBeenCalledOnce())
   })
 
@@ -102,7 +108,7 @@ describe('App', () => {
 
   it('closing the editor on Home has no document to let go', async () => {
     const { disposed, unmount } = await mount()
-    await screen.findByRole('heading', { level: 1, name: 'Projects' })
+    await screen.findByRole('heading', { level: 1, name: 'Your levels' })
     unmount()
     expect(disposed).not.toHaveBeenCalled()
   })
@@ -110,19 +116,19 @@ describe('App', () => {
   it('a file that does not open shows the error panel over Home, and Open another goes back to the list (G-n)', async () => {
     const { workspace } = await mount({ files: { 'broken.af2d.json': '{ "format": "af2d",' } })
     const before = (await workspace.store.list()).map((entry) => entry.path)
-    await userEvent.dblClick(await screen.findByRole('option', { name: /broken\.af2d\.json/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /^(broken\.af2d\.json)/ }))
     const panel = await screen.findByRole('dialog', { name: 'broken.af2d.json does not open' })
     expect(within(panel).getByTestId('text-view')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Back' })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Open another' }))
     expect(screen.queryByRole('dialog')).toBeNull()
-    expect(screen.getByRole('listbox', { name: 'Projects' })).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Levels' })).toBeInTheDocument()
     expect((await workspace.store.list()).map((entry) => entry.path)).toEqual(before)
   })
 
   it('a file two profiles claim asks which, and opens with the one chosen', async () => {
     await mount({ rival: true, files: { 'harbour.note': noteText('harbour') } })
-    await userEvent.dblClick(await screen.findByRole('option', { name: /harbour\.note/ }))
+    await userEvent.click(await screen.findByRole('button', { name: /^(harbour\.note)/ }))
     await screen.findByRole('dialog', { name: 'Open harbour.note as' })
     await userEvent.click(screen.getByRole('button', { name: 'Rival note' }))
     expect(await screen.findByRole('button', { name: 'Back' })).toBeInTheDocument()
@@ -133,8 +139,8 @@ describe('App', () => {
     const { opens, releaseFlush, disposed } = await mount({ holdFlush: true })
     await newProject()
     await userEvent.click(screen.getByRole('button', { name: 'Back' }))
-    const [card] = await screen.findAllByRole('option')
-    await userEvent.dblClick(card as HTMLElement)
+    const list = await screen.findByRole('list', { name: 'Levels' })
+    await userEvent.click(list.querySelector('.open') as HTMLElement)
     await new Promise((resolve) => setTimeout(resolve, 20))
     expect(opens).not.toHaveBeenCalled()
     expect(disposed).not.toHaveBeenCalled()

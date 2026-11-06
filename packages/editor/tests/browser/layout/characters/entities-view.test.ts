@@ -51,9 +51,9 @@ async function start(size: EditorSize) {
     },
   })
   await settleLayout()
-  const card = document.querySelector<HTMLElement>('[role="option"]')
-  if (card === null) throw new Error('no project card')
-  card.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
+  const card = document.querySelector<HTMLElement>('[aria-label="Levels"] .open')
+  if (card === null) throw new Error('no level card')
+  card.click()
   await expect.poll(() => document.querySelector('[data-testid="level-view"]')).not.toBeNull()
   const tab = [
     ...document.querySelectorAll<HTMLElement>('[role="tablist"][aria-label="Views"] [role="tab"]'),

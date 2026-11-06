@@ -1,5 +1,6 @@
-import type { HomeCard, Tone } from '../../shared/kit/home/project-browse.ts'
+import { type HomeCard, modifiedLabel, type Tone } from '../../shared/kit/home/project-browse.ts'
 import { baseName } from '../../shared/kit/storage/store-path.ts'
+import type { Workspace } from '../../shared/kit/storage/workspace.ts'
 import type { ToastKind } from '../../shared/kit/widgets/toasts.ts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
 import type { CopyOutcome, ImportOutcome } from '../../shared/level-2d/documents/editor-app'
@@ -84,6 +85,45 @@ export function homeCard(
         ? undefined
         : { key, draw: () => thumbnails.thumbnail(key, preview) },
   }
+}
+
+// --- where levels live -------------------------------------------------------------------------------------------
+
+const MINUTE = 60_000
+const HOUR = 60 * MINUTE
+const DAY = 24 * HOUR
+
+/**
+ * When a file changed, in whole words: "just now", "7 minutes ago", "3 hours ago", then "yesterday" and the date in
+ * `timeZone` (the kit's `modifiedLabel` writes those, so both editors date a file alike). Never "min" or "h".
+ */
+export function whenLabel(mtime: number, now: number, timeZone?: string): string {
+  const elapsed = now - mtime
+  if (elapsed < MINUTE) return 'just now'
+  if (elapsed < HOUR) return `${plural(Math.floor(elapsed / MINUTE), 'minute', 'minutes')} ago`
+  if (elapsed < DAY) return `${plural(Math.floor(elapsed / HOUR), 'hour', 'hours')} ago`
+  return modifiedLabel(mtime, now, timeZone)
+}
+
+/** "Changed 7 minutes ago": the one fact a card gives besides the level's name. */
+export const changedLabel = (mtime: number, now: number, timeZone?: string): string =>
+  `Changed ${whenLabel(mtime, now, timeZone)}`
+
+/** Where the levels on Home come from, as the "Open from" control names it: the game by its name, else the browser. */
+export function sourceLabel(workspace: Workspace): string {
+  if (workspace.served === true)
+    return workspace.game === undefined ? 'Your game' : `Your game: ${workspace.game}`
+  return workspace.persistent ? 'This browser' : 'This tab only'
+}
+
+/**
+ * The one line under the list that says how work is kept. The autosave is a safety net, so it is told as what it
+ * does for her ("kept if the page closes"), never by name; the browser's technical reason for no storage is not hers.
+ */
+export function storageLine(workspace: Workspace): string {
+  if (!workspace.persistent) return 'Not saved on this device. Download your level to keep it.'
+  const where = workspace.served === true ? 'in your game folder' : 'in this browser'
+  return `Saved ${where}. Edits are kept if the page closes.`
 }
 
 // --- templates --------------------------------------------------------------------------------------------------

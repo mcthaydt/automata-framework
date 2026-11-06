@@ -19,6 +19,8 @@ export interface Workspace {
   readonly reason: string | undefined
   /** True when `store` is a game checkout served by `automata editor`, not this browser's storage; Home says so. */
   readonly served?: boolean
+  /** On a served checkout, the game's name in words ("Emberwick"), as the server gives it; Home shows it as the source. */
+  readonly game?: string | undefined
 }
 
 export interface WorkspaceEnv {
@@ -78,24 +80,26 @@ const TOKEN_KEY = 'automata-editor-token'
 /**
  * The checkout of an editor served by `automata editor`, over HTTP: the page asks its own origin whether it is an editor
  * server, and answers `undefined` when it is not (a static host, a dev server). A token given in the address is kept
- * for the tab's session, so a reload needs none. The 2D editor and the suite both open the checkout through this.
+ * for the tab's session, so a reload needs none. The ping's `game` (the game's name in words) comes back beside the store. The 2D editor and the suite both open the checkout through this.
  */
 export async function openServedStore(
   env: Pick<ServedWorkspaceEnv, 'origin' | 'search' | 'fetch' | 'sessionStorage'>,
-): Promise<ProjectStore | undefined> {
+): Promise<{ readonly store: ProjectStore; readonly game: string | undefined } | undefined> {
   const fetchFn = env.fetch ?? ((...args: Parameters<typeof fetch>) => fetch(...args))
+  let game: string | undefined
   try {
     const ping = await fetchFn(`${env.origin}/api/ping`)
     const body: unknown = await ping.json()
     if (typeof body !== 'object' || body === null || !('automata' in body) || body.automata !== 'editor')
       return undefined
+    if ('game' in body && typeof body.game === 'string' && body.game !== '') game = body.game
   } catch {
     return undefined
   }
   const given = new URLSearchParams(env.search).get('token') ?? undefined
   if (given !== undefined) env.sessionStorage?.setItem(TOKEN_KEY, given)
   const token = given ?? env.sessionStorage?.getItem(TOKEN_KEY) ?? undefined
-  return createHttpStore({ base: env.origin, token, fetch: fetchFn })
+  return { store: createHttpStore({ base: env.origin, token, fetch: fetchFn }), game }
 }
 
 /**
@@ -104,18 +108,19 @@ export async function openServedStore(
  * this browser, beside the editor, never in the checkout.
  */
 export async function openServedWorkspace(env: ServedWorkspaceEnv): Promise<Workspace | undefined> {
-  const store = await openServedStore(env)
-  if (store === undefined) return undefined
+  const served = await openServedStore(env)
+  if (served === undefined) return undefined
   const local = await openWorkspace({
     ...(env.storage === undefined ? {} : { storage: env.storage }),
     ...(env.download === undefined ? {} : { download: env.download }),
   })
   return {
-    store,
+    store: served.store,
     journal: local.journal,
     exports: local.exports,
     persistent: true,
     reason: undefined,
     served: true,
+    game: served.game,
   }
 }

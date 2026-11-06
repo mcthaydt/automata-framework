@@ -37,6 +37,17 @@ const api = (base: string, path: string, init?: RequestInit): Promise<Response> 
   fetch(`${base}${path}`, init)
 
 describe('serveEditor', () => {
+  it('names the game in the ping by its folder, in words: my-cool-game is "My cool game"', async () => {
+    const game = join(root, 'my-cool-game')
+    await mkdir(game)
+    const { url } = await start({ root: game })
+    expect(await (await api(url, '/api/ping')).json()).toEqual({
+      automata: 'editor',
+      token: false,
+      game: 'My cool game',
+    })
+  })
+
   it('serves the editor’s build, with a page for a path without a file', async () => {
     const { url } = await start()
     expect(await (await fetch(`${url}/`)).text()).toContain('<title>editor</title>')
@@ -45,7 +56,7 @@ describe('serveEditor', () => {
 
   it('answers a ping without a token, telling whether one is needed', async () => {
     const { url } = await start()
-    expect(await (await api(url, '/api/ping')).json()).toEqual({ automata: 'editor', token: false })
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ automata: 'editor', token: false })
   })
 
   it('lists the files the policy lets be read, with sizes and integer mtimes', async () => {
@@ -153,7 +164,7 @@ describe('serveEditor', () => {
 
   it('wants the token off the loopback, and the Host header of a loopback server to be a loopback name', async () => {
     const { url } = await start({ token: 'secret' })
-    expect(await (await api(url, '/api/ping')).json()).toEqual({ automata: 'editor', token: true })
+    expect(await (await api(url, '/api/ping')).json()).toMatchObject({ automata: 'editor', token: true })
     expect((await api(url, '/api/list?prefix=')).status).toBe(401)
     expect((await api(url, '/api/list?prefix=', { headers: { authorization: 'Bearer wrong' } })).status).toBe(
       401,

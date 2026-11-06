@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createAppProfiles } from '#src/app/editor-2d/profiles.ts'
 import {
   cardTitle,
+  changedLabel,
   duplicateMessage,
   entryBadge,
   homeCard,
@@ -10,9 +11,13 @@ import {
   kindTone,
   removeMessage,
   searchWords,
+  sourceLabel,
+  storageLine,
   templateCards,
 } from '#src/features/home/home-model.ts'
 import { filterEntries } from '#src/shared/kit/home/project-browse.ts'
+import { createMemoryStore } from '#src/shared/kit/storage/memory-store.ts'
+import type { Workspace } from '#src/shared/kit/storage/workspace.ts'
 import type { LevelThumbnails } from '#src/shared/level-2d/canvas/level-thumbnails.ts'
 import type { CopyOutcome, ImportOutcome, OpenOutcome } from '#src/shared/level-2d/documents/editor-app.ts'
 import type { ProjectEntry } from '#src/shared/level-2d/documents/project-list.ts'
@@ -298,5 +303,45 @@ describe('homeCard', () => {
         homeCard(ok('plain.af2d.json', { profile: project }), registry, thumbnails).preview,
       ).toBeUndefined()
     })
+  })
+})
+
+describe('the words of the redesigned Home', () => {
+  const MINUTE = 60_000
+  const now = Date.UTC(2026, 10, 6, 12)
+  const space = (over: Partial<Workspace> = {}): Workspace => ({
+    store: createMemoryStore(),
+    journal: createMemoryStore(),
+    exports: { kind: 'download', write: async () => ({ ok: true }) } as unknown as Workspace['exports'],
+    persistent: true,
+    reason: undefined,
+    ...over,
+  })
+
+  it('says when a level changed in whole words: minutes, hours, yesterday, then the date', () => {
+    expect(changedLabel(now - 10_000, now)).toBe('Changed just now')
+    expect(changedLabel(now - MINUTE, now)).toBe('Changed 1 minute ago')
+    expect(changedLabel(now - 7 * MINUTE, now)).toBe('Changed 7 minutes ago')
+    expect(changedLabel(now - 60 * MINUTE, now)).toBe('Changed 1 hour ago')
+    expect(changedLabel(now - 180 * MINUTE, now)).toBe('Changed 3 hours ago')
+    expect(changedLabel(now - 30 * 60 * MINUTE, now)).toBe('Changed yesterday')
+    expect(changedLabel(Date.UTC(2026, 9, 21, 12), now, 'UTC')).toBe('Changed Oct 21')
+  })
+
+  it('names where the levels come from: the game by its name, else the browser or the tab', () => {
+    expect(sourceLabel(space({ served: true, game: 'Emberwick' }))).toBe('Your game: Emberwick')
+    expect(sourceLabel(space({ served: true }))).toBe('Your game')
+    expect(sourceLabel(space())).toBe('This browser')
+    expect(sourceLabel(space({ persistent: false }))).toBe('This tab only')
+  })
+
+  it('tells how work is kept in one line', () => {
+    expect(storageLine(space({ served: true }))).toBe(
+      'Saved in your game folder. Edits are kept if the page closes.',
+    )
+    expect(storageLine(space())).toBe('Saved in this browser. Edits are kept if the page closes.')
+    expect(storageLine(space({ persistent: false, reason: 'No private storage.' }))).toBe(
+      'Not saved on this device. Download your level to keep it.',
+    )
   })
 })
