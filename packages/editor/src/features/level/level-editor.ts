@@ -1,6 +1,4 @@
-// The Level view's editing: tools, brush, selection and the pointer gestures that paint cells or move and resize
-// entities. A drag is one undoable step.
-import { packTile, unpackTile } from '../../shared/level-2d/model/cells-codec'
+import { unpackTile } from '../../shared/level-2d/model/cells-codec'
 import {
   cellWord,
   fillLayer,
@@ -21,6 +19,17 @@ import type {
   Project,
 } from '../../shared/level-2d/model/project-types'
 import { brushCells, lineCells, type Point } from '../../shared/level-2d/tiles/footprint'
+import {
+  cellAt,
+  defaultWord,
+  type Gesture,
+  layerDef,
+  sameList,
+  samePoint,
+  snapped,
+  type Transaction,
+  toggled,
+} from './level-editor-support'
 
 // The Level view's logic: what the toolbar and the palette have chosen, and what a pointer
 // does to the project through the edit commands, one `History` step per gesture. No Svelte, DOM or Pixi in here: the
@@ -62,54 +71,6 @@ export interface LevelEditorOptions {
 
 const MIN_BRUSH = 1
 const MAX_BRUSH = 8
-
-function layerDef(project: Project, id: string): LayerDef {
-  const found = project.defs.layers.find((candidate) => candidate.id === id)
-  if (found === undefined) throw new RangeError(`no layer "${id}"`)
-  return found
-}
-
-function defaultWord(def: LayerDef): number {
-  if (def.kind === 'intgrid') return def.values[0]?.value ?? 0
-  if (def.kind === 'entities') return 0
-  return packTile(0, false, false)
-}
-
-type Transaction = ReturnType<EditHistory['begin']>
-
-/** What a pointer is in the middle of. A transaction shows its updates live and is one history step when it commits. */
-type Gesture =
-  | {
-      readonly kind: 'stroke'
-      readonly tx: Transaction
-      readonly target: LayerTarget
-      readonly word: number
-      last: Point
-    }
-  | {
-      readonly kind: 'rectangle'
-      readonly tx: Transaction
-      readonly base: Project
-      readonly target: LayerTarget
-      readonly word: number
-      readonly anchor: Point
-    }
-  | {
-      readonly kind: 'move'
-      readonly tx: Transaction
-      /** The project as it was at pointer down: every move is computed from it, so dragging back to the start is no edit. */
-      readonly base: Project
-      readonly target: LayerTarget
-      readonly id: string
-      readonly grab: Point
-      readonly origin: Point
-      readonly step: number
-    }
-
-const sameList = (a: readonly string[], b: readonly string[]): boolean =>
-  a.length === b.length && a.every((item, i) => item === b[i])
-const samePoint = (a: Point | undefined, b: Point | undefined): boolean =>
-  a === b || (a !== undefined && b !== undefined && a.x === b.x && a.y === b.y)
 
 export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
   const { history, ids } = options
@@ -165,21 +126,7 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
     for (const run of [...listeners]) run()
   }
 
-  function toggled(set: ReadonlySet<string>, id: string, on: boolean): ReadonlySet<string> {
-    if (set.has(id) === on) return set
-    const next = new Set(set)
-    if (on) next.add(id)
-    else next.delete(id)
-    return next
-  }
-
   const target = (): LayerTarget => ({ level: view.level, layer: view.layer })
-
-  /** The cell of a layer under a level pixel. An objects layer has no grid, so its "cell" is the pixel. */
-  function cellAt(def: LayerDef, at: Point): Point {
-    const grid = def.kind === 'objects' ? 1 : def.grid
-    return { x: Math.floor(at.x / grid), y: Math.floor(at.y / grid) }
-  }
 
   function endGesture(commit: boolean): void {
     if (gesture === undefined) return
@@ -248,9 +195,6 @@ export function createLevelEditor(options: LevelEditorOptions): LevelEditor {
       }
     return undefined
   }
-
-  /** A pointer coordinate moved to the layer's grid when it snaps, otherwise to a whole pixel. */
-  const snapped = (value: number, step: number): number => Math.round(value / step) * step
 
   function downOnEntities(def: EntitiesLayerDef, at: Point): void {
     const where = target()

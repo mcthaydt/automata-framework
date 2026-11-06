@@ -1501,5 +1501,14 @@ Fixes done: one test clock for the storage and gesture tests (`testing/kit/test-
 imports are gone; the storage tests pass with the shared default start); header comments for 33 of the 34 (the other, `handle-store.ts`, explains itself in a comment under its imports)
 none (checked against each file's exports).
 
-Left, with the files named above: splitting the eight long files and the longest functions by responsibility, the tests
-read, and the JSON scanner question. They are one area per commit; the next session continues here.
+More fixes (one concern per commit): `json/structure.ts` 401 → 258 lines (`shape.ts` holds the file's reading and the shape
+error, `render-like.ts` the writing of a value like its neighbours); `json/patch.ts` 365 → 255 (`patch-check.ts` holds the
+refusal reasons and the guard that every result reads as the model it should); `level-editor.ts` 397 → 343
+(`level-editor-support.ts` holds the gesture types, the layer lookup and the pointer-to-cell arithmetic). Two comments
+that still named a source project across a wrapped line were reworded (the earlier grep read one line at a time). Unused
+imports in three files removed. Unit tests 3,268 equal after each.
+
+Left: the files still over 300 lines (`write-path.ts` 336, `recognizer.ts` 330, `editor-app.ts` 313, `project-codec.ts`
+311, `content-document.ts` 308, `level-editor.ts` 343), the longest functions (`createLevelEditor` 250, `createRecognizer`
+256, `createWritePath` 240), the tests read for implementation coupling, and the JSON scanner question. The next session
+continues here.

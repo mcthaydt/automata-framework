@@ -1,5 +1,5 @@
 import { type FieldRow, fieldRow } from '../../shared/kit/fields/field-row.ts'
-import type { FieldDef, FieldValue, FieldValues } from '../../shared/kit/fields/field-types.ts'
+import type { FieldDef, FieldValues } from '../../shared/kit/fields/field-types.ts'
 import { valuesWithDefaults } from '../../shared/kit/fields/field-values.ts'
 import type { EntityDef2D, EntityInstance, Project, Size } from '../../shared/level-2d/model/project-types'
 import { refName, refTargets } from '../../shared/level-2d/model/refs/ref-links'

@@ -1,7 +1,7 @@
 import type { HomeCard, Tone } from '../../shared/kit/home/project-browse.ts'
 import type { ToastKind } from '../../shared/kit/widgets/toasts.ts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
-import type { CopyOutcome, ImportOutcome, OpenOutcome } from '../../shared/level-2d/documents/editor-app'
+import type { CopyOutcome, ImportOutcome } from '../../shared/level-2d/documents/editor-app'
 import type { ProjectEntry } from '../../shared/level-2d/documents/project-list'
 import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
 
