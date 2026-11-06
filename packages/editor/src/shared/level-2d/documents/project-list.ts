@@ -1,4 +1,5 @@
 import { classifyStorageError } from '../../kit/storage/project-store.ts'
+import { baseName } from '../../kit/storage/store-path.ts'
 import type { Workspace } from '../../kit/storage/workspace.ts'
 import { levelImages } from '../canvas/draw/level-images'
 import type { LevelPreview, ProfileRegistry, ProfileSummary } from '../profiles/profile'
@@ -45,7 +46,6 @@ export type ProjectEntry =
   | (Listed & { readonly status: 'ambiguous'; readonly candidates: readonly ProfileRef[] })
 
 const ref = (profile: ProfileRef): ProfileRef => ({ id: profile.id, label: profile.label })
-const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 
 /** Rejects when the workspace cannot be listed (a `StorageError`); a file that cannot be read becomes a broken entry. */
 export async function listProjects(

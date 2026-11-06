@@ -1,3 +1,4 @@
+import { baseName } from '../../kit/storage/store-path.ts'
 import type { ParseError, Profile } from '../profiles/profile'
 import type { OpenOutcome } from './editor-app'
 
@@ -19,8 +20,6 @@ const MEGABYTE = 1024 * 1024
 const LIMIT_MB = 16
 /** How many lines the text view draws at most: enough to read around an error, few enough for a tablet. */
 const WINDOW_LINES = 400
-
-const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 
 /** One line for every way an open or create can end without a document: what a toast says. */
 export function openProblem(outcome: Exclude<OpenOutcome, { readonly status: 'opened' }>): string {

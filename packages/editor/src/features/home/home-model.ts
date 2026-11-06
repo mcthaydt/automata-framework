@@ -1,4 +1,5 @@
 import type { HomeCard, Tone } from '../../shared/kit/home/project-browse.ts'
+import { baseName } from '../../shared/kit/storage/store-path.ts'
 import type { ToastKind } from '../../shared/kit/widgets/toasts.ts'
 import type { LevelThumbnails } from '../../shared/level-2d/canvas/level-thumbnails'
 import type { CopyOutcome, ImportOutcome } from '../../shared/level-2d/documents/editor-app'
@@ -11,7 +12,6 @@ import type { ProfileRegistry } from '../../shared/level-2d/profiles/profile'
 // the ages, sizes and storage notes are the kit's (`shared/kit/home`), shared with editor-3d.
 
 const plural = (count: number, one: string, many: string): string => `${count} ${count === 1 ? one : many}`
-const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 
 // --- words on a card --------------------------------------------------------------------------------------------
 

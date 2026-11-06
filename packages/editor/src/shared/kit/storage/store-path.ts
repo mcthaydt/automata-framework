@@ -44,3 +44,6 @@ export function assertStorePrefix(prefix: string): void {
 export function comparePaths(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0
 }
+
+/** The file name of a store path: `stages/a.toml` is `a.toml`. */
+export const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)

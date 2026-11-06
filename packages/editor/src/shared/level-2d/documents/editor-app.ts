@@ -1,5 +1,6 @@
 // The editor's app logic without a view: listing, creating, opening, copying, importing and removing documents, each
 // answering with an outcome the views turn into screens.
+
 import { createHistory, type History } from '../../kit/history/history.ts'
 import { type StorageClock, systemClock } from '../../kit/storage/clock.ts'
 import {
@@ -14,6 +15,7 @@ import {
 } from '../../kit/storage/project-store.ts'
 import { readStored } from '../../kit/storage/read-stored.ts'
 import { findRecovery, type Recovery, discardRecovery as removeJournal } from '../../kit/storage/recovery.ts'
+import { baseName } from '../../kit/storage/store-path.ts'
 import type { Workspace } from '../../kit/storage/workspace.ts'
 import type { IdSource } from '../model/ids'
 import type { ParseError, Profile, ProfileRegistry, Result } from '../profiles/profile'
@@ -139,8 +141,6 @@ const failureOf = (written: {
   reason: written.reason === 'conflict' ? 'io' : written.reason,
   message: written.message,
 })
-
-const baseName = (path: string): string => path.slice(path.lastIndexOf('/') + 1)
 
 /** The stem and the extension of `path`; the extension starts at the first dot of the file name, so `a.af2d.json` keeps both parts, and a name that starts with a dot has none. */
 function splitName(path: string): { stem: string; extension: string } {

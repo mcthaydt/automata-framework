@@ -1506,7 +1506,11 @@ error, `render-like.ts` the writing of a value like its neighbours); `json/patch
 refusal reasons and the guard that every result reads as the model it should); `level-editor.ts` 397 → 343
 (`level-editor-support.ts` holds the gesture types, the layer lookup and the pointer-to-cell arithmetic). Two comments
 that still named a source project across a wrapped line were reworded (the earlier grep read one line at a time). Unused
-imports in three files removed. Unit tests 3,268 equal after each.
+imports in three files removed. Unit tests 3,268 equal after each. A second duplicate scan (the same name defined in two source files) found and merged
+three more: `systemClock` (the editor app and `main.ts` each had a copy of `kit/storage/clock.ts`'s), `baseName` (five
+copies, now one in `store-path.ts`, also used by two inline spellings) and `hasValue` (two copies). Other same-name
+pairs are different things (`clamp` has four different signatures; the two `firstDifference` and `firstUnwritable`
+are the generic and the JSON-number-style versions).
 
 Left: the files still over 300 lines (`write-path.ts` 336, `recognizer.ts` 330, `editor-app.ts` 313, `project-codec.ts`
 311, `content-document.ts` 308, `level-editor.ts` 343), the longest functions (`createLevelEditor` 250, `createRecognizer`

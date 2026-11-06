@@ -1,5 +1,6 @@
 import { modifiedLabel } from '../home/project-browse'
 import type { Recovery } from '../storage/recovery'
+import { baseName } from '../storage/store-path.ts'
 
 // The words of the Restore dialog.
 
@@ -11,7 +12,7 @@ export function recoveryFacts(
   timeZone?: string,
 ): readonly { readonly label: string; readonly value: string }[] {
   return [
-    { label: 'File', value: path.slice(path.lastIndexOf('/') + 1) },
+    { label: 'File', value: baseName(path) },
     { label: 'Last autosave', value: modifiedLabel(recovery.savedAt, now, timeZone) },
     {
       label: 'File on disk',
