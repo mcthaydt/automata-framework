@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import { BASE } from '../../../base/base';
-import { hero, member, standing, walking } from '../../../src/features/figure/frames';
 import { ScriptedActor, Troupe, scriptOf, type ActorScript } from '../../../src/features/actors/actor';
 import { ACTIONS, actionOf, lengthOf, specAt, weightAt } from '../../../src/features/actors/actions';
 import { lowest } from '../../../src/features/actors/pose-spec';

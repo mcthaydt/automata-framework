@@ -346,7 +346,8 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
    * fleck); the lower lip lit; the hollow under it at `cm`. A
    * row of the chin's own skin always stays between the lower lip and the jaw's shadow (lips on the jaw's edge read as a
    * goatee): the lower lip only with two rows of chin under the lips' line, the hollow only with three. Parted on a
-   * two-row chin: the upper lip and the mouth's dark, no lower lip, so a row of chin stays under the dark.
+   * two-row chin: the upper lip and the mouth's dark, no lower lip, so a row of chin stays under the dark. On a small face
+   * the mouth's dark keeps a texel of skin at each end, off the jaw's outline.
    */
   const lips = (a: number, b: number, cm: number) => {
     // The mood at the corners: up a row in a smile, down a row in anger (and closed).
@@ -354,7 +355,16 @@ function stampFace(f: FaceStamp, g: GBuffer, tones: number[], out: Uint8ClampedA
     const small = !big;
     if (!big) {
       for (let x = a; x <= b; x++) put(x, M, f.lips[0]);
-      if (open) for (let x = Math.min(a + 1, cm), e = Math.max(b - 1, cm); x <= e; x++) put(x, M + 1, f.lash);
+      if (open) {
+        // The mouth's dark keeps a texel of the face's own skin between each end and the outline (a mouth that runs into
+        // the jaw's outline reads as a wider one): the run shrinks from an end whose neighbour is not skin, to one texel, which steps a texel in off the outline.
+        let x0 = Math.min(a + 1, cm), x1 = Math.max(b - 1, cm);
+        while (x0 < x1 && !own(x0 - 1, M + 1)) x0++;
+        while (x1 > x0 && !own(x1 + 1, M + 1)) x1--;
+        // One texel left and still against the outline: it steps in, off it (never to nothing, so talk still shows).
+        if (x0 === x1) { if (!own(x0 + 1, M + 1) && own(x0 - 1, M + 1)) x0--; else if (!own(x0 - 1, M + 1) && own(x0 + 1, M + 1)) x0++; x1 = x0; }
+        for (let x = x0; x <= x1; x++) put(x, M + 1, f.lash);
+      }
       else if (smile) corners(M - 1); else if (angry) corners(M + 1);
       return;
     }
