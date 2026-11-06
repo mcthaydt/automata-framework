@@ -54,3 +54,18 @@ describe('the 3D gate', () => {
     expect(included).not.toContain('./packages/editor-*')
   })
 })
+
+// Every browser gate shares one budget. On the one Mac runner, three suites at a time (each with Chromium, WebKit and
+// Firefox) left the first test in a file, the one that pays Vite's on-demand transforms, and the hooks that start or
+// stop an editor, over vitest's 30 s hook limit (2026-11-06: #400, #404, #409, #414, a different test each time).
+const BROWSER_GATES = ['test:browser', 'test:browser:2d', 'test:browser:3d', 'test:browser:affected']
+
+describe('the browser gates', () => {
+  it.each(BROWSER_GATES)('%s runs two suites at a time with the 90 s test and hook budget', (name) => {
+    const script = scripts[name]
+    expect(script, `${name} exists`).toBeDefined()
+    expect(script).toContain('--concurrency=2 ')
+    expect(script).toContain('--testTimeout=90000')
+    expect(script).toContain('--hookTimeout=90000')
+  })
+})
