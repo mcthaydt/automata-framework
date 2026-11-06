@@ -48,10 +48,14 @@ describe('parseCliArgs', () => {
 
   it('passes everything after test-remote through untouched', () => {
     expect(
-      parseCliArgs(['test-remote', 'games/placeholder/e2e/boot.e2e.ts', '--project=placeholder']),
+      parseCliArgs([
+        'test-remote',
+        'games/emberwick/e2e/base-2d.e2e.ts',
+        '--project=emberwick-phone-chromium',
+      ]),
     ).toEqual({
       command: 'test-remote',
-      args: ['games/placeholder/e2e/boot.e2e.ts', '--project=placeholder'],
+      args: ['games/emberwick/e2e/base-2d.e2e.ts', '--project=emberwick-phone-chromium'],
     })
   })
 

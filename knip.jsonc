@@ -27,9 +27,6 @@
     "tooling/agent-skills": { "ignoreDependencies": ["@mcthaydt/automata-sim"] },
     // DX.7: the plugin's hook runs Emberwick's own `automata` bin from node_modules/.bin (install.test.ts).
     "games/emberwick": { "ignoreDependencies": ["@mcthaydt/automata-cli"] },
-    // ruken/s8/measure.ts builds ruken/s8/no-effect.html, whose script is this file. Its journeys have no
-    // Playwright config since the per-area split (the game is removed in phase 2), so they are listed here.
-    "games/placeholder": { "entry": ["ruken/s8/no-effect.ts", "e2e/*.e2e.ts"] },
     // Each game or example set has its own playwright.config.ts (core-and-2D refactor, task 1.1). They are entries,
     // listed with the journeys they run, because a config's projects name test folders in other workspaces.
     "examples": { "entry": ["playwright.config.ts", "e2e/*.e2e.ts"], "playwright": false },

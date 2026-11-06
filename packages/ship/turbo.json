@@ -19,8 +19,7 @@
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/vitest.config.ts",
         "$TURBO_ROOT$/examples/*/*/package.json",
-        "$TURBO_ROOT$/examples/*/*/vitest.config.ts",
-        "$TURBO_ROOT$/games/placeholder/e2e/**"
+        "$TURBO_ROOT$/examples/*/*/vitest.config.ts"
       ]
     },
     "test": {
@@ -40,8 +39,7 @@
         "$TURBO_ROOT$/examples/*/package.json",
         "$TURBO_ROOT$/examples/*/vitest.config.ts",
         "$TURBO_ROOT$/examples/*/*/package.json",
-        "$TURBO_ROOT$/examples/*/*/vitest.config.ts",
-        "$TURBO_ROOT$/games/placeholder/e2e/**"
+        "$TURBO_ROOT$/examples/*/*/vitest.config.ts"
       ]
     }
   }

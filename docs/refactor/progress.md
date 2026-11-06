@@ -27,7 +27,7 @@ Copy and UX pass the drunk grandma test: could a drunk grandma tell what is happ
 | 5. Build audit | Not started | |
 | 6. Fixes | Not started | |
 
-### Build: 13% (4 of 30 tasks)
+### Build: 20% (6 of 30 tasks)
 
 Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) has the steps.
 
@@ -38,8 +38,8 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 1.3 Frame budget skips on a software renderer | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
 | 1.4 `.vscode` | 1 | Done, 2026-11-05 (CI run pending) | [#388](https://github.com/mcthaydt/automata-framework/pull/388) |
 | 2.1 Tag the starting point | 2 | Not started | |
-| 2.2 Emberwick's stand-ins | 2 | Not started | |
-| 2.3 The placeholder game | 2 | Not started | |
+| 2.2 Emberwick's stand-ins | 2 | Done, 2026-11-05 (CI run pending) | PR to open |
+| 2.3 The placeholder game | 2 | Done, 2026-11-05 (CI run pending) | PR to open |
 | 2.4 Features no game uses | 2 | Not started | |
 | 3.1 The Vitest preset | 3 | Not started | |
 | 3.2 The test move codemod | 3 | Not started | |
@@ -63,6 +63,11 @@ Stage 4 ticks these off as it goes; the [plan](2026-11-05-core-and-2d-plan.md) h
 | 8.3 The `create-game` journey | 8 | Not started | |
 | 9.1 Prepare the branch clean-up | 9 | Not started | |
 | 9.2 Run it (the Owner's go) | 9 | Not started | |
+
+**Last bundle numbers (S8, from the placeholder game, measured 2026-11-05 just before it was deleted):** the page
+with Effect is 143.85 kB raw and 46.87 kB gzip; the same page without Effect is 54.55 kB raw and 18.60 kB gzip, so
+Effect's share was 28.3 kB gzip against a 35 kB budget. The boot-time budgets were 300 ms (100 ms for Effect's
+share) at 4x CPU. No bundle budget runs until the bundle report (task 5.1) takes these numbers over.
 
 Done means: Emberwick's journeys pass on every pull request in two browsers, the Owner plays it on the iPad, the
 repository has only `main` and branches with active CI (fewer than 5), the code follows the feature-folder layout

@@ -2,4 +2,3 @@
 // entry from the package root, so code that only needs the sim or the palette never loads Pixi.
 
 export { lightTexture, textureFromPixels } from './pixels.ts'
-export { createRenderer, type Renderer, type RendererLayer } from './renderer.ts'

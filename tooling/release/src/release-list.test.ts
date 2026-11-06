@@ -68,9 +68,7 @@ const each = (test: (pkg: WorkspacePackage) => void) => () => {
 // EX-D1: the games sit in `games/`, private, so the walk must find them to prove they stay unpublished.
 it('walks every workspace folder, games included', () => {
   const dirs = workspacePackages(root).map((pkg) => pkg.dir)
-  expect(dirs).toEqual(
-    expect.arrayContaining(['games/emberwick', 'games/placeholder', 'examples/ui/primitives']),
-  )
+  expect(dirs).toEqual(expect.arrayContaining(['games/emberwick', 'examples/ui/primitives']))
 })
 
 describe('the published packages', () => {

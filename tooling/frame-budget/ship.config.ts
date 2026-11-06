@@ -1,7 +1,7 @@
 import { defineShipConfig } from '@mcthaydt/automata-ship'
 
 // The stress example's Ruken manifest: only so `vite preview` serves its build with the headers Ruken would
-// (`previewHeaders`, Ruken's CSP with no eval), as spike S8 measured the placeholder. It is never published.
+// (`previewHeaders`, Ruken's CSP with no eval), as spike S8 measured. It is never published.
 export default defineShipConfig({
   game: {
     id: 'af-stress-core',
