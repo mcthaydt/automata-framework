@@ -1005,8 +1005,8 @@ execution log, and tick each off when the redesigned view's tests reach it.
 - Modify: `.github/workflows/release-packages.yml` (after publish: copy `agents/automata` to `mcthaydt/automata-skills`
   with `SKILLS_TOKEN`; without it, print "No skills token yet." and pass)
 
-- [ ] **Step 1:** The job parses; with no secret it passes on the PR's head (`workflow_dispatch` dry run, or the
-  invariant test of 17.1 checks the guard). Mark the PR ready. `ci(release): mirror the agent package to its public home`
+- [ ] **Step 1:** The job parses; with no secret it passes on the PR's head (a `workflow_dispatch` dry run;
+  task 17.1's invariants then keep the guard). Mark the PR ready. `ci(release): mirror the agent package to its public home`
 
 ---
 
