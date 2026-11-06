@@ -158,6 +158,24 @@ describe('loose hair (fall)', () => {
     const widest = (r: ReturnType<typeof rowsOf>) => Math.max(...r.width.slice(0, r.chin));
     expect(widest(afro)).toBeGreaterThanOrEqual(1.4 * widest(bare));
   });
+  it('hangs down the back: below the shoulder line no strand is wider than the head, whatever the curl and the volume (no wings)', () => {
+    for (const [curl, volume] of [[0, 0], [0.4, 0.3], [0.8, 0.6], [1, 1]]) {
+      const st = style('curl', fall({ curl, volume, length: 1 })), { parts, m, s } = look(st), head = headForm(m, s).width(0.5) * 1.0;
+      for (const p of parts.filter(q => q.skin)) for (let i = 0; i < p.mesh.positions.length; i += 3) {
+        if (p.mesh.positions[i + 1] >= s.shoulderY) continue;
+        expect(Math.abs(p.mesh.positions[i]), `curl ${curl} volume ${volume} y ${p.mesh.positions[i + 1].toFixed(3)}`).toBeLessThanOrEqual(head);
+      }
+    }
+  });
+  it('an afro is one round mass from behind: no notch in its top rows (the crown is closed)', () => {
+    const fig = stand(wearing(style('curl', fall({ curl: 1, volume: 1, length: 0, count: 40, rope: { r: 0.2 } }))), 4, 2), { chin } = rowsOf(fig), w = fig.g.w;
+    let top = 0; while (!fig.painted.slice(top * w * 4, (top + 1) * w * 4).some((v, i) => i % 4 === 3 && v)) top++;
+    for (let y = top; y < top + 14; y++) {
+      let runs = 0, prev = false;
+      for (let x = 0; x < w; x++) { const on = fig.painted[(y * w + x) * 4 + 3] > 0; if (on && !prev) runs++; prev = on; }
+      expect(runs, `row ${y} (${y - top} below the top, chin row ${chin})`).toBe(1);
+    }
+  });
   it('the clumps at the sides ride hair.L and hair.R, the rest hair.back', () => {
     const joints = new Set<number>();
     for (const p of look(straight).parts.filter(q => q.skin)) for (const w of p.skin!) for (const [j, share] of w) if (share > 0) joints.add(j);

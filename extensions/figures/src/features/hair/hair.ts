@@ -494,10 +494,11 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
     for (let j = 0; j < o.count; j++) {
       const a0 = part + gap + (2 * Math.PI - 2 * gap) * (j + 0.5 + 0.2 * (hash(j * 3 + 1) - 0.5)) / o.count, a = ((a0 + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
       const y0 = along(o.from, a), yb = Math.max(-0.7, y0 + 0.1), sideRide = Math.abs(Math.sin(a)) > 0.55;
-      // Down the scalp to the hairline, then down the head's side to the jaw: a clump that starts in front of the ear sweeps
-      // round to it (past 1.75 rad from the front), so it frames the face and never lies across it.
-      const aEar = Math.sign(a) * Math.max(Math.abs(a), 1.75), path: V3[] = [];
-      for (let q = 0; q <= 4; q++) path.push(onHead(form, k, a, lerp(0.8, yb, q / 4), lift + 0.03 * q / 4));
+      // Down the scalp to the hairline, then down the head to the jaw: a clump that starts in front of the ear sweeps round
+      // behind it (past 2.4 rad from the front), so it never lies across the face and reaches the back of the neck, not the sides.
+      const aEar = Math.sign(a) * Math.max(Math.abs(a), 2.4), path: V3[] = [];
+      // From the crown itself (every clump's root meets there, lifted by the volume), so the mass closes over the top.
+      for (let q = 0; q <= 4; q++) path.push(onHead(form, k, a, lerp(0.97, yb, q / 4), lift + 0.03 * q / 4));
       for (let q = 1; q <= 5; q++) path.push(onHead(form, k, lerp(a, aEar, smooth(Math.min(1, q / 2.5))), lerp(yb, -0.76, q / 5), lift + 0.03 + 0.02 * q / 5));
       const jaw = path[path.length - 1];
       // Below the jaw: straight down, behind the trunk from the shoulders on (and by the shoulders already, drifting back).
@@ -505,14 +506,15 @@ export function hairParts(i: HairInput, style: HairStyle): HairLook {
       const steps = yEnd < yJ - 1e-4 ? Math.max(2, Math.ceil((yJ - yEnd) / (0.05 * kk))) : 0;
       for (let q = 1; q <= steps; q++) {
         const y = lerp(yJ, yEnd, q / steps), w = smooth((yJ - y) / Math.max(1e-6, yJ - shoulder));
-        path.push([jaw[0] * (1 + 0.1 * q / steps), y, Math.min(lerp(jaw[2], zBack, w), trunkBack(y))]);
+        // It follows the back and the tops of the shoulders: narrowing toward the spine as it falls, never out.
+        path.push([jaw[0] * (1 - 0.3 * w), y, Math.min(lerp(jaw[2], zBack, w), trunkBack(y))]);
       }
       let P = spline(path, 40);
       if (curl > 0 && steps) {
         // A wave (curl under a half) or a spiral (from a half): about the path below the jaw, out and across it, fading in.
-        const radial = normalize([jaw[0], 0, jaw[2] - k.c[2]]), tangent: V3 = [-radial[2], 0, radial[0]], amp = ra * (1 + 3 * curl), cycles = 1.5 + 4 * curl, ph = hash(j * 5 + 2) * 2 * Math.PI;
+        const radial = normalize([jaw[0], 0, jaw[2] - k.c[2]]), tangent: V3 = [-radial[2], 0, radial[0]], amp = ra * (0.4 + 1.2 * curl), cycles = 1.5 + 4 * curl, ph = hash(j * 5 + 2) * 2 * Math.PI;
         P = P.map((p, n) => {
-          const q = n / (P.length - 1), f = smooth((yJ - p[1]) / Math.max(1e-6, (yJ - yEnd) * 0.25)) * (p[1] < yJ ? 1 : 0);
+          const q = n / (P.length - 1), f = smooth((yJ - p[1]) / Math.max(1e-6, (yJ - yEnd) * 0.25)) * (p[1] < yJ ? 1 : 0) * (1 - 0.7 * smooth((q - 0.8) / 0.2));
           if (!f) return p;
           const th = 2 * Math.PI * cycles * q + ph, c = curl < 0.5 ? Math.sin(th) : Math.cos(th), t = curl < 0.5 ? 0 : Math.sin(th);
           const q2 = add(p, add(scale(radial, c * amp * f), scale(tangent, t * amp * f)));
