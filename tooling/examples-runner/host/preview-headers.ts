@@ -1,4 +1,5 @@
-import { rukenHeaders, type ShipConfig } from '@mcthaydt/automata-tools'
+import type { ShipConfig } from '@mcthaydt/automata-tools'
+import { rukenHeaders } from '@mcthaydt/automata-tools/internal'
 import { Effect } from 'effect'
 import { demoHostOrigin } from './ports.ts'
 

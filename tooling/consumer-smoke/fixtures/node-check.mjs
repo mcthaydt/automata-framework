@@ -73,4 +73,6 @@ const second = await fall()
 if (!/^[0-9a-f]{16}$/.test(first) || first !== second)
   throw new Error(`sim hashes differ: ${first} ${second}`)
 
+if (typeof tools.defineShipConfig !== 'function') throw new Error('tools.defineShipConfig is missing')
+
 console.log(`node: ${Object.keys(entries).length + 1} entries imported; fall plugin, 60 ticks, hash ${first}`)

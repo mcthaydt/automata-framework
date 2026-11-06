@@ -17,7 +17,7 @@ import {
 } from '@mcthaydt/automata-sim'
 import { xxhash64 } from '@mcthaydt/automata-sim/hash'
 import { sin } from '@mcthaydt/automata-sim/math'
-import { type FilesService, ProcessRunner, prepareBuild, type ShipConfig } from '@mcthaydt/automata-tools'
+import { defineShipConfig, type ShipConfig } from '@mcthaydt/automata-tools'
 import '@mcthaydt/automata/no-eval'
 import {
   type DefinedGame,
@@ -44,7 +44,7 @@ import { checkLayout, manualFrames, withRuntimeTest } from '@mcthaydt/automata/t
 
 export const sizes: readonly ReferenceSize[] = REFERENCE_SIZES
 export const factor: FormFactor = classifyFormFactor(390, 844)
-export type Uses = [CompiledContent, ContentConfig, Diagnostic, Hosting, FilesService, ShipConfig, Geometry]
+export type Uses = [CompiledContent, ContentConfig, Diagnostic, Hosting, ShipConfig, Geometry]
 // The umbrella package, published: the runtime, renderer, game call and host contract.
 export type GameUses = [GameDefinition, RuntimeHandle, ExtensionDef, PixiRendererOptions, GameSpec]
 export const gameValues = [runGame, startGame, keys, createPixiRenderer, rect, manualFrames, withRuntimeTest]
@@ -55,7 +55,7 @@ export const game: DefinedGame = defineGame({
   sim: { plugins: [] },
 })
 export const hp = umbrellaComponent('hp', { value: 'f32' })
-export const values = [automataContent, createHosting, fakeHosting, ProcessRunner, prepareBuild]
+export const values = [automataContent, createHosting, fakeHosting, defineShipConfig]
 export const component: typeof Dialog = Dialog
 export const layout: typeof checkLayout = checkLayout
 export const position = defineComponent('position', { x: 'f32', y: 'f32' })

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { checkManifest, rukenToml } from '@mcthaydt/automata-tools'
+import { checkManifest, rukenToml } from '@mcthaydt/automata-tools/internal'
 import { compileHeaders } from '@ruken/manifest'
 import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'

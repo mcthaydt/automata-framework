@@ -15,6 +15,7 @@
   ],
   "exports": {
     ".": "./src/entries/index.ts",
+    "./internal": "./src/entries/internal.ts",
     "./e2e": "./src/entries/e2e.ts"
   },
   "imports": {
@@ -29,10 +30,6 @@
       ".": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
-      },
-      "./e2e": {
-        "types": "./dist/e2e.d.ts",
-        "import": "./dist/e2e.js"
       }
     },
     "bin": {
