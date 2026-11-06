@@ -2263,3 +2263,31 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   dom 2,932, Chromium layout (map, tiles, characters, level, document) 146 and 3D open flows 32, canvas and journeys 75
   pass and 6 skipped; WebKit, Firefox and hosted CI not run. Screenshots: the design board run is left for 12.5's
   guide.
+- **12.6, part (session 13): Step 0, Step G, and the split view's design.** *Step 0, the audit:* four components,
+  all under 300 lines (`TunerRows` 272, `TunerPanel` 104, `TunerInspector` 95, `TunerRegions` 25); logic stays in
+  `tuner-controller.ts` and `tuner-session.ts`, the markup only forwards; nothing unused. The panel and the rows still
+  style with the old `--color-*` aliases and literal fallbacks (`#3a3f48`, `#d9a441`), left for the look (the mockup
+  verdict). Words a drunk grandma stumbles on: the constant names (`MAX_RUN`) as every row's title, the comments'
+  other-game numbers ("Celeste: 90 px/s.") as its note, "tunable", "Lock" / "Locked" / "Unlock", "Kind" and "Bounds",
+  "Create tuning.toml", "Run checks to read bounds: … tuning-meta.json". The Tuner's actions (from its DOM tests):
+  search, choose, set a toggle, a text, a number by slider (a drag is one step) or by box, a refused value past a bound,
+  keep and let go, create the file, the parse problem with its line, and Ask's scope and locks; all stay. *Step G:*
+  a ranged tunable may carry `label` and `feel` text (`-content`'s check accepts them as text, refuses anything else,
+  and keeps them out of the values and `tuning-meta.json`; a changeset); Emberwick's ten have them ("Running speed",
+  "How fast Wick runs."). The Tuner shows the label and the feel and, when a label is there, never the name in code or
+  the comment (`shownName`, `shownNote`); search finds labels and feels too; Lock is `Keep` / `Kept` with the tooltip
+  "Keep this value: nothing changes it until you let it go."; "Search settings"; "Tap a setting to see more."; "This
+  game has no settings file yet." with `Make one`; "Run the game's checks once to see how far these settings can go.";
+  the inspector says Type, Range and What it does. Gates: editor unit 3,307 → 3,311, content's tuning tests 15 → 17,
+  Emberwick unit 109, Chromium suite layout 113. **Left for a unit a player can feel:** the values are still the
+  sim's units (subpixels per tick); a `unit` and a display scale per tunable (px/s) is the next step of Step G.
+  *The split view, designed (steps 1 and 2, next session):* every Tuner edit is already written to
+  `content/tuning.toml` as it lands, and the content Vite plugin already rebuilds on a TOML change and sends
+  `automata:content` to the page; nothing listens. (a) The runtime (`@mcthaydt/automata`, the owner of the sim's
+  content contract) takes new content in development: on `import.meta.hot` `automata:content` it re-imports
+  `virtual:automata/content` and hands the sim the new `tuning` at the next tick boundary, never mid-tick and never in
+  a build (`import.meta.hot` is undefined there), with a unit test on the swap and a journey. (b) `automata editor`
+  learns the game's dev page (`--game-url`, default the game's Vite port) and the suite reads it from `/api/ping`. (c)
+  The Tuner's canvas becomes two regions: the settings and a game pane (an `iframe` of that page, `title="Your game"`),
+  side by side from iPad landscape up and stacked, game on top, on a phone; with no dev page answering, the pane says
+  "Start your game with pnpm dev to see your changes here." in plain words. No "Play to try it" button.
