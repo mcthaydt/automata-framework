@@ -89,7 +89,7 @@ const keyOf = (item: PaletteItem): string =>
     gap: var(--space-1);
   }
   .choices.tiles {
-    grid-template-columns: repeat(auto-fill, 44px);
+    grid-template-columns: repeat(auto-fill, var(--size-hit));
   }
   button {
     border: 0;
@@ -103,8 +103,8 @@ const keyOf = (item: PaletteItem): string =>
     outline-offset: 2px;
   }
   .tile {
-    width: 44px;
-    height: 44px;
+    width: var(--size-hit);
+    height: var(--size-hit);
     padding: 0;
     background-repeat: no-repeat;
     image-rendering: pixelated;
@@ -121,7 +121,7 @@ const keyOf = (item: PaletteItem): string =>
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     background: transparent;
     text-align: start;

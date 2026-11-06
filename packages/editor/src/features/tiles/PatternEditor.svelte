@@ -34,13 +34,13 @@ const short = { any: '', empty: '0', filled: '■', is: '=', not: '≠' } as con
 <style>
   .pattern {
     display: grid;
-    grid-template-columns: repeat(var(--size), 44px);
+    grid-template-columns: repeat(var(--size), var(--size-hit));
     gap: var(--space-1);
     justify-content: center;
   }
   .cell {
-    width: 44px;
-    height: 44px;
+    width: var(--size-hit);
+    height: var(--size-hit);
     padding: 0;
     border: 1px dashed var(--color-border-strong);
     border-radius: var(--edge-sm);

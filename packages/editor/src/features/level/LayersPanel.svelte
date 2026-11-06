@@ -132,7 +132,7 @@ function step(event: KeyboardEvent): void {
     color: var(--color-text-faint);
   }
   button {
-    min-height: 44px;
+    min-height: var(--size-hit);
     border: 0;
     border-radius: var(--edge-sm);
     background: transparent;

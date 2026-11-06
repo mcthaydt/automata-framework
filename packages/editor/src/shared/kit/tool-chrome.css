@@ -13,3 +13,23 @@
   --muted: var(--tool-muted);
   --cobalt-soft: var(--tool-selected);
 }
+
+/*
+ * The mockup's density: with a mouse (a fine pointer that hovers), rows and controls are 32 px, a primary too. Once any
+ * coarse pointer is present (a phone, an iPad, even one with a trackpad, a touch laptop), the touch rule comes back:
+ * 44 px, a primary 48. The touch block comes last, so it wins when both match. Every kit and view control sizes
+ * itself from these two, so the editors change density in one place.
+ */
+@media (hover: hover) and (pointer: fine) {
+  :root {
+    --size-hit: 32px;
+    --size-primary: 32px;
+  }
+}
+
+@media (any-pointer: coarse) {
+  :root {
+    --size-hit: 44px;
+    --size-primary: 48px;
+  }
+}

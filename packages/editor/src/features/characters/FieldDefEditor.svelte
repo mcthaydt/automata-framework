@@ -201,7 +201,7 @@ const toggleTarget = (target: string): readonly string[] => {
   }
   input,
   textarea {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);
@@ -215,8 +215,8 @@ const toggleTarget = (target: string): readonly string[] => {
     gap: var(--space-1);
   }
   .chip {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: var(--size-hit);
+    min-height: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);

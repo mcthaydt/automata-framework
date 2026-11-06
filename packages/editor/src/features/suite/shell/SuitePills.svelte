@@ -120,8 +120,8 @@ function onKeydown(event: KeyboardEvent): void {
     flex-shrink: 0;
   }
   .pill {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: var(--size-hit);
+    min-width: var(--size-hit);
     max-width: 14rem;
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
@@ -177,7 +177,7 @@ function onKeydown(event: KeyboardEvent): void {
     gap: var(--space-1) var(--space-2);
   }
   li a {
-    min-height: 44px;
+    min-height: var(--size-hit);
     display: inline-flex;
     align-items: center;
     color: var(--color-accent-default);
@@ -191,8 +191,8 @@ function onKeydown(event: KeyboardEvent): void {
     color: var(--color-state-bad);
   }
   .locate {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: var(--size-hit);
+    min-width: var(--size-hit);
     padding: 0 var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);

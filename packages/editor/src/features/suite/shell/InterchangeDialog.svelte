@@ -157,7 +157,7 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
     display: inline-flex;
     gap: var(--space-2);
     align-items: center;
-    min-height: 44px;
+    min-height: var(--size-hit);
     margin: 0;
   }
   .formats input {
@@ -167,7 +167,7 @@ const refusal = (outcome: ApplyOutcome): string | undefined => {
   textarea {
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--edge-sm);

@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/editor-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -7,10 +8,14 @@ import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { switcherControls } from '#src/testing/level-2d/view-switcher.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The Level view with the production CSS in a real browser, at the eight
 // window sizes of Home's layout test, in Chromium, WebKit and Firefox: every control at least 44 px and never clipped,
@@ -33,7 +38,7 @@ afterEach(async () => {
 
 async function start(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   await workspace.store.write(PROJECT, printProject(mossgate()))
@@ -122,7 +127,7 @@ describe.each(SIZES)('Level view at $name ($width x $height)', (size) => {
     const first = rows[0] as HTMLElement
     expectInside(first, size)
     for (const control of first.querySelectorAll('button'))
-      expect(control.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
+      expect(control.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
     expect(checkLayout(conditions, [])).toEqual([])
     await page.screenshot({ path: `.vitest/shots/level-layers-${size.name}.png` })
   })
@@ -247,7 +252,7 @@ describe('Level view rotation', () => {
     const surface = byTestId('level-surface')
 
     await page.viewport(portrait.width, portrait.height)
-    publishConditions(document.documentElement, portrait, REST)
+    publishConditions(document.documentElement, portrait, REST, targets)
     await settleLayout()
     await arrived()
     expect(byTestId('level-surface'), 'the canvas was not remounted').toBe(surface)

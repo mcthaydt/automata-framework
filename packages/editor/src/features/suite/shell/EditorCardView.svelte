@@ -87,7 +87,7 @@ const headingId = $derived(`card-${card.editor}`)
     align-items: flex-start;
     justify-content: center;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-1) var(--space-3);
     border: 0;
     border-radius: var(--edge-sm);

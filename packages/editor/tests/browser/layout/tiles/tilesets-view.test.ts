@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/editor-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -7,10 +8,14 @@ import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
 import { openView, switcherControls } from '#src/testing/level-2d/view-switcher.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The Tilesets view with the production CSS in a real browser, at the kit's
 // eight window sizes in Chromium, WebKit and Firefox: every control at least 44 px and never clipped, the page never
@@ -31,7 +36,7 @@ afterEach(async () => {
 
 async function start(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   await workspace.store.write(PROJECT, printProject(mossgate()))
@@ -120,8 +125,8 @@ describe.each(SIZES)('Tilesets view at $name ($width x $height)', (size) => {
     expect(cells.length).toBeGreaterThan(0)
     for (const cell of cells) {
       const box = cell.getBoundingClientRect()
-      expect(box.width).toBeGreaterThanOrEqual(44)
-      expect(box.height).toBeGreaterThanOrEqual(44)
+      expect(box.width).toBeGreaterThanOrEqual(targets.hit)
+      expect(box.height).toBeGreaterThanOrEqual(targets.hit)
     }
     const inspector = byTestId('tilesets-inspector')
     for (const name of ['Duplicate', 'Delete']) {
@@ -144,8 +149,8 @@ describe.each(SIZES)('Tilesets view at $name ($width x $height)', (size) => {
     await reach(last)
     expectInside(last, size)
     for (const control of last.querySelectorAll('button')) {
-      expect(control.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
-      expect(control.getBoundingClientRect().width).toBeGreaterThanOrEqual(44)
+      expect(control.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
+      expect(control.getBoundingClientRect().width).toBeGreaterThanOrEqual(targets.hit)
     }
     expect(checkLayout(conditions, [])).toEqual([])
     await page.screenshot({ path: `.vitest/shots/tilesets-rules-${size.name}.png` })

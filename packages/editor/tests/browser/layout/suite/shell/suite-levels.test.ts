@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/suite/main.css'
 import { checkLayout, settleLayout } from '@mcthaydt/automata/testing'

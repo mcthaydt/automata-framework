@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/editor-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -8,10 +9,14 @@ import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { packTile } from '#src/shared/level-2d/model/cells-codec.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { entity, withEntities, withLayer } from '#src/testing/level-2d/project-edit.ts'
 import { mossgate } from '#src/testing/level-2d/samples.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // The Problems sheet with the production CSS in a real browser, at the eight window sizes, in Chromium, WebKit and
 // Firefox: the top bar's count and Save at least 44 px and in view, every row's buttons at least 44 px and never
@@ -46,7 +51,7 @@ function seeded() {
 
 async function start(size: EditorSize) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   await workspace.store.write(PROJECT, printProject(seeded()))
@@ -102,7 +107,7 @@ describe.each(SIZES)('Problems at $name ($width x $height)', (size) => {
     expect(buttons.map((button) => button.textContent?.trim())).toContain('Show')
     expect(checkLayout(conditions, buttons)).toEqual([])
     for (const button of view.querySelectorAll('li button'))
-      expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(44)
+      expect(button.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.hit)
     expect(document.documentElement.scrollLeft).toBe(0)
     expect(document.documentElement.scrollTop).toBe(0)
     await page.screenshot({ path: `.vitest/shots/problems-sheet-${size.name}.png` })

@@ -103,7 +103,7 @@ const count = (each: RefTargetGroup): string =>
     gap: var(--space-2);
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: var(--space-2) var(--space-3);
     border: 1px solid var(--line);
     border-radius: var(--edge-sm);

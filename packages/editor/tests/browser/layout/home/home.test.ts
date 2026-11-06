@@ -1,4 +1,5 @@
 import '#src/shared/kit/tokens.css'
+import '#src/shared/kit/tool-chrome.css'
 import '#src/shared/kit/fonts.css'
 import '#src/app/editor-2d/main.css'
 import { byTestId, checkLayout, publishConditions, settleLayout } from '@mcthaydt/automata/testing'
@@ -7,9 +8,13 @@ import { page } from 'vitest/browser'
 import { type EditorHandle, startEditor } from '#src/app/editor-2d/boot.ts'
 import { printProject } from '#src/shared/level-2d/model/project-codec.ts'
 import { arrived, type EditorSize, REST, SIZES } from '#src/testing/kit/layout-sizes.ts'
+import { editorTargets } from '#src/testing/kit/targets.ts'
 import { createTestClock } from '#src/testing/kit/test-clock.ts'
 import { memoryWorkspace } from '#src/testing/level-2d/memory-workspace.ts'
 import { hollowmere, mossgate } from '#src/testing/level-2d/samples.ts'
+
+/** The control sizes under this run's pointer: 32 px with a mouse, 44 (a primary 48) with touch. */
+const targets = editorTargets()
 
 // Home with the production CSS in a real browser, at the window sizes the 2D editor is designed for. jsdom has no layout, so everything about room (overflow, target sizes, what covers what,
 // which region scrolls) is only checked here. The editor is started the way `main.ts` starts it, with the real window
@@ -37,7 +42,7 @@ afterEach(async () => {
 /** Starts the editor at `size` over a workspace holding `projects` copies of the samples. */
 async function open(size: EditorSize, projects = 4) {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, targets)
   const clock = createTestClock()
   const workspace = memoryWorkspace(clock)
   for (let n = 0; n < projects; n += 1) {
@@ -78,7 +83,7 @@ describe.each(SIZES)('Home layout at $name ($width x $height)', (size) => {
     expect(
       byTestId('new-level').getBoundingClientRect().height,
       'New level is a primary action',
-    ).toBeGreaterThanOrEqual(48)
+    ).toBeGreaterThanOrEqual(targets.primary)
     await page.screenshot({ path: `.vitest/shots/home-${size.name}.png` })
   })
 
@@ -94,10 +99,11 @@ describe.each(SIZES)('Home layout at $name ($width x $height)', (size) => {
       const box = button.getBoundingClientRect()
       expect(box.right).toBeLessThanOrEqual(window.innerWidth)
       expect(box.left).toBeGreaterThanOrEqual(0)
-      expect(box.width).toBeGreaterThanOrEqual(44)
-      expect(box.height).toBeGreaterThanOrEqual(44)
+      expect(box.width).toBeGreaterThanOrEqual(targets.hit)
+      expect(box.height).toBeGreaterThanOrEqual(targets.hit)
     }
-    for (const card of cards()) expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(48)
+    for (const card of cards())
+      expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(targets.primary)
     expect(document.documentElement.scrollWidth, 'no horizontal scroll').toBeLessThanOrEqual(
       window.innerWidth,
     )
@@ -134,8 +140,8 @@ describe.each(SIZES)('Home layout at $name ($width x $height)', (size) => {
     await settleLayout()
     const input = document.querySelector<HTMLElement>('input[type="file"]') as HTMLElement
     const box = input.getBoundingClientRect()
-    expect(box.width).toBeGreaterThanOrEqual(44)
-    expect(box.height).toBeGreaterThanOrEqual(44)
+    expect(box.width).toBeGreaterThanOrEqual(targets.hit)
+    expect(box.height).toBeGreaterThanOrEqual(targets.hit)
     expect(checkLayout(conditions, [])).toEqual([])
   })
 

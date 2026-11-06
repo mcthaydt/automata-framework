@@ -206,7 +206,7 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
     gap: 2px;
   }
   .pick {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0;
     border: 0;
     background: none;
@@ -245,7 +245,7 @@ const numberOf = (tunable: Tunable): number => (typeof tunable.value === 'number
     flex: 1 1 160px;
     min-width: 0;
     box-sizing: border-box;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-default, #3a3f48);
     border-radius: var(--edge-sm);

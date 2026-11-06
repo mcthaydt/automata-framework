@@ -64,7 +64,7 @@ const rows = $derived.by(() => {
     font: var(--text-body-13);
   }
   .search {
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     border: 1px solid var(--color-border-default, #3a3f48);
     border-radius: var(--edge-sm);
@@ -84,7 +84,7 @@ const rows = $derived.by(() => {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    min-height: 44px;
+    min-height: var(--size-hit);
     padding: 0 var(--space-2);
     border: 1px solid transparent;
     border-radius: var(--edge-sm);

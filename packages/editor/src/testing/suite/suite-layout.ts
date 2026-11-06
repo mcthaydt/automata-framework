@@ -9,6 +9,7 @@ import { type SuiteHandle, startSuite } from '../../features/suite/shell/boot'
 import { createSuite } from '../../features/suite/shell/create-suite'
 import type { SuiteEditor } from '../../shared/kit/ports/suite-editor.ts'
 import { type EditorSize, REST } from '../kit/layout-sizes.ts'
+import { editorTargets } from '../kit/targets'
 
 /** One `[[file]]` row of an editor list. */
 const row = (glob: string, editor: string): string =>
@@ -33,7 +34,7 @@ export async function openSuite(
   entry: string,
 ): Promise<OpenedSuite> {
   await page.viewport(size.width, size.height)
-  const conditions = publishConditions(document.documentElement, size, REST)
+  const conditions = publishConditions(document.documentElement, size, REST, editorTargets())
   const target = document.body.appendChild(document.createElement('div'))
   target.id = 'app'
   const started: SuiteHandle = await startSuite(target, {

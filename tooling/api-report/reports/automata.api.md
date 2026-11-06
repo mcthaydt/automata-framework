@@ -2231,6 +2231,7 @@ function checkLayout(conditions: Conditions, essentials: readonly Element[]): st
 interface Conditions {
     readonly geometry: Geometry;
     readonly reserved: LayoutRect[];
+    readonly targets: Targets;
 }
 ```
 
@@ -2642,7 +2643,7 @@ function pressedPart(control: HTMLElement): HTMLElement;
 ### `publishConditions` (function)
 
 ```ts
-function publishConditions(root: HTMLElement, size: ReferenceSize, variant: Variant): Conditions;
+function publishConditions(root: HTMLElement, size: ReferenceSize, variant: Variant, targets?: Targets): Conditions;
 ```
 
 ### `REFERENCE_SIZES` (const)
@@ -2730,6 +2731,15 @@ interface Submission {
 }
 ```
 
+### `Targets` (interface)
+
+```ts
+interface Targets {
+    readonly hit: number;
+    readonly primary: number;
+}
+```
+
 ### `textSnippet` (function)
 
 ```ts
@@ -2740,6 +2750,12 @@ function textSnippet(text: string, tag?: string, trusted?: boolean): Snippet;
 
 ```ts
 const TIGHT_SIZES: readonly ReferenceSize[];
+```
+
+### `TOUCH_TARGETS` (const)
+
+```ts
+const TOUCH_TARGETS: Targets;
 ```
 
 ### `TrackedEvent` (interface)
