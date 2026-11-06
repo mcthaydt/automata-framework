@@ -1,8 +1,8 @@
 import { Effect, Either, Layer } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { KitSource, type KitSourceError, KitSourceLive } from '#src/features/add/kit-source.ts'
-import { ProcessError } from '../../../src/shared/node/errors.ts'
-import { ProcessRunner, type RunOptions, type RunResult } from '../../../src/shared/node/process-runner.ts'
+import { ProcessError } from '#src/shared/node/errors.ts'
+import { ProcessRunner, type RunOptions, type RunResult } from '#src/shared/node/process-runner.ts'
 
 const REPO = 'https://github.com/mcthaydt/automata-plus.git'
 

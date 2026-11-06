@@ -5,7 +5,7 @@ import { createInput } from '#src/features/input/input.manager.ts'
 import { RESERVED_PAD_BUTTONS } from '#src/features/input/input-profile.schema.ts'
 import { MENU_BINDINGS, type MenuAction } from '#src/features/input/menu-actions.ts'
 import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { withHostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
+import { withHostingTest } from '#src/testing/host/page/ruken/hosting-test.ts'
 
 // The reserved pad button (M4-D3, M4 spec §4.3, Ruken request R-3). The vendored SDK's gamepad poller summons
 // the host when a standard pad holds its View button for 600 ms. This drives that poller through the fake host

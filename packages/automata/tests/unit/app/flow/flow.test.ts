@@ -16,7 +16,7 @@ import { createTime, type Time } from '#src/shared/runtime/time/time.manager.ts'
 import { type FakeClock, fakeClock } from '#src/testing/fake-clock.ts'
 import { type FakeRoute, fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { settle } from '#src/testing/settle.ts'
-import { createGeometryOwner } from '../../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
+import { createGeometryOwner } from '#src/shared/ui/geometry/geometry-owner.svelte.ts'
 
 describe('Flow and screens (spec §3.6)', () => {
   let root: HTMLElement

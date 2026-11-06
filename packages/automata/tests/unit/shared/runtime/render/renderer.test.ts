@@ -4,7 +4,7 @@ import { RendererUnavailable } from '#src/shared/runtime/boot-error.ts'
 import type { FrameInfo } from '#src/shared/runtime/loop/frames.ts'
 import type { RenderTarget } from '#src/shared/runtime/render/renderer.ts'
 import { type NullRendererEntry, nullRenderer } from '#src/testing/runtime/null-renderer.ts'
-import type { GeometryOwner } from '../../../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
+import type { GeometryOwner } from '#src/shared/ui/geometry/geometry-owner.svelte.ts'
 
 describe('renderer interface and nullRenderer', () => {
   const dummyTarget: RenderTarget = {

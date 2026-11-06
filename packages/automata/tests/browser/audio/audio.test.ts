@@ -3,7 +3,7 @@ import { server, userEvent } from 'vitest/browser'
 import { createAudio } from '#src/features/audio/audio.manager.ts'
 import { type AudioContextLike, AudioGraph } from '#src/features/audio/audio-graph.ts'
 import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { withHostingTest } from '../../../src/testing/host/page/ruken/hosting-test.ts'
+import { withHostingTest } from '#src/testing/host/page/ruken/hosting-test.ts'
 
 // The Audio service on each engine's real Web Audio (M5.3 plan step 9), in Chromium, WebKit and Firefox: the
 // unlock on a real gesture, and the graph's levels rendered offline, where the samples can be read.

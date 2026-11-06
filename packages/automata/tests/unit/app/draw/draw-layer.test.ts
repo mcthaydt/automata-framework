@@ -2,7 +2,7 @@ import { createSim, defineComponent, definePlugin, type Sim } from '@mcthaydt/au
 import { Container, Graphics, Text } from 'pixi.js'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDrawLayer, type DrawContext, mergeStageHooks } from '#src/app/draw/draw-layer.ts'
-import type { PixiStageHooks } from '../../../../src/features/render/renderer.ts'
+import type { PixiStageHooks } from '#src/features/render/renderer.ts'
 
 const Body = defineComponent('body', { x: 'f32', y: 'f32' })
 const plugin = definePlugin({ name: 'drawn', defs: [Body] })

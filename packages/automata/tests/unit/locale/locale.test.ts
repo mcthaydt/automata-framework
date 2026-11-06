@@ -7,7 +7,7 @@ import {
   type LocaleSaves,
 } from '#src/features/locale/locale.manager.ts'
 import type { RuntimeFacts } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { refuse } from '../../../src/shared/host/errors.ts'
+import { refuse } from '#src/shared/host/errors.ts'
 
 const def: LocaleDef = { locales: ['en', 'fr', 'ar'], baseLocale: 'en' }
 

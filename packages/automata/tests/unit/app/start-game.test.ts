@@ -3,11 +3,11 @@ import { flushSync } from 'svelte'
 import { afterEach, describe, expect, it } from 'vitest'
 import { defineGame, type GameSpec } from '#src/app/define-game.ts'
 import { startGame } from '#src/app/start-game.ts'
-import type { RuntimeHandle } from '../../../src/app/boot/game-definition.ts'
-import { BootDefect } from '../../../src/shared/runtime/boot-error.ts'
-import { fakeHosting } from '../../../src/testing/host/fake-hosting.ts'
-import { fakeFetch } from '../../../src/testing/runtime/fake-fetch.ts'
-import { manualFrames } from '../../../src/testing/runtime/manual-frames.ts'
+import type { RuntimeHandle } from '#src/app/boot/game-definition.ts'
+import { BootDefect } from '#src/shared/runtime/boot-error.ts'
+import { fakeHosting } from '#src/testing/host/fake-hosting.ts'
+import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
+import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 
 // startGame composes defineGame's defaults with the runtime boot (DX spec §3.1). jsdom has no WebGL, so the
 // Pixi renderer cannot start: a boot that reaches it under AF's fake host (DIST spec §7) and fails with

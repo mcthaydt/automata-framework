@@ -5,8 +5,8 @@ import DisplayFixture, { DISPLAY_SHOWS, type DisplayShow } from '#src/testing/ui
 import { byTestId, checkLayout, publishConditions } from '#src/testing/ui/layout-contract.ts'
 import { FIXTURE_LOCALES, findUntranslated } from '#src/testing/ui/locale-fixture.ts'
 import { settleLayout } from '#src/testing/ui/settle.ts'
-import { mountFixture } from '../../../../../src/testing/fixtures/mount.ts'
-import { REFERENCE_SIZES, VARIANTS } from '../../../../../src/testing/layout/reference-sizes.ts'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
+import { REFERENCE_SIZES, VARIANTS } from '#src/testing/layout/reference-sizes.ts'
 
 // The display covers (M4 spec §4.9, §7) at every reference size and variant, with production CSS, in Chromium,
 // WebKit and Firefox. The gate's one button is a whole primary target a player can reach; the covers' words stay on

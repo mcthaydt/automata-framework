@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDisplayPolicy } from '#src/features/display/display-policy.svelte.ts'
 import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { createTime } from '#src/shared/runtime/time/time.manager.ts'
-import type { FormFactor } from '../../../src/shared/ui/geometry/form-factor.ts'
-import type { Geometry } from '../../../src/shared/ui/geometry/geometry.ts'
-import type { GeometryOwner } from '../../../src/shared/ui/geometry/geometry-owner.svelte.ts'
+import type { FormFactor } from '#src/shared/ui/geometry/form-factor.ts'
+import type { Geometry } from '#src/shared/ui/geometry/geometry.ts'
+import type { GeometryOwner } from '#src/shared/ui/geometry/geometry-owner.svelte.ts'
 
 // The display policy (M4 spec §4.9, §5, §6, M4-D5): the landscape gate over every screen, standalone only, and the
 // rotate hint over a paused game for a game locked to one orientation, on a phone held the other way.

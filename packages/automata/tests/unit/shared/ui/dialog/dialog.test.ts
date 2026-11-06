@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/svelte'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import Dialog from '#src/shared/ui/dialog/Dialog.svelte'
-import { textSnippet } from '../../../../../src/testing/fixtures/text-snippet.ts'
+import { textSnippet } from '#src/testing/fixtures/text-snippet.ts'
 import Harness from '../../../../fixtures/shared/ui/dialog/DialogHarness.test.svelte'
 import Stack from '../../../../fixtures/shared/ui/dialog/DialogStack.test.svelte'
 

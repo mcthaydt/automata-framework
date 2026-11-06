@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { defineShipConfig } from '#src/shared/ship/config/ship-config.ts'
 import { isLocalStack, type PublishBuildInput, publishBuild } from '#src/shared/ship/publish/publish-build.ts'
 import { fakeProcessRunner } from '#src/shared/ship/testing/fake-process-runner.ts'
-import { FilesLive } from '../../../../../src/shared/node/files.ts'
+import { FilesLive } from '#src/shared/node/files.ts'
 
 const config = defineShipConfig({
   game: { id: 'base-3d', title: 'Base 3D', version: '0.1.0', entry: 'index.html', sdk: '^0.0.0' },

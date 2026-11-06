@@ -2,7 +2,7 @@ import '#src/shared/ui/theme.css'
 import { afterEach, expect, test } from 'vitest'
 import Toggle from '#src/shared/ui/controls/Toggle.svelte'
 import { settleLayout } from '#src/testing/ui/settle.ts'
-import { type MountedFixture, mountFixture } from '../../../../../src/testing/fixtures/mount.ts'
+import { type MountedFixture, mountFixture } from '#src/testing/fixtures/mount.ts'
 
 // What a Toggle asks of the box it sits in, with production CSS in a real browser. A game may put one in a track
 // sized by what it holds (a grid's `auto` column, a `min-content` box): there its name may wrap between words, but

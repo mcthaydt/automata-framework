@@ -2,7 +2,7 @@ import { flushSync, mount, unmount } from 'svelte'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import Split from '#src/shared/ui/layout/Split.svelte'
 import { splitMode } from '#src/shared/ui/layout/split.ts'
-import { textSnippet } from '../../../../../src/testing/fixtures/text-snippet.ts'
+import { textSnippet } from '#src/testing/fixtures/text-snippet.ts'
 
 // splitMode's cases from FloorFifty tests/client/ui/layout/helpers.test.ts at ac72660.
 describe('splitMode (M4 spec §4.8, Split)', () => {

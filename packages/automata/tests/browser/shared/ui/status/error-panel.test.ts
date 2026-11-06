@@ -4,14 +4,14 @@ import { page } from 'vitest/browser'
 import { byTestId, publishConditions } from '#src/testing/ui/layout-contract.ts'
 import StatusFixture, { type StatusShow } from '#src/testing/ui/StatusFixture.svelte'
 import { settleLayout } from '#src/testing/ui/settle.ts'
-import { mountFixture } from '../../../../../src/testing/fixtures/mount.ts'
-import { findUnreachable } from '../../../../../src/testing/layout/assertions.ts'
+import { mountFixture } from '#src/testing/fixtures/mount.ts'
+import { findUnreachable } from '#src/testing/layout/assertions.ts'
 import {
   REFERENCE_SIZES,
   type ReferenceSize,
   TIGHT_SIZES,
   VARIANTS,
-} from '../../../../../src/testing/layout/reference-sizes.ts'
+} from '#src/testing/layout/reference-sizes.ts'
 
 // ErrorPanel's one-row layout (spec §3.4): the message and its actions share a row only where the
 // message keeps at least 20 characters of width; otherwise the actions stack under it. This fails

@@ -16,21 +16,21 @@ import { type DefinedGame, defineGame, type GameSpec } from '#src/app/define-gam
 import { defaultScreens } from '#src/app/screens/default-screens.ts'
 import { keys } from '#src/features/input/keys.ts'
 import { ok } from '#src/shared/lib/result.ts'
-import type { RuntimeHandle } from '../../../../../src/app/boot/game-definition.ts'
-import { runGame } from '../../../../../src/app/boot/run-game.ts'
+import type { RuntimeHandle } from '#src/app/boot/game-definition.ts'
+import { runGame } from '#src/app/boot/run-game.ts'
 import {
   type FakeAudioContext,
   type FakeGainNode,
   fakeAudioContext,
-} from '../../../../../src/features/audio/testing/fake-audio-context.ts'
-import { defineExtension } from '../../../../../src/features/extension/define-extension.ts'
-import { createHaptics } from '../../../../../src/features/input/haptics/haptics.manager.ts'
-import type { GameRenderer, RendererFactory } from '../../../../../src/shared/runtime/render/renderer.ts'
-import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
-import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
-import { fakeGamepads } from '../../../../../src/testing/input/fake-gamepads.ts'
-import { fakeFetch } from '../../../../../src/testing/runtime/fake-fetch.ts'
-import { type ManualFrames, manualFrames } from '../../../../../src/testing/runtime/manual-frames.ts'
+} from '#src/features/audio/testing/fake-audio-context.ts'
+import { defineExtension } from '#src/features/extension/define-extension.ts'
+import { createHaptics } from '#src/features/input/haptics/haptics.manager.ts'
+import type { GameRenderer, RendererFactory } from '#src/shared/runtime/render/renderer.ts'
+import { realClock } from '#src/testing/host/page/clocks.ts'
+import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
+import { fakeGamepads } from '#src/testing/input/fake-gamepads.ts'
+import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
+import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import HudExtension from '../../../../fixtures/app/screens/HudExtension.test.svelte'
 import SettingsExtension from '../../../../fixtures/app/screens/SettingsExtension.test.svelte'
 

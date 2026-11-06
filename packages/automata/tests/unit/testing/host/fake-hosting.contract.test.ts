@@ -1,5 +1,5 @@
 import { fakeHosting } from '#src/testing/host/index.ts'
-import { describeHostingContract } from '../../../../src/testing/host/contract-suite.ts'
+import { describeHostingContract } from '#src/testing/host/contract-suite.ts'
 
 // DIST-c: the cases every adapter passes, on the fake host for each target, so the fake cannot drift from the real
 // adapters (DIST spec §7).

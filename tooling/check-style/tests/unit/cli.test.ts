@@ -94,3 +94,19 @@ it('reads only the comments under --comments-only: a config file is not named by
   expect(result.stdout).not.toContain('node_modules')
   expect(result.status).toBe(1)
 })
+
+it('fails on a test that reaches into src by a relative chain, and passes #src and non-import strings', () => {
+  // The chain is built here so this file does not itself look like a test that reaches into src.
+  const chain = '../../'
+  const dir = src({
+    'pkg/tests/unit/bad.test.ts': `import { a } from '${chain}src/a.ts'\nvi.mock('${chain}src/b.ts')\n`,
+    'pkg/tests/unit/good.test.ts': `import { a } from '#src/a.ts'\nconst font = join(here, '${chain}src/x.woff2')\n`,
+    'pkg/src/a.ts': `import { b } from '${chain}src/b.ts'\n`,
+  })
+  const result = runWith(dir, '--test-imports', dir)
+  expect(result.stdout).toContain('pkg/tests/unit/bad.test.ts:1  test-src-chain')
+  expect(result.stdout).toContain('pkg/tests/unit/bad.test.ts:2  test-src-chain')
+  expect(result.stdout).not.toContain('good.test.ts')
+  expect(result.stdout).not.toContain('pkg/src/a.ts')
+  expect(result.status).toBe(1)
+})

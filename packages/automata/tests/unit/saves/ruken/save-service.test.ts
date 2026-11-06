@@ -13,13 +13,13 @@ import {
   type RuntimeFacts,
 } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
 import { type FakeClock, fakeClock } from '#src/testing/fake-clock.ts'
-import { fakeHosting } from '../../../../src/testing/host/fake-hosting.ts'
-import { manualClock } from '../../../../src/testing/host/page/clocks.ts'
+import { fakeHosting } from '#src/testing/host/fake-hosting.ts'
+import { manualClock } from '#src/testing/host/page/clocks.ts'
 import {
   type FakeHostHandle,
   type HostingTestOptions,
   withHostingTest,
-} from '../../../../src/testing/host/page/ruken/hosting-test.ts'
+} from '#src/testing/host/page/ruken/hosting-test.ts'
 
 // The `Save` service over `Hosting.saves` (M5 spec §4.3, §5 "Load a slot", §6), under the fake Ruken host. A
 // `fakeClock` runs the interval timer and stamps `savedAt`, starting at 0.

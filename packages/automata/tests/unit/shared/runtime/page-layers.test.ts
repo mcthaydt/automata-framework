@@ -1,7 +1,7 @@
 import { flushSync } from 'svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPageLayers } from '#src/shared/runtime/page-layers.svelte.ts'
-import type { BootFailure } from '../../../../src/shared/ui/status/boot-failure.ts'
+import type { BootFailure } from '#src/shared/ui/status/boot-failure.ts'
 
 describe('createPageLayers', () => {
   let root: HTMLElement

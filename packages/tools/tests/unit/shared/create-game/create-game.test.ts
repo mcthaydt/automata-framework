@@ -4,7 +4,7 @@ import { Effect, Exit } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CreateGameError, createGame } from '#src/shared/create-game/create-game.ts'
 import type { DistTarget } from '#src/shared/create-game/create-game-targets.ts'
-import { tauriConfigSchema } from '../../../../src/shared/ship/config/tauri-config.schema.ts'
+import { tauriConfigSchema } from '#src/shared/ship/config/tauri-config.schema.ts'
 
 describe('createGame', () => {
   const testDir = join(process.cwd(), 'scratch-test-game')

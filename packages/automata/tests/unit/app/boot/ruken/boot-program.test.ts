@@ -34,9 +34,9 @@ import { fakeClock } from '#src/testing/fake-clock.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullGameRenderer, nullRenderer } from '#src/testing/runtime/null-renderer.ts'
-import type { Hosting } from '../../../../../src/shared/host/hosting.ts'
-import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
-import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
+import type { Hosting } from '#src/shared/host/hosting.ts'
+import { realClock } from '#src/testing/host/page/clocks.ts'
+import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
 
 const testFlow: FlowGraph = {
   entry: 'title',

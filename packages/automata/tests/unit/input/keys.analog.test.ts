@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { inputs } from '#src/features/input/inputs.ts'
 import { type AnalogReading, keys } from '#src/features/input/keys.ts'
-import { CAMERA_SETTINGS_DEFAULT } from '../../../src/features/input/analog/camera-settings.schema.ts'
+import { CAMERA_SETTINGS_DEFAULT } from '#src/features/input/analog/camera-settings.schema.ts'
 
 // keys({ analog }): the sticks and the camera drag added to the held keys' payload (M4 spec §17).
 const Turn = defineCommand('camera-turn', z.object({ units: z.number().int().default(0) }))

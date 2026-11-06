@@ -19,6 +19,7 @@ export type StyleRule =
   | 'platform-chrome'
   | 'file-length'
   | 'plan-comment'
+  | 'test-src-chain'
 
 export interface StyleFinding {
   readonly file: string

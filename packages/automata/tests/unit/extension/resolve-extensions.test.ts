@@ -8,7 +8,7 @@ import {
 } from '#src/features/extension/define-extension.ts'
 import { ExtensionError } from '#src/features/extension/extension-error.ts'
 import { resolveExtensions } from '#src/features/extension/resolve-extensions.ts'
-import type { UiComponent } from '../../../src/shared/ui/slots/ui-slot.ts'
+import type { UiComponent } from '#src/shared/ui/slots/ui-slot.ts'
 
 // Extensions are defined inline: test files are exempt from the `*.extension.ts` role rule.
 const ext = (name: string, requires: string[] = []): ExtensionDef => defineExtension({ name, requires })

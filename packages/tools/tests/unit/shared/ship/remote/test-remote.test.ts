@@ -2,7 +2,7 @@ import { Effect, Either } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { testRemote } from '#src/shared/ship/remote/test-remote.ts'
 import { fakeProcessRunner, type RecordedRun } from '#src/shared/ship/testing/fake-process-runner.ts'
-import type { RunResult } from '../../../../../src/shared/node/process-runner.ts'
+import type { RunResult } from '#src/shared/node/process-runner.ts'
 
 const ok = (stdout = ''): RunResult => ({ exitCode: 0, stdout, stderr: '' })
 const SINCE = '2026-10-11T08:00:00Z'

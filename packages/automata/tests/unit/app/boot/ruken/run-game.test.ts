@@ -27,10 +27,10 @@ import { STALL_MS } from '#src/shared/runtime/load-meter.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'
-import type { Hosting as PlainHosting } from '../../../../../src/shared/host/hosting.ts'
-import { fakeHosting } from '../../../../../src/testing/host/fake-hosting.ts'
-import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
-import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
+import type { Hosting as PlainHosting } from '#src/shared/host/hosting.ts'
+import { fakeHosting } from '#src/testing/host/fake-hosting.ts'
+import { realClock } from '#src/testing/host/page/clocks.ts'
+import { TEST_GAME_ORIGIN } from '#src/testing/host/page/ruken/hosting-test.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 

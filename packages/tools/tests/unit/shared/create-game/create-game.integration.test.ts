@@ -3,10 +3,10 @@ import { join } from 'node:path'
 import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createGame } from '#src/shared/create-game/create-game.ts'
-import { FilesLive } from '../../../../src/shared/node/files.ts'
-import { prepareBuild } from '../../../../src/shared/ship/prepare/prepare-build.ts'
-import { prepareItch } from '../../../../src/shared/ship/targets/itch/prepare-itch.ts'
-import { checkManifest } from '../../../../src/shared/ship/targets/ruken/check-manifest.ts'
+import { FilesLive } from '#src/shared/node/files.ts'
+import { prepareBuild } from '#src/shared/ship/prepare/prepare-build.ts'
+import { prepareItch } from '#src/shared/ship/targets/itch/prepare-itch.ts'
+import { checkManifest } from '#src/shared/ship/targets/ruken/check-manifest.ts'
 
 describe('createGame integration', () => {
   const tempDir = join(process.cwd(), 'scratch-integration-test')

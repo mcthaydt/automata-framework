@@ -1,4 +1,4 @@
-// Usage: node tooling/check-style/src/cli.ts [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...]
+// Usage: node tooling/check-style/src/cli.ts [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...] [--test-imports <root>...]
 // --plan-comments also flags comments that cite a milestone, task id or spec section (opt-in, for the roots passed).
 // Checks every production .ts and .svelte file (and, with --plan-comments, .css comments). Tests are exempt by folder: anything under a tests/ folder (where
 // every moved package keeps them) or a testing/ folder (published test helpers). The *.test.ts and *.test.svelte
@@ -7,6 +7,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { planCommentFindings } from './plan-comments.ts'
+import { testImportFindings } from './test-imports.ts'
 import { checkFile, checkGameRoot, type StyleFinding } from './style.ts'
 import { checkSvelte } from './svelte.ts'
 
@@ -31,16 +32,18 @@ const planComments = process.argv.includes('--plan-comments')
 const packageRoots: string[] = []
 const gameRoots: string[] = []
 const commentRoots: string[] = []
+const testRoots: string[] = []
 let group = packageRoots
 for (const arg of process.argv.slice(2)) {
   if (arg === '--plan-comments') continue
   if (arg === '--role-layout') group = gameRoots
   else if (arg === '--comments-only') group = commentRoots
+  else if (arg === '--test-imports') group = testRoots
   else group.push(arg)
 }
-if (packageRoots.length + gameRoots.length + commentRoots.length === 0) {
+if (packageRoots.length + gameRoots.length + commentRoots.length + testRoots.length === 0) {
   console.error(
-    'usage: check-style [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...]',
+    'usage: check-style [--plan-comments] <package-src>... [--role-layout <game-src>...] [--comments-only <root>...] [--test-imports <root>...]',
   )
   process.exit(2)
 }
@@ -76,13 +79,26 @@ function findingsFor(path: string, gameRoot: string | undefined, commentsOnly: b
   return checkFile(path, code, { ...(gameRoot === undefined ? {} : { gameRoot }), planComments })
 }
 
+/** Every test file under a `tests/` folder of the roots passed to `--test-imports`. */
+function collectTests(dir: string, inTests: boolean, out: string[]): void {
+  for (const name of readdirSync(dir).sort()) {
+    const path = join(dir, name)
+    if (statSync(path).isDirectory()) {
+      if (name !== 'node_modules' && name !== 'dist') collectTests(path, inTests || name === 'tests', out)
+    } else if (inTests && /\.(ts|svelte)$/.test(name)) out.push(path)
+  }
+}
+const testFiles: string[] = []
+for (const root of testRoots) collectTests(root, false, testFiles)
+
 const findings: StyleFinding[] = [
   ...gameRoots.flatMap((root) => checkGameRoot(root)),
   ...files.flatMap(({ path, gameRoot, commentsOnly }) => findingsFor(path, gameRoot, commentsOnly === true)),
+  ...testFiles.flatMap((path) => testImportFindings(path, readFileSync(path, 'utf8'))),
 ]
 for (const f of findings) {
   const where = f.line ? `${relative(process.cwd(), f.file)}:${f.line}` : relative(process.cwd(), f.file)
   console.log(`${where}  ${f.rule}  ${f.message}`)
 }
-console.log(`check-style: ${files.length} files, ${findings.length} findings`)
+console.log(`check-style: ${files.length + testFiles.length} files, ${findings.length} findings`)
 process.exit(findings.length > 0 ? 1 : 0)

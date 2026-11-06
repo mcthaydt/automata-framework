@@ -2,10 +2,10 @@ import { readFileSync as readBytes, readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
 import { expect, test } from '@playwright/test'
-import { readCatalog } from '../../src/catalog.ts'
-import { playgroundCatalog } from '../../src/playground/playground-catalog.ts'
-import { checkRuntimeSize, RUNTIME_GZIP_BUDGET } from '../../src/playground/runtime-size.ts'
-import { compiled, examples, log, run, waitFor } from './frame-driver.ts'
+import { readCatalog } from '#src/catalog.ts'
+import { playgroundCatalog } from '#src/playground/playground-catalog.ts'
+import { checkRuntimeSize, RUNTIME_GZIP_BUDGET } from '#src/playground/runtime-size.ts'
+import { compiled, examples, log, run, waitFor } from './playground-driver.ts'
 
 // Every example in the catalog runs in the playground, unedited, with no console
 // error and no policy violation, in Chromium, WebKit and Firefox. A failure is fixed in the framework, never by
@@ -41,7 +41,7 @@ for (const example of catalog) {
 // The runtime the frame server built (`e2e:playground-frame`) within its gzip budget, one engine is enough.
 test("the playground runtime's JavaScript is within its gzip budget", async ({ browserName }) => {
   test.skip(browserName !== 'chromium', 'the bytes are the same in every engine')
-  const folder = fileURLToPath(new URL('../dist/runtime/assets/', import.meta.url))
+  const folder = fileURLToPath(new URL('../../playground/dist/runtime/assets/', import.meta.url))
   const files = readdirSync(folder).map((name) => ({
     path: `runtime/assets/${name}`,
     bytes: readBytes(folder + name),

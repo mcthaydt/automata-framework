@@ -11,7 +11,6 @@
     "tests/**/*.ts",
     "playground/*.ts",
     "playground/runtime/*.ts",
-    "playground/e2e/*.ts",
     "*.ts"
   ],
   "exclude": [

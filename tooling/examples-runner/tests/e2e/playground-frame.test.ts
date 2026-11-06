@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { expect, type Page, test } from '@playwright/test'
-import { compiled, examples, log, type Message, run, waitFor } from './frame-driver.ts'
+import { compiled, examples, log, type Message, run, waitFor } from './playground-driver.ts'
 
 // A playground frame runs the code its parent sends and says what
-// happened (frame-driver.ts frames it and compiles the code as the site's compile step will).
+// happened (playground-driver.ts frames it and compiles the code as the site's compile step will).
 
 test('shapes-rects posts running in its frame', async ({ page }) => {
   await run(page, 'shapes', 'rects', compiled('shapes', 'rects'))
