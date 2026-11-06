@@ -11,7 +11,6 @@ import {
 } from '../features/add/run-add.ts'
 import { parseBuildArgs } from '../features/build/build-args.ts'
 import { type BuildResult, runBuild } from '../features/build/run-build.ts'
-import { editorCommand, liveEditorDeps } from '../features/editor/editor-command.ts'
 import { parseCheckArgs } from '../shared/check/check-args.ts'
 import { type CheckReport, exitCodeFor, formatText, toJson } from '../shared/check/check-report.ts'
 import { CspProbeLive } from '../shared/check/ruken/csp-probe-live.ts'
@@ -221,7 +220,12 @@ export async function runCli(
   if (args[0] === 'build') return buildCommand(args.slice(1), io, build)
   if (args[0] === 'check') return checkCommand(args.slice(1), io, check)
   if (args[0] === 'add') return addCommand(args.slice(1), io, add)
-  if (args[0] === 'editor') return editorCommand(args.slice(1), io, liveEditorDeps())
+  if (args[0] === 'editor') {
+    // Loaded only here: the editor suite's sources use extensionless imports that plain Node cannot read, and
+    // pnpm runs this bin from source. Every other command must start without touching it.
+    const { editorCommand, liveEditorDeps } = await import('../features/editor/editor-command.ts')
+    return editorCommand(args.slice(1), io, liveEditorDeps())
+  }
   const parsed = parseArgs(args)
 
   if (parsed.help) {

@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util'
 
-// The `automata-ship` command line, parsed into one value per command so cli.ts can switch on it.
+// The `automata ship` command line, parsed into one value per command so ship-cli.ts can switch on it.
 
 /** Where a build goes. Undefined means Ruken, the default, so existing scripts do not change. */
 export type ShipTarget = 'ruken' | 'itch' | 'tauri'
@@ -31,6 +31,7 @@ export type CliCommand =
       readonly activate: boolean
     }
   | { readonly command: 'test-remote'; readonly args: readonly string[] }
+  | { readonly command: 'help' }
   | { readonly command: 'usage'; readonly problem: string }
 
 export const USAGE = `Usage: automata ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch|tauri]
@@ -65,6 +66,7 @@ function shipTarget(value: string | undefined): ShipTarget | undefined {
 export function parseCliArgs(argv: readonly string[]): CliCommand {
   const [command, ...rest] = argv
   if (command === undefined) return { command: 'usage', problem: 'no command' }
+  if (command === 'help' || command === '--help' || command === '-h') return { command: 'help' }
   if (command === 'test-remote') return { command, args: rest }
   try {
     if (command === 'prepare') {
