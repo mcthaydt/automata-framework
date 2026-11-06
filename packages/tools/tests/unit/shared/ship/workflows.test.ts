@@ -550,7 +550,7 @@ describe('ci.yml (AF)', () => {
     expect(JSON.stringify(job?.steps)).toContain('e2e-report')
   })
 
-  it('asks for one focused browser run by folder and Playwright arguments (test:remote), not from the PR gate', () => {
+  it('asks for one focused browser run by folder and Playwright arguments, not from the PR gate', () => {
     expect(Object.keys(ci.on.workflow_dispatch?.inputs ?? {})).toEqual(['spec', 'nightly'])
     const focused = ci.jobs['e2e-focused']
     expect(focused?.if).toBe("github.event_name == 'workflow_dispatch' && inputs.spec != ''")
@@ -1136,7 +1136,6 @@ describe('game-release.yml (reusable)', () => {
       .join('\n')
     expect(scripts).toContain('pnpm exec automata ship prepare --tag "$TAG"')
     expect(scripts).toContain('pnpm exec automata ship publish --tag "$TAG" --game "$GAME"')
-    expect(scripts).toContain('pnpm exec automata ship deploy-dev --tag "$TAG" --activate')
     expect(release.on.workflow_call?.inputs?.runner).toMatchObject({ default: 'ubuntu-latest' })
   })
 
@@ -1148,28 +1147,16 @@ describe('game-release.yml (reusable)', () => {
     expect(publish).toContain('exit 1')
   })
 
-  it('keeps the deploy key out of ~/.ssh and removes it when the job ends', () => {
-    const steps = release.jobs['dev-host']?.steps ?? []
-    const scripts = steps.map((step) => step.run ?? '').join('\n')
-    expect(scripts).not.toContain('~/.ssh')
-    expect(scripts).toContain('SHIP_DEV_SSH_KEY_FILE')
-    const cleanup = steps.at(-1)
-    expect(cleanup?.if).toBe('always()')
-    expect(cleanup?.run).toContain('rm -rf')
-  })
-
-  it('publishes to Ruken and deploys to the dev host as separate jobs after one build', () => {
+  it('publishes to Ruken as its own job after one build, and has no dev host', () => {
     expect(Object.keys(release.on)).toEqual(['workflow_call'])
     expect(release.jobs.ruken?.needs).toBe('build')
-    expect(release.jobs['dev-host']?.needs).toBe('build')
     expect(JSON.stringify(release.jobs.ruken?.steps)).toContain('publish')
-    expect(JSON.stringify(release.jobs['dev-host']?.steps)).toContain('deploy-dev')
+    expect(Object.keys(release.jobs)).not.toContain('dev-host')
+    expect(JSON.stringify(release)).not.toMatch(/deploy-dev|SHIP_DEV/)
   })
 
-  it('takes the Ruken token and the dev host key as secrets', () => {
-    expect(Object.keys(release.on.workflow_call?.secrets ?? {})).toEqual(
-      expect.arrayContaining(['RUKEN_TOKEN', 'SHIP_DEV_SSH_KEY']),
-    )
+  it('takes the Ruken token as a secret', () => {
+    expect(Object.keys(release.on.workflow_call?.secrets ?? {})).toContain('RUKEN_TOKEN')
   })
 })
 
@@ -1265,7 +1252,7 @@ describe('what a pull request runs (docs-only and draft scope)', () => {
       expect(job?.if).toContain("needs.checks.result == 'success'")
       expect(job?.if).toContain('github.event.pull_request.draft != true')
       expect(job?.if).toContain("needs.checks.outputs.docs_only != 'true'")
-      // A focused browser run (test-remote) still skips them, as before.
+      // A focused browser run still skips them, as before.
       expect(job?.if).toContain("inputs.spec == ''")
     },
   )

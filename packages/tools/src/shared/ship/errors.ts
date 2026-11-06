@@ -66,7 +66,7 @@ const Pixi3dInPublicBuildBase: TaggedErrorClass<
 export class Pixi3dInPublicBuild extends Pixi3dInPublicBuildBase {
   override get message(): string {
     const listed = this.found.map((found) => `${found.file}: "${found.marker}"`).join('\n')
-    return `the build contains @pixi/3d, a closed beta that may not be shipped publicly yet. Deploy it only to the private dev host (deploy-dev) or Ruken's local stack (publish --private, with RUKEN_API on localhost):\n${listed}`
+    return `the build contains @pixi/3d, a closed beta that may not be shipped publicly yet. Ship it only to Ruken's local stack (publish --private, with RUKEN_API on localhost):\n${listed}`
   }
 }
 
@@ -205,44 +205,6 @@ export class PublishFailed extends PublishFailedBase {
     return publishMessage('failed', this)
   }
 }
-
-const DeployFailedBase: TaggedErrorClass<
-  'DeployFailed',
-  {
-    readonly step: 'tar' | 'ssh'
-    readonly exitCode: number
-    readonly output: string
-  }
-> = Data.TaggedError('DeployFailed')
-/** The dev host's deploy step (tar or ssh) failed; `output` is what it printed. */
-export class DeployFailed extends DeployFailedBase {
-  override get message(): string {
-    return `deploy-dev: ${this.step} failed (exit ${this.exitCode})${this.output === '' ? '' : `:\n${this.output.trim()}`}`
-  }
-}
-
-/** Why `test-remote` stopped without a green run. */
-export type TestRemoteReason =
-  | 'usage'
-  | 'detached'
-  | 'uncommitted'
-  | 'push'
-  | 'dispatch'
-  | 'no-run'
-  | 'no-runner'
-  | 'timeout'
-  | 'gh-unavailable'
-  | 'red'
-
-const TestRemoteFailedBase: TaggedErrorClass<
-  'TestRemoteFailed',
-  {
-    readonly reason: TestRemoteReason
-    readonly message: string
-  }
-> = Data.TaggedError('TestRemoteFailed')
-/** `test-remote` stopped without a green run; `reason` says why and `message` says what to do. */
-export class TestRemoteFailed extends TestRemoteFailedBase {}
 
 /** The `prepare --target itch` check that failed, in the order they run. */
 export type ItchCheck = 'entry' | 'file-count' | 'path-length' | 'file-size' | 'case' | 'ruken-toml'

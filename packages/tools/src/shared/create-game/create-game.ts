@@ -28,7 +28,7 @@ const CreateGameErrorBase: TaggedErrorClass<
 
 export class CreateGameError extends CreateGameErrorBase {}
 
-/** A game id, and a kit name for `automata add`: lowercase letters, digits and single hyphens, so never a path. */
+/** A game id: lowercase letters, digits and single hyphens, so never a path. */
 export const ID_REGEX: RegExp = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
 export function createGame(options: CreateGameOptions): Effect.Effect<CreateGameResult, CreateGameError> {

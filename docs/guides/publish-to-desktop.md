@@ -32,7 +32,7 @@ named before anything is built.
 ## Publish to itch.io downloads
 
 ```sh
-BUTLER_API_KEY=… pnpm exec automata-ship publish --target itch --from tauri
+BUTLER_API_KEY=… pnpm exec automata ship publish --target itch --from tauri
 ```
 
 Each bundle in `dist-tauri/` goes to its own butler channel (`linux`, `mac`, `windows`; `itch.downloads` renames

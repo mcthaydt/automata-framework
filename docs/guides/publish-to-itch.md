@@ -28,7 +28,7 @@ pnpm build:itch && pnpm prepare:itch
 ## Publish
 
 ```sh
-BUTLER_API_KEY=… pnpm exec automata-ship publish --target itch
+BUTLER_API_KEY=… pnpm exec automata ship publish --target itch
 ```
 
 This runs the itch packaging again, then `butler push` to the `html5` channel (or `itch.channel`). In CI, the

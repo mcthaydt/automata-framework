@@ -37,28 +37,6 @@ describe('parseCliArgs', () => {
     })
   })
 
-  it('reads deploy-dev with --activate', () => {
-    expect(parseCliArgs(['deploy-dev', '--activate'])).toEqual({
-      command: 'deploy-dev',
-      dist: 'dist',
-      tag: undefined,
-      activate: true,
-    })
-  })
-
-  it('passes everything after test-remote through untouched', () => {
-    expect(
-      parseCliArgs([
-        'test-remote',
-        'games/emberwick/tests/e2e/emberwick.test.ts',
-        '--project=emberwick-phone-chromium',
-      ]),
-    ).toEqual({
-      command: 'test-remote',
-      args: ['games/emberwick/tests/e2e/emberwick.test.ts', '--project=emberwick-phone-chromium'],
-    })
-  })
-
   it('answers help for --help, -h and help, so a developer asking for help gets the usage and no error', () => {
     for (const word of ['--help', '-h', 'help']) {
       expect(parseCliArgs([word])).toEqual({ command: 'help' })
@@ -136,7 +114,7 @@ describe('parseCliArgs', () => {
     })
   })
 
-  it('answers usage for an unknown target, Ruken-only flags on itch, and a target on deploy-dev', () => {
+  it('answers usage for an unknown target, and Ruken-only flags on itch', () => {
     expect(parseCliArgs(['prepare', '--target', 'steam'])).toEqual({
       command: 'usage',
       problem: 'unknown target: steam (ruken, itch or tauri)',
@@ -146,6 +124,5 @@ describe('parseCliArgs', () => {
       problem: '--activate and --game are for publishing to Ruken, not itch.io',
     })
     expect(parseCliArgs(['publish', '--target', 'itch', '--game', 'g-1']).command).toBe('usage')
-    expect(parseCliArgs(['deploy-dev', '--target', 'itch']).command).toBe('usage')
   })
 })

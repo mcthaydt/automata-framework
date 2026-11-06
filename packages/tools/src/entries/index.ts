@@ -1,5 +1,5 @@
-// @mcthaydt/automata-tools (the ship API, the create-game, check, add, build and editor commands, and the Files and
-// ProcessRunner services they share): Ruken packaging, publish and dev hosting for AF games (ship spec), and itch.io
+// @mcthaydt/automata-tools (the ship API, the create-game, check, build and editor commands, and the Files and
+// ProcessRunner services they share): Ruken packaging and publish for AF games (ship spec), and itch.io
 // packaging and publish.
 export { SHIP_PACKAGE } from '../shared/package-name.ts'
 
@@ -10,7 +10,6 @@ export {
 } from '../shared/ship/config/itch-config.schema.ts'
 export { defineShipConfig, type ShipConfig } from '../shared/ship/config/ship-config.ts'
 export { type TauriConfig, tauriConfigSchema } from '../shared/ship/config/tauri-config.schema.ts'
-export { BUILD_ID_PATTERN, buildIdFor } from '../shared/ship/deploy/build-id.ts'
 export * from '../shared/ship/errors.ts'
 export { portsFor } from '../shared/ship/ports/ports-for.ts'
 export {
@@ -55,7 +54,6 @@ export {
 } from '../shared/ship/prepare/secret-scan.ts'
 export { findExecutable } from '../shared/ship/publish/find-executable.ts'
 export { isLocalStack, type PublishBuildInput, publishBuild } from '../shared/ship/publish/publish-build.ts'
-export { type TestRemoteInput, testRemote } from '../shared/ship/remote/test-remote.ts'
 export { ITCH_LIMITS, ITCH_LIMITS_SOURCE } from '../shared/ship/targets/itch/itch-limits.ts'
 export { type PrepareItchInput, prepareItch } from '../shared/ship/targets/itch/prepare-itch.ts'
 export {
@@ -70,7 +68,6 @@ export {
 } from '../shared/ship/targets/itch/publish-to-itch.ts'
 export { inputsProblems, type ShipInputBindings } from '../shared/ship/targets/ruken/check-inputs.ts'
 export { checkManifest } from '../shared/ship/targets/ruken/check-manifest.ts'
-export { type DeployDevInput, deployDev } from '../shared/ship/targets/ruken/deploy-dev.ts'
 export {
   type PublishInput,
   publishToRuken,

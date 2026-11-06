@@ -3,7 +3,7 @@ name: ci
 # AF's own CI. Checks run on every push and pull request; cross-engine parity and the 2D journeys
 # (Emberwick in Chromium and WebKit, the one-file examples) run on every push to main and on pull requests that are
 # not drafts (a draft runs no parity here: run `pnpm ci:local`, see docs/runbook.md). One focused browser run can be asked
-# for with `automata ship test-remote <folder> <playwright args>`.
+# for from the Actions tab (Run workflow, then the folder and Playwright arguments).
 #
 # What a pull request runs (CI backlog, 2026-10-23): one runner serves every pull request, so the checks job
 # always runs and decides whether the pull request is documentation only (`scope`). Parity, the 2D journeys and
@@ -34,7 +34,7 @@ on:
   workflow_dispatch:
     inputs:
       spec:
-        description: One focused browser run (test-remote) - a folder, then Playwright arguments, e.g. "games/emberwick --project=emberwick-ipad-webkit". Empty runs the checks.
+        description: One focused browser run - a folder, then Playwright arguments, e.g. "games/emberwick --project=emberwick-ipad-webkit". Empty runs the checks.
         type: string
         default: ""
       nightly:
@@ -263,7 +263,7 @@ jobs:
 
   e2e-focused:
     name: one focused browser run (on request)
-    # `automata ship test-remote <folder> <playwright args>`: the folder is a game or example set with its own
+    # Run by hand from the Actions tab with `<folder> <playwright args>`: the folder is a game or example set with its own
     # Playwright config, e.g. `games/emberwick --project=emberwick-ipad-webkit`.
     if: github.event_name == 'workflow_dispatch' && inputs.spec != ''
     runs-on: ${{ vars.AF_E2E_RUNNER || vars.AF_LINUX_RUNNER || 'af-linux' }}
@@ -289,8 +289,8 @@ jobs:
         env:
           SPEC: ${{ inputs.spec }}
         run: |
-          # SPEC is the folder, then Playwright's arguments, split on whitespace on purpose (test-remote passes
-          # them through). A SPEC that matches nothing fails ("No tests found").
+          # SPEC is the folder, then Playwright's arguments, split on whitespace on purpose (they pass
+          # through to Playwright). A SPEC that matches nothing fails ("No tests found").
           folder="${SPEC%% *}"
           args="${SPEC#"$folder"}"
           cd "$folder"

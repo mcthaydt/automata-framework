@@ -24,21 +24,12 @@ export type CliCommand =
       /** Push the desktop bundles in `dist-tauri/` to itch.io's Downloadable channels. itch only. */
       readonly from?: 'tauri'
     }
-  | {
-      readonly command: 'deploy-dev'
-      readonly dist: string
-      readonly tag: string | undefined
-      readonly activate: boolean
-    }
-  | { readonly command: 'test-remote'; readonly args: readonly string[] }
   | { readonly command: 'help' }
   | { readonly command: 'usage'; readonly problem: string }
 
 export const USAGE = `Usage: automata ship prepare    [--dist <dir>] [--tag vX.Y.Z] [--target ruken|itch|tauri]
        automata ship publish    [--dist <dir>] [--tag vX.Y.Z] [--activate] [--game <publicId>] [--private]
        automata ship publish    --target itch [--from tauri] [--dist <dir>] [--tag vX.Y.Z]
-       automata ship deploy-dev [--dist <dir>] [--tag vX.Y.Z] [--activate]
-       automata ship test-remote [<playwright args> | --nightly]
 
 prepare      writes ruken.toml into the build (from ship.config.ts) and checks it with Ruken's parser
              --target itch: checks the build against itch.io's rules and writes <id>-<version>-itch.zip beside it
@@ -50,10 +41,7 @@ publish      prepare, then ruken publish (packs, validates, uploads). Needs RUKE
              --target itch: prepare --target itch, then butler push. Needs BUTLER_API_KEY, butler on PATH and
              itch.project in ship.config.ts.
              --target itch --from tauri: push the desktop bundles in dist-tauri/ (prepare --target tauri) to
-             itch.io's Downloadable channels, one per OS (itch.downloads; default linux, mac, windows).
-deploy-dev   prepare, then install the build on the dev host. Needs SHIP_DEV_TARGET and SHIP_DEV_URL;
-             SHIP_DEV_SSH_KEY_FILE and SHIP_DEV_KNOWN_HOSTS_FILE pick the key and known hosts.
-test-remote  push this branch and run CI for it remotely, waiting for the result`
+             itch.io's Downloadable channels, one per OS (itch.downloads; default linux, mac, windows).`
 
 const common = { dist: { type: 'string', default: 'dist' }, tag: { type: 'string' } } as const
 const targeted = { ...common, target: { type: 'string' } } as const
@@ -67,7 +55,6 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
   const [command, ...rest] = argv
   if (command === undefined) return { command: 'usage', problem: 'no command' }
   if (command === 'help' || command === '--help' || command === '-h') return { command: 'help' }
-  if (command === 'test-remote') return { command, args: rest }
   try {
     if (command === 'prepare') {
       const { values } = parseArgs({ args: rest, options: targeted, strict: true })
@@ -106,11 +93,6 @@ export function parseCliArgs(argv: readonly string[]): CliCommand {
         ...(values.private ? { private: true as const } : {}),
         ...(values.from === 'tauri' ? { from: 'tauri' as const } : {}),
       }
-    }
-    if (command === 'deploy-dev') {
-      const options = { ...common, activate: { type: 'boolean', default: false } } as const
-      const { values } = parseArgs({ args: rest, options, strict: true })
-      return { command, dist: values.dist, tag: values.tag, activate: values.activate }
     }
   } catch (error) {
     return { command: 'usage', problem: error instanceof Error ? error.message : String(error) }

@@ -2,10 +2,7 @@ import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parseArgs, runCli } from '#src/app/cli.ts'
-import { ALIAS_NOTICE, runShipAlias } from '#src/app/ship-alias.ts'
 import { runShip } from '#src/app/ship-cli.ts'
-import { PLUS_REPOSITORY } from '#src/features/add/add-args.ts'
-import { AddError, type AddResult, type RunAddOptions } from '#src/features/add/run-add.ts'
 import type { BuildResult } from '#src/features/build/run-build.ts'
 import type { CheckReport } from '#src/shared/check/check-report.ts'
 import { CheckToolError } from '#src/shared/check/csp-probe.ts'
@@ -35,8 +32,8 @@ describe('bin cli', () => {
       expect(parsed.help).toBe(false)
     })
 
-    it('parses subcommand create-game and options', () => {
-      const parsed = parseArgs(['create-game', 'my-dir', '--id', 'custom-id', '--title', 'Custom Title'])
+    it('parses the options', () => {
+      const parsed = parseArgs(['my-dir', '--id', 'custom-id', '--title', 'Custom Title'])
       expect(parsed.targetDir).toBe('my-dir')
       expect(parsed.id).toBe('custom-id')
       expect(parsed.title).toBe('Custom Title')
@@ -77,7 +74,7 @@ describe('bin cli', () => {
 
     it('returns exit code 1 on missing target dir', async () => {
       let stderr = ''
-      const code = await runCli([], {
+      const code = await runCli(['create-game'], {
         stdout: () => {},
         stderr: (msg) => {
           stderr += msg
@@ -90,7 +87,7 @@ describe('bin cli', () => {
 
     it('returns exit code 1 on invalid id', async () => {
       let stderr = ''
-      const code = await runCli([testDir, '--id', 'INVALID_ID'], {
+      const code = await runCli(['create-game', testDir, '--id', 'INVALID_ID'], {
         stdout: () => {},
         stderr: (msg) => {
           stderr += msg
@@ -104,7 +101,7 @@ describe('bin cli', () => {
     })
 
     it('builds only for the targets --targets names', async () => {
-      const code = await runCli([testDir, '--id', 'web-game', '--targets', 'web,itch'], {
+      const code = await runCli(['create-game', testDir, '--id', 'web-game', '--targets', 'web,itch'], {
         stdout: () => {},
         stderr: () => {},
       })
@@ -115,7 +112,7 @@ describe('bin cli', () => {
 
     it('refuses an unknown target with exit code 1, naming it and the four allowed, and writes nothing', async () => {
       let stderr = ''
-      const code = await runCli([testDir, '--targets', 'steam'], {
+      const code = await runCli(['create-game', testDir, '--targets', 'steam'], {
         stdout: () => {},
         stderr: (msg) => {
           stderr += msg
@@ -237,9 +234,6 @@ describe('bin cli', () => {
           },
         },
         async () => ({ ok: true, steps: [] }),
-        async () => {
-          throw new Error('add is not part of build')
-        },
         async (options) => {
           calls.push(options)
           if (result instanceof CheckToolError) throw result
@@ -287,169 +281,6 @@ describe('bin cli', () => {
     })
   })
 
-  describe('add', () => {
-    const added = (report: CheckReport): AddResult => ({
-      kit: 'results-screen',
-      tag: 'core-v0.0.2',
-      files: ['src/ui/results.screen.ts', 'content/ui/results.toml'],
-      report,
-    })
-    const passing: CheckReport = {
-      ok: true,
-      steps: [{ name: 'boundaries', ok: true, ms: 2, findings: [], toolError: false }],
-    }
-
-    async function runAddCli(args: string[], outcome: AddResult | AddError) {
-      let stdout = ''
-      let stderr = ''
-      const calls: RunAddOptions[] = []
-      const code = await runCli(
-        args,
-        {
-          stdout: (msg) => {
-            stdout += msg
-          },
-          stderr: (msg) => {
-            stderr += msg
-          },
-        },
-        async () => {
-          throw new Error('automata add runs its own check')
-        },
-        async (options) => {
-          calls.push(options)
-          return outcome
-        },
-      )
-      return { code, stdout, stderr, calls }
-    }
-
-    it('adds the kit to the game folder, lists the files and prints the check that followed', async () => {
-      const { code, stdout, stderr, calls } = await runAddCli(
-        ['add', 'results-screen', '--dir', 'games/x', '--force'],
-        added(passing),
-      )
-      expect(calls).toEqual([
-        {
-          kit: 'results-screen',
-          gameDir: join(process.cwd(), 'games/x'),
-          repo: PLUS_REPOSITORY,
-          force: true,
-        },
-      ])
-      expect(stdout).toBe(
-        'Added results-screen from core-v0.0.2:\n  src/ui/results.screen.ts\n  content/ui/results.toml\n' +
-          'pass  boundaries (2 ms)\nautomata check: 0 findings\n',
-      )
-      expect(stderr).toBe('')
-      expect(code).toBe(0)
-    })
-
-    it('is exit 1 when the added kit fails automata check, and says the files stay', async () => {
-      const failing: CheckReport = {
-        ok: false,
-        steps: [
-          {
-            name: 'typecheck',
-            ok: false,
-            ms: 2,
-            toolError: false,
-            findings: [{ file: 'src/ui/results.screen.ts', line: 1, col: 1, rule: 'TS2322', message: 'bad' }],
-          },
-        ],
-      }
-      const { code, stdout, calls } = await runAddCli(['add', 'results-screen'], added(failing))
-      expect(calls[0]).toMatchObject({ gameDir: process.cwd(), repo: PLUS_REPOSITORY, force: false })
-      expect(stdout).toContain('FAIL  typecheck (2 ms)')
-      expect(stdout).toContain(
-        'The kit is in place and automata check did not pass: fix what it reports, or remove the files listed above.',
-      )
-      expect(code).toBe(1)
-    })
-
-    it('is exit 2 when a check step could not run after the add, and says the files stay', async () => {
-      const toolMissing: CheckReport = {
-        ok: false,
-        steps: [
-          {
-            name: 'typecheck',
-            ok: false,
-            ms: 2,
-            toolError: true,
-            findings: [{ file: '', line: 0, col: 0, rule: 'tool-missing', message: 'tsc was not found' }],
-          },
-        ],
-      }
-      const { code, stdout, stderr } = await runAddCli(['add', 'results-screen'], added(toolMissing))
-      expect(stdout).toContain(
-        'Added results-screen from core-v0.0.2:\n  src/ui/results.screen.ts\n  content/ui/results.toml\n',
-      )
-      expect(stdout).toContain('FAIL  typecheck (2 ms)')
-      expect(stdout).toContain(
-        'The kit is in place and automata check did not pass: fix what it reports, or remove the files listed above.',
-      )
-      expect(stderr).toBe('')
-      expect(code).toBe(2)
-    })
-
-    it('the help says exit 2 is either nothing added or added with a check step that could not run', async () => {
-      let stdout = ''
-      const code = await runCli(['--help'], {
-        stdout: (msg) => {
-          stdout += msg
-        },
-        stderr: () => {},
-      })
-      expect(code).toBe(0)
-      expect(stdout).toContain(
-        '(exit 0 added and checked, 1 added and check found problems, 2 either not added (no access, unknown kit,\n' +
-          'core version, collision, or a failed copy, which is undone) or added and a check step could not run,\n' +
-          'in which case the kit stays in place).',
-      )
-    })
-
-    it('a failure is exit 2 with its message', async () => {
-      const error = new AddError({ reason: 'no-access', message: 'cannot read the repository' })
-      const { code, stdout, stderr } = await runAddCli(
-        ['add', 'lobby', '--repo', 'file:///tmp/plus.git'],
-        error,
-      )
-      expect(stderr).toBe('Error: cannot read the repository\n')
-      expect(stdout).toBe('')
-      expect(code).toBe(2)
-    })
-
-    it('an unexpected crash is exit 2 with its message, never exit 1 (which means the check failed)', async () => {
-      let stderr = ''
-      const code = await runCli(
-        ['add', 'lobby'],
-        {
-          stdout: () => {},
-          stderr: (msg) => {
-            stderr += msg
-          },
-        },
-        async () => {
-          throw new Error('automata add runs its own check')
-        },
-        async () => {
-          throw new Error("EACCES: permission denied, lstat '/game/src'")
-        },
-      )
-      expect(stderr).toBe("Error: EACCES: permission denied, lstat '/game/src'\n")
-      expect(code).toBe(2)
-    })
-
-    it('a usage error is exit 2, shows the usage and adds nothing', async () => {
-      const { code, stderr, calls } = await runAddCli(['add'], added(passing))
-      expect(code).toBe(2)
-      expect(stderr).toContain('Error: a kit name is required')
-      expect(stderr).toContain('automata add <kit> [--dir <game>] [--repo <url>] [--force]')
-      expect(calls).toEqual([])
-    })
-  })
-
-  // The one bin (spec 3.2): `automata ship <cmd>` is the ship lane; `automata-ship` stays for one release.
   describe('ship', () => {
     const noOtherCommand = async (): Promise<never> => {
       throw new Error('not part of ship')
@@ -465,7 +296,6 @@ describe('bin cli', () => {
           },
           stderr: () => undefined,
         },
-        noOtherCommand,
         noOtherCommand,
         noOtherCommand,
         async (shipArgs) => {
@@ -487,7 +317,7 @@ describe('bin cli', () => {
       expect(stdout).toContain('automata ship <command>')
     })
 
-    it('prints the usage on stdout and exits 0 for `ship --help`, and for the old name with --help', async () => {
+    it('prints the usage on stdout and exits 0 for `ship --help`', async () => {
       let stdout = ''
       let stderr = ''
       const write = (target: 'stdout' | 'stderr') =>
@@ -499,33 +329,11 @@ describe('bin cli', () => {
       const spies = [write('stdout'), write('stderr')]
       try {
         expect(await runShip(['--help'])).toBe(0)
-        expect(await runShipAlias(['--help'], () => undefined, runShip)).toBe(0)
       } finally {
         for (const spy of spies) spy.mockRestore()
       }
       expect(stdout).toContain('automata ship prepare')
       expect(stderr).toBe('')
-    })
-
-    it('the old name prints that it is going away, then runs the same lane with the same arguments', async () => {
-      const calls: string[][] = []
-      let stderr = ''
-      const code = await runShipAlias(
-        ['publish', '--dist', 'dist'],
-        (msg) => {
-          stderr += msg
-        },
-        async (args) => {
-          calls.push([...args])
-          return 0
-        },
-      )
-      expect(stderr).toBe(`${ALIAS_NOTICE}\n`)
-      expect(ALIAS_NOTICE).toBe(
-        'automata-ship is now "automata ship". This name goes away in the next release.',
-      )
-      expect(calls).toEqual([['publish', '--dist', 'dist']])
-      expect(code).toBe(0)
     })
   })
 })

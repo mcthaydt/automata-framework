@@ -49,8 +49,7 @@ export interface PrepareInput {
   readonly inputBindings?: ShipInputBindings | undefined
   /**
    * Who the build is for. `public` (the default: Ruken's store, through `publish`) refuses a build that contains
-   * `@pixi/3d`, a closed beta (X-b); `private` (the dev host behind its access control, `deploy-dev`, and Ruken's
-   * local stack, `publish --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
+   * `@pixi/3d`, a closed beta (X-b); `private` (Ruken's local stack, `publish --private`) allows it. Either refuses `@pixi/3d/extras` (S7-g).
    */
   readonly audience?: 'public' | 'private' | undefined
 }
@@ -69,7 +68,7 @@ export type PrepareError =
   | FileError
 
 /**
- * Makes a built folder ready for `ruken publish` and the dev host: checks the tag, the
+ * Makes a built folder ready for `ruken publish`: checks the tag, the
  * entry page, root-absolute paths, secrets, `@pixi/3d`, the leaderboards the game names and the orientation it plays in and the devices its `keys()` calls bind, then writes `ruken.toml` once Ruken's parser accepts it. Every check
  * runs before the write, so a failed prepare leaves the folder as it was. Zipping and Ruken's build checks
  * (archive, size, file types) happen inside `ruken publish`, not here.
