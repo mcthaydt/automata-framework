@@ -83,7 +83,7 @@ export default defineConfig({
       },
       // The Svelte plugins and the Pixi pre-bundle sit on the project, as on the other browser projects (see above).
       {
-        ...journeyProject(playwright),
+        ...journeyProject(playwright, { browsers: ['chromium', 'webkit'] }),
         plugins: [svelte(), svelteTesting()],
         optimizeDeps: { include: ['pixi.js'] },
       },

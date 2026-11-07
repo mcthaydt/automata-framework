@@ -4169,6 +4169,7 @@ function journeyProject<P>(provider: ProviderFactory<P>, options?: JourneyProjec
 ```ts
 interface JourneyProjectOptions {
     readonly include?: readonly string[];
+    readonly browsers?: readonly ('webkit' | 'chromium')[];
 }
 ```
 
@@ -4318,7 +4319,7 @@ interface JourneyProject<P> {
             headless: true;
             provider: P;
             instances: {
-                browser: 'webkit';
+                browser: 'webkit' | 'chromium';
             }[];
         };
     };
@@ -4336,6 +4337,7 @@ function journeyProject<P>(provider: ProviderFactory<P>, options?: JourneyProjec
 ```ts
 interface JourneyProjectOptions {
     readonly include?: readonly string[];
+    readonly browsers?: readonly ('webkit' | 'chromium')[];
 }
 ```
 

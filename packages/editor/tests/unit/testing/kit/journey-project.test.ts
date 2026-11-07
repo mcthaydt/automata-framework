@@ -28,4 +28,13 @@ describe('journeyInstance', () => {
       journeyProject(provider).test.browser.provider,
     )
   })
+
+  it('runs in the engines a package asks for, WebKit alone by default', () => {
+    const provider = (options: { contextOptions: unknown }) => ({ options })
+    expect(journeyProject(provider).test.browser.instances).toEqual([{ browser: 'webkit' }])
+    expect(journeyProject(provider, { browsers: ['chromium', 'webkit'] }).test.browser.instances).toEqual([
+      { browser: 'chromium' },
+      { browser: 'webkit' },
+    ])
+  })
 })
