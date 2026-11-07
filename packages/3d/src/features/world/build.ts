@@ -129,6 +129,21 @@ export function buildWorld(level: AfSector2, library: WorldLibrary, options: Wor
     problems.push(problem)
   }
 
+  // A room that asks to be dressed is drawn bare: filling a room is the world-kit extension's, and core never fills it
+  // some other way. The field stays in the format, so the level is one file for every game.
+  if (level.dress?.keep !== false)
+    level.sectors.forEach((sector, si) => {
+      if ((sector.dress ?? level.dress) === undefined) return
+      problems.push({
+        path: sector.dress === undefined ? ['dress'] : ['sectors', si, 'dress'],
+        code: 'needs-extension',
+        message:
+          'This room asks to be furnished by the world kit, which this game doesn\'t have. Add @automata/world-kit, or remove "dress" from the room.',
+        where: sector.id,
+        name: 'world-kit',
+      })
+    })
+
   /** Adds a piece, saying so once if its swatch is not in the library. */
   const add = (
     si: number,

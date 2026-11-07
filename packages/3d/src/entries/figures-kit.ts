@@ -65,7 +65,6 @@ export {
   type OutfitHooks,
   registerOutfitHooks,
 } from '../features/figures/registry/outfit-hooks-registry.ts'
-export { RegistryClash } from '../features/figures/registry/registry-clash.ts'
 export {
   add,
   axisAngle,
@@ -80,3 +79,4 @@ export {
   type V3,
 } from '../shared/math/math.ts'
 export { type Superquadric, superquadric } from '../shared/math/superquadric.ts'
+export { RegistryClash } from '../shared/registry/registry-clash.ts'

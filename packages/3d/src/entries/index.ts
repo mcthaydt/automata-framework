@@ -66,8 +66,18 @@ export {
   type WorldPart,
   type WorldPiece,
 } from '../features/world/build.ts'
-export { CORE_LIBRARY, mergeLibrary } from '../features/world/library.ts'
+export { box as propBox, cylinder as propCylinder } from '../features/world/mesh.ts'
 export type { WorldLamp } from '../features/world/place-props.ts'
+export {
+  type Built,
+  type Generator,
+  lightOf,
+  type Params,
+  type PropLight,
+  type PropPiece,
+  part as propPart,
+} from '../features/world/props/piece.ts'
+export { registerPropGenerator } from '../features/world/props/prop-generator-registry.ts'
 export { swatchColour, type WorldLibrary } from '../features/world/swatches.ts'
 export { type BakeOptions, createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 export { sceneLightingContent } from '../shared/render/light/scene-lighting.content.ts'

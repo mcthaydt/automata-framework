@@ -223,6 +223,6 @@ export {
 export { type HairFinish, registerFinish } from '../features/figures/registry/hair-finish-registry.ts'
 export { type HairPiece, registerHairPiece } from '../features/figures/registry/hair-piece-registry.ts'
 export { type OutfitHooks, registerOutfitHooks } from '../features/figures/registry/outfit-hooks-registry.ts'
-export { RegistryClash } from '../features/figures/registry/registry-clash.ts'
 export * from '../shared/math/math.ts'
+export { RegistryClash } from '../shared/registry/registry-clash.ts'
 export { type Ease, easeAt, easeSchema, parseEase } from '../shared/timeline/ease.ts'

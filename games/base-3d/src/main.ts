@@ -16,7 +16,7 @@ import { defineGame, type GameSaves, inputs, keys, startGame } from '@automata/f
 import { Act, Move } from './commands.ts'
 import { Ember, Hero } from './components.ts'
 import { TICK_HZ } from './constants/index.ts'
-import { ROOM, ROOM_WORLD } from './content/room.ts'
+import { ROOM, roomWorld } from './content/room.ts'
 import * as paraglideRuntime from './paraglide/runtime.js'
 import { cameraTurnUnits, endGroup, moveFromStick } from './screens/controls.ts'
 import { BASE3D_COPY } from './screens/copy.ts'
@@ -75,6 +75,8 @@ export const input = endGroup(inputs(MOVE, TURN, ROLL_KEYS), { Space: KEYS.roll 
 
 // The figure content (src/content/figure*), compiled by the content plugin with the figures extension's kinds.
 const { figures, library, motion } = figureContent(content)
+// The room's world, from the game's own swatches and props (src/content/world-*), built once at boot.
+const ROOM_WORLD = roomWorld(content)
 
 /**
  * Sim presentation time in seconds: the last step's tick at 60 Hz. The figure samples its clips on it, because the sim

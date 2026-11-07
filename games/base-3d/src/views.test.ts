@@ -1,6 +1,7 @@
+import { content } from 'virtual:automata/content'
 import { describe, expect, it } from 'vitest'
 import { metres, ROLL, TICK_HZ, WALK_SPEED } from './constants/index.ts'
-import { ROOM, ROOM_WORLD } from './content/room.ts'
+import { ROOM, roomWorld } from './content/room.ts'
 import { heroFigureState, lipBoxes, placed } from './views/index.ts'
 
 // base-3d's views: Wick's rows to the figure view's state, Q16.16 rows to metres for the views, and the room’s world and lips. Presentation: the sim never reads them back (law 1).
@@ -37,6 +38,7 @@ describe('placed', () => {
 })
 
 describe('the room’s world', () => {
+  const ROOM_WORLD = roomWorld(content).world
   const pieces = (part: string) => ROOM_WORLD.pieces.filter((piece) => piece.part === part)
 
   it('builds with nothing to report: every surface the file names is in the library', () => {

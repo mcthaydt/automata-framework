@@ -2,7 +2,7 @@
 // map carries, so the game, the editor and the world builder read one format. A pure validator like `/1`'s (no
 // defaults, an unknown member kept) with one exception: a plane written as a bare number reads as `{ z }`, so every
 // reader after it sees one shape. Fields land by the table in spec 9; the builder's `verts`/`rect` and its walls by edge
-// index are converted by `convert-builder-map.ts`, never read here.
+// index are converted by the world-kit extension's converter, never read here.
 import { z } from 'zod'
 import {
   type AfEntity,
@@ -512,7 +512,7 @@ export interface LevelReads {
   readonly hot?: boolean | undefined
 }
 
-/** A decal or a piece of lettering, carried as written until the world builder reads its fields (task 7.3). */
+/** A decal or a piece of lettering, carried as written; core draws none, the world-kit extension reads its fields. */
 export type Marking = Readonly<Record<string, unknown>>
 
 export interface AfSector2 {

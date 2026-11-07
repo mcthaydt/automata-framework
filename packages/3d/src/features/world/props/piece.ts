@@ -51,17 +51,3 @@ export function part(
 export function lightOf(at: V3, p: Params, fallback: Partial<PropLight> = {}): PropLight {
   return { at, kind: 'bulb', ...fallback, ...(p.light ?? {}) }
 }
-
-/** The four corners of a footprint, as signs: where a table's legs stand. */
-export const CORNERS = [
-  [-1, -1],
-  [1, -1],
-  [-1, 1],
-  [1, 1],
-] as const
-
-/** A piece with its mesh moved up by `dy` (lettering sits on a panel's face, not at the origin). */
-export function lifted(piece: PropPiece, dy: number): PropPiece {
-  const positions = piece.mesh.positions.map((v, i) => (i % 3 === 1 ? v + dy : v))
-  return { ...piece, mesh: { ...piece.mesh, positions } }
-}

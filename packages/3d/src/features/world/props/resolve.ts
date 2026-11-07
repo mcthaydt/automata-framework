@@ -4,8 +4,8 @@
 import type { PropPlace } from '../../../shared/level/af-sector-2.schema.ts'
 import { isSurfaceTex, type SurfaceTex } from '../surface.ts'
 import type { WorldLibrary } from '../swatches.ts'
-import { GENERATORS } from './generators.ts'
 import type { Generator, Params } from './piece.ts'
+import { propGenerator } from './prop-generator-registry.ts'
 
 export interface ResolvedProp {
   readonly kind: string
@@ -29,7 +29,7 @@ export function resolveProp(
   const preset = place.use === undefined ? undefined : library.props?.[place.use]
   if (place.use !== undefined && preset === undefined) return { code: 'unknown-prop', name: place.use }
   const kind = place.kind ?? (preset?.kind as string | undefined)
-  const generator = kind === undefined ? undefined : GENERATORS[kind]
+  const generator = kind === undefined ? undefined : propGenerator(kind)
   if (kind === undefined || generator === undefined) return { code: 'unknown-generator', name: kind ?? '' }
   const params: Params = { ...(preset ?? {}), ...(place.with ?? {}) }
   const placements: Record<string, SurfaceTex> = {}

@@ -531,6 +531,25 @@ declare module 'virtual:automata/content' {
     readonly recovery: number
   }
 
+  export type WorldSwatchId = 'barrel' | 'ceiling' | 'crate' | 'floor' | 'lava' | 'wall'
+  export type WorldSwatch = {
+    readonly about?: string
+    readonly accent?: string
+    readonly emit?: boolean
+    readonly flat?: boolean
+    readonly gloss?: number
+    readonly noCast?: boolean
+    readonly pattern?: Readonly<Record<string, unknown /* world-swatch.pattern has no JSON form */>>
+    readonly ramp: 'grey' | 'sand' | 'skin' | 'sea' | 'flame' | 'dusk' | 'moss' | 'sky' | 'pine' | 'rose' | 'slate' | 'clay' | 'mud' | 'plum' | 'teal' | 'wood' | 'wine' | 'indigo' | 'cherry' | 'rust' | 'olive' | 'amber' | 'mauve' | 'forest' | 'brick' | 'sage' | 'ocean' | 'dawn' | 'violet' | 'navy' | 'blush' | 'ember'
+    readonly step: number
+    readonly texture?: Readonly<Record<string, unknown /* world-swatch.texture has no JSON form */>>
+  }
+
+  export type WorldPropId = 'barrel' | 'crate'
+  export type WorldProp = {
+    readonly kind: string
+  }
+
   export type ScreenId = never
   export type FlowEvent = never
   export type TuningName = never
@@ -548,6 +567,8 @@ declare module 'virtual:automata/content' {
     readonly 'figure-pose': Readonly<Record<FigurePoseId, FigurePose>>
     readonly 'figure-clip': Readonly<Record<FigureClipId, FigureClip>>
     readonly 'figure-action': Readonly<Record<FigureActionId, FigureAction>>
+    readonly 'world-swatch': Readonly<Record<WorldSwatchId, WorldSwatch>>
+    readonly 'world-prop': Readonly<Record<WorldPropId, WorldProp>>
     readonly tuning: Readonly<Record<TuningName, number | boolean | string>>
     readonly palette: Palette
   }

@@ -6,7 +6,7 @@
 // Ported from FigureBuilder (mcthaydt/FigureBuilder) src/features/hair/hair.ts at 025ffb4 (`registerFinish`, `FINISH`'s
 // matteness).
 
-import { RegistryClash } from './registry-clash.ts'
+import { RegistryClash } from '../../../shared/registry/registry-clash.ts'
 
 /** A finish's light, as far as the 3D look keeps it. */
 export interface HairFinish {

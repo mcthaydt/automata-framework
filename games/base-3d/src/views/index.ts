@@ -9,8 +9,8 @@ import {
   type FigureViewState,
   type Occluders,
   type SceneFog,
+  swatchColour,
   type View3dFactory,
-  type World,
 } from '@automata/3d'
 import type {
   FigureAction,
@@ -24,6 +24,7 @@ import { Q16 } from '@automata/3d/sim'
 import type { FieldRecord } from '@automata/sim'
 import type { View3D } from '@pixi/3d'
 import { ACTION_CLIP, ROLL, TICK_HZ, WALK_SPEED } from '../constants/index.ts'
+import type { RoomWorld } from '../content/room.ts'
 import type { AreaSource } from '../systems/index.ts'
 
 type Components = Readonly<Record<string, Readonly<FieldRecord>>>
@@ -92,19 +93,18 @@ export function inMetres(factory: View3dFactory, yaw = 0): View3dFactory {
 /** The room's fog: none for 5 m, full at 14 m, its colour the sky the fogged walls meet (DUEL, ramp 12 step 0). */
 export const FOG: SceneFog = { near: 5, far: 14, color: 0x31222a }
 
-// The room's colours (DUEL): a lighter floor than the walls so the platforms read, a dark lava below the channels, and
-// a bright lip along each channel's edge so the player can see where to roll from.
-const COLOURS = { wall: 0x3a4568, floor: 0x8690b2, ceiling: 0x282b4a, lava: 0x82211d, lip: 0xffb108 } as const
+// The lip along each channel's edge: a bright DUEL colour so the player can see where to roll from. The room's other
+// colours are its swatches' (`content/world-swatches`): a lighter floor than the walls so the platforms read, a dark
+// lava below the channels, brown crates and barrels.
+const LIP_COLOUR = 0xffb108
 /** The lip's height and width. */
 const LIP = { height: 0.06, width: 0.12 } as const
 
 /** Draws the room under the view's root (the renderer's `scene` hook): the world builder's floors, walls and ceilings, the walls cut away by the occluder rule, and the lip along each channel. */
-export function buildScene(view: View3D, occluders: Occluders, area: AreaSource, world: World): void {
-  view.environment = { skyColor: 0xcdd2da, groundColor: COLOURS.floor }
-  drawWorld(
-    { parent: view.root, occluders, colourOf: (swatch) => COLOURS[swatch as keyof typeof COLOURS] },
-    world.pieces,
-  )
+export function buildScene(view: View3D, occluders: Occluders, area: AreaSource, room: RoomWorld): void {
+  const colourOf = (swatch: string) => swatchColour(room.library, swatch)
+  view.environment = { skyColor: 0xcdd2da, groundColor: colourOf('floor') ?? 0x8690b2 }
+  drawWorld({ parent: view.root, occluders, colourOf }, room.world.pieces)
   for (const box of lipBoxes(area)) occluders.box(box.box, box.colour)
 }
 
@@ -118,8 +118,8 @@ export function lipBoxes(area: AreaSource): { readonly box: Box3; readonly colou
       max: [x1, LIP.height, zEdge + LIP.width / 2],
     })
     return [
-      { colour: COLOURS.lip, box: lip(z0) },
-      { colour: COLOURS.lip, box: lip(z1) },
+      { colour: LIP_COLOUR, box: lip(z0) },
+      { colour: LIP_COLOUR, box: lip(z1) },
     ]
   })
 }
