@@ -1,5 +1,4 @@
 import type { AssetsSource, FlowGraph, GameSource } from '@mcthaydt/automata-content'
-import type { Effect, Scope } from 'effect'
 import type { AudioContextLike } from '../../features/audio/audio-graph.js'
 import type { EventSounds } from '../../features/audio/event-sounds.js'
 import type { GameOrientation, RotateHintMode } from '../../features/display/display-policy.svelte.js'
@@ -9,8 +8,9 @@ import type { EventScores } from '../../features/leaderboards/event-scores.js'
 import type { LocaleDef } from '../../features/locale/locale.manager.js'
 import type { SaveDef } from '../../features/saves/save.schema.js'
 import type { HostingSeams } from '../../features/targets/ruken/hosting-ruken.ts'
-import type { HostError } from '../../shared/host/errors.ts'
+import type { HostResult } from '../../shared/host/errors.ts'
 import type { Hosting, HostingOptions } from '../../shared/host/hosting.ts'
+import type { Clock } from '../../shared/lib/clock.ts'
 import type { FrameSource } from '../../shared/runtime/loop/frames.js'
 import type { RendererFactory } from '../../shared/runtime/render/renderer.js'
 import type { DeviceStorage } from '../../shared/runtime/settings/device-storage.js'
@@ -33,11 +33,18 @@ export interface RuntimeSeams {
   readonly fonts?: Pick<FontFaceSet, 'load'>
   readonly sdkEnv?: () => NonNullable<HostingSeams['env']>
   /**
-   * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata-host/target`), for
-   * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host`. When given, `sdkEnv` is
-   * not used.
+   * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata/target`), for example
+   * `fakeHosting(…).open` from `@mcthaydt/automata/testing`. It gets boot's clock and the signal that gives up the
+   * handshake; boot disposes what it answers. When given, `sdkEnv` is not used.
    */
-  readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>
+  readonly hosting?: (
+    options: HostingOptions,
+    seams: { readonly clock: Clock; readonly signal: AbortSignal },
+  ) => Promise<HostResult<Hosting>>
+  /** The clock every runtime timer runs on (the stall rule, fades, toasts, the exit cap); default the real one. */
+  readonly clock?: Clock
+  /** The wall clock saves are stamped with, in epoch milliseconds; default `Date.now`. */
+  readonly now?: () => number
   readonly document?: Document
   /** The browser's languages, best first; defaults to `navigator.languages`. */
   readonly languages?: readonly string[]
@@ -61,7 +68,7 @@ export interface RuntimeSeams {
   readonly reload?: () => void
 }
 
-/** Controls the running game: shutdown closes the runtime scope. */
+/** Controls the running game: `shutdown` closes everything the runtime opened, last opened first. */
 export interface RuntimeHandle {
   shutdown(): Promise<void>
 }

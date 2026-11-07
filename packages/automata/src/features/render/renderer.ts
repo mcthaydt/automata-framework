@@ -1,10 +1,10 @@
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { Effect, type Scope } from 'effect'
 import { Application, Container, type Filter, TextureSource } from 'pixi.js'
+import { ok, type Result, refused } from '../../shared/lib/result.ts'
 import { RendererUnavailable } from '../../shared/runtime/boot-error.ts'
 import { DEFAULT_QUALITY, type QualityTier } from '../../shared/runtime/display-settings.schema.ts'
 import type { FrameInfo } from '../../shared/runtime/loop/frames.ts'
-import type { GameRenderer, RenderTarget } from '../../shared/runtime/render/renderer.ts'
+import type { OwnedRenderer, RenderTarget } from '../../shared/runtime/render/renderer.ts'
 import { type EntityViewResolver, RenderDeltaConsumer } from './delta/render-delta-consumer.js'
 import { addPostFilters, assertUniqueNames, type PostFilterDef } from './filter/post-filter.js'
 import {
@@ -107,7 +107,7 @@ export interface PixiStage {
 }
 
 /** The runtime's `GameRenderer`, built on PixiJS, with its stage. */
-export interface PixiRenderer extends GameRenderer {
+export interface PixiRenderer extends OwnedRenderer {
   readonly stage: PixiStage
 }
 
@@ -124,209 +124,208 @@ function resolvePreference(optionPreference?: RendererPreference): RendererPrefe
 
 /**
  * The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render
- * target, entity views from each step's render delta, interpolated each frame. Fails with
- * `RendererUnavailable` when the renderer cannot start.
+ * target, entity views from each step's render delta, interpolated each frame. Answers `RendererUnavailable`
+ * when the renderer cannot start; `dispose` destroys the app and removes its canvas.
  */
 export function createPixiRenderer(
   options: PixiRendererOptions = {},
-): (target: RenderTarget) => Effect.Effect<PixiRenderer, RendererUnavailable, Scope.Scope> {
+): (target: RenderTarget) => Promise<Result<PixiRenderer, RendererUnavailable>> {
   assertUniqueNames(options.postFilters ?? [])
-  return (target: RenderTarget) =>
-    Effect.gen(function* () {
-      const preferred = resolvePreference(options.preference)
-      if (options.pixelArt !== false) {
-        TextureSource.defaultOptions.scaleMode = 'nearest'
-      }
+  return async (target: RenderTarget) => {
+    const preferred = resolvePreference(options.preference)
+    if (options.pixelArt !== false) {
+      TextureSource.defaultOptions.scaleMode = 'nearest'
+    }
 
-      let quality: QualityTier = options.quality ?? DEFAULT_QUALITY
-      const devicePixelRatio = (): number => (typeof window !== 'undefined' ? window.devicePixelRatio : 1)
-      const initialGeometry = target.geometry.geometry.current
-      const initialResolution = canvasResolutionFor(initialGeometry.formFactor, devicePixelRatio(), quality)
+    let quality: QualityTier = options.quality ?? DEFAULT_QUALITY
+    const devicePixelRatio = (): number => (typeof window !== 'undefined' ? window.devicePixelRatio : 1)
+    const initialGeometry = target.geometry.geometry.current
+    const initialResolution = canvasResolutionFor(initialGeometry.formFactor, devicePixelRatio(), quality)
 
-      const tryInit = async (pref: RendererPreference): Promise<Application | null> => {
-        const app = new Application()
-        try {
-          await app.init({
-            preference: pref,
-            width: initialGeometry.usable.width,
-            height: initialGeometry.usable.height,
-            resolution: initialResolution,
-            backgroundColor: options.backgroundColor ?? 0x000000,
-            autoStart: false,
-            autoDensity: true,
-          })
-          return app
-        } catch {
-          try {
-            app.destroy(true, { children: true })
-          } catch {
-            // ignore teardown errors on failed init
-          }
-          return null
-        }
-      }
-
-      let app: Application | null = null
-      const tried: ('webgpu' | 'webgl2')[] = []
-
-      if (preferred === 'webgpu') {
-        tried.push('webgpu')
-        app = yield* Effect.promise(() => tryInit('webgpu'))
-        if (!app) {
-          tried.push('webgl2')
-          app = yield* Effect.promise(() => tryInit('webgl'))
-        }
-      } else {
-        tried.push('webgl2')
-        app = yield* Effect.promise(() => tryInit('webgl'))
-      }
-
-      if (!app) {
-        return yield* Effect.fail(new RendererUnavailable({ tried }))
-      }
-
-      const rendererName = app.renderer.name === 'webgpu' ? 'webgpu' : 'webgl'
-      app.canvas.dataset.renderer = rendererName
-      const canvas = app.canvas
-      canvas.classList.add('af-stage')
-      target.host.appendChild(canvas)
-
-      let frame: LetterboxFrame | undefined
-      let world: Container
-      let ui: Container
-      let backdrop: Container
-      let composite: CompositeTarget | undefined
-
-      if (options.logicalWidth != null && options.logicalHeight != null) {
-        frame = new LetterboxFrame({
-          logicalWidth: options.logicalWidth,
-          logicalHeight: options.logicalHeight,
-          barFraction: options.barFraction,
-          barColor: options.barColor,
+    const tryInit = async (pref: RendererPreference): Promise<Application | null> => {
+      const app = new Application()
+      try {
+        await app.init({
+          preference: pref,
+          width: initialGeometry.usable.width,
+          height: initialGeometry.usable.height,
+          resolution: initialResolution,
+          backgroundColor: options.backgroundColor ?? 0x000000,
+          autoStart: false,
+          autoDensity: true,
         })
-        app.stage.addChild(frame.scene)
-        app.stage.addChild(frame.bars)
-        world = frame.world
-        ui = frame.ui
-        backdrop = frame.backdrop
-        const { fieldHeight } = frame.layout(initialGeometry.usable.width, initialGeometry.usable.height)
-        if ((options.composite ?? true) && options.pixelArt !== false) {
-          composite = new CompositeTarget({ width: options.logicalWidth, height: options.logicalHeight })
-          composite.adopt(frame)
-          composite.resize(fieldHeight)
+        return app
+      } catch {
+        try {
+          app.destroy(true, { children: true })
+        } catch {
+          // ignore teardown errors on failed init
         }
-      } else {
-        backdrop = new Container()
-        world = new Container()
-        ui = new Container()
-        app.stage.addChild(backdrop)
-        app.stage.addChild(world)
-        app.stage.addChild(ui)
+        return null
       }
+    }
 
-      const consumer = new RenderDeltaConsumer(world, options.entityViews)
+    let app: Application | null = null
+    const tried: ('webgpu' | 'webgl2')[] = []
 
-      // The rendered scene's filters: the composite when it is on, so their cost is bounded by the logical size;
-      // else the letterboxed scene when there is a frame; else the whole stage.
-      const sceneFilters: PostFilterTarget = {
-        get filters(): Filter[] | null {
-          if (composite) return composite.stage.filters as Filter[] | null
-          return (frame ? frame.scene.filters : app.stage.filters) as Filter[] | null
-        },
-        set filters(val: Filter[] | null) {
-          if (composite) {
-            composite.stage.filters = val
-          } else if (frame) {
-            frame.scene.filters = val
-          } else {
-            app.stage.filters = val
-          }
-        },
+    if (preferred === 'webgpu') {
+      tried.push('webgpu')
+      app = await tryInit('webgpu')
+      if (!app) {
+        tried.push('webgl2')
+        app = await tryInit('webgl')
       }
+    } else {
+      tried.push('webgl2')
+      app = await tryInit('webgl')
+    }
 
-      const postFilters = createPostFilterSlot(sceneFilters)
-      postFilters.setTier(quality)
-      let formFactor = initialGeometry.formFactor
-      const applyResolution = (): void => {
-        app.renderer.resolution = canvasResolutionFor(formFactor, devicePixelRatio(), quality)
-      }
+    if (!app) {
+      return refused(new RendererUnavailable({ tried }))
+    }
 
-      const stage: PixiStage = {
-        app,
-        frame,
-        world,
-        ui,
-        backdrop,
-        consumer,
-        composite,
-        get filters(): Filter[] | null {
-          return sceneFilters.filters
-        },
-        set filters(val: Filter[] | null) {
-          sceneFilters.filters = val
-        },
-        postFilters,
-        get quality(): QualityTier {
-          return quality
-        },
-        setQuality(tier: QualityTier): void {
-          quality = tier
-          postFilters.setTier(tier)
-          applyResolution()
-        },
-        tryFilter: (id, make) =>
-          tryFilter(app.renderer, id, make, (dropped, reason) => {
-            console.warn(`[automata-render-pixi] filter "${dropped}" dropped: ${reason}`)
-            target.bus?.publish('render.filter.dropped', { id: dropped, reason })
-          }),
-      }
+    const rendererName = app.renderer.name === 'webgpu' ? 'webgpu' : 'webgl'
+    app.canvas.dataset.renderer = rendererName
+    const canvas = app.canvas
+    canvas.classList.add('af-stage')
+    target.host.appendChild(canvas)
 
-      addPostFilters(stage, options.postFilters ?? [])
-      const hooks: PixiStageHooks = options.setup?.(stage) ?? {}
+    let frame: LetterboxFrame | undefined
+    let world: Container
+    let ui: Container
+    let backdrop: Container
+    let composite: CompositeTarget | undefined
 
-      const unsubscribe = target.geometry.onChange((g) => {
-        app.renderer.resize(g.usable.width, g.usable.height)
-        const layout = frame?.layout(g.usable.width, g.usable.height)
-        if (layout) composite?.resize(layout.fieldHeight)
-        formFactor = g.formFactor
-        applyResolution()
+    if (options.logicalWidth != null && options.logicalHeight != null) {
+      frame = new LetterboxFrame({
+        logicalWidth: options.logicalWidth,
+        logicalHeight: options.logicalHeight,
+        barFraction: options.barFraction,
+        barColor: options.barColor,
       })
-
-      yield* Effect.addFinalizer(() =>
-        Effect.sync(() => {
-          unsubscribe()
-          consumer.destroy()
-          composite?.destroy()
-          frame?.destroy()
-          try {
-            app.destroy(true, { children: true })
-          } catch {
-            // ignore error
-          }
-          // The canvas held from creation: once destroyed, the app has no renderer and its `canvas` getter throws.
-          canvas.remove()
-        }),
-      )
-
-      const renderer: PixiRenderer = {
-        stage,
-        apply(result: StepResult): void {
-          consumer.apply(result.render)
-          hooks.apply?.(result)
-        },
-        draw(frameInfo: FrameInfo): void {
-          consumer.interpolate(frameInfo.alpha)
-          hooks.draw?.(frameInfo)
-          if (composite)
-            app.renderer.render({ container: composite.stage, target: composite.texture, clear: true })
-          app.render()
-        },
-        reset(): void {
-          consumer.reset()
-          hooks.reset?.()
-        },
+      app.stage.addChild(frame.scene)
+      app.stage.addChild(frame.bars)
+      world = frame.world
+      ui = frame.ui
+      backdrop = frame.backdrop
+      const { fieldHeight } = frame.layout(initialGeometry.usable.width, initialGeometry.usable.height)
+      if ((options.composite ?? true) && options.pixelArt !== false) {
+        composite = new CompositeTarget({ width: options.logicalWidth, height: options.logicalHeight })
+        composite.adopt(frame)
+        composite.resize(fieldHeight)
       }
+    } else {
+      backdrop = new Container()
+      world = new Container()
+      ui = new Container()
+      app.stage.addChild(backdrop)
+      app.stage.addChild(world)
+      app.stage.addChild(ui)
+    }
 
-      return renderer
+    const consumer = new RenderDeltaConsumer(world, options.entityViews)
+
+    // The rendered scene's filters: the composite when it is on, so their cost is bounded by the logical size;
+    // else the letterboxed scene when there is a frame; else the whole stage.
+    const sceneFilters: PostFilterTarget = {
+      get filters(): Filter[] | null {
+        if (composite) return composite.stage.filters as Filter[] | null
+        return (frame ? frame.scene.filters : app.stage.filters) as Filter[] | null
+      },
+      set filters(val: Filter[] | null) {
+        if (composite) {
+          composite.stage.filters = val
+        } else if (frame) {
+          frame.scene.filters = val
+        } else {
+          app.stage.filters = val
+        }
+      },
+    }
+
+    const postFilters = createPostFilterSlot(sceneFilters)
+    postFilters.setTier(quality)
+    let formFactor = initialGeometry.formFactor
+    const applyResolution = (): void => {
+      app.renderer.resolution = canvasResolutionFor(formFactor, devicePixelRatio(), quality)
+    }
+
+    const stage: PixiStage = {
+      app,
+      frame,
+      world,
+      ui,
+      backdrop,
+      consumer,
+      composite,
+      get filters(): Filter[] | null {
+        return sceneFilters.filters
+      },
+      set filters(val: Filter[] | null) {
+        sceneFilters.filters = val
+      },
+      postFilters,
+      get quality(): QualityTier {
+        return quality
+      },
+      setQuality(tier: QualityTier): void {
+        quality = tier
+        postFilters.setTier(tier)
+        applyResolution()
+      },
+      tryFilter: (id, make) =>
+        tryFilter(app.renderer, id, make, (dropped, reason) => {
+          console.warn(`[automata-render-pixi] filter "${dropped}" dropped: ${reason}`)
+          target.bus?.publish('render.filter.dropped', { id: dropped, reason })
+        }),
+    }
+
+    addPostFilters(stage, options.postFilters ?? [])
+    const hooks: PixiStageHooks = options.setup?.(stage) ?? {}
+
+    const unsubscribe = target.geometry.onChange((g) => {
+      app.renderer.resize(g.usable.width, g.usable.height)
+      const layout = frame?.layout(g.usable.width, g.usable.height)
+      if (layout) composite?.resize(layout.fieldHeight)
+      formFactor = g.formFactor
+      applyResolution()
     })
+
+    let disposed = false
+    const renderer: PixiRenderer = {
+      stage,
+      apply(result: StepResult): void {
+        consumer.apply(result.render)
+        hooks.apply?.(result)
+      },
+      draw(frameInfo: FrameInfo): void {
+        consumer.interpolate(frameInfo.alpha)
+        hooks.draw?.(frameInfo)
+        if (composite)
+          app.renderer.render({ container: composite.stage, target: composite.texture, clear: true })
+        app.render()
+      },
+      reset(): void {
+        consumer.reset()
+        hooks.reset?.()
+      },
+      dispose(): void {
+        if (disposed) return
+        disposed = true
+        unsubscribe()
+        consumer.destroy()
+        composite?.destroy()
+        frame?.destroy()
+        try {
+          app.destroy(true, { children: true })
+        } catch {
+          // ignore error
+        }
+        // The canvas held from creation: once destroyed, the app has no renderer and its `canvas` getter throws.
+        canvas.remove()
+      },
+    }
+
+    return ok(renderer)
+  }
 }

@@ -1,13 +1,11 @@
 export { type FakeHostClock, type ManualClock, manualClock, realClock } from './clocks'
-// The Ruken adapter's test layer, over `@ruken/sdk-host`'s fake host. Ruken-only (DIST spec §5.2); `FakeHosting`
-// in `@mcthaydt/automata-testing` replaces it for target-neutral tests (DIST.4).
+// The Ruken adapter over `@ruken/sdk-host`'s fake host, for tests that need Ruken's own SDK in between. Ruken-only;
+// `fakeHosting` is the target-neutral fake.
 export {
-  FakeHostHandle,
-  HostingTest,
+  type FakeHostHandle,
   type HostingTestOptions,
   type HostingTestSession,
   openHostingTest,
   TEST_GAME_ORIGIN,
   withHostingTest,
 } from './ruken/hosting-test'
-export { runScoped } from './run'

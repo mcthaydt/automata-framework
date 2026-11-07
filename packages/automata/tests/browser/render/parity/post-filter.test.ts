@@ -1,8 +1,7 @@
-import { Effect, Exit, Scope } from 'effect'
 import { Graphics } from 'pixi.js'
 import { afterEach, describe, expect, it } from 'vitest'
 import { postFilter } from '#src/features/render/filter/post-filter.ts'
-import { createPixiRenderer } from '#src/features/render/renderer.ts'
+import { createPixiRenderer, type PixiRenderer } from '#src/features/render/renderer.ts'
 import type { RenderTarget } from '../../../../src/shared/runtime/render/renderer.ts'
 
 // A declared `postFilter` on a real renderer (PRODUCT spec §2 F1, M4 spec §6): it builds, it is in the slot, and the
@@ -40,9 +39,9 @@ const geometry = {
 }
 
 describe.skipIf(!hasWebgl2)('declared post filters in WebGL2', () => {
-  const scopes: Scope.CloseableScope[] = []
+  const renderers: PixiRenderer[] = []
   afterEach(async () => {
-    for (const scope of scopes.splice(0)) await Effect.runPromise(Scope.close(scope, Exit.void))
+    for (const renderer of renderers.splice(0)) renderer.dispose()
   })
 
   async function start(filters: ReturnType<typeof postFilter>[]) {
@@ -56,11 +55,10 @@ describe.skipIf(!hasWebgl2)('declared post filters in WebGL2', () => {
         subscribe: () => () => {},
       },
     } as unknown as RenderTarget
-    const scope = Effect.runSync(Scope.make())
-    scopes.push(scope)
-    const renderer = await Effect.runPromise(
-      Scope.extend(createPixiRenderer({ preference: 'webgl', postFilters: filters })(target), scope),
-    )
+    const built = await createPixiRenderer({ preference: 'webgl', postFilters: filters })(target)
+    if (!built.ok) throw new Error('the renderer did not start')
+    const renderer = built.value
+    renderers.push(renderer)
     // Something to filter: a white square over the whole 8 × 8 screen.
     renderer.stage.world.addChild(new Graphics().rect(0, 0, SIZE, SIZE).fill(0xffffff))
     return { renderer, dropped }

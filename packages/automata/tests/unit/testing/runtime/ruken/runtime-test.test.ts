@@ -1,23 +1,17 @@
 import type { FlowGraph } from '@mcthaydt/automata-content'
 import type { Sim } from '@mcthaydt/automata-sim'
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { AppLoop, Assets, Flow, Settings, settingsStore, Time } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData } from '#src/app/boot/game-definition.ts'
 import type { ScreenDef } from '#src/app/flow/screen.ts'
-import { PresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { Renderer } from '#src/shared/runtime/render/renderer.ts'
-import { storeOf } from '#src/shared/runtime/settings/settings.manager.ts'
+import { settingsStore } from '#src/shared/runtime/settings/settings.manager.ts'
 import { manualFrames } from '#src/testing/runtime/manual-frames.ts'
-import { RuntimeTest } from '#src/testing/runtime/ruken/runtime-test.ts'
-import { Hosting } from '../../../../../src/shared/host/hosting.ts'
-import { FakeHostHandle } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
+import { withRuntimeTest } from '#src/testing/runtime/ruken/runtime-test.ts'
 
-describe('RuntimeTest (§3.1 ./testing)', () => {
-  it('a test screen yields every RuntimeServices tag and FakeHostHandle; fake host saw hello; Settings holds defaults; AppLoop steps on manualFrames', () =>
-    Effect.gen(function* () {
+describe('withRuntimeTest (./testing)', () => {
+  it('a test screen is handed every runtime service and the test the host handle; fake host saw hello; Settings holds defaults; AppLoop steps on manualFrames', () =>
+    (async () => {
       const frames = manualFrames()
       const yieldedTags: string[] = []
       let settingsValue: { volume: number; mute: boolean } | undefined
@@ -80,7 +74,7 @@ describe('RuntimeTest (§3.1 ./testing)', () => {
           if (renderer) yieldedTags.push('Renderer')
 
           // 2. Settings holds defaults
-          const store = storeOf(context.services.settings, testSettingsDef)
+          const store = settingsStore(context.services.settings, testSettingsDef)
           settingsValue = store.get()
 
           // 3. AppLoop steps on manualFrames
@@ -92,56 +86,46 @@ describe('RuntimeTest (§3.1 ./testing)', () => {
               return { tick: steppedSim, events: [] }
             },
           }
-          appLoop.run({ sim: dummySim as unknown as Sim, commands: () => [] })
+          context.services.appLoop.run({ sim: dummySim as unknown as Sim, commands: () => [] })
           frames.advance(16.67)
         },
       }
 
-      // Run under RuntimeTest layer
-      yield* Effect.gen(function* () {
-        const flow = yield* Flow
-        const fakeHost = yield* FakeHostHandle
+      await withRuntimeTest(
+        async ({ services, handle: fakeHost }) => {
+          // Wait until flow is settled (entry screen entered)
+          await services.flow.settled()
 
-        // Wait until flow is settled (entry screen entered)
-        yield* Effect.promise(() => flow.settled())
+          // Verify fake host saw hello
+          const hellos = fakeHost.sentByGame('hello')
+          expect(hellos.length).toBeGreaterThanOrEqual(1)
 
-        // Verify fake host saw hello
-        const hellos = fakeHost.sentByGame('hello')
-        expect(hellos.length).toBeGreaterThanOrEqual(1)
+          // Verify all 9 tags were yielded
+          expect(yieldedTags.sort()).toEqual([
+            'AppLoop',
+            'Assets',
+            'Flow',
+            'Hosting',
+            'PresentationBus',
+            'Renderer',
+            'Settings',
+            'Time',
+          ])
 
-        // Verify all 9 tags were yielded
-        expect(yieldedTags.sort()).toEqual([
-          'AppLoop',
-          'Assets',
-          'Flow',
-          'Hosting',
-          'PresentationBus',
-          'Renderer',
-          'Settings',
-          'Time',
-        ])
+          // Verify Settings holds defaults
+          expect(settingsValue).toEqual({ volume: 80, mute: false })
 
-        // Verify Settings holds defaults
-        expect(settingsValue).toEqual({ volume: 80, mute: false })
-
-        // Verify AppLoop stepped
-        expect(steppedSim).toBeGreaterThanOrEqual(1)
-      }).pipe(
-        Effect.provide(
-          RuntimeTest({
-            screens: [testScreen],
-            content,
-            settings: testSettingsDef,
-            frames,
-          }),
-        ),
+          // Verify AppLoop stepped
+          expect(steppedSim).toBeGreaterThanOrEqual(1)
+        },
+        { screens: [testScreen], content, settings: testSettingsDef, frames },
       )
-    }).pipe(Effect.runPromise))
+    })())
 
   // M5.2: a settings field the game keeps on the device (M5 spec §4.5) goes to the device storage the test hands
   // over, or to memory, and never to the browser's own storage a test run shares.
   it('keeps device fields in the deviceStorage option, or in memory, and out of the saves', () =>
-    Effect.gen(function* () {
+    (async () => {
       const held = new Map<string, string>()
       const device = {
         get: (key: string) => held.get(key) ?? null,
@@ -156,22 +140,24 @@ describe('RuntimeTest (§3.1 ./testing)', () => {
         deviceFields: ['mute' as const],
       }
       const run = (deviceStorage?: typeof device) =>
-        Effect.gen(function* () {
-          const store = yield* settingsStore(def)
-          store.update((value) => ({ ...value, mute: true, name: 'Kite' }))
-          yield* Effect.promise(() => settle(2))
-          const { host } = yield* FakeHostHandle
-          return host.messages
-            .filter((entry) => entry.dir === 'in' && entry.msg.type === 'saves.set')
-            .map((entry) => (entry.msg.payload as { value: string }).value)
-        }).pipe(Effect.provide(RuntimeTest({ settings: def, ...(deviceStorage ? { deviceStorage } : {}) })))
+        withRuntimeTest(
+          async ({ services, handle: { host } }) => {
+            const store = settingsStore(services.settings, def)
+            store.update((value) => ({ ...value, mute: true, name: 'Kite' }))
+            await settle(2)
+            return host.messages
+              .filter((entry) => entry.dir === 'in' && entry.msg.type === 'saves.set')
+              .map((entry) => (entry.msg.payload as { value: string }).value)
+          },
+          { settings: def, ...(deviceStorage ? { deviceStorage } : {}) },
+        )
 
-      const sent = yield* run(device)
+      const sent = await run(device)
       expect(JSON.parse(held.get('prefs:device') ?? 'null')).toEqual({ version: 1, mute: true })
       expect(sent).toEqual([JSON.stringify({ version: 1, name: 'Kite' })])
 
-      const sentToMemory = yield* run()
+      const sentToMemory = await run()
       expect(sentToMemory).toEqual([JSON.stringify({ version: 1, name: 'Kite' })])
       expect(globalThis.localStorage?.length ?? 0).toBe(0)
-    }).pipe(Effect.runPromise))
+    })())
 })

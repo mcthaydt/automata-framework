@@ -40,6 +40,15 @@ describe('browserOnlyFindings', () => {
     )
   })
 
+  it('reads no stylesheet a file imports: CSS has no imports to follow', () => {
+    const root = pkg({
+      'entries/index.ts': "import '../ui/theme.css'\nexport { run } from '../app/run.ts'\n",
+      'ui/theme.css': ':root { --ink: #111; }\n',
+      'app/run.ts': 'export const run = 1\n',
+    })
+    expect(browserOnlyFindings(root).findings).toEqual([])
+  })
+
   it('passes the same import in a file no entry reaches', () => {
     const root = pkg({
       'entries/index.ts': "export { run } from '../app/run.ts'\n",

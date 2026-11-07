@@ -57,18 +57,33 @@ interface AnalogReading {
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
-### `AppLoop` (type)
+### `AppLoop` (interface)
 
 ```ts
-type AppLoop = AppLoopService;
-const AppLoop: Context.Tag<AppLoopService, AppLoopService>;
+interface AppLoop {
+    run(options: {
+        sim: Sim;
+        commands: (tick: number) => readonly Command[];
+    }): void;
+    stop(): void;
+    readonly running: boolean;
+}
 ```
 
-### `Audio` (type)
+### `Audio` (interface)
 
 ```ts
-type Audio = AudioService;
-const Audio: Context.Tag<AudioService, AudioService>;
+interface Audio {
+    readonly unlocked: Subscribable<boolean>;
+    readonly available: Subscribable<boolean>;
+    sound(alias: string, options?: SoundOptions): void;
+    music(alias: string, options?: MusicOptions): Promise<Result<void, AudioDecodeFailed | AssetLoadFailed>>;
+    stopMusic(fadeSeconds?: number): void;
+    duck(bus: AudioBusName, amount: number, seconds: number): void;
+    setMuted(muted: boolean): void;
+    sample(bus: AudioBusName): void;
+    setMuteUnfocused(muteUnfocused: boolean): void;
+}
 ```
 
 ### `AUDIO_BUS_NAMES` (const)
@@ -77,15 +92,14 @@ const Audio: Context.Tag<AudioService, AudioService>;
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
-### `AudioBuses` (type)
+### `AudioBuses` (interface)
 
 ```ts
-type AudioBuses = {
-    input: AudioBusesService['input'];
-    gain: AudioBusesService['gain'];
-    setGain: AudioBusesService['setGain'];
-};
-const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
+interface AudioBuses {
+    input(bus: AudioBusName): AudioNode;
+    gain(bus: AudioBusName): number;
+    setGain(bus: AudioBusName, gain: number): void;
+}
 ```
 
 ### `audioBusGainsSchema` (const)
@@ -354,7 +368,7 @@ function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 ### `createPixiRenderer` (function)
 
 ```ts
-function createPixiRenderer(options?: PixiRendererOptions): (target: RenderTarget) => Effect.Effect<PixiRenderer, RendererUnavailable, Scope.Scope>;
+function createPixiRenderer(options?: PixiRendererOptions): (target: RenderTarget) => Promise<Result<PixiRenderer, RendererUnavailable>>;
 ```
 
 ### `createPostFilterSlot` (function)
@@ -838,23 +852,17 @@ interface GeometryState {
 type HeightTier = 'short' | 'compact' | undefined;
 ```
 
-### `HOST_EXIT_CAP` (const)
+### `HOST_EXIT_CAP_MS` (const)
 
 ```ts
-const HOST_EXIT_CAP: Duration.Duration;
+const HOST_EXIT_CAP_MS = 1000;
 ```
 
-### `HostError` (class)
+### `HostHandshakeFailed` (interface)
 
 ```ts
-class HostError extends HostErrorBase {
-}
-```
-
-### `HostHandshakeFailed` (class)
-
-```ts
-class HostHandshakeFailed extends HostHandshakeFailedBase {
+interface HostHandshakeFailed {
+    readonly reason: 'no-welcome';
 }
 ```
 
@@ -865,7 +873,7 @@ interface Hosting {
     readonly kind: 'ruken' | 'standalone' | 'web' | 'tauri';
     readonly hostName: string;
     readonly handshake: {
-        readonly fellBack: Option.Option<HostHandshakeFailed>;
+        readonly fellBack: HostHandshakeFailed | null;
     };
     readonly player: {
         readonly id: string;
@@ -873,35 +881,35 @@ interface Hosting {
     };
     readonly locale: string;
     readonly granted: ReadonlySet<Capability>;
-    readonly ready: Effect.Effect<void, HostError>;
-    readonly lifecycle: Subscribable.Subscribable<LifecyclePayload>;
-    readonly input: Subscribable.Subscribable<InputModePayload>;
-    readonly display: Subscribable.Subscribable<DisplayMetricsPayload>;
-    readonly audio: Subscribable.Subscribable<AudioChange>;
-    readonly entitlements: Subscribable.Subscribable<EntitlementsPayload>;
-    readonly savesStatus: Subscribable.Subscribable<SavesStatus>;
+    readonly ready: Promise<HostResult<void>>;
+    readonly lifecycle: Subscribable<LifecyclePayload>;
+    readonly input: Subscribable<InputModePayload>;
+    readonly display: Subscribable<DisplayMetricsPayload>;
+    readonly audio: Subscribable<AudioChange>;
+    readonly entitlements: Subscribable<EntitlementsPayload>;
+    readonly savesStatus: Subscribable<SavesStatus>;
     readonly saves: HostingSaves;
     readonly leaderboards: HostingLeaderboards;
-    setFullscreen(on: boolean): Effect.Effect<FullscreenRes, HostError>;
+    setFullscreen(on: boolean): Promise<HostResult<FullscreenRes>>;
     readonly round: {
-        readonly start: Effect.Effect<void>;
-        end(outcome?: RoundOutcome): Effect.Effect<void>;
-        readonly ended: Stream.Stream<RoundOutcome | undefined>;
+        start(): void;
+        end(outcome?: RoundOutcome): void;
+        readonly ended: Listenable<RoundOutcome | undefined>;
     };
-    track(event: string, props?: AnalyticsProps): Effect.Effect<void>;
-    exit(reason?: 'player' | 'completed'): Effect.Effect<void, HostError>;
-    onMenuRequest(handler: () => boolean): Effect.Effect<void, never, Scope.Scope>;
-    onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>;
+    track(event: string, props?: AnalyticsProps): void;
+    exit(reason?: 'player' | 'completed'): Promise<HostResult<void>>;
+    onMenuRequest(handler: () => boolean): () => void;
+    onExiting(handler: () => void | Promise<void>): () => void;
+    dispose(): void;
 }
-const Hosting: Context.Tag<Hosting, Hosting>;
 ```
 
 ### `HostingLeaderboards` (interface)
 
 ```ts
 interface HostingLeaderboards {
-    submit(board: string, score: number, meta?: LeaderboardSubmitMeta): Effect.Effect<LeaderboardSubmitRes, HostError>;
-    get(board: string, query?: LeaderboardQuery): Effect.Effect<LeaderboardGetRes, HostError>;
+    submit(board: string, score: number, meta?: LeaderboardSubmitMeta): Promise<HostResult<LeaderboardSubmitRes>>;
+    get(board: string, query?: LeaderboardQuery): Promise<HostResult<LeaderboardGetRes>>;
 }
 ```
 
@@ -921,12 +929,12 @@ interface HostingOptions {
 
 ```ts
 interface HostingSaves {
-    get(key: string): Effect.Effect<string | null, HostError>;
-    set(key: string, value: string): Effect.Effect<void, HostError>;
-    remove(key: string): Effect.Effect<void, HostError>;
-    readonly flush: Effect.Effect<SavesFlushRes, HostError>;
-    readonly keys: Effect.Effect<readonly string[], HostError>;
-    readonly changed: Stream.Stream<SavesChangedPayload>;
+    get(key: string): Promise<HostResult<string | null>>;
+    set(key: string, value: string): Promise<HostResult<void>>;
+    remove(key: string): Promise<HostResult<void>>;
+    flush(): Promise<HostResult<SavesFlushRes>>;
+    keys(): Promise<HostResult<readonly string[]>>;
+    readonly changed: Listenable<SavesChangedPayload>;
 }
 ```
 
@@ -938,6 +946,23 @@ interface HostingSeams {
     readonly clock?: Clock;
     readonly signal?: AbortSignal;
 }
+```
+
+### `HostRefusal` (interface)
+
+```ts
+interface HostRefusal {
+    readonly code: ErrorCode;
+    readonly retryable: boolean;
+    readonly operation: string;
+    readonly cause?: unknown;
+}
+```
+
+### `HostResult` (type)
+
+```ts
+type HostResult<T> = Result<T, HostRefusal>;
 ```
 
 ### `IconButton` (svelte)
@@ -1193,11 +1218,18 @@ type LifecycleReason = 'hidden' | 'blurred' | 'host-overlay' | 'ad' | 'offline-g
 component from '../shared/ui/status/LoaderOverlay.svelte'
 ```
 
-### `Locale` (type)
+### `Locale` (interface)
 
 ```ts
-type Locale = LocaleService;
-const Locale: Context.Tag<LocaleService, LocaleService>;
+interface Locale {
+    readonly locales: readonly string[];
+    readonly baseLocale: string;
+    readonly current: string;
+    readonly choice: string | null;
+    readonly direction: 'ltr' | 'rtl';
+    subscribe(listener: (locale: string) => void): () => void;
+    set(choice: string | null): void;
+}
 ```
 
 ### `MAX_TURN_UNITS_PER_STEP` (const)
@@ -1221,7 +1253,11 @@ component from '../shared/ui/dialog/Modal.svelte'
 ### `ModelInvalid` (class)
 
 ```ts
-class ModelInvalid extends ModelInvalidBase {
+class ModelInvalid extends Error {
+    readonly _tag: "ModelInvalid";
+    readonly file: string;
+    readonly reason: string;
+    constructor(fields: ModelInvalidFields);
 }
 ```
 
@@ -1229,6 +1265,14 @@ class ModelInvalid extends ModelInvalidBase {
 
 ```ts
 component from '../shared/ui/layout/OptionGroup.svelte'
+```
+
+### `OwnedRenderer` (interface)
+
+```ts
+interface OwnedRenderer extends GameRenderer {
+    dispose(): void;
+}
 ```
 
 ### `PagedGrid` (svelte)
@@ -1258,7 +1302,7 @@ const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
 ### `PixiRenderer` (interface)
 
 ```ts
-interface PixiRenderer extends GameRenderer {
+interface PixiRenderer extends OwnedRenderer {
     readonly stage: PixiStage;
 }
 ```
@@ -1374,7 +1418,6 @@ interface PresentationBus<Facts = RuntimeFacts> {
     publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void;
     subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void;
 }
-const PresentationBus: Context.Tag<PresentationBus, PresentationBus>;
 ```
 
 ### `QualityTier` (type)
@@ -1427,13 +1470,16 @@ class RenderDeltaConsumer<C extends SceneNode = Container> {
 ### `RendererFactory` (type)
 
 ```ts
-type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
+type RendererFactory = (target: RenderTarget) => Promise<Result<OwnedRenderer, RendererUnavailable | ModelInvalid>>;
 ```
 
 ### `RendererUnavailable` (class)
 
 ```ts
-class RendererUnavailable extends RendererUnavailableBase {
+class RendererUnavailable extends Error {
+    readonly _tag: "RendererUnavailable";
+    readonly tried: readonly ('webgl2' | 'webgpu')[];
+    constructor(fields: RendererUnavailableFields);
 }
 ```
 
@@ -1570,7 +1616,12 @@ interface RuntimeSeams {
     readonly frames?: FrameSource;
     readonly fonts?: Pick<FontFaceSet, 'load'>;
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
-    readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>;
+    readonly hosting?: (options: HostingOptions, seams: {
+        readonly clock: Clock;
+        readonly signal: AbortSignal;
+    }) => Promise<HostResult<Hosting>>;
+    readonly clock?: Clock;
+    readonly now?: () => number;
     readonly document?: Document;
     readonly languages?: readonly string[];
     readonly createAudioContext?: () => AudioContextLike;
@@ -1636,11 +1687,13 @@ interface SaveDef<S> {
 }
 ```
 
-### `Saves` (type)
+### `Saves` (interface)
 
 ```ts
-type Saves = SavesService;
-const Saves: Context.Tag<SavesService, SavesService>;
+interface Saves {
+    readonly key: string | undefined;
+    readonly save: Save<unknown> | undefined;
+}
 ```
 
 ### `SavesChangedPayload` (interface)
@@ -1802,11 +1855,13 @@ interface ScreensGame {
 component from '../shared/ui/layout/ScrollList.svelte'
 ```
 
-### `Settings` (type)
+### `Settings` (interface)
 
 ```ts
-type Settings = SettingsService;
-const Settings: Context.Tag<SettingsService, SettingsService>;
+interface Settings {
+    readonly key: string | undefined;
+    readonly store: SettingsStore<unknown> | undefined;
+}
 ```
 
 ### `SettingsDef` (interface)
@@ -1838,7 +1893,7 @@ interface SettingsScreenCopy {
 ### `settingsStore` (function)
 
 ```ts
-function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, SettingsService>;
+function settingsStore<S>(settings: Settings, def: SettingsDef<S>): SettingsStore<S>;
 ```
 
 ### `Sheet` (svelte)
@@ -1987,11 +2042,15 @@ interface SystemDef {
 const TAURI_MARKERS: readonly string[];
 ```
 
-### `Time` (type)
+### `Time` (interface)
 
 ```ts
-type Time = TimeService;
-const Time: Context.Tag<TimeService, TimeService>;
+interface Time {
+    readonly paused: boolean;
+    readonly reasons: ReadonlySet<PauseReason>;
+    pause(reason: PauseReason): void;
+    resume(reason: PauseReason): void;
+}
 ```
 
 ### `Toast` (svelte)
@@ -2072,18 +2131,6 @@ interface ViewportWindow {
 
 ```ts
 function createHosting(options: HostingOptions, _seams?: unknown): Promise<HostResult<Hosting>>;
-```
-
-### `HostingLive` (const)
-
-```ts
-const HostingLive: HostingLayer<unknown>;
-```
-
-### `makeHosting` (const)
-
-```ts
-const makeHosting: MakeHosting<unknown>;
 ```
 
 ## `./extension`
@@ -2322,13 +2369,6 @@ interface FakeHostControl {
     requestMenu(): boolean;
     close(): Promise<void>;
 }
-const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl>;
-```
-
-### `FakeHosting` (function)
-
-```ts
-function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<EffectHosting | FakeHostControl, HostError>;
 ```
 
 ### `fakeHosting` (function)
@@ -2337,7 +2377,9 @@ function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): La
 function fakeHosting(options?: FakeHostingOptions): {
     readonly control: FakeHostControl;
     create(hosting: HostingOptions, clock?: Clock): Hosting;
-    make(hosting: HostingOptions): Effect.Effect<EffectHosting, never, Scope.Scope>;
+    make(hosting: HostingOptions, seams?: {
+        readonly clock?: Clock;
+    }): Promise<HostResult<Hosting>>;
 };
 ```
 
@@ -2575,6 +2617,12 @@ interface NullRendererOptions {
 }
 ```
 
+### `openRuntimeTest` (function)
+
+```ts
+function openRuntimeTest(options?: RuntimeTestOptions): Promise<RuntimeTestSession>;
+```
+
 ### `pressedPart` (function)
 
 ```ts
@@ -2618,12 +2666,6 @@ interface ReferenceSize {
 }
 ```
 
-### `RuntimeTest` (function)
-
-```ts
-function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeTags | FakeHostHandle, BootError>;
-```
-
 ### `RuntimeTestOptions` (interface)
 
 ```ts
@@ -2640,6 +2682,19 @@ interface RuntimeTestOptions {
     readonly locale?: LocaleDef;
     readonly languages?: readonly string[];
     readonly createAudioContext?: () => AudioContextLike;
+    readonly clock?: Clock;
+    readonly now?: () => number;
+}
+```
+
+### `RuntimeTestSession` (interface)
+
+```ts
+interface RuntimeTestSession {
+    readonly services: RuntimeServices;
+    readonly handle: FakeHostHandle;
+    readonly layers: PageLayers;
+    dispose(): Promise<void>;
 }
 ```
 
@@ -2710,6 +2765,12 @@ const VARIANTS: readonly Variant[];
 
 ```ts
 function visibleControls(root: ParentNode): HTMLElement[];
+```
+
+### `withRuntimeTest` (function)
+
+```ts
+function withRuntimeTest<A>(program: (session: RuntimeTestSession) => Promise<A> | A, options?: RuntimeTestOptions): Promise<A>;
 ```
 
 ## `./tooling`

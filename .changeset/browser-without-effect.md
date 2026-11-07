@@ -2,7 +2,7 @@
 '@mcthaydt/automata': patch
 ---
 
-BREAKING: the browser runtime is moving off Effect (D2), one feature at a time. So far:
+BREAKING: the browser runtime no longer uses Effect (D2); `effect` is no longer a dependency.
 
 - `display`, `locale`, `settings`, `audio` and `saves` are plain factories (`createDisplayPolicy`, `createLocale`, `createSettings`, `createAudio`, `createSaves`); their refusals are `Result`s and their errors plain `Error`s with a `_tag`.
 - Loading: `createLoadMeter(clock)` and `createAssets(options)` replace `makeLoadMeter` and `makeAssets`; `load(screen, onProgress?, signal?)` answers a `Result` with `AssetLoadFailed` or `LoadStalled`.
@@ -12,4 +12,7 @@ BREAKING: the browser runtime is moving off Effect (D2), one feature at a time. 
 - Screens and the flow: `ScreenDef.enter(context)` is a plain function that may return a promise; a throw or rejection is the screen's failure. `context.screen` (a `Disposables`) holds what the screen undoes when it is left, `context.runtime` what a game keeps across screens, and `context.services` the runtime's services as one object (`hosting`, `bus`, `clock`, `time`, `flow`, `settings`, `saves`, `appLoop`, `assets`, `renderer`, `locale`, `audio`, `leaderboards`, `haptics`). `ScreenDef` has no type parameter; `Flow.settled()` is a method returning a promise and the `Flow` tag is gone. `Disposables`, `disposables()`, `Clock`, `ScreenContext` and `RuntimeServices` are exported.
 - Extensions: `ExtensionError` is a plain `Error`; the `layers` field (Effect layers, which no game used) is removed.
 
-The runtime's remaining Effect tags (`Audio`, `Settings`, `Time`, `AppLoop` and the rest) and `RuntimeTest`'s Effect layer stay until boot and the testing helpers are plain.
+- Boot and the host: `runGame` boots in plain TypeScript. `Hosting` is the plain interface (promises that answer a `HostResult`, `Subscribable` state, `dispose()`); the Effect `Hosting` tag, `HostError` from the host entry, `HostHandshakeFailed`'s class and `HOST_EXIT_CAP` are gone (`HostRefusal`, `HostResult` and `HOST_EXIT_CAP_MS` replace them). Each target entry exports `createHosting(options, seams?)` only (`makeHosting` and `HostingLive` are gone). `seams.hosting` takes `(options, { clock, signal })` and answers a `HostResult<Hosting>`; new seams `clock` and `now` time the runtime.
+- The renderer: `RendererFactory` answers a promise of a `Result` with an `OwnedRenderer` (a `GameRenderer` with `dispose()`) or `RendererUnavailable`/`ModelInvalid`, which are plain `Error`s; `createPixiRenderer` builds one. The `Renderer` and `PresentationBus` tags are gone (`PresentationBus` is the interface).
+- The runtime's services are plain types: `Audio`, `AudioBuses` (an interface again), `Locale`, `Saves`, `Settings`, `Time` and `AppLoop` are types, not tags; `settingsStore(settings, def)` takes the booted settings.
+- Testing: `openRuntimeTest(options)`/`withRuntimeTest(program, options)` replace the `RuntimeTest` layer, and `openHostingTest`/`withHostingTest` the `HostingTest` layer and `runScoped`; `FakeHostHandle` and `FakeHostControl` are types. The `FakeHosting` layer is gone: `fakeHosting(options).make` is the `seams.hosting` a test passes.

@@ -1,5 +1,5 @@
 import { RukenError } from '@ruken/sdk'
-import type { HostRefusal } from '../../../shared/host/plain-errors'
+import type { HostRefusal } from '../../../shared/host/errors'
 
 /**
  * Turns whatever the SDK threw or rejected with into a `HostRefusal`.

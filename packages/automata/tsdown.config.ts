@@ -6,7 +6,7 @@ import { publishedBuild } from '../../tooling/release/src/tsdown-shared.ts'
 // - `entries/target/ruken.js` bundles `@ruken/sdk`;
 // - `entries/target/web.js` and `entries/target/tauri.js` bundle no SDK code (Tauri's packages stay external: a
 //   desktop game installs them);
-// - `entries/testing.js` also bundles `@ruken/sdk-host`, for the Ruken `RuntimeTest` (whose own dependency, zod, is
+// - `entries/testing.js` also bundles `@ruken/sdk-host`, for the Ruken `openRuntimeTest` (whose own dependency, zod, is
 //   declared in package.json). Its declarations import `@ruken/sdk-host` types, inlined by the second pass.
 // The second pass is `tsdown.dts.config.ts`.
 // `clean: false`: tsdown would otherwise empty `dist/` and delete what `svelte-package` wrote there.

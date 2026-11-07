@@ -1,6 +1,6 @@
+import { type HostResult, refuse } from '../../../shared/host/errors'
 import type { HostingOptions } from '../../../shared/host/hosting'
-import { type HostResult, refuse } from '../../../shared/host/plain-errors'
-import { HOST_EXIT_CAP_MS, type Hosting, type HostingSaves } from '../../../shared/host/plain-hosting'
+import { HOST_EXIT_CAP_MS, type Hosting, type HostingSaves } from '../../../shared/host/hosting'
 import { type Clock, systemClock } from '../../../shared/lib/clock'
 import { ok, refused } from '../../../shared/lib/result'
 import { makeExitHandlers } from '../exit-handlers'

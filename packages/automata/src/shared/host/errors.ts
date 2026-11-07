@@ -1,43 +1,37 @@
-import { Data } from 'effect'
-import type { YieldableError } from 'effect/Cause'
+// How the host says no, in plain TypeScript. A refusal is an ordinary answer, so a host call
+// returns it as a value (`{ ok: false, reason }`) and the caller must look; nothing throws and nothing falls back.
+import { type Result, refused } from '../lib/result'
 import type { ErrorCode } from './error-code.schema'
 
-/*
- * The typed failures of `Hosting`.
- *
- * Both are `Data.TaggedError`s, so callers handle them by tag
- * (`Effect.catchTag('HostError', …)`). The repo builds with
- * `isolatedDeclarations`, which forbids `class X extends Data.TaggedError(…)`
- * directly, so each base constructor gets an explicit type first and the
- * exported class extends that.
- */
-
-type TaggedErrorClass<Tag extends string, Fields> = new (
-  fields: Fields,
-) => YieldableError & { readonly _tag: Tag } & Readonly<Fields>
-
-interface HostErrorFields {
+/** Why the host said no to a call: its contract code, whether a retry may succeed, and the call it refused. */
+export interface HostRefusal {
   /** The contract's code; the Ruken adapter relays Ruken's unchanged. */
   readonly code: ErrorCode
-  /** Whether a retry may succeed (Ruken's flag, relayed unchanged). Retry only when true, with Effect's `Schedule`. */
+  /** Whether a retry may succeed (Ruken's flag, relayed unchanged). */
   readonly retryable: boolean
-  /** The protocol request or `Hosting` call that failed, for example `saves.set`. */
+  /** The protocol request or `Hosting` call that was refused, for example `saves.set`. */
   readonly operation: string
   readonly cause?: unknown
 }
-const HostErrorBase: TaggedErrorClass<'HostError', HostErrorFields> = Data.TaggedError('HostError')
-/** Any failure after the handshake. A request that fails never falls back to another path. */
-export class HostError extends HostErrorBase {}
 
-interface HostHandshakeFailedFields {
+/** What a host call answers: the value, or the host's refusal. */
+export type HostResult<T> = Result<T, HostRefusal>
+
+/**
+ * The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session. Not fatal:
+ * reported on `Hosting.handshake.fellBack` and logged once.
+ */
+export interface HostHandshakeFailed {
   /** The Ruken SDK does not say whether it timed out or rejected a welcome. */
   readonly reason: 'no-welcome'
 }
-const HostHandshakeFailedBase: TaggedErrorClass<'HostHandshakeFailed', HostHandshakeFailedFields> =
-  Data.TaggedError('HostHandshakeFailed')
-/**
- * The page is inside a frame, but the SDK got no usable welcome and fell back
- * to its standalone session. Not fatal: reported on `Hosting.handshake.fellBack`
- * and logged once.
- */
-export class HostHandshakeFailed extends HostHandshakeFailedBase {}
+
+/** A refused host call, ready to return. */
+export function refuse(
+  code: ErrorCode,
+  retryable: boolean,
+  operation: string,
+  cause?: unknown,
+): { readonly ok: false; readonly reason: HostRefusal } {
+  return refused(cause === undefined ? { code, retryable, operation } : { code, retryable, operation, cause })
+}

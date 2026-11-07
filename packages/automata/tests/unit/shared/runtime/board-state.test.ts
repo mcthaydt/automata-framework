@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { boardStateFromError, boardStateFromSubmit } from '#src/shared/runtime/board-state.ts'
-import { HostError } from '../../../../src/shared/host/errors.ts'
+import type { HostRefusal } from '../../../../src/shared/host/errors.ts'
 
-const hostError = (code: HostError['code']): HostError =>
-  new HostError({ code, retryable: false, operation: 'leaderboard.submit', cause: undefined })
+const hostError = (code: HostRefusal['code']): HostRefusal => ({
+  code,
+  retryable: false,
+  operation: 'leaderboard.submit',
+})
 
 // M5 spec §4.8 and §6: every host answer is one named state a screen can show; none is a local board.
 describe('board states from the host', () => {

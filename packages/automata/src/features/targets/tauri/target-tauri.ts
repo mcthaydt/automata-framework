@@ -1,13 +1,6 @@
 // The `tauri` target's adapter entry points; `entries/target/tauri.ts` re-exports them.
-import {
-  bridgeHosting,
-  bridgeLayer,
-  type HostingLayer,
-  type MakeHosting,
-} from '../../../shared/host/effect-bridge'
-import type { HostingOptions } from '../../../shared/host/hosting'
-import type { HostResult } from '../../../shared/host/plain-errors'
-import type { Hosting } from '../../../shared/host/plain-hosting'
+import type { HostResult } from '../../../shared/host/errors'
+import type { Hosting, HostingOptions } from '../../../shared/host/hosting'
 import { ok } from '../../../shared/lib/result'
 import { tauriDesktop } from './desktop-tauri'
 import { createTauriHosting } from './hosting-tauri'
@@ -16,9 +9,3 @@ import { createTauriHosting } from './hosting-tauri'
 export async function createHosting(options: HostingOptions, _seams?: unknown): Promise<HostResult<Hosting>> {
   return ok(await createTauriHosting(options, window, tauriDesktop(), document.title || 'Game'))
 }
-
-/** The adapter the runtime still reads (an Effect), until task 5.4 converts it. */
-export const makeHosting: MakeHosting<unknown> = bridgeHosting<unknown>(createHosting)
-
-/** The single `Hosting` layer for a desktop build. */
-export const HostingLive: HostingLayer<unknown> = bridgeLayer<unknown>(makeHosting)

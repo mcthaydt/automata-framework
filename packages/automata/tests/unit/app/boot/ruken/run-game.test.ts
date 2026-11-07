@@ -4,21 +4,21 @@ import { fileURLToPath } from 'node:url'
 import type { FlowGraph } from '@mcthaydt/automata-content'
 import { createSim, definePlugin, defineSystem } from '@mcthaydt/automata-sim'
 import { createFakeHost, type FakeHost, settle } from '@ruken/sdk-host/testing'
-import { Cause, Effect, Exit, Option, Scope } from 'effect'
 import { flushSync } from 'svelte'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import { contentHashOf } from '#src/app/boot/boot-program.ts'
-import { AppLoop, Saves } from '#src/app/boot/effect-tags.ts'
 import type { CompiledContentData, GameDefinition } from '#src/app/boot/game-definition.ts'
 import { describeBootError, runGame } from '#src/app/boot/run-game.ts'
 import type { Flow } from '#src/app/flow/flow.manager.ts'
 import { defineSave } from '#src/features/saves/save.schema.ts'
 import { saveOf } from '#src/features/saves/saves.manager.ts'
+import { ok, refused } from '#src/shared/lib/result.ts'
 import {
   AssetLoadFailed,
   BootDefect,
   ContentHashMismatch,
+  HostError,
   LoadStalled,
   ModelInvalid,
   RendererUnavailable,
@@ -27,9 +27,7 @@ import { STALL_MS } from '#src/shared/runtime/load-meter.ts'
 import { fakeFetch } from '#src/testing/runtime/fake-fetch.ts'
 import { type ManualFrames, manualFrames } from '#src/testing/runtime/manual-frames.ts'
 import { nullRenderer } from '#src/testing/runtime/null-renderer.ts'
-import { HostError } from '../../../../../src/shared/host/errors.ts'
-import { Hosting } from '../../../../../src/shared/host/hosting.ts'
-import type { Hosting as PlainHosting } from '../../../../../src/shared/host/plain-hosting.ts'
+import type { Hosting as PlainHosting } from '../../../../../src/shared/host/hosting.ts'
 import { fakeHosting } from '../../../../../src/testing/host/fake-hosting.ts'
 import { realClock } from '../../../../../src/testing/host/page/clocks.ts'
 import { TEST_GAME_ORIGIN } from '../../../../../src/testing/host/page/ruken/hosting-test.ts'
@@ -86,7 +84,7 @@ async function waitForState(state: 'ready' | 'failed', timeoutMs = 2000): Promis
 
 /**
  * Starts a boot whose clock the test moves. `settle` waits on real timers and would never return under fake ones, so
- * a test on fake timers drives the clock itself; Effect's clock is the timers', so what it advances is boot time.
+ * a test on fake timers drives the clock itself; the runtime's clock runs on those timers, so what it advances is boot time.
  */
 async function startOnFakeTimers(frames: ManualFrames): Promise<void> {
   for (let tries = 0; !frames.pending && tries < 100; tries++) await vi.advanceTimersByTimeAsync(2)
@@ -260,7 +258,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     })
 
     it('LoadStalled -> data-code="download-stalled": a preload that gets no bytes for 30 s fails the boot (STALL_MS)', async () => {
-      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date', 'performance'] })
       try {
         const frames = manualFrames()
         const mockFetch = fakeFetch({
@@ -304,7 +302,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
     })
 
     it('HostError(ready) -> data-code="connect": a Ruken host that never says session.ready fails the boot after 30 s', async () => {
-      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date', 'performance'] })
       try {
         const frames = manualFrames()
         const mockFetch = fakeFetch({
@@ -379,7 +377,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           hash: contentHashOf(fixtureContentData),
         },
         screens: [{ id: 'title', enter: () => {} }],
-        renderer: () => Effect.fail(new RendererUnavailable({ tried: ['webgl2', 'webgpu'] })),
+        renderer: async () => refused(new RendererUnavailable({ tried: ['webgl2', 'webgpu'] })),
         seams: { frames, fetch: mockFetch.fetch },
       }
 
@@ -405,7 +403,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
         hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
         content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
         screens: [{ id: 'title', enter: () => {} }],
-        renderer: () => Effect.fail(new ModelInvalid({ file: 'models/crate.glb', reason: 'skinned' })),
+        renderer: async () => refused(new ModelInvalid({ file: 'models/crate.glb', reason: 'skinned' })),
         seams: { frames, fetch: mockFetch.fetch },
       }
 
@@ -440,10 +438,9 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           hash: contentHashOf(fixtureContentData),
         },
         screens: [{ id: 'title', enter: () => {} }],
-        renderer: () =>
-          Effect.sync(() => {
-            throw new Error('Unexpected defect in renderer')
-          }),
+        renderer: async () => {
+          throw new Error('Unexpected defect in renderer')
+        },
         seams: { frames, fetch: mockFetch.fetch },
       }
 
@@ -718,7 +715,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
         hash: contentHashOf(fixtureContentData),
       },
       screens: [{ id: 'title', enter: () => {} }],
-      renderer: () => Effect.fail(new RendererUnavailable({ tried: ['webgl2', 'webgpu'] })),
+      renderer: async () => refused(new RendererUnavailable({ tried: ['webgl2', 'webgpu'] })),
       seams: {
         frames,
         fetch: mockFetch.fetch,
@@ -763,7 +760,7 @@ describe('runGame (§4 Failure and Shutdown)', () => {
       hosting: { gameId: 'test-game', wants: [], pauseBehavior: 'pause' },
       content: { data: fixtureContentData, hash: contentHashOf(fixtureContentData) },
       screens: [{ id: 'title', enter: () => {} }],
-      renderer: () => Effect.fail(new RendererUnavailable({ tried: ['webgl2'] })),
+      renderer: async () => refused(new RendererUnavailable({ tried: ['webgl2'] })),
       seams: {
         frames,
         fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1, 2, 3])] } }).fetch,
@@ -811,11 +808,12 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           },
         },
       ],
-      renderer: (target) =>
-        Effect.gen(function* () {
-          yield* Effect.addFinalizer(() => Effect.sync(() => events.push('renderer:destroy')))
-          return yield* nullRenderer()(target)
-        }),
+      renderer: async (target) => {
+        const built = await nullRenderer()(target)
+        if (!built.ok) return built
+        const renderer = built.value
+        return ok({ ...renderer, dispose: () => events.push('renderer:destroy') })
+      },
       seams: {
         frames,
         fetch: mockFetch.fetch,
@@ -909,11 +907,12 @@ describe('runGame (§4 Failure and Shutdown)', () => {
           },
         },
       ],
-      renderer: (target) =>
-        Effect.gen(function* () {
-          yield* Effect.addFinalizer(() => Effect.sync(() => events.push('renderer:destroy')))
-          return yield* nullRenderer()(target)
-        }),
+      renderer: async (target) => {
+        const built = await nullRenderer()(target)
+        if (!built.ok) return built
+        const renderer = built.value
+        return ok({ ...renderer, dispose: () => events.push('renderer:destroy') })
+      },
       seams: {
         frames,
         fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
@@ -973,10 +972,9 @@ describe('seams.onFailure', () => {
     const thrown = new Error('Unexpected defect in renderer')
     const handle = runGame(
       baseGame({
-        renderer: () =>
-          Effect.sync(() => {
-            throw thrown
-          }),
+        renderer: async () => {
+          throw thrown
+        },
         seams: {
           frames,
           fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,
@@ -1073,10 +1071,9 @@ describe('seams.onFailure', () => {
     const frames = manualFrames()
     const handle = runGame(
       baseGame({
-        renderer: () =>
-          Effect.sync(() => {
-            throw new Error('Unexpected defect in renderer')
-          }),
+        renderer: async () => {
+          throw new Error('Unexpected defect in renderer')
+        },
         seams: {
           frames,
           fetch: fakeFetch({ '/assets/title.png': { chunks: [new Uint8Array([1])] } }).fetch,

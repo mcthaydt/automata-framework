@@ -3,7 +3,7 @@
 
 import type { Save } from '../../../features/saves/save.manager.ts'
 import { type Saves, saveOf } from '../../../features/saves/saves.manager.ts'
-import type { Hosting } from '../../../shared/host/plain-hosting.ts'
+import type { Hosting } from '../../../shared/host/hosting.ts'
 import type { Disposables } from '../../../shared/lib/disposables.ts'
 import type { SaveStatusState } from '../../../shared/ui/status/save-status.ts'
 import type { GameSaves } from '../../define-game.ts'

@@ -3,10 +3,10 @@
 import '../no-eval.js'
 import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
 import { FlatMaterial, Mesh3D, PlaneGeometry } from '@pixi/3d'
-import { Effect, Exit, Scope } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import { sceneLightingSchema } from '../light/scene-lighting.schema.js'
 import { createPixi3dRenderer, type Pixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'
+import { builtRenderer } from '../testing/built-renderer.js'
 import { snapshot } from '../testing/snapshot.js'
 import { testTarget } from '../testing/test-target.js'
 import { box } from '../views/box-view.js'
@@ -29,9 +29,10 @@ const characters: RenderRow[] = [
   { sid: 2, components: { walker: { x: 3, y: 0, z: 1 } } },
 ]
 
-let scope: Scope.CloseableScope | undefined
+/** The renderer the test built, disposed after it. */
+let scope: { dispose(): void } | undefined
 afterEach(async () => {
-  if (scope) await Effect.runPromise(Scope.close(scope, Exit.void))
+  scope?.dispose()
   scope = undefined
   document.body.replaceChildren()
 })
@@ -66,8 +67,9 @@ async function start(
       return undefined
     },
   })
-  scope = Effect.runSync(Scope.make())
-  return Effect.runPromise(Scope.extend(factory(testTarget(host)), scope))
+  const renderer = await builtRenderer(factory(testTarget(host)))
+  scope = renderer
+  return renderer
 }
 
 /** Pixels in columns [from, to) that got darker / changed at all between two snapshots, by more than a rounding step. */
@@ -138,7 +140,7 @@ describe.runIf(hasWebGL2)('lighting and fog on WebGL2', () => {
     const clear = await start()
     clear.draw(frame)
     const without = snapshot(clear)
-    if (scope) await Effect.runPromise(Scope.close(scope, Exit.void))
+    scope?.dispose()
     document.body.replaceChildren()
     const foggy = await start({ near: 4, far: 10, color: FOG })
     expect(foggy.view.fog).toMatchObject({ type: 'linear', near: 4, far: 10 })

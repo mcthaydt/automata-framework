@@ -17,6 +17,8 @@ export {
   nullRenderer,
 } from './null-renderer.js'
 export {
-  RuntimeTest,
+  openRuntimeTest,
   type RuntimeTestOptions,
+  type RuntimeTestSession,
+  withRuntimeTest,
 } from './ruken/runtime-test.js'

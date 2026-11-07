@@ -1,5 +1,4 @@
 import type { SimEvent } from '@mcthaydt/automata-sim'
-import { Context } from 'effect'
 import type { ErrorCode } from '../../host/error-code.schema.ts'
 import type { BoardState } from '../board-state.js'
 import type { GlyphFamily } from '../glyph-family.js'
@@ -70,9 +69,6 @@ export interface PresentationBus<Facts = RuntimeFacts> {
   publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void
   subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void
 }
-
-export const PresentationBus: Context.Tag<PresentationBus, PresentationBus> =
-  Context.GenericTag<PresentationBus>('@mcthaydt/automata-runtime/PresentationBus')
 
 interface QueuedFact {
   readonly name: string

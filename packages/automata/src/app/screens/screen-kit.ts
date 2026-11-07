@@ -9,7 +9,7 @@ import {
   type InputOptions,
 } from '../../features/input/input.manager.ts'
 import type { InputProfile } from '../../features/input/input-profile.schema.ts'
-import type { Hosting } from '../../shared/host/plain-hosting.ts'
+import type { Hosting } from '../../shared/host/hosting.ts'
 import type { Clock } from '../../shared/lib/clock.ts'
 import type { Disposables } from '../../shared/lib/disposables.ts'
 import type { Subscribable } from '../../shared/lib/subscribable.ts'

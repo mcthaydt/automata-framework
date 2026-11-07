@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import type { DefinedGame } from '@mcthaydt/automata'
-import { type GameRenderer, type RendererFactory, type RuntimeHandle, runGame } from '@mcthaydt/automata'
+import { type RendererFactory, type RuntimeHandle, runGame } from '@mcthaydt/automata'
 import {
   type FakeHostControl,
   fakeFetch,
@@ -9,7 +9,6 @@ import {
   manualFrames,
 } from '@mcthaydt/automata/testing'
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { emberwick } from '#src/app/game.ts'
 import { GOLDEN_GOAL_TICK, GOLDEN_ROUTE } from '#src/testing/golden.ts'
@@ -59,8 +58,10 @@ describe("Emberwick's screens", () => {
     throw new Error(`timed out waiting for ${what}`)
   }
 
-  const recording: RendererFactory = () =>
-    Effect.succeed<GameRenderer>({ apply: (result) => results.push(result), draw: () => {}, reset: () => {} })
+  const recording: RendererFactory = async () => ({
+    ok: true,
+    value: { apply: (result) => results.push(result), draw: () => {}, reset: () => {}, dispose: () => {} },
+  })
 
   async function boot(): Promise<void> {
     const game: DefinedGame = emberwick

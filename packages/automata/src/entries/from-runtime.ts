@@ -1,15 +1,5 @@
 /** The content hash the boot check recomputes; tooling that changes content before a run hashes it with this. */
 export { contentHashOf } from '../app/boot/boot-program.js'
-export {
-  AppLoop,
-  Audio,
-  AudioBuses,
-  Locale,
-  Saves,
-  Settings,
-  settingsStore,
-  Time,
-} from '../app/boot/effect-tags.ts'
 export type {
   CompiledContentData,
   GameDefinition,
@@ -23,6 +13,8 @@ export {
 } from '../app/core-settings.js'
 export type { Flow } from '../app/flow/flow.manager.js'
 export type { RuntimeServices, ScreenContext, ScreenDef } from '../app/flow/screen.js'
+export type { Audio } from '../features/audio/audio.manager.js'
+export type { AudioBuses } from '../features/audio/audio-buses.js'
 export {
   AUDIO_BUS_NAMES,
   audioBusGainsSchema,
@@ -38,6 +30,7 @@ export {
   type InputProfile,
   inputProfileSchema,
 } from '../features/input/input-profile.schema.js'
+export type { Locale } from '../features/locale/locale.manager.js'
 export { createT, type Translate } from '../features/locale/paraglide.js'
 export type { Save } from '../features/saves/save.manager.js'
 export {
@@ -46,6 +39,7 @@ export {
   defineSave,
   type SaveDef,
 } from '../features/saves/save.schema.js'
+export type { Saves } from '../features/saves/saves.manager.js'
 export type { Clock } from '../shared/lib/clock.ts'
 export { type Disposables, disposables } from '../shared/lib/disposables.ts'
 export {
@@ -53,15 +47,22 @@ export {
   RendererUnavailable,
 } from '../shared/runtime/boot-error.js'
 export type { QualityTier } from '../shared/runtime/display-settings.schema.js'
+export type { AppLoop } from '../shared/runtime/loop/app-loop.manager.js'
 export type { FrameInfo } from '../shared/runtime/loop/frames.js'
 export {
-  PresentationBus,
+  type PresentationBus,
   type RuntimeFacts,
   typedBus,
 } from '../shared/runtime/presentation/presentation-bus.manager.js'
 export type {
   GameRenderer,
+  OwnedRenderer,
   RendererFactory,
   RenderTarget,
 } from '../shared/runtime/render/renderer.js'
-export type { SettingsDef } from '../shared/runtime/settings/settings.manager.js'
+export {
+  type Settings,
+  type SettingsDef,
+  settingsStore,
+} from '../shared/runtime/settings/settings.manager.js'
+export type { Time } from '../shared/runtime/time/time.manager.js'

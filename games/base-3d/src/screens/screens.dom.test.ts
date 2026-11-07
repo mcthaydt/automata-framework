@@ -1,5 +1,5 @@
 import type { DefinedGame } from '@mcthaydt/automata'
-import { type GameRenderer, type RendererFactory, type RuntimeHandle, runGame } from '@mcthaydt/automata'
+import { type RendererFactory, type RuntimeHandle, runGame } from '@mcthaydt/automata'
 import {
   type FakeHostingOptions,
   fakeFetch,
@@ -9,7 +9,6 @@ import {
 } from '@mcthaydt/automata/testing'
 import { render3dExtension } from '@mcthaydt/automata-render-pixi3d'
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { Effect } from 'effect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { base3d, input } from '../main.ts'
 import { Progress } from '../resources.ts'
@@ -101,8 +100,10 @@ describe("base-3d's flow", () => {
     expect(done()).toBe(true)
   }
 
-  const recording: RendererFactory = () =>
-    Effect.succeed<GameRenderer>({ apply: (result) => results.push(result), draw: () => {}, reset: () => {} })
+  const recording: RendererFactory = async () => ({
+    ok: true,
+    value: { apply: (result) => results.push(result), draw: () => {}, reset: () => {}, dispose: () => {} },
+  })
 
   /** A slot as the runtime stores it (its envelope), for the fake host to hold before boot. */
   const stored = (fields: { version?: number; data?: unknown } = {}) =>

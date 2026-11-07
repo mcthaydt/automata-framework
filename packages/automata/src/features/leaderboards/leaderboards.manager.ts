@@ -3,8 +3,8 @@
 // Ruken checks a score's range on its side; AF only refuses what the SDK cannot send (a score that is not a whole
 // number), as FloorFifty's `scores-hosted` tests expect.
 
-import type { HostRefusal } from '../../shared/host/plain-errors.ts'
-import type { Hosting, HostingLeaderboards } from '../../shared/host/plain-hosting.ts'
+import type { HostRefusal } from '../../shared/host/errors.ts'
+import type { Hosting, HostingLeaderboards } from '../../shared/host/hosting.ts'
 import type { Result } from '../../shared/lib/result.ts'
 import {
   type BoardState,

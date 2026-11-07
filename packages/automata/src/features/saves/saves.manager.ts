@@ -1,7 +1,7 @@
 // The game's save as a runtime service, the way `Settings` is one for settings: boot builds it from
 // `GameDefinition.saves`, and a screen asks for it by the same definition.
 
-import type { HostRefusal } from '../../shared/host/plain-errors.ts'
+import type { HostRefusal } from '../../shared/host/errors.ts'
 import { ok, type Result } from '../../shared/lib/result.ts'
 import type { Save, SaveServiceOptions } from './save.manager.js'
 import { saveService } from './save.manager.js'
@@ -19,7 +19,7 @@ export interface Saves {
 
 /**
  * Returns the booted save when `def.key` matches. Throws if the game booted a different save, or none: asking for a
- * save the game never declared is the game's mistake (as `storeOf` does for settings).
+ * save the game never declared is the game's mistake (as `settingsStore` does for settings).
  */
 export function saveOf<S>(saves: Saves, def: SaveDef<S>): Save<S> {
   if (saves.key !== def.key || saves.save === undefined)

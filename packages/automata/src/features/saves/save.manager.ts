@@ -7,8 +7,8 @@
 // throws. Nothing here falls back to device storage (AGENTS.md, "Honor host authority").
 
 import { canonicalJson } from '@mcthaydt/automata-sim/hash'
-import type { HostRefusal } from '../../shared/host/plain-errors.ts'
-import type { Hosting } from '../../shared/host/plain-hosting.ts'
+import type { HostRefusal } from '../../shared/host/errors.ts'
+import type { Hosting } from '../../shared/host/hosting.ts'
 import { type Clock, systemClock } from '../../shared/lib/clock.ts'
 import { disposables } from '../../shared/lib/disposables.ts'
 import { ok, type Result, refused } from '../../shared/lib/result.ts'

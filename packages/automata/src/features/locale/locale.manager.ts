@@ -5,8 +5,8 @@
 // (AGENTS.md, Honor host authority). A change publishes `'locale.changed'`; no screen is remounted and the
 // sim never hears of it, so a language switch keeps the screen, its focus and the sim hash (L-c).
 
-import type { HostResult } from '../../shared/host/plain-errors.ts'
-import type { HostingSaves } from '../../shared/host/plain-hosting.ts'
+import type { HostResult } from '../../shared/host/errors.ts'
+import type { HostingSaves } from '../../shared/host/hosting.ts'
 import type { PresentationBus } from '../../shared/runtime/presentation/presentation-bus.manager.js'
 import { applyDocumentLocale, textDirection } from './document-locale.js'
 import { negotiateLocale } from './negotiate-locale.js'

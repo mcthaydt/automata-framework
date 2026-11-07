@@ -98,24 +98,54 @@ The properties of one analytics event: flat names to strings, numbers or boolean
 type AnalyticsProps = Record<string, string | number | boolean>;
 ```
 
-#### `AppLoop` (type)
+#### `AppLoop` (interface)
 
 The frame loop service: `run` steps a sim at its fixed tick rate from display frames, with the commands for each
-tick, and the renderer draws every frame.
+tick, and the renderer draws every frame. No step runs while `Time` is paused; a throw from a step stops it.
 
 ```ts
-type AppLoop = AppLoopService;
-const AppLoop: Context.Tag<AppLoopService, AppLoopService>;
+interface AppLoop {
+    run(options: {
+        sim: Sim;
+        commands: (tick: number) => readonly Command[];
+    }): void;
+    stop(): void;
+    readonly running: boolean;
+}
 ```
 
-#### `Audio` (type)
+#### `Audio` (interface)
 
-The audio service: one-shot sounds and looping music on the audio buses, unlocked by the first gesture after
-`session.ready`; the game runs silent when no audio context can be built.
+The audio service: one-shot sounds and looping music on the audio buses, unlocked by the
+first gesture after `session.ready`; the game runs silent when no audio context can be built.
 
 ```ts
-type Audio = AudioService;
-const Audio: Context.Tag<AudioService, AudioService>;
+interface Audio {
+    /** False until the first gesture after `session.ready` builds and resumes the graph. */
+    readonly unlocked: Subscribable<boolean>;
+    /** False once a context could not be built (`audio.unavailable`): the game runs silent, and Settings says so. */
+    readonly available: Subscribable<boolean>;
+    /** Plays the asset at `alias` once. Fire and forget: silent before the unlock, while asleep, or if it fails. */
+    sound(alias: string, options?: SoundOptions): void;
+    /**
+     * Loops the asset at `alias` on the music bus. Asked for before the unlock, it starts on the unlock (and answers at
+     * once). A file that is missing or is not audio is an answer, not a throw: the game plays on without that music.
+     */
+    music(alias: string, options?: MusicOptions): Promise<Result<void, AudioDecodeFailed | AssetLoadFailed>>;
+    /** Fades the music out over `fadeSeconds`, a click-free cut by default. */
+    stopMusic(fadeSeconds?: number): void;
+    /** Takes `bus` down by `amount` (0..1) for `seconds`; `master` ducks every bus. */
+    duck(bus: AudioBusName, amount: number, seconds: number): void;
+    /** The player's mute: the master only, so unmuting restores the mix as it was. */
+    setMuted(muted: boolean): void;
+    /**
+     * A short tone on `bus`, as the volume sliders play on release (FloorFifty's sample), so the player hears the level
+     * they set. The graph makes it: no game asset. Silent before the unlock, as every sound is.
+     */
+    sample(bus: AudioBusName): void;
+    /** The player's "mute when in the background": silences the master while another window has focus. */
+    setMuteUnfocused(muteUnfocused: boolean): void;
+}
 ```
 
 #### `AUDIO_BUS_NAMES` (const)
@@ -127,17 +157,22 @@ the set is an API change.
 const AUDIO_BUS_NAMES: readonly ['master', 'music', 'sfx', 'ui', 'voice'];
 ```
 
-#### `AudioBuses` (type)
+#### `AudioBuses` (interface)
 
-The audio-bus seam. The audio service implements it.
+The audio-bus seam. Core audio implements it over Web Audio (a gain node per bus
+into `master`, combined there with `Hosting.audio`'s volume and focus); an extension such as Plus
+`audio-stream`, or the game, connects its sources to `input(bus)` and never to the destination directly,
+so the player's gains and the host's ducking always apply.
 
 ```ts
-type AudioBuses = {
-    input: AudioBusesService['input'];
-    gain: AudioBusesService['gain'];
-    setGain: AudioBusesService['setGain'];
-};
-const AudioBuses: Context.Tag<AudioBusesService, AudioBusesService>;
+interface AudioBuses {
+    /** The node a source connects to so that it plays on `bus`. */
+    input(bus: AudioBusName): AudioNode;
+    /** The player's current gain for `bus`, 0..1. */
+    gain(bus: AudioBusName): number;
+    /** Sets the player's gain for `bus`, 0..1. Persisting it is the game's settings' job. */
+    setGain(bus: AudioBusName, gain: number): void;
+}
 ```
 
 #### `audioBusGainsSchema` (const)
@@ -394,7 +429,7 @@ function classifyHeightTier(height: number): HeightTier;
 
 #### `Clock` (interface)
 
-_No doc comment._
+Time as the runtime reads it: `now()` and timeouts. Tests hand over `fakeClock()` and move it by hand.
 
 ```ts
 interface Clock {
@@ -522,11 +557,11 @@ function createGeometryOwner(options: GeometryOwnerOptions): GeometryOwner;
 #### `createPixiRenderer` (function)
 
 The core 2D renderer (ADR 0002) as a runtime `RendererFactory`: a letterboxed Pixi app on the render
-target, entity views from each step's render delta, interpolated each frame. Fails with
-`RendererUnavailable` when the renderer cannot start.
+target, entity views from each step's render delta, interpolated each frame. Answers `RendererUnavailable`
+when the renderer cannot start; `dispose` destroys the app and removes its canvas.
 
 ```ts
-function createPixiRenderer(options?: PixiRendererOptions): (target: RenderTarget) => Effect.Effect<PixiRenderer, RendererUnavailable, Scope.Scope>;
+function createPixiRenderer(options?: PixiRendererOptions): (target: RenderTarget) => Promise<Result<PixiRenderer, RendererUnavailable>>;
 ```
 
 #### `createPostFilterSlot` (function)
@@ -829,7 +864,7 @@ const DisplayMetricsPayloadSchema: z.ZodType<DisplayMetricsPayload>;
 
 #### `Disposables` (interface)
 
-_No doc comment._
+A list of "undo this" functions, run together once: what a screen, a run or a service holds open.
 
 ```ts
 interface Disposables {
@@ -846,7 +881,7 @@ interface Disposables {
 
 #### `disposables` (function)
 
-_No doc comment._
+Makes an empty `Disposables`.
 
 ```ts
 function disposables(): Disposables;
@@ -1352,57 +1387,39 @@ primitive tightens at once. Targets never shrink with the tier; gutters and deco
 type HeightTier = 'short' | 'compact' | undefined;
 ```
 
-#### `HOST_EXIT_CAP` (const)
+#### `HOST_EXIT_CAP_MS` (const)
 
-How long the game may hold the host's close (a 1 s cap). Ruken's own grace is 1.5 s
-(`sdk-host/src/bridge/defaults.ts` `EXIT_GRACE_MS`), so the game always answers before the host gives up on it;
-every adapter cuts the `onExiting` handlers and the flush off at this cap.
+How long the game may hold the host's close, in milliseconds (Ruken's own grace is 1.5 s, so we answer first).
 
 ```ts
-const HOST_EXIT_CAP: Duration.Duration;
+const HOST_EXIT_CAP_MS = 1000;
 ```
 
-#### `HostError` (class)
+#### `HostHandshakeFailed` (interface)
 
-Any failure after the handshake. A request that fails never falls back to another path.
-
-```ts
-class HostError extends HostErrorBase {
-}
-```
-
-#### `HostHandshakeFailed` (class)
-
-The page is inside a frame, but the SDK got no usable welcome and fell back
-to its standalone session. Not fatal: reported on `Hosting.handshake.fellBack`
-and logged once.
+The page is inside a frame, but the SDK got no usable welcome and fell back to its standalone session. Not fatal:
+reported on `Hosting.handshake.fellBack` and logged once.
 
 ```ts
-class HostHandshakeFailed extends HostHandshakeFailedBase {
+interface HostHandshakeFailed {
+    /** The Ruken SDK does not say whether it timed out or rejected a welcome. */
+    readonly reason: 'no-welcome';
 }
 ```
 
 #### `Hosting` (interface)
 
-Everything a game may ask of, or hear from, its host: the `Hosting` contract,
-which each target's adapter implements.
-The `Hosting` service tag.
+Everything a game may ask of, or hear from, its host. Every target's adapter builds one of these.
 
 ```ts
 interface Hosting {
-    /**
-     * Which session this is: 'ruken' when Ruken hosts it; 'standalone' when the Ruken adapter got the SDK's
-     * standalone session; 'web' for the web adapter of an `itch` or `web` build; 'tauri' for the
-     * desktop adapter.
-     */
+    /** 'ruken' when Ruken hosts it; 'standalone' for the Ruken adapter's standalone session; 'web'; 'tauri'. */
     readonly kind: 'ruken' | 'standalone' | 'web' | 'tauri';
-    /**
-     * The host's name for UI: 'Ruken', 'itch.io', 'this page', or the game's title on the desktop.
-     */
+    /** The host's name for UI: 'Ruken', 'itch.io', 'this page', or the game's title on the desktop. */
     readonly hostName: string;
-    /** Some when the page is inside a frame but the SDK fell back to standalone. */
+    /** Set when the page is inside a frame but the SDK fell back to standalone. */
     readonly handshake: {
-        readonly fellBack: Option.Option<HostHandshakeFailed>;
+        readonly fellBack: HostHandshakeFailed | null;
     };
     readonly player: {
         readonly id: string;
@@ -1410,69 +1427,54 @@ interface Hosting {
     };
     readonly locale: string;
     readonly granted: ReadonlySet<Capability>;
-    /** Resolves on `session.ready` (at once standalone). No gameplay renders before it (R-04). */
-    readonly ready: Effect.Effect<void, HostError>;
-    readonly lifecycle: Subscribable.Subscribable<LifecyclePayload>;
-    readonly input: Subscribable.Subscribable<InputModePayload>;
-    readonly display: Subscribable.Subscribable<DisplayMetricsPayload>;
-    readonly audio: Subscribable.Subscribable<AudioChange>;
-    readonly entitlements: Subscribable.Subscribable<EntitlementsPayload>;
-    readonly savesStatus: Subscribable.Subscribable<SavesStatus>;
+    /** Answers on `session.ready` (at once standalone). No gameplay renders before it (R-04). Never rejects. */
+    readonly ready: Promise<HostResult<void>>;
+    readonly lifecycle: Subscribable<LifecyclePayload>;
+    readonly input: Subscribable<InputModePayload>;
+    readonly display: Subscribable<DisplayMetricsPayload>;
+    readonly audio: Subscribable<AudioChange>;
+    readonly entitlements: Subscribable<EntitlementsPayload>;
+    readonly savesStatus: Subscribable<SavesStatus>;
     readonly saves: HostingSaves;
     readonly leaderboards: HostingLeaderboards;
-    /** `support` says what the device allows (for example `ios-home-screen`). */
-    setFullscreen(on: boolean): Effect.Effect<FullscreenRes, HostError>;
+    /** `support` in the answer says what the device allows (for example `ios-home-screen`). */
+    setFullscreen(on: boolean): Promise<HostResult<FullscreenRes>>;
     readonly round: {
         /** A round began. A second start before an end is dropped. */
-        readonly start: Effect.Effect<void>;
+        start(): void;
         /** The open round ended. With no round open it is dropped. */
-        end(outcome?: RoundOutcome): Effect.Effect<void>;
-        /**
-         * One item per round that ended, with its outcome, from the moment the stream
-         * is read (nothing is replayed). A dropped end gives none. Ends when Hosting
-         * shuts down. The `round-end` autosave trigger reads this.
-         */
-        readonly ended: Stream.Stream<RoundOutcome | undefined>;
+        end(outcome?: RoundOutcome): void;
+        /** One event per round that ended, with its outcome, from the moment of subscribing. A dropped end gives none. */
+        readonly ended: Listenable<RoundOutcome | undefined>;
     };
     /** A disclosed analytics event. Never fails: undisclosed, unconsented or refused events are dropped. */
-    track(event: string, props?: AnalyticsProps): Effect.Effect<void>;
-    /** Hands the player back to the host. Standalone it does nothing. */
-    exit(reason?: 'player' | 'completed'): Effect.Effect<void, HostError>;
+    track(event: string, props?: AnalyticsProps): void;
+    /** Hands the player back to the host. Standalone it is refused `UNSUPPORTED`. */
+    exit(reason?: 'player' | 'completed'): Promise<HostResult<void>>;
     /**
-     * Answers the host's "Open game menu" while the scope is open: the handler
-     * returns true when the game opened its own menu. With no handler the host
-     * keeps its own drawer.
+     * Answers the host's "Open game menu": the handler returns true when the game opened its own menu. Returns the
+     * function that takes the handler back. With no handler the host keeps its own drawer.
      */
-    onMenuRequest(handler: () => boolean): Effect.Effect<void, never, Scope.Scope>;
+    onMenuRequest(handler: () => boolean): () => void;
     /**
-     * Runs `handler` when the host closes the game, while the scope is open. The
-     * host waits for it, but AF cuts everything off at `HOST_EXIT_CAP` (1 s),
-     * inside Ruken's 1.5 s grace. Handlers run one after another in registration
-     * order and the host save flush runs after the last, so a write a handler
-     * makes is flushed. All of them share the one cap: a handler that never
-     * returns costs the handlers after it and the flush.
+     * Runs `handler` when the host closes the game. The host waits for it, but AF cuts everything off at
+     * `HOST_EXIT_CAP_MS`. Handlers run one after another in registration order and the host save flush runs after the
+     * last, so a write a handler makes is flushed. Returns the function that takes the handler back.
      */
-    onExiting(handler: Effect.Effect<void>): Effect.Effect<void, never, Scope.Scope>;
+    onExiting(handler: () => void | Promise<void>): () => void;
+    /** Shuts Hosting down: later calls are refused `CANCELLED`, every subscription stops, the session is released. */
+    dispose(): void;
 }
-const Hosting: Context.Tag<Hosting, Hosting>;
 ```
 
 #### `HostingLeaderboards` (interface)
 
-The host's leaderboards (Ruken's `LeaderboardsApi`). Needs the `leaderboards` grant.
-Each call relays the SDK's answer or error as a `HostError`: without the grant and standalone it fails
-`UNSUPPORTED`, offline it fails with the host's code. None keeps a local board instead.
+The host's leaderboards. Needs the `leaderboards` grant; without it a call is refused `UNSUPPORTED`.
 
 ```ts
 interface HostingLeaderboards {
-    /** Submits `score` to `board` (a Ruken slug); `meta` is passed to the host as is. */
-    submit(board: string, score: number, meta?: LeaderboardSubmitMeta): Effect.Effect<LeaderboardSubmitRes, HostError>;
-    /**
-     * Reads `board` with the SDK's options (`scope` `top` or `around-me`, `limit`). Ruken's host now answers with the
-     * player's own entry only, or none, whatever the options (the SDK marks `get` deprecated at RukenApp d0fa2fe, since
-     * Ruken added achievements); the call and its answer's shape are unchanged.
-     */
-    get(board: string, query?: LeaderboardQuery): Effect.Effect<LeaderboardGetRes, HostError>;
+    submit(board: string, score: number, meta?: LeaderboardSubmitMeta): Promise<HostResult<LeaderboardSubmitRes>>;
+    get(board: string, query?: LeaderboardQuery): Promise<HostResult<LeaderboardGetRes>>;
 }
 ```
 
@@ -1490,7 +1492,7 @@ interface HostingOptions {
     readonly pauseBehavior: PauseBehavior;
     /**
      * The game config's `analytics.custom_events`. When given, `track` drops every
-     * other name before it reaches the SDK (FloorFifty `ruken/host.ts` `track`).
+     * other name before it reaches the SDK.
      */
     readonly disclosedEvents?: readonly string[];
     /**
@@ -1503,26 +1505,24 @@ interface HostingOptions {
 
 #### `HostingSaves` (interface)
 
-The player's saves. Each call relays the SDK's error as a `HostError`; none falls back.
+The player's saves. Each call relays the host's answer or refusal; none falls back to other storage.
 
 ```ts
 interface HostingSaves {
-    get(key: string): Effect.Effect<string | null, HostError>;
-    set(key: string, value: string): Effect.Effect<void, HostError>;
-    remove(key: string): Effect.Effect<void, HostError>;
-    readonly flush: Effect.Effect<SavesFlushRes, HostError>;
-    /** Every key the session holds, sorted by code unit. Fails `CANCELLED` once Hosting has shut down. */
-    readonly keys: Effect.Effect<readonly string[], HostError>;
-    /**
-     * Another device's write, or the host's conflict choice, reached this session (`SavesApi.on('changed')`). No current value: only changes. Ends when Hosting shuts down.
-     */
-    readonly changed: Stream.Stream<SavesChangedPayload>;
+    get(key: string): Promise<HostResult<string | null>>;
+    set(key: string, value: string): Promise<HostResult<void>>;
+    remove(key: string): Promise<HostResult<void>>;
+    flush(): Promise<HostResult<SavesFlushRes>>;
+    /** Every key the session holds, sorted by code unit. Refused `CANCELLED` once Hosting is disposed. */
+    keys(): Promise<HostResult<readonly string[]>>;
+    /** Another device's write, or the host's conflict choice, reached this session. Only changes, no current value. */
+    readonly changed: Listenable<SavesChangedPayload>;
 }
 ```
 
 #### `HostingSeams` (interface)
 
-Test seams. Games pass nothing; `HostingTest` passes the fake host's in-memory window pair.
+Test seams. Games pass nothing; `openHostingTest` passes the fake host's in-memory window pair.
 
 ```ts
 interface HostingSeams {
@@ -1535,6 +1535,30 @@ interface HostingSeams {
      */
     readonly signal?: AbortSignal;
 }
+```
+
+#### `HostRefusal` (interface)
+
+Why the host said no to a call: its contract code, whether a retry may succeed, and the call it refused.
+
+```ts
+interface HostRefusal {
+    /** The contract's code; the Ruken adapter relays Ruken's unchanged. */
+    readonly code: ErrorCode;
+    /** Whether a retry may succeed (Ruken's flag, relayed unchanged). */
+    readonly retryable: boolean;
+    /** The protocol request or `Hosting` call that was refused, for example `saves.set`. */
+    readonly operation: string;
+    readonly cause?: unknown;
+}
+```
+
+#### `HostResult` (type)
+
+What a host call answers: the value, or the host's refusal.
+
+```ts
+type HostResult<T> = Result<T, HostRefusal>;
 ```
 
 #### `IconButton` (const)
@@ -1938,13 +1962,29 @@ const LoaderOverlay: import("svelte").Component<Props, {}, "">;
 type LoaderOverlay = ReturnType<typeof LoaderOverlay>;
 ```
 
-#### `Locale` (type)
+#### `Locale` (interface)
 
-The locale service: the game's locales, the one text is drawn in now, the player's choice and the text direction.
+The locale service: the game's locales, the one text is drawn in now, the player's choice
+and the text direction.
 
 ```ts
-type Locale = LocaleService;
-const Locale: Context.Tag<LocaleService, LocaleService>;
+interface Locale {
+    /** The game's locales, in its own order (the picker's order). */
+    readonly locales: readonly string[];
+    readonly baseLocale: string;
+    /** The locale text is drawn in now. */
+    readonly current: string;
+    /** The player's pick: one of `locales`, or null for Automatic (nothing saved, or a saved locale the game dropped). */
+    readonly choice: string | null;
+    readonly direction: 'ltr' | 'rtl';
+    /** Svelte store contract: called at once with the current locale, then on each change. */
+    subscribe(listener: (locale: string) => void): () => void;
+    /**
+     * The picker's one call: one of `locales`, or null for Automatic. Saved through `Hosting.saves`.
+     * A locale the game does not ship throws: the picker only offers `locales`.
+     */
+    set(choice: string | null): void;
+}
 ```
 
 #### `MAX_TURN_UNITS_PER_STEP` (const)
@@ -1986,10 +2026,14 @@ type Modal = ReturnType<typeof Modal>;
 #### `ModelInvalid` (class)
 
 A 3D model file could not be read: malformed, of an unknown type, not loaded, or a glTF with a skin,
-which is not supported yet (M3R-D1). Boot shows the panel naming the file, with Try again.
+which is not supported yet. Boot shows the panel naming the file, with Try again.
 
 ```ts
-class ModelInvalid extends ModelInvalidBase {
+class ModelInvalid extends Error {
+    readonly _tag: "ModelInvalid";
+    readonly file: string;
+    readonly reason: string;
+    constructor(fields: ModelInvalidFields);
 }
 ```
 
@@ -2007,6 +2051,16 @@ not take is undone, so what is checked is always the owner's value.
 ```ts
 const OptionGroup: import("svelte").Component<Props, {}, "">;
 type OptionGroup = ReturnType<typeof OptionGroup>;
+```
+
+#### `OwnedRenderer` (interface)
+
+A renderer the runtime owns: `dispose` destroys it (the canvas, its listeners, its GPU resources).
+
+```ts
+interface OwnedRenderer extends GameRenderer {
+    dispose(): void;
+}
 ```
 
 #### `PagedGrid` (const)
@@ -2057,7 +2111,7 @@ const PauseBehaviorSchema: z.ZodType<PauseBehavior>;
 The runtime's `GameRenderer`, built on PixiJS, with its stage.
 
 ```ts
-interface PixiRenderer extends GameRenderer {
+interface PixiRenderer extends OwnedRenderer {
     readonly stage: PixiStage;
 }
 ```
@@ -2250,7 +2304,6 @@ interface PresentationBus<Facts = RuntimeFacts> {
     publish<K extends keyof Facts & string>(name: K, fact: Facts[K]): void;
     subscribe<K extends keyof Facts & string>(name: K, listener: (fact: Facts[K]) => void): () => void;
 }
-const PresentationBus: Context.Tag<PresentationBus, PresentationBus>;
 ```
 
 #### `QualityTier` (type)
@@ -2322,11 +2375,12 @@ class RenderDeltaConsumer<C extends SceneNode = Container> {
 
 #### `RendererFactory` (type)
 
-Builds the game's renderer for a target. It fails with `RendererUnavailable` when no backend it accepts starts,
-and with `ModelInvalid` when a 3D renderer cannot read a model file it was given.
+Builds the game's renderer for a target. It answers `RendererUnavailable` when no backend it accepts starts, and
+`ModelInvalid` when a 3D renderer cannot read a model file it was given; a bug throws. The caller disposes what it
+gets.
 
 ```ts
-type RendererFactory = (target: RenderTarget) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
+type RendererFactory = (target: RenderTarget) => Promise<Result<OwnedRenderer, RendererUnavailable | ModelInvalid>>;
 ```
 
 #### `RendererUnavailable` (class)
@@ -2335,7 +2389,10 @@ Neither WebGL2 nor WebGPU could be initialized.
 In Ruken this presents the "unsupported" screen with an exit button.
 
 ```ts
-class RendererUnavailable extends RendererUnavailableBase {
+class RendererUnavailable extends Error {
+    readonly _tag: "RendererUnavailable";
+    readonly tried: readonly ('webgl2' | 'webgpu')[];
+    constructor(fields: RendererUnavailableFields);
 }
 ```
 
@@ -2404,16 +2461,14 @@ const RUKEN_SDK_MARKERS: readonly string[];
 
 #### `runGame` (function)
 
-Boots and runs the game in a runtime Scope: a failure draws the boot failure panel, and shutdown closes the scope.
+Boots and runs the game: a failure draws the boot failure panel, and `shutdown` closes everything the runtime opened.
 
-Each attempt runs in a fresh Scope. On failure, mounts BootFailurePanel and keeps
-the attempt scope open so Back to {host} can access its Hosting service. Try again
-and Continue without loading close the failed attempt scope and re-run bootProgram
-in a fresh Scope on the same root without reloading the page. Inside a Ruken session,
-Try again reloads the game's frame instead: `@ruken/sdk-host` answers one hello per
-frame load, so a second session in this load would never be welcomed (RT.BOOT1).
+Each attempt opens into a fresh `Teardown`. On failure it mounts the boot failure panel and keeps the attempt open,
+so Back to {host} can still reach its `Hosting`. Try again and Continue without loading close the failed attempt and
+boot again on the same root without reloading the page. Inside a Ruken session, Try again reloads the game's frame
+instead: the host answers one hello per frame load, so a second session in this load would never be welcomed.
 
-RuntimeHandle.shutdown() closes the runtime scope, running all finalizers in LIFO order.
+`shutdown()` stops a boot under way and closes the current attempt, last opened first.
 
 ```ts
 function runGame<S>(game: GameDefinition<S>): RuntimeHandle;
@@ -2519,7 +2574,7 @@ interface RuntimeFacts {
 
 #### `RuntimeHandle` (interface)
 
-Controls the running game: shutdown closes the runtime scope.
+Controls the running game: `shutdown` closes everything the runtime opened, last opened first.
 
 ```ts
 interface RuntimeHandle {
@@ -2538,11 +2593,18 @@ interface RuntimeSeams {
     readonly fonts?: Pick<FontFaceSet, 'load'>;
     readonly sdkEnv?: () => NonNullable<HostingSeams['env']>;
     /**
-     * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata-host/target`), for
-     * example `fakeHosting(…).make` from `@mcthaydt/automata-testing/host`. When given, `sdkEnv` is
-     * not used.
+     * Builds the game's `Hosting` in place of the build target's adapter (`@mcthaydt/automata/target`), for example
+     * `fakeHosting(…).open` from `@mcthaydt/automata/testing`. It gets boot's clock and the signal that gives up the
+     * handshake; boot disposes what it answers. When given, `sdkEnv` is not used.
      */
-    readonly hosting?: (options: HostingOptions) => Effect.Effect<Hosting, HostError, Scope.Scope>;
+    readonly hosting?: (options: HostingOptions, seams: {
+        readonly clock: Clock;
+        readonly signal: AbortSignal;
+    }) => Promise<HostResult<Hosting>>;
+    /** The clock every runtime timer runs on (the stall rule, fades, toasts, the exit cap); default the real one. */
+    readonly clock?: Clock;
+    /** The wall clock saves are stamped with, in epoch milliseconds; default `Date.now`. */
+    readonly now?: () => number;
     readonly document?: Document;
     /** The browser's languages, best first; defaults to `navigator.languages`. */
     readonly languages?: readonly string[];
@@ -2666,14 +2728,17 @@ interface SaveDef<S> {
 }
 ```
 
-#### `Saves` (type)
+#### `Saves` (interface)
 
-The booted game's save as a runtime service, as `Settings` is for settings: its key and the `Save`, both undefined
-for a game without saves.
+The booted game's save as a runtime service, as `Settings` is for settings: its key and the
+`Save`, both undefined for a game without saves.
 
 ```ts
-type Saves = SavesService;
-const Saves: Context.Tag<SavesService, SavesService>;
+interface Saves {
+    /** The booted save's key prefix; undefined for a game without saves. */
+    readonly key: string | undefined;
+    readonly save: Save<unknown> | undefined;
+}
 ```
 
 #### `SavesChangedPayload` (interface)
@@ -2912,13 +2977,16 @@ const ScrollList: import("svelte").Component<Props, {}, "">;
 type ScrollList = ReturnType<typeof ScrollList>;
 ```
 
-#### `Settings` (type)
+#### `Settings` (interface)
 
-The booted game's settings as a runtime service: its key and store, both undefined for a game without settings.
+The booted game's settings as a runtime service: its key and store, both undefined for a game without
+settings.
 
 ```ts
-type Settings = SettingsService;
-const Settings: Context.Tag<SettingsService, SettingsService>;
+interface Settings {
+    readonly key: string | undefined;
+    readonly store: SettingsStore<unknown> | undefined;
+}
 ```
 
 #### `SettingsDef` (interface)
@@ -2960,10 +3028,11 @@ interface SettingsScreenCopy {
 
 #### `settingsStore` (function)
 
-Returns the booted settings store when `def.key` matches; dies with a defect when it does not.
+The booted store for `def`. Throws when `def` is not the game's settings: asking for another key is the game's
+mistake, and a store made up on the spot would save under a key nothing reads.
 
 ```ts
-function settingsStore<S>(def: SettingsDef<S>): Effect.Effect<SettingsStore<S>, never, SettingsService>;
+function settingsStore<S>(settings: Settings, def: SettingsDef<S>): SettingsStore<S>;
 ```
 
 #### `Sheet` (const)
@@ -3202,13 +3271,17 @@ both; a `web`, `itch` or `ruken` build holds neither. Re-check them after a Taur
 const TAURI_MARKERS: readonly string[];
 ```
 
-#### `Time` (type)
+#### `Time` (interface)
 
 The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
 
 ```ts
-type Time = TimeService;
-const Time: Context.Tag<TimeService, TimeService>;
+interface Time {
+    readonly paused: boolean;
+    readonly reasons: ReadonlySet<PauseReason>;
+    pause(reason: PauseReason): void;
+    resume(reason: PauseReason): void;
+}
 ```
 
 #### `Toast` (const)
@@ -3617,7 +3690,6 @@ interface FakeGamepads {
 #### `FakeHostControl` (interface)
 
 What a test does to, and reads from, the fake host.
-The `FakeHostControl` service tag, provided beside `Hosting` by `FakeHosting`.
 
 ```ts
 interface FakeHostControl {
@@ -3659,17 +3731,6 @@ interface FakeHostControl {
     /** The host closes the game: the exiting handlers in order, then the save flush, all within `HOST_EXIT_CAP_MS`. */
     close(): Promise<void>;
 }
-const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl>;
-```
-
-#### `FakeHosting` (function)
-
-The fake host as an Effect layer, for the runtime's tests until task 5.4 converts them: `Hosting` for the game
-(built from `hosting`, default a game that wants saves) and `FakeHostControl` for the test. Both are released when
-the layer's scope closes.
-
-```ts
-function FakeHosting(options?: FakeHostingOptions, hosting?: HostingOptions): Layer.Layer<EffectHosting | FakeHostControl, HostError>;
 ```
 
 #### `fakeHosting` (function)
@@ -3681,14 +3742,16 @@ A fake host and the control handle that drives it. `create` builds the game's `H
 function fakeHosting(options?: FakeHostingOptions): {
     readonly control: FakeHostControl;
     create(hosting: HostingOptions, clock?: Clock): Hosting;
-    /** TEMPORARY (until task 5.4): `create` as the Effect the runtime's `seams.hosting` still takes. */
-    make(hosting: HostingOptions): Effect.Effect<EffectHosting, never, Scope.Scope>;
+    /** `create` in the shape of the runtime's `seams.hosting`: boot's clock times the exit cap; never refused. */
+    make(hosting: HostingOptions, seams?: {
+        readonly clock?: Clock;
+    }): Promise<HostResult<Hosting>>;
 };
 ```
 
 #### `FakeHostingOptions` (interface)
 
-How the fake host starts. Every field has a default, so `FakeHosting()` is a web page with saves.
+How the fake host starts. Every field has a default, so `fakeHosting()` is a web page with saves.
 
 ```ts
 interface FakeHostingOptions {
@@ -4012,6 +4075,17 @@ interface NullRendererOptions {
 }
 ```
 
+#### `openRuntimeTest` (function)
+
+Boots the runtime for screen and integration tests, as `runGame` does but without the loader or failure panel:
+`openHostingTest` behind the scenes, page layers and geometry, the settings, the save, the services, and the flow
+started when there are screens. A host refusal throws the `HostError` boot would show; a refused renderer throws its
+reason. Whatever opened before a throw is closed.
+
+```ts
+function openRuntimeTest(options?: RuntimeTestOptions): Promise<RuntimeTestSession>;
+```
+
 #### `pressedPart` (function)
 
 What a player presses for `control`: a checkbox's or radio's label (the theme draws it as the control, and a
@@ -4070,19 +4144,9 @@ interface ReferenceSize {
 }
 ```
 
-#### `RuntimeTest` (function)
-
-Test harness providing `RuntimeServices | FakeHostHandle` for screen and integration tests (spec §3.1, §8.1).
-Uses `HostingTest` behind the scenes, hooks DOM layers and geometry, starts the flow if screens exist,
-and yields all runtime services plus `FakeHostHandle`.
-
-```ts
-function RuntimeTest(options?: RuntimeTestOptions): Layer.Layer<RuntimeTags | FakeHostHandle, BootError>;
-```
-
 #### `RuntimeTestOptions` (interface)
 
-What `RuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer,
+What `openRuntimeTest` boots: the fake host, the screens, content, settings and save, and the frames, renderer,
 fetch and locale it uses.
 
 ```ts
@@ -4104,6 +4168,24 @@ interface RuntimeTestOptions {
     readonly languages?: readonly string[];
     /** Builds the audio context on the first gesture; defaults to `fakeAudioContext()`. */
     readonly createAudioContext?: () => AudioContextLike;
+    /** The clock the runtime's timers run on (the stall rule, fades, toasts, the exit cap); default the real one. */
+    readonly clock?: Clock;
+    /** The wall clock saves are stamped with; default `Date.now`. */
+    readonly now?: () => number;
+}
+```
+
+#### `RuntimeTestSession` (interface)
+
+A booted runtime over the fake Ruken host: every service a screen reads, the host's handle and the page layers.
+
+```ts
+interface RuntimeTestSession {
+    readonly services: RuntimeServices;
+    readonly handle: FakeHostHandle;
+    readonly layers: PageLayers;
+    /** Closes everything the session opened, last opened first: the screen, the save, the renderer, then the host. */
+    dispose(): Promise<void>;
 }
 ```
 
@@ -4203,6 +4285,14 @@ Controls a player could see and reach: laid out, not hidden, not in an inert sub
 
 ```ts
 function visibleControls(root: ParentNode): HTMLElement[];
+```
+
+#### `withRuntimeTest` (function)
+
+Runs `program` on an open runtime and always closes it.
+
+```ts
+function withRuntimeTest<A>(program: (session: RuntimeTestSession) => Promise<A> | A, options?: RuntimeTestOptions): Promise<A>;
 ```
 
 ### `import { … } from '@mcthaydt/automata/tooling'`

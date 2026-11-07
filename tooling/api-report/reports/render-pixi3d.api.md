@@ -113,7 +113,7 @@ function characterTint(position: readonly [number, number, number], normal: read
 ### `createPixi3dRenderer` (function)
 
 ```ts
-function createPixi3dRenderer(options: Pixi3dOptions): (target: RenderTarget) => Effect.Effect<Pixi3dRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>;
+function createPixi3dRenderer(options: Pixi3dOptions, seams?: Pixi3dSeams): (target: RenderTarget) => Promise<Pixi3dResult>;
 ```
 
 ### `createSceneLight` (function)

@@ -4,9 +4,9 @@ import {
   type DesktopPort,
   type StoreLike,
 } from '#src/features/targets/tauri/hosting-tauri.ts'
+import type { HostResult } from '#src/shared/host/errors.ts'
 import type { HostingOptions } from '#src/shared/host/hosting.ts'
-import type { HostResult } from '#src/shared/host/plain-errors.ts'
-import { HOST_EXIT_CAP_MS, type Hosting } from '#src/shared/host/plain-hosting.ts'
+import { HOST_EXIT_CAP_MS, type Hosting } from '#src/shared/host/hosting.ts'
 import { fakeClock } from '#src/testing/fake-clock.ts'
 import { describeHostingContract } from '#src/testing/host/contract-suite.ts'
 import { type FakeWebPage, fakeWebPage } from '#src/testing/host/page/fake-web-page.ts'

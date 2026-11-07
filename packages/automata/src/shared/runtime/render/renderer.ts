@@ -1,5 +1,5 @@
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { Context, type Effect, type Scope } from 'effect'
+import type { Result } from '../../lib/result.ts'
 import type { GeometryOwner } from '../../ui/geometry/geometry-owner.svelte.ts'
 import type { Assets } from '../assets.manager.js'
 import type { ModelInvalid, RendererUnavailable } from '../boot-error.js'
@@ -32,15 +32,16 @@ export interface GameRenderer {
   reset(): void
 }
 
+/** A renderer the runtime owns: `dispose` destroys it (the canvas, its listeners, its GPU resources). */
+export interface OwnedRenderer extends GameRenderer {
+  dispose(): void
+}
+
 /**
- * Builds the game's renderer for a target. It fails with `RendererUnavailable` when no backend it accepts starts,
- * and with `ModelInvalid` when a 3D renderer cannot read a model file it was given.
+ * Builds the game's renderer for a target. It answers `RendererUnavailable` when no backend it accepts starts, and
+ * `ModelInvalid` when a 3D renderer cannot read a model file it was given; a bug throws. The caller disposes what it
+ * gets.
  */
 export type RendererFactory = (
   target: RenderTarget,
-) => Effect.Effect<GameRenderer, RendererUnavailable | ModelInvalid, Scope.Scope>
-
-/** The game's renderer as a runtime service. */
-export const Renderer: Context.Tag<GameRenderer, GameRenderer> = Context.GenericTag<GameRenderer>(
-  '@mcthaydt/automata-runtime/Renderer',
-)
+) => Promise<Result<OwnedRenderer, RendererUnavailable | ModelInvalid>>

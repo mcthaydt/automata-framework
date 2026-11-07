@@ -4,20 +4,21 @@
 import '../no-eval.js'
 import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
 import { Container3D, CubeGeometry, Mesh3D, PhongMaterial } from '@pixi/3d'
-import { Effect, Exit, Scope } from 'effect'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { Occluders } from '../occluders/occluders.js'
 import { createPixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'
 import { cameraView } from '../sim/camera-view.schema.js'
+import { builtRenderer } from '../testing/built-renderer.js'
 import { testTarget } from '../testing/test-target.js'
 import { box } from '../views/box-view.js'
 
 const hasWebGL2 = document.createElement('canvas').getContext('webgl2') !== null
 const step = (render: StepResult['render']): StepResult => ({ tick: 0, events: [], render, rejected: [] })
 
-let scope: Scope.CloseableScope | undefined
+/** The renderer the test built, disposed after it. */
+let scope: { dispose(): void } | undefined
 afterEach(async () => {
-  if (scope) await Effect.runPromise(Scope.close(scope, Exit.void))
+  scope?.dispose()
   scope = undefined
   document.body.replaceChildren()
 })
@@ -45,8 +46,8 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer with occluders', () => {
         return undefined
       },
     })
-    scope = Effect.runSync(Scope.make())
-    const renderer = await Effect.runPromise(Scope.extend(factory(testTarget(host)), scope))
+    const renderer = await builtRenderer(factory(testTarget(host)))
+    scope = renderer
     const row: RenderRow = {
       sid: 1,
       components: { body: { x: 3, y: 0, z: 3 }, 'camera-heading': { view: 'hall', heading: 0 } },

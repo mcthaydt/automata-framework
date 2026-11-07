@@ -1,8 +1,8 @@
 import type { StepResult } from '@mcthaydt/automata-sim'
-import { Effect, type Scope } from 'effect'
+import { ok, refused } from '../../shared/lib/result.js'
 import { RendererUnavailable } from '../../shared/runtime/boot-error.js'
 import type { FrameInfo } from '../../shared/runtime/loop/frames.js'
-import type { GameRenderer, RendererFactory, RenderTarget } from '../../shared/runtime/render/renderer.js'
+import type { OwnedRenderer, RendererFactory } from '../../shared/runtime/render/renderer.js'
 
 /** One call `nullRenderer` recorded. */
 export type NullRendererEntry =
@@ -17,7 +17,7 @@ export interface NullRendererOptions {
 }
 
 /** The renderer `nullRenderer` builds: it draws nothing and records each call in `log`. */
-export function nullGameRenderer(log: NullRendererEntry[] = []): GameRenderer & { dispose(): void } {
+export function nullGameRenderer(log: NullRendererEntry[] = []): OwnedRenderer {
   return {
     apply(result: StepResult): void {
       log.push({ type: 'apply', tick: result.tick })
@@ -39,14 +39,6 @@ export function nullRenderer(
   log: NullRendererEntry[] = [],
   options: NullRendererOptions = {},
 ): RendererFactory {
-  return (_target: RenderTarget): Effect.Effect<GameRenderer, RendererUnavailable, Scope.Scope> => {
-    if (options.fail) {
-      return Effect.fail(new RendererUnavailable({ tried: ['webgl2'] }))
-    }
-
-    return Effect.acquireRelease(
-      Effect.sync(() => nullGameRenderer(log)),
-      (renderer) => Effect.sync(() => renderer.dispose()),
-    )
-  }
+  return async () =>
+    options.fail ? refused(new RendererUnavailable({ tried: ['webgl2'] })) : ok(nullGameRenderer(log))
 }

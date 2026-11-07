@@ -5,9 +5,8 @@ import {
   WEB_STORAGE_PROBE_KEY,
   type WebTarget,
 } from '#src/features/targets/web/hosting-web.ts'
-import type { HostingOptions } from '#src/shared/host/hosting.ts'
-import type { HostResult } from '#src/shared/host/plain-errors.ts'
-import type { Hosting } from '#src/shared/host/plain-hosting.ts'
+import type { HostResult } from '#src/shared/host/errors.ts'
+import type { Hosting, HostingOptions } from '#src/shared/host/hosting.ts'
 import { describeHostingContract } from '#src/testing/host/contract-suite.ts'
 import {
   type FakeWebPage,

@@ -1,5 +1,4 @@
-import type { HostingOptions } from '../../host/hosting.ts'
-import type { Hosting } from '../../host/plain-hosting.ts'
+import type { Hosting, HostingOptions } from '../../host/hosting.ts'
 import type { PresentationBus } from '../presentation/presentation-bus.manager.js'
 
 export type PauseBehavior = HostingOptions['pauseBehavior']

@@ -1,19 +1,19 @@
-import { Context, type Effect, Layer, type Scope } from 'effect'
 import type { z } from 'zod'
 import { type AudioChange, AudioChangeSchema } from '../../shared/host/audio.schema.ts'
 import type { Capability } from '../../shared/host/capability.schema.ts'
 import { type DisplayMetricsPayload, DisplayMetricsPayloadSchema } from '../../shared/host/display.schema.ts'
-import { bridgeFakeHosting } from '../../shared/host/effect-bridge.ts'
 import { type EntitlementsPayload, EntitlementsPayloadSchema } from '../../shared/host/entitlements.schema.ts'
 import type { ErrorCode } from '../../shared/host/error-code.schema.ts'
-import type { HostError } from '../../shared/host/errors.ts'
-import type { AnalyticsProps, Hosting as EffectHosting, HostingOptions } from '../../shared/host/hosting.ts'
-import { Hosting as HostingTag } from '../../shared/host/hosting.ts'
+import { type HostResult, refuse } from '../../shared/host/errors.ts'
+import {
+  type AnalyticsProps,
+  HOST_EXIT_CAP_MS,
+  type Hosting,
+  type HostingOptions,
+} from '../../shared/host/hosting.ts'
 import { type InputModePayload, InputModePayloadSchema } from '../../shared/host/input-mode.schema.ts'
 import type { LeaderboardQuery, LeaderboardSubmitMeta } from '../../shared/host/leaderboards.schema.ts'
 import { type LifecyclePayload, LifecyclePayloadSchema } from '../../shared/host/lifecycle.schema.ts'
-import { type HostResult, refuse } from '../../shared/host/plain-errors.ts'
-import { HOST_EXIT_CAP_MS, type Hosting } from '../../shared/host/plain-hosting.ts'
 import type { RoundOutcome } from '../../shared/host/round.schema.ts'
 import {
   type SavesChangedPayload,
@@ -33,7 +33,7 @@ import { defaultGrants, type FakeTarget, hostNameOf, kindOf, ungrantedCode } fro
  * contract suite on every target (`fake-hosting.contract.test.ts`), so it answers as the real adapters do.
  */
 
-/** How the fake host starts. Every field has a default, so `FakeHosting()` is a web page with saves. */
+/** How the fake host starts. Every field has a default, so `fakeHosting()` is a web page with saves. */
 export interface FakeHostingOptions {
   /** The target to stand in for: its `kind`, `hostName`, grants and error codes (DIST spec §4.3). Default `web`. */
   readonly target?: FakeTarget
@@ -107,10 +107,6 @@ export interface FakeHostControl {
   close(): Promise<void>
 }
 
-/** The `FakeHostControl` service tag, provided beside `Hosting` by `FakeHosting`. */
-export const FakeHostControl: Context.Tag<FakeHostControl, FakeHostControl> =
-  Context.GenericTag<FakeHostControl>('@mcthaydt/automata-testing/FakeHostControl')
-
 const NOTHING_RESERVED: DisplayMetricsPayload = {
   safeArea: { top: 0, right: 0, bottom: 0, left: 0 },
   hostReserved: { edge: 'right', rect: { x: 0, y: 0, w: 0, h: 0 } },
@@ -164,8 +160,8 @@ function checked<A>(schema: z.ZodType<A>, what: string, value: A): A {
 export function fakeHosting(options: FakeHostingOptions = {}): {
   readonly control: FakeHostControl
   create(hosting: HostingOptions, clock?: Clock): Hosting
-  /** TEMPORARY (until task 5.4): `create` as the Effect the runtime's `seams.hosting` still takes. */
-  make(hosting: HostingOptions): Effect.Effect<EffectHosting, never, Scope.Scope>
+  /** `create` in the shape of the runtime's `seams.hosting`: boot's clock times the exit cap; never refused. */
+  make(hosting: HostingOptions, seams?: { readonly clock?: Clock }): Promise<HostResult<Hosting>>
 } {
   const target = options.target ?? 'web'
   const saved = new Map(Object.entries(options.saves ?? {}))
@@ -397,22 +393,6 @@ export function fakeHosting(options: FakeHostingOptions = {}): {
   return {
     control,
     create,
-    make: (hostingOptions) => bridgeFakeHosting((clock) => create(hostingOptions, clock)),
+    make: async (hostingOptions, seams) => ok(create(hostingOptions, seams?.clock)),
   }
-}
-
-/**
- * The fake host as an Effect layer, for the runtime's tests until task 5.4 converts them: `Hosting` for the game
- * (built from `hosting`, default a game that wants saves) and `FakeHostControl` for the test. Both are released when
- * the layer's scope closes.
- */
-export function FakeHosting(
-  options: FakeHostingOptions = {},
-  hosting: HostingOptions = { gameId: 'fake-game', wants: ['saves'], pauseBehavior: 'pause' },
-): Layer.Layer<EffectHosting | FakeHostControl, HostError> {
-  const fake = fakeHosting(options)
-  return Layer.merge(
-    Layer.scoped(HostingTag, fake.make(hosting)),
-    Layer.succeed(FakeHostControl, fake.control),
-  )
 }

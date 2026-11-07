@@ -1,13 +1,11 @@
 import { settle } from '@ruken/sdk-host/testing'
-import { Effect } from 'effect'
 import { describe, expect, it } from 'vitest'
 import { fakePad } from '#src/features/input/gamepad/testing/fake-pad.ts'
 import { createInput } from '#src/features/input/input.manager.ts'
 import { RESERVED_PAD_BUTTONS } from '#src/features/input/input-profile.schema.ts'
 import { MENU_BINDINGS, type MenuAction } from '#src/features/input/menu-actions.ts'
 import { createPresentationBus } from '#src/shared/runtime/presentation/presentation-bus.manager.ts'
-import { FakeHostHandle, HostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
-import { runScoped } from '../../../../src/testing/host/page/run.ts'
+import { withHostingTest } from '../../../../src/testing/host/page/ruken/hosting-test.ts'
 
 // The reserved pad button (M4-D3, M4 spec §4.3, Ruken request R-3). The vendored SDK's gamepad poller summons
 // the host when a standard pad holds its View button for 600 ms. This drives that poller through the fake host
@@ -23,7 +21,7 @@ describe('the reserved pad button, as the Ruken SDK behaves', () => {
     let pressed = fakePad()
     let now = 0
     let polls: (() => void)[] = []
-    const layer = HostingTest({
+    const options: Parameters<typeof withHostingTest>[1] = {
       env: (env) => ({
         ...env,
         hasFocus: () => true,
@@ -38,7 +36,7 @@ describe('the reserved pad button, as the Ruken SDK behaves', () => {
           clearTimeout: (handle) => env.timers.clearTimeout(handle),
         },
       }),
-    })
+    }
     const advance = (ms: number): void => {
       const until = now + ms
       while (now < until) {
@@ -49,44 +47,41 @@ describe('the reserved pad button, as the Ruken SDK behaves', () => {
       }
     }
 
-    await runScoped(
-      Effect.gen(function* () {
-        const handle = yield* FakeHostHandle
-        // The candidate the SDK will report: hold each standard button in turn until one summons the host.
-        let summoned: { button: number } | undefined
-        for (let button = 0; button < 17 && summoned === undefined; button++) {
-          pressed = fakePad().press(button)
-          advance(HOLD_MS)
-          pressed = fakePad()
-          advance(SDK_POLL_MS)
-          yield* Effect.promise(() => settle())
-          summoned = handle.sentByGame('host.summon')[0] as { button: number } | undefined
-        }
-        expect(handle.sentByGame('host.summon')).toHaveLength(1)
-        expect(RESERVED_PAD_BUTTONS).toContain(summoned?.button)
+    await withHostingTest(async ({ handle }) => {
+      // The candidate the SDK will report: hold each standard button in turn until one summons the host.
+      let summoned: { button: number } | undefined
+      for (let button = 0; button < 17 && summoned === undefined; button++) {
+        pressed = fakePad().press(button)
+        advance(HOLD_MS)
+        pressed = fakePad()
+        advance(SDK_POLL_MS)
+        await settle()
+        summoned = handle.sentByGame('host.summon')[0] as { button: number } | undefined
+      }
+      expect(handle.sentByGame('host.summon')).toHaveLength(1)
+      expect(RESERVED_PAD_BUTTONS).toContain(summoned?.button)
 
-        const bus = createPresentationBus()
-        const input = createInput({ target: window, profile: { id: 'none', bindings: {} }, bus })
-        yield* Effect.addFinalizer(() => Effect.sync(() => input.dispose()))
-        const fired: string[] = []
-        for (const action of Object.keys(MENU_BINDINGS) as MenuAction[])
-          input.onPress(action, () => fired.push(action))
-        Object.defineProperty(window.navigator, 'getGamepads', {
-          configurable: true,
-          value: () => [fakePad().press(summoned?.button ?? -1)],
-        })
-        try {
-          for (const context of ['play', 'menu'] as const) {
-            input.setContext(context)
-            input.poll(0)
-            input.poll(FRAME_MS)
-          }
-        } finally {
-          Reflect.deleteProperty(window.navigator, 'getGamepads')
+      const bus = createPresentationBus()
+      const input = createInput({ target: window, profile: { id: 'none', bindings: {} }, bus })
+      const fired: string[] = []
+      for (const action of Object.keys(MENU_BINDINGS) as MenuAction[])
+        input.onPress(action, () => fired.push(action))
+      Object.defineProperty(window.navigator, 'getGamepads', {
+        configurable: true,
+        value: () => [fakePad().press(summoned?.button ?? -1)],
+      })
+      try {
+        for (const context of ['play', 'menu'] as const) {
+          input.setContext(context)
+          input.poll(0)
+          input.poll(FRAME_MS)
         }
-        expect([...input.held()]).toEqual([])
-        expect(fired).toEqual([])
-      }).pipe(Effect.provide(layer)),
-    )
+      } finally {
+        Reflect.deleteProperty(window.navigator, 'getGamepads')
+      }
+      expect([...input.held()]).toEqual([])
+      expect(fired).toEqual([])
+      input.dispose()
+    }, options)
   })
 })

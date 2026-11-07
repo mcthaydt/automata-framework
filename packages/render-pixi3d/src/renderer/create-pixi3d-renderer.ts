@@ -11,7 +11,7 @@ import {
 } from '@mcthaydt/automata'
 import type { RenderDelta, RenderRow } from '@mcthaydt/automata-sim'
 import { type Container3D, View3D } from '@pixi/3d'
-import { Effect, ExecutionStrategy, Exit, Runtime, Scope } from 'effect'
+import { Cause, Effect, ExecutionStrategy, Exit, Option, Runtime, Scope } from 'effect'
 import { Graphics } from 'pixi.js'
 import { angledCamera, type CameraRig } from '../camera/angled-camera.js'
 import { cameraDriver, type Pixi3dCameraOptions, PLAYER_HEIGHT } from '../camera/camera-driver.js'
@@ -216,25 +216,31 @@ function buildInstance(
     const scope = yield* Scope.fork(outer, ExecutionStrategy.sequential)
     const built = yield* Effect.gen(function* () {
       let mounted: Mounted | undefined
-      const base = yield* createPixiRenderer({
-        ...options,
-        backgroundColor: skyOf(options),
-        setup: (stage) => {
-          if (!acceptsRenderer(stage.app.renderer as unknown as RendererKind)) return undefined
-          const made = mount(stage, options, models)
-          mounted = made
-          const own = options.setup?.(stage) ?? undefined
-          return mergeHooks(
-            made.hooks,
-            own,
-            options.scene?.(made.view, stage, made.occluders, made.light, models),
-          )
-        },
-      })(target)
+      const made = yield* Effect.promise(() =>
+        createPixiRenderer({
+          ...options,
+          backgroundColor: skyOf(options),
+          setup: (stage) => {
+            if (!acceptsRenderer(stage.app.renderer as unknown as RendererKind)) return undefined
+            const made = mount(stage, options, models)
+            mounted = made
+            const own = options.setup?.(stage) ?? undefined
+            return mergeHooks(
+              made.hooks,
+              own,
+              options.scene?.(made.view, stage, made.occluders, made.light, models),
+            )
+          },
+        })(target),
+      )
+      if (!made.ok) return yield* Effect.fail(made.reason)
+      const base = made.value
+      // Added first, so it runs last: the app is destroyed after the views that draw in it.
+      yield* Effect.addFinalizer(() => Effect.sync(() => base.dispose()))
       if (mounted === undefined) {
         const tried: ('webgl2' | 'webgpu')[] =
           options.preference === 'webgpu' ? ['webgpu', 'webgl2'] : ['webgl2']
-        return yield* new RendererUnavailable({ tried })
+        return yield* Effect.fail(new RendererUnavailable({ tried }))
       }
       const { view, consumer, camera, occluders } = mounted
       const device = (base.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
@@ -277,6 +283,48 @@ function buildInstance(
  * current rows (M3 spec §5). The models and the game's state are kept.
  */
 export function createPixi3dRenderer(
+  options: Pixi3dOptions,
+  seams: Pixi3dSeams = {},
+): (target: RenderTarget) => Promise<Pixi3dResult> {
+  const build = scopedPixi3dRenderer(options)
+  const runPromiseExit = seams.runPromiseExit ?? Effect.runPromiseExit
+  // The runtime's factory is plain; this package still builds in an Effect scope inside (its own refactor converts
+  // it), so the scope is opened here and `dispose` closes it.
+  return async (target) => {
+    const scope = Effect.runSync(Scope.make())
+    const exit = await runPromiseExit(Scope.extend(build(target), scope))
+    if (Exit.isFailure(exit)) {
+      await Effect.runPromise(Scope.close(scope, exit))
+      const failure = Cause.failureOption(exit.cause)
+      if (Option.isSome(failure)) return { ok: false, reason: failure.value }
+      throw Cause.squash(exit.cause)
+    }
+    const renderer = exit.value
+    let disposed = false
+    // Defined, not spread: the renderer's `stage`, `view` and `camera` are getters that follow a rebuilt app.
+    Object.defineProperty(renderer, 'dispose', {
+      value: () => {
+        if (disposed) return
+        disposed = true
+        Effect.runSync(Scope.close(scope, Exit.void))
+      },
+    })
+    return { ok: true, value: renderer }
+  }
+}
+
+/** Test seams: the Effect runtime the renderer is built on, so a `TestClock` times the lost-context wait. */
+export interface Pixi3dSeams {
+  readonly runPromiseExit?: <A, E>(effect: Effect.Effect<A, E>) => Promise<Exit.Exit<A, E>>
+}
+
+/** What `createPixi3dRenderer`'s factory answers: the renderer, or why it could not start. */
+export type Pixi3dResult =
+  | { readonly ok: true; readonly value: Pixi3dRenderer }
+  | { readonly ok: false; readonly reason: RendererUnavailable | ModelInvalid }
+
+/** The renderer built in an Effect scope; closing the scope destroys it. */
+function scopedPixi3dRenderer(
   options: Pixi3dOptions,
 ): (target: RenderTarget) => Effect.Effect<Pixi3dRenderer, RendererUnavailable | ModelInvalid, Scope.Scope> {
   return (target) =>
@@ -352,6 +400,8 @@ export function createPixi3dRenderer(
           drawn.clear()
           live().base.reset()
         },
+        // Replaced by `createPixi3dRenderer`, which owns the scope this renderer lives in.
+        dispose: () => undefined,
       }
     })
 }

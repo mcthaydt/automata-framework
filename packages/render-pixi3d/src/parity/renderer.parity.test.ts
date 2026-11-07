@@ -3,11 +3,16 @@
 import '../no-eval.js'
 import type { RenderRow, StepResult } from '@mcthaydt/automata-sim'
 import { DirectionalLight } from '@pixi/3d'
-import { Effect, Exit, ManagedRuntime, Scope, TestClock, TestContext } from 'effect'
+import { ManagedRuntime, TestClock, TestContext } from 'effect'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { encodeGlb, fixtureBox, fixtureQuad } from '../model/testing/model-fixtures.js'
 import { CONTEXT_RESTORE_MS } from '../renderer/context-loss.js'
-import { createPixi3dRenderer, type Pixi3dRenderer } from '../renderer/create-pixi3d-renderer.js'
+import {
+  createPixi3dRenderer,
+  type Pixi3dRenderer,
+  type Pixi3dSeams,
+} from '../renderer/create-pixi3d-renderer.js'
+import { builtRenderer } from '../testing/built-renderer.js'
 import { snapshot } from '../testing/snapshot.js'
 import { testTarget } from '../testing/test-target.js'
 import { box } from '../views/box-view.js'
@@ -22,9 +27,10 @@ const rows: RenderRow[] = [
   { sid: 2, components: { prop: { x: 1, y: 0, z: 0 } } },
 ]
 
-let scope: Scope.CloseableScope | undefined
+/** The renderer the test built, disposed after it. */
+let scope: { dispose(): void } | undefined
 afterEach(async () => {
-  if (scope) await Effect.runPromise(Scope.close(scope, Exit.void))
+  scope?.dispose()
   scope = undefined
   document.body.replaceChildren()
 })
@@ -36,27 +42,30 @@ const makeViews = () => ({
 
 async function start(
   views: ReturnType<typeof makeViews> = makeViews(),
-  run: <A, E>(effect: Effect.Effect<A, E>) => Promise<A> = Effect.runPromise,
+  seams: Pixi3dSeams = {},
 ): Promise<{ renderer: Pixi3dRenderer; target: ReturnType<typeof testTarget> }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
   const target = testTarget(host, { 'models/box.glb': encodeGlb(fixtureBox()) })
-  const factory = createPixi3dRenderer({
-    logicalWidth: 160,
-    logicalHeight: 90,
-    backgroundColor: BACKGROUND,
-    views,
-    scene: (view) => {
-      view.camera.position.set(0, 2.5, 5)
-      view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
-      const sun = new DirectionalLight({ intensity: 2 })
-      sun.rotation.set(-0.8, 0.5, 0)
-      view.root.addChild(sun)
-      return undefined
+  const factory = createPixi3dRenderer(
+    {
+      logicalWidth: 160,
+      logicalHeight: 90,
+      backgroundColor: BACKGROUND,
+      views,
+      scene: (view) => {
+        view.camera.position.set(0, 2.5, 5)
+        view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
+        const sun = new DirectionalLight({ intensity: 2 })
+        sun.rotation.set(-0.8, 0.5, 0)
+        view.root.addChild(sun)
+        return undefined
+      },
     },
-  })
-  scope = Effect.runSync(Scope.make())
-  const renderer = await run(Scope.extend(factory(target), scope))
+    seams,
+  )
+  const renderer = await builtRenderer(factory(target))
+  scope = renderer
   return { renderer, target }
 }
 
@@ -91,7 +100,7 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
     expect(differing(empty, snapshot(renderer))).toBeGreaterThan(200)
   })
 
-  // Review of #241: a renderer's scope frees its models, and the same views (a box() factory's shared geometry and
+  // Review of #241: disposing a renderer frees its models, and the same views (a box() factory's shared geometry and
   // material) draw again in the next renderer, as after Try again or a restart.
   it('draws the same views again in a second renderer after the first one closed', async () => {
     const views = makeViews()
@@ -102,7 +111,7 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
       renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
       renderer.draw(frame)
       expect(differing(empty, snapshot(renderer)), `lifetime ${lifetime}`).toBeGreaterThan(200)
-      if (scope) await Effect.runPromise(Scope.close(scope, Exit.void))
+      scope?.dispose()
       scope = undefined
       document.body.replaceChildren()
     }
@@ -122,10 +131,7 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
         return undefined
       },
     })
-    scope = Effect.runSync(Scope.make())
-    await Effect.runPromise(
-      Scope.extend(factory(testTarget(host, { 'models/bench.glb': encodeGlb(fixtureBox()) })), scope),
-    )
+    scope = await builtRenderer(factory(testTarget(host, { 'models/bench.glb': encodeGlb(fixtureBox()) })))
     expect(seen).toBeDefined()
   })
 
@@ -190,7 +196,9 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
 describe.runIf(hasWebGL2)('a context that does not come back', () => {
   it('asks for the panel after the wait, and Try again draws the scene on a new context', async () => {
     const clock = ManagedRuntime.make(TestContext.TestContext)
-    const { renderer, target } = await start(makeViews(), (effect) => clock.runPromise(effect))
+    const { renderer, target } = await start(makeViews(), {
+      runPromiseExit: (effect) => clock.runPromiseExit(effect),
+    })
     renderer.draw(frame)
     const empty = snapshot(renderer)
     renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
@@ -221,13 +229,8 @@ describe.runIf(!hasWebGL2)('createPixi3dRenderer without WebGL2', () => {
   it("refuses Pixi's Canvas fallback with RendererUnavailable", async () => {
     const host = document.createElement('div')
     document.body.appendChild(host)
-    scope = Effect.runSync(Scope.make())
-    const exit = await Effect.runPromiseExit(
-      Scope.extend(createPixi3dRenderer({ views: {} })(testTarget(host)), scope),
-    )
-    expect(Exit.isFailure(exit) && JSON.stringify(exit.cause.toJSON())).toContain(
-      '"_tag":"RendererUnavailable"',
-    )
+    const built = await createPixi3dRenderer({ views: {} })(testTarget(host))
+    expect(built.ok ? undefined : built.reason._tag).toBe('RendererUnavailable')
   })
 })
 
@@ -270,10 +273,8 @@ describe.runIf(hasWebGL2)("a mesh's texture", () => {
         return undefined
       },
     })
-    scope = Effect.runSync(Scope.make())
-    const renderer = await Effect.runPromise(
-      Scope.extend(factory(testTarget(host, { 'models/quad.glb': glb })), scope),
-    )
+    const renderer = await builtRenderer(factory(testTarget(host, { 'models/quad.glb': glb })))
+    scope = renderer
     renderer.apply(
       step({
         resync: true,
@@ -354,8 +355,8 @@ async function skyAndBar(
       return undefined
     },
   })
-  scope = Effect.runSync(Scope.make())
-  const renderer = await Effect.runPromise(Scope.extend(factory(testTarget(host)), scope))
+  const renderer = await builtRenderer(factory(testTarget(host)))
+  scope = renderer
   renderer.apply(step({ resync: true, added: [rows[0] as RenderRow], changed: [], removed: [] }))
   renderer.draw(frame)
   const pixels = snapshot(renderer)
