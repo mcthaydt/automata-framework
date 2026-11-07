@@ -1,0 +1,50 @@
+{
+  "name": "@automata/world-kit",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Ready-made props, furnished rooms, signs and generated maps for AF's 3D worlds.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcthaydt/automata-framework.git",
+    "directory": "extensions/world-kit"
+  },
+  "type": "module",
+  "sideEffects": [
+    "./src/app/*.ts",
+    "./src/features/*/register-*.ts"
+  ],
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/entries/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run --project unit",
+    "test:unit": "vitest run --project unit",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  },
+  "peerDependencies": {
+    "@automata/3d": "workspace:^",
+    "@automata/content": "workspace:^",
+    "@automata/framework": "workspace:^",
+    "@automata/sim": "workspace:^"
+  },
+  "devDependencies": {
+    "@automata/3d": "workspace:*",
+    "@automata/content": "workspace:*",
+    "@automata/framework": "workspace:*",
+    "@automata/sim": "workspace:*",
+    "@automata/vitest-preset": "workspace:*",
+    "@types/node": "24.19.1",
+    "@vitest/browser-playwright": "5.0.3",
+    "playwright": "1.63.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

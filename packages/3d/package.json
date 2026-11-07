@@ -21,6 +21,7 @@
     "./figures": "./src/entries/figures.ts",
     "./figures-kit": "./src/entries/figures-kit.ts",
     "./level": "./src/entries/level.ts",
+    "./props-kit": "./src/entries/props-kit.ts",
     "./no-eval": "./src/entries/no-eval.ts",
     "./world-content": "./src/entries/world-content.ts",
     "./base": "./src/entries/base.ts",

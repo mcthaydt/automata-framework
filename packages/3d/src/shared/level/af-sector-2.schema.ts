@@ -279,7 +279,7 @@ export interface KitSurfaces {
   readonly cornice?: Band | undefined
 }
 
-const kitSurfacesSchema: z.ZodType<KitSurfaces> = z.looseObject({
+export const kitSurfacesSchema: z.ZodType<KitSurfaces> = z.looseObject({
   floor: surfaceSchema.optional(),
   ceiling: surfaceSchema.optional(),
   wall: surfaceSchema.optional(),
