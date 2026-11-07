@@ -207,6 +207,15 @@ Automata repositories (`automata-plus`, `automata-skills` and nine older ones).
 Stage 4 started 2026-11-06 on branch `claude/project-thread-s8zs6m`, stacked on #408. The Owner named the npm
 organisation the same day ("automata", so the scope is `@automata`); it is for task 14.1. Counted from the rows below.
 
+**Where to resume (2026-11-07, session 20):** branch `claude/project-thread-zrzfq2`, PR [#433](https://github.com/mcthaydt/automata-framework/pull/433) stacked on #432.
+Session 20: **12.5 and 17.3 are done**, and phase 18 is under way: the header, footer, buttons and corners follow the
+approved mockup, Home and Start are rebuilt in `site/src/features/home` and `start`, and the source explorer is cut.
+The site audit was rerun (`2026-11-06-site-visual-audit.md`, section 5). Next, in order: 18.1 (cut AI, Showcase and
+Cheatsheet; `llms.ts`, `site-docs.ts` and the CommandMenu still read their data; add the redirects; move the rest to
+`features/`), 18.2's Step V (H5, the first example, and M3, the phone-landscape fold), 18.3, 18.4 (the docs sidebar's
+tap targets and the API page's length), 18.5, then rerun the audit. Seen but not fixed, for the build audit: in the
+editor's compact phone Level view a white band sits above the canvas with the stage pill.
+
 **Where to resume (2026-11-06, session 19):** branch `claude/project-thread-maubs8`, PR [#432](https://github.com/mcthaydt/automata-framework/pull/432) stacked on #430
 (`claude/project-thread-yzmefp`), itself on #429, #428, #427, #426, #424, #423 and #421. Session 19: **12.7 is done**:
 the suite page has the mockup's look (Home a house icon, the game's name, `Saved in your game folder` with a tick, Undo
@@ -465,9 +474,9 @@ so far. The design board: `pnpm --filter @mcthaydt/automata-editor design:board`
 | 17.1 The workflow invariants replace the YAML-pinning tests | 17 | Done, 2026-11-06 (session 11): five rules over every workflow, each failing on a fixture; they found the Ruken publish job open to pull requests (fixed); 108 pinning tests deleted | this session's PR |
 | 17.2 The packages that lost their reason | 17 | Done, 2026-11-06 (session 11): core-packs, bundle-report and the API seams list deleted, the stack page's Plus and Effect cards gone; evidence's Proof half goes with the page in 18.1 | this session's PR |
 | 17.3 The code refactor of the tooling that stays | 17 | Done, 2026-11-07 (session 20): the read's findings in the plan's log; one header and two stale knip hints fixed, no dead code found | this session's PR |
-| 18.0 The shared layout, fixed first (added 2026-11-06) | 18 | Not started; waits for the Owner to pick a site direction from the design thread's mockups (the Owner, 2026-11-06), then runs with the visual audit's fixes in one pass | |
-| 18.1 Features, the page cut and redirects | 18 | Not started | |
-| 18.2 Home and Start on the current code | 18 | Not started | |
+| 18.0 The shared layout, fixed first (added 2026-11-06) | 18 | In progress (session 20): header, footer, corners, buttons, the opaque menu and the touch hint done from the approved mockup; the rerun audit's tap-target and code-block rows are left (`2026-11-06-site-visual-audit.md`, section 5) | #433 |
+| 18.1 Features, the page cut and redirects | 18 | In progress (session 20): the source explorer and `/sources` cut with the old Home; AI, Showcase, Cheatsheet, the redirects and the `features/` move left | #433 |
+| 18.2 Home and Start on the current code | 18 | In progress (session 20): Home and Start rebuilt (`site/src/features/home`, `start`), Quick Start matches; Step V's first example (H5) and the phone-landscape fold (M3) left | #433 |
 | 18.3 The editor page and "Try the editor" | 18 | Not started | |
 | 18.4 Docs and API | 18 | Not started | |
 | 18.5 The code refactor of the site | 18 | Not started | |

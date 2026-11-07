@@ -2592,3 +2592,28 @@ Task 7.1, a commit group on PR #415 (phase 7 continues with 7.2 and 7.3).
   single-implementation abstraction or forwarding layer beyond package entries. Missing explanations: one file,
   `examples-runner/src/index.ts`. *Fixed:* that header; the two knip hints. Counts unchanged (no dead code found).
   Gates: `pnpm knip` clean, `pnpm check`. **17.3 is done.**
+- **Phase 18, part (session 20): the look, Home and Start.** Built from the approved `site-home.html` (the Owner,
+  2026-11-06 20:31Z). *18.0's shared layout:* a new `Header.svelte` (the logo's lime square, Docs, Examples, Editor,
+  API, Search and Get started; below 760 px the links fold into an opaque Menu sheet, M4; Search shows `⌘K` only on a
+  fine pointer and is its icon alone on a phone, L1) and `Footer.svelte` (one `Reference` link, M6; no link to the
+  private repository, H2; the contact address unchanged, D8, as `Contact`). Their old global rules left `app.css`.
+  Site-wide: every `--pill`/`--radius*` corner is `--edge-sm/md/lg`, the buttons are the mockup's pair (flat lime with
+  an ink edge, a white secondary, 1 px lift on a fine pointer), glass (`backdrop-filter`), glow, flutes and cobalt are
+  gone, and the field is the mockup's off-white. `app.css` 2,249 → 1,160 lines (the old Home's, Start's and the
+  header's rules dropped by a selector-aware script; nothing still uses them). *18.2 Home*
+  (`site/src/features/home/`): one claim and Emberwick (the `DemoRunner`, which now shows its controls only while it
+  plays and whose Play is the white secondary, so the page has one lime primary per screen, Step G), three reasons,
+  the shapes example's lines beside `ShapesPreview` (a canvas drawing of what those lines do, by the example's own
+  rules, still on reduced motion and paused off screen; a drawing, not the framework, so Home carries no game bundle),
+  the editor in two real screenshots of `automata editor` on Emberwick (wide and phone, `static/previews/editor*`),
+  the four targets with the commands `automata ship` accepts, and one closing ask. `home-content.ts` holds every claim;
+  its test reads the example's file, `cli-args.ts`'s usage and the four targets. Emberwick's characters layer was
+  labelled `Entities` (its room file, not the templates); it is `Characters`. *18.2 Start*
+  (`site/src/features/start/`): four steps, each one command and what you see (create-game, what it prints next, the
+  editor's, the web guide's; the test reads those files), the other targets' guides, and "Using a coding agent" with
+  the existing agent setup folded. Quick Start's doc says the same four commands. *Cut with the old Home:* the source
+  explorer, its `/sources/*.json`, `home-sources`, `projects`, `project-types` and the `virtual:framework/sources`
+  module (the "Sources" row of 18.1). *Left for 18.1:* the AI, Showcase and Cheatsheet routes and their data, which
+  `llms.ts`, `site-docs.ts` and the search menu still read; the redirects; the move to `features/`. *Left for 18.2:*
+  Step V's first example (H5) and phone-landscape fold (M3). Gates: site unit 347, `svelte-check` 0, `pnpm knip`
+  clean, the site builds (57 pages).
