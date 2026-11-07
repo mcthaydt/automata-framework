@@ -155,12 +155,18 @@ importers:
       '@automata/3d':
         specifier: workspace:*
         version: link:../../packages/3d
+      '@automata/character-kit':
+        specifier: workspace:*
+        version: link:../../extensions/character-kit
       '@automata/cutscenes':
         specifier: workspace:*
         version: link:../../extensions/cutscenes
       '@automata/framework':
         specifier: workspace:*
         version: link:../../packages/automata
+      '@automata/world-kit':
+        specifier: workspace:*
+        version: link:../../extensions/world-kit
       pixi.js:
         specifier: 8.22.0
         version: 8.22.0

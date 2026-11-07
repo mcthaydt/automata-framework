@@ -20,6 +20,8 @@ sections, since each example is one file. Colours are the DUEL palette.
 | [`world/world-level-room.ts`](world/world-level-room.ts) | A room built from a level file and drawn by the world builder |
 | [`cutscenes/cutscenes-door-and-lamp.ts`](cutscenes/cutscenes-door-and-lamp.ts) | A scripted scene: the camera drifts, a lamp warms and a door opens (the `cutscenes` extension) |
 | [`cutscenes/cutscenes-reach-cue.ts`](cutscenes/cutscenes-reach-cue.ts) | A scripted scene: a man walks and a cue makes him reach, started once |
+| [`characterkit/characterkit-wardrobe.ts`](characterkit/characterkit-wardrobe.ts) | Three figures in a waistcoat and coat, an apron and skirt, a belt (the `character-kit` extension) |
+| [`characterkit/characterkit-hair.ts`](characterkit/characterkit-hair.ts) | Three hairstyles built from the kit's pieces: a bun, braids with a ponytail, cornrows |
 
 The hair, wardrobe, furnished-room and generated-map examples show extensions, so they belong to the Plus port and not to
 core. A time of day is read by the passes an extension registers, so an example of it goes with that extension.
