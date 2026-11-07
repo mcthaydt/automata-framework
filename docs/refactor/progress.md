@@ -408,7 +408,7 @@ both builders at FigureBuilder `025ffb4` and EnvironmentBuilder `6d82a52`. The p
 the site paths (19.1), the copy table and the 2D editor counts. Then the build (Sonnet, high) starts at task 1.1 with
 `superpowers:executing-plans`, natively in the session with no subagents, handing off after 90 minutes.
 
-### Build: 34% (18 of 53 tasks)
+### Build: 36% (19 of 53 tasks)
 
 One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when its checks have passed in the session that did it. The percentage is done tasks / 53.
 
@@ -432,7 +432,7 @@ One row per task of the [plan](2026-11-07-3d-slice-plan.md); a task is done when
 | 6.1 The provenance record | 6 | Done, 2026-11-07 (`pnpm sources-md` checks the two builder sections and a row's AF path against `builders-manifest.json`: 300 figure and 214 environment files; `--complete` goes on in 10.2; chained into `pnpm source-names`; 6 unit tests) |
 | 6.2 The body, the stand and the face | 6 | Done, 2026-11-07 (3d unit 918: fat on the limbs, neck and jaw, `bust`, `seat`, the eyes' size, spacing and tilt, face and body asymmetry, the natural stand, `standElbow`, `standOut` and the side bend; every slider at either end builds; the figure goldens re-recorded once, the leg rings moved at every fat; the sim hash did not move, the view is not in it) |
 | 6.3 One timeline; lighting; actions as clips | 6 | Done, 2026-11-07 (3d unit 963: the shared timeline, the merged time of day, the lamps' maths, and reach, look and flinch as `figure-action` files that compile to clips; base-3d unit 82; Chromium browser suites not rerun, no renderer code moved; WebKit/Firefox the Owner's) | PR below |
-| 6.4 Hair, fit, seats and the registries | 6 | In progress, 2026-11-07 (3d unit 1000): the garment, outfit-hook, hair-piece, finish and fabric registries, cuffs and the collar sized from the body, the low pony, the flat bun and loose hair (curl, volume) are done; folding `figure-headwear` into the garment registry remains; seats are done |
+| 6.4 Hair, fit, seats and the registries | 6 | Done, 2026-11-07 (`pnpm check` green; 3d unit 1010; 24 Chromium figure goldens pass; `dress.json` re-recorded twice, for the cuffs and for the bun): the garment, outfit-hook, hair-piece, finish and fabric registries; cuffs and collar sized from the body; the low pony, flat bun and loose hair (curl, volume); seats as a content kind |
 | 6.5 Streetwear becomes an example extension | 6 | Not started |
 | 7.1 `af-sector/2` and its migration | 7 | Not started |
 | 7.2 The world builder | 7 | Not started |
