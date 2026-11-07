@@ -30,6 +30,7 @@
     "./suite/testing": "./src/entries/suite-testing.ts",
     "./suite/testing/layout": "./src/entries/suite-layout-testing.ts",
     "./editor-list": "./src/entries/editor-list.ts",
+    "./gate-records": "./src/entries/gate-records.ts",
     "./level-export": "./src/entries/level-export.ts",
     "./suite.css": "./src/app/suite/main.css"
   },

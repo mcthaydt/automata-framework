@@ -5,11 +5,14 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { ElicitRequestSchema, type ElicitResult } from '@modelcontextprotocol/sdk/types.js'
 import { Layer, ManagedRuntime } from 'effect'
-import { AUDIT_LOG, type AuditEntry } from '../audit.ts'
-import { createPipelinesServer } from '../mcp-server.ts'
-import { FilesLive, ProcessRunnerLive } from '../node-seams.ts'
-import type { StageServices } from '../pipeline.ts'
-import { runPipeline } from '../runner.ts'
+import { createPipelinesServer } from '../features/mcp/mcp-server.ts'
+import { AUDIT_LOG, type AuditEntry } from '../shared/audit.ts'
+import { gateFileSchema } from '../shared/gates-file.ts'
+import { FilesLive } from '../shared/node/files.ts'
+import { ProcessRunnerLive } from '../shared/node/process.ts'
+import type { StageServices } from '../shared/pipeline.ts'
+import { runPipeline } from '../shared/runner.ts'
+import type { GateRecord } from '../shared/state.schema.ts'
 import { toyPipeline } from './toy.ts'
 
 // A project folder holding the toy pipeline's target (`toy/`, gate T1, a paid stage of one image), the server over
@@ -29,7 +32,7 @@ export interface McpProject {
   /** The person at their own terminal: the runner's approve, outside the server. */
   readonly personApproves: (gate: string) => Promise<number>
   readonly auditLines: () => AuditEntry[]
-  readonly gates: () => Record<string, Record<string, unknown>>
+  readonly gates: () => Record<string, GateRecord>
   /** The messages the person was shown. */
   readonly prompts: string[]
 }
@@ -105,10 +108,6 @@ export async function mcpProject(temps: string[], options: McpProjectOptions = {
             .split('\n')
             .map((line) => JSON.parse(line) as AuditEntry)
         : [],
-    gates: () =>
-      JSON.parse(readFileSync(join(root, 'toy/gates.json'), 'utf8')) as Record<
-        string,
-        Record<string, unknown>
-      >,
+    gates: () => gateFileSchema.parse(JSON.parse(readFileSync(join(root, 'toy/gates.json'), 'utf8'))),
   }
 }

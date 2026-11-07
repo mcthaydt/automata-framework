@@ -1,5 +1,5 @@
 import { Effect } from 'effect'
-import { runMain } from '../main.ts'
+import { runMain } from '../app/main.ts'
 
 // A program whose first effect is a SIGINT to its own process (main.test.ts). Effect.runFork runs a fiber synchronously
 // up to its first async boundary, so this is the earliest a signal can reach a program: runMain must already be

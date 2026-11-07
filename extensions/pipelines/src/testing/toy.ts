@@ -1,16 +1,16 @@
 import { join } from 'node:path'
 import { Effect } from 'effect'
 import { z } from 'zod'
-import { Files } from '../node-seams.ts'
+import { Files } from '../shared/node/files.ts'
 import {
   definePipeline,
   type PipelineDef,
   type StageContext,
   type StageDef,
   StageFailed,
-} from '../pipeline.ts'
+} from '../shared/pipeline.ts'
 
-// The toy pipeline the runner tests drive: The Last Light's `scripts/pipeline/_toy.ts` (at 92e6704) on Effect.
+// The toy pipeline the runner tests drive, on Effect.
 // Stages: one (src.txt → one.txt), two (→ two.txt, gate T1), three (→ three.txt), paid (→ paid.txt, one image,
 // recording a task id; paid.txt is restorable from that id). toy.toml: `param` is hashed into every stage;
 // `fail = "<stage>"` makes that stage fail.

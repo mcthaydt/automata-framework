@@ -40,6 +40,16 @@ async function matching(root: string, glob: string): Promise<string[]> {
     .sort()
 }
 
+/** The first pipelines kept gates as an object keyed by gate id, each record naming its `stage`; they now write `{ gates: [...] }`. */
+function isOlderKeyedFile(json: unknown): boolean {
+  if (typeof json !== 'object' || json === null || Array.isArray(json) || 'gates' in json) return false
+  const records = Object.values(json)
+  return (
+    records.length > 0 &&
+    records.every((record) => typeof record === 'object' && record !== null && 'stage' in record)
+  )
+}
+
 async function readRecords(root: string, path: string): Promise<readonly GateRecord[]> {
   const text = await readFile(join(root, path), 'utf8')
   let json: unknown
@@ -48,6 +58,10 @@ async function readRecords(root: string, path: string): Promise<readonly GateRec
   } catch (error) {
     throw new Error(`${path} is not JSON: ${(error as Error).message}`)
   }
+  if (isOlderKeyedFile(json))
+    throw new Error(
+      `${path} was saved by an older version of the pipelines. Run the pipeline again to update it.`,
+    )
   const parsed = gateRecordsSchema.safeParse(json)
   if (!parsed.success) throw new Error(`${path} is not a gate records file: ${parsed.error.message}`)
   return parsed.data.gates

@@ -1,7 +1,7 @@
-# `@automata/pipelines` (Automata Plus, private)
+# `@automata/pipelines` (extension, private)
 
 A game's content pipelines: the `automata-pipe` command line for people, and the `automata-pipe-mcp` server for
-agents. Plans: `docs/superpowers/plans/2026-10-30-m3-8a-pipelines-platform.md` and `…-m3-8b-pipelines-mcp.md`.
+agents. The pipelines are `audio`, `narrative`, `puzzle` and `systems`; each runs from a `<name>.pipe.toml` in a scene folder.
 
 ## In a game
 
@@ -14,7 +14,9 @@ agents. Plans: `docs/superpowers/plans/2026-10-30-m3-8a-pipelines-platform.md` a
 ## What to commit and what to ignore
 
 Commit `pipeline-spend.json` (the spend ledger), `docs/pipeline-audit.jsonl` (the audit log, one line per agent call)
-and each target's `.stage.json` and `gates.json`. Ignore the two locks, which exist only while a command runs. Add these
+and each target's `.stage.json` and `gates.json`. `gates.json` is `{ "gates": [...] }`, the file the editor's review desk
+reads (a gate nobody has decided is `open`); a file saved by the first version of the pipelines is read once and written
+the new way on the next save. Ignore the two locks, which exist only while a command runs. Add these
 lines to the game's `.gitignore`:
 
 ```gitignore
