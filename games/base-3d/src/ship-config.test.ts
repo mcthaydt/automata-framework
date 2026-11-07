@@ -1,6 +1,5 @@
 import { createSim } from '@automata/sim'
-import { checkManifest, inputsProblems, rukenToml, type ShipInputBindings } from '@automata/tools/internal'
-import { Effect } from 'effect'
+import { inputsProblems, manifestOf, rukenToml, type ShipInputBindings } from '@automata/tools/internal'
 import { describe, expect, it } from 'vitest'
 import packageJson from '../package.json' with { type: 'json' }
 import config from '../ship.config.ts'
@@ -9,7 +8,7 @@ import { base3d, input } from './main.ts'
 
 describe('base-3d ship.config.ts', () => {
   it("is a manifest Ruken's parser accepts, rendered with WebGL2, landscape (M3 spec §4.7)", () => {
-    const manifest = Effect.runSync(checkManifest(rukenToml(config)))
+    const manifest = manifestOf(rukenToml(config))
     expect(manifest.game.entry).toBe('index.html')
     expect(manifest.runtime.renderer).toBe('webgl2')
     expect(manifest.runtime.orientation).toBe('landscape')

@@ -1,6 +1,9 @@
 import {
+  type Clock,
   createPixiRenderer,
-  type ModelInvalid,
+  type Disposables,
+  disposables,
+  ModelInvalid,
   type PixiRenderer,
   type PixiRendererOptions,
   type PixiStage,
@@ -8,10 +11,10 @@ import {
   RenderDeltaConsumer,
   RendererUnavailable,
   type RenderTarget,
+  systemClock,
 } from '@automata/framework'
 import type { RenderDelta, RenderRow } from '@automata/sim'
 import { type Container3D, View3D } from '@pixi/3d'
-import { Cause, Effect, ExecutionStrategy, Exit, Option, Runtime, Scope } from 'effect'
 import { Graphics } from 'pixi.js'
 import { angledCamera, type CameraRig } from '../features/camera/angled-camera.ts'
 import { cameraDriver, type Pixi3dCameraOptions, PLAYER_HEIGHT } from '../features/camera/camera-driver.ts'
@@ -27,7 +30,7 @@ import { lampSwitches } from '../shared/render/light/lamp-switches.ts'
 import { createSceneLight, type SceneLight } from '../shared/render/light/scene-light.ts'
 import type { SceneFog, SceneLighting } from '../shared/render/light/scene-lighting.schema.ts'
 import { fogSkyColor, viewFog } from '../shared/render/light/view-fog.ts'
-import { loadModels, type ModelLibrary } from '../shared/render/model/load-models.ts'
+import { loadModels, type ModelLibrary, type ModelStore } from '../shared/render/model/load-models.ts'
 import type { EntityView3d, EntityViewResolver3d } from '../shared/render/views/view-3d.ts'
 
 export interface Pixi3dOptions extends PixiRendererOptions {
@@ -74,6 +77,8 @@ export interface Pixi3dOptions extends PixiRendererOptions {
    * game's to place in `scene`.
    */
   readonly camera?: Pixi3dCameraOptions | undefined
+  /** Times the lost-context wait. The real clock unless a test hands over a fake one. */
+  readonly clock?: Clock | undefined
 }
 
 export interface Pixi3dRenderer extends PixiRenderer {
@@ -199,9 +204,10 @@ class DrawnRows {
   }
 }
 
-/** One Pixi app with its View3D and views, in a scope of its own so Try again can replace it. */
+/** One Pixi app with its View3D and views, torn down together so Try again can replace it. */
 interface Instance {
-  readonly scope: Scope.CloseableScope
+  /** Undoes everything this instance built, views first and the app last. */
+  readonly cleanup: Disposables
   readonly base: PixiRenderer
   readonly view: View3D
   readonly context: ContextWatch
@@ -209,69 +215,60 @@ interface Instance {
   readonly camera: CameraRig | undefined
 }
 
-function buildInstance(
-  outer: Scope.Scope,
+/** Why the first build failed: the renderer is not WebGL2 or WebGPU, or the platform refused to make one. */
+type BuildResult =
+  | { readonly ok: true; readonly value: Instance }
+  | { readonly ok: false; readonly reason: RendererUnavailable }
+
+async function buildInstance(
   target: RenderTarget,
   options: Pixi3dOptions,
   models: ModelLibrary,
-  runtime: Runtime.Runtime<never>,
+  clock: Clock,
   onGone: () => void,
-): Effect.Effect<Instance, RendererUnavailable> {
-  return Effect.gen(function* () {
-    const scope = yield* Scope.fork(outer, ExecutionStrategy.sequential)
-    const built = yield* Effect.gen(function* () {
-      let mounted: Mounted | undefined
-      const made = yield* Effect.promise(() =>
-        createPixiRenderer({
-          ...options,
-          backgroundColor: skyOf(options),
-          setup: (stage) => {
-            if (!acceptsRenderer(stage.app.renderer as unknown as RendererKind)) return undefined
-            const made = mount(stage, options, models)
-            mounted = made
-            const own = options.setup?.(stage) ?? undefined
-            return mergeHooks(
-              made.hooks,
-              own,
-              options.scene?.(made.view, stage, made.occluders, made.light, models),
-            )
-          },
-        })(target),
+): Promise<BuildResult> {
+  let mounted: Mounted | undefined
+  const made = await createPixiRenderer({
+    ...options,
+    backgroundColor: skyOf(options),
+    setup: (stage) => {
+      if (!acceptsRenderer(stage.app.renderer as unknown as RendererKind)) return undefined
+      const made = mount(stage, options, models)
+      mounted = made
+      const own = options.setup?.(stage) ?? undefined
+      return mergeHooks(
+        made.hooks,
+        own,
+        options.scene?.(made.view, stage, made.occluders, made.light, models),
       )
-      if (!made.ok) return yield* Effect.fail(made.reason)
-      const base = made.value
-      // Added first, so it runs last: the app is destroyed after the views that draw in it.
-      yield* Effect.addFinalizer(() => Effect.sync(() => base.dispose()))
-      if (mounted === undefined) {
-        const tried: ('webgl2' | 'webgpu')[] =
-          options.preference === 'webgpu' ? ['webgpu', 'webgl2'] : ['webgl2']
-        return yield* Effect.fail(new RendererUnavailable({ tried }))
-      }
-      const { view, consumer, camera, occluders } = mounted
-      const device = (base.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
-      const context = watchContextLoss({
-        canvas: base.stage.app.canvas,
-        device,
-        bus: target.bus,
-        runtime,
-        onGone,
-      })
-      // Runs before the app's own teardown (last added, first run): stop watching, then drop the views.
-      yield* Effect.addFinalizer(() =>
-        Effect.sync(() => {
-          context.stop()
-          consumer.destroy()
-          occluders.dispose()
-        }),
-      )
-      return { base, view, context, camera }
-    }).pipe(
-      Scope.extend(scope),
-      Effect.onError(() => Scope.close(scope, Exit.void)),
-    )
-    return { scope, ...built }
+    },
+  })(target)
+  if (!made.ok) return made
+  const base = made.value
+  const cleanup = disposables()
+  // Added first, so it runs last: the app is destroyed after the views that draw in it.
+  cleanup.add(() => base.dispose())
+  if (mounted === undefined) {
+    cleanup.dispose()
+    const tried: ('webgl2' | 'webgpu')[] = options.preference === 'webgpu' ? ['webgpu', 'webgl2'] : ['webgl2']
+    return { ok: false, reason: new RendererUnavailable({ tried }) }
+  }
+  const { view, consumer, camera, occluders } = mounted
+  const device = (base.stage.app.renderer as unknown as { gpu?: { device?: GPUDevice } }).gpu?.device
+  const context = watchContextLoss({ canvas: base.stage.app.canvas, device, bus: target.bus, clock, onGone })
+  // Runs before the app's own teardown (added last, run first): stop watching, then drop the views.
+  cleanup.add(() => {
+    context.stop()
+    consumer.destroy()
+    occluders.dispose()
   })
+  return { ok: true, value: { cleanup, base, view, context, camera } }
 }
+
+/** What `createPixi3dRenderer`'s factory answers: the renderer, or why it could not start. */
+export type Pixi3dResult =
+  | { readonly ok: true; readonly value: Pixi3dRenderer }
+  | { readonly ok: false; readonly reason: RendererUnavailable | ModelInvalid }
 
 /**
  * The 3D renderer (M3 spec §4.1): core's Pixi renderer with one `View3D` mounted in `stage.world` through its
@@ -289,124 +286,94 @@ function buildInstance(
  */
 export function createPixi3dRenderer(
   options: Pixi3dOptions,
-  seams: Pixi3dSeams = {},
 ): (target: RenderTarget) => Promise<Pixi3dResult> {
-  const build = scopedPixi3dRenderer(options)
-  const runPromiseExit = seams.runPromiseExit ?? Effect.runPromiseExit
-  // The runtime's factory is plain; this package still builds in an Effect scope inside (its own refactor converts
-  // it), so the scope is opened here and `dispose` closes it.
+  const clock = options.clock ?? systemClock
   return async (target) => {
-    const scope = Effect.runSync(Scope.make())
-    const exit = await runPromiseExit(Scope.extend(build(target), scope))
-    if (Exit.isFailure(exit)) {
-      await Effect.runPromise(Scope.close(scope, exit))
-      const failure = Cause.failureOption(exit.cause)
-      if (Option.isSome(failure)) return { ok: false, reason: failure.value }
-      throw Cause.squash(exit.cause)
+    // Without the shim, pixi.js/unsafe-eval cannot upload @pixi/3d's uniforms and the first draw throws (S7-Q1).
+    if (!pixi3dUniformSyncInstalled())
+      throw new Error(
+        "@automata/3d: import '@automata/3d/no-eval' first, before anything else (in place of render-pixi/no-eval)",
+      )
+    const files = [
+      ...Object.values(options.views).flatMap((factory) => factory.models ?? []),
+      ...(options.models ?? []),
+    ]
+    let models: ModelStore
+    try {
+      models = await loadModels(files, target.assets)
+    } catch (error) {
+      if (error instanceof ModelInvalid) return { ok: false, reason: error }
+      throw error
     }
-    const renderer = exit.value
-    let disposed = false
-    // Defined, not spread: the renderer's `stage`, `view` and `camera` are getters that follow a rebuilt app.
-    Object.defineProperty(renderer, 'dispose', {
-      value: () => {
-        if (disposed) return
-        disposed = true
-        Effect.runSync(Scope.close(scope, Exit.void))
+    // Freed last: the models outlive the app and the views that draw them.
+    const lifetime = disposables()
+    lifetime.add(() => models.dispose())
+    const drawn = new DrawnRows()
+    let current: Instance | undefined
+    let rebuilding = false
+
+    const first = await buildInstance(target, options, models, clock, onGone)
+    if (!first.ok) {
+      lifetime.dispose()
+      return first
+    }
+    current = first.value
+    lifetime.add(() => current?.cleanup.dispose())
+
+    // A context that will not come back (M3 spec §5): the runtime shows the panel, and Try again builds the Pixi
+    // app, the View3D and the views again, from the sim's current rows (a resync).
+    function onGone(): void {
+      void target.reportLost?.(retry)
+    }
+    function retry(): void {
+      if (rebuilding) return
+      rebuilding = true
+      void rebuild()
+        .catch(onGone)
+        .finally(() => {
+          rebuilding = false
+        })
+    }
+    async function rebuild(): Promise<void> {
+      current?.cleanup.dispose()
+      const next = await buildInstance(target, options, models, clock, onGone)
+      if (!next.ok) throw next.reason
+      // The game quit while the new app was being made: nothing is left to draw it.
+      if (lifetime.disposed) return next.value.cleanup.dispose()
+      current = next.value
+      current.base.apply({
+        tick: 0,
+        events: [],
+        rejected: [],
+        render: { resync: true, added: drawn.all(), changed: [], removed: [] },
+      })
+    }
+
+    const live = (): Instance => current as Instance
+    // A getter object, not a spread: the renderer's `stage`, `view` and `camera` follow a rebuilt app.
+    const renderer: Pixi3dRenderer = {
+      get stage() {
+        return live().base.stage
       },
-    })
+      get view() {
+        return live().view
+      },
+      get camera() {
+        return live().camera
+      },
+      apply: (result) => {
+        drawn.take(result.render)
+        if (!rebuilding) live().base.apply(result)
+      },
+      draw: (frame) => {
+        if (!rebuilding && !live().context.lost()) live().base.draw(frame)
+      },
+      reset: () => {
+        drawn.clear()
+        live().base.reset()
+      },
+      dispose: () => lifetime.dispose(),
+    }
     return { ok: true, value: renderer }
   }
-}
-
-/** Test seams: the Effect runtime the renderer is built on, so a `TestClock` times the lost-context wait. */
-export interface Pixi3dSeams {
-  readonly runPromiseExit?: <A, E>(effect: Effect.Effect<A, E>) => Promise<Exit.Exit<A, E>>
-}
-
-/** What `createPixi3dRenderer`'s factory answers: the renderer, or why it could not start. */
-export type Pixi3dResult =
-  | { readonly ok: true; readonly value: Pixi3dRenderer }
-  | { readonly ok: false; readonly reason: RendererUnavailable | ModelInvalid }
-
-/** The renderer built in an Effect scope; closing the scope destroys it. */
-function scopedPixi3dRenderer(
-  options: Pixi3dOptions,
-): (target: RenderTarget) => Effect.Effect<Pixi3dRenderer, RendererUnavailable | ModelInvalid, Scope.Scope> {
-  return (target) =>
-    Effect.gen(function* () {
-      // Without the shim, pixi.js/unsafe-eval cannot upload @pixi/3d's uniforms and the first draw throws (S7-Q1).
-      if (!pixi3dUniformSyncInstalled())
-        return yield* Effect.die(
-          new Error(
-            "@automata/3d: import '@automata/3d/no-eval' first, before anything else (in place of render-pixi/no-eval)",
-          ),
-        )
-      const files = [
-        ...Object.values(options.views).flatMap((factory) => factory.models ?? []),
-        ...(options.models ?? []),
-      ]
-      const models = yield* loadModels(files, target.assets)
-      // Freed when the scope closes, after the app and the views that draw them (finalizers run last-added first).
-      yield* Effect.addFinalizer(() => Effect.sync(() => models.dispose()))
-
-      const runtime = yield* Effect.runtime<never>()
-      const outer = yield* Effect.scope
-      const drawn = new DrawnRows()
-      let current: Instance | undefined
-      let rebuilding = false
-
-      // A context that will not come back (M3 spec §5): the runtime shows the panel, and Try again builds the Pixi
-      // app, the View3D and the views again in a fresh scope, from the sim's current rows (a resync).
-      const onGone = (): void => void target.reportLost?.(retry)
-      const retry = (): void => {
-        if (rebuilding) return
-        rebuilding = true
-        Runtime.runFork(runtime)(
-          Effect.gen(function* () {
-            if (current !== undefined) yield* Scope.close(current.scope, Exit.void)
-            current = yield* buildInstance(outer, target, options, models, runtime, onGone)
-            current.base.apply({
-              tick: 0,
-              events: [],
-              rejected: [],
-              render: { resync: true, added: drawn.all(), changed: [], removed: [] },
-            })
-          }).pipe(
-            Effect.catchAll(() => Effect.sync(onGone)),
-            Effect.ensuring(
-              Effect.sync(() => {
-                rebuilding = false
-              }),
-            ),
-          ),
-        )
-      }
-
-      current = yield* buildInstance(outer, target, options, models, runtime, onGone)
-      const live = (): Instance => current as Instance
-      return {
-        get stage() {
-          return live().base.stage
-        },
-        get view() {
-          return live().view
-        },
-        get camera() {
-          return live().camera
-        },
-        apply: (result) => {
-          drawn.take(result.render)
-          if (!rebuilding) live().base.apply(result)
-        },
-        draw: (frame) => {
-          if (!rebuilding && !live().context.lost()) live().base.draw(frame)
-        },
-        reset: () => {
-          drawn.clear()
-          live().base.reset()
-        },
-        // Replaced by `createPixi3dRenderer`, which owns the scope this renderer lives in.
-        dispose: () => undefined,
-      }
-    })
 }

@@ -1,6 +1,7 @@
 // Replaces Effect's `TestClock`: time stands still until a test calls `advance`.
 import type { Clock, TimeoutHandle } from '../shared/lib/clock'
 
+/** A `Clock` whose time a test moves by hand: nothing fires until `advance`. */
 export interface FakeClock extends Clock {
   /** Moves time forward by `ms`, firing every timeout that falls due on the way, earliest first. */
   advance(ms: number): void
@@ -14,6 +15,7 @@ interface Timer {
   readonly callback: () => void
 }
 
+/** Makes a `FakeClock` at time 0 with no timeouts waiting. */
 export function fakeClock(): FakeClock {
   let now = 0
   let nextId = 0

@@ -42,7 +42,7 @@ export {
   type SaveDef,
 } from '../features/saves/save.schema.js'
 export type { Saves } from '../features/saves/saves.manager.js'
-export type { Clock } from '../shared/lib/clock.ts'
+export { type Clock, systemClock, type TimeoutHandle } from '../shared/lib/clock.ts'
 export { type Disposables, disposables } from '../shared/lib/disposables.ts'
 export {
   ModelInvalid,

@@ -449,3 +449,20 @@ export const compileContent = (
     if (!outcome.ok) return yield* outcome.error
     return outcome.content
   })
+
+/** What `compileContentResult` answers: the content, or the error `compileContent` failed with. */
+export type CompileContentResult =
+  | { readonly ok: true; readonly content: CompiledContent }
+  | { readonly ok: false; readonly error: ContentCompileFailed | InvalidContentConfig }
+
+/**
+ * `compileContent` for a caller outside Effect (a package's tests, a script): runs it and answers with a plain value,
+ * so the caller imports no `effect`. A refusal is a value too, never a rejection.
+ */
+export const compileContentResult = (options: ContentOptions): Promise<CompileContentResult> =>
+  Effect.runPromise(
+    Effect.match(compileContent(options), {
+      onSuccess: (content): CompileContentResult => ({ ok: true, content }),
+      onFailure: (error): CompileContentResult => ({ ok: false, error }),
+    }),
+  )

@@ -1,5 +1,4 @@
-import type { RenderTarget } from '@automata/framework'
-import { Duration, Effect, Fiber, Runtime } from 'effect'
+import type { Clock, RenderTarget, TimeoutHandle } from '@automata/framework'
 
 /**
  * How long the renderer waits for the browser to give a lost WebGL context back before it shows the "picture
@@ -14,8 +13,8 @@ export interface ContextWatchOptions {
   /** The WebGPU device, when the renderer is WebGPU: its `lost` settles once and the device never comes back. */
   readonly device?: { readonly lost: Promise<unknown> } | undefined
   readonly bus: RenderTarget['bus']
-  /** Runs the wait on the game's clock (a test clock in tests). */
-  readonly runtime: Runtime.Runtime<never>
+  /** Times the wait: the game's clock (a fake clock in tests). */
+  readonly clock: Clock
   /** The context will not come back: the renderer asks for the panel and rebuilds itself on Try again. */
   readonly onGone: () => void
 }
@@ -36,26 +35,19 @@ export interface ContextWatch {
 export function watchContextLoss(options: ContextWatchOptions): ContextWatch {
   let lost = false
   let stopped = false
-  let wait: Fiber.RuntimeFiber<void> | undefined
-  const run = Runtime.runFork(options.runtime)
+  let wait: TimeoutHandle | undefined
   const cancelWait = (): void => {
-    if (wait !== undefined) run(Fiber.interrupt(wait))
+    if (wait !== undefined) options.clock.clearTimeout(wait)
     wait = undefined
   }
   const onLost = (): void => {
     lost = true
     options.bus?.publish('render.context.lost', {})
     cancelWait()
-    wait = run(
-      Effect.sleep(Duration.millis(CONTEXT_RESTORE_MS)).pipe(
-        Effect.andThen(
-          Effect.sync(() => {
-            wait = undefined
-            if (lost && !stopped) options.onGone()
-          }),
-        ),
-      ),
-    )
+    wait = options.clock.setTimeout(() => {
+      wait = undefined
+      if (lost && !stopped) options.onGone()
+    }, CONTEXT_RESTORE_MS)
   }
   const onRestored = (): void => {
     lost = false

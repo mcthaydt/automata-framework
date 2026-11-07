@@ -80,10 +80,22 @@ function findPixi3d(distDir: string): {
 function inputsProblems(inputs: readonly string[], bindings: ShipInputBindings): string[];
 ```
 
+### `manifestOf` (function)
+
+```ts
+function manifestOf(toml: string): Manifest;
+```
+
 ### `rukenHeaders` (function)
 
 ```ts
 function rukenHeaders(config: ShipConfig, target: RukenHeaderTarget): Effect.Effect<Record<string, string>, ManifestInvalid>;
+```
+
+### `rukenHeadersOf` (function)
+
+```ts
+function rukenHeadersOf(config: ShipConfig, target: RukenHeaderTarget): Record<string, string>;
 ```
 
 ### `RukenHeaderTarget` (type)

@@ -22,7 +22,7 @@ The 2026-10 specs, plans and task lists are in `docs/archive/`. They are history
 3. The same seed, content and inputs give the same hash, in every engine. Never accept a hash mismatch as flaky.
 4. The host is a port. No distribution target is the reference ([ADR 0006](docs/adr/0006-distribution-targets.md)).
 5. Effect is for Node tooling. The sim never imports it, and the browser package `@automata/framework` is plain
-   TypeScript ([ADR 0003](docs/adr/0003-effect-outside-the-sim.md) as amended). The 3D renderer keeps Effect until the 3D phase.
+   TypeScript ([ADR 0003](docs/adr/0003-effect-outside-the-sim.md) as amended).
 6. PixiJS only for rendering ([ADR 0002](docs/adr/0002-pixi-for-2d-and-3d.md)). Every game imports the no-eval entry first.
 7. Zod is the only schema language.
 

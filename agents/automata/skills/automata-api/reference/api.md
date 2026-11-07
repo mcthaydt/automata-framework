@@ -56,6 +56,29 @@ Compiles `<root>/content` in memory. Writes nothing.
 const compileContent: (options: ContentOptions) => Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>;
 ```
 
+#### `CompileContentResult` (type)
+
+What `compileContentResult` answers: the content, or the error `compileContent` failed with.
+
+```ts
+type CompileContentResult = {
+  readonly ok: true;
+  readonly content: CompiledContent;
+} | {
+  readonly ok: false;
+  readonly error: ContentCompileFailed | InvalidContentConfig;
+};
+```
+
+#### `compileContentResult` (const)
+
+`compileContent` for a caller outside Effect (a package's tests, a script): runs it and answers with a plain value,
+so the caller imports no `effect`. A refusal is a value too, never a rejection.
+
+```ts
+const compileContentResult: (options: ContentOptions) => Promise<CompileContentResult>;
+```
+
 #### `CompiledContent` (interface)
 
 The result of a compile: the content and its hash, the sim partition, every output file's text, warnings,
@@ -5141,6 +5164,14 @@ text can be pasted from a message.
 function suppressPageGestures(doc: Document): () => void;
 ```
 
+#### `systemClock` (const)
+
+The real clock. `performance.now()` is steady: it does not jump when the player changes the system time.
+
+```ts
+const systemClock: Clock;
+```
+
 #### `SystemDef` (interface)
 
 A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and
@@ -5179,6 +5210,14 @@ interface Time {
     pause(reason: PauseReason): void;
     resume(reason: PauseReason): void;
 }
+```
+
+#### `TimeoutHandle` (type)
+
+What a timeout is called back with: opaque, only ever handed back to `clearTimeout`.
+
+```ts
+type TimeoutHandle = unknown;
 ```
 
 #### `Toast` (const)
@@ -5516,6 +5555,27 @@ A decoded buffer that remembers the alias it came from, so `started` can name it
 
 ```ts
 const fakeBuffer: (alias: string, duration?: number) => AudioBuffer;
+```
+
+#### `FakeClock` (interface)
+
+A `Clock` whose time a test moves by hand: nothing fires until `advance`.
+
+```ts
+interface FakeClock extends Clock {
+    /** Moves time forward by `ms`, firing every timeout that falls due on the way, earliest first. */
+    advance(ms: number): void;
+    /** How many timeouts are still waiting. */
+    pending(): number;
+}
+```
+
+#### `fakeClock` (function)
+
+Makes a `FakeClock` at time 0 with no timeouts waiting.
+
+```ts
+function fakeClock(): FakeClock;
 ```
 
 #### `fakeFetch` (function)

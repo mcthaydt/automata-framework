@@ -4,8 +4,12 @@
 import { cpSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { type CompiledContent, compileContent, type Diagnostic, formatDiagnostic } from '@automata/content'
-import { Effect, Either } from 'effect'
+import {
+  type CompiledContent,
+  compileContentResult,
+  type Diagnostic,
+  formatDiagnostic,
+} from '@automata/content'
 import { FIGURE_CONTENT } from '../features/figures/content/figures.content.ts'
 
 export const FIXTURE_ROOT: string = join(import.meta.dirname, '../../tests/fixtures')
@@ -26,13 +30,12 @@ export async function compileFixture(
       if (text === null) rmSync(join(root, file))
       else writeFileSync(join(root, file), text)
   }
-  const compiled = Effect.either(compileContent({ root, schemas: FIGURE_CONTENT }))
   // A copy is this call's own folder: removed once the compile has read it, whatever the result.
-  const result = await Effect.runPromise(compiled).finally(() => {
+  const result = await compileContentResult({ root, schemas: FIGURE_CONTENT }).finally(() => {
     if (root !== FIXTURE_ROOT) rmSync(root, { recursive: true, force: true })
   })
-  if (Either.isRight(result)) return { ok: true, content: result.right }
-  const error = result.left
+  if (result.ok) return result
+  const { error } = result
   const diagnostics = error._tag === 'ContentCompileFailed' ? error.diagnostics : []
   const message =
     error._tag === 'ContentCompileFailed' ? diagnostics.map(formatDiagnostic).join('\n') : error.message

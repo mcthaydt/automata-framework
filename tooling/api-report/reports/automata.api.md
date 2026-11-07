@@ -2033,6 +2033,12 @@ interface SubscriptionEntitlement {
 function suppressPageGestures(doc: Document): () => void;
 ```
 
+### `systemClock` (const)
+
+```ts
+const systemClock: Clock;
+```
+
 ### `SystemDef` (interface)
 
 ```ts
@@ -2061,6 +2067,12 @@ interface Time {
     pause(reason: PauseReason): void;
     resume(reason: PauseReason): void;
 }
+```
+
+### `TimeoutHandle` (type)
+
+```ts
+type TimeoutHandle = unknown;
 ```
 
 ### `Toast` (svelte)
@@ -2289,6 +2301,21 @@ function fakeAudioContext(decode?: (bytes: ArrayBuffer) => AudioBuffer): FakeAud
 
 ```ts
 const fakeBuffer: (alias: string, duration?: number) => AudioBuffer;
+```
+
+### `FakeClock` (interface)
+
+```ts
+interface FakeClock extends Clock {
+    advance(ms: number): void;
+    pending(): number;
+}
+```
+
+### `fakeClock` (function)
+
+```ts
+function fakeClock(): FakeClock;
 ```
 
 ### `fakeFetch` (function)

@@ -1,6 +1,5 @@
 import { ModelInvalid, type RenderTarget } from '@automata/framework'
 import { type Geometry3D, PhongMaterial } from '@pixi/3d'
-import { Effect } from 'effect'
 import { Texture } from 'pixi.js'
 import { shareMaterial } from '../views/shared-material.ts'
 import { modelGeometry } from './model-geometry.ts'
@@ -42,61 +41,60 @@ const parserFor = (file: string): ((buffer: ArrayBuffer, file: string) => ModelM
   return undefined
 }
 
-function loadModel(
+async function loadModel(
   file: string,
   assets: RenderTarget['assets'],
   decode: DecodeTexture,
-): Effect.Effect<LoadedModel, ModelInvalid> {
-  return Effect.gen(function* () {
-    const parse = parserFor(file)
-    if (parse === undefined) return yield* Effect.fail(new ModelInvalid({ file, reason: 'unsupported type' }))
-    // The runtime fetched the file with byte progress under the 30 s stall rule (M1.5) because the game listed it
-    // in its preload; a file it did not fetch is a game bug, named here.
-    const blob = assets.get(file)
-    if (blob === undefined) return yield* Effect.fail(new ModelInvalid({ file, reason: 'not loaded' }))
-    const buffer = yield* Effect.tryPromise({
-      try: () => blob.arrayBuffer(),
-      catch: () => new ModelInvalid({ file, reason: 'malformed: unreadable bytes' }),
-    })
-    const mesh = yield* Effect.try({
-      try: () => parse(buffer, file),
-      catch: (error) =>
-        error instanceof ModelInvalid ? error : new ModelInvalid({ file, reason: 'malformed' }),
-    })
-    const texture = yield* Effect.tryPromise({
-      try: () => decode(mesh.image, mesh.mime),
-      catch: () => new ModelInvalid({ file, reason: 'malformed: unreadable texture' }),
-    })
-    return {
-      mesh,
-      geometry: modelGeometry(mesh),
-      // Every mesh of the model shares it; a prop the occluder rule fades gets its own copy.
-      material: shareMaterial(
-        new PhongMaterial({ baseColorTexture: texture }),
-        () => new PhongMaterial({ baseColorTexture: texture }),
-      ),
-      texture,
-    }
-  })
+): Promise<LoadedModel> {
+  const parse = parserFor(file)
+  if (parse === undefined) throw new ModelInvalid({ file, reason: 'unsupported type' })
+  // The runtime fetched the file with byte progress under the 30 s stall rule (M1.5) because the game listed it
+  // in its preload; a file it did not fetch is a game bug, named here.
+  const blob = assets.get(file)
+  if (blob === undefined) throw new ModelInvalid({ file, reason: 'not loaded' })
+  const buffer = await blob
+    .arrayBuffer()
+    .catch(() => Promise.reject(new ModelInvalid({ file, reason: 'malformed: unreadable bytes' })))
+  let mesh: ModelMesh
+  try {
+    mesh = parse(buffer, file)
+  } catch (error) {
+    throw error instanceof ModelInvalid ? error : new ModelInvalid({ file, reason: 'malformed' })
+  }
+  const texture = await decode(mesh.image, mesh.mime).catch(() =>
+    Promise.reject(new ModelInvalid({ file, reason: 'malformed: unreadable texture' })),
+  )
+  return {
+    mesh,
+    geometry: modelGeometry(mesh),
+    // Every mesh of the model shares it; a prop the occluder rule fades gets its own copy.
+    material: shareMaterial(
+      new PhongMaterial({ baseColorTexture: texture }),
+      () => new PhongMaterial({ baseColorTexture: texture }),
+    ),
+    texture,
+  }
 }
 
 /**
  * Reads every named model file from the runtime's loaded assets: `.glb` (`parseGlb`) or packed `.bin`
- * (`parsePack`). Fails with the first `ModelInvalid`, so a bad model stops boot before anything is drawn.
+ * (`parsePack`). Rejects with the first `ModelInvalid`, so a bad model stops boot before anything is drawn.
  */
-export function loadModels(
+export async function loadModels(
   files: readonly string[],
   assets: RenderTarget['assets'],
   decode: DecodeTexture = decodeWithBitmap,
-): Effect.Effect<ModelStore, ModelInvalid> {
-  return Effect.gen(function* () {
-    const loaded = new Map<string, LoadedModel>()
+): Promise<ModelStore> {
+  const loaded = new Map<string, LoadedModel>()
+  try {
+    // One at a time, so the first bad file is the one reported.
+    for (const file of new Set(files)) loaded.set(file, await loadModel(file, assets, decode))
+  } catch (error) {
     // A failure part way frees what was already loaded.
-    yield* Effect.forEach(new Set(files), (file) =>
-      Effect.map(loadModel(file, assets, decode), (model) => void loaded.set(file, model)),
-    ).pipe(Effect.onError(() => Effect.sync(() => disposeAll(loaded))))
-    return { get: (file) => loaded.get(file), dispose: () => disposeAll(loaded) }
-  })
+    disposeAll(loaded)
+    throw error
+  }
+  return { get: (file) => loaded.get(file), dispose: () => disposeAll(loaded) }
 }
 
 function disposeModel(model: LoadedModel): void {

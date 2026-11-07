@@ -10,6 +10,8 @@
 - `buildContent` (const): Compiles, writes every output under the output folder, then removes the outputs it no longer produces.
 - `checkTuningLayer(layer, options, { complete })`: Checks one layer of tuning against code-owned declarations.
 - `compileContent` (const): Compiles `<root>/content` in memory.
+- `CompileContentResult` (type): What `compileContentResult` answers: the content, or the error `compileContent` failed with.
+- `compileContentResult` (const): `compileContent` for a caller outside Effect (a package's tests, a script): runs it and answers with a plain value, so the caller imports no `effect`.
 - `CompiledContent` (interface): The result of a compile: the content and its hash, the sim partition, every output file's text, warnings, the languages and each language's message catalog.
 - `ContentCompileFailed` (class): The authored content has problems.
 - `ContentConfig` (type): The default export of `automata.content.ts`.
@@ -396,9 +398,11 @@
 - `STICKY_MARGIN_PX` (const): How far outside a button a thumb still counts for it, in CSS pixels.
 - `SubscriptionEntitlement` (interface): One subscription the player holds.
 - `suppressPageGestures(doc)`: Turns off the browser's document gestures over the game.
+- `systemClock` (const): The real clock.
 - `SystemDef` (interface): A system: a name, the phase it runs in, the systems it must run `before` or `after` within that phase, and its `run`, called once per tick.
 - `TAURI_MARKERS` (const): String literals only Tauri's IPC code contains, which survive minification: the global the webview injects (`@tauri-apps/api/core`) and the process plugin's exit command (`@tauri-apps/plugin-process`).
 - `Time` (interface): The time service: whether the sim is paused, and why; each reason pauses until it is resumed.
+- `TimeoutHandle` (type): What a timeout is called back with: opaque, only ever handed back to `clearTimeout`.
 - `Toast` (const): A passing message: "Pad connected", "Saved", "This controller is not supported".
 - `Toggle` (const): An on/off setting: a native checkbox with the switch role, so the browser gives Space and the focus navigator's `adjust` flips it.
 - `TouchButton` (interface): One on-screen touch button: every key bound to the same payload shares it.
@@ -430,6 +434,8 @@
 - `FakeAudioContext` (interface): A recording stand-in for an `AudioContext`: what was started, stopped and automated, with a clock tests move by hand.
 - `fakeAudioContext(decode?)`: `decode` turns the bytes `decodeAudioData` receives into a buffer, or throws as the browser does for bytes that are not audio; by default the bytes are the alias's UTF-8 text.
 - `fakeBuffer` (const): A decoded buffer that remembers the alias it came from, so `started` can name it.
+- `FakeClock` (interface): A `Clock` whose time a test moves by hand: nothing fires until `advance`.
+- `fakeClock()`: Makes a `FakeClock` at time 0 with no timeouts waiting.
 - `fakeFetch(routes, options?)`: Creates an in-memory fetch implementation for deterministic loading tests.
 - `FakeFetchOptions` (interface): Options for `fakeFetch`: the fetch that answers urls with no route.
 - `FakeFetchResult` (interface): The fake fetch, and the urls it was asked for and saw aborted.

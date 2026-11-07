@@ -5,6 +5,10 @@
 // it, not before.
 export { findPixi3d } from '../shared/ship/prepare/pixi3d-markers.ts'
 export { inputsProblems, type ShipInputBindings } from '../shared/ship/targets/ruken/check-inputs.ts'
-export { checkManifest } from '../shared/ship/targets/ruken/check-manifest.ts'
-export { type RukenHeaderTarget, rukenHeaders } from '../shared/ship/targets/ruken/ruken-headers.ts'
+export { checkManifest, manifestOf } from '../shared/ship/targets/ruken/check-manifest.ts'
+export {
+  type RukenHeaderTarget,
+  rukenHeaders,
+  rukenHeadersOf,
+} from '../shared/ship/targets/ruken/ruken-headers.ts'
 export { rukenToml } from '../shared/ship/targets/ruken/ruken-toml.ts'

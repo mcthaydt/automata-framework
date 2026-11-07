@@ -38,6 +38,24 @@ function checkTuningLayer(layer: Readonly<Record<string, unknown>>, options: Tun
 const compileContent: (options: ContentOptions) => Effect.Effect<CompiledContent, ContentCompileFailed | InvalidContentConfig>;
 ```
 
+### `CompileContentResult` (type)
+
+```ts
+type CompileContentResult = {
+    readonly ok: true;
+    readonly content: CompiledContent;
+} | {
+    readonly ok: false;
+    readonly error: ContentCompileFailed | InvalidContentConfig;
+};
+```
+
+### `compileContentResult` (const)
+
+```ts
+const compileContentResult: (options: ContentOptions) => Promise<CompileContentResult>;
+```
+
 ### `CompiledContent` (interface)
 
 ```ts

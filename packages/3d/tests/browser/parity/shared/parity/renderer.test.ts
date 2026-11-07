@@ -1,11 +1,12 @@
 // The 3D renderer on a real context in each engine (M3.4a). Headless Firefox in this container has no WebGL at all,
 // so there the drawing cases skip and the refusal case runs instead; the GPU runner runs them all (M3.1b).
 import '#src/entries/no-eval.ts'
+import type { Clock } from '@automata/framework'
+import { fakeClock } from '@automata/framework/testing'
 import type { RenderRow, StepResult } from '@automata/sim'
 import { DirectionalLight } from '@pixi/3d'
-import { ManagedRuntime, TestClock, TestContext } from 'effect'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createPixi3dRenderer, type Pixi3dRenderer, type Pixi3dSeams } from '#src/app/create-renderer.ts'
+import { createPixi3dRenderer, type Pixi3dRenderer } from '#src/app/create-renderer.ts'
 import { CONTEXT_RESTORE_MS } from '#src/features/renderer/context-loss.ts'
 import { box } from '#src/shared/render/views/box-view.ts'
 import { mesh } from '#src/shared/render/views/mesh-view.ts'
@@ -38,28 +39,26 @@ const makeViews = () => ({
 
 async function start(
   views: ReturnType<typeof makeViews> = makeViews(),
-  seams: Pixi3dSeams = {},
+  clock?: Clock,
 ): Promise<{ renderer: Pixi3dRenderer; target: ReturnType<typeof testTarget> }> {
   const host = document.createElement('div')
   document.body.appendChild(host)
   const target = testTarget(host, { 'models/box.glb': encodeGlb(fixtureBox()) })
-  const factory = createPixi3dRenderer(
-    {
-      logicalWidth: 160,
-      logicalHeight: 90,
-      backgroundColor: BACKGROUND,
-      views,
-      scene: (view) => {
-        view.camera.position.set(0, 2.5, 5)
-        view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
-        const sun = new DirectionalLight({ intensity: 2 })
-        sun.rotation.set(-0.8, 0.5, 0)
-        view.root.addChild(sun)
-        return undefined
-      },
+  const factory = createPixi3dRenderer({
+    logicalWidth: 160,
+    logicalHeight: 90,
+    backgroundColor: BACKGROUND,
+    views,
+    scene: (view) => {
+      view.camera.position.set(0, 2.5, 5)
+      view.camera.lookAt({ x: 0, y: 0.5, z: 0 })
+      const sun = new DirectionalLight({ intensity: 2 })
+      sun.rotation.set(-0.8, 0.5, 0)
+      view.root.addChild(sun)
+      return undefined
     },
-    seams,
-  )
+    clock,
+  })
   const renderer = await builtRenderer(factory(target))
   scope = renderer
   return { renderer, target }
@@ -191,10 +190,8 @@ describe.runIf(hasWebGL2)('createPixi3dRenderer on WebGL2', () => {
 // clock), and Try again builds a new app on a new context and draws the same scene from the sim's rows.
 describe.runIf(hasWebGL2)('a context that does not come back', () => {
   it('asks for the panel after the wait, and Try again draws the scene on a new context', async () => {
-    const clock = ManagedRuntime.make(TestContext.TestContext)
-    const { renderer, target } = await start(makeViews(), {
-      runPromiseExit: (effect) => clock.runPromiseExit(effect),
-    })
+    const clock = fakeClock()
+    const { renderer, target } = await start(makeViews(), clock)
     renderer.draw(frame)
     const empty = snapshot(renderer)
     renderer.apply(step({ resync: true, added: rows, changed: [], removed: [] }))
@@ -205,9 +202,9 @@ describe.runIf(hasWebGL2)('a context that does not come back', () => {
     gl.getExtension('WEBGL_lose_context')?.loseContext()
     await lost
 
-    await clock.runPromise(TestClock.adjust(CONTEXT_RESTORE_MS - 1))
+    clock.advance(CONTEXT_RESTORE_MS - 1)
     expect(target.lostPanels).toHaveLength(0)
-    await clock.runPromise(TestClock.adjust(1))
+    clock.advance(1)
     await expect.poll(() => target.lostPanels.length).toBe(1)
 
     target.lostPanels[0]?.()
@@ -217,7 +214,6 @@ describe.runIf(hasWebGL2)('a context that does not come back', () => {
     renderer.draw(frame)
     expect(differing(empty, snapshot(renderer))).toBeGreaterThan(200)
     expect(renderer.view.root.children.length).toBeGreaterThanOrEqual(2)
-    await clock.dispose()
   })
 })
 

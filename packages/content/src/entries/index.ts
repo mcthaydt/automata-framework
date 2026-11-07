@@ -4,9 +4,11 @@
 export type { ContentConfig } from '../app/cli/run-cli'
 export { type PreloadInput, preloadList } from '../features/preload/preload-list'
 export {
+  type CompileContentResult,
   type CompiledContent,
   type ContentOptions,
   compileContent,
+  compileContentResult,
   DEFAULT_OUT_DIR,
   type MessageLocation,
 } from '../shared/compile/compile-content'

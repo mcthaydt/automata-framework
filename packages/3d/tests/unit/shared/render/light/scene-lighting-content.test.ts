@@ -1,8 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { compileContent, type Diagnostic } from '@automata/content'
-import { Effect, Either } from 'effect'
+import { compileContentResult, type Diagnostic } from '@automata/content'
 import { describe, expect, it } from 'vitest'
 import { sceneLightingContent } from '#src/shared/render/light/scene-lighting.content.ts'
 
@@ -44,15 +43,15 @@ async function compileHall(text: string) {
   try {
     mkdirSync(join(root, 'content', 'lighting'), { recursive: true })
     writeFileSync(join(root, 'content', 'lighting', 'hall.toml'), text)
-    return await Effect.runPromise(Effect.either(compileContent({ root, schemas: [sceneLightingContent] })))
+    return await compileContentResult({ root, schemas: [sceneLightingContent] })
   } finally {
     rmSync(root, { recursive: true, force: true })
   }
 }
 
 const diagnosticsOf = (result: Awaited<ReturnType<typeof compileHall>>): readonly Diagnostic[] => {
-  if (Either.isRight(result)) throw new Error('expected the compile to fail')
-  return result.left._tag === 'ContentCompileFailed' ? result.left.diagnostics : []
+  if (result.ok) throw new Error('expected the compile to fail')
+  return result.error._tag === 'ContentCompileFailed' ? result.error.diagnostics : []
 }
 
 describe('scene-lighting content', () => {
@@ -66,8 +65,9 @@ describe('scene-lighting content', () => {
 
   it('compiles a room of lamps, a wall and fog with the defaults filled', async () => {
     const result = await compileHall(HALL)
-    if (Either.isLeft(result)) throw new Error(String(result.left))
-    const hall = (result.right.data['scene-lighting'] as Record<string, { lamps: { level: number }[] }>).hall
+    if (!result.ok) throw new Error(String(result.error))
+    const hall = (result.content.data['scene-lighting'] as Record<string, { lamps: { level: number }[] }>)
+      .hall
     expect(hall?.lamps.map((lamp) => lamp.level)).toEqual([1, 1])
   })
 
