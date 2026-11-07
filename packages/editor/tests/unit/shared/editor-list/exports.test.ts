@@ -62,6 +62,21 @@ describe('a row that names exports', () => {
     expect(access.row?.editor).toBe('tuner')
   })
 
+  it('makes the pictures of tiles in assets/ writable through the same row', () => {
+    for (const path of ['assets/my-tiles.png', 'assets/forest.webp', 'assets/a.jpg', 'assets/b.jpeg']) {
+      const access = fileAccess(game, path)
+      expect(access.writable, path).toBe(true)
+      expect(access.row?.editor, path).toBe('levels-2d')
+    }
+    for (const path of ['assets/run.js', 'assets/deep/a.png', 'assets/.png', 'art/a.png'])
+      expect(fileAccess(game, path).writable, path).toBe(false)
+  })
+
+  it('writes no picture when no level project exports', () => {
+    const noExports = list(ROW.replace('exports = "content"\n', ''))
+    expect(fileAccess(noExports, 'assets/my-tiles.png').writable).toBe(false)
+  })
+
   it('still refuses what the list never writes or generates', () => {
     const guarded = list(`never = ["content/world.toml"]\ngenerated = ["content/levels/**"]\n${ROW}`)
     expect(fileAccess(guarded, 'content/world.toml')).toMatchObject({ writable: false, reason: 'never' })

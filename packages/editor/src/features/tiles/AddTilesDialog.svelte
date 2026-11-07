@@ -1,6 +1,6 @@
 <!--
   Add tiles (plan 12.3b): one dialog that turns a picture of tiles into something to paint with. Three steps on one
-  screen: choose a picture, say how big one tile is (a stepper in px, with 8, 16, 32 and 48 as quick choices), and see
+  screen: choose a picture, say how big one tile is (one stepper, in px), and see
   the picture with its grid drawn over it and the count in words. A size that does not fit says so and suggests sizes
   that do; Add tiles, the one primary action, waits until the picture and the size fit. It writes the picture into
   the game (under `assets/`, never over a file that is there), hands the tileset to `onadd` (the session's one undo
@@ -13,11 +13,10 @@
 import type { ProjectStore } from '../../shared/kit/storage/project-store'
 import Button from '../../shared/kit/widgets/Button.svelte'
 import Dialog from '../../shared/kit/widgets/Dialog.svelte'
-import Segmented from '../../shared/kit/widgets/Segmented.svelte'
 import Stepper from '../../shared/kit/widgets/Stepper.svelte'
 import type { FieldCommit } from '../../shared/level-2d/model/field-commit'
 import type { Size, TilesetDef } from '../../shared/level-2d/model/project-types'
-import { PICTURE_TYPES, pictureAsset, QUICK_TILE_SIZES, tileGrid, tilesetFromPicture } from './add-tiles'
+import { PICTURE_TYPES, pictureAsset, tileGrid, tilesetFromPicture } from './add-tiles'
 
 interface Props {
   open: boolean
@@ -60,7 +59,6 @@ let busy = $state(false)
 
 const grid = $derived(chosen === undefined ? undefined : tileGrid(chosen.size, tile))
 const ready = $derived(grid !== undefined && grid.problem === undefined && !busy)
-const quick = QUICK_TILE_SIZES.map((size) => ({ id: String(size), label: `${size} px` }))
 
 function forget(): void {
   if (chosen?.url !== undefined) URL.revokeObjectURL(chosen.url)
@@ -83,6 +81,17 @@ async function pick(event: Event): Promise<void> {
   chosen = { name: file.name, bytes, size, url }
 }
 
+/**
+ * What a failed write says. A game that does not let the editor save pictures (`policy`) is not a fault to quote: the
+ * person is told what is true and what to do. Any other failure carries its own plain sentence ("The disk is full.").
+ */
+function refusal(failed: { reason: string; message: string }): string {
+  if (failed.reason === 'policy') {
+    return 'This game doesn’t let the editor save pictures yet. Ask whoever set the game up to allow pictures in its assets folder.'
+  }
+  return `Couldn’t add the picture. ${failed.message}`
+}
+
 async function add(close: () => void): Promise<void> {
   if (chosen === undefined || !ready) return
   busy = true
@@ -92,7 +101,7 @@ async function add(close: () => void): Promise<void> {
     const path = pictureAsset(chosen.name, existing)
     const written = await files.write(path, chosen.bytes, 'absent')
     if (!written.ok) {
-      trouble = `Couldn't add the picture: ${written.message}`
+      trouble = refusal(written)
       return
     }
     const done = onadd(tilesetFromPicture({ fileName: chosen.name, path, size: chosen.size, tile, taken }))
@@ -140,12 +149,6 @@ $effect(() => {
           onedit={(event) => {
             if (event.phase === 'set' || event.phase === 'commit') tile = event.value
           }}
-        />
-        <Segmented
-          label="Common tile sizes"
-          options={quick}
-          value={String(tile)}
-          onedit={(event) => (tile = Number(event.value))}
         />
       </div>
     </section>

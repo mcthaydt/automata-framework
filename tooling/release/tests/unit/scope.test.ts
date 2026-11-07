@@ -12,6 +12,8 @@ const KEPT = [
   /^docs\/archive\//,
   /^docs\/refactor\//,
   /(^|\/)CHANGELOG\.md$/,
+  // A changeset's text becomes a changelog entry, so the one announcing the rename names the old scope on purpose.
+  /^\.changeset\/[^/]+\.md$/,
   /^tooling\/codemods\/(src|tests\/unit)\/rename-scope(-cli)?(\.test)?\.ts$/,
   /^tooling\/release\/tests\/unit\/scope\.test\.ts$/,
 ]

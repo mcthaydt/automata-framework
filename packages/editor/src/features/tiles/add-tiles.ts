@@ -3,8 +3,7 @@
 // to add. The dialog (`AddTilesDialog.svelte`) draws this and the session adds the tileset as one undo step.
 import type { Size, TilesetDef } from '../../shared/level-2d/model/project-types'
 
-/** The tile sizes offered as quick choices, and the range a suggestion is drawn from. */
-export const QUICK_TILE_SIZES: readonly number[] = [8, 16, 32, 48]
+/** The range a suggested tile size is drawn from. */
 const SMALLEST_SUGGESTION = 8
 const LARGEST_SUGGESTION = 64
 

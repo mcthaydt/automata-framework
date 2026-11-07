@@ -38,8 +38,6 @@ describe('Add tiles', () => {
     expect(screen.getByRole('dialog', { name: 'Add tiles' })).toBeInTheDocument()
     expect(screen.getByText('How big is one tile?')).toBeInTheDocument()
     expect(screen.getByRole('spinbutton', { name: 'Tile size' })).toHaveAttribute('aria-valuenow', '16')
-    for (const size of ['8', '16', '32', '48'])
-      expect(screen.getByRole('radio', { name: `${size} px` })).toBeInTheDocument()
     expect(addButton()).toBeDisabled()
   })
 
@@ -58,7 +56,10 @@ describe('Add tiles', () => {
       await screen.findByText('The picture is 40 px wide; 16 px tiles leave 8 px over. Try 10 or 20.'),
     ).toBeInTheDocument()
     expect(addButton()).toBeDisabled()
-    await userEvent.click(screen.getByRole('radio', { name: '8 px' }))
+    await userEvent.click(screen.getByRole('spinbutton', { name: 'Tile size' }))
+    const size = await screen.findByLabelText('Tile size', { selector: 'input' })
+    await userEvent.clear(size)
+    await userEvent.type(size, '8{Enter}')
     expect(await screen.findByText('This makes 25 tiles.')).toBeInTheDocument()
     expect(addButton()).toBeEnabled()
   })
@@ -86,9 +87,33 @@ describe('Add tiles', () => {
     await choose()
     await screen.findByText('This makes 32 tiles.')
     await userEvent.click(addButton())
-    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't add the picture: The disk is full.")
+    expect(await screen.findByRole('alert')).toHaveTextContent('Couldn’t add the picture. The disk is full.')
     expect(onadd).not.toHaveBeenCalled()
     expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  // Build audit G1: a game that does not allow pictures says what is true, never a path or the word "policy".
+  it('a game that does not allow pictures says so in plain words', async () => {
+    const { store, onadd } = mount()
+    store.write = async () => ({
+      ok: false,
+      reason: 'policy',
+      message: 'assets/my-tiles.png is not one the editor may write',
+    })
+    await choose()
+    await screen.findByText('This makes 32 tiles.')
+    await userEvent.click(addButton())
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('This game doesn’t let the editor save pictures yet.')
+    expect(alert).not.toHaveTextContent('assets/')
+    expect(onadd).not.toHaveBeenCalled()
+  })
+
+  it('asks for one tile size, not two controls for the same number', async () => {
+    mount()
+    await choose()
+    await screen.findByText('This makes 32 tiles.')
+    expect(screen.getAllByRole('spinbutton').length + screen.queryAllByRole('radio').length).toBe(1)
   })
 
   it('a picture that cannot be read says so', async () => {
