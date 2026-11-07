@@ -22,11 +22,11 @@ live in the framework's `docs/refactor/` (audit decision D1 A); `mcthaydt/automa
 | 1.1 Mirror generator | 1 | Done, 2026-11-07 (13 tests) |
 | 1.2 Release job and checks use it | 1 | Done, 2026-11-07 |
 | 1.3 Part 1 close | 1 | Not started |
-| 2.1 Declarations only (C1) | 2 | Not started |
-| 2.2 What the reference leaves out (C2) | 2 | Not started |
-| 2.3 Only published packages (D2 A) | 2 | Not started |
-| 2.4 Both builder names (T3) | 2 | Not started |
-| 2.5 Part 2 close | 2 | Not started |
+| 2.1 Declarations only (C1) | 2 | Done, 2026-11-07 |
+| 2.2 What the reference leaves out (C2) | 2 | Done, 2026-11-07 |
+| 2.3 Only published packages (D2 A) | 2 | Done, 2026-11-07 |
+| 2.4 Both builder names (T3) | 2 | Done, 2026-11-07 |
+| 2.5 Part 2 close | 2 | Done, 2026-11-07 |
 | 3.1 Editor skill (C3) | 3 | Not started |
 | 3.2 One sim import list (C4) | 3 | Not started |
 | 3.3 Repository-only rules (C5) | 3 | Not started |
@@ -70,3 +70,15 @@ Stage 4, `superpowers:executing-plans`, inline. Pre-flight: tasks 1.1 to 1.2 sha
   "Skills (5) …", "Hooks (2) PostToolUse, Stop". Nothing pushed.
   Ruling: `release-checks.yml` is not edited: it already runs `pnpm plugin:validate`, which now builds and validates the
   mirror — an edit would run it twice — none if wrong.
+- Task 2.1: complete (`reexport.test.ts` 2 tests and `reference.test.ts` 7 tests RED→GREEN; api-index 45/45, api-report 45/45, site 340/340).
+  The regenerated `api.md` loses the six definers' bodies and the overload implementations; `docs/cheatsheet.md` loses
+  one phantom `defineSystem(nameOrSpec, …)` overload. `pnpm api-index` says "0 undocumented".
+  Ruling: the re-export tests live in a new `tests/unit/reexport.test.ts` (the fixture needs a temp copy with
+  `node_modules` links), not in `rows.test.ts` — rows.test.ts reads a committed fixture — none if wrong.
+  Ruling: `declarationExports`'s `paths` is typed `Record<string, string[]>` (not readonly) because TypeScript's
+  `CompilerOptions.paths` is — none if wrong.
+- Task 2.2: complete (`skill-content.test.ts` RED "to contain `@automata/framework/target`" → GREEN, 135/135).
+- Task 2.3: complete (`published-only.test.ts` 4 tests; the module-missing RED, then GREEN). The published-only case
+  passes on today's tree: no unpublished package is named, and the 3D build's 13.2 has not landed on this stack.
+- Task 2.4: complete (`source-names.test.ts` 2 new cases RED→GREEN; repo-hygiene 93/93; `pnpm source-names` 0 findings).
+  The 3D build's 10.1 has not landed on this stack, so the pattern and the `agents/` extensions are added here.

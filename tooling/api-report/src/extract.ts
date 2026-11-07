@@ -195,7 +195,7 @@ export function sourceExports(packages: readonly CorePackage[]): ExportsOf {
  */
 export function declarationExports(
   files: readonly string[],
-  paths?: Readonly<Record<string, readonly string[]>>,
+  paths?: Record<string, string[]>,
 ): ExportsOf {
   const program = ts.createProgram(files, {
     // Only declarations, aliases and doc comments are read, never types, so the default lib and @types are
@@ -207,7 +207,7 @@ export function declarationExports(
     target: ts.ScriptTarget.ES2022,
     module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Bundler,
-    ...(paths === undefined ? {} : { paths: { ...paths } }),
+    ...(paths === undefined ? {} : { paths }),
   })
   return readExports(program)
 }
